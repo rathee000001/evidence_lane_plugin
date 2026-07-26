@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0+codex.20260726051820",
   "description": "Private stateful Git/code workflow plugin with immutable SQLite project versions and human-controlled HIL promotion.",
   "author": {
     "name": "Praveen Rathee",

@@ -59,7 +59,7 @@ def connect(path: str | Path, *, readonly: bool = False) -> sqlite3.Connection:
     database_path = Path(path).resolve()
     if readonly:
         connection = sqlite3.connect(
-            f"file:{database_path.as_posix()}?mode=ro",
+            f"file:{database_path.as_posix()}?mode=ro&immutable=1",
             uri=True,
             timeout=30,
         )
@@ -69,7 +69,9 @@ def connect(path: str | Path, *, readonly: bool = False) -> sqlite3.Connection:
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     connection.execute("PRAGMA busy_timeout = 30000")
-    if not readonly:
+    if readonly:
+        connection.execute("PRAGMA query_only = ON")
+    else:
         connection.execute("PRAGMA journal_mode = WAL")
         connection.execute("PRAGMA synchronous = FULL")
     return connection

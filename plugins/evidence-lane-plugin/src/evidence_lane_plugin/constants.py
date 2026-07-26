@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 ENGINE_NAME = "evidence-lane-private-code-engine"
-ENGINE_VERSION = "0.1.0"
+ENGINE_VERSION = "0.2.0"
 SCHEMA_VERSION = "1.0.0"
 TOOL_RESULT_SCHEMA = "evidence-lane.pv.tool-result.v1"
 LIFECYCLE_RESULT_SCHEMA = "evidence-lane.pv.lifecycle-result.v1"
@@ -49,6 +49,12 @@ ENV_UOP_FORBIDDEN_NAMES = {
     "uop.sqlite",
     "environment_package.json",
     "operator_profile.json",
+}
+
+ENV_UOP_FORBIDDEN_PATH_PARTS = {
+    "env",
+    "uop",
+    "session_flash",
 }
 
 DEFAULT_MAX_FILE_BYTES = 16 * 1024 * 1024

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -31,8 +32,7 @@ def main() -> int:
     plugin_root = Path(__file__).resolve().parents[1]
     python = _venv_python(plugin_root)
     if python.is_file() and Path(sys.executable).resolve() != python.resolve():
-        os.execv(
-            str(python),
+        completed = subprocess.run(  # nosec B603
             [
                 str(python),
                 str(Path(__file__).resolve()),
@@ -43,7 +43,9 @@ def main() -> int:
                 "--port",
                 str(args.port),
             ],
+            check=False,
         )
+        return completed.returncode
     source = plugin_root / "src"
     sys.path.insert(0, str(source))
     try:

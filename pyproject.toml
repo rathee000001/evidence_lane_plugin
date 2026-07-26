@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evidence-lane-plugin"
-version = "0.1.0"
+version = "0.2.0"
 description = "Private stateful agentic-code plugin with deterministic SQLite project versions and human HIL promotion."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -31,7 +31,13 @@ package-dir = {"" = "plugins/evidence-lane-plugin/src"}
 where = ["plugins/evidence-lane-plugin/src"]
 
 [tool.setuptools.package-data]
-evidence_lane_plugin = ["schema.sql"]
+evidence_lane_plugin = [
+  "schema.sql",
+  "session_flash/env15/*.json",
+  "session_flash/env15/*.md",
+  "session_flash/env15/env/*",
+  "session_flash/env15/uop/*",
+]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers"

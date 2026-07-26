@@ -10,6 +10,7 @@ from typing import Any
 from .constants import LIFECYCLE_RESULT_SCHEMA, TOOL_RESULT_SCHEMA
 from .engine import CodePVEngine
 from .errors import EvidenceLaneError
+from .flash_authority import SessionFlashAuthority
 from .models import HostKind, ProjectConfig
 from .persistence import (
     GoogleDrivePersistence,
@@ -43,6 +44,7 @@ class EvidenceLaneService:
             )
         )
         self.store = ProjectStore(configured_root)
+        self.flash_authority = SessionFlashAuthority(data_root=configured_root)
         self.engine = CodePVEngine(
             store=self.store,
             source_repository_root=repository_root,
@@ -144,11 +146,19 @@ class EvidenceLaneService:
             return self._error(tool, error, lifecycle=lifecycle)
 
     def doctor(self) -> dict[str, Any]:
-        installation = self.sessions.ensure_installation()
+        installation = self.sessions.installation_status()
         report = self.engine.doctor()
+        flash = self.flash_authority.status()
         report["installation"] = installation
+        report["session_flash"] = flash
+        report["checks"]["session_flash_bundle"] = flash["status"] == "PASS"
+        report["status"] = "PASS" if all(report["checks"].values()) else "FAIL"
+        report["warnings"] = flash["warnings"]
         report["google_drive_configured"] = self.sync_service is not None
         return report
+
+    def session_flash_status(self) -> dict[str, Any]:
+        return self.flash_authority.status()
 
     def register_project(
         self,
@@ -189,6 +199,7 @@ class EvidenceLaneService:
         ephemeral: bool,
         runtime_context: dict[str, Any] | None,
     ) -> dict[str, Any]:
+        flash = self.flash_authority.ensure_flashed()
         route = route_persistence(host, ephemeral=ephemeral)
         if route.durable_required and self.sync_service is None:
             raise EvidenceLaneError(
@@ -207,6 +218,7 @@ class EvidenceLaneService:
             persistence_mode=route.mode,
             ephemeral=ephemeral,
             runtime_context=runtime_context,
+            flash=flash,
         )
         result["persistence_route"] = {
             "mode": route.mode,

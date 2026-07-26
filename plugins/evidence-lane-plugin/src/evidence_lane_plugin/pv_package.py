@@ -9,6 +9,7 @@ from typing import Any
 from . import database
 from .constants import (
     ENV_UOP_FORBIDDEN_NAMES,
+    ENV_UOP_FORBIDDEN_PATH_PARTS,
     POINTER_SCHEMA,
     PV_MANIFEST_SCHEMA,
     PV_OPTIONAL_FILES,
@@ -218,7 +219,14 @@ def validate_pv_package(directory: str | Path) -> dict[str, Any]:
     forbidden = [
         path.relative_to(root).as_posix()
         for path in root.rglob("*")
-        if path.is_file() and path.name.lower() in ENV_UOP_FORBIDDEN_NAMES
+        if path.is_file()
+        and (
+            path.name.lower() in ENV_UOP_FORBIDDEN_NAMES
+            or bool(
+                {part.lower() for part in path.relative_to(root).parts[:-1]}
+                & ENV_UOP_FORBIDDEN_PATH_PARTS
+            )
+        )
     ]
     require(
         not forbidden,

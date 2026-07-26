@@ -28,10 +28,18 @@ accepted PVn
 - immutable candidate storage and byte-preserving accepted promotion;
 - compare-and-swap accepted pointers;
 - five exact HIL decisions and forbidden-transition guards;
+- exact correction/research continuation and source-restored return from
+  rejected/failed runs without pointer movement;
 - local persistence plus a Google Drive REST adapter boundary;
 - one-agent/one-task/session enforcement;
+- hash-locked ENV15/UOP15 session authority with exact MMD, SQLite, render, and
+  law artifacts outside every PV;
+- idempotent installation-scoped flash receipts and visible flash status;
 - secret-redacted, idempotent ChatLineage;
-- standard `search` and `fetch` plus focused `pv_*` MCP tools;
+- progressive chunk/symbol/path `search`, bounded file/chunk/symbol `fetch`,
+  and focused files/symbols/imports/dependencies/routes/receipt queries;
+- explicit current-accepted, historical-accepted, and unaccepted-candidate
+  authority labels with exact source commit/hash provenance;
 - a separately gated remote Git action controller;
 - optional advisory Codex hooks that do not own persistence.
 
@@ -43,7 +51,7 @@ accepted PVn
   production hosting, Vercel deployment, or public submission;
 - no automatic remote push;
 - no automatic PV promotion;
-- no ENV/UOP data inside a PV;
+- no ENV/UOP data inside a PV, source repository patch, or remote Git write;
 - no historical V1/V3 brain package in the runtime;
 - no secret in source, PVs, Drive, lineage, screenshots, or normal logs.
 
@@ -72,7 +80,13 @@ plugins/evidence-lane-plugin/.venv/Scripts/python.exe -m evidence_lane_plugin.cl
 ```
 
 The architecture, state transitions, persistence boundary, Git-write gate, host
-matrix, and first-HIL runbook are in [`docs/`](docs/ARCHITECTURE.md).
+matrix, and first-HIL runbook are in [`docs/`](docs/ARCHITECTURE.md). The
+ChatGPT connection boundary is documented in
+[`docs/CHATGPT_CONNECTION.md`](docs/CHATGPT_CONNECTION.md).
+The accepted-entry versus live-source law and the independently reconciled
+Claude/Fable deltas are documented in
+[`docs/RUNTIME_STALENESS_CONTRACT.md`](docs/RUNTIME_STALENESS_CONTRACT.md) and
+[`docs/REFERENCE_RECONCILIATION.md`](docs/REFERENCE_RECONCILIATION.md).
 
 ## Run MCP
 
@@ -91,10 +105,25 @@ plugins/evidence-lane-plugin/.venv/Scripts/python.exe \
   --host 127.0.0.1 --port 8765
 ```
 
-The HTTP endpoint is `/mcp`. ChatGPT requires a public HTTPS endpoint and a
-developer-mode MCP registration; production hosting is intentionally deferred.
-The first private HIL uses local STDIO. No public endpoint is configured by this
-repository.
+The HTTP endpoint is `/mcp`. ChatGPT cannot connect directly to a local MCP
+server. This private tool-only app therefore requires either OpenAI Secure MCP
+Tunnel or a later stable HTTPS deployment plus Developer Mode registration.
+Production hosting remains deferred. The first private HIL uses local STDIO; no
+public endpoint is configured by this repository.
+
+## Session flash authority
+
+Plugin selection injects a concise universal session-behavior prompt. Before
+governed work, the runtime verifies the exact 16-member ENV15/UOP15 subset:
+member sizes and SHA-256 values, MMD locks, read-only immutable SQLite integrity,
+foreign keys, and SQLite user version. The first valid `session_boot` creates one
+installation-scoped flash receipt; later boots reuse the same digest.
+
+The supplied parent packet is not intact: six declared `codex/` members are
+missing and one undeclared research file is present. Evidence Lane therefore
+accepts only the independently verified ENV/UOP subset and always returns the
+`SOURCE_PACKET_PARTIAL_INTEGRITY` warning. See
+[`docs/SESSION_FLASH_AUTHORITY.md`](docs/SESSION_FLASH_AUTHORITY.md).
 
 ## Persistence
 

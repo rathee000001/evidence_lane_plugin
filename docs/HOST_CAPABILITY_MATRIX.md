@@ -5,6 +5,7 @@ host may expose fewer tools; reduced capability never expands authority.
 
 | Capability | Local Codex desktop/CLI | Codex VM or ephemeral agent | ChatGPT/public AI | Android/mobile control |
 | --- | --- | --- | --- | --- |
+| Session flash | Bundled authority verified locally | Bundled authority verified in runner | Verified in remote MCP runner | Reviews same remote receipt |
 | Repository read | Local authorized path | Authorized sandbox clone | Connected tool/sandbox only | Remote review only |
 | Repository write | Bounded local worktree | Bounded sandbox | User or approved sandbox applies Delta | No local execution |
 | Terminal/tests | Host permission | Sandbox permission | Only if connected tool permits | No |
@@ -14,6 +15,8 @@ host may expose fewer tools; reduced capability never expands authority.
 | HIL decision | Explicit human tool call | Explicit human tool call | Explicit human tool call | Explicit remote control |
 | Remote Git write | Separate two-step gate | Separate two-step gate | Separate two-step gate | Separate two-step gate |
 
-The current private HIL proves the local Codex STDIO route. Google Drive and
-public ChatGPT registration are implemented boundaries but remain unconfigured
-until the user supplies the connector authority.
+The current private HIL proves the local Codex STDIO route. ChatGPT cannot
+connect directly to a local MCP process; it requires Secure MCP Tunnel or a
+stable HTTPS endpoint and an eligible Developer Mode connection. Google Drive
+and ChatGPT connection boundaries remain unconfigured until those exact host
+authorities exist. See [`CHATGPT_CONNECTION.md`](CHATGPT_CONNECTION.md).

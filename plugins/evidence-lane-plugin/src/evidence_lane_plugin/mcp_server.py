@@ -68,10 +68,11 @@ def create_mcp_server(
     mcp = FastMCP(
         "Evidence Lane Plugin",
         instructions=(
-            "Govern one Git/code project through immutable SQLite PV entry and exit "
-            "states. Use one agent and one bounded task. Never infer HIL approval, "
-            "move an accepted pointer, or write remote Git without the exact tools "
-            "and explicit human evidence."
+            "Verify the locked ENV15/UOP15 session flash outside PV, then govern one "
+            "Git/code project through immutable SQLite PV entry and exit states. "
+            "Use one agent and one bounded task. Never infer HIL approval, move an "
+            "accepted pointer, or write remote Git without the exact tools and "
+            "explicit human evidence."
         ),
         host=host,
         port=port,
@@ -95,6 +96,23 @@ def create_mcp_server(
     )
     def runtime_doctor() -> dict[str, Any]:
         return application.invoke("runtime_doctor", application.doctor)
+
+    @mcp.tool(
+        name="session_flash_status",
+        title="Inspect Evidence Lane session flash",
+        description=(
+            "Verify the exact locked ENV15/UOP15 authority members, Mermaid hashes, "
+            "read-only SQLite integrity, source-packet warning, and installation "
+            "flash receipt without creating or changing the receipt."
+        ),
+        annotations=_READ_ONLY,
+        meta=_meta("Checking session flash", "Session flash status ready"),
+        structured_output=True,
+    )
+    def session_flash_status() -> dict[str, Any]:
+        return application.invoke(
+            "session_flash_status", application.session_flash_status
+        )
 
     @mcp.tool(
         name="project_register",
@@ -134,10 +152,11 @@ def create_mcp_server(
         name="session_boot",
         title="Boot governed Evidence Lane session",
         description=(
-            "Flash one governed session context for one user, workspace, project, "
-            "host, agent, and source state. The plugin installation persists until "
-            "the user removes it; runtime boot context is never placed inside a PV. "
-            "Remote or ephemeral hosts fail closed unless user-owned Drive "
+            "Verify and idempotently flash the locked ENV15/UOP15 session authority, "
+            "then boot one governed context for one user, workspace, project, host, "
+            "agent, and source state. The plugin and flash persist until the user "
+            "removes the plugin; neither runtime context nor ENV/UOP bytes enter a "
+            "PV. Remote or ephemeral hosts fail closed unless user-owned Drive "
             "persistence is configured."
         ),
         annotations=_LOCAL_WRITE,
@@ -341,6 +360,36 @@ def create_mcp_server(
         )
 
     @mcp.tool(
+        name="hil_return_to_accepted",
+        title="Return a rejected or failed run to accepted state",
+        description=(
+            "After REJECT or FAIL, verify that an accepted PV exists, the accepted "
+            "pointer did not move, and the live repository was restored to that exact "
+            "accepted source. Then clear only the bounded run state and append a "
+            "visible return receipt. This never moves the accepted pointer."
+        ),
+        annotations=_HIL_WRITE,
+        meta=_meta(
+            "Verifying return to accepted state",
+            "Returned to accepted state without pointer movement",
+        ),
+        structured_output=True,
+    )
+    def hil_return_to_accepted(
+        project_id: str,
+        session_id: str,
+        reason: str,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "hil_return_to_accepted",
+            application.sessions.return_to_accepted,
+            project_id,
+            session_id,
+            reason=reason,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
         name="pv_begin_next_turn",
         title="Enter next turn from latest accepted PV",
         description=(
@@ -409,8 +458,9 @@ def create_mcp_server(
         name="search",
         title="Search accepted PV source intelligence",
         description=(
-            "Standard read-only search over deterministic FTS chunks in an accepted "
-            "or explicitly named candidate PV. Returns stable chunk ref_ids for fetch."
+            "Progressive read-only search across deterministic FTS chunks, symbols, "
+            "and paths. Defaults to the current accepted PV; an explicitly named "
+            "candidate is labeled UNACCEPTED_CANDIDATE and never presented as truth."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Searching PV source intelligence", "PV search complete"),
@@ -435,9 +485,9 @@ def create_mcp_server(
         name="fetch",
         title="Fetch exact PV file or chunk",
         description=(
-            "Standard read-only fetch for file:<repository-relative-path> or "
-            "chunk:<numeric-id>. Exact source bytes remain authoritative in SQLite; "
-            "binary output is bounded base64."
+            "Standard read-only fetch for file:<path>, chunk:<id>, or symbol:<id>. "
+            "Text files support bounded line windows with exact file hash and source "
+            "commit provenance; binary output is bounded base64."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Fetching exact PV evidence", "PV evidence fetched"),
@@ -448,6 +498,9 @@ def create_mcp_server(
         ref_id: str,
         pv_ref: str | None = None,
         max_bytes: int = 256000,
+        start_line: int | None = None,
+        end_line: int | None = None,
+        max_lines: int = 400,
     ) -> dict[str, Any]:
         return application.invoke(
             "fetch",
@@ -456,6 +509,9 @@ def create_mcp_server(
             ref_id,
             pv_ref=pv_ref,
             max_bytes=max_bytes,
+            start_line=start_line,
+            end_line=end_line,
+            max_lines=max_lines,
         )
 
     @mcp.tool(
@@ -484,8 +540,9 @@ def create_mcp_server(
         name="pv_query",
         title="Run focused PV intelligence query",
         description=(
-            "Run one allowlisted read-only query kind: files, symbols, dependencies, "
-            "routes, or receipts. Arbitrary SQL and multiple statements are blocked."
+            "Run one allowlisted read-only query kind: files, symbols, imports, "
+            "dependencies, routes, or receipts. Arbitrary SQL and multiple "
+            "statements are blocked."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Querying PV intelligence", "PV query complete"),

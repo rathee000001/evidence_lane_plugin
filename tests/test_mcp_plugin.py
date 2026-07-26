@@ -5,9 +5,11 @@ import json
 import os
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 import pytest
+from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.mcp_server import create_mcp_server, run_server
 from evidence_lane_plugin.service import EvidenceLaneService
 from mcp.client.session import ClientSession
@@ -22,6 +24,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     by_name = {tool.name: tool for tool in tools}
     assert set(by_name) == {
         "runtime_doctor",
+        "session_flash_status",
         "project_register",
         "session_boot",
         "pv_build_initial",
@@ -30,6 +33,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "task_confirm_source_update",
         "pv_refresh",
         "hil_decide",
+        "hil_return_to_accepted",
         "pv_begin_next_turn",
         "session_close",
         "pv_status",
@@ -43,7 +47,9 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     }
     assert by_name["search"].annotations.readOnlyHint is True
     assert by_name["fetch"].annotations.readOnlyHint is True
+    assert by_name["session_flash_status"].annotations.readOnlyHint is True
     assert by_name["hil_decide"].annotations.destructiveHint is True
+    assert by_name["hil_return_to_accepted"].annotations.destructiveHint is True
     assert by_name["remote_git_execute_push"].annotations.openWorldHint is True
     for tool in tools:
         assert tool.description
@@ -98,6 +104,18 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     ).lower()
     forbidden = "data" + "machine"
     assert forbidden not in contents.replace(" ", "")
+
+
+def test_declared_versions_match_runtime_source_of_truth() -> None:
+    root = Path(__file__).resolve().parents[1]
+    plugin_manifest = json.loads(
+        (
+            root / "plugins" / "evidence-lane-plugin" / ".codex-plugin" / "plugin.json"
+        ).read_text(encoding="utf-8")
+    )
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+    assert plugin_manifest["version"].split("+", 1)[0] == ENGINE_VERSION
+    assert project["project"]["version"] == ENGINE_VERSION
 
 
 def test_session_start_hook_is_advisory(tmp_path: Path) -> None:

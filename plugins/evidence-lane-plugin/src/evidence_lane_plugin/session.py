@@ -6,8 +6,9 @@ import json
 from pathlib import Path
 from typing import Any, cast
 
+from .constants import ENGINE_VERSION
 from .engine import CodePVEngine
-from .errors import require
+from .errors import EvidenceLaneError, require
 from .git_adapter import identity_json, inspect_repository
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
 from .ids import prefixed_id
@@ -27,11 +28,18 @@ from .tasking import classify_task
 from .timeutil import utc_now
 
 _TERMINAL_STATES = {
-    SessionState.CORRECTION_TASK_PENDING,
-    SessionState.RESEARCH_TASK_PENDING,
     SessionState.REJECTED_RUN,
     SessionState.FAILED_RUN,
 }
+
+_REPOSITORY_IDENTITY_FIELDS = (
+    "repository_url",
+    "owner",
+    "name",
+    "commit_sha",
+    "tree_sha",
+    "worktree_sha256",
+)
 
 
 class SessionManager:
@@ -56,6 +64,70 @@ class SessionManager:
 
     def _active_path(self, project_id: str) -> Path:
         return self.store.project_root(project_id) / "active_session.json"
+
+    def _verify_repository_matches_package(
+        self,
+        project_id: str,
+        package: Path,
+        *,
+        error_code: str,
+        message: str,
+    ) -> dict[str, Any]:
+        config = self.store.config(project_id)
+        identity = inspect_repository(
+            config.repository_path,
+            expected_owner=config.expected_owner,
+            expected_name=config.expected_name,
+        )
+        current = identity_json(identity, config.repository_path)
+        expected = json.loads(
+            (package / "project_identity.json").read_text(encoding="utf-8")
+        )["repository"]
+        mismatches = {
+            field: {"expected": expected.get(field), "current": current.get(field)}
+            for field in _REPOSITORY_IDENTITY_FIELDS
+            if expected.get(field) != current.get(field)
+        }
+        require(
+            not mismatches,
+            error_code,
+            message,
+            status="MISMATCH",
+            mismatches=mismatches,
+        )
+        return current
+
+    def installation_status(self) -> dict[str, Any]:
+        path = self.store.root / "installation.json"
+        if not path.is_file():
+            return {
+                "schema": "evidence-lane.plugin-installation.v1",
+                "plugin_id": "evidence-lane-plugin",
+                "display_name": "Evidence Lane Plugin",
+                "version": ENGINE_VERSION,
+                "state": "NOT_INITIALIZED",
+                "session_boot_context_inside_pv": False,
+                "session_flash_required": True,
+                "session_flash_inside_pv": False,
+                "hil_approval_inferred": False,
+            }
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise EvidenceLaneError(
+                "PLUGIN_INSTALLATION_RECEIPT_JSON_INVALID",
+                "The persistent plugin installation receipt is not valid JSON.",
+                status="FAIL",
+                details={"error": str(exc)},
+            ) from exc
+        require(
+            payload.get("schema") == "evidence-lane.plugin-installation.v1"
+            and payload.get("plugin_id") == "evidence-lane-plugin",
+            "PLUGIN_INSTALLATION_RECEIPT_INVALID",
+            "The persistent plugin installation receipt is invalid.",
+            status="MISMATCH",
+        )
+        return payload
 
     def _save(self, session: SessionRecord) -> None:
         session.updated_at = utc_now()
@@ -98,14 +170,29 @@ class SessionManager:
     def ensure_installation(self) -> dict[str, Any]:
         path = self.store.root / "installation.json"
         if path.exists():
-            return json.loads(path.read_text(encoding="utf-8"))
+            payload = self.installation_status()
+            additions = {
+                "version": ENGINE_VERSION,
+                "session_boot_context_inside_pv": False,
+                "session_flash_required": True,
+                "session_flash_inside_pv": False,
+                "hil_approval_inferred": False,
+            }
+            if any(payload.get(key) != value for key, value in additions.items()):
+                payload.update(additions)
+                atomic_write_json(path, payload)
+            return payload
         payload = {
             "schema": "evidence-lane.plugin-installation.v1",
             "plugin_id": "evidence-lane-plugin",
             "display_name": "Evidence Lane Plugin",
+            "version": ENGINE_VERSION,
             "state": "INSTALLED_UNTIL_USER_REMOVES_PLUGIN",
             "installed_at": utc_now(),
             "session_boot_context_inside_pv": False,
+            "session_flash_required": True,
+            "session_flash_inside_pv": False,
+            "hil_approval_inferred": False,
         }
         atomic_write_json(path, payload)
         return payload
@@ -121,6 +208,7 @@ class SessionManager:
         sandbox_id: str | None,
         persistence_mode: str,
         ephemeral: bool,
+        flash: dict[str, Any],
         runtime_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         installation = self.ensure_installation()
@@ -204,7 +292,7 @@ class SessionManager:
             user_id=user_id,
             workspace_id=workspace_id,
             host=host_kind,
-            state=SessionState.BOOTED,
+            state=SessionState.SESSION_BOOT_FLASH,
             accepted_pv=pointer.accepted_pv,
             accepted_pointer_generation=pointer.generation,
             repository=repository_payload,
@@ -217,16 +305,49 @@ class SessionManager:
                 "runtime_context_sha256": context_hash,
                 "runtime_context_stored_in_pv": False,
                 "installation_state": installation["state"],
+                "flash_authority_version": flash["authority_version"],
+                "flash_authority_digest": flash["authority_digest"],
+                "flash_action": flash["flash_action"],
+                "flash_context_stored_in_pv": False,
                 "persistence_mode": persistence_mode,
                 "ephemeral_host": ephemeral,
+                "source_state": (
+                    "ACCEPTED_ENTRY_EXACT"
+                    if pointer.accepted_pv is not None
+                    else "INITIAL_SOURCE_EXACT"
+                ),
+                "accepted_pv_query_scope": (
+                    "CURRENT_ENTRY_STATE"
+                    if pointer.accepted_pv is not None
+                    else "NO_ACCEPTED_PV"
+                ),
             },
         )
+        self._save(session)
+        lineage = ChatLineage(self._lineage_path(project_id, session_id))
+        lineage.append(
+            event_type="session.flash.verified",
+            visible_payload={
+                "state": SessionState.SESSION_BOOT_FLASH.value,
+                "authority_version": flash["authority_version"],
+                "authority_digest": flash["authority_digest"],
+                "manifest_sha256": flash["manifest_sha256"],
+                "flash_action": flash["flash_action"],
+                "flash_scope": flash["flash_scope"],
+                "environment_operator_data_inside_pv": False,
+                "source_packet": flash["source_packet"],
+                "warnings": flash["warnings"],
+                "hil_approval_inferred": False,
+            },
+            occurred_at=now,
+            session_id=session_id,
+        )
+        session.state = SessionState.BOOTED
         self._save(session)
         atomic_write_json(
             active_path,
             {"session_id": session_id, "project_id": project_id, "booted_at": now},
         )
-        lineage = ChatLineage(self._lineage_path(project_id, session_id))
         lineage.append(
             event_type="session.boot",
             visible_payload={
@@ -238,6 +359,8 @@ class SessionManager:
                 "repository": repository_payload,
                 "runtime_context_sha256": context_hash,
                 "runtime_context_stored_in_pv": False,
+                "flash_authority_digest": flash["authority_digest"],
+                "flash_context_stored_in_pv": False,
             },
             occurred_at=now,
             session_id=session_id,
@@ -246,6 +369,7 @@ class SessionManager:
             "status": "PASS",
             "session": session.as_dict(),
             "installation": installation,
+            "session_flash": flash,
             "entry_action": (
                 "BUILD_PV1_CANDIDATE"
                 if pointer.accepted_pv is None
@@ -314,6 +438,11 @@ class SessionManager:
     ) -> dict[str, Any]:
         session = self.load(project_id, session_id)
         pointer = self.store.pointer(project_id)
+        pending = session.metadata.get("pending_task")
+        pending_state = session.state in {
+            SessionState.CORRECTION_TASK_PENDING,
+            SessionState.RESEARCH_TASK_PENDING,
+        }
         require(
             session.state
             in {
@@ -321,6 +450,8 @@ class SessionManager:
                 SessionState.PVN_ACCEPTED,
                 SessionState.PVN1_ACCEPTED,
                 SessionState.PVN1_ENTRY,
+                SessionState.CORRECTION_TASK_PENDING,
+                SessionState.RESEARCH_TASK_PENDING,
             }
             and pointer.accepted_pv is not None,
             "TASK_CLASSIFICATION_STATE_INVALID",
@@ -341,6 +472,38 @@ class SessionManager:
             "The pointer changed after session entry.",
             status="STALE",
         )
+        if pending_state:
+            require(
+                isinstance(pending, dict),
+                "PENDING_TASK_CONTRACT_MISSING",
+                "The pending HIL outcome has no exact follow-up task contract.",
+                status="FAIL",
+            )
+            exact_pending = cast(dict[str, Any], pending)
+            require(
+                task_class == exact_pending["required_task_class"],
+                "PENDING_TASK_CLASS_MISMATCH",
+                "The follow-up task class does not match the exact HIL outcome.",
+                status="BLOCKED",
+                required=exact_pending["required_task_class"],
+            )
+            require(
+                requested_outcome.strip() == exact_pending["requested_outcome"],
+                "PENDING_TASK_OUTCOME_MISMATCH",
+                "The follow-up task outcome must exactly match the bounded HIL payload.",
+                status="BLOCKED",
+                required=exact_pending["requested_outcome"],
+            )
+            source_candidate_id = cast(str, exact_pending["source_candidate_id"])
+            self._verify_repository_matches_package(
+                project_id,
+                self.store.candidate_path(project_id, source_candidate_id),
+                error_code="PENDING_CANDIDATE_SOURCE_MISMATCH",
+                message=(
+                    "The live source no longer matches the candidate bound to the "
+                    "pending HIL task."
+                ),
+            )
         task = classify_task(
             task_class=task_class,
             requested_outcome=requested_outcome,
@@ -358,10 +521,31 @@ class SessionManager:
         )
         session.metadata["run_id"] = prefixed_id("run")
         session.metadata["source_update_confirmed"] = False
+        if pending_state:
+            exact_pending = cast(dict[str, Any], pending)
+            session.metadata["resumed_from_pending"] = exact_pending
+            session.metadata.pop("pending_task", None)
+            session.metadata["task_source_basis"] = {
+                "kind": "HIL_CANDIDATE_SOURCE",
+                "candidate_id": exact_pending["source_candidate_id"],
+                "accepted_pv_context": pointer.accepted_pv,
+            }
+            session.metadata["source_state"] = "PENDING_CANDIDATE_SOURCE_EXACT"
+            session.metadata["accepted_pv_query_scope"] = "ENTRY_STATE_ONLY"
+        else:
+            session.metadata["task_source_basis"] = {
+                "kind": "ACCEPTED_PV_ENTRY",
+                "accepted_pv": pointer.accepted_pv,
+            }
         self._save(session)
+        lineage_payload = task.as_dict()
+        if pending_state:
+            lineage_payload["resumed_from_pending"] = cast(dict[str, Any], pending)[
+                "kind"
+            ]
         ChatLineage(self._lineage_path(project_id, session_id)).append(
             event_type="task.classified",
-            visible_payload=task.as_dict(),
+            visible_payload=lineage_payload,
             occurred_at=utc_now(),
             session_id=session_id,
             task_id=task.task_id,
@@ -414,16 +598,30 @@ class SessionManager:
             supported=sorted(allowed),
         )
         task_payload = cast(dict[str, Any], session.task)
+        event_payload = dict(visible_payload)
+        if activity_type in {"file.created", "file.modified", "file.deleted"}:
+            if "first_source_mutation_at" not in session.metadata:
+                session.metadata["first_source_mutation_at"] = utc_now()
+            session.metadata["source_state"] = "MUTATED_AFTER_ENTRY"
+            session.metadata["accepted_pv_query_scope"] = "ENTRY_STATE_ONLY"
+            event_payload["source_state_after_activity"] = "MUTATED_AFTER_ENTRY"
+            event_payload["accepted_pv_query_scope"] = "ENTRY_STATE_ONLY"
+            self._save(session)
         event = ChatLineage(self._lineage_path(project_id, session_id)).append(
             event_type=f"task.{activity_type}",
-            visible_payload=visible_payload,
+            visible_payload=event_payload,
             occurred_at=utc_now(),
             session_id=session_id,
             task_id=task_payload["task_id"],
             run_id=session.metadata["run_id"],
             event_id=event_id,
         )
-        return {"status": "PASS", "event": event}
+        return {
+            "status": "PASS",
+            "event": event,
+            "source_state": session.metadata.get("source_state"),
+            "accepted_pv_query_scope": session.metadata.get("accepted_pv_query_scope"),
+        }
 
     def confirm_source_update(
         self,
@@ -509,6 +707,8 @@ class SessionManager:
         session.metadata["candidate_pointer_generation"] = (
             session.accepted_pointer_generation
         )
+        session.metadata["source_state"] = "EXIT_CANDIDATE_BUILT_FROM_FINAL_SOURCE"
+        session.metadata["accepted_pv_query_scope"] = "ENTRY_STATE_ONLY_UNTIL_APPROVE"
         self._save(session)
         ChatLineage(self._lineage_path(project_id, session_id)).append(
             event_type="pv.exit_candidate.created",
@@ -552,6 +752,8 @@ class SessionManager:
         )
         exact_decision_id = decision_id or prefixed_id("decision")
         candidate_id = cast(str, session.candidate_id)
+        decision_task_id = session.task["task_id"] if session.task else None
+        decision_run_id = session.metadata.get("run_id")
         if outcome == HilDecision.APPROVE:
             require(
                 not correction_delta and not research_question,
@@ -576,6 +778,8 @@ class SessionManager:
                 if after.accepted_pv == "PV1"
                 else SessionState.PVN1_ACCEPTED
             )
+            session.metadata["source_state"] = "ACCEPTED_ENTRY_EXACT"
+            session.metadata["accepted_pv_query_scope"] = "CURRENT_ENTRY_STATE"
             decision_receipt = result["receipt"]
         else:
             if outcome == HilDecision.APPROVE_WITH_DELTA:
@@ -621,6 +825,46 @@ class SessionManager:
                 research_question=research_question,
             )
             session.state = target_state
+            if outcome in {
+                HilDecision.APPROVE_WITH_DELTA,
+                HilDecision.MORE_RESEARCH,
+            }:
+                pending_kind = (
+                    "CORRECTION"
+                    if outcome == HilDecision.APPROVE_WITH_DELTA
+                    else "RESEARCH"
+                )
+                requested_follow_up = (
+                    cast(str, correction_delta).strip()
+                    if outcome == HilDecision.APPROVE_WITH_DELTA
+                    else cast(str, research_question).strip()
+                )
+                session.metadata.setdefault("completed_runs", []).append(
+                    {
+                        "run_id": session.metadata.get("run_id"),
+                        "task": session.task,
+                        "candidate_id": candidate_id,
+                        "decision_id": exact_decision_id,
+                        "decision": outcome.value,
+                    }
+                )
+                session.metadata["pending_task"] = {
+                    "kind": pending_kind,
+                    "decision_id": exact_decision_id,
+                    "required_task_class": (
+                        TaskClass.FIX_BUG.value
+                        if outcome == HilDecision.APPROVE_WITH_DELTA
+                        else TaskClass.RESEARCH.value
+                    ),
+                    "requested_outcome": requested_follow_up,
+                    "source_candidate_id": candidate_id,
+                    "accepted_pv_context": session.accepted_pv,
+                    "created_at": utc_now(),
+                }
+                session.task = None
+                session.candidate_id = None
+                session.metadata.pop("run_id", None)
+                session.metadata["source_update_confirmed"] = False
         session.metadata.setdefault("decisions", []).append(decision_receipt)
         self._save(session)
         ChatLineage(self._lineage_path(project_id, session_id)).append(
@@ -628,8 +872,8 @@ class SessionManager:
             visible_payload=decision_receipt,
             occurred_at=utc_now(),
             session_id=session_id,
-            task_id=session.task["task_id"] if session.task else None,
-            run_id=session.metadata.get("run_id"),
+            task_id=decision_task_id,
+            run_id=decision_run_id,
         )
         return {
             "status": "PASS",
@@ -637,6 +881,105 @@ class SessionManager:
             "session": session.as_dict(),
             "pointer": self.store.pointer(project_id).as_dict(),
             "pointer_advanced": outcome == HilDecision.APPROVE,
+        }
+
+    def return_to_accepted(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        reason: str,
+    ) -> dict[str, Any]:
+        session = self.load(project_id, session_id)
+        require(
+            session.state in {SessionState.REJECTED_RUN, SessionState.FAILED_RUN},
+            "RETURN_TO_ACCEPTED_STATE_INVALID",
+            "Return-to-accepted is valid only after REJECT or FAIL.",
+            status="BLOCKED",
+            state=session.state.value,
+        )
+        exact_reason = reason.strip()
+        require(
+            bool(exact_reason),
+            "RETURN_TO_ACCEPTED_REASON_REQUIRED",
+            "Return-to-accepted requires a visible reason.",
+            status="BLOCKED",
+        )
+        pointer = self.store.pointer(project_id)
+        require(
+            pointer.accepted_pv is not None,
+            "RETURN_TO_ACCEPTED_NO_ACCEPTED_PV",
+            "No accepted PV exists. Close this failed initial-entry session and "
+            "restart the initial PV1 flow after correcting the source.",
+            status="BLOCKED",
+        )
+        require(
+            pointer.generation == session.accepted_pointer_generation
+            and pointer.accepted_pv == session.accepted_pv,
+            "RETURN_TO_ACCEPTED_POINTER_STALE",
+            "The accepted pointer changed after this session entered.",
+            status="STALE",
+            pointer=pointer.as_dict(),
+            session_accepted_pv=session.accepted_pv,
+            session_pointer_generation=session.accepted_pointer_generation,
+        )
+        self._verify_repository_matches_package(
+            project_id,
+            self.store.accepted_path(project_id, cast(str, pointer.accepted_pv)),
+            error_code="ACCEPTED_SOURCE_RESTORE_REQUIRED",
+            message=(
+                "Restore the live repository to the exact accepted PV source before "
+                "returning this rejected or failed run to accepted state."
+            ),
+        )
+        prior = {
+            "state": session.state.value,
+            "task": session.task,
+            "candidate_id": session.candidate_id,
+            "run_id": session.metadata.get("run_id"),
+        }
+        pointer_digest = sha256_bytes(canonical_json_bytes(pointer.as_dict()))
+        session.metadata.setdefault("completed_runs", []).append(
+            {
+                **prior,
+                "return_reason": exact_reason,
+                "accepted_pointer_sha256": pointer_digest,
+            }
+        )
+        session.task = None
+        session.candidate_id = None
+        session.metadata.pop("run_id", None)
+        session.metadata["source_update_confirmed"] = False
+        session.metadata["source_state"] = "ACCEPTED_ENTRY_EXACT"
+        session.metadata["accepted_pv_query_scope"] = "CURRENT_ENTRY_STATE"
+        session.metadata["returned_to_accepted"] = {
+            "reason": exact_reason,
+            "from_state": prior["state"],
+            "accepted_pv": pointer.accepted_pv,
+            "pointer_generation": pointer.generation,
+            "accepted_pointer_sha256": pointer_digest,
+            "returned_at": utc_now(),
+            "pointer_moved": False,
+        }
+        session.state = (
+            SessionState.PVN_ACCEPTED
+            if pointer.accepted_pv == "PV1"
+            else SessionState.PVN1_ACCEPTED
+        )
+        self._save(session)
+        event = ChatLineage(self._lineage_path(project_id, session_id)).append(
+            event_type="hil.return_to_accepted",
+            visible_payload=session.metadata["returned_to_accepted"],
+            occurred_at=utc_now(),
+            session_id=session_id,
+        )
+        return {
+            "status": "PASS",
+            "session": session.as_dict(),
+            "pointer": pointer.as_dict(),
+            "pointer_sha256": pointer_digest,
+            "pointer_advanced": False,
+            "event": event,
         }
 
     def begin_next_turn(self, project_id: str, session_id: str) -> dict[str, Any]:
@@ -657,6 +1000,8 @@ class SessionManager:
         session.metadata.pop("run_id", None)
         session.metadata.pop("source_update_confirmed", None)
         session.metadata["next_candidate_would_be"] = self.store.next_pv_id(project_id)
+        session.metadata["source_state"] = "ACCEPTED_ENTRY_EXACT"
+        session.metadata["accepted_pv_query_scope"] = "CURRENT_ENTRY_STATE"
         session.state = SessionState.PVN1_ENTRY
         self._save(session)
         event = ChatLineage(self._lineage_path(project_id, session_id)).append(
