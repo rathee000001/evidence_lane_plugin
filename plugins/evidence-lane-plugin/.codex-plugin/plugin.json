@@ -1,0 +1,37 @@
+{
+  "name": "evidence-lane-plugin",
+  "version": "0.1.0",
+  "description": "Private stateful Git/code workflow plugin with immutable SQLite project versions and human-controlled HIL promotion.",
+  "author": {
+    "name": "Praveen Rathee",
+    "url": "https://github.com/rathee000001"
+  },
+  "repository": "https://github.com/rathee000001/evidence_lane_plugin",
+  "license": "UNLICENSED",
+  "keywords": [
+    "evidence-lane",
+    "git",
+    "sqlite",
+    "project-version",
+    "hil"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Evidence Lane Plugin",
+    "shortDescription": "Govern code tasks through immutable SQLite PVs.",
+    "longDescription": "Evidence Lane governs one Git project, one agent, and one bounded task through exact source capture, visible ChatLineage, deterministic PV Exit, and a five-way human HIL gate.",
+    "developerName": "Praveen Rathee",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Boot Evidence Lane for my registered code project.",
+      "Search my accepted PV before changing code.",
+      "Build the next PV candidate and stop at HIL."
+    ],
+    "brandColor": "#18A9C8"
+  },
+  "mcpServers": "./.mcp.json"
+}

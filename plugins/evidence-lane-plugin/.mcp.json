@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "evidence-lane": {
+      "cwd": ".",
+      "command": "python",
+      "args": [
+        "./scripts/run_mcp.py",
+        "--transport",
+        "stdio"
+      ]
+    }
+  }
+}

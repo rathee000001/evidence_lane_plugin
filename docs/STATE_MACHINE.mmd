@@ -1,0 +1,29 @@
+flowchart TD
+    A["Evidence Lane Plugin selected"] --> B["Session boot context flashed outside PV"]
+    B --> C["Authorized Git repository and exact source identity"]
+    C --> D{"Accepted PV exists?"}
+    D -- "No" --> E["Build PV1 candidate"]
+    E --> F["Human HIL decision"]
+    D -- "Yes" --> G["Enter latest accepted PVn"]
+    F -- "APPROVE only" --> G
+    F -- "Other outcome" --> Q["Retain previous accepted pointer"]
+    G --> H["Classify one agent and one bounded task"]
+    H --> I["Read or modify authorized sandbox/source"]
+    I --> J["Append visible ChatLineage"]
+    J --> K["Confirm final source boundary"]
+    K --> L["Deterministic engine rerun"]
+    L --> M["Create PV n+1 candidate"]
+    M --> N{"Exact HIL outcome"}
+    N -- "APPROVE" --> O["Immutable promotion and CAS pointer advance"]
+    N -- "APPROVE_WITH_DELTA" --> P["Retain prior pointer; bounded correction pending"]
+    N -- "MORE_RESEARCH" --> R["Retain prior pointer; bounded research pending"]
+    N -- "REJECT" --> S["Retain prior pointer; preserve rejected run"]
+    N -- "FAIL" --> T["Retain prior pointer; preserve failed gate"]
+    O --> U["Persist sealed PV where host route requires"]
+    U --> V["Next turn enters accepted PV n+1"]
+    V --> W["Next candidate would be PV n+2"]
+    W --> X["Stop at HIL"]
+    P --> Q
+    R --> Q
+    S --> Q
+    T --> Q
