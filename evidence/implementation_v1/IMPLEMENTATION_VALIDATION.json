@@ -52,6 +52,7 @@
       "input": "plugins/evidence-lane-plugin/requirements.lock.txt"
     },
     "plugin_schema": "PASS",
+    "local_codex_plugin_installation": "PASS",
     "hash_required_install": "PASS",
     "wheel_build": "PASS",
     "fresh_wheel_install_doctor": "PASS",
@@ -60,6 +61,8 @@
     "real_secret_findings": 0
   },
   "boundaries": {
+    "local_codex_plugin_installed_enabled": true,
+    "plugin_persists_until_user_removal": true,
     "vercel_or_public_hosting_deployed": false,
     "public_chatgpt_registration_completed": false,
     "google_drive_live_configured": false,

@@ -41,6 +41,7 @@ binary is not committed to source control.
 | Bandit | PASS — zero findings |
 | Locked dependency audit | PASS — zero known vulnerabilities |
 | Codex plugin schema validator | PASS |
+| Local Codex marketplace installation | PASS — installed and enabled |
 | Hash-required dependency installation | PASS |
 | Wheel build without packaging deprecation warning | PASS |
 | Fresh wheel installation and doctor | PASS |
@@ -64,6 +65,8 @@ binary is not committed to source control.
 - local durable persistence and a fail-closed Google Drive adapter boundary;
 - no ENV/UOP content inside a PV;
 - plugin installation state remains persistent until user removal.
+
+The local installation receipt contains no machine-specific path or credential.
 
 ## Deferred proof gates
 
