@@ -5,10 +5,30 @@ from __future__ import annotations
 import os
 
 # Fixed local executable and argument lists only; no shell command is constructed.
+import shutil
 import subprocess  # nosec B404
 import sys
 import venv
 from pathlib import Path
+
+
+def _cleanup_generated_build_artifacts(plugin_root: Path) -> None:
+    for target in (
+        plugin_root / "build",
+        plugin_root / "src" / "evidence_lane_plugin.egg-info",
+    ):
+        if not target.exists():
+            continue
+        resolved = target.resolve()
+        try:
+            resolved.relative_to(plugin_root)
+        except ValueError as exc:
+            raise SystemExit(
+                f"Refusing to clean generated metadata outside plugin root: {target}"
+            ) from exc
+        if target.is_symlink():
+            raise SystemExit(f"Refusing to clean generated metadata symlink: {target}")
+        shutil.rmtree(target)
 
 
 def main() -> int:
@@ -40,20 +60,24 @@ def main() -> int:
         ],
         check=True,
     )
-    subprocess.run(  # nosec B603
-        [
-            str(python),
-            "-m",
-            "pip",
-            "install",
-            "--disable-pip-version-check",
-            "--force-reinstall",
-            "--no-build-isolation",
-            "--no-deps",
-            str(plugin_root),
-        ],
-        check=True,
-    )
+    _cleanup_generated_build_artifacts(plugin_root)
+    try:
+        subprocess.run(  # nosec B603
+            [
+                str(python),
+                "-m",
+                "pip",
+                "install",
+                "--disable-pip-version-check",
+                "--force-reinstall",
+                "--no-build-isolation",
+                "--no-deps",
+                str(plugin_root),
+            ],
+            check=True,
+        )
+    finally:
+        _cleanup_generated_build_artifacts(plugin_root)
     subprocess.run(  # nosec B603
         [
             str(python),

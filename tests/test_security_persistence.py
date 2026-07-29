@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import importlib.util
 import json
 from pathlib import Path
 
@@ -123,6 +124,34 @@ def test_bootstrap_installs_self_contained_noneditable_runtime() -> None:
     assert "numpy==2.4.6" in lock
     assert "numpy==2.5.1" not in lock
     assert 'pywin32==312 ; sys_platform == "win32"' in lock
+
+
+def test_bootstrap_cleans_only_generated_in_root_metadata(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parents[1]
+    bootstrap_path = (
+        root / "plugins" / "evidence-lane-plugin" / "scripts" / "bootstrap.py"
+    )
+    spec = importlib.util.spec_from_file_location(
+        "evidence_lane_bootstrap_cleanup_test",
+        bootstrap_path,
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    plugin_root = tmp_path / "plugin"
+    build_file = plugin_root / "build" / "lib" / "generated.py"
+    egg_file = plugin_root / "src" / "evidence_lane_plugin.egg-info" / "SOURCES.txt"
+    source_file = plugin_root / "src" / "evidence_lane_plugin" / "__init__.py"
+    for path in (build_file, egg_file, source_file):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("test\n", encoding="utf-8")
+
+    module._cleanup_generated_build_artifacts(plugin_root)
+
+    assert not (plugin_root / "build").exists()
+    assert not (plugin_root / "src" / "evidence_lane_plugin.egg-info").exists()
+    assert source_file.read_text(encoding="utf-8") == "test\n"
 
 
 def test_installation_activation_updates_a_stale_version(
