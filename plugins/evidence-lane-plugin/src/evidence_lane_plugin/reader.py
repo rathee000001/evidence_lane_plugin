@@ -11,6 +11,7 @@ from urllib.parse import quote
 
 from . import database
 from .errors import EvidenceLaneError, require
+from .freshness import evaluate_freshness, result_status
 from .pv_package import validate_pv_package
 from .store import ProjectStore
 
@@ -44,7 +45,9 @@ class PVReader:
     ) -> dict[str, Any]:
         pointer = self.store.pointer(project_id)
         repository = dict(
-            connection.execute("SELECT * FROM repositories LIMIT 1").fetchone()
+            connection.execute(
+                "SELECT * FROM repositories ORDER BY repository_id DESC LIMIT 1"
+            ).fetchone()
         )
         is_candidate = "_CANDIDATE__RUN_" in package.name
         if is_candidate:
@@ -53,6 +56,7 @@ class PVReader:
             authority_state = "CURRENT_ACCEPTED_PV"
         else:
             authority_state = "HISTORICAL_ACCEPTED_PV"
+        freshness = evaluate_freshness(self.store, project_id, package)
         return {
             "authority_state": authority_state,
             "accepted_truth": not is_candidate,
@@ -64,6 +68,8 @@ class PVReader:
             "source_tree": repository["tree_sha"],
             "source_worktree_sha256": repository["worktree_sha256"],
             "repository_url": repository["repository_url"],
+            "freshness": freshness,
+            "live_truth_status": freshness["state"],
         }
 
     @staticmethod
@@ -235,8 +241,9 @@ class PVReader:
                             },
                         }
                     )
+        base_status = "PASS" if results else "EMPTY"
         return {
-            "status": "PASS" if results else "EMPTY",
+            "status": result_status(base_status, context["freshness"]),
             "project_id": project_id,
             **context,
             "query": query,
@@ -300,7 +307,7 @@ class PVReader:
                 )
                 encoded = row["text_content"].encode("utf-8")
                 return {
-                    "status": "PASS",
+                    "status": result_status("PASS", context["freshness"]),
                     **context,
                     "id": ref_id,
                     "ref_id": ref_id,
@@ -361,7 +368,7 @@ class PVReader:
                 )
                 symbol_text = "".join(lines[row["start_line"] - 1 : bounded_end])
                 return {
-                    "status": "PASS",
+                    "status": result_status("PASS", context["freshness"]),
                     **context,
                     "id": ref_id,
                     "ref_id": ref_id,
@@ -466,7 +473,7 @@ class PVReader:
                         or len(encoded_selection) > max_bytes
                     )
                 return {
-                    "status": "PASS",
+                    "status": result_status("PASS", context["freshness"]),
                     **context,
                     "id": ref_id,
                     "ref_id": ref_id,
@@ -544,7 +551,7 @@ class PVReader:
             )
         repository["submodules_json"] = json.loads(repository["submodules_json"])
         return {
-            "status": "PASS",
+            "status": result_status("PASS", context["freshness"]),
             "project_id": project_id,
             **context,
             "repository": repository,
@@ -608,8 +615,9 @@ class PVReader:
         )
         with database.connect(package / "code.sqlite", readonly=True) as connection:
             context = self._authority_context(project_id, package, connection)
+        base_status = "PASS" if rows else "EMPTY"
         return {
-            "status": "PASS" if rows else "EMPTY",
+            "status": result_status(base_status, context["freshness"]),
             "project_id": project_id,
             **context,
             "query_kind": query_kind,
@@ -639,8 +647,19 @@ class PVReader:
 
         left_files, left_context = index(left)
         right_files, right_context = index(right)
+        freshness_states = {
+            left_context["freshness"]["state"],
+            right_context["freshness"]["state"],
+        }
+        diff_status = (
+            "MISMATCH"
+            if "MISMATCH" in freshness_states
+            else "STALE"
+            if freshness_states != {"FRESH"}
+            else "PASS"
+        )
         return {
-            "status": "PASS",
+            "status": diff_status,
             "project_id": project_id,
             "left_pv": left_pv,
             "right_pv": right_pv,

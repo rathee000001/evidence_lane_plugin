@@ -20,6 +20,7 @@ from .constants import (
 )
 from .errors import EvidenceLaneError, require
 from .hashing import sha256_bytes
+from .timeutil import utc_now
 
 _EXCLUDED_PARTS = {
     ".git",
@@ -122,6 +123,7 @@ class IngestionReport:
     bytes: int = 0
     families: dict[str, int] = field(default_factory=dict)
     warnings: list[dict[str, Any]] = field(default_factory=list)
+    refresh: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -136,6 +138,7 @@ class IngestionReport:
             "bytes": self.bytes,
             "families": dict(sorted(self.families.items())),
             "warnings": self.warnings,
+            "refresh": self.refresh,
         }
 
 
@@ -392,6 +395,191 @@ def _dependency_facts(path: str, text: str) -> list[dict[str, str | None]]:
     return dependencies
 
 
+def extract_code_lane_facts(path: str, text: str) -> list[dict[str, Any]]:
+    """Expose one parser law to both the primary and per-lane code authorities."""
+    family = _CODE_FAMILIES.get(Path(path).suffix.lower(), "text-or-binary")
+    if family == "python":
+        symbols, imports = _python_facts(text)
+    elif family in {"javascript", "typescript", "svelte", "vue"}:
+        symbols, imports = _script_facts(text)
+    else:
+        symbols, imports = [], []
+    return [
+        *({"kind": "code_symbol", "locator": path, "payload": row} for row in symbols),
+        *({"kind": "code_import", "locator": path, "payload": row} for row in imports),
+        *(
+            {"kind": "code_route", "locator": path, "payload": row}
+            for row in _route_facts(text, family)
+        ),
+        *(
+            {"kind": "code_dependency", "locator": path, "payload": row}
+            for row in _dependency_facts(path, text)
+        ),
+    ]
+
+
+def _ingest_file(
+    connection: sqlite3.Connection,
+    *,
+    repository_id: int,
+    relative: str,
+    target: Path,
+    report: IngestionReport,
+    max_file_bytes: int,
+    lines_per_chunk: int,
+    overlap: int,
+) -> None:
+    data = target.read_bytes()
+    require(
+        len(data) <= max_file_bytes,
+        "SOURCE_FILE_TOO_LARGE",
+        "Whole-source ingestion stopped because a file exceeds the configured exact-byte limit.",
+        status="BLOCKED",
+        path=relative,
+        size_bytes=len(data),
+        max_file_bytes=max_file_bytes,
+    )
+    text, encoding = _decode(data)
+    mime, family = _file_type(relative)
+    is_binary = text is None
+    line_count = len(text.splitlines()) if text is not None else 0
+    cursor = connection.execute(
+        """
+        INSERT INTO files(
+            repository_id, path, size_bytes, sha256, encoding, is_binary,
+            file_type, code_family, line_count, ingestion_status, exact_bytes, error_code
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+        """,
+        (
+            repository_id,
+            relative,
+            len(data),
+            sha256_bytes(data),
+            encoding,
+            int(is_binary),
+            mime,
+            family,
+            line_count,
+            "EXACT_BINARY" if is_binary else "EXACT_TEXT_CHUNKED",
+            data,
+        ),
+    )
+    file_id = database.required_lastrowid(cursor)
+    report.files += 1
+    report.bytes += len(data)
+    report.families[family] = report.families.get(family, 0) + 1
+    if is_binary:
+        report.binary_files += 1
+        return
+    report.text_files += 1
+    require(
+        text is not None,
+        "TEXT_DECODE_STATE_INVALID",
+        "A decoded text file reached the chunker without text.",
+        status="FAIL",
+        path=relative,
+    )
+    text_value = cast(str, text)
+    for ordinal, start, end, content in _line_chunks(
+        text_value, lines_per_chunk=lines_per_chunk, overlap=overlap
+    ):
+        chunk_cursor = connection.execute(
+            """
+            INSERT INTO chunks(file_id, ordinal, start_line, end_line, text_content, sha256)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                file_id,
+                ordinal,
+                start,
+                end,
+                content,
+                sha256_bytes(content.encode("utf-8")),
+            ),
+        )
+        connection.execute(
+            "INSERT INTO chunks_fts(path, text_content, chunk_id) VALUES (?, ?, ?)",
+            (relative, content, database.required_lastrowid(chunk_cursor)),
+        )
+        report.chunks += 1
+    symbols: list[dict[str, Any]] = []
+    imports: list[dict[str, Any]] = []
+    if family == "python":
+        symbols, imports = _python_facts(text_value)
+    elif family in {"javascript", "typescript", "svelte", "vue", "astro"}:
+        symbols, imports = _script_facts(text_value)
+    for symbol in symbols:
+        connection.execute(
+            """
+            INSERT INTO symbols(
+                file_id, kind, name, qualified_name, start_line, end_line, signature, parser
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                file_id,
+                symbol["kind"],
+                symbol["name"],
+                symbol["qualified_name"],
+                symbol["start_line"],
+                symbol["end_line"],
+                symbol["signature"],
+                symbol["parser"],
+            ),
+        )
+        report.symbols += 1
+    for item in imports:
+        connection.execute(
+            """
+            INSERT INTO imports(file_id, module, imported_name, alias, line_number, parser)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                file_id,
+                item["module"],
+                item["imported_name"],
+                item["alias"],
+                item["line_number"],
+                item["parser"],
+            ),
+        )
+        report.imports += 1
+    for dependency in _dependency_facts(relative, text_value):
+        connection.execute(
+            """
+            INSERT INTO dependencies(
+                file_id, ecosystem, name, constraint_text, dependency_group, source_path
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                file_id,
+                dependency["ecosystem"],
+                dependency["name"],
+                dependency["constraint_text"],
+                dependency["dependency_group"],
+                dependency["source_path"],
+            ),
+        )
+        report.dependencies += 1
+    for route in _route_facts(text_value, family):
+        connection.execute(
+            """
+            INSERT INTO routes(
+                file_id, route_kind, method, path_pattern, handler, line_number, parser
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                file_id,
+                route["route_kind"],
+                route["method"],
+                route["path_pattern"],
+                route["handler"],
+                route["line_number"],
+                route["parser"],
+            ),
+        )
+        report.routes += 1
+
+
 def ingest_repository(
     connection: sqlite3.Connection,
     *,
@@ -409,159 +597,200 @@ def ingest_repository(
     report = IngestionReport()
     root = Path(repository_root).resolve()
     for relative, target in iter_source_files(root):
-        data = target.read_bytes()
-        require(
-            len(data) <= max_file_bytes,
-            "SOURCE_FILE_TOO_LARGE",
-            "Whole-source ingestion stopped because a file exceeds the configured exact-byte limit.",
-            status="BLOCKED",
-            path=relative,
-            size_bytes=len(data),
+        _ingest_file(
+            connection,
+            repository_id=repository_id,
+            relative=relative,
+            target=target,
+            report=report,
             max_file_bytes=max_file_bytes,
+            lines_per_chunk=lines_per_chunk,
+            overlap=overlap,
         )
-        text, encoding = _decode(data)
-        mime, family = _file_type(relative)
-        is_binary = text is None
-        line_count = len(text.splitlines()) if text is not None else 0
-        cursor = connection.execute(
-            """
-            INSERT INTO files(
-                repository_id, path, size_bytes, sha256, encoding, is_binary,
-                file_type, code_family, line_count, ingestion_status, exact_bytes, error_code
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
-            """,
-            (
-                repository_id,
-                relative,
-                len(data),
-                sha256_bytes(data),
-                encoding,
-                int(is_binary),
-                mime,
-                family,
-                line_count,
-                "EXACT_BINARY" if is_binary else "EXACT_TEXT_CHUNKED",
-                data,
-            ),
-        )
-        file_id = database.required_lastrowid(cursor)
-        report.files += 1
-        report.bytes += len(data)
-        report.families[family] = report.families.get(family, 0) + 1
-        if is_binary:
-            report.binary_files += 1
-            continue
-        report.text_files += 1
-        require(
-            text is not None,
-            "TEXT_DECODE_STATE_INVALID",
-            "A decoded text file reached the chunker without text.",
-            status="FAIL",
-            path=relative,
-        )
-        text_value = cast(str, text)
-        for ordinal, start, end, content in _line_chunks(
-            text_value, lines_per_chunk=lines_per_chunk, overlap=overlap
-        ):
-            chunk_cursor = connection.execute(
-                """
-                INSERT INTO chunks(file_id, ordinal, start_line, end_line, text_content, sha256)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    file_id,
-                    ordinal,
-                    start,
-                    end,
-                    content,
-                    sha256_bytes(content.encode("utf-8")),
-                ),
-            )
-            connection.execute(
-                "INSERT INTO chunks_fts(path, text_content, chunk_id) VALUES (?, ?, ?)",
-                (relative, content, database.required_lastrowid(chunk_cursor)),
-            )
-            report.chunks += 1
-        symbols: list[dict[str, Any]] = []
-        imports: list[dict[str, Any]] = []
-        if family == "python":
-            symbols, imports = _python_facts(text_value)
-        elif family in {"javascript", "typescript", "svelte", "vue", "astro"}:
-            symbols, imports = _script_facts(text_value)
-        for symbol in symbols:
-            connection.execute(
-                """
-                INSERT INTO symbols(
-                    file_id, kind, name, qualified_name, start_line, end_line, signature, parser
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    file_id,
-                    symbol["kind"],
-                    symbol["name"],
-                    symbol["qualified_name"],
-                    symbol["start_line"],
-                    symbol["end_line"],
-                    symbol["signature"],
-                    symbol["parser"],
-                ),
-            )
-            report.symbols += 1
-        for item in imports:
-            connection.execute(
-                """
-                INSERT INTO imports(file_id, module, imported_name, alias, line_number, parser)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    file_id,
-                    item["module"],
-                    item["imported_name"],
-                    item["alias"],
-                    item["line_number"],
-                    item["parser"],
-                ),
-            )
-            report.imports += 1
-        for dependency in _dependency_facts(relative, text_value):
-            connection.execute(
-                """
-                INSERT INTO dependencies(
-                    file_id, ecosystem, name, constraint_text, dependency_group, source_path
-                ) VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    file_id,
-                    dependency["ecosystem"],
-                    dependency["name"],
-                    dependency["constraint_text"],
-                    dependency["dependency_group"],
-                    dependency["source_path"],
-                ),
-            )
-            report.dependencies += 1
-        for route in _route_facts(text_value, family):
-            connection.execute(
-                """
-                INSERT INTO routes(
-                    file_id, route_kind, method, path_pattern, handler, line_number, parser
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    file_id,
-                    route["route_kind"],
-                    route["method"],
-                    route["path_pattern"],
-                    route["handler"],
-                    route["line_number"],
-                    route["parser"],
-                ),
-            )
-            report.routes += 1
     if report.files == 0:
         raise EvidenceLaneError(
             "NO_SOURCE_FILES",
             "No source files remained after the governed exclusion rules.",
+            status="EMPTY",
+        )
+    report.refresh = {
+        "mode": "FULL_PV1",
+        "UNCHANGED_REUSE": 0,
+        "CHANGED_REBUILD": 0,
+        "NEW_REGISTER": report.files,
+        "REMOVED_TOMBSTONE": 0,
+        "BLOCKED_UNSUPPORTED": 0,
+    }
+    return report
+
+
+def refresh_repository(
+    connection: sqlite3.Connection,
+    *,
+    repository_id: int,
+    repository_root: str | Path,
+    parent_pv: str,
+    max_file_bytes: int = DEFAULT_MAX_FILE_BYTES,
+    lines_per_chunk: int = DEFAULT_CHUNK_LINES,
+    overlap: int = DEFAULT_CHUNK_OVERLAP,
+) -> IngestionReport:
+    """Update a copied accepted code database without reparsing unchanged files."""
+
+    require(
+        lines_per_chunk > overlap >= 0,
+        "CHUNK_CONFIGURATION_INVALID",
+        "Chunk overlap must be smaller than chunk size.",
+    )
+    root = Path(repository_root).resolve()
+    targets = {relative: target for relative, target in iter_source_files(root)}
+    prior = {
+        row["path"]: {
+            "file_id": int(row["file_id"]),
+            "sha256": row["sha256"],
+            "size_bytes": int(row["size_bytes"]),
+        }
+        for row in connection.execute(
+            "SELECT file_id, path, sha256, size_bytes FROM files WHERE repository_id=?",
+            (repository_id,),
+        )
+    }
+    current = {
+        path: {
+            "sha256": sha256_bytes(target.read_bytes()),
+            "size_bytes": target.stat().st_size,
+        }
+        for path, target in targets.items()
+    }
+    unchanged = sorted(
+        path
+        for path in prior.keys() & current.keys()
+        if prior[path]["sha256"] == current[path]["sha256"]
+    )
+    changed = sorted(
+        path
+        for path in prior.keys() & current.keys()
+        if prior[path]["sha256"] != current[path]["sha256"]
+    )
+    added = sorted(current.keys() - prior.keys())
+    removed = sorted(prior.keys() - current.keys())
+    recorded_at = utc_now()
+    report = IngestionReport()
+    for path in changed + removed:
+        row = prior[path]
+        connection.execute(
+            "DELETE FROM chunks_fts WHERE chunk_id IN "
+            "(SELECT chunk_id FROM chunks WHERE file_id=?)",
+            (row["file_id"],),
+        )
+        connection.execute("DELETE FROM files WHERE file_id=?", (row["file_id"],))
+        classification = "CHANGED_REBUILD" if path in changed else "REMOVED_TOMBSTONE"
+        connection.execute(
+            """
+            INSERT INTO source_refresh_events(
+                path, classification, prior_sha256, current_sha256, recorded_at
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                path,
+                classification,
+                row["sha256"],
+                current.get(path, {}).get("sha256"),
+                recorded_at,
+            ),
+        )
+        if path in removed:
+            connection.execute(
+                """
+                INSERT INTO source_tombstones(
+                    path, prior_sha256, prior_size_bytes, parent_pv, removed_at
+                ) VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    path,
+                    row["sha256"],
+                    row["size_bytes"],
+                    parent_pv,
+                    recorded_at,
+                ),
+            )
+    for path in changed + added:
+        _ingest_file(
+            connection,
+            repository_id=repository_id,
+            relative=path,
+            target=targets[path],
+            report=report,
+            max_file_bytes=max_file_bytes,
+            lines_per_chunk=lines_per_chunk,
+            overlap=overlap,
+        )
+        connection.execute(
+            """
+            INSERT INTO source_refresh_events(
+                path, classification, prior_sha256, current_sha256, recorded_at
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                path,
+                "CHANGED_REBUILD" if path in changed else "NEW_REGISTER",
+                prior.get(path, {}).get("sha256"),
+                current[path]["sha256"],
+                recorded_at,
+            ),
+        )
+    counts = connection.execute(
+        """
+        SELECT
+            COUNT(*) AS files,
+            COALESCE(SUM(size_bytes), 0) AS bytes,
+            SUM(CASE WHEN is_binary=0 THEN 1 ELSE 0 END) AS text_files,
+            SUM(CASE WHEN is_binary=1 THEN 1 ELSE 0 END) AS binary_files
+        FROM files WHERE repository_id=?
+        """,
+        (repository_id,),
+    ).fetchone()
+    report.files = int(counts["files"])
+    report.bytes = int(counts["bytes"])
+    report.text_files = int(counts["text_files"] or 0)
+    report.binary_files = int(counts["binary_files"] or 0)
+    report.chunks = int(connection.execute("SELECT COUNT(*) FROM chunks").fetchone()[0])
+    report.symbols = int(
+        connection.execute("SELECT COUNT(*) FROM symbols").fetchone()[0]
+    )
+    report.imports = int(
+        connection.execute("SELECT COUNT(*) FROM imports").fetchone()[0]
+    )
+    report.dependencies = int(
+        connection.execute("SELECT COUNT(*) FROM dependencies").fetchone()[0]
+    )
+    report.routes = int(connection.execute("SELECT COUNT(*) FROM routes").fetchone()[0])
+    report.families = {
+        row["code_family"]: int(row["count"])
+        for row in connection.execute(
+            """
+            SELECT code_family, COUNT(*) AS count
+            FROM files WHERE repository_id=?
+            GROUP BY code_family ORDER BY code_family
+            """,
+            (repository_id,),
+        )
+    }
+    report.refresh = {
+        "mode": "INCREMENTAL_REFRESH",
+        "UNCHANGED_REUSE": len(unchanged),
+        "CHANGED_REBUILD": len(changed),
+        "NEW_REGISTER": len(added),
+        "REMOVED_TOMBSTONE": len(removed),
+        "BLOCKED_UNSUPPORTED": 0,
+        "unchanged_paths": unchanged,
+        "changed_paths": changed,
+        "new_paths": added,
+        "removed_paths": removed,
+    }
+    if report.files == 0:
+        raise EvidenceLaneError(
+            "NO_SOURCE_FILES",
+            "No source files remained after incremental Refresh.",
             status="EMPTY",
         )
     return report

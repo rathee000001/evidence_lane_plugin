@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -23,7 +24,13 @@ def _parser() -> argparse.ArgumentParser:
         default="stdio",
     )
     serve.add_argument("--host", default="127.0.0.1")
-    serve.add_argument("--port", type=int, default=8765)
+    serve.add_argument(
+        "--port",
+        type=int,
+        default=int(
+            os.environ.get("EVIDENCE_LANE_MCP_PORT") or os.environ.get("PORT") or "8765"
+        ),
+    )
     validate = subcommands.add_parser("validate-pv", help="validate one PV directory")
     validate.add_argument("directory")
     return parser

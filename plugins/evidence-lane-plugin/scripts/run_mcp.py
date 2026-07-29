@@ -1,10 +1,12 @@
-"""Launch the plugin-local MCP runtime without installing dependencies on start."""
+"""Launch the plugin-local MCP runtime from a self-contained Git snapshot."""
 
 from __future__ import annotations
 
 import argparse
 import os
-import subprocess
+
+# Fixed local venv launcher only; no shell command is constructed.
+import subprocess  # nosec B404
 import sys
 from pathlib import Path
 
@@ -27,10 +29,26 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _bootstrap_runtime(plugin_root: Path) -> None:
+    bootstrap = plugin_root / "scripts" / "bootstrap.py"
+    if not bootstrap.is_file():
+        raise SystemExit(f"Missing plugin bootstrap: {bootstrap}")
+    completed = subprocess.run(  # nosec B603
+        [sys.executable, str(bootstrap)],
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise SystemExit(
+            f"Evidence Lane bootstrap failed with exit code {completed.returncode}."
+        )
+
+
 def main() -> int:
     args = _parser().parse_args()
     plugin_root = Path(__file__).resolve().parents[1]
     python = _venv_python(plugin_root)
+    if not python.is_file():
+        _bootstrap_runtime(plugin_root)
     if python.is_file() and Path(sys.executable).resolve() != python.resolve():
         completed = subprocess.run(  # nosec B603
             [
@@ -52,7 +70,7 @@ def main() -> int:
         from evidence_lane_plugin.mcp_server import run_server
     except ModuleNotFoundError as exc:
         raise SystemExit(
-            "Evidence Lane dependencies are not installed. Run scripts/bootstrap.py once."
+            "Evidence Lane dependencies are unavailable after the governed bootstrap."
         ) from exc
     run_server(transport=args.transport, host=args.host, port=args.port)
     return 0

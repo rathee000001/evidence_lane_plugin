@@ -8,9 +8,10 @@ from typing import Any, Protocol
 
 import httpx
 
+from .constants import POINTER_SCHEMA
 from .errors import EvidenceLaneError, require
 from .hashing import canonical_json_bytes, sha256_bytes
-from .models import HostKind
+from .models import HostKind, normalize_host_kind
 from .sealing import deterministic_archive, seal_archive
 from .store import ProjectStore
 from .timeutil import utc_now
@@ -34,20 +35,48 @@ class PersistenceRoute:
     mode: str
     reason: str
     durable_required: bool
+    server_filesystem: str
+    host_connector_role: str
 
 
-def route_persistence(host: HostKind | str, *, ephemeral: bool) -> PersistenceRoute:
-    kind = host if isinstance(host, HostKind) else HostKind(host)
-    if ephemeral or kind in {HostKind.CHATGPT, HostKind.CODEX_VM, HostKind.PUBLIC_AI}:
+def route_persistence(
+    host: HostKind | str,
+    *,
+    ephemeral: bool,
+    server_has_durable_filesystem: bool | None = None,
+) -> PersistenceRoute:
+    """Route by the MCP server's storage capability, not UI brand alone."""
+    kind = normalize_host_kind(host)
+    durable_filesystem = (
+        not ephemeral
+        and kind
+        in {
+            HostKind.CODEX_DESKTOP,
+            HostKind.CODEX_CLI,
+        }
+        if server_has_durable_filesystem is None
+        else bool(server_has_durable_filesystem)
+    )
+    if ephemeral or not durable_filesystem:
         return PersistenceRoute(
             mode="google_drive",
-            reason="remote or ephemeral host must persist sealed PV evidence outside the sandbox",
+            reason=(
+                "the MCP server has no durable filesystem, so sealed PV evidence "
+                "must persist outside its sandbox"
+            ),
             durable_required=True,
+            server_filesystem="EPHEMERAL_OR_UNAVAILABLE",
+            host_connector_role="OAUTH_ONBOARDING_AND_VERIFIED_MIRROR",
         )
     return PersistenceRoute(
         mode="local",
-        reason="durable local Codex host retains the immutable user-owned local store",
+        reason=(
+            "the MCP server has a durable user-owned filesystem for the immutable "
+            "local store"
+        ),
         durable_required=False,
+        server_filesystem="DURABLE",
+        host_connector_role="OPTIONAL_VERIFIED_MIRROR",
     )
 
 
@@ -364,5 +393,41 @@ class PVSyncService:
         return {
             "status": "PASS",
             "receipt_id": decision_id,
+            "persistence": stored,
+        }
+
+    def sync_pointer(self, project_id: str) -> dict[str, Any]:
+        """Persist one immutable snapshot of the current accepted pointer.
+
+        The backend contract is append-only, so a pointer update is represented
+        by a generation-addressed receipt instead of overwriting a mutable
+        ``active_pointer.json`` object. A remote reader can therefore verify
+        every state-travel event and select the highest generation without
+        losing prior pointer history.
+        """
+
+        pointer = self.store.pointer(project_id)
+        payload_value = {"schema": POINTER_SCHEMA, **pointer.as_dict()}
+        payload = canonical_json_bytes(payload_value)
+        accepted = pointer.accepted_pv or "NONE"
+        name = f"active-pointer-gen-{pointer.generation:08d}-{accepted}.json"
+        stored = self.backend.put(
+            project_id=project_id,
+            category="receipts",
+            name=name,
+            content=payload,
+            mime_type="application/json",
+            metadata={
+                "schema": POINTER_SCHEMA,
+                "generation": pointer.generation,
+                "accepted_pv": pointer.accepted_pv,
+                "sha256": sha256_bytes(payload),
+                "bytes": len(payload),
+            },
+        )
+        return {
+            "status": "PASS",
+            "pointer": pointer.as_dict(),
+            "pointer_sha256": sha256_bytes(payload),
             "persistence": stored,
         }

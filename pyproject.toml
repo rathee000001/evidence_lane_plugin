@@ -1,19 +1,33 @@
 [build-system]
-requires = ["setuptools==82.0.1", "wheel==0.46.3"]
+requires = ["setuptools==83.0.0", "wheel==0.46.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "evidence-lane-plugin"
-version = "0.2.0"
-description = "Private stateful agentic-code plugin with deterministic SQLite project versions and human HIL promotion."
+version = "0.4.0"
+description = "Private universal Evidence Lane plugin with deterministic SQLite/MMD/DOT project versions, incremental Refresh, and human HIL state travel."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "LicenseRef-Proprietary"
 authors = [{ name = "Praveen Rathee" }]
 dependencies = [
   "cryptography==48.0.1",
+  "defusedxml==0.7.1",
   "httpx==0.28.1",
   "mcp==1.28.1",
+  "onnxruntime==1.28.0",
+  "openpyxl==3.1.5",
+  "pandas==3.0.5",
+  "pdfplumber==0.11.10",
+  "Pillow==12.3.0",
+  "pyarrow==25.0.0",
+  "PyJWT[crypto]==2.13.0",
+  "PyMuPDF==1.28.0",
+  "pypdf==6.14.2",
+  "pytesseract==0.3.13",
+  "pywin32==312; sys_platform == 'win32'",
+  "python-calamine==0.8.2",
+  "rapidocr==3.9.2",
 ]
 
 [project.optional-dependencies]

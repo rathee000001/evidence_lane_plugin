@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from . import database
+from .acceptance import run_acceptance_checks
 from .engine_identity import build_engine_identity
 from .errors import EvidenceLaneError, require
 from .git_adapter import (
@@ -19,7 +20,8 @@ from .git_adapter import (
 )
 from .hashing import canonical_json_bytes, sha256_bytes
 from .ids import new_ulid, prefixed_id
-from .ingest import ingest_repository
+from .ingest import ingest_repository, refresh_repository
+from .lane_engine import build_lane_bundle
 from .models import SessionRecord, TaskContract
 from .pv_package import build_pv_package
 from .store import ProjectStore
@@ -157,6 +159,18 @@ class CodePVEngine:
                 "PV1 can only be built when no accepted PV exists.",
                 status="BLOCKED",
             )
+        acceptance_health = run_acceptance_checks(
+            config.repository_path,
+            task.acceptance_checks if task else [],
+        )
+        require(
+            acceptance_health["source_unchanged"],
+            "ACCEPTANCE_CHECK_MUTATED_SOURCE",
+            "An acceptance command changed the governed source. Restore or explicitly "
+            "include that change before building a candidate.",
+            status="BLOCKED",
+            acceptance_health=acceptance_health,
+        )
         identity = inspect_repository(
             config.repository_path,
             expected_owner=config.expected_owner,
@@ -186,6 +200,20 @@ class CodePVEngine:
         build_root = Path(tempfile.mkdtemp(prefix=f"{candidate_id}.", dir=build_parent))
         try:
             db_path = build_root / "code.sqlite"
+            prior_db = None
+            if pointer.accepted_pv:
+                prior_db = (
+                    self.store.accepted_path(project_id, pointer.accepted_pv)
+                    / "code.sqlite"
+                )
+                require(
+                    prior_db.is_file(),
+                    "ACCEPTED_CODE_DATABASE_MISSING",
+                    "The accepted entry PV has no code compatibility database.",
+                    status="MISMATCH",
+                    accepted_pv=pointer.accepted_pv,
+                )
+                shutil.copyfile(prior_db, db_path)
             database.initialize(
                 db_path,
                 extra_metadata={
@@ -198,37 +226,69 @@ class CodePVEngine:
             started_at = utc_now()
             with database.connect(db_path) as connection:
                 with database.transaction(connection):
-                    repo_cursor = connection.execute(
-                        """
-                        INSERT INTO repositories(
-                            provider, repository_url, owner, name, branch, commit_sha,
-                            tree_sha, worktree_sha256, is_clean, submodules_json, lfs_state
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """,
-                        (
-                            identity.provider,
-                            identity.repository_url,
-                            identity.owner,
-                            identity.name,
-                            identity.branch,
-                            identity.commit_sha,
-                            identity.tree_sha,
-                            repository_payload["worktree_sha256"],
-                            int(identity.is_clean),
-                            json.dumps(
-                                repository_payload["submodules"],
-                                sort_keys=True,
-                                separators=(",", ":"),
-                            ),
-                            identity.lfs_state,
+                    repository_values = (
+                        identity.provider,
+                        identity.repository_url,
+                        identity.owner,
+                        identity.name,
+                        identity.branch,
+                        identity.commit_sha,
+                        identity.tree_sha,
+                        repository_payload["worktree_sha256"],
+                        int(identity.is_clean),
+                        json.dumps(
+                            repository_payload["submodules"],
+                            sort_keys=True,
+                            separators=(",", ":"),
                         ),
+                        identity.lfs_state,
                     )
-                    repository_id = database.required_lastrowid(repo_cursor)
-                    ingestion = ingest_repository(
-                        connection,
-                        repository_id=repository_id,
-                        repository_root=config.repository_path,
-                    )
+                    if prior_db:
+                        repository_row = connection.execute(
+                            """
+                            SELECT repository_id FROM repositories
+                            ORDER BY repository_id DESC LIMIT 1
+                            """
+                        ).fetchone()
+                        require(
+                            repository_row is not None,
+                            "ACCEPTED_REPOSITORY_ROW_MISSING",
+                            "The accepted code database has no repository identity.",
+                            status="MISMATCH",
+                        )
+                        repository_id = int(repository_row["repository_id"])
+                        connection.execute(
+                            """
+                            UPDATE repositories SET
+                                provider=?, repository_url=?, owner=?, name=?,
+                                branch=?, commit_sha=?, tree_sha=?, worktree_sha256=?,
+                                is_clean=?, submodules_json=?, lfs_state=?
+                            WHERE repository_id=?
+                            """,
+                            (*repository_values, repository_id),
+                        )
+                        ingestion = refresh_repository(
+                            connection,
+                            repository_id=repository_id,
+                            repository_root=config.repository_path,
+                            parent_pv=pointer.accepted_pv or "NONE",
+                        )
+                    else:
+                        repo_cursor = connection.execute(
+                            """
+                            INSERT INTO repositories(
+                                provider, repository_url, owner, name, branch, commit_sha,
+                                tree_sha, worktree_sha256, is_clean, submodules_json, lfs_state
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """,
+                            repository_values,
+                        )
+                        repository_id = database.required_lastrowid(repo_cursor)
+                        ingestion = ingest_repository(
+                            connection,
+                            repository_id=repository_id,
+                            repository_root=config.repository_path,
+                        )
                     connection.execute(
                         """
                         INSERT INTO pointers(pointer_kind, pointer_value, pointer_sha256, created_at)
@@ -262,6 +322,26 @@ class CodePVEngine:
                                 task.stop_condition,
                                 int(task.hil_required),
                                 task.status,
+                            ),
+                        )
+                    for check in acceptance_health["checks"]:
+                        connection.execute(
+                            """
+                            INSERT INTO acceptance_results(
+                                run_id, declaration, command_text, status, returncode,
+                                duration_seconds, output_tail, output_truncated, reason
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """,
+                            (
+                                run_id,
+                                check["declaration"],
+                                check["command"],
+                                check["status"],
+                                check["returncode"],
+                                check["duration_seconds"],
+                                check["output_tail"],
+                                int(check["output_truncated"]),
+                                check["reason"],
                             ),
                         )
                     connection.execute(
@@ -345,13 +425,26 @@ class CodePVEngine:
                 connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                 connection.commit()
             database.validate(db_path)
-            prior_db = None
-            if pointer.accepted_pv:
-                prior_db = (
-                    self.store.accepted_path(project_id, pointer.accepted_pv)
-                    / "code.sqlite"
-                )
             delta = compare_source_indexes(prior_db, db_path)
+            parent_lane_bundle = None
+            if pointer.accepted_pv:
+                possible_parent = (
+                    self.store.accepted_path(project_id, pointer.accepted_pv) / "lanes"
+                )
+                if possible_parent.is_dir():
+                    parent_lane_bundle = possible_parent
+            lane_report = build_lane_bundle(
+                repository_root=config.repository_path,
+                output_directory=build_root / "lane_bundle",
+                code_mode=(
+                    "github_code" if identity.provider == "github" else "local_code"
+                ),
+                parent_lane_bundle=parent_lane_bundle,
+                parent_pv=pointer.accepted_pv,
+                proposed_pv=proposed_pv,
+                pointer_generation=pointer.generation,
+                source_overrides=session.metadata.get("source_lane_overrides"),
+            )
             patch = diff_patch(config.repository_path)
             patch_sha256 = sha256_bytes(patch.encode("utf-8"))
             engine_identity, toolchain = build_engine_identity(
@@ -364,7 +457,15 @@ class CodePVEngine:
                 "display_name": config.display_name,
                 "repository": repository_payload,
                 "sensitivity": config.sensitivity,
-                "source_authority": "exact Git worktree bytes captured in code.sqlite",
+                "source_authority": (
+                    "exact governed source bytes captured in code.sqlite and the "
+                    "eighteen-lane SQLite bundle"
+                ),
+                "universal_lanes": {
+                    "lane_count": lane_report["lane_count"],
+                    "code_mode": lane_report["code_mode"],
+                    "bundle_sha256": lane_report["bundle_sha256"],
+                },
             }
             entry_slip = {
                 "schema": "evidence-lane.entry-slip.v1",
@@ -391,12 +492,30 @@ class CodePVEngine:
                 "git_patch_bytes": len(patch.encode("utf-8")),
                 "task": task.as_dict() if task else None,
                 "acceptance_checks": (
-                    {"status": "PENDING_HUMAN_REVIEW", "checks": task.acceptance_checks}
+                    acceptance_health
                     if task
-                    else {"status": "INITIAL_ENTRY_BUILD"}
+                    else {
+                        "status": "PASS",
+                        "verdict": "INITIAL_ENTRY_BUILD",
+                        "declared": 0,
+                        "executed": 0,
+                        "checks": [],
+                        "commands_inferred": False,
+                    }
                 ),
+                "lane_refresh": lane_report["summary"],
                 "exited_at": created_at,
             }
+            package_warnings = list(ingestion.warnings)
+            if lane_report["summary"]["blocked_sources"]:
+                package_warnings.append(
+                    {
+                        "status": "PARTIAL",
+                        "code": "LANE_SOURCES_BLOCKED_OR_UNSUPPORTED",
+                        "count": lane_report["summary"]["blocked_sources"],
+                        "exact_source_bytes_preserved": True,
+                    }
+                )
             package_result = build_pv_package(
                 build_root / "package",
                 database_path=db_path,
@@ -419,7 +538,8 @@ class CodePVEngine:
                 parent_manifest_sha256=pointer.accepted_manifest_sha256,
                 run_id=run_id,
                 created_at=created_at,
-                warnings=ingestion.warnings,
+                warnings=package_warnings,
+                lane_bundle_path=build_root / "lane_bundle",
             )
             stored = self.store.place_candidate(
                 project_id, candidate_id, build_root / "package"
@@ -431,6 +551,8 @@ class CodePVEngine:
                 "repository": repository_payload,
                 "source_delta": delta,
                 "ingestion": ingestion.as_dict(),
+                "acceptance_checks": acceptance_health,
+                "lane_refresh": lane_report,
                 "toolchain_manifest_sha256": engine_identity.toolchain_manifest_sha256,
                 "toolchain_package_count": len(toolchain["packages"]),
             }

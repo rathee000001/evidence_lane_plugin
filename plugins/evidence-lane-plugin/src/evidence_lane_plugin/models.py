@@ -6,6 +6,8 @@ from dataclasses import asdict, dataclass, field
 from enum import StrEnum
 from typing import Any
 
+from .errors import EvidenceLaneError
+
 
 class HostKind(StrEnum):
     CHATGPT = "CHATGPT_WORK"
@@ -13,6 +15,40 @@ class HostKind(StrEnum):
     CODEX_CLI = "CODEX_CLI"
     CODEX_VM = "CODEX_VM"
     PUBLIC_AI = "PUBLIC_AI"
+
+
+_HOST_KIND_ALIASES = {
+    "CHATGPT": HostKind.CHATGPT,
+    "CHATGPT_WORK": HostKind.CHATGPT,
+    "CODEX": HostKind.CODEX_DESKTOP,
+    "CODEX_APP": HostKind.CODEX_DESKTOP,
+    "CODEX_DESKTOP": HostKind.CODEX_DESKTOP,
+    "CODEX_CLI": HostKind.CODEX_CLI,
+    "CODEX_VM": HostKind.CODEX_VM,
+    "PUBLIC_AI": HostKind.PUBLIC_AI,
+}
+
+
+def normalize_host_kind(value: HostKind | str) -> HostKind:
+    """Resolve common host labels into the canonical capability identity."""
+    if isinstance(value, HostKind):
+        return value
+    raw = str(value).strip()
+    key = raw.replace("-", "_").replace(" ", "_").upper()
+    try:
+        return _HOST_KIND_ALIASES[key]
+    except KeyError as exc:
+        raise EvidenceLaneError(
+            "HOST_KIND_INVALID",
+            "The host kind is not supported. Use a canonical value or a documented "
+            "alias such as codex or chatgpt.",
+            status="BLOCKED",
+            details={
+                "provided": raw,
+                "supported_values": [item.value for item in HostKind],
+                "accepted_aliases": sorted(_HOST_KIND_ALIASES),
+            },
+        ) from exc
 
 
 class TaskClass(StrEnum):
@@ -31,6 +67,7 @@ class HilDecision(StrEnum):
     APPROVE = "APPROVE"
     APPROVE_WITH_DELTA = "APPROVE_WITH_DELTA"
     MORE_RESEARCH = "MORE_RESEARCH"
+    ROLLBACK = "ROLLBACK"
     REJECT = "REJECT"
     FAIL = "FAIL"
 

@@ -1,7 +1,7 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "0.2.0+codex.20260726051820",
-  "description": "Private stateful Git/code workflow plugin with immutable SQLite project versions and human-controlled HIL promotion.",
+  "version": "0.4.0+codex.20260729212936",
+  "description": "Private /EV-first Evidence Lane workflow with Git and local-code intake, eighteen immutable sectors, PV Refresh/Fuse, prompt-indexed rollback, Google Drive OAuth dependency, and direct accepted-PV handoff.",
   "author": {
     "name": "Praveen Rathee",
     "url": "https://github.com/rathee000001"
@@ -10,16 +10,18 @@
   "license": "UNLICENSED",
   "keywords": [
     "evidence-lane",
-    "git",
+    "universal-evidence",
     "sqlite",
     "project-version",
     "hil"
   ],
   "skills": "./skills/",
+  "apps": "./.app.json",
+  "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "Evidence Lane Plugin",
-    "shortDescription": "Govern code tasks through immutable SQLite PVs.",
-    "longDescription": "Evidence Lane governs one Git project, one agent, and one bounded task through exact source capture, visible ChatLineage, deterministic PV Exit, and a five-way human HIL gate.",
+    "shortDescription": "Run /EV, Refresh, Fuse, and reversible PV state travel.",
+    "longDescription": "Evidence Lane starts with /EV, accepts one explicit Git or local-code source, governs one project/agent/task across eighteen deterministic SQLite/MMD/DOT sectors, builds PV1 once, incrementally Refreshes later evidence, Fuses only exact APPROVE with direct handoff, and supports six-way HIL plus prompt-indexed pointer-only rollback.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "capabilities": [
@@ -27,9 +29,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Boot Evidence Lane for my registered code project.",
-      "Search my accepted PV before changing code.",
-      "Build the next PV candidate and stop at HIL."
+      "Run /ev and resume my persistent Evidence Lane state.",
+      "Use /git or /local for one explicit source and branch.",
+      "Run PV Refresh, then stop at Fuse or the six-way HIL."
     ],
     "brandColor": "#18A9C8"
   },

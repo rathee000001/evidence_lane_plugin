@@ -1,8 +1,10 @@
-"""Canonical ten-file code PV construction, validation, and sealing."""
+"""Canonical recursive universal PV construction, validation, and sealing."""
 
 from __future__ import annotations
 
+import hashlib
 import json
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +25,7 @@ from .hashing import (
     canonical_json_bytes,
     sha256_file,
 )
+from .lane_engine import validate_lane_bundle
 from .lineage import ChatLineage
 from .redaction import contains_secret
 from .topology import build_mermaid, render_mermaid
@@ -35,9 +38,9 @@ def _copy_exact(source: str | Path, destination: str | Path) -> None:
     atomic_write_bytes(target, source_path.read_bytes())
 
 
-def _member_record(path: Path) -> dict[str, Any]:
+def _member_record(path: Path, root: Path) -> dict[str, Any]:
     return {
-        "path": path.name,
+        "path": path.relative_to(root).as_posix(),
         "bytes": path.stat().st_size,
         "sha256": sha256_file(path),
     }
@@ -45,7 +48,7 @@ def _member_record(path: Path) -> dict[str, Any]:
 
 def _checksum_text(directory: Path, names: list[str]) -> bytes:
     return "".join(
-        f"{sha256_file(directory / name)} *{name}\n" for name in sorted(names)
+        f"{sha256_file(directory / Path(name))} *{name}\n" for name in sorted(names)
     ).encode("utf-8")
 
 
@@ -66,6 +69,7 @@ def build_pv_package(
     run_id: str,
     created_at: str,
     warnings: list[dict[str, Any]] | None = None,
+    lane_bundle_path: str | Path | None = None,
 ) -> dict[str, Any]:
     output = Path(output_directory).resolve()
     require(
@@ -78,10 +82,45 @@ def build_pv_package(
     output.mkdir(parents=True, exist_ok=True)
     _copy_exact(database_path, output / "code.sqlite")
     db_report = database.validate(output / "code.sqlite")
-    with database.connect(output / "code.sqlite", readonly=True) as connection:
-        topology_receipt = build_mermaid(
-            connection, output / "project_master_topology.mmd"
+    if lane_bundle_path:
+        lanes_source = Path(lane_bundle_path).resolve()
+        shutil.copytree(lanes_source, output / "lanes")
+        lane_validation = validate_lane_bundle(output / "lanes")
+        require(
+            lane_validation["valid"],
+            "LANE_BUNDLE_VALIDATION_FAILED",
+            "The universal lane bundle failed validation.",
+            status="FAIL",
+            validation=lane_validation,
         )
+        _copy_exact(
+            output / "lanes" / "project_lane_topology.mmd",
+            output / "project_master_topology.mmd",
+        )
+        _copy_exact(
+            output / "lanes" / "project_lane_topology.dot",
+            output / "project_master_topology.dot",
+        )
+        topology_receipt = {
+            "status": "PASS",
+            "source": "universal_lane_bundle",
+            "lane_count": lane_validation["lane_count"],
+            "authoritative_mmd": "project_master_topology.mmd",
+            "authoritative_dot": "project_master_topology.dot",
+        }
+    else:
+        with database.connect(output / "code.sqlite", readonly=True) as connection:
+            topology_receipt = build_mermaid(
+                connection, output / "project_master_topology.mmd"
+            )
+        atomic_write_bytes(
+            output / "project_master_topology.dot",
+            (
+                b'digraph evidence_lane { root [label="Legacy code topology; '
+                b'see project_master_topology.mmd"]; }\n'
+            ),
+        )
+        lane_validation = None
     render_receipt = render_mermaid(
         output / "project_master_topology.mmd",
         svg_path=output / "project_master_topology.svg",
@@ -110,6 +149,7 @@ def build_pv_package(
     payload_names = [
         "code.sqlite",
         "project_master_topology.mmd",
+        "project_master_topology.dot",
         "active_pointer.json",
         "project_identity.json",
         "chat_lineage.jsonl",
@@ -119,9 +159,15 @@ def build_pv_package(
     for optional in PV_OPTIONAL_FILES:
         if (output / optional).is_file():
             payload_names.append(optional)
+    if lane_bundle_path:
+        payload_names.extend(
+            path.relative_to(output).as_posix()
+            for path in sorted((output / "lanes").rglob("*"))
+            if path.is_file()
+        )
     manifest = {
         "schema": PV_MANIFEST_SCHEMA,
-        "package_kind": "GIT_CODE_PROJECT_VERSION",
+        "package_kind": "UNIVERSAL_EVIDENCE_LANE_PROJECT_VERSION",
         "candidate_id": candidate_id,
         "proposed_pv": proposed_pv,
         "parent_accepted_pv": parent_accepted_pv,
@@ -129,9 +175,13 @@ def build_pv_package(
         "run_id": run_id,
         "created_at": created_at,
         "engine": engine_identity,
-        "members": [_member_record(output / name) for name in sorted(payload_names)],
+        "members": [
+            _member_record(output / Path(name), output)
+            for name in sorted(set(payload_names))
+        ],
         "authoritative_topology": "project_master_topology.mmd",
         "rendering": render_receipt,
+        "universal_lanes": lane_validation,
         "warnings": package_warnings,
         "immutability_rule": "candidate bytes are preserved on acceptance",
     }
@@ -144,6 +194,7 @@ def build_pv_package(
         "proposed_pv": proposed_pv,
         "manifest_sha256": manifest_sha256,
         "database_validation": db_report,
+        "lane_bundle_validation": lane_validation,
         "topology": topology_receipt,
         "rendering": render_receipt,
         "warnings": package_warnings,
@@ -153,8 +204,8 @@ def build_pv_package(
     }
     atomic_write_json(output / "pv_receipt.json", receipt)
     checksum_members = [
-        path.name
-        for path in output.iterdir()
+        path.relative_to(output).as_posix()
+        for path in output.rglob("*")
         if path.is_file() and path.name != "SHA256SUMS.txt"
     ]
     atomic_write_bytes(
@@ -207,7 +258,9 @@ def validate_pv_package(directory: str | Path) -> dict[str, Any]:
         "The project-version package directory does not exist.",
         status="MISMATCH",
     )
-    actual_files = sorted(path.name for path in root.iterdir() if path.is_file())
+    actual_files = sorted(
+        path.relative_to(root).as_posix() for path in root.rglob("*") if path.is_file()
+    )
     missing = sorted(set(PV_REQUIRED_FILES) - set(actual_files))
     require(
         not missing,
@@ -237,8 +290,8 @@ def validate_pv_package(directory: str | Path) -> dict[str, Any]:
     )
     checksums = _parse_checksums(root / "SHA256SUMS.txt")
     expected_checksum_members = sorted(
-        path.name
-        for path in root.iterdir()
+        path.relative_to(root).as_posix()
+        for path in root.rglob("*")
         if path.is_file() and path.name != "SHA256SUMS.txt"
     )
     require(
@@ -250,9 +303,9 @@ def validate_pv_package(directory: str | Path) -> dict[str, Any]:
         actual=sorted(checksums),
     )
     mismatches = {
-        name: {"expected": digest, "actual": sha256_file(root / name)}
+        name: {"expected": digest, "actual": sha256_file(root / Path(name))}
         for name, digest in checksums.items()
-        if sha256_file(root / name) != digest
+        if sha256_file(root / Path(name)) != digest
     }
     require(
         not mismatches,
@@ -300,10 +353,14 @@ def validate_pv_package(directory: str | Path) -> dict[str, Any]:
     manifest_mismatches = {
         name: {
             "expected": digest,
-            "actual": sha256_file(root / name) if (root / name).is_file() else None,
+            "actual": (
+                sha256_file(root / Path(name))
+                if (root / Path(name)).is_file()
+                else None
+            ),
         }
         for name, digest in manifest_members.items()
-        if not (root / name).is_file() or sha256_file(root / name) != digest
+        if not (root / Path(name)).is_file() or sha256_file(root / Path(name)) != digest
     }
     require(
         not manifest_mismatches,
@@ -328,10 +385,26 @@ def validate_pv_package(directory: str | Path) -> dict[str, Any]:
             status="BLOCKED",
             member=name,
         )
+    for path in sorted((root / "lanes").rglob("*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        require(
+            not contains_secret(payload),
+            "PV_METADATA_SECRET_DETECTED",
+            "A secret-like value was detected in lane metadata.",
+            status="BLOCKED",
+            member=path.relative_to(root).as_posix(),
+        )
     db_report = database.validate(root / "code.sqlite")
+    lane_report = validate_lane_bundle(root / "lanes")
+    require(
+        lane_report["valid"],
+        "PV_LANE_BUNDLE_INVALID",
+        "The PV universal lane bundle failed validation.",
+        status="FAIL",
+        lane_report=lane_report,
+    )
     package_sha256 = (
-        __import__("hashlib")
-        .sha256(
+        hashlib.sha256(
             canonical_json_bytes(
                 {name: sha256_file(root / name) for name in sorted(actual_files)}
             )
@@ -347,6 +420,7 @@ def validate_pv_package(directory: str | Path) -> dict[str, Any]:
         "package_sha256": package_sha256,
         "members": len(actual_files),
         "database": db_report,
+        "lanes": lane_report,
         "project_id": project_identity.get("project_id"),
         "rendering_status": manifest.get("rendering", {}).get("status"),
     }

@@ -38,6 +38,24 @@ CREATE TABLE IF NOT EXISTS files (
     UNIQUE (repository_id, path)
 ) STRICT;
 
+CREATE TABLE IF NOT EXISTS source_tombstones (
+    tombstone_id INTEGER PRIMARY KEY,
+    path TEXT NOT NULL,
+    prior_sha256 TEXT NOT NULL,
+    prior_size_bytes INTEGER NOT NULL,
+    parent_pv TEXT,
+    removed_at TEXT NOT NULL
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS source_refresh_events (
+    refresh_event_id INTEGER PRIMARY KEY,
+    path TEXT NOT NULL,
+    classification TEXT NOT NULL,
+    prior_sha256 TEXT,
+    current_sha256 TEXT,
+    recorded_at TEXT NOT NULL
+) STRICT;
+
 CREATE TABLE IF NOT EXISTS chunks (
     chunk_id INTEGER PRIMARY KEY,
     file_id INTEGER NOT NULL REFERENCES files(file_id) ON DELETE CASCADE,
@@ -130,6 +148,19 @@ CREATE TABLE IF NOT EXISTS tasks (
     stop_condition TEXT NOT NULL,
     hil_required INTEGER NOT NULL CHECK (hil_required IN (0, 1)),
     status TEXT NOT NULL
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS acceptance_results (
+    acceptance_result_id INTEGER PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    declaration TEXT NOT NULL,
+    command_text TEXT,
+    status TEXT NOT NULL,
+    returncode INTEGER,
+    duration_seconds REAL NOT NULL,
+    output_tail TEXT NOT NULL,
+    output_truncated INTEGER NOT NULL CHECK (output_truncated IN (0, 1)),
+    reason TEXT
 ) STRICT;
 
 CREATE TABLE IF NOT EXISTS runs (

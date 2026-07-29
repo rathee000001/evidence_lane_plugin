@@ -96,6 +96,9 @@ def boot_local(application: EvidenceLaneService) -> dict:
         sandbox_id="sandbox-local",
         ephemeral=False,
         runtime_context={"permission_mode": "test"},
+        host_session_id="host-session-test",
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
     )
 
 

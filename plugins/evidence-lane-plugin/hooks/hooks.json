@@ -1,5 +1,5 @@
 {
-  "description": "Advisory Evidence Lane session boundary. It never mutates source, PVs, pointers, or credentials.",
+  "description": "Evidence Lane session context plus a privacy-minimized prompt-entry index. Hooks never mutate source, PVs, pointers, or credentials.",
   "hooks": {
     "SessionStart": [
       {
@@ -11,6 +11,19 @@
             "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\session_start.py\"",
             "timeout": 3,
             "statusMessage": "Loading Evidence Lane boundary"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/prompt_submit.py\"",
+            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\prompt_submit.py\"",
+            "timeout": 3,
+            "statusMessage": "Indexing Evidence Lane prompt entry"
           }
         ]
       }

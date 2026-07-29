@@ -1,4 +1,4 @@
-"""Persistent governed session and five-outcome HIL state machine."""
+"""Persistent governed session and explicit six-outcome HIL state machine."""
 
 from __future__ import annotations
 
@@ -9,9 +9,12 @@ from typing import Any, cast
 from .constants import ENGINE_VERSION
 from .engine import CodePVEngine
 from .errors import EvidenceLaneError, require
+from .freshness import evaluate_freshness
 from .git_adapter import identity_json, inspect_repository
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
 from .ids import prefixed_id
+from .ingest import iter_source_files
+from .lanes import LaneRegistryError, resolve_lane_id
 from .lineage import ChatLineage
 from .models import (
     HilDecision,
@@ -20,9 +23,12 @@ from .models import (
     SessionState,
     TaskClass,
     TaskContract,
+    normalize_host_kind,
 )
+from .prompt_index import PromptIndex, is_prompt_reference
 from .pv_package import validate_pv_package
 from .redaction import redact
+from .state_law import LifecycleEvent, transition
 from .store import ProjectStore
 from .tasking import classify_task
 from .timeutil import utc_now
@@ -40,6 +46,22 @@ _REPOSITORY_IDENTITY_FIELDS = (
     "tree_sha",
     "worktree_sha256",
 )
+
+
+def _normalize_pv_target(value: str) -> str:
+    normalized = value.strip().upper()
+    if normalized.isdigit():
+        normalized = f"PV{normalized}"
+    require(
+        normalized.startswith("PV")
+        and normalized[2:].isdigit()
+        and int(normalized[2:]) >= 1,
+        "ROLLBACK_TARGET_INVALID",
+        "Rollback target must be an accepted ordinal such as PV2 or 2.",
+        status="BLOCKED",
+        target=value,
+    )
+    return normalized
 
 
 class SessionManager:
@@ -64,6 +86,74 @@ class SessionManager:
 
     def _active_path(self, project_id: str) -> Path:
         return self.store.project_root(project_id) / "active_session.json"
+
+    @staticmethod
+    def _source_edit_authority(
+        host: HostKind,
+        client_can_edit_source: bool | None,
+    ) -> str:
+        if client_can_edit_source is not None:
+            return "DIRECT" if client_can_edit_source else "USER_MEDIATED"
+        return (
+            "DIRECT"
+            if host in {HostKind.CODEX_DESKTOP, HostKind.CODEX_CLI}
+            else "USER_MEDIATED"
+        )
+
+    def _resolve_rollback_target(
+        self,
+        session: SessionRecord,
+        rollback_to: str | None,
+    ) -> tuple[str, str | None, bool, dict[str, Any]]:
+        entry_pv = cast(str | None, session.metadata.get("entry_pv"))
+        default_used = not bool(rollback_to and rollback_to.strip())
+        host_session_id = str(
+            session.metadata.get("current_host_session_id") or ""
+        ).strip()
+        resolution: dict[str, Any] | None = None
+        if rollback_to and is_prompt_reference(rollback_to):
+            resolution = PromptIndex(self.store.root).resolve(
+                host_session_id=host_session_id,
+                project_id=session.project_id,
+                evidence_session_id=session.session_id,
+                reference=rollback_to,
+            )
+            raw_target = resolution["entry_pv"]
+        elif rollback_to:
+            raw_target = rollback_to.strip()
+            resolution = {
+                "kind": "EXPLICIT_PV",
+                "reference": rollback_to.strip(),
+                "entry_pv": raw_target,
+            }
+        else:
+            latest = (
+                PromptIndex(self.store.root).latest_entry(
+                    host_session_id=host_session_id,
+                    project_id=session.project_id,
+                    evidence_session_id=session.session_id,
+                )
+                if host_session_id
+                else None
+            )
+            resolution = latest or {
+                "kind": "SESSION_ENTRY",
+                "reference": "BARE_ROLLBACK",
+                "entry_pv": entry_pv,
+            }
+            raw_target = resolution.get("entry_pv")
+        require(
+            bool(raw_target),
+            "ROLLBACK_ENTRY_TARGET_UNAVAILABLE",
+            "Bare rollback requires a current prompt-entry PV or governed session "
+            "entry PV. Indexed rollback requires a resolvable PROMPT or TURN record.",
+            status="BLOCKED",
+            entry_pv=entry_pv,
+            host_session_id_available=bool(host_session_id),
+        )
+        target_pv = _normalize_pv_target(cast(str, raw_target))
+        resolution["resolved_target"] = target_pv
+        return target_pv, entry_pv, default_used, resolution
 
     def _verify_repository_matches_package(
         self,
@@ -210,6 +300,9 @@ class SessionManager:
         ephemeral: bool,
         flash: dict[str, Any],
         runtime_context: dict[str, Any] | None = None,
+        host_session_id: str | None = None,
+        client_can_edit_source: bool | None = None,
+        server_has_durable_filesystem: bool | None = None,
     ) -> dict[str, Any]:
         installation = self.ensure_installation()
         config = self.store.config(project_id)
@@ -232,7 +325,7 @@ class SessionManager:
                 active_session_id=existing.session_id,
                 state=existing.state.value,
             )
-        host_kind = host if isinstance(host, HostKind) else HostKind(host)
+        host_kind = normalize_host_kind(host)
         identity = inspect_repository(
             config.repository_path,
             expected_owner=config.expected_owner,
@@ -247,9 +340,15 @@ class SessionManager:
         )
         pointer = self.store.pointer(project_id)
         repository_payload = identity_json(identity, config.repository_path)
+        entry_validation: dict[str, Any] | None = None
+        entry_freshness: dict[str, Any] = {
+            "state": "NO_ACCEPTED_PV",
+            "reason": "PV1 has not been accepted for this project.",
+        }
         if pointer.accepted_pv:
             accepted = self.store.accepted_path(project_id, pointer.accepted_pv)
             validation = validate_pv_package(accepted)
+            entry_validation = validation
             project_identity = json.loads(
                 (accepted / "project_identity.json").read_text(encoding="utf-8")
             )
@@ -259,20 +358,14 @@ class SessionManager:
                     "accepted": prior_repository.get(field),
                     "current": repository_payload.get(field),
                 }
-                for field in (
-                    "repository_url",
-                    "owner",
-                    "name",
-                    "commit_sha",
-                    "tree_sha",
-                    "worktree_sha256",
-                )
+                for field in ("repository_url", "owner", "name")
                 if prior_repository.get(field) != repository_payload.get(field)
             }
             require(
                 not mismatches,
                 "ACCEPTED_PV_REPOSITORY_MISMATCH",
-                "The current repository is not the repository bound to the accepted PV.",
+                "The current repository identity is not the repository bound to the "
+                "accepted PV.",
                 status="MISMATCH",
                 mismatches=mismatches,
             )
@@ -282,10 +375,16 @@ class SessionManager:
                 "The active pointer does not match the accepted PV manifest.",
                 status="MISMATCH",
             )
+            entry_freshness = evaluate_freshness(self.store, project_id, accepted)
         session_id = prefixed_id("session")
         now = utc_now()
         safe_context = redact(runtime_context or {})
         context_hash = sha256_bytes(canonical_json_bytes(safe_context))
+        exact_host_session_id = str(host_session_id or "").strip() or None
+        source_edit_authority = self._source_edit_authority(
+            host_kind,
+            client_can_edit_source,
+        )
         session = SessionRecord(
             session_id=session_id,
             project_id=project_id,
@@ -311,16 +410,65 @@ class SessionManager:
                 "flash_context_stored_in_pv": False,
                 "persistence_mode": persistence_mode,
                 "ephemeral_host": ephemeral,
+                "server_has_durable_filesystem": server_has_durable_filesystem,
+                "client_source_edit_authority": source_edit_authority,
+                "current_host_session_id": exact_host_session_id,
+                "host_session_history": (
+                    [
+                        {
+                            "host_session_id": exact_host_session_id,
+                            "host": host_kind.value,
+                            "bound_at": now,
+                        }
+                    ]
+                    if exact_host_session_id
+                    else []
+                ),
                 "source_state": (
                     "ACCEPTED_ENTRY_EXACT"
+                    if entry_freshness["state"] == "FRESH"
+                    else "ACCEPTED_ENTRY_STALE_OR_DIFFERENT_LIVE_SOURCE"
                     if pointer.accepted_pv is not None
                     else "INITIAL_SOURCE_EXACT"
                 ),
                 "accepted_pv_query_scope": (
-                    "CURRENT_ENTRY_STATE"
+                    "CURRENT_ENTRY_AND_LIVE_SOURCE_EXACT"
+                    if entry_freshness["state"] == "FRESH"
+                    else "IMMUTABLE_ENTRY_STATE_ONLY_LIVE_SOURCE_DIFFERS"
                     if pointer.accepted_pv is not None
                     else "NO_ACCEPTED_PV"
                 ),
+                "entry_pv": pointer.accepted_pv,
+                "entry_manifest_sha256": (
+                    entry_validation["manifest_sha256"] if entry_validation else None
+                ),
+                "entry_package_sha256": (
+                    entry_validation["package_sha256"] if entry_validation else None
+                ),
+                "entry_freshness": entry_freshness,
+                "highest_accepted_ordinal": self.store.highest_accepted_ordinal(
+                    project_id
+                ),
+                "persistent_store": str(self.store.root),
+                "entry_history": [
+                    {
+                        "turn": 1,
+                        "entry_pv": pointer.accepted_pv,
+                        "pointer_generation": pointer.generation,
+                        "manifest_sha256": (
+                            entry_validation["manifest_sha256"]
+                            if entry_validation
+                            else None
+                        ),
+                        "package_sha256": (
+                            entry_validation["package_sha256"]
+                            if entry_validation
+                            else None
+                        ),
+                        "host_session_id": exact_host_session_id,
+                        "entered_at": now,
+                    }
+                ],
             },
         )
         self._save(session)
@@ -342,7 +490,11 @@ class SessionManager:
             occurred_at=now,
             session_id=session_id,
         )
-        session.state = SessionState.BOOTED
+        session.state = transition(
+            session.state,
+            LifecycleEvent.FLASH_VERIFIED,
+            SessionState.BOOTED,
+        )
         self._save(session)
         atomic_write_json(
             active_path,
@@ -357,10 +509,20 @@ class SessionManager:
                 "accepted_pv": pointer.accepted_pv,
                 "pointer_generation": pointer.generation,
                 "repository": repository_payload,
+                "entry_pv": pointer.accepted_pv,
+                "entry_manifest_sha256": session.metadata["entry_manifest_sha256"],
+                "entry_package_sha256": session.metadata["entry_package_sha256"],
+                "entry_freshness": entry_freshness,
+                "highest_accepted_ordinal": session.metadata[
+                    "highest_accepted_ordinal"
+                ],
+                "persistent_store": str(self.store.root),
                 "runtime_context_sha256": context_hash,
                 "runtime_context_stored_in_pv": False,
                 "flash_authority_digest": flash["authority_digest"],
                 "flash_context_stored_in_pv": False,
+                "host_session_id": exact_host_session_id,
+                "client_source_edit_authority": source_edit_authority,
             },
             occurred_at=now,
             session_id=session_id,
@@ -374,7 +536,139 @@ class SessionManager:
                 "BUILD_PV1_CANDIDATE"
                 if pointer.accepted_pv is None
                 else "CLASSIFY_ONE_TASK"
+                if entry_freshness["state"] == "FRESH"
+                else "REVIEW_STALE_ACCEPTED_ENTRY_BEFORE_MUTATING_TASK"
             ),
+            "persistent_state_envelope": {
+                "store": str(self.store.root),
+                "accepted_pv": pointer.accepted_pv,
+                "highest_accepted_ordinal": self.store.highest_accepted_ordinal(
+                    project_id
+                ),
+                "entry_pv": session.metadata["entry_pv"],
+                "pointer_generation": pointer.generation,
+                "entry_manifest_sha256": session.metadata["entry_manifest_sha256"],
+                "entry_package_sha256": session.metadata["entry_package_sha256"],
+                "freshness": entry_freshness,
+                "pending_candidate": None,
+                "pending_hil": False,
+            },
+        }
+
+    def resume(
+        self,
+        *,
+        project_id: str,
+        host: HostKind | str,
+        host_session_id: str,
+        persistence_mode: str,
+        ephemeral: bool,
+        client_can_edit_source: bool | None = None,
+        server_has_durable_filesystem: bool | None = None,
+        runtime_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Bind a fresh host prompt session to the one persistent governed session."""
+        active_path = self._active_path(project_id)
+        require(
+            active_path.is_file(),
+            "NO_ACTIVE_SESSION_TO_RESUME",
+            "No governed Evidence Lane session is active for this project.",
+            status="BLOCKED",
+            project_id=project_id,
+        )
+        active = json.loads(active_path.read_text(encoding="utf-8"))
+        session = self.load(project_id, str(active["session_id"]))
+        require(
+            not session.metadata.get("closed_at"),
+            "ACTIVE_SESSION_ALREADY_CLOSED",
+            "The recorded active session is closed and cannot be resumed.",
+            status="BLOCKED",
+            session_id=session.session_id,
+        )
+        exact_host_session_id = host_session_id.strip()
+        require(
+            bool(exact_host_session_id) and len(exact_host_session_id) <= 256,
+            "HOST_SESSION_ID_INVALID",
+            "Resume requires the exact host session ID supplied by SessionStart.",
+            status="BLOCKED",
+        )
+        host_kind = normalize_host_kind(host)
+        pointer = self.store.pointer(project_id)
+        require(
+            pointer.generation == session.accepted_pointer_generation
+            and pointer.accepted_pv == session.accepted_pv,
+            "RESUME_POINTER_STALE",
+            "The accepted pointer changed outside the persistent governed session.",
+            status="STALE",
+            pointer=pointer.as_dict(),
+            session_pointer_generation=session.accepted_pointer_generation,
+            session_accepted_pv=session.accepted_pv,
+        )
+        now = utc_now()
+        session.host = host_kind
+        session.metadata["current_host_session_id"] = exact_host_session_id
+        history = session.metadata.setdefault("host_session_history", [])
+        if not any(
+            row.get("host_session_id") == exact_host_session_id for row in history
+        ):
+            history.append(
+                {
+                    "host_session_id": exact_host_session_id,
+                    "host": host_kind.value,
+                    "bound_at": now,
+                }
+            )
+        session.metadata["persistence_mode"] = persistence_mode
+        session.metadata["ephemeral_host"] = ephemeral
+        session.metadata["server_has_durable_filesystem"] = (
+            server_has_durable_filesystem
+        )
+        session.metadata["client_source_edit_authority"] = self._source_edit_authority(
+            host_kind, client_can_edit_source
+        )
+        safe_context = redact(runtime_context or {})
+        session.metadata["resume_runtime_context_sha256"] = sha256_bytes(
+            canonical_json_bytes(safe_context)
+        )
+        self._save(session)
+        event = ChatLineage(self._lineage_path(project_id, session.session_id)).append(
+            event_type="session.resumed",
+            visible_payload={
+                "host": host_kind.value,
+                "host_session_id": exact_host_session_id,
+                "state": session.state.value,
+                "accepted_pv": session.accepted_pv,
+                "entry_pv": session.metadata.get("entry_pv"),
+                "pointer_generation": pointer.generation,
+                "persistence_mode": persistence_mode,
+                "client_source_edit_authority": session.metadata[
+                    "client_source_edit_authority"
+                ],
+                "pointer_moved": False,
+            },
+            occurred_at=now,
+            session_id=session.session_id,
+        )
+        if session.state in {SessionState.PV1_CANDIDATE, SessionState.PVN1_CANDIDATE}:
+            entry_action = "PRESENT_PENDING_HIL"
+        elif session.state in {
+            SessionState.CORRECTION_TASK_PENDING,
+            SessionState.RESEARCH_TASK_PENDING,
+        }:
+            entry_action = "CLASSIFY_EXACT_STORED_FOLLOW_UP"
+        elif session.state == SessionState.BOOTED and session.accepted_pv is None:
+            entry_action = "BUILD_PV1_CANDIDATE"
+        elif session.task is not None:
+            entry_action = "CONTINUE_ONE_ACTIVE_TASK"
+        else:
+            entry_action = "CLASSIFY_ONE_TASK"
+        return {
+            "status": "PASS",
+            "resumed": True,
+            "session": session.as_dict(),
+            "pointer": pointer.as_dict(),
+            "entry_action": entry_action,
+            "event": event,
         }
 
     def build_initial_entry(self, project_id: str, session_id: str) -> dict[str, Any]:
@@ -403,8 +697,13 @@ class SessionManager:
             task=None,
             initial_entry=True,
         )
+        self._consume_lane_route_grant(session, result["candidate_id"])
         session.candidate_id = result["candidate_id"]
-        session.state = SessionState.PV1_CANDIDATE
+        session.state = transition(
+            session.state,
+            LifecycleEvent.BUILD_INITIAL,
+            SessionState.PV1_CANDIDATE,
+        )
         session.metadata["run_id"] = run_id
         session.metadata["candidate_pointer_generation"] = (
             session.accepted_pointer_generation
@@ -424,6 +723,125 @@ class SessionManager:
         )
         return {"status": "PASS", "session": session.as_dict(), "candidate": result}
 
+    @staticmethod
+    def _consume_lane_route_grant(
+        session: SessionRecord,
+        candidate_id: str,
+    ) -> None:
+        grant = session.metadata.get("source_lane_route_grant")
+        if not isinstance(grant, dict) or grant.get("status") != "ARMED":
+            return
+        grant["status"] = "CONSUMED_RELOCKED"
+        grant["candidate_id"] = candidate_id
+        grant["consumed_at"] = utc_now()
+        session.metadata.pop("source_lane_overrides", None)
+
+    def configure_source_lanes(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        overrides: dict[str, str],
+        granted_by: str,
+        grant_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Arm one exact route override for the next candidate build only."""
+        session = self.load(project_id, session_id)
+        require(
+            session.state
+            in {
+                SessionState.BOOTED,
+                SessionState.PVN_ACCEPTED,
+                SessionState.PVN1_ACCEPTED,
+                SessionState.PVN1_ENTRY,
+            }
+            and session.task is None
+            and session.candidate_id is None,
+            "LANE_ROUTE_GRANT_STATE_INVALID",
+            "Lane route grants may be armed only at an idle entry before candidate "
+            "construction.",
+            status="BLOCKED",
+            state=session.state.value,
+        )
+        require(
+            1 <= len(overrides) <= 100,
+            "LANE_ROUTE_GRANT_SIZE_INVALID",
+            "A route grant must name between one and one hundred exact sources.",
+            status="BLOCKED",
+        )
+        require(
+            bool(granted_by.strip()),
+            "LANE_ROUTE_GRANT_ACTOR_REQUIRED",
+            "A visible human identity is required for a named route grant.",
+            status="BLOCKED",
+        )
+        config = self.store.config(project_id)
+        source_paths = {
+            relative for relative, _ in iter_source_files(config.repository_path)
+        }
+        code_mode = (
+            "github_code"
+            if session.repository.get("provider") == "github"
+            else "local_code"
+        )
+        normalized: dict[str, str] = {}
+        for raw_path, raw_lane in sorted(overrides.items()):
+            relative = raw_path.replace("\\", "/").strip("/")
+            require(
+                relative in source_paths,
+                "LANE_ROUTE_SOURCE_NOT_FOUND",
+                "Every route override must name an exact current source path.",
+                status="MISMATCH",
+                path=raw_path,
+            )
+            try:
+                normalized[relative] = resolve_lane_id(raw_lane, code_mode=code_mode)
+            except LaneRegistryError as exc:
+                raise EvidenceLaneError(
+                    "LANE_ROUTE_TARGET_INVALID",
+                    str(exc),
+                    status="BLOCKED",
+                    details={"path": relative, "lane": raw_lane},
+                ) from exc
+        exact_grant_id = grant_id or prefixed_id("lanegrant")
+        existing = session.metadata.get("source_lane_route_grant")
+        if isinstance(existing, dict) and existing.get("grant_id") == exact_grant_id:
+            require(
+                existing.get("overrides") == normalized
+                and existing.get("granted_by") == granted_by.strip(),
+                "LANE_ROUTE_GRANT_ID_CONFLICT",
+                "The lane-route grant ID already binds different authority.",
+                status="BLOCKED",
+            )
+            return {"status": "PASS", "grant": existing}
+        require(
+            not isinstance(existing, dict) or existing.get("status") != "ARMED",
+            "LANE_ROUTE_GRANT_ALREADY_ARMED",
+            "One unconsumed lane-route grant is already armed for this session.",
+            status="BLOCKED",
+        )
+        grant = {
+            "schema": "evidence-lane.lane-route-grant.v1",
+            "grant_id": exact_grant_id,
+            "granted_by": granted_by.strip(),
+            "overrides": normalized,
+            "code_mode": code_mode,
+            "status": "ARMED",
+            "one_candidate_only": True,
+            "snapshot_relock_required": True,
+            "granted_at": utc_now(),
+        }
+        session.metadata["source_lane_overrides"] = normalized
+        session.metadata["source_lane_route_grant"] = grant
+        self._save(session)
+        ChatLineage(self._lineage_path(project_id, session_id)).append(
+            event_type="lane.route_grant.armed",
+            visible_payload=grant,
+            occurred_at=utc_now(),
+            session_id=session_id,
+        )
+        return {"status": "PASS", "grant": grant, "session": session.as_dict()}
+
     def classify(
         self,
         project_id: str,
@@ -435,6 +853,7 @@ class SessionManager:
         permitted_tools: list[str],
         acceptance_checks: list[str],
         stop_condition: str,
+        backlog_task_id: str | None = None,
     ) -> dict[str, Any]:
         session = self.load(project_id, session_id)
         pointer = self.store.pointer(project_id)
@@ -453,9 +872,10 @@ class SessionManager:
                 SessionState.CORRECTION_TASK_PENDING,
                 SessionState.RESEARCH_TASK_PENDING,
             }
-            and pointer.accepted_pv is not None,
+            and (pointer.accepted_pv is not None or pending_state),
             "TASK_CLASSIFICATION_STATE_INVALID",
-            "A task requires an accepted entry PV and no active task.",
+            "A task requires an accepted entry PV, except for the exact stored "
+            "follow-up to an unaccepted initial PV1 candidate.",
             status="BLOCKED",
             state=session.state.value,
             accepted_pv=pointer.accepted_pv,
@@ -512,12 +932,60 @@ class SessionManager:
             acceptance_checks=acceptance_checks,
             stop_condition=stop_condition,
         )
+        if backlog_task_id:
+            claimed = self.store.claim_backlog_task(
+                project_id,
+                backlog_task_id=backlog_task_id,
+                session_id=session_id,
+                contract=task.as_dict(),
+            )
+            session.metadata["active_backlog_task_id"] = claimed["task_id"]
+        mutating_classes = {
+            TaskClass.MODIFY_CODE,
+            TaskClass.FIX_BUG,
+            TaskClass.ADD_BOUNDED_FEATURE,
+            TaskClass.PREPARE_PATCH,
+        }
+        current_freshness = (
+            evaluate_freshness(
+                self.store,
+                project_id,
+                self.store.accepted_path(project_id, cast(str, pointer.accepted_pv)),
+            )
+            if pointer.accepted_pv is not None
+            else {
+                "state": "PENDING_INITIAL_CANDIDATE",
+                "reason": (
+                    "The exact HIL follow-up is bound to an unaccepted PV1 "
+                    "candidate; no accepted pointer exists."
+                ),
+            }
+        )
+        session.metadata["current_accepted_freshness"] = current_freshness
+        require(
+            pending_state
+            or task.task_class not in mutating_classes
+            or current_freshness.get("state") == "FRESH",
+            "STALE_ENTRY_MUTATION_BLOCKED",
+            "A modifying task cannot claim the rolled-back or stale accepted PV as "
+            "its live source. Restore that exact source or use a bounded read/research "
+            "task before Refresh.",
+            status="STALE",
+            accepted_pv=pointer.accepted_pv,
+            session_entry_pv=session.metadata.get("entry_pv"),
+            freshness=current_freshness,
+        )
         session.task = task.as_dict()
         session.candidate_id = None
-        session.state = (
+        target_state = (
             SessionState.AWAITING_USER_APPLY_COMMIT
-            if session.host == HostKind.CHATGPT
+            if session.metadata.get("client_source_edit_authority") == "USER_MEDIATED"
             else SessionState.TASK_CLASSIFIED
+        )
+        session.state = transition(
+            session.state,
+            LifecycleEvent.CLASSIFY_TASK,
+            target_state,
         )
         session.metadata["run_id"] = prefixed_id("run")
         session.metadata["source_update_confirmed"] = False
@@ -531,7 +999,11 @@ class SessionManager:
                 "accepted_pv_context": pointer.accepted_pv,
             }
             session.metadata["source_state"] = "PENDING_CANDIDATE_SOURCE_EXACT"
-            session.metadata["accepted_pv_query_scope"] = "ENTRY_STATE_ONLY"
+            session.metadata["accepted_pv_query_scope"] = (
+                "ENTRY_STATE_ONLY"
+                if pointer.accepted_pv is not None
+                else "NO_ACCEPTED_PV_PENDING_CANDIDATE_SOURCE_ONLY"
+            )
         else:
             session.metadata["task_source_basis"] = {
                 "kind": "ACCEPTED_PV_ENTRY",
@@ -578,6 +1050,8 @@ class SessionManager:
             "prompt",
             "tool.selected",
             "command.executed",
+            "git.fast_forward",
+            "git.fast_forward.noop",
             "file.inspected",
             "file.created",
             "file.modified",
@@ -599,7 +1073,12 @@ class SessionManager:
         )
         task_payload = cast(dict[str, Any], session.task)
         event_payload = dict(visible_payload)
-        if activity_type in {"file.created", "file.modified", "file.deleted"}:
+        if activity_type in {
+            "git.fast_forward",
+            "file.created",
+            "file.modified",
+            "file.deleted",
+        }:
             if "first_source_mutation_at" not in session.metadata:
                 session.metadata["first_source_mutation_at"] = utc_now()
             session.metadata["source_state"] = "MUTATED_AFTER_ENTRY"
@@ -669,7 +1148,7 @@ class SessionManager:
                 SessionState.AWAITING_USER_APPLY_COMMIT,
             },
             "REFRESH_STATE_INVALID",
-            "PV Exit requires one active classified task.",
+            "PV Refresh requires one active classified task.",
             status="BLOCKED",
             state=session.state.value,
         )
@@ -680,7 +1159,11 @@ class SessionManager:
             status="BLOCKED",
         )
         task_payload = cast(dict[str, Any], session.task)
-        session.state = SessionState.EXIT_BUILDING
+        session.state = transition(
+            session.state,
+            LifecycleEvent.BEGIN_EXIT,
+            SessionState.EXIT_BUILDING,
+        )
         self._save(session)
         task = TaskContract(
             task_id=task_payload["task_id"],
@@ -694,30 +1177,54 @@ class SessionManager:
             hil_required=task_payload["hil_required"],
             status=task_payload["status"],
         )
+        pointer = self.store.pointer(project_id)
+        task_source_basis = session.metadata.get("task_source_basis")
+        initial_retry = bool(
+            pointer.accepted_pv is None
+            and isinstance(task_source_basis, dict)
+            and task_source_basis.get("kind") == "HIL_CANDIDATE_SOURCE"
+        )
         result = self.engine.build_candidate(
             project_id=project_id,
             session=session,
             run_id=session.metadata["run_id"],
             lineage_path=self._lineage_path(project_id, session_id),
             task=task,
-            initial_entry=False,
+            initial_entry=initial_retry,
         )
+        self._consume_lane_route_grant(session, result["candidate_id"])
         session.candidate_id = result["candidate_id"]
-        session.state = SessionState.PVN1_CANDIDATE
+        candidate_state = (
+            SessionState.PV1_CANDIDATE if initial_retry else SessionState.PVN1_CANDIDATE
+        )
+        session.state = transition(
+            session.state,
+            (
+                LifecycleEvent.SEAL_INITIAL_RETRY
+                if initial_retry
+                else LifecycleEvent.SEAL_EXIT
+            ),
+            candidate_state,
+        )
         session.metadata["candidate_pointer_generation"] = (
             session.accepted_pointer_generation
         )
-        session.metadata["source_state"] = "EXIT_CANDIDATE_BUILT_FROM_FINAL_SOURCE"
+        session.metadata["source_state"] = "REFRESH_CANDIDATE_BUILT_FROM_FINAL_SOURCE"
         session.metadata["accepted_pv_query_scope"] = "ENTRY_STATE_ONLY_UNTIL_APPROVE"
         self._save(session)
         ChatLineage(self._lineage_path(project_id, session_id)).append(
-            event_type="pv.exit_candidate.created",
+            event_type=(
+                "pv.initial_retry_candidate.created"
+                if initial_retry
+                else "pv.refresh_candidate.created"
+            ),
             visible_payload={
                 "candidate_id": result["candidate_id"],
                 "proposed_pv": result["proposed_pv"],
                 "manifest_sha256": result["manifest_sha256"],
                 "source_delta": result["source_delta"],
                 "warnings": result["warnings"],
+                "initial_pv_retry": initial_retry,
             },
             occurred_at=utc_now(),
             session_id=session_id,
@@ -736,6 +1243,7 @@ class SessionManager:
         reason: str | None = None,
         correction_delta: str | None = None,
         research_question: str | None = None,
+        rollback_to: str | None = None,
         decision_id: str | None = None,
     ) -> dict[str, Any]:
         session = self.load(project_id, session_id)
@@ -754,11 +1262,12 @@ class SessionManager:
         candidate_id = cast(str, session.candidate_id)
         decision_task_id = session.task["task_id"] if session.task else None
         decision_run_id = session.metadata.get("run_id")
+        pointer_moved = False
         if outcome == HilDecision.APPROVE:
             require(
-                not correction_delta and not research_question,
+                not correction_delta and not research_question and not rollback_to,
                 "APPROVE_FIELDS_INVALID",
-                "APPROVE may not include correction or research payloads.",
+                "APPROVE may not include correction, research, or rollback payloads.",
                 status="BLOCKED",
             )
             result = self.store.promote(
@@ -771,15 +1280,101 @@ class SessionManager:
                 decision_id=exact_decision_id,
             )
             after = self.store.pointer(project_id)
+            pointer_moved = True
             session.accepted_pv = after.accepted_pv
             session.accepted_pointer_generation = after.generation
-            session.state = (
+            target_state = (
                 SessionState.PVN_ACCEPTED
                 if after.accepted_pv == "PV1"
                 else SessionState.PVN1_ACCEPTED
             )
+            session.state = transition(
+                session.state,
+                LifecycleEvent.HIL_APPROVE,
+                target_state,
+            )
             session.metadata["source_state"] = "ACCEPTED_ENTRY_EXACT"
             session.metadata["accepted_pv_query_scope"] = "CURRENT_ENTRY_STATE"
+            session.metadata["current_accepted_freshness"] = evaluate_freshness(
+                self.store,
+                project_id,
+                self.store.accepted_path(project_id, cast(str, after.accepted_pv)),
+            )
+            decision_receipt = result["receipt"]
+        elif outcome == HilDecision.ROLLBACK:
+            require(
+                not correction_delta and not research_question,
+                "ROLLBACK_FIELDS_INVALID",
+                "ROLLBACK may not include correction or research payloads.",
+                status="BLOCKED",
+            )
+            target_pv, entry_pv, default_used, resolution = (
+                self._resolve_rollback_target(session, rollback_to)
+            )
+            require(
+                target_pv in self.store.accepted_ids(project_id),
+                "ROLLBACK_TARGET_NOT_ACCEPTED",
+                "Rollback may target only an immutable accepted PV in this project.",
+                status="BLOCKED",
+                target_pv=target_pv,
+                accepted=self.store.accepted_ids(project_id),
+            )
+            target_path = self.store.accepted_path(project_id, target_pv)
+            target_freshness = evaluate_freshness(self.store, project_id, target_path)
+            result = self.store.rollback(
+                project_id,
+                target_pv=target_pv,
+                expected_pointer_generation=session.metadata[
+                    "candidate_pointer_generation"
+                ],
+                decided_by=decided_by,
+                decision_id=exact_decision_id,
+                default_entry_target_used=default_used,
+                entry_pv=entry_pv,
+                candidate_id=candidate_id,
+                freshness=target_freshness,
+                resolution_reference=resolution,
+            )
+            after = self.store.pointer(project_id)
+            pointer_moved = bool(result["pointer_moved"])
+            session.metadata.setdefault("completed_runs", []).append(
+                {
+                    "run_id": decision_run_id,
+                    "task": session.task,
+                    "candidate_id": candidate_id,
+                    "decision_id": exact_decision_id,
+                    "decision": outcome.value,
+                    "candidate_preserved_unaccepted": True,
+                }
+            )
+            session.accepted_pv = after.accepted_pv
+            session.accepted_pointer_generation = after.generation
+            session.candidate_id = None
+            session.task = None
+            session.metadata.pop("run_id", None)
+            session.metadata["source_update_confirmed"] = False
+            session.metadata["current_accepted_freshness"] = target_freshness
+            session.metadata["source_state"] = (
+                "ACCEPTED_ENTRY_EXACT"
+                if target_freshness["state"] == "FRESH"
+                else "ACCEPTED_ENTRY_STALE_OR_DIFFERENT_LIVE_SOURCE"
+            )
+            session.metadata["accepted_pv_query_scope"] = (
+                "CURRENT_ENTRY_AND_LIVE_SOURCE_EXACT"
+                if target_freshness["state"] == "FRESH"
+                else "IMMUTABLE_ENTRY_STATE_ONLY_LIVE_SOURCE_DIFFERS"
+            )
+            session.metadata["last_rollback"] = result["receipt"]
+            target_state = (
+                SessionState.PVN_ACCEPTED
+                if after.accepted_pv == "PV1"
+                else SessionState.PVN1_ACCEPTED
+            )
+            session.state = transition(
+                session.state,
+                LifecycleEvent.HIL_ROLLBACK,
+                target_state,
+            )
             decision_receipt = result["receipt"]
         else:
             if outcome == HilDecision.APPROVE_WITH_DELTA:
@@ -790,6 +1385,7 @@ class SessionManager:
                     status="BLOCKED",
                 )
                 target_state = SessionState.CORRECTION_TASK_PENDING
+                transition_event = LifecycleEvent.HIL_APPROVE_WITH_DELTA
             elif outcome == HilDecision.MORE_RESEARCH:
                 require(
                     bool(research_question and research_question.strip()),
@@ -798,6 +1394,7 @@ class SessionManager:
                     status="BLOCKED",
                 )
                 target_state = SessionState.RESEARCH_TASK_PENDING
+                transition_event = LifecycleEvent.HIL_MORE_RESEARCH
             elif outcome == HilDecision.REJECT:
                 require(
                     bool(reason and reason.strip()),
@@ -806,6 +1403,7 @@ class SessionManager:
                     status="BLOCKED",
                 )
                 target_state = SessionState.REJECTED_RUN
+                transition_event = LifecycleEvent.HIL_REJECT
             else:
                 require(
                     bool(reason and reason.strip()),
@@ -814,6 +1412,7 @@ class SessionManager:
                     status="BLOCKED",
                 )
                 target_state = SessionState.FAILED_RUN
+                transition_event = LifecycleEvent.HIL_FAIL
             decision_receipt = self.store.record_nonpromotion_decision(
                 project_id,
                 candidate_id=candidate_id,
@@ -824,7 +1423,11 @@ class SessionManager:
                 correction_delta=correction_delta,
                 research_question=research_question,
             )
-            session.state = target_state
+            session.state = transition(
+                session.state,
+                transition_event,
+                target_state,
+            )
             if outcome in {
                 HilDecision.APPROVE_WITH_DELTA,
                 HilDecision.MORE_RESEARCH,
@@ -865,6 +1468,23 @@ class SessionManager:
                 session.candidate_id = None
                 session.metadata.pop("run_id", None)
                 session.metadata["source_update_confirmed"] = False
+        backlog_outcome: dict[str, Any] | None = None
+        backlog_task_id = session.metadata.get("active_backlog_task_id")
+        if backlog_task_id:
+            backlog_outcome = self.store.record_backlog_outcome(
+                project_id,
+                backlog_task_id=cast(str, backlog_task_id),
+                session_id=session_id,
+                decision=outcome.value,
+                candidate_id=candidate_id,
+                accepted_pv=self.store.pointer(project_id).accepted_pv,
+            )
+            session.metadata.pop("active_backlog_task_id", None)
+            session.metadata["last_backlog_outcome"] = {
+                "task_id": backlog_outcome["task_id"],
+                "status": backlog_outcome["status"],
+                "decision": outcome.value,
+            }
         session.metadata.setdefault("decisions", []).append(decision_receipt)
         self._save(session)
         ChatLineage(self._lineage_path(project_id, session_id)).append(
@@ -881,6 +1501,136 @@ class SessionManager:
             "session": session.as_dict(),
             "pointer": self.store.pointer(project_id).as_dict(),
             "pointer_advanced": outcome == HilDecision.APPROVE,
+            "pointer_moved": pointer_moved,
+            "candidate_promoted": outcome == HilDecision.APPROVE,
+            "backlog_outcome": backlog_outcome,
+        }
+
+    def rollback_state(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        decided_by: str,
+        rollback_to: str | None = None,
+        decision_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Travel the pointer to accepted history without rewriting source or PVs."""
+        session = self.load(project_id, session_id)
+        if session.state in {
+            SessionState.PV1_CANDIDATE,
+            SessionState.PVN1_CANDIDATE,
+        }:
+            return self.decide(
+                project_id,
+                session_id,
+                decision=HilDecision.ROLLBACK,
+                decided_by=decided_by,
+                rollback_to=rollback_to,
+                decision_id=decision_id,
+            )
+        require(
+            session.state
+            in {
+                SessionState.BOOTED,
+                SessionState.PVN_ACCEPTED,
+                SessionState.PVN1_ACCEPTED,
+                SessionState.PVN1_ENTRY,
+            }
+            and session.task is None
+            and session.candidate_id is None,
+            "ROLLBACK_STATE_INVALID",
+            "Pointer state travel is valid only from an idle accepted entry or a "
+            "pending candidate HIL.",
+            status="BLOCKED",
+            state=session.state.value,
+        )
+        pointer = self.store.pointer(project_id)
+        require(
+            pointer.accepted_pv is not None,
+            "ROLLBACK_NO_ACCEPTED_HISTORY",
+            "Rollback requires at least one immutable accepted PV.",
+            status="BLOCKED",
+        )
+        require(
+            pointer.generation == session.accepted_pointer_generation,
+            "ROLLBACK_SESSION_POINTER_STALE",
+            "The accepted pointer changed after this session last synchronized.",
+            status="STALE",
+            expected_generation=session.accepted_pointer_generation,
+            actual_generation=pointer.generation,
+        )
+        target_pv, entry_pv, default_used, resolution = self._resolve_rollback_target(
+            session, rollback_to
+        )
+        require(
+            target_pv in self.store.accepted_ids(project_id),
+            "ROLLBACK_TARGET_NOT_ACCEPTED",
+            "Rollback may target only an immutable accepted PV in this project.",
+            status="BLOCKED",
+            target_pv=target_pv,
+            accepted=self.store.accepted_ids(project_id),
+        )
+        target = self.store.accepted_path(project_id, target_pv)
+        target_freshness = evaluate_freshness(self.store, project_id, target)
+        exact_decision_id = decision_id or prefixed_id("decision")
+        result = self.store.rollback(
+            project_id,
+            target_pv=target_pv,
+            expected_pointer_generation=session.accepted_pointer_generation,
+            decided_by=decided_by,
+            decision_id=exact_decision_id,
+            default_entry_target_used=default_used,
+            entry_pv=entry_pv,
+            candidate_id=None,
+            freshness=target_freshness,
+            resolution_reference=resolution,
+        )
+        after = self.store.pointer(project_id)
+        session.accepted_pv = after.accepted_pv
+        session.accepted_pointer_generation = after.generation
+        session.metadata["current_accepted_freshness"] = target_freshness
+        session.metadata["last_rollback"] = result["receipt"]
+        session.metadata["highest_accepted_ordinal"] = (
+            self.store.highest_accepted_ordinal(project_id)
+        )
+        session.metadata["next_candidate_would_be"] = self.store.next_pv_id(project_id)
+        session.metadata["source_state"] = (
+            "ACCEPTED_ENTRY_EXACT"
+            if target_freshness["state"] == "FRESH"
+            else "ACCEPTED_ENTRY_STALE_OR_DIFFERENT_LIVE_SOURCE"
+        )
+        session.metadata["accepted_pv_query_scope"] = (
+            "CURRENT_ENTRY_AND_LIVE_SOURCE_EXACT"
+            if target_freshness["state"] == "FRESH"
+            else "IMMUTABLE_ENTRY_STATE_ONLY_LIVE_SOURCE_DIFFERS"
+        )
+        target_state = (
+            SessionState.PVN_ACCEPTED
+            if after.accepted_pv == "PV1"
+            else SessionState.PVN1_ACCEPTED
+        )
+        session.state = transition(
+            session.state,
+            LifecycleEvent.HIL_ROLLBACK,
+            target_state,
+        )
+        session.metadata.setdefault("decisions", []).append(result["receipt"])
+        self._save(session)
+        ChatLineage(self._lineage_path(project_id, session_id)).append(
+            event_type="hil.rollback",
+            visible_payload=result["receipt"],
+            occurred_at=utc_now(),
+            session_id=session_id,
+        )
+        return {
+            "status": "PASS",
+            "decision": result["receipt"],
+            "session": session.as_dict(),
+            "pointer": after.as_dict(),
+            "pointer_advanced": False,
+            "pointer_moved": result["pointer_moved"],
+            "candidate_promoted": False,
         }
 
     def return_to_accepted(
@@ -961,10 +1711,15 @@ class SessionManager:
             "returned_at": utc_now(),
             "pointer_moved": False,
         }
-        session.state = (
+        target_state = (
             SessionState.PVN_ACCEPTED
             if pointer.accepted_pv == "PV1"
             else SessionState.PVN1_ACCEPTED
+        )
+        session.state = transition(
+            session.state,
+            LifecycleEvent.RETURN_TO_ACCEPTED,
+            target_state,
         )
         self._save(session)
         event = ChatLineage(self._lineage_path(project_id, session_id)).append(
@@ -992,6 +1747,18 @@ class SessionManager:
             state=session.state.value,
         )
         pointer = self.store.pointer(project_id)
+        require(
+            pointer.accepted_pv is not None,
+            "NEXT_TURN_ACCEPTED_PV_MISSING",
+            "Direct handoff requires the newly accepted immutable PV.",
+            status="MISMATCH",
+        )
+        accepted_path = self.store.accepted_path(
+            project_id,
+            cast(str, pointer.accepted_pv),
+        )
+        validation = validate_pv_package(accepted_path)
+        freshness = evaluate_freshness(self.store, project_id, accepted_path)
         session.accepted_pv = pointer.accepted_pv
         session.accepted_pointer_generation = pointer.generation
         session.task = None
@@ -1000,9 +1767,36 @@ class SessionManager:
         session.metadata.pop("run_id", None)
         session.metadata.pop("source_update_confirmed", None)
         session.metadata["next_candidate_would_be"] = self.store.next_pv_id(project_id)
-        session.metadata["source_state"] = "ACCEPTED_ENTRY_EXACT"
-        session.metadata["accepted_pv_query_scope"] = "CURRENT_ENTRY_STATE"
-        session.state = SessionState.PVN1_ENTRY
+        session.metadata["entry_pv"] = pointer.accepted_pv
+        session.metadata["entry_manifest_sha256"] = validation["manifest_sha256"]
+        session.metadata["entry_package_sha256"] = validation["package_sha256"]
+        session.metadata["entry_freshness"] = freshness
+        session.metadata["current_accepted_freshness"] = freshness
+        session.metadata["source_state"] = (
+            "ACCEPTED_ENTRY_EXACT"
+            if freshness["state"] == "FRESH"
+            else "ACCEPTED_ENTRY_STALE_OR_DIFFERENT_LIVE_SOURCE"
+        )
+        session.metadata["accepted_pv_query_scope"] = (
+            "CURRENT_ENTRY_AND_LIVE_SOURCE_EXACT"
+            if freshness["state"] == "FRESH"
+            else "IMMUTABLE_ENTRY_STATE_ONLY_LIVE_SOURCE_DIFFERS"
+        )
+        entry_receipt = {
+            "turn": session.metadata["turn"],
+            "entry_pv": pointer.accepted_pv,
+            "pointer_generation": pointer.generation,
+            "manifest_sha256": validation["manifest_sha256"],
+            "package_sha256": validation["package_sha256"],
+            "host_session_id": session.metadata.get("current_host_session_id"),
+            "entered_at": utc_now(),
+        }
+        session.metadata.setdefault("entry_history", []).append(entry_receipt)
+        session.state = transition(
+            session.state,
+            LifecycleEvent.BEGIN_NEXT_TURN,
+            SessionState.PVN1_ENTRY,
+        )
         self._save(session)
         event = ChatLineage(self._lineage_path(project_id, session_id)).append(
             event_type="pv.next_entry",
@@ -1010,6 +1804,10 @@ class SessionManager:
                 "accepted_entry_pv": pointer.accepted_pv,
                 "pointer_generation": pointer.generation,
                 "next_candidate_would_be": self.store.next_pv_id(project_id),
+                "entry_manifest_sha256": validation["manifest_sha256"],
+                "entry_package_sha256": validation["package_sha256"],
+                "entry_freshness": freshness,
+                "entry_slip_internal": True,
             },
             occurred_at=utc_now(),
             session_id=session_id,
@@ -1018,6 +1816,7 @@ class SessionManager:
             "status": "PASS",
             "session": session.as_dict(),
             "proof": event["visible_payload"],
+            "entry_receipt": entry_receipt,
         }
 
     def close(self, project_id: str, session_id: str, *, reason: str) -> dict[str, Any]:

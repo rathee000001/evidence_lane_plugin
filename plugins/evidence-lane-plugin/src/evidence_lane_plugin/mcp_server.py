@@ -5,12 +5,15 @@ from __future__ import annotations
 import os
 from typing import Any, Literal
 
+from mcp.server.auth.provider import TokenVerifier
 from mcp.server.auth.settings import AuthSettings
 from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 from pydantic import AnyHttpUrl
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
-from .auth import StaticBearerVerifier
+from .auth import OAuthJWTConfig, OAuthJWTVerifier, StaticBearerVerifier
 from .service import EvidenceLaneService
 
 _READ_ONLY = ToolAnnotations(
@@ -53,10 +56,13 @@ def create_mcp_server(
     port: int = 8765,
     bearer_token: str | None = None,
     base_url: str | None = None,
+    oauth_config: OAuthJWTConfig | None = None,
 ) -> FastMCP:
     application = service or EvidenceLaneService()
     auth = None
-    verifier = None
+    verifier: TokenVerifier | None = None
+    if bearer_token and oauth_config:
+        raise ValueError("Choose either static bearer or OAuth JWT authentication.")
     if bearer_token:
         exact_base = (base_url or f"http://{host}:{port}").rstrip("/")
         auth = AuthSettings(
@@ -65,14 +71,24 @@ def create_mcp_server(
             required_scopes=["evidence-lane:read"],
         )
         verifier = StaticBearerVerifier(bearer_token)
+    elif oauth_config:
+        exact_base = (base_url or f"http://{host}:{port}").rstrip("/")
+        auth = AuthSettings(
+            issuer_url=AnyHttpUrl(oauth_config.issuer_url),
+            resource_server_url=AnyHttpUrl(f"{exact_base}/"),
+            required_scopes=list(oauth_config.required_scopes),
+        )
+        verifier = OAuthJWTVerifier(oauth_config)
     mcp = FastMCP(
         "Evidence Lane Plugin",
         instructions=(
-            "Verify the locked ENV15/UOP15 session flash outside PV, then govern one "
-            "Git/code project through immutable SQLite PV entry and exit states. "
-            "Use one agent and one bounded task. Never infer HIL approval, move an "
-            "accepted pointer, or write remote Git without the exact tools and "
-            "explicit human evidence."
+            "Start with /EV: verify the installed source and locked ENV15/UOP15 "
+            "flash outside PV, then resume or boot one Git/local project through "
+            "eighteen immutable SQLite/MMD/DOT lane authorities. Use one agent and "
+            "one bounded task. PV Refresh creates an unaccepted candidate; PV Fuse "
+            "requires exact APPROVE and directly hands off without rebuilding. "
+            "Never infer HIL approval, move an accepted pointer, expose connector "
+            "OAuth, or write remote Git without the exact governed action."
         ),
         host=host,
         port=port,
@@ -81,6 +97,21 @@ def create_mcp_server(
         auth=auth,
         token_verifier=verifier,
     )
+
+    @mcp.custom_route(
+        "/healthz",
+        methods=["GET"],
+        name="evidence-lane-health",
+        include_in_schema=False,
+    )
+    async def healthz(_: Request) -> JSONResponse:
+        return JSONResponse(
+            {
+                "status": "PASS",
+                "service": "evidence-lane-plugin",
+                "mcp_path": "/mcp",
+            }
+        )
 
     @mcp.tool(
         name="runtime_doctor",
@@ -112,6 +143,222 @@ def create_mcp_server(
     def session_flash_status() -> dict[str, Any]:
         return application.invoke(
             "session_flash_status", application.session_flash_status
+        )
+
+    @mcp.tool(
+        name="lifecycle_transition_law",
+        title="Read the canonical lifecycle law",
+        description=(
+            "Return the single executable event/from/to transition table used by "
+            "session boot, PV build, task classification, Refresh, six-way HIL, "
+            "rollback state travel, and accepted-PV handoff."
+        ),
+        annotations=_READ_ONLY,
+        meta=_meta("Reading lifecycle law", "Lifecycle law ready"),
+        structured_output=True,
+    )
+    def lifecycle_transition_law() -> dict[str, Any]:
+        return application.invoke(
+            "lifecycle_transition_law", application.transition_law
+        )
+
+    @mcp.tool(
+        name="lane_catalog",
+        title="List universal Evidence Lane sectors",
+        description=(
+            "Return the one immutable eighteen-lane registry, aliases, command "
+            "mapping, parser/chunker contracts, SQLite names, FTS tables, and "
+            "mutation policies. Performs no state mutation."
+        ),
+        annotations=_READ_ONLY,
+        meta=_meta("Loading lane registry", "Lane registry ready"),
+        structured_output=True,
+    )
+    def lane_catalog() -> dict[str, Any]:
+        return application.invoke("lane_catalog", application.lane_catalog)
+
+    @mcp.tool(
+        name="lane_status",
+        title="Inspect one lane authority",
+        description=(
+            "Inspect one accepted or explicitly named candidate lane: SQLite/MMD/DOT "
+            "hashes, parser/tool capability states, pointer evidence, Refresh "
+            "classification, and live-source freshness."
+        ),
+        annotations=_READ_ONLY,
+        meta=_meta("Checking lane authority", "Lane authority ready"),
+        structured_output=True,
+    )
+    def lane_status(
+        project_id: str,
+        lane: str,
+        pv_ref: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "lane_status",
+            application.lane_status,
+            project_id,
+            lane,
+            pv_ref=pv_ref,
+        )
+
+    @mcp.tool(
+        name="lane_search",
+        title="Search one lane with BM25 and TF-IDF",
+        description=(
+            "Search an accepted or explicitly named candidate lane using SQLite "
+            "FTS5/BM25, explicit materialized TF-IDF, or deterministic "
+            "reciprocal-rank hybrid retrieval. Results include source/chunk hashes, "
+            "parser state, PV authority, and live freshness."
+        ),
+        annotations=_READ_ONLY,
+        meta=_meta("Searching lane evidence", "Lane search complete"),
+        structured_output=True,
+    )
+    def lane_search(
+        project_id: str,
+        lane: str,
+        query: str,
+        pv_ref: str | None = None,
+        limit: int = 20,
+        retrieval: str = "hybrid",
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "lane_search",
+            application.lane_search,
+            project_id,
+            lane,
+            query,
+            pv_ref=pv_ref,
+            limit=limit,
+            retrieval=retrieval,
+        )
+
+    @mcp.tool(
+        name="lane_fetch",
+        title="Fetch one exact lane source",
+        description=(
+            "Fetch one exact source registered in a lane with bounded text, hash, "
+            "parser state, structured facts, PV authority, and freshness. Binary "
+            "source bytes remain inside the immutable SQLite authority."
+        ),
+        annotations=_READ_ONLY,
+        meta=_meta("Fetching lane source", "Lane source ready"),
+        structured_output=True,
+    )
+    def lane_fetch(
+        project_id: str,
+        lane: str,
+        path: str,
+        pv_ref: str | None = None,
+        max_bytes: int = 100_000,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "lane_fetch",
+            application.lane_fetch,
+            project_id,
+            lane,
+            path,
+            pv_ref=pv_ref,
+            max_bytes=max_bytes,
+        )
+
+    @mcp.tool(
+        name="lane_configure_routes",
+        title="Grant exact source-to-lane routes",
+        description=(
+            "Arm one named, one-candidate-only mapping from exact current source "
+            "paths to canonical lanes. The next PV build consumes the grant, records "
+            "it in lineage and routes.json, then relocks it. Accepted route authority "
+            "is inherited by later Refreshes. This never edits source or promotes a PV."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Arming lane route grant", "Lane route grant armed"),
+        structured_output=True,
+    )
+    def lane_configure_routes(
+        project_id: str,
+        session_id: str,
+        overrides: dict[str, str],
+        granted_by: str,
+        grant_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "lane_configure_routes",
+            application.configure_lane_routes,
+            project_id,
+            session_id,
+            overrides=overrides,
+            granted_by=granted_by,
+            grant_id=grant_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="pv_enroll_project",
+        title="Enroll an external Git project",
+        description=(
+            "Adopt one exact local Git path or clone one credential-free HTTPS Git "
+            "URL into the user-owned Evidence Lane store, verify owner/name/branch, "
+            "and register it without overwriting lineage. Performs no remote Git "
+            "write and builds no PV."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Enrolling governed project", "Project enrollment complete"),
+        structured_output=True,
+    )
+    def pv_enroll_project(
+        project_id: str,
+        display_name: str,
+        source: str,
+        expected_owner: str,
+        expected_name: str,
+        branch: str,
+        sensitivity: str = "PRIVATE",
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "pv_enroll_project",
+            application.enroll_project,
+            project_id=project_id,
+            display_name=display_name,
+            source=source,
+            expected_owner=expected_owner,
+            expected_name=expected_name,
+            branch=branch,
+            sensitivity=sensitivity,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="git_sync_selected",
+        title="Fast-forward one selected Git branch",
+        description=(
+            "Fetch one explicit local Git source or credential-free HTTPS repository "
+            "and one registered branch, verify identity and optional commit, preview "
+            "changed paths against any active task, then apply only a clean "
+            "fast-forward. It never pushes, merges divergent history, switches "
+            "branches, or broadens branch authority."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Syncing selected Git branch", "Selected branch synchronized"),
+        structured_output=True,
+    )
+    def git_sync_selected(
+        project_id: str,
+        source: str,
+        branch: str,
+        session_id: str | None = None,
+        expected_commit: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "git_sync_selected",
+            application.sync_git_source,
+            project_id=project_id,
+            source=source,
+            branch=branch,
+            session_id=session_id,
+            expected_commit=expected_commit,
+            lifecycle=True,
         )
 
     @mcp.tool(
@@ -149,6 +396,51 @@ def create_mcp_server(
         )
 
     @mcp.tool(
+        name="pv_plan_tasks",
+        title="Queue a linear multi-task plan",
+        description=(
+            "Append one bounded task plan to the project backlog. Every task keeps "
+            "its own exact class, outcome, paths, tools, acceptance checks, and stop "
+            "condition. Planning activates nothing: the one-agent/one-active-task "
+            "law still requires task_classify for one queued task at a time."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Queuing linear task plan", "Linear task plan queued"),
+        structured_output=True,
+    )
+    def pv_plan_tasks(
+        project_id: str,
+        tasks: list[dict[str, Any]],
+        planned_by: str,
+        plan_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "pv_plan_tasks",
+            application.plan_tasks,
+            project_id,
+            tasks=tasks,
+            planned_by=planned_by,
+            plan_id=plan_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="pv_task_backlog",
+        title="Read the linear task backlog",
+        description=(
+            "Read queued, active, accepted, follow-up, rolled-back, rejected, and "
+            "failed task records. Performs no classification or state mutation."
+        ),
+        annotations=_READ_ONLY,
+        meta=_meta("Reading task backlog", "Task backlog ready"),
+        structured_output=True,
+    )
+    def pv_task_backlog(project_id: str) -> dict[str, Any]:
+        return application.invoke(
+            "pv_task_backlog", application.task_backlog, project_id
+        )
+
+    @mcp.tool(
         name="session_boot",
         title="Boot governed Evidence Lane session",
         description=(
@@ -172,6 +464,9 @@ def create_mcp_server(
         ephemeral: bool = False,
         sandbox_id: str | None = None,
         runtime_context: dict[str, Any] | None = None,
+        host_session_id: str | None = None,
+        client_can_edit_source: bool | None = None,
+        server_has_durable_filesystem: bool | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "session_boot",
@@ -183,6 +478,44 @@ def create_mcp_server(
             agent_id=agent_id,
             sandbox_id=sandbox_id,
             ephemeral=ephemeral,
+            runtime_context=runtime_context,
+            host_session_id=host_session_id,
+            client_can_edit_source=client_can_edit_source,
+            server_has_durable_filesystem=server_has_durable_filesystem,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="session_resume",
+        title="Resume persistent Evidence Lane session",
+        description=(
+            "Bind a fresh Codex or ChatGPT host task to the one already-active "
+            "governed session, preserving its accepted entry, pending candidate, "
+            "exact HIL follow-up, pointer generation, and prompt-index boundary. "
+            "Performs no PV build, promotion, rollback, or source mutation."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Resuming governed session", "Persistent session resumed"),
+        structured_output=True,
+    )
+    def session_resume(
+        project_id: str,
+        host_kind: str,
+        host_session_id: str,
+        ephemeral: bool = False,
+        client_can_edit_source: bool | None = None,
+        server_has_durable_filesystem: bool | None = None,
+        runtime_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "session_resume",
+            application.resume_session,
+            project_id=project_id,
+            host=host_kind,
+            host_session_id=host_session_id,
+            ephemeral=ephemeral,
+            client_can_edit_source=client_can_edit_source,
+            server_has_durable_filesystem=server_has_durable_filesystem,
             runtime_context=runtime_context,
             lifecycle=True,
         )
@@ -230,6 +563,7 @@ def create_mcp_server(
         permitted_tools: list[str],
         acceptance_checks: list[str],
         stop_condition: str,
+        backlog_task_id: str | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "task_classify",
@@ -242,6 +576,7 @@ def create_mcp_server(
             permitted_tools=permitted_tools,
             acceptance_checks=acceptance_checks,
             stop_condition=stop_condition,
+            backlog_task_id=backlog_task_id,
             lifecycle=True,
         )
 
@@ -304,14 +639,15 @@ def create_mcp_server(
 
     @mcp.tool(
         name="pv_refresh",
-        title="Build automatic PV Exit candidate",
+        title="Build PV Refresh candidate",
         description=(
             "Rerun the same deterministic engine against the complete confirmed "
             "final repository state, calculate exact file Delta, append lineage, "
-            "and seal the next candidate. It never promotes or pushes remotely."
+            "and seal the next candidate. Entry and exit slips are automatic internal "
+            "artifacts. It never promotes or pushes remotely."
         ),
         annotations=_LOCAL_WRITE,
-        meta=_meta("Building PV Exit candidate", "PV Exit candidate sealed"),
+        meta=_meta("Building PV Refresh candidate", "PV Refresh candidate sealed"),
         structured_output=True,
     )
     def pv_refresh(project_id: str, session_id: str) -> dict[str, Any]:
@@ -325,11 +661,14 @@ def create_mcp_server(
 
     @mcp.tool(
         name="hil_decide",
-        title="Record exact five-way HIL decision",
+        title="Record exact six-way HIL decision",
         description=(
             "Record exactly APPROVE, APPROVE_WITH_DELTA, MORE_RESEARCH, REJECT, or "
-            "FAIL for one pending candidate. Only APPROVE advances the accepted "
-            "pointer; all other outcomes preserve the prior accepted PV."
+            "FAIL, plus pointer-only ROLLBACK to any immutable accepted PV, for one "
+            "pending candidate. Only APPROVE promotes candidate bytes and its public "
+            "service path performs direct accepted-PV handoff. ROLLBACK preserves the "
+            "candidate and accepted history; a bare target resolves to the current "
+            "prompt/session entry PV."
         ),
         annotations=_HIL_WRITE,
         meta=_meta("Recording human HIL decision", "HIL decision recorded"),
@@ -343,6 +682,7 @@ def create_mcp_server(
         reason: str | None = None,
         correction_delta: str | None = None,
         research_question: str | None = None,
+        rollback_to: str | None = None,
         decision_id: str | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
@@ -355,6 +695,71 @@ def create_mcp_server(
             reason=reason,
             correction_delta=correction_delta,
             research_question=research_question,
+            rollback_to=rollback_to,
+            decision_id=decision_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="pv_fuse",
+        title="Fuse candidate with exact APPROVE",
+        description=(
+            "Require the exact case-sensitive token APPROVE, promote the pending "
+            "candidate byte-for-byte with compare-and-swap, and immediately hand the "
+            "same governed session into that newly accepted PV. No rebuild or remake "
+            "occurs during handoff."
+        ),
+        annotations=_HIL_WRITE,
+        meta=_meta("Fusing approved PV candidate", "PV fused and handed off"),
+        structured_output=True,
+    )
+    def pv_fuse(
+        project_id: str,
+        session_id: str,
+        approval: str,
+        decided_by: str,
+        decision_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "pv_fuse",
+            application.fuse,
+            project_id,
+            session_id,
+            approval=approval,
+            decided_by=decided_by,
+            decision_id=decision_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="pv_rollback",
+        title="Travel to an immutable accepted PV",
+        description=(
+            "Move only the accepted pointer to any immutable accepted PV after a "
+            "compare-and-swap check. Target PVn directly, use PROMPT <index> or TURN "
+            "<id>, or omit the target to use the current prompt/session entry PV. "
+            "Accepted history, candidates, source bytes, lane databases, and the "
+            "monotonic next-PV ordinal are preserved. This is an explicit HIL action "
+            "and never restores or rewrites the live source."
+        ),
+        annotations=_HIL_WRITE,
+        meta=_meta("Verifying rollback state travel", "Rollback state travel recorded"),
+        structured_output=True,
+    )
+    def pv_rollback(
+        project_id: str,
+        session_id: str,
+        decided_by: str,
+        rollback_to: str | None = None,
+        decision_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "pv_rollback",
+            application.rollback,
+            project_id,
+            session_id,
+            decided_by=decided_by,
+            rollback_to=rollback_to,
             decision_id=decision_id,
             lifecycle=True,
         )
@@ -450,8 +855,33 @@ def create_mcp_server(
     def pv_status(project_id: str) -> dict[str, Any]:
         return application.invoke(
             "pv_status",
-            application.store.project_status,
+            application.status,
             project_id,
+        )
+
+    @mcp.tool(
+        name="prompt_index_status",
+        title="Read prompt-entry rollback index",
+        description=(
+            "Read bounded prompt indexes, turn IDs, entry PVs, pointer generations, "
+            "and record hashes for the currently bound host task. Raw prompt text and "
+            "private model reasoning are never stored."
+        ),
+        annotations=_READ_ONLY,
+        meta=_meta("Reading prompt-entry index", "Prompt-entry index ready"),
+        structured_output=True,
+    )
+    def prompt_index_status(
+        project_id: str,
+        session_id: str,
+        limit: int = 20,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "prompt_index_status",
+            application.prompt_index_status,
+            project_id,
+            session_id,
+            limit=limit,
         )
 
     @mcp.tool(
@@ -660,10 +1090,48 @@ def run_server(
 ) -> None:
     bearer = os.environ.get("EVIDENCE_LANE_MCP_BEARER_TOKEN", "").strip()
     base_url = os.environ.get("EVIDENCE_LANE_MCP_BASE_URL", "").strip() or None
+    oauth_values = {
+        "issuer_url": os.environ.get("EVIDENCE_LANE_MCP_OAUTH_ISSUER_URL", "").strip(),
+        "jwks_url": os.environ.get("EVIDENCE_LANE_MCP_OAUTH_JWKS_URL", "").strip(),
+        "audience": os.environ.get("EVIDENCE_LANE_MCP_OAUTH_AUDIENCE", "").strip(),
+    }
+    oauth_any = any(oauth_values.values())
+    oauth_complete = all(oauth_values.values())
+    if oauth_any and not oauth_complete:
+        missing = sorted(key for key, value in oauth_values.items() if not value)
+        raise RuntimeError(
+            "Incomplete OAuth configuration; missing: " + ", ".join(missing)
+        )
+    if bearer and oauth_complete:
+        raise RuntimeError("Configure either static bearer or OAuth, not both.")
+    oauth_config = None
+    if oauth_complete:
+        scopes = tuple(
+            item
+            for item in os.environ.get(
+                "EVIDENCE_LANE_MCP_OAUTH_SCOPES",
+                "evidence-lane:read evidence-lane:write",
+            ).split()
+            if item
+        )
+        algorithms = tuple(
+            item.strip()
+            for item in os.environ.get(
+                "EVIDENCE_LANE_MCP_OAUTH_ALGORITHMS", "RS256"
+            ).split(",")
+            if item.strip()
+        )
+        oauth_config = OAuthJWTConfig(
+            issuer_url=oauth_values["issuer_url"],
+            jwks_url=oauth_values["jwks_url"],
+            audience=oauth_values["audience"],
+            required_scopes=scopes,
+            algorithms=algorithms,
+        )
     if transport == "streamable-http" and host not in {"127.0.0.1", "localhost", "::1"}:
-        if not bearer:
+        if not bearer and oauth_config is None:
             raise RuntimeError(
-                "Non-loopback HTTP requires EVIDENCE_LANE_MCP_BEARER_TOKEN."
+                "Non-loopback HTTP requires static bearer or OAuth authentication."
             )
         if not base_url or not base_url.startswith("https://"):
             raise RuntimeError(
@@ -674,5 +1142,6 @@ def run_server(
         port=port,
         bearer_token=bearer or None,
         base_url=base_url,
+        oauth_config=oauth_config,
     )
     server.run(transport=transport)

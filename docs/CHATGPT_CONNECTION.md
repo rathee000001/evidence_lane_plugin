@@ -1,53 +1,85 @@
 # ChatGPT connection boundary
 
-Evidence Lane is a tool-only MCP app. Its canonical tools and deterministic
-engine are host-neutral, but the connection method is not.
+Evidence Lane uses one plugin directory and one canonical MCP tool surface for
+Codex and ChatGPT Work. Product support, MCP transport, source-edit authority,
+and durable server storage are separate capability axes.
 
-## Current supported boundary
+## Supported packaging
 
-- Codex desktop and CLI can run the private plugin over local STDIO.
-- ChatGPT cannot connect directly to a local MCP server.
-- A private local or on-premises runner requires OpenAI Secure MCP Tunnel.
-- A later alternative is a stable public HTTPS MCP endpoint plus Developer Mode.
-- Hosting on Vercel is deliberately deferred.
-- ChatGPT tool availability still depends on account/workspace permissions.
-- The current personal ChatGPT account is Pro with Developer Mode enabled, but
-  the live Create Plugin form lists no available Secure MCP Tunnel.
-- OpenAI currently limits Pro custom MCP connections to read/fetch; the full
-  write-capable MCP surface required by this HIL is available only on eligible
-  Business or Enterprise/Edu workspaces.
-- ChatGPT may cache a reviewed tool snapshot; changed tools require app refresh
-  and review before the host should be treated as updated.
+The package contains:
 
-The repository must not claim a ChatGPT installation merely because local HTTP
-or STDIO works. A valid ChatGPT proof requires the eligible account, an actual
-tunnel or HTTPS connection, successful tool discovery, and one non-mutating
-`runtime_doctor` or `session_flash_status` call.
+- a bundled local STDIO MCP server in `.mcp.json`;
+- the Evidence Lane lifecycle skill and prompt-bar command templates;
+- SessionStart and privacy-minimized UserPromptSubmit hooks;
+- a required Google Drive app dependency in `.app.json`.
 
-Therefore the 0.2.0 candidate is **not installed in ChatGPT**. Creating a
-read-only Pro connection would be a reduced product boundary, not host parity,
-and must not be reported as the accepted agentic-code plugin. The blocked
-connection can resume only after:
+Supported local plugin surfaces can install this package from the private Git
+marketplace and start a new task or chat. Codex materializes a versioned local
+cache because executable plugins must run somewhere, but that cache is derived
+from the pinned Git snapshot and never imports the F-drive checkout. The Google
+Drive dependency uses the host's normal OAuth connector flow; its token is not
+exposed to the Evidence Lane Python process.
 
-1. a Secure MCP Tunnel is created and associated with the target ChatGPT
-   workspace and Platform organization;
-2. `tunnel-client` is running against the private Evidence Lane MCP server;
-3. the target workspace permits the required write tools;
-4. ChatGPT discovers and reviews the same canonical tool definitions; and
-5. a non-mutating doctor/flash call proves the live connection.
+## ChatGPT desktop versus web
 
-## Host-specific source rule
+ChatGPT desktop Work may use installed local plugin capabilities available on
+that surface. A local STDIO server can therefore have a durable local
+filesystem even though the UI host is ChatGPT.
 
-When ChatGPT proposes a code Delta for the user to apply, Refresh stays blocked
-until the repository is pulled to the exact final commit and the user provides
-`USER_APPLIED_AND_PULL_CONFIRMED`.
+ChatGPT cannot derive or execute an MCP server from a Git repository URL. It
+requires a registered remote MCP connection at a public HTTPS `/mcp` endpoint.
+After registration, the technical app ID starts with `plugin_asdk_app` and can
+be referenced from `.app.json`. This repository has no registered Evidence
+Lane remote app ID, so it does not invent one.
 
-Codex desktop, CLI, or VM uses
-`HOST_SANDBOX_FINAL_STATE_CONFIRMED` after its bounded local/sandbox work.
-Ephemeral hosts and public AI routes require durable user-owned PV persistence;
-local persistent Codex may use the governed local store.
+The server supports authenticated Streamable HTTP:
 
-Official references:
+- non-loopback bind requires either a static bearer token or a complete OAuth
+  JWT resource-server configuration;
+- the advertised base URL must be HTTPS through
+  `EVIDENCE_LANE_MCP_BASE_URL`;
+- static bearer is a Codex-only private-client fallback because ChatGPT cannot
+  present arbitrary custom API keys;
+- ChatGPT uses an established OAuth issuer whose JWTs are checked for signature,
+  issuer, audience, expiry, subject, asymmetric algorithm, and scopes;
+- a production remote connection still requires a long-lived container,
+  durable volume, OAuth issuer, deployment, registration, host review, and a
+  new explicit HIL.
 
-- <https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt>
-- <https://help.openai.com/en/articles/12515353-build-with-the-apps-sdk>
+## Source and persistence capabilities
+
+`session_boot` and `session_resume` record two independent facts:
+
+- whether the MCP server has a durable filesystem;
+- whether the client can edit the governed source directly.
+
+When source editing is user-mediated, Refresh remains blocked until the exact
+source update is present and the user supplies
+`USER_APPLIED_AND_PULL_CONFIRMED`. A directly authorized Codex-style source
+boundary uses `HOST_SANDBOX_FINAL_STATE_CONFIRMED`.
+
+A durable server uses its user-owned local store. An explicitly ephemeral
+server requires the direct Google Drive persistence backend. The installed
+Drive connector may provide OAuth onboarding and a separately verified mirror,
+but model-mediated connector access is not substituted for atomic server
+persistence.
+
+## Connection proof
+
+Before calling ChatGPT parity demonstrated, verify all of:
+
+1. the exact reviewed plugin release is installed;
+2. the ChatGPT surface exposes every canonical MCP tool, including `/ev`
+   resume, Refresh, Fuse, six-way HIL, indexed rollback, and Git/local intake;
+3. the required Google Drive connector is connected through normal OAuth;
+4. `runtime_doctor`, flash, and persistent-state reads pass;
+5. source-edit authority is recorded truthfully;
+6. the chosen server store survives a new chat/task;
+7. an accepted PV is loaded directly without a rebuild;
+8. a remote deployment, if used, has authenticated HTTPS and verified durable
+   readback;
+9. no tool or permission reduction is mislabeled as parity;
+10. the next real PV remains behind explicit HIL.
+
+Installation and connector sign-in alone satisfy none of the PV/HIL gates.
+See `REMOTE_DEPLOYMENT.md` for the container contract and exact ChatGPT fields.

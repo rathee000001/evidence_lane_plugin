@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-ENGINE_NAME = "evidence-lane-private-code-engine"
-ENGINE_VERSION = "0.2.0"
-SCHEMA_VERSION = "1.0.0"
+ENGINE_NAME = "evidence-lane-universal-pv-engine"
+ENGINE_VERSION = "0.4.0"
+SCHEMA_VERSION = "2.0.0"
 TOOL_RESULT_SCHEMA = "evidence-lane.pv.tool-result.v1"
 LIFECYCLE_RESULT_SCHEMA = "evidence-lane.pv.lifecycle-result.v1"
-PV_MANIFEST_SCHEMA = "evidence-lane.code-pv.manifest.v1"
-PV_RECEIPT_SCHEMA = "evidence-lane.code-pv.receipt.v1"
+PV_MANIFEST_SCHEMA = "evidence-lane.universal-pv.manifest.v2"
+PV_RECEIPT_SCHEMA = "evidence-lane.universal-pv.receipt.v2"
 SESSION_SCHEMA = "evidence-lane.session.v1"
 LINEAGE_SCHEMA = "evidence-lane.chat-lineage.event.v1"
 POINTER_SCHEMA = "evidence-lane.active-pointer.v1"
@@ -27,6 +27,7 @@ READ_STATUSES = {
 PV_REQUIRED_FILES = (
     "code.sqlite",
     "project_master_topology.mmd",
+    "project_master_topology.dot",
     "active_pointer.json",
     "project_identity.json",
     "manifest.json",
@@ -35,6 +36,9 @@ PV_REQUIRED_FILES = (
     "entry_slip.json",
     "exit_slip.json",
     "pv_receipt.json",
+    "lanes/manifest.json",
+    "lanes/registry.json",
+    "lanes/routes.json",
 )
 
 PV_OPTIONAL_FILES = (

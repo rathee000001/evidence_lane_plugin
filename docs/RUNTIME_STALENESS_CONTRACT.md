@@ -12,7 +12,7 @@ From that first mutation until a new candidate is approved:
 - exact repository reads, Git identity, and Git diff describe current source;
 - ChatLineage records the mutation and marks `MUTATED_AFTER_ENTRY`;
 - no tool or agent may silently describe an accepted-PV query as post-edit truth;
-- Refresh re-ingests the complete final source and seals the exit candidate;
+- Refresh re-ingests the complete final source and seals the next candidate;
 - only exact `APPROVE` makes that candidate the next accepted current entry.
 
 This first HIL does not implement a continuously refreshed mid-task index.
