@@ -534,6 +534,8 @@ def test_session_start_survives_cachebuster_and_remains_read_only(
 
     first_cache = stage_cache(f"{ENGINE_VERSION}+codex.test-cache-one")
     second_cache = stage_cache(f"{ENGINE_VERSION}+codex.test-cache-two")
+    build_root = service.store.project_root("book-faires") / ".build"
+    assert not any(build_root.rglob("*"))
     before = store_hashes()
     first_runtime, first_persistent = run_hook(first_cache)
     after_first = store_hashes()

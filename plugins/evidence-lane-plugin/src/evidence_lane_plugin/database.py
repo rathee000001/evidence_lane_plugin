@@ -55,7 +55,12 @@ def required_lastrowid(cursor: sqlite3.Cursor) -> int:
     return int(value) if value is not None else 0
 
 
-def connect(path: str | Path, *, readonly: bool = False) -> sqlite3.Connection:
+@contextmanager
+def connect(
+    path: str | Path,
+    *,
+    readonly: bool = False,
+) -> Iterator[sqlite3.Connection]:
     database_path = Path(path).resolve()
     if readonly:
         connection = sqlite3.connect(
@@ -74,7 +79,11 @@ def connect(path: str | Path, *, readonly: bool = False) -> sqlite3.Connection:
     else:
         connection.execute("PRAGMA journal_mode = WAL")
         connection.execute("PRAGMA synchronous = FULL")
-    return connection
+    try:
+        with connection:
+            yield connection
+    finally:
+        connection.close()
 
 
 @contextmanager

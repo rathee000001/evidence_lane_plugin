@@ -5,10 +5,27 @@ import sqlite3
 from pathlib import Path
 
 import pytest
+from evidence_lane_plugin import database
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.pv_package import validate_pv_package
 
 from .conftest import boot_local
+
+
+def test_database_context_closes_connection_and_wal_handles(tmp_path: Path) -> None:
+    path = tmp_path / "code.sqlite"
+    database.initialize(path)
+
+    with database.connect(path) as connection:
+        connection.execute(
+            "INSERT OR REPLACE INTO metadata(key, value) VALUES (?, ?)",
+            ("close_probe", "PASS"),
+        )
+
+    with pytest.raises(sqlite3.ProgrammingError):
+        connection.execute("SELECT 1")
+    assert not Path(f"{path}-wal").exists()
+    assert not Path(f"{path}-shm").exists()
 
 
 def test_initial_pv_captures_svelte_exact_bytes_and_fts(
