@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "0.4.0+codex.20260729212936",
+  "version": "0.4.0+codex.20260729213001",
   "description": "Private /EV-first Evidence Lane workflow with Git and local-code intake, eighteen immutable sectors, PV Refresh/Fuse, prompt-indexed rollback, Google Drive OAuth dependency, and direct accepted-PV handoff.",
   "author": {
     "name": "Praveen Rathee",

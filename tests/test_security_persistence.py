@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 
 import pytest
+from evidence_lane_plugin.cli import main as cli_main
+from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.models import HostKind, normalize_host_kind
 from evidence_lane_plugin.persistence import (
@@ -93,6 +95,7 @@ def test_bootstrap_installs_self_contained_noneditable_runtime() -> None:
     assert '"--no-build-isolation"' in bootstrap
     assert '"--no-deps"' in bootstrap
     assert '"-e"' not in bootstrap
+    assert '"activate-installation"' in bootstrap
     assert 'project = plugin_root / "pyproject.toml"' in bootstrap
     assert "str(plugin_root)" in bootstrap
     assert "plugin_root.parents" not in bootstrap
@@ -112,6 +115,43 @@ def test_bootstrap_installs_self_contained_noneditable_runtime() -> None:
     assert server["tool_timeout_sec"] >= 300
     assert "setuptools==83.0.0" in requirements
     assert "wheel==0.46.3" in requirements
+
+
+def test_installation_activation_updates_a_stale_version(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    store = tmp_path / "persistent-store"
+    store.mkdir(parents=True)
+    (store / "installation.json").write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.plugin-installation.v1",
+                "plugin_id": "evidence-lane-plugin",
+                "display_name": "Evidence Lane Plugin",
+                "version": "0.3.0",
+                "state": "INSTALLED_UNTIL_USER_REMOVES_PLUGIN",
+                "installed_at": "2026-07-26T20:33:04.325482Z",
+                "session_boot_context_inside_pv": False,
+                "session_flash_required": True,
+                "session_flash_inside_pv": False,
+                "hil_approval_inferred": False,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", str(store))
+
+    assert cli_main(["activate-installation"]) == 0
+
+    result = json.loads(capsys.readouterr().out)
+    persisted = json.loads((store / "installation.json").read_text(encoding="utf-8"))
+    assert result["version"] == ENGINE_VERSION
+    assert persisted["version"] == ENGINE_VERSION
+    assert persisted["installed_at"] == "2026-07-26T20:33:04.325482Z"
+    assert persisted["hil_approval_inferred"] is False
 
 
 def test_private_pv_is_encrypted_for_drive(service) -> None:

@@ -55,6 +55,15 @@ def main() -> int:
         check=True,
     )
     subprocess.run(  # nosec B603
+        [
+            str(python),
+            "-m",
+            "evidence_lane_plugin.cli",
+            "activate-installation",
+        ],
+        check=True,
+    )
+    subprocess.run(  # nosec B603
         [str(python), "-m", "evidence_lane_plugin.cli", "doctor"],
         check=True,
     )

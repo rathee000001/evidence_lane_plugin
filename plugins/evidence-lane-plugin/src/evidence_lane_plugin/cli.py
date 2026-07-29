@@ -16,6 +16,10 @@ from .service import EvidenceLaneService
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="evidence-lane-plugin")
     subcommands = parser.add_subparsers(dest="command", required=True)
+    subcommands.add_parser(
+        "activate-installation",
+        help="record the installed engine version outside governed PV state",
+    )
     subcommands.add_parser("doctor", help="validate local runtime prerequisites")
     serve = subcommands.add_parser("serve", help="run the MCP server")
     serve.add_argument(
@@ -38,6 +42,10 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.command == "activate-installation":
+        result = EvidenceLaneService().sessions.ensure_installation()
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
     if args.command == "doctor":
         result = EvidenceLaneService().doctor()
         print(json.dumps(result, indent=2, sort_keys=True))

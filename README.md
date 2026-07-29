@@ -127,7 +127,9 @@ of the engine into the plugin-local `.venv`. The plugin subdirectory has its
 own `pyproject.toml`, so a versioned Git marketplace snapshot is self-contained
 and never reaches back into the F-drive authority checkout. On a fresh Git
 install, the first MCP start performs the same hash-locked bootstrap inside the
-versioned cache.
+versioned cache. Bootstrap also updates the installation receipt to the running
+engine version while preserving its original installation time; that
+installation-scoped action neither creates a PV nor implies HIL approval.
 
 For normal Codex use, add the private GitHub marketplace at one exact reviewed
 ref, then install or update the plugin:
