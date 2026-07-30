@@ -1289,7 +1289,23 @@ class SessionManager:
             task_id=task.task_id,
             run_id=session.metadata["run_id"],
         )
-        return {"status": "PASS", "session": session.as_dict(), "candidate": result}
+        backlog_done: dict[str, Any] | None = None
+        backlog_task_id = session.metadata.get("active_backlog_task_id")
+        if backlog_task_id:
+            backlog_done = self.store.record_backlog_done(
+                project_id,
+                backlog_task_id=cast(str, backlog_task_id),
+                session_id=session_id,
+                candidate_id=result["candidate_id"],
+            )
+            session.metadata["active_backlog_task_status"] = "DONE"
+            self._save(session)
+        return {
+            "status": "PASS",
+            "session": session.as_dict(),
+            "candidate": result,
+            "backlog_task": backlog_done,
+        }
 
     def decide(
         self,
@@ -1534,6 +1550,7 @@ class SessionManager:
                 backlog_task_id=cast(str, backlog_task_id),
                 session_id=session_id,
                 decision=outcome.value,
+                decided_by=decided_by,
                 candidate_id=candidate_id,
                 accepted_pv=self.store.pointer(project_id).accepted_pv,
             )

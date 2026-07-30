@@ -21,6 +21,10 @@ flowchart TD
     C1 --> S
     S --> D{"Accepted PV exists?"}
     MODE["/evi-mode anytime sidecar: classify mode intersection and return with lifecycle/pointer unchanged"]
+    MODE --> MODEPL{"Planning selected?"}
+    MODEPL -- "Yes" --> PLANRT["Append privacy-minimized control-plane event; rebuild derived Plan runtime SQLite; do not mutate Plan source or queue a Delta"]
+    MODEPL -- "No" --> MODERET["Return to exact prior lifecycle position"]
+    PLANRT --> MODERET
     A0 -. "available at every lifecycle position" .-> MODE
 
     D -- "No" --> E{"Preserved PV1 candidate pending?"}
@@ -29,7 +33,7 @@ flowchart TD
     E1 --> H
 
     D -- "Yes" --> F["Load accepted PVn directly as current session entry"]
-    F --> G["Classify one bounded task; many may wait linearly"]
+    F --> G["Classify one bounded task; many wait in the append-only universal Delta lifecycle"]
     G --> G1["Read or modify only authorized source"]
     G1 --> G2["task_complete_and_refresh: confirm exact final source boundary"]
     G2 --> G3["Automatic Refresh plus internal entry/exit slips"]

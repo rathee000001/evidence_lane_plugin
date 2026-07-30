@@ -15,6 +15,7 @@ from .errors import EvidenceLaneError, require
 from .flash_authority import SessionFlashAuthority
 from .freshness import evaluate_freshness
 from .git_adapter import inspect_repository
+from .hashing import sha256_bytes
 from .ids import prefixed_id
 from .lane_reader import LaneReader
 from .models import ProjectConfig, normalize_host_kind
@@ -227,9 +228,36 @@ class EvidenceLaneService:
             result["chat_lineage"]["event_id"] = receipt["event"]["event_id"]
             result["prior_lifecycle_state"] = receipt["lifecycle_state_unchanged"]
             result["pointer"] = receipt["pointer"]
+            if "PL" in {item["id"] for item in result["selected_modes"]}:
+                result["plan_runtime"] = self.store.record_planning_mode(
+                    project_id,
+                    source_event_id=receipt["event"]["event_id"],
+                    session_id=active_session_id,
+                    request_sha256=sha256_bytes(
+                        str(result.get("request", "")).encode("utf-8")
+                    ),
+                    selected_mode_ids=[item["id"] for item in result["selected_modes"]],
+                    mode_intersection=result["mode_intersection"],
+                    canonical_lanes=result["canonical_lanes"],
+                    lifecycle_state=receipt["lifecycle_state_unchanged"],
+                    pointer_generation=int(receipt["pointer"]["generation"]),
+                )
+            else:
+                result["plan_runtime"] = {
+                    "status": "NOT_SELECTED",
+                    "append_status": "NOT_APPLICABLE",
+                    "canonical_plan_sector_mutated": False,
+                    "projection_role": "DERIVED_CONTROL_PLANE_INDEX",
+                }
         else:
             result["chat_lineage"]["append_status"] = "NO_ACTIVE_SESSION"
             result["prior_lifecycle_state"] = "NO_ACTIVE_SESSION"
+            result["plan_runtime"] = {
+                "status": "NO_ACTIVE_SESSION",
+                "append_status": "NOT_APPENDED",
+                "canonical_plan_sector_mutated": False,
+                "projection_role": "DERIVED_CONTROL_PLANE_INDEX",
+            }
         result["next_action"] = "RETURN_TO_PRIOR_LIFECYCLE_POSITION"
         return result
 
@@ -240,7 +268,12 @@ class EvidenceLaneService:
         *,
         pv_ref: str | None = None,
     ) -> dict[str, Any]:
-        return self.lane_reader.lane_status(project_id, lane, pv_ref=pv_ref)
+        result = self.lane_reader.lane_status(project_id, lane, pv_ref=pv_ref)
+        if result.get("lane", {}).get("canonical_lane_id") == "plan":
+            result["runtime_projection"] = self.store.plan_runtime_status(project_id)
+            result["runtime_projection_authority"] = "TASK_BACKLOG_EVENT_LEDGER"
+            result["canonical_plan_sector_mutated"] = False
+        return result
 
     def lane_search(
         self,
@@ -381,6 +414,34 @@ class EvidenceLaneService:
 
     def task_backlog(self, project_id: str) -> dict[str, Any]:
         return self.store.backlog_status(project_id)
+
+    def transition_task(
+        self,
+        project_id: str,
+        *,
+        task_id: str,
+        transition_name: str,
+        decided_by: str,
+        reason: str,
+        replacement_task_id: str | None = None,
+        event_id: str | None = None,
+    ) -> dict[str, Any]:
+        exact_reason = reason.strip()
+        require(
+            bool(exact_reason),
+            "DELTA_TRANSITION_REASON_REQUIRED",
+            "DROP and SUPERSEDE require one visible reason.",
+            status="BLOCKED",
+        )
+        return self.store.transition_backlog_task(
+            project_id,
+            task_id=task_id,
+            transition_name=transition_name,
+            decided_by=decided_by,
+            reason_sha256=sha256_bytes(exact_reason.encode("utf-8")),
+            replacement_task_id=replacement_task_id,
+            event_id=event_id,
+        )
 
     def register_project(
         self,

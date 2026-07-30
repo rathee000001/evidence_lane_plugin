@@ -481,6 +481,40 @@ def create_mcp_server(
         )
 
     @mcp.tool(
+        name="pv_task_transition",
+        title="Drop or supersede one Delta",
+        description=(
+            "Append one explicit DROP or SUPERSEDE transition to the immutable "
+            "Delta lifecycle ledger. SUPERSEDE requires a different queued "
+            "replacement task; neither operation deletes or reorders history."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Recording Delta transition", "Delta transition recorded"),
+        structured_output=True,
+    )
+    def pv_task_transition(
+        project_id: str,
+        task_id: str,
+        transition: Literal["DROP", "SUPERSEDE"],
+        decided_by: str,
+        reason: str,
+        replacement_task_id: str | None = None,
+        event_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "pv_task_transition",
+            application.transition_task,
+            project_id,
+            task_id=task_id,
+            transition_name=transition,
+            decided_by=decided_by,
+            reason=reason,
+            replacement_task_id=replacement_task_id,
+            event_id=event_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
         name="session_boot",
         title="Boot governed Evidence Lane session",
         description=(

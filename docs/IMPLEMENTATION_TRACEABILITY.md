@@ -22,13 +22,15 @@
 | Exact APPROVE Fuse performs byte-preserving promotion and seals fresh-window State Travel | `service.py`, `session.py`, `store.py` | Fuse, no-remake, and prepared-handoff assertions |
 | State Travel enters through a new Codex task or ChatGPT chat, verifies atomic Boot/Flash/pointer/seals, then waits | `/evi-00-*`, `service.py`, `session.py`, `mcp_server.py` | stale-pointer, same-host-window denial, fresh-window entry, and wait-state tests |
 | Booted governed session persists across host tasks until explicit Exit Boot | `/evi-01-*`, `/evi-exit-boot`, `session.py`, startup hook | cross-host resume, bounded close, preserved installation/Flash/pointer, and post-close denial tests |
-| One Mode sidecar classifies intersections without lifecycle mutation | `/evi-mode`, `operating_modes.py`, `service.py`, `session.py` | explicit/inferred intersection, recursive code guard, no-match failure, privacy-minimized lineage receipt, and pointer-preservation tests |
+| One Mode sidecar classifies intersections without lifecycle mutation | `/evi-mode`, `operating_modes.py`, `service.py`, `session.py`, `plan_runtime.py` | explicit/inferred intersection, recursive code guard, no-match failure, privacy-minimized lineage and Planning-mode receipts, derived Plan projection, and pointer-preservation tests |
 | Initial APPROVE_WITH_DELTA reseals PV1 without inventing an accepted parent | `state_law.py`, `session.py` | preserved-candidate, generation-zero, corrected-PV1 test |
 | Prompt/turn rollback index stores no raw prompt | `prompt_index.py`, prompt hook | redaction, record-hash, and indexed rollback tests |
 | Persistent user-owned store survives plugin cache replacement | `service.py`, `store.py`, hook | external-store and restart tests |
 | Highest accepted history controls next ordinal after rollback | `store.py`, `session.py` | backward/forward/default rollback lifecycle test |
 | One executable transition law | `state_law.py`, `session.py` | transition-catalog and lifecycle tests |
 | One writer, one active task, ordered waiting backlog | `tasking.py`, `store.py`, `session.py` | backlog claim and conflict tests |
+| Universal Delta states are append-only; DROP and SUPERSEDE preserve history | `plan_runtime.py`, `store.py`, `service.py`, `mcp_server.py` | global/per-task hash chains, idempotent replay, automatic DONE, HIL outcomes, explicit DROP/SUPERSEDE, and replacement-link tests |
+| Planning mode updates only a derived SQLite control-plane projection | `plan_runtime.py`, `service.py`, `store.py` | privacy-minimized mode event, deterministic projection rebuild, integrity/FK/head/count checks, and canonical-Plan-sector non-mutation assertions |
 | Planning and classification use the same validator | `tasking.py`, `store.py` | unsupported-tool rejection before backlog persistence |
 | Exact executable acceptance checks; prose remains human pending | `acceptance.py`, `session.py` | pass, pending, and source-mutation tests |
 | Task completion automatically confirms source, Refreshes, seals exit PV, and stops at HIL | `service.py`, `mcp_server.py`, `session.py` | automatic completion/Refresh and entry/exit-slip tests |

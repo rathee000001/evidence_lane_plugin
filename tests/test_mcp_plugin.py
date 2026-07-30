@@ -42,6 +42,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "project_register",
         "pv_plan_tasks",
         "pv_task_backlog",
+        "pv_task_transition",
         "session_boot",
         "session_resume",
         "pv_build_initial",
@@ -74,6 +75,8 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     assert by_name["lane_catalog"].annotations.readOnlyHint is True
     assert by_name["mode_classify"].annotations.readOnlyHint is False
     assert by_name["pv_task_backlog"].annotations.readOnlyHint is True
+    assert by_name["pv_task_transition"].annotations.readOnlyHint is False
+    assert by_name["pv_task_transition"].annotations.destructiveHint is False
     assert by_name["hil_decide"].annotations.destructiveHint is True
     assert by_name["pv_rollback"].annotations.destructiveHint is True
     assert by_name["pv_fuse"].annotations.destructiveHint is True

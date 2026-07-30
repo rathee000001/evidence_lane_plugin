@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "0.5.0+codex.20260730044433",
+  "version": "0.5.1+codex.20260730080659",
   "description": "Private /evi-first Evidence Lane workflow with fresh-window State Travel, intersection-capable ENV15 mode routing, eighteen immutable sectors, automatic exit sealing, exact-APPROVE Fuse, prompt-indexed rollback, and capability-based durable persistence.",
   "author": {
     "name": "Praveen Rathee",
@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "Evidence Lane Plugin",
     "shortDescription": "Run /evi with verified fresh-window PV State Travel.",
-    "longDescription": "Evidence Lane displays /evi-00-state-travel first, atomically performs Boot plus locked ENV/UOP Flash through /evi-01-boot, keeps /evi-mode available for intersecting ENV15 modes and Chat Lineage, accepts one explicit Git or local-code source, governs one project/agent/task across eighteen deterministic SQLite/MMD/DOT sectors, automatically seals task exit candidates, Fuses only exact APPROVE, enters accepted bytes through a fresh verified Codex task or ChatGPT chat, supports six-way HIL plus prompt-indexed pointer-only rollback, and keeps the governed session active until /evi-exit-boot.",
+    "longDescription": "Evidence Lane displays /evi-00-state-travel first, atomically performs Boot plus locked ENV/UOP Flash through /evi-01-boot, keeps /evi-mode available for intersecting ENV15 modes, Chat Lineage, and a derived Planning-mode projection, accepts one explicit Git or local-code source, governs one project/agent/task across eighteen deterministic SQLite/MMD/DOT sectors, preserves an append-only universal Delta lifecycle, automatically seals task exit candidates, Fuses only exact APPROVE, enters accepted bytes through a fresh verified Codex task or ChatGPT chat, supports six-way HIL plus prompt-indexed pointer-only rollback, and keeps the governed session active until /evi-exit-boot.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "capabilities": [
@@ -31,8 +31,9 @@
     "defaultPrompt": [
       "Run /evi-00-state-travel first; if a handoff is pending, verify it in this fresh host window and wait.",
       "Run /evi and resume my persistent Evidence Lane state.",
-      "Use /evi-mode at any point to classify an ordered mode intersection and its canonical lanes, including Chat Lineage.",
+      "Use /evi-mode at any point to classify an ordered mode intersection and its canonical lanes; Planning updates only the derived control-plane projection.",
       "Use /evi-02-git or /evi-03-local, then select any ordered source-intake command before /evi-30-build-pv-entry.",
+      "Use /evi-50-task-plan and /evi-51-backlog for append-only Delta states and explicit history-preserving DROP or SUPERSEDE.",
       "Complete one bounded task, automatically seal its exit candidate, and stop at HIL.",
       "At HIL, show the returned suggested next prompt visibly before waiting; never choose or submit it for me."
     ],

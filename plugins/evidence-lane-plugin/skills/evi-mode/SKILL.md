@@ -1,6 +1,6 @@
 ---
 name: evi-mode
-description: Evidence Lane anytime mode router - classify ordered intersections such as Analysis plus Planning plus Code, map canonical lanes, always include Chat Lineage, then resume the prior lifecycle position.
+description: Evidence Lane anytime mode router - classify ordered intersections, always append Chat Lineage, refresh the derived Plan runtime projection when Planning is selected, and resume the prior lifecycle position without mutating Plan source or lifecycle state.
 ---
 
 # Evidence Lane Mode Router

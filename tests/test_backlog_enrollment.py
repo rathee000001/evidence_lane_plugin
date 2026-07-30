@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import sqlite3
 import subprocess
 from pathlib import Path
 
@@ -33,6 +35,9 @@ def test_linear_backlog_queues_many_but_claims_one(service) -> None:
     )
     assert planned["counts"] == {"QUEUED": 2}
     assert [task["sequence"] for task in planned["tasks"]] == [1, 2]
+    assert planned["event_count"] == 2
+    assert planned["plan_runtime_projection"]["status"] == "PASS"
+    first_projection_sha256 = planned["plan_runtime_projection"]["sqlite_sha256"]
 
     idempotent = service.plan_tasks(
         "book-faires",
@@ -41,6 +46,11 @@ def test_linear_backlog_queues_many_but_claims_one(service) -> None:
         plan_id="plan-linear-001",
     )
     assert len(idempotent["tasks"]) == 2
+    assert idempotent["event_count"] == 2
+    assert (
+        idempotent["plan_runtime_projection"]["sqlite_sha256"]
+        == first_projection_sha256
+    )
 
     contract = {
         **tasks[0],
@@ -65,19 +75,217 @@ def test_linear_backlog_queues_many_but_claims_one(service) -> None:
         )
     assert second_active.value.code == "BACKLOG_ACTIVE_TASK_EXISTS"
 
+    done = service.store.record_backlog_done(
+        "book-faires",
+        backlog_task_id="delta-001",
+        session_id="session_test",
+        candidate_id="PV1_CANDIDATE__RUN_TEST",
+    )
+    assert done["status"] == "DONE"
+    replayed_done = service.store.record_backlog_done(
+        "book-faires",
+        backlog_task_id="delta-001",
+        session_id="session_test",
+        candidate_id="PV1_CANDIDATE__RUN_TEST",
+    )
+    assert replayed_done["status"] == "DONE"
+
     outcome = service.store.record_backlog_outcome(
         "book-faires",
         backlog_task_id="delta-001",
         session_id="session_test",
         decision="APPROVE",
+        decided_by="human-test",
         candidate_id="PV1_CANDIDATE__RUN_TEST",
         accepted_pv="PV1",
     )
-    assert outcome["status"] == "COMPLETED_ACCEPTED"
-    assert service.task_backlog("book-faires")["counts"] == {
-        "COMPLETED_ACCEPTED": 1,
+    assert outcome["status"] == "ACCEPTED"
+    replayed_outcome = service.store.record_backlog_outcome(
+        "book-faires",
+        backlog_task_id="delta-001",
+        session_id="session_test",
+        decision="APPROVE",
+        decided_by="human-test",
+        candidate_id="PV1_CANDIDATE__RUN_TEST",
+        accepted_pv="PV1",
+    )
+    assert replayed_outcome["status"] == "ACCEPTED"
+    backlog = service.task_backlog("book-faires")
+    assert backlog["counts"] == {
+        "ACCEPTED": 1,
         "QUEUED": 1,
     }
+    first_events = backlog["tasks"][0]["lifecycle_events"]
+    assert [event["to_status"] for event in first_events] == [
+        "QUEUED",
+        "ACTIVE",
+        "DONE",
+        "ACCEPTED",
+    ]
+    assert backlog["plan_runtime_projection"]["status"] == "PASS"
+
+
+def test_delta_drop_and_supersede_are_explicit_append_only_events(service) -> None:
+    tasks = [
+        _planned_task("delta-drop", "Drop this bounded Delta explicitly."),
+        _planned_task("delta-old", "Supersede this bounded Delta explicitly."),
+        _planned_task("delta-new", "Replace the superseded bounded Delta."),
+    ]
+    service.plan_tasks(
+        "book-faires",
+        tasks=tasks,
+        planned_by="human-test",
+        plan_id="plan-lifecycle-001",
+    )
+
+    dropped = service.transition_task(
+        "book-faires",
+        task_id="delta-drop",
+        transition_name="DROP",
+        decided_by="human-test",
+        reason="The user explicitly removed this Delta from scope.",
+        event_id="delta-drop-event-001",
+    )
+    assert dropped["task"]["status"] == "DROPPED"
+    assert dropped["event"]["details"]["history_preserved"] is True
+
+    replayed_drop = service.transition_task(
+        "book-faires",
+        task_id="delta-drop",
+        transition_name="DROP",
+        decided_by="human-test",
+        reason="The user explicitly removed this Delta from scope.",
+        event_id="delta-drop-event-001",
+    )
+    assert replayed_drop["event"]["event_sha256"] == dropped["event"]["event_sha256"]
+    assert len(replayed_drop["task"]["history"]) == 1
+
+    superseded = service.transition_task(
+        "book-faires",
+        task_id="delta-old",
+        transition_name="SUPERSEDE",
+        decided_by="human-test",
+        reason="The replacement preserves the intent with a corrected contract.",
+        replacement_task_id="delta-new",
+        event_id="delta-supersede-event-001",
+    )
+    assert superseded["task"]["status"] == "SUPERSEDED"
+    assert superseded["task"]["superseded_by_task_id"] == "delta-new"
+    backlog = service.task_backlog("book-faires")
+    assert backlog["counts"] == {
+        "DROPPED": 1,
+        "QUEUED": 1,
+        "SUPERSEDED": 1,
+    }
+    replacement = next(
+        task for task in backlog["tasks"] if task["task_id"] == "delta-new"
+    )
+    assert replacement["supersedes_task_id"] == "delta-old"
+    assert backlog["plan_runtime_projection"]["status"] == "PASS"
+
+
+def test_plan_runtime_projection_detects_semantic_sqlite_tamper(service) -> None:
+    service.plan_tasks(
+        "book-faires",
+        tasks=[
+            _planned_task(
+                "delta-projection",
+                "Verify semantic projection tamper detection.",
+            )
+        ],
+        planned_by="human-test",
+        plan_id="plan-projection-001",
+    )
+    projection_path = service.store._plan_runtime_path("book-faires")
+    with sqlite3.connect(projection_path) as connection:
+        connection.execute(
+            "UPDATE delta_task SET task_class = ? WHERE task_id = ?",
+            ("tampered-class", "delta-projection"),
+        )
+        connection.commit()
+
+    status = service.store.plan_runtime_status("book-faires")
+    assert status["integrity"] == ["ok"]
+    assert status["status"] == "STALE"
+    assert (
+        status["projection_content_sha256"]
+        != status["expected_projection_content_sha256"]
+    )
+
+
+def test_legacy_backlog_statuses_migrate_without_dropping_history(service) -> None:
+    planned_at = "2026-07-30T00:00:00Z"
+    legacy_statuses = {
+        "legacy-accepted": ("COMPLETED_ACCEPTED", "ACCEPTED"),
+        "legacy-follow-up": ("FOLLOW_UP_PENDING", "DONE"),
+        "legacy-rollback": ("ROLLED_BACK_UNACCEPTED", "ROLLED_BACK"),
+    }
+    legacy_tasks = []
+    for sequence, (task_id, (legacy_status, _)) in enumerate(
+        legacy_statuses.items(),
+        start=1,
+    ):
+        legacy_tasks.append(
+            {
+                **_planned_task(task_id, f"Preserve {task_id}."),
+                "sequence": sequence,
+                "plan_id": "legacy-plan",
+                "status": legacy_status,
+                "planned_at": planned_at,
+                "history": [{"event": "LEGACY_VISIBLE_HISTORY"}],
+            }
+        )
+    backlog_path = service.store._backlog_path("book-faires")
+    backlog_path.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.linear-task-backlog.v1",
+                "project_id": "book-faires",
+                "plans": [
+                    {
+                        "plan_id": "legacy-plan",
+                        "planned_by": "legacy-human",
+                        "planned_at": planned_at,
+                        "task_ids": list(legacy_statuses),
+                    }
+                ],
+                "tasks": legacy_tasks,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    migrated = service.task_backlog("book-faires")
+    assert migrated["counts"] == {
+        "ACCEPTED": 1,
+        "DONE": 1,
+        "ROLLED_BACK": 1,
+    }
+    for task in migrated["tasks"]:
+        assert task["status"] == legacy_statuses[task["task_id"]][1]
+        assert task["history"] == [{"event": "LEGACY_VISIBLE_HISTORY"}]
+        assert task["lifecycle_events"][0]["event_type"] == ("LEGACY_STATUS_IMPORTED")
+
+    persisted = service.plan_tasks(
+        "book-faires",
+        tasks=[
+            _planned_task(
+                "post-migration-delta",
+                "Append one Delta after the compatibility migration.",
+            )
+        ],
+        planned_by="human-test",
+        plan_id="post-migration-plan",
+    )
+    assert persisted["counts"] == {
+        "ACCEPTED": 1,
+        "DONE": 1,
+        "QUEUED": 1,
+        "ROLLED_BACK": 1,
+    }
+    persisted_json = json.loads(backlog_path.read_text(encoding="utf-8"))
+    assert len(persisted_json["events"]) == 4
+    assert persisted["plan_runtime_projection"]["status"] == "PASS"
 
 
 def test_plan_rejects_unsupported_tool_before_backlog_persistence(service) -> None:

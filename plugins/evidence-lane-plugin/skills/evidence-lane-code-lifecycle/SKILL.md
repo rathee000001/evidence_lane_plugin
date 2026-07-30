@@ -29,9 +29,12 @@ evidence.
 - Record visible operational evidence only; exclude secrets and private model
   reasoning.
 - `/evi-mode` is the one anytime Mode sidecar. It may classify ordered
-  intersections from the locked ENV15 mode namespace and append only a
-  privacy-minimized Chat Lineage receipt. It never changes lifecycle state,
-  classifies a bounded task, creates a candidate, or moves a pointer.
+  intersections from the locked ENV15 mode namespace and append a
+  privacy-minimized Chat Lineage receipt. When Planning is selected, it also
+  appends a privacy-minimized event to the task-backlog control plane and
+  rebuilds the derived Plan runtime SQLite projection. It never changes
+  lifecycle state, classifies or queues a bounded task, writes the canonical
+  Plan source sector, creates a candidate, or moves a pointer.
 
 ## Entry and persistence
 
@@ -73,7 +76,9 @@ evidence.
 
 At every step, keep `/evi-mode` available beside the lifecycle. Its
 canonical lane set always includes `mode` and `chat_lineage`; return to the
-exact prior lifecycle position after classification.
+exact prior lifecycle position after classification. Planning-mode detection
+does not replace `/evi-08-plan` exact-file intake or `/evi-50-task-plan`
+bounded task enrollment.
 
 ## One registry and eighteen lanes
 
@@ -97,7 +102,11 @@ claim they ran.
 ## Task, Refresh, and HIL
 
 1. For multiple bounded tasks, call `pv_plan_tasks`; read them with
-   `pv_task_backlog`.
+   `pv_task_backlog`. Every Delta enters as `QUEUED`. Preserve the universal
+   append-only states `QUEUED`, `ACTIVE`, `DONE`, `ACCEPTED`, `REJECTED`,
+   `DROPPED`, `SUPERSEDED`, `FAILED`, and `ROLLED_BACK`.
+   User-explicit DROP or SUPERSEDE calls `pv_task_transition`; SUPERSEDE must
+   bind one different queued replacement. Never delete or reorder history.
 2. Call `task_classify` once. If it came from the backlog, pass its stable
    `backlog_task_id` and match the queued contract exactly.
 3. Read accepted evidence first. After source mutation, accepted-PV results are

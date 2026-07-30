@@ -60,6 +60,9 @@ next-PV ordinal.
   then boot or resume the governed session.
 - `/evi-mode ...`: classify one or more intersecting operating modes and
   canonical lanes without changing lifecycle, task, candidate, or pointer.
+  Planning mode appends only a privacy-minimized control-plane event and
+  refreshes the derived Plan runtime projection; it does not mutate Plan
+  source or invent a Delta.
 - `/evi-02-git ...`: clone or fast-forward one explicit repository and
   authorized branch without remote write.
 - `/evi-03-local ...`: adopt or read one explicit local-code Git path.
@@ -69,7 +72,10 @@ next-PV ordinal.
   command, including `/evi-17-project-engulf`.
 - `/evi-30-build-pv-entry ...`: build PV1 once or load accepted entry bytes.
 - `/evi-40-status`, `/evi-50-task-plan`, `/evi-51-backlog`,
-  `/evi-60-classify`, and `/evi-70-lane-route`: govern linear work.
+  `/evi-60-classify`, and `/evi-70-lane-route`: govern linear work. Every
+  Delta uses the append-only states `QUEUED`, `ACTIVE`, `DONE`, `ACCEPTED`,
+  `REJECTED`, `DROPPED`, `SUPERSEDED`, `FAILED`, and `ROLLED_BACK`;
+  `/evi-51-backlog` exposes explicit history-preserving DROP and SUPERSEDE.
 - `/evi-80-hil ...`: record one exact six-way HIL decision.
 - `/evi-90-pv-fuse ... APPROVE`: exact approval plus a sealed fresh-window
   State Travel handoff.
@@ -135,6 +141,13 @@ See [`docs/PROMPT_SUGGESTION_COMPATIBILITY.md`](docs/PROMPT_SUGGESTION_COMPATIBI
 - explicit local/HTTPS branch synchronization that accepts only a clean
   fast-forward and checks changed paths before mutating an active task source;
 - an ordered multi-task backlog with one active task maximum;
+- a hash-chained Delta lifecycle ledger plus atomically rebuilt, validated
+  SQLite Plan runtime projection outside every canonical PV lane sector;
+- privacy-minimized Planning-mode events that update that derived projection
+  beside the immutable Plan source lane without queuing work or storing the
+  raw request;
+- explicit, idempotent DROP and SUPERSEDE transitions that preserve task
+  sequence, prior status events, and replacement links;
 - one planning/classification validator, so an invalid task cannot be persisted
   as an unclaimable backlog item;
 - separately gated remote Git preparation/execution; PV approval alone never

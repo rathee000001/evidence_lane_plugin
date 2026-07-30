@@ -22,6 +22,14 @@ include the `mode` and `chat_lineage` lanes. When a governed session is active,
 append only a privacy-minimized `mode.classified` receipt to Chat Lineage.
 Never store raw private reasoning.
 
+When Planning (`PL`) is selected, also append a privacy-minimized,
+hash-chained Planning-mode event to the task-backlog control plane and rebuild
+its derived SQLite Plan runtime projection. This automatic append records the
+selected mode IDs, canonical lanes, lifecycle position, pointer generation,
+and request SHA-256. It does not queue a Delta, change a task status, or write
+the canonical Plan source sector. `/evi-08-plan` remains the explicit exact-file
+source-intake route; `/evi-50-task-plan` remains the only task-queue route.
+
 This command does not classify a bounded task, create or accept a candidate,
 move a pointer, infer HIL, or change the active lifecycle position. After the
 classification, return to the exact prior command and wait.

@@ -1514,15 +1514,17 @@ def _extract_pptx(data: bytes) -> tuple[list[dict[str, Any]], list[dict[str, Any
 @lru_cache(maxsize=1)
 def _rapidocr_engine() -> tuple[str, Any] | None:
     if _module_available("rapidocr"):
-        from rapidocr import RapidOCR  # type: ignore[import-not-found]
-
-        return "rapidocr+onnxruntime", RapidOCR()
-    if _module_available("rapidocr_onnxruntime"):
-        from rapidocr_onnxruntime import (  # type: ignore[import-not-found]
-            RapidOCR,
+        from rapidocr import (
+            RapidOCR as RapidOCREngine,  # type: ignore[import-not-found]
         )
 
-        return "rapidocr_onnxruntime", RapidOCR()
+        return "rapidocr+onnxruntime", RapidOCREngine()
+    if _module_available("rapidocr_onnxruntime"):
+        from rapidocr_onnxruntime import (  # type: ignore[import-not-found]
+            RapidOCR as RapidOCROnnxEngine,
+        )
+
+        return "rapidocr_onnxruntime", RapidOCROnnxEngine()
     return None
 
 

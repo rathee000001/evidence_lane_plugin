@@ -90,4 +90,41 @@ def test_active_session_mode_receipt_preserves_lifecycle_and_pointer(service) ->
     assert service.store.pointer("book-faires").as_dict() == pointer_before
     event_text = json.dumps(result["chat_lineage"], sort_keys=True)
     assert exact_request not in event_text
+    assert result["plan_runtime"]["status"] == "PASS"
+    assert result["plan_runtime"]["append_status"] == "APPENDED"
+    assert result["plan_runtime"]["canonical_plan_sector_mutated"] is False
+    assert (
+        result["plan_runtime"]["projection"]["projection_role"]
+        == "DERIVED_CONTROL_PLANE_INDEX"
+    )
+    assert result["plan_runtime"]["projection"]["planning_mode_event_count"] == 1
+    assert exact_request not in json.dumps(result["plan_runtime"], sort_keys=True)
+    plan_runtime = service.store.plan_runtime_status("book-faires")
+    assert plan_runtime["status"] == "PASS"
+    assert plan_runtime["canonical_plan_sector_mutated"] is False
+    planning_event = result["plan_runtime"]["event"]
+    replayed_projection = service.store.record_planning_mode(
+        "book-faires",
+        source_event_id=planning_event["source_chat_lineage_event_id"],
+        session_id=session_id,
+        request_sha256=planning_event["request_sha256"],
+        selected_mode_ids=planning_event["selected_mode_ids"],
+        mode_intersection=planning_event["mode_intersection"],
+        canonical_lanes=planning_event["canonical_lanes"],
+        lifecycle_state=planning_event["lifecycle_state"],
+        pointer_generation=planning_event["pointer_generation"],
+    )
+    assert replayed_projection["projection"]["planning_mode_event_count"] == 1
     assert result["next_action"] == "RETURN_TO_PRIOR_LIFECYCLE_POSITION"
+
+    non_planning = service.classify_mode(
+        "book-faires",
+        "Analyze the bounded evidence.",
+        explicit_modes=["AL"],
+        session_id=session_id,
+    )
+    assert non_planning["plan_runtime"]["status"] == "NOT_SELECTED"
+    assert (
+        service.store.plan_runtime_status("book-faires")["planning_mode_event_count"]
+        == 1
+    )

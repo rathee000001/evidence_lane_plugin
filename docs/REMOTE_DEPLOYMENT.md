@@ -75,7 +75,7 @@ The included OCI `Dockerfile` runs one long-lived Streamable HTTP service:
 Build the reviewed Git checkout with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:0.5.0 .
+docker build --pull --tag evidence-lane-plugin:0.5.1 .
 ```
 
 The host must preserve one replica and attach a durable volume at

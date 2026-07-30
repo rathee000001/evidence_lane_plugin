@@ -94,7 +94,9 @@ Before calling ChatGPT parity demonstrated, verify all of:
 2. the ChatGPT surface exposes every canonical MCP tool and the complete
    ordered `/evi` controls: State Travel first, atomic Boot/Flash, all seventeen
    source-intake commands, the separate Mode sidecar, Build PV Entry, automatic
-   exit-Refresh, HIL, Fuse, Rollback, and explicit Exit Boot;
+   exit-Refresh, HIL, Fuse, Rollback, and explicit Exit Boot; Planning mode
+   updates only the derived Plan runtime projection, while DROP/SUPERSEDE use
+   the explicit append-only backlog transition;
 3. the required Google Drive connector is connected through normal OAuth;
 4. `runtime_doctor`, flash, and persistent-state reads pass;
 5. source-edit authority is recorded truthfully;

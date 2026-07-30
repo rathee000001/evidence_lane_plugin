@@ -27,7 +27,7 @@ outside every PV.
 | `CodePVEngine` | Exact source identity, primary code database, universal lane bundle, and PV candidate construction | Cannot accept a candidate |
 | `lane_engine` and `lanes` | One immutable 18-lane registry; per-lane SQLite/MMD/DOT/tools; exact routing; PV1 full build; PV2+ Refresh | Cannot move the project pointer |
 | `SessionFlashAuthority` | Verify exact ENV/UOP members, locks, SQLite, and installation receipt | Cannot create a PV or infer HIL |
-| `ProjectStore` | Immutable candidates and accepted PVs, task backlog, receipts, accepted history, and CAS pointer | Cannot infer a human decision |
+| `ProjectStore` | Immutable candidates and accepted PVs, append-only Delta lifecycle ledger, derived Plan runtime projection, receipts, accepted history, and CAS pointer | Cannot infer a human decision or mutate the canonical Plan source sector |
 | `SessionManager` | Fresh-window State Travel, entry-PV verification, one writer, one active task, six-way HIL, rollback, and exact recovery transitions | Only exact `APPROVE` can promote a candidate; it cannot claim a host window opened |
 | `PromptIndex` and `UserPromptSubmit` hook | Bind host prompt/turn references to the current entry PV with SHA-256 evidence | Stores no raw prompt text and cannot move a pointer |
 | `PVReader` and `LaneReader` | Progressive validated reads over primary and lane SQLite authorities | Read-only; candidates are labeled unaccepted |
@@ -97,7 +97,19 @@ The Mode registry entry is retained for schema compatibility, but Mode is not
 source intake. One `/evi-mode` control sidecar classifies ordered mode
 intersections, maps them to canonical lanes including Chat Lineage, appends a
 privacy-minimized receipt when a governed session is active, and returns to the
-unchanged lifecycle position.
+unchanged lifecycle position. If Planning is selected, it also appends a
+hash-chained, privacy-minimized event to the task-backlog control plane and
+atomically rebuilds `plan_runtime_projection.sqlite`. That database is a
+derived control-plane index outside canonical PV lane sectors: it never
+replaces `/evi-08-plan` exact-file intake, mutates Plan source, or queues a
+Delta.
+
+The Delta ledger preserves one immutable task sequence and the universal
+states `QUEUED`, `ACTIVE`, `DONE`, `ACCEPTED`, `REJECTED`, `DROPPED`,
+`SUPERSEDED`, `FAILED`, and `ROLLED_BACK`. Every task-status event is globally
+and per-task hash-chained. DROP and SUPERSEDE require an explicit user-facing
+transition; SUPERSEDE links one different queued replacement and deletes
+nothing.
 
 All lanes preserve exact bytes, source hashes, structured facts, FTS5/BM25,
 materialized TF-IDF, parser capability state, pointer evidence, and validation
@@ -145,7 +157,8 @@ successful parse.
    SQLite PV Candidate Loader and including Project Engulf; `/evi-mode` remains
    a separate anytime sidecar.
 4. `/evi-30-build-pv-entry`, or direct load of validated accepted PV bytes.
-5. One persistent session, one writer, one active task, and bound host prompt.
+5. One persistent session, one writer, one active task, a hash-chained linear
+   Delta ledger, its derived Plan runtime projection, and a bound host prompt.
 6. Visible source and acceptance evidence.
 7. Automatic completion, deterministic Refresh candidate, and internal slips.
 8. Exact human HIL decision and Fuse-sealed State Travel when approved.

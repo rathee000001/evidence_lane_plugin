@@ -51,8 +51,11 @@ merge `main`, deploy a public endpoint, or infer HIL success.
 4. Present all seventeen ordered source-intake commands before Build PV Entry.
    This includes `/evi-04-sqlite-pv-candidate-loader` and
    `/evi-17-project-engulf`. Keep the single `/evi-mode` control sidecar
-   available separately. If needed, set exact one-candidate lane-route
-   overrides and verify they are named, bounded, and re-locking.
+   available separately. When Planning is selected, verify it appends only a
+   privacy-minimized control-plane event and refreshes the derived Plan runtime
+   SQLite projection; it must not edit canonical Plan source or queue a task.
+   If needed, set exact one-candidate lane-route overrides and verify they are
+   named, bounded, and re-locking.
 5. Bind the current host session ID and
    record host, server-filesystem class, source-edit authority, `entry_pv`, pointer
    generation, highest accepted ordinal, freshness, backlog, and pending HIL.
@@ -72,8 +75,9 @@ merge `main`, deploy a public endpoint, or infer HIL success.
 11. Recreate the host task/chat and use `/evi` plus `session_resume` to prove
     accepted PV1 loads directly
     as `entry_pv` without a second full build.
-12. Plan any waiting tasks, claim exactly one, and classify one bounded active
-    task.
+12. Plan any waiting tasks, verify their append-only `QUEUED` events, claim
+    exactly one, and classify one bounded active task. Prove the universal
+    status vocabulary and explicit history-preserving DROP/SUPERSEDE routes.
 13. Use accepted-PV search/fetch only as entry-state evidence. After source
     mutation, use verified live source/diff as current truth.
 14. Append visible activity and run exact `cmd:` acceptance checks. Leave prose
@@ -103,7 +107,7 @@ merge `main`, deploy a public endpoint, or infer HIL success.
     next ordinal remains above highest accepted history.
 22. Invoke `/evi-exit-boot` only when the user explicitly wants to deactivate
     the governed session. Prove it preserves installation, Flash receipt, PVs,
-    candidates, lineage, backlog, and pointer.
+    candidates, lineage, backlog, Plan runtime projection, and pointer.
 23. If the server is ephemeral, prove encrypted durable-store write and readback
     by hash before treating handoff as durable.
 24. Seal the complete run evidence and stop at the next HIL.
