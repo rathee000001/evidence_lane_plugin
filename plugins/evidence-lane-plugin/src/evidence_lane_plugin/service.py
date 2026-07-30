@@ -168,11 +168,13 @@ class EvidenceLaneService:
         report["warnings"] = flash["warnings"]
         report["google_drive_configured"] = self.sync_service is not None
         report["google_drive"] = {
-            "host_connector_dependency": "REQUIRED_ON_PLUGIN_INSTALL",
+            "host_connector_dependency": ("CAPABILITY_ROUTED_NOT_GLOBALLY_REQUIRED"),
             "connector_id": "connector_5f3c8c41a1e54ad7a76272c89e2554fa",
             "oauth_route": "NORMAL_HOST_CONNECTOR",
             "connector_token_exposed_to_plugin_mcp": False,  # nosec B105
-            "connector_connection_state": "VERIFY_WITH_HOST_GOOGLE_DRIVE_TOOL",
+            "connector_connection_state": (
+                "HOST_OAUTH_OPTIONAL_UNTIL_PERSISTENCE_ROUTE_SELECTS_DRIVE"
+            ),
             "connector_role": "OAUTH_ONBOARDING_AND_VERIFIED_MIRROR",
             "direct_server_backend_configured": self.sync_service is not None,
             "direct_server_backend_role": (

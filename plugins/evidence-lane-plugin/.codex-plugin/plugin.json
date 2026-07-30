@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "0.5.2+codex.20260730091500",
+  "version": "0.5.3+codex.20260730094521",
   "description": "Private /evi-first Evidence Lane workflow with atomic Boot/Flash, conditional fresh-window State Travel, universal Plan/Delta events, automatic exit sealing, exact-APPROVE Fuse, prompt-indexed rollback, and capability-based durable persistence.",
   "author": {
     "name": "Praveen Rathee",

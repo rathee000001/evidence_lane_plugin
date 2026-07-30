@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 ENGINE_NAME = "evidence-lane-universal-pv-engine"
-ENGINE_VERSION = "0.5.2"
+ENGINE_VERSION = "0.5.3"
 SCHEMA_VERSION = "2.0.0"
 TOOL_RESULT_SCHEMA = "evidence-lane.pv.tool-result.v1"
 LIFECYCLE_RESULT_SCHEMA = "evidence-lane.pv.lifecycle-result.v1"

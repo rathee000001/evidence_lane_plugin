@@ -62,6 +62,21 @@ def test_host_persistence_matrix() -> None:
     assert route_persistence(HostKind.PUBLIC_AI, ephemeral=False).mode == "google_drive"
 
 
+def test_doctor_reports_drive_as_capability_routed_not_globally_required(
+    service,
+) -> None:
+    report = service.doctor()
+    assert report["status"] == "PASS"
+    assert report["google_drive_configured"] is False
+    assert report["google_drive"]["host_connector_dependency"] == (
+        "CAPABILITY_ROUTED_NOT_GLOBALLY_REQUIRED"
+    )
+    assert report["google_drive"]["connector_connection_state"] == (
+        "HOST_OAUTH_OPTIONAL_UNTIL_PERSISTENCE_ROUTE_SELECTS_DRIVE"
+    )
+    assert report["google_drive"]["direct_server_backend_configured"] is False
+
+
 def test_host_aliases_are_actionable() -> None:
     assert normalize_host_kind("codex") == HostKind.CODEX_DESKTOP
     assert normalize_host_kind("Codex Desktop") == HostKind.CODEX_DESKTOP
