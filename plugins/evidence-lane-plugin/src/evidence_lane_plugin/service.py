@@ -14,9 +14,12 @@ from .enrollment import enroll_project, sync_selected_branch
 from .errors import EvidenceLaneError, require
 from .flash_authority import SessionFlashAuthority
 from .freshness import evaluate_freshness
+from .git_adapter import inspect_repository
 from .ids import prefixed_id
 from .lane_reader import LaneReader
 from .models import ProjectConfig, normalize_host_kind
+from .next_actions import HIL_CHOICES, HIL_SUGGESTED_PROMPT
+from .operating_modes import classify_operating_modes
 from .persistence import (
     GoogleDrivePersistence,
     PVSyncService,
@@ -185,6 +188,50 @@ class EvidenceLaneService:
 
     def lane_catalog(self) -> dict[str, Any]:
         return self.lane_reader.lane_catalog()
+
+    def classify_mode(
+        self,
+        project_id: str,
+        request: str,
+        *,
+        explicit_modes: list[str] | None = None,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Classify an ENV15 mode intersection and its canonical lanes."""
+
+        config = self.store.config(project_id)
+        repository = inspect_repository(config.repository_path)
+        code_lane = config.source_lane
+        if code_lane not in {"github_code", "local_code"}:
+            code_lane = (
+                "github_code" if repository.provider == "github" else "local_code"
+            )
+        result = classify_operating_modes(
+            request,
+            explicit_modes=explicit_modes,
+            code_lane=code_lane,
+        )
+        active_session_id = session_id.strip() if session_id else ""
+        if not active_session_id:
+            active_path = self.store.project_root(project_id) / "active_session.json"
+            if active_path.is_file():
+                active = json.loads(active_path.read_text(encoding="utf-8"))
+                active_session_id = str(active.get("session_id") or "")
+        if active_session_id:
+            receipt = self.sessions.record_mode_classification(
+                project_id,
+                active_session_id,
+                classification=result,
+            )
+            result["chat_lineage"]["append_status"] = "APPENDED"
+            result["chat_lineage"]["event_id"] = receipt["event"]["event_id"]
+            result["prior_lifecycle_state"] = receipt["lifecycle_state_unchanged"]
+            result["pointer"] = receipt["pointer"]
+        else:
+            result["chat_lineage"]["append_status"] = "NO_ACTIVE_SESSION"
+            result["prior_lifecycle_state"] = "NO_ACTIVE_SESSION"
+        result["next_action"] = "RETURN_TO_PRIOR_LIFECYCLE_POSITION"
+        return result
 
     def lane_status(
         self,
@@ -356,6 +403,7 @@ class EvidenceLaneService:
                     expected_owner=expected_owner,
                     expected_name=expected_name,
                     allowed_branches=allowed_branches,
+                    source_lane="local_code",
                     persistence_mode="governed_by_host",
                     sensitivity=sensitivity.upper(),
                 )
@@ -545,8 +593,81 @@ class EvidenceLaneService:
         }
         return result
 
+    def prepare_state_travel(
+        self,
+        project_id: str,
+        session_id: str,
+    ) -> dict[str, Any]:
+        """Seal the accepted pointer for a fresh host task or chat."""
+
+        return self.sessions.prepare_state_travel(project_id, session_id)
+
+    def resume_state_travel(
+        self,
+        *,
+        project_id: str,
+        session_id: str,
+        handoff_id: str,
+        host: str,
+        host_session_id: str,
+        ephemeral: bool,
+        client_can_edit_source: bool | None = None,
+        server_has_durable_filesystem: bool | None = None,
+        runtime_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Verify Flash, resume in a fresh host window, verify pointer, and wait."""
+
+        active_path = self.store.project_root(project_id) / "active_session.json"
+        require(
+            active_path.is_file(),
+            "STATE_TRAVEL_ACTIVE_SESSION_MISSING",
+            "State Travel requires the sealed governed session to remain active.",
+            status="BLOCKED",
+            project_id=project_id,
+        )
+        active = json.loads(active_path.read_text(encoding="utf-8"))
+        require(
+            active.get("session_id") == session_id,
+            "STATE_TRAVEL_ACTIVE_SESSION_MISMATCH",
+            "The supplied State Travel session is not the active governed session.",
+            status="MISMATCH",
+            active_session_id=active.get("session_id"),
+            supplied_session_id=session_id,
+        )
+        flash = self.flash_authority.ensure_flashed()
+        boot = self.resume_session(
+            project_id=project_id,
+            host=host,
+            host_session_id=host_session_id,
+            ephemeral=ephemeral,
+            client_can_edit_source=client_can_edit_source,
+            server_has_durable_filesystem=server_has_durable_filesystem,
+            runtime_context=runtime_context,
+        )
+        verified = self.sessions.complete_state_travel(
+            project_id,
+            session_id,
+            handoff_id=handoff_id,
+            flash=flash,
+        )
+        return {
+            **verified,
+            "ordered_entry_verification": [
+                "/evi-01-boot",
+                "ATOMIC_BOOT_AND_LOCKED_ENV_UOP_FLASH_VERIFIED",
+                "VERIFY_ACCEPTED_POINTER_AND_SEALS",
+                "WAITING_FOR_NEXT_USER_COMMAND",
+            ],
+            "boot": boot,
+            "flash": flash,
+        }
+
     def build_initial(self, project_id: str, session_id: str) -> dict[str, Any]:
         result = self.sessions.build_initial_entry(project_id, session_id)
+        result["next_action"] = "PRESENT_SIX_WAY_HIL"
+        result["suggested_next_prompt"] = HIL_SUGGESTED_PROMPT
+        result["next_action_contract"] = result["candidate"]["next_action"]
+        result["hil_choices"] = list(HIL_CHOICES)
         session = self.sessions.load(project_id, session_id)
         if session.metadata["persistence_mode"] == "google_drive":
             sync = self._required_sync_service()
@@ -559,6 +680,10 @@ class EvidenceLaneService:
 
     def refresh(self, project_id: str, session_id: str) -> dict[str, Any]:
         result = self.sessions.refresh_exit(project_id, session_id)
+        result["next_action"] = "PRESENT_SIX_WAY_HIL"
+        result["suggested_next_prompt"] = HIL_SUGGESTED_PROMPT
+        result["next_action_contract"] = result["candidate"]["next_action"]
+        result["hil_choices"] = list(HIL_CHOICES)
         session = self.sessions.load(project_id, session_id)
         if session.metadata["persistence_mode"] == "google_drive":
             sync = self._required_sync_service()
@@ -568,6 +693,31 @@ class EvidenceLaneService:
                 category="candidates",
             )
         return result
+
+    def complete_task_and_refresh(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        confirmation: str,
+    ) -> dict[str, Any]:
+        """Confirm the final host source and seal its exit candidate in one step."""
+        confirmed = self.sessions.confirm_source_update(
+            project_id,
+            session_id,
+            confirmation=confirmation,
+        )
+        refreshed = self.refresh(project_id, session_id)
+        return {
+            **refreshed,
+            "automatic_refresh": True,
+            "user_refresh_command_required": False,
+            "source_confirmation": confirmed,
+            "next_action": "PRESENT_SIX_WAY_HIL",
+            "suggested_next_prompt": HIL_SUGGESTED_PROMPT,
+            "next_action_contract": refreshed["candidate"]["next_action"],
+            "hil_choices": list(HIL_CHOICES),
+        }
 
     def decide(self, project_id: str, session_id: str, **kwargs: Any) -> dict[str, Any]:
         result = self.sessions.decide(project_id, session_id, **kwargs)
@@ -585,12 +735,12 @@ class EvidenceLaneService:
                 )
                 result["pointer_persistence"] = sync.sync_pointer(project_id)
         if result["candidate_promoted"]:
-            direct_handoff = self.sessions.begin_next_turn(
+            state_travel_handoff = self.sessions.prepare_state_travel(
                 project_id,
                 session_id,
             )
-            result["direct_handoff"] = direct_handoff
-            result["session"] = direct_handoff["session"]
+            result["state_travel_handoff"] = state_travel_handoff
+            result["session"] = self.sessions.load(project_id, session_id).as_dict()
         return result
 
     def fuse(
@@ -622,7 +772,7 @@ class EvidenceLaneService:
             "exact_approval": approval,
             "decision": result["decision"],
             "pointer": result["pointer"],
-            "direct_handoff": result["direct_handoff"],
+            "state_travel_handoff": result["state_travel_handoff"],
             "candidate_promoted": True,
             "pointer_moved": result["pointer_moved"],
         }
@@ -641,7 +791,7 @@ class EvidenceLaneService:
         require(
             bool(host_session_id),
             "HOST_SESSION_ID_NOT_BOUND",
-            "Run /ev in this host task to bind its SessionStart ID before reading "
+            "Run /evi in this host task to bind its SessionStart ID before reading "
             "the prompt index.",
             status="BLOCKED",
         )

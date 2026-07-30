@@ -25,6 +25,7 @@ from .models import (
     TaskContract,
     normalize_host_kind,
 )
+from .next_actions import state_travel_next_action
 from .prompt_index import PromptIndex, is_prompt_reference
 from .pv_package import validate_pv_package
 from .redaction import redact
@@ -1102,6 +1103,63 @@ class SessionManager:
             "accepted_pv_query_scope": session.metadata.get("accepted_pv_query_scope"),
         }
 
+    def record_mode_classification(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        classification: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Append one mode/lane route receipt without changing lifecycle state."""
+
+        session = self.load(project_id, session_id)
+        require(
+            not session.metadata.get("closed_at"),
+            "MODE_CLASSIFICATION_SESSION_CLOSED",
+            "An operating-mode receipt cannot append to a closed session.",
+            status="BLOCKED",
+        )
+        pointer = self.store.pointer(project_id)
+        request_sha256 = sha256_bytes(
+            str(classification.get("request", "")).encode("utf-8")
+        )
+        payload = {
+            "schema": "evidence-lane.mode-classification-receipt.v1",
+            "request_sha256": request_sha256,
+            "mode_namespace_authority": classification["mode_namespace_authority"],
+            "selected_mode_ids": [
+                item["id"] for item in classification["selected_modes"]
+            ],
+            "mode_intersection": classification["mode_intersection"],
+            "canonical_lanes": classification["canonical_lanes"],
+            "chat_lineage_included": True,
+            "lifecycle_state_before": session.state.value,
+            "accepted_pv": pointer.accepted_pv,
+            "pointer_generation": pointer.generation,
+            "pointer_moved": False,
+            "candidate_created": False,
+            "task_classified": False,
+            "private_reasoning_excluded": True,
+        }
+        event = ChatLineage(self._lineage_path(project_id, session_id)).append(
+            event_type="mode.classified",
+            visible_payload=payload,
+            occurred_at=utc_now(),
+            session_id=session_id,
+            task_id=(
+                cast(dict[str, Any], session.task).get("task_id")
+                if session.task
+                else None
+            ),
+            run_id=session.metadata.get("run_id"),
+        )
+        return {
+            "status": "PASS",
+            "event": event,
+            "lifecycle_state_unchanged": session.state.value,
+            "pointer": pointer.as_dict(),
+        }
+
     def confirm_source_update(
         self,
         project_id: str,
@@ -1737,7 +1795,301 @@ class SessionManager:
             "event": event,
         }
 
-    def begin_next_turn(self, project_id: str, session_id: str) -> dict[str, Any]:
+    def prepare_state_travel(
+        self,
+        project_id: str,
+        session_id: str,
+    ) -> dict[str, Any]:
+        """Seal a host-window handoff after exact approval without entering it."""
+
+        session = self.load(project_id, session_id)
+        require(
+            session.state in {SessionState.PVN_ACCEPTED, SessionState.PVN1_ACCEPTED},
+            "STATE_TRAVEL_PREPARE_STATE_INVALID",
+            "State Travel begins only from a newly accepted exit PV.",
+            status="BLOCKED",
+            state=session.state.value,
+        )
+        pointer = self.store.pointer(project_id)
+        require(
+            pointer.accepted_pv is not None
+            and pointer.accepted_pv == session.accepted_pv
+            and pointer.generation == session.accepted_pointer_generation,
+            "STATE_TRAVEL_POINTER_STALE",
+            "State Travel requires the session and accepted pointer to match exactly.",
+            status="STALE",
+            pointer=pointer.as_dict(),
+            session_accepted_pv=session.accepted_pv,
+            session_pointer_generation=session.accepted_pointer_generation,
+        )
+        accepted_path = self.store.accepted_path(
+            project_id,
+            cast(str, pointer.accepted_pv),
+        )
+        validation = validate_pv_package(accepted_path)
+        existing = session.metadata.get("state_travel")
+        if (
+            isinstance(existing, dict)
+            and existing.get("status") == "PREPARED"
+            and existing.get("accepted_pv") == pointer.accepted_pv
+            and existing.get("pointer_generation") == pointer.generation
+            and existing.get("manifest_sha256") == validation["manifest_sha256"]
+            and existing.get("package_sha256") == validation["package_sha256"]
+        ):
+            existing_contract = existing.get("next_action_contract")
+            if not isinstance(existing_contract, dict):
+                existing_contract = state_travel_next_action(
+                    state=str(existing["next_action"]),
+                    command="/evi-00-state-travel",
+                    suggested_next_prompt="/evi-00-state-travel",
+                    target_surface=str(existing["target_surface"]),
+                )
+            return {
+                "status": "PASS",
+                "state_travel": existing,
+                "idempotent_reuse": True,
+                "host_window_opened": False,
+                "next_action": existing["next_action"],
+                "suggested_next_prompt": existing_contract["suggested_next_prompt"],
+                "next_action_contract": existing_contract,
+            }
+        if session.host == HostKind.CHATGPT:
+            target_surface = "NEW_CHATGPT_CHAT"
+            next_action = "OPEN_NEW_CHATGPT_CHAT"
+        elif session.host in {
+            HostKind.CODEX_DESKTOP,
+            HostKind.CODEX_CLI,
+            HostKind.CODEX_VM,
+        }:
+            target_surface = "NEW_CODEX_TASK"
+            next_action = "OPEN_NEW_CODEX_TASK"
+        else:
+            target_surface = "NEW_HOST_SESSION"
+            next_action = "OPEN_NEW_HOST_SESSION"
+        receipt = {
+            "schema": "evidence-lane.state-travel.v1",
+            "handoff_id": prefixed_id("travel"),
+            "project_id": project_id,
+            "session_id": session_id,
+            "status": "PREPARED",
+            "origin_host": session.host.value,
+            "origin_host_session_id": session.metadata.get("current_host_session_id"),
+            "target_surface": target_surface,
+            "next_action": next_action,
+            "accepted_pv": pointer.accepted_pv,
+            "pointer_generation": pointer.generation,
+            "manifest_sha256": validation["manifest_sha256"],
+            "package_sha256": validation["package_sha256"],
+            "required_entry_commands": [
+                "/evi-00-state-travel",
+                "/evi-01-boot",
+            ],
+            "next_action_contract": state_travel_next_action(
+                state=next_action,
+                command="/evi-00-state-travel",
+                suggested_next_prompt="/evi-00-state-travel",
+                target_surface=target_surface,
+            ),
+            "host_window_opened": False,
+            "host_window_opening_is_host_mediated": True,
+            "prepared_at": utc_now(),
+        }
+        receipt["handoff_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
+        session.metadata["state_travel"] = receipt
+        self._save(session)
+        event = ChatLineage(self._lineage_path(project_id, session_id)).append(
+            event_type="pv.state_travel.prepared",
+            visible_payload=receipt,
+            occurred_at=receipt["prepared_at"],
+            session_id=session_id,
+        )
+        return {
+            "status": "PASS",
+            "state_travel": receipt,
+            "idempotent_reuse": False,
+            "host_window_opened": False,
+            "next_action": next_action,
+            "suggested_next_prompt": receipt["next_action_contract"][
+                "suggested_next_prompt"
+            ],
+            "next_action_contract": receipt["next_action_contract"],
+            "event": event,
+        }
+
+    def complete_state_travel(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        handoff_id: str,
+        flash: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Verify a fresh host binding, enter the accepted PV, and wait."""
+
+        session = self.load(project_id, session_id)
+        travel = session.metadata.get("state_travel")
+        require(
+            isinstance(travel, dict) and travel.get("status") == "PREPARED",
+            "STATE_TRAVEL_HANDOFF_NOT_PREPARED",
+            "No prepared State Travel handoff exists for this accepted exit PV.",
+            status="BLOCKED",
+        )
+        travel = cast(dict[str, Any], travel)
+        require(
+            handoff_id == travel.get("handoff_id"),
+            "STATE_TRAVEL_HANDOFF_ID_MISMATCH",
+            "The State Travel handoff ID does not match the sealed receipt.",
+            status="MISMATCH",
+            provided=handoff_id,
+        )
+        current_host_session_id = str(
+            session.metadata.get("current_host_session_id") or ""
+        )
+        origin_host_session_id = str(travel.get("origin_host_session_id") or "")
+        require(
+            bool(current_host_session_id)
+            and current_host_session_id != origin_host_session_id,
+            "STATE_TRAVEL_NEW_HOST_WINDOW_REQUIRED",
+            "State Travel must resume in a fresh host task or chat.",
+            status="BLOCKED",
+            target_surface=travel.get("target_surface"),
+        )
+        if travel.get("target_surface") == "NEW_CHATGPT_CHAT":
+            require(
+                session.host == HostKind.CHATGPT,
+                "STATE_TRAVEL_HOST_KIND_MISMATCH",
+                "This handoff requires a fresh ChatGPT chat.",
+                status="MISMATCH",
+                host=session.host.value,
+            )
+        elif travel.get("target_surface") == "NEW_CODEX_TASK":
+            require(
+                session.host
+                in {
+                    HostKind.CODEX_DESKTOP,
+                    HostKind.CODEX_CLI,
+                    HostKind.CODEX_VM,
+                },
+                "STATE_TRAVEL_HOST_KIND_MISMATCH",
+                "This handoff requires a fresh Codex task.",
+                status="MISMATCH",
+                host=session.host.value,
+            )
+        pointer = self.store.pointer(project_id)
+        require(
+            pointer.accepted_pv == travel.get("accepted_pv")
+            and pointer.generation == travel.get("pointer_generation")
+            and pointer.accepted_manifest_sha256 == travel.get("manifest_sha256"),
+            "STATE_TRAVEL_POINTER_VERIFICATION_FAILED",
+            "The accepted pointer changed after the State Travel handoff was sealed.",
+            status="STALE",
+            expected={
+                "accepted_pv": travel.get("accepted_pv"),
+                "generation": travel.get("pointer_generation"),
+                "manifest_sha256": travel.get("manifest_sha256"),
+            },
+            actual=pointer.as_dict(),
+        )
+        validation = validate_pv_package(
+            self.store.accepted_path(project_id, cast(str, pointer.accepted_pv))
+        )
+        require(
+            validation["manifest_sha256"] == travel.get("manifest_sha256")
+            and validation["package_sha256"] == travel.get("package_sha256"),
+            "STATE_TRAVEL_ACCEPTED_PACKAGE_MISMATCH",
+            "The accepted PV bytes do not match the State Travel handoff.",
+            status="MISMATCH",
+        )
+        require(
+            flash.get("status") == "PASS",
+            "STATE_TRAVEL_FLASH_VERIFICATION_FAILED",
+            "State Travel cannot enter the accepted PV until locked ENV/UOP Flash "
+            "verification passes.",
+            status="BLOCKED",
+            flash_status=flash.get("status"),
+        )
+        entry = self.begin_next_turn(
+            project_id,
+            session_id,
+            _state_travel_handoff_id=handoff_id,
+        )
+        session = self.load(project_id, session_id)
+        completed_at = utc_now()
+        verified = {
+            **travel,
+            "status": "VERIFIED_WAITING",
+            "destination_host": session.host.value,
+            "destination_host_session_id": current_host_session_id,
+            "host_window_opened": True,
+            "boot_verified": True,
+            "flash_verified": flash.get("status") == "PASS",
+            "flash_authority_version": flash.get("authority_version"),
+            "flash_authority_digest": flash.get("authority_digest"),
+            "flash_receipt_sha256": flash.get("receipt_sha256"),
+            "pointer_verified": True,
+            "completed_at": completed_at,
+            "wait_state": "WAITING_FOR_NEXT_USER_COMMAND",
+            "next_action_contract": state_travel_next_action(
+                state="WAITING_FOR_NEXT_USER_COMMAND",
+                command="USER_PROVIDES_NEXT_BOUNDED_TASK",
+                suggested_next_prompt=(
+                    "Provide the next bounded Evidence Lane task, or run "
+                    "/evi-40-status."
+                ),
+                target_surface=str(travel.get("target_surface")),
+            ),
+        }
+        session.metadata["state_travel"] = verified
+        session.metadata.setdefault("state_travel_history", []).append(verified)
+        self._save(session)
+        event = ChatLineage(self._lineage_path(project_id, session_id)).append(
+            event_type="pv.state_travel.verified",
+            visible_payload={
+                "handoff_id": handoff_id,
+                "accepted_pv": pointer.accepted_pv,
+                "pointer_generation": pointer.generation,
+                "manifest_sha256": validation["manifest_sha256"],
+                "package_sha256": validation["package_sha256"],
+                "destination_host": session.host.value,
+                "destination_host_session_id": current_host_session_id,
+                "boot_verified": True,
+                "flash_verified": verified["flash_verified"],
+                "pointer_verified": True,
+                "wait_state": "WAITING_FOR_NEXT_USER_COMMAND",
+            },
+            occurred_at=completed_at,
+            session_id=session_id,
+        )
+        return {
+            "status": "PASS",
+            "state_travel": verified,
+            "session": session.as_dict(),
+            "entry": entry,
+            "pointer": pointer.as_dict(),
+            "pointer_verification": {
+                "accepted_pv": pointer.accepted_pv,
+                "generation": pointer.generation,
+                "manifest_sha256": validation["manifest_sha256"],
+                "package_sha256": validation["package_sha256"],
+                "verified": True,
+            },
+            "wait_state": "WAITING_FOR_NEXT_USER_COMMAND",
+            "next_action": "WAIT_FOR_NEXT_USER_COMMAND",
+            "suggested_next_prompt": verified["next_action_contract"][
+                "suggested_next_prompt"
+            ],
+            "next_action_contract": verified["next_action_contract"],
+            "task_started": False,
+            "event": event,
+        }
+
+    def begin_next_turn(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        _state_travel_handoff_id: str | None = None,
+    ) -> dict[str, Any]:
         session = self.load(project_id, session_id)
         require(
             session.state in {SessionState.PVN_ACCEPTED, SessionState.PVN1_ACCEPTED},
@@ -1746,6 +2098,18 @@ class SessionManager:
             status="BLOCKED",
             state=session.state.value,
         )
+        travel = session.metadata.get("state_travel")
+        if isinstance(travel, dict) and travel.get("status") == "PREPARED":
+            require(
+                bool(_state_travel_handoff_id)
+                and _state_travel_handoff_id == travel.get("handoff_id"),
+                "STATE_TRAVEL_RESUME_REQUIRED",
+                "The accepted exit PV must enter through pv_state_travel_resume; "
+                "binding a fresh host session alone cannot bypass Boot/Flash, "
+                "pointer, and package-seal verification.",
+                status="BLOCKED",
+                target_surface=travel.get("target_surface"),
+            )
         pointer = self.store.pointer(project_id)
         require(
             pointer.accepted_pv is not None,

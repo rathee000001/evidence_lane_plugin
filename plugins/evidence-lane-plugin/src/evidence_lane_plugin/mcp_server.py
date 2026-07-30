@@ -82,13 +82,19 @@ def create_mcp_server(
     mcp = FastMCP(
         "Evidence Lane Plugin",
         instructions=(
-            "Start with /EV: verify the installed source and locked ENV15/UOP15 "
-            "flash outside PV, then resume or boot one Git/local project through "
-            "eighteen immutable SQLite/MMD/DOT lane authorities. Use one agent and "
-            "one bounded task. PV Refresh creates an unaccepted candidate; PV Fuse "
-            "requires exact APPROVE and directly hands off without rebuilding. "
-            "Never infer HIL approval, move an accepted pointer, expose connector "
-            "OAuth, or write remote Git without the exact governed action."
+            "Display /evi-00-state-travel first, then follow the /evi top-down "
+            "stack: atomic Boot plus locked ENV/UOP Flash, all seventeen ordered "
+            "source-intake commands, the anytime /evi-mode sidecar, Build PV "
+            "Entry, bounded task work, automatic exit-Refresh, HIL, Fuse, then "
+            "Rollback. Fuse requires exact APPROVE and seals a fresh-window "
+            "handoff without rebuilding. State Travel verifies atomic Boot/Flash, the "
+            "accepted pointer, and seals in a fresh Codex task or ChatGPT chat, "
+            "then waits. A booted session remains active until /evi-exit-boot. "
+            "Before every HIL or State Travel stop, visibly render the returned "
+            "suggested_next_prompt. The host owns composer suggestions; never "
+            "claim the MCP wrote the prompt bar and never auto-submit it. "
+            "Never infer HIL approval, expose connector OAuth, or write remote "
+            "Git without the exact governed action."
         ),
         host=host,
         port=port,
@@ -151,7 +157,7 @@ def create_mcp_server(
         description=(
             "Return the single executable event/from/to transition table used by "
             "session boot, PV build, task classification, Refresh, six-way HIL, "
-            "rollback state travel, and accepted-PV handoff."
+            "rollback state travel, and fresh-window accepted-PV handoff."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Reading lifecycle law", "Lifecycle law ready"),
@@ -176,6 +182,40 @@ def create_mcp_server(
     )
     def lane_catalog() -> dict[str, Any]:
         return application.invoke("lane_catalog", application.lane_catalog)
+
+    @mcp.tool(
+        name="mode_classify",
+        title="Classify an ENV15 mode intersection and lanes",
+        description=(
+            "At any lifecycle position, classify one or more locked ENV15 modes "
+            "such as Analysis + Planning + Code, map them to canonical Evidence "
+            "Lanes, always include Chat Lineage, append only the privacy-minimized "
+            "classification receipt when a session is active, and return to the "
+            "prior lifecycle position without creating a task, candidate, HIL, or "
+            "pointer movement."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta(
+            "Classifying operating modes and lanes",
+            "Mode intersection classified",
+        ),
+        structured_output=True,
+    )
+    def mode_classify(
+        project_id: str,
+        request: str,
+        explicit_modes: list[str] | None = None,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "mode_classify",
+            application.classify_mode,
+            project_id,
+            request,
+            explicit_modes=explicit_modes,
+            session_id=session_id,
+            lifecycle=True,
+        )
 
     @mcp.tool(
         name="lane_status",
@@ -660,15 +700,46 @@ def create_mcp_server(
         )
 
     @mcp.tool(
+        name="task_complete_and_refresh",
+        title="Complete task and automatically seal exit PV",
+        description=(
+            "Confirm the exact host-specific final source boundary and immediately "
+            "run deterministic Refresh in one governed operation. Entry and exit "
+            "slips are generated automatically, the candidate remains unaccepted, "
+            "and the result stops at the six-way HIL. Users do not need a separate "
+            "Refresh or exit command."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta(
+            "Completing task and sealing exit candidate",
+            "Exit candidate sealed; HIL required",
+        ),
+        structured_output=True,
+    )
+    def task_complete_and_refresh(
+        project_id: str,
+        session_id: str,
+        confirmation: str,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "task_complete_and_refresh",
+            application.complete_task_and_refresh,
+            project_id,
+            session_id,
+            confirmation=confirmation,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
         name="hil_decide",
         title="Record exact six-way HIL decision",
         description=(
             "Record exactly APPROVE, APPROVE_WITH_DELTA, MORE_RESEARCH, REJECT, or "
             "FAIL, plus pointer-only ROLLBACK to any immutable accepted PV, for one "
             "pending candidate. Only APPROVE promotes candidate bytes and its public "
-            "service path performs direct accepted-PV handoff. ROLLBACK preserves the "
-            "candidate and accepted history; a bare target resolves to the current "
-            "prompt/session entry PV."
+            "service path seals a State Travel handoff for a fresh host window. "
+            "ROLLBACK preserves the candidate and accepted history; a bare target "
+            "resolves to the current prompt/session entry PV."
         ),
         annotations=_HIL_WRITE,
         meta=_meta("Recording human HIL decision", "HIL decision recorded"),
@@ -705,12 +776,15 @@ def create_mcp_server(
         title="Fuse candidate with exact APPROVE",
         description=(
             "Require the exact case-sensitive token APPROVE, promote the pending "
-            "candidate byte-for-byte with compare-and-swap, and immediately hand the "
-            "same governed session into that newly accepted PV. No rebuild or remake "
-            "occurs during handoff."
+            "candidate byte-for-byte with compare-and-swap, and seal the exact "
+            "accepted pointer for State Travel into a fresh Codex task or ChatGPT "
+            "chat. No rebuild or remake occurs."
         ),
         annotations=_HIL_WRITE,
-        meta=_meta("Fusing approved PV candidate", "PV fused and handed off"),
+        meta=_meta(
+            "Fusing approved PV candidate",
+            "PV fused; fresh-window State Travel required",
+        ),
         structured_output=True,
     )
     def pv_fuse(
@@ -728,6 +802,75 @@ def create_mcp_server(
             approval=approval,
             decided_by=decided_by,
             decision_id=decision_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="pv_state_travel_prepare",
+        title="Prepare accepted PV State Travel",
+        description=(
+            "Idempotently seal the accepted PV, pointer generation, manifest, and "
+            "package hashes for a host-mediated fresh Codex task or ChatGPT chat. "
+            "This does not claim that the host window was opened."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta(
+            "Preparing accepted PV State Travel",
+            "State Travel handoff prepared",
+        ),
+        structured_output=True,
+    )
+    def pv_state_travel_prepare(
+        project_id: str,
+        session_id: str,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "pv_state_travel_prepare",
+            application.prepare_state_travel,
+            project_id,
+            session_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="pv_state_travel_resume",
+        title="Verify State Travel in a fresh host window",
+        description=(
+            "In the fresh Codex task or ChatGPT chat, verify the locked Flash, bind "
+            "the new host session, enter the exact accepted PV without rebuilding, "
+            "verify pointer generation and package seals, then stop in "
+            "WAITING_FOR_NEXT_USER_COMMAND."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta(
+            "Verifying State Travel entry",
+            "State Travel verified; waiting for user",
+        ),
+        structured_output=True,
+    )
+    def pv_state_travel_resume(
+        project_id: str,
+        session_id: str,
+        handoff_id: str,
+        host: str,
+        host_session_id: str,
+        ephemeral: bool,
+        client_can_edit_source: bool | None = None,
+        server_has_durable_filesystem: bool | None = None,
+        runtime_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "pv_state_travel_resume",
+            application.resume_state_travel,
+            project_id=project_id,
+            session_id=session_id,
+            handoff_id=handoff_id,
+            host=host,
+            host_session_id=host_session_id,
+            ephemeral=ephemeral,
+            client_can_edit_source=client_can_edit_source,
+            server_has_durable_filesystem=server_has_durable_filesystem,
+            runtime_context=runtime_context,
             lifecycle=True,
         )
 
@@ -798,9 +941,9 @@ def create_mcp_server(
         name="pv_begin_next_turn",
         title="Enter next turn from latest accepted PV",
         description=(
-            "After APPROVE, reset only the bounded task/run state and prove the "
-            "follow-up turn enters from the latest immutable PV and would propose "
-            "the next linear PV number."
+            "Compatibility entry helper. A prepared State Travel handoff blocks this "
+            "tool until a fresh host task or chat has been bound. Prefer "
+            "pv_state_travel_resume for the verified top-level flow."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Entering next accepted PV", "Next PV entry ready"),
@@ -1137,7 +1280,11 @@ def run_server(
             raise RuntimeError(
                 "Non-loopback HTTP requires an HTTPS EVIDENCE_LANE_MCP_BASE_URL."
             )
+    application = EvidenceLaneService()
+    application.sessions.ensure_installation()
+    application.flash_authority.ensure_flashed()
     server = create_mcp_server(
+        service=application,
         host=host,
         port=port,
         bearer_token=bearer or None,

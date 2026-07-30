@@ -114,4 +114,17 @@ def build_and_approve_pv1(application: EvidenceLaneService) -> tuple[str, dict]:
         decision_id="decision_pv1",
     )
     assert decision["pointer"]["accepted_pv"] == "PV1"
+    handoff = decision["state_travel_handoff"]["state_travel"]
+    traveled = application.resume_state_travel(
+        project_id="book-faires",
+        session_id=session_id,
+        handoff_id=handoff["handoff_id"],
+        host="CODEX_DESKTOP",
+        host_session_id="host-session-state-travel-pv1",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"source": "fresh-test-task"},
+    )
+    assert traveled["wait_state"] == "WAITING_FOR_NEXT_USER_COMMAND"
     return session_id, candidate

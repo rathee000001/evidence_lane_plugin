@@ -348,6 +348,29 @@ def _retrieval_rows(
 
 def test_registry_requires_explicit_code_mode() -> None:
     assert len(CANONICAL_LANE_IDS) == 18
+    ordered_commands = sorted(lane.command for lane in LANE_REGISTRY.values())
+    assert ordered_commands == [
+        "evi-02-git",
+        "evi-03-local",
+        "evi-04-sqlite-pv-candidate-loader",
+        "evi-05-chat-lineage",
+        "evi-06-discussion",
+        "evi-07-analysis",
+        "evi-08-plan",
+        "evi-09-docs",
+        "evi-10-data-excel",
+        "evi-11-ppt",
+        "evi-12-pdf-ocr",
+        "evi-13-images-ocr",
+        "evi-14-artifacts",
+        "evi-15-custom",
+        "evi-16-research",
+        "evi-17-project-engulf",
+        "evi-18-sqlite-brain",
+        "evi-mode",
+    ]
+    assert LANE_REGISTRY["brain_loader"].display_label == ("SQLite PV Candidate Loader")
+    assert resolve_lane_id("Brain Loader") == "brain_loader"
     try:
         resolve_lane_id("code")
     except LaneRegistryError as exc:

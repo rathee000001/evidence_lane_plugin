@@ -1,52 +1,106 @@
 # Evidence Lane Plugin
 
 `evidence_lane_plugin` is a private, single-user MCP plugin for Codex and
-ChatGPT Work. It turns one explicit Git or local-code source into immutable,
+ChatGPT. It turns one explicit Git or local-code source into immutable,
 human-approved Evidence Lane project versions. The installable identifier is
 `evidence-lane-plugin`.
 
-The user-facing lifecycle is:
+## Ordered `/evi` lifecycle
 
 ```text
-/ev
-  -> verify installed source + persistent ENV15/UOP15 flash
-  -> resume one governed session or reveal /git and /local intake
-  -> one agent / one active task
-  -> /pv-refresh creates the next unaccepted candidate
-  -> /pv-fuse ... APPROVE promotes and directly enters it
-  -> or APPROVE_WITH_DELTA | MORE_RESEARCH
-     | ROLLBACK [PVn | PROMPT n | TURN id] | REJECT | FAIL
+/evi-00-state-travel (always the first visible control)
+  -> /evi with /evi-mode beside it as an anytime control sidecar
+  -> /evi-01-boot (atomic Boot + locked ENV/UOP Flash)
+  -> seventeen source-intake commands:
+     Git, Local, SQLite PV Candidate Loader, Chat Lineage, Discussion,
+     Analysis, Plan, Docs, Data/Excel/CSV, PPT, PDF/OCR, Images/OCR,
+     Artifacts, Custom, Research, Project Engulf, SQLite Brain
+  -> /evi-30-build-pv-entry
+  -> status, one linear task plan/backlog, classify, and bounded lane work
+  -> automatic source confirmation + Refresh + sealed exit PV
+  -> /evi-80-hil
+  -> /evi-90-pv-fuse ... APPROVE
+  -> /evi-99-pv-rollback [PVn | PROMPT n | TURN id]
+  -> /evi-exit-boot (explicit governed-session deactivation)
 ```
 
-`/ev` is first. The older separate boot, flash, enroll, and exit prompt
-commands are intentionally absent. Flash persists until plugin removal.
+`/evi-00-state-travel` is displayed above every other control. With no prepared
+handoff it proceeds to Boot. After Fuse, Codex must enter through a fresh task
+and ChatGPT through a fresh chat. The new window runs the same atomic
+Boot/Flash verification, verifies the accepted pointer generation and package
+seals, and then stops in `WAITING_FOR_NEXT_USER_COMMAND`. Opening that host
+window is host-mediated and remains fail-visible.
+
+`/evi-01-boot` is the only user-facing Boot/Flash command. Flash remains
+installation-scoped and valid until plugin removal. Seventeen source-intake
+commands appear before **Build PV Entry** and route eighteen canonical lanes.
+The internal Mode lane is exposed only through the separate `/evi-mode`
+sidecar. The internal `brain_loader` lane is presented only as **SQLite PV
+Candidate Loader**. A booted governed session remains resumable across host
+tasks or chats until the user explicitly invokes `/evi-exit-boot`.
+
 `entry_slip.json` and `exit_slip.json` are generated automatically inside each
-sealed candidate; they are evidence artifacts, not user commands.
+sealed candidate. Task completion confirms the host source boundary, runs
+Refresh, and seals the exit candidate as one governed operation. Entry, Exit,
+and Refresh are evidence transitions, not user commands.
 
-Only the exact case-sensitive token `APPROVE` can Fuse a candidate.
-Promotion is byte-preserving and immediately hands the same session into the
-newly accepted PV—there is no remake. `ROLLBACK` is separate pointer-only
-state travel. It preserves accepted history, candidates, source bytes, and the
-monotonic next-PV ordinal.
+Only the exact case-sensitive token `APPROVE` can Fuse a candidate. Promotion
+is byte-preserving and seals the newly accepted PV for fresh-window State
+Travel; there is no remake. Rollback is separate pointer-only state travel. It
+preserves accepted history, candidates, source bytes, and the monotonic
+next-PV ordinal.
 
-## Prompt-bar command surface
+## Persistent command and skill surface
 
-- `/ev [project_id]`: verify install/flash/Drive dependency, then boot or resume;
-- `/git ...`: clone or fast-forward one explicit repository and authorized
-  branch without remote write;
-- `/local ...`: adopt or read one explicit local-code Git path;
-- `/pv-refresh <project_id> <session_id>`: seal final source as an unaccepted
-  candidate;
-- `/pv-fuse <project_id> <session_id> APPROVE`: exact approval plus direct
-  accepted-PV handoff;
-- `/pv-hil ...`: bounded Delta, research, rollback, reject, or fail;
-- `/pv-rollback ...`: target `PVn`, `PROMPT <index>`, `TURN <id>`, or omit the
-  target for the current prompt/session entry PV.
+- `/evi-00-state-travel ...`: enter a sealed accepted exit PV only through a
+  fresh verified Codex task or ChatGPT chat, then wait.
+- `/evi [project_id]`: show the complete ordered lifecycle and resume its
+  persistent state.
+- `/evi-01-boot ...`: atomically verify installation and locked ENV/UOP Flash,
+  then boot or resume the governed session.
+- `/evi-mode ...`: classify one or more intersecting operating modes and
+  canonical lanes without changing lifecycle, task, candidate, or pointer.
+- `/evi-02-git ...`: clone or fast-forward one explicit repository and
+  authorized branch without remote write.
+- `/evi-03-local ...`: adopt or read one explicit local-code Git path.
+- `/evi-04-sqlite-pv-candidate-loader ...`: verify the canonical
+  `brain_loader` package without promotion.
+- `/evi-05-*` through `/evi-18-*`: expose every remaining source-intake
+  command, including `/evi-17-project-engulf`.
+- `/evi-30-build-pv-entry ...`: build PV1 once or load accepted entry bytes.
+- `/evi-40-status`, `/evi-50-task-plan`, `/evi-51-backlog`,
+  `/evi-60-classify`, and `/evi-70-lane-route`: govern linear work.
+- `/evi-80-hil ...`: record one exact six-way HIL decision.
+- `/evi-90-pv-fuse ... APPROVE`: exact approval plus a sealed fresh-window
+  State Travel handoff.
+- `/evi-99-pv-rollback ...`: target `PVn`, `PROMPT <index>`, `TURN <id>`, or
+  omit the target for the current prompt/session entry PV.
+- `/evi-exit-boot ...`: close only the active governed session; preserve the
+  plugin installation, Flash receipt, PVs, candidates, lineage, backlog, and
+  pointer.
 
-Codex command files are statically installed, so a host cannot literally hide
-and reveal menu entries at runtime. The plugin enforces the intended behavior
-in its workflow: source intake and lane work require `/ev` verification in the
-current host task.
+Every command has a matching native plugin skill. This makes the complete
+ordered surface discoverable in a fresh Codex task without depending on a
+host's partial command-to-skill migration.
+
+## Prompt suggestions and the Exit Slip fallback
+
+Claude Code's gray prompt suggestion is generated by Claude Code itself; the
+pinned comparison plugin contains no MCP or hook composer-prefill field.
+OpenAI's **Suggested prompts** is likewise a host setting. Current documented
+Codex plugin, MCP, and hook contracts do not give this plugin a composer-write
+field. Manifest `interface.defaultPrompt` supplies static starter prompts for
+the install surface; it is not a runtime next-action channel.
+
+Evidence Lane therefore seals the portable behavior it can own. Every new
+candidate writes an `evidence-lane.next-action.v1` object into
+`exit_slip.json`, and initial build, Refresh, and automatic task completion
+return that same object through MCP. It contains a neutral
+`suggested_next_prompt`, all six HIL choices, exact candidate identity,
+`auto_submit: false`, and `stop_and_wait: true`. State Travel carries the same
+contract. Codex or ChatGPT must show the suggestion visibly before waiting;
+when a host independently renders a gray suggestion, that remains host-owned.
+See [`docs/PROMPT_SUGGESTION_COMPATIBILITY.md`](docs/PROMPT_SUGGESTION_COMPATIBILITY.md).
 
 ## Implemented engine
 
@@ -74,13 +128,15 @@ current host task.
 - one executable lifecycle transition table shared by boot, build, task,
   Refresh, six-way HIL, rollback, recovery, and next-turn handoff;
 - persistent accepted-PV/session hints on startup, resume, clear, and compact;
-  `/ev`, `session_resume`, and `pv_status` perform the verifying handoff;
+  `/evi`, `session_resume`, and `pv_status` perform the verifying handoff;
 - a privacy-minimized `UserPromptSubmit` hook that indexes entry PV, turn ID,
   and SHA-256 without storing raw prompt text or private model reasoning;
 - local-path adoption or credential-free HTTPS enrollment without remote write;
 - explicit local/HTTPS branch synchronization that accepts only a clean
   fast-forward and checks changed paths before mutating an active task source;
 - an ordered multi-task backlog with one active task maximum;
+- one planning/classification validator, so an invalid task cannot be persisted
+  as an unclaimable backlog item;
 - separately gated remote Git preparation/execution; PV approval alone never
   authorizes a push.
 
@@ -125,11 +181,17 @@ python plugins/evidence-lane-plugin/scripts/bootstrap.py
 The bootstrap installs the hash-locked dependency set and a non-editable copy
 of the engine into the plugin-local `.venv`. The plugin subdirectory has its
 own `pyproject.toml`, so a versioned Git marketplace snapshot is self-contained
-and never reaches back into the F-drive authority checkout. On a fresh Git
-install, the first MCP start performs the same hash-locked bootstrap inside the
-versioned cache. Bootstrap also updates the installation receipt to the running
-engine version while preserving its original installation time; that
+and never reaches back into an authority checkout. On a fresh Git install, the
+first MCP start performs the same hash-locked bootstrap inside the versioned
+cache. Bootstrap also updates the installation receipt to the running engine
+version while preserving its original installation time; that
 installation-scoped action neither creates a PV nor implies HIL approval.
+
+All `serve` transports also activate the versioned installation receipt and
+create or verify the locked ENV15/UOP15 flash before accepting MCP traffic. For
+a remote container, both receipts live on the mounted durable volume and are
+reused byte-for-byte after process replacement. This startup action remains
+outside every PV and lets `/evi` verify persistent Flash before source intake.
 
 For normal Codex use, add the private GitHub marketplace at one exact reviewed
 ref, then install or update the plugin:
@@ -140,9 +202,9 @@ codex plugin add evidence-lane-plugin@evidence-lane-github --json
 ```
 
 When prompted, connect the required Google Drive dependency through the normal
-host OAuth screen. Review and trust the two bundled hooks. Start a new Codex
-task or ChatGPT Work chat before expecting the updated commands or MCP tools;
-an already-running task retains its original plugin snapshot.
+host OAuth screen. Review and trust the two bundled hooks. Start a fresh Codex
+task or ChatGPT chat before expecting the updated commands, skills, or MCP
+tools; an already-running task retains its original plugin snapshot.
 
 ```text
 plugins/evidence-lane-plugin/.venv/Scripts/python.exe -m pytest
@@ -166,14 +228,44 @@ plugins/evidence-lane-plugin/.venv/Scripts/python.exe \
 
 The endpoint is `/mcp`. Non-loopback HTTP fails closed without an HTTPS base
 URL and either static bearer authentication or standards-based OAuth. Static
-bearer is a Codex-only private-client fallback. ChatGPT requires a public HTTPS
-deployment with compatible OAuth; a Git repository URL is not an MCP endpoint.
+bearer is a Codex-only private-client fallback. A ChatGPT **Server URL**
+connection requires a public HTTPS deployment with compatible OAuth; the
+private developer route uses **Tunnel** instead. A Git repository URL is not an
+MCP endpoint.
 
 The bundled STDIO server is usable by supported local plugin surfaces. ChatGPT
-requires a registered remote MCP connection; no connection ID is invented or
-embedded here. The included container contract runs one persistent remote
-service but still requires an authorized container host and OAuth issuer. After
-any plugin update, reinstall the new version and start a new task/chat.
+web does not execute the Git repository itself. For this private, single-user
+developer HIL, run the exact Git build locally and connect ChatGPT through
+OpenAI Secure MCP Tunnel. The tunnel is transport only: the MCP process,
+SQLite authority, plugin Flash, and governed store remain on the durable local
+machine. Select **Tunnel** when creating the ChatGPT plugin; do not paste the
+Git URL into the Server URL field.
+
+Vercel is not part of this personal HIL. It would host the MCP runtime rather
+than merely install a package, and its Function filesystem cannot be the
+current SQLite authority. A later public release may use Vercel only after an
+external transactional state adapter, immutable object storage, production
+authentication, and replacement/concurrency tests are accepted. The included
+container contract remains the alternative for a host with a real durable
+volume. After any plugin update, reinstall the new version and start a fresh
+task/chat.
+
+## Candidate installation HIL
+
+The private installation candidate is distributed without touching `main`:
+
+1. validate and commit the exact candidate on one feature branch;
+2. push only that branch after the user's explicit branch-publication
+   instruction;
+3. install Codex from the exact branch commit and verify it in a fresh task;
+4. run that same local build through Secure MCP Tunnel;
+5. create and test the tunnel-backed personal plugin in a fresh ChatGPT Work
+   chat;
+6. present the exact commit, installation receipts, tunnel health, tool
+   inventory, and host checks, then stop for the six-way universal HIL.
+
+Publishing this candidate branch does not accept a PV, move a pointer, Fuse a
+candidate, merge `main`, or authorize a public release.
 
 ## Authority and current HIL boundary
 

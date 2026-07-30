@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 
 import pytest
@@ -50,16 +51,38 @@ def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(
     )
     assert activity["source_state"] == "MUTATED_AFTER_ENTRY"
     assert activity["accepted_pv_query_scope"] == "ENTRY_STATE_ONLY"
-    service.sessions.confirm_source_update(
+    refresh = service.complete_task_and_refresh(
         "book-faires",
         session_id,
         confirmation="HOST_SANDBOX_FINAL_STATE_CONFIRMED",
     )
-    refresh = service.refresh("book-faires", session_id)
+    assert refresh["automatic_refresh"] is True
+    assert refresh["user_refresh_command_required"] is False
+    assert refresh["next_action"] == "PRESENT_SIX_WAY_HIL"
+    assert refresh["suggested_next_prompt"].startswith("/evi-80-hil ")
+    assert refresh["next_action_contract"]["composer_authority"] == "HOST_OWNED"
+    assert (
+        refresh["next_action_contract"]["documented_mcp_composer_mutation_supported"]
+        is False
+    )
+    assert refresh["next_action_contract"]["auto_submit"] is False
+    assert refresh["next_action_contract"]["stop_and_wait"] is True
     assert refresh["candidate"]["proposed_pv"] == "PV2"
     assert [
         row["path"] for row in refresh["candidate"]["source_delta"]["modified"]
     ] == ["src/app.py"]
+    candidate_path = Path(refresh["candidate"]["stored_path"])
+    entry_slip = json.loads(
+        (candidate_path / "entry_slip.json").read_text(encoding="utf-8")
+    )
+    exit_slip = json.loads(
+        (candidate_path / "exit_slip.json").read_text(encoding="utf-8")
+    )
+    assert entry_slip["accepted_entry_pv"] == "PV1"
+    assert exit_slip["proposed_pv"] == "PV2"
+    assert exit_slip["candidate_id"] == refresh["candidate"]["candidate_id"]
+    assert exit_slip["next_action"] == refresh["next_action_contract"]
+    assert exit_slip["next_action"]["display_position"] == "BEFORE_HIL_DECISION"
     decision = service.decide(
         "book-faires",
         session_id,
@@ -70,14 +93,46 @@ def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(
     assert decision["pointer_advanced"] is True
     assert decision["pointer"]["accepted_pv"] == "PV2"
     assert decision["pointer"]["generation"] == 2
-    assert decision["session"]["metadata"]["source_state"] == "ACCEPTED_ENTRY_EXACT"
-    next_turn = decision["direct_handoff"]
-    assert next_turn["proof"]["accepted_entry_pv"] == "PV2"
-    assert next_turn["proof"]["pointer_generation"] == 2
-    assert next_turn["proof"]["next_candidate_would_be"] == "PV3"
-    assert next_turn["proof"]["entry_manifest_sha256"]
-    assert next_turn["proof"]["entry_package_sha256"]
-    assert decision["session"]["metadata"]["entry_pv"] == "PV2"
+    assert decision["session"]["state"] == "PVN1_ACCEPTED"
+    handoff = decision["state_travel_handoff"]["state_travel"]
+    assert handoff["target_surface"] == "NEW_CODEX_TASK"
+    assert handoff["accepted_pv"] == "PV2"
+    assert handoff["pointer_generation"] == 2
+    assert handoff["host_window_opened"] is False
+    with pytest.raises(EvidenceLaneError) as same_window:
+        service.sessions.begin_next_turn("book-faires", session_id)
+    assert same_window.value.code == "STATE_TRAVEL_RESUME_REQUIRED"
+    service.resume_session(
+        project_id="book-faires",
+        host="CODEX_DESKTOP",
+        host_session_id="host-session-bypass-attempt",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"source": "fresh-session-without-state-travel-verification"},
+    )
+    with pytest.raises(EvidenceLaneError) as bypass:
+        service.sessions.begin_next_turn("book-faires", session_id)
+    assert bypass.value.code == "STATE_TRAVEL_RESUME_REQUIRED"
+    traveled = service.resume_state_travel(
+        project_id="book-faires",
+        session_id=session_id,
+        handoff_id=handoff["handoff_id"],
+        host="CODEX_DESKTOP",
+        host_session_id="host-session-state-travel-pv2",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"source": "fresh-codex-task"},
+    )
+    assert traveled["pointer_verification"]["accepted_pv"] == "PV2"
+    assert traveled["pointer_verification"]["generation"] == 2
+    assert traveled["pointer_verification"]["manifest_sha256"]
+    assert traveled["pointer_verification"]["package_sha256"]
+    assert traveled["session"]["metadata"]["entry_pv"] == "PV2"
+    assert traveled["session"]["metadata"]["next_candidate_would_be"] == "PV3"
+    assert traveled["wait_state"] == "WAITING_FOR_NEXT_USER_COMMAND"
+    assert traveled["task_started"] is False
     diff = service.reader.diff("book-faires", "PV1", "PV2")
     assert [row["path"] for row in diff["modified"]] == ["src/app.py"]
 
@@ -106,6 +161,144 @@ def test_fresh_host_task_resumes_same_session_and_entry_without_rebuild(
     assert resumed["event"]["visible_payload"]["pointer_moved"] is False
     assert service.store.pointer("book-faires").as_dict() == pointer_before
     assert service.store.accepted_ids("book-faires") == ["PV1"]
+
+
+def test_explicit_exit_boot_closes_only_the_persistent_session(service) -> None:
+    boot = boot_local(service)
+    session_id = boot["session"]["session_id"]
+    pointer_before = service.store.pointer("book-faires").as_dict()
+    installation_before = service.sessions.installation_status()
+    flash_before = service.session_flash_status()
+
+    resumed = service.resume_session(
+        project_id="book-faires",
+        host="CODEX_CLI",
+        host_session_id="host-session-before-exit-boot",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"source": "fresh-local-cli"},
+    )
+    assert resumed["session"]["session_id"] == session_id
+
+    closed = service.sessions.close(
+        "book-faires",
+        session_id,
+        reason="USER_REQUESTED_EVI_EXIT_BOOT",
+    )
+
+    assert closed["status"] == "PASS"
+    assert closed["session"]["metadata"]["close_reason"] == (
+        "USER_REQUESTED_EVI_EXIT_BOOT"
+    )
+    assert not (
+        service.store.project_root("book-faires") / "active_session.json"
+    ).exists()
+    assert service.sessions.installation_status() == installation_before
+    flash_after = service.session_flash_status()
+    assert flash_after["authority_digest"] == flash_before["authority_digest"]
+    assert flash_after["receipt_sha256"] == flash_before["receipt_sha256"]
+    assert service.store.pointer("book-faires").as_dict() == pointer_before
+
+    with pytest.raises(EvidenceLaneError) as error:
+        service.resume_session(
+            project_id="book-faires",
+            host="CODEX_DESKTOP",
+            host_session_id="host-session-after-exit-boot",
+            ephemeral=False,
+            client_can_edit_source=True,
+            server_has_durable_filesystem=True,
+            runtime_context={"source": "must-not-resume"},
+        )
+    assert error.value.code == "NO_ACTIVE_SESSION_TO_RESUME"
+
+
+def test_chatgpt_state_travel_requires_fresh_chat_and_waits(service) -> None:
+    boot = service.boot_session(
+        project_id="book-faires",
+        user_id="user-test",
+        workspace_id="workspace-test",
+        host="CHATGPT",
+        agent_id="chatgpt-single-agent",
+        sandbox_id=None,
+        ephemeral=False,
+        runtime_context={"source": "origin-chat"},
+        host_session_id="chatgpt-origin-chat",
+        client_can_edit_source=False,
+        server_has_durable_filesystem=True,
+    )
+    session_id = boot["session"]["session_id"]
+    service.build_initial("book-faires", session_id)
+    decision = service.decide(
+        "book-faires",
+        session_id,
+        decision="APPROVE",
+        decided_by="human-test",
+        decision_id="decision_chatgpt_state_travel",
+    )
+    handoff = decision["state_travel_handoff"]["state_travel"]
+    assert handoff["target_surface"] == "NEW_CHATGPT_CHAT"
+    assert handoff["next_action"] == "OPEN_NEW_CHATGPT_CHAT"
+    assert handoff["next_action_contract"]["suggested_next_prompt"] == (
+        "/evi-00-state-travel"
+    )
+    assert handoff["next_action_contract"]["auto_submit"] is False
+    assert handoff["host_window_opened"] is False
+    assert handoff["required_entry_commands"] == [
+        "/evi-00-state-travel",
+        "/evi-01-boot",
+    ]
+
+    with pytest.raises(EvidenceLaneError) as wrong_session:
+        service.resume_state_travel(
+            project_id="book-faires",
+            session_id="session_wrong",
+            handoff_id=handoff["handoff_id"],
+            host="CHATGPT",
+            host_session_id="chatgpt-wrong-session-attempt",
+            ephemeral=False,
+            client_can_edit_source=False,
+            server_has_durable_filesystem=True,
+            runtime_context={"source": "must-not-bind"},
+        )
+    assert wrong_session.value.code == "STATE_TRAVEL_ACTIVE_SESSION_MISMATCH"
+    assert (
+        service.sessions.load("book-faires", session_id).metadata[
+            "current_host_session_id"
+        ]
+        == "chatgpt-origin-chat"
+    )
+
+    traveled = service.resume_state_travel(
+        project_id="book-faires",
+        session_id=session_id,
+        handoff_id=handoff["handoff_id"],
+        host="CHATGPT",
+        host_session_id="chatgpt-fresh-chat",
+        ephemeral=False,
+        client_can_edit_source=False,
+        server_has_durable_filesystem=True,
+        runtime_context={"source": "fresh-chat"},
+    )
+    assert traveled["state_travel"]["target_surface"] == "NEW_CHATGPT_CHAT"
+    assert traveled["state_travel"]["destination_host_session_id"] == (
+        "chatgpt-fresh-chat"
+    )
+    assert traveled["state_travel"]["boot_verified"] is True
+    assert traveled["state_travel"]["flash_verified"] is True
+    assert traveled["state_travel"]["pointer_verified"] is True
+    assert traveled["wait_state"] == "WAITING_FOR_NEXT_USER_COMMAND"
+    assert traveled["next_action"] == "WAIT_FOR_NEXT_USER_COMMAND"
+    assert traveled["suggested_next_prompt"].endswith("/evi-40-status.")
+    assert traveled["next_action_contract"]["composer_authority"] == "HOST_OWNED"
+    assert traveled["next_action_contract"]["stop_and_wait"] is True
+    assert traveled["task_started"] is False
+    assert traveled["ordered_entry_verification"] == [
+        "/evi-01-boot",
+        "ATOMIC_BOOT_AND_LOCKED_ENV_UOP_FLASH_VERIFIED",
+        "VERIFY_ACCEPTED_POINTER_AND_SEALS",
+        "WAITING_FOR_NEXT_USER_COMMAND",
+    ]
 
 
 @pytest.mark.parametrize(
@@ -250,8 +443,23 @@ def test_initial_approve_with_delta_reseals_pv1_without_inventing_parent(
     assert fused["pointer"]["accepted_pv"] == "PV1"
     assert fused["pointer"]["generation"] == 1
     assert fused["pointer_moved"] is True
-    assert fused["direct_handoff"]["session"]["metadata"]["entry_pv"] == "PV1"
-    assert fused["direct_handoff"]["proof"]["next_candidate_would_be"] == "PV2"
+    handoff = fused["state_travel_handoff"]["state_travel"]
+    assert handoff["accepted_pv"] == "PV1"
+    assert handoff["target_surface"] == "NEW_CODEX_TASK"
+    traveled = service.resume_state_travel(
+        project_id="book-faires",
+        session_id=session_id,
+        handoff_id=handoff["handoff_id"],
+        host="CODEX_DESKTOP",
+        host_session_id="host-session-corrected-pv1",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"source": "fresh-corrected-pv1-task"},
+    )
+    assert traveled["session"]["metadata"]["entry_pv"] == "PV1"
+    assert traveled["session"]["metadata"]["next_candidate_would_be"] == "PV2"
+    assert traveled["wait_state"] == "WAITING_FOR_NEXT_USER_COMMAND"
 
 
 def test_approve_with_delta_resumes_only_the_exact_correction(

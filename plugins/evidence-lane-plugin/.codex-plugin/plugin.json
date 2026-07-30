@@ -1,7 +1,7 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "0.4.0+codex.20260729213003",
-  "description": "Private /EV-first Evidence Lane workflow with Git and local-code intake, eighteen immutable sectors, PV Refresh/Fuse, prompt-indexed rollback, Google Drive OAuth dependency, and direct accepted-PV handoff.",
+  "version": "0.5.0+codex.20260730044433",
+  "description": "Private /evi-first Evidence Lane workflow with fresh-window State Travel, intersection-capable ENV15 mode routing, eighteen immutable sectors, automatic exit sealing, exact-APPROVE Fuse, prompt-indexed rollback, and capability-based durable persistence.",
   "author": {
     "name": "Praveen Rathee",
     "url": "https://github.com/rathee000001"
@@ -20,8 +20,8 @@
   "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "Evidence Lane Plugin",
-    "shortDescription": "Run /EV, Refresh, Fuse, and reversible PV state travel.",
-    "longDescription": "Evidence Lane starts with /EV, accepts one explicit Git or local-code source, governs one project/agent/task across eighteen deterministic SQLite/MMD/DOT sectors, builds PV1 once, incrementally Refreshes later evidence, Fuses only exact APPROVE with direct handoff, and supports six-way HIL plus prompt-indexed pointer-only rollback.",
+    "shortDescription": "Run /evi with verified fresh-window PV State Travel.",
+    "longDescription": "Evidence Lane displays /evi-00-state-travel first, atomically performs Boot plus locked ENV/UOP Flash through /evi-01-boot, keeps /evi-mode available for intersecting ENV15 modes and Chat Lineage, accepts one explicit Git or local-code source, governs one project/agent/task across eighteen deterministic SQLite/MMD/DOT sectors, automatically seals task exit candidates, Fuses only exact APPROVE, enters accepted bytes through a fresh verified Codex task or ChatGPT chat, supports six-way HIL plus prompt-indexed pointer-only rollback, and keeps the governed session active until /evi-exit-boot.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "capabilities": [
@@ -29,9 +29,12 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Run /ev and resume my persistent Evidence Lane state.",
-      "Use /git or /local for one explicit source and branch.",
-      "Run PV Refresh, then stop at Fuse or the six-way HIL."
+      "Run /evi-00-state-travel first; if a handoff is pending, verify it in this fresh host window and wait.",
+      "Run /evi and resume my persistent Evidence Lane state.",
+      "Use /evi-mode at any point to classify an ordered mode intersection and its canonical lanes, including Chat Lineage.",
+      "Use /evi-02-git or /evi-03-local, then select any ordered source-intake command before /evi-30-build-pv-entry.",
+      "Complete one bounded task, automatically seal its exit candidate, and stop at HIL.",
+      "At HIL, show the returned suggested next prompt visibly before waiting; never choose or submit it for me."
     ],
     "brandColor": "#18A9C8"
   },

@@ -35,10 +35,15 @@ def test_initial_pv_captures_svelte_exact_bytes_and_fts(
     boot = boot_local(service)
     session_id = boot["session"]["session_id"]
     result = service.build_initial("book-faires", session_id)
+    assert result["next_action"] == "PRESENT_SIX_WAY_HIL"
+    assert result["suggested_next_prompt"].startswith("/evi-80-hil ")
+    assert result["next_action_contract"] == result["candidate"]["next_action"]
     candidate = Path(result["candidate"]["stored_path"])
     validation = validate_pv_package(candidate)
     assert validation["status"] == "PASS"
     assert validation["proposed_pv"] == "PV1"
+    exit_slip = json.loads((candidate / "exit_slip.json").read_text(encoding="utf-8"))
+    assert exit_slip["next_action"] == result["next_action_contract"]
     assert validation["rendering_status"] in {
         "PASS",
         "RENDER_SKIPPED",

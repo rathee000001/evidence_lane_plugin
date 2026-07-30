@@ -197,8 +197,8 @@ _DEFINITIONS = (
     _lane(
         "github_code",
         "GitHub Code",
-        "code",
-        aliases=("github", "github repository", "git remote"),
+        "evi-02-git",
+        aliases=("code", "git", "github", "github repository", "git remote"),
         source_types=("github_repository", "git_remote"),
         extensions=_CODE_EXTENSIONS,
         parser_id="github_code_reverse_history_v2",
@@ -209,8 +209,8 @@ _DEFINITIONS = (
     _lane(
         "local_code",
         "Local Code",
-        "code",
-        aliases=("local", "code folder", "local git worktree"),
+        "evi-03-local",
+        aliases=("code", "local", "code folder", "local git worktree"),
         source_types=("local_code_folder", "local_git_worktree"),
         extensions=_CODE_EXTENSIONS,
         parser_id="local_code_snapshot_v2",
@@ -221,8 +221,8 @@ _DEFINITIONS = (
     _lane(
         "chat_lineage",
         "Chat Lineage",
-        "chat-lineage",
-        aliases=("chat", "chat history", "conversation lineage"),
+        "evi-05-chat-lineage",
+        aliases=("chat-lineage", "chat", "chat history", "conversation lineage"),
         source_types=("chat_export", "prompt_response_packet", "lineage_append_packet"),
         extensions=(".docx", ".json", ".jsonl", ".md", ".txt", ".zip"),
         parser_id="chat_lineage_state_travel_v57",
@@ -254,7 +254,7 @@ _DEFINITIONS = (
     _lane(
         "discussion",
         "Discussion",
-        "discussion",
+        "evi-06-discussion",
         aliases=("discussion notes", "meeting notes"),
         source_types=("discussion_document", "meeting_notes", "conversation_export"),
         extensions=(".docx", ".md", ".pdf", ".txt"),
@@ -277,7 +277,7 @@ _DEFINITIONS = (
     _lane(
         "analysis",
         "Analysis",
-        "analysis",
+        "evi-07-analysis",
         aliases=("analytical notes", "audit analysis"),
         source_types=("analysis_document", "audit_report", "decision_analysis"),
         extensions=(".docx", ".md", ".pdf", ".txt"),
@@ -301,7 +301,7 @@ _DEFINITIONS = (
     _lane(
         "plan",
         "Plan",
-        "plan",
+        "evi-08-plan",
         aliases=("planning", "project plan"),
         source_types=("project_plan", "implementation_plan", "task_plan"),
         extensions=(".docx", ".json", ".md", ".pdf", ".txt"),
@@ -326,7 +326,7 @@ _DEFINITIONS = (
     _lane(
         "mode",
         "Mode",
-        "mode",
+        "evi-mode",
         aliases=("operating mode", "mode contract"),
         source_types=("mode_contract", "operating_rules", "control_prompt"),
         extensions=(".docx", ".json", ".md", ".txt"),
@@ -351,7 +351,7 @@ _DEFINITIONS = (
     _lane(
         "docs",
         "Docs",
-        "docs",
+        "evi-09-docs",
         aliases=("documents", "documentation"),
         source_types=("document", "markdown", "html_document", "xml_document"),
         extensions=(
@@ -384,8 +384,8 @@ _DEFINITIONS = (
     _lane(
         "data_excel",
         "Data / Excel / CSV",
-        "excel",
-        aliases=("data", "excel csv", "spreadsheet data"),
+        "evi-10-data-excel",
+        aliases=("excel", "data", "excel csv", "spreadsheet data"),
         source_types=("spreadsheet", "delimited_data", "structured_data"),
         extensions=(
             ".csv",
@@ -425,7 +425,7 @@ _DEFINITIONS = (
     _lane(
         "ppt",
         "PPT / Presentation",
-        "ppt",
+        "evi-11-ppt",
         aliases=("presentation", "powerpoint"),
         source_types=("presentation", "slide_deck"),
         extensions=(".odp", ".ppt", ".pptx"),
@@ -450,7 +450,7 @@ _DEFINITIONS = (
     _lane(
         "pdf_ocr",
         "PDF / OCR",
-        "pdf",
+        "evi-12-pdf-ocr",
         aliases=("pdf", "portable document"),
         source_types=("pdf_document", "scanned_pdf"),
         extensions=(".pdf",),
@@ -474,8 +474,8 @@ _DEFINITIONS = (
     _lane(
         "images_ocr",
         "Images / OCR",
-        "images",
-        aliases=("image", "image ocr"),
+        "evi-13-images-ocr",
+        aliases=("images", "image", "image ocr"),
         source_types=("image", "scanned_image"),
         extensions=(".bmp", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".webp"),
         parser_id="image_ocr_structural_v2",
@@ -495,7 +495,7 @@ _DEFINITIONS = (
     _lane(
         "artifacts",
         "Artifacts",
-        "artifacts",
+        "evi-14-artifacts",
         aliases=("project artifacts", "artifact vault"),
         source_types=("project_artifact", "structured_artifact", "notebook"),
         extensions=(
@@ -527,7 +527,7 @@ _DEFINITIONS = (
     _lane(
         "custom",
         "Custom",
-        "custom",
+        "evi-15-custom",
         aliases=("custom source", "generic", "other"),
         source_types=("custom_file", "custom_folder"),
         extensions=(
@@ -563,9 +563,9 @@ _DEFINITIONS = (
     ),
     _lane(
         "brain_loader",
-        "Brain Loader",
-        "brain-loader",
-        aliases=("load brain", "brain import"),
+        "SQLite PV Candidate Loader",
+        "evi-04-sqlite-pv-candidate-loader",
+        aliases=("brain-loader", "Brain Loader", "load brain", "brain import"),
         source_types=("sqlite_brain_package", "brain_folder", "brain_database"),
         extensions=(".db", ".sqlite", ".sqlite3", ".zip"),
         parser_id="brain_package_loader_v1",
@@ -588,7 +588,7 @@ _DEFINITIONS = (
     _lane(
         "research",
         "Research",
-        "research",
+        "evi-16-research",
         aliases=("research evidence", "research sources"),
         source_types=("research_document", "research_dataset", "research_note"),
         extensions=(
@@ -622,8 +622,8 @@ _DEFINITIONS = (
     _lane(
         "project_engulf",
         "Project Engulf",
-        "project-engulf",
-        aliases=("engulf project", "project import"),
+        "evi-17-project-engulf",
+        aliases=("project-engulf", "engulf project", "project import"),
         source_types=("project_folder", "project_archive"),
         extensions=(".zip",),
         parser_id="project_engulf_v1",
@@ -650,8 +650,8 @@ _DEFINITIONS = (
     _lane(
         "sqlite_brain",
         "SQLite Brain",
-        "sqlite-brain",
-        aliases=("sqlite", "sqlitebrain", "sqlite brain import"),
+        "evi-18-sqlite-brain",
+        aliases=("sqlite-brain", "sqlite", "sqlitebrain", "sqlite brain import"),
         source_types=("sqlite_database", "sqlite_brain_package"),
         extensions=(".db", ".sqlite", ".sqlite3", ".zip"),
         parser_id="sqlite_brain_inspector_v1",
@@ -704,7 +704,7 @@ def _validate() -> tuple[
         sqlite_names.add(lane.sqlite_filename)
         for alias in lane.aliases:
             aliases.setdefault(_normalize(alias), set()).add(lane.canonical_lane_id)
-    # The command /code is deliberately shared by two mutually exclusive modes.
+    # The legacy alias /code is deliberately shared by two mutually exclusive modes.
     ambiguous = {
         alias: values
         for alias, values in aliases.items()
@@ -734,7 +734,8 @@ def resolve_lane_id(alias: str, *, code_mode: str | None = None) -> str:
     if code_mode in PRIMARY_CODE_LANES:
         return str(code_mode)
     raise LaneRegistryError(
-        "The /code lane requires exactly one mode: github_code or local_code."
+        "Use /evi-02-git or /evi-03-local; the legacy code alias requires "
+        "exactly one mode: github_code or local_code."
     )
 
 

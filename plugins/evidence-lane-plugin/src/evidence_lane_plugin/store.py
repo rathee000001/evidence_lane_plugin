@@ -14,8 +14,9 @@ from typing import Any, ClassVar, Self, cast
 from .constants import POINTER_SCHEMA, PROJECT_REGISTRY_SCHEMA
 from .errors import EvidenceLaneError, require
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
-from .models import ActivePointer, ProjectConfig, TaskClass
+from .models import ActivePointer, ProjectConfig
 from .pv_package import compare_package_bytes, validate_pv_package
+from .tasking import classify_task
 from .timeutil import utc_now
 
 _PROJECT_ID_CHARS = set(
@@ -213,15 +214,6 @@ class ProjectStore:
                 status="BLOCKED",
                 position=position,
             )
-            try:
-                task_class = TaskClass(str(task.get("task_class", ""))).value
-            except ValueError as exc:
-                raise EvidenceLaneError(
-                    "BACKLOG_TASK_CLASS_INVALID",
-                    "A queued task has an unsupported task class.",
-                    status="BLOCKED",
-                    details={"task_id": task_id},
-                ) from exc
             requested_outcome = str(task.get("requested_outcome", "")).strip()
             stop_condition = str(task.get("stop_condition", "")).strip()
             require(
@@ -249,13 +241,27 @@ class ProjectStore:
                     field=field,
                 )
                 arrays[field] = list(dict.fromkeys(value.strip() for value in values))
+            contract = classify_task(
+                task_id=task_id,
+                task_class=str(task.get("task_class", "")),
+                requested_outcome=requested_outcome,
+                permitted_paths=arrays["permitted_paths"],
+                permitted_tools=arrays["permitted_tools"],
+                acceptance_checks=arrays["acceptance_checks"],
+                stop_condition=stop_condition,
+            )
             normalized.append(
                 {
-                    "task_id": task_id,
-                    "task_class": task_class,
-                    "requested_outcome": requested_outcome,
-                    **arrays,
-                    "stop_condition": stop_condition,
+                    key: contract.as_dict()[key]
+                    for key in (
+                        "task_id",
+                        "task_class",
+                        "requested_outcome",
+                        "permitted_paths",
+                        "permitted_tools",
+                        "acceptance_checks",
+                        "stop_condition",
+                    )
                 }
             )
         ids = [task["task_id"] for task in normalized]

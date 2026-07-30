@@ -43,7 +43,9 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "activate-installation":
-        result = EvidenceLaneService().sessions.ensure_installation()
+        service = EvidenceLaneService()
+        result = service.sessions.ensure_installation()
+        service.flash_authority.ensure_flashed()
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
     if args.command == "doctor":

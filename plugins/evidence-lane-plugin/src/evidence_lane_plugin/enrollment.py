@@ -310,6 +310,11 @@ def enroll_project(
             expected_owner=expected_owner,
             expected_name=expected_name,
             allowed_branches=[branch],
+            source_lane=(
+                "local_code"
+                if enrollment_mode == "ADOPTED_LOCAL_PATH"
+                else "github_code"
+            ),
             persistence_mode="governed_by_host",
             sensitivity=sensitivity.upper(),
         )

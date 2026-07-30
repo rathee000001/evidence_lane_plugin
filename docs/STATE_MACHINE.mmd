@@ -1,36 +1,45 @@
 flowchart TD
-    A["/ev selected"] --> A1["Verify installed release and exact ENV15/UOP15 flash"]
-    A1 --> A2{"Authority exact?"}
+    T["/evi-00-state-travel displayed first"] --> T0{"Prepared accepted-PV handoff?"}
+    T0 -- "No" --> A["/evi selected"]
+    T0 -- "Yes" --> T1["Open fresh Codex task or ChatGPT chat; host-mediated"]
+    T1 --> T2["Atomically verify Boot plus locked ENV/UOP Flash, accepted pointer generation, manifest, and package seals"]
+    T2 --> T3["WAITING_FOR_NEXT_USER_COMMAND"]
+    T3 -- "Next exact user command" --> F
+    A --> A0["/evi-01-boot: atomically verify installed release, exact ENV/UOP Flash, project, pointer, storage, and session"]
+    A0 --> A2{"Atomic Boot exact?"}
     A2 -- "No" --> Z["FAIL closed: no source, PV, or pointer mutation"]
     A2 -- "Yes" --> A3["Verify required Google Drive host connector boundary"]
     A3 --> B{"Registered project selected?"}
 
-    B -- "No" --> B1["Reveal /git and /local intake"]
+    B -- "No" --> B1["Reveal /evi-02-git and /evi-03-local intake"]
     B1 --> B2["Register exact source and branch; no remote write"]
     B2 --> C
     B -- "Yes" --> C{"Persistent governed session active?"}
     C -- "Yes" --> C1["session_resume: bind host session and prompt index"]
     C -- "No" --> C2["session_boot: bind host, filesystem, and edit capabilities"]
-    C1 --> D
-    C2 --> D{"Accepted PV exists?"}
+    C2 --> S["17 ordered source-intake commands 02-18, including SQLite PV Candidate Loader and Project Engulf"]
+    C1 --> S
+    S --> D{"Accepted PV exists?"}
+    MODE["/evi-mode anytime sidecar: classify mode intersection and return with lifecycle/pointer unchanged"]
+    A0 -. "available at every lifecycle position" .-> MODE
 
     D -- "No" --> E{"Preserved PV1 candidate pending?"}
-    E -- "No" --> E1["Build full eighteen-lane PV1 candidate once"]
+    E -- "No" --> E1["/evi-30-build-pv-entry: build full eighteen-lane PV1 candidate once"]
     E -- "Yes" --> H["Present pending six-way HIL"]
     E1 --> H
 
     D -- "Yes" --> F["Load accepted PVn directly as current session entry"]
     F --> G["Classify one bounded task; many may wait linearly"]
     G --> G1["Read or modify only authorized source"]
-    G1 --> G2["Confirm exact final source boundary"]
-    G2 --> G3["/pv-refresh: automatic internal entry/exit slips"]
+    G1 --> G2["task_complete_and_refresh: confirm exact final source boundary"]
+    G2 --> G3["Automatic Refresh plus internal entry/exit slips"]
     G3 --> G4["Reuse unchanged; rebuild changed/new; tombstone removed"]
     G4 --> H
 
     H --> I{"Exact human decision"}
-    I -- "APPROVE via /pv-fuse" --> J["Byte-preserving promotion and CAS pointer advance"]
-    J --> J1["Direct handoff: update entry PV, seals, freshness, and prompt boundary"]
-    J1 --> F
+    I -- "APPROVE via /evi-90-pv-fuse" --> J["Byte-preserving promotion and CAS pointer advance"]
+    J --> J1["Seal fresh-window State Travel handoff; do not rebuild"]
+    J1 --> T1
 
     I -- "APPROVE_WITH_DELTA" --> K["Preserve candidate; exact correction pending"]
     K --> K1{"Accepted parent exists?"}
@@ -44,7 +53,7 @@ flowchart TD
     I -- "REJECT" --> M["Preserve candidate and rejection receipt"]
     I -- "FAIL" --> N["Preserve candidate and failed gate"]
 
-    I -- "ROLLBACK [PVn | PROMPT n | TURN id]" --> R["Resolve immutable accepted target"]
+    I -- "/evi-99-pv-rollback [PVn | PROMPT n | TURN id]" --> R["Resolve immutable accepted target"]
     F --> R0["Idle rollback; bare target uses current prompt/session entry"]
     R0 --> R
     R --> R1{"Pointer CAS succeeds?"}
@@ -54,6 +63,7 @@ flowchart TD
     R2 --> R4["Preserve source, candidates, accepted history, and ordinals"]
     R3 --> R4
     R4 --> F
+    F -. "explicit /evi-exit-boot only" .-> EB["Close governed session; preserve installation, Flash, PVs, candidates, lineage, backlog, and pointer"]
 
     M --> X{"Exact accepted source restored?"}
     N --> X

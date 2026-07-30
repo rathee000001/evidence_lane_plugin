@@ -133,6 +133,7 @@ class ProjectConfig:
     expected_owner: str
     expected_name: str
     allowed_branches: list[str]
+    source_lane: str = ""
     persistence_mode: str = "local"
     sensitivity: str = "PUBLIC"
     enabled: bool = True

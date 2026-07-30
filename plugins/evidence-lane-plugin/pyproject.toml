@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evidence-lane-plugin"
-version = "0.4.0"
-description = "Private universal Evidence Lane plugin with deterministic SQLite/MMD/DOT project versions, incremental Refresh, and human HIL state travel."
+version = "0.5.0"
+description = "Private /evi-first Evidence Lane plugin with deterministic SQLite/MMD/DOT PVs, automatic Refresh, and verified fresh-window State Travel."
 requires-python = ">=3.11"
 license = "LicenseRef-Proprietary"
 authors = [{ name = "Praveen Rathee" }]

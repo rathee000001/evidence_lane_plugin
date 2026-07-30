@@ -42,7 +42,7 @@ The plugin root `.app.json` requires:
 connector_5f3c8c41a1e54ad7a76272c89e2554fa
 ```
 
-The host owns sign-in, consent, refresh tokens, and connector calls. `/ev`
+The host owns sign-in, consent, refresh tokens, and connector calls. `/evi`
 performs a read-only connector check. Connector availability does not prove a
 PV mirror was uploaded or read back.
 

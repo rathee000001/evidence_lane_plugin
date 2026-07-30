@@ -1,4 +1,4 @@
-# Remote-source deployment contract
+# Personal HIL and future remote deployment contract
 
 Git distribution and MCP execution are different boundaries.
 
@@ -6,8 +6,44 @@ Git distribution and MCP execution are different boundaries.
 - Codex installs a versioned marketplace snapshot from that Git repository into
   its normal local cache. The cache is executable material, not source
   authority.
-- ChatGPT never executes the Git repository. It connects to a running public
-  HTTPS Streamable HTTP server at `https://HOST/mcp`.
+- ChatGPT never executes the Git repository. It must reach a running MCP
+  process either through Secure MCP Tunnel in private developer mode or through
+  a stable public HTTPS Streamable HTTP endpoint.
+
+## Current private single-user candidate HIL
+
+The selected HIL topology keeps one durable local runtime:
+
+1. create one candidate branch from the reviewed base and commit only on that
+   branch, never directly on `main`;
+2. after the user's explicit candidate-distribution instruction, push only the
+   exact feature branch commit without force;
+3. install Codex from that exact Git commit and verify a fresh-task bootstrap;
+4. run the same local Git build as the private MCP and attach OpenAI Secure MCP
+   Tunnel;
+5. create the personal ChatGPT plugin by selecting **Tunnel**, not by entering
+   the Git URL or a Vercel URL;
+6. verify tunnel health, MCP initialization, tool schemas, local durable-state
+   reuse, and a fresh ChatGPT Work chat;
+7. stop at the universal HIL before Fuse, pointer movement, `main` merge, or
+   public release.
+
+Candidate branch publication is installation evidence only. It does not accept
+a PV or infer HIL success. Codex and ChatGPT both reach the same local engine;
+the tunnel changes transport, not authority.
+
+## Future public release topology
+
+A public release requires a stable public HTTPS `/mcp` runtime. Vercel is one
+possible future host, not a package installer and not part of the current
+personal HIL. If selected later, the accepted topology is:
+
+1. build a Vercel preview from an exact accepted branch;
+2. verify endpoint, OAuth, external durability, tools, and logs;
+3. promote that exact preview artifact to the stable production URL without a
+   rebuild;
+4. connect ChatGPT to the production `/mcp` URL and complete a separate public
+   deployment HIL.
 
 ## Codex Git marketplace
 
@@ -39,12 +75,36 @@ The included OCI `Dockerfile` runs one long-lived Streamable HTTP service:
 Build the reviewed Git checkout with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:0.4.0 .
+docker build --pull --tag evidence-lane-plugin:0.5.0 .
 ```
 
 The host must preserve one replica and attach a durable volume at
 `/var/lib/evidence-lane`; publishing the image without those two settings does
 not satisfy the persistence contract.
+
+### Vercel compatibility gate
+
+Vercel can run Python ASGI and expose the required public HTTPS route, and its
+Git integration can create a branch preview that is later promoted without a
+rebuild. Its function instances, however, are dynamically scheduled and local
+instance memory/filesystem cannot be the Evidence Lane authority. The current
+SQLite-first service therefore must not be deployed to Vercel as if
+`EVIDENCE_LANE_DATA_ROOT` were a durable mounted volume.
+
+Before a Vercel deployment is valid, the queued governed storage work must
+provide an external authoritative adapter for all mutable runtime state,
+including session binding, backlog, ChatLineage head, prompt index, candidates,
+accepted PVs, receipts, and generation-CAS pointer state. Blob/object storage
+alone is insufficient for transactional pointer and single-writer law; the
+adapter needs a transactional database or equivalent CAS authority plus
+immutable object storage. Cold-start, concurrent-invocation, retry,
+idempotency, and deployment-replacement tests must pass.
+
+The account being single-user reduces traffic but does not remove cold starts,
+instance replacement, concurrent retries, OAuth, duration limits, or durable
+state requirements. Until those gates pass, Vercel is a future public target,
+not an installer, demonstrated runtime, or superior path for this personal
+HIL.
 
 Required environment:
 
@@ -68,21 +128,24 @@ It does not implement an authorization server.
 ChatGPT cannot present a custom static API key, so a bearer-only deployment is
 not ChatGPT-ready.
 
-## ChatGPT developer connection
+## ChatGPT public developer connection
 
-After the container is deployed and verified:
+After the accepted branch's production Vercel deployment is verified:
 
 1. Open Plugins and select the plus button.
 2. Name: `Evidence Lane Plugin`.
-3. Description: `Persistent /EV-first Evidence Lane with Refresh, Fuse, HIL, and rollback.`
+3. Description: `Persistent /evi-first Evidence Lane with fresh-window State Travel, automatic Refresh, exact-APPROVE Fuse, HIL, and rollback.`
 4. Connection: **Server URL**.
 5. URL: `https://HOST/mcp`.
 6. Authentication: **OAuth**.
 7. Review discovered tools and create the connection.
 
-The final risk acknowledgement and Create action are human-owned. A Secure MCP
-Tunnel is useful only for local development; it still depends on a running PC
-and is not the requested production result.
+The final risk acknowledgement and Create action require the user's explicit
+installation authorization. Secure MCP Tunnel is the selected personal
+developer-HIL route; it depends on the local MCP and tunnel client remaining
+healthy. It does not satisfy a later public submission. A Git repository URL
+and a Vercel preview URL that has not passed OAuth/durability verification are
+invalid Server URL inputs.
 
 The Google Drive connector is a separate user-owned data connection. Its OAuth
 token is not the MCP server's login credential and is not exposed to the
@@ -90,7 +153,9 @@ Evidence Lane process.
 
 ## Required proof before parity
 
-Do not claim ChatGPT parity until the public URL, OAuth flow, all canonical
-tools, write confirmations, one-replica persistence, new-chat resume, and
-accepted-PV handoff are observed end to end. Deployment or installation never
-approves a candidate PV or moves the accepted pointer.
+Do not claim ChatGPT parity until the selected transport, all canonical tools,
+write confirmations, persistence, new-chat resume, and accepted-PV handoff are
+observed end to end. For the personal route, this includes tunnel health and
+local-store durability; for a public route, it includes the public URL, OAuth
+flow, and external durable readback. Deployment or installation never approves
+a candidate PV or moves the accepted pointer.

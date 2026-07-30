@@ -23,6 +23,7 @@ from .ids import new_ulid, prefixed_id
 from .ingest import ingest_repository, refresh_repository
 from .lane_engine import build_lane_bundle
 from .models import SessionRecord, TaskContract
+from .next_actions import hil_next_action
 from .pv_package import build_pv_package
 from .store import ProjectStore
 from .timeutil import utc_now
@@ -479,6 +480,12 @@ class CodePVEngine:
                 "task": task.as_dict() if task else None,
                 "entered_at": session.created_at,
             }
+            next_action_contract = hil_next_action(
+                project_id=project_id,
+                session_id=session.session_id,
+                candidate_id=candidate_id,
+                proposed_pv=proposed_pv,
+            )
             exit_slip = {
                 "schema": "evidence-lane.exit-slip.v1",
                 "session_id": session.session_id,
@@ -504,6 +511,7 @@ class CodePVEngine:
                     }
                 ),
                 "lane_refresh": lane_report["summary"],
+                "next_action": next_action_contract,
                 "exited_at": created_at,
             }
             package_warnings = list(ingestion.warnings)
@@ -553,6 +561,7 @@ class CodePVEngine:
                 "ingestion": ingestion.as_dict(),
                 "acceptance_checks": acceptance_health,
                 "lane_refresh": lane_report,
+                "next_action": next_action_contract,
                 "toolchain_manifest_sha256": engine_identity.toolchain_manifest_sha256,
                 "toolchain_package_count": len(toolchain["packages"]),
             }

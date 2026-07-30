@@ -80,6 +80,26 @@ def test_linear_backlog_queues_many_but_claims_one(service) -> None:
     }
 
 
+def test_plan_rejects_unsupported_tool_before_backlog_persistence(service) -> None:
+    invalid = _planned_task(
+        "delta-invalid-tool",
+        "Attempt to queue a tool that classification cannot claim.",
+    )
+    invalid["permitted_tools"] = ["git_sync_selected"]
+    with pytest.raises(EvidenceLaneError) as error:
+        service.plan_tasks(
+            "book-faires",
+            tasks=[invalid],
+            planned_by="human-test",
+            plan_id="plan-invalid-tool",
+        )
+    assert error.value.code == "TASK_TOOL_NOT_AUTHORIZED"
+    backlog = service.task_backlog("book-faires")
+    assert backlog["tasks"] == []
+    assert backlog["plans"] == []
+    assert backlog["counts"] == {}
+
+
 def test_local_enrollment_adopts_without_cloning_or_booting(
     tmp_path: Path,
     source_repository: Path,
@@ -94,6 +114,8 @@ def test_local_enrollment_adopts_without_cloning_or_booting(
         branch="main",
     )
     assert result["enrollment_mode"] == "ADOPTED_LOCAL_PATH"
+    assert result["project"]["project"]["source_lane"] == "local_code"
+    assert application.store.config("adopted-book-faires").source_lane == "local_code"
     assert result["remote_write_performed"] is False
     assert result["cloned"] is False
     status = application.status("adopted-book-faires")
@@ -209,12 +231,24 @@ def test_selected_git_sync_records_active_session_lineage(
     )
     session_id = boot["session"]["session_id"]
     application.build_initial("active-selected-checkout", session_id)
-    application.decide(
+    decision = application.decide(
         "active-selected-checkout",
         session_id,
         decision="APPROVE",
         decided_by="human-test",
         decision_id="active_sync_pv1",
+    )
+    handoff = decision["state_travel_handoff"]["state_travel"]
+    application.resume_state_travel(
+        project_id="active-selected-checkout",
+        session_id=session_id,
+        handoff_id=handoff["handoff_id"],
+        host="CODEX_DESKTOP",
+        host_session_id="active-sync-fresh-task",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"source": "fresh-active-sync-task"},
     )
     application.sessions.classify(
         "active-selected-checkout",

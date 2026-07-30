@@ -4,6 +4,7 @@ import base64
 import importlib.util
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from evidence_lane_plugin.cli import main as cli_main
@@ -21,6 +22,7 @@ from evidence_lane_plugin.sealing import (
     seal_archive,
     unseal_archive,
 )
+from evidence_lane_plugin.service import EvidenceLaneService
 
 from .conftest import build_and_approve_pv1
 
@@ -189,6 +191,11 @@ def test_installation_activation_updates_a_stale_version(
     assert persisted["version"] == ENGINE_VERSION
     assert persisted["installed_at"] == "2026-07-26T20:33:04.325482Z"
     assert persisted["hil_approval_inferred"] is False
+    service = EvidenceLaneService(data_root=store)
+    flash = service.session_flash_status()
+    assert flash["flash_state"] == "FLASHED_UNTIL_PLUGIN_REMOVED"
+    assert flash["receipt"]["inside_pv"] is False
+    assert flash["receipt"]["hil_approval_inferred"] is False
 
 
 def test_private_pv_is_encrypted_for_drive(service) -> None:
@@ -227,6 +234,35 @@ def test_private_pv_is_encrypted_for_drive(service) -> None:
     assert pointer["pointer"]["accepted_pv"] == "PV1"
     assert pointer["pointer"]["generation"] == 1
     assert backend.objects[pointer_key]["sha256"] == pointer["pointer_sha256"]
+
+
+def test_durable_local_lifecycle_never_calls_configured_drive_backend(service) -> None:
+    class ForbiddenDriveBackend:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def put(
+            self,
+            *,
+            project_id: str,
+            category: str,
+            name: str,
+            content: bytes,
+            mime_type: str,
+            metadata: dict[str, Any],
+        ) -> dict[str, Any]:
+            del project_id, category, name, content, mime_type, metadata
+            self.calls += 1
+            raise AssertionError("Durable local lifecycle called Drive persistence.")
+
+    backend = ForbiddenDriveBackend()
+    service.sync_service = PVSyncService(store=service.store, backend=backend)
+
+    session_id, _candidate = build_and_approve_pv1(service)
+
+    assert session_id
+    assert backend.calls == 0
+    assert service.store.pointer("book-faires").accepted_pv == "PV1"
 
 
 def test_remote_push_prepare_does_not_push_and_wrong_token_fails(service) -> None:

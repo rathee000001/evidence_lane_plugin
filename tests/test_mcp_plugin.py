@@ -32,6 +32,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "session_flash_status",
         "lifecycle_transition_law",
         "lane_catalog",
+        "mode_classify",
         "lane_status",
         "lane_search",
         "lane_fetch",
@@ -48,8 +49,11 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "task_record_activity",
         "task_confirm_source_update",
         "pv_refresh",
+        "task_complete_and_refresh",
         "hil_decide",
         "pv_fuse",
+        "pv_state_travel_prepare",
+        "pv_state_travel_resume",
         "pv_rollback",
         "hil_return_to_accepted",
         "pv_begin_next_turn",
@@ -68,10 +72,13 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     assert by_name["fetch"].annotations.readOnlyHint is True
     assert by_name["session_flash_status"].annotations.readOnlyHint is True
     assert by_name["lane_catalog"].annotations.readOnlyHint is True
+    assert by_name["mode_classify"].annotations.readOnlyHint is False
     assert by_name["pv_task_backlog"].annotations.readOnlyHint is True
     assert by_name["hil_decide"].annotations.destructiveHint is True
     assert by_name["pv_rollback"].annotations.destructiveHint is True
     assert by_name["pv_fuse"].annotations.destructiveHint is True
+    assert by_name["pv_state_travel_prepare"].annotations.destructiveHint is False
+    assert by_name["pv_state_travel_resume"].annotations.destructiveHint is False
     assert by_name["hil_return_to_accepted"].annotations.destructiveHint is True
     assert by_name["remote_git_execute_push"].annotations.openWorldHint is True
     for tool in tools:
@@ -92,6 +99,12 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert manifest["apps"] == "./.app.json"
     assert manifest["hooks"] == "./hooks/hooks.json"
     assert isinstance(manifest["interface"]["defaultPrompt"], list)
+    assert any(
+        "suggested next prompt" in prompt
+        for prompt in manifest["interface"]["defaultPrompt"]
+    )
+    hooks = json.loads((plugin / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+    assert "Stop" not in hooks["hooks"]
     app_manifest = json.loads((plugin / ".app.json").read_text(encoding="utf-8"))
     assert app_manifest == {
         "apps": {
@@ -206,6 +219,11 @@ def test_session_start_hook_is_advisory(tmp_path: Path) -> None:
         in payload["hookSpecificOutput"]["additionalContext"]
     )
     assert "HOST_SESSION_ID=test" in payload["hookSpecificOutput"]["additionalContext"]
+    assert (
+        "visibly render the engine's suggested_next_prompt"
+        in payload["hookSpecificOutput"]["additionalContext"]
+    )
+    assert "do not auto-submit it" in payload["hookSpecificOutput"]["additionalContext"]
 
 
 def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
@@ -229,12 +247,24 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         confirmation="HOST_SANDBOX_FINAL_STATE_CONFIRMED",
     )
     service.refresh("book-faires", session_id)
-    service.fuse(
+    fused = service.fuse(
         "book-faires",
         session_id,
         approval="APPROVE",
         decided_by="human-test",
         decision_id="decision_prompt_index_pv2",
+    )
+    handoff = fused["state_travel_handoff"]["state_travel"]
+    service.resume_state_travel(
+        project_id="book-faires",
+        session_id=session_id,
+        handoff_id=handoff["handoff_id"],
+        host="CODEX_DESKTOP",
+        host_session_id="host-session-prompt-index-pv2",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"source": "fresh-prompt-index-task"},
     )
 
     root = Path(__file__).resolve().parents[1]
@@ -561,40 +591,77 @@ def test_session_start_survives_cachebuster_and_remains_read_only(
 
 def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
     root = Path(__file__).resolve().parents[1]
-    commands = root / "plugins" / "evidence-lane-plugin" / "commands"
-    names = {path.stem for path in commands.glob("*.md")}
-    assert {
-        "ev",
-        "git",
-        "local",
-        "pv-status",
-        "pv-plan",
-        "pv-backlog",
-        "pv-classify",
-        "pv-refresh",
-        "pv-fuse",
-        "pv-hil",
-        "pv-rollback",
-        "lane-route",
-        "code",
-        "chat-lineage",
-        "discussion",
-        "analysis",
-        "plan",
-        "mode",
-        "docs",
-        "excel",
-        "ppt",
-        "pdf",
-        "images",
-        "artifacts",
-        "custom",
-        "brain-loader",
-        "research",
-        "project-engulf",
-        "sqlite-brain",
-    } <= names
-    assert {"pv-boot", "pv-flash", "pv-enroll", "pv-exit"}.isdisjoint(names)
+    plugin = root / "plugins" / "evidence-lane-plugin"
+    commands = plugin / "commands"
+    skills = plugin / "skills"
+    lifecycle_order = [
+        "evi-00-state-travel",
+        "evi-01-boot",
+        "evi-02-git",
+        "evi-03-local",
+        "evi-04-sqlite-pv-candidate-loader",
+        "evi-05-chat-lineage",
+        "evi-06-discussion",
+        "evi-07-analysis",
+        "evi-08-plan",
+        "evi-09-docs",
+        "evi-10-data-excel",
+        "evi-11-ppt",
+        "evi-12-pdf-ocr",
+        "evi-13-images-ocr",
+        "evi-14-artifacts",
+        "evi-15-custom",
+        "evi-16-research",
+        "evi-17-project-engulf",
+        "evi-18-sqlite-brain",
+        "evi-30-build-pv-entry",
+        "evi-40-status",
+        "evi-50-task-plan",
+        "evi-51-backlog",
+        "evi-60-classify",
+        "evi-70-lane-route",
+        "evi-80-hil",
+        "evi-90-pv-fuse",
+        "evi-99-pv-rollback",
+        "evi-exit-boot",
+    ]
+    expected_commands = {"evi", "evi-mode", *lifecycle_order}
+    assert {path.stem for path in commands.glob("*.md")} == expected_commands
+    for name in expected_commands:
+        skill_file = skills / name / "SKILL.md"
+        assert skill_file.is_file(), name
+        assert f"name: {name}" in skill_file.read_text(encoding="utf-8")
+
+    root_command = (commands / "evi.md").read_text(encoding="utf-8")
+    positions = [root_command.index(f"`/{name}`") for name in lifecycle_order]
+    assert positions == sorted(positions)
+    source_lanes = lifecycle_order[
+        lifecycle_order.index("evi-02-git") : lifecycle_order.index(
+            "evi-30-build-pv-entry"
+        )
+    ]
+    assert len(source_lanes) == 17
+    assert source_lanes[0:3] == [
+        "evi-02-git",
+        "evi-03-local",
+        "evi-04-sqlite-pv-candidate-loader",
+    ]
+    assert "evi-17-project-engulf" in source_lanes
+    assert "evi-mode" not in source_lanes
+    assert "`/evi-mode`" in root_command
+    assert "`/evi-02-flash`" not in root_command
+    assert lifecycle_order[0] == "evi-00-state-travel"
+
+    command_text = "\n".join(
+        path.read_text(encoding="utf-8") for path in commands.glob("*.md")
+    )
+    readme_text = (root / "README.md").read_text(encoding="utf-8")
+    assert "/pv-" not in command_text.lower()
+    assert "/ev " not in command_text.lower()
+    assert "/git" not in command_text.lower()
+    assert "/local" not in command_text.lower()
+    assert "/pv-" not in readme_text.lower()
+    assert "/ev " not in readme_text.lower()
 
 
 def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> None:
@@ -615,7 +682,9 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
         ):
             await session.initialize()
             tools = await session.list_tools()
-            assert any(tool.name == "pv_refresh" for tool in tools.tools)
+            names = {tool.name for tool in tools.tools}
+            assert "task_complete_and_refresh" in names
+            assert "pv_state_travel_resume" in names
             result = await session.call_tool("runtime_doctor", {})
             assert result.isError is False
             assert result.structuredContent["status"] == "PASS"
@@ -644,6 +713,62 @@ def test_non_loopback_http_fails_closed_without_auth(
             host="0.0.0.0",
             port=8765,
         )
+
+
+def test_server_start_activates_installation_and_flash_on_durable_store(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    store = tmp_path / "remote-store"
+    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", str(store))
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_BEARER_TOKEN", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_BASE_URL", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ISSUER_URL", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_JWKS_URL", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_AUDIENCE", raising=False)
+    starts: list[dict[str, object]] = []
+
+    class FakeServer:
+        def run(self, *, transport: str) -> None:
+            starts[-1]["transport"] = transport
+
+    def fake_create_mcp_server(**kwargs: object) -> FakeServer:
+        application = kwargs["service"]
+        assert isinstance(application, EvidenceLaneService)
+        starts.append(
+            {
+                "installation": application.sessions.installation_status(),
+                "flash": application.session_flash_status(),
+            }
+        )
+        return FakeServer()
+
+    monkeypatch.setattr(
+        "evidence_lane_plugin.mcp_server.create_mcp_server",
+        fake_create_mcp_server,
+    )
+
+    run_server(transport="stdio")
+    run_server(transport="stdio")
+
+    assert len(starts) == 2
+    first_installation = starts[0]["installation"]
+    second_installation = starts[1]["installation"]
+    first_flash = starts[0]["flash"]
+    second_flash = starts[1]["flash"]
+    assert isinstance(first_installation, dict)
+    assert isinstance(second_installation, dict)
+    assert isinstance(first_flash, dict)
+    assert isinstance(second_flash, dict)
+    assert first_installation["state"] == "INSTALLED_UNTIL_USER_REMOVES_PLUGIN"
+    assert first_installation["version"] == ENGINE_VERSION
+    assert first_installation["hil_approval_inferred"] is False
+    assert second_installation["installed_at"] == first_installation["installed_at"]
+    assert first_flash["flash_state"] == "FLASHED_UNTIL_PLUGIN_REMOVED"
+    assert first_flash["receipt"]["inside_pv"] is False
+    assert first_flash["receipt"]["hil_approval_inferred"] is False
+    assert second_flash["receipt_sha256"] == first_flash["receipt_sha256"]
+    assert [start["transport"] for start in starts] == ["stdio", "stdio"]
 
 
 def test_oauth_jwt_verifier_requires_asymmetric_algorithms_and_scopes(

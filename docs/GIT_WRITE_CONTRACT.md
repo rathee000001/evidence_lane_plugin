@@ -2,6 +2,25 @@
 
 PV approval and remote Git write are independent decisions.
 
+## Candidate distribution branch
+
+Publishing this plugin repository's explicitly named feature branch for a
+cross-host installation HIL is separate from pushing a governed user's project
+source. It may occur before PV acceptance only when the user explicitly
+supersedes the HIL boundary and names branch publication as required evidence.
+That bounded action must:
+
+- create one local commit on the current feature branch;
+- push only that exact branch ref without force;
+- leave `main` unchanged locally and remotely;
+- record the exact commit and remote branch;
+- install and test that commit without inferring PV approval;
+- stop at the universal HIL before merge, pointer movement, or public release.
+
+The `remote_git_prepare_push` and `remote_git_execute_push` tools below govern
+project-source publication after accepted-PV authority. They do not govern
+this repository's separately authorized candidate-distribution branch.
+
 ## Required sequence
 
 1. A validated accepted PV must exist.
