@@ -5,7 +5,7 @@
 | One immutable 18-lane registry and alias law | `lanes.py` | count, duplicate-ID, ambiguous-alias, and command inventory tests |
 | Every lane has SQLite, MMD, DOT, tools, pointer, manifest, and Refresh evidence | `lane_engine.py`, `pv_package.py` | all-18 artifact fixture, recursive lane-bundle validation, and tamper tests |
 | One source routes to exactly one lane; named overrides re-lock | `lanes.py`, `lane_engine.py`, `session.py` | override, inheritance, and invalid-route tests |
-| State Travel first; one atomic Boot/Flash; 17 source-intake commands; one separate Mode sidecar; then Build PV Entry | commands, matching native skills, lifecycle skill, `operating_modes.py`, `session.py` | exact-order, command/skill parity, mode-intersection, resume, and code-mode tests |
+| Conditional prepared-handoff State Travel; otherwise atomic Boot/Flash first; 17 returned source-intake commands; one separate Mode sidecar; then Build PV Entry | commands, matching native skills, lifecycle skill, `next_actions.py`, `operating_modes.py`, `session.py` | exact-order, post-Boot action contract, command/skill parity, mode-intersection, resume, and code-mode tests |
 | Internal `brain_loader` is presented as SQLite PV Candidate Loader | `lanes.py`, `/evi-04-*` command and skill | display-label, alias-compatibility, and ordered-surface tests |
 | Exact source bytes plus structured code facts | `ingest.py`, `lane_engine.py`, `database.py` | byte, symbol, import, route, and dependency tests |
 | Full spreadsheet range/cell/formula/dependency/table/chart plus CSV, JSON/JSONL, and Parquet evidence | `lane_engine.py` | XLSX, CSV, JSON, and real PyArrow Parquet fixtures |
@@ -39,12 +39,13 @@
 | Only exact `APPROVE` promotes candidate bytes | `session.py`, `store.py` | five non-promotion outcome assertions |
 | Rollback moves only accepted pointer and preserves candidates/source/history | `session.py`, `store.py` | CAS, no-op, invalid-target, and preservation tests |
 | Durable decisions, accepted PVs, and immutable pointer snapshots | `persistence.py`, `service.py` | encrypted fake-backend and pointer-seal tests |
-| Automatic visible ChatLineage | `lineage.py`, `session.py` | lifecycle and redaction tests |
+| Automatic visible prompt/response ChatLineage | `prompt_submit.py`, `stop_response.py`, `lineage.py`, `session.py` | paired turn-index, deterministic redaction, nonblocking Stop, lifecycle, and lineage tests |
 | Runtime/declarative version hygiene | `constants.py`, manifests | version-parity test |
 | Local adoption and credential-free HTTPS enrollment refuse overwrite | `enrollment.py`, `service.py` | local enrollment and conflict tests |
-| Selected Git sync permits only clean path-bounded fast-forward | `enrollment.py`, `service.py` | local-source fast-forward test |
+| Selected Git sync permits only clean path-bounded fast-forward; explicit replacement narrows authority to one already-checked-out branch | `enrollment.py`, `service.py`, `store.py` | local-source fast-forward, unflagged denial, receipt, and one-branch replacement tests |
 | Host aliases and capability-axis persistence routing | `models.py`, `persistence.py`, `service.py` | alias, capability-matrix, ephemeral fail-closed, and durable-local no-Drive-call tests |
-| Required Google Drive connector uses normal host OAuth boundary | `.app.json`, manifest, docs | app-manifest packaging test |
+| Declared Google Drive connector uses the normal host OAuth boundary when selected | `.app.json`, manifest, docs | app-manifest packaging test |
+| Plugin package passes the current validator and respects the three-prompt host cap | manifest, default-discovered hooks, native skills | official validator, prompt count/length, and stale-skill-directory checks |
 | Separate remote Git authority | `remote_git.py`, `git_adapter.py` | wrong-token denial test |
 | Canonical MCP tools and root command files agree | `mcp_server.py`, `commands/` | inventory, annotation, command-discovery, and real STDIO tests |
 | Exact locked ENV/UOP flash stays outside PV | `flash_authority.py`, `session_flash/` | hash, SQLite, tamper, and PV-exclusion tests |

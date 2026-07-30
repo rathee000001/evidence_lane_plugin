@@ -150,30 +150,50 @@ def _persistent_envelope() -> dict[str, object]:
                                 "entry_package_sha256"
                             ),
                         }
-            backlog_counts = {
-                "waiting": 0,
+            universal_statuses = (
+                "QUEUED",
+                "ACTIVE",
+                "DONE",
+                "ACCEPTED",
+                "REJECTED",
+                "DROPPED",
+                "SUPERSEDED",
+                "FAILED",
+                "ROLLED_BACK",
+            )
+            backlog_counts: dict[str, object] = {
+                "queued": 0,
                 "active": 0,
-                "completed": 0,
+                "done_pending_hil": 0,
+                "terminal": 0,
                 "total": 0,
+                "universal": {status: 0 for status in universal_statuses},
             }
             backlog_path = project_root / "task_backlog.json"
             if backlog_path.is_file():
                 backlog = json.loads(backlog_path.read_text(encoding="utf-8"))
                 tasks = backlog.get("tasks", [])
+                universal = {
+                    status: sum(1 for task in tasks if task.get("status") == status)
+                    for status in universal_statuses
+                }
                 backlog_counts = {
-                    "waiting": sum(
-                        1 for task in tasks if task.get("status") == "WAITING"
-                    ),
-                    "active": sum(
-                        1 for task in tasks if task.get("status") == "ACTIVE"
-                    ),
-                    "completed": sum(
-                        1
-                        for task in tasks
-                        if task.get("status")
-                        in {"APPROVED", "REJECTED", "FAILED", "ROLLED_BACK"}
+                    "queued": universal["QUEUED"],
+                    "active": universal["ACTIVE"],
+                    "done_pending_hil": universal["DONE"],
+                    "terminal": sum(
+                        universal[status]
+                        for status in (
+                            "ACCEPTED",
+                            "REJECTED",
+                            "DROPPED",
+                            "SUPERSEDED",
+                            "FAILED",
+                            "ROLLED_BACK",
+                        )
                     ),
                     "total": len(tasks),
+                    "universal": universal,
                 }
             active_lanes: list[str] = []
             accepted_pv = pointer.get("accepted_pv")
@@ -249,16 +269,19 @@ def main() -> int:
         + "incremental Refresh across the single eighteen-lane registry. Task "
         + "completion automatically confirms source, Refreshes, and seals the "
         + "exit candidate; Exit and Refresh are not user commands."
-        + "\n\nDisplay /evi-00-state-travel first. A prepared accepted-PV "
-        + "handoff must bind this fresh host session, atomically verify Boot plus "
-        + "locked ENV/UOP Flash, pointer, and seals, then wait for the user's next "
-        + "command. Otherwise follow /evi: atomic Boot/Flash, all seventeen "
+        + "\n\nIf a prepared accepted-PV handoff exists, display "
+        + "/evi-00-state-travel first; it must bind this fresh host session, "
+        + "atomically verify Boot plus locked ENV/UOP Flash, pointer, and seals, "
+        + "then wait for the user's next command. Otherwise /evi starts with "
+        + "/evi-01-boot as the first normal action and atomically verifies "
+        + "Boot/Flash before displaying all seventeen "
         + "source-intake commands, the separate /evi-mode sidecar, Build PV Entry, "
         + "bounded work, automatic exit-Refresh, HIL, Fuse, Rollback, and explicit "
         + "/evi-exit-boot. A booted session persists until that explicit command. "
         + "Before stopping at HIL or State Travel, visibly render the engine's "
         + "suggested_next_prompt. The composer is host-owned; do not claim the "
-        + "MCP wrote it, do not auto-submit it, and do not use a Stop hook to "
+        + "MCP wrote it and do not auto-submit it. The nonblocking Stop hook "
+        + "may index the secret-redacted visible response but must never "
         + "continue past a human gate. "
         + "HOST_SESSION_ID="
         + (host_session_id or "UNAVAILABLE")

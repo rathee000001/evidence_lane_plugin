@@ -11,8 +11,9 @@ The package contains:
 - a bundled local STDIO MCP server in `.mcp.json`;
 - the Evidence Lane lifecycle skill plus matching native skills and root
   command templates for the complete ordered `/evi` surface;
-- SessionStart and privacy-minimized UserPromptSubmit hooks;
-- a required Google Drive app dependency in `.app.json`.
+- SessionStart plus secret-redacted visible prompt/response index hooks;
+- a Google Drive app dependency in `.app.json`, connected only through the
+  host's normal OAuth route when the selected persistence route needs it.
 
 Supported local plugin surfaces can install this package from the private Git
 marketplace and start a new task or chat. Codex materializes a versioned local
@@ -92,12 +93,14 @@ Before calling ChatGPT parity demonstrated, verify all of:
 
 1. the exact reviewed plugin release is installed;
 2. the ChatGPT surface exposes every canonical MCP tool and the complete
-   ordered `/evi` controls: State Travel first, atomic Boot/Flash, all seventeen
-   source-intake commands, the separate Mode sidecar, Build PV Entry, automatic
+   ordered `/evi` controls: conditional prepared-handoff State Travel, atomic
+   Boot/Flash as the first normal action, all seventeen source-intake commands,
+   the separate Mode sidecar, Build PV Entry, automatic
    exit-Refresh, HIL, Fuse, Rollback, and explicit Exit Boot; Planning mode
    updates only the derived Plan runtime projection, while DROP/SUPERSEDE use
    the explicit append-only backlog transition;
-3. the required Google Drive connector is connected through normal OAuth;
+3. when the selected persistence route needs it, the declared Google Drive
+   connector is connected through normal OAuth;
 4. `runtime_doctor`, flash, and persistent-state reads pass;
 5. source-edit authority is recorded truthfully;
 6. the chosen server store survives a new chat/task;

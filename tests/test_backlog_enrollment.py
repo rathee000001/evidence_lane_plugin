@@ -387,6 +387,147 @@ def test_selected_git_sync_applies_only_clean_fast_forward(
     assert result["remote_write_performed"] is False
 
 
+def test_selected_git_sync_can_replace_but_never_broaden_branch_authority(
+    tmp_path: Path,
+    source_repository: Path,
+) -> None:
+    checkout = tmp_path / "branch-replacement-checkout"
+    subprocess.run(
+        ["git", "clone", "--no-local", str(source_repository), str(checkout)],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(checkout),
+            "remote",
+            "set-url",
+            "origin",
+            "https://github.com/example/book-faires.git",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    application = EvidenceLaneService(data_root=tmp_path / "branch-replacement-store")
+    application.register_project(
+        project_id="branch-replacement",
+        display_name="Branch replacement",
+        repository_path=str(checkout),
+        expected_owner="example",
+        expected_name="book-faires",
+        allowed_branches=["main"],
+        sensitivity="PRIVATE",
+    )
+    boot = application.boot_session(
+        project_id="branch-replacement",
+        user_id="user-test",
+        workspace_id="workspace-test",
+        host="CODEX_DESKTOP",
+        agent_id="codex-single-agent",
+        sandbox_id="sandbox-local",
+        ephemeral=False,
+        runtime_context={"permission_mode": "test"},
+        host_session_id="branch-replacement-host-session",
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+    session_id = boot["session"]["session_id"]
+    application.build_initial("branch-replacement", session_id)
+    decision = application.decide(
+        "branch-replacement",
+        session_id,
+        decision="APPROVE",
+        decided_by="human-test",
+        decision_id="branch_replacement_pv1",
+    )
+    handoff = decision["state_travel_handoff"]["state_travel"]
+    application.resume_state_travel(
+        project_id="branch-replacement",
+        session_id=session_id,
+        handoff_id=handoff["handoff_id"],
+        host="CODEX_DESKTOP",
+        host_session_id="branch-replacement-fresh-task",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"source": "fresh-branch-replacement-task"},
+    )
+    application.sessions.classify(
+        "branch-replacement",
+        session_id,
+        task_class="fix_bug",
+        requested_outcome="Select one exact feature branch.",
+        permitted_paths=["README.md"],
+        permitted_tools=[
+            "repository_read",
+            "repository_write",
+            "terminal",
+            "test",
+            "git_diff",
+            "patch",
+        ],
+        acceptance_checks=["The exact feature branch becomes authoritative."],
+        stop_condition="Stop at the next candidate HIL.",
+    )
+
+    from .conftest import git
+
+    git(source_repository, "switch", "-c", "feature/exact-selection")
+    readme = source_repository / "README.md"
+    readme.write_text("# Book Faires\n\nExact branch selection.\n", encoding="utf-8")
+    git(source_repository, "add", "README.md")
+    git(source_repository, "commit", "-m", "Exact branch selection")
+    expected_commit = git(source_repository, "rev-parse", "HEAD")
+    git(
+        checkout,
+        "fetch",
+        "--no-tags",
+        str(source_repository),
+        "feature/exact-selection",
+    )
+    git(checkout, "switch", "-c", "feature/exact-selection", "FETCH_HEAD")
+
+    with pytest.raises(EvidenceLaneError) as blocked:
+        application.sync_git_source(
+            project_id="branch-replacement",
+            source=str(source_repository),
+            branch="feature/exact-selection",
+            session_id=session_id,
+            expected_commit=expected_commit,
+        )
+    assert blocked.value.code == "PROJECT_SYNC_BRANCH_NOT_AUTHORIZED"
+    assert application.store.config("branch-replacement").allowed_branches == ["main"]
+
+    # The explicit replacement flag is required. The public service envelope
+    # converts the fail-closed exception only at MCP invocation time, so call
+    # the service with the flag after proving the unflagged path did not mutate.
+    result = application.sync_git_source(
+        project_id="branch-replacement",
+        source=str(source_repository),
+        branch="feature/exact-selection",
+        session_id=session_id,
+        expected_commit=expected_commit,
+        replace_registered_branch=True,
+    )
+
+    assert result["fast_forward_applied"] is False
+    assert result["branch_authority"]["status"] == "REPLACED"
+    assert result["branch_authority"]["authority_broadened"] is False
+    assert result["branch_authority"]["prior_allowed_branches"] == ["main"]
+    assert application.store.config("branch-replacement").allowed_branches == [
+        "feature/exact-selection"
+    ]
+    assert result["branch_authority"]["receipt"]["pointer_generation"] == 1
+    assert result["branch_authority"]["receipt"]["accepted_pv"] == "PV1"
+    assert result["remote_write_performed"] is False
+
+
 def test_selected_git_sync_records_active_session_lineage(
     tmp_path: Path,
     source_repository: Path,

@@ -501,6 +501,7 @@ class EvidenceLaneService:
         branch: str,
         session_id: str | None = None,
         expected_commit: str | None = None,
+        replace_registered_branch: bool = False,
     ) -> dict[str, Any]:
         active_path = self.store.project_root(project_id) / "active_session.json"
         session = None
@@ -534,6 +535,11 @@ class EvidenceLaneService:
             branch=branch,
             expected_commit=expected_commit,
             permitted_paths=permitted_paths,
+            branch_replacement_actor=(
+                session.user_id
+                if replace_registered_branch and session is not None
+                else None
+            ),
         )
         if session is not None:
             activity = self.sessions.record_activity(
@@ -550,6 +556,7 @@ class EvidenceLaneService:
                     "before_commit": result["before"]["commit_sha"],
                     "after_commit": result["after"]["commit_sha"],
                     "changed_paths": result["changed_paths"],
+                    "branch_authority": result["branch_authority"],
                     "remote_write_performed": False,
                     "merge_commit_created": False,
                 },

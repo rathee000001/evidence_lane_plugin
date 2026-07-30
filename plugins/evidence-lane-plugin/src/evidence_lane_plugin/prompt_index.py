@@ -1,4 +1,4 @@
-"""Read and resolve privacy-minimized prompt-entry index records."""
+"""Read and resolve secret-redacted visible prompt-entry index records."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ def is_prompt_reference(value: str) -> bool:
 
 
 class PromptIndex:
-    """Verify hook-written records without storing or reading raw prompt text."""
+    """Verify hook records that retain only the secret-redacted visible prompt."""
 
     def __init__(self, store_root: str | Path) -> None:
         self.root = Path(store_root).resolve() / "prompt-index"
@@ -249,6 +249,7 @@ class PromptIndex:
             "project_id": project_id,
             "evidence_session_id": evidence_session_id,
             "raw_prompt_stored": False,
+            "redacted_visible_prompt_stored": True,
             "returned": len(visible),
             "total_resolvable": len(records),
             "records": visible,

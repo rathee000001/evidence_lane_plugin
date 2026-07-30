@@ -28,10 +28,13 @@ Official references:
 - [OpenAI Hooks](https://learn.chatgpt.com/docs/hooks)
 - [OpenAI Model Context Protocol](https://learn.chatgpt.com/docs/extend/mcp)
 
-The OpenAI `Stop` hook is deliberately not used. A blocking `Stop` result
-creates a new continuation prompt and keeps the agent running. That is not a
-gray suggestion, and it would cross the human HIL boundary instead of stopping
-and waiting.
+Evidence Lane uses the OpenAI `Stop` event only as a nonblocking visible-output
+index. It reads `last_assistant_message`, deterministically redacts secrets,
+links the visible response to the matching prompt/turn, appends ChatLineage,
+and returns only `{"continue":true}`. It never returns `decision: "block"`,
+`continue: false`, or a reason, so it cannot create a continuation prompt,
+change the composer, or cross the human HIL boundary. Private model reasoning
+is unavailable to and excluded by this index.
 
 ## Portable Evidence Lane contract
 

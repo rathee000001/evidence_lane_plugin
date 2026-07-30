@@ -82,8 +82,10 @@ def create_mcp_server(
     mcp = FastMCP(
         "Evidence Lane Plugin",
         instructions=(
-            "Display /evi-00-state-travel first, then follow the /evi top-down "
-            "stack: atomic Boot plus locked ENV/UOP Flash, all seventeen ordered "
+            "If a prepared post-Fuse handoff exists, display "
+            "/evi-00-state-travel first. Otherwise start /evi with atomic Boot "
+            "plus locked ENV/UOP Flash as the first normal action, then display "
+            "all seventeen ordered "
             "source-intake commands, the anytime /evi-mode sidecar, Build PV "
             "Entry, bounded task work, automatic exit-Refresh, HIL, Fuse, then "
             "Rollback. Fuse requires exact APPROVE and seals a fresh-window "
@@ -374,9 +376,11 @@ def create_mcp_server(
         title="Fast-forward one selected Git branch",
         description=(
             "Fetch one explicit local Git source or credential-free HTTPS repository "
-            "and one registered branch, verify identity and optional commit, preview "
+            "and one exact branch, verify identity and optional commit, preview "
             "changed paths against any active task, then apply only a clean "
-            "fast-forward. It never pushes, merges divergent history, switches "
+            "fast-forward. In an active governed session, an explicit replacement "
+            "flag may narrow authority to the exact already-checked-out branch and "
+            "writes a receipt. It never pushes, merges divergent history, switches "
             "branches, or broadens branch authority."
         ),
         annotations=_LOCAL_WRITE,
@@ -389,6 +393,7 @@ def create_mcp_server(
         branch: str,
         session_id: str | None = None,
         expected_commit: str | None = None,
+        replace_registered_branch: bool = False,
     ) -> dict[str, Any]:
         return application.invoke(
             "git_sync_selected",
@@ -398,6 +403,7 @@ def create_mcp_server(
             branch=branch,
             session_id=session_id,
             expected_commit=expected_commit,
+            replace_registered_branch=replace_registered_branch,
             lifecycle=True,
         )
 

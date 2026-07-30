@@ -1,4 +1,4 @@
-"""Index prompt entry state without retaining raw prompt text or secrets."""
+"""Index the secret-redacted visible prompt without retaining raw secrets."""
 
 from __future__ import annotations
 
@@ -43,11 +43,11 @@ def _sha256(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest().upper()
 
 
-def _safe_prompt_hash(prompt: str) -> tuple[str, int]:
+def _safe_prompt(prompt: str) -> tuple[str, str, int]:
     redacted = prompt
     for pattern in _SECRET_PATTERNS:
         redacted = pattern.sub("[REDACTED]", redacted)
-    return _sha256(redacted.encode("utf-8")), len(redacted)
+    return redacted, _sha256(redacted.encode("utf-8")), len(redacted)
 
 
 def _within(child: Path, parent: Path) -> bool:
@@ -148,15 +148,17 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
         prior = existing[-1]
         prior_hash = prior.get("record_sha256")
         prompt_index = int(prior.get("prompt_index", len(existing))) + 1
-    prompt_hash, prompt_chars = _safe_prompt_hash(prompt)
+    visible_prompt, prompt_hash, prompt_chars = _safe_prompt(prompt)
     record = {
         "schema": "evidence-lane.prompt-index.v1",
         "host_session_id": host_session_id,
         "turn_id": turn_id,
         "prompt_index": prompt_index,
+        "visible_prompt_after_redaction": visible_prompt,
         "prompt_sha256_after_redaction": prompt_hash,
         "prompt_chars_after_redaction": prompt_chars,
         "raw_prompt_stored": False,
+        "redacted_visible_prompt_stored": True,
         "project_id": binding.get("project_id"),
         "evidence_session_id": binding.get("evidence_session_id"),
         "entry_pv": binding.get("entry_pv"),
@@ -200,6 +202,7 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
         "evidence_session_id": record["evidence_session_id"],
         "entry_pv": record["entry_pv"],
         "raw_prompt_stored": False,
+        "redacted_visible_prompt_stored": True,
         "record_sha256": record["record_sha256"],
     }
 

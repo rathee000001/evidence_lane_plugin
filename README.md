@@ -8,9 +8,12 @@ human-approved Evidence Lane project versions. The installable identifier is
 ## Ordered `/evi` lifecycle
 
 ```text
-/evi-00-state-travel (always the first visible control)
-  -> /evi with /evi-mode beside it as an anytime control sidecar
-  -> /evi-01-boot (atomic Boot + locked ENV/UOP Flash)
+/evi
+  -> if a prepared post-Fuse handoff exists:
+       /evi-00-state-travel in a fresh host window, then wait
+  -> otherwise /evi-01-boot is the first normal action
+       (atomic Boot + locked ENV/UOP Flash)
+  -> /evi-mode remains beside the lifecycle as an anytime control sidecar
   -> seventeen source-intake commands:
      Git, Local, SQLite PV Candidate Loader, Chat Lineage, Discussion,
      Analysis, Plan, Docs, Data/Excel/CSV, PPT, PDF/OCR, Images/OCR,
@@ -24,14 +27,17 @@ human-approved Evidence Lane project versions. The installable identifier is
   -> /evi-exit-boot (explicit governed-session deactivation)
 ```
 
-`/evi-00-state-travel` is displayed above every other control. With no prepared
-handoff it proceeds to Boot. After Fuse, Codex must enter through a fresh task
-and ChatGPT through a fresh chat. The new window runs the same atomic
-Boot/Flash verification, verifies the accepted pointer generation and package
-seals, and then stops in `WAITING_FOR_NEXT_USER_COMMAND`. Opening that host
-window is host-mediated and remains fail-visible.
+`/evi-00-state-travel` remains the top catalog preflight, but it executes first
+only when a prepared post-Fuse handoff exists. With no prepared handoff,
+`/evi-01-boot` is the first normal action. After Fuse, Codex must enter through
+a fresh task and ChatGPT through a fresh chat. The new window runs the same
+atomic Boot/Flash verification, verifies the accepted pointer generation and
+package seals, and then stops in `WAITING_FOR_NEXT_USER_COMMAND`. Opening that
+host window is host-mediated and remains fail-visible.
 
-`/evi-01-boot` is the only user-facing Boot/Flash command. Flash remains
+`/evi-01-boot` is the only user-facing Boot/Flash command. It returns the
+complete ordered source-intake list plus a visible next-action suggestion; it
+does not silently choose a lane or build a candidate. Flash remains
 installation-scoped and valid until plugin removal. Seventeen source-intake
 commands appear before **Build PV Entry** and route eighteen canonical lanes.
 The internal Mode lane is exposed only through the separate `/evi-mode`
@@ -63,8 +69,10 @@ next-PV ordinal.
   Planning mode appends only a privacy-minimized control-plane event and
   refreshes the derived Plan runtime projection; it does not mutate Plan
   source or invent a Delta.
-- `/evi-02-git ...`: clone or fast-forward one explicit repository and
-  authorized branch without remote write.
+- `/evi-02-git ...`: clone or fast-forward one explicit repository and exact
+  branch without remote write. An explicit active-session flag may replace
+  the prior branch authority with that one already-checked-out branch; it
+  never broadens the branch set and writes a receipt.
 - `/evi-03-local ...`: adopt or read one explicit local-code Git path.
 - `/evi-04-sqlite-pv-candidate-loader ...`: verify the canonical
   `brain_loader` package without promotion.
@@ -135,11 +143,18 @@ See [`docs/PROMPT_SUGGESTION_COMPATIBILITY.md`](docs/PROMPT_SUGGESTION_COMPATIBI
   Refresh, six-way HIL, rollback, recovery, and next-turn handoff;
 - persistent accepted-PV/session hints on startup, resume, clear, and compact;
   `/evi`, `session_resume`, and `pv_status` perform the verifying handoff;
-- a privacy-minimized `UserPromptSubmit` hook that indexes entry PV, turn ID,
-  and SHA-256 without storing raw prompt text or private model reasoning;
+- a `UserPromptSubmit` hook that indexes entry PV, turn ID, SHA-256, and the
+  exact visible prompt after deterministic secret redaction, without retaining
+  the raw secret-bearing prompt or private model reasoning;
+- a nonblocking `Stop` hook that links the exact visible assistant response
+  after deterministic secret redaction to the same prompt/turn and ChatLineage;
+  it returns only `continue: true`, never creates a continuation prompt, never
+  edits the composer, and never crosses HIL;
 - local-path adoption or credential-free HTTPS enrollment without remote write;
 - explicit local/HTTPS branch synchronization that accepts only a clean
   fast-forward and checks changed paths before mutating an active task source;
+  explicit branch replacement narrows authority to one already-checked-out
+  branch and preserves the prior set in a project-scoped receipt;
 - an ordered multi-task backlog with one active task maximum;
 - a hash-chained Delta lifecycle ledger plus atomically rebuilt, validated
   SQLite Plan runtime projection outside every canonical PV lane sector;
@@ -160,10 +175,10 @@ exact `EVIDENCE_LANE_DATA_ROOT`/`PLUGIN_DATA` override. Plugin cache location is
 never state authority. ENV15/UOP15 flash data remains installation-scoped and
 outside every PV.
 
-Installation declares Google Drive connector
-`connector_5f3c8c41a1e54ad7a76272c89e2554fa` as required, so the host uses its
-normal Google OAuth connection flow. The host never gives that connector token
-to the Python MCP:
+Installation declares the Google Drive connector
+`connector_5f3c8c41a1e54ad7a76272c89e2554fa` through `.app.json`, so any
+connection uses the host's normal Google OAuth flow. The host never gives that
+connector token to the Python MCP:
 
 - a durable local MCP server keeps the local store authoritative and may use
   the connector for a separately verified mirror;
@@ -214,8 +229,9 @@ codex plugin marketplace add rathee000001/evidence_lane_plugin --ref REVIEWED_RE
 codex plugin add evidence-lane-plugin@evidence-lane-github --json
 ```
 
-When prompted, connect the required Google Drive dependency through the normal
-host OAuth screen. Review and trust the two bundled hooks. Start a fresh Codex
+When the selected persistence route needs Drive, connect the declared Google
+Drive dependency through the normal host OAuth screen. Review and trust the
+two auto-discovered bundled hooks. Start a fresh Codex
 task or ChatGPT chat before expecting the updated commands, skills, or MCP
 tools; an already-running task retains its original plugin snapshot.
 

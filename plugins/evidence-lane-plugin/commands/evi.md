@@ -9,7 +9,7 @@ Always show `/evi-mode` beside `/evi`. It may be called at any point to
 classify one or more intersecting ENV15 modes and canonical lanes, including
 Chat Lineage, then return to the prior lifecycle position.
 
-Show this top-down stack in exactly this order:
+The static catalog remains top-down in exactly this order:
 
 1. `/evi-00-state-travel`
 2. `/evi-01-boot` — one atomic Boot plus locked ENV/UOP Flash
@@ -42,10 +42,11 @@ Show this top-down stack in exactly this order:
 29. `/evi-99-pv-rollback`
 30. `/evi-exit-boot` — explicit governed-session deactivation
 
-State Travel is always displayed first. With no prepared accepted-PV handoff,
-it proceeds to Boot. After Fuse, it requires a fresh Codex task or ChatGPT chat,
-runs the atomic Boot/Flash verification there, verifies the exact accepted
-pointer and seals, and stops in `WAITING_FOR_NEXT_USER_COMMAND`.
+State Travel is the conditional preflight at the top of the catalog. When a
+prepared accepted-PV handoff exists, run it first in a fresh Codex task or
+ChatGPT chat, atomically verify Boot/Flash plus the exact accepted pointer and
+seals, and stop in `WAITING_FOR_NEXT_USER_COMMAND`. With no prepared handoff,
+do not pause on State Travel: `/evi-01-boot` is the first normal action.
 
 Seventeen source-intake commands are visible between Boot and Build PV Entry.
 They route the eighteen canonical lanes because Mode remains an internal
@@ -54,6 +55,11 @@ sidecar, never as source intake. The stack is universal, not code-only. Entry
 and exit slips are automatic sealed artifacts. Only exact `APPROVE` may Fuse;
 rollback moves only accepted pointers. Boot remains active until the user
 explicitly invokes `/evi-exit-boot`.
+
+After atomic Boot/Flash succeeds, visibly render the returned
+`ordered_source_intake_commands` and `suggested_next_prompt`. The user may
+choose Git, Local, or any other displayed intake lane; never silently jump
+past source intake into Build PV Entry.
 
 At each HIL or State Travel stop, visibly show the returned
 `suggested_next_prompt`. Never choose or submit it, and never claim the MCP

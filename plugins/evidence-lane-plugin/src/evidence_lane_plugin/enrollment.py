@@ -68,18 +68,23 @@ def sync_selected_branch(
     branch: str,
     expected_commit: str | None = None,
     permitted_paths: list[str] | None = None,
+    branch_replacement_actor: str | None = None,
 ) -> dict[str, Any]:
     """Fetch one explicit source/branch and apply only a clean fast-forward."""
     config = store.config(project_id)
     exact_branch = validate_remote_ref(branch, field="branch")
-    require(
-        exact_branch in config.allowed_branches,
-        "PROJECT_SYNC_BRANCH_NOT_AUTHORIZED",
-        "The selected Git branch is not in the registered authority.",
-        status="BLOCKED",
-        branch=exact_branch,
-        allowed_branches=config.allowed_branches,
-    )
+    branch_authorized = exact_branch in config.allowed_branches
+    if not branch_authorized:
+        require(
+            bool(str(branch_replacement_actor or "").strip()),
+            "PROJECT_SYNC_BRANCH_NOT_AUTHORIZED",
+            "The selected Git branch is not in the registered authority. An "
+            "active governed session and explicit one-branch replacement are "
+            "required.",
+            status="BLOCKED",
+            branch=exact_branch,
+            allowed_branches=config.allowed_branches,
+        )
     bounded_source, source_kind = _bounded_source(source)
     if source_kind == "LOCAL_GIT_SOURCE":
         inspect_repository(
@@ -178,6 +183,23 @@ def sync_selected_branch(
         require_clean=True,
     )
     after = identity_json(after_identity, config.repository_path)
+    branch_authority = (
+        store.replace_branch_authority(
+            project_id,
+            branch=exact_branch,
+            selected_by=str(branch_replacement_actor),
+            repository=after,
+        )
+        if not branch_authorized
+        else {
+            "status": "UNCHANGED",
+            "project_id": project_id,
+            "prior_allowed_branches": list(config.allowed_branches),
+            "selected_branch": exact_branch,
+            "authority_broadened": False,
+            "receipt": None,
+        }
+    )
     return {
         "status": "PASS",
         "project_id": project_id,
@@ -188,6 +210,7 @@ def sync_selected_branch(
         "fetched_commit": fetched_commit,
         "fast_forward_applied": fetched_commit != before_identity.commit_sha,
         "changed_paths": changed,
+        "branch_authority": branch_authority,
         "remote_write_performed": False,
         "merge_commit_created": False,
     }

@@ -140,6 +140,82 @@ class ProjectStore:
             self._update_root_registry(config.project_id, payload)
         return self.project_status(config.project_id)
 
+    def replace_branch_authority(
+        self,
+        project_id: str,
+        *,
+        branch: str,
+        selected_by: str,
+        repository: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Replace, never broaden, the registered branch with one explicit branch."""
+
+        exact_actor = selected_by.strip()
+        require(
+            bool(exact_actor),
+            "PROJECT_BRANCH_SELECTION_ACTOR_REQUIRED",
+            "Replacing branch authority requires the visible governed user.",
+            status="BLOCKED",
+        )
+        project_path = self.project_root(project_id) / "project.json"
+        with self._lock(project_id):
+            require(
+                project_path.is_file(),
+                "PROJECT_NOT_REGISTERED",
+                "The project is not registered in this Evidence Lane store.",
+                status="MISMATCH",
+                project_id=project_id,
+            )
+            existing = json.loads(project_path.read_text(encoding="utf-8"))
+            prior_branches = list(existing.get("allowed_branches", []))
+            if prior_branches == [branch]:
+                return {
+                    "status": "UNCHANGED",
+                    "project_id": project_id,
+                    "prior_allowed_branches": prior_branches,
+                    "selected_branch": branch,
+                    "authority_broadened": False,
+                    "receipt": None,
+                }
+            updated = {**existing, "allowed_branches": [branch]}
+            pointer = self.pointer(project_id)
+            receipt_body = {
+                "schema": "evidence-lane.branch-authority-selection.v1",
+                "project_id": project_id,
+                "prior_allowed_branches": prior_branches,
+                "selected_branch": branch,
+                "selected_by": exact_actor,
+                "selected_at": utc_now(),
+                "repository": repository,
+                "pointer_generation": pointer.generation,
+                "accepted_pv": pointer.accepted_pv,
+                "authority_broadened": False,
+                "remote_write_performed": False,
+                "prior_project_sha256": sha256_bytes(canonical_json_bytes(existing)),
+                "updated_project_sha256": sha256_bytes(canonical_json_bytes(updated)),
+            }
+            receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_body))
+            receipt = {
+                **receipt_body,
+                "receipt_id": f"branchauth_{receipt_sha256[:32].lower()}",
+                "receipt_sha256": receipt_sha256,
+            }
+            receipt_path = (
+                self.project_root(project_id)
+                / "receipts"
+                / f"{receipt['receipt_id']}.json"
+            )
+            atomic_write_json(receipt_path, receipt)
+            atomic_write_json(project_path, updated)
+        return {
+            "status": "REPLACED",
+            "project_id": project_id,
+            "prior_allowed_branches": prior_branches,
+            "selected_branch": branch,
+            "authority_broadened": False,
+            "receipt": receipt,
+        }
+
     def _update_root_registry(
         self, project_id: str, project_payload: dict[str, Any]
     ) -> None:

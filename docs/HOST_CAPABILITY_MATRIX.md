@@ -17,7 +17,7 @@ never expands authority or silently becomes parity.
 | HIL decision | Explicit human tool call | Explicit human tool call | Explicit human tool call | Explicit remote control |
 | Rollback | Accepted-pointer CAS only | Same law after durable-state verification | Same law after durable-state verification | Decision request only |
 | Prompt indexing | Hook stores entry PV, turn ID, and SHA-256; no raw prompt | Same only when host hooks run and durable index exists | Server/session reference support must be demonstrated | Review reference only |
-| Google Drive connector | Required host OAuth dependency; verified mirror role | Connector may assist, but direct backend is required when server is ephemeral | Required host OAuth dependency; no token passed to MCP | Connector UI only |
+| Google Drive connector | Declared host OAuth dependency; optional verified mirror role | Host connector may assist, but a direct backend is required when server is ephemeral | Declared host OAuth dependency; no token passed to MCP | Connector UI only |
 | Remote Git write | Separate two-step gate | Separate two-step gate | Separate two-step gate | Separate two-step gate |
 
 ## Currently demonstrated
@@ -27,13 +27,14 @@ never expands authority or silently becomes parity.
 - persistent user-owned local-store behavior in fixtures;
 - host-kind aliases plus explicit filesystem/source-edit capability axes;
 - prompt-indexed rollback without raw prompt retention;
-- required Google Drive connector packaging;
+- Google Drive connector packaging through the host's normal OAuth boundary;
 - encrypted durable-backend behavior against an in-memory contract;
 - a standalone, non-editable bootstrap from the plugin snapshot without
   repository-level packaging or a pre-existing virtual environment;
 - local OAuth resource-server checks for public health, protected-resource
   metadata, and an authenticated `/mcp` challenge;
-- complete `/evi` command/native-skill parity, with atomic Boot/Flash,
+- complete `/evi` command/native-skill parity, with conditional State Travel
+  preflight and atomic Boot/Flash as the first normal action,
   seventeen source-intake commands before Build PV Entry, one separate Mode
   sidecar, and explicit Exit Boot;
 - fresh-window Codex and ChatGPT State Travel fixtures that verify atomic

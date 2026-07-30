@@ -1,14 +1,14 @@
 flowchart TD
-    T["/evi-00-state-travel displayed first"] --> T0{"Prepared accepted-PV handoff?"}
-    T0 -- "No" --> A["/evi selected"]
+    A["/evi selected"] --> T0{"Prepared accepted-PV handoff?"}
+    T0 -- "No" --> A0
     T0 -- "Yes" --> T1["Open fresh Codex task or ChatGPT chat; host-mediated"]
     T1 --> T2["Atomically verify Boot plus locked ENV/UOP Flash, accepted pointer generation, manifest, and package seals"]
     T2 --> T3["WAITING_FOR_NEXT_USER_COMMAND"]
     T3 -- "Next exact user command" --> F
-    A --> A0["/evi-01-boot: atomically verify installed release, exact ENV/UOP Flash, project, pointer, storage, and session"]
+    A0["/evi-01-boot is first normal action: atomically verify installed release, exact ENV/UOP Flash, project, pointer, storage, and session"]
     A0 --> A2{"Atomic Boot exact?"}
     A2 -- "No" --> Z["FAIL closed: no source, PV, or pointer mutation"]
-    A2 -- "Yes" --> A3["Verify required Google Drive host connector boundary"]
+    A2 -- "Yes" --> A3["Verify selected local or external persistence boundary; use host Drive OAuth only when needed"]
     A3 --> B{"Registered project selected?"}
 
     B -- "No" --> B1["Reveal /evi-02-git and /evi-03-local intake"]

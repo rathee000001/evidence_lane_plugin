@@ -1,5 +1,5 @@
 {
-  "description": "Evidence Lane session context plus a privacy-minimized prompt-entry index. Hooks never mutate source, PVs, pointers, or credentials.",
+  "description": "Evidence Lane session context plus secret-redacted visible prompt/response indexing. Hooks never continue a turn or mutate source, PVs, pointers, or credentials.",
   "hooks": {
     "SessionStart": [
       {
@@ -24,6 +24,19 @@
             "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\prompt_submit.py\"",
             "timeout": 3,
             "statusMessage": "Indexing Evidence Lane prompt entry"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/stop_response.py\"",
+            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\stop_response.py\"",
+            "timeout": 3,
+            "statusMessage": "Indexing visible Evidence Lane response"
           }
         ]
       }

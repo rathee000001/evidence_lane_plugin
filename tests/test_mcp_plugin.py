@@ -100,20 +100,25 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert manifest["author"]["name"] == "Praveen Rathee"
     assert manifest["repository"].endswith("/evidence_lane_plugin")
     assert manifest["apps"] == "./.app.json"
-    assert manifest["hooks"] == "./hooks/hooks.json"
+    assert "hooks" not in manifest
     assert isinstance(manifest["interface"]["defaultPrompt"], list)
+    assert 1 <= len(manifest["interface"]["defaultPrompt"]) <= 3
+    assert all(len(prompt) <= 128 for prompt in manifest["interface"]["defaultPrompt"])
     assert any(
-        "suggested next prompt" in prompt
-        for prompt in manifest["interface"]["defaultPrompt"]
+        "six-way HIL" in prompt for prompt in manifest["interface"]["defaultPrompt"]
     )
     hooks = json.loads((plugin / "hooks" / "hooks.json").read_text(encoding="utf-8"))
-    assert "Stop" not in hooks["hooks"]
+    assert set(hooks["hooks"]) == {"SessionStart", "UserPromptSubmit", "Stop"}
+    stop_handler = hooks["hooks"]["Stop"][0]["hooks"][0]
+    assert "stop_response.py" in stop_handler["command"]
+    stop_source = (plugin / "hooks" / "stop_response.py").read_text(encoding="utf-8")
+    assert '"decision"' not in stop_source
+    assert '"continue": True' in stop_source
     app_manifest = json.loads((plugin / ".app.json").read_text(encoding="utf-8"))
     assert app_manifest == {
         "apps": {
             "google-drive": {
                 "id": "connector_5f3c8c41a1e54ad7a76272c89e2554fa",
-                "required": True,
                 "category": "Durable evidence storage",
             }
         }
@@ -191,7 +196,33 @@ def test_session_start_hook_is_advisory(tmp_path: Path) -> None:
     root = Path(__file__).resolve().parents[1]
     hook = root / "plugins" / "evidence-lane-plugin" / "hooks" / "session_start.py"
     environment = os.environ.copy()
-    environment["EVIDENCE_LANE_DATA_ROOT"] = str(tmp_path / "persistent-store")
+    store = tmp_path / "persistent-store"
+    project = store / "projects" / "hook-plan-test"
+    (project / "accepted").mkdir(parents=True)
+    (project / "active_pointer.json").write_text(
+        json.dumps(
+            {
+                "accepted_pv": None,
+                "accepted_manifest_sha256": None,
+                "generation": 0,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (project / "task_backlog.json").write_text(
+        json.dumps(
+            {
+                "tasks": [
+                    {"task_id": "queued", "status": "QUEUED"},
+                    {"task_id": "done", "status": "DONE"},
+                    {"task_id": "accepted", "status": "ACCEPTED"},
+                    {"task_id": "dropped", "status": "DROPPED"},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    environment["EVIDENCE_LANE_DATA_ROOT"] = str(store)
     completed = subprocess.run(
         [sys.executable, str(hook)],
         input='{"source":"startup","session_id":"test"}',
@@ -227,6 +258,20 @@ def test_session_start_hook_is_advisory(tmp_path: Path) -> None:
         in payload["hookSpecificOutput"]["additionalContext"]
     )
     assert "do not auto-submit it" in payload["hookSpecificOutput"]["additionalContext"]
+    context_lines = payload["hookSpecificOutput"]["additionalContext"].splitlines()
+    persistent = json.loads(
+        next(
+            line.removeprefix("PERSISTENT_STATE_ENVELOPE=")
+            for line in context_lines
+            if line.startswith("PERSISTENT_STATE_ENVELOPE=")
+        )
+    )
+    backlog = persistent["projects"][0]["task_backlog"]
+    assert backlog["queued"] == 1
+    assert backlog["done_pending_hil"] == 1
+    assert backlog["terminal"] == 2
+    assert backlog["universal"]["ACCEPTED"] == 1
+    assert backlog["universal"]["DROPPED"] == 1
 
 
 def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
@@ -302,6 +347,91 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
     stored = records[0].read_text(encoding="utf-8")
     assert secret_prompt not in stored
     assert "super-secret-value" not in stored
+    assert "Rollback checkpoint [REDACTED]" in stored
+    assert '"redacted_visible_prompt_stored":true' in stored
+
+    stop_hook = root / "plugins" / "evidence-lane-plugin" / "hooks" / "stop_response.py"
+    secret_response = "Candidate sealed. sk-proj-THIS_IS_A_FAKE_TEST_KEY_1234567890"
+    stopped = subprocess.run(
+        [sys.executable, str(stop_hook)],
+        input=json.dumps(
+            {
+                "session_id": "host-session-test",
+                "turn_id": "turn-prompt-index-1",
+                "cwd": str(source_repository),
+                "last_assistant_message": secret_response,
+            }
+        ),
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=environment,
+    )
+    stop_payload = json.loads(stopped.stdout)
+    assert stop_payload == {"continue": True}
+    assert "decision" not in stop_payload
+    response_records = list((service.store.root / "response-index").rglob("*.json"))
+    assert len(response_records) == 1
+    response_record = json.loads(response_records[0].read_text(encoding="utf-8"))
+    assert secret_response not in json.dumps(response_record)
+    assert "THIS_IS_A_FAKE_TEST_KEY" not in json.dumps(response_record)
+    assert response_record["visible_assistant_response_after_redaction"] == (
+        "Candidate sealed. [REDACTED]"
+    )
+    assert response_record["prompt_record_sha256"] == indexed["record_sha256"]
+    assert response_record["private_reasoning_stored"] is False
+    assert response_record["hook_continuation_requested"] is False
+    lineage_path = (
+        service.store.project_root("book-faires") / "lineage" / f"{session_id}.jsonl"
+    )
+    lineage_events = [
+        json.loads(line)
+        for line in lineage_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    response_events = [
+        event
+        for event in lineage_events
+        if event["event_type"] == "turn.visible_assistant_response"
+    ]
+    assert len(response_events) == 1
+    assert (
+        response_events[0]["visible_payload"]["prompt_record_sha256"]
+        == indexed["record_sha256"]
+    )
+    assert response_events[0]["visible_payload"]["private_reasoning_excluded"] is True
+    assert response_events[0]["visible_payload"]["hook_continuation_requested"] is False
+    repeated = subprocess.run(
+        [sys.executable, str(stop_hook)],
+        input=json.dumps(
+            {
+                "session_id": "host-session-test",
+                "turn_id": "turn-prompt-index-1",
+                "cwd": str(source_repository),
+                "last_assistant_message": secret_response,
+            }
+        ),
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=environment,
+    )
+    assert json.loads(repeated.stdout) == {"continue": True}
+    assert len(list((service.store.root / "response-index").rglob("*.json"))) == 1
+    repeated_events = [
+        json.loads(line)
+        for line in lineage_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    assert (
+        sum(
+            event["event_type"] == "turn.visible_assistant_response"
+            for event in repeated_events
+        )
+        == 1
+    )
 
     service.resume_session(
         project_id="book-faires",
@@ -338,6 +468,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
 
     status = service.prompt_index_status("book-faires", session_id)
     assert status["raw_prompt_stored"] is False
+    assert status["redacted_visible_prompt_stored"] is True
     assert [row["prompt_index"] for row in status["records"]] == [1, 2]
     assert {row["entry_pv"] for row in status["records"]} == {"PV2"}
     service.rollback(

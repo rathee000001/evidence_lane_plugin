@@ -25,7 +25,11 @@ from .models import (
     TaskContract,
     normalize_host_kind,
 )
-from .next_actions import state_travel_next_action
+from .next_actions import (
+    SOURCE_INTAKE_COMMANDS,
+    boot_next_action,
+    state_travel_next_action,
+)
 from .prompt_index import PromptIndex, is_prompt_reference
 from .pv_package import validate_pv_package
 from .redaction import redact
@@ -528,18 +532,23 @@ class SessionManager:
             occurred_at=now,
             session_id=session_id,
         )
+        entry_action = (
+            "BUILD_PV1_CANDIDATE"
+            if pointer.accepted_pv is None
+            else "CLASSIFY_ONE_TASK"
+            if entry_freshness["state"] == "FRESH"
+            else "REVIEW_STALE_ACCEPTED_ENTRY_BEFORE_MUTATING_TASK"
+        )
+        next_action_contract = boot_next_action(entry_action=entry_action)
         return {
             "status": "PASS",
             "session": session.as_dict(),
             "installation": installation,
             "session_flash": flash,
-            "entry_action": (
-                "BUILD_PV1_CANDIDATE"
-                if pointer.accepted_pv is None
-                else "CLASSIFY_ONE_TASK"
-                if entry_freshness["state"] == "FRESH"
-                else "REVIEW_STALE_ACCEPTED_ENTRY_BEFORE_MUTATING_TASK"
-            ),
+            "entry_action": entry_action,
+            "ordered_source_intake_commands": list(SOURCE_INTAKE_COMMANDS),
+            "suggested_next_prompt": next_action_contract["suggested_next_prompt"],
+            "next_action_contract": next_action_contract,
             "persistent_state_envelope": {
                 "store": str(self.store.root),
                 "accepted_pv": pointer.accepted_pv,
@@ -663,12 +672,16 @@ class SessionManager:
             entry_action = "CONTINUE_ONE_ACTIVE_TASK"
         else:
             entry_action = "CLASSIFY_ONE_TASK"
+        next_action_contract = boot_next_action(entry_action=entry_action)
         return {
             "status": "PASS",
             "resumed": True,
             "session": session.as_dict(),
             "pointer": pointer.as_dict(),
             "entry_action": entry_action,
+            "ordered_source_intake_commands": list(SOURCE_INTAKE_COMMANDS),
+            "suggested_next_prompt": next_action_contract["suggested_next_prompt"],
+            "next_action_contract": next_action_contract,
             "event": event,
         }
 

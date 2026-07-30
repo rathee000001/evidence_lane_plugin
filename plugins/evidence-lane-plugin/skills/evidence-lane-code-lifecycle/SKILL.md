@@ -1,6 +1,6 @@
 ---
 name: evidence-lane-code-lifecycle
-description: Start with /evi-00-state-travel and govern one universal Evidence Lane project across fresh-window handoff, atomic Boot plus locked ENV/UOP Flash, seventeen source-intake commands, one Mode sidecar, Build PV Entry, bounded tasks, automatic exit-Refresh, exact-APPROVE Fuse, pointer-only Rollback, and explicit Exit Boot. Use when the user selects Evidence Lane, opens an /evi command, queues bounded tasks, builds or refreshes a PV, continues from accepted history, rolls back to accepted history, or prepares a separately authorized Git push.
+description: Govern one universal Evidence Lane project across conditional fresh-window State Travel, atomic Boot plus locked ENV/UOP Flash as the first normal action, seventeen source-intake commands, one Mode sidecar, Build PV Entry, bounded tasks, automatic exit-Refresh, exact-APPROVE Fuse, pointer-only Rollback, and explicit Exit Boot. Use when the user selects Evidence Lane, opens an /evi command, queues bounded tasks, builds or refreshes a PV, continues from accepted history, rolls back to accepted history, or prepares a separately authorized Git push.
 ---
 
 # Evidence Lane universal lifecycle
@@ -38,28 +38,34 @@ evidence.
 
 ## Entry and persistence
 
-1. `/evi-00-state-travel` is the first visible control. With no prepared
-   handoff, continue to Boot. After Fuse, require a fresh Codex task or ChatGPT
-   chat, run the atomic Boot/Flash verification there, verify the accepted
-   pointer and package seals, and stop in `WAITING_FOR_NEXT_USER_COMMAND`.
-   Opening the host window is host-mediated and must remain fail-visible.
+1. `/evi-00-state-travel` is the conditional prepared-handoff preflight at
+   the top of the static catalog. After Fuse, require a fresh Codex task or
+   ChatGPT chat, run the atomic Boot/Flash verification there, verify the
+   accepted pointer and package seals, and stop in
+   `WAITING_FOR_NEXT_USER_COMMAND`. Opening the host window is host-mediated
+   and must remain fail-visible. With no prepared handoff, do not pause here.
 2. `/evi` presents and follows the remaining numeric top-down command stack.
    `/evi-01-boot` is the only user-facing Boot/Flash command. It atomically
    verifies installed manifest/runtime parity and the locked ENV/UOP authority
-   before source intake; preserve every warning. The Flash remains valid until
-   plugin removal. A successfully booted governed session stays resumable
-   across host tasks or chats until the user explicitly invokes
-   `/evi-exit-boot`.
-3. Verify the required Google Drive dependency through the host connector's
-   normal OAuth route. That connector token is never exposed to this MCP.
-   Durable local servers use the local store and may use Drive as a verified
-   mirror; explicitly ephemeral servers require the separately configured
-   direct server-side Drive backend.
+   as the first normal action before source intake; preserve every warning.
+   On success, visibly render the returned ordered source-intake commands and
+   suggested next prompt. The Flash remains valid until plugin removal. A
+   successfully booted governed session stays resumable across host tasks or
+   chats until the user explicitly invokes `/evi-exit-boot`.
+3. When the selected persistence route needs Drive, verify the declared Google
+   Drive dependency through the host connector's normal OAuth route. That
+   connector token is never exposed to this MCP. Durable local servers use the
+   local store and may use Drive as a verified mirror; explicitly ephemeral
+   servers require the separately configured direct server-side Drive backend.
 4. If the project is absent, begin source intake with exactly
    `/evi-02-git` and `/evi-03-local`.
    `pv_enroll_project` may clone one selected credential-free HTTPS branch or
    adopt one exact local Git path. `git_sync_selected` may later apply only a
-   clean, path-bounded fast-forward. Neither action performs a remote write.
+   clean, path-bounded fast-forward. If the user explicitly selects a
+   different branch and the clean checkout is already on it,
+   `replace_registered_branch=true` replaces the prior authority with that
+   one branch and writes a receipt; it never broadens the branch set. Neither
+   action performs a remote write.
 5. Call `session_boot`, or `session_resume` when the one governed session
    already exists. Bind the current SessionStart host ID for prompt indexing.
    Report store, session-entry PV, current accepted PV, pointer generation,

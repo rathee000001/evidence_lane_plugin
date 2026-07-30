@@ -16,6 +16,11 @@ pointer generation, candidates, pending HIL, freshness, backlog, and the next
 ordered command. A failed installation, Flash, project, pointer, or session
 gate stops the whole Boot.
 
+On success, visibly render the returned `ordered_source_intake_commands` in
+their canonical order and the returned `suggested_next_prompt`. Boot may
+report the stored entry action, but it must not silently execute Build PV
+Entry, classify a task, or choose an intake lane for the user.
+
 Once Boot succeeds, the governed project session remains active and resumable
 across host tasks or chats until the user explicitly invokes
 `/evi-exit-boot`. Exit Boot closes only the governed session; the plugin remains

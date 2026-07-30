@@ -13,9 +13,9 @@ non-sensitive project lifecycle.
   branch;
 - one user, one writer, and no parallel source mutation;
 - user-owned durable data root outside the plugin cache;
-- required Google Drive connector installed through normal OAuth; no governed
-  upload, direct server token, deployment, commit, or remote-Git action unless
-  separately authorized.
+- Google Drive connector available through normal host OAuth when the selected
+  persistence route needs it; no governed upload, direct server token,
+  deployment, commit, or remote-Git action unless separately authorized.
 
 ## Candidate installation evidence
 
@@ -37,17 +37,21 @@ merge `main`, deploy a public endpoint, or infer HIL success.
 
 ## Proof sequence
 
-1. Run `/evi`, then invoke `/evi-01-boot`. As one atomic operation, call
+1. Run `/evi`. With no prepared State Travel handoff, `/evi-01-boot` is the
+   first normal action. As one atomic operation, call
    `runtime_doctor`, verify source/runtime version parity, verify the exact
    locked ENV/UOP manifest, locks, read-only SQLite checks, and warnings, then
    boot or resume the governed session. If any installation, Flash, project,
    pointer, storage, or session gate fails, stop the entire Boot.
-2. Verify the required host Google Drive connector with a read-only call and
-   keep it distinct from the direct ephemeral-server backend.
-3. Choose `/evi-02-git` or `/evi-03-local`. Register or enroll one exact
-   source/branch without overwriting existing lineage. A selected Git update
-   must be a clean, path-bounded fast-forward and must not perform a remote
-   write.
+2. If the selected route needs Drive, verify the declared host Google Drive
+   connector with a read-only call and keep it distinct from the direct
+   ephemeral-server backend. A durable local route does not require Drive.
+3. Inspect the Boot result's complete `ordered_source_intake_commands`, then
+   choose `/evi-02-git`, `/evi-03-local`, or another displayed lane. Register
+   or enroll one exact source/branch without overwriting existing lineage. A
+   selected Git update must be a clean, path-bounded fast-forward and must not
+   perform a remote write. Explicit branch replacement narrows authority to
+   the one already-checked-out branch and writes a receipt.
 4. Present all seventeen ordered source-intake commands before Build PV Entry.
    This includes `/evi-04-sqlite-pv-candidate-loader` and
    `/evi-17-project-engulf`. Keep the single `/evi-mode` control sidecar

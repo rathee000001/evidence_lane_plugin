@@ -29,10 +29,10 @@ outside every PV.
 | `SessionFlashAuthority` | Verify exact ENV/UOP members, locks, SQLite, and installation receipt | Cannot create a PV or infer HIL |
 | `ProjectStore` | Immutable candidates and accepted PVs, append-only Delta lifecycle ledger, derived Plan runtime projection, receipts, accepted history, and CAS pointer | Cannot infer a human decision or mutate the canonical Plan source sector |
 | `SessionManager` | Fresh-window State Travel, entry-PV verification, one writer, one active task, six-way HIL, rollback, and exact recovery transitions | Only exact `APPROVE` can promote a candidate; it cannot claim a host window opened |
-| `PromptIndex` and `UserPromptSubmit` hook | Bind host prompt/turn references to the current entry PV with SHA-256 evidence | Stores no raw prompt text and cannot move a pointer |
+| `PromptIndex`, `UserPromptSubmit`, and nonblocking `Stop` hooks | Bind secret-redacted visible prompt/response turns to the current entry PV with SHA-256 evidence | Stores no raw secret-bearing text or private reasoning, never continues a turn, and cannot move a pointer |
 | `PVReader` and `LaneReader` | Progressive validated reads over primary and lane SQLite authorities | Read-only; candidates are labeled unaccepted |
 | `PVSyncService` | Seal PV artifacts and persist bounded decisions plus generation-addressed pointer snapshots | Never uploads a raw clone or cache |
-| Required Google Drive app | Normal host OAuth and connector-mediated verified-mirror capability | Connector token never enters the Python MCP |
+| Declared Google Drive app | Normal host OAuth and connector-mediated verified-mirror capability when selected | Connector token never enters the Python MCP |
 | `RemoteGitController` | Prepare and execute one separately confirmed push | PV approval alone is insufficient |
 | `FastMCP` server | Universal tool contract for supported hosts | Host permissions and connectivity remain separate |
 
@@ -126,10 +126,11 @@ successful parse.
 ## PV and pointer law
 
 - PV1 is the only normal full-source build.
-- `/evi-00-state-travel` is displayed first. A prepared handoff requires a new
-  Codex task or ChatGPT chat, then runs the atomic Boot plus locked ENV/UOP
-  Flash verification and verifies accepted pointer generation, manifest, and
-  package seals before loading `entry_pv` and waiting.
+- `/evi-00-state-travel` is the conditional preflight when a prepared handoff
+  exists. It requires a new Codex task or ChatGPT chat, then runs atomic Boot
+  plus locked ENV/UOP Flash verification and verifies accepted pointer
+  generation, manifest, and package seals before loading `entry_pv` and
+  waiting. Otherwise `/evi-01-boot` is the first normal action.
 - PV2+ materializes from that accepted package and classifies every source as
   `UNCHANGED_REUSE`, `CHANGED_REBUILD`, `NEW_REGISTER`,
   `REMOVED_TOMBSTONE`, or `BLOCKED_UNSUPPORTED`.
@@ -149,10 +150,11 @@ successful parse.
 
 ## Authority order
 
-1. `/evi-00-state-travel`, including fresh-window Boot/Flash/pointer/seal
-   verification when an accepted handoff is pending.
-2. `/evi-01-boot`, which atomically verifies installed source, exact locked
-   ENV/UOP Flash outside PV, project/pointer identity, and session intent.
+1. Conditional `/evi-00-state-travel` only when an accepted handoff is
+   pending, including fresh-window Boot/Flash/pointer/seal verification.
+2. Otherwise `/evi-01-boot` is the first normal action. It atomically verifies
+   installed source, exact locked ENV/UOP Flash outside PV, project/pointer
+   identity, and session intent, then returns the ordered intake list.
 3. Seventeen ordered source-intake commands, beginning with Git, Local, and
    SQLite PV Candidate Loader and including Project Engulf; `/evi-mode` remains
    a separate anytime sidecar.
