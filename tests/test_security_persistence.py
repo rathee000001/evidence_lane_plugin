@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 from evidence_lane_plugin.cli import main as cli_main
 from evidence_lane_plugin.constants import ENGINE_VERSION
+from evidence_lane_plugin.engine_identity import git_source_commit
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.models import HostKind, normalize_host_kind
 from evidence_lane_plugin.persistence import (
@@ -24,7 +25,7 @@ from evidence_lane_plugin.sealing import (
 )
 from evidence_lane_plugin.service import EvidenceLaneService
 
-from .conftest import build_and_approve_pv1
+from .conftest import build_and_approve_pv1, git
 
 
 def test_secret_redaction_covers_common_tokens() -> None:
@@ -75,6 +76,49 @@ def test_doctor_reports_drive_as_capability_routed_not_globally_required(
         "HOST_OAUTH_OPTIONAL_UNTIL_PERSISTENCE_ROUTE_SELECTS_DRIVE"
     )
     assert report["google_drive"]["direct_server_backend_configured"] is False
+
+
+def test_installed_cache_reports_verified_marketplace_git_commit(
+    tmp_path: Path,
+) -> None:
+    codex_home = tmp_path / ".codex"
+    marketplace = codex_home / ".tmp" / "marketplaces" / "test-market"
+    source_plugin = marketplace / "plugins" / "test-plugin"
+    installed_plugin = (
+        codex_home / "plugins" / "cache" / "test-market" / "test-plugin" / "1.0.0"
+    )
+    source_plugin.mkdir(parents=True)
+    installed_plugin.mkdir(parents=True)
+    git(marketplace, "init", "-b", "main")
+    git(marketplace, "config", "user.name", "Evidence Lane Test")
+    git(marketplace, "config", "user.email", "evidence-lane@example.invalid")
+    (source_plugin / "plugin.json").write_text(
+        '{"name":"test-plugin"}\n',
+        encoding="utf-8",
+    )
+    git(marketplace, "add", ".")
+    git(marketplace, "commit", "-m", "Plugin fixture")
+    (installed_plugin / "plugin.json").write_bytes(
+        (source_plugin / "plugin.json").read_bytes()
+    )
+
+    expected = git(marketplace, "rev-parse", "HEAD").lower()
+    assert git_source_commit(installed_plugin) == expected
+
+    (installed_plugin / "plugin.json").write_text(
+        '{"name":"tampered"}\n',
+        encoding="utf-8",
+    )
+    assert git_source_commit(installed_plugin) == "UNCOMMITTED"
+
+    (source_plugin / "plugin.json").write_text(
+        '{"name":"dirty-marketplace"}\n',
+        encoding="utf-8",
+    )
+    (installed_plugin / "plugin.json").write_bytes(
+        (source_plugin / "plugin.json").read_bytes()
+    )
+    assert git_source_commit(installed_plugin) == "UNCOMMITTED"
 
 
 def test_host_aliases_are_actionable() -> None:

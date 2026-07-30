@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import sqlite3
 
@@ -15,6 +16,8 @@ from typing import Any
 from .constants import ENGINE_VERSION, SCHEMA_VERSION
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .models import EngineIdentity
+
+_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
 def source_tree_hash(package_root: str | Path) -> str:
@@ -49,19 +52,13 @@ def toolchain_manifest() -> dict[str, Any]:
     }
 
 
-def git_source_commit(repository_root: str | Path) -> str:
-    git_executable = shutil.which("git")
-    if not git_executable:
-        return "UNCOMMITTED"
-    # The executable is resolved locally and every argument is fixed or a trusted root.
-    completed = subprocess.run(  # nosec B603
-        [
-            git_executable,
-            "-C",
-            str(Path(repository_root).resolve()),
-            "rev-parse",
-            "HEAD",
-        ],
+def _run_git(
+    git_executable: str,
+    repository_root: Path,
+    arguments: list[str],
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(  # nosec B603
+        [git_executable, "-C", str(repository_root), *arguments],
         check=False,
         stdin=subprocess.DEVNULL,
         capture_output=True,
@@ -71,9 +68,92 @@ def git_source_commit(repository_root: str | Path) -> str:
         close_fds=True,
         creationflags=(subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0),
     )
-    return (
-        completed.stdout.strip().lower() if completed.returncode == 0 else "UNCOMMITTED"
+
+
+def _direct_git_commit(git_executable: str, repository_root: Path) -> str | None:
+    completed = _run_git(git_executable, repository_root, ["rev-parse", "HEAD"])
+    candidate = completed.stdout.strip().lower()
+    if completed.returncode == 0 and _COMMIT_RE.fullmatch(candidate):
+        return candidate
+    return None
+
+
+def _verified_codex_marketplace_commit(
+    git_executable: str,
+    installed_plugin_root: Path,
+) -> str | None:
+    """Bind one copied Codex cache to the exact Git marketplace snapshot."""
+
+    parents = installed_plugin_root.parents
+    if (
+        len(parents) < 5
+        or parents[2].name.casefold() != "cache"
+        or parents[3].name.casefold() != "plugins"
+    ):
+        return None
+    marketplace_name = parents[1].name
+    plugin_name = parents[0].name
+    codex_home = parents[4]
+    marketplace_root = (
+        codex_home / ".tmp" / "marketplaces" / marketplace_name
+    ).resolve()
+    source_plugin_root = (marketplace_root / "plugins" / plugin_name).resolve()
+    if not source_plugin_root.is_dir():
+        return None
+    commit = _direct_git_commit(git_executable, marketplace_root)
+    if commit is None:
+        return None
+    plugin_selector = f"plugins/{plugin_name}"
+    clean = _run_git(
+        git_executable,
+        marketplace_root,
+        ["diff", "--quiet", "HEAD", "--", plugin_selector],
     )
+    if clean.returncode != 0:
+        return None
+    tracked = _run_git(
+        git_executable,
+        marketplace_root,
+        ["ls-files", "-z", "--", plugin_selector],
+    )
+    if tracked.returncode != 0:
+        return None
+    tracked_paths = [item for item in tracked.stdout.split("\0") if item]
+    if not tracked_paths:
+        return None
+    tracked_prefix = Path("plugins") / plugin_name
+    installed_root = installed_plugin_root.resolve()
+    for tracked_path in tracked_paths:
+        try:
+            relative = Path(tracked_path).relative_to(tracked_prefix)
+            source = (marketplace_root / tracked_path).resolve()
+            installed = (installed_root / relative).resolve()
+            source.relative_to(source_plugin_root)
+            installed.relative_to(installed_root)
+        except ValueError:
+            return None
+        if (
+            not source.is_file()
+            or not installed.is_file()
+            or sha256_file(source) != sha256_file(installed)
+        ):
+            return None
+    return commit
+
+
+def git_source_commit(repository_root: str | Path) -> str:
+    git_executable = shutil.which("git")
+    if not git_executable:
+        return "UNCOMMITTED"
+    root = Path(repository_root).resolve()
+    direct = _direct_git_commit(git_executable, root)
+    if direct is not None:
+        return direct
+    marketplace = _verified_codex_marketplace_commit(
+        git_executable,
+        root,
+    )
+    return marketplace or "UNCOMMITTED"
 
 
 def build_engine_identity(

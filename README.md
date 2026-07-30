@@ -214,6 +214,11 @@ first MCP start performs the same hash-locked bootstrap inside the versioned
 cache. Bootstrap also updates the installation receipt to the running engine
 version while preserving its original installation time; that
 installation-scoped action neither creates a PV nor implies HIL approval.
+Because Codex copies a plugin out of its Git marketplace checkout, the runtime
+identity probe verifies every tracked plugin file against that checkout before
+reporting the marketplace `HEAD` as `engine.commit`. A missing checkout or any
+byte mismatch fails closed as `UNCOMMITTED`; the version label alone is never
+treated as commit provenance.
 
 All `serve` transports also activate the versioned installation receipt and
 create or verify the locked ENV15/UOP15 flash before accepting MCP traffic. For
