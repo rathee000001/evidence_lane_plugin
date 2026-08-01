@@ -15,8 +15,10 @@ import sqlite3
 import zipfile
 from collections import Counter
 from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import lru_cache
 from pathlib import Path
+from threading import Lock
 from typing import Any
 
 from defusedxml import ElementTree
@@ -54,8 +56,10 @@ MAX_ROWS_PER_TAB = 5000
 CHUNK_CHARS = 6000
 CHUNK_OVERLAP = 500
 TFIDF_TERMS_PER_CHUNK = 256
+MAX_PARALLEL_LANE_WORKERS = 8
 _TOKEN_RE = re.compile(r"[\w][\w.-]{1,63}", flags=re.UNICODE)
 _XML_TEXT_TAG = re.compile(r"}t$")
+_RAPIDOCR_CALL_LOCK = Lock()
 
 
 def _module_available(name: str) -> bool:
@@ -1547,14 +1551,18 @@ def _json_safe(value: Any) -> Any:
 
 
 def _rapidocr_lines(image_data: bytes) -> tuple[list[dict[str, Any]], str | None]:
-    cached = _rapidocr_engine()
-    if cached is None:
-        return [], "OCR_ENGINE_UNAVAILABLE"
-    engine_name, engine = cached
-    try:
-        result = engine(image_data)
-    except Exception as exc:  # noqa: BLE001 - external engine failure is evidence
-        return [], f"OCR_ENGINE_ERROR_{type(exc).__name__.upper()}"
+    # PDF and image lanes may build concurrently. The cached ONNX-backed OCR
+    # object is process-local and is not documented as safe for simultaneous
+    # calls, so only this shared external-engine boundary is serialized.
+    with _RAPIDOCR_CALL_LOCK:
+        cached = _rapidocr_engine()
+        if cached is None:
+            return [], "OCR_ENGINE_UNAVAILABLE"
+        engine_name, engine = cached
+        try:
+            result = engine(image_data)
+        except Exception as exc:  # noqa: BLE001 - external engine failure is evidence
+            return [], f"OCR_ENGINE_ERROR_{type(exc).__name__.upper()}"
     lines: list[dict[str, Any]] = []
     if hasattr(result, "txts"):
         texts_value = getattr(result, "txts", None)
@@ -3427,6 +3435,7 @@ def _build_one_lane(
     pointer_generation: int,
     recorded_at: str,
     history_enabled: bool,
+    source_snapshot: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
     output.mkdir(parents=True, exist_ok=False)
     tools = _tool_identity(lane)
@@ -3445,7 +3454,10 @@ def _build_one_lane(
         prior_connection.row_factory = sqlite3.Row
         prior_index = _source_index(prior_connection)
         prior_connection.close()
-    current_index = _current_index(root, paths)
+    current_index = {
+        path: source_snapshot[path]
+        for path in sorted(paths)
+    }
     classification = _classify(prior_index, current_index)
     current_git_signature = git_history_signature(root) if history_enabled else None
     prior_git_signature = None
@@ -3748,6 +3760,56 @@ def _bundle_graph(reports: list[dict[str, Any]]) -> tuple[str, str]:
     return "\n".join(mmd) + "\n", "\n".join(dot) + "\n"
 
 
+def _lane_source_binding(
+    output: Path,
+    routes: dict[str, str],
+    source_snapshot: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    """Verify every routed source hash against its completed lane database."""
+
+    observed: dict[str, str] = {}
+    duplicates: list[str] = []
+    for lane_id in CANONICAL_LANE_IDS:
+        lane = LANE_REGISTRY[lane_id]
+        database = output / lane_id / lane.sqlite_filename
+        connection = sqlite3.connect(
+            f"file:{database.resolve().as_posix()}?mode=ro&immutable=1",
+            uri=True,
+        )
+        try:
+            for path, source_sha256 in connection.execute(
+                "SELECT path,sha256 FROM source_registry ORDER BY path"
+            ):
+                normalized = str(path)
+                if normalized in observed:
+                    duplicates.append(normalized)
+                observed[normalized] = str(source_sha256)
+        finally:
+            connection.close()
+    expected = {
+        path: str(source_snapshot[path]["sha256"]) for path in sorted(routes)
+    }
+    mismatches = sorted(
+        path
+        for path in expected.keys() | observed.keys()
+        if expected.get(path) != observed.get(path)
+    )
+    valid = (
+        not duplicates
+        and not mismatches
+        and set(routes) == set(source_snapshot)
+    )
+    return {
+        "status": "PASS" if valid else "FAIL",
+        "valid": valid,
+        "expected_source_count": len(expected),
+        "observed_source_count": len(observed),
+        "duplicate_source_count": len(set(duplicates)),
+        "mismatch_count": len(mismatches),
+        "binding_sha256": sha256_bytes(canonical_json_bytes(observed)),
+    }
+
+
 def build_lane_bundle(
     *,
     repository_root: str | Path,
@@ -3759,12 +3821,17 @@ def build_lane_bundle(
     pointer_generation: int,
     source_overrides: dict[str, str] | None = None,
     git_mode: str = "AUTO",
+    max_lane_workers: int = MAX_PARALLEL_LANE_WORKERS,
 ) -> dict[str, Any]:
-    """Build PV1 fully or incrementally materialize PVn+1 from accepted PVn."""
+    """Build/Refresh lanes concurrently, then assemble one deterministic PV."""
 
     if code_mode not in PRIMARY_CODE_LANES:
         raise ValueError("code_mode must be github_code or local_code")
     root = Path(repository_root).resolve()
+    if not 1 <= max_lane_workers <= MAX_PARALLEL_LANE_WORKERS:
+        raise ValueError(
+            f"max_lane_workers must be between 1 and {MAX_PARALLEL_LANE_WORKERS}."
+        )
     git_arm = probe_git_arm(root, requested_mode=git_mode)
     git_history_available = bool(git_arm["history_index_enabled"])
     output = Path(output_directory).resolve()
@@ -3776,6 +3843,8 @@ def build_lane_bundle(
     parent = Path(parent_lane_bundle).resolve() if parent_lane_bundle else None
     recorded_at = utc_now()
     source_paths = [relative for relative, _ in iter_source_files(root)]
+    source_snapshot = _current_index(root, source_paths)
+    source_snapshot_sha256 = sha256_bytes(canonical_json_bytes(source_snapshot))
     inherited_routes: dict[str, str] = {}
     if parent and (parent / "routes.json").is_file():
         prior_routes = json.loads((parent / "routes.json").read_text(encoding="utf-8"))
@@ -3816,14 +3885,20 @@ def build_lane_bundle(
             "recorded_at": recorded_at,
         },
     )
-    reports: list[dict[str, Any]] = []
-    for lane_id in CANONICAL_LANE_IDS:
-        lane = LANE_REGISTRY[lane_id]
-        prior_lane = (
-            parent / lane_id if parent and (parent / lane_id).is_dir() else None
-        )
-        reports.append(
-            _build_one_lane(
+    reports_by_lane: dict[str, dict[str, Any]] = {}
+    effective_workers = min(max_lane_workers, len(CANONICAL_LANE_IDS))
+    with ThreadPoolExecutor(
+        max_workers=effective_workers,
+        thread_name_prefix="evidence-lane-build",
+    ) as executor:
+        futures = {}
+        for lane_id in CANONICAL_LANE_IDS:
+            lane = LANE_REGISTRY[lane_id]
+            prior_lane = (
+                parent / lane_id if parent and (parent / lane_id).is_dir() else None
+            )
+            future = executor.submit(
+                _build_one_lane,
                 root=root,
                 output=output / lane_id,
                 lane=lane,
@@ -3834,8 +3909,53 @@ def build_lane_bundle(
                 pointer_generation=pointer_generation,
                 recorded_at=recorded_at,
                 history_enabled=lane_id == code_mode and git_history_available,
+                source_snapshot=source_snapshot,
             )
+            futures[future] = lane_id
+        for future in as_completed(futures):
+            lane_id = futures[future]
+            reports_by_lane[lane_id] = future.result()
+    reports = [reports_by_lane[lane_id] for lane_id in CANONICAL_LANE_IDS]
+
+    final_source_paths = [relative for relative, _ in iter_source_files(root)]
+    final_source_snapshot = _current_index(root, final_source_paths)
+    final_source_snapshot_sha256 = sha256_bytes(
+        canonical_json_bytes(final_source_snapshot)
+    )
+    if final_source_snapshot != source_snapshot:
+        raise ValueError(
+            "Repository source snapshot changed during parallel lane build; "
+            "the partial output is not a candidate."
         )
+    source_binding = _lane_source_binding(output, routes, source_snapshot)
+    if not source_binding["valid"]:
+        raise ValueError(
+            "Completed lane databases do not bind the frozen source snapshot; "
+            "the partial output is not a candidate."
+        )
+    execution_receipt = {
+        "schema": "evidence-lane.parallel-lane-execution.v1",
+        "single_writer": True,
+        "linear_governance": True,
+        "parallel_lane_compute": effective_workers > 1,
+        "worker_count": effective_workers,
+        "submitted_lane_count": len(CANONICAL_LANE_IDS),
+        "deterministic_assembly_order": list(CANONICAL_LANE_IDS),
+        "barrier_status": "PASS",
+        "source_snapshot_sha256": source_snapshot_sha256,
+        "final_source_snapshot_sha256": final_source_snapshot_sha256,
+        "source_snapshot_unchanged": True,
+        "source_binding": source_binding,
+        "serialized_authorities": [
+            "chat_lineage_append",
+            "hil_decision",
+            "fuse",
+            "accepted_pointer_move",
+            "rollback",
+        ],
+        "recorded_at": recorded_at,
+    }
+    atomic_write_json(output / "execution_receipt.json", execution_receipt)
     mmd, dot = _bundle_graph(reports)
     atomic_write_bytes(output / "project_lane_topology.mmd", mmd.encode("utf-8"))
     atomic_write_bytes(output / "project_lane_topology.dot", dot.encode("utf-8"))
@@ -3876,6 +3996,7 @@ def build_lane_bundle(
             None,
         ),
         "git_optional_arm": git_arm,
+        "parallel_execution": execution_receipt,
     }
     manifest = {
         "schema": LANE_BUNDLE_SCHEMA,
@@ -3888,6 +4009,8 @@ def build_lane_bundle(
         "lane_count": len(reports),
         "source_count": len(source_paths),
         "source_routes_sha256": sha256_bytes(canonical_json_bytes(routes)),
+        "source_snapshot_sha256": source_snapshot_sha256,
+        "parallel_execution": execution_receipt,
         "reports": reports,
         "summary": summary,
         "created_at": recorded_at,
@@ -3917,6 +4040,9 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     registry = json.loads((root / "registry.json").read_text(encoding="utf-8"))
     routes = json.loads((root / "routes.json").read_text(encoding="utf-8"))
+    execution = json.loads(
+        (root / "execution_receipt.json").read_text(encoding="utf-8")
+    )
     checksums = json.loads((root / "SHA256SUMS.json").read_text(encoding="utf-8"))
     declared_members = checksums.get("members", {})
     actual_members = {
@@ -4007,6 +4133,21 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
     route_values_valid = all(
         lane_id in LANE_REGISTRY for lane_id in routes.get("routes", {}).values()
     )
+    execution_valid = (
+        execution.get("schema") == "evidence-lane.parallel-lane-execution.v1"
+        and execution.get("single_writer") is True
+        and execution.get("linear_governance") is True
+        and execution.get("barrier_status") == "PASS"
+        and execution.get("source_snapshot_unchanged") is True
+        and execution.get("source_snapshot_sha256")
+        == execution.get("final_source_snapshot_sha256")
+        and execution.get("source_binding", {}).get("valid") is True
+        and execution.get("deterministic_assembly_order")
+        == list(CANONICAL_LANE_IDS)
+        and manifest.get("parallel_execution") == execution
+        and manifest.get("source_snapshot_sha256")
+        == execution.get("source_snapshot_sha256")
+    )
     valid = (
         manifest.get("schema") == LANE_BUNDLE_SCHEMA
         and checksums.get("schema") == "evidence-lane.recursive-sha256.v1"
@@ -4024,6 +4165,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         and manifest.get("source_routes_sha256")
         == sha256_bytes(canonical_json_bytes(routes.get("routes", {})))
         and manifest.get("lane_count") == len(CANONICAL_LANE_IDS)
+        and execution_valid
         and not lane_manifest_errors
         and all(report["valid"] for report in lane_reports.values())
     )
@@ -4039,4 +4181,5 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         "checksum_mismatches": checksum_mismatches,
         "lane_manifest_errors": lane_manifest_errors,
         "source_routes_valid": route_values_valid,
+        "parallel_execution_valid": execution_valid,
     }

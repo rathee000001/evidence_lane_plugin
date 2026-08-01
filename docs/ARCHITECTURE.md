@@ -1,6 +1,6 @@
 # Architecture
 
-Evidence Lane 0.8.0 separates public controls, lifecycle APIs, brain artifacts,
+Evidence Lane 0.8.1 separates public controls, lifecycle APIs, brain artifacts,
 host storage, and human authority.
 
 ## Control plane
@@ -52,6 +52,15 @@ Every lane emits:
 - tool and parser identity;
 - pointer and refresh evidence;
 - a content-sealed manifest.
+
+Independent lane computation is bounded to at most eight in-process workers.
+All workers read one pre-hashed source snapshot and write only their assigned
+lane directory. The main writer waits at a fail-closed barrier, re-hashes the
+repository, verifies that every routed source hash is present in exactly one
+lane SQLite brain, and assembles manifests in canonical registry order. Refresh
+uses the same path, so only changed lanes perform incremental work while
+unchanged lanes byte-reuse accepted artifacts. Chat Lineage append, HIL, Fuse,
+accepted-pointer movement, rollback, and State Travel never run concurrently.
 
 Git code lanes enumerate all reachable commits and refs, preserve exact blob
 bytes, record file changes, reuse blob/chunk CAS, store occurrences, and build

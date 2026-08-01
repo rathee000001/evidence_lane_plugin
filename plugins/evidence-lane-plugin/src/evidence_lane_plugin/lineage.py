@@ -54,6 +54,51 @@ def _actor_for(event_type: str) -> str:
     return "system"
 
 
+def _projection_view(
+    event: dict[str, Any], fallback_index: int
+) -> dict[str, Any]:
+    """Derive projection-only fields without changing the source event.
+
+    ChatLineage JSONL written before the SQLite projection existed does not
+    contain the later projection metadata.  Those source events remain valid
+    immutable evidence: their canonical bytes and event hashes must not be
+    rewritten merely to populate a derived index.
+    """
+
+    raw_index = event.get("_projection_lineage_index")
+    if raw_index is None:
+        raw_index = event.get("lineage_index")
+    lineage_index = int(raw_index or fallback_index)
+    require(
+        lineage_index > 0,
+        "LINEAGE_PROJECTION_INDEX_INVALID",
+        "ChatLineage projection indexes must be positive.",
+        status="FAIL",
+        event_id=event.get("event_id"),
+        lineage_index=lineage_index,
+    )
+    visible_payload = event.get("visible_payload") or {}
+    computed_visible_sha256 = sha256_bytes(canonical_json_bytes(visible_payload))
+    recorded_visible_sha256 = event.get("visible_payload_sha256")
+    require(
+        recorded_visible_sha256 in (None, computed_visible_sha256),
+        "LINEAGE_VISIBLE_PAYLOAD_HASH_MISMATCH",
+        "ChatLineage visible-payload hash does not match its source payload.",
+        status="MISMATCH",
+        event_id=event.get("event_id"),
+    )
+    event_type = str(event.get("event_type") or "")
+    return {
+        "lineage_index": lineage_index,
+        "actor_type": str(event.get("actor_type") or _actor_for(event_type)),
+        "token_metrics": event.get("token_metrics")
+        or {"availability": "UNAVAILABLE"},
+        "visible_payload": visible_payload,
+        "visible_payload_sha256": recorded_visible_sha256
+        or computed_visible_sha256,
+    }
+
+
 class ChatLineage:
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path)
@@ -191,14 +236,15 @@ class ChatLineage:
                     "INSERT INTO lineage_meta(key,value) VALUES('schema',?)",
                     (LINEAGE_SQLITE_SCHEMA,),
                 )
-                for event in events:
+                for fallback_index, event in enumerate(events, start=1):
+                    projection = _projection_view(event, fallback_index)
                     visible_payload = json.dumps(
-                        event.get("visible_payload") or {},
+                        projection["visible_payload"],
                         sort_keys=True,
                         separators=(",", ":"),
                     )
                     token_metrics = json.dumps(
-                        event.get("token_metrics") or {"availability": "UNAVAILABLE"},
+                        projection["token_metrics"],
                         sort_keys=True,
                         separators=(",", ":"),
                     )
@@ -214,18 +260,18 @@ class ChatLineage:
                         """,
                         (
                             event["event_id"],
-                            event["lineage_index"],
+                            projection["lineage_index"],
                             event["event_type"],
                             event["occurred_at"],
                             event["session_id"],
                             event.get("task_id"),
                             event.get("run_id"),
-                            event["actor_type"],
+                            projection["actor_type"],
                             event.get("model"),
                             event.get("submodel"),
                             token_metrics,
                             visible_payload,
-                            event["visible_payload_sha256"],
+                            projection["visible_payload_sha256"],
                             event.get("previous_event_sha256"),
                             event["event_sha256"],
                         ),
@@ -235,7 +281,7 @@ class ChatLineage:
                         (
                             event["event_id"],
                             event["event_type"],
-                            event["actor_type"],
+                            projection["actor_type"],
                             event.get("model") or "",
                             visible_payload,
                         ),
@@ -511,12 +557,19 @@ class ProjectChatLineage:
         if not self.root.is_dir():
             return events
         for path in sorted(self.root.glob("*.jsonl"), key=lambda item: item.name):
-            events.extend(ChatLineage(path).events())
+            for fallback_index, source_event in enumerate(
+                ChatLineage(path).events(), start=1
+            ):
+                event = dict(source_event)
+                event["_projection_lineage_index"] = int(
+                    source_event.get("lineage_index") or fallback_index
+                )
+                events.append(event)
         events.sort(
             key=lambda item: (
                 str(item.get("occurred_at") or ""),
                 str(item.get("session_id") or ""),
-                int(item.get("lineage_index") or 0),
+                int(item.get("_projection_lineage_index") or 0),
                 str(item.get("event_id") or ""),
             )
         )
@@ -602,6 +655,7 @@ class ProjectChatLineage:
                 connection.execute("DELETE FROM project_lineage_head")
                 previous_state: str | None = None
                 for index, event in enumerate(events, start=1):
+                    projection = _projection_view(event, index)
                     state_payload = {
                         "schema": PROJECT_LINEAGE_SQLITE_SCHEMA,
                         "global_index": index,
@@ -610,12 +664,12 @@ class ProjectChatLineage:
                     }
                     state_sha256 = sha256_bytes(canonical_json_bytes(state_payload))
                     token_metrics = json.dumps(
-                        event.get("token_metrics") or {"availability": "UNAVAILABLE"},
+                        projection["token_metrics"],
                         sort_keys=True,
                         separators=(",", ":"),
                     )
                     visible_payload = json.dumps(
-                        event.get("visible_payload") or {},
+                        projection["visible_payload"],
                         sort_keys=True,
                         separators=(",", ":"),
                     )
@@ -629,17 +683,17 @@ class ProjectChatLineage:
                             event["event_id"],
                             index,
                             event["session_id"],
-                            event["lineage_index"],
+                            projection["lineage_index"],
                             event["event_type"],
                             event["occurred_at"],
                             event.get("task_id"),
                             event.get("run_id"),
-                            event["actor_type"],
+                            projection["actor_type"],
                             event.get("model"),
                             event.get("submodel"),
                             token_metrics,
                             visible_payload,
-                            event["visible_payload_sha256"],
+                            projection["visible_payload_sha256"],
                             event.get("previous_event_sha256"),
                             event["event_sha256"],
                             previous_state,
@@ -651,7 +705,7 @@ class ProjectChatLineage:
                         (
                             event["event_id"],
                             event["event_type"],
-                            event["actor_type"],
+                            projection["actor_type"],
                             event.get("model") or "",
                             visible_payload,
                         ),

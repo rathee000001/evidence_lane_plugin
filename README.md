@@ -13,7 +13,7 @@
   &nbsp;·&nbsp;
   <a href="docs/REMOTE_DEPLOYMENT.md">ChatGPT deployment</a>
   &nbsp;·&nbsp;
-  <a href="docs/DELTA_001_042_TRACEABILITY.md">Delta traceability</a>
+  <a href="docs/DELTA_001_043_TRACEABILITY.md">Delta traceability</a>
   &nbsp;·&nbsp;
   <a href="SECURITY.md">Security</a>
 </p>
@@ -22,7 +22,7 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane Plugin 0.8.0
+# Evidence Lane Plugin 0.8.1
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex, with a
 durable remote MCP boundary for ChatGPT. It turns visible project sources and
@@ -113,6 +113,14 @@ Every lane package contains and verifies:
   manifest;
 - content hashes that bind every required member.
 
+Build and Refresh use one bounded in-process worker pool to compute independent
+lane packages concurrently from one hash-frozen source snapshot. A barrier then
+rechecks the repository snapshot, verifies every lane database against its
+routed source hashes, and assembles reports in canonical lane order. This is
+compute parallelism inside one writer and one linear task; Chat Lineage append,
+HIL, Fuse, accepted-pointer movement, rollback, and State Travel remain serial
+authorities. A failed worker or changed source snapshot produces no candidate.
+
 Git code lanes index reachable commits, refs, changes, exact blobs,
 content-addressed chunks, occurrences, and history FTS. Incremental Refresh
 reuses a single accepted index, reindexes changed sections only, records chunk
@@ -168,7 +176,7 @@ python -m venv .venv
 Build the durable MCP container with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:0.8.0 .
+docker build --pull --tag evidence-lane-plugin:0.8.1 .
 ```
 
 The container exposes `/mcp` and `/healthz` on port 8080 and requires one writer

@@ -5,7 +5,13 @@ from pathlib import Path
 
 import pytest
 from evidence_lane_plugin.connector_governance import ConnectorGovernance
+from evidence_lane_plugin.constants import LINEAGE_SCHEMA
 from evidence_lane_plugin.errors import EvidenceLaneError
+from evidence_lane_plugin.hashing import (
+    atomic_write_bytes,
+    canonical_json_bytes,
+    sha256_bytes,
+)
 from evidence_lane_plugin.lineage import LINEAGE_SQLITE_SCHEMA, ChatLineage
 
 from .conftest import boot_local
@@ -55,6 +61,65 @@ def test_chat_lineage_sqlite_is_hash_bound_searchable_and_secret_free(
         == 4
     )
     connection.close()
+
+
+def test_chat_lineage_projects_legacy_events_without_rewriting_source(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "lineage" / "legacy-session.jsonl"
+    legacy = {
+        "schema": LINEAGE_SCHEMA,
+        "event_id": "legacy-user-prompt",
+        "event_type": "user.prompt",
+        "occurred_at": "2026-07-30T12:00:00Z",
+        "session_id": "legacy-session",
+        "task_id": None,
+        "run_id": None,
+        "visible_payload": {"prompt": "preserve this legacy event"},
+    }
+    legacy["event_sha256"] = sha256_bytes(canonical_json_bytes(legacy))
+    original = canonical_json_bytes(legacy)
+    atomic_write_bytes(path, original)
+
+    lineage = ChatLineage(path)
+    appended = lineage.append(
+        event_type="assistant.response",
+        visible_payload={"output": "projection compatibility restored"},
+        occurred_at="2026-08-01T12:00:00Z",
+        session_id="legacy-session",
+        event_id="new-assistant-response",
+        actor_type="assistant",
+    )
+
+    updated = path.read_bytes()
+    assert updated.startswith(original)
+    assert lineage.events()[0] == legacy
+    assert appended["lineage_index"] == 2
+    assert appended["previous_event_sha256"] == legacy["event_sha256"]
+    status = lineage.projection_status()
+    assert status["event_count"] == 2
+    assert status["project_authority"]["event_count"] == 2
+
+    connection = sqlite3.connect(lineage.sqlite_path)
+    rows = connection.execute(
+        "SELECT event_id,lineage_index,actor_type,visible_payload_sha256 "
+        "FROM lineage_event ORDER BY lineage_index"
+    ).fetchall()
+    connection.close()
+    assert rows == [
+        (
+            "legacy-user-prompt",
+            1,
+            "user",
+            sha256_bytes(canonical_json_bytes(legacy["visible_payload"])),
+        ),
+        (
+            "new-assistant-response",
+            2,
+            "assistant",
+            appended["visible_payload_sha256"],
+        ),
+    ]
 
 
 def test_flash_projection_is_digest_keyed_and_outside_pv(service) -> None:

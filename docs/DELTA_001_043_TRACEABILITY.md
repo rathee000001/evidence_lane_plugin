@@ -1,4 +1,4 @@
-# Delta 001-042 implementation traceability
+# Delta 001-043 implementation traceability
 
 This matrix follows the immutable backlog order. `IMPLEMENTED` means the
 bounded source behavior and its local verification exist in this branch. It
@@ -50,10 +50,11 @@ separate release/HIL evidence.
 | 040 | `EL-INDEPENDENT-RND-NAMING-POC-DELTA-040` | independent Evidence Lane R&D method/report generator boundary | no third-party identity or borrowed questions; real audit report built after install |
 | 041 | `EL-VERCEL-ROUTE-RELEASE-IDENTITY-DELTA-041` | public path recovery, root descriptor, exact Git/expected/origin SHA checks | adapter route/health/fail-closed tests and final preview probes |
 | 042 | `EL-DETACHABLE-BOOT-PLUGIN-SIDECAR-BRANDING-DELTA-042` | runtime detach/reattach, admin sidecars, supplied logo/icon, proprietary rights and accurate credits | plugin validation, runtime hook tests, asset hashes, README/license review |
+| 043 | `EL-DETERMINISTIC-PARALLEL-LANE-BUILD-REFRESH-DELTA-043` | bounded in-process lane compute from one source snapshot, fail-closed barrier, canonical assembly | actual thread overlap, source-hash binding, deterministic report order, changed-snapshot failure, full-suite regression |
 
 ## Decision boundary
 
-The batch implementation receipt may move these tasks only to `DONE`. It does
+The batch implementation receipt may move these 43 tasks only to `DONE`. It does
 not map them to `ACCEPTED`, does not accept the new PV candidate, and does not
 move the accepted pointer. The six-way HIL remains mandatory; only a later exact
 case-sensitive `APPROVE` may authorize Fuse.

@@ -6,10 +6,12 @@ import io
 import json
 import shutil
 import sqlite3
+import threading
 import zipfile
 from dataclasses import replace
 from pathlib import Path
 
+import evidence_lane_plugin.lane_engine as lane_engine_module
 import evidence_lane_plugin.lanes as lanes_module
 import pytest
 from evidence_lane_plugin.forensic_audit import (
@@ -808,6 +810,93 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
     assert first_bm25 and first_tfidf
     assert first_bm25 == second_bm25
     assert first_tfidf == second_tfidf
+
+
+def test_lane_build_parallelizes_compute_and_serializes_canonical_assembly(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "source"
+    repository.mkdir()
+    (repository / "guide.md").write_text(
+        "# Parallel lane test\nOne writer, deterministic barrier.\n",
+        encoding="utf-8",
+    )
+    original = lane_engine_module._build_one_lane
+    first_two = threading.Barrier(2, timeout=10)
+    state_lock = threading.Lock()
+    state = {"arrivals": 0}
+
+    def observed_build(**kwargs):
+        with state_lock:
+            state["arrivals"] += 1
+            wait_at_barrier = state["arrivals"] <= 2
+        if wait_at_barrier:
+            first_two.wait()
+        return original(**kwargs)
+
+    monkeypatch.setattr(lane_engine_module, "_build_one_lane", observed_build)
+    output = tmp_path / "parallel-bundle"
+    manifest = build_lane_bundle(
+        repository_root=repository,
+        output_directory=output,
+        code_mode="local_code",
+        parent_lane_bundle=None,
+        parent_pv=None,
+        proposed_pv="PV-PARALLEL",
+        pointer_generation=0,
+        max_lane_workers=4,
+    )
+
+    execution = manifest["parallel_execution"]
+    assert state["arrivals"] == len(CANONICAL_LANE_IDS)
+    assert first_two.broken is False
+    assert execution["parallel_lane_compute"] is True
+    assert execution["worker_count"] == 4
+    assert execution["barrier_status"] == "PASS"
+    assert execution["source_snapshot_unchanged"] is True
+    assert execution["source_binding"]["valid"] is True
+    assert execution["deterministic_assembly_order"] == list(CANONICAL_LANE_IDS)
+    assert [row["lane_id"] for row in manifest["reports"]] == list(
+        CANONICAL_LANE_IDS
+    )
+    assert validate_lane_bundle(output)["parallel_execution_valid"] is True
+
+
+def test_lane_build_fails_closed_when_source_snapshot_changes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "source"
+    repository.mkdir()
+    (repository / "guide.md").write_text("# Initial source\n", encoding="utf-8")
+    original = lane_engine_module._build_one_lane
+    state_lock = threading.Lock()
+    state = {"mutated": False}
+
+    def mutating_build(**kwargs):
+        result = original(**kwargs)
+        with state_lock:
+            if not state["mutated"]:
+                (repository / "mid-build-steer.md").write_text(
+                    "This source arrived during the lane barrier.\n",
+                    encoding="utf-8",
+                )
+                state["mutated"] = True
+        return result
+
+    monkeypatch.setattr(lane_engine_module, "_build_one_lane", mutating_build)
+    output = tmp_path / "changed-source-bundle"
+    with pytest.raises(ValueError, match="source snapshot changed"):
+        build_lane_bundle(
+            repository_root=repository,
+            output_directory=output,
+            code_mode="local_code",
+            parent_lane_bundle=None,
+            parent_pv=None,
+            proposed_pv="PV-CHANGED",
+            pointer_generation=0,
+            max_lane_workers=4,
+        )
+    assert not (output / "manifest.json").exists()
 
 
 def test_pv1_full_build_and_pvn_incremental_lane_reuse(tmp_path: Path) -> None:
