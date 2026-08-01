@@ -1,7 +1,22 @@
-# Proprietary source
+# Proprietary source license and rights notice
 
-Copyright (c) 2026 Praveen Rathee. All rights reserved.
+Copyright © 2026 Praveen Rathee. All rights reserved.
 
-This private repository is not licensed for redistribution, sublicensing, or
-public use. No patent, trademark, copyright, trade-secret, or other intellectual
-property rights are transferred by access to this repository.
+The Evidence Lane source, documentation, original artwork, schemas, lifecycle
+design, and project-specific artifacts in this repository are proprietary unless
+a file expressly states otherwise. Access for evaluation, private collaboration,
+or testing does not grant permission to copy, redistribute, publish, sublicense,
+commercialize, create derivative releases, or expose private project material.
+
+No patent, trademark, copyright, trade-secret, database, or other intellectual
+property right is transferred by access to this repository. No HIL decision,
+candidate package, Git branch, installation, or deployment changes that rule.
+
+Third-party libraries, platforms, names, and trademarks remain governed by
+their respective licenses and owners. Their inclusion or use does not transfer
+ownership of Evidence Lane, and this notice does not replace their license
+terms. Model and tool assistance does not create project authorship or acceptance
+authority.
+
+For permission beyond private evaluation, obtain a separate written agreement
+from Praveen Rathee.

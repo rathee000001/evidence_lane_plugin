@@ -149,6 +149,7 @@ def build_pv_package(
         lineage.copy_from(lineage_source)
     else:
         atomic_write_bytes(output / "chat_lineage.jsonl", b"")
+        lineage.projection_status()
 
     overlay_validation = None
     if lane_bundle_path:
@@ -184,6 +185,7 @@ def build_pv_package(
         "active_pointer.json",
         "project_identity.json",
         "chat_lineage.jsonl",
+        "chat_lineage.sqlite",
         "entry_slip.json",
         "exit_slip.json",
     ]

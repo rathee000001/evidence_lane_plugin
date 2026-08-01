@@ -27,6 +27,42 @@ def _store_root() -> Path:
     ).resolve()
 
 
+def _runtime_activation(root: Path) -> dict[str, Any]:
+    path = root / "installation" / "runtime_activation.json"
+    if not path.is_file():
+        return {"state": "DETACHED", "active_sessions": []}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError):
+        return {
+            "state": "DETACHED",
+            "active_sessions": [],
+            "reason": "RUNTIME_ACTIVATION_RECEIPT_INVALID",
+        }
+    sessions = payload.get("active_sessions")
+    if (
+        payload.get("schema") != "evidence-lane.runtime-activation.v1"
+        or payload.get("plugin_id") != "evidence-lane-plugin"
+        or payload.get("state") != "ACTIVE"
+        or not isinstance(sessions, list)
+        or not sessions
+        or payload.get("prompt_capture_active") is not True
+    ):
+        return {"state": "DETACHED", "active_sessions": []}
+    return payload
+
+
+def _binding_is_attached(
+    activation: dict[str, Any], binding: dict[str, Any]
+) -> bool:
+    return any(
+        row.get("project_id") == binding.get("project_id")
+        and row.get("session_id") == binding.get("evidence_session_id")
+        for row in activation.get("active_sessions", [])
+        if isinstance(row, dict)
+    )
+
+
 def _canonical_bytes(value: dict[str, Any]) -> bytes:
     return (
         json.dumps(
@@ -223,6 +259,16 @@ def _append_lineage(
         )
         events.append(event)
         _atomic_write(lineage_path, b"".join(_canonical_bytes(item) for item in events))
+        try:
+            from evidence_lane_plugin.lineage import ChatLineage
+
+            ChatLineage(lineage_path).projection_status()
+        except Exception as projection_error:  # noqa: BLE001 - hook fails open
+            if os.environ.get("EVIDENCE_LANE_HOOK_DEBUG") == "1":
+                print(
+                    f"EVIDENCE_LANE_LINEAGE_PROJECTION={type(projection_error).__name__}",
+                    file=sys.stderr,
+                )
         return event
     finally:
         os.close(lock_descriptor)
@@ -242,6 +288,7 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
             "reason": "HOST_SESSION_OR_TURN_ID_MISSING",
         }
     root = _store_root()
+    activation = _runtime_activation(root)
     binding = _active_binding(
         root,
         host_session_id=host_session_id,
@@ -251,6 +298,18 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
         return {
             "state": "NOT_INDEXED",
             "reason": "NO_BOUND_EVIDENCE_LANE_SESSION",
+            "raw_prompt_stored": False,
+        }
+    if activation.get("state") != "ACTIVE":
+        return {
+            "state": "NOT_INDEXED",
+            "reason": "EVIDENCE_LANE_RUNTIME_DETACHED",
+            "raw_prompt_stored": False,
+        }
+    if not _binding_is_attached(activation, binding):
+        return {
+            "state": "NOT_INDEXED",
+            "reason": "GOVERNED_SESSION_NOT_RUNTIME_ATTACHED",
             "raw_prompt_stored": False,
         }
     host_key = f"host-{_sha256(host_session_id.encode('utf-8'))[:40].lower()}"

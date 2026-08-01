@@ -65,6 +65,54 @@ def _plugin_version_context() -> dict[str, object]:
         }
 
 
+def _runtime_activation() -> dict[str, object]:
+    path = _store_root() / "installation" / "runtime_activation.json"
+    if not path.is_file():
+        return {
+            "schema": "evidence-lane.runtime-activation.v1",
+            "state": "DETACHED",
+            "active_sessions": [],
+            "flash_context_attached": False,
+            "prompt_capture_active": False,
+            "visible_response_capture_active": False,
+        }
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        return {
+            "schema": "evidence-lane.runtime-activation.v1",
+            "state": "DETACHED",
+            "active_sessions": [],
+            "flash_context_attached": False,
+            "prompt_capture_active": False,
+            "visible_response_capture_active": False,
+            "receipt_state": "INVALID_FAIL_CLOSED",
+            "error_type": type(exc).__name__,
+        }
+    sessions = payload.get("active_sessions")
+    valid = (
+        payload.get("schema") == "evidence-lane.runtime-activation.v1"
+        and payload.get("plugin_id") == "evidence-lane-plugin"
+        and payload.get("state") == "ACTIVE"
+        and isinstance(sessions, list)
+        and bool(sessions)
+        and payload.get("flash_context_attached") is True
+        and payload.get("prompt_capture_active") is True
+        and payload.get("visible_response_capture_active") is True
+    )
+    if not valid:
+        return {
+            "schema": "evidence-lane.runtime-activation.v1",
+            "state": "DETACHED",
+            "active_sessions": [],
+            "flash_context_attached": False,
+            "prompt_capture_active": False,
+            "visible_response_capture_active": False,
+            "receipt_state": "DETACHED_OR_INVALID_FAIL_CLOSED",
+        }
+    return payload
+
+
 def _flash_context() -> str:
     prompt_path = (
         _plugin_root()
@@ -253,8 +301,20 @@ def main() -> int:
         payload = {}
     source = str(payload.get("source", "startup"))
     host_session_id = str(payload.get("session_id", "")).strip()
-    context = (
+    activation = _runtime_activation()
+    flash_context = (
         _flash_context()
+        if activation.get("state") == "ACTIVE"
+        else (
+            "EVIDENCE_LANE_RUNTIME=DETACHED\n"
+            "The plugin remains installed, but ENV/UOP Flash context and visible "
+            "prompt/response capture are detached. Run /evi-boot to atomically "
+            "verify Flash and activate or resume a governed session. Do not infer "
+            "HIL approval, Fuse, pointer movement, or State Travel."
+        )
+    )
+    context = (
+        flash_context
         + "\n\nPLUGIN_RUNTIME_ENVELOPE="
         + json.dumps(
             _plugin_version_context(),
@@ -296,8 +356,14 @@ def main() -> int:
             sort_keys=True,
             separators=(",", ":"),
         )
+        + "\nRUNTIME_ACTIVATION_ENVELOPE="
+        + json.dumps(
+            activation,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
         + "\nThis envelope is a read-only startup hint. Call pv_status before "
-        "relying on it; never infer HIL approval."
+        "relying on it; Never infer HIL approval."
     )
     print(
         json.dumps(

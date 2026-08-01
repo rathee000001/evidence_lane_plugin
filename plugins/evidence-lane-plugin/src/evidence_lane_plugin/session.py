@@ -33,6 +33,7 @@ from .next_actions import (
 from .prompt_index import PromptIndex, is_prompt_reference
 from .pv_package import validate_pv_package
 from .redaction import redact
+from .runtime_activation import RuntimeActivation
 from .state_law import LifecycleEvent, transition
 from .store import ProjectStore
 from .tasking import classify_task
@@ -70,9 +71,16 @@ def _normalize_pv_target(value: str) -> str:
 
 
 class SessionManager:
-    def __init__(self, store: ProjectStore, engine: CodePVEngine) -> None:
+    def __init__(
+        self,
+        store: ProjectStore,
+        engine: CodePVEngine,
+        *,
+        runtime_activation: RuntimeActivation,
+    ) -> None:
         self.store = store
         self.engine = engine
+        self.runtime_activation = runtime_activation
 
     def _session_path(self, project_id: str, session_id: str) -> Path:
         root = self.store.project_root(project_id)
@@ -495,6 +503,36 @@ class SessionManager:
             occurred_at=now,
             session_id=session_id,
         )
+        try:
+            runtime_activation = self.runtime_activation.activate(
+                project_id=project_id,
+                session_id=session_id,
+                host_session_id=exact_host_session_id,
+                flash=flash,
+            )
+        except Exception:
+            # A boot without live attachment is not an active governed runtime.
+            # Preserve the failed attempt for audit, release the one-session gate,
+            # and fail closed so a later Boot can retry atomically.
+            session.metadata["closed_at"] = utc_now()
+            session.metadata["close_reason"] = "RUNTIME_ACTIVATION_FAILED"
+            self._save(session)
+            if active_path.is_file():
+                active_payload = json.loads(active_path.read_text(encoding="utf-8"))
+                if active_payload.get("session_id") == session_id:
+                    active_path.unlink()
+            lineage.append(
+                event_type="session.boot.runtime_activation_failed",
+                visible_payload={
+                    "session_id": session_id,
+                    "active_session_released": True,
+                    "pointer_moved": False,
+                    "hil_approval_inferred": False,
+                },
+                occurred_at=utc_now(),
+                session_id=session_id,
+            )
+            raise
         session.state = transition(
             session.state,
             LifecycleEvent.FLASH_VERIFIED,
@@ -545,6 +583,7 @@ class SessionManager:
             "session": session.as_dict(),
             "installation": installation,
             "session_flash": flash,
+            "runtime_activation": runtime_activation,
             "entry_action": entry_action,
             "ordered_source_intake_commands": list(SOURCE_INTAKE_COMMANDS),
             "suggested_next_prompt": next_action_contract["suggested_next_prompt"],
@@ -576,6 +615,7 @@ class SessionManager:
         client_can_edit_source: bool | None = None,
         server_has_durable_filesystem: bool | None = None,
         runtime_context: dict[str, Any] | None = None,
+        flash: dict[str, Any],
     ) -> dict[str, Any]:
         """Bind a fresh host prompt session to the one persistent governed session."""
         active_path = self._active_path(project_id)
@@ -659,6 +699,12 @@ class SessionManager:
             occurred_at=now,
             session_id=session.session_id,
         )
+        runtime_activation = self.runtime_activation.activate(
+            project_id=project_id,
+            session_id=session.session_id,
+            host_session_id=exact_host_session_id,
+            flash=flash,
+        )
         if session.state in {SessionState.PV1_CANDIDATE, SessionState.PVN1_CANDIDATE}:
             entry_action = "PRESENT_PENDING_HIL"
         elif session.state in {
@@ -683,6 +729,7 @@ class SessionManager:
             "suggested_next_prompt": next_action_contract["suggested_next_prompt"],
             "next_action_contract": next_action_contract,
             "event": event,
+            "runtime_activation": runtime_activation,
         }
 
     def build_initial_entry(self, project_id: str, session_id: str) -> dict[str, Any]:
@@ -1300,7 +1347,14 @@ class SessionManager:
             "confirmation": confirmation,
         }
 
-    def refresh_exit(self, project_id: str, session_id: str) -> dict[str, Any]:
+    def refresh_exit(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        batch_task_evidence: list[dict[str, Any]] | None = None,
+        batch_completion_confirmation: str | None = None,
+    ) -> dict[str, Any]:
         session = self.load(project_id, session_id)
         require(
             session.task is not None
@@ -1320,6 +1374,31 @@ class SessionManager:
             "The host must explicitly confirm its final source state before Refresh.",
             status="BLOCKED",
         )
+        batch_requested = (
+            batch_task_evidence is not None
+            or batch_completion_confirmation is not None
+        )
+        batch_preflight: dict[str, Any] | None = None
+        if batch_requested:
+            require(
+                batch_task_evidence is not None
+                and batch_completion_confirmation is not None
+                and not session.metadata.get("active_backlog_task_id"),
+                "BATCH_DELTA_REFRESH_ARGUMENTS_INVALID",
+                "Batch completion requires both exact evidence and confirmation and cannot replace one claimed Delta.",
+                status="BLOCKED",
+            )
+            exact_batch_evidence = cast(
+                list[dict[str, Any]], batch_task_evidence
+            )
+            exact_batch_confirmation = cast(
+                str, batch_completion_confirmation
+            )
+            batch_preflight = self.store.validate_backlog_batch_completion(
+                project_id,
+                task_evidence=exact_batch_evidence,
+                confirmation=exact_batch_confirmation,
+            )
         task_payload = cast(dict[str, Any], session.task)
         session.state = transition(
             session.state,
@@ -1394,6 +1473,7 @@ class SessionManager:
             run_id=session.metadata["run_id"],
         )
         backlog_done: dict[str, Any] | None = None
+        batch_backlog_done: dict[str, Any] | None = None
         backlog_task_id = session.metadata.get("active_backlog_task_id")
         if backlog_task_id:
             backlog_done = self.store.record_backlog_done(
@@ -1404,11 +1484,29 @@ class SessionManager:
             )
             session.metadata["active_backlog_task_status"] = "DONE"
             self._save(session)
+        elif batch_requested:
+            batch_backlog_done = self.store.record_backlog_batch_done(
+                project_id,
+                session_id=session_id,
+                candidate_id=result["candidate_id"],
+                task_evidence=cast(list[dict[str, Any]], batch_task_evidence),
+                confirmation=cast(str, batch_completion_confirmation),
+            )
+            session.metadata["batch_backlog_task_ids"] = batch_backlog_done[
+                "task_ids"
+            ]
+            session.metadata["batch_completion_receipt_id"] = batch_backlog_done[
+                "receipt_id"
+            ]
+            session.metadata["batch_backlog_task_status"] = "DONE_PENDING_HIL"
+            self._save(session)
         return {
             "status": "PASS",
             "session": session.as_dict(),
             "candidate": result,
             "backlog_task": backlog_done,
+            "batch_backlog_preflight": batch_preflight,
+            "batch_backlog_completion": batch_backlog_done,
         }
 
     def decide(
@@ -1647,6 +1745,7 @@ class SessionManager:
                 session.metadata.pop("run_id", None)
                 session.metadata["source_update_confirmed"] = False
         backlog_outcome: dict[str, Any] | None = None
+        batch_backlog_outcome: dict[str, Any] | None = None
         backlog_task_id = session.metadata.get("active_backlog_task_id")
         if backlog_task_id:
             backlog_outcome = self.store.record_backlog_outcome(
@@ -1662,6 +1761,24 @@ class SessionManager:
             session.metadata["last_backlog_outcome"] = {
                 "task_id": backlog_outcome["task_id"],
                 "status": backlog_outcome["status"],
+                "decision": outcome.value,
+            }
+        batch_task_ids = session.metadata.get("batch_backlog_task_ids")
+        if batch_task_ids:
+            batch_backlog_outcome = self.store.record_backlog_batch_outcome(
+                project_id,
+                task_ids=cast(list[str], batch_task_ids),
+                session_id=session_id,
+                decision=outcome.value,
+                decided_by=decided_by,
+                candidate_id=candidate_id,
+                accepted_pv=self.store.pointer(project_id).accepted_pv,
+            )
+            session.metadata.pop("batch_backlog_task_ids", None)
+            session.metadata["last_batch_backlog_outcome"] = {
+                "receipt_id": batch_backlog_outcome["receipt_id"],
+                "task_count": batch_backlog_outcome["task_count"],
+                "status": batch_backlog_outcome["resulting_status"],
                 "decision": outcome.value,
             }
         session.metadata.setdefault("decisions", []).append(decision_receipt)
@@ -1683,6 +1800,7 @@ class SessionManager:
             "pointer_moved": pointer_moved,
             "candidate_promoted": outcome == HilDecision.APPROVE,
             "backlog_outcome": backlog_outcome,
+            "batch_backlog_outcome": batch_backlog_outcome,
         }
 
     def rollback_state(
@@ -2369,6 +2487,11 @@ class SessionManager:
             "Closing a governed session requires a visible reason.",
             status="BLOCKED",
         )
+        runtime_activation = self.runtime_activation.detach(
+            project_id=project_id,
+            session_id=session_id,
+            reason=reason.strip(),
+        )
         session.metadata["closed_at"] = utc_now()
         session.metadata["close_reason"] = reason.strip()
         self._save(session)
@@ -2383,4 +2506,11 @@ class SessionManager:
             occurred_at=utc_now(),
             session_id=session_id,
         )
-        return {"status": "PASS", "session": session.as_dict(), "event": event}
+        return {
+            "status": "PASS",
+            "session": session.as_dict(),
+            "event": event,
+            "runtime_activation": runtime_activation,
+            "plugin_installation_preserved": True,
+            "immutable_store_preserved": True,
+        }

@@ -131,6 +131,24 @@ async def app(scope: dict[str, Any], receive: Any, send: Any) -> None:
         return
     configuration = _configuration()
     path, query = _external_route(scope)
+    if path == "/":
+        await _send_json(
+            send,
+            200,
+            {
+                "status": "READY" if configuration["valid"] else "READY_FAIL_CLOSED",
+                "service": "evidence-lane-chatgpt-adapter",
+                "release_sha": configuration["expected_sha"] or None,
+                "vercel_git_commit_sha": configuration["deployment_sha"],
+                "durable_origin_configured": bool(configuration["origin"]),
+                "configuration_errors": configuration["errors"],
+                "mcp_path": "/mcp",
+                "health_path": "/healthz",
+                "local_state_authority": False,
+                "general_router": False,
+            },
+        )
+        return
     if path == "/healthz":
         if not configuration["valid"]:
             await _send_json(

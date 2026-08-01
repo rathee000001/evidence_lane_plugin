@@ -36,9 +36,14 @@ The durable origin runs the repository's Streamable HTTP MCP at `/mcp` with a
 durable data root, one writer, and OAuth/JWT validation for ChatGPT. The Docker
 deployment shape uses port 8080 and `/var/lib/evidence-lane`.
 
-## Preview eligibility
+## Preview states
 
-A preview deployment is eligible only when all of these are already configured:
+A branch preview may be deployed with no credentials to prove exact Git release
+identity, path recovery, and fail-closed behavior. In that state `/` reports
+`READY_FAIL_CLOSED`, `/healthz` and `/mcp` return a bounded blocker, and the
+preview is **not** a working ChatGPT installation.
+
+A working ChatGPT preview is eligible only when all of these are configured:
 
 - the exact implementation commit exists on the remote branch;
 - Vercel CLI/project authentication is available without GUI control;
@@ -48,9 +53,10 @@ A preview deployment is eligible only when all of these are already configured:
 - the compromised OpenAI key has been revoked and is not in any environment;
 - tests prove adapter fail-closed behavior and release identity.
 
-If any condition is missing, record a manual HIL blocker and do not deploy a
-partial or misleading preview. Never use Vercel as the primary SQLite store or
-silently replace the durable origin with function-local files.
+If any condition is missing, record a manual HIL blocker and never describe the
+fail-closed preview as a working ChatGPT connection. Never use Vercel as the
+primary SQLite store or silently replace the durable origin with function-local
+files.
 
 From the adapter directory, an eligible branch preview can be created with the
 normal Vercel CLI preview workflow. Verify the returned `/healthz` response

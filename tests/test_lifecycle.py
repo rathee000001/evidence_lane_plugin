@@ -205,6 +205,12 @@ def test_explicit_exit_boot_closes_only_the_persistent_session(service) -> None:
         service.store.project_root("book-faires") / "active_session.json"
     ).exists()
     assert service.sessions.installation_status() == installation_before
+    assert closed["runtime_activation"]["state"] == "DETACHED"
+    assert closed["runtime_activation"]["flash_context_attached"] is False
+    assert closed["runtime_activation"]["prompt_capture_active"] is False
+    assert closed["runtime_activation"]["visible_response_capture_active"] is False
+    assert closed["plugin_installation_preserved"] is True
+    assert closed["immutable_store_preserved"] is True
     flash_after = service.session_flash_status()
     assert flash_after["authority_digest"] == flash_before["authority_digest"]
     assert flash_after["receipt_sha256"] == flash_before["receipt_sha256"]

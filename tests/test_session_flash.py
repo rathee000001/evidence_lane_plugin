@@ -26,6 +26,10 @@ def test_locked_env_uop_flash_is_visible_idempotent_and_outside_pv(service) -> N
     assert before["authorities"]["uop"]["mmd_sha256"] == UOP_MMD_SHA256
     assert before["authorities"]["env"]["sqlite"]["integrity"] == ["ok"]
     assert before["authorities"]["uop"]["sqlite"]["integrity"] == ["ok"]
+    assert before["runtime_projection"]["status"] == "PASS"
+    assert before["runtime_projection"]["row_count"] == before[
+        "runtime_projection"
+    ]["fts_count"]
     assert before["source_packet"] == {
         "status": "PARTIAL_INTEGRITY",
         "whole_packet_accepted": False,
@@ -35,6 +39,10 @@ def test_locked_env_uop_flash_is_visible_idempotent_and_outside_pv(service) -> N
     boot = boot_local(service)
     assert boot["session"]["state"] == "BOOTED"
     assert boot["session_flash"]["flash_action"] == "CREATED"
+    assert boot["runtime_activation"]["state"] == "ACTIVE"
+    assert boot["runtime_activation"]["flash_context_attached"] is True
+    assert boot["runtime_activation"]["prompt_capture_active"] is True
+    assert boot["runtime_activation"]["visible_response_capture_active"] is True
     assert boot["next_action_contract"]["state"] == "SOURCE_INTAKE_READY"
     assert boot["next_action_contract"]["display_position"] == (
         "AFTER_ATOMIC_BOOT_FLASH"

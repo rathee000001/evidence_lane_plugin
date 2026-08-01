@@ -20,6 +20,24 @@ from .models import EngineIdentity
 _COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
+def identity_repository_root(package_file: str | Path) -> Path:
+    """Locate the identity root for a source checkout or copied Codex cache.
+
+    A development checkout must bind to the enclosing Git repository.  A Codex
+    marketplace installation has no ``.git`` directory inside its versioned
+    cache, so the version root itself must reach the marketplace verifier.
+    """
+
+    source = Path(package_file).resolve()
+    for ancestor in source.parents:
+        if (ancestor / ".git").exists():
+            return ancestor
+    parents = source.parents
+    if len(parents) >= 3 and parents[1].name == "src":
+        return parents[2]
+    return source.parent
+
+
 def source_tree_hash(package_root: str | Path) -> str:
     root = Path(package_root).resolve()
     members = []

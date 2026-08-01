@@ -3401,6 +3401,20 @@ def _lane_stable_files(lane: LaneDefinition) -> tuple[str, ...]:
     )
 
 
+def _lane_evidence_files(lane: LaneDefinition) -> tuple[str, ...]:
+    """Return every lane-level artifact whose bytes are externally auditable."""
+
+    return (
+        *_lane_stable_files(lane),
+        "lane_pointer.json",
+        "refresh_receipt.json",
+    )
+
+
+def _lane_required_files(lane: LaneDefinition) -> tuple[str, ...]:
+    return (*_lane_evidence_files(lane), "lane_manifest.json")
+
+
 def _build_one_lane(
     *,
     root: Path,
@@ -3684,11 +3698,17 @@ def _build_one_lane(
         filename: sha256_file(output / filename)
         for filename in _lane_stable_files(lane)
     }
+    evidence_hashes = {
+        filename: sha256_file(output / filename)
+        for filename in _lane_evidence_files(lane)
+    }
     lane_manifest = {
-        "schema": "evidence-lane.lane-manifest.v1",
+        "schema": "evidence-lane.lane-manifest.v2",
         "lane": lane.as_dict(),
         "build_mode": build_mode,
         "stable_artifacts": stable_hashes,
+        "evidence_artifacts": evidence_hashes,
+        "required_artifacts": list(_lane_required_files(lane)),
         "pointer_evidence": "lane_pointer.json",
         "refresh_receipt": "refresh_receipt.json",
         "validation": validation,
@@ -3924,18 +3944,62 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         lane_manifest = json.loads(
             (lane_root / "lane_manifest.json").read_text(encoding="utf-8")
         )
+        lane_manifest_schema = lane_manifest.get("schema")
+        legacy_manifest = lane_manifest_schema == "evidence-lane.lane-manifest.v1"
+        strict_manifest = lane_manifest_schema == "evidence-lane.lane-manifest.v2"
         stable_hashes = {
             filename: sha256_file(lane_root / filename)
             for filename in _lane_stable_files(lane)
         }
+        evidence_hashes = {
+            filename: sha256_file(lane_root / filename)
+            for filename in _lane_evidence_files(lane)
+        }
+        required_files = set(_lane_required_files(lane))
+        actual_lane_files = {
+            path.name for path in lane_root.iterdir() if path.is_file()
+        }
+        mmd_valid = (lane_root / lane.mmd_filename).read_text(
+            encoding="utf-8"
+        ).startswith("flowchart ")
+        dot_valid = (lane_root / lane.dot_filename).read_text(
+            encoding="utf-8"
+        ).startswith("digraph ")
         if (
-            lane_manifest.get("lane", {}).get("canonical_lane_id") != lane_id
+            not (legacy_manifest or strict_manifest)
+            or lane_manifest.get("lane", {}).get("canonical_lane_id") != lane_id
             or lane_manifest.get("stable_artifacts") != stable_hashes
+            or (
+                strict_manifest
+                and lane_manifest.get("evidence_artifacts") != evidence_hashes
+            )
+            or (
+                strict_manifest
+                and set(lane_manifest.get("required_artifacts", []))
+                != required_files
+            )
+            or not required_files <= actual_lane_files
+            or not mmd_valid
+            or not dot_valid
         ):
             lane_manifest_errors[lane_id] = {
+                "schema": lane_manifest_schema,
+                "legacy_compatibility_path": legacy_manifest,
                 "lane_id": lane_manifest.get("lane", {}).get("canonical_lane_id"),
                 "declared_stable_artifacts": lane_manifest.get("stable_artifacts"),
                 "actual_stable_artifacts": stable_hashes,
+                "declared_evidence_artifacts": lane_manifest.get(
+                    "evidence_artifacts"
+                ),
+                "actual_evidence_artifacts": evidence_hashes,
+                "declared_required_artifacts": lane_manifest.get(
+                    "required_artifacts"
+                ),
+                "missing_required_artifacts": sorted(
+                    required_files - actual_lane_files
+                ),
+                "mmd_valid": mmd_valid,
+                "dot_valid": dot_valid,
             }
     expected_registry_ids = list(CANONICAL_LANE_IDS)
     registry_ids = [row.get("canonical_lane_id") for row in registry.get("lanes", [])]

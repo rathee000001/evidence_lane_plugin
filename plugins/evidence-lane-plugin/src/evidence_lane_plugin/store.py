@@ -24,11 +24,25 @@ from .plan_runtime import (
     write_plan_runtime_projection,
 )
 from .pv_package import compare_package_bytes, validate_pv_package
+from .redaction import redact
 from .tasking import classify_task
 from .timeutil import utc_now
 
 _PROJECT_ID_CHARS = set(
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
+)
+
+_BATCH_COMPLETION_CONFIRMATION = "BATCH_DELTA_IMPLEMENTATION_EVIDENCE_CONFIRMED"
+_BATCH_CONTRACT_FIELDS = (
+    "task_id",
+    "sequence",
+    "plan_id",
+    "task_class",
+    "requested_outcome",
+    "permitted_paths",
+    "permitted_tools",
+    "acceptance_checks",
+    "stop_condition",
 )
 
 
@@ -694,6 +708,339 @@ class ProjectStore:
             self._persist_backlog(project_id, backlog)
             return task
 
+    @staticmethod
+    def _validate_batch_completion_evidence(
+        backlog: dict[str, Any],
+        *,
+        task_evidence: list[dict[str, Any]],
+        confirmation: str,
+    ) -> list[dict[str, Any]]:
+        require(
+            confirmation == _BATCH_COMPLETION_CONFIRMATION,
+            "BATCH_DELTA_COMPLETION_CONFIRMATION_INVALID",
+            "Batch completion requires the exact implementation-evidence confirmation.",
+            status="BLOCKED",
+            required=_BATCH_COMPLETION_CONFIRMATION,
+        )
+        active = [
+            task for task in backlog.get("tasks", []) if task.get("status") == "ACTIVE"
+        ]
+        require(
+            not active,
+            "BATCH_DELTA_ACTIVE_TASK_EXISTS",
+            "Batch completion cannot bypass an already-active linear Delta.",
+            status="BLOCKED",
+            active_task_ids=[task.get("task_id") for task in active],
+        )
+        queued = sorted(
+            (
+                task
+                for task in backlog.get("tasks", [])
+                if task.get("status") == "QUEUED"
+            ),
+            key=lambda task: int(task.get("sequence", 0)),
+        )
+        require(
+            bool(queued),
+            "BATCH_DELTA_NO_QUEUED_TASKS",
+            "Batch completion requires at least one queued Delta.",
+            status="BLOCKED",
+        )
+        supplied_ids = [str(row.get("task_id", "")) for row in task_evidence]
+        expected_ids = [str(task["task_id"]) for task in queued]
+        require(
+            supplied_ids == expected_ids,
+            "BATCH_DELTA_ORDER_OR_SET_MISMATCH",
+            "Batch evidence must name every queued Delta exactly once and in ledger order.",
+            status="MISMATCH",
+            expected_task_ids=expected_ids,
+            supplied_task_ids=supplied_ids,
+        )
+        normalized: list[dict[str, Any]] = []
+        for task, raw in zip(queued, task_evidence, strict=True):
+            require(
+                raw.get("status") == "PASS",
+                "BATCH_DELTA_EVIDENCE_NOT_PASS",
+                "Every completed Delta requires an explicit PASS evidence status.",
+                status="BLOCKED",
+                task_id=task["task_id"],
+            )
+            implementation = raw.get("implementation_evidence")
+            verification = raw.get("verification_evidence")
+            limitations = raw.get("limitations", [])
+            require(
+                isinstance(implementation, list)
+                and 1 <= len(implementation) <= 64
+                and all(
+                    isinstance(value, str) and 1 <= len(value.strip()) <= 2048
+                    for value in implementation
+                )
+                and isinstance(verification, list)
+                and 1 <= len(verification) <= 64
+                and all(
+                    isinstance(value, str) and 1 <= len(value.strip()) <= 2048
+                    for value in verification
+                )
+                and isinstance(limitations, list)
+                and len(limitations) <= 32
+                and all(
+                    isinstance(value, str) and 1 <= len(value.strip()) <= 2048
+                    for value in limitations
+                ),
+                "BATCH_DELTA_EVIDENCE_SHAPE_INVALID",
+                "Each Delta needs bounded implementation and verification evidence.",
+                status="BLOCKED",
+                task_id=task["task_id"],
+            )
+            contract = {field: task.get(field) for field in _BATCH_CONTRACT_FIELDS}
+            exact_implementation = cast(list[str], implementation)
+            exact_verification = cast(list[str], verification)
+            exact_limitations = cast(list[str], limitations)
+            safe_evidence = cast(
+                dict[str, Any],
+                redact(
+                    {
+                        "task_id": task["task_id"],
+                        "status": "PASS",
+                        "implementation_evidence": [
+                            value.strip() for value in exact_implementation
+                        ],
+                        "verification_evidence": [
+                            value.strip() for value in exact_verification
+                        ],
+                        "limitations": [value.strip() for value in exact_limitations],
+                    }
+                ),
+            )
+            safe_evidence["task_contract_sha256"] = sha256_bytes(
+                canonical_json_bytes(contract)
+            )
+            safe_evidence["evidence_sha256"] = sha256_bytes(
+                canonical_json_bytes(safe_evidence)
+            )
+            normalized.append(safe_evidence)
+        return normalized
+
+    def validate_backlog_batch_completion(
+        self,
+        project_id: str,
+        *,
+        task_evidence: list[dict[str, Any]],
+        confirmation: str,
+    ) -> dict[str, Any]:
+        self.config(project_id)
+        backlog = self._load_backlog(project_id)
+        ensure_event_ledger(backlog)
+        normalized = self._validate_batch_completion_evidence(
+            backlog,
+            task_evidence=task_evidence,
+            confirmation=confirmation,
+        )
+        return {
+            "status": "PASS",
+            "task_count": len(normalized),
+            "task_ids": [row["task_id"] for row in normalized],
+            "batch_evidence_sha256": sha256_bytes(canonical_json_bytes(normalized)),
+            "pointer_mutated": False,
+            "candidate_mutated": False,
+        }
+
+    def record_backlog_batch_done(
+        self,
+        project_id: str,
+        *,
+        session_id: str,
+        candidate_id: str,
+        task_evidence: list[dict[str, Any]],
+        confirmation: str,
+    ) -> dict[str, Any]:
+        """Atomically append QUEUED -> ACTIVE -> DONE for an exact ordered batch."""
+
+        require(
+            bool(session_id.strip()) and bool(candidate_id.strip()),
+            "BATCH_DELTA_COMPLETION_BINDING_REQUIRED",
+            "Batch completion must bind one governed session and candidate.",
+            status="BLOCKED",
+        )
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            supplied_ids = [str(row.get("task_id", "")) for row in task_evidence]
+            replay = next(
+                (
+                    row
+                    for row in backlog.get("batch_completion_receipts", [])
+                    if row.get("session_id") == session_id
+                    and row.get("candidate_id") == candidate_id
+                    and row.get("task_ids") == supplied_ids
+                ),
+                None,
+            )
+            if replay is not None:
+                require(
+                    confirmation == _BATCH_COMPLETION_CONFIRMATION
+                    and len(replay.get("task_evidence", [])) == len(task_evidence),
+                    "BATCH_DELTA_REPLAY_INVALID",
+                    "A batch replay must use the exact confirmation and task count.",
+                    status="MISMATCH",
+                )
+                for supplied, recorded in zip(
+                    task_evidence,
+                    replay["task_evidence"],
+                    strict=True,
+                ):
+                    comparable = cast(
+                        dict[str, Any],
+                        redact(
+                            {
+                                "task_id": str(supplied.get("task_id", "")),
+                                "status": supplied.get("status"),
+                                "implementation_evidence": [
+                                    str(value).strip()
+                                    for value in supplied.get(
+                                        "implementation_evidence", []
+                                    )
+                                ],
+                                "verification_evidence": [
+                                    str(value).strip()
+                                    for value in supplied.get(
+                                        "verification_evidence", []
+                                    )
+                                ],
+                                "limitations": [
+                                    str(value).strip()
+                                    for value in supplied.get("limitations", [])
+                                ],
+                            }
+                        ),
+                    )
+                    require(
+                        all(recorded.get(key) == value for key, value in comparable.items()),
+                        "BATCH_DELTA_REPLAY_EVIDENCE_MISMATCH",
+                        "The candidate already binds different batch evidence.",
+                        status="MISMATCH",
+                        task_id=comparable.get("task_id"),
+                    )
+                return {"status": "PASS", "idempotent": True, **replay}
+            normalized = self._validate_batch_completion_evidence(
+                backlog,
+                task_evidence=task_evidence,
+                confirmation=confirmation,
+            )
+            batch_basis = {
+                "project_id": project_id,
+                "session_id": session_id,
+                "candidate_id": candidate_id,
+                "task_evidence": normalized,
+            }
+            batch_sha256 = sha256_bytes(canonical_json_bytes(batch_basis))
+            receipt_id = f"batchdone_{batch_sha256[:32].lower()}"
+            receipts = backlog.setdefault("batch_completion_receipts", [])
+            existing = next(
+                (row for row in receipts if row.get("receipt_id") == receipt_id),
+                None,
+            )
+            if existing is not None:
+                require(
+                    existing.get("batch_sha256") == batch_sha256,
+                    "BATCH_DELTA_RECEIPT_ID_CONFLICT",
+                    "The batch receipt ID already binds different evidence.",
+                    status="MISMATCH",
+                )
+                return {"status": "PASS", "idempotent": True, **existing}
+            now = utc_now()
+            task_rows = {
+                str(task["task_id"]): task for task in backlog.get("tasks", [])
+            }
+            event_ids: list[str] = []
+            for position, evidence in enumerate(normalized, start=1):
+                task_id = str(evidence["task_id"])
+                task = task_rows[task_id]
+                active_event = append_delta_event(
+                    backlog,
+                    task_id=task_id,
+                    event_type="ACTIVATED",
+                    to_status="ACTIVE",
+                    actor=session_id,
+                    event_id=f"{receipt_id}__{position:03d}__active",
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "session_id": session_id,
+                        "candidate_id": candidate_id,
+                        "batch_receipt_id": receipt_id,
+                        "evidence_sha256": evidence["evidence_sha256"],
+                    },
+                )
+                task["active_session_id"] = session_id
+                task["history"].append(
+                    {
+                        "event": "BATCH_CLAIMED",
+                        "event_id": active_event["event_id"],
+                        "session_id": session_id,
+                        "candidate_id": candidate_id,
+                        "recorded_at": now,
+                    }
+                )
+                done_event = append_delta_event(
+                    backlog,
+                    task_id=task_id,
+                    event_type="TASK_DONE",
+                    to_status="DONE",
+                    actor=session_id,
+                    event_id=f"{receipt_id}__{position:03d}__done",
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "session_id": session_id,
+                        "candidate_id": candidate_id,
+                        "batch_receipt_id": receipt_id,
+                        "evidence_sha256": evidence["evidence_sha256"],
+                        "task_contract_sha256": evidence[
+                            "task_contract_sha256"
+                        ],
+                    },
+                )
+                task["completed_candidate_id"] = candidate_id
+                task["batch_completion_receipt_id"] = receipt_id
+                task["implementation_evidence_sha256"] = evidence[
+                    "evidence_sha256"
+                ]
+                task["history"].append(
+                    {
+                        "event": "TASK_DONE",
+                        "event_id": done_event["event_id"],
+                        "candidate_id": candidate_id,
+                        "session_id": session_id,
+                        "evidence_sha256": evidence["evidence_sha256"],
+                        "recorded_at": now,
+                    }
+                )
+                event_ids.extend([active_event["event_id"], done_event["event_id"]])
+            receipt = {
+                "schema": "evidence-lane.batch-delta-completion.v1",
+                "receipt_id": receipt_id,
+                "batch_sha256": batch_sha256,
+                "project_id": project_id,
+                "session_id": session_id,
+                "candidate_id": candidate_id,
+                "task_count": len(normalized),
+                "task_ids": [row["task_id"] for row in normalized],
+                "task_evidence": normalized,
+                "event_ids": event_ids,
+                "completed_at": now,
+                "resulting_status": "DONE_PENDING_HIL",
+                "pointer_moved": False,
+                "candidate_accepted": False,
+                "hil_approval_inferred": False,
+            }
+            receipt["receipt_sha256"] = sha256_bytes(
+                canonical_json_bytes(receipt)
+            )
+            receipts.append(receipt)
+            self._persist_backlog(project_id, backlog)
+            return {"status": "PASS", "idempotent": False, **receipt}
+
     def record_backlog_outcome(
         self,
         project_id: str,
@@ -801,6 +1148,127 @@ class ProjectStore:
             )
             self._persist_backlog(project_id, backlog)
             return task
+
+    def record_backlog_batch_outcome(
+        self,
+        project_id: str,
+        *,
+        task_ids: list[str],
+        session_id: str,
+        decision: str,
+        decided_by: str,
+        candidate_id: str,
+        accepted_pv: str | None,
+    ) -> dict[str, Any]:
+        """Apply one HIL outcome to the exact ordered DONE batch in one write."""
+
+        outcome_status = {
+            "APPROVE": "ACCEPTED",
+            "APPROVE_WITH_DELTA": "DONE",
+            "MORE_RESEARCH": "DONE",
+            "ROLLBACK": "ROLLED_BACK",
+            "REJECT": "REJECTED",
+            "FAIL": "FAILED",
+        }.get(decision)
+        require(
+            outcome_status is not None and bool(task_ids),
+            "BATCH_DELTA_HIL_OUTCOME_INVALID",
+            "Batch Delta outcome requires one supported HIL decision and task set.",
+            status="BLOCKED",
+            decision=decision,
+        )
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            tasks = {str(row["task_id"]): row for row in backlog.get("tasks", [])}
+            require(
+                len(task_ids) == len(set(task_ids))
+                and all(
+                    task_id in tasks
+                    and tasks[task_id].get("status") == "DONE"
+                    and tasks[task_id].get("completed_candidate_id") == candidate_id
+                    for task_id in task_ids
+                ),
+                "BATCH_DELTA_HIL_TASK_SET_INVALID",
+                "The HIL outcome must bind the exact DONE batch for this candidate.",
+                status="MISMATCH",
+                candidate_id=candidate_id,
+            )
+            basis = {
+                "project_id": project_id,
+                "task_ids": task_ids,
+                "session_id": session_id,
+                "decision": decision,
+                "decided_by": decided_by,
+                "candidate_id": candidate_id,
+                "accepted_pv": accepted_pv,
+            }
+            basis_sha256 = sha256_bytes(canonical_json_bytes(basis))
+            receipt_id = f"batchoutcome_{basis_sha256[:32].lower()}"
+            receipts = backlog.setdefault("batch_outcome_receipts", [])
+            existing = next(
+                (row for row in receipts if row.get("receipt_id") == receipt_id),
+                None,
+            )
+            if existing is not None:
+                return {"status": "PASS", "idempotent": True, **existing}
+            now = utc_now()
+            event_ids: list[str] = []
+            for position, task_id in enumerate(task_ids, start=1):
+                event = append_delta_event(
+                    backlog,
+                    task_id=task_id,
+                    event_type=(
+                        "HIL_FOLLOW_UP_REQUESTED"
+                        if outcome_status == "DONE"
+                        else "HIL_OUTCOME"
+                    ),
+                    to_status=cast(str, outcome_status),
+                    actor=decided_by,
+                    event_id=f"{receipt_id}__{position:03d}",
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "decision": decision,
+                        "candidate_id": candidate_id,
+                        "accepted_pv": accepted_pv,
+                        "batch_outcome_receipt_id": receipt_id,
+                    },
+                )
+                task = tasks[task_id]
+                task["accepted_pv"] = accepted_pv if decision == "APPROVE" else None
+                task["history"].append(
+                    {
+                        "event": "HIL_DECISION",
+                        "event_id": event["event_id"],
+                        "decision": decision,
+                        "candidate_id": candidate_id,
+                        "accepted_pv": task["accepted_pv"],
+                        "recorded_at": now,
+                    }
+                )
+                event_ids.append(event["event_id"])
+            receipt = {
+                "schema": "evidence-lane.batch-delta-outcome.v1",
+                "receipt_id": receipt_id,
+                "basis_sha256": basis_sha256,
+                "project_id": project_id,
+                "session_id": session_id,
+                "candidate_id": candidate_id,
+                "task_ids": list(task_ids),
+                "task_count": len(task_ids),
+                "decision": decision,
+                "resulting_status": outcome_status,
+                "accepted_pv": accepted_pv if decision == "APPROVE" else None,
+                "event_ids": event_ids,
+                "recorded_at": now,
+            }
+            receipt["receipt_sha256"] = sha256_bytes(
+                canonical_json_bytes(receipt)
+            )
+            receipts.append(receipt)
+            self._persist_backlog(project_id, backlog)
+            return {"status": "PASS", "idempotent": False, **receipt}
 
     def transition_backlog_task(
         self,

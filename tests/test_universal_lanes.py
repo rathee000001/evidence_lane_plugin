@@ -4,6 +4,7 @@ import base64
 import importlib.util
 import io
 import json
+import shutil
 import sqlite3
 import zipfile
 from dataclasses import replace
@@ -11,7 +12,11 @@ from pathlib import Path
 
 import evidence_lane_plugin.lanes as lanes_module
 import pytest
-from evidence_lane_plugin.hashing import sha256_file
+from evidence_lane_plugin.forensic_audit import (
+    audit_lane_bundle,
+    write_forensic_audit_reports,
+)
+from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from evidence_lane_plugin.lane_engine import (
     build_lane_bundle,
     validate_lane_bundle,
@@ -562,6 +567,72 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
             "lane_manifest.json",
         }
         assert expected <= {item.name for item in lane_root.iterdir()}
+        lane_manifest = json.loads(
+            (lane_root / "lane_manifest.json").read_text(encoding="utf-8")
+        )
+        assert lane_manifest["schema"] == "evidence-lane.lane-manifest.v2"
+        assert set(lane_manifest["required_artifacts"]) == expected
+        assert set(lane_manifest["evidence_artifacts"]) == expected - {
+            "lane_manifest.json"
+        }
+
+    legacy_root = tmp_path / "legacy-v1-lane-manifests"
+    shutil.copytree(lanes_root, legacy_root)
+    for lane_id in CANONICAL_LANE_IDS:
+        lane_manifest_path = legacy_root / lane_id / "lane_manifest.json"
+        legacy_manifest = json.loads(
+            lane_manifest_path.read_text(encoding="utf-8")
+        )
+        legacy_manifest["schema"] = "evidence-lane.lane-manifest.v1"
+        legacy_manifest.pop("evidence_artifacts")
+        legacy_manifest.pop("required_artifacts")
+        lane_manifest_path.write_bytes(canonical_json_bytes(legacy_manifest))
+    members = {
+        path.relative_to(legacy_root).as_posix(): sha256_file(path)
+        for path in sorted(legacy_root.rglob("*"))
+        if path.is_file() and path.name not in {"manifest.json", "SHA256SUMS.json"}
+    }
+    (legacy_root / "SHA256SUMS.json").write_bytes(
+        canonical_json_bytes(
+            {
+                "schema": "evidence-lane.recursive-sha256.v1",
+                "members": members,
+                "member_count": len(members),
+            }
+        )
+    )
+    legacy_bundle_manifest_path = legacy_root / "manifest.json"
+    legacy_bundle_manifest = json.loads(
+        legacy_bundle_manifest_path.read_text(encoding="utf-8")
+    )
+    legacy_bundle_manifest["bundle_sha256"] = sha256_bytes(
+        canonical_json_bytes(members)
+    )
+    legacy_bundle_manifest["member_count"] = len(members) + 2
+    legacy_bundle_manifest_path.write_bytes(
+        canonical_json_bytes(legacy_bundle_manifest)
+    )
+    legacy_validation = validate_lane_bundle(legacy_root)
+    assert legacy_validation["valid"] is True
+
+    forensic = audit_lane_bundle(
+        lanes_root,
+        subject="18-lane deterministic dummy-source stress audit",
+    )
+    assert forensic["status"] == "PASS"
+    assert forensic["lane_count"] == 18
+    assert [lane["lane_id"] for lane in forensic["lanes"]] == list(
+        CANONICAL_LANE_IDS
+    )
+    assert all(lane["status"] == "PASS" for lane in forensic["lanes"])
+    assert all(lane["verdict"] == "PURSUE" for lane in forensic["lanes"])
+    reports_root = tmp_path / "forensic-reports"
+    report_manifest = write_forensic_audit_reports(forensic, reports_root)
+    assert report_manifest["lane_report_count"] == 18
+    assert report_manifest["status"] == "PASS"
+    assert len(list(reports_root.glob("*-forensic-audit.md"))) == 18
+    assert (reports_root / "README.md").is_file()
+    assert (reports_root / "forensic_audit.json").is_file()
 
     expected_facts = {
         "github_code": {"code_symbol", "code_import"},

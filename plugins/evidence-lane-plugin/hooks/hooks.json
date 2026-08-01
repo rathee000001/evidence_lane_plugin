@@ -9,7 +9,7 @@
             "type": "command",
             "command": "python3 \"$PLUGIN_ROOT/hooks/session_start.py\"",
             "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\session_start.py\"",
-            "timeout": 3,
+            "timeout": 10,
             "statusMessage": "Loading Evidence Lane boundary"
           }
         ]
@@ -22,7 +22,7 @@
             "type": "command",
             "command": "python3 \"$PLUGIN_ROOT/hooks/prompt_submit.py\"",
             "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\prompt_submit.py\"",
-            "timeout": 3,
+            "timeout": 10,
             "statusMessage": "Indexing Evidence Lane prompt entry"
           }
         ]
@@ -35,7 +35,7 @@
             "type": "command",
             "command": "python3 \"$PLUGIN_ROOT/hooks/stop_response.py\"",
             "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\stop_response.py\"",
-            "timeout": 3,
+            "timeout": 10,
             "statusMessage": "Indexing visible Evidence Lane response"
           }
         ]

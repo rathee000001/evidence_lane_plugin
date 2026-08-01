@@ -30,6 +30,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     assert set(by_name) == {
         "runtime_doctor",
         "session_flash_status",
+        "runtime_activation_status",
         "lifecycle_transition_law",
         "lane_catalog",
         "mode_classify",
@@ -74,10 +75,13 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "connector_plugin_drop",
         "connector_plugin_catalog",
         "connector_plugin_route",
+        "storage_connector_inspect",
+        "storage_connector_select",
     }
     assert by_name["search"].annotations.readOnlyHint is True
     assert by_name["fetch"].annotations.readOnlyHint is True
     assert by_name["session_flash_status"].annotations.readOnlyHint is True
+    assert by_name["runtime_activation_status"].annotations.readOnlyHint is True
     assert by_name["lane_catalog"].annotations.readOnlyHint is True
     assert by_name["mode_classify"].annotations.readOnlyHint is False
     assert by_name["hil_intent_classify"].annotations.readOnlyHint is False
@@ -107,6 +111,11 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert manifest["author"]["name"] == "Praveen Rathee"
     assert manifest["repository"].endswith("/evidence_lane_plugin")
     assert manifest["apps"] == "./.app.json"
+    assert manifest["interface"]["logo"] == "./assets/evidence-lane-icon.png"
+    assert manifest["interface"]["composerIcon"] == (
+        "./assets/evidence-lane-icon.png"
+    )
+    assert (plugin / "assets" / "evidence-lane-icon.png").is_file()
     assert "hooks" not in manifest
     assert isinstance(manifest["interface"]["defaultPrompt"], list)
     assert 1 <= len(manifest["interface"]["defaultPrompt"]) <= 3
@@ -126,7 +135,7 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
         "apps": {
             "google-drive": {
                 "id": "connector_5f3c8c41a1e54ad7a76272c89e2554fa",
-                "category": "Durable evidence storage",
+                "category": "Optional sealed-artifact mirror",
             }
         }
     }
@@ -747,6 +756,11 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
         "evi",
         "evi-state-travel",
         "evi-exit-boot",
+        "evi-plugin",
+        "evi-storage",
+        "evi-change-storage-connector",
+        "evi-additional-plugin",
+        "evi-drop-additional-plugin",
         *public_order,
     }
     assert {path.stem for path in commands.glob("*.md")} == expected_commands
@@ -765,6 +779,10 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
     assert "genuinely exhausted" in root_command
     assert "all eighteen canonical lanes" in root_command.lower()
     assert "Project Engulf" in root_command
+    assert "`/evi-plugin` is an administrative sidecar" in root_command
+    assert "not a seventh primary" in (commands / "evi-plugin.md").read_text(
+        encoding="utf-8"
+    )
 
     command_text = "\n".join(
         path.read_text(encoding="utf-8") for path in commands.glob("*.md")
@@ -832,7 +850,7 @@ def test_non_loopback_http_fails_closed_without_auth(
         )
 
 
-def test_server_start_activates_installation_and_flash_on_durable_store(
+def test_server_start_installs_but_leaves_flash_and_runtime_detached(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -881,10 +899,11 @@ def test_server_start_activates_installation_and_flash_on_durable_store(
     assert first_installation["version"] == ENGINE_VERSION
     assert first_installation["hil_approval_inferred"] is False
     assert second_installation["installed_at"] == first_installation["installed_at"]
-    assert first_flash["flash_state"] == "FLASHED_UNTIL_PLUGIN_REMOVED"
-    assert first_flash["receipt"]["inside_pv"] is False
-    assert first_flash["receipt"]["hil_approval_inferred"] is False
-    assert second_flash["receipt_sha256"] == first_flash["receipt_sha256"]
+    assert first_flash["flash_state"] == "NOT_FLASHED"
+    assert first_flash["receipt"] is None
+    assert first_flash["runtime_activation"]["state"] == "DETACHED"
+    assert second_flash["flash_state"] == "NOT_FLASHED"
+    assert second_flash["runtime_activation"]["state"] == "DETACHED"
     assert [start["transport"] for start in starts] == ["stdio", "stdio"]
 
 

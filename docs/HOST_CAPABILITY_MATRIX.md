@@ -10,7 +10,7 @@ choices apply across hosts. Reduced host capability never expands authority.
 | Source read/write | Registered local Git path, bounded writes | Authorized sandbox, bounded writes | Origin capability; otherwise user-mediated output | No execution |
 | Optional Git source arm | AUTO history or content fallback; REQUIRED/DISABLED explicit | Same within authorized source | Origin-side registered source capability | Read-only artifacts |
 | Source confirmation | `HOST_SANDBOX_FINAL_STATE_CONFIRMED` | Same | `USER_APPLIED_AND_PULL_CONFIRMED` when user mediated | Review only |
-| Chat Lineage | Hooks append visible prompt, steers, output, and telemetry | Host hooks when available | Durable MCP session events | Read-only |
+| Chat Lineage | Hooks append visible prompt, steers, output, and telemetry into session plus project SQLite/FTS heads | Host hooks when available | Durable MCP session/project authority | Read-only |
 | Prompt persistence | Resumes the single governed session | Durable readback required | Durable-origin readback required | None |
 | State Travel | User-requested/context-full fresh Codex task | Same after durable verification | Same in fresh ChatGPT chat bound to durable origin | Review request only |
 | HIL/Fuse | Explicit human tool call | Explicit human tool call | Explicit human tool call | Decision request only |
@@ -21,7 +21,8 @@ choices apply across hosts. Reduced host capability never expands authority.
 The public controls after root `/evi` are Boot, Rollback, Build, Refresh, Mode,
 and Source Intake. State Travel is eligible only with a sealed handoff and is
 shown only after explicit user request or genuine context exhaustion. Exit Boot
-explicitly deactivates the persistent governed session.
+explicitly detaches Flash context and capture while preserving the installation,
+immutable store, and verification receipt.
 
 Locally demonstrated behavior must be reported separately from live external
 proof. A local test does not prove marketplace pickup, ChatGPT OAuth, durable

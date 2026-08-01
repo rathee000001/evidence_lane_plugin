@@ -4,9 +4,11 @@
 
 Plugin selection injects one universal behavior prompt. Before every governed
 session, `SessionFlashAuthority` verifies a minimized 16-member ENV15/UOP15
-authority bundle. The first valid boot creates an installation-scoped receipt;
-later boots reuse the same digest. The flash remains active until the plugin or
-its governed data is removed.
+authority bundle. The first valid boot creates an installation-scoped
+verification receipt; later boots reuse the same digest. Boot separately
+attaches the Flash context and visible capture runtime. `/evi-exit-boot`
+detaches that runtime while the verification receipt and immutable authority
+remain installed; a later Boot must re-verify and explicitly reattach.
 
 The flash is not a PV member, project source file, Git Delta, ChatLineage payload,
 or HIL decision. It cannot move a pointer or imply acceptance.
@@ -28,6 +30,13 @@ or HIL decision. It cannot move a pointer or imply acceptance.
 The manifest independently pins every MMD, DOT, SVG, PNG, SQLite, lock, law,
 prompt, and source-audit member. Both SQLite files open only with
 `mode=ro&immutable=1`; integrity, foreign keys, and `user_version=15` must pass.
+
+After full verification, Evidence Lane builds a derived read-only runtime
+projection keyed by the authority digest, plugin projection schema, and host
+ABI. A content-addressed installed bundle may reuse the projection only after
+the locked source verification and projection-manifest/hash checks pass. A
+mutable development checkout rebuilds it. The projection lives under the
+installation data root, never in source, ChatLineage, or PV bytes.
 
 ## Parent-packet forensic result
 

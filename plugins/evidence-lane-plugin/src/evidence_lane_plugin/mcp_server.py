@@ -162,6 +162,23 @@ def create_mcp_server(
         )
 
     @mcp.tool(
+        name="runtime_activation_status",
+        title="Inspect Evidence Lane runtime attachment",
+        description=(
+            "Read whether ENV/UOP Flash context and visible prompt/response capture "
+            "are attached to governed sessions. DETACHED preserves the installed "
+            "plugin, Flash verification receipt, immutable store, and pointer."
+        ),
+        annotations=_READ_ONLY,
+        meta=_meta("Checking runtime attachment", "Runtime attachment ready"),
+        structured_output=True,
+    )
+    def runtime_activation_status() -> dict[str, Any]:
+        return application.invoke(
+            "runtime_activation_status", application.runtime_activation_status
+        )
+
+    @mcp.tool(
         name="lifecycle_transition_law",
         title="Read the canonical lifecycle law",
         description=(
@@ -293,6 +310,10 @@ def create_mcp_server(
         capabilities: list[str],
         allowed_lanes: list[str],
         registered_by: str,
+        purpose: str | None = None,
+        allowed_actions: list[str] | None = None,
+        write_scope: list[str] | None = None,
+        expires_at: str = "NO_EXPIRY",
     ) -> dict[str, Any]:
         return application.invoke(
             "connector_plugin_register",
@@ -306,6 +327,10 @@ def create_mcp_server(
             capabilities=capabilities,
             allowed_lanes=allowed_lanes,
             registered_by=registered_by,
+            purpose=purpose,
+            allowed_actions=allowed_actions,
+            write_scope=write_scope,
+            expires_at=expires_at,
             lifecycle=True,
         )
 
@@ -359,6 +384,65 @@ def create_mcp_server(
             project_id,
             capability=capability,
             canonical_lane_id=canonical_lane_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="storage_connector_inspect",
+        title="Inspect the primary storage connector route",
+        description=(
+            "Read the project selection, effective host route, transactional durable "
+            "capability, and Google Drive fallback boundary. This never stores a secret "
+            "or changes the selected authority."
+        ),
+        annotations=_READ_ONLY,
+        meta=_meta("Inspecting storage route", "Storage route ready"),
+        structured_output=True,
+    )
+    def storage_connector_inspect(
+        project_id: str,
+        host_kind: str | None = None,
+        ephemeral: bool = False,
+        server_has_durable_filesystem: bool | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "storage_connector_inspect",
+            application.storage_connector_inspect,
+            project_id,
+            host=host_kind,
+            ephemeral=ephemeral,
+            server_has_durable_filesystem=server_has_durable_filesystem,
+        )
+
+    @mcp.tool(
+        name="storage_connector_select",
+        title="Select the project primary storage authority",
+        description=(
+            "Append an exact project storage selection for AUTO, durable local "
+            "SQLite, or one configured transactional durable connector. The exact "
+            "SELECT_STORAGE token is required; Drive remains an optional mirror."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Selecting storage authority", "Storage authority selected"),
+        structured_output=True,
+    )
+    def storage_connector_select(
+        project_id: str,
+        mode: Literal["AUTO", "LOCAL_SQLITE", "CONFIGURED_DURABLE_CONNECTOR"],
+        selected_by: str,
+        reason: str,
+        confirmation: str,
+        connector_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "storage_connector_select",
+            application.storage_connector_select,
+            project_id,
+            mode=mode,
+            selected_by=selected_by,
+            reason=reason,
+            confirmation=confirmation,
+            connector_id=connector_id,
             lifecycle=True,
         )
 
@@ -705,10 +789,12 @@ def create_mcp_server(
         description=(
             "Verify and idempotently flash the locked ENV15/UOP15 session authority, "
             "then boot one governed context for one user, workspace, project, host, "
-            "agent, and source state. The plugin and flash persist until the user "
-            "removes the plugin; neither runtime context nor ENV/UOP bytes enter a "
-            "PV. Remote or ephemeral hosts fail closed unless user-owned Drive "
-            "persistence is configured."
+            "agent, and source state. Boot attaches Flash context and visible "
+            "prompt/response capture until /evi-exit-boot. Exit detaches the runtime "
+            "but preserves the installed plugin, verified Flash receipt, immutable "
+            "store, and pointer. Neither runtime context nor ENV/UOP bytes enter a "
+            "PV. Remote or ephemeral hosts fail closed unless a transactional "
+            "durable connector is configured."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Booting governed session", "Governed session ready"),
@@ -925,8 +1011,10 @@ def create_mcp_server(
             "Confirm the exact host-specific final source boundary and immediately "
             "run deterministic Refresh in one governed operation. Entry and exit "
             "slips are generated automatically, the candidate remains unaccepted, "
-            "and the result stops at the six-way HIL. Users do not need a separate "
-            "Refresh or exit command."
+            "and the result stops at the six-way HIL. An optional exact ordered "
+            "batch can append QUEUED -> ACTIVE -> DONE for every queued Delta only "
+            "when each task has bounded implementation and verification evidence. "
+            "Users do not need a separate Refresh or exit command."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta(
@@ -939,6 +1027,8 @@ def create_mcp_server(
         project_id: str,
         session_id: str,
         confirmation: str,
+        batch_task_evidence: list[dict[str, Any]] | None = None,
+        batch_completion_confirmation: str | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "task_complete_and_refresh",
@@ -946,6 +1036,8 @@ def create_mcp_server(
             project_id,
             session_id,
             confirmation=confirmation,
+            batch_task_evidence=batch_task_evidence,
+            batch_completion_confirmation=batch_completion_confirmation,
             lifecycle=True,
         )
 
@@ -1190,8 +1282,9 @@ def create_mcp_server(
         title="Close governed session",
         description=(
             "Close one governed session with a visible reason and release the "
-            "one-session gate. This does not delete PVs, candidates, lineage, or "
-            "receipts."
+            "one-session gate. Detach Flash context and prompt/response capture while "
+            "preserving the installed plugin, locked Flash verification receipt, "
+            "PVs, candidates, lineage, backlog, immutable store, and pointer."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Closing governed session", "Governed session closed"),
@@ -1509,7 +1602,6 @@ def run_server(
             )
     application = EvidenceLaneService()
     application.sessions.ensure_installation()
-    application.flash_authority.ensure_flashed()
     server = create_mcp_server(
         service=application,
         host=host,

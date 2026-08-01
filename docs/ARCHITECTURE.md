@@ -1,6 +1,6 @@
 # Architecture
 
-Evidence Lane 0.7.0 separates public controls, lifecycle APIs, brain artifacts,
+Evidence Lane 0.8.0 separates public controls, lifecycle APIs, brain artifacts,
 host storage, and human authority.
 
 ## Control plane
@@ -22,6 +22,13 @@ Codex desktop/CLI/ChatGPT and durable/ephemeral capability, chooses storage,
 and boots or resumes one governed session. It fails closed when an ephemeral
 host lacks a transactional durable connector.
 
+`/evi-exit-boot` detaches Flash context and visible prompt/response capture
+while preserving the installed plugin, immutable project store, pointer, and
+installation Flash receipt. A later Boot explicitly re-verifies and reattaches.
+The `/evi-storage` (compatibility: `/evi-change-storage-connector`) sidecar
+inspects or changes project-scoped storage with an append-only exact-token
+receipt; it is not a seventh control.
+
 The append-only backlog permits one active bounded task. Completion records
 host source confirmation and creates a fresh unaccepted candidate. HIL records
 five non-promotion decisions; exact `APPROVE` is accepted only by Fuse.
@@ -33,7 +40,10 @@ and mutation policies. Source Intake auto-detects ordered sources or applies
 exact overrides. Its optional Git arm uses AUTO fallback, REQUIRED fail-closed,
 or explicit DISABLED behavior without granting remote-write authority. Mode is
 an independent sidecar for locked intersections and explicit custom schemas.
-Both always include Chat Lineage.
+Both always include Chat Lineage. The locked ENV15/UOP15 sources remain
+immutable while a digest/schema/host-ABI keyed installation projection provides
+read-only FTS queries. Full source verification always precedes projection
+reuse; mutable development bundles rebuild it.
 
 Every lane emits:
 
@@ -62,14 +72,28 @@ idempotent events. Overlay events retain actors, available model/submodel and to
 visible payload hashes, event-chain pointers, and candidate/pointer identity.
 Secrets are redacted. Hidden chain-of-thought/private reasoning is rejected.
 All overlay truth stays `CANDIDATE_ONLY` and `accepted_sector_truth=0` before
-Fuse.
+Fuse. In addition to each session JSONL hash chain and sibling SQLite/FTS
+projection, a project-wide Chat Lineage SQLite authority maintains a canonical
+global state-hash head. Boot and resume read that head before task execution.
 
 ## Connector brain
 
 The connector brain records append-only plugin registrations, events, routes,
 FTS, and separate exact drop receipts. It stores configuration environment
 variable names only. At most eight additional plugins may be active. Routing is
-deterministic and falls back to built-ins or a visible fail-closed result.
+deterministic and falls back to built-ins or a visible fail-closed result. Every
+new grant records purpose, allowed actions, canonical lanes, write scope,
+expiry, and actor. `/evi-plugin` is the compact sidecar;
+`/evi-additional-plugin` and `/evi-drop-additional-plugin` remain discoverable
+compatibility names.
+
+## Atomic Delta completion
+
+A multi-Delta implementation closes through one locked batch receipt only when
+the evidence list names every queued Delta exactly once and in ledger order.
+Each task receives append-only QUEUED -> ACTIVE -> DONE events. No task is
+silently dropped or accepted; the later six-way HIL disposition maps the batch
+without bypassing exact-`APPROVE` Fuse law.
 
 ## Host and deployment boundaries
 

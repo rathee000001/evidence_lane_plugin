@@ -11,6 +11,7 @@ from typing import Any, cast
 from .connector_governance import ConnectorGovernance
 from .constants import LIFECYCLE_RESULT_SCHEMA, TOOL_RESULT_SCHEMA
 from .engine import CodePVEngine
+from .engine_identity import identity_repository_root
 from .enrollment import enroll_project, sync_selected_branch
 from .errors import EvidenceLaneError, require
 from .flash_authority import SessionFlashAuthority
@@ -20,11 +21,13 @@ from .hashing import sha256_bytes
 from .hil_intent import classify_hil_intent
 from .ids import prefixed_id
 from .lane_reader import LaneReader
+from .lineage import ProjectChatLineage
 from .models import ProjectConfig, normalize_host_kind
 from .next_actions import HIL_CHOICES, HIL_SUGGESTED_PROMPT
 from .operating_modes import classify_operating_modes
 from .persistence import (
     GoogleDrivePersistence,
+    PersistenceRoute,
     PVSyncService,
     route_persistence,
 )
@@ -33,9 +36,11 @@ from .pv_package import validate_pv_package
 from .reader import PVReader
 from .redaction import redact
 from .remote_git import RemoteGitController
+from .runtime_activation import RuntimeActivation
 from .session import SessionManager
 from .source_intake import classify_source_intake
 from .state_law import transition_catalog
+from .storage_selection import StorageSelection
 from .store import ProjectStore
 from .timeutil import utc_now
 
@@ -47,7 +52,7 @@ class EvidenceLaneService:
         data_root: str | Path | None = None,
         sync_service: PVSyncService | None = None,
     ) -> None:
-        repository_root = Path(__file__).resolve().parents[4]
+        repository_root = identity_repository_root(__file__)
         configured_root = (
             Path(data_root)
             if data_root
@@ -59,16 +64,101 @@ class EvidenceLaneService:
         )
         self.store = ProjectStore(configured_root)
         self.flash_authority = SessionFlashAuthority(data_root=configured_root)
+        self.runtime_activation = RuntimeActivation(configured_root)
+        self.storage_selection = StorageSelection(self.store)
         self.engine = CodePVEngine(
             store=self.store,
             source_repository_root=repository_root,
             package_source_root=Path(__file__).resolve().parent,
         )
-        self.sessions = SessionManager(self.store, self.engine)
+        self.sessions = SessionManager(
+            self.store,
+            self.engine,
+            runtime_activation=self.runtime_activation,
+        )
         self.reader = PVReader(self.store)
         self.lane_reader = LaneReader(self.store)
         self.remote_git = RemoteGitController(self.store)
         self.sync_service = sync_service or self._environment_sync_service()
+
+    def storage_connector_inspect(
+        self,
+        project_id: str,
+        *,
+        host: str | None = None,
+        ephemeral: bool = False,
+        server_has_durable_filesystem: bool | None = None,
+    ) -> dict[str, Any]:
+        selection = self.storage_selection.inspect(project_id)
+        result: dict[str, Any] = {
+            **selection,
+            "configured_runtime_connector_available": bool(
+                self.sync_service is not None
+                and self.sync_service.runtime_state_capable
+            ),
+        }
+        if host:
+            route, _ = self._selected_persistence_route(
+                project_id,
+                host=host,
+                ephemeral=ephemeral,
+                server_has_durable_filesystem=server_has_durable_filesystem,
+            )
+            result["effective_route"] = {
+                "mode": route.mode,
+                "reason": route.reason,
+                "durable_required": route.durable_required,
+                "server_filesystem": route.server_filesystem,
+                "host_connector_role": route.host_connector_role,
+            }
+        return result
+
+    def storage_connector_select(
+        self, project_id: str, **kwargs: Any
+    ) -> dict[str, Any]:
+        return self.storage_selection.select(project_id, **kwargs)
+
+    def _selected_persistence_route(
+        self,
+        project_id: str,
+        *,
+        host: str,
+        ephemeral: bool,
+        server_has_durable_filesystem: bool | None,
+    ) -> tuple[PersistenceRoute, dict[str, Any]]:
+        host_kind = normalize_host_kind(host)
+        automatic = route_persistence(
+            host_kind,
+            ephemeral=ephemeral,
+            server_has_durable_filesystem=server_has_durable_filesystem,
+        )
+        selection = self.storage_selection.inspect(project_id)
+        if selection["mode"] == "AUTO":
+            return automatic, selection
+        if selection["mode"] == "LOCAL_SQLITE":
+            require(
+                not ephemeral and automatic.server_filesystem == "DURABLE",
+                "LOCAL_SQLITE_STORAGE_UNAVAILABLE",
+                "The selected local SQLite authority is unavailable on this host.",
+                status="BLOCKED",
+            )
+            return PersistenceRoute(
+                mode="local",
+                reason="the project explicitly selected its durable local SQLite authority",
+                durable_required=False,
+                server_filesystem="DURABLE",
+                host_connector_role="OPTIONAL_VERIFIED_MIRROR",
+            ), selection
+        return PersistenceRoute(
+            mode="configured_durable_connector",
+            reason=(
+                "the project explicitly selected the configured transactional "
+                f"connector {selection['connector_id']}"
+            ),
+            durable_required=True,
+            server_filesystem=automatic.server_filesystem,
+            host_connector_role="PRIMARY_TRANSACTIONAL_RUNTIME_AUTHORITY",
+        ), selection
 
     def _environment_sync_service(self) -> PVSyncService | None:
         token = os.environ.get("EVIDENCE_LANE_GOOGLE_DRIVE_ACCESS_TOKEN", "")
@@ -164,8 +254,10 @@ class EvidenceLaneService:
         installation = self.sessions.installation_status()
         report = self.engine.doctor()
         flash = self.flash_authority.status()
+        runtime_activation = self.runtime_activation.status()
         report["installation"] = installation
         report["session_flash"] = flash
+        report["runtime_activation"] = runtime_activation
         report["checks"]["session_flash_bundle"] = flash["status"] == "PASS"
         report["status"] = "PASS" if all(report["checks"].values()) else "FAIL"
         report["warnings"] = flash["warnings"]
@@ -196,7 +288,13 @@ class EvidenceLaneService:
         return report
 
     def session_flash_status(self) -> dict[str, Any]:
-        return self.flash_authority.status()
+        return {
+            **self.flash_authority.status(),
+            "runtime_activation": self.runtime_activation.status(),
+        }
+
+    def runtime_activation_status(self) -> dict[str, Any]:
+        return {"status": "PASS", **self.runtime_activation.status()}
 
     def transition_law(self) -> dict[str, Any]:
         return {"status": "PASS", **transition_catalog()}
@@ -708,10 +806,14 @@ class EvidenceLaneService:
         client_can_edit_source: bool | None = None,
         server_has_durable_filesystem: bool | None = None,
     ) -> dict[str, Any]:
+        project_lineage_entry = ProjectChatLineage(
+            self.store.project_root(project_id) / "lineage"
+        ).sync()
         flash = self.flash_authority.ensure_flashed()
         host_kind = normalize_host_kind(host)
-        route = route_persistence(
-            host_kind,
+        route, storage_selection = self._selected_persistence_route(
+            project_id,
+            host=host_kind.value,
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
         )
@@ -747,7 +849,12 @@ class EvidenceLaneService:
             "durable_required": route.durable_required,
             "server_filesystem": route.server_filesystem,
             "host_connector_role": route.host_connector_role,
+            "selection": storage_selection,
         }
+        result["project_lineage_entry"] = project_lineage_entry
+        result["project_lineage"] = ProjectChatLineage(
+            self.store.project_root(project_id) / "lineage"
+        ).sync()
         return result
 
     def resume_session(
@@ -761,9 +868,14 @@ class EvidenceLaneService:
         server_has_durable_filesystem: bool | None = None,
         runtime_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        project_lineage_entry = ProjectChatLineage(
+            self.store.project_root(project_id) / "lineage"
+        ).sync()
+        flash = self.flash_authority.ensure_flashed()
         host_kind = normalize_host_kind(host)
-        route = route_persistence(
-            host_kind,
+        route, storage_selection = self._selected_persistence_route(
+            project_id,
+            host=host_kind.value,
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
         )
@@ -786,14 +898,21 @@ class EvidenceLaneService:
             client_can_edit_source=client_can_edit_source,
             server_has_durable_filesystem=route.server_filesystem == "DURABLE",
             runtime_context=runtime_context,
+            flash=flash,
         )
+        result["session_flash"] = flash
         result["persistence_route"] = {
             "mode": route.mode,
             "reason": route.reason,
             "durable_required": route.durable_required,
             "server_filesystem": route.server_filesystem,
             "host_connector_role": route.host_connector_role,
+            "selection": storage_selection,
         }
+        result["project_lineage_entry"] = project_lineage_entry
+        result["project_lineage"] = ProjectChatLineage(
+            self.store.project_root(project_id) / "lineage"
+        ).sync()
         return result
 
     def prepare_state_travel(
@@ -884,8 +1003,20 @@ class EvidenceLaneService:
             )
         return result
 
-    def refresh(self, project_id: str, session_id: str) -> dict[str, Any]:
-        result = self.sessions.refresh_exit(project_id, session_id)
+    def refresh(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        batch_task_evidence: list[dict[str, Any]] | None = None,
+        batch_completion_confirmation: str | None = None,
+    ) -> dict[str, Any]:
+        result = self.sessions.refresh_exit(
+            project_id,
+            session_id,
+            batch_task_evidence=batch_task_evidence,
+            batch_completion_confirmation=batch_completion_confirmation,
+        )
         result["next_action"] = "PRESENT_SIX_WAY_HIL"
         result["suggested_next_prompt"] = HIL_SUGGESTED_PROMPT
         result["next_action_contract"] = result["candidate"]["next_action"]
@@ -909,14 +1040,43 @@ class EvidenceLaneService:
         session_id: str,
         *,
         confirmation: str,
+        batch_task_evidence: list[dict[str, Any]] | None = None,
+        batch_completion_confirmation: str | None = None,
     ) -> dict[str, Any]:
         """Confirm the final host source and seal its exit candidate in one step."""
+        if (
+            batch_task_evidence is not None
+            or batch_completion_confirmation is not None
+        ):
+            require(
+                batch_task_evidence is not None
+                and batch_completion_confirmation is not None,
+                "BATCH_DELTA_REFRESH_ARGUMENTS_INVALID",
+                "Batch completion requires both exact evidence and confirmation.",
+                status="BLOCKED",
+            )
+            exact_batch_evidence = cast(
+                list[dict[str, Any]], batch_task_evidence
+            )
+            exact_batch_confirmation = cast(
+                str, batch_completion_confirmation
+            )
+            self.store.validate_backlog_batch_completion(
+                project_id,
+                task_evidence=exact_batch_evidence,
+                confirmation=exact_batch_confirmation,
+            )
         confirmed = self.sessions.confirm_source_update(
             project_id,
             session_id,
             confirmation=confirmation,
         )
-        refreshed = self.refresh(project_id, session_id)
+        refreshed = self.refresh(
+            project_id,
+            session_id,
+            batch_task_evidence=batch_task_evidence,
+            batch_completion_confirmation=batch_completion_confirmation,
+        )
         return {
             **refreshed,
             "automatic_refresh": True,

@@ -1,6 +1,6 @@
 ---
 name: evi-exit-boot
-description: Explicitly close one persistent Evidence Lane session without removing installation or Flash.
+description: Explicitly close one persistent Evidence Lane session and detach live Flash/capture without removing the installation or immutable evidence.
 ---
 
 # Evidence Lane Exit Boot

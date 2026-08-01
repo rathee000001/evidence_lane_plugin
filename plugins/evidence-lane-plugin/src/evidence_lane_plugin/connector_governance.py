@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +41,10 @@ class ConnectorGovernance:
                 config_env_keys_json TEXT NOT NULL,
                 capabilities_json TEXT NOT NULL,
                 allowed_lanes_json TEXT NOT NULL,
+                purpose TEXT NOT NULL DEFAULT '',
+                allowed_actions_json TEXT NOT NULL DEFAULT '[]',
+                write_scope_json TEXT NOT NULL DEFAULT '[]',
+                expires_at TEXT NOT NULL DEFAULT 'NO_EXPIRY',
                 registered_at TEXT NOT NULL,
                 dropped_at TEXT,
                 status TEXT NOT NULL CHECK(status IN ('ACTIVE','DROPPED')),
@@ -72,7 +77,34 @@ class ConnectorGovernance:
             );
             """
         )
+        columns = {
+            str(row[1])
+            for row in connection.execute("PRAGMA table_info(plugin_registration)")
+        }
+        migrations = {
+            "purpose": "TEXT NOT NULL DEFAULT ''",
+            "allowed_actions_json": "TEXT NOT NULL DEFAULT '[]'",
+            "write_scope_json": "TEXT NOT NULL DEFAULT '[]'",
+            "expires_at": "TEXT NOT NULL DEFAULT 'NO_EXPIRY'",
+        }
+        for name, declaration in migrations.items():
+            if name not in columns:
+                connection.execute(
+                    f"ALTER TABLE plugin_registration ADD COLUMN {name} {declaration}"
+                )
         return connection
+
+    @staticmethod
+    def _expiry_is_live(value: str) -> bool:
+        if value == "NO_EXPIRY":
+            return True
+        try:
+            parsed = datetime.fromisoformat(value)
+        except ValueError:
+            return False
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=UTC)
+        return parsed > datetime.now(UTC)
 
     @staticmethod
     def _event(
@@ -127,6 +159,10 @@ class ConnectorGovernance:
         capabilities: list[str],
         allowed_lanes: list[str],
         registered_by: str,
+        purpose: str | None = None,
+        allowed_actions: list[str] | None = None,
+        write_scope: list[str] | None = None,
+        expires_at: str = "NO_EXPIRY",
     ) -> dict[str, Any]:
         exact_id = plugin_id.strip().lower()
         exact_kind = plugin_kind.strip().lower()
@@ -157,6 +193,22 @@ class ConnectorGovernance:
         lanes = list(
             dict.fromkeys(item.strip() for item in allowed_lanes if item.strip())
         )
+        exact_purpose = (purpose or description).strip()
+        actions = list(
+            dict.fromkeys(
+                item.strip()
+                for item in (allowed_actions or exact_capabilities)
+                if item.strip()
+            )
+        )
+        scopes = list(
+            dict.fromkeys(
+                item.strip()
+                for item in (write_scope or [f"lane:{item}" for item in lanes])
+                if item.strip()
+            )
+        )
+        exact_expiry = expires_at.strip() or "NO_EXPIRY"
         require(
             bool(exact_capabilities)
             and bool(lanes)
@@ -166,6 +218,15 @@ class ConnectorGovernance:
             status="BLOCKED",
             allowed_lanes=list(CANONICAL_LANE_IDS),
         )
+        require(
+            bool(exact_purpose)
+            and bool(actions)
+            and bool(scopes)
+            and self._expiry_is_live(exact_expiry),
+            "PLUGIN_GRANT_INVALID_OR_EXPIRED",
+            "A persistent plugin needs a visible purpose, actions, write scope, and live expiry.",
+            status="BLOCKED",
+        )
         registration = {
             "plugin_id": exact_id,
             "name": name.strip(),
@@ -174,6 +235,10 @@ class ConnectorGovernance:
             "config_env_keys": keys,
             "capabilities": exact_capabilities,
             "allowed_lanes": lanes,
+            "purpose": exact_purpose,
+            "allowed_actions": actions,
+            "write_scope": scopes,
+            "expires_at": exact_expiry,
         }
         require(
             bool(registration["name"]) and bool(registration["description"]),
@@ -182,6 +247,19 @@ class ConnectorGovernance:
             status="BLOCKED",
         )
         registration_sha256 = sha256_bytes(canonical_json_bytes(registration))
+        legacy_registration = {
+            key: registration[key]
+            for key in (
+                "plugin_id",
+                "name",
+                "plugin_kind",
+                "description",
+                "config_env_keys",
+                "capabilities",
+                "allowed_lanes",
+            )
+        }
+        legacy_sha256 = sha256_bytes(canonical_json_bytes(legacy_registration))
         connection = self._connect()
         try:
             existing = connection.execute(
@@ -189,14 +267,22 @@ class ConnectorGovernance:
             ).fetchone()
             if existing:
                 require(
-                    existing["registration_sha256"] == registration_sha256
+                    existing["registration_sha256"]
+                    in {registration_sha256, legacy_sha256}
                     and existing["status"] == "ACTIVE",
                     "PLUGIN_REGISTRATION_CONFLICT",
                     "The plugin ID already binds different or dropped governance bytes.",
                     status="BLOCKED",
                     plugin_id=exact_id,
                 )
-                return {"status": "PASS", "idempotent": True, **registration}
+                return {
+                    "status": "PASS",
+                    "idempotent": True,
+                    **registration,
+                    "legacy_registration_reused": (
+                        existing["registration_sha256"] == legacy_sha256
+                    ),
+                }
             active_count = int(
                 connection.execute(
                     "SELECT COUNT(*) FROM plugin_registration WHERE status='ACTIVE'"
@@ -215,9 +301,10 @@ class ConnectorGovernance:
                 """
                 INSERT INTO plugin_registration(
                     plugin_id, name, plugin_kind, description, config_env_keys_json,
-                    capabilities_json, allowed_lanes_json, registered_at, dropped_at,
-                    status, registration_sha256
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, 'ACTIVE', ?)
+                    capabilities_json, allowed_lanes_json, purpose,
+                    allowed_actions_json, write_scope_json, expires_at,
+                    registered_at, dropped_at, status, registration_sha256
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 'ACTIVE', ?)
                 """,
                 (
                     exact_id,
@@ -227,6 +314,10 @@ class ConnectorGovernance:
                     json.dumps(keys, separators=(",", ":")),
                     json.dumps(exact_capabilities, separators=(",", ":")),
                     json.dumps(lanes, separators=(",", ":")),
+                    exact_purpose,
+                    json.dumps(actions, separators=(",", ":")),
+                    json.dumps(scopes, separators=(",", ":")),
+                    exact_expiry,
                     registered_at,
                     registration_sha256,
                 ),
@@ -318,6 +409,8 @@ class ConnectorGovernance:
                     "config_env_keys": json.loads(row["config_env_keys_json"]),
                     "capabilities": json.loads(row["capabilities_json"]),
                     "allowed_lanes": json.loads(row["allowed_lanes_json"]),
+                    "allowed_actions": json.loads(row["allowed_actions_json"]),
+                    "write_scope": json.loads(row["write_scope_json"]),
                 }
                 for row in connection.execute(
                     "SELECT * FROM plugin_registration ORDER BY registered_at, plugin_id"
@@ -327,6 +420,17 @@ class ConnectorGovernance:
                 row.pop("config_env_keys_json", None)
                 row.pop("capabilities_json", None)
                 row.pop("allowed_lanes_json", None)
+                row.pop("allowed_actions_json", None)
+                row.pop("write_scope_json", None)
+                if not row["purpose"]:
+                    row["purpose"] = row["description"]
+                if not row["allowed_actions"]:
+                    row["allowed_actions"] = list(row["capabilities"])
+                if not row["write_scope"]:
+                    row["write_scope"] = [
+                        f"lane:{lane}" for lane in row["allowed_lanes"]
+                    ]
+                row["grant_live"] = self._expiry_is_live(row["expires_at"])
             integrity = [
                 item[0] for item in connection.execute("PRAGMA integrity_check")
             ]
@@ -339,6 +443,11 @@ class ConnectorGovernance:
                 else "FAIL",
                 "maximum_active": MAX_ADDITIONAL_PERSISTENT_PLUGINS,
                 "active_count": sum(1 for row in rows if row["status"] == "ACTIVE"),
+                "routable_count": sum(
+                    1
+                    for row in rows
+                    if row["status"] == "ACTIVE" and row["grant_live"]
+                ),
                 "registrations": rows,
                 "integrity": integrity,
                 "foreign_key_errors": foreign_keys,
@@ -364,7 +473,9 @@ class ConnectorGovernance:
             row
             for row in catalog["registrations"]
             if row["status"] == "ACTIVE"
+            and row["grant_live"]
             and capability in row["capabilities"]
+            and capability in row["allowed_actions"]
             and (canonical_lane_id is None or canonical_lane_id in row["allowed_lanes"])
         ]
         matches.sort(key=lambda row: row["plugin_id"])
@@ -437,18 +548,45 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
             dict(row) for row in connection.execute("PRAGMA foreign_key_check")
         ]
         rows = list(
-            connection.execute(
-                "SELECT status, config_env_keys_json FROM plugin_registration"
-            )
+            connection.execute("SELECT * FROM plugin_registration")
         )
+        registration_columns = {
+            str(row[1])
+            for row in connection.execute("PRAGMA table_info(plugin_registration)")
+        }
+        governed_grant_columns = {
+            "purpose",
+            "allowed_actions_json",
+            "write_scope_json",
+            "expires_at",
+        }
+        governed_grants_present = governed_grant_columns <= registration_columns
         active_count = sum(1 for row in rows if row["status"] == "ACTIVE")
         config_keys_valid = True
+        governed_grants_valid = True
         for row in rows:
             try:
                 keys = json.loads(row["config_env_keys_json"])
             except (TypeError, json.JSONDecodeError):
                 config_keys_valid = False
                 break
+            if governed_grants_present:
+                try:
+                    actions = json.loads(row["allowed_actions_json"])
+                    scopes = json.loads(row["write_scope_json"])
+                except (TypeError, json.JSONDecodeError):
+                    governed_grants_valid = False
+                    break
+                if (
+                    not str(row["purpose"]).strip()
+                    or not isinstance(actions, list)
+                    or not actions
+                    or not isinstance(scopes, list)
+                    or not scopes
+                    or not ConnectorGovernance._expiry_is_live(str(row["expires_at"]))
+                ):
+                    governed_grants_valid = False
+                    break
             if not isinstance(keys, list) or not all(
                 isinstance(key, str) and _ENV_KEY.fullmatch(key) for key in keys
             ):
@@ -471,6 +609,7 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
         and not foreign_keys
         and active_count <= MAX_ADDITIONAL_PERSISTENT_PLUGINS
         and config_keys_valid
+        and governed_grants_valid
         and fts_count == len(rows)
     )
     return {
@@ -485,4 +624,7 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
         "route_count": route_count,
         "fts_count": fts_count,
         "config_environment_names_only": config_keys_valid,
+        "governed_grants_present": governed_grants_present,
+        "governed_grants_valid": governed_grants_valid,
+        "legacy_grant_schema_supported": not governed_grants_present,
     }

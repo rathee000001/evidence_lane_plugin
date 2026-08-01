@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evidence-lane-plugin"
-version = "0.7.0"
-description = "Private six-control Evidence Lane plugin with universal SQLite brains, candidate overlays, and exact-APPROVE HIL."
+version = "0.8.0"
+description = "Private six-control Evidence Lane plugin with detachable Boot, universal SQLite brains, candidate overlays, and exact-APPROVE HIL."
 requires-python = ">=3.11"
 license = "LicenseRef-Proprietary"
 authors = [{ name = "Praveen Rathee" }]

@@ -37,6 +37,42 @@ def _store_root() -> Path:
     ).resolve()
 
 
+def _runtime_activation(root: Path) -> dict[str, Any]:
+    path = root / "installation" / "runtime_activation.json"
+    if not path.is_file():
+        return {"state": "DETACHED", "active_sessions": []}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError):
+        return {
+            "state": "DETACHED",
+            "active_sessions": [],
+            "reason": "RUNTIME_ACTIVATION_RECEIPT_INVALID",
+        }
+    sessions = payload.get("active_sessions")
+    if (
+        payload.get("schema") != "evidence-lane.runtime-activation.v1"
+        or payload.get("plugin_id") != "evidence-lane-plugin"
+        or payload.get("state") != "ACTIVE"
+        or not isinstance(sessions, list)
+        or not sessions
+        or payload.get("visible_response_capture_active") is not True
+    ):
+        return {"state": "DETACHED", "active_sessions": []}
+    return payload
+
+
+def _binding_is_attached(
+    activation: dict[str, Any], binding: dict[str, Any]
+) -> bool:
+    return any(
+        row.get("project_id") == binding.get("project_id")
+        and row.get("session_id") == binding.get("evidence_session_id")
+        for row in activation.get("active_sessions", [])
+        if isinstance(row, dict)
+    )
+
+
 def _canonical_bytes(value: dict[str, Any]) -> bytes:
     return (
         json.dumps(
@@ -97,6 +133,21 @@ def _output_links(text: str) -> list[str]:
         if value and value not in values:
             values.append(value)
     return values[:100]
+
+
+def _visible_reasoning_summary(payload: dict[str, Any]) -> dict[str, Any]:
+    """Accept only an explicitly host-visible summary, never reasoning content."""
+
+    value = payload.get("visible_reasoning_summary")
+    if not isinstance(value, str) or not value.strip():
+        return {"availability": "UNAVAILABLE"}
+    summary = _redact(value.strip())
+    return {
+        "availability": "AVAILABLE",
+        "summary_after_redaction": summary,
+        "summary_sha256": _sha256(summary.encode("utf-8")),
+        "private_reasoning_stored": False,
+    }
 
 
 def _within(child: Path, parent: Path) -> bool:
@@ -287,6 +338,10 @@ def _append_lineage(
                     record["visible_assistant_response_after_redaction"]
                 ),
                 "output_links": record.get("output_links", []),
+                "visible_reasoning_summary": record.get(
+                    "visible_reasoning_summary",
+                    {"availability": "UNAVAILABLE"},
+                ),
                 "entry_pv": record.get("entry_pv"),
                 "pointer_generation": record.get("pointer_generation"),
                 "lifecycle_state": record.get("lifecycle_state"),
@@ -312,6 +367,16 @@ def _append_lineage(
             lineage_path,
             b"".join(_canonical_bytes(item) for item in events),
         )
+        try:
+            from evidence_lane_plugin.lineage import ChatLineage
+
+            ChatLineage(lineage_path).projection_status()
+        except Exception as projection_error:  # noqa: BLE001 - hook fails open
+            if os.environ.get("EVIDENCE_LANE_HOOK_DEBUG") == "1":
+                print(
+                    f"EVIDENCE_LANE_LINEAGE_PROJECTION={type(projection_error).__name__}",
+                    file=sys.stderr,
+                )
         return event
     finally:
         os.close(lock_descriptor)
@@ -332,6 +397,7 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
             "private_reasoning_stored": False,
         }
     root = _store_root()
+    activation = _runtime_activation(root)
     binding = _active_binding(
         root,
         host_session_id=host_session_id,
@@ -341,6 +407,18 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
         return {
             "state": "NOT_INDEXED",
             "reason": "NO_BOUND_EVIDENCE_LANE_SESSION",
+            "private_reasoning_stored": False,
+        }
+    if activation.get("state") != "ACTIVE":
+        return {
+            "state": "NOT_INDEXED",
+            "reason": "EVIDENCE_LANE_RUNTIME_DETACHED",
+            "private_reasoning_stored": False,
+        }
+    if not _binding_is_attached(activation, binding):
+        return {
+            "state": "NOT_INDEXED",
+            "reason": "GOVERNED_SESSION_NOT_RUNTIME_ATTACHED",
             "private_reasoning_stored": False,
         }
     prompt_record = _prompt_record(
@@ -402,6 +480,7 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
         "response_sha256_after_redaction": _sha256(visible_response.encode("utf-8")),
         "response_chars_after_redaction": len(visible_response),
         "output_links": _output_links(visible_response),
+        "visible_reasoning_summary": _visible_reasoning_summary(payload),
         "model": model,
         "submodel": submodel,
         "token_metrics": token_metrics,

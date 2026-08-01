@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import EvidenceLaneError, require
+from .flash_projection import FlashRuntimeProjection
 from .hashing import (
     atomic_write_json,
     canonical_json_bytes,
@@ -109,13 +110,14 @@ class SessionFlashAuthority:
             user_version=user_version,
             expected_user_version=expected_user_version,
         )
-        return {
+        result = {
             "integrity": integrity,
             "foreign_key_errors": 0,
             "user_version": user_version,
             "tables": table_count,
             "read_mode": "mode=ro&immutable=1",
         }
+        return result
 
     def _manifest(self) -> dict[str, Any]:
         require(
@@ -276,7 +278,7 @@ class SessionFlashAuthority:
                 }
             )
         )
-        return {
+        result = {
             "status": "PASS",
             "authority_version": manifest["authority_version"],
             "authority_digest": authority_digest,
@@ -298,6 +300,11 @@ class SessionFlashAuthority:
             },
             "warnings": [manifest["warning"]],
         }
+        result["runtime_projection"] = FlashRuntimeProjection(
+            data_root=self.data_root,
+            asset_root=self.asset_root,
+        ).ensure(result)
+        return result
 
     def _validated_receipt(
         self, report: dict[str, Any], receipt: dict[str, Any]
