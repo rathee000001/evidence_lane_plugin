@@ -1,6 +1,6 @@
 # Architecture
 
-Evidence Lane 0.8.2 separates public controls, lifecycle APIs, brain artifacts,
+Evidence Lane 0.8.3 separates public controls, lifecycle APIs, brain artifacts,
 host storage, and human authority.
 
 ## Control plane

@@ -13,6 +13,7 @@
 | Visible private-safe Chat Lineage | hooks, `lineage.py` | session JSONL plus SQLite and project-head authority, prompt plus multi-steer ordering/idempotency, FTS/chain hashes, actor/model/token fields, secret/private-reasoning rejection |
 | Bounded connector/plugin governance | `connector_governance.py`, `/evi-plugin` sidecars | purpose/action/scope/expiry grants, eight-active limit, deterministic route, exact drop, history/FTS tests |
 | Atomic ordered Delta completion | `store.py`, `session.py` | exact ledger-order evidence, one locked batch receipt, sequential ACTIVE/DONE events, later HIL mapping |
+| Interrupted exit recovery | `state_law.py`, `session.py`, `.mcp.json` | candidate-absent self-transition, visible receipt, pointer immutability, one-hour long-tool timeout |
 | Per-lane forensic reports | `forensic_audit.py`, `scripts/forensic_audit.py` | 18 individual Markdown reports plus JSON/manifest; SQLite/FK/FTS and MMD/DOT/pointer/refresh checks |
 | Host-specific output handoff | `next_actions.py`, Exit Slip | Codex-local versus user-mediated confirmation tests |
 | Tolerant HIL intent with exact Fuse boundary | `hil_intent.py`, `service.py`, `mcp_server.py` | typo/continuation classification without pointer movement; dedicated Fuse remains exact-case sensitive |

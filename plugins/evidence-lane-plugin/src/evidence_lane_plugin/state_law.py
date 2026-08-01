@@ -15,6 +15,7 @@ class LifecycleEvent(StrEnum):
     BUILD_INITIAL = "BUILD_INITIAL"
     CLASSIFY_TASK = "CLASSIFY_TASK"
     BEGIN_EXIT = "BEGIN_EXIT"
+    RECOVER_INTERRUPTED_EXIT = "RECOVER_INTERRUPTED_EXIT"
     SEAL_EXIT = "SEAL_EXIT"
     SEAL_INITIAL_RETRY = "SEAL_INITIAL_RETRY"
     HIL_APPROVE = "HIL_APPROVE"
@@ -68,6 +69,9 @@ TRANSITION_LAW = MappingProxyType(
                 SessionState.AWAITING_USER_APPLY_COMMIT,
             },
             {SessionState.EXIT_BUILDING},
+        ),
+        LifecycleEvent.RECOVER_INTERRUPTED_EXIT: frozenset(
+            {(SessionState.EXIT_BUILDING, SessionState.EXIT_BUILDING)}
         ),
         LifecycleEvent.SEAL_EXIT: frozenset(
             {(SessionState.EXIT_BUILDING, SessionState.PVN1_CANDIDATE)}

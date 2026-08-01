@@ -10,6 +10,77 @@ from evidence_lane_plugin.errors import EvidenceLaneError
 from .conftest import boot_local, build_and_approve_pv1, git
 
 
+def test_interrupted_exit_retries_only_without_a_sealed_candidate(
+    service,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class="verify_result",
+        requested_outcome="Seal the verified source after an interrupted build.",
+        permitted_paths=[],
+        permitted_tools=["repository_read", "test"],
+        acceptance_checks=["source remains unchanged"],
+        stop_condition="Stop at the fresh unaccepted HIL.",
+    )
+    service.sessions.confirm_source_update(
+        "book-faires",
+        session_id,
+        confirmation="HOST_SANDBOX_FINAL_STATE_CONFIRMED",
+    )
+    pointer_before = service.store.pointer("book-faires").as_dict()
+    original_build = service.sessions.engine.build_candidate
+
+    def interrupt_build(**_arguments):
+        raise RuntimeError("simulated process interruption")
+
+    monkeypatch.setattr(
+        service.sessions.engine,
+        "build_candidate",
+        interrupt_build,
+    )
+    with pytest.raises(RuntimeError, match="simulated process interruption"):
+        service.refresh("book-faires", session_id)
+    interrupted = service.sessions.load("book-faires", session_id)
+    assert interrupted.state.value == "EXIT_BUILDING"
+    assert interrupted.candidate_id is None
+    assert service.store.pointer("book-faires").as_dict() == pointer_before
+
+    monkeypatch.setattr(
+        service.sessions.engine,
+        "build_candidate",
+        original_build,
+    )
+    recovered = service.refresh("book-faires", session_id)
+    receipt = recovered["interrupted_exit_recovery"]
+    assert receipt["candidate_absent"] is True
+    assert receipt["pointer_moved"] is False
+    assert receipt["acceptance_inferred"] is False
+    assert recovered["session"]["state"] == "PVN1_CANDIDATE"
+    assert recovered["candidate"]["candidate_id"]
+    assert service.store.pointer("book-faires").as_dict() == pointer_before
+
+    lineage_path = (
+        service.store.project_root("book-faires")
+        / "lineage"
+        / f"{session_id}.jsonl"
+    )
+    lineage = [
+        json.loads(line)
+        for line in lineage_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    recoveries = [
+        event
+        for event in lineage
+        if event["event_type"] == "pv.interrupted_exit.recovered"
+    ]
+    assert len(recoveries) == 1
+    assert recoveries[0]["visible_payload"]["candidate_absent"] is True
+
+
 def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(
     service,
     source_repository: Path,

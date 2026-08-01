@@ -12,8 +12,11 @@ flowchart TD
     P -- "No" --> F["PV1 full eighteen-lane build"]
     P -- "Yes" --> E["Load accepted entry; bounded task"]
     E --> X["Automatic incremental Refresh and host-specific output handoff"]
+    X --> IX{"Host or client interrupted before candidate seal?"}
+    IX -- "Yes; candidate absent" --> XR["Receipt-backed RECOVER_INTERRUPTED_EXIT; pointer unchanged"]
+    XR --> X
+    IX -- "No" --> H
     F --> H["Fresh UNACCEPTED candidate"]
-    X --> H
     H --> D{"Six-way HIL"}
     D -- "APPROVE_WITH_DELTA" --> E
     D -- "MORE_RESEARCH" --> E

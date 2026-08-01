@@ -1356,18 +1356,29 @@ class SessionManager:
         batch_completion_confirmation: str | None = None,
     ) -> dict[str, Any]:
         session = self.load(project_id, session_id)
+        recovering_interrupted_exit = session.state == SessionState.EXIT_BUILDING
         require(
             session.task is not None
             and session.state
             in {
                 SessionState.TASK_CLASSIFIED,
                 SessionState.AWAITING_USER_APPLY_COMMIT,
+                SessionState.EXIT_BUILDING,
             },
             "REFRESH_STATE_INVALID",
-            "PV Refresh requires one active classified task.",
+            "PV Refresh requires one active classified task or an interrupted exit "
+            "with no sealed candidate.",
             status="BLOCKED",
             state=session.state.value,
         )
+        if recovering_interrupted_exit:
+            require(
+                session.candidate_id is None,
+                "INTERRUPTED_EXIT_ALREADY_SEALED",
+                "An interrupted exit may be retried only when no candidate was sealed.",
+                status="BLOCKED",
+                candidate_id=session.candidate_id,
+            )
         require(
             bool(session.metadata.get("source_update_confirmed")),
             "SOURCE_UPDATE_NOT_CONFIRMED",
@@ -1400,12 +1411,43 @@ class SessionManager:
                 confirmation=exact_batch_confirmation,
             )
         task_payload = cast(dict[str, Any], session.task)
-        session.state = transition(
-            session.state,
-            LifecycleEvent.BEGIN_EXIT,
-            SessionState.EXIT_BUILDING,
-        )
+        recovery_receipt: dict[str, Any] | None = None
+        if recovering_interrupted_exit:
+            session.state = transition(
+                session.state,
+                LifecycleEvent.RECOVER_INTERRUPTED_EXIT,
+                SessionState.EXIT_BUILDING,
+            )
+            recovery_receipt = {
+                "schema": "evidence-lane.interrupted-exit-recovery.v1",
+                "session_id": session_id,
+                "run_id": session.metadata.get("run_id"),
+                "candidate_absent": True,
+                "accepted_pv": session.accepted_pv,
+                "pointer_generation": session.accepted_pointer_generation,
+                "recovered_at": utc_now(),
+                "pointer_moved": False,
+                "acceptance_inferred": False,
+            }
+            session.metadata.setdefault("interrupted_exit_recoveries", []).append(
+                recovery_receipt
+            )
+        else:
+            session.state = transition(
+                session.state,
+                LifecycleEvent.BEGIN_EXIT,
+                SessionState.EXIT_BUILDING,
+            )
         self._save(session)
+        if recovery_receipt is not None:
+            ChatLineage(self._lineage_path(project_id, session_id)).append(
+                event_type="pv.interrupted_exit.recovered",
+                visible_payload=recovery_receipt,
+                occurred_at=cast(str, recovery_receipt["recovered_at"]),
+                session_id=session_id,
+                task_id=cast(dict[str, Any], session.task)["task_id"],
+                run_id=cast(str, session.metadata["run_id"]),
+            )
         task = TaskContract(
             task_id=task_payload["task_id"],
             task_class=TaskClass(task_payload["task_class"]),
@@ -1504,6 +1546,7 @@ class SessionManager:
             "status": "PASS",
             "session": session.as_dict(),
             "candidate": result,
+            "interrupted_exit_recovery": recovery_receipt,
             "backlog_task": backlog_done,
             "batch_backlog_preflight": batch_preflight,
             "batch_backlog_completion": batch_backlog_done,

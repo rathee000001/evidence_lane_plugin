@@ -21,6 +21,12 @@ worse than exposing the boundary.
 
 ## HIL recovery
 
+A host or client interruption during `EXIT_BUILDING` is recoverable only while
+the session has no sealed candidate. The retry is a canonical
+`RECOVER_INTERRUPTED_EXIT` self-transition, records a visible recovery receipt,
+revalidates final source, and cannot move the accepted pointer or infer a HIL
+decision. If a candidate already exists, retry fails closed.
+
 `APPROVE_WITH_DELTA` and `MORE_RESEARCH` retain the prior pointer and preserve
 the candidate source. Continuation is allowed only when the live repository
 still matches that exact candidate and the next task class/outcome exactly

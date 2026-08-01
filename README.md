@@ -22,7 +22,7 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane Plugin 0.8.2
+# Evidence Lane Plugin 0.8.3
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex, with a
 durable remote MCP boundary for ChatGPT. It turns visible project sources and
@@ -125,6 +125,13 @@ receipt. Accepted v1 bundles remain readable through a narrow compatibility
 path that applies only when all v2 parallel metadata is absent; a damaged or
 incomplete v2 bundle still fails closed.
 
+If the host or MCP client disconnects while a long build is in
+`EXIT_BUILDING`, the same Refresh may resume only when no candidate was sealed.
+The retry appends an interrupted-exit recovery receipt to visible ChatLineage,
+keeps the accepted pointer unchanged, and still stops at the unaccepted HIL.
+The bundled MCP long-tool timeout is one hour so full repository and OCR lanes
+are not cut off by the former five-minute transport default.
+
 Git code lanes index reachable commits, refs, changes, exact blobs,
 content-addressed chunks, occurrences, and history FTS. Incremental Refresh
 reuses a single accepted index, reindexes changed sections only, records chunk
@@ -180,7 +187,7 @@ python -m venv .venv
 Build the durable MCP container with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:0.8.2 .
+docker build --pull --tag evidence-lane-plugin:0.8.3 .
 ```
 
 The container exposes `/mcp` and `/healthz` on port 8080 and requires one writer

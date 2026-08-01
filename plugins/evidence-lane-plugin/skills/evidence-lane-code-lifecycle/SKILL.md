@@ -99,6 +99,10 @@ limited to eight additional active plugins; drop requires its exact token.
 5. `task_complete_and_refresh` seals the final unaccepted candidate. A changed
    schema/tool identity permits a declared full fallback; otherwise reuse
    unchanged lane and chunk artifacts.
+   If a client or host process is interrupted in `EXIT_BUILDING`, the same
+   call may recover only when no candidate was sealed. Recovery is
+   receipt-backed, remains in `EXIT_BUILDING` until sealing succeeds, and
+   cannot move the accepted pointer or infer HIL.
 6. Present exactly: `APPROVE`, `APPROVE_WITH_DELTA`, `MORE_RESEARCH`,
    `ROLLBACK`, `REJECT`, or `FAIL`. Stop for the human decision.
 7. Natural-language continuation or acceptance intent may be classified and

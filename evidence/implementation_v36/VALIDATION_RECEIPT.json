@@ -1,0 +1,39 @@
+{
+  "schema": "evidence-lane.implementation-validation.v1",
+  "release": "0.8.3",
+  "recorded_at": "2026-08-01T23:58:28Z",
+  "change": "candidate-absent interrupted EXIT_BUILDING recovery",
+  "observed_pre_recovery_state": {
+    "session_state": "EXIT_BUILDING",
+    "candidate_id": null,
+    "accepted_pv": "PV1",
+    "pointer_generation": 1,
+    "queued_delta_count": 43
+  },
+  "verification": {
+    "full_pytest": {
+      "status": "PASS",
+      "tests": 106,
+      "duration_seconds": 563.26
+    },
+    "targeted_pytest": {
+      "status": "PASS",
+      "tests": 2,
+      "duration_seconds": 38.05
+    },
+    "ruff": "PASS",
+    "mypy": {
+      "status": "PASS",
+      "source_files": 50
+    },
+    "plugin_validator": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "safety": {
+    "candidate_absent_required": true,
+    "pointer_moved": false,
+    "acceptance_inferred": false,
+    "fuse_executed": false,
+    "state_travel_executed": false
+  }
+}

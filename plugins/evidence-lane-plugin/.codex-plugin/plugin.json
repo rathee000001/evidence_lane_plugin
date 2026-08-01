@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "0.8.2+codex.20260801220756",
+  "version": "0.8.3+codex.20260801194351",
   "description": "Private six-control Evidence Lane with detachable Boot, persistent connector sidecars, 18 sealed SQLite brains, explicit Chat Lineage, and exact-APPROVE Fuse.",
   "author": {
     "name": "Praveen Rathee",
