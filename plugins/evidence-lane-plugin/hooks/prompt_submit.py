@@ -165,7 +165,10 @@ def _append_lineage(
                     str(binding["evidence_session_id"])
                     + "\0"
                     + str(record["turn_id"])
-                    + "\0visible-user-prompt"
+                    + "\0"
+                    + input_kind
+                    + "\0"
+                    + str(record["record_sha256"])
                 ).encode("utf-8")
             )[:26].lower()
         )
@@ -192,7 +195,11 @@ def _append_lineage(
         event = {
             "schema": "evidence-lane.chat-lineage.event.v1",
             "event_id": event_id,
-            "event_type": "turn.visible_user_prompt",
+            "event_type": (
+                "turn.visible_user_steer"
+                if input_kind == "steer"
+                else "turn.visible_user_prompt"
+            ),
             "occurred_at": record["recorded_at"],
             "session_id": binding["evidence_session_id"],
             "task_id": binding.get("task_id"),
@@ -249,6 +256,12 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
     host_key = f"host-{_sha256(host_session_id.encode('utf-8'))[:40].lower()}"
     folder = root / "prompt-index" / host_key
     folder.mkdir(parents=True, exist_ok=True)
+    input_source = str(payload.get("source") or "user_prompt").strip().lower()
+    input_kind = (
+        "steer"
+        if payload.get("is_steer") is True or "steer" in input_source
+        else "user_prompt"
+    )
     existing: list[dict[str, Any]] = []
     for path in (root / "prompt-index").glob("host-*/*.json"):
         try:
@@ -260,17 +273,48 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
         ) == binding.get("evidence_session_id"):
             existing.append(candidate)
     existing.sort(key=lambda row: int(row.get("prompt_index", 0)))
+    visible_prompt, prompt_hash, prompt_chars = _safe_prompt(prompt)
+    duplicate = next(
+        (
+            row
+            for row in existing
+            if row.get("turn_id") == turn_id
+            and row.get("prompt_sha256_after_redaction") == prompt_hash
+            and row.get("input_kind", "user_prompt") == input_kind
+        ),
+        None,
+    )
+    if duplicate is not None:
+        event = _append_lineage(
+            binding=binding,
+            record=duplicate,
+            input_kind=input_kind,
+        )
+        return {
+            "state": "INDEXED_IDEMPOTENT_REUSE",
+            "prompt_index": duplicate["prompt_index"],
+            "turn_id": turn_id,
+            "input_kind": input_kind,
+            "project_id": duplicate["project_id"],
+            "evidence_session_id": duplicate["evidence_session_id"],
+            "entry_pv": duplicate.get("entry_pv"),
+            "raw_prompt_stored": False,
+            "redacted_visible_prompt_stored": True,
+            "record_sha256": duplicate["record_sha256"],
+            "lineage_event_id": event["event_id"],
+            "lineage_event_sha256": event["event_sha256"],
+        }
     prior_hash = None
     prompt_index = 1
     if existing:
         prior = existing[-1]
         prior_hash = prior.get("record_sha256")
         prompt_index = int(prior.get("prompt_index", len(existing))) + 1
-    visible_prompt, prompt_hash, prompt_chars = _safe_prompt(prompt)
     record = {
         "schema": "evidence-lane.prompt-index.v1",
         "host_session_id": host_session_id,
         "turn_id": turn_id,
+        "input_kind": input_kind,
         "prompt_index": prompt_index,
         "visible_prompt_after_redaction": visible_prompt,
         "prompt_sha256_after_redaction": prompt_hash,
@@ -315,12 +359,13 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
     event = _append_lineage(
         binding=binding,
         record=record,
-        input_kind=str(payload.get("source") or "user_prompt"),
+        input_kind=input_kind,
     )
     return {
         "state": "INDEXED",
         "prompt_index": prompt_index,
         "turn_id": turn_id,
+        "input_kind": input_kind,
         "project_id": record["project_id"],
         "evidence_session_id": record["evidence_session_id"],
         "entry_pv": record["entry_pv"],

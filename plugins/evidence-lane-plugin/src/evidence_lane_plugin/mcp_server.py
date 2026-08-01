@@ -83,14 +83,17 @@ def create_mcp_server(
     mcp = FastMCP(
         "Evidence Lane Plugin",
         instructions=(
-            "If a prepared post-Fuse handoff exists, display "
-            "/evi-state-travel first. Otherwise start /evi with atomic /evi-boot "
-            "plus locked ENV/UOP Flash as the first normal action, then display "
+            "A prepared post-Fuse handoff makes /evi-state-travel eligible but "
+            "never auto-selects or consumes it. Display and run State Travel only "
+            "after an explicit user request or genuine host-context exhaustion. "
+            "Otherwise start /evi with atomic /evi-boot plus locked ENV/UOP Flash "
+            "as the first normal action, then display "
             "exactly Boot, Rollback, Build, Refresh, Mode, and Source Intake. "
             "Source Intake is one generalized ordered control for all eighteen "
             "lanes and Project Engulf and always includes Chat Lineage. Fuse "
             "requires exact APPROVE through pv_fuse and seals a fresh-window "
-            "handoff without rebuilding. State Travel verifies atomic Boot/Flash, the "
+            "handoff without rebuilding. When explicitly triggered, State Travel "
+            "verifies atomic Boot/Flash, the "
             "accepted pointer, and seals in a fresh Codex task or ChatGPT chat, "
             "then waits. A booted session remains active until /evi-exit-boot. "
             "Before every HIL or State Travel stop, visibly render the returned "
@@ -208,6 +211,7 @@ def create_mcp_server(
         sources: list[str],
         overrides: dict[str, str] | None = None,
         session_id: str | None = None,
+        git_mode: str = "AUTO",
     ) -> dict[str, Any]:
         return application.invoke(
             "source_intake_classify",
@@ -216,6 +220,35 @@ def create_mcp_server(
             sources,
             overrides=overrides,
             session_id=session_id,
+            git_mode=git_mode,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="hil_intent_classify",
+        title="Classify tolerant HIL intent",
+        description=(
+            "Classify visible natural-language continuation or approval intent, "
+            "append it to Chat Lineage, and return the safe exact next action. "
+            "This tool never decides HIL, promotes a candidate, or moves a pointer."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Classifying HIL intent", "HIL intent classified"),
+        structured_output=True,
+    )
+    def hil_intent_classify(
+        project_id: str,
+        session_id: str,
+        utterance: str,
+        event_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "hil_intent_classify",
+            application.classify_hil_intent,
+            project_id,
+            session_id,
+            utterance,
+            event_id=event_id,
             lifecycle=True,
         )
 
@@ -1126,20 +1159,29 @@ def create_mcp_server(
         name="pv_begin_next_turn",
         title="Enter next turn from latest accepted PV",
         description=(
-            "Compatibility entry helper. A prepared State Travel handoff blocks this "
-            "tool until a fresh host task or chat has been bound. Prefer "
-            "pv_state_travel_resume for the verified top-level flow."
+            "Enter the next accepted-PV turn. A prepared State Travel handoff "
+            "remains blocking by default. When the user explicitly chooses to "
+            "continue in the unchanged host, pass continue_same_host=true and the "
+            "exact reason EXPLICIT_USER_CONTINUATION; the sealed receipt is "
+            "preserved and visibly superseded without pointer movement."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Entering next accepted PV", "Next PV entry ready"),
         structured_output=True,
     )
-    def pv_begin_next_turn(project_id: str, session_id: str) -> dict[str, Any]:
+    def pv_begin_next_turn(
+        project_id: str,
+        session_id: str,
+        continue_same_host: bool = False,
+        continuation_reason: str | None = None,
+    ) -> dict[str, Any]:
         return application.invoke(
             "pv_begin_next_turn",
             application.sessions.begin_next_turn,
             project_id,
             session_id,
+            continue_same_host=continue_same_host,
+            continuation_reason=continuation_reason,
             lifecycle=True,
         )
 

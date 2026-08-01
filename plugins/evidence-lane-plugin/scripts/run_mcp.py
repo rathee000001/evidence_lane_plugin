@@ -29,6 +29,29 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _runtime_ready(python: Path) -> bool:
+    """Reject interrupted or partial plugin-local virtual environments."""
+
+    if not python.is_file():
+        return False
+    try:
+        completed = subprocess.run(  # nosec B603
+            [
+                str(python),
+                "-c",
+                "import evidence_lane_plugin, mcp; print('READY')",
+            ],
+            check=False,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return completed.returncode == 0
+
+
 def _bootstrap_runtime(plugin_root: Path) -> None:
     bootstrap = plugin_root / "scripts" / "bootstrap.py"
     if not bootstrap.is_file():
@@ -36,6 +59,10 @@ def _bootstrap_runtime(plugin_root: Path) -> None:
     completed = subprocess.run(  # nosec B603
         [sys.executable, str(bootstrap)],
         check=False,
+        # MCP stdio reserves stdout exclusively for JSON-RPC. Bootstrap and
+        # package-manager progress remain visible on the diagnostic stream.
+        stdout=sys.stderr,
+        stderr=sys.stderr,
     )
     if completed.returncode != 0:
         raise SystemExit(
@@ -47,9 +74,13 @@ def main() -> int:
     args = _parser().parse_args()
     plugin_root = Path(__file__).resolve().parents[1]
     python = _venv_python(plugin_root)
-    if not python.is_file():
+    if not _runtime_ready(python):
         _bootstrap_runtime(plugin_root)
-    if python.is_file() and Path(sys.executable).resolve() != python.resolve():
+    if not _runtime_ready(python):
+        raise SystemExit(
+            "Evidence Lane dependencies are unavailable after the governed bootstrap."
+        )
+    if Path(sys.executable).resolve() != python.resolve():
         completed = subprocess.run(  # nosec B603
             [
                 str(python),

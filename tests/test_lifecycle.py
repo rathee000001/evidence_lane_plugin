@@ -114,6 +114,16 @@ def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(
     with pytest.raises(EvidenceLaneError) as bypass:
         service.sessions.begin_next_turn("book-faires", session_id)
     assert bypass.value.code == "STATE_TRAVEL_RESUME_REQUIRED"
+    with pytest.raises(EvidenceLaneError) as false_same_host:
+        service.sessions.begin_next_turn(
+            "book-faires",
+            session_id,
+            continue_same_host=True,
+            continuation_reason="EXPLICIT_USER_CONTINUATION",
+        )
+    assert false_same_host.value.code == (
+        "STATE_TRAVEL_SAME_HOST_CONTINUATION_MISMATCH"
+    )
     traveled = service.resume_state_travel(
         project_id="book-faires",
         session_id=session_id,

@@ -6,7 +6,7 @@ import json
 import os
 import re
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse
 
 import httpx
 
@@ -102,6 +102,22 @@ async def _origin_health(configuration: dict[str, Any]) -> tuple[bool, dict[str,
     return True, payload
 
 
+def _external_route(scope: dict[str, Any]) -> tuple[str, str]:
+    """Recover the public path carried through the Vercel catch-all rewrite."""
+
+    path = str(scope.get("path") or "/")
+    query = bytes(scope.get("query_string") or b"").decode(
+        "ascii", errors="ignore"
+    )
+    pairs = parse_qsl(query, keep_blank_values=True)
+    routed = [value for key, value in pairs if key == "__evi_path"]
+    public_pairs = [(key, value) for key, value in pairs if key != "__evi_path"]
+    if path == "/api/index.py" and routed:
+        clean = routed[-1].strip().lstrip("/")
+        path = "/" + clean if clean else "/"
+    return path, urlencode(public_pairs, doseq=True)
+
+
 async def app(scope: dict[str, Any], receive: Any, send: Any) -> None:
     if scope["type"] == "lifespan":
         while True:
@@ -114,7 +130,7 @@ async def app(scope: dict[str, Any], receive: Any, send: Any) -> None:
     if scope["type"] != "http":
         return
     configuration = _configuration()
-    path = str(scope.get("path") or "/")
+    path, query = _external_route(scope)
     if path == "/healthz":
         if not configuration["valid"]:
             await _send_json(
@@ -169,7 +185,6 @@ async def app(scope: dict[str, Any], receive: Any, send: Any) -> None:
         if key.lower() not in _HOP_BY_HOP and key.lower() != b"host"
     }
     incoming_headers["x-evidence-lane-release-sha"] = configuration["expected_sha"]
-    query = bytes(scope.get("query_string") or b"").decode("ascii", errors="ignore")
     target = configuration["origin"] + path + (("?" + query) if query else "")
     response_started = False
     try:

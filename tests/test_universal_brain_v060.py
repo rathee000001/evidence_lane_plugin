@@ -400,3 +400,27 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
         "DURABLE_HTTPS_ORIGIN_REQUIRED",
         "EXACT_RELEASE_SHA_REQUIRED",
     }
+
+    sent.clear()
+    asyncio.run(
+        adapter.app(
+            {
+                "type": "http",
+                "path": "/api/index.py",
+                "method": "GET",
+                "headers": [],
+                "query_string": b"__evi_path=healthz&probe=1",
+            },
+            receive,
+            send,
+        )
+    )
+    assert sent[0]["status"] == 503
+    rewritten = json.loads(bytes(sent[1]["body"]).decode("utf-8"))
+    assert rewritten["service"] == "evidence-lane-chatgpt-adapter"
+    assert adapter._external_route(
+        {
+            "path": "/api/index.py",
+            "query_string": b"__evi_path=mcp&session=visible",
+        }
+    ) == ("/mcp", "session=visible")

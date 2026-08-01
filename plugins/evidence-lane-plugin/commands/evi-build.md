@@ -13,3 +13,10 @@ other outcomes call `hil_decide` with their required bounded payload. Never
 replay a decision against another candidate and never infer approval from the
 user continuing work. After a candidate build, render the complete Exit Slip
 and stop.
+
+For a natural continuation such as "pursue same HIL", a typo, or a non-exact
+acceptance phrase, call `hil_intent_classify` and return its classification plus
+`suggested_next_prompt` instead of a hard parser error. That classifier never
+decides HIL or promotes anything. A `/evi-build` command whose first argument is
+exactly `APPROVE` may call `pv_fuse`; trailing words are follow-on instructions
+and must never be replayed as another decision.

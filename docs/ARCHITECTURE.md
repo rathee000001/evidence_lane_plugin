@@ -1,13 +1,21 @@
 # Architecture
 
-Evidence Lane 0.6.0 separates public controls, lifecycle APIs, brain artifacts,
+Evidence Lane 0.7.0 separates public controls, lifecycle APIs, brain artifacts,
 host storage, and human authority.
 
 ## Control plane
 
-Root `/evi` conditionally exposes State Travel and otherwise presents exactly
-Boot, Rollback, Build, Refresh, Mode, and Source Intake. Internal MCP tool names
+Root `/evi` presents exactly Boot, Rollback, Build, Refresh, Mode, and Source
+Intake. State Travel is a separate user-timed continuity event: a sealed
+handoff makes it eligible, while an explicit user request or genuine host
+context exhaustion is still required to invoke it. Internal MCP tool names
 remain stable but do not enlarge the public surface.
+
+At the accepted boundary, an explicit unchanged-host continuation may call the
+internal next-turn helper with the exact continuation reason. The original
+sealed handoff is preserved byte-for-byte in history, a non-consumption
+supersession receipt is appended, and the accepted pointer does not move. A
+different host session must use verified State Travel.
 
 Atomic Boot runs doctor, verifies the immutable ENV15/UOP15 Flash, detects
 Codex desktop/CLI/ChatGPT and durable/ephemeral capability, chooses storage,
@@ -22,8 +30,10 @@ five non-promotion decisions; exact `APPROVE` is accepted only by Fuse.
 
 One immutable registry defines eighteen lanes, parsers, aliases, schemas, FTS,
 and mutation policies. Source Intake auto-detects ordered sources or applies
-exact overrides. Mode is an independent sidecar for locked intersections and
-explicit custom schemas. Both always include Chat Lineage.
+exact overrides. Its optional Git arm uses AUTO fallback, REQUIRED fail-closed,
+or explicit DISABLED behavior without granting remote-write authority. Mode is
+an independent sidecar for locked intersections and explicit custom schemas.
+Both always include Chat Lineage.
 
 Every lane emits:
 
@@ -47,7 +57,8 @@ tool/command/file/test/build/Git events route to the active code sector and
 Artifacts; Source Intake events route to their classified sectors; output links
 route to Artifacts.
 
-Overlay events retain actors, available model/submodel and token metrics,
+Initial prompts and detectable mid-turn steers append as distinct ordered,
+idempotent events. Overlay events retain actors, available model/submodel and token metrics,
 visible payload hashes, event-chain pointers, and candidate/pointer identity.
 Secrets are redacted. Hidden chain-of-thought/private reasoning is rejected.
 All overlay truth stays `CANDIDATE_ONLY` and `accepted_sector_truth=0` before
@@ -68,5 +79,6 @@ Vercel component is only a release-verifying HTTPS adapter to that origin. It
 stores no authority and is never the general router.
 
 Candidate build, Git push, plugin install, and preview deployment are evidence,
-not acceptance. State Travel is valid only after exact-APPROVE Fuse and a sealed
-handoff in a genuinely fresh destination host.
+not acceptance. State Travel is valid only after exact-APPROVE Fuse, a sealed
+handoff, and an explicit user or genuine context-exhaustion trigger in a
+genuinely fresh destination host.

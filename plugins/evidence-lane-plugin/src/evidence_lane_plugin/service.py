@@ -17,6 +17,7 @@ from .flash_authority import SessionFlashAuthority
 from .freshness import evaluate_freshness
 from .git_adapter import inspect_repository
 from .hashing import sha256_bytes
+from .hil_intent import classify_hil_intent
 from .ids import prefixed_id
 from .lane_reader import LaneReader
 from .models import ProjectConfig, normalize_host_kind
@@ -232,6 +233,34 @@ class EvidenceLaneService:
             canonical_lane_id=canonical_lane_id,
         )
 
+    def classify_hil_intent(
+        self,
+        project_id: str,
+        session_id: str,
+        utterance: str,
+        *,
+        event_id: str | None = None,
+    ) -> dict[str, Any]:
+        session = self.sessions.load(project_id, session_id)
+        pending_hil = session.state.value in {"PV1_CANDIDATE", "PVN1_CANDIDATE"}
+        result = classify_hil_intent(
+            utterance,
+            candidate_id=session.candidate_id,
+            pending_hil=pending_hil,
+        )
+        receipt = self.sessions.record_hil_intent(
+            project_id,
+            session_id,
+            classification={**result, "visible_utterance": utterance},
+            event_id=event_id,
+        )
+        result["chat_lineage"] = {
+            "append_status": "APPENDED",
+            "event_id": receipt["event"]["event_id"],
+            "event_sha256": receipt["event"]["event_sha256"],
+        }
+        return result
+
     def source_intake(
         self,
         project_id: str,
@@ -239,20 +268,26 @@ class EvidenceLaneService:
         *,
         overrides: dict[str, str] | None = None,
         session_id: str | None = None,
+        git_mode: str = "AUTO",
     ) -> dict[str, Any]:
         """Classify ordered sources through one generalized public control."""
 
         config = self.store.config(project_id)
-        repository = inspect_repository(config.repository_path)
         code_lane = config.source_lane
         if code_lane not in {"github_code", "local_code"}:
-            code_lane = (
-                "github_code" if repository.provider == "github" else "local_code"
-            )
+            try:
+                repository = inspect_repository(config.repository_path)
+            except EvidenceLaneError:
+                code_lane = "local_code"
+            else:
+                code_lane = (
+                    "github_code" if repository.provider == "github" else "local_code"
+                )
         result = classify_source_intake(
             sources,
             code_mode=code_lane,
             overrides=overrides,
+            git_mode=git_mode,
         )
         active_session_id = session_id.strip() if session_id else ""
         if not active_session_id:

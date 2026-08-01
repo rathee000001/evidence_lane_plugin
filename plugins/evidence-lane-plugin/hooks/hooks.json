@@ -1,5 +1,5 @@
 {
-  "description": "Evidence Lane session context plus secret-redacted visible prompt/response indexing. Hooks never continue a turn or mutate source, PVs, pointers, or credentials.",
+  "description": "Evidence Lane session context plus ordered secret-redacted visible prompt, mid-turn steer, and response indexing. Hooks never continue a turn or mutate source, PVs, pointers, or credentials.",
   "hooks": {
     "SessionStart": [
       {

@@ -5,10 +5,12 @@
 3. Resume the existing governed session when one exists; never duplicate Boot.
 4. Verify accepted pointer, generation, accepted history, pending candidate, and
    backlog before any task action.
-5. Use generalized Source Intake for ordered sources and exact overrides. Keep
-   Mode separate. Confirm Chat Lineage is included.
+5. Use generalized Source Intake for ordered sources, exact overrides, and an
+   explicit AUTO/REQUIRED/DISABLED Git-arm mode. Keep Mode separate. Confirm
+   Chat Lineage is included.
 6. Preserve backlog history, classify one bounded task, and record visible
-   activities without secrets or private reasoning.
+   activities, including distinct mid-turn steers, without secrets or private
+   reasoning.
 7. Build PV1 only when accepted history is empty; otherwise use incremental
    Refresh from accepted bytes.
 8. Validate all eighteen lane brains, Git history/CAS, project overlay,
@@ -30,4 +32,6 @@
     `APPROVE`, `APPROVE_WITH_DELTA`, `MORE_RESEARCH`, `ROLLBACK`, `REJECT`,
     `FAIL`.
 15. Stop. Do not Fuse, move the pointer, merge `main`, infer approval, or run
-    State Travel. Only a later exact `APPROVE` authorizes Fuse.
+    State Travel. Only a later exact `APPROVE` authorizes Fuse. After Fuse, keep
+    the handoff prepared until the user explicitly requests travel or the host
+    context is genuinely exhausted.

@@ -16,3 +16,8 @@ authentication, one-writer SQLite state, backlog, ChatLineage, queueing,
 candidates, receipts, and pointer CAS. A missing origin, non-HTTPS origin, or
 SHA mismatch returns `503 BLOCKED`. Vercel local files and memory are never
 treated as durable state.
+
+`vercel.json` preserves the incoming public route in the reserved
+`__evi_path` query value. The adapter restores `/healthz` or `/mcp` and strips
+that internal value before validation or proxying, so the catch-all does not
+turn valid endpoints into a root-path 404.

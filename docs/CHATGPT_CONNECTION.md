@@ -26,5 +26,7 @@ Use the adapter `/mcp` URL with OAuth. Creation and any UI confirmation remain
 manual HIL unless screen control is explicitly authorized in that task.
 
 A successful connection, test call, or fresh-chat resume does not accept a
-candidate. Only exact `APPROVE` through Fuse may do so. State Travel then
-verifies the accepted handoff in a separate fresh chat and stops waiting.
+candidate. Only exact `APPROVE` through Fuse may do so. Fuse prepares a sealed
+handoff, but ChatGPT State Travel remains unconsumed until the user explicitly
+requests it or the current chat context is genuinely exhausted. It then verifies
+the handoff in a separate fresh chat and stops waiting.

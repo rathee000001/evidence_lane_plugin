@@ -1,9 +1,11 @@
 flowchart TD
-    R["/evi"] --> S{"Sealed accepted-PV handoff?"}
+    R["/evi"] --> U{"User requested State Travel or host context exhausted?"}
+    U -- "Yes" --> S{"Sealed accepted-PV handoff?"}
     S -- "Yes" --> T["/evi-state-travel in a genuinely fresh host"]
+    S -- "No" --> SB["BLOCKED: no eligible handoff"]
     T --> TV["Verify host ID, atomic Boot/Flash, pointer generation, manifest, package seals, freshness"]
     TV --> W["WAITING_FOR_NEXT_USER_COMMAND"]
-    S -- "No" --> B["/evi-boot: doctor + locked Flash + storage route + boot/resume"]
+    U -- "No" --> B["/evi-boot: doctor + locked Flash + storage route + boot/resume"]
     B --> C["Six controls: Boot, Rollback, Build, Refresh, Mode, Source Intake"]
     C --> I["Generalized ordered Source Intake; always Chat Lineage"]
     I --> P{"Accepted PV exists?"}
@@ -18,4 +20,8 @@ flowchart TD
     D -- "REJECT or FAIL" --> Q["Preserve receipt; no pointer movement"]
     D -- "ROLLBACK" --> RB["Move accepted pointer only to immutable accepted history"]
     D -- "APPROVE only through Fuse" --> A["Byte-preserving promotion + sealed State Travel handoff"]
-    A --> T
+    A --> P["Keep handoff prepared until user request or context exhaustion"]
+    P --> SH{"Explicit unchanged-host continuation?"}
+    SH -- "Yes" --> SS["Preserve receipt; record non-consumption supersession; pointer unchanged"]
+    SS --> E
+    SH -- "No" --> U

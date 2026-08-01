@@ -5,9 +5,12 @@ argument-hint: [project_id]
 
 # /evi - universal Evidence Lane
 
-First call `pv_status`. If and only if an accepted-PV handoff is prepared,
-display `/evi-state-travel` as the top recovery event. Otherwise run
-`/evi-boot` atomically; State Travel is not a normal intake step.
+First call `pv_status`. A prepared accepted-PV handoff makes
+`/evi-state-travel` eligible, but eligibility alone must not display, invoke,
+or consume it. Route to State Travel only when the user explicitly requests it
+or the current host context is genuinely exhausted and a continuity handoff is
+needed. Otherwise run `/evi-boot` atomically and resume the existing governed
+session; State Travel is not a normal intake step.
 
 After root `/evi`, expose exactly these six primary controls in this order:
 
@@ -29,5 +32,9 @@ or any other token never implies approval. `/evi-refresh` creates an unaccepted
 candidate and stops at HIL. `/evi-rollback` moves only the accepted pointer.
 
 The governed session persists across host tasks until `/evi-exit-boot`. Never
-run State Travel without an accepted sealed handoff and never store private
-model reasoning.
+run State Travel merely because a handoff exists, never run it without an
+accepted sealed handoff plus one of the two explicit triggers, and never store
+private model reasoning. If the user instead continues in the unchanged host
+after Fuse, call `pv_begin_next_turn` with `continue_same_host=true` and exact
+reason `EXPLICIT_USER_CONTINUATION`; preserve the sealed receipt, record its
+supersession, and do not move the pointer.

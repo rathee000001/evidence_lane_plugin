@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from .git_optional import normalize_git_arm_mode, probe_git_arm
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY, resolve_lane_id, route_source
 
@@ -42,15 +43,16 @@ def _archive_lane(path: Path) -> tuple[str, str]:
 
 
 def _classify_one(
-    source: str, *, code_mode: str, override: str | None
+    source: str, *, code_mode: str, override: str | None, git_mode: str
 ) -> dict[str, Any]:
     exact = source.strip()
+    path = Path(exact).expanduser()
+    git_arm_receipt: dict[str, Any] | None = None
     if override:
         lane_id = resolve_lane_id(override, code_mode=code_mode)
         reason = "explicit_override"
     else:
         parsed = urlparse(exact)
-        path = Path(exact).expanduser()
         remote_host = (parsed.hostname or "").lower()
         remote_path = parsed.path or exact
         if parsed.scheme in {"ssh", "git"} or (
@@ -66,7 +68,12 @@ def _classify_one(
             lane_id = route_source(remote_path, code_mode=code_mode)
             reason = "remote_content_type_router"
         elif path.exists() and path.is_dir():
-            lane_id = code_mode if (path / ".git").is_dir() else "project_engulf"
+            git_arm_receipt = probe_git_arm(path, requested_mode=git_mode)
+            lane_id = (
+                code_mode
+                if git_arm_receipt["history_index_enabled"]
+                else "project_engulf"
+            )
             reason = (
                 "local_git_directory" if lane_id == code_mode else "project_directory"
             )
@@ -75,7 +82,6 @@ def _classify_one(
         else:
             lane_id = route_source(exact, code_mode=code_mode)
             reason = "canonical_path_and_content_type_router"
-    path = Path(exact).expanduser()
     exists = path.exists()
     if exists and path.is_file():
         identity = {
@@ -102,6 +108,19 @@ def _classify_one(
             "pointer": exact,
             "pointer_sha256": sha256_bytes(exact.encode("utf-8")),
         }
+    if git_arm_receipt is None:
+        git_arm_receipt = (
+            probe_git_arm(path, requested_mode=git_mode)
+            if exists and path.is_dir()
+            else {
+                "schema": "evidence-lane.git-optional-arm.v1",
+                "requested_mode": git_mode,
+                "state": "NOT_APPLICABLE",
+                "history_index_enabled": False,
+                "fallback_content_index_enabled": True,
+                "remote_write_authorized": False,
+            }
+        )
     return {
         "source": exact,
         "source_identity": identity,
@@ -109,6 +128,7 @@ def _classify_one(
         "display_label": LANE_REGISTRY[lane_id].display_label,
         "classification_reason": reason,
         "explicit_override": bool(override),
+        "git_optional_arm": git_arm_receipt,
     }
 
 
@@ -117,11 +137,13 @@ def classify_source_intake(
     *,
     code_mode: str,
     overrides: dict[str, str] | None = None,
+    git_mode: str = "AUTO",
 ) -> dict[str, Any]:
     """Classify ordered inputs without copying, parsing, or mutating source bytes."""
 
     if code_mode not in {"github_code", "local_code"}:
         raise ValueError("code_mode must be github_code or local_code")
+    normalized_git_mode = normalize_git_arm_mode(git_mode)
     exact_sources = [str(source).strip() for source in sources if str(source).strip()]
     if not exact_sources:
         raise ValueError("At least one non-empty source is required.")
@@ -137,6 +159,7 @@ def classify_source_intake(
             source,
             code_mode=code_mode,
             override=exact_overrides.get(source),
+            git_mode=normalized_git_mode,
         )
         for source in exact_sources
     ]
@@ -156,6 +179,11 @@ def classify_source_intake(
         "project_engulf_supported": True,
         "auto_detection": True,
         "explicit_overrides": bool(exact_overrides),
+        "git_optional_arm": {
+            "requested_mode": normalized_git_mode,
+            "source_receipts": [row["git_optional_arm"] for row in receipts],
+            "remote_write_authorized": False,
+        },
         "source_bytes_mutated": False,
         "candidate_created": False,
         "pointer_moved": False,

@@ -26,6 +26,7 @@ from .git_history import (
     git_history_signature,
     index_git_history,
 )
+from .git_optional import probe_git_arm
 from .hashing import (
     atomic_write_bytes,
     atomic_write_json,
@@ -3737,13 +3738,15 @@ def build_lane_bundle(
     proposed_pv: str,
     pointer_generation: int,
     source_overrides: dict[str, str] | None = None,
+    git_mode: str = "AUTO",
 ) -> dict[str, Any]:
     """Build PV1 fully or incrementally materialize PVn+1 from accepted PVn."""
 
     if code_mode not in PRIMARY_CODE_LANES:
         raise ValueError("code_mode must be github_code or local_code")
     root = Path(repository_root).resolve()
-    git_history_available = (root / ".git").exists()
+    git_arm = probe_git_arm(root, requested_mode=git_mode)
+    git_history_available = bool(git_arm["history_index_enabled"])
     output = Path(output_directory).resolve()
     if output.exists():
         if any(output.iterdir()):
@@ -3852,6 +3855,7 @@ def build_lane_bundle(
             (row["git_history"] for row in reports if row.get("git_history")),
             None,
         ),
+        "git_optional_arm": git_arm,
     }
     manifest = {
         "schema": LANE_BUNDLE_SCHEMA,
@@ -3859,6 +3863,7 @@ def build_lane_bundle(
         "proposed_pv": proposed_pv,
         "pointer_generation": pointer_generation,
         "code_mode": code_mode,
+        "git_optional_arm": git_arm,
         "pv1_only_full_build": True,
         "lane_count": len(reports),
         "source_count": len(source_paths),

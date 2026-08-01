@@ -34,6 +34,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "lane_catalog",
         "mode_classify",
         "source_intake_classify",
+        "hil_intent_classify",
         "lane_status",
         "lane_search",
         "lane_fetch",
@@ -79,6 +80,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     assert by_name["session_flash_status"].annotations.readOnlyHint is True
     assert by_name["lane_catalog"].annotations.readOnlyHint is True
     assert by_name["mode_classify"].annotations.readOnlyHint is False
+    assert by_name["hil_intent_classify"].annotations.readOnlyHint is False
     assert by_name["pv_task_backlog"].annotations.readOnlyHint is True
     assert by_name["pv_task_transition"].annotations.readOnlyHint is False
     assert by_name["pv_task_transition"].annotations.destructiveHint is False
@@ -758,6 +760,9 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
     assert positions == sorted(positions)
     assert "`/evi-state-travel`" in root_command
     assert root_command.index("`/evi-state-travel`") < positions[0]
+    assert "eligibility alone must not" in root_command
+    assert "explicitly requests it" in root_command
+    assert "genuinely exhausted" in root_command
     assert "all eighteen canonical lanes" in root_command.lower()
     assert "Project Engulf" in root_command
 
@@ -798,7 +803,10 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
             assert result.isError is False
             assert result.structuredContent["status"] == "PASS"
 
-    asyncio.run(asyncio.wait_for(exercise(), timeout=30))
+    # A genuinely clean Git/cache snapshot may need the governed, hash-locked
+    # plugin-local bootstrap before stdio becomes ready. The shipped MCP
+    # manifest permits 900 seconds for that same first start.
+    asyncio.run(asyncio.wait_for(exercise(), timeout=900))
 
 
 def test_non_loopback_http_fails_closed_without_auth(

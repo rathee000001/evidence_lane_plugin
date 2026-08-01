@@ -1,6 +1,6 @@
 ---
 name: evi
-description: Evidence Lane root router with conditional State Travel and exactly six primary controls.
+description: Evidence Lane root router with user-timed State Travel and exactly six primary controls.
 ---
 
 # Evidence Lane root

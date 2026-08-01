@@ -445,6 +445,7 @@ class CodePVEngine:
                 proposed_pv=proposed_pv,
                 pointer_generation=pointer.generation,
                 source_overrides=session.metadata.get("source_lane_overrides"),
+                git_mode=str(session.metadata.get("git_arm_mode") or "AUTO"),
             )
             patch = diff_patch(config.repository_path)
             patch_sha256 = sha256_bytes(patch.encode("utf-8"))

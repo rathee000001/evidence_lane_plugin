@@ -183,7 +183,11 @@ def _prompt_record(
             and record.get("evidence_session_id") == binding.get("evidence_session_id")
         ):
             matches.append(record)
-    return matches[0] if len(matches) == 1 else None
+    return (
+        max(matches, key=lambda row: int(row.get("prompt_index", 0)))
+        if matches
+        else None
+    )
 
 
 def _acquire_lock(path: Path) -> int:

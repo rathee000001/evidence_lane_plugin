@@ -45,7 +45,16 @@ def boot_next_action(*, entry_action: str) -> dict[str, Any]:
         "suggested_next_prompt": BOOT_SUGGESTED_PROMPT,
         "ordered_source_intake_commands": list(SOURCE_INTAKE_COMMANDS),
         "public_controls": list(PUBLIC_CONTROLS),
-        "state_travel_conditional_first": "/evi-state-travel",
+        # Retain the compatibility key while making the no-auto-travel law
+        # explicit for hosts that consumed the v0.6 contract.
+        "state_travel_conditional_first": None,
+        "state_travel_available_command": "/evi-state-travel",
+        "state_travel_eligibility_is_not_invocation": True,
+        "state_travel_allowed_triggers": [
+            "EXPLICIT_USER_REQUEST",
+            "GENUINE_HOST_CONTEXT_EXHAUSTION",
+        ],
+        "state_travel_auto_selected": False,
         "entry_action": entry_action,
         "mode_sidecar": "/evi-mode",
         "composer_authority": "HOST_OWNED",

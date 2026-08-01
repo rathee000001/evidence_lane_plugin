@@ -17,6 +17,11 @@ The adapter lives in
 deployed to a branch preview. It is not the Evidence Lane engine, a general
 router, a local-SQLite host, or an authority store.
 
+The Vercel catch-all rewrite carries the original public path in the reserved
+`__evi_path` query field. The adapter recovers `/healthz` or `/mcp`, removes the
+reserved field, and forwards only the caller's remaining query string. This
+prevents the platform rewrite from collapsing every request to the app root.
+
 For every `/mcp` request it:
 
 1. requires `EVIDENCE_LANE_DURABLE_MCP_ORIGIN` to be credential-free HTTPS;
@@ -62,5 +67,6 @@ plugin snapshot. Vercel is not involved in Codex installation.
 
 A Git push, marketplace install, durable-origin start, adapter preview, or
 ChatGPT connection never approves a project-version candidate. Only exact
-`APPROVE` through Fuse can move accepted truth. Only a later sealed handoff can
-authorize State Travel in a genuinely fresh destination task or chat.
+`APPROVE` through Fuse can move accepted truth. A later sealed handoff makes
+State Travel eligible; only an explicit user request or genuine context
+exhaustion authorizes its use in a genuinely fresh destination task or chat.

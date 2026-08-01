@@ -1,4 +1,4 @@
-# Evidence Lane Plugin 0.6.0
+# Evidence Lane Plugin 0.7.0
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex and a
 durable remote MCP for ChatGPT. It builds immutable unaccepted project-version
@@ -7,9 +7,7 @@ an exact case-sensitive `APPROVE` is supplied to the Fuse tool.
 
 ## Public control surface
 
-Root `/evi` conditionally presents `/evi-state-travel` only when a sealed
-accepted-PV handoff exists. Otherwise it exposes exactly these six controls in
-order:
+Root `/evi` exposes exactly these six controls in order:
 
 1. `/evi-boot`
 2. `/evi-rollback`
@@ -21,15 +19,28 @@ order:
 `/evi-exit-boot` is the explicit session-deactivation command. Internal MCP
 tool names remain stable for compatibility; they are not extra public controls.
 
+`/evi-state-travel` is a separate continuity event. A sealed accepted-PV
+handoff makes it eligible, but never auto-selects or consumes it. It appears
+only after an explicit user request or when the current host context is
+genuinely exhausted and continuity must move to a fresh task or chat.
+An explicit same-host continuation can instead enter the next accepted-PV turn;
+that preserves the sealed receipt in history, records it as superseded without
+consumption, and leaves the pointer unchanged. A changed host cannot use this
+path to bypass State Travel verification.
+
 Boot is atomic: runtime doctor, locked ENV15/UOP15 Flash verification, host and
 storage capability detection, then boot or resume of the single governed
 session. That session persists across host tasks until Exit Boot. An ephemeral
 runtime without a configured transactional durable connector fails closed.
 
 Source Intake accepts ordered sources, auto-detects their lanes, and supports
-exact per-source overrides. It covers all eighteen canonical lanes and Project
-Engulf and always includes Chat Lineage. Mode stays separate and accepts
-ordered locked-mode intersections plus explicit custom mode schemas.
+exact per-source overrides. Its optional Git arm accepts `AUTO`, `REQUIRED`, or
+`DISABLED`: AUTO uses history when a readable worktree exists and otherwise
+falls back to deterministic content indexing; REQUIRED fails closed; DISABLED
+skips history. These modes never authorize remote writes. Source Intake covers
+all eighteen canonical lanes and Project Engulf and always includes Chat
+Lineage. Mode stays separate and accepts ordered locked-mode intersections plus
+explicit custom mode schemas.
 
 ## Universal brain
 
@@ -45,11 +56,12 @@ artifacts and chunk CAS entries and records changed-section reuse. Candidate
 project-sector overlays fan visible Chat Lineage into the appropriate sectors
 but never write accepted sector truth before Fuse.
 
-Visible Chat Lineage may contain full user prompts and steers, visible assistant
-output, actor type, model/submodel when available, token metrics when available,
-tools, commands, files, tests, builds, output links, hashes, and pointers.
-Secrets are redacted. Hidden chain-of-thought and private model reasoning are
-rejected and never stored.
+Visible Chat Lineage appends the initial user prompt and every detectable
+mid-turn steer as distinct ordered, idempotent events. It may also contain
+visible assistant output, actor type, model/submodel when available, token
+metrics when available, tools, commands, files, tests, builds, output links,
+hashes, and pointers. Secrets are redacted. Hidden chain-of-thought and private
+model reasoning are rejected and never stored.
 
 Up to eight additional persistent connector or AI-toolchain plugins can be
 registered in the connector brain. Registration stores environment-variable
@@ -72,9 +84,14 @@ The six HIL choices are:
 - `FAIL`
 
 The general HIL recorder rejects `APPROVE`; only the dedicated Fuse API accepts
-that exact token. Rollback moves only the accepted pointer among immutable
-accepted versions. After Fuse, State Travel verifies a sealed handoff in a
-genuinely fresh task or chat and stops in `WAITING_FOR_NEXT_USER_COMMAND`.
+that exact token. Natural language such as "pursue same HIL," common typos, and
+non-exact acceptance language are classified and appended to Chat Lineage
+instead of causing a parser dead end, but classification never promotes. An
+exact first `/evi-build` argument of `APPROVE` may route to Fuse; trailing text
+is follow-on work, not a second decision. Rollback moves only the accepted
+pointer among immutable accepted versions. After Fuse, the handoff remains
+prepared until one of the two allowed State Travel triggers occurs or the user
+explicitly starts a same-host next turn, which supersedes it visibly.
 
 ## Storage and hosts
 
@@ -105,7 +122,7 @@ python -m venv .venv
 Build the durable container with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:0.6.0 .
+docker build --pull --tag evidence-lane-plugin:0.7.0 .
 ```
 
 It serves `/mcp` and `/healthz` on port 8080 and requires one writer plus a
@@ -135,3 +152,12 @@ or saved here. See [SECURITY.md](SECURITY.md).
 
 Publication, installation, or a Vercel preview never accepts a candidate,
 moves the pointer, merges `main`, or authorizes State Travel.
+
+## Independent R&D provenance
+
+Public Evidence Lane materials use Evidence Lane-only naming and independently
+authored test questions. External comparison documents and third-party question
+sets are not treated as source lineage. Claims about personal account,
+hardware, funding, and time are labeled as owner attestation unless supported
+by separate receipts; test evidence is reported independently from that
+attestation.

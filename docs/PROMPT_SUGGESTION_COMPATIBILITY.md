@@ -5,7 +5,12 @@ Codex and ChatGPT own their composer UI. Evidence Lane returns portable
 not claim to write, persist, or auto-submit the prompt bar.
 
 The root suggestion order is Boot, Rollback, Build, Refresh, Mode, and Source
-Intake. State Travel appears first only for a prepared accepted-PV handoff.
+Intake. A prepared accepted-PV handoff does not change that order by itself.
+State Travel appears only after an explicit user request or genuine host-context
+exhaustion and a matching sealed handoff.
+If the user explicitly continues in the unchanged host after Fuse, the host may
+route the exact same-host continuation contract instead; it preserves and
+supersedes the handoff receipt without consuming it or moving the pointer.
 After candidate construction the suggested control is `/evi-build` with all six
 HIL choices. After verified State Travel the suggestion asks for the next
 bounded task or a governed status inspection through Build.

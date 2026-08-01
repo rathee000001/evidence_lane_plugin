@@ -1062,6 +1062,7 @@ class SessionManager:
         )
         allowed = {
             "prompt",
+            "steer",
             "tool.selected",
             "command.executed",
             "git.fast_forward",
@@ -1173,6 +1174,49 @@ class SessionManager:
             "pointer": pointer.as_dict(),
         }
 
+    def record_hil_intent(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        classification: dict[str, Any],
+        event_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Append visible HIL intent without deciding or moving a pointer."""
+
+        session = self.load(project_id, session_id)
+        require(
+            not session.metadata.get("closed_at"),
+            "HIL_INTENT_SESSION_CLOSED",
+            "HIL intent cannot append to a closed governed session.",
+            status="BLOCKED",
+        )
+        pointer = self.store.pointer(project_id)
+        payload = {
+            **classification,
+            "lifecycle_state": session.state.value,
+            "accepted_pv": pointer.accepted_pv,
+            "pointer_generation": pointer.generation,
+            "pointer_moved": False,
+            "candidate_promoted": False,
+            "private_reasoning_excluded": True,
+        }
+        event = ChatLineage(self._lineage_path(project_id, session_id)).append(
+            event_type="hil.intent.classified",
+            visible_payload=payload,
+            occurred_at=utc_now(),
+            session_id=session_id,
+            task_id=(
+                cast(dict[str, Any], session.task).get("task_id")
+                if session.task
+                else None
+            ),
+            run_id=session.metadata.get("run_id"),
+            event_id=event_id,
+            actor_type="user",
+        )
+        return {"status": "PASS", "event": event, "pointer": pointer.as_dict()}
+
     def record_source_intake_classification(
         self,
         project_id: str,
@@ -1190,6 +1234,10 @@ class SessionManager:
             status="BLOCKED",
         )
         pointer = self.store.pointer(project_id)
+        session.metadata["git_arm_mode"] = classification["git_optional_arm"][
+            "requested_mode"
+        ]
+        self._save(session)
         event = ChatLineage(self._lineage_path(project_id, session_id)).append(
             event_type="source.intake.classified",
             visible_payload={
@@ -2161,6 +2209,8 @@ class SessionManager:
         project_id: str,
         session_id: str,
         *,
+        continue_same_host: bool = False,
+        continuation_reason: str | None = None,
         _state_travel_handoff_id: str | None = None,
     ) -> dict[str, Any]:
         session = self.load(project_id, session_id)
@@ -2172,17 +2222,40 @@ class SessionManager:
             state=session.state.value,
         )
         travel = session.metadata.get("state_travel")
+        same_host_travel: dict[str, Any] | None = None
         if isinstance(travel, dict) and travel.get("status") == "PREPARED":
-            require(
-                bool(_state_travel_handoff_id)
-                and _state_travel_handoff_id == travel.get("handoff_id"),
-                "STATE_TRAVEL_RESUME_REQUIRED",
-                "The accepted exit PV must enter through pv_state_travel_resume; "
-                "binding a fresh host session alone cannot bypass Boot/Flash, "
-                "pointer, and package-seal verification.",
-                status="BLOCKED",
-                target_surface=travel.get("target_surface"),
+            handoff_matches = bool(_state_travel_handoff_id) and (
+                _state_travel_handoff_id == travel.get("handoff_id")
             )
+            if not handoff_matches:
+                require(
+                    continue_same_host
+                    and continuation_reason == "EXPLICIT_USER_CONTINUATION",
+                    "STATE_TRAVEL_RESUME_REQUIRED",
+                    "A prepared accepted-PV handoff remains parked unless State "
+                    "Travel resumes it or the user explicitly continues in the "
+                    "same host.",
+                    status="BLOCKED",
+                    target_surface=travel.get("target_surface"),
+                    allowed_same_host_reason="EXPLICIT_USER_CONTINUATION",
+                )
+                current_host_session_id = str(
+                    session.metadata.get("current_host_session_id") or ""
+                )
+                origin_host_session_id = str(
+                    travel.get("origin_host_session_id") or ""
+                )
+                require(
+                    bool(current_host_session_id)
+                    and current_host_session_id == origin_host_session_id,
+                    "STATE_TRAVEL_SAME_HOST_CONTINUATION_MISMATCH",
+                    "Same-host continuation cannot bypass a prepared handoff after "
+                    "the governed host session has changed.",
+                    status="BLOCKED",
+                    current_host_session_id=current_host_session_id or None,
+                    origin_host_session_id=origin_host_session_id or None,
+                )
+                same_host_travel = travel
         pointer = self.store.pointer(project_id)
         require(
             pointer.accepted_pv is not None,
@@ -2228,6 +2301,26 @@ class SessionManager:
             "host_session_id": session.metadata.get("current_host_session_id"),
             "entered_at": utc_now(),
         }
+        state_travel_disposition: dict[str, Any] | None = None
+        if same_host_travel is not None:
+            prepared_receipt = dict(same_host_travel)
+            session.metadata.setdefault("state_travel_history", []).append(
+                prepared_receipt
+            )
+            state_travel_disposition = {
+                "schema": "evidence-lane.state-travel-disposition.v1",
+                "status": "SUPERSEDED_BY_SAME_HOST_CONTINUATION",
+                "handoff_id": prepared_receipt.get("handoff_id"),
+                "handoff_sha256": prepared_receipt.get("handoff_sha256"),
+                "accepted_pv": prepared_receipt.get("accepted_pv"),
+                "pointer_generation": prepared_receipt.get("pointer_generation"),
+                "continuation_reason": continuation_reason,
+                "host_session_id": session.metadata.get("current_host_session_id"),
+                "pointer_moved": False,
+                "state_travel_consumed": False,
+                "superseded_at": utc_now(),
+            }
+            session.metadata["state_travel"] = state_travel_disposition
         session.metadata.setdefault("entry_history", []).append(entry_receipt)
         session.state = transition(
             session.state,
@@ -2235,6 +2328,16 @@ class SessionManager:
             SessionState.PVN1_ENTRY,
         )
         self._save(session)
+        disposition_event: dict[str, Any] | None = None
+        if state_travel_disposition is not None:
+            disposition_event = ChatLineage(
+                self._lineage_path(project_id, session_id)
+            ).append(
+                event_type="pv.state_travel.superseded_same_host",
+                visible_payload=state_travel_disposition,
+                occurred_at=str(state_travel_disposition["superseded_at"]),
+                session_id=session_id,
+            )
         event = ChatLineage(self._lineage_path(project_id, session_id)).append(
             event_type="pv.next_entry",
             visible_payload={
@@ -2254,6 +2357,8 @@ class SessionManager:
             "session": session.as_dict(),
             "proof": event["visible_payload"],
             "entry_receipt": entry_receipt,
+            "state_travel_disposition": state_travel_disposition,
+            "state_travel_disposition_event": disposition_event,
         }
 
     def close(self, project_id: str, session_id: str, *, reason: str) -> dict[str, Any]:
