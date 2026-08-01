@@ -1,6 +1,6 @@
 # Architecture
 
-Evidence Lane 0.8.1 separates public controls, lifecycle APIs, brain artifacts,
+Evidence Lane 0.8.2 separates public controls, lifecycle APIs, brain artifacts,
 host storage, and human authority.
 
 ## Control plane
@@ -84,6 +84,11 @@ All overlay truth stays `CANDIDATE_ONLY` and `accepted_sector_truth=0` before
 Fuse. In addition to each session JSONL hash chain and sibling SQLite/FTS
 projection, a project-wide Chat Lineage SQLite authority maintains a canonical
 global state-hash head. Boot and resume read that head before task execution.
+
+Lane-bundle schema v2 requires a sealed parallel-execution receipt and frozen
+source binding. The validator keeps accepted schema-v1 bundles readable only
+when the receipt and every v2 parallel field are absent. It never converts or
+rewrites accepted data, and a v2 bundle with a missing receipt remains invalid.
 
 ## Connector brain
 

@@ -20,6 +20,7 @@ from evidence_lane_plugin.forensic_audit import (
 )
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from evidence_lane_plugin.lane_engine import (
+    LEGACY_LANE_BUNDLE_SCHEMA,
     build_lane_bundle,
     validate_lane_bundle,
 )
@@ -556,6 +557,37 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
     assert result["summary"]["full_build_lanes"] == list(CANONICAL_LANE_IDS)
     assert validate_lane_bundle(lanes_root)["valid"] is True
 
+    modern_missing_execution = tmp_path / "modern-v2-missing-execution"
+    shutil.copytree(lanes_root, modern_missing_execution)
+    (modern_missing_execution / "execution_receipt.json").unlink()
+    modern_members = {
+        path.relative_to(modern_missing_execution).as_posix(): sha256_file(path)
+        for path in sorted(modern_missing_execution.rglob("*"))
+        if path.is_file() and path.name not in {"manifest.json", "SHA256SUMS.json"}
+    }
+    (modern_missing_execution / "SHA256SUMS.json").write_bytes(
+        canonical_json_bytes(
+            {
+                "schema": "evidence-lane.recursive-sha256.v1",
+                "members": modern_members,
+                "member_count": len(modern_members),
+            }
+        )
+    )
+    modern_manifest_path = modern_missing_execution / "manifest.json"
+    modern_manifest = json.loads(modern_manifest_path.read_text(encoding="utf-8"))
+    modern_manifest["bundle_sha256"] = sha256_bytes(
+        canonical_json_bytes(modern_members)
+    )
+    modern_manifest["member_count"] = len(modern_members) + 2
+    modern_manifest_path.write_bytes(canonical_json_bytes(modern_manifest))
+    modern_validation = validate_lane_bundle(modern_missing_execution)
+    assert modern_validation["valid"] is False
+    assert modern_validation["parallel_execution_valid"] is False
+    assert (
+        modern_validation["parallel_execution_legacy_compatibility"] is False
+    )
+
     for lane_id in CANONICAL_LANE_IDS:
         lane = LANE_REGISTRY[lane_id]
         lane_root = lanes_root / lane_id
@@ -580,6 +612,7 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
 
     legacy_root = tmp_path / "legacy-v1-lane-manifests"
     shutil.copytree(lanes_root, legacy_root)
+    (legacy_root / "execution_receipt.json").unlink()
     for lane_id in CANONICAL_LANE_IDS:
         lane_manifest_path = legacy_root / lane_id / "lane_manifest.json"
         legacy_manifest = json.loads(
@@ -607,6 +640,10 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
     legacy_bundle_manifest = json.loads(
         legacy_bundle_manifest_path.read_text(encoding="utf-8")
     )
+    legacy_bundle_manifest["schema"] = LEGACY_LANE_BUNDLE_SCHEMA
+    legacy_bundle_manifest.pop("parallel_execution")
+    legacy_bundle_manifest.pop("source_snapshot_sha256")
+    legacy_bundle_manifest["summary"].pop("parallel_execution")
     legacy_bundle_manifest["bundle_sha256"] = sha256_bytes(
         canonical_json_bytes(members)
     )
@@ -616,6 +653,10 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
     )
     legacy_validation = validate_lane_bundle(legacy_root)
     assert legacy_validation["valid"] is True
+    assert legacy_validation["parallel_execution_valid"] is True
+    assert (
+        legacy_validation["parallel_execution_legacy_compatibility"] is True
+    )
 
     forensic = audit_lane_bundle(
         lanes_root,

@@ -49,7 +49,8 @@ from .lanes import (
 from .timeutil import utc_now
 
 LANE_SCHEMA_VERSION = "evidence-lane.universal-lane.v2"
-LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v1"
+LEGACY_LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v1"
+LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v2"
 MAX_EXTRACT_BYTES = 64 * 1024 * 1024
 MAX_PDF_PAGES = 500
 MAX_ROWS_PER_TAB = 5000
@@ -4040,8 +4041,11 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     registry = json.loads((root / "registry.json").read_text(encoding="utf-8"))
     routes = json.loads((root / "routes.json").read_text(encoding="utf-8"))
-    execution = json.loads(
-        (root / "execution_receipt.json").read_text(encoding="utf-8")
+    execution_path = root / "execution_receipt.json"
+    execution = (
+        json.loads(execution_path.read_text(encoding="utf-8"))
+        if execution_path.is_file()
+        else None
     )
     checksums = json.loads((root / "SHA256SUMS.json").read_text(encoding="utf-8"))
     declared_members = checksums.get("members", {})
@@ -4133,8 +4137,16 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
     route_values_valid = all(
         lane_id in LANE_REGISTRY for lane_id in routes.get("routes", {}).values()
     )
-    execution_valid = (
-        execution.get("schema") == "evidence-lane.parallel-lane-execution.v1"
+    legacy_execution_compatibility = (
+        manifest.get("schema") == LEGACY_LANE_BUNDLE_SCHEMA
+        and execution is None
+        and "parallel_execution" not in manifest
+        and "source_snapshot_sha256" not in manifest
+    )
+    modern_execution_valid = bool(
+        execution
+        and execution.get("schema")
+        == "evidence-lane.parallel-lane-execution.v1"
         and execution.get("single_writer") is True
         and execution.get("linear_governance") is True
         and execution.get("barrier_status") == "PASS"
@@ -4148,8 +4160,10 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         and manifest.get("source_snapshot_sha256")
         == execution.get("source_snapshot_sha256")
     )
+    execution_valid = legacy_execution_compatibility or modern_execution_valid
     valid = (
-        manifest.get("schema") == LANE_BUNDLE_SCHEMA
+        manifest.get("schema")
+        in {LEGACY_LANE_BUNDLE_SCHEMA, LANE_BUNDLE_SCHEMA}
         and checksums.get("schema") == "evidence-lane.recursive-sha256.v1"
         and checksum_set_match
         and not checksum_mismatches
@@ -4182,4 +4196,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         "lane_manifest_errors": lane_manifest_errors,
         "source_routes_valid": route_values_valid,
         "parallel_execution_valid": execution_valid,
+        "parallel_execution_legacy_compatibility": (
+            legacy_execution_compatibility
+        ),
     }
