@@ -36,7 +36,7 @@ def test_initial_pv_captures_svelte_exact_bytes_and_fts(
     session_id = boot["session"]["session_id"]
     result = service.build_initial("book-faires", session_id)
     assert result["next_action"] == "PRESENT_SIX_WAY_HIL"
-    assert result["suggested_next_prompt"].startswith("/evi-80-hil ")
+    assert result["suggested_next_prompt"].startswith("/evi-build ")
     assert result["next_action_contract"] == result["candidate"]["next_action"]
     candidate = Path(result["candidate"]["stored_path"])
     validation = validate_pv_package(candidate)

@@ -67,6 +67,29 @@ CREATE TABLE IF NOT EXISTS chunks (
     UNIQUE (file_id, ordinal)
 ) STRICT;
 
+CREATE TABLE IF NOT EXISTS chunk_content_cas (
+    sha256 TEXT PRIMARY KEY,
+    size_bytes INTEGER NOT NULL CHECK (size_bytes >= 0),
+    text_content TEXT NOT NULL,
+    first_seen_at TEXT NOT NULL
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS chunk_history (
+    history_id INTEGER PRIMARY KEY,
+    repository_id INTEGER NOT NULL REFERENCES repositories(repository_id) ON DELETE CASCADE,
+    path TEXT NOT NULL,
+    source_sha256 TEXT NOT NULL,
+    ordinal INTEGER NOT NULL CHECK (ordinal >= 0),
+    start_line INTEGER NOT NULL CHECK (start_line >= 1),
+    end_line INTEGER NOT NULL CHECK (end_line >= start_line),
+    chunk_sha256 TEXT NOT NULL REFERENCES chunk_content_cas(sha256),
+    observed_at TEXT NOT NULL,
+    UNIQUE(repository_id, path, source_sha256, ordinal, chunk_sha256)
+) STRICT;
+
+CREATE INDEX IF NOT EXISTS chunk_history_path_idx
+ON chunk_history(repository_id, path, observed_at);
+
 CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
     path,
     text_content,

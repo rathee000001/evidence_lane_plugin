@@ -1173,6 +1173,49 @@ class SessionManager:
             "pointer": pointer.as_dict(),
         }
 
+    def record_source_intake_classification(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        classification: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Append one visible source-intake receipt without changing lifecycle state."""
+
+        session = self.load(project_id, session_id)
+        require(
+            not session.metadata.get("closed_at"),
+            "SOURCE_INTAKE_SESSION_CLOSED",
+            "Source Intake cannot append to a closed governed session.",
+            status="BLOCKED",
+        )
+        pointer = self.store.pointer(project_id)
+        event = ChatLineage(self._lineage_path(project_id, session_id)).append(
+            event_type="source.intake.classified",
+            visible_payload={
+                **classification,
+                "lifecycle_state_before": session.state.value,
+                "accepted_pv": pointer.accepted_pv,
+                "pointer_generation": pointer.generation,
+                "private_reasoning_excluded": True,
+            },
+            occurred_at=utc_now(),
+            session_id=session_id,
+            task_id=(
+                cast(dict[str, Any], session.task).get("task_id")
+                if session.task
+                else None
+            ),
+            run_id=session.metadata.get("run_id"),
+            actor_type="user",
+        )
+        return {
+            "status": "PASS",
+            "event": event,
+            "lifecycle_state_unchanged": session.state.value,
+            "pointer": pointer.as_dict(),
+        }
+
     def confirm_source_update(
         self,
         project_id: str,
@@ -1870,8 +1913,8 @@ class SessionManager:
             if not isinstance(existing_contract, dict):
                 existing_contract = state_travel_next_action(
                     state=str(existing["next_action"]),
-                    command="/evi-00-state-travel",
-                    suggested_next_prompt="/evi-00-state-travel",
+                    command="/evi-state-travel",
+                    suggested_next_prompt="/evi-state-travel",
                     target_surface=str(existing["target_surface"]),
                 )
             return {
@@ -1911,13 +1954,13 @@ class SessionManager:
             "manifest_sha256": validation["manifest_sha256"],
             "package_sha256": validation["package_sha256"],
             "required_entry_commands": [
-                "/evi-00-state-travel",
-                "/evi-01-boot",
+                "/evi-state-travel",
+                "/evi-boot",
             ],
             "next_action_contract": state_travel_next_action(
                 state=next_action,
-                command="/evi-00-state-travel",
-                suggested_next_prompt="/evi-00-state-travel",
+                command="/evi-state-travel",
+                suggested_next_prompt="/evi-state-travel",
                 target_surface=target_surface,
             ),
             "host_window_opened": False,
@@ -2064,7 +2107,7 @@ class SessionManager:
                 command="USER_PROVIDES_NEXT_BOUNDED_TASK",
                 suggested_next_prompt=(
                     "Provide the next bounded Evidence Lane task, or run "
-                    "/evi-40-status."
+                    "/evi-build to inspect governed status."
                 ),
                 target_surface=str(travel.get("target_surface")),
             ),

@@ -42,7 +42,10 @@ def test_secret_redaction_covers_common_tokens() -> None:
 def test_host_persistence_matrix() -> None:
     assert route_persistence(HostKind.CODEX_DESKTOP, ephemeral=False).mode == "local"
     assert route_persistence(HostKind.CODEX_CLI, ephemeral=False).mode == "local"
-    assert route_persistence(HostKind.CODEX_VM, ephemeral=True).mode == "google_drive"
+    assert (
+        route_persistence(HostKind.CODEX_VM, ephemeral=True).mode
+        == "configured_durable_connector"
+    )
     assert (
         route_persistence(
             HostKind.CHATGPT,
@@ -51,16 +54,22 @@ def test_host_persistence_matrix() -> None:
         ).mode
         == "local"
     )
-    assert route_persistence(HostKind.CHATGPT, ephemeral=False).mode == "google_drive"
+    assert (
+        route_persistence(HostKind.CHATGPT, ephemeral=False).mode
+        == "configured_durable_connector"
+    )
     assert (
         route_persistence(
             HostKind.CHATGPT,
             ephemeral=False,
             server_has_durable_filesystem=False,
         ).mode
-        == "google_drive"
+        == "configured_durable_connector"
     )
-    assert route_persistence(HostKind.PUBLIC_AI, ephemeral=False).mode == "google_drive"
+    assert (
+        route_persistence(HostKind.PUBLIC_AI, ephemeral=False).mode
+        == "configured_durable_connector"
+    )
 
 
 def test_doctor_reports_drive_as_capability_routed_not_globally_required(
@@ -143,7 +152,7 @@ def test_remote_host_fails_closed_without_drive(service) -> None:
             ephemeral=True,
             runtime_context={},
         )
-    assert error.value.code == "DURABLE_PERSISTENCE_NOT_CONFIGURED"
+    assert error.value.code == "DURABLE_RUNTIME_CONNECTOR_NOT_CONFIGURED"
 
 
 def test_bootstrap_installs_self_contained_noneditable_runtime() -> None:

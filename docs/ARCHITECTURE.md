@@ -1,186 +1,72 @@
-# Evidence Lane Plugin architecture
+# Architecture
 
-## Implemented product boundary
+Evidence Lane 0.6.0 separates public controls, lifecycle APIs, brain artifacts,
+host storage, and human authority.
 
-Evidence Lane Plugin is a private, tool-only universal Evidence Lane lifecycle
-engine. It preserves project continuity as immutable SQLite project versions
-(PVs) while the prompt, model, and supported host remain replaceable.
+## Control plane
 
-One executable transition law governs all eighteen canonical lanes. The
-deterministic engine owns exact source identity, routing, extraction, indexing,
-PV construction, validation, hashing, immutable promotion, accepted-pointer
-compare-and-swap, incremental Refresh, and Delta calculation. The MCP layer
-owns typed host-facing tools and canonical result envelopes; it does not own
-human-in-the-loop authority. `/evi`, its numeric root commands, matching
-native skills, and lifecycle hooks are visible control surfaces, not
-independent state machines.
+Root `/evi` conditionally exposes State Travel and otherwise presents exactly
+Boot, Rollback, Build, Refresh, Mode, and Source Intake. Internal MCP tool names
+remain stable but do not enlarge the public surface.
 
-The repository contains no desktop UI, local model, browser renderer, public
-deployment, or historical brain package. It contains one minimized,
-hash-locked ENV15/UOP15 session-flash authority. That installation context is
-outside every PV.
+Atomic Boot runs doctor, verifies the immutable ENV15/UOP15 Flash, detects
+Codex desktop/CLI/ChatGPT and durable/ephemeral capability, chooses storage,
+and boots or resumes one governed session. It fails closed when an ephemeral
+host lacks a transactional durable connector.
 
-## Runtime components
+The append-only backlog permits one active bounded task. Completion records
+host source confirmation and creates a fresh unaccepted candidate. HIL records
+five non-promotion decisions; exact `APPROVE` is accepted only by Fuse.
 
-| Component | Responsibility | Authority boundary |
-| --- | --- | --- |
-| `CodePVEngine` | Exact source identity, primary code database, universal lane bundle, and PV candidate construction | Cannot accept a candidate |
-| `lane_engine` and `lanes` | One immutable 18-lane registry; per-lane SQLite/MMD/DOT/tools; exact routing; PV1 full build; PV2+ Refresh | Cannot move the project pointer |
-| `SessionFlashAuthority` | Verify exact ENV/UOP members, locks, SQLite, and installation receipt | Cannot create a PV or infer HIL |
-| `ProjectStore` | Immutable candidates and accepted PVs, append-only Delta lifecycle ledger, derived Plan runtime projection, receipts, accepted history, and CAS pointer | Cannot infer a human decision or mutate the canonical Plan source sector |
-| `SessionManager` | Fresh-window State Travel, entry-PV verification, one writer, one active task, six-way HIL, rollback, and exact recovery transitions | Only exact `APPROVE` can promote a candidate; it cannot claim a host window opened |
-| `PromptIndex`, `UserPromptSubmit`, and nonblocking `Stop` hooks | Bind secret-redacted visible prompt/response turns to the current entry PV with SHA-256 evidence | Stores no raw secret-bearing text or private reasoning, never continues a turn, and cannot move a pointer |
-| `PVReader` and `LaneReader` | Progressive validated reads over primary and lane SQLite authorities | Read-only; candidates are labeled unaccepted |
-| `PVSyncService` | Seal PV artifacts and persist bounded decisions plus generation-addressed pointer snapshots | Never uploads a raw clone or cache |
-| Declared Google Drive app | Normal host OAuth and connector-mediated verified-mirror capability when selected | Connector token never enters the Python MCP |
-| `RemoteGitController` | Prepare and execute one separately confirmed push | PV approval alone is insufficient |
-| `FastMCP` server | Universal tool contract for supported hosts | Host permissions and connectivity remain separate |
+## Data plane
 
-## Canonical universal PV
+One immutable registry defines eighteen lanes, parsers, aliases, schemas, FTS,
+and mutation policies. Source Intake auto-detects ordered sources or applies
+exact overrides. Mode is an independent sidecar for locked intersections and
+explicit custom schemas. Both always include Chat Lineage.
 
-Every PV has the root package contract plus a recursively checksummed lane
-bundle:
+Every lane emits:
 
-```text
-PVn/
-|-- code.sqlite
-|-- project_master_topology.mmd
-|-- project_master_topology.dot
-|-- active_pointer.json
-|-- project_identity.json
-|-- manifest.json
-|-- SHA256SUMS.txt
-|-- chat_lineage.jsonl
-|-- entry_slip.json
-|-- exit_slip.json
-|-- pv_receipt.json
-`-- lanes/
-    |-- registry.json
-    |-- routes.json
-    |-- project_lane_topology.mmd
-    |-- project_lane_topology.dot
-    |-- manifest.json
-    |-- SHA256SUMS.json
-    `-- <canonical_lane_id>/
-        |-- <canonical_lane_id>_sector_v001.sqlite
-        |-- <canonical_lane_id>.mmd
-        |-- <canonical_lane_id>.dot
-        |-- tools.json
-        |-- lane_pointer.json
-        |-- refresh_receipt.json
-        `-- lane_manifest.json
-```
+- a strict SQLite brain with integrity/FK/FTS checks;
+- authoritative Mermaid and DOT topology;
+- tool and parser identity;
+- pointer and refresh evidence;
+- a content-sealed manifest.
 
-SVG and PNG are optional derived outputs. A rendering failure is recorded and
-does not invalidate correct SQLite/MMD/DOT authority.
+Git code lanes enumerate all reachable commits and refs, preserve exact blob
+bytes, record file changes, reuse blob/chunk CAS, store occurrences, and build
+history FTS. Incremental Refresh copies accepted brains, reindexes only changed
+sources/sections, retains chunk history, tombstones removals, and byte-reuses
+unaffected lanes.
 
-`exit_slip.json` includes the neutral `evidence-lane.next-action.v1` contract.
-It records the exact candidate-bound HIL command and prompt text, declares the
-composer host-owned, forbids auto-submit, and requires a stop. It remains useful
-whether or not a particular host renders its own gray prompt suggestion.
+## Candidate project overlays
 
-## Eighteen canonical lanes
+Each package includes a candidate-only project-sector overlay. Visible Chat
+Lineage fans into Chat Lineage and deterministic relevant sectors. Operational
+tool/command/file/test/build/Git events route to the active code sector and
+Artifacts; Source Intake events route to their classified sectors; output links
+route to Artifacts.
 
-The registry contains `github_code`, `local_code`, `chat_lineage`,
-`discussion`, `analysis`, `plan`, `mode`, `docs`, `data_excel`, `ppt`,
-`pdf_ocr`, `images_ocr`, `artifacts`, `custom`, `brain_loader`, `research`,
-`project_engulf`, and `sqlite_brain`.
+Overlay events retain actors, available model/submodel and token metrics,
+visible payload hashes, event-chain pointers, and candidate/pointer identity.
+Secrets are redacted. Hidden chain-of-thought/private reasoning is rejected.
+All overlay truth stays `CANDIDATE_ONLY` and `accepted_sector_truth=0` before
+Fuse.
 
-Every routed source belongs to exactly one lane. `/evi-02-git` selects
-`github_code`; `/evi-03-local` selects `local_code`; the old code alias remains
-an internal compatibility read alias. The `brain_loader` ID remains stable but
-is presented only as **SQLite PV Candidate Loader**. A named lane-route grant can
-override one exact source path for one candidate; it is recorded, consumed,
-and re-locked. Accepted route authority is inherited by later Refresh runs.
+## Connector brain
 
-The Mode registry entry is retained for schema compatibility, but Mode is not
-source intake. One `/evi-mode` control sidecar classifies ordered mode
-intersections, maps them to canonical lanes including Chat Lineage, appends a
-privacy-minimized receipt when a governed session is active, and returns to the
-unchanged lifecycle position. If Planning is selected, it also appends a
-hash-chained, privacy-minimized event to the task-backlog control plane and
-atomically rebuilds `plan_runtime_projection.sqlite`. That database is a
-derived control-plane index outside canonical PV lane sectors: it never
-replaces `/evi-08-plan` exact-file intake, mutates Plan source, or queues a
-Delta.
+The connector brain records append-only plugin registrations, events, routes,
+FTS, and separate exact drop receipts. It stores configuration environment
+variable names only. At most eight additional plugins may be active. Routing is
+deterministic and falls back to built-ins or a visible fail-closed result.
 
-The Delta ledger preserves one immutable task sequence and the universal
-states `QUEUED`, `ACTIVE`, `DONE`, `ACCEPTED`, `REJECTED`, `DROPPED`,
-`SUPERSEDED`, `FAILED`, and `ROLLED_BACK`. Every task-status event is globally
-and per-task hash-chained. DROP and SUPERSEDE require an explicit user-facing
-transition; SUPERSEDE links one different queued replacement and deletes
-nothing.
+## Host and deployment boundaries
 
-All lanes preserve exact bytes, source hashes, structured facts, FTS5/BM25,
-materialized TF-IDF, parser capability state, pointer evidence, and validation
-receipts. Format-specific extractors add code symbols/imports/routes,
-workbook/sheet/range/cell/formula/dependency/table/chart facts, CSV and
-JSON/JSONL structure, Parquet schema/rows, PDF native text and local OCR
-evidence, image OCR evidence, document hierarchy, slide
-shape/text/table/image/relationship structure, archive topology, chat
-hash-chain lineage, or immutable SQLite/brain inspection as applicable.
-Optional external binaries and deliberately unbundled parsers remain explicit
-capability rows and exact blockers; their absence is never represented as a
-successful parse.
+Codex remains local and Git-backed. Durable local SQLite is primary. Google
+Drive is an optional mirror/fallback. ChatGPT may use a durable remote MCP; the
+Vercel component is only a release-verifying HTTPS adapter to that origin. It
+stores no authority and is never the general router.
 
-## PV and pointer law
-
-- PV1 is the only normal full-source build.
-- `/evi-00-state-travel` is the conditional preflight when a prepared handoff
-  exists. It requires a new Codex task or ChatGPT chat, then runs atomic Boot
-  plus locked ENV/UOP Flash verification and verifies accepted pointer
-  generation, manifest, and package seals before loading `entry_pv` and
-  waiting. Otherwise `/evi-01-boot` is the first normal action.
-- PV2+ materializes from that accepted package and classifies every source as
-  `UNCHANGED_REUSE`, `CHANGED_REBUILD`, `NEW_REGISTER`,
-  `REMOVED_TOMBSTONE`, or `BLOCKED_UNSUPPORTED`.
-- Unchanged stable lane artifacts are reused byte-for-byte.
-- Accepted ordinals are never reused. Multiple preserved unaccepted candidates
-  may propose the same next ordinal until one is approved; this is required for
-  a corrected initial PV1 that has no accepted parent.
-- Only exact `APPROVE` through Fuse promotes candidate bytes and advances the
-  pointer. It seals a State Travel handoff; the origin host window does not
-  enter the next turn.
-- `ROLLBACK` never accepts a candidate. It moves only the accepted pointer to
-  immutable accepted history using compare-and-swap. It resolves `PVn`,
-  `PROMPT <index>`, or `TURN <id>`; a bare rollback uses the current prompt
-  entry and falls back to the governed session entry.
-- The next candidate ordinal is always one above the highest accepted history,
-  including after backward pointer travel.
-
-## Authority order
-
-1. Conditional `/evi-00-state-travel` only when an accepted handoff is
-   pending, including fresh-window Boot/Flash/pointer/seal verification.
-2. Otherwise `/evi-01-boot` is the first normal action. It atomically verifies
-   installed source, exact locked ENV/UOP Flash outside PV, project/pointer
-   identity, and session intent, then returns the ordered intake list.
-3. Seventeen ordered source-intake commands, beginning with Git, Local, and
-   SQLite PV Candidate Loader and including Project Engulf; `/evi-mode` remains
-   a separate anytime sidecar.
-4. `/evi-30-build-pv-entry`, or direct load of validated accepted PV bytes.
-5. One persistent session, one writer, one active task, a hash-chained linear
-   Delta ledger, its derived Plan runtime projection, and a bound host prompt.
-6. Visible source and acceptance evidence.
-7. Automatic completion, deterministic Refresh candidate, and internal slips.
-8. Exact human HIL decision and Fuse-sealed State Travel when approved.
-9. Pointer-only Rollback.
-10. Explicit `/evi-exit-boot` session deactivation, which preserves all
-    installation, Flash, PV, candidate, lineage, backlog, and pointer state.
-11. Separate host-connector, direct durable-server, and remote-Git authority.
-
-No later layer silently replaces an earlier one.
-
-## Related contracts
-
-- [`STATE_MACHINE.mmd`](STATE_MACHINE.mmd)
-- [`HOST_CAPABILITY_MATRIX.md`](HOST_CAPABILITY_MATRIX.md)
-- [`SESSION_FLASH_AUTHORITY.md`](SESSION_FLASH_AUTHORITY.md)
-- [`RUNTIME_STALENESS_CONTRACT.md`](RUNTIME_STALENESS_CONTRACT.md)
-- [`CHATGPT_CONNECTION.md`](CHATGPT_CONNECTION.md)
-- [`REFERENCE_RECONCILIATION.md`](REFERENCE_RECONCILIATION.md)
-- [`GOOGLE_DRIVE_PERSISTENCE.md`](GOOGLE_DRIVE_PERSISTENCE.md)
-- [`GIT_WRITE_CONTRACT.md`](GIT_WRITE_CONTRACT.md)
-- [`FIRST_HIL_RUNBOOK.md`](FIRST_HIL_RUNBOOK.md)
-- [`IMPLEMENTATION_TRACEABILITY.md`](IMPLEMENTATION_TRACEABILITY.md)
-- [`PROMPT_SUGGESTION_COMPATIBILITY.md`](PROMPT_SUGGESTION_COMPATIBILITY.md)
+Candidate build, Git push, plugin install, and preview deployment are evidence,
+not acceptance. State Travel is valid only after exact-APPROVE Fuse and a sealed
+handoff in a genuinely fresh destination host.

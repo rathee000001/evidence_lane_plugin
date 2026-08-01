@@ -9,13 +9,20 @@ from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
-from .constants import ENGINE_NAME, ENGINE_VERSION, SCHEMA_VERSION
+from .constants import (
+    ENGINE_NAME,
+    ENGINE_VERSION,
+    SCHEMA_VERSION,
+    SUPPORTED_SCHEMA_VERSIONS,
+)
 from .errors import EvidenceLaneError, require
 
 _COUNT_QUERIES = {
     "repositories": 'SELECT COUNT(*) AS count FROM "repositories"',
     "files": 'SELECT COUNT(*) AS count FROM "files"',
     "chunks": 'SELECT COUNT(*) AS count FROM "chunks"',
+    "chunk_content_cas": 'SELECT COUNT(*) AS count FROM "chunk_content_cas"',
+    "chunk_history": 'SELECT COUNT(*) AS count FROM "chunk_history"',
     "symbols": 'SELECT COUNT(*) AS count FROM "symbols"',
     "imports": 'SELECT COUNT(*) AS count FROM "imports"',
     "dependencies": 'SELECT COUNT(*) AS count FROM "dependencies"',
@@ -135,6 +142,8 @@ def integrity_report(path: str | Path) -> dict[str, Any]:
                 "repositories",
                 "files",
                 "chunks",
+                "chunk_content_cas",
+                "chunk_history",
                 "symbols",
                 "imports",
                 "dependencies",
@@ -150,7 +159,7 @@ def integrity_report(path: str | Path) -> dict[str, Any]:
         "valid": integrity_rows == ["ok"]
         and not foreign_key_rows
         and schema_row is not None
-        and schema_row[0] == SCHEMA_VERSION,
+        and schema_row[0] in SUPPORTED_SCHEMA_VERSIONS,
     }
 
 

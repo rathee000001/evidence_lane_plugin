@@ -18,6 +18,8 @@ from .timeutil import utc_now
 
 
 class PersistenceBackend(Protocol):
+    runtime_state_capable: bool
+
     def put(
         self,
         *,
@@ -59,14 +61,14 @@ def route_persistence(
     )
     if ephemeral or not durable_filesystem:
         return PersistenceRoute(
-            mode="google_drive",
+            mode="configured_durable_connector",
             reason=(
-                "the MCP server has no durable filesystem, so sealed PV evidence "
-                "must persist outside its sandbox"
+                "the MCP server has no durable filesystem, so the complete runtime "
+                "state requires a configured transactional durable connector"
             ),
             durable_required=True,
             server_filesystem="EPHEMERAL_OR_UNAVAILABLE",
-            host_connector_role="OAUTH_ONBOARDING_AND_VERIFIED_MIRROR",
+            host_connector_role="OPTIONAL_FALLBACK_MIRROR_NEVER_PRIMARY",
         )
     return PersistenceRoute(
         mode="local",
@@ -84,6 +86,7 @@ class InMemoryPersistence:
     """Test backend with the same object-level contract as Google Drive."""
 
     def __init__(self) -> None:
+        self.runtime_state_capable = True
         self.objects: dict[tuple[str, str, str], dict[str, Any]] = {}
 
     def put(
@@ -132,6 +135,7 @@ class GoogleDrivePersistence:
 
     API = "https://www.googleapis.com/drive/v3"
     UPLOAD_API = "https://www.googleapis.com/upload/drive/v3"
+    runtime_state_capable = False
 
     def __init__(
         self,
@@ -315,6 +319,10 @@ class PVSyncService:
         self.store = store
         self.backend = backend
         self.drive_encryption_key = drive_encryption_key
+
+    @property
+    def runtime_state_capable(self) -> bool:
+        return bool(getattr(self.backend, "runtime_state_capable", False))
 
     def sync_pv(
         self,

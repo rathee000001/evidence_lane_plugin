@@ -21,6 +21,11 @@ from typing import Any
 
 from defusedxml import ElementTree
 
+from .git_history import (
+    create_git_history_schema,
+    git_history_signature,
+    index_git_history,
+)
 from .hashing import (
     atomic_write_bytes,
     atomic_write_json,
@@ -40,7 +45,7 @@ from .lanes import (
 )
 from .timeutil import utc_now
 
-LANE_SCHEMA_VERSION = "evidence-lane.universal-lane.v1"
+LANE_SCHEMA_VERSION = "evidence-lane.universal-lane.v2"
 LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v1"
 MAX_EXTRACT_BYTES = 64 * 1024 * 1024
 MAX_PDF_PAGES = 500
@@ -2896,6 +2901,24 @@ def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) ->
             metadata_json TEXT NOT NULL,
             UNIQUE(source_id, locator, ordinal)
         ) STRICT;
+        CREATE TABLE chunk_content_cas(
+            sha256 TEXT PRIMARY KEY,
+            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
+            text_content TEXT NOT NULL,
+            first_seen_at TEXT NOT NULL
+        ) STRICT;
+        CREATE TABLE chunk_history(
+            history_id INTEGER PRIMARY KEY,
+            source_path TEXT NOT NULL,
+            source_sha256 TEXT NOT NULL,
+            locator TEXT NOT NULL,
+            ordinal INTEGER NOT NULL,
+            chunk_sha256 TEXT NOT NULL REFERENCES chunk_content_cas(sha256),
+            snapshot_ref TEXT NOT NULL,
+            observed_at TEXT NOT NULL,
+            content_reused INTEGER NOT NULL CHECK(content_reused IN (0, 1)),
+            UNIQUE(snapshot_ref, source_path, locator, ordinal, chunk_sha256)
+        ) STRICT;
         CREATE VIRTUAL TABLE {fts} USING fts5(
             path,
             locator,
@@ -2954,15 +2977,21 @@ def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) ->
         ) STRICT;
         CREATE INDEX source_registry_path_idx ON source_registry(path);
         CREATE INDEX chunk_source_idx ON chunk_index(source_id, ordinal);
+        CREATE INDEX chunk_history_source_idx
+        ON chunk_history(source_path, snapshot_ref, ordinal);
         CREATE INDEX structured_fact_kind_idx ON structured_fact(kind);
         """
     )
+    if lane.canonical_lane_id in PRIMARY_CODE_LANES:
+        create_git_history_schema(connection)
     shared_tables = {
         "lane_meta",
         "lane_pointer",
         "source_registry",
         "source_tombstone",
         "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
         "structured_fact",
         "parser_capability",
         "tfidf_term",
@@ -3008,6 +3037,7 @@ def _insert_source(
     relative_path: str,
     *,
     registered_at: str,
+    snapshot_ref: str,
 ) -> tuple[int, str]:
     path = root / Path(relative_path)
     data = path.read_bytes()
@@ -3029,6 +3059,7 @@ def _insert_source(
         documents, facts, parser_state, encoding = _extract_source(
             path, relative_path, data, lane
         )
+    source_sha256 = sha256_bytes(data)
     cursor = connection.execute(
         """
         INSERT INTO source_registry(
@@ -3039,7 +3070,7 @@ def _insert_source(
         (
             relative_path,
             len(data),
-            sha256_bytes(data),
+            source_sha256,
             mimetypes.guess_type(relative_path)[0] or "application/octet-stream",
             path.suffix.lower(),
             encoding,
@@ -3082,6 +3113,20 @@ def _insert_source(
     for document in documents:
         text = str(document.get("text") or "")
         for ordinal, char_start, block in _chunks(text):
+            chunk_sha256 = sha256_bytes(block.encode("utf-8"))
+            cas_cursor = connection.execute(
+                """
+                INSERT OR IGNORE INTO chunk_content_cas(
+                    sha256, size_bytes, text_content, first_seen_at
+                ) VALUES (?, ?, ?, ?)
+                """,
+                (
+                    chunk_sha256,
+                    len(block.encode("utf-8")),
+                    block,
+                    registered_at,
+                ),
+            )
             connection.execute(
                 """
                 INSERT INTO chunk_index(
@@ -3096,12 +3141,30 @@ def _insert_source(
                     char_start,
                     char_start + len(block),
                     block,
-                    sha256_bytes(block.encode("utf-8")),
+                    chunk_sha256,
                     json.dumps(
                         document.get("metadata") or {},
                         sort_keys=True,
                         separators=(",", ":"),
                     ),
+                ),
+            )
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO chunk_history(
+                    source_path, source_sha256, locator, ordinal, chunk_sha256,
+                    snapshot_ref, observed_at, content_reused
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    relative_path,
+                    source_sha256,
+                    str(document["locator"]),
+                    ordinal,
+                    chunk_sha256,
+                    snapshot_ref,
+                    registered_at,
+                    int(not bool(cas_cursor.rowcount)),
                 ),
             )
     return source_id, parser_state
@@ -3238,7 +3301,7 @@ def _current_index(root: Path, paths: Iterable[str]) -> dict[str, dict[str, Any]
 def _classify(
     prior: dict[str, dict[str, Any]],
     current: dict[str, dict[str, Any]],
-) -> dict[str, list[dict[str, Any]]]:
+) -> dict[str, Any]:
     unchanged = [
         {"path": path, **current[path]}
         for path in sorted(prior.keys() & current.keys())
@@ -3274,7 +3337,7 @@ def _classify(
 def _lane_topology(
     lane: LaneDefinition,
     source_rows: list[dict[str, Any]],
-    classification: dict[str, list[dict[str, Any]]],
+    classification: dict[str, Any],
 ) -> tuple[str, str]:
     label = lane.display_label.replace('"', "'")
     mmd = [
@@ -3313,7 +3376,10 @@ def _lane_topology(
                 "  lane -> more;",
             ]
         )
-    summary = " | ".join(f"{key}={len(value)}" for key, value in classification.items())
+    summary = " | ".join(
+        f"{key}={len(value) if isinstance(value, (list, dict)) else value}"
+        for key, value in classification.items()
+    )
     mmd.append(f'    L --> R["Refresh: {summary}"]')
     dot.extend(
         [
@@ -3345,6 +3411,7 @@ def _build_one_lane(
     proposed_pv: str,
     pointer_generation: int,
     recorded_at: str,
+    history_enabled: bool,
 ) -> dict[str, Any]:
     output.mkdir(parents=True, exist_ok=False)
     tools = _tool_identity(lane)
@@ -3365,10 +3432,28 @@ def _build_one_lane(
         prior_connection.close()
     current_index = _current_index(root, paths)
     classification = _classify(prior_index, current_index)
+    current_git_signature = git_history_signature(root) if history_enabled else None
+    prior_git_signature = None
+    if history_enabled and prior_db and prior_db.is_file():
+        prior_signature_connection = sqlite3.connect(
+            f"file:{prior_db.resolve().as_posix()}?mode=ro&immutable=1",
+            uri=True,
+        )
+        prior_signature_row = prior_signature_connection.execute(
+            "SELECT value FROM lane_meta WHERE key='git_history_signature'"
+        ).fetchone()
+        prior_signature_connection.close()
+        prior_git_signature = (
+            str(prior_signature_row[0]) if prior_signature_row else None
+        )
+    git_history_changed = bool(
+        history_enabled and current_git_signature != prior_git_signature
+    )
     tool_changed = bool(prior_tools and prior_tools.get("sha256") != tools["sha256"])
     changed = (
         prior_lane is None
         or tool_changed
+        or git_history_changed
         or any(
             classification[key]
             for key in ("CHANGED_REBUILD", "NEW_REGISTER", "REMOVED_TOMBSTONE")
@@ -3383,6 +3468,15 @@ def _build_one_lane(
         build_mode = "UNCHANGED_REUSE"
         byte_reused = True
         validation = _validate_lane_database(db_path, lane)
+        history_report: dict[str, Any] | None = (
+            {
+                "status": "UNCHANGED_REUSE",
+                "signature": current_git_signature,
+                "single_index_reuse": True,
+            }
+            if history_enabled
+            else None
+        )
     else:
         if prior_db and prior_db.is_file() and not tool_changed:
             atomic_write_bytes(db_path, prior_db.read_bytes())
@@ -3450,6 +3544,7 @@ def _build_one_lane(
                     root,
                     row["path"],
                     registered_at=recorded_at,
+                    snapshot_ref=proposed_pv,
                 )
                 if parser_state.startswith(("BLOCKED", "PARSE_FAILED")):
                     classification["BLOCKED_UNSUPPORTED"].append(
@@ -3466,11 +3561,15 @@ def _build_one_lane(
                     root,
                     relative_path,
                     registered_at=recorded_at,
+                    snapshot_ref=proposed_pv,
                 )
                 if parser_state.startswith(("BLOCKED", "PARSE_FAILED")):
                     classification["BLOCKED_UNSUPPORTED"].append(
                         {"path": relative_path, "parser_state": parser_state}
                     )
+        history_report = (
+            index_git_history(connection, root) if history_enabled else None
+        )
         connection.executemany(
             """
             INSERT INTO parser_capability(capability, state, tool, detail)
@@ -3492,6 +3591,7 @@ def _build_one_lane(
             ("tool_identity_sha256", tools["sha256"]),
             ("last_proposed_pv", proposed_pv),
             ("last_build_mode", build_mode),
+            ("git_history_signature", current_git_signature or "NOT_APPLICABLE"),
         ):
             connection.execute(
                 "INSERT OR REPLACE INTO lane_meta(key, value) VALUES (?, ?)",
@@ -3506,6 +3606,17 @@ def _build_one_lane(
             ("entered_from", parent_pv, pointer_generation, recorded_at),
         )
         _rebuild_retrieval(connection, lane)
+        chunk_reuse = connection.execute(
+            """
+            SELECT
+                COALESCE(SUM(content_reused), 0),
+                COALESCE(SUM(CASE WHEN content_reused=0 THEN 1 ELSE 0 END), 0)
+            FROM chunk_history WHERE snapshot_ref=?
+            """,
+            (proposed_pv,),
+        ).fetchone()
+        classification["CHANGED_SECTION_REUSED"] = int(chunk_reuse[0])
+        classification["CHANGED_SECTION_REINDEXED"] = int(chunk_reuse[1])
         connection.execute(
             """
             INSERT INTO refresh_receipt(
@@ -3559,6 +3670,8 @@ def _build_one_lane(
         "build_mode": build_mode,
         "classification": classification,
         "tool_identity_changed": tool_changed,
+        "git_history_changed": git_history_changed,
+        "git_history": history_report,
         "stable_artifacts_byte_reused": byte_reused,
         "parent_pv": parent_pv,
         "proposed_pv": proposed_pv,
@@ -3586,6 +3699,7 @@ def _build_one_lane(
         "build_mode": build_mode,
         "byte_reused": byte_reused,
         "classification": classification,
+        "git_history": history_report,
         "validation": validation,
         "stable_artifacts": stable_hashes,
     }
@@ -3629,6 +3743,7 @@ def build_lane_bundle(
     if code_mode not in PRIMARY_CODE_LANES:
         raise ValueError("code_mode must be github_code or local_code")
     root = Path(repository_root).resolve()
+    git_history_available = (root / ".git").exists()
     output = Path(output_directory).resolve()
     if output.exists():
         if any(output.iterdir()):
@@ -3695,6 +3810,7 @@ def build_lane_bundle(
                 proposed_pv=proposed_pv,
                 pointer_generation=pointer_generation,
                 recorded_at=recorded_at,
+                history_enabled=lane_id == code_mode and git_history_available,
             )
         )
     mmd, dot = _bundle_graph(reports)
@@ -3723,6 +3839,18 @@ def build_lane_bundle(
         ),
         "blocked_sources": sum(
             len(row["classification"]["BLOCKED_UNSUPPORTED"]) for row in reports
+        ),
+        "changed_sections_reused": sum(
+            int(row["classification"].get("CHANGED_SECTION_REUSED", 0))
+            for row in reports
+        ),
+        "changed_sections_reindexed": sum(
+            int(row["classification"].get("CHANGED_SECTION_REINDEXED", 0))
+            for row in reports
+        ),
+        "git_history": next(
+            (row["git_history"] for row in reports if row.get("git_history")),
+            None,
         ),
     }
     manifest = {

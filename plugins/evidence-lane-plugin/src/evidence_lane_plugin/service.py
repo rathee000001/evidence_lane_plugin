@@ -8,6 +8,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, cast
 
+from .connector_governance import ConnectorGovernance
 from .constants import LIFECYCLE_RESULT_SCHEMA, TOOL_RESULT_SCHEMA
 from .engine import CodePVEngine
 from .enrollment import enroll_project, sync_selected_branch
@@ -32,6 +33,7 @@ from .reader import PVReader
 from .redaction import redact
 from .remote_git import RemoteGitController
 from .session import SessionManager
+from .source_intake import classify_source_intake
 from .state_law import transition_catalog
 from .store import ProjectStore
 from .timeutil import utc_now
@@ -166,7 +168,13 @@ class EvidenceLaneService:
         report["checks"]["session_flash_bundle"] = flash["status"] == "PASS"
         report["status"] = "PASS" if all(report["checks"].values()) else "FAIL"
         report["warnings"] = flash["warnings"]
-        report["google_drive_configured"] = self.sync_service is not None
+        report["google_drive_configured"] = bool(
+            self.sync_service is not None
+            and isinstance(self.sync_service.backend, GoogleDrivePersistence)
+        )
+        report["durable_runtime_connector_configured"] = bool(
+            self.sync_service is not None and self.sync_service.runtime_state_capable
+        )
         report["google_drive"] = {
             "host_connector_dependency": ("CAPABILITY_ROUTED_NOT_GLOBALLY_REQUIRED"),
             "connector_id": "connector_5f3c8c41a1e54ad7a76272c89e2554fa",
@@ -176,9 +184,12 @@ class EvidenceLaneService:
                 "HOST_OAUTH_OPTIONAL_UNTIL_PERSISTENCE_ROUTE_SELECTS_DRIVE"
             ),
             "connector_role": "OAUTH_ONBOARDING_AND_VERIFIED_MIRROR",
-            "direct_server_backend_configured": self.sync_service is not None,
+            "direct_server_backend_configured": bool(
+                self.sync_service is not None
+                and self.sync_service.runtime_state_capable
+            ),
             "direct_server_backend_role": (
-                "AUTHORITATIVE_FOR_EXPLICITLY_EPHEMERAL_MCP_SERVER"
+                "OPTIONAL_SEALED_ARTIFACT_MIRROR_NOT_PRIMARY_RUNTIME_AUTHORITY"
             ),
         }
         return report
@@ -192,6 +203,85 @@ class EvidenceLaneService:
     def lane_catalog(self) -> dict[str, Any]:
         return self.lane_reader.lane_catalog()
 
+    def _connector_governance(self, project_id: str) -> ConnectorGovernance:
+        self.store.config(project_id)
+        return ConnectorGovernance(
+            self.store.project_root(project_id) / "connector_brain.sqlite"
+        )
+
+    def connector_plugin_register(
+        self, project_id: str, **kwargs: Any
+    ) -> dict[str, Any]:
+        return self._connector_governance(project_id).register(**kwargs)
+
+    def connector_plugin_drop(self, project_id: str, **kwargs: Any) -> dict[str, Any]:
+        return self._connector_governance(project_id).drop(**kwargs)
+
+    def connector_plugin_catalog(self, project_id: str) -> dict[str, Any]:
+        return self._connector_governance(project_id).catalog()
+
+    def connector_plugin_route(
+        self,
+        project_id: str,
+        *,
+        capability: str,
+        canonical_lane_id: str | None = None,
+    ) -> dict[str, Any]:
+        return self._connector_governance(project_id).route(
+            capability=capability,
+            canonical_lane_id=canonical_lane_id,
+        )
+
+    def source_intake(
+        self,
+        project_id: str,
+        sources: list[str],
+        *,
+        overrides: dict[str, str] | None = None,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Classify ordered sources through one generalized public control."""
+
+        config = self.store.config(project_id)
+        repository = inspect_repository(config.repository_path)
+        code_lane = config.source_lane
+        if code_lane not in {"github_code", "local_code"}:
+            code_lane = (
+                "github_code" if repository.provider == "github" else "local_code"
+            )
+        result = classify_source_intake(
+            sources,
+            code_mode=code_lane,
+            overrides=overrides,
+        )
+        active_session_id = session_id.strip() if session_id else ""
+        if not active_session_id:
+            active_path = self.store.project_root(project_id) / "active_session.json"
+            if active_path.is_file():
+                active_session_id = str(
+                    json.loads(active_path.read_text(encoding="utf-8")).get(
+                        "session_id"
+                    )
+                    or ""
+                )
+        if active_session_id:
+            receipt = self.sessions.record_source_intake_classification(
+                project_id,
+                active_session_id,
+                classification=result,
+            )
+            result["chat_lineage"] = {
+                "append_status": "APPENDED",
+                "event_id": receipt["event"]["event_id"],
+            }
+            result["prior_lifecycle_state"] = receipt["lifecycle_state_unchanged"]
+            result["pointer"] = receipt["pointer"]
+        else:
+            result["chat_lineage"] = {"append_status": "NO_ACTIVE_SESSION"}
+            result["prior_lifecycle_state"] = "NO_ACTIVE_SESSION"
+        result["next_action"] = "RETURN_TO_SOURCE_INTAKE_OR_PRIOR_LIFECYCLE_POSITION"
+        return result
+
     def classify_mode(
         self,
         project_id: str,
@@ -199,6 +289,7 @@ class EvidenceLaneService:
         *,
         explicit_modes: list[str] | None = None,
         session_id: str | None = None,
+        custom_modes: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         """Classify an ENV15 mode intersection and its canonical lanes."""
 
@@ -213,6 +304,7 @@ class EvidenceLaneService:
             request,
             explicit_modes=explicit_modes,
             code_lane=code_lane,
+            custom_modes=custom_modes,
         )
         active_session_id = session_id.strip() if session_id else ""
         if not active_session_id:
@@ -588,10 +680,14 @@ class EvidenceLaneService:
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
         )
-        if route.durable_required and self.sync_service is None:
+        if route.durable_required and (
+            self.sync_service is None or not self.sync_service.runtime_state_capable
+        ):
             raise EvidenceLaneError(
-                "DURABLE_PERSISTENCE_NOT_CONFIGURED",
-                "This remote or ephemeral host requires the user-owned Google Drive persistence boundary.",
+                "DURABLE_RUNTIME_CONNECTOR_NOT_CONFIGURED",
+                "This remote or ephemeral host requires a transactional connector for "
+                "sessions, backlog, lineage, candidates, receipts, and pointer CAS. "
+                "Google Drive may mirror sealed artifacts but is never this primary authority.",
                 status="BLOCKED",
                 details={"mode": route.mode, "reason": route.reason},
             )
@@ -636,11 +732,13 @@ class EvidenceLaneService:
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
         )
-        if route.durable_required and self.sync_service is None:
+        if route.durable_required and (
+            self.sync_service is None or not self.sync_service.runtime_state_capable
+        ):
             raise EvidenceLaneError(
-                "DURABLE_PERSISTENCE_NOT_CONFIGURED",
+                "DURABLE_RUNTIME_CONNECTOR_NOT_CONFIGURED",
                 "This MCP server has no durable filesystem and requires the direct "
-                "user-owned Google Drive persistence backend before resume.",
+                "transactional runtime connector before resume; Drive remains a mirror.",
                 status="BLOCKED",
                 details={"mode": route.mode, "reason": route.reason},
             )
@@ -723,7 +821,7 @@ class EvidenceLaneService:
         return {
             **verified,
             "ordered_entry_verification": [
-                "/evi-01-boot",
+                "/evi-boot",
                 "ATOMIC_BOOT_AND_LOCKED_ENV_UOP_FLASH_VERIFIED",
                 "VERIFY_ACCEPTED_POINTER_AND_SEALS",
                 "WAITING_FOR_NEXT_USER_COMMAND",
@@ -739,7 +837,10 @@ class EvidenceLaneService:
         result["next_action_contract"] = result["candidate"]["next_action"]
         result["hil_choices"] = list(HIL_CHOICES)
         session = self.sessions.load(project_id, session_id)
-        if session.metadata["persistence_mode"] == "google_drive":
+        if session.metadata["persistence_mode"] in {
+            "google_drive",
+            "configured_durable_connector",
+        }:
             sync = self._required_sync_service()
             result["durable_persistence"] = sync.sync_pv(
                 project_id,
@@ -755,7 +856,10 @@ class EvidenceLaneService:
         result["next_action_contract"] = result["candidate"]["next_action"]
         result["hil_choices"] = list(HIL_CHOICES)
         session = self.sessions.load(project_id, session_id)
-        if session.metadata["persistence_mode"] == "google_drive":
+        if session.metadata["persistence_mode"] in {
+            "google_drive",
+            "configured_durable_connector",
+        }:
             sync = self._required_sync_service()
             result["durable_persistence"] = sync.sync_pv(
                 project_id,
@@ -792,7 +896,10 @@ class EvidenceLaneService:
     def decide(self, project_id: str, session_id: str, **kwargs: Any) -> dict[str, Any]:
         result = self.sessions.decide(project_id, session_id, **kwargs)
         session = self.sessions.load(project_id, session_id)
-        if session.metadata["persistence_mode"] == "google_drive":
+        if session.metadata["persistence_mode"] in {
+            "google_drive",
+            "configured_durable_connector",
+        }:
             sync = self._required_sync_service()
             result["decision_persistence"] = sync.sync_receipt(
                 project_id, result["decision"]
@@ -812,6 +919,20 @@ class EvidenceLaneService:
             result["state_travel_handoff"] = state_travel_handoff
             result["session"] = self.sessions.load(project_id, session_id).as_dict()
         return result
+
+    def record_hil_decision(
+        self, project_id: str, session_id: str, **kwargs: Any
+    ) -> dict[str, Any]:
+        """Record non-promotion HIL outcomes; APPROVE is exclusive to Fuse."""
+
+        require(
+            str(kwargs.get("decision") or "") != "APPROVE",
+            "APPROVE_REQUIRES_PV_FUSE",
+            "Exact APPROVE may promote only through pv_fuse; continuation, a tool "
+            "default, or hil_decide can never imply approval.",
+            status="BLOCKED",
+        )
+        return self.decide(project_id, session_id, **kwargs)
 
     def fuse(
         self,
@@ -880,7 +1001,10 @@ class EvidenceLaneService:
     ) -> dict[str, Any]:
         result = self.sessions.rollback_state(project_id, session_id, **kwargs)
         session = self.sessions.load(project_id, session_id)
-        if session.metadata["persistence_mode"] == "google_drive":
+        if session.metadata["persistence_mode"] in {
+            "google_drive",
+            "configured_durable_connector",
+        }:
             sync = self._required_sync_service()
             result["decision_persistence"] = sync.sync_receipt(
                 project_id, result["decision"]

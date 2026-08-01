@@ -7,6 +7,7 @@ import json
 import os
 import re
 import sys
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -92,6 +93,13 @@ def _active_binding(
             "evidence_session_id": session.get("session_id"),
             "entry_pv": session.get("metadata", {}).get("entry_pv"),
             "pointer_generation": session.get("accepted_pointer_generation"),
+            "task_id": (
+                session.get("task", {}).get("task_id")
+                if isinstance(session.get("task"), dict)
+                else None
+            ),
+            "lifecycle_state": session.get("state"),
+            "project_root": project_root,
         }
         if (
             session.get("metadata", {}).get("current_host_session_id")
@@ -105,6 +113,116 @@ def _active_binding(
     if not exact_matches and len(cwd_matches) == 1:
         return cwd_matches[0]
     return {}
+
+
+def _acquire_lock(path: Path) -> int:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    for _ in range(40):
+        try:
+            return os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        except FileExistsError:
+            time.sleep(0.025)
+    raise TimeoutError("Evidence Lane prompt-lineage lock is busy.")
+
+
+def _atomic_write(path: Path, payload: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.{time.time_ns()}.tmp")
+    descriptor = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    try:
+        os.write(descriptor, payload)
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+    os.replace(temporary, path)
+
+
+def _append_lineage(
+    *,
+    binding: dict[str, Any],
+    record: dict[str, Any],
+    input_kind: str,
+) -> dict[str, Any]:
+    lineage_path = (
+        Path(binding["project_root"])
+        / "lineage"
+        / f"{binding['evidence_session_id']}.jsonl"
+    )
+    lock_path = lineage_path.with_suffix(".jsonl.turn-index.lock")
+    lock_descriptor = _acquire_lock(lock_path)
+    try:
+        events: list[dict[str, Any]] = []
+        if lineage_path.exists():
+            events = [
+                json.loads(line)
+                for line in lineage_path.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+        event_id = (
+            "evt_"
+            + _sha256(
+                (
+                    str(binding["evidence_session_id"])
+                    + "\0"
+                    + str(record["turn_id"])
+                    + "\0visible-user-prompt"
+                ).encode("utf-8")
+            )[:26].lower()
+        )
+        existing = next(
+            (event for event in events if event.get("event_id") == event_id),
+            None,
+        )
+        if existing is not None:
+            return existing
+        safe_payload = {
+            "turn_id": record["turn_id"],
+            "prompt_index": record["prompt_index"],
+            "input_kind": input_kind,
+            "visible_user_prompt_after_redaction": record[
+                "visible_prompt_after_redaction"
+            ],
+            "prompt_sha256_after_redaction": record["prompt_sha256_after_redaction"],
+            "prompt_record_sha256": record["record_sha256"],
+            "entry_pv": record.get("entry_pv"),
+            "pointer_generation": record.get("pointer_generation"),
+            "lifecycle_state": binding.get("lifecycle_state"),
+            "private_reasoning_excluded": True,
+        }
+        event = {
+            "schema": "evidence-lane.chat-lineage.event.v1",
+            "event_id": event_id,
+            "event_type": "turn.visible_user_prompt",
+            "occurred_at": record["recorded_at"],
+            "session_id": binding["evidence_session_id"],
+            "task_id": binding.get("task_id"),
+            "run_id": None,
+            "lineage_index": len(events) + 1,
+            "previous_event_sha256": (
+                events[-1].get("event_sha256") if events else None
+            ),
+            "actor_type": "user",
+            "model": None,
+            "submodel": None,
+            "token_metrics": {"availability": "UNAVAILABLE"},
+            "visible_payload": safe_payload,
+            "visible_payload_sha256": _sha256(_canonical_bytes(safe_payload)),
+            "private_reasoning_stored": False,
+        }
+        event["event_sha256"] = _sha256(
+            _canonical_bytes(
+                {key: value for key, value in event.items() if key != "event_sha256"}
+            )
+        )
+        events.append(event)
+        _atomic_write(lineage_path, b"".join(_canonical_bytes(item) for item in events))
+        return event
+    finally:
+        os.close(lock_descriptor)
+        try:
+            lock_path.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def _record(payload: dict[str, Any]) -> dict[str, Any]:
@@ -194,6 +312,11 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
         os.write(descriptor, _canonical_bytes(record))
     finally:
         os.close(descriptor)
+    event = _append_lineage(
+        binding=binding,
+        record=record,
+        input_kind=str(payload.get("source") or "user_prompt"),
+    )
     return {
         "state": "INDEXED",
         "prompt_index": prompt_index,
@@ -204,6 +327,8 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
         "raw_prompt_stored": False,
         "redacted_visible_prompt_stored": True,
         "record_sha256": record["record_sha256"],
+        "lineage_event_id": event["event_id"],
+        "lineage_event_sha256": event["event_sha256"],
     }
 
 

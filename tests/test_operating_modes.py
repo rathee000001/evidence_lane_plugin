@@ -31,7 +31,7 @@ def test_explicit_mode_intersection_is_ordered_and_keeps_mode_separate() -> None
         route["canonical_lane_id"]: route["command"] for route in result["lane_routes"]
     }
     assert routes["mode"] == "/evi-mode"
-    assert routes["local_code"] == "/evi-03-local"
+    assert routes["local_code"] == "/evi-source-intake --lane local_code"
     assert result["lifecycle_effect"] == "NONE"
     assert result["pointer_moved"] is False
     assert result["candidate_created"] is False

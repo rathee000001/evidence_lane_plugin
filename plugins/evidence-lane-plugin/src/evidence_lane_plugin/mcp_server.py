@@ -59,6 +59,7 @@ def create_mcp_server(
     oauth_config: OAuthJWTConfig | None = None,
 ) -> FastMCP:
     application = service or EvidenceLaneService()
+    release_identity = application.engine.doctor()["engine"]
     auth = None
     verifier: TokenVerifier | None = None
     if bearer_token and oauth_config:
@@ -83,19 +84,20 @@ def create_mcp_server(
         "Evidence Lane Plugin",
         instructions=(
             "If a prepared post-Fuse handoff exists, display "
-            "/evi-00-state-travel first. Otherwise start /evi with atomic Boot "
+            "/evi-state-travel first. Otherwise start /evi with atomic /evi-boot "
             "plus locked ENV/UOP Flash as the first normal action, then display "
-            "all seventeen ordered "
-            "source-intake commands, the anytime /evi-mode sidecar, Build PV "
-            "Entry, bounded task work, automatic exit-Refresh, HIL, Fuse, then "
-            "Rollback. Fuse requires exact APPROVE and seals a fresh-window "
+            "exactly Boot, Rollback, Build, Refresh, Mode, and Source Intake. "
+            "Source Intake is one generalized ordered control for all eighteen "
+            "lanes and Project Engulf and always includes Chat Lineage. Fuse "
+            "requires exact APPROVE through pv_fuse and seals a fresh-window "
             "handoff without rebuilding. State Travel verifies atomic Boot/Flash, the "
             "accepted pointer, and seals in a fresh Codex task or ChatGPT chat, "
             "then waits. A booted session remains active until /evi-exit-boot. "
             "Before every HIL or State Travel stop, visibly render the returned "
             "suggested_next_prompt. The host owns composer suggestions; never "
             "claim the MCP wrote the prompt bar and never auto-submit it. "
-            "Never infer HIL approval, expose connector OAuth, or write remote "
+            "Never infer HIL approval, store private reasoning, expose connector "
+            "secrets, or write remote "
             "Git without the exact governed action."
         ),
         host=host,
@@ -118,6 +120,9 @@ def create_mcp_server(
                 "status": "PASS",
                 "service": "evidence-lane-plugin",
                 "mcp_path": "/mcp",
+                "release_sha": release_identity.get("commit"),
+                "engine_version": release_identity.get("release"),
+                "package_sha256": release_identity.get("package_sha256"),
             }
         )
 
@@ -186,6 +191,145 @@ def create_mcp_server(
         return application.invoke("lane_catalog", application.lane_catalog)
 
     @mcp.tool(
+        name="source_intake_classify",
+        title="Classify generalized Source Intake",
+        description=(
+            "Auto-detect one or more ordered source pointers across all eighteen "
+            "canonical lanes and Project Engulf, apply exact per-source overrides, "
+            "always include Chat Lineage, and append a visible classification "
+            "receipt without copying source, building a candidate, or moving a pointer."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Classifying Source Intake", "Source Intake classified"),
+        structured_output=True,
+    )
+    def source_intake_classify(
+        project_id: str,
+        sources: list[str],
+        overrides: dict[str, str] | None = None,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "source_intake_classify",
+            application.source_intake,
+            project_id,
+            sources,
+            overrides=overrides,
+            session_id=session_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="connector_plugin_catalog",
+        title="Inspect governed connector and toolchain plugins",
+        description=(
+            "Read the append-only connector brain, its active maximum of eight, "
+            "dropped history, SQLite integrity, capabilities, lanes, and secret-free "
+            "configuration-variable names."
+        ),
+        annotations=_READ_ONLY,
+        meta=_meta("Reading connector brain", "Connector brain ready"),
+        structured_output=True,
+    )
+    def connector_plugin_catalog(project_id: str) -> dict[str, Any]:
+        return application.invoke(
+            "connector_plugin_catalog",
+            application.connector_plugin_catalog,
+            project_id,
+        )
+
+    @mcp.tool(
+        name="connector_plugin_register",
+        title="Register one bounded persistent connector or toolchain",
+        description=(
+            "Register one connector or AI toolchain plugin with environment-variable "
+            "names only, explicit capabilities, and canonical lanes. At most eight "
+            "additional plugins may remain active; no secret value is persisted."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Registering governed plugin", "Governed plugin registered"),
+        structured_output=True,
+    )
+    def connector_plugin_register(
+        project_id: str,
+        plugin_id: str,
+        name: str,
+        plugin_kind: Literal["connector", "toolchain"],
+        description: str,
+        config_env_keys: list[str],
+        capabilities: list[str],
+        allowed_lanes: list[str],
+        registered_by: str,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "connector_plugin_register",
+            application.connector_plugin_register,
+            project_id,
+            plugin_id=plugin_id,
+            name=name,
+            plugin_kind=plugin_kind,
+            description=description,
+            config_env_keys=config_env_keys,
+            capabilities=capabilities,
+            allowed_lanes=allowed_lanes,
+            registered_by=registered_by,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="connector_plugin_drop",
+        title="Drop one governed persistent plugin",
+        description=(
+            "Drop exactly one active connector/toolchain only with DROP:<plugin-id>; "
+            "preserve its registration and event history rather than deleting it."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Dropping governed plugin", "Governed plugin dropped"),
+        structured_output=True,
+    )
+    def connector_plugin_drop(
+        project_id: str,
+        plugin_id: str,
+        confirmation: str,
+        dropped_by: str,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "connector_plugin_drop",
+            application.connector_plugin_drop,
+            project_id,
+            plugin_id=plugin_id,
+            confirmation=confirmation,
+            dropped_by=dropped_by,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="connector_plugin_route",
+        title="Route one capability through governed plugin policy",
+        description=(
+            "Select one active plugin deterministically by capability and optional "
+            "canonical lane, or return the built-in/fail-closed fallback without "
+            "silently widening plugin authority."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Routing connector capability", "Connector route recorded"),
+        structured_output=True,
+    )
+    def connector_plugin_route(
+        project_id: str,
+        capability: str,
+        canonical_lane_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "connector_plugin_route",
+            application.connector_plugin_route,
+            project_id,
+            capability=capability,
+            canonical_lane_id=canonical_lane_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
         name="mode_classify",
         title="Classify an ENV15 mode intersection and lanes",
         description=(
@@ -208,6 +352,7 @@ def create_mcp_server(
         request: str,
         explicit_modes: list[str] | None = None,
         session_id: str | None = None,
+        custom_modes: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "mode_classify",
@@ -216,6 +361,7 @@ def create_mcp_server(
             request,
             explicit_modes=explicit_modes,
             session_id=session_id,
+            custom_modes=custom_modes,
             lifecycle=True,
         )
 
@@ -774,10 +920,9 @@ def create_mcp_server(
         name="hil_decide",
         title="Record exact six-way HIL decision",
         description=(
-            "Record exactly APPROVE, APPROVE_WITH_DELTA, MORE_RESEARCH, REJECT, or "
-            "FAIL, plus pointer-only ROLLBACK to any immutable accepted PV, for one "
-            "pending candidate. Only APPROVE promotes candidate bytes and its public "
-            "service path seals a State Travel handoff for a fresh host window. "
+            "Record APPROVE_WITH_DELTA, MORE_RESEARCH, REJECT, FAIL, or pointer-only "
+            "ROLLBACK for one pending candidate. Exact APPROVE is deliberately "
+            "rejected here and may promote only through pv_fuse. "
             "ROLLBACK preserves the candidate and accepted history; a bare target "
             "resolves to the current prompt/session entry PV."
         ),
@@ -798,7 +943,7 @@ def create_mcp_server(
     ) -> dict[str, Any]:
         return application.invoke(
             "hil_decide",
-            application.decide,
+            application.record_hil_decision,
             project_id,
             session_id,
             decision=decision,

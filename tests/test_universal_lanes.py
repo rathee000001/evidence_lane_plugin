@@ -350,31 +350,31 @@ def test_registry_requires_explicit_code_mode() -> None:
     assert len(CANONICAL_LANE_IDS) == 18
     ordered_commands = sorted(lane.command for lane in LANE_REGISTRY.values())
     assert ordered_commands == [
-        "evi-02-git",
-        "evi-03-local",
-        "evi-04-sqlite-pv-candidate-loader",
-        "evi-05-chat-lineage",
-        "evi-06-discussion",
-        "evi-07-analysis",
-        "evi-08-plan",
-        "evi-09-docs",
-        "evi-10-data-excel",
-        "evi-11-ppt",
-        "evi-12-pdf-ocr",
-        "evi-13-images-ocr",
-        "evi-14-artifacts",
-        "evi-15-custom",
-        "evi-16-research",
-        "evi-17-project-engulf",
-        "evi-18-sqlite-brain",
         "evi-mode",
+        "evi-source-intake --lane analysis",
+        "evi-source-intake --lane artifacts",
+        "evi-source-intake --lane brain_loader",
+        "evi-source-intake --lane chat_lineage",
+        "evi-source-intake --lane custom",
+        "evi-source-intake --lane data_excel",
+        "evi-source-intake --lane discussion",
+        "evi-source-intake --lane docs",
+        "evi-source-intake --lane github_code",
+        "evi-source-intake --lane images_ocr",
+        "evi-source-intake --lane local_code",
+        "evi-source-intake --lane pdf_ocr",
+        "evi-source-intake --lane plan",
+        "evi-source-intake --lane ppt",
+        "evi-source-intake --lane project_engulf",
+        "evi-source-intake --lane research",
+        "evi-source-intake --lane sqlite_brain",
     ]
     assert LANE_REGISTRY["brain_loader"].display_label == ("SQLite PV Candidate Loader")
     assert resolve_lane_id("Brain Loader") == "brain_loader"
     try:
         resolve_lane_id("code")
     except LaneRegistryError as exc:
-        assert "requires exactly one mode" in str(exc)
+        assert "requires exactly one code mode" in str(exc)
     else:
         raise AssertionError("/code resolved without a mode")
     assert resolve_lane_id("code", code_mode="local_code") == "local_code"

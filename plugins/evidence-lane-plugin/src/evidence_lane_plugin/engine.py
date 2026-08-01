@@ -23,7 +23,7 @@ from .ids import new_ulid, prefixed_id
 from .ingest import ingest_repository, refresh_repository
 from .lane_engine import build_lane_bundle
 from .models import SessionRecord, TaskContract
-from .next_actions import hil_next_action
+from .next_actions import hil_next_action, refresh_output_handoff
 from .pv_package import build_pv_package
 from .store import ProjectStore
 from .timeutil import utc_now
@@ -486,6 +486,14 @@ class CodePVEngine:
                 candidate_id=candidate_id,
                 proposed_pv=proposed_pv,
             )
+            output_handoff = refresh_output_handoff(
+                host_kind=session.host.value,
+                client_can_edit_source=(
+                    session.metadata.get("client_source_edit_authority") == "DIRECT"
+                ),
+                candidate_id=candidate_id,
+                proposed_pv=proposed_pv,
+            )
             exit_slip = {
                 "schema": "evidence-lane.exit-slip.v1",
                 "session_id": session.session_id,
@@ -512,6 +520,7 @@ class CodePVEngine:
                 ),
                 "lane_refresh": lane_report["summary"],
                 "next_action": next_action_contract,
+                "host_output_handoff": output_handoff,
                 "exited_at": created_at,
             }
             package_warnings = list(ingestion.warnings)
@@ -548,6 +557,10 @@ class CodePVEngine:
                 created_at=created_at,
                 warnings=package_warnings,
                 lane_bundle_path=build_root / "lane_bundle",
+                code_mode=lane_report["code_mode"],
+                connector_brain_path=(
+                    self.store.project_root(project_id) / "connector_brain.sqlite"
+                ),
             )
             stored = self.store.place_candidate(
                 project_id, candidate_id, build_root / "package"

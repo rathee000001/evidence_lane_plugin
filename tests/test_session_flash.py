@@ -39,13 +39,8 @@ def test_locked_env_uop_flash_is_visible_idempotent_and_outside_pv(service) -> N
     assert boot["next_action_contract"]["display_position"] == (
         "AFTER_ATOMIC_BOOT_FLASH"
     )
-    assert boot["ordered_source_intake_commands"][0:3] == [
-        "/evi-02-git",
-        "/evi-03-local",
-        "/evi-04-sqlite-pv-candidate-loader",
-    ]
-    assert len(boot["ordered_source_intake_commands"]) == 17
-    assert boot["suggested_next_prompt"].startswith("Choose /evi-02-git")
+    assert boot["ordered_source_intake_commands"] == ["/evi-source-intake"]
+    assert boot["suggested_next_prompt"].startswith("Use /evi-source-intake")
     assert boot["next_action_contract"]["auto_submit"] is False
     assert boot["session"]["metadata"]["flash_context_stored_in_pv"] is False
     assert (

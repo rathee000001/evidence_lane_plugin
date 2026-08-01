@@ -17,6 +17,16 @@ _SECRET_PATTERNS = (
     re.compile(r"\bgithub_pat_[A-Za-z0-9_]{16,}\b"),
     re.compile(r"(?i)\b(?:authorization|bearer|password|token|secret)\b\s*[:=]\s*\S+"),
 )
+_LINK_RE = re.compile(r"\[[^\]]*\]\(([^)]+)\)|https?://[^\s)>]+")
+_TOKEN_METRIC_KEYS = {
+    "input_tokens",
+    "output_tokens",
+    "total_tokens",
+    "cached_input_tokens",
+    "cache_read_input_tokens",
+    "cache_creation_input_tokens",
+    "reasoning_tokens",
+}
 
 
 def _store_root() -> Path:
@@ -49,6 +59,44 @@ def _redact(value: str) -> str:
     for pattern in _SECRET_PATTERNS:
         redacted = pattern.sub("[REDACTED]", redacted)
     return redacted
+
+
+def _telemetry(
+    payload: dict[str, Any],
+) -> tuple[str | None, str | None, dict[str, Any]]:
+    model = str(payload.get("model") or payload.get("model_name") or "").strip() or None
+    submodel = (
+        str(payload.get("submodel") or payload.get("model_slug") or "").strip() or None
+    )
+    raw_usage = payload.get("usage") or payload.get("token_usage") or {}
+    metrics = (
+        {
+            str(key): value
+            for key, value in raw_usage.items()
+            if str(key) in _TOKEN_METRIC_KEYS
+            and isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            and value >= 0
+        }
+        if isinstance(raw_usage, dict)
+        else {}
+    )
+    return (
+        _redact(model) if model else None,
+        _redact(submodel) if submodel else None,
+        {"availability": "AVAILABLE", **metrics}
+        if metrics
+        else {"availability": "UNAVAILABLE"},
+    )
+
+
+def _output_links(text: str) -> list[str]:
+    values: list[str] = []
+    for match in _LINK_RE.finditer(text):
+        value = (match.group(1) or match.group(0)).strip()
+        if value and value not in values:
+            values.append(value)
+    return values[:100]
 
 
 def _within(child: Path, parent: Path) -> bool:
@@ -94,7 +142,11 @@ def _active_binding(
             "entry_pv": session.get("metadata", {}).get("entry_pv"),
             "pointer_generation": session.get("accepted_pointer_generation"),
             "lifecycle_state": session.get("state"),
-            "task_id": session.get("current_task_id"),
+            "task_id": (
+                session.get("task", {}).get("task_id")
+                if isinstance(session.get("task"), dict)
+                else None
+            ),
             "project_root": project_root,
         }
         if (
@@ -204,10 +256,22 @@ def _append_lineage(
             "session_id": binding["evidence_session_id"],
             "task_id": binding.get("task_id"),
             "run_id": None,
+            "lineage_index": len(events) + 1,
+            "previous_event_sha256": (
+                events[-1].get("event_sha256") if events else None
+            ),
+            "actor_type": "assistant",
+            "model": record.get("model"),
+            "submodel": record.get("submodel"),
+            "token_metrics": record.get("token_metrics")
+            or {"availability": "UNAVAILABLE"},
             "visible_payload": {
                 "turn_id": record["turn_id"],
                 "prompt_index": record["prompt_index"],
                 "prompt_record_sha256": record["prompt_record_sha256"],
+                "visible_user_prompt_after_redaction": record.get(
+                    "visible_user_prompt_after_redaction"
+                ),
                 "response_record_sha256": record["record_sha256"],
                 "response_sha256_after_redaction": (
                     record["response_sha256_after_redaction"]
@@ -218,6 +282,7 @@ def _append_lineage(
                 "visible_assistant_response_after_redaction": (
                     record["visible_assistant_response_after_redaction"]
                 ),
+                "output_links": record.get("output_links", []),
                 "entry_pv": record.get("entry_pv"),
                 "pointer_generation": record.get("pointer_generation"),
                 "lifecycle_state": record.get("lifecycle_state"),
@@ -228,7 +293,11 @@ def _append_lineage(
                 "hook_continuation_requested": False,
                 "composer_mutated": False,
             },
+            "private_reasoning_stored": False,
         }
+        event["visible_payload_sha256"] = _sha256(
+            _canonical_bytes(event["visible_payload"])
+        )
         event["event_sha256"] = _sha256(
             _canonical_bytes(
                 {key: value for key, value in event.items() if key != "event_sha256"}
@@ -283,6 +352,7 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
             "private_reasoning_stored": False,
         }
     visible_response = _redact(response)
+    model, submodel, token_metrics = _telemetry(payload)
     host_key = f"host-{_sha256(host_session_id.encode('utf-8'))[:40].lower()}"
     folder = root / "response-index" / host_key
     turn_key = _sha256(turn_id.encode("utf-8"))[:16].lower()
@@ -321,9 +391,16 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
         "turn_id": turn_id,
         "prompt_index": int(prompt_record["prompt_index"]),
         "prompt_record_sha256": prompt_record["record_sha256"],
+        "visible_user_prompt_after_redaction": prompt_record.get(
+            "visible_prompt_after_redaction"
+        ),
         "visible_assistant_response_after_redaction": visible_response,
         "response_sha256_after_redaction": _sha256(visible_response.encode("utf-8")),
         "response_chars_after_redaction": len(visible_response),
+        "output_links": _output_links(visible_response),
+        "model": model,
+        "submodel": submodel,
+        "token_metrics": token_metrics,
         "raw_response_stored": False,
         "redacted_visible_response_stored": True,
         "private_reasoning_stored": False,

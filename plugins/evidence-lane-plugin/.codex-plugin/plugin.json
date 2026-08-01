@@ -1,7 +1,7 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "0.5.4+codex.20260730100103",
-  "description": "Private /evi-first Evidence Lane workflow with atomic Boot/Flash, conditional fresh-window State Travel, universal Plan/Delta events, automatic exit sealing, exact-APPROVE Fuse, prompt-indexed rollback, and capability-based durable persistence.",
+  "version": "0.6.0+codex.20260801033432",
+  "description": "Private six-control Evidence Lane with atomic host-aware Boot, generalized Source Intake, universal Git/CAS brains, candidate-only sector overlays, exact-APPROVE Fuse, and fresh-host State Travel.",
   "author": {
     "name": "Praveen Rathee",
     "url": "https://github.com/rathee000001"
@@ -19,8 +19,8 @@
   "apps": "./.app.json",
   "interface": {
     "displayName": "Evidence Lane Plugin",
-    "shortDescription": "Run atomic /evi Boot/Flash and governed PV State Travel.",
-    "longDescription": "Evidence Lane starts a normal /evi flow with atomic Boot plus locked ENV/UOP Flash through /evi-01-boot, while a prepared post-Fuse handoff enters through /evi-00-state-travel in a fresh host window. It keeps /evi-mode available for intersecting ENV15 modes, Chat Lineage, and an append-only Planning-mode projection; accepts one explicit Git or local-code source; governs one project, agent, and active task across eighteen deterministic SQLite/MMD/DOT sectors; preserves one universal Delta lifecycle; automatically seals task exit candidates; Fuses only exact APPROVE; supports six-way HIL plus prompt-indexed pointer-only rollback; and keeps the governed session active until /evi-exit-boot.",
+    "shortDescription": "Run six governed controls over universal evidence brains.",
+    "longDescription": "Evidence Lane exposes Boot, Rollback, Build, Refresh, Mode, and Source Intake after root /evi, with conditional State Travel only for a sealed accepted handoff. Boot atomically verifies locked ENV15/UOP15 Flash and routes durable local versus configured remote storage fail-closed. Source Intake auto-detects all eighteen lanes and Project Engulf while Mode accepts ordered known intersections and explicit custom schemas. Git history, content-addressed chunks, lane SQLite/FTS/MMD/DOT, candidate-only project-sector overlays, and visible secret-redacted ChatLineage remain outside accepted truth until exact APPROVE invokes Fuse.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "capabilities": [
@@ -28,9 +28,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Run /evi: atomically Boot plus locked ENV/UOP Flash, then show the ordered source-intake choices.",
-      "Use /evi-02-git with one exact repository and branch, or /evi-03-local with one exact local Git path.",
-      "Complete one bounded Delta, auto-Refresh the exit candidate, show six-way HIL, and wait for my exact decision."
+      "Run /evi, atomically Boot plus locked ENV/UOP Flash, and show the six controls.",
+      "Use /evi-source-intake with ordered sources and auto-detection or exact lane overrides.",
+      "Use /evi-refresh to seal an unaccepted candidate, show six-way HIL, and wait for my exact decision."
     ],
     "brandColor": "#18A9C8"
   },

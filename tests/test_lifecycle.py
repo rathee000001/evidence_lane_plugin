@@ -59,7 +59,7 @@ def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(
     assert refresh["automatic_refresh"] is True
     assert refresh["user_refresh_command_required"] is False
     assert refresh["next_action"] == "PRESENT_SIX_WAY_HIL"
-    assert refresh["suggested_next_prompt"].startswith("/evi-80-hil ")
+    assert refresh["suggested_next_prompt"].startswith("/evi-build ")
     assert refresh["next_action_contract"]["composer_authority"] == "HOST_OWNED"
     assert (
         refresh["next_action_contract"]["documented_mcp_composer_mutation_supported"]
@@ -240,13 +240,13 @@ def test_chatgpt_state_travel_requires_fresh_chat_and_waits(service) -> None:
     assert handoff["target_surface"] == "NEW_CHATGPT_CHAT"
     assert handoff["next_action"] == "OPEN_NEW_CHATGPT_CHAT"
     assert handoff["next_action_contract"]["suggested_next_prompt"] == (
-        "/evi-00-state-travel"
+        "/evi-state-travel"
     )
     assert handoff["next_action_contract"]["auto_submit"] is False
     assert handoff["host_window_opened"] is False
     assert handoff["required_entry_commands"] == [
-        "/evi-00-state-travel",
-        "/evi-01-boot",
+        "/evi-state-travel",
+        "/evi-boot",
     ]
 
     with pytest.raises(EvidenceLaneError) as wrong_session:
@@ -289,12 +289,14 @@ def test_chatgpt_state_travel_requires_fresh_chat_and_waits(service) -> None:
     assert traveled["state_travel"]["pointer_verified"] is True
     assert traveled["wait_state"] == "WAITING_FOR_NEXT_USER_COMMAND"
     assert traveled["next_action"] == "WAIT_FOR_NEXT_USER_COMMAND"
-    assert traveled["suggested_next_prompt"].endswith("/evi-40-status.")
+    assert traveled["suggested_next_prompt"].endswith(
+        "/evi-build to inspect governed status."
+    )
     assert traveled["next_action_contract"]["composer_authority"] == "HOST_OWNED"
     assert traveled["next_action_contract"]["stop_and_wait"] is True
     assert traveled["task_started"] is False
     assert traveled["ordered_entry_verification"] == [
-        "/evi-01-boot",
+        "/evi-boot",
         "ATOMIC_BOOT_AND_LOCKED_ENV_UOP_FLASH_VERIFIED",
         "VERIFY_ACCEPTED_POINTER_AND_SEALS",
         "WAITING_FOR_NEXT_USER_COMMAND",

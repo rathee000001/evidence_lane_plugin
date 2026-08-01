@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from . import database
+from .connector_governance import validate_connector_brain
 from .constants import (
     ENV_UOP_FORBIDDEN_NAMES,
     ENV_UOP_FORBIDDEN_PATH_PARTS,
@@ -27,6 +28,7 @@ from .hashing import (
 )
 from .lane_engine import validate_lane_bundle
 from .lineage import ChatLineage
+from .project_overlay import build_project_overlay, validate_project_overlay
 from .redaction import contains_secret
 from .topology import build_mermaid, render_mermaid
 
@@ -70,6 +72,8 @@ def build_pv_package(
     created_at: str,
     warnings: list[dict[str, Any]] | None = None,
     lane_bundle_path: str | Path | None = None,
+    code_mode: str = "local_code",
+    connector_brain_path: str | Path | None = None,
 ) -> dict[str, Any]:
     output = Path(output_directory).resolve()
     require(
@@ -146,6 +150,33 @@ def build_pv_package(
     else:
         atomic_write_bytes(output / "chat_lineage.jsonl", b"")
 
+    overlay_validation = None
+    if lane_bundle_path:
+        overlay_validation = build_project_overlay(
+            output / "project_overlay",
+            lane_bundle_path=output / "lanes",
+            lineage_source=output / "chat_lineage.jsonl",
+            candidate_id=candidate_id,
+            proposed_pv=proposed_pv,
+            parent_accepted_pv=parent_accepted_pv,
+            pointer_generation=int(active_pointer.get("generation", 0)),
+            code_mode=code_mode,
+            created_at=created_at,
+        )
+    connector_validation = None
+    if connector_brain_path and Path(connector_brain_path).is_file():
+        _copy_exact(connector_brain_path, output / "connector_brain.sqlite")
+        connector_validation = validate_connector_brain(
+            output / "connector_brain.sqlite"
+        )
+        require(
+            connector_validation["valid"],
+            "PV_CONNECTOR_BRAIN_INVALID",
+            "The governed connector brain failed package validation.",
+            status="FAIL",
+            validation=connector_validation,
+        )
+
     payload_names = [
         "code.sqlite",
         "project_master_topology.mmd",
@@ -165,6 +196,13 @@ def build_pv_package(
             for path in sorted((output / "lanes").rglob("*"))
             if path.is_file()
         )
+        payload_names.extend(
+            path.relative_to(output).as_posix()
+            for path in sorted((output / "project_overlay").rglob("*"))
+            if path.is_file()
+        )
+    if (output / "connector_brain.sqlite").is_file():
+        payload_names.append("connector_brain.sqlite")
     manifest = {
         "schema": PV_MANIFEST_SCHEMA,
         "package_kind": "UNIVERSAL_EVIDENCE_LANE_PROJECT_VERSION",
@@ -182,6 +220,8 @@ def build_pv_package(
         "authoritative_topology": "project_master_topology.mmd",
         "rendering": render_receipt,
         "universal_lanes": lane_validation,
+        "project_sector_overlay": overlay_validation,
+        "connector_brain": connector_validation,
         "warnings": package_warnings,
         "immutability_rule": "candidate bytes are preserved on acceptance",
     }
@@ -195,6 +235,8 @@ def build_pv_package(
         "manifest_sha256": manifest_sha256,
         "database_validation": db_report,
         "lane_bundle_validation": lane_validation,
+        "project_sector_overlay_validation": overlay_validation,
+        "connector_brain_validation": connector_validation,
         "topology": topology_receipt,
         "rendering": render_receipt,
         "warnings": package_warnings,
@@ -394,6 +436,16 @@ def validate_pv_package(directory: str | Path) -> dict[str, Any]:
             status="BLOCKED",
             member=path.relative_to(root).as_posix(),
         )
+    for path in sorted((root / "project_overlay").rglob("*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        require(
+            not contains_secret(payload),
+            "PV_METADATA_SECRET_DETECTED",
+            "A secret-like value was detected in project-overlay metadata.",
+            status="BLOCKED",
+            member=path.relative_to(root).as_posix(),
+        )
+    lineage_events = ChatLineage(root / "chat_lineage.jsonl").events()
     db_report = database.validate(root / "code.sqlite")
     lane_report = validate_lane_bundle(root / "lanes")
     require(
@@ -403,6 +455,26 @@ def validate_pv_package(directory: str | Path) -> dict[str, Any]:
         status="FAIL",
         lane_report=lane_report,
     )
+    overlay_report = None
+    if (root / "project_overlay").is_dir():
+        overlay_report = validate_project_overlay(root / "project_overlay")
+        require(
+            overlay_report["valid"],
+            "PV_PROJECT_OVERLAY_INVALID",
+            "The candidate-only project-sector overlay failed validation.",
+            status="FAIL",
+            overlay_report=overlay_report,
+        )
+    connector_report = None
+    if (root / "connector_brain.sqlite").is_file():
+        connector_report = validate_connector_brain(root / "connector_brain.sqlite")
+        require(
+            connector_report["valid"],
+            "PV_CONNECTOR_BRAIN_INVALID",
+            "The packaged connector brain failed validation.",
+            status="FAIL",
+            connector_report=connector_report,
+        )
     package_sha256 = (
         hashlib.sha256(
             canonical_json_bytes(
@@ -421,6 +493,9 @@ def validate_pv_package(directory: str | Path) -> dict[str, Any]:
         "members": len(actual_files),
         "database": db_report,
         "lanes": lane_report,
+        "project_sector_overlay": overlay_report,
+        "connector_brain": connector_report,
+        "chat_lineage_event_count": len(lineage_events),
         "project_id": project_identity.get("project_id"),
         "rendering_status": manifest.get("rendering", {}).get("status"),
     }

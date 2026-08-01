@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, cast
 
 from .errors import EvidenceLaneError
-from .lanes import LANE_REGISTRY
+from .hashing import canonical_json_bytes, sha256_bytes
+from .lanes import LANE_REGISTRY, resolve_lane_id
 
 MODE_DEFINITIONS: tuple[dict[str, Any], ...] = (
     {
@@ -123,12 +124,15 @@ def _normalize_explicit(value: str) -> str:
     return " ".join(value.strip().lower().replace("_", " ").split())
 
 
-def _resolve_explicit(values: list[str]) -> list[str]:
+def _resolve_explicit(
+    values: list[str], custom_aliases: dict[str, str] | None = None
+) -> list[str]:
+    custom = custom_aliases or {}
     selected: list[str] = []
     for raw in values:
         normalized = _normalize_explicit(raw)
-        if normalized in _EXPLICIT_ALIASES:
-            mode_id = _EXPLICIT_ALIASES[normalized]
+        if normalized in {**_EXPLICIT_ALIASES, **custom}:
+            mode_id = {**_EXPLICIT_ALIASES, **custom}[normalized]
             if mode_id not in selected:
                 selected.append(mode_id)
             continue
@@ -139,11 +143,11 @@ def _resolve_explicit(values: list[str]) -> list[str]:
         ]
         for part in parts:
             try:
-                mode_id = _EXPLICIT_ALIASES[part]
+                mode_id = {**_EXPLICIT_ALIASES, **custom}[part]
             except KeyError as exc:
                 raise EvidenceLaneError(
                     "MODE_SELECTION_INVALID",
-                    "An explicit operating mode is outside the locked ENV15 namespace.",
+                    "An unknown mode requires one explicit custom-mode brief and lane schema.",
                     status="BLOCKED",
                     details={
                         "provided": raw,
@@ -151,6 +155,7 @@ def _resolve_explicit(values: list[str]) -> list[str]:
                         "supported": [
                             f"{item['id']} {item['name']}" for item in MODE_DEFINITIONS
                         ],
+                        "custom_mode_required_fields": ["name", "brief", "lanes"],
                     },
                 ) from exc
             if mode_id not in selected:
@@ -194,6 +199,7 @@ def classify_operating_modes(
     *,
     explicit_modes: list[str] | None,
     code_lane: str,
+    custom_modes: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Classify one or more ordered mode namespaces without lifecycle mutation."""
 
@@ -205,11 +211,79 @@ def classify_operating_modes(
             details={"code_lane": code_lane},
         )
     exact_request = request.strip()
+    custom_definitions: dict[str, dict[str, Any]] = {}
+    custom_aliases: dict[str, str] = {}
+    custom_order: list[str] = []
+    for raw in custom_modes or []:
+        name = str(raw.get("name") or "").strip()
+        brief = str(raw.get("brief") or "").strip()
+        raw_lanes = raw.get("lanes") or ["custom"]
+        if not isinstance(raw_lanes, list):
+            raise EvidenceLaneError(
+                "CUSTOM_MODE_LANES_INVALID",
+                "A custom mode lane schema must be an ordered list.",
+                status="BLOCKED",
+            )
+        if not name or len(brief) < 12:
+            raise EvidenceLaneError(
+                "CUSTOM_MODE_BRIEF_REQUIRED",
+                "A custom mode needs a name and a concrete brief of at least 12 characters.",
+                status="BLOCKED",
+                details={"name": name, "minimum_brief_characters": 12},
+            )
+        normalized_name = _normalize_explicit(name)
+        slug = re.sub(r"[^a-z0-9]+", "-", normalized_name).strip("-")[:40]
+        mode_id = (
+            "X:"
+            + slug
+            + ":"
+            + sha256_bytes(
+                canonical_json_bytes({"name": name, "brief": brief, "lanes": raw_lanes})
+            )[:8]
+        )
+        lanes: list[str] = []
+        for alias in raw_lanes:
+            try:
+                lane_id = resolve_lane_id(str(alias), code_mode=code_lane)
+            except ValueError as exc:
+                raise EvidenceLaneError(
+                    "CUSTOM_MODE_LANE_INVALID",
+                    "A custom mode references an unknown canonical lane.",
+                    status="BLOCKED",
+                    details={"mode": name, "lane": str(alias)},
+                ) from exc
+            if lane_id not in lanes:
+                lanes.append(lane_id)
+        definition = {
+            "id": mode_id,
+            "name": name,
+            "aliases": (name, mode_id),
+            "lanes": tuple(lanes),
+            "brief": brief,
+            "custom": True,
+        }
+        custom_definitions[mode_id] = definition
+        custom_aliases[normalized_name] = mode_id
+        custom_aliases[_normalize_explicit(mode_id)] = mode_id
+        custom_order.append(mode_id)
     selected = (
-        _resolve_explicit(explicit_modes)
+        _resolve_explicit(explicit_modes, custom_aliases)
         if explicit_modes
         else _infer_from_request(exact_request)
     )
+    if not explicit_modes:
+        for mode_id in custom_order:
+            name = str(custom_definitions[mode_id]["name"])
+            if (
+                re.search(
+                    rf"(?<![a-z0-9]){re.escape(name.lower())}(?![a-z0-9])",
+                    exact_request.lower(),
+                )
+                and mode_id not in selected
+            ):
+                selected.append(mode_id)
+        if not selected and len(custom_order) == 1:
+            selected.append(custom_order[0])
     if not selected:
         raise EvidenceLaneError(
             "MODE_SELECTION_REQUIRED",
@@ -227,20 +301,30 @@ def classify_operating_modes(
     lanes = ["mode", "chat_lineage"]
     selected_details: list[dict[str, Any]] = []
     for mode_id in selected:
-        definition = _BY_ID[mode_id]
+        definition = cast(
+            dict[str, Any], dict(_BY_ID.get(mode_id) or custom_definitions[mode_id])
+        )
+        definition_lanes = cast(tuple[str, ...] | list[str], definition["lanes"])
         mapped_lanes = [
-            code_lane if lane == "$CODE_LANE" else lane for lane in definition["lanes"]
+            code_lane if lane == "$CODE_LANE" else lane for lane in definition_lanes
         ]
         for lane in mapped_lanes:
             if lane not in lanes:
                 lanes.append(lane)
-        selected_details.append(
-            {
-                "id": mode_id,
-                "name": definition["name"],
-                "canonical_lanes": mapped_lanes,
+        detail = {
+            "id": mode_id,
+            "name": definition["name"],
+            "canonical_lanes": mapped_lanes,
+            "custom": bool(definition.get("custom")),
+        }
+        if definition.get("custom"):
+            detail["schema"] = {
+                "brief": definition["brief"],
+                "brief_sha256": sha256_bytes(str(definition["brief"]).encode("utf-8")),
+                "ordered_lanes": mapped_lanes,
+                "authority": "USER_EXPLICIT_SESSION_SIDECAR",
             }
-        )
+        selected_details.append(detail)
 
     lane_routes = [
         {
@@ -254,7 +338,11 @@ def classify_operating_modes(
         "status": "PASS",
         "schema": "evidence-lane.mode-classification.v1",
         "request": exact_request,
-        "mode_namespace_authority": "ENV15_LOCKED_READ_ONLY",
+        "mode_namespace_authority": (
+            "ENV15_LOCKED_PLUS_EXPLICIT_CUSTOM_SCHEMA"
+            if custom_definitions
+            else "ENV15_LOCKED_READ_ONLY"
+        ),
         "selected_modes": selected_details,
         "mode_intersection": "+".join(selected),
         "intersection": len(selected) > 1,
@@ -266,6 +354,11 @@ def classify_operating_modes(
             "automatic_append_write_lane": True,
             "private_reasoning_excluded": True,
         },
+        "custom_mode_schemas": [
+            item["schema"] | {"id": item["id"], "name": item["name"]}
+            for item in selected_details
+            if item.get("custom")
+        ],
         "code_recursive_policy": (["D", "PL", "CD", "VAL"] if "CD" in selected else []),
         "lifecycle_effect": "NONE",
         "pointer_moved": False,

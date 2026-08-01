@@ -33,6 +33,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "lifecycle_transition_law",
         "lane_catalog",
         "mode_classify",
+        "source_intake_classify",
         "lane_status",
         "lane_search",
         "lane_fetch",
@@ -68,6 +69,10 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "pv_diff",
         "remote_git_prepare_push",
         "remote_git_execute_push",
+        "connector_plugin_register",
+        "connector_plugin_drop",
+        "connector_plugin_catalog",
+        "connector_plugin_route",
     }
     assert by_name["search"].annotations.readOnlyHint is True
     assert by_name["fetch"].annotations.readOnlyHint is True
@@ -728,38 +733,20 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
     plugin = root / "plugins" / "evidence-lane-plugin"
     commands = plugin / "commands"
     skills = plugin / "skills"
-    lifecycle_order = [
-        "evi-00-state-travel",
-        "evi-01-boot",
-        "evi-02-git",
-        "evi-03-local",
-        "evi-04-sqlite-pv-candidate-loader",
-        "evi-05-chat-lineage",
-        "evi-06-discussion",
-        "evi-07-analysis",
-        "evi-08-plan",
-        "evi-09-docs",
-        "evi-10-data-excel",
-        "evi-11-ppt",
-        "evi-12-pdf-ocr",
-        "evi-13-images-ocr",
-        "evi-14-artifacts",
-        "evi-15-custom",
-        "evi-16-research",
-        "evi-17-project-engulf",
-        "evi-18-sqlite-brain",
-        "evi-30-build-pv-entry",
-        "evi-40-status",
-        "evi-50-task-plan",
-        "evi-51-backlog",
-        "evi-60-classify",
-        "evi-70-lane-route",
-        "evi-80-hil",
-        "evi-90-pv-fuse",
-        "evi-99-pv-rollback",
-        "evi-exit-boot",
+    public_order = [
+        "evi-boot",
+        "evi-rollback",
+        "evi-build",
+        "evi-refresh",
+        "evi-mode",
+        "evi-source-intake",
     ]
-    expected_commands = {"evi", "evi-mode", *lifecycle_order}
+    expected_commands = {
+        "evi",
+        "evi-state-travel",
+        "evi-exit-boot",
+        *public_order,
+    }
     assert {path.stem for path in commands.glob("*.md")} == expected_commands
     for name in expected_commands:
         skill_file = skills / name / "SKILL.md"
@@ -767,24 +754,12 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
         assert f"name: {name}" in skill_file.read_text(encoding="utf-8")
 
     root_command = (commands / "evi.md").read_text(encoding="utf-8")
-    positions = [root_command.index(f"`/{name}`") for name in lifecycle_order]
+    positions = [root_command.index(f"`/{name}`") for name in public_order]
     assert positions == sorted(positions)
-    source_lanes = lifecycle_order[
-        lifecycle_order.index("evi-02-git") : lifecycle_order.index(
-            "evi-30-build-pv-entry"
-        )
-    ]
-    assert len(source_lanes) == 17
-    assert source_lanes[0:3] == [
-        "evi-02-git",
-        "evi-03-local",
-        "evi-04-sqlite-pv-candidate-loader",
-    ]
-    assert "evi-17-project-engulf" in source_lanes
-    assert "evi-mode" not in source_lanes
-    assert "`/evi-mode`" in root_command
-    assert "`/evi-02-flash`" not in root_command
-    assert lifecycle_order[0] == "evi-00-state-travel"
+    assert "`/evi-state-travel`" in root_command
+    assert root_command.index("`/evi-state-travel`") < positions[0]
+    assert "all eighteen canonical lanes" in root_command.lower()
+    assert "Project Engulf" in root_command
 
     command_text = "\n".join(
         path.read_text(encoding="utf-8") for path in commands.glob("*.md")

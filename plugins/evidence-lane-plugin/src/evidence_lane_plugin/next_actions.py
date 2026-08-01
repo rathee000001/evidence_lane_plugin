@@ -14,33 +14,23 @@ HIL_CHOICES = (
 )
 
 HIL_SUGGESTED_PROMPT = (
-    "/evi-80-hil <APPROVE | APPROVE_WITH_DELTA: correction | "
+    "/evi-build <APPROVE | APPROVE_WITH_DELTA: correction | "
     "MORE_RESEARCH: question | ROLLBACK[: PVn] | REJECT: reason | FAIL: gate>"
 )
 
-SOURCE_INTAKE_COMMANDS = (
-    "/evi-02-git",
-    "/evi-03-local",
-    "/evi-04-sqlite-pv-candidate-loader",
-    "/evi-05-chat-lineage",
-    "/evi-06-discussion",
-    "/evi-07-analysis",
-    "/evi-08-plan",
-    "/evi-09-docs",
-    "/evi-10-data-excel",
-    "/evi-11-ppt",
-    "/evi-12-pdf-ocr",
-    "/evi-13-images-ocr",
-    "/evi-14-artifacts",
-    "/evi-15-custom",
-    "/evi-16-research",
-    "/evi-17-project-engulf",
-    "/evi-18-sqlite-brain",
+PUBLIC_CONTROLS = (
+    "/evi-boot",
+    "/evi-rollback",
+    "/evi-build",
+    "/evi-refresh",
+    "/evi-mode",
+    "/evi-source-intake",
 )
+SOURCE_INTAKE_COMMANDS = ("/evi-source-intake",)
 
 BOOT_SUGGESTED_PROMPT = (
-    "Choose /evi-02-git with one exact repository and branch, /evi-03-local "
-    "with one exact local Git path, or another displayed source-intake lane."
+    "Use /evi-source-intake with one or more ordered sources; allow auto-detection "
+    "or name exact per-source lane overrides. Chat Lineage is always included."
 )
 
 
@@ -51,9 +41,11 @@ def boot_next_action(*, entry_action: str) -> dict[str, Any]:
         "schema": "evidence-lane.next-action.v1",
         "state": "SOURCE_INTAKE_READY",
         "display_position": "AFTER_ATOMIC_BOOT_FLASH",
-        "command": "USER_SELECTS_ONE_OR_MORE_ORDERED_SOURCE_INTAKE_COMMANDS",
+        "command": "/evi-source-intake",
         "suggested_next_prompt": BOOT_SUGGESTED_PROMPT,
         "ordered_source_intake_commands": list(SOURCE_INTAKE_COMMANDS),
+        "public_controls": list(PUBLIC_CONTROLS),
+        "state_travel_conditional_first": "/evi-state-travel",
         "entry_action": entry_action,
         "mode_sidecar": "/evi-mode",
         "composer_authority": "HOST_OWNED",
@@ -76,7 +68,7 @@ def hil_next_action(
         "schema": "evidence-lane.next-action.v1",
         "state": "PRESENT_SIX_WAY_HIL",
         "display_position": "BEFORE_HIL_DECISION",
-        "command": "/evi-80-hil",
+        "command": "/evi-build",
         "suggested_next_prompt": HIL_SUGGESTED_PROMPT,
         "choices": list(HIL_CHOICES),
         "project_id": project_id,
@@ -87,6 +79,37 @@ def hil_next_action(
         "documented_mcp_composer_mutation_supported": False,
         "auto_submit": False,
         "stop_and_wait": True,
+    }
+
+
+def refresh_output_handoff(
+    *,
+    host_kind: str,
+    client_can_edit_source: bool,
+    candidate_id: str,
+    proposed_pv: str,
+) -> dict[str, Any]:
+    """Return a truthful host-specific output and source-update handoff."""
+
+    host = host_kind.strip().lower()
+    if host in {"codex_desktop", "codex_cli"} and client_can_edit_source:
+        route = "CODEX_LOCAL_GIT_BACKED"
+        confirmation = "HOST_SANDBOX_FINAL_STATE_CONFIRMED"
+        delivery = "LOCAL_CANDIDATE_PACKAGE_AND_GIT_EVIDENCE"
+    else:
+        route = "CHATGPT_OR_USER_MEDIATED_SOURCE"
+        confirmation = "USER_APPLIED_AND_PULL_CONFIRMED"
+        delivery = "VISIBLE_OUTPUT_LINKS_PLUS_DURABLE_MCP_READBACK"
+    return {
+        "schema": "evidence-lane.host-output-handoff.v1",
+        "host_kind": host_kind,
+        "route": route,
+        "source_update_confirmation": confirmation,
+        "output_delivery": delivery,
+        "candidate_id": candidate_id,
+        "proposed_pv": proposed_pv,
+        "candidate_is_unaccepted": True,
+        "pointer_moved": False,
     }
 
 

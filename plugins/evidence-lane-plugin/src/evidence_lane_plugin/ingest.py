@@ -116,6 +116,10 @@ class IngestionReport:
     text_files: int = 0
     binary_files: int = 0
     chunks: int = 0
+    chunk_cas_created: int = 0
+    chunk_cas_reused: int = 0
+    changed_sections_reused: int = 0
+    changed_sections_reindexed: int = 0
     symbols: int = 0
     imports: int = 0
     dependencies: int = 0
@@ -131,6 +135,10 @@ class IngestionReport:
             "text_files": self.text_files,
             "binary_files": self.binary_files,
             "chunks": self.chunks,
+            "chunk_cas_created": self.chunk_cas_created,
+            "chunk_cas_reused": self.chunk_cas_reused,
+            "changed_sections_reused": self.changed_sections_reused,
+            "changed_sections_reindexed": self.changed_sections_reindexed,
             "symbols": self.symbols,
             "imports": self.imports,
             "dependencies": self.dependencies,
@@ -428,6 +436,8 @@ def _ingest_file(
     max_file_bytes: int,
     lines_per_chunk: int,
     overlap: int,
+    observed_at: str,
+    prior_chunk_sha256: set[str] | None = None,
 ) -> None:
     data = target.read_bytes()
     require(
@@ -480,9 +490,28 @@ def _ingest_file(
         path=relative,
     )
     text_value = cast(str, text)
+    source_sha256 = sha256_bytes(data)
+    prior_chunks = prior_chunk_sha256 or set()
     for ordinal, start, end, content in _line_chunks(
         text_value, lines_per_chunk=lines_per_chunk, overlap=overlap
     ):
+        chunk_sha256 = sha256_bytes(content.encode("utf-8"))
+        cas_cursor = connection.execute(
+            """
+            INSERT OR IGNORE INTO chunk_content_cas(
+                sha256, size_bytes, text_content, first_seen_at
+            ) VALUES (?, ?, ?, ?)
+            """,
+            (chunk_sha256, len(content.encode("utf-8")), content, observed_at),
+        )
+        if cas_cursor.rowcount:
+            report.chunk_cas_created += 1
+        else:
+            report.chunk_cas_reused += 1
+        if chunk_sha256 in prior_chunks:
+            report.changed_sections_reused += 1
+        else:
+            report.changed_sections_reindexed += 1
         chunk_cursor = connection.execute(
             """
             INSERT INTO chunks(file_id, ordinal, start_line, end_line, text_content, sha256)
@@ -494,7 +523,25 @@ def _ingest_file(
                 start,
                 end,
                 content,
-                sha256_bytes(content.encode("utf-8")),
+                chunk_sha256,
+            ),
+        )
+        connection.execute(
+            """
+            INSERT OR IGNORE INTO chunk_history(
+                repository_id, path, source_sha256, ordinal, start_line,
+                end_line, chunk_sha256, observed_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                repository_id,
+                relative,
+                source_sha256,
+                ordinal,
+                start,
+                end,
+                chunk_sha256,
+                observed_at,
             ),
         )
         connection.execute(
@@ -596,6 +643,7 @@ def ingest_repository(
     )
     report = IngestionReport()
     root = Path(repository_root).resolve()
+    observed_at = utc_now()
     for relative, target in iter_source_files(root):
         _ingest_file(
             connection,
@@ -606,6 +654,7 @@ def ingest_repository(
             max_file_bytes=max_file_bytes,
             lines_per_chunk=lines_per_chunk,
             overlap=overlap,
+            observed_at=observed_at,
         )
     if report.files == 0:
         raise EvidenceLaneError(
@@ -620,6 +669,10 @@ def ingest_repository(
         "NEW_REGISTER": report.files,
         "REMOVED_TOMBSTONE": 0,
         "BLOCKED_UNSUPPORTED": 0,
+        "CHANGED_SECTION_REUSED": report.changed_sections_reused,
+        "CHANGED_SECTION_REINDEXED": report.changed_sections_reindexed,
+        "CHUNK_CAS_CREATED": report.chunk_cas_created,
+        "CHUNK_CAS_REUSED": report.chunk_cas_reused,
     }
     return report
 
@@ -675,6 +728,20 @@ def refresh_repository(
     removed = sorted(prior.keys() - current.keys())
     recorded_at = utc_now()
     report = IngestionReport()
+    prior_chunks_by_path = {
+        path: {
+            str(row["sha256"])
+            for row in connection.execute(
+                """
+                SELECT c.sha256
+                FROM chunks c JOIN files f ON f.file_id=c.file_id
+                WHERE f.repository_id=? AND f.path=?
+                """,
+                (repository_id, path),
+            )
+        }
+        for path in changed
+    }
     for path in changed + removed:
         row = prior[path]
         connection.execute(
@@ -723,6 +790,8 @@ def refresh_repository(
             max_file_bytes=max_file_bytes,
             lines_per_chunk=lines_per_chunk,
             overlap=overlap,
+            observed_at=recorded_at,
+            prior_chunk_sha256=prior_chunks_by_path.get(path),
         )
         connection.execute(
             """
@@ -782,6 +851,10 @@ def refresh_repository(
         "NEW_REGISTER": len(added),
         "REMOVED_TOMBSTONE": len(removed),
         "BLOCKED_UNSUPPORTED": 0,
+        "CHANGED_SECTION_REUSED": report.changed_sections_reused,
+        "CHANGED_SECTION_REINDEXED": report.changed_sections_reindexed,
+        "CHUNK_CAS_CREATED": report.chunk_cas_created,
+        "CHUNK_CAS_REUSED": report.chunk_cas_reused,
         "unchanged_paths": unchanged,
         "changed_paths": changed,
         "new_paths": added,
