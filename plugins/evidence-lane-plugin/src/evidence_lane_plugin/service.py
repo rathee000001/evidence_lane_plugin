@@ -319,16 +319,25 @@ class EvidenceLaneService:
     def connector_plugin_catalog(self, project_id: str) -> dict[str, Any]:
         return self._connector_governance(project_id).catalog()
 
+    def connector_plugin_settings(
+        self, project_id: str, *, host_profile: str
+    ) -> dict[str, Any]:
+        return self._connector_governance(project_id).settings(
+            host_profile=host_profile
+        )
+
     def connector_plugin_route(
         self,
         project_id: str,
         *,
         capability: str,
         canonical_lane_id: str | None = None,
+        host_profile: str = "CODEX",
     ) -> dict[str, Any]:
         return self._connector_governance(project_id).route(
             capability=capability,
             canonical_lane_id=canonical_lane_id,
+            host_profile=host_profile,
         )
 
     def classify_hil_intent(

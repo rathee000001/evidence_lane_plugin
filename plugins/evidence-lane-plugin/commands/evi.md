@@ -28,7 +28,9 @@ sidecar for ordered intersections and explicit custom-mode briefs.
 
 `/evi-plugin` is an administrative sidecar outside the six primary controls.
 It lists, registers, routes, or separately drops at most eight additional
-persistent connector/toolchain plugins. It stores environment-variable names
+persistent connector/toolchain plugins. Its `SETTINGS:CODEX|CHATGPT` view
+exposes eight structured slots with one-time purpose, role/schema, host profile,
+and optional governed backend runtime. It stores environment-variable names
 only, preserves dropped history, and returns to the prior lifecycle position.
 
 `/evi-build` presents the six HIL outcomes. Only the exact case-sensitive user

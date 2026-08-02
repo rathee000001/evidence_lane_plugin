@@ -11,7 +11,8 @@
 | Changed-section incremental refresh | `ingest.py`, lane CAS/history tables | retained chunk reuse plus changed-only reindex test |
 | Candidate project-sector overlays | `project_overlay.py`, `pv_package.py` | candidate-only truth, fan-out, integrity/FK/FTS tests |
 | Visible private-safe Chat Lineage | hooks, `lineage.py` | session JSONL plus SQLite and project-head authority, prompt plus multi-steer ordering/idempotency, FTS/chain hashes, actor/model/token fields, secret/private-reasoning rejection |
-| Bounded connector/plugin governance | `connector_governance.py`, `/evi-plugin` sidecars | purpose/action/scope/expiry grants, eight-active limit, deterministic route, exact drop, history/FTS tests |
+| Bounded connector/plugin governance | `connector_governance.py`, `/evi-plugin` sidecars | purpose/role/typed-schema/host-profile/runtime grants, eight slots, deterministic host route, exact drop, role-schema table and history/FTS tests |
+| MCP native cold-start ordering | `mcp_server.py`, `lane_engine.py` | startup prewarm before event loop, 18-lane deterministic parallel build, exact public stdio transition benchmark |
 | Atomic ordered Delta completion | `store.py`, `session.py` | exact ledger-order evidence, one locked batch receipt, sequential ACTIVE/DONE events, later HIL mapping |
 | Interrupted exit recovery | `state_law.py`, `session.py`, `.mcp.json` | candidate-absent self-transition, visible receipt, pointer immutability, one-hour long-tool timeout |
 | Per-lane forensic reports | `forensic_audit.py`, `scripts/forensic_audit.py` | 18 individual Markdown reports plus JSON/manifest; SQLite/FK/FTS and MMD/DOT/pointer/refresh checks |

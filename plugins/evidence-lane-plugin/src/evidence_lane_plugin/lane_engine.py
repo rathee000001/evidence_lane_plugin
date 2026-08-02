@@ -1539,6 +1539,19 @@ def _rapidocr_engine() -> tuple[str, Any] | None:
     return None
 
 
+def prewarm_native_dependencies() -> tuple[str, ...]:
+    """Load optional native engines before an MCP/ASGI event loop starts.
+
+    On Windows, first-time NumPy/OpenCV/ONNX loading from inside a running MCP
+    request can block the host far longer than the same import at process
+    startup.  The cached OCR engine is process-local, so this bounded startup
+    step removes that lifecycle collision without serializing independent lane
+    builders.
+    """
+    cached = _rapidocr_engine()
+    return () if cached is None else (cached[0],)
+
+
 def _json_safe(value: Any) -> Any:
     if hasattr(value, "tolist"):
         return value.tolist()
@@ -3864,6 +3877,17 @@ def build_lane_bundle(
     for relative, lane_id in routes.items():
         by_lane[lane_id].append(relative)
 
+    # RapidOCR lazily imports NumPy/OpenCV and creates ONNX Runtime native
+    # thread pools. On Windows, starting that cold runtime inside one lane
+    # worker while the Git lane repeatedly creates subprocess pipe-reader
+    # threads can starve both workers under an MCP stdio host. Initialize the
+    # shared OCR engine once, before the lane pool, then retain the existing
+    # lock around individual OCR calls. This is a dependency cold-start
+    # barrier only; independent lane computation remains parallel below.
+    prewarmed_dependencies: list[str] = []
+    if by_lane["images_ocr"] or by_lane["pdf_ocr"]:
+        prewarmed_dependencies.extend(prewarm_native_dependencies())
+
     atomic_write_json(
         output / "registry.json",
         {
@@ -3939,6 +3963,7 @@ def build_lane_bundle(
         "single_writer": True,
         "linear_governance": True,
         "parallel_lane_compute": effective_workers > 1,
+        "prewarmed_dependencies": prewarmed_dependencies,
         "worker_count": effective_workers,
         "submitted_lane_count": len(CANONICAL_LANE_IDS),
         "deterministic_assembly_order": list(CANONICAL_LANE_IDS),

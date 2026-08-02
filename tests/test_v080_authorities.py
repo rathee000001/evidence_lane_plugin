@@ -4,7 +4,10 @@ import sqlite3
 from pathlib import Path
 
 import pytest
-from evidence_lane_plugin.connector_governance import ConnectorGovernance
+from evidence_lane_plugin.connector_governance import (
+    ConnectorGovernance,
+    validate_connector_brain,
+)
 from evidence_lane_plugin.constants import LINEAGE_SCHEMA
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import (
@@ -190,3 +193,84 @@ def test_persistent_plugin_grant_records_scope_actions_and_expiry(
     assert governance.route(
         capability="forensic-audit", canonical_lane_id="github_code"
     )["selected_plugin_id"] == "forensic-tool"
+
+
+def test_connector_settings_separate_hosts_and_bind_role_schema_runtime(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "connector-settings.sqlite"
+    governance = ConnectorGovernance(path)
+    codex = governance.register(
+        plugin_id="enterprise-sync",
+        name="Enterprise Sync",
+        plugin_kind="connector",
+        description="Maps governed enterprise records into evidence references.",
+        config_env_keys=["ENTERPRISE_SYNC_TOKEN"],
+        capabilities=["record-sync"],
+        allowed_lanes=["custom"],
+        registered_by="human-test",
+        purpose="Import named enterprise records for the current project.",
+        role="enterprise_record_sync",
+        role_schema={
+            "record_id": "text",
+            "recorded_at": "datetime",
+            "source_hash": "blob_hash",
+        },
+        host_profiles=["CODEX"],
+        backend_runtime="java",
+    )
+    chatgpt = governance.register(
+        plugin_id="remote-research",
+        name="Remote Research",
+        plugin_kind="toolchain",
+        description="Routes bounded remote research through a host connector.",
+        config_env_keys=["REMOTE_RESEARCH_TOKEN"],
+        capabilities=["record-sync"],
+        allowed_lanes=["custom"],
+        registered_by="human-test",
+        purpose="Read research records selected by the user.",
+        role="remote_research",
+        role_schema={"citation_url": "text", "source_hash": "blob_hash"},
+        host_profiles=["CHATGPT"],
+        backend_runtime="external_mcp",
+    )
+    assert codex["purpose_recorded_once"] is True
+    assert codex["backend_execution_authorized"] is False
+    assert chatgpt["host_profiles"] == ["CHATGPT"]
+    codex_settings = governance.settings(host_profile="CODEX")
+    chatgpt_settings = governance.settings(host_profile="CHATGPT")
+    assert codex_settings["configured_count"] == 1
+    assert codex_settings["slots"][0]["plugin_id"] == "enterprise-sync"
+    assert chatgpt_settings["configured_count"] == 1
+    assert chatgpt_settings["slots"][0]["plugin_id"] == "remote-research"
+    codex_route = governance.route(
+        capability="record-sync",
+        canonical_lane_id="custom",
+        host_profile="CODEX",
+    )
+    chatgpt_route = governance.route(
+        capability="record-sync",
+        canonical_lane_id="custom",
+        host_profile="CHATGPT",
+    )
+    assert codex_route["selected_plugin_id"] == "enterprise-sync"
+    assert codex_route["selected_backend_runtime"] == "java"
+    assert codex_route["backend_execution_authorized"] is False
+    assert chatgpt_route["selected_plugin_id"] == "remote-research"
+    validation = validate_connector_brain(path)
+    assert validation["valid"] is True
+    assert validation["role_schema_field_count"] == 5
+    with pytest.raises(EvidenceLaneError) as secret_schema:
+        governance.register(
+            plugin_id="unsafe-schema",
+            name="Unsafe Schema",
+            plugin_kind="connector",
+            description="Must fail before storing a credential-like field.",
+            config_env_keys=["UNSAFE_SCHEMA_TOKEN"],
+            capabilities=["unsafe"],
+            allowed_lanes=["custom"],
+            registered_by="human-test",
+            role="unsafe_schema",
+            role_schema={"api_key": "text"},
+        )
+    assert secret_schema.value.code == "PLUGIN_ROLE_SCHEMA_FIELD_INVALID"

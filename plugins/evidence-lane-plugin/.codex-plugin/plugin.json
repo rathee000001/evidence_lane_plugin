@@ -1,7 +1,7 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "0.8.3+codex.20260801194351",
-  "description": "Private six-control Evidence Lane with detachable Boot, persistent connector sidecars, 18 sealed SQLite brains, explicit Chat Lineage, and exact-APPROVE Fuse.",
+  "version": "0.9.0+codex.20260801230930",
+  "description": "Private six-control Evidence Lane with detachable Boot, host-specific connector settings, 18 sealed SQLite brains, explicit Chat Lineage, and exact-APPROVE Fuse.",
   "author": {
     "name": "Praveen Rathee",
     "url": "https://github.com/rathee000001"
@@ -20,7 +20,7 @@
   "interface": {
     "displayName": "Evidence Lane Plugin",
     "shortDescription": "Run six governed controls over universal evidence brains.",
-    "longDescription": "Evidence Lane exposes Boot, Rollback, Build, Refresh, Mode, and Source Intake after root /evi. Boot atomically verifies locked ENV15/UOP15 Flash, attaches secret-redacted visible lineage capture, and routes durable local versus configured remote storage fail-closed; Exit Boot detaches that runtime while preserving the installation and immutable evidence. Source Intake auto-detects all eighteen lanes and Project Engulf, offers AUTO/REQUIRED/DISABLED Git history enrichment, and always includes Chat Lineage. Mode accepts ordered known intersections and explicit custom schemas. The separate /evi-plugin administrative sidecar governs at most eight persistent connectors or AI toolchains. Natural HIL intent is classified without promotion, while exact APPROVE alone invokes Fuse. State Travel remains conditional on an accepted sealed handoff and an explicit user request or genuine host-context exhaustion.",
+    "longDescription": "Evidence Lane exposes Boot, Rollback, Build, Refresh, Mode, and Source Intake after root /evi. Boot atomically verifies locked ENV15/UOP15 Flash, prewarms optional native OCR dependencies before the MCP event loop, attaches secret-redacted visible lineage capture, and routes durable local versus configured remote storage fail-closed; Exit Boot detaches that runtime while preserving the installation and immutable evidence. Source Intake auto-detects all eighteen lanes and Project Engulf, offers AUTO/REQUIRED/DISABLED Git history enrichment, and always includes Chat Lineage. Mode accepts ordered known intersections and explicit custom schemas. The separate /evi-plugin administrative sidecar governs at most eight persistent connectors or AI toolchains with independent Codex/ChatGPT profiles, one-time purpose and role schemas, exact drop, and optional declared backend runtimes. Natural HIL intent is classified without promotion, while exact APPROVE alone invokes Fuse. State Travel remains conditional on an accepted sealed handoff and an explicit user request or genuine host-context exhaustion.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "capabilities": [

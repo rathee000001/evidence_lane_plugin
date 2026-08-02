@@ -14,6 +14,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from .auth import OAuthJWTConfig, OAuthJWTVerifier, StaticBearerVerifier
+from .lane_engine import prewarm_native_dependencies
 from .service import EvidenceLaneService
 
 _READ_ONLY = ToolAnnotations(
@@ -289,6 +290,29 @@ def create_mcp_server(
         )
 
     @mcp.tool(
+        name="connector_plugin_settings",
+        title="Open the eight-slot connector settings surface",
+        description=(
+            "Return eight host-specific connector slots for CODEX or CHATGPT, "
+            "including governed role/schema and optional backend-runtime metadata. "
+            "The profiles are independent and credential values remain host-managed."
+        ),
+        annotations=_READ_ONLY,
+        meta=_meta("Reading connector settings", "Connector settings ready"),
+        structured_output=True,
+    )
+    def connector_plugin_settings(
+        project_id: str,
+        host_profile: Literal["CODEX", "CHATGPT"],
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "connector_plugin_settings",
+            application.connector_plugin_settings,
+            project_id,
+            host_profile=host_profile,
+        )
+
+    @mcp.tool(
         name="connector_plugin_register",
         title="Register one bounded persistent connector or toolchain",
         description=(
@@ -314,6 +338,12 @@ def create_mcp_server(
         allowed_actions: list[str] | None = None,
         write_scope: list[str] | None = None,
         expires_at: str = "NO_EXPIRY",
+        role: str | None = None,
+        role_schema: dict[str, str] | None = None,
+        host_profiles: list[Literal["CODEX", "CHATGPT"]] | None = None,
+        backend_runtime: Literal[
+            "python", "java", "kotlin", "go", "rust", "cpp", "external_mcp"
+        ] = "python",
     ) -> dict[str, Any]:
         return application.invoke(
             "connector_plugin_register",
@@ -331,6 +361,10 @@ def create_mcp_server(
             allowed_actions=allowed_actions,
             write_scope=write_scope,
             expires_at=expires_at,
+            role=role,
+            role_schema=role_schema,
+            host_profiles=host_profiles,
+            backend_runtime=backend_runtime,
             lifecycle=True,
         )
 
@@ -377,6 +411,7 @@ def create_mcp_server(
         project_id: str,
         capability: str,
         canonical_lane_id: str | None = None,
+        host_profile: Literal["CODEX", "CHATGPT"] = "CODEX",
     ) -> dict[str, Any]:
         return application.invoke(
             "connector_plugin_route",
@@ -384,6 +419,7 @@ def create_mcp_server(
             project_id,
             capability=capability,
             canonical_lane_id=canonical_lane_id,
+            host_profile=host_profile,
             lifecycle=True,
         )
 
@@ -1602,6 +1638,10 @@ def run_server(
             )
     application = EvidenceLaneService()
     application.sessions.ensure_installation()
+    # Native OCR/ONNX dependencies must be loaded before FastMCP starts its
+    # event loop.  Lane execution remains parallel; the cached engine is only
+    # serialized at its documented shared call boundary.
+    prewarm_native_dependencies()
     server = create_mcp_server(
         service=application,
         host=host,

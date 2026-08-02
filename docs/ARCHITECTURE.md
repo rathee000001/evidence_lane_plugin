@@ -1,6 +1,6 @@
 # Architecture
 
-Evidence Lane 0.8.3 separates public controls, lifecycle APIs, brain artifacts,
+Evidence Lane 0.9.0 separates public controls, lifecycle APIs, brain artifacts,
 host storage, and human authority.
 
 ## Control plane
@@ -93,13 +93,23 @@ rewrites accepted data, and a v2 bundle with a missing receipt remains invalid.
 ## Connector brain
 
 The connector brain records append-only plugin registrations, events, routes,
-FTS, and separate exact drop receipts. It stores configuration environment
-variable names only. At most eight additional plugins may be active. Routing is
-deterministic and falls back to built-ins or a visible fail-closed result. Every
-new grant records purpose, allowed actions, canonical lanes, write scope,
-expiry, and actor. `/evi-plugin` is the compact sidecar;
+role-schema fields, FTS, and separate exact drop receipts. It stores
+configuration environment-variable names only. At most eight additional
+plugins may be active. Structured settings expose independent CODEX and CHATGPT
+profiles without claiming a host-native settings panel. Routing is deterministic
+and falls back to built-ins or a visible fail-closed result. Every new grant
+records one immutable purpose/reason, role and typed role schema, host profiles,
+allowed actions, canonical lanes, write scope, expiry, actor, and an optional
+declared Python/Java/Kotlin/Go/Rust/C++/external-MCP backend. A declaration is
+capability metadata, not execution authority. `/evi-plugin` is the compact sidecar;
 `/evi-additional-plugin` and `/evi-drop-additional-plugin` remain discoverable
 compatibility names.
+
+The MCP process prewarms optional NumPy/OpenCV/ONNX OCR dependencies before
+starting FastMCP's event loop. The cached OCR call boundary is serialized, but
+independent lane computation remains inside the same bounded worker pool. This
+fixes native-loader/event-loop ordering without making Source Intake, Build, or
+Refresh globally linear.
 
 ## Atomic Delta completion
 

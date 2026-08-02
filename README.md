@@ -13,7 +13,7 @@
   &nbsp;·&nbsp;
   <a href="docs/REMOTE_DEPLOYMENT.md">ChatGPT deployment</a>
   &nbsp;·&nbsp;
-  <a href="docs/DELTA_001_043_TRACEABILITY.md">Delta traceability</a>
+  <a href="docs/DELTA_001_045_TRACEABILITY.md">Delta traceability</a>
   &nbsp;·&nbsp;
   <a href="SECURITY.md">Security</a>
 </p>
@@ -22,7 +22,7 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane Plugin 0.8.3
+# Evidence Lane Plugin 0.9.0
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex, with a
 durable remote MCP boundary for ChatGPT. It turns visible project sources and
@@ -59,7 +59,12 @@ Root `/evi` exposes exactly six primary controls, in this order:
 `/evi-plugin` is an administrative sidecar outside those six controls. It can
 list, register, route, or separately drop up to eight persistent connector or
 AI-toolchain plugins. It stores configuration environment-variable names, not
-secret values; dropped registrations remain in append-only history.
+secret values; dropped registrations remain in append-only history. Its
+structured settings surface exposes eight slots for independent `CODEX` and
+`CHATGPT` profiles. Each registration binds one visible purpose/reason, role,
+role-field schema, allowed actions/lanes/write scope, expiry, and an optional
+declared backend runtime. The runtime declaration never authorizes code
+execution by itself.
 Compatibility names `/evi-additional-plugin` and
 `/evi-drop-additional-plugin` use the same grant ledger. `/evi-storage` and
 `/evi-change-storage-connector` inspect or select project storage; none becomes
@@ -129,8 +134,18 @@ If the host or MCP client disconnects while a long build is in
 `EXIT_BUILDING`, the same Refresh may resume only when no candidate was sealed.
 The retry appends an interrupted-exit recovery receipt to visible ChatLineage,
 keeps the accepted pointer unchanged, and still stops at the unaccepted HIL.
-The bundled MCP long-tool timeout is one hour so full repository and OCR lanes
-are not cut off by the former five-minute transport default.
+The MCP process initializes its optional NumPy/OpenCV/ONNX OCR engine before the
+event loop starts, then reuses that process-local engine while independent lane
+builders remain parallel. The bundled long-tool timeout is still one hour for
+genuinely large repositories; timeout inflation is not the lifecycle fix.
+
+Python remains the orchestration, schema, SQLite, AI/OCR, and lifecycle layer.
+Connector grants may declare Java/Kotlin for enterprise adapters, Go for
+network/queue services, Rust or C++ for benchmark-proven native parsing,
+hashing, or compression, and `external_mcp` for a host-managed service. These
+are governed interoperability slots, not a rewrite plan: a non-Python backend
+must beat the Python path on a reproducible workload and must return the same
+hash-bound receipts before it can be selected.
 
 Git code lanes index reachable commits, refs, changes, exact blobs,
 content-addressed chunks, occurrences, and history FTS. Incremental Refresh
@@ -187,7 +202,7 @@ python -m venv .venv
 Build the durable MCP container with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:0.8.3 .
+docker build --pull --tag evidence-lane-plugin:0.9.0 .
 ```
 
 The container exposes `/mcp` and `/healthz` on port 8080 and requires one writer

@@ -18,6 +18,29 @@ from .timeutil import utc_now
 MAX_ADDITIONAL_PERSISTENT_PLUGINS = 8
 _PLUGIN_ID = re.compile(r"[a-z][a-z0-9-]{2,63}")
 _ENV_KEY = re.compile(r"[A-Z][A-Z0-9_]{2,127}")
+_ROLE_ID = re.compile(r"[a-z][a-z0-9_-]{2,63}")
+_SCHEMA_FIELD = re.compile(r"[a-z][a-z0-9_]{0,63}")
+_SCHEMA_FIELD_TYPES = {
+    "text",
+    "integer",
+    "number",
+    "boolean",
+    "datetime",
+    "json",
+    "blob_hash",
+}
+_HOST_PROFILE_ORDER = ("CODEX", "CHATGPT")
+_HOST_PROFILES = set(_HOST_PROFILE_ORDER)
+_BACKEND_RUNTIMES = {
+    "python",
+    "java",
+    "kotlin",
+    "go",
+    "rust",
+    "cpp",
+    "external_mcp",
+}
+_SECRET_SCHEMA_PARTS = {"password", "secret", "token", "api_key", "credential"}
 
 
 class ConnectorGovernance:
@@ -45,6 +68,10 @@ class ConnectorGovernance:
                 allowed_actions_json TEXT NOT NULL DEFAULT '[]',
                 write_scope_json TEXT NOT NULL DEFAULT '[]',
                 expires_at TEXT NOT NULL DEFAULT 'NO_EXPIRY',
+                role TEXT NOT NULL DEFAULT '',
+                role_schema_json TEXT NOT NULL DEFAULT '{}',
+                host_profiles_json TEXT NOT NULL DEFAULT '["CODEX","CHATGPT"]',
+                backend_runtime TEXT NOT NULL DEFAULT 'python',
                 registered_at TEXT NOT NULL,
                 dropped_at TEXT,
                 status TEXT NOT NULL CHECK(status IN ('ACTIVE','DROPPED')),
@@ -66,7 +93,17 @@ class ConnectorGovernance:
                 canonical_lane_id TEXT,
                 selected_plugin_id TEXT REFERENCES plugin_registration(plugin_id),
                 decision TEXT NOT NULL,
+                host_profile TEXT NOT NULL DEFAULT 'CODEX',
+                role_schema_sha256 TEXT,
                 recorded_at TEXT NOT NULL
+            ) STRICT;
+            CREATE TABLE IF NOT EXISTS role_schema_field(
+                plugin_id TEXT NOT NULL REFERENCES plugin_registration(plugin_id),
+                field_order INTEGER NOT NULL,
+                field_name TEXT NOT NULL,
+                field_type TEXT NOT NULL,
+                PRIMARY KEY(plugin_id, field_name),
+                UNIQUE(plugin_id, field_order)
             ) STRICT;
             CREATE VIRTUAL TABLE IF NOT EXISTS plugin_fts USING fts5(
                 plugin_id UNINDEXED,
@@ -86,12 +123,87 @@ class ConnectorGovernance:
             "allowed_actions_json": "TEXT NOT NULL DEFAULT '[]'",
             "write_scope_json": "TEXT NOT NULL DEFAULT '[]'",
             "expires_at": "TEXT NOT NULL DEFAULT 'NO_EXPIRY'",
+            "role": "TEXT NOT NULL DEFAULT ''",
+            "role_schema_json": "TEXT NOT NULL DEFAULT '{}'",
+            "host_profiles_json": "TEXT NOT NULL DEFAULT '[\"CODEX\",\"CHATGPT\"]'",
+            "backend_runtime": "TEXT NOT NULL DEFAULT 'python'",
         }
         for name, declaration in migrations.items():
             if name not in columns:
                 connection.execute(
                     f"ALTER TABLE plugin_registration ADD COLUMN {name} {declaration}"
                 )
+        route_columns = {
+            str(row[1])
+            for row in connection.execute("PRAGMA table_info(route_decision)")
+        }
+        route_migrations = {
+            "host_profile": "TEXT NOT NULL DEFAULT 'CODEX'",
+            "role_schema_sha256": "TEXT",
+        }
+        for name, declaration in route_migrations.items():
+            if name not in route_columns:
+                connection.execute(
+                    f"ALTER TABLE route_decision ADD COLUMN {name} {declaration}"
+                )
+        default_schema = self._normalize_role_schema(None)
+        connection.execute(
+            "UPDATE plugin_registration SET role=plugin_kind WHERE role=''"
+        )
+        connection.execute(
+            "UPDATE plugin_registration SET role_schema_json=? WHERE role_schema_json='{}'",
+            (json.dumps(default_schema, sort_keys=True, separators=(",", ":")),),
+        )
+        for row in connection.execute(
+            "SELECT plugin_id,role_schema_json FROM plugin_registration"
+        ):
+            existing_field_count = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM role_schema_field WHERE plugin_id=?",
+                    (row["plugin_id"],),
+                ).fetchone()[0]
+            )
+            if existing_field_count:
+                continue
+            schema = self._normalize_role_schema(
+                json.loads(row["role_schema_json"]) or None
+            )
+            connection.executemany(
+                """
+                INSERT INTO role_schema_field(
+                    plugin_id, field_order, field_name, field_type
+                ) VALUES (?, ?, ?, ?)
+                """,
+                [
+                    (row["plugin_id"], index, field, field_type)
+                    for index, (field, field_type) in enumerate(
+                        schema.items(), start=1
+                    )
+                ],
+            )
+        for route in connection.execute(
+            """
+            SELECT route_id,selected_plugin_id
+            FROM route_decision
+            WHERE selected_plugin_id IS NOT NULL
+              AND role_schema_sha256 IS NULL
+            """
+        ):
+            registration = connection.execute(
+                "SELECT role_schema_json FROM plugin_registration WHERE plugin_id=?",
+                (route["selected_plugin_id"],),
+            ).fetchone()
+            if registration is None:
+                continue
+            schema = json.loads(registration["role_schema_json"])
+            connection.execute(
+                "UPDATE route_decision SET role_schema_sha256=? WHERE route_id=?",
+                (
+                    sha256_bytes(canonical_json_bytes(schema)),
+                    route["route_id"],
+                ),
+            )
+        connection.commit()
         return connection
 
     @staticmethod
@@ -105,6 +217,45 @@ class ConnectorGovernance:
         if parsed.tzinfo is None:
             parsed = parsed.replace(tzinfo=UTC)
         return parsed > datetime.now(UTC)
+
+    @staticmethod
+    def _normalize_role_schema(value: dict[str, str] | None) -> dict[str, str]:
+        if value is None:
+            return {"evidence_ref": "blob_hash", "lane_id": "text"}
+        require(
+            isinstance(value, dict),
+            "PLUGIN_ROLE_SCHEMA_INVALID",
+            "A governed role schema must map field names to deterministic types.",
+            status="BLOCKED",
+        )
+        schema: dict[str, str] = {}
+        for raw_field, raw_type in value.items():
+            field = str(raw_field).strip()
+            field_type = str(raw_type).strip().lower()
+            require(
+                bool(_SCHEMA_FIELD.fullmatch(field))
+                and not any(part in field for part in _SECRET_SCHEMA_PARTS),
+                "PLUGIN_ROLE_SCHEMA_FIELD_INVALID",
+                "Role-schema fields must be lowercase data fields and cannot define credential storage.",
+                status="BLOCKED",
+                field=field,
+            )
+            require(
+                field_type in _SCHEMA_FIELD_TYPES,
+                "PLUGIN_ROLE_SCHEMA_TYPE_INVALID",
+                "Role-schema fields must use a supported deterministic type.",
+                status="BLOCKED",
+                field=field,
+                allowed_types=sorted(_SCHEMA_FIELD_TYPES),
+            )
+            schema[field] = field_type
+        require(
+            bool(schema),
+            "PLUGIN_ROLE_SCHEMA_REQUIRED",
+            "A governed plugin role requires at least one schema field.",
+            status="BLOCKED",
+        )
+        return dict(sorted(schema.items()))
 
     @staticmethod
     def _event(
@@ -163,6 +314,10 @@ class ConnectorGovernance:
         allowed_actions: list[str] | None = None,
         write_scope: list[str] | None = None,
         expires_at: str = "NO_EXPIRY",
+        role: str | None = None,
+        role_schema: dict[str, str] | None = None,
+        host_profiles: list[str] | None = None,
+        backend_runtime: str = "python",
     ) -> dict[str, Any]:
         exact_id = plugin_id.strip().lower()
         exact_kind = plugin_kind.strip().lower()
@@ -209,6 +364,14 @@ class ConnectorGovernance:
             )
         )
         exact_expiry = expires_at.strip() or "NO_EXPIRY"
+        exact_role = (role or exact_kind).strip().lower()
+        schema = self._normalize_role_schema(role_schema)
+        requested_profiles = host_profiles or list(_HOST_PROFILE_ORDER)
+        profile_set = {
+            str(item).strip().upper() for item in requested_profiles if str(item).strip()
+        }
+        profiles = [item for item in _HOST_PROFILE_ORDER if item in profile_set]
+        exact_backend = backend_runtime.strip().lower()
         require(
             bool(exact_capabilities)
             and bool(lanes)
@@ -227,6 +390,27 @@ class ConnectorGovernance:
             "A persistent plugin needs a visible purpose, actions, write scope, and live expiry.",
             status="BLOCKED",
         )
+        require(
+            bool(_ROLE_ID.fullmatch(exact_role)),
+            "PLUGIN_ROLE_INVALID",
+            "A governed plugin role must be a lowercase identifier.",
+            status="BLOCKED",
+        )
+        require(
+            bool(profiles) and profile_set <= _HOST_PROFILES,
+            "PLUGIN_HOST_PROFILE_INVALID",
+            "A governed plugin must target CODEX, CHATGPT, or both.",
+            status="BLOCKED",
+            allowed_profiles=list(_HOST_PROFILE_ORDER),
+        )
+        require(
+            exact_backend in _BACKEND_RUNTIMES,
+            "PLUGIN_BACKEND_RUNTIME_INVALID",
+            "The optional backend runtime is not governed by this release.",
+            status="BLOCKED",
+            allowed_runtimes=sorted(_BACKEND_RUNTIMES),
+        )
+        role_schema_sha256 = sha256_bytes(canonical_json_bytes(schema))
         registration = {
             "plugin_id": exact_id,
             "name": name.strip(),
@@ -239,6 +423,11 @@ class ConnectorGovernance:
             "allowed_actions": actions,
             "write_scope": scopes,
             "expires_at": exact_expiry,
+            "role": exact_role,
+            "role_schema": schema,
+            "role_schema_sha256": role_schema_sha256,
+            "host_profiles": profiles,
+            "backend_runtime": exact_backend,
         }
         require(
             bool(registration["name"]) and bool(registration["description"]),
@@ -247,6 +436,29 @@ class ConnectorGovernance:
             status="BLOCKED",
         )
         registration_sha256 = sha256_bytes(canonical_json_bytes(registration))
+        v083_registration = {
+            key: registration[key]
+            for key in (
+                "plugin_id",
+                "name",
+                "plugin_kind",
+                "description",
+                "config_env_keys",
+                "capabilities",
+                "allowed_lanes",
+                "purpose",
+                "allowed_actions",
+                "write_scope",
+                "expires_at",
+            )
+        }
+        v083_sha256 = sha256_bytes(canonical_json_bytes(v083_registration))
+        compatibility_profile = (
+            role is None
+            and role_schema is None
+            and host_profiles is None
+            and exact_backend == "python"
+        )
         legacy_registration = {
             key: registration[key]
             for key in (
@@ -267,8 +479,14 @@ class ConnectorGovernance:
             ).fetchone()
             if existing:
                 require(
-                    existing["registration_sha256"]
-                    in {registration_sha256, legacy_sha256}
+                    (
+                        existing["registration_sha256"] == registration_sha256
+                        or (
+                            compatibility_profile
+                            and existing["registration_sha256"]
+                            in {v083_sha256, legacy_sha256}
+                        )
+                    )
                     and existing["status"] == "ACTIVE",
                     "PLUGIN_REGISTRATION_CONFLICT",
                     "The plugin ID already binds different or dropped governance bytes.",
@@ -279,9 +497,10 @@ class ConnectorGovernance:
                     "status": "PASS",
                     "idempotent": True,
                     **registration,
-                    "legacy_registration_reused": (
-                        existing["registration_sha256"] == legacy_sha256
-                    ),
+                    "legacy_registration_reused": existing[
+                        "registration_sha256"
+                    ]
+                    in {v083_sha256, legacy_sha256},
                 }
             active_count = int(
                 connection.execute(
@@ -302,9 +521,10 @@ class ConnectorGovernance:
                 INSERT INTO plugin_registration(
                     plugin_id, name, plugin_kind, description, config_env_keys_json,
                     capabilities_json, allowed_lanes_json, purpose,
-                    allowed_actions_json, write_scope_json, expires_at,
+                    allowed_actions_json, write_scope_json, expires_at, role,
+                    role_schema_json, host_profiles_json, backend_runtime,
                     registered_at, dropped_at, status, registration_sha256
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 'ACTIVE', ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 'ACTIVE', ?)
                 """,
                 (
                     exact_id,
@@ -318,6 +538,10 @@ class ConnectorGovernance:
                     json.dumps(actions, separators=(",", ":")),
                     json.dumps(scopes, separators=(",", ":")),
                     exact_expiry,
+                    exact_role,
+                    json.dumps(schema, sort_keys=True, separators=(",", ":")),
+                    json.dumps(profiles, separators=(",", ":")),
+                    exact_backend,
                     registered_at,
                     registration_sha256,
                 ),
@@ -328,15 +552,33 @@ class ConnectorGovernance:
                     exact_id,
                     registration["name"],
                     registration["description"],
-                    " ".join(exact_capabilities),
+                    " ".join([*exact_capabilities, exact_role, exact_backend]),
                 ),
+            )
+            connection.executemany(
+                """
+                INSERT INTO role_schema_field(
+                    plugin_id, field_order, field_name, field_type
+                ) VALUES (?, ?, ?, ?)
+                """,
+                [
+                    (exact_id, index, field, field_type)
+                    for index, (field, field_type) in enumerate(schema.items(), start=1)
+                ],
             )
             event = self._event(
                 connection,
                 plugin_id=exact_id,
                 event_type="REGISTER",
                 actor=registered_by,
-                details={"registration_sha256": registration_sha256},
+                details={
+                    "registration_sha256": registration_sha256,
+                    "purpose_sha256": sha256_bytes(exact_purpose.encode("utf-8")),
+                    "role": exact_role,
+                    "role_schema_sha256": role_schema_sha256,
+                    "host_profiles": profiles,
+                    "backend_runtime": exact_backend,
+                },
             )
             connection.commit()
             return {
@@ -348,6 +590,8 @@ class ConnectorGovernance:
                 "active_after": active_count + 1,
                 "maximum": MAX_ADDITIONAL_PERSISTENT_PLUGINS,
                 "secret_values_persisted": False,  # nosec B105
+                "purpose_recorded_once": True,
+                "backend_execution_authorized": False,
             }
         finally:
             connection.close()
@@ -411,6 +655,8 @@ class ConnectorGovernance:
                     "allowed_lanes": json.loads(row["allowed_lanes_json"]),
                     "allowed_actions": json.loads(row["allowed_actions_json"]),
                     "write_scope": json.loads(row["write_scope_json"]),
+                    "role_schema": json.loads(row["role_schema_json"]),
+                    "host_profiles": json.loads(row["host_profiles_json"]),
                 }
                 for row in connection.execute(
                     "SELECT * FROM plugin_registration ORDER BY registered_at, plugin_id"
@@ -422,6 +668,8 @@ class ConnectorGovernance:
                 row.pop("allowed_lanes_json", None)
                 row.pop("allowed_actions_json", None)
                 row.pop("write_scope_json", None)
+                row.pop("role_schema_json", None)
+                row.pop("host_profiles_json", None)
                 if not row["purpose"]:
                     row["purpose"] = row["description"]
                 if not row["allowed_actions"]:
@@ -430,6 +678,15 @@ class ConnectorGovernance:
                     row["write_scope"] = [
                         f"lane:{lane}" for lane in row["allowed_lanes"]
                     ]
+                if not row["role"]:
+                    row["role"] = row["plugin_kind"]
+                if not row["role_schema"]:
+                    row["role_schema"] = self._normalize_role_schema(None)
+                if not row["host_profiles"]:
+                    row["host_profiles"] = list(_HOST_PROFILE_ORDER)
+                row["role_schema_sha256"] = sha256_bytes(
+                    canonical_json_bytes(row["role_schema"])
+                )
                 row["grant_live"] = self._expiry_is_live(row["expires_at"])
             integrity = [
                 item[0] for item in connection.execute("PRAGMA integrity_check")
@@ -452,13 +709,77 @@ class ConnectorGovernance:
                 "integrity": integrity,
                 "foreign_key_errors": foreign_keys,
                 "secret_values_persisted": False,  # nosec B105
+                "available_slots": MAX_ADDITIONAL_PERSISTENT_PLUGINS
+                - sum(1 for row in rows if row["status"] == "ACTIVE"),
+                "host_profiles": list(_HOST_PROFILE_ORDER),
+                "supported_backend_runtimes": sorted(_BACKEND_RUNTIMES),
+                "backend_execution_authorized": False,
             }
         finally:
             connection.close()
 
+    def settings(self, *, host_profile: str) -> dict[str, Any]:
+        exact_host = host_profile.strip().upper()
+        require(
+            exact_host in _HOST_PROFILES,
+            "PLUGIN_HOST_PROFILE_INVALID",
+            "Connector settings require CODEX or CHATGPT.",
+            status="BLOCKED",
+            allowed_profiles=list(_HOST_PROFILE_ORDER),
+        )
+        catalog = self.catalog()
+        active = [
+            row
+            for row in catalog["registrations"]
+            if row["status"] == "ACTIVE" and exact_host in row["host_profiles"]
+        ]
+        active.sort(key=lambda row: row["plugin_id"])
+        slots: list[dict[str, Any]] = []
+        for index in range(MAX_ADDITIONAL_PERSISTENT_PLUGINS):
+            plugin = active[index] if index < len(active) else None
+            slots.append(
+                {
+                    "slot": index + 1,
+                    "state": "CONFIGURED" if plugin else "AVAILABLE",
+                    "plugin_id": plugin["plugin_id"] if plugin else None,
+                    "role": plugin["role"] if plugin else None,
+                    "backend_runtime": plugin["backend_runtime"] if plugin else None,
+                    "role_schema_sha256": (
+                        plugin["role_schema_sha256"] if plugin else None
+                    ),
+                }
+            )
+        return {
+            "status": "PASS",
+            "surface": "EVI_CONNECTOR_SETTINGS",
+            "host_profile": exact_host,
+            "slots": slots,
+            "configured_count": len(active),
+            "maximum": MAX_ADDITIONAL_PERSISTENT_PLUGINS,
+            "profiles_are_independent": True,
+            "registration_command": "/evi-plugin ADD:",
+            "drop_confirmation": "DROP:<plugin-id>",
+            "credentials": "HOST_MANAGED_ENVIRONMENT_NAMES_ONLY",
+            "role_schema_types": sorted(_SCHEMA_FIELD_TYPES),
+            "backend_runtimes": sorted(_BACKEND_RUNTIMES),
+            "backend_execution_authorized": False,
+        }
+
     def route(
-        self, *, capability: str, canonical_lane_id: str | None = None
+        self,
+        *,
+        capability: str,
+        canonical_lane_id: str | None = None,
+        host_profile: str = "CODEX",
     ) -> dict[str, Any]:
+        exact_host = host_profile.strip().upper()
+        require(
+            exact_host in _HOST_PROFILES,
+            "PLUGIN_HOST_PROFILE_INVALID",
+            "Plugin routing requires CODEX or CHATGPT.",
+            status="BLOCKED",
+            allowed_profiles=list(_HOST_PROFILE_ORDER),
+        )
         if (
             canonical_lane_id is not None
             and canonical_lane_id not in CANONICAL_LANE_IDS
@@ -476,6 +797,7 @@ class ConnectorGovernance:
             and row["grant_live"]
             and capability in row["capabilities"]
             and capability in row["allowed_actions"]
+            and exact_host in row["host_profiles"]
             and (canonical_lane_id is None or canonical_lane_id in row["allowed_lanes"])
         ]
         matches.sort(key=lambda row: row["plugin_id"])
@@ -490,8 +812,9 @@ class ConnectorGovernance:
                 """
                 INSERT INTO route_decision(
                     route_id, requested_capability, canonical_lane_id,
-                    selected_plugin_id, decision, recorded_at
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                    selected_plugin_id, decision, host_profile,
+                    role_schema_sha256, recorded_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     route_id,
@@ -499,6 +822,8 @@ class ConnectorGovernance:
                     canonical_lane_id,
                     selected,
                     decision,
+                    exact_host,
+                    matches[0]["role_schema_sha256"] if matches else None,
                     utc_now(),
                 ),
             )
@@ -510,9 +835,19 @@ class ConnectorGovernance:
             "route_id": route_id,
             "requested_capability": capability,
             "canonical_lane_id": canonical_lane_id,
+            "host_profile": exact_host,
             "selected_plugin_id": selected,
             "decision": decision,
             "deterministic_order": [row["plugin_id"] for row in matches],
+            "selected_role": matches[0]["role"] if matches else None,
+            "selected_role_schema": matches[0]["role_schema"] if matches else None,
+            "selected_role_schema_sha256": (
+                matches[0]["role_schema_sha256"] if matches else None
+            ),
+            "selected_backend_runtime": (
+                matches[0]["backend_runtime"] if matches else None
+            ),
+            "backend_execution_authorized": False,
         }
 
 
@@ -561,9 +896,27 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
             "expires_at",
         }
         governed_grants_present = governed_grant_columns <= registration_columns
+        role_profile_columns = {
+            "role",
+            "role_schema_json",
+            "host_profiles_json",
+            "backend_runtime",
+        }
+        role_profiles_present = role_profile_columns <= registration_columns
+        role_schema_table_present = "role_schema_field" in tables
+        route_columns = {
+            str(row[1])
+            for row in connection.execute("PRAGMA table_info(route_decision)")
+        }
+        route_profiles_present = {
+            "host_profile",
+            "role_schema_sha256",
+        } <= route_columns
         active_count = sum(1 for row in rows if row["status"] == "ACTIVE")
         config_keys_valid = True
         governed_grants_valid = True
+        role_profiles_valid = True
+        expected_role_field_count = 0
         for row in rows:
             try:
                 keys = json.loads(row["config_env_keys_json"])
@@ -583,9 +936,39 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
                     or not actions
                     or not isinstance(scopes, list)
                     or not scopes
-                    or not ConnectorGovernance._expiry_is_live(str(row["expires_at"]))
+                    or not ConnectorGovernance._expiry_is_live(
+                        str(row["expires_at"])
+                    )
                 ):
                     governed_grants_valid = False
+                    break
+            if role_profiles_present:
+                try:
+                    schema = json.loads(row["role_schema_json"])
+                    profiles = json.loads(row["host_profiles_json"])
+                except (TypeError, json.JSONDecodeError):
+                    role_profiles_valid = False
+                    break
+                if not _ROLE_ID.fullmatch(str(row["role"])):
+                    role_profiles_valid = False
+                    break
+                try:
+                    normalized_schema = ConnectorGovernance._normalize_role_schema(
+                        schema
+                    )
+                except EvidenceLaneError:
+                    role_profiles_valid = False
+                    break
+                expected_role_field_count += len(normalized_schema)
+                if (
+                    not isinstance(profiles, list)
+                    or not profiles
+                    or not all(isinstance(profile, str) for profile in profiles)
+                    or not {str(profile) for profile in profiles}
+                    <= _HOST_PROFILES
+                    or str(row["backend_runtime"]) not in _BACKEND_RUNTIMES
+                ):
+                    role_profiles_valid = False
                     break
             if not isinstance(keys, list) or not all(
                 isinstance(key, str) and _ENV_KEY.fullmatch(key) for key in keys
@@ -601,6 +984,51 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
         route_count = int(
             connection.execute("SELECT COUNT(*) FROM route_decision").fetchone()[0]
         )
+        role_schema_field_count = (
+            int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM role_schema_field"
+                ).fetchone()[0]
+            )
+            if role_schema_table_present
+            else 0
+        )
+        route_profiles_valid = True
+        if route_profiles_present:
+            registrations = {str(row["plugin_id"]): row for row in rows}
+            for route in connection.execute(
+                """
+                SELECT selected_plugin_id,host_profile,role_schema_sha256
+                FROM route_decision
+                """
+            ):
+                host_profile = str(route["host_profile"])
+                selected_id = route["selected_plugin_id"]
+                if host_profile not in _HOST_PROFILES:
+                    route_profiles_valid = False
+                    break
+                if selected_id is None:
+                    if route["role_schema_sha256"] is not None:
+                        route_profiles_valid = False
+                        break
+                    continue
+                registration = registrations.get(str(selected_id))
+                if registration is None:
+                    route_profiles_valid = False
+                    break
+                try:
+                    profiles = json.loads(registration["host_profiles_json"])
+                    schema = json.loads(registration["role_schema_json"])
+                except (TypeError, json.JSONDecodeError):
+                    route_profiles_valid = False
+                    break
+                expected_sha256 = sha256_bytes(canonical_json_bytes(schema))
+                if (
+                    host_profile not in profiles
+                    or route["role_schema_sha256"] != expected_sha256
+                ):
+                    route_profiles_valid = False
+                    break
     finally:
         connection.close()
     valid = (
@@ -610,6 +1038,15 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
         and active_count <= MAX_ADDITIONAL_PERSISTENT_PLUGINS
         and config_keys_valid
         and governed_grants_valid
+        and role_profiles_valid
+        and route_profiles_valid
+        and (
+            not role_profiles_present
+            or (
+                role_schema_table_present
+                and role_schema_field_count == expected_role_field_count
+            )
+        )
         and fts_count == len(rows)
     )
     return {
@@ -627,4 +1064,13 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
         "governed_grants_present": governed_grants_present,
         "governed_grants_valid": governed_grants_valid,
         "legacy_grant_schema_supported": not governed_grants_present,
+        "role_profiles_present": role_profiles_present,
+        "role_profiles_valid": role_profiles_valid,
+        "legacy_role_profile_schema_supported": not role_profiles_present,
+        "role_schema_table_present": role_schema_table_present,
+        "role_schema_field_count": role_schema_field_count,
+        "expected_role_schema_field_count": expected_role_field_count,
+        "route_profiles_present": route_profiles_present,
+        "route_profiles_valid": route_profiles_valid,
+        "legacy_route_profile_schema_supported": not route_profiles_present,
     }

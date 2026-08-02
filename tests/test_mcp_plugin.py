@@ -74,6 +74,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "connector_plugin_register",
         "connector_plugin_drop",
         "connector_plugin_catalog",
+        "connector_plugin_settings",
         "connector_plugin_route",
         "storage_connector_inspect",
         "storage_connector_select",
@@ -862,12 +863,15 @@ def test_server_start_installs_but_leaves_flash_and_runtime_detached(
     monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_JWKS_URL", raising=False)
     monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_AUDIENCE", raising=False)
     starts: list[dict[str, object]] = []
+    lifecycle_events: list[str] = []
 
     class FakeServer:
         def run(self, *, transport: str) -> None:
+            lifecycle_events.append("event_loop")
             starts[-1]["transport"] = transport
 
     def fake_create_mcp_server(**kwargs: object) -> FakeServer:
+        lifecycle_events.append("create_server")
         application = kwargs["service"]
         assert isinstance(application, EvidenceLaneService)
         starts.append(
@@ -878,9 +882,17 @@ def test_server_start_installs_but_leaves_flash_and_runtime_detached(
         )
         return FakeServer()
 
+    def fake_prewarm_native_dependencies() -> tuple[str, ...]:
+        lifecycle_events.append("native_prewarm")
+        return ("rapidocr+onnxruntime",)
+
     monkeypatch.setattr(
         "evidence_lane_plugin.mcp_server.create_mcp_server",
         fake_create_mcp_server,
+    )
+    monkeypatch.setattr(
+        "evidence_lane_plugin.mcp_server.prewarm_native_dependencies",
+        fake_prewarm_native_dependencies,
     )
 
     run_server(transport="stdio")
@@ -905,6 +917,14 @@ def test_server_start_installs_but_leaves_flash_and_runtime_detached(
     assert second_flash["flash_state"] == "NOT_FLASHED"
     assert second_flash["runtime_activation"]["state"] == "DETACHED"
     assert [start["transport"] for start in starts] == ["stdio", "stdio"]
+    assert lifecycle_events == [
+        "native_prewarm",
+        "create_server",
+        "event_loop",
+        "native_prewarm",
+        "create_server",
+        "event_loop",
+    ]
 
 
 def test_oauth_jwt_verifier_requires_asymmetric_algorithms_and_scopes(

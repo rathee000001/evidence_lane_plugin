@@ -555,6 +555,15 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         source_overrides=overrides,
     )
     assert result["summary"]["full_build_lanes"] == list(CANONICAL_LANE_IDS)
+    expected_prewarm = (
+        ["rapidocr+onnxruntime"]
+        if importlib.util.find_spec("rapidocr") is not None
+        else []
+    )
+    assert (
+        result["parallel_execution"]["prewarmed_dependencies"]
+        == expected_prewarm
+    )
     assert validate_lane_bundle(lanes_root)["valid"] is True
 
     modern_missing_execution = tmp_path / "modern-v2-missing-execution"
@@ -892,6 +901,7 @@ def test_lane_build_parallelizes_compute_and_serializes_canonical_assembly(
     assert state["arrivals"] == len(CANONICAL_LANE_IDS)
     assert first_two.broken is False
     assert execution["parallel_lane_compute"] is True
+    assert execution["prewarmed_dependencies"] == []
     assert execution["worker_count"] == 4
     assert execution["barrier_status"] == "PASS"
     assert execution["source_snapshot_unchanged"] is True

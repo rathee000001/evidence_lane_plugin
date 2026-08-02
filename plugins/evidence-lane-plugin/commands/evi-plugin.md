@@ -1,6 +1,6 @@
 ---
-description: Govern up to eight persistent connector or AI-toolchain sidecars
-argument-hint: <LIST | ADD: governed plugin brief | DROP:plugin-id | ROUTE: capability>
+description: Configure, route, or exactly drop up to eight host-specific persistent connector or AI-toolchain sidecars
+argument-hint: <LIST | SETTINGS:CODEX|CHATGPT | ADD: governed plugin brief | DROP:plugin-id | ROUTE: capability>
 ---
 
 # /evi-plugin
@@ -13,15 +13,25 @@ Use `/evi-storage` for the separate primary-storage inspection and selection
 sidecar. Connector/plugin registration never silently changes storage authority.
 
 - `LIST` calls `connector_plugin_catalog` and shows active and dropped history.
+- `SETTINGS:CODEX` or `SETTINGS:CHATGPT` calls
+  `connector_plugin_settings` and returns the eight structured slots for that
+  host profile. The two profiles may contain different registrations. The host
+  may render this structure in a settings UI, but Evidence Lane does not claim
+  it can inject a new native settings panel into Codex or ChatGPT.
 - `ADD:` calls `connector_plugin_register` only after the visible brief provides
   a lowercase ID, connector/toolchain kind, description, environment-variable
   **names** (never values), capabilities, canonical lanes, and actor. At most
   eight additional plugins may remain active. The grant also records a visible
-  purpose, allowed actions, write scope, and an ISO expiry or `NO_EXPIRY`.
+  one-time purpose/reason, role, typed role-field schema, `CODEX`/`CHATGPT` host
+  profiles, allowed actions, write scope, and an ISO expiry or `NO_EXPIRY`.
+  `backend_runtime` may declare `python`, `java`, `kotlin`, `go`, `rust`, `cpp`,
+  or `external_mcp`; the declaration is routing metadata and never authorizes
+  execution by itself.
 - `DROP:<plugin-id>` calls `connector_plugin_drop` with that exact case-sensitive
   confirmation and preserves the append-only registration/event history.
-- `ROUTE:` calls `connector_plugin_route` for one visible capability and optional
-  canonical lane; deterministic fallback remains fail-closed.
+- `ROUTE:` calls `connector_plugin_route` for one visible capability, exact
+  host profile, and optional canonical lane; deterministic fallback remains
+  fail-closed and returns the selected role-schema hash.
 
 Never persist credentials, access tokens, private model reasoning, or hidden
 configuration values. Return to the exact prior lifecycle position after the
