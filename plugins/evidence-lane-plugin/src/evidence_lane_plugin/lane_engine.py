@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import lru_cache
 from pathlib import Path
 from threading import Lock
-from typing import Any
+from typing import Any, ClassVar
 
 from defusedxml import ElementTree
 
@@ -46,6 +46,7 @@ from .lanes import (
     route_batch,
     route_source,
 )
+from .redaction import redact_text
 from .timeutil import utc_now
 
 LANE_SCHEMA_VERSION = "evidence-lane.universal-lane.v2"
@@ -3357,61 +3358,355 @@ def _classify(
     }
 
 
+_TOPOLOGY_CORE_TABLES = {
+    "lane_meta",
+    "lane_pointer",
+    "source_registry",
+    "source_tombstone",
+    "chunk_index",
+    "chunk_content_cas",
+    "chunk_history",
+    "structured_fact",
+    "parser_capability",
+    "tfidf_term",
+    "tfidf_vector",
+    "refresh_receipt",
+    "mutation_receipt",
+}
+
+
+def _topology_text(value: Any, *, limit: int = 96) -> str:
+    normalized = re.sub(
+        r"\s+",
+        " ",
+        redact_text(str(value or "")).replace("\\", "/"),
+    ).strip()
+    if len(normalized) > limit:
+        return normalized[: max(1, limit - 3)].rstrip() + "..."
+    return normalized
+
+
+def _mmd_label(value: Any) -> str:
+    return (
+        _topology_text(value, limit=180)
+        .replace("&", "&amp;")
+        .replace('"', "&quot;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("|", "&#124;")
+    )
+
+
+def _dot_label(value: Any) -> str:
+    return (
+        _topology_text(value, limit=180)
+        .replace("\\", "\\\\")
+        .replace('"', '\\"')
+    )
+
+
+class _TopologyGraph:
+    """Emit one deterministic semantic graph to both Mermaid and DOT."""
+
+    _DOT_STYLE: ClassVar[dict[str, str]] = {
+        "root": 'fillcolor="#101828",fontcolor="white",color="#101828"',
+        "source": 'fillcolor="#edf5ff",color="#125cdd"',
+        "semantic": 'fillcolor="#f0ebff",color="#7147c7"',
+        "retrieval": 'fillcolor="#eaf8f1",color="#24805c"',
+        "git": 'fillcolor="#fff7e7",color="#c88722"',
+        "lifecycle": 'fillcolor="#fff1f0",color="#ba4236"',
+        "output": 'fillcolor="#f7f9fc",color="#667085"',
+        "warn": 'fillcolor="#fff7e7",color="#c88722"',
+    }
+
+    def __init__(self, name: str, *, direction: str = "TB") -> None:
+        self.mmd = [
+            f"flowchart {direction}",
+            "    classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;",
+            "    classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;",
+            "    classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;",
+            "    classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;",
+            "    classDef git fill:#fff7e7,stroke:#c88722,color:#101828;",
+            "    classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;",
+            "    classDef output fill:#f7f9fc,stroke:#667085,color:#101828;",
+            "    classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;",
+        ]
+        self.dot = [
+            f"digraph {name} {{",
+            f'  rankdir="{direction}";',
+            '  graph [fontname="Arial",bgcolor="white"];',
+            '  node [shape="box",style="rounded,filled",fontname="Arial",color="#667085"];',
+            '  edge [fontname="Arial",color="#667085"];',
+        ]
+
+    def begin(self, node_id: str, label: str, *, direction: str = "TB") -> None:
+        self.mmd.extend(
+            [f'    subgraph {node_id}["{_mmd_label(label)}"]', f"        direction {direction}"]
+        )
+        self.dot.append(f'  subgraph cluster_{node_id.lower()} {{ label="{_dot_label(label)}";')
+
+    def end(self) -> None:
+        self.mmd.append("    end")
+        self.dot.append("  }")
+
+    def node(self, node_id: str, label: str, kind: str) -> None:
+        mmd_label = "<br/>".join(_mmd_label(part) for part in str(label).split("\n"))
+        dot_label = "\\n".join(_dot_label(part) for part in str(label).split("\n"))
+        self.mmd.append(f'        {node_id}["{mmd_label}"]:::{kind}')
+        style = self._DOT_STYLE[kind]
+        self.dot.append(f'    {node_id} [label="{dot_label}",{style}];')
+
+    def edge(self, source: str, target: str, label: str | None = None) -> None:
+        if label:
+            self.mmd.append(
+                f"        {source} -->|{_mmd_label(label)}| {target}"
+            )
+            self.dot.append(
+                f'    {source} -> {target} [label="{_dot_label(label)}"];'
+            )
+        else:
+            self.mmd.append(f"        {source} --> {target}")
+            self.dot.append(f"    {source} -> {target};")
+
+    def finish(self) -> tuple[str, str]:
+        return "\n".join(self.mmd) + "\n", "\n".join([*self.dot, "}"]) + "\n"
+
+
+def _table_count(connection: sqlite3.Connection, table: str) -> int:
+    if not re.fullmatch(r"[a-z][a-z0-9_]*", table):
+        return 0
+    try:
+        return int(connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])  # nosec B608
+    except sqlite3.DatabaseError:
+        return 0
+
+
+def _fact_display(kind: str, locator: str, payload_json: str) -> str:
+    try:
+        payload = json.loads(payload_json)
+    except (json.JSONDecodeError, TypeError):
+        payload = {}
+    if not isinstance(payload, dict):
+        payload = {}
+    if kind == "code_symbol":
+        return str(payload.get("qualified_name") or payload.get("name") or locator)
+    if kind == "code_import":
+        imported = payload.get("imported_name")
+        return f'{payload.get("module") or locator}{" : " + str(imported) if imported else ""}'
+    if kind == "code_route":
+        return f'{payload.get("method") or "ROUTE"} {payload.get("path_pattern") or locator}'
+    if kind == "code_dependency":
+        return f'{payload.get("name") or locator} {payload.get("constraint_text") or ""}'.strip()
+    for key in (
+        "text",
+        "title",
+        "name",
+        "path",
+        "question",
+        "finding",
+        "decision",
+        "table",
+        "sheet",
+        "route",
+    ):
+        if payload.get(key):
+            return str(payload[key])
+    return locator
+
+
 def _lane_topology(
     lane: LaneDefinition,
-    source_rows: list[dict[str, Any]],
+    database_path: Path,
     classification: dict[str, Any],
 ) -> tuple[str, str]:
-    label = lane.display_label.replace('"', "'")
-    mmd = [
-        "flowchart TB",
-        f'    L["{label}<br/>{len(source_rows)} sources"]',
-        '    L --> DB["SQLite + FTS5/BM25 + TF-IDF"]',
-        '    L --> MMD["Authoritative Mermaid"]',
-        '    L --> DOT["Authoritative DOT"]',
-    ]
-    dot = [
-        "digraph evidence_lane {",
-        '  rankdir="TB";',
-        f'  lane [label="{label}\\n{len(source_rows)} sources"];',
-        '  db [label="SQLite + FTS5/BM25 + TF-IDF"];',
-        '  mmd [label="Mermaid authority"];',
-        '  dot [label="DOT authority"];',
-        "  lane -> db;",
-        "  lane -> mmd;",
-        "  lane -> dot;",
-    ]
-    for index, row in enumerate(source_rows[:100]):
-        safe = str(row["path"]).replace("\\", "/").replace('"', "'")
-        state = str(row["parser_state"]).replace('"', "'")
-        mmd.append(f'    L --> S{index}["{safe}<br/>{state}"]')
-        dot.extend(
-            [
-                f'  s{index} [label="{safe}\\n{state}"];',
-                f"  lane -> s{index};",
-            ]
+    connection = sqlite3.connect(
+        f"file:{database_path.resolve().as_posix()}?mode=ro&immutable=1",
+        uri=True,
+    )
+    connection.row_factory = sqlite3.Row
+    graph = _TopologyGraph(f"lane_{lane.canonical_lane_id}")
+    sources = _table_count(connection, "source_registry")
+    chunks = _table_count(connection, "chunk_index")
+    facts = _table_count(connection, "structured_fact")
+    graph.node(
+        "LANE_ROOT",
+        f"{lane.display_label}\n{sources} sources | {chunks} chunks | {facts} structured facts",
+        "root",
+    )
+
+    graph.begin("SOURCE_INTAKE", "1. Source intake and exact-byte registry")
+    graph.node("SOURCE_REG", f"source_registry\nrows={sources} | SHA-256 + parser state", "source")
+    graph.edge("LANE_ROOT", "SOURCE_REG")
+    extension_rows = connection.execute(
+        """
+        SELECT CASE WHEN extension='' THEN '[no extension]' ELSE extension END AS extension,
+               COUNT(*) AS count
+        FROM source_registry GROUP BY extension ORDER BY count DESC, extension LIMIT 8
+        """
+    ).fetchall()
+    if extension_rows:
+        for index, row in enumerate(extension_rows):
+            node = f"SOURCE_TYPE_{index}"
+            graph.node(node, f'{row["extension"]}\n{row["count"]} sources', "source")
+            graph.edge("SOURCE_REG", node)
+    else:
+        graph.node("SOURCE_EMPTY", "schema ready\nno routed source in this build", "warn")
+        graph.edge("SOURCE_REG", "SOURCE_EMPTY")
+    graph.end()
+
+    fact_counts = {
+        str(row["kind"]): int(row["count"])
+        for row in connection.execute(
+            "SELECT kind, COUNT(*) AS count FROM structured_fact GROUP BY kind ORDER BY kind"
         )
-    if len(source_rows) > 100:
-        mmd.append(f'    L --> MORE["{len(source_rows) - 100} more sources"]')
-        dot.extend(
-            [
-                f'  more [label="{len(source_rows) - 100} more sources"];',
-                "  lane -> more;",
-            ]
+    }
+    lane_tables = [
+        table
+        for table in lane.schema_contract
+        if table not in _TOPOLOGY_CORE_TABLES and table != lane.fts_table
+    ]
+    graph.begin("SEMANTIC_MODEL", "2. Lane-specific semantic model from SQLite")
+    graph.node(
+        "FACT_INDEX",
+        f"structured_fact\nrows={facts} | kinds={len(fact_counts)}",
+        "semantic",
+    )
+    graph.edge("SOURCE_REG", "FACT_INDEX")
+    for index, table in enumerate(lane_tables):
+        node = f"SCHEMA_{index}"
+        graph.node(node, f"{table}\nrows={_table_count(connection, table)}", "semantic")
+        graph.edge("FACT_INDEX", node, "materializes")
+
+    if fact_counts:
+        sampled_kinds = sorted(fact_counts, key=lambda item: (-fact_counts[item], item))[:10]
+        for index, kind in enumerate(sampled_kinds):
+            kind_node = f"FACT_KIND_{index}"
+            graph.node(kind_node, f"{kind}\nrows={fact_counts[kind]}", "semantic")
+            graph.edge("FACT_INDEX", kind_node)
+            sample_rows = connection.execute(
+                """
+                SELECT locator, payload_json FROM structured_fact
+                WHERE kind=? ORDER BY locator, fact_id LIMIT 2
+                """,
+                (kind,),
+            ).fetchall()
+            for sample_index, row in enumerate(sample_rows):
+                sample_node = f"FACT_SAMPLE_{index}_{sample_index}"
+                graph.node(
+                    sample_node,
+                    _fact_display(kind, str(row["locator"]), str(row["payload_json"])),
+                    "semantic",
+                )
+                graph.edge(kind_node, sample_node, "sample")
+    else:
+        graph.node("FACT_EMPTY", "no semantic rows yet\nlane schema remains explicit", "warn")
+        graph.edge("FACT_INDEX", "FACT_EMPTY")
+    graph.end()
+
+    if lane.canonical_lane_id in PRIMARY_CODE_LANES:
+        graph.begin("CODE_SNAPSHOT", "3. Code snapshot relationships")
+        code_nodes: dict[str, str] = {}
+        for index, kind in enumerate(("code_symbol", "code_import", "code_route", "code_dependency")):
+            node = f"CODE_{index}"
+            code_nodes[kind] = node
+            graph.node(node, f"{kind}\nrows={fact_counts.get(kind, 0)}", "semantic")
+            graph.edge("FACT_INDEX", node)
+        graph.edge(code_nodes["code_route"], code_nodes["code_symbol"], "handler")
+        graph.edge(code_nodes["code_import"], code_nodes["code_dependency"], "resolves")
+        graph.end()
+
+        graph.begin("GIT_LINEAGE", "4. Full Git history and content-addressed reuse")
+        git_tables = (
+            "git_commit_registry",
+            "git_commit_parent",
+            "git_ref_registry",
+            "git_blob_cas",
+            "git_content_chunk_cas",
+            "git_chunk_occurrence",
+            "git_file_change",
+            "git_history_fts",
         )
-    summary = " | ".join(
-        f"{key}={len(value) if isinstance(value, (list, dict)) else value}"
+        previous = "LANE_ROOT"
+        for index, table in enumerate(git_tables):
+            node = f"GIT_{index}"
+            graph.node(node, f"{table}\nrows={_table_count(connection, table)}", "git")
+            graph.edge(previous, node)
+            previous = node
+        commit_rows = connection.execute(
+            "SELECT commit_sha, message FROM git_commit_registry ORDER BY ordinal LIMIT 4"
+        ).fetchall()
+        for index, row in enumerate(commit_rows):
+            node = f"GIT_COMMIT_{index}"
+            graph.node(
+                node,
+                f'{str(row["commit_sha"])[:12]}\n{_topology_text(row["message"], limit=72)}',
+                "git",
+            )
+            graph.edge("GIT_0", node, "commit sample")
+        graph.end()
+
+    section_number = 5 if lane.canonical_lane_id in PRIMARY_CODE_LANES else 3
+    graph.begin("RETRIEVAL", f"{section_number}. Retrieval and changed-section reuse")
+    retrieval = (
+        ("CHUNK_INDEX", "chunk_index", chunks),
+        ("CHUNK_CAS", "chunk_content_cas", _table_count(connection, "chunk_content_cas")),
+        ("CHUNK_HISTORY", "chunk_history", _table_count(connection, "chunk_history")),
+        ("FTS", lane.fts_table, _table_count(connection, lane.fts_table)),
+        ("TFIDF", "tfidf_vector", _table_count(connection, "tfidf_vector")),
+    )
+    previous = "FACT_INDEX"
+    for node, table, count in retrieval:
+        graph.node(node, f"{table}\nrows={count}", "retrieval")
+        graph.edge(previous, node)
+        previous = node
+    graph.end()
+
+    section_number += 1
+    graph.begin("LIFECYCLE", f"{section_number}. Refresh, pointer, and mutation evidence")
+    refresh_summary = " | ".join(
+        f"{key.lower()}={len(value) if isinstance(value, (list, dict)) else value}"
         for key, value in classification.items()
     )
-    mmd.append(f'    L --> R["Refresh: {summary}"]')
-    dot.extend(
-        [
-            f'  refresh [label="Refresh: {summary}"];',
-            "  lane -> refresh;",
-            "}",
-        ]
+    graph.node("REFRESH", f"refresh classification\n{refresh_summary}", "lifecycle")
+    pointer = connection.execute(
+        "SELECT pointer_value, generation FROM lane_pointer WHERE pointer_kind='entered_from'"
+    ).fetchone()
+    proposed = connection.execute(
+        "SELECT value FROM lane_meta WHERE key='last_proposed_pv'"
+    ).fetchone()
+    graph.node(
+        "POINTER",
+        "lane pointer evidence\n"
+        f'entered_from={pointer["pointer_value"] if pointer else "none"} | '
+        f'generation={pointer["generation"] if pointer else 0}\n'
+        f'proposed={proposed[0] if proposed else "unknown"}',
+        "lifecycle",
     )
-    return "\n".join(mmd) + "\n", "\n".join(dot) + "\n"
+    graph.node(
+        "MUTATION",
+        "append-only change evidence\n"
+        f'tombstones={_table_count(connection, "source_tombstone")} | '
+        f'mutations={_table_count(connection, "mutation_receipt")}',
+        "lifecycle",
+    )
+    graph.edge("TFIDF", "REFRESH")
+    graph.edge("REFRESH", "POINTER")
+    graph.edge("REFRESH", "MUTATION")
+    graph.end()
+
+    section_number += 1
+    graph.begin("OUTPUTS", f"{section_number}. Inspectable lane package")
+    graph.node("SQLITE_OUT", f"{lane.sqlite_filename}\nSQLite/FK/FTS authority", "output")
+    graph.node("MMD_OUT", f"{lane.mmd_filename}\nsemantic Mermaid authority", "output")
+    graph.node("DOT_OUT", f"{lane.dot_filename}\nsemantic DOT authority", "output")
+    graph.node("POINTER_OUT", "lane_pointer.json\ncandidate pointer evidence", "output")
+    graph.node("RECEIPT_OUT", "refresh_receipt.json\nclassification + validation", "output")
+    graph.edge("POINTER", "SQLITE_OUT")
+    for node in ("MMD_OUT", "DOT_OUT", "POINTER_OUT", "RECEIPT_OUT"):
+        graph.edge("SQLITE_OUT", node)
+    graph.end()
+    connection.close()
+    return graph.finish()
 
 
 def _lane_stable_files(lane: LaneDefinition) -> tuple[str, ...]:
@@ -3680,15 +3975,9 @@ def _build_one_lane(
             ),
         )
         connection.commit()
-        source_rows = [
-            dict(row)
-            for row in connection.execute(
-                "SELECT path, sha256, size_bytes, parser_state FROM source_registry ORDER BY path"
-            )
-        ]
         connection.execute("VACUUM")
         connection.close()
-        mmd, dot = _lane_topology(lane, source_rows, classification)
+        mmd, dot = _lane_topology(lane, db_path, classification)
         atomic_write_bytes(output / lane.mmd_filename, mmd.encode("utf-8"))
         atomic_write_bytes(output / lane.dot_filename, dot.encode("utf-8"))
         atomic_write_json(output / "tools.json", tools)
@@ -3753,25 +4042,130 @@ def _build_one_lane(
 
 
 def _bundle_graph(reports: list[dict[str, Any]]) -> tuple[str, str]:
-    mmd = ["flowchart LR", '    PV["Universal Evidence Lane PV"]']
-    dot = [
-        "digraph evidence_lane_bundle {",
-        '  rankdir="LR";',
-        '  pv [label="Universal Evidence Lane PV"];',
-    ]
+    graph = _TopologyGraph("evidence_lane_project", direction="TB")
+    graph.node(
+        "PROJECT_ROOT",
+        f"Universal Evidence Lane project\n{len(reports)} canonical lane packages",
+        "root",
+    )
+
+    graph.begin("CONTROL_PLANE", "1. Six public controls")
+    controls = (
+        ("BOOT", "Boot\nruntime + locked Flash + host/storage"),
+        ("ROLLBACK", "Rollback\naccepted pointer only"),
+        ("BUILD", "Build\nunaccepted candidate + HIL"),
+        ("REFRESH", "Refresh\nchanged sections only"),
+        ("MODE", "Mode\nordered sidecar intersections"),
+        ("SOURCE_INTAKE", "Source Intake\nauto-detect + explicit override"),
+    )
+    for node, label in controls:
+        graph.node(node, label, "source")
+        graph.edge("PROJECT_ROOT", node)
+    graph.end()
+
+    graph.begin("PARALLEL_LANES", "2. Deterministic lane fan-out and join")
+    graph.node(
+        "ROUTER",
+        "one source snapshot + route receipt\nChat Lineage always included",
+        "source",
+    )
+    graph.node(
+        "PARALLEL_POOL",
+        f"bounded parallel compute\nworkers <= {MAX_PARALLEL_LANE_WORKERS}",
+        "retrieval",
+    )
+    graph.node(
+        "DETERMINISTIC_JOIN",
+        "deterministic join\nall lane validations must pass",
+        "lifecycle",
+    )
+    graph.edge("BOOT", "ROUTER")
+    graph.edge("SOURCE_INTAKE", "ROUTER")
+    graph.edge("MODE", "ROUTER")
+    graph.edge("REFRESH", "PARALLEL_POOL")
+    graph.edge("ROUTER", "PARALLEL_POOL")
     for index, report in enumerate(reports):
         lane = LANE_REGISTRY[report["lane_id"]]
-        label = lane.display_label.replace('"', "'")
-        mode = report["build_mode"].replace('"', "'")
-        mmd.append(f'    PV --> L{index}["{label}<br/>{mode}"]')
-        dot.extend(
-            [
-                f'  l{index} [label="{label}\\n{mode}"];',
-                f"  pv -> l{index};",
-            ]
+        counts = report.get("validation", {}).get("counts", {})
+        lane_node = f"LANE_{index}"
+        graph.node(
+            lane_node,
+            f'{lane.display_label}\n{report["build_mode"]} | '
+            f'{counts.get("source_registry", 0)} sources | '
+            f'{counts.get("structured_fact", 0)} facts',
+            "semantic",
         )
-    dot.append("}")
-    return "\n".join(mmd) + "\n", "\n".join(dot) + "\n"
+        graph.edge("PARALLEL_POOL", lane_node)
+        graph.edge(lane_node, "DETERMINISTIC_JOIN")
+    graph.end()
+
+    graph.begin("ARTIFACT_CONTRACT", "3. Per-lane and project evidence contract")
+    graph.node(
+        "LANE_OUTPUTS",
+        "each lane\nSQLite + MMD + DOT + pointer + refresh receipt",
+        "output",
+    )
+    graph.node(
+        "PROJECT_OUTPUTS",
+        "project package\nmaster MMD/DOT + manifests + hashes + Exit Slip",
+        "output",
+    )
+    graph.node(
+        "LINEAGE_OUTPUT",
+        "visible ChatLineage\nprompts + steers + output + tools + files + tests + hashes",
+        "output",
+    )
+    graph.edge("DETERMINISTIC_JOIN", "LANE_OUTPUTS")
+    graph.edge("LANE_OUTPUTS", "PROJECT_OUTPUTS")
+    chat_index = next(
+        (index for index, report in enumerate(reports) if report["lane_id"] == "chat_lineage"),
+        None,
+    )
+    if chat_index is not None:
+        graph.edge(f"LANE_{chat_index}", "LINEAGE_OUTPUT")
+    graph.edge("LINEAGE_OUTPUT", "PROJECT_OUTPUTS")
+    graph.end()
+
+    graph.begin("SERIAL_AUTHORITY", "4. Serial candidate, HIL, Fuse, and pointer authority")
+    graph.node(
+        "CANDIDATE",
+        "UNACCEPTED candidate\nimmutable package + validation evidence",
+        "lifecycle",
+    )
+    graph.node(
+        "HIL",
+        "six-way HIL\nno implicit acceptance by continuation",
+        "lifecycle",
+    )
+    graph.node("APPROVE", "exact APPROVE\nbound to displayed candidate", "lifecycle")
+    graph.node("DELTA", "APPROVE_WITH_DELTA\nbounded correction task", "warn")
+    graph.node("RESEARCH", "MORE_RESEARCH\nquestion + evidence wait", "warn")
+    graph.node("ROLLBACK_PATH", "ROLLBACK\nexisting accepted PV only", "warn")
+    graph.node("REJECT", "REJECT\nterminal candidate receipt", "warn")
+    graph.node("FAIL", "FAIL\nfailed gate receipt", "warn")
+    graph.node("FUSE", "Fuse\nCAS + exact decision receipt", "lifecycle")
+    graph.node("ACCEPTED", "accepted PV pointer\nmonotonic generation", "root")
+    graph.node(
+        "STATE_TRAVEL",
+        "State Travel\nuser-requested fresh-host recovery only",
+        "output",
+    )
+    graph.edge("PROJECT_OUTPUTS", "CANDIDATE")
+    graph.edge("BUILD", "CANDIDATE")
+    graph.edge("CANDIDATE", "HIL")
+    graph.edge("HIL", "APPROVE")
+    graph.edge("HIL", "DELTA")
+    graph.edge("HIL", "RESEARCH")
+    graph.edge("HIL", "ROLLBACK_PATH")
+    graph.edge("HIL", "REJECT")
+    graph.edge("HIL", "FAIL")
+    graph.edge("APPROVE", "FUSE")
+    graph.edge("FUSE", "ACCEPTED")
+    graph.edge("ROLLBACK", "ROLLBACK_PATH")
+    graph.edge("ROLLBACK_PATH", "ACCEPTED")
+    graph.edge("ACCEPTED", "STATE_TRAVEL", "conditional")
+    graph.end()
+    return graph.finish()
 
 
 def _lane_source_binding(

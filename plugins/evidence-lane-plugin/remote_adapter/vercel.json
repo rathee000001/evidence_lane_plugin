@@ -7,8 +7,16 @@
   },
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/api/index.py?__evi_path=$1"
+      "source": "/mcp",
+      "destination": "/api/index.py?__evi_path=mcp"
+    },
+    {
+      "source": "/healthz",
+      "destination": "/api/index.py?__evi_path=healthz"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "destination": "/api/index.py?__evi_path=.well-known/oauth-protected-resource"
     }
   ]
 }

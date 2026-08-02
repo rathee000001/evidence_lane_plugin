@@ -2,7 +2,7 @@
 
 | Requirement | Primary implementation | Verification |
 | --- | --- | --- |
-| Six public controls and user-timed State Travel | `commands/`, `skills/`, `next_actions.py`, `session.py`, startup hook | exact surface inventory, no-auto-travel contract, same-host receipt supersession, changed-host bypass rejection, and stale-command scan |
+| Six public controls and user-timed State Travel | canonical `skills/`, `next_actions.py`, `session.py`, startup hook | exact surface inventory, no duplicate legacy command migration, no-auto-travel contract, same-host receipt supersession, changed-host bypass rejection, and stale-command scan |
 | Atomic host/storage-aware Boot and detachable session | `service.py`, `session.py`, `runtime_activation.py`, `storage_selection.py`, `persistence.py`, Flash authority | doctor/Flash/resume, exact storage selection, ephemeral fail-closed, detach/reattach tests |
 | Digest-keyed ENV/UOP runtime projection | `flash_projection.py`, `flash_authority.py` | full locked-byte verification, ABI/digest key, SQLite/FK/FTS, mutable rebuild and installed-cache reuse contract |
 | Generalized Source Intake, optional Git arm, and separate custom-capable Mode | `source_intake.py`, `git_optional.py`, `operating_modes.py` | AUTO fallback, REQUIRED/DISABLED, linked-worktree, all-18 override, and custom-mode tests |

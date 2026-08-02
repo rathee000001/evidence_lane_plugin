@@ -753,7 +753,7 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
         "evi-mode",
         "evi-source-intake",
     ]
-    expected_commands = {
+    expected_skills = {
         "evi",
         "evi-state-travel",
         "evi-exit-boot",
@@ -764,35 +764,36 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
         "evi-drop-additional-plugin",
         *public_order,
     }
-    assert {path.stem for path in commands.glob("*.md")} == expected_commands
-    for name in expected_commands:
+    assert not list(commands.glob("*.md"))
+    for name in expected_skills:
         skill_file = skills / name / "SKILL.md"
         assert skill_file.is_file(), name
         assert f"name: {name}" in skill_file.read_text(encoding="utf-8")
 
-    root_command = (commands / "evi.md").read_text(encoding="utf-8")
-    positions = [root_command.index(f"`/{name}`") for name in public_order]
+    root_skill = (skills / "evi" / "SKILL.md").read_text(encoding="utf-8")
+    positions = [root_skill.index(f"`/{name}`") for name in public_order]
     assert positions == sorted(positions)
-    assert "`/evi-state-travel`" in root_command
-    assert root_command.index("`/evi-state-travel`") < positions[0]
-    assert "eligibility alone must not" in root_command
-    assert "explicitly requests it" in root_command
-    assert "genuinely exhausted" in root_command
-    assert "all eighteen canonical lanes" in root_command.lower()
-    assert "Project Engulf" in root_command
-    assert "`/evi-plugin` is an administrative sidecar" in root_command
-    assert "not a seventh primary" in (commands / "evi-plugin.md").read_text(
+    assert "State Travel" in root_skill
+    assert root_skill.index("State Travel") < positions[0]
+    assert "eligibility alone must not" in root_skill
+    assert "explicitly requests it" in root_skill
+    assert "genuinely exhausted" in root_skill
+    assert "all eighteen canonical lanes" in root_skill.lower()
+    assert "Project Engulf" in root_skill
+    assert "`/evi-plugin` is an administrative sidecar" in root_skill
+    assert "not a seventh primary" in (skills / "evi-plugin" / "SKILL.md").read_text(
         encoding="utf-8"
     )
 
-    command_text = "\n".join(
-        path.read_text(encoding="utf-8") for path in commands.glob("*.md")
+    skill_text = "\n".join(
+        path.read_text(encoding="utf-8") for path in skills.glob("*/SKILL.md")
     )
     readme_text = (root / "README.md").read_text(encoding="utf-8")
-    assert "/pv-" not in command_text.lower()
-    assert "/ev " not in command_text.lower()
-    assert "/git" not in command_text.lower()
-    assert "/local" not in command_text.lower()
+    assert "/pv-" not in skill_text.lower()
+    assert "/ev " not in skill_text.lower()
+    assert "/git" not in skill_text.lower()
+    assert "/local" not in skill_text.lower()
+    assert "source-command-evi" not in skill_text.lower()
     assert "/pv-" not in readme_text.lower()
     assert "/ev " not in readme_text.lower()
 

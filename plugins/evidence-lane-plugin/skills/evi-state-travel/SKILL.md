@@ -5,6 +5,14 @@ description: User-requested or context-exhaustion recovery for one accepted seal
 
 # Evidence Lane State Travel
 
-Read and follow `../../commands/evi-state-travel.md` completely. A missing
-accepted handoff is a hard stop, and a prepared handoff without an explicit
-user or genuine context-exhaustion trigger remains prepared and unconsumed.
+Run only when both conditions hold: (1) the user explicitly requests State
+Travel or the current host context is genuinely exhausted and needs continuity,
+and (2) `pv_status` proves an accepted PV and one prepared handoff. A prepared
+handoff by itself is eligibility evidence, not an instruction to travel. A
+missing accepted handoff is a hard stop.
+
+In a genuinely fresh host task or chat, atomically verify runtime doctor,
+locked ENV15/UOP15 Flash, new host ID, pointer generation, manifest, package
+seals, and freshness through `pv_state_travel_resume`. Stop at
+`WAITING_FOR_NEXT_USER_COMMAND`. Never build, Fuse, infer approval, or consume
+the handoff merely because it exists.

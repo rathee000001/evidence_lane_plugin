@@ -85,6 +85,13 @@ def _write_xlsx(path: Path) -> None:
         )
 
 
+def test_topology_labels_redact_secret_shaped_values() -> None:
+    secret = "api_" + "key=" + ("s" * 24)
+    rendered = lane_engine_module._topology_text(f"connector {secret}")
+    assert secret not in rendered
+    assert "[REDACTED]" in rendered
+
+
 def _write_docx(path: Path) -> None:
     with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         archive.writestr(
@@ -618,6 +625,46 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         assert set(lane_manifest["evidence_artifacts"]) == expected - {
             "lane_manifest.json"
         }
+        mermaid = (lane_root / lane.mmd_filename).read_text(encoding="utf-8")
+        dot = (lane_root / lane.dot_filename).read_text(encoding="utf-8")
+        for semantic_section in (
+            "SOURCE_INTAKE",
+            "SEMANTIC_MODEL",
+            "RETRIEVAL",
+            "LIFECYCLE",
+            "OUTPUTS",
+        ):
+            assert f"subgraph {semantic_section}" in mermaid
+            assert f"cluster_{semantic_section.lower()}" in dot
+        assert lane.sqlite_filename in mermaid
+        assert lane.mmd_filename in mermaid
+        assert lane.dot_filename in mermaid
+        lane_specific_tables = {
+            table
+            for table in lane.schema_contract
+            if table not in lane_engine_module._TOPOLOGY_CORE_TABLES
+            and table != lane.fts_table
+        }
+        for table in lane_specific_tables:
+            assert table in mermaid
+        if lane_id in {"github_code", "local_code"}:
+            assert "subgraph CODE_SNAPSHOT" in mermaid
+            assert "subgraph GIT_LINEAGE" in mermaid
+            assert "code_symbol" in mermaid
+            assert "git_commit_registry" in mermaid
+
+    project_topology = (lanes_root / "project_lane_topology.mmd").read_text(
+        encoding="utf-8"
+    )
+    assert "subgraph CONTROL_PLANE" in project_topology
+    assert "subgraph PARALLEL_LANES" in project_topology
+    assert "bounded parallel compute" in project_topology
+    assert "subgraph SERIAL_AUTHORITY" in project_topology
+    assert "exact APPROVE" in project_topology
+    assert "no implicit acceptance" in project_topology
+    assert "user-requested fresh-host recovery only" in project_topology
+    for lane_id in CANONICAL_LANE_IDS:
+        assert LANE_REGISTRY[lane_id].display_label in project_topology
 
     legacy_root = tmp_path / "legacy-v1-lane-manifests"
     shutil.copytree(lanes_root, legacy_root)

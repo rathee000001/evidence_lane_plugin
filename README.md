@@ -13,7 +13,7 @@
   &nbsp;·&nbsp;
   <a href="docs/REMOTE_DEPLOYMENT.md">ChatGPT deployment</a>
   &nbsp;·&nbsp;
-  <a href="docs/DELTA_001_045_TRACEABILITY.md">Delta traceability</a>
+  <a href="docs/DELTA_001_046_TRACEABILITY.md">Delta traceability</a>
   &nbsp;·&nbsp;
   <a href="SECURITY.md">Security</a>
 </p>
@@ -22,7 +22,7 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane Plugin 0.9.0
+# Evidence Lane Plugin 1.0.0
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex, with a
 durable remote MCP boundary for ChatGPT. It turns visible project sources and
@@ -118,6 +118,17 @@ Every lane package contains and verifies:
   manifest;
 - content hashes that bind every required member.
 
+The MMD and DOT files are semantic projections of the lane SQLite authority,
+not flat file inventories. Every lane shows source intake, its lane-specific
+schema and materialized fact kinds, retrieval/CAS/FTS, refresh and pointer
+evidence, and the inspectable output contract. Code lanes additionally show
+symbols, imports, routes, dependencies, reachable Git commits/refs, file
+changes, blob/chunk CAS, occurrences, and history FTS. Empty lanes remain
+explicitly schema-ready instead of pretending that evidence exists.
+Optional Mermaid SVG/PNG rendering uses an explicitly configured browser or a
+locally installed Chrome/Edge executable; the plugin never downloads a browser
+at build time, and the `.mmd` source remains authoritative.
+
 Build and Refresh use one bounded in-process worker pool to compute independent
 lane packages concurrently from one hash-frozen source snapshot. A barrier then
 rechecks the repository snapshot, verifies every lane database against its
@@ -202,7 +213,7 @@ python -m venv .venv
 Build the durable MCP container with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:0.9.0 .
+docker build --pull --tag evidence-lane-plugin:1.0.0 .
 ```
 
 The container exposes `/mcp` and `/healthz` on port 8080 and requires one writer

@@ -1,6 +1,6 @@
 # Architecture
 
-Evidence Lane 0.9.0 separates public controls, lifecycle APIs, brain artifacts,
+Evidence Lane 1.0.0 separates public controls, lifecycle APIs, brain artifacts,
 host storage, and human authority.
 
 ## Control plane
@@ -52,6 +52,16 @@ Every lane emits:
 - tool and parser identity;
 - pointer and refresh evidence;
 - a content-sealed manifest.
+
+Mermaid and DOT are derived deterministically from the completed SQLite lane,
+not from a second unverified file walk. Each topology contains source intake,
+lane-specific tables and facts, retrieval/CAS/FTS, lifecycle/pointer evidence,
+and outputs. GitHub and Local Code add code snapshot and Git-lineage subgraphs.
+The project master graph shows bounded parallel lane computation feeding one
+deterministic join and one serial candidate/HIL/Fuse authority path.
+Optional render validation uses the configured Puppeteer browser or a standard
+installed Chrome/Edge executable. A missing renderer is reported separately
+from the authoritative MMD/DOT and SQLite validation.
 
 Independent lane computation is bounded to at most eight in-process workers.
 All workers read one pre-hashed source snapshot and write only their assigned

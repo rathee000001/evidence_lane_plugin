@@ -17,10 +17,13 @@ The adapter lives in
 deployed to a branch preview. It is not the Evidence Lane engine, a general
 router, a local-SQLite host, or an authority store.
 
-The Vercel catch-all rewrite carries the original public path in the reserved
-`__evi_path` query field. The adapter recovers `/healthz` or `/mcp`, removes the
-reserved field, and forwards only the caller's remaining query string. This
-prevents the platform rewrite from collapsing every request to the app root.
+The Vercel project serves a public Next.js site at `/`, with public privacy,
+terms, and support pages. Exact rewrites carry only `/healthz`, `/mcp`, and
+`/.well-known/oauth-protected-resource` into Python using the reserved
+`__evi_path` query field. The adapter restores the public path, removes the
+reserved field, and forwards only the caller's remaining query string. There is
+no catch-all rewrite, so the website and MCP transport cannot silently replace
+one another.
 
 For every `/mcp` request it:
 
@@ -38,10 +41,10 @@ deployment shape uses port 8080 and `/var/lib/evidence-lane`.
 
 ## Preview states
 
-A branch preview may be deployed with no credentials to prove exact Git release
-identity, path recovery, and fail-closed behavior. In that state `/` reports
-`READY_FAIL_CLOSED`, `/healthz` and `/mcp` return a bounded blocker, and the
-preview is **not** a working ChatGPT installation.
+A branch preview may be deployed with no credentials to prove the landing page,
+path recovery, and fail-closed behavior. In that state `/` renders the public
+site and labels the ChatGPT edge fail-closed; `/healthz` and `/mcp` return a
+bounded blocker. The website is **not** evidence of a working ChatGPT install.
 
 A working ChatGPT preview is eligible only when all of these are configured:
 

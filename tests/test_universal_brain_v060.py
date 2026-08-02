@@ -362,6 +362,20 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
         / "api"
         / "index.py"
     )
+    adapter_root = adapter_path.parents[1]
+    vercel = json.loads((adapter_root / "vercel.json").read_text(encoding="utf-8"))
+    assert {rewrite["source"] for rewrite in vercel["rewrites"]} == {
+        "/mcp",
+        "/healthz",
+        "/.well-known/oauth-protected-resource",
+    }
+    assert "/(.*)" not in {rewrite["source"] for rewrite in vercel["rewrites"]}
+    landing = (adapter_root / "app" / "page.tsx").read_text(encoding="utf-8")
+    assert "Vercel is the ChatGPT edge, not the Evidence Lane brain" in landing
+    assert "18 canonical lanes" in landing
+    assert "ChatGPT edge fail-closed" in landing
+    for public_page in ("privacy", "terms", "support"):
+        assert (adapter_root / "app" / public_page / "page.tsx").is_file()
     spec = importlib.util.spec_from_file_location(
         "evidence_lane_remote_adapter", adapter_path
     )

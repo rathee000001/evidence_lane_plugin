@@ -8,8 +8,20 @@ import pytest
 from evidence_lane_plugin import database
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.pv_package import validate_pv_package
+from evidence_lane_plugin.topology import _renderer_environment
 
 from .conftest import boot_local
+
+
+def test_mermaid_renderer_uses_explicit_installed_browser(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    browser = tmp_path / "chrome.exe"
+    browser.write_bytes(b"test-browser-placeholder")
+    monkeypatch.setenv("PUPPETEER_EXECUTABLE_PATH", str(browser))
+    environment, resolved = _renderer_environment()
+    assert resolved == str(browser.resolve())
+    assert environment["PUPPETEER_EXECUTABLE_PATH"] == resolved
 
 
 def test_database_context_closes_connection_and_wal_handles(tmp_path: Path) -> None:

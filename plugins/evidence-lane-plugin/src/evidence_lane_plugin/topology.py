@@ -8,6 +8,7 @@ import sqlite3
 
 # Required for one explicitly configured renderer; shell is never used.
 import subprocess  # nosec B404
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,56 @@ def _escape(value: str) -> str:
         .replace("<", "&lt;")
         .replace(">", "&gt;")
     )
+
+
+def _renderer_environment() -> tuple[dict[str, str], str | None]:
+    """Bind Mermaid CLI to an installed browser without downloading one."""
+
+    environment = dict(os.environ)
+    configured = environment.get("PUPPETEER_EXECUTABLE_PATH", "").strip()
+    if configured and Path(configured).is_file():
+        return environment, str(Path(configured).resolve())
+    candidates: list[Path] = []
+    if os.name == "nt":
+        for variable, suffixes in (
+            (
+                "ProgramFiles",
+                (
+                    "Google/Chrome/Application/chrome.exe",
+                    "Microsoft/Edge/Application/msedge.exe",
+                ),
+            ),
+            (
+                "ProgramFiles(x86)",
+                (
+                    "Google/Chrome/Application/chrome.exe",
+                    "Microsoft/Edge/Application/msedge.exe",
+                ),
+            ),
+            (
+                "LOCALAPPDATA",
+                ("Google/Chrome/Application/chrome.exe",),
+            ),
+        ):
+            root = environment.get(variable, "").strip()
+            if root:
+                candidates.extend(Path(root) / suffix for suffix in suffixes)
+    elif sys.platform == "darwin":
+        candidates.append(
+            Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+        )
+    else:
+        for executable in ("google-chrome", "chromium", "chromium-browser"):
+            resolved = shutil.which(executable)
+            if resolved:
+                candidates.append(Path(resolved))
+    browser = next(
+        (candidate.resolve() for candidate in candidates if candidate.is_file()),
+        None,
+    )
+    if browser:
+        environment["PUPPETEER_EXECUTABLE_PATH"] = str(browser)
+    return environment, str(browser) if browser else None
 
 
 def build_mermaid(
@@ -137,6 +188,7 @@ def render_mermaid(
             "warning": "MERMAID_RENDERER_NOT_FOUND",
             "authoritative_source": Path(source_path).name,
         }
+    render_environment, browser_executable = _renderer_environment()
     receipts = []
     for output, fmt in ((Path(svg_path), "svg"), (Path(png_path), "png")):
         command = [
@@ -161,6 +213,7 @@ def render_mermaid(
             timeout=timeout,
             close_fds=True,
             creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+            env=render_environment,
         )
         if completed.returncode != 0 or not output.is_file():
             for created in (Path(svg_path), Path(png_path)):
@@ -172,6 +225,7 @@ def render_mermaid(
                 "authoritative_source": Path(source_path).name,
                 "returncode": completed.returncode,
                 "stderr": completed.stderr[-2000:],
+                "browser_executable": browser_executable,
             }
         receipts.append(
             {
@@ -184,5 +238,6 @@ def render_mermaid(
     return {
         "status": "PASS",
         "authoritative_source": Path(source_path).name,
+        "browser_executable": browser_executable,
         "outputs": receipts,
     }
