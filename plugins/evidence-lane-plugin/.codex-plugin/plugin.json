@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "1.1.0+codex.20260803041651",
+  "version": "1.1.0+codex.20260803045733",
   "description": "Private six-control Evidence Lane with secret-safe tracked intake, reconciled SQLite/Mermaid/DOT brains, explicit Chat Lineage, and exact-APPROVE Fuse.",
   "author": {
     "name": "Praveen Rathee",

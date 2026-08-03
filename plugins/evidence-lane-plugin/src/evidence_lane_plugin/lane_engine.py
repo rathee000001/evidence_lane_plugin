@@ -4530,10 +4530,20 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         else None
     )
     pre_v110_compatibility = bool(
-        manifest.get("schema") == LANE_BUNDLE_SCHEMA
+        manifest.get("schema")
+        in {LEGACY_LANE_BUNDLE_SCHEMA, LANE_BUNDLE_SCHEMA}
         and "source_policy" not in manifest
         and execution is not None
         and "source_policy" not in execution
+    )
+    legacy_execution_compatibility = (
+        manifest.get("schema") == LEGACY_LANE_BUNDLE_SCHEMA
+        and execution is None
+        and "parallel_execution" not in manifest
+        and "source_snapshot_sha256" not in manifest
+    )
+    topology_compatibility = bool(
+        pre_v110_compatibility or legacy_execution_compatibility
     )
     checksums = json.loads((root / "SHA256SUMS.json").read_text(encoding="utf-8"))
     declared_members = checksums.get("members", {})
@@ -4600,10 +4610,10 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
                 != required_files
             )
             or not required_files <= actual_lane_files
-            or (not pre_v110_compatibility and not mmd_valid)
-            or (not pre_v110_compatibility and not dot_valid)
+            or (not topology_compatibility and not mmd_valid)
+            or (not topology_compatibility and not dot_valid)
             or (
-                not pre_v110_compatibility
+                not topology_compatibility
                 and topology_report["status"] != "PASS"
             )
         ):
@@ -4632,12 +4642,6 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
     bundle_sha256 = sha256_bytes(canonical_json_bytes(actual_members))
     route_values_valid = all(
         lane_id in LANE_REGISTRY for lane_id in routes.get("routes", {}).values()
-    )
-    legacy_execution_compatibility = (
-        manifest.get("schema") == LEGACY_LANE_BUNDLE_SCHEMA
-        and execution is None
-        and "parallel_execution" not in manifest
-        and "source_snapshot_sha256" not in manifest
     )
     modern_execution_valid = bool(
         execution
@@ -4691,7 +4695,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         or modern_execution_valid
     )
     topology_valid = bool(
-        pre_v110_compatibility
+        topology_compatibility
         or topology_reconciliation["status"] == "PASS"
     )
     valid = (
@@ -4735,8 +4739,8 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         ),
         "pre_v110_compatibility": pre_v110_compatibility,
         "pre_v110_execution_valid": pre_v110_execution_valid,
-        "source_policy_enforced": not pre_v110_compatibility,
-        "topology_reconciliation_enforced": not pre_v110_compatibility,
+        "source_policy_enforced": not topology_compatibility,
+        "topology_reconciliation_enforced": not topology_compatibility,
         "topology_valid": topology_valid,
         "topology_reconciliation": topology_reconciliation,
     }

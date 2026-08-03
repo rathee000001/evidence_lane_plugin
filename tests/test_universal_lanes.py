@@ -695,6 +695,22 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
     assert pre_v110_validation["topology_reconciliation_enforced"] is False
     assert pre_v110_validation["topology_reconciliation"]["status"] == "FAIL"
 
+    transitional_v1_root = tmp_path / "pre-v110-v1-with-execution-compatibility"
+    shutil.copytree(pre_v110_root, transitional_v1_root)
+    transitional_manifest_path = transitional_v1_root / "manifest.json"
+    transitional_manifest = json.loads(
+        transitional_manifest_path.read_text(encoding="utf-8")
+    )
+    transitional_manifest["schema"] = LEGACY_LANE_BUNDLE_SCHEMA
+    transitional_manifest_path.write_bytes(
+        canonical_json_bytes(transitional_manifest)
+    )
+    transitional_validation = validate_lane_bundle(transitional_v1_root)
+    assert transitional_validation["valid"] is True
+    assert transitional_validation["pre_v110_compatibility"] is True
+    assert transitional_validation["pre_v110_execution_valid"] is True
+    assert transitional_validation["topology_reconciliation"]["status"] == "FAIL"
+
     for lane_id in CANONICAL_LANE_IDS:
         lane = LANE_REGISTRY[lane_id]
         lane_root = lanes_root / lane_id
@@ -761,6 +777,22 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
     shutil.copytree(lanes_root, legacy_root)
     (legacy_root / "execution_receipt.json").unlink()
     for lane_id in CANONICAL_LANE_IDS:
+        lane = LANE_REGISTRY[lane_id]
+        lane_root = legacy_root / lane_id
+        (lane_root / lane.mmd_filename).write_text(
+            "flowchart TB\n"
+            f'    L["{lane.display_label}"]\n'
+            '    L --> DB["SQLite"]\n',
+            encoding="utf-8",
+        )
+        (lane_root / lane.dot_filename).write_text(
+            "digraph lane {\n"
+            f'  L [label="{lane.display_label}"];\n'
+            '  DB [label="SQLite"];\n'
+            "  L -> DB;\n"
+            "}\n",
+            encoding="utf-8",
+        )
         lane_manifest_path = legacy_root / lane_id / "lane_manifest.json"
         legacy_manifest = json.loads(
             lane_manifest_path.read_text(encoding="utf-8")
@@ -768,7 +800,24 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         legacy_manifest["schema"] = "evidence-lane.lane-manifest.v1"
         legacy_manifest.pop("evidence_artifacts")
         legacy_manifest.pop("required_artifacts")
+        legacy_manifest["stable_artifacts"] = {
+            filename: sha256_file(lane_root / filename)
+            for filename in (
+                lane.sqlite_filename,
+                lane.mmd_filename,
+                lane.dot_filename,
+                "tools.json",
+            )
+        }
         lane_manifest_path.write_bytes(canonical_json_bytes(legacy_manifest))
+    (legacy_root / "project_lane_topology.mmd").write_text(
+        'flowchart LR\n    P["Project"] --> L["Lanes"]\n',
+        encoding="utf-8",
+    )
+    (legacy_root / "project_lane_topology.dot").write_text(
+        'digraph project { P [label="Project"]; L [label="Lanes"]; P -> L; }\n',
+        encoding="utf-8",
+    )
     members = {
         path.relative_to(legacy_root).as_posix(): sha256_file(path)
         for path in sorted(legacy_root.rglob("*"))
@@ -804,6 +853,8 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
     assert (
         legacy_validation["parallel_execution_legacy_compatibility"] is True
     )
+    assert legacy_validation["topology_reconciliation_enforced"] is False
+    assert legacy_validation["topology_reconciliation"]["status"] == "FAIL"
 
     forensic = audit_lane_bundle(
         lanes_root,
