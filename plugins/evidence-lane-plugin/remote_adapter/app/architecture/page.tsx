@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 
+import { EvidenceBrainAsset } from "../_components/evidence-assets";
 import { PageHero } from "../_components/page-hero";
 import { artifactContract } from "../_data/site";
 
@@ -26,7 +26,11 @@ export default function ArchitecturePage() {
         eyebrow="System architecture"
         title="Parallel evidence work. Serial authority."
         description="Evidence Lane can calculate independent source sectors concurrently. Candidate sealing, human decision, Fuse, accepted pointers, rollback, and State Travel remain ordered and compare-and-swap governed."
-        aside={<Image src="/evidence-glass-orb.png" alt="Evidence Lane glass brain orb" width={720} height={720} priority />}
+        aside={
+          <div className="routeBrainOrb" aria-label="Pulsing Evidence Lane glass brain">
+            <EvidenceBrainAsset color="#37c7e7" label="" />
+          </div>
+        }
       />
 
       <section className="section shell topologySection">

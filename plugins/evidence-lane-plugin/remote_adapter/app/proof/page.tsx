@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 
+import { EvidenceBrainAsset } from "../_components/evidence-assets";
 import { PageHero } from "../_components/page-hero";
 import { proofRules } from "../_data/site";
 
@@ -16,7 +16,11 @@ export default function ProofPage() {
         eyebrow="Proof before claim"
         title="Tests can disprove a report. They cannot manufacture acceptance."
         description="Evidence Lane separates verified implementation behavior, historical design context, unaccepted candidate evidence, external deployment state, and human lifecycle authority."
-        aside={<Image src="/evidence-executive-scanner.png" alt="Evidence scanner visualization" width={900} height={700} priority />}
+        aside={
+          <div className="routeBrainOrb" aria-label="Pulsing Evidence Lane glass brain">
+            <EvidenceBrainAsset color="#e6aa48" label="" />
+          </div>
+        }
       />
       <section className="section shell proofRules">
         <div className="sectionHead wideHead"><span className="kicker">Current v1.1 correction standard</span><h2>Five rules that must fail loudly.</h2></div>

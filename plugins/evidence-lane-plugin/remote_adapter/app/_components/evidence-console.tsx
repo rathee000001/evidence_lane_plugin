@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Image from "next/image";
 import {
   useEffect,
@@ -9,6 +10,12 @@ import {
 } from "react";
 
 import { controls, laneToolchains } from "../_data/site";
+import {
+  EvidenceBrainAsset,
+  LaneAssetIcon,
+  OfficialToolIcon,
+  type OfficialToolIconName,
+} from "./evidence-assets";
 
 function focusIndexedControl(prefix: string, index: number) {
   document.getElementById(`${prefix}-${index}`)?.focus();
@@ -40,62 +47,38 @@ const laneAccents = [
 ] as const;
 
 type LaneFlowStyle = CSSProperties & {
-  "--file-index"?: number;
+  "--file-index"?: string;
   "--lane-accent"?: string;
+  "--orbit-counter-end"?: string;
+  "--orbit-counter-start"?: string;
+  "--orbit-end"?: string;
+  "--orbit-start"?: string;
+  "--tool-index"?: string;
 };
 
-function LaneGlyph({ laneId, className = "" }: { laneId: string; className?: string }) {
-  const common = {
-    className,
-    viewBox: "0 0 48 48",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 2.4,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true,
-  };
+type LaneToolStep = {
+  stage: string;
+  label: string;
+  tool: OfficialToolIconName;
+};
 
-  if (laneId === "discussion" || laneId === "chat_lineage") {
-    return <svg {...common}><path d="M8 10h25a6 6 0 0 1 6 6v12a6 6 0 0 1-6 6H21l-9 7v-7H8a6 6 0 0 1-6-6V16a6 6 0 0 1 6-6Z" /><path d="M11 20h19M11 26h13" /></svg>;
-  }
-  if (laneId === "analysis" || laneId === "research") {
-    return <svg {...common}><circle cx="21" cy="21" r="13" /><path d="m31 31 11 11M14 25l5-6 5 4 6-8" /></svg>;
-  }
-  if (laneId === "plan" || laneId === "mode") {
-    return <svg {...common}><rect x="8" y="6" width="32" height="36" rx="6" /><path d="m14 16 3 3 5-6M26 17h8M14 29l3 3 5-6M26 30h8" /></svg>;
-  }
-  if (laneId === "local_code" || laneId === "github_code") {
-    return <svg {...common}><path d="m17 13-10 11 10 11M31 13l10 11-10 11M28 7l-8 34" /></svg>;
-  }
-  if (laneId === "data_excel") {
-    return <svg {...common}><rect x="5" y="7" width="38" height="34" rx="5" /><path d="M5 18h38M17 7v34M29 18v23M5 30h38" /></svg>;
-  }
-  if (laneId === "ppt") {
-    return <svg {...common}><rect x="6" y="7" width="36" height="28" rx="5" /><path d="M24 35v7M16 42h16M15 27V15h7a6 6 0 0 1 0 12h-7Z" /></svg>;
-  }
-  if (laneId === "images_ocr") {
-    return <svg {...common}><rect x="5" y="7" width="38" height="34" rx="6" /><circle cx="17" cy="18" r="4" /><path d="m8 36 10-10 7 7 6-6 9 9" /></svg>;
-  }
-  if (laneId === "artifacts" || laneId === "custom") {
-    return <svg {...common}><path d="m24 4 17 9v22l-17 9-17-9V13l17-9Z" /><path d="m7 13 17 9 17-9M24 22v22M17 9l17 9" /></svg>;
-  }
-  if (laneId === "project_engulf") {
-    return <svg {...common}><path d="M5 13h15l5 6h18v21H5V13Z" /><path d="M16 29h16M24 23v12" /></svg>;
-  }
-  if (laneId === "brain_loader" || laneId === "sqlite_brain") {
-    return <svg {...common}><ellipse cx="24" cy="11" rx="16" ry="7" /><path d="M8 11v13c0 4 7 7 16 7s16-3 16-7V11M8 24v13c0 4 7 7 16 7s16-3 16-7V24" /><path d="m20 19 8 5-8 5v-10Z" /></svg>;
-  }
-  return <svg {...common}><path d="M12 5h17l8 8v30H12V5Z" /><path d="M29 5v9h8M18 23h13M18 30h13M18 37h9" /></svg>;
+function sourceToolForLane(laneId: string): OfficialToolIconName {
+  if (laneId === "github_code" || laneId === "local_code") return "git";
+  if (laneId === "data_excel" || laneId === "brain_loader") return "database";
+  if (laneId === "pdf_ocr" || laneId === "images_ocr" || laneId === "ppt") return "media";
+  if (laneId === "artifacts" || laneId === "project_engulf") return "package";
+  return "node";
 }
 
-function BrainMark() {
-  return (
-    <svg className="laneBrainMark" viewBox="0 0 120 96" fill="none" aria-hidden="true">
-      <path d="M58 18C49 7 31 11 29 25 15 26 11 43 21 51c-8 12 2 29 17 26 4 12 20 12 22 0V20c0-5-1-7-2-2Z" />
-      <path d="M62 18C71 7 89 11 91 25c14 1 18 18 8 26 8 12-2 29-17 26-4 12-20 12-22 0V20c0-5 1-7 2-2ZM31 31c9-2 15 4 15 12M25 54c9-3 18 2 19 12M89 31c-9-2-15 4-15 12M95 54c-9-3-18 2-19 12M46 24c4 4 5 9 3 14M74 24c-4 4-5 9-3 14" />
-    </svg>
-  );
+function laneToolSteps(lane: (typeof laneToolchains)[number]): LaneToolStep[] {
+  return [
+    { stage: "Intake", label: lane.source, tool: sourceToolForLane(lane.id) },
+    { stage: "Parse", label: lane.parser, tool: "python" },
+    { stage: "Index", label: lane.chunker, tool: "database" },
+    { stage: "Topology", label: "Mermaid and DOT reconciliation", tool: "media" },
+    { stage: "Retrieve", label: lane.retrieval, tool: "terminal" },
+    { stage: "Seal", label: "Pointer, manifest, and receipt", tool: "package" },
+  ];
 }
 
 export function UniversalCommandDeck() {
@@ -114,7 +97,7 @@ export function UniversalCommandDeck() {
         <div className="deckControls" role="tablist" aria-label="Evidence Lane controls">
           {controls.map((control, index) => (
             <button
-              className={`deckControl deckControl${index}${index === activeIndex ? " active" : ""}`}
+              className={`rilPill deckControl deckControl${index}${index === activeIndex ? " active" : ""}`}
               id={`deck-control-${index}`}
               key={control.name}
               type="button"
@@ -133,18 +116,20 @@ export function UniversalCommandDeck() {
                 focusIndexedControl("deck-control", next);
               }}
             >
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              {control.name}
+                <span className="rilIconBadge" aria-hidden="true">
+                  <span className="deckControlIndex">{String(index + 1).padStart(2, "0")}</span>
+                </span>
+                <span>{control.name}</span>
             </button>
           ))}
         </div>
       </div>
-      <article
-        className="deckDetail"
+      <article className="deckDetail rilSectionPanel" aria-label={`${active.name} universal control detail`}>
+        <div
         id="command-deck-detail"
         role="tabpanel"
         aria-labelledby={`deck-control-${activeIndex}`}
-      >
+        >
         <span className="deckDetailIndex">CONTROL {String(activeIndex + 1).padStart(2, "0")}</span>
         <h3>{active.name}</h3>
         <p>{active.detail}</p>
@@ -153,6 +138,7 @@ export function UniversalCommandDeck() {
           <div><dt>Boundary</dt><dd>{active.guardrail}</dd></div>
         </dl>
         <small>Hover, focus, or use arrow keys to inspect each control.</small>
+        </div>
       </article>
     </div>
   );
@@ -164,6 +150,7 @@ export function LaneToolchainExplorer() {
   const [autoCycle, setAutoCycle] = useState(false);
   const active = laneToolchains[activeIndex];
   const accent = laneAccents[activeIndex % laneAccents.length];
+  const toolSteps = laneToolSteps(active);
   const outputFiles = [
     `${active.id}_sector_v001.sqlite`,
     `${active.id}.mmd`,
@@ -190,7 +177,7 @@ export function LaneToolchainExplorer() {
       <div className="lanePicker" role="tablist" aria-label="Canonical Evidence Lane toolchains">
         {laneToolchains.map((lane, index) => (
           <button
-            className={index === activeIndex ? "active" : ""}
+            className={`rilPill${index === activeIndex ? " active" : ""}`}
             id={`lane-tool-${index}`}
             key={lane.id}
             type="button"
@@ -209,18 +196,21 @@ export function LaneToolchainExplorer() {
                 focusIndexedControl("lane-tool", next);
             }}
           >
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            {lane.name}
+            <span className="rilIconBadge" aria-hidden="true">
+              <LaneAssetIcon lane={lane.id} size={21} decorative />
+            </span>
+            <span className="lanePickerIndex">{String(index + 1).padStart(2, "0")}</span>
+            <span className="lanePickerLabel">{lane.name}</span>
           </button>
         ))}
       </div>
 
-      <article
-        className="laneToolchainDetail"
+      <article className="laneToolchainDetail rilSectionPanel" aria-label={`${active.name} Evidence Lane toolchain`}>
+        <div
         id="lane-toolchain-detail"
         role="tabpanel"
         aria-labelledby={`lane-tool-${activeIndex}`}
-      >
+        >
         <header className="laneToolchainHeader">
           <div>
             <span className="laneCode">{active.id}</span>
@@ -228,9 +218,9 @@ export function LaneToolchainExplorer() {
             <p>{active.reason}</p>
           </div>
           <div className="laneFlowControls" role="group" aria-label="Toolchain animation controls">
-            <button type="button" onClick={() => setFlowRun((current) => current + 1)}>Replay flow</button>
+            <button className="rilPill" type="button" onClick={() => setFlowRun((current) => current + 1)}>Replay flow</button>
             <button
-              className={autoCycle ? "active" : ""}
+              className={`rilPill${autoCycle ? " active" : ""}`}
               type="button"
               aria-pressed={autoCycle}
               onClick={() => setAutoCycle((current) => !current)}
@@ -244,21 +234,51 @@ export function LaneToolchainExplorer() {
           aria-label={`${active.name} icon enters the glass brain and emits four sealed files`}
         >
           <div className="cinemaTopline"><span>INPUT ICON</span><i /><span>BOUNDED PROCESS</span><i /><span>4 SEALED FILES</span></div>
-          <div className="laneSourcePill">
-            <span className="laneSourceIcon"><LaneGlyph laneId={active.id} /></span>
+          <div className="laneToolOrbit" aria-label={`${active.name} official toolchain`}>
+            {toolSteps.map((step, index) => (
+              <motion.div
+                className="laneToolCard"
+                initial={{ opacity: 0, y: -18, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: index * 0.055, duration: 0.42 }}
+                whileHover={{ y: -5, scale: 1.025 }}
+                tabIndex={0}
+                key={`${active.id}-${step.stage}`}
+              >
+                <span className="rilIconBadge" aria-hidden="true">
+                  <OfficialToolIcon tool={step.tool} size={25} decorative />
+                </span>
+                <span><small>{step.stage}</small><strong>{step.label}</strong></span>
+              </motion.div>
+            ))}
+          </div>
+          <div className="laneSourcePill rilPill">
+            <span className="rilIconBadge laneSourceIcon" aria-hidden="true">
+              <LaneAssetIcon lane={active.id} size={26} decorative />
+            </span>
             <span><small>Selected lane</small><strong>{active.name}</strong></span>
           </div>
           <div className="laneFlightRail" aria-hidden="true" />
           <div className="laneBrainOrb" aria-hidden="true">
-            <span className="laneBrainHalo" />
-            <span className="laneBrainGlass" />
-            <BrainMark />
-            <span className="laneBrainRim" />
-            <span className="laneBrainReflection" />
+            <EvidenceBrainAsset color={accent} label="" />
           </div>
           <div className="laneFlowAnimation" key={`${active.id}-${flowRun}`} aria-hidden="true">
-            <span className="laneFlyingIcon"><LaneGlyph laneId={active.id} /></span>
-            <span className="laneDigestedIcon"><LaneGlyph laneId={active.id} /></span>
+            {toolSteps.map((step, index) => (
+              <span
+                className="laneFlyingIcon"
+                key={`${active.id}-${step.stage}-flight`}
+                style={{
+                  "--tool-index": String(index),
+                  "--orbit-start": `${index * 60}deg`,
+                  "--orbit-end": `${index * 60 + 360}deg`,
+                  "--orbit-counter-start": `${index * -60}deg`,
+                  "--orbit-counter-end": `${(index * 60 + 360) * -1}deg`,
+                } as LaneFlowStyle}
+              >
+                <OfficialToolIcon tool={step.tool} size={30} decorative />
+              </span>
+            ))}
+            <span className="laneDigestedIcon"><OfficialToolIcon tool="pulse" size={31} decorative /></span>
             <span className="laneDigestPulse laneDigestPulseOne" />
             <span className="laneDigestPulse laneDigestPulseTwo" />
             <div className="laneArtifactEmitter">
@@ -266,7 +286,7 @@ export function LaneToolchainExplorer() {
                 <span
                   className="laneArtifactFile"
                   key={file}
-                  style={{ "--file-index": index } as LaneFlowStyle}
+                  style={{ "--file-index": String(index) } as LaneFlowStyle}
                 >
                   <b>{String(index + 1).padStart(2, "0")}</b>
                   <code>{file}</code>
@@ -275,7 +295,7 @@ export function LaneToolchainExplorer() {
               ))}
             </div>
           </div>
-          <span className="cinemaStatus" aria-hidden="true">parse · chunk · index · reconcile</span>
+          <span className="cinemaStatus" aria-hidden="true">enter · orbit · digest · emit</span>
         </div>
 
         <div className="toolchainStory" aria-label={`${active.name} toolchain sequence`}>
@@ -299,6 +319,7 @@ export function LaneToolchainExplorer() {
           <span>Pointer</span><i />
           <span>Receipt</span>
         </footer>
+        </div>
       </article>
     </div>
   );

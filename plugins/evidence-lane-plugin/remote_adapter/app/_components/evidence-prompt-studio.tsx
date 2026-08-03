@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
 
 import { promptKnowledge, promptSuggestions } from "../_data/site";
+import { LaneAssetIcon } from "./evidence-assets";
 
 type StudioSource = { label: string; href: string };
 type StudioMessage = {
@@ -24,6 +25,23 @@ const welcome: StudioMessage = {
   sources: [{ label: "Architecture", href: "/architecture" }],
 };
 
+const promptStopWords = new Set([
+  "are",
+  "can",
+  "does",
+  "for",
+  "from",
+  "how",
+  "into",
+  "the",
+  "this",
+  "what",
+  "when",
+  "where",
+  "which",
+  "with",
+]);
+
 function normalize(value: string) {
   return value
     .toLowerCase()
@@ -33,16 +51,20 @@ function normalize(value: string) {
 
 function resolveKnowledge(question: string) {
   const normalized = normalize(question);
-  const tokens = new Set(normalized.split(" ").filter((token) => token.length > 2));
+  const tokens = new Set(
+    normalized
+      .split(" ")
+      .filter((token) => token.length > 2 && !promptStopWords.has(token)),
+  );
   const scored = promptKnowledge.map((entry) => {
     const keywordScore = entry.keywords.reduce((score, keyword) => {
       const normalizedKeyword = normalize(keyword);
       return score + (normalized.includes(normalizedKeyword) ? 3 : tokens.has(normalizedKeyword) ? 2 : 0);
     }, 0);
-    const titleScore = normalize(entry.title).split(" ").reduce(
-      (score, token) => score + (tokens.has(token) ? 1 : 0),
-      0,
-    );
+    const titleScore = normalize(entry.title)
+      .split(" ")
+      .filter((token) => token.length > 2 && !promptStopWords.has(token))
+      .reduce((score, token) => score + (tokens.has(token) ? 2 : 0), 0);
     return { entry, score: keywordScore + titleScore };
   }).sort((left, right) => right.score - left.score);
 
@@ -103,42 +125,38 @@ export function EvidencePromptStudio() {
   };
 
   return (
-    <div className="promptStudio" data-grounding="LOCAL_SITE_KNOWLEDGE_MAP">
-      <aside className="promptStudioRail" aria-label="Prompt Studio capabilities">
-        <div className="studioIdentityOrb" aria-hidden="true">
-          <span />
-          <svg viewBox="0 0 64 64" fill="none">
-            <path d="M13 17h38v27H29l-10 8v-8h-6V17Z" />
-            <path d="M21 26h22M21 33h15" />
-          </svg>
-        </div>
-        <div>
-          <small>Evidence AI Studio</small>
-          <strong>Grounded product guide</strong>
-        </div>
-        <dl>
-          <div><dt>Knowledge</dt><dd>{promptKnowledge.length} governed topics</dd></div>
-          <div><dt>Provider</dt><dd>No external model</dd></div>
-          <div><dt>Fallback</dt><dd>Refuse unsupported claims</dd></div>
-        </dl>
-        <button
-          type="button"
-          onClick={() => {
-            setMessages([welcome]);
-            setQuestion("");
-          }}
-        >Clear session</button>
-      </aside>
-
+    <div className="promptStudio rilStudio" aria-label="Grounded Evidence Lane Prompt Studio" data-grounding="LOCAL_SITE_KNOWLEDGE_MAP">
       <section className="promptStudioWorkspace" aria-label="Evidence Lane question workspace">
-        <header>
-          <div>
+        <header className="promptStudioHeader">
+          <div className="promptStudioIdentity">
+            <span className="rilIconBadge studioIdentityOrb" aria-hidden="true">
+              <LaneAssetIcon lane="chat_lineage" size={29} decorative />
+            </span>
+            <span>
+              <small>Evidence AI Studio</small>
+              <strong>Grounded product guide</strong>
+            </span>
+          </div>
+          <div className="promptStudioMeta">
+            <span><b>{promptKnowledge.length}</b> governed topics</span>
+            <span>No external model</span>
+            <span className={lastAssistant?.grounded ? "grounded" : "bounded"}>
+              <i className="studioLiveDot" />
+              {lastAssistant?.grounded ? "Grounded" : "Boundary shown"}
+            </span>
+            <button
+              className="rilPill"
+              type="button"
+              onClick={() => {
+                setMessages([welcome]);
+                setQuestion("");
+              }}
+            >Clear session</button>
+          </div>
+          <div className="promptStudioMode">
             <span className="studioLiveDot" />
             <strong>Inspectable answer mode</strong>
           </div>
-          <span className={lastAssistant?.grounded ? "grounded" : "bounded"}>
-            {lastAssistant?.grounded ? "Grounded" : "Boundary shown"}
-          </span>
         </header>
 
         <div className="promptTranscript" aria-live="polite" aria-label="Prompt Studio transcript">
@@ -163,7 +181,7 @@ export function EvidencePromptStudio() {
 
         <div className="promptSuggestionCluster" aria-label="Suggested Evidence Lane questions">
           {promptSuggestions.map((suggestion) => (
-            <button type="button" key={suggestion} onClick={() => submitQuestion(suggestion)}>
+            <button className="rilPill" type="button" key={suggestion} onClick={() => submitQuestion(suggestion)}>
               {suggestion}
             </button>
           ))}
@@ -177,11 +195,13 @@ export function EvidencePromptStudio() {
             onChange={(event) => setQuestion(event.target.value)}
             onKeyDown={onKeyDown}
             rows={3}
-            placeholder="Ask how Refresh preserves unchanged bytes…"
+            placeholder="Ask how Refresh preserves unchanged bytes..."
           />
           <div>
-            <small>Ctrl/⌘ + Enter to send · answers cite published sections</small>
-            <button type="submit" disabled={!question.trim()}>Run grounded prompt <span aria-hidden="true">→</span></button>
+            <small>Ctrl/Cmd + Enter to send - answers cite published sections</small>
+            <button className={`rilPill${question.trim() ? " active" : ""}`} type="submit" disabled={!question.trim()}>
+              Run grounded prompt <span aria-hidden="true">&rarr;</span>
+            </button>
           </div>
         </form>
       </section>

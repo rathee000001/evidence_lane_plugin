@@ -6,7 +6,10 @@ import {
   LaneToolchainExplorer,
   UniversalCommandDeck,
 } from "./_components/evidence-console";
+import { EvidenceBrainAsset } from "./_components/evidence-assets";
+import { MotionReveal } from "./_components/motion-reveal";
 import { ReleaseStatus } from "./_components/release-status";
+import { SourceBrainLab } from "./_components/source-brain-lab";
 import { artifactContract, painLedger, proofMetrics } from "./_data/site";
 
 const routes = [
@@ -21,34 +24,29 @@ export default function Home() {
   return (
     <main>
       <section className="homeHero shell">
-        <div className="heroCopy">
-          <span className="eyebrow"><i />Controlled AI code intelligence</span>
-          <h1>Build an inspectable project brain. Keep acceptance human.</h1>
+        <MotionReveal className="heroCopy">
+          <span className="eyebrow"><i />Governed source-to-brain intelligence</span>
+          <h1>Turn a repository into an inspectable brain. Keep truth human.</h1>
           <p>
-            Evidence Lane turns authorized project sources into searchable SQLite sectors,
-            reconciled Mermaid and DOT topology, exact pointers, visible lineage, and rollback
-            evidence. It never treats a candidate as accepted truth by implication.
+            Evidence Lane lets tools move fast without letting claims move silently. Authorized
+            sources become searchable SQLite sectors, reconciled topology, exact pointers, and
+            receipts that a human can inspect before anything is accepted.
           </p>
           <div className="actions">
-            <Link className="primary" href="/architecture">Explore the system</Link>
-            <Link className="secondary" href="/proof">Inspect the proof boundary</Link>
+            <Link className="primary" href="#brains">Watch a source become evidence</Link>
+            <Link className="secondary" href="/proof">Inspect the HIL boundary</Link>
           </div>
-        </div>
-        <div className="heroVisual" role="img" aria-label="Evidence Lane identity with governed project metrics">
+        </MotionReveal>
+        <MotionReveal className="heroVisual" delay={0.12}>
           <EvidenceOrbit />
           <div className="visualHalo" />
-          <Image
-            className="brandHeroLogo"
-            src="/evidence-lane-full-logo.png"
-            alt="Evidence Lane full logo"
-            width={2400}
-            height={1792}
-            priority
-          />
-          <div className="visualBadge badgeA"><span>18</span> canonical lanes</div>
-          <div className="visualBadge badgeB"><span>1</span> human gate</div>
-          <div className="visualBadge badgeC"><span>0</span> silent promotions</div>
-        </div>
+          <div className="heroBrainOrb" role="img" aria-label="Evidence Lane brain inside a glass orb">
+            <EvidenceBrainAsset color="#4bd3f2" label="" />
+          </div>
+          <div className="visualBadge badgeA"><span>18</span> source lanes</div>
+          <div className="visualBadge badgeB"><span>7</span> code entities</div>
+          <div className="visualBadge badgeC"><span>1</span> human gate</div>
+        </MotionReveal>
       </section>
 
       <section className="principleBand">
@@ -67,6 +65,22 @@ export default function Home() {
             <div><span>{label}</span><p>{detail}</p></div>
           </article>
         ))}
+      </section>
+
+      <section className="section sourceLabBand" id="brains">
+        <div className="shell">
+          <MotionReveal className="sectionHead wideHead">
+            <span className="kicker">Verified source lab</span>
+            <h2>Inspect the generator, six official source snapshots, and four read-only brains without collapsing their identities.</h2>
+            <p>
+              The selected V5.9 desktop app, Graphify, five official GitHub sources, an Agentic
+              Workflows brain, the older Evidence Lane export, and the RIL and Gold mini brains
+              are separate evidence objects. Each interactive view shows what was verified,
+              what improved the candidate, and what the evidence cannot prove.
+            </p>
+          </MotionReveal>
+          <SourceBrainLab />
+        </div>
       </section>
 
       <section className="section shell splitIntro" id="problem">
@@ -102,7 +116,7 @@ export default function Home() {
           <div className="sectionHead wideHead">
             <span className="kicker">The operating surface</span>
             <h2>A compact command deck over a strict authority boundary.</h2>
-            <p>Hover, focus, click, or use arrow keys to inspect what each public control produces—and what it is forbidden to imply.</p>
+            <p>Hover, focus, click, or use arrow keys to inspect what each public control produces and what it is forbidden to imply.</p>
           </div>
           <UniversalCommandDeck />
           <div className="conditionalEvent">
@@ -116,9 +130,9 @@ export default function Home() {
       <section className="section toolchainBand" id="toolchains">
         <div className="shell">
           <div className="sectionHead wideHead">
-            <span className="kicker light">Lane-by-lane toolchain</span>
-            <h2>Every source class has a named parser, chunker, retrieval surface, and evidence package.</h2>
-            <p>Nothing here is a decorative capability label. The identifiers below come from the same immutable eighteen-lane registry used by the engine.</p>
+            <span className="kicker">Lane-by-lane toolchain</span>
+            <h2>Select a lane. Watch its real tools enter one brain and emit four inspectable files.</h2>
+            <p>The official app icons, parser IDs, chunkers, retrieval surfaces, and output names come from the same eighteen-lane contract used by the engine.</p>
           </div>
           <LaneToolchainExplorer />
           <div className="toolchainStudioLink">

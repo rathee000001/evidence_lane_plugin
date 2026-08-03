@@ -41,6 +41,13 @@ _BACKEND_RUNTIMES = {
     "external_mcp",
 }
 _SECRET_SCHEMA_PARTS = {"password", "secret", "token", "api_key", "credential"}
+_ROUTE_GUARD_ORDER = (
+    "ACTIVE",
+    "GRANT_LIVE",
+    "CAPABILITY_AND_ACTION_ALLOWED",
+    "LANE_ALLOWED",
+    "HOST_ALLOWED",
+)
 
 
 class ConnectorGovernance:
@@ -91,8 +98,12 @@ class ConnectorGovernance:
                 route_id TEXT PRIMARY KEY,
                 requested_capability TEXT NOT NULL,
                 canonical_lane_id TEXT,
+                requested_plugin_id TEXT,
                 selected_plugin_id TEXT REFERENCES plugin_registration(plugin_id),
                 decision TEXT NOT NULL,
+                decision_reason TEXT NOT NULL DEFAULT '',
+                candidate_plugin_ids_json TEXT NOT NULL DEFAULT '[]',
+                guard_trace_json TEXT NOT NULL DEFAULT '[]',
                 host_profile TEXT NOT NULL DEFAULT 'CODEX',
                 role_schema_sha256 TEXT,
                 recorded_at TEXT NOT NULL
@@ -140,6 +151,10 @@ class ConnectorGovernance:
         route_migrations = {
             "host_profile": "TEXT NOT NULL DEFAULT 'CODEX'",
             "role_schema_sha256": "TEXT",
+            "requested_plugin_id": "TEXT",
+            "decision_reason": "TEXT NOT NULL DEFAULT ''",
+            "candidate_plugin_ids_json": "TEXT NOT NULL DEFAULT '[]'",
+            "guard_trace_json": "TEXT NOT NULL DEFAULT '[]'",
         }
         for name, declaration in route_migrations.items():
             if name not in route_columns:
@@ -771,6 +786,7 @@ class ConnectorGovernance:
         capability: str,
         canonical_lane_id: str | None = None,
         host_profile: str = "CODEX",
+        preferred_plugin_id: str | None = None,
     ) -> dict[str, Any]:
         exact_host = host_profile.strip().upper()
         require(
@@ -789,22 +805,79 @@ class ConnectorGovernance:
                 "Plugin routing requires one canonical lane.",
                 status="BLOCKED",
             )
-        catalog = self.catalog()
-        matches = [
-            row
-            for row in catalog["registrations"]
-            if row["status"] == "ACTIVE"
-            and row["grant_live"]
-            and capability in row["capabilities"]
-            and capability in row["allowed_actions"]
-            and exact_host in row["host_profiles"]
-            and (canonical_lane_id is None or canonical_lane_id in row["allowed_lanes"])
-        ]
-        matches.sort(key=lambda row: row["plugin_id"])
-        selected = matches[0]["plugin_id"] if matches else None
-        decision = (
-            "PERSISTENT_PLUGIN" if selected else "BUILTIN_OR_FAIL_CLOSED_FALLBACK"
+        exact_preferred = (
+            preferred_plugin_id.strip().lower() if preferred_plugin_id else None
         )
+        require(
+            exact_preferred is None or bool(_PLUGIN_ID.fullmatch(exact_preferred)),
+            "PLUGIN_ROUTE_PREFERRED_ID_INVALID",
+            "A preferred connector route must name one lowercase plugin ID.",
+            status="BLOCKED",
+        )
+        catalog = self.catalog()
+        traces: list[dict[str, Any]] = []
+        eligible: list[dict[str, Any]] = []
+        for row in sorted(
+            catalog["registrations"], key=lambda item: item["plugin_id"]
+        ):
+            predicates = {
+                "ACTIVE": row["status"] == "ACTIVE",
+                "GRANT_LIVE": bool(row["grant_live"]),
+                "CAPABILITY_AND_ACTION_ALLOWED": (
+                    capability in row["capabilities"]
+                    and capability in row["allowed_actions"]
+                ),
+                "LANE_ALLOWED": (
+                    canonical_lane_id is None
+                    or canonical_lane_id in row["allowed_lanes"]
+                ),
+                "HOST_ALLOWED": exact_host in row["host_profiles"],
+            }
+            first_failed = next(
+                (guard for guard in _ROUTE_GUARD_ORDER if not predicates[guard]),
+                None,
+            )
+            trace = {
+                "plugin_id": row["plugin_id"],
+                "eligible": first_failed is None,
+                "first_failed_guard": first_failed,
+                "guards": [
+                    {"guard": guard, "passed": predicates[guard]}
+                    for guard in _ROUTE_GUARD_ORDER
+                ],
+            }
+            traces.append(trace)
+            if first_failed is None:
+                eligible.append(row)
+
+        eligible_by_id = {row["plugin_id"]: row for row in eligible}
+        registrations_by_id = {
+            row["plugin_id"]: row for row in catalog["registrations"]
+        }
+        selected_row: dict[str, Any] | None = None
+        if exact_preferred is not None:
+            if exact_preferred in eligible_by_id:
+                selected_row = eligible_by_id[exact_preferred]
+                decision = "PERSISTENT_PLUGIN"
+                decision_reason = "preferred_plugin_passed_all_ordered_guards"
+            elif exact_preferred in registrations_by_id:
+                decision = "REQUESTED_PLUGIN_DENIED"
+                decision_reason = "preferred_plugin_failed_ordered_route_guards"
+            else:
+                decision = "REQUESTED_PLUGIN_NOT_FOUND"
+                decision_reason = "preferred_plugin_id_is_not_registered"
+        elif len(eligible) == 1:
+            selected_row = eligible[0]
+            decision = "PERSISTENT_PLUGIN"
+            decision_reason = "exactly_one_plugin_passed_all_ordered_guards"
+        elif not eligible:
+            decision = "NO_MATCH_FAIL_CLOSED"
+            decision_reason = "no_plugin_passed_all_ordered_route_guards"
+        else:
+            decision = "AMBIGUOUS_FAIL_CLOSED"
+            decision_reason = "multiple_plugins_require_an_exact_preferred_plugin_id"
+        selected = selected_row["plugin_id"] if selected_row else None
+        candidate_ids = [row["plugin_id"] for row in eligible]
         connection = self._connect()
         try:
             route_id = prefixed_id("pluginroute")
@@ -812,18 +885,23 @@ class ConnectorGovernance:
                 """
                 INSERT INTO route_decision(
                     route_id, requested_capability, canonical_lane_id,
-                    selected_plugin_id, decision, host_profile,
-                    role_schema_sha256, recorded_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    requested_plugin_id, selected_plugin_id, decision,
+                    decision_reason, candidate_plugin_ids_json, guard_trace_json,
+                    host_profile, role_schema_sha256, recorded_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     route_id,
                     capability,
                     canonical_lane_id,
+                    exact_preferred,
                     selected,
                     decision,
+                    decision_reason,
+                    json.dumps(candidate_ids, separators=(",", ":")),
+                    json.dumps(traces, separators=(",", ":")),
                     exact_host,
-                    matches[0]["role_schema_sha256"] if matches else None,
+                    selected_row["role_schema_sha256"] if selected_row else None,
                     utc_now(),
                 ),
             )
@@ -836,16 +914,24 @@ class ConnectorGovernance:
             "requested_capability": capability,
             "canonical_lane_id": canonical_lane_id,
             "host_profile": exact_host,
+            "preferred_plugin_id": exact_preferred,
             "selected_plugin_id": selected,
             "decision": decision,
-            "deterministic_order": [row["plugin_id"] for row in matches],
-            "selected_role": matches[0]["role"] if matches else None,
-            "selected_role_schema": matches[0]["role_schema"] if matches else None,
+            "decision_reason": decision_reason,
+            "eligible_plugin_ids": candidate_ids,
+            "deterministic_order": candidate_ids,
+            "guard_order": list(_ROUTE_GUARD_ORDER),
+            "guard_trace": traces,
+            "ambiguity_fails_closed": True,
+            "selected_role": selected_row["role"] if selected_row else None,
+            "selected_role_schema": (
+                selected_row["role_schema"] if selected_row else None
+            ),
             "selected_role_schema_sha256": (
-                matches[0]["role_schema_sha256"] if matches else None
+                selected_row["role_schema_sha256"] if selected_row else None
             ),
             "selected_backend_runtime": (
-                matches[0]["backend_runtime"] if matches else None
+                selected_row["backend_runtime"] if selected_row else None
             ),
             "backend_execution_authorized": False,
         }
@@ -911,6 +997,12 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
         route_profiles_present = {
             "host_profile",
             "role_schema_sha256",
+        } <= route_columns
+        route_guard_audit_present = {
+            "requested_plugin_id",
+            "decision_reason",
+            "candidate_plugin_ids_json",
+            "guard_trace_json",
         } <= route_columns
         active_count = sum(1 for row in rows if row["status"] == "ACTIVE")
         config_keys_valid = True
@@ -994,8 +1086,10 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
             else 0
         )
         route_profiles_valid = True
+        route_guard_audit_valid = True
+        legacy_route_guard_rows = 0
+        registrations = {str(row["plugin_id"]): row for row in rows}
         if route_profiles_present:
-            registrations = {str(row["plugin_id"]): row for row in rows}
             for route in connection.execute(
                 """
                 SELECT selected_plugin_id,host_profile,role_schema_sha256
@@ -1029,6 +1123,120 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
                 ):
                     route_profiles_valid = False
                     break
+        if route_guard_audit_present:
+            for route in connection.execute(
+                """
+                SELECT requested_plugin_id,selected_plugin_id,decision,
+                       decision_reason,candidate_plugin_ids_json,guard_trace_json,
+                       role_schema_sha256
+                FROM route_decision
+                """
+            ):
+                try:
+                    candidate_ids = json.loads(route["candidate_plugin_ids_json"])
+                    guard_trace = json.loads(route["guard_trace_json"])
+                except (TypeError, json.JSONDecodeError):
+                    route_guard_audit_valid = False
+                    break
+                decision_reason = str(route["decision_reason"])
+                if not decision_reason and candidate_ids == [] and guard_trace == []:
+                    legacy_route_guard_rows += 1
+                    continue
+                requested_id = route["requested_plugin_id"]
+                selected_id = route["selected_plugin_id"]
+                if (
+                    not decision_reason
+                    or not isinstance(candidate_ids, list)
+                    or not all(
+                        isinstance(plugin_id, str)
+                        and _PLUGIN_ID.fullmatch(plugin_id)
+                        and plugin_id in registrations
+                        for plugin_id in candidate_ids
+                    )
+                    or candidate_ids != sorted(set(candidate_ids))
+                    or not isinstance(guard_trace, list)
+                    or requested_id is not None
+                    and not _PLUGIN_ID.fullmatch(str(requested_id))
+                ):
+                    route_guard_audit_valid = False
+                    break
+                traced_plugin_ids: list[str] = []
+                traced_eligible_ids: list[str] = []
+                for trace in guard_trace:
+                    guards = trace.get("guards") if isinstance(trace, dict) else None
+                    if (
+                        not isinstance(trace, dict)
+                        or trace.get("plugin_id") not in registrations
+                        or not isinstance(guards, list)
+                        or [item.get("guard") for item in guards]
+                        != list(_ROUTE_GUARD_ORDER)
+                        or not all(
+                            isinstance(item, dict)
+                            and isinstance(item.get("passed"), bool)
+                            for item in guards
+                        )
+                    ):
+                        route_guard_audit_valid = False
+                        break
+                    traced_plugin_ids.append(str(trace["plugin_id"]))
+                    failed = next(
+                        (
+                            item["guard"]
+                            for item in guards
+                            if not item["passed"]
+                        ),
+                        None,
+                    )
+                    if (
+                        trace.get("first_failed_guard") != failed
+                        or trace.get("eligible") is not (failed is None)
+                    ):
+                        route_guard_audit_valid = False
+                        break
+                    if failed is None:
+                        traced_eligible_ids.append(str(trace["plugin_id"]))
+                if not route_guard_audit_valid:
+                    break
+                if (
+                    traced_plugin_ids != sorted(set(traced_plugin_ids))
+                    or candidate_ids != traced_eligible_ids
+                ):
+                    route_guard_audit_valid = False
+                    break
+                if selected_id is not None:
+                    if (
+                        route["decision"] != "PERSISTENT_PLUGIN"
+                        or selected_id not in candidate_ids
+                        or route["role_schema_sha256"] is None
+                        or requested_id is not None
+                        and requested_id != selected_id
+                        or requested_id is None
+                        and len(candidate_ids) != 1
+                    ):
+                        route_guard_audit_valid = False
+                        break
+                else:
+                    decision = route["decision"]
+                    decision_valid = (
+                        decision == "NO_MATCH_FAIL_CLOSED"
+                        and requested_id is None
+                        and not candidate_ids
+                        or decision == "AMBIGUOUS_FAIL_CLOSED"
+                        and requested_id is None
+                        and len(candidate_ids) > 1
+                        or decision == "REQUESTED_PLUGIN_DENIED"
+                        and requested_id in registrations
+                        and requested_id not in candidate_ids
+                        or decision == "REQUESTED_PLUGIN_NOT_FOUND"
+                        and requested_id is not None
+                        and requested_id not in registrations
+                    )
+                    if (
+                        not decision_valid
+                        or route["role_schema_sha256"] is not None
+                    ):
+                        route_guard_audit_valid = False
+                        break
     finally:
         connection.close()
     valid = (
@@ -1040,6 +1248,7 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
         and governed_grants_valid
         and role_profiles_valid
         and route_profiles_valid
+        and route_guard_audit_valid
         and (
             not role_profiles_present
             or (
@@ -1073,4 +1282,8 @@ def validate_connector_brain(path: str | Path) -> dict[str, Any]:
         "route_profiles_present": route_profiles_present,
         "route_profiles_valid": route_profiles_valid,
         "legacy_route_profile_schema_supported": not route_profiles_present,
+        "route_guard_audit_present": route_guard_audit_present,
+        "route_guard_audit_valid": route_guard_audit_valid,
+        "legacy_route_guard_rows": legacy_route_guard_rows,
+        "ambiguity_fails_closed": route_guard_audit_present,
     }

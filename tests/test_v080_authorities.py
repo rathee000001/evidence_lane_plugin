@@ -274,3 +274,113 @@ def test_connector_settings_separate_hosts_and_bind_role_schema_runtime(
             role_schema={"api_key": "text"},
         )
     assert secret_schema.value.code == "PLUGIN_ROLE_SCHEMA_FIELD_INVALID"
+
+
+def test_connector_route_ambiguity_fails_closed_and_records_ordered_guards(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "connector-route-guards.sqlite"
+    governance = ConnectorGovernance(path)
+    for plugin_id in ("alpha-research", "beta-research"):
+        governance.register(
+            plugin_id=plugin_id,
+            name=plugin_id.replace("-", " ").title(),
+            plugin_kind="connector",
+            description="Reads one bounded research source.",
+            config_env_keys=[f"{plugin_id.replace('-', '_').upper()}_TOKEN"],
+            capabilities=["source-read"],
+            allowed_lanes=["research"],
+            registered_by="human-test",
+            purpose="Read a source explicitly selected by the user.",
+            allowed_actions=["source-read"],
+            write_scope=["lane:research"],
+            host_profiles=["CHATGPT"],
+            backend_runtime="external_mcp",
+        )
+
+    ambiguous = governance.route(
+        capability="source-read",
+        canonical_lane_id="research",
+        host_profile="CHATGPT",
+    )
+    assert ambiguous["selected_plugin_id"] is None
+    assert ambiguous["decision"] == "AMBIGUOUS_FAIL_CLOSED"
+    assert ambiguous["eligible_plugin_ids"] == [
+        "alpha-research",
+        "beta-research",
+    ]
+    assert ambiguous["guard_order"] == [
+        "ACTIVE",
+        "GRANT_LIVE",
+        "CAPABILITY_AND_ACTION_ALLOWED",
+        "LANE_ALLOWED",
+        "HOST_ALLOWED",
+    ]
+    assert all(trace["eligible"] for trace in ambiguous["guard_trace"])
+
+    selected = governance.route(
+        capability="source-read",
+        canonical_lane_id="research",
+        host_profile="CHATGPT",
+        preferred_plugin_id="beta-research",
+    )
+    assert selected["decision"] == "PERSISTENT_PLUGIN"
+    assert selected["selected_plugin_id"] == "beta-research"
+    assert selected["preferred_plugin_id"] == "beta-research"
+
+    denied = governance.route(
+        capability="source-write",
+        canonical_lane_id="research",
+        host_profile="CHATGPT",
+        preferred_plugin_id="beta-research",
+    )
+    assert denied["selected_plugin_id"] is None
+    assert denied["decision"] == "REQUESTED_PLUGIN_DENIED"
+    beta_trace = next(
+        trace
+        for trace in denied["guard_trace"]
+        if trace["plugin_id"] == "beta-research"
+    )
+    assert beta_trace["first_failed_guard"] == "CAPABILITY_AND_ACTION_ALLOWED"
+
+    unknown = governance.route(
+        capability="source-read",
+        canonical_lane_id="research",
+        host_profile="CHATGPT",
+        preferred_plugin_id="missing-research",
+    )
+    assert unknown["selected_plugin_id"] is None
+    assert unknown["decision"] == "REQUESTED_PLUGIN_NOT_FOUND"
+
+    no_match = governance.route(
+        capability="source-read",
+        canonical_lane_id="research",
+        host_profile="CODEX",
+    )
+    assert no_match["selected_plugin_id"] is None
+    assert no_match["decision"] == "NO_MATCH_FAIL_CLOSED"
+    assert all(
+        trace["first_failed_guard"] == "HOST_ALLOWED"
+        for trace in no_match["guard_trace"]
+    )
+
+    validation = validate_connector_brain(path)
+    assert validation["valid"] is True
+    assert validation["route_guard_audit_present"] is True
+    assert validation["route_guard_audit_valid"] is True
+    assert validation["legacy_route_guard_rows"] == 0
+    assert validation["ambiguity_fails_closed"] is True
+
+    connection = sqlite3.connect(path)
+    connection.execute(
+        """
+        UPDATE route_decision
+        SET candidate_plugin_ids_json = '["alpha-research"]'
+        WHERE decision = 'AMBIGUOUS_FAIL_CLOSED'
+        """
+    )
+    connection.commit()
+    connection.close()
+    tampered = validate_connector_brain(path)
+    assert tampered["valid"] is False
+    assert tampered["route_guard_audit_valid"] is False

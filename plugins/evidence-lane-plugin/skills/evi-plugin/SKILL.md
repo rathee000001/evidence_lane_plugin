@@ -30,8 +30,12 @@ sidecar. Connector/plugin registration never silently changes storage authority.
 - `DROP:<plugin-id>` calls `connector_plugin_drop` with that exact case-sensitive
   confirmation and preserves the append-only registration/event history.
 - `ROUTE:` calls `connector_plugin_route` for one visible capability, exact
-  host profile, and optional canonical lane; deterministic fallback remains
-  fail-closed and returns the selected role-schema hash.
+  host profile, optional canonical lane, and optional exact preferred plugin
+  ID. Active state, grant lifetime, capability/action, lane, and host guards
+  are evaluated in that order. Zero matches, a denied preferred plugin, or
+  multiple eligible plugins without a preferred ID remain fail-closed. The
+  receipt returns candidate IDs, ordered guard traces, and the selected
+  role-schema hash only when one route is actually selected.
 
 Never persist credentials, access tokens, private model reasoning, or hidden
 configuration values. Return to the exact prior lifecycle position after the

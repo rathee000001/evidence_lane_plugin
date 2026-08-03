@@ -399,9 +399,10 @@ def create_mcp_server(
         name="connector_plugin_route",
         title="Route one capability through governed plugin policy",
         description=(
-            "Select one active plugin deterministically by capability and optional "
-            "canonical lane, or return the built-in/fail-closed fallback without "
-            "silently widening plugin authority."
+            "Evaluate active grant, capability/action, canonical lane, and host "
+            "guards in a fixed order. Select the sole eligible plugin, or require "
+            "one exact preferred plugin ID when multiple routes qualify; ambiguity "
+            "and failed guards remain fail-closed."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Routing connector capability", "Connector route recorded"),
@@ -412,6 +413,7 @@ def create_mcp_server(
         capability: str,
         canonical_lane_id: str | None = None,
         host_profile: Literal["CODEX", "CHATGPT"] = "CODEX",
+        preferred_plugin_id: str | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "connector_plugin_route",
@@ -420,6 +422,7 @@ def create_mcp_server(
             capability=capability,
             canonical_lane_id=canonical_lane_id,
             host_profile=host_profile,
+            preferred_plugin_id=preferred_plugin_id,
             lifecycle=True,
         )
 

@@ -1,0 +1,224 @@
+{
+  "schema": "evidence-lane.secure-mcp-tunnel-attempt.v1",
+  "recorded_at": "2026-08-03T21:33:57Z",
+  "requested_outcome": "create a Secure MCP Tunnel ID before the combined PV4 HIL",
+  "status": "LIVE_RUNTIME_CHATGPT_READBACK_PENDING",
+  "tunnel_id": "tunnel_6a70fd5ab5f08191a62c5f603f41ed1b",
+  "tunnel_created": true,
+  "client": {
+    "name": "openai/tunnel-client",
+    "version": "0.0.10",
+    "binary_path": "C:/Users/rathe/AppData/Local/Temp/evi-tunnel-client-v0.0.10/bin/tunnel-client.exe",
+    "sha256": "5e64a056f1d96786da0a6f8db1da5f5f4a03fd19a90d951a25cf2ca8d9093d00",
+    "release_checksum_match": true
+  },
+  "available_scope": {
+    "organization_id": "org-xdT1xXEp2clCPaJHQ1foPC5B",
+    "organization_title": "Personal",
+    "project_id": "proj_L0rEURWowRCqSMCiNZpU5wDN",
+    "workspace_id": null
+  },
+  "credential_presence": {
+    "agent_process": {
+      "OPENAI_ADMIN_KEY": false,
+      "CONTROL_PLANE_API_KEY": false,
+      "CONTROL_PLANE_TUNNEL_ID": false,
+      "OPENAI_API_KEY": false,
+      "OPENAI_ORG_ID": false,
+      "OPENAI_WORKSPACE_ID": false
+    },
+    "tunnel_runtime_process": {
+      "CONTROL_PLANE_API_KEY": true,
+      "source": "masked user entry exported only to the start-script child process",
+      "value_recorded": false
+    }
+  },
+  "create_result": {
+    "source": "user-provided non-secret JSON output from the official tunnel client",
+    "id": "tunnel_6a70fd5ab5f08191a62c5f603f41ed1b",
+    "name": "Evidence Lane v1.2 HIL",
+    "description": "Private ChatGPT MCP route for governed Evidence Lane HIL",
+    "creator": "user-dD4falzKPJoHUHaoWQowuWW1",
+    "organization_ids": [
+      "org-xdT1xXEp2clCPaJHQ1foPC5B"
+    ],
+    "request_id": "req_0638611d34b94a0b9464df943e229868",
+    "admin_key_retained": false,
+    "activation_wait_elapsed": true,
+    "active_runtime_verified": true,
+    "chatgpt_readback_verified": false
+  },
+  "runtime_binding": {
+    "status": "LIVE_READY_EXACT_STDIO_CANDIDATE",
+    "profile": "evidence_lane_v120_hil",
+    "profile_path": "C:/Users/rathe/AppData/Roaming/tunnel-client/evidence_lane_v120_hil.yaml",
+    "profile_sha256": "2357b498698001a742b22446ac9ee90a28fd1d529354f10ead75d877966d4d3e",
+    "sample": "sample_mcp_stdio_local",
+    "transport": "stdio",
+    "channel": "main",
+    "http_bridge_added": false,
+    "reason": "The official shortest-path stdio sample avoids unnecessary HTTP and OAuth discovery while launching the governed candidate MCP process.",
+    "candidate_entrypoint": "F:/test codex/plugins/evidence-lane-plugin/scripts/run_mcp.py --transport stdio",
+    "launch_wrapper": {
+      "path": "C:/Users/rathe/EvidenceLanePV/tunnel-runtime/_INTERNAL_MCP_CHILD_DO_NOT_RUN.ps1",
+      "sha256": "17027cc41d073a0e6446f536c108c2c2a752eed3481cd9b99c635c7c4826102f",
+      "secret_content": false,
+      "stdout_reserved_for_mcp_jsonrpc": true
+    },
+    "user_start_entrypoint": {
+      "path": "C:/Users/rathe/EvidenceLanePV/tunnel-runtime/START_HERE_EVIDENCE_LANE_TUNNEL.cmd",
+      "sha256": "8c4b4c56c6bbcae0e79059e540e7ffb205ffde7dba7f3420e8f59eccf328d75c",
+      "purpose": "unambiguous double-click entrypoint for the masked Runtime API key flow"
+    },
+    "masked_start_script": {
+      "path": "C:/Users/rathe/EvidenceLanePV/tunnel-runtime/start_evidence_lane_v120_tunnel.ps1",
+      "sha256": "18d7a7bb1c217718310a8e2a213e5f33ac17305b2128fcd3aae33fae5167074a",
+      "writes_key_to_disk": false,
+      "key_scope": "current PowerShell process only"
+    }
+  },
+  "doctor": {
+    "result": "ok",
+    "failed_checks": [],
+    "exact_summary": "Doctor passed. Starting the tunnel daemon in this window.",
+    "profile_loaded": true,
+    "profile_path": "C:/Users/rathe/AppData/Roaming/tunnel-client/evidence_lane_v120_hil.yaml",
+    "init_preflight": "PASS",
+    "daemon_started": true,
+    "source": "user-provided non-secret Doctor output",
+    "passed_checks": [
+      "config_source",
+      "profile_load",
+      "tunnel_id",
+      "control_plane_api_key",
+      "tunnels_management_url",
+      "runtime_api_keys_url",
+      "admin_api_keys_url",
+      "chatgpt_connector_settings_url",
+      "mcp_target",
+      "mcp_command_executable",
+      "health_listener",
+      "ui"
+    ],
+    "skipped_checks": {
+      "mcp_server_reachable": "stdio targets are not probed over the network by Doctor",
+      "oauth_metadata": "stdio targets do not expose OAuth metadata URLs",
+      "codex_plugin": "optional tunnel-client helper plugin is not the Evidence Lane candidate plugin"
+    }
+  },
+  "live_runtime": {
+    "verified_at": "2026-08-03T21:33:57Z",
+    "daemon_pid": 42784,
+    "client_instance_id": "e7bdd251c409ba43d344ac358dea8b33",
+    "health_base_url": "http://127.0.0.1:54747",
+    "operator_surfaces": {
+      "healthz": {
+        "status": 200,
+        "body": "live"
+      },
+      "readyz": {
+        "status": 200,
+        "body": "ready"
+      },
+      "metrics": {
+        "status": 200
+      },
+      "ui": {
+        "status": 200
+      }
+    },
+    "runtime_status_api": {
+      "main_channel_enabled": true,
+      "main_channel_transport": "stdio",
+      "main_channel_probe_status": "ok",
+      "route_mode": "direct",
+      "tunnel_metadata_name": "Evidence Lane v1.2 HIL",
+      "tunnel_metadata_description": "Private ChatGPT MCP route for governed Evidence Lane HIL"
+    },
+    "system_status_api": {
+      "main_channel_probe_status": "ok",
+      "control_plane_health_state": "direct",
+      "mcp_channel_health_state": "direct"
+    },
+    "process_chain": [
+      "tunnel-client.exe pid 42784",
+      "powershell.exe pid 25852 running _INTERNAL_MCP_CHILD_DO_NOT_RUN.ps1",
+      "C:/Python314/python.exe pid 48568 running the exact candidate run_mcp.py",
+      "candidate .venv python.exe pid 20088 running the exact candidate run_mcp.py --transport stdio"
+    ],
+    "control_plane": {
+      "metadata_get_status": 200,
+      "poll_status": 204,
+      "successful_poll_cycles_observed": 7,
+      "poll_errors_observed": 0,
+      "poll_last_success_metric_present": true
+    },
+    "official_health_command": {
+      "require_control_plane_poll": true,
+      "pid_cross_check": 42784,
+      "process_running": true,
+      "healthz_ok": true,
+      "readyz_ok": true,
+      "control_plane_poll_ok": true,
+      "result": "ok"
+    },
+    "secret_value_recorded": false,
+    "chatgpt_readback_verified": false
+  },
+  "admin_discovery_attempt": {
+    "operation": "tunnel-client admin tunnels list",
+    "mutating": false,
+    "result": "BLOCKED",
+    "exact_error": "admin key is required; set --admin-key or OPENAI_ADMIN_KEY"
+  },
+  "existing_connector_reference": {
+    "tunnel_id": "tunnel_6a6b0dd53420819199c531a0a0d4a87e",
+    "source": "installed Evidence Lane app connector route error",
+    "gateway_result": "HTTP_404",
+    "confirmed_active": false,
+    "confirmed_owned_by_available_organization": false,
+    "admin_get_result": "BLOCKED_ADMIN_KEY_REQUIRED",
+    "doctor_with_id_result": "BLOCKED_CONTROL_PLANE_API_KEY_REQUIRED",
+    "accepted_as_new_v12_tunnel": false
+  },
+  "create_requirements": {
+    "real_admin_api_key": true,
+    "organization_or_workspace_id": true,
+    "name": true,
+    "description": true,
+    "admin_key_must_not_be_pasted_into_chat": true,
+    "satisfied_for_create": true
+  },
+  "executed_create_command": [
+    "tunnel-client admin tunnels create",
+    "--name Evidence Lane v1.2 HIL",
+    "--description Private ChatGPT MCP route for governed Evidence Lane HIL",
+    "--organization-id org-xdT1xXEp2clCPaJHQ1foPC5B",
+    "--json"
+  ],
+  "next_gates_after_create": [
+    "connect ChatGPT through Plugins > Tunnel",
+    "prove exact-release read, bounded write, and readback",
+    "preserve the existing ChatGPT app until replacement readback passes"
+  ],
+  "vercel_fallback": {
+    "attempted_before_tunnel_resolution": false,
+    "current_state": "BLOCKED_NO_LINKED_PROJECT_OR_TEAM_AND_CANDIDATE_NOT_REMOTELY_VISIBLE",
+    "website_only_after_verified_tunnel": true
+  },
+  "governance": {
+    "accepted_pointer_moved": false,
+    "main_merged": false,
+    "candidate_promoted": false,
+    "chatgpt_installation_claimed": false,
+    "hil_decision_inferred": false
+  },
+  "verdict": {
+    "decision": "FIX-THEN-PURSUE",
+    "confidence": 0.99,
+    "reason": "The exact tunnel is live, ready, polling the OpenAI control plane, and running the governed stdio candidate with an ok main-channel probe. ChatGPT connector pickup and exact-release readback have not yet been proved.",
+    "evidence_that_would_change_it": [
+      "ChatGPT connects and reads back the final candidate release identity"
+    ]
+  }
+}

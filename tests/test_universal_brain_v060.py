@@ -268,7 +268,16 @@ def test_connector_governance_limits_active_plugins_and_preserves_drop_history(
         )
     assert limited.value.code == "PLUGIN_PERSISTENT_LIMIT_REACHED"
     route = governance.route(capability="semantic-index", canonical_lane_id="research")
-    assert route["selected_plugin_id"] == "tool-0"
+    assert route["selected_plugin_id"] is None
+    assert route["decision"] == "AMBIGUOUS_FAIL_CLOSED"
+    assert route["eligible_plugin_ids"] == [f"tool-{index}" for index in range(8)]
+    preferred_route = governance.route(
+        capability="semantic-index",
+        canonical_lane_id="research",
+        preferred_plugin_id="tool-0",
+    )
+    assert preferred_route["decision"] == "PERSISTENT_PLUGIN"
+    assert preferred_route["selected_plugin_id"] == "tool-0"
     dropped = governance.drop(
         plugin_id="tool-0", confirmation="DROP:tool-0", dropped_by="test"
     )
@@ -380,10 +389,11 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
         encoding="utf-8"
     )
     package = json.loads((adapter_root / "package.json").read_text(encoding="utf-8"))
-    assert "Build an inspectable project brain" in landing
-    assert "18" in landing and "canonical lanes" in landing
+    assert "Turn a repository into an inspectable brain" in landing
+    assert "18" in landing and "source lanes" in landing
     assert "UniversalCommandDeck" in landing
     assert "LaneToolchainExplorer" in landing
+    assert "SourceBrainLab" in landing
     assert "ChatGPT MCP edge fail-closed" in release
     assert "prefers-reduced-motion" in styles
     active_tsx = "\n".join(
@@ -398,10 +408,13 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     assert "/evidence-lane-icon.png" in active_brand_source
     assert "evidence-root-fibers.png" not in active_brand_source
     assert "evidence-cube-icon.png" not in active_brand_source
-    assert "evidence-static-brain.png" not in active_brand_source
+    assert "evidence-executive-scanner.png" not in active_brand_source
+    assert "evidence-glass-orb.png" not in active_brand_source
+    assert "/assets/evidence-static-brain.png" in active_brand_source
     assert "TorusGeometry" in active_tsx
-    assert "THREE.Points" not in active_tsx
+    assert "THREE.Points" in active_tsx
     assert package["dependencies"]["three"] == "0.185.1"
+    assert package["dependencies"]["framer-motion"] == "12.38.0"
     for lane_id in CANONICAL_LANE_IDS:
         lane = LANE_REGISTRY[lane_id]
         assert f'id: "{lane_id}"' in site_data
@@ -423,8 +436,6 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
         "evidence-lane-full-logo.png",
         "evidence-lane-icon.png",
         "evidence-static-brain.png",
-        "evidence-executive-scanner.png",
-        "evidence-glass-orb.png",
     ):
         assert (adapter_root / "public" / asset).stat().st_size > 100_000
     assert hashlib.sha256(

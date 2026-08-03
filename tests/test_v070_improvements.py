@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -43,6 +44,11 @@ def test_optional_git_arm_falls_back_for_plain_directory(tmp_path: Path) -> None
     assert result["sources"][0]["git_optional_arm"]["state"] == (
         "NOT_A_GIT_WORKTREE_FALLBACK"
     )
+    identity = result["sources"][0]["source_identity"]
+    assert identity["identity_scope"] == "MEMBER_PATHS_AND_SIZES_ONLY"
+    assert identity["content_bytes_hashed"] is False
+    assert identity["content_identity_proven"] is False
+    assert "member_path_size_sha256" in identity
 
 
 def test_required_git_arm_rejects_plain_directory(tmp_path: Path) -> None:
@@ -68,6 +74,84 @@ def test_optional_git_arm_detects_linked_worktree(tmp_path: Path) -> None:
     receipt = probe_git_arm(linked, requested_mode="AUTO")
     assert receipt["state"] == "ENABLED"
     assert receipt["history_index_enabled"] is True
+    assert receipt["head_commit"] == _git(linked, "rev-parse", "HEAD")
+    assert receipt["head_tree"] == _git(linked, "rev-parse", "HEAD^{tree}")
+    assert receipt["branch"] == "linked-test"
+    assert receipt["detached_head"] is False
+    assert receipt["worktree_clean"] is True
+    assert receipt["remote_identity_included"] is False
+
+
+def test_directory_path_size_identity_never_claims_content_hash(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "extracted-source"
+    source.mkdir()
+    payload = source / "module.py"
+    payload.write_text("alpha\n", encoding="utf-8")
+    first = classify_source_intake([str(source)], code_mode="local_code")
+    first_identity = first["sources"][0]["source_identity"]
+    payload.write_text("bravo\n", encoding="utf-8")
+    same_size = classify_source_intake([str(source)], code_mode="local_code")
+    same_size_identity = same_size["sources"][0]["source_identity"]
+    assert (
+        same_size_identity["member_path_size_sha256"]
+        == first_identity["member_path_size_sha256"]
+    )
+    assert same_size_identity["content_identity_proven"] is False
+    payload.write_text("longer-content\n", encoding="utf-8")
+    changed_size = classify_source_intake([str(source)], code_mode="local_code")
+    assert (
+        changed_size["sources"][0]["source_identity"]["member_path_size_sha256"]
+        != first_identity["member_path_size_sha256"]
+    )
+
+
+def test_archive_profile_separates_package_format_from_generator_identity(
+    tmp_path: Path,
+) -> None:
+    archive_path = tmp_path / "SQLite-Brain-Builder-V5.9-output.zip"
+    with zipfile.ZipFile(archive_path, "w") as archive:
+        archive.writestr(
+            "project/manifest.json",
+            json.dumps(
+                {
+                    "package_type": (
+                        "EvidenceOS_V2_FULL_VERTICAL_project_mini_brain"
+                    )
+                }
+            ),
+        )
+        archive.writestr("project/sql/mini_brain_graph.sqlite", b"not-opened")
+    result = classify_source_intake([str(archive_path)], code_mode="local_code")
+    source = result["sources"][0]
+    profile = source["archive_profile"]
+    assert source["canonical_lane_id"] == "brain_loader"
+    assert profile["package_format"] == (
+        "EVIDENCEOS_V2_FULL_VERTICAL_MINI_BRAIN"
+    )
+    assert profile["generator_identity_status"] == "UNPROVEN_BY_ARCHIVE"
+    assert profile["filename_used_as_generator_evidence"] is False
+    assert profile["declared_generator_versions"] == []
+
+
+def test_archive_profile_detects_uepc_sector_layout_without_version_inference(
+    tmp_path: Path,
+) -> None:
+    archive_path = tmp_path / "sector-package.zip"
+    with zipfile.ZipFile(archive_path, "w") as archive:
+        archive.writestr("env/env_sqlite.sqlite", b"environment")
+        archive.writestr(
+            "project/sectors/local_code/local_code_sector_v001.sqlite", b"sector"
+        )
+        archive.writestr(
+            "manifests/manifest.json", json.dumps({"schema": "uepc-sector.v1"})
+        )
+    result = classify_source_intake([str(archive_path)], code_mode="local_code")
+    profile = result["sources"][0]["archive_profile"]
+    assert profile["package_format"] == "UEPC_SECTOR_PACKAGE"
+    assert profile["sqlite_member_count"] == 2
+    assert profile["generator_identity_status"] == "UNPROVEN_BY_ARCHIVE"
 
 
 def test_lane_bundle_obeys_explicit_optional_git_arm(

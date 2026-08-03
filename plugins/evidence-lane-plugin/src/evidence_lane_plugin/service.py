@@ -333,11 +333,13 @@ class EvidenceLaneService:
         capability: str,
         canonical_lane_id: str | None = None,
         host_profile: str = "CODEX",
+        preferred_plugin_id: str | None = None,
     ) -> dict[str, Any]:
         return self._connector_governance(project_id).route(
             capability=capability,
             canonical_lane_id=canonical_lane_id,
             host_profile=host_profile,
+            preferred_plugin_id=preferred_plugin_id,
         )
 
     def classify_hil_intent(

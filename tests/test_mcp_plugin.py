@@ -96,6 +96,10 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     assert by_name["pv_state_travel_resume"].annotations.destructiveHint is False
     assert by_name["hil_return_to_accepted"].annotations.destructiveHint is True
     assert by_name["remote_git_execute_push"].annotations.openWorldHint is True
+    assert (
+        "preferred_plugin_id"
+        in by_name["connector_plugin_route"].inputSchema["properties"]
+    )
     for tool in tools:
         assert tool.description
         assert tool.inputSchema["type"] == "object"

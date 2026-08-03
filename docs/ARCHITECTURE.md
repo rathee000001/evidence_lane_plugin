@@ -124,7 +124,11 @@ role-schema fields, FTS, and separate exact drop receipts. It stores
 configuration environment-variable names only. At most eight additional
 plugins may be active. Structured settings expose independent CODEX and CHATGPT
 profiles without claiming a host-native settings panel. Routing is deterministic
-and falls back to built-ins or a visible fail-closed result. Every new grant
+and evaluates active state, grant lifetime, exact capability/action, canonical
+lane, and host profile in a fixed order. Zero matches fail closed. Multiple
+eligible plugins are never resolved by ID ordering: the caller must name one
+exact preferred plugin ID, or the route records `AMBIGUOUS_FAIL_CLOSED` with
+the eligible IDs and first failed guard for every registration. Every new grant
 records one immutable purpose/reason, role and typed role schema, host profiles,
 allowed actions, canonical lanes, write scope, expiry, actor, and an optional
 declared Python/Java/Kotlin/Go/Rust/C++/external-MCP backend. A declaration is
@@ -145,6 +149,40 @@ the evidence list names every queued Delta exactly once and in ledger order.
 Each task receives append-only QUEUED -> ACTIVE -> DONE events. No task is
 silently dropped or accepted; the later six-way HIL disposition maps the batch
 without bypassing exact-`APPROVE` Fuse law.
+
+## Website narrative shell
+
+The public Next.js site uses exact approved visual assets and bounded interaction
+ideas from the read-only EvidenceOS SQLite frontend authority. The full logo,
+cube icon, static brain, and official tool icons retain explicit roles; the
+active website does not import the desktop app's Glass Shell, workspace frame,
+side rail, PC cluster, system-task view, Rust/Tauri transport, backend state,
+scanner, telemetry-page orb, or 3D telemetry nodes. Exact asset hashes and the
+active component contract are pinned by a conformance test and source receipt.
+
+Delta 063 supersedes only the fixed-window presentation attempted in Delta
+062. The active website is a document-scrolling narrative with no application
+side rail. The exact full logo floats at the top-left of one frosted navigation
+pill; the navigation floats independently at the top-right. The cube remains
+the compact browser, ChatGPT, Codex, and packaged-app icon. Content routes
+retain normal browser scrolling and open as full-width story pages.
+
+The light white/cyan/gold field uses bounded native Three.js rings and points
+plus reduced-motion-aware Framer transitions. Those layers are atmospheric
+only. They never represent project topology and import no telemetry root,
+scanner, PC-cluster, system-task, or native Tauri transport. Public-repository
+source brains remain evidence panels: exact Git-tree matches, derived SQLite
+counts, implementation use, refused transplants, and version/provenance limits
+are displayed together.
+
+Lane hover, click, focus, and keyboard selection drive one visible story: the
+selected lane's official app tool icons travel into the pulsing glass brain,
+then exactly four lane-bound outputs emit below it (SQLite, Mermaid, DOT, and
+Refresh receipt).
+Replay and optional auto-cycle alter presentation state only; they do not run a
+build or claim new evidence. The full-width Prompt Studio has no persistent
+rail, answers only from its published local knowledge map, and visibly refuses
+unsupported questions. It makes no external-model or provider claim.
 
 ## Host and deployment boundaries
 
