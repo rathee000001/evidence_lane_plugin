@@ -12,8 +12,9 @@ import { artifactContract, painLedger, proofMetrics } from "./_data/site";
 const routes = [
   ["Architecture", "See how parallel lane computation meets serial lifecycle authority.", "/architecture", "01"],
   ["18 lanes", "Inspect the canonical source registry and the artifact contract for every lane.", "/lanes", "02"],
-  ["Proof boundary", "Separate verified behavior, historical context, open blockers, and candidate claims.", "/proof", "03"],
-  ["Provenance", "Follow the independent R&D lineage, source boundaries, and toolchain credits.", "/provenance", "04"],
+  ["Prompt Studio", "Ask grounded product questions and see the evidence boundary in the answer.", "/studio", "03"],
+  ["Proof boundary", "Separate verified behavior, historical context, open blockers, and candidate claims.", "/proof", "04"],
+  ["Provenance", "Follow the independent R&D lineage, source boundaries, and toolchain credits.", "/provenance", "05"],
 ] as const;
 
 export default function Home() {
@@ -68,7 +69,7 @@ export default function Home() {
         ))}
       </section>
 
-      <section className="section shell splitIntro">
+      <section className="section shell splitIntro" id="problem">
         <div className="sectionHead stickyCopy">
           <span className="kicker">The problem</span>
           <h2>Code exists. Reliable project understanding usually does not.</h2>
@@ -112,7 +113,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section toolchainBand">
+      <section className="section toolchainBand" id="toolchains">
         <div className="shell">
           <div className="sectionHead wideHead">
             <span className="kicker light">Lane-by-lane toolchain</span>
@@ -120,6 +121,10 @@ export default function Home() {
             <p>Nothing here is a decorative capability label. The identifiers below come from the same immutable eighteen-lane registry used by the engine.</p>
           </div>
           <LaneToolchainExplorer />
+          <div className="toolchainStudioLink">
+            <span>Want to interrogate the system?</span>
+            <Link href="/studio">Open Evidence AI Studio <b aria-hidden="true">→</b></Link>
+          </div>
         </div>
       </section>
 

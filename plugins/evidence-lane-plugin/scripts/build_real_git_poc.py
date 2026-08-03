@@ -380,6 +380,13 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
             raise ValueError("Sparse projection did not preserve the exact requested commit.")
 
         overrides = _fixture_sources(source)
+        fixture_paths = sorted(overrides)
+        _git(source, "add", "--", FIXTURE_ROOT)
+        staged_paths = sorted(
+            _git(source, "diff", "--cached", "--name-only", "--", FIXTURE_ROOT).splitlines()
+        )
+        if staged_paths != fixture_paths:
+            raise ValueError("Temporary fixture index differs from the exact route grant.")
         overrides.update({path: REAL_GIT_LANE for path in tracked_python})
         output.mkdir(parents=True)
         initial_root = output / "PV1_INITIAL"
@@ -444,6 +451,8 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
         "authority_policy": {
             "real_git_lane": REAL_GIT_LANE,
             "fixture_lanes": [lane for lane in CANONICAL_LANE_IDS if lane != REAL_GIT_LANE],
+            "fixture_index_state": "TEMPORARY_STAGED_UNCOMMITTED",
+            "fixture_sources": fixture_paths,
             "fixture_statement": (
                 "Every non-Git lane is deterministic one-shot test evidence and carries no "
                 "production-source authority."

@@ -1,9 +1,90 @@
 export const primaryNavigation = [
   { href: "/architecture", label: "Architecture" },
   { href: "/lanes", label: "Lanes" },
+  { href: "/studio", label: "Prompt Studio" },
   { href: "/proof", label: "Proof" },
   { href: "/provenance", label: "Provenance" },
   { href: "/connect", label: "Connect" },
+] as const;
+
+export const promptSuggestions = [
+  "What problem does Evidence Lane solve?",
+  "How are Build, Refresh, and Fuse different?",
+  "What does one lane emit?",
+  "How does the ChatGPT connector differ from Codex?",
+] as const;
+
+export const promptKnowledge = [
+  {
+    id: "problem",
+    title: "The state-loss problem",
+    keywords: ["problem", "solve", "memory", "forget", "context", "summary", "state", "handoff", "ephemeral"],
+    answer: "Evidence Lane preserves exact, inspectable project state across AI tasks: authorized files, hashes, searchable SQLite facts, topology, pointers, receipts, visible steers, and unresolved human decisions. It replaces reconstructed conversational memory with a governed evidence package.",
+    sources: [
+      { label: "Problem framing", href: "/#problem" },
+      { label: "Provenance", href: "/provenance" },
+    ],
+  },
+  {
+    id: "lifecycle",
+    title: "Build, Refresh, Fuse",
+    keywords: ["build", "refresh", "fuse", "approve", "candidate", "hil", "rollback", "pointer", "gate"],
+    answer: "Build creates and validates an unaccepted candidate. Refresh rebuilds changed evidence while reusing unchanged bytes. Fuse is a separate promotion action that is impossible without exact APPROVE; it promotes the already sealed candidate without rebuilding it. Tests never substitute for the human gate.",
+    sources: [
+      { label: "Architecture", href: "/architecture" },
+      { label: "Proof boundary", href: "/proof" },
+    ],
+  },
+  {
+    id: "lane-output",
+    title: "Lane package outputs",
+    keywords: ["lane", "emit", "output", "file", "sqlite", "mmd", "dot", "receipt", "topology", "parser", "chunker"],
+    answer: "Each canonical lane builds a queryable SQLite sector, human-readable Mermaid topology, machine-comparable DOT topology, and lifecycle receipts. The sealed package also carries exact pointer and manifest evidence; the website animation focuses on the four files most useful for inspection.",
+    sources: [
+      { label: "18-lane catalog", href: "/lanes" },
+      { label: "Architecture", href: "/architecture" },
+    ],
+  },
+  {
+    id: "hosts",
+    title: "Codex and ChatGPT hosts",
+    keywords: ["chatgpt", "codex", "connector", "mcp", "vercel", "tunnel", "install", "host", "marketplace"],
+    answer: "Codex installs the plugin natively from the governed Git package. ChatGPT reaches the same engine through an HTTPS MCP edge, either a verified private tunnel or the Vercel adapter. Website health and connector identity are tested separately; a connection name alone is not release proof.",
+    sources: [
+      { label: "Connect", href: "/connect" },
+      { label: "Live proof", href: "/proof" },
+    ],
+  },
+  {
+    id: "lanes",
+    title: "Why eighteen lanes",
+    keywords: ["18", "eighteen", "lanes", "source", "document", "code", "image", "pdf", "research", "lineage"],
+    answer: "The registry separates eighteen source classes because code, chats, plans, documents, tables, slides, PDFs, images, packages, research, and existing SQLite brains need different parsers, chunk boundaries, retrieval tables, and mutation rules. Every route still enters one shared serial lifecycle and human gate.",
+    sources: [
+      { label: "Lane catalog", href: "/lanes" },
+      { label: "System architecture", href: "/architecture" },
+    ],
+  },
+  {
+    id: "topology",
+    title: "Topology proof",
+    keywords: ["topology", "graph", "mermaid", "dot", "entity", "repo", "commit", "symbol", "route", "dependency"],
+    answer: "Topology is evidence only when it reconciles with the lane database. Code lanes must expose the exact logical Repo, Commit, File, Symbol, Route, Dependency, and Artifact contract in both Mermaid and DOT; a generic but syntactically valid graph fails closed.",
+    sources: [
+      { label: "Architecture", href: "/architecture" },
+      { label: "Proof rules", href: "/proof" },
+    ],
+  },
+  {
+    id: "privacy",
+    title: "Visible lineage and privacy",
+    keywords: ["privacy", "secret", "reasoning", "chain", "thought", "lineage", "prompt", "redact", "credentials"],
+    answer: "Evidence Lane retains visible prompts, steers, assistant output, tool calls, file and test events, and available usage metrics. It excludes hidden chain-of-thought and redacts secrets before indexing. Connector credentials and private runtime state never become lane evidence.",
+    sources: [
+      { label: "Proof boundary", href: "/proof" },
+      { label: "Provenance", href: "/provenance" },
+    ],
+  },
 ] as const;
 export const controls = [
   {
