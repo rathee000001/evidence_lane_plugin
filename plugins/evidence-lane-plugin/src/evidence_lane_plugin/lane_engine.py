@@ -48,7 +48,10 @@ from .lanes import (
 )
 from .redaction import redact_text
 from .timeutil import utc_now
-from .topology_reconciliation import reconcile_bundle_topology
+from .topology_reconciliation import (
+    reconcile_bundle_topology,
+    reconcile_lane_topology,
+)
 
 LANE_SCHEMA_VERSION = "evidence-lane.universal-lane.v2"
 LEGACY_LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v1"
@@ -3733,6 +3736,34 @@ def _lane_required_files(lane: LaneDefinition) -> tuple[str, ...]:
     return (*_lane_evidence_files(lane), "lane_manifest.json")
 
 
+def _prior_lane_topology_is_reconcilable(
+    prior_lane: Path | None,
+    lane: LaneDefinition,
+) -> bool:
+    """Reject inherited topology that predates the current SQLite contract."""
+
+    if prior_lane is None:
+        return False
+    required = (
+        prior_lane / lane.sqlite_filename,
+        prior_lane / lane.mmd_filename,
+        prior_lane / lane.dot_filename,
+    )
+    if not all(path.is_file() for path in required):
+        return False
+    try:
+        report = reconcile_lane_topology(
+            prior_lane,
+            lane_id=lane.canonical_lane_id,
+            mmd_filename=lane.mmd_filename,
+            dot_filename=lane.dot_filename,
+            sqlite_filename=lane.sqlite_filename,
+        )
+    except (OSError, ValueError, json.JSONDecodeError, sqlite3.DatabaseError):
+        return False
+    return report.get("status") == "PASS"
+
+
 def _build_one_lane(
     *,
     root: Path,
@@ -3787,10 +3818,15 @@ def _build_one_lane(
         history_enabled and current_git_signature != prior_git_signature
     )
     tool_changed = bool(prior_tools and prior_tools.get("sha256") != tools["sha256"])
+    topology_rebuild_required = bool(
+        prior_lane is not None
+        and not _prior_lane_topology_is_reconcilable(prior_lane, lane)
+    )
     changed = (
         prior_lane is None
         or tool_changed
         or git_history_changed
+        or topology_rebuild_required
         or any(
             classification[key]
             for key in ("CHANGED_REBUILD", "NEW_REGISTER", "REMOVED_TOMBSTONE")
@@ -4002,6 +4038,7 @@ def _build_one_lane(
         "classification": classification,
         "tool_identity_changed": tool_changed,
         "git_history_changed": git_history_changed,
+        "topology_rebuild_required": topology_rebuild_required,
         "git_history": history_report,
         "stable_artifacts_byte_reused": byte_reused,
         "parent_pv": parent_pv,
@@ -4037,6 +4074,7 @@ def _build_one_lane(
         "byte_reused": byte_reused,
         "classification": classification,
         "git_history": history_report,
+        "topology_rebuild_required": topology_rebuild_required,
         "validation": validation,
         "stable_artifacts": stable_hashes,
     }

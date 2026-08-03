@@ -1199,3 +1199,54 @@ def test_pv1_full_build_and_pvn_incremental_lane_reuse(tmp_path: Path) -> None:
     tampered = validate_lane_bundle(pv3)
     assert tampered["valid"] is False
     assert "project_lane_topology.mmd" in tampered["checksum_mismatches"]
+
+
+def test_refresh_regenerates_unreconciled_inherited_topology(tmp_path: Path) -> None:
+    repository = tmp_path / "source"
+    repository.mkdir()
+    (repository / "notes.txt").write_text(
+        "Stable governed discussion source.\n", encoding="utf-8"
+    )
+
+    pv1 = tmp_path / "pv1-lanes"
+    build_lane_bundle(
+        repository_root=repository,
+        output_directory=pv1,
+        code_mode="local_code",
+        parent_lane_bundle=None,
+        parent_pv=None,
+        proposed_pv="PV1",
+        pointer_generation=0,
+        source_overrides={"notes.txt": "discussion"},
+    )
+    assert validate_lane_bundle(pv1)["valid"] is True
+
+    discussion = pv1 / "discussion"
+    (discussion / "discussion.mmd").write_text(
+        "flowchart TD\n    L[Lane] --> db[(SQLite)]\n",
+        encoding="utf-8",
+    )
+    (discussion / "discussion.dot").write_text(
+        "digraph lane { lane -> db; }\n",
+        encoding="utf-8",
+    )
+
+    pv2 = tmp_path / "pv2-lanes"
+    second = build_lane_bundle(
+        repository_root=repository,
+        output_directory=pv2,
+        code_mode="local_code",
+        parent_lane_bundle=pv1,
+        parent_pv="PV1",
+        proposed_pv="PV2",
+        pointer_generation=1,
+    )
+
+    report = next(
+        row for row in second["reports"] if row["lane_id"] == "discussion"
+    )
+    assert report["build_mode"] == "INCREMENTAL_REFRESH"
+    assert report["byte_reused"] is False
+    assert report["topology_rebuild_required"] is True
+    assert "discussion" not in second["summary"]["byte_reused_lanes"]
+    assert validate_lane_bundle(pv2)["valid"] is True
