@@ -1,174 +1,148 @@
-const controls = ["Boot", "Rollback", "Build", "Refresh", "Mode", "Source Intake"];
+import Image from "next/image";
+import Link from "next/link";
 
-const lanes = [
-  "Discussion",
-  "Analysis",
-  "Plan",
-  "Mode",
-  "Local code",
-  "GitHub code",
-  "Documents",
-  "Data / Excel",
-  "Presentations",
-  "PDF / OCR",
-  "Images / OCR",
-  "Artifacts",
-  "Custom",
-  "Brain loader",
-  "Research",
-  "Project Engulf",
-  "SQLite brain",
-  "Chat Lineage",
-];
+import { ReleaseStatus } from "./_components/release-status";
+import { artifactContract, controls } from "./_data/site";
 
-function releaseState() {
-  const expected = process.env.EVIDENCE_LANE_RELEASE_SHA?.trim().toLowerCase() ?? "";
-  const deployed = process.env.VERCEL_GIT_COMMIT_SHA?.trim().toLowerCase() ?? "";
-  const durable = process.env.EVIDENCE_LANE_DURABLE_MCP_ORIGIN?.trim() ?? "";
-  const exactSha = /^[0-9a-f]{40}$/.test(expected) && (!deployed || deployed === expected);
-  const durableHttps = durable.startsWith("https://");
-  return {
-    expected: /^[0-9a-f]{40}$/.test(expected) ? expected : null,
-    deployed: /^[0-9a-f]{40}$/.test(deployed) ? deployed : null,
-    adapterReady: exactSha && durableHttps,
-  };
-}
+const routes = [
+  ["Architecture", "See how parallel lane computation meets serial lifecycle authority.", "/architecture", "01"],
+  ["18 lanes", "Inspect the canonical source registry and the artifact contract for every lane.", "/lanes", "02"],
+  ["Proof boundary", "Separate verified behavior, historical context, open blockers, and candidate claims.", "/proof", "03"],
+  ["Provenance", "Follow the independent R&D lineage, source boundaries, and toolchain credits.", "/provenance", "04"],
+] as const;
 
 export default function Home() {
-  const release = releaseState();
   return (
     <main>
-      <nav className="nav shell" aria-label="Primary navigation">
-        <a className="brand" href="#top" aria-label="Evidence Lane home">
-          <img src="/evidence-lane-icon.png" alt="" width="42" height="42" />
-          <span>Evidence Lane</span>
-        </a>
-        <div className="navLinks">
-          <a href="#system">System</a>
-          <a href="#lanes">Lanes</a>
-          <a href="#boundary">Boundary</a>
-          <a href="/support">Support</a>
-        </div>
-      </nav>
-
-      <section className="hero shell" id="top">
-        <div className="eyebrow"><span /> Evidence before promotion</div>
-        <img
-          className="heroLogo"
-          src="/evidence-os-full-logo.png"
-          alt="Evidence Lane"
-          width="1824"
-          height="1376"
-        />
-        <h1>Build an inspectable project brain. Keep acceptance human.</h1>
-        <p className="lede">
-          Evidence Lane routes project sources into content-addressed, searchable
-          SQLite sectors with Mermaid and DOT topology, exact pointers, lineage,
-          and rollback evidence. A candidate never becomes accepted truth without
-          the governed HIL decision.
-        </p>
-        <div className="actions">
-          <a className="primary" href="#system">Inspect the architecture</a>
-          <a className="secondary" href="/healthz">Adapter health JSON</a>
-        </div>
-        <div className={`release ${release.adapterReady ? "ready" : "blocked"}`}>
-          <span className="statusDot" />
-          <div>
-            <strong>{release.adapterReady ? "ChatGPT edge configured" : "ChatGPT edge fail-closed"}</strong>
-            <p>
-              {release.adapterReady
-                ? "Durable HTTPS origin and exact release identity are configured."
-                : "The website is available; MCP remains blocked until durable HTTPS storage/auth and an exact Git SHA are configured."}
-            </p>
-            <code>
-              release {release.expected?.slice(0, 12) ?? "not configured"} · deploy {release.deployed?.slice(0, 12) ?? "not reported"}
-            </code>
+      <section className="homeHero shell">
+        <div className="heroCopy">
+          <span className="eyebrow"><i />Controlled AI code intelligence</span>
+          <h1>Build an inspectable project brain. Keep acceptance human.</h1>
+          <p>
+            Evidence Lane turns authorized project sources into searchable SQLite sectors,
+            reconciled Mermaid and DOT topology, exact pointers, visible lineage, and rollback
+            evidence. It never treats a candidate as accepted truth by implication.
+          </p>
+          <div className="actions">
+            <Link className="primary" href="/architecture">Explore the system</Link>
+            <Link className="secondary" href="/proof">Inspect the proof boundary</Link>
           </div>
+        </div>
+        <div className="heroVisual" role="img" aria-label="Evidence flowing into a governed project brain">
+          <div className="visualHalo" />
+          <Image
+            className="rootFibers"
+            src="/evidence-root-fibers.png"
+            alt="A network of evidence fibers forming a governed Evidence Lane topology"
+            width={1600}
+            height={900}
+            priority
+          />
+          <div className="visualBadge badgeA"><span>18</span> canonical lanes</div>
+          <div className="visualBadge badgeB"><span>1</span> human gate</div>
+          <div className="visualBadge badgeC"><span>0</span> silent promotions</div>
         </div>
       </section>
 
-      <section className="section shell" id="system">
-        <div className="sectionHead">
-          <span className="kicker">One lifecycle</span>
-          <h2>Parallel evidence work. Serial authority.</h2>
-          <p>
-            Independent lane computation can run concurrently. Candidate sealing,
-            Fuse, accepted pointers, rollback, and State Travel remain ordered and
-            compare-and-swap governed.
-          </p>
+      <section className="principleBand">
+        <div className="shell principleGrid">
+          <div><strong>Memory first</strong><span>Reusable, queryable, content-addressed evidence</span></div>
+          <div><strong>Internet controlled</strong><span>Explicit sources and governed connectors</span></div>
+          <div><strong>Human review</strong><span>Candidate truth stops at HIL before Fuse</span></div>
+          <div><strong>Change aware</strong><span>Refresh only what changed; retain what did not</span></div>
         </div>
-        <div className="controlGrid">
-          {controls.map((control, index) => (
-            <article className="controlCard" key={control}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <h3>{control}</h3>
-              <p>{[
-                "Verify runtime, locked Flash, host class, and durable storage atomically.",
-                "Move only the accepted pointer across immutable accepted versions.",
-                "Seal an unaccepted candidate and stop at the six-way human gate.",
-                "Re-index changed sections while reusing unchanged content-addressed chunks.",
-                "Apply ordered operating-mode intersections without changing source truth.",
-                "Auto-detect or explicitly route sources across the canonical lane registry.",
-              ][index]}</p>
+      </section>
+
+      <section className="section shell splitIntro">
+        <div className="sectionHead stickyCopy">
+          <span className="kicker">The problem</span>
+          <h2>Code exists. Reliable project understanding usually does not.</h2>
+          <p>
+            Knowledge stays in builders&apos; heads, documentation drifts, architecture summaries
+            flatten uncertainty, and assistants can invent confidence from incomplete context.
+            Evidence Lane treats understanding as a governed evidence system, not another chat transcript.
+          </p>
+          <Link className="textLink" href="/provenance">Read the original R&amp;D lineage <span aria-hidden="true">→</span></Link>
+        </div>
+        <div className="problemStack">
+          {[
+            ["01", "Fragmented context", "Source, history, decisions, tests, and outputs live in different tools with no common provenance."],
+            ["02", "Stale explanations", "Static documentation describes yesterday while the repository and operating decisions keep changing."],
+            ["03", "Unbounded AI memory", "Convenient summaries can silently mix trusted source, speculation, secrets, and obsolete state."],
+            ["04", "Weak acceptance", "A successful build or continued chat is often mistaken for approval even when no human decision was recorded."],
+          ].map(([number, title, text]) => (
+            <article className="problemCard" key={number}>
+              <span>{number}</span><div><h3>{title}</h3><p>{text}</p></div>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="section band" id="lanes">
+      <section className="section solutionBand">
         <div className="shell">
-          <div className="sectionHead compact">
-            <span className="kicker">18 canonical lanes</span>
-            <h2>Every lane leaves evidence you can open.</h2>
+          <div className="sectionHead wideHead">
+            <span className="kicker">The operating surface</span>
+            <h2>Six public controls. One conditional recovery event.</h2>
+            <p>Simple user commands sit above stable internal APIs, exact lifecycle receipts, and a fail-closed authority boundary.</p>
           </div>
-          <div className="laneGrid">
-            {lanes.map((lane, index) => (
-              <div className="lane" key={lane}>
-                <span>{String(index + 1).padStart(2, "0")}</span>{lane}
-              </div>
+          <div className="controlGrid">
+            {controls.map((control, index) => (
+              <article className="controlCard" key={control.name}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <h3>{control.name}</h3>
+                <p>{control.detail}</p>
+              </article>
             ))}
           </div>
-          <div className="artifactRow" aria-label="Lane output contract">
-            {[
-              ["SQLite", "integrity, foreign keys, FTS and structured facts"],
-              ["MMD + DOT", "semantic source-to-output topology"],
-              ["Pointer", "entered-from and proposed-version evidence"],
-              ["Receipt", "refresh, hash, tool and lifecycle classification"],
-            ].map(([title, text]) => (
+          <div className="conditionalEvent">
+            <strong>State Travel</strong>
+            <p>A top conditional recovery event used only for an accepted, sealed fresh-host handoff when the user requests it or context is exhausted.</p>
+            <span>Not a seventh everyday control</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="section shell evidenceContract">
+        <div className="contractVisual">
+          <Image src="/evidence-static-brain.png" alt="Static Evidence Lane project brain visualization" width={1200} height={900} />
+          <span className="orbit orbitOne" />
+          <span className="orbit orbitTwo" />
+        </div>
+        <div>
+          <span className="kicker">Openable by design</span>
+          <h2>Every lane leaves a package you can inspect.</h2>
+          <p className="sectionLead">The database is not the only truth surface. Its facts must reconcile with human-readable and machine-readable topology plus exact lifecycle evidence.</p>
+          <div className="artifactList">
+            {artifactContract.map(([title, text]) => (
               <div key={title}><strong>{title}</strong><p>{text}</p></div>
             ))}
           </div>
+          <Link className="textLink" href="/lanes">Open the 18-lane contract <span aria-hidden="true">→</span></Link>
         </div>
       </section>
 
-      <section className="section shell boundary" id="boundary">
+      <section className="section routeSection shell">
+        <div className="sectionHead wideHead">
+          <span className="kicker">Explore the evidence</span>
+          <h2>Follow the system from architecture to claim boundary.</h2>
+        </div>
+        <div className="routeGrid">
+          {routes.map(([title, text, href, number]) => (
+            <Link className="routeCard" href={href} key={href}>
+              <span>{number}</span><h3>{title}</h3><p>{text}</p><b aria-hidden="true">↗</b>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="section shell releaseHome">
         <div>
-          <span className="kicker">Deployment boundary</span>
-          <h2>Vercel is the ChatGPT edge, not the Evidence Lane brain.</h2>
+          <span className="kicker">Live boundary</span>
+          <h2>The website can be healthy while the connector correctly refuses traffic.</h2>
+          <p>Codex installs natively from Git. Vercel hosts the public site and the thin ChatGPT MCP edge; it is not the general router or the local Evidence Lane brain.</p>
         </div>
-        <div className="boundaryGrid">
-          <article>
-            <span className="pill blue">Codex</span>
-            <h3>Native Git-installed plugin</h3>
-            <p>Local SQLite and Git-backed authority stay on the durable user host. Vercel is not in this path.</p>
-          </article>
-          <article>
-            <span className="pill gold">ChatGPT</span>
-            <h3>Thin authenticated MCP edge</h3>
-            <p>Vercel forwards only to one configured durable HTTPS origin after verifying the exact release SHA.</p>
-          </article>
-          <article>
-            <span className="pill dark">Fail closed</span>
-            <h3>No temporary truth</h3>
-            <p>Missing auth, storage, queue, durable origin, or release identity blocks MCP. The landing page is not proof of connector readiness.</p>
-          </article>
-        </div>
+        <ReleaseStatus />
       </section>
-
-      <footer className="footer shell">
-        <div><strong>Evidence Lane</strong><p>Independent R&amp;D by Praveen Rathee with AI-assisted engineering and review.</p></div>
-        <div className="footerLinks"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/support">Support</a></div>
-      </footer>
     </main>
   );
 }

@@ -604,6 +604,97 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         modern_validation["parallel_execution_legacy_compatibility"] is False
     )
 
+    pre_v110_root = tmp_path / "pre-v110-v2-compatibility"
+    shutil.copytree(lanes_root, pre_v110_root)
+    pre_v110_execution_path = pre_v110_root / "execution_receipt.json"
+    pre_v110_execution = json.loads(
+        pre_v110_execution_path.read_text(encoding="utf-8")
+    )
+    pre_v110_execution.pop("source_policy")
+    pre_v110_execution_path.write_bytes(canonical_json_bytes(pre_v110_execution))
+    for lane_id in CANONICAL_LANE_IDS:
+        lane = LANE_REGISTRY[lane_id]
+        lane_root = pre_v110_root / lane_id
+        (lane_root / lane.mmd_filename).write_text(
+            "flowchart TB\n"
+            f'    L["{lane.display_label}"]\n'
+            '    L --> DB["SQLite"]\n',
+            encoding="utf-8",
+        )
+        (lane_root / lane.dot_filename).write_text(
+            "digraph lane {\n"
+            f'  L [label="{lane.display_label}"];\n'
+            '  DB [label="SQLite"];\n'
+            "  L -> DB;\n"
+            "}\n",
+            encoding="utf-8",
+        )
+        lane_manifest_path = lane_root / "lane_manifest.json"
+        lane_manifest = json.loads(
+            lane_manifest_path.read_text(encoding="utf-8")
+        )
+        lane_manifest["stable_artifacts"] = {
+            filename: sha256_file(lane_root / filename)
+            for filename in (
+                lane.sqlite_filename,
+                lane.mmd_filename,
+                lane.dot_filename,
+                "tools.json",
+            )
+        }
+        lane_manifest["evidence_artifacts"] = {
+            filename: sha256_file(lane_root / filename)
+            for filename in (
+                lane.sqlite_filename,
+                lane.mmd_filename,
+                lane.dot_filename,
+                "tools.json",
+                "lane_pointer.json",
+                "refresh_receipt.json",
+            )
+        }
+        lane_manifest_path.write_bytes(canonical_json_bytes(lane_manifest))
+    (pre_v110_root / "project_lane_topology.mmd").write_text(
+        'flowchart LR\n    P["Project"] --> L["Lanes"]\n',
+        encoding="utf-8",
+    )
+    (pre_v110_root / "project_lane_topology.dot").write_text(
+        'digraph project { P [label="Project"]; L [label="Lanes"]; P -> L; }\n',
+        encoding="utf-8",
+    )
+    pre_v110_members = {
+        path.relative_to(pre_v110_root).as_posix(): sha256_file(path)
+        for path in sorted(pre_v110_root.rglob("*"))
+        if path.is_file() and path.name not in {"manifest.json", "SHA256SUMS.json"}
+    }
+    (pre_v110_root / "SHA256SUMS.json").write_bytes(
+        canonical_json_bytes(
+            {
+                "schema": "evidence-lane.recursive-sha256.v1",
+                "members": pre_v110_members,
+                "member_count": len(pre_v110_members),
+            }
+        )
+    )
+    pre_v110_manifest_path = pre_v110_root / "manifest.json"
+    pre_v110_manifest = json.loads(
+        pre_v110_manifest_path.read_text(encoding="utf-8")
+    )
+    pre_v110_manifest.pop("source_policy")
+    pre_v110_manifest["parallel_execution"] = pre_v110_execution
+    pre_v110_manifest["bundle_sha256"] = sha256_bytes(
+        canonical_json_bytes(pre_v110_members)
+    )
+    pre_v110_manifest["member_count"] = len(pre_v110_members) + 2
+    pre_v110_manifest_path.write_bytes(canonical_json_bytes(pre_v110_manifest))
+    pre_v110_validation = validate_lane_bundle(pre_v110_root)
+    assert pre_v110_validation["valid"] is True
+    assert pre_v110_validation["pre_v110_compatibility"] is True
+    assert pre_v110_validation["pre_v110_execution_valid"] is True
+    assert pre_v110_validation["source_policy_enforced"] is False
+    assert pre_v110_validation["topology_reconciliation_enforced"] is False
+    assert pre_v110_validation["topology_reconciliation"]["status"] == "FAIL"
+
     for lane_id in CANONICAL_LANE_IDS:
         lane = LANE_REGISTRY[lane_id]
         lane_root = lanes_root / lane_id

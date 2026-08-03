@@ -1,6 +1,6 @@
 # Architecture
 
-Evidence Lane 1.0.0 separates public controls, lifecycle APIs, brain artifacts,
+Evidence Lane 1.1.0 separates public controls, lifecycle APIs, brain artifacts,
 host storage, and human authority.
 
 ## Control plane
@@ -53,6 +53,14 @@ Every lane emits:
 - pointer and refresh evidence;
 - a content-sealed manifest.
 
+For Git worktrees, the current-source inventory is derived from tracked index
+entries rather than a filesystem crawl. Ignored and untracked operational files
+are outside the inventory. A shared policy filters sensitive paths and content
+before any SQLite, FTS, CAS, history, topology, or package write; Git history
+applies the same rule to reachable blobs and prunes unsafe inherited rows during
+incremental reuse. Non-Git sources apply the deterministic path/content policy
+without claiming a tracked-file boundary.
+
 Mermaid and DOT are derived deterministically from the completed SQLite lane,
 not from a second unverified file walk. Each topology contains source intake,
 lane-specific tables and facts, retrieval/CAS/FTS, lifecycle/pointer evidence,
@@ -62,6 +70,15 @@ deterministic join and one serial candidate/HIL/Fuse authority path.
 Optional render validation uses the configured Puppeteer browser or a standard
 installed Chrome/Edge executable. A missing renderer is reported separately
 from the authoritative MMD/DOT and SQLite validation.
+Bundle validation then reparses both graphs and reconciles them independently to
+read-only SQLite. Structural floors, balanced blocks, endpoint resolution,
+exact MMD/DOT subgraph/node/edge parity, root totals, table row counts, and fact
+kind counts must all pass. Rendering success alone is never topology proof.
+Previously sealed v1 packages and pre-v1.1 v2 packages remain readable only
+through explicit compatibility reports. That path validates their original
+seals and database contracts but does not claim source-policy enforcement or
+topology reconciliation that did not exist when they were built. All newly
+built v1.1 candidates must pass both gates.
 
 Independent lane computation is bounded to at most eight in-process workers.
 All workers read one pre-hashed source snapshot and write only their assigned

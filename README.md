@@ -13,7 +13,7 @@
   &nbsp;·&nbsp;
   <a href="docs/REMOTE_DEPLOYMENT.md">ChatGPT deployment</a>
   &nbsp;·&nbsp;
-  <a href="docs/DELTA_001_046_TRACEABILITY.md">Delta traceability</a>
+  <a href="docs/DELTA_001_051_TRACEABILITY.md">Delta traceability</a>
   &nbsp;·&nbsp;
   <a href="SECURITY.md">Security</a>
 </p>
@@ -22,7 +22,7 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane Plugin 1.0.0
+# Evidence Lane Plugin 1.1.0
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex, with a
 durable remote MCP boundary for ChatGPT. It turns visible project sources and
@@ -118,6 +118,15 @@ Every lane package contains and verifies:
   manifest;
 - content hashes that bind every required member.
 
+Git worktrees use `git ls-files` as the default source boundary: ignored and
+untracked operational files never enter the candidate inventory. Before any
+exact bytes reach SQLite, FTS, content-addressed chunks, Git history, topology,
+or a PV package, a shared fail-closed policy excludes `.env` variants,
+`.runtime` state, credentials/private keys, configured secret values, and
+recognized credential-shaped content. Non-Git inputs use the same deterministic
+path/content policy. Exclusion receipts contain only safe path and reason codes,
+never secret bytes or secret environment-variable names.
+
 The MMD and DOT files are semantic projections of the lane SQLite authority,
 not flat file inventories. Every lane shows source intake, its lane-specific
 schema and materialized fact kinds, retrieval/CAS/FTS, refresh and pointer
@@ -125,6 +134,11 @@ evidence, and the inspectable output contract. Code lanes additionally show
 symbols, imports, routes, dependencies, reachable Git commits/refs, file
 changes, blob/chunk CAS, occurrences, and history FTS. Empty lanes remain
 explicitly schema-ready instead of pretending that evidence exists.
+The v1.1 reconciliation gate parses both formats, requires meaningful structural
+floors, rejects dangling endpoints, compares exact subgraph/node/edge identities,
+and checks every emitted table, fact-kind, and root count against read-only
+SQLite. A syntactically valid six-line graph, understated count, or MMD/DOT
+divergence fails the candidate instead of passing as a decorative diagram.
 Optional Mermaid SVG/PNG rendering uses an explicitly configured browser or a
 locally installed Chrome/Edge executable; the plugin never downloads a browser
 at build time, and the `.mmd` source remains authoritative.
@@ -136,10 +150,13 @@ routed source hashes, and assembles reports in canonical lane order. This is
 compute parallelism inside one writer and one linear task; Chat Lineage append,
 HIL, Fuse, accepted-pointer movement, rollback, and State Travel remain serial
 authorities. A failed worker or changed source snapshot produces no candidate.
-New lane bundles use schema v2 and require the sealed parallel-execution
-receipt. Accepted v1 bundles remain readable through a narrow compatibility
-path that applies only when all v2 parallel metadata is absent; a damaged or
-incomplete v2 bundle still fails closed.
+New v1.1 lane bundles use schema v2 plus sealed source-policy and
+parallel-execution receipts, and they require topology reconciliation. Accepted
+v1 bundles remain readable through their existing narrow compatibility path.
+Sealed pre-v1.1 v2 bundles that contain the original parallel receipt but no
+source-policy receipt remain readable through a separately reported
+compatibility path; their historical MMD/DOT is never relabeled as reconciled.
+A damaged or incomplete current v2 bundle still fails closed.
 
 If the host or MCP client disconnects while a long build is in
 `EXIT_BUILDING`, the same Refresh may resume only when no candidate was sealed.
@@ -213,7 +230,7 @@ python -m venv .venv
 Build the durable MCP container with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:1.0.0 .
+docker build --pull --tag evidence-lane-plugin:1.1.0 .
 ```
 
 The container exposes `/mcp` and `/healthz` on port 8080 and requires one writer

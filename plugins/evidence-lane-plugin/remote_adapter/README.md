@@ -2,7 +2,8 @@
 
 This Vercel project has two deliberately separate surfaces:
 
-- a public Next.js site at `/`, plus `/privacy`, `/terms`, and `/support`;
+- a public multipage Next.js site at `/`, `/architecture`, `/lanes`, `/proof`,
+  `/provenance`, `/connect`, plus `/privacy`, `/terms`, and `/support`;
 - a thin ChatGPT-facing reverse adapter at `/mcp`, `/healthz`, and
   `/.well-known/oauth-protected-resource`.
 

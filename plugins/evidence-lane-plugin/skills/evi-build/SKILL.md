@@ -20,3 +20,10 @@ acceptance phrase, call `hil_intent_classify` and return its classification plus
 decides HIL or promotes anything. A `/evi-build` command whose first argument is
 exactly `APPROVE` may call `pv_fuse`; trailing words are follow-on instructions
 and must never be replayed as another decision.
+
+Every new candidate must validate the source-policy receipt and reconcile each
+lane's SQLite authority independently to Mermaid and DOT, including structural
+floors, exact MMD/DOT identity parity, and emitted count claims. Rendering alone
+is not proof. Previously sealed pre-v1.1 lane bundles may remain readable only
+through the explicitly reported compatibility path; do not describe their raw
+topology as reconciled and do not use that path for a new candidate.

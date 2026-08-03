@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evidence-lane-plugin"
-version = "1.0.0"
-description = "Private six-control Evidence Lane plugin with detachable Boot, universal SQLite brains, candidate overlays, and exact-APPROVE HIL."
+version = "1.1.0"
+description = "Private six-control Evidence Lane plugin with secret-safe intake, reconciled SQLite topology, candidate overlays, and exact-APPROVE HIL."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "LicenseRef-Proprietary"

@@ -17,8 +17,9 @@ The adapter lives in
 deployed to a branch preview. It is not the Evidence Lane engine, a general
 router, a local-SQLite host, or an authority store.
 
-The Vercel project serves a public Next.js site at `/`, with public privacy,
-terms, and support pages. Exact rewrites carry only `/healthz`, `/mcp`, and
+The Vercel project serves a public multipage Next.js site at `/`,
+`/architecture`, `/lanes`, `/proof`, `/provenance`, `/connect`, plus public
+privacy, terms, and support pages. Exact rewrites carry only `/healthz`, `/mcp`, and
 `/.well-known/oauth-protected-resource` into Python using the reserved
 `__evi_path` query field. The adapter restores the public path, removes the
 reserved field, and forwards only the caller's remaining query string. There is

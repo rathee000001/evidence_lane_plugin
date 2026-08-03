@@ -18,3 +18,12 @@ indexing; `REQUIRED` fails closed without a readable Git worktree and HEAD;
 `DISABLED` skips Git history explicitly. None of these modes authorizes a
 remote Git write. Use existing internal enrollment and route tools only after
 the visible classification is accepted.
+
+For a Git worktree, enumerate current sources from tracked index entries only.
+Before reading exact bytes into SQLite, FTS, CAS, history, topology, or a PV
+package, apply the shared source policy and exclude `.env` variants,
+`.runtime`/cache/build artifacts, credential or private-key paths, configured
+secret values, and recognized credential-shaped content. Never place secret
+bytes or secret environment-variable names in an exclusion receipt. Non-Git
+sources use the same deterministic path/content policy but do not claim a
+tracked-only boundary.

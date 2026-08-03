@@ -7,6 +7,7 @@ import json
 import mimetypes
 import re
 import sqlite3
+import subprocess  # nosec B404
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -20,26 +21,8 @@ from .constants import (
 )
 from .errors import EvidenceLaneError, require
 from .hashing import sha256_bytes
+from .source_policy import content_exclusion_reason, path_exclusion_reason
 from .timeutil import utc_now
-
-_EXCLUDED_PARTS = {
-    ".git",
-    ".hg",
-    ".svn",
-    ".venv",
-    "venv",
-    "node_modules",
-    "__pycache__",
-    ".pytest_cache",
-    ".mypy_cache",
-    ".ruff_cache",
-    "dist",
-    "build",
-    "coverage",
-    ".next",
-    ".turbo",
-    ".cache",
-}
 
 _CODE_FAMILIES = {
     ".py": "python",
@@ -125,6 +108,8 @@ class IngestionReport:
     dependencies: int = 0
     routes: int = 0
     bytes: int = 0
+    source_selection: str = "FILESYSTEM_GOVERNED"
+    excluded_files: int = 0
     families: dict[str, int] = field(default_factory=dict)
     warnings: list[dict[str, Any]] = field(default_factory=list)
     refresh: dict[str, Any] = field(default_factory=dict)
@@ -144,21 +129,75 @@ class IngestionReport:
             "dependencies": self.dependencies,
             "routes": self.routes,
             "bytes": self.bytes,
+            "source_selection": self.source_selection,
+            "excluded_files": self.excluded_files,
             "families": dict(sorted(self.families.items())),
             "warnings": self.warnings,
             "refresh": self.refresh,
         }
 
 
-def iter_source_files(root: str | Path) -> Iterable[tuple[str, Path]]:
-    base = Path(root).resolve()
-    for target in sorted(base.rglob("*"), key=lambda path: path.as_posix().lower()):
+def _candidate_source_files(root: Path) -> tuple[str, list[tuple[str, Path]]]:
+    """Prefer the governed Git index; fall back only for non-Git source roots."""
+
+    try:
+        completed = subprocess.run(  # nosec B603
+            ["git", "ls-files", "-z", "--cached", "--", "."],
+            cwd=root,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            check=False,
+            timeout=60,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        completed = None
+    if completed is not None and completed.returncode == 0:
+        tracked: list[tuple[str, Path]] = []
+        for raw in completed.stdout.split(b"\x00"):
+            if not raw:
+                continue
+            relative = raw.decode("utf-8", errors="surrogateescape").replace("\\", "/")
+            target = root / Path(relative)
+            if target.is_file() and not target.is_symlink():
+                tracked.append((relative, target))
+        return "GIT_TRACKED_ONLY", sorted(tracked, key=lambda row: row[0].lower())
+
+    fallback: list[tuple[str, Path]] = []
+    for target in sorted(root.rglob("*"), key=lambda path: path.as_posix().lower()):
         if not target.is_file() or target.is_symlink():
             continue
-        relative = target.relative_to(base)
-        if any(part in _EXCLUDED_PARTS for part in relative.parts):
+        fallback.append((target.relative_to(root).as_posix(), target))
+    return "FILESYSTEM_GOVERNED", fallback
+
+
+def governed_source_files(
+    root: str | Path,
+) -> tuple[str, list[tuple[str, Path]], list[dict[str, str]]]:
+    """Return safe source files plus secret-free exclusion receipts."""
+
+    base = Path(root).resolve()
+    selection, candidates = _candidate_source_files(base)
+    included: list[tuple[str, Path]] = []
+    excluded: list[dict[str, str]] = []
+    for relative, target in candidates:
+        reason = path_exclusion_reason(relative)
+        if reason is None:
+            try:
+                reason = content_exclusion_reason(target.read_bytes())
+            except OSError:
+                reason = "SOURCE_FILE_UNREADABLE"
+        if reason is not None:
+            excluded.append(
+                {"status": "EXCLUDED", "code": reason, "path": relative}
+            )
             continue
-        yield relative.as_posix(), target
+        included.append((relative, target))
+    return selection, included, excluded
+
+
+def iter_source_files(root: str | Path) -> Iterable[tuple[str, Path]]:
+    _, included, _ = governed_source_files(root)
+    yield from included
 
 
 def _decode(data: bytes) -> tuple[str | None, str | None]:
@@ -641,10 +680,15 @@ def ingest_repository(
         "CHUNK_CONFIGURATION_INVALID",
         "Chunk overlap must be smaller than chunk size.",
     )
-    report = IngestionReport()
     root = Path(repository_root).resolve()
+    selection, targets, excluded = governed_source_files(root)
+    report = IngestionReport(
+        source_selection=selection,
+        excluded_files=len(excluded),
+        warnings=excluded,
+    )
     observed_at = utc_now()
-    for relative, target in iter_source_files(root):
+    for relative, target in targets:
         _ingest_file(
             connection,
             repository_id=repository_id,
@@ -673,6 +717,8 @@ def ingest_repository(
         "CHANGED_SECTION_REINDEXED": report.changed_sections_reindexed,
         "CHUNK_CAS_CREATED": report.chunk_cas_created,
         "CHUNK_CAS_REUSED": report.chunk_cas_reused,
+        "SOURCE_SELECTION": report.source_selection,
+        "EXCLUDED_SOURCE_FILES": report.excluded_files,
     }
     return report
 
@@ -695,7 +741,8 @@ def refresh_repository(
         "Chunk overlap must be smaller than chunk size.",
     )
     root = Path(repository_root).resolve()
-    targets = {relative: target for relative, target in iter_source_files(root)}
+    selection, target_rows, excluded = governed_source_files(root)
+    targets = {relative: target for relative, target in target_rows}
     prior = {
         row["path"]: {
             "file_id": int(row["file_id"]),
@@ -727,7 +774,11 @@ def refresh_repository(
     added = sorted(current.keys() - prior.keys())
     removed = sorted(prior.keys() - current.keys())
     recorded_at = utc_now()
-    report = IngestionReport()
+    report = IngestionReport(
+        source_selection=selection,
+        excluded_files=len(excluded),
+        warnings=excluded,
+    )
     prior_chunks_by_path = {
         path: {
             str(row["sha256"])
@@ -859,6 +910,8 @@ def refresh_repository(
         "changed_paths": changed,
         "new_paths": added,
         "removed_paths": removed,
+        "SOURCE_SELECTION": report.source_selection,
+        "EXCLUDED_SOURCE_FILES": report.excluded_files,
     }
     if report.files == 0:
         raise EvidenceLaneError(

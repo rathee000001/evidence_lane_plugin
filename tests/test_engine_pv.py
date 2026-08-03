@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import subprocess
 from pathlib import Path
 
 import pytest
 from evidence_lane_plugin import database
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.pv_package import validate_pv_package
+from evidence_lane_plugin.source_policy import known_environment_secrets
 from evidence_lane_plugin.topology import _renderer_environment
 
 from .conftest import boot_local
@@ -103,6 +105,78 @@ def test_initial_pv_captures_svelte_exact_bytes_and_fts(
         if path.is_file() and path.name.lower() in {"env.json", "uop.json"}
     ]
     assert forbidden == []
+
+
+def test_sealed_candidate_contains_zero_exact_environment_secret_occurrences(
+    service,
+    source_repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    secret = "sk-proj-candidate-package-regression-0123456789"
+    monkeypatch.setenv("CANDIDATE_PACKAGE_REGRESSION_API_KEY", secret)
+    known_environment_secrets.cache_clear()
+    (source_repository / ".env.local").write_text(
+        f"OPENAI_API_KEY={secret}\n", encoding="utf-8"
+    )
+    (source_repository / ".runtime").mkdir()
+    (source_repository / ".runtime" / "session.json").write_text(
+        '{"operational":true}\n', encoding="utf-8"
+    )
+    (source_repository / "configured-secret.txt").write_text(
+        secret, encoding="utf-8"
+    )
+    (source_repository / "untracked-operational.txt").write_text(
+        secret, encoding="utf-8"
+    )
+    (source_repository / ".gitignore").write_text(
+        "untracked-operational.txt\n", encoding="utf-8"
+    )
+    subprocess.run(
+        [
+            "git",
+            "add",
+            "-f",
+            ".env.local",
+            ".runtime/session.json",
+            "configured-secret.txt",
+            ".gitignore",
+        ],
+        cwd=source_repository,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "add source-policy fixtures"],
+        cwd=source_repository,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    boot = boot_local(service)
+    result = service.build_initial("book-faires", boot["session"]["session_id"])
+    candidate = Path(result["candidate"]["stored_path"])
+
+    assert validate_pv_package(candidate)["status"] == "PASS"
+    secret_bytes = secret.encode("utf-8")
+    assert not [
+        path.relative_to(candidate).as_posix()
+        for path in candidate.rglob("*")
+        if path.is_file() and secret_bytes in path.read_bytes()
+    ]
+    with sqlite3.connect(candidate / "code.sqlite") as connection:
+        indexed = {
+            str(row[0])
+            for row in connection.execute(
+                "SELECT path FROM files WHERE path IN (?, ?, ?)",
+                (".env.local", ".runtime/session.json", "configured-secret.txt"),
+            )
+        }
+    assert indexed == set()
+    assert not (candidate / ".env.local").exists()
+    assert not (candidate / ".runtime").exists()
+    known_environment_secrets.cache_clear()
 
 
 def test_tamper_is_detected(service) -> None:

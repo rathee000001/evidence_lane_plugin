@@ -36,7 +36,7 @@ from .hashing import (
     sha256_bytes,
     sha256_file,
 )
-from .ingest import extract_code_lane_facts, iter_source_files
+from .ingest import extract_code_lane_facts, governed_source_files
 from .lanes import (
     CANONICAL_LANE_IDS,
     LANE_REGISTRY,
@@ -48,6 +48,7 @@ from .lanes import (
 )
 from .redaction import redact_text
 from .timeutil import utc_now
+from .topology_reconciliation import reconcile_bundle_topology
 
 LANE_SCHEMA_VERSION = "evidence-lane.universal-lane.v2"
 LEGACY_LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v1"
@@ -4250,7 +4251,8 @@ def build_lane_bundle(
         output.mkdir(parents=True)
     parent = Path(parent_lane_bundle).resolve() if parent_lane_bundle else None
     recorded_at = utc_now()
-    source_paths = [relative for relative, _ in iter_source_files(root)]
+    source_selection, source_rows, source_exclusions = governed_source_files(root)
+    source_paths = [relative for relative, _ in source_rows]
     source_snapshot = _current_index(root, source_paths)
     source_snapshot_sha256 = sha256_bytes(canonical_json_bytes(source_snapshot))
     inherited_routes: dict[str, str] = {}
@@ -4298,6 +4300,12 @@ def build_lane_bundle(
             "schema": "evidence-lane.source-route-authority.v1",
             "parent_pv": parent_pv,
             "routes": routes,
+            "source_policy": {
+                "selection_mode": source_selection,
+                "tracked_only": source_selection == "GIT_TRACKED_ONLY",
+                "excluded_source_count": len(source_exclusions),
+                "excluded_sources": source_exclusions,
+            },
             "inherited_route_count": len(inherited_routes),
             "session_override_count": len(source_overrides or {}),
             "single_lane_per_source": True,
@@ -4336,12 +4344,17 @@ def build_lane_bundle(
             reports_by_lane[lane_id] = future.result()
     reports = [reports_by_lane[lane_id] for lane_id in CANONICAL_LANE_IDS]
 
-    final_source_paths = [relative for relative, _ in iter_source_files(root)]
+    final_selection, final_rows, final_exclusions = governed_source_files(root)
+    final_source_paths = [relative for relative, _ in final_rows]
     final_source_snapshot = _current_index(root, final_source_paths)
     final_source_snapshot_sha256 = sha256_bytes(
         canonical_json_bytes(final_source_snapshot)
     )
-    if final_source_snapshot != source_snapshot:
+    if (
+        final_source_snapshot != source_snapshot
+        or final_selection != source_selection
+        or final_exclusions != source_exclusions
+    ):
         raise ValueError(
             "Repository source snapshot changed during parallel lane build; "
             "the partial output is not a candidate."
@@ -4366,6 +4379,17 @@ def build_lane_bundle(
         "final_source_snapshot_sha256": final_source_snapshot_sha256,
         "source_snapshot_unchanged": True,
         "source_binding": source_binding,
+        "source_policy": {
+            "selection_mode": source_selection,
+            "tracked_only": source_selection == "GIT_TRACKED_ONLY",
+            "excluded_source_count": len(source_exclusions),
+            "excluded_sources": source_exclusions,
+            "policy_unchanged_during_build": True,
+            "secrets_indexed": False,
+            "env_files_indexed": False,
+            "runtime_artifacts_indexed": False,
+            "untracked_operational_files_indexed": False,
+        },
         "serialized_authorities": [
             "chat_lineage_append",
             "hil_decision",
@@ -4430,6 +4454,7 @@ def build_lane_bundle(
         "source_count": len(source_paths),
         "source_routes_sha256": sha256_bytes(canonical_json_bytes(routes)),
         "source_snapshot_sha256": source_snapshot_sha256,
+        "source_policy": execution_receipt["source_policy"],
         "parallel_execution": execution_receipt,
         "reports": reports,
         "summary": summary,
@@ -4466,6 +4491,12 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         if execution_path.is_file()
         else None
     )
+    pre_v110_compatibility = bool(
+        manifest.get("schema") == LANE_BUNDLE_SCHEMA
+        and "source_policy" not in manifest
+        and execution is not None
+        and "source_policy" not in execution
+    )
     checksums = json.loads((root / "SHA256SUMS.json").read_text(encoding="utf-8"))
     declared_members = checksums.get("members", {})
     actual_members = {
@@ -4481,6 +4512,10 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         }
         for name in sorted(set(declared_members) | set(actual_members))
         if declared_members.get(name) != actual_members.get(name)
+    }
+    topology_reconciliation = reconcile_bundle_topology(root)
+    topology_by_lane = {
+        row["lane_id"]: row for row in topology_reconciliation["lanes"]
     }
     lane_reports: dict[str, Any] = {}
     lane_manifest_errors: dict[str, Any] = {}
@@ -4508,12 +4543,11 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         actual_lane_files = {
             path.name for path in lane_root.iterdir() if path.is_file()
         }
-        mmd_valid = (lane_root / lane.mmd_filename).read_text(
-            encoding="utf-8"
-        ).startswith("flowchart ")
-        dot_valid = (lane_root / lane.dot_filename).read_text(
-            encoding="utf-8"
-        ).startswith("digraph ")
+        topology_report = topology_by_lane[lane_id]
+        mmd_valid = (
+            topology_report["structural"]["mermaid"]["status"] == "PASS"
+        )
+        dot_valid = topology_report["structural"]["dot"]["status"] == "PASS"
         if (
             not (legacy_manifest or strict_manifest)
             or lane_manifest.get("lane", {}).get("canonical_lane_id") != lane_id
@@ -4528,8 +4562,12 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
                 != required_files
             )
             or not required_files <= actual_lane_files
-            or not mmd_valid
-            or not dot_valid
+            or (not pre_v110_compatibility and not mmd_valid)
+            or (not pre_v110_compatibility and not dot_valid)
+            or (
+                not pre_v110_compatibility
+                and topology_report["status"] != "PASS"
+            )
         ):
             lane_manifest_errors[lane_id] = {
                 "schema": lane_manifest_schema,
@@ -4549,6 +4587,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
                 ),
                 "mmd_valid": mmd_valid,
                 "dot_valid": dot_valid,
+                "topology_reconciliation": topology_report,
             }
     expected_registry_ids = list(CANONICAL_LANE_IDS)
     registry_ids = [row.get("canonical_lane_id") for row in registry.get("lanes", [])]
@@ -4573,13 +4612,50 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         and execution.get("source_snapshot_sha256")
         == execution.get("final_source_snapshot_sha256")
         and execution.get("source_binding", {}).get("valid") is True
+        and execution.get("source_policy", {}).get("policy_unchanged_during_build")
+        is True
+        and execution.get("source_policy", {}).get("secrets_indexed") is False
+        and execution.get("source_policy", {}).get("env_files_indexed") is False
+        and execution.get("source_policy", {}).get("runtime_artifacts_indexed")
+        is False
+        and execution.get("source_policy", {}).get(
+            "untracked_operational_files_indexed"
+        )
+        is False
+        and execution.get("deterministic_assembly_order")
+        == list(CANONICAL_LANE_IDS)
+        and manifest.get("parallel_execution") == execution
+        and manifest.get("source_policy") == execution.get("source_policy")
+        and manifest.get("source_snapshot_sha256")
+        == execution.get("source_snapshot_sha256")
+    )
+    pre_v110_execution_valid = bool(
+        pre_v110_compatibility
+        and execution
+        and execution.get("schema")
+        == "evidence-lane.parallel-lane-execution.v1"
+        and execution.get("single_writer") is True
+        and execution.get("linear_governance") is True
+        and execution.get("barrier_status") == "PASS"
+        and execution.get("source_snapshot_unchanged") is True
+        and execution.get("source_snapshot_sha256")
+        == execution.get("final_source_snapshot_sha256")
+        and execution.get("source_binding", {}).get("valid") is True
         and execution.get("deterministic_assembly_order")
         == list(CANONICAL_LANE_IDS)
         and manifest.get("parallel_execution") == execution
         and manifest.get("source_snapshot_sha256")
         == execution.get("source_snapshot_sha256")
     )
-    execution_valid = legacy_execution_compatibility or modern_execution_valid
+    execution_valid = (
+        legacy_execution_compatibility
+        or pre_v110_execution_valid
+        or modern_execution_valid
+    )
+    topology_valid = bool(
+        pre_v110_compatibility
+        or topology_reconciliation["status"] == "PASS"
+    )
     valid = (
         manifest.get("schema")
         in {LEGACY_LANE_BUNDLE_SCHEMA, LANE_BUNDLE_SCHEMA}
@@ -4599,6 +4675,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         == sha256_bytes(canonical_json_bytes(routes.get("routes", {})))
         and manifest.get("lane_count") == len(CANONICAL_LANE_IDS)
         and execution_valid
+        and topology_valid
         and not lane_manifest_errors
         and all(report["valid"] for report in lane_reports.values())
     )
@@ -4618,4 +4695,10 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         "parallel_execution_legacy_compatibility": (
             legacy_execution_compatibility
         ),
+        "pre_v110_compatibility": pre_v110_compatibility,
+        "pre_v110_execution_valid": pre_v110_execution_valid,
+        "source_policy_enforced": not pre_v110_compatibility,
+        "topology_reconciliation_enforced": not pre_v110_compatibility,
+        "topology_valid": topology_valid,
+        "topology_reconciliation": topology_reconciliation,
     }

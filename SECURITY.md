@@ -16,6 +16,14 @@ They are redacted from visible errors and prohibited from:
 - Chat Lineage, including token telemetry and tool payloads;
 - Google Drive metadata, Git remote receipts, screenshots, and ordinary logs.
 
+Git source intake enumerates tracked index entries only. A shared pre-index
+policy excludes `.env` variants, runtime/cache/build paths, credential and
+private-key files, exact configured secret values, and recognized token or
+assigned-secret content before any exact bytes reach SQLite, FTS, CAS, Git
+history, topology, or a candidate package. Non-Git intake uses the same
+deterministic path/content exclusions. Exclusion receipts record safe reason
+codes and paths but never return secret values or secret environment names.
+
 Hidden chain-of-thought, private model reasoning, and reasoning-content fields
 are also prohibited from Chat Lineage and project-sector overlays.
 

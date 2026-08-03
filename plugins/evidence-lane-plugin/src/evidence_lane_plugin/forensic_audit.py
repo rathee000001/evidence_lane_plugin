@@ -16,6 +16,7 @@ from .hashing import (
 )
 from .lane_engine import validate_lane_bundle
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
+from .topology_reconciliation import reconciliation_markdown
 
 FORENSIC_AUDIT_SCHEMA = "evidence-lane.forensic-lane-audit.v1"
 
@@ -127,7 +128,7 @@ def _lane_verdict(checks_pass: bool) -> dict[str, Any]:
             "basis": "All sealed artifact, SQLite, FTS, topology, pointer, and manifest checks passed.",
             "evidence_that_would_change_verdict": (
                 "Any hash mismatch, SQLite integrity/FK/FTS failure, missing required artifact, "
-                "invalid MMD/DOT prefix, or pointer/manifest identity mismatch."
+                "SQLite-to-MMD/DOT disagreement, or pointer/manifest identity mismatch."
             ),
         }
     return {
@@ -151,6 +152,10 @@ def audit_lane_bundle(
     bundle_validation = validate_lane_bundle(root)
     bundle_manifest = _read_json(root / "manifest.json")
     routes = _read_json(root / "routes.json")
+    topology_reconciliation = bundle_validation["topology_reconciliation"]
+    topology_by_lane = {
+        row["lane_id"]: row for row in topology_reconciliation["lanes"]
+    }
     lane_audits: list[dict[str, Any]] = []
     for lane_id in CANONICAL_LANE_IDS:
         lane = LANE_REGISTRY[lane_id]
@@ -218,6 +223,7 @@ def audit_lane_bundle(
             and lane_pointer.get("independent_authority") is False
         )
         lane_validation = bundle_validation.get("lanes", {}).get(lane_id, {})
+        topology_report = topology_by_lane[lane_id]
         checks_pass = (
             not missing
             and sqlite_report["status"] == "PASS"
@@ -226,6 +232,7 @@ def audit_lane_bundle(
             and manifest_hashes_match
             and pointer_valid
             and lane_validation.get("valid") is True
+            and topology_report.get("status") == "PASS"
         )
         audit = {
             "schema": FORENSIC_AUDIT_SCHEMA,
@@ -241,6 +248,7 @@ def audit_lane_bundle(
             "sqlite": sqlite_report,
             "mermaid": mmd_report,
             "graphviz": dot_report,
+            "topology_reconciliation": topology_report,
             "lane_pointer": lane_pointer,
             "refresh": {
                 "schema": refresh_receipt.get("schema"),
@@ -272,6 +280,7 @@ def audit_lane_bundle(
         "route_count": len(routes.get("routes", {})),
         "lane_count": len(lane_audits),
         "lanes": lane_audits,
+        "topology_reconciliation": topology_reconciliation,
         "status": "PASS" if overall_pass else "FAIL",
         **_lane_verdict(overall_pass),
     }
@@ -282,7 +291,7 @@ def audit_lane_bundle(
 def _lane_markdown(audit: dict[str, Any]) -> str:
     sqlite_report = audit["sqlite"]
     artifacts = "\n".join(
-        f"- `{name}` — `{row['sha256']}` ({row['bytes']} bytes)"
+        f"- `{name}` - `{row['sha256']}` ({row['bytes']} bytes)"
         for name, row in audit["artifact_hashes"].items()
     )
     row_counts = "\n".join(
@@ -321,8 +330,11 @@ Missing artifacts: `{audit['missing_artifacts']}`
 
 ## Topology, pointer, and refresh
 
-- Mermaid: `{audit['mermaid']['status']}` — `{audit['mermaid']['sha256']}`
-- DOT: `{audit['graphviz']['status']}` — `{audit['graphviz']['sha256']}`
+- Mermaid: `{audit['mermaid']['status']}` - `{audit['mermaid']['sha256']}`
+- DOT: `{audit['graphviz']['status']}` - `{audit['graphviz']['sha256']}`
+- SQLite/Mermaid/DOT reconciliation: `{audit['topology_reconciliation']['status']}`
+- Reconciled claims: `{audit['topology_reconciliation']['claims_checked']}`
+- Failed claims: `{audit['topology_reconciliation']['claims_failed']}`
 - Pointer valid: `{audit['pointer_valid']}`
 - Manifest schema: `{audit['lane_manifest_schema']}`
 - Manifest hashes match: `{audit['manifest_hashes_match']}`
@@ -331,7 +343,7 @@ Missing artifacts: `{audit['missing_artifacts']}`
 
 ## Verdict
 
-**{audit['verdict']} — {audit['confidence_percent']}% confidence.**
+**{audit['verdict']} - {audit['confidence_percent']}% confidence.**
 
 Basis: {audit['basis']}
 
@@ -361,14 +373,33 @@ def write_forensic_audit_reports(
             f"| {position:02d} | `{lane['lane_id']}` | {lane['status']} | "
             f"{lane['verdict']} | [{name}]({name}) |"
         )
+    topology_json = output / "topology_reconciliation.json"
+    atomic_write_json(topology_json, audit["topology_reconciliation"])
+    topology_markdown = output / "topology_reconciliation.md"
+    atomic_write_bytes(
+        topology_markdown,
+        reconciliation_markdown(audit["topology_reconciliation"]).encode("utf-8"),
+    )
+    for path in (topology_json, topology_markdown):
+        report_files.append(
+            {
+                "path": path.name,
+                "sha256": sha256_file(path),
+                "bytes": path.stat().st_size,
+            }
+        )
     index = """# Evidence Lane forensic audit index
 
 | # | Lane | Status | Verdict | Report |
 |---:|---|---|---|---|
 """ + "\n".join(index_rows) + f"""
 
-Overall: **{audit['status']}**  
-Verdict: **{audit['verdict']} — {audit['confidence_percent']}% confidence**  
+Topology reconciliation: [topology_reconciliation.md](topology_reconciliation.md)
+
+Overall: **{audit['status']}**
+
+Verdict: **{audit['verdict']} - {audit['confidence_percent']}% confidence**
+
 Audit SHA-256: `{audit['audit_sha256']}`
 
 Evidence that would change the verdict: {audit['evidence_that_would_change_verdict']}

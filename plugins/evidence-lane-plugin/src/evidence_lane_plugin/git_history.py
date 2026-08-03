@@ -10,6 +10,12 @@ from typing import Any, BinaryIO, cast
 
 from .errors import EvidenceLaneError, require
 from .hashing import canonical_json_bytes, sha256_bytes
+from .redaction import redact_text
+from .source_policy import (
+    content_exclusion_reason,
+    path_exclusion_reason,
+    redact_known_environment_secrets,
+)
 
 _TEXT_CHUNK_CHARS = 6000
 _TEXT_CHUNK_OVERLAP = 500
@@ -197,7 +203,9 @@ def _commit(root: Path, commit_sha: str) -> dict[str, Any]:
         "author_email": values[6],
         "committer_name": values[7],
         "committer_email": values[8],
-        "message": values[9].rstrip("\r\n"),
+        "message": redact_text(
+            redact_known_environment_secrets(values[9].rstrip("\r\n"))
+        ),
     }
 
 
@@ -211,11 +219,14 @@ def _tree(root: Path, commit_sha: str) -> list[dict[str, str]]:
         mode, kind, object_sha = header.decode("ascii").split(" ", 2)
         if kind != "blob":
             continue
+        normalized_path = path.decode("utf-8", errors="replace")
+        if path_exclusion_reason(normalized_path) is not None:
+            continue
         rows.append(
             {
                 "mode": mode,
                 "blob_sha": object_sha,
-                "path": path.decode("utf-8", errors="replace"),
+                "path": normalized_path,
             }
         )
     return rows
@@ -247,8 +258,78 @@ def _changes(root: Path, commit_sha: str) -> list[dict[str, str | None]]:
             prior_path = None
             path = fields[index].decode("utf-8", errors="replace")
             index += 1
+        if path_exclusion_reason(path) is not None:
+            continue
+        if prior_path is not None and path_exclusion_reason(prior_path) is not None:
+            continue
         rows.append({"status": status, "path": path, "prior_path": prior_path})
     return rows
+
+
+def _purge_unsafe_history(connection: sqlite3.Connection) -> dict[str, int]:
+    """Remove unsafe bytes inherited from an older accepted lane database."""
+
+    unsafe_blobs = {
+        str(row["blob_sha"])
+        for row in connection.execute("SELECT blob_sha, exact_bytes FROM git_blob_cas")
+        if content_exclusion_reason(bytes(row["exact_bytes"])) is not None
+    }
+    sensitive_occurrences = [
+        (str(row["commit_sha"]), str(row["path"]), int(row["ordinal"]))
+        for row in connection.execute(
+            "SELECT commit_sha,path,ordinal FROM git_chunk_occurrence"
+        )
+        if path_exclusion_reason(str(row["path"])) is not None
+    ]
+    for commit_sha, path, ordinal in sensitive_occurrences:
+        connection.execute(
+            "DELETE FROM git_chunk_occurrence WHERE commit_sha=? AND path=? AND ordinal=?",
+            (commit_sha, path, ordinal),
+        )
+    sensitive_changes = [
+        (str(row["commit_sha"]), str(row["status"]), str(row["path"]))
+        for row in connection.execute(
+            "SELECT commit_sha,status,path,prior_path FROM git_file_change"
+        )
+        if path_exclusion_reason(str(row["path"])) is not None
+        or (
+            row["prior_path"] is not None
+            and path_exclusion_reason(str(row["prior_path"])) is not None
+        )
+    ]
+    for commit_sha, status, path in sensitive_changes:
+        connection.execute(
+            "DELETE FROM git_file_change WHERE commit_sha=? AND status=? AND path=?",
+            (commit_sha, status, path),
+        )
+    for blob_sha in sorted(unsafe_blobs):
+        connection.execute(
+            "DELETE FROM git_chunk_occurrence WHERE blob_sha=?", (blob_sha,)
+        )
+        connection.execute("DELETE FROM git_file_change WHERE blob_sha=?", (blob_sha,))
+        connection.execute("DELETE FROM git_blob_cas WHERE blob_sha=?", (blob_sha,))
+    connection.execute(
+        "DELETE FROM git_content_chunk_cas WHERE chunk_sha256 NOT IN "
+        "(SELECT DISTINCT chunk_sha256 FROM git_chunk_occurrence)"
+    )
+    connection.execute(
+        "DELETE FROM git_blob_cas WHERE blob_sha NOT IN "
+        "(SELECT DISTINCT blob_sha FROM git_chunk_occurrence) "
+        "AND blob_sha NOT IN "
+        "(SELECT DISTINCT blob_sha FROM git_file_change WHERE blob_sha IS NOT NULL)"
+    )
+    for row in connection.execute("SELECT commit_sha,message FROM git_commit_registry"):
+        sanitized = redact_text(redact_known_environment_secrets(str(row["message"])))
+        if sanitized != row["message"]:
+            connection.execute(
+                "UPDATE git_commit_registry SET message=? WHERE commit_sha=?",
+                (sanitized, row["commit_sha"]),
+            )
+    return {
+        "unsafe_blobs_removed": len(unsafe_blobs),
+        "sensitive_occurrences_removed": len(sensitive_occurrences),
+        "sensitive_changes_removed": len(sensitive_changes),
+    }
 
 
 def _read_blobs(root: Path, blob_shas: list[str]) -> dict[str, bytes]:
@@ -319,6 +400,7 @@ def index_git_history(
     root = Path(repository_root).resolve()
     signature = git_history_signature(root)
     create_git_history_schema(connection)
+    purge_report = _purge_unsafe_history(connection)
     commits = [
         item
         for item in _git(root, "rev-list", "--topo-order", "--reverse", "--all")
@@ -341,9 +423,17 @@ def index_git_history(
             first_commit_for_blob.setdefault(item["blob_sha"], row["commit_sha"])
     missing_blobs = sorted(set(first_commit_for_blob) - existing_blobs)
     blob_bytes = _read_blobs(root, missing_blobs)
+    excluded_blob_shas = {
+        blob_sha
+        for blob_sha, data in blob_bytes.items()
+        if content_exclusion_reason(data) is not None
+    }
+    safe_missing_blobs = [
+        blob_sha for blob_sha in missing_blobs if blob_sha not in excluded_blob_shas
+    ]
     chunks_created = 0
     chunks_reused = 0
-    for blob_sha in missing_blobs:
+    for blob_sha in safe_missing_blobs:
         data = blob_bytes[blob_sha]
         text, encoding = _decode_blob(data)
         connection.execute(
@@ -411,6 +501,8 @@ def index_git_history(
         tree_by_path = {item["path"]: item for item in trees[row["commit_sha"]]}
         for change in _changes(root, row["commit_sha"]):
             tree_item = tree_by_path.get(str(change["path"]))
+            if tree_item is not None and tree_item["blob_sha"] in excluded_blob_shas:
+                continue
             connection.execute(
                 """
                 INSERT OR IGNORE INTO git_file_change(
@@ -519,10 +611,18 @@ def index_git_history(
         "new_commits": len(set(commits) - existing_commits),
         "reused_commits": len(set(commits) & existing_commits),
         "new_blobs": len(missing_blobs),
+        "safe_new_blobs": len(safe_missing_blobs),
+        "excluded_secret_blobs": len(excluded_blob_shas),
         "reused_blobs": len(set(first_commit_for_blob) & existing_blobs),
         "chunk_cas_created": chunks_created,
         "chunk_cas_reused": chunks_reused,
         "counts": counts,
         "single_index_reuse": True,
         "full_reachable_history": counts["commits"] == len(commits),
+        "source_policy": {
+            "tracked_history_only": True,
+            "sensitive_paths_excluded": True,
+            "secret_content_excluded": True,
+            **purge_report,
+        },
     }

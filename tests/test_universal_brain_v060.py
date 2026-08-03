@@ -371,11 +371,37 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     }
     assert "/(.*)" not in {rewrite["source"] for rewrite in vercel["rewrites"]}
     landing = (adapter_root / "app" / "page.tsx").read_text(encoding="utf-8")
-    assert "Vercel is the ChatGPT edge, not the Evidence Lane brain" in landing
-    assert "18 canonical lanes" in landing
-    assert "ChatGPT edge fail-closed" in landing
-    for public_page in ("privacy", "terms", "support"):
+    release = (
+        adapter_root / "app" / "_components" / "release-status.tsx"
+    ).read_text(encoding="utf-8")
+    styles = (adapter_root / "app" / "globals.css").read_text(encoding="utf-8")
+    assert "Build an inspectable project brain" in landing
+    assert "18" in landing and "canonical lanes" in landing
+    assert "ChatGPT MCP edge fail-closed" in release
+    assert "prefers-reduced-motion" in styles
+    assert "<img" not in "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (adapter_root / "app").rglob("*.tsx")
+    )
+    for public_page in (
+        "architecture",
+        "lanes",
+        "proof",
+        "provenance",
+        "connect",
+        "privacy",
+        "terms",
+        "support",
+    ):
         assert (adapter_root / "app" / public_page / "page.tsx").is_file()
+    for asset in (
+        "evidence-root-fibers.png",
+        "evidence-cube-icon.png",
+        "evidence-static-brain.png",
+        "evidence-executive-scanner.png",
+        "evidence-glass-orb.png",
+    ):
+        assert (adapter_root / "public" / asset).stat().st_size > 100_000
     spec = importlib.util.spec_from_file_location(
         "evidence_lane_remote_adapter", adapter_path
     )
