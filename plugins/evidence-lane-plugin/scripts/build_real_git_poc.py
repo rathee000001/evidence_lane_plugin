@@ -171,7 +171,8 @@ def _write_pdf(path: Path) -> None:
 
 
 def _write_sqlite(path: Path) -> None:
-    with sqlite3.connect(path) as connection:
+    connection = sqlite3.connect(path)
+    try:
         connection.executescript(
             """
             PRAGMA foreign_keys = ON;
@@ -187,6 +188,9 @@ def _write_sqlite(path: Path) -> None:
             INSERT INTO note_fts(note) VALUES ('linear fixture evidence');
             """
         )
+        connection.commit()
+    finally:
+        connection.close()
 
 
 def _fixture_sources(repository: Path) -> dict[str, str]:
@@ -381,7 +385,7 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
 
         overrides = _fixture_sources(source)
         fixture_paths = sorted(overrides)
-        _git(source, "add", "--", FIXTURE_ROOT)
+        _git(source, "add", "--sparse", "--force", "--", FIXTURE_ROOT)
         staged_paths = sorted(
             _git(source, "diff", "--cached", "--name-only", "--", FIXTURE_ROOT).splitlines()
         )
