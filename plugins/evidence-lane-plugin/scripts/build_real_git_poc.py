@@ -456,7 +456,7 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
             "route_policy": initial_policy,
             "forensic_status": initial_audit["status"],
             "forensic_audit_sha256": initial_audit["audit_sha256"],
-            "forensic_package_sha256": initial_reports["package_sha256"],
+            "forensic_manifest_sha256": initial_reports["manifest_sha256"],
         },
         "refresh": {
             "bundle": "PV2_REFRESH",
@@ -467,7 +467,7 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
             "all_eighteen_lanes_byte_reused": all_reused,
             "forensic_status": refresh_audit["status"],
             "forensic_audit_sha256": refresh_audit["audit_sha256"],
-            "forensic_package_sha256": refresh_reports["package_sha256"],
+            "forensic_manifest_sha256": refresh_reports["manifest_sha256"],
         },
         "status": "PASS" if passed else "FAIL",
         "verdict": "PURSUE" if passed else "FIX_THEN_PURSUE",
