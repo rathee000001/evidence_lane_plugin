@@ -40,7 +40,7 @@ from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS
 
 SCHEMA = "evidence-lane.real-git-poc.v1"
 REAL_GIT_LANE = "github_code"
-FIXTURE_ROOT = "_poc_fixtures"
+FIXTURE_ROOT = "poc-fixtures"
 SOURCE_SUBTREE = "plugins/evidence-lane-plugin/src/evidence_lane_plugin"
 
 
@@ -380,6 +380,7 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
             raise ValueError("Sparse projection did not preserve the exact requested commit.")
 
         overrides = _fixture_sources(source)
+        overrides.update({path: REAL_GIT_LANE for path in tracked_python})
         output.mkdir(parents=True)
         initial_root = output / "PV1_INITIAL"
         refresh_root = output / "PV2_REFRESH"
