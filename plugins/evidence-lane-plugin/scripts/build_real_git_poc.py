@@ -13,10 +13,16 @@ import base64
 import json
 import sqlite3
 import subprocess
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
 from typing import Any
+
+PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+SOURCE_ROOT = PLUGIN_ROOT / "src"
+if str(SOURCE_ROOT) not in sys.path:
+    sys.path.insert(0, str(SOURCE_ROOT))
 
 from evidence_lane_plugin.forensic_audit import (
     audit_lane_bundle,
