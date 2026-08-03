@@ -755,9 +755,19 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         for table in lane_specific_tables:
             assert table in mermaid
         if lane_id in {"github_code", "local_code"}:
-            assert "subgraph CODE_SNAPSHOT" in mermaid
+            assert "subgraph CODE_LOGICAL_TOPOLOGY" in mermaid
             assert "subgraph GIT_LINEAGE" in mermaid
-            assert "code_symbol" in mermaid
+            assert "Code Sector" in mermaid
+            for logical_table in (
+                "code_repo",
+                "git_commit",
+                "code_file",
+                "code_symbol",
+                "app_route",
+                "dependency_item",
+                "project_artifact",
+            ):
+                assert logical_table in mermaid
             assert "git_commit_registry" in mermaid
 
     project_topology = (lanes_root / "project_lane_topology.mmd").read_text(

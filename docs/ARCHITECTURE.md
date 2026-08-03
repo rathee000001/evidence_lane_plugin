@@ -1,6 +1,6 @@
 # Architecture
 
-Evidence Lane 1.1.0 separates public controls, lifecycle APIs, brain artifacts,
+Evidence Lane 1.2.0 separates public controls, lifecycle APIs, brain artifacts,
 host storage, and human authority.
 
 ## Control plane

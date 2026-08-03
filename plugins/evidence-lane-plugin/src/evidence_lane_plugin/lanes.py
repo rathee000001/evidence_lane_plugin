@@ -12,6 +12,19 @@ MUTATION_AUTOMATIC_APPEND_ONLY = "automatic_append_only"
 MUTATION_NAMED_GRANT_RELOCK = "explicit_named_one_turn_grant_receipt_snapshot_relock"
 PRIMARY_CODE_LANES = frozenset({"github_code", "local_code"})
 
+# Logical projection inherited from the authorized SQLite brain builder.  The
+# current lane database intentionally keeps its richer physical schema; both
+# code modes must still expose this exact seven-entity contract in MMD and DOT.
+CODE_LOGICAL_TOPOLOGY = (
+    ("code_repo", "Repo", "code_source_registry"),
+    ("git_commit", "Commit", "git_commit_registry"),
+    ("code_file", "File", "code_file_snapshot"),
+    ("code_symbol", "Symbol", "code_symbol"),
+    ("app_route", "Route", "code_route"),
+    ("dependency_item", "Dependency", "code_dependency"),
+    ("project_artifact", "Artifact", "artifact_registry"),
+)
+
 
 class LaneRegistryError(ValueError):
     """The canonical lane registry or a requested alias is invalid."""

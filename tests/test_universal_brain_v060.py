@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import importlib.util
 import json
 import sqlite3
@@ -16,7 +17,7 @@ from evidence_lane_plugin.connector_governance import (
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.git_history import index_git_history
 from evidence_lane_plugin.ingest import ingest_repository, refresh_repository
-from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS
+from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 from evidence_lane_plugin.lineage import ChatLineage
 from evidence_lane_plugin.operating_modes import classify_operating_modes
 from evidence_lane_plugin.project_overlay import (
@@ -375,14 +376,38 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
         adapter_root / "app" / "_components" / "release-status.tsx"
     ).read_text(encoding="utf-8")
     styles = (adapter_root / "app" / "globals.css").read_text(encoding="utf-8")
+    site_data = (adapter_root / "app" / "_data" / "site.ts").read_text(
+        encoding="utf-8"
+    )
+    package = json.loads((adapter_root / "package.json").read_text(encoding="utf-8"))
     assert "Build an inspectable project brain" in landing
     assert "18" in landing and "canonical lanes" in landing
+    assert "UniversalCommandDeck" in landing
+    assert "LaneToolchainExplorer" in landing
     assert "ChatGPT MCP edge fail-closed" in release
     assert "prefers-reduced-motion" in styles
-    assert "<img" not in "\n".join(
+    active_tsx = "\n".join(
         path.read_text(encoding="utf-8")
         for path in (adapter_root / "app").rglob("*.tsx")
     )
+    assert "<img" not in active_tsx
+    active_brand_source = active_tsx + (adapter_root / "app" / "manifest.ts").read_text(
+        encoding="utf-8"
+    )
+    assert "/evidence-lane-full-logo.png" in active_brand_source
+    assert "/evidence-lane-icon.png" in active_brand_source
+    assert "evidence-root-fibers.png" not in active_brand_source
+    assert "evidence-cube-icon.png" not in active_brand_source
+    assert "evidence-static-brain.png" not in active_brand_source
+    assert "TorusGeometry" in active_tsx
+    assert "THREE.Points" not in active_tsx
+    assert package["dependencies"]["three"] == "0.185.1"
+    for lane_id in CANONICAL_LANE_IDS:
+        lane = LANE_REGISTRY[lane_id]
+        assert f'id: "{lane_id}"' in site_data
+        assert f'parser: "{lane.parser_id}"' in site_data
+        assert f'chunker: "{lane.chunker_version}"' in site_data
+        assert f'retrieval: "{lane.fts_table}"' in site_data
     for public_page in (
         "architecture",
         "lanes",
@@ -395,13 +420,19 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     ):
         assert (adapter_root / "app" / public_page / "page.tsx").is_file()
     for asset in (
-        "evidence-root-fibers.png",
-        "evidence-cube-icon.png",
+        "evidence-lane-full-logo.png",
+        "evidence-lane-icon.png",
         "evidence-static-brain.png",
         "evidence-executive-scanner.png",
         "evidence-glass-orb.png",
     ):
         assert (adapter_root / "public" / asset).stat().st_size > 100_000
+    assert hashlib.sha256(
+        (adapter_root / "public" / "evidence-lane-full-logo.png").read_bytes()
+    ).hexdigest().upper() == "FB7356284760A9AF436B08B75158B9407E582F8107077FC585E4C8F716530933"
+    assert hashlib.sha256(
+        (adapter_root / "public" / "evidence-lane-icon.png").read_bytes()
+    ).hexdigest().upper() == "17B8B60FF41388237302CA1D56BD37A9F9E08D7484D67C9A82E59637B0BE2DEA"
     spec = importlib.util.spec_from_file_location(
         "evidence_lane_remote_adapter", adapter_path
     )

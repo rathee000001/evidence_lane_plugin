@@ -9,6 +9,6 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#125cdd",
-    icons: [{ src: "/evidence-cube-icon.png", sizes: "any", type: "image/png" }],
+    icons: [{ src: "/evidence-lane-icon.png", sizes: "2048x2048", type: "image/png" }],
   };
 }

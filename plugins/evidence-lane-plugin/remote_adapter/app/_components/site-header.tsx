@@ -8,7 +8,7 @@ export function SiteHeader() {
     <header className="siteHeader">
       <nav className="nav shell" aria-label="Primary navigation">
         <Link className="brand" href="/" aria-label="Evidence Lane home">
-          <Image src="/evidence-cube-icon.png" alt="" width={44} height={44} priority />
+          <Image src="/evidence-lane-icon.png" alt="" width={44} height={44} priority />
           <span>
             <strong>Evidence Lane</strong>
             <small>Inspectable project memory</small>

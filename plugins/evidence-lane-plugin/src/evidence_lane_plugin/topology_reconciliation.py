@@ -15,7 +15,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-RECONCILIATION_SCHEMA = "evidence-lane.topology-reconciliation.v2"
+from .lanes import CODE_LOGICAL_TOPOLOGY, PRIMARY_CODE_LANES
+
+RECONCILIATION_SCHEMA = "evidence-lane.topology-reconciliation.v3"
 MIN_SUBGRAPHS = 4
 MIN_NODES = 8
 MIN_EDGES = 6
@@ -45,6 +47,14 @@ _CHUNKS_CLAIM = re.compile(r"\b(\d+)\s+chunks\b")
 _FACTS_CLAIM = re.compile(r"\b(\d+)\s+structured facts\b")
 _KINDS_CLAIM = re.compile(r"\bkinds=(\d+)")
 _SAFE_TABLE = re.compile(r"^[a-z][a-z0-9_]*$")
+_CODE_LOGICAL_TABLES = {
+    logical_table: physical_table
+    for logical_table, _display_label, physical_table in CODE_LOGICAL_TOPOLOGY
+}
+_CODE_LOGICAL_NODE_IDS = {
+    logical_table: logical_table.upper()
+    for logical_table, _display_label, _physical_table in CODE_LOGICAL_TOPOLOGY
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -230,8 +240,12 @@ def _claim(
 
 
 def reconcile_graph_against_database(
-    graph: ParsedGraph, database_path: str | Path
+    graph: ParsedGraph,
+    database_path: str | Path,
+    *,
+    logical_table_projection: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
+    projection = logical_table_projection or {}
     connection = _connect(Path(database_path))
     try:
         tables = _table_names(connection)
@@ -276,7 +290,18 @@ def reconcile_graph_against_database(
             rows = _ROWS_CLAIM.search(label)
             if rows is not None:
                 claimed = int(rows.group(1))
-                if head in tables:
+                if head in projection:
+                    physical_table = projection[head]
+                    claims.append(
+                        _claim(
+                            subject=f"{head}->{physical_table}",
+                            node_id=node.node_id,
+                            claimed=claimed,
+                            actual=_count(connection, physical_table),
+                            basis="logical code topology SQLite projection",
+                        )
+                    )
+                elif head in tables:
                     claims.append(
                         _claim(
                             subject=head,
@@ -354,6 +379,62 @@ def structural_report(graph: ParsedGraph) -> dict[str, Any]:
     }
 
 
+def logical_code_contract_report(
+    graph: ParsedGraph, *, lane_id: str
+) -> dict[str, Any]:
+    """Require the authorized code-builder shape for both primary code lanes."""
+
+    if lane_id not in PRIMARY_CODE_LANES:
+        return {
+            "applicable": False,
+            "required_root": None,
+            "required_subgraph": None,
+            "missing_subgraphs": [],
+            "missing_nodes": [],
+            "missing_root_edges": [],
+            "head_mismatches": [],
+            "status": "NOT_APPLICABLE",
+        }
+
+    subgraphs = {
+        item.removeprefix("cluster_").upper() for item in graph.subgraphs
+    }
+    nodes = {node.node_id: node for node in graph.nodes}
+    required_nodes = {"CODE_SECTOR", *_CODE_LOGICAL_NODE_IDS.values()}
+    required_edges = {
+        ("CODE_SECTOR", node_id) for node_id in _CODE_LOGICAL_NODE_IDS.values()
+    }
+    missing_subgraphs = (
+        []
+        if "CODE_LOGICAL_TOPOLOGY" in subgraphs
+        else ["CODE_LOGICAL_TOPOLOGY"]
+    )
+    missing_nodes = sorted(required_nodes - nodes.keys())
+    missing_root_edges = sorted(required_edges - set(graph.edges))
+    head_mismatches = sorted(
+        {
+            f"{node_id}:{nodes[node_id].head!r}!={logical_table!r}"
+            for logical_table, node_id in _CODE_LOGICAL_NODE_IDS.items()
+            if node_id in nodes and nodes[node_id].head != logical_table
+        }
+    )
+    valid = not (
+        missing_subgraphs or missing_nodes or missing_root_edges or head_mismatches
+    )
+    return {
+        "applicable": True,
+        "required_root": "CODE_SECTOR",
+        "required_subgraph": "CODE_LOGICAL_TOPOLOGY",
+        "required_logical_tables": list(_CODE_LOGICAL_TABLES),
+        "physical_table_projection": dict(_CODE_LOGICAL_TABLES),
+        "missing_subgraphs": missing_subgraphs,
+        "missing_nodes": missing_nodes,
+        "missing_root_edges": [list(edge) for edge in missing_root_edges],
+        "head_mismatches": head_mismatches,
+        "status": "PASS" if valid else "FAIL",
+    }
+
+
 def _rendering_parity(mermaid: ParsedGraph, dot: ParsedGraph) -> dict[str, Any]:
     mmd_subgraphs = {item.upper() for item in mermaid.subgraphs}
     dot_subgraphs = {item.removeprefix("cluster_").upper() for item in dot.subgraphs}
@@ -384,10 +465,19 @@ def reconcile_lane_topology(
     dot = parse_dot((root / dot_filename).read_text(encoding="utf-8"))
     mermaid_structural = structural_report(mermaid)
     dot_structural = structural_report(dot)
-    mermaid_claims = reconcile_graph_against_database(
-        mermaid, root / sqlite_filename
+    logical_table_projection = (
+        _CODE_LOGICAL_TABLES if lane_id in PRIMARY_CODE_LANES else None
     )
-    dot_claims = reconcile_graph_against_database(dot, root / sqlite_filename)
+    mermaid_claims = reconcile_graph_against_database(
+        mermaid,
+        root / sqlite_filename,
+        logical_table_projection=logical_table_projection,
+    )
+    dot_claims = reconcile_graph_against_database(
+        dot,
+        root / sqlite_filename,
+        logical_table_projection=logical_table_projection,
+    )
     failed_claims = [
         {"rendering": rendering, **claim}
         for rendering, claims in (("mermaid", mermaid_claims), ("dot", dot_claims))
@@ -395,6 +485,18 @@ def reconcile_lane_topology(
         if claim["status"] == "FAIL"
     ]
     parity = _rendering_parity(mermaid, dot)
+    logical_contract = {
+        "mermaid": logical_code_contract_report(mermaid, lane_id=lane_id),
+        "dot": logical_code_contract_report(dot, lane_id=lane_id),
+    }
+    logical_contract_status = (
+        "PASS"
+        if all(
+            report["status"] in {"PASS", "NOT_APPLICABLE"}
+            for report in logical_contract.values()
+        )
+        else "FAIL"
+    )
     valid = (
         mermaid_structural["status"] == "PASS"
         and dot_structural["status"] == "PASS"
@@ -402,6 +504,7 @@ def reconcile_lane_topology(
         and bool(mermaid_claims)
         and bool(dot_claims)
         and not failed_claims
+        and logical_contract_status == "PASS"
     )
     return {
         "schema": RECONCILIATION_SCHEMA,
@@ -413,6 +516,10 @@ def reconcile_lane_topology(
         "claims_checked": len(mermaid_claims) + len(dot_claims),
         "claims_failed": len(failed_claims),
         "failed_claims": failed_claims,
+        "logical_code_contract": {
+            **logical_contract,
+            "status": logical_contract_status,
+        },
         "rendering_parity": parity,
         "status": "PASS" if valid else "FAIL",
     }
@@ -497,6 +604,7 @@ __all__ = [
     "RECONCILIATION_SCHEMA",
     "GraphNode",
     "ParsedGraph",
+    "logical_code_contract_report",
     "parse_dot",
     "parse_mermaid",
     "reconcile_bundle_topology",

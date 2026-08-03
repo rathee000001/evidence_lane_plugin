@@ -39,6 +39,7 @@ from .hashing import (
 from .ingest import extract_code_lane_facts, governed_source_files
 from .lanes import (
     CANONICAL_LANE_IDS,
+    CODE_LOGICAL_TOPOLOGY,
     LANE_REGISTRY,
     PRIMARY_CODE_LANES,
     LaneDefinition,
@@ -3485,6 +3486,21 @@ def _table_count(connection: sqlite3.Connection, table: str) -> int:
         return 0
 
 
+def _required_table_count(connection: sqlite3.Connection, table: str) -> int:
+    """Count a required logical-topology table without masking schema drift."""
+
+    if not re.fullmatch(r"[a-z][a-z0-9_]*", table):
+        raise ValueError(f"Unsafe required topology table name: {table}")
+    try:
+        return int(
+            connection.execute(f'SELECT COUNT(*) FROM "{table}"').fetchone()[0]  # nosec B608
+        )
+    except sqlite3.DatabaseError as exc:
+        raise RuntimeError(
+            f"Required code topology table is missing or unreadable: {table}"
+        ) from exc
+
+
 def _fact_display(kind: str, locator: str, payload_json: str) -> str:
     try:
         payload = json.loads(payload_json)
@@ -3608,15 +3624,44 @@ def _lane_topology(
     graph.end()
 
     if lane.canonical_lane_id in PRIMARY_CODE_LANES:
-        graph.begin("CODE_SNAPSHOT", "3. Code snapshot relationships")
-        code_nodes: dict[str, str] = {}
-        for index, kind in enumerate(("code_symbol", "code_import", "code_route", "code_dependency")):
-            node = f"CODE_{index}"
-            code_nodes[kind] = node
-            graph.node(node, f"{kind}\nrows={fact_counts.get(kind, 0)}", "semantic")
-            graph.edge("FACT_INDEX", node)
-        graph.edge(code_nodes["code_route"], code_nodes["code_symbol"], "handler")
-        graph.edge(code_nodes["code_import"], code_nodes["code_dependency"], "resolves")
+        graph.begin(
+            "CODE_LOGICAL_TOPOLOGY",
+            "3. Authorized seven-entity logical code topology",
+        )
+        graph.node(
+            "CODE_SECTOR",
+            "Code Sector\n7 logical entities | richer SQLite schema retained",
+            "root",
+        )
+        graph.edge("LANE_ROOT", "CODE_SECTOR", "projects")
+        for logical_table, display_label, physical_table in CODE_LOGICAL_TOPOLOGY:
+            node = logical_table.upper()
+            count = _required_table_count(connection, physical_table)
+            kind = "git" if logical_table == "git_commit" else "semantic"
+            graph.node(
+                node,
+                f"{logical_table}\nrows={count} | {display_label} -> {physical_table}",
+                kind,
+            )
+            graph.edge("CODE_SECTOR", node)
+
+        route_rows = connection.execute(
+            """
+            SELECT record_id, locator, payload_json FROM code_route
+            ORDER BY locator, record_id LIMIT 20
+            """
+        ).fetchall()
+        for index, row in enumerate(route_rows):
+            sample_node = f"APP_ROUTE_SAMPLE_{index}"
+            graph.node(
+                sample_node,
+                "route sample\n"
+                + _fact_display(
+                    "code_route", str(row["locator"]), str(row["payload_json"])
+                ),
+                "semantic",
+            )
+            graph.edge("APP_ROUTE", sample_node, "sample")
         graph.end()
 
         graph.begin("GIT_LINEAGE", "4. Full Git history and content-addressed reuse")

@@ -84,10 +84,10 @@ def _write_fixture(root: Path, *, source_rows: int = 1) -> None:
     (root / "lane.dot").write_text(dot, encoding="utf-8")
 
 
-def _reconcile(root: Path) -> dict[str, object]:
+def _reconcile(root: Path, *, lane_id: str = "fixture") -> dict[str, object]:
     return reconcile_lane_topology(
         root,
-        lane_id="fixture",
+        lane_id=lane_id,
         mmd_filename="lane.mmd",
         dot_filename="lane.dot",
         sqlite_filename="lane.sqlite",
@@ -157,3 +157,18 @@ def test_v090_mermaid_dot_divergence_fails_identity_parity(tmp_path: Path) -> No
     assert result["status"] == "FAIL"
     assert result["rendering_parity"]["status"] == "FAIL"
     assert result["rendering_parity"]["identity_mismatches"]["edges"]
+
+
+def test_generic_graph_fails_primary_code_logical_contract(tmp_path: Path) -> None:
+    root = tmp_path / "generic-code-graph"
+    _write_fixture(root)
+
+    result = _reconcile(root, lane_id="github_code")
+
+    assert result["status"] == "FAIL"
+    contract = result["logical_code_contract"]
+    assert contract["status"] == "FAIL"
+    assert contract["mermaid"]["missing_subgraphs"] == [
+        "CODE_LOGICAL_TOPOLOGY"
+    ]
+    assert "CODE_SECTOR" in contract["mermaid"]["missing_nodes"]

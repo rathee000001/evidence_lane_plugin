@@ -1,7 +1,7 @@
 {
   "name": "evidence-lane-chatgpt-edge",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "scripts": {
     "build": "next build",
     "dev": "next dev",
@@ -10,12 +10,14 @@
   "dependencies": {
     "next": "16.1.5",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "three": "0.185.1"
   },
   "devDependencies": {
     "@types/node": "24.10.1",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
+    "@types/three": "0.185.3",
     "typescript": "5.9.3"
   }
 }

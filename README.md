@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/evidence-os-full-logo.png" alt="Evidence OS" width="900" />
+  <img src="docs/assets/evidence-lane-full-logo.png" alt="Evidence Lane" width="900" />
 </p>
 
 <p align="center">
@@ -22,7 +22,7 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane Plugin 1.1.0
+# Evidence Lane Plugin 1.2.0
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex, with a
 durable remote MCP boundary for ChatGPT. It turns visible project sources and
@@ -230,7 +230,7 @@ python -m venv .venv
 Build the durable MCP container with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:1.1.0 .
+docker build --pull --tag evidence-lane-plugin:1.2.0 .
 ```
 
 The container exposes `/mcp` and `/healthz` on port 8080 and requires one writer

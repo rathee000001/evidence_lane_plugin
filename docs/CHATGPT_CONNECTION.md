@@ -7,6 +7,17 @@ Git repository. The supported remote shape is:
 ChatGPT -> Vercel preview/adapter -> exact-release durable MCP origin
 ```
 
+## Installation route distinction
+
+Codex installs the native Evidence Lane plugin from the governed Git
+marketplace route. ChatGPT does not install this repository as a runtime. Its
+private **New Plugin** form accepts either an **MCP Server URL** or a **Tunnel**;
+the live form exposes no Git repository field. Git therefore supplies source
+and release identity, while the ChatGPT connection still requires a reachable
+MCP transport. An older personal app shown in ChatGPT proves only that some
+server or tunnel was connected; it does not prove that the currently selected
+Git SHA is running behind that app.
+
 The adapter performs no local evidence writes. Its `/healthz` must report the
 exact Git SHA, `durable_origin_verified: true`, and
 `local_state_authority: false`. The durable origin must expose `/mcp`, preserve

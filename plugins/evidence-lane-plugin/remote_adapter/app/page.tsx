@@ -1,8 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { EvidenceOrbit } from "./_components/evidence-orbit";
+import {
+  LaneToolchainExplorer,
+  UniversalCommandDeck,
+} from "./_components/evidence-console";
 import { ReleaseStatus } from "./_components/release-status";
-import { artifactContract, controls } from "./_data/site";
+import { artifactContract, painLedger, proofMetrics } from "./_data/site";
 
 const routes = [
   ["Architecture", "See how parallel lane computation meets serial lifecycle authority.", "/architecture", "01"],
@@ -28,14 +33,15 @@ export default function Home() {
             <Link className="secondary" href="/proof">Inspect the proof boundary</Link>
           </div>
         </div>
-        <div className="heroVisual" role="img" aria-label="Evidence flowing into a governed project brain">
+        <div className="heroVisual" role="img" aria-label="Evidence Lane identity with governed project metrics">
+          <EvidenceOrbit />
           <div className="visualHalo" />
           <Image
-            className="rootFibers"
-            src="/evidence-root-fibers.png"
-            alt="A network of evidence fibers forming a governed Evidence Lane topology"
-            width={1600}
-            height={900}
+            className="brandHeroLogo"
+            src="/evidence-lane-full-logo.png"
+            alt="Evidence Lane full logo"
+            width={2400}
+            height={1792}
             priority
           />
           <div className="visualBadge badgeA"><span>18</span> canonical lanes</div>
@@ -53,26 +59,38 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="metricReveal shell" aria-label="Verified contract counts">
+        {proofMetrics.map(([value, label, detail]) => (
+          <article key={label}>
+            <strong>{value}</strong>
+            <div><span>{label}</span><p>{detail}</p></div>
+          </article>
+        ))}
+      </section>
+
       <section className="section shell splitIntro">
         <div className="sectionHead stickyCopy">
           <span className="kicker">The problem</span>
           <h2>Code exists. Reliable project understanding usually does not.</h2>
           <p>
-            Knowledge stays in builders&apos; heads, documentation drifts, architecture summaries
-            flatten uncertainty, and assistants can invent confidence from incomplete context.
-            Evidence Lane treats understanding as a governed evidence system, not another chat transcript.
+            The recurring failure is not a lack of summaries. It is the loss of exact state across
+            tools and task windows: files, hashes, accepted versions, corrections, and approval gates.
+            Evidence Lane treats that gap as an evidence problem.
           </p>
           <Link className="textLink" href="/provenance">Read the original R&amp;D lineage <span aria-hidden="true">→</span></Link>
         </div>
         <div className="problemStack">
-          {[
-            ["01", "Fragmented context", "Source, history, decisions, tests, and outputs live in different tools with no common provenance."],
-            ["02", "Stale explanations", "Static documentation describes yesterday while the repository and operating decisions keep changing."],
-            ["03", "Unbounded AI memory", "Convenient summaries can silently mix trusted source, speculation, secrets, and obsolete state."],
-            ["04", "Weak acceptance", "A successful build or continued chat is often mistaken for approval even when no human decision was recorded."],
-          ].map(([number, title, text]) => (
-            <article className="problemCard" key={number}>
-              <span>{number}</span><div><h3>{title}</h3><p>{text}</p></div>
+          {painLedger.map((item, index) => (
+            <article className="problemCard" key={item.title}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <div>
+                <h3>{item.title}</h3>
+                <p>{item.observation}</p>
+                <dl>
+                  <div><dt>Failure</dt><dd>{item.failure}</dd></div>
+                  <div><dt>Response</dt><dd>{item.response}</dd></div>
+                </dl>
+              </div>
             </article>
           ))}
         </div>
@@ -82,18 +100,10 @@ export default function Home() {
         <div className="shell">
           <div className="sectionHead wideHead">
             <span className="kicker">The operating surface</span>
-            <h2>Six public controls. One conditional recovery event.</h2>
-            <p>Simple user commands sit above stable internal APIs, exact lifecycle receipts, and a fail-closed authority boundary.</p>
+            <h2>A compact command deck over a strict authority boundary.</h2>
+            <p>Hover, focus, click, or use arrow keys to inspect what each public control produces—and what it is forbidden to imply.</p>
           </div>
-          <div className="controlGrid">
-            {controls.map((control, index) => (
-              <article className="controlCard" key={control.name}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <h3>{control.name}</h3>
-                <p>{control.detail}</p>
-              </article>
-            ))}
-          </div>
+          <UniversalCommandDeck />
           <div className="conditionalEvent">
             <strong>State Travel</strong>
             <p>A top conditional recovery event used only for an accepted, sealed fresh-host handoff when the user requests it or context is exhausted.</p>
@@ -102,9 +112,29 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="section toolchainBand">
+        <div className="shell">
+          <div className="sectionHead wideHead">
+            <span className="kicker light">Lane-by-lane toolchain</span>
+            <h2>Every source class has a named parser, chunker, retrieval surface, and evidence package.</h2>
+            <p>Nothing here is a decorative capability label. The identifiers below come from the same immutable eighteen-lane registry used by the engine.</p>
+          </div>
+          <LaneToolchainExplorer />
+        </div>
+      </section>
+
       <section className="section shell evidenceContract">
-        <div className="contractVisual">
-          <Image src="/evidence-static-brain.png" alt="Static Evidence Lane project brain visualization" width={1200} height={900} />
+        <div className="contractVisual" aria-label="Five-part inspectable lane package">
+          <div className="contractBrand">
+            <Image src="/evidence-lane-icon.png" alt="" width={1906} height={1906} />
+            <span>One lane package</span>
+          </div>
+          {artifactContract.map(([title], index) => (
+            <div className={`artifactPlane artifactPlane${index + 1}`} key={title}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{title}</strong>
+            </div>
+          ))}
           <span className="orbit orbitOne" />
           <span className="orbit orbitTwo" />
         </div>

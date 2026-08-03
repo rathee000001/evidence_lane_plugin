@@ -17,12 +17,12 @@ export const metadata: Metadata = {
   keywords: ["evidence governance", "project memory", "SQLite", "provenance", "human in the loop"],
   authors: [{ name: "Praveen Rathee" }],
   creator: "Praveen Rathee",
-  icons: { icon: "/evidence-cube-icon.png", apple: "/evidence-cube-icon.png" },
+  icons: { icon: "/evidence-lane-icon.png", apple: "/evidence-lane-icon.png" },
   openGraph: {
     type: "website",
     title: "Evidence Lane",
     description: "Inspectable project memory with human-controlled acceptance.",
-    images: [{ url: "/evidence-root-fibers.png", width: 1600, height: 900, alt: "Evidence Lane provenance topology" }],
+    images: [{ url: "/evidence-lane-full-logo.png", width: 2400, height: 1792, alt: "Evidence Lane full logo" }],
   },
 };
 
