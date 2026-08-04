@@ -12,6 +12,25 @@ import venv
 from pathlib import Path
 
 
+def _authoritative_runtime_environment(plugin_root: Path) -> dict[str, str]:
+    """Make bootstrap diagnostics resolve the same source as the MCP runner.
+
+    The plugin is deliberately installed non-editably into its private virtual
+    environment, but a Codex marketplace cache carries release provenance in
+    the copied ``src`` tree.  Prefixing that tree for activation and doctor
+    keeps their engine identity aligned with ``run_mcp.py`` without weakening
+    the self-contained wheel installation.
+    """
+
+    environment = os.environ.copy()
+    source = str((plugin_root / "src").resolve())
+    existing = environment.get("PYTHONPATH", "")
+    environment["PYTHONPATH"] = os.pathsep.join(
+        part for part in (source, existing) if part
+    )
+    return environment
+
+
 def _cleanup_generated_build_artifacts(plugin_root: Path) -> None:
     for target in (
         plugin_root / "build",
@@ -78,6 +97,7 @@ def main() -> int:
         )
     finally:
         _cleanup_generated_build_artifacts(plugin_root)
+    runtime_environment = _authoritative_runtime_environment(plugin_root)
     subprocess.run(  # nosec B603
         [
             str(python),
@@ -86,10 +106,12 @@ def main() -> int:
             "activate-installation",
         ],
         check=True,
+        env=runtime_environment,
     )
     subprocess.run(  # nosec B603
         [str(python), "-m", "evidence_lane_plugin.cli", "doctor"],
         check=True,
+        env=runtime_environment,
     )
     print(f"Evidence Lane Plugin ready: {environment}")
     return 0

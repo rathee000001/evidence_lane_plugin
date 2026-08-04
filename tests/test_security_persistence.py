@@ -224,6 +224,34 @@ def test_bootstrap_cleans_only_generated_in_root_metadata(tmp_path: Path) -> Non
     assert source_file.read_text(encoding="utf-8") == "test\n"
 
 
+def test_bootstrap_diagnostics_use_authoritative_source_tree(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = Path(__file__).resolve().parents[1]
+    bootstrap_path = (
+        root / "plugins" / "evidence-lane-plugin" / "scripts" / "bootstrap.py"
+    )
+    spec = importlib.util.spec_from_file_location(
+        "evidence_lane_bootstrap_environment_test",
+        bootstrap_path,
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    plugin_root = tmp_path / "plugin"
+    source = (plugin_root / "src").resolve()
+    monkeypatch.setenv("PYTHONPATH", "existing-source")
+
+    environment = module._authoritative_runtime_environment(plugin_root)
+
+    assert environment["PYTHONPATH"].split(module.os.pathsep) == [
+        str(source),
+        "existing-source",
+    ]
+
+
 def test_installation_activation_updates_a_stale_version(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
