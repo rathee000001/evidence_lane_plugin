@@ -572,15 +572,33 @@ class EvidenceLaneService:
         pointer = self.store.pointer(project_id)
         accepted_history: list[dict[str, Any]] = []
         for pv_id in self.store.accepted_ids(project_id):
+            is_current = pointer.accepted_pv == pv_id
+            # Current topology rules qualify the active authority only. Older
+            # accepted PVs remain immutable, checksum-validated evidence even
+            # when their topology predates the current promotability contract.
             validation = validate_pv_package(
-                self.store.accepted_path(project_id, pv_id)
+                self.store.accepted_path(project_id, pv_id),
+                require_promotable=is_current,
             )
+            lane_validation = validation["lanes"]
             accepted_history.append(
                 {
                     "pv_id": pv_id,
                     "manifest_sha256": validation["manifest_sha256"],
                     "package_sha256": validation["package_sha256"],
-                    "current": pointer.accepted_pv == pv_id,
+                    "current": is_current,
+                    "validation_scope": (
+                        "CURRENT_PROMOTABLE" if is_current else "HISTORICAL_EVIDENCE"
+                    ),
+                    "integrity_validated": True,
+                    "promotability_required": is_current,
+                    "promotability_enforced": is_current,
+                    "promotable": validation["promotable"],
+                    "lane_topology_status": lane_validation["status"],
+                    "lane_topology_valid": lane_validation["valid"],
+                    "historical_compatibility_path": bool(
+                        not is_current and not lane_validation["valid"]
+                    ),
                 }
             )
         current_freshness: dict[str, Any] = {
