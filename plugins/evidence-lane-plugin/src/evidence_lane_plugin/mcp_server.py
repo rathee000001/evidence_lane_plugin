@@ -118,7 +118,7 @@ def create_mcp_server(
             Icon(
                 src=f"{exact_public_site}/evidence-lane-icon.png",
                 mimeType="image/png",
-                sizes=["2048x2048"],
+                sizes=["256x256"],
             )
         ],
         host=host,

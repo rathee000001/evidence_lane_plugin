@@ -119,7 +119,7 @@ def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> No
     icon = identity.icons[0]
     assert icon.src == f"{public_site}/evidence-lane-icon.png"
     assert icon.mimeType == "image/png"
-    assert icon.sizes == ["2048x2048"]
+    assert icon.sizes == ["256x256"]
 
 
 def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
@@ -137,7 +137,10 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert manifest["interface"]["composerIcon"] == (
         "./assets/evidence-lane-icon.png"
     )
-    assert (plugin / "assets" / "evidence-lane-icon.png").is_file()
+    compact_icon = plugin / "assets" / "evidence-lane-icon.png"
+    assert compact_icon.is_file()
+    assert compact_icon.stat().st_size <= 10 * 1024
+    assert compact_icon.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
     assert "hooks" not in manifest
     assert isinstance(manifest["interface"]["defaultPrompt"], list)
     assert 1 <= len(manifest["interface"]["defaultPrompt"]) <= 3

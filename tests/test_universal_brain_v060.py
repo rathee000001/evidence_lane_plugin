@@ -434,16 +434,16 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
         assert (adapter_root / "app" / public_page / "page.tsx").is_file()
     for asset in (
         "evidence-lane-full-logo.png",
-        "evidence-lane-icon.png",
         "evidence-static-brain.png",
     ):
         assert (adapter_root / "public" / asset).stat().st_size > 100_000
+    assert (adapter_root / "public" / "evidence-lane-icon.png").stat().st_size <= 10 * 1024
     assert hashlib.sha256(
         (adapter_root / "public" / "evidence-lane-full-logo.png").read_bytes()
     ).hexdigest().upper() == "FB7356284760A9AF436B08B75158B9407E582F8107077FC585E4C8F716530933"
     assert hashlib.sha256(
         (adapter_root / "public" / "evidence-lane-icon.png").read_bytes()
-    ).hexdigest().upper() == "17B8B60FF41388237302CA1D56BD37A9F9E08D7484D67C9A82E59637B0BE2DEA"
+    ).hexdigest().upper() == "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA"
     spec = importlib.util.spec_from_file_location(
         "evidence_lane_remote_adapter", adapter_path
     )

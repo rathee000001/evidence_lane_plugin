@@ -29,7 +29,10 @@ def test_authoritative_logo_icon_and_static_brain_have_exact_roles() -> None:
     assert brain.stat().st_size == 1_019_717
     assert _sha256(brain) == "70FBC1E11C029DDA98AA695F80E96891312E028464476B7E54BA0B6B259A6529"
     assert _sha256(full_logo) == "FB7356284760A9AF436B08B75158B9407E582F8107077FC585E4C8F716530933"
-    assert _sha256(app_icon) == "17B8B60FF41388237302CA1D56BD37A9F9E08D7484D67C9A82E59637B0BE2DEA"
+    assert app_icon.stat().st_size <= 10 * 1024
+    assert app_icon.read_bytes() == (
+        ROOT / "plugins" / "evidence-lane-plugin" / "assets" / "evidence-lane-icon.png"
+    ).read_bytes()
     assert 'src="/evidence-lane-full-logo.png"' in header
     assert 'icons: { icon: "/evidence-lane-icon.png"' in layout
     assert 'src="/assets/evidence-static-brain.png"' in assets
