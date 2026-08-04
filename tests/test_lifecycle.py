@@ -448,6 +448,74 @@ def test_approve_with_delta_requires_exact_delta(service) -> None:
     assert error.value.code == "CORRECTION_DELTA_REQUIRED"
 
 
+def test_approve_with_delta_records_an_integral_nonpromotable_candidate(
+    service,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A failed promotion gate must not prevent the corrective HIL decision."""
+
+    from evidence_lane_plugin import pv_package
+
+    from .conftest import boot_local
+
+    boot = boot_local(service)
+    session_id = boot["session"]["session_id"]
+    candidate = service.build_initial("book-faires", session_id)["candidate"]
+
+    original_validate_lane_bundle = pv_package.validate_lane_bundle
+
+    def newly_strict_lane_validation(path):
+        report = original_validate_lane_bundle(path)
+        return {
+            **report,
+            "valid": False,
+            "errors": [
+                *report.get("errors", []),
+                {
+                    "lane": "github_code",
+                    "error": "CODE_LOGICAL_TOPOLOGY missing",
+                },
+            ],
+        }
+
+    monkeypatch.setattr(
+        pv_package,
+        "validate_lane_bundle",
+        newly_strict_lane_validation,
+    )
+
+    with pytest.raises(EvidenceLaneError) as promotion_error:
+        service.fuse(
+            "book-faires",
+            session_id,
+            approval="APPROVE",
+            decided_by="human-test",
+            decision_id="decision_nonpromotable_approve",
+        )
+    assert promotion_error.value.code == "PV_LANE_BUNDLE_INVALID"
+
+    exact_delta = "Rebuild the exact code logical topology and reseal."
+    result = service.decide(
+        "book-faires",
+        session_id,
+        decision="APPROVE_WITH_DELTA",
+        decided_by="human-test",
+        correction_delta=exact_delta,
+        decision_id="decision_nonpromotable_delta",
+    )
+
+    assert result["pointer_advanced"] is False
+    assert result["pointer"]["accepted_pv"] is None
+    assert result["pointer"]["generation"] == 0
+    assert result["session"]["state"] == "CORRECTION_TASK_PENDING"
+    assert service.store.candidate_path(
+        "book-faires", candidate["candidate_id"]
+    ).is_dir()
+    receipt = result["decision"]
+    assert receipt["candidate_integrity_validated"] is True
+    assert receipt["candidate_promotable"] is False
+
+
 def test_pv_fuse_requires_exact_case_sensitive_approve(service) -> None:
     boot = boot_local(service)
     session_id = boot["session"]["session_id"]
@@ -794,6 +862,87 @@ def test_pointer_compare_and_swap_blocks_stale_promotion(service) -> None:
         )
     assert error.value.code == "POINTER_COMPARE_AND_SWAP_FAILED"
     assert service.store.pointer("book-faires").accepted_pv is None
+
+
+def test_promotion_requires_matching_postseal_acceptance_receipt(
+    service,
+    source_repository: Path,
+) -> None:
+    session_id, _candidate = build_and_approve_pv1(service)
+    declaration = "AC12 executable: validate the immutable candidate."
+    manifest = source_repository / "evidence" / "acceptance" / "commands.json"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.acceptance-command-manifest.v1",
+                "commands": {
+                    declaration: {
+                        "argv": [
+                            "$RUNTIME_PYTHON",
+                            "-c",
+                            (
+                                "import os,sys,pathlib; p=pathlib.Path("
+                                "os.environ.get('EVIDENCE_LANE_CANDIDATE_PATH','')); "
+                                "sys.exit(0 if p.is_dir() else 9)"
+                            ),
+                        ],
+                        "phase": "POSTSEAL",
+                        "timeout_seconds": 30,
+                    }
+                },
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    git(source_repository, "add", ".")
+    git(source_repository, "commit", "-m", "Add exact postseal check")
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class="verify_result",
+        requested_outcome="Prove post-seal acceptance is promotion-gating.",
+        permitted_paths=["evidence/acceptance/commands.json"],
+        permitted_tools=["repository_read", "test"],
+        acceptance_checks=[declaration],
+        stop_condition="Stop at the unaccepted PV2 HIL.",
+    )
+    service.sessions.confirm_source_update(
+        "book-faires",
+        session_id,
+        confirmation="HOST_SANDBOX_FINAL_STATE_CONFIRMED",
+    )
+    refreshed = service.refresh("book-faires", session_id)
+    candidate = refreshed["candidate"]
+    assert candidate["acceptance_checks"]["verdict"] == "POSTSEAL_CHECKS_PENDING"
+    assert candidate["postseal_acceptance"]["verdict"] == (
+        "ALL_EXECUTABLE_CHECKS_PASS"
+    )
+    receipt_path = Path(candidate["postseal_acceptance_receipt"])
+    receipt_bytes = receipt_path.read_bytes()
+    receipt_path.unlink()
+    with pytest.raises(EvidenceLaneError) as missing:
+        service.store.promote(
+            "book-faires",
+            candidate["candidate_id"],
+            expected_pointer_generation=1,
+            decided_by="human-test",
+            decision_id="decision_missing_postseal",
+        )
+    assert missing.value.code == "POSTSEAL_ACCEPTANCE_RECEIPT_REQUIRED"
+    receipt_path.write_bytes(receipt_bytes)
+    promoted = service.store.promote(
+        "book-faires",
+        candidate["candidate_id"],
+        expected_pointer_generation=1,
+        decided_by="human-test",
+        decision_id="decision_valid_postseal",
+    )
+    assert promoted["pointer"]["accepted_pv"] == "PV2"
+    assert promoted["receipt"]["postseal_acceptance"]["status"] == "PASS"
 
 
 def test_rollback_travels_backward_forward_and_preserves_next_ordinal(

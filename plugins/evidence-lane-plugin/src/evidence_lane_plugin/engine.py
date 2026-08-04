@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from . import database
-from .acceptance import run_acceptance_checks
+from .acceptance import declarations_for_phase, run_acceptance_checks
 from .engine_identity import build_engine_identity
 from .errors import EvidenceLaneError, require
 from .git_adapter import (
@@ -18,7 +18,7 @@ from .git_adapter import (
     identity_json,
     inspect_repository,
 )
-from .hashing import canonical_json_bytes, sha256_bytes
+from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
 from .ids import new_ulid, prefixed_id
 from .ingest import ingest_repository, refresh_repository
 from .lane_engine import build_lane_bundle
@@ -566,6 +566,55 @@ class CodePVEngine:
             stored = self.store.place_candidate(
                 project_id, candidate_id, build_root / "package"
             )
+            postseal_declarations = declarations_for_phase(
+                config.repository_path,
+                task.acceptance_checks if task else [],
+                phase="POSTSEAL",
+            )
+            postseal_acceptance = None
+            postseal_receipt_path = None
+            postseal_receipt_sha256 = None
+            if postseal_declarations:
+                postseal_acceptance = run_acceptance_checks(
+                    config.repository_path,
+                    postseal_declarations,
+                    phase="POSTSEAL",
+                    environment={
+                        "EVIDENCE_LANE_CANDIDATE_PATH": str(
+                            self.store.candidate_path(project_id, candidate_id)
+                        ),
+                        "EVIDENCE_LANE_PROJECT_ROOT": str(project_root),
+                        "EVIDENCE_LANE_PROJECT_ID": project_id,
+                        "EVIDENCE_LANE_EXPECTED_CANDIDATE_ID": candidate_id,
+                        "EVIDENCE_LANE_EXPECTED_ACCEPTED_PV": (
+                            pointer.accepted_pv or "NONE"
+                        ),
+                        "EVIDENCE_LANE_EXPECTED_POINTER_GENERATION": str(
+                            pointer.generation
+                        ),
+                        "EVIDENCE_LANE_EXPECTED_COMMIT": identity.commit_sha,
+                    },
+                )
+                postseal_receipt = {
+                    "schema": "evidence-lane.postseal-acceptance.receipt.v1",
+                    "project_id": project_id,
+                    "candidate_id": candidate_id,
+                    "accepted_pv_retained": pointer.accepted_pv,
+                    "pointer_generation_retained": pointer.generation,
+                    "source_commit_sha": identity.commit_sha,
+                    "acceptance": postseal_acceptance,
+                    "recorded_at": utc_now(),
+                }
+                postseal_receipt["receipt_sha256"] = sha256_bytes(
+                    canonical_json_bytes(postseal_receipt)
+                )
+                postseal_receipt_path = (
+                    project_root
+                    / "receipts"
+                    / f"postseal_{candidate_id.lower()}.json"
+                )
+                postseal_receipt_sha256 = postseal_receipt["receipt_sha256"]
+                atomic_write_json(postseal_receipt_path, postseal_receipt)
             return {
                 **package_result,
                 "stored_path": str(self.store.candidate_path(project_id, candidate_id)),
@@ -574,6 +623,11 @@ class CodePVEngine:
                 "source_delta": delta,
                 "ingestion": ingestion.as_dict(),
                 "acceptance_checks": acceptance_health,
+                "postseal_acceptance": postseal_acceptance,
+                "postseal_acceptance_receipt": (
+                    str(postseal_receipt_path) if postseal_receipt_path else None
+                ),
+                "postseal_acceptance_receipt_sha256": postseal_receipt_sha256,
                 "lane_refresh": lane_report,
                 "next_action": next_action_contract,
                 "toolchain_manifest_sha256": engine_identity.toolchain_manifest_sha256,

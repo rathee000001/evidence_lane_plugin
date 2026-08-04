@@ -26,6 +26,7 @@ from evidence_lane_plugin.lane_engine import (
 )
 from evidence_lane_plugin.lanes import (
     CANONICAL_LANE_IDS,
+    CORE_SCHEMA_TABLES,
     LANE_REGISTRY,
     LaneRegistryError,
     resolve_lane_id,
@@ -749,7 +750,7 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         lane_specific_tables = {
             table
             for table in lane.schema_contract
-            if table not in lane_engine_module._TOPOLOGY_CORE_TABLES
+            if table not in CORE_SCHEMA_TABLES
             and table != lane.fts_table
         }
         for table in lane_specific_tables:
@@ -769,6 +770,21 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
             ):
                 assert logical_table in mermaid
             assert "git_commit_registry" in mermaid
+        else:
+            assert "subgraph SCHEMA_DERIVED_TOPOLOGY" in mermaid
+            assert "cluster_schema_derived_topology" in dot
+            assert "SCHEMA_SECTOR" in mermaid
+            assert "schema sector" in mermaid
+        tools = json.loads((lane_root / "tools.json").read_text(encoding="utf-8"))
+        topology_generator = tools["topology_generator"]
+        assert topology_generator["schema"] == (
+            "evidence-lane.lane-topology-generator.v3"
+        )
+        assert len(topology_generator["sha256"]) == 64
+        assert topology_generator["mmd_dot_shared_graph"] is True
+        assert topology_generator[
+            "sqlite_brain_builder_mmd_authority_sha256"
+        ] == "1B87064906E8A805C4A69A7A3A14668DCCE963E00928ED3EB23CC186AB8A65EC"
 
     project_topology = (lanes_root / "project_lane_topology.mmd").read_text(
         encoding="utf-8"
@@ -1260,6 +1276,64 @@ def test_pv1_full_build_and_pvn_incremental_lane_reuse(tmp_path: Path) -> None:
     tampered = validate_lane_bundle(pv3)
     assert tampered["valid"] is False
     assert "project_lane_topology.mmd" in tampered["checksum_mismatches"]
+
+
+def test_missing_topology_generator_fingerprint_forces_both_code_lanes(
+    tmp_path: Path,
+) -> None:
+    repository = tmp_path / "source"
+    repository.mkdir()
+    (repository / "app.py").write_text(
+        "def main():\n    return 'exact installed topology runtime'\n",
+        encoding="utf-8",
+    )
+    parent = tmp_path / "parent-lanes"
+    build_lane_bundle(
+        repository_root=repository,
+        output_directory=parent,
+        code_mode="local_code",
+        parent_lane_bundle=None,
+        parent_pv=None,
+        proposed_pv="PV1",
+        pointer_generation=0,
+    )
+
+    # Simulate a valid historical cache created before generator fingerprints
+    # were part of tools.json. Both code lanes must rebuild even when source
+    # bytes and route classification are unchanged.
+    for lane_id in ("github_code", "local_code"):
+        tools_path = parent / lane_id / "tools.json"
+        tools = json.loads(tools_path.read_text(encoding="utf-8"))
+        tools.pop("topology_generator")
+        tools_path.write_text(
+            json.dumps(tools, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+
+    candidate = tmp_path / "candidate-lanes"
+    result = build_lane_bundle(
+        repository_root=repository,
+        output_directory=candidate,
+        code_mode="local_code",
+        parent_lane_bundle=parent,
+        parent_pv="PV1",
+        proposed_pv="PV2",
+        pointer_generation=1,
+    )
+    reports = {row["lane_id"]: row for row in result["reports"]}
+    assert result["summary"]["both_code_lanes_forced_by_generator"] is True
+    assert set(result["summary"]["topology_generator_rebuilt_lanes"]) >= {
+        "github_code",
+        "local_code",
+    }
+    for lane_id in ("github_code", "local_code"):
+        assert reports[lane_id]["topology_generator_changed"] is True
+        assert reports[lane_id]["byte_reused"] is False
+        assert reports[lane_id]["topology_generator_sha256"]
+        assert "subgraph CODE_LOGICAL_TOPOLOGY" in (
+            candidate / lane_id / f"{lane_id}.mmd"
+        ).read_text(encoding="utf-8")
+    assert validate_lane_bundle(candidate)["valid"] is True
 
 
 def test_refresh_regenerates_unreconciled_inherited_topology(tmp_path: Path) -> None:

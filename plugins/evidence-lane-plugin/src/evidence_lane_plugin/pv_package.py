@@ -294,7 +294,19 @@ def _parse_checksums(path: Path) -> dict[str, str]:
     return values
 
 
-def validate_pv_package(directory: str | Path) -> dict[str, Any]:
+def validate_pv_package(
+    directory: str | Path,
+    *,
+    require_promotable: bool = True,
+) -> dict[str, Any]:
+    """Validate an immutable PV package and, by default, its promotability.
+
+    A sealed candidate can remain valid evidence even when a newer or stricter
+    lane validator proves that it is not eligible for promotion.  Non-promotion
+    HIL decisions use ``require_promotable=False`` so they can bind that exact
+    immutable evidence.  Promotion paths keep the default and therefore still
+    require every lane, overlay, and connector gate to pass.
+    """
     root = Path(directory).resolve()
     require(
         root.is_dir(),
@@ -450,33 +462,36 @@ def validate_pv_package(directory: str | Path) -> dict[str, Any]:
     lineage_events = ChatLineage(root / "chat_lineage.jsonl").events()
     db_report = database.validate(root / "code.sqlite")
     lane_report = validate_lane_bundle(root / "lanes")
-    require(
-        lane_report["valid"],
-        "PV_LANE_BUNDLE_INVALID",
-        "The PV universal lane bundle failed validation.",
-        status="FAIL",
-        lane_report=lane_report,
-    )
+    if require_promotable:
+        require(
+            lane_report["valid"],
+            "PV_LANE_BUNDLE_INVALID",
+            "The PV universal lane bundle failed validation.",
+            status="FAIL",
+            lane_report=lane_report,
+        )
     overlay_report = None
     if (root / "project_overlay").is_dir():
         overlay_report = validate_project_overlay(root / "project_overlay")
-        require(
-            overlay_report["valid"],
-            "PV_PROJECT_OVERLAY_INVALID",
-            "The candidate-only project-sector overlay failed validation.",
-            status="FAIL",
-            overlay_report=overlay_report,
-        )
+        if require_promotable:
+            require(
+                overlay_report["valid"],
+                "PV_PROJECT_OVERLAY_INVALID",
+                "The candidate-only project-sector overlay failed validation.",
+                status="FAIL",
+                overlay_report=overlay_report,
+            )
     connector_report = None
     if (root / "connector_brain.sqlite").is_file():
         connector_report = validate_connector_brain(root / "connector_brain.sqlite")
-        require(
-            connector_report["valid"],
-            "PV_CONNECTOR_BRAIN_INVALID",
-            "The packaged connector brain failed validation.",
-            status="FAIL",
-            connector_report=connector_report,
-        )
+        if require_promotable:
+            require(
+                connector_report["valid"],
+                "PV_CONNECTOR_BRAIN_INVALID",
+                "The packaged connector brain failed validation.",
+                status="FAIL",
+                connector_report=connector_report,
+            )
     package_sha256 = (
         hashlib.sha256(
             canonical_json_bytes(
@@ -500,6 +515,12 @@ def validate_pv_package(directory: str | Path) -> dict[str, Any]:
         "chat_lineage_event_count": len(lineage_events),
         "project_id": project_identity.get("project_id"),
         "rendering_status": manifest.get("rendering", {}).get("status"),
+        "promotability_required": require_promotable,
+        "promotable": bool(
+            lane_report["valid"]
+            and (overlay_report is None or overlay_report["valid"])
+            and (connector_report is None or connector_report["valid"])
+        ),
     }
 
 

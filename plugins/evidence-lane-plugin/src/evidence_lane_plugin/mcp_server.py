@@ -8,14 +8,17 @@ from typing import Any, Literal
 from mcp.server.auth.provider import TokenVerifier
 from mcp.server.auth.settings import AuthSettings
 from mcp.server.fastmcp import FastMCP
-from mcp.types import ToolAnnotations
+from mcp.types import Icon, ToolAnnotations
 from pydantic import AnyHttpUrl
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from .auth import OAuthJWTConfig, OAuthJWTVerifier, StaticBearerVerifier
+from .constants import ENGINE_VERSION
 from .lane_engine import prewarm_native_dependencies
 from .service import EvidenceLaneService
+
+_PUBLIC_SITE_URL = "https://evidence-lane-chatgpt-mcp-adapter.vercel.app"
 
 _READ_ONLY = ToolAnnotations(
     readOnlyHint=True,
@@ -58,6 +61,7 @@ def create_mcp_server(
     bearer_token: str | None = None,
     base_url: str | None = None,
     oauth_config: OAuthJWTConfig | None = None,
+    public_site_url: str | None = None,
 ) -> FastMCP:
     application = service or EvidenceLaneService()
     release_identity = application.engine.doctor()["engine"]
@@ -81,6 +85,11 @@ def create_mcp_server(
             required_scopes=list(oauth_config.required_scopes),
         )
         verifier = OAuthJWTVerifier(oauth_config)
+    exact_public_site = (
+        public_site_url
+        or os.environ.get("EVIDENCE_LANE_PUBLIC_SITE_URL")
+        or _PUBLIC_SITE_URL
+    ).rstrip("/")
     mcp = FastMCP(
         "Evidence Lane Plugin",
         instructions=(
@@ -104,6 +113,14 @@ def create_mcp_server(
             "secrets, or write remote "
             "Git without the exact governed action."
         ),
+        website_url=exact_public_site,
+        icons=[
+            Icon(
+                src=f"{exact_public_site}/evidence-lane-icon.png",
+                mimeType="image/png",
+                sizes=["2048x2048"],
+            )
+        ],
         host=host,
         port=port,
         streamable_http_path="/mcp",
@@ -111,6 +128,10 @@ def create_mcp_server(
         auth=auth,
         token_verifier=verifier,
     )
+    # FastMCP 1.28.1 exposes website/icons but not its low-level server version.
+    # Set the same pinned engine identity that clients read from pyproject.toml
+    # instead of allowing the SDK's default 1.0.0 to leak into ChatGPT metadata.
+    mcp._mcp_server.version = ENGINE_VERSION
 
     @mcp.custom_route(
         "/healthz",

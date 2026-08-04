@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -92,3 +93,116 @@ def test_shell_operators_and_secret_shaped_commands_are_blocked(
     assert result["counts"]["BLOCKED_INVALID_COMMAND"] == 2
     assert result["executed"] == 0
     assert marker.exists() is False
+
+
+def test_exact_manifest_binds_and_executes_all_twelve_prose_checks(
+    tmp_path: Path,
+) -> None:
+    repository = _repository(tmp_path)
+    declarations = [f"AC{index:02d} executable: exact check {index}." for index in range(1, 13)]
+    manifest_path = repository / "evidence" / "acceptance" / "commands.json"
+    manifest_path.parent.mkdir(parents=True)
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.acceptance-command-manifest.v1",
+                "commands": {
+                    declaration: {
+                        "argv": [
+                            "$RUNTIME_PYTHON",
+                            "-c",
+                            f"print('AC{index:02d}:PASS')",
+                        ],
+                        "timeout_seconds": 30,
+                    }
+                    for index, declaration in enumerate(declarations, start=1)
+                },
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    result = run_acceptance_checks(repository, declarations, timeout_seconds=30)
+    assert result["bounded_to"] == 12
+    assert result["declared"] == 12
+    assert result["executed"] == 12
+    assert result["verdict"] == "ALL_EXECUTABLE_CHECKS_PASS"
+    assert result["counts"]["PASS"] == 12
+    assert result["command_manifest"]["status"] == "PASS"
+    assert len(result["command_manifest"]["sha256"]) == 64
+    assert all(
+        row["declared_via"] == "repository_manifest_exact_match"
+        for row in result["checks"]
+    )
+    assert result["commands_inferred"] is False
+
+
+def test_postseal_manifest_check_waits_then_executes_with_candidate_context(
+    tmp_path: Path,
+) -> None:
+    repository = _repository(tmp_path)
+    declaration = "AC12 executable: validate the immutable candidate."
+    manifest_path = repository / "evidence" / "acceptance" / "commands.json"
+    manifest_path.parent.mkdir(parents=True)
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.acceptance-command-manifest.v1",
+                "commands": {
+                    declaration: {
+                        "argv": [
+                            "$RUNTIME_PYTHON",
+                            "-c",
+                            (
+                                "import os,sys; "
+                                "sys.exit(0 if os.environ.get('CANDIDATE_TEST') "
+                                "== 'sealed' else 9)"
+                            ),
+                        ],
+                        "phase": "POSTSEAL",
+                        "timeout_seconds": 30,
+                    }
+                },
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    pending = run_acceptance_checks(repository, [declaration], timeout_seconds=30)
+    assert pending["verdict"] == "POSTSEAL_CHECKS_PENDING"
+    assert pending["executed"] == 1
+    assert pending["checks"][0]["status"] == "PENDING_POSTSEAL"
+
+    postseal = run_acceptance_checks(
+        repository,
+        [declaration],
+        timeout_seconds=30,
+        phase="POSTSEAL",
+        environment={"CANDIDATE_TEST": "sealed"},
+    )
+    assert postseal["verdict"] == "ALL_EXECUTABLE_CHECKS_PASS"
+    assert postseal["checks"][0]["status"] == "PASS"
+
+
+def test_repository_manifest_binds_exactly_twelve_delta063_checks() -> None:
+    repository = Path(__file__).resolve().parents[1]
+    manifest = json.loads(
+        (repository / "evidence" / "acceptance" / "commands.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    commands = manifest["commands"]
+    assert manifest["schema"] == "evidence-lane.acceptance-command-manifest.v1"
+    assert len(commands) == 12
+    assert [key[:4] for key in commands] == [f"AC{index:02d}" for index in range(1, 13)]
+    for index, entry in enumerate(commands.values(), start=1):
+        assert entry["argv"] == [
+            "$RUNTIME_PYTHON",
+            "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py",
+            f"AC{index:02d}",
+        ]
+    assert commands[next(reversed(commands))]["phase"] == "POSTSEAL"

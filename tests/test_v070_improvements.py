@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 import subprocess
 import sys
 import zipfile
@@ -217,6 +218,45 @@ def test_boot_contract_never_auto_selects_state_travel() -> None:
         "EXPLICIT_USER_REQUEST",
         "GENUINE_HOST_CONTEXT_EXHAUSTION",
     ]
+
+
+def test_arbitrary_chat_activation_routes_visible_lineage_brains_and_projects(
+    tmp_path: Path,
+) -> None:
+    transcript = tmp_path / "visible-chat.json"
+    transcript.write_text(
+        json.dumps([{"prompt": "Boot this chat.", "response": "Visible answer."}]),
+        encoding="utf-8",
+    )
+    brain = tmp_path / "supplied-brain.sqlite"
+    with sqlite3.connect(brain) as connection:
+        connection.execute("CREATE TABLE evidence(id INTEGER PRIMARY KEY, text TEXT)")
+        connection.execute("INSERT INTO evidence(text) VALUES ('visible brain row')")
+    project = tmp_path / "older-project.zip"
+    with zipfile.ZipFile(project, "w") as archive:
+        archive.writestr("src/main.py", "print('visible project')\n")
+        archive.writestr("README.md", "# Imported project\n")
+    sources = [str(transcript), str(brain), str(project)]
+    result = classify_source_intake(
+        sources,
+        code_mode="local_code",
+        overrides={
+            sources[0]: "chat_lineage",
+            sources[1]: "sqlite_brain",
+            sources[2]: "project_engulf",
+        },
+    )
+    assert [row["canonical_lane_id"] for row in result["sources"]] == [
+        "chat_lineage",
+        "sqlite_brain",
+        "project_engulf",
+    ]
+    assert result["chat_lineage_included"] is True
+    assert result["source_bytes_mutated"] is False
+    assert result["pointer_moved"] is False
+    assert boot_next_action(entry_action="SESSION_RESUMED")[
+        "state_travel_auto_selected"
+    ] is False
 
 
 def test_explicit_same_host_continuation_preserves_and_supersedes_handoff(

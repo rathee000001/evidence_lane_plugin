@@ -15,7 +15,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .lanes import CODE_LOGICAL_TOPOLOGY, PRIMARY_CODE_LANES
+from .lanes import (
+    CODE_LOGICAL_TOPOLOGY,
+    CORE_SCHEMA_TABLES,
+    LANE_REGISTRY,
+    PRIMARY_CODE_LANES,
+)
 
 RECONCILIATION_SCHEMA = "evidence-lane.topology-reconciliation.v3"
 MIN_SUBGRAPHS = 4
@@ -435,6 +440,110 @@ def logical_code_contract_report(
     }
 
 
+def schema_derived_contract_report(
+    graph: ParsedGraph,
+    *,
+    lane_id: str,
+    database_path: str | Path,
+) -> dict[str, Any]:
+    """Require each non-code lane's exact SQLite entity/relation/sample graph."""
+
+    if lane_id in PRIMARY_CODE_LANES or lane_id not in LANE_REGISTRY:
+        return {
+            "applicable": False,
+            "required_subgraph": None,
+            "missing_subgraphs": [],
+            "missing_nodes": [],
+            "missing_root_edges": [],
+            "missing_relation_edges": [],
+            "missing_samples": [],
+            "head_mismatches": [],
+            "status": "NOT_APPLICABLE",
+        }
+    lane = LANE_REGISTRY[lane_id]
+    tables = [
+        table
+        for table in lane.schema_contract
+        if table not in CORE_SCHEMA_TABLES and table != lane.fts_table
+    ]
+    table_nodes = {
+        table: f"SCHEMA_ENTITY_{index}" for index, table in enumerate(tables)
+    }
+    subgraphs = {
+        item.removeprefix("cluster_").upper() for item in graph.subgraphs
+    }
+    nodes = {node.node_id: node for node in graph.nodes}
+    required_nodes = {"SCHEMA_SECTOR", *table_nodes.values()}
+    required_root_edges = {
+        ("SCHEMA_SECTOR", node_id) for node_id in table_nodes.values()
+    }
+    expected_relation_edges: set[tuple[str, str]] = set()
+    expected_sample_nodes: set[str] = set()
+    connection = _connect(Path(database_path))
+    try:
+        for index, table in enumerate(tables):
+            if (_count(connection, table) or 0) > 0:
+                expected_sample_nodes.add(f"SCHEMA_SAMPLE_{index}")
+            quoted = table.replace('"', '""')
+            for row in connection.execute(
+                f'PRAGMA foreign_key_list("{quoted}")'  # nosec B608
+            ):
+                parent_table = str(row["table"])
+                parent_node = (
+                    "SOURCE_REG"
+                    if parent_table == "source_registry"
+                    else table_nodes.get(parent_table)
+                )
+                if parent_node:
+                    expected_relation_edges.add((parent_node, table_nodes[table]))
+    finally:
+        connection.close()
+    missing_subgraphs = (
+        []
+        if "SCHEMA_DERIVED_TOPOLOGY" in subgraphs
+        else ["SCHEMA_DERIVED_TOPOLOGY"]
+    )
+    missing_nodes = sorted(required_nodes - nodes.keys())
+    graph_edges = set(graph.edges)
+    missing_root_edges = sorted(required_root_edges - graph_edges)
+    missing_relation_edges = sorted(expected_relation_edges - graph_edges)
+    missing_samples = sorted(expected_sample_nodes - nodes.keys())
+    missing_sample_edges = sorted(
+        (table_nodes[tables[index]], sample_node)
+        for sample_node in expected_sample_nodes
+        for index in [int(sample_node.rsplit("_", 1)[1])]
+        if (table_nodes[tables[index]], sample_node) not in graph_edges
+    )
+    head_mismatches = sorted(
+        f"{node_id}:{nodes[node_id].head!r}!={table!r}"
+        for table, node_id in table_nodes.items()
+        if node_id in nodes and nodes[node_id].head != table
+    )
+    valid = not (
+        missing_subgraphs
+        or missing_nodes
+        or missing_root_edges
+        or missing_relation_edges
+        or missing_samples
+        or missing_sample_edges
+        or head_mismatches
+    )
+    return {
+        "applicable": True,
+        "required_root": "SCHEMA_SECTOR",
+        "required_subgraph": "SCHEMA_DERIVED_TOPOLOGY",
+        "required_entities": tables,
+        "missing_subgraphs": missing_subgraphs,
+        "missing_nodes": missing_nodes,
+        "missing_root_edges": [list(edge) for edge in missing_root_edges],
+        "missing_relation_edges": [list(edge) for edge in missing_relation_edges],
+        "missing_samples": missing_samples,
+        "missing_sample_edges": [list(edge) for edge in missing_sample_edges],
+        "head_mismatches": head_mismatches,
+        "status": "PASS" if valid else "FAIL",
+    }
+
+
 def _rendering_parity(mermaid: ParsedGraph, dot: ParsedGraph) -> dict[str, Any]:
     mmd_subgraphs = {item.upper() for item in mermaid.subgraphs}
     dot_subgraphs = {item.removeprefix("cluster_").upper() for item in dot.subgraphs}
@@ -497,6 +606,26 @@ def reconcile_lane_topology(
         )
         else "FAIL"
     )
+    schema_contract = {
+        "mermaid": schema_derived_contract_report(
+            mermaid,
+            lane_id=lane_id,
+            database_path=root / sqlite_filename,
+        ),
+        "dot": schema_derived_contract_report(
+            dot,
+            lane_id=lane_id,
+            database_path=root / sqlite_filename,
+        ),
+    }
+    schema_contract_status = (
+        "PASS"
+        if all(
+            report["status"] in {"PASS", "NOT_APPLICABLE"}
+            for report in schema_contract.values()
+        )
+        else "FAIL"
+    )
     valid = (
         mermaid_structural["status"] == "PASS"
         and dot_structural["status"] == "PASS"
@@ -505,6 +634,7 @@ def reconcile_lane_topology(
         and bool(dot_claims)
         and not failed_claims
         and logical_contract_status == "PASS"
+        and schema_contract_status == "PASS"
     )
     return {
         "schema": RECONCILIATION_SCHEMA,
@@ -519,6 +649,10 @@ def reconcile_lane_topology(
         "logical_code_contract": {
             **logical_contract,
             "status": logical_contract_status,
+        },
+        "schema_derived_contract": {
+            **schema_contract,
+            "status": schema_contract_status,
         },
         "rendering_parity": parity,
         "status": "PASS" if valid else "FAIL",
@@ -611,5 +745,6 @@ __all__ = [
     "reconcile_graph_against_database",
     "reconcile_lane_topology",
     "reconciliation_markdown",
+    "schema_derived_contract_report",
     "structural_report",
 ]

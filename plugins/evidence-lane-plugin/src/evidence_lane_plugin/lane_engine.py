@@ -40,8 +40,10 @@ from .ingest import extract_code_lane_facts, governed_source_files
 from .lanes import (
     CANONICAL_LANE_IDS,
     CODE_LOGICAL_TOPOLOGY,
+    CORE_SCHEMA_TABLES,
     LANE_REGISTRY,
     PRIMARY_CODE_LANES,
+    SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256,
     LaneDefinition,
     catalog,
     route_batch,
@@ -57,6 +59,7 @@ from .topology_reconciliation import (
 LANE_SCHEMA_VERSION = "evidence-lane.universal-lane.v2"
 LEGACY_LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v1"
 LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v2"
+TOPOLOGY_GENERATOR_SCHEMA = "evidence-lane.lane-topology-generator.v3"
 MAX_EXTRACT_BYTES = 64 * 1024 * 1024
 MAX_PDF_PAGES = 500
 MAX_ROWS_PER_TAB = 5000
@@ -256,10 +259,36 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
 
 def _tool_identity(lane: LaneDefinition) -> dict[str, Any]:
     capabilities = _capability_rows(lane)
+    topology_generator = _topology_generator_identity(lane)
     payload = {
         "lane": lane.as_dict(),
         "capabilities": capabilities,
         "lane_schema_version": LANE_SCHEMA_VERSION,
+        "topology_generator": topology_generator,
+    }
+    payload["sha256"] = sha256_bytes(canonical_json_bytes(payload))
+    return payload
+
+
+def _topology_generator_identity(lane: LaneDefinition) -> dict[str, Any]:
+    """Bind incremental reuse to the exact installed topology emitter bytes."""
+
+    module_path = Path(__file__).resolve()
+    payload = {
+        "schema": TOPOLOGY_GENERATOR_SCHEMA,
+        "module": module_path.name,
+        "module_sha256": sha256_file(module_path),
+        "lane_id": lane.canonical_lane_id,
+        "lane_schema_contract": list(lane.schema_contract),
+        "mmd_dot_shared_graph": True,
+        "sqlite_brain_builder_mmd_authority_sha256": (
+            SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256
+        ),
+        "code_logical_topology": (
+            [list(row) for row in CODE_LOGICAL_TOPOLOGY]
+            if lane.canonical_lane_id in PRIMARY_CODE_LANES
+            else None
+        ),
     }
     payload["sha256"] = sha256_bytes(canonical_json_bytes(payload))
     return payload
@@ -3363,23 +3392,6 @@ def _classify(
     }
 
 
-_TOPOLOGY_CORE_TABLES = {
-    "lane_meta",
-    "lane_pointer",
-    "source_registry",
-    "source_tombstone",
-    "chunk_index",
-    "chunk_content_cas",
-    "chunk_history",
-    "structured_fact",
-    "parser_capability",
-    "tfidf_term",
-    "tfidf_vector",
-    "refresh_receipt",
-    "mutation_receipt",
-}
-
-
 def _topology_text(value: Any, *, limit: int = 96) -> str:
     normalized = re.sub(
         r"\s+",
@@ -3534,6 +3546,63 @@ def _fact_display(kind: str, locator: str, payload_json: str) -> str:
     return locator
 
 
+def _lane_schema_tables(lane: LaneDefinition) -> list[str]:
+    """Return the lane-owned physical entities in canonical contract order."""
+
+    return [
+        table
+        for table in lane.schema_contract
+        if table not in CORE_SCHEMA_TABLES and table != lane.fts_table
+    ]
+
+
+def _schema_topology_records(
+    connection: sqlite3.Connection,
+    lane: LaneDefinition,
+) -> list[dict[str, Any]]:
+    """Inspect exact SQLite entities, FKs, counts, and one bounded sample."""
+
+    records: list[dict[str, Any]] = []
+    for table in _lane_schema_tables(lane):
+        if not re.fullmatch(r"[a-z][a-z0-9_]*", table):
+            raise ValueError(f"Unsafe lane topology table name: {table}")
+        columns = connection.execute(f'PRAGMA table_info("{table}")').fetchall()  # nosec B608
+        foreign_keys = connection.execute(
+            f'PRAGMA foreign_key_list("{table}")'  # nosec B608
+        ).fetchall()
+        column_names = {str(row["name"]) for row in columns}
+        sample = None
+        if {"locator", "payload_json"} <= column_names:
+            order = "locator, record_id" if "record_id" in column_names else "locator"
+            sample = connection.execute(
+                f'SELECT locator, payload_json FROM "{table}" ORDER BY {order} LIMIT 1'  # nosec B608
+            ).fetchone()
+        records.append(
+            {
+                "table": table,
+                "rows": _required_table_count(connection, table),
+                "columns": len(columns),
+                "foreign_keys": [
+                    {
+                        "from": str(row["from"]),
+                        "table": str(row["table"]),
+                        "to": str(row["to"]),
+                    }
+                    for row in foreign_keys
+                ],
+                "sample": (
+                    {
+                        "locator": str(sample["locator"]),
+                        "payload_json": str(sample["payload_json"]),
+                    }
+                    if sample is not None
+                    else None
+                ),
+            }
+        )
+    return records
+
+
 def _lane_topology(
     lane: LaneDefinition,
     database_path: Path,
@@ -3580,11 +3649,7 @@ def _lane_topology(
             "SELECT kind, COUNT(*) AS count FROM structured_fact GROUP BY kind ORDER BY kind"
         )
     }
-    lane_tables = [
-        table
-        for table in lane.schema_contract
-        if table not in _TOPOLOGY_CORE_TABLES and table != lane.fts_table
-    ]
+    lane_tables = _lane_schema_tables(lane)
     graph.begin("SEMANTIC_MODEL", "2. Lane-specific semantic model from SQLite")
     graph.node(
         "FACT_INDEX",
@@ -3622,6 +3687,64 @@ def _lane_topology(
         graph.node("FACT_EMPTY", "no semantic rows yet\nlane schema remains explicit", "warn")
         graph.edge("FACT_INDEX", "FACT_EMPTY")
     graph.end()
+
+    if lane.canonical_lane_id not in PRIMARY_CODE_LANES:
+        schema_records = _schema_topology_records(connection, lane)
+        relation_count = sum(len(row["foreign_keys"]) for row in schema_records)
+        sample_count = sum(row["sample"] is not None for row in schema_records)
+        graph.begin(
+            "SCHEMA_DERIVED_TOPOLOGY",
+            "3. Lane-owned SQLite entities, relations, and samples",
+        )
+        graph.node(
+            "SCHEMA_SECTOR",
+            f"{lane.display_label} schema sector\n"
+            f"entities={len(schema_records)} | relations={relation_count} | "
+            f"samples={sample_count}",
+            "root",
+        )
+        graph.edge("LANE_ROOT", "SCHEMA_SECTOR", "derives from SQLite")
+        table_nodes = {
+            row["table"]: f"SCHEMA_ENTITY_{index}"
+            for index, row in enumerate(schema_records)
+        }
+        for index, row in enumerate(schema_records):
+            entity_node = table_nodes[row["table"]]
+            graph.node(
+                entity_node,
+                f'{row["table"]}\nrows={row["rows"]} | columns={row["columns"]}',
+                "semantic",
+            )
+            graph.edge("SCHEMA_SECTOR", entity_node, "entity")
+            sample = row["sample"]
+            if sample is not None:
+                sample_node = f"SCHEMA_SAMPLE_{index}"
+                graph.node(
+                    sample_node,
+                    "sample\n"
+                    + _fact_display(
+                        row["table"],
+                        sample["locator"],
+                        sample["payload_json"],
+                    ),
+                    "semantic",
+                )
+                graph.edge(entity_node, sample_node, "row sample")
+        for row in schema_records:
+            child_node = table_nodes[row["table"]]
+            for foreign_key in row["foreign_keys"]:
+                parent_node = (
+                    "SOURCE_REG"
+                    if foreign_key["table"] == "source_registry"
+                    else table_nodes.get(foreign_key["table"])
+                )
+                if parent_node:
+                    graph.edge(
+                        parent_node,
+                        child_node,
+                        f'{foreign_key["from"]} -> {foreign_key["table"]}.{foreign_key["to"]}',
+                    )
+        graph.end()
 
     if lane.canonical_lane_id in PRIMARY_CODE_LANES:
         graph.begin(
@@ -3694,7 +3817,7 @@ def _lane_topology(
             graph.edge("GIT_0", node, "commit sample")
         graph.end()
 
-    section_number = 5 if lane.canonical_lane_id in PRIMARY_CODE_LANES else 3
+    section_number = 5 if lane.canonical_lane_id in PRIMARY_CODE_LANES else 4
     graph.begin("RETRIEVAL", f"{section_number}. Retrieval and changed-section reuse")
     retrieval = (
         ("CHUNK_INDEX", "chunk_index", chunks),
@@ -3862,7 +3985,25 @@ def _build_one_lane(
     git_history_changed = bool(
         history_enabled and current_git_signature != prior_git_signature
     )
-    tool_changed = bool(prior_tools and prior_tools.get("sha256") != tools["sha256"])
+    prior_topology_generator = (
+        prior_tools.get("topology_generator")
+        if isinstance(prior_tools, dict)
+        and isinstance(prior_tools.get("topology_generator"), dict)
+        else None
+    )
+    current_topology_generator = tools["topology_generator"]
+    topology_generator_changed = bool(
+        prior_lane is not None
+        and (
+            prior_topology_generator is None
+            or prior_topology_generator.get("sha256")
+            != current_topology_generator["sha256"]
+        )
+    )
+    tool_changed = bool(
+        prior_lane is not None
+        and (not prior_tools or prior_tools.get("sha256") != tools["sha256"])
+    )
     topology_rebuild_required = bool(
         prior_lane is not None
         and not _prior_lane_topology_is_reconcilable(prior_lane, lane)
@@ -3870,6 +4011,7 @@ def _build_one_lane(
     changed = (
         prior_lane is None
         or tool_changed
+        or topology_generator_changed
         or git_history_changed
         or topology_rebuild_required
         or any(
@@ -4007,6 +4149,10 @@ def _build_one_lane(
             ("parser_id", lane.parser_id),
             ("chunker_version", lane.chunker_version),
             ("tool_identity_sha256", tools["sha256"]),
+            (
+                "topology_generator_sha256",
+                current_topology_generator["sha256"],
+            ),
             ("last_proposed_pv", proposed_pv),
             ("last_build_mode", build_mode),
             ("git_history_signature", current_git_signature or "NOT_APPLICABLE"),
@@ -4082,6 +4228,16 @@ def _build_one_lane(
         "build_mode": build_mode,
         "classification": classification,
         "tool_identity_changed": tool_changed,
+        "topology_generator_changed": topology_generator_changed,
+        "topology_generator": {
+            "current": current_topology_generator,
+            "prior_sha256": (
+                prior_topology_generator.get("sha256")
+                if prior_topology_generator is not None
+                else None
+            ),
+            "cache_reuse_allowed": not topology_generator_changed,
+        },
         "git_history_changed": git_history_changed,
         "topology_rebuild_required": topology_rebuild_required,
         "git_history": history_report,
@@ -4120,6 +4276,8 @@ def _build_one_lane(
         "classification": classification,
         "git_history": history_report,
         "topology_rebuild_required": topology_rebuild_required,
+        "topology_generator_changed": topology_generator_changed,
+        "topology_generator_sha256": current_topology_generator["sha256"],
         "validation": validation,
         "stable_artifacts": stable_hashes,
     }
@@ -4498,6 +4656,19 @@ def build_lane_bundle(
             if row["build_mode"] == "INCREMENTAL_REFRESH"
         ],
         "byte_reused_lanes": [row["lane_id"] for row in reports if row["byte_reused"]],
+        "topology_generator_rebuilt_lanes": [
+            row["lane_id"]
+            for row in reports
+            if row["topology_generator_changed"]
+        ],
+        "topology_generator_sha256_by_lane": {
+            row["lane_id"]: row["topology_generator_sha256"] for row in reports
+        },
+        "both_code_lanes_forced_by_generator": all(
+            row["topology_generator_changed"]
+            for row in reports
+            if row["lane_id"] in PRIMARY_CODE_LANES
+        ),
         "changed_sources": sum(
             len(row["classification"]["CHANGED_REBUILD"]) for row in reports
         ),

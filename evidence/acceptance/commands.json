@@ -1,0 +1,54 @@
+{
+  "commands": {
+    "AC01 executable: lifecycle non-promotion and exact Fuse isolation tests pass.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC01"],
+      "timeout_seconds": 300
+    },
+    "AC02 executable: exact authority generate_lane_mmd.py fingerprint and runtime identity tests pass.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC02"],
+      "timeout_seconds": 120
+    },
+    "AC03 executable: github_code logical MMD/DOT identity and required root-edge tests pass.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC03"],
+      "timeout_seconds": 120
+    },
+    "AC04 executable: local_code logical MMD/DOT identity and required root-edge tests pass.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC04"],
+      "timeout_seconds": 120
+    },
+    "AC05 executable: all sixteen non-code lanes expose schema-derived entities, counts, relations, and samples with MMD/DOT parity.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC05"],
+      "timeout_seconds": 120
+    },
+    "AC06 executable: topology-generator fingerprint invalidates reuse and forces both code lanes to rebuild.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC06"],
+      "timeout_seconds": 300
+    },
+    "AC07 executable: one real Git lane plus seventeen fixtures rebuild and validate as exactly eighteen lanes.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC07"],
+      "timeout_seconds": 120
+    },
+    "AC08 executable: every forensic lane and bundle audit passes against the rebuilt POC.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC08"],
+      "timeout_seconds": 120
+    },
+    "AC09 executable: Delta 063 and the full task ledger reconcile with no superseded task presented as current.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC09"],
+      "timeout_seconds": 120
+    },
+    "AC10 executable: actual DOCX POC exists, opens, renders, and is visually inspected against its source evidence.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC10"],
+      "timeout_seconds": 120
+    },
+    "AC11 executable: the committed branch identity is installed and verified in Codex plus the ChatGPT tunnel route, and the Vercel branch preview is reachable.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC11"],
+      "timeout_seconds": 120
+    },
+    "AC12 executable: the fresh candidate validates all package seals, exact engine commit identity, Exit Slip evidence, unchanged PV3 pointer, and six-way HIL stop.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC12"],
+      "phase": "POSTSEAL",
+      "timeout_seconds": 300
+    }
+  },
+  "schema": "evidence-lane.acceptance-command-manifest.v1"
+}

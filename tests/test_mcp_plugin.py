@@ -105,6 +105,23 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         assert tool.inputSchema["type"] == "object"
 
 
+def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> None:
+    public_site = "https://preview.example.test"
+    server = create_mcp_server(
+        service=EvidenceLaneService(data_root=tmp_path / "store"),
+        public_site_url=public_site,
+    )
+    identity = server._mcp_server
+    assert identity.version == ENGINE_VERSION == "1.2.0"
+    assert str(identity.website_url) == public_site
+    assert identity.icons is not None
+    assert len(identity.icons) == 1
+    icon = identity.icons[0]
+    assert icon.src == f"{public_site}/evidence-lane-icon.png"
+    assert icon.mimeType == "image/png"
+    assert icon.sizes == ["2048x2048"]
+
+
 def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     root = Path(__file__).resolve().parents[1]
     plugin = root / "plugins" / "evidence-lane-plugin"

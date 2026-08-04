@@ -12,6 +12,15 @@ MUTATION_AUTOMATIC_APPEND_ONLY = "automatic_append_only"
 MUTATION_NAMED_GRANT_RELOCK = "explicit_named_one_turn_grant_receipt_snapshot_relock"
 PRIMARY_CODE_LANES = frozenset({"github_code", "local_code"})
 
+# Exact SHA-256 of the authorized SQLite Brain Builder
+# ``backend/src/sqlite_brain_builder/mmd/generate_lane_mmd.py`` supplied for
+# this contract.  The runtime does not depend on that external workstation
+# path; it carries the fingerprint so receipts can prove which logical
+# projection was implemented.
+SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256 = (
+    "1B87064906E8A805C4A69A7A3A14668DCCE963E00928ED3EB23CC186AB8A65EC"
+)
+
 # Logical projection inherited from the authorized SQLite brain builder.  The
 # current lane database intentionally keeps its richer physical schema; both
 # code modes must still expose this exact seven-entity contract in MMD and DOT.
@@ -88,6 +97,7 @@ _CORE_SCHEMA = (
     "refresh_receipt",
     "mutation_receipt",
 )
+CORE_SCHEMA_TABLES = frozenset(_CORE_SCHEMA)
 
 _CODE_SCHEMA = _CORE_SCHEMA + (
     "sector_meta",

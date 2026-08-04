@@ -1534,6 +1534,7 @@ class ProjectStore:
     ) -> dict[str, Any]:
         candidate = self.candidate_path(project_id, candidate_id)
         candidate_validation = validate_pv_package(candidate)
+        exit_slip = json.loads((candidate / "exit_slip.json").read_text(encoding="utf-8"))
         proposed_pv = candidate_validation["proposed_pv"]
         accepted = self.accepted_path(project_id, proposed_pv)
         with self._lock(project_id):
@@ -1546,6 +1547,79 @@ class ProjectStore:
                 expected_generation=expected_pointer_generation,
                 actual_generation=pointer.generation,
             )
+            acceptance = exit_slip.get("acceptance_checks") or {}
+            pending_postseal = int(
+                (acceptance.get("counts") or {}).get("PENDING_POSTSEAL") or 0
+            )
+            postseal_receipt_validation = None
+            if pending_postseal:
+                receipt_path = (
+                    self.project_root(project_id)
+                    / "receipts"
+                    / f"postseal_{candidate_id.lower()}.json"
+                )
+                require(
+                    receipt_path.is_file(),
+                    "POSTSEAL_ACCEPTANCE_RECEIPT_REQUIRED",
+                    "This candidate declares a post-seal acceptance check, but its "
+                    "external immutable-candidate receipt is missing.",
+                    status="BLOCKED",
+                    candidate_id=candidate_id,
+                    receipt_path=str(receipt_path),
+                )
+                try:
+                    postseal_receipt = json.loads(
+                        receipt_path.read_text(encoding="utf-8")
+                    )
+                except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+                    raise EvidenceLaneError(
+                        "POSTSEAL_ACCEPTANCE_RECEIPT_INVALID",
+                        "The external post-seal acceptance receipt is unreadable.",
+                        status="FAIL",
+                        details={"receipt_path": str(receipt_path)},
+                    ) from exc
+                claimed_receipt_sha = postseal_receipt.get("receipt_sha256")
+                receipt_payload = dict(postseal_receipt)
+                receipt_payload.pop("receipt_sha256", None)
+                actual_receipt_sha = sha256_bytes(
+                    canonical_json_bytes(receipt_payload)
+                )
+                postseal_health = postseal_receipt.get("acceptance") or {}
+                source_commit = (
+                    (exit_slip.get("repository_exit") or {}).get("commit_sha")
+                )
+                require(
+                    postseal_receipt.get("schema")
+                    == "evidence-lane.postseal-acceptance.receipt.v1"
+                    and postseal_receipt.get("project_id") == project_id
+                    and postseal_receipt.get("candidate_id") == candidate_id
+                    and postseal_receipt.get("accepted_pv_retained")
+                    == pointer.accepted_pv
+                    and postseal_receipt.get("pointer_generation_retained")
+                    == pointer.generation
+                    and postseal_receipt.get("source_commit_sha") == source_commit
+                    and claimed_receipt_sha == actual_receipt_sha
+                    and postseal_health.get("status") == "PASS"
+                    and postseal_health.get("verdict")
+                    == "ALL_EXECUTABLE_CHECKS_PASS"
+                    and postseal_health.get("source_unchanged") is True
+                    and int((postseal_health.get("counts") or {}).get("PASS") or 0)
+                    == pending_postseal,
+                    "POSTSEAL_ACCEPTANCE_RECEIPT_MISMATCH",
+                    "The post-seal receipt does not prove every declared post-seal "
+                    "check against this exact candidate, source commit, and pointer.",
+                    status="FAIL",
+                    candidate_id=candidate_id,
+                    expected_postseal_checks=pending_postseal,
+                    expected_source_commit=source_commit,
+                    receipt_path=str(receipt_path),
+                )
+                postseal_receipt_validation = {
+                    "status": "PASS",
+                    "path": str(receipt_path),
+                    "receipt_sha256": actual_receipt_sha,
+                    "checks": pending_postseal,
+                }
             require(
                 proposed_pv == self.next_pv_id(project_id),
                 "PV_SEQUENCE_MISMATCH",
@@ -1595,6 +1669,7 @@ class ProjectStore:
                 "decided_by": decided_by,
                 "pointer_generation_before": pointer.generation,
                 "pointer_generation_after": new_pointer.generation,
+                "postseal_acceptance": postseal_receipt_validation,
                 "decided_at": utc_now(),
             }
             receipt_path = (
@@ -1628,7 +1703,10 @@ class ProjectStore:
         correction_delta: str | None,
         research_question: str | None,
     ) -> dict[str, Any]:
-        validate_pv_package(self.candidate_path(project_id, candidate_id))
+        candidate_validation = validate_pv_package(
+            self.candidate_path(project_id, candidate_id),
+            require_promotable=False,
+        )
         pointer = self.pointer(project_id)
         receipt = {
             "schema": "evidence-lane.hil-decision.receipt.v1",
@@ -1642,6 +1720,10 @@ class ProjectStore:
             "pointer_generation_before": pointer.generation,
             "pointer_generation_after": pointer.generation,
             "accepted_pv_retained": pointer.accepted_pv,
+            "candidate_manifest_sha256": candidate_validation["manifest_sha256"],
+            "candidate_package_sha256": candidate_validation["package_sha256"],
+            "candidate_promotable": candidate_validation["promotable"],
+            "candidate_integrity_validated": True,
             "decided_at": utc_now(),
         }
         path = self.project_root(project_id) / "receipts" / f"{decision_id}.json"

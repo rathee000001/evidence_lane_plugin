@@ -24,6 +24,7 @@ SOURCE_ROOT = PLUGIN_ROOT / "src"
 if str(SOURCE_ROOT) not in sys.path:
     sys.path.insert(0, str(SOURCE_ROOT))
 
+from evidence_lane_plugin.engine_identity import source_tree_hash
 from evidence_lane_plugin.forensic_audit import (
     audit_lane_bundle,
     write_forensic_audit_reports,
@@ -36,7 +37,10 @@ from evidence_lane_plugin.hashing import (
     sha256_file,
 )
 from evidence_lane_plugin.lane_engine import build_lane_bundle, validate_lane_bundle
-from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS
+from evidence_lane_plugin.lanes import (
+    CANONICAL_LANE_IDS,
+    SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256,
+)
 
 SCHEMA = "evidence-lane.real-git-poc.v1"
 REAL_GIT_LANE = "github_code"
@@ -351,6 +355,35 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
     commit = _git(repository, "rev-parse", f"{ref}^{{commit}}")
     tree = _git(repository, "rev-parse", f"{commit}^{{tree}}")
     branch = _git(repository, "branch", "--show-current") or "DETACHED"
+    runtime_repository = Path(_git(PLUGIN_ROOT, "rev-parse", "--show-toplevel")).resolve()
+    runtime_commit = _git(runtime_repository, "rev-parse", "HEAD")
+    runtime_status = _git(
+        runtime_repository,
+        "status",
+        "--porcelain",
+        "--untracked-files=all",
+    )
+    if runtime_repository != repository:
+        raise ValueError("The PoC source and executing runtime must be the same repository.")
+    if runtime_commit != commit:
+        raise ValueError("The executing runtime is not the exact requested source commit.")
+    if runtime_status:
+        raise ValueError("The executing runtime worktree is not clean and commit-exact.")
+    lane_engine_path = SOURCE_ROOT / "evidence_lane_plugin" / "lane_engine.py"
+    runtime_identity = {
+        "repository": str(runtime_repository),
+        "commit": runtime_commit,
+        "plugin_source_tree_sha256": source_tree_hash(
+            SOURCE_ROOT / "evidence_lane_plugin"
+        ),
+        "lane_engine_sha256": sha256_file(lane_engine_path),
+        "poc_builder_sha256": sha256_file(Path(__file__)),
+        "sqlite_brain_builder_mmd_authority_sha256": (
+            SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256
+        ),
+        "worktree_clean": True,
+        "runtime_matches_source_commit": True,
+    }
 
     with tempfile.TemporaryDirectory(prefix="evidence-lane-real-git-poc-") as temp:
         source = Path(temp) / "source"
@@ -428,6 +461,20 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
             refresh_audit, output / "FORENSIC_REFRESH"
         )
 
+        code_generator_identities = {}
+        for lane_id in ("github_code", "local_code"):
+            tools = json.loads(
+                (initial_root / lane_id / "tools.json").read_text(encoding="utf-8")
+            )
+            identity = tools.get("topology_generator") or {}
+            code_generator_identities[lane_id] = identity
+        exact_code_runtime = all(
+            identity.get("module_sha256") == runtime_identity["lane_engine_sha256"]
+            and identity.get("sqlite_brain_builder_mmd_authority_sha256")
+            == SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256
+            for identity in code_generator_identities.values()
+        )
+
     all_reused = refresh["summary"]["byte_reused_lanes"] == list(CANONICAL_LANE_IDS)
     passed = all(
         (
@@ -438,6 +485,7 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
             initial_audit["status"] == "PASS",
             refresh_audit["status"] == "PASS",
             all_reused,
+            exact_code_runtime,
         )
     )
     receipt = {
@@ -451,6 +499,11 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
             "projection": SOURCE_SUBTREE,
             "tracked_python_files": tracked_python,
             "tracked_python_file_count": len(tracked_python),
+        },
+        "runtime": {
+            **runtime_identity,
+            "code_lane_topology_generators": code_generator_identities,
+            "both_code_lanes_match_exact_runtime": exact_code_runtime,
         },
         "authority_policy": {
             "real_git_lane": REAL_GIT_LANE,
