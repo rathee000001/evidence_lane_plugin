@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
 
@@ -116,13 +117,7 @@ class EvidenceLaneService:
                 ephemeral=ephemeral,
                 server_has_durable_filesystem=server_has_durable_filesystem,
             )
-            result["effective_route"] = {
-                "mode": route.mode,
-                "reason": route.reason,
-                "durable_required": route.durable_required,
-                "server_filesystem": route.server_filesystem,
-                "host_connector_role": route.host_connector_role,
-            }
+            result["effective_route"] = route.as_dict()
         return result
 
     def storage_connector_select(
@@ -149,27 +144,27 @@ class EvidenceLaneService:
             return automatic, selection
         if selection["mode"] == "LOCAL_SQLITE":
             require(
-                not ephemeral and automatic.server_filesystem == "DURABLE",
+                automatic.server_filesystem == "DURABLE",
                 "LOCAL_SQLITE_STORAGE_UNAVAILABLE",
                 "The selected local SQLite authority is unavailable on this host.",
                 status="BLOCKED",
             )
-            return PersistenceRoute(
+            return replace(
+                automatic,
                 mode="local",
                 reason="the project explicitly selected its durable local SQLite authority",
                 durable_required=False,
-                server_filesystem="DURABLE",
-                host_connector_role="OPTIONAL_VERIFIED_MIRROR",
             ), selection
-        return PersistenceRoute(
+        return replace(
+            automatic,
             mode="configured_durable_connector",
             reason=(
                 "the project explicitly selected the configured transactional "
                 f"connector {selection['connector_id']}"
             ),
             durable_required=True,
-            server_filesystem=automatic.server_filesystem,
             host_connector_role="PRIMARY_TRANSACTIONAL_RUNTIME_AUTHORITY",
+            primary_runtime_authority="CONFIGURED_TRANSACTIONAL_RUNTIME_REQUIRED",
         ), selection
 
     def _environment_sync_service(self) -> PVSyncService | None:
@@ -837,6 +832,7 @@ class EvidenceLaneService:
             )
             result["chat_lineage"]["append_status"] = "APPENDED"
             result["chat_lineage"]["event_id"] = receipt["event"]["event_id"]
+            result["mode_binding"] = receipt["mode_binding"]
             result["prior_lifecycle_state"] = receipt["lifecycle_state_unchanged"]
             result["pointer"] = receipt["pointer"]
             if "PL" in {item["id"] for item in result["selected_modes"]}:
@@ -1238,6 +1234,7 @@ class EvidenceLaneService:
             agent_id=agent_id,
             sandbox_id=sandbox_id,
             persistence_mode=route.mode,
+            persistence_route=route.as_dict(),
             ephemeral=ephemeral,
             runtime_context=runtime_context,
             flash=flash,
@@ -1246,11 +1243,7 @@ class EvidenceLaneService:
             server_has_durable_filesystem=route.server_filesystem == "DURABLE",
         )
         result["persistence_route"] = {
-            "mode": route.mode,
-            "reason": route.reason,
-            "durable_required": route.durable_required,
-            "server_filesystem": route.server_filesystem,
-            "host_connector_role": route.host_connector_role,
+            **route.as_dict(),
             "selection": storage_selection,
         }
         result["project_lineage_entry"] = project_lineage_entry
@@ -1296,6 +1289,7 @@ class EvidenceLaneService:
             host=host_kind,
             host_session_id=host_session_id,
             persistence_mode=route.mode,
+            persistence_route=route.as_dict(),
             ephemeral=ephemeral,
             client_can_edit_source=client_can_edit_source,
             server_has_durable_filesystem=route.server_filesystem == "DURABLE",
@@ -1304,11 +1298,7 @@ class EvidenceLaneService:
         )
         result["session_flash"] = flash
         result["persistence_route"] = {
-            "mode": route.mode,
-            "reason": route.reason,
-            "durable_required": route.durable_required,
-            "server_filesystem": route.server_filesystem,
-            "host_connector_role": route.host_connector_role,
+            **route.as_dict(),
             "selection": storage_selection,
         }
         result["project_lineage_entry"] = project_lineage_entry

@@ -291,3 +291,74 @@ def test_active_session_mode_receipt_preserves_lifecycle_and_pointer(service) ->
         service.store.plan_runtime_status("book-faires")["planning_mode_event_count"]
         == 1
     )
+
+
+def test_selected_code_mode_binds_task_candidate_formula_and_lane_hil(
+    service, source_repository
+) -> None:
+    from .conftest import build_and_approve_pv1
+
+    session_id, _ = build_and_approve_pv1(service)
+    task = service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class="modify_code",
+        requested_outcome="Add one bounded code-mode fixture change.",
+        permitted_paths=["src/app.py"],
+        permitted_tools=["repository_write", "test", "git_diff"],
+        acceptance_checks=["cmd: git status --short"],
+        stop_condition="Stop at the fresh candidate HIL.",
+    )
+    assert "task_mode_binding" not in task["session"]["metadata"]
+    selected = service.classify_mode(
+        "book-faires",
+        "Code mode: implement and verify this bounded patch.",
+        explicit_modes=["CD"],
+        session_id=session_id,
+    )
+    assert "Operators: PCM + MBA" in selected["mode_governance"][
+        "visible_formula_response"
+    ][0]
+    bound_session = service.sessions.load("book-faires", session_id).as_dict()
+    assert bound_session["metadata"]["task_mode_binding"][
+        "selected_mode_ids"
+    ] == ["CD"]
+
+    app = source_repository / "src" / "app.py"
+    app.write_text(app.read_text(encoding="utf-8") + "\nCODE_MODE_FIXTURE = True\n", encoding="utf-8")
+    service.sessions.confirm_source_update(
+        "book-faires",
+        session_id,
+        confirmation="HOST_SANDBOX_FINAL_STATE_CONFIRMED",
+    )
+    refreshed = service.refresh("book-faires", session_id)
+    candidate = refreshed["candidate"]
+    mode_execution = candidate["mode_execution"]
+    assert mode_execution["selected_mode_ids"] == ["CD"]
+    assert mode_execution["ci_cd"]["required_by_selected_mode"] is True
+    assert mode_execution["ci_cd"]["approve_gate"] == "PASS"
+    assert "Operators: PCM + MBA" in mode_execution["visible_formula_response"][0]
+    assert refreshed["next_action_contract"]["choices"] == [
+        "APPROVE",
+        "APPROVE_WITH_DELTA",
+        "MORE_RESEARCH",
+        "ROLLBACK",
+        "REJECT",
+        "FAIL",
+    ]
+    assert refreshed["next_action_contract"]["lane_hil_contracts"][0][
+        "accepted_object"
+    ] == "tested package hash and executable CI/CD receipts"
+    assert service.store.pointer("book-faires").accepted_pv == "PV1"
+
+    candidate_path = service.store.candidate_path(
+        "book-faires", candidate["candidate_id"]
+    )
+    entry = json.loads((candidate_path / "entry_slip.json").read_text(encoding="utf-8"))
+    exit_slip = json.loads(
+        (candidate_path / "exit_slip.json").read_text(encoding="utf-8")
+    )
+    assert entry["mode_execution"] == exit_slip["mode_execution"]
+    assert entry["mode_execution"]["execution_receipt_sha256"] == (
+        mode_execution["execution_receipt_sha256"]
+    )

@@ -14,8 +14,12 @@ that visible custom schema. Never store hidden reasoning.
 Render every returned `mode_governance.visible_formula_response` line in the
 visible response. Treat it as the selected lane's executable ENV/UOP contract:
 show its formula, recursive loop, CI/CD requirement, PCM/MBA operator families,
-and receipt hash. Code mode always uses the controlled CI/CD contract returned
-by ENV; never infer autonomous build, Fuse, deployment, or HIL approval from
-mode selection. At a HIL stop, preserve the universal six exact decision tokens
-but render the selected lane's returned accepted object, gate, rollback target,
-and lane effect. Do not reuse Code-mode HIL meanings for a non-Code lane.
+and receipt hash. Persist the validated selection as the active mode binding;
+when a task is classified, seal an immutable task-mode snapshot into both Entry
+and Exit Slips and the candidate's next-action contract. Code mode always shows
+`PCM + MBA`, uses the controlled CI/CD receipt returned by ENV, and reports an
+open/failed approve gate when its executable evidence is incomplete. Never
+infer autonomous build, Fuse, deployment, or HIL approval from mode selection.
+At a HIL stop, preserve the universal six exact decision tokens but render each
+selected lane's returned accepted object, gate, rollback target, and lane
+effect. Do not reuse Code-mode HIL meanings for a non-Code lane.

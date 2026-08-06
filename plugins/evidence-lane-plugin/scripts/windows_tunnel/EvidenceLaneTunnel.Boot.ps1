@@ -30,7 +30,6 @@ function Write-OperatorEvent {
     }
     Add-Content -LiteralPath $operatorLog -Value ($row | ConvertTo-Json -Compress) -Encoding UTF8
 }
-
 function Get-PinnedTunnelProcess {
     if (-not (Test-Path -LiteralPath $pidFile -PathType Leaf)) {
         return $null
@@ -138,4 +137,3 @@ finally {
         $secureKey.Dispose()
     }
 }
-

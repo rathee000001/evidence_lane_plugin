@@ -98,4 +98,3 @@ Start-ScheduledTask -TaskName $TaskName
 $after = Wait-TunnelReady
 $after | ConvertTo-Json -Depth 4
 exit $(if ($after.control_plane_poll_ready) { 0 } else { 1 })
-

@@ -8,13 +8,20 @@ description: Inspect or select Evidence Lane primary storage routing with an app
 This is an administrative sidecar, not a seventh primary `/evi` control.
 
 1. Call `storage_connector_inspect` before any selection.
-2. `AUTO` selects durable local SQLite on Codex desktop/CLI and requires a
-   configured transactional connector on an ephemeral server.
-3. `LOCAL_SQLITE` fails closed unless the MCP server has durable local storage.
-4. `CONFIGURED_DURABLE_CONNECTOR` requires a connector ID and a runtime-capable
+2. Route by the MCP server's actual durable-filesystem capability, then by host
+   profile. Stable Codex desktop/CLI/VM and any explicitly durable mount use
+   local SQLite. ChatGPT uses that same durable mounted/local MCP authority and
+   never Google Drive runtime state.
+3. A truly ephemeral Codex VM without a durable mount requires a transactional
+   runtime connector. Google Drive may carry only sealed Entry/Exit artifacts
+   for this Codex profile; it is never the live sessions, backlog, lineage,
+   candidate, receipt, or pointer-CAS authority.
+4. `LOCAL_SQLITE` fails closed unless the MCP server has durable local storage.
+5. `CONFIGURED_DURABLE_CONNECTOR` requires a connector ID and a runtime-capable
    configured service; environment variable names may be governed, but secret
    values are never persisted.
-5. Require exactly `SELECT_STORAGE:<MODE>` or, for a durable connector,
+6. Require exactly `SELECT_STORAGE:<MODE>` or, for a durable connector,
    `SELECT_STORAGE:CONFIGURED_DURABLE_CONNECTOR:<connector-id>`.
-6. Re-inspect after selection. Never describe Google Drive as primary runtime
-   storage; it is an optional sealed-artifact mirror.
+7. Re-inspect after selection and render the complete host route. MCP reads use
+   the selected primary runtime; MCP writes remain under ENV/UOP and one-writer
+   law. Never describe Google Drive as primary runtime storage.

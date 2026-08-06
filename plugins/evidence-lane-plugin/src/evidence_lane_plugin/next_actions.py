@@ -70,10 +70,11 @@ def hil_next_action(
     session_id: str,
     candidate_id: str,
     proposed_pv: str,
+    mode_execution: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return a neutral HIL suggestion without choosing for the human."""
 
-    return {
+    result = {
         "schema": "evidence-lane.next-action.v1",
         "state": "PRESENT_SIX_WAY_HIL",
         "display_position": "BEFORE_HIL_DECISION",
@@ -89,6 +90,20 @@ def hil_next_action(
         "auto_submit": False,
         "stop_and_wait": True,
     }
+    if mode_execution is not None:
+        result["mode_execution"] = mode_execution
+        result["visible_formula_response"] = list(
+            mode_execution.get("visible_formula_response") or []
+        )
+        result["lane_hil_contracts"] = list(
+            mode_execution.get("lane_hil_contracts") or []
+        )
+        result["hil_semantics"] = (
+            "UNIVERSAL_EXACT_TOKENS_WITH_SELECTED_LANE_SPECIFIC_EFFECTS"
+        )
+    else:
+        result["hil_semantics"] = "UNIVERSAL_EXACT_TOKENS_NO_MODE_SELECTED"
+    return result
 
 
 def refresh_output_handoff(

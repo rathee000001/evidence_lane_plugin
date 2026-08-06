@@ -118,7 +118,9 @@ class StorageSelection:
             "history_count": history_count,
             "integrity": integrity,
             "foreign_key_errors": 0,
-            "google_drive_role": "OPTIONAL_FALLBACK_MIRROR_NEVER_PRIMARY",
+            "google_drive_role": (
+                "SEALED_ARTIFACT_CARRIER_ONLY_WHEN_HOST_POLICY_ALLOWS_NEVER_PRIMARY"
+            ),
             "secret_values_persisted": False,  # nosec B105
         }
 
@@ -151,6 +153,17 @@ class StorageSelection:
             (exact_mode == "CONFIGURED_DURABLE_CONNECTOR") == bool(exact_connector),
             "STORAGE_SELECTION_CONNECTOR_ID_INVALID",
             "Only CONFIGURED_DURABLE_CONNECTOR requires one connector_id.",
+            status="BLOCKED",
+        )
+        normalized_connector = (
+            exact_connector.lower().replace("-", "_").replace(" ", "_")
+            if exact_connector
+            else ""
+        )
+        require(
+            normalized_connector not in {"drive", "gdrive", "google_drive"},
+            "GOOGLE_DRIVE_PRIMARY_RUNTIME_FORBIDDEN",
+            "Google Drive may carry sealed artifacts only when host policy allows; it cannot be selected as the transactional runtime authority.",
             status="BLOCKED",
         )
         token = f"SELECT_STORAGE:{exact_mode}"

@@ -147,4 +147,3 @@ if (-not $NoStart) {
     runtime_key_plaintext_written = $false
     started = -not $NoStart
 } | ConvertTo-Json -Depth 4
-

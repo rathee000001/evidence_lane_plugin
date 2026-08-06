@@ -50,4 +50,3 @@ The status contract is `PASS` only when the scheduled task exists, the pinned
 binary hash matches, its PID is live, and `tunnel-client health` observes a
 successful control-plane poll. The scripts never print or write the plaintext
 Runtime API key.
-

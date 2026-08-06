@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any, Protocol
 
 import httpx
@@ -39,6 +39,17 @@ class PersistenceRoute:
     durable_required: bool
     server_filesystem: str
     host_connector_role: str
+    host_profile: str
+    primary_runtime_authority: str
+    google_drive_policy: str
+    mcp_read_policy: str = "MCP_READ_TOOLS_AGAINST_PRIMARY_RUNTIME"
+    mcp_write_policy: str = "MCP_MUTATION_TOOLS_UNDER_ENV_UOP_ONE_WRITER"
+    env_continuity_policy: str = (
+        "HASHED_ENV_UOP_REFERENCE_IN_ENTRY_EXIT_SLIPS_REFLASH_ON_BOOT_RESUME"
+    )
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 def route_persistence(
@@ -55,30 +66,109 @@ def route_persistence(
         in {
             HostKind.CODEX_DESKTOP,
             HostKind.CODEX_CLI,
+            HostKind.CODEX_VM,
         }
         if server_has_durable_filesystem is None
         else bool(server_has_durable_filesystem)
     )
-    if ephemeral or not durable_filesystem:
+    if durable_filesystem:
+        if kind == HostKind.CHATGPT:
+            return PersistenceRoute(
+                mode="local",
+                reason=(
+                    "ChatGPT reaches the one durable mounted/local MCP server store; "
+                    "the chat surface is never the storage authority"
+                ),
+                durable_required=False,
+                server_filesystem="DURABLE",
+                host_connector_role="MCP_TRANSPORT_TO_DURABLE_LOCAL_AUTHORITY",
+                host_profile="CHATGPT_DURABLE_MCP_HOST",
+                primary_runtime_authority="MCP_SERVER_MOUNTED_OR_LOCAL_SQLITE",
+                google_drive_policy="FORBIDDEN_FOR_CHATGPT_RUNTIME",
+            )
+        if kind == HostKind.CODEX_VM and ephemeral:
+            return PersistenceRoute(
+                mode="local",
+                reason=(
+                    "the ephemeral Codex VM reports an explicitly durable mounted "
+                    "filesystem, so that mount owns the live SQLite authority"
+                ),
+                durable_required=False,
+                server_filesystem="DURABLE",
+                host_connector_role="EPHEMERAL_CODEX_DURABLE_MOUNT",
+                host_profile="CODEX_EPHEMERAL_VM_WITH_DURABLE_MOUNT",
+                primary_runtime_authority="DURABLE_MOUNT_SQLITE",
+                google_drive_policy=(
+                    "CODEX_EPHEMERAL_SEALED_ENTRY_EXIT_CARRIER_ALLOWED_NOT_PRIMARY"
+                ),
+            )
+        return PersistenceRoute(
+            mode="local",
+            reason=(
+                "the MCP server has a durable user-owned filesystem for the "
+                "immutable local store"
+            ),
+            durable_required=False,
+            server_filesystem="DURABLE",
+            host_connector_role="LOCAL_DURABLE_PRIMARY",
+            host_profile=(
+                "CODEX_STABLE_VM_OR_HOST"
+                if kind == HostKind.CODEX_VM
+                else "CODEX_LOCAL_PC_OR_LAPTOP"
+                if kind in {HostKind.CODEX_DESKTOP, HostKind.CODEX_CLI}
+                else "DURABLE_MCP_SERVER"
+            ),
+            primary_runtime_authority="LOCAL_DURABLE_SQLITE",
+            google_drive_policy="NOT_SELECTED_FOR_DURABLE_HOST",
+        )
+
+    if kind == HostKind.CHATGPT:
         return PersistenceRoute(
             mode="configured_durable_connector",
             reason=(
-                "the MCP server has no durable filesystem, so the complete runtime "
-                "state requires a configured transactional durable connector"
+                "ChatGPT's MCP server has no durable mounted/local filesystem, so a "
+                "non-Google-Drive transactional runtime connector is required"
             ),
             durable_required=True,
             server_filesystem="EPHEMERAL_OR_UNAVAILABLE",
-            host_connector_role="OPTIONAL_FALLBACK_MIRROR_NEVER_PRIMARY",
+            host_connector_role="TRANSACTIONAL_MCP_RUNTIME_REQUIRED",
+            host_profile="CHATGPT_MCP_HOST_WITHOUT_DURABLE_MOUNT",
+            primary_runtime_authority="CONFIGURED_TRANSACTIONAL_RUNTIME_REQUIRED",
+            google_drive_policy="FORBIDDEN_FOR_CHATGPT_RUNTIME",
+        )
+    if kind == HostKind.CODEX_VM and ephemeral:
+        return PersistenceRoute(
+            mode="configured_durable_connector",
+            reason=(
+                "the Codex VM is ephemeral and exposes no durable mount; live state "
+                "requires a transactional runtime while Google Drive may carry only "
+                "sealed Entry/Exit artifacts"
+            ),
+            durable_required=True,
+            server_filesystem="EPHEMERAL_OR_UNAVAILABLE",
+            host_connector_role="EPHEMERAL_CODEX_TRANSACTIONAL_RUNTIME_REQUIRED",
+            host_profile="CODEX_EPHEMERAL_VM_WITHOUT_DURABLE_MOUNT",
+            primary_runtime_authority="CONFIGURED_TRANSACTIONAL_RUNTIME_REQUIRED",
+            google_drive_policy=(
+                "CODEX_EPHEMERAL_SEALED_ENTRY_EXIT_CARRIER_ALLOWED_NOT_PRIMARY"
+            ),
         )
     return PersistenceRoute(
-        mode="local",
+        mode="configured_durable_connector",
         reason=(
-            "the MCP server has a durable user-owned filesystem for the immutable "
-            "local store"
+            "the MCP server has no durable filesystem, so the complete runtime "
+            "state requires a configured transactional durable connector"
         ),
-        durable_required=False,
-        server_filesystem="DURABLE",
-        host_connector_role="OPTIONAL_VERIFIED_MIRROR",
+        durable_required=True,
+        server_filesystem="EPHEMERAL_OR_UNAVAILABLE",
+        host_connector_role="TRANSACTIONAL_RUNTIME_REQUIRED",
+        host_profile=(
+            "CODEX_HOST_WITHOUT_DURABLE_FILESYSTEM"
+            if kind in {HostKind.CODEX_DESKTOP, HostKind.CODEX_CLI, HostKind.CODEX_VM}
+            else "PUBLIC_AI_WITHOUT_DURABLE_MCP_HOST"
+        ),
+        primary_runtime_authority="CONFIGURED_TRANSACTIONAL_RUNTIME_REQUIRED",
+        google_drive_policy="OPTIONAL_SEALED_MIRROR_NEVER_PRIMARY",
     )
 
 

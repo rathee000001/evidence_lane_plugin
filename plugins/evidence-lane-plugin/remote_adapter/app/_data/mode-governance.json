@@ -1,5 +1,5 @@
 {
-  "export_sha256": "F6A6D40129BEDCAF7AA19F49F2A10A55B701888EC0E5A61769FDF7F4DF5C657F",
+  "export_sha256": "FBBB914820BB2FE5A8F07BBE5BCE8C575C1D0033E9E314E06C253714011BF3CF",
   "mode_count": 16,
   "modes": [
     {
@@ -33,7 +33,7 @@
             "rule": "prompt -> package state -> UOP guidance -> answer -> receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=discussion | ENV formula: prompt -> package state -> UOP guidance -> answer -> receipt | Loop: entry -> discuss -> delta/log -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=A438268AE5DF7A25372D3F2E3A4FF4DDD43E6B1CFCF8A1FE5DF0ED204F2E2A52",
+          "formula_display": "Mode=discussion | ENV formula: prompt -> package state -> UOP guidance -> answer -> receipt | Loop: entry -> discuss -> delta/log -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=C10EE046E718D2ADC69AB8FD05170BE0743F0AC32EC20DF7D758A21FB1B9FBCE",
           "hil": {
             "accepted_object": "visible discussion record and accepted delta/log",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -79,7 +79,7 @@
             "MATHS"
           ],
           "operator_law": "Relations/Functions + Mathematical Reasoning",
-          "operator_receipt_sha256": "A438268AE5DF7A25372D3F2E3A4FF4DDD43E6B1CFCF8A1FE5DF0ED204F2E2A52",
+          "operator_receipt_sha256": "C10EE046E718D2ADC69AB8FD05170BE0743F0AC32EC20DF7D758A21FB1B9FBCE",
           "operators": [
             {
               "chapter": "Relations and Functions",
@@ -121,7 +121,7 @@
             "rule": "prompt -> package state -> UOP guidance -> answer -> receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=discussion | ENV formula: prompt -> package state -> UOP guidance -> answer -> receipt | Loop: entry -> discuss -> delta/log -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=09076299C1F67DB78CF7DA13DC3949F390C77388DF20E5C36002001EC465F71E",
+          "formula_display": "Mode=discussion | ENV formula: prompt -> package state -> UOP guidance -> answer -> receipt | Loop: entry -> discuss -> delta/log -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=E47AE40FCF50D247926AABAD02DCA915FD1E73B9F12C00B8F767DE541ACAB7F8",
           "hil": {
             "accepted_object": "visible discussion record and accepted delta/log",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -167,7 +167,7 @@
             "MATHS"
           ],
           "operator_law": "Relations/Functions + Mathematical Reasoning",
-          "operator_receipt_sha256": "09076299C1F67DB78CF7DA13DC3949F390C77388DF20E5C36002001EC465F71E",
+          "operator_receipt_sha256": "E47AE40FCF50D247926AABAD02DCA915FD1E73B9F12C00B8F767DE541ACAB7F8",
           "operators": [
             {
               "chapter": "Relations and Functions",
@@ -227,7 +227,7 @@
             "rule": "prompt -> sources -> relational map -> findings -> receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=analysis | ENV formula: prompt -> sources -> relational map -> findings -> receipt | Loop: entry -> inspect -> classify -> findings -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=DD9B33D3420DB46EDF83D9F30EE34098ADD36FC46E7CE08DBBAF7B3D3492D05F",
+          "formula_display": "Mode=analysis | ENV formula: prompt -> sources -> relational map -> findings -> receipt | Loop: entry -> inspect -> classify -> findings -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=9DBAA2430654389CF6717DAB45CED5516FD17D6EFE217ED69259CB4FE293B23A",
           "hil": {
             "accepted_object": "source-backed findings and gate evaluation",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -273,7 +273,7 @@
             "MATHS"
           ],
           "operator_law": "Sets + Statistics + Probability",
-          "operator_receipt_sha256": "DD9B33D3420DB46EDF83D9F30EE34098ADD36FC46E7CE08DBBAF7B3D3492D05F",
+          "operator_receipt_sha256": "9DBAA2430654389CF6717DAB45CED5516FD17D6EFE217ED69259CB4FE293B23A",
           "operators": [
             {
               "chapter": "Sets",
@@ -322,7 +322,7 @@
             "rule": "prompt -> sources -> relational map -> findings -> receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=analysis | ENV formula: prompt -> sources -> relational map -> findings -> receipt | Loop: entry -> inspect -> classify -> findings -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=54D1209FAF127AA923EC01C9F06486EC728FFC38A926E213796A9E7E19214215",
+          "formula_display": "Mode=analysis | ENV formula: prompt -> sources -> relational map -> findings -> receipt | Loop: entry -> inspect -> classify -> findings -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=4F84724DB140FC6992F0EB25FAACE9DDBF97A60C5CE95F5186F8A7882FE4BDB0",
           "hil": {
             "accepted_object": "source-backed findings and gate evaluation",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -368,7 +368,7 @@
             "MATHS"
           ],
           "operator_law": "Sets + Statistics + Probability",
-          "operator_receipt_sha256": "54D1209FAF127AA923EC01C9F06486EC728FFC38A926E213796A9E7E19214215",
+          "operator_receipt_sha256": "4F84724DB140FC6992F0EB25FAACE9DDBF97A60C5CE95F5186F8A7882FE4BDB0",
           "operators": [
             {
               "chapter": "Sets",
@@ -435,7 +435,7 @@
             "rule": "entry -> plan -> simulate -> hold/open -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=planning | ENV formula: entry -> plan -> simulate -> hold/open -> exit | Loop: entry -> plan -> simulate -> hold/open -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS, SUPPLY | Receipt=C835BD35DD40F9A460F32DA624FE97D08A520329C69F84C828516366C5A77120",
+          "formula_display": "Mode=planning | ENV formula: entry -> plan -> simulate -> hold/open -> exit | Loop: entry -> plan -> simulate -> hold/open -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + SUPPLY | Receipt=BEF7FC3CD3CF8C0B933C6EA614E3FE02E2E15320CEB579A5109E644814D3458E",
           "hil": {
             "accepted_object": "plan and simulation state without code mutation",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -482,7 +482,7 @@
             "SUPPLY"
           ],
           "operator_law": "Linear Programming + Operations Strategy",
-          "operator_receipt_sha256": "C835BD35DD40F9A460F32DA624FE97D08A520329C69F84C828516366C5A77120",
+          "operator_receipt_sha256": "BEF7FC3CD3CF8C0B933C6EA614E3FE02E2E15320CEB579A5109E644814D3458E",
           "operators": [
             {
               "chapter": "Linear Programming",
@@ -525,7 +525,7 @@
             "rule": "entry -> plan -> simulate -> hold/open -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=planning | ENV formula: entry -> plan -> simulate -> hold/open -> exit | Loop: entry -> plan -> simulate -> hold/open -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS, SUPPLY | Receipt=8A4D891F78BE952C9CA513AF0EBA15CA3BDFE8358C5B0CF4EDA7F8E9AFD05405",
+          "formula_display": "Mode=planning | ENV formula: entry -> plan -> simulate -> hold/open -> exit | Loop: entry -> plan -> simulate -> hold/open -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + SUPPLY | Receipt=2B981550AC889B6C370D0CC36A6E43C169966683E831E379A5E14E6D696BF779",
           "hil": {
             "accepted_object": "plan and simulation state without code mutation",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -572,7 +572,7 @@
             "SUPPLY"
           ],
           "operator_law": "Linear Programming + Operations Strategy",
-          "operator_receipt_sha256": "8A4D891F78BE952C9CA513AF0EBA15CA3BDFE8358C5B0CF4EDA7F8E9AFD05405",
+          "operator_receipt_sha256": "2B981550AC889B6C370D0CC36A6E43C169966683E831E379A5E14E6D696BF779",
           "operators": [
             {
               "chapter": "Linear Programming",
@@ -633,7 +633,7 @@
             "rule": "plan -> sandbox build -> test -> hash -> package",
             "visible_in_response": true
           },
-          "formula_display": "Mode=code | ENV formula: plan -> sandbox build -> test -> hash -> package | Loop: entry -> preflight -> sandbox -> patch -> test -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: PHYSICS, CHEMISTRY, MATHS, MBA, SUPPLY | Receipt=D4CDBA489DA491891A7A04AD0CD093B04EF4DB3FE0C9D74D69B854FCB5421373",
+          "formula_display": "Mode=code | ENV formula: plan -> sandbox build -> test -> hash -> package | Loop: entry -> preflight -> sandbox -> patch -> test -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: PCM + MBA + SUPPLY | Receipt=337AA61D8472C88F2C351FFD7821FB167D96CC9032D63BA21370B0B1CD5F46D4",
           "hil": {
             "accepted_object": "tested package hash and executable CI/CD receipts",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -683,7 +683,7 @@
             "SUPPLY"
           ],
           "operator_law": "Redox + Organic reaction pathways + Environmental chemistry",
-          "operator_receipt_sha256": "D4CDBA489DA491891A7A04AD0CD093B04EF4DB3FE0C9D74D69B854FCB5421373",
+          "operator_receipt_sha256": "337AA61D8472C88F2C351FFD7821FB167D96CC9032D63BA21370B0B1CD5F46D4",
           "operators": [
             {
               "chapter": "Laws of Motion",
@@ -800,7 +800,7 @@
             "rule": "plan -> sandbox build -> test -> hash -> package",
             "visible_in_response": true
           },
-          "formula_display": "Mode=code | ENV formula: plan -> sandbox build -> test -> hash -> package | Loop: entry -> preflight -> sandbox -> patch -> test -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: PHYSICS, CHEMISTRY, MATHS, MBA, SUPPLY | Receipt=76619C508A26618BA957228AEE675D770CE2469488CE69810A57E28369C163C9",
+          "formula_display": "Mode=code | ENV formula: plan -> sandbox build -> test -> hash -> package | Loop: entry -> preflight -> sandbox -> patch -> test -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: PCM + MBA + SUPPLY | Receipt=DF4DBD49A94CC982C442541C6383A1A5D304A3AD23A66CE9F983189F322DA4C4",
           "hil": {
             "accepted_object": "tested package hash and executable CI/CD receipts",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -850,7 +850,7 @@
             "SUPPLY"
           ],
           "operator_law": "Redox + Organic reaction pathways + Environmental chemistry",
-          "operator_receipt_sha256": "76619C508A26618BA957228AEE675D770CE2469488CE69810A57E28369C163C9",
+          "operator_receipt_sha256": "DF4DBD49A94CC982C442541C6383A1A5D304A3AD23A66CE9F983189F322DA4C4",
           "operators": [
             {
               "chapter": "Laws of Motion",
@@ -985,7 +985,7 @@
             "rule": "gates pass -> artifact response -> lineage receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=output | ENV formula: gates pass -> artifact response -> lineage receipt | Loop: gates pass -> artifact response -> lineage receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS, MBA | Receipt=D64ACB777D30AA45321588208AE19025EFBA7ABC6C75D9027D9AA38878E18E86",
+          "formula_display": "Mode=output | ENV formula: gates pass -> artifact response -> lineage receipt | Loop: gates pass -> artifact response -> lineage receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MBA | Receipt=6C09243FA409CD436B74D682C50734D60B33AD17B9CE1C824FB50F67A2CF1D5B",
           "hil": {
             "accepted_object": "source-bound artifact and render lineage",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1032,7 +1032,7 @@
             "MBA"
           ],
           "operator_law": "Optics + Accounting",
-          "operator_receipt_sha256": "D64ACB777D30AA45321588208AE19025EFBA7ABC6C75D9027D9AA38878E18E86",
+          "operator_receipt_sha256": "6C09243FA409CD436B74D682C50734D60B33AD17B9CE1C824FB50F67A2CF1D5B",
           "operators": [
             {
               "chapter": "Optics",
@@ -1072,7 +1072,7 @@
             "rule": "gates pass -> artifact response -> lineage receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=output | ENV formula: gates pass -> artifact response -> lineage receipt | Loop: gates pass -> artifact response -> lineage receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS, MBA | Receipt=585284FEBB6720CA86D65C09DA9B1F8A2F7A4D973A493951799BC60486273228",
+          "formula_display": "Mode=output | ENV formula: gates pass -> artifact response -> lineage receipt | Loop: gates pass -> artifact response -> lineage receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MBA | Receipt=03BAB7BBD371B491F7C68A6785118B55BCBCB3006A97D045097227BD014828FD",
           "hil": {
             "accepted_object": "source-bound artifact and render lineage",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1119,7 +1119,7 @@
             "MBA"
           ],
           "operator_law": "Optics + Accounting",
-          "operator_receipt_sha256": "585284FEBB6720CA86D65C09DA9B1F8A2F7A4D973A493951799BC60486273228",
+          "operator_receipt_sha256": "03BAB7BBD371B491F7C68A6785118B55BCBCB3006A97D045097227BD014828FD",
           "operators": [
             {
               "chapter": "Optics",
@@ -1178,7 +1178,7 @@
             "rule": "inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=validation | ENV formula: inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt | Loop: inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS, MBA | Receipt=B2AEFF926DE9F27C2F0BC99DAC8277123ED7C5058585ACBF989EC74A5DF3A373",
+          "formula_display": "Mode=validation | ENV formula: inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt | Loop: inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=C75A95BD7D3DE5EF8E425692DD59E241846D9720A405D98A5DBF5F9D9577EEE1",
           "hil": {
             "accepted_object": "executable validation receipt set",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1225,7 +1225,7 @@
             "MBA"
           ],
           "operator_law": "Mathematical Reasoning + Statistics + Accounting",
-          "operator_receipt_sha256": "B2AEFF926DE9F27C2F0BC99DAC8277123ED7C5058585ACBF989EC74A5DF3A373",
+          "operator_receipt_sha256": "C75A95BD7D3DE5EF8E425692DD59E241846D9720A405D98A5DBF5F9D9577EEE1",
           "operators": [
             {
               "chapter": "Mathematical Reasoning",
@@ -1271,7 +1271,7 @@
             "rule": "inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=validation | ENV formula: inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt | Loop: inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS, MBA | Receipt=867E70F0B673D90714E59F779718A60787F939FDB0EAAEE98FD67854B70E55D2",
+          "formula_display": "Mode=validation | ENV formula: inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt | Loop: inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=369A238CBC1780FC5AB9E0C818197B51C95D68C9FE066B8B110AFDC90AE86460",
           "hil": {
             "accepted_object": "executable validation receipt set",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1318,7 +1318,7 @@
             "MBA"
           ],
           "operator_law": "Mathematical Reasoning + Statistics + Accounting",
-          "operator_receipt_sha256": "867E70F0B673D90714E59F779718A60787F939FDB0EAAEE98FD67854B70E55D2",
+          "operator_receipt_sha256": "369A238CBC1780FC5AB9E0C818197B51C95D68C9FE066B8B110AFDC90AE86460",
           "operators": [
             {
               "chapter": "Mathematical Reasoning",
@@ -1382,7 +1382,7 @@
             "rule": "entry -> source rank -> external context -> conclusion -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=research | ENV formula: entry -> source rank -> external context -> conclusion -> exit | Loop: entry -> source rank -> external context -> conclusion -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS, MBA | Receipt=AA20615E7A3167684E62A6F7797756455C1CBBFD7F8390B9467D459748EA0F2A",
+          "formula_display": "Mode=research | ENV formula: entry -> source rank -> external context -> conclusion -> exit | Loop: entry -> source rank -> external context -> conclusion -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=C5C6EC5490F97CE3BFBB5A7A244E407178C47F3DCDFB53AFD1E602D79CEA4DC2",
           "hil": {
             "accepted_object": "source-ranked conclusion and citation summary",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1429,7 +1429,7 @@
             "MBA"
           ],
           "operator_law": "Statistics + Source precedence",
-          "operator_receipt_sha256": "AA20615E7A3167684E62A6F7797756455C1CBBFD7F8390B9467D459748EA0F2A",
+          "operator_receipt_sha256": "C5C6EC5490F97CE3BFBB5A7A244E407178C47F3DCDFB53AFD1E602D79CEA4DC2",
           "operators": [
             {
               "chapter": "Statistics",
@@ -1472,7 +1472,7 @@
             "rule": "entry -> source rank -> external context -> conclusion -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=research | ENV formula: entry -> source rank -> external context -> conclusion -> exit | Loop: entry -> source rank -> external context -> conclusion -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS, MBA | Receipt=1E79A805B9CE08CE806C2F55D149B8DEC43EE15D0508463718AA9ED15724E8BD",
+          "formula_display": "Mode=research | ENV formula: entry -> source rank -> external context -> conclusion -> exit | Loop: entry -> source rank -> external context -> conclusion -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=DF69BCDAA7DD112ADE99A571046940F98FBAAE2A5F55F3A6F8DBDA22CEACCF1B",
           "hil": {
             "accepted_object": "source-ranked conclusion and citation summary",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1519,7 +1519,7 @@
             "MBA"
           ],
           "operator_law": "Statistics + Source precedence",
-          "operator_receipt_sha256": "1E79A805B9CE08CE806C2F55D149B8DEC43EE15D0508463718AA9ED15724E8BD",
+          "operator_receipt_sha256": "DF69BCDAA7DD112ADE99A571046940F98FBAAE2A5F55F3A6F8DBDA22CEACCF1B",
           "operators": [
             {
               "chapter": "Statistics",
@@ -1581,7 +1581,7 @@
             "rule": "entry -> parse -> match -> classify direct/adjacent/ramp -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=job/JD | ENV formula: entry -> parse -> match -> classify direct/adjacent/ramp -> exit | Loop: entry -> parse -> match -> classify direct/adjacent/ramp -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS, MBA | Receipt=859A1A4D016D450193DA206FA877BF111D1B5E57DA3206BA21BD664DC9112F0E",
+          "formula_display": "Mode=job/JD | ENV formula: entry -> parse -> match -> classify direct/adjacent/ramp -> exit | Loop: entry -> parse -> match -> classify direct/adjacent/ramp -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=052D2732865520518085DC360819CB529AE17005A742DAD919AA71B723925558",
           "hil": {
             "accepted_object": "requirement classifications and evidence proof cards",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1628,7 +1628,7 @@
             "MBA"
           ],
           "operator_law": "Sets + Probability + Decision Support",
-          "operator_receipt_sha256": "859A1A4D016D450193DA206FA877BF111D1B5E57DA3206BA21BD664DC9112F0E",
+          "operator_receipt_sha256": "052D2732865520518085DC360819CB529AE17005A742DAD919AA71B723925558",
           "operators": [
             {
               "chapter": "Sets",
@@ -1677,7 +1677,7 @@
             "rule": "entry -> parse -> match -> classify direct/adjacent/ramp -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=job/JD | ENV formula: entry -> parse -> match -> classify direct/adjacent/ramp -> exit | Loop: entry -> parse -> match -> classify direct/adjacent/ramp -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS, MBA | Receipt=0B27C35F8F42FCFC1A332BE76741BE1DD228AB92D0BC5B14F472BD1C3451CBED",
+          "formula_display": "Mode=job/JD | ENV formula: entry -> parse -> match -> classify direct/adjacent/ramp -> exit | Loop: entry -> parse -> match -> classify direct/adjacent/ramp -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=80DE5C90F4689977EE32A1FDC0267CD2280939BFD4DDE599DDECCBD6DD4A9429",
           "hil": {
             "accepted_object": "requirement classifications and evidence proof cards",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1724,7 +1724,7 @@
             "MBA"
           ],
           "operator_law": "Sets + Probability + Decision Support",
-          "operator_receipt_sha256": "0B27C35F8F42FCFC1A332BE76741BE1DD228AB92D0BC5B14F472BD1C3451CBED",
+          "operator_receipt_sha256": "80DE5C90F4689977EE32A1FDC0267CD2280939BFD4DDE599DDECCBD6DD4A9429",
           "operators": [
             {
               "chapter": "Sets",
@@ -1791,7 +1791,7 @@
             "rule": "entry -> sheet plan -> formula build -> validate cells -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=Excel | ENV formula: entry -> sheet plan -> formula build -> validate cells -> exit | Loop: entry -> sheet plan -> formula build -> validate cells -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS, MBA | Receipt=BB4227F017463284EFD792F312D384ADB8C6611358B45B379DBBE8172D40C4F3",
+          "formula_display": "Mode=Excel | ENV formula: entry -> sheet plan -> formula build -> validate cells -> exit | Loop: entry -> sheet plan -> formula build -> validate cells -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=9E258D2A303F566EE2D87661D31574BBEFCAF12672E4E38102B6B7F264D5F384",
           "hil": {
             "accepted_object": "workbook artifact, formula lineage, and cell validation",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1838,7 +1838,7 @@
             "MBA"
           ],
           "operator_law": "Matrices + Relations + Accounting",
-          "operator_receipt_sha256": "BB4227F017463284EFD792F312D384ADB8C6611358B45B379DBBE8172D40C4F3",
+          "operator_receipt_sha256": "9E258D2A303F566EE2D87661D31574BBEFCAF12672E4E38102B6B7F264D5F384",
           "operators": [
             {
               "chapter": "Relations and Functions",
@@ -1888,7 +1888,7 @@
             "rule": "entry -> sheet plan -> formula build -> validate cells -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=Excel | ENV formula: entry -> sheet plan -> formula build -> validate cells -> exit | Loop: entry -> sheet plan -> formula build -> validate cells -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS, MBA | Receipt=BDDEC3FC9FD7BCCEA7FB88F0E502C03854FE1728C2DB8B07496B9728465108DA",
+          "formula_display": "Mode=Excel | ENV formula: entry -> sheet plan -> formula build -> validate cells -> exit | Loop: entry -> sheet plan -> formula build -> validate cells -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=95A77C3365AB3441960DC72C0CF2558C18283A865DB356193C9B374F574CEB3B",
           "hil": {
             "accepted_object": "workbook artifact, formula lineage, and cell validation",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1935,7 +1935,7 @@
             "MBA"
           ],
           "operator_law": "Matrices + Relations + Accounting",
-          "operator_receipt_sha256": "BDDEC3FC9FD7BCCEA7FB88F0E502C03854FE1728C2DB8B07496B9728465108DA",
+          "operator_receipt_sha256": "95A77C3365AB3441960DC72C0CF2558C18283A865DB356193C9B374F574CEB3B",
           "operators": [
             {
               "chapter": "Relations and Functions",
@@ -2003,7 +2003,7 @@
             "rule": "entry -> slide outline -> visual/source validation -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=presentation | ENV formula: entry -> slide outline -> visual/source validation -> exit | Loop: entry -> slide outline -> visual/source validation -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS, MBA | Receipt=824D5937B25AD7459F7E04B443BD7F9C6C501E8008B66271E7B1B486C32993F7",
+          "formula_display": "Mode=presentation | ENV formula: entry -> slide outline -> visual/source validation -> exit | Loop: entry -> slide outline -> visual/source validation -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MBA | Receipt=F8CC640C063B39AAC58909903861DCB85F8B707D67BC5A0EC044897BE0B8916A",
           "hil": {
             "accepted_object": "deck, slide/source proof, and public-safe validation",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2050,7 +2050,7 @@
             "MBA"
           ],
           "operator_law": "Optics + Marketing/Branding + OB",
-          "operator_receipt_sha256": "824D5937B25AD7459F7E04B443BD7F9C6C501E8008B66271E7B1B486C32993F7",
+          "operator_receipt_sha256": "F8CC640C063B39AAC58909903861DCB85F8B707D67BC5A0EC044897BE0B8916A",
           "operators": [
             {
               "chapter": "Optics",
@@ -2100,7 +2100,7 @@
             "rule": "entry -> slide outline -> visual/source validation -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=presentation | ENV formula: entry -> slide outline -> visual/source validation -> exit | Loop: entry -> slide outline -> visual/source validation -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS, MBA | Receipt=8B8ECD11C952C039F7A8C1578B196C3B17347CADA6E09D91DFC0CFD22E57F0FC",
+          "formula_display": "Mode=presentation | ENV formula: entry -> slide outline -> visual/source validation -> exit | Loop: entry -> slide outline -> visual/source validation -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MBA | Receipt=31250C1E0E7CD9E0DAD64F08077AB9FC2C8A85D8D46D81DE4AD2C1497924A2A5",
           "hil": {
             "accepted_object": "deck, slide/source proof, and public-safe validation",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2147,7 +2147,7 @@
             "MBA"
           ],
           "operator_law": "Optics + Marketing/Branding + OB",
-          "operator_receipt_sha256": "8B8ECD11C952C039F7A8C1578B196C3B17347CADA6E09D91DFC0CFD22E57F0FC",
+          "operator_receipt_sha256": "31250C1E0E7CD9E0DAD64F08077AB9FC2C8A85D8D46D81DE4AD2C1497924A2A5",
           "operators": [
             {
               "chapter": "Optics",
@@ -2215,7 +2215,7 @@
             "rule": "entry -> section build -> render QA -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=document | ENV formula: entry -> section build -> render QA -> exit | Loop: entry -> section build -> render QA -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS, CHEMISTRY | Receipt=AD81E95B1DE7BFF0F867D67F7290E39200BC43E684106A254071ADDA5D66C4C9",
+          "formula_display": "Mode=document | ENV formula: entry -> section build -> render QA -> exit | Loop: entry -> section build -> render QA -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + CHEMISTRY | Receipt=DC0329043C14EB14493E238DAC1ABA6D17B5504418E0901B565204C496355304",
           "hil": {
             "accepted_object": "document artifact, source map, and render receipt",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2262,7 +2262,7 @@
             "CHEMISTRY"
           ],
           "operator_law": "Surface chemistry + Communication systems",
-          "operator_receipt_sha256": "AD81E95B1DE7BFF0F867D67F7290E39200BC43E684106A254071ADDA5D66C4C9",
+          "operator_receipt_sha256": "DC0329043C14EB14493E238DAC1ABA6D17B5504418E0901B565204C496355304",
           "operators": [
             {
               "chapter": "Communication Systems",
@@ -2306,7 +2306,7 @@
             "rule": "entry -> section build -> render QA -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=document | ENV formula: entry -> section build -> render QA -> exit | Loop: entry -> section build -> render QA -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS, CHEMISTRY | Receipt=558F43171151E05668255B85698ABE66C9FA4858D787150CE6A301633E0C3AB2",
+          "formula_display": "Mode=document | ENV formula: entry -> section build -> render QA -> exit | Loop: entry -> section build -> render QA -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + CHEMISTRY | Receipt=8F78DCDCB844935646FE045FD4790BC18E73B3D6575486102A0385D5679B5103",
           "hil": {
             "accepted_object": "document artifact, source map, and render receipt",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2353,7 +2353,7 @@
             "CHEMISTRY"
           ],
           "operator_law": "Surface chemistry + Communication systems",
-          "operator_receipt_sha256": "558F43171151E05668255B85698ABE66C9FA4858D787150CE6A301633E0C3AB2",
+          "operator_receipt_sha256": "8F78DCDCB844935646FE045FD4790BC18E73B3D6575486102A0385D5679B5103",
           "operators": [
             {
               "chapter": "Communication Systems",
@@ -2416,7 +2416,7 @@
             "rule": "register source -> inventory -> index -> graph -> project sqlite -> project MMD",
             "visible_in_response": true
           },
-          "formula_display": "Mode=project brain builder | ENV formula: register source -> inventory -> index -> graph -> project sqlite -> project MMD | Loop: entry -> schema preflight -> sandbox -> migrate -> hash -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: MATHS, MBA | Receipt=F5DF38E79F0C2FB05D48EC6F7A8C460B17216932F24C7F5A37B170808CB75022",
+          "formula_display": "Mode=project brain builder | ENV formula: register source -> inventory -> index -> graph -> project sqlite -> project MMD | Loop: entry -> schema preflight -> sandbox -> migrate -> hash -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: MATHS + MBA | Receipt=73896788319189CD62C89923D5898A3B0F9B97CD926ED6C56BAB49201631A7B4",
           "hil": {
             "accepted_object": "project SQLite, project MMD, hashes, and build receipts",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2463,7 +2463,7 @@
             "MBA"
           ],
           "operator_law": "Matrices + Determinants + Database/ERP",
-          "operator_receipt_sha256": "F5DF38E79F0C2FB05D48EC6F7A8C460B17216932F24C7F5A37B170808CB75022",
+          "operator_receipt_sha256": "73896788319189CD62C89923D5898A3B0F9B97CD926ED6C56BAB49201631A7B4",
           "operators": [
             {
               "chapter": "Relations and Functions",
@@ -2525,7 +2525,7 @@
             "rule": "register source -> inventory -> index -> graph -> project sqlite -> project MMD",
             "visible_in_response": true
           },
-          "formula_display": "Mode=project brain builder | ENV formula: register source -> inventory -> index -> graph -> project sqlite -> project MMD | Loop: entry -> schema preflight -> sandbox -> migrate -> hash -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: MATHS, MBA | Receipt=1B7B6D05F12298581C006317863A38352342F2E2A967150EEBA6C82A2ACEB080",
+          "formula_display": "Mode=project brain builder | ENV formula: register source -> inventory -> index -> graph -> project sqlite -> project MMD | Loop: entry -> schema preflight -> sandbox -> migrate -> hash -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: MATHS + MBA | Receipt=6C702C7B488A3C1718797F38F19CF5D3A3CB1D51C4979D3175998EBC65377B3A",
           "hil": {
             "accepted_object": "project SQLite, project MMD, hashes, and build receipts",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2572,7 +2572,7 @@
             "MBA"
           ],
           "operator_law": "Matrices + Determinants + Database/ERP",
-          "operator_receipt_sha256": "1B7B6D05F12298581C006317863A38352342F2E2A967150EEBA6C82A2ACEB080",
+          "operator_receipt_sha256": "6C702C7B488A3C1718797F38F19CF5D3A3CB1D51C4979D3175998EBC65377B3A",
           "operators": [
             {
               "chapter": "Relations and Functions",
@@ -2652,7 +2652,7 @@
             "rule": "inspect -> explicit grant -> controlled fusion -> receipt/relock",
             "visible_in_response": true
           },
-          "formula_display": "Mode=project engulf | ENV formula: inspect -> explicit grant -> controlled fusion -> receipt/relock | Loop: inspect -> explicit grant -> controlled fusion -> receipt/relock | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: CHEMISTRY, MBA | Receipt=B9FBE5AE04C2D442E69206F25F27D6900FE1F91B2DF10769B40FC6F6309EAFF3",
+          "formula_display": "Mode=project engulf | ENV formula: inspect -> explicit grant -> controlled fusion -> receipt/relock | Loop: inspect -> explicit grant -> controlled fusion -> receipt/relock | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: CHEMISTRY + MBA | Receipt=9ED2D9ED87173A5F0FA42443D0A5719B1FDCC134FA00B043F4A6D79F16404767",
           "hil": {
             "accepted_object": "registered project package and topology-growth receipt",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2699,7 +2699,7 @@
             "MBA"
           ],
           "operator_law": "Redox + Organic pathway + Management Information Systems",
-          "operator_receipt_sha256": "B9FBE5AE04C2D442E69206F25F27D6900FE1F91B2DF10769B40FC6F6309EAFF3",
+          "operator_receipt_sha256": "9ED2D9ED87173A5F0FA42443D0A5719B1FDCC134FA00B043F4A6D79F16404767",
           "operators": [
             {
               "chapter": "Redox Reactions",
@@ -2754,7 +2754,7 @@
             "rule": "inspect -> explicit grant -> controlled fusion -> receipt/relock",
             "visible_in_response": true
           },
-          "formula_display": "Mode=project engulf | ENV formula: inspect -> explicit grant -> controlled fusion -> receipt/relock | Loop: inspect -> explicit grant -> controlled fusion -> receipt/relock | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: CHEMISTRY, MBA | Receipt=9B743D1756BBD6851295F36F21E24548921BA64326BEAACC5B2A56E65E220ADA",
+          "formula_display": "Mode=project engulf | ENV formula: inspect -> explicit grant -> controlled fusion -> receipt/relock | Loop: inspect -> explicit grant -> controlled fusion -> receipt/relock | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: CHEMISTRY + MBA | Receipt=D58F67C71AD936F110F2DF88F45C4FEAB4341DE0F375AB974749B84B4E632ED7",
           "hil": {
             "accepted_object": "registered project package and topology-growth receipt",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2801,7 +2801,7 @@
             "MBA"
           ],
           "operator_law": "Redox + Organic pathway + Management Information Systems",
-          "operator_receipt_sha256": "9B743D1756BBD6851295F36F21E24548921BA64326BEAACC5B2A56E65E220ADA",
+          "operator_receipt_sha256": "D58F67C71AD936F110F2DF88F45C4FEAB4341DE0F375AB974749B84B4E632ED7",
           "operators": [
             {
               "chapter": "Redox Reactions",
@@ -2873,7 +2873,7 @@
             "rule": "PREPARE -> visible response -> COMMIT -> receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=clean exit | ENV formula: PREPARE -> visible response -> COMMIT -> receipt | Loop: PREPARE -> visible response -> COMMIT -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS, MATHS, MBA | Receipt=FF87C2BC7F9116E3B5A75C78A48F366D1E3203BD6BA596F916D008C396D4C35E",
+          "formula_display": "Mode=clean exit | ENV formula: PREPARE -> visible response -> COMMIT -> receipt | Loop: PREPARE -> visible response -> COMMIT -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MATHS + MBA | Receipt=E30FB0278C427ECDB047C5F853915FF1036216F5DAADE80DD0697689A4D14982",
           "hil": {
             "accepted_object": "exact Exit Slip and continuity packet",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2921,7 +2921,7 @@
             "MBA"
           ],
           "operator_law": "Communication Systems + Mathematical Reasoning + Human gates",
-          "operator_receipt_sha256": "FF87C2BC7F9116E3B5A75C78A48F366D1E3203BD6BA596F916D008C396D4C35E",
+          "operator_receipt_sha256": "E30FB0278C427ECDB047C5F853915FF1036216F5DAADE80DD0697689A4D14982",
           "operators": [
             {
               "chapter": "Communication Systems",
@@ -2970,7 +2970,7 @@
             "rule": "PREPARE -> visible response -> COMMIT -> receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=clean exit | ENV formula: PREPARE -> visible response -> COMMIT -> receipt | Loop: PREPARE -> visible response -> COMMIT -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS, MATHS, MBA | Receipt=F706CD78A281026EDB15B2BBBB0907A65D02B0FE306BE93F68FF1665C4F6C56F",
+          "formula_display": "Mode=clean exit | ENV formula: PREPARE -> visible response -> COMMIT -> receipt | Loop: PREPARE -> visible response -> COMMIT -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MATHS + MBA | Receipt=7A7202C9201389D58D50FD51793CA2215333BB1E13DAAAE4BC40899E1B134429",
           "hil": {
             "accepted_object": "exact Exit Slip and continuity packet",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -3018,7 +3018,7 @@
             "MBA"
           ],
           "operator_law": "Communication Systems + Mathematical Reasoning + Human gates",
-          "operator_receipt_sha256": "F706CD78A281026EDB15B2BBBB0907A65D02B0FE306BE93F68FF1665C4F6C56F",
+          "operator_receipt_sha256": "7A7202C9201389D58D50FD51793CA2215333BB1E13DAAAE4BC40899E1B134429",
           "operators": [
             {
               "chapter": "Communication Systems",
@@ -3085,7 +3085,7 @@
             "rule": "resume preserved state -> verify receipts -> return to boundary",
             "visible_in_response": true
           },
-          "formula_display": "Mode=recovery | ENV formula: resume preserved state -> verify receipts -> return to boundary | Loop: resume preserved state -> verify receipts -> return to boundary | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS, MATHS, SUPPLY | Receipt=E83A7D48562405E127B31667FA72A8FCC4BEBF627AEDEA75FC178C07D0F4E75E",
+          "formula_display": "Mode=recovery | ENV formula: resume preserved state -> verify receipts -> return to boundary | Loop: resume preserved state -> verify receipts -> return to boundary | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MATHS + SUPPLY | Receipt=7D331F2807EA769E3524C54F7D8F4063073E41E44760E00F29291324A5AC19E4",
           "hil": {
             "accepted_object": "verified exact-resume boundary and recovery receipts",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -3133,7 +3133,7 @@
             "SUPPLY"
           ],
           "operator_law": "Continuity + fallback paths + Risk and Crisis Management",
-          "operator_receipt_sha256": "E83A7D48562405E127B31667FA72A8FCC4BEBF627AEDEA75FC178C07D0F4E75E",
+          "operator_receipt_sha256": "7D331F2807EA769E3524C54F7D8F4063073E41E44760E00F29291324A5AC19E4",
           "operators": [
             {
               "chapter": "System of Particles and Rotational Motion",
@@ -3188,7 +3188,7 @@
             "rule": "resume preserved state -> verify receipts -> return to boundary",
             "visible_in_response": true
           },
-          "formula_display": "Mode=recovery | ENV formula: resume preserved state -> verify receipts -> return to boundary | Loop: resume preserved state -> verify receipts -> return to boundary | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS, MATHS, SUPPLY | Receipt=4FDD745252EF3F54A03465BCCADF5B556470346BB3DF6079E043AA2F3FDDB6BF",
+          "formula_display": "Mode=recovery | ENV formula: resume preserved state -> verify receipts -> return to boundary | Loop: resume preserved state -> verify receipts -> return to boundary | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MATHS + SUPPLY | Receipt=71F1C4479C3502BBC750AC8EC9613F315954DB18422D2B22A672C94B7D39A1EF",
           "hil": {
             "accepted_object": "verified exact-resume boundary and recovery receipts",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -3236,7 +3236,7 @@
             "SUPPLY"
           ],
           "operator_law": "Continuity + fallback paths + Risk and Crisis Management",
-          "operator_receipt_sha256": "4FDD745252EF3F54A03465BCCADF5B556470346BB3DF6079E043AA2F3FDDB6BF",
+          "operator_receipt_sha256": "71F1C4479C3502BBC750AC8EC9613F315954DB18422D2B22A672C94B7D39A1EF",
           "operators": [
             {
               "chapter": "System of Particles and Rotational Motion",
@@ -3309,7 +3309,7 @@
             "rule": "entry -> create lane -> apply route -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=evidence choreography | ENV formula: entry -> create lane -> apply route -> exit | Loop: entry -> create lane -> apply route -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: User-defined operator trigger | Receipt=1984E82D4A3C94D84709F52E22E73C74E8B667E4453428BA7AE13DB70B8AE80C",
+          "formula_display": "Mode=evidence choreography | ENV formula: entry -> create lane -> apply route -> exit | Loop: entry -> create lane -> apply route -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: User-defined operator trigger | Receipt=270B8AE451481ADB6607827902892F3B9BEA2E71150F01B35682D166D1AA83AA",
           "hil": {
             "accepted_object": "custom deliverable 'evidence choreography' under its dependency policy",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -3353,7 +3353,7 @@
           "lifecycle_effect": "NONE",
           "operator_families": [],
           "operator_law": "User-defined operator trigger",
-          "operator_receipt_sha256": "1984E82D4A3C94D84709F52E22E73C74E8B667E4453428BA7AE13DB70B8AE80C",
+          "operator_receipt_sha256": "270B8AE451481ADB6607827902892F3B9BEA2E71150F01B35682D166D1AA83AA",
           "operators": [],
           "pointer_moved": false,
           "recursive_loop": "entry -> create lane -> apply route -> exit",
@@ -3383,7 +3383,7 @@
             "rule": "entry -> create lane -> apply route -> exit",
             "visible_in_response": true
           },
-          "formula_display": "Mode=evidence choreography | ENV formula: entry -> create lane -> apply route -> exit | Loop: entry -> create lane -> apply route -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: User-defined operator trigger | Receipt=5853602C0873CD625BA428B8B57625C2E697F357110448231A62D3E70679D96B",
+          "formula_display": "Mode=evidence choreography | ENV formula: entry -> create lane -> apply route -> exit | Loop: entry -> create lane -> apply route -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: User-defined operator trigger | Receipt=3648992D316EDB91B44D59E282158B7D754F2514AC273B41AAC8D792067C8525",
           "hil": {
             "accepted_object": "custom deliverable 'evidence choreography' under its dependency policy",
             "authority": "GLOBAL_EXACT_TOKENS_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -3427,7 +3427,7 @@
           "lifecycle_effect": "NONE",
           "operator_families": [],
           "operator_law": "User-defined operator trigger",
-          "operator_receipt_sha256": "5853602C0873CD625BA428B8B57625C2E697F357110448231A62D3E70679D96B",
+          "operator_receipt_sha256": "3648992D316EDB91B44D59E282158B7D754F2514AC273B41AAC8D792067C8525",
           "operators": [],
           "pointer_moved": false,
           "recursive_loop": "entry -> create lane -> apply route -> exit",
@@ -3459,7 +3459,7 @@
     "FAIL"
   ],
   "source_files": {
-    "mode_governance.py": "7D6EE5794F65E1B1AE53FDC3E7494DF6A31AB8D73F4B8F537376F63DEE1D7C5A",
+    "mode_governance.py": "73179D7E4D90B7950AAF4D967C91562C57116A484C10D498E93644856BB39EE5",
     "operating_modes.py": "383DED99353552D3526B9370DF35E24B9A65B39DDEC7548AC070AD04A71ECAF3"
   },
   "universal_boundary": "The six tokens are exact and universal; accepted objects, gates, rollback targets, and effects are mode-specific. Mode selection is never HIL approval."

@@ -16,6 +16,7 @@ from .ids import prefixed_id
 from .ingest import iter_source_files
 from .lanes import LaneRegistryError, resolve_lane_id
 from .lineage import ChatLineage
+from .mode_governance import validate_mode_governance_selection
 from .models import (
     HilDecision,
     HostKind,
@@ -34,6 +35,10 @@ from .prompt_index import PromptIndex, is_prompt_reference
 from .pv_package import validate_pv_package
 from .redaction import redact
 from .runtime_activation import RuntimeActivation
+from .runtime_continuity import (
+    build_runtime_continuity,
+    validate_runtime_continuity,
+)
 from .state_law import LifecycleEvent, transition
 from .store import ProjectStore
 from .tasking import classify_task
@@ -310,6 +315,7 @@ class SessionManager:
         agent_id: str,
         sandbox_id: str | None,
         persistence_mode: str,
+        persistence_route: dict[str, Any],
         ephemeral: bool,
         flash: dict[str, Any],
         runtime_context: dict[str, Any] | None = None,
@@ -398,6 +404,21 @@ class SessionManager:
             host_kind,
             client_can_edit_source,
         )
+        runtime_continuity = build_runtime_continuity(
+            host=host_kind,
+            host_session_id=exact_host_session_id,
+            ephemeral=ephemeral,
+            persistence_route=persistence_route,
+            flash=flash,
+            accepted_pv=pointer.accepted_pv,
+            pointer_generation=pointer.generation,
+            accepted_manifest_sha256=(
+                entry_validation["manifest_sha256"] if entry_validation else None
+            ),
+            accepted_package_sha256=(
+                entry_validation["package_sha256"] if entry_validation else None
+            ),
+        )
         session = SessionRecord(
             session_id=session_id,
             project_id=project_id,
@@ -422,6 +443,18 @@ class SessionManager:
                 "flash_action": flash["flash_action"],
                 "flash_context_stored_in_pv": False,
                 "persistence_mode": persistence_mode,
+                "persistence_route": dict(persistence_route),
+                "runtime_continuity": runtime_continuity,
+                "runtime_continuity_history": [
+                    {
+                        "host": host_kind.value,
+                        "host_session_id": exact_host_session_id,
+                        "continuity_receipt_sha256": runtime_continuity[
+                            "continuity_receipt_sha256"
+                        ],
+                        "bound_at": now,
+                    }
+                ],
                 "ephemeral_host": ephemeral,
                 "server_has_durable_filesystem": server_has_durable_filesystem,
                 "client_source_edit_authority": source_edit_authority,
@@ -566,6 +599,9 @@ class SessionManager:
                 "flash_context_stored_in_pv": False,
                 "host_session_id": exact_host_session_id,
                 "client_source_edit_authority": source_edit_authority,
+                "runtime_continuity_receipt_sha256": runtime_continuity[
+                    "continuity_receipt_sha256"
+                ],
             },
             occurred_at=now,
             session_id=session_id,
@@ -584,6 +620,7 @@ class SessionManager:
             "installation": installation,
             "session_flash": flash,
             "runtime_activation": runtime_activation,
+            "runtime_continuity": runtime_continuity,
             "entry_action": entry_action,
             "ordered_source_intake_commands": list(SOURCE_INTAKE_COMMANDS),
             "suggested_next_prompt": next_action_contract["suggested_next_prompt"],
@@ -611,6 +648,7 @@ class SessionManager:
         host: HostKind | str,
         host_session_id: str,
         persistence_mode: str,
+        persistence_route: dict[str, Any],
         ephemeral: bool,
         client_can_edit_source: bool | None = None,
         server_has_durable_filesystem: bool | None = None,
@@ -654,6 +692,21 @@ class SessionManager:
             session_pointer_generation=session.accepted_pointer_generation,
             session_accepted_pv=session.accepted_pv,
         )
+        previous_continuity = session.metadata.get("runtime_continuity")
+        if isinstance(previous_continuity, dict):
+            validate_runtime_continuity(previous_continuity)
+        entry_validation: dict[str, Any] | None = None
+        if pointer.accepted_pv:
+            entry_validation = validate_pv_package(
+                self.store.accepted_path(project_id, pointer.accepted_pv)
+            )
+            require(
+                entry_validation["manifest_sha256"]
+                == pointer.accepted_manifest_sha256,
+                "RESUME_ACCEPTED_POINTER_HASH_MISMATCH",
+                "The accepted package no longer matches the pointer at resume.",
+                status="MISMATCH",
+            )
         now = utc_now()
         session.host = host_kind
         session.metadata["current_host_session_id"] = exact_host_session_id
@@ -669,6 +722,33 @@ class SessionManager:
                 }
             )
         session.metadata["persistence_mode"] = persistence_mode
+        runtime_continuity = build_runtime_continuity(
+            host=host_kind,
+            host_session_id=exact_host_session_id,
+            ephemeral=ephemeral,
+            persistence_route=persistence_route,
+            flash=flash,
+            accepted_pv=pointer.accepted_pv,
+            pointer_generation=pointer.generation,
+            accepted_manifest_sha256=(
+                entry_validation["manifest_sha256"] if entry_validation else None
+            ),
+            accepted_package_sha256=(
+                entry_validation["package_sha256"] if entry_validation else None
+            ),
+        )
+        session.metadata["persistence_route"] = dict(persistence_route)
+        session.metadata["runtime_continuity"] = runtime_continuity
+        session.metadata.setdefault("runtime_continuity_history", []).append(
+            {
+                "host": host_kind.value,
+                "host_session_id": exact_host_session_id,
+                "continuity_receipt_sha256": runtime_continuity[
+                    "continuity_receipt_sha256"
+                ],
+                "bound_at": now,
+            }
+        )
         session.metadata["ephemeral_host"] = ephemeral
         session.metadata["server_has_durable_filesystem"] = (
             server_has_durable_filesystem
@@ -693,6 +773,9 @@ class SessionManager:
                 "persistence_mode": persistence_mode,
                 "client_source_edit_authority": session.metadata[
                     "client_source_edit_authority"
+                ],
+                "runtime_continuity_receipt_sha256": runtime_continuity[
+                    "continuity_receipt_sha256"
                 ],
                 "pointer_moved": False,
             },
@@ -730,6 +813,7 @@ class SessionManager:
             "next_action_contract": next_action_contract,
             "event": event,
             "runtime_activation": runtime_activation,
+            "runtime_continuity": runtime_continuity,
         }
 
     def build_initial_entry(self, project_id: str, session_id: str) -> dict[str, Any]:
@@ -993,6 +1077,37 @@ class SessionManager:
             acceptance_checks=acceptance_checks,
             stop_condition=stop_condition,
         )
+        active_mode_binding = session.metadata.get("active_mode_binding")
+        if isinstance(active_mode_binding, dict):
+            governance = active_mode_binding.get("mode_governance")
+            require(
+                isinstance(governance, dict),
+                "ACTIVE_MODE_GOVERNANCE_MISSING",
+                "The selected mode has no executable ENV/UOP governance contract.",
+                status="MISMATCH",
+            )
+            validate_mode_governance_selection(cast(dict[str, Any], governance))
+            task_mode_core = {
+                "schema": "evidence-lane.task-mode-binding.v1",
+                "task_id": task.task_id,
+                "selected_mode_ids": list(active_mode_binding["selected_mode_ids"]),
+                "mode_intersection": active_mode_binding["mode_intersection"],
+                "canonical_lanes": list(active_mode_binding["canonical_lanes"]),
+                "selection_source": active_mode_binding["selection_source"],
+                "mode_governance": governance,
+                "selection_receipt_sha256": active_mode_binding[
+                    "binding_receipt_sha256"
+                ],
+                "bound_at_task_classification": utc_now(),
+                "lifecycle_effect": "NONE",
+                "candidate_created": False,
+                "pointer_moved": False,
+                "hil_approval_inferred": False,
+            }
+            task_mode_core["binding_receipt_sha256"] = sha256_bytes(
+                canonical_json_bytes(task_mode_core)
+            )
+            session.metadata["task_mode_binding"] = task_mode_core
         if backlog_task_id:
             claimed = self.store.claim_backlog_task(
                 project_id,
@@ -1181,9 +1296,72 @@ class SessionManager:
             status="BLOCKED",
         )
         pointer = self.store.pointer(project_id)
+        governance_value = classification.get("mode_governance")
+        require(
+            isinstance(governance_value, dict),
+            "MODE_GOVERNANCE_SELECTION_REQUIRED",
+            "Mode classification requires its ENV/UOP governance selection.",
+            status="MISMATCH",
+        )
+        governance = validate_mode_governance_selection(
+            cast(dict[str, Any], governance_value)
+        )
         request_sha256 = sha256_bytes(
             str(classification.get("request", "")).encode("utf-8")
         )
+        binding_core = {
+            "schema": "evidence-lane.active-mode-binding.v1",
+            "request_sha256": request_sha256,
+            "selection_source": governance["selection_source"],
+            "selected_mode_ids": [
+                item["id"] for item in classification["selected_modes"]
+            ],
+            "mode_intersection": classification["mode_intersection"],
+            "canonical_lanes": classification["canonical_lanes"],
+            "mode_governance": governance,
+            "selected_at": utc_now(),
+            "lifecycle_state": session.state.value,
+            "active_task_id": (
+                cast(dict[str, Any], session.task).get("task_id")
+                if session.task
+                else None
+            ),
+            "candidate_created": False,
+            "pointer_moved": False,
+            "hil_approval_inferred": False,
+        }
+        binding_core["binding_receipt_sha256"] = sha256_bytes(
+            canonical_json_bytes(binding_core)
+        )
+        session.metadata["active_mode_binding"] = binding_core
+        session.metadata.setdefault("mode_binding_history", []).append(binding_core)
+        if session.task and session.state in {
+            SessionState.TASK_CLASSIFIED,
+            SessionState.AWAITING_USER_APPLY_COMMIT,
+        }:
+            task_id = str(cast(dict[str, Any], session.task)["task_id"])
+            task_mode_core = {
+                "schema": "evidence-lane.task-mode-binding.v1",
+                "task_id": task_id,
+                "selected_mode_ids": list(binding_core["selected_mode_ids"]),
+                "mode_intersection": binding_core["mode_intersection"],
+                "canonical_lanes": list(binding_core["canonical_lanes"]),
+                "selection_source": binding_core["selection_source"],
+                "mode_governance": governance,
+                "selection_receipt_sha256": binding_core[
+                    "binding_receipt_sha256"
+                ],
+                "bound_at_task_classification": binding_core["selected_at"],
+                "lifecycle_effect": "NONE",
+                "candidate_created": False,
+                "pointer_moved": False,
+                "hil_approval_inferred": False,
+            }
+            task_mode_core["binding_receipt_sha256"] = sha256_bytes(
+                canonical_json_bytes(task_mode_core)
+            )
+            session.metadata["task_mode_binding"] = task_mode_core
+        self._save(session)
         payload = {
             "schema": "evidence-lane.mode-classification-receipt.v1",
             "request_sha256": request_sha256,
@@ -1193,6 +1371,14 @@ class SessionManager:
             ],
             "mode_intersection": classification["mode_intersection"],
             "canonical_lanes": classification["canonical_lanes"],
+            "visible_formula_response": governance["visible_formula_response"],
+            "combined_operator_receipt_sha256": governance[
+                "combined_operator_receipt_sha256"
+            ],
+            "lane_hil_contracts": [
+                contract["hil"] for contract in governance["contracts"]
+            ],
+            "binding_receipt_sha256": binding_core["binding_receipt_sha256"],
             "chat_lineage_included": True,
             "lifecycle_state_before": session.state.value,
             "accepted_pv": pointer.accepted_pv,
@@ -1217,6 +1403,7 @@ class SessionManager:
         return {
             "status": "PASS",
             "event": event,
+            "mode_binding": binding_core,
             "lifecycle_state_unchanged": session.state.value,
             "pointer": pointer.as_dict(),
         }

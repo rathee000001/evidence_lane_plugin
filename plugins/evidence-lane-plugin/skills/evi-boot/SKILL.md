@@ -14,7 +14,16 @@ governed session.
 Detect Codex desktop, Codex CLI, or ChatGPT and record local, durable, or
 ephemeral storage capability. Prefer durable local SQLite whenever it exists.
 A host without durable storage must have a transactional runtime connector;
-Google Drive is optional mirror/fallback and never primary. Fail closed if any
-prerequisite is missing. On success display the six controls, the optional
+Google Drive is only an optional sealed-artifact carrier for an ephemeral Codex
+VM and never primary. Fail closed if any prerequisite is missing. On success display the six controls, the optional
 `/evi-plugin` administrative sidecar, and the `/evi-source-intake` suggested
 prompt.
+
+Every Boot and Resume must emit and validate one
+`evidence-lane.runtime-continuity.v1` receipt. It binds the host/session, exact
+accepted pointer, primary runtime route, and locked ENV/UOP Flash hashes. Entry
+and Exit Slips carry that same hashed reference and route contract, never the
+ENV/UOP bytes. ChatGPT must report `FORBIDDEN_FOR_CHATGPT_RUNTIME` for Google
+Drive. A Codex ephemeral VM may report Drive only as a sealed Entry/Exit
+carrier while a transactional connector owns live state. No continuity receipt
+may move a pointer, create a candidate, or infer HIL approval.

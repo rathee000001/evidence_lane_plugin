@@ -7,7 +7,7 @@ import shutil
 import sqlite3
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from . import database
 from .acceptance import declarations_for_phase, run_acceptance_checks
@@ -22,9 +22,11 @@ from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
 from .ids import new_ulid, prefixed_id
 from .ingest import ingest_repository, refresh_repository
 from .lane_engine import build_lane_bundle
+from .mode_governance import validate_mode_binding
 from .models import SessionRecord, TaskContract
 from .next_actions import hil_next_action, refresh_output_handoff
 from .pv_package import build_pv_package
+from .runtime_continuity import validate_runtime_continuity
 from .store import ProjectStore
 from .timeutil import utc_now
 
@@ -153,6 +155,25 @@ class CodePVEngine:
             session_generation=session.accepted_pointer_generation,
             current_generation=pointer.generation,
         )
+        runtime_continuity_value = session.metadata.get("runtime_continuity")
+        require(
+            isinstance(runtime_continuity_value, dict),
+            "RUNTIME_CONTINUITY_REQUIRED",
+            "A candidate build requires the boot/resume ENV and storage continuity receipt.",
+            status="BLOCKED",
+        )
+        runtime_continuity = validate_runtime_continuity(
+            cast(dict[str, Any], runtime_continuity_value)
+        )
+        mode_binding_value = session.metadata.get(
+            "task_mode_binding" if task is not None else "active_mode_binding"
+        )
+        mode_binding: dict[str, Any] | None = None
+        if isinstance(mode_binding_value, dict):
+            mode_binding = validate_mode_binding(
+                mode_binding_value,
+                expected_task_id=(task.task_id if task is not None else None),
+            )
         if initial_entry:
             require(
                 pointer.accepted_pv is None,
@@ -172,6 +193,55 @@ class CodePVEngine:
             status="BLOCKED",
             acceptance_health=acceptance_health,
         )
+        mode_execution: dict[str, Any] | None = None
+        if mode_binding is not None:
+            governance = cast(dict[str, Any], mode_binding["mode_governance"])
+            contracts = cast(list[dict[str, Any]], governance["contracts"])
+            ci_cd_required = any(
+                bool(contract.get("ci_cd", {}).get("required"))
+                for contract in contracts
+            )
+            mode_execution = {
+                "schema": "evidence-lane.mode-execution.v1",
+                "selection_source": mode_binding["selection_source"],
+                "selected_mode_ids": list(mode_binding["selected_mode_ids"]),
+                "mode_intersection": mode_binding["mode_intersection"],
+                "canonical_lanes": list(mode_binding["canonical_lanes"]),
+                "mode_binding_receipt_sha256": mode_binding[
+                    "binding_receipt_sha256"
+                ],
+                "combined_operator_receipt_sha256": governance[
+                    "combined_operator_receipt_sha256"
+                ],
+                "visible_formula_response": list(
+                    governance["visible_formula_response"]
+                ),
+                "operator_contracts": contracts,
+                "lane_hil_contracts": [contract["hil"] for contract in contracts],
+                "ci_cd": {
+                    "required_by_selected_mode": ci_cd_required,
+                    "prebuild_receipt_status": acceptance_health["status"],
+                    "prebuild_receipt_verdict": acceptance_health["verdict"],
+                    "declared": acceptance_health["declared"],
+                    "executed": acceptance_health["executed"],
+                    "commands_inferred": acceptance_health["commands_inferred"],
+                    "approve_gate": (
+                        "PASS"
+                        if not ci_cd_required or acceptance_health["status"] == "PASS"
+                        else "OPEN_OR_FAILED"
+                    ),
+                },
+                "six_way_token_vocabulary_preserved": governance[
+                    "six_way_token_vocabulary_preserved"
+                ],
+                "six_way_hil_is_lane_specific": True,
+                "mode_selection_is_not_hil_approval": True,
+                "candidate_created_by_selection": False,
+                "pointer_moved_by_selection": False,
+            }
+            mode_execution["execution_receipt_sha256"] = sha256_bytes(
+                canonical_json_bytes(mode_execution)
+            )
         identity = inspect_repository(
             config.repository_path,
             expected_owner=config.expected_owner,
@@ -479,6 +549,8 @@ class CodePVEngine:
                 "pointer_generation": pointer.generation,
                 "repository_entry": session.repository,
                 "task": task.as_dict() if task else None,
+                "runtime_continuity": runtime_continuity,
+                "mode_execution": mode_execution,
                 "entered_at": session.created_at,
             }
             next_action_contract = hil_next_action(
@@ -486,6 +558,7 @@ class CodePVEngine:
                 session_id=session.session_id,
                 candidate_id=candidate_id,
                 proposed_pv=proposed_pv,
+                mode_execution=mode_execution,
             )
             output_handoff = refresh_output_handoff(
                 host_kind=session.host.value,
@@ -507,6 +580,8 @@ class CodePVEngine:
                 "git_patch_sha256": patch_sha256,
                 "git_patch_bytes": len(patch.encode("utf-8")),
                 "task": task.as_dict() if task else None,
+                "runtime_continuity": runtime_continuity,
+                "mode_execution": mode_execution,
                 "acceptance_checks": (
                     acceptance_health
                     if task
@@ -630,6 +705,7 @@ class CodePVEngine:
                 "postseal_acceptance_receipt_sha256": postseal_receipt_sha256,
                 "lane_refresh": lane_report,
                 "next_action": next_action_contract,
+                "mode_execution": mode_execution,
                 "toolchain_manifest_sha256": engine_identity.toolchain_manifest_sha256,
                 "toolchain_package_count": len(toolchain["packages"]),
             }

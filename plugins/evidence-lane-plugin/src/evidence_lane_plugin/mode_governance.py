@@ -623,6 +623,20 @@ def govern_mode_selection(
             for operator_id in _MODE_OPERATORS[mode_id]
         ]
         operator_families = list(dict.fromkeys(str(row["family"]) for row in operators))
+        operator_groups: list[str] = []
+        if {"PHYSICS", "CHEMISTRY", "MATHS"} <= set(operator_families):
+            operator_groups.append("PCM")
+        else:
+            operator_groups.extend(
+                family
+                for family in ("PHYSICS", "CHEMISTRY", "MATHS")
+                if family in operator_families
+            )
+        operator_groups.extend(
+            family
+            for family in operator_families
+            if family not in {"PHYSICS", "CHEMISTRY", "MATHS"}
+        )
         ci_cd = {
             "required": bool(policy["ci_cd_required"]),
             "loop": (policy["formula_rule"] if policy["ci_cd_required"] else None),
@@ -660,6 +674,7 @@ def govern_mode_selection(
             },
             "operators": operators,
             "operator_families": operator_families,
+            "operator_groups": operator_groups,
             "ci_cd": ci_cd,
             "dependency_policy": dependency_policy,
             "hil": _hil_contract(mode_id, policy),
@@ -672,7 +687,7 @@ def govern_mode_selection(
             f"Mode={selected['name']} | ENV formula: {policy['formula_rule']} | "
             f"Loop: {policy['recursive_loop']} | CI/CD: "
             f"{'CONTROLLED_REQUIRED' if ci_cd['required'] else 'NOT_GENERIC_TO_THIS_MODE'} | "
-            f"Operators: {', '.join(operator_families) if operator_families else policy['operator_law']} | "
+            f"Operators: {' + '.join(operator_groups) if operator_groups else policy['operator_law']} | "
             f"Receipt={receipt_sha256}"
         )
         contracts.append(
@@ -702,7 +717,142 @@ def govern_mode_selection(
         "six_way_hil_is_lane_specific": True,
         "six_way_token_vocabulary_preserved": list(HIL_CHOICES),
         "mode_selection_is_not_hil_approval": True,
+        "selected_governance_binds_next_task_execution": True,
         "lifecycle_effect": "NONE",
         "candidate_created": False,
         "pointer_moved": False,
     }
+
+
+def validate_mode_governance_selection(value: dict[str, Any]) -> dict[str, Any]:
+    """Validate one selected-mode contract before execution or HIL rendering."""
+
+    require(
+        value.get("schema") == "evidence-lane.mode-governance-selection.v1"
+        and value.get("status") == "PASS",
+        "MODE_GOVERNANCE_SELECTION_INVALID",
+        "The selected mode governance envelope is not executable.",
+        status="MISMATCH",
+    )
+    raw_contracts = value.get("contracts")
+    require(
+        isinstance(raw_contracts, list) and bool(raw_contracts),
+        "MODE_GOVERNANCE_CONTRACTS_REQUIRED",
+        "Selected mode governance requires at least one lane contract.",
+        status="MISMATCH",
+    )
+    contracts = cast(list[Any], raw_contracts)
+    receipt_projection: list[dict[str, str]] = []
+    for raw_contract in contracts:
+        require(
+            isinstance(raw_contract, dict),
+            "MODE_GOVERNANCE_CONTRACT_INVALID",
+            "A selected mode contract is not an object.",
+            status="MISMATCH",
+        )
+        contract = cast(dict[str, Any], raw_contract)
+        expected = str(contract.get("operator_receipt_sha256") or "")
+        core = {
+            key: item
+            for key, item in contract.items()
+            if key not in {"operator_receipt_sha256", "formula_display"}
+        }
+        actual = sha256_bytes(canonical_json_bytes(core))
+        require(
+            bool(expected) and expected == actual,
+            "MODE_OPERATOR_RECEIPT_INVALID",
+            "A selected mode operator receipt does not match its ENV/UOP contract.",
+            status="MISMATCH",
+            mode_id=contract.get("mode_id"),
+            expected=expected or None,
+            actual=actual,
+        )
+        hil = contract.get("hil")
+        choices = hil.get("choices") if isinstance(hil, dict) else None
+        require(
+            isinstance(choices, list)
+            and [row.get("token") for row in choices if isinstance(row, dict)]
+            == list(HIL_CHOICES),
+            "MODE_HIL_TOKEN_CONTRACT_MISMATCH",
+            "The selected mode must preserve the universal six exact HIL tokens.",
+            status="MISMATCH",
+            mode_id=contract.get("mode_id"),
+        )
+        mode_id = str(contract.get("mode_id") or "")
+        if mode_id == "CD":
+            require(
+                contract.get("ci_cd", {}).get("required") is True
+                and contract.get("ci_cd", {}).get("controlled") is True
+                and {"PCM", "MBA"} <= set(contract.get("operator_groups") or []),
+                "CODE_MODE_OPERATOR_CONTRACT_INVALID",
+                "Code mode requires controlled CI/CD plus PCM and MBA operator groups.",
+                status="FAIL",
+            )
+        receipt_projection.append(
+            {"mode_id": mode_id, "operator_receipt_sha256": expected}
+        )
+    combined = sha256_bytes(canonical_json_bytes(receipt_projection))
+    require(
+        value.get("combined_operator_receipt_sha256") == combined,
+        "MODE_GOVERNANCE_COMBINED_RECEIPT_INVALID",
+        "The selected-mode receipt projection does not match its lane contracts.",
+        status="MISMATCH",
+    )
+    require(
+        value.get("six_way_hil_is_lane_specific") is True
+        and value.get("six_way_token_vocabulary_preserved") == list(HIL_CHOICES)
+        and value.get("candidate_created") is False
+        and value.get("pointer_moved") is False,
+        "MODE_GOVERNANCE_BOUNDARY_INVALID",
+        "Mode selection must remain pointer-neutral and lane-specific.",
+        status="FAIL",
+    )
+    return value
+
+
+def validate_mode_binding(
+    value: dict[str, Any], *, expected_task_id: str | None = None
+) -> dict[str, Any]:
+    """Validate the immutable selected-mode snapshot used by one task/build."""
+
+    require(
+        value.get("schema")
+        in {
+            "evidence-lane.active-mode-binding.v1",
+            "evidence-lane.task-mode-binding.v1",
+        },
+        "MODE_BINDING_SCHEMA_INVALID",
+        "The selected-mode execution binding is not supported.",
+        status="MISMATCH",
+    )
+    expected = str(value.get("binding_receipt_sha256") or "")
+    core = {
+        key: item for key, item in value.items() if key != "binding_receipt_sha256"
+    }
+    actual = sha256_bytes(canonical_json_bytes(core))
+    require(
+        bool(expected) and expected == actual,
+        "MODE_BINDING_RECEIPT_INVALID",
+        "The selected-mode execution binding was changed after selection.",
+        status="MISMATCH",
+        expected=expected or None,
+        actual=actual,
+    )
+    governance = value.get("mode_governance")
+    require(
+        isinstance(governance, dict),
+        "MODE_BINDING_GOVERNANCE_MISSING",
+        "The mode binding has no executable governance selection.",
+        status="MISMATCH",
+    )
+    validate_mode_governance_selection(cast(dict[str, Any], governance))
+    if expected_task_id is not None:
+        require(
+            value.get("task_id") == expected_task_id,
+            "MODE_BINDING_TASK_MISMATCH",
+            "The selected-mode snapshot belongs to a different task.",
+            status="MISMATCH",
+            expected_task_id=expected_task_id,
+            actual_task_id=value.get("task_id"),
+        )
+    return value
