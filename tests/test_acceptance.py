@@ -188,7 +188,50 @@ def test_postseal_manifest_check_waits_then_executes_with_candidate_context(
     assert postseal["checks"][0]["status"] == "PASS"
 
 
-def test_repository_manifest_binds_exactly_twelve_delta063_checks() -> None:
+def test_prebuild_summary_passes_when_exact_prebuild_runs_before_postseal(
+    tmp_path: Path,
+) -> None:
+    repository = _repository(tmp_path)
+    prebuild = "AC01 executable: run the bounded prebuild command."
+    postseal = "AC12 executable: validate the immutable candidate."
+    manifest_path = repository / "evidence" / "acceptance" / "commands.json"
+    manifest_path.parent.mkdir(parents=True)
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.acceptance-command-manifest.v1",
+                "commands": {
+                    prebuild: {
+                        "argv": ["$RUNTIME_PYTHON", "-c", "print('prebuild')"],
+                        "timeout_seconds": 30,
+                    },
+                    postseal: {
+                        "argv": ["$RUNTIME_PYTHON", "-c", "print('postseal')"],
+                        "phase": "POSTSEAL",
+                        "timeout_seconds": 30,
+                    },
+                },
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = run_acceptance_checks(repository, [prebuild, postseal])
+    assert result["status"] == "PARTIAL"
+    assert result["verdict"] == "POSTSEAL_CHECKS_PENDING"
+    assert result["prebuild_status"] == "PASS"
+    assert (
+        result["prebuild_verdict"]
+        == "ALL_PREBUILD_EXECUTABLE_CHECKS_PASS_POSTSEAL_PENDING"
+    )
+    assert result["prebuild_executed"] == 1
+    assert result["postseal_pending"] == 1
+
+
+def test_repository_manifest_binds_exactly_twelve_v130_checks() -> None:
     repository = Path(__file__).resolve().parents[1]
     manifest = json.loads(
         (repository / "evidence" / "acceptance" / "commands.json").read_text(

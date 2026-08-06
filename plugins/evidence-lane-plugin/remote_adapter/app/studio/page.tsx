@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { EvidencePromptStudio } from "../_components/evidence-prompt-studio";
 
 export default function StudioPage() {
@@ -15,8 +16,14 @@ export default function StudioPage() {
             claims instead of disguising a scripted demo as a live model.
           </p>
           <div className="actions">
-            <Link className="primary" href="/architecture">Open architecture</Link>
-            <Link className="secondary" href="/connect">Inspect host routes</Link>
+            <Link className="primary universal-pill actionGlassPill" href="/architecture" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001">
+              <GlassIconOrb color="#69d9f5" size={30} decorative><OfficialToolIcon tool="node" size={16} decorative /></GlassIconOrb>
+              <span>Open architecture</span>
+            </Link>
+            <Link className="secondary universal-pill actionGlassPill" href="/connect" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001">
+              <GlassIconOrb color="#efca72" size={30} decorative><OfficialToolIcon tool="package" size={16} decorative /></GlassIconOrb>
+              <span>Inspect host routes</span>
+            </Link>
           </div>
         </div>
         <aside className="studioHeroPanel" aria-label="Prompt Studio contract">

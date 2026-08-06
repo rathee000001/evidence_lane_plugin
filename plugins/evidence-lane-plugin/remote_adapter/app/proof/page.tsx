@@ -23,7 +23,7 @@ export default function ProofPage() {
         }
       />
       <section className="section shell proofRules">
-        <div className="sectionHead wideHead"><span className="kicker">Current v1.1 correction standard</span><h2>Five rules that must fail loudly.</h2></div>
+        <div className="sectionHead wideHead"><span className="kicker">Current v1.3 correction standard</span><h2>Five rules that must fail loudly.</h2></div>
         <div className="proofRuleGrid">
           {proofRules.map(([title, text], index) => <article key={title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{title}</h3><p>{text}</p></article>)}
         </div>

@@ -391,11 +391,14 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     styles = (adapter_root / "app" / "globals.css").read_text(encoding="utf-8")
     site_data = (adapter_root / "app" / "_data" / "site.ts").read_text(encoding="utf-8")
     package = json.loads((adapter_root / "package.json").read_text(encoding="utf-8"))
-    assert "Turn a repository into an inspectable brain" in landing
-    assert "18" in landing and "source lanes" in landing
-    assert "UniversalCommandDeck" in landing
-    assert "LaneToolchainExplorer" in landing
-    assert "SourceBrainLab" in landing
+    assert "Resume AI work from evidence" in landing
+    assert "DeltaLedgerExplorer" in landing
+    assert "PluginSurfaceCatalog" in landing
+    assert "PulsatingBrain" in landing
+    for retired in ("UniversalCommandDeck", "LaneToolchainExplorer", "SourceBrainLab", "EvidenceOrbit"):
+        assert retired not in landing
+    lanes_page = (adapter_root / "app" / "lanes" / "page.tsx").read_text(encoding="utf-8")
+    assert "LaneToolchainExplorer" in lanes_page
     assert "ChatGPT MCP edge fail-closed" in release
     assert "prefers-reduced-motion" in styles
     active_tsx = "\n".join(

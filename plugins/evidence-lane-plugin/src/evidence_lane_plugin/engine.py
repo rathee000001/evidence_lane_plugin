@@ -220,14 +220,27 @@ class CodePVEngine:
                 "lane_hil_contracts": [contract["hil"] for contract in contracts],
                 "ci_cd": {
                     "required_by_selected_mode": ci_cd_required,
-                    "prebuild_receipt_status": acceptance_health["status"],
-                    "prebuild_receipt_verdict": acceptance_health["verdict"],
+                    "prebuild_receipt_status": acceptance_health.get(
+                        "prebuild_status", acceptance_health["status"]
+                    ),
+                    "prebuild_receipt_verdict": acceptance_health.get(
+                        "prebuild_verdict", acceptance_health["verdict"]
+                    ),
                     "declared": acceptance_health["declared"],
-                    "executed": acceptance_health["executed"],
+                    "executed": acceptance_health.get(
+                        "prebuild_executed", acceptance_health["executed"]
+                    ),
+                    "postseal_pending": acceptance_health.get(
+                        "postseal_pending", 0
+                    ),
                     "commands_inferred": acceptance_health["commands_inferred"],
                     "approve_gate": (
                         "PASS"
-                        if not ci_cd_required or acceptance_health["status"] == "PASS"
+                        if not ci_cd_required
+                        or acceptance_health.get(
+                            "prebuild_status", acceptance_health["status"]
+                        )
+                        == "PASS"
                         else "OPEN_OR_FAILED"
                     ),
                 },

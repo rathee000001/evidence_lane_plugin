@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
 
 import { promptKnowledge, promptSuggestions } from "../_data/site";
-import { LaneAssetIcon } from "./evidence-assets";
+import { GlassIconOrb, LaneAssetIcon, OfficialToolIcon } from "./evidence-assets";
 
 type StudioSource = { label: string; href: string };
 type StudioMessage = {
@@ -151,7 +151,7 @@ export function EvidencePromptStudio() {
                 setMessages([welcome]);
                 setQuestion("");
               }}
-            >Clear session</button>
+            ><GlassIconOrb color="#f2a1c5" size={30} decorative><OfficialToolIcon tool="pulse" size={16} decorative /></GlassIconOrb><span>Clear session</span></button>
           </div>
           <div className="promptStudioMode">
             <span className="studioLiveDot" />
@@ -182,7 +182,8 @@ export function EvidencePromptStudio() {
         <div className="promptSuggestionCluster" aria-label="Suggested Evidence Lane questions">
           {promptSuggestions.map((suggestion) => (
             <button className="rilPill" type="button" key={suggestion} onClick={() => submitQuestion(suggestion)}>
-              {suggestion}
+              <GlassIconOrb color="#69d9f5" size={30} decorative><OfficialToolIcon tool="node" size={16} decorative /></GlassIconOrb>
+              <span>{suggestion}</span>
             </button>
           ))}
         </div>
@@ -200,7 +201,8 @@ export function EvidencePromptStudio() {
           <div>
             <small>Ctrl/Cmd + Enter to send - answers cite published sections</small>
             <button className={`rilPill${question.trim() ? " active" : ""}`} type="submit" disabled={!question.trim()}>
-              Run grounded prompt <span aria-hidden="true">&rarr;</span>
+              <GlassIconOrb color="#83ddb3" size={30} decorative><OfficialToolIcon tool="terminal" size={16} decorative /></GlassIconOrb>
+              <span>Run grounded prompt <b aria-hidden="true">→</b></span>
             </button>
           </div>
         </form>

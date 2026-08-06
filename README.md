@@ -13,7 +13,9 @@
   &nbsp;·&nbsp;
   <a href="docs/REMOTE_DEPLOYMENT.md">ChatGPT deployment</a>
   &nbsp;·&nbsp;
-  <a href="docs/DELTA_001_051_TRACEABILITY.md">Delta traceability</a>
+  <a href="docs/IMPLEMENTATION_TRACEABILITY.md">Implementation traceability</a>
+  &nbsp;Â·&nbsp;
+  <a href="docs/VERSIONING.md">Versioning</a>
   &nbsp;·&nbsp;
   <a href="SECURITY.md">Security</a>
 </p>
@@ -23,6 +25,12 @@
 </p>
 
 # Evidence Lane Plugin 1.3.0
+
+The single active product release is **1.3.0** across the root package, plugin
+package, engine, Codex manifest, remote adapter, current documentation, and
+current test/PoC tooling. Historical accepted PVs, sealed receipts, compatibility
+labels such as `pre-v1.1`, dependency versions, and historical Delta reports keep
+their original versions. See [`docs/VERSIONING.md`](docs/VERSIONING.md).
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex, with a
 durable remote MCP boundary for ChatGPT. It turns visible project sources and
@@ -134,7 +142,7 @@ evidence, and the inspectable output contract. Code lanes additionally show
 symbols, imports, routes, dependencies, reachable Git commits/refs, file
 changes, blob/chunk CAS, occurrences, and history FTS. Empty lanes remain
 explicitly schema-ready instead of pretending that evidence exists.
-The v1.1 reconciliation gate parses both formats, requires meaningful structural
+The v1.3 reconciliation gate parses both formats, requires meaningful structural
 floors, rejects dangling endpoints, compares exact subgraph/node/edge identities,
 and checks every emitted table, fact-kind, and root count against read-only
 SQLite. A syntactically valid six-line graph, understated count, or MMD/DOT
@@ -150,7 +158,7 @@ routed source hashes, and assembles reports in canonical lane order. This is
 compute parallelism inside one writer and one linear task; Chat Lineage append,
 HIL, Fuse, accepted-pointer movement, rollback, and State Travel remain serial
 authorities. A failed worker or changed source snapshot produces no candidate.
-New v1.1 lane bundles use schema v2 plus sealed source-policy and
+Current v1.3 lane bundles use the universal-lane v2 contract plus sealed source-policy and
 parallel-execution receipts, and they require topology reconciliation. Accepted
 v1 bundles remain readable through their existing narrow compatibility path.
 Sealed pre-v1.1 v2 bundles that contain the original parallel receipt but no

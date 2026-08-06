@@ -1,50 +1,50 @@
 {
   "commands": {
-    "AC01 executable: lifecycle non-promotion and exact Fuse isolation tests pass.": {
+    "AC01 executable: full v1.3 pytest regression passes against the final source.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC01"],
-      "timeout_seconds": 300
+      "timeout_seconds": 1800
     },
-    "AC02 executable: exact authority generate_lane_mmd.py fingerprint and runtime identity tests pass.": {
+    "AC02 executable: Ruff validates the complete v1.3 Python source and tests.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC02"],
-      "timeout_seconds": 120
+      "timeout_seconds": 600
     },
-    "AC03 executable: github_code logical MMD/DOT identity and required root-edge tests pass.": {
+    "AC03 executable: MyPy validates every v1.3 plugin source file.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC03"],
-      "timeout_seconds": 120
+      "timeout_seconds": 600
     },
-    "AC04 executable: local_code logical MMD/DOT identity and required root-edge tests pass.": {
+    "AC04 executable: the production-equivalent v1.3 Next.js study build passes with TypeScript and all routes.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC04"],
-      "timeout_seconds": 120
+      "timeout_seconds": 900
     },
-    "AC05 executable: all sixteen non-code lanes expose schema-derived entities, counts, relations, and samples with MMD/DOT parity.": {
+    "AC05 executable: all active release surfaces resolve to one v1.3 identity while historical compatibility and dependency versions remain untouched.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC05"],
-      "timeout_seconds": 120
+      "timeout_seconds": 180
     },
-    "AC06 executable: topology-generator fingerprint invalidates reuse and forces both code lanes to rebuild.": {
+    "AC06 executable: Code-mode accounting closes the prebuild gate when every prebuild command passes and one exact postseal command remains pending.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC06"],
       "timeout_seconds": 300
     },
-    "AC07 executable: one real Git lane plus seventeen fixtures rebuild and validate as exactly eighteen lanes.": {
+    "AC07 executable: every tracked v1.3 implementation receipt validates its canonical self-seal.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC07"],
-      "timeout_seconds": 120
+      "timeout_seconds": 180
     },
-    "AC08 executable: every forensic lane and bundle audit passes against the rebuilt POC.": {
+    "AC08 executable: all-source POC, topology, rendering, four-file, and every-table evidence receipts remain sealed and PASS.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC08"],
-      "timeout_seconds": 120
+      "timeout_seconds": 180
     },
-    "AC09 executable: Delta 063 and the full task ledger reconcile with no superseded task presented as current.": {
+    "AC09 executable: guarded CI, CodeQL, GitHub MCP, Branch Deploy, and Local Action evidence receipts remain sealed and honest.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC09"],
-      "timeout_seconds": 120
+      "timeout_seconds": 180
     },
-    "AC10 executable: actual DOCX POC exists, opens, renders, and is visually inspected against its source evidence.": {
+    "AC10 executable: persistent-tunnel and Codex/ChatGPT durable-storage evidence remains sealed without GDrive runtime authority.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC10"],
-      "timeout_seconds": 120
+      "timeout_seconds": 180
     },
-    "AC11 executable: the committed branch identity is installed and verified in Codex plus the ChatGPT tunnel route, and the Vercel branch preview is reachable.": {
+    "AC11 executable: the final study branch is clean, version-consistent, and contains no main merge or production deployment claim.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC11"],
-      "timeout_seconds": 120
+      "timeout_seconds": 180
     },
-    "AC12 executable: the fresh candidate validates all package seals, exact engine commit identity, Exit Slip evidence, unchanged PV3 pointer, and six-way HIL stop.": {
+    "AC12 executable: the replacement PV6 validates all package seals, exact engine and Exit Slip commit identity, unchanged PV5 generation 5, passing postseal acceptance, and six-way HIL stop.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC12"],
       "phase": "POSTSEAL",
       "timeout_seconds": 300

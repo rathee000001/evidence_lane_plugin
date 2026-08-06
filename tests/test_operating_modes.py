@@ -299,14 +299,15 @@ def test_selected_code_mode_binds_task_candidate_formula_and_lane_hil(
     from .conftest import build_and_approve_pv1
 
     session_id, _ = build_and_approve_pv1(service)
+    postseal_declaration = "AC12 executable: validate the immutable candidate."
     task = service.sessions.classify(
         "book-faires",
         session_id,
         task_class="modify_code",
         requested_outcome="Add one bounded code-mode fixture change.",
-        permitted_paths=["src/app.py"],
+        permitted_paths=["src/app.py", "evidence/acceptance/commands.json"],
         permitted_tools=["repository_write", "test", "git_diff"],
-        acceptance_checks=["cmd: git status --short"],
+        acceptance_checks=["cmd: git status --short", postseal_declaration],
         stop_condition="Stop at the fresh candidate HIL.",
     )
     assert "task_mode_binding" not in task["session"]["metadata"]
@@ -324,6 +325,35 @@ def test_selected_code_mode_binds_task_candidate_formula_and_lane_hil(
         "selected_mode_ids"
     ] == ["CD"]
 
+    manifest = source_repository / "evidence" / "acceptance" / "commands.json"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.acceptance-command-manifest.v1",
+                "commands": {
+                    postseal_declaration: {
+                        "argv": [
+                            "$RUNTIME_PYTHON",
+                            "-c",
+                            (
+                                "import os,sys,pathlib; "
+                                "p=pathlib.Path(os.environ.get("
+                                "'EVIDENCE_LANE_CANDIDATE_PATH','')); "
+                                "sys.exit(0 if p.is_dir() else 9)"
+                            ),
+                        ],
+                        "phase": "POSTSEAL",
+                        "timeout_seconds": 30,
+                    }
+                },
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     app = source_repository / "src" / "app.py"
     app.write_text(app.read_text(encoding="utf-8") + "\nCODE_MODE_FIXTURE = True\n", encoding="utf-8")
     service.sessions.confirm_source_update(
@@ -337,6 +367,10 @@ def test_selected_code_mode_binds_task_candidate_formula_and_lane_hil(
     assert mode_execution["selected_mode_ids"] == ["CD"]
     assert mode_execution["ci_cd"]["required_by_selected_mode"] is True
     assert mode_execution["ci_cd"]["approve_gate"] == "PASS"
+    assert mode_execution["ci_cd"]["prebuild_receipt_status"] == "PASS"
+    assert mode_execution["ci_cd"]["executed"] == 1
+    assert mode_execution["ci_cd"]["postseal_pending"] == 1
+    assert candidate["postseal_acceptance"]["status"] == "PASS"
     assert "Operators: PCM + MBA" in mode_execution["visible_formula_response"][0]
     assert refreshed["next_action_contract"]["choices"] == [
         "APPROVE",

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { PageHero } from "../_components/page-hero";
 import { ReleaseStatus } from "../_components/release-status";
 
@@ -19,14 +20,14 @@ export default function ConnectPage() {
       />
       <section className="section shell installCompare">
         <article className="installPath codexPath">
-          <span className="pathNumber">01</span><span className="pill blue">Codex</span>
+          <span className="pathNumber">01</span><span className="universal-pill statusGlassPill" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001"><GlassIconOrb color="#69d9f5" size={28} decorative><OfficialToolIcon tool="terminal" size={15} decorative /></GlassIconOrb><span>Codex</span></span>
           <h2>Install the plugin from an exact Git SHA.</h2>
           <p>Codex can load the plugin’s skills, commands, hooks, and local MCP components from the governed Git marketplace route. The durable local host owns SQLite and pointer state.</p>
           <ol><li>Push and verify the governed Git commit.</li><li>Update the marketplace reference with a cachebuster.</li><li>Install and validate the exact SHA in a fresh Codex runtime.</li><li>Remove an older duplicate only after the replacement is proven.</li></ol>
           <strong className="pathBoundary">Vercel is not required for this path.</strong>
         </article>
         <article className="installPath chatgptPath">
-          <span className="pathNumber">02</span><span className="pill gold">ChatGPT</span>
+          <span className="pathNumber">02</span><span className="universal-pill statusGlassPill" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001"><GlassIconOrb color="#efca72" size={28} decorative><OfficialToolIcon tool="database" size={15} decorative /></GlassIconOrb><span>ChatGPT</span></span>
           <h2>Connect to one durable HTTPS MCP origin.</h2>
           <p>ChatGPT needs a remotely reachable endpoint. Vercel publishes the protocol edge and public policies, validates release identity, and forwards to one configured durable service.</p>
           <ol><li>Deploy the same Git SHA to the Vercel project.</li><li>Configure durable auth, storage, queue, and HTTPS origin.</li><li>Verify <code>/healthz</code> and MCP protocol behavior.</li><li>Install or update the ChatGPT connector, then prove read/write/readback.</li></ol>

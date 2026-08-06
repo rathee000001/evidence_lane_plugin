@@ -352,6 +352,28 @@ def run_acceptance_checks(
         verdict = "PARTIAL_PROSE_CHECKS_NOT_EXECUTED"
     else:
         verdict = "ALL_EXECUTABLE_CHECKS_PASS"
+    prebuild_failure_count = sum(
+        counts[state]
+        for state in (
+            "FAIL",
+            "TIMEOUT",
+            "ERROR",
+            "PENDING_HUMAN_REVIEW",
+            "BLOCKED_INVALID_COMMAND",
+        )
+    )
+    prebuild_pass = (
+        bool(checks)
+        and source_unchanged
+        and counts["PASS"] > 0
+        and prebuild_failure_count == 0
+        and counts["PASS"] + counts["PENDING_POSTSEAL"] == len(checks)
+    )
+    prebuild_verdict = verdict
+    if prebuild_pass and counts["PENDING_POSTSEAL"]:
+        prebuild_verdict = "ALL_PREBUILD_EXECUTABLE_CHECKS_PASS_POSTSEAL_PENDING"
+    elif prebuild_pass:
+        prebuild_verdict = "ALL_EXECUTABLE_CHECKS_PASS"
     return {
         "status": "PASS" if verdict == "ALL_EXECUTABLE_CHECKS_PASS" else "PARTIAL",
         "verdict": verdict,
@@ -366,4 +388,8 @@ def run_acceptance_checks(
         "commands_inferred": False,
         "command_manifest": manifest_identity,
         "phase": phase.upper(),
+        "prebuild_status": "PASS" if prebuild_pass else "PARTIAL",
+        "prebuild_verdict": prebuild_verdict,
+        "prebuild_executed": counts["PASS"],
+        "postseal_pending": counts["PENDING_POSTSEAL"],
     }

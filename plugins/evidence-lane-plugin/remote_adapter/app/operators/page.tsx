@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { ModeOperatorExplorer } from "../_components/mode-operator-explorer";
 import modeOperatorGuide from "../_data/mode-governance.json";
 
@@ -24,8 +25,14 @@ export default function OperatorsPage() {
             and six-way human decision semantics.
           </p>
           <div className="actions">
-            <Link className="primary" href="#mode-explorer">Open the explorer</Link>
-            <Link className="secondary" href="/architecture">Trace authority flow</Link>
+            <Link className="primary universal-pill actionGlassPill" href="#mode-explorer" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001">
+              <GlassIconOrb color="#b6a0ff" size={30} decorative><OfficialToolIcon tool="terminal" size={16} decorative /></GlassIconOrb>
+              <span>Open the explorer</span>
+            </Link>
+            <Link className="secondary universal-pill actionGlassPill" href="/architecture" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001">
+              <GlassIconOrb color="#69d9f5" size={30} decorative><OfficialToolIcon tool="node" size={16} decorative /></GlassIconOrb>
+              <span>Trace authority flow</span>
+            </Link>
           </div>
         </div>
         <aside className="operatorAuthorityCard" aria-label="Mode authority seals">

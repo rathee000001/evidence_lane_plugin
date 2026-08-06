@@ -113,23 +113,25 @@ def test_source_lab_keeps_reuse_refusal_and_agentic_route_law_visible() -> None:
     assert "not a second GitHub gateway" in lab
 
 
-def test_toolchain_is_official_icons_to_one_static_brain_to_four_files() -> None:
+def test_toolchain_uses_exact_app_brain_tools_schema_and_four_files() -> None:
     console = (COMPONENTS / "evidence-console.tsx").read_text(encoding="utf-8")
     assets = (COMPONENTS / "evidence-assets.tsx").read_text(encoding="utf-8")
-    css = (APP / "globals.css").read_text(encoding="utf-8")
-
-    assert "laneToolchains.map" in console
-    assert "laneToolSteps(active)" in console
-    assert console.count("<EvidenceBrainAsset") == 1
+    popup = (COMPONENTS / "governed-popup.tsx").read_text(encoding="utf-8")
+    assert "laneRuntimeContracts" in console
+    assert "universalLaneSchema" in console
+    assert "runtime.tools.map" in console
+    assert "runtime.schemaAdditions.map" in console
+    assert console.count("<PulsatingBrain") == 1
     assert "OfficialToolIcon" in console
     assert '`${active.id}_sector_v001.sqlite`' in console
     assert '`${active.id}.mmd`' in console
     assert '`${active.id}.dot`' in console
     assert '"refresh_receipt.json"' in console
     assert "outputFiles.map" in console
-    assert "--orbit-start" in console and "--orbit-end" in console
-    assert "translateX(98px)" in css and "rotate(var(--orbit-end))" in css
-    assert "enter · orbit · digest · emit" in console
+    assert "--orbit-start" not in console and "--orbit-end" not in console
+    assert "T023_UNIVERSAL_POPUP_FADE_V001" in popup
+    assert "T023_UNIVERSAL_FROSTED_POPUP_V001" in popup
+    assert "Universal schema contract" in console and "{active.name} additions" in console
 
     for tool in (
         "database",
@@ -153,15 +155,69 @@ def test_toolchain_is_official_icons_to_one_static_brain_to_four_files() -> None
 def test_all_eighteen_canonical_lanes_drive_the_interactive_toolchain() -> None:
     site = (APP / "_data" / "site.ts").read_text(encoding="utf-8")
     console = (COMPONENTS / "evidence-console.tsx").read_text(encoding="utf-8")
+    landing = (APP / "page.tsx").read_text(encoding="utf-8")
+    lanes_page = (APP / "lanes" / "page.tsx").read_text(encoding="utf-8")
     lane_block = site.split("export const laneToolchains = [", 1)[1].split("] as const;", 1)[0]
     lane_ids = re.findall(r'^    id: "([a-z_]+)",$', lane_block, flags=re.MULTILINE)
 
     assert len(lane_ids) == 18
     assert len(set(lane_ids)) == 18
     assert lane_ids[-1] == "chat_lineage"
-    assert 'role="tablist" aria-label="Canonical Evidence Lane toolchains"' in console
+    assert 'role="tablist"' in console
+    assert 'aria-label="Canonical Evidence Lane toolchains"' in console
     assert "ArrowRight" in console and "ArrowLeft" in console
-    assert "Replay flow" in console and "Auto cycle" in console
+    assert "LaneToolchainExplorer" in lanes_page
+    assert "LaneToolchainExplorer" not in landing
+    assert "Replay flow" not in console and "Auto cycle" not in console
+
+
+def test_v130_home_uses_delta_story_plugin_catalog_and_universal_glass_pills() -> None:
+    landing = (APP / "page.tsx").read_text(encoding="utf-8")
+    header = (COMPONENTS / "site-header.tsx").read_text(encoding="utf-8")
+    catalog = (COMPONENTS / "plugin-surface-catalog.tsx").read_text(encoding="utf-8")
+    popup = (COMPONENTS / "governed-popup.tsx").read_text(encoding="utf-8")
+    surfaces = (APP / "_data" / "plugin-surfaces.ts").read_text(encoding="utf-8")
+    ledger = (APP / "_data" / "delta-ledger.ts").read_text(encoding="utf-8")
+    css = (APP / "globals.css").read_text(encoding="utf-8")
+
+    assert "DeltaLedgerExplorer" in landing
+    assert "PluginSurfaceCatalog" in landing
+    assert "PulsatingBrain" in landing
+    for retired in ("EvidenceOrbit", "SourceBrainLab", "UniversalCommandDeck", "LaneToolchainExplorer"):
+        assert retired not in landing
+
+    assert surfaces.count("primaryControl: true") == 6
+    assert len(re.findall(r'^    id: "[a-z0-9-]+",$', surfaces, flags=re.MULTILINE)) == 15
+    assert "T023_UNIVERSAL_GLASS_PILL_V001" in header
+    assert "GlassIconOrb" in header and "GlassIconOrb" in catalog and "GlassIconOrb" in popup
+    assert "T023_UNIVERSAL_POPUP_FADE_V001" in popup
+    assert 'role="dialog"' in popup and 'aria-modal="true"' in popup
+    assert "order: index + 1" in ledger and "order: 80," in ledger
+    assert "PV6 CORRECTION ACTIVE" in ledger
+    assert ".rilFloatingNav .brand" in css
+    assert "background: transparent" in css
+    assert "--universal-popup-fade-duration: 140ms" in css
+    assert '@keyframes universal-popup-fade' in css
+    assert "position: fixed" in css and "place-items: center" in css
+
+
+def test_every_legacy_route_pill_uses_the_glass_orb_schema() -> None:
+    routes = [
+        APP / "page.tsx",
+        APP / "architecture" / "page.tsx",
+        APP / "connect" / "page.tsx",
+        APP / "operators" / "page.tsx",
+        APP / "studio" / "page.tsx",
+        APP / "not-found.tsx",
+    ]
+    combined = "\n".join(path.read_text(encoding="utf-8") for path in routes)
+
+    assert 'className="pill dark"' not in combined
+    assert 'className="pill blue"' not in combined
+    assert 'className="pill gold"' not in combined
+    assert combined.count("T023_UNIVERSAL_GLASS_PILL_V001") >= 12
+    assert combined.count("<GlassIconOrb") >= 12
+    assert combined.count("<OfficialToolIcon") >= 12
 
 
 def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:

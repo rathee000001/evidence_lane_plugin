@@ -313,34 +313,34 @@ export const lanes = laneToolchains.map(({ name, reason }) => [name, reason] as 
 
 export const painLedger = [
   {
-    title: "Context expires",
-    observation: "A new host task does not inherit exact files, hashes, accepted versions, steers, and gates by implication.",
-    failure: "A polished summary can still resume from the wrong state.",
-    response: "Enter from a hash-bound accepted PV and append every visible correction to Chat Lineage.",
+    title: "Task windows end before the project does",
+    observation: "A new Codex or ChatGPT task does not inherit exact files, hashes, accepted versions, steers, and gates by implication.",
+    failure: "A polished handoff can sound complete while resuming from the wrong bytes or decision.",
+    response: "Resume from a hash-bound accepted PV and preserve the exact pending candidate and HIL.",
   },
   {
-    title: "Tests are not approval",
-    observation: "A passing build proves only the checks it ran; it does not prove release intent or human acceptance.",
-    failure: "Candidate output gets treated as accepted truth because work continued.",
-    response: "Stop at a six-way HIL; only the exact APPROVE token can authorize Fuse.",
+    title: "Evidence fragments across tools",
+    observation: "Git, chat, files, OCR, data, builds, and deployment checks produce different partial views of the same project.",
+    failure: "The model fills missing relationships with plausible narrative instead of inspectable evidence.",
+    response: "Route every source into one of 18 lane contracts and reconcile SQLite, Mermaid, DOT, and receipts.",
   },
   {
-    title: "Topology can lie",
-    observation: "A generic diagram can look plausible while omitting the database entities and relationships that matter.",
-    failure: "Readable graphics create confidence without semantic parity.",
-    response: "Reconcile SQLite counts and exact node-edge identity across MMD and DOT, including the seven-entity code contract.",
+    title: "A passing check is narrower than a release decision",
+    observation: "Builds and tests prove only the commands that actually executed against the bound source identity.",
+    failure: "Continued work, green CI, or a visible preview is misread as human acceptance.",
+    response: "Render a lane-specific six-way HIL; only exact APPROVE can authorize Fuse.",
   },
   {
-    title: "A connection name is not identity",
-    observation: "An existing ChatGPT app entry can remain healthy while pointing at an older release.",
-    failure: "Availability is reported as deployment success without exact release readback.",
-    response: "Verify the direct/private and Vercel MCP paths separately against the same release identity.",
+    title: "Hosts do not share one storage reality",
+    observation: "A stable PC, durable VM, ephemeral Codex VM, and ChatGPT MCP host have different continuity boundaries.",
+    failure: "A convenient connector becomes an unverified alternative source of truth.",
+    response: "Select durable local or mounted runtime authority by host class and carry only sealed entry/exit evidence.",
   },
 ] as const;
 
 export const proofMetrics = [
   ["18", "canonical lanes", "Every routed source resolves to one inspectable lane contract."],
-  ["7", "logical code entities", "Both code modes expose the authorized builder topology."],
+  ["15", "plugin surfaces", "Six lifecycle controls plus nine explicit routers and sidecars."],
   ["6", "everyday controls", "Boot, Rollback, Build, Refresh, Mode, and Source Intake."],
   ["1", "promotion token", "Only exact, case-sensitive APPROVE can authorize Fuse."],
 ] as const;
@@ -349,8 +349,7 @@ export const artifactContract = [
   ["SQLite", "Integrity, foreign keys, FTS, facts, history, and content-addressed chunks."],
   ["MMD", "Human-readable semantic topology reconciled back to the lane database."],
   ["DOT", "Machine-comparable graph topology with the same node and edge identity."],
-  ["Pointer", "Entered-from, proposed version, lifecycle state, and exact hash evidence."],
-  ["Receipt", "Source policy, refresh, actor, tool, build, test, and classification facts."],
+  ["Receipt", "Source policy, pointer, refresh, actor, tool, build, test, and classification facts."],
 ] as const;
 
 export const proofRules = [

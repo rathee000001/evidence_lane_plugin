@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
+import { LaneToolchainExplorer } from "../_components/evidence-console";
 import { PageHero } from "../_components/page-hero";
-import { artifactContract, lanes } from "../_data/site";
+import { artifactContract } from "../_data/site";
 
 export const metadata: Metadata = {
   title: "18 Lanes",
@@ -17,19 +18,22 @@ export default function LanesPage() {
         description="Source Intake chooses a deterministic lane from detected evidence or an explicit user override. Mode remains a separate sidecar. Chat Lineage is always present."
         aside={<div className="numberAside"><strong>18</strong><span>canonical lanes</span><small>plus ordered custom modes</small></div>}
       />
-      <section className="section laneCatalogBand">
-        <div className="shell laneCatalog">
-          {lanes.map(([name, detail], index) => (
-            <article key={name}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <div><h2>{name}</h2><p>{detail}</p></div>
-              <b>SQLite / MMD / DOT / pointer</b>
-            </article>
-          ))}
+      <section className="section laneToolchainPage">
+        <div className="shell">
+          <div className="sectionHead wideHead">
+            <span className="kicker">Lane pill · exact runtime contract</span>
+            <h2>Select one lane. Inspect every layer.</h2>
+            <p>
+              Each glass pill opens that lane&apos;s current tools, ordered working sequence,
+              parser and retrieval settings, universal plus lane-specific SQLite schema, and
+              exact four-file output contract.
+            </p>
+          </div>
+          <LaneToolchainExplorer />
         </div>
       </section>
       <section className="section shell laneContract">
-        <div className="sectionHead"><span className="kicker">Per-lane package</span><h2>No hidden proprietary viewer required.</h2><p>Each lane emits open formats that can be inspected independently and reconciled together.</p></div>
+        <div className="sectionHead"><span className="kicker">Four-file package</span><h2>No hidden proprietary viewer required.</h2><p>Each lane emits open formats that can be inspected independently and reconciled together.</p></div>
         <div className="contractCards">
           {artifactContract.map(([title, text], index) => <article key={title}><span>0{index + 1}</span><h3>{title}</h3><p>{text}</p></article>)}
         </div>

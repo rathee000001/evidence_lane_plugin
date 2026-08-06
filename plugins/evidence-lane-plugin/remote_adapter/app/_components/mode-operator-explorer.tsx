@@ -2,6 +2,8 @@
 
 import { useState, type KeyboardEvent } from "react";
 
+import { GlassIconOrb, OfficialToolIcon } from "./evidence-assets";
+
 type HilChoice = {
   token: string;
   lane_effect: string;
@@ -131,6 +133,9 @@ export function ModeOperatorExplorer({ data }: { data: OperatorGuide }) {
             tabIndex={mode.id === active.id ? 0 : -1}
             type="button"
           >
+            <GlassIconOrb color={mode.id === "CD" ? "#efca72" : "#69d9f5"} size={32} decorative>
+              <OfficialToolIcon tool={mode.id === "CD" ? "terminal" : "pulse"} size={17} decorative />
+            </GlassIconOrb>
             <b>{mode.id}</b>
             <span>{mode.name}</span>
           </button>
@@ -151,15 +156,15 @@ export function ModeOperatorExplorer({ data }: { data: OperatorGuide }) {
           </div>
           <div className="selectionOrigin" role="group" aria-label="Mode selection origin">
             <button
-              className={origin === "plugin" ? "active" : ""}
+              className={`universal-pill${origin === "plugin" ? " active" : ""}`}
               onClick={() => setOrigin("plugin")}
               type="button"
-            >Plugin / API</button>
+            ><GlassIconOrb color="#b6a0ff" size={28} decorative><OfficialToolIcon tool="package" size={15} decorative /></GlassIconOrb><span>Plugin / API</span></button>
             <button
-              className={origin === "prompt" ? "active" : ""}
+              className={`universal-pill${origin === "prompt" ? " active" : ""}`}
               onClick={() => setOrigin("prompt")}
               type="button"
-            >Prompt inferred</button>
+            ><GlassIconOrb color="#83ddb3" size={28} decorative><OfficialToolIcon tool="pulse" size={15} decorative /></GlassIconOrb><span>Prompt inferred</span></button>
           </div>
         </div>
 
