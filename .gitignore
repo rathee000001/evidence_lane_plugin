@@ -15,6 +15,7 @@ node_modules/
 *.egg-info/
 .runtime/
 .hil/
+.vercel/
 *.log
 .env
 .env.*
