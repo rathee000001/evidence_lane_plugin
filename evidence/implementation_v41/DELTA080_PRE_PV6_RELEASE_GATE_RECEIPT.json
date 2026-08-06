@@ -1,0 +1,90 @@
+{
+  "schema": "evidence-lane.delta080-pre-pv6-release-gate-receipt.v1",
+  "delta_id": "EL-V130-FULL-REGRESSION-PRE-PV6-RELEASE-GATE-DELTA-080",
+  "status": "PASS",
+  "source_commit": {
+    "branch": "agent/evi-v130-all-source-brain-workflow-hil-v1.3.0",
+    "commit_sha": "5D947C47C80F747DE85BFCDF237063B36471B69C",
+    "tree_sha": "BB0E64E9DE3EA3F597CA947306C13271DAB23DD5",
+    "remote_branch_only": true,
+    "remote_published_at_receipt_time": false,
+    "main_merged": false
+  },
+  "code_mode_contract": {
+    "formula": "plan -> sandbox build -> test -> hash -> package",
+    "loop": "entry -> preflight -> sandbox -> patch -> test -> exit",
+    "operators": [
+      "CI/CD",
+      "PCM",
+      "MBA"
+    ]
+  },
+  "full_regression": {
+    "python": "CPython 3.12 isolated repo-ignored virtual environment",
+    "dependencies": "Exact project and dev pins from pyproject.toml including mcp==1.28.1 and pytest==9.1.1",
+    "initial_run": {
+      "result": "214 passed, 1 failed in 1103.61s",
+      "failure": "tests/test_mcp_plugin.py::test_command_surface_covers_lifecycle_and_all_lane_commands",
+      "root_cause": "Skill prose used mounted/local, accidentally containing prohibited legacy command substring /local"
+    },
+    "bounded_correction": {
+      "change": "Replace mounted/local with mounted or local in the storage skill and continuity documentation",
+      "focused_test": "1 passed in 0.61s",
+      "source_commit_sha": "5D947C47C80F747DE85BFCDF237063B36471B69C"
+    },
+    "final_clean_run": {
+      "command": "python -m pytest -q",
+      "result": "215 passed in 1079.13s",
+      "exit_code": 0,
+      "skipped_or_xfailed": 0
+    }
+  },
+  "governed_quality": {
+    "status": "PASS",
+    "ruff_version": "0.16.0",
+    "ruff_result": "All checks passed",
+    "mypy_version": "2.3.0",
+    "mypy_result": "Success: no issues found in 65 source files",
+    "runtime_receipt_path": ".runtime/ci/final-governed-quality-receipt.json",
+    "runtime_receipt_sha256": "1FB2C200AF87AF9A8DD8014E7F94D04680400244FDF0881415A3360A03510A93",
+    "runtime_receipt_file_sha256": "B0AB21ADCB3F24B148D01811256E412CA9844D398E45A52EC41F214245D270F1",
+    "runtime_receipt_self_seal_valid": true
+  },
+  "preview_build": {
+    "status": "PASS",
+    "framework": "Next.js 16.1.5",
+    "build": "Optimized production build compiled, TypeScript passed, and 16 static pages generated",
+    "runtime_receipt_path": ".runtime/ci/final-preview-build-receipt.json",
+    "runtime_receipt_sha256": "8C0234A9DC3A3A3EB0BD7DC6E1E0D9BEF28E730927D5B5EA546AF6BD50BDFDC2",
+    "runtime_receipt_file_sha256": "96EFD56EB1A98B4D0F8F0858E96E3B62AC5F959ABE9509C01067E3F172137632",
+    "runtime_receipt_self_seal_valid": true,
+    "production_deployed": false
+  },
+  "corrected_file_sha256": {
+    "docs/HOST_STORAGE_ENV_MODE_CONTINUITY.md": "541BB73C9004F63EF3185AB9FBF7B2BD4FF3DB837E1EF75E23EA37C85B7B2BA2",
+    "plugins/evidence-lane-plugin/skills/evi-storage/SKILL.md": "09E38D3B6C0E189C5F46A44C5777FD458AD425AC586BDC7A564DB2B86AB73B24"
+  },
+  "release_boundary": {
+    "full_suite_required": true,
+    "static_quality_required": true,
+    "preview_build_required": true,
+    "final_preview_deployment_pending": true,
+    "fresh_pv6_candidate_pending": true,
+    "hil_decision_pending": true
+  },
+  "safety": {
+    "source_reset_stash_clean": false,
+    "main_merged": false,
+    "production_deployed": false,
+    "pointer_moved": false,
+    "pv_built": false,
+    "hil_approval_inferred": false,
+    "shutdown_scheduled": false
+  },
+  "verdict": {
+    "decision": "PURSUE",
+    "confidence_percent": 99,
+    "evidence_that_would_change_verdict": "A non-zero full-suite rerun, an invalid CI receipt seal, a Ruff or MyPy defect, a failed production-equivalent preview build, a dirty final source boundary, or a later PV6 seal mismatch."
+  },
+  "receipt_sha256": "990DBBC1E73EA4CADAD5B991FE7A88094C1B41C39C19BA347882D5CA0AE7F922"
+}
