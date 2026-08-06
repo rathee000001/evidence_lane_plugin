@@ -34,6 +34,18 @@ this repository's separately authorized candidate-distribution branch.
    authority fields.
 8. Only then may one non-force branch push occur.
 
+## Exact-source invalidation
+
+A prepared action is bound to its exact local ref plus the accepted PV,
+manifest hash, and pointer generation. If any tracked source changes before
+execution, the action is superseded even when the accepted pointer is
+unchanged. Do not execute or repurpose its token. Finish the new source gate,
+create the new commit, then prepare and display a new one-use action/token.
+
+The same rule applies when a pre-push audit finds invalid release evidence: the
+finding is corrected before publication, and the obsolete action remains
+unconsumed as historical control evidence.
+
 ## Forbidden behavior
 
 - no automatic push after a build or HIL approval;

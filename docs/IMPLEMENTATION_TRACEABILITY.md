@@ -14,6 +14,8 @@
 | Bounded connector/plugin governance | `connector_governance.py`, `/evi-plugin` sidecars | purpose/role/typed-schema/host-profile/runtime grants, eight slots, ordered per-plugin guard traces, zero-match and ambiguity fail-closed routing with exact preferred-ID selection, exact drop, role-schema table and history/FTS tests |
 | MCP native cold-start ordering | `mcp_server.py`, `lane_engine.py` | startup prewarm before event loop, 18-lane deterministic parallel build, exact public stdio transition benchmark |
 | Atomic ordered Delta completion | `store.py`, `session.py` | exact ledger-order evidence, one locked batch receipt, sequential ACTIVE/DONE events, later HIL mapping |
+| Accepted-authority evolution boundary | `service.py`, `session.py`, `runtime_continuity.py` | immutable accepted-byte/hash/pointer/SQLite validation, visible historical-schema compatibility, and strict successor-candidate tests |
+| Top-level v1.3 release receipt self-seals | `evidence/implementation_v41/*.json`, `hashing.py` | complete directory scan using canonical JSON with only the top-level `receipt_sha256` removed |
 | Interrupted exit recovery | `state_law.py`, `session.py`, `.mcp.json` | candidate-absent self-transition, visible receipt, pointer immutability, one-hour long-tool timeout |
 | Per-lane forensic reports | `forensic_audit.py`, `scripts/forensic_audit.py` | 18 individual Markdown reports plus JSON/manifest; SQLite/FK/FTS and MMD/DOT/pointer/refresh checks |
 | Host-specific output handoff | `next_actions.py`, Exit Slip | Codex-local versus user-mediated confirmation tests |

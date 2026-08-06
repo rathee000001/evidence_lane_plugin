@@ -17,6 +17,7 @@ SOURCE_ROOT = PLUGIN_ROOT / "src"
 if str(SOURCE_ROOT) not in sys.path:
     sys.path.insert(0, str(SOURCE_ROOT))
 
+from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.hashing import sha256_file
 from evidence_lane_plugin.lanes import (
     CANONICAL_LANE_IDS,
@@ -261,9 +262,15 @@ def check_ac11() -> dict[str, Any]:
     vercel = receipt.get("vercel") or {}
     routing = receipt.get("routing") or {}
     _require(codex.get("engine_commit") == _head(), "Codex installed commit mismatch.")
-    _require(codex.get("version") == "1.2.0", "Codex plugin version is not 1.2.0.")
+    _require(
+        codex.get("version") == ENGINE_VERSION,
+        f"Codex plugin version is not {ENGINE_VERSION}.",
+    )
     _require(chatgpt.get("fresh_chat_boot") == "PASS", "Fresh ChatGPT boot did not pass.")
-    _require(chatgpt.get("plugin_version") == "1.2.0", "ChatGPT plugin version is not 1.2.0.")
+    _require(
+        chatgpt.get("plugin_version") == ENGINE_VERSION,
+        f"ChatGPT plugin version is not {ENGINE_VERSION}.",
+    )
     _require(bool(chatgpt.get("models_tested")), "No fresh-chat model proof is recorded.")
     _require(vercel.get("production") is False, "The HIL deployment must remain a branch preview.")
     _require(str(vercel.get("deployment_url") or "").startswith("https://"), "Preview URL is invalid.")

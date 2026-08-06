@@ -67,6 +67,12 @@ normal Vercel CLI preview workflow. Verify the returned `/healthz` response
 shows the expected release SHA and `local_state_authority: false`. Do not
 promote to production in the implementation HIL.
 
+A preview proves only the exact commit supplied at deployment. Any later
+tracked-source correction supersedes that preview for final-release evidence,
+even if the visible pages are unchanged. Rerun the source gate and deploy a new
+preview bound to the corrected 40-character commit; never relabel the older
+deployment as the final candidate preview.
+
 ## Codex installation remains Git-backed
 
 Codex installs the exact Git snapshot through its marketplace route. Starting a

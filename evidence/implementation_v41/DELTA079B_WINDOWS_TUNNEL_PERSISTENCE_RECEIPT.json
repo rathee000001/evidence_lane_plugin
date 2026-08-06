@@ -31,7 +31,7 @@
     "control_plane_poller_started": true,
     "tunnel_metadata_fetched": true
   },
-  "receipt_sha256": "0A701C17F7AEF302010DFE569CB3599B920EBAD66B47F752BDDA9CF8AE995707",
+  "receipt_sha256": "609E8EBE057D78A7F7EA87BE49CBEEB0A4B9BA716E13AF742AF7C08B5C2B0F00",
   "secret_boundary": {
     "runtime_key_storage": "WINDOWS_DPAPI_CURRENT_USER",
     "secret_envelope": "C:/Users/rathe/EvidenceLanePV/tunnel-runtime/secrets/control-plane-runtime-key.dpapi",

@@ -128,7 +128,7 @@ def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> No
         public_site_url=public_site,
     )
     identity = server._mcp_server
-    assert identity.version == ENGINE_VERSION == "1.2.0"
+    assert identity.version == ENGINE_VERSION == "1.3.0"
     assert str(identity.website_url) == public_site
     assert identity.icons is not None
     assert len(identity.icons) == 1

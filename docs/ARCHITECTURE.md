@@ -1,6 +1,6 @@
 # Architecture
 
-Evidence Lane 1.2.0 separates public controls, lifecycle APIs, brain artifacts,
+Evidence Lane 1.3.0 separates public controls, lifecycle APIs, brain artifacts,
 host storage, and human authority.
 
 ## Control plane
@@ -195,3 +195,18 @@ Candidate build, Git push, plugin install, and preview deployment are evidence,
 not acceptance. State Travel is valid only after exact-APPROVE Fuse, a sealed
 handoff, and an explicit user or genuine context-exhaustion trigger in a
 genuinely fresh destination host.
+
+## Release evidence plane
+
+Accepted PVs are validated as immutable authority for bytes, hashes, pointer
+identity, lane checksums, and SQLite integrity. They are not retroactively
+requalified as candidates when a successor release adds stricter topology
+rules; the compatibility state is reported, and the successor candidate must
+pass the current rules.
+
+Top-level v1.3 Delta receipts use a canonical self-seal: remove only the
+top-level `receipt_sha256`, serialize canonical JSON, and hash those bytes with
+SHA-256. The repository test scans every such receipt. Any tracked-source
+change after a branch push action or preview deployment is prepared invalidates
+that exact-source evidence and requires a new tested commit, action, token, and
+preview.

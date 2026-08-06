@@ -22,7 +22,7 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane Plugin 1.2.0
+# Evidence Lane Plugin 1.3.0
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex, with a
 durable remote MCP boundary for ChatGPT. It turns visible project sources and
@@ -215,6 +215,30 @@ only the accepted pointer among immutable accepted versions. Publication,
 installation, Vercel preview, and ChatGPT connection are release evidence, not
 candidate acceptance.
 
+## v1.3 release and compatibility invariants
+
+An accepted PV remains immutable entry authority even when a later engine adds
+stricter topology or promotability rules. Boot, Resume, status, direct
+continuation, State Travel, and rollback revalidate its exact bytes, pointer,
+manifest/package hashes, lane checksums, and SQLite integrity without
+retroactively treating it as a new candidate. The compatibility state remains
+visible. Every successor candidate must pass every current rule.
+
+Mode selection binds the chosen lane's locked ENV/UOP governance without
+moving the lifecycle. Code Mode visibly executes
+`plan -> sandbox build -> test -> hash -> package` through the controlled
+`entry -> preflight -> sandbox -> patch -> test -> exit` loop with PCM, MBA,
+and supply-chain operators. Other modes retain their own lane gates and HIL
+effects while preserving the same six exact decision tokens.
+
+Every top-level v1.3 Delta receipt that declares `receipt_sha256` is self-sealed
+as SHA-256 over canonical JSON after removing only that top-level field.
+`tests/test_v130_evidence_receipt_seals.py` scans the complete v1.3 evidence
+directory and fails on a stale seal. A tracked-source change after a remote Git
+action or exact-SHA preview is prepared supersedes that action or preview; its
+old token must remain unused, and a new tested commit, action, token, and
+preview are required.
+
 ## Build and validate locally
 
 Requires Python 3.11+ and Git 2.30+.
@@ -230,7 +254,7 @@ python -m venv .venv
 Build the durable MCP container with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:1.2.0 .
+docker build --pull --tag evidence-lane-plugin:1.3.0 .
 ```
 
 The container exposes `/mcp` and `/healthz` on port 8080 and requires one writer

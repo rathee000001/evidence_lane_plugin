@@ -50,3 +50,9 @@ The status contract is `PASS` only when the scheduled task exists, the pinned
 binary hash matches, its PID is live, and `tunnel-client health` observes a
 successful control-plane poll. The scripts never print or write the plaintext
 Runtime API key.
+
+`DELTA079B_WINDOWS_TUNNEL_PERSISTENCE_RECEIPT.json` is point-in-time
+installation evidence, not a permanent claim that its recorded PID or local
+health port remains current. Its top-level `receipt_sha256` seals canonical JSON
+with only that field removed. Live readiness must always be obtained from the
+Status command; the v1.3 receipt-seal regression test rejects a stale seal.

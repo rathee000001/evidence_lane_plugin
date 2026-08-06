@@ -86,5 +86,5 @@
     "confidence_percent": 99,
     "evidence_that_would_change_verdict": "A non-zero full-suite rerun, an invalid CI receipt seal, a Ruff or MyPy defect, a failed production-equivalent preview build, a dirty final source boundary, or a later PV6 seal mismatch."
   },
-  "receipt_sha256": "990DBBC1E73EA4CADAD5B991FE7A88094C1B41C39C19BA347882D5CA0AE7F922"
+  "receipt_sha256": "FF5AC094AD4F9DB2E1BE5FFE8B151E7D556D05B78722E9FE528F4C6350A7207D"
 }
