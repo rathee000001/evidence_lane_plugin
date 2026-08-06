@@ -9,7 +9,7 @@ never itself the database authority.
 | Host profile | Live primary runtime | Google Drive policy |
 | --- | --- | --- |
 | Stable Codex PC, laptop, CLI, or permanent VM | Durable local SQLite | Not selected |
-| ChatGPT connected to a durable mounted/local MCP server | MCP server mounted/local SQLite | Forbidden for ChatGPT runtime |
+| ChatGPT connected to a durable mounted or local MCP server | MCP server mounted or local SQLite | Forbidden for ChatGPT runtime |
 | Ephemeral Codex VM with an explicitly durable mount | Durable mount SQLite | Sealed Entry/Exit carrier allowed, never primary |
 | Ephemeral Codex VM without a durable mount | Configured transactional runtime connector | Sealed Entry/Exit carrier allowed, never primary |
 | ChatGPT MCP server without durable storage | Configured non-Drive transactional runtime connector | Forbidden for ChatGPT runtime |
