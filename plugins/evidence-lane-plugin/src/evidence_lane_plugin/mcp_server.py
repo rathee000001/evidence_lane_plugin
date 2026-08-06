@@ -15,6 +15,7 @@ from starlette.responses import JSONResponse
 
 from .auth import OAuthJWTConfig, OAuthJWTVerifier, StaticBearerVerifier
 from .constants import ENGINE_VERSION
+from .github_automation_governance import apply_fastmcp_tool_filter
 from .lane_engine import prewarm_native_dependencies
 from .service import EvidenceLaneService
 
@@ -62,6 +63,7 @@ def create_mcp_server(
     base_url: str | None = None,
     oauth_config: OAuthJWTConfig | None = None,
     public_site_url: str | None = None,
+    allowed_tool_names: str | tuple[str, ...] | list[str] | None = None,
 ) -> FastMCP:
     application = service or EvidenceLaneService()
     release_identity = application.engine.doctor()["engine"]
@@ -239,7 +241,9 @@ def create_mcp_server(
             "Auto-detect one or more ordered source pointers across all eighteen "
             "canonical lanes and Project Engulf, apply exact per-source overrides, "
             "always include Chat Lineage, and append a visible classification "
-            "receipt without copying source, building a candidate, or moving a pointer."
+            "receipt. GOVERNED_CONTENT_REGISTRY additionally records deterministic "
+            "read-only source identities without copying payloads, building a "
+            "candidate, or moving a pointer."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Classifying Source Intake", "Source Intake classified"),
@@ -251,6 +255,8 @@ def create_mcp_server(
         overrides: dict[str, str] | None = None,
         session_id: str | None = None,
         git_mode: str = "AUTO",
+        authority_mode: str = "CLASSIFICATION_ONLY",
+        source_assertions: dict[str, dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "source_intake_classify",
@@ -260,6 +266,312 @@ def create_mcp_server(
             overrides=overrides,
             session_id=session_id,
             git_mode=git_mode,
+            authority_mode=authority_mode,
+            source_assertions=source_assertions,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="source_sqlite_inspect",
+        title="Inspect registered SQLite brain authorities",
+        description=(
+            "Inspect every direct or ZIP-embedded SQLite authority in one governed "
+            "Source Intake batch. Exact duplicate bytes are inspected once, ZIPs "
+            "with proven extracted counterparts are skipped, independent embedded "
+            "databases use bounded in-memory deserialization, and all SQLite reads "
+            "remain query-only without executing imported SQL or moving a pointer."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Inspecting SQLite authorities", "SQLite authorities inspected"),
+        structured_output=True,
+    )
+    def source_sqlite_inspect(
+        project_id: str,
+        batch_id: str,
+        session_id: str | None = None,
+        max_embedded_member_bytes: int = 768 * 1024 * 1024,
+        exact_count_max_database_bytes: int = 32 * 1024 * 1024,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "source_sqlite_inspect",
+            application.source_sqlite_inspect,
+            project_id,
+            batch_id,
+            session_id=session_id,
+            max_embedded_member_bytes=max_embedded_member_bytes,
+            exact_count_max_database_bytes=exact_count_max_database_bytes,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="source_custom_schema_compile",
+        title="Compile and map a Custom Source Schema",
+        description=(
+            "Validate one declarative, schema-first custom source contract and "
+            "map it deterministically to a governed Source Intake batch. The "
+            "compiler allows only pinned dependencies, ordered selectors, typed "
+            "fields, and non-executable transforms; it reads sealed registry "
+            "metadata only and never executes imported code or SQL, copies source "
+            "payloads, builds a candidate, or moves a pointer."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Compiling Custom Source Schema", "Custom Source Schema mapped"),
+        structured_output=True,
+    )
+    def source_custom_schema_compile(
+        project_id: str,
+        batch_id: str,
+        schema_definition: dict[str, Any],
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "source_custom_schema_compile",
+            application.source_custom_schema_compile,
+            project_id,
+            batch_id,
+            schema_definition,
+            session_id=session_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="source_identity_register",
+        title="Register distinct source-generation identities",
+        description=(
+            "Append a complete multi-axis identity matrix for one governed Source "
+            "Intake batch. Artifact bytes, producer application/release, model, "
+            "architecture generation, internal schema labels, observed filename "
+            "markers, and claim authority remain separate. Alias/SAME_AS collapse "
+            "is forbidden; unbound versions remain explicitly unclaimed."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Registering source identities", "Source identities registered"),
+        structured_output=True,
+    )
+    def source_identity_register(
+        project_id: str,
+        batch_id: str,
+        entities: list[dict[str, Any]],
+        profiles: list[dict[str, Any]],
+        relations: list[dict[str, Any]],
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "source_identity_register",
+            application.source_identity_register,
+            project_id,
+            batch_id,
+            entities=entities,
+            profiles=profiles,
+            relations=relations,
+            session_id=session_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="source_graph_build",
+        title="Build a bounded provenance-first source graph",
+        description=(
+            "Build a deterministic polyglot graph over exact registered Source "
+            "Intake bytes. Stable semantic node IDs exclude mutable line numbers, "
+            "every edge records EXTRACTED, INFERRED, or AMBIGUOUS provenance, "
+            "coverage gaps remain visible, and ZIPs are skipped only with an exact "
+            "Delta 067A extracted-counterpart receipt. Finite file, byte, node, and "
+            "edge bounds apply; an optional repository-relative path-prefix selection "
+            "is sealed and visibly reports omitted registered members. No source, "
+            "candidate, or pointer is mutated."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Building bounded source graph", "Source graph built"),
+        structured_output=True,
+    )
+    def source_graph_build(
+        project_id: str,
+        batch_id: str,
+        occurrence_ordinals: list[int] | None = None,
+        member_path_prefixes: list[str] | None = None,
+        max_files: int = 25_000,
+        max_total_bytes: int = 1024 * 1024 * 1024,
+        max_file_bytes: int = 8 * 1024 * 1024,
+        max_nodes: int = 500_000,
+        max_edges: int = 1_000_000,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "source_graph_build",
+            application.source_graph_build,
+            project_id,
+            batch_id,
+            occurrence_ordinals=occurrence_ordinals,
+            member_path_prefixes=member_path_prefixes,
+            max_files=max_files,
+            max_total_bytes=max_total_bytes,
+            max_file_bytes=max_file_bytes,
+            max_nodes=max_nodes,
+            max_edges=max_edges,
+            session_id=session_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="source_graph_diff",
+        title="Diff exact source-graph snapshots",
+        description=(
+            "Compare two exact registered graph roots by stable node and edge ID, "
+            "separating added, removed, and content-changed entities. Samples are "
+            "bounded and the full count projection is sealed without reading or "
+            "mutating source bytes, candidates, or pointers."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Diffing source graphs", "Source graphs diffed"),
+        structured_output=True,
+    )
+    def source_graph_diff(
+        project_id: str,
+        from_graph_id: str,
+        to_graph_id: str,
+        sample_limit: int = 100,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "source_graph_diff",
+            application.source_graph_diff,
+            project_id,
+            from_graph_id,
+            to_graph_id,
+            sample_limit=sample_limit,
+            session_id=session_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="source_graph_impact",
+        title="Traverse a bounded affected source subgraph",
+        description=(
+            "From exact stable node IDs, traverse upstream dependents, downstream "
+            "dependencies, or both across an explicit relation allowlist. Depth "
+            "and node caps are mandatory, edge evidence retains source location "
+            "and confidence, and the traversal never changes source or lifecycle "
+            "state."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Traversing source impact", "Source impact traversed"),
+        structured_output=True,
+    )
+    def source_graph_impact(
+        project_id: str,
+        graph_id: str,
+        seed_node_ids: list[str],
+        relations: list[str] | None = None,
+        direction: str = "UPSTREAM",
+        max_depth: int = 3,
+        max_nodes: int = 1000,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "source_graph_impact",
+            application.source_graph_impact,
+            project_id,
+            graph_id,
+            seed_node_ids,
+            relations=relations,
+            direction=direction,
+            max_depth=max_depth,
+            max_nodes=max_nodes,
+            session_id=session_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="source_git_history_build",
+        title="Seal full bounded Git history evidence",
+        description=(
+            "For one exact registered directory that still has local .git metadata, "
+            "seal all reachable refs, commits, parent edges, objects, per-commit "
+            "trees, per-parent file changes, renames, hunk coordinates, and changed-"
+            "line hashes. Extracted folders never qualify as history; lazy fetch, "
+            "source writes, Git writes, candidate creation, and pointer movement are "
+            "forbidden. Finite bounds fail closed without a partial snapshot."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Sealing bounded Git history", "Git history sealed"),
+        structured_output=True,
+    )
+    def source_git_history_build(
+        project_id: str,
+        batch_id: str,
+        occurrence_ordinal: int,
+        max_refs: int = 20_000,
+        max_commits: int = 100_000,
+        max_objects: int = 2_000_000,
+        max_tree_entries: int = 5_000_000,
+        max_file_changes: int = 2_000_000,
+        max_hunks: int = 2_000_000,
+        max_changed_lines: int = 5_000_000,
+        max_patch_bytes: int = 2 * 1024 * 1024 * 1024,
+        max_single_object_bytes: int = 1024 * 1024 * 1024,
+        max_total_object_bytes: int = 8 * 1024 * 1024 * 1024,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "source_git_history_build",
+            application.source_git_history_build,
+            project_id,
+            batch_id,
+            occurrence_ordinal,
+            max_refs=max_refs,
+            max_commits=max_commits,
+            max_objects=max_objects,
+            max_tree_entries=max_tree_entries,
+            max_file_changes=max_file_changes,
+            max_hunks=max_hunks,
+            max_changed_lines=max_changed_lines,
+            max_patch_bytes=max_patch_bytes,
+            max_single_object_bytes=max_single_object_bytes,
+            max_total_object_bytes=max_total_object_bytes,
+            session_id=session_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="source_git_commit_impact",
+        title="Map an exact Git parent diff to graph impact",
+        description=(
+            "Bind one indexed commit and exact parent ordinal to FILE nodes from the "
+            "same registered source occurrence, then traverse a bounded semantic "
+            "impact graph. Removed, excluded, ambiguous, or absent paths stay "
+            "explicitly unmapped; no historical semantic state is fabricated and no "
+            "source, Git repository, candidate, or pointer is changed."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Mapping Git change impact", "Git change impact mapped"),
+        structured_output=True,
+    )
+    def source_git_commit_impact(
+        project_id: str,
+        snapshot_id: str,
+        graph_id: str,
+        commit_sha: str,
+        parent_ordinal: int = 0,
+        relations: list[str] | None = None,
+        direction: str = "UPSTREAM",
+        max_depth: int = 3,
+        max_nodes: int = 1000,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "source_git_commit_impact",
+            application.source_git_commit_impact,
+            project_id,
+            snapshot_id,
+            graph_id,
+            commit_sha,
+            parent_ordinal=parent_ordinal,
+            relations=relations,
+            direction=direction,
+            max_depth=max_depth,
+            max_nodes=max_nodes,
+            session_id=session_id,
             lifecycle=True,
         )
 
@@ -515,7 +827,10 @@ def create_mcp_server(
             "Lanes, always include Chat Lineage, append only the privacy-minimized "
             "classification receipt when a session is active, and return to the "
             "prior lifecycle position without creating a task, candidate, HIL, or "
-            "pointer movement."
+            "pointer movement. The result includes visible ENV/UOP formulas, "
+            "PCM/MBA operator receipts, controlled CI/CD requirements, and "
+            "lane-specific meanings for the universal six HIL tokens; render those "
+            "fields visibly and never substitute generic Code-mode HIL semantics."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta(
@@ -1602,6 +1917,8 @@ def create_mcp_server(
             lifecycle=True,
         )
 
+    exposure_receipt = apply_fastmcp_tool_filter(mcp, allowed_tool_names)
+    mcp._evidence_lane_tool_exposure_receipt = exposure_receipt  # type: ignore[attr-defined]
     return mcp
 
 
@@ -1673,5 +1990,6 @@ def run_server(
         bearer_token=bearer or None,
         base_url=base_url,
         oauth_config=oauth_config,
+        allowed_tool_names=os.environ.get("EVIDENCE_LANE_MCP_ALLOWED_TOOLS"),
     )
     server.run(transport=transport)

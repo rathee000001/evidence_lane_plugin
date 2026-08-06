@@ -7,6 +7,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
+from .artifact_contract import validate_four_file_contract
 from .hashing import (
     atomic_write_bytes,
     atomic_write_json,
@@ -16,22 +17,24 @@ from .hashing import (
 )
 from .lane_engine import validate_lane_bundle
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
+from .schema_topology import physical_schema_projection
 from .topology_reconciliation import reconciliation_markdown
 
-FORENSIC_AUDIT_SCHEMA = "evidence-lane.forensic-lane-audit.v1"
+FORENSIC_AUDIT_SCHEMA = "evidence-lane.forensic-lane-audit.v2"
 
 
 def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _sqlite_audit(path: Path) -> dict[str, Any]:
+def _sqlite_audit(path: Path, *, lane_id: str) -> dict[str, Any]:
+    lane = LANE_REGISTRY[lane_id]
     uri = f"file:{path.resolve().as_posix()}?mode=ro&immutable=1"
     with sqlite3.connect(uri, uri=True, timeout=30) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA query_only=ON")
         integrity = [str(row[0]) for row in connection.execute("PRAGMA integrity_check")]
-        foreign_keys = [
+        foreign_key_errors = [
             dict(row) for row in connection.execute("PRAGMA foreign_key_check")
         ]
         user_version = int(connection.execute("PRAGMA user_version").fetchone()[0])
@@ -39,9 +42,8 @@ def _sqlite_audit(path: Path) -> dict[str, Any]:
             dict(row)
             for row in connection.execute(
                 """
-                SELECT name, type, sql
+                SELECT name, type, tbl_name, sql
                 FROM sqlite_master
-                WHERE name NOT LIKE 'sqlite_%'
                 ORDER BY type, name
                 """
             )
@@ -56,7 +58,20 @@ def _sqlite_audit(path: Path) -> dict[str, Any]:
             and str(row.get("sql") or "").upper().startswith("CREATE VIRTUAL TABLE")
             and "USING FTS" in str(row.get("sql") or "").upper()
         ]
+        public_projection = physical_schema_projection(connection, lane)
+        contract_tables = set(lane.schema_contract)
+        public_tables = {
+            str(row["name"])
+            for row in schema_rows
+            if row["type"] == "table" and not str(row["name"]).startswith("sqlite_")
+        }
+        auxiliary_tables = set(public_projection["auxiliary_tables"])
+        missing_contract_tables = sorted(contract_tables - public_tables)
+        unexpected_public_tables = sorted(
+            public_tables - contract_tables - auxiliary_tables
+        )
         row_counts: dict[str, int | str] = {}
+        table_details: list[dict[str, Any]] = []
         for name in table_names:
             quoted = name.replace('"', '""')
             try:
@@ -67,6 +82,92 @@ def _sqlite_audit(path: Path) -> dict[str, Any]:
                 )
             except sqlite3.DatabaseError as exc:
                 row_counts[name] = f"UNREADABLE:{type(exc).__name__}"
+            columns = [
+                {
+                    "cid": int(row["cid"]),
+                    "name": str(row["name"]),
+                    "type": str(row["type"] or ""),
+                    "notnull": bool(row["notnull"]),
+                    "primary_key_ordinal": int(row["pk"]),
+                    "hidden": int(row["hidden"]) if "hidden" in row else 0,
+                }
+                for row in connection.execute(
+                    f'PRAGMA table_xinfo("{quoted}")'  # nosec B608
+                )
+            ]
+            table_foreign_keys = [
+                {
+                    "id": int(row["id"]),
+                    "sequence": int(row["seq"]),
+                    "from_column": str(row["from"]),
+                    "parent_table": str(row["table"]),
+                    "parent_column": str(row["to"] or ""),
+                    "on_update": str(row["on_update"]),
+                    "on_delete": str(row["on_delete"]),
+                }
+                for row in connection.execute(
+                    f'PRAGMA foreign_key_list("{quoted}")'  # nosec B608
+                )
+            ]
+            indexes: list[dict[str, Any]] = []
+            for index_row in connection.execute(
+                f'PRAGMA index_list("{quoted}")'  # nosec B608
+            ):
+                index_name = str(index_row["name"])
+                quoted_index = index_name.replace('"', '""')
+                index_columns = [
+                    {
+                        "sequence": int(column["seqno"]),
+                        "cid": int(column["cid"]),
+                        "name": (
+                            str(column["name"])
+                            if column["name"] is not None
+                            else None
+                        ),
+                    }
+                    for column in connection.execute(
+                        f'PRAGMA index_info("{quoted_index}")'  # nosec B608
+                    )
+                ]
+                indexes.append(
+                    {
+                        "name": index_name,
+                        "unique": bool(index_row["unique"]),
+                        "origin": str(index_row["origin"]),
+                        "partial": bool(index_row["partial"]),
+                        "columns": index_columns,
+                    }
+                )
+            schema_row = next(
+                row
+                for row in schema_rows
+                if row["type"] == "table" and str(row["name"]) == name
+            )
+            if name in contract_tables:
+                role = "declared_contract"
+            elif name in auxiliary_tables:
+                role = "sqlite_engine_auxiliary"
+            elif name.startswith("sqlite_"):
+                role = "sqlite_internal"
+            else:
+                role = "unexpected_public"
+            detail_core = {
+                "table": name,
+                "role": role,
+                "rows": row_counts[name],
+                "definition_sha256": sha256_bytes(
+                    str(schema_row.get("sql") or "").encode("utf-8")
+                ),
+                "columns": columns,
+                "foreign_keys": table_foreign_keys,
+                "indexes": indexes,
+            }
+            table_details.append(
+                {
+                    **detail_core,
+                    "audit_sha256": sha256_bytes(canonical_json_bytes(detail_core)),
+                }
+            )
         fts_checks: dict[str, dict[str, Any]] = {}
         for name in virtual_fts_tables:
             quoted = name.replace('"', '""')
@@ -90,17 +191,42 @@ def _sqlite_audit(path: Path) -> dict[str, Any]:
         "bytes": path.stat().st_size,
         "read_mode": "mode=ro&immutable=1",
         "integrity": integrity,
-        "foreign_key_errors": foreign_keys,
+        "foreign_key_errors": foreign_key_errors,
         "user_version": user_version,
         "tables": table_names,
         "table_count": len(table_names),
+        "audited_table_count": len(table_details),
+        "every_table_audited": len(table_names) == len(table_details),
+        "contract_tables": list(lane.schema_contract),
+        "missing_contract_tables": missing_contract_tables,
+        "auxiliary_tables": sorted(auxiliary_tables),
+        "unexpected_public_tables": unexpected_public_tables,
+        "public_schema_projection_sha256": public_projection[
+            "projection_sha256"
+        ],
         "row_counts": row_counts,
+        "table_details": table_details,
+        "schema_objects": [
+            {
+                "name": str(row["name"]),
+                "type": str(row["type"]),
+                "table": str(row["tbl_name"]),
+                "definition_sha256": sha256_bytes(
+                    str(row.get("sql") or "").encode("utf-8")
+                ),
+            }
+            for row in schema_rows
+        ],
         "fts_tables": virtual_fts_tables,
         "fts_checks": fts_checks,
         "status": (
             "PASS"
             if integrity == ["ok"]
-            and not foreign_keys
+            and not foreign_key_errors
+            and len(table_names) == len(table_details)
+            and not missing_contract_tables
+            and not unexpected_public_tables
+            and all(isinstance(value, int) for value in row_counts.values())
             and all(row["status"] == "PASS" for row in fts_checks.values())
             else "FAIL"
         ),
@@ -125,9 +251,9 @@ def _lane_verdict(checks_pass: bool) -> dict[str, Any]:
         return {
             "verdict": "PURSUE",
             "confidence_percent": 99,
-            "basis": "All sealed artifact, SQLite, FTS, topology, pointer, and manifest checks passed.",
+            "basis": "All four-file, every-table SQLite, FTS, topology, pointer, and manifest checks passed.",
             "evidence_that_would_change_verdict": (
-                "Any hash mismatch, SQLite integrity/FK/FTS failure, missing required artifact, "
+                "Any four-file hash mismatch, incomplete table audit, SQLite integrity/FK/FTS failure, missing required artifact, "
                 "SQLite-to-MMD/DOT disagreement, or pointer/manifest identity mismatch."
             ),
         }
@@ -186,7 +312,10 @@ def audit_lane_bundle(
             if (lane_root / name).is_file()
         }
         missing = sorted(name for name in required if not (lane_root / name).is_file())
-        sqlite_report = _sqlite_audit(lane_root / lane.sqlite_filename)
+        sqlite_report = _sqlite_audit(
+            lane_root / lane.sqlite_filename,
+            lane_id=lane_id,
+        )
         mmd_report = _text_artifact_audit(
             lane_root / lane.mmd_filename,
             prefix="flowchart ",
@@ -194,6 +323,16 @@ def audit_lane_bundle(
         dot_report = _text_artifact_audit(
             lane_root / lane.dot_filename,
             prefix="digraph ",
+        )
+        four_file_contract = validate_four_file_contract(
+            lane_root,
+            lane,
+            (
+                lane_manifest.get("four_file_contract")
+                if lane_manifest.get("schema")
+                == "evidence-lane.lane-manifest.v3"
+                else None
+            ),
         )
         manifest_evidence = lane_manifest.get("evidence_artifacts")
         evidence_hashes = {
@@ -203,7 +342,11 @@ def audit_lane_bundle(
         }
         manifest_hashes_match = (
             manifest_evidence == evidence_hashes
-            if lane_manifest.get("schema") == "evidence-lane.lane-manifest.v2"
+            if lane_manifest.get("schema")
+            in {
+                "evidence-lane.lane-manifest.v2",
+                "evidence-lane.lane-manifest.v3",
+            }
             else lane_manifest.get("stable_artifacts")
             == {
                 name: evidence_hashes[name]
@@ -233,6 +376,7 @@ def audit_lane_bundle(
             and pointer_valid
             and lane_validation.get("valid") is True
             and topology_report.get("status") == "PASS"
+            and four_file_contract.get("valid") is True
         )
         audit = {
             "schema": FORENSIC_AUDIT_SCHEMA,
@@ -245,6 +389,7 @@ def audit_lane_bundle(
             "required_artifacts": required,
             "missing_artifacts": missing,
             "artifact_hashes": artifact_hashes,
+            "four_file_contract": four_file_contract,
             "sqlite": sqlite_report,
             "mermaid": mmd_report,
             "graphviz": dot_report,
@@ -321,6 +466,11 @@ Missing artifacts: `{audit['missing_artifacts']}`
 - Foreign-key errors: `{len(sqlite_report['foreign_key_errors'])}`
 - User version: `{sqlite_report['user_version']}`
 - Tables: `{sqlite_report['table_count']}`
+- Tables audited: `{sqlite_report['audited_table_count']}`
+- Every table audited: `{sqlite_report['every_table_audited']}`
+- Missing contract tables: `{sqlite_report['missing_contract_tables']}`
+- SQLite engine auxiliaries: `{sqlite_report['auxiliary_tables']}`
+- Unexpected public tables: `{sqlite_report['unexpected_public_tables']}`
 - FTS tables: `{sqlite_report['fts_tables']}`
 - FTS checks: `{sqlite_report['fts_checks']}`
 
@@ -338,6 +488,10 @@ Missing artifacts: `{audit['missing_artifacts']}`
 - Pointer valid: `{audit['pointer_valid']}`
 - Manifest schema: `{audit['lane_manifest_schema']}`
 - Manifest hashes match: `{audit['manifest_hashes_match']}`
+- Four-file contract: `{audit['four_file_contract']['status']}`
+- Four-file contract SHA-256: `{audit['four_file_contract'].get('computed_contract_sha256')}`
+- `tools.json` identity: `{audit['four_file_contract']['tools_json_valid']}`
+- `tools.json` to SQLite/MMD/DOT binding: `{audit['four_file_contract']['tools_artifact_authority_valid']}`
 - Refresh build mode: `{audit['refresh']['build_mode']}`
 - Stable bytes reused: `{audit['refresh']['stable_artifacts_byte_reused']}`
 

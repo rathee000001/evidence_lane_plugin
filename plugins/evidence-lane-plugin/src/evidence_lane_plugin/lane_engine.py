@@ -23,6 +23,14 @@ from typing import Any, ClassVar
 
 from defusedxml import ElementTree
 
+from .artifact_contract import (
+    FOUR_FILE_CONTRACT_SCHEMA,
+    TOOLS_ARTIFACT_AUTHORITY_SCHEMA,
+    bind_tools_to_artifacts,
+    build_four_file_contract,
+    stable_artifact_names,
+    validate_four_file_contract,
+)
 from .git_history import (
     create_git_history_schema,
     git_history_signature,
@@ -50,6 +58,11 @@ from .lanes import (
     route_source,
 )
 from .redaction import redact_text
+from .schema_topology import (
+    PHYSICAL_SCHEMA_PROJECTION_SCHEMA,
+    physical_schema_projection,
+    physical_table_node_ids,
+)
 from .timeutil import utc_now
 from .topology_reconciliation import (
     reconcile_bundle_topology,
@@ -59,7 +72,8 @@ from .topology_reconciliation import (
 LANE_SCHEMA_VERSION = "evidence-lane.universal-lane.v2"
 LEGACY_LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v1"
 LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v2"
-TOPOLOGY_GENERATOR_SCHEMA = "evidence-lane.lane-topology-generator.v3"
+TOPOLOGY_GENERATOR_SCHEMA = "evidence-lane.lane-topology-generator.v4"
+LANE_MANIFEST_SCHEMA = "evidence-lane.lane-manifest.v3"
 MAX_EXTRACT_BYTES = 64 * 1024 * 1024
 MAX_PDF_PAGES = 500
 MAX_ROWS_PER_TAB = 5000
@@ -260,11 +274,19 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
 def _tool_identity(lane: LaneDefinition) -> dict[str, Any]:
     capabilities = _capability_rows(lane)
     topology_generator = _topology_generator_identity(lane)
+    artifact_contract_module = Path(
+        bind_tools_to_artifacts.__code__.co_filename
+    ).resolve()
     payload = {
         "lane": lane.as_dict(),
         "capabilities": capabilities,
         "lane_schema_version": LANE_SCHEMA_VERSION,
         "topology_generator": topology_generator,
+        "artifact_contract": {
+            "four_file_schema": FOUR_FILE_CONTRACT_SCHEMA,
+            "tools_authority_schema": TOOLS_ARTIFACT_AUTHORITY_SCHEMA,
+            "module_sha256": sha256_file(artifact_contract_module),
+        },
     }
     payload["sha256"] = sha256_bytes(canonical_json_bytes(payload))
     return payload
@@ -274,13 +296,24 @@ def _topology_generator_identity(lane: LaneDefinition) -> dict[str, Any]:
     """Bind incremental reuse to the exact installed topology emitter bytes."""
 
     module_path = Path(__file__).resolve()
+    schema_topology_module_path = Path(
+        physical_schema_projection.__code__.co_filename
+    ).resolve()
+    reconciliation_module_path = Path(
+        reconcile_lane_topology.__code__.co_filename
+    ).resolve()
     payload = {
         "schema": TOPOLOGY_GENERATOR_SCHEMA,
         "module": module_path.name,
         "module_sha256": sha256_file(module_path),
+        "schema_topology_module_sha256": sha256_file(schema_topology_module_path),
+        "topology_reconciliation_module_sha256": sha256_file(
+            reconciliation_module_path
+        ),
         "lane_id": lane.canonical_lane_id,
         "lane_schema_contract": list(lane.schema_contract),
         "mmd_dot_shared_graph": True,
+        "physical_schema_projection_schema": PHYSICAL_SCHEMA_PROJECTION_SCHEMA,
         "sqlite_brain_builder_mmd_authority_sha256": (
             SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256
         ),
@@ -3688,13 +3721,58 @@ def _lane_topology(
         graph.edge("FACT_INDEX", "FACT_EMPTY")
     graph.end()
 
+    physical_projection = physical_schema_projection(connection, lane)
+    missing_contract_tables = physical_projection["missing_contract_tables"]
+    if missing_contract_tables:
+        raise RuntimeError(
+            "Required lane schema tables are missing: "
+            + ", ".join(str(table) for table in missing_contract_tables)
+        )
+    graph.begin(
+        "SQLITE_PHYSICAL_SCHEMA",
+        "3. Additive SQLite physical schema contract",
+    )
+    graph.node(
+        "PHYSICAL_SCHEMA_SECTOR",
+        "SQLite physical schema\n"
+        f'contract={physical_projection["contract_table_count"]} | '
+        f'tables={physical_projection["table_count"]} | '
+        f'auxiliaries={physical_projection["auxiliary_table_count"]} | '
+        f'relations={physical_projection["relation_count"]}\n'
+        f'projection_sha256={physical_projection["projection_sha256"]}',
+        "root",
+    )
+    graph.edge("LANE_ROOT", "PHYSICAL_SCHEMA_SECTOR", "derives from SQLite")
+    physical_nodes = physical_table_node_ids(physical_projection)
+    for row in physical_projection["tables"]:
+        table = str(row["table"])
+        table_node = physical_nodes[table]
+        graph.node(
+            table_node,
+            f'{table}\nrows={row["rows"]} | columns={len(row["columns"])} | '
+            f'role={row["role"]}',
+            "retrieval" if row["role"] == "sqlite_engine_auxiliary" else "semantic",
+        )
+        graph.edge("PHYSICAL_SCHEMA_SECTOR", table_node, "physical table")
+    for relation in physical_projection["relations"]:
+        parent_node = physical_nodes.get(str(relation["parent_table"]))
+        child_node = physical_nodes.get(str(relation["child_table"]))
+        if parent_node and child_node:
+            graph.edge(
+                parent_node,
+                child_node,
+                f'{relation["from_column"]} -> '
+                f'{relation["parent_table"]}.{relation["parent_column"]}',
+            )
+    graph.end()
+
     if lane.canonical_lane_id not in PRIMARY_CODE_LANES:
         schema_records = _schema_topology_records(connection, lane)
         relation_count = sum(len(row["foreign_keys"]) for row in schema_records)
         sample_count = sum(row["sample"] is not None for row in schema_records)
         graph.begin(
             "SCHEMA_DERIVED_TOPOLOGY",
-            "3. Lane-owned SQLite entities, relations, and samples",
+            "4. Lane-owned SQLite entities, relations, and samples",
         )
         graph.node(
             "SCHEMA_SECTOR",
@@ -3749,7 +3827,7 @@ def _lane_topology(
     if lane.canonical_lane_id in PRIMARY_CODE_LANES:
         graph.begin(
             "CODE_LOGICAL_TOPOLOGY",
-            "3. Authorized seven-entity logical code topology",
+            "4. Authorized seven-entity logical code topology",
         )
         graph.node(
             "CODE_SECTOR",
@@ -3787,7 +3865,7 @@ def _lane_topology(
             graph.edge("APP_ROUTE", sample_node, "sample")
         graph.end()
 
-        graph.begin("GIT_LINEAGE", "4. Full Git history and content-addressed reuse")
+        graph.begin("GIT_LINEAGE", "5. Full Git history and content-addressed reuse")
         git_tables = (
             "git_commit_registry",
             "git_commit_parent",
@@ -3817,7 +3895,7 @@ def _lane_topology(
             graph.edge("GIT_0", node, "commit sample")
         graph.end()
 
-    section_number = 5 if lane.canonical_lane_id in PRIMARY_CODE_LANES else 4
+    section_number = 6 if lane.canonical_lane_id in PRIMARY_CODE_LANES else 5
     graph.begin("RETRIEVAL", f"{section_number}. Retrieval and changed-section reuse")
     retrieval = (
         ("CHUNK_INDEX", "chunk_index", chunks),
@@ -3882,12 +3960,7 @@ def _lane_topology(
 
 
 def _lane_stable_files(lane: LaneDefinition) -> tuple[str, ...]:
-    return (
-        lane.sqlite_filename,
-        lane.mmd_filename,
-        lane.dot_filename,
-        "tools.json",
-    )
+    return stable_artifact_names(lane)
 
 
 def _lane_evidence_files(lane: LaneDefinition) -> tuple[str, ...]:
@@ -4208,7 +4281,10 @@ def _build_one_lane(
         mmd, dot = _lane_topology(lane, db_path, classification)
         atomic_write_bytes(output / lane.mmd_filename, mmd.encode("utf-8"))
         atomic_write_bytes(output / lane.dot_filename, dot.encode("utf-8"))
-        atomic_write_json(output / "tools.json", tools)
+        atomic_write_json(
+            output / "tools.json",
+            bind_tools_to_artifacts(output, lane, tools),
+        )
         byte_reused = False
         validation = _validate_lane_database(db_path, lane)
 
@@ -4256,13 +4332,15 @@ def _build_one_lane(
         filename: sha256_file(output / filename)
         for filename in _lane_evidence_files(lane)
     }
+    four_file_contract = build_four_file_contract(output, lane)
     lane_manifest = {
-        "schema": "evidence-lane.lane-manifest.v2",
+        "schema": LANE_MANIFEST_SCHEMA,
         "lane": lane.as_dict(),
         "build_mode": build_mode,
         "stable_artifacts": stable_hashes,
         "evidence_artifacts": evidence_hashes,
         "required_artifacts": list(_lane_required_files(lane)),
+        "four_file_contract": four_file_contract,
         "pointer_evidence": "lane_pointer.json",
         "refresh_receipt": "refresh_receipt.json",
         "validation": validation,
@@ -4783,6 +4861,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
     }
     lane_reports: dict[str, Any] = {}
     lane_manifest_errors: dict[str, Any] = {}
+    four_file_contracts: dict[str, Any] = {}
     for lane_id in CANONICAL_LANE_IDS:
         lane = LANE_REGISTRY[lane_id]
         lane_root = root / lane_id
@@ -4794,7 +4873,9 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         )
         lane_manifest_schema = lane_manifest.get("schema")
         legacy_manifest = lane_manifest_schema == "evidence-lane.lane-manifest.v1"
-        strict_manifest = lane_manifest_schema == "evidence-lane.lane-manifest.v2"
+        previous_manifest = lane_manifest_schema == "evidence-lane.lane-manifest.v2"
+        current_manifest = lane_manifest_schema == LANE_MANIFEST_SCHEMA
+        strict_manifest = previous_manifest or current_manifest
         stable_hashes = {
             filename: sha256_file(lane_root / filename)
             for filename in _lane_stable_files(lane)
@@ -4808,6 +4889,16 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
             path.name for path in lane_root.iterdir() if path.is_file()
         }
         topology_report = topology_by_lane[lane_id]
+        four_file_report = validate_four_file_contract(
+            lane_root,
+            lane,
+            (
+                lane_manifest.get("four_file_contract")
+                if current_manifest
+                else None
+            ),
+        )
+        four_file_contracts[lane_id] = four_file_report
         mmd_valid = (
             topology_report["structural"]["mermaid"]["status"] == "PASS"
         )
@@ -4825,6 +4916,11 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
                 and set(lane_manifest.get("required_artifacts", []))
                 != required_files
             )
+            or (
+                current_manifest
+                and not topology_compatibility
+                and not four_file_report["valid"]
+            )
             or not required_files <= actual_lane_files
             or (not topology_compatibility and not mmd_valid)
             or (not topology_compatibility and not dot_valid)
@@ -4836,6 +4932,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
             lane_manifest_errors[lane_id] = {
                 "schema": lane_manifest_schema,
                 "legacy_compatibility_path": legacy_manifest,
+                "previous_manifest_compatibility_path": previous_manifest,
                 "lane_id": lane_manifest.get("lane", {}).get("canonical_lane_id"),
                 "declared_stable_artifacts": lane_manifest.get("stable_artifacts"),
                 "actual_stable_artifacts": stable_hashes,
@@ -4852,6 +4949,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
                 "mmd_valid": mmd_valid,
                 "dot_valid": dot_valid,
                 "topology_reconciliation": topology_report,
+                "four_file_contract": four_file_report,
             }
     expected_registry_ids = list(CANONICAL_LANE_IDS)
     registry_ids = [row.get("canonical_lane_id") for row in registry.get("lanes", [])]
@@ -4948,6 +5046,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         "checksum_set_match": checksum_set_match,
         "checksum_mismatches": checksum_mismatches,
         "lane_manifest_errors": lane_manifest_errors,
+        "four_file_contracts": four_file_contracts,
         "source_routes_valid": route_values_valid,
         "parallel_execution_valid": execution_valid,
         "parallel_execution_legacy_compatibility": (

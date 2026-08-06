@@ -12,6 +12,11 @@ from urllib.parse import urlparse
 from .git_optional import normalize_git_arm_mode, probe_git_arm
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY, resolve_lane_id, route_source
+from .source_authority import (
+    SourceAuthoritySpec,
+    archive_safety_profile,
+    register_source_batch,
+)
 
 _PROJECT_MARKERS = {
     "cargo.toml",
@@ -58,6 +63,20 @@ def _normalized_sha256(value: str | None) -> str | None:
 def _archive_profile(path: Path) -> dict[str, Any]:
     """Describe archive structure without extracting or inferring its generator."""
 
+    safety = archive_safety_profile(path)
+    if safety["status"] != "PASS":
+        return {
+            "schema": "evidence-lane.archive-profile.v1",
+            "status": safety["status"],
+            "package_format": "UNSAFE_OR_UNREADABLE_ZIP",
+            "generator_identity_status": "UNPROVEN_BY_ARCHIVE",
+            "generator_identity_reason": (
+                "An unsafe or unreadable archive cannot bind a reusable package "
+                "or generator identity."
+            ),
+            "archive_safety": safety,
+            "archive_bytes_mutated": False,
+        }
     try:
         with zipfile.ZipFile(path) as archive:
             infos = [info for info in archive.infolist() if not info.is_dir()]
@@ -212,6 +231,8 @@ def _archive_profile(path: Path) -> dict[str, Any]:
         "generator_identity_status": generator_status,
         "generator_identity_reason": generator_reason,
         "filename_used_as_generator_evidence": False,
+        "archive_safety": safety,
+        "reuse_eligible": True,
         "archive_bytes_mutated": False,
     }
 
@@ -345,11 +366,22 @@ def classify_source_intake(
     code_mode: str,
     overrides: dict[str, str] | None = None,
     git_mode: str = "AUTO",
+    authority_mode: str = "CLASSIFICATION_ONLY",
+    authority_registry_path: str | Path | None = None,
+    source_assertions: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Classify ordered inputs without copying, parsing, or mutating source bytes."""
+    """Classify ordered inputs and optionally register read-only byte authority."""
 
     if code_mode not in {"github_code", "local_code"}:
         raise ValueError("code_mode must be github_code or local_code")
+    normalized_authority_mode = authority_mode.strip().upper()
+    if normalized_authority_mode not in {
+        "CLASSIFICATION_ONLY",
+        "GOVERNED_CONTENT_REGISTRY",
+    }:
+        raise ValueError(
+            "authority_mode must be CLASSIFICATION_ONLY or GOVERNED_CONTENT_REGISTRY"
+        )
     normalized_git_mode = normalize_git_arm_mode(git_mode)
     exact_sources = [str(source).strip() for source in sources if str(source).strip()]
     if not exact_sources:
@@ -370,6 +402,37 @@ def classify_source_intake(
         )
         for source in exact_sources
     ]
+    assertions = source_assertions or {}
+    unknown_assertions = sorted(set(assertions) - set(exact_sources))
+    if unknown_assertions:
+        raise ValueError(
+            "Every source assertion must name one exact supplied source: "
+            + ", ".join(unknown_assertions)
+        )
+    authority: dict[str, Any]
+    if normalized_authority_mode == "GOVERNED_CONTENT_REGISTRY":
+        if authority_registry_path is None:
+            raise ValueError(
+                "authority_registry_path is required for GOVERNED_CONTENT_REGISTRY"
+            )
+        authority = register_source_batch(
+            authority_registry_path,
+            [
+                SourceAuthoritySpec(
+                    source=str(receipt["source"]),
+                    ordinal=index,
+                    lane_id=str(receipt["canonical_lane_id"]),
+                    assertions=assertions.get(str(receipt["source"]), {}),
+                )
+                for index, receipt in enumerate(receipts, start=1)
+            ],
+        )
+    else:
+        authority = {
+            "status": "NOT_REQUESTED",
+            "authority_mode": "CLASSIFICATION_ONLY",
+            "registry_mutated": False,
+        }
     ordered_lanes = ["chat_lineage"]
     for receipt in receipts:
         lane_id = str(receipt["canonical_lane_id"])
@@ -377,7 +440,7 @@ def classify_source_intake(
             ordered_lanes.append(lane_id)
     return {
         "status": "PASS",
-        "schema": "evidence-lane.source-intake-classification.v1",
+        "schema": "evidence-lane.source-intake-classification.v2",
         "sources": receipts,
         "source_count": len(receipts),
         "ordered_canonical_lanes": ordered_lanes,
@@ -391,7 +454,13 @@ def classify_source_intake(
             "source_receipts": [row["git_optional_arm"] for row in receipts],
             "remote_write_authorized": False,
         },
+        "authority_mode": normalized_authority_mode,
+        "source_authority": authority,
+        "source_assertion_count": sum(len(row) for row in assertions.values()),
         "source_bytes_mutated": False,
+        "source_payloads_copied": False,
+        "local_registry_mutated": normalized_authority_mode
+        == "GOVERNED_CONTENT_REGISTRY",
         "candidate_created": False,
         "pointer_moved": False,
     }

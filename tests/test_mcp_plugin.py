@@ -35,6 +35,14 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "lane_catalog",
         "mode_classify",
         "source_intake_classify",
+        "source_custom_schema_compile",
+        "source_identity_register",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_git_history_build",
+        "source_git_commit_impact",
+        "source_sqlite_inspect",
         "hil_intent_classify",
         "lane_status",
         "lane_search",
@@ -85,6 +93,14 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     assert by_name["runtime_activation_status"].annotations.readOnlyHint is True
     assert by_name["lane_catalog"].annotations.readOnlyHint is True
     assert by_name["mode_classify"].annotations.readOnlyHint is False
+    assert by_name["source_sqlite_inspect"].annotations.readOnlyHint is False
+    assert by_name["source_custom_schema_compile"].annotations.readOnlyHint is False
+    assert by_name["source_identity_register"].annotations.readOnlyHint is False
+    assert by_name["source_graph_build"].annotations.readOnlyHint is False
+    assert by_name["source_graph_diff"].annotations.readOnlyHint is False
+    assert by_name["source_graph_impact"].annotations.readOnlyHint is False
+    assert by_name["source_git_history_build"].annotations.readOnlyHint is False
+    assert by_name["source_git_commit_impact"].annotations.readOnlyHint is False
     assert by_name["hil_intent_classify"].annotations.readOnlyHint is False
     assert by_name["pv_task_backlog"].annotations.readOnlyHint is True
     assert by_name["pv_task_transition"].annotations.readOnlyHint is False
@@ -134,9 +150,7 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert manifest["repository"].endswith("/evidence_lane_plugin")
     assert manifest["apps"] == "./.app.json"
     assert manifest["interface"]["logo"] == "./assets/evidence-lane-icon.png"
-    assert manifest["interface"]["composerIcon"] == (
-        "./assets/evidence-lane-icon.png"
-    )
+    assert manifest["interface"]["composerIcon"] == ("./assets/evidence-lane-icon.png")
     compact_icon = plugin / "assets" / "evidence-lane-icon.png"
     assert compact_icon.is_file()
     assert compact_icon.stat().st_size <= 10 * 1024

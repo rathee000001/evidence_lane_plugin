@@ -3,6 +3,8 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
+from evidence_lane_plugin import lane_engine as lane_engine_module
+from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 from evidence_lane_plugin.topology_reconciliation import reconcile_lane_topology
 
 
@@ -172,3 +174,79 @@ def test_generic_graph_fails_primary_code_logical_contract(tmp_path: Path) -> No
         "CODE_LOGICAL_TOPOLOGY"
     ]
     assert "CODE_SECTOR" in contract["mermaid"]["missing_nodes"]
+
+
+def _write_schema_derived_lane(root: Path, lane_id: str) -> None:
+    lane = LANE_REGISTRY[lane_id]
+    root.mkdir()
+    database_path = root / lane.sqlite_filename
+    connection = sqlite3.connect(database_path)
+    connection.row_factory = sqlite3.Row
+    try:
+        lane_engine_module._create_lane_schema(connection, lane)
+        connection.commit()
+    finally:
+        connection.close()
+    mermaid, dot = lane_engine_module._lane_topology(lane, database_path, {})
+    (root / lane.mmd_filename).write_text(mermaid, encoding="utf-8")
+    (root / lane.dot_filename).write_text(dot, encoding="utf-8")
+
+
+def test_all_eighteen_lanes_have_exact_additive_physical_schema_contract(
+    tmp_path: Path,
+) -> None:
+    for lane_id in CANONICAL_LANE_IDS:
+        root = tmp_path / lane_id
+        _write_schema_derived_lane(root, lane_id)
+        lane = LANE_REGISTRY[lane_id]
+
+        result = reconcile_lane_topology(
+            root,
+            lane_id=lane_id,
+            mmd_filename=lane.mmd_filename,
+            dot_filename=lane.dot_filename,
+            sqlite_filename=lane.sqlite_filename,
+        )
+
+        assert result["status"] == "PASS"
+        physical = result["physical_schema_contract"]
+        assert physical["status"] == "PASS"
+        assert physical["mermaid"]["required_contract_tables"] == list(
+            lane.schema_contract
+        )
+        assert physical["mermaid"]["auxiliary_tables"]
+        assert physical["mermaid"]["expected_projection_sha256"] == (
+            physical["dot"]["claimed_projection_sha256"]
+        )
+
+
+def test_physical_schema_contract_rejects_same_tamper_in_both_renderings(
+    tmp_path: Path,
+) -> None:
+    lane_id = "chat_lineage"
+    lane = LANE_REGISTRY[lane_id]
+    root = tmp_path / lane_id
+    _write_schema_derived_lane(root, lane_id)
+    for path in (root / lane.mmd_filename, root / lane.dot_filename):
+        text = path.read_text(encoding="utf-8")
+        path.write_text(
+            "\n".join(
+                line for line in text.splitlines() if "PHYSICAL_TABLE_002" not in line
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+    result = reconcile_lane_topology(
+        root,
+        lane_id=lane_id,
+        mmd_filename=lane.mmd_filename,
+        dot_filename=lane.dot_filename,
+        sqlite_filename=lane.sqlite_filename,
+    )
+
+    assert result["status"] == "FAIL"
+    assert result["rendering_parity"]["status"] == "PASS"
+    assert "PHYSICAL_TABLE_002" in result["physical_schema_contract"]["mermaid"][
+        "missing_nodes"
+    ]

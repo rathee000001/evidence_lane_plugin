@@ -25,6 +25,7 @@ from .plan_runtime import (
 )
 from .pv_package import compare_package_bytes, validate_pv_package
 from .redaction import redact
+from .source_authority import snapshot_source_authority_registry
 from .tasking import classify_task
 from .timeutil import utc_now
 
@@ -113,6 +114,21 @@ class ProjectStore:
         result = (self.root / "projects" / safe).resolve()
         result.relative_to(self.root)
         return result
+
+    def _source_authority_path(self, project_id: str) -> Path:
+        """Return the project-local registry path without creating it."""
+
+        return self.project_root(project_id) / "source_authority.sqlite"
+
+    def source_authority_path(self, project_id: str) -> Path:
+        return self._source_authority_path(project_id)
+
+    def source_authority_status(
+        self, project_id: str, *, batch_id: str | None = None
+    ) -> dict[str, Any]:
+        return snapshot_source_authority_registry(
+            self._source_authority_path(project_id), batch_id
+        )
 
     def _lock(self, project_id: str) -> _ProjectLock:
         return _ProjectLock(self.project_root(project_id) / ".store.lock")

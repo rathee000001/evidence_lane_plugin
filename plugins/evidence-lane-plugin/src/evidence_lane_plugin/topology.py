@@ -2,17 +2,33 @@
 
 from __future__ import annotations
 
+import io
+import json
 import os
+import re
 import shutil
 import sqlite3
 
 # Required for one explicitly configured renderer; shell is never used.
 import subprocess  # nosec B404
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
-from .hashing import atomic_write_bytes, sha256_file
+from PIL import Image
+
+from .hashing import (
+    atomic_write_bytes,
+    canonical_json_bytes,
+    sha256_bytes,
+    sha256_file,
+)
+from .redaction import redact_text
+
+RENDER_RECEIPT_SCHEMA = "evidence-lane.mermaid-render-receipt.v2"
+_SVG_COMMENT = re.compile(r"<!--.*?-->", flags=re.DOTALL)
+_PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 
 def _escape(value: str) -> str:
@@ -57,6 +73,44 @@ def _renderer_environment() -> tuple[dict[str, str], str | None]:
             root = environment.get(variable, "").strip()
             if root:
                 candidates.extend(Path(root) / suffix for suffix in suffixes)
+        candidate_drives = {
+            drive
+            for drive in (
+                environment.get("SystemDrive", "").strip(),
+                Path(sys.executable).drive,
+                "C:",
+            )
+            if drive
+        }
+        for drive in sorted(candidate_drives):
+            candidates.extend(
+                (
+                    Path(drive)
+                    / "Program Files"
+                    / "Google"
+                    / "Chrome"
+                    / "Application"
+                    / "chrome.exe",
+                    Path(drive)
+                    / "Program Files"
+                    / "Microsoft"
+                    / "Edge"
+                    / "Application"
+                    / "msedge.exe",
+                    Path(drive)
+                    / "Program Files (x86)"
+                    / "Google"
+                    / "Chrome"
+                    / "Application"
+                    / "chrome.exe",
+                    Path(drive)
+                    / "Program Files (x86)"
+                    / "Microsoft"
+                    / "Edge"
+                    / "Application"
+                    / "msedge.exe",
+                )
+            )
     elif sys.platform == "darwin":
         candidates.append(
             Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
@@ -158,6 +212,227 @@ def build_mermaid(
     }
 
 
+def _render_configuration(source_sha256: str) -> dict[str, Any]:
+    return {
+        "schema": "evidence-lane.mermaid-render-configuration.v1",
+        "background_color": "white",
+        "width": 2400,
+        "height": 1600,
+        "scale": 1,
+        "timezone": "UTC",
+        "locale": "C",
+        "source_date_epoch": "0",
+        "mermaid": {
+            "deterministicIds": True,
+            "deterministicIDSeed": source_sha256,
+            "securityLevel": "strict",
+            "theme": "neutral",
+            "flowchart": {
+                "htmlLabels": True,
+                "useMaxWidth": False,
+            },
+        },
+        "puppeteer": {
+            "headless": True,
+            "args": [
+                "--disable-background-networking",
+                "--disable-default-apps",
+                "--disable-extensions",
+                "--disable-gpu",
+                "--disable-sync",
+                "--metrics-recording-only",
+                "--no-first-run",
+            ],
+        },
+        "normalization": {
+            "svg": "utf8-lf-no-comments-no-trailing-space",
+            "png": "pillow-rgba-png-compress-level-9-no-metadata",
+        },
+    }
+
+
+def _seal_render_receipt(core: dict[str, Any]) -> dict[str, Any]:
+    return {
+        **core,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(core)),
+    }
+
+
+def _normalize_svg(path: Path) -> None:
+    text = path.read_text(encoding="utf-8-sig")
+    if "<svg" not in text:
+        raise ValueError("Rendered SVG has no <svg> root.")
+    text = _SVG_COMMENT.sub("", text).replace("\r\n", "\n").replace("\r", "\n")
+    lines = [line.rstrip() for line in text.split("\n")]
+    while lines and not lines[-1]:
+        lines.pop()
+    atomic_write_bytes(path, ("\n".join(lines) + "\n").encode("utf-8"))
+
+
+def _normalize_png(path: Path) -> None:
+    with Image.open(path) as image:
+        image.load()
+        normalized = image.convert("RGBA")
+        buffer = io.BytesIO()
+        normalized.save(
+            buffer,
+            format="PNG",
+            optimize=False,
+            compress_level=9,
+        )
+    atomic_write_bytes(path, buffer.getvalue())
+
+
+def _binary_identity(path: str | None) -> dict[str, Any] | None:
+    if not path:
+        return None
+    resolved = Path(path).resolve()
+    if not resolved.is_file():
+        return None
+    return {
+        "name": resolved.name,
+        "bytes": resolved.stat().st_size,
+        "sha256": sha256_file(resolved),
+    }
+
+
+def validate_render_receipt(
+    source_path: str | Path,
+    receipt: dict[str, Any],
+    *,
+    svg_path: str | Path,
+    png_path: str | Path,
+) -> dict[str, Any]:
+    """Recompute a render receipt's source/output binding without rendering."""
+
+    source = Path(source_path)
+    expected_outputs = {
+        "svg": Path(svg_path),
+        "png": Path(png_path),
+    }
+    errors: list[dict[str, Any]] = []
+    if receipt.get("schema") != RENDER_RECEIPT_SCHEMA:
+        return {
+            "schema": RENDER_RECEIPT_SCHEMA,
+            "status": "LEGACY_UNBOUND",
+            "valid": False,
+            "errors": [{"kind": "RENDER_RECEIPT_SCHEMA_UNBOUND"}],
+        }
+    core = {key: value for key, value in receipt.items() if key != "receipt_sha256"}
+    computed_receipt_sha256 = sha256_bytes(canonical_json_bytes(core))
+    if receipt.get("receipt_sha256") != computed_receipt_sha256:
+        errors.append(
+            {
+                "kind": "RECEIPT_SHA256_MISMATCH",
+                "expected": computed_receipt_sha256,
+                "actual": receipt.get("receipt_sha256"),
+            }
+        )
+    actual_source_sha256 = sha256_file(source) if source.is_file() else None
+    if receipt.get("source_sha256") != actual_source_sha256:
+        errors.append(
+            {
+                "kind": "SOURCE_SHA256_MISMATCH",
+                "expected": receipt.get("source_sha256"),
+                "actual": actual_source_sha256,
+            }
+        )
+    configuration = receipt.get("configuration")
+    expected_configuration = (
+        _render_configuration(actual_source_sha256)
+        if actual_source_sha256 is not None
+        else None
+    )
+    if configuration != expected_configuration:
+        errors.append({"kind": "RENDER_CONFIGURATION_MISMATCH"})
+    computed_configuration_sha256 = (
+        sha256_bytes(canonical_json_bytes(configuration))
+        if isinstance(configuration, dict)
+        else None
+    )
+    if receipt.get("configuration_sha256") != computed_configuration_sha256:
+        errors.append(
+            {
+                "kind": "CONFIGURATION_SHA256_MISMATCH",
+                "expected": computed_configuration_sha256,
+                "actual": receipt.get("configuration_sha256"),
+            }
+        )
+
+    status = str(receipt.get("status") or "")
+    output_rows = receipt.get("outputs")
+    if status == "PASS":
+        if not isinstance(output_rows, list):
+            errors.append({"kind": "OUTPUT_RECEIPTS_MISSING"})
+            output_rows = []
+        by_format = {
+            str(row.get("format")): row
+            for row in output_rows
+            if isinstance(row, dict)
+        }
+        if set(by_format) != set(expected_outputs):
+            errors.append(
+                {
+                    "kind": "OUTPUT_FORMAT_SET_MISMATCH",
+                    "expected": sorted(expected_outputs),
+                    "actual": sorted(by_format),
+                }
+            )
+        for fmt, path in expected_outputs.items():
+            row = by_format.get(fmt)
+            if row is None:
+                continue
+            actual_sha256 = sha256_file(path) if path.is_file() else None
+            actual_bytes = path.stat().st_size if path.is_file() else None
+            if row.get("path") != path.name:
+                errors.append({"kind": "OUTPUT_PATH_MISMATCH", "format": fmt})
+            if row.get("sha256") != actual_sha256:
+                errors.append(
+                    {
+                        "kind": "OUTPUT_SHA256_MISMATCH",
+                        "format": fmt,
+                        "expected": row.get("sha256"),
+                        "actual": actual_sha256,
+                    }
+                )
+            if row.get("bytes") != actual_bytes:
+                errors.append({"kind": "OUTPUT_SIZE_MISMATCH", "format": fmt})
+            if path.is_file() and fmt == "svg":
+                try:
+                    svg_text = path.read_text(encoding="utf-8")
+                except UnicodeError:
+                    svg_text = ""
+                if "<svg" not in svg_text:
+                    errors.append({"kind": "SVG_ROOT_INVALID"})
+            if (
+                path.is_file()
+                and fmt == "png"
+                and not path.read_bytes().startswith(_PNG_SIGNATURE)
+            ):
+                errors.append({"kind": "PNG_SIGNATURE_INVALID"})
+    elif status in {"RENDER_SKIPPED", "RENDER_FAILED"}:
+        if output_rows not in (None, []):
+            errors.append({"kind": "NONPASS_OUTPUT_RECEIPTS_PRESENT"})
+        stale_outputs = [
+            path.name for path in expected_outputs.values() if path.is_file()
+        ]
+        if stale_outputs:
+            errors.append(
+                {"kind": "NONPASS_STALE_OUTPUTS_PRESENT", "paths": stale_outputs}
+            )
+    else:
+        errors.append({"kind": "RENDER_STATUS_INVALID", "actual": status})
+    return {
+        "schema": RENDER_RECEIPT_SCHEMA,
+        "status": "PASS" if not errors else "FAIL",
+        "render_status": status,
+        "valid": not errors,
+        "source_sha256": actual_source_sha256,
+        "receipt_sha256": computed_receipt_sha256,
+        "errors": errors,
+    }
+
+
 def render_mermaid(
     source_path: str | Path,
     *,
@@ -171,73 +446,146 @@ def render_mermaid(
     installed automatically, and any failure is returned as a bounded warning.
     """
 
+    source = Path(source_path).resolve()
+    source_sha256 = sha256_file(source)
+    configuration = _render_configuration(source_sha256)
+    configuration_sha256 = sha256_bytes(canonical_json_bytes(configuration))
+    base_receipt: dict[str, Any] = {
+        "schema": RENDER_RECEIPT_SCHEMA,
+        "authoritative_source": source.name,
+        "source_sha256": source_sha256,
+        "configuration": configuration,
+        "configuration_sha256": configuration_sha256,
+    }
     configured = os.environ.get("EVIDENCE_LANE_MERMAID_CLI", "").strip()
     if not configured:
-        return {
+        return _seal_render_receipt({
+            **base_receipt,
             "status": "RENDER_SKIPPED",
             "warning": "MERMAID_RENDERER_NOT_CONFIGURED",
-            "authoritative_source": Path(source_path).name,
-        }
+            "renderer": None,
+            "outputs": [],
+        })
     executable = shutil.which(configured)
     if not executable:
         candidate = Path(configured).resolve()
         executable = str(candidate) if candidate.is_file() else ""
     if not executable:
-        return {
+        return _seal_render_receipt({
+            **base_receipt,
             "status": "RENDER_FAILED",
             "warning": "MERMAID_RENDERER_NOT_FOUND",
-            "authoritative_source": Path(source_path).name,
-        }
+            "renderer": None,
+            "outputs": [],
+        })
     render_environment, browser_executable = _renderer_environment()
-    receipts = []
-    for output, fmt in ((Path(svg_path), "svg"), (Path(png_path), "png")):
-        command = [
-            executable,
-            "--input",
-            str(Path(source_path).resolve()),
-            "--output",
-            str(output.resolve()),
-            "--outputFormat",
-            fmt,
-            "--quiet",
-        ]
-        # The configured executable is resolved and receives only list argv.
-        completed = subprocess.run(  # nosec B603
-            command,
-            check=False,
-            stdin=subprocess.DEVNULL,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=timeout,
-            close_fds=True,
-            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
-            env=render_environment,
-        )
-        if completed.returncode != 0 or not output.is_file():
-            for created in (Path(svg_path), Path(png_path)):
-                if created.exists():
-                    created.unlink()
-            return {
-                "status": "RENDER_FAILED",
-                "warning": "MERMAID_SIDE_PRODUCT_FAILED",
-                "authoritative_source": Path(source_path).name,
-                "returncode": completed.returncode,
-                "stderr": completed.stderr[-2000:],
-                "browser_executable": browser_executable,
-            }
-        receipts.append(
-            {
-                "format": fmt,
-                "path": output.name,
-                "sha256": sha256_file(output),
-                "bytes": output.stat().st_size,
-            }
-        )
-    return {
-        "status": "PASS",
-        "authoritative_source": Path(source_path).name,
-        "browser_executable": browser_executable,
-        "outputs": receipts,
+    render_environment.update(
+        {
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "SOURCE_DATE_EPOCH": "0",
+        }
+    )
+    renderer_identity = {
+        "cli": _binary_identity(executable),
+        "browser": _binary_identity(browser_executable),
     }
+    receipts: list[dict[str, Any]] = []
+    outputs = ((Path(svg_path).resolve(), "svg"), (Path(png_path).resolve(), "png"))
+    try:
+        with tempfile.TemporaryDirectory(prefix="evidence_lane_render_") as tmp:
+            config_path = Path(tmp) / "mermaid-config.json"
+            puppeteer_config_path = Path(tmp) / "puppeteer-config.json"
+            atomic_write_bytes(
+                config_path,
+                canonical_json_bytes(configuration["mermaid"]),
+            )
+            puppeteer_configuration = dict(configuration["puppeteer"])
+            if browser_executable:
+                puppeteer_configuration["executablePath"] = browser_executable
+            atomic_write_bytes(
+                puppeteer_config_path,
+                canonical_json_bytes(puppeteer_configuration),
+            )
+            for output, fmt in outputs:
+                output.parent.mkdir(parents=True, exist_ok=True)
+                command = [
+                    executable,
+                    "--input",
+                    str(source),
+                    "--output",
+                    str(output),
+                    "--outputFormat",
+                    fmt,
+                    "--configFile",
+                    str(config_path),
+                    "--puppeteerConfigFile",
+                    str(puppeteer_config_path),
+                    "--backgroundColor",
+                    str(configuration["background_color"]),
+                    "--width",
+                    str(configuration["width"]),
+                    "--height",
+                    str(configuration["height"]),
+                    "--scale",
+                    str(configuration["scale"]),
+                    "--quiet",
+                ]
+                # The configured executable is resolved and receives only list argv.
+                completed = subprocess.run(  # nosec B603
+                    command,
+                    check=False,
+                    stdin=subprocess.DEVNULL,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=timeout,
+                    close_fds=True,
+                    creationflags=(
+                        subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+                    ),
+                    env=render_environment,
+                )
+                if completed.returncode != 0 or not output.is_file():
+                    raise RuntimeError(
+                        json.dumps(
+                            {
+                                "returncode": completed.returncode,
+                                "stderr": redact_text(completed.stderr[-2000:]),
+                            },
+                            sort_keys=True,
+                        )
+                    )
+                if fmt == "svg":
+                    _normalize_svg(output)
+                else:
+                    _normalize_png(output)
+                receipts.append(
+                    {
+                        "format": fmt,
+                        "path": output.name,
+                        "sha256": sha256_file(output),
+                        "bytes": output.stat().st_size,
+                    }
+                )
+    except (OSError, RuntimeError, subprocess.SubprocessError, ValueError) as exc:
+        for created, _fmt in outputs:
+            created.unlink(missing_ok=True)
+        error_text = redact_text(str(exc))
+        return _seal_render_receipt({
+            **base_receipt,
+            "status": "RENDER_FAILED",
+            "warning": "MERMAID_SIDE_PRODUCT_FAILED",
+            "renderer": renderer_identity,
+            "error_sha256": sha256_bytes(error_text.encode("utf-8")),
+            "error": error_text[-2000:],
+            "outputs": [],
+        })
+    return _seal_render_receipt({
+        **base_receipt,
+        "status": "PASS",
+        "renderer": renderer_identity,
+        "outputs": receipts,
+    })

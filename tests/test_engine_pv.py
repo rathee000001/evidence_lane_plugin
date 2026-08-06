@@ -8,6 +8,11 @@ from pathlib import Path
 import pytest
 from evidence_lane_plugin import database
 from evidence_lane_plugin.errors import EvidenceLaneError
+from evidence_lane_plugin.hashing import (
+    atomic_write_bytes,
+    atomic_write_json,
+    sha256_file,
+)
 from evidence_lane_plugin.pv_package import validate_pv_package
 from evidence_lane_plugin.source_policy import known_environment_secrets
 from evidence_lane_plugin.topology import _renderer_environment
@@ -202,3 +207,46 @@ def test_renderer_failure_is_warning_not_sqlite_failure(
     assert manifest["rendering"]["status"] == "RENDER_SKIPPED"
     assert receipt["status"] == "PASS"
     assert receipt["database_validation"]["valid"] is True
+
+
+def test_resealed_outer_package_cannot_hide_stale_render_receipt(
+    service,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("EVIDENCE_LANE_MERMAID_CLI", raising=False)
+    boot = boot_local(service)
+    result = service.build_initial("book-faires", boot["session"]["session_id"])
+    candidate = Path(result["candidate"]["stored_path"])
+    topology = candidate / "project_master_topology.mmd"
+    topology.write_text(
+        topology.read_text(encoding="utf-8") + "%% stale-after-render\n",
+        encoding="utf-8",
+    )
+
+    manifest_path = candidate / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    for member in manifest["members"]:
+        if member["path"] == "project_master_topology.mmd":
+            member["sha256"] = sha256_file(topology)
+            member["bytes"] = topology.stat().st_size
+    atomic_write_json(manifest_path, manifest)
+    receipt_path = candidate / "pv_receipt.json"
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    receipt["manifest_sha256"] = sha256_file(manifest_path)
+    atomic_write_json(receipt_path, receipt)
+    checksum_members = sorted(
+        path.relative_to(candidate).as_posix()
+        for path in candidate.rglob("*")
+        if path.is_file() and path.name != "SHA256SUMS.txt"
+    )
+    atomic_write_bytes(
+        candidate / "SHA256SUMS.txt",
+        "".join(
+            f"{sha256_file(candidate / name)} *{name}\n"
+            for name in checksum_members
+        ).encode("utf-8"),
+    )
+
+    with pytest.raises(EvidenceLaneError) as error:
+        validate_pv_package(candidate)
+    assert error.value.code == "PV_RENDER_RECEIPT_STALE"

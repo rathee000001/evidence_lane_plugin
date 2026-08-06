@@ -8,6 +8,7 @@ from typing import Any, cast
 from .errors import EvidenceLaneError
 from .hashing import canonical_json_bytes, sha256_bytes
 from .lanes import LANE_REGISTRY, resolve_lane_id
+from .mode_governance import govern_mode_selection
 
 MODE_DEFINITIONS: tuple[dict[str, Any], ...] = (
     {
@@ -155,7 +156,12 @@ def _resolve_explicit(
                         "supported": [
                             f"{item['id']} {item['name']}" for item in MODE_DEFINITIONS
                         ],
-                        "custom_mode_required_fields": ["name", "brief", "lanes"],
+                        "custom_mode_required_fields": [
+                            "name",
+                            "brief",
+                            "lanes",
+                            "dependency_policy",
+                        ],
                     },
                 ) from exc
             if mode_id not in selected:
@@ -218,6 +224,7 @@ def classify_operating_modes(
         name = str(raw.get("name") or "").strip()
         brief = str(raw.get("brief") or "").strip()
         raw_lanes = raw.get("lanes") or ["custom"]
+        dependency_policy = raw.get("dependency_policy")
         if not isinstance(raw_lanes, list):
             raise EvidenceLaneError(
                 "CUSTOM_MODE_LANES_INVALID",
@@ -231,6 +238,18 @@ def classify_operating_modes(
                 status="BLOCKED",
                 details={"name": name, "minimum_brief_characters": 12},
             )
+        if not (
+            isinstance(dependency_policy, dict)
+            and set(dependency_policy) <= {"on_missing", "requires"}
+            and isinstance(dependency_policy.get("requires", []), list)
+            and str(dependency_policy.get("on_missing") or "BLOCK").upper() == "BLOCK"
+        ):
+            raise EvidenceLaneError(
+                "CUSTOM_MODE_DEPENDENCY_POLICY_REQUIRED",
+                "ENV15 Custom mode requires an explicit dependency list and fail-closed BLOCK policy.",
+                status="BLOCKED",
+                details={"name": name},
+            )
         normalized_name = _normalize_explicit(name)
         slug = re.sub(r"[^a-z0-9]+", "-", normalized_name).strip("-")[:40]
         mode_id = (
@@ -238,7 +257,14 @@ def classify_operating_modes(
             + slug
             + ":"
             + sha256_bytes(
-                canonical_json_bytes({"name": name, "brief": brief, "lanes": raw_lanes})
+                canonical_json_bytes(
+                    {
+                        "name": name,
+                        "brief": brief,
+                        "lanes": raw_lanes,
+                        "dependency_policy": dependency_policy,
+                    }
+                )
             )[:8]
         )
         lanes: list[str] = []
@@ -260,6 +286,7 @@ def classify_operating_modes(
             "aliases": (name, mode_id),
             "lanes": tuple(lanes),
             "brief": brief,
+            "dependency_policy": dependency_policy,
             "custom": True,
         }
         custom_definitions[mode_id] = definition
@@ -322,6 +349,7 @@ def classify_operating_modes(
                 "brief": definition["brief"],
                 "brief_sha256": sha256_bytes(str(definition["brief"]).encode("utf-8")),
                 "ordered_lanes": mapped_lanes,
+                "dependency_policy": definition["dependency_policy"],
                 "authority": "USER_EXPLICIT_SESSION_SIDECAR",
             }
         selected_details.append(detail)
@@ -334,7 +362,7 @@ def classify_operating_modes(
         }
         for lane_id in lanes
     ]
-    return {
+    result = {
         "status": "PASS",
         "schema": "evidence-lane.mode-classification.v1",
         "request": exact_request,
@@ -366,3 +394,11 @@ def classify_operating_modes(
         "task_classified": False,
         "return_to_prior_lifecycle_position": True,
     }
+    result["mode_governance"] = govern_mode_selection(
+        selected_details,
+        request=exact_request,
+        selection_source=(
+            "PLUGIN_OR_API_EXPLICIT_SELECTION" if explicit_modes else "PROMPT_INFERENCE"
+        ),
+    )
+    return result

@@ -1,0 +1,125 @@
+{
+  "ci_execution": {
+    "aggregate_pytest_count": 203,
+    "aggregate_status": "PASS",
+    "profile_timeout_seconds": 720,
+    "profiles": {
+      "governed-lanes": {
+        "receipt_file_sha256": "7EA973BDD8872A524FACFEFCB298D2B6BB34A96D0E5FF580B67A6AD3729E22E4",
+        "receipt_sha256": "1FD1584A41EBBE2C3EAC640F039981467EB5D9DA3564A70F31BBA30E51F01CAA",
+        "status": "PASS",
+        "tests": "66 passed in 69.21s"
+      },
+      "governed-lifecycle": {
+        "receipt_file_sha256": "10262DF433658B6031C67527DE8D9B10C7E4437AAF53FC9D8C26D0C86A1",
+        "receipt_sha256": "0D1EE00826C01115DEE7F8C80D91DD06C38233190B2F16CB0533266DAB3CE328",
+        "status": "PASS",
+        "tests": "68 passed in 700.73s"
+      },
+      "governed-quality": {
+        "checks": [
+          "ruff: all checks passed",
+          "mypy: 62 source files"
+        ],
+        "receipt_file_sha256": "E59ADA5AE18E77C1DB867EE6C4F5369E7E8A53CA7D8C3C1CAC108C00FD752542",
+        "receipt_sha256": "3AA3FABCB45B7D04284EA5596F7F99BE8884922F43A1EFE3A531C62FFDD5B0E7",
+        "status": "PASS"
+      },
+      "governed-sources-mcp": {
+        "receipt_file_sha256": "4CCD42C29088A133E7669895E1D82C6E3C55BA1C2E838C933B30203649AAF1B0",
+        "receipt_sha256": "B5BADD790CCEB58928C9A89138D561DDAF538F7ACD44421DB6B22B89CBE86732",
+        "status": "PASS",
+        "tests": "69 passed in 143.74s"
+      }
+    },
+    "runtime_receipt_root": ".runtime/delta076b"
+  },
+  "code_mode_contract": {
+    "formula": "plan -> sandbox build -> test -> hash -> package",
+    "loop": "entry -> preflight -> sandbox -> patch -> test -> exit",
+    "operators": [
+      "CI/CD",
+      "PCM",
+      "MBA"
+    ],
+    "visible_in_action_log": true,
+    "visible_in_step_summary": true
+  },
+  "codeql": {
+    "adapter_status": "STATIC_VALIDATED",
+    "execution_boundary": "Remote CodeQL executes only after the governed study-branch push; no local CodeQL CLI was installed.",
+    "languages": [
+      "python",
+      "javascript-typescript"
+    ],
+    "permissions": [
+      "actions: read",
+      "contents: read",
+      "security-events: write"
+    ],
+    "queries": "security-extended",
+    "remote_execution_status": "NOT_RUN_LOCAL"
+  },
+  "correction_lineage": {
+    "coverage_reduction": false,
+    "known_orphaned_test_processes_stopped": true,
+    "lint_blocked_receipts": [
+      "121DDA9A29CC4DAD22D7F8174A37E7B1F36556228501D76C52100C89DDC96076",
+      "D0955B10E8D0E1017C5C99012CF855CDEAC3C1F143D2A7497367460C03D98760"
+    ],
+    "monolithic_outer_timeout_seconds": 904,
+    "resolution": "Four bounded Python CI matrix profiles preserve the union of all test files."
+  },
+  "delta": "EL-V130-CODEQL-PREVIEW-LOCAL-ACTION-CI-DELTA-076B",
+  "local_action_compatibility": {
+    "adapter_runtime": "node24 dependency-free JavaScript",
+    "direct_entrypoint_execution": "PASS",
+    "supplied_authority": "@github/local-action 7.0.1",
+    "supported_surface": "JavaScript and TypeScript actions",
+    "windows_cmd_shell_mode_removed": true
+  },
+  "preview_build": {
+    "deployment_executed": false,
+    "next_version": "16.1.5",
+    "receipt_file_sha256": "2162B9AC7E1B56BA4ED8FBCFD46C955B807EE8DB02A80D1D605243FDBE2B874B",
+    "receipt_sha256": "66C6E96284D0F2C8F24F257DF58A266D7663E179656CDF1BB87E7F5063C8A225",
+    "route_count": 15,
+    "status": "PASS"
+  },
+  "prohibitions": {
+    "deployed": false,
+    "main_merged": false,
+    "pointer_moved": false,
+    "pv_built": false,
+    "refresh_or_fuse": false,
+    "remote_workflow_executed": false
+  },
+  "receipt_sha256": "867630EED7283DC924C269BDCFE8D10ABAB19D5C8CB61C7471893BC3A033AA52",
+  "remote_action_pins": {
+    "actions/checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "actions/setup-node": "820762786026740c76f36085b0efc47a31fe5020",
+    "actions/setup-python": "ece7cb06caefa5fff74198d8649806c4678c61a1",
+    "actions/upload-artifact": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+    "github/codeql-action": "24c7eb380a2dc368f2d129e4c65e51d172983a1e",
+    "pnpm/action-setup": "f40ffcd9367d9f12939873eb1018b921a783ffaa"
+  },
+  "schema": "evidence-lane.delta076b-receipt.v1",
+  "source_files": {
+    ".github/actions/evidence-lane-ci/action.yml": "8B9EF7046DF163B947B52D8D25B720E5E94AD593905769639897605DFDCC33E9",
+    ".github/actions/evidence-lane-ci/src/main.mjs": "971B67F13BC4E666A959C95C4AF9E395A832E7D649205CD1C46FC0D5DE17F3FF",
+    ".github/workflows/evidence-lane-ci.yml": "2A94B13AFBBA6C5A6A406EBCF166BF2338E3DA9DFB019969D709FAC404156352",
+    ".github/workflows/evidence-lane-codeql.yml": "A2DE38249EE78840C0AC83A60F088ED026DE5F02D082E0B7280642C376037EF9",
+    ".github/workflows/evidence-lane-preview-build.yml": "565524C9A7D3FFE46A5BAFC4781A96F16470CC4C91EF48C627CB475EE98E76F3",
+    "tests/test_ci_workflow_adapters.py": "60FB9061C4206BE1254847FD7A025705BE8048AC5A7D361DBC0B44D3E3C56108"
+  },
+  "workflow_pin_audit": {
+    "audit_sha256": "B67B6C4B82076A9E191609779840821A3A4BFCCB754C760BADFFE30025C9D779",
+    "local_same_commit_count": 2,
+    "reference_count": 12,
+    "reference_set_sha256": "BAA0D2FE80CF6C0F9E98786AF6971B41EA25C3DE9FB404E31974B383C38F36E0",
+    "remote_full_commit_sha_count": 10,
+    "status": "PASS",
+    "violation_count": 0,
+    "workflow_count": 3
+  }
+}

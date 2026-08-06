@@ -103,6 +103,10 @@ def test_custom_mode_schema_preserves_order_and_chat_lineage() -> None:
                 "name": "Forensic Merge",
                 "brief": "Compare local code against cited research evidence.",
                 "lanes": ["local_code", "research"],
+                "dependency_policy": {
+                    "requires": ["local_code", "research"],
+                    "on_missing": "BLOCK",
+                },
             }
         ],
     )
@@ -381,13 +385,11 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     }
     assert "/(.*)" not in {rewrite["source"] for rewrite in vercel["rewrites"]}
     landing = (adapter_root / "app" / "page.tsx").read_text(encoding="utf-8")
-    release = (
-        adapter_root / "app" / "_components" / "release-status.tsx"
-    ).read_text(encoding="utf-8")
-    styles = (adapter_root / "app" / "globals.css").read_text(encoding="utf-8")
-    site_data = (adapter_root / "app" / "_data" / "site.ts").read_text(
+    release = (adapter_root / "app" / "_components" / "release-status.tsx").read_text(
         encoding="utf-8"
     )
+    styles = (adapter_root / "app" / "globals.css").read_text(encoding="utf-8")
+    site_data = (adapter_root / "app" / "_data" / "site.ts").read_text(encoding="utf-8")
     package = json.loads((adapter_root / "package.json").read_text(encoding="utf-8"))
     assert "Turn a repository into an inspectable brain" in landing
     assert "18" in landing and "source lanes" in landing
@@ -437,13 +439,25 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
         "evidence-static-brain.png",
     ):
         assert (adapter_root / "public" / asset).stat().st_size > 100_000
-    assert (adapter_root / "public" / "evidence-lane-icon.png").stat().st_size <= 10 * 1024
-    assert hashlib.sha256(
-        (adapter_root / "public" / "evidence-lane-full-logo.png").read_bytes()
-    ).hexdigest().upper() == "FB7356284760A9AF436B08B75158B9407E582F8107077FC585E4C8F716530933"
-    assert hashlib.sha256(
-        (adapter_root / "public" / "evidence-lane-icon.png").read_bytes()
-    ).hexdigest().upper() == "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA"
+    assert (
+        adapter_root / "public" / "evidence-lane-icon.png"
+    ).stat().st_size <= 10 * 1024
+    assert (
+        hashlib.sha256(
+            (adapter_root / "public" / "evidence-lane-full-logo.png").read_bytes()
+        )
+        .hexdigest()
+        .upper()
+        == "FB7356284760A9AF436B08B75158B9407E582F8107077FC585E4C8F716530933"
+    )
+    assert (
+        hashlib.sha256(
+            (adapter_root / "public" / "evidence-lane-icon.png").read_bytes()
+        )
+        .hexdigest()
+        .upper()
+        == "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA"
+    )
     spec = importlib.util.spec_from_file_location(
         "evidence_lane_remote_adapter", adapter_path
     )

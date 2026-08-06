@@ -35,6 +35,38 @@ def test_explicit_mode_intersection_is_ordered_and_keeps_mode_separate() -> None
     assert result["lifecycle_effect"] == "NONE"
     assert result["pointer_moved"] is False
     assert result["candidate_created"] is False
+    code_contract = next(
+        row for row in result["mode_governance"]["contracts"] if row["mode_id"] == "CD"
+    )
+    assert code_contract["formula"]["rule"] == (
+        "plan -> sandbox build -> test -> hash -> package"
+    )
+    assert code_contract["ci_cd"] == {
+        "required": True,
+        "loop": "plan -> sandbox build -> test -> hash -> package",
+        "controlled": True,
+        "autonomous_flash_fuse_deploy_allowed": False,
+        "authority": "lane_formula_execution_registry_v12",
+    }
+    assert {"PHYSICS", "CHEMISTRY", "MATHS", "MBA"} <= set(
+        code_contract["operator_families"]
+    )
+    assert "ENV formula" in code_contract["formula_display"]
+    assert code_contract["operator_receipt_sha256"] in code_contract["formula_display"]
+    assert [row["token"] for row in code_contract["hil"]["choices"]] == [
+        "APPROVE",
+        "APPROVE_WITH_DELTA",
+        "MORE_RESEARCH",
+        "ROLLBACK",
+        "REJECT",
+        "FAIL",
+    ]
+    analysis_contract = result["mode_governance"]["contracts"][0]
+    assert analysis_contract["ci_cd"]["required"] is False
+    assert (
+        analysis_contract["hil"]["accepted_object"]
+        != code_contract["hil"]["accepted_object"]
+    )
 
 
 def test_mode_inference_and_invalid_empty_selection_fail_closed() -> None:
@@ -49,6 +81,13 @@ def test_mode_inference_and_invalid_empty_selection_fail_closed() -> None:
         "VAL",
     ]
     assert "github_code" in inferred["canonical_lanes"]
+    assert inferred["mode_governance"]["selection_source"] == "PROMPT_INFERENCE"
+    inferred_code = next(
+        row
+        for row in inferred["mode_governance"]["contracts"]
+        if row["mode_id"] == "CD"
+    )
+    assert inferred_code["ci_cd"]["required"] is True
     ordered_hil = classify_operating_modes(
         "While we review, code the fix, then HIL.",
         explicit_modes=None,
@@ -63,6 +102,130 @@ def test_mode_inference_and_invalid_empty_selection_fail_closed() -> None:
             code_lane="github_code",
         )
     assert error.value.code == "MODE_SELECTION_REQUIRED"
+
+
+def test_each_mode_uses_its_own_loop_formula_and_hil_object() -> None:
+    excel = classify_operating_modes(
+        "Update this workbook.",
+        explicit_modes=["XL"],
+        code_lane="local_code",
+    )["mode_governance"]["contracts"][0]
+    document = classify_operating_modes(
+        "Render this document.",
+        explicit_modes=["DOC"],
+        code_lane="local_code",
+    )["mode_governance"]["contracts"][0]
+    recovery = classify_operating_modes(
+        "Recover the exact state.",
+        explicit_modes=["RCV"],
+        code_lane="local_code",
+    )["mode_governance"]["contracts"][0]
+
+    assert excel["recursive_loop"] == (
+        "entry -> sheet plan -> formula build -> validate cells -> exit"
+    )
+    assert document["recursive_loop"] == ("entry -> section build -> render QA -> exit")
+    assert recovery["recursive_loop"] == (
+        "resume preserved state -> verify receipts -> return to boundary"
+    )
+    assert (
+        len(
+            {
+                excel["hil"]["accepted_object"],
+                document["hil"]["accepted_object"],
+                recovery["hil"]["accepted_object"],
+            }
+        )
+        == 3
+    )
+    assert all(
+        contract["mode_selection_is_not_hil_approval"]
+        for contract in (excel["hil"], document["hil"], recovery["hil"])
+    )
+
+
+def test_every_builtin_mode_emits_visible_governance_and_lane_hil() -> None:
+    builtin_modes = [
+        "D",
+        "AL",
+        "PL",
+        "CD",
+        "OP",
+        "VAL",
+        "RS",
+        "JD",
+        "XL",
+        "PPT",
+        "DOC",
+        "PB",
+        "ENG",
+        "CE",
+        "RCV",
+    ]
+    expected_tokens = [
+        "APPROVE",
+        "APPROVE_WITH_DELTA",
+        "MORE_RESEARCH",
+        "ROLLBACK",
+        "REJECT",
+        "FAIL",
+    ]
+
+    for mode_id in builtin_modes:
+        result = classify_operating_modes(
+            f"Exercise governed {mode_id} mode.",
+            explicit_modes=[mode_id],
+            code_lane="local_code",
+        )
+        governance = result["mode_governance"]
+        contract = governance["contracts"][0]
+
+        assert governance["selection_source"] == "PLUGIN_OR_API_EXPLICIT_SELECTION"
+        assert governance["six_way_hil_is_lane_specific"] is True
+        assert governance["lifecycle_effect"] == "NONE"
+        assert governance["candidate_created"] is False
+        assert governance["pointer_moved"] is False
+        assert contract["mode_id"] == mode_id
+        assert contract["formula"]["visible_in_response"] is True
+        assert contract["formula"]["rule"] in contract["formula_display"]
+        assert contract["operator_receipt_sha256"] in contract["formula_display"]
+        assert contract["recursive_loop"]
+        assert contract["validation_gate"]
+        assert contract["exit_write_target"]
+        assert contract["hil"]["accepted_object"]
+        assert [row["token"] for row in contract["hil"]["choices"]] == expected_tokens
+
+        assert contract["ci_cd"]["required"] is (mode_id in {"CD", "PB"})
+
+
+def test_custom_mode_requires_fail_closed_dependency_policy() -> None:
+    custom = {
+        "name": "Forensic Merge",
+        "brief": "Compare local code against cited research evidence.",
+        "lanes": ["local_code", "research"],
+    }
+    with pytest.raises(EvidenceLaneError) as blocked:
+        classify_operating_modes(
+            "Use Forensic Merge.",
+            explicit_modes=["Forensic Merge"],
+            code_lane="local_code",
+            custom_modes=[custom],
+        )
+    assert blocked.value.code == "CUSTOM_MODE_DEPENDENCY_POLICY_REQUIRED"
+
+    custom["dependency_policy"] = {
+        "requires": ["local_code", "research"],
+        "on_missing": "BLOCK",
+    }
+    result = classify_operating_modes(
+        "Use Forensic Merge.",
+        explicit_modes=["Forensic Merge"],
+        code_lane="local_code",
+        custom_modes=[custom],
+    )
+    contract = result["mode_governance"]["contracts"][0]
+    assert contract["dependency_policy"] == custom["dependency_policy"]
+    assert contract["ci_cd"]["required"] is False
 
 
 def test_active_session_mode_receipt_preserves_lifecycle_and_pointer(service) -> None:

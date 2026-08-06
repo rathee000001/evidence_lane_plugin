@@ -728,16 +728,28 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         lane_manifest = json.loads(
             (lane_root / "lane_manifest.json").read_text(encoding="utf-8")
         )
-        assert lane_manifest["schema"] == "evidence-lane.lane-manifest.v2"
+        assert lane_manifest["schema"] == "evidence-lane.lane-manifest.v3"
         assert set(lane_manifest["required_artifacts"]) == expected
         assert set(lane_manifest["evidence_artifacts"]) == expected - {
             "lane_manifest.json"
         }
+        four_file_contract = lane_manifest["four_file_contract"]
+        assert four_file_contract["schema"] == (
+            "evidence-lane.lane-four-file-contract.v1"
+        )
+        assert four_file_contract["ordered_members"] == [
+            lane.sqlite_filename,
+            lane.mmd_filename,
+            lane.dot_filename,
+            "tools.json",
+        ]
+        assert len(four_file_contract["contract_sha256"]) == 64
         mermaid = (lane_root / lane.mmd_filename).read_text(encoding="utf-8")
         dot = (lane_root / lane.dot_filename).read_text(encoding="utf-8")
         for semantic_section in (
             "SOURCE_INTAKE",
             "SEMANTIC_MODEL",
+            "SQLITE_PHYSICAL_SCHEMA",
             "RETRIEVAL",
             "LIFECYCLE",
             "OUTPUTS",
@@ -747,6 +759,11 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         assert lane.sqlite_filename in mermaid
         assert lane.mmd_filename in mermaid
         assert lane.dot_filename in mermaid
+        assert "PHYSICAL_SCHEMA_SECTOR" in mermaid
+        assert "projection_sha256=" in mermaid
+        for table in lane.schema_contract:
+            assert table in mermaid
+            assert table in dot
         lane_specific_tables = {
             table
             for table in lane.schema_contract
@@ -776,15 +793,28 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
             assert "SCHEMA_SECTOR" in mermaid
             assert "schema sector" in mermaid
         tools = json.loads((lane_root / "tools.json").read_text(encoding="utf-8"))
+        assert tools["artifact_authority"]["schema"] == (
+            "evidence-lane.tools-artifact-authority.v1"
+        )
+        assert tools["artifact_authority"]["ordered_members"] == [
+            lane.sqlite_filename,
+            lane.mmd_filename,
+            lane.dot_filename,
+        ]
         topology_generator = tools["topology_generator"]
         assert topology_generator["schema"] == (
-            "evidence-lane.lane-topology-generator.v3"
+            "evidence-lane.lane-topology-generator.v4"
         )
         assert len(topology_generator["sha256"]) == 64
         assert topology_generator["mmd_dot_shared_graph"] is True
         assert topology_generator[
             "sqlite_brain_builder_mmd_authority_sha256"
         ] == "1B87064906E8A805C4A69A7A3A14668DCCE963E00928ED3EB23CC186AB8A65EC"
+        assert topology_generator["physical_schema_projection_schema"] == (
+            "evidence-lane.sqlite-physical-schema-projection.v1"
+        )
+        assert len(topology_generator["schema_topology_module_sha256"]) == 64
+        assert len(topology_generator["topology_reconciliation_module_sha256"]) == 64
 
     project_topology = (lanes_root / "project_lane_topology.mmd").read_text(
         encoding="utf-8"
@@ -893,6 +923,11 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
     )
     assert all(lane["status"] == "PASS" for lane in forensic["lanes"])
     assert all(lane["verdict"] == "PURSUE" for lane in forensic["lanes"])
+    assert all(
+        lane["four_file_contract"]["status"] == "PASS"
+        for lane in forensic["lanes"]
+    )
+    assert all(lane["sqlite"]["every_table_audited"] for lane in forensic["lanes"])
     reports_root = tmp_path / "forensic-reports"
     report_manifest = write_forensic_audit_reports(forensic, reports_root)
     assert report_manifest["lane_report_count"] == 18

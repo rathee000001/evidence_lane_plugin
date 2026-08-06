@@ -30,7 +30,12 @@ from .lane_engine import validate_lane_bundle
 from .lineage import ChatLineage
 from .project_overlay import build_project_overlay, validate_project_overlay
 from .redaction import contains_secret
-from .topology import build_mermaid, render_mermaid
+from .topology import (
+    RENDER_RECEIPT_SCHEMA,
+    build_mermaid,
+    render_mermaid,
+    validate_render_receipt,
+)
 
 
 def _copy_exact(source: str | Path, destination: str | Path) -> None:
@@ -220,6 +225,7 @@ def build_pv_package(
             for name in sorted(set(payload_names))
         ],
         "authoritative_topology": "project_master_topology.mmd",
+        "rendering_contract": RENDER_RECEIPT_SCHEMA,
         "rendering": render_receipt,
         "universal_lanes": lane_validation,
         "project_sector_overlay": overlay_validation,
@@ -397,6 +403,37 @@ def validate_pv_package(
         "The PV receipt does not bind the current manifest.",
         status="MISMATCH",
     )
+    rendering_contract = manifest.get("rendering_contract")
+    if rendering_contract is not None:
+        require(
+            rendering_contract == RENDER_RECEIPT_SCHEMA,
+            "PV_RENDER_CONTRACT_SCHEMA_MISMATCH",
+            "The PV render contract schema is not supported.",
+            status="MISMATCH",
+            expected=RENDER_RECEIPT_SCHEMA,
+            actual=rendering_contract,
+        )
+    rendering_receipt = manifest.get("rendering", {})
+    rendering_validation = validate_render_receipt(
+        root / "project_master_topology.mmd",
+        rendering_receipt if isinstance(rendering_receipt, dict) else {},
+        svg_path=root / "project_master_topology.svg",
+        png_path=root / "project_master_topology.png",
+    )
+    if rendering_contract == RENDER_RECEIPT_SCHEMA:
+        require(
+            receipt.get("rendering") == rendering_receipt,
+            "PV_RENDER_RECEIPT_MANIFEST_MISMATCH",
+            "The PV receipt and manifest do not carry the same render receipt.",
+            status="MISMATCH",
+        )
+        require(
+            rendering_validation["valid"],
+            "PV_RENDER_RECEIPT_STALE",
+            "The SVG/PNG render receipt is stale or does not bind its source and outputs.",
+            status="MISMATCH",
+            validation=rendering_validation,
+        )
     require(
         pointer.get("schema") == POINTER_SCHEMA,
         "PV_POINTER_SCHEMA_MISMATCH",
@@ -515,6 +552,7 @@ def validate_pv_package(
         "chat_lineage_event_count": len(lineage_events),
         "project_id": project_identity.get("project_id"),
         "rendering_status": manifest.get("rendering", {}).get("status"),
+        "rendering_validation": rendering_validation,
         "promotability_required": require_promotable,
         "promotable": bool(
             lane_report["valid"]

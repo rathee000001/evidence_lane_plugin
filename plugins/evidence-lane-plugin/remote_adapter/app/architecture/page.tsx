@@ -15,7 +15,7 @@ const flow = [
   ["Policy boundary", "Classify, redact, exclude secrets, hash, and route before indexing"],
   ["Parallel lane workers", "Independent SQLite sectors, FTS, CAS, MMD, DOT, and receipts"],
   ["Candidate overlay", "Project-sector candidate facts remain outside accepted truth"],
-  ["Six-way HIL", "APPROVE, correction, research, rollback, reject, or fail"],
+  ["Lane-correct six-way HIL", "APPROVE, APPROVE_WITH_DELTA, MORE_RESEARCH, ROLLBACK, REJECT, or FAIL; each lane defines the exact governed effect"],
   ["Accepted pointer", "Only exact APPROVE may invoke Fuse and move governed truth"],
 ] as const;
 
@@ -37,6 +37,8 @@ export default function ArchitecturePage() {
         <div className="sectionHead wideHead">
           <span className="kicker">End-to-end flow</span>
           <h2>Understanding is compiled into evidence, then held outside truth.</h2>
+          <p>Mode selection first loads the exact ENV/UOP loop, formula, operators, validation gate, and lane-specific HIL meanings. It never substitutes Code governance for another lane.</p>
+          <Link className="textLink" href="/operators">Inspect every mode contract <span aria-hidden="true">→</span></Link>
         </div>
         <div className="architectureFlow">
           {flow.map(([title, text], index) => (

@@ -1,0 +1,56 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import { ModeOperatorExplorer } from "../_components/mode-operator-explorer";
+import modeOperatorGuide from "../_data/mode-governance.json";
+
+export const metadata: Metadata = {
+  title: "Mode operators",
+  description:
+    "Interactive source-backed ENV/UOP formulas, operators, gates, and lane-specific six-way HIL semantics.",
+};
+
+export default function OperatorsPage() {
+  return (
+    <main>
+      <section className="pageHero operatorHero shell">
+        <div>
+          <span className="eyebrow"><i />Mode governance</span>
+          <h1>Select a mode. Load its exact law.</h1>
+          <p>
+            Plugin-selected and prompt-inferred modes resolve to the same ENV/UOP
+            identity. Code displays its controlled CI/CD, PCM, and MBA formula;
+            every other mode keeps its own loop, gate, operators, accepted object,
+            and six-way human decision semantics.
+          </p>
+          <div className="actions">
+            <Link className="primary" href="#mode-explorer">Open the explorer</Link>
+            <Link className="secondary" href="/architecture">Trace authority flow</Link>
+          </div>
+        </div>
+        <aside className="operatorAuthorityCard" aria-label="Mode authority seals">
+          <span>LIVE SOURCE PROJECTION</span>
+          <strong>{modeOperatorGuide.mode_count} modes</strong>
+          <p>No generic Code formula is copied into non-Code lanes.</p>
+          <dl>
+            <div><dt>ENV</dt><dd>{modeOperatorGuide.modes[0].env_authority.env_sqlite_sha256.slice(0, 12)}</dd></div>
+            <div><dt>UOP</dt><dd>{modeOperatorGuide.modes[0].env_authority.uop_sqlite_sha256.slice(0, 12)}</dd></div>
+            <div><dt>Export</dt><dd>{modeOperatorGuide.export_sha256.slice(0, 12)}</dd></div>
+          </dl>
+        </aside>
+      </section>
+
+      <section className="section operatorExplorerBand" id="mode-explorer">
+        <div className="shell">
+          <ModeOperatorExplorer data={modeOperatorGuide} />
+        </div>
+      </section>
+
+      <section className="section shell operatorBoundaries">
+        <article><span>01</span><h2>Selection is classification</h2><p>Choosing a mode attaches its formula and operator receipt. It does not approve work, create a candidate, or move a pointer.</p></article>
+        <article><span>02</span><h2>Code is explicitly controlled</h2><p>Code runs through the visible plan → sandbox build → test → hash → package formula with executable CI/CD receipts.</p></article>
+        <article><span>03</span><h2>HIL meaning stays local</h2><p>The six tokens remain exact, while each lane supplies its accepted object, validation gate, rollback target, and required evidence.</p></article>
+      </section>
+    </main>
+  );
+}

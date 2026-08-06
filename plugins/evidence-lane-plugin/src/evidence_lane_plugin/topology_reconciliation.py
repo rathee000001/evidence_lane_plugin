@@ -11,6 +11,7 @@ from __future__ import annotations
 import html
 import re
 import sqlite3
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -21,8 +22,9 @@ from .lanes import (
     LANE_REGISTRY,
     PRIMARY_CODE_LANES,
 )
+from .schema_topology import physical_schema_projection, physical_table_node_ids
 
-RECONCILIATION_SCHEMA = "evidence-lane.topology-reconciliation.v3"
+RECONCILIATION_SCHEMA = "evidence-lane.topology-reconciliation.v4"
 MIN_SUBGRAPHS = 4
 MIN_NODES = 8
 MIN_EDGES = 6
@@ -51,6 +53,7 @@ _SOURCES_CLAIM = re.compile(r"\b(\d+)\s+sources\b")
 _CHUNKS_CLAIM = re.compile(r"\b(\d+)\s+chunks\b")
 _FACTS_CLAIM = re.compile(r"\b(\d+)\s+structured facts\b")
 _KINDS_CLAIM = re.compile(r"\bkinds=(\d+)")
+_PROJECTION_SHA_CLAIM = re.compile(r"\bprojection_sha256=([A-F0-9]{64})\b")
 _SAFE_TABLE = re.compile(r"^[a-z][a-z0-9_]*$")
 _CODE_LOGICAL_TABLES = {
     logical_table: physical_table
@@ -440,6 +443,143 @@ def logical_code_contract_report(
     }
 
 
+def physical_schema_contract_report(
+    graph: ParsedGraph,
+    *,
+    lane_id: str,
+    database_path: str | Path,
+) -> dict[str, Any]:
+    """Require one exact additive SQLite-schema projection for every lane."""
+
+    if lane_id not in LANE_REGISTRY:
+        return {
+            "applicable": False,
+            "required_subgraph": None,
+            "missing_subgraphs": [],
+            "missing_nodes": [],
+            "duplicate_nodes": [],
+            "unexpected_physical_nodes": [],
+            "missing_root_edges": [],
+            "missing_relation_edges": [],
+            "head_mismatches": [],
+            "label_mismatches": [],
+            "missing_contract_tables": [],
+            "expected_projection_sha256": None,
+            "claimed_projection_sha256": None,
+            "status": "NOT_APPLICABLE",
+        }
+
+    lane = LANE_REGISTRY[lane_id]
+    connection = _connect(Path(database_path))
+    try:
+        projection = physical_schema_projection(connection, lane)
+    finally:
+        connection.close()
+    table_nodes = physical_table_node_ids(projection)
+    expected_node_ids = {"PHYSICAL_SCHEMA_SECTOR", *table_nodes.values()}
+    subgraphs = {
+        item.removeprefix("cluster_").upper() for item in graph.subgraphs
+    }
+    node_counts = Counter(node.node_id for node in graph.nodes)
+    nodes = {node.node_id: node for node in graph.nodes}
+    graph_edges = set(graph.edges)
+    missing_subgraphs = (
+        [] if "SQLITE_PHYSICAL_SCHEMA" in subgraphs else ["SQLITE_PHYSICAL_SCHEMA"]
+    )
+    missing_nodes = sorted(expected_node_ids - nodes.keys())
+    duplicate_nodes = sorted(
+        node_id for node_id in expected_node_ids if node_counts[node_id] > 1
+    )
+    unexpected_physical_nodes = sorted(
+        node_id
+        for node_id in nodes
+        if node_id.startswith("PHYSICAL_TABLE_") and node_id not in expected_node_ids
+    )
+    required_root_edges = {
+        ("LANE_ROOT", "PHYSICAL_SCHEMA_SECTOR"),
+        *{
+            ("PHYSICAL_SCHEMA_SECTOR", node_id)
+            for node_id in table_nodes.values()
+        },
+    }
+    missing_root_edges = sorted(required_root_edges - graph_edges)
+    expected_relation_edges = {
+        (
+            table_nodes[str(relation["parent_table"])],
+            table_nodes[str(relation["child_table"])],
+        )
+        for relation in projection["relations"]
+        if str(relation["parent_table"]) in table_nodes
+        and str(relation["child_table"]) in table_nodes
+    }
+    missing_relation_edges = sorted(expected_relation_edges - graph_edges)
+    head_mismatches: list[str] = []
+    label_mismatches: list[str] = []
+    for row in projection["tables"]:
+        table = str(row["table"])
+        node_id = table_nodes[table]
+        node = nodes.get(node_id)
+        if node is None:
+            continue
+        if node.head != table:
+            head_mismatches.append(f"{node_id}:{node.head!r}!={table!r}")
+        required_label_claims = (
+            f'rows={row["rows"]}',
+            f'columns={len(row["columns"])}',
+            f'role={row["role"]}',
+        )
+        missing_claims = [
+            claim for claim in required_label_claims if claim not in node.normalized_label
+        ]
+        if missing_claims:
+            label_mismatches.append(f'{node_id}:missing={"|".join(missing_claims)}')
+
+    expected_projection_sha256 = str(projection["projection_sha256"])
+    sector_node = nodes.get("PHYSICAL_SCHEMA_SECTOR")
+    projection_match = (
+        _PROJECTION_SHA_CLAIM.search(sector_node.normalized_label)
+        if sector_node is not None
+        else None
+    )
+    claimed_projection_sha256 = (
+        projection_match.group(1) if projection_match is not None else None
+    )
+    projection_matches = claimed_projection_sha256 == expected_projection_sha256
+    missing_contract_tables = list(projection["missing_contract_tables"])
+    valid = not (
+        missing_subgraphs
+        or missing_nodes
+        or duplicate_nodes
+        or unexpected_physical_nodes
+        or missing_root_edges
+        or missing_relation_edges
+        or head_mismatches
+        or label_mismatches
+        or missing_contract_tables
+        or not projection_matches
+    )
+    return {
+        "applicable": True,
+        "required_root": "PHYSICAL_SCHEMA_SECTOR",
+        "required_subgraph": "SQLITE_PHYSICAL_SCHEMA",
+        "required_contract_tables": list(lane.schema_contract),
+        "physical_tables": [row["table"] for row in projection["tables"]],
+        "auxiliary_tables": list(projection["auxiliary_tables"]),
+        "missing_subgraphs": missing_subgraphs,
+        "missing_nodes": missing_nodes,
+        "duplicate_nodes": duplicate_nodes,
+        "unexpected_physical_nodes": unexpected_physical_nodes,
+        "missing_root_edges": [list(edge) for edge in missing_root_edges],
+        "missing_relation_edges": [list(edge) for edge in missing_relation_edges],
+        "head_mismatches": sorted(head_mismatches),
+        "label_mismatches": sorted(label_mismatches),
+        "missing_contract_tables": missing_contract_tables,
+        "expected_projection_sha256": expected_projection_sha256,
+        "claimed_projection_sha256": claimed_projection_sha256,
+        "status": "PASS" if valid else "FAIL",
+    }
+
+
 def schema_derived_contract_report(
     graph: ParsedGraph,
     *,
@@ -606,6 +746,26 @@ def reconcile_lane_topology(
         )
         else "FAIL"
     )
+    physical_contract = {
+        "mermaid": physical_schema_contract_report(
+            mermaid,
+            lane_id=lane_id,
+            database_path=root / sqlite_filename,
+        ),
+        "dot": physical_schema_contract_report(
+            dot,
+            lane_id=lane_id,
+            database_path=root / sqlite_filename,
+        ),
+    }
+    physical_contract_status = (
+        "PASS"
+        if all(
+            report["status"] in {"PASS", "NOT_APPLICABLE"}
+            for report in physical_contract.values()
+        )
+        else "FAIL"
+    )
     schema_contract = {
         "mermaid": schema_derived_contract_report(
             mermaid,
@@ -634,6 +794,7 @@ def reconcile_lane_topology(
         and bool(dot_claims)
         and not failed_claims
         and logical_contract_status == "PASS"
+        and physical_contract_status == "PASS"
         and schema_contract_status == "PASS"
     )
     return {
@@ -649,6 +810,10 @@ def reconcile_lane_topology(
         "logical_code_contract": {
             **logical_contract,
             "status": logical_contract_status,
+        },
+        "physical_schema_contract": {
+            **physical_contract,
+            "status": physical_contract_status,
         },
         "schema_derived_contract": {
             **schema_contract,

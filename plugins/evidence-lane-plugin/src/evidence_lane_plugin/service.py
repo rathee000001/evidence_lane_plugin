@@ -10,6 +10,7 @@ from typing import Any, cast
 
 from .connector_governance import ConnectorGovernance
 from .constants import LIFECYCLE_RESULT_SCHEMA, TOOL_RESULT_SCHEMA
+from .custom_source_schema import compile_and_map_custom_source_schema
 from .engine import CodePVEngine
 from .engine_identity import identity_repository_root
 from .enrollment import enroll_project, sync_selected_branch
@@ -38,7 +39,18 @@ from .redaction import redact
 from .remote_git import RemoteGitController
 from .runtime_activation import RuntimeActivation
 from .session import SessionManager
+from .source_git_history import (
+    build_registered_git_history,
+    build_source_git_commit_impact,
+)
+from .source_graph import (
+    build_registered_source_graph,
+    diff_source_graphs,
+    source_graph_impact,
+)
+from .source_identity import register_source_identity_matrix
 from .source_intake import classify_source_intake
+from .source_sqlite import inspect_registered_sqlite_assets
 from .state_law import transition_catalog
 from .storage_selection import StorageSelection
 from .store import ProjectStore
@@ -378,6 +390,8 @@ class EvidenceLaneService:
         overrides: dict[str, str] | None = None,
         session_id: str | None = None,
         git_mode: str = "AUTO",
+        authority_mode: str = "CLASSIFICATION_ONLY",
+        source_assertions: dict[str, dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         """Classify ordered sources through one generalized public control."""
 
@@ -397,6 +411,13 @@ class EvidenceLaneService:
             code_mode=code_lane,
             overrides=overrides,
             git_mode=git_mode,
+            authority_mode=authority_mode,
+            authority_registry_path=(
+                self.store.source_authority_path(project_id)
+                if authority_mode.strip().upper() == "GOVERNED_CONTENT_REGISTRY"
+                else None
+            ),
+            source_assertions=source_assertions,
         )
         active_session_id = session_id.strip() if session_id else ""
         if not active_session_id:
@@ -424,6 +445,358 @@ class EvidenceLaneService:
             result["chat_lineage"] = {"append_status": "NO_ACTIVE_SESSION"}
             result["prior_lifecycle_state"] = "NO_ACTIVE_SESSION"
         result["next_action"] = "RETURN_TO_SOURCE_INTAKE_OR_PRIOR_LIFECYCLE_POSITION"
+        return result
+
+    def source_sqlite_inspect(
+        self,
+        project_id: str,
+        batch_id: str,
+        *,
+        session_id: str | None = None,
+        max_embedded_member_bytes: int = 768 * 1024 * 1024,
+        exact_count_max_database_bytes: int = 32 * 1024 * 1024,
+    ) -> dict[str, Any]:
+        """Inspect registered direct and embedded SQLite assets read-only."""
+
+        self.store.config(project_id)
+        result = inspect_registered_sqlite_assets(
+            self.store.source_authority_path(project_id),
+            batch_id,
+            max_embedded_member_bytes=max_embedded_member_bytes,
+            exact_count_max_database_bytes=exact_count_max_database_bytes,
+        )
+        if session_id:
+            activity = self.sessions.record_activity(
+                project_id,
+                session_id,
+                activity_type="build.output",
+                event_id=f"source_sqlite_{str(result['event_sha256'])[:32].lower()}",
+                visible_payload={
+                    key: value
+                    for key, value in result.items()
+                    if key not in {"failure_samples"}
+                },
+            )
+            result["chat_lineage"] = {
+                "append_status": "APPENDED",
+                "event_id": activity["event"]["event_id"],
+                "event_sha256": activity["event"]["event_sha256"],
+            }
+        else:
+            result["chat_lineage"] = {"append_status": "NO_SESSION_REQUESTED"}
+        return result
+
+    def source_custom_schema_compile(
+        self,
+        project_id: str,
+        batch_id: str,
+        schema_definition: dict[str, Any],
+        *,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Compile and map one declarative Custom Source Schema."""
+
+        self.store.config(project_id)
+        result = compile_and_map_custom_source_schema(
+            self.store.source_authority_path(project_id),
+            batch_id,
+            schema_definition,
+        )
+        if session_id:
+            activity = self.sessions.record_activity(
+                project_id,
+                session_id,
+                activity_type="build.output",
+                event_id=(
+                    f"source_custom_schema_{str(result['receipt_sha256'])[:32].lower()}"
+                ),
+                visible_payload={
+                    key: value
+                    for key, value in result.items()
+                    if key not in {"mappings"}
+                },
+            )
+            result["chat_lineage"] = {
+                "append_status": "APPENDED",
+                "event_id": activity["event"]["event_id"],
+                "event_sha256": activity["event"]["event_sha256"],
+            }
+        else:
+            result["chat_lineage"] = {"append_status": "NO_SESSION_REQUESTED"}
+        return result
+
+    def source_identity_register(
+        self,
+        project_id: str,
+        batch_id: str,
+        *,
+        entities: list[dict[str, Any]],
+        profiles: list[dict[str, Any]],
+        relations: list[dict[str, Any]],
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Append a complete, non-conflating source identity matrix."""
+
+        self.store.config(project_id)
+        result = register_source_identity_matrix(
+            self.store.source_authority_path(project_id),
+            batch_id,
+            entities=entities,
+            profiles=profiles,
+            relations=relations,
+        )
+        if session_id:
+            activity = self.sessions.record_activity(
+                project_id,
+                session_id,
+                activity_type="build.output",
+                event_id=(
+                    f"source_identity_{str(result['receipt_sha256'])[:32].lower()}"
+                ),
+                visible_payload=result,
+            )
+            result["chat_lineage"] = {
+                "append_status": "APPENDED",
+                "event_id": activity["event"]["event_id"],
+                "event_sha256": activity["event"]["event_sha256"],
+            }
+        else:
+            result["chat_lineage"] = {"append_status": "NO_SESSION_REQUESTED"}
+        return result
+
+    def source_graph_build(
+        self,
+        project_id: str,
+        batch_id: str,
+        *,
+        occurrence_ordinals: list[int] | None = None,
+        member_path_prefixes: list[str] | None = None,
+        max_files: int = 25_000,
+        max_total_bytes: int = 1024 * 1024 * 1024,
+        max_file_bytes: int = 8 * 1024 * 1024,
+        max_nodes: int = 500_000,
+        max_edges: int = 1_000_000,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Build a bounded provenance-first graph over registered source bytes."""
+
+        self.store.config(project_id)
+        result = build_registered_source_graph(
+            self.store.source_authority_path(project_id),
+            batch_id,
+            occurrence_ordinals=occurrence_ordinals,
+            member_path_prefixes=member_path_prefixes,
+            max_files=max_files,
+            max_total_bytes=max_total_bytes,
+            max_file_bytes=max_file_bytes,
+            max_nodes=max_nodes,
+            max_edges=max_edges,
+        )
+        if session_id:
+            activity = self.sessions.record_activity(
+                project_id,
+                session_id,
+                activity_type="build.output",
+                event_id=f"source_graph_{str(result['receipt_sha256'])[:32].lower()}",
+                visible_payload={
+                    key: value
+                    for key, value in result.items()
+                    if key not in {"node_samples", "edge_samples"}
+                },
+            )
+            result["chat_lineage"] = {
+                "append_status": "APPENDED",
+                "event_id": activity["event"]["event_id"],
+                "event_sha256": activity["event"]["event_sha256"],
+            }
+        else:
+            result["chat_lineage"] = {"append_status": "NO_SESSION_REQUESTED"}
+        return result
+
+    def source_graph_diff(
+        self,
+        project_id: str,
+        from_graph_id: str,
+        to_graph_id: str,
+        *,
+        sample_limit: int = 100,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Diff two exact registered source-graph snapshots."""
+
+        self.store.config(project_id)
+        result = diff_source_graphs(
+            self.store.source_authority_path(project_id),
+            from_graph_id,
+            to_graph_id,
+            sample_limit=sample_limit,
+        )
+        if session_id:
+            activity = self.sessions.record_activity(
+                project_id,
+                session_id,
+                activity_type="build.output",
+                event_id=f"source_graph_diff_{str(result['receipt_sha256'])[:32].lower()}",
+                visible_payload={
+                    key: value for key, value in result.items() if key != "samples"
+                },
+            )
+            result["chat_lineage"] = {
+                "append_status": "APPENDED",
+                "event_id": activity["event"]["event_id"],
+                "event_sha256": activity["event"]["event_sha256"],
+            }
+        else:
+            result["chat_lineage"] = {"append_status": "NO_SESSION_REQUESTED"}
+        return result
+
+    def source_graph_impact(
+        self,
+        project_id: str,
+        graph_id: str,
+        seed_node_ids: list[str],
+        *,
+        relations: list[str] | None = None,
+        direction: str = "UPSTREAM",
+        max_depth: int = 3,
+        max_nodes: int = 1000,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Traverse one bounded affected subgraph from exact node IDs."""
+
+        self.store.config(project_id)
+        result = source_graph_impact(
+            self.store.source_authority_path(project_id),
+            graph_id,
+            seed_node_ids,
+            relations=relations,
+            direction=direction,
+            max_depth=max_depth,
+            max_nodes=max_nodes,
+        )
+        if session_id:
+            activity = self.sessions.record_activity(
+                project_id,
+                session_id,
+                activity_type="build.output",
+                event_id=f"source_graph_impact_{str(result['receipt_sha256'])[:32].lower()}",
+                visible_payload={
+                    key: value for key, value in result.items() if key != "nodes"
+                },
+            )
+            result["chat_lineage"] = {
+                "append_status": "APPENDED",
+                "event_id": activity["event"]["event_id"],
+                "event_sha256": activity["event"]["event_sha256"],
+            }
+        else:
+            result["chat_lineage"] = {"append_status": "NO_SESSION_REQUESTED"}
+        return result
+
+    def source_git_history_build(
+        self,
+        project_id: str,
+        batch_id: str,
+        occurrence_ordinal: int,
+        *,
+        max_refs: int = 20_000,
+        max_commits: int = 100_000,
+        max_objects: int = 2_000_000,
+        max_tree_entries: int = 5_000_000,
+        max_file_changes: int = 2_000_000,
+        max_hunks: int = 2_000_000,
+        max_changed_lines: int = 5_000_000,
+        max_patch_bytes: int = 2 * 1024 * 1024 * 1024,
+        max_single_object_bytes: int = 1024 * 1024 * 1024,
+        max_total_object_bytes: int = 8 * 1024 * 1024 * 1024,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Seal full, bounded, read-only Git evidence for one source occurrence."""
+
+        self.store.config(project_id)
+        result = build_registered_git_history(
+            self.store.source_authority_path(project_id),
+            batch_id,
+            occurrence_ordinal,
+            max_refs=max_refs,
+            max_commits=max_commits,
+            max_objects=max_objects,
+            max_tree_entries=max_tree_entries,
+            max_file_changes=max_file_changes,
+            max_hunks=max_hunks,
+            max_changed_lines=max_changed_lines,
+            max_patch_bytes=max_patch_bytes,
+            max_single_object_bytes=max_single_object_bytes,
+            max_total_object_bytes=max_total_object_bytes,
+        )
+        if session_id:
+            activity = self.sessions.record_activity(
+                project_id,
+                session_id,
+                activity_type="build.output",
+                event_id=(
+                    f"source_git_history_{str(result['receipt_sha256'])[:32].lower()}"
+                ),
+                visible_payload=result,
+            )
+            result["chat_lineage"] = {
+                "append_status": "APPENDED",
+                "event_id": activity["event"]["event_id"],
+                "event_sha256": activity["event"]["event_sha256"],
+            }
+        else:
+            result["chat_lineage"] = {"append_status": "NO_SESSION_REQUESTED"}
+        return result
+
+    def source_git_commit_impact(
+        self,
+        project_id: str,
+        snapshot_id: str,
+        graph_id: str,
+        commit_sha: str,
+        *,
+        parent_ordinal: int = 0,
+        relations: list[str] | None = None,
+        direction: str = "UPSTREAM",
+        max_depth: int = 3,
+        max_nodes: int = 1000,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Bind an exact Git parent-diff to a bounded semantic impact graph."""
+
+        self.store.config(project_id)
+        result = build_source_git_commit_impact(
+            self.store.source_authority_path(project_id),
+            snapshot_id,
+            graph_id,
+            commit_sha,
+            parent_ordinal=parent_ordinal,
+            relations=relations,
+            direction=direction,
+            max_depth=max_depth,
+            max_nodes=max_nodes,
+        )
+        if session_id:
+            activity = self.sessions.record_activity(
+                project_id,
+                session_id,
+                activity_type="build.output",
+                event_id=(
+                    f"source_git_impact_{str(result['receipt_sha256'])[:32].lower()}"
+                ),
+                visible_payload={
+                    key: value
+                    for key, value in result.items()
+                    if key not in {"changed_paths", "mapped_paths", "unmapped_paths"}
+                },
+            )
+            result["chat_lineage"] = {
+                "append_status": "APPENDED",
+                "event_id": activity["event"]["event_id"],
+                "event_sha256": activity["event"]["event_sha256"],
+            }
+        else:
+            result["chat_lineage"] = {"append_status": "NO_SESSION_REQUESTED"}
         return result
 
     def classify_mode(
@@ -1073,10 +1446,7 @@ class EvidenceLaneService:
         batch_completion_confirmation: str | None = None,
     ) -> dict[str, Any]:
         """Confirm the final host source and seal its exit candidate in one step."""
-        if (
-            batch_task_evidence is not None
-            or batch_completion_confirmation is not None
-        ):
+        if batch_task_evidence is not None or batch_completion_confirmation is not None:
             require(
                 batch_task_evidence is not None
                 and batch_completion_confirmation is not None,
@@ -1084,12 +1454,8 @@ class EvidenceLaneService:
                 "Batch completion requires both exact evidence and confirmation.",
                 status="BLOCKED",
             )
-            exact_batch_evidence = cast(
-                list[dict[str, Any]], batch_task_evidence
-            )
-            exact_batch_confirmation = cast(
-                str, batch_completion_confirmation
-            )
+            exact_batch_evidence = cast(list[dict[str, Any]], batch_task_evidence)
+            exact_batch_confirmation = cast(str, batch_completion_confirmation)
             self.store.validate_backlog_batch_completion(
                 project_id,
                 task_evidence=exact_batch_evidence,

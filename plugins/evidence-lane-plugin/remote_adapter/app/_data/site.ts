@@ -1,6 +1,7 @@
 export const primaryNavigation = [
   { href: "/architecture", label: "Architecture" },
   { href: "/lanes", label: "Lanes" },
+  { href: "/operators", label: "Operators" },
   { href: "/studio", label: "Prompt Studio" },
   { href: "/proof", label: "Proof" },
   { href: "/provenance", label: "Provenance" },

@@ -1284,6 +1284,19 @@ class SessionManager:
         session.metadata["git_arm_mode"] = classification["git_optional_arm"][
             "requested_mode"
         ]
+        authority = classification.get("source_authority")
+        if (
+            classification.get("authority_mode") == "GOVERNED_CONTENT_REGISTRY"
+            and isinstance(authority, dict)
+            and authority.get("batch_id")
+        ):
+            session.metadata["classified_source_authority"] = {
+                "batch_id": authority["batch_id"],
+                "batch_sha256": authority["batch_sha256"],
+                "source_count": authority["source_count"],
+                "classified_at_lifecycle_state": session.state.value,
+                "armed_for_candidate": False,
+            }
         self._save(session)
         event = ChatLineage(self._lineage_path(project_id, session_id)).append(
             event_type="source.intake.classified",
@@ -1309,6 +1322,9 @@ class SessionManager:
             "event": event,
             "lifecycle_state_unchanged": session.state.value,
             "pointer": pointer.as_dict(),
+            "source_authority": session.metadata.get(
+                "classified_source_authority"
+            ),
         }
 
     def confirm_source_update(
