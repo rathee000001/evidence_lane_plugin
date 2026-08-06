@@ -1,0 +1,114 @@
+{
+  "schema": "evidence-lane.delta079cd-host-storage-env-mode-continuity-receipt.v1",
+  "delta_id": "EL-V130-HOST-STORAGE-ENV-MODE-CONTINUITY-DELTA-079CD",
+  "status": "PASS",
+  "source_commit": {
+    "branch": "agent/evi-v130-all-source-brain-workflow-hil-v1.3.0",
+    "commit_sha": "CD16533C1C2ED04BFE971B9675AE7918B824B4BD",
+    "tree_sha": "D3C81C21AD54923E405DE3F711BF1EE7B8792082",
+    "remote_branch_only": true,
+    "remote_published_at_receipt_time": false,
+    "main_merged": false
+  },
+  "host_storage_matrix": {
+    "chatgpt_durable_mcp_host": {
+      "primary_runtime_authority": "MCP_SERVER_MOUNTED_OR_LOCAL_SQLITE",
+      "google_drive_policy": "FORBIDDEN_FOR_CHATGPT_RUNTIME"
+    },
+    "codex_local_pc_laptop_or_stable_vm": {
+      "primary_runtime_authority": "LOCAL_DURABLE_SQLITE",
+      "google_drive_policy": "NOT_SELECTED_FOR_DURABLE_HOST"
+    },
+    "codex_ephemeral_vm_with_durable_mount": {
+      "primary_runtime_authority": "DURABLE_MOUNT_SQLITE",
+      "google_drive_policy": "CODEX_EPHEMERAL_SEALED_ENTRY_EXIT_CARRIER_ALLOWED_NOT_PRIMARY"
+    },
+    "codex_ephemeral_vm_without_durable_mount": {
+      "primary_runtime_authority": "CONFIGURED_TRANSACTIONAL_RUNTIME_REQUIRED",
+      "google_drive_policy": "CODEX_EPHEMERAL_SEALED_ENTRY_EXIT_CARRIER_ALLOWED_NOT_PRIMARY"
+    },
+    "explicit_google_drive_primary_selection": "REJECTED_WITH_GOOGLE_DRIVE_PRIMARY_RUNTIME_FORBIDDEN"
+  },
+  "runtime_continuity": {
+    "schema": "evidence-lane.runtime-continuity.v1",
+    "mcp_read_policy": "MCP_READ_TOOLS_AGAINST_PRIMARY_RUNTIME",
+    "mcp_write_policy": "MCP_MUTATION_TOOLS_UNDER_ENV_UOP_ONE_WRITER",
+    "env_continuity_policy": "HASHED_ENV_UOP_REFERENCE_IN_ENTRY_EXIT_SLIPS_REFLASH_ON_BOOT_RESUME",
+    "entry_exit_payload_policy": "SAME_SEALED_ENV_UOP_REFERENCE_AND_ACCEPTED_POINTER_CONTRACT_NOT_ENV_BYTES",
+    "boot_resume_policy": "REFLASH_AND_REVALIDATE_ACCEPTED_PACKAGE_POINTER",
+    "mode_selection_pointer_effect": "NONE",
+    "candidate_created_by_continuity": false,
+    "hil_approval_inferred_by_continuity": false
+  },
+  "mode_execution": {
+    "selection_binding": "ACTIVE_MODE_BINDING_SNAPSHOTTED_TO_TASK_MODE_BINDING",
+    "execution_schema": "evidence-lane.mode-execution.v1",
+    "code_mode": {
+      "mode_id": "CD",
+      "formula": "plan -> sandbox build -> test -> hash -> package",
+      "ci_cd": "CONTROLLED_REQUIRED",
+      "operator_groups": [
+        "PCM",
+        "MBA"
+      ],
+      "approval_gate": "PASS_OR_OPEN_OR_FAILED_RENDERED_FROM_EXECUTABLE_EVIDENCE"
+    },
+    "other_modes": "DISTINCT_ENV_UOP_FORMULA_OPERATORS_GATES_ACCEPTED_OBJECT_AND_ROLLBACK_TARGET",
+    "visible_formula_response_required": true,
+    "six_way_hil_is_lane_specific": true,
+    "six_way_tokens": [
+      "APPROVE",
+      "APPROVE_WITH_DELTA",
+      "MORE_RESEARCH",
+      "ROLLBACK",
+      "REJECT",
+      "FAIL"
+    ],
+    "mode_selection_creates_candidate": false,
+    "mode_selection_moves_pointer": false,
+    "mode_selection_infers_hil_approval": false
+  },
+  "verification": {
+    "focused_tests": "16 passed in 46.42s",
+    "ruff": "PASS",
+    "mypy": "PASS across 65 source files",
+    "mode_operator_receipt_validation": "PASS",
+    "runtime_continuity_validation": "PASS",
+    "site_operator_projection": "PASS",
+    "windows_tunnel_regression": "PASS"
+  },
+  "source_file_sha256": {
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/persistence.py": "1BDCC8A624D71C8508E793C4D11DACD723E07979722999F20A46557145A290FB",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/runtime_continuity.py": "64A70EF49A95E01D737B5F471B6FE7F6A5028E1B6397545D1FBE477A28F3716F",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/service.py": "8C8AEA1D6EC39642CAF4AB64155EF1232456E78EE1CA04B761237990F99181CC",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/session.py": "1FC588D4B65E147FDD77A507E74855816D7512DD6DAB0560356A620E25AA6E8D",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/engine.py": "33794AD7D8750060E5B72F91C1B3F563BB8C4A02EDEBBAED7D54F0CE25D46D9E",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mode_governance.py": "73179D7E4D90B7950AAF4D967C91562C57116A484C10D498E93644856BB39EE5",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/next_actions.py": "2C5CECD79FED4859544BFE01B594096B94519B630FF859E21AEC1433AAAE8A6E",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/storage_selection.py": "72B03657EDC1822E6B3A2059A04D2A170EAE3E228280927CB566EE6828B05910",
+    "plugins/evidence-lane-plugin/skills/evi-boot/SKILL.md": "EF5AFA492BEBCEC7BB85A079FC7D96ADDC82D2CDE7513328B90C22D05BBE8312",
+    "plugins/evidence-lane-plugin/skills/evi-mode/SKILL.md": "031DAB045F887A901928C6FC44278A41E1385BFADC33D524CDB6777ED849FD8A",
+    "plugins/evidence-lane-plugin/skills/evi-storage/SKILL.md": "D7003E6B9FD63AF0FCDB7570E4776E7D19EBBBA9A867EDC84BDC87027DE98002",
+    "docs/HOST_STORAGE_ENV_MODE_CONTINUITY.md": "1DA75BCF5D21B9918DD9FDE5FD026D75178C5AA4188D6921CBA74042691F78F8",
+    "tests/test_runtime_continuity.py": "AFA11420A893BA4A6C5E00B75E015A4FD59F530348E1DC67797E4769D6393564",
+    "tests/test_operating_modes.py": "6ECE2101FD048004C44FBF835E43B57C946F0EC7CFB5D5F3BE0F6EFA4D50C649",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_data/mode-governance.json": "0AF9F7C565F8B79E6CD8AB01585BED841C105F08CFEA4F595B1514AF398C39C4"
+  },
+  "generated_projection": {
+    "operator_site_export_sha256": "FBBB914820BB2FE5A8F07BBE5BCE8C575C1D0033E9E314E06C253714011BF3CF"
+  },
+  "safety": {
+    "source_reset_stash_clean": false,
+    "main_merged": false,
+    "production_deployed": false,
+    "pointer_moved": false,
+    "pv_built": false,
+    "hil_approval_inferred": false
+  },
+  "verdict": {
+    "decision": "PURSUE",
+    "confidence_percent": 99,
+    "evidence_that_would_change_verdict": "A host route that makes Google Drive live authority, an Entry/Exit ENV-UOP hash mismatch, an unbound selected mode, a Code Mode execution lacking controlled CI/CD plus PCM and MBA, or a six-way token whose effect is not lane-specific."
+  },
+  "receipt_sha256": "6DB92B9931300B25BB8C8FDDF78B4EF6D2BDE97EC9EADDDA861BA9D8B7AD82FD"
+}
