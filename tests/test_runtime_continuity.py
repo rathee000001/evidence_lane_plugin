@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import copy
 import json
+from pathlib import Path
 
+import evidence_lane_plugin.session as session_module
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.models import HostKind
 from evidence_lane_plugin.persistence import route_persistence
 from evidence_lane_plugin.runtime_continuity import validate_runtime_continuity
 
-from .conftest import boot_local
+from .conftest import boot_local, build_and_approve_pv1
 
 
 def test_host_route_keeps_chatgpt_off_drive_and_distinguishes_vm_durability() -> None:
@@ -103,3 +106,62 @@ def test_google_drive_cannot_be_selected_as_primary_runtime(service) -> None:
             ),
         )
     assert blocked.value.code == "GOOGLE_DRIVE_PRIMARY_RUNTIME_FORBIDDEN"
+
+
+def test_resume_preserves_integrity_valid_accepted_authority_across_new_rules(
+    service,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    real_validate = session_module.validate_pv_package
+
+    def accepted_compatibility_probe(
+        directory: str | Path,
+        *,
+        require_promotable: bool = True,
+    ) -> dict:
+        if Path(directory).name == "PV1" and require_promotable:
+            raise EvidenceLaneError(
+                "PV_LANE_BUNDLE_INVALID",
+                "An accepted authority must not be retroactively requalified.",
+                status="FAIL",
+            )
+        result = real_validate(
+            directory,
+            require_promotable=require_promotable,
+        )
+        if Path(directory).name == "PV1":
+            result = copy.deepcopy(result)
+            result["promotable"] = False
+            result["lanes"]["status"] = "FAIL"
+            result["lanes"]["valid"] = False
+        return result
+
+    monkeypatch.setattr(
+        session_module,
+        "validate_pv_package",
+        accepted_compatibility_probe,
+    )
+    resumed = service.resume_session(
+        project_id="book-faires",
+        host="CODEX_DESKTOP",
+        host_session_id="codex-accepted-authority-compatibility",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"purpose": "build stricter successor without mutating entry"},
+    )
+    entry_pointer = validate_runtime_continuity(resumed["runtime_continuity"])[
+        "entry_pointer"
+    ]
+    assert resumed["session"]["session_id"] == session_id
+    assert resumed["session"]["state"] == "PVN1_ENTRY"
+    assert entry_pointer["accepted_pv"] == "PV1"
+    assert entry_pointer["accepted_authority_integrity_validated"] is True
+    assert entry_pointer["promotability_required_for_boot_or_resume"] is False
+    assert entry_pointer["promotable_under_current_rules"] is False
+    assert entry_pointer["compatibility_state"] == (
+        "ACCEPTED_IMMUTABLE_HISTORICAL_SCHEMA"
+    )
+    assert entry_pointer["successor_candidate_must_pass_current_rules"] is True
+    assert service.store.pointer("book-faires").generation == 1

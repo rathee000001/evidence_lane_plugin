@@ -22,6 +22,7 @@ def build_runtime_continuity(
     pointer_generation: int,
     accepted_manifest_sha256: str | None,
     accepted_package_sha256: str | None,
+    accepted_promotable_under_current_rules: bool | None = None,
 ) -> dict[str, Any]:
     """Bind a host route to the locked Flash and exact entry pointer."""
 
@@ -59,6 +60,16 @@ def build_runtime_continuity(
             "ChatGPT must use the durable MCP host and never Google Drive runtime state.",
             status="BLOCKED",
         )
+    accepted_integrity_validated = bool(
+        accepted_pv and accepted_manifest_sha256 and accepted_package_sha256
+    )
+    accepted_compatibility_state = (
+        "NO_ACCEPTED_PV"
+        if not accepted_pv
+        else "CURRENT_RULES_PROMOTABLE"
+        if accepted_promotable_under_current_rules is True
+        else "ACCEPTED_IMMUTABLE_HISTORICAL_SCHEMA"
+    )
     core = {
         "schema": RUNTIME_CONTINUITY_SCHEMA,
         "host": {
@@ -82,6 +93,13 @@ def build_runtime_continuity(
             "pointer_generation": pointer_generation,
             "accepted_manifest_sha256": accepted_manifest_sha256,
             "accepted_package_sha256": accepted_package_sha256,
+            "accepted_authority_integrity_validated": accepted_integrity_validated,
+            "promotability_required_for_boot_or_resume": False,
+            "promotable_under_current_rules": (
+                accepted_promotable_under_current_rules
+            ),
+            "compatibility_state": accepted_compatibility_state,
+            "successor_candidate_must_pass_current_rules": True,
         },
         "mcp_access": {
             "read": persistence_route["mcp_read_policy"],
@@ -130,6 +148,14 @@ def validate_runtime_continuity(value: dict[str, Any]) -> dict[str, Any]:
     require(
         value.get("env_uop", {}).get("bytes_in_pv") is False
         and value.get("entry_exit_slip", {}).get("env_uop_bytes_embedded") is False
+        and value.get("entry_pointer", {}).get(
+            "promotability_required_for_boot_or_resume"
+        )
+        is False
+        and value.get("entry_pointer", {}).get(
+            "successor_candidate_must_pass_current_rules"
+        )
+        is True
         and value.get("mcp_access", {}).get("client_bypasses_mcp_for_runtime_writes")
         is False
         and value.get("pointer_moved") is False

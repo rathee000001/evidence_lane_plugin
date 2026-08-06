@@ -366,7 +366,10 @@ class SessionManager:
         }
         if pointer.accepted_pv:
             accepted = self.store.accepted_path(project_id, pointer.accepted_pv)
-            validation = validate_pv_package(accepted)
+            validation = validate_pv_package(
+                accepted,
+                require_promotable=False,
+            )
             entry_validation = validation
             project_identity = json.loads(
                 (accepted / "project_identity.json").read_text(encoding="utf-8")
@@ -417,6 +420,9 @@ class SessionManager:
             ),
             accepted_package_sha256=(
                 entry_validation["package_sha256"] if entry_validation else None
+            ),
+            accepted_promotable_under_current_rules=(
+                entry_validation["promotable"] if entry_validation else None
             ),
         )
         session = SessionRecord(
@@ -698,7 +704,8 @@ class SessionManager:
         entry_validation: dict[str, Any] | None = None
         if pointer.accepted_pv:
             entry_validation = validate_pv_package(
-                self.store.accepted_path(project_id, pointer.accepted_pv)
+                self.store.accepted_path(project_id, pointer.accepted_pv),
+                require_promotable=False,
             )
             require(
                 entry_validation["manifest_sha256"]
@@ -735,6 +742,9 @@ class SessionManager:
             ),
             accepted_package_sha256=(
                 entry_validation["package_sha256"] if entry_validation else None
+            ),
+            accepted_promotable_under_current_rules=(
+                entry_validation["promotable"] if entry_validation else None
             ),
         )
         session.metadata["persistence_route"] = dict(persistence_route)
@@ -2311,7 +2321,10 @@ class SessionManager:
             project_id,
             cast(str, pointer.accepted_pv),
         )
-        validation = validate_pv_package(accepted_path)
+        validation = validate_pv_package(
+            accepted_path,
+            require_promotable=False,
+        )
         existing = session.metadata.get("state_travel")
         if (
             isinstance(existing, dict)
@@ -2476,7 +2489,8 @@ class SessionManager:
             actual=pointer.as_dict(),
         )
         validation = validate_pv_package(
-            self.store.accepted_path(project_id, cast(str, pointer.accepted_pv))
+            self.store.accepted_path(project_id, cast(str, pointer.accepted_pv)),
+            require_promotable=False,
         )
         require(
             validation["manifest_sha256"] == travel.get("manifest_sha256")
@@ -2631,7 +2645,10 @@ class SessionManager:
             project_id,
             cast(str, pointer.accepted_pv),
         )
-        validation = validate_pv_package(accepted_path)
+        validation = validate_pv_package(
+            accepted_path,
+            require_promotable=False,
+        )
         freshness = evaluate_freshness(self.store, project_id, accepted_path)
         session.accepted_pv = pointer.accepted_pv
         session.accepted_pointer_generation = pointer.generation

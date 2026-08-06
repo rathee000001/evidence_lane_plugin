@@ -947,7 +947,7 @@ class EvidenceLaneService:
             # when their topology predates the current promotability contract.
             validation = validate_pv_package(
                 self.store.accepted_path(project_id, pv_id),
-                require_promotable=is_current,
+                require_promotable=False,
             )
             lane_validation = validation["lanes"]
             accepted_history.append(
@@ -957,17 +957,21 @@ class EvidenceLaneService:
                     "package_sha256": validation["package_sha256"],
                     "current": is_current,
                     "validation_scope": (
-                        "CURRENT_PROMOTABLE" if is_current else "HISTORICAL_EVIDENCE"
+                        "ACCEPTED_IMMUTABLE_AUTHORITY"
+                        if is_current
+                        else "HISTORICAL_EVIDENCE"
                     ),
                     "integrity_validated": True,
-                    "promotability_required": is_current,
-                    "promotability_enforced": is_current,
+                    "promotability_required": False,
+                    "promotability_enforced": False,
                     "promotable": validation["promotable"],
+                    "promotable_under_current_rules": validation["promotable"],
                     "lane_topology_status": lane_validation["status"],
                     "lane_topology_valid": lane_validation["valid"],
                     "historical_compatibility_path": bool(
-                        not is_current and not lane_validation["valid"]
+                        not validation["promotable"]
                     ),
+                    "successor_candidate_must_pass_current_rules": True,
                 }
             )
         current_freshness: dict[str, Any] = {

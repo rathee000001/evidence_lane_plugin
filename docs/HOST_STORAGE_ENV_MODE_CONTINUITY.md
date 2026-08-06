@@ -34,6 +34,17 @@ The same validated receipt is copied into Entry and Exit Slips. MCP reads target
 the primary runtime. MCP mutations remain governed by ENV/UOP and one-writer
 law.
 
+### Accepted-authority evolution boundary
+
+An accepted PV remains the immutable entry authority when later releases add
+stricter topology or promotability rules. Boot, Resume, direct continuation,
+State Travel, status, and rollback revalidate its exact bytes, manifest/package
+hashes, pointer identity, and database integrity without retroactively
+requalifying it as a new candidate. The continuity receipt reports whether that
+accepted authority is promotable under current rules. A historical-schema
+result is visible compatibility evidence, not a failure and not permission to
+alter accepted bytes. The successor candidate must pass every current rule.
+
 ## Selected-mode execution
 
 `mode_classify` accepts either an explicit plugin/API selection or deterministic

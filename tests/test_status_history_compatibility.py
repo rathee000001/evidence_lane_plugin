@@ -75,7 +75,7 @@ def test_status_keeps_historical_evidence_without_requalifying_it(
         historical_contract_probe,
     )
     status = service.status("book-faires")
-    assert calls == [("PV1", False), ("PV2", True)]
+    assert calls == [("PV1", False), ("PV2", False)]
     history = {row["pv_id"]: row for row in status["accepted_history"]}
     assert history["PV1"] == {
         "pv_id": "PV1",
@@ -87,42 +87,52 @@ def test_status_keeps_historical_evidence_without_requalifying_it(
         "promotability_required": False,
         "promotability_enforced": False,
         "promotable": False,
+        "promotable_under_current_rules": False,
         "lane_topology_status": "FAIL",
         "lane_topology_valid": False,
         "historical_compatibility_path": True,
+        "successor_candidate_must_pass_current_rules": True,
     }
     assert history["PV2"]["current"] is True
-    assert history["PV2"]["validation_scope"] == "CURRENT_PROMOTABLE"
-    assert history["PV2"]["promotability_required"] is True
-    assert history["PV2"]["promotability_enforced"] is True
+    assert history["PV2"]["validation_scope"] == "ACCEPTED_IMMUTABLE_AUTHORITY"
+    assert history["PV2"]["promotability_required"] is False
+    assert history["PV2"]["promotability_enforced"] is False
     assert history["PV2"]["promotable"] is True
+    assert history["PV2"]["promotable_under_current_rules"] is True
     assert history["PV2"]["lane_topology_valid"] is True
     assert history["PV2"]["historical_compatibility_path"] is False
+    assert history["PV2"]["successor_candidate_must_pass_current_rules"] is True
 
-    def reject_invalid_current(
+    def preserve_integrity_valid_current_authority(
         directory: str | Path,
         *,
         require_promotable: bool = True,
     ) -> dict:
-        if Path(directory).name == "PV2" and require_promotable:
-            raise EvidenceLaneError(
-                "PV_LANE_BUNDLE_INVALID",
-                "The current accepted PV must remain strictly validated.",
-                status="FAIL",
-            )
-        return real_validate(
+        result = real_validate(
             directory,
             require_promotable=require_promotable,
         )
+        if Path(directory).name == "PV2":
+            assert require_promotable is False
+            result = copy.deepcopy(result)
+            result["promotable"] = False
+            result["lanes"]["status"] = "FAIL"
+            result["lanes"]["valid"] = False
+        return result
 
     monkeypatch.setattr(
         service_module,
         "validate_pv_package",
-        reject_invalid_current,
+        preserve_integrity_valid_current_authority,
     )
-    with pytest.raises(EvidenceLaneError) as invalid_current:
-        service.status("book-faires")
-    assert invalid_current.value.code == "PV_LANE_BUNDLE_INVALID"
+    compatibility_status = service.status("book-faires")
+    current = next(
+        row for row in compatibility_status["accepted_history"] if row["current"]
+    )
+    assert current["integrity_validated"] is True
+    assert current["promotable_under_current_rules"] is False
+    assert current["historical_compatibility_path"] is True
+    assert current["successor_candidate_must_pass_current_rules"] is True
 
     monkeypatch.setattr(
         service_module,

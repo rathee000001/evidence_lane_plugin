@@ -27,3 +27,10 @@ ENV/UOP bytes. ChatGPT must report `FORBIDDEN_FOR_CHATGPT_RUNTIME` for Google
 Drive. A Codex ephemeral VM may report Drive only as a sealed Entry/Exit
 carrier while a transactional connector owns live state. No continuity receipt
 may move a pointer, create a candidate, or infer HIL approval.
+
+An already accepted PV is an immutable authority and is revalidated for exact
+bytes, manifest/package hashes, pointer identity, and database integrity during
+Boot or Resume. Do not retroactively require it to satisfy topology or other
+promotability rules introduced after acceptance. Report that compatibility
+state explicitly; every successor candidate must still pass all current rules
+before it can be promoted.
