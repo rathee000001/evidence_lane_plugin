@@ -544,7 +544,9 @@ def render_mermaid(
                     timeout=timeout,
                     close_fds=True,
                     creationflags=(
-                        subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+                        getattr(subprocess, "CREATE_NO_WINDOW", 0)
+                        if os.name == "nt"
+                        else 0
                     ),
                     env=render_environment,
                 )

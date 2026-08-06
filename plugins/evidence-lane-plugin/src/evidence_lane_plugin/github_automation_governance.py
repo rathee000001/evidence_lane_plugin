@@ -11,6 +11,7 @@ from typing import Any, cast
 
 from .errors import require
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
+from .redaction import redact_text
 
 GITHUB_AW_GUARD_ORDER = (
     "TOOL_ALLOWED",
@@ -32,9 +33,7 @@ _DENY_CODES = {
     "CONTENT_INTEGRITY_SUFFICIENT": -32006,
 }
 _TOOL_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}")
-_REPOSITORY = re.compile(
-    r"(?:\*|[A-Za-z0-9_.-]+)/(?:\*|[A-Za-z0-9_.-]+)"
-)
+_REPOSITORY = re.compile(r"(?:\*|[A-Za-z0-9_.-]+)/(?:\*|[A-Za-z0-9_.-]+)")
 _ROLE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}")
 _REMOTE_ACTION = re.compile(
     r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+"
@@ -42,6 +41,153 @@ _REMOTE_ACTION = re.compile(
 )
 _DOCKER_DIGEST_ACTION = re.compile(r"docker://[^\s@]+@sha256:[0-9A-Fa-f]{64}")
 _USES_LINE = re.compile(r"^\s*(?:-\s*)?uses\s*:\s*(?P<value>.*?)\s*$")
+_EXECUTION_EVIDENCE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}")
+_OUTPUT_THREAT_RULES: tuple[tuple[str, re.Pattern[str]], ...] = (
+    (
+        "PROMPT_INJECTION_MARKER",
+        re.compile(
+            r"(?i)\bignore\s+(?:all\s+|any\s+|the\s+)?(?:previous|prior)\s+"
+            r"(?:instructions?|prompts?)\b"
+        ),
+    ),
+    (
+        "DESTRUCTIVE_GIT_MARKER",
+        re.compile(r"(?i)\bgit\s+reset\s+--hard\b"),
+    ),
+    (
+        "DESTRUCTIVE_FILESYSTEM_MARKER",
+        re.compile(r"(?i)(?:\brm\s+-rf\s+/(?:\s|$)|\bRemove-Item\b[^\n]*\s-Recurse\b)"),
+    ),
+    (
+        "PIPE_TO_SHELL_MARKER",
+        re.compile(r"(?i)\b(?:curl|wget)\b[^\n|]{0,500}\|\s*(?:ba)?sh\b"),
+    ),
+    (
+        "POWERSHELL_EXPRESSION_MARKER",
+        re.compile(r"(?i)\b(?:Invoke-Expression|iex)\b"),
+    ),
+)
+_DEFAULT_SAFE_OUTPUT_CHARS = 4_000
+
+
+def _normalize_execution_ids(
+    values: Sequence[str | int], *, field: str
+) -> tuple[str, ...]:
+    require(
+        not isinstance(values, (str, bytes)),
+        "GITHUB_EXECUTION_EVIDENCE_INVALID",
+        f"{field} must be an array of exact identifiers.",
+        status="BLOCKED",
+        field=field,
+    )
+    normalized = tuple(sorted({str(value).strip() for value in values}))
+    for value in normalized:
+        require(
+            bool(_EXECUTION_EVIDENCE_ID.fullmatch(value)),
+            "GITHUB_EXECUTION_EVIDENCE_INVALID",
+            f"{field} contains an invalid identifier.",
+            status="BLOCKED",
+            field=field,
+            value=value,
+        )
+    return normalized
+
+
+def classify_github_execution_evidence(
+    *,
+    actions_run_ids: Sequence[str | int],
+    agent_session_ids: Sequence[str | int],
+) -> dict[str, Any]:
+    """Keep GitHub Actions runs distinct from Copilot agent sessions."""
+
+    actions = _normalize_execution_ids(actions_run_ids, field="actions_run_ids")
+    sessions = _normalize_execution_ids(agent_session_ids, field="agent_session_ids")
+    if sessions:
+        surface = "AGENT_SESSION_OBSERVED"
+    elif actions:
+        surface = "ACTIONS_ONLY"
+    else:
+        surface = "NO_EXECUTION_EVIDENCE"
+    body: dict[str, Any] = {
+        "schema": "evidence-lane.github-execution-evidence.v1",
+        "status": "PASS",
+        "execution_surface": surface,
+        "actions_run_ids": list(actions),
+        "agent_session_ids": list(sessions),
+        "actions_run_count": len(actions),
+        "agent_session_count": len(sessions),
+        "agent_session_proven": bool(sessions),
+        "actions_are_agent_sessions": False,
+    }
+    body["receipt_sha256"] = sha256_bytes(canonical_json_bytes(body))
+    return body
+
+
+def _escape_untrusted_control_characters(value: str) -> str:
+    return "".join(
+        character
+        if character in {"\n", "\t"} or ord(character) >= 32 and ord(character) != 127
+        else f"\\x{ord(character):02X}"
+        for character in value
+    )
+
+
+def inspect_agent_output(
+    raw_output: str,
+    *,
+    infrastructure_error: str | None = None,
+    max_safe_chars: int = _DEFAULT_SAFE_OUTPUT_CHARS,
+) -> dict[str, Any]:
+    """Create an advisory, secret-free receipt for untrusted execution output.
+
+    This inspection happens after output exists. It never claims to prevent or
+    roll back an action that already ran.
+    """
+
+    require(
+        isinstance(raw_output, str),
+        "AGENT_OUTPUT_INVALID",
+        "Agent output must be text.",
+        status="BLOCKED",
+    )
+    require(
+        isinstance(max_safe_chars, int) and 1 <= max_safe_chars <= 64_000,
+        "AGENT_OUTPUT_LIMIT_INVALID",
+        "The safe-output character limit must be between 1 and 64000.",
+        status="BLOCKED",
+    )
+    findings = [
+        {"code": code, "severity": "HIGH"}
+        for code, pattern in _OUTPUT_THREAT_RULES
+        if pattern.search(raw_output)
+    ]
+    safe_output = _escape_untrusted_control_characters(
+        redact_text(raw_output[-max_safe_chars:])
+    )
+    safe_error = None
+    if infrastructure_error:
+        safe_error = _escape_untrusted_control_characters(
+            redact_text(str(infrastructure_error)[-max_safe_chars:])
+        )
+    body: dict[str, Any] = {
+        "schema": "evidence-lane.agent-output-inspection.v1",
+        "status": "ALERT" if findings or safe_error else "PASS",
+        "advisory_only": True,
+        "post_execution": True,
+        "threat_status": "ALERT" if findings else "PASS",
+        "infrastructure_status": "ERROR" if safe_error else "PASS",
+        "findings": findings,
+        "raw_output_sha256": sha256_bytes(raw_output.encode("utf-8")),
+        "raw_output_chars": len(raw_output),
+        "threat_scan_chars": len(raw_output),
+        "threat_scan_complete": True,
+        "output_truncated": len(raw_output) > max_safe_chars,
+        "safe_output": safe_output,
+        "safe_output_sha256": sha256_bytes(safe_output.encode("utf-8")),
+        "safe_infrastructure_error": safe_error,
+    }
+    body["receipt_sha256"] = sha256_bytes(canonical_json_bytes(body))
+    return body
 
 
 def _normalize_string_sequence(
@@ -242,9 +388,7 @@ def evaluate_github_aw_access(
 
     exact = request.normalized()
     request_integrity = CONTENT_INTEGRITY_LEVELS.index(exact.content_integrity)
-    minimum_integrity = CONTENT_INTEGRITY_LEVELS.index(
-        policy.minimum_content_integrity
-    )
+    minimum_integrity = CONTENT_INTEGRITY_LEVELS.index(policy.minimum_content_integrity)
     checks = (
         ("TOOL_ALLOWED", exact.tool_name in policy.allowed_tools),
         (
@@ -288,7 +432,9 @@ def evaluate_github_aw_access(
     }
 
 
-def parse_mcp_tool_allowlist(value: str | Sequence[str] | None) -> tuple[str, ...] | None:
+def parse_mcp_tool_allowlist(
+    value: str | Sequence[str] | None,
+) -> tuple[str, ...] | None:
     """Parse an explicit exact-name allowlist; absence preserves local inventory."""
 
     if value is None:

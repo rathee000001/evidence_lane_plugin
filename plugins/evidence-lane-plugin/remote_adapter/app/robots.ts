@@ -1,8 +1,10 @@
 import type { MetadataRoute } from "next";
 
+import { publicSiteUrl } from "./_data/site";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: "*", allow: "/", disallow: ["/mcp"] },
-    sitemap: "https://evidence-lane-chatgpt-mcp-adapter.vercel.app/sitemap.xml",
+    sitemap: `${publicSiteUrl}/sitemap.xml`,
   };
 }

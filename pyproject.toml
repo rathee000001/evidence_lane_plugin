@@ -34,6 +34,9 @@ dependencies = [
 dev = [
   "pytest==9.1.1",
 ]
+rag = [
+  "llama-index-core==0.14.23",
+]
 
 [project.scripts]
 evidence-lane-plugin = "evidence_lane_plugin.cli:main"

@@ -8,6 +8,7 @@ import { primaryNavigation } from "../_data/site";
 import { GlassIconOrb, OfficialToolIcon, type OfficialToolIconName } from "./evidence-assets";
 
 const navIdentity: readonly { color: string; icon: OfficialToolIconName }[] = [
+  { color: "#69d9f5", icon: "node" },
   { color: "#69d9f5", icon: "pulse" },
   { color: "#83ddb3", icon: "database" },
   { color: "#b6a0ff", icon: "terminal" },
@@ -23,16 +24,16 @@ export function SiteHeader() {
   return (
     <header className="siteHeader">
       <nav className="rilFloatingNav" aria-label="Primary navigation">
-        <Link className="brand" href="/" aria-label="Evidence Lane home">
+        <div className="brand" aria-hidden="true">
           <Image
             className="floatingBrandLogo"
             src="/evidence-lane-full-logo.png"
-            alt="Evidence Lane"
+            alt=""
             width={2400}
             height={1792}
             priority
           />
-        </Link>
+        </div>
         <div className="navPillCluster">
           <div className="navLinks" role="list">
             {primaryNavigation.map((item, index) => (

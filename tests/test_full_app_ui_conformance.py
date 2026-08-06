@@ -48,6 +48,8 @@ def test_full_width_ril_gold_story_replaces_the_desktop_app_shell() -> None:
     assert 'className="rilFloatingNav"' in header
     assert 'className="navPillCluster"' in header
     assert 'className="floatingBrandLogo"' in header
+    assert '<div className="brand" aria-hidden="true">' in header
+    assert '<Link className="brand"' not in header
     assert ".shell {\n  width: 100%;\n  max-width: none;" in css
     assert ".rilFloatingNav" in css and ".rilPill" in css
     assert ".homeHero" in css and ".sourceBrainPanel" in css
@@ -170,6 +172,13 @@ def test_all_eighteen_canonical_lanes_drive_the_interactive_toolchain() -> None:
     assert "LaneToolchainExplorer" not in landing
     assert "Replay flow" not in console and "Auto cycle" not in console
 
+    css = (APP / "globals.css").read_text(encoding="utf-8")
+    lane_picker_rule = re.search(r"\.laneToolchainPage \.lanePicker \{([^}]+)\}", css)
+    assert lane_picker_rule is not None
+    assert "display: grid" in lane_picker_rule.group(1)
+    assert "grid-template-columns: repeat(9,minmax(0,1fr))" in lane_picker_rule.group(1)
+    assert "overflow-x: auto" not in lane_picker_rule.group(1)
+
 
 def test_v130_home_uses_delta_story_plugin_catalog_and_universal_glass_pills() -> None:
     landing = (APP / "page.tsx").read_text(encoding="utf-8")
@@ -179,6 +188,9 @@ def test_v130_home_uses_delta_story_plugin_catalog_and_universal_glass_pills() -
     surfaces = (APP / "_data" / "plugin-surfaces.ts").read_text(encoding="utf-8")
     ledger = (APP / "_data" / "delta-ledger.ts").read_text(encoding="utf-8")
     css = (APP / "globals.css").read_text(encoding="utf-8")
+    site_data = (APP / "_data" / "site.ts").read_text(encoding="utf-8")
+    operators = (COMPONENTS / "mode-operator-explorer.tsx").read_text(encoding="utf-8")
+    architecture = (APP / "architecture" / "page.tsx").read_text(encoding="utf-8")
 
     assert "DeltaLedgerExplorer" in landing
     assert "PluginSurfaceCatalog" in landing
@@ -199,6 +211,16 @@ def test_v130_home_uses_delta_story_plugin_catalog_and_universal_glass_pills() -
     assert "--universal-popup-fade-duration: 140ms" in css
     assert '@keyframes universal-popup-fade' in css
     assert "position: fixed" in css and "place-items: center" in css
+    assert landing.index('className="section shell releaseHome"') < landing.index('id="delta-ledger"')
+    assert site_data.index('{ href: "/", label: "Home" }') < site_data.index('{ href: "/architecture"')
+    assert "data.modes.map" in operators
+    operator_tabs_rule = re.search(r"\.operatorModeTabs \{([^}]+)\}", css)
+    assert operator_tabs_rule is not None
+    assert "grid-template-columns: repeat(8,minmax(0,1fr))" in operator_tabs_rule.group(1)
+    assert "overflow-x: auto" not in operator_tabs_rule.group(1)
+    assert "parallelSources.map" in architecture
+    assert architecture.count("<GlassIconOrb") >= 7
+    assert ".parallelDiagram::before" in css
 
 
 def test_every_legacy_route_pill_uses_the_glass_orb_schema() -> None:
@@ -226,13 +248,47 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
 
     assert "promptStudioRail" not in studio
     assert "promptStudioHeader" in studio and "promptStudioWorkspace" in studio
-    assert 'data-grounding="LOCAL_SITE_KNOWLEDGE_MAP"' in studio
-    assert "no external model call is implied" in studio
-    assert "cannot ground that question" in studio
+    assert 'data-grounding="LOCAL_BM25_TFIDF_RRF_PROJECTION_OF_SQLITE_FTS5_CORPUS"' in studio
+    assert 'studio-rag-index.json' in studio
+    assert "rankEvidence" in studio and "answerFromEvidence" in studio
+    assert "bm25" in studio and "tfidf" in studio and "rrf" in studio
+    assert "The studio will not invent an answer or imply a provider call" in studio
+    assert "it does not execute SQLite" in (APP / "studio" / "page.tsx").read_text(encoding="utf-8")
     assert "promptStopWords" in studio
     assert "!promptStopWords.has(token)" in studio
-    assert "Published sources" in studio and "Boundary reference" in studio
+    assert "Ranked source chunks" in studio and "Boundary reference" in studio
+    assert "promptRetrievalReceipt" in studio and ".promptRetrievalReceipt" in css
     assert ".promptStudio { min-height: 760px; border: 0; background: transparent; }" in css
+
+
+def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() -> None:
+    landing = (APP / "page.tsx").read_text(encoding="utf-8")
+    ledger = (COMPONENTS / "delta-ledger-explorer.tsx").read_text(encoding="utf-8")
+    footer = (COMPONENTS / "site-footer.tsx").read_text(encoding="utf-8")
+    site = (APP / "_data" / "site.ts").read_text(encoding="utf-8")
+    contributors = (APP / "_data" / "contributors.ts").read_text(encoding="utf-8")
+
+    assert "Resume from verified project truth" in landing
+    assert "No re-explanation tax" in landing
+    assert "Parse once, query again" in landing
+    assert "Human / AI boundary" in landing
+    assert landing.index('className="section shell releaseHome"') < landing.index('id="delta-ledger"')
+    assert "useState(false)" in ledger
+    assert 'aria-expanded={expanded}' in ledger
+    assert 'expanded ? "Collapse Delta ledger" : "Open Delta ledger"' in ledger
+    assert "{expanded ? (" in ledger
+
+    for heading in ("Policies", "Repository", "Contributors"):
+        assert f"<strong>{heading}</strong>" in footer
+    for route in ("/license", "/copyright", "/credits"):
+        assert (APP / route.removeprefix("/") / "page.tsx").is_file()
+    for label in ("README", "License", "Copyright", "Security", "Full contribution record"):
+        assert f">{label}</Link>" in footer
+    for person in ("Naveen Rathee", "Kapil Dhawan", "Steven Tock", "Sumit Hooda"):
+        assert person in contributors
+    assert "salary" not in contributors.casefold()
+    assert "h1b" not in contributors.casefold()
+    assert site.startswith('export const publicSiteUrl = "https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app";')
 
 
 def test_three_and_framer_motion_are_bounded_and_accessible() -> None:

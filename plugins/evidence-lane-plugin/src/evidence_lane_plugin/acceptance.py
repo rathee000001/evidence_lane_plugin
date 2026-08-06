@@ -265,7 +265,9 @@ def _run_one(
             timeout=timeout_seconds,
             env=safe_environment,
             close_fds=True,
-            creationflags=(subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0),
+            creationflags=(
+                getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+            ),
         )
         output = (completed.stdout or "") + (completed.stderr or "")
         status = "PASS" if completed.returncode == 0 else "FAIL"

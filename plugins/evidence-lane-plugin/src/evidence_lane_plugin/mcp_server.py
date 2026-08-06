@@ -19,7 +19,7 @@ from .github_automation_governance import apply_fastmcp_tool_filter
 from .lane_engine import prewarm_native_dependencies
 from .service import EvidenceLaneService
 
-_PUBLIC_SITE_URL = "https://evidence-lane-chatgpt-mcp-adapter.vercel.app"
+_PUBLIC_SITE_URL = "https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app"
 
 _READ_ONLY = ToolAnnotations(
     readOnlyHint=True,

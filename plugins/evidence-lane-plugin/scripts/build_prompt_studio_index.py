@@ -1,0 +1,441 @@
+"""Build the public-safe Prompt Studio SQLite and browser retrieval artifacts."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import re
+import sqlite3
+import subprocess
+from collections import Counter
+from dataclasses import dataclass
+from importlib.metadata import version
+from pathlib import Path
+from typing import Any
+
+LLAMA_INDEX_VERSION = "0.14.23"
+SCHEMA = "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1"
+_RUN_TIMEOUT_SECONDS = 60
+TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9._/-]{1,63}", re.IGNORECASE)
+SECRET_PATTERNS = (
+    re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b"),
+    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
+    re.compile(r"\bgh[opusr]_[A-Za-z0-9]{20,}\b"),
+    re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{20,}\b"),
+)
+STOP_WORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "by", "can", "do", "does",
+    "for", "from", "how", "in", "into", "is", "it", "of", "on", "or", "that",
+    "the", "this", "to", "was", "what", "when", "where", "which", "with",
+}
+
+
+@dataclass(frozen=True)
+class SourceDocument:
+    path: str
+    title: str
+    href: str
+    kind: str
+    text: str
+
+
+def _run(repo: Path, *args: str) -> str:
+    return subprocess.run(
+        args,
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=_RUN_TIMEOUT_SECONDS,
+        close_fds=True,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    ).stdout.strip()
+
+
+def _sha256_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest().upper()
+
+
+def _sha256_text(text: str) -> str:
+    return _sha256_bytes(text.encode("utf-8"))
+
+
+def _tokens(text: str) -> list[str]:
+    return [
+        token.lower()
+        for token in TOKEN_RE.findall(text)
+        if token.lower() not in STOP_WORDS
+    ]
+
+
+def _assert_public_safe(path: str, text: str) -> None:
+    lowered = path.lower().replace("\\", "/")
+    forbidden = ("/.env", "/.runtime/", "/projects/", "accepted_pointer", "session_flash/")
+    if any(marker in f"/{lowered}" for marker in forbidden):
+        raise RuntimeError(f"public corpus path is forbidden: {path}")
+    for pattern in SECRET_PATTERNS:
+        if pattern.search(text):
+            raise RuntimeError(f"secret-like token found in public corpus: {path}")
+
+
+def _github_blob(path: str) -> str:
+    return f"https://github.com/rathee000001/evidence_lane_plugin/blob/main/{path}"
+
+
+def _source_specs(repo: Path) -> list[tuple[Path, str, str, str]]:
+    fixed: list[tuple[str, str, str, str]] = [
+        ("README.md", "Repository README", _github_blob("README.md"), "documentation"),
+        ("SECURITY.md", "Security policy", _github_blob("SECURITY.md"), "policy"),
+        ("LICENSE.md", "Proprietary license", _github_blob("LICENSE.md"), "policy"),
+        ("COPYRIGHT.md", "Copyright and ownership", _github_blob("COPYRIGHT.md"), "policy"),
+        ("docs/CREDITS_AND_CONTRIBUTIONS.md", "Credits and contribution policy", "/credits", "policy"),
+        ("docs/UPSTREAM_REFERENCE_PROVENANCE.md", "Upstream reference provenance", "/credits", "provenance"),
+        ("plugins/evidence-lane-plugin/remote_adapter/README.md", "ChatGPT and Vercel adapter", _github_blob("plugins/evidence-lane-plugin/remote_adapter/README.md"), "documentation"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/site.ts", "Product and lane contracts", "/", "website_contract"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/delta-ledger.ts", "Complete Delta ledger", "/#delta-ledger", "delta_ledger"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/lane-contracts.ts", "Lane schema contracts", "/lanes", "lane_contract"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/mode-governance.json", "Mode governance export", "/operators", "mode_contract"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/plugin-surfaces.ts", "Plugin surface catalog", "/architecture", "plugin_contract"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/upstream-references.ts", "Upstream reference projection", "/credits", "provenance"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/page.tsx", "Evidence Lane product story", "/", "website_page"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/architecture/page.tsx", "Architecture", "/architecture", "website_page"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/lanes/page.tsx", "Eighteen lanes", "/lanes", "website_page"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/operators/page.tsx", "Mode operators", "/operators", "website_page"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/studio/page.tsx", "Prompt Studio contract", "/studio", "website_page"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/proof/page.tsx", "Proof boundary", "/proof", "website_page"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/provenance/page.tsx", "Provenance", "/provenance", "website_page"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/connect/page.tsx", "Host connection model", "/connect", "website_page"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/privacy/page.tsx", "Privacy", "/privacy", "policy"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/terms/page.tsx", "Terms", "/terms", "policy"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/support/page.tsx", "Support", "/support", "policy"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/license/page.tsx", "Website license", "/license", "policy"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/copyright/page.tsx", "Website copyright", "/copyright", "policy"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/credits/page.tsx", "Website credits", "/credits", "policy"),
+    ]
+    specs = [(repo / path, title, href, kind) for path, title, href, kind in fixed]
+    skills = sorted((repo / "plugins/evidence-lane-plugin/skills").glob("*/SKILL.md"))
+    for skill in skills:
+        relative = skill.relative_to(repo).as_posix()
+        specs.append((skill, f"Plugin skill: {skill.parent.name}", _github_blob(relative), "plugin_skill"))
+    return specs
+
+
+def _load_documents(repo: Path) -> list[SourceDocument]:
+    tracked_paths = {
+        value
+        for value in _run(repo, "git", "ls-files", "-z").split("\0")
+        if value
+    }
+    documents: list[SourceDocument] = []
+    for path, title, href, kind in _source_specs(repo):
+        if not path.is_file():
+            raise FileNotFoundError(f"required public corpus source is missing: {path}")
+        text = path.read_text(encoding="utf-8").replace("\r\n", "\n").strip()
+        relative = path.relative_to(repo).as_posix()
+        if relative not in tracked_paths:
+            raise RuntimeError(f"public corpus source is not Git-tracked: {relative}")
+        _assert_public_safe(relative, text)
+        documents.append(SourceDocument(relative, title, href, kind, text))
+    return documents
+
+
+def _git_documents(repo: Path) -> list[SourceDocument]:
+    commits = _run(repo, "git", "rev-list", "--reverse", "HEAD").splitlines()
+    documents: list[SourceDocument] = []
+    for commit in commits:
+        fields = _run(
+            repo,
+            "git",
+            "show",
+            "-s",
+            "--format=%H%x1f%P%x1f%cI%x1f%s%x1f%b%x1f--END--",
+            commit,
+        ).split("\x1f")
+        if len(fields) < 6 or fields[-1] != "--END--":
+            raise RuntimeError(f"unexpected Git metadata shape for {commit}")
+        sha, parents, committed_at, subject, body = fields[:5]
+        changed = _run(repo, "git", "diff-tree", "--no-commit-id", "--name-only", "-r", commit)
+        text = "\n".join(
+            part for part in (
+                f"Git commit {sha}",
+                f"Committed {committed_at}",
+                f"Parents {parents or 'root'}",
+                f"Subject {subject}",
+                body.strip(),
+                "Changed paths:\n" + (changed or "(root metadata only)"),
+            ) if part
+        )
+        history_path = f"git/history/{sha}.txt"
+        _assert_public_safe(history_path, text)
+        documents.append(
+            SourceDocument(
+                path=history_path,
+                title=f"Git {sha[:12]}: {subject}",
+                href=f"https://github.com/rathee000001/evidence_lane_plugin/commit/{sha}",
+                kind="git_history",
+                text=text,
+            )
+        )
+    return documents
+
+
+def _chunk_documents(documents: list[SourceDocument]) -> list[dict[str, Any]]:
+    try:
+        from llama_index.core.node_parser import SentenceSplitter
+    except ImportError as exc:
+        raise RuntimeError(
+            'llama-index-core is required; install the pinned extra with: pip install -e ".[rag]"'
+        ) from exc
+    installed = version("llama-index-core")
+    if installed != LLAMA_INDEX_VERSION:
+        raise RuntimeError(
+            f"llama-index-core version mismatch: expected {LLAMA_INDEX_VERSION}, got {installed}"
+        )
+    splitter = SentenceSplitter(chunk_size=480, chunk_overlap=64)
+    chunks: list[dict[str, Any]] = []
+    for source_id, document in enumerate(documents, start=1):
+        cursor = 0
+        for ordinal, chunk_text in enumerate(splitter.split_text(document.text), start=1):
+            normalized = chunk_text.strip()
+            if not normalized:
+                continue
+            offset = document.text.find(normalized, cursor)
+            if offset < 0:
+                offset = document.text.find(normalized)
+            cursor = max(cursor, offset + len(normalized))
+            line = document.text.count("\n", 0, max(offset, 0)) + 1
+            token_counts = Counter(_tokens(normalized))
+            stable_id = _sha256_text(
+                f"{document.path}\n{ordinal}\n{normalized}"
+            )[:24]
+            chunks.append(
+                {
+                    "id": stable_id,
+                    "source_id": source_id,
+                    "ordinal": ordinal,
+                    "locator": f"line:{line}",
+                    "text": normalized,
+                    "sha256": _sha256_text(normalized),
+                    "token_count": sum(token_counts.values()),
+                    "term_counts": dict(sorted(token_counts.items())),
+                }
+            )
+    return chunks
+
+
+def _build_artifacts(repo: Path) -> dict[str, Any]:
+    evidence_dir = repo / "plugins/evidence-lane-plugin/evidence/prompt_studio"
+    browser_path = repo / "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json"
+    database_path = evidence_dir / "studio_search.sqlite"
+    manifest_path = evidence_dir / "manifest.json"
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+
+    documents = _load_documents(repo) + _git_documents(repo)
+    chunks = _chunk_documents(documents)
+    document_count = len(chunks)
+    document_frequency: Counter[str] = Counter()
+    for chunk in chunks:
+        document_frequency.update(chunk["term_counts"].keys())
+    idf = {
+        term: math.log((1 + document_count) / (1 + frequency)) + 1
+        for term, frequency in sorted(document_frequency.items())
+    }
+    for chunk in chunks:
+        total = max(chunk["token_count"], 1)
+        chunk["tfidf"] = [
+            [term, count, (count / total) * idf[term]]
+            for term, count in chunk.pop("term_counts").items()
+        ]
+
+    source_rows = []
+    for source_id, document in enumerate(documents, start=1):
+        source_rows.append(
+            {
+                "id": source_id,
+                "path": document.path,
+                "title": document.title,
+                "href": document.href,
+                "kind": document.kind,
+                "sha256": _sha256_text(document.text),
+                "bytes": len(document.text.encode("utf-8")),
+            }
+        )
+
+    history_sha = _run(repo, "git", "rev-parse", "HEAD")
+    history_date = _run(repo, "git", "show", "-s", "--format=%cI", history_sha)
+    corpus_binding = "\n".join(
+        f"{row['path']}\t{row['sha256']}" for row in source_rows
+    )
+    corpus_sha = _sha256_text(corpus_binding)
+    avg_length = sum(chunk["token_count"] for chunk in chunks) / max(len(chunks), 1)
+
+    browser_artifact = {
+        "schema": SCHEMA,
+        "release": "1.3.0",
+        "history_through_sha": history_sha,
+        "history_through_date": history_date,
+        "corpus_sha256": corpus_sha,
+        "source_count": len(source_rows),
+        "chunk_count": len(chunks),
+        "average_chunk_tokens": avg_length,
+        "tools": {
+            "chunker": f"llama-index-core=={LLAMA_INDEX_VERSION} SentenceSplitter(480,64)",
+            "lexical": "SQLite FTS5/BM25 forensic authority",
+            "tfidf": "tf=count/tokens; idf=ln((1+N)/(1+df))+1",
+            "hybrid": "reciprocal-rank fusion k=60",
+            "provider": "none; extractive local retrieval only",
+        },
+        "document_frequency": dict(sorted(document_frequency.items())),
+        "sources": source_rows,
+        "chunks": chunks,
+    }
+    browser_bytes = (json.dumps(browser_artifact, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+    browser_path.write_bytes(browser_bytes)
+
+    if database_path.exists():
+        database_path.unlink()
+    connection = sqlite3.connect(database_path)
+    connection.executescript(
+        """
+        PRAGMA page_size=4096;
+        PRAGMA auto_vacuum=NONE;
+        PRAGMA journal_mode=DELETE;
+        PRAGMA synchronous=FULL;
+        PRAGMA application_id=1162629459;
+        PRAGMA user_version=1;
+        CREATE TABLE metadata(key TEXT PRIMARY KEY, value TEXT NOT NULL) WITHOUT ROWID;
+        CREATE TABLE source_registry(
+            source_id INTEGER PRIMARY KEY,
+            path TEXT NOT NULL UNIQUE,
+            title TEXT NOT NULL,
+            href TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            sha256 TEXT NOT NULL,
+            size_bytes INTEGER NOT NULL
+        );
+        CREATE TABLE chunk_index(
+            chunk_id TEXT PRIMARY KEY,
+            source_id INTEGER NOT NULL REFERENCES source_registry(source_id),
+            ordinal INTEGER NOT NULL,
+            locator TEXT NOT NULL,
+            text_content TEXT NOT NULL,
+            sha256 TEXT NOT NULL,
+            token_count INTEGER NOT NULL,
+            UNIQUE(source_id, ordinal)
+        ) WITHOUT ROWID;
+        CREATE VIRTUAL TABLE chunks_fts USING fts5(
+            chunk_id UNINDEXED,
+            path UNINDEXED,
+            title,
+            text_content,
+            tokenize='unicode61 remove_diacritics 2'
+        );
+        CREATE TABLE tfidf_term(
+            term TEXT PRIMARY KEY,
+            document_frequency INTEGER NOT NULL,
+            document_count INTEGER NOT NULL,
+            idf REAL NOT NULL
+        ) WITHOUT ROWID;
+        CREATE TABLE tfidf_vector(
+            chunk_id TEXT NOT NULL REFERENCES chunk_index(chunk_id),
+            term TEXT NOT NULL REFERENCES tfidf_term(term),
+            term_count INTEGER NOT NULL,
+            token_count INTEGER NOT NULL,
+            tf REAL NOT NULL,
+            tfidf REAL NOT NULL,
+            PRIMARY KEY(chunk_id, term)
+        ) WITHOUT ROWID;
+        """
+    )
+    metadata = {
+        "schema": SCHEMA,
+        "release": "1.3.0",
+        "history_through_sha": history_sha,
+        "history_through_date": history_date,
+        "corpus_sha256": corpus_sha,
+        "source_count": str(len(source_rows)),
+        "chunk_count": str(len(chunks)),
+        "llama_index_core": LLAMA_INDEX_VERSION,
+        "ranking": "SQLite FTS5/BM25 + materialized TF-IDF + RRF(k=60)",
+        "public_safe": "true",
+    }
+    connection.executemany(
+        "INSERT INTO metadata(key,value) VALUES(?,?)",
+        sorted(metadata.items()),
+    )
+    connection.executemany(
+        "INSERT INTO source_registry VALUES(:id,:path,:title,:href,:kind,:sha256,:bytes)",
+        source_rows,
+    )
+    source_by_id = {row["id"]: row for row in source_rows}
+    for chunk in chunks:
+        source = source_by_id[chunk["source_id"]]
+        connection.execute(
+            "INSERT INTO chunk_index VALUES(?,?,?,?,?,?,?)",
+            (
+                chunk["id"], chunk["source_id"], chunk["ordinal"], chunk["locator"],
+                chunk["text"], chunk["sha256"], chunk["token_count"],
+            ),
+        )
+        connection.execute(
+            "INSERT INTO chunks_fts(chunk_id,path,title,text_content) VALUES(?,?,?,?)",
+            (chunk["id"], source["path"], source["title"], chunk["text"]),
+        )
+    connection.executemany(
+        "INSERT INTO tfidf_term VALUES(?,?,?,?)",
+        [(term, document_frequency[term], document_count, idf[term]) for term in sorted(idf)],
+    )
+    vector_rows = []
+    for chunk in chunks:
+        for term, count, score in chunk["tfidf"]:
+            vector_rows.append(
+                (chunk["id"], term, count, chunk["token_count"], count / max(chunk["token_count"], 1), score)
+            )
+    connection.executemany(
+        "INSERT INTO tfidf_vector VALUES(?,?,?,?,?,?)",
+        vector_rows,
+    )
+    connection.commit()
+    integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
+    fts_probe = connection.execute(
+        "SELECT count(*) FROM chunks_fts WHERE chunks_fts MATCH 'refresh'"
+    ).fetchone()[0]
+    connection.execute("VACUUM")
+    connection.close()
+    if integrity != "ok" or fts_probe < 1:
+        raise RuntimeError(f"retrieval artifact validation failed: integrity={integrity}, refresh_hits={fts_probe}")
+
+    database_sha = _sha256_bytes(database_path.read_bytes())
+    browser_sha = _sha256_bytes(browser_bytes)
+    manifest = {
+        "schema": SCHEMA,
+        "release": "1.3.0",
+        "history_through_sha": history_sha,
+        "history_commit_count": sum(1 for row in source_rows if row["kind"] == "git_history"),
+        "corpus": {
+            "boundary": "explicit public-safe tracked documentation, plugin skills, website contracts, and ancestor Git metadata; no private brain/runtime/secret inputs",
+            "sha256": corpus_sha,
+            "source_count": len(source_rows),
+            "chunk_count": len(chunks),
+        },
+        "retrieval": browser_artifact["tools"],
+        "outputs": {
+            "sqlite": {"path": database_path.relative_to(repo).as_posix(), "sha256": database_sha, "bytes": database_path.stat().st_size},
+            "browser_json": {"path": browser_path.relative_to(repo).as_posix(), "sha256": browser_sha, "bytes": len(browser_bytes)},
+        },
+        "validation": {"sqlite_integrity": integrity, "fts_refresh_hits": fts_probe, "secret_scan": "PASS"},
+    }
+    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return manifest
+
+
+def main() -> None:
+    repo = Path(__file__).resolve().parents[3]
+    manifest = _build_artifacts(repo)
+    print(json.dumps(manifest, indent=2, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

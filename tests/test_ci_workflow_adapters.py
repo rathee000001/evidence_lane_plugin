@@ -15,19 +15,20 @@ ACTION = ROOT / ".github" / "actions" / "evidence-lane-ci"
 def test_all_workflow_action_references_are_immutable() -> None:
     receipt = audit_workflow_action_pins(WORKFLOWS)
     assert receipt["status"] == "PASS"
-    assert receipt["file_count"] == 3
-    assert receipt["reference_count"] == 12
+    assert receipt["file_count"] == 4
+    assert receipt["reference_count"] == 16
     assert receipt["violation_count"] == 0
     assert receipt["kind_counts"] == {
         "LOCAL_SAME_COMMIT": 2,
-        "REMOTE_FULL_COMMIT_SHA": 10,
+        "REMOTE_FULL_COMMIT_SHA": 14,
     }
 
 
 def test_workflows_are_study_branch_only_and_preview_does_not_deploy() -> None:
     for path in WORKFLOWS.glob("*.yml"):
         text = path.read_text(encoding="utf-8")
-        assert '- "agent/**"' in text
+        if "push:" in text:
+            assert '- "agent/**"' in text
         assert "pull_request:" not in text
         assert "branches:\n      - main" not in text
     preview = (WORKFLOWS / "evidence-lane-preview-build.yml").read_text(
@@ -38,13 +39,59 @@ def test_workflows_are_study_branch_only_and_preview_does_not_deploy() -> None:
     assert "permissions:\n  contents: read" in preview
 
 
-def test_codeql_is_pinned_and_has_only_required_write_permission() -> None:
+def test_codeql_is_pinned_and_preserves_local_evidence_without_api_upload() -> None:
     text = (WORKFLOWS / "evidence-lane-codeql.yml").read_text(encoding="utf-8")
     assert text.count("@24c7eb380a2dc368f2d129e4c65e51d172983a1e") == 2
-    assert "security-events: write" in text
+    assert "security-events: write" not in text
     assert "contents: write" not in text
     assert "pull-requests: write" not in text
     assert "python,javascript-typescript" in text
+    assert "upload: never" in text
+    assert "upload-database: false" in text
+    assert ".runtime/codeql/results" in text
+
+
+def test_hosted_codeql_upload_is_manual_and_organization_owner_gated() -> None:
+    text = (WORKFLOWS / "evidence-lane-codeql-hosted.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "workflow_dispatch:" in text
+    assert "push:" not in text
+    assert "github.repository_owner == 'Evidence-Lane'" in text
+    assert "security-events: write" in text
+    assert "upload: always" in text
+    assert "contents: write" not in text
+    assert "pull-requests: write" not in text
+
+
+def test_copilot_agent_profile_is_manual_bounded_and_not_an_actions_alias() -> None:
+    profile = (ROOT / ".github" / "agents" / "evidence-lane.agent.md").read_text(
+        encoding="utf-8"
+    )
+    instructions = (
+        ROOT / ".github" / "copilot-instructions.md"
+    ).read_text(encoding="utf-8")
+    assert "target: github-copilot" in profile
+    assert "disable-model-invocation: true" in profile
+    assert "user-invocable: true" in profile
+    assert "  - execute" in profile
+    assert "  - terminal" not in profile
+    assert "direct pushes to `main`" in profile
+    assert "GitHub Sandbox" in profile
+    assert "A passing test or Action is evidence only" in profile
+    assert "Actions runs, Copilot coding-agent sessions" in instructions
+    assert "Do not invoke GitHub Sandbox" in instructions
+    assert "bounded local project work directory" in instructions
+    assert "Never use one as proof of another" in instructions
+
+
+def test_public_cost_boundary_excludes_usage_based_github_sandbox() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "does not configure or invoke the" in readme
+    assert "usage-based GitHub Sandbox product" in readme
+    assert "bounded local project work directory" in readme
+    assert "paid overages and" in readme
+    assert "Vercel Pro is not required or enabled" in readme
 
 
 def test_local_action_exposes_visible_code_mode_contract() -> None:

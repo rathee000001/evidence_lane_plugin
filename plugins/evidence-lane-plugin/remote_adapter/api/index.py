@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from ipaddress import ip_address
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlparse
 
@@ -12,6 +13,7 @@ import httpx
 
 _SHA = re.compile(r"[0-9a-fA-F]{40}")
 _PROXY_TIMEOUT = httpx.Timeout(connect=15, read=285, write=30, pool=15)
+_MAX_REQUEST_BODY_BYTES = 2 * 1024 * 1024
 _HOP_BY_HOP = {
     b"connection",
     b"keep-alive",
@@ -22,6 +24,20 @@ _HOP_BY_HOP = {
     b"transfer-encoding",
     b"upgrade",
 }
+
+
+class RequestBodyTooLarge(ValueError):
+    """Raised before an oversized request can be forwarded to the origin."""
+
+
+def _public_origin_host(hostname: str) -> bool:
+    host = hostname.strip().lower().rstrip(".")
+    if not host or host == "localhost" or host.endswith((".localhost", ".local")):
+        return False
+    try:
+        return ip_address(host).is_global
+    except ValueError:
+        return "." in host
 
 
 def _configuration() -> dict[str, Any]:
@@ -37,6 +53,10 @@ def _configuration() -> dict[str, Any]:
         or parsed.password
     ):
         errors.append("DURABLE_HTTPS_ORIGIN_REQUIRED")
+    elif not _public_origin_host(parsed.hostname or ""):
+        errors.append("DURABLE_PUBLIC_ORIGIN_HOST_REQUIRED")
+    if parsed.path not in {"", "/"} or parsed.params or parsed.query or parsed.fragment:
+        errors.append("DURABLE_ORIGIN_ROOT_REQUIRED")
     if not _SHA.fullmatch(expected_sha):
         errors.append("EXACT_RELEASE_SHA_REQUIRED")
     if deployment_sha and deployment_sha != expected_sha:
@@ -68,13 +88,18 @@ async def _send_json(send: Any, status: int, payload: dict[str, Any]) -> None:
 
 async def _body(receive: Any) -> bytes:
     chunks: list[bytes] = []
+    size = 0
     while True:
         message = await receive()
         if message["type"] == "http.disconnect":
             break
         if message["type"] != "http.request":
             continue
-        chunks.append(message.get("body", b""))
+        chunk = bytes(message.get("body", b""))
+        size += len(chunk)
+        if size > _MAX_REQUEST_BODY_BYTES:
+            raise RequestBodyTooLarge
+        chunks.append(chunk)
         if not message.get("more_body", False):
             break
     return b"".join(chunks)
@@ -99,16 +124,31 @@ async def _origin_health(configuration: dict[str, Any]) -> tuple[bool, dict[str,
             "expected_release_sha": configuration["expected_sha"],
             "actual_release_sha": actual_sha or None,
         }
-    return True, payload
+    return True, {
+        "status": str(payload.get("status") or "PASS")[:64],
+        "service": str(payload.get("service") or "durable-evidence-lane-origin")[:128],
+        "release_sha": actual_sha,
+    }
+
+
+def _content_length(scope: dict[str, Any]) -> int | None:
+    values = [
+        value.decode("ascii", errors="strict").strip()
+        for key, value in scope.get("headers", [])
+        if key.lower() == b"content-length"
+    ]
+    if not values:
+        return None
+    if len(set(values)) != 1 or not values[0].isdigit():
+        raise ValueError("AMBIGUOUS_OR_INVALID_CONTENT_LENGTH")
+    return int(values[0])
 
 
 def _external_route(scope: dict[str, Any]) -> tuple[str, str]:
     """Recover the public path carried through the Vercel catch-all rewrite."""
 
     path = str(scope.get("path") or "/")
-    query = bytes(scope.get("query_string") or b"").decode(
-        "ascii", errors="ignore"
-    )
+    query = bytes(scope.get("query_string") or b"").decode("ascii", errors="ignore")
     pairs = parse_qsl(query, keep_blank_values=True)
     routed = [value for key, value in pairs if key == "__evi_path"]
     public_pairs = [(key, value) for key, value in pairs if key != "__evi_path"]
@@ -196,7 +236,31 @@ async def app(scope: dict[str, Any], receive: Any, send: Any) -> None:
             {"status": "BLOCKED", "code": "DURABLE_ORIGIN_RELEASE_NOT_VERIFIED"},
         )
         return
-    request_body = await _body(receive)
+    try:
+        declared_length = _content_length(scope)
+    except (UnicodeDecodeError, ValueError):
+        await _send_json(
+            send,
+            400,
+            {"status": "BLOCKED", "code": "REQUEST_CONTENT_LENGTH_INVALID"},
+        )
+        return
+    if declared_length is not None and declared_length > _MAX_REQUEST_BODY_BYTES:
+        await _send_json(
+            send,
+            413,
+            {"status": "BLOCKED", "code": "REQUEST_BODY_TOO_LARGE"},
+        )
+        return
+    try:
+        request_body = await _body(receive)
+    except RequestBodyTooLarge:
+        await _send_json(
+            send,
+            413,
+            {"status": "BLOCKED", "code": "REQUEST_BODY_TOO_LARGE"},
+        )
+        return
     incoming_headers = {
         key.decode("latin-1"): value.decode("latin-1")
         for key, value in scope.get("headers", [])

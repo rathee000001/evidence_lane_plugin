@@ -5,9 +5,10 @@ import "./globals.css";
 import { SiteAtmosphere } from "./_components/site-atmosphere";
 import { SiteFooter } from "./_components/site-footer";
 import { SiteHeader } from "./_components/site-header";
+import { publicSiteUrl } from "./_data/site";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://evidence-lane-chatgpt-mcp-adapter.vercel.app"),
+  metadataBase: new URL(publicSiteUrl),
   title: {
     default: "Evidence Lane | Human-governed project memory",
     template: "%s | Evidence Lane",

@@ -26,7 +26,9 @@ def _run_git(
         errors="replace",
         timeout=30,
         close_fds=True,
-        creationflags=(subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0),
+        creationflags=(
+            getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+        ),
     )
 
 

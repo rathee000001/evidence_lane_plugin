@@ -1,38 +1,38 @@
 {
   "ci_execution": {
-    "aggregate_pytest_count": 203,
+    "aggregate_pytest_count": 215,
     "aggregate_status": "PASS",
     "profile_timeout_seconds": 720,
     "profiles": {
       "governed-lanes": {
-        "receipt_file_sha256": "7EA973BDD8872A524FACFEFCB298D2B6BB34A96D0E5FF580B67A6AD3729E22E4",
-        "receipt_sha256": "1FD1584A41EBBE2C3EAC640F039981467EB5D9DA3564A70F31BBA30E51F01CAA",
+        "receipt_file_sha256": "F80017110A28538A88C3F26B005FFA93441CAC8217B5C67A035E6A6E188D52F5",
+        "receipt_sha256": "83298B557189372807AB9D75C60CC0E36006ED09E95A0F30C1B9E26815909E0D",
         "status": "PASS",
-        "tests": "66 passed in 69.21s"
+        "tests": "70 passed in 101.19s"
       },
       "governed-lifecycle": {
-        "receipt_file_sha256": "10262DF433658B6031C67527DE8D9B10C7E4437AAF53FC9D8C26D0C86A1",
-        "receipt_sha256": "0D1EE00826C01115DEE7F8C80D91DD06C38233190B2F16CB0533266DAB3CE328",
+        "receipt_file_sha256": "0ABA396430DE4F316313944A25B2E497FDFDC4578B44A830AC885846E17F2908",
+        "receipt_sha256": "787A5A411ED2D1BCB47E472EF53D89A84E37C095175A79C330EAE412583F0F78",
         "status": "PASS",
-        "tests": "68 passed in 700.73s"
+        "tests": "70 passed in 719.10s"
       },
       "governed-quality": {
         "checks": [
           "ruff: all checks passed",
-          "mypy: 62 source files"
+          "mypy: 65 source files"
         ],
-        "receipt_file_sha256": "E59ADA5AE18E77C1DB867EE6C4F5369E7E8A53CA7D8C3C1CAC108C00FD752542",
-        "receipt_sha256": "3AA3FABCB45B7D04284EA5596F7F99BE8884922F43A1EFE3A531C62FFDD5B0E7",
+        "receipt_file_sha256": "F82B2F3CE38542C43B22AC99AB7B4159FDC2DE0D6F80CA20882BA748B48623CF",
+        "receipt_sha256": "656AF367BF3E48D1565DFF7B5F8200D2DC8FF2C6D4ADE3AF3A6B84F17446C7B7",
         "status": "PASS"
       },
       "governed-sources-mcp": {
-        "receipt_file_sha256": "4CCD42C29088A133E7669895E1D82C6E3C55BA1C2E838C933B30203649AAF1B0",
-        "receipt_sha256": "B5BADD790CCEB58928C9A89138D561DDAF538F7ACD44421DB6B22B89CBE86732",
+        "receipt_file_sha256": "A59CC2F913330F87B929C3DCB28B783D682E911711258FE98C1031D01CFC07BE",
+        "receipt_sha256": "60A240C933B0A2B53D779ECC6F2E5A57DFFCBA165B62437C21BE1D458FB02F36",
         "status": "PASS",
-        "tests": "69 passed in 143.74s"
+        "tests": "75 passed in 152.53s"
       }
     },
-    "runtime_receipt_root": ".runtime/delta076b"
+    "runtime_receipt_root": ".runtime/ci"
   },
   "code_mode_contract": {
     "formula": "plan -> sandbox build -> test -> hash -> package",
@@ -60,6 +60,14 @@
     "queries": "security-extended",
     "remote_execution_status": "NOT_RUN_LOCAL"
   },
+  "cost_boundary": {
+    "additional_usage": "DISABLED_OR_ZERO_BUDGET",
+    "copilot": "USER_CONFIRMED_PRO_INCLUDED_ALLOWANCE_ONLY",
+    "github_actions": "USER_CONFIRMED_TEAM_INCLUDED_ALLOWANCE_ONLY",
+    "github_sandbox": "PROHIBITED_USAGE_BASED_PRODUCT",
+    "vercel": "HOBBY_OR_FREE_PREVIEW_ONLY",
+    "vercel_custom_domain": "OWNED_BUT_UNBOUND_PENDING_HIL"
+  },
   "correction_lineage": {
     "coverage_reduction": false,
     "known_orphaned_test_processes_stopped": true,
@@ -81,20 +89,25 @@
   "preview_build": {
     "deployment_executed": false,
     "next_version": "16.1.5",
-    "receipt_file_sha256": "2162B9AC7E1B56BA4ED8FBCFD46C955B807EE8DB02A80D1D605243FDBE2B874B",
-    "receipt_sha256": "66C6E96284D0F2C8F24F257DF58A266D7663E179656CDF1BB87E7F5063C8A225",
-    "route_count": 15,
+    "receipt_file_sha256": "98F39424137FF2052A2570372C6EBB3FD9B4BE95EAEEE723A65A2AEB0E07AD94",
+    "receipt_sha256": "C4CC5F605D09C220F66D76AD037677722BFA8946B4C4BEBAB8085A96B382B765",
+    "route_count": 19,
     "status": "PASS"
   },
   "prohibitions": {
+    "codespaces_invoked": false,
     "deployed": false,
+    "domain_bound": false,
+    "github_sandbox_invoked": false,
     "main_merged": false,
+    "paid_actions_overage_enabled": false,
     "pointer_moved": false,
     "pv_built": false,
     "refresh_or_fuse": false,
-    "remote_workflow_executed": false
+    "remote_workflow_executed": false,
+    "vercel_pro_enabled": false
   },
-  "receipt_sha256": "867630EED7283DC924C269BDCFE8D10ABAB19D5C8CB61C7471893BC3A033AA52",
+  "receipt_sha256": "ECEE6CA8C826A11C001F5B01E124D2E5C557B521546B73DF28C9B7285F780CCF",
   "remote_action_pins": {
     "actions/checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1",
     "actions/setup-node": "820762786026740c76f36085b0efc47a31fe5020",
@@ -105,21 +118,27 @@
   },
   "schema": "evidence-lane.delta076b-receipt.v1",
   "source_files": {
+    ".github/agents/evidence-lane.agent.md": "EA434E26D1D975229DC378EDBA50B39A50BCC5213CAFA94C204507C65680BA0B",
     ".github/actions/evidence-lane-ci/action.yml": "8B9EF7046DF163B947B52D8D25B720E5E94AD593905769639897605DFDCC33E9",
     ".github/actions/evidence-lane-ci/src/main.mjs": "971B67F13BC4E666A959C95C4AF9E395A832E7D649205CD1C46FC0D5DE17F3FF",
+    ".github/copilot-instructions.md": "0E3C3539C8AEAB46BD21F75055EE512B64ECDF22C625DA70CD1BB14DCFFA8469",
     ".github/workflows/evidence-lane-ci.yml": "2A94B13AFBBA6C5A6A406EBCF166BF2338E3DA9DFB019969D709FAC404156352",
-    ".github/workflows/evidence-lane-codeql.yml": "A2DE38249EE78840C0AC83A60F088ED026DE5F02D082E0B7280642C376037EF9",
-    ".github/workflows/evidence-lane-preview-build.yml": "565524C9A7D3FFE46A5BAFC4781A96F16470CC4C91EF48C627CB475EE98E76F3",
-    "tests/test_ci_workflow_adapters.py": "60FB9061C4206BE1254847FD7A025705BE8048AC5A7D361DBC0B44D3E3C56108"
+    ".github/workflows/evidence-lane-codeql-hosted.yml": "D7ECF60DD9817CF27AAC2E30EAD6D6D12AEAE28961486847D93B75D6D1E65D11",
+    ".github/workflows/evidence-lane-codeql.yml": "460EBE0490BABCB425EF364484D746C75D32EC8DB1061D517588FEEBC8E71F66",
+    ".github/workflows/evidence-lane-preview-build.yml": "D0D01400B0DE55EC9E9E08416A2E164CB441D1E93C6C3576C9E574863B9D70B3",
+    "README.md": "AA061E4E3F942E83DAA7B97A0CC3196A6B7C839AEB63BD3F143E08E6985C44C4",
+    "SECURITY.md": "A272AEDA70DFD00D72337A3537AE997F65930460F18D82614B73E648BF45A287",
+    "plugins/evidence-lane-plugin/.codex-plugin/plugin.json": "2EFC9829C3685450C2F4C8598FC6D0A73EE7709392A4093D1A5EA082BA05D633",
+    "tests/test_ci_workflow_adapters.py": "1B88658118BFB28EC356B7893E0642C3A85089655CE0C4A1E608062EF9863CA2"
   },
   "workflow_pin_audit": {
-    "audit_sha256": "B67B6C4B82076A9E191609779840821A3A4BFCCB754C760BADFFE30025C9D779",
+    "audit_sha256": "4844A2379F5D1BAD8B4D326A06F3D647C9335EEFF25B2837F57A1CA35A0E0600",
     "local_same_commit_count": 2,
-    "reference_count": 12,
-    "reference_set_sha256": "BAA0D2FE80CF6C0F9E98786AF6971B41EA25C3DE9FB404E31974B383C38F36E0",
-    "remote_full_commit_sha_count": 10,
+    "reference_count": 16,
+    "reference_set_sha256": "640CEDB01B3E2A55C1F6266C0837770F9204ACD22383CEB5699A202DC9FF468C",
+    "remote_full_commit_sha_count": 14,
     "status": "PASS",
     "violation_count": 0,
-    "workflow_count": 3
+    "workflow_count": 4
   }
 }

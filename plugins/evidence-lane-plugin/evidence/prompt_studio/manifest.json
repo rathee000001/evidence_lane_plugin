@@ -1,0 +1,36 @@
+{
+  "corpus": {
+    "boundary": "explicit public-safe tracked documentation, plugin skills, website contracts, and ancestor Git metadata; no private brain/runtime/secret inputs",
+    "chunk_count": 281,
+    "sha256": "926E40BC8C8D676740E358A22FE7B0FCD4E31BA99665A6F63AC1174BCCEFF89F",
+    "source_count": 93
+  },
+  "history_commit_count": 51,
+  "history_through_sha": "1900a4dcf665aa573e3d7c1ffe81810c1566cb84",
+  "outputs": {
+    "browser_json": {
+      "bytes": 1441568,
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json",
+      "sha256": "1754C6BC0D1537CB95CA2ADDB63904234ECD5A63117E819072BB7B11F17D006C"
+    },
+    "sqlite": {
+      "bytes": 3518464,
+      "path": "plugins/evidence-lane-plugin/evidence/prompt_studio/studio_search.sqlite",
+      "sha256": "8604DC89ACAEA04E4EB254807973202B41216AF3E860D9E1F1C6B500099A06AE"
+    }
+  },
+  "release": "1.3.0",
+  "retrieval": {
+    "chunker": "llama-index-core==0.14.23 SentenceSplitter(480,64)",
+    "hybrid": "reciprocal-rank fusion k=60",
+    "lexical": "SQLite FTS5/BM25 forensic authority",
+    "provider": "none; extractive local retrieval only",
+    "tfidf": "tf=count/tokens; idf=ln((1+N)/(1+df))+1"
+  },
+  "schema": "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1",
+  "validation": {
+    "fts_refresh_hits": 33,
+    "secret_scan": "PASS",
+    "sqlite_integrity": "ok"
+  }
+}

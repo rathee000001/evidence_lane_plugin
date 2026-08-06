@@ -49,3 +49,17 @@ confirmation are recorded. Vercel may host only the thin ChatGPT adapter. The
 adapter requires HTTPS, an exact 40-character release SHA, a release-matched
 durable MCP origin, and configured authentication at that origin. It stores no
 runtime authority and fails closed if identity or origin health does not match.
+
+## Private CodeQL evidence
+
+The personal canonical repository keeps CodeQL results as a private Actions
+artifact and does not request hosted code-scanning upload. This preserves local
+analysis evidence when GitHub Code Security is unavailable to that repository.
+
+An optional self-only private organization mirror may run
+`.github/workflows/evidence-lane-codeql-hosted.yml`. That workflow is manual,
+requires `security-events: write` only inside its analysis job, and refuses to
+run unless `github.repository_owner` is exactly `Evidence-Lane`. The mirror
+must contain the exact reviewed release SHA and have organization Code Security
+enabled. A mirror scan is security evidence; it is not source authority, a PV,
+or HIL approval.

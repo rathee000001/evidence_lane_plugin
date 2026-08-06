@@ -336,6 +336,21 @@ h1, h2, h3, p { margin-top: 0; }
 .legal h1 { margin: 13px 0 36px; font-size: clamp(56px, 8vw, 88px); line-height: 0.95; letter-spacing: -0.06em; }
 .legal h2 { margin: 42px 0 12px; padding-top: 30px; border-top: 1px solid var(--line); font-size: 28px; letter-spacing: -0.035em; }
 .legal p { color: var(--muted); font-size: 17px; }
+.creditList { margin: 24px 0 0; padding: 0; display: grid; gap: 14px; list-style: none; }
+.creditList li { padding: 18px 20px; display: grid; gap: 5px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.62); box-shadow: inset 1px 1px 0 rgba(255,255,255,.92), 0 14px 32px rgba(44,83,112,.06); }
+.creditList a { width: fit-content; color: var(--ink); font-size: 17px; font-weight: 850; }
+.creditList span { color: var(--muted); }
+.upstreamLedger { margin-top: 24px; display: grid; gap: 16px; }
+.upstreamLedger article { padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: rgba(255,255,255,.66); box-shadow: inset 1px 1px 0 rgba(255,255,255,.94), 0 16px 36px rgba(44,83,112,.06); }
+.upstreamLedgerHead { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; }
+.upstreamLedgerHead span { color: var(--blue); font-size: 10px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.upstreamLedgerHead h3 { margin: 5px 0 0; font-size: 22px; letter-spacing: -.025em; }
+.upstreamLedgerHead > a { flex: 0 0 auto; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.72); font-size: 12px; font-weight: 800; }
+.upstreamLedger dl { margin: 20px 0 0; display: grid; gap: 10px; }
+.upstreamLedger dl > div { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 12px; align-items: baseline; }
+.upstreamLedger dt { color: var(--gold-deep); font-size: 10px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.upstreamLedger dd { min-width: 0; margin: 0; color: var(--muted); }
+.upstreamLedger code { overflow-wrap: anywhere; color: var(--ink); font-size: 11px; }
 .notFound { min-height: 70vh; padding: 120px 0; }
 .notFound h1 { max-width: 900px; margin: 14px 0 22px; font-size: clamp(50px, 7vw, 80px); line-height: 0.98; letter-spacing: -0.055em; }
 .notFound p { max-width: 670px; margin-bottom: 30px; color: var(--muted); font-size: 18px; }
@@ -2261,6 +2276,9 @@ main { position: relative; padding-top: 112px; overflow: clip; }
 .promptMessage p { color: #536e83; }
 .promptMessage footer small { color: #71879a; }
 .promptMessage footer a { color: #226f98; border-color: rgba(85,183,216,.3); background: rgba(87,194,224,.08); }
+.promptRetrievalReceipt { margin-top: 12px; padding: 10px 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 7px; border: 1px solid rgba(112,190,217,.28); border-radius: 14px; background: rgba(226,246,252,.54); }
+.promptRetrievalReceipt span { padding: 4px 7px; color: #23728e; border: 1px solid rgba(105,193,219,.24); border-radius: 999px; background: rgba(255,255,255,.68); font: 800 8px/1.2 "Cascadia Code", Consolas, monospace; }
+.promptRetrievalReceipt code { flex: 1 1 100%; overflow-wrap: anywhere; color: #557184; font: 700 8px/1.45 "Cascadia Code", Consolas, monospace; }
 .promptSuggestionCluster button { color: #49677d; border-color: rgba(159,194,217,.48); background: rgba(255,255,255,.64); }
 .promptSuggestionCluster .universal-pill__label { color: #365970; text-shadow: none; }
 .promptComposer { border-color: rgba(91,195,222,.42); background: rgba(255,255,255,.7); box-shadow: inset 1px 1px 0 white, 0 13px 28px rgba(42,81,108,.07); }
@@ -2880,8 +2898,8 @@ main { padding-top: 106px; }
 .operatorExportSeal dt { color: var(--muted); font-size: 9px; font-weight: 850; text-transform: uppercase; }
 .operatorExportSeal dd { margin: 4px 0 0; font: 850 10px/1.25 "Cascadia Code", Consolas, monospace; }
 
-.operatorModeTabs { display: flex; gap: 9px; overflow-x: auto; padding: 5px 2px 12px; scrollbar-width: thin; }
-.operatorModeTabs .rilPill { flex: 0 0 auto; min-width: 142px; justify-content: flex-start; }
+.operatorModeTabs { display: grid; grid-template-columns: repeat(8,minmax(0,1fr)); gap: 9px; overflow: visible; padding: 8px 2px 14px; }
+.operatorModeTabs .rilPill { width: 100%; min-width: 0; justify-content: flex-start; }
 .operatorModeTabs .rilPill b { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--blue); background: var(--blue-soft); font: 900 9px/1 "Cascadia Code", Consolas, monospace; }
 .operatorModeTabs .rilPill.active b { color: #182d42; background: #f6cc77; }
 
@@ -3195,7 +3213,14 @@ main { padding-top: 106px; }
 
 /* Delta ledger is the long-form story; off-screen rows defer rendering. */
 .deltaLedgerBand { border-block: 1px solid rgba(165,204,225,.62); background: linear-gradient(180deg,rgba(232,247,253,.56),rgba(255,255,255,.95)); }
-.deltaLedgerExplorer { margin-top: 42px; }
+.deltaLedgerExplorer { margin-top: 42px; padding: 22px; border: 1px solid rgba(154,198,222,.66); border-radius: 28px; background: linear-gradient(145deg,rgba(255,255,255,.82),rgba(229,246,252,.62)); box-shadow: inset 1px 1px 0 rgba(255,255,255,.96), 0 24px 60px rgba(55,108,139,.09); }
+.deltaLedgerToggleRow { display: flex; align-items: center; justify-content: space-between; gap: 28px; }
+.deltaLedgerToggleRow > div { display: grid; gap: 4px; }
+.deltaLedgerToggleRow span { color: var(--blue); font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.deltaLedgerToggleRow strong { color: var(--ink); font-size: 18px; }
+.deltaLedgerToggleRow small { color: var(--muted); }
+.deltaLedgerToggleRow .glass-pill { flex: 0 0 auto; min-width: 230px; }
+.deltaLedgerTable { margin-top: 22px; padding-top: 22px; border-top: 1px solid rgba(165,204,225,.72); }
 .deltaLedgerFilters { display: flex; flex-wrap: wrap; gap: 10px; }
 .deltaLedgerFilters .glass-pill { min-width: 190px; }
 .deltaLedgerFilters .glass-pill small { display: block; color: #62798b; font-size: 9px; }
@@ -3263,8 +3288,8 @@ main { padding-top: 106px; }
 /* Lane toolchain exists only on /lanes and exposes tools, settings, schema, and four files. */
 .laneToolchainPage { border-block: 1px solid rgba(165,204,225,.62); background: linear-gradient(180deg,rgba(232,247,253,.55),rgba(255,255,255,.96)); }
 .laneExplorer { margin-top: 42px; }
-.lanePicker { padding-bottom: 14px; display: flex; gap: 10px; overflow-x: auto; scrollbar-width: thin; }
-.lanePickerPill { flex: 0 0 236px; min-height: 70px; }
+.laneToolchainPage .lanePicker { padding-bottom: 14px; display: grid; grid-template-columns: repeat(9,minmax(0,1fr)); gap: 10px; overflow: visible; }
+.lanePickerPill { width: 100%; min-width: 0; min-height: 70px; }
 .lanePickerPill .universal-pill__label > span { text-align: left; }
 .lanePickerPill b { font-size: 10px; }
 .lanePickerPill small { margin-top: 4px; }
@@ -3364,7 +3389,9 @@ main { padding-top: 106px; }
 .lanePopupHint { margin: 18px 0 0; color: #647b8d; font-size: 12px; font-weight: 750; text-align: center; }
 
 /* Existing operator and studio controls inherit the same non-black glass law. */
-.operatorModeTabs .rilPill { min-width: 178px; gap: 8px; }
+.operatorModeTabs .rilPill { min-width: 0; gap: 8px; }
+.operatorModeTabs .rilPill.active,
+.laneToolchainPage .lanePickerPill.active { transform: none; }
 .selectionOrigin { gap: 6px; padding: 5px; background: rgba(244,250,252,.78); }
 .selectionOrigin button.universal-pill { min-height: 42px; padding: 5px 10px; border: 1px solid rgba(255,255,255,.82); }
 .promptStudioMeta .rilPill,
@@ -3374,6 +3401,59 @@ main { padding-top: 106px; }
 .actionGlassPill > span:last-child { font-size: 12px; font-weight: 850; white-space: nowrap; }
 .statusGlassPill { width: max-content; min-height: 40px; padding: 5px 10px; cursor: default; }
 .statusGlassPill > span:last-child { color: #173149; font-size: 10px; font-weight: 850; white-space: nowrap; }
+
+/* Final navigation and architecture corrections: the logo is an identity mark,
+   navigation owns the Home action, selected pills retain glow breathing room,
+   and the execution diagram uses the same frosted glass/orb material law. */
+.rilFloatingNav .brand { pointer-events: none; }
+.navPillCluster { padding: 10px; gap: 8px; overflow: visible; }
+.rilFloatingNav .navLinks { padding: 3px; gap: 6px; overflow: visible; }
+.rilFloatingNav .navLinks a.navGlassPill { min-height: 50px; padding: 7px 11px; }
+.rilFloatingNav .navLinks a.navGlassPill.active { transform: none; }
+.parallelDiagram {
+  isolation: isolate;
+  overflow: hidden;
+  border-color: rgba(155,204,226,.72);
+  background:
+    radial-gradient(circle at 18% 14%,rgba(105,217,245,.2),transparent 28rem),
+    radial-gradient(circle at 88% 78%,rgba(239,202,114,.18),transparent 24rem),
+    linear-gradient(145deg,rgba(255,255,255,.8),rgba(232,247,252,.63));
+  box-shadow: 0 34px 76px rgba(45,78,103,.12), inset 1px 1px 0 white;
+  backdrop-filter: blur(24px) saturate(1.15);
+}
+.parallelDiagram::before { content: ""; position: absolute; z-index: -1; inset: 18px; border: 1px solid rgba(255,255,255,.84); border-radius: 26px; pointer-events: none; }
+.parallelSources { gap: 12px; }
+.parallelSources span {
+  min-width: 0;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #27475e;
+  border-color: rgba(157,201,223,.7);
+  border-radius: 999px;
+  background: linear-gradient(145deg,rgba(255,255,255,.88),rgba(227,242,249,.62));
+  box-shadow: inset 2px 3px 6px white, 0 10px 24px rgba(43,84,111,.08);
+  font-weight: 850;
+}
+.manifestNode, .hilNode, .pointerNode {
+  min-width: 250px;
+  padding: 8px 16px 8px 9px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  border: 1px solid rgba(154,199,221,.7);
+  background: rgba(255,255,255,.76);
+  box-shadow: inset 2px 3px 7px white, 0 14px 30px rgba(43,80,107,.11);
+  backdrop-filter: blur(18px);
+}
+.manifestNode { color: #1f566d; }
+.hilNode { color: #765218; border-color: rgba(226,185,88,.62); background: rgba(255,249,226,.82); }
+.pointerNode { color: #28654c; border-color: rgba(111,207,164,.58); background: rgba(234,252,244,.82); }
+.convergeLines i { background: linear-gradient(#69d9f5,#efca72); box-shadow: 0 0 8px rgba(105,217,245,.28); }
+.authorityArrow { color: #3ebfe1; text-shadow: 0 0 12px rgba(62,191,225,.42); font-size: 24px; }
 
 @media (max-width: 1240px) {
   .rilFloatingNav .brand { width: 220px; }
@@ -3395,6 +3475,8 @@ main { padding-top: 106px; }
   .pluginSurfacePopup dl { grid-template-columns: 1fr; }
   .fourFileRail { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .fourFileRail::before { display: none; }
+  .laneToolchainPage .lanePicker { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .operatorModeTabs { grid-template-columns: repeat(4,minmax(0,1fr)); }
   .laneWorkingSequence > div { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .laneWorkingSequence article::after { display: none; }
   .laneInspectionGrid { grid-template-columns: 1fr; }
@@ -3428,7 +3510,11 @@ main { padding-top: 106px; }
   .pluginSurfacePopup { grid-template-columns: 1fr; }
   .pluginPopupClose { width: 100%; }
   .fourFileRail { grid-template-columns: 1fr; }
+  .laneToolchainPage .lanePicker { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .operatorModeTabs { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .deltaLedgerFilters .glass-pill { width: 100%; }
+  .deltaLedgerToggleRow { align-items: stretch; flex-direction: column; }
+  .deltaLedgerToggleRow .glass-pill { width: 100%; min-width: 0; }
   .deltaLedgerHeader { display: none; }
   .deltaLedgerRow { grid-template-columns: 42px minmax(0,1fr); padding-inline: 4px; }
   .laneToolRoster > div { grid-template-columns: 1fr; }

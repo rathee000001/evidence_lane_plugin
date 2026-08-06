@@ -22,11 +22,12 @@ export default function Home() {
       <section className="homeHero shell">
         <MotionReveal className="heroCopy">
           <span className="eyebrow"><i />Evidence Lane for Codex + ChatGPT</span>
-          <h1>Resume AI work from evidence—not reconstructed memory.</h1>
+          <h1>Resume from verified project truth&mdash;not another re-explanation.</h1>
           <p>
-            Evidence Lane carries the exact source, Git identity, searchable lane databases,
-            visible corrections, accepted pointer, candidate, receipts, and unresolved human
-            decision across task windows. The model can keep working; only the human can accept.
+            The first governed PV parses and seals the bounded project. Later tasks query its
+            SQLite evidence, reuse unchanged chunks, and Refresh only visible Deltas. Accepted
+            pointers, PVs, Exit Slips, Chat Lineage, candidates, and HIL keep AI work moving from
+            the last verified state while only the human can accept or redirect it.
           </p>
           <div className="actions">
             <Link className="primary universal-pill actionGlassPill" href="#delta-ledger" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001">
@@ -52,10 +53,10 @@ export default function Home() {
 
       <section className="principleBand">
         <div className="shell principleGrid">
-          <div><strong>Exact continuity</strong><span>Accepted pointer, source hashes, candidate, and open decision</span></div>
-          <div><strong>Inspectable memory</strong><span>SQLite, Mermaid, DOT, and receipt per lane</span></div>
-          <div><strong>Human authority</strong><span>Six-way HIL; tests never become approval</span></div>
-          <div><strong>Host-aware runtime</strong><span>Durable local or mounted MCP authority by host class</span></div>
+          <div><strong>No re-explanation tax</strong><span>Resume from the accepted pointer, pending candidate, and exact open gate</span></div>
+          <div><strong>Parse once, query again</strong><span>Search SQLite facts and reuse unchanged chunks instead of rebuilding context</span></div>
+          <div><strong>Human / AI boundary</strong><span>Visible lineage and six-way HIL keep direction, output, and acceptance distinct</span></div>
+          <div><strong>Directed operating modes</strong><span>Analysis, plan, code, and other modes bind their own ENV/UOP operators</span></div>
         </div>
       </section>
 
@@ -71,11 +72,12 @@ export default function Home() {
       <section className="section shell splitIntro" id="problem">
         <div className="sectionHead stickyCopy">
           <span className="kicker">The product problem</span>
-          <h2>AI can produce useful work and still lose the state that makes it trustworthy.</h2>
+          <h2>AI work becomes expensive when every new task must reconstruct the project.</h2>
           <p>
-            Long-running work crosses models, tools, task windows, machines, and deployments.
-            A prose handoff cannot prove which bytes were accepted, what changed afterward,
-            which checks actually ran, or which human decision is still unresolved.
+            Re-explaining the goal, re-reading unchanged files, and re-parsing the same sources
+            consume time while context drifts. A prose handoff cannot prove which bytes were
+            accepted, what the human directed, what the AI produced, what changed afterward,
+            which checks ran, or which decision remains unresolved.
           </p>
           <Link className="textLink" href="/architecture">See the authority model <span aria-hidden="true">→</span></Link>
         </div>
@@ -93,20 +95,6 @@ export default function Home() {
               </div>
             </article>
           ))}
-        </div>
-      </section>
-
-      <section className="section deltaLedgerBand" id="delta-ledger">
-        <div className="shell">
-          <div className="sectionHead wideHead">
-            <span className="kicker">The complete build story</span>
-            <h2>Eighty additive Deltas. No erased history.</h2>
-            <p>
-              The ledger is the product narrative: foundation, v1.2 evolution, and v1.3
-              hardening in exact governed order. Filters change the view, never the underlying rows.
-            </p>
-          </div>
-          <DeltaLedgerExplorer />
         </div>
       </section>
 
@@ -182,6 +170,21 @@ export default function Home() {
           </p>
         </div>
         <ReleaseStatus />
+      </section>
+
+      <section className="section deltaLedgerBand" id="delta-ledger">
+        <div className="shell">
+          <div className="sectionHead wideHead">
+            <span className="kicker">The complete build story</span>
+            <h2>Eighty additive Deltas. No erased history.</h2>
+            <p>
+              The ledger is the product narrative: foundation, v1.2 evolution, and v1.3
+              hardening in exact governed order. It stays collapsed until requested; filters
+              change the view, never the underlying rows.
+            </p>
+          </div>
+          <DeltaLedgerExplorer />
+        </div>
       </section>
     </main>
   );

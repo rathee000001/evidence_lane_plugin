@@ -24,16 +24,40 @@ source changes, or receive copyright authorship.
 Third-party names are used only to describe provenance. Their software,
 services, licenses, and trademarks remain governed by their respective owners.
 
+## Public upstream references
+
+The PV6 research cycle inspected exact commits of GitHub Agentic Workflows,
+GitHub Agentic Workflows MCP Gateway, GitHub Copilot SDK, GitHub Agentic
+Workflows threat detection, GitHub Agentic Workflows harness, and Open WebUI.
+The [upstream reference provenance ledger](UPSTREAM_REFERENCE_PROVENANCE.md)
+records every audited commit and tree, license, intended role, local
+implementation surface, refusal boundary, and verdict.
+
+That ledger is the attribution authority for these references. It does not
+turn a URL into copied source, claim feature parity, treat Open WebUI's current
+license as MIT, or convert an Actions run into a coding-agent session.
+
 ## Human contributions
 
-No external human contributor list is published yet while contribution records
-are being refined. Asking a question, giving feedback, suggesting a direction,
-or testing a build does not automatically create source authorship.
+- [Naveen Rathee](https://www.linkedin.com/in/naveen-rathee/): Strategic
+  Challenger and Cross-Project Human Review Gate.
+- [Kapil Dhawan](https://www.linkedin.com/in/kdhawan23/): Enterprise
+  Engineering and Product Communication Reviewer.
+- [Steven Tock](https://www.linkedin.com/in/steventock/): Senior Strategic
+  Reviewer and Controlled-AI Advisor.
+- [Sumit Hooda](https://www.linkedin.com/in/sumit-hooda-378884192/): External
+  Software Engineering Evaluator for bare-metal code review, adversarial plugin
+  testing, AI-drift analysis, and implementation loophole discovery.
 
-A future contribution can be credited only when it has an attributable record,
-an explicit license/rights basis, a reviewable Git Delta, passing evidence, and
-human acceptance through the project HIL. Until those conditions are met, the
-repository will not infer contribution or ownership claims.
+These records describe review and evaluation roles. Asking a question, giving
+feedback, suggesting a direction, or testing a build does not automatically
+create source authorship, ownership, or acceptance authority.
+
+An accepted source contribution can be credited as authorship only when it has
+an attributable record, an explicit license/rights basis, a reviewable Git
+Delta, passing evidence, and human acceptance through the project HIL. Until
+those conditions are met, the repository will not infer contribution or
+ownership claims.
 
 ## Release boundary
 

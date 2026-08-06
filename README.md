@@ -7,6 +7,8 @@
 </p>
 
 <p align="center">
+  <a href="https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app">Website preview</a>
+  &nbsp;·&nbsp;
   <a href="docs/ARCHITECTURE.md">Architecture</a>
   &nbsp;·&nbsp;
   <a href="docs/HOST_CAPABILITY_MATRIX.md">Host capabilities</a>
@@ -14,7 +16,7 @@
   <a href="docs/REMOTE_DEPLOYMENT.md">ChatGPT deployment</a>
   &nbsp;·&nbsp;
   <a href="docs/IMPLEMENTATION_TRACEABILITY.md">Implementation traceability</a>
-  &nbsp;Â·&nbsp;
+  &nbsp;·&nbsp;
   <a href="docs/VERSIONING.md">Versioning</a>
   &nbsp;·&nbsp;
   <a href="SECURITY.md">Security</a>
@@ -48,10 +50,24 @@ and explicitly labeled owner attestations.
 ## The problem
 
 Long AI-assisted work crosses task windows, models, hosts, repositories, and
-toolchains. A prose summary may be helpful, but it cannot prove the exact source
-SHA, accepted pointer, changed sections, open Deltas, tool outputs, or unresolved
-human decision. Evidence Lane treats that missing evidence packet and lifecycle
-boundary as the core problem.
+toolchains. Without a durable project boundary, the user repeatedly explains
+the same project while the model rereads and reparses unchanged sources. That
+reconstruction tax also creates context drift: a polished prose summary cannot
+prove the exact source SHA, accepted pointer, changed sections, open Deltas,
+tool outputs, actor identity, or unresolved human decision.
+
+Evidence Lane makes the first complete PV deliberately evidence-heavy, then
+lets later tasks resume from the accepted pointer, PV, Exit Slip, Chat Lineage,
+pending candidate, and exact HIL. Instead of rebuilding the whole narrative,
+the model can query relevant SQLite lane facts and reuse content-addressed
+chunks; Refresh reprocesses changed sections and records the Delta. Visible
+actor lineage separates user direction from AI output, and only the six-way HIL
+can turn a candidate into accepted truth.
+
+This is a mechanism claim, not a universal token, speed, or cost-savings claim.
+New or changed files still require parsing, and outcomes depend on the corpus,
+host, and task. What the repository can currently prove is exact reusable
+evidence, delta receipts, actor lineage, and human-controlled promotion.
 
 ## Public control surface
 
@@ -104,6 +120,20 @@ ChatGPT remote MCP. It verifies release identity and proxies to a separately
 configured durable MCP origin. Vercel is not used to install Codex, is not the
 general Evidence Lane router, and stores no accepted pointer or runtime SQLite
 authority.
+
+The release cost boundary is fail closed. It does not configure or invoke the
+usage-based GitHub Sandbox product. `sandbox` in the Code-mode formulas means a
+bounded local project work directory and process, not GitHub Sandbox. GitHub
+Actions and Copilot use are limited to the allowances already included in the
+selected GitHub Team and personal Copilot Pro plans; paid overages and
+additional usage remain disabled unless the user separately authorizes them.
+Vercel Pro is not required or enabled by this release. A separately purchased
+domain may be bound to an exact production deployment only after HIL approval.
+
+The reviewed public website preview is
+[`https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app`](https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app).
+This website URL is published in both the Codex plugin manifest and ChatGPT MCP
+server metadata; website availability remains separate from MCP readiness.
 
 ## Universal 18-lane brain
 
@@ -293,6 +323,12 @@ does not contain the key or a derived identifier. Manual revocation in the
 OpenAI Platform is a hard release blocker unless a connected key-management
 capability can prove revocation. See [SECURITY.md](SECURITY.md).
 
+For private CodeQL, the personal canonical repository retains SARIF as a
+private Actions artifact. A separately configured private `Evidence-Lane`
+organization mirror can upload the exact reviewed SHA to GitHub Code Security
+through the owner-gated hosted workflow. The mirror does not replace the
+canonical plugin remote or become project authority.
+
 ## Ownership, credits, and contributions
 
 Evidence Lane is conceived, directed, funded, and owned by Praveen Rathee.
@@ -313,12 +349,25 @@ The development record credits the AI/toolchain roles actually used:
   `requirements.in` provide the implementation toolchain. Each third-party
   project remains governed by its own license and trademarks.
 
-No external human contributor list is published yet while contribution records
-are being refined. Questions, feedback, and direction do not automatically
-create code authorship. Future accepted contributions must be attributable,
-reviewed, licensed, and entered through the governed Git and HIL process. See
-[credits and contribution policy](docs/CREDITS_AND_CONTRIBUTIONS.md) and
-[LICENSE.md](LICENSE.md).
+Human review and evaluation contributions:
+
+- [Naveen Rathee](https://www.linkedin.com/in/naveen-rathee/): Strategic
+  Challenger and Cross-Project Human Review Gate.
+- [Kapil Dhawan](https://www.linkedin.com/in/kdhawan23/): Enterprise
+  Engineering and Product Communication Reviewer.
+- [Steven Tock](https://www.linkedin.com/in/steventock/): Senior Strategic
+  Reviewer and Controlled-AI Advisor.
+- [Sumit Hooda](https://www.linkedin.com/in/sumit-hooda-378884192/): External
+  Software Engineering Evaluator for bare-metal code review, adversarial plugin
+  testing, AI-drift analysis, and implementation loophole discovery.
+
+These roles record attributable review; they do not imply source authorship,
+ownership transfer, candidate acceptance, or release authority. Accepted source
+contributions must remain attributable, reviewed, licensed, and entered through
+the governed Git and HIL process. See the
+[credits and contribution policy](docs/CREDITS_AND_CONTRIBUTIONS.md),
+[upstream reference provenance ledger](docs/UPSTREAM_REFERENCE_PROVENANCE.md),
+[copyright notice](COPYRIGHT.md), and [proprietary license](LICENSE.md).
 
 ## Repository access and rights
 

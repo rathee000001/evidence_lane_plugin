@@ -95,7 +95,9 @@ def run_git(
         timeout=timeout,
         env=safe_env,
         close_fds=True,
-        creationflags=(subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0),
+        creationflags=(
+            getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+        ),
     )
     result = GitResult(
         args=tuple(str(arg) for arg in args),
@@ -329,7 +331,9 @@ def diff_patch(repository: str | Path) -> str:
             errors="replace",
             timeout=60,
             close_fds=True,
-            creationflags=(subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0),
+            creationflags=(
+                getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+            ),
         )
         if completed.returncode not in (0, 1):
             raise EvidenceLaneError(

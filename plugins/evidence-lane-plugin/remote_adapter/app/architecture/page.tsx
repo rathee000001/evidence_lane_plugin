@@ -19,6 +19,13 @@ const flow = [
   ["Accepted pointer", "Only exact APPROVE may invoke Fuse and move governed truth"],
 ] as const;
 
+const parallelSources = [
+  { label: "Code", color: "#69d9f5", icon: "git" },
+  { label: "Docs", color: "#83ddb3", icon: "package" },
+  { label: "Data", color: "#efca72", icon: "database" },
+  { label: "Lineage", color: "#f2a1c5", icon: "pulse" },
+] as const;
+
 export default function ArchitecturePage() {
   return (
     <main>
@@ -59,14 +66,21 @@ export default function ArchitecturePage() {
           </div>
           <div className="parallelDiagram" aria-label="Parallel lane computation converging on a serial human gate">
             <div className="parallelSources">
-              <span>Code</span><span>Docs</span><span>Data</span><span>Lineage</span>
+              {parallelSources.map((source) => (
+                <span key={source.label}>
+                  <GlassIconOrb color={source.color} size={32} decorative>
+                    <OfficialToolIcon tool={source.icon} size={17} decorative />
+                  </GlassIconOrb>
+                  {source.label}
+                </span>
+              ))}
             </div>
             <div className="convergeLines" aria-hidden="true"><i /><i /><i /><i /></div>
-            <div className="manifestNode">Candidate manifest</div>
+            <div className="manifestNode"><GlassIconOrb color="#69d9f5" size={34} decorative><OfficialToolIcon tool="package" size={18} decorative /></GlassIconOrb><span>Candidate manifest</span></div>
             <div className="authorityArrow" aria-hidden="true">↓</div>
-            <div className="hilNode">Human decision</div>
+            <div className="hilNode"><GlassIconOrb color="#efca72" size={34} decorative><OfficialToolIcon tool="pulse" size={18} decorative /></GlassIconOrb><span>Human decision</span></div>
             <div className="authorityArrow" aria-hidden="true">↓</div>
-            <div className="pointerNode">Accepted pointer</div>
+            <div className="pointerNode"><GlassIconOrb color="#83ddb3" size={34} decorative><OfficialToolIcon tool="database" size={18} decorative /></GlassIconOrb><span>Accepted pointer</span></div>
           </div>
         </div>
       </section>

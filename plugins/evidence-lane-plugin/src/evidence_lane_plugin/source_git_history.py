@@ -104,7 +104,9 @@ def _git(
         timeout=timeout,
         env=_git_environment(),
         close_fds=True,
-        creationflags=(subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0),
+        creationflags=(
+            getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+        ),
     )
     if completed.returncode != 0:
         raise EvidenceLaneError(
@@ -695,7 +697,9 @@ def _object_evidence(
         stderr=subprocess.PIPE,
         env=_git_environment(),
         close_fds=True,
-        creationflags=(subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0),
+        creationflags=(
+            getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+        ),
     )
     require(
         process.stdin is not None and process.stdout is not None,
@@ -853,7 +857,9 @@ def build_registered_git_history(
         timeout=30,
         env=_git_environment(),
         close_fds=True,
-        creationflags=(subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0),
+        creationflags=(
+            getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+        ),
     )
     branch = (
         branch_result.stdout.decode("utf-8", errors="replace").strip()

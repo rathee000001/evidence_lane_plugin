@@ -11,9 +11,9 @@ export default function StudioPage() {
           <span className="eyebrow"><i />Evidence AI Studio</span>
           <h1>Ask the product. See the evidence boundary.</h1>
           <p>
-            Explore Evidence Lane through an interactive, source-linked knowledge surface.
-            This preview answers from explicit published product facts and refuses unsupported
-            claims instead of disguising a scripted demo as a live model.
+            Query the committed plugin, policy, lane, mode, website, and Git-history corpus
+            instead of re-explaining it. The local hybrid index returns extractive evidence and
+            refuses unsupported claims; it does not disguise a keyword script as a model.
           </p>
           <div className="actions">
             <Link className="primary universal-pill actionGlassPill" href="/architecture" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001">
@@ -27,13 +27,13 @@ export default function StudioPage() {
           </div>
         </div>
         <aside className="studioHeroPanel" aria-label="Prompt Studio contract">
-          <span>LOCAL GROUNDING</span>
-          <strong>No invented provider call</strong>
-          <p>Every successful answer links back to a published Evidence Lane section.</p>
+          <span>COMMITTED LOCAL RAG</span>
+          <strong>LlamaIndex + hybrid projection · SQLite FTS5 authority</strong>
+          <p>Every successful answer identifies exact source paths and content hashes.</p>
           <dl>
-            <div><dt>Known</dt><dd>Product facts</dd></div>
-            <div><dt>Unknown</dt><dd>Visible refusal</dd></div>
-            <div><dt>Future</dt><dd>Receipt-bound AI route</dd></div>
+            <div><dt>Corpus</dt><dd>Public-safe committed evidence</dd></div>
+            <div><dt>Ranking</dt><dd>Visible hybrid scores</dd></div>
+            <div><dt>No hit</dt><dd>Visible refusal</dd></div>
           </dl>
         </aside>
       </section>
@@ -42,11 +42,12 @@ export default function StudioPage() {
         <div className="shell">
           <div className="sectionHead wideHead">
             <span className="kicker light">Interactive knowledge surface</span>
-            <h2>A useful studio now, an honest boundary always.</h2>
+            <h2>Search parsed evidence instead of rebuilding project context.</h2>
             <p>
-              Use the suggested prompts or ask in your own words. The local matcher exposes
-              exactly where it has evidence and where a separately configured AI provider would
-              be required.
+              LlamaIndex supplies deterministic chunks; the committed SQLite authority stores
+              those chunks in FTS5 and materializes TF-IDF. The browser consumes a hash-bound JSON
+              projection and reranks it with deterministic BM25, TF-IDF, and reciprocal-rank
+              fusion; it does not execute SQLite.
             </p>
           </div>
           <EvidencePromptStudio />
@@ -54,8 +55,8 @@ export default function StudioPage() {
       </section>
 
       <section className="section shell studioRules">
-        <article><span>01</span><h2>Ground first</h2><p>Answers come from a versioned, reviewable knowledge map rather than hidden prompt context.</p></article>
-        <article><span>02</span><h2>Cite the surface</h2><p>Every supported response names the site sections that carry the claim.</p></article>
+        <article><span>01</span><h2>Parse once</h2><p>Versioned chunks and accepted lane facts remain reusable until exact source changes require Refresh.</p></article>
+        <article><span>02</span><h2>Rank visibly</h2><p>Every supported response exposes source paths, chunk hashes, and hybrid retrieval scores.</p></article>
         <article><span>03</span><h2>Refuse cleanly</h2><p>Unsupported questions stay unsupported until a real provider and evidence route are configured.</p></article>
       </section>
     </main>

@@ -9,6 +9,7 @@ from typing import Any
 
 from .errors import require
 from .git_adapter import remote_push, validate_remote_ref
+from .github_automation_governance import inspect_agent_output
 from .hashing import atomic_write_json, sha256_bytes
 from .ids import prefixed_id
 from .store import ProjectStore
@@ -117,13 +118,18 @@ class RemoteGitController:
             local_ref=action["local_ref"],
             remote_ref=action["remote_branch"],
         )
+        combined_output = result.stdout
+        if result.stderr:
+            combined_output = f"{combined_output}\n[stderr]\n{result.stderr}"
+        output_security = inspect_agent_output(combined_output)
         action.update(
             {
                 "status": "EXECUTED",
                 "confirmed_by": confirmed_by,
                 "executed_at": utc_now(),
                 "git_returncode": result.returncode,
-                "git_stdout": result.stdout[-4000:],
+                "git_stdout": output_security["safe_output"],
+                "output_security": output_security,
             }
         )
         atomic_write_json(path, action)

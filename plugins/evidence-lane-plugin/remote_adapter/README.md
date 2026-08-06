@@ -1,5 +1,8 @@
 # ChatGPT edge and public site
 
+Reviewed public website preview:
+[`https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app`](https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app)
+
 This Vercel project has two deliberately separate surfaces:
 
 - a public multipage Next.js site at `/`, `/architecture`, `/lanes`, `/proof`,
