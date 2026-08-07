@@ -28,6 +28,9 @@ def test_all_canonical_lane_dummy_packages_are_exact_and_downloadable() -> None:
     assert index["topology_boundary"] == (
         "ACTUAL_FULL_LANE_ENGINE_MMD_AND_DOT_NOT_FOUR_FILE_OVERVIEW"
     )
+    assert index["graph_projection_boundary"] == (
+        "SQLITE_DERIVED_STABLE_IDENTITY_GRAPH_WITH_DISTINCT_GITHUB_AND_LOCAL_CODE_PROFILES"
+    )
     assert index["renderer"]["install_performed"] is False
     assert [row["lane_id"] for row in index["lanes"]] == list(CANONICAL_LANE_IDS)
     assert {path.name for path in PUBLIC_ROOT.iterdir() if path.is_dir()} == set(
@@ -81,6 +84,14 @@ def test_all_canonical_lane_dummy_packages_are_exact_and_downloadable() -> None:
         assert "Inspectable lane package" in mmd_text
         assert "digraph" in dot_text
         assert "SQLite physical schema" in dot_text
+        assert len(row["topology_generator_sha256"]) == 64
+        assert row["graph_profile"] == (
+            "GITHUB_REPOSITORY_HISTORY"
+            if lane_id == "github_code"
+            else "LOCAL_WORKTREE"
+            if lane_id == "local_code"
+            else "SQLITE_SCHEMA_RELATION_SAMPLE"
+        )
 
         with Image.open(lane_root / f"{lane_id}.mmd.4k.png") as render:
             assert render.size == (3840, 2160)
@@ -122,3 +133,34 @@ def test_dummy_git_lane_proves_real_multi_commit_parent_history() -> None:
     assert receipt["git_history"]["source_policy"]["tracked_history_only"] is True
 
     assert by_lane["local_code"]["git_history"] is None
+
+
+def test_code_lane_topologies_are_sqlite_derived_and_structurally_distinct() -> None:
+    github = PUBLIC_ROOT / "github_code"
+    local = PUBLIC_ROOT / "local_code"
+    github_mmd = (github / LANE_REGISTRY["github_code"].mmd_filename).read_text(
+        encoding="utf-8"
+    )
+    local_mmd = (local / LANE_REGISTRY["local_code"].mmd_filename).read_text(
+        encoding="utf-8"
+    )
+
+    assert "subgraph GITHUB_REPOSITORY_GRAPH" in github_mmd
+    assert "subgraph LOCAL_WORKTREE_GRAPH" not in github_mmd
+    assert "refs/heads/main" in github_mmd
+    assert "parent 0 -&gt; child" in github_mmd
+    assert "records file change" in github_mmd
+    assert "resolves content-addressed blob" in github_mmd
+    assert "contains chunk 0" in github_mmd
+    assert "stable_id=" in github_mmd
+    assert "EXTRACTED" in github_mmd
+
+    assert "subgraph LOCAL_WORKTREE_GRAPH" in local_mmd
+    assert "subgraph GITHUB_REPOSITORY_GRAPH" not in local_mmd
+    assert "NO_GIT_HISTORY_LOADED" in local_mmd
+    assert "poc-fixtures/local.py" in local_mmd
+    assert "module pathlib" in local_mmd
+    assert "commit boundary" not in local_mmd
+    assert hashlib.sha256(github_mmd.encode("utf-8")).digest() != hashlib.sha256(
+        local_mmd.encode("utf-8")
+    ).digest()

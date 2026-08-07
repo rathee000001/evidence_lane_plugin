@@ -146,3 +146,28 @@ def physical_table_node_ids(projection: dict[str, Any]) -> dict[str, str]:
         str(row["table"]): f'PHYSICAL_TABLE_{int(row["ordinal"]):03d}'
         for row in projection["tables"]
     }
+
+
+def physical_table_group_id(row: dict[str, Any]) -> str:
+    """Return the compact visual group for one exact physical table row."""
+
+    table = str(row["table"])
+    role = str(row["role"])
+    if role == "core_contract":
+        return "PHYSICAL_GROUP_CORE"
+    if table.startswith("git_"):
+        return "PHYSICAL_GROUP_GIT"
+    if role == "sqlite_engine_auxiliary":
+        return "PHYSICAL_GROUP_AUXILIARY"
+    return "PHYSICAL_GROUP_LANE"
+
+
+def physical_table_groups(
+    projection: dict[str, Any],
+) -> dict[str, list[dict[str, Any]]]:
+    """Group tables without changing their canonical projection order."""
+
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for row in projection["tables"]:
+        groups.setdefault(physical_table_group_id(row), []).append(row)
+    return groups

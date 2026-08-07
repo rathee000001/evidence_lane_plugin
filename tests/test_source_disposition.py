@@ -33,6 +33,22 @@ def test_all_source_disposition_receipt_is_complete_and_reproducible() -> None:
     assert all(row["evidence_files"] and row["test_files"] for row in rebuilt["sources"])
     assert rebuilt["historical_crosswalk_preserved"] is True
     assert rebuilt["source_payloads_mutated"] is False
+    assert rebuilt["supplied_topology_authority_count"] == 2
+    topology_authorities = {
+        row["name"]: row for row in rebuilt["supplied_topology_authorities"]
+    }
+    assert topology_authorities["generate_lane_mmd.py"]["sha256"] == (
+        "1B87064906E8A805C4A69A7A3A14668DCCE963E00928ED3EB23CC186AB8A65EC"
+    )
+    assert topology_authorities["project_master_topology.mmd"]["sha256"] == (
+        "E9E610D982B5E855A54C39B7A16E06C6FD4D28A2538C8790CC2B9E34C9FECA01"
+    )
+    assert all(
+        row["disposition"] == "ADOPTED_CONTRACT_AND_TEST"
+        and row["external_bytes_imported"] is False
+        for row in topology_authorities.values()
+    )
+    assert rebuilt["safety"]["supplied_topology_reference_bytes_imported"] is False
 
     body = dict(rebuilt)
     expected_receipt_sha256 = body.pop("receipt_sha256")

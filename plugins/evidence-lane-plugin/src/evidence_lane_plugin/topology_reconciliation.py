@@ -22,7 +22,11 @@ from .lanes import (
     LANE_REGISTRY,
     PRIMARY_CODE_LANES,
 )
-from .schema_topology import physical_schema_projection, physical_table_node_ids
+from .schema_topology import (
+    physical_schema_projection,
+    physical_table_groups,
+    physical_table_node_ids,
+)
 
 RECONCILIATION_SCHEMA = "evidence-lane.topology-reconciliation.v4"
 MIN_SUBGRAPHS = 4
@@ -410,7 +414,8 @@ def logical_code_contract_report(
     nodes = {node.node_id: node for node in graph.nodes}
     required_nodes = {"CODE_SECTOR", *_CODE_LOGICAL_NODE_IDS.values()}
     required_edges = {
-        ("CODE_SECTOR", node_id) for node_id in _CODE_LOGICAL_NODE_IDS.values()
+        ("PHYSICAL_SCHEMA_SECTOR", "CODE_SECTOR"),
+        *(("CODE_SECTOR", node_id) for node_id in _CODE_LOGICAL_NODE_IDS.values()),
     }
     missing_subgraphs = (
         []
@@ -476,7 +481,12 @@ def physical_schema_contract_report(
     finally:
         connection.close()
     table_nodes = physical_table_node_ids(projection)
-    expected_node_ids = {"PHYSICAL_SCHEMA_SECTOR", *table_nodes.values()}
+    table_groups = physical_table_groups(projection)
+    expected_node_ids = {
+        "PHYSICAL_SCHEMA_SECTOR",
+        *table_groups.keys(),
+        *table_nodes.values(),
+    }
     subgraphs = {
         item.removeprefix("cluster_").upper() for item in graph.subgraphs
     }
@@ -493,15 +503,19 @@ def physical_schema_contract_report(
     unexpected_physical_nodes = sorted(
         node_id
         for node_id in nodes
-        if node_id.startswith("PHYSICAL_TABLE_") and node_id not in expected_node_ids
+        if node_id.startswith(("PHYSICAL_TABLE_", "PHYSICAL_GROUP_"))
+        and node_id not in expected_node_ids
     )
     required_root_edges = {
-        ("LANE_ROOT", "PHYSICAL_SCHEMA_SECTOR"),
-        *{
-            ("PHYSICAL_SCHEMA_SECTOR", node_id)
-            for node_id in table_nodes.values()
-        },
+        ("SEMANTIC_SCHEMA_HANDOFF", "PHYSICAL_SCHEMA_SECTOR"),
     }
+    for group_id, group_rows in table_groups.items():
+        required_root_edges.add(("PHYSICAL_SCHEMA_SECTOR", group_id))
+        previous_node = group_id
+        for row in group_rows:
+            table_node = table_nodes[str(row["table"])]
+            required_root_edges.add((previous_node, table_node))
+            previous_node = table_node
     missing_root_edges = sorted(required_root_edges - graph_edges)
     expected_relation_edges = {
         (
@@ -560,7 +574,7 @@ def physical_schema_contract_report(
     )
     return {
         "applicable": True,
-        "required_root": "PHYSICAL_SCHEMA_SECTOR",
+        "required_root": "SEMANTIC_SCHEMA_HANDOFF -> PHYSICAL_SCHEMA_SECTOR",
         "required_subgraph": "SQLITE_PHYSICAL_SCHEMA",
         "required_contract_tables": list(lane.schema_contract),
         "physical_tables": [row["table"] for row in projection["tables"]],
@@ -615,7 +629,8 @@ def schema_derived_contract_report(
     nodes = {node.node_id: node for node in graph.nodes}
     required_nodes = {"SCHEMA_SECTOR", *table_nodes.values()}
     required_root_edges = {
-        ("SCHEMA_SECTOR", node_id) for node_id in table_nodes.values()
+        ("PHYSICAL_SCHEMA_SECTOR", "SCHEMA_SECTOR"),
+        *(("SCHEMA_SECTOR", node_id) for node_id in table_nodes.values()),
     }
     expected_relation_edges: set[tuple[str, str]] = set()
     expected_sample_nodes: set[str] = set()

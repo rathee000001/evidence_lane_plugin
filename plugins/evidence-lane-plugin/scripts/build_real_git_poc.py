@@ -39,6 +39,7 @@ from evidence_lane_plugin.hashing import (
 from evidence_lane_plugin.lane_engine import build_lane_bundle, validate_lane_bundle
 from evidence_lane_plugin.lanes import (
     CANONICAL_LANE_IDS,
+    SQLITE_BRAIN_BUILDER_MASTER_TOPOLOGY_AUTHORITY_SHA256,
     SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256,
 )
 
@@ -381,6 +382,9 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
         "sqlite_brain_builder_mmd_authority_sha256": (
             SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256
         ),
+        "sqlite_brain_builder_master_topology_authority_sha256": (
+            SQLITE_BRAIN_BUILDER_MASTER_TOPOLOGY_AUTHORITY_SHA256
+        ),
         "worktree_clean": True,
         "runtime_matches_source_commit": True,
     }
@@ -472,6 +476,10 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
             identity.get("module_sha256") == runtime_identity["lane_engine_sha256"]
             and identity.get("sqlite_brain_builder_mmd_authority_sha256")
             == SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256
+            and identity.get(
+                "sqlite_brain_builder_master_topology_authority_sha256"
+            )
+            == SQLITE_BRAIN_BUILDER_MASTER_TOPOLOGY_AUTHORITY_SHA256
             for identity in code_generator_identities.values()
         )
 

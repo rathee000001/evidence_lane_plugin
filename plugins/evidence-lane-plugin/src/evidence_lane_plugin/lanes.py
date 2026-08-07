@@ -21,6 +21,14 @@ SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256 = (
     "1B87064906E8A805C4A69A7A3A14668DCCE963E00928ED3EB23CC186AB8A65EC"
 )
 
+# Exact SHA-256 of the supplied end-to-end master topology reference
+# ``project/topology/project_master_topology.mmd``.  As above, the runtime
+# carries only the immutable identity and independently emits its own graph;
+# it never reads or copies the external workstation file at build time.
+SQLITE_BRAIN_BUILDER_MASTER_TOPOLOGY_AUTHORITY_SHA256 = (
+    "E9E610D982B5E855A54C39B7A16E06C6FD4D28A2538C8790CC2B9E34C9FECA01"
+)
+
 # Logical projection inherited from the authorized SQLite brain builder.  The
 # current lane database intentionally keeps its richer physical schema; both
 # code modes must still expose this exact seven-entity contract in MMD and DOT.

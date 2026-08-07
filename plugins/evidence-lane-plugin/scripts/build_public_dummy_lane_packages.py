@@ -42,7 +42,7 @@ INDEX_PATH = (
     / "dummy-lane-artifacts.json"
 )
 PNG_SIZE = (3840, 2160)
-SCHEMA = "evidence-lane.public-full-lane-dummy-proof.v2"
+SCHEMA = "evidence-lane.public-full-lane-dummy-proof.v3"
 
 
 def _sha256(path: Path) -> str:
@@ -310,6 +310,8 @@ def build() -> dict[str, Any]:
                 )
 
             history = _git_history(sqlite_path) if lane_id == DUMMY_GIT_LANE else None
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            topology_identity = receipt["topology_generator"]["current"]
             lanes.append(
                 {
                     "ordinal": ordinal,
@@ -321,6 +323,10 @@ def build() -> dict[str, Any]:
                     "fts_table": lane.fts_table,
                     "schema_table_count": len(lane.schema_contract),
                     "schema_tables": list(lane.schema_contract),
+                    "graph_profile": topology_identity["graph_projection_contract"][
+                        "profile"
+                    ],
+                    "topology_generator_sha256": topology_identity["sha256"],
                     "canonical_artifacts": [
                         _artifact(sqlite_path, "sqlite", "SQLite sector"),
                         _artifact(mmd_path, "mmd", "Full lane Mermaid topology"),
@@ -352,6 +358,9 @@ def build() -> dict[str, Any]:
         "artifact_storage": "WEBSITE_STATIC_PUBLIC",
         "fixture_boundary": "SYNTHETIC_ONLY_NO_PROJECT_OR_ACCEPTED_PV_BYTES",
         "topology_boundary": "ACTUAL_FULL_LANE_ENGINE_MMD_AND_DOT_NOT_FOUR_FILE_OVERVIEW",
+        "graph_projection_boundary": (
+            "SQLITE_DERIVED_STABLE_IDENTITY_GRAPH_WITH_DISTINCT_GITHUB_AND_LOCAL_CODE_PROFILES"
+        ),
         "engine_bundle_sha256": validation["bundle_sha256"],
         "renderer": {
             "tool": "mmdc",

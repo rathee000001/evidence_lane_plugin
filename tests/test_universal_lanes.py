@@ -774,7 +774,7 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
             assert table in mermaid
         if lane_id in {"github_code", "local_code"}:
             assert "subgraph CODE_LOGICAL_TOPOLOGY" in mermaid
-            assert "subgraph GIT_LINEAGE" in mermaid
+            assert "subgraph CODE_EVIDENCE_GRAPH" in mermaid
             assert "Code Sector" in mermaid
             for logical_table in (
                 "code_repo",
@@ -787,6 +787,16 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
             ):
                 assert logical_table in mermaid
             assert "git_commit_registry" in mermaid
+            if lane_id == "github_code":
+                assert "subgraph GITHUB_REPOSITORY_GRAPH" in mermaid
+                assert "GITHUB_GRAPH_ROOT" in mermaid
+                assert "LOCAL_WORKTREE_GRAPH" not in mermaid
+                assert "NO_GIT_HISTORY_LOADED" not in mermaid
+            else:
+                assert "subgraph LOCAL_WORKTREE_GRAPH" in mermaid
+                assert "NO_GIT_HISTORY_LOADED" in mermaid
+                assert "GITHUB_REPOSITORY_GRAPH" not in mermaid
+                assert "COMMIT_BOUNDARY" not in mermaid
         else:
             assert "subgraph SCHEMA_DERIVED_TOPOLOGY" in mermaid
             assert "cluster_schema_derived_topology" in dot
@@ -803,13 +813,30 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         ]
         topology_generator = tools["topology_generator"]
         assert topology_generator["schema"] == (
-            "evidence-lane.lane-topology-generator.v4"
+            "evidence-lane.lane-topology-generator.v5"
         )
         assert len(topology_generator["sha256"]) == 64
         assert topology_generator["mmd_dot_shared_graph"] is True
         assert topology_generator[
             "sqlite_brain_builder_mmd_authority_sha256"
         ] == "1B87064906E8A805C4A69A7A3A14668DCCE963E00928ED3EB23CC186AB8A65EC"
+        assert topology_generator[
+            "sqlite_brain_builder_master_topology_authority_sha256"
+        ] == "E9E610D982B5E855A54C39B7A16E06C6FD4D28A2538C8790CC2B9E34C9FECA01"
+        graph_contract = topology_generator["graph_projection_contract"]
+        assert graph_contract["implementation"] == (
+            "PROJECT_AUTHORED_GRAPHIFY_INFORMED"
+        )
+        assert graph_contract["stable_node_identity"] is True
+        assert graph_contract["stable_edge_identity"] is True
+        assert graph_contract["network_or_llm_extraction"] is False
+        assert graph_contract["profile"] == (
+            "GITHUB_REPOSITORY_HISTORY"
+            if lane_id == "github_code"
+            else "LOCAL_WORKTREE"
+            if lane_id == "local_code"
+            else "SQLITE_SCHEMA_RELATION_SAMPLE"
+        )
         assert topology_generator["physical_schema_projection_schema"] == (
             "evidence-lane.sqlite-physical-schema-projection.v1"
         )

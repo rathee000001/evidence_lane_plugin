@@ -133,6 +133,8 @@ def test_toolchain_uses_exact_app_brain_tools_and_schema_while_proof_owns_files(
     assert "canonical_artifacts.map" in proof
     assert "Download PNG" in proof
     assert "proofLightboxCanvas" in proof
+    assert "?sha256=${lane.render.sha256}" in proof
+    assert proof.count("unoptimized") == 2
     assert 'event.key === "Escape"' in proof
     assert "adjustZoom" in proof and "startDrag" in proof
     assert "--orbit-start" not in console and "--orbit-end" not in console

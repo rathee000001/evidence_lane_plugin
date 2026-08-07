@@ -9,6 +9,10 @@ from typing import Any
 
 from .errors import require
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
+from .lanes import (
+    SQLITE_BRAIN_BUILDER_MASTER_TOPOLOGY_AUTHORITY_SHA256,
+    SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256,
+)
 
 CORRECTION_BASE_SOURCE_COMMIT = "6020563094154ff780705cbed85f453425884914"
 DISPOSITIONS = (
@@ -111,6 +115,39 @@ _UPSTREAM_DISPOSITIONS = (
         "disposition": "BOUNDED_PROVENANCE_ROLE",
         "contract_id": "INSPECTABLE_UI_CONCEPTUAL_REFERENCE_ONLY_V1",
         "test_files": ["tests/test_full_app_ui_conformance.py"],
+    },
+)
+
+_SUPPLIED_TOPOLOGY_AUTHORITIES = (
+    {
+        "name": "generate_lane_mmd.py",
+        "sha256": SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256,
+        "disposition": "ADOPTED_CONTRACT_AND_TEST",
+        "contract_id": "SQLITE_DERIVED_CODE_LOGICAL_TOPOLOGY_V1",
+        "adopted_role": (
+            "Bind the seven-entity code projection to an exact supplied generator "
+            "identity while independently implementing the graph emitter."
+        ),
+        "test_files": [
+            "tests/test_universal_lanes.py",
+            "tests/test_topology_reconciliation.py",
+        ],
+        "external_bytes_imported": False,
+    },
+    {
+        "name": "project_master_topology.mmd",
+        "sha256": SQLITE_BRAIN_BUILDER_MASTER_TOPOLOGY_AUTHORITY_SHA256,
+        "disposition": "ADOPTED_CONTRACT_AND_TEST",
+        "contract_id": "SQLITE_DERIVED_STABLE_TOPOLOGY_PROFILE_V1",
+        "adopted_role": (
+            "Require an end-to-end SQLite-derived topology with stable identities, "
+            "explicit confidence, coverage, impact, and distinct GitHub/Local profiles."
+        ),
+        "test_files": [
+            "tests/test_public_dummy_lane_packages.py",
+            "tests/test_universal_lanes.py",
+        ],
+        "external_bytes_imported": False,
     },
 )
 
@@ -270,11 +307,14 @@ def build_all_source_disposition_receipt(repository_root: str | Path) -> dict[st
         "sources": entries,
         "upstream_reference_count": len(_UPSTREAM_DISPOSITIONS),
         "upstream_references": list(_UPSTREAM_DISPOSITIONS),
+        "supplied_topology_authority_count": len(_SUPPLIED_TOPOLOGY_AUTHORITIES),
+        "supplied_topology_authorities": list(_SUPPLIED_TOPOLOGY_AUTHORITIES),
         "safety": {
             "unlicensed_bytes_imported": False,
             "exact_counterpart_archives_double_counted": False,
             "generator_identity_inferred_from_filename": False,
             "sqlite_continuity_harness_distinct_from_agent_execution_harness": True,
+            "supplied_topology_reference_bytes_imported": False,
         },
     }
     body["source_disposition_set_sha256"] = sha256_bytes(

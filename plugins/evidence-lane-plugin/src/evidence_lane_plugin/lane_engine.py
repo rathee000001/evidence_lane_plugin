@@ -51,6 +51,7 @@ from .lanes import (
     CORE_SCHEMA_TABLES,
     LANE_REGISTRY,
     PRIMARY_CODE_LANES,
+    SQLITE_BRAIN_BUILDER_MASTER_TOPOLOGY_AUTHORITY_SHA256,
     SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256,
     LaneDefinition,
     catalog,
@@ -61,6 +62,7 @@ from .redaction import redact_text
 from .schema_topology import (
     PHYSICAL_SCHEMA_PROJECTION_SCHEMA,
     physical_schema_projection,
+    physical_table_groups,
     physical_table_node_ids,
 )
 from .timeutil import utc_now
@@ -72,7 +74,7 @@ from .topology_reconciliation import (
 LANE_SCHEMA_VERSION = "evidence-lane.universal-lane.v2"
 LEGACY_LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v1"
 LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v2"
-TOPOLOGY_GENERATOR_SCHEMA = "evidence-lane.lane-topology-generator.v4"
+TOPOLOGY_GENERATOR_SCHEMA = "evidence-lane.lane-topology-generator.v5"
 LANE_MANIFEST_SCHEMA = "evidence-lane.lane-manifest.v3"
 MAX_EXTRACT_BYTES = 64 * 1024 * 1024
 MAX_PDF_PAGES = 500
@@ -317,6 +319,24 @@ def _topology_generator_identity(lane: LaneDefinition) -> dict[str, Any]:
         "sqlite_brain_builder_mmd_authority_sha256": (
             SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256
         ),
+        "sqlite_brain_builder_master_topology_authority_sha256": (
+            SQLITE_BRAIN_BUILDER_MASTER_TOPOLOGY_AUTHORITY_SHA256
+        ),
+        "graph_projection_contract": {
+            "implementation": "PROJECT_AUTHORED_GRAPHIFY_INFORMED",
+            "stable_node_identity": True,
+            "stable_edge_identity": True,
+            "confidence_vocabulary": ["EXTRACTED", "INFERRED", "AMBIGUOUS"],
+            "coverage_and_impact_visible": True,
+            "network_or_llm_extraction": False,
+            "profile": (
+                "GITHUB_REPOSITORY_HISTORY"
+                if lane.canonical_lane_id == "github_code"
+                else "LOCAL_WORKTREE"
+                if lane.canonical_lane_id == "local_code"
+                else "SQLITE_SCHEMA_RELATION_SAMPLE"
+            ),
+        },
         "code_logical_topology": (
             [list(row) for row in CODE_LOGICAL_TOPOLOGY]
             if lane.canonical_lane_id in PRIMARY_CODE_LANES
@@ -3636,6 +3656,519 @@ def _schema_topology_records(
     return records
 
 
+def _stable_topology_node(prefix: str, *identity: Any) -> str:
+    """Return a Mermaid/DOT-safe stable identity for one evidence node."""
+
+    safe_prefix = re.sub(r"[^A-Z0-9_]+", "_", prefix.upper()).strip("_") or "NODE"
+    digest = sha256_bytes(
+        canonical_json_bytes(
+            {
+                "schema": "evidence-lane.topology-stable-node.v1",
+                "prefix": safe_prefix,
+                "identity": [str(item) for item in identity],
+            }
+        )
+    )
+    return f"{safe_prefix}_{digest[:16]}"
+
+
+def _evidence_edge(
+    graph: _TopologyGraph,
+    source: str,
+    target: str,
+    relation: str,
+    *,
+    confidence: str = "EXTRACTED",
+) -> None:
+    """Emit an explicitly identified evidence relation in both renderings."""
+
+    edge_id = sha256_bytes(
+        canonical_json_bytes(
+            {
+                "schema": "evidence-lane.topology-stable-edge.v1",
+                "source": source,
+                "relation": relation,
+                "target": target,
+                "confidence": confidence,
+            }
+        )
+    )[:12]
+    graph.edge(
+        source,
+        target,
+        f"{relation} | {confidence} | edge={edge_id}",
+    )
+
+
+def _payload_object(payload_json: str) -> dict[str, Any]:
+    try:
+        value = json.loads(payload_json)
+    except (json.JSONDecodeError, TypeError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def _emit_code_evidence_graph(
+    graph: _TopologyGraph,
+    connection: sqlite3.Connection,
+) -> dict[int, str]:
+    """Project registered files and extracted code facts from exact SQLite rows."""
+
+    source_rows = connection.execute(
+        """
+        SELECT source_id, path, sha256, size_bytes, parser_state
+        FROM source_registry ORDER BY path, source_id LIMIT 24
+        """
+    ).fetchall()
+    table_specs = (
+        ("code_file_snapshot", "CODE_FILE", "snapshot", "FILE_SNAPSHOT"),
+        ("code_symbol", "CODE_SYMBOL", "declares", "SYMBOL"),
+        ("code_import", "CODE_FILE", "imports", "IMPORT"),
+        ("code_route", "APP_ROUTE", "exposes", "ROUTE"),
+        ("code_dependency", "DEPENDENCY_ITEM", "depends on", "DEPENDENCY"),
+        ("artifact_registry", "PROJECT_ARTIFACT", "produces", "ARTIFACT"),
+    )
+    counts = {table: _required_table_count(connection, table) for table, *_ in table_specs}
+    graph.begin(
+        "CODE_EVIDENCE_GRAPH",
+        "5. SQLite-derived files, semantics, and stable evidence identities",
+        direction="LR",
+    )
+    graph.node(
+        "CODE_EVIDENCE_COVERAGE",
+        "code evidence coverage\n"
+        f"files={_table_count(connection, 'source_registry')} | "
+        f"symbols={counts['code_symbol']} | imports={counts['code_import']} | "
+        f"routes={counts['code_route']} | dependencies={counts['code_dependency']} | "
+        f"artifacts={counts['artifact_registry']}\n"
+        "stable nodes + stable edges | project-authored Graphify concepts",
+        "root",
+    )
+    _evidence_edge(
+        graph,
+        "CODE_SECTOR",
+        "CODE_EVIDENCE_COVERAGE",
+        "projects exact SQLite rows",
+    )
+
+    source_nodes: dict[int, str] = {}
+    for row in source_rows:
+        source_id = int(row["source_id"])
+        path = str(row["path"])
+        sha256 = str(row["sha256"])
+        node = _stable_topology_node("WORKTREE_FILE", path, sha256)
+        source_nodes[source_id] = node
+        graph.node(
+            node,
+            f"{_topology_text(path, limit=88)}\n"
+            f"sha256={sha256[:16]}... | bytes={int(row['size_bytes'])}\n"
+            f"parser={_topology_text(row['parser_state'], limit=48)} | "
+            f"stable_id={node[-16:]} | EXTRACTED",
+            "source",
+        )
+        _evidence_edge(graph, "CODE_FILE", node, "registered exact-byte file")
+
+    if not source_nodes:
+        graph.node(
+            "CODE_EVIDENCE_EMPTY",
+            "no code files registered\nschema remains explicit",
+            "warn",
+        )
+        _evidence_edge(graph, "CODE_FILE", "CODE_EVIDENCE_EMPTY", "coverage boundary")
+
+    emitted_modules: set[str] = set()
+    for table, logical_root, relation, prefix in table_specs:
+        rows = connection.execute(
+            f"""
+            SELECT record_id, source_id, locator, payload_json
+            FROM {table} ORDER BY locator, record_id LIMIT 16
+            """  # nosec B608
+        ).fetchall()
+        for row in rows:
+            payload_json = str(row["payload_json"])
+            node = _stable_topology_node(
+                prefix,
+                table,
+                row["record_id"],
+                row["locator"],
+                sha256_bytes(payload_json.encode("utf-8")),
+            )
+            graph.node(
+                node,
+                f"{table}\n"
+                f"{_topology_text(_fact_display(table, str(row['locator']), payload_json), limit=88)}\n"
+                f"stable_id={node[-16:]} | EXTRACTED",
+                "semantic",
+            )
+            source_node = source_nodes.get(int(row["source_id"])) if row["source_id"] is not None else None
+            _evidence_edge(
+                graph,
+                source_node or logical_root,
+                node,
+                relation,
+            )
+            if table == "code_import":
+                payload = _payload_object(payload_json)
+                module = str(payload.get("module") or "unknown-module")
+                module_node = _stable_topology_node("IMPORTED_MODULE", module)
+                if module_node not in emitted_modules:
+                    graph.node(
+                        module_node,
+                        f"module { _topology_text(module, limit=72) }\n"
+                        f"stable_id={module_node[-16:]} | EXTRACTED reference",
+                        "semantic",
+                    )
+                    emitted_modules.add(module_node)
+                _evidence_edge(graph, node, module_node, "resolves module name")
+    graph.end()
+    return source_nodes
+
+
+def _emit_github_repository_graph(
+    graph: _TopologyGraph,
+    connection: sqlite3.Connection,
+    source_nodes: dict[int, str],
+) -> None:
+    """Emit ref -> commit -> change -> blob -> chunk history from SQLite."""
+
+    totals = {
+        table: _required_table_count(connection, table)
+        for table in (
+            "git_ref_registry",
+            "git_commit_registry",
+            "git_commit_parent",
+            "git_file_change",
+            "git_blob_cas",
+            "git_content_chunk_cas",
+            "git_chunk_occurrence",
+        )
+    }
+    source_path_nodes = {
+        str(row["path"]): source_nodes[int(row["source_id"])]
+        for row in connection.execute(
+            "SELECT source_id, path FROM source_registry ORDER BY path"
+        )
+        if int(row["source_id"]) in source_nodes
+    }
+    graph.begin(
+        "GITHUB_REPOSITORY_GRAPH",
+        "6. GitHub repository ref, history, content, and impact evidence",
+        direction="LR",
+    )
+    graph.node(
+        "GITHUB_GRAPH_ROOT",
+        "GitHub repository evidence graph\n"
+        f"refs={totals['git_ref_registry']} | commits={totals['git_commit_registry']} | "
+        f"parents={totals['git_commit_parent']} | changes={totals['git_file_change']}\n"
+        f"blobs={totals['git_blob_cas']} | chunks={totals['git_content_chunk_cas']} | "
+        f"occurrences={totals['git_chunk_occurrence']}",
+        "root",
+    )
+    _evidence_edge(graph, "CODE_REPO", "GITHUB_GRAPH_ROOT", "history profile")
+    graph.node(
+        "GITHUB_GRAPH_BOUNDARY",
+        "project-authored bounded projection\n"
+        "stable identity + EXTRACTED confidence + coverage + impact\n"
+        "no Graphify runtime, LLM extraction, server, or network dependency",
+        "git",
+    )
+    _evidence_edge(
+        graph,
+        "GITHUB_GRAPH_ROOT",
+        "GITHUB_GRAPH_BOUNDARY",
+        "governance boundary",
+    )
+
+    commit_rows = connection.execute(
+        """
+        SELECT commit_sha, ordinal, tree_sha, message
+        FROM git_commit_registry ORDER BY ordinal DESC, commit_sha LIMIT 12
+        """
+    ).fetchall()
+    commit_nodes: dict[str, str] = {}
+    for row in commit_rows:
+        commit_sha = str(row["commit_sha"])
+        node = _stable_topology_node("COMMIT", commit_sha)
+        commit_nodes[commit_sha] = node
+        graph.node(
+            node,
+            f"commit {commit_sha[:12]}\n"
+            f"{_topology_text(row['message'], limit=84)}\n"
+            f"tree={str(row['tree_sha'])[:12]} | ordinal={int(row['ordinal'])} | "
+            f"stable_id={node[-16:]} | EXTRACTED",
+            "git",
+        )
+
+    ref_rows = connection.execute(
+        """
+        SELECT ref_name, object_sha, peeled_sha
+        FROM git_ref_registry ORDER BY ref_name LIMIT 8
+        """
+    ).fetchall()
+    for row in ref_rows:
+        ref_name = str(row["ref_name"])
+        object_sha = str(row["peeled_sha"] or row["object_sha"])
+        ref_node = _stable_topology_node("REF", ref_name, object_sha)
+        graph.node(
+            ref_node,
+            f"{_topology_text(ref_name, limit=72)}\n"
+            f"target={object_sha[:12]} | stable_id={ref_node[-16:]} | EXTRACTED",
+            "git",
+        )
+        _evidence_edge(graph, "GITHUB_GRAPH_ROOT", ref_node, "contains ref")
+        target_node = commit_nodes.get(object_sha)
+        if target_node is None:
+            target_node = _stable_topology_node("COMMIT_BOUNDARY", object_sha)
+            graph.node(
+                target_node,
+                f"commit boundary {object_sha[:12]}\nnot expanded by bounded render",
+                "git",
+            )
+        _evidence_edge(graph, ref_node, target_node, "points to commit")
+
+    parent_rows = connection.execute(
+        """
+        SELECT commit_sha, parent_sha, parent_ordinal
+        FROM git_commit_parent ORDER BY commit_sha, parent_ordinal
+        """
+    ).fetchall()
+    emitted_boundary_commits: set[str] = set()
+    for row in parent_rows:
+        child_sha = str(row["commit_sha"])
+        if child_sha not in commit_nodes:
+            continue
+        parent_sha = str(row["parent_sha"])
+        parent_node = commit_nodes.get(parent_sha)
+        if parent_node is None:
+            parent_node = _stable_topology_node("COMMIT_BOUNDARY", parent_sha)
+            if parent_node not in emitted_boundary_commits:
+                graph.node(
+                    parent_node,
+                    f"parent boundary {parent_sha[:12]}\nnot expanded by bounded render",
+                    "git",
+                )
+                emitted_boundary_commits.add(parent_node)
+        _evidence_edge(
+            graph,
+            parent_node,
+            commit_nodes[child_sha],
+            f"parent {int(row['parent_ordinal'])} -> child",
+        )
+
+    blob_nodes: dict[str, str] = {}
+    chunk_nodes: dict[str, str] = {}
+    rendered_changes = 0
+    rendered_chunks = 0
+    for commit_sha, commit_node in commit_nodes.items():
+        changes = connection.execute(
+            """
+            SELECT status, path, prior_path, blob_sha
+            FROM git_file_change
+            WHERE commit_sha=? ORDER BY path, status LIMIT 4
+            """,
+            (commit_sha,),
+        ).fetchall()
+        for row in changes:
+            path = str(row["path"])
+            blob_sha = str(row["blob_sha"] or "")
+            change_node = _stable_topology_node(
+                "FILE_CHANGE", commit_sha, row["status"], path, row["prior_path"] or "", blob_sha
+            )
+            graph.node(
+                change_node,
+                f"{row['status']} {_topology_text(path, limit=82)}\n"
+                f"blob={blob_sha[:12] if blob_sha else 'none'} | "
+                f"stable_id={change_node[-16:]} | EXTRACTED",
+                "git",
+            )
+            _evidence_edge(graph, commit_node, change_node, "records file change")
+            rendered_changes += 1
+            if path in source_path_nodes:
+                _evidence_edge(
+                    graph,
+                    change_node,
+                    source_path_nodes[path],
+                    "matches current registered path",
+                )
+            if not blob_sha:
+                continue
+            blob_node = blob_nodes.get(blob_sha)
+            if blob_node is None:
+                blob = connection.execute(
+                    """
+                    SELECT content_sha256, size_bytes, is_binary
+                    FROM git_blob_cas WHERE blob_sha=?
+                    """,
+                    (blob_sha,),
+                ).fetchone()
+                blob_node = _stable_topology_node("BLOB", blob_sha)
+                blob_nodes[blob_sha] = blob_node
+                graph.node(
+                    blob_node,
+                    f"blob {blob_sha[:12]}\n"
+                    f"content_sha256={str(blob['content_sha256'])[:12] if blob else 'missing'} | "
+                    f"bytes={int(blob['size_bytes']) if blob else 0} | "
+                    f"binary={int(blob['is_binary']) if blob else 0}\n"
+                    f"stable_id={blob_node[-16:]} | EXTRACTED",
+                    "git",
+                )
+            _evidence_edge(graph, change_node, blob_node, "resolves content-addressed blob")
+            occurrence = connection.execute(
+                """
+                SELECT chunk_sha256, ordinal, char_start, char_end
+                FROM git_chunk_occurrence
+                WHERE commit_sha=? AND path=? AND blob_sha=?
+                ORDER BY ordinal LIMIT 1
+                """,
+                (commit_sha, path, blob_sha),
+            ).fetchone()
+            if occurrence is None:
+                continue
+            chunk_sha = str(occurrence["chunk_sha256"])
+            chunk_node = chunk_nodes.get(chunk_sha)
+            if chunk_node is None:
+                chunk = connection.execute(
+                    "SELECT size_bytes FROM git_content_chunk_cas WHERE chunk_sha256=?",
+                    (chunk_sha,),
+                ).fetchone()
+                chunk_node = _stable_topology_node("CONTENT_CHUNK", chunk_sha)
+                chunk_nodes[chunk_sha] = chunk_node
+                graph.node(
+                    chunk_node,
+                    f"chunk {chunk_sha[:12]}\n"
+                    f"bytes={int(chunk['size_bytes']) if chunk else 0} | "
+                    f"stable_id={chunk_node[-16:]} | EXTRACTED",
+                    "retrieval",
+                )
+            _evidence_edge(
+                graph,
+                blob_node,
+                chunk_node,
+                f"contains chunk {int(occurrence['ordinal'])} "
+                f"chars={int(occurrence['char_start'])}:{int(occurrence['char_end'])}",
+            )
+            rendered_chunks += 1
+
+    impact_tables = (
+        "git_route_impact",
+        "git_symbol_impact",
+        "git_dependency_impact",
+        "git_test_impact",
+        "git_artifact_impact",
+    )
+    impact_counts = {table: _required_table_count(connection, table) for table in impact_tables}
+    graph.node(
+        "GITHUB_IMPACT_COVERAGE",
+        "changed-route and test impact\n"
+        + " | ".join(f"{table.removeprefix('git_')}={count}" for table, count in impact_counts.items())
+        + "\nEXTRACTED rows only; zero remains explicit",
+        "git",
+    )
+    _evidence_edge(
+        graph,
+        "GITHUB_GRAPH_ROOT",
+        "GITHUB_IMPACT_COVERAGE",
+        "summarizes impact evidence",
+    )
+    graph.node(
+        "GITHUB_RENDER_COVERAGE",
+        "bounded render coverage\n"
+        f"commits={len(commit_nodes)}/{totals['git_commit_registry']} | "
+        f"changes={rendered_changes}/{totals['git_file_change']} | "
+        f"blobs={len(blob_nodes)}/{totals['git_blob_cas']} | "
+        f"chunk edges={rendered_chunks}/{totals['git_chunk_occurrence']}\n"
+        "counts cover the full SQLite package; nodes are deterministic samples",
+        "git",
+    )
+    _evidence_edge(
+        graph,
+        "GITHUB_GRAPH_ROOT",
+        "GITHUB_RENDER_COVERAGE",
+        "declares visual coverage",
+    )
+    if not commit_nodes:
+        graph.node(
+            "GITHUB_HISTORY_EMPTY",
+            "no Git commits loaded\nGitHub history profile is not satisfied",
+            "warn",
+        )
+        _evidence_edge(graph, "GITHUB_GRAPH_ROOT", "GITHUB_HISTORY_EMPTY", "empty history")
+    graph.end()
+
+
+def _emit_local_worktree_graph(
+    graph: _TopologyGraph,
+    connection: sqlite3.Connection,
+    source_nodes: dict[int, str],
+) -> None:
+    """Emit a working-tree graph and an explicit no-fabricated-Git boundary."""
+
+    git_counts = {
+        table: _required_table_count(connection, table)
+        for table in (
+            "git_ref_registry",
+            "git_commit_registry",
+            "git_commit_parent",
+            "git_file_change",
+        )
+    }
+    graph.begin(
+        "LOCAL_WORKTREE_GRAPH",
+        "6. Local working-tree files and semantic relationships",
+        direction="LR",
+    )
+    graph.node(
+        "LOCAL_WORKTREE_ROOT",
+        "Local Code working tree\n"
+        f"files={len(source_nodes)} | symbols={_table_count(connection, 'code_symbol')} | "
+        f"imports={_table_count(connection, 'code_import')} | "
+        f"routes={_table_count(connection, 'code_route')} | "
+        f"dependencies={_table_count(connection, 'code_dependency')}",
+        "root",
+    )
+    _evidence_edge(graph, "CODE_REPO", "LOCAL_WORKTREE_ROOT", "working-tree profile")
+    for source_node in source_nodes.values():
+        _evidence_edge(
+            graph,
+            "LOCAL_WORKTREE_ROOT",
+            source_node,
+            "contains registered working-tree file",
+        )
+    git_total = sum(git_counts.values())
+    graph.node(
+        "NO_GIT_HISTORY_LOADED" if git_total == 0 else "LOCAL_GIT_ROWS_EXCLUDED",
+        (
+            "NO_GIT_HISTORY_LOADED\n"
+            "no refs, commits, parents, or file changes are claimed\n"
+            "use the GitHub Code lane for repository history"
+            if git_total == 0
+            else "Git-shaped rows exist but are excluded from the Local Code profile\n"
+            + " | ".join(f"{table.removeprefix('git_')}={count}" for table, count in git_counts.items())
+        ),
+        "warn",
+    )
+    boundary_node = "NO_GIT_HISTORY_LOADED" if git_total == 0 else "LOCAL_GIT_ROWS_EXCLUDED"
+    _evidence_edge(
+        graph,
+        "LOCAL_WORKTREE_ROOT",
+        boundary_node,
+        "prevents fabricated Git lineage",
+    )
+    graph.node(
+        "LOCAL_GRAPH_BOUNDARY",
+        "stable identity + EXTRACTED confidence + coverage\n"
+        "SQLite facts only; no inferred commit or ref nodes",
+        "semantic",
+    )
+    _evidence_edge(
+        graph,
+        "LOCAL_WORKTREE_ROOT",
+        "LOCAL_GRAPH_BOUNDARY",
+        "governance boundary",
+    )
+    graph.end()
+
+
 def _lane_topology(
     lane: LaneDefinition,
     database_path: Path,
@@ -3690,10 +4223,12 @@ def _lane_topology(
         "semantic",
     )
     graph.edge("SOURCE_REG", "FACT_INDEX")
-    for index, table in enumerate(lane_tables):
-        node = f"SCHEMA_{index}"
-        graph.node(node, f"{table}\nrows={_table_count(connection, table)}", "semantic")
-        graph.edge("FACT_INDEX", node, "materializes")
+    graph.node(
+        "SEMANTIC_SCHEMA_HANDOFF",
+        f"lane semantic schema\nentities={len(lane_tables)} | exact rows projected below",
+        "semantic",
+    )
+    graph.edge("FACT_INDEX", "SEMANTIC_SCHEMA_HANDOFF", "materializes")
 
     if fact_counts:
         sampled_kinds = sorted(fact_counts, key=lambda item: (-fact_counts[item], item))[:10]
@@ -3742,18 +4277,39 @@ def _lane_topology(
         f'projection_sha256={physical_projection["projection_sha256"]}',
         "root",
     )
-    graph.edge("LANE_ROOT", "PHYSICAL_SCHEMA_SECTOR", "derives from SQLite")
+    graph.edge(
+        "SEMANTIC_SCHEMA_HANDOFF",
+        "PHYSICAL_SCHEMA_SECTOR",
+        "derives exact SQLite schema",
+    )
     physical_nodes = physical_table_node_ids(physical_projection)
-    for row in physical_projection["tables"]:
-        table = str(row["table"])
-        table_node = physical_nodes[table]
+    physical_group_labels = {
+        "PHYSICAL_GROUP_CORE": "shared lane core",
+        "PHYSICAL_GROUP_LANE": "lane semantic contract",
+        "PHYSICAL_GROUP_GIT": "Git history and impact",
+        "PHYSICAL_GROUP_AUXILIARY": "SQLite engine auxiliaries",
+    }
+    for group_id, group_rows in physical_table_groups(physical_projection).items():
         graph.node(
-            table_node,
-            f'{table}\nrows={row["rows"]} | columns={len(row["columns"])} | '
-            f'role={row["role"]}',
-            "retrieval" if row["role"] == "sqlite_engine_auxiliary" else "semantic",
+            group_id,
+            f"{physical_group_labels[group_id]}\ntables={len(group_rows)} | ordered from SQLite",
+            "git" if group_id == "PHYSICAL_GROUP_GIT" else "retrieval"
+            if group_id == "PHYSICAL_GROUP_AUXILIARY"
+            else "semantic",
         )
-        graph.edge("PHYSICAL_SCHEMA_SECTOR", table_node, "physical table")
+        graph.edge("PHYSICAL_SCHEMA_SECTOR", group_id, "ordered table group")
+        previous_node = group_id
+        for row in group_rows:
+            table = str(row["table"])
+            table_node = physical_nodes[table]
+            graph.node(
+                table_node,
+                f'{table}\nrows={row["rows"]} | columns={len(row["columns"])} | '
+                f'role={row["role"]}',
+                "retrieval" if row["role"] == "sqlite_engine_auxiliary" else "semantic",
+            )
+            graph.edge(previous_node, table_node, "next physical table")
+            previous_node = table_node
     for relation in physical_projection["relations"]:
         parent_node = physical_nodes.get(str(relation["parent_table"]))
         child_node = physical_nodes.get(str(relation["child_table"]))
@@ -3781,7 +4337,11 @@ def _lane_topology(
             f"samples={sample_count}",
             "root",
         )
-        graph.edge("LANE_ROOT", "SCHEMA_SECTOR", "derives from SQLite")
+        graph.edge(
+            "PHYSICAL_SCHEMA_SECTOR",
+            "SCHEMA_SECTOR",
+            "projects lane entities",
+        )
         table_nodes = {
             row["table"]: f"SCHEMA_ENTITY_{index}"
             for index, row in enumerate(schema_records)
@@ -3827,14 +4387,18 @@ def _lane_topology(
     if lane.canonical_lane_id in PRIMARY_CODE_LANES:
         graph.begin(
             "CODE_LOGICAL_TOPOLOGY",
-            "4. Authorized seven-entity logical code topology",
+            "4. Authorized seven-entity logical code contract and relations",
         )
         graph.node(
             "CODE_SECTOR",
-            "Code Sector\n7 logical entities | richer SQLite schema retained",
+            "Code Sector\n7 logical entities | SQLite-derived relationships | physical schema retained",
             "root",
         )
-        graph.edge("LANE_ROOT", "CODE_SECTOR", "projects")
+        graph.edge(
+            "PHYSICAL_SCHEMA_SECTOR",
+            "CODE_SECTOR",
+            "projects code contract",
+        )
         for logical_table, display_label, physical_table in CODE_LOGICAL_TOPOLOGY:
             node = logical_table.upper()
             count = _required_table_count(connection, physical_table)
@@ -3845,6 +4409,22 @@ def _lane_topology(
                 kind,
             )
             graph.edge("CODE_SECTOR", node)
+
+        for source, target, relation in (
+            ("CODE_REPO", "CODE_FILE", "contains"),
+            ("CODE_FILE", "CODE_SYMBOL", "declares"),
+            ("CODE_FILE", "APP_ROUTE", "exposes"),
+            ("CODE_REPO", "DEPENDENCY_ITEM", "declares dependency"),
+            ("CODE_REPO", "PROJECT_ARTIFACT", "produces"),
+            ("GIT_COMMIT", "CODE_FILE", "changes when Git history is loaded"),
+        ):
+            _evidence_edge(
+                graph,
+                source,
+                target,
+                f"logical {relation}",
+                confidence="EXTRACTED",
+            )
 
         route_rows = connection.execute(
             """
@@ -3865,37 +4445,17 @@ def _lane_topology(
             graph.edge("APP_ROUTE", sample_node, "sample")
         graph.end()
 
-        graph.begin("GIT_LINEAGE", "5. Full Git history and content-addressed reuse")
-        git_tables = (
-            "git_commit_registry",
-            "git_commit_parent",
-            "git_ref_registry",
-            "git_blob_cas",
-            "git_content_chunk_cas",
-            "git_chunk_occurrence",
-            "git_file_change",
-            "git_history_fts",
-        )
-        previous = "LANE_ROOT"
-        for index, table in enumerate(git_tables):
-            node = f"GIT_{index}"
-            graph.node(node, f"{table}\nrows={_table_count(connection, table)}", "git")
-            graph.edge(previous, node)
-            previous = node
-        commit_rows = connection.execute(
-            "SELECT commit_sha, message FROM git_commit_registry ORDER BY ordinal LIMIT 4"
-        ).fetchall()
-        for index, row in enumerate(commit_rows):
-            node = f"GIT_COMMIT_{index}"
-            graph.node(
-                node,
-                f'{str(row["commit_sha"])[:12]}\n{_topology_text(row["message"], limit=72)}',
-                "git",
-            )
-            graph.edge("GIT_0", node, "commit sample")
-        graph.end()
+        source_nodes = _emit_code_evidence_graph(graph, connection)
+        if lane.canonical_lane_id == "github_code":
+            _emit_github_repository_graph(graph, connection, source_nodes)
+            retrieval_parent = "GITHUB_GRAPH_ROOT"
+        else:
+            _emit_local_worktree_graph(graph, connection, source_nodes)
+            retrieval_parent = "LOCAL_WORKTREE_ROOT"
+    else:
+        retrieval_parent = "SCHEMA_SECTOR"
 
-    section_number = 6 if lane.canonical_lane_id in PRIMARY_CODE_LANES else 5
+    section_number = 7 if lane.canonical_lane_id in PRIMARY_CODE_LANES else 5
     graph.begin("RETRIEVAL", f"{section_number}. Retrieval and changed-section reuse")
     retrieval = (
         ("CHUNK_INDEX", "chunk_index", chunks),
@@ -3904,7 +4464,7 @@ def _lane_topology(
         ("FTS", lane.fts_table, _table_count(connection, lane.fts_table)),
         ("TFIDF", "tfidf_vector", _table_count(connection, "tfidf_vector")),
     )
-    previous = "FACT_INDEX"
+    previous = retrieval_parent
     for node, table, count in retrieval:
         graph.node(node, f"{table}\nrows={count}", "retrieval")
         graph.edge(previous, node)

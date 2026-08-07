@@ -27,6 +27,8 @@ type LaneProof = {
   fts_table: string;
   schema_table_count: number;
   schema_tables: string[];
+  graph_profile: string;
+  topology_generator_sha256: string;
   canonical_artifacts: ProofArtifact[];
   render: {
     bytes: number;
@@ -77,6 +79,7 @@ export function LaneProofExplorer() {
   const closeButton = useRef<HTMLButtonElement | null>(null);
   const lane = proofIndex.lanes[activeIndex];
   const accent = accents[activeIndex % accents.length];
+  const renderSrc = `${lane.render.url}?sha256=${lane.render.sha256}`;
 
   const closeViewer = () => {
     setViewerOpen(false);
@@ -209,10 +212,11 @@ export function LaneProofExplorer() {
             <div className="laneProofRenderHead"><span className="lanePanelLabel">Full generated lane MMD · 4K render</span><a href={lane.render.url} download={lane.render.filename}>Download PNG</a></div>
             <button type="button" onClick={openViewer} aria-label={`Open full-screen ${lane.label} 4K Mermaid render`}>
               <Image
-                src={lane.render.url}
+                src={renderSrc}
                 alt={`${lane.label} public-safe dummy Mermaid topology`}
                 width={lane.render.width}
                 height={lane.render.height}
+                unoptimized
               />
               <span>Open full view · zoom and pan</span>
             </button>
@@ -222,7 +226,7 @@ export function LaneProofExplorer() {
 
         <div className="laneProofDetails">
           <section><span className="lanePanelLabel">Full lane Mermaid source preview</span><pre>{lane.mmd_preview}</pre></section>
-          <section><span className="lanePanelLabel">SQLite proof boundary</span><dl><div><dt>Schema tables</dt><dd>{lane.schema_table_count}</dd></div><div><dt>FTS surface</dt><dd><code>{lane.fts_table}</code></dd></div><div><dt>Fixture</dt><dd>synthetic-only</dd></div><div><dt>Lifecycle</dt><dd>no candidate or pointer movement</dd></div></dl></section>
+          <section><span className="lanePanelLabel">SQLite proof boundary</span><dl><div><dt>Graph profile</dt><dd><code>{lane.graph_profile}</code></dd></div><div><dt>Schema tables</dt><dd>{lane.schema_table_count}</dd></div><div><dt>FTS surface</dt><dd><code>{lane.fts_table}</code></dd></div><div><dt>Topology identity</dt><dd><code>{lane.topology_generator_sha256.slice(0, 16)}...</code></dd></div><div><dt>Fixture</dt><dd>synthetic-only</dd></div><div><dt>Lifecycle</dt><dd>no candidate or pointer movement</dd></div></dl></section>
         </div>
       </article>
 
@@ -246,11 +250,12 @@ export function LaneProofExplorer() {
             onWheel={zoomWithWheel}
           >
             <Image
-              src={lane.render.url}
+              src={renderSrc}
               alt={`${lane.label} full-screen public-safe dummy Mermaid topology`}
               width={lane.render.width}
               height={lane.render.height}
               draggable={false}
+              unoptimized
               style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})` }}
             />
           </div>
