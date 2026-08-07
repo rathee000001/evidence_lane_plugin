@@ -43,7 +43,7 @@ export const floatingStudioSuggestions = {
   ],
   studio: [
     "How is the Prompt Studio corpus built?",
-    "What happens when project evidence is missing?",
+    "Why do project no-hits refuse external AI?",
     "Why is the external route not project authority?",
   ],
   default: [
