@@ -23,7 +23,7 @@ def test_all_canonical_lane_dummy_packages_are_exact_and_downloadable() -> None:
     index = json.loads(INDEX_PATH.read_text(encoding="utf-8"))
     assert index["lane_count"] == 18
     assert index["canonical_file_count_per_lane"] == 4
-    assert index["derived_render_count_per_lane"] == 1
+    assert index["derived_render_count_per_lane"] == 2
     assert index["artifact_storage"] == "WEBSITE_STATIC_PUBLIC"
     assert index["topology_boundary"] == (
         "ACTUAL_FULL_LANE_ENGINE_MMD_AND_DOT_NOT_FOUR_FILE_OVERVIEW"
@@ -46,11 +46,16 @@ def test_all_canonical_lane_dummy_packages_are_exact_and_downloadable() -> None:
             definition.mmd_filename,
             definition.dot_filename,
             "refresh_receipt.json",
-            f"{lane_id}.mmd.4k.png",
+            f"{lane_id}.mmd.8k.png",
+            f"{lane_id}.mmd.vector.svg",
         }
         assert {path.name for path in lane_root.iterdir() if path.is_file()} == expected
         assert len(row["canonical_artifacts"]) == 4
-        for artifact in [*row["canonical_artifacts"], row["render"]]:
+        for artifact in [
+            *row["canonical_artifacts"],
+            row["render"],
+            row["vector_render"],
+        ]:
             path = ADAPTER / "public" / artifact["url"].removeprefix("/")
             assert path.is_file()
             assert path.name == artifact["filename"]
@@ -93,9 +98,16 @@ def test_all_canonical_lane_dummy_packages_are_exact_and_downloadable() -> None:
             else "SQLITE_SCHEMA_RELATION_SAMPLE"
         )
 
-        with Image.open(lane_root / f"{lane_id}.mmd.4k.png") as render:
-            assert render.size == (3840, 2160)
+        with Image.open(lane_root / f"{lane_id}.mmd.8k.png") as render:
+            assert render.size == (7680, 4320)
             assert render.format == "PNG"
+
+        vector = (lane_root / f"{lane_id}.mmd.vector.svg").read_text(encoding="utf-8")
+        assert "<svg" in vector
+        assert "viewBox=" in vector
+        assert "<script" not in vector.casefold()
+        assert "javascript:" not in vector.casefold()
+        assert row["render"]["source_mmd_sha256"] == row["vector_render"]["source_mmd_sha256"]
 
 
 def test_dummy_git_lane_proves_real_multi_commit_parent_history() -> None:

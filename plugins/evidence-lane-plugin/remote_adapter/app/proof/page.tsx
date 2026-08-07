@@ -19,15 +19,15 @@ export default function ProofPage() {
         description="Evidence Lane separates verified implementation behavior, historical design context, unaccepted candidate evidence, external deployment state, and human lifecycle authority."
         aside={
           <div className="routeBrainOrb" aria-label="Pulsing Evidence Lane glass brain">
-            <EvidenceBrainAsset color="#e6aa48" label="" />
+            <EvidenceBrainAsset color="#e6aa48" label="" priority />
           </div>
         }
       />
       <section className="section shell dummyLaneProofs" id="dummy-lane-proofs">
         <div className="sectionHead wideHead">
           <span className="kicker">Inspectable dummy evidence</span>
-          <h2>Choose a lane. Download its four files. Inspect its 4K topology.</h2>
-          <p>Every tab exposes a deterministic, public-safe synthetic package stored directly on this website. Its MMD and DOT are the complete lane-engine topology—source registry, lane schema, retrieval, lifecycle, outputs, and Git history where applicable—not a generic four-output overview. The 4K PNG is derived from that exact full MMD and is not a fifth canonical lane file. Real-source Git remains a separate acceptance test.</p>
+          <h2>Choose a lane. Download its four files. Inspect its 8K and vector topology.</h2>
+          <p>Every tab exposes a deterministic, public-safe synthetic package stored directly on this website. Its MMD and DOT are the complete lane-engine topology—source registry, lane schema, retrieval, lifecycle, outputs, and Git history where applicable—not a generic four-output overview. The 8K PNG and lossless SVG are derived from that exact full MMD and are not additional canonical lane files. Real-source Git remains a separate acceptance test.</p>
         </div>
         <LaneProofExplorer />
       </section>

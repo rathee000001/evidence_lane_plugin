@@ -131,16 +131,22 @@ def test_toolchain_uses_exact_app_brain_tools_and_schema_while_proof_owns_files(
     assert "laneOutputFiles" not in console
     assert "dummy-lane-artifacts.json" in proof
     assert "canonical_artifacts.map" in proof
-    assert "Download PNG" in proof
+    assert "Download 8K PNG" in proof and "Download SVG" in proof
     assert "proofLightboxCanvas" in proof
-    assert "?sha256=${lane.render.sha256}" in proof
+    assert "?sha256=${lane.vector_render.sha256}" in proof
     assert proof.count("unoptimized") == 2
     assert 'event.key === "Escape"' in proof
-    assert "adjustZoom" in proof and "startDrag" in proof
+    assert "MAX_ZOOM = 128" in proof and "multiplyZoom" in proof and "startDrag" in proof
+    assert "onDoubleClick" in proof and "lossless deep zoom" in proof
     assert "--orbit-start" not in console and "--orbit-end" not in console
     assert "T023_UNIVERSAL_POPUP_FADE_V001" in popup
     assert "T023_UNIVERSAL_FROSTED_POPUP_V001" in popup
     assert "Universal schema contract" in console and "{active.name} additions" in console
+
+    css = (APP / "globals.css").read_text(encoding="utf-8")
+    assert ".laneProofPanel { width: 100%; max-width: 100%; min-width: 0;" in css
+    assert "grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr)" in css
+    assert ".proofLightboxCanvas img" in css and "image-rendering: auto" in css
 
     for tool in (
         "database",
@@ -315,7 +321,11 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     site = (APP / "_data" / "site.ts").read_text(encoding="utf-8")
     contributors = (APP / "_data" / "contributors.ts").read_text(encoding="utf-8")
 
-    assert "Resume from verified project truth" in landing
+    assert "Resume from verified project truth - not another re-explanation." in landing
+    assert "&mdash;" not in landing
+    assert "ReleaseStatus" not in landing
+    assert "homeHostTruth" in landing
+    assert "ChatGPT MCP edge fail-closed" not in landing
     assert "No re-explanation tax" in landing
     assert "Parse once, query again" in landing
     assert "Human / AI boundary" in landing
@@ -367,6 +377,20 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "h1b" not in contributors.casefold()
     assert site.startswith('export const publicSiteUrl = "https://evidencelane.org";')
     assert 'publicMcpUrl = "https://mcp.evidencelane.org/mcp"' in site
+
+
+def test_lanes_hero_orbits_all_eighteen_glass_icons_once_then_stops() -> None:
+    lanes_page = (APP / "lanes" / "page.tsx").read_text(encoding="utf-8")
+    orbit = (COMPONENTS / "lane-orbit-aside.tsx").read_text(encoding="utf-8")
+    css = (APP / "globals.css").read_text(encoding="utf-8")
+
+    assert "LaneOrbitAside" in lanes_page
+    assert len(re.findall(r'^  \["[a-z_]+", ".+"\],$', orbit, flags=re.MULTILINE)) == 18
+    assert "GlassIconOrb" in orbit and "SourceLaneIcon" in orbit
+    assert "laneOrbitWheel" in orbit and "laneOrbitGlyph" in orbit
+    assert "lane-orbit-clockwise-once" in css and "rotate(360deg)" in css
+    assert "lane-orbit-counter-once" in css and "rotate(-360deg)" in css
+    assert ".laneOrbitWheel,.laneOrbitGlyph { animation: none !important; }" in css
 
 
 def test_public_plugin_metadata_and_third_party_rights_are_canonical() -> None:

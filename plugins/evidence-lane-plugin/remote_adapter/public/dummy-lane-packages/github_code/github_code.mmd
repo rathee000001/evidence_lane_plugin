@@ -258,37 +258,37 @@ flowchart TB
         CODE_REPO -->|history profile &#124; EXTRACTED &#124; edge=F2B3BF6A1D8C| GITHUB_GRAPH_ROOT
         GITHUB_GRAPH_BOUNDARY["project-authored bounded projection<br/>stable identity + EXTRACTED confidence + coverage + impact<br/>no Graphify runtime, LLM extraction, server, or network dependency"]:::git
         GITHUB_GRAPH_ROOT -->|governance boundary &#124; EXTRACTED &#124; edge=18CCB0BB8D34| GITHUB_GRAPH_BOUNDARY
-        COMMIT_9FAB84198487B1DE["commit d4aaf92db444<br/>fixture: add proof and all lane sources<br/>tree=aca5b11de280 &#124; ordinal=2 &#124; stable_id=9FAB84198487B1DE &#124; EXTRACTED"]:::git
+        COMMIT_4D02B9C73E776118["commit b106db32f67a<br/>fixture: add proof and all lane sources<br/>tree=77de8c5525f8 &#124; ordinal=2 &#124; stable_id=4D02B9C73E776118 &#124; EXTRACTED"]:::git
         COMMIT_EA2A20E557761E63["commit 0745b54cd5a1<br/>fixture: add governed behavior<br/>tree=f0c24e00b088 &#124; ordinal=1 &#124; stable_id=EA2A20E557761E63 &#124; EXTRACTED"]:::git
         COMMIT_99C6EAC4ABA8D471["commit fa6ec5bc2660<br/>fixture: establish source<br/>tree=13f44e969cd7 &#124; ordinal=0 &#124; stable_id=99C6EAC4ABA8D471 &#124; EXTRACTED"]:::git
-        REF_FD22023F6C322D27["refs/heads/main<br/>target=d4aaf92db444 &#124; stable_id=FD22023F6C322D27 &#124; EXTRACTED"]:::git
-        GITHUB_GRAPH_ROOT -->|contains ref &#124; EXTRACTED &#124; edge=F59BC2D2668E| REF_FD22023F6C322D27
-        REF_FD22023F6C322D27 -->|points to commit &#124; EXTRACTED &#124; edge=63A443F1F0E7| COMMIT_9FAB84198487B1DE
+        REF_5F98390674B49213["refs/heads/main<br/>target=b106db32f67a &#124; stable_id=5F98390674B49213 &#124; EXTRACTED"]:::git
+        GITHUB_GRAPH_ROOT -->|contains ref &#124; EXTRACTED &#124; edge=5344D0A66F57| REF_5F98390674B49213
+        REF_5F98390674B49213 -->|points to commit &#124; EXTRACTED &#124; edge=CA643A6F18EB| COMMIT_4D02B9C73E776118
         COMMIT_99C6EAC4ABA8D471 -->|parent 0 -&gt; child &#124; EXTRACTED &#124; edge=BE23F18FDF2D| COMMIT_EA2A20E557761E63
-        COMMIT_EA2A20E557761E63 -->|parent 0 -&gt; child &#124; EXTRACTED &#124; edge=56146410F7F3| COMMIT_9FAB84198487B1DE
-        FILE_CHANGE_A80418D49682ED14["A dummy-git-source/test_app.py<br/>blob=2efba7b09413 &#124; stable_id=A80418D49682ED14 &#124; EXTRACTED"]:::git
-        COMMIT_9FAB84198487B1DE -->|records file change &#124; EXTRACTED &#124; edge=0159A466C5C7| FILE_CHANGE_A80418D49682ED14
-        FILE_CHANGE_A80418D49682ED14 -->|matches current registered path &#124; EXTRACTED &#124; edge=066FFB79D454| WORKTREE_FILE_0C3D2CED4213391A
+        COMMIT_EA2A20E557761E63 -->|parent 0 -&gt; child &#124; EXTRACTED &#124; edge=09A0782F44B6| COMMIT_4D02B9C73E776118
+        FILE_CHANGE_DBCE392D82A70C85["A dummy-git-source/test_app.py<br/>blob=2efba7b09413 &#124; stable_id=DBCE392D82A70C85 &#124; EXTRACTED"]:::git
+        COMMIT_4D02B9C73E776118 -->|records file change &#124; EXTRACTED &#124; edge=CE1E4D01A338| FILE_CHANGE_DBCE392D82A70C85
+        FILE_CHANGE_DBCE392D82A70C85 -->|matches current registered path &#124; EXTRACTED &#124; edge=3686BB7710B5| WORKTREE_FILE_0C3D2CED4213391A
         BLOB_592534D0C4CC591C["blob 2efba7b09413<br/>content_sha256=5B7155A67ABB &#124; bytes=83 &#124; binary=0<br/>stable_id=592534D0C4CC591C &#124; EXTRACTED"]:::git
-        FILE_CHANGE_A80418D49682ED14 -->|resolves content-addressed blob &#124; EXTRACTED &#124; edge=BAB7B247CACC| BLOB_592534D0C4CC591C
+        FILE_CHANGE_DBCE392D82A70C85 -->|resolves content-addressed blob &#124; EXTRACTED &#124; edge=1B253FABA18C| BLOB_592534D0C4CC591C
         CONTENT_CHUNK_FA8363E7EAE984F3["chunk 5B7155A67ABB<br/>bytes=83 &#124; stable_id=FA8363E7EAE984F3 &#124; EXTRACTED"]:::retrieval
         BLOB_592534D0C4CC591C -->|contains chunk 0 chars=0:83 &#124; EXTRACTED &#124; edge=62D3465E042F| CONTENT_CHUNK_FA8363E7EAE984F3
-        FILE_CHANGE_9C5BE9103A1659B2["A poc-fixtures/analysis.md<br/>blob=afe0fb715c70 &#124; stable_id=9C5BE9103A1659B2 &#124; EXTRACTED"]:::git
-        COMMIT_9FAB84198487B1DE -->|records file change &#124; EXTRACTED &#124; edge=5318B28767FA| FILE_CHANGE_9C5BE9103A1659B2
+        FILE_CHANGE_FDDA284C7966A059["A poc-fixtures/analysis.md<br/>blob=afe0fb715c70 &#124; stable_id=FDDA284C7966A059 &#124; EXTRACTED"]:::git
+        COMMIT_4D02B9C73E776118 -->|records file change &#124; EXTRACTED &#124; edge=BB42EB91DB0E| FILE_CHANGE_FDDA284C7966A059
         BLOB_B602214002881709["blob afe0fb715c70<br/>content_sha256=D37EB52D97FC &#124; bytes=95 &#124; binary=0<br/>stable_id=B602214002881709 &#124; EXTRACTED"]:::git
-        FILE_CHANGE_9C5BE9103A1659B2 -->|resolves content-addressed blob &#124; EXTRACTED &#124; edge=A4CC26658E4D| BLOB_B602214002881709
+        FILE_CHANGE_FDDA284C7966A059 -->|resolves content-addressed blob &#124; EXTRACTED &#124; edge=2195F474429F| BLOB_B602214002881709
         CONTENT_CHUNK_C8C522EE59FFFCB1["chunk D37EB52D97FC<br/>bytes=95 &#124; stable_id=C8C522EE59FFFCB1 &#124; EXTRACTED"]:::retrieval
         BLOB_B602214002881709 -->|contains chunk 0 chars=0:95 &#124; EXTRACTED &#124; edge=C5C9F6AB60C6| CONTENT_CHUNK_C8C522EE59FFFCB1
-        FILE_CHANGE_E6E0D26D5F4C357C["A poc-fixtures/artifact.json<br/>blob=249769306fe2 &#124; stable_id=E6E0D26D5F4C357C &#124; EXTRACTED"]:::git
-        COMMIT_9FAB84198487B1DE -->|records file change &#124; EXTRACTED &#124; edge=D080D13D508C| FILE_CHANGE_E6E0D26D5F4C357C
+        FILE_CHANGE_23D3AE17CA5E786D["A poc-fixtures/artifact.json<br/>blob=249769306fe2 &#124; stable_id=23D3AE17CA5E786D &#124; EXTRACTED"]:::git
+        COMMIT_4D02B9C73E776118 -->|records file change &#124; EXTRACTED &#124; edge=E10F26334C45| FILE_CHANGE_23D3AE17CA5E786D
         BLOB_6623F16C8A0914F3["blob 249769306fe2<br/>content_sha256=8074111A1A65 &#124; bytes=50 &#124; binary=0<br/>stable_id=6623F16C8A0914F3 &#124; EXTRACTED"]:::git
-        FILE_CHANGE_E6E0D26D5F4C357C -->|resolves content-addressed blob &#124; EXTRACTED &#124; edge=534A1151F108| BLOB_6623F16C8A0914F3
+        FILE_CHANGE_23D3AE17CA5E786D -->|resolves content-addressed blob &#124; EXTRACTED &#124; edge=4A6FA82C87E9| BLOB_6623F16C8A0914F3
         CONTENT_CHUNK_7615000D335FF513["chunk 8074111A1A65<br/>bytes=50 &#124; stable_id=7615000D335FF513 &#124; EXTRACTED"]:::retrieval
         BLOB_6623F16C8A0914F3 -->|contains chunk 0 chars=0:50 &#124; EXTRACTED &#124; edge=E37F2F4D7FDA| CONTENT_CHUNK_7615000D335FF513
-        FILE_CHANGE_07539BE81B3E27AB["A poc-fixtures/brain-loader.sqlite<br/>blob=b9992edc5838 &#124; stable_id=07539BE81B3E27AB &#124; EXTRACTED"]:::git
-        COMMIT_9FAB84198487B1DE -->|records file change &#124; EXTRACTED &#124; edge=637D4280BD9A| FILE_CHANGE_07539BE81B3E27AB
+        FILE_CHANGE_6332206C463355FC["A poc-fixtures/brain-loader.sqlite<br/>blob=b9992edc5838 &#124; stable_id=6332206C463355FC &#124; EXTRACTED"]:::git
+        COMMIT_4D02B9C73E776118 -->|records file change &#124; EXTRACTED &#124; edge=2477F238B3EE| FILE_CHANGE_6332206C463355FC
         BLOB_96998EFCCBD01CB3["blob b9992edc5838<br/>content_sha256=893C90EC923A &#124; bytes=32768 &#124; binary=1<br/>stable_id=96998EFCCBD01CB3 &#124; EXTRACTED"]:::git
-        FILE_CHANGE_07539BE81B3E27AB -->|resolves content-addressed blob &#124; EXTRACTED &#124; edge=9C514FCB3E30| BLOB_96998EFCCBD01CB3
+        FILE_CHANGE_6332206C463355FC -->|resolves content-addressed blob &#124; EXTRACTED &#124; edge=E641BAE00BD5| BLOB_96998EFCCBD01CB3
         FILE_CHANGE_FAE6B0EBEE018C8D["M dummy-git-source/README.md<br/>blob=49f681a270be &#124; stable_id=FAE6B0EBEE018C8D &#124; EXTRACTED"]:::git
         COMMIT_EA2A20E557761E63 -->|records file change &#124; EXTRACTED &#124; edge=6A81601BFF64| FILE_CHANGE_FAE6B0EBEE018C8D
         FILE_CHANGE_FAE6B0EBEE018C8D -->|matches current registered path &#124; EXTRACTED &#124; edge=F624F57FF53D| WORKTREE_FILE_50DD5766F2757880

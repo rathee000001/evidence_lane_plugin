@@ -287,10 +287,12 @@ export function EvidenceBrainAsset({
   color = "#43c7e8",
   className = "",
   label = "Evidence Lane brain inside a luminous glass orb",
+  priority = false,
 }: {
   color?: string;
   className?: string;
   label?: string;
+  priority?: boolean;
 }) {
   return (
     <div
@@ -307,7 +309,7 @@ export function EvidenceBrainAsset({
         alt=""
         width={1142}
         height={1035}
-        priority={false}
+        priority={priority}
       />
       <span className="evidenceBrainAssetGlass" aria-hidden="true" />
     </div>

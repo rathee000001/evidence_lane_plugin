@@ -83,6 +83,7 @@ plugin snapshot. Vercel is not involved in Codex installation.
 
 A Git push, marketplace install, durable-origin start, adapter preview, or
 ChatGPT connection never approves a project-version candidate. Only exact
-`APPROVE` through Fuse can move accepted truth. A later sealed handoff makes
-State Travel eligible; only an explicit user request or genuine context
+`APPROVE` through Fuse can move accepted truth. State Travel may preserve either
+exact unfinished verified work or an explicitly requested accepted entry; it
+requires a sealed handoff, and only an explicit user request or genuine context
 exhaustion authorizes its use in a genuinely fresh destination task or chat.

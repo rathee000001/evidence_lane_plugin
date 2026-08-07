@@ -192,9 +192,12 @@ Vercel component is only a release-verifying HTTPS adapter to that origin. It
 stores no authority and is never the general router.
 
 Candidate build, Git push, plugin install, and preview deployment are evidence,
-not acceptance. State Travel is valid only after exact-APPROVE Fuse, a sealed
-handoff, and an explicit user or genuine context-exhaustion trigger in a
-genuinely fresh destination host.
+not acceptance. State Travel requires a verified sealed handoff plus an explicit
+user or genuine context-exhaustion trigger in a genuinely fresh destination
+host. Acceptance is not a prerequisite for unfinished-work travel: the handoff
+preserves the live source, pointer/candidate context, Plan Lane, additive Deltas,
+exact resume row, and host execution profile. Accepted-entry travel remains a
+separate explicit mode when the user asks to enter accepted context.
 
 ## Release evidence plane
 

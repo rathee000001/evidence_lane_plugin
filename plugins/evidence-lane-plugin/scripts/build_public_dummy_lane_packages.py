@@ -1,16 +1,18 @@
-"""Publish actual full lane-engine dummy packages and 4K Mermaid renders.
+"""Publish actual full lane-engine dummy packages and 8K/vector Mermaid renders.
 
 The public Proof surface must show the same full lane topology produced by the
 engine, not a simplified diagram of the four output files. This command builds
 one temporary synthetic repository, routes fixtures through all eighteen
 canonical lanes, copies each lane's exact SQLite/MMD/DOT/Refresh artifacts, and
-renders the complete MMD onto a 3840x2160 canvas. It never touches a governed
+renders the complete MMD onto a 7680x4320 canvas plus a matching lossless SVG.
+The SVG exists only as a derived inspection surface for deep zoom. It never touches a governed
 source repository, candidate, or accepted pointer.
 """
 
 from __future__ import annotations
 
 import hashlib
+import html
 import json
 import os
 import shutil
@@ -21,6 +23,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+import fitz
 from PIL import Image
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
@@ -41,8 +44,9 @@ INDEX_PATH = (
     / "_data"
     / "dummy-lane-artifacts.json"
 )
-PNG_SIZE = (3840, 2160)
-SCHEMA = "evidence-lane.public-full-lane-dummy-proof.v3"
+PNG_SIZE = (7680, 4320)
+SCHEMA = "evidence-lane.public-full-lane-dummy-proof.v4"
+PUBLIC_FIXTURE_RECORDED_AT = "2026-01-03T00:00:00.000000Z"
 
 
 def _sha256(path: Path) -> str:
@@ -92,14 +96,8 @@ def _renderer_version(executable: str) -> str:
     return completed.stdout.strip()
 
 
-def _render_full_lane_png(
-    source: Path,
-    destination: Path,
-    *,
-    renderer: str,
-    browser: Path,
-) -> None:
-    environment = {
+def _renderer_environment(browser: Path) -> dict[str, str]:
+    return {
         **os.environ,
         "PUPPETEER_EXECUTABLE_PATH": str(browser),
         "TZ": "UTC",
@@ -107,8 +105,142 @@ def _render_full_lane_png(
         "LC_ALL": "C",
         "SOURCE_DATE_EPOCH": "0",
     }
+
+
+def _write_mermaid_config(source: Path, destination: Path) -> None:
+    destination.write_text(
+        json.dumps(
+            {
+                "deterministicIds": True,
+                "deterministicIDSeed": _sha256(source),
+                "flowchart": {"htmlLabels": False, "useMaxWidth": False},
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+
+def _rasterize_stable_svg_png(
+    source_svg: Path,
+    destination: Path,
+    *,
+    browser: Path,
+) -> None:
+    """Rasterize stable SVG bytes through deterministic PDF vector output."""
+
+    environment = _renderer_environment(browser)
+    with tempfile.TemporaryDirectory(
+        prefix="evidence-lane-full-svg-raster-",
+        ignore_cleanup_errors=True,
+    ) as raw_temp:
+        temporary = Path(raw_temp)
+        rendered_path = temporary / "full-lane-topology.pdf"
+        html_path = temporary / "render.html"
+        html_path.write_text(
+            "<!doctype html><html><head><meta charset=\"utf-8\"><style>"
+            "@page{size:10in 5.625in;margin:0}"
+            "html,body{margin:0;width:10in;height:5.625in;overflow:hidden;background:#fff}"
+            "body{display:flex;align-items:center;justify-content:center}"
+            "img{width:9.9in;height:5.525in;object-fit:contain}"
+            "</style></head><body><img alt=\"\" src=\""
+            + html.escape(source_svg.resolve().as_uri(), quote=True)
+            + "\"></body></html>\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        last_problem = ""
+        for attempt in range(1, 4):
+            profile_path = temporary / f"browser-profile-{attempt}"
+            rendered_path.unlink(missing_ok=True)
+            try:
+                completed = subprocess.run(
+                    [
+                        str(browser),
+                        "--headless=new",
+                        "--disable-background-networking",
+                        "--disable-background-timer-throttling",
+                        "--disable-component-update",
+                        "--disable-extensions",
+                        "--disable-renderer-backgrounding",
+                        "--disable-sync",
+                        "--hide-scrollbars",
+                        "--no-first-run",
+                        "--allow-file-access-from-files",
+                        "--run-all-compositor-stages-before-draw",
+                        "--virtual-time-budget=1000",
+                        f"--user-data-dir={profile_path}",
+                        "--no-pdf-header-footer",
+                        f"--print-to-pdf={rendered_path}",
+                        html_path.resolve().as_uri(),
+                    ],
+                    check=False,
+                    stdin=subprocess.DEVNULL,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=90,
+                    close_fds=True,
+                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+                    env=environment,
+                )
+            except subprocess.TimeoutExpired:
+                last_problem = f"attempt {attempt} timed out after 90 seconds"
+                continue
+            if completed.returncode == 0 and rendered_path.is_file():
+                break
+            last_problem = (
+                f"attempt {attempt} returncode={completed.returncode}; "
+                f"stderr={completed.stderr[-2000:]}"
+            )
+        else:
+            raise RuntimeError(
+                f"Full Mermaid SVG raster failed for {source_svg.name}: {last_problem}"
+            )
+        with fitz.open(rendered_path) as document:
+            if document.page_count != 1:
+                raise RuntimeError(
+                    f"Expected one SVG proof page for {source_svg.name}, got {document.page_count}."
+                )
+            page = document[0]
+            pixmap = page.get_pixmap(
+                matrix=fitz.Matrix(
+                    PNG_SIZE[0] / page.rect.width,
+                    PNG_SIZE[1] / page.rect.height,
+                ),
+                alpha=False,
+                colorspace=fitz.csRGB,
+            )
+            if (pixmap.width, pixmap.height) != PNG_SIZE:
+                raise RuntimeError(
+                    f"Expected exact {PNG_SIZE} SVG raster, got {(pixmap.width, pixmap.height)}."
+                )
+            normalized = Image.frombytes(
+                "RGB",
+                (pixmap.width, pixmap.height),
+                pixmap.samples,
+            )
+        normalized.save(destination, format="PNG", optimize=False, compress_level=9)
+
+
+def _render_full_lane_png(
+    source: Path,
+    destination: Path,
+    *,
+    renderer: str,
+    browser: Path,
+) -> None:
+    """Render one full Mermaid topology on an exact 8K publication canvas."""
+
+    environment = _renderer_environment(browser)
     with tempfile.TemporaryDirectory(prefix="evidence-lane-full-mmd-render-") as raw_temp:
-        rendered_path = Path(raw_temp) / "full-lane-topology.png"
+        temporary = Path(raw_temp)
+        rendered_path = temporary / "full-lane-topology.png"
+        config_path = temporary / "mermaid-config.json"
+        _write_mermaid_config(source, config_path)
         completed = subprocess.run(
             [
                 renderer,
@@ -124,6 +256,8 @@ def _render_full_lane_png(
                 "3600",
                 "--height",
                 "2000",
+                "--configFile",
+                str(config_path),
                 "--scale",
                 "1",
                 "--quiet",
@@ -157,6 +291,63 @@ def _render_full_lane_png(
             )
             canvas.paste(fitted, offset)
             canvas.save(destination, format="PNG", optimize=False, compress_level=9)
+
+
+def _render_full_lane_svg(
+    source: Path,
+    destination: Path,
+    *,
+    renderer: str,
+    browser: Path,
+) -> None:
+    environment = _renderer_environment(browser)
+    with tempfile.TemporaryDirectory(prefix="evidence-lane-full-mmd-vector-") as raw_temp:
+        temporary = Path(raw_temp)
+        rendered_path = temporary / "full-lane-topology.svg"
+        config_path = temporary / "mermaid-config.json"
+        _write_mermaid_config(source, config_path)
+        completed = subprocess.run(
+            [
+                renderer,
+                "--input",
+                str(source),
+                "--output",
+                str(rendered_path),
+                "--outputFormat",
+                "svg",
+                "--backgroundColor",
+                "white",
+                "--width",
+                "7200",
+                "--height",
+                "4000",
+                "--configFile",
+                str(config_path),
+                "--quiet",
+            ],
+            check=False,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=180,
+            close_fds=True,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            env=environment,
+        )
+        if completed.returncode != 0 or not rendered_path.is_file():
+            raise RuntimeError(
+                f"Full Mermaid vector render failed for {source.name}: "
+                f"returncode={completed.returncode}; stderr={completed.stderr[-2000:]}"
+            )
+        svg = rendered_path.read_text(encoding="utf-8")
+        lowered = svg.casefold()
+        if "<svg" not in lowered or "viewbox=" not in lowered:
+            raise RuntimeError(f"Mermaid vector render is missing an SVG viewBox for {source.name}.")
+        if any(forbidden in lowered for forbidden in ("<script", "javascript:", " onload=")):
+            raise RuntimeError(f"Mermaid vector render contains forbidden active content for {source.name}.")
+        destination.write_text(svg, encoding="utf-8", newline="\n")
 
 
 def _fit_size(source: tuple[int, int], boundary: tuple[int, int]) -> tuple[int, int]:
@@ -263,6 +454,8 @@ def build() -> dict[str, Any]:
             proposed_pv="PV-PUBLIC-DUMMY-1",
             pointer_generation=0,
             source_overrides=overrides,
+            max_lane_workers=1,
+            recorded_at_override=PUBLIC_FIXTURE_RECORDED_AT,
         )
         validation = validate_lane_bundle(bundle)
         if not validation["valid"]:
@@ -274,12 +467,15 @@ def build() -> dict[str, Any]:
             lane = LANE_REGISTRY[lane_id]
             source_root = bundle / lane_id
             lane_root = PUBLIC_ROOT / lane_id
+            if lane_root.exists():
+                shutil.rmtree(lane_root)
             lane_root.mkdir(parents=True, exist_ok=True)
             sqlite_path = lane_root / lane.sqlite_filename
             mmd_path = lane_root / lane.mmd_filename
             dot_path = lane_root / lane.dot_filename
             receipt_path = lane_root / "refresh_receipt.json"
-            png_path = lane_root / f"{lane_id}.mmd.4k.png"
+            png_path = lane_root / f"{lane_id}.mmd.8k.png"
+            svg_path = lane_root / f"{lane_id}.mmd.vector.svg"
 
             for filename, destination in (
                 (lane.sqlite_filename, sqlite_path),
@@ -289,12 +485,18 @@ def build() -> dict[str, Any]:
             ):
                 shutil.copyfile(source_root / filename, destination)
             _validate_lane_database(sqlite_path, lane_id)
-            _render_full_lane_png(
+            _render_full_lane_svg(
                 mmd_path,
-                png_path,
+                svg_path,
                 renderer=renderer,
                 browser=browser,
             )
+            # Mermaid's direct PNG output can vary at subpixel boundaries even
+            # when deterministic IDs are enabled. The already-normalized SVG is
+            # the authoritative render, so every lane is rasterized from those
+            # stable bytes on the same exact 7680 x 4320 Chromium canvas.
+            _rasterize_stable_svg_png(svg_path, png_path, browser=browser)
+            rasterizer = "stable_svg_pdf_pymupdf"
 
             expected = {
                 sqlite_path.name,
@@ -302,6 +504,7 @@ def build() -> dict[str, Any]:
                 dot_path.name,
                 receipt_path.name,
                 png_path.name,
+                svg_path.name,
             }
             actual = {path.name for path in lane_root.iterdir() if path.is_file()}
             if actual != expected:
@@ -334,9 +537,14 @@ def build() -> dict[str, Any]:
                         _artifact(receipt_path, "receipt", "Refresh receipt"),
                     ],
                     "render": {
-                        **_artifact(png_path, "mmd_4k_png", "Full lane MMD 4K render"),
+                        **_artifact(png_path, "mmd_8k_png", "Full lane MMD 8K render"),
                         "width": PNG_SIZE[0],
                         "height": PNG_SIZE[1],
+                        "source_mmd_sha256": _sha256(mmd_path),
+                        "rasterizer": rasterizer,
+                    },
+                    "vector_render": {
+                        **_artifact(svg_path, "mmd_vector_svg", "Full lane MMD vector render"),
                         "source_mmd_sha256": _sha256(mmd_path),
                     },
                     "mmd_preview": _full_mmd_preview(mmd_path),
@@ -354,7 +562,7 @@ def build() -> dict[str, Any]:
         "schema": SCHEMA,
         "lane_count": len(lanes),
         "canonical_file_count_per_lane": 4,
-        "derived_render_count_per_lane": 1,
+        "derived_render_count_per_lane": 2,
         "artifact_storage": "WEBSITE_STATIC_PUBLIC",
         "fixture_boundary": "SYNTHETIC_ONLY_NO_PROJECT_OR_ACCEPTED_PV_BYTES",
         "topology_boundary": "ACTUAL_FULL_LANE_ENGINE_MMD_AND_DOT_NOT_FOUR_FILE_OVERVIEW",

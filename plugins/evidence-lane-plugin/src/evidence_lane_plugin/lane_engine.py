@@ -5111,6 +5111,7 @@ def build_lane_bundle(
     source_overrides: dict[str, str] | None = None,
     git_mode: str = "AUTO",
     max_lane_workers: int = MAX_PARALLEL_LANE_WORKERS,
+    recorded_at_override: str | None = None,
 ) -> dict[str, Any]:
     """Build/Refresh lanes concurrently, then assemble one deterministic PV."""
 
@@ -5130,7 +5131,7 @@ def build_lane_bundle(
     else:
         output.mkdir(parents=True)
     parent = Path(parent_lane_bundle).resolve() if parent_lane_bundle else None
-    recorded_at = utc_now()
+    recorded_at = recorded_at_override or utc_now()
     source_selection, source_rows, source_exclusions = governed_source_files(root)
     source_paths = [relative for relative, _ in source_rows]
     source_snapshot = _current_index(root, source_paths)

@@ -34,12 +34,21 @@ type LaneProof = {
     bytes: number;
     filename: string;
     height: number;
-    kind: "mmd_4k_png";
+    kind: "mmd_8k_png";
     label: string;
     sha256: string;
     source_mmd_sha256: string;
     url: string;
     width: number;
+  };
+  vector_render: {
+    bytes: number;
+    filename: string;
+    kind: "mmd_vector_svg";
+    label: string;
+    sha256: string;
+    source_mmd_sha256: string;
+    url: string;
   };
   mmd_preview: string;
 };
@@ -56,6 +65,13 @@ type ProofIndex = {
 
 const proofIndex = proofIndexJson as ProofIndex;
 const accents = ["#62dff6", "#efc668", "#8c9df7", "#55dab3", "#ef8eb0", "#9fd16f"] as const;
+const MIN_ZOOM = 0.2;
+const MAX_ZOOM = 128;
+const BUTTON_ZOOM_RATIO = 1.35;
+
+function clampZoom(value: number) {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
+}
 
 function formatBytes(bytes: number) {
   if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
@@ -79,7 +95,7 @@ export function LaneProofExplorer() {
   const closeButton = useRef<HTMLButtonElement | null>(null);
   const lane = proofIndex.lanes[activeIndex];
   const accent = accents[activeIndex % accents.length];
-  const renderSrc = `${lane.render.url}?sha256=${lane.render.sha256}`;
+  const vectorSrc = `${lane.vector_render.url}?sha256=${lane.vector_render.sha256}`;
 
   const closeViewer = () => {
     setViewerOpen(false);
@@ -97,14 +113,14 @@ export function LaneProofExplorer() {
     setViewerOpen(true);
   };
 
-  const adjustZoom = (next: number) => setZoom(Math.min(3, Math.max(0.5, next)));
+  const multiplyZoom = (ratio: number) => setZoom((current) => clampZoom(current * ratio));
 
   useEffect(() => {
     if (!viewerOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") closeViewer();
-      if (event.key === "+" || event.key === "=") adjustZoom(zoom + 0.2);
-      if (event.key === "-") adjustZoom(zoom - 0.2);
+      if (event.key === "+" || event.key === "=") multiplyZoom(BUTTON_ZOOM_RATIO);
+      if (event.key === "-") multiplyZoom(1 / BUTTON_ZOOM_RATIO);
     };
     const priorOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -114,7 +130,7 @@ export function LaneProofExplorer() {
       document.body.style.overflow = priorOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [viewerOpen, zoom]);
+  }, [viewerOpen]);
 
   const startDrag = (event: PointerEvent<HTMLDivElement>) => {
     drag.current = {
@@ -145,7 +161,8 @@ export function LaneProofExplorer() {
 
   const zoomWithWheel = (event: WheelEvent<HTMLDivElement>) => {
     event.preventDefault();
-    adjustZoom(zoom + (event.deltaY < 0 ? 0.12 : -0.12));
+    const boundedDelta = Math.max(-240, Math.min(240, event.deltaY));
+    multiplyZoom(Math.exp(-boundedDelta * 0.0025));
   };
 
   return (
@@ -209,18 +226,18 @@ export function LaneProofExplorer() {
           </section>
 
           <section className="laneProofRender">
-            <div className="laneProofRenderHead"><span className="lanePanelLabel">Full generated lane MMD · 4K render</span><a href={lane.render.url} download={lane.render.filename}>Download PNG</a></div>
-            <button type="button" onClick={openViewer} aria-label={`Open full-screen ${lane.label} 4K Mermaid render`}>
+            <div className="laneProofRenderHead"><span className="lanePanelLabel">Full generated lane MMD · 8K + vector</span><span><a href={lane.render.url} download={lane.render.filename}>Download 8K PNG</a><a href={lane.vector_render.url} download={lane.vector_render.filename}>Download SVG</a></span></div>
+            <button type="button" onClick={openViewer} aria-label={`Open full-screen ${lane.label} exact-MMD vector render`}>
               <Image
-                src={renderSrc}
-                alt={`${lane.label} public-safe dummy Mermaid topology`}
+                src={vectorSrc}
+                alt={`${lane.label} public-safe dummy Mermaid topology vector preview`}
                 width={lane.render.width}
                 height={lane.render.height}
                 unoptimized
               />
-              <span>Open full view · zoom and pan</span>
+              <span>Open lossless full view · deep zoom and pan</span>
             </button>
-            <small>{lane.render.width} × {lane.render.height} · {formatBytes(lane.render.bytes)} · PNG {lane.render.sha256.slice(0, 16)}… · source MMD {lane.render.source_mmd_sha256.slice(0, 16)}…</small>
+            <small>{lane.render.width} × {lane.render.height} · {formatBytes(lane.render.bytes)} · PNG {lane.render.sha256.slice(0, 16)}… · vector {lane.vector_render.sha256.slice(0, 16)}… · source MMD {lane.render.source_mmd_sha256.slice(0, 16)}…</small>
           </section>
         </div>
 
@@ -232,13 +249,14 @@ export function LaneProofExplorer() {
 
       {viewerOpen ? createPortal(
         <div className="proofLightbox" role="presentation" onPointerDown={(event) => { if (event.target === event.currentTarget) closeViewer(); }}>
-          <div className="proofLightboxToolbar" role="toolbar" aria-label="4K render controls">
-            <strong>{lane.label} · MMD 4K</strong>
-            <button type="button" onClick={() => adjustZoom(zoom - 0.2)} aria-label="Zoom out">−</button>
+          <div className="proofLightboxToolbar" role="toolbar" aria-label="Lossless Mermaid topology controls">
+            <strong>{lane.label} · exact-MMD vector</strong>
+            <button type="button" onClick={() => multiplyZoom(1 / BUTTON_ZOOM_RATIO)} aria-label="Zoom out">−</button>
             <span>{Math.round(zoom * 100)}%</span>
-            <button type="button" onClick={() => adjustZoom(zoom + 0.2)} aria-label="Zoom in">+</button>
+            <button type="button" onClick={() => multiplyZoom(BUTTON_ZOOM_RATIO)} aria-label="Zoom in">+</button>
             <button type="button" onClick={resetViewer}>Fit</button>
-            <a href={lane.render.url} download={lane.render.filename}>Download</a>
+            <a href={lane.render.url} download={lane.render.filename}>8K PNG</a>
+            <a href={lane.vector_render.url} download={lane.vector_render.filename}>SVG</a>
             <button ref={closeButton} type="button" className="proofLightboxClose" onClick={closeViewer} aria-label="Close full-screen render">Close ×</button>
           </div>
           <div
@@ -248,10 +266,11 @@ export function LaneProofExplorer() {
             onPointerUp={endDrag}
             onPointerCancel={endDrag}
             onWheel={zoomWithWheel}
+            onDoubleClick={() => multiplyZoom(BUTTON_ZOOM_RATIO)}
           >
             <Image
-              src={renderSrc}
-              alt={`${lane.label} full-screen public-safe dummy Mermaid topology`}
+              src={vectorSrc}
+              alt={`${lane.label} full-screen lossless public-safe dummy Mermaid topology`}
               width={lane.render.width}
               height={lane.render.height}
               draggable={false}
@@ -259,7 +278,7 @@ export function LaneProofExplorer() {
               style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})` }}
             />
           </div>
-          <p>Drag to pan · wheel or +/− to zoom · Escape or Close to exit</p>
+          <p>Drag to pan · wheel, double-click, or +/− for lossless deep zoom · Escape, backdrop, or Close to exit</p>
         </div>,
         document.body,
       ) : null}

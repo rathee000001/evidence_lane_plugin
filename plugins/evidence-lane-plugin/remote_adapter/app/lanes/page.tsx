@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { LaneToolchainExplorer } from "../_components/evidence-console";
+import { LaneOrbitAside } from "../_components/lane-orbit-aside";
 import { PageHero } from "../_components/page-hero";
 import { artifactContract } from "../_data/site";
 
@@ -16,7 +17,7 @@ export default function LanesPage() {
         eyebrow="Canonical source registry"
         title="Eighteen lanes. One visible lineage."
         description="Source Intake chooses a deterministic lane from detected evidence or an explicit user override. Mode remains a separate sidecar. Chat Lineage is always present."
-        aside={<div className="numberAside"><strong>18</strong><span>canonical lanes</span><small>plus ordered custom modes</small></div>}
+        aside={<LaneOrbitAside />}
       />
       <section className="section laneToolchainPage">
         <div className="shell">
@@ -26,7 +27,8 @@ export default function LanesPage() {
             <p>
               Each glass pill opens that lane&apos;s current tools, ordered working sequence,
               parser and retrieval settings, and universal plus lane-specific SQLite schema.
-              Downloadable four-file dummy packages and 4K topology renders live on Proof.
+              Downloadable four-file dummy packages, exact-MMD 8K PNGs, and lossless vector
+              topology renders live on Proof.
             </p>
           </div>
           <LaneToolchainExplorer />

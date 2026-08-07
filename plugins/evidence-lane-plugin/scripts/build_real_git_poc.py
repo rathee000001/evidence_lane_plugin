@@ -47,6 +47,7 @@ SCHEMA = "evidence-lane.real-git-poc.v1"
 REAL_GIT_LANE = "github_code"
 FIXTURE_ROOT = "poc-fixtures"
 SOURCE_SUBTREE = "plugins/evidence-lane-plugin/src/evidence_lane_plugin"
+FIXTURE_ZIP_DATE_TIME = (2026, 1, 3, 0, 0, 0)
 
 
 def _git(repository: Path, *args: str) -> str:
@@ -60,9 +61,24 @@ def _git(repository: Path, *args: str) -> str:
     return result.stdout.strip()
 
 
+def _write_zip_member(
+    archive: zipfile.ZipFile,
+    name: str,
+    payload: str | bytes,
+) -> None:
+    """Write one byte-stable synthetic archive member."""
+
+    member = zipfile.ZipInfo(name, date_time=FIXTURE_ZIP_DATE_TIME)
+    member.compress_type = zipfile.ZIP_DEFLATED
+    member.create_system = 3
+    member.external_attr = 0o100644 << 16
+    archive.writestr(member, payload.encode("utf-8") if isinstance(payload, str) else payload)
+
+
 def _write_xlsx(path: Path) -> None:
     with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr(
+        _write_zip_member(
+            archive,
             "xl/workbook.xml",
             """<?xml version="1.0" encoding="UTF-8"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
@@ -71,7 +87,8 @@ def _write_xlsx(path: Path) -> None:
  <definedNames><definedName name="BaseCell">Metrics!$A$1</definedName></definedNames>
 </workbook>""",
         )
-        archive.writestr(
+        _write_zip_member(
+            archive,
             "xl/_rels/workbook.xml.rels",
             """<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
@@ -80,7 +97,8 @@ def _write_xlsx(path: Path) -> None:
   Target="worksheets/sheet1.xml"/>
 </Relationships>""",
         )
-        archive.writestr(
+        _write_zip_member(
+            archive,
             "xl/worksheets/sheet1.xml",
             """<?xml version="1.0" encoding="UTF-8"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -88,13 +106,15 @@ def _write_xlsx(path: Path) -> None:
  <c r="B1"><f>A1*2</f><v>4</v></c></row></sheetData>
 </worksheet>""",
         )
-        archive.writestr(
+        _write_zip_member(
+            archive,
             "xl/tables/table1.xml",
             """<?xml version="1.0" encoding="UTF-8"?>
 <table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
  name="MetricsTable" displayName="MetricsTable" ref="A1:B2"/>""",
         )
-        archive.writestr(
+        _write_zip_member(
+            archive,
             "xl/charts/chart1.xml",
             """<?xml version="1.0" encoding="UTF-8"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"
@@ -109,7 +129,8 @@ def _write_xlsx(path: Path) -> None:
 
 def _write_docx(path: Path) -> None:
     with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr(
+        _write_zip_member(
+            archive,
             "word/document.xml",
             """<?xml version="1.0" encoding="UTF-8"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
@@ -126,7 +147,8 @@ def _write_docx(path: Path) -> None:
 
 def _write_pptx(path: Path) -> None:
     with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr(
+        _write_zip_member(
+            archive,
             "ppt/slides/slide1.xml",
             """<?xml version="1.0" encoding="UTF-8"?>
 <p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
@@ -253,8 +275,8 @@ def _fixture_sources(repository: Path) -> dict[str, str]:
     with zipfile.ZipFile(
         root / "brain-package.zip", "w", compression=zipfile.ZIP_DEFLATED
     ) as archive:
-        archive.writestr("manifest.json", '{"schema":"fixture-brain.v1"}')
-        archive.writestr("pointer.json", '{"accepted":"none"}')
+        _write_zip_member(archive, "manifest.json", '{"schema":"fixture-brain.v1"}')
+        _write_zip_member(archive, "pointer.json", '{"accepted":"none"}')
     (root / "research.md").write_text(
         "Question: are unchanged bytes reused?\nMethod: compare sealed Refresh hashes\n",
         encoding="utf-8",
@@ -262,8 +284,8 @@ def _fixture_sources(repository: Path) -> dict[str, str]:
     with zipfile.ZipFile(
         root / "project.zip", "w", compression=zipfile.ZIP_DEFLATED
     ) as archive:
-        archive.writestr("src/main.py", "print('fixture')\n")
-        archive.writestr("docs/readme.md", "# One-shot project fixture\n")
+        _write_zip_member(archive, "src/main.py", "print('fixture')\n")
+        _write_zip_member(archive, "docs/readme.md", "# One-shot project fixture\n")
     _write_sqlite(root / "sqlite-brain.sqlite")
 
     lane_by_name = {

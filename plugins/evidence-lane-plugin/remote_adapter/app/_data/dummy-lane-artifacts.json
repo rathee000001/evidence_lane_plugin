@@ -1,8 +1,8 @@
 {
   "artifact_storage": "WEBSITE_STATIC_PUBLIC",
   "canonical_file_count_per_lane": 4,
-  "derived_render_count_per_lane": 1,
-  "engine_bundle_sha256": "5C8C6F4E20406E03C03F0EC9AAB47A311E50F5356DE367CD7AF73617E1A29961",
+  "derived_render_count_per_lane": 2,
+  "engine_bundle_sha256": "BDB4166E51E2D53AF132B4E0603A26A34B5669F03F49E6AAB2068AEBC8855172",
   "fixture_boundary": "SYNTHETIC_ONLY_NO_PROJECT_OR_ACCEPTED_PV_BYTES",
   "graph_projection_boundary": "SQLITE_DERIVED_STABLE_IDENTITY_GRAPH_WITH_DISTINCT_GITHUB_AND_LOCAL_CODE_PROFILES",
   "lane_count": 18,
@@ -14,7 +14,7 @@
           "filename": "github_code_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "9E251581FD5A3DA21253EFDD11FF735CF8C2CECB6E1CB04BE84AC72D9DF90FA0",
+          "sha256": "A75FD338F060AFE3508AA7D3F5064061833B2FD7A2B2CB49E26B22928D0ADCCB",
           "url": "/dummy-lane-packages/github_code/github_code_sector_v001.sqlite"
         },
         {
@@ -22,7 +22,7 @@
           "filename": "github_code.mmd",
           "kind": "mmd",
           "label": "Full lane Mermaid topology",
-          "sha256": "3E00AED205158AAE36E0575756C26D516B2A0174915956D1852BCB1508B4290A",
+          "sha256": "570B5CEDF42007B02D3AC8727D332B02712D70944F515BC8EDFE4EDCAFCD985B",
           "url": "/dummy-lane-packages/github_code/github_code.mmd"
         },
         {
@@ -30,7 +30,7 @@
           "filename": "github_code.dot",
           "kind": "dot",
           "label": "Full lane DOT topology",
-          "sha256": "7518C2357BA00EDF1B1D53BA249E926CDD558AC0086B2CB6F8BCE28D53A87F29",
+          "sha256": "0254ECC9DF5BE75568419B39ADC8E224DB11C87D571B9047378D750D363C7726",
           "url": "/dummy-lane-packages/github_code/github_code.dot"
         },
         {
@@ -38,7 +38,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "83D592E79B57799EAC7A7408933D483E3540300A17F82B2D76243046E92CDB39",
+          "sha256": "5866AD54337A879B57F5B87FC44EBADAFC945F62797CC0261B73C6DD98DB673A",
           "url": "/dummy-lane-packages/github_code/refresh_receipt.json"
         }
       ],
@@ -84,7 +84,7 @@
         },
         {
           "authored_at": "2026-01-03T00:00:00Z",
-          "commit": "d4aaf92db44438fe2fa01ad4121644c49d59472d",
+          "commit": "b106db32f67a719756b5bc39574dcf434b57465c",
           "file_changes": [
             {
               "path": "dummy-git-source/test_app.py",
@@ -181,15 +181,16 @@
       "ordinal": 1,
       "parser_id": "github_code_reverse_history_v2",
       "render": {
-        "bytes": 425797,
-        "filename": "github_code.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "2C799B0CD9364BEC5F095438BF7CB6374492DC5654D644042F8267DA2A56F589",
-        "source_mmd_sha256": "3E00AED205158AAE36E0575756C26D516B2A0174915956D1852BCB1508B4290A",
-        "url": "/dummy-lane-packages/github_code/github_code.mmd.4k.png",
-        "width": 3840
+        "bytes": 757317,
+        "filename": "github_code.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "02616EA3DABC77F20E75FB38C224E515C232112E7555B11AE5720E5DD81CD10D",
+        "source_mmd_sha256": "570B5CEDF42007B02D3AC8727D332B02712D70944F515BC8EDFE4EDCAFCD985B",
+        "url": "/dummy-lane-packages/github_code/github_code.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 51,
       "schema_tables": [
@@ -245,7 +246,16 @@
         "git_history_fts",
         "code_chunk_fts"
       ],
-      "topology_generator_sha256": "1FF35BC13389995BEE52C7DCD12D46D732A92F65479A14C68A5D348C7EC7F2AE"
+      "topology_generator_sha256": "17EFA759FB6BFDF5D60CD2D2059F52CABB58D14707F76A7721B71DCFD7C35B11",
+      "vector_render": {
+        "bytes": 472600,
+        "filename": "github_code.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "3B74B67AE7F8F8BFA50B10BCF1A35889F3CC1983FEC099D082CBDB23C6ACED5E",
+        "source_mmd_sha256": "570B5CEDF42007B02D3AC8727D332B02712D70944F515BC8EDFE4EDCAFCD985B",
+        "url": "/dummy-lane-packages/github_code/github_code.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -254,7 +264,7 @@
           "filename": "local_code_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "A4BF91353037B392EB5F294CD662ECABED5823E6763F4BDCED573662AF98BAD9",
+          "sha256": "3A32F739A49FCE7164AB126051B2739CD874D4C5E0A856465848AB28EF40EE14",
           "url": "/dummy-lane-packages/local_code/local_code_sector_v001.sqlite"
         },
         {
@@ -278,7 +288,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "675C24029423A89CF918ADA1BD9A8C1DC3102764A4CE69CB900B4854D62E7CA7",
+          "sha256": "B363E80ED910BB4CB5B3A99D4B71D29DEB55971989751EBA493739D6039106D5",
           "url": "/dummy-lane-packages/local_code/refresh_receipt.json"
         }
       ],
@@ -293,15 +303,16 @@
       "ordinal": 2,
       "parser_id": "local_code_snapshot_v2",
       "render": {
-        "bytes": 398223,
-        "filename": "local_code.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "FBFB6E4107EC86429EBFAF25B164B7567F00C94F7AE3B59AE4CD64B47C892C18",
+        "bytes": 582456,
+        "filename": "local_code.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "051FDB499E3071766A6E579636A5151B763B6BC33165EB07EC861D8E7FF1F0BF",
         "source_mmd_sha256": "0E8D954FFBD3C6539EBD8CAB0A3F6C3768098A6109BE75FE3EB1B0423B71C8AC",
-        "url": "/dummy-lane-packages/local_code/local_code.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/local_code/local_code.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 51,
       "schema_tables": [
@@ -357,7 +368,16 @@
         "git_history_fts",
         "code_chunk_fts"
       ],
-      "topology_generator_sha256": "4268CFA144E3E350FA05CB85EC1923C5D4B86168E46B904FDD3426921DBBFC27"
+      "topology_generator_sha256": "448879E21E19A35106157E28D91BCF1C575892F9304C586D3A74767670156F13",
+      "vector_render": {
+        "bytes": 371163,
+        "filename": "local_code.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "68504AB9546BC56A84CF6B3E43CB1C11A265A6E46E928F3FDEED99889CAA692F",
+        "source_mmd_sha256": "0E8D954FFBD3C6539EBD8CAB0A3F6C3768098A6109BE75FE3EB1B0423B71C8AC",
+        "url": "/dummy-lane-packages/local_code/local_code.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -366,7 +386,7 @@
           "filename": "chat_lineage_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "10DF6738E6C3E6AFE0501377C7D0C649262F0BCF7585D489880E7364F3910BD2",
+          "sha256": "1DDD29F3A84447E5C69EED8B8B5AC9FEAC9049F1603FAF27B38D42D07843FFE8",
           "url": "/dummy-lane-packages/chat_lineage/chat_lineage_sector_v001.sqlite"
         },
         {
@@ -390,7 +410,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "F9D87387395F85495FE6CF7FFDE3CFE33F620CBEE14589749B4C96300E624751",
+          "sha256": "BD9EA0EC4D56338D942F3BF67983B3B406D449A8F815EED76965C18B0711B490",
           "url": "/dummy-lane-packages/chat_lineage/refresh_receipt.json"
         }
       ],
@@ -405,15 +425,16 @@
       "ordinal": 3,
       "parser_id": "chat_lineage_state_travel_v57",
       "render": {
-        "bytes": 468101,
-        "filename": "chat_lineage.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "E5E7F1890DD7DDDABD0E21DE5643FC6554A7899158ACE00C957D6B862CCF071B",
+        "bytes": 641987,
+        "filename": "chat_lineage.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "4BC28C31E6869272F1150296B6ABDBA972F377A29522C9BC4B49F80F3E880D94",
         "source_mmd_sha256": "C45C0B1375467505BA68B1EFD57A048343BDDBC5C0515662C31EF0DDEA643651",
-        "url": "/dummy-lane-packages/chat_lineage/chat_lineage.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/chat_lineage/chat_lineage.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 31,
       "schema_tables": [
@@ -449,7 +470,16 @@
         "state_hash_chain",
         "turn_fts"
       ],
-      "topology_generator_sha256": "5A4245898A186EA09E1D9A9520A97841E86B72C7FDDF83F1DEC8622EDDF12709"
+      "topology_generator_sha256": "04705F87BAE4C62E601A6FC08459DEC949294CCA23CDE298707B1D0F1E7669A4",
+      "vector_render": {
+        "bytes": 318223,
+        "filename": "chat_lineage.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "67BF0C3B1D7A7A79F60898362224E6CBE2A7F082D071A9C66ABEAF223F71550F",
+        "source_mmd_sha256": "C45C0B1375467505BA68B1EFD57A048343BDDBC5C0515662C31EF0DDEA643651",
+        "url": "/dummy-lane-packages/chat_lineage/chat_lineage.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -458,7 +488,7 @@
           "filename": "discussion_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "D32E44A20C6A9BAE86129F815EBC34F998E5B28FA4A02CC81C2AA13CDB31CE72",
+          "sha256": "1473429EA8BB1F40704FBD78D61A12CD1F7F093A6105AE15312ABD9628180A5C",
           "url": "/dummy-lane-packages/discussion/discussion_sector_v001.sqlite"
         },
         {
@@ -482,7 +512,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "41FCC8A7D02333354849BF2EDE855ABC19CE79F23FB1BCB6DC021F0B034F0E12",
+          "sha256": "53EE4FFE44A37012CADBC917FAEAEACF89F5D11A74A0B9EA4CF865D91D134675",
           "url": "/dummy-lane-packages/discussion/refresh_receipt.json"
         }
       ],
@@ -497,15 +527,16 @@
       "ordinal": 4,
       "parser_id": "discussion_structured_v1",
       "render": {
-        "bytes": 412274,
-        "filename": "discussion.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "177CE86FE215A81B111BC88C6E7CECEAA1432AE9B07F547230A36E89E518453C",
+        "bytes": 592233,
+        "filename": "discussion.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "B6C81C01E9080059CAB19382D493F62E423F0BE8D649BFD68EAACE870EB435D2",
         "source_mmd_sha256": "92C145F1EF1129186756AC346E7E36C3C0036869FC97F1DB768683A37471FBC0",
-        "url": "/dummy-lane-packages/discussion/discussion.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/discussion/discussion.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 22,
       "schema_tables": [
@@ -532,7 +563,16 @@
         "discussion_artifact_reference",
         "discussion_fts"
       ],
-      "topology_generator_sha256": "0E91B042CAA1117E20C04A6090B845486051E7E308AC3B98EF23E73C12645627"
+      "topology_generator_sha256": "72163C5CEFD4101027F59BF6CB7A8238179D92D3E53A3918E8425DF10D556522",
+      "vector_render": {
+        "bytes": 205528,
+        "filename": "discussion.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "88A7C9FFC577811716C2D6A84240E201234678B39566ED607772888F4F9A3A38",
+        "source_mmd_sha256": "92C145F1EF1129186756AC346E7E36C3C0036869FC97F1DB768683A37471FBC0",
+        "url": "/dummy-lane-packages/discussion/discussion.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -541,7 +581,7 @@
           "filename": "analysis_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "23CCB87766942AD76BE17EF166C650C57B210E0807B578F1D4531ED55F2F77C7",
+          "sha256": "6B6994C567595889F747659AED78A2BA884AED38BDE331AA4DC7BBC8DA6BE692",
           "url": "/dummy-lane-packages/analysis/analysis_sector_v001.sqlite"
         },
         {
@@ -565,7 +605,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "5B76B412E98D3D0DF1BFD9905CF5D11CEA9833AC5621D2EA38E0AC63F2001C92",
+          "sha256": "D7DC35CDEF1258974E92F019DBAE032ACE130F28AFF9B35F755D64CD28402D09",
           "url": "/dummy-lane-packages/analysis/refresh_receipt.json"
         }
       ],
@@ -580,15 +620,16 @@
       "ordinal": 5,
       "parser_id": "analysis_structured_v1",
       "render": {
-        "bytes": 422792,
-        "filename": "analysis.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "823D0B4BA9E0F04EFB774C362BDEA0F2BF08AB733CC90AFFD4782EC9F15050BD",
+        "bytes": 625361,
+        "filename": "analysis.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "CD072A239749A9ADF0CF8318954E05783C91CF96F7912FC963083CA7AE241D62",
         "source_mmd_sha256": "5CCC1D0F64B31128AC38787A1634F98D231EC4449181A7BC799558C3BFA826BE",
-        "url": "/dummy-lane-packages/analysis/analysis.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/analysis/analysis.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 23,
       "schema_tables": [
@@ -616,7 +657,16 @@
         "analysis_blocked_item",
         "analysis_fts"
       ],
-      "topology_generator_sha256": "7042286F1DD083CAB8F7D21EEA3C98F67EBBD2CF0D3E3E12F12AC26D0189E2CC"
+      "topology_generator_sha256": "203632FD78A938FE15E8F6D280031BD2291A097F5160D228192159E2380DC9FE",
+      "vector_render": {
+        "bytes": 207218,
+        "filename": "analysis.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "A4BB617298C349BA63AB7E9B526F670BC875B5EDBBAB4855C1D48BC32C7CFCCE",
+        "source_mmd_sha256": "5CCC1D0F64B31128AC38787A1634F98D231EC4449181A7BC799558C3BFA826BE",
+        "url": "/dummy-lane-packages/analysis/analysis.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -625,7 +675,7 @@
           "filename": "plan_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "B90F60538EE02BADABB67A2D52F514A5A1053EF1EF8C90D120D9D9EC48691AF7",
+          "sha256": "C31C877ACCEAA103C626A43244CA7B459B88CDBC951B2A5BC3A1318DBE44FBAA",
           "url": "/dummy-lane-packages/plan/plan_sector_v001.sqlite"
         },
         {
@@ -649,7 +699,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "861D9C2364837EF32E0AD1FEF3822C49FA566F4CF39EBF67ABD52EF58333E635",
+          "sha256": "0D4B65C3F220726055C1EDB03B37E06C89F36861150080960A03F23564E824A7",
           "url": "/dummy-lane-packages/plan/refresh_receipt.json"
         }
       ],
@@ -664,15 +714,16 @@
       "ordinal": 6,
       "parser_id": "plan_structured_v1",
       "render": {
-        "bytes": 419620,
-        "filename": "plan.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "E42D1A5FE927259D7BB30310C7F5830BF65DB84608A47F32134F58CBC46694DB",
+        "bytes": 612948,
+        "filename": "plan.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "7EEAA90B22F2A4919328ACC30DC8B6ABF80965590D3DDECA2695DC0B557F2E4A",
         "source_mmd_sha256": "66ABAAB0BCEAF45B19EFA43380E670E8369EC7A2285BAD6ABD94B6058A2CD799",
-        "url": "/dummy-lane-packages/plan/plan.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/plan/plan.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 24,
       "schema_tables": [
@@ -701,7 +752,16 @@
         "plan_acceptance_criteria",
         "plan_fts"
       ],
-      "topology_generator_sha256": "09DA3868D949528BC79A2E320261340874B7528E2DA2E2BAC5456D380285B566"
+      "topology_generator_sha256": "B22BEAD758CA54CC8DFD8796F34AABE6DB1C12F7FD37FB5D84219B33072A51E0",
+      "vector_render": {
+        "bytes": 221877,
+        "filename": "plan.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "1B6B07365C2A06A9B1AED7CB0049C9E729687F7FC34E961CD18243728B01C783",
+        "source_mmd_sha256": "66ABAAB0BCEAF45B19EFA43380E670E8369EC7A2285BAD6ABD94B6058A2CD799",
+        "url": "/dummy-lane-packages/plan/plan.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -710,7 +770,7 @@
           "filename": "mode_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "B1B3520D2A755AB322DE0D3F47CF5A79D1AE9EE02189FDC1E44B581BDD8F1C7C",
+          "sha256": "20D445B62251451DDE68CA2FCF2997348728800C61633E2D64D25DF3C2EA1236",
           "url": "/dummy-lane-packages/mode/mode_sector_v001.sqlite"
         },
         {
@@ -734,7 +794,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "1F1AEFD08E2028A829B31F682C9F8F4854ADDD7A81C59D1854C1948696832518",
+          "sha256": "7FBBF9D15A334F3760EF22ABEC88726D45613D9C6C3A4C490257A9CA31AB774F",
           "url": "/dummy-lane-packages/mode/refresh_receipt.json"
         }
       ],
@@ -749,15 +809,16 @@
       "ordinal": 7,
       "parser_id": "mode_contract_v1",
       "render": {
-        "bytes": 414668,
-        "filename": "mode.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "0624D969C13C6F85B5CD6C7BF16E3D152E5FF54FC2A45B0868E50ECCD1FCD8F9",
+        "bytes": 615400,
+        "filename": "mode.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "E8FB3A864AED11817EFA1631D982C2AC8E5B095DEC436FEDD12B0FAE6B5A38B9",
         "source_mmd_sha256": "907ACEE03411A0F26FDF50E7E33E4489C7475A39E8DBA625CF8C60D6B01DD648",
-        "url": "/dummy-lane-packages/mode/mode.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/mode/mode.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 24,
       "schema_tables": [
@@ -786,7 +847,16 @@
         "mode_supersede_ledger",
         "mode_fts"
       ],
-      "topology_generator_sha256": "B797FD8D3FA9F8F63071C654F32CF8BB87953BD7788CBC2D3609BCC0A5D88F53"
+      "topology_generator_sha256": "79D6EB1F591FDC969C7EF3C33E5A04E0EA9E345B3E3A5D286D778B19A290F498",
+      "vector_render": {
+        "bytes": 216699,
+        "filename": "mode.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "E7FF49B4FF2DFACDDD536CF1C5A2E09DD433EB4F07A88461C3CE4915E2827F3E",
+        "source_mmd_sha256": "907ACEE03411A0F26FDF50E7E33E4489C7475A39E8DBA625CF8C60D6B01DD648",
+        "url": "/dummy-lane-packages/mode/mode.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -795,7 +865,7 @@
           "filename": "docs_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "2EFAC16BDB7526ABCF3D241C7AE58F6EFF72DC1351C4E4740BD001BA58FDD336",
+          "sha256": "0611FBEA0BDAEC5CE56C361F1147EC1BA70F1B001B35C9A6F673014E4859CA5E",
           "url": "/dummy-lane-packages/docs/docs_sector_v001.sqlite"
         },
         {
@@ -819,7 +889,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "4AA07470992C09D70891D689794ACC043708F7A2CB9B227377F04177B82126ED",
+          "sha256": "113D5813931F709B32C32504CFBCC06F2B9462A951685440D33E793A625BB647",
           "url": "/dummy-lane-packages/docs/refresh_receipt.json"
         }
       ],
@@ -834,15 +904,16 @@
       "ordinal": 8,
       "parser_id": "document_structure_v1",
       "render": {
-        "bytes": 412659,
-        "filename": "docs.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "7315D222D74D611197DEF968296BDDECF1BE29B2C86337E70FDD2C264CB40E4B",
+        "bytes": 610307,
+        "filename": "docs.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "9FB1661CBBCF112372A4DD467579247364EE21598FC3F1028B490C8FF472FA1C",
         "source_mmd_sha256": "0C787CBB363D884BA474BC76997DF876D09EA8858D7363CB8117789DCC2411F6",
-        "url": "/dummy-lane-packages/docs/docs.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/docs/docs.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 22,
       "schema_tables": [
@@ -869,7 +940,16 @@
         "source_structure_signature",
         "doc_fts"
       ],
-      "topology_generator_sha256": "A6D9201BFE2A40F3DAB4D20EF620940C23E087FC3A3925F77219865440DCA967"
+      "topology_generator_sha256": "2946AC6930DFA25D1B028666E22B3481D643629A3A6B414E22180388724196D8",
+      "vector_render": {
+        "bytes": 210643,
+        "filename": "docs.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "44016CBC0A78D63C746ECC7BA9A72A9C6272DAAA2555D6C727B9BE1F766D0B74",
+        "source_mmd_sha256": "0C787CBB363D884BA474BC76997DF876D09EA8858D7363CB8117789DCC2411F6",
+        "url": "/dummy-lane-packages/docs/docs.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -878,7 +958,7 @@
           "filename": "data_excel_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "3549232264A20E68B1A6EA20083CF6805BEECA9F37E58D6F0ABD564609CF19B0",
+          "sha256": "0A905F65092FB898F1EA5894C88E5E5C1C8BBEF5BBED6194388DCD185BAF4C29",
           "url": "/dummy-lane-packages/data_excel/data_excel_sector_v001.sqlite"
         },
         {
@@ -902,7 +982,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "F206AFAB3C25E6DEA33A2827CF9BD9450A96A7326881CCCF3BFD467659C4D6BD",
+          "sha256": "F64EC8D1727D5E3A34A3FDD6E44AA7701816BDD282B55185F228A4884C9DAB96",
           "url": "/dummy-lane-packages/data_excel/refresh_receipt.json"
         }
       ],
@@ -917,15 +997,16 @@
       "ordinal": 9,
       "parser_id": "office_data_structural_v1",
       "render": {
-        "bytes": 467098,
-        "filename": "data_excel.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "EAA3946D1C92C2BA557969682E69B1564A30B2E83289F1FB51521D1B0D48D82D",
+        "bytes": 620924,
+        "filename": "data_excel.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "E1BEE995BEED23A736E25F5A15DE21AB9DBEE0F38D7F8D88982638F72D2AF9A7",
         "source_mmd_sha256": "AD03C204BE5C32567897596527E44F96EBADA94F8ED48AE4B31FE40809B5CD33",
-        "url": "/dummy-lane-packages/data_excel/data_excel.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/data_excel/data_excel.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 31,
       "schema_tables": [
@@ -961,7 +1042,16 @@
         "data_structure_signature",
         "data_fts"
       ],
-      "topology_generator_sha256": "DB9771A58AFFF4183F1F8CC18331B13A3F9E9CFE9533AA3092E19FA8EF310844"
+      "topology_generator_sha256": "20AE0E5F41C9CE4082D850FCE98F1C57F8097D614CE4B18F4D125DC806C16CF8",
+      "vector_render": {
+        "bytes": 333084,
+        "filename": "data_excel.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "E5A1C08F64B281A1274054E3FE41A763A85C03CB6582E7A43EDF7B6820C4C9AA",
+        "source_mmd_sha256": "AD03C204BE5C32567897596527E44F96EBADA94F8ED48AE4B31FE40809B5CD33",
+        "url": "/dummy-lane-packages/data_excel/data_excel.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -970,7 +1060,7 @@
           "filename": "ppt_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "9CA16DF11E034C0CC9DB1A13A293DBBB5D71F2E1B4531118CB71530E33A0355A",
+          "sha256": "A71A348684111C453DB5E603D55E3D108411C15BFE97F8FF17E247B5D01972F1",
           "url": "/dummy-lane-packages/ppt/ppt_sector_v001.sqlite"
         },
         {
@@ -994,7 +1084,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "69024B5B69C95B0A7DC8489EA4CAAF8DB880E8692503558735E177FDE83CE2DB",
+          "sha256": "8450201F5D7CCAD0A982A861DED20547E0718DBCC8CC0FE7335D4FBC094FBFA7",
           "url": "/dummy-lane-packages/ppt/refresh_receipt.json"
         }
       ],
@@ -1009,15 +1099,16 @@
       "ordinal": 10,
       "parser_id": "presentation_structure_v1",
       "render": {
-        "bytes": 424131,
-        "filename": "ppt.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "7832BE95AC7494BCF2C0F27C8B304A057425B1C84CFC0BF8B75AAAA217A2B290",
+        "bytes": 614313,
+        "filename": "ppt.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "24301574CD8E0F273C25725DD63C1A9E2F62B1AF332AD464D91D0DC9A224C903",
         "source_mmd_sha256": "2F69BBE332E3E0E4679B48DA02606673C797BE0CE162C486B369E0915D4235A0",
-        "url": "/dummy-lane-packages/ppt/ppt.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/ppt/ppt.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 24,
       "schema_tables": [
@@ -1046,7 +1137,16 @@
         "ppt_structure_signature",
         "ppt_fts"
       ],
-      "topology_generator_sha256": "A776731684670C57806E58BDC8C3369DB2EF65C813D586CBEADDACB3760A3097"
+      "topology_generator_sha256": "B2B4BFDD1B23E20E10306FF9FC89E3587F56E39D6EAB8E0C8DFDF30BA660A01C",
+      "vector_render": {
+        "bytes": 221745,
+        "filename": "ppt.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "CA939F72BEAA235CFE81CD92CF322B71B440968D66F1D2F1231151E072F6C6CB",
+        "source_mmd_sha256": "2F69BBE332E3E0E4679B48DA02606673C797BE0CE162C486B369E0915D4235A0",
+        "url": "/dummy-lane-packages/ppt/ppt.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -1055,7 +1155,7 @@
           "filename": "pdf_ocr_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "B080BB5FDA707C170B9DAB086237017CAABBBD8F3A65B7E67C5A132E9934828E",
+          "sha256": "FA5CA53591DD419F1D9C65423E62DD42D0FBB7E3F9F4FD6291B50A667526BFFB",
           "url": "/dummy-lane-packages/pdf_ocr/pdf_ocr_sector_v001.sqlite"
         },
         {
@@ -1079,7 +1179,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "DD08D61780D1445B1BACFAA1E2440AFDB3E8CAE4F41ED09EA67FF49DBA31EB41",
+          "sha256": "574A02F2781D1492E91951D2359C3CD7AFCE2D8E624C727752A31CE273A44CA5",
           "url": "/dummy-lane-packages/pdf_ocr/refresh_receipt.json"
         }
       ],
@@ -1094,15 +1194,16 @@
       "ordinal": 11,
       "parser_id": "pdf_ocr_structural_v2",
       "render": {
-        "bytes": 411726,
-        "filename": "pdf_ocr.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "6296A8F235C7CE36F6FE8EC22945544769FCA2E50AD79670762F1D6F5F88E070",
+        "bytes": 600351,
+        "filename": "pdf_ocr.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "98CD48906634BE5A2EE271B23C661405591E7B814A2C647A3BBCF4425972254C",
         "source_mmd_sha256": "55B2EF22DC024CADE3D3750B1C81F668ACA17F80343086E2658937AE2A5BF548",
-        "url": "/dummy-lane-packages/pdf_ocr/pdf_ocr.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/pdf_ocr/pdf_ocr.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 23,
       "schema_tables": [
@@ -1130,7 +1231,16 @@
         "pdf_structure_signature",
         "pdf_fts"
       ],
-      "topology_generator_sha256": "0BAA201602689C95E38FE2815B92261375920C2A79A53100D5BEF2A45953F581"
+      "topology_generator_sha256": "FAF510C6CB385CE485944FC9E06FAB4E53E2C31833733B0699F9441CBAE3976F",
+      "vector_render": {
+        "bytes": 206914,
+        "filename": "pdf_ocr.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "AECF38ED8A3D4EB4B2E2895E05A558F49318991A6195A232822ECC0CD0B90FEA",
+        "source_mmd_sha256": "55B2EF22DC024CADE3D3750B1C81F668ACA17F80343086E2658937AE2A5BF548",
+        "url": "/dummy-lane-packages/pdf_ocr/pdf_ocr.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -1139,7 +1249,7 @@
           "filename": "images_ocr_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "A7430B3DF8F50E5635C3369C8B186C055640F92384258F19F4B8F17B1CD2E859",
+          "sha256": "521C3B39143198B6EF7B444C95D6C148EE93F338580BDEC45C238954C38472B4",
           "url": "/dummy-lane-packages/images_ocr/images_ocr_sector_v001.sqlite"
         },
         {
@@ -1163,7 +1273,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "5DB96718048658F0E5EBF96A9A85A1D27250958BBED014129B978D5141DB7435",
+          "sha256": "1904EEF06B979EFDC17424988849DF06B3C88FD2AB858C3870BFE1BF49D91AC3",
           "url": "/dummy-lane-packages/images_ocr/refresh_receipt.json"
         }
       ],
@@ -1178,15 +1288,16 @@
       "ordinal": 12,
       "parser_id": "image_ocr_structural_v2",
       "render": {
-        "bytes": 337213,
-        "filename": "images_ocr.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "5972D60827A1A7341E27084DBD0F3E249007FDC8C7D53387A9F751EE3360EF0B",
+        "bytes": 548218,
+        "filename": "images_ocr.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "674CBF10D70561B826C4461D354DCB379BBDCE543E2B4B1ACE76D8CFD43B38D9",
         "source_mmd_sha256": "A2B9107B53245FB674589FDE6AB64D4E87DDE4B23E6151B400F932A7E9BEC2A1",
-        "url": "/dummy-lane-packages/images_ocr/images_ocr.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/images_ocr/images_ocr.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 20,
       "schema_tables": [
@@ -1211,7 +1322,16 @@
         "image_review_region",
         "image_ocr_fts"
       ],
-      "topology_generator_sha256": "B6B0AF1A3BF4507F56C7B8059F01663ACA35C1B6FB5B0105DC18118EDEE82EB0"
+      "topology_generator_sha256": "7BB07C6BD34D520B3551C2000306951A9005EDD6041FB8A3C3BD042FD1D4D850",
+      "vector_render": {
+        "bytes": 174445,
+        "filename": "images_ocr.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "37586A0716F1DF9822E55D5EF15F9A6148F864FC2607DF5AF918A28FDC3D2716",
+        "source_mmd_sha256": "A2B9107B53245FB674589FDE6AB64D4E87DDE4B23E6151B400F932A7E9BEC2A1",
+        "url": "/dummy-lane-packages/images_ocr/images_ocr.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -1220,7 +1340,7 @@
           "filename": "artifacts_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "B62AB1B710892D35F344A8521146845C54780A80EEA19ABA914F77C502750510",
+          "sha256": "178279A30A428F6D7472A120E6FFC0F6ACCBEE29067F890E01024C69585E2E6B",
           "url": "/dummy-lane-packages/artifacts/artifacts_sector_v001.sqlite"
         },
         {
@@ -1244,7 +1364,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "1FAD7CF66FC034E4313F03A55752B668A9CEBA89DD212078C20CB9D6A89848F0",
+          "sha256": "C84A313D89564594383A7E991265A8DD731E6041827B7BBFEFC5ABB2968056C4",
           "url": "/dummy-lane-packages/artifacts/refresh_receipt.json"
         }
       ],
@@ -1259,15 +1379,16 @@
       "ordinal": 13,
       "parser_id": "artifact_structure_v1",
       "render": {
-        "bytes": 330775,
-        "filename": "artifacts.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "4769196C03CACD45DBEAFBEC70EF1A5170126A18487B9F9110D9C5CF7F6D5001",
+        "bytes": 546978,
+        "filename": "artifacts.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "E163ED10C58F8825B1F343CDF4A29B1B816A848DFB243C7BF913D06F04D386D8",
         "source_mmd_sha256": "E90FF6AA8CBB9B6A9B48ED1736A9B6F7B20C0166E273F118305EF5DFDB04E0F0",
-        "url": "/dummy-lane-packages/artifacts/artifacts.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/artifacts/artifacts.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 19,
       "schema_tables": [
@@ -1291,7 +1412,16 @@
         "artifact_review_required",
         "artifact_fts"
       ],
-      "topology_generator_sha256": "EBA281BD98075079BDF506A08887F097D96B1F8F669965DB3786759A711C4CE8"
+      "topology_generator_sha256": "BBB992B5DFD2E94563AAAF5290ADEC277086E85776BBDDF7DD9A1F78AC3DCB55",
+      "vector_render": {
+        "bytes": 173334,
+        "filename": "artifacts.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "D43F1A65F8B4DA603329680403C2CE332106BF0FA4CD4FDBC454FA78904D3BCA",
+        "source_mmd_sha256": "E90FF6AA8CBB9B6A9B48ED1736A9B6F7B20C0166E273F118305EF5DFDB04E0F0",
+        "url": "/dummy-lane-packages/artifacts/artifacts.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -1300,7 +1430,7 @@
           "filename": "custom_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "B510ED0AF35808DEA6F7FEEE58596613803D2955915B2E9B13ADBF3B481549FD",
+          "sha256": "06B4F7C430C13C143C781CB9D21C4C6F1F9C37D8FE3F4518D1998C33BC6FCFB0",
           "url": "/dummy-lane-packages/custom/custom_sector_v001.sqlite"
         },
         {
@@ -1324,7 +1454,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "F4DCF41C936C75831259D3FCC5C163BCCF86515E9CC6B122C8F30AED415256F4",
+          "sha256": "1C53DA88D09497C8944A3C2A5F2E355D6BCB9DF85FFB61408F5475201260363E",
           "url": "/dummy-lane-packages/custom/refresh_receipt.json"
         }
       ],
@@ -1339,15 +1469,16 @@
       "ordinal": 14,
       "parser_id": "custom_best_effort_v1",
       "render": {
-        "bytes": 317986,
-        "filename": "custom.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "31A44EC1D66B8A1F5792C6FC7258275DA394FDC37834DC112AF3A04AE6A726F2",
+        "bytes": 531610,
+        "filename": "custom.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "8035DF4ADA651A2382282A9510AAE3571FABCE877CC4E902804883795A259928",
         "source_mmd_sha256": "2C93E1BDCE5E0394EC45191B89B464FED7374DCBF0D4E54DA404722FBE7511EE",
-        "url": "/dummy-lane-packages/custom/custom.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/custom/custom.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 19,
       "schema_tables": [
@@ -1371,7 +1502,16 @@
         "custom_next_action",
         "custom_fts"
       ],
-      "topology_generator_sha256": "97E9DB997A27F2A5A65ADF7DDCC896F4EBA070D7A1385336637FD769F73543C2"
+      "topology_generator_sha256": "63581E7C7324824D391887747360FCE915D5DCC7F6BA20EBEA5CB6FE0015AC50",
+      "vector_render": {
+        "bytes": 164530,
+        "filename": "custom.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "0310C29FA39BA38B2FEF58C9707392C8A69B2FE577BDFFE051AC5BA48C271FD8",
+        "source_mmd_sha256": "2C93E1BDCE5E0394EC45191B89B464FED7374DCBF0D4E54DA404722FBE7511EE",
+        "url": "/dummy-lane-packages/custom/custom.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -1380,7 +1520,7 @@
           "filename": "brain_loader_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "AF00FCD2221207211FAF1660B5AC01E043A53618E6028210A6A38F48A25680C3",
+          "sha256": "DB139B1A8FD3803DC0FBFDBA5F67454B96BF57401965E93FDD784CCEA3835F5C",
           "url": "/dummy-lane-packages/brain_loader/brain_loader_sector_v001.sqlite"
         },
         {
@@ -1404,7 +1544,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "F82A14C416C3C672635F80E36CF3C34D1D219135B1D8E6BE2E04650F7FD3D145",
+          "sha256": "5D75B59D7D55EBA856BDA9BE6EC513A52BC9989D09DD69B1F1BF0CF4F63C3625",
           "url": "/dummy-lane-packages/brain_loader/refresh_receipt.json"
         }
       ],
@@ -1419,15 +1559,16 @@
       "ordinal": 15,
       "parser_id": "brain_package_loader_v1",
       "render": {
-        "bytes": 459116,
-        "filename": "brain_loader.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "3115E53E57B08FC5B45084C2C9F560ACDA6DBEED34A13D37ABF923D8955ABB79",
+        "bytes": 652996,
+        "filename": "brain_loader.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "46D663DF770819C7746C11654FB3C946923BEDA7447260573C884020D7157AC7",
         "source_mmd_sha256": "A3F27EB8125C47AFBDD06928DB44C86E963F5F8AC5719251E25133B0C510763E",
-        "url": "/dummy-lane-packages/brain_loader/brain_loader.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/brain_loader/brain_loader.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 23,
       "schema_tables": [
@@ -1455,7 +1596,16 @@
         "brain_loader_receipt",
         "brain_loader_fts"
       ],
-      "topology_generator_sha256": "E604183D0D1D70AE989AB205B1D699DB24EB3998069B5CF4D0E680384BCD3062"
+      "topology_generator_sha256": "18A78FC742B98D2FD182818DA1D94E4D0F40FBF9E4994953EFDE559EF706984F",
+      "vector_render": {
+        "bytes": 243050,
+        "filename": "brain_loader.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "E0018E8EC88CF97973A1B7F3B43F498CA76080E4F58955299F514CF9A896CA8E",
+        "source_mmd_sha256": "A3F27EB8125C47AFBDD06928DB44C86E963F5F8AC5719251E25133B0C510763E",
+        "url": "/dummy-lane-packages/brain_loader/brain_loader.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -1464,7 +1614,7 @@
           "filename": "research_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "0218C1517A59E948544EAC9BF780E4448E9DCBC2480573D878F95DBEE735B04F",
+          "sha256": "B2C02CC43E26ACF8560F48236D2135DB3EEB735702AB347F8B94D2C9D796623B",
           "url": "/dummy-lane-packages/research/research_sector_v001.sqlite"
         },
         {
@@ -1488,7 +1638,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "621A7BFAB8FEA215B1B88EBBA768A9433FEF96069C8C34DE042A2AA19BF22A1A",
+          "sha256": "706A0985A81CF87499690E12658200B2C11A6B9F0F270762D52236F6346BD726",
           "url": "/dummy-lane-packages/research/refresh_receipt.json"
         }
       ],
@@ -1503,15 +1653,16 @@
       "ordinal": 16,
       "parser_id": "research_evidence_v1",
       "render": {
-        "bytes": 414649,
-        "filename": "research.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "B6F751121804ECF7F027253BDAB8E346E5E60A89618C6D4DB05C05E1645118E8",
+        "bytes": 613338,
+        "filename": "research.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "012D0568E680BDBEE130F234427CFD1D62614684BDD8D6152E58B385EB2283E0",
         "source_mmd_sha256": "48EC60A6DA90A3F3F852D4FEAFFF27A9F56FEA42B95D6923D05A3290D1952EC6",
-        "url": "/dummy-lane-packages/research/research.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/research/research.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 24,
       "schema_tables": [
@@ -1540,7 +1691,16 @@
         "research_receipt",
         "research_fts"
       ],
-      "topology_generator_sha256": "28945D98BAAE3EBD9E619D249DFD4874F2D922283243CFB63A6C98260518F264"
+      "topology_generator_sha256": "2FAE8F239A8C582607F0394E81227400AD8F4A9C0D3CE2F02ABBB29ABCD05ABE",
+      "vector_render": {
+        "bytes": 211433,
+        "filename": "research.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "2FD515A98B9513D60E846E41988B4411061E085257FD54045612382798F09469",
+        "source_mmd_sha256": "48EC60A6DA90A3F3F852D4FEAFFF27A9F56FEA42B95D6923D05A3290D1952EC6",
+        "url": "/dummy-lane-packages/research/research.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -1549,7 +1709,7 @@
           "filename": "project_engulf_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "EA2AE75EF2C2762930A9A1FE815C82F4E842D6A4347E248722ACBDDF60519D51",
+          "sha256": "C79EF3E5E980DA0FD93DE39BC9F8C423A4FE4FCD960C9BF0B18421AB8998512D",
           "url": "/dummy-lane-packages/project_engulf/project_engulf_sector_v001.sqlite"
         },
         {
@@ -1573,7 +1733,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "3D7F10FDCCA4C9A6C0A529A188FBEAD92E234B66D3322AB9F86CE0B8A692D684",
+          "sha256": "9E2726FD08FED3BFE7AEF0D7E22DAC881618FBC8810F6785D236352FFF7DFAF1",
           "url": "/dummy-lane-packages/project_engulf/refresh_receipt.json"
         }
       ],
@@ -1588,15 +1748,16 @@
       "ordinal": 17,
       "parser_id": "project_engulf_v1",
       "render": {
-        "bytes": 486821,
-        "filename": "project_engulf.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "C61F8EAFED2230AB2B8B7456B9749099933D0128062F35F5C2FADA677F27C4B8",
+        "bytes": 634447,
+        "filename": "project_engulf.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "C73D6FD589B362CC7A1E1C616F381143D94390463151CCCBF9FB79E6F5BB5872",
         "source_mmd_sha256": "8025CB4A0D46DB7EEE759B8AAE01ECA374E5666F0FEEEA08CDF12F33C90C803A",
-        "url": "/dummy-lane-packages/project_engulf/project_engulf.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/project_engulf/project_engulf.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 27,
       "schema_tables": [
@@ -1628,7 +1789,16 @@
         "project_engulf_receipt",
         "project_engulf_fts"
       ],
-      "topology_generator_sha256": "6CA8FFA19BC988F0279175AFCD3F72FD1890D19E8EC165CF67E1EB235E9C3846"
+      "topology_generator_sha256": "7DF5BBC9F7060507FA0BF1F378FD4B97B8B4EA556AB71081BCAA0F0949AE3651",
+      "vector_render": {
+        "bytes": 291769,
+        "filename": "project_engulf.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "BFD33018EEEF16EF07E0800F0CE1DC8E4ECA44B93F233BA61362587FD4FCC06D",
+        "source_mmd_sha256": "8025CB4A0D46DB7EEE759B8AAE01ECA374E5666F0FEEEA08CDF12F33C90C803A",
+        "url": "/dummy-lane-packages/project_engulf/project_engulf.mmd.vector.svg"
+      }
     },
     {
       "canonical_artifacts": [
@@ -1637,7 +1807,7 @@
           "filename": "sqlite_brain_sector_v001.sqlite",
           "kind": "sqlite",
           "label": "SQLite sector",
-          "sha256": "6C03C090CE1A79015B69448521DC003AFE55A4A02A93124F929D55162935D7F8",
+          "sha256": "77E8DE63AB997C01D5506EA63A3B2E52C359DCA2494FD9999F2D8729A5F3C5CA",
           "url": "/dummy-lane-packages/sqlite_brain/sqlite_brain_sector_v001.sqlite"
         },
         {
@@ -1661,7 +1831,7 @@
           "filename": "refresh_receipt.json",
           "kind": "receipt",
           "label": "Refresh receipt",
-          "sha256": "0A0B1D4CAA3DCCBE864D5923FA61518B9066AE6D8DDEA3C59A9023803D7C8DEF",
+          "sha256": "BE3BB4F1FF886F30D423DE74E376CA281FCEE248E332CD35633076057E4852A9",
           "url": "/dummy-lane-packages/sqlite_brain/refresh_receipt.json"
         }
       ],
@@ -1676,15 +1846,16 @@
       "ordinal": 18,
       "parser_id": "sqlite_brain_inspector_v1",
       "render": {
-        "bytes": 470960,
-        "filename": "sqlite_brain.mmd.4k.png",
-        "height": 2160,
-        "kind": "mmd_4k_png",
-        "label": "Full lane MMD 4K render",
-        "sha256": "B729C0098B57EF44D4441754AE5D42E38B9D6FE23E1A62B13D1D4E5E2F5388E8",
+        "bytes": 633753,
+        "filename": "sqlite_brain.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_pdf_pymupdf",
+        "sha256": "F894A32202ECB9A3743EA7E5E6361A1F630B72545D22779C0F157AFFD0BA7253",
         "source_mmd_sha256": "5DA38CFB32048654B5F43C6979151B6FFF832F6D135359CD4A4E25D3B635138C",
-        "url": "/dummy-lane-packages/sqlite_brain/sqlite_brain.mmd.4k.png",
-        "width": 3840
+        "url": "/dummy-lane-packages/sqlite_brain/sqlite_brain.mmd.8k.png",
+        "width": 7680
       },
       "schema_table_count": 26,
       "schema_tables": [
@@ -1715,19 +1886,28 @@
         "loaded_sqlite_brain_receipt",
         "loaded_sqlite_brain_fts"
       ],
-      "topology_generator_sha256": "BE6C820BB3662B3BF8707A4FEF52D1DC810DD012844CF6EFA8FB2154F9830434"
+      "topology_generator_sha256": "56FAD7B24A51540EF2F06FCDBACB47447C272BA3262D4D6EB4EA290F56BAA18F",
+      "vector_render": {
+        "bytes": 272789,
+        "filename": "sqlite_brain.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "714DF90A002D6847E55EDC9E2D566A4062B03FB8778D8A45F7CABE2C9C875623",
+        "source_mmd_sha256": "5DA38CFB32048654B5F43C6979151B6FFF832F6D135359CD4A4E25D3B635138C",
+        "url": "/dummy-lane-packages/sqlite_brain/sqlite_brain.mmd.vector.svg"
+      }
     }
   ],
   "renderer": {
     "browser": "chrome.exe",
     "canvas": [
-      3840,
-      2160
+      7680,
+      4320
     ],
     "install_performed": false,
     "tool": "mmdc",
     "version": "11.16.0"
   },
-  "schema": "evidence-lane.public-full-lane-dummy-proof.v3",
+  "schema": "evidence-lane.public-full-lane-dummy-proof.v4",
   "topology_boundary": "ACTUAL_FULL_LANE_ENGINE_MMD_AND_DOT_NOT_FOUR_FILE_OVERVIEW"
 }

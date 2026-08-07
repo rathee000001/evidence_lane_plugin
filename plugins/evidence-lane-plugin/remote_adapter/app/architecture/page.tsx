@@ -36,7 +36,7 @@ export default function ArchitecturePage() {
         description="Evidence Lane can calculate independent source sectors concurrently. Candidate sealing, human decision, Fuse, accepted pointers, rollback, and State Travel remain ordered and compare-and-swap governed."
         aside={
           <div className="routeBrainOrb" aria-label="Pulsing Evidence Lane glass brain">
-            <EvidenceBrainAsset color="#37c7e7" label="" />
+            <EvidenceBrainAsset color="#37c7e7" label="" priority />
           </div>
         }
       />
@@ -77,7 +77,12 @@ export default function ArchitecturePage() {
                 </span>
               ))}
             </div>
-            <div className="convergeLines" aria-hidden="true"><i /><i /><i /><i /></div>
+            <svg className="convergeLines" viewBox="0 0 800 120" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M 84 0 L 400 120" />
+              <path d="M 276 0 L 400 120" />
+              <path d="M 476 0 L 400 120" />
+              <path d="M 704 0 L 400 120" />
+            </svg>
             <div className="manifestNode flowDepthPill"><GlassIconOrb color="#69d9f5" size={34} decorative><OfficialToolIcon tool="package" size={18} decorative /></GlassIconOrb><span>Candidate manifest</span></div>
             <div className="authorityArrow" aria-hidden="true">↓</div>
             <div className="hilNode flowDepthPill"><GlassIconOrb color="#efca72" size={34} decorative><OfficialToolIcon tool="pulse" size={18} decorative /></GlassIconOrb><span>Human decision</span></div>

@@ -4,7 +4,6 @@ import { DeltaLedgerExplorer } from "./_components/delta-ledger-explorer";
 import { GlassIconOrb, OfficialToolIcon, PulsatingBrain } from "./_components/evidence-assets";
 import { MotionReveal } from "./_components/motion-reveal";
 import { PluginSurfaceCatalog } from "./_components/plugin-surface-catalog";
-import { ReleaseStatus } from "./_components/release-status";
 import { artifactContract, painLedger, proofMetrics } from "./_data/site";
 
 const routes = [
@@ -22,7 +21,7 @@ export default function Home() {
       <section className="homeHero shell">
         <MotionReveal className="heroCopy">
           <span className="eyebrow"><i />Evidence Lane for Codex + ChatGPT</span>
-          <h1>Resume from verified project truth &mdash; not another re-explanation.</h1>
+          <h1>Resume from verified project truth - not another re-explanation.</h1>
           <p>
             The first governed PV parses and seals the bounded project. Later tasks query its
             SQLite evidence, reuse unchanged chunks, and Refresh only visible Deltas. Accepted
@@ -161,15 +160,19 @@ export default function Home() {
 
       <section className="section shell releaseHome">
         <div>
-          <span className="kicker">Live boundary</span>
-          <h2>Website health and connector identity are different proofs.</h2>
+          <span className="kicker">Two host universes</span>
+          <h2>The same governance law meets each host at its real storage boundary.</h2>
           <p>
-            Codex installs the governed Git plugin. ChatGPT reaches the same durable runtime through
-            a mounted or local MCP path. Vercel can host this public story and a thin edge, but it is
-            not the project brain and never substitutes for exact release readback.
+            Codex runs the full governed repository lifecycle. ChatGPT uses the same Evidence Lane
+            contracts against its own mounted persistent PV and append-only host storage. Neither
+            host borrows the other&apos;s task controls, filesystem, or acceptance authority.
           </p>
+          <Link className="textLink" href="/connect">Inspect the verified host and connection boundaries <span aria-hidden="true">→</span></Link>
         </div>
-        <ReleaseStatus />
+        <div className="homeHostTruth" aria-label="Evidence Lane host boundaries">
+          <article><span>Codex</span><strong>Full lifecycle</strong><p>Source Intake, build, tests, package seals, exact six-way HIL, and pointer-gated promotion.</p></article>
+          <article><span>ChatGPT</span><strong>Mounted-PV continuity</strong><p>Read and append-only write through the host&apos;s own persistent storage under the same lane, ENV, and Exit-Slip laws.</p></article>
+        </div>
       </section>
 
       <section className="section deltaLedgerBand" id="delta-ledger">

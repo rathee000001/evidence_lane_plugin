@@ -172,13 +172,27 @@ export function FloatingEvidenceStudio() {
               <span><small>Evidence Lane</small><strong>Evidence AI Studio</strong><p>Same committed RAG / explicit external boundary</p></span>
             </div>
             <div className="floatingStudioHeaderActions">
-              <Link href="/studio" onClick={() => setOpen(false)}>Full Studio</Link>
-              <button type="button" aria-label="Close Evidence AI Studio" onClick={() => setOpen(false)}>&times;</button>
+              <Link
+                className="universal-pill floatingStudioFullLink"
+                data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001"
+                href="/studio"
+                onClick={() => setOpen(false)}
+              >
+                <GlassIconOrb color="#8cdff2" size={28} decorative>
+                  <OfficialToolIcon tool="pulse" size={15} decorative />
+                </GlassIconOrb>
+                <span>Full Studio</span>
+              </Link>
+              <button className="floatingStudioClose" type="button" aria-label="Close Evidence AI Studio" onClick={() => setOpen(false)}>
+                <GlassIconOrb color="#efb75c" size={30} decorative><span aria-hidden="true">&times;</span></GlassIconOrb>
+              </button>
             </div>
           </header>
 
           <div className="floatingStudioPolicy">
-            <span>Local evidence first</span><span>Project no-hit refuses</span><span>Free model only</span>
+            <span><GlassIconOrb color="#70dff4" size={24} decorative><OfficialToolIcon tool="database" size={13} decorative /></GlassIconOrb><b>Local evidence first</b></span>
+            <span><GlassIconOrb color="#efb75c" size={24} decorative><OfficialToolIcon tool="pulse" size={13} decorative /></GlassIconOrb><b>Project no-hit refuses</b></span>
+            <span><GlassIconOrb color="#99e1bd" size={24} decorative><OfficialToolIcon tool="node" size={13} decorative /></GlassIconOrb><b>Free model only</b></span>
           </div>
 
           <div className="floatingStudioTranscript" aria-live="polite">
@@ -201,7 +215,10 @@ export function FloatingEvidenceStudio() {
 
           <div className="floatingStudioSuggestions" aria-label="Page-aware suggestions">
             {suggestions.map((suggestion) => (
-              <button type="button" key={suggestion} disabled={busy} onClick={() => void ask(suggestion)}>{suggestion}</button>
+              <button type="button" key={suggestion} disabled={busy} onClick={() => void ask(suggestion)}>
+                <GlassIconOrb color="#70dff4" size={28} decorative><LaneAssetIcon lane="chat_lineage" size={15} decorative /></GlassIconOrb>
+                <span>{suggestion}</span>
+              </button>
             ))}
           </div>
 
@@ -215,7 +232,7 @@ export function FloatingEvidenceStudio() {
               placeholder="Ask this page or a general question..."
             />
             <button type="button" disabled={busy || !input.trim()} onClick={() => void ask()}>
-              <OfficialToolIcon tool="terminal" size={17} decorative />
+              <GlassIconOrb color="#efb75c" size={30} decorative><OfficialToolIcon tool="terminal" size={16} decorative /></GlassIconOrb>
               <span>{busy ? "Checking" : "Send"}</span>
             </button>
           </div>

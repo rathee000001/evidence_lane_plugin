@@ -19,8 +19,9 @@ choices apply across hosts. Reduced host capability never expands authority.
 | Remote Git write | Separate prepare/one-use confirmation | Same | Same | Request only |
 
 The public controls after root `/evi` are Boot, Rollback, Build, Refresh, Mode,
-and Source Intake. State Travel is eligible only with a sealed handoff and is
-shown only after explicit user request or genuine context exhaustion. Exit Boot
+and Source Intake. State Travel is eligible only with a sealed unfinished-work
+or accepted-entry handoff and is shown only after explicit user request or
+genuine context exhaustion. Exit Boot
 explicitly detaches Flash context and capture while preserving the installation,
 immutable store, and verification receipt.
 
