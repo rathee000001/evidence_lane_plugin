@@ -1,6 +1,7 @@
 import "server-only";
 
 import studioRagArtifact from "./studio-rag-index.json";
+import { floatingStudioSuggestions, promptSuggestions } from "./site";
 
 export type StudioSource = { label: string; href: string };
 
@@ -276,11 +277,26 @@ export function isEvidenceLaneQuestion(question: string) {
 }
 
 export function verifyStudioRetrievalConfidence() {
+  const displayedSuggestionCanaries = [
+    ...Object.entries(floatingStudioSuggestions).flatMap(([surface, questions]) => (
+      questions.map((question, index) => ({
+        id: `floating-${surface}-${index + 1}`,
+        question,
+        expectedGrounded: true,
+      }))
+    )),
+    ...promptSuggestions.map((question, index) => ({
+      id: `prompt-studio-${index + 1}`,
+      question,
+      expectedGrounded: true,
+    })),
+  ];
   const canaries = [
     { id: "general-no-hit", question: "How do I cook pasta al dente?", expectedGrounded: false },
     { id: "project-nonsense-no-hit", question: "What is Evidence Lane quantum banana authority?", expectedGrounded: false },
     { id: "active-plan-hit", question: "What is active step 46 in the current 51-step execution Plan Lane?", expectedGrounded: true },
     { id: "pointer-hil-hit", question: "How do accepted pointers, Exit Slips, and HIL separate human input from AI work?", expectedGrounded: true },
+    ...displayedSuggestionCanaries,
   ].map((canary) => {
     const actualGrounded = Boolean(answerFromEvidence(canary.question));
     return { ...canary, actualGrounded, pass: actualGrounded === canary.expectedGrounded };

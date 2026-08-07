@@ -23,12 +23,36 @@ export const primaryNavigation = [
 
 export const promptSuggestions = [
   "What is active step 46 in the current 51-step execution Plan Lane?",
-  "How does Evidence Lane stop project re-explanation and re-parsing?",
+  "How do parallel lanes converge on serial authority?",
   "How do accepted pointers, Exit Slips, and HIL separate human input from AI work?",
   "How does Refresh reuse parsed facts and rebuild only changed sections?",
   "Which commit and contract define Code-mode operators?",
   "What can the local SQLite FTS5, BM25, and TF-IDF index prove?",
 ] as const;
+
+export const floatingStudioSuggestions = {
+  architecture: [
+    "How do parallel lanes converge on serial authority?",
+    "What separates a candidate from an accepted pointer?",
+    "How does Source Intake route governed sources?",
+  ],
+  lanes: [
+    "What four files does each detected lane emit?",
+    "When must an undetected lane have no PV folder?",
+    "How is the Git test separated from non-Git tests?",
+  ],
+  studio: [
+    "How is the Prompt Studio corpus built?",
+    "What happens when project evidence is missing?",
+    "Why is the external route not project authority?",
+  ],
+  default: [
+    "How does Refresh reuse parsed facts and rebuild only changed sections?",
+    "How do HIL and accepted pointers differ?",
+    "What is active step 46?",
+  ],
+} as const;
+
 export const controls = [
   {
     name: "Boot",

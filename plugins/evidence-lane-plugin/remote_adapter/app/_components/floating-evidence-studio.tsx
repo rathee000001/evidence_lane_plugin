@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
+import { floatingStudioSuggestions } from "../_data/site";
 import type { RetrievalReceipt, StudioSource } from "../_data/studio-retrieval";
 import { GlassIconOrb, LaneAssetIcon, OfficialToolIcon } from "./evidence-assets";
 
@@ -37,31 +38,15 @@ const initialMessage: FloatingMessage = {
 
 function suggestionsFor(pathname: string) {
   if (pathname.startsWith("/architecture")) {
-    return [
-      "How do parallel lanes converge on serial authority?",
-      "What separates a candidate from an accepted pointer?",
-      "What is Source Intake responsible for?",
-    ];
+    return floatingStudioSuggestions.architecture;
   }
   if (pathname.startsWith("/lanes")) {
-    return [
-      "What four files does each detected lane emit?",
-      "When must an undetected lane have no PV folder?",
-      "How is the Git test separated from non-Git tests?",
-    ];
+    return floatingStudioSuggestions.lanes;
   }
   if (pathname.startsWith("/studio")) {
-    return [
-      "How is the Prompt Studio corpus built?",
-      "What happens when project evidence is missing?",
-      "Why is the external route not project authority?",
-    ];
+    return floatingStudioSuggestions.studio;
   }
-  return [
-    "What problem does Evidence Lane solve?",
-    "How do HIL and accepted pointers differ?",
-    "What is active step 46?",
-  ];
+  return floatingStudioSuggestions.default;
 }
 
 export function FloatingEvidenceStudio() {
