@@ -6,6 +6,8 @@ import html
 import json
 from typing import Any
 
+from .constants import ENGINE_VERSION
+
 MCP_APP_MIME_TYPE = "text/html;profile=mcp-app"
 GOVERNED_PANEL_URI = "ui://evidence-lane/governed-console-v1.html"
 
@@ -163,6 +165,7 @@ def governed_panel_html(public_site_url: str) -> str:
     exact_site = public_site_url.rstrip("/")
     safe_site = html.escape(exact_site, quote=True)
     site_json = json.dumps(exact_site)
+    version_json = json.dumps(ENGINE_VERSION)
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -212,8 +215,12 @@ def governed_panel_html(public_site_url: str) -> str:
     (() => {{
       "use strict";
       const publicSite = {site_json};
+      const appVersion = {version_json};
+      const initializeRequestId = "evidence-lane-ui-initialize-1";
       let snapshot = null;
+      let snapshotFingerprint = "";
       let activeTab = "overview";
+      let initialized = false;
       const title = document.getElementById("title");
       const summary = document.getElementById("summary");
       const status = document.getElementById("status");
@@ -239,6 +246,24 @@ def governed_panel_html(public_site_url: str) -> str:
       }}
       function normalize(raw) {{
         return raw && typeof raw === "object" && raw.data && typeof raw.data === "object" ? raw.data : raw;
+      }}
+      function snapshotFromResult(raw) {{
+        const normalized = normalize(raw);
+        if (normalized && typeof normalized === "object" && normalized.structuredContent && typeof normalized.structuredContent === "object") {{
+          return normalize(normalized.structuredContent);
+        }}
+        return normalized;
+      }}
+      function acceptSnapshot(raw, rerender = true) {{
+        const next = snapshotFromResult(raw);
+        if (!next || typeof next !== "object") return false;
+        let fingerprint = "";
+        try {{ fingerprint = JSON.stringify(next); }} catch (_) {{}}
+        if (fingerprint && fingerprint === snapshotFingerprint) return false;
+        snapshot = next;
+        snapshotFingerprint = fingerprint;
+        if (rerender) render();
+        return true;
       }}
       function render() {{
         const data = snapshot || {{}};
@@ -279,19 +304,42 @@ def governed_panel_html(public_site_url: str) -> str:
         openai?.setWidgetState?.({{ activeTab }});
         render();
       }}
-      buttons.forEach((button) => button.addEventListener("click", () => selectTab(button.dataset.tab)));
-      const openai = typeof window !== "undefined" ? window.openai : undefined;
-      if (openai?.widgetState?.activeTab) activeTab = String(openai.widgetState.activeTab);
-      if (openai?.toolOutput) snapshot = normalize(openai.toolOutput);
-      window.addEventListener("message", (event) => {{
+      function postToHost(message) {{
+        window.parent.postMessage(message, "*");
+      }}
+      function onHostMessage(event) {{
         if (event.source !== window.parent) return;
         const message = event.data;
         if (!message || message.jsonrpc !== "2.0") return;
-        if (message.method === "ui/notifications/tool-result") {{
-          snapshot = normalize(message.params?.structuredContent || null);
-          render();
+        if (message.id === initializeRequestId) {{
+          if (initialized || !Object.prototype.hasOwnProperty.call(message, "result")) return;
+          initialized = true;
+          postToHost({{
+            jsonrpc: "2.0",
+            method: "ui/notifications/initialized",
+            params: {{}},
+          }});
+          return;
         }}
-      }}, {{ passive: true }});
+        if (message.method === "ui/notifications/tool-result") {{
+          acceptSnapshot(message.params);
+        }}
+      }}
+      buttons.forEach((button) => button.addEventListener("click", () => selectTab(button.dataset.tab)));
+      const openai = typeof window !== "undefined" ? window.openai : undefined;
+      if (openai?.widgetState?.activeTab) activeTab = String(openai.widgetState.activeTab);
+      if (openai?.toolOutput) acceptSnapshot(openai.toolOutput, false);
+      window.addEventListener("message", onHostMessage, {{ passive: true }});
+      postToHost({{
+        jsonrpc: "2.0",
+        id: initializeRequestId,
+        method: "ui/initialize",
+        params: {{
+          appInfo: {{ name: "Evidence Lane", version: appVersion }},
+          appCapabilities: {{}},
+          protocolVersion: "2026-01-26",
+        }},
+      }});
       selectTab(activeTab);
     }})();
   </script>

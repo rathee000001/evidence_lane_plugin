@@ -13,7 +13,11 @@ from pathlib import Path
 import pytest
 from evidence_lane_plugin.auth import OAuthJWTConfig, OAuthJWTVerifier
 from evidence_lane_plugin.constants import ENGINE_VERSION
-from evidence_lane_plugin.mcp_apps import GOVERNED_PANEL_URI, MCP_APP_MIME_TYPE
+from evidence_lane_plugin.mcp_apps import (
+    GOVERNED_PANEL_URI,
+    MCP_APP_MIME_TYPE,
+    governed_panel_html,
+)
 from evidence_lane_plugin.mcp_server import create_mcp_server, run_server
 from evidence_lane_plugin.service import EvidenceLaneService
 from mcp.client.session import ClientSession
@@ -153,6 +157,9 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
     assert len(contents) == 1
     assert contents[0].mime_type == MCP_APP_MIME_TYPE
     assert "ui/notifications/tool-result" in contents[0].content
+    assert 'method: "ui/initialize"' in contents[0].content
+    assert 'method: "ui/notifications/initialized"' in contents[0].content
+    assert 'protocolVersion: "2026-01-26"' in contents[0].content
     assert "window.openai" in contents[0].content
     assert "setWidgetState" in contents[0].content
     assert "innerHTML" not in contents[0].content
@@ -167,6 +174,151 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
         assert tool.meta["openai/outputTemplate"] == GOVERNED_PANEL_URI
         assert tool.outputSchema is not None
         assert tool.outputSchema["type"] == "object"
+
+
+def test_mcp_apps_view_executes_initialize_and_tool_result_lifecycle() -> None:
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node.js is required for the executable MCP Apps View contract")
+
+    panel_html = governed_panel_html("https://preview.example.test")
+    script = panel_html.split("<script>", 1)[1].split("</script>", 1)[0]
+    harness = f"""
+const vm = require("node:vm");
+const operations = [];
+const sent = [];
+let messageHandler = null;
+
+class Element {{
+  constructor(id = "") {{
+    this.id = id;
+    this.children = [];
+    this.dataset = {{}};
+    this.textContent = "";
+    this.attributes = {{}};
+    this.replaceCount = 0;
+  }}
+  append(...items) {{ this.children.push(...items); }}
+  replaceChildren(...items) {{
+    this.children = [...items];
+    this.replaceCount += 1;
+  }}
+  setAttribute(name, value) {{ this.attributes[name] = value; }}
+  addEventListener() {{}}
+  get childElementCount() {{ return this.children.length; }}
+}}
+
+const elements = Object.fromEntries(
+  ["title", "summary", "status", "content", "links"].map((id) => [id, new Element(id)]),
+);
+const buttons = ["overview", "lanes", "hil"].map((tab) => {{
+  const button = new Element();
+  button.dataset.tab = tab;
+  return button;
+}});
+const parentWindow = {{
+  postMessage(message, origin) {{
+    operations.push("post:" + String(message.method || "response"));
+    sent.push({{ message, origin }});
+  }},
+}};
+const widgetStates = [];
+const windowObject = {{
+  parent: parentWindow,
+  openai: {{
+    widgetState: {{ activeTab: "overview" }},
+    toolOutput: {{
+      schema: "evidence-lane.mcp-app-panel.v1",
+      title: "Compatibility snapshot",
+      summary: "Loaded from window.openai",
+      status: "PASS",
+      facts: [{{ label: "Release", value: "1.3.0" }}],
+      lanes: [],
+      links: [],
+    }},
+    setWidgetState(state) {{ widgetStates.push(state); }},
+  }},
+  addEventListener(type, handler) {{
+    if (type === "message") {{
+      operations.push("listener:message");
+      messageHandler = handler;
+    }}
+  }},
+}};
+const documentObject = {{
+  getElementById(id) {{ return elements[id]; }},
+  querySelectorAll() {{ return buttons; }},
+  createElement() {{ return new Element(); }},
+}};
+const sandbox = {{
+  window: windowObject,
+  document: documentObject,
+  URL,
+  console,
+}};
+
+vm.runInNewContext({json.dumps(script)}, sandbox);
+if (typeof messageHandler !== "function") throw new Error("message listener missing");
+
+const initMessages = sent.filter((entry) => entry.message.method === "ui/initialize");
+if (initMessages.length !== 1) throw new Error("expected exactly one initialize request");
+const init = initMessages[0];
+if (init.origin !== "*") throw new Error("unexpected postMessage target origin");
+if (init.message.params.appInfo.name !== "Evidence Lane") throw new Error("wrong app name");
+if (init.message.params.appInfo.version !== "1.3.0") throw new Error("wrong app version");
+if (Object.keys(init.message.params.appCapabilities).length !== 0) throw new Error("wrong app capabilities");
+if (init.message.params.protocolVersion !== "2026-01-26") throw new Error("wrong protocol version");
+if (operations.indexOf("listener:message") > operations.indexOf("post:ui/initialize")) {{
+  throw new Error("initialize sent before receiver registration");
+}}
+
+messageHandler({{ source: {{}}, data: {{ jsonrpc: "2.0", id: init.message.id, result: {{}} }} }});
+messageHandler({{ source: parentWindow, data: {{ jsonrpc: "2.0", id: "foreign-id", result: {{}} }} }});
+if (sent.some((entry) => entry.message.method === "ui/notifications/initialized")) {{
+  throw new Error("foreign or mismatched response initialized the app");
+}}
+messageHandler({{ source: parentWindow, data: {{ jsonrpc: "2.0", id: init.message.id, result: {{}} }} }});
+messageHandler({{ source: parentWindow, data: {{ jsonrpc: "2.0", id: init.message.id, result: {{}} }} }});
+const initializedMessages = sent.filter((entry) => entry.message.method === "ui/notifications/initialized");
+if (initializedMessages.length !== 1) throw new Error("initialized notification was not exactly-once");
+
+const beforeDuplicate = elements.content.replaceCount;
+const result = {{
+  structuredContent: {{
+    schema: "evidence-lane.mcp-app-panel.v1",
+    title: "Governed runtime",
+    summary: "Verified structured result",
+    status: "PASS",
+    facts: [{{ label: "Engine commit", value: "abc123" }}],
+    lanes: [],
+    links: [],
+  }},
+}};
+messageHandler({{
+  source: parentWindow,
+  data: {{ jsonrpc: "2.0", method: "ui/notifications/tool-result", params: result }},
+}});
+const afterFirstResult = elements.content.replaceCount;
+messageHandler({{
+  source: parentWindow,
+  data: {{ jsonrpc: "2.0", method: "ui/notifications/tool-result", params: result }},
+}});
+if (elements.title.textContent !== "Governed runtime") throw new Error("structured title not rendered");
+if (elements.summary.textContent !== "Verified structured result") throw new Error("structured summary not rendered");
+if (elements.status.textContent !== "PASS") throw new Error("structured status not rendered");
+if (afterFirstResult !== beforeDuplicate + 1) throw new Error("first structured result did not render");
+if (elements.content.replaceCount !== afterFirstResult) throw new Error("duplicate result rendered twice");
+if (!widgetStates.length) throw new Error("window.openai widget-state compatibility missing");
+if (operations[0] !== "listener:message") throw new Error("receiver was not the first bridge operation");
+"""
+    completed = subprocess.run(
+        [node, "-e", harness],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert completed.returncode == 0, completed.stderr or completed.stdout
 
 
 def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> None:
