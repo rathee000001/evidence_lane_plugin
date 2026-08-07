@@ -358,7 +358,7 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
         PRAGMA journal_mode=DELETE;
         PRAGMA synchronous=FULL;
         PRAGMA application_id=1162629459;
-        PRAGMA user_version=1;
+        PRAGMA user_version=2;
         CREATE TABLE metadata(key TEXT PRIMARY KEY, value TEXT NOT NULL) WITHOUT ROWID;
         CREATE TABLE source_registry(
             source_id INTEGER PRIMARY KEY,
@@ -370,36 +370,42 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
             size_bytes INTEGER NOT NULL
         );
         CREATE TABLE chunk_index(
-            chunk_id TEXT PRIMARY KEY,
+            chunk_rowid INTEGER PRIMARY KEY,
+            chunk_id TEXT NOT NULL UNIQUE,
             source_id INTEGER NOT NULL REFERENCES source_registry(source_id),
             ordinal INTEGER NOT NULL,
             locator TEXT NOT NULL,
             text_content TEXT NOT NULL,
             sha256 TEXT NOT NULL,
             token_count INTEGER NOT NULL,
+            path TEXT NOT NULL,
+            title TEXT NOT NULL,
             UNIQUE(source_id, ordinal)
-        ) WITHOUT ROWID;
+        );
         CREATE VIRTUAL TABLE chunks_fts USING fts5(
             chunk_id UNINDEXED,
             path UNINDEXED,
             title,
             text_content,
+            content='chunk_index',
+            content_rowid='chunk_rowid',
             tokenize='unicode61 remove_diacritics 2'
         );
         CREATE TABLE tfidf_term(
-            term TEXT PRIMARY KEY,
+            term_id INTEGER PRIMARY KEY,
+            term TEXT NOT NULL UNIQUE,
             document_frequency INTEGER NOT NULL,
             document_count INTEGER NOT NULL,
             idf REAL NOT NULL
-        ) WITHOUT ROWID;
+        );
         CREATE TABLE tfidf_vector(
-            chunk_id TEXT NOT NULL REFERENCES chunk_index(chunk_id),
-            term TEXT NOT NULL REFERENCES tfidf_term(term),
+            chunk_rowid INTEGER NOT NULL REFERENCES chunk_index(chunk_rowid),
+            term_id INTEGER NOT NULL REFERENCES tfidf_term(term_id),
             term_count INTEGER NOT NULL,
             token_count INTEGER NOT NULL,
             tf REAL NOT NULL,
             tfidf REAL NOT NULL,
-            PRIMARY KEY(chunk_id, term)
+            PRIMARY KEY(chunk_rowid, term_id)
         ) WITHOUT ROWID;
         """
     )
@@ -413,6 +419,7 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
         "chunk_count": str(len(chunks)),
         "llama_index_core": LLAMA_INDEX_VERSION,
         "ranking": "SQLite FTS5/BM25 + materialized TF-IDF + RRF(k=60)",
+        "storage_schema": "external-content FTS5 + integer-key materialized TF-IDF v2",
         "public_safe": "true",
     }
     connection.executemany(
@@ -427,25 +434,33 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
     for chunk in chunks:
         source = source_by_id[chunk["source_id"]]
         connection.execute(
-            "INSERT INTO chunk_index VALUES(?,?,?,?,?,?,?)",
+            """INSERT INTO chunk_index(
+                chunk_id,source_id,ordinal,locator,text_content,sha256,
+                token_count,path,title
+            ) VALUES(?,?,?,?,?,?,?,?,?)""",
             (
                 chunk["id"], chunk["source_id"], chunk["ordinal"], chunk["locator"],
                 chunk["text"], chunk["sha256"], chunk["token_count"],
+                source["path"], source["title"],
             ),
         )
-        connection.execute(
-            "INSERT INTO chunks_fts(chunk_id,path,title,text_content) VALUES(?,?,?,?)",
-            (chunk["id"], source["path"], source["title"], chunk["text"]),
-        )
+    connection.execute("INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild')")
     connection.executemany(
-        "INSERT INTO tfidf_term VALUES(?,?,?,?)",
+        """INSERT INTO tfidf_term(
+            term,document_frequency,document_count,idf
+        ) VALUES(?,?,?,?)""",
         [(term, document_frequency[term], document_count, idf[term]) for term in sorted(idf)],
     )
+    chunk_rowids = dict(connection.execute("SELECT chunk_id,chunk_rowid FROM chunk_index"))
+    term_ids = dict(connection.execute("SELECT term,term_id FROM tfidf_term"))
     vector_rows = []
     for chunk in chunks:
         for term, count, score in chunk["tfidf"]:
             vector_rows.append(
-                (chunk["id"], term, count, chunk["token_count"], count / max(chunk["token_count"], 1), score)
+                (
+                    chunk_rowids[chunk["id"]], term_ids[term], count,
+                    chunk["token_count"], count / max(chunk["token_count"], 1), score,
+                )
             )
     connection.executemany(
         "INSERT INTO tfidf_vector VALUES(?,?,?,?,?,?)",
@@ -456,6 +471,8 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
     fts_probe = connection.execute(
         "SELECT count(*) FROM chunks_fts WHERE chunks_fts MATCH 'refresh'"
     ).fetchone()[0]
+    connection.execute("INSERT INTO chunks_fts(chunks_fts) VALUES('optimize')")
+    connection.commit()
     connection.execute("VACUUM")
     connection.close()
     if integrity != "ok" or fts_probe < 1:
