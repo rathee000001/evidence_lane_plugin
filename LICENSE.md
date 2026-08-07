@@ -12,11 +12,11 @@ No patent, trademark, copyright, trade-secret, database, or other intellectual
 property right is transferred by access to this repository. No HIL decision,
 candidate package, Git branch, installation, or deployment changes that rule.
 
-Third-party libraries, platforms, names, and trademarks remain governed by
-their respective licenses and owners. Their inclusion or use does not transfer
-ownership of Evidence Lane, and this notice does not replace their license
-terms. Model and tool assistance does not create project authorship or acceptance
-authority.
+Third-party software, services, models, assets, and trademarks remain governed by their respective owners' terms, licenses, and rights. Evidence Lane grants no rights over them.
+
+Their inclusion or use does not transfer ownership of Evidence Lane, and this
+notice does not replace their terms. Model and tool assistance does not create
+project authorship or acceptance authority.
 
 For permission beyond private evaluation, obtain a separate written agreement
 from Praveen Rathee.

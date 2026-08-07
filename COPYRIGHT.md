@@ -8,6 +8,8 @@ schemas, website presentation, lifecycle specifications, and project-specific
 artifacts in this repository, subject to the separate rights of third-party
 components.
 
+Third-party software, services, models, assets, and trademarks remain governed by their respective owners' terms, licenses, and rights. Evidence Lane grants no rights over them.
+
 AI systems and software tools assist implementation and review; they do not own
 the project, accept candidates, authorize source changes, or receive copyright
 authorship. Human review credits record attributable roles and do not transfer

@@ -4492,12 +4492,13 @@ def _lane_source_binding(
     output: Path,
     routes: dict[str, str],
     source_snapshot: dict[str, dict[str, Any]],
+    emitted_lane_ids: tuple[str, ...],
 ) -> dict[str, Any]:
     """Verify every routed source hash against its completed lane database."""
 
     observed: dict[str, str] = {}
     duplicates: list[str] = []
-    for lane_id in CANONICAL_LANE_IDS:
+    for lane_id in emitted_lane_ids:
         lane = LANE_REGISTRY[lane_id]
         database = output / lane_id / lane.sqlite_filename
         connection = sqlite3.connect(
@@ -4591,6 +4592,36 @@ def build_lane_bundle(
     by_lane: dict[str, list[str]] = {lane_id: [] for lane_id in CANONICAL_LANE_IDS}
     for relative, lane_id in routes.items():
         by_lane[lane_id].append(relative)
+    always_loaded_lane_ids = ("chat_lineage",)
+    emitted_lane_ids = tuple(
+        lane_id
+        for lane_id in CANONICAL_LANE_IDS
+        if by_lane[lane_id] or lane_id in always_loaded_lane_ids
+    )
+    omitted_lane_ids = tuple(
+        lane_id for lane_id in CANONICAL_LANE_IDS if lane_id not in emitted_lane_ids
+    )
+    parent_emitted_lane_ids: tuple[str, ...] = ()
+    if parent:
+        parent_manifest_path = parent / "manifest.json"
+        if parent_manifest_path.is_file():
+            parent_manifest = json.loads(
+                parent_manifest_path.read_text(encoding="utf-8")
+            )
+            parent_emitted_lane_ids = tuple(
+                parent_manifest.get("emitted_lane_ids") or CANONICAL_LANE_IDS
+            )
+        else:
+            parent_emitted_lane_ids = tuple(
+                lane_id
+                for lane_id in CANONICAL_LANE_IDS
+                if (parent / lane_id).is_dir()
+            )
+    removed_lane_ids = tuple(
+        lane_id
+        for lane_id in parent_emitted_lane_ids
+        if lane_id not in emitted_lane_ids
+    )
 
     # RapidOCR lazily imports NumPy/OpenCV and creates ONNX Runtime native
     # thread pools. On Windows, starting that cold runtime inside one lane
@@ -4632,13 +4663,13 @@ def build_lane_bundle(
         },
     )
     reports_by_lane: dict[str, dict[str, Any]] = {}
-    effective_workers = min(max_lane_workers, len(CANONICAL_LANE_IDS))
+    effective_workers = min(max_lane_workers, len(emitted_lane_ids))
     with ThreadPoolExecutor(
         max_workers=effective_workers,
         thread_name_prefix="evidence-lane-build",
     ) as executor:
         futures = {}
-        for lane_id in CANONICAL_LANE_IDS:
+        for lane_id in emitted_lane_ids:
             lane = LANE_REGISTRY[lane_id]
             prior_lane = (
                 parent / lane_id if parent and (parent / lane_id).is_dir() else None
@@ -4661,7 +4692,7 @@ def build_lane_bundle(
         for future in as_completed(futures):
             lane_id = futures[future]
             reports_by_lane[lane_id] = future.result()
-    reports = [reports_by_lane[lane_id] for lane_id in CANONICAL_LANE_IDS]
+    reports = [reports_by_lane[lane_id] for lane_id in emitted_lane_ids]
 
     final_selection, final_rows, final_exclusions = governed_source_files(root)
     final_source_paths = [relative for relative, _ in final_rows]
@@ -4678,7 +4709,12 @@ def build_lane_bundle(
             "Repository source snapshot changed during parallel lane build; "
             "the partial output is not a candidate."
         )
-    source_binding = _lane_source_binding(output, routes, source_snapshot)
+    source_binding = _lane_source_binding(
+        output,
+        routes,
+        source_snapshot,
+        emitted_lane_ids,
+    )
     if not source_binding["valid"]:
         raise ValueError(
             "Completed lane databases do not bind the frozen source snapshot; "
@@ -4691,8 +4727,12 @@ def build_lane_bundle(
         "parallel_lane_compute": effective_workers > 1,
         "prewarmed_dependencies": prewarmed_dependencies,
         "worker_count": effective_workers,
-        "submitted_lane_count": len(CANONICAL_LANE_IDS),
-        "deterministic_assembly_order": list(CANONICAL_LANE_IDS),
+        "submitted_lane_count": len(emitted_lane_ids),
+        "deterministic_assembly_order": list(emitted_lane_ids),
+        "always_loaded_lane_ids": list(always_loaded_lane_ids),
+        "emitted_lane_ids": list(emitted_lane_ids),
+        "omitted_lane_ids": list(omitted_lane_ids),
+        "lane_emission_policy": "LOADED_OR_DETECTED_ONLY",
         "barrier_status": "PASS",
         "source_snapshot_sha256": source_snapshot_sha256,
         "final_source_snapshot_sha256": final_source_snapshot_sha256,
@@ -4742,11 +4782,17 @@ def build_lane_bundle(
         "topology_generator_sha256_by_lane": {
             row["lane_id"]: row["topology_generator_sha256"] for row in reports
         },
-        "both_code_lanes_forced_by_generator": all(
-            row["topology_generator_changed"]
-            for row in reports
-            if row["lane_id"] in PRIMARY_CODE_LANES
+        "both_code_lanes_forced_by_generator": (
+            set(PRIMARY_CODE_LANES) <= set(emitted_lane_ids)
+            and all(
+                row["topology_generator_changed"]
+                for row in reports
+                if row["lane_id"] in PRIMARY_CODE_LANES
+            )
         ),
+        "emitted_lane_ids": list(emitted_lane_ids),
+        "omitted_lane_ids": list(omitted_lane_ids),
+        "removed_lane_ids": list(removed_lane_ids),
         "changed_sources": sum(
             len(row["classification"]["CHANGED_REBUILD"]) for row in reports
         ),
@@ -4783,6 +4829,11 @@ def build_lane_bundle(
         "git_optional_arm": git_arm,
         "pv1_only_full_build": True,
         "lane_count": len(reports),
+        "canonical_lane_count": len(CANONICAL_LANE_IDS),
+        "always_loaded_lane_ids": list(always_loaded_lane_ids),
+        "emitted_lane_ids": list(emitted_lane_ids),
+        "omitted_lane_ids": list(omitted_lane_ids),
+        "lane_emission_policy": "LOADED_OR_DETECTED_ONLY",
         "source_count": len(source_paths),
         "source_routes_sha256": sha256_bytes(canonical_json_bytes(routes)),
         "source_snapshot_sha256": source_snapshot_sha256,
@@ -4817,6 +4868,40 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     registry = json.loads((root / "registry.json").read_text(encoding="utf-8"))
     routes = json.loads((root / "routes.json").read_text(encoding="utf-8"))
+    conditional_lane_emission = "emitted_lane_ids" in manifest
+    declared_emitted_lane_ids = manifest.get("emitted_lane_ids")
+    emitted_lane_ids = tuple(
+        declared_emitted_lane_ids
+        if isinstance(declared_emitted_lane_ids, list)
+        else CANONICAL_LANE_IDS
+    )
+    omitted_lane_ids = tuple(
+        lane_id for lane_id in CANONICAL_LANE_IDS if lane_id not in emitted_lane_ids
+    )
+    actual_lane_directory_ids = tuple(
+        lane_id for lane_id in CANONICAL_LANE_IDS if (root / lane_id).is_dir()
+    )
+    emission_contract_valid = bool(
+        not conditional_lane_emission
+        or (
+            list(emitted_lane_ids)
+            == [
+                lane_id
+                for lane_id in CANONICAL_LANE_IDS
+                if lane_id in emitted_lane_ids
+            ]
+            and len(emitted_lane_ids) == len(set(emitted_lane_ids))
+            and set(emitted_lane_ids) <= set(CANONICAL_LANE_IDS)
+            and "chat_lineage" in emitted_lane_ids
+            and manifest.get("always_loaded_lane_ids") == ["chat_lineage"]
+            and manifest.get("omitted_lane_ids") == list(omitted_lane_ids)
+            and manifest.get("lane_emission_policy")
+            == "LOADED_OR_DETECTED_ONLY"
+            and manifest.get("canonical_lane_count")
+            == len(CANONICAL_LANE_IDS)
+        )
+    )
+    lane_directory_set_valid = actual_lane_directory_ids == emitted_lane_ids
     execution_path = root / "execution_receipt.json"
     execution = (
         json.loads(execution_path.read_text(encoding="utf-8"))
@@ -4855,14 +4940,17 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         for name in sorted(set(declared_members) | set(actual_members))
         if declared_members.get(name) != actual_members.get(name)
     }
-    topology_reconciliation = reconcile_bundle_topology(root)
+    topology_reconciliation = reconcile_bundle_topology(
+        root,
+        lane_ids=emitted_lane_ids,
+    )
     topology_by_lane = {
         row["lane_id"]: row for row in topology_reconciliation["lanes"]
     }
     lane_reports: dict[str, Any] = {}
     lane_manifest_errors: dict[str, Any] = {}
     four_file_contracts: dict[str, Any] = {}
-    for lane_id in CANONICAL_LANE_IDS:
+    for lane_id in emitted_lane_ids:
         lane = LANE_REGISTRY[lane_id]
         lane_root = root / lane_id
         lane_reports[lane_id] = _validate_lane_database(
@@ -4955,8 +5043,9 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
     registry_ids = [row.get("canonical_lane_id") for row in registry.get("lanes", [])]
     bundle_sha256 = sha256_bytes(canonical_json_bytes(actual_members))
     route_values_valid = all(
-        lane_id in LANE_REGISTRY for lane_id in routes.get("routes", {}).values()
+        lane_id in emitted_lane_ids for lane_id in routes.get("routes", {}).values()
     )
+    report_lane_ids = [row.get("lane_id") for row in manifest.get("reports", [])]
     modern_execution_valid = bool(
         execution
         and execution.get("schema")
@@ -4979,7 +5068,18 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         )
         is False
         and execution.get("deterministic_assembly_order")
-        == list(CANONICAL_LANE_IDS)
+        == list(emitted_lane_ids)
+        and execution.get("submitted_lane_count") == len(emitted_lane_ids)
+        and (
+            not conditional_lane_emission
+            or (
+                execution.get("emitted_lane_ids") == list(emitted_lane_ids)
+                and execution.get("omitted_lane_ids") == list(omitted_lane_ids)
+                and execution.get("always_loaded_lane_ids") == ["chat_lineage"]
+                and execution.get("lane_emission_policy")
+                == "LOADED_OR_DETECTED_ONLY"
+            )
+        )
         and manifest.get("parallel_execution") == execution
         and manifest.get("source_policy") == execution.get("source_policy")
         and manifest.get("source_snapshot_sha256")
@@ -5029,7 +5129,10 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         and manifest.get("source_count") == len(routes.get("routes", {}))
         and manifest.get("source_routes_sha256")
         == sha256_bytes(canonical_json_bytes(routes.get("routes", {})))
-        and manifest.get("lane_count") == len(CANONICAL_LANE_IDS)
+        and manifest.get("lane_count") == len(emitted_lane_ids)
+        and report_lane_ids == list(emitted_lane_ids)
+        and emission_contract_valid
+        and lane_directory_set_valid
         and execution_valid
         and topology_valid
         and not lane_manifest_errors
@@ -5039,6 +5142,13 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         "status": "PASS" if valid else "FAIL",
         "valid": valid,
         "lane_count": len(lane_reports),
+        "canonical_lane_count": len(CANONICAL_LANE_IDS),
+        "emitted_lane_ids": list(emitted_lane_ids),
+        "omitted_lane_ids": list(omitted_lane_ids),
+        "lane_emission_policy_enforced": conditional_lane_emission,
+        "lane_emission_contract_valid": emission_contract_valid,
+        "lane_directory_set_valid": lane_directory_set_valid,
+        "actual_lane_directory_ids": list(actual_lane_directory_ids),
         "lanes": lane_reports,
         "summary": manifest.get("summary"),
         "bundle_sha256": bundle_sha256,

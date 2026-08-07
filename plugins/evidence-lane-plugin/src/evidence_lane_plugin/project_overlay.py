@@ -36,6 +36,30 @@ PROJECT_SECTORS: tuple[str, ...] = (
 )
 
 
+def _active_project_sectors(lane_bundle: Path) -> tuple[str, ...]:
+    """Return only sectors actually emitted by the current lane bundle.
+
+    Historical overlays without lane emission metadata retain the legacy
+    universal registry. New bundles never create null sector placeholders for
+    lanes that were neither loaded nor detected.
+    """
+
+    manifest_path = lane_bundle / "manifest.json"
+    if manifest_path.is_file():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        declared = manifest.get("emitted_lane_ids")
+        if isinstance(declared, list):
+            return tuple(
+                sector_id for sector_id in PROJECT_SECTORS if sector_id in declared
+            )
+    discovered = tuple(
+        sector_id
+        for sector_id in PROJECT_SECTORS
+        if (lane_bundle / sector_id).is_dir()
+    )
+    return discovered or PROJECT_SECTORS
+
+
 def _schema(connection: sqlite3.Connection) -> None:
     connection.executescript(
         """
@@ -214,7 +238,15 @@ def build_project_overlay(
         "INSERT INTO overlay_meta(key,value) VALUES(?,?)", sorted(metadata.items())
     )
     lane_bundle = Path(lane_bundle_path).resolve()
-    for ordinal, sector_id in enumerate(PROJECT_SECTORS):
+    active_sector_ids = _active_project_sectors(lane_bundle)
+    connection.execute(
+        "INSERT INTO overlay_meta(key,value) VALUES(?,?)",
+        (
+            "active_sector_ids_json",
+            json.dumps(list(active_sector_ids), separators=(",", ":")),
+        ),
+    )
+    for ordinal, sector_id in enumerate(active_sector_ids):
         lane = LANE_REGISTRY[sector_id]
         connection.execute(
             "INSERT INTO project_sector_registry VALUES(?,?,?,?)",
@@ -291,6 +323,8 @@ def build_project_overlay(
             ),
         )
         for sector_id, reason in _fanout(event, code_mode).items():
+            if sector_id not in active_sector_ids:
+                continue
             connection.execute(
                 "INSERT INTO chat_lineage_sector_fanout VALUES(?,?,?,1)",
                 (event["event_id"], sector_id, reason),
@@ -331,7 +365,7 @@ def build_project_overlay(
         '  rankdir="LR";',
         f'  candidate [label="{candidate_id}\\nCANDIDATE ONLY"];',
     ]
-    for ordinal, sector_id in enumerate(PROJECT_SECTORS):
+    for ordinal, sector_id in enumerate(active_sector_ids):
         label = LANE_REGISTRY[sector_id].display_label.replace('"', "'")
         count = fanout_counts.get(sector_id, 0)
         mmd.append(f'    C --> S{ordinal}["{label}<br/>lineage={count}"]')
@@ -344,13 +378,18 @@ def build_project_overlay(
     atomic_write_bytes(
         output / "project_overlay.dot", ("\n".join(dot) + "\n").encode("utf-8")
     )
-    validation = validate_project_overlay(output)
+    validation = validate_project_overlay(
+        output,
+        expected_sector_ids=active_sector_ids,
+    )
     manifest = {
         "schema": "evidence-lane.project-sector-overlay-manifest.v1",
         "candidate_id": candidate_id,
         "proposed_pv": proposed_pv,
         "truth_state": "CANDIDATE_ONLY",
-        "sector_count": len(PROJECT_SECTORS),
+        "sector_count": len(active_sector_ids),
+        "sector_ids": list(active_sector_ids),
+        "lane_placeholder_policy": "ABSENT_WHEN_NOT_LOADED_OR_DETECTED",
         "lineage_event_count": len(events),
         "fanout_counts": fanout_counts,
         "accepted_sector_truth_written": False,
@@ -372,8 +411,23 @@ def build_project_overlay(
     }
 
 
-def validate_project_overlay(directory: str | Path) -> dict[str, Any]:
+def validate_project_overlay(
+    directory: str | Path,
+    *,
+    expected_sector_ids: tuple[str, ...] | list[str] | None = None,
+) -> dict[str, Any]:
     root = Path(directory).resolve()
+    if expected_sector_ids is None:
+        manifest_path = root / "manifest.json"
+        if manifest_path.is_file():
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            declared = manifest.get("sector_ids")
+            expected_sector_ids = (
+                tuple(declared) if isinstance(declared, list) else PROJECT_SECTORS
+            )
+        else:
+            expected_sector_ids = PROJECT_SECTORS
+    expected_sector_ids = tuple(expected_sector_ids)
     database_path = root / "project_overlay.sqlite"
     connection = sqlite3.connect(
         f"file:{database_path.as_posix()}?mode=ro&immutable=1", uri=True
@@ -388,6 +442,12 @@ def validate_project_overlay(directory: str | Path) -> dict[str, Any]:
             connection.execute(
                 "SELECT COUNT(*) FROM project_sector_registry"
             ).fetchone()[0]
+        )
+        actual_sector_ids = tuple(
+            str(row[0])
+            for row in connection.execute(
+                "SELECT sector_id FROM project_sector_registry ORDER BY ordinal"
+            )
         )
         accepted_rows = int(
             connection.execute(
@@ -405,7 +465,8 @@ def validate_project_overlay(directory: str | Path) -> dict[str, Any]:
     valid = (
         integrity == ["ok"]
         and not foreign_keys
-        and sector_count == 14
+        and sector_count == len(expected_sector_ids)
+        and actual_sector_ids == expected_sector_ids
         and accepted_rows == 0
         and fts_count == event_count
     )
@@ -415,6 +476,8 @@ def validate_project_overlay(directory: str | Path) -> dict[str, Any]:
         "integrity": integrity,
         "foreign_key_errors": foreign_keys,
         "sector_count": sector_count,
+        "sector_ids": list(actual_sector_ids),
+        "expected_sector_ids": list(expected_sector_ids),
         "lineage_event_count": event_count,
         "fts_count": fts_count,
         "accepted_sector_truth_rows": accepted_rows,

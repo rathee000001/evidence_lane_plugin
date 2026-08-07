@@ -1,13 +1,18 @@
 flowchart TD
     R["/evi"] --> U{"User requested State Travel or host context exhausted?"}
-    U -- "Yes" --> S{"Sealed accepted-PV handoff?"}
+    U -- "Yes" --> S{"Active governed session and exact handoff prepared?"}
     S -- "Yes" --> T["/evi-state-travel in a genuinely fresh host"]
-    S -- "No" --> SB["BLOCKED: no eligible handoff"]
-    T --> TV["Verify host ID, atomic Boot/Flash, pointer generation, manifest, package seals, freshness"]
-    TV --> W["WAITING_FOR_NEXT_USER_COMMAND"]
+    S -- "No" --> SP["Prepare exact task/candidate, pointer base, source, Plan Lane, Deltas, resume row, and execution profile"]
+    SP --> T
+    T --> TV["Verify host ID, atomic Boot/Flash, pointer base, package/candidate seals, source, plan, and host profile"]
+    TV --> TM{"Travel mode"}
+    TM -- "UNFINISHED_VERIFIED_WORK" --> RW["RESUME_EXACT_UNFINISHED_STEP; preserve sole writer"]
+    TM -- "ACCEPTED_ENTRY" --> W["WAITING_FOR_NEXT_USER_COMMAND"]
     U -- "No" --> B["/evi-boot: doctor + locked Flash + storage route + boot/resume"]
     B --> C["Six controls: Boot, Rollback, Build, Refresh, Mode, Source Intake"]
     C --> I["Generalized ordered Source Intake; always Chat Lineage"]
+    C --> PL["Codex /evi-plan: require /pl, persist Plan Lane, return copy/paste Goal prompt"]
+    PL --> PS["Linked steer appends to row; unrelated steer appends new row; panel persists to HIL"]
     I --> P{"Accepted PV exists?"}
     P -- "No" --> F["PV1 full eighteen-lane build"]
     P -- "Yes" --> E["Load accepted entry; bounded task"]

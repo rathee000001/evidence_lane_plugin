@@ -17,9 +17,18 @@ from .auth import OAuthJWTConfig, OAuthJWTVerifier, StaticBearerVerifier
 from .constants import ENGINE_VERSION
 from .github_automation_governance import apply_fastmcp_tool_filter
 from .lane_engine import prewarm_native_dependencies
+from .mcp_apps import (
+    GOVERNED_PANEL_URI,
+    MCP_APP_MIME_TYPE,
+    build_project_panel_snapshot,
+    build_runtime_panel_snapshot,
+    governed_panel_html,
+    governed_panel_resource_meta,
+    governed_panel_tool_meta,
+)
 from .service import EvidenceLaneService
 
-_PUBLIC_SITE_URL = "https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app"
+_PUBLIC_SITE_URL = "https://evidencelane.org"
 
 _READ_ONLY = ToolAnnotations(
     readOnlyHint=True,
@@ -95,7 +104,7 @@ def create_mcp_server(
     mcp = FastMCP(
         "Evidence Lane Plugin",
         instructions=(
-            "A prepared post-Fuse handoff makes /evi-state-travel eligible but "
+            "A prepared exact-work handoff makes /evi-state-travel eligible but "
             "never auto-selects or consumes it. Display and run State Travel only "
             "after an explicit user request or genuine host-context exhaustion. "
             "Otherwise start /evi with atomic /evi-boot plus locked ENV/UOP Flash "
@@ -105,9 +114,12 @@ def create_mcp_server(
             "lanes and Project Engulf and always includes Chat Lineage. Fuse "
             "requires exact APPROVE through pv_fuse and seals a fresh-window "
             "handoff without rebuilding. When explicitly triggered, State Travel "
-            "verifies atomic Boot/Flash, the "
-            "accepted pointer, and seals in a fresh Codex task or ChatGPT chat, "
-            "then waits. A booted session remains active until /evi-exit-boot. "
+            "verifies atomic Boot/Flash, the pointer base, any candidate, live "
+            "source, Plan Lane, additive Deltas, and host execution profile in a "
+            "fresh task/chat. It resumes unfinished work at the exact row; an "
+            "accepted-entry request waits. Codex Plan/Goal/task-panel controls do "
+            "not apply to ChatGPT's separate mounted persistent runtime. A booted "
+            "session remains active until /evi-exit-boot. "
             "Before every HIL or State Travel stop, visibly render the returned "
             "suggested_next_prompt. The host owns composer suggestions; never "
             "claim the MCP wrote the prompt bar and never auto-submit it. "
@@ -152,6 +164,20 @@ def create_mcp_server(
                 "package_sha256": release_identity.get("package_sha256"),
             }
         )
+
+    @mcp.resource(
+        GOVERNED_PANEL_URI,
+        name="evidence-lane-governed-console",
+        title="Evidence Lane governed console",
+        description=(
+            "Portable read-only MCP Apps interface for verified runtime, lane, "
+            "accepted-pointer, candidate, and HIL facts."
+        ),
+        mime_type=MCP_APP_MIME_TYPE,
+        meta=governed_panel_resource_meta(exact_public_site),
+    )
+    def evidence_lane_governed_console() -> str:
+        return governed_panel_html(exact_public_site)
 
     @mcp.tool(
         name="runtime_doctor",
@@ -208,7 +234,7 @@ def create_mcp_server(
         description=(
             "Return the single executable event/from/to transition table used by "
             "session boot, PV build, task classification, Refresh, six-way HIL, "
-            "rollback state travel, and fresh-window accepted-PV handoff."
+            "rollback state travel, and fresh-window exact-work handoff."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Reading lifecycle law", "Lifecycle law ready"),
@@ -233,6 +259,54 @@ def create_mcp_server(
     )
     def lane_catalog() -> dict[str, Any]:
         return application.invoke("lane_catalog", application.lane_catalog)
+
+    @mcp.tool(
+        name="render_runtime_panel",
+        title="Render Evidence Lane runtime panel",
+        description=(
+            "Render a read-only MCP Apps panel from the authoritative runtime "
+            "doctor and canonical lane catalog. Use runtime_doctor or lane_catalog "
+            "directly when the host does not support UI."
+        ),
+        annotations=_READ_ONLY,
+        meta=governed_panel_tool_meta(
+            "Rendering Evidence Lane runtime", "Runtime panel ready"
+        ),
+        structured_output=True,
+    )
+    def render_runtime_panel() -> dict[str, Any]:
+        def snapshot() -> dict[str, Any]:
+            return build_runtime_panel_snapshot(
+                doctor=application.doctor(),
+                lane_catalog=application.lane_catalog(),
+                public_site_url=exact_public_site,
+            )
+
+        return application.invoke("render_runtime_panel", snapshot)
+
+    @mcp.tool(
+        name="render_project_panel",
+        title="Render governed project and HIL panel",
+        description=(
+            "Render a read-only MCP Apps panel for one registered project's "
+            "accepted pointer, active lifecycle state, pending candidate, and HIL "
+            "boundary. This tool never accepts, rejects, rolls back, or promotes."
+        ),
+        annotations=_READ_ONLY,
+        meta=governed_panel_tool_meta(
+            "Rendering governed project status", "Project panel ready"
+        ),
+        structured_output=True,
+    )
+    def render_project_panel(project_id: str) -> dict[str, Any]:
+        def snapshot() -> dict[str, Any]:
+            return build_project_panel_snapshot(
+                project_id=project_id,
+                project_status=application.status(project_id),
+                public_site_url=exact_public_site,
+            )
+
+        return application.invoke("render_project_panel", snapshot)
 
     @mcp.tool(
         name="source_intake_classify",
@@ -1097,6 +1171,8 @@ def create_mcp_server(
         tasks: list[dict[str, Any]],
         planned_by: str,
         plan_id: str | None = None,
+        host_kind: str | None = None,
+        host_mode: str | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "pv_plan_tasks",
@@ -1105,6 +1181,44 @@ def create_mcp_server(
             tasks=tasks,
             planned_by=planned_by,
             plan_id=plan_id,
+            host_kind=host_kind,
+            host_mode=host_mode,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="pv_plan_steer_delta",
+        title="Append one canonical steer Delta",
+        description=(
+            "Record a visible user steer before the next HIL by default. The host "
+            "agent must classify it as either linked to one existing Plan Lane task "
+            "or unrelated and therefore one complete new task row. Linked steers "
+            "never replace the task or change the count; unrelated steers append a "
+            "new numbered row and increase the persistent task-panel count."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Recording steer Delta", "Steer Delta recorded"),
+        structured_output=True,
+    )
+    def pv_plan_steer_delta(
+        project_id: str,
+        delta_text: str,
+        actor: str,
+        delta_id: str,
+        linked_task_id: str | None = None,
+        new_task_contract: dict[str, Any] | None = None,
+        boundary: str = "BEFORE_NEXT_HIL",
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "pv_plan_steer_delta",
+            application.record_steer_delta,
+            project_id,
+            delta_text=delta_text,
+            actor=actor,
+            delta_id=delta_id,
+            linked_task_id=linked_task_id,
+            new_task_contract=new_task_contract,
+            boundary=boundary,
             lifecycle=True,
         )
 
@@ -1462,13 +1576,14 @@ def create_mcp_server(
         description=(
             "Require the exact case-sensitive token APPROVE, promote the pending "
             "candidate byte-for-byte with compare-and-swap, and seal the exact "
-            "accepted pointer for State Travel into a fresh Codex task or ChatGPT "
-            "chat. No rebuild or remake occurs."
+            "accepted-entry handoff. That handoff makes later user-requested or "
+            "context-exhaustion State Travel eligible; it never auto-travels. No "
+            "rebuild or remake occurs."
         ),
         annotations=_HIL_WRITE,
         meta=_meta(
             "Fusing approved PV candidate",
-            "PV fused; fresh-window State Travel required",
+            "PV fused; accepted-entry handoff sealed",
         ),
         structured_output=True,
     )
@@ -1492,15 +1607,17 @@ def create_mcp_server(
 
     @mcp.tool(
         name="pv_state_travel_prepare",
-        title="Prepare accepted PV State Travel",
+        title="Prepare exact-work State Travel",
         description=(
-            "Idempotently seal the accepted PV, pointer generation, manifest, and "
-            "package hashes for a host-mediated fresh Codex task or ChatGPT chat. "
-            "This does not claim that the host window was opened."
+            "Idempotently seal the exact active governed boundary for a fresh host "
+            "task/chat. By default unfinished tasks or candidates preserve state, "
+            "source, pointer base, Plan Lane rows, additive Deltas, resume row, and "
+            "execution profile; explicit ACCEPTED_ENTRY selects accepted context. "
+            "This does not claim the host window or model selector was changed."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta(
-            "Preparing accepted PV State Travel",
+            "Preparing exact-work State Travel",
             "State Travel handoff prepared",
         ),
         structured_output=True,
@@ -1508,12 +1625,14 @@ def create_mcp_server(
     def pv_state_travel_prepare(
         project_id: str,
         session_id: str,
+        resume_contract: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "pv_state_travel_prepare",
             application.prepare_state_travel,
             project_id,
             session_id,
+            resume_contract=resume_contract,
             lifecycle=True,
         )
 
@@ -1521,10 +1640,11 @@ def create_mcp_server(
         name="pv_state_travel_resume",
         title="Verify State Travel in a fresh host window",
         description=(
-            "In the fresh Codex task or ChatGPT chat, verify the locked Flash, bind "
-            "the new host session, enter the exact accepted PV without rebuilding, "
-            "verify pointer generation and package seals, then stop in "
-            "WAITING_FOR_NEXT_USER_COMMAND."
+            "Before binding the fresh host session, fail closed unless its supplied "
+            "model/submodel/reasoning/speed selectors match the prepared profile. "
+            "Then verify Flash, pointer base, any candidate, Plan Lane, live source, "
+            "and exact resume contract. Unfinished work becomes resume-ready at the "
+            "same row without clearing state; accepted entry waits for the user."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta(

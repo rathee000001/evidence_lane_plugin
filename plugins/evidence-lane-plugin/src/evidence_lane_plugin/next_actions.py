@@ -143,18 +143,20 @@ def state_travel_next_action(
     command: str,
     suggested_next_prompt: str,
     target_surface: str,
+    display_position: str = "FINAL_VISIBLE_ACTION",
+    stop_and_wait: bool = True,
 ) -> dict[str, Any]:
     """Return the host-neutral prompt contract for State Travel."""
 
     return {
         "schema": "evidence-lane.next-action.v1",
         "state": state,
-        "display_position": "FINAL_VISIBLE_ACTION",
+        "display_position": display_position,
         "command": command,
         "suggested_next_prompt": suggested_next_prompt,
         "target_surface": target_surface,
         "composer_authority": "HOST_OWNED",
         "documented_mcp_composer_mutation_supported": False,
         "auto_submit": False,
-        "stop_and_wait": True,
+        "stop_and_wait": stop_and_wait,
     }

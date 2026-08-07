@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app">Website preview</a>
+  <a href="https://evidencelane.org">Website</a>
   &nbsp;·&nbsp;
   <a href="docs/ARCHITECTURE.md">Architecture</a>
   &nbsp;·&nbsp;
@@ -101,10 +101,21 @@ accepted PVs, or pointer history. A later `/evi-boot` re-verifies the locked
 authority and explicitly reattaches the runtime.
 
 `/evi-state-travel` is a conditional continuity event, not a normal seventh
-control. A sealed accepted-PV handoff makes it eligible, but it runs only after
-an explicit user request or genuine host-context exhaustion. It never runs just
-because a task is long, a handoff exists, or the user asks to continue the same
-HIL in the current task.
+control. It runs only after an explicit user request or genuine host-context
+exhaustion. Acceptance is not a prerequisite: an active task, pending
+correction, or unaccepted candidate is sealed with its pointer base, live-source
+identity, Plan Lane, additive Deltas, exact resume row, and host execution
+profile. A fresh destination verifies those bytes and resumes the same row.
+`ACCEPTED_ENTRY` remains available when explicitly requested. Evidence Lane
+cannot change host-owned model selectors, so Codex destination profile mismatch
+fails before host rebinding. A prepared handoff never invokes itself.
+
+`/evi-plan` is a Codex-only Planning sidecar. If native Plan mode is not active,
+it writes nothing and reminds the user to type `/pl`. After planning it persists
+the canonical Plan Lane and returns a short prompt the user copies into the
+host-owned Codex Goal. Linked steers append to an existing row; unrelated
+steers append a new numbered row; the default boundary is before the next HIL.
+The full task panel persists until that HIL is actually presented.
 
 ## Atomic Boot and host routing
 
@@ -114,6 +125,12 @@ one new governed boot or resume of the existing session. Codex desktop and CLI
 prefer user-owned local SQLite. Remote or ephemeral hosts require a configured
 transactional durable connector. Google Drive is an optional verified mirror or
 fallback, never the primary authority when durable local storage exists.
+
+Codex and ChatGPT are separate host universes over the same lifecycle code.
+Codex may project Plan Lane into native Plan, Goal, and task-panel surfaces.
+ChatGPT does not claim those Codex controls: its plugin reads and appends through
+its own persistent mounted host storage (or another configured durable runtime
+connector) under the same append-only lane, ENV, PV, and Exit-Slip laws.
 
 The Vercel project in this repository is only a thin HTTPS adapter for the
 ChatGPT remote MCP. It verifies release identity and proxies to a separately
@@ -131,7 +148,8 @@ Vercel Pro is not required or enabled by this release. A separately purchased
 domain may be bound to an exact production deployment only after HIL approval.
 
 The reviewed public website preview is
-[`https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app`](https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app).
+[`https://evidencelane.org`](https://evidencelane.org). The public ChatGPT MCP
+endpoint is [`https://mcp.evidencelane.org/mcp`](https://mcp.evidencelane.org/mcp).
 This website URL is published in both the Codex plugin manifest and ChatGPT MCP
 server metadata; website availability remains separate from MCP readiness.
 
@@ -166,12 +184,13 @@ path/content policy. Exclusion receipts contain only safe path and reason codes,
 never secret bytes or secret environment-variable names.
 
 The MMD and DOT files are semantic projections of the lane SQLite authority,
-not flat file inventories. Every lane shows source intake, its lane-specific
-schema and materialized fact kinds, retrieval/CAS/FTS, refresh and pointer
-evidence, and the inspectable output contract. Code lanes additionally show
-symbols, imports, routes, dependencies, reachable Git commits/refs, file
-changes, blob/chunk CAS, occurrences, and history FTS. Empty lanes remain
-explicitly schema-ready instead of pretending that evidence exists.
+not flat file inventories. Every emitted lane shows source intake, its
+lane-specific schema and materialized fact kinds, retrieval/CAS/FTS, refresh
+and pointer evidence, and the inspectable output contract. Code lanes
+additionally show symbols, imports, routes, dependencies, reachable Git
+commits/refs, file changes, blob/chunk CAS, occurrences, and history FTS. A
+lane that is neither loaded nor detected emits no PV folder or placeholder;
+only the canonical registry remains schema-ready for a later intake.
 The v1.3 reconciliation gate parses both formats, requires meaningful structural
 floors, rejects dangling endpoints, compares exact subgraph/node/edge identities,
 and checks every emitted table, fact-kind, and root count against read-only

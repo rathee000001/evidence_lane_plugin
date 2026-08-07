@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from pathlib import Path
 
@@ -264,6 +265,12 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
 def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() -> None:
     landing = (APP / "page.tsx").read_text(encoding="utf-8")
     ledger = (COMPONENTS / "delta-ledger-explorer.tsx").read_text(encoding="utf-8")
+    current_plan_component = (COMPONENTS / "current-execution-plan.tsx").read_text(
+        encoding="utf-8"
+    )
+    current_plan_data = (APP / "_data" / "current-execution-plan.ts").read_text(
+        encoding="utf-8"
+    )
     footer = (COMPONENTS / "site-footer.tsx").read_text(encoding="utf-8")
     site = (APP / "_data" / "site.ts").read_text(encoding="utf-8")
     contributors = (APP / "_data" / "contributors.ts").read_text(encoding="utf-8")
@@ -272,23 +279,84 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "No re-explanation tax" in landing
     assert "Parse once, query again" in landing
     assert "Human / AI boundary" in landing
-    assert landing.index('className="section shell releaseHome"') < landing.index('id="delta-ledger"')
+    assert landing.index('className="section shell releaseHome"') < landing.index(
+        'id="current-execution-plan"'
+    ) < landing.index('id="delta-ledger"')
+    step_rows = re.findall(r'^  ".*",$', current_plan_data, flags=re.MULTILINE)
+    assert len(step_rows) == 51
+    assert 'activeRow: 46' in current_plan_data
+    assert 'completedRows: 45' in current_plan_data
+    assert 'persistentUntil: "NEXT_SIX_WAY_HIL_PRESENTED"' in current_plan_data
+    assert 'priorHilDecisionAlreadyRecorded: "APPROVE_WITH_DELTA"' in current_plan_data
+    assert "CURRENT_PLAN_LANE_NOT_HISTORICAL_ACCEPTED_DELTA_LEDGER" in current_plan_data
+    assert "one-shot dummy test across every non-Git lane" in current_plan_data
+    assert "neither loaded nor detected leaves no PV folder or placeholder" in current_plan_data
+    assert 'aria-label="Current 51-step Evidence Lane execution plan"' in current_plan_component
+    assert "currentExecutionPlan.map" in current_plan_component
+    assert "linked steer appends to its existing row" in current_plan_component
     assert "useState(false)" in ledger
     assert 'aria-expanded={expanded}' in ledger
     assert 'expanded ? "Collapse Delta ledger" : "Open Delta ledger"' in ledger
     assert "{expanded ? (" in ledger
 
-    for heading in ("Policies", "Repository", "Contributors"):
+    for heading in ("Policies", "Repository", "Contributors", "Praveen Rathee"):
         assert f"<strong>{heading}</strong>" in footer
     for route in ("/license", "/copyright", "/credits"):
         assert (APP / route.removeprefix("/") / "page.tsx").is_file()
-    for label in ("README", "License", "Copyright", "Security", "Full contribution record"):
+    for label in ("README", "License", "Copyright", "Security", "Contributors"):
         assert f">{label}</Link>" in footer
+    assert footer.count('href="/credits"') == 1
     for person in ("Naveen Rathee", "Kapil Dhawan", "Steven Tock", "Sumit Hooda"):
         assert person in contributors
+        assert person not in footer
+    for label, url in (
+        ("LinkedIn", "https://www.linkedin.com/in/praveen-rathee-8b028030b/"),
+        ("Devpost", "https://devpost.com/software/evidence-lane-plugins-codex-claude-code"),
+        ("YouTube", "https://www.youtube.com/@praveenrathee8675"),
+    ):
+        assert f'label: "{label}"' in site
+        assert url in site
     assert "salary" not in contributors.casefold()
     assert "h1b" not in contributors.casefold()
-    assert site.startswith('export const publicSiteUrl = "https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app";')
+    assert site.startswith('export const publicSiteUrl = "https://evidencelane.org";')
+    assert 'publicMcpUrl = "https://mcp.evidencelane.org/mcp"' in site
+
+
+def test_public_plugin_metadata_and_third_party_rights_are_canonical() -> None:
+    metadata = json.loads(
+        (ADAPTER / "public" / ".well-known" / "evidence-lane-plugin.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    layout = (APP / "layout.tsx").read_text(encoding="utf-8")
+    connect = (APP / "connect" / "page.tsx").read_text(encoding="utf-8")
+    license_page = (APP / "license" / "page.tsx").read_text(encoding="utf-8")
+    copyright_page = (APP / "copyright" / "page.tsx").read_text(encoding="utf-8")
+    repository_license = (ROOT / "LICENSE.md").read_text(encoding="utf-8")
+    repository_copyright = (ROOT / "COPYRIGHT.md").read_text(encoding="utf-8")
+
+    assert metadata["homepage"] == "https://evidencelane.org"
+    assert metadata["mcp_endpoint"] == "https://mcp.evidencelane.org/mcp"
+    assert metadata["interactive_ui"]["mime_type"] == "text/html;profile=mcp-app"
+    assert metadata["interactive_ui"]["render_tools"] == [
+        "render_runtime_panel",
+        "render_project_panel",
+    ]
+    assert "siteName: \"Evidence Lane\"" in layout
+    assert "data-mcp-apps=\"SUPPORTED\"" in connect
+    assert "ChatGPT owns the surrounding listing and settings layout" in connect
+    boundary = (
+        "Third-party software, services, models, assets, and trademarks remain "
+        "governed"
+    )
+    for surface in (
+        license_page,
+        copyright_page,
+        repository_license,
+        repository_copyright,
+    ):
+        assert boundary in surface
+        assert "Evidence Lane grants no rights over them" in surface
 
 
 def test_three_and_framer_motion_are_bounded_and_accessible() -> None:

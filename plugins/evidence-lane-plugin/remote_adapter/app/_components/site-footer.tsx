@@ -1,7 +1,6 @@
 import Link from "next/link";
 
-import { humanContributions } from "../_data/contributors";
-import { primaryNavigation } from "../_data/site";
+import { ownerSocialLinks, primaryNavigation } from "../_data/site";
 
 export function SiteFooter() {
   return (
@@ -33,8 +32,11 @@ export function SiteFooter() {
         </div>
         <div>
           <strong>Contributors</strong>
-          <Link href="/credits">Full contribution record</Link>
-          {humanContributions.map((person) => <Link href={person.href} key={person.name}>{person.name}</Link>)}
+          <Link href="/credits">Contributors</Link>
+        </div>
+        <div>
+          <strong>Praveen Rathee</strong>
+          {ownerSocialLinks.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}
         </div>
       </div>
     </footer>

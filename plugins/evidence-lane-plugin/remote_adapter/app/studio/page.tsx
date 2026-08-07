@@ -11,9 +11,10 @@ export default function StudioPage() {
           <span className="eyebrow"><i />Evidence AI Studio</span>
           <h1>Ask the product. See the evidence boundary.</h1>
           <p>
-            Query the committed plugin, policy, lane, mode, website, and Git-history corpus
-            instead of re-explaining it. The local hybrid index returns extractive evidence and
-            refuses unsupported claims; it does not disguise a keyword script as a model.
+            Query the committed plugin, current 51-step Plan Lane, historical Delta ledger,
+            policy, lane, mode, website, and Git-history corpus instead of re-explaining it. The
+            local hybrid index returns extractive evidence and refuses unsupported claims; it
+            does not disguise a keyword script as a model.
           </p>
           <div className="actions">
             <Link className="primary universal-pill actionGlassPill" href="/architecture" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001">

@@ -28,8 +28,13 @@ from evidence_lane_plugin.pv_package import validate_pv_package
 
 EXPECTED_BRANCH = "agent/evi-v130-all-source-brain-workflow-hil-v1.3.0"
 EVIDENCE_ROOT = REPOSITORY_ROOT / "evidence" / "implementation_v41"
+CORRECTION_EVIDENCE_ROOT = REPOSITORY_ROOT / "evidence" / "implementation_v42"
+CORRECTION_BASE_SOURCE_COMMIT = "6020563094154ff780705cbed85f453425884914"
 CORRECTION_RECEIPT = (
     EVIDENCE_ROOT / "DELTA080A_V130_EXECUTABLE_GATE_VERSION_CORRECTION_RECEIPT.json"
+)
+SOURCE_DISPOSITION_RECEIPT = (
+    CORRECTION_EVIDENCE_ROOT / "ALL_SOURCE_DISPOSITION_RECEIPT.json"
 )
 
 
@@ -109,21 +114,27 @@ def _quality_python() -> str:
     raise AssertionError("No governed Python runtime is available for Ruff/MyPy.")
 
 
-def _sealed_receipt(name: str) -> dict[str, Any]:
-    path = EVIDENCE_ROOT / name
+def _sealed_receipt_path(path: Path) -> dict[str, Any]:
     payload = _load(path)
     declared = payload.get("receipt_sha256")
-    _require(isinstance(declared, str) and len(declared) == 64, f"No seal: {name}")
+    _require(
+        isinstance(declared, str) and len(declared) == 64,
+        f"No seal: {path.name}",
+    )
     canonical = dict(payload)
     canonical.pop("receipt_sha256", None)
     computed = sha256_bytes(canonical_json_bytes(canonical))
-    _require(declared == computed, f"Stale receipt self-seal: {name}")
+    _require(declared == computed, f"Stale receipt self-seal: {path.name}")
     return {
-        "name": name,
+        "name": path.name,
         "receipt_sha256": computed,
         "file_sha256": sha256_file(path),
         "payload": payload,
     }
+
+
+def _sealed_receipt(name: str) -> dict[str, Any]:
+    return _sealed_receipt_path(EVIDENCE_ROOT / name)
 
 
 def check_ac01() -> dict[str, Any]:
@@ -323,13 +334,30 @@ def check_ac12() -> dict[str, Any]:
     _require(candidate.is_dir(), "The immutable candidate path is missing.")
     validation = validate_pv_package(candidate)
     manifest = _load(candidate / "manifest.json")
+    project_identity = _load(candidate / "project_identity.json")
     exit_slip = _load(candidate / "exit_slip.json")
     pointer = _load(project_root / "active_pointer.json")
+    source_disposition = _sealed_receipt_path(SOURCE_DISPOSITION_RECEIPT)
+    source_commit = ((project_identity.get("repository") or {}).get("commit_sha"))
+    engine_commit = (manifest.get("engine") or {}).get("commit")
+    exit_commit = (exit_slip.get("repository_exit") or {}).get("commit_sha")
     _require(validation.get("candidate_id") == expected_candidate, "Candidate mismatch.")
     _require(validation.get("status") == "PASS", "Candidate validation failed.")
-    _require((manifest.get("engine") or {}).get("commit") == expected_commit, "Engine mismatch.")
+    _require(expected_commit == _git("rev-parse", "HEAD"), "Live source commit mismatch.")
     _require(
-        (exit_slip.get("repository_exit") or {}).get("commit_sha") == expected_commit,
+        source_disposition["payload"].get("correction_base_source_commit")
+        == CORRECTION_BASE_SOURCE_COMMIT,
+        "Correction-base source commit mismatch.",
+    )
+    _require(
+        expected_commit != CORRECTION_BASE_SOURCE_COMMIT,
+        "The corrected implementation was not committed after its preserved base.",
+    )
+    _git("merge-base", "--is-ancestor", CORRECTION_BASE_SOURCE_COMMIT, expected_commit)
+    _require(source_commit == expected_commit, "Candidate source commit mismatch.")
+    _require(engine_commit == expected_commit, "Engine mismatch.")
+    _require(
+        exit_commit == expected_commit,
         "Exit commit mismatch.",
     )
     _require(pointer.get("accepted_pv") == expected_pv == "PV5", "PV5 pointer moved.")
@@ -354,7 +382,12 @@ def check_ac12() -> dict[str, Any]:
         "candidate_id": expected_candidate,
         "manifest_sha256": validation.get("manifest_sha256"),
         "package_sha256": validation.get("package_sha256"),
-        "engine_commit": expected_commit,
+        "correction_base_source_commit": CORRECTION_BASE_SOURCE_COMMIT,
+        "corrected_source_commit": source_commit,
+        "engine_commit": engine_commit,
+        "exit_slip_commit": exit_commit,
+        "commit_identity_parity": source_commit == engine_commit == exit_commit,
+        "source_disposition_receipt": source_disposition["receipt_sha256"],
         "accepted_pv_retained": expected_pv,
         "pointer_generation_retained": expected_generation,
         "prebuild_passed": 11,

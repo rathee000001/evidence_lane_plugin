@@ -3211,6 +3211,26 @@ main { padding-top: 106px; }
   box-shadow: inset 3px 4px 7px rgba(255,255,255,.8), 0 10px 24px rgba(44,73,96,.11);
 }
 
+/* Current Plan Lane stays distinct from the historical additive Delta ledger. */
+.currentExecutionPlanBand { background: linear-gradient(180deg,rgba(250,253,255,.96),rgba(234,248,252,.62)); }
+.currentExecutionPlan { margin-top: 42px; padding: clamp(18px,3vw,34px); border: 1px solid rgba(143,196,220,.7); border-radius: 30px; background: linear-gradient(145deg,rgba(255,255,255,.94),rgba(225,245,251,.7)); box-shadow: inset 1px 1px 0 white, 0 24px 60px rgba(55,108,139,.1); }
+.executionPlanSummary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+.executionPlanSummary span { padding: 15px 18px; display: flex; align-items: baseline; gap: 8px; color: #5e7587; border: 1px solid rgba(170,207,224,.68); border-radius: 17px; background: rgba(255,255,255,.68); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.executionPlanSummary strong { color: #2d84a5; font: 900 22px/1 "Cascadia Code",Consolas,monospace; }
+.executionPlanSummary .active { color: #765519; border-color: rgba(225,181,78,.62); background: rgba(255,248,222,.82); }
+.executionPlanSummary .active strong { color: #b17b13; }
+.currentExecutionPlan ol { margin: 28px 0 0; padding: 0; list-style: none; border-top: 1px solid rgba(163,202,221,.72); }
+.executionPlanRow { padding: 15px 6px; display: grid; grid-template-columns: 48px minmax(0,1fr); gap: 14px; border-bottom: 1px solid rgba(177,207,222,.58); content-visibility: auto; contain-intrinsic-size: 0 76px; }
+.executionPlanRow.statusIN_PROGRESS { margin-inline: -12px; padding-inline: 18px; border: 1px solid rgba(225,181,78,.64); border-radius: 18px; background: linear-gradient(145deg,rgba(255,250,231,.95),rgba(255,241,197,.72)); box-shadow: 0 12px 26px rgba(166,119,27,.1); content-visibility: visible; }
+.executionStepNumber { padding-top: 4px; color: #3186a7; font: 900 12px/1 "Cascadia Code",Consolas,monospace; }
+.statusIN_PROGRESS .executionStepNumber { color: #ae7812; }
+.executionStepStatus { color: #568195; font: 850 8px/1.2 "Cascadia Code",Consolas,monospace; letter-spacing: .08em; }
+.statusIN_PROGRESS .executionStepStatus { color: #95630b; }
+.statusPENDING .executionStepStatus { color: #738493; }
+.executionPlanRow p { margin: 6px 0 0; color: #415e72; font-size: 13px; line-height: 1.55; }
+.statusCOMPLETED p { color: #6a7f8f; }
+.executionPlanLaw { margin: 22px 0 0; padding: 17px 19px; color: #526d80; border-left: 3px solid #5ac5df; background: rgba(238,250,253,.72); }
+
 /* Delta ledger is the long-form story; off-screen rows defer rendering. */
 .deltaLedgerBand { border-block: 1px solid rgba(165,204,225,.62); background: linear-gradient(180deg,rgba(232,247,253,.56),rgba(255,255,255,.95)); }
 .deltaLedgerExplorer { margin-top: 42px; padding: 22px; border: 1px solid rgba(154,198,222,.66); border-radius: 28px; background: linear-gradient(145deg,rgba(255,255,255,.82),rgba(229,246,252,.62)); box-shadow: inset 1px 1px 0 rgba(255,255,255,.96), 0 24px 60px rgba(55,108,139,.09); }
@@ -3512,6 +3532,9 @@ main { padding-top: 106px; }
   .fourFileRail { grid-template-columns: 1fr; }
   .laneToolchainPage .lanePicker { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .operatorModeTabs { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .executionPlanSummary { grid-template-columns: 1fr; }
+  .currentExecutionPlan { padding-inline: 14px; }
+  .executionPlanRow.statusIN_PROGRESS { margin-inline: -4px; padding-inline: 10px; }
   .deltaLedgerFilters .glass-pill { width: 100%; }
   .deltaLedgerToggleRow { align-items: stretch; flex-direction: column; }
   .deltaLedgerToggleRow .glass-pill { width: 100%; min-width: 0; }

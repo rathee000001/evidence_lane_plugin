@@ -282,8 +282,11 @@ def audit_lane_bundle(
     topology_by_lane = {
         row["lane_id"]: row for row in topology_reconciliation["lanes"]
     }
+    emitted_lane_ids = tuple(
+        bundle_validation.get("emitted_lane_ids") or CANONICAL_LANE_IDS
+    )
     lane_audits: list[dict[str, Any]] = []
-    for lane_id in CANONICAL_LANE_IDS:
+    for lane_id in emitted_lane_ids:
         lane = LANE_REGISTRY[lane_id]
         lane_root = root / lane_id
         lane_manifest = _read_json(lane_root / "lane_manifest.json")

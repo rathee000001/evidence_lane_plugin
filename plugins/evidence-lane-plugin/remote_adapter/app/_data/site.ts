@@ -1,4 +1,14 @@
-export const publicSiteUrl = "https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app";
+export const publicSiteUrl = "https://evidencelane.org";
+export const publicMcpOrigin = "https://mcp.evidencelane.org";
+export const publicMcpUrl = "https://mcp.evidencelane.org/mcp";
+export const publicMcpHealthUrl = "https://mcp.evidencelane.org/healthz";
+export const repositoryUrl = "https://github.com/rathee000001/evidence_lane_plugin";
+
+export const ownerSocialLinks = [
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/praveen-rathee-8b028030b/" },
+  { label: "Devpost", href: "https://devpost.com/software/evidence-lane-plugins-codex-claude-code" },
+  { label: "YouTube", href: "https://www.youtube.com/@praveenrathee8675" },
+] as const;
 
 export const primaryNavigation = [
   { href: "/", label: "Home" },
@@ -12,6 +22,7 @@ export const primaryNavigation = [
 ] as const;
 
 export const promptSuggestions = [
+  "What is active step 46 in the current 51-step execution Plan Lane?",
   "How does Evidence Lane stop project re-explanation and re-parsing?",
   "How do accepted pointers, Exit Slips, and HIL separate human input from AI work?",
   "How does Refresh reuse parsed facts and rebuild only changed sections?",

@@ -544,6 +544,62 @@ class ProjectStore:
             self._plan_runtime_path(project_id),
             backlog,
         )
+        ordered_tasks = sorted(backlog["tasks"], key=lambda row: int(row["sequence"]))
+        panel_status = {
+            "ACTIVE": "in_progress",
+            "DONE": "completed",
+            "ACCEPTED": "completed",
+        }
+        goal_rows = [
+            {
+                "number": int(task["sequence"]),
+                "task_id": str(task["task_id"]),
+                "step": str(task["requested_outcome"]),
+                "status": panel_status.get(str(task["status"]), "pending"),
+                "lifecycle_status": str(task["status"]),
+                "steer_deltas": list(task.get("steer_deltas") or []),
+            }
+            for task in ordered_tasks
+        ]
+        goal_projection_body = {
+            "canonical_authority": "PLAN_LANE",
+            "project_id": project_id,
+            "task_count": len(goal_rows),
+            "rows": goal_rows,
+            "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
+            "steer_default_boundary": "BEFORE_NEXT_HIL",
+            "linked_steer_policy": "APPEND_TO_EXISTING_STEP_WITHOUT_REPLACEMENT",
+            "unlinked_steer_policy": "APPEND_NEW_NUMBERED_STEP_AND_INCREASE_COUNT",
+        }
+        goal_projection = {
+            **goal_projection_body,
+            "projection_sha256": sha256_bytes(
+                canonical_json_bytes(goal_projection_body)
+            ),
+            "host_projections": {
+                "CODEX": {
+                    "native_plan_mode": True,
+                    "plan_mode_shortcut": "/pl",
+                    "plugin_command": "/evi-plan",
+                    "native_goal": True,
+                    "native_task_panel": True,
+                    "goal_start_requires_user_paste": True,
+                },
+                "CHATGPT": {
+                    "native_plan_mode": False,
+                    "native_goal": False,
+                    "native_task_panel": False,
+                    "mounted_plugin_store_is_authority": True,
+                    "append_only_lane_law_preserved": True,
+                },
+            },
+            "goal_start_prompt": (
+                f"Use the persisted Evidence Lane Plan Lane for project {project_id} "
+                "as this Codex task's Goal. Resume the first in-progress or pending "
+                "step, keep the full task panel visible through every steer, and stop "
+                "at the next governed six-way HIL."
+            ),
+        }
         return {
             "status": "PASS",
             "schema": backlog["schema"],
@@ -561,8 +617,160 @@ class ProjectStore:
             ),
             "universal_statuses": list(DELTA_STATUSES),
             "plan_runtime_projection": runtime,
+            "goal_projection": goal_projection,
             "tasks": backlog["tasks"],
             "plans": backlog["plans"],
+        }
+
+    def record_steer_delta(
+        self,
+        project_id: str,
+        *,
+        delta_text: str,
+        actor: str,
+        delta_id: str,
+        linked_task_id: str | None = None,
+        new_task_contract: dict[str, Any] | None = None,
+        boundary: str = "BEFORE_NEXT_HIL",
+    ) -> dict[str, Any]:
+        """Canonically link a steer or append one new linear Plan Lane row."""
+
+        exact_text = delta_text
+        exact_actor = actor.strip()
+        exact_delta_id = delta_id.strip()
+        exact_boundary = boundary.strip().upper() or "BEFORE_NEXT_HIL"
+        exact_link = str(linked_task_id or "").strip()
+        require(
+            bool(exact_text.strip()) and len(exact_text) <= 50000,
+            "STEER_DELTA_TEXT_INVALID",
+            "A steer Delta requires its exact visible text.",
+            status="BLOCKED",
+        )
+        require(
+            bool(exact_actor),
+            "STEER_DELTA_ACTOR_REQUIRED",
+            "A steer Delta requires a visible actor.",
+            status="BLOCKED",
+        )
+        require(
+            bool(exact_delta_id)
+            and len(exact_delta_id) <= 96
+            and all(character in _PROJECT_ID_CHARS for character in exact_delta_id),
+            "STEER_DELTA_ID_INVALID",
+            "A steer Delta requires a stable public-safe ID.",
+            status="BLOCKED",
+        )
+        require(
+            bool(exact_boundary) and len(exact_boundary) <= 128,
+            "STEER_DELTA_BOUNDARY_INVALID",
+            "A steer Delta boundary must be a bounded visible label.",
+            status="BLOCKED",
+        )
+        is_linked = bool(exact_link)
+        is_new_step = new_task_contract is not None
+        require(
+            is_linked != is_new_step,
+            "STEER_DELTA_CLASSIFICATION_REQUIRED",
+            "Classify the steer as exactly one linked existing step or one new step.",
+            status="BLOCKED",
+        )
+
+        if is_new_step:
+            require(
+                isinstance(new_task_contract, dict),
+                "STEER_DELTA_NEW_TASK_CONTRACT_INVALID",
+                "An unlinked steer requires one complete bounded task contract.",
+                status="BLOCKED",
+            )
+            new_task = cast(dict[str, Any], new_task_contract)
+            plan_digest = sha256_bytes(exact_delta_id.encode("utf-8")).lower()
+            self.plan_tasks(
+                project_id,
+                tasks=[new_task],
+                planned_by=exact_actor,
+                plan_id=f"steerplan_{plan_digest[:32]}",
+            )
+            exact_link = str(new_task.get("task_id") or "").strip()
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            task = next(
+                (row for row in backlog["tasks"] if row["task_id"] == exact_link),
+                None,
+            )
+            require(
+                task is not None,
+                "STEER_DELTA_LINKED_TASK_NOT_FOUND",
+                "The classified Plan Lane task does not exist.",
+                status="MISMATCH",
+                task_id=exact_link,
+            )
+            task = cast(dict[str, Any], task)
+            steer_row = {
+                "delta_id": exact_delta_id,
+                "text": exact_text,
+                "boundary": exact_boundary,
+                "boundary_defaulted": boundary == "BEFORE_NEXT_HIL",
+                "classification": "NEW_STEP" if is_new_step else "LINKED_EXISTING_STEP",
+                "linked_task_id": exact_link,
+                "recorded_by": exact_actor,
+            }
+            existing = next(
+                (
+                    row
+                    for candidate in backlog["tasks"]
+                    for row in candidate.get("steer_deltas", [])
+                    if row.get("delta_id") == exact_delta_id
+                ),
+                None,
+            )
+            if existing is not None:
+                require(
+                    existing == steer_row,
+                    "STEER_DELTA_ID_CONFLICT",
+                    "The steer Delta ID already binds different immutable content.",
+                    status="MISMATCH",
+                    delta_id=exact_delta_id,
+                )
+                self._persist_backlog(project_id, backlog)
+                event = None
+                idempotent_reuse = True
+            else:
+                task.setdefault("steer_deltas", []).append(steer_row)
+                event_type = (
+                    "STEER_DELTA_NEW_STEP" if is_new_step else "STEER_DELTA_LINKED"
+                )
+                event = append_delta_event(
+                    backlog,
+                    task_id=exact_link,
+                    event_type=event_type,
+                    to_status=str(task["status"]),
+                    actor=exact_actor,
+                    event_id=(
+                        "steer_"
+                        f"{sha256_bytes(exact_delta_id.encode('utf-8'))[:32].lower()}"
+                    ),
+                    assume_initialized=True,
+                    details={
+                        "delta_id": exact_delta_id,
+                        "delta_sha256": sha256_bytes(exact_text.encode("utf-8")),
+                        "boundary": exact_boundary,
+                        "classification": steer_row["classification"],
+                        "task_count_changed": is_new_step,
+                    },
+                )
+                self._persist_backlog(project_id, backlog)
+                idempotent_reuse = False
+        status = self.backlog_status(project_id)
+        return {
+            "status": "PASS",
+            "idempotent_reuse": idempotent_reuse,
+            "steer": steer_row,
+            "event": event,
+            "task_count": status["goal_projection"]["task_count"],
+            "task_count_changed": is_new_step,
+            "backlog": status,
         }
 
     def claim_backlog_task(

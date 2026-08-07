@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
@@ -68,6 +68,17 @@ _OUTPUT_THREAT_RULES: tuple[tuple[str, re.Pattern[str]], ...] = (
     ),
 )
 _DEFAULT_SAFE_OUTPUT_CHARS = 4_000
+GH_AW_HARNESS_REFERENCE_COMMIT = "75ed171c12321e0cf4249a732c9860386bdc46a0"
+_HARNESS_OUTCOMES = ("PASS", "FAIL", "ERROR")
+_HARNESS_FORBIDDEN_INPUT_KEYS = {
+    "cmd",
+    "command",
+    "cwd",
+    "executable",
+    "script",
+    "shell",
+    "working_directory",
+}
 
 
 def _normalize_execution_ids(
@@ -186,6 +197,234 @@ def inspect_agent_output(
         "safe_output_sha256": sha256_bytes(safe_output.encode("utf-8")),
         "safe_infrastructure_error": safe_error,
     }
+    body["receipt_sha256"] = sha256_bytes(canonical_json_bytes(body))
+    return body
+
+
+def _normalize_harness_payload(value: object, *, path: str = "payload") -> Any:
+    """Accept only bounded JSON fixtures and reject command-shaped inputs."""
+
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if isinstance(value, Mapping):
+        normalized: dict[str, Any] = {}
+        for raw_key, raw_value in value.items():
+            require(
+                isinstance(raw_key, str) and bool(raw_key.strip()),
+                "AGENT_HARNESS_INPUT_INVALID",
+                "Harness fixture keys must be non-empty strings.",
+                status="BLOCKED",
+                path=path,
+            )
+            key = raw_key.strip()
+            require(
+                key.casefold() not in _HARNESS_FORBIDDEN_INPUT_KEYS,
+                "AGENT_HARNESS_COMMAND_INPUT_FORBIDDEN",
+                "The in-process harness never accepts a shell, command, or script input.",
+                status="BLOCKED",
+                path=f"{path}.{key}",
+            )
+            normalized[key] = _normalize_harness_payload(
+                raw_value, path=f"{path}.{key}"
+            )
+        return dict(sorted(normalized.items()))
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        return [
+            _normalize_harness_payload(item, path=f"{path}[{index}]")
+            for index, item in enumerate(value)
+        ]
+    require(
+        False,
+        "AGENT_HARNESS_INPUT_INVALID",
+        "Harness fixtures must contain only bounded JSON values.",
+        status="BLOCKED",
+        path=path,
+    )
+    raise AssertionError("unreachable")
+
+
+@dataclass(frozen=True, slots=True)
+class AgentHarnessCase:
+    """One deterministic, in-process agent-workflow execution fixture."""
+
+    case_id: str
+    handler_id: str
+    payload: Mapping[str, object]
+    expected_outcome: str = "PASS"
+
+    def normalized(self) -> AgentHarnessCase:
+        case_id = self.case_id.strip()
+        handler_id = self.handler_id.strip()
+        expected = self.expected_outcome.strip().upper()
+        require(
+            bool(_EXECUTION_EVIDENCE_ID.fullmatch(case_id)),
+            "AGENT_HARNESS_CASE_INVALID",
+            "Harness case_id must be an exact non-secret identifier.",
+            status="BLOCKED",
+        )
+        require(
+            bool(_EXECUTION_EVIDENCE_ID.fullmatch(handler_id)),
+            "AGENT_HARNESS_CASE_INVALID",
+            "Harness handler_id must be an exact registered identifier.",
+            status="BLOCKED",
+        )
+        require(
+            expected in _HARNESS_OUTCOMES,
+            "AGENT_HARNESS_CASE_INVALID",
+            "Harness expected_outcome must be PASS, FAIL, or ERROR.",
+            status="BLOCKED",
+            expected_outcome=expected,
+        )
+        payload = _normalize_harness_payload(self.payload)
+        require(
+            isinstance(payload, dict),
+            "AGENT_HARNESS_INPUT_INVALID",
+            "A harness fixture payload must be a JSON object.",
+            status="BLOCKED",
+        )
+        return AgentHarnessCase(
+            case_id=case_id,
+            handler_id=handler_id,
+            payload=cast(dict[str, object], payload),
+            expected_outcome=expected,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class AgentHarnessResult:
+    """Constrained output returned by one registered in-process handler."""
+
+    outcome: str
+    output: str
+
+    def normalized(self) -> AgentHarnessResult:
+        outcome = self.outcome.strip().upper()
+        require(
+            outcome in {"PASS", "FAIL"},
+            "AGENT_HARNESS_RESULT_INVALID",
+            "Registered handlers may return only PASS or FAIL; exceptions are ERROR.",
+            status="BLOCKED",
+            outcome=outcome,
+        )
+        require(
+            isinstance(self.output, str),
+            "AGENT_HARNESS_RESULT_INVALID",
+            "Registered handler output must be text.",
+            status="BLOCKED",
+        )
+        return AgentHarnessResult(outcome=outcome, output=self.output)
+
+
+def run_agent_execution_harness(
+    cases: Sequence[AgentHarnessCase],
+    *,
+    handlers: Mapping[
+        str, Callable[[Mapping[str, object]], AgentHarnessResult]
+    ],
+    max_safe_output_chars: int = _DEFAULT_SAFE_OUTPUT_CHARS,
+) -> dict[str, Any]:
+    """Run exact registered fixtures and seal a deterministic execution receipt.
+
+    This is the project-authored contract inspired by ``gh-aw-harness``. It is
+    deliberately separate from SQLite continuity/retrieval and never interprets
+    payload text as a command, shell script, executable, or working directory.
+    """
+
+    require(
+        not isinstance(cases, (str, bytes)) and bool(cases),
+        "AGENT_HARNESS_CASE_SET_EMPTY",
+        "At least one exact harness case is required.",
+        status="BLOCKED",
+    )
+    normalized = tuple(item.normalized() for item in cases)
+    case_ids = [item.case_id for item in normalized]
+    require(
+        len(case_ids) == len(set(case_ids)),
+        "AGENT_HARNESS_CASE_DUPLICATE",
+        "Harness case identifiers must be unique.",
+        status="BLOCKED",
+    )
+    registered_handlers = tuple(sorted(str(item).strip() for item in handlers))
+    for handler_id in registered_handlers:
+        require(
+            bool(_EXECUTION_EVIDENCE_ID.fullmatch(handler_id))
+            and callable(handlers[handler_id]),
+            "AGENT_HARNESS_HANDLER_INVALID",
+            "Every harness handler must have an exact identifier and callable implementation.",
+            status="BLOCKED",
+            handler_id=handler_id,
+        )
+    missing = sorted(
+        {item.handler_id for item in normalized} - set(registered_handlers)
+    )
+    require(
+        not missing,
+        "AGENT_HARNESS_HANDLER_MISSING",
+        "A harness case references an unregistered handler.",
+        status="BLOCKED",
+        missing_handlers=missing,
+    )
+
+    case_receipts: list[dict[str, Any]] = []
+    failed_case_ids: list[str] = []
+    for case in normalized:
+        infrastructure_error: str | None = None
+        try:
+            result = handlers[case.handler_id](case.payload).normalized()
+            observed_outcome = result.outcome
+            output = result.output
+        except Exception as exc:  # noqa: BLE001 - registered fixture failures are evidence
+            observed_outcome = "ERROR"
+            output = ""
+            infrastructure_error = f"{type(exc).__name__}: {exc}"
+        inspection = inspect_agent_output(
+            output,
+            infrastructure_error=infrastructure_error,
+            max_safe_chars=max_safe_output_chars,
+        )
+        outcome_matches = observed_outcome == case.expected_outcome
+        security_passes = inspection["threat_status"] == "PASS"
+        case_status = "PASS" if outcome_matches and security_passes else "BLOCKED"
+        if case_status != "PASS":
+            failed_case_ids.append(case.case_id)
+        case_receipt = {
+            "case_id": case.case_id,
+            "handler_id": case.handler_id,
+            "payload_sha256": sha256_bytes(canonical_json_bytes(case.payload)),
+            "expected_outcome": case.expected_outcome,
+            "observed_outcome": observed_outcome,
+            "outcome_matches": outcome_matches,
+            "security_status": inspection["threat_status"],
+            "infrastructure_status": inspection["infrastructure_status"],
+            "output_inspection_receipt_sha256": inspection["receipt_sha256"],
+            "safe_output": inspection["safe_output"],
+            "safe_infrastructure_error": inspection["safe_infrastructure_error"],
+            "status": case_status,
+        }
+        case_receipt["receipt_sha256"] = sha256_bytes(
+            canonical_json_bytes(case_receipt)
+        )
+        case_receipts.append(case_receipt)
+
+    body: dict[str, Any] = {
+        "schema": "evidence-lane.agent-execution-harness.v1",
+        "status": "PASS" if not failed_case_ids else "BLOCKED",
+        "contract": {
+            "transport": "IN_PROCESS_REGISTERED_HANDLER",
+            "arbitrary_command_input_accepted": False,
+            "shell_spawned_by_harness": False,
+            "sqlite_continuity_harness_used": False,
+            "continuity_or_retrieval_role": False,
+            "upstream_code_imported": False,
+            "upstream_reference": "github/gh-aw-harness",
+            "upstream_reference_commit": GH_AW_HARNESS_REFERENCE_COMMIT,
+        },
+        "registered_handlers": list(registered_handlers),
+        "case_count": len(case_receipts),
+        "failed_case_ids": failed_case_ids,
+        "cases": case_receipts,
+    }
+    body["case_set_sha256"] = sha256_bytes(canonical_json_bytes(body["cases"]))
     body["receipt_sha256"] = sha256_bytes(canonical_json_bytes(body))
     return body
 

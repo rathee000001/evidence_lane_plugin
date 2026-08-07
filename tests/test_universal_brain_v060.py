@@ -320,6 +320,13 @@ def test_project_overlay_is_candidate_only_and_fans_out_visible_lineage(
     )
     lane_bundle = tmp_path / "lanes"
     lane_bundle.mkdir()
+    active_sector_ids = ["local_code", "chat_lineage", "artifacts"]
+    (lane_bundle / "manifest.json").write_text(
+        json.dumps({"emitted_lane_ids": active_sector_ids}),
+        encoding="utf-8",
+    )
+    for sector_id in active_sector_ids:
+        (lane_bundle / sector_id).mkdir()
     output = tmp_path / "overlay"
     result = build_project_overlay(
         output,
@@ -337,7 +344,21 @@ def test_project_overlay_is_candidate_only_and_fans_out_visible_lineage(
     assert result["fanout_counts"]["chat_lineage"] == 1
     assert result["fanout_counts"]["local_code"] == 1
     assert result["fanout_counts"]["artifacts"] == 1
+    expected_overlay_order = ["chat_lineage", "local_code", "artifacts"]
+    assert result["sector_ids"] == expected_overlay_order
     connection = sqlite3.connect(output / "project_overlay.sqlite")
+    assert [
+        row[0]
+        for row in connection.execute(
+            "SELECT sector_id FROM project_sector_registry ORDER BY ordinal"
+        )
+    ] == expected_overlay_order
+    assert (
+        connection.execute(
+            "SELECT COUNT(*) FROM project_sector_registry WHERE sector_id='github_code'"
+        ).fetchone()[0]
+        == 0
+    )
     assert (
         connection.execute(
             "SELECT COUNT(*) FROM chat_lineage_event WHERE accepted_sector_truth<>0"

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { DeltaLedgerExplorer } from "./_components/delta-ledger-explorer";
+import { CurrentExecutionPlan } from "./_components/current-execution-plan";
 import { GlassIconOrb, OfficialToolIcon, PulsatingBrain } from "./_components/evidence-assets";
 import { MotionReveal } from "./_components/motion-reveal";
 import { PluginSurfaceCatalog } from "./_components/plugin-surface-catalog";
@@ -170,6 +171,21 @@ export default function Home() {
           </p>
         </div>
         <ReleaseStatus />
+      </section>
+
+      <section className="section currentExecutionPlanBand" id="current-execution-plan">
+        <div className="shell">
+          <div className="sectionHead wideHead">
+            <span className="kicker">Current governed work</span>
+            <h2>Fifty-one execution steps. Row 46 is the active correction.</h2>
+            <p>
+              Rows 1&ndash;45 are complete, row 46 contains the already-recorded
+              APPROVE_WITH_DELTA correction, and rows 47&ndash;51 remain pending. This is the
+              live Plan Lane; the eighty historical Deltas below remain read-only evidence.
+            </p>
+          </div>
+          <CurrentExecutionPlan />
+        </div>
       </section>
 
       <section className="section deltaLedgerBand" id="delta-ledger">

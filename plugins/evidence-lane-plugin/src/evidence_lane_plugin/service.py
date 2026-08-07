@@ -1033,12 +1033,65 @@ class EvidenceLaneService:
         tasks: list[dict[str, Any]],
         planned_by: str,
         plan_id: str | None = None,
+        host_kind: str | None = None,
+        host_mode: str | None = None,
     ) -> dict[str, Any]:
-        return self.store.plan_tasks(
+        exact_host = str(host_kind or "").strip().upper()
+        exact_mode = str(host_mode or "").strip().upper()
+        if exact_host.startswith("CODEX") and exact_mode != "PLAN":
+            return {
+                "status": "PLAN_MODE_REQUIRED",
+                "plan_persisted": False,
+                "host_kind": exact_host,
+                "host_mode": exact_mode or "NOT_DECLARED",
+                "suggested_next_prompt": "/pl",
+                "message": (
+                    "Turn on Codex Plan mode with /pl, finish the plan, then run "
+                    "/evi-plan again so Plan Lane and the native Goal/task panel pair."
+                ),
+                "chatgpt_plan_mode_assumed": False,
+            }
+        result = self.store.plan_tasks(
             project_id,
             tasks=tasks,
             planned_by=planned_by,
             plan_id=plan_id or prefixed_id("plan"),
+        )
+        result["host_plan_bridge"] = {
+            "host_kind": exact_host or "UNDECLARED",
+            "host_mode": exact_mode or "UNDECLARED",
+            "canonical_authority": "PLAN_LANE",
+            "codex_goal_start_prompt": result["goal_projection"][
+                "goal_start_prompt"
+            ],
+            "copy_paste_required": exact_host.startswith("CODEX"),
+            "host_goal_mutation_supported_by_mcp": False,
+            "chatgpt_uses_codex_plan_ui": False,
+            "chatgpt_mounted_plugin_store_is_authority": exact_host.startswith(
+                "CHATGPT"
+            ),
+        }
+        return result
+
+    def record_steer_delta(
+        self,
+        project_id: str,
+        *,
+        delta_text: str,
+        actor: str,
+        delta_id: str,
+        linked_task_id: str | None = None,
+        new_task_contract: dict[str, Any] | None = None,
+        boundary: str = "BEFORE_NEXT_HIL",
+    ) -> dict[str, Any]:
+        return self.store.record_steer_delta(
+            project_id,
+            delta_text=delta_text,
+            actor=actor,
+            delta_id=delta_id,
+            linked_task_id=linked_task_id,
+            new_task_contract=new_task_contract,
+            boundary=boundary,
         )
 
     def task_backlog(self, project_id: str) -> dict[str, Any]:
@@ -1315,10 +1368,16 @@ class EvidenceLaneService:
         self,
         project_id: str,
         session_id: str,
+        *,
+        resume_contract: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Seal the accepted pointer for a fresh host task or chat."""
+        """Seal accepted context or the exact verified unfinished boundary."""
 
-        return self.sessions.prepare_state_travel(project_id, session_id)
+        return self.sessions.prepare_state_travel(
+            project_id,
+            session_id,
+            resume_contract=resume_contract,
+        )
 
     def resume_state_travel(
         self,
@@ -1353,6 +1412,14 @@ class EvidenceLaneService:
             supplied_session_id=session_id,
         )
         flash = self.flash_authority.ensure_flashed()
+        destination_preflight = self.sessions.validate_state_travel_destination(
+            project_id,
+            session_id,
+            handoff_id=handoff_id,
+            host=host,
+            host_session_id=host_session_id,
+            runtime_context=runtime_context,
+        )
         boot = self.resume_session(
             project_id=project_id,
             host=host,
@@ -1367,15 +1434,29 @@ class EvidenceLaneService:
             session_id,
             handoff_id=handoff_id,
             flash=flash,
+            destination_runtime_context=runtime_context,
         )
-        return {
-            **verified,
-            "ordered_entry_verification": [
+        travel_mode = verified["state_travel"].get("travel_mode", "ACCEPTED_ENTRY")
+        ordered_entry_verification = (
+            [
+                "/evi-boot",
+                "ATOMIC_BOOT_AND_LOCKED_ENV_UOP_FLASH_VERIFIED",
+                "VERIFY_POINTER_BASE_AND_ANY_PRESERVED_CANDIDATE",
+                "VERIFY_PLAN_LANE_SOURCE_AND_EXECUTION_PROFILE",
+                "RESUME_EXACT_UNFINISHED_STEP",
+            ]
+            if travel_mode == "UNFINISHED_VERIFIED_WORK"
+            else [
                 "/evi-boot",
                 "ATOMIC_BOOT_AND_LOCKED_ENV_UOP_FLASH_VERIFIED",
                 "VERIFY_ACCEPTED_POINTER_AND_SEALS",
                 "WAITING_FOR_NEXT_USER_COMMAND",
-            ],
+            ]
+        )
+        return {
+            **verified,
+            "ordered_entry_verification": ordered_entry_verification,
+            "destination_preflight": destination_preflight,
             "boot": boot,
             "flash": flash,
         }

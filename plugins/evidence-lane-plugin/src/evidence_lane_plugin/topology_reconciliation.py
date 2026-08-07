@@ -824,10 +824,15 @@ def reconcile_lane_topology(
     }
 
 
-def reconcile_bundle_topology(bundle_directory: str | Path) -> dict[str, Any]:
+def reconcile_bundle_topology(
+    bundle_directory: str | Path,
+    *,
+    lane_ids: tuple[str, ...] | list[str] | None = None,
+) -> dict[str, Any]:
     from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 
     root = Path(bundle_directory).resolve()
+    selected_lane_ids = tuple(lane_ids or CANONICAL_LANE_IDS)
     lanes = [
         reconcile_lane_topology(
             root / lane_id,
@@ -836,7 +841,7 @@ def reconcile_bundle_topology(bundle_directory: str | Path) -> dict[str, Any]:
             dot_filename=LANE_REGISTRY[lane_id].dot_filename,
             sqlite_filename=LANE_REGISTRY[lane_id].sqlite_filename,
         )
-        for lane_id in CANONICAL_LANE_IDS
+        for lane_id in selected_lane_ids
     ]
     project_mermaid = parse_mermaid(
         (root / "project_lane_topology.mmd").read_text(encoding="utf-8")

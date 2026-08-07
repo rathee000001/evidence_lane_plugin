@@ -170,6 +170,10 @@ def test_lane_bundle_obeys_explicit_optional_git_arm(
     )
     assert disabled["git_optional_arm"]["state"] == "DISABLED_BY_USER"
     assert disabled["summary"]["git_history"] is None
+    assert "github_code" in disabled["emitted_lane_ids"]
+    assert (tmp_path / "disabled-bundle" / "github_code").is_dir()
+    assert "local_code" in disabled["omitted_lane_ids"]
+    assert not (tmp_path / "disabled-bundle" / "local_code").exists()
     enabled = build_lane_bundle(
         repository_root=source_repository,
         output_directory=tmp_path / "enabled-bundle",
@@ -182,6 +186,9 @@ def test_lane_bundle_obeys_explicit_optional_git_arm(
     )
     assert enabled["git_optional_arm"]["state"] == "ENABLED"
     assert enabled["summary"]["git_history"]["status"] == "PASS"
+    assert "github_code" in enabled["emitted_lane_ids"]
+    assert (tmp_path / "enabled-bundle" / "github_code").is_dir()
+    assert not (tmp_path / "enabled-bundle" / "local_code").exists()
 
 
 @pytest.mark.parametrize(

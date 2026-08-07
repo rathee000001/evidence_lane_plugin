@@ -6,13 +6,17 @@ from pathlib import Path
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.github_automation_governance import (
+    GH_AW_HARNESS_REFERENCE_COMMIT,
     GITHUB_AW_GUARD_ORDER,
+    AgentHarnessCase,
+    AgentHarnessResult,
     GitHubAWPolicy,
     GitHubAWRequest,
     audit_workflow_action_pins,
     classify_github_execution_evidence,
     evaluate_github_aw_access,
     inspect_agent_output,
+    run_agent_execution_harness,
     validate_action_reference,
 )
 from evidence_lane_plugin.mcp_server import create_mcp_server
@@ -228,3 +232,87 @@ def test_agent_output_threat_scan_covers_content_before_bounded_safe_tail() -> N
     assert receipt["findings"] == [
         {"code": "PROMPT_INJECTION_MARKER", "severity": "HIGH"}
     ]
+
+
+def test_agent_execution_harness_is_deterministic_and_distinct_from_sqlite() -> None:
+    def pass_fixture(payload: dict[str, object]) -> AgentHarnessResult:
+        return AgentHarnessResult("PASS", f"processed {payload['event_id']}")
+
+    def fail_fixture(payload: dict[str, object]) -> AgentHarnessResult:
+        return AgentHarnessResult("FAIL", f"rejected {payload['event_id']}")
+
+    def error_fixture(payload: dict[str, object]) -> AgentHarnessResult:
+        raise RuntimeError(f"offline fixture {payload['event_id']}")
+
+    cases = [
+        AgentHarnessCase("case-pass", "pass-fixture", {"event_id": "evt-01"}),
+        AgentHarnessCase(
+            "case-fail",
+            "fail-fixture",
+            {"event_id": "evt-02"},
+            expected_outcome="FAIL",
+        ),
+        AgentHarnessCase(
+            "case-error",
+            "error-fixture",
+            {"event_id": "evt-03"},
+            expected_outcome="ERROR",
+        ),
+    ]
+    handlers = {
+        "pass-fixture": pass_fixture,
+        "fail-fixture": fail_fixture,
+        "error-fixture": error_fixture,
+    }
+    first = run_agent_execution_harness(cases, handlers=handlers)
+    second = run_agent_execution_harness(cases, handlers=handlers)
+
+    assert first == second
+    assert first["status"] == "PASS"
+    assert first["failed_case_ids"] == []
+    assert first["case_count"] == 3
+    assert first["contract"] == {
+        "transport": "IN_PROCESS_REGISTERED_HANDLER",
+        "arbitrary_command_input_accepted": False,
+        "shell_spawned_by_harness": False,
+        "sqlite_continuity_harness_used": False,
+        "continuity_or_retrieval_role": False,
+        "upstream_code_imported": False,
+        "upstream_reference": "github/gh-aw-harness",
+        "upstream_reference_commit": GH_AW_HARNESS_REFERENCE_COMMIT,
+    }
+    assert [case["observed_outcome"] for case in first["cases"]] == [
+        "PASS",
+        "FAIL",
+        "ERROR",
+    ]
+    assert len(first["receipt_sha256"]) == 64
+
+
+def test_agent_execution_harness_fails_closed_on_mismatch_or_command_input() -> None:
+    handlers = {
+        "fixture": lambda payload: AgentHarnessResult(
+            "FAIL", f"bounded {payload['event_id']}"
+        )
+    }
+    mismatch = run_agent_execution_harness(
+        [AgentHarnessCase("case-mismatch", "fixture", {"event_id": "evt-04"})],
+        handlers=handlers,
+    )
+    assert mismatch["status"] == "BLOCKED"
+    assert mismatch["failed_case_ids"] == ["case-mismatch"]
+    assert mismatch["cases"][0]["outcome_matches"] is False
+
+    with pytest.raises(
+        EvidenceLaneError, match="AGENT_HARNESS_COMMAND_INPUT_FORBIDDEN"
+    ):
+        run_agent_execution_harness(
+            [AgentHarnessCase("case-shell", "fixture", {"command": "whoami"})],
+            handlers=handlers,
+        )
+
+    with pytest.raises(EvidenceLaneError, match="AGENT_HARNESS_HANDLER_MISSING"):
+        run_agent_execution_harness(
+            [AgentHarnessCase("case-missing", "unknown", {"event_id": "evt-05"})],
+            handlers=handlers,
+        )

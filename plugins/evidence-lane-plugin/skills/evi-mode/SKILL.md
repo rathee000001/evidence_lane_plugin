@@ -23,3 +23,23 @@ infer autonomous build, Fuse, deployment, or HIL approval from mode selection.
 At a HIL stop, preserve the universal six exact decision tokens but render each
 selected lane's returned accepted object, gate, rollback target, and lane
 effect. Do not reuse Code-mode HIL meanings for a non-Code lane.
+
+For Planning mode in Codex, use `/evi-plan` as the Plan Lane sidecar. If the
+host is not currently in native Plan mode, do not persist a plan: remind the
+user to type `/pl`, finish planning, and run `/evi-plan` again. Once the plan is
+final, call `pv_plan_tasks` with `host_kind=CODEX_DESKTOP` (or the exact Codex
+host) and `host_mode=PLAN`. The returned Plan Lane is the canonical goal/task
+list. Display its short `goal_start_prompt` for the user to copy and paste into
+the host-owned Codex Goal; MCP does not mutate the Goal or mode selector.
+
+Keep the full task panel visible until the next six-way HIL. For every visible
+steer, decide canonically whether it belongs to an existing task. Call
+`pv_plan_steer_delta` with that `linked_task_id` when linked; append its exact
+text without replacing the row or changing the count. If it is unrelated, pass
+one complete `new_task_contract`; the Plan Lane appends a numbered step and the
+count increases. The default boundary is `BEFORE_NEXT_HIL` unless the user says
+otherwise.
+
+Do not apply this Codex Plan-mode bridge to ChatGPT. ChatGPT persists its Plan
+Lane through the mounted plugin store and shared append-only runtime laws, but
+does not claim Codex `/pl`, Goal, or native task-panel controls.

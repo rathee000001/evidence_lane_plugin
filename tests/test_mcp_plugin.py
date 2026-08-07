@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 from evidence_lane_plugin.auth import OAuthJWTConfig, OAuthJWTVerifier
 from evidence_lane_plugin.constants import ENGINE_VERSION
+from evidence_lane_plugin.mcp_apps import GOVERNED_PANEL_URI, MCP_APP_MIME_TYPE
 from evidence_lane_plugin.mcp_server import create_mcp_server, run_server
 from evidence_lane_plugin.service import EvidenceLaneService
 from mcp.client.session import ClientSession
@@ -29,6 +30,8 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     by_name = {tool.name: tool for tool in tools}
     assert set(by_name) == {
         "runtime_doctor",
+        "render_runtime_panel",
+        "render_project_panel",
         "session_flash_status",
         "runtime_activation_status",
         "lifecycle_transition_law",
@@ -52,6 +55,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "git_sync_selected",
         "project_register",
         "pv_plan_tasks",
+        "pv_plan_steer_delta",
         "pv_task_backlog",
         "pv_task_transition",
         "session_boot",
@@ -92,6 +96,8 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     assert by_name["session_flash_status"].annotations.readOnlyHint is True
     assert by_name["runtime_activation_status"].annotations.readOnlyHint is True
     assert by_name["lane_catalog"].annotations.readOnlyHint is True
+    assert by_name["render_runtime_panel"].annotations.readOnlyHint is True
+    assert by_name["render_project_panel"].annotations.readOnlyHint is True
     assert by_name["mode_classify"].annotations.readOnlyHint is False
     assert by_name["source_sqlite_inspect"].annotations.readOnlyHint is False
     assert by_name["source_custom_schema_compile"].annotations.readOnlyHint is False
@@ -117,8 +123,48 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         in by_name["connector_plugin_route"].inputSchema["properties"]
     )
     for tool in tools:
+        assert tool.title
         assert tool.description
+        assert tool.annotations is not None
         assert tool.inputSchema["type"] == "object"
+
+
+def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
+    public_site = "https://preview.example.test"
+    server = create_mcp_server(
+        service=EvidenceLaneService(data_root=tmp_path / "store"),
+        public_site_url=public_site,
+    )
+    resources = asyncio.run(server.list_resources())
+    assert len(resources) == 1
+    resource = resources[0]
+    assert str(resource.uri) == GOVERNED_PANEL_URI
+    assert resource.mimeType == MCP_APP_MIME_TYPE
+    assert resource.meta == {
+        "ui": {
+            "prefersBorder": True,
+            "domain": public_site,
+            "csp": {"connectDomains": [], "resourceDomains": []},
+        }
+    }
+    contents = list(asyncio.run(server.read_resource(GOVERNED_PANEL_URI)))
+    assert len(contents) == 1
+    assert contents[0].mime_type == MCP_APP_MIME_TYPE
+    assert "ui/notifications/tool-result" in contents[0].content
+    assert "window.openai" in contents[0].content
+    assert "setWidgetState" in contents[0].content
+    assert "innerHTML" not in contents[0].content
+
+    by_name = {tool.name: tool for tool in asyncio.run(server.list_tools())}
+    for name in ("render_runtime_panel", "render_project_panel"):
+        tool = by_name[name]
+        assert tool.meta["ui"] == {
+            "resourceUri": GOVERNED_PANEL_URI,
+            "visibility": ["model", "app"],
+        }
+        assert tool.meta["openai/outputTemplate"] == GOVERNED_PANEL_URI
+        assert tool.outputSchema is not None
+        assert tool.outputSchema["type"] == "object"
 
 
 def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> None:
@@ -802,7 +848,12 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
         "evi-drop-additional-plugin",
         *public_order,
     }
-    assert not list(commands.glob("*.md"))
+    assert [path.name for path in commands.glob("*.md")] == ["evi-plan.md"]
+    plan_command = (commands / "evi-plan.md").read_text(encoding="utf-8")
+    assert "Type /pl, finish the plan, then run /evi-plan again." in plan_command
+    assert "host_mode=PLAN" in plan_command
+    assert "pv_plan_steer_delta" in plan_command
+    assert "does not apply Codex UI assumptions to ChatGPT" in plan_command
     for name in expected_skills:
         skill_file = skills / name / "SKILL.md"
         assert skill_file.is_file(), name

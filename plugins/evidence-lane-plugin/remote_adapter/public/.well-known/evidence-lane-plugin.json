@@ -1,0 +1,40 @@
+{
+  "schema": "evidence-lane.public-plugin-metadata.v1",
+  "name": "Evidence Lane",
+  "version": "1.3.0",
+  "short_description": "Governed project evidence with durable memory and human-controlled acceptance.",
+  "long_description": "Evidence Lane turns authorized project sources and visible AI-task lineage into inspectable, content-sealed evidence packages. It keeps candidates separate from accepted truth, preserves exact source identity and pointer history, resumes exact unfinished work through verified State Travel, and requires an explicit six-way human-in-the-loop decision before promotion.",
+  "developer": {
+    "name": "Praveen Rathee",
+    "url": "https://github.com/rathee000001"
+  },
+  "homepage": "https://evidencelane.org",
+  "mcp_endpoint": "https://mcp.evidencelane.org/mcp",
+  "logo": "https://evidencelane.org/evidence-lane-icon.png",
+  "privacy": "https://evidencelane.org/privacy",
+  "terms": "https://evidencelane.org/terms",
+  "support": "https://evidencelane.org/support",
+  "license": "https://evidencelane.org/license",
+  "copyright": "https://evidencelane.org/copyright",
+  "repository": "https://github.com/rathee000001/evidence_lane_plugin",
+  "interactive_ui": {
+    "standard": "MCP Apps",
+    "resource_uri": "ui://evidence-lane/governed-console-v1.html",
+    "mime_type": "text/html;profile=mcp-app",
+    "render_tools": [
+      "render_runtime_panel",
+      "render_project_panel"
+    ],
+    "host_boundary": "Evidence Lane supplies supported in-conversation panels; ChatGPT owns its native listing and settings layout."
+  },
+  "host_contracts": {
+    "codex": "Plan Lane may project to Codex native Plan mode, Goal, and task panel through a user-mediated /pl and /evi-plan flow.",
+    "chatgpt": "The persistent plugin runtime reads and append-writes its mounted or configured durable host storage; Codex Plan, Goal, and task-panel controls are not claimed."
+  },
+  "plan_lane": {
+    "current_public_projection": "https://evidencelane.org/#current-execution-plan",
+    "steer_default_boundary": "BEFORE_NEXT_HIL",
+    "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED"
+  },
+  "publication_state": "CANDIDATE_PENDING_VERIFICATION"
+}

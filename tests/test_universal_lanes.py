@@ -1148,19 +1148,92 @@ def test_lane_build_parallelizes_compute_and_serializes_canonical_assembly(
     )
 
     execution = manifest["parallel_execution"]
-    assert state["arrivals"] == len(CANONICAL_LANE_IDS)
+    emitted = ["chat_lineage", "docs"]
+    assert state["arrivals"] == len(emitted)
     assert first_two.broken is False
     assert execution["parallel_lane_compute"] is True
     assert execution["prewarmed_dependencies"] == []
-    assert execution["worker_count"] == 4
+    assert execution["worker_count"] == 2
     assert execution["barrier_status"] == "PASS"
     assert execution["source_snapshot_unchanged"] is True
     assert execution["source_binding"]["valid"] is True
-    assert execution["deterministic_assembly_order"] == list(CANONICAL_LANE_IDS)
-    assert [row["lane_id"] for row in manifest["reports"]] == list(
-        CANONICAL_LANE_IDS
-    )
+    assert execution["deterministic_assembly_order"] == emitted
+    assert [row["lane_id"] for row in manifest["reports"]] == emitted
+    assert manifest["emitted_lane_ids"] == emitted
+    assert not (output / "github_code").exists()
+    assert not (output / "local_code").exists()
     assert validate_lane_bundle(output)["parallel_execution_valid"] is True
+
+
+def test_one_shot_dummy_covers_every_non_git_lane_without_git_placeholder(
+    tmp_path: Path,
+) -> None:
+    repository = tmp_path / "one-shot-non-git-source"
+    repository.mkdir()
+    (repository / "local.py").write_text("def local():\n    return True\n", encoding="utf-8")
+    (repository / "chat.json").write_text('{"turn":"visible"}\n', encoding="utf-8")
+    for filename, body in (
+        ("discussion.md", "Decision: retain the bounded correction.\n"),
+        ("analysis.md", "Claim: the non-Git one-shot is deterministic.\n"),
+        ("plan.md", "Task: test every loaded non-Git lane.\n"),
+        ("mode.md", "Mode: governed correction.\n"),
+        ("research.md", "Finding: absent lanes emit no placeholder.\n"),
+    ):
+        (repository / filename).write_text(body, encoding="utf-8")
+    _write_docx(repository / "document.docx")
+    _write_xlsx(repository / "metrics.xlsx")
+    _write_pptx(repository / "slides.pptx")
+    _write_pdf(repository / "evidence.pdf")
+    (repository / "image.png").write_bytes(_ocr_image_bytes())
+    (repository / "artifact.json").write_text(
+        '{"artifact":"one-shot","status":"candidate"}\n',
+        encoding="utf-8",
+    )
+    (repository / "custom.bin").write_bytes(b"\x00\x01non-git")
+    _write_sqlite(repository / "brain-loader.sqlite")
+    _write_project_archive(repository / "project.zip")
+    _write_sqlite(repository / "sqlite-brain.sqlite")
+    overrides = {
+        "local.py": "local_code",
+        "chat.json": "chat_lineage",
+        "discussion.md": "discussion",
+        "analysis.md": "analysis",
+        "plan.md": "plan",
+        "mode.md": "mode",
+        "document.docx": "docs",
+        "metrics.xlsx": "data_excel",
+        "slides.pptx": "ppt",
+        "evidence.pdf": "pdf_ocr",
+        "image.png": "images_ocr",
+        "artifact.json": "artifacts",
+        "custom.bin": "custom",
+        "brain-loader.sqlite": "brain_loader",
+        "research.md": "research",
+        "project.zip": "project_engulf",
+        "sqlite-brain.sqlite": "sqlite_brain",
+    }
+    output = tmp_path / "one-shot-non-git-pv"
+    manifest = build_lane_bundle(
+        repository_root=repository,
+        output_directory=output,
+        code_mode="local_code",
+        parent_lane_bundle=None,
+        parent_pv=None,
+        proposed_pv="PV-NON-GIT-ONE-SHOT",
+        pointer_generation=0,
+        source_overrides=overrides,
+    )
+
+    expected = [lane_id for lane_id in CANONICAL_LANE_IDS if lane_id != "github_code"]
+    assert manifest["emitted_lane_ids"] == expected
+    assert manifest["omitted_lane_ids"] == ["github_code"]
+    assert manifest["lane_emission_policy"] == "LOADED_OR_DETECTED_ONLY"
+    assert all((output / lane_id).is_dir() for lane_id in expected)
+    assert not (output / "github_code").exists()
+    validation = validate_lane_bundle(output)
+    assert validation["valid"] is True
+    assert validation["lane_directory_set_valid"] is True
+    assert validation["actual_lane_directory_ids"] == expected
 
 
 def test_lane_build_fails_closed_when_source_snapshot_changes(
@@ -1235,7 +1308,15 @@ def test_pv1_full_build_and_pvn_incremental_lane_reuse(tmp_path: Path) -> None:
         pointer_generation=0,
         source_overrides={"notes.txt": "discussion"},
     )
-    assert first["summary"]["full_build_lanes"] == list(CANONICAL_LANE_IDS)
+    emitted = [
+        "local_code",
+        "chat_lineage",
+        "discussion",
+        "docs",
+        "data_excel",
+        "custom",
+    ]
+    assert first["summary"]["full_build_lanes"] == emitted
     assert validate_lane_bundle(pv1)["valid"] is True
     routes = json.loads((pv1 / "routes.json").read_text(encoding="utf-8"))
     assert routes["routes"]["notes.txt"] == "discussion"
@@ -1263,7 +1344,7 @@ def test_pv1_full_build_and_pvn_incremental_lane_reuse(tmp_path: Path) -> None:
         proposed_pv="PV2",
         pointer_generation=1,
     )
-    assert second["summary"]["byte_reused_lanes"] == list(CANONICAL_LANE_IDS)
+    assert second["summary"]["byte_reused_lanes"] == emitted
     assert sha256_file(code_db) == sha256_file(
         pv2 / "local_code" / "local_code_sector_v001.sqlite"
     )
@@ -1294,13 +1375,14 @@ def test_pv1_full_build_and_pvn_incremental_lane_reuse(tmp_path: Path) -> None:
     assert third["summary"]["incremental_lanes"] == [
         "discussion",
         "docs",
-        "custom",
     ]
     assert "local_code" in third["summary"]["byte_reused_lanes"]
     assert sha256_file(
         pv2 / "local_code" / "local_code_sector_v001.sqlite"
     ) == sha256_file(pv3 / "local_code" / "local_code_sector_v001.sqlite")
-    assert _count(pv3 / "custom" / "custom_sector_v001.sqlite", "source_tombstone") == 1
+    assert third["summary"]["removed_lane_ids"] == ["custom"]
+    assert "custom" in third["omitted_lane_ids"]
+    assert not (pv3 / "custom").exists()
     assert validate_lane_bundle(pv3)["valid"] is True
 
     topology = pv3 / "project_lane_topology.mmd"
@@ -1313,7 +1395,7 @@ def test_pv1_full_build_and_pvn_incremental_lane_reuse(tmp_path: Path) -> None:
     assert "project_lane_topology.mmd" in tampered["checksum_mismatches"]
 
 
-def test_missing_topology_generator_fingerprint_forces_both_code_lanes(
+def test_missing_topology_generator_fingerprint_rebuilds_only_emitted_code_lane(
     tmp_path: Path,
 ) -> None:
     repository = tmp_path / "source"
@@ -1334,16 +1416,15 @@ def test_missing_topology_generator_fingerprint_forces_both_code_lanes(
     )
 
     # Simulate a valid historical cache created before generator fingerprints
-    # were part of tools.json. Both code lanes must rebuild even when source
-    # bytes and route classification are unchanged.
-    for lane_id in ("github_code", "local_code"):
-        tools_path = parent / lane_id / "tools.json"
-        tools = json.loads(tools_path.read_text(encoding="utf-8"))
-        tools.pop("topology_generator")
-        tools_path.write_text(
-            json.dumps(tools, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
+    # were part of tools.json. Only the loaded Local Code lane may rebuild;
+    # GitHub Code must not appear as an empty placeholder.
+    tools_path = parent / "local_code" / "tools.json"
+    tools = json.loads(tools_path.read_text(encoding="utf-8"))
+    tools.pop("topology_generator")
+    tools_path.write_text(
+        json.dumps(tools, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
     candidate = tmp_path / "candidate-lanes"
     result = build_lane_bundle(
@@ -1356,18 +1437,15 @@ def test_missing_topology_generator_fingerprint_forces_both_code_lanes(
         pointer_generation=1,
     )
     reports = {row["lane_id"]: row for row in result["reports"]}
-    assert result["summary"]["both_code_lanes_forced_by_generator"] is True
-    assert set(result["summary"]["topology_generator_rebuilt_lanes"]) >= {
-        "github_code",
-        "local_code",
-    }
-    for lane_id in ("github_code", "local_code"):
-        assert reports[lane_id]["topology_generator_changed"] is True
-        assert reports[lane_id]["byte_reused"] is False
-        assert reports[lane_id]["topology_generator_sha256"]
-        assert "subgraph CODE_LOGICAL_TOPOLOGY" in (
-            candidate / lane_id / f"{lane_id}.mmd"
-        ).read_text(encoding="utf-8")
+    assert result["summary"]["both_code_lanes_forced_by_generator"] is False
+    assert result["summary"]["topology_generator_rebuilt_lanes"] == ["local_code"]
+    assert reports["local_code"]["topology_generator_changed"] is True
+    assert reports["local_code"]["byte_reused"] is False
+    assert reports["local_code"]["topology_generator_sha256"]
+    assert "subgraph CODE_LOGICAL_TOPOLOGY" in (
+        candidate / "local_code" / "local_code.mmd"
+    ).read_text(encoding="utf-8")
+    assert not (candidate / "github_code").exists()
     assert validate_lane_bundle(candidate)["valid"] is True
 
 

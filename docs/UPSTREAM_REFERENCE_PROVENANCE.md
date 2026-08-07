@@ -104,14 +104,20 @@ parity.
 - Audited commit: `75ed171c12321e0cf4249a732c9860386bdc46a0`
 - Audited tree: `c0161d9c6f8a0b50aa00a34c0162b8ac3fbeb01d`
 - License observed at that identity: MIT
-- Role: research reference for a future repeatable agentic-workflow harness.
-- Local use: no production code or behavioral contract adopted. The audited
-  repository describes itself as intentionally minimal and does not define a
-  sufficient production harness contract.
-- Boundary: presence in the ledger is not implementation evidence.
-- Verdict: **park production use; retain as a research/test reference**.
-  Confidence: high. A versioned executable contract with reproducible fixtures
-  and stable receipts would change this verdict.
+- Role: research reference for repeatable agent-workflow execution and testing.
+- Local use: Evidence Lane adopts a narrow project-authored v1 execution
+  contract: exact registered in-process handlers, bounded JSON fixtures,
+  explicit PASS/FAIL/ERROR expectations, post-output inspection, deterministic
+  case receipts, and a sealed run receipt. Shell, command, executable, working
+  directory, and script inputs are rejected before a fixture runs.
+- Implementation surfaces: `github_automation_governance.py` and
+  `tests/test_github_automation_governance.py`.
+- Boundary: no upstream code is imported. The execution harness neither reads
+  nor writes the SQLite continuity/retrieval brain; it proves repeatable fixture
+  execution, while SQLite separately preserves and retrieves governed history.
+- Verdict: **pursue the bounded testable execution contract**. Confidence:
+  high. A reproducible failure, non-deterministic receipt, command-input bypass,
+  or evidence of hidden SQLite coupling would change this verdict.
 
 ### Open WebUI (`open-webui/open-webui`)
 

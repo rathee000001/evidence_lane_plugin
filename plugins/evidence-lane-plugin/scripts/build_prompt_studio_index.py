@@ -95,6 +95,7 @@ def _source_specs(repo: Path) -> list[tuple[Path, str, str, str]]:
         ("plugins/evidence-lane-plugin/remote_adapter/README.md", "ChatGPT and Vercel adapter", _github_blob("plugins/evidence-lane-plugin/remote_adapter/README.md"), "documentation"),
         ("plugins/evidence-lane-plugin/remote_adapter/app/_data/site.ts", "Product and lane contracts", "/", "website_contract"),
         ("plugins/evidence-lane-plugin/remote_adapter/app/_data/delta-ledger.ts", "Complete Delta ledger", "/#delta-ledger", "delta_ledger"),
+        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/current-execution-plan.ts", "Current 51-step execution Plan Lane", "/#current-execution-plan", "current_plan_lane"),
         ("plugins/evidence-lane-plugin/remote_adapter/app/_data/lane-contracts.ts", "Lane schema contracts", "/lanes", "lane_contract"),
         ("plugins/evidence-lane-plugin/remote_adapter/app/_data/mode-governance.json", "Mode governance export", "/operators", "mode_contract"),
         ("plugins/evidence-lane-plugin/remote_adapter/app/_data/plugin-surfaces.ts", "Plugin surface catalog", "/architecture", "plugin_contract"),

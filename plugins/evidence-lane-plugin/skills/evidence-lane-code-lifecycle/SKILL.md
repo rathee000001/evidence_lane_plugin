@@ -10,11 +10,13 @@ Use one linear state machine. Runtime context is never accepted evidence.
 ## Non-negotiable gates
 
 - `/evi-state-travel` may run only after an explicit user request or genuine
-  host-context exhaustion and from a sealed accepted-PV handoff in a genuinely
-  fresh destination task or chat. A prepared handoff is eligibility evidence,
-  not an automatic instruction. Verify host identity, pointer generation,
-  manifest, package seals, and freshness, then stop in
-  `WAITING_FOR_NEXT_USER_COMMAND`.
+  host-context exhaustion and in a genuinely fresh destination task or chat. A
+  prepared handoff is eligibility evidence, not an automatic instruction. By
+  default preserve the exact unfinished state, task/pending correction,
+  candidate, pointer base, live source, Plan Lane, additive Deltas, resume row,
+  and host execution profile. Resume that row after verification. Use accepted
+  entry and `WAITING_FOR_NEXT_USER_COMMAND` only when the user explicitly asks
+  for accepted context or the origin is already at an accepted boundary.
 - Otherwise `/evi-boot` is first. It atomically runs runtime doctor, locked
   ENV15/UOP15 Flash verification, storage selection, and `session_boot` or
   `session_resume`. Reuse an existing governed session; never duplicate it.
@@ -63,6 +65,14 @@ locked mode namespace plus explicit custom mode schemas. It always includes
 Mode and Chat Lineage, appends a visible receipt, and returns to the prior
 lifecycle position without creating a candidate or moving a pointer.
 
+`/evi-plan` is a Codex-only Planning sidecar outside the six controls. If native
+Plan mode is not active, return the `/pl` reminder without persisting a plan.
+After planning, persist the canonical Plan Lane and return the short prompt the
+user copies into the host-owned Goal. Linked steers append to an existing row;
+unrelated steers append a new numbered row. The default steer boundary is
+before the next HIL, and the full task panel persists until that HIL. ChatGPT
+uses its mounted persistent plugin store and never claims Codex Plan/Goal UI.
+
 ## Brain and sector law
 
 Use `lane_catalog` as the sole registry for canonical lane IDs, aliases,
@@ -89,7 +99,8 @@ limited to eight additional active plugins; drop requires its exact token.
 ## Task, Refresh, and HIL
 
 1. Append requested Deltas with `pv_plan_tasks`; never delete, reorder, or
-   silently complete backlog history.
+   silently complete backlog history. Record each steer through
+   `pv_plan_steer_delta`, linking it to an existing row or appending a new row.
 2. Classify exactly one bounded task and record visible activities.
 3. Use accepted evidence as entry truth and live repository evidence for
    source changed after entry.
@@ -108,9 +119,10 @@ limited to eight additional active plugins; drop requires its exact token.
 7. Natural-language continuation or acceptance intent may be classified and
    appended to Chat Lineage, but classification never promotes. Only an exact
    first `/evi-build` argument of `APPROVE` may route to `pv_fuse`.
-8. Only the resulting sealed handoff plus an explicit user or genuine
+8. Only an exact sealed handoff plus an explicit user or genuine
    context-exhaustion trigger can authorize `/evi-state-travel` in a fresh
-   destination host.
+   destination host. Acceptance is not a prerequisite for unfinished-work
+   continuity.
 
 Default reads use accepted truth and disclose live freshness. Explicit
 candidate reads remain labeled `UNACCEPTED_CANDIDATE`. Use bounded fetches and

@@ -1,7 +1,7 @@
 # ChatGPT edge and public site
 
 Reviewed public website preview:
-[`https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app`](https://evidence-lane-chatgpt-mcp-adapter-lgcprd13c.vercel.app)
+[`https://evidencelane.org`](https://evidencelane.org)
 
 This Vercel project has two deliberately separate surfaces:
 

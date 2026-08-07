@@ -40,6 +40,13 @@ from .runtime_continuity import (
     validate_runtime_continuity,
 )
 from .state_law import LifecycleEvent, transition
+from .state_travel_contract import (
+    execution_profile_from_context,
+    execution_profile_mismatches,
+    normalize_additive_deltas,
+    normalize_task_list,
+    require_unfinished_execution_profile,
+)
 from .store import ProjectStore
 from .tasking import classify_task
 from .timeutil import utc_now
@@ -402,6 +409,7 @@ class SessionManager:
         now = utc_now()
         safe_context = redact(runtime_context or {})
         context_hash = sha256_bytes(canonical_json_bytes(safe_context))
+        execution_profile = execution_profile_from_context(runtime_context)
         exact_host_session_id = str(host_session_id or "").strip() or None
         source_edit_authority = self._source_edit_authority(
             host_kind,
@@ -443,6 +451,9 @@ class SessionManager:
                 "turn": 1,
                 "runtime_context_sha256": context_hash,
                 "runtime_context_stored_in_pv": False,
+                "execution_profile": execution_profile,
+                "execution_profile_fields_are_nonsecret_selectors": True,
+                "host_execution_profile_mutation_supported": False,
                 "installation_state": installation["state"],
                 "flash_authority_version": flash["authority_version"],
                 "flash_authority_digest": flash["authority_digest"],
@@ -770,6 +781,10 @@ class SessionManager:
         session.metadata["resume_runtime_context_sha256"] = sha256_bytes(
             canonical_json_bytes(safe_context)
         )
+        destination_profile = execution_profile_from_context(runtime_context)
+        if destination_profile:
+            session.metadata["execution_profile"] = destination_profile
+        session.metadata["host_execution_profile_mutation_supported"] = False
         self._save(session)
         event = ChatLineage(self._lineage_path(project_id, session.session_id)).append(
             event_type="session.resumed",
@@ -2290,58 +2305,540 @@ class SessionManager:
             "event": event,
         }
 
+    def _state_travel_target(self, session: SessionRecord) -> tuple[str, str]:
+        if session.host == HostKind.CHATGPT:
+            return "NEW_CHATGPT_CHAT", "OPEN_NEW_CHATGPT_CHAT"
+        if session.host in {
+            HostKind.CODEX_DESKTOP,
+            HostKind.CODEX_CLI,
+            HostKind.CODEX_VM,
+        }:
+            return "NEW_CODEX_TASK", "OPEN_NEW_CODEX_TASK"
+        return "NEW_HOST_SESSION", "OPEN_NEW_HOST_SESSION"
+
+    def _state_travel_plan_snapshot(self, project_id: str) -> dict[str, Any]:
+        backlog = self.store.backlog_status(project_id)
+        goal = cast(dict[str, Any], backlog["goal_projection"])
+        body = {
+            "canonical_authority": "PLAN_LANE",
+            "task_count": goal["task_count"],
+            "goal_projection_sha256": goal["projection_sha256"],
+            "event_count": backlog["event_count"],
+            "event_head_sha256": backlog["event_head_sha256"],
+            "planning_mode_event_count": backlog["planning_mode_event_count"],
+            "planning_mode_event_head_sha256": backlog[
+                "planning_mode_event_head_sha256"
+            ],
+            "active_task_ids": [
+                str(row["task_id"]) for row in backlog["active"]
+            ],
+        }
+        return {
+            **body,
+            "snapshot_sha256": sha256_bytes(canonical_json_bytes(body)),
+        }
+
+    def _state_travel_candidate_snapshot(
+        self,
+        project_id: str,
+        candidate_id: str | None,
+    ) -> dict[str, Any] | None:
+        if not candidate_id:
+            return None
+        validation = validate_pv_package(
+            self.store.candidate_path(project_id, candidate_id),
+            require_promotable=False,
+        )
+        return {
+            "candidate_id": candidate_id,
+            "proposed_pv": validation["proposed_pv"],
+            "manifest_sha256": validation["manifest_sha256"],
+            "package_sha256": validation["package_sha256"],
+            "promotable": validation["promotable"],
+        }
+
+    def _state_travel_source_snapshot(self, project_id: str) -> dict[str, Any]:
+        config = self.store.config(project_id)
+        identity = inspect_repository(
+            config.repository_path,
+            expected_owner=config.expected_owner,
+            expected_name=config.expected_name,
+        )
+        body = identity_json(identity, config.repository_path)
+        return {
+            **body,
+            "identity_sha256": sha256_bytes(canonical_json_bytes(body)),
+        }
+
+    def _state_travel_resume_contract(
+        self,
+        project_id: str,
+        session: SessionRecord,
+        supplied: dict[str, Any] | None,
+        *,
+        travel_mode: str,
+    ) -> dict[str, Any]:
+        raw = supplied or {}
+        task_list_source = "EXPLICIT_STATE_TRAVEL_INPUT"
+        raw_task_list = raw.get("task_list")
+        if raw_task_list is None:
+            if session.task is not None:
+                raw_task_list = [
+                    {
+                        "task_id": session.task.get("task_id", "ACTIVE_SESSION_TASK"),
+                        "step": session.task.get("requested_outcome"),
+                        "status": "IN_PROGRESS",
+                    }
+                ]
+                task_list_source = "ACTIVE_SESSION_TASK_DERIVED"
+            elif isinstance(session.metadata.get("pending_task"), dict):
+                pending = cast(dict[str, Any], session.metadata["pending_task"])
+                raw_task_list = [
+                    {
+                        "task_id": "PENDING_HIL_FOLLOW_UP",
+                        "step": pending.get("requested_outcome"),
+                        "status": "IN_PROGRESS",
+                    }
+                ]
+                task_list_source = "PENDING_TASK_DERIVED"
+            elif session.candidate_id:
+                raw_task_list = [
+                    {
+                        "task_id": "PRESENT_PENDING_HIL",
+                        "step": "Present the preserved pending candidate at its six-way HIL",
+                        "status": "IN_PROGRESS",
+                    }
+                ]
+                task_list_source = "PENDING_CANDIDATE_DERIVED"
+            else:
+                backlog = self.store.backlog_status(project_id)
+                goal = cast(dict[str, Any], backlog["goal_projection"])
+                if backlog["active"]:
+                    raw_task_list = goal["rows"]
+                    task_list_source = "ACTIVE_PLAN_LANE_DERIVED"
+                else:
+                    raw_task_list = []
+                    task_list_source = "NO_ACTIVE_PLAN"
+        task_list = normalize_task_list(raw_task_list)
+        if travel_mode == "UNFINISHED_VERIFIED_WORK":
+            require(
+                bool(task_list),
+                "STATE_TRAVEL_UNFINISHED_TASK_LIST_REQUIRED",
+                "Unfinished-work State Travel requires the active Plan Lane/task list; "
+                "historical accepted Delta rows are not a substitute.",
+                status="BLOCKED",
+                task_list_source=task_list_source,
+            )
+        active_rows = [row for row in task_list if row["status"] == "IN_PROGRESS"]
+        supplied_resume_step = raw.get("resume_step")
+        if supplied_resume_step is None:
+            resume_step = (
+                active_rows[0]["number"]
+                if active_rows
+                else next(
+                    (
+                        row["number"]
+                        for row in task_list
+                        if row["status"] == "PENDING"
+                    ),
+                    None,
+                )
+            )
+        elif isinstance(supplied_resume_step, int):
+            resume_step = supplied_resume_step
+        else:
+            supplied_task_id = str(supplied_resume_step)
+            resume_step = next(
+                (
+                    row["number"]
+                    for row in task_list
+                    if row["task_id"] == supplied_task_id
+                ),
+                None,
+            )
+        if travel_mode == "UNFINISHED_VERIFIED_WORK":
+            require(
+                isinstance(resume_step, int)
+                and 1 <= resume_step <= len(task_list)
+                and task_list[resume_step - 1]["status"] != "COMPLETED",
+                "STATE_TRAVEL_RESUME_STEP_INVALID",
+                "The exact resume step must identify one unfinished task-panel row.",
+                status="BLOCKED",
+                resume_step=resume_step,
+            )
+            if active_rows:
+                require(
+                    resume_step == active_rows[0]["number"],
+                    "STATE_TRAVEL_RESUME_STEP_ACTIVE_MISMATCH",
+                    "The resume step must match the one in-progress task-panel row.",
+                    status="MISMATCH",
+                    resume_step=resume_step,
+                    active_step=active_rows[0]["number"],
+                )
+        additive_deltas = normalize_additive_deltas(raw.get("additive_deltas"))
+        invalid_delta_links = [
+            row["delta_id"]
+            for row in additive_deltas
+            if row["linked_step"] is not None
+            and row["linked_step"] > len(task_list)
+        ]
+        require(
+            not invalid_delta_links,
+            "STATE_TRAVEL_DELTA_LINK_OUT_OF_RANGE",
+            "A State Travel Delta links outside the persistent task list.",
+            status="MISMATCH",
+            delta_ids=invalid_delta_links,
+        )
+        supplied_profile = raw.get("execution_profile")
+        if supplied_profile is not None:
+            execution_profile = execution_profile_from_context(
+                {"execution_profile": supplied_profile}
+            )
+        else:
+            execution_profile = execution_profile_from_context(
+                {"execution_profile": session.metadata.get("execution_profile", {})}
+            )
+        if travel_mode == "UNFINISHED_VERIFIED_WORK":
+            require_unfinished_execution_profile(
+                execution_profile,
+                host_kind=session.host.value,
+            )
+        resume_row = (
+            task_list[resume_step - 1]
+            if isinstance(resume_step, int) and task_list
+            else None
+        )
+        default_prompt = (
+            f"Resume Evidence Lane project {project_id} at step {resume_step}: "
+            f"{resume_row['step']} Preserve the full task panel and all additive "
+            "Deltas; continue as sole writer until the next six-way HIL."
+            if resume_row
+            else (
+                f"Open Evidence Lane project {project_id} at its exact accepted "
+                "pointer and wait for the next bounded user command."
+            )
+        )
+        supplied_prompt = raw.get("suggested_next_prompt")
+        suggested_next_prompt = (
+            supplied_prompt
+            if isinstance(supplied_prompt, str) and supplied_prompt.strip()
+            else default_prompt
+        )
+        body = {
+            "schema": "evidence-lane.state-travel-resume-contract.v1",
+            "project_id": project_id,
+            "travel_mode": travel_mode,
+            "plan_authority": "PLAN_LANE",
+            "task_list_source": task_list_source,
+            "task_list": task_list,
+            "task_list_sha256": sha256_bytes(canonical_json_bytes(task_list)),
+            "resume_step": resume_step,
+            "additive_deltas": additive_deltas,
+            "additive_deltas_sha256": sha256_bytes(
+                canonical_json_bytes(additive_deltas)
+            ),
+            "steer_default_boundary": "BEFORE_NEXT_HIL",
+            "linked_steer_policy": "APPEND_TO_EXISTING_STEP_WITHOUT_REPLACEMENT",
+            "unlinked_steer_policy": "APPEND_NEW_STEP_AND_INCREASE_COUNT",
+            "task_panel_persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
+            "execution_profile": execution_profile,
+            "execution_profile_match_required": bool(execution_profile),
+            "host_settings_mutation_supported": False,
+            "host_profile_application": "HOST_MEDIATED_EXACT_MATCH_REQUIRED",
+            "collaboration_law": {
+                "writer_policy": "SOLE_WRITER",
+                "entry_recovery_subagents": "READ_ONLY_ONLY",
+                "later_subagents": "EXPLICIT_USER_COMMAND_ONLY",
+            },
+            "host_universe": (
+                {
+                    "kind": "CODEX",
+                    "plan_mode_shortcut": "/pl",
+                    "plugin_plan_command": "/evi-plan",
+                    "native_goal_projection": True,
+                    "native_task_panel_projection": True,
+                    "goal_or_model_selector_mutation_supported_by_mcp": False,
+                }
+                if session.host.value.startswith("CODEX")
+                else {
+                    "kind": "CHATGPT",
+                    "codex_plan_mode_controls_applicable": False,
+                    "codex_goal_or_task_panel_applicable": False,
+                    "mounted_plugin_store_is_runtime_authority": True,
+                    "append_only_lane_and_env_laws_preserved": True,
+                }
+            ),
+            "suggested_next_prompt": suggested_next_prompt,
+            "private_reasoning_stored": False,
+        }
+        return {
+            **body,
+            "resume_contract_sha256": sha256_bytes(canonical_json_bytes(body)),
+        }
+
+    def validate_state_travel_destination(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        handoff_id: str,
+        host: HostKind | str,
+        host_session_id: str,
+        runtime_context: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """Fail before host rebinding when the prepared handoff cannot match."""
+
+        session = self.load(project_id, session_id)
+        travel = session.metadata.get("state_travel")
+        require(
+            isinstance(travel, dict) and travel.get("status") == "PREPARED",
+            "STATE_TRAVEL_HANDOFF_NOT_PREPARED",
+            "No prepared State Travel handoff exists for this governed session.",
+            status="BLOCKED",
+        )
+        travel = cast(dict[str, Any], travel)
+        require(
+            handoff_id == travel.get("handoff_id"),
+            "STATE_TRAVEL_HANDOFF_ID_MISMATCH",
+            "The State Travel handoff ID does not match the sealed receipt.",
+            status="MISMATCH",
+            provided=handoff_id,
+        )
+        exact_host_session_id = host_session_id.strip()
+        require(
+            bool(exact_host_session_id)
+            and exact_host_session_id != str(travel.get("origin_host_session_id") or ""),
+            "STATE_TRAVEL_NEW_HOST_WINDOW_REQUIRED",
+            "State Travel must resume in a fresh host task or chat.",
+            status="BLOCKED",
+            target_surface=travel.get("target_surface"),
+        )
+        host_kind = normalize_host_kind(host)
+        if travel.get("target_surface") == "NEW_CHATGPT_CHAT":
+            require(
+                host_kind == HostKind.CHATGPT,
+                "STATE_TRAVEL_HOST_KIND_MISMATCH",
+                "This handoff requires a fresh ChatGPT chat.",
+                status="MISMATCH",
+                host=host_kind.value,
+            )
+        elif travel.get("target_surface") == "NEW_CODEX_TASK":
+            require(
+                host_kind
+                in {HostKind.CODEX_DESKTOP, HostKind.CODEX_CLI, HostKind.CODEX_VM},
+                "STATE_TRAVEL_HOST_KIND_MISMATCH",
+                "This handoff requires a fresh Codex task.",
+                status="MISMATCH",
+                host=host_kind.value,
+            )
+        resume_contract = travel.get("resume_contract")
+        expected_profile = (
+            cast(dict[str, str], resume_contract.get("execution_profile", {}))
+            if isinstance(resume_contract, dict)
+            else {}
+        )
+        actual_profile = execution_profile_from_context(runtime_context)
+        mismatches = execution_profile_mismatches(expected_profile, actual_profile)
+        require(
+            not mismatches,
+            "STATE_TRAVEL_EXECUTION_PROFILE_MISMATCH",
+            "The destination task does not use the exact prepared model, submodel, "
+            "reasoning effort, and speed profile. Change the host-owned selectors "
+            "and retry State Travel.",
+            status="MISMATCH",
+            mismatches=mismatches,
+            host_settings_mutation_supported=False,
+        )
+        pointer = self.store.pointer(project_id)
+        require(
+            pointer.accepted_pv == travel.get("accepted_pv")
+            and pointer.generation == travel.get("pointer_generation")
+            and pointer.accepted_manifest_sha256 == travel.get("manifest_sha256"),
+            "STATE_TRAVEL_POINTER_VERIFICATION_FAILED",
+            "The verified pointer base changed after the handoff was prepared.",
+            status="STALE",
+            actual=pointer.as_dict(),
+        )
+        prepared_task = cast(dict[str, Any], travel.get("task_snapshot") or {})
+        current_task = {
+            "state": session.state.value,
+            "task": session.task,
+            "task_sha256": sha256_bytes(canonical_json_bytes(session.task)),
+            "pending_task": session.metadata.get("pending_task"),
+            "pending_task_sha256": sha256_bytes(
+                canonical_json_bytes(session.metadata.get("pending_task"))
+            ),
+            "candidate_id": session.candidate_id,
+            "active_backlog_task_id": session.metadata.get("active_backlog_task_id"),
+            "run_id": session.metadata.get("run_id"),
+        }
+        current_task["snapshot_sha256"] = sha256_bytes(
+            canonical_json_bytes(current_task)
+        )
+        require(
+            current_task["snapshot_sha256"] == prepared_task.get("snapshot_sha256"),
+            "STATE_TRAVEL_UNFINISHED_TASK_MISMATCH",
+            "The governed task changed after the handoff was prepared.",
+            status="MISMATCH",
+        )
+        prepared_candidate = travel.get("candidate_snapshot")
+        if isinstance(prepared_candidate, dict):
+            require(
+                self._state_travel_candidate_snapshot(project_id, session.candidate_id)
+                == prepared_candidate,
+                "STATE_TRAVEL_CANDIDATE_MISMATCH",
+                "The pending candidate bytes changed after the handoff was prepared.",
+                status="MISMATCH",
+            )
+        prepared_plan = cast(dict[str, Any], travel.get("plan_snapshot") or {})
+        require(
+            self._state_travel_plan_snapshot(project_id)["snapshot_sha256"]
+            == prepared_plan.get("snapshot_sha256"),
+            "STATE_TRAVEL_PLAN_LANE_MISMATCH",
+            "The Plan Lane changed after the handoff was prepared.",
+            status="MISMATCH",
+        )
+        prepared_source = travel.get("source_snapshot")
+        if isinstance(prepared_source, dict):
+            require(
+                self._state_travel_source_snapshot(project_id)["identity_sha256"]
+                == prepared_source.get("identity_sha256"),
+                "STATE_TRAVEL_LIVE_SOURCE_MISMATCH",
+                "The live source bytes changed after the handoff was prepared.",
+                status="MISMATCH",
+            )
+        return {
+            "status": "PASS",
+            "destination_host": host_kind.value,
+            "destination_host_session_id": exact_host_session_id,
+            "execution_profile": actual_profile,
+            "execution_profile_verified": bool(expected_profile),
+            "host_settings_mutated": False,
+        }
+
     def prepare_state_travel(
         self,
         project_id: str,
         session_id: str,
+        *,
+        resume_contract: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Seal a host-window handoff after exact approval without entering it."""
+        """Seal either accepted entry or exact verified unfinished work."""
 
         session = self.load(project_id, session_id)
         require(
-            session.state in {SessionState.PVN_ACCEPTED, SessionState.PVN1_ACCEPTED},
+            not session.metadata.get("closed_at") and session.state not in _TERMINAL_STATES,
             "STATE_TRAVEL_PREPARE_STATE_INVALID",
-            "State Travel begins only from a newly accepted exit PV.",
+            "State Travel requires one active non-terminal governed session.",
             status="BLOCKED",
             state=session.state.value,
         )
         pointer = self.store.pointer(project_id)
         require(
-            pointer.accepted_pv is not None
-            and pointer.accepted_pv == session.accepted_pv
+            pointer.accepted_pv == session.accepted_pv
             and pointer.generation == session.accepted_pointer_generation,
             "STATE_TRAVEL_POINTER_STALE",
-            "State Travel requires the session and accepted pointer to match exactly.",
+            "State Travel requires the session and verified pointer base to match.",
             status="STALE",
             pointer=pointer.as_dict(),
             session_accepted_pv=session.accepted_pv,
             session_pointer_generation=session.accepted_pointer_generation,
         )
-        accepted_path = self.store.accepted_path(
+        requested_mode = str((resume_contract or {}).get("entry_mode") or "").upper()
+        has_unfinished_work = session.state not in {
+            SessionState.PVN_ACCEPTED,
+            SessionState.PVN1_ACCEPTED,
+        }
+        travel_mode = requested_mode or (
+            "UNFINISHED_VERIFIED_WORK" if has_unfinished_work else "ACCEPTED_ENTRY"
+        )
+        require(
+            travel_mode in {"ACCEPTED_ENTRY", "UNFINISHED_VERIFIED_WORK"},
+            "STATE_TRAVEL_MODE_INVALID",
+            "State Travel supports exact unfinished work or an explicit accepted entry.",
+            status="BLOCKED",
+            travel_mode=travel_mode,
+        )
+        require(
+            travel_mode != "ACCEPTED_ENTRY" or pointer.accepted_pv is not None,
+            "STATE_TRAVEL_ACCEPTED_ENTRY_MISSING",
+            "Accepted-entry State Travel requires an accepted pointer.",
+            status="BLOCKED",
+        )
+        accepted_validation: dict[str, Any] | None = None
+        if pointer.accepted_pv:
+            accepted_validation = validate_pv_package(
+                self.store.accepted_path(project_id, pointer.accepted_pv),
+                require_promotable=False,
+            )
+            require(
+                accepted_validation["manifest_sha256"]
+                == pointer.accepted_manifest_sha256,
+                "STATE_TRAVEL_ACCEPTED_POINTER_HASH_MISMATCH",
+                "The verified pointer base does not match the accepted package.",
+                status="MISMATCH",
+            )
+        exact_resume_contract = self._state_travel_resume_contract(
             project_id,
-            cast(str, pointer.accepted_pv),
+            session,
+            resume_contract,
+            travel_mode=travel_mode,
         )
-        validation = validate_pv_package(
-            accepted_path,
-            require_promotable=False,
+        candidate_snapshot = self._state_travel_candidate_snapshot(
+            project_id,
+            session.candidate_id,
         )
+        task_snapshot = {
+            "state": session.state.value,
+            "task": session.task,
+            "task_sha256": sha256_bytes(canonical_json_bytes(session.task)),
+            "pending_task": session.metadata.get("pending_task"),
+            "pending_task_sha256": sha256_bytes(
+                canonical_json_bytes(session.metadata.get("pending_task"))
+            ),
+            "candidate_id": session.candidate_id,
+            "active_backlog_task_id": session.metadata.get("active_backlog_task_id"),
+            "run_id": session.metadata.get("run_id"),
+        }
+        task_snapshot["snapshot_sha256"] = sha256_bytes(
+            canonical_json_bytes(task_snapshot)
+        )
+        plan_snapshot = self._state_travel_plan_snapshot(project_id)
+        source_snapshot = (
+            self._state_travel_source_snapshot(project_id)
+            if travel_mode == "UNFINISHED_VERIFIED_WORK"
+            else None
+        )
+        pointer_body = pointer.as_dict()
+        pointer_snapshot = {
+            **pointer_body,
+            "pointer_sha256": sha256_bytes(canonical_json_bytes(pointer_body)),
+        }
+        snapshot_body = {
+            "travel_mode": travel_mode,
+            "task_snapshot_sha256": task_snapshot["snapshot_sha256"],
+            "candidate_snapshot": candidate_snapshot,
+            "plan_snapshot_sha256": plan_snapshot["snapshot_sha256"],
+            "source_identity_sha256": (
+                source_snapshot["identity_sha256"] if source_snapshot else None
+            ),
+            "pointer_sha256": pointer_snapshot["pointer_sha256"],
+            "resume_contract_sha256": exact_resume_contract[
+                "resume_contract_sha256"
+            ],
+        }
+        verified_snapshot_sha256 = sha256_bytes(canonical_json_bytes(snapshot_body))
         existing = session.metadata.get("state_travel")
-        if (
-            isinstance(existing, dict)
-            and existing.get("status") == "PREPARED"
-            and existing.get("accepted_pv") == pointer.accepted_pv
-            and existing.get("pointer_generation") == pointer.generation
-            and existing.get("manifest_sha256") == validation["manifest_sha256"]
-            and existing.get("package_sha256") == validation["package_sha256"]
-        ):
-            existing_contract = existing.get("next_action_contract")
-            if not isinstance(existing_contract, dict):
-                existing_contract = state_travel_next_action(
-                    state=str(existing["next_action"]),
-                    command="/evi-state-travel",
-                    suggested_next_prompt="/evi-state-travel",
-                    target_surface=str(existing["target_surface"]),
-                )
+        if isinstance(existing, dict) and existing.get("status") == "PREPARED":
+            require(
+                existing.get("verified_snapshot_sha256")
+                == verified_snapshot_sha256,
+                "STATE_TRAVEL_PREPARED_CONTRACT_MISMATCH",
+                "A different State Travel handoff is already prepared. Consume the "
+                "exact receipt or explicitly resolve it before preparing another.",
+                status="MISMATCH",
+            )
+            existing_contract = cast(dict[str, Any], existing["next_action_contract"])
             return {
                 "status": "PASS",
                 "state_travel": existing,
@@ -2351,21 +2848,9 @@ class SessionManager:
                 "suggested_next_prompt": existing_contract["suggested_next_prompt"],
                 "next_action_contract": existing_contract,
             }
-        if session.host == HostKind.CHATGPT:
-            target_surface = "NEW_CHATGPT_CHAT"
-            next_action = "OPEN_NEW_CHATGPT_CHAT"
-        elif session.host in {
-            HostKind.CODEX_DESKTOP,
-            HostKind.CODEX_CLI,
-            HostKind.CODEX_VM,
-        }:
-            target_surface = "NEW_CODEX_TASK"
-            next_action = "OPEN_NEW_CODEX_TASK"
-        else:
-            target_surface = "NEW_HOST_SESSION"
-            next_action = "OPEN_NEW_HOST_SESSION"
-        receipt = {
-            "schema": "evidence-lane.state-travel.v1",
+        target_surface, next_action = self._state_travel_target(session)
+        receipt: dict[str, Any] = {
+            "schema": "evidence-lane.state-travel.v2",
             "handoff_id": prefixed_id("travel"),
             "project_id": project_id,
             "session_id": session_id,
@@ -2374,10 +2859,27 @@ class SessionManager:
             "origin_host_session_id": session.metadata.get("current_host_session_id"),
             "target_surface": target_surface,
             "next_action": next_action,
+            "travel_mode": travel_mode,
+            "origin_state": session.state.value,
             "accepted_pv": pointer.accepted_pv,
             "pointer_generation": pointer.generation,
-            "manifest_sha256": validation["manifest_sha256"],
-            "package_sha256": validation["package_sha256"],
+            "manifest_sha256": (
+                accepted_validation["manifest_sha256"]
+                if accepted_validation
+                else None
+            ),
+            "package_sha256": (
+                accepted_validation["package_sha256"]
+                if accepted_validation
+                else None
+            ),
+            "pointer_snapshot": pointer_snapshot,
+            "task_snapshot": task_snapshot,
+            "candidate_snapshot": candidate_snapshot,
+            "plan_snapshot": plan_snapshot,
+            "source_snapshot": source_snapshot,
+            "resume_contract": exact_resume_contract,
+            "verified_snapshot_sha256": verified_snapshot_sha256,
             "required_entry_commands": [
                 "/evi-state-travel",
                 "/evi-boot",
@@ -2390,6 +2892,13 @@ class SessionManager:
             ),
             "host_window_opened": False,
             "host_window_opening_is_host_mediated": True,
+            "destination_profile_must_match_before_binding": bool(
+                exact_resume_contract["execution_profile"]
+            ),
+            "host_settings_mutation_supported": False,
+            "accepted_entry_from_unfinished_state": (
+                travel_mode == "ACCEPTED_ENTRY" and has_unfinished_work
+            ),
             "prepared_at": utc_now(),
         }
         receipt["handoff_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
@@ -2421,65 +2930,37 @@ class SessionManager:
         *,
         handoff_id: str,
         flash: dict[str, Any],
+        destination_runtime_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Verify a fresh host binding, enter the accepted PV, and wait."""
+        """Verify and enter accepted context or resume the exact unfinished step."""
 
         session = self.load(project_id, session_id)
         travel = session.metadata.get("state_travel")
         require(
             isinstance(travel, dict) and travel.get("status") == "PREPARED",
             "STATE_TRAVEL_HANDOFF_NOT_PREPARED",
-            "No prepared State Travel handoff exists for this accepted exit PV.",
+            "No prepared State Travel handoff exists for this governed session.",
             status="BLOCKED",
         )
         travel = cast(dict[str, Any], travel)
-        require(
-            handoff_id == travel.get("handoff_id"),
-            "STATE_TRAVEL_HANDOFF_ID_MISMATCH",
-            "The State Travel handoff ID does not match the sealed receipt.",
-            status="MISMATCH",
-            provided=handoff_id,
-        )
         current_host_session_id = str(
             session.metadata.get("current_host_session_id") or ""
         )
-        origin_host_session_id = str(travel.get("origin_host_session_id") or "")
-        require(
-            bool(current_host_session_id)
-            and current_host_session_id != origin_host_session_id,
-            "STATE_TRAVEL_NEW_HOST_WINDOW_REQUIRED",
-            "State Travel must resume in a fresh host task or chat.",
-            status="BLOCKED",
-            target_surface=travel.get("target_surface"),
+        destination = self.validate_state_travel_destination(
+            project_id,
+            session_id,
+            handoff_id=handoff_id,
+            host=session.host,
+            host_session_id=current_host_session_id,
+            runtime_context=destination_runtime_context,
         )
-        if travel.get("target_surface") == "NEW_CHATGPT_CHAT":
-            require(
-                session.host == HostKind.CHATGPT,
-                "STATE_TRAVEL_HOST_KIND_MISMATCH",
-                "This handoff requires a fresh ChatGPT chat.",
-                status="MISMATCH",
-                host=session.host.value,
-            )
-        elif travel.get("target_surface") == "NEW_CODEX_TASK":
-            require(
-                session.host
-                in {
-                    HostKind.CODEX_DESKTOP,
-                    HostKind.CODEX_CLI,
-                    HostKind.CODEX_VM,
-                },
-                "STATE_TRAVEL_HOST_KIND_MISMATCH",
-                "This handoff requires a fresh Codex task.",
-                status="MISMATCH",
-                host=session.host.value,
-            )
         pointer = self.store.pointer(project_id)
         require(
             pointer.accepted_pv == travel.get("accepted_pv")
             and pointer.generation == travel.get("pointer_generation")
             and pointer.accepted_manifest_sha256 == travel.get("manifest_sha256"),
             "STATE_TRAVEL_POINTER_VERIFICATION_FAILED",
-            "The accepted pointer changed after the State Travel handoff was sealed.",
+            "The verified pointer base changed after the handoff was sealed.",
             status="STALE",
             expected={
                 "accepted_pv": travel.get("accepted_pv"),
@@ -2488,47 +2969,103 @@ class SessionManager:
             },
             actual=pointer.as_dict(),
         )
-        validation = validate_pv_package(
-            self.store.accepted_path(project_id, cast(str, pointer.accepted_pv)),
-            require_promotable=False,
-        )
-        require(
-            validation["manifest_sha256"] == travel.get("manifest_sha256")
-            and validation["package_sha256"] == travel.get("package_sha256"),
-            "STATE_TRAVEL_ACCEPTED_PACKAGE_MISMATCH",
-            "The accepted PV bytes do not match the State Travel handoff.",
-            status="MISMATCH",
-        )
+        validation: dict[str, Any] | None = None
+        if pointer.accepted_pv:
+            validation = validate_pv_package(
+                self.store.accepted_path(project_id, pointer.accepted_pv),
+                require_promotable=False,
+            )
+            require(
+                validation["manifest_sha256"] == travel.get("manifest_sha256")
+                and validation["package_sha256"] == travel.get("package_sha256"),
+                "STATE_TRAVEL_ACCEPTED_PACKAGE_MISMATCH",
+                "The accepted pointer-base bytes do not match the handoff.",
+                status="MISMATCH",
+            )
         require(
             flash.get("status") == "PASS",
             "STATE_TRAVEL_FLASH_VERIFICATION_FAILED",
-            "State Travel cannot enter the accepted PV until locked ENV/UOP Flash "
-            "verification passes.",
+            "State Travel requires locked ENV/UOP Flash verification.",
             status="BLOCKED",
             flash_status=flash.get("status"),
         )
-        entry = self.begin_next_turn(
-            project_id,
-            session_id,
-            _state_travel_handoff_id=handoff_id,
+        travel_mode = str(travel.get("travel_mode") or "ACCEPTED_ENTRY")
+        task_snapshot = cast(dict[str, Any], travel.get("task_snapshot") or {})
+        current_task_snapshot = {
+            "state": session.state.value,
+            "task": session.task,
+            "task_sha256": sha256_bytes(canonical_json_bytes(session.task)),
+            "pending_task": session.metadata.get("pending_task"),
+            "pending_task_sha256": sha256_bytes(
+                canonical_json_bytes(session.metadata.get("pending_task"))
+            ),
+            "candidate_id": session.candidate_id,
+            "active_backlog_task_id": session.metadata.get("active_backlog_task_id"),
+            "run_id": session.metadata.get("run_id"),
+        }
+        current_task_snapshot["snapshot_sha256"] = sha256_bytes(
+            canonical_json_bytes(current_task_snapshot)
         )
-        session = self.load(project_id, session_id)
-        completed_at = utc_now()
-        verified = {
-            **travel,
-            "status": "VERIFIED_WAITING",
-            "destination_host": session.host.value,
-            "destination_host_session_id": current_host_session_id,
-            "host_window_opened": True,
-            "boot_verified": True,
-            "flash_verified": flash.get("status") == "PASS",
-            "flash_authority_version": flash.get("authority_version"),
-            "flash_authority_digest": flash.get("authority_digest"),
-            "flash_receipt_sha256": flash.get("receipt_sha256"),
-            "pointer_verified": True,
-            "completed_at": completed_at,
-            "wait_state": "WAITING_FOR_NEXT_USER_COMMAND",
-            "next_action_contract": state_travel_next_action(
+        require(
+            current_task_snapshot["snapshot_sha256"]
+            == task_snapshot.get("snapshot_sha256"),
+            "STATE_TRAVEL_UNFINISHED_TASK_MISMATCH",
+            "The governed lifecycle task changed after State Travel was prepared.",
+            status="MISMATCH",
+            expected_state=task_snapshot.get("state"),
+            actual_state=session.state.value,
+        )
+        candidate_snapshot = travel.get("candidate_snapshot")
+        if isinstance(candidate_snapshot, dict):
+            current_candidate = self._state_travel_candidate_snapshot(
+                project_id,
+                session.candidate_id,
+            )
+            require(
+                current_candidate == candidate_snapshot,
+                "STATE_TRAVEL_CANDIDATE_MISMATCH",
+                "The pending candidate bytes changed after State Travel was prepared.",
+                status="MISMATCH",
+            )
+        current_plan = self._state_travel_plan_snapshot(project_id)
+        prepared_plan = cast(dict[str, Any], travel.get("plan_snapshot") or {})
+        require(
+            current_plan["snapshot_sha256"] == prepared_plan.get("snapshot_sha256"),
+            "STATE_TRAVEL_PLAN_LANE_MISMATCH",
+            "The canonical Plan Lane changed after State Travel was prepared.",
+            status="MISMATCH",
+        )
+        source_verified = False
+        if travel_mode == "UNFINISHED_VERIFIED_WORK":
+            current_source = self._state_travel_source_snapshot(project_id)
+            prepared_source = cast(dict[str, Any], travel.get("source_snapshot") or {})
+            require(
+                current_source["identity_sha256"]
+                == prepared_source.get("identity_sha256"),
+                "STATE_TRAVEL_LIVE_SOURCE_MISMATCH",
+                "The live source bytes changed after State Travel was prepared.",
+                status="MISMATCH",
+                expected=prepared_source,
+                actual=current_source,
+            )
+            source_verified = True
+
+        resume_contract = cast(dict[str, Any], travel.get("resume_contract") or {})
+        accepted_state_origin = travel.get("origin_state") in {
+            SessionState.PVN_ACCEPTED.value,
+            SessionState.PVN1_ACCEPTED.value,
+        }
+        if travel_mode == "ACCEPTED_ENTRY" and accepted_state_origin:
+            entry = self.begin_next_turn(
+                project_id,
+                session_id,
+                _state_travel_handoff_id=handoff_id,
+            )
+            session = self.load(project_id, session_id)
+            state_travel_status = "VERIFIED_WAITING"
+            wait_state: str | None = "WAITING_FOR_NEXT_USER_COMMAND"
+            next_action = "WAIT_FOR_NEXT_USER_COMMAND"
+            next_action_contract = state_travel_next_action(
                 state="WAITING_FOR_NEXT_USER_COMMAND",
                 command="USER_PROVIDES_NEXT_BOUNDED_TASK",
                 suggested_next_prompt=(
@@ -2536,7 +3073,73 @@ class SessionManager:
                     "/evi-build to inspect governed status."
                 ),
                 target_surface=str(travel.get("target_surface")),
-            ),
+            )
+            continuation_ready = False
+        elif travel_mode == "ACCEPTED_ENTRY":
+            entry = {
+                "accepted_pointer_context_selected": True,
+                "unfinished_state_preserved": True,
+                "task_cleared": False,
+                "candidate_cleared": False,
+            }
+            state_travel_status = "VERIFIED_WAITING"
+            wait_state = "WAITING_FOR_NEXT_USER_COMMAND"
+            next_action = "WAIT_FOR_NEXT_USER_COMMAND"
+            next_action_contract = state_travel_next_action(
+                state="WAITING_FOR_NEXT_USER_COMMAND",
+                command="USER_SELECTS_ACCEPTED_CONTEXT_ACTION",
+                suggested_next_prompt=str(resume_contract["suggested_next_prompt"]),
+                target_surface=str(travel.get("target_surface")),
+            )
+            continuation_ready = False
+        else:
+            entry = {
+                "entry_action": "RESUME_EXACT_UNFINISHED_STEP",
+                "resume_step": resume_contract.get("resume_step"),
+                "task_list_sha256": resume_contract.get("task_list_sha256"),
+                "additive_deltas_sha256": resume_contract.get(
+                    "additive_deltas_sha256"
+                ),
+                "task_or_candidate_cleared": False,
+                "pointer_moved": False,
+            }
+            state_travel_status = "VERIFIED_RESUME_READY"
+            wait_state = "RESUME_READY"
+            next_action = "RESUME_EXACT_UNFINISHED_STEP"
+            next_action_contract = state_travel_next_action(
+                state="RESUME_EXACT_UNFINISHED_STEP",
+                command="CONTINUE_PRESERVED_PLAN_LANE",
+                suggested_next_prompt=str(resume_contract["suggested_next_prompt"]),
+                target_surface=str(travel.get("target_surface")),
+                display_position="AFTER_STATE_TRAVEL_VERIFICATION",
+                stop_and_wait=False,
+            )
+            continuation_ready = True
+
+        completed_at = utc_now()
+        verified = {
+            **travel,
+            "status": state_travel_status,
+            "destination_host": session.host.value,
+            "destination_host_session_id": current_host_session_id,
+            "host_window_opened": True,
+            "boot_verified": True,
+            "flash_verified": True,
+            "flash_authority_version": flash.get("authority_version"),
+            "flash_authority_digest": flash.get("authority_digest"),
+            "flash_receipt_sha256": flash.get("receipt_sha256"),
+            "pointer_verified": True,
+            "candidate_verified": bool(candidate_snapshot),
+            "plan_lane_verified": True,
+            "live_source_verified": source_verified,
+            "execution_profile_verified": destination[
+                "execution_profile_verified"
+            ],
+            "host_settings_mutated": False,
+            "completed_at": completed_at,
+            "wait_state": wait_state,
+            "continuation_ready": continuation_ready,
+            "next_action_contract": next_action_contract,
         }
         session.metadata["state_travel"] = verified
         session.metadata.setdefault("state_travel_history", []).append(verified)
@@ -2545,16 +3148,28 @@ class SessionManager:
             event_type="pv.state_travel.verified",
             visible_payload={
                 "handoff_id": handoff_id,
+                "travel_mode": travel_mode,
+                "origin_state": travel.get("origin_state"),
                 "accepted_pv": pointer.accepted_pv,
                 "pointer_generation": pointer.generation,
-                "manifest_sha256": validation["manifest_sha256"],
-                "package_sha256": validation["package_sha256"],
+                "manifest_sha256": (
+                    validation["manifest_sha256"] if validation else None
+                ),
+                "package_sha256": (
+                    validation["package_sha256"] if validation else None
+                ),
                 "destination_host": session.host.value,
                 "destination_host_session_id": current_host_session_id,
                 "boot_verified": True,
-                "flash_verified": verified["flash_verified"],
+                "flash_verified": True,
                 "pointer_verified": True,
-                "wait_state": "WAITING_FOR_NEXT_USER_COMMAND",
+                "candidate_verified": bool(candidate_snapshot),
+                "plan_lane_verified": True,
+                "live_source_verified": source_verified,
+                "execution_profile_verified": destination[
+                    "execution_profile_verified"
+                ],
+                "next_action": next_action,
             },
             occurred_at=completed_at,
             session_id=session_id,
@@ -2568,17 +3183,22 @@ class SessionManager:
             "pointer_verification": {
                 "accepted_pv": pointer.accepted_pv,
                 "generation": pointer.generation,
-                "manifest_sha256": validation["manifest_sha256"],
-                "package_sha256": validation["package_sha256"],
+                "manifest_sha256": (
+                    validation["manifest_sha256"] if validation else None
+                ),
+                "package_sha256": (
+                    validation["package_sha256"] if validation else None
+                ),
                 "verified": True,
             },
-            "wait_state": "WAITING_FOR_NEXT_USER_COMMAND",
-            "next_action": "WAIT_FOR_NEXT_USER_COMMAND",
-            "suggested_next_prompt": verified["next_action_contract"][
+            "wait_state": wait_state,
+            "next_action": next_action,
+            "suggested_next_prompt": next_action_contract[
                 "suggested_next_prompt"
             ],
-            "next_action_contract": verified["next_action_contract"],
+            "next_action_contract": next_action_contract,
             "task_started": False,
+            "continuation_ready": continuation_ready,
             "event": event,
         }
 

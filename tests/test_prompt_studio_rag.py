@@ -46,6 +46,10 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
         "plugins/evidence-lane-plugin/remote_adapter/app/_data/upstream-references.ts"
         in source_paths
     )
+    assert (
+        "plugins/evidence-lane-plugin/remote_adapter/app/_data/current-execution-plan.ts"
+        in source_paths
+    )
 
     with sqlite3.connect(sqlite_path) as connection:
         assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
