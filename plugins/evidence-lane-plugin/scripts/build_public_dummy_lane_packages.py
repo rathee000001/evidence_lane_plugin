@@ -35,7 +35,6 @@ from build_one_shot_dummy_poc import DUMMY_GIT_LANE, _build_synthetic_repository
 from evidence_lane_plugin.lane_engine import build_lane_bundle, validate_lane_bundle
 from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 
-
 PUBLIC_ROOT = PLUGIN_ROOT / "remote_adapter" / "public" / "dummy-lane-packages"
 INDEX_PATH = (
     PLUGIN_ROOT
