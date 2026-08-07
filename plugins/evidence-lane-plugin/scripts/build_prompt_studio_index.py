@@ -91,6 +91,10 @@ PUBLIC_PLUGIN_EXCLUSIONS = (
 )
 PUBLIC_PLUGIN_EXACT_EXCLUSIONS = {
     "plugins/evidence-lane-plugin/remote_adapter/app/_data/dummy-lane-artifacts.json",
+    # The retrieval implementation contains its own confidence canaries. Indexing
+    # those questions would let the corpus answer them from the test definition
+    # itself and turn deliberate no-hits into false positives.
+    "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-retrieval.ts",
     "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json",
     "plugins/evidence-lane-plugin/requirements.lock.txt",
     "plugins/evidence-lane-plugin/remote_adapter/package-lock.json",

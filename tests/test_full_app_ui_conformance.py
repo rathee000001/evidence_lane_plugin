@@ -288,6 +288,21 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     assert 'id: "active-plan-hit"' in retrieval
     assert "RETRIEVAL_CONFIDENCE_GATE_FAILED" in query_route
 
+    index_builder = (
+        ROOT / "plugins" / "evidence-lane-plugin" / "scripts" / "build_prompt_studio_index.py"
+    ).read_text(encoding="utf-8")
+    assert (
+        '"plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-retrieval.ts"'
+        in index_builder
+    )
+
+    rag_index = json.loads((APP / "_data" / "studio-rag-index.json").read_text(encoding="utf-8"))
+    indexed_paths = {source["path"] for source in rag_index["sources"]}
+    assert (
+        "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-retrieval.ts"
+        not in indexed_paths
+    )
+
 
 def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() -> None:
     landing = (APP / "page.tsx").read_text(encoding="utf-8")
