@@ -1,4 +1,6 @@
-export type DeltaPhase = "Foundation" | "V1.2 evolution" | "V1.3 hardening";
+import { currentExecutionPlan } from "./current-execution-plan";
+
+export type DeltaPhase = "Foundation" | "V1.2 evolution" | "V1.3 hardening" | "Current execution";
 
 export type DeltaLedgerEntry = {
   order: number;
@@ -115,8 +117,25 @@ const hardening: DeltaLedgerEntry[] = [
   { order: 80, id: "EL-V130-ACCEPTED-AUTHORITY-SUCCESSOR-AND-RELEASE-GATE-DELTA-080", phase: "V1.3 hardening", status: "PV6 CORRECTION ACTIVE", summary: "Accepted PV5 compatibility, executable pre-PV6 gate, release evidence, and replacement PV6 HIL." },
 ];
 
+const currentExecution: DeltaLedgerEntry[] = currentExecutionPlan.map((row) => ({
+  order: 80 + row.number,
+  id: `PV6-CURRENT-PLAN-STEP-${String(row.number).padStart(3, "0")}`,
+  phase: "Current execution",
+  status: row.status.replace("_", " "),
+  summary: row.step,
+}));
+
 export const deltaLedger: readonly DeltaLedgerEntry[] = [
   ...foundation,
   ...evolution,
   ...hardening,
+  ...currentExecution,
 ];
+
+export const deltaLedgerBoundary = {
+  totalRows: deltaLedger.length,
+  sealedHistoricalDeltaRows: foundation.length + evolution.length + hardening.length,
+  liveExecutionRows: currentExecution.length,
+  activeExecutionRow: 46,
+  acceptedAuthorityEffect: "NONE",
+} as const;

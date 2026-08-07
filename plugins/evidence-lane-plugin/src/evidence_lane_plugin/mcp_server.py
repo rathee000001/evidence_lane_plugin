@@ -102,7 +102,7 @@ def create_mcp_server(
         or _PUBLIC_SITE_URL
     ).rstrip("/")
     mcp = FastMCP(
-        "Evidence Lane Plugin",
+        "Evidence Lane",
         instructions=(
             "A prepared exact-work handoff makes /evi-state-travel eligible but "
             "never auto-selects or consumes it. Display and run State Travel only "
@@ -404,6 +404,45 @@ def create_mcp_server(
             project_id,
             batch_id,
             schema_definition,
+            session_id=session_id,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="source_intake_schema_configure",
+        title="Add or modify a Source Intake schema pill",
+        description=(
+            "ADD one new schema-derived Source Intake pill or MODIFY it by "
+            "appending the exact next version pinned to the prior SHA-256. The "
+            "declarative compiler maps sealed registry metadata only; it never "
+            "rewrites an earlier schema, mutates the canonical eighteen-lane "
+            "registry, executes imported code or SQL, builds a candidate, moves "
+            "a pointer, or bypasses later HIL authority."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta(
+            "Configuring Source Intake schema", "Source Intake schema configured"
+        ),
+        structured_output=True,
+    )
+    def source_intake_schema_configure(
+        project_id: str,
+        batch_id: str,
+        operation: Literal["ADD", "MODIFY"],
+        pill_name: str,
+        schema_definition: dict[str, Any],
+        expected_previous_schema_sha256: str | None = None,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "source_intake_schema_configure",
+            application.source_intake_schema_configure,
+            project_id,
+            batch_id,
+            operation=operation,
+            pill_name=pill_name,
+            schema_definition=schema_definition,
+            expected_previous_schema_sha256=expected_previous_schema_sha256,
             session_id=session_id,
             lifecycle=True,
         )

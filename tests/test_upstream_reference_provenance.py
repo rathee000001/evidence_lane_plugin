@@ -46,6 +46,31 @@ REFERENCES = {
         "89b6c6e20fd32f8df36309d2ffffc7c9e6043522",
         "Open WebUI License",
     ),
+    "https://github.com/Graphify-Labs/graphify": (
+        "00efd6e7969837ae4a9f11d8d504dcd3b20b09df",
+        "d1512b0250570474ee45b4169ba2d3b1b35376fa",
+        "Apache-2.0 and MIT",
+    ),
+    "https://github.com/github/codeql": (
+        "74c8994c9fa3ca4551c01879ef9f74e3e09e791a",
+        "06e9890166e4ad4bd015439016a137f8f4099ca8",
+        "MIT",
+    ),
+    "https://github.com/github/github-mcp-server": (
+        "3778a41476e31a072430cfee7c5d31c5f72def60",
+        "ae97fb877726d54334bebcaaa640e58bab3ca84e",
+        "MIT",
+    ),
+    "https://github.com/github/branch-deploy": (
+        "7ad5ec6a7e19e3e341846e4d33c4ed779b3e8036",
+        "5a901697cd7671a61db70f7f27787c6ba257deb8",
+        "MIT",
+    ),
+    "https://github.com/github/local-action": (
+        "b9351d8a8f1e6eed27646f4d892b49a3847ba180",
+        "77093c3aeb8b01bcc35f24c7160596b725a7421d",
+        "MIT",
+    ),
 }
 
 

@@ -1149,3 +1149,143 @@ def compile_and_map_custom_source_schema(
         "event_sha256": event_sha256,
         "registry_snapshot": snapshot_source_authority_registry(target, batch_id),
     }
+
+
+def configure_source_intake_schema_pill(
+    registry_path: str | Path,
+    batch_id: str,
+    *,
+    operation: str,
+    pill_name: str,
+    definition: Mapping[str, Any],
+    expected_previous_schema_sha256: str | None = None,
+) -> dict[str, Any]:
+    """Append or version one schema-derived Source Intake pill contract."""
+
+    action = str(operation or "").strip().upper()
+    label = str(pill_name or "").strip()
+    require(
+        action in {"ADD", "MODIFY"},
+        "SOURCE_INTAKE_SCHEMA_OPERATION_INVALID",
+        "Source Intake schema configuration supports only ADD or MODIFY.",
+        status="BLOCKED",
+        operation=action,
+    )
+    require(
+        1 <= len(label) <= 80,
+        "SOURCE_INTAKE_SCHEMA_PILL_NAME_INVALID",
+        "A schema-derived Source Intake pill needs a bounded visible name.",
+        status="BLOCKED",
+        pill_name=label,
+    )
+    compiled = compile_custom_source_schema(definition)
+    require(
+        compiled["title"] == label,
+        "SOURCE_INTAKE_SCHEMA_PILL_TITLE_MISMATCH",
+        "pill_name must exactly match the declarative schema title.",
+        status="BLOCKED",
+        pill_name=label,
+        schema_title=compiled["title"],
+    )
+    target = initialize_source_authority_registry(registry_path)
+    with _connect(target) as connection:
+        rows = connection.execute(
+            """SELECT schema_version, schema_sha256 FROM source_custom_schema
+            WHERE schema_id=? ORDER BY schema_version""",
+            (compiled["schema_id"],),
+        ).fetchall()
+    history = [
+        {
+            "schema_version": int(row["schema_version"]),
+            "schema_sha256": row["schema_sha256"],
+        }
+        for row in rows
+    ]
+    compiled_sha = str(compiled["schema_sha256"])
+    requested_version = int(compiled["schema_version"])
+    idempotent_retry = bool(
+        history
+        and history[-1]["schema_version"] == requested_version
+        and history[-1]["schema_sha256"] == compiled_sha
+    )
+    previous: dict[str, Any] | None = None
+
+    if action == "ADD":
+        require(
+            requested_version == 1,
+            "SOURCE_INTAKE_SCHEMA_ADD_VERSION_INVALID",
+            "ADD must create schema_version 1.",
+            status="BLOCKED",
+            schema_version=requested_version,
+        )
+        require(
+            not history or (len(history) == 1 and idempotent_retry),
+            "SOURCE_INTAKE_SCHEMA_ALREADY_EXISTS",
+            "ADD cannot replace or append to an existing schema-derived pill.",
+            status="BLOCKED",
+            schema_id=compiled["schema_id"],
+            existing_versions=[row["schema_version"] for row in history],
+        )
+    else:
+        expected = str(expected_previous_schema_sha256 or "").strip().upper()
+        require(
+            bool(_SHA256.fullmatch(expected)),
+            "SOURCE_INTAKE_SCHEMA_PREVIOUS_SHA_REQUIRED",
+            "MODIFY requires the exact SHA-256 of the prior registered version.",
+            status="BLOCKED",
+        )
+        if idempotent_retry:
+            require(
+                len(history) >= 2,
+                "SOURCE_INTAKE_SCHEMA_MODIFY_HISTORY_MISSING",
+                "A MODIFY retry needs both the prior and appended schema versions.",
+                status="BLOCKED",
+            )
+            previous = history[-2]
+        else:
+            require(
+                bool(history),
+                "SOURCE_INTAKE_SCHEMA_MODIFY_TARGET_MISSING",
+                "MODIFY requires an existing schema-derived pill.",
+                status="BLOCKED",
+                schema_id=compiled["schema_id"],
+            )
+            previous = history[-1]
+        require(
+            previous["schema_sha256"] == expected,
+            "SOURCE_INTAKE_SCHEMA_PREVIOUS_SHA_MISMATCH",
+            "The supplied prior SHA-256 does not match the exact registered version.",
+            status="MISMATCH",
+            expected_previous_schema_sha256=expected,
+            actual_previous_schema_sha256=previous["schema_sha256"],
+        )
+        require(
+            requested_version == int(previous["schema_version"]) + 1,
+            "SOURCE_INTAKE_SCHEMA_VERSION_NOT_NEXT",
+            "MODIFY must append exactly the next integer schema version.",
+            status="BLOCKED",
+            previous_schema_version=previous["schema_version"],
+            requested_schema_version=requested_version,
+        )
+
+    result = compile_and_map_custom_source_schema(target, batch_id, definition)
+    return {
+        **result,
+        "operation": action,
+        "configuration_status": (
+            "IDEMPOTENT_REUSE" if idempotent_retry else "APPEND_ONLY_VERSION_CREATED"
+        ),
+        "pill_projection": {
+            "pill_id": f"schema:{compiled['schema_id']}",
+            "pill_name": label,
+            "schema_id": compiled["schema_id"],
+            "schema_version": requested_version,
+            "schema_sha256": compiled_sha,
+            "target_lane_id": compiled["target_lane_id"],
+            "previous_schema_sha256": (
+                previous["schema_sha256"] if previous is not None else None
+            ),
+            "append_only": True,
+            "canonical_lane_registry_mutated": False,
+        },
+    }

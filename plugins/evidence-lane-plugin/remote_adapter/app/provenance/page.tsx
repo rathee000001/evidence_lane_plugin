@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { PageHero } from "../_components/page-hero";
+import { documentationReferences, upstreamReferences } from "../_data/upstream-references";
 import { credits } from "../_data/site";
 
 export const metadata: Metadata = {
@@ -45,7 +47,47 @@ export default function ProvenancePage() {
         <div className="creditGrid">
           {credits.map(([name, role], index) => <article key={name}><span>{String(index + 1).padStart(2, "0")}</span><h3>{name}</h3><p>{role}</p></article>)}
         </div>
-        <p className="creditNote">The implementation also depends on Python, SQLite, Git, Mermaid, Graphviz DOT, Next.js, React, Vercel, and the open-source libraries named in the repository. Their licenses and trademarks remain their own.</p>
+        <p className="creditNote">The implementation also depends on Python, SQLite, Git, Mermaid, Graphviz DOT, Next.js, React, Vercel, and the open-source libraries named in the repository. OpenRouter is an optional external general-question provider after a governed corpus no-hit; it is never project evidence. Their terms, licenses, and trademarks remain their own.</p>
+      </section>
+      <section className="section shell upstreamSection" id="upstream-reference-ledger">
+        <div className="sectionHead wideHead">
+          <span className="kicker">Exact public upstream ledger</span>
+          <h2>Every reconciled public source says what was used—and what was refused.</h2>
+          <p>These records are pinned research provenance. They do not make an upstream repository the project&apos;s authority, and they do not imply byte reuse or feature parity.</p>
+        </div>
+        <div className="upstreamLedger">
+          {upstreamReferences.map((source) => (
+            <article key={source.repository}>
+              <div className="upstreamLedgerHead">
+                <div><span>{source.category}</span><h3>{source.name}</h3></div>
+                <Link href={source.sourceUrl}>Pinned source</Link>
+              </div>
+              <dl>
+                <div><dt>Commit</dt><dd><code>{source.commit}</code></dd></div>
+                <div><dt>Tree</dt><dd><code>{source.tree}</code></dd></div>
+                <div><dt>License</dt><dd>{source.license}</dd></div>
+                <div><dt>Studied role</dt><dd>{source.role}</dd></div>
+                <div><dt>Adopted use</dt><dd>{source.use}</dd></div>
+                <div><dt>Refused / bounded</dt><dd>{source.boundary}</dd></div>
+                <div><dt>Verdict</dt><dd>{source.verdict}</dd></div>
+              </dl>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="section sourceBoundaryBand" id="documentation-references">
+        <div className="shell documentationLedger">
+          <div className="sectionHead wideHead"><span className="kicker">Documentation and service references</span><h2>Guidance is credited without being promoted to source authority.</h2></div>
+          <div className="documentationGrid">
+            {documentationReferences.map((source) => (
+              <article key={source.href}>
+                <h3><Link href={source.href}>{source.name}</Link></h3>
+                <p><strong>Used for:</strong> {source.use}</p>
+                <p><strong>Boundary:</strong> {source.boundary}</p>
+              </article>
+            ))}
+          </div>
+        </div>
       </section>
     </main>
   );

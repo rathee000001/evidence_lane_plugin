@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { EvidenceBrainAsset, GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { PageHero } from "../_components/page-hero";
+import { SourceLaneIcon } from "../_components/source-lane-icon";
 import { artifactContract } from "../_data/site";
 
 export const metadata: Metadata = {
@@ -20,10 +21,10 @@ const flow = [
 ] as const;
 
 const parallelSources = [
-  { label: "Code", color: "#69d9f5", icon: "git" },
-  { label: "Docs", color: "#83ddb3", icon: "package" },
-  { label: "Data", color: "#efca72", icon: "database" },
-  { label: "Lineage", color: "#f2a1c5", icon: "pulse" },
+  { label: "Code", color: "#69d9f5", lane: "local_code" },
+  { label: "Docs", color: "#83ddb3", lane: "docs" },
+  { label: "Data", color: "#efca72", lane: "data_excel" },
+  { label: "Lineage", color: "#f2a1c5", lane: "chat_lineage" },
 ] as const;
 
 export default function ArchitecturePage() {
@@ -65,22 +66,23 @@ export default function ArchitecturePage() {
             <p>Source lanes, chunking, FTS, topology rendering, and validation can run in bounded parallel workers. They converge into one deterministic candidate manifest. No worker can accept itself.</p>
           </div>
           <div className="parallelDiagram" aria-label="Parallel lane computation converging on a serial human gate">
+            <span className="parallelDiagramLabel">Source Intake</span>
             <div className="parallelSources">
               {parallelSources.map((source) => (
-                <span key={source.label}>
-                  <GlassIconOrb color={source.color} size={32} decorative>
-                    <OfficialToolIcon tool={source.icon} size={17} decorative />
+                <span className="sourceIntakeDepthPill" key={source.label}>
+                  <GlassIconOrb className="source-lane-orb" color={source.color} size={32} decorative>
+                    <SourceLaneIcon lane={source.lane} size={19} decorative />
                   </GlassIconOrb>
-                  {source.label}
+                  <strong>{source.label}</strong>
                 </span>
               ))}
             </div>
             <div className="convergeLines" aria-hidden="true"><i /><i /><i /><i /></div>
-            <div className="manifestNode"><GlassIconOrb color="#69d9f5" size={34} decorative><OfficialToolIcon tool="package" size={18} decorative /></GlassIconOrb><span>Candidate manifest</span></div>
+            <div className="manifestNode flowDepthPill"><GlassIconOrb color="#69d9f5" size={34} decorative><OfficialToolIcon tool="package" size={18} decorative /></GlassIconOrb><span>Candidate manifest</span></div>
             <div className="authorityArrow" aria-hidden="true">↓</div>
-            <div className="hilNode"><GlassIconOrb color="#efca72" size={34} decorative><OfficialToolIcon tool="pulse" size={18} decorative /></GlassIconOrb><span>Human decision</span></div>
+            <div className="hilNode flowDepthPill"><GlassIconOrb color="#efca72" size={34} decorative><OfficialToolIcon tool="pulse" size={18} decorative /></GlassIconOrb><span>Human decision</span></div>
             <div className="authorityArrow" aria-hidden="true">↓</div>
-            <div className="pointerNode"><GlassIconOrb color="#83ddb3" size={34} decorative><OfficialToolIcon tool="database" size={18} decorative /></GlassIconOrb><span>Accepted pointer</span></div>
+            <div className="pointerNode flowDepthPill"><GlassIconOrb color="#83ddb3" size={34} decorative><OfficialToolIcon tool="database" size={18} decorative /></GlassIconOrb><span>Accepted pointer</span></div>
           </div>
         </div>
       </section>
@@ -102,9 +104,9 @@ export default function ArchitecturePage() {
       <section className="section shell boundaryCompare">
         <div className="sectionHead wideHead"><span className="kicker">Host boundary</span><h2>Two delivery paths, one release identity.</h2></div>
         <div className="compareGrid">
-          <article><span className="universal-pill statusGlassPill" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001"><GlassIconOrb color="#69d9f5" size={28} decorative><OfficialToolIcon tool="terminal" size={15} decorative /></GlassIconOrb><span>Codex</span></span><h3>Git-native and local-first</h3><p>The plugin is installed from the exact Git SHA. SQLite and accepted-pointer authority remain on the durable user host. Vercel is absent from this path.</p></article>
-          <article><span className="universal-pill statusGlassPill" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001"><GlassIconOrb color="#efca72" size={28} decorative><OfficialToolIcon tool="database" size={15} decorative /></GlassIconOrb><span>ChatGPT</span></span><h3>Durable remote MCP</h3><p>A thin Vercel edge publishes the protocol endpoint and public website, then forwards only to a configured durable HTTPS service with the same release SHA.</p></article>
-          <article><span className="universal-pill statusGlassPill" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001"><GlassIconOrb color="#f2a1c5" size={28} decorative><OfficialToolIcon tool="pulse" size={15} decorative /></GlassIconOrb><span>Failure</span></span><h3>Closed, visible, and diagnosable</h3><p>Missing auth, storage, queue, durable origin, or exact identity blocks MCP. A successful website render never proves connector readiness.</p></article>
+          <article><span className="compactDepthPill"><GlassIconOrb color="#69d9f5" size={28} decorative><OfficialToolIcon tool="terminal" size={15} decorative /></GlassIconOrb><span>Codex</span></span><h3>Git-native and local-first</h3><p>The plugin is installed from the exact Git SHA. SQLite and accepted-pointer authority remain on the durable user host. Vercel is absent from this path.</p></article>
+          <article><span className="compactDepthPill"><GlassIconOrb color="#efca72" size={28} decorative><OfficialToolIcon tool="database" size={15} decorative /></GlassIconOrb><span>ChatGPT</span></span><h3>Durable remote MCP</h3><p>A thin Vercel edge publishes the protocol endpoint and public website, then forwards only to a configured durable HTTPS service with the same release SHA.</p></article>
+          <article><span className="compactDepthPill"><GlassIconOrb color="#f2a1c5" size={28} decorative><OfficialToolIcon tool="pulse" size={15} decorative /></GlassIconOrb><span>Failure</span></span><h3>Closed, visible, and diagnosable</h3><p>Missing auth, storage, queue, durable origin, or exact identity blocks MCP. A successful website render never proves connector readiness.</p></article>
         </div>
       </section>
     </main>

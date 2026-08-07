@@ -10,6 +10,20 @@ This Vercel project has two deliberately separate surfaces:
 - a thin ChatGPT-facing reverse adapter at `/mcp`, `/healthz`, and
   `/.well-known/oauth-protected-resource`.
 
+The public site also exposes `/api/studio-query` for the full and floating
+Prompt Studio. It first queries the same committed SQLite-derived BM25,
+TF-IDF, and RRF projection used by the Studio page. Evidence Lane/project
+no-hits refuse. A non-project, general-question no-hit may call OpenRouter only
+when both of these variables are set:
+
+- `EVIDENCE_LANE_GENERAL_AI_ENABLED=true`
+- `OPENROUTER_API_KEY=<server-side key>`
+
+That route hard-codes `openrouter/free`, sends no project context or chat
+history, rejects credential-shaped input, and has no paid-model fallback. The
+key remains server-side and must be configured separately for this Vercel
+project; another project's secret is never copied or inferred.
+
 It stores no Evidence Lane state and is not the general router. Every `/mcp`
 request is forwarded to one HTTPS durable MCP origin after `/healthz` proves
 the origin's `release_sha` equals both `EVIDENCE_LANE_RELEASE_SHA` and, when
@@ -28,5 +42,6 @@ treated as durable state.
 
 `vercel.json` rewrites only the three adapter routes into Python and preserves
 their public path in the reserved `__evi_path` query value. All other routes
-stay with Next.js. A successful landing-page render proves only the public site;
-it does not prove MCP authentication, durable storage, queueing, or tool calls.
+stay with Next.js, including `/api/studio-query`. A successful landing-page or
+Studio render proves only the public site; it does not prove MCP authentication,
+durable storage, queueing, tool calls, or external-provider availability.

@@ -11,7 +11,10 @@ from typing import Any, cast
 
 from .connector_governance import ConnectorGovernance
 from .constants import LIFECYCLE_RESULT_SCHEMA, TOOL_RESULT_SCHEMA
-from .custom_source_schema import compile_and_map_custom_source_schema
+from .custom_source_schema import (
+    compile_and_map_custom_source_schema,
+    configure_source_intake_schema_pill,
+)
 from .engine import CodePVEngine
 from .engine_identity import identity_repository_root
 from .enrollment import enroll_project, sync_selected_branch
@@ -509,6 +512,56 @@ class EvidenceLaneService:
                     key: value
                     for key, value in result.items()
                     if key not in {"mappings"}
+                },
+            )
+            result["chat_lineage"] = {
+                "append_status": "APPENDED",
+                "event_id": activity["event"]["event_id"],
+                "event_sha256": activity["event"]["event_sha256"],
+            }
+        else:
+            result["chat_lineage"] = {"append_status": "NO_SESSION_REQUESTED"}
+        return result
+
+    def source_intake_schema_configure(
+        self,
+        project_id: str,
+        batch_id: str,
+        *,
+        operation: str,
+        pill_name: str,
+        schema_definition: dict[str, Any],
+        expected_previous_schema_sha256: str | None = None,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Add or version one governed schema-derived Source Intake pill."""
+
+        self.store.config(project_id)
+        result = configure_source_intake_schema_pill(
+            self.store.source_authority_path(project_id),
+            batch_id,
+            operation=operation,
+            pill_name=pill_name,
+            definition=schema_definition,
+            expected_previous_schema_sha256=expected_previous_schema_sha256,
+        )
+        if session_id:
+            activity = self.sessions.record_activity(
+                project_id,
+                session_id,
+                activity_type="build.output",
+                event_id=(
+                    "source_intake_schema_"
+                    f"{str(result['receipt_sha256'])[:32].lower()}"
+                ),
+                visible_payload={
+                    "operation": result["operation"],
+                    "configuration_status": result["configuration_status"],
+                    "pill_projection": result["pill_projection"],
+                    "receipt_id": result["receipt_id"],
+                    "receipt_sha256": result["receipt_sha256"],
+                    "candidate_created": False,
+                    "pointer_moved": False,
                 },
             )
             result["chat_lineage"] = {

@@ -25,15 +25,15 @@ export default function LanesPage() {
             <h2>Select one lane. Inspect every layer.</h2>
             <p>
               Each glass pill opens that lane&apos;s current tools, ordered working sequence,
-              parser and retrieval settings, universal plus lane-specific SQLite schema, and
-              exact four-file output contract.
+              parser and retrieval settings, and universal plus lane-specific SQLite schema.
+              Downloadable four-file dummy packages and 4K topology renders live on Proof.
             </p>
           </div>
           <LaneToolchainExplorer />
         </div>
       </section>
       <section className="section shell laneContract">
-        <div className="sectionHead"><span className="kicker">Four-file package</span><h2>No hidden proprietary viewer required.</h2><p>Each lane emits open formats that can be inspected independently and reconciled together.</p></div>
+        <div className="sectionHead"><span className="kicker">Four-file contract</span><h2>No hidden proprietary viewer required.</h2><p>Each lane emits open formats that can be inspected independently and reconciled together. Open the Proof page for downloadable dummy packages.</p></div>
         <div className="contractCards">
           {artifactContract.map(([title, text], index) => <article key={title}><span>0{index + 1}</span><h3>{title}</h3><p>{text}</p></article>)}
         </div>

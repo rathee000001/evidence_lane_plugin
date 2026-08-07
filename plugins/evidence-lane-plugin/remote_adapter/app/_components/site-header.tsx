@@ -53,7 +53,7 @@ export function SiteHeader() {
               </Link>
             ))}
           </div>
-          <Link className="navCta" href="/connect">
+          <Link className="navCta" href="/hil">
             <GlassIconOrb color="#efca72" size={30} decorative>
               <OfficialToolIcon tool="package" size={16} decorative />
             </GlassIconOrb>

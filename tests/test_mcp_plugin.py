@@ -39,6 +39,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "mode_classify",
         "source_intake_classify",
         "source_custom_schema_compile",
+        "source_intake_schema_configure",
         "source_identity_register",
         "source_graph_build",
         "source_graph_diff",
@@ -101,6 +102,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     assert by_name["mode_classify"].annotations.readOnlyHint is False
     assert by_name["source_sqlite_inspect"].annotations.readOnlyHint is False
     assert by_name["source_custom_schema_compile"].annotations.readOnlyHint is False
+    assert by_name["source_intake_schema_configure"].annotations.readOnlyHint is False
     assert by_name["source_identity_register"].annotations.readOnlyHint is False
     assert by_name["source_graph_build"].annotations.readOnlyHint is False
     assert by_name["source_graph_diff"].annotations.readOnlyHint is False
@@ -191,7 +193,7 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
         (plugin / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
     )
     assert manifest["name"] == "evidence-lane-plugin"
-    assert manifest["interface"]["displayName"] == "Evidence Lane Plugin"
+    assert manifest["interface"]["displayName"] == "Evidence Lane"
     assert manifest["author"]["name"] == "Praveen Rathee"
     assert manifest["repository"].endswith("/evidence_lane_plugin")
     assert manifest["apps"] == "./.app.json"

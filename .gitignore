@@ -22,3 +22,5 @@ node_modules/
 !.env.example
 engine-signing-private-key.*
 plugins/evidence-lane-plugin/.plugin-data/
+evidence/implementation_v42/BROWSER_VERIFICATION/
+evidence/implementation_v42/ONE_SHOT_DUMMY_POC/

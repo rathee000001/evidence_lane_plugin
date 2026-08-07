@@ -218,7 +218,7 @@ class SessionManager:
             return {
                 "schema": "evidence-lane.plugin-installation.v1",
                 "plugin_id": "evidence-lane-plugin",
-                "display_name": "Evidence Lane Plugin",
+                "display_name": "Evidence Lane",
                 "version": ENGINE_VERSION,
                 "state": "NOT_INITIALIZED",
                 "session_boot_context_inside_pv": False,
@@ -287,6 +287,7 @@ class SessionManager:
         if path.exists():
             payload = self.installation_status()
             additions = {
+                "display_name": "Evidence Lane",
                 "version": ENGINE_VERSION,
                 "session_boot_context_inside_pv": False,
                 "session_flash_required": True,
@@ -300,7 +301,7 @@ class SessionManager:
         payload = {
             "schema": "evidence-lane.plugin-installation.v1",
             "plugin_id": "evidence-lane-plugin",
-            "display_name": "Evidence Lane Plugin",
+            "display_name": "Evidence Lane",
             "version": ENGINE_VERSION,
             "state": "INSTALLED_UNTIL_USER_REMOVES_PLUGIN",
             "installed_at": utc_now(),

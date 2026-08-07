@@ -27,3 +27,23 @@ secret values, and recognized credential-shaped content. Never place secret
 bytes or secret environment-variable names in an exclusion receipt. Non-Git
 sources use the same deterministic path/content policy but do not claim a
 tracked-only boundary.
+
+## Schema-derived lane pills
+
+When the user asks to add a new Source Intake pill, call
+`source_intake_schema_configure` with `operation: ADD`, an exact visible
+`pill_name`, a governed Source Intake `batch_id`, and a complete declarative
+`schema_definition` whose title exactly matches the pill name and whose version
+is `1`.
+
+When the user asks to modify one, call the same tool with `operation: MODIFY`,
+the next integer schema version, and `expected_previous_schema_sha256` bound to
+the exact prior registered version. MODIFY is append-only: never edit or delete
+the old definition, never mutate the canonical eighteen-lane registry, and
+never treat schema configuration as source classification, a candidate build,
+or HIL approval.
+
+Suggested user forms:
+
+- `/evi-source-intake ADD "<pill name>" --purpose "<need>" --schema <definition>`
+- `/evi-source-intake MODIFY "<pill name>" --schema <next-version-definition> --previous-sha256 <exact-sha256>`

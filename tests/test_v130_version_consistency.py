@@ -48,7 +48,7 @@ def test_all_active_product_version_surfaces_are_v130() -> None:
 def test_current_docs_site_poc_and_acceptance_surfaces_name_v13() -> None:
     required_fragments = {
         "README.md": [
-            "# Evidence Lane Plugin 1.3.0",
+            "# Evidence Lane 1.3.0",
             "The single active product release is **1.3.0**",
             "The v1.3 reconciliation gate",
             "Current v1.3 lane bundles",

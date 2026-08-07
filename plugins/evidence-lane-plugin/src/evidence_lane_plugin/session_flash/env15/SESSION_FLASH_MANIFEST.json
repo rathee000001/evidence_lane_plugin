@@ -1,7 +1,7 @@
 {
   "schema": "evidence-lane.session-flash-manifest.v1",
   "plugin_id": "evidence-lane-plugin",
-  "authority_version": "ENV15_UOP15_PUBLIC_LOCKED_20260710",
+  "authority_version": "ENV15_UOP15_PUBLIC_LOCKED_20260807",
   "flash_scope": "PLUGIN_INSTALLATION_OUTSIDE_PV",
   "persistence_state": "FLASHED_UNTIL_PLUGIN_REMOVED",
   "source_packet_status": "PARTIAL_INTEGRITY",
@@ -15,8 +15,8 @@
     },
     {
       "path": "UNIVERSAL_FLASH_PROMPT.md",
-      "bytes": 2706,
-      "sha256": "e5751173a1419137df57ed4811d82d0aded227c6d064a0df603ef7813f539d5f"
+      "bytes": 2786,
+      "sha256": "2167bbabe80656c24b18544096e725e874d4fb46066b8f4f8364a3bf14a827db"
     },
     {
       "path": "env/env_law.md",

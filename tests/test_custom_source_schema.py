@@ -8,6 +8,7 @@ from evidence_lane_plugin.custom_source_schema import (
     CUSTOM_SOURCE_SCHEMA,
     compile_and_map_custom_source_schema,
     compile_custom_source_schema,
+    configure_source_intake_schema_pill,
 )
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.source_authority import (
@@ -159,6 +160,81 @@ def test_schema_maps_sealed_registry_metadata_and_is_idempotent(
     with sqlite3.connect(registry) as connection:
         assert connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
         assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
+
+
+def test_schema_derived_pill_add_and_modify_are_append_only(tmp_path: Path) -> None:
+    registry, batch_id, _ = _registry(tmp_path)
+    first_definition = _definition("project.visible-python-pill")
+    added = configure_source_intake_schema_pill(
+        registry,
+        batch_id,
+        operation="ADD",
+        pill_name="Project Python source mapping",
+        definition=first_definition,
+    )
+
+    second_definition = _definition("project.visible-python-pill")
+    second_definition["schema_version"] = 2
+    second_definition["description"] = (
+        "Map sealed Python member metadata through the second append-only schema version."
+    )
+    modified = configure_source_intake_schema_pill(
+        registry,
+        batch_id,
+        operation="MODIFY",
+        pill_name="Project Python source mapping",
+        definition=second_definition,
+        expected_previous_schema_sha256=added["schema_sha256"],
+    )
+    retried = configure_source_intake_schema_pill(
+        registry,
+        batch_id,
+        operation="MODIFY",
+        pill_name="Project Python source mapping",
+        definition=second_definition,
+        expected_previous_schema_sha256=added["schema_sha256"],
+    )
+
+    assert added["configuration_status"] == "APPEND_ONLY_VERSION_CREATED"
+    assert modified["configuration_status"] == "APPEND_ONLY_VERSION_CREATED"
+    assert retried["configuration_status"] == "IDEMPOTENT_REUSE"
+    assert modified["pill_projection"]["previous_schema_sha256"] == added["schema_sha256"]
+    assert modified["pill_projection"]["canonical_lane_registry_mutated"] is False
+    assert modified["candidate_created"] is False
+    assert modified["pointer_moved"] is False
+    with sqlite3.connect(registry) as connection:
+        rows = connection.execute(
+            """SELECT schema_version, schema_sha256 FROM source_custom_schema
+            WHERE schema_id=? ORDER BY schema_version""",
+            ("project.visible-python-pill",),
+        ).fetchall()
+    assert rows == [(1, added["schema_sha256"]), (2, modified["schema_sha256"])]
+
+
+def test_schema_derived_pill_modify_requires_exact_prior_sha(tmp_path: Path) -> None:
+    registry, batch_id, _ = _registry(tmp_path)
+    definition = _definition("project.sha-bound-pill")
+    configure_source_intake_schema_pill(
+        registry,
+        batch_id,
+        operation="ADD",
+        pill_name="Project Python source mapping",
+        definition=definition,
+    )
+    definition["schema_version"] = 2
+    definition["description"] = (
+        "Map sealed Python metadata only after the exact prior schema is supplied."
+    )
+    with pytest.raises(EvidenceLaneError) as blocked:
+        configure_source_intake_schema_pill(
+            registry,
+            batch_id,
+            operation="MODIFY",
+            pill_name="Project Python source mapping",
+            definition=definition,
+            expected_previous_schema_sha256="0" * 64,
+        )
+    assert blocked.value.code == "SOURCE_INTAKE_SCHEMA_PREVIOUS_SHA_MISMATCH"
 
 
 def test_exact_schema_dependencies_are_required(tmp_path: Path) -> None:

@@ -113,7 +113,7 @@ def main() -> int:
         check=True,
         env=runtime_environment,
     )
-    print(f"Evidence Lane Plugin ready: {environment}")
+    print(f"Evidence Lane ready: {environment}")
     return 0
 
 

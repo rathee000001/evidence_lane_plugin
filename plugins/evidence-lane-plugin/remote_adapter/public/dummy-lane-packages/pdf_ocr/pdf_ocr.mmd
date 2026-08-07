@@ -1,0 +1,206 @@
+flowchart TB
+    classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+    classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+    classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+    classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+    classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+    classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+    classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+    classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+        LANE_ROOT["PDF / OCR<br/>1 sources &#124; 1 chunks &#124; 4 structured facts"]:::root
+    subgraph SOURCE_INTAKE["1. Source intake and exact-byte registry"]
+        direction TB
+        SOURCE_REG["source_registry<br/>rows=1 &#124; SHA-256 + parser state"]:::source
+        LANE_ROOT --> SOURCE_REG
+        SOURCE_TYPE_0[".pdf<br/>1 sources"]:::source
+        SOURCE_REG --> SOURCE_TYPE_0
+    end
+    subgraph SEMANTIC_MODEL["2. Lane-specific semantic model from SQLite"]
+        direction TB
+        FACT_INDEX["structured_fact<br/>rows=4 &#124; kinds=4"]:::semantic
+        SOURCE_REG --> FACT_INDEX
+        SCHEMA_0["pdf_file<br/>rows=1"]:::semantic
+        FACT_INDEX -->|materializes| SCHEMA_0
+        SCHEMA_1["pdf_page<br/>rows=1"]:::semantic
+        FACT_INDEX -->|materializes| SCHEMA_1
+        SCHEMA_2["pdf_text_block<br/>rows=1"]:::semantic
+        FACT_INDEX -->|materializes| SCHEMA_2
+        SCHEMA_3["pdf_image_block<br/>rows=0"]:::semantic
+        FACT_INDEX -->|materializes| SCHEMA_3
+        SCHEMA_4["pdf_ocr_run<br/>rows=0"]:::semantic
+        FACT_INDEX -->|materializes| SCHEMA_4
+        SCHEMA_5["pdf_ocr_block<br/>rows=0"]:::semantic
+        FACT_INDEX -->|materializes| SCHEMA_5
+        SCHEMA_6["pdf_ocr_line<br/>rows=0"]:::semantic
+        FACT_INDEX -->|materializes| SCHEMA_6
+        SCHEMA_7["pdf_review_region<br/>rows=0"]:::semantic
+        FACT_INDEX -->|materializes| SCHEMA_7
+        SCHEMA_8["pdf_structure_signature<br/>rows=1"]:::semantic
+        FACT_INDEX -->|materializes| SCHEMA_8
+        FACT_KIND_0["pdf_file<br/>rows=1"]:::semantic
+        FACT_INDEX --> FACT_KIND_0
+        FACT_SAMPLE_0_0["poc-fixtures/evidence.pdf"]:::semantic
+        FACT_KIND_0 -->|sample| FACT_SAMPLE_0_0
+        FACT_KIND_1["pdf_page<br/>rows=1"]:::semantic
+        FACT_INDEX --> FACT_KIND_1
+        FACT_SAMPLE_1_0["page:1"]:::semantic
+        FACT_KIND_1 -->|sample| FACT_SAMPLE_1_0
+        FACT_KIND_2["pdf_structure_signature<br/>rows=1"]:::semantic
+        FACT_INDEX --> FACT_KIND_2
+        FACT_SAMPLE_2_0["poc-fixtures/evidence.pdf"]:::semantic
+        FACT_KIND_2 -->|sample| FACT_SAMPLE_2_0
+        FACT_KIND_3["pdf_text_block<br/>rows=1"]:::semantic
+        FACT_INDEX --> FACT_KIND_3
+        FACT_SAMPLE_3_0["page:1:native:1"]:::semantic
+        FACT_KIND_3 -->|sample| FACT_SAMPLE_3_0
+    end
+    subgraph SQLITE_PHYSICAL_SCHEMA["3. Additive SQLite physical schema contract"]
+        direction TB
+        PHYSICAL_SCHEMA_SECTOR["SQLite physical schema<br/>contract=23 &#124; tables=28 &#124; auxiliaries=5 &#124; relations=14<br/>projection_sha256=8DD65BC8F171E74BD408C5E20BA753FAA8B60C3870D69A654CD46C7352C78CB2"]:::root
+        LANE_ROOT -->|derives from SQLite| PHYSICAL_SCHEMA_SECTOR
+        PHYSICAL_TABLE_000["lane_meta<br/>rows=9 &#124; columns=2 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_000
+        PHYSICAL_TABLE_001["lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_001
+        PHYSICAL_TABLE_002["source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_002
+        PHYSICAL_TABLE_003["source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_003
+        PHYSICAL_TABLE_004["chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_004
+        PHYSICAL_TABLE_005["chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_005
+        PHYSICAL_TABLE_006["chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_006
+        PHYSICAL_TABLE_007["structured_fact<br/>rows=4 &#124; columns=5 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_007
+        PHYSICAL_TABLE_008["parser_capability<br/>rows=20 &#124; columns=4 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_008
+        PHYSICAL_TABLE_009["tfidf_term<br/>rows=5 &#124; columns=4 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_009
+        PHYSICAL_TABLE_010["tfidf_vector<br/>rows=5 &#124; columns=6 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_010
+        PHYSICAL_TABLE_011["refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_011
+        PHYSICAL_TABLE_012["mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_012
+        PHYSICAL_TABLE_013["pdf_file<br/>rows=1 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_013
+        PHYSICAL_TABLE_014["pdf_page<br/>rows=1 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_014
+        PHYSICAL_TABLE_015["pdf_text_block<br/>rows=1 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_015
+        PHYSICAL_TABLE_016["pdf_image_block<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_016
+        PHYSICAL_TABLE_017["pdf_ocr_run<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_017
+        PHYSICAL_TABLE_018["pdf_ocr_block<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_018
+        PHYSICAL_TABLE_019["pdf_ocr_line<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_019
+        PHYSICAL_TABLE_020["pdf_review_region<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_020
+        PHYSICAL_TABLE_021["pdf_structure_signature<br/>rows=1 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_021
+        PHYSICAL_TABLE_022["pdf_fts<br/>rows=1 &#124; columns=6 &#124; role=lane_fts_contract"]:::semantic
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_022
+        PHYSICAL_TABLE_023["pdf_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_023
+        PHYSICAL_TABLE_024["pdf_fts_content<br/>rows=1 &#124; columns=5 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_024
+        PHYSICAL_TABLE_025["pdf_fts_data<br/>rows=3 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_025
+        PHYSICAL_TABLE_026["pdf_fts_docsize<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_026
+        PHYSICAL_TABLE_027["pdf_fts_idx<br/>rows=1 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+        PHYSICAL_SCHEMA_SECTOR -->|physical table| PHYSICAL_TABLE_027
+        PHYSICAL_TABLE_002 -->|source_id -&gt; source_registry.source_id| PHYSICAL_TABLE_004
+        PHYSICAL_TABLE_005 -->|chunk_sha256 -&gt; chunk_content_cas.sha256| PHYSICAL_TABLE_006
+        PHYSICAL_TABLE_002 -->|source_id -&gt; source_registry.source_id| PHYSICAL_TABLE_007
+        PHYSICAL_TABLE_009 -->|term -&gt; tfidf_term.term| PHYSICAL_TABLE_010
+        PHYSICAL_TABLE_004 -->|chunk_id -&gt; chunk_index.chunk_id| PHYSICAL_TABLE_010
+        PHYSICAL_TABLE_002 -->|source_id -&gt; source_registry.source_id| PHYSICAL_TABLE_013
+        PHYSICAL_TABLE_002 -->|source_id -&gt; source_registry.source_id| PHYSICAL_TABLE_014
+        PHYSICAL_TABLE_002 -->|source_id -&gt; source_registry.source_id| PHYSICAL_TABLE_015
+        PHYSICAL_TABLE_002 -->|source_id -&gt; source_registry.source_id| PHYSICAL_TABLE_016
+        PHYSICAL_TABLE_002 -->|source_id -&gt; source_registry.source_id| PHYSICAL_TABLE_017
+        PHYSICAL_TABLE_002 -->|source_id -&gt; source_registry.source_id| PHYSICAL_TABLE_018
+        PHYSICAL_TABLE_002 -->|source_id -&gt; source_registry.source_id| PHYSICAL_TABLE_019
+        PHYSICAL_TABLE_002 -->|source_id -&gt; source_registry.source_id| PHYSICAL_TABLE_020
+        PHYSICAL_TABLE_002 -->|source_id -&gt; source_registry.source_id| PHYSICAL_TABLE_021
+    end
+    subgraph SCHEMA_DERIVED_TOPOLOGY["4. Lane-owned SQLite entities, relations, and samples"]
+        direction TB
+        SCHEMA_SECTOR["PDF / OCR schema sector<br/>entities=9 &#124; relations=9 &#124; samples=4"]:::root
+        LANE_ROOT -->|derives from SQLite| SCHEMA_SECTOR
+        SCHEMA_ENTITY_0["pdf_file<br/>rows=1 &#124; columns=4"]:::semantic
+        SCHEMA_SECTOR -->|entity| SCHEMA_ENTITY_0
+        SCHEMA_SAMPLE_0["sample<br/>poc-fixtures/evidence.pdf"]:::semantic
+        SCHEMA_ENTITY_0 -->|row sample| SCHEMA_SAMPLE_0
+        SCHEMA_ENTITY_1["pdf_page<br/>rows=1 &#124; columns=4"]:::semantic
+        SCHEMA_SECTOR -->|entity| SCHEMA_ENTITY_1
+        SCHEMA_SAMPLE_1["sample<br/>page:1"]:::semantic
+        SCHEMA_ENTITY_1 -->|row sample| SCHEMA_SAMPLE_1
+        SCHEMA_ENTITY_2["pdf_text_block<br/>rows=1 &#124; columns=4"]:::semantic
+        SCHEMA_SECTOR -->|entity| SCHEMA_ENTITY_2
+        SCHEMA_SAMPLE_2["sample<br/>page:1:native:1"]:::semantic
+        SCHEMA_ENTITY_2 -->|row sample| SCHEMA_SAMPLE_2
+        SCHEMA_ENTITY_3["pdf_image_block<br/>rows=0 &#124; columns=4"]:::semantic
+        SCHEMA_SECTOR -->|entity| SCHEMA_ENTITY_3
+        SCHEMA_ENTITY_4["pdf_ocr_run<br/>rows=0 &#124; columns=4"]:::semantic
+        SCHEMA_SECTOR -->|entity| SCHEMA_ENTITY_4
+        SCHEMA_ENTITY_5["pdf_ocr_block<br/>rows=0 &#124; columns=4"]:::semantic
+        SCHEMA_SECTOR -->|entity| SCHEMA_ENTITY_5
+        SCHEMA_ENTITY_6["pdf_ocr_line<br/>rows=0 &#124; columns=4"]:::semantic
+        SCHEMA_SECTOR -->|entity| SCHEMA_ENTITY_6
+        SCHEMA_ENTITY_7["pdf_review_region<br/>rows=0 &#124; columns=4"]:::semantic
+        SCHEMA_SECTOR -->|entity| SCHEMA_ENTITY_7
+        SCHEMA_ENTITY_8["pdf_structure_signature<br/>rows=1 &#124; columns=4"]:::semantic
+        SCHEMA_SECTOR -->|entity| SCHEMA_ENTITY_8
+        SCHEMA_SAMPLE_8["sample<br/>poc-fixtures/evidence.pdf"]:::semantic
+        SCHEMA_ENTITY_8 -->|row sample| SCHEMA_SAMPLE_8
+        SOURCE_REG -->|source_id -&gt; source_registry.source_id| SCHEMA_ENTITY_0
+        SOURCE_REG -->|source_id -&gt; source_registry.source_id| SCHEMA_ENTITY_1
+        SOURCE_REG -->|source_id -&gt; source_registry.source_id| SCHEMA_ENTITY_2
+        SOURCE_REG -->|source_id -&gt; source_registry.source_id| SCHEMA_ENTITY_3
+        SOURCE_REG -->|source_id -&gt; source_registry.source_id| SCHEMA_ENTITY_4
+        SOURCE_REG -->|source_id -&gt; source_registry.source_id| SCHEMA_ENTITY_5
+        SOURCE_REG -->|source_id -&gt; source_registry.source_id| SCHEMA_ENTITY_6
+        SOURCE_REG -->|source_id -&gt; source_registry.source_id| SCHEMA_ENTITY_7
+        SOURCE_REG -->|source_id -&gt; source_registry.source_id| SCHEMA_ENTITY_8
+    end
+    subgraph RETRIEVAL["5. Retrieval and changed-section reuse"]
+        direction TB
+        CHUNK_INDEX["chunk_index<br/>rows=1"]:::retrieval
+        FACT_INDEX --> CHUNK_INDEX
+        CHUNK_CAS["chunk_content_cas<br/>rows=1"]:::retrieval
+        CHUNK_INDEX --> CHUNK_CAS
+        CHUNK_HISTORY["chunk_history<br/>rows=1"]:::retrieval
+        CHUNK_CAS --> CHUNK_HISTORY
+        FTS["pdf_fts<br/>rows=1"]:::retrieval
+        CHUNK_HISTORY --> FTS
+        TFIDF["tfidf_vector<br/>rows=5"]:::retrieval
+        FTS --> TFIDF
+    end
+    subgraph LIFECYCLE["6. Refresh, pointer, and mutation evidence"]
+        direction TB
+        REFRESH["refresh classification<br/>unchanged_reuse=0 &#124; changed_rebuild=0 &#124; new_register=1 &#124; removed_tombstone=0 &#124; blocked_unsupported=0 &#124; changed_section_reused=0 &#124; changed_section_reindexed=1"]:::lifecycle
+        POINTER["lane pointer evidence<br/>entered_from=None &#124; generation=0<br/>proposed=PV-PUBLIC-DUMMY-1"]:::lifecycle
+        MUTATION["append-only change evidence<br/>tombstones=0 &#124; mutations=0"]:::lifecycle
+        TFIDF --> REFRESH
+        REFRESH --> POINTER
+        REFRESH --> MUTATION
+    end
+    subgraph OUTPUTS["7. Inspectable lane package"]
+        direction TB
+        SQLITE_OUT["pdf_ocr_sector_v001.sqlite<br/>SQLite/FK/FTS authority"]:::output
+        MMD_OUT["pdf_ocr.mmd<br/>semantic Mermaid authority"]:::output
+        DOT_OUT["pdf_ocr.dot<br/>semantic DOT authority"]:::output
+        POINTER_OUT["lane_pointer.json<br/>candidate pointer evidence"]:::output
+        RECEIPT_OUT["refresh_receipt.json<br/>classification + validation"]:::output
+        POINTER --> SQLITE_OUT
+        SQLITE_OUT --> MMD_OUT
+        SQLITE_OUT --> DOT_OUT
+        SQLITE_OUT --> POINTER_OUT
+        SQLITE_OUT --> RECEIPT_OUT
+    end

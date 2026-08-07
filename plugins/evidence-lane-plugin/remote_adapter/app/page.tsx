@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { DeltaLedgerExplorer } from "./_components/delta-ledger-explorer";
-import { CurrentExecutionPlan } from "./_components/current-execution-plan";
 import { GlassIconOrb, OfficialToolIcon, PulsatingBrain } from "./_components/evidence-assets";
 import { MotionReveal } from "./_components/motion-reveal";
 import { PluginSurfaceCatalog } from "./_components/plugin-surface-catalog";
@@ -23,7 +22,7 @@ export default function Home() {
       <section className="homeHero shell">
         <MotionReveal className="heroCopy">
           <span className="eyebrow"><i />Evidence Lane for Codex + ChatGPT</span>
-          <h1>Resume from verified project truth&mdash;not another re-explanation.</h1>
+          <h1>Resume from verified project truth &mdash; not another re-explanation.</h1>
           <p>
             The first governed PV parses and seals the bounded project. Later tasks query its
             SQLite evidence, reuse unchanged chunks, and Refresh only visible Deltas. Accepted
@@ -173,30 +172,16 @@ export default function Home() {
         <ReleaseStatus />
       </section>
 
-      <section className="section currentExecutionPlanBand" id="current-execution-plan">
-        <div className="shell">
-          <div className="sectionHead wideHead">
-            <span className="kicker">Current governed work</span>
-            <h2>Fifty-one execution steps. Row 46 is the active correction.</h2>
-            <p>
-              Rows 1&ndash;45 are complete, row 46 contains the already-recorded
-              APPROVE_WITH_DELTA correction, and rows 47&ndash;51 remain pending. This is the
-              live Plan Lane; the eighty historical Deltas below remain read-only evidence.
-            </p>
-          </div>
-          <CurrentExecutionPlan />
-        </div>
-      </section>
-
       <section className="section deltaLedgerBand" id="delta-ledger">
         <div className="shell">
           <div className="sectionHead wideHead">
-            <span className="kicker">The complete build story</span>
-            <h2>Eighty additive Deltas. No erased history.</h2>
+            <span className="kicker">Historical Deltas + current Plan Lane</span>
+            <h2>One additive ledger. 131 governed rows. No erased history.</h2>
             <p>
-              The ledger is the product narrative: foundation, v1.2 evolution, and v1.3
-              hardening in exact governed order. It stays collapsed until requested; filters
-              change the view, never the underlying rows.
+              Rows 1&ndash;80 preserve the sealed foundation, v1.2 evolution, and v1.3 hardening
+              record. The current 51-step execution plan is appended as rows 81&ndash;131 in this
+              same table: steps 1&ndash;45 are complete, step 46 is the active correction, and steps
+              47&ndash;51 remain pending. Filters change the view, never the underlying order or authority.
             </p>
           </div>
           <DeltaLedgerExplorer />

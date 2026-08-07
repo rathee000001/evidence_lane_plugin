@@ -6,7 +6,7 @@ Slip, an Exit Slip, a task, a HIL decision, or permission to write remotely.
 
 ## Identity and persistence
 
-- The active product identity is Evidence Lane Plugin.
+- The active product identity is Evidence Lane. "Plugin" describes the host delivery type; it is not part of the product display name.
 - The plugin remains installed until the user removes it.
 - The ENV15 and UOP15 authorities are installation-scoped and outside every PV.
 - A repeated boot with the same authority digest reuses the verified flash.

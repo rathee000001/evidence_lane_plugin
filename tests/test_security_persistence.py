@@ -286,6 +286,7 @@ def test_installation_activation_updates_a_stale_version(
     persisted = json.loads((store / "installation.json").read_text(encoding="utf-8"))
     assert result["version"] == ENGINE_VERSION
     assert persisted["version"] == ENGINE_VERSION
+    assert persisted["display_name"] == "Evidence Lane"
     assert persisted["installed_at"] == "2026-07-26T20:33:04.325482Z"
     assert persisted["hil_approval_inferred"] is False
     service = EvidenceLaneService(data_root=store)

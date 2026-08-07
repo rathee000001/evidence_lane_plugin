@@ -2,7 +2,11 @@
 
 import { useState, type KeyboardEvent } from "react";
 
-import { GlassIconOrb, OfficialToolIcon } from "./evidence-assets";
+import {
+  GlassIconOrb,
+  OfficialToolIcon,
+  type OfficialToolIconName,
+} from "./evidence-assets";
 
 type HilChoice = {
   token: string;
@@ -75,6 +79,25 @@ type OperatorGuide = {
 
 type SelectionOrigin = "plugin" | "prompt";
 
+const modeIdentity: Record<string, { color: string; icon: OfficialToolIconName }> = {
+  D: { color: "#69d9f5", icon: "node" },
+  AL: { color: "#8b9cff", icon: "python" },
+  PL: { color: "#efca72", icon: "package" },
+  CD: { color: "#efca72", icon: "terminal" },
+  OP: { color: "#83ddb3", icon: "pulse" },
+  VAL: { color: "#9ed368", icon: "package" },
+  RS: { color: "#8b9cff", icon: "python" },
+  JD: { color: "#f2a1c5", icon: "media" },
+  XL: { color: "#83ddb3", icon: "database" },
+  PPT: { color: "#f2a1c5", icon: "media" },
+  DOC: { color: "#69d9f5", icon: "media" },
+  PB: { color: "#83ddb3", icon: "database" },
+  ENG: { color: "#b6a0ff", icon: "package" },
+  CE: { color: "#9ed368", icon: "git" },
+  RCV: { color: "#f2a1c5", icon: "pulse" },
+  X: { color: "#b6a0ff", icon: "node" },
+};
+
 function nextModeIndex(
   event: KeyboardEvent<HTMLButtonElement>,
   index: number,
@@ -114,6 +137,9 @@ export function ModeOperatorExplorer({ data }: { data: OperatorGuide }) {
 
       <div className="operatorModeTabs" role="tablist" aria-label="Operating modes">
         {data.modes.map((mode, index) => (
+          (() => {
+            const identity = modeIdentity[mode.id] ?? { color: "#69d9f5", icon: "pulse" as const };
+            return (
           <button
             aria-controls="operator-mode-panel"
             aria-selected={mode.id === active.id}
@@ -133,12 +159,13 @@ export function ModeOperatorExplorer({ data }: { data: OperatorGuide }) {
             tabIndex={mode.id === active.id ? 0 : -1}
             type="button"
           >
-            <GlassIconOrb color={mode.id === "CD" ? "#efca72" : "#69d9f5"} size={32} decorative>
-              <OfficialToolIcon tool={mode.id === "CD" ? "terminal" : "pulse"} size={17} decorative />
+            <GlassIconOrb color={identity.color} size={32} decorative>
+              <OfficialToolIcon tool={identity.icon} size={17} decorative />
             </GlassIconOrb>
-            <b>{mode.id}</b>
             <span>{mode.name}</span>
           </button>
+            );
+          })()
         ))}
       </div>
 

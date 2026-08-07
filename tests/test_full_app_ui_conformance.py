@@ -116,8 +116,9 @@ def test_source_lab_keeps_reuse_refusal_and_agentic_route_law_visible() -> None:
     assert "not a second GitHub gateway" in lab
 
 
-def test_toolchain_uses_exact_app_brain_tools_schema_and_four_files() -> None:
+def test_toolchain_uses_exact_app_brain_tools_and_schema_while_proof_owns_files() -> None:
     console = (COMPONENTS / "evidence-console.tsx").read_text(encoding="utf-8")
+    proof = (COMPONENTS / "lane-proof-explorer.tsx").read_text(encoding="utf-8")
     assets = (COMPONENTS / "evidence-assets.tsx").read_text(encoding="utf-8")
     popup = (COMPONENTS / "governed-popup.tsx").read_text(encoding="utf-8")
     assert "laneRuntimeContracts" in console
@@ -126,11 +127,14 @@ def test_toolchain_uses_exact_app_brain_tools_schema_and_four_files() -> None:
     assert "runtime.schemaAdditions.map" in console
     assert console.count("<PulsatingBrain") == 1
     assert "OfficialToolIcon" in console
-    assert '`${active.id}_sector_v001.sqlite`' in console
-    assert '`${active.id}.mmd`' in console
-    assert '`${active.id}.dot`' in console
-    assert '"refresh_receipt.json"' in console
-    assert "outputFiles.map" in console
+    assert "outputFiles.map" not in console
+    assert "laneOutputFiles" not in console
+    assert "dummy-lane-artifacts.json" in proof
+    assert "canonical_artifacts.map" in proof
+    assert "Download PNG" in proof
+    assert "proofLightboxCanvas" in proof
+    assert 'event.key === "Escape"' in proof
+    assert "adjustZoom" in proof and "startDrag" in proof
     assert "--orbit-start" not in console and "--orbit-end" not in console
     assert "T023_UNIVERSAL_POPUP_FADE_V001" in popup
     assert "T023_UNIVERSAL_FROSTED_POPUP_V001" in popup
@@ -220,8 +224,13 @@ def test_v130_home_uses_delta_story_plugin_catalog_and_universal_glass_pills() -
     assert "grid-template-columns: repeat(8,minmax(0,1fr))" in operator_tabs_rule.group(1)
     assert "overflow-x: auto" not in operator_tabs_rule.group(1)
     assert "parallelSources.map" in architecture
+    assert 'className="sourceIntakeDepthPill"' in architecture
+    assert "SourceLaneIcon" in architecture
+    assert 'className="source-lane-orb"' in architecture
+    assert architecture.count('className="compactDepthPill"') == 3
     assert architecture.count("<GlassIconOrb") >= 7
     assert ".parallelDiagram::before" in css
+    assert ".flowDepthPill" in css and "width: max-content" in css
 
 
 def test_every_legacy_route_pill_uses_the_glass_orb_schema() -> None:
@@ -238,36 +247,50 @@ def test_every_legacy_route_pill_uses_the_glass_orb_schema() -> None:
     assert 'className="pill dark"' not in combined
     assert 'className="pill blue"' not in combined
     assert 'className="pill gold"' not in combined
-    assert combined.count("T023_UNIVERSAL_GLASS_PILL_V001") >= 12
+    assert combined.count("T023_UNIVERSAL_GLASS_PILL_V001") >= 7
+    assert combined.count('className="compactDepthPill"') >= 5
     assert combined.count("<GlassIconOrb") >= 12
     assert combined.count("<OfficialToolIcon") >= 12
 
 
 def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     studio = (COMPONENTS / "evidence-prompt-studio.tsx").read_text(encoding="utf-8")
+    retrieval = (APP / "_data" / "studio-retrieval.ts").read_text(encoding="utf-8")
+    query_route = (APP / "api" / "studio-query" / "route.ts").read_text(encoding="utf-8")
+    floating = (COMPONENTS / "floating-evidence-studio.tsx").read_text(encoding="utf-8")
+    layout = (APP / "layout.tsx").read_text(encoding="utf-8")
     css = (APP / "globals.css").read_text(encoding="utf-8")
 
     assert "promptStudioRail" not in studio
     assert "promptStudioHeader" in studio and "promptStudioWorkspace" in studio
     assert 'data-grounding="LOCAL_BM25_TFIDF_RRF_PROJECTION_OF_SQLITE_FTS5_CORPUS"' in studio
-    assert 'studio-rag-index.json' in studio
-    assert "rankEvidence" in studio and "answerFromEvidence" in studio
-    assert "bm25" in studio and "tfidf" in studio and "rrf" in studio
-    assert "The studio will not invent an answer or imply a provider call" in studio
-    assert "it does not execute SQLite" in (APP / "studio" / "page.tsx").read_text(encoding="utf-8")
-    assert "promptStopWords" in studio
-    assert "!promptStopWords.has(token)" in studio
-    assert "Ranked source chunks" in studio and "Boundary reference" in studio
+    assert 'studio-rag-index.json' in retrieval
+    assert "rankEvidence" in retrieval and "answerFromEvidence" in retrieval
+    assert "bm25" in retrieval and "tfidf" in retrieval and "rrf" in retrieval
+    assert "promptStopWords" in retrieval
+    assert "!promptStopWords.has(token)" in retrieval
+    assert "Ranked source chunks" in studio and "Boundary / provider reference" in studio
     assert "promptRetrievalReceipt" in studio and ".promptRetrievalReceipt" in css
     assert ".promptStudio { min-height: 760px; border: 0; background: transparent; }" in css
+    assert 'className="promptSuggestionCard"' in studio
+    assert ".promptSuggestionCluster .promptSuggestionCard" in css
+    assert "FloatingEvidenceStudio" in layout and "floatingStudioPanel" in floating
+    assert 'fetch("/api/studio-query"' in floating
+    assert 'const OPENROUTER_FREE_MODEL = "openrouter/free"' in query_route
+    assert "NO_EXTERNAL_PROJECT_CLAIMS_NO_PAID_MODEL_FALLBACK" in query_route
+    assert "EVIDENCE_LANE_GENERAL_AI_ENABLED" in query_route
+    assert "OPENROUTER_API_KEY" in query_route
+    assert "verifyStudioRetrievalConfidence" in retrieval
+    assert 'id: "general-no-hit"' in retrieval
+    assert 'id: "project-nonsense-no-hit"' in retrieval
+    assert 'id: "active-plan-hit"' in retrieval
+    assert "RETRIEVAL_CONFIDENCE_GATE_FAILED" in query_route
 
 
 def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() -> None:
     landing = (APP / "page.tsx").read_text(encoding="utf-8")
     ledger = (COMPONENTS / "delta-ledger-explorer.tsx").read_text(encoding="utf-8")
-    current_plan_component = (COMPONENTS / "current-execution-plan.tsx").read_text(
-        encoding="utf-8"
-    )
+    ledger_data = (APP / "_data" / "delta-ledger.ts").read_text(encoding="utf-8")
     current_plan_data = (APP / "_data" / "current-execution-plan.ts").read_text(
         encoding="utf-8"
     )
@@ -279,9 +302,9 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "No re-explanation tax" in landing
     assert "Parse once, query again" in landing
     assert "Human / AI boundary" in landing
-    assert landing.index('className="section shell releaseHome"') < landing.index(
-        'id="current-execution-plan"'
-    ) < landing.index('id="delta-ledger"')
+    assert landing.index('className="section shell releaseHome"') < landing.index('id="delta-ledger"')
+    assert 'id="current-execution-plan"' not in landing
+    assert "One additive ledger. 131 governed rows." in landing
     step_rows = re.findall(r'^  ".*",$', current_plan_data, flags=re.MULTILINE)
     assert len(step_rows) == 51
     assert 'activeRow: 46' in current_plan_data
@@ -289,11 +312,18 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert 'persistentUntil: "NEXT_SIX_WAY_HIL_PRESENTED"' in current_plan_data
     assert 'priorHilDecisionAlreadyRecorded: "APPROVE_WITH_DELTA"' in current_plan_data
     assert "CURRENT_PLAN_LANE_NOT_HISTORICAL_ACCEPTED_DELTA_LEDGER" in current_plan_data
-    assert "one-shot dummy test across every non-Git lane" in current_plan_data
+    assert "row-46 one-shot lane proof as prior evidence" in current_plan_data
+    assert (
+        "main Evidence Lane repository with its full reachable commit and parent history"
+        in current_plan_data
+    )
     assert "neither loaded nor detected leaves no PV folder or placeholder" in current_plan_data
-    assert 'aria-label="Current 51-step Evidence Lane execution plan"' in current_plan_component
-    assert "currentExecutionPlan.map" in current_plan_component
-    assert "linked steer appends to its existing row" in current_plan_component
+    assert 'phase: "Current execution"' in ledger_data
+    assert "80 + row.number" in ledger_data
+    assert "...currentExecution" in ledger_data
+    assert "sealedHistoricalDeltaRows" in ledger_data
+    assert "liveExecutionRows" in ledger_data
+    assert "Rows 81&ndash;131" in ledger
     assert "useState(false)" in ledger
     assert 'aria-expanded={expanded}' in ledger
     assert 'expanded ? "Collapse Delta ledger" : "Open Delta ledger"' in ledger
@@ -375,3 +405,28 @@ def test_three_and_framer_motion_are_bounded_and_accessible() -> None:
     assert '"framer-motion": "12.38.0"' in package
     for forbidden in ("root-fiber", "Telemetry", "Scanner"):
         assert forbidden not in ambient
+
+
+def test_connect_endpoint_cards_are_linked_readable_and_truthful() -> None:
+    connect = (APP / "connect" / "page.tsx").read_text(encoding="utf-8")
+    styles = (APP / "globals.css").read_text(encoding="utf-8")
+
+    assert '<a href={publicSiteUrl} className="endpointCard endpointCardReady">' in connect
+    assert (
+        '<a href={publicMcpHealthUrl} className="endpointCard endpointCardBlocked">'
+        in connect
+    )
+    assert (
+        '<a href={publicMcpUrl} className="endpointCard endpointCardProtocol">'
+        in connect
+    )
+    assert "missing durable HTTPS origin and exact release identity" in connect
+    assert "a browser tab is not an authenticated MCP session" in connect
+    assert ".endpointCard strong { color: #ffffff;" in styles
+    assert ".endpointCard small { color: #d6e7f3;" in styles
+    for selector in (
+        ".endpointCardReady",
+        ".endpointCardBlocked",
+        ".endpointCardProtocol",
+    ):
+        assert selector in styles

@@ -8,11 +8,11 @@ import { laneToolchains } from "../_data/site";
 import {
   GlassIconOrb,
   GlassPill,
-  LaneAssetIcon,
   OfficialToolIcon,
   PulsatingBrain,
 } from "./evidence-assets";
 import { GovernedPopup } from "./governed-popup";
+import { SourceLaneIcon } from "./source-lane-icon";
 
 const laneAccents = [
   "#63e6ff",
@@ -41,16 +41,10 @@ export function LaneToolchainExplorer() {
   const active = laneToolchains[activeIndex];
   const runtime = laneRuntimeContracts[active.id];
   const accent = laneAccents[activeIndex % laneAccents.length];
-  const outputFiles = [
-    `${active.id}_sector_v001.sqlite`,
-    `${active.id}.mmd`,
-    `${active.id}.dot`,
-    "refresh_receipt.json",
-  ];
   const processSteps = [
     ...active.story,
     "Reconcile SQLite, Mermaid, and DOT identity",
-    "Seal four inspectable files with receipts",
+    "Seal the inspectable lane contract with receipts",
   ];
 
   const activateLane = (index: number) => {
@@ -83,7 +77,7 @@ export function LaneToolchainExplorer() {
               tabIndex={index === activeIndex ? 0 : -1}
               leading={
                 <GlassIconOrb className="source-lane-orb" color={laneColor} size={38} decorative>
-                  <LaneAssetIcon lane={lane.id} size={21} decorative />
+                  <SourceLaneIcon lane={lane.id} size={22} decorative />
                 </GlassIconOrb>
               }
               onClick={() => activateLane(index)}
@@ -127,8 +121,8 @@ export function LaneToolchainExplorer() {
         >
         <header className="laneToolchainHeader">
           <div className="laneIdentity">
-            <GlassIconOrb color={accent} size={58} decorative>
-              <LaneAssetIcon lane={active.id} size={30} decorative />
+            <GlassIconOrb className="source-lane-orb" color={accent} size={58} decorative>
+              <SourceLaneIcon lane={active.id} size={31} decorative />
             </GlassIconOrb>
             <div>
               <span className="laneCode">{active.id}</span>
@@ -166,21 +160,6 @@ export function LaneToolchainExplorer() {
             <small>parse · index · topology · retrieve · seal</small>
           </div>
 
-          <div className="laneFlowConnector laneFlowConnectorOut" aria-hidden="true"><i /><i /><i /></div>
-
-          <div className="laneOutputFiles" aria-label="Four inspectable lane files">
-            <span className="lanePanelLabel">4 inspectable files</span>
-            <div>
-              {outputFiles.map((file, index) => (
-                <article key={file}>
-                  <GlassIconOrb color={index === 0 ? "#62d7af" : index === 3 ? "#efca72" : "#69d9f5"} size={36} decorative>
-                    <OfficialToolIcon tool={index === 0 ? "database" : index === 3 ? "package" : "media"} size={20} decorative />
-                  </GlassIconOrb>
-                  <span><strong>{String(index + 1).padStart(2, "0")}</strong><code>{file}</code></span>
-                </article>
-              ))}
-            </div>
-          </div>
         </section>
 
         <section className="laneWorkingSequence" aria-label={`${active.name} working sequence`}>
@@ -225,7 +204,7 @@ export function LaneToolchainExplorer() {
         </div>
         </motion.article>
       </GovernedPopup>
-      {!popupOpen ? <p className="lanePopupHint">Choose a lane pill to open its tools, settings, schema, and four-file contract.</p> : null}
+      {!popupOpen ? <p className="lanePopupHint">Choose a lane pill to open its tools, settings, and schema. Downloadable dummy proofs live on the Proof page.</p> : null}
     </div>
   );
 }

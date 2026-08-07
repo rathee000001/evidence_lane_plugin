@@ -80,46 +80,94 @@ def _assert_public_safe(path: str, text: str) -> None:
             raise RuntimeError(f"secret-like token found in public corpus: {path}")
 
 
-def _github_blob(path: str) -> str:
-    return f"https://github.com/rathee000001/evidence_lane_plugin/blob/main/{path}"
+PUBLIC_TEXT_SUFFIXES = {
+    ".css", ".cjs", ".js", ".json", ".md", ".py", ".toml", ".ts", ".tsx",
+    ".txt", ".yaml", ".yml",
+}
+PUBLIC_PLUGIN_EXCLUSIONS = (
+    "plugins/evidence-lane-plugin/evidence/",
+    "plugins/evidence-lane-plugin/remote_adapter/public/",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/session_flash/",
+)
+PUBLIC_PLUGIN_EXACT_EXCLUSIONS = {
+    "plugins/evidence-lane-plugin/remote_adapter/app/_data/dummy-lane-artifacts.json",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json",
+    "plugins/evidence-lane-plugin/requirements.lock.txt",
+    "plugins/evidence-lane-plugin/remote_adapter/package-lock.json",
+}
 
 
-def _source_specs(repo: Path) -> list[tuple[Path, str, str, str]]:
+def _github_blob(path: str, revision: str) -> str:
+    return f"https://github.com/rathee000001/evidence_lane_plugin/blob/{revision}/{path}"
+
+
+def _public_plugin_path(path: str) -> bool:
+    normalized = path.replace("\\", "/")
+    if not normalized.startswith("plugins/evidence-lane-plugin/"):
+        return False
+    if normalized in PUBLIC_PLUGIN_EXACT_EXCLUSIONS:
+        return False
+    if any(normalized.startswith(prefix) for prefix in PUBLIC_PLUGIN_EXCLUSIONS):
+        return False
+    name = Path(normalized).name
+    return Path(normalized).suffix.lower() in PUBLIC_TEXT_SUFFIXES or name in {
+        "Dockerfile", "requirements.in",
+    }
+
+
+def _plugin_source_kind(path: str) -> str:
+    if "/skills/" in path or "/commands/" in path:
+        return "plugin_control"
+    if "/remote_adapter/app/" in path:
+        return "website_source"
+    if "/remote_adapter/" in path:
+        return "public_adapter_source"
+    if "/src/evidence_lane_plugin/" in path:
+        return "plugin_runtime_source"
+    if "/scripts/" in path or "/hooks/" in path:
+        return "plugin_build_source"
+    return "plugin_contract"
+
+
+def _plugin_source_title(path: str) -> str:
+    relative = path.removeprefix("plugins/evidence-lane-plugin/")
+    return f"Evidence Lane source: {relative}"
+
+
+def _source_specs(
+    repo: Path,
+    revision: str,
+    tracked_paths: set[str],
+) -> list[tuple[Path, str, str, str]]:
     fixed: list[tuple[str, str, str, str]] = [
-        ("README.md", "Repository README", _github_blob("README.md"), "documentation"),
-        ("SECURITY.md", "Security policy", _github_blob("SECURITY.md"), "policy"),
-        ("LICENSE.md", "Proprietary license", _github_blob("LICENSE.md"), "policy"),
-        ("COPYRIGHT.md", "Copyright and ownership", _github_blob("COPYRIGHT.md"), "policy"),
+        ("README.md", "Repository README", _github_blob("README.md", revision), "documentation"),
+        ("SECURITY.md", "Security policy", _github_blob("SECURITY.md", revision), "policy"),
+        ("LICENSE.md", "Proprietary license", _github_blob("LICENSE.md", revision), "policy"),
+        ("COPYRIGHT.md", "Copyright and ownership", _github_blob("COPYRIGHT.md", revision), "policy"),
         ("docs/CREDITS_AND_CONTRIBUTIONS.md", "Credits and contribution policy", "/credits", "policy"),
         ("docs/UPSTREAM_REFERENCE_PROVENANCE.md", "Upstream reference provenance", "/credits", "provenance"),
-        ("plugins/evidence-lane-plugin/remote_adapter/README.md", "ChatGPT and Vercel adapter", _github_blob("plugins/evidence-lane-plugin/remote_adapter/README.md"), "documentation"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/site.ts", "Product and lane contracts", "/", "website_contract"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/delta-ledger.ts", "Complete Delta ledger", "/#delta-ledger", "delta_ledger"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/current-execution-plan.ts", "Current 51-step execution Plan Lane", "/#current-execution-plan", "current_plan_lane"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/lane-contracts.ts", "Lane schema contracts", "/lanes", "lane_contract"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/mode-governance.json", "Mode governance export", "/operators", "mode_contract"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/plugin-surfaces.ts", "Plugin surface catalog", "/architecture", "plugin_contract"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/_data/upstream-references.ts", "Upstream reference projection", "/credits", "provenance"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/page.tsx", "Evidence Lane product story", "/", "website_page"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/architecture/page.tsx", "Architecture", "/architecture", "website_page"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/lanes/page.tsx", "Eighteen lanes", "/lanes", "website_page"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/operators/page.tsx", "Mode operators", "/operators", "website_page"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/studio/page.tsx", "Prompt Studio contract", "/studio", "website_page"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/proof/page.tsx", "Proof boundary", "/proof", "website_page"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/provenance/page.tsx", "Provenance", "/provenance", "website_page"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/connect/page.tsx", "Host connection model", "/connect", "website_page"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/privacy/page.tsx", "Privacy", "/privacy", "policy"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/terms/page.tsx", "Terms", "/terms", "policy"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/support/page.tsx", "Support", "/support", "policy"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/license/page.tsx", "Website license", "/license", "policy"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/copyright/page.tsx", "Website copyright", "/copyright", "policy"),
-        ("plugins/evidence-lane-plugin/remote_adapter/app/credits/page.tsx", "Website credits", "/credits", "policy"),
     ]
     specs = [(repo / path, title, href, kind) for path, title, href, kind in fixed]
-    skills = sorted((repo / "plugins/evidence-lane-plugin/skills").glob("*/SKILL.md"))
-    for skill in skills:
-        relative = skill.relative_to(repo).as_posix()
-        specs.append((skill, f"Plugin skill: {skill.parent.name}", _github_blob(relative), "plugin_skill"))
+    internal_hrefs = {
+        "plugins/evidence-lane-plugin/remote_adapter/app/page.tsx": "/",
+        "plugins/evidence-lane-plugin/remote_adapter/app/_data/delta-ledger.ts": "/#delta-ledger",
+        "plugins/evidence-lane-plugin/remote_adapter/app/_data/current-execution-plan.ts": "/#delta-ledger",
+        "plugins/evidence-lane-plugin/remote_adapter/app/_data/lane-contracts.ts": "/lanes",
+        "plugins/evidence-lane-plugin/remote_adapter/app/_data/mode-governance.json": "/operators",
+        "plugins/evidence-lane-plugin/remote_adapter/app/_data/plugin-surfaces.ts": "/architecture",
+        "plugins/evidence-lane-plugin/remote_adapter/app/_data/upstream-references.ts": "/provenance",
+    }
+    for route in (
+        "architecture", "connect", "copyright", "credits", "hil", "lanes", "license",
+        "operators", "privacy", "proof", "provenance", "readme", "security", "studio",
+        "support", "terms",
+    ):
+        internal_hrefs[f"plugins/evidence-lane-plugin/remote_adapter/app/{route}/page.tsx"] = f"/{route}"
+    for relative in sorted(path for path in tracked_paths if _public_plugin_path(path)):
+        href = internal_hrefs.get(relative, _github_blob(relative, revision))
+        specs.append(
+            (repo / relative, _plugin_source_title(relative), href, _plugin_source_kind(relative))
+        )
     return specs
 
 
@@ -129,8 +177,9 @@ def _load_documents(repo: Path) -> list[SourceDocument]:
         for value in _run(repo, "git", "ls-files", "-z").split("\0")
         if value
     }
+    revision = _run(repo, "git", "rev-parse", "HEAD")
     documents: list[SourceDocument] = []
-    for path, title, href, kind in _source_specs(repo):
+    for path, title, href, kind in _source_specs(repo, revision, tracked_paths):
         if not path.is_file():
             raise FileNotFoundError(f"required public corpus source is missing: {path}")
         text = path.read_text(encoding="utf-8").replace("\r\n", "\n").strip()
@@ -416,7 +465,7 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
         "history_through_sha": history_sha,
         "history_commit_count": sum(1 for row in source_rows if row["kind"] == "git_history"),
         "corpus": {
-            "boundary": "explicit public-safe tracked documentation, plugin skills, website contracts, and ancestor Git metadata; no private brain/runtime/secret inputs",
+            "boundary": "all Git-tracked public-safe Evidence Lane plugin text plus canonical repository policies and ancestor Git metadata; generated proof binaries, retrieval self-inputs, private session flash, runtime state, brains, and secrets are excluded",
             "sha256": corpus_sha,
             "source_count": len(source_rows),
             "chunk_count": len(chunks),

@@ -28,10 +28,16 @@ services, licenses, and trademarks remain governed by their respective owners.
 
 The PV6 research cycle inspected exact commits of GitHub Agentic Workflows,
 GitHub Agentic Workflows MCP Gateway, GitHub Copilot SDK, GitHub Agentic
-Workflows threat detection, GitHub Agentic Workflows harness, and Open WebUI.
+Workflows threat detection, GitHub Agentic Workflows harness, Open WebUI,
+Graphify, GitHub CodeQL source, GitHub MCP Server, GitHub Branch Deploy, and
+GitHub Local Action. OpenAI plugin MCP-server, ChatGPT UI/MCP Apps, and review
+guidance supplied the current public metadata, annotation, structured-result,
+interactive-panel, CSP, and publication boundary.
 The [upstream reference provenance ledger](UPSTREAM_REFERENCE_PROVENANCE.md)
 records every audited commit and tree, license, intended role, local
-implementation surface, refusal boundary, and verdict.
+implementation surface, refusal boundary, and verdict. The website renders the
+same complete ledger and links each repository to its pinned commit rather than
+to an unverified moving branch.
 
 That ledger is the attribution authority for these references. It does not
 turn a URL into copied source, claim feature parity, treat Open WebUI's current

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { EvidenceBrainAsset } from "../_components/evidence-assets";
+import { LaneProofExplorer } from "../_components/lane-proof-explorer";
 import { PageHero } from "../_components/page-hero";
 import { proofRules } from "../_data/site";
 
@@ -22,6 +23,14 @@ export default function ProofPage() {
           </div>
         }
       />
+      <section className="section shell dummyLaneProofs" id="dummy-lane-proofs">
+        <div className="sectionHead wideHead">
+          <span className="kicker">Inspectable dummy evidence</span>
+          <h2>Choose a lane. Download its four files. Inspect its 4K topology.</h2>
+          <p>Every tab exposes a deterministic, public-safe synthetic package stored directly on this website. Its MMD and DOT are the complete lane-engine topology—source registry, lane schema, retrieval, lifecycle, outputs, and Git history where applicable—not a generic four-output overview. The 4K PNG is derived from that exact full MMD and is not a fifth canonical lane file. Real-source Git remains a separate acceptance test.</p>
+        </div>
+        <LaneProofExplorer />
+      </section>
       <section className="section shell proofRules">
         <div className="sectionHead wideHead"><span className="kicker">Current v1.3 correction standard</span><h2>Five rules that must fail loudly.</h2></div>
         <div className="proofRuleGrid">

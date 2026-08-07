@@ -138,21 +138,112 @@ parity.
   commit-to-file derivation and compatible written rights basis would change
   this verdict.
 
+### Graphify (`Graphify-Labs/graphify`)
+
+- Repository: <https://github.com/Graphify-Labs/graphify>
+- Audited commit: `00efd6e7969837ae4a9f11d8d504dcd3b20b09df`
+- Audited tree: `d1512b0250570474ee45b4169ba2d3b1b35376fa`
+- License notices observed at that identity: Apache-2.0 and MIT
+- Role: stable graph identities, extracted-versus-inferred provenance, diff
+  coverage, and affected-subgraph research.
+- Local use: project-authored stable node/edge identities, graph diff coverage,
+  and bounded impact traversal with conformance tests.
+- Boundary: no Neo4j service, LLM pipeline, installer, UI, or wholesale source
+  transplant was adopted. V5.9 names the SQLite Brain Builder identity and is
+  not represented as a Graphify version.
+- Verdict: **pursue bounded graph contracts**. Confidence: high. A failed
+  identity-stability or impact-coverage test, or incompatible license evidence,
+  would change this verdict.
+
+### GitHub CodeQL source (`github/codeql`)
+
+- Repository: <https://github.com/github/codeql>
+- Audited commit: `74c8994c9fa3ca4551c01879ef9f74e3e09e791a`
+- Audited tree: `06e9890166e4ad4bd015439016a137f8f4099ca8`
+- License observed at that identity: source MIT; CLI separately licensed
+- Role: negative-test and static-analysis research model.
+- Local use: project-authored security negative cases and explicit
+  `NOT_RUN_LOCAL` receipts when the CodeQL CLI was unavailable.
+- Boundary: the CLI was not installed or run, so no CodeQL scan result is
+  claimed and no CLI bytes are bundled.
+- Verdict: **pursue negative-test guidance only**. Confidence: high. An exact
+  executable CLI receipt could justify a separately labeled scan claim.
+
+### GitHub MCP Server (`github/github-mcp-server`)
+
+- Repository: <https://github.com/github/github-mcp-server>
+- Audited commit: `3778a41476e31a072430cfee7c5d31c5f72def60`
+- Audited tree: `ae97fb877726d54334bebcaaa640e58bab3ca84e`
+- License observed at that identity: MIT
+- Role: read-only toolset bounds, validation, and connector-routing research.
+- Local use: ordered connector guards, capability checks, exact preferred-route
+  selection, and ambiguity failure.
+- Boundary: Evidence Lane does not embed or execute a second MCP server and
+  does not inherit that server's authority.
+- Verdict: **pursue connector-boundary patterns**. Confidence: high. A routing
+  ambiguity or authority-bypass test failure would change this verdict.
+
+### GitHub Branch Deploy (`github/branch-deploy`)
+
+- Repository: <https://github.com/github/branch-deploy>
+- Audited commit: `7ad5ec6a7e19e3e341846e4d33c4ed779b3e8036`
+- Audited tree: `5a901697cd7671a61db70f7f27787c6ba257deb8`
+- License observed at that identity: MIT
+- Role: no-op, commit-safety, and explicit deployment-action research.
+- Local use: exact-SHA remote-action preparation, no-op detection, and
+  commit-bound deployment receipts.
+- Boundary: no automatic merge, main push, production promotion, or implicit
+  HIL approval was adopted.
+- Verdict: **pursue guarded deployment patterns**. Confidence: high. A receipt
+  that can act beyond its bound branch or commit would change this verdict.
+
+### GitHub Local Action (`github/local-action`)
+
+- Repository: <https://github.com/github/local-action>
+- Audited commit: `b9351d8a8f1e6eed27646f4d892b49a3847ba180`
+- Audited tree: `77093c3aeb8b01bcc35f24c7160596b725a7421d`
+- License observed at that identity: MIT
+- Role: disposable fixture and secret-safe one-shot execution research.
+- Local use: temporary fixture repositories, registered-secret suppression,
+  and redacted project-authored proof logs.
+- Boundary: no arbitrary JavaScript execution, persistent local runner, or
+  host-secret inheritance was adopted.
+- Verdict: **pursue bounded fixture patterns**. Confidence: high. A retained
+  fixture, unredacted secret, or non-deterministic proof would change it.
+
 ## Documentation and service references
 
 OpenAI Codex, ChatGPT, and their official documentation supported the host,
 plugin, skill, and product-boundary research. GitHub documentation supported
 the Actions, CodeQL, Copilot coding-agent, and custom-agent configuration
-research. These are documentation and service credits, not claims that the
-services or their documentation were copied as repository source.
+research. OpenRouter documentation supplied the optional zero-cost general
+question route contract. These are documentation and service credits, not
+claims that the services or their documentation were copied as repository
+source.
 
 - OpenAI Codex: <https://openai.com/index/introducing-codex/>
+- OpenAI plugin MCP server guidance:
+  <https://developers.openai.com/plugins/build/mcp-server>
+- OpenAI ChatGPT UI and MCP Apps guidance:
+  <https://developers.openai.com/plugins/build/chatgpt-ui>
+- OpenAI MCP plugin review requirements:
+  <https://developers.openai.com/plugins/deploy/app-review>
 - OpenAI Codex plan guide:
   <https://help.openai.com/en/articles/11369540-using-codex-with-your-chatgpt-plan>
 - GitHub Copilot coding-agent overview:
   <https://docs.github.com/en/copilot/how-tos/copilot-on-github/use-copilot-agents/overview>
 - GitHub CodeQL configuration:
   <https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/configure-code-scanning/configure-code-scanning>
+- OpenRouter free-model router:
+  <https://openrouter.ai/docs/guides/routing/routers/free-router>
+
+The OpenRouter integration is not Evidence Lane project authority. It is
+eligible only after the committed corpus returns no hit for a non-project
+general question, uses the fixed `openrouter/free` model router, sends no
+project context or prior chat history, and has no paid fallback. Its API key is
+host-managed and never committed, copied from another project, or exposed to
+the browser. The route remains visibly unavailable until that separate key and
+enable flag are configured.
 
 ## Acceptance boundary
 

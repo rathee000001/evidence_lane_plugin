@@ -50,6 +50,13 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
         "plugins/evidence-lane-plugin/remote_adapter/app/_data/current-execution-plan.ts"
         in source_paths
     )
+    assert "plugins/evidence-lane-plugin/src/evidence_lane_plugin/session.py" in source_paths
+    assert (
+        "plugins/evidence-lane-plugin/remote_adapter/app/_components/lane-proof-explorer.tsx"
+        in source_paths
+    )
+    assert "plugins/evidence-lane-plugin/remote_adapter/app/readme/page.tsx" in source_paths
+    assert "plugins/evidence-lane-plugin/remote_adapter/app/security/page.tsx" in source_paths
 
     with sqlite3.connect(sqlite_path) as connection:
         assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
@@ -85,4 +92,6 @@ def test_prompt_studio_public_corpus_excludes_private_runtime_paths() -> None:
     assert all("/projects/" not in f"/{path}" for path in normalized_paths)
     assert all("accepted_pointer" not in path for path in normalized_paths)
     assert all("session_flash/" not in f"/{path}" for path in normalized_paths)
+    assert all("studio-rag-index.json" not in path for path in normalized_paths)
+    assert all("dummy-lane-artifacts.json" not in path for path in normalized_paths)
     assert any(path.startswith("git/history/") for path in normalized_paths)

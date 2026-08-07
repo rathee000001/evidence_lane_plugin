@@ -2,13 +2,13 @@
 
 import { useMemo, useState } from "react";
 
-import { deltaLedger, type DeltaPhase } from "../_data/delta-ledger";
+import { deltaLedger, deltaLedgerBoundary, type DeltaPhase } from "../_data/delta-ledger";
 import { GlassIconOrb, GlassPill, OfficialToolIcon } from "./evidence-assets";
 
 type LedgerFilter = "All" | DeltaPhase;
 
-const filters: readonly LedgerFilter[] = ["All", "Foundation", "V1.2 evolution", "V1.3 hardening"];
-const filterColors = ["#69d9f5", "#83ddb3", "#efca72", "#b6a0ff"] as const;
+const filters: readonly LedgerFilter[] = ["All", "Foundation", "V1.2 evolution", "V1.3 hardening", "Current execution"];
+const filterColors = ["#69d9f5", "#83ddb3", "#efca72", "#b6a0ff", "#f2a1c5"] as const;
 
 export function DeltaLedgerExplorer() {
   const [filter, setFilter] = useState<LedgerFilter>("All");
@@ -22,9 +22,9 @@ export function DeltaLedgerExplorer() {
     <div className={`deltaLedgerExplorer ${expanded ? "is-expanded" : "is-collapsed"}`}>
       <div className="deltaLedgerToggleRow">
         <div>
-          <span>Complete additive history</span>
-          <strong>80 exact Delta rows stay sealed and ordered</strong>
-          <small>The table starts collapsed so the landing page remains concise.</small>
+          <span>One additive governed ledger</span>
+          <strong>{deltaLedgerBoundary.totalRows} rows: {deltaLedgerBoundary.sealedHistoricalDeltaRows} sealed Deltas + {deltaLedgerBoundary.liveExecutionRows} live Plan Lane steps</strong>
+          <small>The live steps are appended after row 80 in this same table; they are not accepted historical truth.</small>
         </div>
         <GlassPill
           active={expanded}
@@ -58,12 +58,12 @@ export function DeltaLedgerExplorer() {
                 aria-pressed={filter === item}
                 leading={
                   <GlassIconOrb color={filterColors[index]} size={34} decorative>
-                    <OfficialToolIcon tool={index === 0 ? "database" : index === 3 ? "pulse" : "package"} size={18} decorative />
+                  <OfficialToolIcon tool={index === 0 ? "database" : index >= 3 ? "pulse" : "package"} size={18} decorative />
                   </GlassIconOrb>
                 }
                 onClick={() => setFilter(item)}
               >
-                {item}<small>{item === "All" ? 80 : deltaLedger.filter((entry) => entry.phase === item).length} rows</small>
+                {item}<small>{item === "All" ? deltaLedger.length : deltaLedger.filter((entry) => entry.phase === item).length} rows</small>
               </GlassPill>
             ))}
           </div>
@@ -81,8 +81,9 @@ export function DeltaLedgerExplorer() {
             ))}
           </ol>
           <p className="deltaLedgerBoundary">
-            Ledger status records evidence state only. It does not authorize Fuse, accepted-pointer movement,
-            a main merge, production deployment, or human approval.
+            Rows 1&ndash;80 are sealed historical Delta evidence. Rows 81&ndash;131 project the current
+            51-step Plan Lane, including active step 46, into the same additive table. Neither class
+            authorizes Fuse, accepted-pointer movement, a main merge, deployment, or human approval.
           </p>
         </div>
       ) : null}

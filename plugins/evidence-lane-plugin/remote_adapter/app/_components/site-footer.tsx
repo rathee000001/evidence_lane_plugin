@@ -24,11 +24,11 @@ export function SiteFooter() {
         </div>
         <div>
           <strong>Repository</strong>
-          <Link href="https://github.com/rathee000001/evidence_lane_plugin#readme">README</Link>
+          <Link href="/readme">README</Link>
           <Link href="/license">License</Link>
           <Link href="/copyright">Copyright</Link>
-          <Link href="https://github.com/rathee000001/evidence_lane_plugin/blob/main/SECURITY.md">Security</Link>
-          <Link href="https://github.com/rathee000001/evidence_lane_plugin/blob/main/docs/UPSTREAM_REFERENCE_PROVENANCE.md">Upstream provenance</Link>
+          <Link href="/security">Security</Link>
+          <Link href="/provenance#upstream-reference-ledger">Upstream provenance</Link>
         </div>
         <div>
           <strong>Contributors</strong>

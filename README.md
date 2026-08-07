@@ -26,7 +26,7 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane Plugin 1.3.0
+# Evidence Lane 1.3.0
 
 The single active product release is **1.3.0** across the root package, plugin
 package, engine, Codex manifest, remote adapter, current documentation, and
@@ -145,7 +145,9 @@ Actions and Copilot use are limited to the allowances already included in the
 selected GitHub Team and personal Copilot Pro plans; paid overages and
 additional usage remain disabled unless the user separately authorizes them.
 Vercel Pro is not required or enabled by this release. A separately purchased
-domain may be bound to an exact production deployment only after HIL approval.
+domain may expose an exact, still-unaccepted feature-branch candidate for HIL
+review; that public review surface does not merge `main`, move an accepted
+pointer, Fuse the candidate, or make it production truth.
 
 The reviewed public website preview is
 [`https://evidencelane.org`](https://evidencelane.org). The public ChatGPT MCP
@@ -161,6 +163,14 @@ overrides, and always includes Chat Lineage. Its optional Git arm accepts
 otherwise falls back to deterministic content indexing; REQUIRED fails closed;
 DISABLED skips history without authorizing remote writes. Project Engulf can
 intake a whole bounded project through the same registry.
+
+Schema-derived Source Intake pills are append-only governed extensions. Use
+`/evi-source-intake ADD "<pill name>" --purpose "<need>" --schema <definition>`
+to create version 1, or
+`/evi-source-intake MODIFY "<pill name>" --schema <next-version-definition> --previous-sha256 <exact-sha256>`
+to append the next version. MODIFY requires the exact prior hash; neither
+operation mutates the canonical 18-lane registry or bypasses classification,
+source policy, candidate isolation, or HIL.
 
 The canonical lanes are GitHub Code, Local Code, Chat Lineage, Discussion,
 Analysis, Plan, Mode, Docs, Data/Excel/CSV, PPT, PDF/OCR, Images/OCR, Artifacts,
@@ -199,6 +209,21 @@ divergence fails the candidate instead of passing as a decorative diagram.
 Optional Mermaid SVG/PNG rendering uses an explicitly configured browser or a
 locally installed Chrome/Edge executable; the plugin never downloads a browser
 at build time, and the `.mmd` source remains authoritative.
+
+The deterministic row-46 one-shot proof is executable with:
+
+```powershell
+.\.venv\Scripts\python.exe plugins\evidence-lane-plugin\scripts\build_one_shot_dummy_poc.py <output-directory>
+```
+
+It loads all 18 dummy lanes in one PV, gives the GitHub Code lane a real
+three-commit synthetic repository and parent chain, validates the initial
+package plus an unchanged Refresh, and writes independent forensic reports.
+The checked correction evidence is under
+`evidence/implementation_v42/ONE_SHOT_DUMMY_POC`; its receipt SHA-256 is
+`EAE51C5F3CAC3A6DCEDA9E9EFB83624BC67C536D0D830712EEDF3670A1739F9F`.
+The separate post-acceptance real-Git test remains bound to the full reachable
+history of the main Evidence Lane repository.
 
 Build and Refresh use one bounded in-process worker pool to compute independent
 lane packages concurrently from one hash-frozen source snapshot. A barrier then
