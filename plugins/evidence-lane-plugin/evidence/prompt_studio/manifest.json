@@ -1,22 +1,22 @@
 {
   "corpus": {
     "boundary": "all Git-tracked public-safe Evidence Lane plugin text plus canonical repository policies and ancestor Git metadata; generated proof binaries, retrieval self-inputs, private session flash, runtime state, brains, and secrets are excluded",
-    "chunk_count": 1768,
-    "sha256": "D197E9025DB5E543708AEA76E3C5D5361B9B7C777CE691828358408F9BC521E1",
-    "source_count": 238
+    "chunk_count": 1770,
+    "sha256": "14A0E89A2BE0B59802B85EA1BE2B1C6DFD638E9735DE803F8969BAD09634ABC4",
+    "source_count": 240
   },
-  "history_commit_count": 63,
-  "history_through_sha": "e09e71a5451c433f185f614e9757666d70df00ab",
+  "history_commit_count": 65,
+  "history_through_sha": "b57a704402f919f6a0dfb01defadd7a727338ecb",
   "outputs": {
     "browser_json": {
-      "bytes": 8591608,
+      "bytes": 8597522,
       "path": "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json",
-      "sha256": "009E76DDCA215BEC1B732F4FDC755542765B572AC6F8B64767F4D6B827413EDA"
+      "sha256": "EB29AF9834AEC3DAD1FE5B5C2BBA8D6D4E4106E7CBAE962F5AB2533B66B48B79"
     },
     "sqlite": {
       "bytes": 11563008,
       "path": "plugins/evidence-lane-plugin/evidence/prompt_studio/studio_search.sqlite",
-      "sha256": "77ECB002BC761E2A7F558F8AF7DF4EE7564C6A02D9645EB0F6E719103E4FBDDA"
+      "sha256": "1DA9A38ACE2A89FB0F2A3356800F416EDDD0F290F86DACFDB816E9880C657E7B"
     }
   },
   "release": "1.3.0",
