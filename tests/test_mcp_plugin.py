@@ -145,6 +145,7 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
     assert len(resources) == 1
     resource = resources[0]
     assert str(resource.uri) == GOVERNED_PANEL_URI
+    assert GOVERNED_PANEL_URI.endswith("/governed-console-v2.html")
     assert resource.mimeType == MCP_APP_MIME_TYPE
     assert resource.meta == {
         "ui": {

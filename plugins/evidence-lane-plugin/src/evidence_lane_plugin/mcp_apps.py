@@ -9,7 +9,10 @@ from typing import Any
 from .constants import ENGINE_VERSION
 
 MCP_APP_MIME_TYPE = "text/html;profile=mcp-app"
-GOVERNED_PANEL_URI = "ui://evidence-lane/governed-console-v1.html"
+# MCP Apps hosts may cache UI resources by immutable ``ui://`` identity.  Bump
+# the resource URI whenever the embedded view contract changes so a host cannot
+# pair a new tool result with an older cached bridge implementation.
+GOVERNED_PANEL_URI = "ui://evidence-lane/governed-console-v2.html"
 
 
 def governed_panel_resource_meta(public_site_url: str) -> dict[str, Any]:
