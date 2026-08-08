@@ -29,7 +29,7 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     sqlite_path = EVIDENCE / "studio_search.sqlite"
 
     assert manifest["schema"] == "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1"
-    assert manifest["release"] == "1.3.0"
+    assert manifest["release"] == "1.4.0"
     assert manifest["validation"]["sqlite_integrity"] == "ok"
     assert manifest["validation"]["secret_scan"] == "PASS"
     assert manifest["outputs"]["sqlite"]["sha256"] == _sha256(sqlite_path)

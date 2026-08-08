@@ -22,34 +22,34 @@ export const primaryNavigation = [
 ] as const;
 
 export const promptSuggestions = [
-  "What is active step 46 in the current 51-step execution Plan Lane?",
-  "How do parallel lanes converge on serial authority?",
-  "How do accepted pointers, Exit Slips, and HIL separate human input from AI work?",
-  "How does Refresh reuse parsed facts and rebuild only changed sections?",
-  "Which commit and contract define Code-mode operators?",
-  "What can the local SQLite FTS5, BM25, and TF-IDF index prove?",
+  "What business problem does Evidence Lane solve?",
+  "What happens from Source Intake to an accepted project version?",
+  "What can each of the six everyday controls do?",
+  "How does the human remain in control at HIL?",
+  "How do Codex and ChatGPT use different storage boundaries?",
+  "How can Adobe Express support release visuals without an account connection?",
 ] as const;
 
 export const floatingStudioSuggestions = {
   architecture: [
-    "How do parallel lanes converge on serial authority?",
-    "What separates a candidate from an accepted pointer?",
-    "How does Source Intake route governed sources?",
+    "How does Evidence Lane turn source material into accepted project truth?",
+    "Why is a candidate different from an accepted version?",
+    "Where does the human decision sit in the architecture?",
   ],
   lanes: [
-    "What four files does each detected lane emit?",
-    "When must an undetected lane have no PV folder?",
-    "How is the Git test separated from non-Git tests?",
+    "Why does Evidence Lane separate work into 18 source lanes?",
+    "What happens when Source Intake finds a new kind of material?",
+    "What can a business reviewer inspect from each detected lane?",
   ],
   studio: [
-    "How is the Prompt Studio corpus built?",
-    "Why do project no-hits refuse external AI?",
-    "Why is the external route not project authority?",
+    "How does Evidence AI Studio explain the whole plugin?",
+    "Why does Studio refuse unsupported project claims?",
+    "What is the difference between business guidance and the audit receipt?",
   ],
   default: [
-    "How does Refresh reuse parsed facts and rebuild only changed sections?",
-    "How do HIL and accepted pointers differ?",
-    "What is active step 46?",
+    "What business problem does Evidence Lane solve?",
+    "What do Build, Refresh, HIL, and Fuse each mean?",
+    "What is active step 73 in the current seven-step plan?",
   ],
 } as const;
 

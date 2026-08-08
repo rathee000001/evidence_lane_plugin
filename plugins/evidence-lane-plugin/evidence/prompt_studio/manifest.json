@@ -1,25 +1,25 @@
 {
   "corpus": {
     "boundary": "all Git-tracked public-safe Evidence Lane plugin text plus canonical repository policies and ancestor Git metadata; generated proof binaries, retrieval self-inputs, private session flash, runtime state, brains, and secrets are excluded",
-    "chunk_count": 1773,
-    "sha256": "FC6DDEAC20443CFE0E612BE7DFCB8B82B93B18924B89316B35A6CA2F87F8D7F5",
-    "source_count": 243
+    "chunk_count": 1792,
+    "sha256": "F32D2263023E73F0C6ED558D6A95AA19233E4811723A08242077FE40A5666B53",
+    "source_count": 248
   },
-  "history_commit_count": 68,
-  "history_through_sha": "c5dee07b6506733d63d454550ed4a6f821c3c167",
+  "history_commit_count": 71,
+  "history_through_sha": "42516b2edaae8f37d46523243599650afb2cb5e3",
   "outputs": {
     "browser_json": {
-      "bytes": 8602175,
+      "bytes": 8666263,
       "path": "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json",
-      "sha256": "58B5260848136C0BEF455C60FF71CB037216BC330B03733034BA75D6093F9B47"
+      "sha256": "FD98BF4ED6A8897BD58A3EBECDA6AAB25780CE7E042F21A64CFE190F6CFA68C1"
     },
     "sqlite": {
-      "bytes": 11567104,
+      "bytes": 11661312,
       "path": "plugins/evidence-lane-plugin/evidence/prompt_studio/studio_search.sqlite",
-      "sha256": "05ED1D9C6040668003AD6D8A132803783A6A33AA5376A47EC487999E61525A87"
+      "sha256": "A46F622C30E9193685E4DEF21FC2A975EFA82A904D67A323EEF5AE4533407C52"
     }
   },
-  "release": "1.3.0",
+  "release": "1.4.0",
   "retrieval": {
     "chunker": "llama-index-core==0.14.23 SentenceSplitter(480,64)",
     "hybrid": "reciprocal-rank fusion k=60",
@@ -29,7 +29,7 @@
   },
   "schema": "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1",
   "validation": {
-    "fts_refresh_hits": 130,
+    "fts_refresh_hits": 129,
     "secret_scan": "PASS",
     "sqlite_integrity": "ok"
   }

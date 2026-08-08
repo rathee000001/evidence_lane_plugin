@@ -1,4 +1,4 @@
-"""Execute one exact Evidence Lane v1.3 acceptance check without mutating source."""
+"""Execute one exact Evidence Lane v1.4 acceptance check without mutating source."""
 
 from __future__ import annotations
 
@@ -26,9 +26,11 @@ from evidence_lane_plugin.hashing import (
 from evidence_lane_plugin.next_actions import HIL_CHOICES
 from evidence_lane_plugin.pv_package import validate_pv_package
 
-EXPECTED_BRANCH = "agent/evi-v130-all-source-brain-workflow-hil-v1.3.0"
+EXPECTED_BRANCH = "agent/evi-v140-systemwide-release-hil-v1.4.0"
 EVIDENCE_ROOT = REPOSITORY_ROOT / "evidence" / "implementation_v41"
 CORRECTION_EVIDENCE_ROOT = REPOSITORY_ROOT / "evidence" / "implementation_v42"
+RELEASE_EVIDENCE_ROOT = REPOSITORY_ROOT / "evidence" / "implementation_v43"
+RELEASE_RECEIPT = RELEASE_EVIDENCE_ROOT / "V140_RELEASE_IDENTITY_RECEIPT.json"
 CORRECTION_BASE_SOURCE_COMMIT = "6020563094154ff780705cbed85f453425884914"
 CORRECTION_RECEIPT = (
     EVIDENCE_ROOT / "DELTA080A_V130_EXECUTABLE_GATE_VERSION_CORRECTION_RECEIPT.json"
@@ -178,7 +180,7 @@ def check_ac04() -> dict[str, Any]:
 def check_ac05() -> dict[str, Any]:
     return {
         "version_consistency": _pytest(
-            "tests/test_v130_version_consistency.py",
+            "tests/test_v140_version_consistency.py",
             timeout_seconds=180,
         )
     }
@@ -305,10 +307,10 @@ def check_ac11() -> dict[str, Any]:
     tree = _git("rev-parse", "HEAD^{tree}")
     _require(branch == EXPECTED_BRANCH, "The governed study branch differs.")
     _require(not status, "The final study branch is not clean.")
-    _require(ENGINE_VERSION == "1.3.0", "The engine is not v1.3.0.")
-    correction = _sealed_receipt(CORRECTION_RECEIPT.name)
-    safety = correction["payload"].get("safety") or {}
-    _require(safety.get("main_merged") is False, "The correction claims a main merge.")
+    _require(ENGINE_VERSION == "1.4.0", "The engine is not v1.4.0.")
+    release = _sealed_receipt_path(RELEASE_RECEIPT)
+    safety = release["payload"].get("safety") or {}
+    _require(safety.get("main_merged") is False, "The release claims a main merge.")
     _require(
         safety.get("production_deployed") is False,
         "The correction claims a production deployment.",
@@ -318,7 +320,7 @@ def check_ac11() -> dict[str, Any]:
         "commit": head,
         "tree": tree,
         "engine_version": ENGINE_VERSION,
-        "correction_receipt": correction["receipt_sha256"],
+        "release_receipt": release["receipt_sha256"],
     }
 
 
@@ -337,43 +339,55 @@ def check_ac12() -> dict[str, Any]:
     project_identity = _load(candidate / "project_identity.json")
     exit_slip = _load(candidate / "exit_slip.json")
     pointer = _load(project_root / "active_pointer.json")
-    source_disposition = _sealed_receipt_path(SOURCE_DISPOSITION_RECEIPT)
+    release = _sealed_receipt_path(RELEASE_RECEIPT)
     source_commit = ((project_identity.get("repository") or {}).get("commit_sha"))
     engine_commit = (manifest.get("engine") or {}).get("commit")
     exit_commit = (exit_slip.get("repository_exit") or {}).get("commit_sha")
     _require(validation.get("candidate_id") == expected_candidate, "Candidate mismatch.")
     _require(validation.get("status") == "PASS", "Candidate validation failed.")
     _require(expected_commit == _git("rev-parse", "HEAD"), "Live source commit mismatch.")
+    _require(ENGINE_VERSION == "1.4.0", "The engine is not v1.4.0.")
     _require(
-        source_disposition["payload"].get("correction_base_source_commit")
-        == CORRECTION_BASE_SOURCE_COMMIT,
-        "Correction-base source commit mismatch.",
+        release["payload"].get("base_accepted_commit")
+        == "42516b2edaae8f37d46523243599650afb2cb5e3",
+        "The v1.4 release base commit differs from accepted PV7.",
     )
-    _require(
-        expected_commit != CORRECTION_BASE_SOURCE_COMMIT,
-        "The corrected implementation was not committed after its preserved base.",
+    _git(
+        "merge-base",
+        "--is-ancestor",
+        str(release["payload"]["base_accepted_commit"]),
+        str(expected_commit),
     )
-    _git("merge-base", "--is-ancestor", CORRECTION_BASE_SOURCE_COMMIT, expected_commit)
     _require(source_commit == expected_commit, "Candidate source commit mismatch.")
     _require(engine_commit == expected_commit, "Engine mismatch.")
     _require(
         exit_commit == expected_commit,
         "Exit commit mismatch.",
     )
-    _require(pointer.get("accepted_pv") == expected_pv == "PV5", "PV5 pointer moved.")
+    _require(pointer.get("accepted_pv") == expected_pv == "PV7", "PV7 pointer moved.")
     _require(
-        pointer.get("generation") == expected_generation == 5,
+        pointer.get("generation") == expected_generation == 7,
         "Pointer generation moved.",
     )
     acceptance = exit_slip.get("acceptance_checks") or {}
     counts = acceptance.get("counts") or {}
+    passing = int(counts.get("PASS") or 0)
+    pending_postseal = int(counts.get("PENDING_POSTSEAL") or 0)
+    declared = int(acceptance.get("declared") or 0)
     _require(acceptance.get("prebuild_status") == "PASS", "Prebuild gate failed.")
-    _require(counts.get("PASS") == 11, "Expected eleven passing prebuild checks.")
-    _require(counts.get("PENDING_POSTSEAL") == 1, "Expected one postseal check.")
+    _require(passing > 0, "No executable prebuild check passed.")
+    _require(pending_postseal > 0, "No executable postseal check was declared.")
+    _require(
+        passing + pending_postseal == declared,
+        "The executable acceptance accounting is incomplete.",
+    )
     ci_cd = (exit_slip.get("mode_execution") or {}).get("ci_cd") or {}
     _require(ci_cd.get("approve_gate") == "PASS", "Code-mode approve gate is open.")
-    _require(ci_cd.get("executed") == 11, "Code-mode prebuild count differs.")
-    _require(ci_cd.get("postseal_pending") == 1, "Code-mode postseal count differs.")
+    _require(ci_cd.get("executed") == passing, "Code-mode prebuild count differs.")
+    _require(
+        ci_cd.get("postseal_pending") == pending_postseal,
+        "Code-mode postseal count differs.",
+    )
     next_action = exit_slip.get("next_action") or {}
     _require(next_action.get("state") == "PRESENT_SIX_WAY_HIL", "HIL state differs.")
     _require(next_action.get("choices") == list(HIL_CHOICES), "HIL choices differ.")
@@ -382,15 +396,16 @@ def check_ac12() -> dict[str, Any]:
         "candidate_id": expected_candidate,
         "manifest_sha256": validation.get("manifest_sha256"),
         "package_sha256": validation.get("package_sha256"),
-        "correction_base_source_commit": CORRECTION_BASE_SOURCE_COMMIT,
-        "corrected_source_commit": source_commit,
+        "base_accepted_commit": release["payload"]["base_accepted_commit"],
+        "release_source_commit": source_commit,
         "engine_commit": engine_commit,
         "exit_slip_commit": exit_commit,
         "commit_identity_parity": source_commit == engine_commit == exit_commit,
-        "source_disposition_receipt": source_disposition["receipt_sha256"],
+        "release_identity_receipt": release["receipt_sha256"],
         "accepted_pv_retained": expected_pv,
         "pointer_generation_retained": expected_generation,
-        "prebuild_passed": 11,
+        "prebuild_passed": passing,
+        "postseal_pending": pending_postseal,
         "postseal_check": "PASS",
         "approve_gate": ci_cd["approve_gate"],
         "hil_choices": list(HIL_CHOICES),

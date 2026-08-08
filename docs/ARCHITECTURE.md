@@ -1,6 +1,6 @@
 # Architecture
 
-Evidence Lane 1.3.0 separates public controls, lifecycle APIs, brain artifacts,
+Evidence Lane 1.4.0 separates public controls, lifecycle APIs, brain artifacts,
 host storage, and human authority.
 
 ## Control plane
@@ -78,7 +78,7 @@ Previously sealed v1 packages and pre-v1.1 v2 packages remain readable only
 through explicit compatibility reports. That path validates their original
 seals and database contracts but does not claim source-policy enforcement or
 topology reconciliation that did not exist when they were built. All newly
-built v1.3 candidates must pass both gates.
+built v1.4 candidates must pass both gates.
 
 Independent lane computation is bounded to at most eight in-process workers.
 All workers read one pre-hashed source snapshot and write only their assigned
@@ -207,7 +207,7 @@ requalified as candidates when a successor release adds stricter topology
 rules; the compatibility state is reported, and the successor candidate must
 pass the current rules.
 
-Top-level v1.3 Delta receipts use a canonical self-seal: remove only the
+Historical top-level v1.3 Delta receipts use a canonical self-seal: remove only the
 top-level `receipt_sha256`, serialize canonical JSON, and hash those bytes with
 SHA-256. The repository test scans every such receipt. Any tracked-source
 change after a branch push action or preview deployment is prepared invalidates

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { ConcentricGovernanceMap } from "../_components/concentric-governance-map";
 import { EvidenceBrainAsset } from "../_components/evidence-assets";
 import { LaneProofExplorer } from "../_components/lane-proof-explorer";
 import { PageHero } from "../_components/page-hero";
@@ -23,6 +24,18 @@ export default function ProofPage() {
           </div>
         }
       />
+      <section className="section shell concentricStorySection">
+        <ConcentricGovernanceMap
+          eyebrow="Concentric proof map"
+          center="Claim boundary"
+          centerDetail="Each outer proof layer can challenge the candidate. None of those layers can turn a candidate into accepted truth."
+          rings={[
+            { label: "Source proof", tone: "cyan", items: ["Bytes", "Policy", "Hashes", "Lineage"] },
+            { label: "Structural proof", tone: "violet", items: ["SQLite", "MMD", "DOT", "Relations"] },
+            { label: "Decision proof", tone: "gold", items: ["Tests", "Candidate", "Six-way HIL", "Pointer"] },
+          ]}
+        />
+      </section>
       <section className="section shell dummyLaneProofs" id="dummy-lane-proofs">
         <div className="sectionHead wideHead">
           <span className="kicker">Inspectable dummy evidence</span>
@@ -32,7 +45,7 @@ export default function ProofPage() {
         <LaneProofExplorer />
       </section>
       <section className="section shell proofRules">
-        <div className="sectionHead wideHead"><span className="kicker">Current v1.3 correction standard</span><h2>Five rules that must fail loudly.</h2></div>
+        <div className="sectionHead wideHead"><span className="kicker">Current v1.4 correction standard</span><h2>Five rules that must fail loudly.</h2></div>
         <div className="proofRuleGrid">
           {proofRules.map(([title, text], index) => <article key={title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{title}</h3><p>{text}</p></article>)}
         </div>

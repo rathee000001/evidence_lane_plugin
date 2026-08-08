@@ -1,7 +1,7 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "1.3.0+codex.20260806060737",
-  "description": "Private six-control Evidence Lane with secret-safe tracked intake, reconciled SQLite/Mermaid/DOT brains, explicit Chat Lineage, and exact-APPROVE Fuse.",
+  "version": "1.4.0+codex.20260808112003",
+  "description": "Human-governed project memory that preserves exact evidence, resumes unfinished work, and keeps acceptance under the user's control.",
   "author": {
     "name": "Praveen Rathee",
     "url": "https://github.com/rathee000001"
@@ -20,7 +20,7 @@
   "apps": "./.app.json",
   "interface": {
     "displayName": "Evidence Lane",
-    "shortDescription": "Run six governed controls over universal evidence brains.",
+    "shortDescription": "Carry verified project knowledge across AI tasks without surrendering human control.",
     "longDescription": "Evidence Lane exposes Boot, Rollback, Build, Refresh, Mode, and Source Intake after root /evi. Boot atomically verifies locked ENV15/UOP15 Flash, prewarms optional native OCR dependencies before the MCP event loop, attaches secret-redacted visible lineage capture, and routes durable local versus configured remote storage fail-closed; Exit Boot detaches that runtime while preserving the installation and immutable evidence. Source Intake auto-detects all eighteen lanes and Project Engulf, uses tracked-only Git intake plus fail-closed secret and operational-path exclusions before SQLite/CAS/FTS, offers AUTO/REQUIRED/DISABLED Git history enrichment, and always includes Chat Lineage. Each lane's SQLite facts must reconcile with exact Mermaid and DOT node, edge, subgraph, and count claims. Mode accepts ordered known intersections and explicit custom schemas. The Codex-only /evi-plan sidecar pairs native /pl planning with a canonical Plan Lane and copy/paste Goal prompt; ChatGPT uses its separate mounted persistent plugin store without claiming Codex Plan, Goal, or task-panel UI. The separate /evi-plugin administrative sidecar governs at most eight persistent connectors or AI toolchains with independent Codex/ChatGPT profiles, one-time purpose and role schemas, exact drop, and optional declared backend runtimes. Natural HIL intent is classified without promotion, while exact APPROVE alone invokes Fuse. State Travel remains user-triggered and preserves exact unfinished work or explicit accepted context, including pointer/candidate, source, Plan Lane, additive Deltas, resume row, and host execution profile.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",

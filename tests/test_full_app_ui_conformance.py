@@ -193,7 +193,7 @@ def test_all_eighteen_canonical_lanes_drive_the_interactive_toolchain() -> None:
     assert "overflow-x: auto" not in lane_picker_rule.group(1)
 
 
-def test_v130_home_uses_delta_story_plugin_catalog_and_universal_glass_pills() -> None:
+def test_v140_home_uses_concentric_delta_story_plugin_catalog_and_universal_glass_pills() -> None:
     landing = (APP / "page.tsx").read_text(encoding="utf-8")
     header = (COMPONENTS / "site-header.tsx").read_text(encoding="utf-8")
     catalog = (COMPONENTS / "plugin-surface-catalog.tsx").read_text(encoding="utf-8")
@@ -204,11 +204,16 @@ def test_v130_home_uses_delta_story_plugin_catalog_and_universal_glass_pills() -
     site_data = (APP / "_data" / "site.ts").read_text(encoding="utf-8")
     operators = (COMPONENTS / "mode-operator-explorer.tsx").read_text(encoding="utf-8")
     architecture = (APP / "architecture" / "page.tsx").read_text(encoding="utf-8")
+    orbit = (COMPONENTS / "evidence-orbit.tsx").read_text(encoding="utf-8")
 
     assert "DeltaLedgerExplorer" in landing
     assert "PluginSurfaceCatalog" in landing
-    assert "PulsatingBrain" in landing
-    for retired in ("EvidenceOrbit", "SourceBrainLab", "UniversalCommandDeck", "LaneToolchainExplorer"):
+    assert "EvidenceOrbit" in landing
+    assert "sourceLanes" in orbit and "pluginSurfaces" in orbit
+    assert 'aria-label="18 source lanes"' in orbit
+    assert 'aria-label="15 plugin surfaces"' in orbit
+    assert "Human HIL" in orbit
+    for retired in ("SourceBrainLab", "UniversalCommandDeck", "LaneToolchainExplorer"):
         assert retired not in landing
 
     assert surfaces.count("primaryControl: true") == 6
@@ -218,7 +223,7 @@ def test_v130_home_uses_delta_story_plugin_catalog_and_universal_glass_pills() -
     assert "T023_UNIVERSAL_POPUP_FADE_V001" in popup
     assert 'role="dialog"' in popup and 'aria-modal="true"' in popup
     assert "order: index + 1" in ledger and "order: 80," in ledger
-    assert "PV6 CORRECTION ACTIVE" in ledger
+    assert "ACCEPTED IN PV7" in ledger
     assert ".rilFloatingNav .brand" in css
     assert "background: transparent" in css
     assert "--universal-popup-fade-duration: 140ms" in css
@@ -277,7 +282,7 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     assert "bm25" in retrieval and "tfidf" in retrieval and "rrf" in retrieval
     assert "promptStopWords" in retrieval
     assert "!promptStopWords.has(token)" in retrieval
-    assert "Ranked source chunks" in studio and "Boundary / provider reference" in studio
+    assert "Supporting business guidance sources" in studio and "Boundary / provider reference" in studio
     assert "promptRetrievalReceipt" in studio and ".promptRetrievalReceipt" in css
     assert ".promptStudio { min-height: 760px; border: 0; background: transparent; }" in css
     assert 'className="promptSuggestionCard"' in studio
@@ -310,6 +315,56 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     )
 
 
+def test_evidence_ai_studio_is_a_business_guide_for_the_whole_plugin() -> None:
+    studio_page = (APP / "studio" / "page.tsx").read_text(encoding="utf-8")
+    studio = (COMPONENTS / "evidence-prompt-studio.tsx").read_text(encoding="utf-8")
+    floating = (COMPONENTS / "floating-evidence-studio.tsx").read_text(encoding="utf-8")
+    retrieval = (APP / "_data" / "studio-retrieval.ts").read_text(encoding="utf-8")
+    guide = (APP / "_data" / "business-guidance.ts").read_text(encoding="utf-8")
+
+    assert "business guide to the whole Evidence Lane plugin" in studio_page
+    assert "without turning the main conversation into code discussion" in studio_page
+    assert "Business guide to the whole plugin" in studio
+    assert "Business answer first" in floating
+    assert "businessGuideFor" in retrieval
+    assert "raw source extracts" in retrieval
+    assert "selected.map((result) => excerpt" not in retrieval
+    assert studio.count("<details") >= 1
+    assert floating.count("<details") >= 1
+    assert len(re.findall(r'^    id: "[a-z-]+",$', guide, flags=re.MULTILINE)) >= 18
+    for topic in (
+        "Why Evidence Lane exists",
+        "Eighteen source lanes",
+        "Fifteen clear plugin surfaces",
+        "HIL keeps the decision with the human",
+        "State Travel resumes unfinished work exactly",
+        "Codex and ChatGPT keep separate storage realities",
+        "Release and publication happen after acceptance",
+    ):
+        assert topic in guide
+
+
+def test_creative_route_is_adobe_express_without_3d_account_linkage() -> None:
+    studio_page = (APP / "studio" / "page.tsx").read_text(encoding="utf-8")
+    guide = (APP / "_data" / "business-guidance.ts").read_text(encoding="utf-8")
+    active_site_text = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in APP.rglob("*")
+        if path.is_file()
+        and path.name != "studio-rag-index.json"
+        and path.suffix in {".ts", ".tsx", ".css"}
+    ).casefold()
+
+    assert "https://www.adobe.com/express/" in studio_page
+    assert "Open official Adobe Express" in studio_page
+    assert "does not request, store, or broker Adobe credentials" in studio_page
+    assert "does not create an account connection" in guide
+    assert "Three-dimensional model production is outside this release" in guide
+    assert "meshy" not in active_site_text
+    assert ".glb" not in active_site_text
+    assert "meshy.ai" not in active_site_text
+
+
 def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() -> None:
     landing = (APP / "page.tsx").read_text(encoding="utf-8")
     ledger = (COMPONENTS / "delta-ledger-explorer.tsx").read_text(encoding="utf-8")
@@ -331,26 +386,26 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "Human / AI boundary" in landing
     assert landing.index('className="section shell releaseHome"') < landing.index('id="delta-ledger"')
     assert 'id="current-execution-plan"' not in landing
-    assert "One additive ledger. 131 governed rows." in landing
-    step_rows = re.findall(r'^  ".*",$', current_plan_data, flags=re.MULTILINE)
-    assert len(step_rows) == 51
-    assert 'activeRow: 46' in current_plan_data
-    assert 'completedRows: 45' in current_plan_data
+    assert "One additive ledger. 87 governed rows." in landing
+    step_rows = re.findall(r"^    number: \d+,$", current_plan_data, flags=re.MULTILINE)
+    assert len(step_rows) == 7
+    assert [int(value) for value in re.findall(r"number: (\d+)", current_plan_data)] == [73, 66, 70, 71, 72, 68, 67]
+    assert 'activeRow: 73' in current_plan_data
+    assert 'completedRows: 0' in current_plan_data
     assert 'persistentUntil: "NEXT_SIX_WAY_HIL_PRESENTED"' in current_plan_data
-    assert 'priorHilDecisionAlreadyRecorded: "APPROVE_WITH_DELTA"' in current_plan_data
+    assert "supersededApprovalMustNotBeReplayed: true" in current_plan_data
+    assert "lastStep: 67" in current_plan_data
     assert "CURRENT_PLAN_LANE_NOT_HISTORICAL_ACCEPTED_DELTA_LEDGER" in current_plan_data
-    assert "row-46 one-shot lane proof as prior evidence" in current_plan_data
-    assert (
-        "main Evidence Lane repository with its full reachable commit and parent history"
-        in current_plan_data
-    )
-    assert "neither loaded nor detected leaves no PV folder or placeholder" in current_plan_data
+    assert "PV8" in current_plan_data and "1.4.0" in current_plan_data
+    assert "Adobe Express" in current_plan_data
+    assert "LAST and post-HIL only" in current_plan_data
     assert 'phase: "Current execution"' in ledger_data
-    assert "80 + row.number" in ledger_data
+    assert "81 + index" in ledger_data
+    assert "PV8-CURRENT-PLAN-STEP" in ledger_data
     assert "...currentExecution" in ledger_data
     assert "sealedHistoricalDeltaRows" in ledger_data
     assert "liveExecutionRows" in ledger_data
-    assert "Rows 81&ndash;131" in ledger
+    assert "Rows 81&ndash;87" in ledger
     assert "useState(false)" in ledger
     assert 'aria-expanded={expanded}' in ledger
     assert 'expanded ? "Collapse Delta ledger" : "Open Delta ledger"' in ledger

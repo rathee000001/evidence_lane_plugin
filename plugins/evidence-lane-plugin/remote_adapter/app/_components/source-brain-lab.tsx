@@ -194,7 +194,7 @@ const sourceBrains: readonly SourceBrain[] = [
     stats: [["Source files", "228"], ["Code files", "81"], ["Chunks", "1,367"], ["Foreign-key errors", "0"]],
     reused: "Regression comparison and historical source vocabulary only.",
     refused: "Version authority, current release identity, generator attribution, and implied feature advancement.",
-    boundary: "The outer filename cannot make this package newer than the current v1.3 release candidate, and the archive does not bind the selected V5.9 binary.",
+    boundary: "The outer filename cannot make this package newer than the historical v1.3 release candidate, and the archive does not bind the selected V5.9 binary.",
     entities: ["Package", "SQLite", "File", "Chunk", "Symbol", "Import", "Baseline"],
     visualLabel: "Historical negative-delta brain",
   },

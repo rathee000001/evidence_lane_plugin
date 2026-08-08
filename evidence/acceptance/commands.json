@@ -1,22 +1,22 @@
 {
   "commands": {
-    "AC01 executable: full v1.3 pytest regression passes against the final source.": {
+    "AC01 executable: full v1.4 pytest regression passes against the final source.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC01"],
       "timeout_seconds": 1800
     },
-    "AC02 executable: Ruff validates the complete v1.3 Python source and tests.": {
+    "AC02 executable: Ruff validates the complete v1.4 Python source and tests.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC02"],
       "timeout_seconds": 600
     },
-    "AC03 executable: MyPy validates every v1.3 plugin source file.": {
+    "AC03 executable: MyPy validates every v1.4 plugin source file.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC03"],
       "timeout_seconds": 600
     },
-    "AC04 executable: the production-equivalent v1.3 Next.js study build passes with TypeScript and all routes.": {
+    "AC04 executable: the production-equivalent v1.4 Next.js study build passes with TypeScript and all routes.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC04"],
       "timeout_seconds": 900
     },
-    "AC05 executable: all active release surfaces resolve to one v1.3 identity while historical compatibility and dependency versions remain untouched.": {
+    "AC05 executable: all active release surfaces resolve to one v1.4 identity while historical compatibility and dependency versions remain untouched.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC05"],
       "timeout_seconds": 180
     },
@@ -24,7 +24,7 @@
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC06"],
       "timeout_seconds": 300
     },
-    "AC07 executable: every tracked v1.3 implementation receipt validates its canonical self-seal.": {
+    "AC07 executable: every tracked historical v1.3 implementation receipt validates its canonical self-seal.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC07"],
       "timeout_seconds": 180
     },
@@ -44,7 +44,45 @@
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC11"],
       "timeout_seconds": 180
     },
-    "AC12 executable: the replacement PV6 validates all package seals, exact engine and Exit Slip commit identity, unchanged PV5 generation 5, passing postseal acceptance, and six-way HIL stop.": {
+    "AC12 executable: the PV8 candidate validates all package seals, exact engine and Exit Slip commit identity, unchanged PV7 generation 7, passing postseal acceptance, and six-way HIL stop.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC12"],
+      "phase": "POSTSEAL",
+      "timeout_seconds": 300
+    },
+    "All authoritative current-release identities resolve exactly to 1.4.0 across plugin manifests, runtime constants, package metadata, README/current docs, website product and structured metadata, tests, and release-facing repository surfaces.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC05"],
+      "timeout_seconds": 180
+    },
+    "A complete bounded search classifies every remaining 1.3 or v1.3 occurrence as immutable historical evidence, an explicit prior-version reference, or an error; no stale current-release label remains.": {
+      "argv": ["$RUNTIME_PYTHON", "-m", "pytest", "-q", "tests/test_v140_version_consistency.py::test_remaining_v13_occurrences_are_classified"],
+      "timeout_seconds": 180
+    },
+    "Immutable accepted-PV records and historical implementation receipts are not rewritten merely to relabel history.": {
+      "argv": ["$RUNTIME_PYTHON", "-m", "pytest", "-q", "tests/test_v140_version_consistency.py::test_historical_compatibility_and_traceability_versions_are_preserved"],
+      "timeout_seconds": 180
+    },
+    "Website and repository-facing descriptions use customer and business language for Evidence AI Studio and the whole plugin; no code-discussion framing is introduced as the product explanation.": {
+      "argv": ["$RUNTIME_PYTHON", "-m", "pytest", "-q", "tests/test_full_app_ui_conformance.py::test_evidence_ai_studio_is_a_business_guide_for_the_whole_plugin"],
+      "timeout_seconds": 180
+    },
+    "Meshy, GLB/3D generation, Meshy OAuth, and Meshy account connection remain excluded; Adobe Express remains the already-connected creative route where relevant.": {
+      "argv": ["$RUNTIME_PYTHON", "-m", "pytest", "-q", "tests/test_full_app_ui_conformance.py::test_creative_route_is_adobe_express_without_3d_account_linkage"],
+      "timeout_seconds": 180
+    },
+    "Version-consistency, plugin, runtime, documentation, website, package, and relevant regression checks pass from the final clean source state.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC01"],
+      "timeout_seconds": 1800
+    },
+    "One exact feature-branch commit and tree are recorded and the final worktree is clean before Refresh.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC11"],
+      "timeout_seconds": 180
+    },
+    "Refresh seals a new unaccepted PV8 candidate whose source identity matches the exact final commit/tree; accepted PV7 and generation 7 remain unchanged until a fresh HIL decision.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC12"],
+      "phase": "POSTSEAL",
+      "timeout_seconds": 300
+    },
+    "Execution stops at the returned exact six-way HIL with the governed suggested_next_prompt visible; no inferred approval, Fuse, main merge, production deploy, GitHub publication, or Devpost mutation occurs.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC12"],
       "phase": "POSTSEAL",
       "timeout_seconds": 300

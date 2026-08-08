@@ -1,6 +1,7 @@
 import "server-only";
 
 import studioRagArtifact from "./studio-rag-index.json";
+import { businessGuideFor } from "./business-guidance";
 import { floatingStudioSuggestions, promptSuggestions } from "./site";
 
 export type StudioSource = { label: string; href: string };
@@ -130,17 +131,6 @@ function tokenize(value: string) {
     )) ?? [];
 }
 
-function excerpt(value: string) {
-  const cleaned = value
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/[`#*_>{}\[\]()]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (cleaned.length <= 430) return cleaned;
-  const boundary = cleaned.lastIndexOf(" ", 430);
-  return `${cleaned.slice(0, boundary > 280 ? boundary : 430)}...`;
-}
-
 function rankEvidence(question: string): RankedEvidence {
   const queryTerms = [...new Set(tokenize(question))];
   const indexedTerms = queryTerms.filter(
@@ -251,9 +241,10 @@ export function answerFromEvidence(question: string): EvidenceAnswer | null {
     label: `${result.source.title} - ${result.chunk.locator}`,
     href: result.source.href,
   }));
+  const guide = businessGuideFor(question);
   return {
-    title: `Ranked local evidence: ${selected[0].source.title}`,
-    text: selected.map((result) => excerpt(result.chunk.text)).join("\n\n"),
+    title: guide?.title ?? "Supporting evidence found",
+    text: guide?.answer ?? "The committed project evidence supports this topic, but a reviewed business-language explanation has not yet been added to the guide. To avoid turning implementation fragments into business advice, Evidence AI Studio is returning the supporting references and audit receipt without presenting raw source extracts as an answer.",
     sources,
     retrieval: {
       bm25: selected[0].bm25,
@@ -294,7 +285,7 @@ export function verifyStudioRetrievalConfidence() {
   const canaries = [
     { id: "general-no-hit", question: "How do I cook pasta al dente?", expectedGrounded: false },
     { id: "project-nonsense-no-hit", question: "What is Evidence Lane quantum banana authority?", expectedGrounded: false },
-    { id: "active-plan-hit", question: "What is active step 46 in the current 51-step execution Plan Lane?", expectedGrounded: true },
+    { id: "active-plan-hit", question: "What is active step 73 in the current seven-step execution Plan Lane?", expectedGrounded: true },
     { id: "pointer-hil-hit", question: "How do accepted pointers, Exit Slips, and HIL separate human input from AI work?", expectedGrounded: true },
     ...displayedSuggestionCanaries,
   ].map((canary) => {

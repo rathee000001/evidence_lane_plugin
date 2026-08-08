@@ -26,9 +26,9 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane 1.3.0
+# Evidence Lane 1.4.0
 
-The single active product release is **1.3.0** across the root package, plugin
+The single active product release is **1.4.0** across the root package, plugin
 package, engine, Codex manifest, remote adapter, current documentation, and
 current test/PoC tooling. Historical accepted PVs, sealed receipts, compatibility
 labels such as `pre-v1.1`, dependency versions, and historical Delta reports keep
@@ -201,7 +201,7 @@ additionally show symbols, imports, routes, dependencies, reachable Git
 commits/refs, file changes, blob/chunk CAS, occurrences, and history FTS. A
 lane that is neither loaded nor detected emits no PV folder or placeholder;
 only the canonical registry remains schema-ready for a later intake.
-The v1.3 reconciliation gate parses both formats, requires meaningful structural
+The v1.4 reconciliation gate parses both formats, requires meaningful structural
 floors, rejects dangling endpoints, compares exact subgraph/node/edge identities,
 and checks every emitted table, fact-kind, and root count against read-only
 SQLite. A syntactically valid six-line graph, understated count, or MMD/DOT
@@ -232,7 +232,7 @@ routed source hashes, and assembles reports in canonical lane order. This is
 compute parallelism inside one writer and one linear task; Chat Lineage append,
 HIL, Fuse, accepted-pointer movement, rollback, and State Travel remain serial
 authorities. A failed worker or changed source snapshot produces no candidate.
-Current v1.3 lane bundles use the universal-lane v2 contract plus sealed source-policy and
+Current v1.4 lane bundles use the universal-lane v2 contract plus sealed source-policy and
 parallel-execution receipts, and they require topology reconciliation. Accepted
 v1 bundles remain readable through their existing narrow compatibility path.
 Sealed pre-v1.1 v2 bundles that contain the original parallel receipt but no
@@ -297,7 +297,7 @@ only the accepted pointer among immutable accepted versions. Publication,
 installation, Vercel preview, and ChatGPT connection are release evidence, not
 candidate acceptance.
 
-## v1.3 release and compatibility invariants
+## v1.4 release and compatibility invariants
 
 An accepted PV remains immutable entry authority even when a later engine adds
 stricter topology or promotability rules. Boot, Resume, status, direct
@@ -313,9 +313,9 @@ moving the lifecycle. Code Mode visibly executes
 and supply-chain operators. Other modes retain their own lane gates and HIL
 effects while preserving the same six exact decision tokens.
 
-Every top-level v1.3 Delta receipt that declares `receipt_sha256` is self-sealed
+Every historical top-level v1.3 Delta receipt that declares `receipt_sha256` is self-sealed
 as SHA-256 over canonical JSON after removing only that top-level field.
-`tests/test_v130_evidence_receipt_seals.py` scans the complete v1.3 evidence
+`tests/test_v130_evidence_receipt_seals.py` scans the complete historical v1.3 evidence
 directory and fails on a stale seal. A tracked-source change after a remote Git
 action or exact-SHA preview is prepared supersedes that action or preview; its
 old token must remain unused, and a new tested commit, action, token, and
@@ -336,7 +336,7 @@ python -m venv .venv
 Build the durable MCP container with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:1.3.0 .
+docker build --pull --tag evidence-lane-plugin:1.4.0 .
 ```
 
 The container exposes `/mcp` and `/healthz` on port 8080 and requires one writer

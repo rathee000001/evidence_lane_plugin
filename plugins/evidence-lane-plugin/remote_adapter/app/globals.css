@@ -2284,7 +2284,9 @@ main { position: relative; padding-top: 112px; overflow: clip; }
 .promptMessage p { color: #536e83; }
 .promptMessage footer small { color: #71879a; }
 .promptMessage footer a { color: #226f98; border-color: rgba(85,183,216,.3); background: rgba(87,194,224,.08); }
-.promptRetrievalReceipt { margin-top: 12px; padding: 10px 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 7px; border: 1px solid rgba(112,190,217,.28); border-radius: 14px; background: rgba(226,246,252,.54); }
+.promptRetrievalReceipt { margin-top: 12px; border: 1px solid rgba(112,190,217,.28); border-radius: 14px; background: rgba(226,246,252,.54); }
+.promptRetrievalReceipt summary { padding: 10px 12px; color: #26728b; font-size: 10px; font-weight: 800; cursor: pointer; }
+.promptRetrievalReceipt > div { padding: 0 12px 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
 .promptRetrievalReceipt span { padding: 4px 7px; color: #23728e; border: 1px solid rgba(105,193,219,.24); border-radius: 999px; background: rgba(255,255,255,.68); font: 800 8px/1.2 "Cascadia Code", Consolas, monospace; }
 .promptRetrievalReceipt code { flex: 1 1 100%; overflow-wrap: anywhere; color: #557184; font: 700 8px/1.45 "Cascadia Code", Consolas, monospace; }
 .promptSuggestionCluster button { color: #49677d; border-color: rgba(159,194,217,.48); background: rgba(255,255,255,.64); }
@@ -3012,7 +3014,7 @@ main { padding-top: 106px; }
   .modeHilGrid article { min-height: 230px; }
 }
 
-/* v1.3 correction: universal app pill/orb law and evidence-first website. */
+/* v1.4 release: universal app pill/orb law and evidence-first website. */
 :root {
   --universal-pill-inter-gap: 10px;
   --universal-pill-orb-label-gap: 8px;
@@ -3914,4 +3916,346 @@ main { padding-top: 106px; }
   .pulsating-brain.is-active .pulsating-brain__orb,
   .pulsating-brain.is-active .pulsating-brain__wave { animation-duration: 1ms !important; animation-iteration-count: 1 !important; }
   .laneOrbitWheel,.laneOrbitGlyph { animation: none !important; }
+}
+
+/* v1.4 concentric governance surfaces */
+.creativeRoute {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  padding: clamp(24px,4vw,48px);
+  border: 1px solid rgba(139,156,255,.28);
+  border-radius: 34px;
+  background: linear-gradient(135deg,rgba(244,241,255,.9),rgba(231,247,252,.76));
+  box-shadow: 0 20px 60px rgba(70,83,147,.12);
+}
+.creativeRoute h2 { max-width: 780px; margin: 10px 0; color: #253b64; }
+.creativeRoute p { max-width: 820px; color: #57677c; line-height: 1.65; }
+.creativeRoute > a { flex: 0 0 auto; }
+.floatingStudioReceipt { margin-top: 7px; }
+.floatingStudioReceipt summary { color: #2f7188; font-size: 9px; font-weight: 800; cursor: pointer; }
+.floatingStudioReceipt code { display: block; margin-top: 5px; overflow-wrap: anywhere; }
+
+.evidenceOrbit {
+  position: relative;
+  display: grid !important;
+  inset: auto;
+  z-index: 1;
+  width: min(650px, 100%);
+  aspect-ratio: 1;
+  margin: 0;
+  overflow: visible;
+  border-radius: 0;
+  place-items: center;
+  isolation: isolate;
+}
+.heroVisual .evidenceOrbit { inset: auto; opacity: 1; overflow: visible; }
+.evidenceOrbitHalo {
+  position: absolute;
+  inset: 5%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(105,217,245,.2), rgba(105,217,245,.04) 42%, transparent 70%);
+  filter: blur(18px);
+}
+.evidenceOrbitRing {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 1px solid rgba(123,211,234,.36);
+  border-radius: 50%;
+  transform: translate(-50%,-50%);
+}
+.evidenceOrbitRing::before {
+  position: absolute;
+  inset: -5px;
+  border: 2px dashed rgba(105,217,245,.28);
+  border-radius: inherit;
+  content: "";
+  animation: orbitTrace 34s linear infinite;
+}
+.sourceLaneOrbit { width: 86%; aspect-ratio: 1; --orbit-radius: clamp(178px, 18.6vw, 279px); }
+.pluginSurfaceOrbit { width: 60%; aspect-ratio: 1; --orbit-radius: clamp(123px, 13vw, 195px); border-color: rgba(131,221,179,.48); }
+.pluginSurfaceOrbit::before { border-color: rgba(131,221,179,.3); animation-direction: reverse; animation-duration: 25s; }
+.evidenceOrbitNode {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  min-width: 26px;
+  min-height: 26px;
+  transform: translate(-50%,-50%) rotate(var(--orbit-angle)) translateY(calc(-1 * var(--orbit-radius))) rotate(calc(-1 * var(--orbit-angle)));
+  place-items: center;
+}
+.evidenceOrbitNode i {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(255,255,255,.72);
+  border-radius: 50%;
+  background: linear-gradient(145deg,rgba(255,255,255,.94),rgba(210,241,250,.72));
+  box-shadow: 0 7px 18px rgba(26,103,131,.18);
+  color: #12647a;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+  place-items: center;
+}
+.pluginSurfaceOrbit .evidenceOrbitNode i { background: linear-gradient(145deg,#f7fffb,#cbeedc); color: #1d7154; }
+.evidenceOrbitNode b {
+  position: absolute;
+  top: 29px;
+  width: 80px;
+  color: #31505d;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.05;
+  text-align: center;
+}
+.pluginSurfaceOrbit .evidenceOrbitNode b { display: none; }
+.evidenceOrbitCenter {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  width: 35%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255,255,255,.78);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 28%,rgba(255,255,255,.96),rgba(218,242,248,.72) 50%,rgba(105,217,245,.22));
+  box-shadow: 0 24px 60px rgba(24,104,130,.24), inset 0 1px 0 #fff;
+  place-items: center;
+}
+.evidenceOrbitCenter .pulsating-brain { position: absolute; inset: 50% auto auto 50%; transform: translate(-50%,-50%); opacity: .5; }
+.evidenceOrbitCenter > span,.evidenceOrbitCenter > strong,.evidenceOrbitCenter > small { position: relative; z-index: 2; }
+.evidenceOrbitCenter > span { align-self: end; color: #0d7b98; font-size: clamp(32px,4vw,58px); font-weight: 800; line-height: .8; }
+.evidenceOrbitCenter > strong { color: #163c4a; font-size: clamp(14px,1.6vw,22px); }
+.evidenceOrbitCenter > small { align-self: start; max-width: 118px; color: #456673; font-size: 9px; text-align: center; }
+.evidenceOrbit figcaption {
+  position: absolute;
+  right: 3%;
+  bottom: 1%;
+  left: 3%;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+}
+.evidenceOrbit figcaption span {
+  padding: 9px 10px;
+  border: 1px solid rgba(255,255,255,.74);
+  border-radius: 16px;
+  background: rgba(246,253,255,.72);
+  box-shadow: 0 10px 28px rgba(42,107,126,.12);
+  color: #41616e;
+  font-size: 10px;
+  text-align: center;
+  backdrop-filter: blur(16px);
+}
+.evidenceOrbit figcaption strong { display: block; color: #126f88; font-size: 20px; }
+
+.concentricStorySection { padding-top: 20px; }
+.concentricGovernanceMap {
+  display: grid;
+  grid-template-columns: minmax(230px,.7fr) minmax(440px,1.3fr);
+  gap: clamp(28px,5vw,80px);
+  align-items: center;
+  margin: 0;
+  padding: clamp(24px,4vw,56px);
+  border: 1px solid rgba(120,173,193,.25);
+  border-radius: 38px;
+  background: linear-gradient(145deg,rgba(255,255,255,.9),rgba(228,245,250,.62));
+  box-shadow: 0 24px 70px rgba(40,101,122,.12);
+  overflow: hidden;
+}
+.concentricMapCopy > span { color: #1781a0; font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.concentricMapCopy > strong { display: block; margin: 12px 0; color: #173f4c; font-size: clamp(28px,4vw,52px); line-height: 1; }
+.concentricMapCopy p { color: #4c6a75; font-size: 15px; line-height: 1.65; }
+.concentricMapStage { position: relative; width: min(560px,100%); aspect-ratio: 1; margin-inline: auto; }
+.concentricMapRing {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 1px solid rgba(105,217,245,.34);
+  border-radius: 50%;
+  transform: translate(-50%,-50%);
+}
+.concentricMapRing::before {
+  position: absolute;
+  inset: -5px;
+  border: 2px dotted currentColor;
+  border-radius: inherit;
+  content: "";
+  opacity: .32;
+  animation: orbitTrace 28s linear infinite;
+}
+.concentricMapRing.ring1 { width: 92%; aspect-ratio: 1; --map-radius: min(230px,42vw); color: #29a8cc; }
+.concentricMapRing.ring2 { width: 66%; aspect-ratio: 1; --map-radius: min(165px,30vw); color: #55b98d; }
+.concentricMapRing.ring3 { width: 40%; aspect-ratio: 1; --map-radius: min(100px,18vw); color: #d39d36; }
+.concentricMapRing.ring2::before { animation-direction: reverse; animation-duration: 22s; }
+.concentricMapRing.ring3::before { animation-duration: 17s; }
+.concentricMapRing > small {
+  position: absolute;
+  left: 50%;
+  top: -12px;
+  z-index: 2;
+  padding: 5px 10px;
+  border-radius: 99px;
+  background: #fff;
+  color: currentColor;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+}
+.concentricMapRing > span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  min-width: 58px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255,255,255,.86);
+  border-radius: 99px;
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 7px 20px rgba(39,99,119,.14);
+  color: #315461;
+  font-size: 9px;
+  font-weight: 750;
+  text-align: center;
+  transform: translate(-50%,-50%) rotate(var(--map-angle)) translateY(calc(-1 * var(--map-radius))) rotate(calc(-1 * var(--map-angle)));
+}
+.concentricMapCore {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  display: grid;
+  width: 22%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 50%;
+  background: radial-gradient(circle,#fff 10%,#f2d89c 100%);
+  box-shadow: 0 12px 35px rgba(162,116,30,.25);
+  color: #73531b;
+  font-size: clamp(10px,1.3vw,16px);
+  font-weight: 800;
+  text-align: center;
+  transform: translate(-50%,-50%);
+  place-items: center;
+}
+.concentricMapCore i { position: absolute; inset: 14%; border: 1px solid rgba(159,112,24,.24); border-radius: 50%; }
+.concentricGovernanceMap > figcaption { display: none; }
+
+.operatorFamilyOrbit {
+  display: grid;
+  grid-template-columns: minmax(380px,1fr) minmax(230px,.55fr);
+  gap: clamp(24px,4vw,52px);
+  align-items: center;
+  margin: 30px 0;
+  padding: clamp(22px,3vw,38px);
+  border: 1px solid rgba(132,160,203,.25);
+  border-radius: 32px;
+  background: linear-gradient(145deg,rgba(239,246,255,.88),rgba(255,255,255,.72));
+}
+.operatorFamilyOrbitStage { position: relative; width: min(500px,100%); aspect-ratio: 1; margin-inline: auto; }
+.operatorFamilyRing {
+  position: absolute;
+  inset: calc(var(--family-index) * 7%);
+  border: 1px solid rgba(105,217,245,.2);
+  border-radius: 50%;
+}
+.operatorFamilyRing::before {
+  position: absolute;
+  inset: -4px;
+  border: 2px dashed rgba(145,165,199,.28);
+  border-radius: inherit;
+  content: "";
+  animation: orbitTrace calc(34s - var(--family-index) * 3s) linear infinite;
+}
+.operatorFamilyRing:nth-child(even)::before { animation-direction: reverse; }
+.operatorFamilyRing.is-loaded { border-color: rgba(68,183,211,.58); background: radial-gradient(circle,transparent 68%,rgba(105,217,245,.06)); }
+.operatorFamilyRing.is-loaded::before { border-color: rgba(71,174,210,.62); }
+.operatorFamilyRing > span {
+  position: absolute;
+  left: 50%;
+  top: -11px;
+  z-index: 2;
+  padding: 5px 10px;
+  border-radius: 99px;
+  background: #f9fdff;
+  color: #365b75;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  transform: translateX(-50%);
+}
+.operatorFamilyRing > i {
+  position: absolute;
+  right: 6%;
+  top: 13%;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(41,96,127,.18);
+  color: #237a96;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+  place-items: center;
+}
+.operatorFamilyCore {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 5;
+  display: grid;
+  width: 23%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255,255,255,.88);
+  border-radius: 50%;
+  background: radial-gradient(circle,#fff,#ccecf5);
+  box-shadow: 0 15px 35px rgba(32,115,145,.2);
+  color: #194f62;
+  text-align: center;
+  transform: translate(-50%,-50%);
+  place-content: center;
+}
+.operatorFamilyCore small,.operatorFamilyCore span { font-size: 8px; text-transform: uppercase; }
+.operatorFamilyCore strong { font-size: clamp(10px,1.3vw,16px); }
+.operatorFamilyOrbit figcaption strong { display: block; color: #244b60; font-size: clamp(22px,3vw,36px); }
+.operatorFamilyOrbit figcaption > span { display: block; margin: 14px 0; color: #287a96; font-size: 11px; font-weight: 800; line-height: 1.6; }
+.operatorFamilyOrbit figcaption p { color: #536c78; font-size: 13px; line-height: 1.65; }
+
+@keyframes orbitTrace { to { transform: rotate(1turn); } }
+
+@media (max-width: 900px) {
+  .creativeRoute { align-items: stretch; flex-direction: column; }
+  .creativeRoute > a { width: fit-content; }
+  .concentricGovernanceMap,.operatorFamilyOrbit { grid-template-columns: 1fr; }
+  .concentricMapCopy,.operatorFamilyOrbit figcaption { text-align: center; }
+  .sourceLaneOrbit { --orbit-radius: min(39vw,279px); }
+  .pluginSurfaceOrbit { --orbit-radius: min(27vw,195px); }
+}
+
+@media (max-width: 560px) {
+  .heroVisual { min-height: 440px; }
+  .evidenceOrbitNode b { display: none; }
+  .evidenceOrbitNode i { width: 20px; height: 20px; font-size: 7px; }
+  .evidenceOrbit figcaption { bottom: -5%; }
+  .evidenceOrbit figcaption span { padding: 6px 4px; font-size: 8px; }
+  .evidenceOrbit figcaption strong { font-size: 15px; }
+  .concentricGovernanceMap { padding-inline: 14px; }
+  .concentricMapStage { width: 100%; }
+  .concentricMapRing.ring1 { --map-radius: 42vw; }
+  .concentricMapRing.ring2 { --map-radius: 30vw; }
+  .concentricMapRing.ring3 { --map-radius: 18vw; }
+  .concentricMapRing > span { min-width: 44px; padding-inline: 5px; font-size: 7px; }
+  .operatorFamilyOrbit { padding-inline: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evidenceOrbitRing::before,.concentricMapRing::before,.operatorFamilyRing::before { animation: none !important; }
 }

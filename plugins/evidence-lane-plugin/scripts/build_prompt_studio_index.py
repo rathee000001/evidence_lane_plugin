@@ -327,7 +327,7 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
 
     browser_artifact = {
         "schema": SCHEMA,
-        "release": "1.3.0",
+        "release": "1.4.0",
         "history_through_sha": history_sha,
         "history_through_date": history_date,
         "corpus_sha256": corpus_sha,
@@ -411,7 +411,7 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
     )
     metadata = {
         "schema": SCHEMA,
-        "release": "1.3.0",
+        "release": "1.4.0",
         "history_through_sha": history_sha,
         "history_through_date": history_date,
         "corpus_sha256": corpus_sha,
@@ -482,7 +482,7 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
     browser_sha = _sha256_bytes(browser_bytes)
     manifest = {
         "schema": SCHEMA,
-        "release": "1.3.0",
+        "release": "1.4.0",
         "history_through_sha": history_sha,
         "history_commit_count": sum(1 for row in source_rows if row["kind"] == "git_history"),
         "corpus": {

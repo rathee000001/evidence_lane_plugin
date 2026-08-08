@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 import { DeltaLedgerExplorer } from "./_components/delta-ledger-explorer";
-import { GlassIconOrb, OfficialToolIcon, PulsatingBrain } from "./_components/evidence-assets";
+import { GlassIconOrb, OfficialToolIcon } from "./_components/evidence-assets";
+import { EvidenceOrbit } from "./_components/evidence-orbit";
 import { MotionReveal } from "./_components/motion-reveal";
 import { PluginSurfaceCatalog } from "./_components/plugin-surface-catalog";
 import { artifactContract, painLedger, proofMetrics } from "./_data/site";
@@ -40,13 +41,7 @@ export default function Home() {
           </div>
         </MotionReveal>
         <MotionReveal className="heroVisual" delay={0.12}>
-          <div className="heroBrainStage">
-            <PulsatingBrain size="min(610px, 88vw)" color="#69d9f5" />
-            <span>Exact state in · governed evidence out</span>
-          </div>
-          <div className="visualBadge badgeA"><span>18</span> source lanes</div>
-          <div className="visualBadge badgeB"><span>15</span> plugin surfaces</div>
-          <div className="visualBadge badgeC"><span>1</span> human gate</div>
+          <EvidenceOrbit />
         </MotionReveal>
       </section>
 
@@ -179,12 +174,13 @@ export default function Home() {
         <div className="shell">
           <div className="sectionHead wideHead">
             <span className="kicker">Historical Deltas + current Plan Lane</span>
-            <h2>One additive ledger. 131 governed rows. No erased history.</h2>
+            <h2>One additive ledger. 87 governed rows. No erased history.</h2>
             <p>
               Rows 1&ndash;80 preserve the sealed foundation, v1.2 evolution, and v1.3 hardening
-              record. The current 51-step execution plan is appended as rows 81&ndash;131 in this
-              same table: steps 1&ndash;45 are complete, step 46 is the active correction, and steps
-              47&ndash;51 remain pending. Filters change the view, never the underlying order or authority.
+              record. The exact current seven-row execution projection is appended as rows
+              81&ndash;87 in this same table: step 73 is active, six rows remain pending, and step 67
+              is deliberately last because publication is post-HIL only. Filters change the view,
+              never the underlying order or authority.
             </p>
           </div>
           <DeltaLedgerExplorer />

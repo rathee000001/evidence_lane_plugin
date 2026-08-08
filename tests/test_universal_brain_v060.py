@@ -415,8 +415,8 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     assert "Resume from verified project truth" in landing
     assert "DeltaLedgerExplorer" in landing
     assert "PluginSurfaceCatalog" in landing
-    assert "PulsatingBrain" in landing
-    for retired in ("UniversalCommandDeck", "LaneToolchainExplorer", "SourceBrainLab", "EvidenceOrbit"):
+    assert "EvidenceOrbit" in landing
+    for retired in ("UniversalCommandDeck", "LaneToolchainExplorer", "SourceBrainLab"):
         assert retired not in landing
     lanes_page = (adapter_root / "app" / "lanes" / "page.tsx").read_text(encoding="utf-8")
     assert "LaneToolchainExplorer" in lanes_page
@@ -430,6 +430,9 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     active_brand_source = active_tsx + (adapter_root / "app" / "manifest.ts").read_text(
         encoding="utf-8"
     )
+    home_orbit = (
+        adapter_root / "app" / "_components" / "evidence-orbit.tsx"
+    ).read_text(encoding="utf-8")
     assert "/evidence-lane-full-logo.png" in active_brand_source
     assert "/evidence-lane-icon.png" in active_brand_source
     assert "evidence-root-fibers.png" not in active_brand_source
@@ -437,8 +440,10 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     assert "evidence-executive-scanner.png" not in active_brand_source
     assert "evidence-glass-orb.png" not in active_brand_source
     assert "/assets/evidence-static-brain.png" in active_brand_source
-    assert "TorusGeometry" in active_tsx
-    assert "THREE.Points" in active_tsx
+    assert "TorusGeometry" not in home_orbit
+    assert "THREE.Points" not in home_orbit
+    assert ".evidenceOrbitRing" in styles
+    assert "prefers-reduced-motion" in styles
     assert package["dependencies"]["three"] == "0.185.1"
     assert package["dependencies"]["framer-motion"] == "12.38.0"
     for lane_id in CANONICAL_LANE_IDS:

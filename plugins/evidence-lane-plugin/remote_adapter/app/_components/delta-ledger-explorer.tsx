@@ -81,8 +81,8 @@ export function DeltaLedgerExplorer() {
             ))}
           </ol>
           <p className="deltaLedgerBoundary">
-            Rows 1&ndash;80 are sealed historical Delta evidence. Rows 81&ndash;131 project the current
-            51-step Plan Lane, including active step 46, into the same additive table. Neither class
+            Rows 1&ndash;80 are sealed historical Delta evidence. Rows 81&ndash;87 project the current
+            seven-step Plan Lane, including active step 73 and last step 67, into the same additive table. Neither class
             authorizes Fuse, accepted-pointer movement, a main merge, deployment, or human approval.
           </p>
         </div>

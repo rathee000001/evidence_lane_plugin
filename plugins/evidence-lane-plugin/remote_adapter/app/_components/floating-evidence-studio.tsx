@@ -32,7 +32,7 @@ const initialMessage: FloatingMessage = {
   id: 0,
   role: "assistant",
   title: "Evidence AI Studio",
-  text: "Ask this page from the same committed retrieval corpus used by Prompt Studio. Project no-hits refuse; genuine general no-hits may use the separately configured openrouter/free route and are labeled outside project evidence.",
+  text: "Ask what this page means for the product, the operator, or the release decision. I will answer in business language and keep the supporting evidence receipt available for optional review.",
   mode: "governed_boundary",
 };
 
@@ -154,7 +154,7 @@ export function FloatingEvidenceStudio() {
               <GlassIconOrb color="#69d9f5" size={50} decorative>
                 <LaneAssetIcon lane="chat_lineage" size={28} decorative />
               </GlassIconOrb>
-              <span><small>Evidence Lane</small><strong>Evidence AI Studio</strong><p>Same committed RAG / explicit external boundary</p></span>
+              <span><small>Evidence Lane</small><strong>Evidence AI Studio</strong><p>Whole-plugin business guide / governed evidence</p></span>
             </div>
             <div className="floatingStudioHeaderActions">
               <Link
@@ -175,9 +175,9 @@ export function FloatingEvidenceStudio() {
           </header>
 
           <div className="floatingStudioPolicy">
-            <span><GlassIconOrb color="#70dff4" size={24} decorative><OfficialToolIcon tool="database" size={13} decorative /></GlassIconOrb><b>Local evidence first</b></span>
-            <span><GlassIconOrb color="#efb75c" size={24} decorative><OfficialToolIcon tool="pulse" size={13} decorative /></GlassIconOrb><b>Project no-hit refuses</b></span>
-            <span><GlassIconOrb color="#99e1bd" size={24} decorative><OfficialToolIcon tool="node" size={13} decorative /></GlassIconOrb><b>Free model only</b></span>
+            <span><GlassIconOrb color="#70dff4" size={24} decorative><OfficialToolIcon tool="database" size={13} decorative /></GlassIconOrb><b>Business answer first</b></span>
+            <span><GlassIconOrb color="#efb75c" size={24} decorative><OfficialToolIcon tool="pulse" size={13} decorative /></GlassIconOrb><b>Unsupported claims refuse</b></span>
+            <span><GlassIconOrb color="#99e1bd" size={24} decorative><OfficialToolIcon tool="node" size={13} decorative /></GlassIconOrb><b>Evidence stays visible</b></span>
           </div>
 
           <div className="floatingStudioTranscript" aria-live="polite">
@@ -187,7 +187,10 @@ export function FloatingEvidenceStudio() {
                 {message.mode ? <small>{message.mode.replaceAll("_", " ")}</small> : null}
                 <p>{message.text}</p>
                 {message.retrieval ? (
-                  <code>RRF {message.retrieval.rrf.toFixed(6)} / coverage {(message.retrieval.queryCoverage * 100).toFixed(0)}% / corpus {message.retrieval.corpus.slice(0, 12)}</code>
+                  <details className="floatingStudioReceipt">
+                    <summary>Open evidence receipt</summary>
+                    <code>RRF {message.retrieval.rrf.toFixed(6)} / coverage {(message.retrieval.queryCoverage * 100).toFixed(0)}% / corpus {message.retrieval.corpus.slice(0, 12)}</code>
+                  </details>
                 ) : null}
                 {message.sources?.length ? (
                   <footer>{message.sources.slice(0, 4).map((source) => <Link href={source.href} key={`${message.id}-${source.href}-${source.label}`}>{source.label}</Link>)}</footer>
@@ -214,7 +217,7 @@ export function FloatingEvidenceStudio() {
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={onKeyDown}
               rows={2}
-              placeholder="Ask this page or a general question..."
+              placeholder="What does this mean for the business or operator?"
             />
             <button type="button" disabled={busy || !input.trim()} onClick={() => void ask()}>
               <GlassIconOrb color="#efb75c" size={30} decorative><OfficialToolIcon tool="terminal" size={16} decorative /></GlassIconOrb>

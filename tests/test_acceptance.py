@@ -231,7 +231,7 @@ def test_prebuild_summary_passes_when_exact_prebuild_runs_before_postseal(
     assert result["postseal_pending"] == 1
 
 
-def test_repository_manifest_binds_exactly_twelve_v130_checks() -> None:
+def test_repository_manifest_binds_twelve_v140_checks_and_governed_task_mappings() -> None:
     repository = Path(__file__).resolve().parents[1]
     manifest = json.loads(
         (repository / "evidence" / "acceptance" / "commands.json").read_text(
@@ -240,12 +240,19 @@ def test_repository_manifest_binds_exactly_twelve_v130_checks() -> None:
     )
     commands = manifest["commands"]
     assert manifest["schema"] == "evidence-lane.acceptance-command-manifest.v1"
-    assert len(commands) == 12
-    assert [key[:4] for key in commands] == [f"AC{index:02d}" for index in range(1, 13)]
-    for index, entry in enumerate(commands.values(), start=1):
+    canonical = list(commands.items())[:12]
+    task_mappings = list(commands.items())[12:]
+    assert len(canonical) == 12
+    assert len(task_mappings) == 9
+    assert [key[:4] for key, _entry in canonical] == [
+        f"AC{index:02d}" for index in range(1, 13)
+    ]
+    for index, (_key, entry) in enumerate(canonical, start=1):
         assert entry["argv"] == [
             "$RUNTIME_PYTHON",
             "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py",
             f"AC{index:02d}",
         ]
-    assert commands[next(reversed(commands))]["phase"] == "POSTSEAL"
+    assert canonical[-1][1]["phase"] == "POSTSEAL"
+    assert all(entry["argv"][0] == "$RUNTIME_PYTHON" for _key, entry in task_mappings)
+    assert sum(entry.get("phase") == "POSTSEAL" for _key, entry in task_mappings) == 2

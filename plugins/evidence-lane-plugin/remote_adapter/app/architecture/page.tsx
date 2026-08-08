@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { ConcentricGovernanceMap } from "../_components/concentric-governance-map";
 import { EvidenceBrainAsset, GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { PageHero } from "../_components/page-hero";
 import { SourceLaneIcon } from "../_components/source-lane-icon";
@@ -40,6 +41,19 @@ export default function ArchitecturePage() {
           </div>
         }
       />
+
+      <section className="section shell concentricStorySection">
+        <ConcentricGovernanceMap
+          eyebrow="Concentric authority map"
+          center="Human HIL"
+          centerDetail="Parallel evidence can move quickly around the center; only the human decision can change accepted authority."
+          rings={[
+            { label: "Sources", tone: "cyan", items: ["Code", "Docs", "Data", "Lineage"] },
+            { label: "Evidence work", tone: "green", items: ["Parse", "Index", "Graph", "Test"] },
+            { label: "Serial lifecycle", tone: "gold", items: ["Candidate", "HIL", "Fuse", "Pointer"] },
+          ]}
+        />
+      </section>
 
       <section className="section shell topologySection">
         <div className="sectionHead wideHead">
