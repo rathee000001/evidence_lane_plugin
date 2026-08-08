@@ -8,6 +8,7 @@ import os
 # Fixed local venv launcher only; no shell command is constructed.
 import subprocess  # nosec B404
 import sys
+import tomllib
 from pathlib import Path
 
 
@@ -29,8 +30,27 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _runtime_ready(python: Path) -> bool:
-    """Reject interrupted or partial plugin-local virtual environments."""
+def _expected_runtime_version(plugin_root: Path) -> str:
+    project = tomllib.loads((plugin_root / "pyproject.toml").read_text(encoding="utf-8"))
+    return str(project["project"]["version"])
+
+
+def _expected_dependency_version(plugin_root: Path, package: str) -> str:
+    project = tomllib.loads((plugin_root / "pyproject.toml").read_text(encoding="utf-8"))
+    prefix = package.casefold() + "=="
+    for dependency in project["project"]["dependencies"]:
+        normalized = str(dependency).strip()
+        if normalized.casefold().startswith(prefix):
+            return normalized.split("==", 1)[1].split(";", 1)[0].strip()
+    raise SystemExit(f"Missing exact {package} dependency pin in pyproject.toml.")
+
+
+def _runtime_ready(
+    python: Path,
+    expected_version: str,
+    expected_pydantic_version: str,
+) -> bool:
+    """Reject interrupted, partial, or stale plugin-local environments."""
 
     if not python.is_file():
         return False
@@ -39,7 +59,15 @@ def _runtime_ready(python: Path) -> bool:
             [
                 str(python),
                 "-c",
-                "import evidence_lane_plugin, mcp; print('READY')",
+                (
+                    "import sys, mcp; "
+                    "import pydantic; "
+                    "from evidence_lane_plugin.constants import ENGINE_VERSION; "
+                    "raise SystemExit(0 if (ENGINE_VERSION == sys.argv[1] and "
+                    "pydantic.__version__ == sys.argv[2]) else 41)"
+                ),
+                expected_version,
+                expected_pydantic_version,
             ],
             check=False,
             stdin=subprocess.DEVNULL,
@@ -73,10 +101,12 @@ def _bootstrap_runtime(plugin_root: Path) -> None:
 def main() -> int:
     args = _parser().parse_args()
     plugin_root = Path(__file__).resolve().parents[1]
+    expected_version = _expected_runtime_version(plugin_root)
+    expected_pydantic_version = _expected_dependency_version(plugin_root, "pydantic")
     python = _venv_python(plugin_root)
-    if not _runtime_ready(python):
+    if not _runtime_ready(python, expected_version, expected_pydantic_version):
         _bootstrap_runtime(plugin_root)
-    if not _runtime_ready(python):
+    if not _runtime_ready(python, expected_version, expected_pydantic_version):
         raise SystemExit(
             "Evidence Lane dependencies are unavailable after the governed bootstrap."
         )

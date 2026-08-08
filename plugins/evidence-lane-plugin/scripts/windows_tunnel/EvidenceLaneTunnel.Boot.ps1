@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime",
-    [string]$ProfileName = "evidence_lane_v120_hil"
+    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v140",
+    [string]$ProfileName = "evidence_lane_v140_chatgpt_read",
+    [string]$ProfileDir = "$env:APPDATA\tunnel-client"
 )
 
 Set-StrictMode -Version Latest
@@ -10,10 +11,10 @@ $ErrorActionPreference = "Stop"
 $expectedClientSha256 = "D893D8127EEE35070D265C1BE29BFE008F8D9FCB476E7FEBF56C8FDC6C0615C8"
 $client = Join-Path $RuntimeRoot "bin\tunnel-client-v0.0.10.exe"
 $secretFile = Join-Path $RuntimeRoot "secrets\control-plane-runtime-key.dpapi"
-$healthUrlFile = Join-Path $RuntimeRoot "evidence_lane_v130_health.url"
-$pidFile = Join-Path $RuntimeRoot "evidence_lane_v130_tunnel.pid"
-$daemonLog = Join-Path $RuntimeRoot "evidence_lane_v130_tunnel.log"
-$operatorLog = Join-Path $RuntimeRoot "evidence_lane_v130_operator.log"
+$healthUrlFile = Join-Path $RuntimeRoot "evidence_lane_v140_health.url"
+$pidFile = Join-Path $RuntimeRoot "evidence_lane_v140_tunnel.pid"
+$daemonLog = Join-Path $RuntimeRoot "evidence_lane_v140_tunnel.log"
+$operatorLog = Join-Path $RuntimeRoot "evidence_lane_v140_operator.log"
 
 function Write-OperatorEvent {
     param(
@@ -30,6 +31,7 @@ function Write-OperatorEvent {
     }
     Add-Content -LiteralPath $operatorLog -Value ($row | ConvertTo-Json -Compress) -Encoding UTF8
 }
+
 function Get-PinnedTunnelProcess {
     if (-not (Test-Path -LiteralPath $pidFile -PathType Leaf)) {
         return $null
@@ -47,6 +49,9 @@ function Get-PinnedTunnelProcess {
         $processPath = (Resolve-Path -LiteralPath $process.Path).Path
         $clientPath = (Resolve-Path -LiteralPath $client).Path
         if ($processPath -ne $clientPath) {
+            return $null
+        }
+        if ((Get-FileHash -LiteralPath $processPath -Algorithm SHA256).Hash -ne $expectedClientSha256) {
             return $null
         }
     }
@@ -88,6 +93,11 @@ if ($null -ne $existing -and (Test-TunnelReady -ProcessId $existing.Id)) {
     Write-OperatorEvent -Event "BOOT" -Status "ALREADY_READY" -Detail "pid=$($existing.Id)"
     exit 0
 }
+if ($null -ne $existing) {
+    Write-OperatorEvent -Event "BOOT" -Status "RECOVER_STALE_PROCESS" -Detail "pid=$($existing.Id)"
+    Stop-Process -Id $existing.Id
+    Wait-Process -Id $existing.Id -Timeout 20 -ErrorAction SilentlyContinue
+}
 
 Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $healthUrlFile -Force -ErrorAction SilentlyContinue
@@ -102,10 +112,9 @@ try {
     $secureKey = ConvertTo-SecureString $encryptedKey
     $keyPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey)
     $env:CONTROL_PLANE_API_KEY = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($keyPointer)
-    $env:CONTROL_PLANE_ORGANIZATION_ID = "org-xdT1xXEp2clCPaJHQ1foPC5B"
 
     Write-OperatorEvent -Event "DOCTOR" -Status "STARTED" -Detail "profile=$ProfileName"
-    & $client doctor --profile $ProfileName --json --explain *> $operatorLog
+    & $client doctor --profile-dir $ProfileDir --profile $ProfileName --json --explain *>> $operatorLog
     if ($LASTEXITCODE -ne 0) {
         throw "Tunnel doctor failed with exit code $LASTEXITCODE."
     }
@@ -113,6 +122,7 @@ try {
 
     Write-OperatorEvent -Event "DAEMON" -Status "STARTED" -Detail "profile=$ProfileName"
     & $client run `
+        --profile-dir $ProfileDir `
         --profile $ProfileName `
         --health.url-file $healthUrlFile `
         --pid.file $pidFile `
@@ -132,7 +142,6 @@ finally {
         [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($keyPointer)
     }
     Remove-Item Env:CONTROL_PLANE_API_KEY -ErrorAction SilentlyContinue
-    Remove-Item Env:CONTROL_PLANE_ORGANIZATION_ID -ErrorAction SilentlyContinue
     if ($null -ne $secureKey) {
         $secureKey.Dispose()
     }

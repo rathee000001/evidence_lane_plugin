@@ -19,7 +19,7 @@
   "repository": "https://github.com/rathee000001/evidence_lane_plugin",
   "interactive_ui": {
     "standard": "MCP Apps",
-    "resource_uri": "ui://evidence-lane/governed-console-v1.html",
+    "resource_uri": "ui://evidence-lane/governed-console-v2.html",
     "mime_type": "text/html;profile=mcp-app",
     "render_tools": [
       "render_runtime_panel",
@@ -28,13 +28,43 @@
     "host_boundary": "Evidence Lane supplies supported in-conversation panels; ChatGPT owns its native listing and settings layout."
   },
   "host_contracts": {
-    "codex": "Plan Lane may project to Codex native Plan mode, Goal, and task panel through a user-mediated /pl and /evi-plan flow.",
-    "chatgpt": "The persistent plugin runtime reads and append-writes its mounted or configured durable host storage; Codex Plan, Goal, and task-panel controls are not claimed."
+    "codex": "Exact-Git full lifecycle. Plan Lane may project to Codex native Plan mode, Goal, and task panel through a user-mediated /pl and /evi-plan flow.",
+    "chatgpt_pro": "Exact 21-tool read-only MCP accelerator. ChatGPT native ENV/UOP and Project Mutation remain host-owned and are not MCP mutations. Vercel and the owned HTTPS domain are ChatGPT-only."
+  },
+  "skill_surface": {
+    "packaged_count": 15,
+    "visibility": "ALL_PACKAGED_SKILL_ENTRIES_VISIBLE_ON_CHATGPT_AND_CODEX",
+    "read_safe_workflows": [
+      "Root routing and exact six-control presentation",
+      "Boot ENV/UOP Flash, runtime and accepted-PV observation",
+      "Accepted-PV Entry and Exit Slip observation",
+      "Lane, search, diff, backlog and governed-panel guidance",
+      "Mode, storage and lifecycle-law explanation without mutation"
+    ],
+    "chatgpt_pro_write_behavior": "UNAVAILABLE_ACTION_REPORTED_AND_FAIL_CLOSED_WITHOUT_CLAIMING_MUTATION"
+  },
+  "exposure_profiles": {
+    "codex": {
+      "name": "FULL_LIFECYCLE",
+      "delivery": "exact Git plugin"
+    },
+    "chatgpt_pro": {
+      "name": "CHATGPT_PRO_READ",
+      "tool_count": 21,
+      "all_tools_read_only": true,
+      "excluded": ["Build", "Refresh", "Fuse", "Rollback", "pointer mutation", "source mutation", "Git write", "deployment", "Meshy", "generated GLB", "3D production dependency"]
+    }
   },
   "plan_lane": {
     "current_public_projection": "https://evidencelane.org/#current-execution-plan",
+    "sealed_historical_delta_rows": 80,
+    "live_projection_rows": 17,
+    "active_step": 66,
+    "last_execution_step": 67,
+    "physically_last_hil_step": 75,
     "steer_default_boundary": "BEFORE_NEXT_HIL",
-    "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED"
+    "persistent_until": "FINAL_SIX_WAY_HIL_PRESENTED"
   },
+  "release_propagation": "GitHub Markdown, all relevant website pages and footers, the website Delta table, Vercel production from main, and existing Devpost project 1348634/evidence_os must resolve from the same accepted release evidence.",
   "publication_state": "CANDIDATE_PENDING_VERIFICATION"
 }

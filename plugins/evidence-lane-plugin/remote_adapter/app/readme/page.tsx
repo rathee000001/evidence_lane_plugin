@@ -32,7 +32,7 @@ export default function ReadmePage() {
       <h2>Proof law</h2>
       <ul>{proofRules.map(([name, detail]) => <li key={name}><strong>{name}:</strong> {detail}</li>)}</ul>
       <h2>Host boundary</h2>
-      <p><strong>Codex</strong> can run the complete local Git lifecycle and may project the canonical Plan Lane into Codex Plan mode, Goal, and its native task panel. <strong>ChatGPT</strong> uses the same plugin law inside its own host universe: it reads and append-writes only its mounted persistent PV/storage boundary under ENV/UOP, lane, Exit-Slip, and HIL rules. It does not borrow Codex storage or pretend Codex composer controls exist.</p>
+      <p><strong>Codex</strong> installs from exact Git source, runs the complete local lifecycle, and may project the canonical Plan Lane into Codex Plan mode, Goal, and its native task panel. <strong>ChatGPT Pro</strong> installs the same Evidence Lane plugin package, shows all 15 packaged skill entries, and uses the exact 21-tool read-only MCP profile for accepted-PV evidence, ENV/UOP Flash, Entry/Exit Slips, lanes, search, diffs, backlog, and governed panels. Skills requiring a lifecycle write stop explicitly. ChatGPT&apos;s native ENV/UOP package and Project Mutation sector remain host-owned; the MCP does not perform or claim that mutation. Vercel and the owned HTTPS domain serve ChatGPT only.</p>
       <p>Continue with <Link href="/architecture">Architecture</Link>, inspect <Link href="/lanes">all lane contracts</Link>, download <Link href="/proof#dummy-lane-proofs">dummy lane proofs</Link>, read <Link href="/security">Security</Link>, or review <Link href="/provenance#upstream-reference-ledger">Upstream provenance</Link>.</p>
     </main>
   );

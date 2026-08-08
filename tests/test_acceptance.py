@@ -231,7 +231,7 @@ def test_prebuild_summary_passes_when_exact_prebuild_runs_before_postseal(
     assert result["postseal_pending"] == 1
 
 
-def test_repository_manifest_binds_twelve_v140_checks_and_governed_task_mappings() -> None:
+def test_repository_manifest_binds_eighteen_v140_checks_and_three_governed_compatibility_mappings() -> None:
     repository = Path(__file__).resolve().parents[1]
     manifest = json.loads(
         (repository / "evidence" / "acceptance" / "commands.json").read_text(
@@ -240,12 +240,12 @@ def test_repository_manifest_binds_twelve_v140_checks_and_governed_task_mappings
     )
     commands = manifest["commands"]
     assert manifest["schema"] == "evidence-lane.acceptance-command-manifest.v1"
-    canonical = list(commands.items())[:12]
-    task_mappings = list(commands.items())[12:]
-    assert len(canonical) == 12
-    assert len(task_mappings) == 9
+    canonical = list(commands.items())[:18]
+    task_mappings = list(commands.items())[18:]
+    assert len(canonical) == 18
+    assert len(task_mappings) == 3
     assert [key[:4] for key, _entry in canonical] == [
-        f"AC{index:02d}" for index in range(1, 13)
+        f"AC{index:02d}" for index in range(1, 19)
     ]
     for index, (_key, entry) in enumerate(canonical, start=1):
         assert entry["argv"] == [
@@ -253,6 +253,51 @@ def test_repository_manifest_binds_twelve_v140_checks_and_governed_task_mappings
             "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py",
             f"AC{index:02d}",
         ]
-    assert canonical[-1][1]["phase"] == "POSTSEAL"
+    assert [key[:4] for key, _entry in canonical[-6:]] == [
+        f"AC{index:02d}" for index in range(13, 19)
+    ]
+    assert sum(entry.get("phase") == "POSTSEAL" for _key, entry in canonical) == 3
     assert all(entry["argv"][0] == "$RUNTIME_PYTHON" for _key, entry in task_mappings)
-    assert sum(entry.get("phase") == "POSTSEAL" for _key, entry in task_mappings) == 2
+    assert all("phase" not in entry for _key, entry in task_mappings)
+
+
+def test_manifest_registry_may_map_more_entries_than_one_bounded_task_executes(
+    tmp_path: Path,
+) -> None:
+    repository = _repository(tmp_path)
+    declarations = [
+        f"AC{index:02d} executable: registry check {index}."
+        for index in range(1, 22)
+    ]
+    manifest_path = repository / "evidence" / "acceptance" / "commands.json"
+    manifest_path.parent.mkdir(parents=True)
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.acceptance-command-manifest.v1",
+                "commands": {
+                    declaration: {
+                        "argv": [
+                            "$RUNTIME_PYTHON",
+                            "-c",
+                            f"print('AC{index:02d}:PASS')",
+                        ],
+                        "timeout_seconds": 30,
+                    }
+                    for index, declaration in enumerate(declarations, start=1)
+                },
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    exact_six = declarations[12:18]
+    result = run_acceptance_checks(repository, exact_six, timeout_seconds=30)
+    assert result["command_manifest"]["status"] == "PASS"
+    assert result["command_manifest"]["entry_count"] == 21
+    assert result["declared"] == 6
+    assert result["executed"] == 6
+    assert result["counts"]["PASS"] == 6
+    assert result["verdict"] == "ALL_EXECUTABLE_CHECKS_PASS"

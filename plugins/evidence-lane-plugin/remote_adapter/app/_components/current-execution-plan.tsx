@@ -19,7 +19,7 @@ export function CurrentExecutionPlan() {
         <span className="active"><strong>{active?.number}</strong> in progress</span>
         <span><strong>{pending}</strong> pending</span>
       </div>
-      <ol aria-label="Current seven-step Evidence Lane execution plan">
+      <ol aria-label="Current seventeen-step Evidence Lane execution plan">
         {currentExecutionPlan.map((row) => (
           <li
             className={`executionPlanRow status${row.status}`}
@@ -36,7 +36,7 @@ export function CurrentExecutionPlan() {
         ))}
       </ol>
       <p className="executionPlanLaw">
-        This seven-row panel is the current Plan Lane, not historical accepted-Delta evidence. Later steers append through visible lineage and update this projection without rewriting sealed history. Step 67 stays last and remains post-HIL only. The panel remains visible until the next six-way HIL is actually presented.
+        This 17-row panel is the current Plan Lane, not the 80-row sealed historical Delta ledger. Later steers append through visible lineage and update this projection without rewriting sealed history. Step 67 retains the carried full POC and is the last execution/publication row; step 75 is physically last as the final six-way HIL stop. The panel remains visible with exactly one active row until that HIL is actually presented. A required user token pauses only its dependent row and never completes the Goal.
       </p>
     </div>
   );

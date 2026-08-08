@@ -2,9 +2,10 @@
 
 ChatGPT and Codex are separate host universes. They may run the same Evidence
 Lane code and lifecycle laws, but they never share an implicit PV or storage
-authority. ChatGPT uses either its own mounted persistent plugin runtime or a
-public connector backed by a durable Evidence Lane MCP. It never treats the Git
-repository or the Codex store as its live database authority.
+authority. ChatGPT Pro uses the exact `CHATGPT_PRO_READ` MCP profile through a
+verified outbound Tunnel or a public connector backed by a durable Evidence
+Lane read origin. It never treats the Git repository, Vercel filesystem, or the
+Codex store as its live database authority.
 
 The supported public-connector shape is:
 
@@ -14,20 +15,43 @@ ChatGPT -> Vercel preview/adapter -> exact-release durable MCP origin
 
 ## Installation route distinction
 
-Codex installs the native Evidence Lane plugin from the governed Git
-marketplace route. In the user's mounted ChatGPT runtime, the same plugin code
-reads and append-only writes that ChatGPT host's own PV, lanes, ENV/UOP state,
-Chat Lineage, candidates, receipts, Exit Slips, and accepted pointer in that
-host's persistent storage. Those writes remain governed by the same one-writer,
-lane, ENV/UOP, pointer, and six-way HIL laws; they do not occur in the Codex
-store or in Vercel's function filesystem.
+Codex installs Evidence Lane from the governed Git marketplace route and keeps
+the full lifecycle. ChatGPT installs the same full plugin package, whose
+`.app.json` maps the registered Evidence Lane MCP connection into the bundled
+skill corpus. The product display name stays **Evidence Lane**; `1.4` belongs
+in version metadata. ChatGPT therefore displays and can route through all
+fifteen packaged skills, including Boot/ENV-UOP Flash guidance and accepted-PV
+Entry/Exit inspection, alongside
+exactly 21 read-only tools for accepted PVs, lanes, Chat Lineage, task backlog,
+receipts, diffs, search, and governed panels. A skill whose requested path
+requires an unavailable write tool fails closed instead of claiming the write.
+ChatGPT's native ENV/UOP package and Project Mutation sector may continue under
+the host's own append-only law, but the MCP does not perform or claim that
+mutation. No MCP write occurs in the Codex store or Vercel's function
+filesystem.
 
 The separate public **New Plugin** or connector route accepts an **MCP Server
-URL** or a **Tunnel**, not a Git working tree. Git supplies source and release
-identity, while that route still requires a reachable MCP transport. An older
-personal app shown in ChatGPT proves only that one plugin runtime, server, or
-tunnel was connected; it does not prove that the currently selected Git SHA is
-running behind that app.
+URL** or a **Tunnel**, not a Git working tree. That step registers only the MCP
+app. The app's `plugin_asdk_app...` technical ID must then be mapped in the full
+plugin package before ChatGPT can show the bundled skills and release metadata.
+Git supplies source and release identity, while that route still requires a
+reachable MCP transport. An older personal app shown in ChatGPT proves only
+that one runtime, server, or tunnel was connected; it does not prove that the
+currently selected Git SHA or full plugin package is active.
+
+Do not treat a connector details page with no Skills section as a complete
+installation. The complete-package check requires the Evidence Lane details
+page to show the bundled skill inventory and a fresh conversation to route a
+read-safe Boot request through the packaged `evi-boot` instructions and the
+21-tool read profile. The six primary controls remain visible for parity;
+unsupported lifecycle-write actions are labeled unavailable and fail closed.
+
+For a contributor's local route, run
+`scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1`. It accepts one exact
+Tunnel ID, captures one Runtime API key through a masked DPAPI prompt, creates
+the 21-tool read profile, registers boot persistence, and provides Status,
+Repair, and exact Remove actions. ChatGPT is linked once after the tunnel is
+ready. Codex never uses this route.
 
 The Vercel adapter performs no local evidence writes. Its `/healthz` must report the
 exact Git SHA, `durable_origin_verified: true`, and
@@ -45,9 +69,9 @@ Before creating a ChatGPT connection, verify:
 2. the durable origin reports that SHA;
 3. the adapter preview reports the same SHA;
 4. OAuth discovery and protected-resource metadata are correct;
-5. tool schemas include the six-control lifecycle and stable internal APIs;
+5. the ChatGPT profile exposes exactly 21 tools and every tool is annotated read-only;
 6. no compromised OpenAI key exists in source or deployment configuration;
-7. a fresh-chat resume can read the same governed session and pointer.
+7. a fresh chat can read the same accepted-PV, slip, lane, and panel evidence.
 
 Use the adapter `/mcp` URL with OAuth. Creation and any UI confirmation remain
 manual HIL unless screen control is explicitly authorized in that task.

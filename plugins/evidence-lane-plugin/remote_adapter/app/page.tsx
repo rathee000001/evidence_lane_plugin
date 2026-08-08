@@ -158,15 +158,18 @@ export default function Home() {
           <span className="kicker">Two host universes</span>
           <h2>The same governance law meets each host at its real storage boundary.</h2>
           <p>
-            Codex runs the full governed repository lifecycle. ChatGPT uses the same Evidence Lane
-            contracts against its own mounted persistent PV and append-only host storage. Neither
-            host borrows the other&apos;s task controls, filesystem, or acceptance authority.
+            Codex runs the full governed repository lifecycle from exact Git source. ChatGPT Pro
+            shows all 15 packaged skill entries and uses a registered 21-tool read profile for
+            accepted-PV evidence, ENV/UOP status, Entry/Exit slips, search, and panels. Skills that
+            require lifecycle writes stop explicitly. ChatGPT&apos;s native Project Mutation workflow remains host-owned;
+            the MCP neither performs nor claims that mutation. Neither host borrows the other&apos;s
+            task controls, filesystem, or acceptance authority.
           </p>
           <Link className="textLink" href="/connect">Inspect the verified host and connection boundaries <span aria-hidden="true">→</span></Link>
         </div>
         <div className="homeHostTruth" aria-label="Evidence Lane host boundaries">
           <article><span>Codex</span><strong>Full lifecycle</strong><p>Source Intake, build, tests, package seals, exact six-way HIL, and pointer-gated promotion.</p></article>
-          <article><span>ChatGPT</span><strong>Mounted-PV continuity</strong><p>Read and append-only write through the host&apos;s own persistent storage under the same lane, ENV, and Exit-Slip laws.</p></article>
+          <article><span>ChatGPT Pro</span><strong>15 skills plus governed reads</strong><p>The full plugin shows all 15 packaged skill entries; Vercel or the verified outbound tunnel carries only accepted-PV MCP reads, while native ENV/UOP and Project Mutation stay inside ChatGPT.</p></article>
         </div>
       </section>
 
@@ -174,12 +177,13 @@ export default function Home() {
         <div className="shell">
           <div className="sectionHead wideHead">
             <span className="kicker">Historical Deltas + current Plan Lane</span>
-            <h2>One additive ledger. 87 governed rows. No erased history.</h2>
+            <h2>One additive ledger. 97 governed rows. No erased history.</h2>
             <p>
               Rows 1&ndash;80 preserve the sealed foundation, v1.2 evolution, and v1.3 hardening
-              record. The exact current seven-row execution projection is appended as rows
-              81&ndash;87 in this same table: step 73 is active, six rows remain pending, and step 67
-              is deliberately last because publication is post-HIL only. Filters change the view,
+              record. The exact current 17-row execution projection is appended as rows
+              81&ndash;97 in this same table: six rows are complete, step 66 is the sole active row,
+              step 67 retains the complete POC and last publication execution, and step 75 is
+              physically last as the final six-way HIL. Filters change the view,
               never the underlying order or authority.
             </p>
           </div>

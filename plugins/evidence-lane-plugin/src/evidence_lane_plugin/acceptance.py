@@ -21,6 +21,7 @@ COMMAND_MANIFEST_RELATIVE = Path("evidence/acceptance/commands.json")
 COMMAND_MANIFEST_SCHEMA = "evidence-lane.acceptance-command-manifest.v1"
 RUNTIME_PYTHON_TOKEN = "$RUNTIME_PYTHON"
 MAX_CHECKS = 12
+MAX_MANIFEST_ENTRIES = 64
 MAX_COMMAND_CHARS = 2000
 MAX_OUTPUT_CHARS = 8000
 MAX_ARGV_ITEMS = 64
@@ -130,7 +131,7 @@ def _command_manifest(repository: Path) -> tuple[dict[str, Any], dict[str, Any]]
     valid = (
         payload.get("schema") == COMMAND_MANIFEST_SCHEMA
         and isinstance(commands, dict)
-        and len(commands) <= MAX_CHECKS
+        and len(commands) <= MAX_MANIFEST_ENTRIES
     )
     resolved_commands: dict[str, Any] = {}
     if valid and isinstance(commands, dict):

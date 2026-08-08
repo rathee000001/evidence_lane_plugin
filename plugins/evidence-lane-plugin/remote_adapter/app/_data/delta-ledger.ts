@@ -119,7 +119,7 @@ const hardening: DeltaLedgerEntry[] = [
 
 const currentExecution: DeltaLedgerEntry[] = currentExecutionPlan.map((row, index) => ({
   order: 81 + index,
-  id: `PV8-CURRENT-PLAN-STEP-${String(row.number).padStart(3, "0")}`,
+  id: `VISIBLE-PLAN-STEP-${String(row.number).padStart(3, "0")}`,
   phase: "Current execution",
   status: row.status.replace("_", " "),
   summary: row.step,
@@ -136,6 +136,6 @@ export const deltaLedgerBoundary = {
   totalRows: deltaLedger.length,
   sealedHistoricalDeltaRows: foundation.length + evolution.length + hardening.length,
   liveExecutionRows: currentExecution.length,
-  activeExecutionRow: 73,
+  activeExecutionRow: 66,
   acceptedAuthorityEffect: "NONE",
 } as const;

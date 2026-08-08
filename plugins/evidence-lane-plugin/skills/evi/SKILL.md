@@ -21,6 +21,14 @@ After root `/evi`, expose exactly these six primary controls in this order:
 5. `/evi-mode`
 6. `/evi-source-intake`
 
+Keep that exact control inventory on both hosts. On ChatGPT Pro, call only the
+registered read-profile tools. Render Boot as a read-safe attach/status/Flash
+check and mark Rollback, Build, Refresh, and any Source Intake operation that
+would create or change governed state as `UNAVAILABLE_ON_CHATGPT_PRO_READ`.
+Do not hide, rename, simulate, or claim those controls. A skill may explain a
+write path, but it must stop before lifecycle mutation when its required tool
+is absent. Codex retains the complete Git-backed lifecycle.
+
 `/evi-source-intake` is the single generalized intake surface. It auto-detects
 all eighteen canonical lanes and Project Engulf, accepts exact overrides, and
 always includes Chat Lineage. `/evi-mode` remains a separate one-command

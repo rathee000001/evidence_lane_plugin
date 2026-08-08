@@ -44,8 +44,34 @@
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC11"],
       "timeout_seconds": 180
     },
-    "AC12 executable: the PV8 candidate validates all package seals, exact engine and Exit Slip commit identity, unchanged PV7 generation 7, passing postseal acceptance, and six-way HIL stop.": {
+    "AC12 executable: the successor candidate validates package seals, exact engine and Exit Slip commit identity, retained accepted authority, passing postseal accounting, and six-way HIL stop.": {
       "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC12"],
+      "phase": "POSTSEAL",
+      "timeout_seconds": 300
+    },
+    "AC13 executable: Evidence AI Studio and release-facing website guidance use business language for the whole plugin, with the complete release boundary visible.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC13"],
+      "timeout_seconds": 300
+    },
+    "AC14 executable: the full Evidence Lane plugin proves stable 1.4 metadata, branded identity, fifteen bundled skills, exact six-control parity, ChatGPT Pro read-safe Boot and 21-tool read profile, contributor tunnel readiness, native Three.js/WebGL preservation, and no Meshy, generated GLB, or 3D production dependency.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC14"],
+      "timeout_seconds": 600
+    },
+    "AC15 executable: the complete Python, runtime, documentation, website, package, tunnel, and relevant regression suite passes from the exact final source.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC15"],
+      "timeout_seconds": 1800
+    },
+    "AC16 executable: one exact clean feature-branch commit preserves PV9 authority and the governed Vercel, website, GitHub, main, and existing Devpost 1348634/evidence_os publication boundary.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC16"],
+      "timeout_seconds": 180
+    },
+    "AC17 executable: the immutable PV10 candidate matches the exact clean source commit and tree while accepted PV9 generation 9 and its manifest remain unchanged.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC17"],
+      "phase": "POSTSEAL",
+      "timeout_seconds": 300
+    },
+    "AC18 executable: all six command checks close with the governed suggested next prompt and exact six-way HIL while Fuse, pointer movement, main merge, production deploy, GitHub publication, and Devpost mutation remain absent.": {
+      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC18"],
       "phase": "POSTSEAL",
       "timeout_seconds": 300
     },
@@ -60,32 +86,6 @@
     "Immutable accepted-PV records and historical implementation receipts are not rewritten merely to relabel history.": {
       "argv": ["$RUNTIME_PYTHON", "-m", "pytest", "-q", "tests/test_v140_version_consistency.py::test_historical_compatibility_and_traceability_versions_are_preserved"],
       "timeout_seconds": 180
-    },
-    "Website and repository-facing descriptions use customer and business language for Evidence AI Studio and the whole plugin; no code-discussion framing is introduced as the product explanation.": {
-      "argv": ["$RUNTIME_PYTHON", "-m", "pytest", "-q", "tests/test_full_app_ui_conformance.py::test_evidence_ai_studio_is_a_business_guide_for_the_whole_plugin"],
-      "timeout_seconds": 180
-    },
-    "Meshy, GLB/3D generation, Meshy OAuth, and Meshy account connection remain excluded; Adobe Express remains the already-connected creative route where relevant.": {
-      "argv": ["$RUNTIME_PYTHON", "-m", "pytest", "-q", "tests/test_full_app_ui_conformance.py::test_creative_route_is_adobe_express_without_3d_account_linkage"],
-      "timeout_seconds": 180
-    },
-    "Version-consistency, plugin, runtime, documentation, website, package, and relevant regression checks pass from the final clean source state.": {
-      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC01"],
-      "timeout_seconds": 1800
-    },
-    "One exact feature-branch commit and tree are recorded and the final worktree is clean before Refresh.": {
-      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC11"],
-      "timeout_seconds": 180
-    },
-    "Refresh seals a new unaccepted PV8 candidate whose source identity matches the exact final commit/tree; accepted PV7 and generation 7 remain unchanged until a fresh HIL decision.": {
-      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC12"],
-      "phase": "POSTSEAL",
-      "timeout_seconds": 300
-    },
-    "Execution stops at the returned exact six-way HIL with the governed suggested_next_prompt visible; no inferred approval, Fuse, main merge, production deploy, GitHub publication, or Devpost mutation occurs.": {
-      "argv": ["$RUNTIME_PYTHON", "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py", "AC12"],
-      "phase": "POSTSEAL",
-      "timeout_seconds": 300
     }
   },
   "schema": "evidence-lane.acceptance-command-manifest.v1"

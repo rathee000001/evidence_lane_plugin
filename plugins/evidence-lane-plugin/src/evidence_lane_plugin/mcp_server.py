@@ -1,10 +1,11 @@
-"""Universal tool-only MCP contract for Codex and ChatGPT-capable hosts."""
+"""Universal MCP runtime contract for the Evidence Lane plugin package."""
 
 from __future__ import annotations
 
 import os
 from typing import Any, Literal
 
+import anyio
 from mcp.server.auth.provider import TokenVerifier
 from mcp.server.auth.settings import AuthSettings
 from mcp.server.fastmcp import FastMCP
@@ -15,7 +16,10 @@ from starlette.responses import JSONResponse
 
 from .auth import OAuthJWTConfig, OAuthJWTVerifier, StaticBearerVerifier
 from .constants import ENGINE_VERSION
-from .github_automation_governance import apply_fastmcp_tool_filter
+from .github_automation_governance import (
+    apply_fastmcp_tool_filter,
+    parse_mcp_tool_allowlist,
+)
 from .lane_engine import prewarm_native_dependencies
 from .mcp_apps import (
     GOVERNED_PANEL_URI,
@@ -26,9 +30,111 @@ from .mcp_apps import (
     governed_panel_resource_meta,
     governed_panel_tool_meta,
 )
+from .mcp_stdio_compat import run_discovery_compatible_stdio
 from .service import EvidenceLaneService
 
 _PUBLIC_SITE_URL = "https://evidencelane.org"
+
+FULL_LIFECYCLE_EXPOSURE_PROFILE = "FULL_LIFECYCLE"
+CHATGPT_PRO_READ_EXPOSURE_PROFILE = "CHATGPT_PRO_READ"
+
+# ChatGPT Pro connections are the read-only MCP half of the full universal
+# plugin. The package still contributes its skills; unavailable lifecycle writes
+# fail closed while the host's own ENV/UOP and Project Mutation laws remain
+# separate. Codex keeps the complete Git-backed lifecycle.
+CHATGPT_PRO_READ_TOOL_NAMES = (
+    "connector_plugin_catalog",
+    "connector_plugin_settings",
+    "fetch",
+    "lane_catalog",
+    "lane_fetch",
+    "lane_search",
+    "lane_status",
+    "lifecycle_transition_law",
+    "prompt_index_status",
+    "pv_diff",
+    "pv_query",
+    "pv_status",
+    "pv_summary",
+    "pv_task_backlog",
+    "render_project_panel",
+    "render_runtime_panel",
+    "runtime_activation_status",
+    "runtime_doctor",
+    "search",
+    "session_flash_status",
+    "storage_connector_inspect",
+)
+
+_FULL_LIFECYCLE_INSTRUCTIONS = (
+    "A prepared exact-work handoff makes /evi-state-travel eligible but "
+    "never auto-selects or consumes it. Display and run State Travel only "
+    "after an explicit user request or genuine host-context exhaustion. "
+    "Otherwise start /evi with atomic /evi-boot plus locked ENV/UOP Flash "
+    "as the first normal action, then display "
+    "exactly Boot, Rollback, Build, Refresh, Mode, and Source Intake. "
+    "Source Intake is one generalized ordered control for all eighteen "
+    "lanes and Project Engulf and always includes Chat Lineage. Fuse "
+    "requires exact APPROVE through pv_fuse and seals a fresh-window "
+    "handoff without rebuilding. When explicitly triggered, State Travel "
+    "verifies atomic Boot/Flash, the pointer base, any candidate, live "
+    "source, Plan Lane, additive Deltas, and host execution profile in a "
+    "fresh task/chat. It resumes unfinished work at the exact row; an "
+    "accepted-entry request waits. Codex Plan/Goal/task-panel controls do "
+    "not apply to ChatGPT's separate mounted persistent runtime. A booted "
+    "session remains active until /evi-exit-boot. "
+    "Before every HIL or State Travel stop, visibly render the returned "
+    "suggested_next_prompt. The host owns composer suggestions; never "
+    "claim the MCP wrote the prompt bar and never auto-submit it. "
+    "Never infer HIL approval, store private reasoning, expose connector "
+    "secrets, or write remote Git without the exact governed action."
+)
+
+_CHATGPT_PRO_READ_INSTRUCTIONS = (
+    "Evidence Lane is the stable product name; 1.4 is version metadata. This "
+    "registered MCP connection is the read-only half of the full Evidence Lane "
+    "plugin package for ChatGPT Pro. Packaged skills remain available. Read and "
+    "explain the accepted project version, ENV/UOP Flash "
+    "status, Entry and Exit Slips, Chat Lineage, the Project Mutation "
+    "sector, lane evidence, task backlog, diffs, and governed runtime or "
+    "project panels. Use the verified corpus to guide the user across the "
+    "whole product instead of turning the conversation into a code review. "
+    "The evi-boot skill may use runtime doctor, Flash, activation, accepted-PV, "
+    "and panel reads to verify an already active runtime as CHATGPT_PRO_READ_ATTACH. "
+    "This MCP profile cannot create or resume a runtime session, Build, Refresh, "
+    "Fuse, approve, reject, roll back, move a pointer, edit source, mutate the Project Mutation "
+    "sector, write remote Git, install another connector, or deploy. "
+    "ChatGPT may continue its own native append-only ENV/UOP and Project "
+    "Mutation workflow under host law; never claim that this MCP performed "
+    "that mutation. Codex remains the separate Git-installed full-lifecycle "
+    "host. Vercel and the owned HTTPS domain serve this ChatGPT read path "
+    "only. Meshy, generated GLB assets, 3D production dependencies, and "
+    "Meshy account linkage are outside this connector. Preserve the native "
+    "Three.js/WebGL website presentation. Never infer a HIL decision or "
+    "expose secrets."
+)
+
+
+def _normalize_exposure_profile(value: str | None) -> str:
+    normalized = (value or FULL_LIFECYCLE_EXPOSURE_PROFILE).strip().upper()
+    aliases = {
+        "": FULL_LIFECYCLE_EXPOSURE_PROFILE,
+        "CODEX_FULL_LIFECYCLE": FULL_LIFECYCLE_EXPOSURE_PROFILE,
+        FULL_LIFECYCLE_EXPOSURE_PROFILE: FULL_LIFECYCLE_EXPOSURE_PROFILE,
+        CHATGPT_PRO_READ_EXPOSURE_PROFILE: CHATGPT_PRO_READ_EXPOSURE_PROFILE,
+    }
+    try:
+        return aliases[normalized]
+    except KeyError as exc:
+        raise RuntimeError(
+            "Unsupported EVIDENCE_LANE_MCP_EXPOSURE_PROFILE: " + normalized
+        ) from exc
+
+
+def _mcp_instructions(exposure_profile: str) -> str:
+    if exposure_profile == CHATGPT_PRO_READ_EXPOSURE_PROFILE:
+        return _CHATGPT_PRO_READ_INSTRUCTIONS
+    return _FULL_LIFECYCLE_INSTRUCTIONS
 
 _READ_ONLY = ToolAnnotations(
     readOnlyHint=True,
@@ -73,9 +179,20 @@ def create_mcp_server(
     oauth_config: OAuthJWTConfig | None = None,
     public_site_url: str | None = None,
     allowed_tool_names: str | tuple[str, ...] | list[str] | None = None,
+    exposure_profile: str | None = None,
 ) -> FastMCP:
     application = service or EvidenceLaneService()
     release_identity = application.engine.doctor()["engine"]
+    exact_exposure_profile = _normalize_exposure_profile(exposure_profile)
+    effective_allowed_tool_names = allowed_tool_names
+    if exact_exposure_profile == CHATGPT_PRO_READ_EXPOSURE_PROFILE:
+        explicit = parse_mcp_tool_allowlist(allowed_tool_names)
+        expected = tuple(sorted(CHATGPT_PRO_READ_TOOL_NAMES))
+        if explicit is not None and explicit != expected:
+            raise RuntimeError(
+                "CHATGPT_PRO_READ requires the exact governed read-tool inventory."
+            )
+        effective_allowed_tool_names = CHATGPT_PRO_READ_TOOL_NAMES
     auth = None
     verifier: TokenVerifier | None = None
     if bearer_token and oauth_config:
@@ -103,30 +220,7 @@ def create_mcp_server(
     ).rstrip("/")
     mcp = FastMCP(
         "Evidence Lane",
-        instructions=(
-            "A prepared exact-work handoff makes /evi-state-travel eligible but "
-            "never auto-selects or consumes it. Display and run State Travel only "
-            "after an explicit user request or genuine host-context exhaustion. "
-            "Otherwise start /evi with atomic /evi-boot plus locked ENV/UOP Flash "
-            "as the first normal action, then display "
-            "exactly Boot, Rollback, Build, Refresh, Mode, and Source Intake. "
-            "Source Intake is one generalized ordered control for all eighteen "
-            "lanes and Project Engulf and always includes Chat Lineage. Fuse "
-            "requires exact APPROVE through pv_fuse and seals a fresh-window "
-            "handoff without rebuilding. When explicitly triggered, State Travel "
-            "verifies atomic Boot/Flash, the pointer base, any candidate, live "
-            "source, Plan Lane, additive Deltas, and host execution profile in a "
-            "fresh task/chat. It resumes unfinished work at the exact row; an "
-            "accepted-entry request waits. Codex Plan/Goal/task-panel controls do "
-            "not apply to ChatGPT's separate mounted persistent runtime. A booted "
-            "session remains active until /evi-exit-boot. "
-            "Before every HIL or State Travel stop, visibly render the returned "
-            "suggested_next_prompt. The host owns composer suggestions; never "
-            "claim the MCP wrote the prompt bar and never auto-submit it. "
-            "Never infer HIL approval, store private reasoning, expose connector "
-            "secrets, or write remote "
-            "Git without the exact governed action."
-        ),
+        instructions=_mcp_instructions(exact_exposure_profile),
         website_url=exact_public_site,
         icons=[
             Icon(
@@ -2076,8 +2170,9 @@ def create_mcp_server(
             lifecycle=True,
         )
 
-    exposure_receipt = apply_fastmcp_tool_filter(mcp, allowed_tool_names)
+    exposure_receipt = apply_fastmcp_tool_filter(mcp, effective_allowed_tool_names)
     mcp._evidence_lane_tool_exposure_receipt = exposure_receipt  # type: ignore[attr-defined]
+    mcp._evidence_lane_exposure_profile = exact_exposure_profile  # type: ignore[attr-defined]
     return mcp
 
 
@@ -2150,5 +2245,9 @@ def run_server(
         base_url=base_url,
         oauth_config=oauth_config,
         allowed_tool_names=os.environ.get("EVIDENCE_LANE_MCP_ALLOWED_TOOLS"),
+        exposure_profile=os.environ.get("EVIDENCE_LANE_MCP_EXPOSURE_PROFILE"),
     )
-    server.run(transport=transport)
+    if transport == "stdio":
+        anyio.run(run_discovery_compatible_stdio, server)
+    else:
+        server.run(transport=transport)

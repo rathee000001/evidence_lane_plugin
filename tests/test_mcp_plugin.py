@@ -18,7 +18,13 @@ from evidence_lane_plugin.mcp_apps import (
     MCP_APP_MIME_TYPE,
     governed_panel_html,
 )
-from evidence_lane_plugin.mcp_server import create_mcp_server, run_server
+from evidence_lane_plugin.mcp_server import (
+    CHATGPT_PRO_READ_EXPOSURE_PROFILE,
+    CHATGPT_PRO_READ_TOOL_NAMES,
+    create_mcp_server,
+    run_server,
+)
+from evidence_lane_plugin.mcp_stdio_compat import _discovery_fallback
 from evidence_lane_plugin.service import EvidenceLaneService
 from mcp.client.session import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
@@ -133,6 +139,75 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         assert tool.description
         assert tool.annotations is not None
         assert tool.inputSchema["type"] == "object"
+
+
+def test_chatgpt_pro_profile_is_exact_read_only_business_surface(
+    tmp_path: Path,
+) -> None:
+    server = create_mcp_server(
+        service=EvidenceLaneService(data_root=tmp_path / "chatgpt-pro-store"),
+        exposure_profile=CHATGPT_PRO_READ_EXPOSURE_PROFILE,
+    )
+    tools = asyncio.run(server.list_tools())
+    names = tuple(sorted(tool.name for tool in tools))
+    assert names == tuple(sorted(CHATGPT_PRO_READ_TOOL_NAMES))
+    assert len(names) == 21
+    assert all(tool.annotations.readOnlyHint is True for tool in tools)
+    for forbidden in (
+        "pv_build_initial",
+        "pv_refresh",
+        "pv_fuse",
+        "pv_rollback",
+        "pv_task_transition",
+        "remote_git_execute_push",
+        "connector_plugin_register",
+        "storage_connector_select",
+    ):
+        assert forbidden not in names
+    assert server._evidence_lane_exposure_profile == "CHATGPT_PRO_READ"  # type: ignore[attr-defined]
+    instructions = server._mcp_server.instructions
+    assert "registered MCP connection is the read-only half" in instructions
+    assert "whole product instead of turning the conversation into a code review" in (
+        instructions
+    )
+    assert "Project Mutation sector" in instructions
+    assert "Codex remains the separate Git-installed full-lifecycle host" in instructions
+    assert "Vercel and the owned HTTPS domain serve this ChatGPT read path only" in instructions
+    assert "cannot create or resume a runtime session, Build, Refresh" in instructions
+    assert "CHATGPT_PRO_READ_ATTACH" in instructions
+    assert "Meshy" in instructions and "Three.js/WebGL" in instructions
+
+
+def test_chatgpt_pro_profile_rejects_a_conflicting_manual_allowlist(
+    tmp_path: Path,
+) -> None:
+    with pytest.raises(RuntimeError, match="exact governed read-tool inventory"):
+        create_mcp_server(
+            service=EvidenceLaneService(data_root=tmp_path / "conflict-store"),
+            exposure_profile=CHATGPT_PRO_READ_EXPOSURE_PROFILE,
+            allowed_tool_names='["runtime_doctor"]',
+        )
+
+
+def test_modern_discovery_probe_receives_exact_legacy_fallback() -> None:
+    request = json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "id": "discover-test",
+            "method": "server/discover",
+            "params": {
+                "_meta": {
+                    "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+                }
+            },
+        }
+    )
+    response = _discovery_fallback(request)
+    assert response is not None
+    assert response.id == "discover-test"
+    assert response.error.code == -32601
+    assert response.error.message == "Method not found"
+    assert _discovery_fallback('{"jsonrpc":"2.0","id":1,"method":"tools/list"}') is None
 
 
 def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
@@ -373,6 +448,10 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     app_manifest = json.loads((plugin / ".app.json").read_text(encoding="utf-8"))
     assert app_manifest == {
         "apps": {
+            "evidence-lane": {
+                "id": "asdk_app_6a7743d238e48191be8b69c87fb71d7f",
+                "category": "Governed ChatGPT MCP read connection",
+            },
             "google-drive": {
                 "id": "connector_5f3c8c41a1e54ad7a76272c89e2554fa",
                 "category": "Optional sealed-artifact mirror",
@@ -1073,6 +1152,39 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
     asyncio.run(asyncio.wait_for(exercise(), timeout=900))
 
 
+def test_real_stdio_chatgpt_pro_profile_has_exact_version_and_read_inventory(
+    tmp_path: Path,
+) -> None:
+    root = Path(__file__).resolve().parents[1]
+    runner = root / "plugins" / "evidence-lane-plugin" / "scripts" / "run_mcp.py"
+
+    async def exercise() -> None:
+        environment = os.environ.copy()
+        environment["EVIDENCE_LANE_DATA_ROOT"] = str(tmp_path / "chatgpt-stdio-store")
+        environment["EVIDENCE_LANE_MCP_EXPOSURE_PROFILE"] = "CHATGPT_PRO_READ"
+        parameters = StdioServerParameters(
+            command=sys.executable,
+            args=[str(runner), "--transport", "stdio"],
+            env=environment,
+        )
+        async with (
+            stdio_client(parameters) as streams,
+            ClientSession(*streams) as session,
+        ):
+            initialized = await session.initialize()
+            assert initialized.serverInfo.name == "Evidence Lane"
+            assert initialized.serverInfo.version == ENGINE_VERSION == "1.4.0"
+            tools = await session.list_tools()
+            names = tuple(sorted(tool.name for tool in tools.tools))
+            assert names == tuple(sorted(CHATGPT_PRO_READ_TOOL_NAMES))
+            assert all(tool.annotations.readOnlyHint is True for tool in tools.tools)
+            result = await session.call_tool("runtime_doctor", {})
+            assert result.isError is False
+            assert result.structuredContent["status"] == "PASS"
+
+    asyncio.run(asyncio.wait_for(exercise(), timeout=900))
+
+
 def test_non_loopback_http_fails_closed_without_auth(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1131,6 +1243,9 @@ def test_server_start_installs_but_leaves_flash_and_runtime_detached(
         lifecycle_events.append("native_prewarm")
         return ("rapidocr+onnxruntime",)
 
+    async def fake_run_discovery_compatible_stdio(server: FakeServer) -> None:
+        server.run(transport="stdio")
+
     monkeypatch.setattr(
         "evidence_lane_plugin.mcp_server.create_mcp_server",
         fake_create_mcp_server,
@@ -1138,6 +1253,10 @@ def test_server_start_installs_but_leaves_flash_and_runtime_detached(
     monkeypatch.setattr(
         "evidence_lane_plugin.mcp_server.prewarm_native_dependencies",
         fake_prewarm_native_dependencies,
+    )
+    monkeypatch.setattr(
+        "evidence_lane_plugin.mcp_server.run_discovery_compatible_stdio",
+        fake_run_discovery_compatible_stdio,
     )
 
     run_server(transport="stdio")

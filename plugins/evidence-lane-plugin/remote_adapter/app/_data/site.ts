@@ -49,7 +49,7 @@ export const floatingStudioSuggestions = {
   default: [
     "What business problem does Evidence Lane solve?",
     "What do Build, Refresh, HIL, and Fuse each mean?",
-    "What is active step 73 in the current seven-step plan?",
+    "What is active step 66 in the current 17-step plan?",
   ],
 } as const;
 

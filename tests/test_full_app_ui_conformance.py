@@ -359,8 +359,11 @@ def test_creative_route_is_adobe_express_without_3d_account_linkage() -> None:
     assert "Open official Adobe Express" in studio_page
     assert "does not request, store, or broker Adobe credentials" in studio_page
     assert "does not create an account connection" in guide
-    assert "Three-dimensional model production is outside this release" in guide
-    assert "meshy" not in active_site_text
+    assert "native Three.js/WebGL website presentation remains" in guide
+    assert "generated GLB" in guide
+    assert 'from "meshy' not in active_site_text
+    assert "@meshy" not in active_site_text
+    assert "meshy account linkage" in active_site_text
     assert ".glb" not in active_site_text
     assert "meshy.ai" not in active_site_text
 
@@ -373,6 +376,8 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
         encoding="utf-8"
     )
     footer = (COMPONENTS / "site-footer.tsx").read_text(encoding="utf-8")
+    release_identity = (APP / "_data" / "release-identity.ts").read_text(encoding="utf-8")
+    layout = (APP / "layout.tsx").read_text(encoding="utf-8")
     site = (APP / "_data" / "site.ts").read_text(encoding="utf-8")
     contributors = (APP / "_data" / "contributors.ts").read_text(encoding="utf-8")
 
@@ -386,26 +391,36 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "Human / AI boundary" in landing
     assert landing.index('className="section shell releaseHome"') < landing.index('id="delta-ledger"')
     assert 'id="current-execution-plan"' not in landing
-    assert "One additive ledger. 87 governed rows." in landing
+    assert "One additive ledger. 97 governed rows." in landing
     step_rows = re.findall(r"^    number: \d+,$", current_plan_data, flags=re.MULTILINE)
-    assert len(step_rows) == 7
-    assert [int(value) for value in re.findall(r"number: (\d+)", current_plan_data)] == [73, 66, 70, 71, 72, 68, 67]
-    assert 'activeRow: 73' in current_plan_data
-    assert 'completedRows: 0' in current_plan_data
-    assert 'persistentUntil: "NEXT_SIX_WAY_HIL_PRESENTED"' in current_plan_data
+    assert len(step_rows) == 17
+    assert [int(value) for value in re.findall(r"number: (\d+)", current_plan_data)] == [73, 74, 66, 70, 71, 72, 68, 76, 77, 78, 79, 80, 82, 83, 81, 67, 75]
+    assert 'activeRow: 66' in current_plan_data
+    assert 'completedRows: 6' in current_plan_data
+    assert 'persistentUntil: "FINAL_SIX_WAY_HIL_PRESENTED"' in current_plan_data
     assert "supersededApprovalMustNotBeReplayed: true" in current_plan_data
-    assert "lastStep: 67" in current_plan_data
+    assert "exactlyOneActiveRow: true" in current_plan_data
+    assert 'requiredUserTokenEffect: "PAUSE_DEPENDENT_ROW_ONLY_NEVER_COMPLETE_GOAL"' in current_plan_data
+    assert "lastExecutionStep: 67" in current_plan_data
+    assert "physicallyLastStep: 75" in current_plan_data
     assert "CURRENT_PLAN_LANE_NOT_HISTORICAL_ACCEPTED_DELTA_LEDGER" in current_plan_data
-    assert "PV8" in current_plan_data and "1.4.0" in current_plan_data
+    assert "PV8" in current_plan_data and "PV9" in current_plan_data and "1.4" in current_plan_data
     assert "Adobe Express" in current_plan_data
-    assert "LAST and post-HIL only" in current_plan_data
+    assert "carried full POC" in current_plan_data
+    assert "real-Git history" in current_plan_data
+    assert "GitHub-agent behavior" in current_plan_data
+    assert "lane-absence cases" in current_plan_data
+    assert "website page and footer" in current_plan_data
+    assert "1348634/evidence_os" in current_plan_data
+    assert "CONTROLLED_REQUIRED" in current_plan_data
     assert 'phase: "Current execution"' in ledger_data
     assert "81 + index" in ledger_data
-    assert "PV8-CURRENT-PLAN-STEP" in ledger_data
+    assert "VISIBLE-PLAN-STEP" in ledger_data
     assert "...currentExecution" in ledger_data
     assert "sealedHistoricalDeltaRows" in ledger_data
     assert "liveExecutionRows" in ledger_data
-    assert "Rows 81&ndash;87" in ledger
+    assert "Rows 81&ndash;97" in ledger
+    assert "80-row sealed historical Delta ledger" in (COMPONENTS / "current-execution-plan.tsx").read_text(encoding="utf-8")
     assert "useState(false)" in ledger
     assert 'aria-expanded={expanded}' in ledger
     assert 'expanded ? "Collapse Delta ledger" : "Open Delta ledger"' in ledger
@@ -413,6 +428,15 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
 
     for heading in ("Policies", "Repository", "Contributors", "Praveen Rathee"):
         assert f"<strong>{heading}</strong>" in footer
+    assert "data-release-version={releaseIdentity.version}" in footer
+    assert "data-release-commit={releaseIdentity.commit" in footer
+    assert "Release <strong>{releaseIdentity.version}</strong>" in footer
+    assert 'releaseVersion = "1.4.0"' in release_identity
+    assert "VERCEL_GIT_COMMIT_SHA" in release_identity
+    assert "NEXT_PUBLIC_EVIDENCE_LANE_RELEASE_SHA" in release_identity
+    assert "GITHUB_MARKDOWN_TO_SITE_FOOTERS_DELTA_TABLE_VERCEL_AND_EXISTING_DEVPOST" in release_identity
+    assert '"evidence-lane:release-version"' in layout
+    assert '"evidence-lane:release-commit"' in layout
     for route in ("/license", "/copyright", "/credits"):
         assert (APP / route.removeprefix("/") / "page.tsx").is_file()
     for label in ("README", "License", "Copyright", "Security", "Contributors"):

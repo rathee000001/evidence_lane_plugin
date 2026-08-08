@@ -31,6 +31,10 @@ EVIDENCE_ROOT = REPOSITORY_ROOT / "evidence" / "implementation_v41"
 CORRECTION_EVIDENCE_ROOT = REPOSITORY_ROOT / "evidence" / "implementation_v42"
 RELEASE_EVIDENCE_ROOT = REPOSITORY_ROOT / "evidence" / "implementation_v43"
 RELEASE_RECEIPT = RELEASE_EVIDENCE_ROOT / "V140_RELEASE_IDENTITY_RECEIPT.json"
+CURRENT_RELEASE_EVIDENCE_ROOT = REPOSITORY_ROOT / "evidence" / "implementation_v44"
+CURRENT_RELEASE_RECEIPT = (
+    CURRENT_RELEASE_EVIDENCE_ROOT / "V140_POST_PV9_DELTA_BOUNDARY_RECEIPT.json"
+)
 CORRECTION_BASE_SOURCE_COMMIT = "6020563094154ff780705cbed85f453425884914"
 CORRECTION_RECEIPT = (
     EVIDENCE_ROOT / "DELTA080A_V130_EXECUTABLE_GATE_VERSION_CORRECTION_RECEIPT.json"
@@ -38,6 +42,18 @@ CORRECTION_RECEIPT = (
 SOURCE_DISPOSITION_RECEIPT = (
     CORRECTION_EVIDENCE_ROOT / "ALL_SOURCE_DISPOSITION_RECEIPT.json"
 )
+CURRENT_ACCEPTED_PV = "PV9"
+CURRENT_POINTER_GENERATION = 9
+CURRENT_ACCEPTED_MANIFEST_SHA256 = (
+    "54A3FBEBE3DE904AFE694821E5D6ED03D0C271E1C5F319A8017E70DA52FE3C82"
+)
+CURRENT_ACCEPTED_PACKAGE_SHA256 = (
+    "A42EF223B1F0FCB1A2FE0A4C1B4F4B463A48D9D2D917D2D34E05F39FF81682A6"
+)
+CURRENT_BASE_SOURCE_COMMIT = "1f16034fda58a46c313af826a9d1465fcf32db17"
+CURRENT_BASE_SOURCE_TREE = "4b634e0fcf5643faa8216cf11fa6faaf90b7e0f3"
+PRE_HIL_MAIN_COMMIT = "d919cbd0d73676c6e7c2a6b4189b614d1ec42144"
+NEXT_PROPOSED_PV = "PV10"
 
 
 def _require(condition: bool, message: str) -> None:
@@ -308,13 +324,24 @@ def check_ac11() -> dict[str, Any]:
     _require(branch == EXPECTED_BRANCH, "The governed study branch differs.")
     _require(not status, "The final study branch is not clean.")
     _require(ENGINE_VERSION == "1.4.0", "The engine is not v1.4.0.")
-    release = _sealed_receipt_path(RELEASE_RECEIPT)
+    release = _sealed_receipt_path(CURRENT_RELEASE_RECEIPT)
     safety = release["payload"].get("safety") or {}
     _require(safety.get("main_merged") is False, "The release claims a main merge.")
     _require(
         safety.get("production_deployed") is False,
-        "The correction claims a production deployment.",
+        "The current pre-HIL contract claims a production deployment.",
     )
+    _require(
+        release["payload"].get("accepted_authority", {}).get("accepted_pv")
+        == CURRENT_ACCEPTED_PV,
+        "The current release boundary does not bind accepted PV9.",
+    )
+    _require(
+        release["payload"].get("base_source_identity", {}).get("commit")
+        == CURRENT_BASE_SOURCE_COMMIT,
+        "The current release boundary does not bind the PV9 source commit.",
+    )
+    _git("merge-base", "--is-ancestor", CURRENT_BASE_SOURCE_COMMIT, head)
     return {
         "branch": branch,
         "commit": head,
@@ -324,7 +351,7 @@ def check_ac11() -> dict[str, Any]:
     }
 
 
-def check_ac12() -> dict[str, Any]:
+def _postseal_candidate_context() -> dict[str, Any]:
     candidate = Path(os.environ.get("EVIDENCE_LANE_CANDIDATE_PATH", "")).resolve()
     project_root = Path(os.environ.get("EVIDENCE_LANE_PROJECT_ROOT", "")).resolve()
     expected_candidate = os.environ.get("EVIDENCE_LANE_EXPECTED_CANDIDATE_ID")
@@ -339,23 +366,36 @@ def check_ac12() -> dict[str, Any]:
     project_identity = _load(candidate / "project_identity.json")
     exit_slip = _load(candidate / "exit_slip.json")
     pointer = _load(project_root / "active_pointer.json")
-    release = _sealed_receipt_path(RELEASE_RECEIPT)
+    release = _sealed_receipt_path(CURRENT_RELEASE_RECEIPT)
     source_commit = ((project_identity.get("repository") or {}).get("commit_sha"))
     engine_commit = (manifest.get("engine") or {}).get("commit")
     exit_commit = (exit_slip.get("repository_exit") or {}).get("commit_sha")
     _require(validation.get("candidate_id") == expected_candidate, "Candidate mismatch.")
     _require(validation.get("status") == "PASS", "Candidate validation failed.")
+    _require(
+        validation.get("proposed_pv") == NEXT_PROPOSED_PV,
+        "The sealed candidate is not the expected PV10 successor.",
+    )
+    _require(
+        str(expected_candidate).startswith(f"{NEXT_PROPOSED_PV}_CANDIDATE__"),
+        "The candidate identity is not in the PV10 namespace.",
+    )
     _require(expected_commit == _git("rev-parse", "HEAD"), "Live source commit mismatch.")
+    _require(not _git("status", "--porcelain=v1"), "The post-seal source is not clean.")
+    _require(
+        _git("branch", "--show-current") == EXPECTED_BRANCH,
+        "The governed source branch differs.",
+    )
     _require(ENGINE_VERSION == "1.4.0", "The engine is not v1.4.0.")
     _require(
-        release["payload"].get("base_accepted_commit")
-        == "42516b2edaae8f37d46523243599650afb2cb5e3",
-        "The v1.4 release base commit differs from accepted PV7.",
+        (release["payload"].get("base_source_identity") or {}).get("commit")
+        == CURRENT_BASE_SOURCE_COMMIT,
+        "The current release base commit differs from accepted PV9 source.",
     )
     _git(
         "merge-base",
         "--is-ancestor",
-        str(release["payload"]["base_accepted_commit"]),
+        CURRENT_BASE_SOURCE_COMMIT,
         str(expected_commit),
     )
     _require(source_commit == expected_commit, "Candidate source commit mismatch.")
@@ -364,10 +404,31 @@ def check_ac12() -> dict[str, Any]:
         exit_commit == expected_commit,
         "Exit commit mismatch.",
     )
-    _require(pointer.get("accepted_pv") == expected_pv == "PV7", "PV7 pointer moved.")
     _require(
-        pointer.get("generation") == expected_generation == 7,
+        pointer.get("accepted_pv") == expected_pv == CURRENT_ACCEPTED_PV,
+        "The accepted PV9 pointer moved.",
+    )
+    _require(
+        pointer.get("generation")
+        == expected_generation
+        == CURRENT_POINTER_GENERATION,
         "Pointer generation moved.",
+    )
+    _require(
+        pointer.get("accepted_manifest_sha256")
+        == CURRENT_ACCEPTED_MANIFEST_SHA256,
+        "The accepted PV9 manifest pointer changed.",
+    )
+    accepted_authority = release["payload"].get("accepted_authority") or {}
+    _require(
+        accepted_authority
+        == {
+            "accepted_manifest_sha256": CURRENT_ACCEPTED_MANIFEST_SHA256,
+            "accepted_package_sha256": CURRENT_ACCEPTED_PACKAGE_SHA256,
+            "accepted_pv": CURRENT_ACCEPTED_PV,
+            "generation": CURRENT_POINTER_GENERATION,
+        },
+        "The release boundary does not preserve exact PV9 authority.",
     )
     acceptance = exit_slip.get("acceptance_checks") or {}
     counts = acceptance.get("counts") or {}
@@ -375,12 +436,20 @@ def check_ac12() -> dict[str, Any]:
     pending_postseal = int(counts.get("PENDING_POSTSEAL") or 0)
     declared = int(acceptance.get("declared") or 0)
     _require(acceptance.get("prebuild_status") == "PASS", "Prebuild gate failed.")
-    _require(passing > 0, "No executable prebuild check passed.")
-    _require(pending_postseal > 0, "No executable postseal check was declared.")
+    _require(passing == 4, "The exact four prebuild checks did not pass.")
     _require(
-        passing + pending_postseal == declared,
-        "The executable acceptance accounting is incomplete.",
+        pending_postseal == 2,
+        "The exact two immutable-candidate checks were not declared.",
     )
+    _require(
+        passing + pending_postseal == declared == 6,
+        "The exact six-command acceptance accounting is incomplete.",
+    )
+    for state in ("FAIL", "TIMEOUT", "ERROR", "PENDING_HUMAN_REVIEW"):
+        _require(
+            int(counts.get(state) or 0) == 0,
+            f"The candidate contains a non-passing acceptance state: {state}.",
+        )
     ci_cd = (exit_slip.get("mode_execution") or {}).get("ci_cd") or {}
     _require(ci_cd.get("approve_gate") == "PASS", "Code-mode approve gate is open.")
     _require(ci_cd.get("executed") == passing, "Code-mode prebuild count differs.")
@@ -392,11 +461,18 @@ def check_ac12() -> dict[str, Any]:
     _require(next_action.get("state") == "PRESENT_SIX_WAY_HIL", "HIL state differs.")
     _require(next_action.get("choices") == list(HIL_CHOICES), "HIL choices differ.")
     _require(next_action.get("stop_and_wait") is True, "HIL is not stop-and-wait.")
+    safety = release["payload"].get("safety") or {}
+    _require(
+        all(value is False for value in safety.values()),
+        "The pre-HIL boundary claims a prohibited remote or pointer mutation.",
+    )
+    _require(_git("rev-parse", "main") == PRE_HIL_MAIN_COMMIT, "Local main moved.")
+    _require(_git("rev-parse", "origin/main") == PRE_HIL_MAIN_COMMIT, "Remote main moved.")
     return {
         "candidate_id": expected_candidate,
         "manifest_sha256": validation.get("manifest_sha256"),
         "package_sha256": validation.get("package_sha256"),
-        "base_accepted_commit": release["payload"]["base_accepted_commit"],
+        "base_accepted_commit": CURRENT_BASE_SOURCE_COMMIT,
         "release_source_commit": source_commit,
         "engine_commit": engine_commit,
         "exit_slip_commit": exit_commit,
@@ -409,6 +485,160 @@ def check_ac12() -> dict[str, Any]:
         "postseal_check": "PASS",
         "approve_gate": ci_cd["approve_gate"],
         "hil_choices": list(HIL_CHOICES),
+        "hil_state": next_action["state"],
+        "hil_stop_and_wait": next_action["stop_and_wait"],
+        "suggested_next_prompt": next_action.get("suggested_next_prompt"),
+        "safety": safety,
+    }
+
+
+def check_ac12() -> dict[str, Any]:
+    """Retain the historical AC12 entry as the current combined post-seal gate."""
+
+    return _postseal_candidate_context()
+
+
+def check_ac13() -> dict[str, Any]:
+    """Prove the business-language Studio and release-facing website contract."""
+
+    return {
+        "business_and_site": _pytest(
+            "tests/test_full_app_ui_conformance.py::test_evidence_ai_studio_is_a_business_guide_for_the_whole_plugin",
+            "tests/test_full_app_ui_conformance.py::test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit",
+            "tests/test_full_app_ui_conformance.py::test_connect_endpoint_cards_are_linked_readable_and_truthful",
+            timeout_seconds=300,
+        )
+    }
+
+
+def check_ac14() -> dict[str, Any]:
+    """Prove full-plugin host metadata, skills, reads, and no-Meshy boundary."""
+
+    return {
+        "host_metadata_and_settings": _pytest(
+            "tests/test_v140_cross_surface_contracts.py",
+            "tests/test_mcp_plugin.py::test_chatgpt_pro_profile_is_exact_read_only_business_surface",
+            "tests/test_mcp_plugin.py::test_modern_discovery_probe_receives_exact_legacy_fallback",
+            "tests/test_mcp_plugin.py::test_plugin_manifest_has_evidence_lane_identity_only",
+            "tests/test_mcp_plugin.py::test_real_stdio_chatgpt_pro_profile_has_exact_version_and_read_inventory",
+            "tests/test_full_app_ui_conformance.py::test_creative_route_is_adobe_express_without_3d_account_linkage",
+            "tests/test_full_app_ui_conformance.py::test_public_plugin_metadata_and_third_party_rights_are_canonical",
+            "tests/test_windows_tunnel_persistence.py",
+            timeout_seconds=600,
+        )
+    }
+
+
+def check_ac15() -> dict[str, Any]:
+    """Run the complete regression from the exact final source."""
+
+    return {"full_regression": _pytest()}
+
+
+def check_ac16() -> dict[str, Any]:
+    """Prove clean source identity and the governed publication boundary."""
+
+    branch = _git("branch", "--show-current")
+    status = _git("status", "--porcelain=v1")
+    head = _git("rev-parse", "HEAD")
+    tree = _git("rev-parse", "HEAD^{tree}")
+    release = _sealed_receipt_path(CURRENT_RELEASE_RECEIPT)
+    payload = release["payload"]
+    safety = payload.get("safety") or {}
+    publication = payload.get("publication_boundary") or {}
+    _require(branch == EXPECTED_BRANCH, "The governed release branch differs.")
+    _require(not status, "The exact release source is not clean.")
+    _git("merge-base", "--is-ancestor", CURRENT_BASE_SOURCE_COMMIT, head)
+    _require(ENGINE_VERSION == "1.4.0", "The engine is not v1.4.0.")
+    _require(
+        payload.get("status") == "BOUNDED_PRE_HIL_CONTRACT",
+        "The post-PV9 release boundary status differs.",
+    )
+    _require(
+        publication.get("existing_devpost_project") == "1348634/evidence_os"
+        and publication.get("separate_devpost_publication_lane") is True
+        and publication.get("main_merge_only_after_fresh_acceptance") is True,
+        "The governed existing-Devpost publication correction differs.",
+    )
+    _require(
+        all(value is False for value in safety.values()),
+        "A prohibited pre-HIL lifecycle or publication action is claimed.",
+    )
+    _require(_git("rev-parse", "main") == PRE_HIL_MAIN_COMMIT, "Local main moved.")
+    _require(_git("rev-parse", "origin/main") == PRE_HIL_MAIN_COMMIT, "Remote main moved.")
+    release_surfaces = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (
+            REPOSITORY_ROOT / "README.md",
+            PLUGIN_ROOT
+            / "remote_adapter"
+            / "app"
+            / "_data"
+            / "business-guidance.ts",
+            PLUGIN_ROOT
+            / "remote_adapter"
+            / "app"
+            / "_data"
+            / "current-execution-plan.ts",
+        )
+    )
+    _require(
+        "1348634/evidence_os" in release_surfaces,
+        "The existing Devpost project is absent from release surfaces.",
+    )
+    _require(
+        "Vercel" in release_surfaces and "Delta" in release_surfaces,
+        "The systemwide propagation boundary is incomplete.",
+    )
+    return {
+        "branch": branch,
+        "commit": head,
+        "tree": tree,
+        "base_accepted_commit": CURRENT_BASE_SOURCE_COMMIT,
+        "release_receipt": release["receipt_sha256"],
+        "existing_devpost_project": publication["existing_devpost_project"],
+        "main_retained": PRE_HIL_MAIN_COMMIT,
+        "safety": safety,
+    }
+
+
+def check_ac17() -> dict[str, Any]:
+    """Validate the exact immutable PV10 candidate and retained PV9 pointer."""
+
+    evidence = _postseal_candidate_context()
+    return {
+        key: evidence[key]
+        for key in (
+            "candidate_id",
+            "manifest_sha256",
+            "package_sha256",
+            "release_source_commit",
+            "engine_commit",
+            "exit_slip_commit",
+            "commit_identity_parity",
+            "accepted_pv_retained",
+            "pointer_generation_retained",
+            "prebuild_passed",
+            "postseal_pending",
+            "approve_gate",
+        )
+    }
+
+
+def check_ac18() -> dict[str, Any]:
+    """Prove the exact six-way HIL stop and zero prohibited mutation."""
+
+    evidence = _postseal_candidate_context()
+    return {
+        key: evidence[key]
+        for key in (
+            "candidate_id",
+            "hil_state",
+            "hil_choices",
+            "hil_stop_and_wait",
+            "suggested_next_prompt",
+            "safety",
+        )
     }
 
 
@@ -425,6 +655,12 @@ CHECKS = {
     "AC10": check_ac10,
     "AC11": check_ac11,
     "AC12": check_ac12,
+    "AC13": check_ac13,
+    "AC14": check_ac14,
+    "AC15": check_ac15,
+    "AC16": check_ac16,
+    "AC17": check_ac17,
+    "AC18": check_ac18,
 }
 
 

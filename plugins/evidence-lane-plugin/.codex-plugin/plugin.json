@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "1.4.0+codex.20260808112003",
+  "version": "1.4.0+codex.20260808162441",
   "description": "Human-governed project memory that preserves exact evidence, resumes unfinished work, and keeps acceptance under the user's control.",
   "author": {
     "name": "Praveen Rathee",
@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "Evidence Lane",
     "shortDescription": "Carry verified project knowledge across AI tasks without surrendering human control.",
-    "longDescription": "Evidence Lane exposes Boot, Rollback, Build, Refresh, Mode, and Source Intake after root /evi. Boot atomically verifies locked ENV15/UOP15 Flash, prewarms optional native OCR dependencies before the MCP event loop, attaches secret-redacted visible lineage capture, and routes durable local versus configured remote storage fail-closed; Exit Boot detaches that runtime while preserving the installation and immutable evidence. Source Intake auto-detects all eighteen lanes and Project Engulf, uses tracked-only Git intake plus fail-closed secret and operational-path exclusions before SQLite/CAS/FTS, offers AUTO/REQUIRED/DISABLED Git history enrichment, and always includes Chat Lineage. Each lane's SQLite facts must reconcile with exact Mermaid and DOT node, edge, subgraph, and count claims. Mode accepts ordered known intersections and explicit custom schemas. The Codex-only /evi-plan sidecar pairs native /pl planning with a canonical Plan Lane and copy/paste Goal prompt; ChatGPT uses its separate mounted persistent plugin store without claiming Codex Plan, Goal, or task-panel UI. The separate /evi-plugin administrative sidecar governs at most eight persistent connectors or AI toolchains with independent Codex/ChatGPT profiles, one-time purpose and role schemas, exact drop, and optional declared backend runtimes. Natural HIL intent is classified without promotion, while exact APPROVE alone invokes Fuse. State Travel remains user-triggered and preserves exact unfinished work or explicit accepted context, including pointer/candidate, source, Plan Lane, additive Deltas, resume row, and host execution profile.",
+    "longDescription": "Evidence Lane is one universal plugin package with fifteen governed skills and a host-specific MCP connection. The complete package makes all fifteen skill entries visible on both ChatGPT and Codex, including Boot and locked ENV/UOP Flash guidance, accepted-PV Entry/Exit inspection, State Travel law, Mode, storage, and the exact six-control contract. Codex installs from exact Git source and can run the full local lifecycle: Source Intake, Build, Refresh, pointer-only Rollback, exact-APPROVE Fuse, plugin administration, and deployment evidence. ChatGPT Pro uses the same skill corpus with a registered 21-tool read profile for accepted-PV facts, ENV/UOP status, Entry and Exit Slips, Chat Lineage, lanes, search, diffs, backlog, and governed panels. On Pro, a skill whose requested action requires a lifecycle write must report the unavailable capability and stop; it may not simulate or claim the mutation. ChatGPT's native append-only ENV/UOP and Project Mutation workflow remains host-owned. The product name stays Evidence Lane while 1.4 remains version metadata. Meshy, generated GLB assets, and Meshy account linkage are not dependencies; the existing Three.js/WebGL website remains intact. Natural HIL intent never promotes a candidate, and only exact APPROVE may invoke Fuse on a write-capable governed host.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "websiteURL": "https://evidencelane.org",
@@ -30,9 +30,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Run /evi, atomically Boot plus locked ENV/UOP Flash, and show the six controls.",
-      "Use /evi-source-intake with ordered sources and auto-detection or exact lane overrides.",
-      "Use /evi-refresh to seal an unaccepted candidate, show six-way HIL, and wait for my exact decision."
+      "Boot Evidence Lane, verify ENV/UOP Flash, and show the six controls with host availability.",
+      "Show the accepted PV, Entry/Exit Slips, source lanes, and persistent plan without mutation.",
+      "Explain the current six-way HIL and exact next decision in clear business language."
     ],
     "brandColor": "#18A9C8",
     "composerIcon": "./assets/evidence-lane-icon.png",

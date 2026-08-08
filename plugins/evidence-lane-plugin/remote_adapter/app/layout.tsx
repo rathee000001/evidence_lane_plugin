@@ -6,6 +6,7 @@ import { FloatingEvidenceStudio } from "./_components/floating-evidence-studio";
 import { SiteAtmosphere } from "./_components/site-atmosphere";
 import { SiteFooter } from "./_components/site-footer";
 import { SiteHeader } from "./_components/site-header";
+import { releaseIdentity } from "./_data/release-identity";
 import { publicSiteUrl, repositoryUrl } from "./_data/site";
 
 export const metadata: Metadata = {
@@ -42,6 +43,9 @@ export const metadata: Metadata = {
   other: {
     "evidence-lane:repository": repositoryUrl,
     "evidence-lane:mcp-endpoint": "https://mcp.evidencelane.org/mcp",
+    "evidence-lane:release-version": releaseIdentity.version,
+    "evidence-lane:release-commit": releaseIdentity.commit ?? "UNPUBLISHED",
+    "evidence-lane:release-propagation": releaseIdentity.propagationContract,
   },
 };
 

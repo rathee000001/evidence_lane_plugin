@@ -285,7 +285,7 @@ export function verifyStudioRetrievalConfidence() {
   const canaries = [
     { id: "general-no-hit", question: "How do I cook pasta al dente?", expectedGrounded: false },
     { id: "project-nonsense-no-hit", question: "What is Evidence Lane quantum banana authority?", expectedGrounded: false },
-    { id: "active-plan-hit", question: "What is active step 73 in the current seven-step execution Plan Lane?", expectedGrounded: true },
+    { id: "active-plan-hit", question: "What is active step 66 in the current 17-step execution Plan Lane?", expectedGrounded: true },
     { id: "pointer-hil-hit", question: "How do accepted pointers, Exit Slips, and HIL separate human input from AI work?", expectedGrounded: true },
     ...displayedSuggestionCanaries,
   ].map((canary) => {

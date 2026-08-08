@@ -115,7 +115,12 @@ it writes nothing and reminds the user to type `/pl`. After planning it persists
 the canonical Plan Lane and returns a short prompt the user copies into the
 host-owned Codex Goal. Linked steers append to an existing row; unrelated
 steers append a new numbered row; the default boundary is before the next HIL.
-The full task panel persists until that HIL is actually presented.
+The full task panel persists with exactly one active row until that HIL is
+actually presented. A required user token pauses only its dependent row;
+independent work continues and the host Goal is never reported complete merely
+because a token, credential, or external confirmation is pending. Goal usage is
+reported in readable `K`/`M` notation while retaining the exact raw count in
+the evidence receipt.
 
 ## Atomic Boot and host routing
 
@@ -126,17 +131,27 @@ prefer user-owned local SQLite. Remote or ephemeral hosts require a configured
 transactional durable connector. Google Drive is an optional verified mirror or
 fallback, never the primary authority when durable local storage exists.
 
-Codex and ChatGPT are separate host universes over the same lifecycle code.
-Codex may project Plan Lane into native Plan, Goal, and task-panel surfaces.
-ChatGPT does not claim those Codex controls: its plugin reads and appends through
-its own persistent mounted host storage (or another configured durable runtime
-connector) under the same append-only lane, ENV, PV, and Exit-Slip laws.
+Codex and ChatGPT are separate host universes over the same governance law.
+Codex installs from exact Git source, runs the complete lifecycle, and may
+project Plan Lane into native Plan, Goal, and task-panel surfaces. ChatGPT
+installs the same full Evidence Lane plugin package so its governed skills,
+including Boot/ENV-UOP Flash and accepted-PV Entry/Exit workflows, remain
+available. The registered ChatGPT Pro connection uses the
+`CHATGPT_PRO_READ` profile: exactly 21 annotated read-only MCP tools for
+accepted-PV status, ENV/UOP Flash, Entry/Exit slips, lanes, search, diffs,
+backlog, and governed panels. A skill that requires a lifecycle write must
+report that capability unavailable and stop; it may not simulate or claim the
+mutation. ChatGPT's native ENV/UOP package and Project Mutation sector may
+continue under host law, but the MCP does not perform or claim that mutation.
 
 The Vercel project in this repository is only a thin HTTPS adapter for the
-ChatGPT remote MCP. It verifies release identity and proxies to a separately
-configured durable MCP origin. Vercel is not used to install Codex, is not the
-general Evidence Lane router, and stores no accepted pointer or runtime SQLite
-authority.
+ChatGPT read MCP and the public website. It verifies release identity and
+proxies to a separately configured durable read origin. Vercel is not used to
+install Codex, is not the general Evidence Lane router, and stores no accepted
+pointer or runtime SQLite authority. The contributor Windows bootstrap is a
+separate outbound OpenAI tunnel that asks for one Tunnel ID and one masked
+Runtime key, links ChatGPT once, starts after Windows sign-in, and provides
+status, repair, and fail-closed removal.
 
 The release cost boundary is fail closed. It does not configure or invoke the
 usage-based GitHub Sandbox product. `sandbox` in the Code-mode formulas means a
@@ -144,10 +159,11 @@ bounded local project work directory and process, not GitHub Sandbox. GitHub
 Actions and Copilot use are limited to the allowances already included in the
 selected GitHub Team and personal Copilot Pro plans; paid overages and
 additional usage remain disabled unless the user separately authorizes them.
-Vercel Pro is not required or enabled by this release. A separately purchased
-domain may expose an exact, still-unaccepted feature-branch candidate for HIL
-review; that public review surface does not merge `main`, move an accepted
-pointer, Fuse the candidate, or make it production truth.
+The selected Vercel account plan does not change Evidence Lane authority. A
+separately purchased domain may expose an exact, still-unaccepted
+feature-branch candidate for HIL review; that public review surface does not
+merge `main`, move an accepted pointer, Fuse the candidate, or make it
+production truth.
 
 The reviewed public website preview is
 [`https://evidencelane.org`](https://evidencelane.org). The public ChatGPT MCP
@@ -307,11 +323,23 @@ retroactively treating it as a new candidate. The compatibility state remains
 visible. Every successor candidate must pass every current rule.
 
 Mode selection binds the chosen lane's locked ENV/UOP governance without
-moving the lifecycle. Code Mode visibly executes
-`plan -> sandbox build -> test -> hash -> package` through the controlled
-`entry -> preflight -> sandbox -> patch -> test -> exit` loop with PCM, MBA,
-and supply-chain operators. Other modes retain their own lane gates and HIL
-effects while preserving the same six exact decision tokens.
+moving the lifecycle. The exact Code-mode law is:
+
+`Mode=code | ENV formula: plan -> sandbox build -> test -> hash -> package | Loop: entry -> preflight -> sandbox -> patch -> test -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: PCM + MBA + SUPPLY | Receipt=5183AB1AD17D570DA860858B7B45D90F67E996273EA3A642B5E2C2511BA553A6`
+
+Other modes retain their own lane gates and HIL effects while preserving the
+same six exact decision tokens.
+
+The current visible Plan Lane is separate from the immutable 80-row historical
+Delta ledger. Its last execution row retains the complete carried POC:
+full-ledger reconciliation, forensic audit, real-Git history proof,
+GitHub-agent proof, lane-absence checks, and security review. After fresh HIL
+acceptance, the same accepted release evidence must propagate through the
+GitHub README and relevant Markdown, every relevant website page and footer,
+the website Delta table, the complete Vercel production build from `main`, and
+only the existing Devpost project `1348634/evidence_os`. Runtime website
+footers obtain the deployed source SHA from `VERCEL_GIT_COMMIT_SHA`, avoiding a
+circular hard-coded self-commit claim.
 
 Every historical top-level v1.3 Delta receipt that declares `receipt_sha256` is self-sealed
 as SHA-256 over canonical JSON after removing only that top-level field.
@@ -323,7 +351,10 @@ preview are required.
 
 ## Build and validate locally
 
-Requires Python 3.11+ and Git 2.30+.
+Requires Python 3.11+ and Git 2.30+. The runtime pins MCP `1.28.1`, Pydantic
+`2.13.4`, and the complete transitive dependency set in
+`plugins/evidence-lane-plugin/requirements.lock.txt`; `pip check` must report no
+broken requirements.
 
 ```text
 python -m venv .venv
