@@ -111,7 +111,7 @@ def test_all_active_product_version_surfaces_are_v140() -> None:
     )
     assert ENGINE_VERSION == CURRENT_VERSION
     assert str(plugin_manifest["version"]).split("+", 1)[0] == CURRENT_VERSION
-    assert str(plugin_manifest["version"]).endswith("+codex.20260808162441")
+    assert str(plugin_manifest["version"]).endswith("+codex.20260808180919")
     assert adapter_manifest["version"] == CURRENT_VERSION
     assert public_manifest["version"] == CURRENT_VERSION
     assert studio_manifest["release"] == CURRENT_VERSION

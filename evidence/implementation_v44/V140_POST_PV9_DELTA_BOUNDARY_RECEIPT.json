@@ -17,7 +17,7 @@
     "full_plugin_package_required": true,
     "lifecycle_mutations": "UNAVAILABLE_OR_FAIL_CLOSED_ON_CHATGPT_PRO_READ",
     "product_name": "Evidence Lane",
-    "plugin_cache_version": "1.4.0+codex.20260808162441",
+    "plugin_cache_version": "1.4.0+codex.20260808180919",
     "read_tool_count": 21,
     "read_safe_boot": "CHATGPT_PRO_READ_ATTACH",
     "skill_visibility": "ALL_15_PACKAGED_SKILL_ENTRIES_VISIBLE",
@@ -61,7 +61,7 @@
     ],
     "separate_devpost_publication_lane": true
   },
-  "receipt_sha256": "4748A8365092DD7820F7880E759E4DE47078DB0284889D755619AB561737EA99",
+  "receipt_sha256": "832BA8B5DFD274448A73AA168BBBBB89F29FF5AF3B77C64C30A6D94CCDC968D5",
   "safety": {
     "devpost_mutated": false,
     "github_publication_performed": false,
