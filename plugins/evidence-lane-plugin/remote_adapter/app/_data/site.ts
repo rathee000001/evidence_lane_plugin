@@ -6,7 +6,7 @@ export const repositoryUrl = "https://github.com/rathee000001/evidence_lane_plug
 
 export const ownerSocialLinks = [
   { label: "LinkedIn", href: "https://www.linkedin.com/in/praveen-rathee-8b028030b/" },
-  { label: "Devpost", href: "https://devpost.com/software/evidence-lane-plugins-codex-claude-code" },
+  { label: "Devpost", href: "https://devpost.com/software/evidence_os" },
   { label: "YouTube", href: "https://www.youtube.com/@praveenrathee8675" },
 ] as const;
 

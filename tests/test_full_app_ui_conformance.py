@@ -423,7 +423,7 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
         assert person not in footer
     for label, url in (
         ("LinkedIn", "https://www.linkedin.com/in/praveen-rathee-8b028030b/"),
-        ("Devpost", "https://devpost.com/software/evidence-lane-plugins-codex-claude-code"),
+        ("Devpost", "https://devpost.com/software/evidence_os"),
         ("YouTube", "https://www.youtube.com/@praveenrathee8675"),
     ):
         assert f'label: "{label}"' in site
