@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
@@ -59,6 +60,8 @@ from .state_law import transition_catalog
 from .storage_selection import StorageSelection
 from .store import ProjectStore
 from .timeutil import utc_now
+
+_STATUS_VALIDATION_WORKERS = 8
 
 
 class EvidenceLaneService:
@@ -992,16 +995,34 @@ class EvidenceLaneService:
         """Return the durable accepted/candidate/session envelope without mutation."""
         result = self.store.project_status(project_id)
         pointer = self.store.pointer(project_id)
+        accepted_ids = self.store.accepted_ids(project_id)
+        accepted_validations: list[dict[str, Any]] = []
+        if accepted_ids:
+            # Accepted PVs are independent immutable directories. Validate them
+            # concurrently so status keeps full checksum/tamper detection without
+            # serially re-reading an entire multi-generation history.
+            with ThreadPoolExecutor(
+                max_workers=min(_STATUS_VALIDATION_WORKERS, len(accepted_ids))
+            ) as executor:
+                accepted_validations = list(
+                    executor.map(
+                        lambda pv_id: validate_pv_package(
+                            self.store.accepted_path(project_id, pv_id),
+                            require_promotable=False,
+                        ),
+                        accepted_ids,
+                    )
+                )
         accepted_history: list[dict[str, Any]] = []
-        for pv_id in self.store.accepted_ids(project_id):
+        for pv_id, validation in zip(
+            accepted_ids,
+            accepted_validations,
+            strict=True,
+        ):
             is_current = pointer.accepted_pv == pv_id
             # Current topology rules qualify the active authority only. Older
             # accepted PVs remain immutable, checksum-validated evidence even
             # when their topology predates the current promotability contract.
-            validation = validate_pv_package(
-                self.store.accepted_path(project_id, pv_id),
-                require_promotable=False,
-            )
             lane_validation = validation["lanes"]
             accepted_history.append(
                 {
