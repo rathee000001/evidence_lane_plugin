@@ -184,6 +184,7 @@ def test_docker_build_requires_and_seals_exact_release_commit() -> None:
     dockerignore = (root / ".dockerignore").read_text(encoding="utf-8")
 
     assert "ARG EVIDENCE_LANE_RELEASE_SHA" in dockerfile
+    assert "libgl1" in dockerfile
     assert "write_embedded_release_commit" in dockerfile
     assert '"$EVIDENCE_LANE_RELEASE_SHA"' in dockerfile
     assert "**/.evidence-lane-release-sha" in dockerignore

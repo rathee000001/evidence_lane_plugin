@@ -10,6 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         git \
+        libgl1 \
         libgomp1 \
         tesseract-ocr \
         tini \
