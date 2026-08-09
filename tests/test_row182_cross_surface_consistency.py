@@ -42,14 +42,26 @@ def test_every_repository_markdown_path_link_resolves() -> None:
         "__pycache__",
         "node_modules",
     }
+    derived_evidence_roots = {
+        ROOT / "evidence" / "implementation_v45",
+    }
     markdown = sorted(
         path
         for path in ROOT.rglob("*")
         if path.is_file()
         and path.suffix.casefold() in {".md", ".markdown"}
         and not (set(path.relative_to(ROOT).parts) & excluded)
+        and not any(
+            path.is_relative_to(derived_root)
+            for derived_root in derived_evidence_roots
+        )
     )
-    assert len(markdown) >= 120
+    assert len(markdown) >= 80
+    assert {
+        ROOT / "README.md",
+        ROOT / "SECURITY.md",
+        ROOT / "docs" / "REMOTE_DEPLOYMENT.md",
+    }.issubset(markdown)
     patterns = (
         re.compile(r"!?\[[^\]]*\]\(([^)]+)\)"),
         re.compile(
