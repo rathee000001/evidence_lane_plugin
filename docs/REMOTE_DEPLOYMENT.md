@@ -41,6 +41,22 @@ The durable origin runs the repository's Streamable HTTP MCP at `/mcp` with a
 durable data root, one writer, and OAuth/JWT validation for ChatGPT. The Docker
 deployment shape uses port 8080 and `/var/lib/evidence-lane`.
 
+The Docker context intentionally excludes `.git`. Build the durable-origin
+image from the exact reviewed commit and pass that lowercase 40-character SHA
+as a build argument:
+
+```powershell
+docker build --build-arg EVIDENCE_LANE_RELEASE_SHA=<exact-40-character-sha> -t evidence-lane:<exact-40-character-sha> .
+```
+
+The image build fails if the argument is missing or malformed and seals it as
+a root-owned, read-only marker inside the installed Python package. Runtime
+identity uses direct Git first, then verified Codex-marketplace bytes, and only
+then this container marker. The marker is not accepted from the Docker build
+context and is never read from a mutable runtime environment variable. The
+durable `/healthz` response therefore reports the exact image source commit even
+though `.git` is absent, allowing the Vercel adapter to enforce the same SHA.
+
 ## OAuth resource and application policy
 
 The durable origin is an OAuth 2.1 resource server, not an authorization

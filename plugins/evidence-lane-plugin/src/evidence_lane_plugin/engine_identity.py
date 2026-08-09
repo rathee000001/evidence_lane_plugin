@@ -18,6 +18,7 @@ from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .models import EngineIdentity
 
 _COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
+_EMBEDDED_RELEASE_MARKER = ".evidence-lane-release-sha"
 
 
 def identity_repository_root(package_file: str | Path) -> Path:
@@ -174,19 +175,60 @@ def _verified_codex_marketplace_commit(
     return commit
 
 
+def _embedded_release_commit(repository_root: Path) -> str | None:
+    """Read one immutable commit marker baked into a release package.
+
+    Durable container images deliberately exclude ``.git`` and are not Codex
+    marketplace cache entries. Their build must therefore seal the exact
+    source commit inside the installed Python package. The marker is accepted
+    only as exact lowercase ASCII with no whitespace and is ignored when it is
+    absent, malformed, or a symlink.
+    """
+
+    marker = repository_root / _EMBEDDED_RELEASE_MARKER
+    try:
+        if marker.is_symlink() or not marker.is_file():
+            return None
+        raw = marker.read_bytes()
+        candidate = raw.decode("ascii")
+    except (OSError, UnicodeDecodeError):
+        return None
+    if not _COMMIT_RE.fullmatch(candidate):
+        return None
+    return candidate
+
+
+def write_embedded_release_commit(
+    package_root: str | Path,
+    commit: str,
+) -> Path:
+    """Seal one exact commit marker during an immutable package-image build."""
+
+    if not _COMMIT_RE.fullmatch(commit):
+        raise ValueError(
+            "EVIDENCE_LANE_RELEASE_SHA must be an exact lowercase "
+            "40-character Git SHA."
+        )
+    marker = Path(package_root).resolve() / _EMBEDDED_RELEASE_MARKER
+    with marker.open("xb") as handle:
+        handle.write(commit.encode("ascii"))
+    return marker
+
+
 def git_source_commit(repository_root: str | Path) -> str:
     git_executable = shutil.which("git")
-    if not git_executable:
-        return "UNCOMMITTED"
     root = Path(repository_root).resolve()
-    direct = _direct_git_commit(git_executable, root)
-    if direct is not None:
-        return direct
-    marketplace = _verified_codex_marketplace_commit(
-        git_executable,
-        root,
-    )
-    return marketplace or "UNCOMMITTED"
+    if git_executable:
+        direct = _direct_git_commit(git_executable, root)
+        if direct is not None:
+            return direct
+        marketplace = _verified_codex_marketplace_commit(
+            git_executable,
+            root,
+        )
+        if marketplace is not None:
+            return marketplace
+    return _embedded_release_commit(root) or "UNCOMMITTED"
 
 
 def build_engine_identity(

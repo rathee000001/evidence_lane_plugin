@@ -12,6 +12,7 @@ from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.engine_identity import (
     git_source_commit,
     identity_repository_root,
+    write_embedded_release_commit,
 )
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.git_adapter import GitResult
@@ -132,6 +133,60 @@ def test_installed_cache_reports_verified_marketplace_git_commit(
         (source_plugin / "plugin.json").read_bytes()
     )
     assert git_source_commit(installed_plugin) == "UNCOMMITTED"
+
+
+def test_container_package_uses_only_an_exact_embedded_release_commit(
+    tmp_path: Path,
+) -> None:
+    package_root = tmp_path / "installed-package"
+    package_root.mkdir()
+    marker = package_root / ".evidence-lane-release-sha"
+    expected = "a" * 40
+
+    marker.write_text(expected, encoding="ascii")
+    assert git_source_commit(package_root) == expected
+
+    for invalid in (
+        "A" * 40,
+        "b" * 39,
+        "c" * 41,
+        ("d" * 40) + "\n",
+        "not-a-commit",
+    ):
+        marker.write_text(invalid, encoding="ascii")
+        assert git_source_commit(package_root) == "UNCOMMITTED"
+
+
+def test_container_release_commit_writer_is_exact_and_create_only(
+    tmp_path: Path,
+) -> None:
+    package_root = tmp_path / "installed-package"
+    package_root.mkdir()
+    expected = "e" * 40
+
+    marker = write_embedded_release_commit(package_root, expected)
+    assert marker.read_bytes() == expected.encode("ascii")
+    assert git_source_commit(package_root) == expected
+
+    with pytest.raises(FileExistsError):
+        write_embedded_release_commit(package_root, expected)
+
+    invalid_root = tmp_path / "invalid-package"
+    invalid_root.mkdir()
+    with pytest.raises(ValueError, match="exact lowercase 40-character Git SHA"):
+        write_embedded_release_commit(invalid_root, "E" * 40)
+    assert not (invalid_root / ".evidence-lane-release-sha").exists()
+
+
+def test_docker_build_requires_and_seals_exact_release_commit() -> None:
+    root = Path(__file__).resolve().parents[1]
+    dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
+    dockerignore = (root / ".dockerignore").read_text(encoding="utf-8")
+
+    assert "ARG EVIDENCE_LANE_RELEASE_SHA" in dockerfile
+    assert "write_embedded_release_commit" in dockerfile
+    assert '"$EVIDENCE_LANE_RELEASE_SHA"' in dockerfile
+    assert "**/.evidence-lane-release-sha" in dockerignore
 
 
 def test_plugin_local_venv_resolves_to_versioned_cache_root(tmp_path: Path) -> None:
