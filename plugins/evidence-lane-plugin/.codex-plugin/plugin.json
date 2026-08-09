@@ -41,5 +41,6 @@
     "logo": "./assets/evidence-lane-icon.png",
     "screenshots": []
   },
-  "mcpServers": "./.mcp.json"
+  "mcpServers": "./.mcp.json",
+  "apps": "./.app.json"
 }

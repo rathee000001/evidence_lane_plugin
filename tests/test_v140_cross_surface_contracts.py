@@ -72,7 +72,7 @@ def test_exact_six_control_order_matches_skills_and_website() -> None:
         assert (PLUGIN / "skills" / skill / "SKILL.md").is_file()
 
 
-def test_codex_package_keeps_skills_and_separates_remote_app_connections() -> None:
+def test_universal_package_keeps_skills_and_maps_registered_chatgpt_connection() -> None:
     manifest = json.loads(
         _read(PLUGIN / ".codex-plugin" / "plugin.json")
     )
@@ -85,7 +85,7 @@ def test_codex_package_keeps_skills_and_separates_remote_app_connections() -> No
     assert manifest["version"].startswith("1.5.0+")
     assert manifest["skills"] == "./skills/"
     assert manifest["mcpServers"] == "./.mcp.json"
-    assert "apps" not in manifest
+    assert manifest["apps"] == "./.app.json"
     assert len(skill_files) == 15
     assert packaged_skill_names == {
         "evi",
@@ -104,7 +104,13 @@ def test_codex_package_keeps_skills_and_separates_remote_app_connections() -> No
         "evi-storage",
         "evidence-lane-code-lifecycle",
     }
-    assert app_manifest == {"apps": {}}
+    assert app_manifest == {
+        "apps": {
+            "evidence-lane": {
+                "id": "plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f"
+            }
+        }
+    }
 
     root_skill = _read(PLUGIN / "skills" / "evi" / "SKILL.md")
     boot_skill = _read(PLUGIN / "skills" / "evi-boot" / "SKILL.md")

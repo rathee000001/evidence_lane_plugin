@@ -679,7 +679,7 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert manifest["interface"]["displayName"] == "Evidence Lane"
     assert manifest["author"]["name"] == "Praveen Rathee"
     assert manifest["repository"].endswith("/evidence_lane_plugin")
-    assert "apps" not in manifest
+    assert manifest["apps"] == "./.app.json"
     assert manifest["mcpServers"] == "./.mcp.json"
     assert manifest["interface"]["logo"] == "./assets/evidence-lane-icon.png"
     assert manifest["interface"]["composerIcon"] == ("./assets/evidence-lane-icon.png")
@@ -702,7 +702,13 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert '"decision"' not in stop_source
     assert '"continue": True' in stop_source
     app_manifest = json.loads((plugin / ".app.json").read_text(encoding="utf-8"))
-    assert app_manifest == {"apps": {}}
+    assert app_manifest == {
+        "apps": {
+            "evidence-lane": {
+                "id": "plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f"
+            }
+        }
+    }
     marketplace = json.loads(
         (root / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8")
     )

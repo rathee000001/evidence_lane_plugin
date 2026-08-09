@@ -35,6 +35,11 @@ The separate public **New Plugin** or connector route accepts an **MCP Server
 URL** or a **Tunnel**, not a Git working tree. That step registers only the MCP
 app. The app's `plugin_asdk_app...` technical ID must then be mapped in the full
 plugin package before ChatGPT can show the bundled skills and release metadata.
+The v1.5 package maps the existing read-safe Evidence Lane connection as
+`plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f` through `.app.json`, and
+`.codex-plugin/plugin.json` points its compatibility `apps` field to that file.
+This public technical ID is routing metadata, not a credential and not proof
+that the underlying endpoint currently serves the candidate Git SHA.
 Git supplies source and release identity, while that route still requires a
 reachable MCP transport. An older personal app shown in ChatGPT proves only
 that one runtime, server, or tunnel was connected; it does not prove that the

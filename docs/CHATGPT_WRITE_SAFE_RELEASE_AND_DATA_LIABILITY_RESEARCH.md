@@ -10,7 +10,7 @@ Change boundary: research plus local OAuth resource-server hardening; no ChatGPT
 
 Evidence Lane can expose authenticated write tools in ChatGPT and can follow the normal public plugin route. OpenAI explicitly documents plugin write actions, OAuth 2.1 authorization, per-tool scope enforcement, host confirmation for destructive actions, review, and a universal Plugins Directory shared by ChatGPT and Codex. GitHub and Vercel likewise permit authorized writes; being a developer tool is not an exemption from authorization, least privilege, confirmation, auditability, or platform review.
 
-The current package is not ready for that release. Its ChatGPT profile intentionally refuses lifecycle writes. The v1.5.0 candidate now enforces a read-only base transport gate, emits per-tool OAuth security schemes, and binds verified tokens to exact client, environment, role, and project claims; production lifecycle writes and remote Git are owner-gated. That is local resource-server proof, not a live OAuth deployment. The public edge still has no working durable origin or established IdP proof; the portal has not scanned a production endpoint or verified the MCP domain; the public privacy page does not yet disclose a complete data map, retention/deletion periods, processors, rights path, or incident contact; and the app mapping is not yet a verified registered connection. These are fixable release blockers, not reasons to abandon the normal route.
+The current package is not ready for that release. Its ChatGPT profile intentionally refuses lifecycle writes. The v1.5.0 candidate now enforces a read-only base transport gate, emits per-tool OAuth security schemes, and binds verified tokens to exact client, environment, role, and project claims; production lifecycle writes and remote Git are owner-gated. That is local resource-server proof, not a live OAuth deployment. A real registered read-safe Evidence Lane connection is now mapped in the package, but its underlying endpoint has not been proven against the candidate Git SHA. The public edge still has no working durable origin or established IdP proof; the portal has not scanned a production endpoint or verified the MCP domain; and the public privacy page does not yet disclose a complete data map, retention/deletion periods, processors, rights path, or incident contact. These are fixable release blockers, not reasons to abandon the normal route.
 
 The claim that no vendor-held payload persistence yields “nearly zero data liability” is false. Local-first and short retention reduce the amount and duration of retained data. They do not remove processing, transmission, access-control, security, breach-response, deletion, transparency, lawful-basis, subprocessor, or contractual obligations. OpenAI’s current [App Developer Terms](https://openai.com/policies/developer-apps-terms/) expressly place responsibility for the app, API, app requests, privacy, security, legal compliance, support, and notices on the developer and treat OpenAI and the developer as separate parties for their respective processing.
 
@@ -59,7 +59,7 @@ That creates one release identity but not one identical runtime:
 | Authentication | End user authorizes the connection through the OpenAI host | End user authorizes the same resource-server contract when using the public connection |
 | Local source authority | Not present in the ChatGPT client | May exist in a local Codex checkout and local durable runtime |
 
-The `.app.json` file is a package mapping to a **registered MCP connection**, not a substitute for one. A portal draft ID is not a connector ID. Evidence Lane must not fabricate that mapping; it should insert the real registered connection identifier only after the connection exists and is verified.
+The `.app.json` file is a package mapping to a **registered MCP connection**, not a substitute for one. A portal draft ID is not a connector ID. The v1.5 package now maps the real read-safe connection `plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f`; this proves connection identity only, not endpoint health, OAuth correctness, candidate-SHA pickup, or complete-package installation.
 
 ## Can ChatGPT plugins write?
 
@@ -290,7 +290,7 @@ Every tool declares its exact scope set. The server checks token scope, subject/
 - [ ] Five positive and at least three negative reviewer cases use synthetic data and a no-MFA reviewer account.
 - [ ] Every tool’s schema, annotations, response minimization, and scope mapping audited.
 - [ ] Prompt injection, confused deputy, cross-tenant, token replay, duplicate write, and destructive confirmation tests pass.
-- [ ] `.app.json` references the real registered connection; no portal/app ID is substituted.
+- [x] `.app.json` references the real registered connection; no portal/app ID is substituted.
 
 ### Stage D — portal review (manual owner action)
 
