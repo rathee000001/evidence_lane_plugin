@@ -2,10 +2,11 @@ import Link from "next/link";
 
 import { DeltaLedgerExplorer } from "./_components/delta-ledger-explorer";
 import { GlassIconOrb, OfficialToolIcon } from "./_components/evidence-assets";
-import { EvidenceOrbit } from "./_components/evidence-orbit";
+import { HeroOrbit } from "./_components/hero-orbit";
 import { MotionReveal } from "./_components/motion-reveal";
 import { PluginSurfaceCatalog } from "./_components/plugin-surface-catalog";
 import { artifactContract, painLedger, proofMetrics } from "./_data/site";
+import { deltaLedgerBoundary } from "./_data/delta-ledger";
 
 const routes = [
   ["Architecture", "See how parallel lane computation meets serial lifecycle authority.", "/architecture", "01"],
@@ -19,7 +20,7 @@ const routes = [
 export default function Home() {
   return (
     <main>
-      <section className="homeHero shell">
+      <section className="homeHero orbitHeroFrame shell">
         <MotionReveal className="heroCopy">
           <span className="eyebrow"><i />Evidence Lane for Codex + ChatGPT</span>
           <h1>Resume from verified project truth - not another re-explanation.</h1>
@@ -41,7 +42,7 @@ export default function Home() {
           </div>
         </MotionReveal>
         <MotionReveal className="heroVisual" delay={0.12}>
-          <EvidenceOrbit />
+          <HeroOrbit preset="home" />
         </MotionReveal>
       </section>
 
@@ -159,9 +160,9 @@ export default function Home() {
           <h2>The same governance law meets each host at its real storage boundary.</h2>
           <p>
             Codex runs the full governed repository lifecycle from exact Git source. ChatGPT Pro
-            shows all 15 packaged skill entries and uses a registered 21-tool read profile for
-            accepted-PV evidence, ENV/UOP status, Entry/Exit slips, search, and panels. Skills that
-            require lifecycle writes stop explicitly. ChatGPT&apos;s native Project Mutation workflow remains host-owned;
+            shows all 15 packaged skill entries and the complete 62-action catalog. Twenty-one
+            accepted-PV, ENV/UOP, Entry/Exit, search, and panel operations execute as reads; all 41
+            lifecycle-write actions stay visible and return an explicit no-mutation refusal. ChatGPT&apos;s native Project Mutation workflow remains host-owned;
             the MCP neither performs nor claims that mutation. Neither host borrows the other&apos;s
             task controls, filesystem, or acceptance authority.
           </p>
@@ -169,7 +170,7 @@ export default function Home() {
         </div>
         <div className="homeHostTruth" aria-label="Evidence Lane host boundaries">
           <article><span>Codex</span><strong>Full lifecycle</strong><p>Source Intake, build, tests, package seals, exact six-way HIL, and pointer-gated promotion.</p></article>
-          <article><span>ChatGPT Pro</span><strong>15 skills plus governed reads</strong><p>The full plugin shows all 15 packaged skill entries; Vercel or the verified outbound tunnel carries only accepted-PV MCP reads, while native ENV/UOP and Project Mutation stay inside ChatGPT.</p></article>
+          <article><span>ChatGPT Pro</span><strong>15 skills + 62 visible actions</strong><p>Twenty-one operations execute as accepted-evidence reads. Forty-one lifecycle writes remain visible but are stopped before service invocation; native ENV/UOP and Project Mutation stay inside ChatGPT.</p></article>
         </div>
       </section>
 
@@ -177,14 +178,20 @@ export default function Home() {
         <div className="shell">
           <div className="sectionHead wideHead">
             <span className="kicker">Historical Deltas + current Plan Lane</span>
-            <h2>One additive ledger. 97 governed rows. No erased history.</h2>
+            <h2>One additive ledger. {deltaLedgerBoundary.totalRows} governed public rows. No erased history.</h2>
             <p>
               Rows 1&ndash;80 preserve the sealed foundation, v1.2 evolution, and v1.3 hardening
-              record. The exact current 17-row execution projection is appended as rows
-              81&ndash;97 in this same table: six rows are complete, step 66 is the sole active row,
-              step 67 retains the complete POC and last publication execution, and step 75 is
-              physically last as the final six-way HIL. Filters change the view,
-              never the underlying order or authority.
+              record byte-for-byte. Current execution begins only after row 80 and now runs consecutively
+              from public row 081 through 191: {deltaLedgerBoundary.liveExecutionRows} full, unabridged rows,
+              with {deltaLedgerBoundary.currentExecutionCompleted} completed,
+              {` ${deltaLedgerBoundary.currentExecutionActive}`} active, and
+              {` ${deltaLedgerBoundary.currentExecutionPending}`} pending. Public row
+              {` ${deltaLedgerBoundary.activePublicOrder}`} / public task position
+              {` ${deltaLedgerBoundary.activeTaskPosition}`} / governed receipt position
+              {` ${deltaLedgerBoundary.activeReceiptPosition}`} is the sole active row; row
+              {` ${deltaLedgerBoundary.finalSweepPublicOrder}`} is the final fresh sweep and row
+              {` ${deltaLedgerBoundary.finalHilPublicOrder}`} is the physically final six-way HIL.
+              Filters change only the view, never the text, order, or authority.
             </p>
           </div>
           <DeltaLedgerExplorer />

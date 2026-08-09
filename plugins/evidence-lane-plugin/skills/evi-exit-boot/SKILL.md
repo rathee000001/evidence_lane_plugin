@@ -13,7 +13,8 @@ capture are off. Preserve the plugin installation, locked Flash verification
 receipt, immutable store, lineage, backlog, candidates, accepted PVs, and
 pointer history. A later `/evi-boot` re-verifies and reattaches them.
 
-On ChatGPT Pro's read profile, do not call or simulate `session_close`. Read
+On ChatGPT Pro's governed action profile, do not claim or simulate a successful
+`session_close`. Read
 `runtime_activation_status`, `session_flash_status`, `pv_status`, and the
 governed Exit Slip, then label the result
 `CHATGPT_PRO_READ_EXIT_OBSERVED`. Explain that the skill has stopped using the

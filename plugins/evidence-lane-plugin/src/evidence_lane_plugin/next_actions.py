@@ -145,10 +145,13 @@ def state_travel_next_action(
     target_surface: str,
     display_position: str = "FINAL_VISIBLE_ACTION",
     stop_and_wait: bool = True,
+    task_panel_reactivation: dict[str, Any] | None = None,
+    execution_writer_boundary: dict[str, Any] | None = None,
+    goal_continuity: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return the host-neutral prompt contract for State Travel."""
 
-    return {
+    contract: dict[str, Any] = {
         "schema": "evidence-lane.next-action.v1",
         "state": state,
         "display_position": display_position,
@@ -160,3 +163,10 @@ def state_travel_next_action(
         "auto_submit": False,
         "stop_and_wait": stop_and_wait,
     }
+    if task_panel_reactivation is not None:
+        contract["task_panel_reactivation"] = task_panel_reactivation
+    if execution_writer_boundary is not None:
+        contract["execution_writer_boundary"] = execution_writer_boundary
+    if goal_continuity is not None:
+        contract["goal_continuity"] = goal_continuity
+    return contract

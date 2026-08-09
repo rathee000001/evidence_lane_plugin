@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
-import { ConcentricGovernanceMap } from "../_components/concentric-governance-map";
-import { EvidenceBrainAsset } from "../_components/evidence-assets";
+import { HeroOrbit } from "../_components/hero-orbit";
 import { LaneProofExplorer } from "../_components/lane-proof-explorer";
 import { PageHero } from "../_components/page-hero";
 import { proofRules } from "../_data/site";
@@ -18,24 +17,8 @@ export default function ProofPage() {
         eyebrow="Proof before claim"
         title="Tests can disprove a report. They cannot manufacture acceptance."
         description="Evidence Lane separates verified implementation behavior, historical design context, unaccepted candidate evidence, external deployment state, and human lifecycle authority."
-        aside={
-          <div className="routeBrainOrb" aria-label="Pulsing Evidence Lane glass brain">
-            <EvidenceBrainAsset color="#e6aa48" label="" priority />
-          </div>
-        }
+        aside={<HeroOrbit preset="proof" />}
       />
-      <section className="section shell concentricStorySection">
-        <ConcentricGovernanceMap
-          eyebrow="Concentric proof map"
-          center="Claim boundary"
-          centerDetail="Each outer proof layer can challenge the candidate. None of those layers can turn a candidate into accepted truth."
-          rings={[
-            { label: "Source proof", tone: "cyan", items: ["Bytes", "Policy", "Hashes", "Lineage"] },
-            { label: "Structural proof", tone: "violet", items: ["SQLite", "MMD", "DOT", "Relations"] },
-            { label: "Decision proof", tone: "gold", items: ["Tests", "Candidate", "Six-way HIL", "Pointer"] },
-          ]}
-        />
-      </section>
       <section className="section shell dummyLaneProofs" id="dummy-lane-proofs">
         <div className="sectionHead wideHead">
           <span className="kicker">Inspectable dummy evidence</span>

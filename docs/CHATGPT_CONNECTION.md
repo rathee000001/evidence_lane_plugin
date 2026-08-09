@@ -2,9 +2,9 @@
 
 ChatGPT and Codex are separate host universes. They may run the same Evidence
 Lane code and lifecycle laws, but they never share an implicit PV or storage
-authority. ChatGPT Pro uses the exact `CHATGPT_PRO_READ` MCP profile through a
+authority. ChatGPT Pro uses the exact `CHATGPT_PRO_GOVERNED` MCP profile through a
 verified outbound Tunnel or a public connector backed by a durable Evidence
-Lane read origin. It never treats the Git repository, Vercel filesystem, or the
+Lane origin. It never treats the Git repository, Vercel filesystem, or the
 Codex store as its live database authority.
 
 The supported public-connector shape is:
@@ -21,10 +21,11 @@ the full lifecycle. ChatGPT installs the same full plugin package, whose
 skill corpus. The product display name stays **Evidence Lane**; `1.4` belongs
 in version metadata. ChatGPT therefore displays and can route through all
 fifteen packaged skills, including Boot/ENV-UOP Flash guidance and accepted-PV
-Entry/Exit inspection, alongside
-exactly 21 read-only tools for accepted PVs, lanes, Chat Lineage, task backlog,
-receipts, diffs, search, and governed panels. A skill whose requested path
-requires an unavailable write tool fails closed instead of claiming the write.
+Entry/Exit inspection, alongside a complete 62-action catalog. Exactly 21
+operations execute as reads for accepted PVs, lanes, Chat Lineage, task backlog,
+receipts, diffs, search, and governed panels. All 41 lifecycle-write actions stay
+visible but are intercepted before service invocation and return
+`UNAVAILABLE_ON_CHATGPT_PRO` with no mutation.
 ChatGPT's native ENV/UOP package and Project Mutation sector may continue under
 the host's own append-only law, but the MCP does not perform or claim that
 mutation. No MCP write occurs in the Codex store or Vercel's function
@@ -43,13 +44,13 @@ Do not treat a connector details page with no Skills section as a complete
 installation. The complete-package check requires the Evidence Lane details
 page to show the bundled skill inventory and a fresh conversation to route a
 read-safe Boot request through the packaged `evi-boot` instructions and the
-21-tool read profile. The six primary controls remain visible for parity;
-unsupported lifecycle-write actions are labeled unavailable and fail closed.
+governed 62-action profile. The six primary controls remain visible;
+unsupported lifecycle-write actions return an explicit fail-closed receipt.
 
 For a contributor's local route, run
 `scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1`. It accepts one exact
 Tunnel ID, captures one Runtime API key through a masked DPAPI prompt, creates
-the 21-tool read profile, registers boot persistence, and provides Status,
+the governed 62-action profile, registers boot persistence, and provides Status,
 Repair, and exact Remove actions. ChatGPT is linked once after the tunnel is
 ready. Codex never uses this route.
 
@@ -69,7 +70,7 @@ Before creating a ChatGPT connection, verify:
 2. the durable origin reports that SHA;
 3. the adapter preview reports the same SHA;
 4. OAuth discovery and protected-resource metadata are correct;
-5. the ChatGPT profile exposes exactly 21 tools and every tool is annotated read-only;
+5. the ChatGPT profile exposes exactly 62 tools: 21 read-only operations and 41 visible write-annotated operations that return no-mutation fail-closed receipts;
 6. no compromised OpenAI key exists in source or deployment configuration;
 7. a fresh chat can read the same accepted-PV, slip, lane, and panel evidence.
 

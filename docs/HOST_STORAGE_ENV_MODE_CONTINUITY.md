@@ -18,6 +18,12 @@ Google Drive does not provide transactional sessions, backlog, ChatLineage,
 candidate state, receipt state, and pointer compare-and-swap. It therefore
 cannot be the live Evidence Lane runtime.
 
+The MCP or tunnel is never a single-project binding. Runtime-global inspection
+has no project route; every project-scoped tool requires an exact `project_id`
+and resolves only beneath `<configured-store-root>/projects/<project_id>`. See
+`PORTABLE_MULTI_PROJECT_ROUTING.md` for root precedence, collision rejection,
+two-surface placement, and migration-safe receipt behavior.
+
 ## Boot and Resume continuity
 
 Every Boot or Resume produces a sealed
@@ -26,6 +32,8 @@ Every Boot or Resume produces a sealed
 - canonical host and host-session binding;
 - exact accepted PV, pointer generation, manifest hash, and package hash;
 - selected primary storage route plus MCP read/write policy;
+- exact project ID, resolved store root, and isolated relative project route for
+  newly created receipts;
 - locked ENV/UOP authority and Flash receipt hashes;
 - explicit proof that ENV/UOP bytes are not embedded in a PV;
 - explicit proof that the receipt moves no pointer and infers no HIL approval.

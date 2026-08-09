@@ -11,10 +11,21 @@ session. Boot/resume must finish with runtime activation `ACTIVE`, locked Flash
 context attached, and visible prompt/response capture enabled for the exact
 governed session.
 
-On a ChatGPT Pro connection that exposes the governed read profile, use the
+If the governed session has a canonical task panel, every Boot or Resume must
+make exact panel reactivation the host's first post-verification action. This
+also applies after a token-driven continuation, stalled Goal, context
+compaction, browser or Codex restart, session continuation, or State Travel
+destination entry. Re-project all rows before source inspection, mutation,
+testing, Git activity, or another lifecycle call; keep exactly one row active;
+preserve order and every completed and pending description unabridged; retain
+the panel through every pause and HIL; and drop it only after the physically
+final six-way HIL decision and all decision-dependent work are complete.
+
+On a ChatGPT Pro connection that exposes the governed action profile, use the
 read-safe branch instead: call `runtime_doctor`, `session_flash_status`,
-`runtime_activation_status`, and `pv_status`, then render the runtime panel.
-This verifies the already running accepted runtime for reading; it does not
+`runtime_activation_status`, and `pv_status`, then call `render_runtime_panel`
+and, when a project is in scope, `render_project_panel`. This verifies the
+already running accepted runtime for reading; it does not
 call `session_boot` or `session_resume`, create a session, move a pointer, or
 claim a lifecycle write. Require an existing `ACTIVE` runtime and matching
 locked Flash hashes. Otherwise fail closed as
@@ -46,3 +57,8 @@ Boot or Resume. Do not retroactively require it to satisfy topology or other
 promotability rules introduced after acceptance. Report that compatibility
 state explicitly; every successor candidate must still pass all current rules
 before it can be promoted.
+
+On write-capable Codex, finish a successful Boot or Resume verification with
+`render_runtime_panel` and, when a project is in scope, `render_project_panel`.
+These are read-only proof calls. Use canonical bare tool names only; a host
+display namespace is never part of the Evidence Lane tool contract.

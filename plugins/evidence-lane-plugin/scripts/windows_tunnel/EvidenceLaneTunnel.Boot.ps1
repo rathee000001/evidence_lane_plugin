@@ -42,7 +42,7 @@ function Get-PinnedTunnelProcess {
         return $null
     }
     $process = Get-Process -Id $parsedPid -ErrorAction SilentlyContinue
-    if ($null -eq $process -or $process.ProcessName -ne "tunnel-client") {
+    if ($null -eq $process) {
         return $null
     }
     try {

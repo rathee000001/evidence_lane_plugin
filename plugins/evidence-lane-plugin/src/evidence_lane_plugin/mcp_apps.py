@@ -67,6 +67,7 @@ def build_runtime_panel_snapshot(
 
     engine = _as_dict(doctor.get("engine"))
     checks = _as_dict(doctor.get("checks"))
+    route = _as_dict(doctor.get("mcp_route_identity"))
     raw_lanes = _as_list(lane_catalog.get("lanes"))
     lanes = [
         {
@@ -93,6 +94,17 @@ def build_runtime_panel_snapshot(
             {
                 "label": "Canonical lanes",
                 "value": str(lane_catalog.get("lane_count") or len(lanes)),
+            },
+            {
+                "label": "Native MCP route",
+                "value": str(route.get("server_identity") or "UNVERIFIED"),
+            },
+            {
+                "label": "Tool catalog",
+                "value": (
+                    f"{route.get('tool_count') or 0} unique tools / "
+                    f"{route.get('status') or 'BLOCKED'}"
+                ),
             },
             {
                 "label": "Runtime checks",
@@ -123,6 +135,7 @@ def build_project_panel_snapshot(
 
     envelope = _as_dict(project_status.get("persistent_state_envelope"))
     session = _as_dict(project_status.get("active_session"))
+    project_route = _as_dict(project_status.get("project_route"))
     exact_site = public_site_url.rstrip("/")
     accepted_pv = envelope.get("accepted_pv")
     candidate = envelope.get("pending_candidate")
@@ -145,6 +158,21 @@ def build_project_panel_snapshot(
             },
             {"label": "Active state", "value": str(session.get("state") or "NONE")},
             {"label": "Pending candidate", "value": str(candidate or "NONE")},
+            {
+                "label": "Project route",
+                "value": str(
+                    project_route.get("relative_project_route")
+                    or f"projects/{project_id}"
+                ),
+            },
+            {
+                "label": "Storage mode",
+                "value": str(project_route.get("storage_mode") or "AUTO"),
+            },
+            {
+                "label": "Host profile",
+                "value": str(project_route.get("active_host_profile") or "INACTIVE"),
+            },
         ],
         "lanes": [],
         "hil": {

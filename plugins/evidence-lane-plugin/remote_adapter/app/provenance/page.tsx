@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PageHero } from "../_components/page-hero";
+import { HeroOrbit } from "../_components/hero-orbit";
 import { documentationReferences, upstreamReferences } from "../_data/upstream-references";
 import { credits } from "../_data/site";
 
@@ -24,7 +25,7 @@ export default function ProvenancePage() {
         eyebrow="Independent research and development"
         title="Evidence Lane followed its own route."
         description="The project was developed through Praveen Rathee’s own product direction, accounts, hardware, time, testing, and iterative work with multiple AI systems. Outside questions may be used as tests; they are not the project’s identity or source authority."
-        aside={<div className="provenanceStamp"><strong>R&amp;D</strong><span>Praveen Rathee</span><small>Human acceptance authority</small></div>}
+        aside={<HeroOrbit preset="provenance" />}
       />
       <section className="section shell timelineSection">
         <div className="sectionHead"><span className="kicker">Evolution</span><h2>The current plugin has history, not a borrowed origin story.</h2></div>

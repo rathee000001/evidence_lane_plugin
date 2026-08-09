@@ -32,6 +32,13 @@ host) and `host_mode=PLAN`. The returned Plan Lane is the canonical goal/task
 list. Display its short `goal_start_prompt` for the user to copy and paste into
 the host-owned Codex Goal; MCP does not mutate the Goal or mode selector.
 
+Keep that Goal bound to the same canonical Plan Lane, active source boundary,
+and single-writer session. A UI crash, token wait, required user input, or HIL
+wait pauses only the dependent work; it never completes the Goal. Usage
+reporting is separate accounting with no task-status effect. On every Goal or
+panel reconstruction, include all completed-but-still-governing rows, exactly
+one active row, and all pending rows without shortening or reordering them.
+
 Keep the full task panel visible until the next six-way HIL. For every visible
 steer, decide canonically whether it belongs to an existing task. Call
 `pv_plan_steer_delta` with that `linked_task_id` when linked; append its exact

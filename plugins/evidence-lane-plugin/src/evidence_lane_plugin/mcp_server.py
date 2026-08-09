@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 from typing import Any, Literal
 
@@ -30,18 +32,36 @@ from .mcp_apps import (
     governed_panel_resource_meta,
     governed_panel_tool_meta,
 )
-from .mcp_stdio_compat import run_discovery_compatible_stdio
+from .mcp_stdio_compat import (
+    install_tool_namespace_compat,
+    run_discovery_compatible_stdio,
+)
 from .service import EvidenceLaneService
 
 _PUBLIC_SITE_URL = "https://evidencelane.org"
+NATIVE_MCP_SERVER_IDENTITY = "evidence-lane"
+NATIVE_MCP_TOOL_NAMESPACE = "mcp__evidence_lane__"
+
+_RUNTIME_GLOBAL_TOOL_NAMES = frozenset(
+    {
+        "lane_catalog",
+        "lifecycle_transition_law",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "session_flash_status",
+    }
+)
 
 FULL_LIFECYCLE_EXPOSURE_PROFILE = "FULL_LIFECYCLE"
 CHATGPT_PRO_READ_EXPOSURE_PROFILE = "CHATGPT_PRO_READ"
+CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE = "CHATGPT_PRO_GOVERNED"
+CHATGPT_PRO_GOVERNED_TOOL_COUNT = 62
 
-# ChatGPT Pro connections are the read-only MCP half of the full universal
-# plugin. The package still contributes its skills; unavailable lifecycle writes
-# fail closed while the host's own ENV/UOP and Project Mutation laws remain
-# separate. Codex keeps the complete Git-backed lifecycle.
+# These are the twenty-one operations that execute as reads on ChatGPT Pro.
+# The governed ChatGPT surface also registers every lifecycle action so the
+# packaged controls do not disappear. The server boundary below refuses every
+# lifecycle mutation before it reaches the service.
 CHATGPT_PRO_READ_TOOL_NAMES = (
     "connector_plugin_catalog",
     "connector_plugin_settings",
@@ -90,10 +110,14 @@ _FULL_LIFECYCLE_INSTRUCTIONS = (
     "secrets, or write remote Git without the exact governed action."
 )
 
-_CHATGPT_PRO_READ_INSTRUCTIONS = (
+_CHATGPT_PRO_GOVERNED_INSTRUCTIONS = (
     "Evidence Lane is the stable product name; 1.4 is version metadata. This "
-    "registered MCP connection is the read-only half of the full Evidence Lane "
-    "plugin package for ChatGPT Pro. Packaged skills remain available. Read and "
+    "registered MCP connection exposes the complete Evidence Lane action catalog "
+    "for ChatGPT Pro so all fifteen packaged skills and the exact six controls "
+    "remain visible. Packaged skills remain available. Exactly twenty-one read operations execute. Every lifecycle "
+    "write remains registered but is refused before service invocation as "
+    "UNAVAILABLE_ON_CHATGPT_PRO; it must never disappear, simulate success, or "
+    "claim mutation. Read and "
     "explain the accepted project version, ENV/UOP Flash "
     "status, Entry and Exit Slips, Chat Lineage, the Project Mutation "
     "sector, lane evidence, task backlog, diffs, and governed runtime or "
@@ -103,7 +127,8 @@ _CHATGPT_PRO_READ_INSTRUCTIONS = (
     "and panel reads to verify an already active runtime as CHATGPT_PRO_READ_ATTACH. "
     "This MCP profile cannot create or resume a runtime session, Build, Refresh, "
     "Fuse, approve, reject, roll back, move a pointer, edit source, mutate the Project Mutation "
-    "sector, write remote Git, install another connector, or deploy. "
+    "sector, write remote Git, install another connector, or deploy; requests for "
+    "those visible actions return a structured fail-closed receipt with no lifecycle effect. "
     "ChatGPT may continue its own native append-only ENV/UOP and Project "
     "Mutation workflow under host law; never claim that this MCP performed "
     "that mutation. Codex remains the separate Git-installed full-lifecycle "
@@ -115,13 +140,72 @@ _CHATGPT_PRO_READ_INSTRUCTIONS = (
 )
 
 
+class _MCPExposureBoundary:
+    """Keep ChatGPT lifecycle actions visible while refusing every mutation."""
+
+    def __init__(
+        self,
+        application: EvidenceLaneService,
+        exposure_profile: str,
+    ) -> None:
+        self._application = application
+        self._exposure_profile = exposure_profile
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._application, name)
+
+    def invoke(
+        self,
+        tool_name: str,
+        callback: Any,
+        *args: Any,
+        lifecycle: bool = False,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        if (
+            self._exposure_profile == CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE
+            and lifecycle
+        ):
+            return {
+                "schema": "evidence-lane.chatgpt-pro-unavailable-action.v1",
+                "status": "UNAVAILABLE_ON_CHATGPT_PRO",
+                "requested_tool": tool_name,
+                "exposure_profile": CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
+                "lifecycle_effect": "NONE",
+                "mutation_performed": False,
+                "pointer_moved": False,
+                "simulated": False,
+                "visible_controls": [
+                    "Boot",
+                    "Rollback",
+                    "Build",
+                    "Refresh",
+                    "Mode",
+                    "Source Intake",
+                ],
+                "reason": (
+                    "The ChatGPT Pro connection exposes this governed action for "
+                    "discoverability but does not have lifecycle-write authority."
+                ),
+                "required_host": "CODEX_FULL_LIFECYCLE_OR_OTHER_EXPLICITLY_WRITE_CAPABLE_HOST",
+            }
+        return self._application.invoke(
+            tool_name,
+            callback,
+            *args,
+            lifecycle=lifecycle,
+            **kwargs,
+        )
+
+
 def _normalize_exposure_profile(value: str | None) -> str:
     normalized = (value or FULL_LIFECYCLE_EXPOSURE_PROFILE).strip().upper()
     aliases = {
         "": FULL_LIFECYCLE_EXPOSURE_PROFILE,
         "CODEX_FULL_LIFECYCLE": FULL_LIFECYCLE_EXPOSURE_PROFILE,
         FULL_LIFECYCLE_EXPOSURE_PROFILE: FULL_LIFECYCLE_EXPOSURE_PROFILE,
-        CHATGPT_PRO_READ_EXPOSURE_PROFILE: CHATGPT_PRO_READ_EXPOSURE_PROFILE,
+        CHATGPT_PRO_READ_EXPOSURE_PROFILE: CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
+        CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE: CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
     }
     try:
         return aliases[normalized]
@@ -132,8 +216,8 @@ def _normalize_exposure_profile(value: str | None) -> str:
 
 
 def _mcp_instructions(exposure_profile: str) -> str:
-    if exposure_profile == CHATGPT_PRO_READ_EXPOSURE_PROFILE:
-        return _CHATGPT_PRO_READ_INSTRUCTIONS
+    if exposure_profile == CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE:
+        return _CHATGPT_PRO_GOVERNED_INSTRUCTIONS
     return _FULL_LIFECYCLE_INSTRUCTIONS
 
 _READ_ONLY = ToolAnnotations(
@@ -169,6 +253,89 @@ def _meta(label: str, done: str) -> dict[str, Any]:
     }
 
 
+def _native_route_receipt(mcp: FastMCP, exposure_profile: str) -> dict[str, Any]:
+    """Seal the exact native catalog without treating a host prefix as identity."""
+
+    tools = sorted(mcp._tool_manager.list_tools(), key=lambda item: item.name)
+    names = [tool.name for tool in tools]
+    catalog = [
+        {
+            "name": tool.name,
+            "title": tool.title,
+            "description": tool.description,
+            "input_schema": tool.parameters,
+            "output_schema": tool.output_schema,
+            "annotations": (
+                tool.annotations.model_dump(exclude_none=True)
+                if tool.annotations is not None
+                else None
+            ),
+            "meta": tool.meta,
+        }
+        for tool in tools
+    ]
+    canonical = json.dumps(
+        catalog,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    project_scoped_tools = [
+        tool for tool in tools if tool.name not in _RUNTIME_GLOBAL_TOOL_NAMES
+    ]
+    missing_project_route = sorted(
+        tool.name
+        for tool in project_scoped_tools
+        if "project_id" not in set(tool.parameters.get("required") or [])
+    )
+    catalog_valid = len(names) == len(set(names)) and not missing_project_route
+    return {
+        "schema": "evidence-lane.native-mcp-route-receipt.v1",
+        "status": "PASS" if catalog_valid else "BLOCKED",
+        "server_identity": NATIVE_MCP_SERVER_IDENTITY,
+        "canonical_tool_namespace": NATIVE_MCP_TOOL_NAMESPACE,
+        "exposure_profile": exposure_profile,
+        "tool_count": len(names),
+        "tool_names_unique": len(names) == len(set(names)),
+        "runtime_global_tool_count": len(
+            [name for name in names if name in _RUNTIME_GLOBAL_TOOL_NAMES]
+        ),
+        "project_scoped_tool_count": len(project_scoped_tools),
+        "project_route_argument": "project_id",
+        "project_route_argument_required": not missing_project_route,
+        "project_route_schema_status": (
+            "PASS" if not missing_project_route else "BLOCKED"
+        ),
+        "project_scoped_tools_missing_project_id": missing_project_route,
+        "transport_project_binding": "NONE_TRANSPORT_ONLY",
+        "project_resolution": (
+            "EXACT_PROJECT_ID_TO_CONFIGURED_ROOT_PROJECTS_SUBDIRECTORY"
+        ),
+        "cross_project_fallback_allowed": False,
+        "tool_catalog_sha256": hashlib.sha256(canonical).hexdigest().upper(),
+        "mcp_apps_resource_uri": GOVERNED_PANEL_URI,
+        "host_display_namespace_is_authority": False,
+        "accepted_display_namespaces": [
+            "evidence_lane",
+            "evidence_lane_<8-to-64-lowercase-hex-collision-suffix>",
+        ],
+        "rejected_lifecycle_surfaces": [
+            "codex_apps",
+            "google_drive",
+            "plugin_runtime",
+            "chatgpt_connector",
+            "tunnel",
+            "legacy_version_namespace",
+        ],
+        "surface_placement": {
+            "codex": "NATIVE_PLUGIN_FULL_LIFECYCLE_ONLY",
+            "chatgpt": "BROWSER_PLUGIN_CONNECTOR_OR_PRIVATE_DEV_TUNNEL_ONLY",
+            "chatgpt_connector_inside_codex_allowed": False,
+        },
+        "catalog_reload_required_after_package_change": True,
+    }
+
+
 def create_mcp_server(
     *,
     service: EvidenceLaneService | None = None,
@@ -181,18 +348,21 @@ def create_mcp_server(
     allowed_tool_names: str | tuple[str, ...] | list[str] | None = None,
     exposure_profile: str | None = None,
 ) -> FastMCP:
-    application = service or EvidenceLaneService()
-    release_identity = application.engine.doctor()["engine"]
+    backend_application = service or EvidenceLaneService()
+    release_identity = backend_application.engine.doctor()["engine"]
     exact_exposure_profile = _normalize_exposure_profile(exposure_profile)
+    application = _MCPExposureBoundary(
+        backend_application,
+        exact_exposure_profile,
+    )
     effective_allowed_tool_names = allowed_tool_names
-    if exact_exposure_profile == CHATGPT_PRO_READ_EXPOSURE_PROFILE:
+    if exact_exposure_profile == CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE:
         explicit = parse_mcp_tool_allowlist(allowed_tool_names)
-        expected = tuple(sorted(CHATGPT_PRO_READ_TOOL_NAMES))
-        if explicit is not None and explicit != expected:
+        if explicit is not None:
             raise RuntimeError(
-                "CHATGPT_PRO_READ requires the exact governed read-tool inventory."
+                "CHATGPT_PRO_GOVERNED requires the complete registered tool inventory."
             )
-        effective_allowed_tool_names = CHATGPT_PRO_READ_TOOL_NAMES
+        effective_allowed_tool_names = None
     auth = None
     verifier: TokenVerifier | None = None
     if bearer_token and oauth_config:
@@ -241,6 +411,20 @@ def create_mcp_server(
     # instead of allowing the SDK's default 1.0.0 to leak into ChatGPT metadata.
     mcp._mcp_server.version = ENGINE_VERSION
 
+    def route_aware_doctor() -> dict[str, Any]:
+        doctor = application.doctor()
+        receipt = getattr(mcp, "_evidence_lane_native_route_receipt", None)
+        return {
+            **doctor,
+            "mcp_route_identity": receipt
+            or {
+                "schema": "evidence-lane.native-mcp-route-receipt.v1",
+                "status": "BLOCKED",
+                "server_identity": NATIVE_MCP_SERVER_IDENTITY,
+                "reason": "NATIVE_TOOL_CATALOG_NOT_FINALIZED",
+            },
+        }
+
     @mcp.custom_route(
         "/healthz",
         methods=["GET"],
@@ -256,6 +440,9 @@ def create_mcp_server(
                 "release_sha": release_identity.get("commit"),
                 "engine_version": release_identity.get("release"),
                 "package_sha256": release_identity.get("package_sha256"),
+                "mcp_route_identity": getattr(
+                    mcp, "_evidence_lane_native_route_receipt", None
+                ),
             }
         )
 
@@ -286,7 +473,7 @@ def create_mcp_server(
         structured_output=True,
     )
     def runtime_doctor() -> dict[str, Any]:
-        return application.invoke("runtime_doctor", application.doctor)
+        return application.invoke("runtime_doctor", route_aware_doctor)
 
     @mcp.tool(
         name="session_flash_status",
@@ -371,7 +558,7 @@ def create_mcp_server(
     def render_runtime_panel() -> dict[str, Any]:
         def snapshot() -> dict[str, Any]:
             return build_runtime_panel_snapshot(
-                doctor=application.doctor(),
+                doctor=route_aware_doctor(),
                 lane_catalog=application.lane_catalog(),
                 public_site_url=exact_public_site,
             )
@@ -2171,9 +2358,24 @@ def create_mcp_server(
         )
 
     exposure_receipt = apply_fastmcp_tool_filter(mcp, effective_allowed_tool_names)
+    if exact_exposure_profile == CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE:
+        exposed = tuple(exposure_receipt["exposed_tools"])
+        if len(exposed) != CHATGPT_PRO_GOVERNED_TOOL_COUNT:
+            raise RuntimeError(
+                "CHATGPT_PRO_GOVERNED requires exactly "
+                f"{CHATGPT_PRO_GOVERNED_TOOL_COUNT} visible tools."
+            )
+        if not set(CHATGPT_PRO_READ_TOOL_NAMES).issubset(exposed):
+            raise RuntimeError(
+                "CHATGPT_PRO_GOVERNED is missing one or more required read tools."
+            )
     mcp._evidence_lane_tool_exposure_receipt = exposure_receipt  # type: ignore[attr-defined]
     mcp._evidence_lane_exposure_profile = exact_exposure_profile  # type: ignore[attr-defined]
-    return mcp
+    route_receipt = _native_route_receipt(mcp, exact_exposure_profile)
+    if route_receipt["status"] != "PASS":
+        raise RuntimeError("Evidence Lane native MCP tool names are not unique.")
+    mcp._evidence_lane_native_route_receipt = route_receipt  # type: ignore[attr-defined]
+    return install_tool_namespace_compat(mcp)
 
 
 def run_server(

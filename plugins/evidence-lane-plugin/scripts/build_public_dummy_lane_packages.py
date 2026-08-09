@@ -11,6 +11,7 @@ source repository, candidate, or accepted pointer.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import html
 import json
@@ -23,7 +24,6 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-import fitz
 from PIL import Image
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
@@ -128,7 +128,7 @@ def _rasterize_stable_svg_png(
     *,
     browser: Path,
 ) -> None:
-    """Rasterize stable SVG bytes through deterministic PDF vector output."""
+    """Rasterize stable SVG bytes on an exact deterministic Chromium canvas."""
 
     environment = _renderer_environment(browser)
     with tempfile.TemporaryDirectory(
@@ -136,14 +136,13 @@ def _rasterize_stable_svg_png(
         ignore_cleanup_errors=True,
     ) as raw_temp:
         temporary = Path(raw_temp)
-        rendered_path = temporary / "full-lane-topology.pdf"
+        rendered_path = temporary / "full-lane-topology.png"
         html_path = temporary / "render.html"
         html_path.write_text(
             "<!doctype html><html><head><meta charset=\"utf-8\"><style>"
-            "@page{size:10in 5.625in;margin:0}"
-            "html,body{margin:0;width:10in;height:5.625in;overflow:hidden;background:#fff}"
+            "html,body{margin:0;width:7680px;height:4320px;overflow:hidden;background:#fff}"
             "body{display:flex;align-items:center;justify-content:center}"
-            "img{width:9.9in;height:5.525in;object-fit:contain}"
+            "img{width:7600px;height:4240px;object-fit:contain}"
             "</style></head><body><img alt=\"\" src=\""
             + html.escape(source_svg.resolve().as_uri(), quote=True)
             + "\"></body></html>\n",
@@ -170,9 +169,10 @@ def _rasterize_stable_svg_png(
                         "--allow-file-access-from-files",
                         "--run-all-compositor-stages-before-draw",
                         "--virtual-time-budget=1000",
+                        "--force-device-scale-factor=1",
+                        f"--window-size={PNG_SIZE[0]},{PNG_SIZE[1]}",
                         f"--user-data-dir={profile_path}",
-                        "--no-pdf-header-footer",
-                        f"--print-to-pdf={rendered_path}",
+                        f"--screenshot={rendered_path}",
                         html_path.resolve().as_uri(),
                     ],
                     check=False,
@@ -197,32 +197,105 @@ def _rasterize_stable_svg_png(
             )
         else:
             raise RuntimeError(
-                f"Full Mermaid SVG raster failed for {source_svg.name}: {last_problem}"
+                f"Full Mermaid SVG screenshot failed for {source_svg.name}: {last_problem}"
             )
-        with fitz.open(rendered_path) as document:
-            if document.page_count != 1:
+        with Image.open(rendered_path) as rendered:
+            rendered.load()
+            if rendered.size != PNG_SIZE:
                 raise RuntimeError(
-                    f"Expected one SVG proof page for {source_svg.name}, got {document.page_count}."
+                    f"Expected exact {PNG_SIZE} SVG raster, got {rendered.size}."
                 )
-            page = document[0]
-            pixmap = page.get_pixmap(
-                matrix=fitz.Matrix(
-                    PNG_SIZE[0] / page.rect.width,
-                    PNG_SIZE[1] / page.rect.height,
-                ),
-                alpha=False,
-                colorspace=fitz.csRGB,
-            )
-            if (pixmap.width, pixmap.height) != PNG_SIZE:
-                raise RuntimeError(
-                    f"Expected exact {PNG_SIZE} SVG raster, got {(pixmap.width, pixmap.height)}."
-                )
-            normalized = Image.frombytes(
-                "RGB",
-                (pixmap.width, pixmap.height),
-                pixmap.samples,
-            )
+            normalized = rendered.convert("RGB")
         normalized.save(destination, format="PNG", optimize=False, compress_level=9)
+
+
+def _public_artifact_path(url: str) -> Path:
+    """Resolve one indexed public artifact without allowing path traversal."""
+
+    prefix = "/dummy-lane-packages/"
+    if not url.startswith(prefix):
+        raise RuntimeError(f"Unexpected public artifact URL: {url!r}")
+    candidate = (PUBLIC_ROOT / url.removeprefix(prefix)).resolve()
+    public_root = PUBLIC_ROOT.resolve()
+    if candidate == public_root or public_root not in candidate.parents:
+        raise RuntimeError(f"Public artifact URL escaped its root: {url!r}")
+    return candidate
+
+
+def rerasterize_existing() -> dict[str, Any]:
+    """Replace only existing derived PNGs and their indexed provenance.
+
+    This bounded migration intentionally reuses the already-generated vector
+    artifacts. It does not rebuild lane fixtures, invoke Git, or change any
+    SQLite, MMD, DOT, receipt, or SVG bytes.
+    """
+
+    index = json.loads(INDEX_PATH.read_text(encoding="utf-8"))
+    lanes = index.get("lanes")
+    if index.get("schema") != SCHEMA or not isinstance(lanes, list):
+        raise RuntimeError("The existing public lane index has an unsupported schema.")
+    if len(lanes) != len(CANONICAL_LANE_IDS):
+        raise RuntimeError("The existing public lane index is not the canonical 18-lane set.")
+    if {lane.get("lane_id") for lane in lanes} != set(CANONICAL_LANE_IDS):
+        raise RuntimeError("The existing public lane index has unexpected lane identities.")
+
+    browser = _browser_executable()
+    staged_outputs: list[tuple[Path, Path]] = []
+    with tempfile.TemporaryDirectory(
+        prefix=".evidence-lane-reraster-",
+        dir=PUBLIC_ROOT,
+        ignore_cleanup_errors=True,
+    ) as raw_temp:
+        temporary = Path(raw_temp)
+        for lane in lanes:
+            lane_id = str(lane["lane_id"])
+            vector = lane.get("vector_render")
+            render = lane.get("render")
+            if not isinstance(vector, dict) or not isinstance(render, dict):
+                raise TypeError(f"Lane {lane_id!r} is missing indexed render metadata.")
+            source_svg = _public_artifact_path(str(vector.get("url", "")))
+            destination = _public_artifact_path(str(render.get("url", "")))
+            if not source_svg.is_file() or source_svg.suffix.lower() != ".svg":
+                raise RuntimeError(f"Lane {lane_id!r} is missing its indexed vector SVG.")
+            if destination.suffix.lower() != ".png":
+                raise RuntimeError(f"Lane {lane_id!r} has an invalid PNG destination.")
+
+            staged_png = temporary / f"{lane_id}.png"
+            _rasterize_stable_svg_png(source_svg, staged_png, browser=browser)
+            with Image.open(staged_png) as image:
+                image.load()
+                if image.size != PNG_SIZE:
+                    raise RuntimeError(
+                        f"Lane {lane_id!r} produced {image.size}, expected {PNG_SIZE}."
+                    )
+            render.update(
+                {
+                    "bytes": staged_png.stat().st_size,
+                    "height": PNG_SIZE[1],
+                    "rasterizer": "stable_svg_chromium_screenshot",
+                    "sha256": _sha256(staged_png),
+                    "width": PNG_SIZE[0],
+                }
+            )
+            staged_outputs.append((staged_png, destination))
+
+        staged_index = temporary / INDEX_PATH.name
+        staged_index.write_text(
+            json.dumps(index, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        for staged_png, destination in staged_outputs:
+            os.replace(staged_png, destination)
+        os.replace(staged_index, INDEX_PATH)
+
+    return {
+        "browser": browser.name,
+        "index": str(INDEX_PATH),
+        "lane_count": len(lanes),
+        "mode": "RERASTERIZE_EXISTING_NO_GIT",
+        "rasterizer": "stable_svg_chromium_screenshot",
+    }
 
 
 def _render_full_lane_png(
@@ -495,7 +568,7 @@ def build() -> dict[str, Any]:
             # the authoritative render, so every lane is rasterized from those
             # stable bytes on the same exact 7680 x 4320 Chromium canvas.
             _rasterize_stable_svg_png(svg_path, png_path, browser=browser)
-            rasterizer = "stable_svg_pdf_pymupdf"
+            rasterizer = "stable_svg_chromium_screenshot"
 
             expected = {
                 sqlite_path.name,
@@ -587,15 +660,32 @@ def build() -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    built = build()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--rerasterize-existing",
+        action="store_true",
+        help=(
+            "replace only the indexed 8K PNGs from existing vector SVGs; "
+            "never rebuild fixtures or invoke Git"
+        ),
+    )
+    arguments = parser.parse_args()
+    built = rerasterize_existing() if arguments.rerasterize_existing else build()
     print(
         json.dumps(
             {
                 "status": "PASS",
                 "lane_count": built["lane_count"],
-                "topology_boundary": built["topology_boundary"],
                 "index": str(INDEX_PATH),
                 "public_root": str(PUBLIC_ROOT),
+                **(
+                    {"topology_boundary": built["topology_boundary"]}
+                    if "topology_boundary" in built
+                    else {
+                        "mode": built["mode"],
+                        "rasterizer": built["rasterizer"],
+                    }
+                ),
             },
             sort_keys=True,
         )

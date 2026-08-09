@@ -107,6 +107,7 @@ def test_all_canonical_lane_dummy_packages_are_exact_and_downloadable() -> None:
         assert "<script" not in vector.casefold()
         assert "javascript:" not in vector.casefold()
         assert row["render"]["source_mmd_sha256"] == row["vector_render"]["source_mmd_sha256"]
+        assert row["render"]["rasterizer"] == "stable_svg_chromium_screenshot"
 
 
 def test_dummy_git_lane_proves_real_multi_commit_parent_history() -> None:

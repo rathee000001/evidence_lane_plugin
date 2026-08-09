@@ -35,12 +35,19 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert "runtime_key_plaintext_written = $false" in installer
     assert 'Read-Host "Tunnel ID from the OpenAI Platform tunnel page"' in installer
     assert "'^tunnel_[A-Za-z0-9]+$'" in installer
-    assert 'EVIDENCE_LANE_MCP_EXPOSURE_PROFILE = "CHATGPT_PRO_READ"' in installer
+    assert 'EVIDENCE_LANE_MCP_EXPOSURE_PROFILE = "CHATGPT_PRO_GOVERNED"' in installer
+    assert "EVIDENCE_LANE_DATA_ROOT" in installer
+    assert 'project_binding = "NONE_TRANSPORT_ONLY"' in installer
+    assert 'project_route_argument = "project_id"' in installer
+    assert "project_route_argument_required = $true" in installer
+    assert "cross_project_fallback_allowed = $false" in installer
     assert "_INTERNAL_CHATGPT_READ_MCP_DO_NOT_RUN.ps1" in installer
     assert "--control-plane-api-key-ref \"env:CONTROL_PLANE_API_KEY\"" in installer
     assert "--mcp-command $mcpCommand" in installer
     assert 'TaskName = "EvidenceLane-Tunnel-v140"' in installer
-    assert "exact_read_tool_count = 21" in installer
+    assert "exact_visible_tool_count = 62" in installer
+    assert "exact_active_read_tool_count = 21" in installer
+    assert "exact_fail_closed_write_tool_count = 41" in installer
     assert "chatgpt_link_required_once = $true" in installer
     assert "Google Drive" not in installer
     assert "GDrive" not in installer
@@ -52,9 +59,15 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert "--require-control-plane-poll" in manager
     assert "stable_binary_hash_valid" in manager
     assert "control_plane_poll_ready" in manager
-    assert "chatgpt_read_profile_configured" in manager
-    assert "exact_read_tool_count = 21" in manager
+    assert "chatgpt_governed_profile_configured" in manager
+    assert "exact_visible_tool_count = 62" in manager
+    assert "exact_active_read_tool_count = 21" in manager
+    assert "exact_fail_closed_write_tool_count = 41" in manager
     assert "runtime_key_plaintext_reported = $false" in manager
+    assert 'project_binding = "NONE_TRANSPORT_ONLY"' in manager
+    assert 'project_route_argument = "project_id"' in manager
+    assert "project_route_argument_required = $true" in manager
+    assert "cross_project_fallback_allowed = $false" in manager
     assert "if (-not $ConfirmRemoval)" in manager
     assert "EvidenceLanePV directory" in manager
     assert "installation marker" in manager
@@ -73,3 +86,24 @@ def test_all_tunnel_scripts_use_v140_runtime_names() -> None:
         text = _read(name)
         assert "evidence_lane_v140" in text
         assert "EvidenceLane-Tunnel-v140" in text or name == "EvidenceLaneTunnel.Boot.ps1"
+
+
+def test_pinned_process_identity_uses_exact_path_and_hash_not_executable_stem() -> None:
+    for name in (
+        "Install-EvidenceLaneTunnel.ps1",
+        "EvidenceLaneTunnel.Boot.ps1",
+        "Manage-EvidenceLaneTunnel.ps1",
+    ):
+        text = _read(name)
+        assert 'ProcessName -ne "tunnel-client"' not in text
+
+    installer = _read("Install-EvidenceLaneTunnel.ps1")
+    assert "Get-FileHash -LiteralPath $process.Path -Algorithm SHA256" in installer
+
+    for name in (
+        "EvidenceLaneTunnel.Boot.ps1",
+        "Manage-EvidenceLaneTunnel.ps1",
+    ):
+        text = _read(name)
+        assert "Resolve-Path -LiteralPath $process.Path" in text
+        assert "Get-FileHash -LiteralPath $processPath -Algorithm SHA256" in text

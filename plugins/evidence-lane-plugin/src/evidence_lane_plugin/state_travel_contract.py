@@ -171,6 +171,13 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
         status="BLOCKED",
         active_rows=[row["number"] for row in in_progress],
     )
+    require(
+        not normalized or len(in_progress) == 1,
+        "STATE_TRAVEL_ACTIVE_STEP_REQUIRED",
+        "A non-empty persistent task panel requires exactly one in-progress row.",
+        status="BLOCKED",
+        task_count=len(normalized),
+    )
     return normalized
 
 def normalize_additive_deltas(rows: Any) -> list[dict[str, Any]]:

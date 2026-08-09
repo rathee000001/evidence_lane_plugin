@@ -31,7 +31,7 @@ function Get-VerifiedTunnelProcess {
         return $null
     }
     $process = Get-Process -Id $parsedPid -ErrorAction SilentlyContinue
-    if ($null -eq $process -or $process.ProcessName -ne "tunnel-client") {
+    if ($null -eq $process) {
         return $null
     }
     try {
@@ -75,6 +75,11 @@ function Get-TunnelStatus {
     } else {
         ""
     }
+    $marker = if (Test-Path -LiteralPath $markerFile -PathType Leaf) {
+        Get-Content -LiteralPath $markerFile -Raw | ConvertFrom-Json
+    } else {
+        $null
+    }
     return [ordered]@{
         status = if ($ready) { "PASS" } else { "BLOCKED" }
         release = "1.4.0"
@@ -88,9 +93,16 @@ function Get-TunnelStatus {
         control_plane_poll_ready = $ready
         profile_file = $profileFile
         profile_exists = -not [string]::IsNullOrWhiteSpace($profileText)
-        chatgpt_read_profile_configured = $profileText.Contains("_INTERNAL_CHATGPT_READ_MCP_DO_NOT_RUN.ps1")
-        exposure_profile = "CHATGPT_PRO_READ"
-        exact_read_tool_count = 21
+        chatgpt_governed_profile_configured = $profileText.Contains("_INTERNAL_CHATGPT_READ_MCP_DO_NOT_RUN.ps1")
+        exposure_profile = "CHATGPT_PRO_GOVERNED"
+        data_root = if ($null -ne $marker) { [string]$marker.data_root } else { $null }
+        project_binding = "NONE_TRANSPORT_ONLY"
+        project_route_argument = "project_id"
+        project_route_argument_required = $true
+        cross_project_fallback_allowed = $false
+        exact_visible_tool_count = 62
+        exact_active_read_tool_count = 21
+        exact_fail_closed_write_tool_count = 41
         health_url_file = $healthUrlFile
         runtime_key_plaintext_reported = $false
     }

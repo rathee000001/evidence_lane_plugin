@@ -76,6 +76,17 @@ class GoalUsageReceipt:
             "cumulative_elapsed": compact_duration(self.cumulative_elapsed_seconds),
         }
 
+    def governance(self) -> dict[str, str | bool]:
+        """Declare that accounting never mutates Goal or task status."""
+
+        return {
+            "schema": "evidence-lane.goal-usage-governance.v1",
+            "purpose": "ACCOUNTING_ONLY",
+            "task_status_effect": "NONE",
+            "goal_completion_effect": "NONE",
+            "exact_counts_preserved": True,
+        }
+
 
 def build_goal_usage_receipt(
     *,

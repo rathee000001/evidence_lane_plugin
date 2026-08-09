@@ -80,8 +80,8 @@ export const businessGuide: readonly BusinessGuideEntry[] = [
   {
     id: "plan-lineage",
     title: "Plan Lane and Chat Lineage preserve direction",
-    keywords: ["plan lane", "chat lineage", "active step", "step 66", "17-step", "task list", "later steer", "delta", "full poc"],
-    answer: "Plan Lane shows the current ordered work and its decision boundaries. Chat Lineage records visible prompts, user steers, assistant output, tools, files, tests, and receipts. The sealed 80-row Delta ledger remains immutable evidence; the current 17-row projection is appended separately. Step 66 is the sole active row. Step 67 retains the carried full POC, forensic checks, and last publication execution, while step 75 is physically last as the final six-way HIL stop.",
+    keywords: ["plan lane", "chat lineage", "active row", "row 182", "111 rows", "task list", "later steer", "delta", "full poc"],
+    answer: "Plan Lane shows the current ordered work and its decision boundaries. Chat Lineage records visible prompts, user steers, assistant output, tools, files, tests, and receipts. The sealed historical rows 001–080 remain unchanged; the exact current projection continues linearly as rows 081–191. Row 182 is the sole active row. Row 190 is the final fresh POC, forensic, and publication sweep, while row 191 is physically last as the exact six-way HIL stop.",
     href: "/#delta-ledger",
   },
   {
@@ -95,7 +95,7 @@ export const businessGuide: readonly BusinessGuideEntry[] = [
     id: "hosts-storage",
     title: "Codex and ChatGPT keep separate storage realities",
     keywords: ["codex chatgpt", "host boundary", "storage boundary", "mounted storage", "durable storage", "same plugin"],
-    answer: "Codex and ChatGPT install the same Evidence Lane plugin package without pretending they share one filesystem or authority. The stable product name is Evidence Lane; 1.4 is version metadata. Codex operates the full repository lifecycle from exact Git source. ChatGPT Pro shows all 15 packaged skill entries and uses a registered 21-tool read profile for accepted-PV facts, ENV/UOP status, Entry/Exit slips, evidence search, and governed panels. Boot can verify an already active runtime through read-safe Flash and status checks; any skill path that requires a lifecycle write fails closed. ChatGPT's native project memory can still append through its own ENV/UOP and Project Mutation law, but the MCP does not perform or claim that mutation.",
+    answer: "Codex and ChatGPT install the same Evidence Lane plugin package without pretending they share one filesystem or authority. The stable product name is Evidence Lane; 1.4 is version metadata. Codex operates the full repository lifecycle from exact Git source. ChatGPT Pro shows all 15 packaged skill entries and exposes the complete 62-action catalog: 21 accepted-PV, ENV/UOP, Entry/Exit, evidence search, and panel operations execute as reads; 41 lifecycle-write actions remain visible but return an explicit no-mutation refusal before service invocation. Boot verifies an already active runtime through read-safe Flash and status checks. ChatGPT's native project memory can still append through its own ENV/UOP and Project Mutation law, but the MCP does not perform or claim that mutation.",
     href: "/connect",
   },
   {
@@ -146,13 +146,6 @@ export const businessGuide: readonly BusinessGuideEntry[] = [
     keywords: ["release", "publish", "github", "website", "devpost", "merge main", "version 1.4"],
     answer: "The 1.4 release first aligns the plugin, runtime, packages, documentation, website, tests, and sealed candidate identity. The carried full POC then reconciles the complete Delta ledger and proves real-Git history, GitHub-agent behavior, lane-absence cases, security, and source identity. Only after fresh acceptance can the exact commit merge to main and propagate through GitHub Markdown, every relevant website page and footer, the website Delta table, the complete Vercel production site, and the existing Devpost project 1348634/evidence_os through its separate publication lane.",
     href: "/proof",
-  },
-  {
-    id: "creative",
-    title: "Adobe Express is the bounded creative route",
-    keywords: ["adobe express", "creative route", "release visual", "design graphic", "account connection", "meshy", "three js", "webgl"],
-    answer: "Adobe Express is an optional official route for release graphics, social cards, and other two-dimensional campaign material. Evidence Lane does not request, store, or broker Adobe credentials and does not create an account connection. Meshy, Meshy account linkage, generated GLB product assets, and a 3D-production dependency are excluded. The native Three.js/WebGL website presentation remains part of the existing site and must not be removed merely because Meshy is excluded.",
-    href: "https://www.adobe.com/express/",
   },
 ] as const;
 

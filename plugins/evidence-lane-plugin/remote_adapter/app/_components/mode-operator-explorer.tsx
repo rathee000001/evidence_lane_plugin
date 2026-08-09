@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useState, type KeyboardEvent } from "react";
 
 import {
   GlassIconOrb,
@@ -98,8 +98,6 @@ const modeIdentity: Record<string, { color: string; icon: OfficialToolIconName }
   X: { color: "#b6a0ff", icon: "node" },
 };
 
-const operatorFamilyOrder = ["PHYSICS", "CHEMISTRY", "MATHS", "MBA", "SUPPLY"] as const;
-
 function nextModeIndex(
   event: KeyboardEvent<HTMLButtonElement>,
   index: number,
@@ -121,11 +119,6 @@ export function ModeOperatorExplorer({ data }: { data: OperatorGuide }) {
   const [origin, setOrigin] = useState<SelectionOrigin>("plugin");
   const active = data.modes.find((mode) => mode.id === activeId) ?? data.modes[0];
   const contract = active.variants[origin];
-  const familyCounts = new Map(operatorFamilyOrder.map((family) => [
-    family,
-    contract.operators.filter((operator) => operator.family === family).length,
-  ]));
-
   return (
     <div className="operatorExplorer">
       <header className="operatorExplorerHeader">
@@ -238,27 +231,6 @@ export function ModeOperatorExplorer({ data }: { data: OperatorGuide }) {
         <div className="operatorLaneStrip" aria-label="Routed Evidence Lanes">
           {active.routed_lanes.map((lane) => <span key={lane}>{lane}</span>)}
         </div>
-
-        <figure className="operatorFamilyOrbit" aria-label="Ordered operator families: PHYSICS, CHEMISTRY, MATHS, MBA, SUPPLY">
-          <div className="operatorFamilyOrbitStage" aria-hidden="true">
-            {operatorFamilyOrder.map((family, index) => (
-              <div
-                className={`operatorFamilyRing family${index + 1}${familyCounts.get(family) ? " is-loaded" : ""}`}
-                key={family}
-                style={{ "--family-index": index } as CSSProperties}
-              >
-                <span>{String(index + 1).padStart(2, "0")} · {family}</span>
-                <i>{familyCounts.get(family) ?? 0}</i>
-              </div>
-            ))}
-            <div className="operatorFamilyCore"><small>{active.runtime_mode_id}</small><strong>{active.name}</strong><span>mode law</span></div>
-          </div>
-          <figcaption>
-            <strong>Ordered operator families</strong>
-            <span>PHYSICS → CHEMISTRY → MATHS → MBA → SUPPLY</span>
-            <p>A ring lights only when the selected mode loads operators from that family. Order is stable across plugin-selected and prompt-inferred modes.</p>
-          </figcaption>
-        </figure>
 
         <section className="operatorRoster">
           <div className="operatorSectionHead">

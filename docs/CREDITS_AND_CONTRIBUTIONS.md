@@ -23,6 +23,9 @@ source changes, or receive copyright authorship.
 
 Third-party names are used only to describe provenance. Their software,
 services, licenses, and trademarks remain governed by their respective owners.
+The dated [direct dependency license audit](DEPENDENCY_LICENSE_AUDIT.md) records
+the exact pinned direct-package findings, the pypdfium2/PDFium notice boundary,
+and the transitive/SBOM review still required before publication.
 
 ## Public upstream references
 

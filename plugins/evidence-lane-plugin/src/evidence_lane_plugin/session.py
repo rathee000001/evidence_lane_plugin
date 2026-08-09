@@ -417,6 +417,7 @@ class SessionManager:
             client_can_edit_source,
         )
         runtime_continuity = build_runtime_continuity(
+            project_id=project_id,
             host=host_kind,
             host_session_id=exact_host_session_id,
             ephemeral=ephemeral,
@@ -742,6 +743,7 @@ class SessionManager:
             )
         session.metadata["persistence_mode"] = persistence_mode
         runtime_continuity = build_runtime_continuity(
+            project_id=project_id,
             host=host_kind,
             host_session_id=exact_host_session_id,
             ephemeral=ephemeral,
@@ -2511,8 +2513,11 @@ class SessionManager:
         )
         default_prompt = (
             f"Resume Evidence Lane project {project_id} at step {resume_step}: "
-            f"{resume_row['step']} Preserve the full task panel and all additive "
-            "Deltas; continue as sole writer until the next six-way HIL."
+            f"{resume_row['step']} Re-project the exact complete task panel as the "
+            "first destination action, preserve every status, description, order, "
+            "and additive Delta, and keep it visible as sole writer through every "
+            "pause and HIL until the physically final six-way HIL is decided and "
+            "all decision-dependent work is complete."
             if resume_row
             else (
                 f"Open Evidence Lane project {project_id} at its exact accepted "
@@ -2525,6 +2530,92 @@ class SessionManager:
             if isinstance(supplied_prompt, str) and supplied_prompt.strip()
             else default_prompt
         )
+        task_list_sha256 = sha256_bytes(canonical_json_bytes(task_list))
+        panel_reactivation = {
+            "schema": "evidence-lane.persistent-panel-reactivation.v1",
+            "required": bool(task_list),
+            "triggers": [
+                "TOKEN_DRIVEN_CONTINUATION",
+                "STALLED_GOAL",
+                "CONTEXT_COMPACTION",
+                "BROWSER_RESTART",
+                "CODEX_RESTART",
+                "SESSION_CONTINUATION",
+                "SESSION_RESUME",
+                "STATE_TRAVEL_DESTINATION_ENTRY",
+            ],
+            "first_required_action": (
+                "REPROJECT_EXACT_COMPLETE_TASK_LIST"
+                if task_list
+                else "NO_TASK_PANEL_PRESENT"
+            ),
+            "must_precede": [
+                "SOURCE_INSPECTION",
+                "SOURCE_MUTATION",
+                "TESTING",
+                "GIT_ACTIVITY",
+                "LIFECYCLE_CALL",
+            ],
+            "task_list_sha256": task_list_sha256,
+            "active_row": active_rows[0]["number"] if active_rows else None,
+            "non_empty_task_list_requires_exactly_one_in_progress": True,
+            "preserve_order_and_row_count": True,
+            "preserve_completed_and_pending_descriptions_unabridged": True,
+            "visible_through_pause_and_hil": True,
+            "drop_allowed_when": (
+                "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_"
+                "DECISION_DEPENDENT_WORK_COMPLETE"
+            ),
+        }
+        execution_writer_boundary = {
+            "schema": "evidence-lane.execution-writer-boundary.v1",
+            "project_policy": "ONE_GOVERNED_PROJECT",
+            "writer_policy": "ONE_LIVE_WRITER",
+            "execution_order": "LINEAR",
+            "verification_order": "EVIDENCE_FIRST",
+            "execution_profile": execution_profile,
+            "execution_profile_change_authority": "EXPLICIT_USER_CHANGE_ONLY",
+            "entry_recovery_agents": (
+                "READ_ONLY_ONLY_AT_GENUINE_STATE_TRAVEL_ENTRY"
+            ),
+            "later_subagents": "EXPLICIT_USER_COMMAND_ONLY",
+            "alternate_checkout_writer": (
+                "FORBIDDEN_UNLESS_EXPLICIT_USER_CHANGE"
+            ),
+            "background_mutation": "FORBIDDEN_UNLESS_EXPLICIT_USER_CHANGE",
+            "browser_profile": (
+                "ONE_USER_SELECTED_PROFILE_ONLY_UNLESS_EXPLICIT_USER_CHANGE"
+            ),
+        }
+        goal_continuity = {
+            "schema": "evidence-lane.goal-continuity.v1",
+            "project_id": project_id,
+            "session_id": session.session_id,
+            "plan_authority": "SAME_CANONICAL_PLAN_LANE",
+            "source_boundary": "SAME_ACTIVE_SOURCE_BOUNDARY",
+            "writer_session": "SAME_SINGLE_WRITER_SESSION",
+            "task_list_sha256": task_list_sha256,
+            "active_row": active_rows[0]["number"] if active_rows else None,
+            "pause_triggers": [
+                "UI_CRASH",
+                "TOKEN_WAIT",
+                "REQUIRED_USER_INPUT",
+                "HIL_WAIT",
+            ],
+            "pause_effect": "PAUSE_DEPENDENT_WORK_ONLY",
+            "goal_completion_effect_while_waiting": "FORBIDDEN",
+            "usage_reporting_task_status_effect": "NONE",
+            "reconstruction_requires": [
+                "ALL_COMPLETED_BUT_STILL_GOVERNING_ROWS",
+                "EXACTLY_ONE_ACTIVE_ROW_WHEN_PANEL_PRESENT",
+                "ALL_PENDING_ROWS",
+            ],
+            "completed_governing_rows_may_be_omitted": False,
+            "goal_completion_allowed_when": (
+                "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_"
+                "DECISION_DEPENDENT_WORK_COMPLETE"
+            ),
+        }
         body = {
             "schema": "evidence-lane.state-travel-resume-contract.v1",
             "project_id": project_id,
@@ -2532,7 +2623,7 @@ class SessionManager:
             "plan_authority": "PLAN_LANE",
             "task_list_source": task_list_source,
             "task_list": task_list,
-            "task_list_sha256": sha256_bytes(canonical_json_bytes(task_list)),
+            "task_list_sha256": task_list_sha256,
             "resume_step": resume_step,
             "additive_deltas": additive_deltas,
             "additive_deltas_sha256": sha256_bytes(
@@ -2541,15 +2632,32 @@ class SessionManager:
             "steer_default_boundary": "BEFORE_NEXT_HIL",
             "linked_steer_policy": "APPEND_TO_EXISTING_STEP_WITHOUT_REPLACEMENT",
             "unlinked_steer_policy": "APPEND_NEW_STEP_AND_INCREASE_COUNT",
-            "task_panel_persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
+            "panel_reactivation": panel_reactivation,
+            "task_panel_persistent_until": (
+                "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_"
+                "DECISION_DEPENDENT_WORK_COMPLETE"
+            ),
             "execution_profile": execution_profile,
             "execution_profile_match_required": bool(execution_profile),
             "host_settings_mutation_supported": False,
             "host_profile_application": "HOST_MEDIATED_EXACT_MATCH_REQUIRED",
+            "execution_writer_boundary": execution_writer_boundary,
+            "goal_continuity": goal_continuity,
             "collaboration_law": {
                 "writer_policy": "SOLE_WRITER",
-                "entry_recovery_subagents": "READ_ONLY_ONLY",
+                "entry_recovery_subagents": (
+                    "READ_ONLY_ONLY_AT_GENUINE_STATE_TRAVEL_ENTRY"
+                ),
                 "later_subagents": "EXPLICIT_USER_COMMAND_ONLY",
+                "alternate_checkout_writer": (
+                    "FORBIDDEN_UNLESS_EXPLICIT_USER_CHANGE"
+                ),
+                "background_mutation": (
+                    "FORBIDDEN_UNLESS_EXPLICIT_USER_CHANGE"
+                ),
+                "browser_profile": (
+                    "ONE_USER_SELECTED_PROFILE_ONLY_UNLESS_EXPLICIT_USER_CHANGE"
+                ),
             },
             "host_universe": (
                 {
@@ -2830,25 +2938,68 @@ class SessionManager:
         }
         verified_snapshot_sha256 = sha256_bytes(canonical_json_bytes(snapshot_body))
         existing = session.metadata.get("state_travel")
+        superseded_prepared: dict[str, Any] | None = None
+        supersession_disposition: dict[str, Any] | None = None
         if isinstance(existing, dict) and existing.get("status") == "PREPARED":
-            require(
-                existing.get("verified_snapshot_sha256")
-                == verified_snapshot_sha256,
-                "STATE_TRAVEL_PREPARED_CONTRACT_MISMATCH",
-                "A different State Travel handoff is already prepared. Consume the "
-                "exact receipt or explicitly resolve it before preparing another.",
-                status="MISMATCH",
-            )
-            existing_contract = cast(dict[str, Any], existing["next_action_contract"])
-            return {
-                "status": "PASS",
-                "state_travel": existing,
-                "idempotent_reuse": True,
-                "host_window_opened": False,
-                "next_action": existing["next_action"],
-                "suggested_next_prompt": existing_contract["suggested_next_prompt"],
-                "next_action_contract": existing_contract,
-            }
+            if existing.get("verified_snapshot_sha256") != verified_snapshot_sha256:
+                supplied = resume_contract or {}
+                supersede_handoff_id = str(
+                    supplied.get("supersede_prepared_handoff_id") or ""
+                )
+                supersede_reason = str(
+                    supplied.get("supersede_prepared_reason") or ""
+                )
+                require(
+                    supersede_handoff_id == str(existing.get("handoff_id") or "")
+                    and supersede_reason == "EXPLICIT_USER_CORRECTION",
+                    "STATE_TRAVEL_PREPARED_CONTRACT_MISMATCH",
+                    "A different State Travel handoff is already prepared. Consume the "
+                    "exact receipt or explicitly resolve it before preparing another.",
+                    status="MISMATCH",
+                )
+                current_host_session_id = str(
+                    session.metadata.get("current_host_session_id") or ""
+                )
+                origin_host_session_id = str(
+                    existing.get("origin_host_session_id") or ""
+                )
+                require(
+                    bool(current_host_session_id)
+                    and current_host_session_id == origin_host_session_id,
+                    "STATE_TRAVEL_PREPARED_SUPERSESSION_HOST_MISMATCH",
+                    "A prepared handoff may be replaced only by an explicit user "
+                    "correction in the unchanged origin host session.",
+                    status="BLOCKED",
+                    current_host_session_id=current_host_session_id or None,
+                    origin_host_session_id=origin_host_session_id or None,
+                )
+                superseded_prepared = dict(existing)
+                supersession_disposition = {
+                    "schema": "evidence-lane.state-travel-disposition.v1",
+                    "status": "SUPERSEDED_BY_SAME_HOST_USER_CORRECTION",
+                    "handoff_id": existing.get("handoff_id"),
+                    "handoff_sha256": existing.get("handoff_sha256"),
+                    "supersede_reason": supersede_reason,
+                    "host_session_id": current_host_session_id,
+                    "pointer_moved": False,
+                    "state_travel_consumed": False,
+                    "superseded_at": utc_now(),
+                }
+            else:
+                existing_contract = cast(
+                    dict[str, Any], existing["next_action_contract"]
+                )
+                return {
+                    "status": "PASS",
+                    "state_travel": existing,
+                    "idempotent_reuse": True,
+                    "host_window_opened": False,
+                    "next_action": existing["next_action"],
+                    "suggested_next_prompt": existing_contract[
+                        "suggested_next_prompt"
+                    ],
+                    "next_action_contract": existing_contract,
+                }
         target_surface, next_action = self._state_travel_target(session)
         receipt: dict[str, Any] = {
             "schema": "evidence-lane.state-travel.v2",
@@ -2890,6 +3041,13 @@ class SessionManager:
                 command="/evi-state-travel",
                 suggested_next_prompt="/evi-state-travel",
                 target_surface=target_surface,
+                task_panel_reactivation=exact_resume_contract.get(
+                    "panel_reactivation"
+                ),
+                execution_writer_boundary=exact_resume_contract.get(
+                    "execution_writer_boundary"
+                ),
+                goal_continuity=exact_resume_contract.get("goal_continuity"),
             ),
             "host_window_opened": False,
             "host_window_opening_is_host_mediated": True,
@@ -2902,10 +3060,25 @@ class SessionManager:
             ),
             "prepared_at": utc_now(),
         }
+        if supersession_disposition is not None:
+            receipt["supersedes_prepared_handoff"] = supersession_disposition
         receipt["handoff_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
+        if superseded_prepared is not None:
+            session.metadata.setdefault("state_travel_history", []).append(
+                superseded_prepared
+            )
         session.metadata["state_travel"] = receipt
         self._save(session)
-        event = ChatLineage(self._lineage_path(project_id, session_id)).append(
+        lineage = ChatLineage(self._lineage_path(project_id, session_id))
+        supersession_event = None
+        if supersession_disposition is not None:
+            supersession_event = lineage.append(
+                event_type="pv.state_travel.superseded_same_host_user_correction",
+                visible_payload=supersession_disposition,
+                occurred_at=supersession_disposition["superseded_at"],
+                session_id=session_id,
+            )
+        event = lineage.append(
             event_type="pv.state_travel.prepared",
             visible_payload=receipt,
             occurred_at=receipt["prepared_at"],
@@ -2922,6 +3095,7 @@ class SessionManager:
             ],
             "next_action_contract": receipt["next_action_contract"],
             "event": event,
+            "supersession_event": supersession_event,
         }
 
     def complete_state_travel(
@@ -3074,6 +3248,11 @@ class SessionManager:
                     "/evi-build to inspect governed status."
                 ),
                 target_surface=str(travel.get("target_surface")),
+                task_panel_reactivation=resume_contract.get("panel_reactivation"),
+                execution_writer_boundary=resume_contract.get(
+                    "execution_writer_boundary"
+                ),
+                goal_continuity=resume_contract.get("goal_continuity"),
             )
             continuation_ready = False
         elif travel_mode == "ACCEPTED_ENTRY":
@@ -3091,6 +3270,11 @@ class SessionManager:
                 command="USER_SELECTS_ACCEPTED_CONTEXT_ACTION",
                 suggested_next_prompt=str(resume_contract["suggested_next_prompt"]),
                 target_surface=str(travel.get("target_surface")),
+                task_panel_reactivation=resume_contract.get("panel_reactivation"),
+                execution_writer_boundary=resume_contract.get(
+                    "execution_writer_boundary"
+                ),
+                goal_continuity=resume_contract.get("goal_continuity"),
             )
             continuation_ready = False
         else:
@@ -3114,6 +3298,11 @@ class SessionManager:
                 target_surface=str(travel.get("target_surface")),
                 display_position="AFTER_STATE_TRAVEL_VERIFICATION",
                 stop_and_wait=False,
+                task_panel_reactivation=resume_contract.get("panel_reactivation"),
+                execution_writer_boundary=resume_contract.get(
+                    "execution_writer_boundary"
+                ),
+                goal_continuity=resume_contract.get("goal_continuity"),
             )
             continuation_ready = True
 

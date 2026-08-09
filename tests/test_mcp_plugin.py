@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -19,12 +20,19 @@ from evidence_lane_plugin.mcp_apps import (
     governed_panel_html,
 )
 from evidence_lane_plugin.mcp_server import (
+    CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
+    CHATGPT_PRO_GOVERNED_TOOL_COUNT,
     CHATGPT_PRO_READ_EXPOSURE_PROFILE,
     CHATGPT_PRO_READ_TOOL_NAMES,
+    NATIVE_MCP_SERVER_IDENTITY,
+    NATIVE_MCP_TOOL_NAMESPACE,
     create_mcp_server,
     run_server,
 )
-from evidence_lane_plugin.mcp_stdio_compat import _discovery_fallback
+from evidence_lane_plugin.mcp_stdio_compat import (
+    _discovery_fallback,
+    _rewrite_namespaced_tool_calls,
+)
 from evidence_lane_plugin.service import EvidenceLaneService
 from mcp.client.session import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
@@ -141,19 +149,21 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         assert tool.inputSchema["type"] == "object"
 
 
-def test_chatgpt_pro_profile_is_exact_read_only_business_surface(
+def test_chatgpt_pro_profile_exposes_all_actions_and_blocks_every_write(
     tmp_path: Path,
 ) -> None:
+    service = EvidenceLaneService(data_root=tmp_path / "chatgpt-pro-store")
     server = create_mcp_server(
-        service=EvidenceLaneService(data_root=tmp_path / "chatgpt-pro-store"),
-        exposure_profile=CHATGPT_PRO_READ_EXPOSURE_PROFILE,
+        service=service,
+        exposure_profile=CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
     )
     tools = asyncio.run(server.list_tools())
     names = tuple(sorted(tool.name for tool in tools))
-    assert names == tuple(sorted(CHATGPT_PRO_READ_TOOL_NAMES))
-    assert len(names) == 21
-    assert all(tool.annotations.readOnlyHint is True for tool in tools)
-    for forbidden in (
+    assert len(names) == CHATGPT_PRO_GOVERNED_TOOL_COUNT == 62
+    assert set(CHATGPT_PRO_READ_TOOL_NAMES).issubset(names)
+    assert sum(tool.annotations.readOnlyHint is True for tool in tools) == 21
+    assert sum(tool.annotations.readOnlyHint is False for tool in tools) == 41
+    for visible_but_blocked in (
         "pv_build_initial",
         "pv_refresh",
         "pv_fuse",
@@ -163,10 +173,42 @@ def test_chatgpt_pro_profile_is_exact_read_only_business_surface(
         "connector_plugin_register",
         "storage_connector_select",
     ):
-        assert forbidden not in names
-    assert server._evidence_lane_exposure_profile == "CHATGPT_PRO_READ"  # type: ignore[attr-defined]
+        assert visible_but_blocked in names
+    blocked_tool = next(
+        tool for tool in server._tool_manager.list_tools()  # type: ignore[attr-defined]
+        if tool.name == "pv_build_initial"
+    )
+    blocked = blocked_tool.fn(project_id="unregistered", session_id="none")
+    assert blocked == {
+        "schema": "evidence-lane.chatgpt-pro-unavailable-action.v1",
+        "status": "UNAVAILABLE_ON_CHATGPT_PRO",
+        "requested_tool": "pv_build_initial",
+        "exposure_profile": "CHATGPT_PRO_GOVERNED",
+        "lifecycle_effect": "NONE",
+        "mutation_performed": False,
+        "pointer_moved": False,
+        "simulated": False,
+        "visible_controls": [
+            "Boot",
+            "Rollback",
+            "Build",
+            "Refresh",
+            "Mode",
+            "Source Intake",
+        ],
+        "reason": (
+            "The ChatGPT Pro connection exposes this governed action for "
+            "discoverability but does not have lifecycle-write authority."
+        ),
+        "required_host": (
+            "CODEX_FULL_LIFECYCLE_OR_OTHER_EXPLICITLY_WRITE_CAPABLE_HOST"
+        ),
+    }
+    assert server._evidence_lane_exposure_profile == "CHATGPT_PRO_GOVERNED"  # type: ignore[attr-defined]
     instructions = server._mcp_server.instructions
-    assert "registered MCP connection is the read-only half" in instructions
+    assert "complete Evidence Lane action catalog" in instructions
+    assert "Exactly twenty-one read operations execute" in instructions
+    assert "UNAVAILABLE_ON_CHATGPT_PRO" in instructions
     assert "whole product instead of turning the conversation into a code review" in (
         instructions
     )
@@ -181,12 +223,24 @@ def test_chatgpt_pro_profile_is_exact_read_only_business_surface(
 def test_chatgpt_pro_profile_rejects_a_conflicting_manual_allowlist(
     tmp_path: Path,
 ) -> None:
-    with pytest.raises(RuntimeError, match="exact governed read-tool inventory"):
+    with pytest.raises(RuntimeError, match="complete registered tool inventory"):
         create_mcp_server(
             service=EvidenceLaneService(data_root=tmp_path / "conflict-store"),
-            exposure_profile=CHATGPT_PRO_READ_EXPOSURE_PROFILE,
+            exposure_profile=CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
             allowed_tool_names='["runtime_doctor"]',
         )
+
+
+def test_legacy_chatgpt_read_profile_aliases_to_governed_visible_surface(
+    tmp_path: Path,
+) -> None:
+    server = create_mcp_server(
+        service=EvidenceLaneService(data_root=tmp_path / "legacy-alias-store"),
+        exposure_profile=CHATGPT_PRO_READ_EXPOSURE_PROFILE,
+    )
+    tools = asyncio.run(server.list_tools())
+    assert len(tools) == CHATGPT_PRO_GOVERNED_TOOL_COUNT
+    assert server._evidence_lane_exposure_profile == "CHATGPT_PRO_GOVERNED"  # type: ignore[attr-defined]
 
 
 def test_modern_discovery_probe_receives_exact_legacy_fallback() -> None:
@@ -208,6 +262,196 @@ def test_modern_discovery_probe_receives_exact_legacy_fallback() -> None:
     assert response.error.code == -32601
     assert response.error.message == "Method not found"
     assert _discovery_fallback('{"jsonrpc":"2.0","id":1,"method":"tools/list"}') is None
+
+
+def test_all_registered_tools_accept_generated_evidence_lane_namespaces(
+    tmp_path: Path,
+) -> None:
+    server = create_mcp_server(
+        service=EvidenceLaneService(data_root=tmp_path / "namespace-store")
+    )
+    tools = asyncio.run(server.list_tools())
+    canonical_names = frozenset(tool.name for tool in tools)
+    assert len(canonical_names) == CHATGPT_PRO_GOVERNED_TOOL_COUNT == 62
+
+    for namespace in (
+        "evidence_lane",
+        "evidence_lane_7fb71d7f",
+        "evidence_lane_f1c20919f536",
+    ):
+        for canonical_name in canonical_names:
+            assert server._tool_manager.get_tool(  # type: ignore[attr-defined]
+                f"{namespace}.{canonical_name}"
+            ) is server._tool_manager.get_tool(canonical_name)  # type: ignore[attr-defined]
+            request = json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": f"{namespace}:{canonical_name}",
+                    "method": "tools/call",
+                    "params": {
+                        "name": f"{namespace}.{canonical_name}",
+                        "arguments": {},
+                    },
+                }
+            )
+            rewritten = json.loads(
+                _rewrite_namespaced_tool_calls(request, canonical_names)
+            )
+            assert rewritten["params"]["name"] == canonical_name
+            assert rewritten["params"]["arguments"] == {}
+
+    bare_request = json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "id": "bare",
+            "method": "tools/call",
+            "params": {"name": "runtime_doctor", "arguments": {}},
+        }
+    )
+    assert (
+        _rewrite_namespaced_tool_calls(bare_request, canonical_names)
+        == bare_request
+    )
+
+    for rejected_name in (
+        "codex_apps.runtime_doctor",
+        "google_drive.runtime_doctor",
+        "plugin_runtime.runtime_doctor",
+        "evidence_lane_chatgpt_read_only.runtime_doctor",
+        "evidence_lane_v1_2_hil.runtime_doctor",
+        "evidence_lane.not_a_registered_tool",
+        "evidence_lane_7fb71d7f.not_a_registered_tool",
+        "arbitrary_namespace.render_project_panel",
+    ):
+        assert server._tool_manager.get_tool(rejected_name) is None  # type: ignore[attr-defined]
+        request = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": rejected_name,
+                "method": "tools/call",
+                "params": {"name": rejected_name, "arguments": {}},
+            }
+        )
+        assert _rewrite_namespaced_tool_calls(request, canonical_names) == request
+
+
+def test_native_route_receipt_seals_the_exact_unique_catalog(tmp_path: Path) -> None:
+    server = create_mcp_server(
+        service=EvidenceLaneService(data_root=tmp_path / "native-route-store")
+    )
+    canonical_names = frozenset(
+        tool.name for tool in asyncio.run(server.list_tools())
+    )
+    receipt = server._evidence_lane_native_route_receipt  # type: ignore[attr-defined]
+    assert receipt["status"] == "PASS"
+    assert receipt["server_identity"] == NATIVE_MCP_SERVER_IDENTITY == "evidence-lane"
+    assert receipt["canonical_tool_namespace"] == NATIVE_MCP_TOOL_NAMESPACE
+    assert receipt["tool_count"] == CHATGPT_PRO_GOVERNED_TOOL_COUNT == 62
+    assert receipt["tool_names_unique"] is True
+    assert receipt["runtime_global_tool_count"] == 6
+    assert receipt["project_scoped_tool_count"] == 56
+    assert receipt["project_route_argument"] == "project_id"
+    assert receipt["project_route_argument_required"] is True
+    assert receipt["project_route_schema_status"] == "PASS"
+    assert receipt["project_scoped_tools_missing_project_id"] == []
+    assert receipt["transport_project_binding"] == "NONE_TRANSPORT_ONLY"
+    assert receipt["cross_project_fallback_allowed"] is False
+    assert receipt["surface_placement"] == {
+        "codex": "NATIVE_PLUGIN_FULL_LIFECYCLE_ONLY",
+        "chatgpt": "BROWSER_PLUGIN_CONNECTOR_OR_PRIVATE_DEV_TUNNEL_ONLY",
+        "chatgpt_connector_inside_codex_allowed": False,
+    }
+    assert re.fullmatch(r"[0-9A-F]{64}", receipt["tool_catalog_sha256"])
+    assert receipt["mcp_apps_resource_uri"] == GOVERNED_PANEL_URI
+    assert receipt["host_display_namespace_is_authority"] is False
+    assert receipt["catalog_reload_required_after_package_change"] is True
+    assert "chatgpt_connector" in receipt["rejected_lifecycle_surfaces"]
+
+    doctor_tool = server._tool_manager.get_tool("runtime_doctor")  # type: ignore[attr-defined]
+    assert doctor_tool is not None
+    doctor = doctor_tool.fn()
+    assert doctor["status"] == "PASS"
+    assert doctor["data"]["mcp_route_identity"] == receipt
+    assert doctor["data"]["store_routing"]["status"] == "PASS"
+    assert doctor["data"]["store_routing"]["registered_project_count"] == 0
+
+    batch = json.dumps(
+        [
+            {
+                "jsonrpc": "2.0",
+                "id": "one",
+                "method": "tools/call",
+                "params": {
+                    "name": "evidence_lane.runtime_doctor",
+                    "arguments": {},
+                },
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "two",
+                "method": "tools/call",
+                "params": {
+                    "name": "evidence_lane_7fb71d7f.pv_status",
+                    "arguments": {"project_id": "example"},
+                },
+            },
+        ]
+    )
+    rewritten_batch = json.loads(
+        _rewrite_namespaced_tool_calls(batch, canonical_names)
+    )
+    assert [item["params"]["name"] for item in rewritten_batch] == [
+        "runtime_doctor",
+        "pv_status",
+    ]
+
+
+def test_packaged_skill_tool_references_match_live_canonical_catalog(
+    tmp_path: Path,
+) -> None:
+    root = Path(__file__).resolve().parents[1]
+    plugin = root / "plugins" / "evidence-lane-plugin"
+    server = create_mcp_server(
+        service=EvidenceLaneService(data_root=tmp_path / "skill-catalog-store")
+    )
+    canonical_names = frozenset(
+        tool.name for tool in asyncio.run(server.list_tools())
+    )
+    assert len(canonical_names) == CHATGPT_PRO_GOVERNED_TOOL_COUNT == 62
+    tool_families = frozenset(name.partition("_")[0] for name in canonical_names)
+    skill_paths = sorted((plugin / "skills").glob("*/SKILL.md"))
+    command_paths = sorted((plugin / "commands").glob("*.md"))
+    contract_paths = [*skill_paths, *command_paths]
+    assert len(skill_paths) == 15
+    assert [path.name for path in command_paths] == ["evi-plan.md"]
+
+    referenced_tools: set[str] = set()
+    for path in contract_paths:
+        content = path.read_text(encoding="utf-8")
+        assert re.search(
+            r"evidence_lane(?:_[a-z0-9]+)*\.[a-z][a-z0-9_]+",
+            content,
+        ) is None, path
+        identifiers = re.findall(r"`([a-z][a-z0-9_]+)`", content)
+        for identifier in identifiers:
+            if identifier.partition("_")[0] not in tool_families:
+                continue
+            assert identifier in canonical_names, (path, identifier)
+            referenced_tools.add(identifier)
+
+    assert {
+        "runtime_doctor",
+        "session_flash_status",
+        "runtime_activation_status",
+        "render_runtime_panel",
+        "render_project_panel",
+        "pv_status",
+        "storage_connector_inspect",
+        "storage_connector_select",
+        "pv_state_travel_prepare",
+        "pv_state_travel_resume",
+        "pv_fuse",
+    }.issubset(referenced_tools)
 
 
 def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
@@ -424,7 +668,8 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert manifest["interface"]["displayName"] == "Evidence Lane"
     assert manifest["author"]["name"] == "Praveen Rathee"
     assert manifest["repository"].endswith("/evidence_lane_plugin")
-    assert manifest["apps"] == "./.app.json"
+    assert "apps" not in manifest
+    assert manifest["mcpServers"] == "./.mcp.json"
     assert manifest["interface"]["logo"] == "./assets/evidence-lane-icon.png"
     assert manifest["interface"]["composerIcon"] == ("./assets/evidence-lane-icon.png")
     compact_icon = plugin / "assets" / "evidence-lane-icon.png"
@@ -446,18 +691,7 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert '"decision"' not in stop_source
     assert '"continue": True' in stop_source
     app_manifest = json.loads((plugin / ".app.json").read_text(encoding="utf-8"))
-    assert app_manifest == {
-        "apps": {
-            "evidence-lane": {
-                "id": "asdk_app_6a7743d238e48191be8b69c87fb71d7f",
-                "category": "Governed ChatGPT MCP read connection",
-            },
-            "google-drive": {
-                "id": "connector_5f3c8c41a1e54ad7a76272c89e2554fa",
-                "category": "Optional sealed-artifact mirror",
-            }
-        }
-    }
+    assert app_manifest == {"apps": {}}
     marketplace = json.loads(
         (root / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8")
     )
@@ -1145,6 +1379,12 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
             result = await session.call_tool("runtime_doctor", {})
             assert result.isError is False
             assert result.structuredContent["status"] == "PASS"
+            namespaced = await session.call_tool(
+                "evidence_lane_f1c20919f536.runtime_doctor",
+                {},
+            )
+            assert namespaced.isError is False
+            assert namespaced.structuredContent["status"] == "PASS"
 
     # A genuinely clean Git/cache snapshot may need the governed, hash-locked
     # plugin-local bootstrap before stdio becomes ready. The shipped MCP
@@ -1152,7 +1392,7 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
     asyncio.run(asyncio.wait_for(exercise(), timeout=900))
 
 
-def test_real_stdio_chatgpt_pro_profile_has_exact_version_and_read_inventory(
+def test_real_stdio_chatgpt_pro_profile_has_complete_visible_inventory(
     tmp_path: Path,
 ) -> None:
     root = Path(__file__).resolve().parents[1]
@@ -1161,7 +1401,9 @@ def test_real_stdio_chatgpt_pro_profile_has_exact_version_and_read_inventory(
     async def exercise() -> None:
         environment = os.environ.copy()
         environment["EVIDENCE_LANE_DATA_ROOT"] = str(tmp_path / "chatgpt-stdio-store")
-        environment["EVIDENCE_LANE_MCP_EXPOSURE_PROFILE"] = "CHATGPT_PRO_READ"
+        environment["EVIDENCE_LANE_MCP_EXPOSURE_PROFILE"] = (
+            "CHATGPT_PRO_GOVERNED"
+        )
         parameters = StdioServerParameters(
             command=sys.executable,
             args=[str(runner), "--transport", "stdio"],
@@ -1176,8 +1418,14 @@ def test_real_stdio_chatgpt_pro_profile_has_exact_version_and_read_inventory(
             assert initialized.serverInfo.version == ENGINE_VERSION == "1.4.0"
             tools = await session.list_tools()
             names = tuple(sorted(tool.name for tool in tools.tools))
-            assert names == tuple(sorted(CHATGPT_PRO_READ_TOOL_NAMES))
-            assert all(tool.annotations.readOnlyHint is True for tool in tools.tools)
+            assert len(names) == CHATGPT_PRO_GOVERNED_TOOL_COUNT
+            assert set(CHATGPT_PRO_READ_TOOL_NAMES).issubset(names)
+            assert sum(
+                tool.annotations.readOnlyHint is True for tool in tools.tools
+            ) == 21
+            assert sum(
+                tool.annotations.readOnlyHint is False for tool in tools.tools
+            ) == 41
             result = await session.call_tool("runtime_doctor", {})
             assert result.isError is False
             assert result.structuredContent["status"] == "PASS"

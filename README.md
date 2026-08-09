@@ -115,12 +115,16 @@ it writes nothing and reminds the user to type `/pl`. After planning it persists
 the canonical Plan Lane and returns a short prompt the user copies into the
 host-owned Codex Goal. Linked steers append to an existing row; unrelated
 steers append a new numbered row; the default boundary is before the next HIL.
-The full task panel persists with exactly one active row until that HIL is
-actually presented. A required user token pauses only its dependent row;
-independent work continues and the host Goal is never reported complete merely
-because a token, credential, or external confirmation is pending. Goal usage is
-reported in readable `K`/`M` notation while retaining the exact raw count in
-the evidence receipt.
+The exact full task panel persists with exactly one active row through every
+pause and HIL. It may be dropped only after the physically final six-way HIL is
+decided and all decision-dependent work is complete. The host Goal remains
+attached to the same canonical Plan Lane, active source boundary, and
+single-writer session. A UI crash, token wait, required user input, credential
+wait, external confirmation, or HIL wait pauses only dependent work and never
+marks the Goal complete. Every reconstruction retains all
+completed-but-still-governing rows, the one active row, and all pending rows.
+Goal usage is separate accounting with no task-status effect; it is reported in
+readable `K`/`M` notation while the evidence receipt preserves exact raw counts.
 
 ## Atomic Boot and host routing
 
@@ -137,15 +141,16 @@ project Plan Lane into native Plan, Goal, and task-panel surfaces. ChatGPT
 installs the same full Evidence Lane plugin package so its governed skills,
 including Boot/ENV-UOP Flash and accepted-PV Entry/Exit workflows, remain
 available. The registered ChatGPT Pro connection uses the
-`CHATGPT_PRO_READ` profile: exactly 21 annotated read-only MCP tools for
-accepted-PV status, ENV/UOP Flash, Entry/Exit slips, lanes, search, diffs,
-backlog, and governed panels. A skill that requires a lifecycle write must
-report that capability unavailable and stop; it may not simulate or claim the
-mutation. ChatGPT's native ENV/UOP package and Project Mutation sector may
-continue under host law, but the MCP does not perform or claim that mutation.
+`CHATGPT_PRO_GOVERNED` profile. Its complete 62-action catalog stays visible:
+21 annotated read operations execute for accepted-PV status, ENV/UOP Flash,
+Entry/Exit slips, lanes, search, diffs, backlog, and governed panels; all 41
+lifecycle-write actions are intercepted before service invocation and return a
+structured `UNAVAILABLE_ON_CHATGPT_PRO` receipt with no mutation. ChatGPT's
+native ENV/UOP package and Project Mutation sector may continue under host law,
+but the MCP does not perform or claim that mutation.
 
 The Vercel project in this repository is only a thin HTTPS adapter for the
-ChatGPT read MCP and the public website. It verifies release identity and
+ChatGPT MCP and the public website. It verifies release identity and
 proxies to a separately configured durable read origin. Vercel is not used to
 install Codex, is not the general Evidence Lane router, and stores no accepted
 pointer or runtime SQLite authority. The contributor Windows bootstrap is a
@@ -423,6 +428,10 @@ The development record credits the AI/toolchain roles actually used:
   Vercel, and the declared dependencies in `pyproject.toml` and
   `requirements.in` provide the implementation toolchain. Each third-party
   project remains governed by its own license and trademarks.
+- The dated [direct dependency license audit](docs/DEPENDENCY_LICENSE_AUDIT.md)
+  records the current pinned-license findings, the removal of PyMuPDF from the
+  proprietary distribution path, the pypdfium2/PDFium notice obligation, and
+  the transitive/SBOM review still required before publication.
 
 Human review and evaluation contributions:
 
@@ -441,6 +450,7 @@ ownership transfer, candidate acceptance, or release authority. Accepted source
 contributions must remain attributable, reviewed, licensed, and entered through
 the governed Git and HIL process. See the
 [credits and contribution policy](docs/CREDITS_AND_CONTRIBUTIONS.md),
+[direct dependency license audit](docs/DEPENDENCY_LICENSE_AUDIT.md),
 [upstream reference provenance ledger](docs/UPSTREAM_REFERENCE_PROVENANCE.md),
 [copyright notice](COPYRIGHT.md), and [proprietary license](LICENSE.md).
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
+import { HeroOrbit } from "../_components/hero-orbit";
 import { ModeOperatorExplorer } from "../_components/mode-operator-explorer";
 import modeOperatorGuide from "../_data/mode-governance.json";
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 export default function OperatorsPage() {
   return (
     <main>
-      <section className="pageHero operatorHero shell">
+      <section className="pageHero operatorHero orbitHeroFrame shell">
         <div>
           <span className="eyebrow"><i />Mode governance</span>
           <h1>Select a mode. Load its exact law.</h1>
@@ -35,16 +36,7 @@ export default function OperatorsPage() {
             </Link>
           </div>
         </div>
-        <aside className="operatorAuthorityCard" aria-label="Mode authority seals">
-          <span>LIVE SOURCE PROJECTION</span>
-          <strong>{modeOperatorGuide.mode_count} modes</strong>
-          <p>No generic Code formula is copied into non-Code lanes.</p>
-          <dl>
-            <div><dt>ENV</dt><dd>{modeOperatorGuide.modes[0].env_authority.env_sqlite_sha256.slice(0, 12)}</dd></div>
-            <div><dt>UOP</dt><dd>{modeOperatorGuide.modes[0].env_authority.uop_sqlite_sha256.slice(0, 12)}</dd></div>
-            <div><dt>Export</dt><dd>{modeOperatorGuide.export_sha256.slice(0, 12)}</dd></div>
-          </dl>
-        </aside>
+        <aside><HeroOrbit preset="operators" /></aside>
       </section>
 
       <section className="section operatorExplorerBand" id="mode-explorer">

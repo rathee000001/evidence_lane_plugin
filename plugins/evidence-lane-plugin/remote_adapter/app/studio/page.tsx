@@ -2,12 +2,13 @@ import Link from "next/link";
 
 import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { EvidencePromptStudio } from "../_components/evidence-prompt-studio";
+import { HeroOrbit } from "../_components/hero-orbit";
 import { studioCorpus } from "../_data/studio-retrieval";
 
 export default function StudioPage() {
   return (
     <main>
-      <section className="pageHero studioHero shell">
+      <section className="pageHero studioHero orbitHeroFrame shell">
         <div>
           <span className="eyebrow"><i />Evidence AI Studio</span>
           <h1>Your business guide to the whole Evidence Lane plugin.</h1>
@@ -28,17 +29,7 @@ export default function StudioPage() {
             </Link>
           </div>
         </div>
-        <aside className="studioHeroPanel" aria-label="Evidence AI Studio business guide contract">
-          <span>WHOLE-PLUGIN BUSINESS GUIDE</span>
-          <strong>Plain-language guidance with an inspectable evidence receipt</strong>
-          <p>The guide explains decisions and outcomes first. Source identities and ranking details remain available for reviewers who need to audit the answer.</p>
-          <dl>
-            <div><dt>Coverage</dt><dd>Lifecycle, lanes, hosts, proof, release</dd></div>
-            <div><dt>Language</dt><dd>Business-first, implementation-second</dd></div>
-            <div><dt>Project no hit</dt><dd>Visible refusal, never invention</dd></div>
-            <div><dt>Audit</dt><dd>Expandable source and retrieval receipt</dd></div>
-          </dl>
-        </aside>
+        <aside><HeroOrbit preset="studio" /></aside>
       </section>
 
       <section className="section studioPageBand">
@@ -66,17 +57,6 @@ export default function StudioPage() {
         <article><span>03</span><h2>Refuse unsupported claims</h2><p>An unknown project answer stays unknown. A general model never becomes project authority.</p></article>
       </section>
 
-      <section className="section shell creativeRoute">
-        <div>
-          <span className="kicker">Bounded creative route</span>
-          <h2>Adobe Express for release graphics, with no Evidence Lane account connection.</h2>
-          <p>Use Adobe Express for social cards, campaign graphics, and other two-dimensional release material. Evidence Lane links to Adobe&apos;s official experience; it does not request, store, or broker Adobe credentials.</p>
-        </div>
-        <Link className="primary universal-pill actionGlassPill" href="https://www.adobe.com/express/">
-          <GlassIconOrb color="#8b9cff" size={30} decorative><OfficialToolIcon tool="media" size={16} decorative /></GlassIconOrb>
-          <span>Open official Adobe Express</span>
-        </Link>
-      </section>
     </main>
   );
 }

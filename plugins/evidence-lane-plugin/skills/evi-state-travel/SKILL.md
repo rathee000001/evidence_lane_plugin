@@ -18,13 +18,28 @@ all additive Deltas, and the exact resume step. Never substitute historical
 accepted Delta-ledger rows for the current execution plan. A steer Delta is
 `BEFORE_NEXT_HIL` unless the user explicitly names another boundary.
 
+The sealed resume contract must carry the executable persistent-panel
+reactivation law. At the destination, re-project the exact complete task list
+as the first action after verification and before source inspection, mutation,
+testing, Git activity, or another lifecycle call. Apply the same ordering after
+every token-driven continuation, stalled Goal, context compaction, browser or
+Codex restart, session continuation, or session resume. A non-empty panel must
+have exactly one in-progress row; preserve its order and every completed and
+pending description unabridged; keep it visible through every pause and HIL;
+drop it only after the physically final six-way HIL is decided and every
+decision-dependent action is complete.
+
 For a Codex handoff, also capture the exact non-secret model, submodel,
 reasoning-effort, reasoning-speed, and optional service-tier selectors. The
 plugin cannot change host-owned selectors; the destination must use the same
 profile and `pv_state_travel_resume` must reject a mismatch before rebinding.
-At the handoff entry only, read-only recovery subagents may help reconstruct
-visible state. After entry, preserve one sole writer and use subagents only on
-an explicit user command.
+The sealed resume and next-action receipts must carry the exact execution and
+writer boundary: one governed project, one live writer, linear execution,
+evidence-first verification, and the verified host execution profile. At a
+genuine State Travel entry only, read-only recovery agents may help reconstruct
+visible state. After entry, do not start a subagent, alternate-checkout writer,
+background mutation, or second browser profile unless the user explicitly
+changes that boundary.
 
 If the user explicitly requests accepted context, set `entry_mode` to
 `ACCEPTED_ENTRY`. Otherwise do not clear an active task, pending correction,

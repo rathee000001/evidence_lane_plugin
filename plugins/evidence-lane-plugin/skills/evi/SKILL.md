@@ -12,6 +12,29 @@ context is genuinely exhausted and a continuity handoff is needed. Otherwise
 run `/evi-boot` atomically and resume the existing governed session; State
 Travel is not a normal intake step.
 
+Whenever a canonical task panel exists, re-project its exact complete rows as
+the first action after any token-driven continuation, stalled Goal, context
+compaction, browser or Codex restart, session continuation or resume, or State
+Travel destination entry. This must precede source inspection, source mutation,
+testing, Git activity, and every later lifecycle call. Require exactly one
+in-progress row, preserve order and every completed or pending description
+unabridged, keep the panel visible through every pause and HIL, and drop it only
+after the physically final six-way HIL is decided and all decision-dependent
+work is complete.
+
+Preserve one governed project, one live writer, linear execution, and
+evidence-first verification under the exact host execution profile. Read-only
+recovery agents are allowed only during a genuine State Travel entry. After
+entry, do not start a subagent, alternate-checkout writer, background mutation,
+or second browser profile unless the user explicitly changes that boundary.
+
+Keep the host Goal attached to the same canonical Plan Lane, active source
+boundary, and single-writer session. A UI crash, token wait, required user
+input, or HIL wait pauses only dependent work and never marks the Goal
+complete. Usage reporting is accounting only and has no task-status effect.
+Every reconstruction must retain completed-but-still-governing rows, the one
+active row, and all pending rows.
+
 After root `/evi`, expose exactly these six primary controls in this order:
 
 1. `/evi-boot`
@@ -21,13 +44,30 @@ After root `/evi`, expose exactly these six primary controls in this order:
 5. `/evi-mode`
 6. `/evi-source-intake`
 
-Keep that exact control inventory on both hosts. On ChatGPT Pro, call only the
-registered read-profile tools. Render Boot as a read-safe attach/status/Flash
-check and mark Rollback, Build, Refresh, and any Source Intake operation that
-would create or change governed state as `UNAVAILABLE_ON_CHATGPT_PRO_READ`.
-Do not hide, rename, simulate, or claim those controls. A skill may explain a
-write path, but it must stop before lifecycle mutation when its required tool
-is absent. Codex retains the complete Git-backed lifecycle.
+Keep that exact control inventory on both hosts. On ChatGPT Pro, the governed
+profile registers the complete action catalog: twenty-one operations execute
+as reads, while all lifecycle-write actions remain visible and are intercepted
+before service invocation. Render Boot as a read-safe attach/status/Flash check.
+When the user explicitly requests Rollback, Build, Refresh, or a mutating Source
+Intake path, invoke only the corresponding visible action once to obtain its
+structured `UNAVAILABLE_ON_CHATGPT_PRO` receipt, then stop. Do not hide, rename, simulate, or claim those controls. Do not retry a blocked action. Codex retains
+the complete Git-backed lifecycle.
+
+Every skill and command must name MCP tools by the canonical bare name returned
+by this exact Evidence Lane server. A connector-generated display namespace is
+transport metadata: never copy it into a skill, receipt, command, or stored
+contract. The stdio boundary may remove such a namespace only when its suffix
+exactly matches a tool registered on the active server; every unknown prefix or
+suffix must reach the MCP dispatcher unchanged and fail closed.
+
+On Codex, accept lifecycle proof only from the installed native server identity
+`evidence-lane` and its canonical `mcp__evidence_lane__*` catalog. `codex_apps`,
+Google Drive, a tunnel, the ChatGPT connector, `plugin-runtime`, a legacy
+version-labelled namespace, or any duplicate surface is never a fallback. A
+collision-safe hexadecimal host display prefix may be normalized at transport
+only; it is not proof. After install, enablement, upgrade, or server-code
+replacement, require a Codex MCP catalog reload or a fresh Codex task before
+claiming the new package is active.
 
 `/evi-source-intake` is the single generalized intake surface. It auto-detects
 all eighteen canonical lanes and Project Engulf, accepts exact overrides, and

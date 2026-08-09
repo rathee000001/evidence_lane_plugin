@@ -7,6 +7,7 @@ import os
 import shutil
 import threading
 import time
+import unicodedata
 from collections import Counter
 from pathlib import Path
 from typing import Any, ClassVar, Self, cast
@@ -91,9 +92,141 @@ class _ProjectLock:
 
 
 class ProjectStore:
-    def __init__(self, root: str | Path) -> None:
-        self.root = Path(root).resolve()
-        self.root.mkdir(parents=True, exist_ok=True)
+    def __init__(
+        self,
+        root: str | Path,
+        *,
+        configuration_source: str = "EXPLICIT_SERVICE_CONFIGURATION",
+    ) -> None:
+        raw_root = os.path.expandvars(os.fspath(root)).strip()
+        require(
+            bool(raw_root),
+            "EVIDENCE_LANE_DATA_ROOT_INVALID",
+            "The Evidence Lane data root cannot be empty.",
+            status="BLOCKED",
+        )
+        try:
+            resolved = Path(raw_root).expanduser().resolve()
+            require(
+                not resolved.exists() or resolved.is_dir(),
+                "EVIDENCE_LANE_DATA_ROOT_UNAVAILABLE",
+                "The configured Evidence Lane data root is not a directory.",
+                status="BLOCKED",
+                resolved_root=str(resolved),
+            )
+            resolved.mkdir(parents=True, exist_ok=True)
+        except EvidenceLaneError:
+            raise
+        except OSError as exc:
+            raise EvidenceLaneError(
+                "EVIDENCE_LANE_DATA_ROOT_UNAVAILABLE",
+                "The configured Evidence Lane data root could not be opened.",
+                status="BLOCKED",
+                details={
+                    "resolved_root": str(Path(raw_root).expanduser()),
+                    "os_error": type(exc).__name__,
+                },
+            ) from exc
+        require(
+            resolved.is_absolute() and resolved.is_dir() and os.access(resolved, os.R_OK | os.W_OK),
+            "EVIDENCE_LANE_DATA_ROOT_UNAVAILABLE",
+            "The configured Evidence Lane data root is not readable and writable.",
+            status="BLOCKED",
+            resolved_root=str(resolved),
+        )
+        self.root = resolved
+        self.configuration_source = configuration_source
+
+    @staticmethod
+    def canonical_project_key(project_id: str) -> str:
+        """Return the comparison-only key; the exact ID remains authoritative."""
+
+        return unicodedata.normalize("NFKC", project_id).casefold()
+
+    def _registry_path(self) -> Path:
+        return self.root / "registry.json"
+
+    def _registry_lock(self) -> _ProjectLock:
+        return _ProjectLock(self.root / ".registry.lock")
+
+    def _load_root_registry(self) -> dict[str, Any]:
+        path = self._registry_path()
+        if not path.is_file():
+            return {"schema": PROJECT_REGISTRY_SCHEMA, "projects": {}}
+        try:
+            registry = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise EvidenceLaneError(
+                "PROJECT_REGISTRY_INVALID",
+                "The Evidence Lane root project registry is unreadable.",
+                status="FAIL",
+                details={"registry": str(path), "error": type(exc).__name__},
+            ) from exc
+        require(
+            registry.get("schema") == PROJECT_REGISTRY_SCHEMA
+            and isinstance(registry.get("projects"), dict),
+            "PROJECT_REGISTRY_INVALID",
+            "The Evidence Lane root project registry has an invalid shape.",
+            status="FAIL",
+            registry=str(path),
+        )
+        return registry
+
+    def _assert_exact_project_route(self, project_id: str) -> None:
+        registry = self._load_root_registry()
+        requested_key = self.canonical_project_key(project_id)
+        collisions = sorted(
+            existing_id
+            for existing_id in registry["projects"]
+            if self.canonical_project_key(existing_id) == requested_key
+            and existing_id != project_id
+        )
+        require(
+            not collisions,
+            "PROJECT_ID_COLLISION",
+            "The requested project ID collides by case or Unicode normalization with an existing exact binding.",
+            status="BLOCKED",
+            project_id=project_id,
+            colliding_project_ids=collisions,
+            normalization="NFKC_CASEFOLD_COMPARISON_EXACT_ID_AUTHORITY",
+        )
+
+    def inspect_root(self) -> dict[str, Any]:
+        registry = self._load_root_registry()
+        return {
+            "schema": "evidence-lane.portable-store-root.v1",
+            "status": "PASS",
+            "resolved_root": str(self.root),
+            "configuration_source": self.configuration_source,
+            "root_is_absolute": self.root.is_absolute(),
+            "root_exists": self.root.is_dir(),
+            "root_readable": os.access(self.root, os.R_OK),
+            "root_writable": os.access(self.root, os.W_OK),
+            "durability_capability": "CONFIGURED_USER_DURABLE_FILESYSTEM",
+            "projects_container": str(self.root / "projects"),
+            "registered_project_count": len(registry["projects"]),
+            "primary_runtime_storage": "PROJECT_LOCAL_SQLITE_UNLESS_EXPLICITLY_SELECTED_OTHERWISE",
+            "google_drive_primary_runtime_allowed": False,
+            "secret_values_persisted": False,
+        }
+
+    def inspect_project_route(self, project_id: str) -> dict[str, Any]:
+        safe = self.validate_project_id(project_id)
+        root = self.project_root(safe)
+        return {
+            "schema": "evidence-lane.project-store-route.v1",
+            "status": "PASS",
+            "project_id": safe,
+            "canonical_comparison_key": self.canonical_project_key(safe),
+            "canonical_id_policy": "ASCII_EXACT_WITH_NFKC_CASEFOLD_COLLISION_GUARD",
+            "resolved_store_root": str(self.root),
+            "relative_project_route": f"projects/{safe}",
+            "resolved_project_root": str(root),
+            "contained_beneath_store_root": True,
+            "transport_project_binding": "EXPLICIT_PROJECT_ID_PER_PROJECT_SCOPED_TOOL",
+            "cross_project_fallback_allowed": False,
+            "secret_values_persisted": False,
+        }
 
     @staticmethod
     def validate_project_id(project_id: str) -> str:
@@ -111,8 +244,17 @@ class ProjectStore:
 
     def project_root(self, project_id: str) -> Path:
         safe = self.validate_project_id(project_id)
+        self._assert_exact_project_route(safe)
         result = (self.root / "projects" / safe).resolve()
-        result.relative_to(self.root)
+        try:
+            result.relative_to(self.root)
+        except ValueError as exc:
+            raise EvidenceLaneError(
+                "PROJECT_ROUTE_ESCAPE",
+                "The project route escaped the configured Evidence Lane store root.",
+                status="BLOCKED",
+                details={"project_id": safe},
+            ) from exc
         return result
 
     def _source_authority_path(self, project_id: str) -> Path:
@@ -134,40 +276,82 @@ class ProjectStore:
         return _ProjectLock(self.project_root(project_id) / ".store.lock")
 
     def register_project(self, config: ProjectConfig) -> dict[str, Any]:
-        root = self.project_root(config.project_id)
-        with self._lock(config.project_id):
-            for folder in ("accepted", "candidates", "receipts", "sessions", "lineage"):
-                (root / folder).mkdir(parents=True, exist_ok=True)
-            project_path = root / "project.json"
-            payload = {
-                "schema": PROJECT_REGISTRY_SCHEMA,
-                **config.as_dict(),
-            }
-            if project_path.exists():
-                existing = json.loads(project_path.read_text(encoding="utf-8"))
-                require(
-                    existing == payload,
-                    "PROJECT_REGISTRATION_CONFLICT",
-                    "The project ID is already registered with different authority.",
-                    status="MISMATCH",
-                    project_id=config.project_id,
-                )
-            else:
-                atomic_write_json(project_path, payload)
-            pointer_path = root / "active_pointer.json"
-            if not pointer_path.exists():
-                pointer = ActivePointer(
-                    project_id=config.project_id,
-                    accepted_pv=None,
-                    accepted_manifest_sha256=None,
-                    generation=0,
-                    updated_at=utc_now(),
-                )
-                atomic_write_json(
-                    pointer_path,
-                    {"schema": POINTER_SCHEMA, **pointer.as_dict()},
-                )
-            self._update_root_registry(config.project_id, payload)
+        self.validate_project_id(config.project_id)
+        with self._registry_lock():
+            registry = self._load_root_registry()
+            canonical_key = self.canonical_project_key(config.project_id)
+            repository_path_hash = sha256_bytes(
+                config.repository_path.encode("utf-8")
+            )
+            id_collisions = sorted(
+                existing_id
+                for existing_id in registry["projects"]
+                if existing_id != config.project_id
+                and self.canonical_project_key(existing_id) == canonical_key
+            )
+            require(
+                not id_collisions,
+                "PROJECT_ID_COLLISION",
+                "The project ID collides by case or Unicode normalization with an existing exact binding.",
+                status="BLOCKED",
+                project_id=config.project_id,
+                colliding_project_ids=id_collisions,
+            )
+            source_collisions = sorted(
+                existing_id
+                for existing_id, row in registry["projects"].items()
+                if existing_id != config.project_id
+                and isinstance(row, dict)
+                and row.get("repository_path_hash") == repository_path_hash
+            )
+            require(
+                not source_collisions,
+                "PROJECT_SOURCE_BINDING_DUPLICATE",
+                "The repository path is already bound to another governed project ID.",
+                status="BLOCKED",
+                project_id=config.project_id,
+                existing_project_ids=source_collisions,
+            )
+            root = self.project_root(config.project_id)
+            with self._lock(config.project_id):
+                for folder in (
+                    "accepted",
+                    "candidates",
+                    "receipts",
+                    "sessions",
+                    "lineage",
+                ):
+                    (root / folder).mkdir(parents=True, exist_ok=True)
+                project_path = root / "project.json"
+                payload = {
+                    "schema": PROJECT_REGISTRY_SCHEMA,
+                    **config.as_dict(),
+                }
+                if project_path.exists():
+                    existing = json.loads(project_path.read_text(encoding="utf-8"))
+                    require(
+                        existing == payload,
+                        "PROJECT_REGISTRATION_CONFLICT",
+                        "The project ID is already registered with different authority.",
+                        status="MISMATCH",
+                        project_id=config.project_id,
+                    )
+                else:
+                    atomic_write_json(project_path, payload)
+                pointer_path = root / "active_pointer.json"
+                if not pointer_path.exists():
+                    pointer = ActivePointer(
+                        project_id=config.project_id,
+                        accepted_pv=None,
+                        accepted_manifest_sha256=None,
+                        generation=0,
+                        updated_at=utc_now(),
+                    )
+                    atomic_write_json(
+                        pointer_path,
+                        {"schema": POINTER_SCHEMA, **pointer.as_dict()},
+                    )
+                self._update_root_registry(config.project_id, payload, registry)
         return self.project_status(config.project_id)
 
     def replace_branch_authority(
@@ -247,21 +431,23 @@ class ProjectStore:
         }
 
     def _update_root_registry(
-        self, project_id: str, project_payload: dict[str, Any]
+        self,
+        project_id: str,
+        project_payload: dict[str, Any],
+        registry: dict[str, Any] | None = None,
     ) -> None:
-        registry_path = self.root / "registry.json"
-        if registry_path.exists():
-            registry = json.loads(registry_path.read_text(encoding="utf-8"))
-        else:
-            registry = {"schema": PROJECT_REGISTRY_SCHEMA, "projects": {}}
-        registry["projects"][project_id] = {
+        registry_path = self._registry_path()
+        exact_registry = registry or self._load_root_registry()
+        exact_registry["projects"][project_id] = {
             "display_name": project_payload["display_name"],
             "enabled": project_payload["enabled"],
+            "canonical_project_key": self.canonical_project_key(project_id),
+            "relative_project_route": f"projects/{project_id}",
             "repository_path_hash": sha256_bytes(
                 project_payload["repository_path"].encode("utf-8")
             ),
         }
-        atomic_write_json(registry_path, registry)
+        atomic_write_json(registry_path, exact_registry)
 
     def _backlog_path(self, project_id: str) -> Path:
         return self.project_root(project_id) / "task_backlog.json"

@@ -37,6 +37,13 @@ def test_goal_usage_receipt_keeps_exact_counts_and_carries_baseline() -> None:
         "cumulative_tokens": "16.2M",
         "cumulative_elapsed": "17h 19m 25s",
     }
+    assert receipt.governance() == {
+        "schema": "evidence-lane.goal-usage-governance.v1",
+        "purpose": "ACCOUNTING_ONLY",
+        "task_status_effect": "NONE",
+        "goal_completion_effect": "NONE",
+        "exact_counts_preserved": True,
+    }
 
 
 @pytest.mark.parametrize("value", [-1, True, 1.5])

@@ -21,8 +21,17 @@ when both of these variables are set:
 
 That route hard-codes `openrouter/free`, sends no project context or chat
 history, rejects credential-shaped input, and has no paid-model fallback. The
-key remains server-side and must be configured separately for this Vercel
-project; another project's secret is never copied or inferred.
+key remains server-side. When the owner elects to reuse the existing Gold
+Nexus Alpha credential, keep one team-level Vercel Shared Sensitive Environment
+Variable named `OPENROUTER_API_KEY` and link that same variable to this project
+for the intended Preview/Production environments. Do not copy, pull, print,
+log, or commit its value. Linking or changing that remote secret remains an
+owner-only deployment action and is not performed by local tests.
+
+Run `pnpm test:studio-query` for the zero-network provider contract. It injects
+a dummy credential and a fake transport, then proves the fixed free model,
+two-message general-only payload, no project context or chat history, no secret
+in any result, and fail-closed provider, connection, and timeout behavior.
 
 It stores no Evidence Lane state and is not the general router. Every `/mcp`
 request is forwarded to one HTTPS durable MCP origin after `/healthz` proves

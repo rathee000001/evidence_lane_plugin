@@ -208,7 +208,7 @@ def test_v140_home_uses_concentric_delta_story_plugin_catalog_and_universal_glas
 
     assert "DeltaLedgerExplorer" in landing
     assert "PluginSurfaceCatalog" in landing
-    assert "EvidenceOrbit" in landing
+    assert "HeroOrbit" in landing
     assert "sourceLanes" in orbit and "pluginSurfaces" in orbit
     assert 'aria-label="18 source lanes"' in orbit
     assert 'aria-label="15 plugin surfaces"' in orbit
@@ -270,6 +270,16 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     studio = (COMPONENTS / "evidence-prompt-studio.tsx").read_text(encoding="utf-8")
     retrieval = (APP / "_data" / "studio-retrieval.ts").read_text(encoding="utf-8")
     query_route = (APP / "api" / "studio-query" / "route.ts").read_text(encoding="utf-8")
+    openrouter = (
+        APP / "api" / "studio-query" / "openrouter-general.ts"
+    ).read_text(encoding="utf-8")
+    adapter_root = ROOT / "plugins" / "evidence-lane-plugin" / "remote_adapter"
+    adapter_package = json.loads((adapter_root / "package.json").read_text(encoding="utf-8"))
+    adapter_env = (adapter_root / ".env.example").read_text(encoding="utf-8")
+    adapter_readme = (adapter_root / "README.md").read_text(encoding="utf-8")
+    openrouter_test = (
+        adapter_root / "scripts" / "test-openrouter-boundary.mjs"
+    ).read_text(encoding="utf-8")
     floating = (COMPONENTS / "floating-evidence-studio.tsx").read_text(encoding="utf-8")
     layout = (APP / "layout.tsx").read_text(encoding="utf-8")
     css = (APP / "globals.css").read_text(encoding="utf-8")
@@ -289,10 +299,22 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     assert ".promptSuggestionCluster .promptSuggestionCard" in css
     assert "FloatingEvidenceStudio" in layout and "floatingStudioPanel" in floating
     assert 'fetch("/api/studio-query"' in floating
-    assert 'const OPENROUTER_FREE_MODEL = "openrouter/free"' in query_route
+    assert 'OPENROUTER_FREE_MODEL = "openrouter/free"' in openrouter
     assert "NO_EXTERNAL_PROJECT_CLAIMS_NO_PAID_MODEL_FALLBACK" in query_route
-    assert "EVIDENCE_LANE_GENERAL_AI_ENABLED" in query_route
-    assert "OPENROUTER_API_KEY" in query_route
+    assert "EVIDENCE_LANE_GENERAL_AI_ENABLED" in openrouter
+    assert "OPENROUTER_API_KEY" in openrouter
+    assert "OPENROUTER_API_KEY=" in adapter_env
+    assert "NEXT_PUBLIC_OPENROUTER" not in query_route + openrouter + adapter_env
+    assert "Vercel Shared Sensitive Environment" in adapter_readme
+    assert "Variable named `OPENROUTER_API_KEY`" in adapter_readme
+    assert "real_provider_calls: 0" in openrouter_test
+    assert adapter_package["scripts"]["test:studio-query"] == (
+        "node --experimental-strip-types scripts/test-openrouter-boundary.mjs"
+    )
+    post_body = query_route.split("export async function POST", 1)[1]
+    assert post_body.index("answerFromEvidence(question)") < post_body.index(
+        "isEvidenceLaneQuestion(question)"
+    ) < post_body.index("requestFreeGeneralAnswer")
     assert "verifyStudioRetrievalConfidence" in retrieval
     assert 'id: "general-no-hit"' in retrieval
     assert 'id: "project-nonsense-no-hit"' in retrieval
@@ -344,9 +366,8 @@ def test_evidence_ai_studio_is_a_business_guide_for_the_whole_plugin() -> None:
         assert topic in guide
 
 
-def test_creative_route_is_adobe_express_without_3d_account_linkage() -> None:
+def test_native_threejs_motion_remains_without_retired_3d_or_adobe_links() -> None:
     studio_page = (APP / "studio" / "page.tsx").read_text(encoding="utf-8")
-    guide = (APP / "_data" / "business-guidance.ts").read_text(encoding="utf-8")
     active_site_text = "\n".join(
         path.read_text(encoding="utf-8")
         for path in APP.rglob("*")
@@ -355,15 +376,11 @@ def test_creative_route_is_adobe_express_without_3d_account_linkage() -> None:
         and path.suffix in {".ts", ".tsx", ".css"}
     ).casefold()
 
-    assert "https://www.adobe.com/express/" in studio_page
-    assert "Open official Adobe Express" in studio_page
-    assert "does not request, store, or broker Adobe credentials" in studio_page
-    assert "does not create an account connection" in guide
-    assert "native Three.js/WebGL website presentation remains" in guide
-    assert "generated GLB" in guide
+    assert "https://www.adobe.com/express/" not in studio_page
+    assert "Open official Adobe Express" not in studio_page
+    assert "adobe.com" not in active_site_text
     assert 'from "meshy' not in active_site_text
     assert "@meshy" not in active_site_text
-    assert "meshy account linkage" in active_site_text
     assert ".glb" not in active_site_text
     assert "meshy.ai" not in active_site_text
 
@@ -375,6 +392,9 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     current_plan_data = (APP / "_data" / "current-execution-plan.ts").read_text(
         encoding="utf-8"
     )
+    website_current_plan_data = (
+        APP / "_data" / "website-current-execution.ts"
+    ).read_text(encoding="utf-8")
     footer = (COMPONENTS / "site-footer.tsx").read_text(encoding="utf-8")
     release_identity = (APP / "_data" / "release-identity.ts").read_text(encoding="utf-8")
     layout = (APP / "layout.tsx").read_text(encoding="utf-8")
@@ -391,36 +411,40 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "Human / AI boundary" in landing
     assert landing.index('className="section shell releaseHome"') < landing.index('id="delta-ledger"')
     assert 'id="current-execution-plan"' not in landing
-    assert "One additive ledger. 97 governed rows." in landing
-    step_rows = re.findall(r"^    number: \d+,$", current_plan_data, flags=re.MULTILINE)
-    assert len(step_rows) == 17
-    assert [int(value) for value in re.findall(r"number: (\d+)", current_plan_data)] == [73, 74, 66, 70, 71, 72, 68, 76, 77, 78, 79, 80, 82, 83, 81, 67, 75]
-    assert 'activeRow: 66' in current_plan_data
-    assert 'completedRows: 6' in current_plan_data
-    assert 'persistentUntil: "FINAL_SIX_WAY_HIL_PRESENTED"' in current_plan_data
-    assert "supersededApprovalMustNotBeReplayed: true" in current_plan_data
-    assert "exactlyOneActiveRow: true" in current_plan_data
-    assert 'requiredUserTokenEffect: "PAUSE_DEPENDENT_ROW_ONLY_NEVER_COMPLETE_GOAL"' in current_plan_data
-    assert "lastExecutionStep: 67" in current_plan_data
-    assert "physicallyLastStep: 75" in current_plan_data
-    assert "CURRENT_PLAN_LANE_NOT_HISTORICAL_ACCEPTED_DELTA_LEDGER" in current_plan_data
-    assert "PV8" in current_plan_data and "PV9" in current_plan_data and "1.4" in current_plan_data
-    assert "Adobe Express" in current_plan_data
-    assert "carried full POC" in current_plan_data
-    assert "real-Git history" in current_plan_data
-    assert "GitHub-agent behavior" in current_plan_data
-    assert "lane-absence cases" in current_plan_data
-    assert "website page and footer" in current_plan_data
-    assert "1348634/evidence_os" in current_plan_data
-    assert "CONTROLLED_REQUIRED" in current_plan_data
+    assert "One additive ledger. {deltaLedgerBoundary.totalRows} governed public rows." in landing
+    assert "websiteCurrentExecution.map" in current_plan_data
+    assert 'activeRow: 182' in current_plan_data
+    assert 'activeTaskPosition: 102' in current_plan_data
+    assert 'activeReceiptPosition: 110' in current_plan_data
+    assert (
+        'persistentUntil: "ROW_191_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE"'
+        in current_plan_data
+    )
+    assert (
+        'exactlyOneActiveRow: currentExecutionPlan.filter((row) => row.status === "IN_PROGRESS").length === 1'
+        in current_plan_data
+    )
+    assert "lastExecutionStep: 190" in current_plan_data
+    assert "physicallyLastStep: 191" in current_plan_data
+    assert "SEALED_STATE_TRAVEL_TASK_LIST_PROJECTED_AS_PUBLIC_ROWS_081_191" in current_plan_data
+    assert 'order: 180,\n    id: "ROW_180",\n    status: "COMPLETED"' in website_current_plan_data
+    assert 'order: 181,\n    id: "ROW_181",\n    status: "COMPLETED"' in website_current_plan_data
+    assert 'order: 182,\n    id: "ROW_182",\n    status: "IN PROGRESS"' in website_current_plan_data
+    assert "full final local verification suite" in website_current_plan_data
+    assert "real Git test" in website_current_plan_data
+    assert "GitHub agent proof" in website_current_plan_data
+    assert "lane-absence case" in website_current_plan_data
+    assert "public website routes, footer links" in website_current_plan_data
+    assert "1348634/evidence_os" in website_current_plan_data
     assert 'phase: "Current execution"' in ledger_data
-    assert "81 + index" in ledger_data
-    assert "VISIBLE-PLAN-STEP" in ledger_data
+    assert "websiteCurrentExecution.map" in ledger_data
     assert "...currentExecution" in ledger_data
     assert "sealedHistoricalDeltaRows" in ledger_data
     assert "liveExecutionRows" in ledger_data
-    assert "Rows 81&ndash;97" in ledger
-    assert "80-row sealed historical Delta ledger" in (COMPONENTS / "current-execution-plan.tsx").read_text(encoding="utf-8")
+    assert "81&ndash;191" in ledger
+    assert "80 sealed historical rows" in (
+        COMPONENTS / "current-execution-plan.tsx"
+    ).read_text(encoding="utf-8")
     assert "useState(false)" in ledger
     assert 'aria-expanded={expanded}' in ledger
     assert 'expanded ? "Collapse Delta ledger" : "Open Delta ledger"' in ledger

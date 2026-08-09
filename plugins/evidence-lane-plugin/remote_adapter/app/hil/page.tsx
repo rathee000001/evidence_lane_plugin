@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
+import { HeroOrbit } from "../_components/hero-orbit";
+import { PageHero } from "../_components/page-hero";
 
 export const metadata: Metadata = {
   title: "HIL status",
@@ -19,18 +21,25 @@ const choices = [
 
 export default function HilPage() {
   return (
-    <main className="legal shell hilStatusPage">
-      <Link href="/">&larr; Evidence Lane</Link>
-      <span className="compactDepthPill"><GlassIconOrb color="#efca72" size={30} decorative><OfficialToolIcon tool="package" size={16} decorative /></GlassIconOrb><span>Human decision surface</span></span>
-      <h1>HIL decides candidate authority. It does not configure a connector.</h1>
-      <p>This route is intentionally different from <Link href="/connect">Connect</Link>. Connect explains installation and host boundaries; HIL displays the vocabulary and state transition law for one exact candidate.</p>
-      <div className="hilStateStrip"><article><span>Accepted truth</span><strong>PV7 · generation 7</strong></article><article><span>Active work</span><strong>1.4.0 candidate preparation</strong></article><article><span>Pointer effect</span><strong>None</strong></article></div>
-      <h2>Exact six-way vocabulary</h2>
-      <div className="hilChoiceGrid">
-        {choices.map(([token, meaning], index) => <article key={token}><span>{String(index + 1).padStart(2, "0")}</span><code>{token}</code><p>{meaning}</p></article>)}
-      </div>
-      <h2>Current public boundary</h2>
-      <p>PV7 remains the accepted truth at generation 7. Evidence Lane 1.4.0 and its carried Pre-HIL Deltas remain unfinished candidate work until the governed source is committed, tested, refreshed, and presented at a fresh exact six-way PV8 gate. No earlier or superseded approval utterance is replayed, and no accepted pointer moves merely because this page renders.</p>
+    <main>
+      <PageHero
+        eyebrow="Human authority"
+        title="Six choices. One exact candidate. No implied approval."
+        description="HIL decides candidate authority; it does not configure a connector. The accepted pointer remains unchanged until the displayed candidate receives an exact governed decision and a separate permitted Fuse operation."
+        aside={<HeroOrbit preset="hil" />}
+      />
+      <section className="legal shell hilStatusPage">
+        <Link href="/">&larr; Evidence Lane</Link>
+        <span className="compactDepthPill"><GlassIconOrb color="#efca72" size={30} decorative><OfficialToolIcon tool="package" size={16} decorative /></GlassIconOrb><span>Human decision surface</span></span>
+        <p>This route is intentionally different from <Link href="/connect">Connect</Link>. Connect explains installation and host boundaries; HIL displays the vocabulary and state transition law for one exact candidate.</p>
+        <div className="hilStateStrip"><article><span>Accepted truth</span><strong>PV10 · generation 10</strong></article><article><span>Active work</span><strong>Unaccepted 1.4 correction</strong></article><article><span>Pointer effect</span><strong>None</strong></article></div>
+        <h2>Exact six-way vocabulary</h2>
+        <div className="hilChoiceGrid">
+          {choices.map(([token, meaning], index) => <article key={token}><span>{String(index + 1).padStart(2, "0")}</span><code>{token}</code><p>{meaning}</p></article>)}
+        </div>
+        <h2>Current public boundary</h2>
+        <p>PV10 remains accepted truth at generation 10. The current UI, ledger, fresh installed-repository proof, lane-native one-shot POC, topology comparison, and forensic rerun remain unaccepted correction work until they are committed, tested, refreshed, and presented at a new exact six-way gate. No earlier approval is replayed, and no accepted pointer moves because this page renders.</p>
+      </section>
     </main>
   );
 }

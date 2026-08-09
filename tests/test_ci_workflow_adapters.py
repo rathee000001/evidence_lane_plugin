@@ -95,7 +95,7 @@ def test_public_cost_boundary_excludes_github_sandbox_and_separates_vercel() -> 
         readme
     )
     assert "only a thin HTTPS adapter" in readme
-    assert "ChatGPT read MCP and the public website" in readme
+    assert "ChatGPT MCP and the public website" in readme
     assert "Vercel is not used to" in readme
     assert "install Codex, is not the general Evidence Lane router" in readme
 

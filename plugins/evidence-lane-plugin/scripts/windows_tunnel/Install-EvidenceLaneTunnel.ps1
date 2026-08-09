@@ -3,6 +3,7 @@ param(
     [string]$TunnelClientSource = "",
     [string]$TunnelId = "",
     [string]$PluginRoot = "",
+    [string]$DataRoot = "$env:USERPROFILE\EvidenceLanePV",
     [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v140",
     [string]$ProfileName = "evidence_lane_v140_chatgpt_read",
     [string]$TaskName = "EvidenceLane-Tunnel-v140",
@@ -66,7 +67,10 @@ function Resolve-PythonCommand {
 
 function Protect-SecretDirectory {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
-    $acl = New-Object Security.AccessControl.DirectorySecurity
+    # Preserve the existing owner and security descriptor. Constructing a blank
+    # DirectorySecurity object makes Set-Acl attempt privileged owner/SACL work
+    # and fails for a normal desktop user with SeSecurityPrivilege missing.
+    $acl = Get-Acl -LiteralPath $secretRoot
     $acl.SetAccessRuleProtection($true, $false)
     $rule = New-Object Security.AccessControl.FileSystemAccessRule(
         $identity,
@@ -75,8 +79,18 @@ function Protect-SecretDirectory {
         [Security.AccessControl.PropagationFlags]::None,
         [Security.AccessControl.AccessControlType]::Allow
     )
-    $acl.AddAccessRule($rule)
-    Set-Acl -LiteralPath $secretRoot -AclObject $acl
+    $acl.SetAccessRule($rule)
+    try {
+        Set-Acl -LiteralPath $secretRoot -AclObject $acl
+    }
+    catch [System.Security.AccessControl.PrivilegeNotHeldException] {
+        # icacls changes only this directory's DACL and does not request SACL or
+        # owner privileges. Never print the encrypted envelope or its contents.
+        & icacls.exe $secretRoot /inheritance:r /grant:r "${identity}:(OI)(CI)F" *> $null
+        if ($LASTEXITCODE -ne 0) {
+            throw "The tunnel secret directory ACL could not be hardened without elevation."
+        }
+    }
 }
 
 function Save-RuntimeKeyEnvelope {
@@ -105,18 +119,21 @@ function Resolve-TunnelId {
     return $value
 }
 
-function Write-ReadOnlyChildLauncher {
+function Write-GovernedChildLauncher {
     param(
         [Parameter(Mandatory = $true)][string]$Python,
-        [Parameter(Mandatory = $true)][string]$Runner
+        [Parameter(Mandatory = $true)][string]$Runner,
+        [Parameter(Mandatory = $true)][string]$ExactDataRoot
     )
 
     $escapedPython = $Python.Replace("'", "''")
     $escapedRunner = $Runner.Replace("'", "''")
+    $escapedDataRoot = $ExactDataRoot.Replace("'", "''")
     $launcher = @"
 `$ErrorActionPreference = "Stop"
-`$env:EVIDENCE_LANE_MCP_EXPOSURE_PROFILE = "CHATGPT_PRO_READ"
+`$env:EVIDENCE_LANE_MCP_EXPOSURE_PROFILE = "CHATGPT_PRO_GOVERNED"
 `$env:EVIDENCE_LANE_PUBLIC_SITE_URL = "https://evidencelane.org"
+`$env:EVIDENCE_LANE_DATA_ROOT = '$escapedDataRoot'
 & '$escapedPython' '$escapedRunner' --transport stdio
 exit `$LASTEXITCODE
 "@
@@ -133,7 +150,7 @@ function Stop-VerifiedLegacyRuntime {
         return
     }
     $process = Get-Process -Id $parsedPid -ErrorAction SilentlyContinue
-    if ($null -eq $process -or $process.ProcessName -ne "tunnel-client") {
+    if ($null -eq $process) {
         return
     }
     $processHash = (Get-FileHash -LiteralPath $process.Path -Algorithm SHA256).Hash
@@ -156,6 +173,11 @@ if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
     throw "The exact Evidence Lane MCP launcher is missing: $runner"
 }
 $python = Resolve-PythonCommand -ExactPluginRoot $exactPluginRoot
+$exactDataRoot = [IO.Path]::GetFullPath($DataRoot)
+if (Test-Path -LiteralPath $exactDataRoot -PathType Leaf) {
+    throw "The configured Evidence Lane data root is a file, not a durable directory."
+}
+New-Item -ItemType Directory -Path $exactDataRoot -Force | Out-Null
 
 New-Item -ItemType Directory -Path (Split-Path -Parent $stableClient) -Force | Out-Null
 New-Item -ItemType Directory -Path $secretRoot -Force | Out-Null
@@ -169,9 +191,14 @@ if ($RotateRuntimeKey -or -not (Test-Path -LiteralPath $secretFile -PathType Lea
     Save-RuntimeKeyEnvelope
 }
 
-Write-ReadOnlyChildLauncher -Python $python -Runner $runner
+Write-GovernedChildLauncher -Python $python -Runner $runner -ExactDataRoot $exactDataRoot
 $powershell = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
-$mcpCommand = $powershell + ' -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' + $childTarget + '"'
+$powershellForCommand = $powershell.Replace('\', '/')
+$childForCommand = $childTarget.Replace('\', '/')
+# tunnel-client parses this value as a portable command line. Raw Windows
+# backslashes are escape characters there, so always supply normalized absolute
+# paths and quote them for user profiles that contain spaces.
+$mcpCommand = '"' + $powershellForCommand + '" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' + $childForCommand + '"'
 & $stableClient init `
     --profile-dir $profileDir `
     --profile $ProfileName `
@@ -185,14 +212,19 @@ if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $profileFile -PathType 
 }
 
 $marker = [ordered]@{
-    schema = "evidence-lane.chatgpt-read-tunnel-installation.v1"
+    schema = "evidence-lane.chatgpt-governed-tunnel-installation.v1"
     release = "1.4.0"
     runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
     profile_name = $ProfileName
     profile_file = $profileFile
     task_name = $TaskName
-    exposure_profile = "CHATGPT_PRO_READ"
+    exposure_profile = "CHATGPT_PRO_GOVERNED"
     plugin_root = $exactPluginRoot
+    data_root = $exactDataRoot
+    project_binding = "NONE_TRANSPORT_ONLY"
+    project_route_argument = "project_id"
+    project_route_argument_required = $true
+    cross_project_fallback_allowed = $false
     tunnel_id = $exactTunnelId
     runtime_key_plaintext_written = $false
 }
@@ -218,7 +250,7 @@ Register-ScheduledTask `
     -Trigger $trigger `
     -Principal $principal `
     -Settings $settings `
-    -Description "Pinned Evidence Lane 1.4 ChatGPT Pro read tunnel; automatic after Windows user sign-in." `
+    -Description "Pinned Evidence Lane 1.4 governed ChatGPT Pro tunnel; automatic after Windows user sign-in." `
     -Force | Out-Null
 
 if ($MigrateCurrentRuntime) {
@@ -237,8 +269,15 @@ if (-not $NoStart) {
     stable_client = $stableClient
     stable_client_sha256 = (Get-FileHash -LiteralPath $stableClient -Algorithm SHA256).Hash
     profile = $ProfileName
-    exposure_profile = "CHATGPT_PRO_READ"
-    exact_read_tool_count = 21
+    exposure_profile = "CHATGPT_PRO_GOVERNED"
+    data_root = $exactDataRoot
+    project_binding = "NONE_TRANSPORT_ONLY"
+    project_route_argument = "project_id"
+    project_route_argument_required = $true
+    cross_project_fallback_allowed = $false
+    exact_visible_tool_count = 62
+    exact_active_read_tool_count = 21
+    exact_fail_closed_write_tool_count = 41
     tunnel_id_recorded = $true
     runtime_key_plaintext_written = $false
     chatgpt_link_required_once = $true

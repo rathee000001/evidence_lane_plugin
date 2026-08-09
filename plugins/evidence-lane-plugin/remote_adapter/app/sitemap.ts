@@ -2,7 +2,25 @@ import type { MetadataRoute } from "next";
 
 import { publicSiteUrl } from "./_data/site";
 
-const paths = ["", "/architecture", "/lanes", "/operators", "/studio", "/proof", "/provenance", "/connect", "/privacy", "/terms", "/support", "/license", "/copyright", "/credits"];
+const paths = [
+  "",
+  "/architecture",
+  "/lanes",
+  "/operators",
+  "/studio",
+  "/proof",
+  "/provenance",
+  "/connect",
+  "/hil",
+  "/readme",
+  "/privacy",
+  "/terms",
+  "/support",
+  "/license",
+  "/copyright",
+  "/credits",
+  "/security",
+];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return paths.map((path) => ({

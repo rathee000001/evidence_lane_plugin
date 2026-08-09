@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
+import { HeroOrbit } from "../_components/hero-orbit";
 import { PageHero } from "../_components/page-hero";
-import { ReleaseStatus } from "../_components/release-status";
 import { publicMcpHealthUrl, publicMcpUrl, publicSiteUrl } from "../_data/site";
 
 export const metadata: Metadata = {
@@ -15,9 +15,9 @@ export default function ConnectPage() {
     <main>
       <PageHero
         eyebrow="Installation and connection"
-        title="Git for Codex. A durable read edge for ChatGPT."
-        description="These are different host capabilities. Vercel and the owned HTTPS domain are used only for the public website and ChatGPT's read-only MCP edge—not for Codex installation, the full lifecycle, or accepted-state authority."
-        aside={<ReleaseStatus compact />}
+        title="Git for Codex. A governed action surface for ChatGPT."
+        description="These are different host capabilities. ChatGPT executes accepted-evidence reads while lifecycle-write controls stay visible and fail closed; Codex keeps the full Git-backed lifecycle and accepted-state authority."
+        aside={<HeroOrbit preset="connect" />}
       />
       <section className="section shell installCompare">
         <article className="installPath codexPath">
@@ -29,16 +29,16 @@ export default function ConnectPage() {
         </article>
         <article className="installPath chatgptPath">
           <span className="pathNumber">02</span><span className="compactDepthPill"><GlassIconOrb color="#efca72" size={28} decorative><OfficialToolIcon tool="database" size={15} decorative /></GlassIconOrb><span>ChatGPT</span></span>
-          <h2>Install the full plugin, then connect its ChatGPT Pro read profile.</h2>
-          <p>The Evidence Lane package contributes all 15 governed skill entries to ChatGPT. Its registered MCP app exposes exactly 21 read-only tools for accepted PVs, ENV/UOP Flash status, Entry and Exit Slips, lanes, search, diffs, backlog, and governed panels. A skill that needs a lifecycle write fails closed on Pro. ChatGPT&apos;s native project memory may continue its own append-only ENV/UOP and Project Mutation workflow, but the MCP does not perform or claim that write.</p>
-          <ol><li>Use the contributor installer with one Runtime key and one Tunnel ID, or deploy the same Git SHA behind the owned durable HTTPS edge.</li><li>Register the MCP app once and map its technical ID into the full Evidence Lane plugin package.</li><li>Verify the stable Evidence Lane name, exact 1.4 metadata, branded icon, all 15 packaged skill entries, 21-tool read inventory, and <code>/healthz</code>.</li><li>Prove accepted-PV readback while Codex keeps its separate exact-Git full-lifecycle path.</li></ol>
+          <h2>Install the full plugin, then connect its governed ChatGPT Pro profile.</h2>
+          <p>The Evidence Lane package contributes all 15 governed skill entries to ChatGPT. Its registered MCP app exposes the complete 62-action catalog: 21 accepted-PV, ENV/UOP Flash, Entry/Exit, lane, search, diff, backlog, and panel operations execute as reads; 41 lifecycle-write actions remain visible but return a no-mutation fail-closed receipt before service invocation. ChatGPT&apos;s native project memory may continue its own append-only ENV/UOP and Project Mutation workflow, but the MCP does not perform or claim that write.</p>
+          <ol><li>Use the contributor installer with one Runtime key and one Tunnel ID, or deploy the same Git SHA behind the owned durable HTTPS edge.</li><li>Register the MCP app once and map its technical ID into the full Evidence Lane plugin package.</li><li>Verify the stable Evidence Lane name, exact 1.4 metadata, branded icon, all 15 packaged skill entries, 62 visible actions, the 21-read/41-fail-closed split, and <code>/healthz</code>.</li><li>Prove accepted-PV readback and one no-mutation write refusal while Codex keeps its separate exact-Git full-lifecycle path.</li></ol>
           <strong className="pathBoundary">The Vercel filesystem is never accepted state authority.</strong>
         </article>
       </section>
       <section className="section shell provenanceBoundary">
         <span className="kicker">Two host universes, one lifecycle law</span>
         <h2>The same plugin skills meet different host authorities.</h2>
-        <p>Codex may pair <code>/pl</code>, <code>/evi-plan</code>, its Goal, and its visible task panel with the canonical Plan Lane. ChatGPT Pro shows all 15 packaged skill entries and can use read-safe Boot/Flash plus accepted-PV Entry/Exit workflows, while the connected MCP remains read-only and unavailable lifecycle writes stop explicitly. ChatGPT can continue its native ENV/UOP package and Project Mutation sector without pretending Codex composer controls or Git lifecycle authority exist there.</p>
+        <p>Codex may pair <code>/pl</code>, <code>/evi-plan</code>, its Goal, and its visible task panel with the canonical Plan Lane. ChatGPT Pro shows all 15 packaged skill entries and can use read-safe Boot/Flash plus accepted-PV Entry/Exit workflows. Its connected MCP keeps every lifecycle control visible, but blocks each write before service invocation. ChatGPT can continue its native ENV/UOP package and Project Mutation sector without pretending Codex composer controls or Git lifecycle authority exist there.</p>
         <div className="hostUniverseMap" aria-label="Codex and ChatGPT host architecture">
           <article>
             <span>Codex universe</span>
@@ -49,9 +49,9 @@ export default function ConnectPage() {
           <div aria-hidden="true"><strong>same code</strong><span>same append-only law</span><small>separate storage</small></div>
           <article>
             <span>ChatGPT universe</span>
-            <h3>Read-only MCP acceleration</h3>
-            <p>The plugin reads accepted-PV and governance evidence. Native ENV/UOP and Project Mutation remain separately owned by ChatGPT.</p>
-            <code>accepted PV → read MCP → ChatGPT guidance</code>
+            <h3>Governed MCP action surface</h3>
+            <p>Twenty-one operations read accepted evidence. Forty-one lifecycle writes remain visible and return an explicit no-mutation refusal. Native ENV/UOP and Project Mutation remain separately owned by ChatGPT.</p>
+            <code>accepted PV → verified reads → ChatGPT guidance</code>
           </article>
         </div>
         <p className="hostBoundaryNote"><strong>No cross-host shortcut:</strong> neither host reads the other host&apos;s live SQLite, pointer, task panel, or unsealed work. State Travel carries verified resume evidence; it does not merge the two universes.</p>
@@ -69,7 +69,7 @@ export default function ConnectPage() {
       <section className="section shell connectorReality">
         <span className="kicker">Current public connector truth</span>
         <h2>The domain is connected. The durable public MCP runtime is not closed yet.</h2>
-        <p><code>evidencelane.org</code> and <code>mcp.evidencelane.org</code> resolve through Vercel. The MCP edge must remain fail-closed until the exact deployed release identity and durable read origin pass protocol verification. The contributor OpenAI tunnel is a separate outbound transport for local testing and onboarding; both routes must expose the same 21-tool <code>CHATGPT_PRO_READ</code> contract.</p>
+        <p><code>evidencelane.org</code> and <code>mcp.evidencelane.org</code> resolve through Vercel. The MCP edge must remain fail-closed until the exact deployed release identity and durable origin pass protocol verification. The contributor OpenAI tunnel is a separate outbound transport for local testing and onboarding; both routes must expose the same 62-action <code>CHATGPT_PRO_GOVERNED</code> contract with 21 executing reads and 41 visible no-mutation write refusals.</p>
       </section>
       <section className="section shell connectorSlots" data-mcp-apps="SUPPORTED">
         <div className="sectionHead"><span className="kicker">Comparable ChatGPT presentation</span><h2>Rich metadata, complete tool contracts, verified links, and supported in-chat panels.</h2><p>Evidence Lane supplies its logo, descriptions, website and legal links, annotated MCP tools, structured results, and a portable MCP Apps resource. ChatGPT owns the surrounding listing and settings layout, so the product provides equivalent governed information without claiming control of the host UI.</p></div>

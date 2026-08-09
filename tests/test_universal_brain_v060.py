@@ -415,7 +415,7 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     assert "Resume from verified project truth" in landing
     assert "DeltaLedgerExplorer" in landing
     assert "PluginSurfaceCatalog" in landing
-    assert "EvidenceOrbit" in landing
+    assert "HeroOrbit" in landing
     for retired in ("UniversalCommandDeck", "LaneToolchainExplorer", "SourceBrainLab"):
         assert retired not in landing
     lanes_page = (adapter_root / "app" / "lanes" / "page.tsx").read_text(encoding="utf-8")
@@ -431,7 +431,7 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
         encoding="utf-8"
     )
     home_orbit = (
-        adapter_root / "app" / "_components" / "evidence-orbit.tsx"
+        adapter_root / "app" / "_components" / "hero-orbit.tsx"
     ).read_text(encoding="utf-8")
     assert "/evidence-lane-full-logo.png" in active_brand_source
     assert "/evidence-lane-icon.png" in active_brand_source
@@ -440,9 +440,10 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     assert "evidence-executive-scanner.png" not in active_brand_source
     assert "evidence-glass-orb.png" not in active_brand_source
     assert "/assets/evidence-static-brain.png" in active_brand_source
-    assert "TorusGeometry" not in home_orbit
-    assert "THREE.Points" not in home_orbit
-    assert ".evidenceOrbitRing" in styles
+    assert "homeGovernanceRings" in home_orbit
+    assert "PulsatingBrain" in home_orbit
+    assert "GlassIconOrb" in home_orbit
+    assert ".heroOrbitRing" in styles
     assert "prefers-reduced-motion" in styles
     assert package["dependencies"]["three"] == "0.185.1"
     assert package["dependencies"]["framer-motion"] == "12.38.0"

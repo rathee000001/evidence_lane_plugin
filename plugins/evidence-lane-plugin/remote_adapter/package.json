@@ -1,11 +1,13 @@
 {
   "name": "evidence-lane-chatgpt-edge",
   "private": true,
+  "type": "module",
   "version": "1.4.0",
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "start": "next start"
+    "start": "next start",
+    "test:studio-query": "node --experimental-strip-types scripts/test-openrouter-boundary.mjs"
   },
   "dependencies": {
     "framer-motion": "12.38.0",

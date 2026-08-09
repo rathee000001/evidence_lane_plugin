@@ -19,14 +19,14 @@ export function CurrentExecutionPlan() {
         <span className="active"><strong>{active?.number}</strong> in progress</span>
         <span><strong>{pending}</strong> pending</span>
       </div>
-      <ol aria-label="Current seventeen-step Evidence Lane execution plan">
+      <ol aria-label="Current 111-row Evidence Lane execution plan">
         {currentExecutionPlan.map((row) => (
           <li
             className={`executionPlanRow status${row.status}`}
             id={`execution-step-${row.number}`}
             key={row.number}
           >
-            <span className="executionStepNumber">{String(row.number).padStart(2, "0")}</span>
+            <span className="executionStepNumber">{String(row.number).padStart(3, "0")}</span>
             <div>
               <span className="executionStepStatus">{row.status.replace("_", " ")}</span>
               <small>{row.boundary.replace("_", "-")}</small>
@@ -36,7 +36,7 @@ export function CurrentExecutionPlan() {
         ))}
       </ol>
       <p className="executionPlanLaw">
-        This 17-row panel is the current Plan Lane, not the 80-row sealed historical Delta ledger. Later steers append through visible lineage and update this projection without rewriting sealed history. Step 67 retains the carried full POC and is the last execution/publication row; step 75 is physically last as the final six-way HIL stop. The panel remains visible with exactly one active row until that HIL is actually presented. A required user token pauses only its dependent row and never completes the Goal.
+        This exact 111-row projection runs from public row 081 through 191 without rewriting the 80 sealed historical rows. Row 182 is the sole active row, row 190 is the final fresh POC/forensic/publication sweep, and row 191 is physically last as the final six-way HIL. The panel remains visible until that HIL is actually decided; a missing user token pauses its dependent work and never completes the Goal.
       </p>
     </div>
   );

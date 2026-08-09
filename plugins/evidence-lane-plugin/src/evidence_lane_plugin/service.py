@@ -72,16 +72,42 @@ class EvidenceLaneService:
         sync_service: PVSyncService | None = None,
     ) -> None:
         repository_root = identity_repository_root(__file__)
-        configured_root = (
-            Path(data_root)
-            if data_root
-            else Path(
-                os.environ.get("EVIDENCE_LANE_DATA_ROOT")
-                or os.environ.get("PLUGIN_DATA")
-                or Path.home() / "EvidenceLanePV"
+        configured_environment_root = os.environ.get("EVIDENCE_LANE_DATA_ROOT")
+        legacy_plugin_root = os.environ.get("PLUGIN_DATA")
+        if data_root is not None:
+            require(
+                bool(os.fspath(data_root).strip()),
+                "EVIDENCE_LANE_DATA_ROOT_INVALID",
+                "An explicitly configured Evidence Lane data root cannot be empty.",
+                status="BLOCKED",
             )
+            configured_root = Path(data_root)
+            root_source = "EXPLICIT_SERVICE_CONFIGURATION"
+        elif configured_environment_root is not None:
+            require(
+                bool(configured_environment_root.strip()),
+                "EVIDENCE_LANE_DATA_ROOT_INVALID",
+                "EVIDENCE_LANE_DATA_ROOT cannot be empty when it is configured.",
+                status="BLOCKED",
+            )
+            configured_root = Path(configured_environment_root)
+            root_source = "EVIDENCE_LANE_DATA_ROOT"
+        elif legacy_plugin_root is not None:
+            require(
+                bool(legacy_plugin_root.strip()),
+                "EVIDENCE_LANE_DATA_ROOT_INVALID",
+                "PLUGIN_DATA cannot be empty when it is configured.",
+                status="BLOCKED",
+            )
+            configured_root = Path(legacy_plugin_root)
+            root_source = "PLUGIN_DATA_MIGRATION_COMPATIBILITY"
+        else:
+            configured_root = Path.home() / "EvidenceLanePV"
+            root_source = "PLATFORM_PER_USER_DURABLE_DEFAULT"
+        self.store = ProjectStore(
+            configured_root,
+            configuration_source=root_source,
         )
-        self.store = ProjectStore(configured_root)
         self.flash_authority = SessionFlashAuthority(data_root=configured_root)
         self.runtime_activation = RuntimeActivation(configured_root)
         self.storage_selection = StorageSelection(self.store)
@@ -111,6 +137,7 @@ class EvidenceLaneService:
         selection = self.storage_selection.inspect(project_id)
         result: dict[str, Any] = {
             **selection,
+            "project_route": self.store.inspect_project_route(project_id),
             "configured_runtime_connector_available": bool(
                 self.sync_service is not None
                 and self.sync_service.runtime_state_capable
@@ -124,6 +151,9 @@ class EvidenceLaneService:
                 server_has_durable_filesystem=server_has_durable_filesystem,
             )
             result["effective_route"] = route.as_dict()
+            result["effective_route"]["project_route"] = (
+                self.store.inspect_project_route(project_id)
+            )
         return result
 
     def storage_connector_select(
@@ -172,6 +202,18 @@ class EvidenceLaneService:
             host_connector_role="PRIMARY_TRANSACTIONAL_RUNTIME_AUTHORITY",
             primary_runtime_authority="CONFIGURED_TRANSACTIONAL_RUNTIME_REQUIRED",
         ), selection
+
+    def _persistence_route_payload(
+        self,
+        project_id: str,
+        route: PersistenceRoute,
+    ) -> dict[str, Any]:
+        return {
+            **route.as_dict(),
+            "project_route": self.store.inspect_project_route(project_id),
+            "transport_project_binding": "EXPLICIT_PROJECT_ID_PER_PROJECT_SCOPED_TOOL",
+            "cross_project_fallback_allowed": False,
+        }
 
     def _environment_sync_service(self) -> PVSyncService | None:
         token = os.environ.get("EVIDENCE_LANE_GOOGLE_DRIVE_ACCESS_TOKEN", "")
@@ -271,6 +313,7 @@ class EvidenceLaneService:
         report["installation"] = installation
         report["session_flash"] = flash
         report["runtime_activation"] = runtime_activation
+        report["store_routing"] = self.store.inspect_root()
         report["checks"]["session_flash_bundle"] = flash["status"] == "PASS"
         report["status"] = "PASS" if all(report["checks"].values()) else "FAIL"
         report["warnings"] = flash["warnings"]
@@ -1074,11 +1117,28 @@ class EvidenceLaneService:
                     "pending_hil": session.state.value.endswith("_CANDIDATE"),
                     "task_id": (session.task.get("task_id") if session.task else None),
                     "source_state": session.metadata.get("source_state"),
+                    "host": session.host.value,
+                    "persistence_route": session.metadata.get("persistence_route"),
                 }
+        storage_selection = self.storage_selection.inspect(project_id)
+        project_route = {
+            **self.store.inspect_project_route(project_id),
+            "storage_mode": storage_selection["mode"],
+            "storage_connector_id": storage_selection.get("connector_id"),
+            "google_drive_primary_runtime_allowed": False,
+        }
+        if active_session:
+            active_route = active_session.get("persistence_route") or {}
+            project_route["active_host_profile"] = active_route.get("host_profile")
+            project_route["active_server_filesystem"] = active_route.get(
+                "server_filesystem"
+            )
         result.update(
             {
                 "status": "PASS",
                 "store": str(self.store.root),
+                "project_route": project_route,
+                "storage_selection": storage_selection,
                 "accepted_history": accepted_history,
                 "current_freshness": current_freshness,
                 "active_session": active_session,
@@ -1357,6 +1417,7 @@ class EvidenceLaneService:
                 status="BLOCKED",
                 details={"mode": route.mode, "reason": route.reason},
             )
+        route_payload = self._persistence_route_payload(project_id, route)
         result = self.sessions.boot(
             project_id=project_id,
             user_id=user_id,
@@ -1365,7 +1426,7 @@ class EvidenceLaneService:
             agent_id=agent_id,
             sandbox_id=sandbox_id,
             persistence_mode=route.mode,
-            persistence_route=route.as_dict(),
+            persistence_route=route_payload,
             ephemeral=ephemeral,
             runtime_context=runtime_context,
             flash=flash,
@@ -1374,7 +1435,7 @@ class EvidenceLaneService:
             server_has_durable_filesystem=route.server_filesystem == "DURABLE",
         )
         result["persistence_route"] = {
-            **route.as_dict(),
+            **route_payload,
             "selection": storage_selection,
         }
         result["project_lineage_entry"] = project_lineage_entry
@@ -1415,12 +1476,13 @@ class EvidenceLaneService:
                 status="BLOCKED",
                 details={"mode": route.mode, "reason": route.reason},
             )
+        route_payload = self._persistence_route_payload(project_id, route)
         result = self.sessions.resume(
             project_id=project_id,
             host=host_kind,
             host_session_id=host_session_id,
             persistence_mode=route.mode,
-            persistence_route=route.as_dict(),
+            persistence_route=route_payload,
             ephemeral=ephemeral,
             client_can_edit_source=client_can_edit_source,
             server_has_durable_filesystem=route.server_filesystem == "DURABLE",
@@ -1429,7 +1491,7 @@ class EvidenceLaneService:
         )
         result["session_flash"] = flash
         result["persistence_route"] = {
-            **route.as_dict(),
+            **route_payload,
             "selection": storage_selection,
         }
         result["project_lineage_entry"] = project_lineage_entry

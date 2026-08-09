@@ -59,15 +59,26 @@ export function FloatingEvidenceStudio() {
   const [messages, setMessages] = useState<FloatingMessage[]>([initialMessage]);
   const endRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const panelRef = useRef<HTMLElement | null>(null);
+  const hasRetainedState = input.length > 0 || messages.length > 1 || busy;
 
   useEffect(() => {
     if (!open) return;
     const onEscape = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
+    const onOutsidePointer = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node) || panelRef.current?.contains(target)) return;
+      setOpen(false);
+    };
     window.addEventListener("keydown", onEscape);
+    document.addEventListener("pointerdown", onOutsidePointer, true);
     inputRef.current?.focus();
-    return () => window.removeEventListener("keydown", onEscape);
+    return () => {
+      window.removeEventListener("keydown", onEscape);
+      document.removeEventListener("pointerdown", onOutsidePointer, true);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -132,9 +143,10 @@ export function FloatingEvidenceStudio() {
       <button
         className={`floatingStudioLauncher${open ? " is-hidden" : ""}`}
         type="button"
-        aria-label="Open Evidence AI Studio"
+        aria-label={hasRetainedState ? "Restore Evidence AI Studio" : "Open Evidence AI Studio"}
         aria-expanded={open}
         aria-controls="floating-evidence-studio"
+        data-retained-state={hasRetainedState ? "true" : "false"}
         onClick={() => setOpen(true)}
       >
         <GlassIconOrb color="#69d9f5" size={48} decorative>
@@ -145,6 +157,7 @@ export function FloatingEvidenceStudio() {
 
       {open ? (
         <aside
+          ref={panelRef}
           className="floatingStudioPanel"
           id="floating-evidence-studio"
           aria-label="Floating Evidence AI Studio"
@@ -168,7 +181,7 @@ export function FloatingEvidenceStudio() {
                 </GlassIconOrb>
                 <span>Full Studio</span>
               </Link>
-              <button className="floatingStudioClose" type="button" aria-label="Close Evidence AI Studio" onClick={() => setOpen(false)}>
+              <button className="floatingStudioClose" type="button" aria-label="Minimize Evidence AI Studio" onClick={() => setOpen(false)}>
                 <GlassIconOrb color="#efb75c" size={30} decorative><span aria-hidden="true">&times;</span></GlassIconOrb>
               </button>
             </div>

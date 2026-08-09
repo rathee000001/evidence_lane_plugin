@@ -9,7 +9,7 @@ type PageHeroProps = {
 
 export function PageHero({ eyebrow, title, description, aside }: PageHeroProps) {
   return (
-    <section className="pageHero shell">
+    <section className="pageHero orbitHeroFrame shell">
       <div>
         <span className="eyebrow"><i />{eyebrow}</span>
         <h1>{title}</h1>

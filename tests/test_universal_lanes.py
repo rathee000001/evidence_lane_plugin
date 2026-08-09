@@ -199,18 +199,13 @@ def _write_pdf(path: Path) -> None:
 
 
 def _write_scanned_pdf(path: Path) -> bool:
-    if importlib.util.find_spec("fitz") is None:
+    if importlib.util.find_spec("PIL") is None:
         _write_pdf(path)
         return False
-    import fitz
+    from PIL import Image
 
-    document = fitz.open()
-    try:
-        page = document.new_page(width=900, height=220)
-        page.insert_image(page.rect, stream=_ocr_image_bytes())
-        document.save(path)
-    finally:
-        document.close()
+    with Image.open(io.BytesIO(_ocr_image_bytes())) as image:
+        image.convert("RGB").save(path, format="PDF", resolution=150)
     return True
 
 
@@ -1092,9 +1087,9 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         state.startswith(("PARSED_", "BLOCKED_", "PARSE_FAILED_"))
         for state in pdf_states
     )
-    if importlib.util.find_spec("fitz") is not None:
+    if importlib.util.find_spec("pypdf") is not None:
         assert "pdf_page" in pdf_kinds
-        assert "PARSED_PYMUPDF" in pdf_states
+        assert {"PARSED_PYPDF", "PARSED_OCR_LOCAL"} & set(pdf_states)
     if (
         scanned_pdf
         and importlib.util.find_spec("rapidocr") is not None

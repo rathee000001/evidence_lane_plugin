@@ -4,10 +4,17 @@ The governed Windows tunnel uses the official OpenAI `tunnel-client` v0.0.10
 binary pinned by SHA-256. The installer copies it out of the temporary download
 directory, asks for the contributor's OpenAI Tunnel ID once, encrypts the
 Runtime API key with current-user Windows DPAPI, creates an exact
-`CHATGPT_PRO_READ` MCP profile, and registers `EvidenceLane-Tunnel-v140` with
+`CHATGPT_PRO_GOVERNED` MCP profile, and registers `EvidenceLane-Tunnel-v140` with
 Task Scheduler. The tunnel is for ChatGPT only. Codex installs the exact Git
 plugin and keeps the complete local lifecycle; it does not use Vercel or this
 tunnel as its plugin transport.
+
+The tunnel is transport-only and binds no project. Its child process receives a
+portable `EVIDENCE_LANE_DATA_ROOT` (the per-user `EvidenceLanePV` directory by
+default), while every project-scoped MCP call must supply the exact `project_id`.
+The server then resolves only `<data-root>/projects/<project_id>` and permits no
+cross-project fallback. Use `-DataRoot <durable-directory>` to select another
+reviewed, secret-free local root during installation.
 
 The task starts automatically at the user's first Windows sign-in after boot.
 That boundary is intentional: current-user DPAPI avoids a plaintext or
@@ -28,12 +35,19 @@ key, at the masked prompt:
 ```
 
 The generated child launcher sets `EVIDENCE_LANE_MCP_EXPOSURE_PROFILE` to
-`CHATGPT_PRO_READ`. That profile exposes exactly 21 annotated read-only tools
-for accepted-PV status, Entry/Exit slips, ENV/UOP Flash, lane search/fetch,
-diffs, task backlog, and governed panels. It exposes no Build, Refresh, Fuse,
-rollback, pointer movement, source write, Git write, deployment, or connector
-mutation tool. ChatGPT's native ENV/UOP and Project Mutation workflow remains a
-separate host-owned capability; the MCP never claims to perform that mutation.
+`CHATGPT_PRO_GOVERNED`. That profile exposes the complete 62-action catalog.
+Exactly 21 annotated read operations execute for accepted-PV status, Entry/Exit
+slips, ENV/UOP Flash, lane search/fetch, diffs, task backlog, and governed panels.
+The other 41 lifecycle-write actions remain visible but are intercepted before
+service invocation and return `UNAVAILABLE_ON_CHATGPT_PRO` with no mutation.
+ChatGPT's native ENV/UOP and Project Mutation workflow remains a separate
+host-owned capability; the MCP never claims to perform that mutation.
+
+The installation marker and Status output report `project_binding` as
+`NONE_TRANSPORT_ONLY`, the required `project_id` argument, the configured data
+root, and `cross_project_fallback_allowed=false`. Those fields are routing proof;
+they do not authorize a project, HIL decision, storage change, or lifecycle
+mutation.
 
 After installation, add or reconnect Evidence Lane once in ChatGPT using the
 same Tunnel ID. Upload the shipped `assets/evidence-lane-icon.png` when the
@@ -79,7 +93,7 @@ root and scheduled-task name.
 The status contract is `PASS` only when the scheduled task exists, the pinned
 binary hash matches, its PID is live, and `tunnel-client health` observes a
 successful control-plane poll, and the generated profile points to the exact
-read-only child launcher. The scripts never print or write the plaintext
+governed child launcher. The scripts never print or write the plaintext
 Runtime API key. Task Scheduler restarts it after sign-in and `Repair` recovers
 an unhealthy verified instance without creating a second live daemon.
 

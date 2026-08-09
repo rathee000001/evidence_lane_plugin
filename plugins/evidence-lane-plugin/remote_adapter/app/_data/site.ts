@@ -27,7 +27,7 @@ export const promptSuggestions = [
   "What can each of the six everyday controls do?",
   "How does the human remain in control at HIL?",
   "How do Codex and ChatGPT use different storage boundaries?",
-  "How can Adobe Express support release visuals without an account connection?",
+  "How does Evidence Lane preserve the native Three.js/WebGL presentation without a generated-GLB dependency?",
 ] as const;
 
 export const floatingStudioSuggestions = {
@@ -49,7 +49,7 @@ export const floatingStudioSuggestions = {
   default: [
     "What business problem does Evidence Lane solve?",
     "What do Build, Refresh, HIL, and Fuse each mean?",
-    "What is active step 66 in the current 17-step plan?",
+    "What is active Row 182 in the current 111-row execution plan?",
   ],
 } as const;
 

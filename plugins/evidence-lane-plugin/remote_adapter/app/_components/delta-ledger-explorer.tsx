@@ -17,14 +17,24 @@ export function DeltaLedgerExplorer() {
     () => filter === "All" ? deltaLedger : deltaLedger.filter((entry) => entry.phase === filter),
     [filter],
   );
+  const filterCount = (item: LedgerFilter) => {
+    if (item === "All") return `${deltaLedgerBoundary.totalRows} public rows`;
+    if (item === "Current execution") {
+      return `${deltaLedgerBoundary.liveExecutionRows} rows`;
+    }
+    return `${deltaLedger.filter((entry) => entry.phase === item).length} rows`;
+  };
 
   return (
     <div className={`deltaLedgerExplorer ${expanded ? "is-expanded" : "is-collapsed"}`}>
       <div className="deltaLedgerToggleRow">
         <div>
           <span>One additive governed ledger</span>
-          <strong>{deltaLedgerBoundary.totalRows} rows: {deltaLedgerBoundary.sealedHistoricalDeltaRows} sealed Deltas + {deltaLedgerBoundary.liveExecutionRows} live Plan Lane steps</strong>
-          <small>The live steps are appended after row 80 in this same table; they are not accepted historical truth.</small>
+          <strong>{deltaLedgerBoundary.totalRows} public rows: {deltaLedgerBoundary.sealedHistoricalDeltaRows} sealed Deltas + {deltaLedgerBoundary.liveExecutionRows} Current execution rows</strong>
+          <small>
+            Current execution is the exact flat, consecutive 081&ndash;191 State Travel projection.
+            Every row keeps its full human-readable contract; no child panel or forensic metadata is substituted for a row.
+          </small>
         </div>
         <GlassPill
           active={expanded}
@@ -63,7 +73,7 @@ export function DeltaLedgerExplorer() {
                 }
                 onClick={() => setFilter(item)}
               >
-                {item}<small>{item === "All" ? deltaLedger.length : deltaLedger.filter((entry) => entry.phase === item).length} rows</small>
+                {item}<small>{filterCount(item)}</small>
               </GlassPill>
             ))}
           </div>
@@ -73,17 +83,26 @@ export function DeltaLedgerExplorer() {
           </div>
           <ol className="deltaLedgerList" start={visible[0]?.order ?? 1} aria-live="polite">
             {visible.map((entry) => (
-              <li className="deltaLedgerRow" key={entry.order} value={entry.order}>
+              <li className="deltaLedgerRow" key={`${entry.phase}-${entry.order}`} value={entry.order}>
                 <span className="deltaOrder">{String(entry.order).padStart(3, "0")}</span>
-                <div><code>{entry.id}</code><p>{entry.summary}</p></div>
+                <div>
+                  <code>{entry.id}</code>
+                  <p>{entry.summary}</p>
+                </div>
                 <span className={`deltaStatus deltaStatus${entry.status.replace(/[^A-Z]+/g, "-")}`}>{entry.status}</span>
               </li>
             ))}
           </ol>
           <p className="deltaLedgerBoundary">
-            Rows 1&ndash;80 are sealed historical Delta evidence. Rows 81&ndash;97 project the current
-            17-step Plan Lane, including active step 66, the carried full POC in last execution step 67, and physically last HIL step 75, into the same additive table. Neither class
-            authorizes Fuse, accepted-pointer movement, a main merge, deployment, or human approval.
+            Rows 1&ndash;80 remain the unchanged sealed historical Delta evidence. Public rows
+            81&ndash;191 are the consecutive Current execution projection: {deltaLedgerBoundary.liveExecutionRows} full rows,
+            with {deltaLedgerBoundary.currentExecutionCompleted} completed,
+            {` ${deltaLedgerBoundary.currentExecutionActive}`} active, and {` ${deltaLedgerBoundary.currentExecutionPending}`} pending.
+            Public row {deltaLedgerBoundary.activePublicOrder} / public task position {deltaLedgerBoundary.activeTaskPosition} / governed receipt position {deltaLedgerBoundary.activeReceiptPosition} is active;
+            public row {deltaLedgerBoundary.finalSweepPublicOrder} / public task position {deltaLedgerBoundary.finalSweepTaskPosition} / governed receipt position {deltaLedgerBoundary.finalSweepReceiptPosition} is the final fresh sweep;
+            public row {deltaLedgerBoundary.finalHilPublicOrder} / public task position {deltaLedgerBoundary.finalHilTaskPosition} / governed receipt position {deltaLedgerBoundary.finalHilReceiptPosition} is physically final.
+            This projection does not authorize Fuse, accepted-pointer movement, main merge, production publication,
+            Devpost mutation, or human approval.
           </p>
         </div>
       ) : null}

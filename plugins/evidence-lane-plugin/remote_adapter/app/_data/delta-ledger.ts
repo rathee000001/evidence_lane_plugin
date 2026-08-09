@@ -1,4 +1,7 @@
-import { currentExecutionPlan } from "./current-execution-plan";
+import {
+  websiteCurrentExecution,
+  websiteCurrentExecutionBoundary,
+} from "./website-current-execution";
 
 export type DeltaPhase = "Foundation" | "V1.2 evolution" | "V1.3 hardening" | "Current execution";
 
@@ -117,12 +120,12 @@ const hardening: DeltaLedgerEntry[] = [
   { order: 80, id: "EL-V130-ACCEPTED-AUTHORITY-SUCCESSOR-AND-RELEASE-GATE-DELTA-080", phase: "V1.3 hardening", status: "ACCEPTED IN PV7", summary: "Historical accepted-authority successor, release evidence, and exact six-way HIL boundary." },
 ];
 
-const currentExecution: DeltaLedgerEntry[] = currentExecutionPlan.map((row, index) => ({
-  order: 81 + index,
-  id: `VISIBLE-PLAN-STEP-${String(row.number).padStart(3, "0")}`,
+const currentExecution: DeltaLedgerEntry[] = websiteCurrentExecution.map((row) => ({
+  order: row.order,
+  id: row.id,
   phase: "Current execution",
-  status: row.status.replace("_", " "),
-  summary: row.step,
+  status: row.status,
+  summary: row.summary,
 }));
 
 export const deltaLedger: readonly DeltaLedgerEntry[] = [
@@ -136,6 +139,18 @@ export const deltaLedgerBoundary = {
   totalRows: deltaLedger.length,
   sealedHistoricalDeltaRows: foundation.length + evolution.length + hardening.length,
   liveExecutionRows: currentExecution.length,
-  activeExecutionRow: 66,
+  currentExecutionCompleted: websiteCurrentExecutionBoundary.completedRows,
+  currentExecutionActive: websiteCurrentExecutionBoundary.activeRows,
+  currentExecutionPending: websiteCurrentExecutionBoundary.pendingRows,
+  activePublicOrder: websiteCurrentExecutionBoundary.activePublicOrder,
+  activeTaskPosition: websiteCurrentExecutionBoundary.activeTaskPosition,
+  activeReceiptPosition: websiteCurrentExecutionBoundary.activeReceiptPosition,
+  finalSweepPublicOrder: websiteCurrentExecutionBoundary.finalSweepPublicOrder,
+  finalSweepTaskPosition: websiteCurrentExecutionBoundary.finalSweepTaskPosition,
+  finalSweepReceiptPosition: websiteCurrentExecutionBoundary.finalSweepReceiptPosition,
+  finalHilPublicOrder: websiteCurrentExecutionBoundary.finalHilPublicOrder,
+  finalHilTaskPosition: websiteCurrentExecutionBoundary.finalHilTaskPosition,
+  finalHilReceiptPosition: websiteCurrentExecutionBoundary.finalHilReceiptPosition,
+  taskCount: websiteCurrentExecutionBoundary.taskCount,
   acceptedAuthorityEffect: "NONE",
 } as const;

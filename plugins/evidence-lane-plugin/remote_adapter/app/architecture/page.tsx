@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { ConcentricGovernanceMap } from "../_components/concentric-governance-map";
-import { EvidenceBrainAsset, GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
+import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
+import { HeroOrbit } from "../_components/hero-orbit";
 import { PageHero } from "../_components/page-hero";
 import { SourceLaneIcon } from "../_components/source-lane-icon";
 import { artifactContract } from "../_data/site";
@@ -35,25 +35,8 @@ export default function ArchitecturePage() {
         eyebrow="System architecture"
         title="Parallel evidence work. Serial authority."
         description="Evidence Lane can calculate independent source sectors concurrently. Candidate sealing, human decision, Fuse, accepted pointers, rollback, and State Travel remain ordered and compare-and-swap governed."
-        aside={
-          <div className="routeBrainOrb" aria-label="Pulsing Evidence Lane glass brain">
-            <EvidenceBrainAsset color="#37c7e7" label="" priority />
-          </div>
-        }
+        aside={<HeroOrbit preset="architecture" />}
       />
-
-      <section className="section shell concentricStorySection">
-        <ConcentricGovernanceMap
-          eyebrow="Concentric authority map"
-          center="Human HIL"
-          centerDetail="Parallel evidence can move quickly around the center; only the human decision can change accepted authority."
-          rings={[
-            { label: "Sources", tone: "cyan", items: ["Code", "Docs", "Data", "Lineage"] },
-            { label: "Evidence work", tone: "green", items: ["Parse", "Index", "Graph", "Test"] },
-            { label: "Serial lifecycle", tone: "gold", items: ["Candidate", "HIL", "Fuse", "Pointer"] },
-          ]}
-        />
-      </section>
 
       <section className="section shell topologySection">
         <div className="sectionHead wideHead">
