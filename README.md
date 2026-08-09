@@ -149,6 +149,16 @@ structured `UNAVAILABLE_ON_CHATGPT_PRO` receipt with no mutation. ChatGPT's
 native ENV/UOP package and Project Mutation sector may continue under host law,
 but the MCP does not perform or claim that mutation.
 
+For authenticated HTTPS use, the v1.5.0 resource server requires an established
+OAuth 2.1 IdP and a read-only base transport scope. It publishes per-tool OAuth
+security schemes and verifies asymmetric JWT signature, issuer, audience,
+expiry/not-before, token ID, exact client, deployment environment, application
+role, and exact project grants before executable tool calls. Production
+lifecycle writes and all remote Git actions are owner-only; tester writes are
+staging-only, with separate origins, identities, data roots, and secrets. This
+implemented policy does not claim that a live IdP, durable origin, or ChatGPT
+link has already passed external verification.
+
 The Vercel project in this repository is only a thin HTTPS adapter for the
 ChatGPT MCP and the public website. It verifies release identity and
 proxies to a separately configured durable read origin. Vercel is not used to

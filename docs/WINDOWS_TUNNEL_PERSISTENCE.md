@@ -4,7 +4,7 @@ The governed Windows tunnel uses the official OpenAI `tunnel-client` v0.0.10
 binary pinned by SHA-256. The installer copies it out of the temporary download
 directory, asks for the contributor's OpenAI Tunnel ID once, encrypts the
 Runtime API key with current-user Windows DPAPI, creates an exact
-`CHATGPT_PRO_GOVERNED` MCP profile, and registers `EvidenceLane-Tunnel-v140` with
+`CHATGPT_PRO_GOVERNED` MCP profile, and registers `EvidenceLane-Tunnel-v150` with
 Task Scheduler. The tunnel is for ChatGPT only. Codex installs the exact Git
 plugin and keeps the complete local lifecycle; it does not use Vercel or this
 tunnel as its plugin transport.
@@ -23,6 +23,12 @@ Task Scheduler restarts the daemon after non-zero exits, and the launcher
 requires an exact binary hash plus a successful control-plane poll before it is
 reported ready.
 
+The v1.5.0 defaults are deliberately isolated under `tunnel-runtime-v150`,
+`evidence_lane_v150_chatgpt_read`, and `EvidenceLane-Tunnel-v150`. They do not
+remove, overwrite, stop, or reuse the v1.4 runtime, profile, scheduled task, PID,
+health, or log files. Keep v1.4 intact until the final HIL explicitly authorizes
+its removal.
+
 ## One-time installation
 
 Create one tunnel in the OpenAI Platform first. Run the installer from the
@@ -33,6 +39,24 @@ key, at the masked prompt:
 ```powershell
 & ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1"
 ```
+
+Never give a contributor the owner's Runtime API key or production OAuth
+credential. A private tester receives a separately created Tunnel ID and
+Runtime key, a unique `-RuntimeRoot`, `-ProfileName`, and `-TaskName`, and a
+tester-only `-DataRoot` containing only the approved test projects. For example:
+
+```powershell
+& ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1" `
+  -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150-tester-01" `
+  -ProfileName "evidence_lane_v150_chatgpt_tester_01" `
+  -TaskName "EvidenceLane-Tunnel-v150-Tester-01" `
+  -DataRoot "$env:USERPROFILE\EvidenceLanePV\tester-01"
+```
+
+The installer requests that tester tunnel's own Runtime key through a masked
+local prompt. The private tunnel remains read-only at the ChatGPT exposure
+boundary. Owner-only production lifecycle authority is enforced separately by
+the public OAuth resource server and must never be inferred from tunnel access.
 
 The generated child launcher sets `EVIDENCE_LANE_MCP_EXPOSURE_PROFILE` to
 `CHATGPT_PRO_GOVERNED`. That profile exposes the complete 62-action catalog.
@@ -64,26 +88,26 @@ tunnel untouched until the replacement has passed.
 Start or confirm the task:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v140\Manage-EvidenceLaneTunnel.ps1" -Action Start
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150\Manage-EvidenceLaneTunnel.ps1" -Action Start
 ```
 
 Read status without exposing the key:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v140\Manage-EvidenceLaneTunnel.ps1" -Action Status
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150\Manage-EvidenceLaneTunnel.ps1" -Action Status
 ```
 
 Repair a stopped or unhealthy task:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v140\Manage-EvidenceLaneTunnel.ps1" -Action Repair
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150\Manage-EvidenceLaneTunnel.ps1" -Action Repair
 ```
 
 Remove the exact installer-owned scheduled task, profile, DPAPI envelope, and
 runtime only after reviewing the bound path:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v140\Manage-EvidenceLaneTunnel.ps1" -Action Remove -ConfirmRemoval
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150\Manage-EvidenceLaneTunnel.ps1" -Action Remove -ConfirmRemoval
 ```
 
 Removal fails closed unless the target is inside the current user's

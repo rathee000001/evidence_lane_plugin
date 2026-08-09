@@ -11,8 +11,17 @@ import sys
 import tomllib
 from pathlib import Path
 
+import httpx
 import pytest
-from evidence_lane_plugin.auth import OAuthJWTConfig, OAuthJWTVerifier
+from evidence_lane_plugin.auth import (
+    READ_SCOPE,
+    REMOTE_GIT_SCOPE,
+    WRITE_SCOPE,
+    OAuthAuthorizationError,
+    OAuthJWTConfig,
+    OAuthJWTVerifier,
+    OAuthToolAuthorizationPolicy,
+)
 from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.mcp_apps import (
     GOVERNED_PANEL_URI,
@@ -36,6 +45,8 @@ from evidence_lane_plugin.mcp_stdio_compat import (
 from evidence_lane_plugin.service import EvidenceLaneService
 from mcp.client.session import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
+from mcp.server.auth.provider import AccessToken
+from mcp.types import CallToolResult
 
 from .conftest import build_and_approve_pv1
 
@@ -1441,6 +1452,9 @@ def test_non_loopback_http_fails_closed_without_auth(
     monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ISSUER_URL", raising=False)
     monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_JWKS_URL", raising=False)
     monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_AUDIENCE", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ENVIRONMENT", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ALLOWED_CLIENT_IDS", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ALLOWED_ROLES", raising=False)
     with pytest.raises(RuntimeError, match="requires static bearer or OAuth"):
         run_server(
             transport="streamable-http",
@@ -1467,6 +1481,9 @@ def test_server_start_installs_but_leaves_flash_and_runtime_detached(
     monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ISSUER_URL", raising=False)
     monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_JWKS_URL", raising=False)
     monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_AUDIENCE", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ENVIRONMENT", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ALLOWED_CLIENT_IDS", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ALLOWED_ROLES", raising=False)
     starts: list[dict[str, object]] = []
     lifecycle_events: list[str] = []
 
@@ -1546,16 +1563,22 @@ def test_oauth_jwt_verifier_requires_asymmetric_algorithms_and_scopes(
         OAuthJWTConfig(
             issuer_url="https://issuer.example/",
             jwks_url="https://issuer.example/.well-known/jwks.json",
-            audience="https://mcp.example",
-            required_scopes=("evidence-lane:read",),
+            audience="https://mcp.example/mcp",
+            required_scopes=(READ_SCOPE,),
+            deployment_environment="staging",
+            allowed_client_ids=("chatgpt",),
+            allowed_roles=("owner", "tester"),
             algorithms=("HS256",),
         )
 
     config = OAuthJWTConfig(
         issuer_url="https://issuer.example/",
         jwks_url="https://issuer.example/.well-known/jwks.json",
-        audience="https://mcp.example",
-        required_scopes=("evidence-lane:read", "evidence-lane:write"),
+        audience="https://mcp.example/mcp",
+        required_scopes=(READ_SCOPE,),
+        deployment_environment="staging",
+        allowed_client_ids=("chatgpt",),
+        allowed_roles=("owner", "tester"),
     )
     verifier = OAuthJWTVerifier(config)
 
@@ -1573,7 +1596,12 @@ def test_oauth_jwt_verifier_requires_asymmetric_algorithms_and_scopes(
         "sub": "user-123",
         "azp": "chatgpt",
         "exp": 4_102_444_800,
-        "scope": "evidence-lane:read evidence-lane:write",
+        "nbf": 1,
+        "jti": "token-123",
+        "scope": READ_SCOPE,
+        "evidence_lane_environment": "staging",
+        "evidence_lane_roles": ["tester"],
+        "evidence_lane_projects": ["project-a"],
     }
     monkeypatch.setattr(
         "evidence_lane_plugin.auth.decode",
@@ -1585,8 +1613,348 @@ def test_oauth_jwt_verifier_requires_asymmetric_algorithms_and_scopes(
     assert accepted.client_id == "chatgpt"
     assert accepted.resource == config.audience
 
-    claims["scope"] = "evidence-lane:read"
+    claims["scope"] = ""
     assert asyncio.run(verifier.verify_token("header.payload.signature")) is None
+
+    claims["scope"] = READ_SCOPE
+    claims["evidence_lane_environment"] = "production"
+    assert asyncio.run(verifier.verify_token("header.payload.signature")) is None
+
+    claims["evidence_lane_environment"] = "staging"
+    claims["azp"] = "unapproved-client"
+    assert asyncio.run(verifier.verify_token("header.payload.signature")) is None
+
+    claims["azp"] = "chatgpt"
+    claims["evidence_lane_projects"] = ["*"]
+    assert asyncio.run(verifier.verify_token("header.payload.signature")) is None
+
+
+def test_oauth_tool_policy_enforces_scope_role_environment_and_project() -> None:
+    staging_config = OAuthJWTConfig(
+        issuer_url="https://issuer.example/",
+        jwks_url="https://issuer.example/.well-known/jwks.json",
+        audience="https://mcp.example/mcp",
+        required_scopes=(READ_SCOPE,),
+        deployment_environment="staging",
+        allowed_client_ids=("chatgpt", "codex"),
+        allowed_roles=("owner", "tester"),
+    )
+    policy = OAuthToolAuthorizationPolicy(staging_config)
+
+    tester_claims = {
+        "evidence_lane_environment": "staging",
+        "evidence_lane_roles": ["tester"],
+        "evidence_lane_projects": ["project-a"],
+    }
+    tester = AccessToken(
+        token="redacted-test-token",
+        client_id="chatgpt",
+        scopes=[READ_SCOPE, WRITE_SCOPE],
+        subject="tester-1",
+        claims=tester_claims,
+    )
+    policy.authorize_access_token(
+        tester,
+        tool_name="pv_status",
+        lifecycle=False,
+        project_id="project-a",
+    )
+    policy.authorize_access_token(
+        tester,
+        tool_name="pv_build_initial",
+        lifecycle=True,
+        project_id="project-a",
+    )
+
+    with pytest.raises(OAuthAuthorizationError, match="PROJECT_NOT_AUTHORIZED"):
+        policy.authorize_access_token(
+            tester,
+            tool_name="pv_status",
+            lifecycle=False,
+            project_id="project-b",
+        )
+    with pytest.raises(OAuthAuthorizationError, match="EXACT_PROJECT_ID_REQUIRED"):
+        policy.authorize_access_token(
+            tester,
+            tool_name="pv_status",
+            lifecycle=False,
+            project_id="",
+        )
+    with pytest.raises(OAuthAuthorizationError, match="OAUTH_SCOPE_REQUIRED"):
+        policy.authorize_access_token(
+            AccessToken(
+                token="redacted-read-token",
+                client_id="chatgpt",
+                scopes=[READ_SCOPE],
+                subject="tester-1",
+                claims=tester_claims,
+            ),
+            tool_name="pv_build_initial",
+            lifecycle=True,
+            project_id="project-a",
+        )
+    with pytest.raises(OAuthAuthorizationError, match="OAUTH_SCOPE_REQUIRED"):
+        policy.authorize_access_token(
+            AccessToken(
+                token="redacted-owner-token",
+                client_id="codex",
+                scopes=[READ_SCOPE, WRITE_SCOPE],
+                subject="owner-1",
+                claims={
+                    "evidence_lane_environment": "staging",
+                    "evidence_lane_roles": ["owner"],
+                    "evidence_lane_projects": ["project-a"],
+                },
+            ),
+            tool_name="remote_git_execute_push",
+            lifecycle=True,
+            project_id="project-a",
+        )
+    with pytest.raises(OAuthAuthorizationError, match="OWNER_ROLE_REQUIRED"):
+        policy.authorize_access_token(
+            AccessToken(
+                token="redacted-test-token",
+                client_id="chatgpt",
+                scopes=[READ_SCOPE, WRITE_SCOPE, REMOTE_GIT_SCOPE],
+                subject="tester-1",
+                claims=tester_claims,
+            ),
+            tool_name="remote_git_execute_push",
+            lifecycle=True,
+            project_id="project-a",
+        )
+
+    owner = AccessToken(
+        token="redacted-owner-token",
+        client_id="codex",
+        scopes=[READ_SCOPE, WRITE_SCOPE, REMOTE_GIT_SCOPE],
+        subject="owner-1",
+        claims={
+            "evidence_lane_environment": "staging",
+            "evidence_lane_roles": ["owner"],
+            "evidence_lane_projects": ["*"],
+        },
+    )
+    policy.authorize_access_token(
+        owner,
+        tool_name="remote_git_execute_push",
+        lifecycle=True,
+        project_id="project-b",
+    )
+
+    production_policy = OAuthToolAuthorizationPolicy(
+        OAuthJWTConfig(
+            issuer_url="https://issuer.example/",
+            jwks_url="https://issuer.example/.well-known/jwks.json",
+            audience="https://mcp.example/mcp",
+            required_scopes=(READ_SCOPE,),
+            deployment_environment="production",
+            allowed_client_ids=("chatgpt",),
+            allowed_roles=("owner", "tester"),
+        )
+    )
+    with pytest.raises(OAuthAuthorizationError, match="OWNER_ROLE_REQUIRED"):
+        production_policy.authorize_access_token(
+            AccessToken(
+                token="redacted-test-token",
+                client_id="chatgpt",
+                scopes=[READ_SCOPE, WRITE_SCOPE],
+                subject="tester-1",
+                claims={
+                    **tester_claims,
+                    "evidence_lane_environment": "production",
+                },
+            ),
+            tool_name="pv_build_initial",
+            lifecycle=True,
+            project_id="project-a",
+        )
+
+
+def test_oauth_server_declares_exact_per_tool_security_schemes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = OAuthJWTConfig(
+        issuer_url="https://issuer.example/",
+        jwks_url="https://issuer.example/.well-known/jwks.json",
+        audience="https://mcp.example/mcp",
+        required_scopes=(READ_SCOPE,),
+        deployment_environment="staging",
+        allowed_client_ids=("chatgpt", "codex"),
+        allowed_roles=("owner", "tester"),
+    )
+    mismatched_audience = OAuthJWTConfig(
+        issuer_url="https://issuer.example/",
+        jwks_url="https://issuer.example/.well-known/jwks.json",
+        audience="https://mcp.example/other",
+        required_scopes=(READ_SCOPE,),
+        deployment_environment="staging",
+        allowed_client_ids=("chatgpt",),
+        allowed_roles=("owner", "tester"),
+    )
+    with pytest.raises(ValueError, match="externally visible MCP resource URL"):
+        create_mcp_server(
+            service=EvidenceLaneService(data_root=tmp_path / "mismatch"),
+            base_url="https://mcp.example",
+            oauth_config=mismatched_audience,
+        )
+    server = create_mcp_server(
+        service=EvidenceLaneService(data_root=tmp_path / "full"),
+        base_url="https://mcp.example",
+        oauth_config=config,
+    )
+    tools = asyncio.run(server.list_tools())
+    by_name = {tool.name: tool for tool in tools}
+    assert by_name["pv_status"].model_extra["securitySchemes"] == [
+        {"type": "oauth2", "scopes": [READ_SCOPE]}
+    ]
+    assert by_name["pv_build_initial"].model_extra["securitySchemes"] == [
+        {"type": "oauth2", "scopes": [READ_SCOPE, WRITE_SCOPE]}
+    ]
+    assert by_name["remote_git_execute_push"].model_extra[
+        "securitySchemes"
+    ] == [
+        {
+            "type": "oauth2",
+            "scopes": [READ_SCOPE, WRITE_SCOPE, REMOTE_GIT_SCOPE],
+        }
+    ]
+    assert by_name["pv_status"].meta["securitySchemes"] == by_name[
+        "pv_status"
+    ].model_extra["securitySchemes"]
+    receipt = server._evidence_lane_native_route_receipt
+    assert (
+        receipt["transport_project_binding"]
+        == "OAUTH_SUBJECT_CLIENT_ENVIRONMENT_ROLE_AND_EXACT_PROJECT"
+    )
+    assert receipt["oauth_authorization_policy"]["per_tool_security_schemes"]
+
+    async def exercise_oauth_discovery() -> None:
+        transport = httpx.ASGITransport(app=server.streamable_http_app())
+        async with httpx.AsyncClient(
+            transport=transport,
+            base_url="https://mcp.example",
+        ) as client:
+            metadata_response = await client.get(
+                "/.well-known/oauth-protected-resource/mcp"
+            )
+            assert metadata_response.status_code == 200
+            metadata = metadata_response.json()
+            assert metadata["resource"] == "https://mcp.example/mcp"
+            assert metadata["authorization_servers"] == [
+                "https://issuer.example/"
+            ]
+            assert metadata["scopes_supported"] == [READ_SCOPE]
+            challenge = await client.post("/mcp")
+            assert challenge.status_code == 401
+            assert (
+                'resource_metadata="https://mcp.example/'
+                '.well-known/oauth-protected-resource/mcp"'
+                in challenge.headers["www-authenticate"]
+            )
+
+    asyncio.run(exercise_oauth_discovery())
+
+    chatgpt_server = create_mcp_server(
+        service=EvidenceLaneService(data_root=tmp_path / "chatgpt"),
+        base_url="https://mcp.example",
+        oauth_config=config,
+        exposure_profile=CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
+    )
+    chatgpt_tools = {
+        tool.name: tool for tool in asyncio.run(chatgpt_server.list_tools())
+    }
+    assert chatgpt_tools["pv_build_initial"].model_extra[
+        "securitySchemes"
+    ] == [{"type": "oauth2", "scopes": [READ_SCOPE]}]
+
+    monkeypatch.setattr(
+        "evidence_lane_plugin.auth.get_access_token",
+        lambda: None,
+    )
+    status_tool = server._tool_manager.get_tool("pv_status")
+    assert status_tool is not None
+    missing_token_block = asyncio.run(
+        status_tool.run({"project_id": "project-a"}, convert_result=True)
+    )
+    assert isinstance(missing_token_block, CallToolResult)
+    assert missing_token_block.isError
+    assert missing_token_block.structuredContent["mutation_performed"] is False
+    assert missing_token_block.meta is not None
+    missing_token_challenge = missing_token_block.meta[
+        "mcp/www_authenticate"
+    ][0]
+    assert 'error="invalid_token"' in missing_token_challenge
+    assert (
+        'resource_metadata="https://mcp.example/'
+        '.well-known/oauth-protected-resource/mcp"'
+        in missing_token_challenge
+    )
+
+    monkeypatch.setattr(
+        "evidence_lane_plugin.auth.get_access_token",
+        lambda: AccessToken(
+            token="redacted-owner-token",
+            client_id="codex",
+            scopes=[READ_SCOPE, WRITE_SCOPE],
+            subject="owner-1",
+            claims={
+                "evidence_lane_environment": "staging",
+                "evidence_lane_roles": ["owner"],
+                "evidence_lane_projects": ["project-a"],
+            },
+        ),
+    )
+    remote_tool = server._tool_manager.get_tool("remote_git_execute_push")
+    assert remote_tool is not None
+    scope_block = asyncio.run(
+        remote_tool.run(
+            {
+                "project_id": "project-a",
+                "action_id": "unused-action",
+                "confirmation_token": "unused-token",
+                "confirmed_by": "owner-1",
+            },
+            convert_result=True,
+        )
+    )
+    assert isinstance(scope_block, CallToolResult)
+    assert scope_block.isError
+    assert scope_block.structuredContent["mutation_performed"] is False
+    assert scope_block.meta is not None
+    scope_challenge = scope_block.meta["mcp/www_authenticate"][0]
+    assert 'error="insufficient_scope"' in scope_challenge
+    assert (
+        'resource_metadata="https://mcp.example/'
+        '.well-known/oauth-protected-resource/mcp"'
+        in scope_challenge
+    )
+    assert READ_SCOPE in scope_challenge
+    assert WRITE_SCOPE in scope_challenge
+    assert REMOTE_GIT_SCOPE in scope_challenge
+
+    monkeypatch.setattr(
+        "evidence_lane_plugin.auth.get_access_token",
+        lambda: AccessToken(
+            token="redacted-tester-token",
+            client_id="chatgpt",
+            scopes=[READ_SCOPE],
+            subject="tester-1",
+            claims={
+                "evidence_lane_environment": "staging",
+                "evidence_lane_roles": ["tester"],
+                "evidence_lane_projects": ["project-a"],
+            },
+        ),
+    )
+    project_block = asyncio.run(
+        status_tool.run({"project_id": "project-b"}, convert_result=True)
+    )
+    assert isinstance(project_block, CallToolResult)
+    assert project_block.isError
+    assert project_block.structuredContent["code"] == "OAUTH_PROJECT_NOT_AUTHORIZED"
+    assert project_block.meta is None
 
 
 def test_partial_remote_oauth_configuration_fails_closed(

@@ -403,6 +403,8 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
         "/mcp",
         "/healthz",
         "/.well-known/oauth-protected-resource",
+        "/.well-known/oauth-protected-resource/mcp",
+        "/.well-known/openai-apps-challenge",
     }
     assert "/(.*)" not in {rewrite["source"] for rewrite in vercel["rewrites"]}
     landing = (adapter_root / "app" / "page.tsx").read_text(encoding="utf-8")

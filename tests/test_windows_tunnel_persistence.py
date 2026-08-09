@@ -16,7 +16,7 @@ def test_boot_launcher_pins_binary_and_dpapi_envelope() -> None:
     assert "ConvertTo-SecureString" in boot
     assert "ZeroFreeBSTR" in boot
     assert "--require-control-plane-poll" in boot
-    assert 'ProfileName = "evidence_lane_v140_chatgpt_read"' in boot
+    assert 'ProfileName = "evidence_lane_v150_chatgpt_read"' in boot
     assert 'ProfileDir = "$env:APPDATA\\tunnel-client"' in boot
     assert "RECOVER_STALE_PROCESS" in boot
     assert "CONTROL_PLANE_ORGANIZATION_ID" not in boot
@@ -44,7 +44,7 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert "_INTERNAL_CHATGPT_READ_MCP_DO_NOT_RUN.ps1" in installer
     assert "--control-plane-api-key-ref \"env:CONTROL_PLANE_API_KEY\"" in installer
     assert "--mcp-command $mcpCommand" in installer
-    assert 'TaskName = "EvidenceLane-Tunnel-v140"' in installer
+    assert 'TaskName = "EvidenceLane-Tunnel-v150"' in installer
     assert "exact_visible_tool_count = 62" in installer
     assert "exact_active_read_tool_count = 21" in installer
     assert "exact_fail_closed_write_tool_count = 41" in installer
@@ -77,15 +77,19 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert "Unregister-ScheduledTask" in manager
 
 
-def test_all_tunnel_scripts_use_v140_runtime_names() -> None:
+def test_all_tunnel_scripts_use_isolated_v150_runtime_names() -> None:
     for name in (
         "Install-EvidenceLaneTunnel.ps1",
         "EvidenceLaneTunnel.Boot.ps1",
         "Manage-EvidenceLaneTunnel.ps1",
     ):
         text = _read(name)
-        assert "evidence_lane_v140" in text
-        assert "EvidenceLane-Tunnel-v140" in text or name == "EvidenceLaneTunnel.Boot.ps1"
+        assert "evidence_lane_v150" in text
+        assert "tunnel-runtime-v150" in text
+        assert "EvidenceLane-Tunnel-v150" in text or name == "EvidenceLaneTunnel.Boot.ps1"
+        assert "tunnel-runtime-v140" not in text
+        assert "evidence_lane_v140" not in text
+        assert "EvidenceLane-Tunnel-v140" not in text
 
 
 def test_pinned_process_identity_uses_exact_path_and_hash_not_executable_stem() -> None:

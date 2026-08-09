@@ -1,8 +1,8 @@
 # ChatGPT write-safe release and data-liability research
 
 Research date: 2026-08-09
-Scope: current official OpenAI, Vercel, GitHub, and regulator documentation plus the current Evidence Lane v1.4 source tree
-Change boundary: research and architecture only; no write tool was enabled, no permission changed, and nothing was deployed, published, or submitted
+Scope: current official OpenAI, Vercel, GitHub, and regulator documentation plus the current Evidence Lane v1.5.0 candidate source tree
+Change boundary: research plus local OAuth resource-server hardening; no ChatGPT write tool was enabled, no external permission changed, and nothing was promoted, published, or submitted
 
 ## Verdict
 
@@ -10,13 +10,13 @@ Change boundary: research and architecture only; no write tool was enabled, no p
 
 Evidence Lane can expose authenticated write tools in ChatGPT and can follow the normal public plugin route. OpenAI explicitly documents plugin write actions, OAuth 2.1 authorization, per-tool scope enforcement, host confirmation for destructive actions, review, and a universal Plugins Directory shared by ChatGPT and Codex. GitHub and Vercel likewise permit authorized writes; being a developer tool is not an exemption from authorization, least privilege, confirmation, auditability, or platform review.
 
-The current package is not ready for that release. Its ChatGPT profile intentionally refuses lifecycle writes; OAuth is verified at the server boundary with one global required-scope set rather than a least-privilege per-tool policy; the public edge has no working durable origin; the portal has not scanned a production endpoint or verified the MCP domain; the public privacy page does not yet disclose a complete data map, retention/deletion periods, processors, rights path, or incident contact; and the app mapping is not yet a verified registered connection. These are fixable release blockers, not reasons to abandon the normal route.
+The current package is not ready for that release. Its ChatGPT profile intentionally refuses lifecycle writes. The v1.5.0 candidate now enforces a read-only base transport gate, emits per-tool OAuth security schemes, and binds verified tokens to exact client, environment, role, and project claims; production lifecycle writes and remote Git are owner-gated. That is local resource-server proof, not a live OAuth deployment. The public edge still has no working durable origin or established IdP proof; the portal has not scanned a production endpoint or verified the MCP domain; the public privacy page does not yet disclose a complete data map, retention/deletion periods, processors, rights path, or incident contact; and the app mapping is not yet a verified registered connection. These are fixable release blockers, not reasons to abandon the normal route.
 
 The claim that no vendor-held payload persistence yields “nearly zero data liability” is false. Local-first and short retention reduce the amount and duration of retained data. They do not remove processing, transmission, access-control, security, breach-response, deletion, transparency, lawful-basis, subprocessor, or contractual obligations. OpenAI’s current [App Developer Terms](https://openai.com/policies/developer-apps-terms/) expressly place responsibility for the app, API, app requests, privacy, security, legal compliance, support, and notices on the developer and treat OpenAI and the developer as separate parties for their respective processing.
 
 Evidence that would change this verdict:
 
-- **To pursue:** passing production-like OAuth discovery and tool-call tests; enforced per-tool scopes and tenant/project binding; complete retention/deletion and incident-response proof; an accurate public privacy notice and terms reviewed by qualified counsel; a stable public HTTPS MCP origin; clean Scan Tools results; reviewer-safe fixtures; and OpenAI review approval.
+- **To pursue:** passing production-like OAuth discovery and tool-call tests against the implemented policy; complete retention/deletion and incident-response proof; an accurate public privacy notice and terms reviewed by qualified counsel; a stable public HTTPS MCP origin; clean Scan Tools results; reviewer-safe fixtures; and OpenAI review approval.
 - **To park or drop:** OpenAI rejecting the lifecycle/HIL interaction model after a complete compliant submission; inability to operate a durable origin without exposing cross-tenant state; inability to implement reliable deletion/export and breach response; or counsel finding that the intended data categories or jurisdictions create obligations the project cannot support.
 
 This document is an engineering and release-risk analysis, not legal advice.
@@ -29,7 +29,7 @@ This document is an engineering and release-risk analysis, not legal advice.
 | Fact | ChatGPT plugins may contain write tools. | OpenAI’s [security and privacy guide](https://developers.openai.com/plugins/guides/security-privacy) expressly addresses write actions, scope enforcement, confirmation, and audit controls. |
 | Fact | OAuth 2.1 authentication does not by itself authorize every tool. | OpenAI’s [authentication guide](https://developers.openai.com/plugins/build/auth) requires resource/audience and scope checks; the security guide says scopes must be enforced on every tool call. |
 | Fact | The present Evidence Lane ChatGPT profile refuses lifecycle writes. | `plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py`, `CHATGPT_PRO_GOVERNED` exposure boundary. |
-| Fact | The present OAuth configuration uses one server-wide required-scope list, defaulting to read plus write. | `plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py` and `auth.py`. No authenticated per-tool subject/scope policy is currently applied. |
+| Fact | The v1.5.0 resource server uses a read-only base transport scope, per-tool OAuth security schemes, exact client/environment/role/project claims, owner-only production lifecycle writes, and owner-only remote Git. | `plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py`, `auth.py`, and the OAuth policy tests. This is locally implemented policy, not proof of an established IdP, public origin, token revocation, or OpenAI end-to-end linking. |
 | Fact | Evidence Lane intentionally retains durable local project/session/lineage data. | `store.py`, `session.py`, `lineage.py`, and the configured durable project root. Local-first is not storage-free. |
 | Fact | The Vercel MCP edge processes the complete bounded request body and allowed headers in transit and forwards them to the origin. | `plugins/evidence-lane-plugin/remote_adapter/api/index.py`. Vercel’s [runtime log documentation](https://vercel.com/docs/logs/runtime) also identifies retained operational metadata. |
 | Fact | Optional Google Drive sync creates a third-party retained copy. | `plugins/evidence-lane-plugin/src/evidence_lane_plugin/persistence.py` uploads sealed PV/candidate/receipt bytes to a user-selected Drive folder. |
@@ -311,7 +311,7 @@ Every tool declares its exact scope set. The server checks token scope, subject/
 
 | Risk | Current likelihood / impact | Required mitigation | Residual owner decision |
 |---|---|---|---|
-| Over-broad `read write` token reaches destructive tools | High / Critical | Per-tool scopes, role/project claims, owner-only grants, separate profiles | Accept only after enforcement tests |
+| IdP or deployment misconfiguration bypasses the locally tested scope/role/project contract | Medium / Critical | Exact environment/client allowlists, production owner role, per-tool scopes, isolated staging, and live adversarial tests | Accept only after production-like IdP and origin proof |
 | Prompt injection induces valid but unwanted write | High / High | Server-side policy, host confirmation, two-step prepare/execute, target preview, one-use nonce | Define which writes remain unavailable in ChatGPT |
 | Cross-project or cross-tenant access | Medium / Critical | OAuth project grants plus existing exact route law; adversarial concurrency tests | Decide tenant model before public beta |
 | HIL token replay or model-inferred approval | Medium / Critical | Fresh case-sensitive token tied to action hash/session/generation/nonce/expiry; consume once | Preserve final human decision boundary |

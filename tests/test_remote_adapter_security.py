@@ -89,3 +89,49 @@ def test_adapter_rejects_ambiguous_content_length() -> None:
                 ]
             }
         )
+
+
+def test_adapter_normalizes_both_public_metadata_routes_to_exact_mcp_resource() -> None:
+    adapter = _adapter()
+    exact = "/.well-known/oauth-protected-resource/mcp"
+    assert adapter._origin_path(exact) == exact
+    assert adapter._origin_path("/.well-known/oauth-protected-resource") == exact
+    assert adapter._origin_path("/mcp") == "/mcp"
+
+
+def test_openai_apps_challenge_is_exact_plaintext_and_fail_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    adapter = _adapter()
+    monkeypatch.delenv("EVIDENCE_LANE_OPENAI_APPS_CHALLENGE_TOKEN", raising=False)
+    assert adapter._openai_apps_challenge_token() is None
+    monkeypatch.setenv("EVIDENCE_LANE_OPENAI_APPS_CHALLENGE_TOKEN", "bad token")
+    assert adapter._openai_apps_challenge_token() is None
+
+    exact_token = "portal-verification-token_123456"
+    monkeypatch.setenv("EVIDENCE_LANE_OPENAI_APPS_CHALLENGE_TOKEN", exact_token)
+    assert adapter._openai_apps_challenge_token() == exact_token
+
+    sent: list[dict[str, object]] = []
+
+    async def receive() -> dict[str, object]:
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    async def send(message: dict[str, object]) -> None:
+        sent.append(message)
+
+    asyncio.run(
+        adapter.app(
+            {
+                "type": "http",
+                "path": "/.well-known/openai-apps-challenge",
+                "method": "GET",
+                "headers": [],
+                "query_string": b"",
+            },
+            receive,
+            send,
+        )
+    )
+    assert sent[0]["status"] == 200
+    assert sent[1]["body"] == exact_token.encode("ascii")

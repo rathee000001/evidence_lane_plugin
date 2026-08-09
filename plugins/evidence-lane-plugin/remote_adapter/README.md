@@ -8,7 +8,10 @@ This Vercel project has two deliberately separate surfaces:
 - a public multipage Next.js site at `/`, `/architecture`, `/lanes`, `/proof`,
   `/provenance`, `/connect`, plus `/privacy`, `/terms`, and `/support`;
 - a thin ChatGPT-facing reverse adapter at `/mcp`, `/healthz`, and
-  `/.well-known/oauth-protected-resource`.
+  both `/.well-known/oauth-protected-resource/mcp` and its root discovery
+  compatibility route;
+- an exact `/.well-known/openai-apps-challenge` route that returns only the
+  portal token supplied through a server-side environment variable.
 
 The public site also exposes `/api/studio-query` for the full and floating
 Prompt Studio. It first queries the same committed SQLite-derived BM25,
@@ -49,8 +52,20 @@ candidates, receipts, and pointer CAS. A missing origin, non-HTTPS origin, or
 SHA mismatch returns `503 BLOCKED`. Vercel local files and memory are never
 treated as durable state.
 
-`vercel.json` rewrites only the three adapter routes into Python and preserves
+`vercel.json` rewrites only the five exact adapter routes into Python and preserves
 their public path in the reserved `__evi_path` query value. All other routes
 stay with Next.js, including `/api/studio-query`. A successful landing-page or
 Studio render proves only the public site; it does not prove MCP authentication,
 durable storage, queueing, tool calls, or external-provider availability.
+
+The durable origin must set `EVIDENCE_LANE_MCP_BASE_URL` to the public edge
+origin, for example `https://mcp.evidencelane.org`, so protected-resource
+metadata identifies `https://mcp.evidencelane.org/mcp`. The adapter normalizes
+either public discovery route to the origin's path-specific metadata endpoint;
+it does not rewrite the returned resource identity.
+
+When the OpenAI portal provides a domain challenge, set
+`EVIDENCE_LANE_OPENAI_APPS_CHALLENGE_TOKEN` as a server-side sensitive value.
+The challenge route returns exactly that single printable ASCII token as plain
+text. With no valid value it returns an empty `404`; source, logs, and packages
+must never contain the real token.

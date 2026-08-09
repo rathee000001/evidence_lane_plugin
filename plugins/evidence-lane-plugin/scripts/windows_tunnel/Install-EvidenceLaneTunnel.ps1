@@ -4,9 +4,9 @@ param(
     [string]$TunnelId = "",
     [string]$PluginRoot = "",
     [string]$DataRoot = "$env:USERPROFILE\EvidenceLanePV",
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v140",
-    [string]$ProfileName = "evidence_lane_v140_chatgpt_read",
-    [string]$TaskName = "EvidenceLane-Tunnel-v140",
+    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150",
+    [string]$ProfileName = "evidence_lane_v150_chatgpt_read",
+    [string]$TaskName = "EvidenceLane-Tunnel-v150",
     [switch]$RotateRuntimeKey,
     [switch]$MigrateCurrentRuntime,
     [switch]$NoStart

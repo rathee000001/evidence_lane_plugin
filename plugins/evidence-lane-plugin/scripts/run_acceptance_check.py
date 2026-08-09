@@ -517,11 +517,11 @@ def check_ac14() -> dict[str, Any]:
     return {
         "host_metadata_and_settings": _pytest(
             "tests/test_v140_cross_surface_contracts.py",
-            "tests/test_mcp_plugin.py::test_chatgpt_pro_profile_is_exact_read_only_business_surface",
+            "tests/test_mcp_plugin.py::test_chatgpt_pro_profile_exposes_all_actions_and_blocks_every_write",
             "tests/test_mcp_plugin.py::test_modern_discovery_probe_receives_exact_legacy_fallback",
             "tests/test_mcp_plugin.py::test_plugin_manifest_has_evidence_lane_identity_only",
-            "tests/test_mcp_plugin.py::test_real_stdio_chatgpt_pro_profile_has_exact_version_and_read_inventory",
-            "tests/test_full_app_ui_conformance.py::test_creative_route_is_adobe_express_without_3d_account_linkage",
+            "tests/test_mcp_plugin.py::test_real_stdio_chatgpt_pro_profile_has_complete_visible_inventory",
+            "tests/test_full_app_ui_conformance.py::test_native_threejs_motion_remains_without_retired_3d_or_adobe_links",
             "tests/test_full_app_ui_conformance.py::test_public_plugin_metadata_and_third_party_rights_are_canonical",
             "tests/test_windows_tunnel_persistence.py",
             timeout_seconds=600,

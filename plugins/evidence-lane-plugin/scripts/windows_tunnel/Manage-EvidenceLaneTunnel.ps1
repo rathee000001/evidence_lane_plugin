@@ -3,10 +3,10 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("Start", "Status", "Repair", "Remove")]
     [string]$Action,
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v140",
-    [string]$ProfileName = "evidence_lane_v140_chatgpt_read",
+    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150",
+    [string]$ProfileName = "evidence_lane_v150_chatgpt_read",
     [string]$ProfileDir = "$env:APPDATA\tunnel-client",
-    [string]$TaskName = "EvidenceLane-Tunnel-v140",
+    [string]$TaskName = "EvidenceLane-Tunnel-v150",
     [int]$ReadyTimeoutSeconds = 90,
     [switch]$ConfirmRemoval
 )
@@ -16,8 +16,8 @@ $ErrorActionPreference = "Stop"
 
 $expectedClientSha256 = "D893D8127EEE35070D265C1BE29BFE008F8D9FCB476E7FEBF56C8FDC6C0615C8"
 $client = Join-Path $RuntimeRoot "bin\tunnel-client-v0.0.10.exe"
-$pidFile = Join-Path $RuntimeRoot "evidence_lane_v140_tunnel.pid"
-$healthUrlFile = Join-Path $RuntimeRoot "evidence_lane_v140_health.url"
+$pidFile = Join-Path $RuntimeRoot "evidence_lane_v150_tunnel.pid"
+$healthUrlFile = Join-Path $RuntimeRoot "evidence_lane_v150_health.url"
 $profileFile = Join-Path $ProfileDir ($ProfileName + ".yaml")
 $markerFile = Join-Path $RuntimeRoot "evidence-lane-tunnel-installation.json"
 

@@ -14,6 +14,13 @@ import httpx
 _SHA = re.compile(r"[0-9a-fA-F]{40}")
 _PROXY_TIMEOUT = httpx.Timeout(connect=15, read=285, write=30, pool=15)
 _MAX_REQUEST_BODY_BYTES = 2 * 1024 * 1024
+_PROTECTED_RESOURCE_PATHS = frozenset(
+    {
+        "/.well-known/oauth-protected-resource",
+        "/.well-known/oauth-protected-resource/mcp",
+    }
+)
+_OPENAI_APPS_CHALLENGE_PATH = "/.well-known/openai-apps-challenge"
 _HOP_BY_HOP = {
     b"connection",
     b"keep-alive",
@@ -84,6 +91,32 @@ async def _send_json(send: Any, status: int, payload: dict[str, Any]) -> None:
         }
     )
     await send({"type": "http.response.body", "body": body, "more_body": False})
+
+
+async def _send_plaintext(send: Any, status: int, body: bytes) -> None:
+    await send(
+        {
+            "type": "http.response.start",
+            "status": status,
+            "headers": [
+                (b"content-type", b"text/plain; charset=utf-8"),
+                (b"content-length", str(len(body)).encode("ascii")),
+                (b"cache-control", b"no-store"),
+            ],
+        }
+    )
+    await send({"type": "http.response.body", "body": body, "more_body": False})
+
+
+def _openai_apps_challenge_token() -> str | None:
+    token = os.environ.get(
+        "EVIDENCE_LANE_OPENAI_APPS_CHALLENGE_TOKEN", ""
+    ).strip()
+    if not 8 <= len(token) <= 1024:
+        return None
+    if not token.isascii() or any(not 0x21 <= ord(char) <= 0x7E for char in token):
+        return None
+    return token
 
 
 async def _body(receive: Any) -> bytes:
@@ -158,6 +191,12 @@ def _external_route(scope: dict[str, Any]) -> tuple[str, str]:
     return path, urlencode(public_pairs, doseq=True)
 
 
+def _origin_path(path: str) -> str:
+    if path in _PROTECTED_RESOURCE_PATHS:
+        return "/.well-known/oauth-protected-resource/mcp"
+    return path
+
+
 async def app(scope: dict[str, Any], receive: Any, send: Any) -> None:
     if scope["type"] == "lifespan":
         while True:
@@ -171,6 +210,13 @@ async def app(scope: dict[str, Any], receive: Any, send: Any) -> None:
         return
     configuration = _configuration()
     path, query = _external_route(scope)
+    if path == _OPENAI_APPS_CHALLENGE_PATH:
+        challenge_token = _openai_apps_challenge_token()
+        if challenge_token is None:
+            await _send_plaintext(send, 404, b"")
+        else:
+            await _send_plaintext(send, 200, challenge_token.encode("ascii"))
+        return
     if path == "/":
         await _send_json(
             send,
@@ -218,7 +264,7 @@ async def app(scope: dict[str, Any], receive: Any, send: Any) -> None:
             },
         )
         return
-    if path not in {"/mcp", "/.well-known/oauth-protected-resource"}:
+    if path != "/mcp" and path not in _PROTECTED_RESOURCE_PATHS:
         await _send_json(send, 404, {"status": "NOT_FOUND"})
         return
     if not configuration["valid"]:
@@ -267,7 +313,8 @@ async def app(scope: dict[str, Any], receive: Any, send: Any) -> None:
         if key.lower() not in _HOP_BY_HOP and key.lower() != b"host"
     }
     incoming_headers["x-evidence-lane-release-sha"] = configuration["expected_sha"]
-    target = configuration["origin"] + path + (("?" + query) if query else "")
+    origin_path = _origin_path(path)
+    target = configuration["origin"] + origin_path + (("?" + query) if query else "")
     response_started = False
     try:
         async with (

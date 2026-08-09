@@ -9,14 +9,25 @@ from typing import Any, Literal
 
 import anyio
 from mcp.server.auth.provider import TokenVerifier
+from mcp.server.auth.routes import build_resource_metadata_url
 from mcp.server.auth.settings import AuthSettings
 from mcp.server.fastmcp import FastMCP
-from mcp.types import Icon, ToolAnnotations
+from mcp.types import CallToolResult, Icon, TextContent, ToolAnnotations
+from mcp.types import Tool as MCPTool
 from pydantic import AnyHttpUrl
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from .auth import OAuthJWTConfig, OAuthJWTVerifier, StaticBearerVerifier
+from .auth import (
+    READ_SCOPE,
+    REMOTE_GIT_SCOPE,
+    WRITE_SCOPE,
+    OAuthAuthorizationError,
+    OAuthJWTConfig,
+    OAuthJWTVerifier,
+    OAuthToolAuthorizationPolicy,
+    StaticBearerVerifier,
+)
 from .constants import ENGINE_VERSION
 from .github_automation_governance import (
     apply_fastmcp_tool_filter,
@@ -147,9 +158,11 @@ class _MCPExposureBoundary:
         self,
         application: EvidenceLaneService,
         exposure_profile: str,
+        authorization_policy: OAuthToolAuthorizationPolicy | None = None,
     ) -> None:
         self._application = application
         self._exposure_profile = exposure_profile
+        self._authorization_policy = authorization_policy
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._application, name)
@@ -161,7 +174,7 @@ class _MCPExposureBoundary:
         *args: Any,
         lifecycle: bool = False,
         **kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> Any:
         if (
             self._exposure_profile == CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE
             and lifecycle
@@ -189,6 +202,26 @@ class _MCPExposureBoundary:
                 ),
                 "required_host": "CODEX_FULL_LIFECYCLE_OR_OTHER_EXPLICITLY_WRITE_CAPABLE_HOST",
             }
+        if self._authorization_policy is not None:
+            project_id: str | None = None
+            if tool_name not in _RUNTIME_GLOBAL_TOOL_NAMES:
+                raw_project = kwargs.get("project_id")
+                if raw_project is None and args:
+                    raw_project = args[0]
+                project_id = str(raw_project) if raw_project is not None else ""
+            try:
+                self._authorization_policy.authorize_current_request(
+                    tool_name=tool_name,
+                    lifecycle=lifecycle,
+                    project_id=project_id,
+                )
+            except OAuthAuthorizationError as error:
+                return _oauth_authorization_result(
+                    error,
+                    config=self._authorization_policy.config,
+                    tool_name=tool_name,
+                    lifecycle=lifecycle,
+                )
         return self._application.invoke(
             tool_name,
             callback,
@@ -196,6 +229,60 @@ class _MCPExposureBoundary:
             lifecycle=lifecycle,
             **kwargs,
         )
+
+
+def _oauth_authorization_result(
+    error: OAuthAuthorizationError,
+    *,
+    config: OAuthJWTConfig,
+    tool_name: str,
+    lifecycle: bool,
+) -> CallToolResult:
+    challenge_meta: dict[str, Any] | None = None
+    if error.code == "AUTHENTICATED_OAUTH_CONTEXT_REQUIRED" or error.required_scopes:
+        error_name = (
+            "invalid_token"
+            if error.code == "AUTHENTICATED_OAUTH_CONTEXT_REQUIRED"
+            else "insufficient_scope"
+        )
+        description = (
+            "A valid Evidence Lane OAuth access token is required."
+            if error_name == "invalid_token"
+            else "The access token lacks one or more scopes required by this tool."
+        )
+        metadata_url = str(
+            build_resource_metadata_url(AnyHttpUrl(config.audience))
+        )
+        parameters = [
+            f'error="{error_name}"',
+            f'error_description="{description}"',
+            f'resource_metadata="{metadata_url}"',
+        ]
+        if error.required_scopes:
+            scope_value = " ".join(error.required_scopes)
+            parameters.append(f'scope="{scope_value}"')
+        challenge_meta = {"mcp/www_authenticate": ["Bearer " + ", ".join(parameters)]}
+
+    structured = {
+        "schema": "evidence-lane.oauth-authorization-block.v1",
+        "status": "AUTHORIZATION_BLOCKED",
+        "code": error.code,
+        "requested_tool": tool_name,
+        "lifecycle_action": lifecycle,
+        "mutation_performed": False,
+        "pointer_moved": False,
+    }
+    return CallToolResult(
+        isError=True,
+        content=[
+            TextContent(
+                type="text",
+                text="Evidence Lane authorization blocked this tool without mutation.",
+            )
+        ],
+        structuredContent=structured,
+        _meta=challenge_meta,
+    )
 
 
 def _normalize_exposure_profile(value: str | None) -> str:
@@ -253,7 +340,50 @@ def _meta(label: str, done: str) -> dict[str, Any]:
     }
 
 
-def _native_route_receipt(mcp: FastMCP, exposure_profile: str) -> dict[str, Any]:
+class _EvidenceLaneFastMCP(FastMCP):
+    """Expose current top-level tool security schemes plus the legacy mirror."""
+
+    async def list_tools(self) -> list[MCPTool]:
+        listed = await super().list_tools()
+        result: list[MCPTool] = []
+        for tool in listed:
+            payload = tool.model_dump(by_alias=True, exclude_none=True)
+            security_schemes = (tool.meta or {}).get("securitySchemes")
+            if security_schemes is not None:
+                payload["securitySchemes"] = security_schemes
+            result.append(MCPTool.model_validate(payload))
+        return result
+
+
+def _apply_oauth_tool_security_schemes(
+    mcp: FastMCP,
+    exposure_profile: str,
+) -> None:
+    for tool in mcp._tool_manager.list_tools():
+        scopes = [READ_SCOPE]
+        is_write = bool(
+            tool.annotations is not None
+            and tool.annotations.readOnlyHint is False
+        )
+        if (
+            is_write
+            and exposure_profile != CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE
+        ):
+            scopes.append(WRITE_SCOPE)
+            if tool.name in {"remote_git_prepare_push", "remote_git_execute_push"}:
+                scopes.append(REMOTE_GIT_SCOPE)
+        security_schemes = [{"type": "oauth2", "scopes": scopes}]
+        tool.meta = {
+            **(tool.meta or {}),
+            "securitySchemes": security_schemes,
+        }
+
+
+def _native_route_receipt(
+    mcp: FastMCP,
+    exposure_profile: str,
+    oauth_config: OAuthJWTConfig | None = None,
+) -> dict[str, Any]:
     """Seal the exact native catalog without treating a host prefix as identity."""
 
     tools = sorted(mcp._tool_manager.list_tools(), key=lambda item: item.name)
@@ -307,11 +437,44 @@ def _native_route_receipt(mcp: FastMCP, exposure_profile: str) -> dict[str, Any]
             "PASS" if not missing_project_route else "BLOCKED"
         ),
         "project_scoped_tools_missing_project_id": missing_project_route,
-        "transport_project_binding": "NONE_TRANSPORT_ONLY",
+        "transport_project_binding": (
+            "OAUTH_SUBJECT_CLIENT_ENVIRONMENT_ROLE_AND_EXACT_PROJECT"
+            if oauth_config is not None
+            else "NONE_TRANSPORT_ONLY"
+        ),
         "project_resolution": (
             "EXACT_PROJECT_ID_TO_CONFIGURED_ROOT_PROJECTS_SUBDIRECTORY"
         ),
         "cross_project_fallback_allowed": False,
+        "oauth_authorization_policy": {
+            "enabled": oauth_config is not None,
+            "base_scope": READ_SCOPE if oauth_config is not None else None,
+            "per_tool_security_schemes": oauth_config is not None,
+            "deployment_environment": (
+                oauth_config.deployment_environment
+                if oauth_config is not None
+                else None
+            ),
+            "allowed_client_count": (
+                len(oauth_config.allowed_client_ids)
+                if oauth_config is not None
+                else 0
+            ),
+            "roles_claim": (
+                oauth_config.roles_claim if oauth_config is not None else None
+            ),
+            "projects_claim": (
+                oauth_config.projects_claim if oauth_config is not None else None
+            ),
+            "environment_claim": (
+                oauth_config.environment_claim if oauth_config is not None else None
+            ),
+            "production_lifecycle_owner_only": oauth_config is not None,
+            "remote_git_owner_only": oauth_config is not None,
+            "remote_git_scope": (
+                REMOTE_GIT_SCOPE if oauth_config is not None else None
+            ),
+        },
         "tool_catalog_sha256": hashlib.sha256(canonical).hexdigest().upper(),
         "mcp_apps_resource_uri": GOVERNED_PANEL_URI,
         "host_display_namespace_is_authority": False,
@@ -351,9 +514,15 @@ def create_mcp_server(
     backend_application = service or EvidenceLaneService()
     release_identity = backend_application.engine.doctor()["engine"]
     exact_exposure_profile = _normalize_exposure_profile(exposure_profile)
+    authorization_policy = (
+        OAuthToolAuthorizationPolicy(oauth_config)
+        if oauth_config is not None
+        else None
+    )
     application = _MCPExposureBoundary(
         backend_application,
         exact_exposure_profile,
+        authorization_policy,
     )
     effective_allowed_tool_names = allowed_tool_names
     if exact_exposure_profile == CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE:
@@ -369,17 +538,24 @@ def create_mcp_server(
         raise ValueError("Choose either static bearer or OAuth JWT authentication.")
     if bearer_token:
         exact_base = (base_url or f"http://{host}:{port}").rstrip("/")
+        exact_resource = f"{exact_base}/mcp"
         auth = AuthSettings(
             issuer_url=AnyHttpUrl(f"{exact_base}/"),
-            resource_server_url=AnyHttpUrl(f"{exact_base}/"),
+            resource_server_url=AnyHttpUrl(exact_resource),
             required_scopes=["evidence-lane:read"],
         )
         verifier = StaticBearerVerifier(bearer_token)
     elif oauth_config:
         exact_base = (base_url or f"http://{host}:{port}").rstrip("/")
+        exact_resource = f"{exact_base}/mcp"
+        if oauth_config.audience != exact_resource:
+            raise ValueError(
+                "OAuth audience must exactly equal the externally visible MCP "
+                f"resource URL: {exact_resource}"
+            )
         auth = AuthSettings(
             issuer_url=AnyHttpUrl(oauth_config.issuer_url),
-            resource_server_url=AnyHttpUrl(f"{exact_base}/"),
+            resource_server_url=AnyHttpUrl(exact_resource),
             required_scopes=list(oauth_config.required_scopes),
         )
         verifier = OAuthJWTVerifier(oauth_config)
@@ -388,7 +564,7 @@ def create_mcp_server(
         or os.environ.get("EVIDENCE_LANE_PUBLIC_SITE_URL")
         or _PUBLIC_SITE_URL
     ).rstrip("/")
-    mcp = FastMCP(
+    mcp = _EvidenceLaneFastMCP(
         "Evidence Lane",
         instructions=_mcp_instructions(exact_exposure_profile),
         website_url=exact_public_site,
@@ -2357,6 +2533,8 @@ def create_mcp_server(
             lifecycle=True,
         )
 
+    if oauth_config is not None:
+        _apply_oauth_tool_security_schemes(mcp, exact_exposure_profile)
     exposure_receipt = apply_fastmcp_tool_filter(mcp, effective_allowed_tool_names)
     if exact_exposure_profile == CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE:
         exposed = tuple(exposure_receipt["exposed_tools"])
@@ -2371,7 +2549,11 @@ def create_mcp_server(
             )
     mcp._evidence_lane_tool_exposure_receipt = exposure_receipt  # type: ignore[attr-defined]
     mcp._evidence_lane_exposure_profile = exact_exposure_profile  # type: ignore[attr-defined]
-    route_receipt = _native_route_receipt(mcp, exact_exposure_profile)
+    route_receipt = _native_route_receipt(
+        mcp,
+        exact_exposure_profile,
+        oauth_config,
+    )
     if route_receipt["status"] != "PASS":
         raise RuntimeError("Evidence Lane native MCP tool names are not unique.")
     mcp._evidence_lane_native_route_receipt = route_receipt  # type: ignore[attr-defined]
@@ -2390,6 +2572,15 @@ def run_server(
         "issuer_url": os.environ.get("EVIDENCE_LANE_MCP_OAUTH_ISSUER_URL", "").strip(),
         "jwks_url": os.environ.get("EVIDENCE_LANE_MCP_OAUTH_JWKS_URL", "").strip(),
         "audience": os.environ.get("EVIDENCE_LANE_MCP_OAUTH_AUDIENCE", "").strip(),
+        "deployment_environment": os.environ.get(
+            "EVIDENCE_LANE_MCP_OAUTH_ENVIRONMENT", ""
+        ).strip(),
+        "allowed_client_ids": os.environ.get(
+            "EVIDENCE_LANE_MCP_OAUTH_ALLOWED_CLIENT_IDS", ""
+        ).strip(),
+        "allowed_roles": os.environ.get(
+            "EVIDENCE_LANE_MCP_OAUTH_ALLOWED_ROLES", ""
+        ).strip(),
     }
     oauth_any = any(oauth_values.values())
     oauth_complete = all(oauth_values.values())
@@ -2406,10 +2597,15 @@ def run_server(
             item
             for item in os.environ.get(
                 "EVIDENCE_LANE_MCP_OAUTH_SCOPES",
-                "evidence-lane:read evidence-lane:write",
+                READ_SCOPE,
             ).split()
             if item
         )
+        if set(scopes) != {READ_SCOPE}:
+            raise RuntimeError(
+                "EVIDENCE_LANE_MCP_OAUTH_SCOPES is the base transport gate and "
+                f"must contain only {READ_SCOPE}; per-tool policy adds write scopes."
+            )
         algorithms = tuple(
             item.strip()
             for item in os.environ.get(
@@ -2422,6 +2618,17 @@ def run_server(
             jwks_url=oauth_values["jwks_url"],
             audience=oauth_values["audience"],
             required_scopes=scopes,
+            deployment_environment=oauth_values["deployment_environment"],
+            allowed_client_ids=tuple(
+                item.strip()
+                for item in oauth_values["allowed_client_ids"].split(",")
+                if item.strip()
+            ),
+            allowed_roles=tuple(
+                item.strip()
+                for item in oauth_values["allowed_roles"].split(",")
+                if item.strip()
+            ),
             algorithms=algorithms,
         )
     if transport == "streamable-http" and host not in {"127.0.0.1", "localhost", "::1"}:

@@ -50,6 +50,27 @@ adapter requires HTTPS, an exact 40-character release SHA, a release-matched
 durable MCP origin, and configured authentication at that origin. It stores no
 runtime authority and fails closed if identity or origin health does not match.
 
+The durable MCP origin accepts either one private static bearer for a bounded
+Codex-only route or an established OAuth 2.1 IdP, never both. OAuth JWTs use an
+allowlisted asymmetric algorithm and must bind issuer, audience, expiry,
+not-before time, token ID, subject, exact client ID, deployment environment,
+role, and project grants. Tool execution enforces read/write scopes and exact
+project authorization. Production lifecycle writes are owner-only; remote Git
+also requires its dedicated scope and owner role. Tester identities are valid
+only against an isolated staging environment. A client ID, role, or successful
+login does not imply project, lifecycle, Git, deployment, publication, or HIL
+authority.
+
+The configured OAuth audience must exactly equal the externally visible HTTPS
+`/mcp` resource in protected-resource metadata. A private origin URL, parent
+site URL, or different audience fails server construction rather than creating
+a split identity.
+
+The required JWT `jti` is an auditable token identifier, not a claim that access
+tokens are one-use. Live deployments still require bounded expiry, issuer-side
+revocation or introspection where available, signing-key rotation, and tested
+credential-compromise response.
+
 ## Private CodeQL evidence
 
 The personal canonical repository keeps CodeQL results as a private Actions
