@@ -56,7 +56,7 @@ Evidence Lane `1.5.0`, the owned website, and the same public 256-by-256 icon.
 
 `-MigrateCurrentRuntime` is optional. It stops only the process identified by
 the historical PID file after its binary SHA-256 matches the pinned client,
-then starts the v1.4 scheduled copy. Omit the switch to leave an older healthy
+then starts the v1.5.0 scheduled copy. Omit the switch to leave an older healthy
 tunnel untouched until the replacement has passed.
 
 ## Operator commands

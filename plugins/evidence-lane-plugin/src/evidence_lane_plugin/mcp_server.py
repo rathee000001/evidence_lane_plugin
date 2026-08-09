@@ -111,7 +111,7 @@ _FULL_LIFECYCLE_INSTRUCTIONS = (
 )
 
 _CHATGPT_PRO_GOVERNED_INSTRUCTIONS = (
-    "Evidence Lane is the stable product name; 1.4 is version metadata. This "
+    "Evidence Lane is the stable product name; 1.5.0 is version metadata. This "
     "registered MCP connection exposes the complete Evidence Lane action catalog "
     "for ChatGPT Pro so all fifteen packaged skills and the exact six controls "
     "remain visible. Packaged skills remain available. Exactly twenty-one read operations execute. Every lifecycle "

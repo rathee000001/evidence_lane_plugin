@@ -18,7 +18,7 @@ ChatGPT -> Vercel preview/adapter -> exact-release durable MCP origin
 Codex installs Evidence Lane from the governed Git marketplace route and keeps
 the full lifecycle. ChatGPT installs the same full plugin package, whose
 `.app.json` maps the registered Evidence Lane MCP connection into the bundled
-skill corpus. The product display name stays **Evidence Lane**; `1.4` belongs
+skill corpus. The product display name stays **Evidence Lane**; `1.5.0` belongs
 in version metadata. ChatGPT therefore displays and can route through all
 fifteen packaged skills, including Boot/ENV-UOP Flash guidance and accepted-PV
 Entry/Exit inspection, alongside a complete 62-action catalog. Exactly 21

@@ -11,7 +11,7 @@ disable-model-invocation: true
 user-invocable: true
 metadata:
   authority-model: human-hil
-  release-line: v1.4
+  release-line: v1.5.0
 ---
 
 You are the repository-scoped Evidence Lane coding agent. Work on exactly one

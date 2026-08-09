@@ -250,7 +250,7 @@ Register-ScheduledTask `
     -Trigger $trigger `
     -Principal $principal `
     -Settings $settings `
-    -Description "Pinned Evidence Lane 1.4 governed ChatGPT Pro tunnel; automatic after Windows user sign-in." `
+    -Description "Pinned Evidence Lane 1.5.0 governed ChatGPT Pro tunnel; automatic after Windows user sign-in." `
     -Force | Out-Null
 
 if ($MigrateCurrentRuntime) {

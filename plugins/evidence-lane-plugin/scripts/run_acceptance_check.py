@@ -1,4 +1,4 @@
-"""Execute one exact Evidence Lane v1.4 acceptance check without mutating source."""
+"""Execute one exact Evidence Lane v1.5.0 acceptance check without mutating source."""
 
 from __future__ import annotations
 

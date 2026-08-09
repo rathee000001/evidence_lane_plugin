@@ -78,7 +78,7 @@ Previously sealed v1 packages and pre-v1.1 v2 packages remain readable only
 through explicit compatibility reports. That path validates their original
 seals and database contracts but does not claim source-policy enforcement or
 topology reconciliation that did not exist when they were built. All newly
-built v1.4 candidates must pass both gates.
+built v1.5.0 candidates must pass both gates.
 
 Independent lane computation is bounded to at most eight in-process workers.
 All workers read one pre-hashed source snapshot and write only their assigned

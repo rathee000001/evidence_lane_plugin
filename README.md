@@ -222,7 +222,7 @@ additionally show symbols, imports, routes, dependencies, reachable Git
 commits/refs, file changes, blob/chunk CAS, occurrences, and history FTS. A
 lane that is neither loaded nor detected emits no PV folder or placeholder;
 only the canonical registry remains schema-ready for a later intake.
-The v1.4 reconciliation gate parses both formats, requires meaningful structural
+The v1.5.0 reconciliation gate parses both formats, requires meaningful structural
 floors, rejects dangling endpoints, compares exact subgraph/node/edge identities,
 and checks every emitted table, fact-kind, and root count against read-only
 SQLite. A syntactically valid six-line graph, understated count, or MMD/DOT
@@ -253,7 +253,7 @@ routed source hashes, and assembles reports in canonical lane order. This is
 compute parallelism inside one writer and one linear task; Chat Lineage append,
 HIL, Fuse, accepted-pointer movement, rollback, and State Travel remain serial
 authorities. A failed worker or changed source snapshot produces no candidate.
-Current v1.4 lane bundles use the universal-lane v2 contract plus sealed source-policy and
+Current v1.5.0 lane bundles use the universal-lane v2 contract plus sealed source-policy and
 parallel-execution receipts, and they require topology reconciliation. Accepted
 v1 bundles remain readable through their existing narrow compatibility path.
 Sealed pre-v1.1 v2 bundles that contain the original parallel receipt but no
@@ -318,7 +318,7 @@ only the accepted pointer among immutable accepted versions. Publication,
 installation, Vercel preview, and ChatGPT connection are release evidence, not
 candidate acceptance.
 
-## v1.4 release and compatibility invariants
+## v1.5.0 release and historical compatibility invariants
 
 An accepted PV remains immutable entry authority even when a later engine adds
 stricter topology or promotability rules. Boot, Resume, status, direct
