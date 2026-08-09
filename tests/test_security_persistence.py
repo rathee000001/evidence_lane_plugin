@@ -183,6 +183,7 @@ def test_docker_build_requires_and_seals_exact_release_commit() -> None:
     dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
     dockerignore = (root / ".dockerignore").read_text(encoding="utf-8")
 
+    assert "python:3.14.2-slim-bookworm@sha256:" in dockerfile
     assert "ARG EVIDENCE_LANE_RELEASE_SHA" in dockerfile
     assert "libgl1" in dockerfile
     assert "write_embedded_release_commit" in dockerfile
@@ -459,7 +460,10 @@ def test_durable_local_lifecycle_never_calls_configured_drive_backend(service) -
     assert service.store.pointer("book-faires").accepted_pv == "PV1"
 
 
-def test_remote_push_prepare_does_not_push_and_wrong_token_fails(service) -> None:
+def test_remote_push_prepare_does_not_push_and_wrong_token_fails(
+    service,
+    source_repository: Path,
+) -> None:
     build_and_approve_pv1(service)
     prepared = service.remote_git.prepare_push(
         "book-faires",
@@ -469,6 +473,16 @@ def test_remote_push_prepare_does_not_push_and_wrong_token_fails(service) -> Non
         remote_branch="evidence-lane-test",
     )
     assert prepared["action"]["status"] == "PREPARED_AWAITING_EXACT_CONFIRMATION"
+    assert prepared["action"]["local_commit"] == git(
+        source_repository,
+        "rev-parse",
+        "HEAD",
+    ).lower()
+    assert prepared["action"]["local_tree"] == git(
+        source_repository,
+        "rev-parse",
+        "HEAD^{tree}",
+    ).lower()
     with pytest.raises(EvidenceLaneError) as error:
         service.remote_git.execute_push(
             "book-faires",
@@ -479,14 +493,98 @@ def test_remote_push_prepare_does_not_push_and_wrong_token_fails(service) -> Non
     assert error.value.code == "REMOTE_ACTION_CONFIRMATION_INVALID"
 
 
+def test_remote_push_consumes_action_as_stale_when_local_ref_moves(
+    service,
+    source_repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    build_and_approve_pv1(service)
+    prepared = service.remote_git.prepare_push(
+        "book-faires",
+        requested_by="human-test",
+        remote="origin",
+        local_ref="main",
+        remote_branch="evidence-lane-stale-source-test",
+    )
+    (source_repository / "README.md").write_text(
+        "# Book Faires\n\nMoved after preparation.\n",
+        encoding="utf-8",
+    )
+    git(source_repository, "add", "README.md")
+    git(source_repository, "commit", "-m", "Move prepared ref")
+
+    called = False
+
+    def forbidden_push(*args: Any, **kwargs: Any) -> GitResult:
+        nonlocal called
+        del args, kwargs
+        called = True
+        raise AssertionError("A stale remote action attempted a push.")
+
+    monkeypatch.setattr("evidence_lane_plugin.remote_git.remote_push", forbidden_push)
+    with pytest.raises(EvidenceLaneError) as error:
+        service.remote_git.execute_push(
+            "book-faires",
+            action_id=prepared["action"]["action_id"],
+            confirmation_token=prepared["confirmation_token"],
+            confirmed_by="human-test",
+        )
+    assert error.value.code == "REMOTE_ACTION_SOURCE_STALE"
+    assert called is False
+    persisted = json.loads(
+        service.remote_git._path(
+            "book-faires",
+            prepared["action"]["action_id"],
+        ).read_text(encoding="utf-8")
+    )
+    assert persisted["status"] == "STALE_LOCAL_REF_MOVED"
+    assert persisted["observed_local_commit"] == git(
+        source_repository,
+        "rev-parse",
+        "HEAD",
+    ).lower()
+
+
+def test_remote_push_rejects_legacy_action_without_commit_binding(service) -> None:
+    build_and_approve_pv1(service)
+    prepared = service.remote_git.prepare_push(
+        "book-faires",
+        requested_by="human-test",
+        remote="origin",
+        local_ref="main",
+        remote_branch="evidence-lane-legacy-action-test",
+    )
+    path = service.remote_git._path(
+        "book-faires",
+        prepared["action"]["action_id"],
+    )
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload.pop("local_commit")
+    payload.pop("local_tree")
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(EvidenceLaneError) as error:
+        service.remote_git.execute_push(
+            "book-faires",
+            action_id=prepared["action"]["action_id"],
+            confirmation_token=prepared["confirmation_token"],
+            confirmed_by="human-test",
+        )
+    assert error.value.code == "REMOTE_ACTION_COMMIT_BINDING_MISSING"
+    persisted = json.loads(path.read_text(encoding="utf-8"))
+    assert persisted["status"] == "BLOCKED_MISSING_COMMIT_BINDING"
+
+
 def test_remote_push_persists_only_safe_bounded_output(
     service, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     build_and_approve_pv1(service)
     secret = "ghp_abcdefghijklmnopqrstuvwxyz1234567890"
+    observed: dict[str, Any] = {}
 
     def fake_push(*args: Any, **kwargs: Any) -> GitResult:
-        del args, kwargs
+        del args
+        observed.update(kwargs)
         return GitResult(
             args=("push",),
             returncode=0,
@@ -510,6 +608,7 @@ def test_remote_push_persists_only_safe_bounded_output(
     )
     action = executed["action"]
     assert action["status"] == "EXECUTED"
+    assert observed["local_ref"] == action["local_commit"]
     assert secret not in action["git_stdout"]
     assert action["output_security"]["threat_status"] == "ALERT"
     assert action["output_security"]["advisory_only"] is True
@@ -523,3 +622,52 @@ def test_remote_push_persists_only_safe_bounded_output(
         persisted["output_security"]["receipt_sha256"]
         == action["output_security"]["receipt_sha256"]
     )
+
+
+def test_remote_push_failure_is_reported_and_consumes_one_use_action(
+    service,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    build_and_approve_pv1(service)
+
+    def rejected_push(*args: Any, **kwargs: Any) -> GitResult:
+        del args, kwargs
+        return GitResult(
+            args=("push",),
+            returncode=1,
+            stdout="",
+            stderr="remote rejected the exact refspec",
+        )
+
+    monkeypatch.setattr("evidence_lane_plugin.remote_git.remote_push", rejected_push)
+    prepared = service.remote_git.prepare_push(
+        "book-faires",
+        requested_by="human-test",
+        remote="origin",
+        local_ref="main",
+        remote_branch="evidence-lane-rejected-push-test",
+    )
+    with pytest.raises(EvidenceLaneError) as error:
+        service.remote_git.execute_push(
+            "book-faires",
+            action_id=prepared["action"]["action_id"],
+            confirmation_token=prepared["confirmation_token"],
+            confirmed_by="human-test",
+        )
+    assert error.value.code == "REMOTE_GIT_PUSH_FAILED"
+    persisted = json.loads(
+        service.remote_git._path(
+            "book-faires",
+            prepared["action"]["action_id"],
+        ).read_text(encoding="utf-8")
+    )
+    assert persisted["status"] == "FAILED"
+    assert persisted["git_returncode"] == 1
+    with pytest.raises(EvidenceLaneError) as reused:
+        service.remote_git.execute_push(
+            "book-faires",
+            action_id=prepared["action"]["action_id"],
+            confirmation_token=prepared["confirmation_token"],
+            confirmed_by="human-test",
+        )
+    assert reused.value.code == "REMOTE_ACTION_ALREADY_CONSUMED"

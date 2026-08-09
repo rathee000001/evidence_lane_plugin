@@ -378,6 +378,45 @@ def validate_remote_ref(value: str, *, field: str) -> str:
     return value
 
 
+def resolve_local_ref_identity(
+    repository: str | Path,
+    *,
+    local_ref: str,
+) -> tuple[str, str]:
+    """Resolve one safe local ref to immutable commit and tree identities."""
+
+    safe_local = validate_remote_ref(local_ref, field="local_ref")
+    commit_result = run_git(
+        repository,
+        ["rev-parse", "--verify", f"{safe_local}^{{commit}}"],
+    )
+    commit = commit_result.stdout.strip().lower()
+    require(
+        commit_result.returncode == 0
+        and len(commit) in {40, 64}
+        and bool(_SHA_RE.fullmatch(commit)),
+        "REMOTE_LOCAL_REF_UNRESOLVED",
+        "The prepared local Git ref does not resolve to one exact commit.",
+        status="BLOCKED",
+        local_ref=safe_local,
+    )
+    tree_result = run_git(
+        repository,
+        ["rev-parse", "--verify", f"{commit}^{{tree}}"],
+    )
+    tree = tree_result.stdout.strip().lower()
+    require(
+        tree_result.returncode == 0
+        and len(tree) in {40, 64}
+        and bool(_SHA_RE.fullmatch(tree)),
+        "REMOTE_LOCAL_TREE_UNRESOLVED",
+        "The prepared local Git commit does not resolve to one exact tree.",
+        status="BLOCKED",
+        local_commit=commit,
+    )
+    return commit, tree
+
+
 def remote_push(
     repository: str | Path,
     *,

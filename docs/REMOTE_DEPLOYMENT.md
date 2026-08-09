@@ -57,6 +57,11 @@ context and is never read from a mutable runtime environment variable. The
 durable `/healthz` response therefore reports the exact image source commit even
 though `.git` is absent, allowing the Vercel adapter to enforce the same SHA.
 
+The feature-branch preview workflow builds that Dockerfile with the exact
+GitHub commit, verifies the immutable non-root runtime marker, boots the native
+MCP with ephemeral test storage, and uploads both identity and `/healthz`
+receipts. A green Python or Next.js check alone is not durable-origin proof.
+
 ## OAuth resource and application policy
 
 The durable origin is an OAuth 2.1 resource server, not an authorization

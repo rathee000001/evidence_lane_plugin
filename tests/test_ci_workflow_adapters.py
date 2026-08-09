@@ -37,6 +37,14 @@ def test_workflows_are_study_branch_only_and_preview_does_not_deploy() -> None:
     assert "vercel deploy" not in preview.lower()
     assert "--prod" not in preview.lower()
     assert "permissions:\n  contents: read" in preview
+    assert "docker build" in preview
+    assert "EVIDENCE_LANE_RELEASE_SHA=${EVIDENCE_LANE_RELEASE_SHA}" in preview
+    assert "durable-image-identity.json" in preview
+    assert "durable-image-health.json" in preview
+    assert 'payload["release_sha"] == os.environ["EVIDENCE_LANE_RELEASE_SHA"]' in (
+        preview
+    )
+    assert 'payload["mcp_route_identity"]["tool_count"] == 62' in preview
 
 
 def test_codeql_is_pinned_and_preserves_local_evidence_without_api_upload() -> None:

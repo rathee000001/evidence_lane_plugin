@@ -7,8 +7,12 @@ import secrets
 from pathlib import Path
 from typing import Any
 
-from .errors import require
-from .git_adapter import remote_push, validate_remote_ref
+from .errors import EvidenceLaneError, require
+from .git_adapter import (
+    remote_push,
+    resolve_local_ref_identity,
+    validate_remote_ref,
+)
 from .github_automation_governance import inspect_agent_output
 from .hashing import atomic_write_json, sha256_bytes
 from .ids import prefixed_id
@@ -46,6 +50,11 @@ class RemoteGitController:
         safe_remote = validate_remote_ref(remote, field="remote")
         safe_local = validate_remote_ref(local_ref, field="local_ref")
         safe_branch = validate_remote_ref(remote_branch, field="remote_branch")
+        config = self.store.config(project_id)
+        local_commit, local_tree = resolve_local_ref_identity(
+            config.repository_path,
+            local_ref=safe_local,
+        )
         action_id = prefixed_id("remote_action")
         nonce = secrets.token_urlsafe(24)
         confirmation = f"CONFIRM_EVIDENCE_LANE_GIT_PUSH_{action_id}_{nonce}"
@@ -59,6 +68,8 @@ class RemoteGitController:
             "pointer_generation": pointer.generation,
             "remote": safe_remote,
             "local_ref": safe_local,
+            "local_commit": local_commit,
+            "local_tree": local_tree,
             "remote_branch": safe_branch,
             "requested_by": requested_by,
             "prepared_at": utc_now(),
@@ -112,10 +123,55 @@ class RemoteGitController:
             status="STALE",
         )
         config = self.store.config(project_id)
+        pinned_commit = action.get("local_commit")
+        pinned_tree = action.get("local_tree")
+        if not (
+            isinstance(pinned_commit, str)
+            and isinstance(pinned_tree, str)
+            and len(pinned_commit) in {40, 64}
+            and len(pinned_tree) in {40, 64}
+        ):
+            action.update(
+                {
+                    "status": "BLOCKED_MISSING_COMMIT_BINDING",
+                    "confirmed_by": confirmed_by,
+                    "blocked_at": utc_now(),
+                }
+            )
+            atomic_write_json(path, action)
+            raise EvidenceLaneError(
+                "REMOTE_ACTION_COMMIT_BINDING_MISSING",
+                "The prepared remote Git action is not bound to an exact commit and tree.",
+                status="BLOCKED",
+            )
+        observed_commit, observed_tree = resolve_local_ref_identity(
+            config.repository_path,
+            local_ref=action["local_ref"],
+        )
+        if observed_commit != pinned_commit or observed_tree != pinned_tree:
+            action.update(
+                {
+                    "status": "STALE_LOCAL_REF_MOVED",
+                    "confirmed_by": confirmed_by,
+                    "stale_at": utc_now(),
+                    "observed_local_commit": observed_commit,
+                    "observed_local_tree": observed_tree,
+                }
+            )
+            atomic_write_json(path, action)
+            raise EvidenceLaneError(
+                "REMOTE_ACTION_SOURCE_STALE",
+                "The prepared local Git ref moved after confirmation was requested.",
+                status="STALE",
+                details={
+                    "expected_commit": pinned_commit,
+                    "observed_commit": observed_commit,
+                },
+            )
         result = remote_push(
             config.repository_path,
             remote=action["remote"],
-            local_ref=action["local_ref"],
+            local_ref=pinned_commit,
             remote_ref=action["remote_branch"],
         )
         combined_output = result.stdout
@@ -124,7 +180,7 @@ class RemoteGitController:
         output_security = inspect_agent_output(combined_output)
         action.update(
             {
-                "status": "EXECUTED",
+                "status": "EXECUTED" if result.returncode == 0 else "FAILED",
                 "confirmed_by": confirmed_by,
                 "executed_at": utc_now(),
                 "git_returncode": result.returncode,
@@ -133,4 +189,17 @@ class RemoteGitController:
             }
         )
         atomic_write_json(path, action)
+        if result.returncode != 0:
+            raise EvidenceLaneError(
+                "REMOTE_GIT_PUSH_FAILED",
+                "The exact remote Git push failed and the one-use action was consumed.",
+                status="FAIL",
+                details={
+                    "action_id": action_id,
+                    "git_returncode": result.returncode,
+                    "output_security_receipt_sha256": output_security[
+                        "receipt_sha256"
+                    ],
+                },
+            )
         return {"status": "PASS", "action": action}
