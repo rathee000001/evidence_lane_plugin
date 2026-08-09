@@ -10,7 +10,7 @@ from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
-CURRENT_VERSION = "1.4.1"
+CURRENT_VERSION = "1.5.0"
 V13_PATTERN = re.compile(r"(?i)(?:\bv1\.3(?:\.0)?\b|\b1\.3\.0\b)")
 
 HISTORICAL_OR_DEPENDENCY_FILES = {
@@ -77,7 +77,7 @@ def _tracked_text_files() -> list[Path]:
     ]
 
 
-def test_all_active_product_version_surfaces_are_v140() -> None:
+def test_all_active_product_version_surfaces_are_v150() -> None:
     plugin_manifest = json.loads(
         (
             ROOT
@@ -125,26 +125,26 @@ def test_all_active_product_version_surfaces_are_v140() -> None:
     )
     assert ENGINE_VERSION == CURRENT_VERSION
     assert str(plugin_manifest["version"]).split("+", 1)[0] == CURRENT_VERSION
-    assert str(plugin_manifest["version"]).endswith("+codex.20260809163215")
+    assert str(plugin_manifest["version"]).endswith("+codex.20260809174231")
     assert adapter_manifest["version"] == CURRENT_VERSION
     assert public_manifest["version"] == CURRENT_VERSION
     assert studio_manifest["release"] == CURRENT_VERSION
 
 
-def test_current_docs_site_poc_and_acceptance_surfaces_name_v14() -> None:
+def test_current_docs_site_poc_and_acceptance_surfaces_name_v15() -> None:
     required_fragments = {
         "README.md": [
-            "# Evidence Lane 1.4.1",
-            "The single active product release is **1.4.1**",
+            "# Evidence Lane 1.5.0",
+            "The single active product release is **1.5.0**",
             "The v1.4 reconciliation gate",
             "Current v1.4 lane bundles",
         ],
         "docs/ARCHITECTURE.md": [
-            "Evidence Lane 1.4.1",
+            "Evidence Lane 1.5.0",
             "built v1.4 candidates must pass both gates",
         ],
         "docs/VERSIONING.md": [
-            "The active Evidence Lane product release is `1.4.1`",
+            "The active Evidence Lane product release is `1.5.0`",
         ],
         "plugins/evidence-lane-plugin/remote_adapter/app/proof/page.tsx": [
             "Current v1.4 correction standard",

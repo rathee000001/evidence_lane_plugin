@@ -552,7 +552,7 @@ const windowObject = {{
       title: "Compatibility snapshot",
       summary: "Loaded from window.openai",
       status: "PASS",
-      facts: [{{ label: "Release", value: "1.4.1" }}],
+      facts: [{{ label: "Release", value: "1.5.0" }}],
       lanes: [],
       links: [],
     }},
@@ -585,7 +585,7 @@ if (initMessages.length !== 1) throw new Error("expected exactly one initialize 
 const init = initMessages[0];
 if (init.origin !== "*") throw new Error("unexpected postMessage target origin");
 if (init.message.params.appInfo.name !== "Evidence Lane") throw new Error("wrong app name");
-if (init.message.params.appInfo.version !== "1.4.1") throw new Error("wrong app version");
+if (init.message.params.appInfo.version !== "1.5.0") throw new Error("wrong app version");
 if (Object.keys(init.message.params.appCapabilities).length !== 0) throw new Error("wrong app capabilities");
 if (init.message.params.protocolVersion !== "2026-01-26") throw new Error("wrong protocol version");
 if (operations.indexOf("listener:message") > operations.indexOf("post:ui/initialize")) {{
@@ -648,7 +648,7 @@ def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> No
         public_site_url=public_site,
     )
     identity = server._mcp_server
-    assert identity.version == ENGINE_VERSION == "1.4.1"
+    assert identity.version == ENGINE_VERSION == "1.5.0"
     assert str(identity.website_url) == public_site
     assert identity.icons is not None
     assert len(identity.icons) == 1
@@ -1415,7 +1415,7 @@ def test_real_stdio_chatgpt_pro_profile_has_complete_visible_inventory(
         ):
             initialized = await session.initialize()
             assert initialized.serverInfo.name == "Evidence Lane"
-            assert initialized.serverInfo.version == ENGINE_VERSION == "1.4.1"
+            assert initialized.serverInfo.version == ENGINE_VERSION == "1.5.0"
             tools = await session.list_tools()
             names = tuple(sorted(tool.name for tool in tools.tools))
             assert len(names) == CHATGPT_PRO_GOVERNED_TOOL_COUNT

@@ -56,6 +56,17 @@ def _sanitize_remote(remote: str) -> str:
     return value
 
 
+def _remote_hostname(remote: str) -> str:
+    """Return the normalized network host for a Git remote, if one exists."""
+
+    clean = _sanitize_remote(remote).strip()
+    if "://" in clean:
+        return (urlsplit(clean).hostname or "").casefold().rstrip(".")
+    if ":" in clean and not re.match(r"^[A-Za-z]:[\\/]", clean):
+        return clean.split(":", 1)[0].casefold().rstrip(".")
+    return ""
+
+
 def run_git(
     repository: str | Path,
     args: Iterable[str],
@@ -239,7 +250,7 @@ def inspect_repository(
     status = run_git(repo, ["status", "--porcelain=v1", "--untracked-files=all"]).stdout
     is_clean = not bool(status.strip())
     identity = RepositoryIdentity(
-        provider="github" if "github.com" in remote.lower() else "git",
+        provider="github" if _remote_hostname(remote) == "github.com" else "git",
         repository_url=remote,
         owner=owner,
         name=name,

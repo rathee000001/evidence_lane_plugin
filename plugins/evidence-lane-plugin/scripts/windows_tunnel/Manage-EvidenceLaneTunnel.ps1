@@ -82,7 +82,7 @@ function Get-TunnelStatus {
     }
     return [ordered]@{
         status = if ($ready) { "PASS" } else { "BLOCKED" }
-        release = "1.4.1"
+        release = "1.5.0"
         task_name = $TaskName
         task_registered = $null -ne $task
         task_state = if ($null -ne $task) { [string]$task.State } else { $null }

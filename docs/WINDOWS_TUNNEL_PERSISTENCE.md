@@ -52,7 +52,7 @@ mutation.
 After installation, add or reconnect Evidence Lane once in ChatGPT using the
 same Tunnel ID. Upload the shipped `assets/evidence-lane-icon.png` when the
 ChatGPT development form requests the app icon. The server metadata reports
-Evidence Lane `1.4.1`, the owned website, and the same public 256-by-256 icon.
+Evidence Lane `1.5.0`, the owned website, and the same public 256-by-256 icon.
 
 `-MigrateCurrentRuntime` is optional. It stops only the process identified by
 the historical PID file after its binary SHA-256 matches the pinned client,

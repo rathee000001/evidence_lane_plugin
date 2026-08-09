@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "1.4.1+codex.20260809163215",
+  "version": "1.5.0+codex.20260809174231",
   "description": "Human-governed project memory that preserves exact evidence, resumes unfinished work, and keeps acceptance under the user's control.",
   "author": {
     "name": "Praveen Rathee",
@@ -20,7 +20,7 @@
   "interface": {
     "displayName": "Evidence Lane",
     "shortDescription": "Carry verified project knowledge across AI tasks without surrendering human control.",
-    "longDescription": "Evidence Lane is one universal plugin package with fifteen governed skills and a host-specific MCP connection. The complete package makes all fifteen skill entries visible on both ChatGPT and Codex, including Boot and locked ENV/UOP Flash guidance, accepted-PV Entry/Exit inspection, State Travel law, Mode, storage, and the exact six-control contract. Codex installs from exact Git source and can run the full local lifecycle: Source Intake, Build, Refresh, pointer-only Rollback, exact-APPROVE Fuse, plugin administration, and deployment evidence. ChatGPT Pro exposes the complete 62-action catalog: twenty-one accepted-PV, ENV/UOP, Entry/Exit, Chat Lineage, lane, search, diff, backlog, and panel operations execute as reads; all forty-one lifecycle-write actions remain visible but are intercepted before service invocation and return UNAVAILABLE_ON_CHATGPT_PRO with no mutation. ChatGPT's native append-only ENV/UOP and Project Mutation workflow remains host-owned. The product name stays Evidence Lane while 1.4 remains version metadata. Meshy, generated GLB assets, and Meshy account linkage are not dependencies; the existing Three.js/WebGL website remains intact. Natural HIL intent never promotes a candidate, and only exact APPROVE may invoke Fuse on a write-capable governed host.",
+    "longDescription": "Evidence Lane is one universal plugin package with fifteen governed skills and a host-specific MCP connection. The complete package makes all fifteen skill entries visible on both ChatGPT and Codex, including Boot and locked ENV/UOP Flash guidance, accepted-PV Entry/Exit inspection, State Travel law, Mode, storage, and the exact six-control contract. Codex installs from exact Git source and can run the full local lifecycle: Source Intake, Build, Refresh, pointer-only Rollback, exact-APPROVE Fuse, plugin administration, and deployment evidence. ChatGPT Pro exposes the complete 62-action catalog: twenty-one accepted-PV, ENV/UOP, Entry/Exit, Chat Lineage, lane, search, diff, backlog, and panel operations execute as reads; all forty-one lifecycle-write actions remain visible but are intercepted before service invocation and return UNAVAILABLE_ON_CHATGPT_PRO with no mutation. ChatGPT's native append-only ENV/UOP and Project Mutation workflow remains host-owned. The product name stays Evidence Lane while 1.5 remains version metadata. Meshy, generated GLB assets, and Meshy account linkage are not dependencies; the existing Three.js/WebGL website remains intact. Natural HIL intent never promotes a candidate, and only exact APPROVE may invoke Fuse on a write-capable governed host.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "websiteURL": "https://evidencelane.org",

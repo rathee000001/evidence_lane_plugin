@@ -142,7 +142,7 @@ def test_plugin_local_venv_resolves_to_versioned_cache_root(tmp_path: Path) -> N
         / "cache"
         / "test-market"
         / "test-plugin"
-        / "1.4.1+codex.test"
+        / "1.5.0+codex.test"
     )
     package_file = (
         installed_plugin

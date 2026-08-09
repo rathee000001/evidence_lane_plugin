@@ -18,8 +18,8 @@ if str(SCRIPTS) not in sys.path:
 
 from build_release_candidate_rehearsal import _source_inventory
 
-RELEASE = "1.4.1"
-CODEX_RELEASE = "1.4.1+codex.20260809163215"
+RELEASE = "1.5.0"
+CODEX_RELEASE = "1.5.0+codex.20260809174231"
 SITE = "https://evidencelane.org"
 MCP = "https://mcp.evidencelane.org/mcp"
 REPOSITORY = "https://github.com/rathee000001/evidence_lane_plugin"

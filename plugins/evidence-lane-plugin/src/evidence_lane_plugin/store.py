@@ -52,11 +52,17 @@ class _ProjectLock:
     _process_locks: ClassVar[dict[str, threading.RLock]] = {}
     _guard: ClassVar[threading.Lock] = threading.Lock()
 
+    @classmethod
+    def process_lock(cls, path: Path) -> threading.RLock:
+        """Return the process-local lock shared by readers and writers."""
+
+        with cls._guard:
+            return cls._process_locks.setdefault(str(path), threading.RLock())
+
     def __init__(self, path: Path, *, timeout: float = 10.0) -> None:
         self.path = path
         self.timeout = timeout
-        with self._guard:
-            self._lock = self._process_locks.setdefault(str(path), threading.RLock())
+        self._lock = self.process_lock(path)
         self._fd: int | None = None
 
     def __enter__(self) -> Self:
@@ -150,6 +156,10 @@ class ProjectStore:
         return _ProjectLock(self.root / ".registry.lock")
 
     def _load_root_registry(self) -> dict[str, Any]:
+        with _ProjectLock.process_lock(self.root / ".registry.lock"):
+            return self._load_root_registry_unlocked()
+
+    def _load_root_registry_unlocked(self) -> dict[str, Any]:
         path = self._registry_path()
         if not path.is_file():
             return {"schema": PROJECT_REGISTRY_SCHEMA, "projects": {}}

@@ -1,4 +1,4 @@
-# Evidence Lane plugin 1.4.1
+# Evidence Lane plugin 1.5.0
 
 Evidence Lane is one governed plugin package for Codex and ChatGPT. It carries
 15 packaged skills, the six primary controls—Boot, Rollback, Build, Refresh,
