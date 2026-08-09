@@ -9,7 +9,10 @@ from typing import Any
 import pytest
 from evidence_lane_plugin.cli import main as cli_main
 from evidence_lane_plugin.constants import ENGINE_VERSION
-from evidence_lane_plugin.engine_identity import git_source_commit
+from evidence_lane_plugin.engine_identity import (
+    git_source_commit,
+    identity_repository_root,
+)
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.git_adapter import GitResult
 from evidence_lane_plugin.models import HostKind, normalize_host_kind
@@ -129,6 +132,40 @@ def test_installed_cache_reports_verified_marketplace_git_commit(
         (source_plugin / "plugin.json").read_bytes()
     )
     assert git_source_commit(installed_plugin) == "UNCOMMITTED"
+
+
+def test_plugin_local_venv_resolves_to_versioned_cache_root(tmp_path: Path) -> None:
+    installed_plugin = (
+        tmp_path
+        / ".codex"
+        / "plugins"
+        / "cache"
+        / "test-market"
+        / "test-plugin"
+        / "1.4.1+codex.test"
+    )
+    package_file = (
+        installed_plugin
+        / ".venv"
+        / "Lib"
+        / "site-packages"
+        / "evidence_lane_plugin"
+        / "service.py"
+    )
+    package_file.parent.mkdir(parents=True)
+    package_file.write_text("# installed runtime fixture\n", encoding="utf-8")
+    (installed_plugin / "scripts").mkdir()
+    (installed_plugin / "scripts" / "run_mcp.py").write_text(
+        "# launcher fixture\n",
+        encoding="utf-8",
+    )
+    (installed_plugin / ".codex-plugin").mkdir()
+    (installed_plugin / ".codex-plugin" / "plugin.json").write_text(
+        '{"name":"test-plugin"}\n',
+        encoding="utf-8",
+    )
+
+    assert identity_repository_root(package_file) == installed_plugin.resolve()
 
 
 def test_host_aliases_are_actionable() -> None:

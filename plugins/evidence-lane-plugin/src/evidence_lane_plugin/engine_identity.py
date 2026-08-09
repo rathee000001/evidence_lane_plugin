@@ -32,6 +32,19 @@ def identity_repository_root(package_file: str | Path) -> Path:
     for ancestor in source.parents:
         if (ancestor / ".git").exists():
             return ancestor
+    # The governed bootstrap installs the runtime package into the plugin-local
+    # virtual environment rather than leaving an editable ``src`` import.  Walk
+    # back to the versioned Codex cache root so the marketplace verifier can
+    # bind the copied runtime bytes to the exact Git marketplace commit.
+    for ancestor in source.parents:
+        if ancestor.name != ".venv":
+            continue
+        plugin_root = ancestor.parent
+        if (
+            (plugin_root / "scripts" / "run_mcp.py").is_file()
+            and (plugin_root / ".codex-plugin" / "plugin.json").is_file()
+        ):
+            return plugin_root
     parents = source.parents
     if len(parents) >= 3 and parents[1].name == "src":
         return parents[2]
