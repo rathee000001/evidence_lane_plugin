@@ -26,9 +26,9 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane 1.4.0
+# Evidence Lane 1.4.1
 
-The single active product release is **1.4.0** across the root package, plugin
+The single active product release is **1.4.1** across the root package, plugin
 package, engine, Codex manifest, remote adapter, current documentation, and
 current test/PoC tooling. Historical accepted PVs, sealed receipts, compatibility
 labels such as `pre-v1.1`, dependency versions, and historical Delta reports keep
@@ -372,7 +372,7 @@ python -m venv .venv
 Build the durable MCP container with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:1.4.0 .
+docker build --pull --tag evidence-lane-plugin:1.4.1 .
 ```
 
 The container exposes `/mcp` and `/healthz` on port 8080 and requires one writer

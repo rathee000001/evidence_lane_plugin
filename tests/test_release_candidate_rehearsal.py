@@ -18,7 +18,7 @@ from build_release_candidate_rehearsal import (
     build_rehearsal,
 )
 
-VERSION = "1.4.0+codex.20260808180919"
+VERSION = "1.4.1+codex.20260809163215"
 COMMIT = "a" * 40
 TREE = "b" * 40
 
@@ -52,7 +52,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     _write(plugin, "remote_adapter/app/manifest.ts", "export const manifest = {};\n")
     _write(plugin, "remote_adapter/package.json", '{"dependencies":{}}\n')
     _write(plugin, "remote_adapter/pnpm-lock.yaml", "lockfileVersion: '9.0'\n")
-    _write(plugin, "pyproject.toml", '[project]\nname="fixture"\nversion="1.4.0"\n')
+    _write(plugin, "pyproject.toml", '[project]\nname="fixture"\nversion="1.4.1"\n')
     _write(plugin, "requirements.lock.txt", "mcp==1.28.1\n")
     _write(plugin, "src/evidence_lane_plugin/__init__.py", "VERSION = 'fixture'\n")
     for index in range(15):

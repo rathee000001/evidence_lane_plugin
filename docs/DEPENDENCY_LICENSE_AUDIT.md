@@ -1,7 +1,7 @@
 # Direct dependency license audit
 
 Audit date: **2026-08-09**
-Release line: **Evidence Lane 1.4.0 source / pre-v1.5 correction work**
+Release line: **Evidence Lane 1.4.1 source / governed v1.4 correction work**
 
 This is an engineering distribution check, not legal advice and not a complete
 transitive-license clearance. It records the direct dependencies declared by

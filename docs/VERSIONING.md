@@ -2,7 +2,7 @@
 
 ## Active product release
 
-The active Evidence Lane product release is `1.4.0`. These surfaces must use
+The active Evidence Lane product release is `1.4.1`. These surfaces must use
 that same base version:
 
 - root `pyproject.toml`;

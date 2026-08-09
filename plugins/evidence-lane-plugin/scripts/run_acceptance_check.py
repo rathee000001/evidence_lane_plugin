@@ -26,7 +26,7 @@ from evidence_lane_plugin.hashing import (
 from evidence_lane_plugin.next_actions import HIL_CHOICES
 from evidence_lane_plugin.pv_package import validate_pv_package
 
-EXPECTED_BRANCH = "agent/evi-v140-systemwide-release-hil-v1.4.0"
+EXPECTED_BRANCH = "agent/evi-v141-systemwide-release-hil-v1.4.1"
 EVIDENCE_ROOT = REPOSITORY_ROOT / "evidence" / "implementation_v41"
 CORRECTION_EVIDENCE_ROOT = REPOSITORY_ROOT / "evidence" / "implementation_v42"
 RELEASE_EVIDENCE_ROOT = REPOSITORY_ROOT / "evidence" / "implementation_v43"
@@ -323,7 +323,7 @@ def check_ac11() -> dict[str, Any]:
     tree = _git("rev-parse", "HEAD^{tree}")
     _require(branch == EXPECTED_BRANCH, "The governed study branch differs.")
     _require(not status, "The final study branch is not clean.")
-    _require(ENGINE_VERSION == "1.4.0", "The engine is not v1.4.0.")
+    _require(ENGINE_VERSION == "1.4.1", "The engine is not v1.4.1.")
     release = _sealed_receipt_path(CURRENT_RELEASE_RECEIPT)
     safety = release["payload"].get("safety") or {}
     _require(safety.get("main_merged") is False, "The release claims a main merge.")
@@ -386,7 +386,7 @@ def _postseal_candidate_context() -> dict[str, Any]:
         _git("branch", "--show-current") == EXPECTED_BRANCH,
         "The governed source branch differs.",
     )
-    _require(ENGINE_VERSION == "1.4.0", "The engine is not v1.4.0.")
+    _require(ENGINE_VERSION == "1.4.1", "The engine is not v1.4.1.")
     _require(
         (release["payload"].get("base_source_identity") or {}).get("commit")
         == CURRENT_BASE_SOURCE_COMMIT,
@@ -549,7 +549,7 @@ def check_ac16() -> dict[str, Any]:
     _require(branch == EXPECTED_BRANCH, "The governed release branch differs.")
     _require(not status, "The exact release source is not clean.")
     _git("merge-base", "--is-ancestor", CURRENT_BASE_SOURCE_COMMIT, head)
-    _require(ENGINE_VERSION == "1.4.0", "The engine is not v1.4.0.")
+    _require(ENGINE_VERSION == "1.4.1", "The engine is not v1.4.1.")
     _require(
         payload.get("status") == "BOUNDED_PRE_HIL_CONTRACT",
         "The post-PV9 release boundary status differs.",

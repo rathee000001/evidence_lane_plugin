@@ -13,7 +13,7 @@ export default function ReadmePage() {
     <main className="legal shell repositoryDocument">
       <Link href="/">&larr; Evidence Lane</Link>
       <span className="kicker">Repository guide · website edition</span>
-      <h1>Evidence Lane 1.4.0</h1>
+      <h1>Evidence Lane 1.4.1</h1>
       <p>Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex with a separately bounded persistent-storage and HTTPS MCP path for ChatGPT. It turns authorized sources and visible task lineage into inspectable lane packages while keeping candidate state separate from accepted truth.</p>
       <h2>The problem</h2>
       <p>Long AI-assisted work crosses task windows, models, hosts, repositories, and toolchains. Reconstructing the project from prose creates re-explanation tax and context drift. Evidence Lane resumes from exact pointers, lane facts, Exit Slips, Chat Lineage, pending work, and the human gate.</p>

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evidence-lane-plugin"
-version = "1.4.0"
+version = "1.4.1"
 description = "Private six-control Evidence Lane plugin with secret-safe intake, reconciled SQLite topology, candidate overlays, and exact-APPROVE HIL."
 readme = "README.md"
 requires-python = ">=3.11"

@@ -213,7 +213,7 @@ if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $profileFile -PathType 
 
 $marker = [ordered]@{
     schema = "evidence-lane.chatgpt-governed-tunnel-installation.v1"
-    release = "1.4.0"
+    release = "1.4.1"
     runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
     profile_name = $ProfileName
     profile_file = $profileFile
@@ -262,7 +262,7 @@ if (-not $NoStart) {
 
 [ordered]@{
     status = "PASS"
-    release = "1.4.0"
+    release = "1.4.1"
     task_name = $TaskName
     trigger = "AT_LOGON"
     current_user_dpapi = $true

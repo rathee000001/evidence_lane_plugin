@@ -501,7 +501,7 @@ def _build_artifacts(
 
     browser_artifact = {
         "schema": SCHEMA,
-        "release": "1.4.0",
+        "release": "1.4.1",
         "history_through_sha": history_sha,
         "history_through_date": history_date,
         "history_mode": history_mode,
@@ -586,7 +586,7 @@ def _build_artifacts(
     )
     metadata = {
         "schema": SCHEMA,
-        "release": "1.4.0",
+        "release": "1.4.1",
         "history_through_sha": history_sha,
         "history_through_date": history_date,
         "history_mode": history_mode,
@@ -658,7 +658,7 @@ def _build_artifacts(
     browser_sha = _sha256_bytes(browser_bytes)
     manifest = {
         "schema": SCHEMA,
-        "release": "1.4.0",
+        "release": "1.4.1",
         "history_through_sha": history_sha,
         "history_mode": history_mode,
         "history_commit_count": sum(1 for row in source_rows if row["kind"] == "git_history"),

@@ -82,7 +82,7 @@ def test_codex_package_keeps_skills_and_separates_remote_app_connections() -> No
 
     assert manifest["interface"]["displayName"] == "Evidence Lane"
     assert "Evidence Lane 1.4" not in manifest["interface"]["displayName"]
-    assert manifest["version"].startswith("1.4.0+")
+    assert manifest["version"].startswith("1.4.1+")
     assert manifest["skills"] == "./skills/"
     assert manifest["mcpServers"] == "./.mcp.json"
     assert "apps" not in manifest
@@ -345,7 +345,7 @@ def test_chatgpt_submission_matches_the_live_governed_catalog(tmp_path: Path) ->
     assert interface["websiteURL"] == public_metadata["homepage"]
     assert interface["privacyPolicyURL"] == public_metadata["privacy"]
     assert interface["termsOfServiceURL"] == public_metadata["terms"]
-    assert public_metadata["version"] == "1.4.0"
+    assert public_metadata["version"] == "1.4.1"
     with Image.open(PLUGIN / "assets" / "evidence-lane-icon.png") as icon:
         assert icon.format == "PNG"
         assert icon.size == (256, 256)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import tomllib
 from pathlib import Path
 
@@ -9,7 +10,7 @@ from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
-CURRENT_VERSION = "1.4.0"
+CURRENT_VERSION = "1.4.1"
 V13_PATTERN = re.compile(r"(?i)(?:\bv1\.3(?:\.0)?\b|\b1\.3\.0\b)")
 
 HISTORICAL_OR_DEPENDENCY_FILES = {
@@ -49,9 +50,18 @@ def _tracked_text_files() -> list[Path]:
         "build",
         "node_modules",
     }
+    tracked = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    ).stdout.split("\0")
+    paths = [ROOT / relative for relative in tracked if relative]
     return [
         path
-        for path in ROOT.rglob("*")
+        for path in paths
         if path.is_file()
         and not ignored_parts.intersection(path.relative_to(ROOT).parts)
         and not any(part.endswith(".egg-info") for part in path.relative_to(ROOT).parts)
@@ -115,7 +125,7 @@ def test_all_active_product_version_surfaces_are_v140() -> None:
     )
     assert ENGINE_VERSION == CURRENT_VERSION
     assert str(plugin_manifest["version"]).split("+", 1)[0] == CURRENT_VERSION
-    assert str(plugin_manifest["version"]).endswith("+codex.20260808180919")
+    assert str(plugin_manifest["version"]).endswith("+codex.20260809163215")
     assert adapter_manifest["version"] == CURRENT_VERSION
     assert public_manifest["version"] == CURRENT_VERSION
     assert studio_manifest["release"] == CURRENT_VERSION
@@ -124,17 +134,17 @@ def test_all_active_product_version_surfaces_are_v140() -> None:
 def test_current_docs_site_poc_and_acceptance_surfaces_name_v14() -> None:
     required_fragments = {
         "README.md": [
-            "# Evidence Lane 1.4.0",
-            "The single active product release is **1.4.0**",
+            "# Evidence Lane 1.4.1",
+            "The single active product release is **1.4.1**",
             "The v1.4 reconciliation gate",
             "Current v1.4 lane bundles",
         ],
         "docs/ARCHITECTURE.md": [
-            "Evidence Lane 1.4.0",
+            "Evidence Lane 1.4.1",
             "built v1.4 candidates must pass both gates",
         ],
         "docs/VERSIONING.md": [
-            "The active Evidence Lane product release is `1.4.0`",
+            "The active Evidence Lane product release is `1.4.1`",
         ],
         "plugins/evidence-lane-plugin/remote_adapter/app/proof/page.tsx": [
             "Current v1.4 correction standard",
@@ -191,7 +201,9 @@ def test_v140_release_identity_receipt_is_self_sealed_and_pre_hil() -> None:
     declared = str(receipt.pop("receipt_sha256"))
 
     assert declared == sha256_bytes(canonical_json_bytes(receipt))
-    assert receipt["release"] == CURRENT_VERSION
+    # This sealed receipt is immutable historical v1.4.0 evidence. A patch
+    # release must not rewrite it to match the moving active product version.
+    assert receipt["release"] == "1.4.0"
     assert receipt["base_accepted_pv"] == "PV7"
     assert receipt["base_pointer_generation"] == 7
     assert receipt["base_accepted_commit"] == "42516b2edaae8f37d46523243599650afb2cb5e3"
