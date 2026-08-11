@@ -450,10 +450,26 @@ enabled = true
     updated = config.read_text(encoding="utf-8")
 
     assert updated.count("enabled = false") == 2
-    assert updated.count("enabled = true") == 2
+    assert updated.count("enabled = true") == 3
     assert "github@openai-curated" in updated
+    assert (
+        '[plugins."evidence-lane-plugin@evidence-lane-v200-github".'
+        'mcp_servers."evidence-lane"]\nenabled = true'
+    ) in updated
     assert Path(receipt["backup"]).is_file()
     assert receipt["previous_release_cache_deleted"] is False
+
+    replay = module._set_exclusive_evidence_lane_channel(
+        config_path=config,
+        data_root=tmp_path / "pv",
+    )
+    replayed = config.read_text(encoding="utf-8")
+    assert replayed == updated
+    assert replay["changed_selectors"] == []
+    assert replayed.count(
+        '[plugins."evidence-lane-plugin@evidence-lane-v200-github".'
+        'mcp_servers."evidence-lane"]'
+    ) == 1
 
 
 def test_installer_surface_diff_reports_changed_hook_without_raw_paths(

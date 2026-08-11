@@ -848,12 +848,18 @@ def _set_exclusive_evidence_lane_channel(
     current_selector: str | None = None
     changed: list[str] = []
     saw_v2_root = False
+    saw_v2_mcp = False
     for index, line in enumerate(lines):
         match = section.match(line.rstrip("\r\n"))
         if match:
             current_selector = match.group("selector")
             if current_selector == PLUGIN_SELECTOR and not match.group("tail"):
                 saw_v2_root = True
+            if (
+                current_selector == PLUGIN_SELECTOR
+                and match.group("tail") == '.mcp_servers."evidence-lane"'
+            ):
+                saw_v2_mcp = True
             continue
         match_enabled = enabled.match(line.rstrip("\r\n"))
         if not match_enabled or not current_selector:
@@ -868,6 +874,21 @@ def _set_exclusive_evidence_lane_channel(
             changed.append(current_selector)
     if not saw_v2_root:
         raise InstallationError("The v2 plugin root section is absent from Codex config.")
+    if not saw_v2_mcp:
+        newline = "\r\n" if "\r\n" in raw else "\n"
+        if lines and not lines[-1].endswith(("\n", "\r")):
+            lines[-1] += newline
+        lines.extend(
+            [
+                newline,
+                (
+                    f'[plugins."{PLUGIN_SELECTOR}".mcp_servers.'
+                    f'"evidence-lane"]{newline}'
+                ),
+                f"enabled = true{newline}",
+            ]
+        )
+        changed.append(f"{PLUGIN_SELECTOR}.mcp_servers.evidence-lane")
     before_sha = hashlib.sha256(raw.encode("utf-8")).hexdigest().upper()
     after = "".join(lines)
     config_archive = data_root / "installations" / "codex-v200" / "config-archives"
@@ -883,6 +904,18 @@ def _set_exclusive_evidence_lane_channel(
             expected = selector == PLUGIN_SELECTOR
             if bool(settings.get("enabled")) is not expected:
                 raise InstallationError("Evidence Lane channel exclusivity did not persist.")
+            mcp_settings = (settings.get("mcp_servers") or {}).get("evidence-lane")
+            if expected and (
+                not isinstance(mcp_settings, dict)
+                or bool(mcp_settings.get("enabled")) is not True
+            ):
+                raise InstallationError("The v2 native MCP activation did not persist.")
+            if (
+                not expected
+                and isinstance(mcp_settings, dict)
+                and bool(mcp_settings.get("enabled")) is not False
+            ):
+                raise InstallationError("A prior Evidence Lane MCP channel remains active.")
     return {
         "before_sha256": before_sha,
         "after_sha256": _sha256(config_path),
