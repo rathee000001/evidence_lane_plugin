@@ -16,7 +16,10 @@ restart after a local plugin changes:
    `scripts/build_release_candidate_rehearsal.py`.
 2. Run `scripts/codex_release/install_codex_stable.py` first without
    `--activate`. It verifies the archive, exact v2 manifest, 62/21/41 catalog
-   contract, fifteen skills, host separation, and prior-release retention.
+   contract, fifteen skills, host separation, and prior-release retention. For
+   an update, pass the exact prior host-loaded stable installation receipt and
+   its SHA-256 as the comparison baseline; a staged-but-never-restarted cache
+   can never silently become the baseline.
 3. Rerun it with `--activate` and the exact Codex executable. The script stages
    `evidence-lane-v200-github`, invokes the supported marketplace/plugin CLI,
    disables other Evidence Lane selectors without deleting their caches, backs

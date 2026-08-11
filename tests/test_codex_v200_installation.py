@@ -61,7 +61,7 @@ def _fixture_catalog_source() -> str:
 
 def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     source = tmp_path / "source"
-    version = "2.0.0+codex.20260811134500"
+    version = "2.0.0+codex.20260811142000"
     _write(
         source / ".codex-plugin" / "plugin.json",
         json.dumps(
@@ -293,6 +293,83 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
     )
     assert repeated["marketplace"]["state"] == "ALREADY_STAGED_EXACT"
     assert repeated["surface_change_display"] == result["surface_change_display"]
+
+
+def test_explicit_host_stable_baseline_survives_two_pass_install(
+    tmp_path: Path,
+) -> None:
+    module = _module()
+    archive, receipt, _ = _fixture_archive(tmp_path)
+    source = tmp_path / "source"
+    prior_source = tmp_path / "prior-source"
+    shutil.copytree(source, prior_source)
+    (prior_source / "hooks" / "post_tool_use.py").unlink()
+    prior_hooks_path = prior_source / "hooks" / "hooks.json"
+    prior_hooks = json.loads(prior_hooks_path.read_text(encoding="utf-8"))
+    del prior_hooks["hooks"]["PostToolUse"]
+    prior_hooks_path.write_text(json.dumps(prior_hooks), encoding="utf-8")
+    prior_version = "2.0.0+codex.host-stable"
+    prior_surface = module._surface_inventory(
+        prior_source,
+        version=prior_version,
+    )
+    baseline = {
+        "schema": module.INSTALL_SCHEMA,
+        "status": "PASS",
+        "plugin": {
+            "plugin_id": "evidence-lane-plugin",
+            "version": prior_version,
+            "surface_inventory": prior_surface,
+        },
+        "activation": {"state": "INSTALLED_RESTART_REQUIRED"},
+        "candidate_created_or_accepted": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+    }
+    baseline["receipt_sha256"] = hashlib.sha256(
+        module._json_bytes(baseline)
+    ).hexdigest().upper()
+    data_root = tmp_path / "pv"
+    baseline_path = (
+        data_root
+        / "installations"
+        / "codex-v200"
+        / "INSTALL_HOST_STABLE.json"
+    )
+    _write(baseline_path, json.dumps(baseline))
+    baseline_file_sha256 = hashlib.sha256(
+        baseline_path.read_bytes()
+    ).hexdigest().upper()
+    arguments = argparse.Namespace(
+        archive=archive,
+        rehearsal_receipt=receipt,
+        baseline_installation_receipt=baseline_path,
+        baseline_installation_receipt_sha256=baseline_file_sha256,
+        codex_home=tmp_path / "codex-home",
+        data_root=data_root,
+        codex_executable=None,
+        activate=False,
+    )
+
+    preflight = module.install(arguments)
+    activation_pass = module.install(arguments)
+
+    assert preflight["surface_change_display"]["previous_plugin_version"] == (
+        prior_version
+    )
+    assert preflight["surface_change_display"]["hooks"]["added_events"] == [
+        "PostToolUse"
+    ]
+    assert preflight["surface_change_display"]["hooks"]["added_files"] == [
+        "post_tool_use.py"
+    ]
+    assert activation_pass["marketplace"]["state"] == "ALREADY_STAGED_EXACT"
+    assert activation_pass["comparison_baseline"] == preflight[
+        "comparison_baseline"
+    ]
+    assert activation_pass["surface_change_display"] == preflight[
+        "surface_change_display"
+    ]
 
 
 def test_channel_switch_disables_prior_plugin_without_deleting_cache(

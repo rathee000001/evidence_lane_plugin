@@ -391,6 +391,66 @@ def _load_receipt(receipt_path: Path, archive: Path) -> dict[str, Any]:
     return receipt
 
 
+def _load_comparison_baseline(
+    *,
+    path: Path,
+    expected_sha256: str,
+    data_root: Path,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Load one explicitly sealed prior host-stable installation surface."""
+
+    expected = str(expected_sha256 or "").strip().upper()
+    authority_root = data_root / "installations" / "codex-v200"
+    resolved = path.resolve()
+    if (
+        re.fullmatch(r"[A-F0-9]{64}", expected) is None
+        or not resolved.is_file()
+        or not _inside(resolved, authority_root)
+        or not resolved.name.startswith("INSTALL_")
+        or _sha256(resolved) != expected
+    ):
+        raise InstallationError(
+            "The comparison baseline installation receipt is unavailable or unsealed."
+        )
+    receipt = json.loads(resolved.read_text(encoding="utf-8"))
+    receipt_core = dict(receipt)
+    receipt_sha256 = str(receipt_core.pop("receipt_sha256", "")).upper()
+    surface = dict((receipt.get("plugin") or {}).get("surface_inventory") or {})
+    surface_core = dict(surface)
+    surface_sha256 = str(
+        surface_core.pop("surface_inventory_sha256", "")
+    ).upper()
+    plugin = dict(receipt.get("plugin") or {})
+    activation = dict(receipt.get("activation") or {})
+    if (
+        receipt.get("schema") != INSTALL_SCHEMA
+        or receipt.get("status") != "PASS"
+        or receipt_sha256
+        != hashlib.sha256(_json_bytes(receipt_core)).hexdigest().upper()
+        or receipt.get("candidate_created_or_accepted") is not False
+        or receipt.get("pointer_moved") is not False
+        or receipt.get("hil_inferred") is not False
+        or activation.get("state") != "INSTALLED_RESTART_REQUIRED"
+        or plugin.get("plugin_id") != PLUGIN_NAME
+        or plugin.get("version") != surface.get("plugin_version")
+        or surface.get("schema")
+        != "evidence-lane.codex-installed-surface-inventory.v2"
+        or surface.get("raw_paths_included") is not False
+        or surface_sha256
+        != hashlib.sha256(_json_bytes(surface_core)).hexdigest().upper()
+        or dict(surface.get("catalog") or {}) != EXPECTED_CATALOG
+    ):
+        raise InstallationError("The comparison baseline installation receipt drifted.")
+    identity = {
+        "installation_receipt": str(resolved),
+        "installation_receipt_sha256": expected,
+        "plugin_version": plugin["version"],
+        "surface_inventory_sha256": surface["surface_inventory_sha256"],
+        "baseline_role": "EXACT_PRIOR_HOST_STABLE_INSTALLATION",
+    }
+    return surface, identity
+
+
 def _safe_extract(archive_path: Path, target: Path) -> None:
     with zipfile.ZipFile(archive_path, "r") as archive:
         names = archive.namelist()
@@ -556,6 +616,8 @@ def _stage_marketplace(
     data_root: Path,
     identity: dict[str, Any],
     archive_sha256: str,
+    comparison_surface: dict[str, Any] | None = None,
+    comparison_baseline: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     codex_home = marketplace_root.parent.parent.resolve()
     expected_parent = codex_home / "local-marketplaces"
@@ -570,8 +632,8 @@ def _stage_marketplace(
     staging_plugin = staging / "plugins" / PLUGIN_NAME
     staging_plugin.parent.mkdir(parents=True, exist_ok=True)
     prior_plugin = marketplace_root / "plugins" / PLUGIN_NAME
-    previous_surface = None
-    if prior_plugin.is_dir():
+    previous_surface = comparison_surface
+    if previous_surface is None and prior_plugin.is_dir():
         prior_manifest = json.loads(
             (prior_plugin / ".codex-plugin" / "plugin.json").read_text(
                 encoding="utf-8"
@@ -599,6 +661,7 @@ def _stage_marketplace(
             "marketplace": MARKETPLACE_NAME,
             "plugin": identity,
             "archive_sha256": archive_sha256,
+            "comparison_baseline": comparison_baseline,
             "surface_change_display": surface_change,
             "generated_cache_written_directly": False,
             "prior_release_deleted": False,
@@ -609,6 +672,10 @@ def _stage_marketplace(
             if current_stage.is_file():
                 current = json.loads(current_stage.read_text(encoding="utf-8"))
                 if current.get("archive_sha256") == archive_sha256:
+                    if current.get("comparison_baseline") != comparison_baseline:
+                        raise InstallationError(
+                            "The exact staged marketplace comparison baseline drifted."
+                        )
                     preserved_change = _verified_staged_surface_change_display(
                         current.get("surface_change_display"),
                         current=identity["surface_inventory"],
@@ -617,6 +684,7 @@ def _stage_marketplace(
                     return {
                         "state": "ALREADY_STAGED_EXACT",
                         "prior_marketplace_archived": False,
+                        "comparison_baseline": comparison_baseline,
                         "surface_change_display": preserved_change,
                     }
             archive_root = (
@@ -640,6 +708,7 @@ def _stage_marketplace(
         return {
             "state": "STAGED",
             "prior_marketplace_archived": prior_archived,
+            "comparison_baseline": comparison_baseline,
             "surface_change_display": surface_change,
         }
     finally:
@@ -742,6 +811,22 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
     if _inside(archive, codex_home / "plugins" / "cache"):
         raise InstallationError("A generated cache package cannot be installation input.")
     _load_receipt(receipt_path, archive)
+    baseline_path = getattr(args, "baseline_installation_receipt", None)
+    baseline_sha256 = getattr(
+        args, "baseline_installation_receipt_sha256", None
+    )
+    if (baseline_path is None) != (baseline_sha256 is None):
+        raise InstallationError(
+            "The comparison baseline receipt and SHA-256 must be supplied together."
+        )
+    comparison_surface: dict[str, Any] | None = None
+    comparison_baseline: dict[str, Any] | None = None
+    if baseline_path is not None:
+        comparison_surface, comparison_baseline = _load_comparison_baseline(
+            path=Path(baseline_path),
+            expected_sha256=str(baseline_sha256),
+            data_root=data_root,
+        )
     with tempfile.TemporaryDirectory(prefix="evidence-lane-v200-install-") as raw:
         extracted = Path(raw) / "plugin"
         extracted.mkdir()
@@ -753,6 +838,8 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
             data_root=data_root,
             identity=identity,
             archive_sha256=_sha256(archive),
+            comparison_surface=comparison_surface,
+            comparison_baseline=comparison_baseline,
         )
     activation: dict[str, Any] = {
         "state": "STAGED_RESTART_NOT_YET_REQUIRED",
@@ -817,6 +904,7 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
             **stage,
         },
         "surface_change_display": stage["surface_change_display"],
+        "comparison_baseline": stage.get("comparison_baseline"),
         "activation": activation,
         "archive_release_retained": "1.5.0",
         "previous_release_cache_deleted": False,
@@ -839,6 +927,8 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive", type=Path, required=True)
     parser.add_argument("--rehearsal-receipt", type=Path, required=True)
+    parser.add_argument("--baseline-installation-receipt", type=Path)
+    parser.add_argument("--baseline-installation-receipt-sha256")
     parser.add_argument(
         "--codex-home",
         type=Path,
