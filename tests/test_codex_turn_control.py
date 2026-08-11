@@ -468,6 +468,179 @@ def test_stale_host_never_rebinds_from_cwd(service, source_repository: Path) -> 
     ).exists()
 
 
+def test_native_hooks_claim_and_reuse_one_sealed_codex_host_alias(
+    service,
+    source_repository: Path,
+    tmp_path: Path,
+) -> None:
+    session_id, governed_host_session_id = _strict_state_travel_session(service)
+    observed_host_session_id = "019f-codex-native-host-alias-test"
+    assert observed_host_session_id != governed_host_session_id
+    transcript = tmp_path / "codex-rollout.jsonl"
+    transcript.write_text('{"type":"session_meta"}\n', encoding="utf-8")
+    wrong_transcript = tmp_path / "different-codex-rollout.jsonl"
+    wrong_transcript.write_text('{"type":"session_meta"}\n', encoding="utf-8")
+
+    repository_root = Path(__file__).resolve().parents[1]
+    prompt_hook = (
+        repository_root
+        / "plugins"
+        / "evidence-lane-plugin"
+        / "hooks"
+        / "prompt_submit.py"
+    )
+    stop_hook = (
+        repository_root
+        / "plugins"
+        / "evidence-lane-plugin"
+        / "hooks"
+        / "stop_response.py"
+    )
+    environment = os.environ.copy()
+    environment["EVIDENCE_LANE_DATA_ROOT"] = str(service.store.root)
+
+    def run_hook(path: Path, payload: dict[str, object]) -> dict[str, object]:
+        process = subprocess.run(
+            [sys.executable, str(path)],
+            input=json.dumps(payload),
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            env=environment,
+        )
+        return json.loads(process.stdout)
+
+    common = {
+        "session_id": observed_host_session_id,
+        "cwd": str(source_repository),
+        "transcript_path": str(transcript),
+        "model": "gpt-5.6-sol",
+        "permission_mode": "never",
+    }
+    alias_states: list[str] = []
+    for prompt_index in (1, 2):
+        turn_id = f"aliased-hook-turn-{prompt_index}"
+        prepared_payload = run_hook(
+            prompt_hook,
+            {
+                **common,
+                "turn_id": turn_id,
+                "source": "user_prompt",
+                "prompt": f"Bound visible input {prompt_index}",
+            },
+        )
+        assert prepared_payload["continue"] is True
+        prepared = json.loads(
+            prepared_payload["hookSpecificOutput"]["additionalContext"].removeprefix(
+                "EVIDENCE_LANE_PROMPT_ENTRY="
+            )
+        )
+        assert prepared["state"] == "PREPARED_NOT_COMMITTED"
+        assert prepared["prompt_index"] == prompt_index
+        alias_states.append(prepared["host_binding"]["state"])
+        notice = json.loads(
+            prepared_payload["systemMessage"].removeprefix(
+                "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
+            )
+        )
+        assert notice["host_binding"]["state"] == alias_states[-1]
+        assert notice["host_binding"]["raw_host_identity_stored"] is False
+        assert notice["host_binding"]["raw_transcript_path_stored"] is False
+
+        committed_payload = run_hook(
+            stop_hook,
+            {
+                **common,
+                "turn_id": turn_id,
+                "last_assistant_message": f"Bound visible response {prompt_index}",
+                "tests": [{"name": "sealed-host-alias", "status": "PASS"}],
+            },
+        )
+        committed_notice = json.loads(
+            committed_payload["systemMessage"].removeprefix(
+                "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
+            )
+        )
+        assert committed_notice["turn_receipt"]["state"] == "COMMITTED"
+        assert committed_notice["host_binding"]["state"] == (
+            "SEALED_CODEX_HOST_ALIAS_REUSED"
+        )
+
+    assert alias_states == [
+        "SEALED_CODEX_HOST_ALIAS_CLAIMED",
+        "SEALED_CODEX_HOST_ALIAS_REUSED",
+    ]
+    alias_policy = policy_state(
+        service.store.root,
+        host_session_id=observed_host_session_id,
+        cwd=str(source_repository),
+        transcript_path=str(transcript),
+    )
+    assert alias_policy["binding_match"] == "SEALED_CODEX_HOST_ALIAS"
+    assert alias_policy["reason"] == "SEALED_CODEX_HOST_ALIAS_BINDING"
+    assert service.prompt_index_status("book-faires", session_id)[
+        "total_resolvable"
+    ] == 2
+
+    database = (
+        service.store.project_root("book-faires")
+        / "lineage"
+        / "codex_turn_control.sqlite"
+    )
+    with sqlite3.connect(database) as connection:
+        rows = connection.execute(
+            "SELECT record_json FROM host_session_alias"
+        ).fetchall()
+    assert len(rows) == 1
+    sealed_record_json = rows[0][0]
+    sealed_record = json.loads(sealed_record_json)
+    assert observed_host_session_id not in sealed_record_json
+    assert str(transcript) not in sealed_record_json
+    assert sealed_record["raw_host_identity_stored"] is False
+    assert sealed_record["raw_transcript_path_stored"] is False
+    assert len(sealed_record["observed_host_session_id_sha256"]) == 64
+    assert len(sealed_record["transcript_path_sha256"]) == 64
+
+    wrong_model = run_hook(
+        prompt_hook,
+        {
+            **common,
+            "turn_id": "aliased-hook-wrong-model",
+            "model": "gpt-5.6-terra",
+            "prompt": "This profile must fail closed.",
+        },
+    )
+    assert wrong_model["continue"] is False
+    wrong_model_gap = json.loads(
+        wrong_model["hookSpecificOutput"]["additionalContext"].removeprefix(
+            "EVIDENCE_LANE_PROMPT_ENTRY="
+        )
+    )
+    assert wrong_model_gap["code"] == "TURN_CONTROL_HOST_ALIAS_MODEL_MISMATCH"
+
+    wrong_path = run_hook(
+        prompt_hook,
+        {
+            **common,
+            "turn_id": "aliased-hook-wrong-transcript",
+            "transcript_path": str(wrong_transcript),
+            "prompt": "This transcript must fail closed.",
+        },
+    )
+    assert wrong_path["continue"] is False
+    wrong_path_gap = json.loads(
+        wrong_path["hookSpecificOutput"]["additionalContext"].removeprefix(
+            "EVIDENCE_LANE_PROMPT_ENTRY="
+        )
+    )
+    assert wrong_path_gap["code"] == "TURN_CONTROL_HOST_ALIAS_CONFLICT"
+    with sqlite3.connect(database) as connection:
+        assert connection.execute(
+            "SELECT COUNT(*) FROM host_session_alias"
+        ).fetchone()[0] == 1
+
+
 def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
     service,
     source_repository: Path,

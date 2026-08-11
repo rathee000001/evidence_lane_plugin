@@ -61,7 +61,7 @@ def _fixture_catalog_source() -> str:
 
 def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     source = tmp_path / "source"
-    version = "2.0.0+codex.20260811033204"
+    version = "2.0.0+codex.20260811050012"
     _write(
         source / ".codex-plugin" / "plugin.json",
         json.dumps(

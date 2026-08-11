@@ -23,6 +23,7 @@ def _load_control():
         sys.path.insert(0, str(source_root))
     from evidence_lane_plugin.codex_turn_control import (
         TurnControlError,
+        bind_codex_host_payload,
         gap_receipt,
         persistent_change_system_notice,
         policy_state,
@@ -32,6 +33,7 @@ def _load_control():
 
     return (
         TurnControlError,
+        bind_codex_host_payload,
         gap_receipt,
         persistent_change_system_notice,
         policy_state,
@@ -44,16 +46,49 @@ def _record(payload: dict[str, Any]) -> tuple[dict[str, Any], bool]:
     root = _store_root()
     (
         TurnControlError,
+        bind_codex_host_payload,
         gap_receipt,
         _,
         policy_state,
         prepare_turn,
         record_non_strict_visible_input,
     ) = _load_control()
-    policy = policy_state(
+    raw_policy = policy_state(
         root,
         host_session_id=str(payload.get("session_id") or "").strip(),
         cwd=str(payload.get("cwd") or ""),
+        transcript_path=str(
+            payload.get("transcript_path")
+            or payload.get("agent_transcript_path")
+            or ""
+        ),
+    )
+    try:
+        normalized_payload, host_binding = bind_codex_host_payload(
+            root,
+            host_payload=payload,
+            event_name="UserPromptSubmit",
+            allow_alias_claim=True,
+        )
+    except TurnControlError as exc:
+        return (
+            gap_receipt(
+                root,
+                host_payload=payload,
+                error=exc,
+                policy=raw_policy,
+            ),
+            not bool(raw_policy.get("strict_required")),
+        )
+    policy = policy_state(
+        root,
+        host_session_id=str(normalized_payload.get("session_id") or "").strip(),
+        cwd=str(normalized_payload.get("cwd") or ""),
+        transcript_path=str(
+            normalized_payload.get("transcript_path")
+            or normalized_payload.get("agent_transcript_path")
+            or ""
+        ),
     )
     if not policy.get("governed_session"):
         return (
@@ -82,44 +117,52 @@ def _record(payload: dict[str, Any]) -> tuple[dict[str, Any], bool]:
         )
     if not policy.get("strict_required"):
         try:
-            return record_non_strict_visible_input(root, host_payload=payload), True
-        except TurnControlError as exc:
-            return (
-                gap_receipt(
-                    root,
-                    host_payload=payload,
-                    error=exc,
-                    policy=policy,
-                ),
-                True,
+            receipt = record_non_strict_visible_input(
+                root, host_payload=normalized_payload
             )
+            if host_binding is not None:
+                receipt["host_binding"] = host_binding
+            return receipt, True
+        except TurnControlError as exc:
+            receipt = gap_receipt(
+                root,
+                host_payload=normalized_payload,
+                error=exc,
+                policy=policy,
+            )
+            if host_binding is not None:
+                receipt["host_binding"] = host_binding
+            return receipt, True
         except Exception as exc:  # noqa: BLE001 - visible non-strict gap, no raw input
             error = TurnControlError(
                 "TURN_CONTROL_NON_STRICT_VISIBLE_INDEX_UNAVAILABLE",
                 "The bounded pre-Plan visible-input index is unavailable.",
                 error_type=type(exc).__name__,
             )
-            return (
-                gap_receipt(
-                    root,
-                    host_payload=payload,
-                    error=error,
-                    policy=policy,
-                ),
-                True,
-            )
-    try:
-        return prepare_turn(root, host_payload=payload), True
-    except TurnControlError as exc:
-        return (
-            gap_receipt(
+            receipt = gap_receipt(
                 root,
-                host_payload=payload,
-                error=exc,
+                host_payload=normalized_payload,
+                error=error,
                 policy=policy,
-            ),
-            False,
+            )
+            if host_binding is not None:
+                receipt["host_binding"] = host_binding
+            return receipt, True
+    try:
+        receipt = prepare_turn(root, host_payload=normalized_payload)
+        if host_binding is not None:
+            receipt["host_binding"] = host_binding
+        return receipt, True
+    except TurnControlError as exc:
+        receipt = gap_receipt(
+            root,
+            host_payload=normalized_payload,
+            error=exc,
+            policy=policy,
         )
+        if host_binding is not None:
+            receipt["host_binding"] = host_binding
+        return receipt, False
 
 
 def main() -> int:
@@ -155,7 +198,7 @@ def main() -> int:
     }
     display = receipt.get("persistent_change_display")
     if isinstance(display, dict):
-        _, _, persistent_change_system_notice, _, _, _ = _load_control()
+        _, _, _, persistent_change_system_notice, _, _, _ = _load_control()
         notice = persistent_change_system_notice(
             display,
             phase="TURN_PREPARE",

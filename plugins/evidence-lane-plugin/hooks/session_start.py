@@ -1,4 +1,4 @@
-"""Advisory SessionStart context; deliberately performs no state mutation."""
+"""SessionStart context with one sealed Codex-to-State-Travel host binding."""
 
 from __future__ import annotations
 
@@ -61,6 +61,7 @@ def _load_turn_control():
         sys.path.insert(0, str(source_root))
     from evidence_lane_plugin.codex_turn_control import (
         TurnControlError,
+        bind_codex_host_payload,
         gap_receipt,
         persistent_change_system_notice,
         policy_state,
@@ -69,6 +70,7 @@ def _load_turn_control():
 
     return (
         TurnControlError,
+        bind_codex_host_payload,
         gap_receipt,
         persistent_change_system_notice,
         policy_state,
@@ -78,13 +80,50 @@ def _load_turn_control():
 
 def _turn_control_context(payload: dict[str, Any]) -> tuple[dict[str, Any], bool]:
     root = _store_root()
-    TurnControlError, gap_receipt, _, policy_state, session_start_control = (
-        _load_turn_control()
-    )
-    policy = policy_state(
+    (
+        TurnControlError,
+        bind_codex_host_payload,
+        gap_receipt,
+        _,
+        policy_state,
+        session_start_control,
+    ) = _load_turn_control()
+    raw_policy = policy_state(
         root,
         host_session_id=str(payload.get("session_id") or "").strip(),
         cwd=str(payload.get("cwd") or ""),
+        transcript_path=str(
+            payload.get("transcript_path")
+            or payload.get("agent_transcript_path")
+            or ""
+        ),
+    )
+    try:
+        normalized_payload, host_binding = bind_codex_host_payload(
+            root,
+            host_payload=payload,
+            event_name="SessionStart",
+            allow_alias_claim=True,
+        )
+    except TurnControlError as exc:
+        return (
+            gap_receipt(
+                root,
+                host_payload=payload,
+                error=exc,
+                policy=raw_policy,
+            ),
+            not bool(raw_policy.get("strict_required")),
+        )
+    policy = policy_state(
+        root,
+        host_session_id=str(normalized_payload.get("session_id") or "").strip(),
+        cwd=str(normalized_payload.get("cwd") or ""),
+        transcript_path=str(
+            normalized_payload.get("transcript_path")
+            or normalized_payload.get("agent_transcript_path")
+            or ""
+        ),
     )
     if not policy.get("governed_session"):
         return (
@@ -109,17 +148,20 @@ def _turn_control_context(payload: dict[str, Any]) -> tuple[dict[str, Any], bool
             True,
         )
     try:
-        return session_start_control(root, host_payload=payload), True
+        receipt = session_start_control(root, host_payload=normalized_payload)
+        if host_binding is not None:
+            receipt["host_binding"] = host_binding
+        return receipt, True
     except TurnControlError as exc:
-        return (
-            gap_receipt(
-                root,
-                host_payload=payload,
-                error=exc,
-                policy=policy,
-            ),
-            False,
+        receipt = gap_receipt(
+            root,
+            host_payload=normalized_payload,
+            error=exc,
+            policy=policy,
         )
+        if host_binding is not None:
+            receipt["host_binding"] = host_binding
+        return receipt, False
 
 
 def _plugin_version_context() -> dict[str, object]:
@@ -751,7 +793,7 @@ def main() -> int:
             "Governed Evidence Lane SessionStart binding failed closed before source mutation."
         )
     if isinstance(persistent_change_display, dict):
-        _, _, persistent_change_system_notice, _, _ = _load_turn_control()
+        _, _, _, persistent_change_system_notice, _, _ = _load_turn_control()
         notice = persistent_change_system_notice(
             persistent_change_display,
             phase="SESSION_START",

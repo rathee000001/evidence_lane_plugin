@@ -327,11 +327,133 @@ def _package_update_status(root: Path) -> dict[str, Any]:
     return core
 
 
+def _host_binding_epoch(session: dict[str, Any]) -> str:
+    """Seal the exact governed host binding without storing its raw identity."""
+
+    metadata = dict(session.get("metadata") or {})
+    travel = dict(metadata.get("state_travel") or {})
+    resume_contract = dict(travel.get("resume_contract") or {})
+    governed_host_session_id = str(
+        metadata.get("current_host_session_id") or ""
+    ).strip()
+    core = {
+        "schema": "evidence-lane.codex-host-binding-epoch.v1",
+        "project_id": session.get("project_id"),
+        "evidence_session_id": session.get("session_id"),
+        "governed_host_session_id_sha256": sha256_bytes(
+            governed_host_session_id.encode("utf-8")
+        ),
+        "accepted_pv": session.get("accepted_pv"),
+        "accepted_pointer_generation": session.get(
+            "accepted_pointer_generation"
+        ),
+        "state_travel_handoff_sha256": travel.get("handoff_sha256"),
+        "state_travel_verified_snapshot_sha256": travel.get(
+            "verified_snapshot_sha256"
+        ),
+        "state_travel_task_list_sha256": resume_contract.get(
+            "task_list_sha256"
+        ),
+        "state_travel_additive_deltas_sha256": resume_contract.get(
+            "additive_deltas_sha256"
+        ),
+    }
+    return sha256_bytes(canonical_json_bytes(core))
+
+
+def _host_transcript_sha256(transcript_path: str) -> str | None:
+    exact = str(transcript_path or "").strip()
+    if not exact:
+        return None
+    path = Path(exact)
+    if not path.is_absolute() or not path.is_file():
+        return None
+    try:
+        normalized = os.path.normcase(str(path.resolve(strict=True)))
+    except OSError:
+        return None
+    return sha256_bytes(normalized.encode("utf-8"))
+
+
+def _read_host_alias(
+    project_root: Path,
+    *,
+    session: dict[str, Any],
+    observed_host_session_id: str,
+    transcript_path: str,
+) -> dict[str, Any] | None:
+    transcript_sha256 = _host_transcript_sha256(transcript_path)
+    if not observed_host_session_id or transcript_sha256 is None:
+        return None
+    database = project_root / "lineage" / "codex_turn_control.sqlite"
+    if not database.is_file():
+        return None
+    observed_sha256 = sha256_bytes(observed_host_session_id.encode("utf-8"))
+    binding_epoch_sha256 = _host_binding_epoch(session)
+    try:
+        connection = sqlite3.connect(
+            f"file:{database.as_posix()}?mode=ro",
+            uri=True,
+            timeout=5,
+        )
+        connection.row_factory = sqlite3.Row
+        try:
+            row = connection.execute(
+                """
+                SELECT alias_receipt_sha256, record_json
+                FROM host_session_alias
+                WHERE observed_host_session_id_sha256=?
+                  AND binding_epoch_sha256=?
+                """,
+                (observed_sha256, binding_epoch_sha256),
+            ).fetchone()
+        finally:
+            connection.close()
+    except sqlite3.Error:
+        return None
+    if row is None:
+        return None
+    try:
+        record = json.loads(row["record_json"])
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return None
+    claimed = str(record.get("alias_receipt_sha256") or "")
+    actual = sha256_bytes(
+        canonical_json_bytes(
+            {
+                key: value
+                for key, value in record.items()
+                if key != "alias_receipt_sha256"
+            }
+        )
+    )
+    if (
+        claimed != actual
+        or claimed != row["alias_receipt_sha256"]
+        or record.get("project_id") != session.get("project_id")
+        or record.get("evidence_session_id") != session.get("session_id")
+        or record.get("observed_host_session_id_sha256") != observed_sha256
+        or record.get("transcript_path_sha256") != transcript_sha256
+        or record.get("binding_epoch_sha256") != binding_epoch_sha256
+        or record.get("governed_host_session_id_sha256")
+        != sha256_bytes(
+            str(
+                session.get("metadata", {}).get("current_host_session_id") or ""
+            ).encode("utf-8")
+        )
+        or record.get("raw_host_identity_stored") is not False
+        or record.get("raw_transcript_path_stored") is not False
+    ):
+        return None
+    return record
+
+
 def _session_candidates(
     root: Path,
     *,
     host_session_id: str,
     cwd: str,
+    transcript_path: str = "",
 ) -> list[dict[str, Any]]:
     projects_root = root / "projects"
     if not projects_root.is_dir():
@@ -362,6 +484,14 @@ def _session_candidates(
         ):
             row["binding_match"] = "EXACT_HOST_SESSION"
             exact.append(row)
+        elif _read_host_alias(
+            project_root,
+            session=session,
+            observed_host_session_id=host_session_id,
+            transcript_path=transcript_path,
+        ) is not None:
+            row["binding_match"] = "SEALED_CODEX_HOST_ALIAS"
+            exact.append(row)
         elif current_cwd and _within(
             current_cwd, Path(str(project["repository_path"]))
         ):
@@ -377,6 +507,7 @@ def policy_state(
     *,
     host_session_id: str,
     cwd: str,
+    transcript_path: str = "",
 ) -> dict[str, Any]:
     """Return whether this host turn is governed and strict-control eligible."""
 
@@ -385,6 +516,7 @@ def policy_state(
         root,
         host_session_id=host_session_id.strip(),
         cwd=cwd,
+        transcript_path=transcript_path,
     )
     if not candidates:
         return {
@@ -420,6 +552,8 @@ def policy_state(
         "reason": (
             "EXACT_GOVERNED_SESSION_BINDING"
             if candidate.get("binding_match") == "EXACT_HOST_SESSION"
+            else "SEALED_CODEX_HOST_ALIAS_BINDING"
+            if candidate.get("binding_match") == "SEALED_CODEX_HOST_ALIAS"
             else "STALE_OR_MISSING_HOST_SESSION_NO_CWD_REBIND"
         ),
         "project_id": session.get("project_id"),
@@ -434,11 +568,13 @@ def _one_bound_session(
     *,
     host_session_id: str,
     cwd: str,
+    transcript_path: str = "",
 ) -> dict[str, Any]:
     candidates = _session_candidates(
         root,
         host_session_id=host_session_id,
         cwd=cwd,
+        transcript_path=transcript_path,
     )
     _require(
         len(candidates) == 1,
@@ -448,7 +584,8 @@ def _one_bound_session(
     )
     candidate = candidates[0]
     _require(
-        candidate.get("binding_match") == "EXACT_HOST_SESSION",
+        candidate.get("binding_match")
+        in {"EXACT_HOST_SESSION", "SEALED_CODEX_HOST_ALIAS"},
         "TURN_CONTROL_EXACT_HOST_BINDING_REQUIRED",
         "Repository location cannot substitute for the exact governed host-session identity.",
         binding_match=candidate.get("binding_match"),
@@ -469,6 +606,317 @@ def _one_bound_session(
         runtime_state=activation.get("state"),
     )
     return candidate
+
+
+def _validate_alias_claim_profile(
+    candidate: dict[str, Any],
+    host_payload: dict[str, Any],
+) -> str:
+    session = candidate["session"]
+    metadata = dict(session.get("metadata") or {})
+    travel = dict(metadata.get("state_travel") or {})
+    resume_contract = dict(travel.get("resume_contract") or {})
+    expected_profile = dict(resume_contract.get("execution_profile") or {})
+    expected_model = str(expected_profile.get("model") or "").strip()
+    supplied_model = str(host_payload.get("model") or "").strip()
+    _require(
+        bool(expected_model and supplied_model),
+        "TURN_CONTROL_HOST_ALIAS_MODEL_REQUIRED",
+        "A one-time Codex host alias claim requires the sealed and observed model identities.",
+    )
+    _require(
+        supplied_model == expected_model,
+        "TURN_CONTROL_HOST_ALIAS_MODEL_MISMATCH",
+        "The observed Codex model does not match the sealed State Travel profile.",
+        expected_model=expected_model,
+        supplied_model=supplied_model,
+    )
+    return supplied_model
+
+
+def _active_host_alias_collision(
+    root: Path,
+    *,
+    observed_host_session_id_sha256: str,
+    selected_project_id: str,
+    selected_evidence_session_id: str,
+) -> dict[str, Any] | None:
+    projects_root = root / "projects"
+    if not projects_root.is_dir():
+        return None
+    for project_root in sorted(projects_root.iterdir(), key=lambda item: item.name):
+        if not project_root.is_dir():
+            continue
+        try:
+            active = _json(project_root / "active_session.json")
+            session = _json(
+                project_root / "sessions" / f"{active['session_id']}.json"
+            )
+        except (TurnControlError, KeyError):
+            continue
+        if session.get("metadata", {}).get("closed_at"):
+            continue
+        database = project_root / "lineage" / "codex_turn_control.sqlite"
+        if not database.is_file():
+            continue
+        try:
+            connection = sqlite3.connect(
+                f"file:{database.as_posix()}?mode=ro",
+                uri=True,
+                timeout=5,
+            )
+            connection.row_factory = sqlite3.Row
+            try:
+                row = connection.execute(
+                    """
+                    SELECT alias_receipt_sha256, record_json
+                    FROM host_session_alias
+                    WHERE observed_host_session_id_sha256=?
+                      AND binding_epoch_sha256=?
+                    """,
+                    (
+                        observed_host_session_id_sha256,
+                        _host_binding_epoch(session),
+                    ),
+                ).fetchone()
+            finally:
+                connection.close()
+        except sqlite3.Error:
+            continue
+        if row is None:
+            continue
+        try:
+            record = json.loads(row["record_json"])
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return {"state": "INVALID_SEALED_HOST_ALIAS_RECORD"}
+        claimed = str(record.get("alias_receipt_sha256") or "")
+        actual = sha256_bytes(
+            canonical_json_bytes(
+                {
+                    key: value
+                    for key, value in record.items()
+                    if key != "alias_receipt_sha256"
+                }
+            )
+        )
+        if (
+            claimed != actual
+            or claimed != row["alias_receipt_sha256"]
+            or record.get("observed_host_session_id_sha256")
+            != observed_host_session_id_sha256
+            or record.get("binding_epoch_sha256")
+            != _host_binding_epoch(session)
+        ):
+            return {"state": "INVALID_SEALED_HOST_ALIAS_RECORD"}
+        owner = (
+            str(record.get("project_id") or ""),
+            str(record.get("evidence_session_id") or ""),
+        )
+        if owner != (selected_project_id, selected_evidence_session_id):
+            return {
+                "project_id": owner[0],
+                "evidence_session_id": owner[1],
+                "alias_receipt_sha256": record.get("alias_receipt_sha256"),
+            }
+    return None
+
+
+def bind_codex_host_payload(
+    store_root: str | Path,
+    *,
+    host_payload: dict[str, Any],
+    event_name: str,
+    allow_alias_claim: bool,
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Normalize a Codex-native session id to one sealed State Travel identity.
+
+    Codex hook payloads carry Codex's session id, while a governed State Travel
+    contract may deliberately use a separate destination identity.  This helper
+    permits exactly one receipt-backed association.  It never falls back from a
+    repository path during ordinary turn control: the path is accepted only as
+    one input to the one-time claim together with a real transcript path, the
+    sealed model, an attached runtime, and an unambiguous active project.
+    """
+
+    root = Path(store_root).resolve()
+    normalized = dict(host_payload)
+    observed_host_session_id = str(normalized.get("session_id") or "").strip()
+    cwd = str(normalized.get("cwd") or "")
+    transcript_path = str(
+        normalized.get("transcript_path")
+        or normalized.get("agent_transcript_path")
+        or ""
+    ).strip()
+    if not observed_host_session_id:
+        return normalized, None
+    candidates = _session_candidates(
+        root,
+        host_session_id=observed_host_session_id,
+        cwd=cwd,
+        transcript_path=transcript_path,
+    )
+    if len(candidates) != 1:
+        return normalized, None
+    candidate = candidates[0]
+    binding_match = str(candidate.get("binding_match") or "")
+    if binding_match == "EXACT_HOST_SESSION":
+        return normalized, None
+    if binding_match == "SEALED_CODEX_HOST_ALIAS":
+        _validate_alias_claim_profile(candidate, normalized)
+        alias = _read_host_alias(
+            Path(candidate["project_root"]),
+            session=candidate["session"],
+            observed_host_session_id=observed_host_session_id,
+            transcript_path=transcript_path,
+        )
+        _require(
+            alias is not None,
+            "TURN_CONTROL_HOST_ALIAS_RECEIPT_REQUIRED",
+            "The sealed Codex host alias receipt could not be reverified.",
+        )
+        governed_host_session_id = str(
+            candidate["session"].get("metadata", {}).get(
+                "current_host_session_id"
+            )
+            or ""
+        ).strip()
+        normalized["session_id"] = governed_host_session_id
+        normalized["codex_observed_session_id_sha256"] = alias[
+            "observed_host_session_id_sha256"
+        ]
+        return normalized, {
+            "state": "SEALED_CODEX_HOST_ALIAS_REUSED",
+            "alias_receipt_sha256": alias["alias_receipt_sha256"],
+            "binding_epoch_sha256": alias["binding_epoch_sha256"],
+            "observed_host_session_id_sha256": alias[
+                "observed_host_session_id_sha256"
+            ],
+            "transcript_path_sha256": alias["transcript_path_sha256"],
+            "raw_host_identity_stored": False,
+            "raw_transcript_path_stored": False,
+        }
+    if binding_match != "CWD_ONLY_STALE_OR_MISSING_HOST" or not allow_alias_claim:
+        return normalized, None
+    transcript = Path(transcript_path)
+    if not transcript_path or not transcript.is_absolute() or not transcript.is_file():
+        return normalized, None
+    supplied_model = _validate_alias_claim_profile(candidate, normalized)
+    session = candidate["session"]
+    metadata = dict(session.get("metadata") or {})
+    governed_host_session_id = str(
+        metadata.get("current_host_session_id") or ""
+    ).strip()
+    _require(
+        bool(governed_host_session_id),
+        "TURN_CONTROL_GOVERNED_HOST_IDENTITY_REQUIRED",
+        "The active Evidence Lane session has no sealed destination host identity.",
+    )
+    activation = _runtime_activation(root)
+    attached = any(
+        isinstance(row, dict)
+        and row.get("project_id") == session.get("project_id")
+        and row.get("session_id") == session.get("session_id")
+        for row in activation.get("active_sessions", [])
+    )
+    _require(
+        activation.get("state") == "ACTIVE" and attached,
+        "TURN_CONTROL_RUNTIME_ATTACHMENT_REQUIRED",
+        "A Codex host alias cannot be claimed for a detached governed session.",
+        runtime_state=activation.get("state"),
+    )
+    observed_sha256 = sha256_bytes(observed_host_session_id.encode("utf-8"))
+    collision = _active_host_alias_collision(
+        root,
+        observed_host_session_id_sha256=observed_sha256,
+        selected_project_id=str(session.get("project_id") or ""),
+        selected_evidence_session_id=str(session.get("session_id") or ""),
+    )
+    _require(
+        collision is None,
+        "TURN_CONTROL_HOST_ALIAS_COLLISION",
+        "The observed Codex host identity is already bound to another active governed session.",
+        collision=collision,
+    )
+    transcript_sha256 = _host_transcript_sha256(transcript_path)
+    _require(
+        transcript_sha256 is not None,
+        "TURN_CONTROL_HOST_ALIAS_TRANSCRIPT_REQUIRED",
+        "A one-time Codex host alias claim requires an absolute transcript identity.",
+    )
+    claimed_at = _now()
+    record = {
+        "schema": "evidence-lane.codex-host-session-alias.v1",
+        "project_id": session.get("project_id"),
+        "evidence_session_id": session.get("session_id"),
+        "governed_host_session_id_sha256": sha256_bytes(
+            governed_host_session_id.encode("utf-8")
+        ),
+        "observed_host_session_id_sha256": observed_sha256,
+        "transcript_path_sha256": transcript_sha256,
+        "binding_epoch_sha256": _host_binding_epoch(session),
+        "model": supplied_model,
+        "event_name": str(event_name or "").strip(),
+        "permission_mode": str(normalized.get("permission_mode") or "").strip()
+        or None,
+        "binding_basis": (
+            "ONE_ACTIVE_PROJECT_EXACT_REPOSITORY_RUNTIME_ATTACHMENT_"
+            "TRANSCRIPT_AND_SEALED_MODEL"
+        ),
+        "raw_host_identity_stored": False,
+        "raw_transcript_path_stored": False,
+        "source_mutated": False,
+        "pointer_moved": False,
+        "candidate_created": False,
+        "hil_inferred": False,
+        "claimed_at": claimed_at,
+    }
+    record["alias_receipt_sha256"] = sha256_bytes(canonical_json_bytes(record))
+    project_root = Path(candidate["project_root"])
+    with _connection(project_root) as connection:
+        connection.execute("BEGIN IMMEDIATE")
+        existing = connection.execute(
+            """
+            SELECT record_json FROM host_session_alias
+            WHERE observed_host_session_id_sha256=?
+              AND binding_epoch_sha256=?
+            """,
+            (observed_sha256, record["binding_epoch_sha256"]),
+        ).fetchone()
+        if existing is None:
+            connection.execute(
+                "INSERT INTO host_session_alias VALUES(?,?,?,?,?,?,?,?,?,?)",
+                (
+                    record["alias_receipt_sha256"],
+                    record["project_id"],
+                    record["evidence_session_id"],
+                    record["governed_host_session_id_sha256"],
+                    record["observed_host_session_id_sha256"],
+                    record["transcript_path_sha256"],
+                    record["binding_epoch_sha256"],
+                    json.dumps(record, sort_keys=True, separators=(",", ":")),
+                    claimed_at,
+                    ENGINE_VERSION,
+                ),
+            )
+        else:
+            existing_record = json.loads(existing["record_json"])
+            _require(
+                existing_record == record,
+                "TURN_CONTROL_HOST_ALIAS_CONFLICT",
+                "The observed Codex host identity already has a different sealed alias receipt.",
+            )
+        connection.commit()
+    normalized["session_id"] = governed_host_session_id
+    normalized["codex_observed_session_id_sha256"] = observed_sha256
+    return normalized, {
+        "state": "SEALED_CODEX_HOST_ALIAS_CLAIMED",
+        "alias_receipt_sha256": record["alias_receipt_sha256"],
+        "binding_epoch_sha256": record["binding_epoch_sha256"],
+        "observed_host_session_id_sha256": observed_sha256,
+        "transcript_path_sha256": transcript_sha256,
+        "raw_host_identity_stored": False,
+        "raw_transcript_path_stored": False,
+    }
 
 
 def _sha(value: Any, *, field: str) -> str:
@@ -1210,6 +1658,17 @@ def persistent_change_system_notice(
             )
             if receipt.get(key) is not None
         },
+        "host_binding": {
+            "state": dict(receipt.get("host_binding") or {}).get("state"),
+            "alias_receipt_sha256": dict(
+                receipt.get("host_binding") or {}
+            ).get("alias_receipt_sha256"),
+            "binding_epoch_sha256": dict(
+                receipt.get("host_binding") or {}
+            ).get("binding_epoch_sha256"),
+            "raw_host_identity_stored": False,
+            "raw_transcript_path_stored": False,
+        },
         "warm_attach_receipt_sha256": (
             dict(display.get("warm_attach") or {}).get("receipt_sha256")
         ),
@@ -1378,6 +1837,21 @@ def _connection(project_root: Path) -> sqlite3.Connection:
     connection.execute("PRAGMA synchronous=FULL")
     connection.executescript(
         """
+        CREATE TABLE IF NOT EXISTS host_session_alias(
+            alias_receipt_sha256 TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            evidence_session_id TEXT NOT NULL,
+            governed_host_session_id_sha256 TEXT NOT NULL,
+            observed_host_session_id_sha256 TEXT NOT NULL,
+            transcript_path_sha256 TEXT NOT NULL,
+            binding_epoch_sha256 TEXT NOT NULL,
+            record_json TEXT NOT NULL,
+            recorded_at TEXT NOT NULL,
+            engine_version TEXT NOT NULL,
+            UNIQUE(observed_host_session_id_sha256, binding_epoch_sha256)
+        ) STRICT;
+        CREATE INDEX IF NOT EXISTS host_session_alias_project_session_idx
+            ON host_session_alias(project_id, evidence_session_id, recorded_at);
         CREATE TABLE IF NOT EXISTS turn_entry(
             control_record_sha256 TEXT PRIMARY KEY,
             project_id TEXT NOT NULL,

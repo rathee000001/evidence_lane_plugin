@@ -23,6 +23,7 @@ def _load_control():
         sys.path.insert(0, str(source_root))
     from evidence_lane_plugin.codex_turn_control import (
         TurnControlError,
+        bind_codex_host_payload,
         commit_turn,
         gap_receipt,
         persistent_change_system_notice,
@@ -31,6 +32,7 @@ def _load_control():
 
     return (
         TurnControlError,
+        bind_codex_host_payload,
         commit_turn,
         gap_receipt,
         persistent_change_system_notice,
@@ -40,11 +42,47 @@ def _load_control():
 
 def _record(payload: dict[str, Any]) -> dict[str, Any]:
     root = _store_root()
-    TurnControlError, commit_turn, gap_receipt, _, policy_state = _load_control()
-    policy = policy_state(
+    (
+        TurnControlError,
+        bind_codex_host_payload,
+        commit_turn,
+        gap_receipt,
+        _,
+        policy_state,
+    ) = _load_control()
+    raw_policy = policy_state(
         root,
         host_session_id=str(payload.get("session_id") or "").strip(),
         cwd=str(payload.get("cwd") or ""),
+        transcript_path=str(
+            payload.get("transcript_path")
+            or payload.get("agent_transcript_path")
+            or ""
+        ),
+    )
+    try:
+        normalized_payload, host_binding = bind_codex_host_payload(
+            root,
+            host_payload=payload,
+            event_name="Stop",
+            allow_alias_claim=False,
+        )
+    except TurnControlError as exc:
+        return gap_receipt(
+            root,
+            host_payload=payload,
+            error=exc,
+            policy=raw_policy,
+        )
+    policy = policy_state(
+        root,
+        host_session_id=str(normalized_payload.get("session_id") or "").strip(),
+        cwd=str(normalized_payload.get("cwd") or ""),
+        transcript_path=str(
+            normalized_payload.get("transcript_path")
+            or normalized_payload.get("agent_transcript_path")
+            or ""
+        ),
     )
     if not policy.get("governed_session"):
         return {
@@ -61,14 +99,20 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
             "private_reasoning_stored": False,
         }
     try:
-        return commit_turn(root, host_payload=payload)
+        receipt = commit_turn(root, host_payload=normalized_payload)
+        if host_binding is not None:
+            receipt["host_binding"] = host_binding
+        return receipt
     except TurnControlError as exc:
-        return gap_receipt(
+        receipt = gap_receipt(
             root,
-            host_payload=payload,
+            host_payload=normalized_payload,
             error=exc,
             policy=policy,
         )
+        if host_binding is not None:
+            receipt["host_binding"] = host_binding
+        return receipt
 
 
 def main() -> int:
@@ -94,7 +138,7 @@ def main() -> int:
     if receipt.get("state") not in {"NOT_INDEXED", "TURN_CONTROL_NOT_REQUIRED_YET"}:
         display = receipt.get("persistent_change_display")
         if isinstance(display, dict):
-            _, _, _, persistent_change_system_notice, _ = _load_control()
+            _, _, _, _, persistent_change_system_notice, _ = _load_control()
             notice = persistent_change_system_notice(
                 display,
                 phase="TURN_COMMIT",
