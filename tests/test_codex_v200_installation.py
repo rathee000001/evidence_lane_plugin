@@ -61,7 +61,7 @@ def _fixture_catalog_source() -> str:
 
 def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     source = tmp_path / "source"
-    version = "2.0.0+codex.20260811030012"
+    version = "2.0.0+codex.20260811033204"
     _write(
         source / ".codex-plugin" / "plugin.json",
         json.dumps(
@@ -349,6 +349,9 @@ def test_restart_helper_is_exact_process_and_same_task_only() -> None:
     assert "Get-RootCodexProcess $TargetProcessId" in text
     assert 'Stop-Process -Id $TargetProcessId -Force' in text
     assert 'Stop-Process -Name' not in text
+    assert "utf8NoBOM" not in text
+    assert "$utf8NoBom = [System.Text.UTF8Encoding]::new($false)" in text
+    assert "[System.IO.File]::WriteAllText(" in text
     assert 'user_reentry_action = "OPEN_THE_SAME_CODEX_TASK"' in text
     assert "lifecycle_resume_call_required = $false" in text
     assert "state_travel_required = $false" in text

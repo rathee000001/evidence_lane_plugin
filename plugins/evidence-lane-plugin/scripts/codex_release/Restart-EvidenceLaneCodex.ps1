@@ -50,7 +50,12 @@ function Write-JsonReceipt([string]$Path, [System.Collections.IDictionary]$Body)
     $parent = Split-Path -Parent $Path
     New-Item -ItemType Directory -Force -Path $parent | Out-Null
     $temporary = Join-Path $parent ("." + [IO.Path]::GetFileName($Path) + "." + [guid]::NewGuid().ToString("N"))
-    $Body | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $temporary -Encoding utf8NoBOM
+    $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+    [System.IO.File]::WriteAllText(
+        $temporary,
+        ($Body | ConvertTo-Json -Depth 12),
+        $utf8NoBom
+    )
     Move-Item -LiteralPath $temporary -Destination $Path
 }
 
