@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "2.0.0+codex.20260811144500",
+  "version": "2.0.0+codex.20260811150000",
   "description": "Human-governed project memory that preserves exact evidence, resumes unfinished work, and keeps acceptance under the user's control.",
   "author": {
     "name": "Praveen Rathee",
