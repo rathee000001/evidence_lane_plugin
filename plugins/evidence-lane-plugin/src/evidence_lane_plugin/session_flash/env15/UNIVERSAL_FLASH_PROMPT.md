@@ -34,17 +34,16 @@ Slip, an Exit Slip, a task, a HIL decision, or permission to write remotely.
   or prior approval.
 - Only an explicit `APPROVE` decision advances the accepted PV pointer.
 - Candidate approval does not authorize a remote Git write.
-- Remote Git action requires a bounded branch grant and a prepared receipt.
-  A still-valid standing grant may auto-execute a matching push to its exact
-  non-protected branch; protected branches and merges remain separately gated.
+- Remote Git action requires its own explicit request, prepared receipt, and
+  one-use confirmation.
 
 ## Host boundary
 
+- ChatGPT supplies a code Delta for the user to apply; Refresh starts only after
+  the user confirms that the latest committed source was pulled.
 - Codex Desktop or durable local CLI may operate on the authorized local source.
-- Codex VM and ephemeral Codex execution must persist sealed PV artifacts and
-  bounded receipts to the configured user-owned durable store.
-- Headless Codex API invocations reverify Flash at each entry and do not require
-  an interactive-host tunnel.
+- Codex VM, public AI, and ephemeral execution must persist sealed PV artifacts
+  and bounded receipts to the configured user-owned durable store.
 - ENV/UOP bytes never enter `code.sqlite`, a PV directory, Git patch, or remote
   repository write.
 
