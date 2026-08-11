@@ -6,9 +6,17 @@ export type WebsiteExecutionRow = {
   status: WebsiteExecutionStatus;
   summary: string;
   taskPosition: number;
+  deltaId?: string;
+  deltaSha256?: string;
+  eventSha256?: string;
+  correctionDeltaId?: string;
+  correctionDeltaSha256?: string;
+  correctionEventSha256?: string;
 };
 
-// Exact UTF-8 projection of the sealed 111-row State Travel task list.
+// Exact UTF-8 public projection of live Rows 081-196. The sealed 119-position
+// State Travel origin remains immutable; eight governed rows before Row 081
+// plus these 116 public rows form the live 124-position panel.
 // Historical public rows 001-080 remain defined in delta-ledger.ts and are not rewritten here.
 export const websiteCurrentExecution: readonly WebsiteExecutionRow[] = [
   {
@@ -721,21 +729,21 @@ export const websiteCurrentExecution: readonly WebsiteExecutionRow[] = [
   {
     order: 182,
     id: "ROW_182",
-    status: "IN PROGRESS",
+    status: "COMPLETED",
     summary: "Row 182 — Perform the final cross-surface consistency and security sweep: README, every Markdown document, License, Copyright, Credits, Privacy, Terms, Security, Support, contribution links, repository About/metadata, package metadata, skill descriptions, MCP metadata, public website routes, footer links, Vercel cards, ChatGPT plugin presentation, Three.js/WebGL assets, source maps, secret scans, dependency/license findings, unsupported claims, stale versions/URLs, and existing Devpost text; fix genuine inconsistencies before the final commit.",
     taskPosition: 102,
   },
   {
     order: 183,
     id: "ROW_183",
-    status: "PENDING",
+    status: "COMPLETED",
     summary: "Row 183 — Create the true final feature commit after every correction and verification passes: include only governed release files, preserve unrelated user work, record the exact commit, parent, tree, changed-file set, clean/dirty boundary, source identity, and test evidence; push only the governed feature branch; refresh the preview from that exact commit; and do not amend or replace the commit after it becomes the identity used by package, preview, or reseal proof.",
     taskPosition: 103,
   },
   {
     order: 184,
     id: "ROW_184",
-    status: "PENDING",
+    status: "IN PROGRESS",
     summary: "Row 184 — Install and prove the exact final candidate package independently on Codex and ChatGPT: use the exact built package/commit rather than the working checkout; verify Codex full lifecycle and Git-backed identity; refresh the existing Desktop-1 ChatGPT plugin/profile without spawning a new profile; verify stable name/icon/version, all fifteen skills, registered read-safe actions, host boundaries, and explicit unavailable-write receipts; do not touch the accepted pointer or claim acceptance from installation.",
     taskPosition: 104,
   },
@@ -785,30 +793,97 @@ export const websiteCurrentExecution: readonly WebsiteExecutionRow[] = [
     order: 191,
     id: "ROW_191",
     status: "PENDING",
-    summary: "Row 191 — PHYSICALLY AND SEMANTICALLY FINAL SIX-WAY HIL. Present the post-release forensic evidence at a new six-way HIL and pause for the user; present the governed suggested next prompt, all six available human decisions, the exact six primary controls—Boot, Rollback, Build, Refresh, Mode, and Source Intake—and the concrete consequence of each choice; keep this entire unabridged 081–191 panel visible while waiting; require one fresh explicit user token; do not infer intent, replay APPROVE or APPROVE_WITH_DELTA from any earlier HIL, auto-submit a suggestion, Fuse, move the accepted pointer, merge, push main, deploy production, publish, update Devpost, or mark the Goal complete while the decision is absent.",
+    summary: "Row 191 — Enforce the versioned tunnel stable/future-test/archive law. Keep stable 1.5.0 serving while a future candidate starts and proves independently; promote only after exact health, public-route, and host-proof SHA-256 receipts; stop the displaced stable only after the channel commit; retain it as an explicitly versioned archive/fallback; and never let a failed future-test interrupt stable. Delta SHA-256 86556C1D76947A5949F52C60AF6BA5063EC7C4CAE04B15905A7061FED8676E55; event SHA-256 E739C26EC536EB5A5040432E0BA10F13B1C42837BD03BCB9DBC9FC5A15EEFBF8.",
     taskPosition: 111,
+    deltaId: "ADDITIVE_V150_VERSIONED_TUNNEL_STABLE_TEST_ARCHIVE_LAW_20260810",
+    deltaSha256: "86556C1D76947A5949F52C60AF6BA5063EC7C4CAE04B15905A7061FED8676E55",
+    eventSha256: "E739C26EC536EB5A5040432E0BA10F13B1C42837BD03BCB9DBC9FC5A15EEFBF8",
+  },
+  {
+    order: 192,
+    id: "ROW_192",
+    status: "PENDING",
+    summary: "Row 192 — Correct the Codex and ChatGPT install surfaces with rich exact 1.5.0 identity, developer, icon, capability, host-boundary, and connector truth. Codex must expose the package-local 62-action catalog and all 15 packaged skills; ChatGPT Pro must expose 21 executing reads while all 41 lifecycle writes remain visible and fail closed before service invocation. Google Drive stays a separately named connector and never becomes Evidence Lane lifecycle authority. Delta SHA-256 2E19BB3B89D141A91C8EEC34DAB554315F1F0412E4D9D3FFA226B5337478D380; event SHA-256 369C302F8743919049AAB01CEE0DCBCAEFC2103843A8A4DA10939B8D70D44C6D.",
+    taskPosition: 112,
+    deltaId: "ADDITIVE_V150_CODEX_CHATGPT_INSTALL_SURFACE_AND_WRITE_TRUTH_20260810",
+    deltaSha256: "2E19BB3B89D141A91C8EEC34DAB554315F1F0412E4D9D3FFA226B5337478D380",
+    eventSha256: "369C302F8743919049AAB01CEE0DCBCAEFC2103843A8A4DA10939B8D70D44C6D",
+  },
+  {
+    order: 193,
+    id: "ROW_193",
+    status: "PENDING",
+    summary: "Row 193 — Prove the exact installed 1.5.0 candidate in the user-selected Desktop-1 profile without creating another browser profile. Capture Codex native catalog and skill evidence, ChatGPT registered metadata and read/write boundary evidence, the separately authorized Google Drive state, and explicit unavailable-write receipts; do not infer acceptance from installation. Delta SHA-256 EBFA4251D5A12DCE8C75F5FB23774391AF327E7D79F2554C83FF9E8E8F663088; event SHA-256 17705A8C613ED24B4C90C393212CA40EAAFD097BD27BEBC419DF1A3F1E19E4C1.",
+    taskPosition: 113,
+    deltaId: "ADDITIVE_V150_DESKTOP1_EXACT_INSTALL_AND_HOST_PROOF_20260810",
+    deltaSha256: "EBFA4251D5A12DCE8C75F5FB23774391AF327E7D79F2554C83FF9E8E8F663088",
+    eventSha256: "17705A8C613ED24B4C90C393212CA40EAAFD097BD27BEBC419DF1A3F1E19E4C1",
+  },
+  {
+    order: 194,
+    id: "ROW_194",
+    status: "PENDING",
+    summary: "Row 194 — Bring Evidence AI Studio up to the pinned Gold Nexus Alpha reference bar using the newest ready v1.5 Vercel preview, never main production, as the candidate surface. Require whole-project business synthesis, actual route and bounded-history awareness, at least six route-specific questions, named artifact evidence, explicit proven/unknown boundaries, deterministic refusal, and repeatable evaluation receipts. Preserve the linear-growth correction: the sealed 119-position origin stays immutable, Rows 191–194 are additive, and Row 195 is now physically final. Studio Delta SHA-256 8798FDB26957189E3F24B87F2D1622D7E8A8CDAEA05DAF50258B09E120AAB0E2; event SHA-256 6408B6EB91948EAEA52F023EFDFBEA3351D9B8D063B32727E1F70F3539588B76. Row-195 correction Delta SHA-256 E75C4F5B9D52ADFDE88C6CED5A82C6A5AE025AEA140894287B6157E2E0A620DE; correction event SHA-256 B8D4D0292F5B74A7F8731A729CC5117ACC375B56A14FE92C5170BE355AC64770.",
+    taskPosition: 114,
+    deltaId: "ADDITIVE_V150_AI_STUDIO_GOLD_PARITY_AND_PAGE_AWARENESS_20260810",
+    deltaSha256: "8798FDB26957189E3F24B87F2D1622D7E8A8CDAEA05DAF50258B09E120AAB0E2",
+    eventSha256: "6408B6EB91948EAEA52F023EFDFBEA3351D9B8D063B32727E1F70F3539588B76",
+    correctionDeltaId: "ADDITIVE_LINEAR_GROWTH_ROW195_FINAL_HIL_CORRECTION_20260810",
+    correctionDeltaSha256: "E75C4F5B9D52ADFDE88C6CED5A82C6A5AE025AEA140894287B6157E2E0A620DE",
+    correctionEventSha256: "B8D4D0292F5B74A7F8731A729CC5117ACC375B56A14FE92C5170BE355AC64770",
+  },
+  {
+    order: 195,
+    id: "ROW_195",
+    status: "PENDING",
+    summary: "Row 195 — Correct and prove the Evidence Lane 1.5.0 native governed project panel without changing Overview or lifecycle authority. Lanes must project all 18 canonical accepted-PV lane records in registry order with emitted/not-emitted state, four-file contract status, sealed member count, accepted PV, coverage, absent lane IDs, topology status, and bundle identity. HIL must always show APPROVE, APPROVE_WITH_DELTA, MORE_RESEARCH, ROLLBACK, REJECT, and FAIL with current availability and concrete consequence, pending/candidate state, exact case-sensitive token law, host-owned prompt template, no auto-submit, and render_changes_authority=false even when no candidate is pending. Use immutable resource ui://evidence-lane/governed-console-v3.html; pass the focused and cross-surface suites; seal the local package; refresh the local marketplace under a new Codex build identity; preserve the prior package in archive; and require native post-restart render proof. Primary Delta SHA-256 49FF8B82E22F1AD3FF4350E12279C5C4591092156F367BCBA32C1BFE4DAF6879; event SHA-256 48D35B7DF4FBEA4B08139ACB5890D6B8D8FAAB6DC0DBA2AF6A502891E4757593. Additive correction ADDITIVE_LINEAR_GROWTH_ROW196_FINAL_HIL_CORRECTION_20260810 preserves ADDITIVE_LINEAR_GROWTH_ROW195_FINAL_HIL_CORRECTION_20260810 and supersedes only its final-row claim: Row 196 is now physically final. Correction Delta SHA-256 B653D6A2E9C1F44E2D23BCD774A88A127012DD7D4E451AE035A3CEC0560514C1; correction event SHA-256 A8EED3AFDCAC1A047628B15B0CDC4DCCD6AD8FA5D758D23923BE9E1FF4C2CA70.",
+    taskPosition: 115,
+    deltaId: "ADDITIVE_V150_PROJECT_PANEL_LANES_HIL_RENDER_CORRECTION_20260810",
+    deltaSha256: "49FF8B82E22F1AD3FF4350E12279C5C4591092156F367BCBA32C1BFE4DAF6879",
+    eventSha256: "48D35B7DF4FBEA4B08139ACB5890D6B8D8FAAB6DC0DBA2AF6A502891E4757593",
+    correctionDeltaId: "ADDITIVE_LINEAR_GROWTH_ROW196_FINAL_HIL_CORRECTION_20260810",
+    correctionDeltaSha256: "B653D6A2E9C1F44E2D23BCD774A88A127012DD7D4E451AE035A3CEC0560514C1",
+    correctionEventSha256: "A8EED3AFDCAC1A047628B15B0CDC4DCCD6AD8FA5D758D23923BE9E1FF4C2CA70",
+  },
+  {
+    order: 196,
+    id: "ROW_196",
+    status: "PENDING",
+    summary: "Row 196 — PHYSICALLY AND SEMANTICALLY FINAL SIX-WAY HIL. Present the post-release forensic evidence at a new six-way HIL and pause for the user; present the governed suggested next prompt, all six available human decisions, the exact six primary controls—Boot, Rollback, Build, Refresh, Mode, and Source Intake—and the concrete consequence of each choice; keep this entire unabridged 081–196 live projection plus the immutable sealed-origin receipt visible while waiting; require one fresh explicit user token; do not infer intent, replay APPROVE or APPROVE_WITH_DELTA from any earlier HIL, auto-submit a suggestion, Fuse, move the accepted pointer, merge, push main, deploy production, publish, update Devpost, or mark the Goal complete while the decision is absent.",
+    taskPosition: 116,
   },
 ] as const;
 export const websiteCurrentExecutionBoundary = {
   firstPublicOrder: 81,
-  lastPublicOrder: 191,
+  lastPublicOrder: 196,
   topLevelRows: websiteCurrentExecution.length,
   completedRows: websiteCurrentExecution.filter((row) => row.status === "COMPLETED").length,
   activeRows: websiteCurrentExecution.filter((row) => row.status === "IN PROGRESS").length,
   pendingRows: websiteCurrentExecution.filter((row) => row.status === "PENDING").length,
-  activePublicOrder: 182,
-  activeTaskPosition: 102,
-  activeReceiptPosition: 110,
+  activePublicOrder: 184,
+  activeTaskPosition: 104,
+  activeReceiptPosition: 112,
   finalSweepPublicOrder: 190,
   finalSweepTaskPosition: 110,
   finalSweepReceiptPosition: 118,
-  finalHilPublicOrder: 191,
-  finalHilTaskPosition: 111,
-  finalHilReceiptPosition: 119,
-  taskCount: 111,
-  governedReceiptRows: 119,
-  sealedPublicTaskListSha256: "B3E3C620F95DAA59B9E0206C69EBBF42AE4E1E2B142F3B60E81BBFB4E83B31D0",
-  additiveDeltasSha256: "C86161625C66502C45F5C738483832E21CF6E178D8D368741BB54910F9FC33A3",
+  lastPreHilPublicOrder: 195,
+  lastPreHilTaskPosition: 115,
+  lastPreHilReceiptPosition: 123,
+  finalHilPublicOrder: 196,
+  finalHilTaskPosition: 116,
+  finalHilReceiptPosition: 124,
+  taskCount: 116,
+  governedReceiptRows: 124,
+  sealedOriginReceiptPanelSha256: "9533BFC6C96F4E3FC95DC1B5D9D9981EA78957B821CAA9AF90D895C2C6F36A40",
+  sealedOriginPublicProjectionSha256: "B3E3C620F95DAA59B9E0206C69EBBF42AE4E1E2B142F3B60E81BBFB4E83B31D0",
+  livePanelHashAlgorithm: "SHA256_STABLE_JSON_SEALED_ORIGIN_SHA_PLUS_PUBLIC_ROWS_V1",
+  livePanelSha256: "E8752CE9F1AE4F17F1F509A9DFC63468AFD91B41309BA18DED7D0BA09728CA05",
+  canonicalPlanProjectionSha256: "7A314F493335FB0123F06767CA12B5C4D8BC1D9B97127FF6C825799FE000550B",
+  nativePlanTaskCount: 84,
+  nativePlanEventCount: 342,
+  nativePlanEventHeadSha256: "A8EED3AFDCAC1A047628B15B0CDC4DCCD6AD8FA5D758D23923BE9E1FF4C2CA70",
+  nativePlanRuntimeSqliteSha256: "B81D92C3F0EE3F5F93D1078931DDC0EFE846BE74023732A206E1CAB89BCB17AA",
+  historicalAdditiveDeltasSha256: "C86161625C66502C45F5C738483832E21CF6E178D8D368741BB54910F9FC33A3",
   panelReactivation: {
     schema: "evidence-lane.persistent-panel-reactivation.v1",
     triggers: [

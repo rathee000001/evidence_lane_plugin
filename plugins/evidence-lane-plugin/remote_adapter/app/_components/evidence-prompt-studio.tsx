@@ -31,6 +31,15 @@ type StudioQueryResponse = {
   boundary?: string;
   grounded?: boolean;
   retrieval?: RetrievalReceipt;
+  suggestions?: string[];
+  context?: {
+    id: string;
+    path: string;
+    title: string;
+    purpose: string;
+    currentCapability: string;
+    evidenceBoundary: string;
+  };
 };
 
 type StudioCorpusSummary = {
@@ -63,6 +72,7 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
   const welcome = useMemo(() => welcomeMessage(corpus), [corpus]);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<StudioMessage[]>([welcome]);
+  const [suggestions, setSuggestions] = useState<readonly string[]>(promptSuggestions);
   const [sequence, setSequence] = useState(1);
   const [busy, setBusy] = useState(false);
 
@@ -78,7 +88,11 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
     const userId = sequence;
     const assistantId = sequence + 1;
     const userMessage: StudioMessage = { id: userId, role: "user", text: trimmed };
-    setMessages((current) => [...current.slice(-6), userMessage]);
+    const history = messages.slice(-8).map((message) => ({
+      role: message.role,
+      text: message.text,
+    }));
+    setMessages((current) => [...current.slice(-12), userMessage]);
     setSequence((current) => current + 2);
     setQuestion("");
 
@@ -87,7 +101,7 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
       const response = await fetch("/api/studio-query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: trimmed }),
+        body: JSON.stringify({ question: trimmed, pagePath: "/studio", history }),
       });
       const result = await response.json() as StudioQueryResponse;
       const grounded = result.mode === "local_retrieval" && result.grounded === true;
@@ -107,6 +121,7 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
           mode: result.mode ?? "external_unavailable",
         },
       ]);
+      if (result.suggestions?.length) setSuggestions(result.suggestions.slice(0, 8));
     } catch {
       setMessages((current) => [
         ...current,
@@ -163,6 +178,7 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
               onClick={() => {
                 setMessages([welcome]);
                 setQuestion("");
+                setSuggestions(promptSuggestions);
               }}
             ><GlassIconOrb color="#f2a1c5" size={30} decorative><OfficialToolIcon tool="pulse" size={16} decorative /></GlassIconOrb><span>Clear</span></button>
           </div>
@@ -193,6 +209,12 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
                     {message.retrieval.unmatchedTerms.length ? <code>unmatched {message.retrieval.unmatchedTerms.join(", ")}</code> : null}
                     <code>{message.retrieval.chunks.join(" | ")}</code>
                     <code>corpus {message.retrieval.corpus.slice(0, 16)}</code>
+                    <code>route {message.retrieval.routeContext} / history {message.retrieval.historyTurns}</code>
+                    <code>guide {message.retrieval.answerGuideId}</code>
+                    <code>artifacts {message.retrieval.artifactIds.join(", ") || "none"}</code>
+                    <code>SQL {message.retrieval.sqlStatus}</code>
+                    <code>vector {message.retrieval.vectorStatus}</code>
+                    <code>generation {message.retrieval.generationStatus}</code>
                     </div>
                   </details>
                 ) : null}
@@ -211,7 +233,7 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
         </div>
 
         <div className="promptSuggestionCluster" aria-label="Suggested Evidence Lane questions">
-          {promptSuggestions.map((suggestion) => (
+          {suggestions.map((suggestion) => (
             <button
               className="promptSuggestionCard"
               type="button"

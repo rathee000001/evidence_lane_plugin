@@ -26,6 +26,7 @@ type StudioQueryResponse = {
   model?: string;
   sources?: StudioSource[];
   retrieval?: RetrievalReceipt;
+  suggestions?: string[];
 };
 
 const initialMessage: FloatingMessage = {
@@ -37,21 +38,40 @@ const initialMessage: FloatingMessage = {
 };
 
 function suggestionsFor(pathname: string) {
+  if (pathname === "/") {
+    return floatingStudioSuggestions.home;
+  }
   if (pathname.startsWith("/architecture")) {
     return floatingStudioSuggestions.architecture;
   }
   if (pathname.startsWith("/lanes")) {
     return floatingStudioSuggestions.lanes;
   }
+  if (pathname.startsWith("/operators")) {
+    return floatingStudioSuggestions.operators;
+  }
   if (pathname.startsWith("/studio")) {
     return floatingStudioSuggestions.studio;
+  }
+  if (pathname.startsWith("/proof")) {
+    return floatingStudioSuggestions.proof;
+  }
+  if (pathname.startsWith("/provenance")) {
+    return floatingStudioSuggestions.provenance;
+  }
+  if (pathname.startsWith("/connect")) {
+    return floatingStudioSuggestions.connect;
+  }
+  if (pathname.startsWith("/hil")) {
+    return floatingStudioSuggestions.hil;
   }
   return floatingStudioSuggestions.default;
 }
 
 export function FloatingEvidenceStudio() {
   const pathname = usePathname() || "/";
-  const suggestions = useMemo(() => suggestionsFor(pathname), [pathname]);
+  const routeSuggestions = useMemo(() => suggestionsFor(pathname), [pathname]);
+  const [suggestions, setSuggestions] = useState<readonly string[]>(routeSuggestions);
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -61,6 +81,10 @@ export function FloatingEvidenceStudio() {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const panelRef = useRef<HTMLElement | null>(null);
   const hasRetainedState = input.length > 0 || messages.length > 1 || busy;
+
+  useEffect(() => {
+    setSuggestions(routeSuggestions);
+  }, [routeSuggestions]);
 
   useEffect(() => {
     if (!open) return;
@@ -90,15 +114,19 @@ export function FloatingEvidenceStudio() {
     if (!question || busy) return;
     const userId = sequence;
     const assistantId = sequence + 1;
+    const history = messages.slice(-8).map((message) => ({
+      role: message.role,
+      text: message.text,
+    }));
     setSequence((current) => current + 2);
-    setMessages((current) => [...current.slice(-7), { id: userId, role: "user", text: question }]);
+    setMessages((current) => [...current.slice(-12), { id: userId, role: "user", text: question }]);
     setInput("");
     setBusy(true);
     try {
       const response = await fetch("/api/studio-query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, pagePath: pathname }),
+        body: JSON.stringify({ question, pagePath: pathname, history }),
       });
       const result = await response.json() as StudioQueryResponse;
       const provider = result.mode === "external_general_free"
@@ -116,6 +144,7 @@ export function FloatingEvidenceStudio() {
           retrieval: result.retrieval,
         },
       ]);
+      if (result.suggestions?.length) setSuggestions(result.suggestions.slice(0, 8));
     } catch {
       setMessages((current) => [
         ...current,

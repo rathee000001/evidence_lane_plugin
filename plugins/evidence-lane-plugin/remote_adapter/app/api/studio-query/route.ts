@@ -3,9 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   answerFromEvidence,
   isEvidenceLaneQuestion,
+  type StudioHistoryTurn,
   studioCorpus,
   verifyStudioRetrievalConfidence,
 } from "../../_data/studio-retrieval";
+import { studioRetrievalServices } from "../../_data/studio-artifact-catalog";
+import {
+  studioRouteContexts,
+  studioRouteContextFor,
+  studioSuggestionsFor,
+} from "../../_data/studio-route-context";
 import {
   externalGeneralConfiguration,
   OPENROUTER_FREE_MODEL,
@@ -17,8 +24,32 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const MAX_QUESTION_LENGTH = 1_200;
+const MAX_PAGE_PATH_LENGTH = 180;
+const MAX_HISTORY_TURNS = 8;
+const MAX_HISTORY_TEXT_LENGTH = 800;
 const credentialPattern = /(?:sk-or-v1-|sk-|ghp_|github_pat_|xox[baprs]-|eyJ)[A-Za-z0-9._-]{16,}/;
 const retrievalConfidenceReport = verifyStudioRetrievalConfidence();
+
+function boundedPagePath(body: Record<string, unknown>) {
+  const candidate = typeof body.pagePath === "string" ? body.pagePath.trim() : "/studio";
+  if (!candidate.startsWith("/") || candidate.length > MAX_PAGE_PATH_LENGTH) return "/studio";
+  return studioRouteContextFor(candidate).path;
+}
+
+function boundedHistory(body: Record<string, unknown>): StudioHistoryTurn[] {
+  if (!Array.isArray(body.history)) return [];
+  return body.history.slice(-MAX_HISTORY_TURNS).flatMap((value) => {
+    if (!value || typeof value !== "object") return [];
+    const role = "role" in value && (value.role === "assistant" || value.role === "user")
+      ? value.role
+      : null;
+    const text = "text" in value && typeof value.text === "string"
+      ? value.text.trim().slice(0, MAX_HISTORY_TEXT_LENGTH)
+      : "";
+    if (!role || !text || credentialPattern.test(text)) return [];
+    return [{ role, text }];
+  });
+}
 
 function noHitAnswer(mode: "project_no_hit" | "external_unavailable", answer: string) {
   return NextResponse.json({
@@ -46,6 +77,12 @@ export async function GET() {
       chunks: studioCorpus.chunkCount,
     },
     localRetrieval: "BM25 + TF-IDF + RRF over the committed SQLite-derived projection",
+    routeAwareness: {
+      enabled: true,
+      contexts: studioRouteContexts.map((context) => context.path),
+      boundedHistoryTurns: MAX_HISTORY_TURNS,
+    },
+    services: studioRetrievalServices,
     retrievalConfidenceGate: retrievalConfidenceReport,
     externalGeneralFallback: {
       enabled: configuration.enabled && Boolean(configuration.apiKey),
@@ -70,8 +107,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 });
   }
 
-  const question = typeof body === "object" && body !== null && "question" in body
-    ? String(body.question).trim()
+  const bodyRecord = typeof body === "object" && body !== null
+    ? body as Record<string, unknown>
+    : {};
+  const question = "question" in bodyRecord
+    ? String(bodyRecord.question).trim()
     : "";
   if (!question) {
     return NextResponse.json({ error: "QUESTION_REQUIRED" }, { status: 400 });
@@ -83,7 +123,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "CREDENTIAL_SHAPED_INPUT_REJECTED" }, { status: 400 });
   }
 
-  const evidence = answerFromEvidence(question);
+  const pagePath = boundedPagePath(bodyRecord);
+  const history = boundedHistory(bodyRecord);
+  const evidence = answerFromEvidence(question, { pagePath, history });
   if (evidence) {
     return NextResponse.json({
       answer: evidence.text,
@@ -93,6 +135,8 @@ export async function POST(request: NextRequest) {
       grounded: true,
       sources: evidence.sources,
       retrieval: evidence.retrieval,
+      context: evidence.context,
+      suggestions: evidence.suggestions,
       boundary: "PROJECT_EVIDENCE_ONLY",
     });
   }

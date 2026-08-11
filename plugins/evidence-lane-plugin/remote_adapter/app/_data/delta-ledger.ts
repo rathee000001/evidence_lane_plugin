@@ -11,6 +11,11 @@ export type DeltaLedgerEntry = {
   phase: DeltaPhase;
   status: string;
   summary: string;
+  deltaSha256?: string;
+  eventSha256?: string;
+  correctionDeltaId?: string;
+  correctionDeltaSha256?: string;
+  correctionEventSha256?: string;
 };
 
 const foundationIds = [
@@ -122,10 +127,15 @@ const hardening: DeltaLedgerEntry[] = [
 
 const currentExecution: DeltaLedgerEntry[] = websiteCurrentExecution.map((row) => ({
   order: row.order,
-  id: row.id,
+  id: row.deltaId ?? row.id,
   phase: "Current execution",
   status: row.status,
   summary: row.summary,
+  deltaSha256: row.deltaSha256,
+  eventSha256: row.eventSha256,
+  correctionDeltaId: row.correctionDeltaId,
+  correctionDeltaSha256: row.correctionDeltaSha256,
+  correctionEventSha256: row.correctionEventSha256,
 }));
 
 export const deltaLedger: readonly DeltaLedgerEntry[] = [
@@ -148,6 +158,9 @@ export const deltaLedgerBoundary = {
   finalSweepPublicOrder: websiteCurrentExecutionBoundary.finalSweepPublicOrder,
   finalSweepTaskPosition: websiteCurrentExecutionBoundary.finalSweepTaskPosition,
   finalSweepReceiptPosition: websiteCurrentExecutionBoundary.finalSweepReceiptPosition,
+  lastPreHilPublicOrder: websiteCurrentExecutionBoundary.lastPreHilPublicOrder,
+  lastPreHilTaskPosition: websiteCurrentExecutionBoundary.lastPreHilTaskPosition,
+  lastPreHilReceiptPosition: websiteCurrentExecutionBoundary.lastPreHilReceiptPosition,
   finalHilPublicOrder: websiteCurrentExecutionBoundary.finalHilPublicOrder,
   finalHilTaskPosition: websiteCurrentExecutionBoundary.finalHilTaskPosition,
   finalHilReceiptPosition: websiteCurrentExecutionBoundary.finalHilReceiptPosition,

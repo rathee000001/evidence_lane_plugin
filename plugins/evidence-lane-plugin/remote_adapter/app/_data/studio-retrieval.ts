@@ -1,7 +1,15 @@
 import "server-only";
 
 import studioRagArtifact from "./studio-rag-index.json";
-import { businessGuideFor } from "./business-guidance";
+import { businessGuide, businessGuideFor } from "./business-guidance";
+import {
+  studioArtifactsFor,
+  studioRetrievalServices,
+} from "./studio-artifact-catalog";
+import {
+  studioRouteContextFor,
+  studioSuggestionsFor,
+} from "./studio-route-context";
 import { floatingStudioSuggestions, promptSuggestions } from "./site";
 
 export type StudioSource = { label: string; href: string };
@@ -16,6 +24,14 @@ export type RetrievalReceipt = {
   unmatchedTerms: readonly string[];
   chunks: readonly string[];
   corpus: string;
+  routeContext: string;
+  historyTurns: number;
+  answerGuideId: string;
+  artifactIds: readonly string[];
+  lexicalStatus: string;
+  sqlStatus: string;
+  vectorStatus: string;
+  generationStatus: string;
 };
 
 export type EvidenceAnswer = {
@@ -23,6 +39,25 @@ export type EvidenceAnswer = {
   text: string;
   sources: readonly StudioSource[];
   retrieval: RetrievalReceipt;
+  suggestions: readonly string[];
+  context: {
+    id: string;
+    path: string;
+    title: string;
+    purpose: string;
+    currentCapability: string;
+    evidenceBoundary: string;
+  };
+};
+
+export type StudioHistoryTurn = {
+  role: "assistant" | "user";
+  text: string;
+};
+
+export type StudioAnswerOptions = {
+  pagePath?: string;
+  history?: readonly StudioHistoryTurn[];
 };
 
 type RagSource = {
@@ -224,11 +259,27 @@ function retrievalConfidence(queryTerms: string[], ranked: RankedChunk[]) {
   };
 }
 
-export function answerFromEvidence(question: string): EvidenceAnswer | null {
+const routeGuideIds: Record<string, string> = {
+  home: "overview",
+  architecture: "architecture-flow",
+  lanes: "source-lanes",
+  operators: "modes",
+  studio: "studio",
+  proof: "proof-security",
+  provenance: "proof-security",
+  connect: "hosts-storage",
+  hil: "hil",
+};
+
+export function answerFromEvidence(
+  question: string,
+  options: StudioAnswerOptions = {},
+): EvidenceAnswer | null {
+  const routeContext = studioRouteContextFor(options.pagePath);
+  const directGuide = businessGuideFor(question);
   const search = rankEvidence(question);
-  if (!search.rows.length) return null;
   const confidence = retrievalConfidence(search.queryTerms, search.rows);
-  if (!confidence.accepted) return null;
+  if (!confidence.accepted && !directGuide) return null;
   const selected: RankedChunk[] = [];
   const usedSources = new Set<number>();
   for (const result of search.rows) {
@@ -237,25 +288,62 @@ export function answerFromEvidence(question: string): EvidenceAnswer | null {
     usedSources.add(result.source.id);
     if (selected.length === 3) break;
   }
-  const sources = selected.map((result) => ({
+  const selectedArtifacts = studioArtifactsFor(routeContext.artifactIds);
+  const sources: StudioSource[] = selected.map((result) => ({
     label: `${result.source.title} - ${result.chunk.locator}`,
     href: result.source.href,
   }));
-  const guide = businessGuideFor(question);
+  if (directGuide && !sources.some((source) => source.href === directGuide.href)) {
+    sources.push({
+      label: `Reviewed business guide: ${directGuide.title}`,
+      href: directGuide.href,
+    });
+  }
+  for (const artifact of selectedArtifacts.slice(0, 3)) {
+    if (sources.some((source) => source.href === artifact.href)) continue;
+    sources.push({
+      label: `${artifact.format}: ${artifact.label} - ${artifact.identity}`,
+      href: artifact.href,
+    });
+  }
+  const guide = directGuide
+    ?? businessGuideFor(`${question} ${routeContext.title} ${routeContext.purpose}`)
+    ?? businessGuide.find((entry) => entry.id === routeGuideIds[routeContext.id])
+    ?? null;
+  const boundedHistory = (options.history ?? []).slice(-8);
   return {
     title: guide?.title ?? "Supporting evidence found",
     text: guide?.answer ?? "The committed project evidence supports this topic, but a reviewed business-language explanation has not yet been added to the guide. To avoid turning implementation fragments into business advice, Evidence AI Studio is returning the supporting references and audit receipt without presenting raw source extracts as an answer.",
     sources,
     retrieval: {
-      bm25: selected[0].bm25,
-      tfidf: selected[0].tfidf,
-      rrf: selected[0].rrf,
+      bm25: selected[0]?.bm25 ?? 0,
+      tfidf: selected[0]?.tfidf ?? 0,
+      rrf: selected[0]?.rrf ?? 0,
       queryCoverage: confidence.queryCoverage,
       specificCoverage: confidence.specificCoverage,
       matchedTerms: confidence.matchedTerms,
       unmatchedTerms: confidence.unmatchedTerms,
       chunks: selected.map((result) => `${result.chunk.id}:${result.chunk.sha256.slice(0, 12)}`),
       corpus: ragIndex.corpus_sha256,
+      routeContext: routeContext.id,
+      historyTurns: boundedHistory.length,
+      answerGuideId: guide?.id ?? "supporting-evidence-only",
+      artifactIds: selectedArtifacts.map((artifact) => artifact.id),
+      lexicalStatus: confidence.accepted
+        ? studioRetrievalServices.lexical
+        : "REVIEWED_GUIDE_MATCH_WITHOUT_CHUNK_CONFIDENCE",
+      sqlStatus: studioRetrievalServices.sql,
+      vectorStatus: studioRetrievalServices.vector,
+      generationStatus: studioRetrievalServices.generation,
+    },
+    suggestions: studioSuggestionsFor(routeContext.path, question),
+    context: {
+      id: routeContext.id,
+      path: routeContext.path,
+      title: routeContext.title,
+      purpose: routeContext.purpose,
+      currentCapability: routeContext.currentCapability,
+      evidenceBoundary: routeContext.evidenceBoundary,
     },
   };
 }
@@ -285,7 +373,7 @@ export function verifyStudioRetrievalConfidence() {
   const canaries = [
     { id: "general-no-hit", question: "How do I cook pasta al dente?", expectedGrounded: false },
     { id: "project-nonsense-no-hit", question: "What is Evidence Lane quantum banana authority?", expectedGrounded: false },
-    { id: "active-plan-hit", question: "What is active Row 182 in the current 111-row execution Plan Lane?", expectedGrounded: true },
+    { id: "active-plan-hit", question: "What is active Row 184 in the current 124-position execution Plan Lane?", expectedGrounded: true },
     { id: "pointer-hil-hit", question: "How do accepted pointers, Exit Slips, and HIL separate human input from AI work?", expectedGrounded: true },
     ...displayedSuggestionCanaries,
   ].map((canary) => {

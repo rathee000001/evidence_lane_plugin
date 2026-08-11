@@ -458,7 +458,7 @@ def _read_codex_task_binding(
         task_id=task_id,
     )
     expected_task_uri_sha256 = sha256_bytes(
-        f"codex://threads/{task_id}".encode("utf-8")
+        f"codex://threads/{task_id}".encode()
     )
     _require(
         binding.get("task_uri_sha256") == expected_task_uri_sha256,
@@ -947,6 +947,7 @@ def bind_codex_host_payload(
             "TURN_CONTROL_HOST_ALIAS_RECEIPT_REQUIRED",
             "The sealed Codex host alias receipt could not be reverified.",
         )
+        assert alias is not None
         governed_host_session_id = str(
             candidate["session"].get("metadata", {}).get(
                 "current_host_session_id"
@@ -1129,17 +1130,22 @@ def _binding_snapshot(
     accepted_pv = str(pointer.get("accepted_pv") or "")
     pointer_generation = int(pointer.get("generation") or 0)
     _require(
-        project_id
-        and evidence_session_id
-        and project_id == project.get("project_id") == pointer.get("project_id"),
+        bool(
+            project_id
+            and evidence_session_id
+            and project_id == project.get("project_id") == pointer.get("project_id")
+        ),
         "TURN_CONTROL_PROJECT_SESSION_POINTER_MISMATCH",
         "Project, session, and accepted-pointer identities do not agree.",
     )
     _require(
-        accepted_pv
-        and session.get("accepted_pv") == accepted_pv
-        and int(session.get("accepted_pointer_generation") or 0) == pointer_generation
-        and metadata.get("entry_pv") == accepted_pv,
+        bool(
+            accepted_pv
+            and session.get("accepted_pv") == accepted_pv
+            and int(session.get("accepted_pointer_generation") or 0)
+            == pointer_generation
+            and metadata.get("entry_pv") == accepted_pv
+        ),
         "TURN_CONTROL_ENTRY_POINTER_MISMATCH",
         "The current accepted pointer does not match the governed Entry boundary.",
         accepted_pv=accepted_pv,
@@ -2305,7 +2311,7 @@ def _goal_usage_observation(host_payload: dict[str, Any]) -> dict[str, Any]:
 
     raw = host_payload.get("goal_usage")
     if raw is None:
-        observation = {
+        observation: dict[str, Any] = {
             "schema": "evidence-lane.goal-usage-observation.v1",
             "availability": "UNAVAILABLE",
             "reason": "HOST_GOAL_ACCOUNTED_COUNTER_NOT_EXPOSED",
@@ -3432,7 +3438,7 @@ def record_tool_event(
     tool_name = str(host_payload.get("tool_name") or "").strip()
     tool_use_id = str(host_payload.get("tool_use_id") or "").strip()
     _require(
-        host_session_id and turn_id and tool_name and tool_use_id,
+        bool(host_session_id and turn_id and tool_name and tool_use_id),
         "TURN_CONTROL_TOOL_IDENTITY_REQUIRED",
         "A tool event requires host session, turn, tool name, and tool-use identities.",
     )

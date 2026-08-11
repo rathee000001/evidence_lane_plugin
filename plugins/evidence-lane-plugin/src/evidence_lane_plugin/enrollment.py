@@ -164,8 +164,9 @@ def sync_selected_branch(
             expected_commit=exact_expected,
             checkout_commit=before_identity.commit_sha,
         )
+        exact_dirty_context = dict(dirty_local_authority_context or {})
         selection_context: dict[str, Any] = {
-            **dirty_local_authority_context,
+            **exact_dirty_context,
             "selection_mode": "DIRTY_LOCAL_BRANCH_AUTHORITY_ONLY",
             "source_kind": source_kind,
             "expected_commit": exact_expected,

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import asdict, dataclass
-from typing import Any, Protocol
+from typing import Any, Protocol, TypedDict
 
 import httpx
 
@@ -62,6 +62,19 @@ class PersistenceRoute:
         return asdict(self)
 
 
+class _PersistenceHostMatrix(TypedDict):
+    interaction_profile: str
+    vm_lifetime: str
+    tunnel_requirement: str
+    tunnel_setup_frequency: str
+    tunnel_key_retention: str
+    tunnel_runtime_lifetime: str
+    account_tier: str
+    account_tier_affects_routing: bool
+    api_billing_affects_routing: bool
+    routing_axes_independent: bool
+
+
 def route_persistence(
     host: HostKind | str,
     *,
@@ -99,6 +112,7 @@ def route_persistence(
             provided=requested_interaction,
             supported=sorted(set(interaction_aliases.values())),
         )
+        assert interaction_profile is not None
     elif kind == HostKind.CODEX_DESKTOP:
         interaction_profile = "CODEX_APP_INTERACTIVE"
     elif kind == HostKind.CODEX_CLI:
@@ -152,7 +166,7 @@ def route_persistence(
         tunnel_key_retention = "NOT_APPLICABLE"
         tunnel_runtime_lifetime = "NOT_APPLICABLE"
 
-    host_matrix = {
+    host_matrix: _PersistenceHostMatrix = {
         "interaction_profile": interaction_profile,
         "vm_lifetime": "EPHEMERAL_VM" if ephemeral else "LOCAL_OR_PERSISTENT",
         "tunnel_requirement": tunnel_requirement,

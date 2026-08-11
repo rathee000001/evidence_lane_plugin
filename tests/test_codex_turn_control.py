@@ -725,7 +725,7 @@ def test_post_tool_hook_claims_prepared_exact_task_outside_repository(
         "governed_host_session_id": governed_host_session_id,
         "plugin_version": plugin_version,
         "task_uri_sha256": hashlib.sha256(
-            f"codex://threads/{observed_task_id}".encode("utf-8")
+            f"codex://threads/{observed_task_id}".encode()
         ).hexdigest().upper(),
         "preparation_receipt": str(preparation_path),
         "preparation_receipt_sha256": preparation_sha256,

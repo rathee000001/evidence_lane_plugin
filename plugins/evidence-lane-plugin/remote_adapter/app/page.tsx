@@ -182,7 +182,7 @@ export default function Home() {
             <p>
               Rows 1&ndash;80 preserve the sealed foundation, v1.2 evolution, and v1.3 hardening
               record byte-for-byte. Current execution begins only after row 80 and now runs consecutively
-              from public row 081 through 191: {deltaLedgerBoundary.liveExecutionRows} full, unabridged rows,
+              from public row 081 through 196: {deltaLedgerBoundary.liveExecutionRows} full, unabridged rows,
               with {deltaLedgerBoundary.currentExecutionCompleted} completed,
               {` ${deltaLedgerBoundary.currentExecutionActive}`} active, and
               {` ${deltaLedgerBoundary.currentExecutionPending}`} pending. Public row

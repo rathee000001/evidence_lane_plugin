@@ -4976,3 +4976,111 @@ main { padding-top: 106px; }
     transform: translate(-50%,-50%) scale(1);
   }
 }
+.promptMessage p,
+.floatingStudioMessage p {
+  white-space: pre-line;
+}
+
+.studioArtifactLab {
+  display: grid;
+  gap: 22px;
+  padding: clamp(24px, 4vw, 52px);
+  border: 1px solid rgba(48, 89, 123, .16);
+  border-radius: 32px;
+  background: linear-gradient(145deg, rgba(255,255,255,.96), rgba(239,248,252,.9));
+  box-shadow: 0 28px 80px rgba(33, 72, 96, .1);
+}
+
+.studioArtifactLab > header { max-width: 850px; }
+.studioArtifactLab > header h2 { margin: 10px 0; }
+
+.studioServiceStates {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.studioServiceStates span {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid rgba(45, 99, 128, .14);
+  border-radius: 16px;
+  background: rgba(255,255,255,.72);
+  color: #4d6575;
+  font: 600 10px/1.35 var(--font-mono, monospace);
+  overflow-wrap: anywhere;
+}
+
+.studioServiceStates b { color: #17364a; font: 700 12px/1.2 var(--font-sans, sans-serif); }
+
+.studioArtifactFilters { display: flex; flex-wrap: wrap; gap: 8px; }
+.studioArtifactFilters button {
+  padding: 8px 13px;
+  border: 1px solid rgba(39, 97, 126, .16);
+  border-radius: 999px;
+  background: rgba(255,255,255,.82);
+  color: #2d566d;
+  cursor: pointer;
+}
+.studioArtifactFilters button.active { background: #153f56; color: white; }
+
+.studioArtifactGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.studioArtifactGrid article {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid rgba(42, 101, 132, .14);
+  border-radius: 20px;
+  background: rgba(255,255,255,.88);
+}
+.studioArtifactGrid article > div { display: flex; justify-content: space-between; gap: 8px; }
+.studioArtifactGrid article > div span { color: #156b78; font-weight: 800; }
+.studioArtifactGrid article h3 { margin: 0; font-size: 18px; }
+.studioArtifactGrid article p { margin: 0; }
+.studioArtifactGrid article code { overflow-wrap: anywhere; color: #4b6271; }
+.studioArtifactGrid article > small { color: #667985; }
+.studioArtifactGrid article a { margin-top: auto; color: #086e7d; font-weight: 750; }
+
+.studioCapabilityView {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 18px;
+  padding-top: 6px;
+}
+.studioCapabilityView > div,
+.studioCapabilityView table {
+  padding: 18px;
+  border: 1px solid rgba(42, 101, 132, .14);
+  border-radius: 20px;
+  background: rgba(255,255,255,.88);
+}
+.studioCapabilityBar { display: grid; gap: 7px; margin-top: 16px; }
+.studioCapabilityBar > div { display: flex; height: 13px; overflow: hidden; border-radius: 999px; background: #e4edf1; }
+.studioCapabilityBar i { display: block; background: #45bda7; }
+.studioCapabilityBar em { display: block; background: #e6ad5a; }
+.studioCapabilityView table { width: 100%; border-spacing: 0; text-align: left; }
+.studioCapabilityView caption { margin-bottom: 12px; text-align: left; font-weight: 800; }
+.studioCapabilityView th,
+.studioCapabilityView td { padding: 10px 8px; border-bottom: 1px solid rgba(42, 101, 132, .12); }
+
+@media (max-width: 900px) {
+  .studioServiceStates { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .studioArtifactGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .studioCapabilityView { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 620px) {
+  .studioServiceStates,
+  .studioArtifactGrid { grid-template-columns: 1fr; }
+  .studioArtifactLab { padding: 20px; border-radius: 22px; }
+  .studioCapabilityView { overflow-x: auto; }
+}

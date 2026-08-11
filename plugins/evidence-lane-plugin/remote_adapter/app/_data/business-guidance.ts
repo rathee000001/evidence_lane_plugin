@@ -9,10 +9,17 @@ export type BusinessGuideEntry = {
 export const businessGuide: readonly BusinessGuideEntry[] = [
   {
     id: "overview",
-    title: "Why Evidence Lane exists",
-    keywords: ["business problem", "re-explanation", "project continuity", "why evidence lane", "whole plugin", "overview"],
-    answer: "Evidence Lane reduces the cost and risk of restarting serious AI work. It turns approved project material into an inspectable evidence base, remembers the exact accepted version, records what changed, and brings the next task back to the unresolved decision instead of asking the user to reconstruct the project. The commercial value is continuity with accountability: less repeated reading, less context drift, and a visible human decision boundary.",
+    title: "Why Evidence Lane exists — end to end",
+    keywords: ["business problem", "business language", "explain the whole", "whole project", "project continuity", "why evidence lane", "whole plugin", "overview", "end to end"],
+    answer: "Evidence Lane is a governed memory and evidence system for long-running AI work. It addresses a specific operating problem: a new task, model, or host can otherwise force the user to re-explain the project while the AI reconstructs a plausible but unverifiable state. Evidence Lane keeps the exact accepted project version, source identities, visible user and AI lineage, unfinished work, later corrections, and the next human decision in an inspectable package.\n\nThe lifecycle is deliberate. Source Intake classifies authorized material into 18 lanes. Each lane preserves the structure needed for code, documents, data, images, research, plans, existing SQLite brains, or chat lineage. Build or Refresh can then create a sealed candidate with SQLite facts, search indexes, MMD and DOT topology, manifests, hashes, tests, and receipts. That candidate can be built, installed, or deployed and still remains outside accepted truth. A six-way HIL decision is the human gate, and only exact APPROVE may authorize the separate Fuse operation that moves the accepted pointer.\n\nRelease 1.5.0 packages 15 governed skills. Codex uses one package-local native MCP server with exactly 62 canonical tools: 21 read-only and 41 write-capable. ChatGPT is a separate remote delivery with a different capability ceiling; on ChatGPT Pro the 21 reads may execute while all 41 writes must remain visible but fail closed. Versioned tunnel channels preserve a proven stable route, isolate future testing, and retain the displaced stable route as archive/fallback. Google Drive, when separately connected, is a carrier only and never project truth.\n\nWhat is proven is the mechanism: source boundaries, exact identities, retrieval, graph reconciliation, candidate isolation, negative cases, and human-controlled promotion. Customer value, universal correctness, live production readiness, external publication, and human acceptance remain separate claims until their own evidence exists.",
     href: "/",
+  },
+  {
+    id: "architecture-flow",
+    title: "Parallel evidence work converges on serial authority",
+    keywords: ["parallel lanes", "serial authority", "source material", "accepted project truth", "architecture", "candidate different", "human decision sit"],
+    answer: "Evidence Lane lets independent evidence work run concurrently because parsing code, documents, data, and lineage does not need to move project truth. Those workers produce inspectable lane facts, indexes, graphs, and receipts. They converge into one deterministic candidate manifest. From that point onward the authority path is serial: seal the candidate, present the lane-correct six-way HIL, verify the exact approved candidate during Fuse, and then move the accepted pointer through a guarded comparison. No worker, test, candidate, website, deployment, or model can accept itself.\n\nCurrent evidence: the package defines the lane contracts, candidate isolation, SQLite/MMD/DOT reconciliation, HIL meanings, and pointer guards. Assumption: parallel execution improves elapsed time for a given corpus. Unknown: the real-world speed and cost benefit across customer projects; that needs measured workloads rather than architecture reasoning.",
+    href: "/architecture",
   },
   {
     id: "source-lanes",
@@ -53,7 +60,7 @@ export const businessGuide: readonly BusinessGuideEntry[] = [
     id: "hil",
     title: "HIL keeps the decision with the human",
     keywords: ["hil", "human control", "six-way", "approve", "human decision", "acceptance"],
-    answer: "The six-way Human-in-the-Loop gate separates AI work from human authority. The user can approve the exact candidate, request a bounded correction, ask for more evidence, request an accepted-version rollback, reject it, or record a failed gate. Continued conversation, successful tests, a polished website, or an earlier superseded statement never counts as approval.",
+    answer: "The six-way Human-in-the-Loop gate separates AI work from human authority. Its exact choices are APPROVE, APPROVE_WITH_DELTA, MORE_RESEARCH, ROLLBACK, REJECT, and FAIL. APPROVE authorizes a separate exact-candidate Fuse check; APPROVE_WITH_DELTA preserves the candidate and appends bounded correction work; MORE_RESEARCH preserves the candidate while adding evidence work; ROLLBACK requests movement only among immutable accepted versions; REJECT records non-acceptance; and FAIL records a failed gate. Continued conversation, successful tests, a polished website, or an earlier superseded statement never counts as approval.",
     href: "/hil",
   },
   {
@@ -80,8 +87,8 @@ export const businessGuide: readonly BusinessGuideEntry[] = [
   {
     id: "plan-lineage",
     title: "Plan Lane and Chat Lineage preserve direction",
-    keywords: ["plan lane", "chat lineage", "active row", "row 182", "111 rows", "task list", "later steer", "delta", "full poc"],
-    answer: "Plan Lane shows the current ordered work and its decision boundaries. Chat Lineage records visible prompts, user steers, assistant output, tools, files, tests, and receipts. The sealed historical rows 001–080 remain unchanged; the exact current projection continues linearly as rows 081–191. Row 182 is the sole active row. Row 190 is the final fresh POC, forensic, and publication sweep, while row 191 is physically last as the exact six-way HIL stop.",
+    keywords: ["plan lane", "chat lineage", "active row", "row 184", "124 positions", "task list", "later steer", "delta", "full poc", "row 196", "project panel"],
+    answer: "Plan Lane shows the current ordered work and its decision boundaries. Chat Lineage records visible prompts, user steers, assistant output, tools, files, tests, and receipts. The sealed 119-position State Travel panel remains immutable historical evidence with Row 191 physically final in that sealed origin. The live linear projection has grown to 124 positions: Row 184 remains the sole active row, additive work occupies Rows 191 through 195, and the exact six-way HIL moved to Row 196 so it remains physically final. Row 195 corrects the native project panel so Overview remains unchanged, Lanes projects all 18 canonical accepted-PV lanes, and HIL always explains the exact six decisions without changing authority. Nothing was inserted into or renumbered inside the sealed origin receipt.",
     href: "/#delta-ledger",
   },
   {
@@ -94,8 +101,8 @@ export const businessGuide: readonly BusinessGuideEntry[] = [
   {
     id: "hosts-storage",
     title: "Codex and ChatGPT keep separate storage realities",
-    keywords: ["codex chatgpt", "host boundary", "storage boundary", "mounted storage", "durable storage", "same plugin"],
-    answer: "Codex and ChatGPT install the same Evidence Lane plugin package without pretending they share one filesystem or authority. The stable product name is Evidence Lane; 1.5.0 is version metadata. Codex operates the full repository lifecycle from exact Git source. ChatGPT Pro shows all 15 packaged skill entries and exposes the complete 62-action catalog: 21 accepted-PV, ENV/UOP, Entry/Exit, evidence search, and panel operations execute as reads; 41 lifecycle-write actions remain visible but return an explicit no-mutation refusal before service invocation. Boot verifies an already active runtime through read-safe Flash and status checks. ChatGPT's native project memory can still append through its own ENV/UOP and Project Mutation law, but the MCP does not perform or claim that mutation.",
+    keywords: ["codex chatgpt", "codex and chatgpt capabilities differ", "host capability", "host boundary", "storage boundary", "mounted storage", "durable storage", "same plugin"],
+    answer: "Codex and ChatGPT use one product identity but do not pretend they share one runtime or authority. Evidence Lane is the product identity; 1.5.0 is version metadata. Evidence Lane 1.5.0 on Codex installs 15 governed skills and one package-local native MCP server with exactly 62 canonical tools: 21 read-only and 41 write-capable. Codex lifecycle evidence must come from that native route, never from the remote tunnel.\n\nThe registered ChatGPT delivery is a separate remote MCP connection. On ChatGPT Pro, official host limits mean only the 21 read operations may execute. The 41 lifecycle-write actions may remain visible for capability discovery only if they return an explicit no-mutation refusal before service invocation; they must never be relabeled as supported writes. The current live ChatGPT install page still shows generic developer metadata and version 1.0.0, so it is not valid 1.5.0 installation proof and must not be installed. Google Drive is separately authorized, separately named, and never lifecycle proof or durable Evidence Lane authority.",
     href: "/connect",
   },
   {
@@ -114,9 +121,16 @@ export const businessGuide: readonly BusinessGuideEntry[] = [
   },
   {
     id: "chatgpt-read-tunnel",
-    title: "Contributors can establish the ChatGPT read path once",
-    keywords: ["tunnel", "runtime api key", "tunnel id", "starts at boot", "chatgpt pro", "reconnect", "contributor setup"],
-    answer: "A contributor runs one secret-safe Windows installer, pastes the OpenAI Tunnel ID once, enters a Runtime API key once through a masked prompt, and registers the Evidence Lane MCP app once. Its technical ID is mapped into the full plugin package so ChatGPT shows all 15 packaged skill entries alongside the 21 read-only tools. Windows starts the verified tunnel after sign-in. Status, repair, and exact removal are built in, and the key is never logged or committed. Vercel and the owned HTTPS domain serve ChatGPT; Codex remains Git-only.",
+    title: "Every release keeps versioned stable, future-test, and archive tunnels",
+    keywords: ["tunnel", "runtime api key", "tunnel id", "starts at boot", "chatgpt pro", "reconnect", "contributor setup", "stable future-test archive", "future test", "fallback"],
+    answer: "Each Evidence Lane release receives its own runtime root, launcher, scheduled-task identity, tunnel ID, health file, public route receipt, and registry entry. The stable channel keeps serving the last proven release. A different future-test tunnel can start and complete health and host checks while stable remains untouched. Only an evidence-backed promotion may switch the stable channel; the displaced stable release becomes the disabled archive/fallback and can be reactivated without rebuilding it. If the future candidate fails, it is stopped and the existing stable process is never interrupted.\n\nThe Windows registry is append-only and hash-chained, contains no plaintext Runtime API key, and records channel changes. This remote transport serves the ChatGPT layer. It is never Codex lifecycle proof and never replaces the package-local native Evidence Lane server.",
+    href: "/connect",
+  },
+  {
+    id: "install-surface",
+    title: "Installation metadata is part of release identity",
+    keywords: ["install page", "installation metadata", "publisher", "app developer", "version 1.0.0", "action counts", "correct icon", "capability surface"],
+    answer: "A valid 1.5.0 installation surface must show Evidence Lane, the correct icon, Praveen Rathee as the developer identity, exact version 1.5.0, a complete business description, the exact MCP identity and connection state, and truthful capability counts. Codex must show 15 skills plus 62 native actions classified as 21 read and 41 write. ChatGPT must show the host-specific reality: on Pro, 21 reads are executable and 41 writes are unavailable and fail closed. Stable, future-test, and archive identity must be visible, and Google Drive must appear only as a separate connector. A page showing generic App developer and version 1.0.0 is a hard mismatch; the safe action is not to install it.",
     href: "/connect",
   },
   {
@@ -141,6 +155,13 @@ export const businessGuide: readonly BusinessGuideEntry[] = [
     href: "/studio",
   },
   {
+    id: "studio-artifacts",
+    title: "Studio exposes artifacts without making them authority",
+    keywords: ["artifact formats", "sqlite markdown json csv chart table mmd dot", "read only sql", "vector retrieval", "source chips", "retrieval evidence", "openrouter"],
+    answer: "Evidence AI Studio can present the committed public-safe RAG index, Markdown references, JSON receipts, a CSV capability matrix, chart and table summaries, sealed demonstration SQLite packages, and their MMD and DOT topology. Artifact links and hashes remain visible. The current server uses deterministic reviewed synthesis over BM25, TF-IDF, and RRF evidence. Optional live SQL and vector retrieval report WIRED_NOT_CONFIGURED unless their bounded read-only services are actually enabled. OpenRouter may rewrite an already grounded answer for clarity, but it cannot select evidence, add project facts, move a pointer, or become HIL authority. When generation is unavailable, the deterministic grounded answer remains the honest fallback.",
+    href: "/studio",
+  },
+  {
     id: "release",
     title: "Release and publication happen after acceptance",
     keywords: ["release", "publish", "github", "website", "devpost", "merge main", "version 1.5.0"],
@@ -155,6 +176,10 @@ function normalized(value: string) {
 
 export function businessGuideFor(question: string) {
   const query = normalized(question);
+  if (/\b(?:explain|describe|summarize)\b.*\b(?:whole|entire|end to end)\b/.test(query)
+    || /\bwhole (?:evidence lane )?(?:project|plugin|product)\b/.test(query)) {
+    return businessGuide.find((entry) => entry.id === "overview") ?? null;
+  }
   const queryWords = new Set(query.split(/\s+/).filter((word) => word.length > 2));
   let best: { entry: BusinessGuideEntry; score: number } | null = null;
   for (const entry of businessGuide) {

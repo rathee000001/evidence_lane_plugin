@@ -38,7 +38,7 @@ export default function ConnectPage() {
       <section className="section shell provenanceBoundary">
         <span className="kicker">Two host universes, one lifecycle law</span>
         <h2>The same plugin skills meet different host authorities.</h2>
-        <p>Codex may pair <code>/pl</code>, <code>/evi-plan</code>, its Goal, and its visible task panel with the canonical Plan Lane. ChatGPT Pro shows all 15 packaged skill entries and can use read-safe Boot/Flash plus accepted-PV Entry/Exit workflows. Its connected MCP keeps every lifecycle control visible, but blocks each write before service invocation. ChatGPT can continue its native ENV/UOP package and Project Mutation sector without pretending Codex composer controls or Git lifecycle authority exist there.</p>
+        <p>Codex may pair <code>/pl</code>, <code>/evi-plan</code>, its Goal, and its visible task panel with the canonical Plan Lane. The Codex 1.5.0 package exposes all 15 governed skills and 62 native actions. ChatGPT Pro can use the 21 read-safe Boot/Flash, accepted-PV, Entry/Exit, search, and panel actions; its 41 lifecycle writes remain visible only as explicit fail-closed capabilities and cannot invoke service mutation. The current registered ChatGPT page has not yet proven the 15-skill 1.5.0 presentation, so the site does not claim it has. ChatGPT can continue its native ENV/UOP package and Project Mutation sector without pretending Codex composer controls or Git lifecycle authority exist there.</p>
         <div className="hostUniverseMap" aria-label="Codex and ChatGPT host architecture">
           <article>
             <span>Codex universe</span>
@@ -74,7 +74,7 @@ export default function ConnectPage() {
       <section className="section shell connectorSlots" data-mcp-apps="SUPPORTED">
         <div className="sectionHead"><span className="kicker">Comparable ChatGPT presentation</span><h2>Rich metadata, complete tool contracts, verified links, and supported in-chat panels.</h2><p>Evidence Lane supplies its logo, descriptions, website and legal links, annotated MCP tools, structured results, and a portable MCP Apps resource. ChatGPT owns the surrounding listing and settings layout, so the product provides equivalent governed information without claiming control of the host UI.</p></div>
         <div className="slotGrid">
-          <div><span>UI</span><strong>Governed console</strong><small><code>ui://evidence-lane/governed-console-v2.html</code></small></div>
+          <div><span>UI</span><strong>Governed console</strong><small><code>ui://evidence-lane/governed-console-v3.html</code></small></div>
           <div><span>01</span><strong>Runtime and lanes panel</strong><small><code>render_runtime_panel</code></small></div>
           <div><span>02</span><strong>Project and HIL panel</strong><small><code>render_project_panel</code></small></div>
           <div><span>DATA</span><strong>No-UI tools remain usable</strong><small>Rendering is decoupled from governed data operations</small></div>

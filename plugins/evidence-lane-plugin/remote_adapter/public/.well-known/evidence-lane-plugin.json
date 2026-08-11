@@ -19,7 +19,7 @@
   "repository": "https://github.com/rathee000001/evidence_lane_plugin",
   "interactive_ui": {
     "standard": "MCP Apps",
-    "resource_uri": "ui://evidence-lane/governed-console-v2.html",
+    "resource_uri": "ui://evidence-lane/governed-console-v3.html",
     "mime_type": "text/html;profile=mcp-app",
     "render_tools": [
       "render_runtime_panel",
@@ -29,11 +29,13 @@
   },
   "host_contracts": {
     "codex": "Exact-Git full lifecycle. Plan Lane may project to Codex native Plan mode, Goal, and task panel through a user-mediated /pl and /evi-plan flow.",
-    "chatgpt_pro": "Complete 62-action MCP catalog with 21 executing reads and 41 visible fail-closed lifecycle-write actions. ChatGPT native ENV/UOP and Project Mutation remain host-owned and are not MCP mutations. Vercel and the owned HTTPS domain are ChatGPT-only."
+    "chatgpt_pro": "Candidate contract: 62 visible MCP actions with 21 executing reads and 41 visible fail-closed lifecycle-write actions. The currently observed host registration is stale and must not be installed until exact 1.5.0 metadata and catalog proof pass. ChatGPT native ENV/UOP and Project Mutation remain host-owned and are not MCP mutations."
   },
   "skill_surface": {
     "packaged_count": 15,
-    "visibility": "ALL_PACKAGED_SKILL_ENTRIES_VISIBLE_ON_CHATGPT_AND_CODEX",
+    "visibility": "CODEX_15_PACKAGED_SKILLS_VERIFIED__CHATGPT_HOST_SKILL_VISIBILITY_NOT_YET_PROVEN",
+    "codex_packaged_count_verified": 15,
+    "chatgpt_live_verified_count": 0,
     "read_safe_workflows": [
       "Root routing and exact six-control presentation",
       "Boot ENV/UOP Flash, runtime and accepted-PV observation",
@@ -54,6 +56,8 @@
       "active_read_tool_count": 21,
       "visible_fail_closed_write_tool_count": 41,
       "all_lifecycle_mutations_blocked": true,
+      "live_registration_verified": false,
+      "install_allowed": false,
       "visible_controls": ["Boot", "Rollback", "Build", "Refresh", "Mode", "Source Intake"],
       "excluded_dependencies": ["Meshy", "generated GLB", "3D production dependency"]
     }
@@ -103,15 +107,26 @@
   "plan_lane": {
     "current_public_projection": "https://evidencelane.org/#current-execution-plan",
     "sealed_historical_delta_rows": 80,
-    "live_projection_rows": 111,
-    "governed_receipt_rows": 119,
-    "active_public_row": 182,
-    "active_public_task_position": 102,
-    "active_governed_receipt_position": 110,
-    "last_pre_hil_public_row": 190,
-    "last_pre_hil_governed_receipt_position": 118,
-    "physically_final_hil_public_row": 191,
-    "physically_final_hil_governed_receipt_position": 119,
+    "candidate_comparison_deployment": "https://evidence-lane-chatgpt-mcp-adapter-hllaqjvmi.vercel.app",
+    "candidate_comparison_commit": "93bf4a409faf544a96db8501cbdeefc002f9a32e",
+    "production_role": "HISTORICAL_BASELINE_ONLY_UNTIL_ACCEPTED_PUBLICATION",
+    "live_projection_rows": 116,
+    "governed_receipt_rows": 124,
+    "active_public_row": 184,
+    "active_public_task_position": 104,
+    "active_governed_receipt_position": 112,
+    "last_pre_hil_public_row": 195,
+    "last_pre_hil_governed_receipt_position": 123,
+    "physically_final_hil_public_row": 196,
+    "physically_final_hil_governed_receipt_position": 124,
+    "sealed_origin_panel_sha256": "9533BFC6C96F4E3FC95DC1B5D9D9981EA78957B821CAA9AF90D895C2C6F36A40",
+    "live_panel_hash_algorithm": "SHA256_STABLE_JSON_SEALED_ORIGIN_SHA_PLUS_PUBLIC_ROWS_V1",
+    "live_panel_sha256": "E8752CE9F1AE4F17F1F509A9DFC63468AFD91B41309BA18DED7D0BA09728CA05",
+    "canonical_plan_projection_sha256": "7A314F493335FB0123F06767CA12B5C4D8BC1D9B97127FF6C825799FE000550B",
+    "native_plan_task_count": 84,
+    "native_plan_event_count": 342,
+    "native_plan_event_head_sha256": "A8EED3AFDCAC1A047628B15B0CDC4DCCD6AD8FA5D758D23923BE9E1FF4C2CA70",
+    "native_plan_runtime_sqlite_sha256": "B81D92C3F0EE3F5F93D1078931DDC0EFE846BE74023732A206E1CAB89BCB17AA",
     "steer_default_boundary": "BEFORE_NEXT_HIL",
     "persistent_until": "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE",
     "panel_reactivation": {

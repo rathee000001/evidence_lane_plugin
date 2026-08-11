@@ -29,7 +29,11 @@ candidate, HIL decision, pointer movement, deployment, or Fuse occurs.
    `host_kind=CODEX_DESKTOP` (or the exact Codex host), and `host_mode=PLAN`.
 3. For later user steers, call `pv_plan_steer_delta`:
    - linked steer: pass `linked_task_id`; preserve the row and count;
-   - unrelated steer: pass one complete `new_task_contract`; append a new row;
+   - unrelated steer: pass one complete `new_task_contract`; insert a new row
+     before the next HIL when present, or pass `insert_before_task_id` in that
+     contract for an exact gate;
+   - mark the physically final HIL task with
+     `panel_role=PHYSICALLY_FINAL_HIL`; never insert a steer behind it;
    - omit `boundary` to use `BEFORE_NEXT_HIL`.
 
 ## Verification

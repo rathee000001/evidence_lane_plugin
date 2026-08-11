@@ -3,6 +3,7 @@ import Link from "next/link";
 import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { EvidencePromptStudio } from "../_components/evidence-prompt-studio";
 import { HeroOrbit } from "../_components/hero-orbit";
+import { StudioArtifactLab } from "../_components/studio-artifact-lab";
 import { studioCorpus } from "../_data/studio-retrieval";
 
 export default function StudioPage() {
@@ -55,6 +56,10 @@ export default function StudioPage() {
         <article><span>01</span><h2>Explain the business outcome</h2><p>Answers start with the problem, decision, responsibility, and operational consequence.</p></article>
         <article><span>02</span><h2>Keep proof inspectable</h2><p>Supporting sources and the detailed retrieval receipt remain available when a reviewer needs them.</p></article>
         <article><span>03</span><h2>Refuse unsupported claims</h2><p>An unknown project answer stays unknown. A general model never becomes project authority.</p></article>
+      </section>
+
+      <section className="section shell">
+        <StudioArtifactLab />
       </section>
 
     </main>
