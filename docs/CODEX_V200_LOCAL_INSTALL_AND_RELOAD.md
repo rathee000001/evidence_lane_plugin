@@ -19,7 +19,9 @@ restart after a local plugin changes:
    contract, fifteen skills, host separation, and prior-release retention. For
    an update, pass the exact prior host-loaded stable installation receipt and
    its SHA-256 as the comparison baseline; a staged-but-never-restarted cache
-   can never silently become the baseline.
+   can never silently become the baseline. Legacy receipts that counted hook
+   files are enriched only from the one archived marketplace whose archive SHA
+   and every hook/skill file hash reproduce that sealed receipt.
 3. Rerun it with `--activate` and the exact Codex executable. The script stages
    `evidence-lane-v200-github`, invokes the supported marketplace/plugin CLI,
    disables other Evidence Lane selectors without deleting their caches, backs

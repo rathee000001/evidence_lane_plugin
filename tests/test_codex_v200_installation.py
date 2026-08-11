@@ -61,7 +61,7 @@ def _fixture_catalog_source() -> str:
 
 def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     source = tmp_path / "source"
-    version = "2.0.0+codex.20260811142000"
+    version = "2.0.0+codex.20260811144500"
     _write(
         source / ".codex-plugin" / "plugin.json",
         json.dumps(
@@ -309,18 +309,35 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
     del prior_hooks["hooks"]["PostToolUse"]
     prior_hooks_path.write_text(json.dumps(prior_hooks), encoding="utf-8")
     prior_version = "2.0.0+codex.host-stable"
+    prior_manifest_path = prior_source / ".codex-plugin" / "plugin.json"
+    prior_manifest = json.loads(prior_manifest_path.read_text(encoding="utf-8"))
+    prior_manifest["version"] = prior_version
+    prior_manifest_path.write_text(json.dumps(prior_manifest), encoding="utf-8")
     prior_surface = module._surface_inventory(
         prior_source,
         version=prior_version,
     )
+    legacy_surface = json.loads(json.dumps(prior_surface))
+    legacy_surface["hooks"] = {
+        "count": prior_surface["hooks"]["hook_file_count"],
+        "records": prior_surface["hooks"]["records"],
+        "inventory_sha256": prior_surface["hooks"]["file_inventory_sha256"],
+    }
+    legacy_surface_core = dict(legacy_surface)
+    legacy_surface_core.pop("surface_inventory_sha256")
+    legacy_surface["surface_inventory_sha256"] = hashlib.sha256(
+        module._json_bytes(legacy_surface_core)
+    ).hexdigest().upper()
+    baseline_archive_sha256 = "A" * 64
     baseline = {
         "schema": module.INSTALL_SCHEMA,
         "status": "PASS",
         "plugin": {
             "plugin_id": "evidence-lane-plugin",
             "version": prior_version,
-            "surface_inventory": prior_surface,
+            "surface_inventory": legacy_surface,
         },
+        "archive_sha256": baseline_archive_sha256,
         "activation": {"state": "INSTALLED_RESTART_REQUIRED"},
         "candidate_created_or_accepted": False,
         "pointer_moved": False,
@@ -330,6 +347,26 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
         module._json_bytes(baseline)
     ).hexdigest().upper()
     data_root = tmp_path / "pv"
+    archived_stage = (
+        data_root
+        / "installations"
+        / "codex-v200"
+        / "marketplace-archives"
+        / "host-stable"
+    )
+    shutil.copytree(
+        prior_source,
+        archived_stage / "plugins" / "evidence-lane-plugin",
+    )
+    _write(
+        archived_stage / "EVIDENCE_LANE_STAGE.json",
+        json.dumps(
+            {
+                "schema": "evidence-lane.codex-marketplace-stage.v2",
+                "archive_sha256": baseline_archive_sha256,
+            }
+        ),
+    )
     baseline_path = (
         data_root
         / "installations"
@@ -363,6 +400,9 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
     assert preflight["surface_change_display"]["hooks"]["added_files"] == [
         "post_tool_use.py"
     ]
+    assert preflight["comparison_baseline"]["surface_enrichment"] == (
+        "VERIFIED_ARCHIVED_MARKETPLACE_EVENT_INVENTORY"
+    )
     assert activation_pass["marketplace"]["state"] == "ALREADY_STAGED_EXACT"
     assert activation_pass["comparison_baseline"] == preflight[
         "comparison_baseline"

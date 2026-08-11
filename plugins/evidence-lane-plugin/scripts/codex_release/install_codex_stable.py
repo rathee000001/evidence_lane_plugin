@@ -391,6 +391,77 @@ def _load_receipt(receipt_path: Path, archive: Path) -> dict[str, Any]:
     return receipt
 
 
+def _enrich_legacy_hook_surface(
+    *,
+    receipt: dict[str, Any],
+    legacy_surface: dict[str, Any],
+    data_root: Path,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Recover event semantics from exact archived marketplace bytes.
+
+    Early v2 installation receipts counted hook files and did not yet include
+    registered event names.  The archived marketplace is acceptable only when
+    its stage archive SHA matches the installation receipt and every hook and
+    skill file hash reproduces the legacy receipt inventory.
+    """
+
+    archive_sha256 = str(receipt.get("archive_sha256") or "").upper()
+    archive_root = (
+        data_root
+        / "installations"
+        / "codex-v200"
+        / "marketplace-archives"
+    )
+    matches: list[tuple[dict[str, Any], Path]] = []
+    for stage_path in sorted(archive_root.glob("*/EVIDENCE_LANE_STAGE.json")):
+        stage = json.loads(stage_path.read_text(encoding="utf-8"))
+        if (
+            stage.get("schema") != "evidence-lane.codex-marketplace-stage.v2"
+            or str(stage.get("archive_sha256") or "").upper() != archive_sha256
+        ):
+            continue
+        plugin_root = stage_path.parent / "plugins" / PLUGIN_NAME
+        manifest_path = plugin_root / ".codex-plugin" / "plugin.json"
+        if not manifest_path.is_file():
+            raise InstallationError(
+                "The archived legacy marketplace plugin manifest is missing."
+            )
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        version = str((receipt.get("plugin") or {}).get("version") or "")
+        if manifest.get("version") != version:
+            raise InstallationError(
+                "The archived legacy marketplace version does not match its receipt."
+            )
+        enriched = _surface_inventory(plugin_root, version=version)
+        expected_hook_files = {
+            "count": enriched["hooks"]["hook_file_count"],
+            "records": enriched["hooks"]["records"],
+            "inventory_sha256": enriched["hooks"]["file_inventory_sha256"],
+        }
+        if (
+            dict(legacy_surface.get("hooks") or {}) != expected_hook_files
+            or dict(legacy_surface.get("skills") or {}) != enriched["skills"]
+            or dict(legacy_surface.get("catalog") or {}) != enriched["catalog"]
+        ):
+            raise InstallationError(
+                "The archived legacy marketplace bytes do not reproduce the sealed receipt."
+            )
+        matches.append((enriched, stage_path))
+    if len(matches) != 1:
+        raise InstallationError(
+            "Exactly one archived legacy marketplace must match the baseline archive."
+        )
+    enriched, stage_path = matches[0]
+    return enriched, {
+        "surface_enrichment": "VERIFIED_ARCHIVED_MARKETPLACE_EVENT_INVENTORY",
+        "archived_stage_receipt": str(stage_path.resolve()),
+        "archived_stage_receipt_sha256": _sha256(stage_path),
+        "receipt_surface_inventory_sha256": legacy_surface[
+            "surface_inventory_sha256"
+        ],
+    }
+
+
 def _load_comparison_baseline(
     *,
     path: Path,
@@ -441,12 +512,23 @@ def _load_comparison_baseline(
         or dict(surface.get("catalog") or {}) != EXPECTED_CATALOG
     ):
         raise InstallationError("The comparison baseline installation receipt drifted.")
+    enrichment: dict[str, Any] = {
+        "surface_enrichment": "NOT_REQUIRED_EVENT_INVENTORY_ALREADY_SEALED",
+        "receipt_surface_inventory_sha256": surface["surface_inventory_sha256"],
+    }
+    if "registered_events" not in dict(surface.get("hooks") or {}):
+        surface, enrichment = _enrich_legacy_hook_surface(
+            receipt=receipt,
+            legacy_surface=surface,
+            data_root=data_root,
+        )
     identity = {
         "installation_receipt": str(resolved),
         "installation_receipt_sha256": expected,
         "plugin_version": plugin["version"],
         "surface_inventory_sha256": surface["surface_inventory_sha256"],
         "baseline_role": "EXACT_PRIOR_HOST_STABLE_INSTALLATION",
+        **enrichment,
     }
     return surface, identity
 
