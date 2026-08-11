@@ -1,14 +1,9 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import re
 from itertools import pairwise
 from pathlib import Path
-
-from evidence_lane_plugin.mcp_server import create_mcp_server
-from evidence_lane_plugin.service import EvidenceLaneService
-from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
