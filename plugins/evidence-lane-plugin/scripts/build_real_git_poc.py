@@ -576,7 +576,7 @@ def build_poc(repository: Path, output: Path, ref: str, subject: str) -> dict[st
     }
     receipt["receipt_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
     atomic_write_json(output / "POC_RECEIPT.json", receipt)
-    readme = f"""# Evidence Lane v1.5.0 exact-Git PoC
+    readme = f"""# Evidence Lane v2.0.0 exact-Git PoC
 
 - Status: **{receipt['status']}**
 - Real source lane: `{REAL_GIT_LANE}` only
@@ -620,7 +620,7 @@ def main() -> int:
     parser.add_argument("--ref", default="HEAD")
     parser.add_argument(
         "--subject",
-        default="Evidence Lane v1.5.0 exact plugin commit and seventeen fixture lanes",
+        default="Evidence Lane v2.0.0 exact plugin commit and seventeen fixture lanes",
     )
     args = parser.parse_args()
     result = build_poc(args.repository, args.output_directory, args.ref, args.subject)

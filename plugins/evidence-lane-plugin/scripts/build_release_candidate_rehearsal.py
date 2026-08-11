@@ -24,6 +24,30 @@ BOUNDARY = "NON_LIFECYCLE_LOCAL_PACKAGE_REHEARSAL"
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
 EXPECTED_SKILL_COUNT = 15
 EXPECTED_LANE_COUNT = 18
+EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
+    "routing_axes_independent": True,
+    "account_tier_affects_routing": False,
+    "api_billing_affects_routing": False,
+    "headless_api": {
+        "local_or_persistent_pv_storage": "LOCAL_SQLITE_WHEN_DURABLE",
+        "ephemeral_pv_storage": (
+            "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR"
+        ),
+        "tunnel_requirement": "NOT_REQUIRED_FOR_API_LAYER",
+        "flash_frequency": "EVERY_INVOCATION_ENTRY",
+    },
+    "interactive_codex_app_local_or_persistent": {
+        "pv_storage": "DURABLE_LOCAL_SQLITE",
+        "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+        "tunnel_key_retention": "HOST_MANAGED_PERSISTENT_PROFILE",
+    },
+    "interactive_codex_app_ephemeral_vm": {
+        "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
+        "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
+        "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
+        "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+    },
+}
 
 EXCLUDED_DIRECTORY_NAMES = frozenset(
     {
@@ -36,10 +60,12 @@ EXCLUDED_DIRECTORY_NAMES = frozenset(
         ".tox",
         ".venv",
         ".vercel",
+        "_evidence_lane_rehearsal",
         "__pycache__",
         "build",
         "coverage",
         "dist",
+        "migrated-command-skills",
         "node_modules",
     }
 )
@@ -68,7 +94,6 @@ DEPENDENCY_FILENAMES = frozenset(
 )
 REQUIRED_MEMBERS = frozenset(
     {
-        ".app.json",
         ".codex-plugin/plugin.json",
         ".mcp.json",
         "COPYRIGHT.md",
@@ -76,21 +101,27 @@ REQUIRED_MEMBERS = frozenset(
         "README.md",
         "THIRD_PARTY_NOTICES.md",
         "assets/evidence-lane-icon.png",
-        "chatgpt-app-submission.json",
-        "evidence/prompt_studio/manifest.json",
-        "evidence/prompt_studio/studio_search.sqlite",
-        "remote_adapter/app/manifest.ts",
-        "remote_adapter/package.json",
-        "remote_adapter/pnpm-lock.yaml",
         "pyproject.toml",
         "requirements.lock.txt",
+        "scripts/codex-release-channel.json",
+        "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
+        "scripts/codex_release/accept_codex_stable.py",
+        "scripts/codex_release/install_codex_stable.py",
     }
 )
+SEPARATE_HOST_RELATIVE_FILES = frozenset(
+    {
+        "chatgpt-app-connection.json",
+        "chatgpt-app-submission.json",
+        "release-channels.json",
+    }
+)
+SEPARATE_HOST_PREFIXES = ("evidence/", "remote_adapter/")
 SYNTHETIC_ROOT = "_evidence_lane_rehearsal"
 
 SECRET_PATTERNS = (
     ("private_key", re.compile(rb"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
-    ("openai_key", re.compile(rb"sk-[A-Za-z0-9_-]{20,}")),
+    ("openai_key", re.compile(rb"(?<![A-Za-z0-9_-])sk-[A-Za-z0-9_-]{20,}")),
     ("github_token", re.compile(rb"gh[pousr]_[A-Za-z0-9]{30,}")),
     ("github_fine_grained_token", re.compile(rb"github_pat_[A-Za-z0-9_]{20,}")),
     ("google_api_key", re.compile(rb"AIza[0-9A-Za-z_-]{30,}")),
@@ -158,6 +189,11 @@ def _release_paths(plugin_root: Path) -> list[Path]:
 
         for name in sorted(raw_files):
             candidate = root / name
+            relative = candidate.relative_to(plugin_root).as_posix()
+            if relative in SEPARATE_HOST_RELATIVE_FILES or relative.startswith(
+                SEPARATE_HOST_PREFIXES
+            ):
+                continue
             if _excluded_file(candidate):
                 continue
             if candidate.is_symlink():
@@ -333,6 +369,75 @@ def build_rehearsal(
             "Plugin version mismatch: "
             f"expected {expected_version}, got {plugin_manifest.get('version')!r}."
         )
+    if plugin_manifest.get("mcpServers") != "./.mcp.json":
+        raise PackageBoundaryError(
+            "The Codex install manifest must declare only the package-local native MCP."
+        )
+    if "apps" in plugin_manifest or (plugin_root / ".app.json").exists():
+        raise PackageBoundaryError(
+            "Codex and registered-app delivery must remain separate; .app.json is forbidden."
+        )
+    mcp_manifest = json.loads(
+        (plugin_root / ".mcp.json").read_text(encoding="utf-8")
+    )
+    if set(mcp_manifest.get("mcpServers", {})) != {"evidence-lane"}:
+        raise PackageBoundaryError(
+            "The Codex package must declare exactly one native evidence-lane server."
+        )
+    release_channels = json.loads(
+        (plugin_root / "scripts" / "codex-release-channel.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    stable = release_channels.get("stable", {})
+    future_test = release_channels.get("future_test", {})
+    promotion = release_channels.get("promotion_gate", {})
+    remote_git_policy = release_channels.get("remote_git_policy", {})
+    if (
+        release_channels.get("schema") != "evidence-lane.codex-release-channel.v2"
+        or stable.get("release") != expected_version.split("+", 1)[0]
+        or stable.get("native_server_identity") != "evidence-lane"
+        or (
+            stable.get("native_tool_count"),
+            stable.get("native_read_tool_count"),
+            stable.get("native_write_tool_count"),
+            stable.get("skill_count"),
+        )
+        != (62, 21, 41, 15)
+        or stable.get("codex_apps_allowed") is not False
+        or stable.get("generated_namespace_allowed") is not False
+        or stable.get("direct_stdio_fallback_allowed") is not False
+        or stable.get("google_drive_bundled") is not False
+        or future_test.get("enabled") is not False
+        or future_test.get("may_replace_stable_before_acceptance") is not False
+        or promotion.get("explicit_six_way_hil_required") is not True
+        or promotion.get("fail_closed_on_version_mismatch") is not True
+        or release_channels.get("archive", {}).get("release") != "1.5.0"
+        or release_channels.get("host_storage_tunnel_matrix")
+        != EXPECTED_HOST_STORAGE_TUNNEL_MATRIX
+        or remote_git_policy.get("effective_release")
+        != expected_version.split("+", 1)[0]
+        or remote_git_policy.get("per_push_confirmation_token_required")
+        is not False
+        or remote_git_policy.get("automatic_push_scope")
+        != "EXACT_SOLE_REGISTERED_NON_PROTECTED_TEST_BRANCH"
+        or remote_git_policy.get("host_managed_credentials_only") is not True
+        or remote_git_policy.get("main_push_allowed") is not False
+        or remote_git_policy.get("merge_allowed") is not False
+        or remote_git_policy.get("pull_request_acceptance_allowed") is not False
+        or remote_git_policy.get("force_push_allowed") is not False
+        or release_channels.get("host_split", {}).get(
+            "chatgpt_connection_artifacts_packaged_with_codex"
+        )
+        is not False
+        or release_channels.get("host_split", {}).get(
+            "remote_website_artifacts_packaged_with_codex"
+        )
+        is not False
+    ):
+        raise PackageBoundaryError(
+            "The stable, future-test, archive, or release-history contract drifted."
+        )
 
     source_records, source_paths = _source_inventory(plugin_root)
     source_names = {record["path"] for record in source_records}
@@ -342,7 +447,6 @@ def build_rehearsal(
 
     source_manifest_sha = _sha256_bytes(_json_bytes(source_records))
     skill_inventory = _skill_inventory(plugin_root)
-    lane_inventory = _lane_inventory(plugin_root)
     source_manifest = {
         "schema": f"{SCHEMA}.source-manifest",
         "boundary": BOUNDARY,
@@ -363,11 +467,12 @@ def build_rehearsal(
             "environment_files": "ALL_EXCEPT_DOT_ENV_EXAMPLE",
             "local_codex_files": "EXCLUDED",
             "zip_files": "EXCLUDED",
+            "separate_host_files": sorted(SEPARATE_HOST_RELATIVE_FILES),
+            "separate_host_prefixes": list(SEPARATE_HOST_PREFIXES),
         },
         "members": source_records,
     }
     synthetic: dict[str, bytes] = {
-        f"{SYNTHETIC_ROOT}/lane-bundle-inventory.json": _json_bytes(lane_inventory),
         f"{SYNTHETIC_ROOT}/source-manifest.json": _json_bytes(source_manifest),
         f"{SYNTHETIC_ROOT}/skill-inventory.json": _json_bytes(skill_inventory),
     }
@@ -382,7 +487,7 @@ def build_rehearsal(
         "base_anchor": {"commit": base_commit, "tree": base_tree},
         "working_source_manifest_sha256": source_manifest_sha,
         "skill_count": skill_inventory["count"],
-        "lane_count": lane_inventory["lane_count"],
+        "canonical_lane_count": EXPECTED_LANE_COUNT,
         "synthetic_metadata_sha256": synthetic_hashes,
         "negative_proofs": {
             "cache_or_runtime_members": 0,
@@ -464,7 +569,7 @@ def build_rehearsal(
         "working_source_manifest_sha256": source_manifest_sha,
         "source_member_count": len(source_records),
         "skill_count": skill_inventory["count"],
-        "lane_count": lane_inventory["lane_count"],
+        "canonical_lane_count": EXPECTED_LANE_COUNT,
         "governed_candidate_created": False,
         "git_invoked": False,
         "accepted_pointer_moved": False,

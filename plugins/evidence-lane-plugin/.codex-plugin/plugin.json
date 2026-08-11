@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "1.5.0+codex.20260809174231",
+  "version": "2.0.0+codex.20260811004422",
   "description": "Human-governed project memory that preserves exact evidence, resumes unfinished work, and keeps acceptance under the user's control.",
   "author": {
     "name": "Praveen Rathee",
@@ -19,8 +19,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Evidence Lane",
-    "shortDescription": "Carry verified project knowledge across AI tasks without surrendering human control.",
-    "longDescription": "Evidence Lane is one universal plugin package with fifteen governed skills and a host-specific MCP connection. The complete package makes all fifteen skill entries visible on both ChatGPT and Codex, including Boot and locked ENV/UOP Flash guidance, accepted-PV Entry/Exit inspection, State Travel law, Mode, storage, and the exact six-control contract. Codex installs from exact Git source and can run the full local lifecycle: Source Intake, Build, Refresh, pointer-only Rollback, exact-APPROVE Fuse, plugin administration, and deployment evidence. ChatGPT Pro exposes the complete 62-action catalog: twenty-one accepted-PV, ENV/UOP, Entry/Exit, Chat Lineage, lane, search, diff, backlog, and panel operations execute as reads; all forty-one lifecycle-write actions remain visible but are intercepted before service invocation and return UNAVAILABLE_ON_CHATGPT_PRO with no mutation. ChatGPT's native append-only ENV/UOP and Project Mutation workflow remains host-owned. The product name stays Evidence Lane while 1.5.0 remains version metadata. Meshy, generated GLB assets, and Meshy account linkage are not dependencies; the existing Three.js/WebGL website remains intact. Natural HIL intent never promotes a candidate, and only exact APPROVE may invoke Fuse on a write-capable governed host.",
+    "shortDescription": "Evidence Lane 2.0.0 · 62 native actions (21 read / 41 write) · 15 governed skills.",
+    "longDescription": "Evidence Lane is human-governed project memory that preserves exact source, evidence, Delta, task, candidate, and accepted-version identity across AI work. Evidence Lane 2.0.0 is the stable Codex release identity; product identity stays Evidence Lane. This exact Codex 2.0.0 package carries fifteen governed skills and one package-local native MCP server named evidence-lane with sixty-two canonical actions: twenty-one read-only and forty-one write-capable. It can run Source Intake, Build, Refresh, pointer-only Rollback, exact-APPROVE Fuse, State Travel law, Mode, storage, plugin administration, panels, search, diff, and deployment evidence while keeping candidate acceptance human-controlled. Historical 1.5.0 Git, package, tunnel, and PV receipts remain immutable archive evidence. Normal ChatGPT connects separately to its registered remote MCP and is not silently upgraded by this Codex package. Google Drive is a separately named and authorized connector, never the Evidence Lane MCP, lifecycle proof, namespace owner, or durable local project authority. Codex lifecycle evidence must come from the package-local native server, never codex_apps, plugin-runtime, generated namespaces, direct-stdio fallback, or the remote tunnel. Natural HIL intent never promotes a candidate, and only exact case-sensitive APPROVE may authorize Fuse on a genuinely write-capable governed host.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "websiteURL": "https://evidencelane.org",
@@ -41,6 +41,5 @@
     "logo": "./assets/evidence-lane-icon.png",
     "screenshots": []
   },
-  "mcpServers": "./.mcp.json",
-  "apps": "./.app.json"
+  "mcpServers": "./.mcp.json"
 }

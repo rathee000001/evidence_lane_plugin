@@ -41,6 +41,7 @@ from .runtime_continuity import (
 )
 from .state_law import LifecycleEvent, transition
 from .state_travel_contract import (
+    additive_deltas_from_task_list,
     execution_profile_from_context,
     execution_profile_mismatches,
     normalize_additive_deltas,
@@ -1030,6 +1031,205 @@ class SessionManager:
     ) -> dict[str, Any]:
         session = self.load(project_id, session_id)
         pointer = self.store.pointer(project_id)
+        classification_reconciliation: dict[str, Any] | None = None
+        if session.state == SessionState.TASK_CLASSIFIED and backlog_task_id:
+            backlog = self.store.backlog_status(project_id)
+            first_queued = next(
+                (
+                    row
+                    for row in sorted(
+                        backlog["tasks"], key=lambda item: int(item["sequence"])
+                    )
+                    if str(row.get("status")) == "QUEUED"
+                ),
+                None,
+            )
+            exact_old_task = session.task
+            exact_completion_receipt = str(
+                session.metadata.get("batch_completion_receipt_id") or ""
+            ).strip()
+            batch_receipt = self.store.batch_completion_receipt(
+                project_id,
+                exact_completion_receipt,
+            )
+            batch_receipt_body = (
+                {
+                    key: value
+                    for key, value in batch_receipt.items()
+                    if key != "receipt_sha256"
+                }
+                if isinstance(batch_receipt, dict)
+                else {}
+            )
+            batch_receipt_valid = (
+                isinstance(batch_receipt, dict)
+                and batch_receipt.get("session_id") == session_id
+                and batch_receipt.get("resulting_status") == "DONE_PENDING_HIL"
+                and batch_receipt.get("candidate_accepted") is False
+                and batch_receipt.get("hil_approval_inferred") is False
+                and batch_receipt.get("receipt_sha256")
+                == sha256_bytes(canonical_json_bytes(batch_receipt_body))
+            )
+            exact_agent_id = str(session.metadata.get("agent_id") or "").strip()
+            exact_host_session_id = str(
+                session.metadata.get("current_host_session_id") or ""
+            ).strip()
+            runtime_status = self.runtime_activation.status()
+            runtime_binding = next(
+                (
+                    row
+                    for row in runtime_status.get("active_sessions", [])
+                    if row.get("project_id") == project_id
+                    and row.get("session_id") == session_id
+                ),
+                None,
+            )
+            reconciliation_checks = {
+                "prior_task_present": isinstance(exact_old_task, dict),
+                "candidate_absent": session.candidate_id is None,
+                "pending_hil_absent": not session.metadata.get("pending_hil"),
+                "pending_task_absent": not isinstance(
+                    session.metadata.get("pending_task"), dict
+                ),
+                "active_backlog_binding_absent": not session.metadata.get(
+                    "active_backlog_task_id"
+                ),
+                "batch_backlog_binding_absent": not session.metadata.get(
+                    "batch_backlog_task_ids"
+                ),
+                "prior_active_status_done": session.metadata.get(
+                    "active_backlog_task_status"
+                )
+                == "DONE",
+                "prior_batch_status_done_pending_hil": session.metadata.get(
+                    "batch_backlog_task_status"
+                )
+                == "DONE_PENDING_HIL",
+                "batch_receipt_id_present": bool(exact_completion_receipt),
+                "batch_receipt_verified": batch_receipt_valid,
+                "agent_identity_present": bool(exact_agent_id),
+                "host_session_identity_present": bool(exact_host_session_id),
+                "runtime_binding_matches": isinstance(runtime_binding, dict)
+                and exact_host_session_id
+                in runtime_binding.get("host_session_ids", []),
+                "plan_has_no_active_task": not backlog["active"],
+                "replacement_is_first_queued": isinstance(first_queued, dict)
+                and first_queued.get("task_id") == backlog_task_id,
+                "accepted_pointer_present": pointer.accepted_pv is not None,
+                "accepted_pv_matches": pointer.accepted_pv == session.accepted_pv,
+                "pointer_generation_matches": (
+                    pointer.generation == session.accepted_pointer_generation
+                ),
+            }
+            reconcilable = all(reconciliation_checks.values())
+            require(
+                reconcilable,
+                "COMPLETED_TASK_RECONCILIATION_MISMATCH",
+                "A stale classified task may be reconciled only when its sealed "
+                "completion state, empty candidate/HIL boundary, accepted pointer, "
+                "single-writer identity, and first queued Plan task all match.",
+                status="MISMATCH",
+                backlog_task_id=backlog_task_id,
+                first_queued_task_id=(
+                    first_queued.get("task_id")
+                    if isinstance(first_queued, dict)
+                    else None
+                ),
+                active_task_ids=[row["task_id"] for row in backlog["active"]],
+                pointer=pointer.as_dict(),
+                session_accepted_pv=session.accepted_pv,
+                session_pointer_generation=session.accepted_pointer_generation,
+                failed_checks=sorted(
+                    key for key, passed in reconciliation_checks.items() if not passed
+                ),
+            )
+            prior_task = cast(dict[str, Any], exact_old_task)
+            config = self.store.config(project_id)
+            source_identity = identity_json(
+                inspect_repository(
+                    config.repository_path,
+                    expected_owner=config.expected_owner,
+                    expected_name=config.expected_name,
+                ),
+                config.repository_path,
+            )
+            source_identity_sha256 = sha256_bytes(
+                canonical_json_bytes(source_identity)
+            )
+            prior = {
+                "state": session.state.value,
+                "task": exact_old_task,
+                "run_id": session.metadata.get("run_id"),
+                "active_backlog_task_status": session.metadata.get(
+                    "active_backlog_task_status"
+                ),
+                "batch_backlog_task_status": session.metadata.get(
+                    "batch_backlog_task_status"
+                ),
+                "batch_completion_receipt_id": exact_completion_receipt,
+                "task_mode_binding": session.metadata.get("task_mode_binding"),
+            }
+            reconciliation_body = {
+                "schema": "evidence-lane.completed-task-reconciliation.v1",
+                "project_id": project_id,
+                "session_id": session_id,
+                "prior_task_id": prior_task.get("task_id"),
+                "prior_run_id": session.metadata.get("run_id"),
+                "replacement_backlog_task_id": backlog_task_id,
+                "accepted_pv": pointer.accepted_pv,
+                "pointer_generation": pointer.generation,
+                "source_identity_sha256": source_identity_sha256,
+                "agent_id": exact_agent_id,
+                "host_session_id": exact_host_session_id,
+                "runtime_activation_generation": runtime_status.get("generation"),
+                "batch_completion_receipt_id": exact_completion_receipt,
+                "candidate_present": False,
+                "pending_hil": False,
+                "pointer_moved": False,
+                "candidate_created": False,
+                "hil_inferred": False,
+                "reconciled_at": utc_now(),
+            }
+            classification_reconciliation = {
+                **reconciliation_body,
+                "receipt_sha256": sha256_bytes(
+                    canonical_json_bytes(reconciliation_body)
+                ),
+            }
+            session.metadata.setdefault("completed_runs", []).append(
+                {
+                    **prior,
+                    "completion_disposition": (
+                        "STALE_CLASSIFICATION_RECONCILED_WITHOUT_HIL"
+                    ),
+                    "reconciliation_receipt_sha256": (
+                        classification_reconciliation["receipt_sha256"]
+                    ),
+                }
+            )
+            session.metadata.setdefault("classification_reconciliations", []).append(
+                classification_reconciliation
+            )
+            session.metadata["last_reconciled_batch_completion_receipt_id"] = (
+                exact_completion_receipt
+            )
+            session.task = None
+            session.metadata.pop("run_id", None)
+            session.metadata.pop("task_mode_binding", None)
+            session.metadata.pop("active_backlog_task_status", None)
+            session.metadata.pop("batch_backlog_task_status", None)
+            session.metadata.pop("batch_completion_receipt_id", None)
+            session.metadata["source_update_confirmed"] = False
+            target_entry = (
+                SessionState.PVN_ACCEPTED
+                if pointer.accepted_pv == "PV1"
+                else SessionState.PVN1_ACCEPTED
+            )
+            session.state = transition(
+                session.state,
+                LifecycleEvent.RECONCILE_COMPLETED_TASK,
+                target_entry,
+            )
         pending = session.metadata.get("pending_task")
         pending_state = session.state in {
             SessionState.CORRECTION_TASK_PENDING,
@@ -1136,14 +1336,6 @@ class SessionManager:
                 canonical_json_bytes(task_mode_core)
             )
             session.metadata["task_mode_binding"] = task_mode_core
-        if backlog_task_id:
-            claimed = self.store.claim_backlog_task(
-                project_id,
-                backlog_task_id=backlog_task_id,
-                session_id=session_id,
-                contract=task.as_dict(),
-            )
-            session.metadata["active_backlog_task_id"] = claimed["task_id"]
         mutating_classes = {
             TaskClass.MODIFY_CODE,
             TaskClass.FIX_BUG,
@@ -1168,6 +1360,7 @@ class SessionManager:
         session.metadata["current_accepted_freshness"] = current_freshness
         require(
             pending_state
+            or classification_reconciliation is not None
             or task.task_class not in mutating_classes
             or current_freshness.get("state") == "FRESH",
             "STALE_ENTRY_MUTATION_BLOCKED",
@@ -1179,6 +1372,31 @@ class SessionManager:
             session_entry_pv=session.metadata.get("entry_pv"),
             freshness=current_freshness,
         )
+        if classification_reconciliation is not None:
+            config = self.store.config(project_id)
+            current_source_identity = identity_json(
+                inspect_repository(
+                    config.repository_path,
+                    expected_owner=config.expected_owner,
+                    expected_name=config.expected_name,
+                ),
+                config.repository_path,
+            )
+            require(
+                sha256_bytes(canonical_json_bytes(current_source_identity))
+                == classification_reconciliation["source_identity_sha256"],
+                "COMPLETED_TASK_RECONCILIATION_SOURCE_CHANGED",
+                "The source boundary changed during stale-task reconciliation.",
+                status="STALE",
+            )
+        if backlog_task_id:
+            claimed = self.store.claim_backlog_task(
+                project_id,
+                backlog_task_id=backlog_task_id,
+                session_id=session_id,
+                contract=task.as_dict(),
+            )
+            session.metadata["active_backlog_task_id"] = claimed["task_id"]
         session.task = task.as_dict()
         session.candidate_id = None
         target_state = (
@@ -1193,7 +1411,24 @@ class SessionManager:
         )
         session.metadata["run_id"] = prefixed_id("run")
         session.metadata["source_update_confirmed"] = False
-        if pending_state:
+        if classification_reconciliation is not None:
+            session.metadata["task_source_basis"] = {
+                "kind": "RECONCILED_UNFINISHED_SOURCE_BOUNDARY",
+                "accepted_pv": pointer.accepted_pv,
+                "pointer_generation": pointer.generation,
+                "source_identity_sha256": classification_reconciliation[
+                    "source_identity_sha256"
+                ],
+                "prior_task_id": classification_reconciliation["prior_task_id"],
+                "reconciliation_receipt_sha256": classification_reconciliation[
+                    "receipt_sha256"
+                ],
+            }
+            session.metadata["source_state"] = (
+                "RECONCILED_UNFINISHED_SOURCE_BOUNDARY"
+            )
+            session.metadata["accepted_pv_query_scope"] = "ENTRY_STATE_ONLY"
+        elif pending_state:
             exact_pending = cast(dict[str, Any], pending)
             session.metadata["resumed_from_pending"] = exact_pending
             session.metadata.pop("pending_task", None)
@@ -1214,6 +1449,15 @@ class SessionManager:
                 "accepted_pv": pointer.accepted_pv,
             }
         self._save(session)
+        if classification_reconciliation is not None:
+            ChatLineage(self._lineage_path(project_id, session_id)).append(
+                event_type="task.completed_classification.reconciled",
+                visible_payload=classification_reconciliation,
+                occurred_at=classification_reconciliation["reconciled_at"],
+                session_id=session_id,
+                task_id=classification_reconciliation["prior_task_id"],
+                run_id=classification_reconciliation["prior_run_id"],
+            )
         lineage_payload = task.as_dict()
         if pending_state:
             lineage_payload["resumed_from_pending"] = cast(dict[str, Any], pending)[
@@ -1227,7 +1471,12 @@ class SessionManager:
             task_id=task.task_id,
             run_id=session.metadata["run_id"],
         )
-        return {"status": "PASS", "session": session.as_dict(), "task": task.as_dict()}
+        return {
+            "status": "PASS",
+            "session": session.as_dict(),
+            "task": task.as_dict(),
+            "classification_reconciliation": classification_reconciliation,
+        }
 
     def record_activity(
         self,
@@ -2384,8 +2633,16 @@ class SessionManager:
         raw = supplied or {}
         task_list_source = "EXPLICIT_STATE_TRAVEL_INPUT"
         raw_task_list = raw.get("task_list")
+        canonical_plan_task_list: list[dict[str, Any]] = []
+        backlog = self.store.backlog_status(project_id)
+        goal = cast(dict[str, Any], backlog["goal_projection"])
+        if backlog["active"]:
+            canonical_plan_task_list = normalize_task_list(goal["rows"])
         if raw_task_list is None:
-            if session.task is not None:
+            if canonical_plan_task_list:
+                raw_task_list = goal["rows"]
+                task_list_source = "ACTIVE_PLAN_LANE_DERIVED"
+            elif session.task is not None:
                 raw_task_list = [
                     {
                         "task_id": session.task.get("task_id", "ACTIVE_SESSION_TASK"),
@@ -2414,15 +2671,23 @@ class SessionManager:
                 ]
                 task_list_source = "PENDING_CANDIDATE_DERIVED"
             else:
-                backlog = self.store.backlog_status(project_id)
-                goal = cast(dict[str, Any], backlog["goal_projection"])
-                if backlog["active"]:
-                    raw_task_list = goal["rows"]
-                    task_list_source = "ACTIVE_PLAN_LANE_DERIVED"
-                else:
-                    raw_task_list = []
-                    task_list_source = "NO_ACTIVE_PLAN"
+                raw_task_list = []
+                task_list_source = "NO_ACTIVE_PLAN"
         task_list = normalize_task_list(raw_task_list)
+        if canonical_plan_task_list and raw.get("task_list") is not None:
+            require(
+                task_list == canonical_plan_task_list,
+                "STATE_TRAVEL_EXPLICIT_TASK_LIST_PLAN_MISMATCH",
+                "The supplied State Travel task list does not exactly match the "
+                "active canonical Plan Lane, including every steer Delta.",
+                status="MISMATCH",
+                supplied_task_list_sha256=sha256_bytes(
+                    canonical_json_bytes(task_list)
+                ),
+                canonical_task_list_sha256=sha256_bytes(
+                    canonical_json_bytes(canonical_plan_task_list)
+                ),
+            )
         if travel_mode == "UNFINISHED_VERIFIED_WORK":
             require(
                 bool(task_list),
@@ -2478,7 +2743,31 @@ class SessionManager:
                     resume_step=resume_step,
                     active_step=active_rows[0]["number"],
                 )
-        additive_deltas = normalize_additive_deltas(raw.get("additive_deltas"))
+        canonical_plan_deltas = additive_deltas_from_task_list(
+            canonical_plan_task_list or task_list
+        )
+        supplied_additive_deltas = raw.get("additive_deltas")
+        additive_deltas = (
+            normalize_additive_deltas(supplied_additive_deltas)
+            if supplied_additive_deltas is not None
+            else canonical_plan_deltas
+        )
+        supplied_by_id = {
+            row["delta_id"]: row
+            for row in additive_deltas
+        }
+        missing_or_changed_plan_deltas = [
+            row["delta_id"]
+            for row in canonical_plan_deltas
+            if supplied_by_id.get(row["delta_id"]) != row
+        ]
+        require(
+            not missing_or_changed_plan_deltas,
+            "STATE_TRAVEL_PLAN_DELTA_SEAL_INCOMPLETE",
+            "State Travel must seal every canonical Plan Lane steer Delta exactly.",
+            status="MISMATCH",
+            delta_ids=missing_or_changed_plan_deltas,
+        )
         invalid_delta_links = [
             row["delta_id"]
             for row in additive_deltas
@@ -2631,7 +2920,9 @@ class SessionManager:
             ),
             "steer_default_boundary": "BEFORE_NEXT_HIL",
             "linked_steer_policy": "APPEND_TO_EXISTING_STEP_WITHOUT_REPLACEMENT",
-            "unlinked_steer_policy": "APPEND_NEW_STEP_AND_INCREASE_COUNT",
+            "unlinked_steer_policy": (
+                "INSERT_NEW_STEP_BEFORE_NEXT_HIL_AND_INCREASE_COUNT"
+            ),
             "panel_reactivation": panel_reactivation,
             "task_panel_persistent_until": (
                 "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_"

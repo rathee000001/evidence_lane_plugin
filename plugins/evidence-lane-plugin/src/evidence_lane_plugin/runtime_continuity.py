@@ -87,6 +87,21 @@ def build_runtime_continuity(
         if accepted_promotable_under_current_rules is True
         else "ACCEPTED_IMMUTABLE_HISTORICAL_SCHEMA"
     )
+    interaction_profile = str(
+        persistence_route.get("interaction_profile") or "HOST_SURFACE_UNSPECIFIED"
+    )
+    headless_api = interaction_profile in {"HEADLESS_API", "DIRECT_CLI_API"}
+    tunnel_requirement = str(
+        persistence_route.get("tunnel_requirement")
+        or "HOST_CAPABILITY_UNSPECIFIED"
+    )
+    if headless_api:
+        require(
+            tunnel_requirement == "NOT_REQUIRED_FOR_API_LAYER",
+            "HEADLESS_API_TUNNEL_ROUTE_INVALID",
+            "Headless API continuity must not depend on a tunnel.",
+            status="MISMATCH",
+        )
     core = {
         "schema": RUNTIME_CONTINUITY_SCHEMA,
         "host": {
@@ -141,6 +156,27 @@ def build_runtime_continuity(
             "pointer_movement": False,
             "hil_approval_inferred": False,
         },
+        "invocation": {
+            "interaction_profile": interaction_profile,
+            "headless_api": headless_api,
+            "api_billing_affects_storage_or_tunnel": False,
+            "account_tier_affects_storage_or_tunnel": False,
+            "tunnel_requirement": tunnel_requirement,
+            "tunnel_required_for_api_layer": False if headless_api else None,
+            "flash_verification": (
+                "VERIFY_LOCKED_ENV_UOP_AT_EVERY_API_INVOCATION_ENTRY"
+                if headless_api
+                else "VERIFY_LOCKED_ENV_UOP_AT_EVERY_BOOT_OR_RESUME"
+            ),
+            "prior_state_load": (
+                "EXACT_PROJECT_DURABLE_RUNTIME_PLUS_ACCEPTED_OR_PENDING_ENTRY_EXIT_SLIP"
+            ),
+            "exit_slip_next_prompt_label": "PV_EXIT_SUGGESTED_NEXT_PROMPT",
+            "copyable_next_prompt_source": "EXIT_SLIP_NEXT_ACTION",
+            "six_way_hil_preserved": True,
+            "headless_client_may_end_after_each_invocation": headless_api,
+            "durable_runtime_survives_client_process": True,
+        },
         "google_drive": {
             "policy": persistence_route["google_drive_policy"],
             "primary_runtime_authority": False,
@@ -185,12 +221,32 @@ def validate_runtime_continuity(value: dict[str, Any]) -> dict[str, Any]:
         is True
         and value.get("mcp_access", {}).get("client_bypasses_mcp_for_runtime_writes")
         is False
+        and value.get("invocation", {}).get("api_billing_affects_storage_or_tunnel")
+        is False
+        and value.get("invocation", {}).get(
+            "account_tier_affects_storage_or_tunnel"
+        )
+        is False
+        and value.get("invocation", {}).get("six_way_hil_preserved") is True
         and value.get("pointer_moved") is False
         and value.get("hil_approval_inferred") is False,
         "RUNTIME_CONTINUITY_BOUNDARY_INVALID",
         "Runtime continuity must remain reference-only, MCP-governed, and pointer-neutral.",
         status="FAIL",
     )
+    invocation = value.get("invocation", {})
+    if invocation.get("headless_api") is True:
+        require(
+            invocation.get("tunnel_requirement") == "NOT_REQUIRED_FOR_API_LAYER"
+            and invocation.get("tunnel_required_for_api_layer") is False
+            and invocation.get("flash_verification")
+            == "VERIFY_LOCKED_ENV_UOP_AT_EVERY_API_INVOCATION_ENTRY"
+            and invocation.get("headless_client_may_end_after_each_invocation")
+            is True,
+            "HEADLESS_API_INVOCATION_CONTINUITY_INVALID",
+            "Headless API continuity must reverify Flash without a tunnel each invocation.",
+            status="FAIL",
+        )
     # Receipts created before portable project-route sealing remain immutable
     # accepted evidence. New receipts carry and validate this exact route block.
     project = value.get("project")

@@ -12,6 +12,7 @@ import subprocess  # nosec B404
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
 from .errors import EvidenceLaneError, require
@@ -415,6 +416,53 @@ def resolve_local_ref_identity(
         local_commit=commit,
     )
     return commit, tree
+
+
+def resolve_named_remote_identity(
+    repository: str | Path,
+    *,
+    remote: str,
+    expected_owner: str,
+    expected_name: str,
+) -> dict[str, Any]:
+    """Resolve one configured remote without retaining credentials or URL text."""
+
+    safe_remote = validate_remote_ref(remote, field="remote")
+    result = run_git(
+        repository,
+        ["config", "--get", f"remote.{safe_remote}.url"],
+        check=False,
+    )
+    sanitized_url = _sanitize_remote(result.stdout.strip())
+    require(
+        result.returncode == 0 and bool(sanitized_url),
+        "REMOTE_GIT_NAMED_REMOTE_NOT_CONFIGURED",
+        "The selected Git remote is not configured in the governed repository.",
+        status="MISMATCH",
+        remote=safe_remote,
+    )
+    owner, name = _parse_owner_name(sanitized_url, Path(repository).resolve().name)
+    require(
+        owner == expected_owner and name == expected_name,
+        "REMOTE_REPOSITORY_IDENTITY_MISMATCH",
+        "The selected Git remote does not match the governed repository owner/name.",
+        status="MISMATCH",
+        remote=safe_remote,
+        expected_owner=expected_owner,
+        expected_name=expected_name,
+        observed_owner=owner,
+        observed_name=name,
+    )
+    hostname = _remote_hostname(sanitized_url)
+    return {
+        "remote_name": safe_remote,
+        "provider": "github" if hostname == "github.com" else "git",
+        "hostname": hostname or "LOCAL_OR_UNSPECIFIED",
+        "owner": owner,
+        "name": name,
+        "sanitized_url_sha256": sha256_bytes(sanitized_url.encode("utf-8")),
+        "credential_requested_or_stored": False,
+    }
 
 
 def remote_push(

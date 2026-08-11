@@ -122,7 +122,9 @@ _FULL_LIFECYCLE_INSTRUCTIONS = (
 )
 
 _CHATGPT_PRO_GOVERNED_INSTRUCTIONS = (
-    "Evidence Lane is the stable product name; 1.5.0 is version metadata. This "
+    "Evidence Lane is the stable product name; 2.0.0 is the Codex package "
+    "version while the separately registered ChatGPT release is independently "
+    "verified. This "
     "registered MCP connection exposes the complete Evidence Lane action catalog "
     "for ChatGPT Pro so all fifteen packaged skills and the exact six controls "
     "remain visible. Packaged skills remain available. Exactly twenty-one read operations execute. Every lifecycle "
@@ -1689,8 +1691,10 @@ def create_mcp_server(
             "Record a visible user steer before the next HIL by default. The host "
             "agent must classify it as either linked to one existing Plan Lane task "
             "or unrelated and therefore one complete new task row. Linked steers "
-            "never replace the task or change the count; unrelated steers append a "
-            "new numbered row and increase the persistent task-panel count."
+            "never replace the task or change the count; unrelated steers insert "
+            "one new numbered row before the next HIL when that gate is present "
+            "and increase the persistent task-panel count. A task may declare "
+            "panel_role=PHYSICALLY_FINAL_HIL so that row remains physically final."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Recording steer Delta", "Steer Delta recorded"),
@@ -2475,11 +2479,11 @@ def create_mcp_server(
 
     @mcp.tool(
         name="remote_git_prepare_push",
-        title="Prepare separately gated Git push",
+        title="Prepare automatic exact test-branch push",
         description=(
             "Prepare—but do not execute—one remote branch push bound to the current "
-            "accepted PV and pointer generation. Returns a one-use exact confirmation "
-            "token that must be provided through a separate explicit user action."
+            "accepted PV and pointer generation. The exact sole registered "
+            "non-protected test branch is preauthorized without a per-push token."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta(
@@ -2507,11 +2511,12 @@ def create_mcp_server(
 
     @mcp.tool(
         name="remote_git_execute_push",
-        title="Execute confirmed Git branch push",
+        title="Execute preauthorized exact test-branch push",
         description=(
             "Execute exactly one previously prepared remote branch push only when "
-            "the accepted pointer is unchanged and the exact one-use confirmation "
-            "token is supplied. Never merges or approves a pull request."
+            "the sole registered branch, accepted pointer, commit, and tree remain "
+            "exact. Uses host-managed credentials; never pushes main, merges, or "
+            "approves a pull request."
         ),
         annotations=_REMOTE_WRITE,
         meta=_meta("Executing confirmed remote Git push", "Remote Git push finished"),
@@ -2520,16 +2525,14 @@ def create_mcp_server(
     def remote_git_execute_push(
         project_id: str,
         action_id: str,
-        confirmation_token: str,
-        confirmed_by: str,
+        executed_by: str,
     ) -> dict[str, Any]:
         return application.invoke(
             "remote_git_execute_push",
             application.remote_git.execute_push,
             project_id,
             action_id=action_id,
-            confirmation_token=confirmation_token,
-            confirmed_by=confirmed_by,
+            executed_by=executed_by,
             lifecycle=True,
         )
 

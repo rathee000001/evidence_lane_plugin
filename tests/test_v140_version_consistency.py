@@ -10,12 +10,13 @@ from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
-CURRENT_VERSION = "1.5.0"
+CURRENT_VERSION = "2.0.0"
 V13_PATTERN = re.compile(r"(?i)(?:\bv1\.3(?:\.0)?\b|\b1\.3\.0\b)")
 
 HISTORICAL_OR_DEPENDENCY_FILES = {
     "README.md",
     "docs/ARCHITECTURE.md",
+    "docs/CHATGPT_CONNECTION.md",
     "docs/IMPLEMENTATION_TRACEABILITY.md",
     "docs/UPSTREAM_REFERENCE_PROVENANCE.md",
     "docs/WINDOWS_TUNNEL_PERSISTENCE.md",
@@ -77,7 +78,7 @@ def _tracked_text_files() -> list[Path]:
     ]
 
 
-def test_all_active_product_version_surfaces_are_v150() -> None:
+def test_all_active_codex_product_version_surfaces_are_v200() -> None:
     plugin_manifest = json.loads(
         (
             ROOT
@@ -96,28 +97,6 @@ def test_all_active_product_version_surfaces_are_v150() -> None:
             / "package.json"
         ).read_text(encoding="utf-8")
     )
-    public_manifest = json.loads(
-        (
-            ROOT
-            / "plugins"
-            / "evidence-lane-plugin"
-            / "remote_adapter"
-            / "public"
-            / ".well-known"
-            / "evidence-lane-plugin.json"
-        ).read_text(encoding="utf-8")
-    )
-    studio_manifest = json.loads(
-        (
-            ROOT
-            / "plugins"
-            / "evidence-lane-plugin"
-            / "evidence"
-            / "prompt_studio"
-            / "manifest.json"
-        ).read_text(encoding="utf-8")
-    )
-
     assert _project_version(ROOT / "pyproject.toml") == CURRENT_VERSION
     assert (
         _project_version(ROOT / "plugins" / "evidence-lane-plugin" / "pyproject.toml")
@@ -125,67 +104,39 @@ def test_all_active_product_version_surfaces_are_v150() -> None:
     )
     assert ENGINE_VERSION == CURRENT_VERSION
     assert str(plugin_manifest["version"]).split("+", 1)[0] == CURRENT_VERSION
-    assert str(plugin_manifest["version"]).endswith("+codex.20260809174231")
+    assert str(plugin_manifest["version"]).endswith("+codex.20260811004422")
     assert adapter_manifest["version"] == CURRENT_VERSION
-    assert public_manifest["version"] == CURRENT_VERSION
-    assert studio_manifest["release"] == CURRENT_VERSION
 
 
-def test_current_docs_site_poc_and_acceptance_surfaces_name_v150() -> None:
+def test_current_codex_docs_and_runtime_surfaces_name_v200() -> None:
     required_fragments = {
         "README.md": [
-            "# Evidence Lane 1.5.0",
-            "The single active product release is **1.5.0**",
-            "The v1.5.0 reconciliation gate",
-            "Current v1.5.0 lane bundles",
+            "# Evidence Lane 2.0.0",
+            "The single active Codex product release is **2.0.0**",
+            "## v2.0.0 release and historical compatibility invariants",
         ],
         "docs/ARCHITECTURE.md": [
-            "Evidence Lane 1.5.0",
-            "built v1.5.0 candidates must pass both gates",
+            "Evidence Lane 2.0.0",
+            "built v2.0.0 candidates must pass both gates",
         ],
         "docs/VERSIONING.md": [
-            "The active Evidence Lane product release is `1.5.0`",
-        ],
-        ".github/agents/evidence-lane.agent.md": [
-            "release-line: v1.5.0",
-        ],
-        "docs/CHATGPT_CONNECTION.md": [
-            "`1.5.0` belongs",
+            "The active Evidence Lane Codex product release is `2.0.0`",
         ],
         "docs/WINDOWS_TUNNEL_PERSISTENCE.md": [
-            "starts the v1.5.0 scheduled copy",
+            "starts the v2.0.0 scheduled copy",
         ],
         "plugins/evidence-lane-plugin/.codex-plugin/plugin.json": [
-            "1.5.0 remains version metadata",
-        ],
-        "plugins/evidence-lane-plugin/remote_adapter/app/_data/business-guidance.ts": [
-            "1.5.0 is version metadata",
-            "The 1.5.0 release first aligns",
-        ],
-        "plugins/evidence-lane-plugin/remote_adapter/app/connect/page.tsx": [
-            "exact 1.5.0 metadata",
-        ],
-        "plugins/evidence-lane-plugin/remote_adapter/app/hil/page.tsx": [
-            "Unaccepted 1.5.0 candidate",
-        ],
-        "plugins/evidence-lane-plugin/remote_adapter/app/proof/page.tsx": [
-            "Current v1.5.0 candidate standard",
-        ],
-        "plugins/evidence-lane-plugin/remote_adapter/app/provenance/page.tsx": [
-            "current v1.5.0 implementation",
-        ],
-        "plugins/evidence-lane-plugin/scripts/build_real_git_poc.py": [
-            "Evidence Lane v1.5.0 exact-Git PoC",
-            "Evidence Lane v1.5.0 exact plugin commit",
-        ],
-        "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py": [
-            "Evidence Lane v1.5.0 acceptance check",
+            "2.0.0 is the stable Codex release identity",
         ],
         "plugins/evidence-lane-plugin/scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1": [
-            "Pinned Evidence Lane 1.5.0 governed ChatGPT Pro tunnel",
+            "Pinned Evidence Lane 2.0.0 host-neutral secure MCP tunnel",
         ],
         "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py": [
-            "1.5.0 is version metadata",
+            "2.0.0 is the Codex package",
+        ],
+        "plugins/evidence-lane-plugin/README.md": [
+            "# Evidence Lane plugin 2.0.0",
+            "Version 2.0.0 is the stable Codex slot",
         ],
     }
 
@@ -195,27 +146,11 @@ def test_current_docs_site_poc_and_acceptance_surfaces_name_v150() -> None:
             assert fragment in text, f"missing current version text in {relative}: {fragment}"
 
     stale_active_fragments = {
-        "plugins/evidence-lane-plugin/remote_adapter/app/_data/business-guidance.ts": [
-            "1.4 is version metadata",
-            "The 1.4 release first aligns",
-        ],
-        "plugins/evidence-lane-plugin/remote_adapter/app/connect/page.tsx": [
-            "exact 1.4 metadata",
-        ],
-        "plugins/evidence-lane-plugin/remote_adapter/app/hil/page.tsx": [
-            "Unaccepted 1.4 correction",
-        ],
-        "plugins/evidence-lane-plugin/remote_adapter/app/proof/page.tsx": [
-            "Current v1.4 correction standard",
-        ],
-        "plugins/evidence-lane-plugin/remote_adapter/app/provenance/page.tsx": [
-            "current v1.4 implementation",
-        ],
         "plugins/evidence-lane-plugin/scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1": [
-            "Pinned Evidence Lane 1.4 governed ChatGPT Pro tunnel",
+            "Pinned Evidence Lane 1.5.0 host-neutral secure MCP tunnel",
         ],
         "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py": [
-            "1.4 is version metadata",
+            "1.5.0 is version metadata",
         ],
     }
     for relative, fragments in stale_active_fragments.items():

@@ -594,6 +594,18 @@ class CodePVEngine:
                 "git_patch_bytes": len(patch.encode("utf-8")),
                 "task": task.as_dict() if task else None,
                 "runtime_continuity": runtime_continuity,
+                "pv_exit_prompt": {
+                    "label": runtime_continuity["invocation"][
+                        "exit_slip_next_prompt_label"
+                    ],
+                    "suggested_next_prompt": next_action_contract[
+                        "suggested_next_prompt"
+                    ],
+                    "choices": next_action_contract.get("choices", []),
+                    "copyable": True,
+                    "host_owned_composer": True,
+                    "auto_submit": False,
+                },
                 "mode_execution": mode_execution,
                 "acceptance_checks": (
                     acceptance_health

@@ -2,15 +2,20 @@
 
 ## Active product release
 
-The active Evidence Lane product release is `1.5.0`. These surfaces must use
+The active Evidence Lane Codex product release is `2.0.0`. These surfaces must use
 that same base version:
 
 - root `pyproject.toml`;
 - plugin `pyproject.toml`;
 - `ENGINE_VERSION` in `constants.py`;
 - `.codex-plugin/plugin.json` before its `+codex.<cachebuster>` suffix;
-- the remote adapter `package.json`;
-- current README, architecture, website, PoC, acceptance, and release tooling.
+- the remote adapter build `package.json` when it is packaged with the Codex source;
+- current Codex README, architecture, acceptance, and release tooling.
+
+The separately registered ChatGPT remote MCP and its website are an independent
+delivery surface. Their observed 1.5.0 identity remains explicit until a later
+authorized remote-release task verifies and promotes 2.0.0; Codex installation
+must never rewrite or claim that remote deployment.
 
 `tests/test_v140_version_consistency.py` is the fail-closed release check. A
 release bump is incomplete until that test and the exact active surfaces agree.

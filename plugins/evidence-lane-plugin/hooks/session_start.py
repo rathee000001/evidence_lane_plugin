@@ -8,6 +8,7 @@ import os
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 _FLASH_PROMPT_SHA256 = (
     "2167BBABE80656C24B18544096E725E874D4FB46066B8F4F8364A3BF14A827DB"
@@ -16,6 +17,30 @@ _ENGINE_VERSION_RE = re.compile(
     r'^ENGINE_VERSION\s*=\s*"(?P<version>[^"]+)"',
     flags=re.MULTILINE,
 )
+_EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
+    "routing_axes_independent": True,
+    "account_tier_affects_routing": False,
+    "api_billing_affects_routing": False,
+    "headless_api": {
+        "local_or_persistent_pv_storage": "LOCAL_SQLITE_WHEN_DURABLE",
+        "ephemeral_pv_storage": (
+            "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR"
+        ),
+        "tunnel_requirement": "NOT_REQUIRED_FOR_API_LAYER",
+        "flash_frequency": "EVERY_INVOCATION_ENTRY",
+    },
+    "interactive_codex_app_local_or_persistent": {
+        "pv_storage": "DURABLE_LOCAL_SQLITE",
+        "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+        "tunnel_key_retention": "HOST_MANAGED_PERSISTENT_PROFILE",
+    },
+    "interactive_codex_app_ephemeral_vm": {
+        "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
+        "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
+        "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
+        "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+    },
+}
 
 
 def _plugin_root() -> Path:
@@ -28,6 +53,73 @@ def _store_root() -> Path:
         or os.environ.get("PLUGIN_DATA")
         or Path.home() / "EvidenceLanePV"
     ).resolve()
+
+
+def _load_turn_control():
+    source_root = _plugin_root() / "src"
+    if str(source_root) not in sys.path:
+        sys.path.insert(0, str(source_root))
+    from evidence_lane_plugin.codex_turn_control import (
+        TurnControlError,
+        gap_receipt,
+        persistent_change_system_notice,
+        policy_state,
+        session_start_control,
+    )
+
+    return (
+        TurnControlError,
+        gap_receipt,
+        persistent_change_system_notice,
+        policy_state,
+        session_start_control,
+    )
+
+
+def _turn_control_context(payload: dict[str, Any]) -> tuple[dict[str, Any], bool]:
+    root = _store_root()
+    TurnControlError, gap_receipt, _, policy_state, session_start_control = (
+        _load_turn_control()
+    )
+    policy = policy_state(
+        root,
+        host_session_id=str(payload.get("session_id") or "").strip(),
+        cwd=str(payload.get("cwd") or ""),
+    )
+    if not policy.get("governed_session"):
+        return (
+            {
+                "state": "NO_BOUND_EVIDENCE_LANE_SESSION",
+                "strict_required": False,
+                "scrollback_authority": False,
+                "transcript_authority": False,
+            },
+            True,
+        )
+    if not policy.get("strict_required"):
+        return (
+            {
+                "state": "TURN_CONTROL_NOT_REQUIRED_YET",
+                "reason": "SEALED_MODE_PLUS_PLAN_NOT_ACTIVE",
+                "project_id": policy.get("project_id"),
+                "evidence_session_id": policy.get("evidence_session_id"),
+                "scrollback_authority": False,
+                "transcript_authority": False,
+            },
+            True,
+        )
+    try:
+        return session_start_control(root, host_payload=payload), True
+    except TurnControlError as exc:
+        return (
+            gap_receipt(
+                root,
+                host_payload=payload,
+                error=exc,
+                policy=policy,
+            ),
+            False,
+        )
 
 
 def _plugin_version_context() -> dict[str, object]:
@@ -45,6 +137,41 @@ def _plugin_version_context() -> dict[str, object]:
             if runtime_version and manifest_base == runtime_version
             else "MISMATCH"
         )
+        release_contract_path = root / "scripts" / "codex-release-channel.json"
+        release_contract = json.loads(
+            release_contract_path.read_text(encoding="utf-8")
+        )
+        remote_git_policy = dict(release_contract.get("remote_git_policy") or {})
+        stable = dict(release_contract.get("stable") or {})
+        promotion = dict(release_contract.get("promotion_gate") or {})
+        policy_valid = (
+            release_contract.get("schema")
+            == "evidence-lane.codex-release-channel.v2"
+            and stable.get("release") == runtime_version
+            and stable.get("native_server_identity") == "evidence-lane"
+            and (
+                stable.get("native_tool_count"),
+                stable.get("native_read_tool_count"),
+                stable.get("native_write_tool_count"),
+                stable.get("skill_count"),
+            )
+            == (62, 21, 41, 15)
+            and stable.get("codex_apps_allowed") is False
+            and stable.get("generated_namespace_allowed") is False
+            and stable.get("direct_stdio_fallback_allowed") is False
+            and stable.get("google_drive_bundled") is False
+            and release_contract.get("host_storage_tunnel_matrix")
+            == _EXPECTED_HOST_STORAGE_TUNNEL_MATRIX
+            and remote_git_policy.get("effective_release") == runtime_version
+            and remote_git_policy.get("per_push_confirmation_token_required")
+            is False
+            and remote_git_policy.get("main_push_allowed") is False
+            and remote_git_policy.get("merge_allowed") is False
+            and remote_git_policy.get("pull_request_acceptance_allowed") is False
+            and promotion.get("mode") == "CODE"
+            and promotion.get("ci_cd_law") == "CONTROLLED_REQUIRED"
+            and promotion.get("explicit_six_way_hil_required") is True
+        )
         return {
             "plugin_id": manifest.get("name"),
             "plugin_manifest_version": manifest_version,
@@ -56,6 +183,16 @@ def _plugin_version_context() -> dict[str, object]:
             "runtime_constants_sha256": hashlib.sha256(constants_path.read_bytes())
             .hexdigest()
             .upper(),
+            "release_policy_state": "FRESH" if policy_valid else "MISMATCH",
+            "release_policy_sha256": hashlib.sha256(
+                release_contract_path.read_bytes()
+            )
+            .hexdigest()
+            .upper(),
+            "effective_remote_git_policy": remote_git_policy,
+            "host_storage_tunnel_matrix": release_contract.get(
+                "host_storage_tunnel_matrix"
+            ),
         }
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         return {
@@ -113,6 +250,177 @@ def _runtime_activation() -> dict[str, object]:
     return payload
 
 
+def _host_activation_context(project_id: str | None) -> dict[str, object]:
+    """Return secret-free first-use tunnel guidance for the exact bound project."""
+
+    if not project_id:
+        return {
+            "state": "EXACT_PROJECT_BINDING_REQUIRED",
+            "tunnel_mutated": False,
+            "secret_read": False,
+            "cross_project_disclosure": False,
+        }
+    project_root = _store_root() / "projects" / project_id
+    active_path = project_root / "active_session.json"
+    if not active_path.is_file():
+        return {
+            "state": "NO_ACTIVE_PROJECT_SESSION",
+            "project_id": project_id,
+            "tunnel_mutated": False,
+            "secret_read": False,
+            "cross_project_disclosure": False,
+        }
+    try:
+        active = json.loads(active_path.read_text(encoding="utf-8"))
+        session_path = project_root / "sessions" / f"{active['session_id']}.json"
+        session = json.loads(session_path.read_text(encoding="utf-8"))
+        route = dict(session.get("metadata", {}).get("persistence_route") or {})
+        interaction = str(route.get("interaction_profile") or "").strip()
+        requirement = str(route.get("tunnel_requirement") or "").strip()
+        if interaction in {"HEADLESS_API", "DIRECT_CLI_API"}:
+            return {
+                "state": "TUNNEL_NOT_REQUIRED_FOR_API_LAYER",
+                "project_id": project_id,
+                "interaction_profile": interaction,
+                "primary_runtime_authority": route.get(
+                    "primary_runtime_authority"
+                ),
+                "local_pv_storage_allowed_when_durable": True,
+                "tunnel_mutated": False,
+                "secret_read": False,
+                "account_tier_affects_routing": False,
+                "api_billing_affects_routing": False,
+                "cross_project_disclosure": False,
+            }
+        if requirement != "REQUIRED_FOR_INTERACTIVE_CODEX_APP_ENVIRONMENT":
+            return {
+                "state": "TUNNEL_NOT_PART_OF_THIS_SURFACE_ROUTE",
+                "project_id": project_id,
+                "interaction_profile": interaction or "UNSPECIFIED",
+                "tunnel_mutated": False,
+                "secret_read": False,
+                "cross_project_disclosure": False,
+            }
+        version = str(_plugin_version_context().get("runtime_engine_version") or "")
+        match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", version)
+        if match is None:
+            raise ValueError("runtime engine version is not exact semver")
+        token = f"v{match.group(1)}{match.group(2)}{match.group(3)}"
+        expected_ephemeral = (
+            str(route.get("vm_lifetime") or "") == "EPHEMERAL_VM"
+        )
+        configured_runtime_root = str(
+            os.environ.get("EVIDENCE_LANE_TUNNEL_RUNTIME_ROOT") or ""
+        ).strip()
+        runtime_root = (
+            Path(configured_runtime_root).resolve()
+            if configured_runtime_root
+            else (
+                Path.home() / "EvidenceLanePV" / f"tunnel-runtime-{token}"
+                if expected_ephemeral
+                else _store_root() / f"tunnel-runtime-{token}"
+            )
+        )
+        marker_path = runtime_root / "evidence-lane-tunnel-installation.json"
+        installer = (
+            _plugin_root()
+            / "scripts"
+            / "windows_tunnel"
+            / "Install-EvidenceLaneTunnel.ps1"
+        )
+        host_lifetime = str(route.get("vm_lifetime") or "LOCAL_OR_PERSISTENT")
+        expected_lifetime = (
+            "EPHEMERAL" if host_lifetime == "EPHEMERAL_VM" else "PERSISTENT"
+        )
+        vm_instance_id = str(session.get("sandbox_id") or "").strip()
+        vm_instance_id_sha256 = (
+            hashlib.sha256(vm_instance_id.encode("utf-8")).hexdigest().upper()
+            if vm_instance_id
+            else None
+        )
+        if expected_lifetime == "EPHEMERAL" and vm_instance_id_sha256 is None:
+            return {
+                "state": "EPHEMERAL_VM_INSTANCE_ID_REQUIRED",
+                "project_id": project_id,
+                "release": version,
+                "interaction_profile": interaction,
+                "host_lifetime": expected_lifetime,
+                "runtime_root": str(runtime_root),
+                "raw_vm_instance_id_stored": False,
+                "tunnel_mutated": False,
+                "secret_read": False,
+                "cross_project_disclosure": False,
+            }
+        if not marker_path.is_file():
+            return {
+                "state": "FIRST_USE_TUNNEL_ONBOARDING_REQUIRED",
+                "project_id": project_id,
+                "release": version,
+                "interaction_profile": interaction,
+                "host_lifetime": expected_lifetime,
+                "account_tier": route.get("account_tier"),
+                "runtime_root": str(runtime_root),
+                "vm_instance_id_sha256": vm_instance_id_sha256,
+                "raw_vm_instance_id_stored": False,
+                "durable_pv_storage_reused_for_tunnel_secret": False,
+                "installer": str(installer),
+                "next_action": (
+                    "Run the installer once for this host/VM. It reuses a verified "
+                    "prior current-user DPAPI envelope when available; otherwise it "
+                    "prompts locally for the Runtime key without logging it."
+                ),
+                "tunnel_mutated": False,
+                "secret_read": False,
+                "cross_project_disclosure": False,
+            }
+        marker = json.loads(marker_path.read_text(encoding="utf-8"))
+        valid = (
+            marker.get("schema")
+            == "evidence-lane.versioned-secure-mcp-tunnel-installation.v1"
+            and marker.get("release") == version
+            and marker.get("interaction_profile") == interaction
+            and marker.get("host_lifetime") == expected_lifetime
+            and marker.get("runtime_key_plaintext_written") is False
+            and marker.get("vm_instance_id_sha256")
+            == (
+                vm_instance_id_sha256
+                if expected_lifetime == "EPHEMERAL"
+                else "NOT_APPLICABLE"
+            )
+        )
+        return {
+            "state": (
+                "TUNNEL_INSTALLATION_PRESENT_HOST_MANAGED"
+                if valid
+                else "TUNNEL_INSTALLATION_MISMATCH_REONBOARD_REQUIRED"
+            ),
+            "project_id": project_id,
+            "release": version,
+            "interaction_profile": interaction,
+            "host_lifetime": expected_lifetime,
+            "runtime_root": str(runtime_root),
+            "vm_instance_id_sha256": vm_instance_id_sha256,
+            "raw_vm_instance_id_stored": False,
+            "durable_pv_storage_reused_for_tunnel_secret": False,
+            "marker_sha256": hashlib.sha256(marker_path.read_bytes())
+            .hexdigest()
+            .upper(),
+            "health_claimed": False,
+            "tunnel_mutated": False,
+            "secret_read": False,
+            "cross_project_disclosure": False,
+        }
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+        return {
+            "state": "HOST_ACTIVATION_RECEIPT_INVALID_FAIL_CLOSED",
+            "project_id": project_id,
+            "error_type": type(exc).__name__,
+            "tunnel_mutated": False,
+            "secret_read": False,
+            "cross_project_disclosure": False,
+        }
+
+
 def _flash_context() -> str:
     prompt_path = (
         _plugin_root()
@@ -142,7 +450,7 @@ def _flash_context() -> str:
     )
 
 
-def _persistent_envelope() -> dict[str, object]:
+def _persistent_envelope(project_id: str | None) -> dict[str, object]:
     """Read a bounded durable status hint; lifecycle tools remain authoritative."""
     root = _store_root()
     projects_root = root / "projects"
@@ -154,11 +462,19 @@ def _persistent_envelope() -> dict[str, object]:
             "persistence_class": "USER_OWNED_LOCAL_STORE",
             "projects": [],
         }
+    if not project_id:
+        return {
+            "state": "EXACT_HOST_SESSION_PROJECT_BINDING_REQUIRED",
+            "store_configured": True,
+            "store_path": str(root),
+            "persistence_class": "USER_OWNED_LOCAL_STORE",
+            "project_count_returned": 0,
+            "projects": [],
+            "cross_project_disclosure": False,
+        }
     projects: list[dict[str, object]] = []
     warnings: list[dict[str, str]] = []
-    for project_root in sorted(projects_root.iterdir(), key=lambda path: path.name)[
-        :20
-    ]:
+    for project_root in [projects_root / project_id]:
         if not project_root.is_dir():
             continue
         try:
@@ -291,6 +607,7 @@ def _persistent_envelope() -> dict[str, object]:
         "project_count_returned": len(projects),
         "projects": projects,
         "warnings": warnings,
+        "cross_project_disclosure": False,
     }
 
 
@@ -302,6 +619,19 @@ def main() -> int:
     source = str(payload.get("source", "startup"))
     host_session_id = str(payload.get("session_id", "")).strip()
     activation = _runtime_activation()
+    try:
+        turn_control, turn_control_continue = _turn_control_context(payload)
+    except Exception as exc:  # noqa: BLE001 - startup must expose missing control
+        turn_control = {
+            "schema": "evidence-lane.codex-turn-control-gap.v1",
+            "state": "TURN_CONTROL_GAP",
+            "code": "TURN_CONTROL_MODULE_OR_POLICY_UNAVAILABLE",
+            "error_type": type(exc).__name__,
+            "fail_closed": activation.get("state") == "ACTIVE",
+            "source_mutation_authorized": False,
+            "private_reasoning_stored": False,
+        }
+        turn_control_continue = activation.get("state") != "ACTIVE"
     flash_context = (
         _flash_context()
         if activation.get("state") == "ACTIVE"
@@ -313,6 +643,10 @@ def main() -> int:
             "HIL approval, Fuse, pointer movement, or State Travel."
         )
     )
+    exact_project_id = str(turn_control.get("project_id") or "").strip() or None
+    host_activation = _host_activation_context(exact_project_id)
+    persistent_change_display = turn_control.get("persistent_change_display")
+    warm_attach_receipt = turn_control.get("warm_attach_receipt")
     context = (
         flash_context
         + "\n\nPLUGIN_RUNTIME_ENVELOPE="
@@ -352,7 +686,7 @@ def main() -> int:
         + source
         + ".\nPERSISTENT_STATE_ENVELOPE="
         + json.dumps(
-            _persistent_envelope(),
+            _persistent_envelope(exact_project_id),
             sort_keys=True,
             separators=(",", ":"),
         )
@@ -362,22 +696,76 @@ def main() -> int:
             sort_keys=True,
             separators=(",", ":"),
         )
-        + "\nThis envelope is a read-only startup hint. Call pv_status before "
-        "relying on it; Never infer HIL approval."
-    )
-    print(
-        json.dumps(
-            {
-                "continue": True,
-                "hookSpecificOutput": {
-                    "hookEventName": "SessionStart",
-                    "additionalContext": context,
-                },
+        + "\nHOST_ACTIVATION_ENVELOPE="
+        + json.dumps(
+            host_activation,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\nCODEX_TURN_CONTROL_ENVELOPE="
+        + json.dumps(
+            turn_control,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\nPERSISTENT_CHANGE_DISPLAY="
+        + json.dumps(
+            persistent_change_display
+            if isinstance(persistent_change_display, dict)
+            else {
+                "state": "UNAVAILABLE_UNTIL_EXACT_STRICT_PROJECT_TASK_BINDING",
+                "cross_project_disclosure": False,
+                "composer_mutated": False,
+                "auto_submit": False,
             },
             sort_keys=True,
             separators=(",", ":"),
         )
+        + "\nCODEX_WARM_ATTACH_RECEIPT="
+        + json.dumps(
+            warm_attach_receipt
+            if isinstance(warm_attach_receipt, dict)
+            else {
+                "state": "UNAVAILABLE_UNTIL_EXACT_STRICT_PROJECT_TASK_BINDING",
+                "tunnel_provisioning_wait_ns": 0,
+                "tunnel_state_queried": False,
+                "codex_tunnel_lifecycle_proof_allowed": False,
+                "cross_project_disclosure": False,
+                "lifecycle_mutated": False,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\nThis envelope is a read-only startup hint. Call pv_status before "
+        "relying on it; Never infer HIL approval."
     )
+    result: dict[str, Any] = {
+        "continue": turn_control_continue,
+        "hookSpecificOutput": {
+            "hookEventName": "SessionStart",
+            "additionalContext": context,
+        },
+    }
+    if not turn_control_continue:
+        result["stopReason"] = (
+            "Governed Evidence Lane SessionStart binding failed closed before source mutation."
+        )
+    if isinstance(persistent_change_display, dict):
+        _, _, persistent_change_system_notice, _, _ = _load_turn_control()
+        notice = persistent_change_system_notice(
+            persistent_change_display,
+            phase="SESSION_START",
+            turn_receipt=turn_control,
+        )
+        result["systemMessage"] = (
+            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
+            + json.dumps(
+                notice,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+        )
+    print(json.dumps(result, sort_keys=True, separators=(",", ":")))
     return 0
 
 

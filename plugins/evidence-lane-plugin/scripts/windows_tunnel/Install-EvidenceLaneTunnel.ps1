@@ -1,15 +1,26 @@
 [CmdletBinding()]
 param(
     [string]$TunnelClientSource = "",
+    [string]$TunnelClientDownloadUri = "$env:EVIDENCE_LANE_TUNNEL_CLIENT_DOWNLOAD_URI",
     [string]$TunnelId = "",
     [string]$PluginRoot = "",
     [string]$DataRoot = "$env:USERPROFILE\EvidenceLanePV",
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150",
-    [string]$ProfileName = "evidence_lane_v150_chatgpt_read",
-    [string]$TaskName = "EvidenceLane-Tunnel-v150",
+    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200",
+    [string]$ProfileName = "evidence_lane_v200_transport",
+    [string]$TaskName = "EvidenceLane-Tunnel-v200",
+    [string]$RuntimeKeyEnvelopeSource = "",
+    [ValidateSet("Auto", "Persistent", "Ephemeral")]
+    [string]$HostLifetime = "Auto",
+    [string]$VmInstanceId = "$env:EVIDENCE_LANE_VM_INSTANCE_ID",
+    [ValidateSet("CODEX_APP_INTERACTIVE", "HEADLESS_API", "DIRECT_CLI_API")]
+    [string]$InteractionProfile = "CODEX_APP_INTERACTIVE",
+    [ValidateSet("UNSPECIFIED", "PRO", "PLUS", "BUSINESS", "EDU", "ENTERPRISE")]
+    [string]$AccountTier = "UNSPECIFIED",
     [switch]$RotateRuntimeKey,
-    [switch]$MigrateCurrentRuntime,
-    [switch]$NoStart
+    [switch]$Activate,
+    [string]$HealthReceiptSha256 = "",
+    [string]$PublicRouteReceiptSha256 = "",
+    [string]$HostProofReceiptSha256 = ""
 )
 
 Set-StrictMode -Version Latest
@@ -21,13 +32,76 @@ $secretRoot = Join-Path $RuntimeRoot "secrets"
 $secretFile = Join-Path $secretRoot "control-plane-runtime-key.dpapi"
 $bootTarget = Join-Path $RuntimeRoot "EvidenceLaneTunnel.Boot.ps1"
 $manageTarget = Join-Path $RuntimeRoot "Manage-EvidenceLaneTunnel.ps1"
-$childTarget = Join-Path $RuntimeRoot "_INTERNAL_CHATGPT_READ_MCP_DO_NOT_RUN.ps1"
+$versionManagerTarget = Join-Path $RuntimeRoot "Manage-EvidenceLaneTunnelVersions.ps1"
+$childTarget = Join-Path $RuntimeRoot "_INTERNAL_EVIDENCE_LANE_MCP_LAYER_DO_NOT_RUN.ps1"
 $markerFile = Join-Path $RuntimeRoot "evidence-lane-tunnel-installation.json"
 $sourceBoot = Join-Path $PSScriptRoot "EvidenceLaneTunnel.Boot.ps1"
 $sourceManage = Join-Path $PSScriptRoot "Manage-EvidenceLaneTunnel.ps1"
+$sourceVersionManager = Join-Path $PSScriptRoot "Manage-EvidenceLaneTunnelVersions.ps1"
 $profileDir = Join-Path $env:APPDATA "tunnel-client"
 $profileFile = Join-Path $profileDir ($ProfileName + ".yaml")
-$legacyPidFile = Join-Path "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime" "evidence_lane_v130_tunnel.pid"
+$runtimeKeyEnvelopeReused = $false
+$tunnelIdReused = $false
+$dependencyAcquisition = "EXISTING_VERIFIED_CLIENT"
+
+if ($InteractionProfile -in @("HEADLESS_API", "DIRECT_CLI_API")) {
+    [ordered]@{
+        status = "PASS"
+        release = "2.0.0"
+        interaction_profile = $InteractionProfile
+        account_tier = $AccountTier
+        tunnel_requirement = "NOT_REQUIRED_FOR_API_LAYER"
+        tunnel_installed = $false
+        local_pv_storage_allowed_when_durable = $true
+        account_tier_affects_routing = $false
+        api_billing_affects_routing = $false
+        runtime_key_requested = $false
+    } | ConvertTo-Json -Depth 4
+    exit 0
+}
+
+$exactHostLifetime = if ($HostLifetime -ne "Auto") {
+    $HostLifetime
+}
+elseif ($env:EVIDENCE_LANE_VM_LIFETIME -eq "EPHEMERAL") {
+    "Ephemeral"
+}
+else {
+    "Persistent"
+}
+
+function Get-StringSha256 {
+    param([Parameter(Mandatory = $true)][string]$Value)
+    $bytes = [Text.Encoding]::UTF8.GetBytes($Value)
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try {
+        return ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace("-", "")
+    }
+    finally {
+        $sha.Dispose()
+    }
+}
+
+$exactVmInstanceId = $VmInstanceId.Trim()
+$vmInstanceIdSha256 = "NOT_APPLICABLE"
+if ($exactHostLifetime -eq "Ephemeral") {
+    if ([string]::IsNullOrWhiteSpace($exactVmInstanceId)) {
+        throw "Ephemeral interactive setup requires -VmInstanceId or EVIDENCE_LANE_VM_INSTANCE_ID."
+    }
+    if (-not [string]::IsNullOrWhiteSpace($RuntimeKeyEnvelopeSource)) {
+        throw "An ephemeral VM cannot import a Runtime key envelope from durable storage."
+    }
+    $vmInstanceIdSha256 = Get-StringSha256 -Value $exactVmInstanceId
+    if (Test-Path -LiteralPath $markerFile -PathType Leaf) {
+        $existingVmMarker = Get-Content -LiteralPath $markerFile -Raw | ConvertFrom-Json
+        if ([string]$existingVmMarker.vm_instance_id_sha256 -ne $vmInstanceIdSha256) {
+            throw "This ephemeral RuntimeRoot belongs to another VM instance; use a fresh VM-local RuntimeRoot."
+        }
+    }
+    elseif (Test-Path -LiteralPath $secretFile -PathType Leaf) {
+        throw "An unbound encrypted key exists in the ephemeral RuntimeRoot; use a fresh VM-local RuntimeRoot."
+    }
+}
 
 function Resolve-TunnelClientSource {
     if (-not [string]::IsNullOrWhiteSpace($TunnelClientSource)) {
@@ -41,7 +115,40 @@ function Resolve-TunnelClientSource {
     if (Test-Path -LiteralPath $historical -PathType Leaf) {
         return $historical
     }
-    throw "Provide -TunnelClientSource with the pinned v0.0.10 tunnel-client binary."
+    $priorClients = @(
+        Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($DataRoot)) `
+            -Directory -Filter "tunnel-runtime-*" -ErrorAction SilentlyContinue |
+            ForEach-Object {
+                Join-Path $_.FullName "bin\tunnel-client-v0.0.10.exe"
+            } |
+            Where-Object {
+                (Test-Path -LiteralPath $_ -PathType Leaf) -and
+                (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash -eq $expectedClientSha256
+            }
+    )
+    if ($priorClients.Count -gt 0) {
+        return [string]$priorClients[0]
+    }
+    if (-not [string]::IsNullOrWhiteSpace($TunnelClientDownloadUri)) {
+        $downloadUri = [Uri]$TunnelClientDownloadUri
+        if (
+            $downloadUri.Scheme -ne "https" -or
+            -not [string]::IsNullOrWhiteSpace($downloadUri.UserInfo)
+        ) {
+            throw "The tunnel-client dependency URI must be credential-free HTTPS."
+        }
+        $dependencyRoot = Join-Path ([IO.Path]::GetFullPath($DataRoot)) "dependency-cache"
+        New-Item -ItemType Directory -Path $dependencyRoot -Force | Out-Null
+        $downloadTarget = Join-Path $dependencyRoot "tunnel-client-v0.0.10.exe"
+        Invoke-WebRequest -Uri $downloadUri -OutFile $downloadTarget -UseBasicParsing
+        if ((Get-FileHash -LiteralPath $downloadTarget -Algorithm SHA256).Hash -ne $expectedClientSha256) {
+            Remove-Item -LiteralPath $downloadTarget -Force -ErrorAction SilentlyContinue
+            throw "The downloaded tunnel-client does not match the pinned v0.0.10 SHA-256."
+        }
+        $script:dependencyAcquisition = "DOWNLOADED_FROM_CONFIGURED_HTTPS_AND_HASH_VERIFIED"
+        return $downloadTarget
+    }
+    throw "The pinned tunnel-client dependency is missing. Configure EVIDENCE_LANE_TUNNEL_CLIENT_DOWNLOAD_URI or provide -TunnelClientSource; no unverified binary will be installed."
 }
 
 function Resolve-PluginRoot {
@@ -60,7 +167,7 @@ function Resolve-PythonCommand {
     }
     $command = Get-Command python -ErrorAction SilentlyContinue
     if ($null -eq $command) {
-        throw "Python 3.11 or newer is required before installing the ChatGPT read tunnel."
+        throw "Python 3.11 or newer is required before installing the versioned secure MCP transport."
     }
     return $command.Source
 }
@@ -110,6 +217,34 @@ function Save-RuntimeKeyEnvelope {
 
 function Resolve-TunnelId {
     $value = $TunnelId.Trim()
+    if (
+        [string]::IsNullOrWhiteSpace($value) -and
+        $exactHostLifetime -ne "Ephemeral"
+    ) {
+        $value = [string]$env:EVIDENCE_LANE_TUNNEL_ID
+    }
+    if ([string]::IsNullOrWhiteSpace($value)) {
+        $priorMarkers = @(
+            Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($DataRoot)) `
+                -Directory -Filter "tunnel-runtime-*" -ErrorAction SilentlyContinue |
+                ForEach-Object { Join-Path $_.FullName "evidence-lane-tunnel-installation.json" } |
+                Where-Object { Test-Path -LiteralPath $_ -PathType Leaf }
+        )
+        foreach ($priorMarkerPath in $priorMarkers) {
+            try {
+                $priorMarker = Get-Content -LiteralPath $priorMarkerPath -Raw | ConvertFrom-Json
+                $priorId = [string]$priorMarker.tunnel_id
+                if ($priorId -match '^tunnel_[A-Za-z0-9]+$') {
+                    $value = $priorId
+                    $script:tunnelIdReused = $true
+                    break
+                }
+            }
+            catch {
+                continue
+            }
+        }
+    }
     if ([string]::IsNullOrWhiteSpace($value)) {
         $value = (Read-Host "Tunnel ID from the OpenAI Platform tunnel page").Trim()
     }
@@ -119,7 +254,29 @@ function Resolve-TunnelId {
     return $value
 }
 
-function Write-GovernedChildLauncher {
+function Resolve-PriorRuntimeKeyEnvelope {
+    if ($exactHostLifetime -eq "Ephemeral") {
+        return ""
+    }
+    if (-not [string]::IsNullOrWhiteSpace($RuntimeKeyEnvelopeSource)) {
+        return $RuntimeKeyEnvelopeSource
+    }
+    $priorEnvelopes = @(
+        Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($DataRoot)) `
+            -Directory -Filter "tunnel-runtime-*" -ErrorAction SilentlyContinue |
+            ForEach-Object { Join-Path $_.FullName "secrets\control-plane-runtime-key.dpapi" } |
+            Where-Object {
+                (Test-Path -LiteralPath $_ -PathType Leaf) -and
+                ([IO.Path]::GetFullPath($_) -ne [IO.Path]::GetFullPath($secretFile))
+            }
+    )
+    if ($priorEnvelopes.Count -gt 0) {
+        return [string]$priorEnvelopes[0]
+    }
+    return ""
+}
+
+function Write-LayeredChildLauncher {
     param(
         [Parameter(Mandatory = $true)][string]$Python,
         [Parameter(Mandatory = $true)][string]$Runner,
@@ -140,33 +297,6 @@ exit `$LASTEXITCODE
     Set-Content -LiteralPath $childTarget -Value $launcher -Encoding UTF8
 }
 
-function Stop-VerifiedLegacyRuntime {
-    if (-not (Test-Path -LiteralPath $legacyPidFile -PathType Leaf)) {
-        return
-    }
-    $rawPid = (Get-Content -LiteralPath $legacyPidFile -Raw).Trim()
-    $parsedPid = 0
-    if (-not [int]::TryParse($rawPid, [ref]$parsedPid)) {
-        return
-    }
-    $process = Get-Process -Id $parsedPid -ErrorAction SilentlyContinue
-    if ($null -eq $process) {
-        return
-    }
-    $processHash = (Get-FileHash -LiteralPath $process.Path -Algorithm SHA256).Hash
-    if ($processHash -ne $expectedClientSha256) {
-        throw "Refusing to stop an unverified process from the historical PID file."
-    }
-    Stop-Process -Id $parsedPid
-    Wait-Process -Id $parsedPid -Timeout 20 -ErrorAction SilentlyContinue
-}
-
-$resolvedSource = Resolve-TunnelClientSource
-$sourceHash = (Get-FileHash -LiteralPath $resolvedSource -Algorithm SHA256).Hash
-if ($sourceHash -ne $expectedClientSha256) {
-    throw "The supplied tunnel-client binary does not match the pinned v0.0.10 SHA-256."
-}
-$exactTunnelId = Resolve-TunnelId
 $exactPluginRoot = Resolve-PluginRoot
 $runner = Join-Path $exactPluginRoot "scripts\run_mcp.py"
 if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
@@ -178,6 +308,12 @@ if (Test-Path -LiteralPath $exactDataRoot -PathType Leaf) {
     throw "The configured Evidence Lane data root is a file, not a durable directory."
 }
 New-Item -ItemType Directory -Path $exactDataRoot -Force | Out-Null
+$resolvedSource = Resolve-TunnelClientSource
+$sourceHash = (Get-FileHash -LiteralPath $resolvedSource -Algorithm SHA256).Hash
+if ($sourceHash -ne $expectedClientSha256) {
+    throw "The supplied tunnel-client binary does not match the pinned v0.0.10 SHA-256."
+}
+$exactTunnelId = Resolve-TunnelId
 
 New-Item -ItemType Directory -Path (Split-Path -Parent $stableClient) -Force | Out-Null
 New-Item -ItemType Directory -Path $secretRoot -Force | Out-Null
@@ -185,13 +321,33 @@ New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
 Copy-Item -LiteralPath $resolvedSource -Destination $stableClient -Force
 Copy-Item -LiteralPath $sourceBoot -Destination $bootTarget -Force
 Copy-Item -LiteralPath $sourceManage -Destination $manageTarget -Force
+Copy-Item -LiteralPath $sourceVersionManager -Destination $versionManagerTarget -Force
 Protect-SecretDirectory
 
 if ($RotateRuntimeKey -or -not (Test-Path -LiteralPath $secretFile -PathType Leaf)) {
-    Save-RuntimeKeyEnvelope
+    $effectiveEnvelopeSource = Resolve-PriorRuntimeKeyEnvelope
+    if (-not [string]::IsNullOrWhiteSpace($effectiveEnvelopeSource) -and -not $RotateRuntimeKey) {
+        $exactEnvelopeSource = [IO.Path]::GetFullPath($effectiveEnvelopeSource)
+        $approvedEnvelopeParent = $exactDataRoot + [IO.Path]::DirectorySeparatorChar
+        if (
+            -not $exactEnvelopeSource.StartsWith(
+                $approvedEnvelopeParent,
+                [StringComparison]::OrdinalIgnoreCase
+            ) -or
+            [IO.Path]::GetFileName($exactEnvelopeSource) -ne "control-plane-runtime-key.dpapi" -or
+            -not (Test-Path -LiteralPath $exactEnvelopeSource -PathType Leaf)
+        ) {
+            throw "The reusable DPAPI envelope must be an existing saved Evidence Lane tunnel envelope."
+        }
+        Copy-Item -LiteralPath $exactEnvelopeSource -Destination $secretFile -Force
+        $runtimeKeyEnvelopeReused = $true
+    }
+    else {
+        Save-RuntimeKeyEnvelope
+    }
 }
 
-Write-GovernedChildLauncher -Python $python -Runner $runner -ExactDataRoot $exactDataRoot
+Write-LayeredChildLauncher -Python $python -Runner $runner -ExactDataRoot $exactDataRoot
 $powershell = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
 $powershellForCommand = $powershell.Replace('\', '/')
 $childForCommand = $childTarget.Replace('\', '/')
@@ -208,17 +364,22 @@ $mcpCommand = '"' + $powershellForCommand + '" -NoLogo -NoProfile -NonInteractiv
     --health-listen-addr "127.0.0.1:0" `
     --force *> $null
 if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $profileFile -PathType Leaf)) {
-    throw "The exact ChatGPT read-tunnel profile could not be created."
+    throw "The exact versioned secure MCP transport profile could not be created."
 }
 
 $marker = [ordered]@{
-    schema = "evidence-lane.chatgpt-governed-tunnel-installation.v1"
-    release = "1.5.0"
+    schema = "evidence-lane.versioned-secure-mcp-tunnel-installation.v1"
+    release = "2.0.0"
     runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
     profile_name = $ProfileName
     profile_file = $profileFile
     task_name = $TaskName
     exposure_profile = "CHATGPT_PRO_GOVERNED"
+    transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"
+    served_exposure_layer = "CHATGPT_PRO_GOVERNED"
+    chatgpt_is_layer_not_transport_identity = $true
+    codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"
+    codex_tunnel_lifecycle_proof_allowed = $false
     plugin_root = $exactPluginRoot
     data_root = $exactDataRoot
     project_binding = "NONE_TRANSPORT_ONLY"
@@ -226,6 +387,26 @@ $marker = [ordered]@{
     project_route_argument_required = $true
     cross_project_fallback_allowed = $false
     tunnel_id = $exactTunnelId
+    stable_client = $stableClient
+    stable_client_sha256 = $expectedClientSha256
+    pid_file = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "evidence_lane_v200_tunnel.pid"
+    health_url_file = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "evidence_lane_v200_health.url"
+    version_manager = $versionManagerTarget
+    saved_version = $true
+    reusable_without_reinstall = $true
+    runtime_key_envelope_reused = $runtimeKeyEnvelopeReused
+    tunnel_id_reused = $tunnelIdReused
+    interaction_profile = $InteractionProfile
+    account_tier = $AccountTier
+    account_tier_affects_routing = $false
+    api_billing_affects_routing = $false
+    host_lifetime = $exactHostLifetime.ToUpperInvariant()
+    vm_instance_id_sha256 = $vmInstanceIdSha256
+    raw_vm_instance_id_stored = $false
+    tunnel_setup_frequency = if ($exactHostLifetime -eq "Ephemeral") { "ONCE_PER_EPHEMERAL_VM_INSTANCE" } else { "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE" }
+    tunnel_key_retention = if ($exactHostLifetime -eq "Ephemeral") { "CURRENT_VM_LIFETIME_ONLY" } else { "CURRENT_WINDOWS_USER_DPAPI_PROFILE" }
+    tunnel_runtime_lifetime = if ($exactHostLifetime -eq "Ephemeral") { "CURRENT_VM_LIFETIME_ONLY" } else { "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST" }
+    dependency_acquisition = $dependencyAcquisition
     runtime_key_plaintext_written = $false
 }
 $marker | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $markerFile -Encoding UTF8
@@ -250,19 +431,51 @@ Register-ScheduledTask `
     -Trigger $trigger `
     -Principal $principal `
     -Settings $settings `
-    -Description "Pinned Evidence Lane 1.5.0 governed ChatGPT Pro tunnel; automatic after Windows user sign-in." `
+    -Description "Pinned Evidence Lane 2.0.0 host-neutral secure MCP tunnel; automatic after Windows user sign-in." `
     -Force | Out-Null
 
-if ($MigrateCurrentRuntime) {
-    Stop-VerifiedLegacyRuntime
+$tunnelRegistryDataRoot = if ($exactHostLifetime -eq "Ephemeral") {
+    Split-Path -Parent ([IO.Path]::GetFullPath($RuntimeRoot))
 }
-if (-not $NoStart) {
-    Start-ScheduledTask -TaskName $TaskName
+else {
+    $exactDataRoot
+}
+$savedManagerRoot = Join-Path $tunnelRegistryDataRoot "tunnel-versions"
+$savedManager = Join-Path $savedManagerRoot "Manage-EvidenceLaneTunnelVersions.ps1"
+New-Item -ItemType Directory -Path $savedManagerRoot -Force | Out-Null
+Copy-Item -LiteralPath $sourceVersionManager -Destination $savedManager -Force
+Disable-ScheduledTask -TaskName $TaskName | Out-Null
+& $savedManager `
+    -Action Register `
+    -RuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot)) `
+    -Channel "future-test" `
+    -DataRoot $tunnelRegistryDataRoot *> $null
+if ($LASTEXITCODE -ne 0) {
+    throw "The v2.0 tunnel could not be added to the saved version registry."
+}
+if ($Activate) {
+    & $savedManager `
+        -Action VerifyCandidate `
+        -Release "2.0.0" `
+        -DataRoot $tunnelRegistryDataRoot *> $null
+    if ($LASTEXITCODE -ne 0) {
+        throw "The v2.0 future-test tunnel failed; the stable route was never stopped."
+    }
+    & $savedManager `
+        -Action Promote `
+        -Release "2.0.0" `
+        -DataRoot $tunnelRegistryDataRoot `
+        -HealthReceiptSha256 $HealthReceiptSha256 `
+        -PublicRouteReceiptSha256 $PublicRouteReceiptSha256 `
+        -HostProofReceiptSha256 $HostProofReceiptSha256 *> $null
+    if ($LASTEXITCODE -ne 0) {
+        throw "The v2.0 tunnel promotion was blocked; the existing stable channel remains authoritative."
+    }
 }
 
 [ordered]@{
     status = "PASS"
-    release = "1.5.0"
+    release = "2.0.0"
     task_name = $TaskName
     trigger = "AT_LOGON"
     current_user_dpapi = $true
@@ -270,6 +483,11 @@ if (-not $NoStart) {
     stable_client_sha256 = (Get-FileHash -LiteralPath $stableClient -Algorithm SHA256).Hash
     profile = $ProfileName
     exposure_profile = "CHATGPT_PRO_GOVERNED"
+    transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"
+    served_exposure_layer = "CHATGPT_PRO_GOVERNED"
+    chatgpt_is_layer_not_transport_identity = $true
+    codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"
+    codex_tunnel_lifecycle_proof_allowed = $false
     data_root = $exactDataRoot
     project_binding = "NONE_TRANSPORT_ONLY"
     project_route_argument = "project_id"
@@ -280,6 +498,28 @@ if (-not $NoStart) {
     exact_fail_closed_write_tool_count = 41
     tunnel_id_recorded = $true
     runtime_key_plaintext_written = $false
+    runtime_key_envelope_reused = $runtimeKeyEnvelopeReused
+    tunnel_id_reused = $tunnelIdReused
+    dependency_acquisition = $dependencyAcquisition
+    interaction_profile = $InteractionProfile
+    account_tier = $AccountTier
+    account_tier_affects_routing = $false
+    api_billing_affects_routing = $false
+    host_lifetime = $exactHostLifetime.ToUpperInvariant()
+    vm_instance_id_sha256 = $vmInstanceIdSha256
+    raw_vm_instance_id_stored = $false
+    tunnel_setup_frequency = if ($exactHostLifetime -eq "Ephemeral") { "ONCE_PER_EPHEMERAL_VM_INSTANCE" } else { "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE" }
+    tunnel_key_retention = if ($exactHostLifetime -eq "Ephemeral") { "CURRENT_VM_LIFETIME_ONLY" } else { "CURRENT_WINDOWS_USER_DPAPI_PROFILE" }
+    tunnel_runtime_lifetime = if ($exactHostLifetime -eq "Ephemeral") { "CURRENT_VM_LIFETIME_ONLY" } else { "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST" }
     chatgpt_link_required_once = $true
-    started = -not $NoStart
+    saved_version = $true
+    reusable_without_reinstall = $true
+    version_registry = Join-Path $savedManagerRoot "registry.json"
+    tunnel_registry_lifetime = if ($exactHostLifetime -eq "Ephemeral") { "CURRENT_VM_LIFETIME_ONLY" } else { "PERSISTENT_HOST" }
+    fallback_versions_preserved = $true
+    registered_channel = "future-test"
+    promotion_requires_three_receipt_hashes = $true
+    failed_candidate_leaves_stable_untouched = $true
+    activated = [bool]$Activate
+    started = [bool]$Activate
 } | ConvertTo-Json -Depth 4

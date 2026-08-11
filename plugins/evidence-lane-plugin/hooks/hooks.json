@@ -1,5 +1,5 @@
 {
-  "description": "Evidence Lane session context plus ordered secret-redacted visible prompt, mid-turn steer, and response indexing. Hooks never continue a turn or mutate source, PVs, pointers, or credentials.",
+  "description": "Evidence Lane exact-session turn control: warm-attach the already-active package-local native MCP route with zero tunnel provisioning wait, PREPARE secret-redacted visible input before execution, recover interrupted turns at SessionStart, and COMMIT the visible response plus trustworthy host metrics. Hooks never mutate source, PVs, pointers, candidates, HIL, or credentials.",
   "hooks": {
     "SessionStart": [
       {
@@ -10,7 +10,7 @@
             "command": "python3 \"$PLUGIN_ROOT/hooks/session_start.py\"",
             "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\session_start.py\"",
             "timeout": 10,
-            "statusMessage": "Loading Evidence Lane boundary"
+            "statusMessage": "Warm-attaching Evidence Lane locally"
           }
         ]
       }
@@ -23,7 +23,7 @@
             "command": "python3 \"$PLUGIN_ROOT/hooks/prompt_submit.py\"",
             "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\prompt_submit.py\"",
             "timeout": 10,
-            "statusMessage": "Indexing Evidence Lane prompt entry"
+            "statusMessage": "Preparing Evidence Lane governed turn"
           }
         ]
       }
@@ -36,7 +36,7 @@
             "command": "python3 \"$PLUGIN_ROOT/hooks/stop_response.py\"",
             "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\stop_response.py\"",
             "timeout": 10,
-            "statusMessage": "Indexing visible Evidence Lane response"
+            "statusMessage": "Committing Evidence Lane governed turn"
           }
         ]
       }

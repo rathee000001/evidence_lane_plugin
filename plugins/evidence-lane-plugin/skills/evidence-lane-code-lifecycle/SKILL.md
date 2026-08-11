@@ -34,7 +34,10 @@ Use one linear state machine. Runtime context is never accepted evidence.
   monotonic PV ordinal.
 - Record visible operational evidence only. Redact secrets and never store
   hidden chain-of-thought or private model reasoning.
-- Remote Git writes require a separately prepared, exact one-use confirmation.
+- Remote Git writes require a separately prepared exact action. Version 2 may
+  execute the sole registered non-protected test branch without a per-push
+  confirmation token; main, merge, PR acceptance, force, branch mismatch, and
+  host-credential intake remain forbidden.
 - Preserve one governed project, one live writer, linear execution, and
   evidence-first verification under the exact host execution profile. Read-only
   recovery agents are allowed only at a genuine State Travel entry. After
@@ -82,7 +85,9 @@ lifecycle position without creating a candidate or moving a pointer.
 Plan mode is not active, return the `/pl` reminder without persisting a plan.
 After planning, persist the canonical Plan Lane and return the short prompt the
 user copies into the host-owned Goal. Linked steers append to an existing row;
-unrelated steers append a new numbered row. The default steer boundary is
+unrelated steers insert a new numbered row before the next HIL when present.
+Mark the physically final HIL task with `panel_role=PHYSICALLY_FINAL_HIL`, and
+never place a later correction behind it. The default steer boundary is
 before the next HIL, and the full task panel persists until that HIL. ChatGPT
 uses its mounted persistent plugin store and never claims Codex Plan/Goal UI.
 
@@ -128,7 +133,8 @@ limited to eight additional active plugins; drop requires its exact token.
 
 1. Append requested Deltas with `pv_plan_tasks`; never delete, reorder, or
    silently complete backlog history. Record each steer through
-   `pv_plan_steer_delta`, linking it to an existing row or appending a new row.
+   `pv_plan_steer_delta`, linking it to an existing row or inserting a new row
+   before the next governed HIL.
 2. Classify exactly one bounded task and record visible activities.
 3. Use accepted evidence as entry truth and live repository evidence for
    source changed after entry.

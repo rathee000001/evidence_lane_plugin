@@ -23,10 +23,11 @@ from .errors import EvidenceLaneError, require
 from .flash_authority import SessionFlashAuthority
 from .freshness import evaluate_freshness
 from .git_adapter import inspect_repository
-from .hashing import sha256_bytes
+from .hashing import canonical_json_bytes, sha256_bytes
 from .hil_intent import classify_hil_intent
 from .ids import prefixed_id
 from .lane_reader import LaneReader
+from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 from .lineage import ProjectChatLineage
 from .models import ProjectConfig, normalize_host_kind
 from .next_actions import HIL_CHOICES, HIL_SUGGESTED_PROMPT
@@ -62,6 +63,95 @@ from .store import ProjectStore
 from .timeutil import utc_now
 
 _STATUS_VALIDATION_WORKERS = 8
+
+
+def _accepted_lane_projection(
+    store: ProjectStore,
+    project_id: str,
+    accepted_pv: str | None,
+) -> dict[str, Any]:
+    """Return compact public-safe lane facts from the validated accepted package."""
+
+    if not accepted_pv:
+        return {
+            "authority": "NO_ACCEPTED_PV",
+            "pv_ref": None,
+            "canonical_lane_count": len(CANONICAL_LANE_IDS),
+            "emitted_lane_count": 0,
+            "absent_lane_ids": list(CANONICAL_LANE_IDS),
+            "lanes": [
+                {
+                    "id": lane_id,
+                    "label": LANE_REGISTRY[lane_id].display_label,
+                    "value": "NO ACCEPTED PV | no lane authority available",
+                    "state": "NO_ACCEPTED_PV",
+                    "contract_status": "NOT_APPLICABLE",
+                    "member_count": 0,
+                }
+                for lane_id in CANONICAL_LANE_IDS
+            ],
+        }
+
+    manifest = json.loads(
+        (store.accepted_path(project_id, accepted_pv) / "manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    universal = manifest.get("universal_lanes")
+    if not isinstance(universal, dict):
+        universal = {}
+    emitted = {
+        str(lane_id)
+        for lane_id in (universal.get("emitted_lane_ids") or [])
+        if str(lane_id) in CANONICAL_LANE_IDS
+    }
+    contracts = universal.get("four_file_contracts")
+    if not isinstance(contracts, dict):
+        contracts = {}
+    lanes: list[dict[str, Any]] = []
+    for lane_id in CANONICAL_LANE_IDS:
+        contract = contracts.get(lane_id)
+        if not isinstance(contract, dict):
+            contract = {}
+        members = contract.get("members")
+        member_count = len(members) if isinstance(members, list) else 0
+        state = "EMITTED" if lane_id in emitted else "NOT_EMITTED"
+        contract_status = (
+            str(contract.get("status") or "UNKNOWN")
+            if lane_id in emitted
+            else "NOT_APPLICABLE"
+        )
+        lanes.append(
+            {
+                "id": lane_id,
+                "label": LANE_REGISTRY[lane_id].display_label,
+                "value": (
+                    f"{state} | {contract_status} | {member_count} sealed files | "
+                    f"accepted {accepted_pv}"
+                ),
+                "state": state,
+                "contract_status": contract_status,
+                "member_count": member_count,
+                "authority": "ACCEPTED_IMMUTABLE_AUTHORITY",
+                "pv_ref": accepted_pv,
+            }
+        )
+    absent = [lane_id for lane_id in CANONICAL_LANE_IDS if lane_id not in emitted]
+    return {
+        "authority": "ACCEPTED_IMMUTABLE_AUTHORITY",
+        "pv_ref": accepted_pv,
+        "canonical_lane_count": len(CANONICAL_LANE_IDS),
+        "manifest_declared_canonical_lane_count": int(
+            universal.get("canonical_lane_count") or 0
+        ),
+        "emitted_lane_count": len(emitted),
+        "absent_lane_ids": absent,
+        "bundle_sha256": universal.get("bundle_sha256"),
+        "topology_status": (
+            "PASS" if universal.get("topology_valid") is True else "NOT_PROVEN"
+        ),
+        "lanes": lanes,
+    }
 
 
 class EvidenceLaneService:
@@ -168,12 +258,14 @@ class EvidenceLaneService:
         host: str,
         ephemeral: bool,
         server_has_durable_filesystem: bool | None,
+        runtime_context: dict[str, Any] | None = None,
     ) -> tuple[PersistenceRoute, dict[str, Any]]:
         host_kind = normalize_host_kind(host)
         automatic = route_persistence(
             host_kind,
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
+            runtime_context=runtime_context,
         )
         selection = self.storage_selection.inspect(project_id)
         if selection["mode"] == "AUTO":
@@ -1133,12 +1225,18 @@ class EvidenceLaneService:
             project_route["active_server_filesystem"] = active_route.get(
                 "server_filesystem"
             )
+        lane_projection = _accepted_lane_projection(
+            self.store,
+            project_id,
+            pointer.accepted_pv,
+        )
         result.update(
             {
                 "status": "PASS",
                 "store": str(self.store.root),
                 "project_route": project_route,
                 "storage_selection": storage_selection,
+                "lane_projection": lane_projection,
                 "accepted_history": accepted_history,
                 "current_freshness": current_freshness,
                 "active_session": active_session,
@@ -1172,6 +1270,20 @@ class EvidenceLaneService:
     ) -> dict[str, Any]:
         exact_host = str(host_kind or "").strip().upper()
         exact_mode = str(host_mode or "").strip().upper()
+        if exact_host.startswith("CHATGPT"):
+            return {
+                "status": "HOST_DEFERRED",
+                "plan_persisted": False,
+                "host_kind": exact_host,
+                "host_mode": exact_mode or "NOT_DECLARED",
+                "canonical_authority": "PLAN_LANE",
+                "parked_scope": "CHATGPT_PLUGIN_LAYER",
+                "reactivation_requires": "NEW_EXPLICIT_HUMAN_PLAN_AND_HIL",
+                "message": (
+                    "The ChatGPT plugin layer is parked and cannot add executable "
+                    "rows to the Codex Goal projection."
+                ),
+            }
         if exact_host.startswith("CODEX") and exact_mode != "PLAN":
             return {
                 "status": "PLAN_MODE_REQUIRED",
@@ -1200,10 +1312,7 @@ class EvidenceLaneService:
             ],
             "copy_paste_required": exact_host.startswith("CODEX"),
             "host_goal_mutation_supported_by_mcp": False,
-            "chatgpt_uses_codex_plan_ui": False,
-            "chatgpt_mounted_plugin_store_is_authority": exact_host.startswith(
-                "CHATGPT"
-            ),
+            "host_scope": "CODEX_ONLY",
         }
         return result
 
@@ -1356,6 +1465,21 @@ class EvidenceLaneService:
                 if replace_registered_branch and session is not None
                 else None
             ),
+            dirty_local_authority_context=(
+                {
+                    "session_id": session.session_id,
+                    "task_id": str(task_payload["task_id"]),
+                    "task_class": str(task_payload["task_class"]),
+                    "lifecycle_state": session.state.value,
+                    "task_contract_sha256": sha256_bytes(
+                        canonical_json_bytes(task_payload)
+                    ),
+                }
+                if replace_registered_branch
+                and session is not None
+                and permitted_paths is not None
+                else None
+            ),
         )
         if session is not None:
             activity = self.sessions.record_activity(
@@ -1373,6 +1497,17 @@ class EvidenceLaneService:
                     "after_commit": result["after"]["commit_sha"],
                     "changed_paths": result["changed_paths"],
                     "branch_authority": result["branch_authority"],
+                    "operation": result.get("operation"),
+                    "dirty_worktree_preserved": result.get(
+                        "dirty_worktree_preserved", False
+                    ),
+                    "worktree_status_sha256": result.get(
+                        "worktree_status_sha256"
+                    ),
+                    "fetch_performed": result.get("fetch_performed", True),
+                    "source_write_performed": result.get(
+                        "source_write_performed", False
+                    ),
                     "remote_write_performed": False,
                     "merge_commit_created": False,
                 },
@@ -1405,6 +1540,7 @@ class EvidenceLaneService:
             host=host_kind.value,
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
+            runtime_context=runtime_context,
         )
         if route.durable_required and (
             self.sync_service is None or not self.sync_service.runtime_state_capable
@@ -1465,6 +1601,7 @@ class EvidenceLaneService:
             host=host_kind.value,
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
+            runtime_context=runtime_context,
         )
         if route.durable_required and (
             self.sync_service is None or not self.sync_service.runtime_state_capable

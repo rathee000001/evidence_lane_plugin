@@ -1,12 +1,12 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("Start", "Status", "Repair", "Remove")]
+    [ValidateSet("Start", "Stop", "Status", "Repair", "Remove")]
     [string]$Action,
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150",
-    [string]$ProfileName = "evidence_lane_v150_chatgpt_read",
+    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200",
+    [string]$ProfileName = "evidence_lane_v200_transport",
     [string]$ProfileDir = "$env:APPDATA\tunnel-client",
-    [string]$TaskName = "EvidenceLane-Tunnel-v150",
+    [string]$TaskName = "EvidenceLane-Tunnel-v200",
     [int]$ReadyTimeoutSeconds = 90,
     [switch]$ConfirmRemoval
 )
@@ -16,8 +16,8 @@ $ErrorActionPreference = "Stop"
 
 $expectedClientSha256 = "D893D8127EEE35070D265C1BE29BFE008F8D9FCB476E7FEBF56C8FDC6C0615C8"
 $client = Join-Path $RuntimeRoot "bin\tunnel-client-v0.0.10.exe"
-$pidFile = Join-Path $RuntimeRoot "evidence_lane_v150_tunnel.pid"
-$healthUrlFile = Join-Path $RuntimeRoot "evidence_lane_v150_health.url"
+$pidFile = Join-Path $RuntimeRoot "evidence_lane_v200_tunnel.pid"
+$healthUrlFile = Join-Path $RuntimeRoot "evidence_lane_v200_health.url"
 $profileFile = Join-Path $ProfileDir ($ProfileName + ".yaml")
 $markerFile = Join-Path $RuntimeRoot "evidence-lane-tunnel-installation.json"
 
@@ -82,7 +82,7 @@ function Get-TunnelStatus {
     }
     return [ordered]@{
         status = if ($ready) { "PASS" } else { "BLOCKED" }
-        release = "1.5.0"
+        release = "2.0.0"
         task_name = $TaskName
         task_registered = $null -ne $task
         task_state = if ($null -ne $task) { [string]$task.State } else { $null }
@@ -93,8 +93,13 @@ function Get-TunnelStatus {
         control_plane_poll_ready = $ready
         profile_file = $profileFile
         profile_exists = -not [string]::IsNullOrWhiteSpace($profileText)
-        chatgpt_governed_profile_configured = $profileText.Contains("_INTERNAL_CHATGPT_READ_MCP_DO_NOT_RUN.ps1")
+        evidence_lane_layer_launcher_configured = $profileText.Contains("_INTERNAL_EVIDENCE_LANE_MCP_LAYER_DO_NOT_RUN.ps1")
         exposure_profile = "CHATGPT_PRO_GOVERNED"
+        transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"
+        served_exposure_layer = "CHATGPT_PRO_GOVERNED"
+        chatgpt_is_layer_not_transport_identity = $true
+        codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"
+        codex_tunnel_lifecycle_proof_allowed = $false
         data_root = if ($null -ne $marker) { [string]$marker.data_root } else { $null }
         project_binding = "NONE_TRANSPORT_ONLY"
         project_route_argument = "project_id"
@@ -124,6 +129,26 @@ if ($Action -eq "Status") {
     $status = Get-TunnelStatus
     $status | ConvertTo-Json -Depth 4
     exit $(if ($status.control_plane_poll_ready) { 0 } else { 1 })
+}
+
+if ($Action -eq "Stop") {
+    Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+    $process = Get-VerifiedTunnelProcess
+    if ($null -ne $process) {
+        Stop-Process -Id $process.Id
+        Wait-Process -Id $process.Id -Timeout 20 -ErrorAction SilentlyContinue
+    }
+    Disable-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue | Out-Null
+    Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $healthUrlFile -Force -ErrorAction SilentlyContinue
+    [ordered]@{
+        status = "STOPPED_SAVED"
+        release = "2.0.0"
+        task_name = $TaskName
+        runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
+        reusable_without_reinstall = $true
+    } | ConvertTo-Json -Depth 4
+    exit 0
 }
 
 if ($Action -eq "Remove") {
@@ -171,6 +196,8 @@ if ($Action -eq "Remove") {
 if (-not (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue)) {
     throw "The scheduled task is missing. Run Install-EvidenceLaneTunnel.ps1 first."
 }
+
+Enable-ScheduledTask -TaskName $TaskName | Out-Null
 
 if ($Action -eq "Repair") {
     $before = Get-TunnelStatus

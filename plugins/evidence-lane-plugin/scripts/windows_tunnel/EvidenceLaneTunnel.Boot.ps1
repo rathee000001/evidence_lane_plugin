@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150",
-    [string]$ProfileName = "evidence_lane_v150_chatgpt_read",
+    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200",
+    [string]$ProfileName = "evidence_lane_v200_transport",
     [string]$ProfileDir = "$env:APPDATA\tunnel-client"
 )
 
@@ -11,10 +11,10 @@ $ErrorActionPreference = "Stop"
 $expectedClientSha256 = "D893D8127EEE35070D265C1BE29BFE008F8D9FCB476E7FEBF56C8FDC6C0615C8"
 $client = Join-Path $RuntimeRoot "bin\tunnel-client-v0.0.10.exe"
 $secretFile = Join-Path $RuntimeRoot "secrets\control-plane-runtime-key.dpapi"
-$healthUrlFile = Join-Path $RuntimeRoot "evidence_lane_v150_health.url"
-$pidFile = Join-Path $RuntimeRoot "evidence_lane_v150_tunnel.pid"
-$daemonLog = Join-Path $RuntimeRoot "evidence_lane_v150_tunnel.log"
-$operatorLog = Join-Path $RuntimeRoot "evidence_lane_v150_operator.log"
+$healthUrlFile = Join-Path $RuntimeRoot "evidence_lane_v200_health.url"
+$pidFile = Join-Path $RuntimeRoot "evidence_lane_v200_tunnel.pid"
+$daemonLog = Join-Path $RuntimeRoot "evidence_lane_v200_tunnel.log"
+$operatorLog = Join-Path $RuntimeRoot "evidence_lane_v200_operator.log"
 
 function Write-OperatorEvent {
     param(

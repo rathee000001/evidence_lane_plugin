@@ -33,6 +33,22 @@ from evidence_lane_plugin.service import EvidenceLaneService
 from .conftest import build_and_approve_pv1, git
 
 
+def _authorize_test_branch(
+    service: EvidenceLaneService,
+    source_repository: Path,
+    branch: str,
+) -> str:
+    git(source_repository, "checkout", "-b", branch)
+    replaced = service.store.replace_branch_authority(
+        "book-faires",
+        branch=branch,
+        selected_by="human-test",
+        repository={"branch": branch},
+    )
+    assert replaced["selected_branch"] == branch
+    return branch
+
+
 def test_secret_redaction_covers_common_tokens() -> None:
     payload = {
         "github": "github_pat_abcdefghijklmnopqrstuvwxyz123456",
@@ -74,6 +90,97 @@ def test_host_persistence_matrix() -> None:
     assert (
         route_persistence(HostKind.PUBLIC_AI, ephemeral=False).mode
         == "configured_durable_connector"
+    )
+
+
+@pytest.mark.parametrize("account_tier", ["PRO", "PLUS", "BUSINESS", "EDU", "ENTERPRISE"])
+def test_interactive_ephemeral_codex_app_separates_tunnel_from_storage(
+    account_tier: str,
+) -> None:
+    local_mount = route_persistence(
+        HostKind.CODEX_VM,
+        ephemeral=True,
+        server_has_durable_filesystem=True,
+        runtime_context={
+            "interaction_profile": "CODEX_APP_INTERACTIVE",
+            "account_tier": account_tier,
+        },
+    )
+    external_runtime = route_persistence(
+        HostKind.CODEX_VM,
+        ephemeral=True,
+        server_has_durable_filesystem=False,
+        runtime_context={
+            "interaction_profile": "CODEX_APP_INTERACTIVE",
+            "account_tier": account_tier,
+        },
+    )
+
+    assert local_mount.mode == "local"
+    assert local_mount.primary_runtime_authority == "DURABLE_MOUNT_SQLITE"
+    assert external_runtime.mode == "configured_durable_connector"
+    for route in (local_mount, external_runtime):
+        assert route.interaction_profile == "CODEX_APP_INTERACTIVE"
+        assert route.vm_lifetime == "EPHEMERAL_VM"
+        assert route.tunnel_requirement == (
+            "REQUIRED_FOR_INTERACTIVE_CODEX_APP_ENVIRONMENT"
+        )
+        assert route.tunnel_setup_frequency == "ONCE_PER_EPHEMERAL_VM_INSTANCE"
+        assert route.tunnel_key_retention == "CURRENT_VM_LIFETIME_ONLY"
+        assert route.tunnel_runtime_lifetime == "CURRENT_VM_LIFETIME_ONLY"
+        assert route.account_tier == account_tier
+        assert route.account_tier_affects_routing is False
+        assert route.api_billing_affects_routing is False
+        assert route.routing_axes_independent is True
+
+
+@pytest.mark.parametrize(
+    ("host", "interaction_profile"),
+    [
+        (HostKind.CODEX_DESKTOP, "HEADLESS_API"),
+        (HostKind.CODEX_CLI, "DIRECT_CLI_API"),
+    ],
+)
+def test_local_api_profiles_use_local_pv_storage_without_tunnel(
+    host: HostKind,
+    interaction_profile: str,
+) -> None:
+    route = route_persistence(
+        host,
+        ephemeral=False,
+        server_has_durable_filesystem=True,
+        runtime_context={
+            "interaction_profile": interaction_profile,
+            "account_tier": "API",
+        },
+    )
+
+    assert route.mode == "local"
+    assert route.primary_runtime_authority == "LOCAL_DURABLE_SQLITE"
+    assert route.tunnel_requirement == "NOT_REQUIRED_FOR_API_LAYER"
+    assert route.tunnel_setup_frequency == "NONE"
+    assert route.tunnel_key_retention == "NOT_APPLICABLE"
+    assert route.account_tier == "API"
+
+
+def test_persistent_interactive_codex_app_uses_one_time_tunnel_setup() -> None:
+    route = route_persistence(
+        HostKind.CODEX_DESKTOP,
+        ephemeral=False,
+        server_has_durable_filesystem=True,
+        runtime_context={
+            "interaction_profile": "CODEX_APP_INTERACTIVE",
+            "account_tier": "BUSINESS",
+        },
+    )
+
+    assert route.mode == "local"
+    assert route.tunnel_setup_frequency == (
+        "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
+    )
+    assert route.tunnel_key_retention == "HOST_MANAGED_PERSISTENT_PROFILE"
+    assert route.tunnel_runtime_lifetime == (
+        "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST"
     )
 
 
@@ -460,19 +567,35 @@ def test_durable_local_lifecycle_never_calls_configured_drive_backend(service) -
     assert service.store.pointer("book-faires").accepted_pv == "PV1"
 
 
-def test_remote_push_prepare_does_not_push_and_wrong_token_fails(
+def test_remote_push_prepare_auto_authorizes_exact_registered_test_branch(
     service,
     source_repository: Path,
 ) -> None:
     build_and_approve_pv1(service)
+    branch = _authorize_test_branch(
+        service,
+        source_repository,
+        "agent/automatic-push-test",
+    )
     prepared = service.remote_git.prepare_push(
         "book-faires",
         requested_by="human-test",
         remote="origin",
-        local_ref="main",
-        remote_branch="evidence-lane-test",
+        local_ref=branch,
+        remote_branch=branch,
     )
-    assert prepared["action"]["status"] == "PREPARED_AWAITING_EXACT_CONFIRMATION"
+    assert prepared["action"]["status"] == "PREPARED_AUTO_AUTHORIZED_TEST_BRANCH"
+    assert prepared["confirmation_token"] is None
+    assert prepared["action"]["authorization"] == {
+        "policy": "EXACT_REGISTERED_NON_PROTECTED_TEST_BRANCH",
+        "automatic_branch_push_authorized": True,
+        "one_use_confirmation_required": False,
+        "credentials_source": "HOST_MANAGED_GIT_CREDENTIAL_PROVIDER",
+        "credential_requested_or_stored": False,
+        "main_branch_push_authorized": False,
+        "merge_authorized": False,
+        "pull_request_acceptance_authorized": False,
+    }
     assert prepared["action"]["local_commit"] == git(
         source_repository,
         "rev-parse",
@@ -483,14 +606,62 @@ def test_remote_push_prepare_does_not_push_and_wrong_token_fails(
         "rev-parse",
         "HEAD^{tree}",
     ).lower()
+    assert prepared["action"]["repository_identity"] == {
+        "owner": "example",
+        "name": "book-faires",
+        "branch": branch,
+        "commit_sha": prepared["action"]["local_commit"],
+        "tree_sha": prepared["action"]["local_tree"],
+    }
+    assert prepared["action"]["remote_identity"]["remote_name"] == "origin"
+    assert prepared["action"]["remote_identity"]["hostname"] == "github.com"
+    assert prepared["action"]["remote_identity"]["owner"] == "example"
+    assert prepared["action"]["remote_identity"]["name"] == "book-faires"
+    assert "url" not in prepared["action"]["remote_identity"]
+
+
+def test_remote_push_blocks_mismatched_named_remote_identity(
+    service,
+    source_repository: Path,
+) -> None:
+    build_and_approve_pv1(service)
+    branch = _authorize_test_branch(
+        service,
+        source_repository,
+        "agent/remote-identity-test",
+    )
+    git(
+        source_repository,
+        "remote",
+        "add",
+        "mismatch",
+        "https://github.com/another-owner/another-repository.git",
+    )
+
     with pytest.raises(EvidenceLaneError) as error:
-        service.remote_git.execute_push(
+        service.remote_git.prepare_push(
             "book-faires",
-            action_id=prepared["action"]["action_id"],
-            confirmation_token="WRONG",
-            confirmed_by="human-test",
+            requested_by="human-test",
+            remote="mismatch",
+            local_ref=branch,
+            remote_branch=branch,
         )
-    assert error.value.code == "REMOTE_ACTION_CONFIRMATION_INVALID"
+    assert error.value.code == "REMOTE_REPOSITORY_IDENTITY_MISMATCH"
+
+
+def test_remote_push_blocks_protected_branch_even_when_registered(
+    service,
+) -> None:
+    build_and_approve_pv1(service)
+    with pytest.raises(EvidenceLaneError) as error:
+        service.remote_git.prepare_push(
+            "book-faires",
+            requested_by="human-test",
+            remote="origin",
+            local_ref="main",
+            remote_branch="main",
+        )
+    assert error.value.code == "REMOTE_PROTECTED_OR_NON_TEST_BRANCH_BLOCKED"
 
 
 def test_remote_push_consumes_action_as_stale_when_local_ref_moves(
@@ -499,12 +670,17 @@ def test_remote_push_consumes_action_as_stale_when_local_ref_moves(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     build_and_approve_pv1(service)
+    branch = _authorize_test_branch(
+        service,
+        source_repository,
+        "agent/stale-source-test",
+    )
     prepared = service.remote_git.prepare_push(
         "book-faires",
         requested_by="human-test",
         remote="origin",
-        local_ref="main",
-        remote_branch="evidence-lane-stale-source-test",
+        local_ref=branch,
+        remote_branch=branch,
     )
     (source_repository / "README.md").write_text(
         "# Book Faires\n\nMoved after preparation.\n",
@@ -526,8 +702,7 @@ def test_remote_push_consumes_action_as_stale_when_local_ref_moves(
         service.remote_git.execute_push(
             "book-faires",
             action_id=prepared["action"]["action_id"],
-            confirmation_token=prepared["confirmation_token"],
-            confirmed_by="human-test",
+            executed_by="human-test",
         )
     assert error.value.code == "REMOTE_ACTION_SOURCE_STALE"
     assert called is False
@@ -545,14 +720,22 @@ def test_remote_push_consumes_action_as_stale_when_local_ref_moves(
     ).lower()
 
 
-def test_remote_push_rejects_legacy_action_without_commit_binding(service) -> None:
+def test_remote_push_rejects_legacy_action_without_commit_binding(
+    service,
+    source_repository: Path,
+) -> None:
     build_and_approve_pv1(service)
+    branch = _authorize_test_branch(
+        service,
+        source_repository,
+        "agent/legacy-action-test",
+    )
     prepared = service.remote_git.prepare_push(
         "book-faires",
         requested_by="human-test",
         remote="origin",
-        local_ref="main",
-        remote_branch="evidence-lane-legacy-action-test",
+        local_ref=branch,
+        remote_branch=branch,
     )
     path = service.remote_git._path(
         "book-faires",
@@ -567,8 +750,7 @@ def test_remote_push_rejects_legacy_action_without_commit_binding(service) -> No
         service.remote_git.execute_push(
             "book-faires",
             action_id=prepared["action"]["action_id"],
-            confirmation_token=prepared["confirmation_token"],
-            confirmed_by="human-test",
+            executed_by="human-test",
         )
     assert error.value.code == "REMOTE_ACTION_COMMIT_BINDING_MISSING"
     persisted = json.loads(path.read_text(encoding="utf-8"))
@@ -576,9 +758,16 @@ def test_remote_push_rejects_legacy_action_without_commit_binding(service) -> No
 
 
 def test_remote_push_persists_only_safe_bounded_output(
-    service, monkeypatch: pytest.MonkeyPatch
+    service,
+    source_repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     build_and_approve_pv1(service)
+    branch = _authorize_test_branch(
+        service,
+        source_repository,
+        "agent/safe-output-test",
+    )
     secret = "ghp_abcdefghijklmnopqrstuvwxyz1234567890"
     observed: dict[str, Any] = {}
 
@@ -597,14 +786,13 @@ def test_remote_push_persists_only_safe_bounded_output(
         "book-faires",
         requested_by="human-test",
         remote="origin",
-        local_ref="main",
-        remote_branch="evidence-lane-safe-output-test",
+        local_ref=branch,
+        remote_branch=branch,
     )
     executed = service.remote_git.execute_push(
         "book-faires",
         action_id=prepared["action"]["action_id"],
-        confirmation_token=prepared["confirmation_token"],
-        confirmed_by="human-test",
+        executed_by="human-test",
     )
     action = executed["action"]
     assert action["status"] == "EXECUTED"
@@ -626,9 +814,15 @@ def test_remote_push_persists_only_safe_bounded_output(
 
 def test_remote_push_failure_is_reported_and_consumes_one_use_action(
     service,
+    source_repository: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     build_and_approve_pv1(service)
+    branch = _authorize_test_branch(
+        service,
+        source_repository,
+        "agent/rejected-push-test",
+    )
 
     def rejected_push(*args: Any, **kwargs: Any) -> GitResult:
         del args, kwargs
@@ -644,15 +838,14 @@ def test_remote_push_failure_is_reported_and_consumes_one_use_action(
         "book-faires",
         requested_by="human-test",
         remote="origin",
-        local_ref="main",
-        remote_branch="evidence-lane-rejected-push-test",
+        local_ref=branch,
+        remote_branch=branch,
     )
     with pytest.raises(EvidenceLaneError) as error:
         service.remote_git.execute_push(
             "book-faires",
             action_id=prepared["action"]["action_id"],
-            confirmation_token=prepared["confirmation_token"],
-            confirmed_by="human-test",
+            executed_by="human-test",
         )
     assert error.value.code == "REMOTE_GIT_PUSH_FAILED"
     persisted = json.loads(
@@ -667,7 +860,6 @@ def test_remote_push_failure_is_reported_and_consumes_one_use_action(
         service.remote_git.execute_push(
             "book-faires",
             action_id=prepared["action"]["action_id"],
-            confirmation_token=prepared["confirmation_token"],
-            confirmed_by="human-test",
+            executed_by="human-test",
         )
     assert reused.value.code == "REMOTE_ACTION_ALREADY_CONSUMED"

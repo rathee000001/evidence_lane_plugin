@@ -26,6 +26,7 @@ from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.mcp_apps import (
     GOVERNED_PANEL_URI,
     MCP_APP_MIME_TYPE,
+    build_project_panel_snapshot,
     governed_panel_html,
 )
 from evidence_lane_plugin.mcp_server import (
@@ -475,7 +476,7 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
     assert len(resources) == 1
     resource = resources[0]
     assert str(resource.uri) == GOVERNED_PANEL_URI
-    assert GOVERNED_PANEL_URI.endswith("/governed-console-v2.html")
+    assert GOVERNED_PANEL_URI.endswith("/governed-console-v3.html")
     assert resource.mimeType == MCP_APP_MIME_TYPE
     assert resource.meta == {
         "ui": {
@@ -494,6 +495,8 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
     assert "window.openai" in contents[0].content
     assert "setWidgetState" in contents[0].content
     assert "innerHTML" not in contents[0].content
+    assert "Prompt template (host-owned; never auto-submitted)" in contents[0].content
+    assert "hil.choices" in contents[0].content
 
     by_name = {tool.name: tool for tool in asyncio.run(server.list_tools())}
     for name in ("render_runtime_panel", "render_project_panel"):
@@ -505,6 +508,74 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
         assert tool.meta["openai/outputTemplate"] == GOVERNED_PANEL_URI
         assert tool.outputSchema is not None
         assert tool.outputSchema["type"] == "object"
+
+
+def test_project_panel_always_explains_exact_six_way_hil_without_mutation() -> None:
+    snapshot = build_project_panel_snapshot(
+        project_id="example",
+        project_status={
+            "status": "PASS",
+            "persistent_state_envelope": {
+                "accepted_pv": "PV10",
+                "pointer_generation": 10,
+                "pending_candidate": None,
+                "pending_hil": False,
+            },
+            "active_session": {"state": "TASK_CLASSIFIED"},
+            "lane_projection": {
+                "authority": "ACCEPTED_IMMUTABLE_AUTHORITY",
+                "pv_ref": "PV10",
+                "canonical_lane_count": 18,
+                "emitted_lane_count": 1,
+                "absent_lane_ids": ["local_code"],
+                "bundle_sha256": "A" * 64,
+                "topology_status": "PASS",
+                "lanes": [
+                    {
+                        "id": "github_code",
+                        "label": "GitHub code",
+                        "value": "EMITTED | PASS | 4 sealed files | accepted PV10",
+                    }
+                ],
+            },
+            "project_route": {
+                "relative_project_route": "projects/example",
+                "storage_mode": "AUTO",
+                "active_host_profile": "CODEX_LOCAL_PC_OR_LAPTOP",
+            },
+        },
+        public_site_url="https://preview.example.test",
+    )
+    hil = snapshot["hil"]
+    assert hil["pending"] is False
+    assert hil["decision_state"] == "NO_PENDING_CANDIDATE"
+    assert [choice["token"] for choice in hil["choices"]] == [
+        "APPROVE",
+        "APPROVE_WITH_DELTA",
+        "MORE_RESEARCH",
+        "ROLLBACK",
+        "REJECT",
+        "FAIL",
+    ]
+    assert {choice["availability"] for choice in hil["choices"]} == {
+        "INFORMATION_ONLY_NO_PENDING_CANDIDATE"
+    }
+    assert all(choice["consequence"] for choice in hil["choices"])
+    assert hil["suggested_next_prompt"] is None
+    assert hil["prompt_template"].startswith("/evi-build")
+    assert hil["exact_case_sensitive_token_required"] is True
+    assert hil["auto_submit"] is False
+    assert hil["render_changes_authority"] is False
+    assert snapshot["lane_projection"] == {
+        "authority": "ACCEPTED_IMMUTABLE_AUTHORITY",
+        "pv_ref": "PV10",
+        "canonical_lane_count": 18,
+        "emitted_lane_count": 1,
+        "absent_lane_ids": ["local_code"],
+        "bundle_sha256": "A" * 64,
+        "topology_status": "PASS",
+    }
+    assert snapshot["lanes"][0]["id"] == "github_code"
 
 
 def test_mcp_apps_view_executes_initialize_and_tool_result_lifecycle() -> None:
@@ -596,7 +667,7 @@ if (initMessages.length !== 1) throw new Error("expected exactly one initialize 
 const init = initMessages[0];
 if (init.origin !== "*") throw new Error("unexpected postMessage target origin");
 if (init.message.params.appInfo.name !== "Evidence Lane") throw new Error("wrong app name");
-if (init.message.params.appInfo.version !== "1.5.0") throw new Error("wrong app version");
+if (init.message.params.appInfo.version !== "2.0.0") throw new Error("wrong app version");
 if (Object.keys(init.message.params.appCapabilities).length !== 0) throw new Error("wrong app capabilities");
 if (init.message.params.protocolVersion !== "2026-01-26") throw new Error("wrong protocol version");
 if (operations.indexOf("listener:message") > operations.indexOf("post:ui/initialize")) {{
@@ -659,7 +730,7 @@ def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> No
         public_site_url=public_site,
     )
     identity = server._mcp_server
-    assert identity.version == ENGINE_VERSION == "1.5.0"
+    assert identity.version == ENGINE_VERSION == "2.0.0"
     assert str(identity.website_url) == public_site
     assert identity.icons is not None
     assert len(identity.icons) == 1
@@ -679,7 +750,7 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert manifest["interface"]["displayName"] == "Evidence Lane"
     assert manifest["author"]["name"] == "Praveen Rathee"
     assert manifest["repository"].endswith("/evidence_lane_plugin")
-    assert manifest["apps"] == "./.app.json"
+    assert "apps" not in manifest
     assert manifest["mcpServers"] == "./.mcp.json"
     assert manifest["interface"]["logo"] == "./assets/evidence-lane-icon.png"
     assert manifest["interface"]["composerIcon"] == ("./assets/evidence-lane-icon.png")
@@ -701,14 +772,41 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     stop_source = (plugin / "hooks" / "stop_response.py").read_text(encoding="utf-8")
     assert '"decision"' not in stop_source
     assert '"continue": True' in stop_source
-    app_manifest = json.loads((plugin / ".app.json").read_text(encoding="utf-8"))
-    assert app_manifest == {
-        "apps": {
-            "evidence-lane": {
-                "id": "plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f"
-            }
-        }
+    assert not (plugin / ".app.json").exists()
+    chatgpt_connection = json.loads(
+        (plugin / "chatgpt-app-connection.json").read_text(encoding="utf-8")
+    )
+    assert chatgpt_connection["host"] == "CHATGPT"
+    assert chatgpt_connection["delivery"] == "REGISTERED_REMOTE_MCP_ONLY"
+    assert {
+        key: chatgpt_connection["connection"][key]
+        for key in (
+            "name",
+            "id",
+            "mcp_endpoint",
+            "exposure_profile",
+            "visible_tool_count",
+            "active_read_tool_count",
+            "fail_closed_write_tool_count",
+        )
+    } == {
+        "name": "evidence-lane-chatgpt-governed",
+        "id": "plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f",
+        "mcp_endpoint": "https://mcp.evidencelane.org/mcp",
+        "exposure_profile": "CHATGPT_PRO_GOVERNED",
+        "visible_tool_count": 62,
+        "active_read_tool_count": 21,
+        "fail_closed_write_tool_count": 41,
     }
+    assert chatgpt_connection["connection"]["genuinely_write_capable_tool_count"] == 0
+    assert chatgpt_connection["publisher"]["display_name"] == "Praveen Rathee"
+    assert chatgpt_connection["presentation"]["required_visible_release"] == "1.5.0"
+    assert chatgpt_connection["skills"]["codex_package_skill_count"] == 15
+    assert chatgpt_connection["skills"]["verified_live_chatgpt_visible_skill_count"] == 0
+    assert chatgpt_connection["install_allowed"] is False
+    assert chatgpt_connection["codex_install_manifest_reference"] is False
+    assert chatgpt_connection["google_drive_bundled"] is False
+    assert chatgpt_connection["direct_stdio_fallback_allowed"] is False
     marketplace = json.loads(
         (root / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8")
     )
@@ -734,7 +832,7 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
         root / "requirements.in",
         root / "SECURITY.md",
         plugin / ".mcp.json",
-        plugin / ".app.json",
+        plugin / "chatgpt-app-connection.json",
         plugin / "pyproject.toml",
         plugin / "requirements.lock.txt",
     ]
@@ -845,6 +943,18 @@ def test_session_start_hook_is_advisory(tmp_path: Path) -> None:
     )
     assert "do not auto-submit it" in payload["hookSpecificOutput"]["additionalContext"]
     context_lines = payload["hookSpecificOutput"]["additionalContext"].splitlines()
+    runtime = json.loads(
+        next(
+            line.removeprefix("PLUGIN_RUNTIME_ENVELOPE=")
+            for line in context_lines
+            if line.startswith("PLUGIN_RUNTIME_ENVELOPE=")
+        )
+    )
+    assert runtime["release_policy_state"] == "FRESH"
+    assert runtime["host_storage_tunnel_matrix"]["routing_axes_independent"] is True
+    assert runtime["host_storage_tunnel_matrix"]["headless_api"][
+        "tunnel_requirement"
+    ] == "NOT_REQUIRED_FOR_API_LAYER"
     persistent = json.loads(
         next(
             line.removeprefix("PERSISTENT_STATE_ENVELOPE=")
@@ -852,12 +962,23 @@ def test_session_start_hook_is_advisory(tmp_path: Path) -> None:
             if line.startswith("PERSISTENT_STATE_ENVELOPE=")
         )
     )
-    backlog = persistent["projects"][0]["task_backlog"]
-    assert backlog["queued"] == 1
-    assert backlog["done_pending_hil"] == 1
-    assert backlog["terminal"] == 2
-    assert backlog["universal"]["ACCEPTED"] == 1
-    assert backlog["universal"]["DROPPED"] == 1
+    assert persistent["state"] == "EXACT_HOST_SESSION_PROJECT_BINDING_REQUIRED"
+    assert persistent["projects"] == []
+    assert persistent["project_count_returned"] == 0
+    assert persistent["cross_project_disclosure"] is False
+    change_display = json.loads(
+        next(
+            line.removeprefix("PERSISTENT_CHANGE_DISPLAY=")
+            for line in context_lines
+            if line.startswith("PERSISTENT_CHANGE_DISPLAY=")
+        )
+    )
+    assert change_display == {
+        "state": "UNAVAILABLE_UNTIL_EXACT_STRICT_PROJECT_TASK_BINDING",
+        "cross_project_disclosure": False,
+        "composer_mutated": False,
+        "auto_submit": False,
+    }
 
 
 def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
@@ -865,15 +986,51 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
     source_repository: Path,
 ) -> None:
     session_id, _ = build_and_approve_pv1(service)
+    turn_task = {
+        "task_id": "prompt-index-v2-turn-control",
+        "task_class": "verify_result",
+        "requested_outcome": "Seal a no-source-change PV2 and verify governed prompt rollback.",
+        "permitted_paths": [
+            "plugins/evidence-lane-plugin/hooks/**",
+            "plugins/evidence-lane-plugin/src/evidence_lane_plugin/codex_turn_control.py",
+            "plugins/evidence-lane-plugin/src/evidence_lane_plugin/prompt_index.py",
+            "tests/**",
+        ],
+        "permitted_tools": ["repository_read", "test"],
+        "acceptance_checks": [
+            "Every visible turn has one PREPARE and one COMMIT.",
+            "PROMPT rollback resolves the v2 secret-redacted projection.",
+        ],
+        "stop_condition": "Stop at the physically final HIL row.",
+    }
+    final_hil = {
+        **turn_task,
+        "task_id": "prompt-index-v2-final-hil",
+        "requested_outcome": "Present the physically final six-way HIL.",
+        "panel_role": "PHYSICALLY_FINAL_HIL",
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[turn_task, final_hil],
+        planned_by="human-test",
+        plan_id="prompt-index-v2-plan",
+    )
+    service.classify_mode(
+        "book-faires",
+        "Verify the bounded prompt index and rollback contract.",
+        explicit_modes=["AL", "RS", "PL"],
+        session_id=session_id,
+    )
     service.sessions.classify(
         "book-faires",
         session_id,
-        task_class="verify_result",
-        requested_outcome="Seal a no-source-change PV2.",
-        permitted_paths=[],
-        permitted_tools=["repository_read"],
-        acceptance_checks=["Human verifies the candidate."],
-        stop_condition="Stop at PV2 HIL.",
+        task_class=turn_task["task_class"],
+        requested_outcome=turn_task["requested_outcome"],
+        permitted_paths=turn_task["permitted_paths"],
+        permitted_tools=turn_task["permitted_tools"],
+        acceptance_checks=turn_task["acceptance_checks"],
+        stop_condition=turn_task["stop_condition"],
+        backlog_task_id=turn_task["task_id"],
     )
     service.sessions.confirm_source_update(
         "book-faires",
@@ -894,11 +1051,67 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         session_id=session_id,
         handoff_id=handoff["handoff_id"],
         host="CODEX_DESKTOP",
-        host_session_id="host-session-prompt-index-pv2",
+        host_session_id="host-session-prompt-index-bootstrap",
         ephemeral=False,
         client_can_edit_source=True,
         server_has_durable_filesystem=True,
         runtime_context={"source": "fresh-prompt-index-task"},
+    )
+    post_fuse_task = {
+        **turn_task,
+        "task_id": "prompt-index-v2-post-fuse-turn-control",
+        "requested_outcome": (
+            "Verify governed prompt rollback from the accepted PV2 entry."
+        ),
+    }
+    service.record_steer_delta(
+        "book-faires",
+        delta_text=(
+            "Add the accepted-PV2 prompt rollback verification before the final HIL."
+        ),
+        actor="human-test",
+        delta_id="prompt-index-v2-post-fuse-delta",
+        new_task_contract=post_fuse_task,
+    )
+    service.classify_mode(
+        "book-faires",
+        "Verify the accepted-PV2 prompt index and rollback contract.",
+        explicit_modes=["AL", "RS", "PL"],
+        session_id=session_id,
+    )
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=post_fuse_task["task_class"],
+        requested_outcome=post_fuse_task["requested_outcome"],
+        permitted_paths=post_fuse_task["permitted_paths"],
+        permitted_tools=post_fuse_task["permitted_tools"],
+        acceptance_checks=post_fuse_task["acceptance_checks"],
+        stop_condition=post_fuse_task["stop_condition"],
+        backlog_task_id=post_fuse_task["task_id"],
+    )
+    execution_profile = {
+        "model": "gpt-5.6-sol",
+        "submodel": "sol",
+        "reasoning_effort": "ultra",
+        "reasoning_speed": "standard",
+        "service_tier": "standard",
+    }
+    active_handoff = service.prepare_state_travel(
+        "book-faires",
+        session_id,
+        resume_contract={"execution_profile": execution_profile},
+    )["state_travel"]
+    service.resume_state_travel(
+        project_id="book-faires",
+        session_id=session_id,
+        handoff_id=active_handoff["handoff_id"],
+        host="CODEX_DESKTOP",
+        host_session_id="host-session-prompt-index-pv2",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"execution_profile": execution_profile},
     )
 
     root = Path(__file__).resolve().parents[1]
@@ -910,7 +1123,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         [sys.executable, str(hook)],
         input=json.dumps(
             {
-                "session_id": "host-session-test",
+                "session_id": "host-session-prompt-index-pv2",
                 "turn_id": "turn-prompt-index-1",
                 "cwd": str(source_repository),
                 "prompt": secret_prompt,
@@ -925,7 +1138,8 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
     hook_payload = json.loads(completed.stdout)
     context = hook_payload["hookSpecificOutput"]["additionalContext"]
     indexed = json.loads(context.removeprefix("EVIDENCE_LANE_PROMPT_ENTRY="))
-    assert indexed["state"] == "INDEXED"
+    assert hook_payload["continue"] is True, json.dumps(indexed, indent=2)
+    assert indexed["state"] == "PREPARED_NOT_COMMITTED"
     assert indexed["prompt_index"] == 1
     assert indexed["entry_pv"] == "PV2"
     records = list((service.store.root / "prompt-index").rglob("*.json"))
@@ -942,7 +1156,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         [sys.executable, str(stop_hook)],
         input=json.dumps(
             {
-                "session_id": "host-session-test",
+                "session_id": "host-session-prompt-index-pv2",
                 "turn_id": "turn-prompt-index-1",
                 "cwd": str(source_repository),
                 "last_assistant_message": secret_response,
@@ -955,7 +1169,14 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         env=environment,
     )
     stop_payload = json.loads(stopped.stdout)
-    assert stop_payload == {"continue": True}
+    assert stop_payload["continue"] is True
+    committed_notice = json.loads(
+        stop_payload["systemMessage"].removeprefix(
+            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
+        )
+    )
+    assert committed_notice["turn_receipt"]["state"] == "COMMITTED"
+    assert committed_notice["phase"] == "TURN_COMMIT"
     assert "decision" not in stop_payload
     response_records = list((service.store.root / "response-index").rglob("*.json"))
     assert len(response_records) == 1
@@ -992,7 +1213,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         [sys.executable, str(stop_hook)],
         input=json.dumps(
             {
-                "session_id": "host-session-test",
+                "session_id": "host-session-prompt-index-pv2",
                 "turn_id": "turn-prompt-index-1",
                 "cwd": str(source_repository),
                 "last_assistant_message": secret_response,
@@ -1004,7 +1225,16 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         encoding="utf-8",
         env=environment,
     )
-    assert json.loads(repeated.stdout) == {"continue": True}
+    repeated_payload = json.loads(repeated.stdout)
+    assert repeated_payload["continue"] is True
+    repeated_notice = json.loads(
+        repeated_payload["systemMessage"].removeprefix(
+            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
+        )
+    )
+    assert repeated_notice["turn_receipt"]["state"] == (
+        "COMMITTED_IDEMPOTENT_REUSE"
+    )
     assert len(list((service.store.root / "response-index").rglob("*.json"))) == 1
     repeated_events = [
         json.loads(line)
@@ -1019,14 +1249,21 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         == 1
     )
 
-    service.resume_session(
+    second_handoff = service.prepare_state_travel(
+        "book-faires",
+        session_id,
+        resume_contract={"execution_profile": execution_profile},
+    )["state_travel"]
+    service.resume_state_travel(
         project_id="book-faires",
-        host="codex",
+        session_id=session_id,
+        handoff_id=second_handoff["handoff_id"],
+        host="CODEX_DESKTOP",
         host_session_id="host-session-second-task",
         ephemeral=False,
         client_can_edit_source=True,
         server_has_durable_filesystem=True,
-        runtime_context={"source": "second-host-task"},
+        runtime_context={"execution_profile": execution_profile},
     )
     second = subprocess.run(
         [sys.executable, str(hook)],
@@ -1051,12 +1288,40 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         second_context.removeprefix("EVIDENCE_LANE_PROMPT_ENTRY=")
     )
     assert second_indexed["prompt_index"] == 2
+    second_stopped = subprocess.run(
+        [sys.executable, str(stop_hook)],
+        input=json.dumps(
+            {
+                "session_id": "host-session-second-task",
+                "turn_id": "turn-prompt-index-2",
+                "cwd": str(source_repository),
+                "last_assistant_message": "Second task checkpoint committed.",
+            }
+        ),
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=environment,
+    )
+    second_notice = json.loads(
+        json.loads(second_stopped.stdout)["systemMessage"].removeprefix(
+            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
+        )
+    )
+    assert second_notice["turn_receipt"]["state"] == "COMMITTED"
 
     status = service.prompt_index_status("book-faires", session_id)
     assert status["raw_prompt_stored"] is False
     assert status["redacted_visible_prompt_stored"] is True
     assert [row["prompt_index"] for row in status["records"]] == [1, 2]
     assert {row["entry_pv"] for row in status["records"]} == {"PV2"}
+    service.sessions.confirm_source_update(
+        "book-faires",
+        session_id,
+        confirmation="HOST_SANDBOX_FINAL_STATE_CONFIRMED",
+    )
+    service.refresh("book-faires", session_id)
     service.rollback(
         "book-faires",
         session_id,
@@ -1212,10 +1477,13 @@ def test_session_start_survives_cachebuster_and_remains_read_only(
             source_plugin / ".codex-plugin" / "plugin.json": (
                 staged / ".codex-plugin" / "plugin.json"
             ),
-            source_plugin / "src" / "evidence_lane_plugin" / "constants.py": (
-                staged / "src" / "evidence_lane_plugin" / "constants.py"
-            ),
-            source_plugin
+                source_plugin / "src" / "evidence_lane_plugin" / "constants.py": (
+                    staged / "src" / "evidence_lane_plugin" / "constants.py"
+                ),
+                source_plugin / "scripts" / "codex-release-channel.json": (
+                    staged / "scripts" / "codex-release-channel.json"
+                ),
+                source_plugin
             / "src"
             / "evidence_lane_plugin"
             / "session_flash"
@@ -1299,13 +1567,12 @@ def test_session_start_survives_cachebuster_and_remains_read_only(
     assert first_persistent["persistence_class"] == "USER_OWNED_LOCAL_STORE"
     assert second_persistent["persistence_class"] == "USER_OWNED_LOCAL_STORE"
     assert first_persistent["projects"] == second_persistent["projects"]
-    project = second_persistent["projects"][0]
-    assert project["accepted_pv"] == "PV1"
-    assert project["accepted_history"] == ["PV1"]
-    assert project["highest_accepted_ordinal"] == 1
-    assert project["next_candidate_pv"] == "PV2"
-    assert project["accepted_manifest_sha256"]
-    assert project["pointer_generation"] == 1
+    assert second_persistent["projects"] == []
+    assert second_persistent["cross_project_disclosure"] is False
+    assert second_persistent["state"] == (
+        "EXACT_HOST_SESSION_PROJECT_BINDING_REQUIRED"
+    )
+    assert second_persistent["project_count_returned"] == 0
     assert before == after_first == after_second
 
 
@@ -1432,7 +1699,7 @@ def test_real_stdio_chatgpt_pro_profile_has_complete_visible_inventory(
         ):
             initialized = await session.initialize()
             assert initialized.serverInfo.name == "Evidence Lane"
-            assert initialized.serverInfo.version == ENGINE_VERSION == "1.5.0"
+            assert initialized.serverInfo.version == ENGINE_VERSION == "2.0.0"
             tools = await session.list_tools()
             names = tuple(sorted(tool.name for tool in tools.tools))
             assert len(names) == CHATGPT_PRO_GOVERNED_TOOL_COUNT
@@ -1919,8 +2186,7 @@ def test_oauth_server_declares_exact_per_tool_security_schemes(
             {
                 "project_id": "project-a",
                 "action_id": "unused-action",
-                "confirmation_token": "unused-token",
-                "confirmed_by": "owner-1",
+                "executed_by": "owner-1",
             },
             convert_result=True,
         )

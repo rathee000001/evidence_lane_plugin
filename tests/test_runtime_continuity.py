@@ -56,6 +56,10 @@ def test_boot_build_and_resume_preserve_reference_only_runtime_continuity(
         "LOCAL_DURABLE_SQLITE"
     )
     assert continuity["mcp_access"]["one_writer_required"] is True
+    assert continuity["invocation"]["headless_api"] is False
+    assert continuity["invocation"]["flash_verification"] == (
+        "VERIFY_LOCKED_ENV_UOP_AT_EVERY_BOOT_OR_RESUME"
+    )
 
     built = service.build_initial("book-faires", session_id)
     candidate_path = service.store.candidate_path(
@@ -72,6 +76,21 @@ def test_boot_build_and_resume_preserve_reference_only_runtime_continuity(
     assert entry["runtime_continuity"]["entry_exit_slip"][
         "env_uop_bytes_embedded"
     ] is False
+    assert exit_slip["pv_exit_prompt"] == {
+        "label": "PV_EXIT_SUGGESTED_NEXT_PROMPT",
+        "suggested_next_prompt": built["suggested_next_prompt"],
+        "choices": [
+            "APPROVE",
+            "APPROVE_WITH_DELTA",
+            "MORE_RESEARCH",
+            "ROLLBACK",
+            "REJECT",
+            "FAIL",
+        ],
+        "copyable": True,
+        "host_owned_composer": True,
+        "auto_submit": False,
+    }
 
     resumed = service.resume_session(
         project_id="book-faires",
@@ -165,3 +184,72 @@ def test_resume_preserves_integrity_valid_accepted_authority_across_new_rules(
     )
     assert entry_pointer["successor_candidate_must_pass_current_rules"] is True
     assert service.store.pointer("book-faires").generation == 1
+
+
+@pytest.mark.parametrize(
+    ("host", "ephemeral", "durable", "expected_authority"),
+    [
+        ("CODEX_DESKTOP", False, True, "LOCAL_DURABLE_SQLITE"),
+        ("CODEX_VM", False, True, "LOCAL_DURABLE_SQLITE"),
+        ("CODEX_VM", True, True, "DURABLE_MOUNT_SQLITE"),
+    ],
+)
+def test_headless_api_reflashes_every_invocation_without_tunnel(
+    host: str,
+    ephemeral: bool,
+    durable: bool,
+    expected_authority: str,
+) -> None:
+    route = route_persistence(
+        host,
+        ephemeral=ephemeral,
+        server_has_durable_filesystem=durable,
+        runtime_context={
+            "interaction_profile": "HEADLESS_API",
+            "account_tier": "API",
+        },
+    )
+
+    assert route.primary_runtime_authority == expected_authority
+    assert route.tunnel_requirement == "NOT_REQUIRED_FOR_API_LAYER"
+    assert route.tunnel_setup_frequency == "NONE"
+    assert route.account_tier_affects_routing is False
+    assert route.api_billing_affects_routing is False
+
+
+def test_headless_boot_seals_api_invocation_and_local_pv_continuity(service) -> None:
+    boot = service.boot_session(
+        project_id="book-faires",
+        user_id="user-api",
+        workspace_id="workspace-api",
+        host="CODEX_DESKTOP",
+        agent_id="codex-headless",
+        sandbox_id="local-api-profile",
+        ephemeral=False,
+        runtime_context={
+            "interaction_profile": "DIRECT_CLI_API",
+            "account_tier": "API",
+        },
+        host_session_id="headless-invocation-1",
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+
+    continuity = validate_runtime_continuity(boot["runtime_continuity"])
+    invocation = continuity["invocation"]
+    assert continuity["storage"]["primary_runtime_authority"] == (
+        "LOCAL_DURABLE_SQLITE"
+    )
+    assert invocation["interaction_profile"] == "DIRECT_CLI_API"
+    assert invocation["tunnel_required_for_api_layer"] is False
+    assert invocation["flash_verification"] == (
+        "VERIFY_LOCKED_ENV_UOP_AT_EVERY_API_INVOCATION_ENTRY"
+    )
+    assert invocation["prior_state_load"] == (
+        "EXACT_PROJECT_DURABLE_RUNTIME_PLUS_ACCEPTED_OR_PENDING_ENTRY_EXIT_SLIP"
+    )
+    assert invocation["exit_slip_next_prompt_label"] == (
+        "PV_EXIT_SUGGESTED_NEXT_PROMPT"
+    )
+    assert invocation["six_way_hil_preserved"] is True
+    assert invocation["durable_runtime_survives_client_process"] is True

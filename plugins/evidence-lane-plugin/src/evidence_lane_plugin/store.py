@@ -47,6 +47,56 @@ _BATCH_CONTRACT_FIELDS = (
     "stop_condition",
 )
 
+_PLAN_PANEL_ROLES = {
+    "STANDARD",
+    "HIL_GATE",
+    "PHYSICALLY_FINAL_HIL",
+}
+
+_GOAL_STATUS_BY_LIFECYCLE = {
+    "ACTIVE": "in_progress",
+    "QUEUED": "pending",
+    "DONE": "completed",
+    "ACCEPTED": "completed",
+}
+
+_PARKED_LIFECYCLE_STATUSES = {"DROPPED"}
+_SUPERSEDED_LIFECYCLE_STATUSES = {"SUPERSEDED"}
+
+
+def _next_plan_hil_task_id(tasks: list[dict[str, Any]]) -> str | None:
+    """Return the next visible HIL row without treating stop text as a gate."""
+
+    ordered = sorted(tasks, key=lambda row: int(row["sequence"]))
+    active_sequence = next(
+        (
+            int(task["sequence"])
+            for task in ordered
+            if str(task.get("status")) == "ACTIVE"
+        ),
+        0,
+    )
+    unfinished = [
+        task
+        for task in ordered
+        if int(task["sequence"]) > active_sequence
+        and str(task.get("status")) not in {"ACCEPTED", "DONE", "SUPERSEDED"}
+    ]
+    for task in unfinished:
+        if str(task.get("panel_role") or "").upper() in {
+            "HIL_GATE",
+            "PHYSICALLY_FINAL_HIL",
+        }:
+            return str(task["task_id"])
+        outcome = str(task.get("requested_outcome") or "").upper()
+        if "HIL" in outcome and (
+            "PRESENT" in outcome
+            or "DECISION" in outcome
+            or "GATE" in outcome
+        ):
+            return str(task["task_id"])
+    return None
+
 
 class _ProjectLock:
     _process_locks: ClassVar[dict[str, threading.RLock]] = {}
@@ -371,6 +421,7 @@ class ProjectStore:
         branch: str,
         selected_by: str,
         repository: dict[str, Any],
+        selection_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Replace, never broaden, the registered branch with one explicit branch."""
 
@@ -417,6 +468,11 @@ class ProjectStore:
                 "remote_write_performed": False,
                 "prior_project_sha256": sha256_bytes(canonical_json_bytes(existing)),
                 "updated_project_sha256": sha256_bytes(canonical_json_bytes(updated)),
+                **(
+                    {"selection_context": selection_context}
+                    if selection_context is not None
+                    else {}
+                ),
             }
             receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_body))
             receipt = {
@@ -511,8 +567,10 @@ class ProjectStore:
         tasks: list[dict[str, Any]],
         planned_by: str,
         plan_id: str,
+        insert_before_task_id: str | None = None,
+        insert_before_next_hil: bool = False,
     ) -> dict[str, Any]:
-        """Append a bounded queue; planning never creates parallel active tasks."""
+        """Add a bounded queue; planning never creates parallel active tasks."""
         self.config(project_id)
         require(
             1 <= len(tasks) <= 100,
@@ -611,6 +669,18 @@ class ProjectStore:
                     supersedes_task_id=supersedes_task_id,
                 )
                 normalized_task["supersedes_task_id"] = supersedes_task_id
+            panel_role = str(task.get("panel_role") or "").strip().upper()
+            if panel_role:
+                require(
+                    panel_role in _PLAN_PANEL_ROLES,
+                    "BACKLOG_TASK_PANEL_ROLE_INVALID",
+                    "A queued task contains an unsupported persistent-panel role.",
+                    status="BLOCKED",
+                    task_id=task_id,
+                    panel_role=panel_role,
+                    supported=sorted(_PLAN_PANEL_ROLES),
+                )
+                normalized_task["panel_role"] = panel_role
             normalized.append(normalized_task)
         ids = [task["task_id"] for task in normalized]
         require(
@@ -619,11 +689,28 @@ class ProjectStore:
             "A task plan may not repeat a task ID.",
             status="BLOCKED",
         )
-        input_sha256 = sha256_bytes(
-            canonical_json_bytes(
-                {"planned_by": planned_by.strip(), "tasks": normalized}
+        exact_insert_before = str(insert_before_task_id or "").strip()
+        if exact_insert_before:
+            require(
+                len(exact_insert_before) <= 96
+                and all(
+                    character in _PROJECT_ID_CHARS
+                    for character in exact_insert_before
+                ),
+                "TASK_PLAN_INSERTION_TARGET_INVALID",
+                "A task-plan insertion target must be one stable task ID.",
+                status="BLOCKED",
+                insert_before_task_id=exact_insert_before,
             )
-        )
+        input_body: dict[str, Any] = {
+            "planned_by": planned_by.strip(),
+            "tasks": normalized,
+        }
+        if exact_insert_before:
+            input_body["insert_before_task_id"] = exact_insert_before
+        if insert_before_next_hil:
+            input_body["insert_before_next_hil"] = True
+        input_sha256 = sha256_bytes(canonical_json_bytes(input_body))
         with self._lock(project_id):
             backlog = self._load_backlog(project_id)
             ensure_event_ledger(backlog)
@@ -661,8 +748,34 @@ class ProjectStore:
                 status="MISMATCH",
                 task_ids=missing_superseded,
             )
+            resolved_insert_before = exact_insert_before
+            if not resolved_insert_before and insert_before_next_hil:
+                resolved_insert_before = (
+                    _next_plan_hil_task_id(backlog["tasks"]) or ""
+                )
+            if resolved_insert_before:
+                require(
+                    resolved_insert_before in existing_ids,
+                    "TASK_PLAN_INSERTION_TARGET_NOT_FOUND",
+                    "The requested pre-HIL insertion target is not in the Plan Lane.",
+                    status="MISMATCH",
+                    insert_before_task_id=resolved_insert_before,
+                )
             planned_at = utc_now()
+            insertion_index = len(backlog["tasks"])
             first_sequence = len(backlog["tasks"]) + 1
+            if resolved_insert_before:
+                insertion_index = next(
+                    index
+                    for index, task in enumerate(backlog["tasks"])
+                    if str(task["task_id"]) == resolved_insert_before
+                )
+                first_sequence = int(backlog["tasks"][insertion_index]["sequence"])
+                for existing_task in backlog["tasks"]:
+                    if int(existing_task["sequence"]) >= first_sequence:
+                        existing_task["sequence"] = int(existing_task["sequence"]) + len(
+                            normalized
+                        )
             added_tasks = [
                 {
                     **task,
@@ -674,16 +787,17 @@ class ProjectStore:
                 }
                 for offset, task in enumerate(normalized)
             ]
-            backlog["tasks"].extend(added_tasks)
-            backlog["plans"].append(
-                {
-                    "plan_id": plan_id,
-                    "planned_by": planned_by.strip(),
-                    "input_sha256": input_sha256,
-                    "task_ids": ids,
-                    "planned_at": planned_at,
-                }
-            )
+            backlog["tasks"][insertion_index:insertion_index] = added_tasks
+            plan_row = {
+                "plan_id": plan_id,
+                "planned_by": planned_by.strip(),
+                "input_sha256": input_sha256,
+                "task_ids": ids,
+                "planned_at": planned_at,
+            }
+            if resolved_insert_before:
+                plan_row["insert_before_task_id"] = resolved_insert_before
+            backlog["plans"].append(plan_row)
             for task in added_tasks:
                 append_delta_event(
                     backlog,
@@ -697,6 +811,7 @@ class ProjectStore:
                     details={
                         "plan_id": plan_id,
                         "sequence": task["sequence"],
+                        "insert_before_task_id": resolved_insert_before or None,
                     },
                 )
             tasks_by_id = {str(row["task_id"]): row for row in backlog["tasks"]}
@@ -741,31 +856,112 @@ class ProjectStore:
             backlog,
         )
         ordered_tasks = sorted(backlog["tasks"], key=lambda row: int(row["sequence"]))
-        panel_status = {
-            "ACTIVE": "in_progress",
-            "DONE": "completed",
-            "ACCEPTED": "completed",
-        }
-        goal_rows = [
-            {
-                "number": int(task["sequence"]),
+        goal_rows: list[dict[str, Any]] = []
+        history_rows: list[dict[str, Any]] = []
+        canonical_rows: list[dict[str, Any]] = []
+        for task in ordered_tasks:
+            lifecycle_status = str(task["status"])
+            common = {
                 "task_id": str(task["task_id"]),
                 "step": str(task["requested_outcome"]),
-                "status": panel_status.get(str(task["status"]), "pending"),
-                "lifecycle_status": str(task["status"]),
+                "plan_sequence": int(task["sequence"]),
+                "lifecycle_status": lifecycle_status,
                 "steer_deltas": list(task.get("steer_deltas") or []),
+                **(
+                    {"panel_role": str(task["panel_role"])}
+                    if task.get("panel_role")
+                    else {}
+                ),
             }
-            for task in ordered_tasks
-        ]
+            host_status = _GOAL_STATUS_BY_LIFECYCLE.get(lifecycle_status)
+            if host_status is not None:
+                row = {
+                    **common,
+                    "number": len(goal_rows) + 1,
+                    "status": host_status,
+                }
+                goal_rows.append(row)
+                canonical_rows.append(
+                    {
+                        **common,
+                        "projection_lane": "GOAL",
+                        "goal_number": row["number"],
+                    }
+                )
+                continue
+            history_row = {
+                **common,
+                "history_number": len(history_rows) + 1,
+                "execution_status": "NON_EXECUTABLE",
+            }
+            history_rows.append(history_row)
+            canonical_rows.append(
+                {
+                    **common,
+                    "projection_lane": "HISTORY",
+                    "history_number": history_row["history_number"],
+                    "execution_status": "NON_EXECUTABLE",
+                }
+            )
+        canonical_plan_body = {
+            "canonical_authority": "PLAN_LANE",
+            "project_id": project_id,
+            "task_count": len(canonical_rows),
+            "rows": canonical_rows,
+        }
+        canonical_plan_sha256 = sha256_bytes(
+            canonical_json_bytes(canonical_plan_body)
+        )
+        history_projection_body = {
+            "canonical_authority": "PLAN_LANE",
+            "project_id": project_id,
+            "task_count": len(history_rows),
+            "rows": history_rows,
+            "parking_rows": [
+                row
+                for row in history_rows
+                if row["lifecycle_status"] in _PARKED_LIFECYCLE_STATUSES
+            ],
+            "superseded_rows": [
+                row
+                for row in history_rows
+                if row["lifecycle_status"] in _SUPERSEDED_LIFECYCLE_STATUSES
+            ],
+            "execution_policy": "IMMUTABLE_NON_EXECUTABLE_HISTORY",
+            "parked_host_surfaces": [
+                {
+                    "surface": "CHATGPT_PLUGIN_LAYER",
+                    "status": "DEFERRED_NON_EXECUTABLE",
+                    "reactivation_requires": "NEW_EXPLICIT_HUMAN_PLAN_AND_HIL",
+                }
+            ],
+            "canonical_plan_sha256": canonical_plan_sha256,
+        }
+        history_projection = {
+            **history_projection_body,
+            "projection_sha256": sha256_bytes(
+                canonical_json_bytes(history_projection_body)
+            ),
+        }
         goal_projection_body = {
             "canonical_authority": "PLAN_LANE",
             "project_id": project_id,
             "task_count": len(goal_rows),
+            "canonical_task_count": len(canonical_rows),
+            "history_task_count": len(history_rows),
             "rows": goal_rows,
+            "canonical_plan_sha256": canonical_plan_sha256,
+            "history_projection_sha256": history_projection["projection_sha256"],
+            "lifecycle_status_mapping": dict(_GOAL_STATUS_BY_LIFECYCLE),
+            "non_executable_statuses": sorted(
+                set(DELTA_STATUSES) - set(_GOAL_STATUS_BY_LIFECYCLE)
+            ),
             "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
             "steer_default_boundary": "BEFORE_NEXT_HIL",
             "linked_steer_policy": "APPEND_TO_EXISTING_STEP_WITHOUT_REPLACEMENT",
-            "unlinked_steer_policy": "APPEND_NEW_NUMBERED_STEP_AND_INCREASE_COUNT",
+            "unlinked_steer_policy": (
+                "INSERT_NEW_NUMBERED_STEP_BEFORE_NEXT_HIL_AND_INCREASE_COUNT"
+            ),
         }
         goal_projection = {
             **goal_projection_body,
@@ -781,19 +977,15 @@ class ProjectStore:
                     "native_task_panel": True,
                     "goal_start_requires_user_paste": True,
                 },
-                "CHATGPT": {
-                    "native_plan_mode": False,
-                    "native_goal": False,
-                    "native_task_panel": False,
-                    "mounted_plugin_store_is_authority": True,
-                    "append_only_lane_law_preserved": True,
-                },
             },
             "goal_start_prompt": (
                 f"Use the persisted Evidence Lane Plan Lane for project {project_id} "
-                "as this Codex task's Goal. Resume the first in-progress or pending "
-                "step, keep the full task panel visible through every steer, and stop "
-                "at the next governed six-way HIL."
+                "as this Codex task's Goal. Resume the sole in-progress row, or the "
+                "first pending row when none is active. Execute only Goal rows; "
+                "DROPPED, SUPERSEDED, REJECTED, FAILED, and ROLLED_BACK rows remain "
+                "immutable non-executable Plan history. Keep the full executable "
+                "task panel visible through every steer, and stop at the next "
+                "governed six-way HIL."
             ),
         }
         return {
@@ -814,6 +1006,11 @@ class ProjectStore:
             "universal_statuses": list(DELTA_STATUSES),
             "plan_runtime_projection": runtime,
             "goal_projection": goal_projection,
+            "history_projection": history_projection,
+            "canonical_plan_projection": {
+                **canonical_plan_body,
+                "projection_sha256": canonical_plan_sha256,
+            },
             "tasks": backlog["tasks"],
             "plans": backlog["plans"],
         }
@@ -829,7 +1026,7 @@ class ProjectStore:
         new_task_contract: dict[str, Any] | None = None,
         boundary: str = "BEFORE_NEXT_HIL",
     ) -> dict[str, Any]:
-        """Canonically link a steer or append one new linear Plan Lane row."""
+        """Link a steer or insert one new row before the next visible HIL."""
 
         exact_text = delta_text
         exact_actor = actor.strip()
@@ -878,13 +1075,21 @@ class ProjectStore:
                 "An unlinked steer requires one complete bounded task contract.",
                 status="BLOCKED",
             )
-            new_task = cast(dict[str, Any], new_task_contract)
+            new_task = dict(cast(dict[str, Any], new_task_contract))
+            explicit_insert_before = str(
+                new_task.pop("insert_before_task_id", "") or ""
+            ).strip()
             plan_digest = sha256_bytes(exact_delta_id.encode("utf-8")).lower()
             self.plan_tasks(
                 project_id,
                 tasks=[new_task],
                 planned_by=exact_actor,
                 plan_id=f"steerplan_{plan_digest[:32]}",
+                insert_before_task_id=explicit_insert_before or None,
+                insert_before_next_hil=(
+                    not explicit_insert_before
+                    and exact_boundary == "BEFORE_NEXT_HIL"
+                ),
             )
             exact_link = str(new_task.get("task_id") or "").strip()
 
@@ -1055,6 +1260,25 @@ class ProjectStore:
             )
             self._persist_backlog(project_id, backlog)
             return task
+
+    def batch_completion_receipt(
+        self,
+        project_id: str,
+        receipt_id: str,
+    ) -> dict[str, Any] | None:
+        """Return one immutable batch-completion receipt without changing Plan state."""
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            receipt = next(
+                (
+                    row
+                    for row in backlog.get("batch_completion_receipts", [])
+                    if row.get("receipt_id") == receipt_id
+                ),
+                None,
+            )
+            return dict(receipt) if isinstance(receipt, dict) else None
 
     def record_backlog_done(
         self,

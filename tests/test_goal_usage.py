@@ -18,7 +18,7 @@ def test_compact_token_count_uses_readable_k_and_m_notation() -> None:
     assert compact_token_count(14_007_602) == "14M"
 
 
-def test_goal_usage_receipt_keeps_exact_counts_and_carries_baseline() -> None:
+def test_goal_usage_receipt_never_inherits_another_project_baseline() -> None:
     receipt = build_goal_usage_receipt(
         current_tokens=1_500_000,
         current_elapsed_seconds=3600,
@@ -26,16 +26,16 @@ def test_goal_usage_receipt_keeps_exact_counts_and_carries_baseline() -> None:
     assert receipt.exact()["current_tokens"] == 1_500_000
     assert receipt.exact()["prior_goal_tokens"] == PRIOR_GOAL_TOKENS
     assert receipt.exact()["earlier_recorded_tokens"] == EARLIER_RECORDED_TOKENS
-    assert receipt.exact()["cumulative_tokens"] == 16_173_205
+    assert receipt.exact()["cumulative_tokens"] == 1_500_000
     assert receipt.display() == {
         "current_tokens": "1.5M",
         "current_elapsed": "1h 0m",
-        "prior_goal_tokens": "665.6K",
-        "prior_goal_elapsed": "24m 25s",
-        "earlier_recorded_tokens": "14M",
-        "earlier_recorded_elapsed": "15h 55m",
-        "cumulative_tokens": "16.2M",
-        "cumulative_elapsed": "17h 19m 25s",
+        "prior_goal_tokens": "0",
+        "prior_goal_elapsed": "0s",
+        "earlier_recorded_tokens": "0",
+        "earlier_recorded_elapsed": "0s",
+        "cumulative_tokens": "1.5M",
+        "cumulative_elapsed": "1h 0m",
     }
     assert receipt.governance() == {
         "schema": "evidence-lane.goal-usage-governance.v1",

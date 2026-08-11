@@ -1,13 +1,15 @@
-# Persistent Windows ChatGPT read tunnel
+# Persistent versioned Windows secure MCP tunnel
 
 The governed Windows tunnel uses the official OpenAI `tunnel-client` v0.0.10
 binary pinned by SHA-256. The installer copies it out of the temporary download
 directory, asks for the contributor's OpenAI Tunnel ID once, encrypts the
 Runtime API key with current-user Windows DPAPI, creates an exact
-`CHATGPT_PRO_GOVERNED` MCP profile, and registers `EvidenceLane-Tunnel-v150` with
-Task Scheduler. The tunnel is for ChatGPT only. Codex installs the exact Git
-plugin and keeps the complete local lifecycle; it does not use Vercel or this
-tunnel as its plugin transport.
+versioned secure MCP transport profile, and registers `EvidenceLane-Tunnel-v200`
+with Task Scheduler. The transport itself is host-neutral. Its currently served
+remote layer is `CHATGPT_PRO_GOVERNED`; that layer is not the tunnel's identity.
+Codex installs the exact plugin and keeps the complete local lifecycle on its
+package-local native MCP. A tunnel surface is never accepted as Codex lifecycle
+proof or as a fallback for missing native tools.
 
 The tunnel is transport-only and binds no project. Its child process receives a
 portable `EVIDENCE_LANE_DATA_ROOT` (the per-user `EvidenceLanePV` directory by
@@ -16,18 +18,26 @@ The server then resolves only `<data-root>/projects/<project_id>` and permits no
 cross-project fallback. Use `-DataRoot <durable-directory>` to select another
 reviewed, secret-free local root during installation.
 
-The task starts automatically at the user's first Windows sign-in after boot.
-That boundary is intentional: current-user DPAPI avoids a plaintext or
-machine-wide Runtime API key. It does not run before any user has signed in.
-Task Scheduler restarts the daemon after non-zero exits, and the launcher
-requires an exact binary hash plus a successful control-plane poll before it is
-reported ready.
+The stable version starts automatically at the user's first Windows sign-in
+after boot. A separately registered future-test version can run at the same time
+under its own RuntimeRoot, profile, task, Tunnel ID, PID, health file, and public
+route. It cannot stop or replace stable while it is being tested. The prior
+proven stable is retained intact as the disabled archive/fallback. Current-user
+DPAPI avoids a plaintext or machine-wide Runtime API key. It does not run before
+any user has signed in. Task Scheduler restarts a selected daemon after non-zero
+exits, and the launcher requires an exact binary hash plus a successful
+control-plane poll before it is reported ready.
 
-The v1.5.0 defaults are deliberately isolated under `tunnel-runtime-v150`,
-`evidence_lane_v150_chatgpt_read`, and `EvidenceLane-Tunnel-v150`. They do not
-remove, overwrite, stop, or reuse the v1.4 runtime, profile, scheduled task, PID,
-health, or log files. Keep v1.4 intact until the final HIL explicitly authorizes
-its removal.
+The v2.0.0 defaults are deliberately isolated under `tunnel-runtime-v200`,
+`evidence_lane_v200_transport`, and `EvidenceLane-Tunnel-v200`. They do not
+remove or overwrite the v1.3 or v1.4 runtime, profile, scheduled task, DPAPI
+envelope, PID, health, or log files. Each install is registered in the
+secret-free `EvidenceLanePV/tunnel-versions/registry.json`. The version manager
+maintains explicit `stable`, `future-test`, and `archive/fallback` channels in an
+append-only hash-chained history. Candidate readiness is proved before the
+stable task is touched. Promotion additionally requires exact health, public
+route, and host-proof receipt hashes. A failed future candidate is stopped while
+stable remains untouched; rollback-after-interruption is not the safety model.
 
 ## One-time installation
 
@@ -40,6 +50,15 @@ key, at the masked prompt:
 & ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1"
 ```
 
+Installation stages and registers v2.0 without stopping the active older
+version. To reuse the current user's already encrypted Runtime key without ever
+decrypting or printing it, pass the exact saved DPAPI envelope:
+
+```powershell
+& ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1" `
+  -RuntimeKeyEnvelopeSource "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v130\secrets\control-plane-runtime-key.dpapi"
+```
+
 Never give a contributor the owner's Runtime API key or production OAuth
 credential. A private tester receives a separately created Tunnel ID and
 Runtime key, a unique `-RuntimeRoot`, `-ProfileName`, and `-TaskName`, and a
@@ -47,9 +66,9 @@ tester-only `-DataRoot` containing only the approved test projects. For example:
 
 ```powershell
 & ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1" `
-  -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150-tester-01" `
-  -ProfileName "evidence_lane_v150_chatgpt_tester_01" `
-  -TaskName "EvidenceLane-Tunnel-v150-Tester-01" `
+  -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200-tester-01" `
+  -ProfileName "evidence_lane_v200_transport_tester_01" `
+  -TaskName "EvidenceLane-Tunnel-v200-Tester-01" `
   -DataRoot "$env:USERPROFILE\EvidenceLanePV\tester-01"
 ```
 
@@ -58,8 +77,9 @@ local prompt. The private tunnel remains read-only at the ChatGPT exposure
 boundary. Owner-only production lifecycle authority is enforced separately by
 the public OAuth resource server and must never be inferred from tunnel access.
 
-The generated child launcher sets `EVIDENCE_LANE_MCP_EXPOSURE_PROFILE` to
-`CHATGPT_PRO_GOVERNED`. That profile exposes the complete 62-action catalog.
+The generated layer launcher sets `EVIDENCE_LANE_MCP_EXPOSURE_PROFILE` to
+`CHATGPT_PRO_GOVERNED` for the registered ChatGPT layer currently served by the
+transport. That profile exposes the complete 62-action catalog.
 Exactly 21 annotated read operations execute for accepted-PV status, Entry/Exit
 slips, ENV/UOP Flash, lane search/fetch, diffs, task backlog, and governed panels.
 The other 41 lifecycle-write actions remain visible but are intercepted before
@@ -76,38 +96,104 @@ mutation.
 After installation, add or reconnect Evidence Lane once in ChatGPT using the
 same Tunnel ID. Upload the shipped `assets/evidence-lane-icon.png` when the
 ChatGPT development form requests the app icon. The server metadata reports
-Evidence Lane `1.5.0`, the owned website, and the same public 256-by-256 icon.
+Evidence Lane `2.0.0`, the owned website, and the same public 256-by-256 icon.
 
-`-MigrateCurrentRuntime` is optional. It stops only the process identified by
-the historical PID file after its binary SHA-256 matches the pinned client,
-then starts the v1.5.0 scheduled copy. Omit the switch to leave an older healthy
-tunnel untouched until the replacement has passed.
+Installation registers v2.0.0 as `future-test`. Without `-Activate`, it remains
+staging-only. `-Activate` is permitted only when the caller also supplies the
+three sealed promotion receipt hashes. The installer first runs
+`VerifyCandidate`, which starts v2.0.0 without stopping stable, and then calls
+`Promote`. Missing or invalid receipts block promotion and leave stable
+authoritative.
 
 ## Operator commands
 
-Start or confirm the task:
+List every saved version and all three channels:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150\Manage-EvidenceLaneTunnel.ps1" -Action Start
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-versions\Manage-EvidenceLaneTunnelVersions.ps1" -Action List
+```
+
+Start and prove an isolated candidate without reinstalling it:
+
+```powershell
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-versions\Manage-EvidenceLaneTunnelVersions.ps1" `
+  -Action VerifyCandidate -Release "2.0.0"
+```
+
+Promote only after the exact candidate health, public route, and host proofs are
+sealed:
+
+```powershell
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-versions\Manage-EvidenceLaneTunnelVersions.ps1" `
+  -Action Promote `
+  -Release "2.0.0" `
+  -HealthReceiptSha256 "<64-HEX-SHA256>" `
+  -PublicRouteReceiptSha256 "<64-HEX-SHA256>" `
+  -HostProofReceiptSha256 "<64-HEX-SHA256>"
+```
+
+`-Action Activate` may restart the current stable release or explicitly
+reactivate the proven archive/fallback. It cannot promote a future-test release.
+Saved v1.4.0 or v1.3.0 runtimes remain reusable, but a legacy archive without
+sealed prior promotion receipts must be reverified and promoted with fresh
+receipts rather than trusted by filename.
+
+## Interaction and VM lifetime
+
+The installer and SessionStart hook classify the host before requesting tunnel
+setup:
+
+- `HEADLESS_API` and `DIRECT_CLI_API` require no tunnel at the API layer,
+  regardless of Pro, Plus, Business, Edu, Enterprise, or API billing. Durable
+  local/mounted PV storage remains primary when present.
+- `CODEX_APP_INTERACTIVE` on a local PC or persistent VM installs once per host
+  and release. Windows logon management then keeps the transport available.
+- `CODEX_APP_INTERACTIVE` on an ephemeral VM installs once for that VM. The
+  Runtime key stays only in that VM's current-user DPAPI profile, and both the
+  key envelope and tunnel lifetime end with the VM. The installer requires the
+  current VM instance identity, stores only its SHA-256, refuses a durable prior
+  key envelope, and keeps its tunnel-version registry under the VM-local runtime
+  root even when PV state uses a separate durable mount.
+
+If the pinned tunnel client is absent, the installer can acquire it only from a
+configured credential-free HTTPS URI and only when its SHA-256 matches. It then
+guides first-time Tunnel ID/key entry locally. The plugin never places a secret
+in a prompt, receipt, task panel, database, Git file, or log. A missing or
+mismatched marker produces visible onboarding; startup does not silently claim
+tunnel health or mutate the tunnel.
+
+Start or confirm only the v2.0 task directly:
+
+This starts the v2.0.0 scheduled copy of the host-neutral secure transport; it
+does not make the tunnel a Codex lifecycle route or a ChatGPT identity.
+
+```powershell
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200\Manage-EvidenceLaneTunnel.ps1" -Action Start
 ```
 
 Read status without exposing the key:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150\Manage-EvidenceLaneTunnel.ps1" -Action Status
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200\Manage-EvidenceLaneTunnel.ps1" -Action Status
 ```
 
 Repair a stopped or unhealthy task:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150\Manage-EvidenceLaneTunnel.ps1" -Action Repair
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200\Manage-EvidenceLaneTunnel.ps1" -Action Repair
+```
+
+Stop v2.0 while preserving all files for later fallback:
+
+```powershell
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200\Manage-EvidenceLaneTunnel.ps1" -Action Stop
 ```
 
 Remove the exact installer-owned scheduled task, profile, DPAPI envelope, and
 runtime only after reviewing the bound path:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v150\Manage-EvidenceLaneTunnel.ps1" -Action Remove -ConfirmRemoval
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200\Manage-EvidenceLaneTunnel.ps1" -Action Remove -ConfirmRemoval
 ```
 
 Removal fails closed unless the target is inside the current user's

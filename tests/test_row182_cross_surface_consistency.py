@@ -18,8 +18,9 @@ if str(SCRIPTS) not in sys.path:
 
 from build_release_candidate_rehearsal import _source_inventory
 
-RELEASE = "1.5.0"
-CODEX_RELEASE = "1.5.0+codex.20260809174231"
+RELEASE = "2.0.0"
+CODEX_RELEASE = "2.0.0+codex.20260811004422"
+REMOTE_RELEASE = "1.5.0"
 SITE = "https://evidencelane.org"
 MCP = "https://mcp.evidencelane.org/mcp"
 REPOSITORY = "https://github.com/rathee000001/evidence_lane_plugin"
@@ -125,8 +126,9 @@ def test_release_identity_urls_and_proprietary_boundary_are_consistent() -> None
     assert adapter_package["version"] == RELEASE
     assert ENGINE_VERSION == RELEASE
     assert codex_manifest["version"] == CODEX_RELEASE
-    assert public_metadata["version"] == RELEASE
-    assert f'export const releaseVersion = "{RELEASE}"' in release_source
+    assert public_metadata["version"] == REMOTE_RELEASE
+    assert f'export const releaseVersion = "{REMOTE_RELEASE}"' in release_source
+    assert REMOTE_RELEASE != RELEASE
 
     assert root_project["license"] == "LicenseRef-Proprietary"
     assert plugin_project["license"] == "LicenseRef-Proprietary"
@@ -351,23 +353,27 @@ def test_owner_repository_and_existing_devpost_identity_do_not_drift() -> None:
     assert "only the existing Devpost project" in readme
 
 
-def test_current_plan_projection_is_exactly_row_182_and_row_191_stays_final() -> None:
+def test_current_plan_projection_is_exactly_row_184_and_row_196_stays_final() -> None:
     execution = _read(ADAPTER / "app" / "_data" / "website-current-execution.ts")
     guidance = _read(ADAPTER / "app" / "_data" / "business-guidance.ts")
     public_metadata = json.loads(
         _read(ADAPTER / "public" / ".well-known" / "evidence-lane-plugin.json")
     )
-    assert 'order: 182,\n    id: "ROW_182",\n    status: "IN PROGRESS"' in execution
-    assert 'order: 191,\n    id: "ROW_191",\n    status: "PENDING"' in execution
-    assert "activePublicOrder: 182" in execution
-    assert "activeTaskPosition: 102" in execution
-    assert "activeReceiptPosition: 110" in execution
-    assert "Row 182 is the sole active row" in guidance
-    assert public_metadata["plan_lane"]["active_public_row"] == 182
-    assert public_metadata["plan_lane"]["active_public_task_position"] == 102
-    assert public_metadata["plan_lane"]["active_governed_receipt_position"] == 110
-    assert public_metadata["plan_lane"]["physically_final_hil_public_row"] == 191
+    assert 'order: 184,\n    id: "ROW_184",\n    status: "IN PROGRESS"' in execution
+    assert 'order: 195,\n    id: "ROW_195",\n    status: "PENDING"' in execution
+    assert 'order: 196,\n    id: "ROW_196",\n    status: "PENDING"' in execution
+    assert "ADDITIVE_V150_PROJECT_PANEL_LANES_HIL_RENDER_CORRECTION_20260810" in execution
+    assert "ADDITIVE_LINEAR_GROWTH_ROW196_FINAL_HIL_CORRECTION_20260810" in execution
+    assert "activePublicOrder: 184" in execution
+    assert "activeTaskPosition: 104" in execution
+    assert "activeReceiptPosition: 112" in execution
+    assert "Row 184 remains the sole active row" in guidance
+    assert public_metadata["plan_lane"]["active_public_row"] == 184
+    assert public_metadata["plan_lane"]["active_public_task_position"] == 104
+    assert public_metadata["plan_lane"]["active_governed_receipt_position"] == 112
+    assert public_metadata["plan_lane"]["physically_final_hil_public_row"] == 196
+    assert public_metadata["plan_lane"]["physically_final_hil_governed_receipt_position"] == 124
     current_plan = _read(ADAPTER / "app" / "_data" / "current-execution-plan.ts")
-    assert "activeRow: 182" in current_plan
-    assert "activeTaskPosition: 102" in current_plan
-    assert "activeReceiptPosition: 110" in current_plan
+    assert "activeRow: 184" in current_plan
+    assert "activeTaskPosition: 104" in current_plan
+    assert "activeReceiptPosition: 112" in current_plan

@@ -63,7 +63,11 @@ class PromptIndex:
             actual = sha256_bytes(canonical_json_bytes(payload))
             host_session_id = str(payload.get("host_session_id", ""))
             require(
-                payload.get("schema") == "evidence-lane.prompt-index.v1"
+                payload.get("schema")
+                in {
+                    "evidence-lane.prompt-index.v1",
+                    "evidence-lane.prompt-index.v2",
+                }
                 and path.parent.name == self._host_key(host_session_id)
                 and claimed == actual,
                 "PROMPT_INDEX_RECORD_MISMATCH",

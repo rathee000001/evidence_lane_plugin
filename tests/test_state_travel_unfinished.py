@@ -328,3 +328,159 @@ def test_non_empty_state_travel_panel_requires_exactly_one_active_row() -> None:
             ]
         )
     assert multiple_active.value.code == "STATE_TRAVEL_MULTIPLE_ACTIVE_STEPS"
+
+
+def test_state_travel_derives_full_active_plan_and_seals_every_plan_steer(
+    service,
+) -> None:
+    profile = _profile()
+    boot = service.boot_session(
+        project_id="book-faires",
+        user_id="user-test",
+        workspace_id="workspace-test",
+        host="CODEX_DESKTOP",
+        agent_id="sole-writer",
+        sandbox_id="sandbox-local",
+        ephemeral=False,
+        runtime_context={"execution_profile": profile},
+        host_session_id="origin-codex-task",
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+    session_id = boot["session"]["session_id"]
+    service.build_initial("book-faires", session_id)
+    active_task = {
+        "task_id": "row-active",
+        "task_class": "verify_result",
+        "requested_outcome": "Finish the current correction.",
+        "permitted_paths": [],
+        "permitted_tools": ["repository_read"],
+        "acceptance_checks": ["Verify the bounded result."],
+        "stop_condition": "Stop before the final HIL.",
+    }
+    final_hil = {
+        **active_task,
+        "task_id": "row-final-hil",
+        "requested_outcome": "Present the physically final six-way HIL.",
+        "panel_role": "PHYSICALLY_FINAL_HIL",
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[active_task, final_hil],
+        planned_by="human-test",
+        plan_id="state-travel-plan",
+    )
+    service.store.claim_backlog_task(
+        "book-faires",
+        backlog_task_id="row-active",
+        session_id=session_id,
+        contract={**active_task, "task_id": "runtime-active"},
+    )
+    service.record_steer_delta(
+        "book-faires",
+        delta_text="Keep the exact correction attached to the active row.",
+        actor="human-test",
+        delta_id="linked-before-travel",
+        linked_task_id="row-active",
+    )
+    service.record_steer_delta(
+        "book-faires",
+        delta_text="Add the late correction before the final HIL.",
+        actor="human-test",
+        delta_id="new-before-travel",
+        new_task_contract={
+            **active_task,
+            "task_id": "late-row",
+            "requested_outcome": "Implement the late correction.",
+        },
+    )
+
+    prepared = service.prepare_state_travel(
+        "book-faires",
+        session_id,
+        resume_contract={"execution_profile": profile},
+    )["state_travel"]["resume_contract"]
+
+    assert prepared["task_list_source"] == "ACTIVE_PLAN_LANE_DERIVED"
+    assert [row["task_id"] for row in prepared["task_list"]] == [
+        "row-active",
+        "late-row",
+        "row-final-hil",
+    ]
+    assert prepared["task_list"][-1]["panel_role"] == (
+        "PHYSICALLY_FINAL_HIL"
+    )
+    assert prepared["resume_step"] == 1
+    assert [row["delta_id"] for row in prepared["additive_deltas"]] == [
+        "linked-before-travel",
+        "new-before-travel",
+    ]
+    assert [row["linked_step"] for row in prepared["additive_deltas"]] == [1, 2]
+    assert prepared["unlinked_steer_policy"] == (
+        "INSERT_NEW_STEP_BEFORE_NEXT_HIL_AND_INCREASE_COUNT"
+    )
+
+
+def test_state_travel_fails_closed_when_explicit_seal_drops_plan_delta(
+    service,
+) -> None:
+    profile = _profile()
+    boot = service.boot_session(
+        project_id="book-faires",
+        user_id="user-test",
+        workspace_id="workspace-test",
+        host="CODEX_DESKTOP",
+        agent_id="sole-writer",
+        sandbox_id="sandbox-local",
+        ephemeral=False,
+        runtime_context={"execution_profile": profile},
+        host_session_id="origin-codex-task",
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+    session_id = boot["session"]["session_id"]
+    service.build_initial("book-faires", session_id)
+    task = {
+        "task_id": "active-row",
+        "task_class": "verify_result",
+        "requested_outcome": "Preserve the correction.",
+        "permitted_paths": [],
+        "permitted_tools": ["repository_read"],
+        "acceptance_checks": ["Verify the correction."],
+        "stop_condition": "Stop at HIL.",
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[task],
+        planned_by="human-test",
+        plan_id="missing-delta-plan",
+    )
+    service.store.claim_backlog_task(
+        "book-faires",
+        backlog_task_id="active-row",
+        session_id=session_id,
+        contract={**task, "task_id": "runtime-active"},
+    )
+    service.record_steer_delta(
+        "book-faires",
+        delta_text="This Delta must never disappear from State Travel.",
+        actor="human-test",
+        delta_id="must-seal-delta",
+        linked_task_id="active-row",
+    )
+    canonical_rows = service.task_backlog("book-faires")["goal_projection"][
+        "rows"
+    ]
+
+    with pytest.raises(EvidenceLaneError) as dropped:
+        service.prepare_state_travel(
+            "book-faires",
+            session_id,
+            resume_contract={
+                "task_list": canonical_rows,
+                "resume_step": 1,
+                "additive_deltas": [],
+                "execution_profile": profile,
+            },
+        )
+    assert dropped.value.code == "STATE_TRAVEL_PLAN_DELTA_SEAL_INCOMPLETE"

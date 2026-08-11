@@ -72,20 +72,23 @@ def test_exact_six_control_order_matches_skills_and_website() -> None:
         assert (PLUGIN / "skills" / skill / "SKILL.md").is_file()
 
 
-def test_universal_package_keeps_skills_and_maps_registered_chatgpt_connection() -> None:
+def test_host_split_keeps_skills_and_separates_registered_chatgpt_connection() -> None:
     manifest = json.loads(
         _read(PLUGIN / ".codex-plugin" / "plugin.json")
     )
-    app_manifest = json.loads(_read(PLUGIN / ".app.json"))
+    chatgpt_connection = json.loads(
+        _read(PLUGIN / "chatgpt-app-connection.json")
+    )
     skill_files = sorted((PLUGIN / "skills").glob("*/SKILL.md"))
     packaged_skill_names = {path.parent.name for path in skill_files}
 
     assert manifest["interface"]["displayName"] == "Evidence Lane"
     assert "Evidence Lane 1.4" not in manifest["interface"]["displayName"]
-    assert manifest["version"].startswith("1.5.0+")
+    assert manifest["version"].startswith("2.0.0+")
     assert manifest["skills"] == "./skills/"
     assert manifest["mcpServers"] == "./.mcp.json"
-    assert manifest["apps"] == "./.app.json"
+    assert "apps" not in manifest
+    assert not (PLUGIN / ".app.json").exists()
     assert len(skill_files) == 15
     assert packaged_skill_names == {
         "evi",
@@ -104,13 +107,19 @@ def test_universal_package_keeps_skills_and_maps_registered_chatgpt_connection()
         "evi-storage",
         "evidence-lane-code-lifecycle",
     }
-    assert app_manifest == {
-        "apps": {
-            "evidence-lane": {
-                "id": "plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f"
-            }
-        }
-    }
+    assert chatgpt_connection["host"] == "CHATGPT"
+    assert chatgpt_connection["delivery"] == "REGISTERED_REMOTE_MCP_ONLY"
+    assert chatgpt_connection["connection"]["name"] == (
+        "evidence-lane-chatgpt-governed"
+    )
+    assert chatgpt_connection["connection"]["exposure_profile"] == (
+        "CHATGPT_PRO_GOVERNED"
+    )
+    assert chatgpt_connection["connection"]["visible_tool_count"] == 62
+    assert chatgpt_connection["connection"]["active_read_tool_count"] == 21
+    assert chatgpt_connection["connection"]["fail_closed_write_tool_count"] == 41
+    assert chatgpt_connection["codex_install_manifest_reference"] is False
+    assert chatgpt_connection["google_drive_bundled"] is False
 
     root_skill = _read(PLUGIN / "skills" / "evi" / "SKILL.md")
     boot_skill = _read(PLUGIN / "skills" / "evi-boot" / "SKILL.md")
@@ -211,15 +220,42 @@ def test_universal_package_keeps_skills_and_maps_registered_chatgpt_connection()
     assert public_metadata["plan_lane"] == {
         "current_public_projection": "https://evidencelane.org/#current-execution-plan",
         "sealed_historical_delta_rows": 80,
-        "live_projection_rows": 111,
-        "governed_receipt_rows": 119,
-        "active_public_row": 182,
-        "active_public_task_position": 102,
-        "active_governed_receipt_position": 110,
-        "last_pre_hil_public_row": 190,
-        "last_pre_hil_governed_receipt_position": 118,
-        "physically_final_hil_public_row": 191,
-        "physically_final_hil_governed_receipt_position": 119,
+        "candidate_comparison_deployment": (
+            "https://evidence-lane-chatgpt-mcp-adapter-hllaqjvmi.vercel.app"
+        ),
+        "candidate_comparison_commit": (
+            "93bf4a409faf544a96db8501cbdeefc002f9a32e"
+        ),
+        "production_role": "HISTORICAL_BASELINE_ONLY_UNTIL_ACCEPTED_PUBLICATION",
+        "live_projection_rows": 116,
+        "governed_receipt_rows": 124,
+        "active_public_row": 184,
+        "active_public_task_position": 104,
+        "active_governed_receipt_position": 112,
+        "last_pre_hil_public_row": 195,
+        "last_pre_hil_governed_receipt_position": 123,
+        "physically_final_hil_public_row": 196,
+        "physically_final_hil_governed_receipt_position": 124,
+        "sealed_origin_panel_sha256": (
+            "9533BFC6C96F4E3FC95DC1B5D9D9981EA78957B821CAA9AF90D895C2C6F36A40"
+        ),
+        "live_panel_hash_algorithm": (
+            "SHA256_STABLE_JSON_SEALED_ORIGIN_SHA_PLUS_PUBLIC_ROWS_V1"
+        ),
+        "live_panel_sha256": (
+            "E8752CE9F1AE4F17F1F509A9DFC63468AFD91B41309BA18DED7D0BA09728CA05"
+        ),
+        "canonical_plan_projection_sha256": (
+            "7A314F493335FB0123F06767CA12B5C4D8BC1D9B97127FF6C825799FE000550B"
+        ),
+        "native_plan_task_count": 84,
+        "native_plan_event_count": 342,
+        "native_plan_event_head_sha256": (
+            "A8EED3AFDCAC1A047628B15B0CDC4DCCD6AD8FA5D758D23923BE9E1FF4C2CA70"
+        ),
+        "native_plan_runtime_sqlite_sha256": (
+            "B81D92C3F0EE3F5F93D1078931DDC0EFE846BE74023732A206E1CAB89BCB17AA"
+        ),
         "steer_default_boundary": "BEFORE_NEXT_HIL",
         "persistent_until": (
             "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_"
@@ -257,7 +293,12 @@ def test_universal_package_keeps_skills_and_maps_registered_chatgpt_connection()
     }
     assert public_metadata["skill_surface"] == {
         "packaged_count": 15,
-        "visibility": "ALL_PACKAGED_SKILL_ENTRIES_VISIBLE_ON_CHATGPT_AND_CODEX",
+        "visibility": (
+            "CODEX_15_PACKAGED_SKILLS_VERIFIED__CHATGPT_HOST_"
+            "SKILL_VISIBILITY_NOT_YET_PROVEN"
+        ),
+        "codex_packaged_count_verified": 15,
+        "chatgpt_live_verified_count": 0,
         "read_safe_workflows": [
             "Root routing and exact six-control presentation",
             "Boot ENV/UOP Flash, runtime and accepted-PV observation",
@@ -789,7 +830,7 @@ def test_each_primary_route_owns_exactly_one_distinct_hero_map() -> None:
     assert "EvidenceOrbit" not in live_sources
 
 
-def test_current_execution_ledger_is_flat_unabridged_081_through_191() -> None:
+def test_current_execution_ledger_is_flat_unabridged_081_through_196() -> None:
     current = _read(ADAPTER / "app" / "_data" / "website-current-execution.ts")
     ledger = _read(ADAPTER / "app" / "_data" / "delta-ledger.ts")
     explorer = _read(ADAPTER / "app" / "_components" / "delta-ledger-explorer.tsx")
@@ -803,11 +844,11 @@ def test_current_execution_ledger_is_flat_unabridged_081_through_191() -> None:
     statuses = re.findall(
         r'^    status: "([A-Z ]+)",$', current, re.MULTILINE
     )
-    assert orders == list(range(81, 192))
-    assert ids == [f"ROW_{order}" for order in range(81, 192)]
-    assert statuses.count("COMPLETED") == 100
+    assert orders == list(range(81, 197))
+    assert ids == [f"ROW_{order}" for order in range(81, 197)]
+    assert statuses.count("COMPLETED") == 102
     assert statuses.count("IN PROGRESS") == 1
-    assert statuses.count("PENDING") == 10
+    assert statuses.count("PENDING") == 13
     assert 'order: 155,\n    id: "ROW_155",\n    status: "PENDING"' in current
     assert 'order: 166,\n    id: "ROW_166",\n    status: "COMPLETED"' in current
     assert 'order: 167,\n    id: "ROW_167",\n    status: "COMPLETED"' in current
@@ -816,24 +857,31 @@ def test_current_execution_ledger_is_flat_unabridged_081_through_191() -> None:
     assert 'order: 171,\n    id: "ROW_171",\n    status: "COMPLETED"' in current
     assert 'order: 180,\n    id: "ROW_180",\n    status: "COMPLETED"' in current
     assert 'order: 181,\n    id: "ROW_181",\n    status: "COMPLETED"' in current
-    assert 'order: 182,\n    id: "ROW_182",\n    status: "IN PROGRESS"' in current
+    assert 'order: 182,\n    id: "ROW_182",\n    status: "COMPLETED"' in current
+    assert 'order: 183,\n    id: "ROW_183",\n    status: "COMPLETED"' in current
+    assert 'order: 184,\n    id: "ROW_184",\n    status: "IN PROGRESS"' in current
     assert 'order: 190,\n    id: "ROW_190"' in current
     assert 'order: 191,\n    id: "ROW_191"' in current
+    assert 'order: 195,\n    id: "ROW_195"' in current
+    assert 'order: 196,\n    id: "ROW_196"' in current
     assert "Latest superseding Home-and-Studio HIL-orbit Delta" in current
     assert "do not alter accepted historical rows 001–080" in current
-    assert "activeTaskPosition: 102" in current
-    assert "activeReceiptPosition: 110" in current
-    assert "governedReceiptRows: 119" in current
+    assert "activeTaskPosition: 104" in current
+    assert "activeReceiptPosition: 112" in current
+    assert "governedReceiptRows: 124" in current
     assert "panelReactivation" in current
     assert "executionWriterBoundary" in current
     assert "goalContinuity" in current
-    assert "sealedPublicTaskListSha256: \"B3E3C620F95DAA59B9E0206C69EBBF42AE4E1E2B142F3B60E81BBFB4E83B31D0\"" in current
+    assert "sealedOriginReceiptPanelSha256" in current
+    assert "livePanelSha256" in current
+    assert "canonicalPlanProjectionSha256" in current
 
     assert "foundationIds" in ledger
     assert '{ order: 80, id: "EL-V130-ACCEPTED-AUTHORITY-SUCCESSOR-AND-RELEASE-GATE-DELTA-080"' in ledger
     assert "entry.nested" not in explorer
     assert "deltaNestedGroup" not in explorer
-    assert "Delta SHA-256" not in explorer
+    assert "Delta SHA-256" in explorer
+    assert "Linked correction" in explorer
     assert "Recorded by" not in explorer
-    assert "81&ndash;191" in explorer
-    assert "from public row 081 through 191" in home_page
+    assert "81&ndash;196" in explorer
+    assert "from public row 081 through 196" in home_page

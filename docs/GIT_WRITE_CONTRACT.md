@@ -27,10 +27,13 @@ this repository's separately authorized candidate-distribution branch.
 2. The user explicitly requests a remote branch push.
 3. `remote_git_prepare_push` records the accepted PV, manifest hash, pointer
    generation, remote, local ref, remote branch, and requester.
-4. The tool returns a high-entropy, one-use confirmation token.
-5. The exact action is shown to the user.
-6. `remote_git_execute_push` accepts only the exact token.
-7. The controller rechecks the accepted pointer using all three recorded
+4. The controller verifies that local and remote names match the sole registered
+   project branch and that the branch is a named non-protected test branch.
+5. The prepared receipt records automatic authorization, host-managed
+   credentials, and explicit denial of main push, merge, and PR acceptance. It
+   creates no per-push confirmation token.
+6. `remote_git_execute_push` consumes only that exact prepared action.
+7. The controller rechecks branch authority and the accepted pointer using all three recorded
    authority fields.
 8. Only then may one non-force branch push occur.
 
@@ -39,8 +42,8 @@ this repository's separately authorized candidate-distribution branch.
 A prepared action is bound to its exact local ref plus the accepted PV,
 manifest hash, and pointer generation. If any tracked source changes before
 execution, the action is superseded even when the accepted pointer is
-unchanged. Do not execute or repurpose its token. Finish the new source gate,
-create the new commit, then prepare and display a new one-use action/token.
+unchanged. Do not execute or repurpose the stale action. Finish the new source
+gate, create the new commit, then prepare a new exact action.
 
 The same rule applies when a pre-push audit finds invalid release evidence: the
 finding is corrected before publication, and the obsolete action remains
@@ -48,13 +51,15 @@ unconsumed as historical control evidence.
 
 ## Forbidden behavior
 
-- no automatic push after a build or HIL approval;
+- no implicit push merely because a build or HIL passed; automatic execution is
+  limited to the separately requested and prepared exact test-branch action;
 - no force push;
 - no wildcard ref;
 - no shell-composed Git command;
 - no second use of a consumed action;
 - no execution after pointer drift;
-- no token in source, PV, lineage, or normal logs.
+- no credential in source, PV, lineage, or normal logs;
+- no generated one-use push token.
 
 Branch creation, pull request creation, merge, and deletion are not implemented
 by the first private HIL.

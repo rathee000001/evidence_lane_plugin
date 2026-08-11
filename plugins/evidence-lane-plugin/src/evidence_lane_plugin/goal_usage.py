@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 
-PRIOR_GOAL_TOKENS = 665_603
-PRIOR_GOAL_ELAPSED_SECONDS = 24 * 60 + 25
-EARLIER_RECORDED_TOKENS = 14_007_602
-EARLIER_RECORDED_ELAPSED_SECONDS = 15 * 60 * 60 + 55 * 60
+# Compatibility defaults are deliberately neutral. Historical ledgers belong to the
+# exact project/task that supplied them; they must never become another user's
+# implicit baseline.
+PRIOR_GOAL_TOKENS = 0
+PRIOR_GOAL_ELAPSED_SECONDS = 0
+EARLIER_RECORDED_TOKENS = 0
+EARLIER_RECORDED_ELAPSED_SECONDS = 0
 
 
 def compact_token_count(value: int) -> str:
@@ -97,7 +100,7 @@ def build_goal_usage_receipt(
     earlier_recorded_tokens: int = EARLIER_RECORDED_TOKENS,
     earlier_recorded_elapsed_seconds: int = EARLIER_RECORDED_ELAPSED_SECONDS,
 ) -> GoalUsageReceipt:
-    """Bind this continuation to the exact earlier usage baseline."""
+    """Build a receipt from caller-supplied segments without inherited history."""
 
     values = (
         current_tokens,

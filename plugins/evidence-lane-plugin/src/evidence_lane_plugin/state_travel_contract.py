@@ -155,14 +155,83 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
             status="BLOCKED",
             position=index,
         )
-        normalized.append(
-            {
-                "number": index,
-                "task_id": task_id,
-                "step": text,
-                "status": status,
-            }
-        )
+        normalized_row: dict[str, Any] = {
+            "number": index,
+            "task_id": task_id,
+            "step": text,
+            "status": status,
+        }
+        panel_role = str(row.get("panel_role") or "").strip().upper()
+        if panel_role:
+            require(
+                panel_role
+                in {"STANDARD", "HIL_GATE", "PHYSICALLY_FINAL_HIL"},
+                "STATE_TRAVEL_TASK_PANEL_ROLE_INVALID",
+                "A State Travel row contains an unsupported persistent-panel role.",
+                status="BLOCKED",
+                position=index,
+                panel_role=panel_role,
+            )
+            normalized_row["panel_role"] = panel_role
+        raw_steers = row.get("steer_deltas")
+        if raw_steers:
+            require(
+                isinstance(raw_steers, list) and len(raw_steers) <= 500,
+                "STATE_TRAVEL_TASK_STEERS_INVALID",
+                "A task-panel row contains an invalid steer Delta list.",
+                status="BLOCKED",
+                position=index,
+            )
+            normalized_steers: list[dict[str, Any]] = []
+            for steer_position, steer in enumerate(raw_steers, start=1):
+                require(
+                    isinstance(steer, dict),
+                    "STATE_TRAVEL_TASK_STEER_INVALID",
+                    "Every task-panel steer Delta must be a structured row.",
+                    status="BLOCKED",
+                    position=index,
+                    steer_position=steer_position,
+                )
+                delta_id = str(steer.get("delta_id") or "").strip()
+                delta_text = steer.get("text")
+                boundary = str(
+                    steer.get("boundary") or "BEFORE_NEXT_HIL"
+                ).strip().upper()
+                require(
+                    bool(delta_id)
+                    and len(delta_id) <= 96
+                    and isinstance(delta_text, str)
+                    and bool(delta_text.strip())
+                    and len(delta_text) <= 50000
+                    and bool(boundary)
+                    and len(boundary) <= 128,
+                    "STATE_TRAVEL_TASK_STEER_CONTRACT_INVALID",
+                    "A task-panel steer Delta has incomplete immutable content.",
+                    status="BLOCKED",
+                    position=index,
+                    steer_position=steer_position,
+                )
+                normalized_steer = {
+                    "delta_id": delta_id,
+                    "text": delta_text,
+                    "boundary": boundary,
+                    "boundary_defaulted": bool(
+                        steer.get(
+                            "boundary_defaulted",
+                            boundary == "BEFORE_NEXT_HIL",
+                        )
+                    ),
+                    "classification": str(
+                        steer.get("classification") or "LINKED_EXISTING_STEP"
+                    ),
+                    "linked_task_id": str(
+                        steer.get("linked_task_id") or task_id
+                    ),
+                    "recorded_by": str(steer.get("recorded_by") or "UNKNOWN"),
+                }
+                normalized_steers.append(normalized_steer)
+            normalized_row["steer_deltas"] = normalized_steers
+        normalized.append(normalized_row)
     in_progress = [row for row in normalized if row["status"] == "IN_PROGRESS"]
     require(
         len(in_progress) <= 1,
@@ -241,4 +310,31 @@ def normalize_additive_deltas(rows: Any) -> list[dict[str, Any]]:
                 "defaulted_to_pre_hil": boundary == "BEFORE_NEXT_HIL",
             }
         )
+    delta_ids = [row["delta_id"] for row in normalized]
+    require(
+        len(delta_ids) == len(set(delta_ids)),
+        "STATE_TRAVEL_DELTA_ID_DUPLICATE",
+        "A State Travel handoff may seal each additive Delta ID only once.",
+        status="BLOCKED",
+        delta_ids=delta_ids,
+    )
     return normalized
+
+
+def additive_deltas_from_task_list(
+    task_list: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Project every persisted Plan Lane steer into the State Travel Delta seal."""
+
+    projected: list[dict[str, Any]] = []
+    for task in task_list:
+        for steer in task.get("steer_deltas", []):
+            projected.append(
+                {
+                    "delta_id": steer["delta_id"],
+                    "text": steer["text"],
+                    "linked_step": task["number"],
+                    "boundary": steer["boundary"],
+                }
+            )
+    return normalize_additive_deltas(projected)

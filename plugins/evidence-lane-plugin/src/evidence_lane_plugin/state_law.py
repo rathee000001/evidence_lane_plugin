@@ -14,6 +14,7 @@ class LifecycleEvent(StrEnum):
     FLASH_VERIFIED = "FLASH_VERIFIED"
     BUILD_INITIAL = "BUILD_INITIAL"
     CLASSIFY_TASK = "CLASSIFY_TASK"
+    RECONCILE_COMPLETED_TASK = "RECONCILE_COMPLETED_TASK"
     BEGIN_EXIT = "BEGIN_EXIT"
     RECOVER_INTERRUPTED_EXIT = "RECOVER_INTERRUPTED_EXIT"
     SEAL_EXIT = "SEAL_EXIT"
@@ -62,6 +63,10 @@ TRANSITION_LAW = MappingProxyType(
                 SessionState.TASK_CLASSIFIED,
                 SessionState.AWAITING_USER_APPLY_COMMIT,
             },
+        ),
+        LifecycleEvent.RECONCILE_COMPLETED_TASK: _pairs(
+            {SessionState.TASK_CLASSIFIED},
+            _ACCEPTED,
         ),
         LifecycleEvent.BEGIN_EXIT: _pairs(
             {

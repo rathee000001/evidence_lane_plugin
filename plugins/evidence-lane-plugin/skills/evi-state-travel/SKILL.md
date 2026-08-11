@@ -17,6 +17,9 @@ panel, including completed rows, the one exact in-progress row, pending rows,
 all additive Deltas, and the exact resume step. Never substitute historical
 accepted Delta-ledger rows for the current execution plan. A steer Delta is
 `BEFORE_NEXT_HIL` unless the user explicitly names another boundary.
+The State Travel seal must derive and include every steer Delta persisted on the
+active Plan Lane. Fail closed if an explicit task list or additive-Delta list
+drops or changes one. A `PHYSICALLY_FINAL_HIL` row must remain physically final.
 
 The sealed resume contract must carry the executable persistent-panel
 reactivation law. At the destination, re-project the exact complete task list

@@ -52,14 +52,14 @@ That creates one release identity but not one identical runtime:
 
 | Layer | ChatGPT | Codex |
 |---|---|---|
-| Directory package | Installs the reviewed plugin snapshot | Installs the same reviewed plugin snapshot |
+| Delivery artifact | Uses the separately registered reviewed remote MCP | Installs the reviewed native-only plugin snapshot |
 | Skills | Uses supported packaged or MCP-imported skills | Uses supported packaged skills |
-| MCP | Calls the reviewed public HTTPS MCP connection | Can call the same public MCP; a local authoring package may also declare a local `.mcp.json` server |
+| MCP | Calls the reviewed public HTTPS MCP connection | Calls only the package-local `.mcp.json` server for Evidence Lane lifecycle work |
 | Plugin-owned UI | Rendered from reviewed MCP UI resources and metadata | Rendered where that MCP UI capability is supported; native Codex controls remain host-owned |
 | Authentication | End user authorizes the connection through the OpenAI host | End user authorizes the same resource-server contract when using the public connection |
 | Local source authority | Not present in the ChatGPT client | May exist in a local Codex checkout and local durable runtime |
 
-The `.app.json` file is a package mapping to a **registered MCP connection**, not a substitute for one. A portal draft ID is not a connector ID. The v1.5 package now maps the real read-safe connection `plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f`; this proves connection identity only, not endpoint health, OAuth correctness, candidate-SHA pickup, or complete-package installation.
+`chatgpt-app-connection.json` is detached release evidence for a **registered MCP connection**, not a Codex component and not a substitute for a live connection. A portal draft ID is not a connector ID. The v1.5 source records the real read-safe connection `plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f`; this proves connection identity only, not endpoint health, OAuth correctness, candidate-SHA pickup, or complete ChatGPT installation.
 
 ## Can ChatGPT plugins write?
 
@@ -290,7 +290,7 @@ Every tool declares its exact scope set. The server checks token scope, subject/
 - [ ] Five positive and at least three negative reviewer cases use synthetic data and a no-MFA reviewer account.
 - [ ] Every tool’s schema, annotations, response minimization, and scope mapping audited.
 - [ ] Prompt injection, confused deputy, cross-tenant, token replay, duplicate write, and destructive confirmation tests pass.
-- [x] `.app.json` references the real registered connection; no portal/app ID is substituted.
+- [x] `chatgpt-app-connection.json` records the real registered connection and is not referenced by the Codex manifest; no portal/app ID is substituted.
 
 ### Stage D — portal review (manual owner action)
 

@@ -56,3 +56,16 @@ source warning, not a failure of the independently sealed subset.
 Any member addition, deletion, size change, hash change, SQLite integrity
 failure, lock mismatch, or authority-digest change fails closed before session
 boot.
+
+## Version 2 remote-Git policy precedence
+
+Version 2 preserves every ENV15/UOP15 and universal-prompt byte above so an
+installed active session does not silently migrate its Flash authority. The
+universal prompt's v1.5 sentence requiring a one-use remote-push confirmation
+is retained only as a hash-locked compatibility byte. The v2
+`scripts/codex-release-channel.json` policy is the effective remote-Git rule:
+the exact sole registered non-protected test branch requires a prepared receipt
+but no per-push token; main push, merge, PR acceptance, force, and credential
+intake remain forbidden. SessionStart includes that sealed effective policy and
+its SHA-256 in `PLUGIN_RUNTIME_ENVELOPE`. A missing or mismatched v2 policy fails
+the release identity rather than rewriting Flash bytes.

@@ -16,7 +16,7 @@ choices apply across hosts. Reduced host capability never expands authority.
 | HIL/Fuse | Explicit human tool call | Explicit human tool call | Explicit human tool call | Decision request only |
 | Rollback | Accepted-pointer CAS only | Same after durable readback | Same at durable origin | Request only |
 | Google Drive | Optional mirror/fallback | Optional mirror; not runtime authority | Optional mirror at origin | Connector UI only |
-| Remote Git write | Separate prepare/one-use confirmation | Same | Same | Request only |
+| Remote Git write | Exact prepared non-protected test branch; no per-push token | Same | Same | Request only |
 
 The public controls after root `/evi` are Boot, Rollback, Build, Refresh, Mode,
 and Source Intake. State Travel is eligible only with a sealed unfinished-work

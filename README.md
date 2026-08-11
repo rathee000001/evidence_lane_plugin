@@ -26,13 +26,24 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane 1.5.0
+# Evidence Lane 2.0.0
 
-The single active product release is **1.5.0** across the root package, plugin
-package, engine, Codex manifest, remote adapter, current documentation, and
-current test/PoC tooling. Historical accepted PVs, sealed receipts, compatibility
+The single active Codex product release is **2.0.0** across the root package,
+plugin package, engine, Codex manifest, native server, and current Codex release
+tooling. The separately registered ChatGPT remote surface is independently
+versioned and is not silently upgraded by a Codex install. Historical accepted
+PVs, sealed receipts, 1.5.0 packages and tunnels, compatibility
 labels such as `pre-v1.1`, dependency versions, and historical Delta reports keep
 their original versions. See [`docs/VERSIONING.md`](docs/VERSIONING.md).
+
+Release channels are linear: v2.0.0 occupies the stable Codex slot and v1.5.0
+is retained as immutable archive/fallback evidence; the next
+candidate may exist only in a separate disabled test slot. A test candidate may
+replace stable only after one matching set of native catalog, 15-skill, tunnel,
+Git, Vercel, Devpost, and explicit HIL receipts passes. The prior stable is then
+retained as a disabled archive and its tunnel remains reusable without rebuild.
+Registration, activation, failure, rollback, promotion, and archive history is
+append-only; version mismatch fails closed.
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex, with a
 durable remote MCP boundary for ChatGPT. It turns visible project sources and
@@ -136,18 +147,21 @@ transactional durable connector. Google Drive is an optional verified mirror or
 fallback, never the primary authority when durable local storage exists.
 
 Codex and ChatGPT are separate host universes over the same governance law.
-Codex installs from exact Git source, runs the complete lifecycle, and may
-project Plan Lane into native Plan, Goal, and task-panel surfaces. ChatGPT
-installs the same full Evidence Lane plugin package so its governed skills,
-including Boot/ENV-UOP Flash and accepted-PV Entry/Exit workflows, remain
-available. The registered ChatGPT Pro connection uses the
+Codex installs the native-only package from exact Git source, runs the complete
+lifecycle, and may project Plan Lane into native Plan, Goal, and task-panel
+surfaces. Its install manifest declares `.mcp.json` and must not declare an app
+or connector. ChatGPT uses a separately registered remote MCP connection and
+the corresponding governed workflow corpus, including Boot/ENV-UOP Flash and
+accepted-PV Entry/Exit workflows. The registered ChatGPT Pro connection uses the
 `CHATGPT_PRO_GOVERNED` profile. Its complete 62-action catalog stays visible:
 21 annotated read operations execute for accepted-PV status, ENV/UOP Flash,
 Entry/Exit slips, lanes, search, diffs, backlog, and governed panels; all 41
 lifecycle-write actions are intercepted before service invocation and return a
 structured `UNAVAILABLE_ON_CHATGPT_PRO` receipt with no mutation. ChatGPT's
 native ENV/UOP package and Project Mutation sector may continue under host law,
-but the MCP does not perform or claim that mutation.
+but the MCP does not perform or claim that mutation. Google Drive is not bundled
+into the stable Codex install; it is eligible only as an explicitly selected
+carrier on an ephemeral Codex VM.
 
 For authenticated HTTPS use, the v1.5.0 resource server requires an established
 OAuth 2.1 IdP and a read-only base transport scope. It publishes per-tool OAuth
@@ -328,7 +342,7 @@ only the accepted pointer among immutable accepted versions. Publication,
 installation, Vercel preview, and ChatGPT connection are release evidence, not
 candidate acceptance.
 
-## v1.5.0 release and historical compatibility invariants
+## v2.0.0 release and historical compatibility invariants
 
 An accepted PV remains immutable entry authority even when a later engine adds
 stricter topology or promotability rules. Boot, Resume, status, direct
@@ -341,6 +355,12 @@ Mode selection binds the chosen lane's locked ENV/UOP governance without
 moving the lifecycle. The exact Code-mode law is:
 
 `Mode=code | ENV formula: plan -> sandbox build -> test -> hash -> package | Loop: entry -> preflight -> sandbox -> patch -> test -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: PCM + MBA + SUPPLY | Receipt=5183AB1AD17D570DA860858B7B45D90F67E996273EA3A642B5E2C2511BA553A6`
+
+The supported local v2 install/reload path is documented in
+[Codex v2 local installation](docs/CODEX_V200_LOCAL_INSTALL_AND_RELOAD.md).
+Per-user repository access, license, credential, and automatic test-branch
+boundaries are documented in
+[tester access and Git authentication](docs/TESTER_ACCESS_AND_GIT_AUTH.md).
 
 Other modes retain their own lane gates and HIL effects while preserving the
 same six exact decision tokens.
@@ -382,7 +402,7 @@ python -m venv .venv
 Build the durable MCP container with:
 
 ```text
-docker build --pull --tag evidence-lane-plugin:1.5.0 .
+docker build --pull --tag evidence-lane-plugin:2.0.0 .
 ```
 
 The container exposes `/mcp` and `/healthz` on port 8080 and requires one writer

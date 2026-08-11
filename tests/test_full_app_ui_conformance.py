@@ -312,7 +312,7 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
         "node --experimental-strip-types scripts/test-openrouter-boundary.mjs"
     )
     post_body = query_route.split("export async function POST", 1)[1]
-    assert post_body.index("answerFromEvidence(question)") < post_body.index(
+    assert post_body.index("answerFromEvidence(question, { pagePath, history })") < post_body.index(
         "isEvidenceLaneQuestion(question)"
     ) < post_body.index("requestFreeGeneralAnswer")
     assert "verifyStudioRetrievalConfidence" in retrieval
@@ -366,6 +366,36 @@ def test_evidence_ai_studio_is_a_business_guide_for_the_whole_plugin() -> None:
         assert topic in guide
 
 
+def test_studio_candidate_is_route_aware_bounded_and_artifact_inspectable() -> None:
+    route = (APP / "api" / "studio-query" / "route.ts").read_text(encoding="utf-8")
+    retrieval = (APP / "_data" / "studio-retrieval.ts").read_text(encoding="utf-8")
+    route_context = (APP / "_data" / "studio-route-context.ts").read_text(encoding="utf-8")
+    artifacts = (APP / "_data" / "studio-artifact-catalog.ts").read_text(encoding="utf-8")
+    full_studio = (COMPONENTS / "evidence-prompt-studio.tsx").read_text(encoding="utf-8")
+    floating = (COMPONENTS / "floating-evidence-studio.tsx").read_text(encoding="utf-8")
+    artifact_lab = (COMPONENTS / "studio-artifact-lab.tsx").read_text(encoding="utf-8")
+    guide = (APP / "_data" / "business-guidance.ts").read_text(encoding="utf-8")
+
+    assert "MAX_HISTORY_TURNS = 8" in route
+    assert "boundedPagePath" in route and "boundedHistory" in route
+    assert "studioRouteContextFor(options.pagePath)" in retrieval
+    assert "historyTurns" in retrieval and "artifactIds" in retrieval
+    assert "pagePath: \"/studio\", history" in full_studio
+    assert "pagePath: pathname, history" in floating
+    assert "result.suggestions" in full_studio and "result.suggestions" in floating
+    assert len(re.findall(r'^    id: "[a-z-]+",$', route_context, flags=re.MULTILINE)) >= 9
+    assert route_context.count("suggestions: [") >= 9
+    for artifact_format in ("SQLite", "Markdown", "JSON", "CSV", "Chart", "Table", "MMD", "DOT"):
+        assert f'"{artifact_format}"' in artifacts
+        assert f'"{artifact_format}"' in artifact_lab
+    assert "WIRED_NOT_CONFIGURED_READ_ONLY_ONLY" in artifacts
+    assert "WIRED_NOT_CONFIGURED_OPTIONAL" in artifacts
+    assert "Executable action chart" in artifact_lab
+    assert "Host capability table" in artifact_lab
+    assert "whole project" in guide
+    assert "Release 1.5.0" in guide
+
+
 def test_native_threejs_motion_remains_without_retired_3d_or_adobe_links() -> None:
     studio_page = (APP / "studio" / "page.tsx").read_text(encoding="utf-8")
     active_site_text = "\n".join(
@@ -413,23 +443,27 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert 'id="current-execution-plan"' not in landing
     assert "One additive ledger. {deltaLedgerBoundary.totalRows} governed public rows." in landing
     assert "websiteCurrentExecution.map" in current_plan_data
-    assert 'activeRow: 182' in current_plan_data
-    assert 'activeTaskPosition: 102' in current_plan_data
-    assert 'activeReceiptPosition: 110' in current_plan_data
+    assert 'activeRow: 184' in current_plan_data
+    assert 'activeTaskPosition: 104' in current_plan_data
+    assert 'activeReceiptPosition: 112' in current_plan_data
     assert (
-        'persistentUntil: "ROW_191_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE"'
+        'persistentUntil: "ROW_196_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE"'
         in current_plan_data
     )
     assert (
         'exactlyOneActiveRow: currentExecutionPlan.filter((row) => row.status === "IN_PROGRESS").length === 1'
         in current_plan_data
     )
-    assert "lastExecutionStep: 190" in current_plan_data
-    assert "physicallyLastStep: 191" in current_plan_data
-    assert "SEALED_STATE_TRAVEL_TASK_LIST_PROJECTED_AS_PUBLIC_ROWS_081_191" in current_plan_data
+    assert "lastExecutionStep: 195" in current_plan_data
+    assert "physicallyLastStep: 196" in current_plan_data
+    assert "SEALED_ORIGIN_PLUS_LIVE_LINEAR_PROJECTION_AS_PUBLIC_ROWS_081_196" in current_plan_data
     assert 'order: 180,\n    id: "ROW_180",\n    status: "COMPLETED"' in website_current_plan_data
     assert 'order: 181,\n    id: "ROW_181",\n    status: "COMPLETED"' in website_current_plan_data
-    assert 'order: 182,\n    id: "ROW_182",\n    status: "IN PROGRESS"' in website_current_plan_data
+    assert 'order: 182,\n    id: "ROW_182",\n    status: "COMPLETED"' in website_current_plan_data
+    assert 'order: 183,\n    id: "ROW_183",\n    status: "COMPLETED"' in website_current_plan_data
+    assert 'order: 184,\n    id: "ROW_184",\n    status: "IN PROGRESS"' in website_current_plan_data
+    assert 'order: 195,\n    id: "ROW_195",\n    status: "PENDING"' in website_current_plan_data
+    assert 'order: 196,\n    id: "ROW_196",\n    status: "PENDING"' in website_current_plan_data
     assert "full final local verification suite" in website_current_plan_data
     assert "real Git test" in website_current_plan_data
     assert "GitHub agent proof" in website_current_plan_data
@@ -441,8 +475,10 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "...currentExecution" in ledger_data
     assert "sealedHistoricalDeltaRows" in ledger_data
     assert "liveExecutionRows" in ledger_data
-    assert "81&ndash;191" in ledger
-    assert "80 sealed historical rows" in (
+    assert "81&ndash;196" in ledger
+    assert "Delta SHA-256" in ledger
+    assert "Linked correction" in ledger
+    assert "80 sealed historical Delta rows" in (
         COMPONENTS / "current-execution-plan.tsx"
     ).read_text(encoding="utf-8")
     assert "useState(false)" in ledger

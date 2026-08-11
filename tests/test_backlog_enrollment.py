@@ -177,6 +177,37 @@ def test_delta_drop_and_supersede_are_explicit_append_only_events(service) -> No
         "QUEUED": 1,
         "SUPERSEDED": 1,
     }
+    goal = backlog["goal_projection"]
+    assert goal["task_count"] == 1
+    assert goal["canonical_task_count"] == 3
+    assert goal["history_task_count"] == 2
+    assert goal["rows"] == [
+        {
+            "task_id": "delta-new",
+            "step": "Replace the superseded bounded Delta.",
+            "plan_sequence": 3,
+            "lifecycle_status": "QUEUED",
+            "steer_deltas": [],
+            "number": 1,
+            "status": "pending",
+        }
+    ]
+    history = backlog["history_projection"]
+    assert [row["task_id"] for row in history["rows"]] == [
+        "delta-drop",
+        "delta-old",
+    ]
+    assert all("status" not in row for row in history["rows"])
+    assert all(
+        row["execution_status"] == "NON_EXECUTABLE"
+        for row in history["rows"]
+    )
+    assert [row["task_id"] for row in history["parking_rows"]] == [
+        "delta-drop"
+    ]
+    assert [row["task_id"] for row in history["superseded_rows"]] == [
+        "delta-old"
+    ]
     replacement = next(
         task for task in backlog["tasks"] if task["task_id"] == "delta-new"
     )
@@ -526,6 +557,170 @@ def test_selected_git_sync_can_replace_but_never_broaden_branch_authority(
     assert result["branch_authority"]["receipt"]["pointer_generation"] == 1
     assert result["branch_authority"]["receipt"]["accepted_pv"] == "PV1"
     assert result["remote_write_performed"] is False
+
+
+def test_dirty_local_branch_authority_replacement_preserves_exact_source(
+    tmp_path: Path,
+    source_repository: Path,
+) -> None:
+    checkout = tmp_path / "dirty-branch-authority-checkout"
+    subprocess.run(
+        ["git", "clone", "--no-local", str(source_repository), str(checkout)],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(checkout),
+            "remote",
+            "set-url",
+            "origin",
+            "https://github.com/example/book-faires.git",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    application = EvidenceLaneService(data_root=tmp_path / "dirty-authority-store")
+    application.register_project(
+        project_id="dirty-branch-authority",
+        display_name="Dirty branch authority",
+        repository_path=str(checkout),
+        expected_owner="example",
+        expected_name="book-faires",
+        allowed_branches=["main"],
+        sensitivity="PRIVATE",
+    )
+    boot = application.boot_session(
+        project_id="dirty-branch-authority",
+        user_id="user-test",
+        workspace_id="workspace-test",
+        host="CODEX_DESKTOP",
+        agent_id="codex-single-agent",
+        sandbox_id="sandbox-local",
+        ephemeral=False,
+        runtime_context={"permission_mode": "test"},
+        host_session_id="dirty-authority-host-session",
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+    session_id = boot["session"]["session_id"]
+    application.build_initial("dirty-branch-authority", session_id)
+    decision = application.decide(
+        "dirty-branch-authority",
+        session_id,
+        decision="APPROVE",
+        decided_by="human-test",
+        decision_id="dirty_branch_authority_pv1",
+    )
+    handoff = decision["state_travel_handoff"]["state_travel"]
+    application.resume_state_travel(
+        project_id="dirty-branch-authority",
+        session_id=session_id,
+        handoff_id=handoff["handoff_id"],
+        host="CODEX_DESKTOP",
+        host_session_id="dirty-authority-fresh-task",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"source": "dirty-authority-test"},
+    )
+    application.sessions.classify(
+        "dirty-branch-authority",
+        session_id,
+        task_class="modify_code",
+        requested_outcome="Select the exact dirty continuity branch.",
+        permitted_paths=["README.md", "scratch.txt"],
+        permitted_tools=[
+            "repository_read",
+            "repository_write",
+            "terminal",
+            "test",
+            "git_diff",
+            "patch",
+        ],
+        acceptance_checks=[
+            "The branch authority changes without changing source bytes."
+        ],
+        stop_condition="Stop at the next candidate HIL.",
+    )
+
+    from .conftest import git
+
+    exact_branch = "feature/dirty-continuity"
+    git(checkout, "switch", "-c", exact_branch)
+    expected_commit = git(checkout, "rev-parse", "HEAD")
+    readme = checkout / "README.md"
+    readme.write_text("# Book Faires\n\nDirty continuity bytes.\n", encoding="utf-8")
+    scratch = checkout / "scratch.txt"
+    scratch.write_text("untracked continuity bytes\n", encoding="utf-8")
+    before_status = subprocess.run(
+        ["git", "-C", str(checkout), "status", "--porcelain=v1", "-z"],
+        check=True,
+        capture_output=True,
+    ).stdout
+    before_readme = readme.read_bytes()
+    before_scratch = scratch.read_bytes()
+
+    with pytest.raises(EvidenceLaneError) as missing_commit:
+        application.sync_git_source(
+            project_id="dirty-branch-authority",
+            source=str(checkout),
+            branch=exact_branch,
+            session_id=session_id,
+            replace_registered_branch=True,
+        )
+    assert (
+        missing_commit.value.code
+        == "DIRTY_BRANCH_AUTHORITY_EXPECTED_COMMIT_REQUIRED"
+    )
+    assert application.store.config("dirty-branch-authority").allowed_branches == [
+        "main"
+    ]
+
+    result = application.sync_git_source(
+        project_id="dirty-branch-authority",
+        source=str(checkout),
+        branch=exact_branch,
+        session_id=session_id,
+        expected_commit=expected_commit,
+        replace_registered_branch=True,
+    )
+
+    after_status = subprocess.run(
+        ["git", "-C", str(checkout), "status", "--porcelain=v1", "-z"],
+        check=True,
+        capture_output=True,
+    ).stdout
+    assert result["operation"] == "DIRTY_LOCAL_BRANCH_AUTHORITY_ONLY"
+    assert result["fast_forward_applied"] is False
+    assert result["changed_paths"] == []
+    assert result["dirty_worktree_preserved"] is True
+    assert result["fetch_performed"] is False
+    assert result["source_write_performed"] is False
+    assert result["remote_write_performed"] is False
+    assert result["merge_commit_created"] is False
+    assert result["before"] == result["after"]
+    assert before_status == after_status
+    assert readme.read_bytes() == before_readme
+    assert scratch.read_bytes() == before_scratch
+    assert result["branch_authority"]["status"] == "REPLACED"
+    receipt = result["branch_authority"]["receipt"]
+    context = receipt["selection_context"]
+    assert context["selection_mode"] == "DIRTY_LOCAL_BRANCH_AUTHORITY_ONLY"
+    assert context["expected_commit"] == expected_commit
+    assert context["dirty_worktree_preserved"] is True
+    assert context["fetch_performed"] is False
+    assert context["source_write_performed"] is False
+    assert context["worktree_status_sha256"] == result["worktree_status_sha256"]
+    assert application.store.config("dirty-branch-authority").allowed_branches == [
+        exact_branch
+    ]
 
 
 def test_selected_git_sync_records_active_session_lineage(

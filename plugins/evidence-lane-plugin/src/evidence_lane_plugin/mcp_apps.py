@@ -7,12 +7,31 @@ import json
 from typing import Any
 
 from .constants import ENGINE_VERSION
+from .next_actions import HIL_CHOICES, HIL_SUGGESTED_PROMPT
 
 MCP_APP_MIME_TYPE = "text/html;profile=mcp-app"
 # MCP Apps hosts may cache UI resources by immutable ``ui://`` identity.  Bump
 # the resource URI whenever the embedded view contract changes so a host cannot
 # pair a new tool result with an older cached bridge implementation.
-GOVERNED_PANEL_URI = "ui://evidence-lane/governed-console-v2.html"
+GOVERNED_PANEL_URI = "ui://evidence-lane/governed-console-v3.html"
+
+_HIL_PANEL_CONSEQUENCES = {
+    "APPROVE": (
+        "Authorize a separate exact-candidate Fuse verification; this read-only "
+        "panel never fuses or moves the accepted pointer."
+    ),
+    "APPROVE_WITH_DELTA": (
+        "Preserve the candidate and append bounded correction work before a new HIL."
+    ),
+    "MORE_RESEARCH": (
+        "Preserve the candidate and append evidence work without accepting it."
+    ),
+    "ROLLBACK": (
+        "Request a pointer-only move among immutable accepted PVs; never edit source history."
+    ),
+    "REJECT": "Record non-acceptance with no accepted-pointer movement.",
+    "FAIL": "Record a failed gate with no accepted-pointer movement.",
+}
 
 
 def governed_panel_resource_meta(public_site_url: str) -> dict[str, Any]:
@@ -140,6 +159,15 @@ def build_project_panel_snapshot(
     accepted_pv = envelope.get("accepted_pv")
     candidate = envelope.get("pending_candidate")
     pending_hil = bool(envelope.get("pending_hil"))
+    lane_projection = _as_dict(project_status.get("lane_projection"))
+    projected_lanes = lane_projection.get("lanes")
+    if not isinstance(projected_lanes, list):
+        projected_lanes = []
+    choice_availability = (
+        "AVAILABLE_ONLY_AFTER_EXACT_USER_TOKEN"
+        if pending_hil
+        else "INFORMATION_ONLY_NO_PENDING_CANDIDATE"
+    )
     return {
         "schema": "evidence-lane.mcp-app-panel.v1",
         "panel": "project",
@@ -174,11 +202,41 @@ def build_project_panel_snapshot(
                 "value": str(project_route.get("active_host_profile") or "INACTIVE"),
             },
         ],
-        "lanes": [],
+        "lanes": projected_lanes,
+        "lane_projection": {
+            "authority": lane_projection.get("authority") or "NOT_AVAILABLE",
+            "pv_ref": lane_projection.get("pv_ref"),
+            "canonical_lane_count": int(
+                lane_projection.get("canonical_lane_count") or 0
+            ),
+            "emitted_lane_count": int(lane_projection.get("emitted_lane_count") or 0),
+            "absent_lane_ids": list(lane_projection.get("absent_lane_ids") or []),
+            "bundle_sha256": lane_projection.get("bundle_sha256"),
+            "topology_status": lane_projection.get("topology_status") or "NOT_AVAILABLE",
+        },
         "hil": {
             "pending": pending_hil,
             "candidate": candidate,
+            "decision_state": (
+                "AWAITING_EXACT_USER_TOKEN"
+                if pending_hil
+                else "NO_PENDING_CANDIDATE"
+            ),
             "rule": "Only an exact governed HIL decision can change authority.",
+            "choices": [
+                {
+                    "token": token,
+                    "availability": choice_availability,
+                    "consequence": _HIL_PANEL_CONSEQUENCES[token],
+                }
+                for token in HIL_CHOICES
+            ],
+            "prompt_template": HIL_SUGGESTED_PROMPT,
+            "suggested_next_prompt": HIL_SUGGESTED_PROMPT if pending_hil else None,
+            "exact_case_sensitive_token_required": True,
+            "composer_authority": "HOST_OWNED",
+            "auto_submit": False,
+            "render_changes_authority": False,
         },
         "links": [
             _link("Website", exact_site),
@@ -303,14 +361,46 @@ def governed_panel_html(public_site_url: str) -> str:
         status.textContent = String(data.status || "READY").slice(0, 32);
         content.replaceChildren();
         if (activeTab === "lanes") {{
-          content.append(cards(data.lanes));
+          const projection = data.lane_projection || {{}};
+          const laneCards = [
+            {{
+              label: "Accepted lane coverage",
+              value: `${{projection.emitted_lane_count || 0}} / ${{projection.canonical_lane_count || 0}} emitted | ${{projection.pv_ref || "NO ACCEPTED PV"}}`,
+            }},
+            {{label: "Lane authority", value: projection.authority || "NOT AVAILABLE"}},
+            {{label: "Topology", value: projection.topology_status || "NOT AVAILABLE"}},
+            {{
+              label: "Not emitted",
+              value: Array.isArray(projection.absent_lane_ids) && projection.absent_lane_ids.length
+                ? projection.absent_lane_ids.join(", ")
+                : "NONE",
+            }},
+            ...(Array.isArray(data.lanes) ? data.lanes : []),
+          ];
+          content.append(cards(laneCards));
         }} else if (activeTab === "hil") {{
           const hil = data.hil;
-          content.append(hil ? cards([
-            {{label: "Pending", value: hil.pending ? "YES" : "NO"}},
-            {{label: "Candidate", value: hil.candidate || "NONE"}},
-            {{label: "Authority rule", value: hil.rule || "Exact HIL decision required"}},
-          ]) : el("div", "empty", "No project HIL data was requested."));
+          if (hil) {{
+            const hilCards = [
+              {{label: "Pending", value: hil.pending ? "YES" : "NO"}},
+              {{label: "Candidate", value: hil.candidate || "NONE"}},
+              {{label: "Decision state", value: hil.decision_state || "UNKNOWN"}},
+              {{label: "Authority rule", value: hil.rule || "Exact HIL decision required"}},
+            ];
+            (Array.isArray(hil.choices) ? hil.choices : []).forEach((choice) => {{
+              hilCards.push({{
+                label: choice?.token || "HIL choice",
+                value: `${{choice?.availability || "UNAVAILABLE"}} — ${{choice?.consequence || "No consequence supplied"}}`,
+              }});
+            }});
+            hilCards.push({{
+              label: "Prompt template (host-owned; never auto-submitted)",
+              value: hil.prompt_template || "Exact HIL token required",
+            }});
+            content.append(cards(hilCards));
+          }} else {{
+            content.append(el("div", "empty", "No project HIL data was requested."));
+          }}
         }} else {{
           content.append(cards(data.facts));
         }}

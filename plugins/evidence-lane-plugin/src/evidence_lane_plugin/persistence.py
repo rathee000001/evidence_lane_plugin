@@ -47,6 +47,16 @@ class PersistenceRoute:
     env_continuity_policy: str = (
         "HASHED_ENV_UOP_REFERENCE_IN_ENTRY_EXIT_SLIPS_REFLASH_ON_BOOT_RESUME"
     )
+    interaction_profile: str = "HOST_SURFACE_UNSPECIFIED"
+    vm_lifetime: str = "LOCAL_OR_PERSISTENT"
+    tunnel_requirement: str = "HOST_CAPABILITY_UNSPECIFIED"
+    tunnel_setup_frequency: str = "HOST_CAPABILITY_UNSPECIFIED"
+    tunnel_key_retention: str = "HOST_CAPABILITY_UNSPECIFIED"
+    tunnel_runtime_lifetime: str = "HOST_CAPABILITY_UNSPECIFIED"
+    account_tier: str = "ACCOUNT_TIER_UNSPECIFIED"
+    account_tier_affects_routing: bool = False
+    api_billing_affects_routing: bool = False
+    routing_axes_independent: bool = True
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -57,9 +67,103 @@ def route_persistence(
     *,
     ephemeral: bool,
     server_has_durable_filesystem: bool | None = None,
+    runtime_context: dict[str, Any] | None = None,
 ) -> PersistenceRoute:
     """Route by the MCP server's storage capability, not UI brand alone."""
     kind = normalize_host_kind(host)
+    context = dict(runtime_context or {})
+    requested_interaction = str(context.get("interaction_profile") or "").strip()
+    interaction_aliases = {
+        "API": "HEADLESS_API",
+        "API_HEADLESS": "HEADLESS_API",
+        "HEADLESS_API": "HEADLESS_API",
+        "CODEX_APP_API": "HEADLESS_API",
+        "CLI_API": "DIRECT_CLI_API",
+        "DIRECT_CLI_API": "DIRECT_CLI_API",
+        "CODEX_APP": "CODEX_APP_INTERACTIVE",
+        "CODEX_APP_INTERACTIVE": "CODEX_APP_INTERACTIVE",
+        "INTERACTIVE_CODEX_APP": "CODEX_APP_INTERACTIVE",
+        "CODEX_CLI_NATIVE": "CODEX_CLI_NATIVE",
+        "CHATGPT_INTERACTIVE": "CHATGPT_INTERACTIVE",
+        "PUBLIC_AI": "PUBLIC_AI",
+    }
+    if requested_interaction:
+        interaction_profile = interaction_aliases.get(
+            requested_interaction.replace("-", "_").replace(" ", "_").upper()
+        )
+        require(
+            interaction_profile is not None,
+            "INTERACTION_PROFILE_INVALID",
+            "The interaction profile is not part of the host capability matrix.",
+            status="BLOCKED",
+            provided=requested_interaction,
+            supported=sorted(set(interaction_aliases.values())),
+        )
+    elif kind == HostKind.CODEX_DESKTOP:
+        interaction_profile = "CODEX_APP_INTERACTIVE"
+    elif kind == HostKind.CODEX_CLI:
+        interaction_profile = "CODEX_CLI_NATIVE"
+    elif kind == HostKind.CHATGPT:
+        interaction_profile = "CHATGPT_INTERACTIVE"
+    elif kind == HostKind.PUBLIC_AI:
+        interaction_profile = "PUBLIC_AI"
+    else:
+        interaction_profile = "CODEX_VM_UNSPECIFIED"
+
+    requested_tier = str(context.get("account_tier") or "").strip().upper()
+    account_tier = requested_tier or "ACCOUNT_TIER_UNSPECIFIED"
+    require(
+        account_tier
+        in {
+            "ACCOUNT_TIER_UNSPECIFIED",
+            "PRO",
+            "PLUS",
+            "BUSINESS",
+            "EDU",
+            "ENTERPRISE",
+            "API",
+        },
+        "ACCOUNT_TIER_INVALID",
+        "The supplied account tier is not a supported capability label.",
+        status="BLOCKED",
+        provided=requested_tier,
+    )
+
+    api_layer = interaction_profile in {"HEADLESS_API", "DIRECT_CLI_API"}
+    interactive_codex_app = interaction_profile == "CODEX_APP_INTERACTIVE"
+    if api_layer:
+        tunnel_requirement = "NOT_REQUIRED_FOR_API_LAYER"
+        tunnel_setup_frequency = "NONE"
+        tunnel_key_retention = "NOT_APPLICABLE"
+        tunnel_runtime_lifetime = "NOT_APPLICABLE"
+    elif interactive_codex_app and ephemeral:
+        tunnel_requirement = "REQUIRED_FOR_INTERACTIVE_CODEX_APP_ENVIRONMENT"
+        tunnel_setup_frequency = "ONCE_PER_EPHEMERAL_VM_INSTANCE"
+        tunnel_key_retention = "CURRENT_VM_LIFETIME_ONLY"
+        tunnel_runtime_lifetime = "CURRENT_VM_LIFETIME_ONLY"
+    elif interactive_codex_app:
+        tunnel_requirement = "REQUIRED_FOR_INTERACTIVE_CODEX_APP_ENVIRONMENT"
+        tunnel_setup_frequency = "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
+        tunnel_key_retention = "HOST_MANAGED_PERSISTENT_PROFILE"
+        tunnel_runtime_lifetime = "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST"
+    else:
+        tunnel_requirement = "NOT_PART_OF_THIS_SURFACE_ROUTE"
+        tunnel_setup_frequency = "NONE"
+        tunnel_key_retention = "NOT_APPLICABLE"
+        tunnel_runtime_lifetime = "NOT_APPLICABLE"
+
+    host_matrix = {
+        "interaction_profile": interaction_profile,
+        "vm_lifetime": "EPHEMERAL_VM" if ephemeral else "LOCAL_OR_PERSISTENT",
+        "tunnel_requirement": tunnel_requirement,
+        "tunnel_setup_frequency": tunnel_setup_frequency,
+        "tunnel_key_retention": tunnel_key_retention,
+        "tunnel_runtime_lifetime": tunnel_runtime_lifetime,
+        "account_tier": account_tier,
+        "account_tier_affects_routing": False,
+        "api_billing_affects_routing": False,
+        "routing_axes_independent": True,
+    }
     durable_filesystem = (
         not ephemeral
         and kind
@@ -85,6 +189,7 @@ def route_persistence(
                 host_profile="CHATGPT_DURABLE_MCP_HOST",
                 primary_runtime_authority="MCP_SERVER_MOUNTED_OR_LOCAL_SQLITE",
                 google_drive_policy="FORBIDDEN_FOR_CHATGPT_RUNTIME",
+                **host_matrix,
             )
         if kind == HostKind.CODEX_VM and ephemeral:
             return PersistenceRoute(
@@ -101,6 +206,7 @@ def route_persistence(
                 google_drive_policy=(
                     "CODEX_EPHEMERAL_SEALED_ENTRY_EXIT_CARRIER_ALLOWED_NOT_PRIMARY"
                 ),
+                **host_matrix,
             )
         return PersistenceRoute(
             mode="local",
@@ -120,6 +226,7 @@ def route_persistence(
             ),
             primary_runtime_authority="LOCAL_DURABLE_SQLITE",
             google_drive_policy="NOT_SELECTED_FOR_DURABLE_HOST",
+            **host_matrix,
         )
 
     if kind == HostKind.CHATGPT:
@@ -135,6 +242,7 @@ def route_persistence(
             host_profile="CHATGPT_MCP_HOST_WITHOUT_DURABLE_MOUNT",
             primary_runtime_authority="CONFIGURED_TRANSACTIONAL_RUNTIME_REQUIRED",
             google_drive_policy="FORBIDDEN_FOR_CHATGPT_RUNTIME",
+            **host_matrix,
         )
     if kind == HostKind.CODEX_VM and ephemeral:
         return PersistenceRoute(
@@ -152,6 +260,7 @@ def route_persistence(
             google_drive_policy=(
                 "CODEX_EPHEMERAL_SEALED_ENTRY_EXIT_CARRIER_ALLOWED_NOT_PRIMARY"
             ),
+            **host_matrix,
         )
     return PersistenceRoute(
         mode="configured_durable_connector",
@@ -169,6 +278,7 @@ def route_persistence(
         ),
         primary_runtime_authority="CONFIGURED_TRANSACTIONAL_RUNTIME_REQUIRED",
         google_drive_policy="OPTIONAL_SEALED_MIRROR_NEVER_PRIMARY",
+        **host_matrix,
     )
 
 

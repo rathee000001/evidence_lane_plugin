@@ -43,9 +43,10 @@ Keep the full task panel visible until the next six-way HIL. For every visible
 steer, decide canonically whether it belongs to an existing task. Call
 `pv_plan_steer_delta` with that `linked_task_id` when linked; append its exact
 text without replacing the row or changing the count. If it is unrelated, pass
-one complete `new_task_contract`; the Plan Lane appends a numbered step and the
-count increases. The default boundary is `BEFORE_NEXT_HIL` unless the user says
-otherwise.
+one complete `new_task_contract`; the Plan Lane adds a numbered step and the
+count increases. When a next HIL row exists, Plan Lane inserts that new step
+before the gate; a `PHYSICALLY_FINAL_HIL` row must remain physically final. The
+default boundary is `BEFORE_NEXT_HIL` unless the user says otherwise.
 
 Do not apply this Codex Plan-mode bridge to ChatGPT. ChatGPT persists its Plan
 Lane through the mounted plugin store and shared append-only runtime laws, but

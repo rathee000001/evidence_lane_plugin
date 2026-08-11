@@ -16,10 +16,12 @@ ChatGPT -> Vercel preview/adapter -> exact-release durable MCP origin
 ## Installation route distinction
 
 Codex installs Evidence Lane from the governed Git marketplace route and keeps
-the full lifecycle. ChatGPT installs the same full plugin package, whose
-`.app.json` maps the registered Evidence Lane MCP connection into the bundled
-skill corpus. The product display name stays **Evidence Lane**; `1.5.0` belongs
-in version metadata. ChatGPT therefore displays and can route through all
+the full lifecycle. Its install manifest declares only the native `.mcp.json`
+server and must not contain `apps` or `.app.json`. ChatGPT uses a separately
+registered remote MCP connection recorded in `chatgpt-app-connection.json`;
+that record is release evidence and is never loaded by Codex. The product
+display name stays **Evidence Lane**; `1.5.0` belongs in version metadata.
+ChatGPT therefore displays and can route through all
 fifteen packaged skills, including Boot/ENV-UOP Flash guidance and accepted-PV
 Entry/Exit inspection, alongside a complete 62-action catalog. Exactly 21
 operations execute as reads for accepted PVs, lanes, Chat Lineage, task backlog,
@@ -33,11 +35,12 @@ filesystem.
 
 The separate public **New Plugin** or connector route accepts an **MCP Server
 URL** or a **Tunnel**, not a Git working tree. That step registers only the MCP
-app. The app's `plugin_asdk_app...` technical ID must then be mapped in the full
-plugin package before ChatGPT can show the bundled skills and release metadata.
-The v1.5 package maps the existing read-safe Evidence Lane connection as
-`plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f` through `.app.json`, and
-`.codex-plugin/plugin.json` points its compatibility `apps` field to that file.
+app. The app's `plugin_asdk_app...` technical ID is recorded only in the
+ChatGPT-specific release artifact. The v1.5 source records the existing
+read-safe Evidence Lane connection as
+`plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f` in
+`chatgpt-app-connection.json`; `.codex-plugin/plugin.json` deliberately has no
+`apps` field.
 This public technical ID is routing metadata, not a credential and not proof
 that the underlying endpoint currently serves the candidate Git SHA.
 Git supplies source and release identity, while that route still requires a
@@ -46,18 +49,23 @@ that one runtime, server, or tunnel was connected; it does not prove that the
 currently selected Git SHA or full plugin package is active.
 
 Do not treat a connector details page with no Skills section as a complete
-installation. The complete-package check requires the Evidence Lane details
-page to show the bundled skill inventory and a fresh conversation to route a
+ChatGPT installation. The ChatGPT-side check requires the Evidence Lane details
+page to show the governed skill inventory and a fresh conversation to route a
 read-safe Boot request through the packaged `evi-boot` instructions and the
 governed 62-action profile. The six primary controls remain visible;
 unsupported lifecycle-write actions return an explicit fail-closed receipt.
 
 For a contributor's local route, run
 `scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1`. It accepts one exact
-Tunnel ID, captures one Runtime API key through a masked DPAPI prompt, creates
-the governed 62-action profile, registers boot persistence, and provides Status,
-Repair, and exact Remove actions. ChatGPT is linked once after the tunnel is
-ready. Codex never uses this route.
+Tunnel ID, captures or reuses one current-user DPAPI Runtime-key envelope,
+creates the governed 62-action ChatGPT exposure layer over the host-neutral
+secure transport, and saves the release as an isolated runtime. The version
+manager lists and activates v1.3, v1.4, or v1.5 without
+rebuilding their tunnels, keeps exactly one ready version active, and rolls back
+failed activation. Direct management provides Start, Stop, Status, Repair, and
+exact Remove actions. ChatGPT is linked once after the selected tunnel is ready.
+Codex never accepts this remote layer as lifecycle proof; its full 62-tool
+write-capable lifecycle remains package-local and native.
 
 The Vercel adapter performs no local evidence writes. Its `/healthz` must report the
 exact Git SHA, `durable_origin_verified: true`, and

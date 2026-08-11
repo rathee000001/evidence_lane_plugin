@@ -2,12 +2,14 @@
   "name": "evidence-lane-chatgpt-edge",
   "private": true,
   "type": "module",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "scripts": {
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
-    "test:studio-query": "node --experimental-strip-types scripts/test-openrouter-boundary.mjs"
+    "test:execution-panel": "node scripts/test-current-execution-panel.mjs",
+    "test:studio-query": "node --experimental-strip-types scripts/test-openrouter-boundary.mjs",
+    "test:studio-gold-parity": "node --experimental-strip-types scripts/test-studio-gold-parity.mjs"
   },
   "dependencies": {
     "framer-motion": "12.38.0",
