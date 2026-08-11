@@ -18,7 +18,7 @@ from build_release_candidate_rehearsal import (
     build_rehearsal,
 )
 
-VERSION = "2.0.0+codex.20260811131000"
+VERSION = "2.0.0+codex.20260811134500"
 COMMIT = "a" * 40
 TREE = "b" * 40
 

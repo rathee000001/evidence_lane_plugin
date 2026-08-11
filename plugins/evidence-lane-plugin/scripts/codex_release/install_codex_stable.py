@@ -304,6 +304,57 @@ def _surface_change_display(
     return core
 
 
+def _verified_staged_surface_change_display(
+    value: Any,
+    *,
+    current: dict[str, Any],
+) -> dict[str, Any]:
+    """Verify the preflight diff before reusing it during activation.
+
+    Installation is deliberately a two-pass operation.  Once the first pass has
+    staged the new marketplace, recomputing a diff during the activation pass
+    compares the package with itself and erases the actual version change.  The
+    stage receipt therefore carries the original content-addressed display and
+    the second pass must verify and reuse it byte-for-byte.
+    """
+
+    if not isinstance(value, dict):
+        raise InstallationError(
+            "The exact staged marketplace lacks its sealed surface change display."
+        )
+    core = dict(value)
+    observed_sha256 = str(core.pop("change_display_sha256", "")).upper()
+    expected_sha256 = hashlib.sha256(_json_bytes(core)).hexdigest().upper()
+    hooks = dict(value.get("hooks") or {})
+    skills = dict(value.get("skills") or {})
+    catalog = dict(value.get("catalog") or {})
+    if (
+        value.get("schema")
+        != "evidence-lane.codex-installed-surface-change-display.v2"
+        or observed_sha256 != expected_sha256
+        or value.get("current_plugin_version") != current["plugin_version"]
+        or value.get("current_surface_inventory_sha256")
+        != current["surface_inventory_sha256"]
+        or value.get("raw_paths_included") is not False
+        or value.get("private_research_question_included") is not False
+        or hooks.get("count") != current["hooks"]["count"]
+        or hooks.get("registered_event_count")
+        != current["hooks"]["registered_event_count"]
+        or hooks.get("registered_events")
+        != current["hooks"]["registered_events"]
+        or hooks.get("handler_count") != current["hooks"]["handler_count"]
+        or hooks.get("hook_file_count") != current["hooks"]["hook_file_count"]
+        or hooks.get("inventory_sha256")
+        != current["hooks"]["inventory_sha256"]
+        or skills.get("count") != current["skills"]["count"]
+        or skills.get("inventory_sha256")
+        != current["skills"]["inventory_sha256"]
+        or any(catalog.get(key) != current["catalog"][key] for key in EXPECTED_CATALOG)
+    ):
+        raise InstallationError("The exact staged surface change display drifted.")
+    return value
+
+
 def _write_atomic(path: Path, content: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     handle, raw = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
@@ -548,6 +599,7 @@ def _stage_marketplace(
             "marketplace": MARKETPLACE_NAME,
             "plugin": identity,
             "archive_sha256": archive_sha256,
+            "surface_change_display": surface_change,
             "generated_cache_written_directly": False,
             "prior_release_deleted": False,
         }
@@ -557,11 +609,15 @@ def _stage_marketplace(
             if current_stage.is_file():
                 current = json.loads(current_stage.read_text(encoding="utf-8"))
                 if current.get("archive_sha256") == archive_sha256:
+                    preserved_change = _verified_staged_surface_change_display(
+                        current.get("surface_change_display"),
+                        current=identity["surface_inventory"],
+                    )
                     shutil.rmtree(staging)
                     return {
                         "state": "ALREADY_STAGED_EXACT",
                         "prior_marketplace_archived": False,
-                        "surface_change_display": surface_change,
+                        "surface_change_display": preserved_change,
                     }
             archive_root = (
                 data_root

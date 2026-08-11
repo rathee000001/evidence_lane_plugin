@@ -61,7 +61,7 @@ def _fixture_catalog_source() -> str:
 
 def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     source = tmp_path / "source"
-    version = "2.0.0+codex.20260811131000"
+    version = "2.0.0+codex.20260811134500"
     _write(
         source / ".codex-plugin" / "plugin.json",
         json.dumps(
@@ -280,6 +280,19 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
             encoding="utf-8"
         )
     )["name"] == "evidence-lane-v200-github"
+
+    repeated = module.install(
+        argparse.Namespace(
+            archive=archive,
+            rehearsal_receipt=receipt,
+            codex_home=codex_home,
+            data_root=data_root,
+            codex_executable=None,
+            activate=False,
+        )
+    )
+    assert repeated["marketplace"]["state"] == "ALREADY_STAGED_EXACT"
+    assert repeated["surface_change_display"] == result["surface_change_display"]
 
 
 def test_channel_switch_disables_prior_plugin_without_deleting_cache(

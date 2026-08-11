@@ -20,7 +20,9 @@ restart after a local plugin changes:
 3. Rerun it with `--activate` and the exact Codex executable. The script stages
    `evidence-lane-v200-github`, invokes the supported marketplace/plugin CLI,
    disables other Evidence Lane selectors without deleting their caches, backs
-   up `config.toml`, and emits an `INSTALLED_RESTART_REQUIRED` receipt.
+   up `config.toml`, preserves the exact preflight surface-change display rather
+   than comparing the staged package with itself, and emits an
+   `INSTALLED_RESTART_REQUIRED` receipt.
 4. Run `scripts/codex_release/accept_codex_stable.py` without a native-route
    receipt. It must return
    `PRE_RESTART_INSTALLED_PACKAGE_VERIFIED_RESTART_REQUIRED` after comparing
