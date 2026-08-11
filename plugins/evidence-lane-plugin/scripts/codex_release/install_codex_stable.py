@@ -651,14 +651,21 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         "Stop",
     } or handler_count != 4 or "pv_plan_steer_delta" not in post_matcher:
         raise InstallationError("The persistent hook event set drifted.")
-    for name in (
-        "session_start.py",
-        "prompt_submit.py",
-        "post_tool_use.py",
-        "stop_response.py",
-    ):
+    persistent_notice_markers = {
+        "session_start.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_NOTICE=",
+        "prompt_submit.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=",
+        "post_tool_use.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_TOOL_PROJECTION=",
+        "stop_response.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=",
+    }
+    for name, marker in persistent_notice_markers.items():
         source = (plugin_root / "hooks" / name).read_text(encoding="utf-8")
-        if "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=" not in source:
+        required = (
+            "persistent_change_system_notice",
+            "persistent_change_system_message",
+            'result["systemMessage"]',
+            marker,
+        )
+        if any(value not in source for value in required):
             raise InstallationError(f"{name} does not emit the persistent change notice.")
     return {
         "plugin_id": PLUGIN_NAME,

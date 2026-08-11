@@ -21,6 +21,12 @@ RESTART = (
     / "Restart-EvidenceLaneCodex.ps1"
 )
 ACCEPTANCE = PLUGIN / "scripts" / "codex_release" / "accept_codex_stable.py"
+HOOK_NOTICE_MARKERS = {
+    "session_start.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_NOTICE=",
+    "prompt_submit.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=",
+    "post_tool_use.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_TOOL_PROJECTION=",
+    "stop_response.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=",
+}
 
 
 def _module():
@@ -42,6 +48,16 @@ def _acceptance_module():
 def _write(path: Path, value: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(value, encoding="utf-8")
+
+
+def _fixture_hook_source(marker: str) -> str:
+    return (
+        "persistent_change_system_notice = None\n"
+        "persistent_change_system_message = None\n"
+        "result = {}\n"
+        'result["systemMessage"] = ""\n'
+        f'print("{marker}")\n'
+    )
 
 
 def _fixture_catalog_source() -> str:
@@ -170,15 +186,10 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
             }
         ),
     )
-    for name in (
-        "session_start.py",
-        "prompt_submit.py",
-        "post_tool_use.py",
-        "stop_response.py",
-    ):
+    for name, marker in HOOK_NOTICE_MARKERS.items():
         _write(
             source / "hooks" / name,
-            'print("EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=")\n',
+            _fixture_hook_source(marker),
         )
     _write(
         source / "pyproject.toml",
@@ -622,15 +633,10 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
             }
         ),
     )
-    for name in (
-        "session_start.py",
-        "prompt_submit.py",
-        "post_tool_use.py",
-        "stop_response.py",
-    ):
+    for name, marker in HOOK_NOTICE_MARKERS.items():
         _write(
             source / "hooks" / name,
-            'print("EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=")\n',
+            _fixture_hook_source(marker),
         )
     _write(
         source / "commands" / "evi-plan.md",
