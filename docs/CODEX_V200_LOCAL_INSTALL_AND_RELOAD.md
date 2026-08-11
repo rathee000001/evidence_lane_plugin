@@ -24,8 +24,10 @@ restart after a local plugin changes:
 4. Run `scripts/codex_release/accept_codex_stable.py` without a native-route
    receipt. It must return
    `PRE_RESTART_INSTALLED_PACKAGE_VERIFIED_RESTART_REQUIRED` after comparing
-   marketplace/cache bytes, the enabled selector, the actual AST catalog,
-   hooks, skills, release policy, and the sealed installation-surface diff.
+   every marketplace source byte, the exact Codex-generated command-to-skill
+   migration, the enabled selector, the actual AST catalog, hooks, skills,
+   release policy, and the sealed installation-surface diff. No other cache
+   extras are accepted.
 5. Run `Restart-EvidenceLaneCodex.ps1 -Action Prepare` with the exact project,
    Evidence Lane session, Codex task, host session, installation receipt, and
    root Codex desktop process ID.

@@ -61,7 +61,7 @@ def _fixture_catalog_source() -> str:
 
 def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     source = tmp_path / "source"
-    version = "2.0.0+codex.20260811004422"
+    version = "2.0.0+codex.20260811030012"
     _write(
         source / ".codex-plugin" / "plugin.json",
         json.dumps(
@@ -428,10 +428,24 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
             source / "hooks" / name,
             'print("EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=")\n',
         )
+    _write(
+        source / "commands" / "evi-plan.md",
+        "---\n"
+        "description: Pair a finished Codex plan with the canonical Plan Lane.\n"
+        "---\n\n"
+        "# Evidence Lane Plan Lane\n\n"
+        "Keep the canonical plan visible.\n",
+    )
     marketplace.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(source, marketplace)
     installed.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(source, installed)
+    for relative, generated in acceptance._expected_migrated_command_skills(
+        marketplace
+    ).items():
+        generated_path = installed / relative
+        generated_path.parent.mkdir(parents=True, exist_ok=True)
+        generated_path.write_bytes(generated)
 
     config = tmp_path / "codex" / "config.toml"
     _write(
@@ -519,6 +533,11 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
     )
     assert pre["catalog"] == {"tools": 62, "read": 21, "write": 41, "skills": 15}
     assert pre["installed_plugin"]["version"] == version
+    assert pre["package_inventory"]["source_bytes_match_marketplace"] is True
+    assert pre["package_inventory"]["codex_generated_migration_count"] == 1
+    assert pre["package_inventory"]["codex_generated_migrations"][0][
+        "skill_name"
+    ] == "source-command-evi-plan"
     assert pre["restart_verified"] is False
     assert pre["hil_inferred"] is False
 
@@ -557,3 +576,16 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
     assert post["installed_host_hil_required"] is True
     assert post["candidate_created_or_accepted"] is False
     assert post["pointer_moved"] is False
+
+    migrated = next(
+        (installed / ".codex-plugin" / "migrated-command-skills").rglob("SKILL.md")
+    )
+    migrated.write_text("tampered\n", encoding="utf-8")
+    with pytest.raises(acceptance.AcceptanceError, match="exact derivation"):
+        acceptance.accept(
+            argparse.Namespace(
+                **common,
+                native_route_receipt=None,
+                output=tmp_path / "tampered-acceptance.json",
+            )
+        )

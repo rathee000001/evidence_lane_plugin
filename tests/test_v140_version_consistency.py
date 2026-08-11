@@ -31,6 +31,7 @@ HISTORICAL_OR_DEPENDENCY_FILES = {
     "plugins/evidence-lane-plugin/remote_adapter/app/page.tsx",
     "plugins/evidence-lane-plugin/remote_adapter/pnpm-lock.yaml",
     "plugins/evidence-lane-plugin/requirements.lock.txt",
+    "plugins/evidence-lane-plugin/scripts/windows_tunnel/Manage-EvidenceLaneTunnelVersions.ps1",
 }
 
 
@@ -104,7 +105,7 @@ def test_all_active_codex_product_version_surfaces_are_v200() -> None:
     )
     assert ENGINE_VERSION == CURRENT_VERSION
     assert str(plugin_manifest["version"]).split("+", 1)[0] == CURRENT_VERSION
-    assert str(plugin_manifest["version"]).endswith("+codex.20260811004422")
+    assert str(plugin_manifest["version"]).endswith("+codex.20260811030012")
     assert adapter_manifest["version"] == CURRENT_VERSION
 
 
