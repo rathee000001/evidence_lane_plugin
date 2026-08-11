@@ -35,7 +35,7 @@ packaged as the Codex lifecycle server and never becomes local PV authority.
 
 - `.codex-plugin/plugin.json` -- stable product and host metadata
 - `.mcp.json` -- the sole package-local native MCP registration
-- `hooks/` -- SessionStart, UserPromptSubmit, and Stop turn-control hooks
+- `hooks/` -- four registered turn-control events: SessionStart, UserPromptSubmit, PostToolUse, and Stop (five package files including `hooks.json`)
 - `skills/` -- the 15 governed skill contracts
 - `src/evidence_lane_plugin/` -- runtime, storage, lifecycle, and MCP source
 - `scripts/codex-release-channel.json` -- v2 release and Git policy

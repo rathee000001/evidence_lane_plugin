@@ -34,6 +34,10 @@ from .redaction import contains_secret, redact_text
 from .store import ProjectStore
 
 _SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
+_CODEX_TASK_ID_RE = re.compile(
+    r"^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-"
+    r"[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"
+)
 _TERM_RE = re.compile(r"[\w.$/@:-]+", flags=re.UNICODE)
 _LINK_RE = re.compile(r"\[[^\]]*\]\(([^)]+)\)|https?://[^\s)>]+")
 _TURN_SECRET_ASSIGNMENT_RE = re.compile(
@@ -193,6 +197,40 @@ def _package_surface_inventory() -> dict[str, Any]:
             "inventory_sha256": sha256_bytes(canonical_json_bytes(records)),
         }
 
+    hook_files = inventory(hook_paths, skill=False)
+    hook_configuration = _json(plugin_root / "hooks" / "hooks.json")
+    hook_events = dict(hook_configuration.get("hooks") or {})
+    registered_events = sorted(hook_events)
+    handler_count = sum(
+        len(group.get("hooks") or [])
+        for groups in hook_events.values()
+        if isinstance(groups, list)
+        for group in groups
+        if isinstance(group, dict)
+    )
+    _require(
+        registered_events
+        == ["PostToolUse", "SessionStart", "Stop", "UserPromptSubmit"]
+        and handler_count == 4,
+        "TURN_CONTROL_PACKAGE_HOOK_EVENT_INVENTORY_REQUIRED",
+        "The installed persistent hook event inventory is not exact.",
+    )
+    hook_inventory = {
+        "count": len(registered_events),
+        "count_semantics": "REGISTERED_EVENT_COUNT",
+        "registered_event_count": len(registered_events),
+        "registered_events": registered_events,
+        "handler_count": handler_count,
+        "hook_file_count": hook_files["count"],
+        "records": hook_files["records"],
+        "file_inventory_sha256": hook_files["inventory_sha256"],
+        "event_inventory_sha256": sha256_bytes(
+            canonical_json_bytes(registered_events)
+        ),
+    }
+    hook_inventory["inventory_sha256"] = sha256_bytes(
+        canonical_json_bytes(hook_inventory)
+    )
     manifest = _json(plugin_root / ".codex-plugin" / "plugin.json")
     release_path = plugin_root / "scripts" / "codex-release-channel.json"
     release = _json(release_path)
@@ -200,7 +238,7 @@ def _package_surface_inventory() -> dict[str, Any]:
     core = {
         "schema": "evidence-lane.codex-installed-surface-inventory.v2",
         "plugin_version": str(manifest.get("version") or ""),
-        "hooks": inventory(hook_paths, skill=False),
+        "hooks": hook_inventory,
         "skills": inventory(skill_paths, skill=True),
         "catalog": {
             "tools": stable.get("native_tool_count"),
@@ -273,6 +311,13 @@ def _package_update_status(root: Path) -> dict[str, Any]:
         installed_version = None
         hook_change = {
             "count": current["hooks"]["count"],
+            "count_semantics": "REGISTERED_EVENT_COUNT",
+            "registered_event_count": current["hooks"][
+                "registered_event_count"
+            ],
+            "registered_events": current["hooks"]["registered_events"],
+            "handler_count": current["hooks"]["handler_count"],
+            "hook_file_count": current["hooks"]["hook_file_count"],
             "added": [],
             "changed": [],
             "removed": [],
@@ -375,6 +420,117 @@ def _host_transcript_sha256(transcript_path: str) -> str | None:
     return sha256_bytes(normalized.encode("utf-8"))
 
 
+def _read_codex_task_binding(
+    root: Path,
+    *,
+    observed_host_session_id: str,
+) -> dict[str, Any] | None:
+    """Verify one installer-prepared exact Codex thread binding.
+
+    A Codex task can intentionally use a task-shell workspace that is outside the
+    governed repository.  In that case repository CWD is not a valid discovery
+    signal.  The stable restart helper therefore prepares one receipt that binds
+    the exact Codex thread UUID to the already-governed project/session before a
+    restart.  This reader accepts only the current installed package and never
+    searches by task title, CWD, or another active project.
+    """
+
+    task_id = str(observed_host_session_id or "").strip()
+    if not _CODEX_TASK_ID_RE.fullmatch(task_id):
+        return None
+    installation_root = root / "installations" / "codex-v200"
+    path = installation_root / "task-bindings" / f"{task_id.lower()}.json"
+    if not path.is_file():
+        return None
+    binding = _json(path)
+    _require(
+        binding.get("schema") == "evidence-lane.codex-task-binding.v1"
+        and binding.get("state") == "EXACT_TASK_BINDING_PREPARED"
+        and binding.get("task_id") == task_id
+        and binding.get("alias_claim_allowed") is True
+        and binding.get("claim_scope") == "EXACT_CODEX_THREAD_ID_ONLY"
+        and binding.get("source_mutated") is False
+        and binding.get("candidate_created_or_accepted") is False
+        and binding.get("pointer_moved") is False
+        and binding.get("hil_inferred") is False,
+        "TURN_CONTROL_CODEX_TASK_BINDING_INVALID",
+        "The exact Codex task binding receipt is invalid.",
+        task_id=task_id,
+    )
+    expected_task_uri_sha256 = sha256_bytes(
+        f"codex://threads/{task_id}".encode("utf-8")
+    )
+    _require(
+        binding.get("task_uri_sha256") == expected_task_uri_sha256,
+        "TURN_CONTROL_CODEX_TASK_URI_MISMATCH",
+        "The exact Codex task binding does not match its deeplink identity.",
+    )
+    preparation_path = Path(str(binding.get("preparation_receipt") or ""))
+    install_path = Path(str(binding.get("install_receipt") or ""))
+    _require(
+        preparation_path.is_absolute()
+        and install_path.is_absolute()
+        and _within(preparation_path, installation_root)
+        and _within(install_path, installation_root)
+        and preparation_path.is_file()
+        and install_path.is_file(),
+        "TURN_CONTROL_CODEX_TASK_BINDING_AUTHORITY_REQUIRED",
+        "The exact Codex task binding authorities are missing or out of scope.",
+    )
+    preparation_sha256 = _sha(
+        binding.get("preparation_receipt_sha256"),
+        field="task_binding.preparation_receipt_sha256",
+    )
+    install_sha256 = _sha(
+        binding.get("install_receipt_sha256"),
+        field="task_binding.install_receipt_sha256",
+    )
+    _require(
+        sha256_file(preparation_path) == preparation_sha256
+        and sha256_file(install_path) == install_sha256,
+        "TURN_CONTROL_CODEX_TASK_BINDING_SEAL_MISMATCH",
+        "The exact Codex task binding authority seal does not match.",
+    )
+    preparation = _json(preparation_path)
+    installation = _json(install_path)
+    current_installation_path = installation_root / "CURRENT_INSTALLATION.json"
+    _require(
+        current_installation_path.is_file()
+        and sha256_file(current_installation_path) == install_sha256,
+        "TURN_CONTROL_CODEX_TASK_BINDING_INSTALLATION_STALE",
+        "The exact Codex task binding does not reference the current stable installation.",
+    )
+    plugin_manifest = _json(
+        Path(__file__).resolve().parents[2] / ".codex-plugin" / "plugin.json"
+    )
+    plugin_version = str(plugin_manifest.get("version") or "")
+    _require(
+        preparation.get("schema") == "evidence-lane.codex-restart-preparation.v2"
+        and preparation.get("state") == "PREPARED_NOT_RESTARTED"
+        and preparation.get("project_id") == binding.get("project_id")
+        and preparation.get("evidence_session_id")
+        == binding.get("evidence_session_id")
+        and preparation.get("task_id") == task_id
+        and preparation.get("host_session_id")
+        == binding.get("governed_host_session_id")
+        and preparation.get("install_receipt_sha256") == install_sha256
+        and preparation.get("plugin_version") == plugin_version
+        and installation.get("schema")
+        == "evidence-lane.codex-stable-installation.v2"
+        and installation.get("status") == "PASS"
+        and dict(installation.get("plugin") or {}).get("version") == plugin_version
+        and binding.get("plugin_version") == plugin_version,
+        "TURN_CONTROL_CODEX_TASK_BINDING_DRIFT",
+        "The exact Codex task, preparation, and current stable installation do not agree.",
+    )
+    return {
+        **binding,
+        "task_binding_receipt_sha256": sha256_file(path),
+        "preparation_receipt_sha256": preparation_sha256,
+        "install_receipt_sha256": install_sha256,
+    }
+
+
 def _read_host_alias(
     project_root: Path,
     *,
@@ -460,6 +616,10 @@ def _session_candidates(
         return []
     exact: list[dict[str, Any]] = []
     cwd_matches: list[dict[str, Any]] = []
+    task_binding = _read_codex_task_binding(
+        root,
+        observed_host_session_id=host_session_id,
+    )
     current_cwd = Path(cwd).resolve() if cwd else None
     for project_root in sorted(projects_root.iterdir(), key=lambda item: item.name):
         if not project_root.is_dir():
@@ -491,6 +651,16 @@ def _session_candidates(
             transcript_path=transcript_path,
         ) is not None:
             row["binding_match"] = "SEALED_CODEX_HOST_ALIAS"
+            exact.append(row)
+        elif (
+            task_binding is not None
+            and task_binding.get("project_id") == session.get("project_id")
+            and task_binding.get("evidence_session_id") == session.get("session_id")
+            and task_binding.get("governed_host_session_id")
+            == session.get("metadata", {}).get("current_host_session_id")
+        ):
+            row["binding_match"] = "PREPARED_CODEX_TASK_BINDING"
+            row["task_binding"] = task_binding
             exact.append(row)
         elif current_cwd and _within(
             current_cwd, Path(str(project["repository_path"]))
@@ -554,6 +724,8 @@ def policy_state(
             if candidate.get("binding_match") == "EXACT_HOST_SESSION"
             else "SEALED_CODEX_HOST_ALIAS_BINDING"
             if candidate.get("binding_match") == "SEALED_CODEX_HOST_ALIAS"
+            else "PREPARED_EXACT_CODEX_TASK_BINDING"
+            if candidate.get("binding_match") == "PREPARED_CODEX_TASK_BINDING"
             else "STALE_OR_MISSING_HOST_SESSION_NO_CWD_REBIND"
         ),
         "project_id": session.get("project_id"),
@@ -733,9 +905,10 @@ def bind_codex_host_payload(
     Codex hook payloads carry Codex's session id, while a governed State Travel
     contract may deliberately use a separate destination identity.  This helper
     permits exactly one receipt-backed association.  It never falls back from a
-    repository path during ordinary turn control: the path is accepted only as
-    one input to the one-time claim together with a real transcript path, the
-    sealed model, an attached runtime, and an unambiguous active project.
+    task title or an arbitrary workspace path.  A one-time claim requires either
+    the exact governed repository CWD or an installer-prepared exact Codex task
+    receipt, plus a real transcript path, the sealed model, an attached runtime,
+    and one unambiguous active project.
     """
 
     root = Path(store_root).resolve()
@@ -795,7 +968,10 @@ def bind_codex_host_payload(
             "raw_host_identity_stored": False,
             "raw_transcript_path_stored": False,
         }
-    if binding_match != "CWD_ONLY_STALE_OR_MISSING_HOST" or not allow_alias_claim:
+    if binding_match not in {
+        "CWD_ONLY_STALE_OR_MISSING_HOST",
+        "PREPARED_CODEX_TASK_BINDING",
+    } or not allow_alias_claim:
         return normalized, None
     transcript = Path(transcript_path)
     if not transcript_path or not transcript.is_absolute() or not transcript.is_file():
@@ -844,6 +1020,7 @@ def bind_codex_host_payload(
         "A one-time Codex host alias claim requires an absolute transcript identity.",
     )
     claimed_at = _now()
+    task_binding = dict(candidate.get("task_binding") or {})
     record = {
         "schema": "evidence-lane.codex-host-session-alias.v1",
         "project_id": session.get("project_id"),
@@ -859,8 +1036,16 @@ def bind_codex_host_payload(
         "permission_mode": str(normalized.get("permission_mode") or "").strip()
         or None,
         "binding_basis": (
-            "ONE_ACTIVE_PROJECT_EXACT_REPOSITORY_RUNTIME_ATTACHMENT_"
+            "INSTALLER_PREPARED_EXACT_CODEX_TASK_RUNTIME_ATTACHMENT_"
             "TRANSCRIPT_AND_SEALED_MODEL"
+            if binding_match == "PREPARED_CODEX_TASK_BINDING"
+            else "ONE_ACTIVE_PROJECT_EXACT_REPOSITORY_RUNTIME_ATTACHMENT_"
+            "TRANSCRIPT_AND_SEALED_MODEL"
+        ),
+        "task_binding_receipt_sha256": (
+            task_binding.get("task_binding_receipt_sha256")
+            if binding_match == "PREPARED_CODEX_TASK_BINDING"
+            else None
         ),
         "raw_host_identity_stored": False,
         "raw_transcript_path_stored": False,
@@ -1582,7 +1767,8 @@ def persistent_change_system_notice(
 
     phase_value = str(phase or "").strip().upper()
     _require(
-        phase_value in {"SESSION_START", "TURN_PREPARE", "TURN_COMMIT"},
+        phase_value
+        in {"SESSION_START", "TURN_PREPARE", "POST_TOOL_USE", "TURN_COMMIT"},
         "TURN_CONTROL_CHANGE_NOTICE_PHASE_INVALID",
         "The persistent change notice phase is not supported.",
         phase=phase_value or None,
@@ -1655,9 +1841,19 @@ def persistent_change_system_notice(
                 "control_record_sha256",
                 "commit_sha256",
                 "state_sha256",
+                "projection_sha256",
             )
             if receipt.get(key) is not None
         },
+        "tool_projection": {
+            "tool_name": receipt.get("tool_name"),
+            "tool_use_id_sha256": receipt.get("tool_use_id_sha256"),
+            "read_only_projection": receipt.get("read_only_projection"),
+            "tool_input_stored": False,
+            "tool_response_stored": False,
+        }
+        if phase_value == "POST_TOOL_USE"
+        else None,
         "host_binding": {
             "state": dict(receipt.get("host_binding") or {}).get("state"),
             "alias_receipt_sha256": dict(
@@ -4046,6 +4242,139 @@ def session_start_control(
         "transcript_authority": False,
         "private_reasoning_stored": False,
     }
+
+
+def current_persistent_change_display(
+    store_root: str | Path,
+    *,
+    host_payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Read the current Plan/Delta/source display without advancing lifecycle state.
+
+    This projection exists for PostToolUse because a user can steer a running
+    Goal without creating a fresh UserPromptSubmit event.  It deliberately reads
+    no tool input, tool output, prompt text, assistant response, or transcript.
+    """
+
+    root = Path(store_root).resolve()
+    host_session_id = str(host_payload.get("session_id") or "").strip()
+    _require(
+        bool(host_session_id),
+        "TURN_CONTROL_HOST_SESSION_ID_REQUIRED",
+        "PostToolUse projection requires the exact governed host-session identity.",
+    )
+    policy = policy_state(
+        root,
+        host_session_id=host_session_id,
+        cwd=str(host_payload.get("cwd") or ""),
+        transcript_path=str(
+            host_payload.get("transcript_path")
+            or host_payload.get("agent_transcript_path")
+            or ""
+        ),
+    )
+    _require(
+        policy.get("governed_session") is True
+        and policy.get("strict_required") is True,
+        "TURN_CONTROL_POLICY_NOT_ACTIVE",
+        "The exact governed session has not activated strict Mode plus Plan turn control.",
+        policy=policy,
+    )
+    bound = _one_bound_session(
+        root,
+        host_session_id=host_session_id,
+        cwd=str(host_payload.get("cwd") or ""),
+        transcript_path=str(
+            host_payload.get("transcript_path")
+            or host_payload.get("agent_transcript_path")
+            or ""
+        ),
+    )
+    binding = _binding_snapshot(root, bound)
+    project_root = Path(bound["project_root"])
+    live_source_snapshot = _source_change_snapshot(
+        root,
+        binding=binding,
+        cwd=str(host_payload.get("cwd") or ""),
+    )
+    relevant: list[tuple[dict[str, Any], dict[str, Any] | None]] = []
+    database = project_root / "lineage" / "codex_turn_control.sqlite"
+    if database.is_file():
+        connection = _read_only(database)
+        try:
+            rows = connection.execute(
+                """
+                SELECT e.record_json AS entry_json, c.commit_json AS commit_json
+                FROM turn_entry e
+                LEFT JOIN turn_commit c
+                  ON c.control_record_sha256=e.control_record_sha256
+                WHERE e.project_id=? AND e.evidence_session_id=?
+                ORDER BY e.prompt_index DESC
+                """,
+                (binding["project_id"], binding["evidence_session_id"]),
+            ).fetchall()
+        finally:
+            connection.close()
+        for row in rows:
+            entry = json.loads(row["entry_json"])
+            if entry.get("task_id") != binding["task_id"]:
+                continue
+            commit = json.loads(row["commit_json"]) if row["commit_json"] else None
+            relevant.append((entry, commit))
+    latest_entry, latest_commit = relevant[0] if relevant else (None, None)
+    uncommitted_count = sum(commit is None for _, commit in relevant)
+    entry_source_snapshot = (
+        dict(latest_entry.get("source_change_entry") or live_source_snapshot)
+        if latest_entry is not None
+        else live_source_snapshot
+    )
+    display = _persistent_change_display(
+        binding=binding,
+        source_snapshot=live_source_snapshot,
+        turn_state=(
+            "PREPARED_NOT_COMMITTED"
+            if latest_entry is not None and latest_commit is None
+            else "COMMITTED"
+            if latest_commit is not None
+            else "NO_RECORDED_TURN"
+        ),
+        prompt_index=(
+            int(latest_entry["prompt_index"]) if latest_entry is not None else None
+        ),
+        uncommitted_count=uncommitted_count,
+        changed_since_prepare=(
+            entry_source_snapshot["worktree_sha256"]
+            != live_source_snapshot["worktree_sha256"]
+            if latest_entry is not None
+            else None
+        ),
+    )
+    tool_name = str(host_payload.get("tool_name") or "").strip() or None
+    tool_use_id = str(host_payload.get("tool_use_id") or "").strip()
+    core = {
+        "schema": "evidence-lane.codex-persistent-change-tool-projection.v1",
+        "state": "PROJECTED_READ_ONLY_AFTER_TOOL_USE",
+        "project_id": binding["project_id"],
+        "evidence_session_id": binding["evidence_session_id"],
+        "task_id": binding["task_id"],
+        "plan_task_id": binding["plan_task_id"],
+        "tool_name": tool_name,
+        "tool_use_id_sha256": (
+            sha256_bytes(tool_use_id.encode("utf-8")) if tool_use_id else None
+        ),
+        "persistent_change_display": display,
+        "read_only_projection": True,
+        "tool_input_stored": False,
+        "tool_response_stored": False,
+        "transcript_read": False,
+        "source_mutated": False,
+        "candidate_created_or_accepted": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+        "private_reasoning_stored": False,
+    }
+    core["projection_sha256"] = sha256_bytes(canonical_json_bytes(core))
+    return core
 
 
 def project_task_research_status(

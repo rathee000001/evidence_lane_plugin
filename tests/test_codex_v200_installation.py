@@ -61,7 +61,7 @@ def _fixture_catalog_source() -> str:
 
 def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     source = tmp_path / "source"
-    version = "2.0.0+codex.20260811050012"
+    version = "2.0.0+codex.20260811131000"
     _write(
         source / ".codex-plugin" / "plugin.json",
         json.dumps(
@@ -157,14 +157,25 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
         json.dumps(
             {
                 "hooks": {
-                    "SessionStart": [],
-                    "UserPromptSubmit": [],
-                    "Stop": [],
+                    "SessionStart": [{"hooks": [{"type": "command"}]}],
+                    "UserPromptSubmit": [{"hooks": [{"type": "command"}]}],
+                    "PostToolUse": [
+                        {
+                            "matcher": "mcp__evidence_lane__pv_plan_steer_delta",
+                            "hooks": [{"type": "command"}],
+                        }
+                    ],
+                    "Stop": [{"hooks": [{"type": "command"}]}],
                 }
             }
         ),
     )
-    for name in ("session_start.py", "prompt_submit.py", "stop_response.py"):
+    for name in (
+        "session_start.py",
+        "prompt_submit.py",
+        "post_tool_use.py",
+        "stop_response.py",
+    ):
         _write(
             source / "hooks" / name,
             'print("EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=")\n',
@@ -242,6 +253,17 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
     assert result["credential_requested_or_stored"] is False
     assert result["surface_change_display"]["state"] == "INITIAL_V2_BASELINE"
     assert result["surface_change_display"]["hooks"]["count"] == 4
+    assert result["surface_change_display"]["hooks"]["count_semantics"] == (
+        "REGISTERED_EVENT_COUNT"
+    )
+    assert result["surface_change_display"]["hooks"]["hook_file_count"] == 5
+    assert result["surface_change_display"]["hooks"]["handler_count"] == 4
+    assert result["surface_change_display"]["hooks"]["registered_events"] == [
+        "PostToolUse",
+        "SessionStart",
+        "Stop",
+        "UserPromptSubmit",
+    ]
     assert result["surface_change_display"]["skills"]["count"] == 15
     assert result["surface_change_display"]["catalog"] == {
         "tools": 62,
@@ -352,7 +374,21 @@ def test_restart_helper_is_exact_process_and_same_task_only() -> None:
     assert "utf8NoBOM" not in text
     assert "$utf8NoBom = [System.Text.UTF8Encoding]::new($false)" in text
     assert "[System.IO.File]::WriteAllText(" in text
-    assert 'user_reentry_action = "OPEN_THE_SAME_CODEX_TASK"' in text
+    assert 'user_reentry_action = "NONE_AUTO_OPEN_EXACT_TASK"' in text
+    assert '$taskUri = "codex://threads/$TaskId"' in text
+    assert 'task_navigation_mode = "CODEX_THREAD_DEEPLINK"' in text
+    assert "Assert-CodexThreadProtocol" in text
+    assert "ConvertTo-WindowsCommandLineArgument" in text
+    assert "-ArgumentList $argumentLine" in text
+    assert "Start-Process -FilePath $taskUri" in text
+    assert 'schema = "evidence-lane.codex-task-binding.v1"' in text
+    assert 'state = "EXACT_TASK_BINDING_PREPARED"' in text
+    assert 'claim_scope = "EXACT_CODEX_THREAD_ID_ONLY"' in text
+    assert "task_binding_receipt_sha256" in text
+    assert 'state = "EXACT_TASK_RELAUNCH_REQUESTED_CODEX_ROOT_OBSERVED"' in text
+    assert "RELAUNCH_REQUESTED_USER_MUST_OPEN_SAME_TASK" not in text
+    assert "coordinate_clicking_used = $false" in text
+    assert "active_task_ui_independently_proven = $false" in text
     assert "lifecycle_resume_call_required = $false" in text
     assert "state_travel_required = $false" in text
     assert "hot_reload_claimed = $false" in text
@@ -365,6 +401,30 @@ def test_restart_helper_parses_as_powershell() -> None:
         "[ref]$null,[ref]$errors) | Out-Null; "
         "if ($errors.Count) { $errors | ForEach-Object { $_.Message }; exit 1 }"
     )
+    completed = subprocess.run(
+        ["powershell.exe", "-NoProfile", "-Command", command],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+def test_restart_helper_quotes_spaced_child_script_path() -> None:
+    text = RESTART.read_text(encoding="utf-8")
+    start = text.index("function ConvertTo-WindowsCommandLineArgument")
+    end = text.index("\nfunction Assert-CodexThreadProtocol", start)
+    function_source = text[start:end]
+    command = function_source + r'''
+$value = 'F:\test codex\plugins\evidence-lane-plugin\scripts\codex_release\Restart-EvidenceLaneCodex.ps1'
+$expected = ([char]34) + $value + ([char]34)
+$actual = ConvertTo-WindowsCommandLineArgument $value
+if ($actual -cne $expected) {
+    Write-Error "Spaced child script path was not preserved: $actual"
+    exit 1
+}
+'''
     completed = subprocess.run(
         ["powershell.exe", "-NoProfile", "-Command", command],
         capture_output=True,
@@ -419,14 +479,25 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         json.dumps(
             {
                 "hooks": {
-                    "SessionStart": [],
-                    "UserPromptSubmit": [],
-                    "Stop": [],
+                    "SessionStart": [{"hooks": [{"type": "command"}]}],
+                    "UserPromptSubmit": [{"hooks": [{"type": "command"}]}],
+                    "PostToolUse": [
+                        {
+                            "matcher": "mcp__evidence_lane__pv_plan_steer_delta",
+                            "hooks": [{"type": "command"}],
+                        }
+                    ],
+                    "Stop": [{"hooks": [{"type": "command"}]}],
                 }
             }
         ),
     )
-    for name in ("session_start.py", "prompt_submit.py", "stop_response.py"):
+    for name in (
+        "session_start.py",
+        "prompt_submit.py",
+        "post_tool_use.py",
+        "stop_response.py",
+    ):
         _write(
             source / "hooks" / name,
             'print("EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=")\n',
@@ -476,12 +547,34 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         "current_plugin_version": version,
         "hooks": {
             "count": installed_surface["hooks"]["count"],
+            "count_semantics": "REGISTERED_EVENT_COUNT",
+            "registered_event_count": installed_surface["hooks"][
+                "registered_event_count"
+            ],
+            "registered_events": installed_surface["hooks"][
+                "registered_events"
+            ],
+            "handler_count": installed_surface["hooks"]["handler_count"],
+            "hook_file_count": installed_surface["hooks"]["hook_file_count"],
             "added": [
                 row["name"] for row in installed_surface["hooks"]["records"]
             ],
+            "added_files": [
+                row["name"] for row in installed_surface["hooks"]["records"]
+            ],
             "changed": [],
+            "changed_files": [],
             "removed": [],
+            "removed_files": [],
+            "added_events": installed_surface["hooks"]["registered_events"],
+            "removed_events": [],
             "inventory_sha256": installed_surface["hooks"]["inventory_sha256"],
+            "file_inventory_sha256": installed_surface["hooks"][
+                "file_inventory_sha256"
+            ],
+            "event_inventory_sha256": installed_surface["hooks"][
+                "event_inventory_sha256"
+            ],
         },
         "skills": {
             "count": installed_surface["skills"]["count"],

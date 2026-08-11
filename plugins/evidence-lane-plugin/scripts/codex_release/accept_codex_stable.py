@@ -252,6 +252,7 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
         raise AcceptanceError("The installed persistent hook inventory is incomplete.")
     if {path.name for path in hook_paths} != {
         "hooks.json",
+        "post_tool_use.py",
         "session_start.py",
         "prompt_submit.py",
         "stop_response.py",
@@ -274,10 +275,37 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
             "inventory_sha256": _sha256_bytes(_json_bytes(rows)),
         }
 
+    hook_files = inventory(hook_paths, skill=False)
+    hook_configuration = json.loads(
+        (plugin_root / "hooks" / "hooks.json").read_text(encoding="utf-8")
+    )
+    hook_events = dict(hook_configuration.get("hooks") or {})
+    registered_events = sorted(hook_events)
+    handler_count = sum(
+        len(group.get("hooks") or [])
+        for groups in hook_events.values()
+        if isinstance(groups, list)
+        for group in groups
+        if isinstance(group, dict)
+    )
+    hook_inventory = {
+        "count": len(registered_events),
+        "count_semantics": "REGISTERED_EVENT_COUNT",
+        "registered_event_count": len(registered_events),
+        "registered_events": registered_events,
+        "handler_count": handler_count,
+        "hook_file_count": hook_files["count"],
+        "records": hook_files["records"],
+        "file_inventory_sha256": hook_files["inventory_sha256"],
+        "event_inventory_sha256": _sha256_bytes(_json_bytes(registered_events)),
+    }
+    hook_inventory["inventory_sha256"] = _sha256_bytes(
+        _json_bytes(hook_inventory)
+    )
     core = {
         "schema": "evidence-lane.codex-installed-surface-inventory.v2",
         "plugin_version": version,
-        "hooks": inventory(hook_paths, skill=False),
+        "hooks": hook_inventory,
         "skills": inventory(skill_paths, skill=True),
         "catalog": dict(EXPECTED_CATALOG),
         "raw_paths_included": False,
@@ -409,9 +437,29 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     ):
         raise AcceptanceError("The installed v2 package identity or boundary drifted.")
     hooks = json.loads((plugin_root / "hooks" / "hooks.json").read_text("utf-8"))
-    if set(hooks.get("hooks") or {}) != {"SessionStart", "UserPromptSubmit", "Stop"}:
+    hook_events = dict(hooks.get("hooks") or {})
+    handler_count = sum(
+        len(group.get("hooks") or [])
+        for groups in hook_events.values()
+        if isinstance(groups, list)
+        for group in groups
+        if isinstance(group, dict)
+    )
+    post_groups = hook_events.get("PostToolUse") or []
+    post_matcher = str(post_groups[0].get("matcher") or "") if post_groups else ""
+    if set(hook_events) != {
+        "SessionStart",
+        "UserPromptSubmit",
+        "PostToolUse",
+        "Stop",
+    } or handler_count != 4 or "pv_plan_steer_delta" not in post_matcher:
         raise AcceptanceError("The installed persistent turn hooks drifted.")
-    for name in ("session_start.py", "prompt_submit.py", "stop_response.py"):
+    for name in (
+        "session_start.py",
+        "prompt_submit.py",
+        "post_tool_use.py",
+        "stop_response.py",
+    ):
         source = (plugin_root / "hooks" / name).read_text(encoding="utf-8")
         if "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=" not in source:
             raise AcceptanceError(f"{name} does not emit the persistent change notice.")
@@ -424,7 +472,12 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         ),
         "skills": len(skills),
         "catalog": _catalog(plugin_root),
-        "hook_events": ["SessionStart", "Stop", "UserPromptSubmit"],
+        "hook_events": [
+            "PostToolUse",
+            "SessionStart",
+            "Stop",
+            "UserPromptSubmit",
+        ],
         "mode": "CODE",
         "ci_cd_law": "CONTROLLED_REQUIRED",
         "host_storage_tunnel_matrix": EXPECTED_HOST_STORAGE_TUNNEL_MATRIX,
@@ -508,6 +561,13 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         != installed_identity["surface_inventory"]["surface_inventory_sha256"]
         or surface_change.get("hooks", {}).get("count")
         != installed_identity["surface_inventory"]["hooks"]["count"]
+        or surface_change.get("hooks", {}).get("count_semantics")
+        != "REGISTERED_EVENT_COUNT"
+        or surface_change.get("hooks", {}).get("registered_event_count") != 4
+        or surface_change.get("hooks", {}).get("registered_events")
+        != ["PostToolUse", "SessionStart", "Stop", "UserPromptSubmit"]
+        or surface_change.get("hooks", {}).get("handler_count") != 4
+        or surface_change.get("hooks", {}).get("hook_file_count") != 5
         or surface_change.get("skills", {}).get("count")
         != EXPECTED_CATALOG["skills"]
         or surface_change.get("catalog", {}).get("tools")

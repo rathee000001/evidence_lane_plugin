@@ -766,12 +766,21 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
         "six-way HIL" in prompt for prompt in manifest["interface"]["defaultPrompt"]
     )
     hooks = json.loads((plugin / "hooks" / "hooks.json").read_text(encoding="utf-8"))
-    assert set(hooks["hooks"]) == {"SessionStart", "UserPromptSubmit", "Stop"}
+    assert set(hooks["hooks"]) == {
+        "SessionStart",
+        "UserPromptSubmit",
+        "PostToolUse",
+        "Stop",
+    }
+    post_handler = hooks["hooks"]["PostToolUse"][0]["hooks"][0]
+    assert "post_tool_use.py" in post_handler["command"]
+    assert "pv_plan_steer_delta" in hooks["hooks"]["PostToolUse"][0]["matcher"]
     stop_handler = hooks["hooks"]["Stop"][0]["hooks"][0]
     assert "stop_response.py" in stop_handler["command"]
     stop_source = (plugin / "hooks" / "stop_response.py").read_text(encoding="utf-8")
     assert '"decision"' not in stop_source
     assert '"continue": True' in stop_source
+    assert (plugin / "hooks" / "post_tool_use.py").is_file()
     assert not (plugin / ".app.json").exists()
     chatgpt_connection = json.loads(
         (plugin / "chatgpt-app-connection.json").read_text(encoding="utf-8")

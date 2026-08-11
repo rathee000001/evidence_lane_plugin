@@ -30,12 +30,16 @@ restart after a local plugin changes:
    extras are accepted.
 5. Run `Restart-EvidenceLaneCodex.ps1 -Action Prepare` with the exact project,
    Evidence Lane session, Codex task, host session, installation receipt, and
-   root Codex desktop process ID.
+   root Codex desktop process ID. Prepare also writes one sealed exact-thread
+   binding under the durable v2 installation root; this lets the task use a
+   separate Codex task-shell workspace without falling back from CWD or title.
 6. Inspect the preparation receipt. Invoke `-Action Restart` only with its exact
    SHA-256 and `-ConfirmRestart`. The hidden helper stops only that exact root
-   process and relaunches the packaged desktop app.
-7. Open the same Codex task. The SessionStart hook rebinds the persistent task
-   panel and linked change display. It does not call State Travel or
+   process and opens the exact `codex://threads/<task-id>` route in the packaged
+   desktop app.
+7. The SessionStart or first eligible PostToolUse hook verifies that exact task
+   receipt and seals the Codex thread-to-governed-session alias. It then
+   rebinds the persistent task panel and linked change display. It does not call State Travel or
    `session_resume`, does not infer HIL, and does not claim a hot reload.
 8. Supply a fresh native-route receipt to the installed acceptance checker. It
    must return `POST_RESTART_INSTALLED_PACKAGE_VERIFIED_READY_FOR_HIL`; a
@@ -47,8 +51,10 @@ HIL. A source-tree test alone is not installed-package proof.
 
 ## Persistent Plan and change display
 
-The full sealed display is regenerated at SessionStart, PREPARE, and COMMIT. At
-prompt submission and response completion, the hook also emits a bounded
+The full sealed display is regenerated at SessionStart, PREPARE, eligible
+PostToolUse events, and COMMIT. PostToolUse covers ongoing-Goal Plan/Delta and
+source-change updates even when Codex does not produce a fresh
+UserPromptSubmit event. At these boundaries the hook emits a bounded
 `systemMessage` warning containing the active Plan position and task ID, the
 latest linked Delta identity, the linked-Delta set seal, source-change counts,
 the full-display seal, source/install/runtime versions, activation and Refresh
@@ -56,6 +62,12 @@ state, matching tunnel channel, exact catalog counts, and added/changed/removed
 hook and skill names from the sealed installation-surface diff. Raw Delta text,
 private research questions, private reasoning, and changed-path names are
 excluded from that warning.
+
+The installed inventory reports hook concepts separately: four registered
+events and handlers, five package files including `hooks.json`, and the exact
+event names. It does not label a configuration file as an additional hook.
+The skill count remains fifteen until a genuinely distinct workflow is added;
+version changes alone do not manufacture a new skill.
 
 Each installation keeps an immutable archive-hash receipt and refreshes only
 the plugin-owned derived `CURRENT_INSTALLATION.json` pointer. Prior marketplace

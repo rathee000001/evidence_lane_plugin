@@ -74,15 +74,32 @@ def _json_bytes(value: Any) -> bytes:
 
 
 def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
-    hook_paths = [plugin_root / "hooks" / "hooks.json", *sorted((plugin_root / "hooks").glob("*.py"))]
+    hook_paths = [
+        plugin_root / "hooks" / "hooks.json",
+        *sorted((plugin_root / "hooks").glob("*.py")),
+    ]
     skill_paths = sorted((plugin_root / "skills").glob("*/SKILL.md"))
     if not all(path.is_file() for path in hook_paths):
         raise InstallationError("The persistent hook inventory is incomplete.")
-    if {path.name for path in hook_paths} != {
-        "hooks.json",
-        "session_start.py",
-        "prompt_submit.py",
-        "stop_response.py",
+    hook_names = {path.name for path in hook_paths}
+    if frozenset(hook_names) not in {
+        frozenset(
+            {
+                "hooks.json",
+                "session_start.py",
+                "prompt_submit.py",
+                "stop_response.py",
+            }
+        ),
+        frozenset(
+            {
+                "hooks.json",
+                "post_tool_use.py",
+                "session_start.py",
+                "prompt_submit.py",
+                "stop_response.py",
+            }
+        ),
     }:
         raise InstallationError("The persistent hook inventory is not exact.")
     if len(skill_paths) != EXPECTED_CATALOG["skills"]:
@@ -104,10 +121,39 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
             "inventory_sha256": hashlib.sha256(_json_bytes(rows)).hexdigest().upper(),
         }
 
+    hook_files = inventory(hook_paths, skill=False)
+    hook_configuration = json.loads(
+        (plugin_root / "hooks" / "hooks.json").read_text(encoding="utf-8")
+    )
+    hook_events = dict(hook_configuration.get("hooks") or {})
+    registered_events = sorted(hook_events)
+    handler_count = sum(
+        len(group.get("hooks") or [])
+        for groups in hook_events.values()
+        if isinstance(groups, list)
+        for group in groups
+        if isinstance(group, dict)
+    )
+    hook_inventory = {
+        "count": len(registered_events),
+        "count_semantics": "REGISTERED_EVENT_COUNT",
+        "registered_event_count": len(registered_events),
+        "registered_events": registered_events,
+        "handler_count": handler_count,
+        "hook_file_count": hook_files["count"],
+        "records": hook_files["records"],
+        "file_inventory_sha256": hook_files["inventory_sha256"],
+        "event_inventory_sha256": hashlib.sha256(
+            _json_bytes(registered_events)
+        ).hexdigest().upper(),
+    }
+    hook_inventory["inventory_sha256"] = hashlib.sha256(
+        _json_bytes(hook_inventory)
+    ).hexdigest().upper()
     core = {
         "schema": "evidence-lane.codex-installed-surface-inventory.v2",
         "plugin_version": version,
-        "hooks": inventory(hook_paths, skill=False),
+        "hooks": hook_inventory,
         "skills": inventory(skill_paths, skill=True),
         "catalog": dict(EXPECTED_CATALOG),
         "raw_paths_included": False,
@@ -181,17 +227,52 @@ def _surface_change_display(
             if previous is not None
             else {}
         )
-        return {
-            "count": len(current_rows),
-            "added": sorted(current_rows.keys() - previous_rows.keys()),
-            "changed": sorted(
-                name
-                for name in current_rows.keys() & previous_rows.keys()
-                if current_rows[name] != previous_rows[name]
+        added_files = sorted(current_rows.keys() - previous_rows.keys())
+        changed_files = sorted(
+            name
+            for name in current_rows.keys() & previous_rows.keys()
+            if current_rows[name] != previous_rows[name]
+        )
+        removed_files = sorted(previous_rows.keys() - current_rows.keys())
+        result = {
+            "count": current[kind]["count"],
+            "count_semantics": current[kind].get(
+                "count_semantics", "SURFACE_RECORD_COUNT"
             ),
-            "removed": sorted(previous_rows.keys() - current_rows.keys()),
+            "added": sorted(current_rows.keys() - previous_rows.keys()),
+            "changed": changed_files,
+            "removed": removed_files,
+            "added_files": added_files,
+            "changed_files": changed_files,
+            "removed_files": removed_files,
             "inventory_sha256": current[kind]["inventory_sha256"],
         }
+        if kind == "hooks":
+            current_events = set(current[kind]["registered_events"])
+            previous_events = (
+                set(previous[kind]["registered_events"])
+                if previous is not None
+                else set()
+            )
+            result.update(
+                {
+                    "registered_event_count": current[kind][
+                        "registered_event_count"
+                    ],
+                    "registered_events": current[kind]["registered_events"],
+                    "handler_count": current[kind]["handler_count"],
+                    "hook_file_count": current[kind]["hook_file_count"],
+                    "added_events": sorted(current_events - previous_events),
+                    "removed_events": sorted(previous_events - current_events),
+                    "file_inventory_sha256": current[kind][
+                        "file_inventory_sha256"
+                    ],
+                    "event_inventory_sha256": current[kind][
+                        "event_inventory_sha256"
+                    ],
+                }
+            )
+        return result
 
     core = {
         "schema": "evidence-lane.codex-installed-surface-change-display.v2",
@@ -359,9 +440,29 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     if any(path.exists() for path in forbidden):
         raise InstallationError("A separate ChatGPT, website, or evidence surface leaked in.")
     hooks = json.loads((plugin_root / "hooks" / "hooks.json").read_text("utf-8"))
-    if set(hooks.get("hooks") or {}) != {"SessionStart", "UserPromptSubmit", "Stop"}:
+    hook_events = dict(hooks.get("hooks") or {})
+    handler_count = sum(
+        len(group.get("hooks") or [])
+        for groups in hook_events.values()
+        if isinstance(groups, list)
+        for group in groups
+        if isinstance(group, dict)
+    )
+    post_groups = hook_events.get("PostToolUse") or []
+    post_matcher = str(post_groups[0].get("matcher") or "") if post_groups else ""
+    if set(hook_events) != {
+        "SessionStart",
+        "UserPromptSubmit",
+        "PostToolUse",
+        "Stop",
+    } or handler_count != 4 or "pv_plan_steer_delta" not in post_matcher:
         raise InstallationError("The persistent hook event set drifted.")
-    for name in ("session_start.py", "prompt_submit.py", "stop_response.py"):
+    for name in (
+        "session_start.py",
+        "prompt_submit.py",
+        "post_tool_use.py",
+        "stop_response.py",
+    ):
         source = (plugin_root / "hooks" / name).read_text(encoding="utf-8")
         if "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=" not in source:
             raise InstallationError(f"{name} does not emit the persistent change notice.")

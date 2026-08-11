@@ -19,7 +19,7 @@ if str(SCRIPTS) not in sys.path:
 from build_release_candidate_rehearsal import _source_inventory
 
 RELEASE = "2.0.0"
-CODEX_RELEASE = "2.0.0+codex.20260811050012"
+CODEX_RELEASE = "2.0.0+codex.20260811131000"
 REMOTE_RELEASE = "1.5.0"
 SITE = "https://evidencelane.org"
 MCP = "https://mcp.evidencelane.org/mcp"

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sqlite3
@@ -221,6 +222,16 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
         "SOURCE_RUNTIME_EXACT_INSTALL_RECEIPT_UNAVAILABLE"
     )
     assert package_status["hooks"]["count"] == 4
+    assert package_status["hooks"]["count_semantics"] == (
+        "REGISTERED_EVENT_COUNT"
+    )
+    assert package_status["hooks"]["hook_file_count"] == 5
+    assert package_status["hooks"]["registered_events"] == [
+        "PostToolUse",
+        "SessionStart",
+        "Stop",
+        "UserPromptSubmit",
+    ]
     assert package_status["skills"]["count"] == 15
     assert package_status["catalog"]["tools"] == 62
     assert package_status["catalog"]["read"] == 21
@@ -641,6 +652,185 @@ def test_native_hooks_claim_and_reuse_one_sealed_codex_host_alias(
         ).fetchone()[0] == 1
 
 
+def test_post_tool_hook_claims_prepared_exact_task_outside_repository(
+    service,
+    source_repository: Path,
+    tmp_path: Path,
+) -> None:
+    session_id, governed_host_session_id = _strict_state_travel_session(service)
+    repository_root = Path(__file__).resolve().parents[1]
+    post_tool_hook = (
+        repository_root
+        / "plugins"
+        / "evidence-lane-plugin"
+        / "hooks"
+        / "post_tool_use.py"
+    )
+    plugin_version = json.loads(
+        (
+            repository_root
+            / "plugins"
+            / "evidence-lane-plugin"
+            / ".codex-plugin"
+            / "plugin.json"
+        ).read_text(encoding="utf-8")
+    )["version"]
+    installation_root = (
+        service.store.root / "installations" / "codex-v200"
+    )
+    install_path = installation_root / "INSTALL_TEST_EXACT_TASK.json"
+    installation = {
+        "schema": "evidence-lane.codex-stable-installation.v2",
+        "status": "PASS",
+        "plugin": {"version": plugin_version},
+    }
+    install_bytes = (
+        json.dumps(installation, sort_keys=True, separators=(",", ":")) + "\n"
+    ).encode("utf-8")
+    install_path.parent.mkdir(parents=True, exist_ok=True)
+    install_path.write_bytes(install_bytes)
+    (installation_root / "CURRENT_INSTALLATION.json").write_bytes(install_bytes)
+    install_sha256 = hashlib.sha256(install_bytes).hexdigest().upper()
+
+    observed_task_id = "019fedc7-cb86-7b40-94ce-1784a999f12b"
+    preparation_path = installation_root / "restart-test" / (
+        "CODEX_RESTART_PREPARATION.json"
+    )
+    preparation = {
+        "schema": "evidence-lane.codex-restart-preparation.v2",
+        "state": "PREPARED_NOT_RESTARTED",
+        "project_id": "book-faires",
+        "evidence_session_id": session_id,
+        "task_id": observed_task_id,
+        "host_session_id": governed_host_session_id,
+        "install_receipt_sha256": install_sha256,
+        "plugin_version": plugin_version,
+    }
+    preparation_bytes = (
+        json.dumps(preparation, sort_keys=True, separators=(",", ":")) + "\n"
+    ).encode("utf-8")
+    preparation_path.parent.mkdir(parents=True, exist_ok=True)
+    preparation_path.write_bytes(preparation_bytes)
+    preparation_sha256 = hashlib.sha256(preparation_bytes).hexdigest().upper()
+
+    binding_path = (
+        installation_root / "task-bindings" / f"{observed_task_id}.json"
+    )
+    task_binding = {
+        "schema": "evidence-lane.codex-task-binding.v1",
+        "state": "EXACT_TASK_BINDING_PREPARED",
+        "project_id": "book-faires",
+        "evidence_session_id": session_id,
+        "task_id": observed_task_id,
+        "governed_host_session_id": governed_host_session_id,
+        "plugin_version": plugin_version,
+        "task_uri_sha256": hashlib.sha256(
+            f"codex://threads/{observed_task_id}".encode("utf-8")
+        ).hexdigest().upper(),
+        "preparation_receipt": str(preparation_path),
+        "preparation_receipt_sha256": preparation_sha256,
+        "install_receipt": str(install_path),
+        "install_receipt_sha256": install_sha256,
+        "claim_scope": "EXACT_CODEX_THREAD_ID_ONLY",
+        "alias_claim_allowed": True,
+        "source_mutated": False,
+        "candidate_created_or_accepted": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+    }
+    binding_path.parent.mkdir(parents=True, exist_ok=True)
+    binding_path.write_text(
+        json.dumps(task_binding, sort_keys=True, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
+    task_binding_sha256 = hashlib.sha256(binding_path.read_bytes()).hexdigest().upper()
+
+    task_workspace = tmp_path / "separate-codex-task-shell"
+    task_workspace.mkdir()
+    transcript = tmp_path / "exact-task-rollout.jsonl"
+    transcript.write_text("{}\n", encoding="utf-8")
+    environment = os.environ.copy()
+    environment["EVIDENCE_LANE_DATA_ROOT"] = str(service.store.root)
+    payload = {
+        "session_id": observed_task_id,
+        "turn_id": "resumed-running-goal",
+        "cwd": str(task_workspace),
+        "transcript_path": str(transcript),
+        "model": "gpt-5.6-sol",
+        "permission_mode": "dontAsk",
+        "tool_name": "mcp__evidence_lane__pv_plan_steer_delta",
+        "tool_use_id": "exact-task-projection",
+    }
+
+    first = subprocess.run(
+        [sys.executable, str(post_tool_hook)],
+        input=json.dumps(payload),
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=environment,
+    )
+    first_notice = json.loads(
+        json.loads(first.stdout)["systemMessage"].removeprefix(
+            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
+        )
+    )
+    assert first_notice["phase"] == "POST_TOOL_USE"
+    assert first_notice["host_binding"]["state"] == (
+        "SEALED_CODEX_HOST_ALIAS_CLAIMED"
+    )
+    assert first_notice["host_binding"]["raw_host_identity_stored"] is False
+    assert first_notice["paired_step_task_list"]["active_task_id"] == (
+        "turn-control-row"
+    )
+    assert service.prompt_index_status("book-faires", session_id)[
+        "total_resolvable"
+    ] == 0
+
+    database = (
+        service.store.project_root("book-faires")
+        / "lineage"
+        / "codex_turn_control.sqlite"
+    )
+    with sqlite3.connect(database) as connection:
+        record = json.loads(
+            connection.execute(
+                "SELECT record_json FROM host_session_alias"
+            ).fetchone()[0]
+        )
+    assert record["task_binding_receipt_sha256"] == task_binding_sha256
+    assert record["binding_basis"].startswith(
+        "INSTALLER_PREPARED_EXACT_CODEX_TASK"
+    )
+
+    second = subprocess.run(
+        [sys.executable, str(post_tool_hook)],
+        input=json.dumps(payload),
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=environment,
+    )
+    second_notice = json.loads(
+        json.loads(second.stdout)["systemMessage"].removeprefix(
+            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
+        )
+    )
+    assert second_notice["host_binding"]["state"] == (
+        "SEALED_CODEX_HOST_ALIAS_REUSED"
+    )
+    rebound = policy_state(
+        service.store.root,
+        host_session_id=observed_task_id,
+        cwd=str(task_workspace),
+        transcript_path=str(transcript),
+    )
+    assert rebound["binding_match"] == "SEALED_CODEX_HOST_ALIAS"
+    assert rebound["reason"] == "SEALED_CODEX_HOST_ALIAS_BINDING"
+
+
 def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
     service,
     source_repository: Path,
@@ -661,8 +851,66 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         / "hooks"
         / "stop_response.py"
     )
+    post_tool_hook = (
+        repository_root
+        / "plugins"
+        / "evidence-lane-plugin"
+        / "hooks"
+        / "post_tool_use.py"
+    )
     environment = os.environ.copy()
     environment["EVIDENCE_LANE_DATA_ROOT"] = str(service.store.root)
+
+    projected_process = subprocess.run(
+        [sys.executable, str(post_tool_hook)],
+        input=json.dumps(
+            {
+                "session_id": host_session_id,
+                "turn_id": "ongoing-goal-without-fresh-prompt",
+                "cwd": str(source_repository),
+                "model": "gpt-5.6-sol",
+                "tool_name": "mcp__evidence_lane__pv_plan_steer_delta",
+                "tool_use_id": "tool-use-mid-goal-projection",
+                "tool_input": {"secret": "must-not-be-stored"},
+                "tool_response": {"secret": "must-not-be-stored"},
+            }
+        ),
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=environment,
+    )
+    projected_payload = json.loads(projected_process.stdout)
+    assert projected_payload["continue"] is True
+    projected_notice = json.loads(
+        projected_payload["systemMessage"].removeprefix(
+            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
+        )
+    )
+    assert projected_notice["phase"] == "POST_TOOL_USE"
+    assert projected_notice["paired_step_task_list"]["active_task_id"] == (
+        "turn-control-row"
+    )
+    assert projected_notice["tool_projection"] == {
+        "tool_name": "mcp__evidence_lane__pv_plan_steer_delta",
+        "tool_use_id_sha256": hashlib.sha256(
+            b"tool-use-mid-goal-projection"
+        ).hexdigest().upper(),
+        "read_only_projection": True,
+        "tool_input_stored": False,
+        "tool_response_stored": False,
+    }
+    assert projected_notice["package_change_status"]["hooks"]["count"] == 4
+    assert projected_notice["package_change_status"]["hooks"][
+        "count_semantics"
+    ] == "REGISTERED_EVENT_COUNT"
+    assert projected_notice["package_change_status"]["hooks"][
+        "hook_file_count"
+    ] == 5
+    assert service.prompt_index_status("book-faires", session_id)[
+        "total_resolvable"
+    ] == 0
 
     prepared_receipts: list[dict[str, object]] = []
     for prompt_index in (1, 2):
@@ -711,6 +959,9 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         assert prepared_notice["exact_above_prompt_bar_placement_claimed"] is False
         assert prepared_notice["host_rendering_authority"] == "CODEX_HOST_OWNED"
         assert prepared_notice["package_change_status"]["hooks"]["count"] == 4
+        assert prepared_notice["package_change_status"]["hooks"][
+            "hook_file_count"
+        ] == 5
         assert prepared_notice["package_change_status"]["skills"]["count"] == 15
         assert prepared_notice["package_change_status"]["catalog"] == {
             "tools": 62,
