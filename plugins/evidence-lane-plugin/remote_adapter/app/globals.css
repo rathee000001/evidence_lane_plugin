@@ -317,7 +317,7 @@ h1, h2, h3, p { margin-top: 0; }
 .installCompare { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
 .installPath { position: relative; padding: 36px; border: 1px solid var(--line); border-radius: 28px; overflow: hidden; background: white; box-shadow: var(--shadow-soft); }
 .installPath::after { content: ""; position: absolute; right: -120px; top: -120px; width: 290px; height: 290px; border-radius: 50%; background: radial-gradient(circle, rgba(47,124,241,0.13), transparent 70%); }
-.chatgptPath::after { background: radial-gradient(circle, rgba(200,135,34,0.14), transparent 70%); }
+.installPath:nth-child(2)::after { background: radial-gradient(circle, rgba(58,162,121,0.14), transparent 70%); }
 .pathNumber { position: absolute; top: 28px; right: 30px; color: var(--line-dark); font: 900 18px/1 "Cascadia Code", Consolas, monospace; }
 .installPath h2 { max-width: 520px; margin-top: 28px; font-size: clamp(34px, 4vw, 50px); }
 .installPath > p { color: var(--muted); font-size: 16px; }

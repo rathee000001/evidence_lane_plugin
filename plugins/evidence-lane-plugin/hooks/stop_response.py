@@ -26,6 +26,7 @@ def _load_control():
         bind_codex_host_payload,
         commit_turn,
         gap_receipt,
+        persistent_change_system_message,
         persistent_change_system_notice,
         policy_state,
     )
@@ -35,6 +36,7 @@ def _load_control():
         bind_codex_host_payload,
         commit_turn,
         gap_receipt,
+        persistent_change_system_message,
         persistent_change_system_notice,
         policy_state,
     )
@@ -47,6 +49,7 @@ def _record(payload: dict[str, Any]) -> dict[str, Any]:
         bind_codex_host_payload,
         commit_turn,
         gap_receipt,
+        _,
         _,
         policy_state,
     ) = _load_control()
@@ -138,16 +141,30 @@ def main() -> int:
     if receipt.get("state") not in {"NOT_INDEXED", "TURN_CONTROL_NOT_REQUIRED_YET"}:
         display = receipt.get("persistent_change_display")
         if isinstance(display, dict):
-            _, _, _, _, persistent_change_system_notice, _ = _load_control()
+            (
+                _,
+                _,
+                _,
+                _,
+                persistent_change_system_message,
+                persistent_change_system_notice,
+                _,
+            ) = _load_control()
             notice = persistent_change_system_notice(
                 display,
                 phase="TURN_COMMIT",
                 turn_receipt=receipt,
             )
-            result["systemMessage"] = (
-                "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-                + json.dumps(notice, sort_keys=True, separators=(",", ":"))
+            serialized = json.dumps(
+                notice, sort_keys=True, separators=(",", ":")
             )
+            result["systemMessage"] = persistent_change_system_message(notice)
+            result["hookSpecificOutput"] = {
+                "hookEventName": "Stop",
+                "additionalContext": (
+                    "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=" + serialized
+                ),
+            }
         else:
             result["systemMessage"] = "EVIDENCE_LANE_RESPONSE_COMMIT=" + json.dumps(
                 receipt, sort_keys=True, separators=(",", ":")

@@ -1,7 +1,4 @@
 export const publicSiteUrl = "https://evidencelane.org";
-export const publicMcpOrigin = "https://mcp.evidencelane.org";
-export const publicMcpUrl = "https://mcp.evidencelane.org/mcp";
-export const publicMcpHealthUrl = "https://mcp.evidencelane.org/healthz";
 export const repositoryUrl = "https://github.com/rathee000001/evidence_lane_plugin";
 
 export const ownerSocialLinks = [
@@ -27,8 +24,8 @@ export const promptSuggestions = [
   "What happens from Source Intake to an accepted project version?",
   "What can each of the six everyday controls do?",
   "How does the human remain in control at HIL?",
-  "How do Codex and ChatGPT capabilities differ in release 1.5.0?",
-  "How do stable, future-test, and archive tunnel channels work?",
+  "How does the native Codex release preserve exact lifecycle authority?",
+  "How do persistent and ephemeral Codex storage routes differ?",
   "What is proven today, and what remains an assumption or unknown?",
 ] as const;
 
@@ -90,10 +87,10 @@ export const floatingStudioSuggestions = {
     "Can a comparison project prove Evidence Lane behavior?",
   ],
   connect: [
-    "How do Codex and ChatGPT capabilities differ in release 1.5.0?",
-    "Why are 41 ChatGPT Pro writes visible but unavailable?",
-    "How do stable, future-test, and archive tunnel channels work?",
-    "Why must the Codex native server never route through the tunnel?",
+    "How is Evidence Lane installed from an exact Git SHA?",
+    "Why are all 62 native actions part of one Codex lifecycle?",
+    "How is the stable plugin kept separate from a future test build?",
+    "Why must the native server reject external transport substitution?",
     "What is Google Drive allowed to do?",
     "Which install-page metadata must match before installation?",
   ],
@@ -110,7 +107,7 @@ export const floatingStudioSuggestions = {
     "What do Build, Refresh, HIL, and Fuse each mean?",
     "What is active Row 184 in the current 124-position execution plan?",
     "What is proven today, and what remains unknown?",
-    "How do Codex and ChatGPT capabilities differ?",
+    "How do durable and ephemeral Codex profiles differ?",
     "Why does the final HIL now sit at Row 196?",
   ],
 } as const;
@@ -342,7 +339,7 @@ export const lanes = laneToolchains.map(({ name, reason }) => [name, reason] as 
 export const painLedger = [
   {
     title: "Every new task can charge a re-explanation tax",
-    observation: "A new Codex or ChatGPT task does not inherit exact files, hashes, accepted versions, steers, and gates by implication.",
+    observation: "A new Codex task does not inherit exact files, hashes, accepted versions, steers, and gates by implication.",
     failure: "The user repeats the project while the model reconstructs a plausible but potentially different state.",
     response: "Resume from the accepted pointer, PV, Exit Slip, Chat Lineage, pending candidate, and exact HIL.",
   },
@@ -366,7 +363,7 @@ export const painLedger = [
   },
   {
     title: "Hosts do not share one storage reality",
-    observation: "A stable PC, durable VM, ephemeral Codex VM, and ChatGPT MCP host have different continuity boundaries.",
+    observation: "A stable PC, durable VM, and ephemeral Codex VM have different continuity boundaries.",
     failure: "A convenient connector becomes an unverified alternative source of truth.",
     response: "Select durable local or mounted runtime authority by host class and carry only sealed entry/exit evidence.",
   },
@@ -396,7 +393,6 @@ export const proofRules = [
 
 export const credits = [
   ["Praveen Rathee", "Independent product direction, architecture, funded hardware and services, source authority, testing, and human acceptance."],
-  ["OpenAI ChatGPT", "Research partner, red-team and blue-team questioning, product critique, analysis, and decision support."],
   ["OpenAI Codex", "Implementation, debugging, test construction, forensic verification, documentation, and release evidence under human control."],
   ["Google Gemini", "Reasoning dialogue and comparative questioning used during research."],
   ["Anthropic Claude", "Independent Fable-plugin exploration and comparative implementation feedback."],

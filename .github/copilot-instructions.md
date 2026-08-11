@@ -9,8 +9,8 @@ are separate identities. Never use one as proof of another.
 
 - `plugins/evidence-lane-plugin/src/evidence_lane_plugin/`: Python runtime and
   MCP implementation.
-- `plugins/evidence-lane-plugin/remote_adapter/`: Next.js public site and thin
-  ChatGPT adapter.
+- `plugins/evidence-lane-plugin/remote_adapter/`: Codex-only public documentation
+  site; it is excluded from the installed plugin package.
 - `plugins/evidence-lane-plugin/skills/`: installed Evidence Lane skill
   contracts.
 - `tests/`: executable Python and UI-contract evidence.

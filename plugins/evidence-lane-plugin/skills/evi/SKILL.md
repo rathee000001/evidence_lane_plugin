@@ -44,14 +44,10 @@ After root `/evi`, expose exactly these six primary controls in this order:
 5. `/evi-mode`
 6. `/evi-source-intake`
 
-Keep that exact control inventory on both hosts. On ChatGPT Pro, the governed
-profile registers the complete action catalog: twenty-one operations execute
-as reads, while all lifecycle-write actions remain visible and are intercepted
-before service invocation. Render Boot as a read-safe attach/status/Flash check.
-When the user explicitly requests Rollback, Build, Refresh, or a mutating Source
-Intake path, invoke only the corresponding visible action once to obtain its
-structured `UNAVAILABLE_ON_CHATGPT_PRO` receipt, then stop. Do not hide, rename, simulate, or claim those controls. Do not retry a blocked action. Codex retains
-the complete Git-backed lifecycle.
+Keep that exact control inventory on every supported Codex profile. The native
+catalog contains twenty-one reads and forty-one writes under the complete
+Git-backed lifecycle; a host capability restriction never becomes permission
+to simulate an unavailable action.
 
 Every skill and command must name MCP tools by the canonical bare name returned
 by this exact Evidence Lane server. A connector-generated display namespace is
@@ -62,7 +58,7 @@ suffix must reach the MCP dispatcher unchanged and fail closed.
 
 On Codex, accept lifecycle proof only from the installed native server identity
 `evidence-lane` and its canonical `mcp__evidence_lane__*` catalog. `codex_apps`,
-Google Drive, a tunnel, the ChatGPT connector, `plugin-runtime`, a legacy
+Google Drive, a network tunnel, an external connector, `plugin-runtime`, a legacy
 version-labelled namespace, or any duplicate surface is never a fallback. A
 collision-safe hexadecimal host display prefix may be normalized at transport
 only; it is not proof. After install, enablement, upgrade, or server-code
@@ -76,7 +72,7 @@ sidecar for ordered intersections and explicit custom-mode briefs.
 
 `/evi-plugin` is an administrative sidecar outside the six primary controls.
 It lists, registers, routes, or separately drops at most eight additional
-persistent connector/toolchain plugins. Its `SETTINGS:CODEX|CHATGPT` view
+persistent connector/toolchain plugins. Its `SETTINGS:CODEX` view
 exposes eight structured slots with one-time purpose, role/schema, host profile,
 and optional governed backend runtime. It stores environment-variable names
 only, preserves dropped history, and returns to the prior lifecycle position.
@@ -102,6 +98,4 @@ supersession, and do not move the pointer.
 `/evi-plan` is a Codex-only Planning sidecar outside the six primary controls.
 If native Plan mode is not active, it returns the `/pl` reminder without
 persisting tasks. After planning, it writes the canonical Plan Lane and returns
-the short Goal prompt the user copies into the host-owned Goal. ChatGPT uses the
-same plugin code and append-only persistent store but never claims Codex Plan,
-Goal, or task-panel UI.
+the short Goal prompt the user copies into the host-owned Goal.

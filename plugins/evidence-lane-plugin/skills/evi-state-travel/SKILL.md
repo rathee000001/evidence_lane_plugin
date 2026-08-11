@@ -50,16 +50,13 @@ candidate, or resume row. Call `pv_state_travel_prepare` to seal the pointer
 base, accepted package if one exists, candidate if one exists, live source,
 Plan Lane, task state, additive Deltas, and execution profile.
 
-In a genuinely fresh task or chat, call `pv_state_travel_resume`. It atomically
+In a genuinely fresh Codex task, call `pv_state_travel_resume`. It atomically
 verifies runtime doctor, locked ENV15/UOP15 Flash, new host ID, pointer base,
 package/candidate seals, live-source identity, Plan Lane, and execution profile.
 `UNFINISHED_VERIFIED_WORK` continues at `RESUME_EXACT_UNFINISHED_STEP` without
 reclassification or HIL replay. `ACCEPTED_ENTRY` stops at
 `WAITING_FOR_NEXT_USER_COMMAND`.
 
-Codex and ChatGPT are separate host universes. Codex may project Plan Lane into
-its native Goal and task panel. ChatGPT has no Codex `/pl`, Goal, or task-panel
-contract; it reads and appends through the same persistent plugin runtime in
-its mounted host storage under the shared append-only lane and ENV/Exit-Slip
-laws. Never invent cross-host UI parity, build, Fuse, infer approval, or move a
-pointer merely because a handoff exists.
+Codex may project Plan Lane into its native Goal and task panel. Never invent
+cross-host UI parity, build, Fuse, infer approval, or move a pointer merely
+because a handoff exists.

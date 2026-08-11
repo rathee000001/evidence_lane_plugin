@@ -66,6 +66,32 @@ _REPOSITORY_IDENTITY_FIELDS = (
     "worktree_sha256",
 )
 
+_PLAN_NORMALIZATION_SCHEMA = "evidence-lane.plan-normalization-transaction.v1"
+_PLAN_NORMALIZATION_PHASES = {
+    "PREPARED",
+    "PLAN_APPENDED",
+    "PLAN_ACTIVATED",
+    "PLAN_CORRECTED",
+    "SESSION_REBOUND",
+    "COMMITTED",
+}
+_SAFE_ID_CHARACTERS = set(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
+)
+
+
+def _require_sha256(value: Any, *, field: str) -> str:
+    exact = str(value or "").strip().upper()
+    require(
+        len(exact) == 64
+        and all(character in "0123456789ABCDEF" for character in exact),
+        "PLAN_NORMALIZATION_SHA256_INVALID",
+        "Every Plan-normalization precondition hash must be one exact SHA-256.",
+        status="BLOCKED",
+        field=field,
+    )
+    return exact
+
 
 def _normalize_pv_target(value: str) -> str:
     normalized = value.strip().upper()
@@ -282,6 +308,1235 @@ class SessionManager:
             session_id=session_id,
         )
         return self._from_payload(json.loads(path.read_text(encoding="utf-8")))
+
+    @staticmethod
+    def session_snapshot_sha256(session: SessionRecord) -> str:
+        return sha256_bytes(canonical_json_bytes(session.as_dict()))
+
+    def pointer_snapshot_sha256(self, project_id: str) -> str:
+        return sha256_bytes(
+            canonical_json_bytes(self.store.pointer(project_id).as_dict())
+        )
+
+    def _plan_normalization_path(
+        self,
+        project_id: str,
+        transition_id: str,
+    ) -> Path:
+        exact = transition_id.strip()
+        require(
+            bool(exact)
+            and len(exact) <= 96
+            and all(character in _SAFE_ID_CHARACTERS for character in exact),
+            "PLAN_NORMALIZATION_TRANSITION_ID_INVALID",
+            "A Plan normalization requires one stable public-safe transition ID.",
+            status="BLOCKED",
+        )
+        root = self.store.project_root(project_id)
+        path = (root / "plan_normalization" / f"{exact}.json").resolve()
+        path.relative_to(root)
+        return path
+
+    def _load_plan_normalization_journal(
+        self,
+        project_id: str,
+        transition_id: str,
+    ) -> dict[str, Any] | None:
+        path = self._plan_normalization_path(project_id, transition_id)
+        if not path.is_file():
+            return None
+        try:
+            journal = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise EvidenceLaneError(
+                "PLAN_NORMALIZATION_JOURNAL_INVALID",
+                "The Plan-normalization transaction journal is unreadable.",
+                status="FAIL",
+                details={"path": str(path), "error": type(exc).__name__},
+            ) from exc
+        require(
+            journal.get("schema") == _PLAN_NORMALIZATION_SCHEMA
+            and journal.get("project_id") == project_id
+            and journal.get("transition_id") == transition_id
+            and journal.get("phase") in _PLAN_NORMALIZATION_PHASES,
+            "PLAN_NORMALIZATION_JOURNAL_INVALID",
+            "The Plan-normalization transaction journal has an invalid shape.",
+            status="FAIL",
+            path=str(path),
+        )
+        return cast(dict[str, Any], journal)
+
+    def _write_plan_normalization_journal(
+        self,
+        project_id: str,
+        transition_id: str,
+        journal: dict[str, Any],
+    ) -> None:
+        path = self._plan_normalization_path(project_id, transition_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        atomic_write_json(path, journal)
+
+    def _correct_plan_normalization(
+        self,
+        project_id: str,
+        *,
+        tasks: list[dict[str, Any]],
+        planned_by: str,
+        plan_id: str,
+        transition: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Correct one committed normalization without deleting any history."""
+
+        require(
+            tasks == [],
+            "PLAN_NORMALIZATION_CORRECTION_TASK_SET_INVALID",
+            "A normalization correction restores existing rows and must append no task.",
+            status="BLOCKED",
+        )
+        transition_id = str(transition.get("transition_id") or "").strip()
+        original_transition_id = str(
+            transition.get("correction_of_transition_id") or ""
+        ).strip()
+        session_id = str(transition.get("session_id") or "").strip()
+        restored_task_id = str(
+            transition.get("restored_active_task_id") or ""
+        ).strip()
+        mistaken_task_id = str(
+            transition.get("mistaken_replacement_task_id") or ""
+        ).strip()
+        expected_final_task_id = str(
+            transition.get("expected_physically_final_task_id") or ""
+        ).strip()
+        correction_delta_id = str(
+            transition.get("correction_delta_id") or ""
+        ).strip()
+        goal_row_offset = transition.get("goal_row_offset")
+        expected_plan_sha256 = _require_sha256(
+            transition.get("expected_canonical_plan_sha256"),
+            field="expected_canonical_plan_sha256",
+        )
+        expected_session_sha256 = _require_sha256(
+            transition.get("expected_session_sha256"),
+            field="expected_session_sha256",
+        )
+        expected_pointer_sha256 = _require_sha256(
+            transition.get("expected_pointer_sha256"),
+            field="expected_pointer_sha256",
+        )
+        expected_original_request_sha256 = _require_sha256(
+            transition.get("expected_original_request_sha256"),
+            field="expected_original_request_sha256",
+        )
+        expected_original_result_sha256 = _require_sha256(
+            transition.get("expected_original_result_sha256"),
+            field="expected_original_result_sha256",
+        )
+        correction_delta_sha256 = _require_sha256(
+            transition.get("correction_delta_sha256"),
+            field="correction_delta_sha256",
+        )
+        correction_receipt_sha256 = _require_sha256(
+            transition.get("correction_receipt_sha256"),
+            field="correction_receipt_sha256",
+        )
+        self._plan_normalization_path(project_id, transition_id)
+        for field, value in (
+            ("correction_of_transition_id", original_transition_id),
+            ("session_id", session_id),
+            ("restored_active_task_id", restored_task_id),
+            ("mistaken_replacement_task_id", mistaken_task_id),
+            ("expected_physically_final_task_id", expected_final_task_id),
+            ("correction_delta_id", correction_delta_id),
+        ):
+            require(
+                bool(value),
+                "PLAN_NORMALIZATION_CORRECTION_CONTRACT_INVALID",
+                "The normalization correction is missing one exact identity.",
+                status="BLOCKED",
+                field=field,
+            )
+        require(
+            transition_id != original_transition_id
+            and restored_task_id != mistaken_task_id,
+            "PLAN_NORMALIZATION_CORRECTION_IDENTITY_CONFLICT",
+            "The correction, original transition, restored row, and mistaken row must be distinct.",
+            status="BLOCKED",
+        )
+        require(
+            isinstance(goal_row_offset, int) and goal_row_offset >= 0,
+            "PLAN_NORMALIZATION_CORRECTION_ROW_OFFSET_INVALID",
+            "The correction requires one non-negative current-execution row offset.",
+            status="BLOCKED",
+            goal_row_offset=goal_row_offset,
+        )
+        require(
+            transition.get("expected_candidate_absent") is True
+            and transition.get("expected_pending_hil") is False,
+            "PLAN_NORMALIZATION_UNACCEPTED_STATE_EXPECTATION_REQUIRED",
+            "A correction must explicitly expect no candidate and pending_hil=false.",
+            status="BLOCKED",
+        )
+
+        original_path = self._plan_normalization_path(
+            project_id,
+            original_transition_id,
+        )
+        original = self._load_plan_normalization_journal(
+            project_id,
+            original_transition_id,
+        )
+        require(
+            isinstance(original, dict)
+            and original.get("phase") == "COMMITTED"
+            and original.get("status") == "PASS"
+            and original.get("request_sha256")
+            == expected_original_request_sha256
+            and original.get("result_sha256")
+            == expected_original_result_sha256
+            and original.get("session_id") == session_id
+            and original.get("old_active_task_id") == restored_task_id
+            and original.get("replacement_task_id") == mistaken_task_id
+            and original.get("result", {}).get("active_task_id")
+            == mistaken_task_id,
+            "PLAN_NORMALIZATION_CORRECTION_ORIGINAL_MISMATCH",
+            "The correction does not bind the exact committed normalization journal.",
+            status="MISMATCH",
+            correction_of_transition_id=original_transition_id,
+        )
+        original_journal_sha256 = sha256_bytes(original_path.read_bytes())
+        request_body = {
+            "project_id": project_id,
+            "plan_id": plan_id,
+            "planned_by": planned_by.strip(),
+            "tasks": tasks,
+            "normalization_transition": transition,
+        }
+        request_sha256 = sha256_bytes(canonical_json_bytes(request_body))
+        journal = self._load_plan_normalization_journal(
+            project_id,
+            transition_id,
+        )
+        if journal is not None:
+            require(
+                journal.get("request_sha256") == request_sha256,
+                "PLAN_NORMALIZATION_REPLAY_CONFLICT",
+                "The correction transition ID already binds a different request.",
+                status="BLOCKED",
+                transition_id=transition_id,
+            )
+        else:
+            backlog = self.store.backlog_status(project_id)
+            session = self.load(project_id, session_id)
+            pointer = self.store.pointer(project_id)
+            current_plan_sha256 = str(
+                backlog["canonical_plan_projection"]["projection_sha256"]
+            )
+            current_session_sha256 = self.session_snapshot_sha256(session)
+            current_pointer_sha256 = sha256_bytes(
+                canonical_json_bytes(pointer.as_dict())
+            )
+            mismatches = {
+                key: {"expected": expected, "current": current}
+                for key, expected, current in (
+                    ("canonical_plan_sha256", expected_plan_sha256, current_plan_sha256),
+                    ("session_sha256", expected_session_sha256, current_session_sha256),
+                    ("pointer_sha256", expected_pointer_sha256, current_pointer_sha256),
+                )
+                if expected != current
+            }
+            require(
+                not mismatches,
+                "PLAN_NORMALIZATION_CORRECTION_PRECONDITION_MISMATCH",
+                "Plan, session, and pointer preconditions must match before correction writes anything.",
+                status="MISMATCH",
+                mismatches=mismatches,
+                writes_performed=False,
+            )
+            tasks_by_id = {
+                str(row["task_id"]): row for row in backlog["tasks"]
+            }
+            require(
+                [str(row["task_id"]) for row in backlog["active"]]
+                == [mistaken_task_id]
+                and tasks_by_id.get(restored_task_id, {}).get("status")
+                == "SUPERSEDED"
+                and session.metadata.get("active_backlog_task_id")
+                == mistaken_task_id
+                and isinstance(session.task, dict)
+                and session.task.get("task_id") == mistaken_task_id,
+                "PLAN_NORMALIZATION_CORRECTION_ACTIVE_BINDING_MISMATCH",
+                "The correction requires the exact mistaken active row and superseded original row.",
+                status="MISMATCH",
+                writes_performed=False,
+            )
+            correction_delta = next(
+                (
+                    delta
+                    for row in backlog["tasks"]
+                    for delta in row.get("steer_deltas", [])
+                    if delta.get("delta_id") == correction_delta_id
+                ),
+                None,
+            )
+            require(
+                isinstance(correction_delta, dict)
+                and sha256_bytes(
+                    str(correction_delta.get("text") or "").encode("utf-8")
+                )
+                == correction_delta_sha256,
+                "PLAN_NORMALIZATION_CORRECTION_DELTA_MISMATCH",
+                "The exact user correction Delta is not present in the immutable Plan ledger.",
+                status="MISMATCH",
+                correction_delta_id=correction_delta_id,
+                writes_performed=False,
+            )
+            require(
+                session.candidate_id is None
+                and not bool(session.metadata.get("pending_hil"))
+                and not isinstance(session.metadata.get("pending_task"), dict),
+                "PLAN_NORMALIZATION_CANDIDATE_OR_HIL_PRESENT",
+                "Plan correction cannot run with a candidate, pending HIL, or pending follow-up.",
+                status="BLOCKED",
+                writes_performed=False,
+            )
+            require(
+                pointer.generation == session.accepted_pointer_generation
+                and pointer.accepted_pv == session.accepted_pv,
+                "PLAN_NORMALIZATION_SESSION_POINTER_STALE",
+                "The live session and accepted pointer diverged before correction.",
+                status="STALE",
+                writes_performed=False,
+            )
+            expected_total = transition.get("expected_result_task_count")
+            require(
+                isinstance(expected_total, int)
+                and len(backlog["tasks"]) == expected_total
+                and str(backlog["tasks"][-1]["task_id"])
+                == expected_final_task_id
+                and str(backlog["tasks"][-1].get("panel_role") or "").upper()
+                == "PHYSICALLY_FINAL_HIL",
+                "PLAN_NORMALIZATION_CORRECTION_PLAN_SHAPE_MISMATCH",
+                "The correction requires the exact row count and physically final HIL row.",
+                status="MISMATCH",
+                writes_performed=False,
+            )
+            task_ids = [str(row["task_id"]) for row in backlog["tasks"]]
+            now = utc_now()
+            journal = {
+                "schema": _PLAN_NORMALIZATION_SCHEMA,
+                "status": "IN_PROGRESS",
+                "project_id": project_id,
+                "transition_id": transition_id,
+                "correction_of_transition_id": original_transition_id,
+                "plan_id": plan_id,
+                "session_id": session_id,
+                "request_sha256": request_sha256,
+                "correction_receipt_sha256": correction_receipt_sha256,
+                "original_journal_sha256": original_journal_sha256,
+                "baseline": {
+                    "canonical_plan_sha256": current_plan_sha256,
+                    "session_sha256": current_session_sha256,
+                    "pointer_sha256": current_pointer_sha256,
+                    "task_count": len(backlog["tasks"]),
+                    "task_ids_sha256": sha256_bytes(
+                        canonical_json_bytes(task_ids)
+                    ),
+                    "event_count": backlog["event_count"],
+                    "event_head_sha256": backlog["event_head_sha256"],
+                    "active_task_id": mistaken_task_id,
+                    "restored_task_status": "SUPERSEDED",
+                    "candidate_absent": True,
+                    "pending_hil": False,
+                    "goal_row_offset": backlog.get("goal_row_offset", 0),
+                },
+                "mistaken_replacement_task_id": mistaken_task_id,
+                "restored_active_task_id": restored_task_id,
+                "expected_physically_final_task_id": expected_final_task_id,
+                "correction_delta_id": correction_delta_id,
+                "correction_delta_sha256": correction_delta_sha256,
+                "started_at": now,
+                "phase": "PREPARED",
+                "phase_updated_at": now,
+            }
+            self._write_plan_normalization_journal(
+                project_id,
+                transition_id,
+                journal,
+            )
+
+        def advance(phase: str, **details: Any) -> None:
+            journal["phase"] = phase
+            journal["phase_updated_at"] = utc_now()
+            journal.update(details)
+            self._write_plan_normalization_journal(
+                project_id,
+                transition_id,
+                journal,
+            )
+
+        if journal["phase"] == "PREPARED":
+            corrected = self.store.correct_plan_normalization(
+                project_id,
+                original_transition_id=original_transition_id,
+                correction_transition_id=transition_id,
+                mistaken_task_id=mistaken_task_id,
+                restored_task_id=restored_task_id,
+                session_id=session_id,
+                runtime_task_id=restored_task_id,
+                corrected_by=planned_by.strip(),
+                correction_receipt_sha256=correction_receipt_sha256,
+                goal_row_offset=goal_row_offset,
+            )
+            advance(
+                "PLAN_CORRECTED",
+                corrected_plan_sha256=corrected["canonical_plan_projection"][
+                    "projection_sha256"
+                ],
+                corrected_event_head_sha256=corrected["event_head_sha256"],
+            )
+
+        if journal["phase"] == "PLAN_CORRECTED":
+            session = self.load(project_id, session_id)
+            backlog = self.store.backlog_status(project_id)
+            restored = next(
+                row for row in backlog["tasks"] if row["task_id"] == restored_task_id
+            )
+            already_rebound = (
+                session.metadata.get("active_backlog_task_id") == restored_task_id
+                and isinstance(session.task, dict)
+                and session.task.get("task_id") == restored_task_id
+            )
+            if not already_rebound:
+                require(
+                    session.metadata.get("active_backlog_task_id")
+                    == mistaken_task_id
+                    and isinstance(session.task, dict)
+                    and session.task.get("task_id") == mistaken_task_id,
+                    "PLAN_NORMALIZATION_CORRECTION_SESSION_REBIND_MISMATCH",
+                    "Crash recovery found neither the mistaken nor exact restored session binding.",
+                    status="MISMATCH",
+                )
+                prior_task = cast(dict[str, Any], session.task)
+                restored_contract = classify_task(
+                    task_id=restored_task_id,
+                    task_class=str(restored["task_class"]),
+                    requested_outcome=str(restored["requested_outcome"]),
+                    permitted_paths=cast(list[str], restored["permitted_paths"]),
+                    permitted_tools=cast(list[str], restored["permitted_tools"]),
+                    acceptance_checks=cast(
+                        list[str], restored["acceptance_checks"]
+                    ),
+                    stop_condition=str(restored["stop_condition"]),
+                ).as_dict()
+                rebound_at = utc_now()
+                run_id = f"run_normcorr_{request_sha256[:20].lower()}"
+                rebind_body = {
+                    "schema": "evidence-lane.plan-normalization-correction-rebind.v1",
+                    "transition_id": transition_id,
+                    "correction_of_transition_id": original_transition_id,
+                    "plan_id": plan_id,
+                    "session_id": session_id,
+                    "mistaken_backlog_task_id": mistaken_task_id,
+                    "mistaken_runtime_task_id": prior_task.get("task_id"),
+                    "restored_backlog_task_id": restored_task_id,
+                    "restored_runtime_task_id": restored_task_id,
+                    "correction_receipt_sha256": correction_receipt_sha256,
+                    "candidate_created": False,
+                    "pending_hil": False,
+                    "pointer_moved": False,
+                    "rebound_at": rebound_at,
+                }
+                rebind_receipt = {
+                    **rebind_body,
+                    "receipt_sha256": sha256_bytes(
+                        canonical_json_bytes(rebind_body)
+                    ),
+                }
+                session.metadata.setdefault(
+                    "plan_normalization_corrections", []
+                ).append(rebind_receipt)
+                session.metadata["active_backlog_task_id"] = restored_task_id
+                session.metadata["run_id"] = run_id
+                session.metadata["source_update_confirmed"] = False
+                session.task = restored_contract
+                active_mode_binding = session.metadata.get("active_mode_binding")
+                if isinstance(active_mode_binding, dict) and isinstance(
+                    active_mode_binding.get("mode_governance"), dict
+                ):
+                    governance = cast(
+                        dict[str, Any], active_mode_binding["mode_governance"]
+                    )
+                    validate_mode_governance_selection(governance)
+                    mode_body = {
+                        "schema": "evidence-lane.task-mode-binding.v1",
+                        "task_id": restored_task_id,
+                        "selected_mode_ids": list(
+                            active_mode_binding["selected_mode_ids"]
+                        ),
+                        "mode_intersection": active_mode_binding[
+                            "mode_intersection"
+                        ],
+                        "canonical_lanes": list(
+                            active_mode_binding["canonical_lanes"]
+                        ),
+                        "selection_source": active_mode_binding[
+                            "selection_source"
+                        ],
+                        "mode_governance": governance,
+                        "selection_receipt_sha256": active_mode_binding[
+                            "binding_receipt_sha256"
+                        ],
+                        "bound_at_task_classification": rebound_at,
+                        "lifecycle_effect": "NONE",
+                        "candidate_created": False,
+                        "pointer_moved": False,
+                        "hil_approval_inferred": False,
+                    }
+                    session.metadata["task_mode_binding"] = {
+                        **mode_body,
+                        "binding_receipt_sha256": sha256_bytes(
+                            canonical_json_bytes(mode_body)
+                        ),
+                    }
+                self._save(session)
+                ChatLineage(self._lineage_path(project_id, session_id)).append(
+                    event_type="plan.normalization.correction.rebound",
+                    visible_payload=rebind_receipt,
+                    occurred_at=rebound_at,
+                    session_id=session_id,
+                    task_id=restored_task_id,
+                    run_id=run_id,
+                    event_id=f"{transition_id}__session_rebound",
+                )
+            advance(
+                "SESSION_REBOUND",
+                rebound_session_sha256=self.session_snapshot_sha256(
+                    self.load(project_id, session_id)
+                ),
+            )
+
+        backlog = self.store.backlog_status(project_id)
+        session = self.load(project_id, session_id)
+        pointer_sha256 = self.pointer_snapshot_sha256(project_id)
+        expected_total = transition.get("expected_result_task_count")
+        task_ids = [str(row["task_id"]) for row in backlog["tasks"]]
+        tasks_after = {str(row["task_id"]): row for row in backlog["tasks"]}
+        original_superseded = cast(list[str], original["superseded_task_ids"])
+        failed_checks = {
+            "task_count_unchanged": isinstance(expected_total, int)
+            and len(backlog["tasks"]) == expected_total,
+            "task_ids_unchanged": sha256_bytes(canonical_json_bytes(task_ids))
+            == journal["baseline"]["task_ids_sha256"],
+            "sole_active_restored": [
+                str(row["task_id"]) for row in backlog["active"]
+            ]
+            == [restored_task_id],
+            "mistaken_row_superseded": tasks_after.get(
+                mistaken_task_id, {}
+            ).get("status")
+            == "SUPERSEDED",
+            "other_original_supersessions_preserved": all(
+                task_id == restored_task_id
+                or tasks_after.get(task_id, {}).get("status") == "SUPERSEDED"
+                for task_id in original_superseded
+            ),
+            "session_backlog_binding": session.metadata.get(
+                "active_backlog_task_id"
+            )
+            == restored_task_id,
+            "session_runtime_binding": isinstance(session.task, dict)
+            and session.task.get("task_id") == restored_task_id,
+            "candidate_absent": session.candidate_id is None,
+            "pending_hil_false": not bool(session.metadata.get("pending_hil")),
+            "pointer_unchanged": pointer_sha256 == expected_pointer_sha256,
+            "exactly_two_plan_events_appended": backlog["event_count"]
+            == int(journal["baseline"]["event_count"]) + 2,
+            "physically_final": str(backlog["tasks"][-1]["task_id"])
+            == expected_final_task_id
+            and str(backlog["tasks"][-1].get("panel_role") or "").upper()
+            == "PHYSICALLY_FINAL_HIL",
+            "original_journal_unchanged": sha256_bytes(original_path.read_bytes())
+            == original_journal_sha256,
+            "goal_row_range": backlog["goal_projection"].get("row_offset")
+            == goal_row_offset
+            and backlog["goal_projection"].get("row_start")
+            == goal_row_offset + 1
+            and backlog["goal_projection"].get("row_end")
+            == goal_row_offset + int(backlog["goal_projection"]["task_count"]),
+        }
+        require(
+            all(failed_checks.values()),
+            "PLAN_NORMALIZATION_CORRECTION_COMMIT_VERIFICATION_FAILED",
+            "The correction cannot commit until Plan, session, pointer, history, and final-HIL invariants all pass.",
+            status="FAIL",
+            failed_checks=sorted(
+                key for key, passed in failed_checks.items() if not passed
+            ),
+        )
+        final_body = {
+            "canonical_plan_sha256": backlog["canonical_plan_projection"][
+                "projection_sha256"
+            ],
+            "goal_projection_sha256": backlog["goal_projection"][
+                "projection_sha256"
+            ],
+            "history_projection_sha256": backlog["history_projection"][
+                "projection_sha256"
+            ],
+            "plan_runtime_sqlite_sha256": backlog["plan_runtime_projection"][
+                "sqlite_sha256"
+            ],
+            "plan_runtime_projection_content_sha256": backlog[
+                "plan_runtime_projection"
+            ]["projection_content_sha256"],
+            "event_count": backlog["event_count"],
+            "event_head_sha256": backlog["event_head_sha256"],
+            "session_sha256": self.session_snapshot_sha256(session),
+            "pointer_sha256": pointer_sha256,
+            "task_count": len(backlog["tasks"]),
+            "counts": backlog["counts"],
+            "active_task_id": restored_task_id,
+            "superseded_mistaken_task_id": mistaken_task_id,
+            "physically_final_task_id": backlog["tasks"][-1]["task_id"],
+            "candidate_created": False,
+            "pending_hil": False,
+            "pointer_moved": False,
+            "rows_appended": 0,
+            "plan_events_appended": 2,
+            "goal_row_offset": goal_row_offset,
+            "goal_row_start": backlog["goal_projection"].get("row_start"),
+            "goal_row_end": backlog["goal_projection"].get("row_end"),
+        }
+        if journal["phase"] != "COMMITTED":
+            advance(
+                "COMMITTED",
+                status="PASS",
+                committed_at=utc_now(),
+                result=final_body,
+                result_sha256=sha256_bytes(canonical_json_bytes(final_body)),
+            )
+            idempotent_replay = False
+        else:
+            require(
+                journal.get("result") == final_body,
+                "PLAN_NORMALIZATION_COMMITTED_STATE_DRIFT",
+                "The committed correction no longer matches its sealed result.",
+                status="MISMATCH",
+                transition_id=transition_id,
+            )
+            idempotent_replay = True
+        return {
+            **backlog,
+            "normalization_transition": {
+                **final_body,
+                "status": "PASS",
+                "schema": _PLAN_NORMALIZATION_SCHEMA,
+                "transition_id": transition_id,
+                "correction_of_transition_id": original_transition_id,
+                "plan_id": plan_id,
+                "correction_receipt_sha256": correction_receipt_sha256,
+                "journal_phase": journal["phase"],
+                "journal_path": str(
+                    self._plan_normalization_path(project_id, transition_id)
+                ),
+                "request_sha256": request_sha256,
+                "result_sha256": journal["result_sha256"],
+                "idempotent_replay": idempotent_replay,
+                "crash_recoverable": True,
+                "writes_on_precondition_mismatch": 0,
+            },
+        }
+
+    def normalize_plan_tasks(
+        self,
+        project_id: str,
+        *,
+        tasks: list[dict[str, Any]],
+        planned_by: str,
+        plan_id: str,
+        normalization_transition: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Append and bind one approved Plan normalization as a recoverable unit.
+
+        The backlog and session are separate durable authorities, so the journal is
+        the crash boundary: every phase is replayable, while every precondition is
+        checked before the first write. A successful replay adds no Plan event,
+        session mutation, candidate, HIL, or pointer movement.
+        """
+
+        require(
+            isinstance(normalization_transition, dict),
+            "PLAN_NORMALIZATION_CONTRACT_INVALID",
+            "The optional normalization transition must be one structured contract.",
+            status="BLOCKED",
+        )
+        transition = dict(normalization_transition)
+        if transition.get("correction_of_transition_id"):
+            return self._correct_plan_normalization(
+                project_id,
+                tasks=tasks,
+                planned_by=planned_by,
+                plan_id=plan_id,
+                transition=transition,
+            )
+        transition_id = str(transition.get("transition_id") or "").strip()
+        session_id = str(transition.get("session_id") or "").strip()
+        old_active_task_id = str(
+            transition.get("old_active_task_id") or ""
+        ).strip()
+        replacement_task_id = str(
+            transition.get("replacement_task_id") or ""
+        ).strip()
+        review_task_id = str(
+            transition.get("approved_review_gate_id") or ""
+        ).strip()
+        expected_plan_sha256 = _require_sha256(
+            transition.get("expected_canonical_plan_sha256"),
+            field="expected_canonical_plan_sha256",
+        )
+        expected_session_sha256 = _require_sha256(
+            transition.get("expected_session_sha256"),
+            field="expected_session_sha256",
+        )
+        expected_pointer_sha256 = _require_sha256(
+            transition.get("expected_pointer_sha256"),
+            field="expected_pointer_sha256",
+        )
+        approval_receipt_sha256 = _require_sha256(
+            transition.get("approval_receipt_sha256"),
+            field="approval_receipt_sha256",
+        )
+        self._plan_normalization_path(project_id, transition_id)
+        for field, value in (
+            ("session_id", session_id),
+            ("old_active_task_id", old_active_task_id),
+            ("replacement_task_id", replacement_task_id),
+            ("approved_review_gate_id", review_task_id),
+        ):
+            require(
+                bool(value),
+                "PLAN_NORMALIZATION_CONTRACT_INVALID",
+                "The Plan-normalization transition is missing one exact identity.",
+                status="BLOCKED",
+                field=field,
+            )
+        require(
+            transition.get("expected_candidate_absent") is True
+            and transition.get("expected_pending_hil") is False,
+            "PLAN_NORMALIZATION_UNACCEPTED_STATE_EXPECTATION_REQUIRED",
+            "Normalization must explicitly expect no candidate and pending_hil=false.",
+            status="BLOCKED",
+        )
+
+        task_ids = [str(task.get("task_id") or "") for task in tasks]
+        require(
+            review_task_id in task_ids
+            and replacement_task_id in task_ids
+            and len(task_ids) == len(set(task_ids)),
+            "PLAN_NORMALIZATION_TASK_SET_INVALID",
+            "The exact approved review and replacement rows must be unique members of the appended plan.",
+            status="BLOCKED",
+            review_task_id=review_task_id,
+            replacement_task_id=replacement_task_id,
+        )
+        tasks_by_id = {str(task["task_id"]): task for task in tasks}
+        require(
+            str(
+                tasks_by_id[replacement_task_id].get("supersedes_task_id") or ""
+            )
+            == old_active_task_id,
+            "PLAN_NORMALIZATION_ACTIVE_SUCCESSOR_MISMATCH",
+            "The replacement row must explicitly supersede the old active row.",
+            status="MISMATCH",
+        )
+        superseded_task_ids = [
+            str(task.get("supersedes_task_id") or "").strip()
+            for task in tasks
+            if str(task.get("supersedes_task_id") or "").strip()
+        ]
+        require(
+            len(superseded_task_ids) == len(set(superseded_task_ids)),
+            "PLAN_NORMALIZATION_DUPLICATE_SUPERSEDE_AUTHORITY",
+            "One old executable row may map to only one authoritative successor row.",
+            status="BLOCKED",
+            duplicated_task_ids=sorted(
+                task_id
+                for task_id in set(superseded_task_ids)
+                if superseded_task_ids.count(task_id) > 1
+            ),
+        )
+        expected_superseded = transition.get("expected_superseded_task_ids")
+        if expected_superseded is not None:
+            require(
+                isinstance(expected_superseded, list)
+                and all(isinstance(value, str) for value in expected_superseded)
+                and superseded_task_ids == expected_superseded,
+                "PLAN_NORMALIZATION_SUPERSEDE_SET_MISMATCH",
+                "The executable supersede set differs from the approved ordered set.",
+                status="MISMATCH",
+                expected=expected_superseded,
+                supplied=superseded_task_ids,
+            )
+        final_roles = [
+            index
+            for index, task in enumerate(tasks, start=1)
+            if str(task.get("panel_role") or "").strip().upper()
+            == "PHYSICALLY_FINAL_HIL"
+        ]
+        require(
+            not final_roles or final_roles == [len(tasks)],
+            "PLAN_NORMALIZATION_FINAL_HIL_POSITION_INVALID",
+            "The normalized six-way HIL must remain physically final.",
+            status="BLOCKED",
+            final_role_positions=final_roles,
+            task_count=len(tasks),
+        )
+
+        request_body = {
+            "project_id": project_id,
+            "plan_id": plan_id,
+            "planned_by": planned_by.strip(),
+            "tasks": tasks,
+            "normalization_transition": transition,
+        }
+        request_sha256 = sha256_bytes(canonical_json_bytes(request_body))
+        journal = self._load_plan_normalization_journal(
+            project_id,
+            transition_id,
+        )
+        if journal is not None:
+            require(
+                journal.get("request_sha256") == request_sha256,
+                "PLAN_NORMALIZATION_REPLAY_CONFLICT",
+                "The transition ID already binds a different normalization request.",
+                status="BLOCKED",
+                transition_id=transition_id,
+            )
+        else:
+            backlog = self.store.backlog_status(project_id)
+            session = self.load(project_id, session_id)
+            pointer = self.store.pointer(project_id)
+            current_plan_sha256 = str(
+                backlog["canonical_plan_projection"]["projection_sha256"]
+            )
+            current_session_sha256 = self.session_snapshot_sha256(session)
+            current_pointer_sha256 = sha256_bytes(
+                canonical_json_bytes(pointer.as_dict())
+            )
+            mismatches = {
+                key: {"expected": expected, "current": current}
+                for key, expected, current in (
+                    (
+                        "canonical_plan_sha256",
+                        expected_plan_sha256,
+                        current_plan_sha256,
+                    ),
+                    (
+                        "session_sha256",
+                        expected_session_sha256,
+                        current_session_sha256,
+                    ),
+                    (
+                        "pointer_sha256",
+                        expected_pointer_sha256,
+                        current_pointer_sha256,
+                    ),
+                )
+                if expected != current
+            }
+            require(
+                not mismatches,
+                "PLAN_NORMALIZATION_PRECONDITION_MISMATCH",
+                "Plan, session, and pointer preconditions must all match before normalization writes anything.",
+                status="MISMATCH",
+                mismatches=mismatches,
+                writes_performed=False,
+            )
+            active_ids = [str(row["task_id"]) for row in backlog["active"]]
+            require(
+                active_ids == [old_active_task_id]
+                and session.metadata.get("active_backlog_task_id")
+                == old_active_task_id
+                and isinstance(session.task, dict),
+                "PLAN_NORMALIZATION_ACTIVE_BINDING_MISMATCH",
+                "The native active Plan row and live session task must match the old active identity.",
+                status="MISMATCH",
+                active_task_ids=active_ids,
+                session_backlog_task_id=session.metadata.get(
+                    "active_backlog_task_id"
+                ),
+                writes_performed=False,
+            )
+            current_tasks = {
+                str(row["task_id"]): row for row in backlog["tasks"]
+            }
+            invalid_supersedes = {
+                task_id: (
+                    current_tasks.get(task_id, {}).get("status")
+                    if task_id in current_tasks
+                    else "MISSING"
+                )
+                for task_id in superseded_task_ids
+                if task_id not in current_tasks
+                or current_tasks[task_id].get("status") not in {"ACTIVE", "QUEUED"}
+            }
+            require(
+                not invalid_supersedes,
+                "PLAN_NORMALIZATION_EXECUTABLE_SET_MISMATCH",
+                "Only currently active or queued executable rows may be superseded.",
+                status="MISMATCH",
+                invalid_task_statuses=invalid_supersedes,
+                writes_performed=False,
+            )
+            require(
+                session.candidate_id is None
+                and not bool(session.metadata.get("pending_hil"))
+                and not isinstance(session.metadata.get("pending_task"), dict),
+                "PLAN_NORMALIZATION_CANDIDATE_OR_HIL_PRESENT",
+                "Plan normalization cannot run with a candidate, pending HIL, or pending HIL follow-up.",
+                status="BLOCKED",
+                candidate_id=session.candidate_id,
+                pending_hil=bool(session.metadata.get("pending_hil")),
+                pending_task_present=isinstance(
+                    session.metadata.get("pending_task"), dict
+                ),
+                writes_performed=False,
+            )
+            require(
+                pointer.generation == session.accepted_pointer_generation
+                and pointer.accepted_pv == session.accepted_pv,
+                "PLAN_NORMALIZATION_SESSION_POINTER_STALE",
+                "The live session and accepted pointer diverged before normalization.",
+                status="STALE",
+                pointer=pointer.as_dict(),
+                session_accepted_pv=session.accepted_pv,
+                session_pointer_generation=session.accepted_pointer_generation,
+                writes_performed=False,
+            )
+            now = utc_now()
+            journal = {
+                "schema": _PLAN_NORMALIZATION_SCHEMA,
+                "status": "IN_PROGRESS",
+                "project_id": project_id,
+                "transition_id": transition_id,
+                "plan_id": plan_id,
+                "session_id": session_id,
+                "request_sha256": request_sha256,
+                "approval_receipt_sha256": approval_receipt_sha256,
+                "baseline": {
+                    "canonical_plan_sha256": current_plan_sha256,
+                    "session_sha256": current_session_sha256,
+                    "pointer_sha256": current_pointer_sha256,
+                    "task_count": len(backlog["tasks"]),
+                    "event_count": backlog["event_count"],
+                    "event_head_sha256": backlog["event_head_sha256"],
+                    "active_task_id": old_active_task_id,
+                    "candidate_absent": True,
+                    "pending_hil": False,
+                },
+                "old_active_task_id": old_active_task_id,
+                "replacement_task_id": replacement_task_id,
+                "approved_review_gate_id": review_task_id,
+                "superseded_task_ids": superseded_task_ids,
+                "started_at": now,
+                "phase": "PREPARED",
+                "phase_updated_at": now,
+            }
+            self._write_plan_normalization_journal(
+                project_id,
+                transition_id,
+                journal,
+            )
+
+        def advance(phase: str, **details: Any) -> None:
+            journal["phase"] = phase
+            journal["phase_updated_at"] = utc_now()
+            journal.update(details)
+            self._write_plan_normalization_journal(
+                project_id,
+                transition_id,
+                journal,
+            )
+
+        if journal["phase"] == "PREPARED":
+            appended = self.store.plan_tasks(
+                project_id,
+                tasks=tasks,
+                planned_by=planned_by,
+                plan_id=plan_id,
+                normalization_transition_id=transition_id,
+            )
+            advance(
+                "PLAN_APPENDED",
+                appended_plan_sha256=appended["canonical_plan_projection"][
+                    "projection_sha256"
+                ],
+                appended_event_head_sha256=appended["event_head_sha256"],
+            )
+
+        if journal["phase"] == "PLAN_APPENDED":
+            activated = self.store.activate_plan_normalization(
+                project_id,
+                plan_id=plan_id,
+                review_task_id=review_task_id,
+                replacement_task_id=replacement_task_id,
+                session_id=session_id,
+                runtime_task_id=replacement_task_id,
+                approved_by=planned_by,
+                approval_receipt_sha256=approval_receipt_sha256,
+            )
+            advance(
+                "PLAN_ACTIVATED",
+                activated_plan_sha256=activated["canonical_plan_projection"][
+                    "projection_sha256"
+                ],
+                activated_event_head_sha256=activated["event_head_sha256"],
+            )
+
+        if journal["phase"] == "PLAN_ACTIVATED":
+            session = self.load(project_id, session_id)
+            backlog = self.store.backlog_status(project_id)
+            replacement = next(
+                row
+                for row in backlog["tasks"]
+                if row["task_id"] == replacement_task_id
+            )
+            already_rebound = (
+                session.metadata.get("active_backlog_task_id")
+                == replacement_task_id
+                and isinstance(session.task, dict)
+                and session.task.get("task_id") == replacement_task_id
+            )
+            if not already_rebound:
+                require(
+                    session.metadata.get("active_backlog_task_id")
+                    == old_active_task_id
+                    and isinstance(session.task, dict),
+                    "PLAN_NORMALIZATION_SESSION_REBIND_MISMATCH",
+                    "Crash recovery found neither the old nor exact replacement session binding.",
+                    status="MISMATCH",
+                    active_backlog_task_id=session.metadata.get(
+                        "active_backlog_task_id"
+                    ),
+                    runtime_task_id=(
+                        session.task.get("task_id")
+                        if isinstance(session.task, dict)
+                        else None
+                    ),
+                )
+                prior_task = cast(dict[str, Any], session.task)
+                replacement_contract = classify_task(
+                    task_id=replacement_task_id,
+                    task_class=str(replacement["task_class"]),
+                    requested_outcome=str(replacement["requested_outcome"]),
+                    permitted_paths=cast(list[str], replacement["permitted_paths"]),
+                    permitted_tools=cast(list[str], replacement["permitted_tools"]),
+                    acceptance_checks=cast(
+                        list[str], replacement["acceptance_checks"]
+                    ),
+                    stop_condition=str(replacement["stop_condition"]),
+                ).as_dict()
+                rebound_at = utc_now()
+                run_id = f"run_norm_{request_sha256[:24].lower()}"
+                rebind_body = {
+                    "schema": "evidence-lane.plan-normalization-rebind.v1",
+                    "transition_id": transition_id,
+                    "plan_id": plan_id,
+                    "session_id": session_id,
+                    "old_backlog_task_id": old_active_task_id,
+                    "old_runtime_task_id": prior_task.get("task_id"),
+                    "replacement_backlog_task_id": replacement_task_id,
+                    "replacement_runtime_task_id": replacement_task_id,
+                    "approval_receipt_sha256": approval_receipt_sha256,
+                    "candidate_created": False,
+                    "pending_hil": False,
+                    "pointer_moved": False,
+                    "rebound_at": rebound_at,
+                }
+                rebind_receipt = {
+                    **rebind_body,
+                    "receipt_sha256": sha256_bytes(
+                        canonical_json_bytes(rebind_body)
+                    ),
+                }
+                session.metadata.setdefault("plan_normalization_rebinds", []).append(
+                    rebind_receipt
+                )
+                session.metadata["active_backlog_task_id"] = replacement_task_id
+                session.metadata["run_id"] = run_id
+                session.metadata["source_update_confirmed"] = False
+                session.task = replacement_contract
+                active_mode_binding = session.metadata.get("active_mode_binding")
+                if isinstance(active_mode_binding, dict) and isinstance(
+                    active_mode_binding.get("mode_governance"), dict
+                ):
+                    governance = cast(
+                        dict[str, Any], active_mode_binding["mode_governance"]
+                    )
+                    validate_mode_governance_selection(governance)
+                    mode_body = {
+                        "schema": "evidence-lane.task-mode-binding.v1",
+                        "task_id": replacement_task_id,
+                        "selected_mode_ids": list(
+                            active_mode_binding["selected_mode_ids"]
+                        ),
+                        "mode_intersection": active_mode_binding[
+                            "mode_intersection"
+                        ],
+                        "canonical_lanes": list(
+                            active_mode_binding["canonical_lanes"]
+                        ),
+                        "selection_source": active_mode_binding[
+                            "selection_source"
+                        ],
+                        "mode_governance": governance,
+                        "selection_receipt_sha256": active_mode_binding[
+                            "binding_receipt_sha256"
+                        ],
+                        "bound_at_task_classification": rebound_at,
+                        "lifecycle_effect": "NONE",
+                        "candidate_created": False,
+                        "pointer_moved": False,
+                        "hil_approval_inferred": False,
+                    }
+                    session.metadata["task_mode_binding"] = {
+                        **mode_body,
+                        "binding_receipt_sha256": sha256_bytes(
+                            canonical_json_bytes(mode_body)
+                        ),
+                    }
+                self._save(session)
+                ChatLineage(self._lineage_path(project_id, session_id)).append(
+                    event_type="plan.normalization.rebound",
+                    visible_payload=rebind_receipt,
+                    occurred_at=rebound_at,
+                    session_id=session_id,
+                    task_id=replacement_task_id,
+                    run_id=run_id,
+                    event_id=f"{transition_id}__session_rebound",
+                )
+            advance(
+                "SESSION_REBOUND",
+                rebound_session_sha256=self.session_snapshot_sha256(
+                    self.load(project_id, session_id)
+                ),
+            )
+
+        backlog = self.store.backlog_status(project_id)
+        session = self.load(project_id, session_id)
+        pointer_sha256 = self.pointer_snapshot_sha256(project_id)
+        expected_total = transition.get("expected_result_task_count")
+        if expected_total is not None:
+            require(
+                isinstance(expected_total, int)
+                and len(backlog["tasks"]) == expected_total,
+                "PLAN_NORMALIZATION_RESULT_COUNT_MISMATCH",
+                "The normalized Plan row count differs from the approved result.",
+                status="MISMATCH",
+                expected=expected_total,
+                current=len(backlog["tasks"]),
+            )
+        tasks_after = {str(row["task_id"]): row for row in backlog["tasks"]}
+        failed_checks = {
+            "sole_active_replacement": [
+                str(row["task_id"]) for row in backlog["active"]
+            ]
+            == [replacement_task_id],
+            "review_done": tasks_after.get(review_task_id, {}).get("status")
+            == "DONE",
+            "all_old_rows_superseded": all(
+                tasks_after.get(task_id, {}).get("status") == "SUPERSEDED"
+                for task_id in superseded_task_ids
+            ),
+            "session_backlog_binding": session.metadata.get(
+                "active_backlog_task_id"
+            )
+            == replacement_task_id,
+            "session_runtime_binding": isinstance(session.task, dict)
+            and session.task.get("task_id") == replacement_task_id,
+            "candidate_absent": session.candidate_id is None,
+            "pending_hil_false": not bool(session.metadata.get("pending_hil")),
+            "pointer_unchanged": pointer_sha256 == expected_pointer_sha256,
+            "physically_final": str(
+                backlog["tasks"][-1].get("panel_role") or ""
+            ).upper()
+            == "PHYSICALLY_FINAL_HIL",
+        }
+        require(
+            all(failed_checks.values()),
+            "PLAN_NORMALIZATION_COMMIT_VERIFICATION_FAILED",
+            "The journal cannot commit until Plan, session, pointer, and final-HIL invariants all pass.",
+            status="FAIL",
+            failed_checks=sorted(
+                key for key, passed in failed_checks.items() if not passed
+            ),
+        )
+        final_body = {
+            "canonical_plan_sha256": backlog["canonical_plan_projection"][
+                "projection_sha256"
+            ],
+            "goal_projection_sha256": backlog["goal_projection"][
+                "projection_sha256"
+            ],
+            "history_projection_sha256": backlog["history_projection"][
+                "projection_sha256"
+            ],
+            "plan_runtime_sqlite_sha256": backlog["plan_runtime_projection"][
+                "sqlite_sha256"
+            ],
+            "plan_runtime_projection_content_sha256": backlog[
+                "plan_runtime_projection"
+            ]["projection_content_sha256"],
+            "event_count": backlog["event_count"],
+            "event_head_sha256": backlog["event_head_sha256"],
+            "session_sha256": self.session_snapshot_sha256(session),
+            "pointer_sha256": pointer_sha256,
+            "task_count": len(backlog["tasks"]),
+            "counts": backlog["counts"],
+            "active_task_id": replacement_task_id,
+            "physically_final_task_id": backlog["tasks"][-1]["task_id"],
+            "candidate_created": False,
+            "pending_hil": False,
+            "pointer_moved": False,
+        }
+        if journal["phase"] != "COMMITTED":
+            advance(
+                "COMMITTED",
+                status="PASS",
+                committed_at=utc_now(),
+                result=final_body,
+                result_sha256=sha256_bytes(canonical_json_bytes(final_body)),
+            )
+            idempotent_replay = False
+        else:
+            require(
+                journal.get("result") == final_body,
+                "PLAN_NORMALIZATION_COMMITTED_STATE_DRIFT",
+                "The committed normalization no longer matches its sealed result.",
+                status="MISMATCH",
+                transition_id=transition_id,
+            )
+            idempotent_replay = True
+        return {
+            **backlog,
+            "normalization_transition": {
+                **final_body,
+                "status": "PASS",
+                "schema": _PLAN_NORMALIZATION_SCHEMA,
+                "transition_id": transition_id,
+                "plan_id": plan_id,
+                "approval_receipt_sha256": approval_receipt_sha256,
+                "journal_phase": journal["phase"],
+                "journal_path": str(
+                    self._plan_normalization_path(project_id, transition_id)
+                ),
+                "request_sha256": request_sha256,
+                "result_sha256": journal["result_sha256"],
+                "idempotent_replay": idempotent_replay,
+                "crash_recoverable": True,
+                "writes_on_precondition_mismatch": 0,
+            },
+        }
 
     def ensure_installation(self) -> dict[str, Any]:
         path = self.store.root / "installation.json"
@@ -762,6 +2017,26 @@ class SessionManager:
                 entry_validation["promotable"] if entry_validation else None
             ),
         )
+        if isinstance(previous_continuity, dict):
+            previous_receipt_sha256 = str(
+                previous_continuity.get("continuity_receipt_sha256") or ""
+            )
+            archived_receipts = session.metadata.setdefault(
+                "runtime_continuity_receipt_archive", []
+            )
+            if not any(
+                row.get("continuity_receipt_sha256")
+                == previous_receipt_sha256
+                for row in archived_receipts
+            ):
+                archived_receipts.append(
+                    {
+                        "continuity_receipt_sha256": previous_receipt_sha256,
+                        "receipt": previous_continuity,
+                        "disposition": "SUPERSEDED_BY_FRESH_RESUME_RECEIPT",
+                        "archived_at": now,
+                    }
+                )
         session.metadata["persistence_route"] = dict(persistence_route)
         session.metadata["runtime_continuity"] = runtime_continuity
         session.metadata.setdefault("runtime_continuity_history", []).append(
@@ -1805,11 +3080,7 @@ class SessionManager:
             "There is no classified task to refresh.",
             status="BLOCKED",
         )
-        required = (
-            "USER_APPLIED_AND_PULL_CONFIRMED"
-            if session.host == HostKind.CHATGPT
-            else "HOST_SANDBOX_FINAL_STATE_CONFIRMED"
-        )
+        required = "HOST_SANDBOX_FINAL_STATE_CONFIRMED"
         require(
             confirmation == required,
             "SOURCE_UPDATE_CONFIRMATION_INVALID",
@@ -2558,8 +3829,6 @@ class SessionManager:
         }
 
     def _state_travel_target(self, session: SessionRecord) -> tuple[str, str]:
-        if session.host == HostKind.CHATGPT:
-            return "NEW_CHATGPT_CHAT", "OPEN_NEW_CHATGPT_CHAT"
         if session.host in {
             HostKind.CODEX_DESKTOP,
             HostKind.CODEX_CLI,
@@ -2568,13 +3837,51 @@ class SessionManager:
             return "NEW_CODEX_TASK", "OPEN_NEW_CODEX_TASK"
         return "NEW_HOST_SESSION", "OPEN_NEW_HOST_SESSION"
 
+    @staticmethod
+    def _state_travel_canonical_task_rows(
+        backlog: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        """Project the current executable Goal without falsifying Plan history.
+
+        Canonical history remains sealed separately by the Plan snapshot. A
+        SUPERSEDED or DROPPED row is immutable history, not completed work, and
+        therefore must never appear in the destination's executable task panel.
+        """
+
+        rows: list[dict[str, Any]] = []
+        for row in cast(
+            list[dict[str, Any]],
+            backlog["goal_projection"]["rows"],
+        ):
+            projected = {
+                "number": int(row["number"]),
+                "task_id": str(row["task_id"]),
+                "step": str(row["step"]),
+                "status": str(row["status"]).upper(),
+                "canonical_plan_sequence": int(row["plan_sequence"]),
+                "steer_deltas": list(row.get("steer_deltas") or []),
+            }
+            if row.get("panel_role"):
+                projected["panel_role"] = str(row["panel_role"])
+            rows.append(projected)
+        return rows
+
     def _state_travel_plan_snapshot(self, project_id: str) -> dict[str, Any]:
         backlog = self.store.backlog_status(project_id)
         goal = cast(dict[str, Any], backlog["goal_projection"])
+        history = cast(dict[str, Any], backlog["history_projection"])
+        canonical = cast(dict[str, Any], backlog["canonical_plan_projection"])
         body = {
             "canonical_authority": "PLAN_LANE",
-            "task_count": goal["task_count"],
+            "task_count": canonical["task_count"],
+            "canonical_plan_sha256": canonical["projection_sha256"],
+            "executable_task_count": goal["task_count"],
             "goal_projection_sha256": goal["projection_sha256"],
+            "goal_row_offset": goal.get("row_offset", 0),
+            "goal_row_start": goal.get("row_start"),
+            "goal_row_end": goal.get("row_end"),
+            "history_task_count": history["task_count"],
+            "history_projection_sha256": history["projection_sha256"],
             "event_count": backlog["event_count"],
             "event_head_sha256": backlog["event_head_sha256"],
             "planning_mode_event_count": backlog["planning_mode_event_count"],
@@ -2635,12 +3942,12 @@ class SessionManager:
         raw_task_list = raw.get("task_list")
         canonical_plan_task_list: list[dict[str, Any]] = []
         backlog = self.store.backlog_status(project_id)
-        goal = cast(dict[str, Any], backlog["goal_projection"])
+        canonical_task_rows = self._state_travel_canonical_task_rows(backlog)
         if backlog["active"]:
-            canonical_plan_task_list = normalize_task_list(goal["rows"])
+            canonical_plan_task_list = normalize_task_list(canonical_task_rows)
         if raw_task_list is None:
             if canonical_plan_task_list:
-                raw_task_list = goal["rows"]
+                raw_task_list = canonical_task_rows
                 task_list_source = "ACTIVE_PLAN_LANE_DERIVED"
             elif session.task is not None:
                 raw_task_list = [
@@ -2724,11 +4031,20 @@ class SessionManager:
                 ),
                 None,
             )
+        resume_row = next(
+            (
+                row
+                for row in task_list
+                if isinstance(resume_step, int)
+                and row["number"] == resume_step
+            ),
+            None,
+        )
         if travel_mode == "UNFINISHED_VERIFIED_WORK":
             require(
                 isinstance(resume_step, int)
-                and 1 <= resume_step <= len(task_list)
-                and task_list[resume_step - 1]["status"] != "COMPLETED",
+                and isinstance(resume_row, dict)
+                and resume_row["status"] != "COMPLETED",
                 "STATE_TRAVEL_RESUME_STEP_INVALID",
                 "The exact resume step must identify one unfinished task-panel row.",
                 status="BLOCKED",
@@ -2768,11 +4084,12 @@ class SessionManager:
             status="MISMATCH",
             delta_ids=missing_or_changed_plan_deltas,
         )
+        valid_task_numbers = {row["number"] for row in task_list}
         invalid_delta_links = [
             row["delta_id"]
             for row in additive_deltas
             if row["linked_step"] is not None
-            and row["linked_step"] > len(task_list)
+            and row["linked_step"] not in valid_task_numbers
         ]
         require(
             not invalid_delta_links,
@@ -2795,11 +4112,6 @@ class SessionManager:
                 execution_profile,
                 host_kind=session.host.value,
             )
-        resume_row = (
-            task_list[resume_step - 1]
-            if isinstance(resume_step, int) and task_list
-            else None
-        )
         default_prompt = (
             f"Resume Evidence Lane project {project_id} at step {resume_step}: "
             f"{resume_row['step']} Re-project the exact complete task panel as the "
@@ -2846,6 +4158,13 @@ class SessionManager:
                 "LIFECYCLE_CALL",
             ],
             "task_list_sha256": task_list_sha256,
+            "visible_row_start": task_list[0]["number"] if task_list else None,
+            "visible_row_end": task_list[-1]["number"] if task_list else None,
+            "visible_row_numbering": (
+                "DYNAMIC_ASCENDING_CURRENT_EXECUTION_PROJECTION"
+            ),
+            "stable_identity_field": "task_id",
+            "renumber_after_insert_or_non_executable_transition": True,
             "active_row": active_rows[0]["number"] if active_rows else None,
             "non_empty_task_list_requires_exactly_one_in_progress": True,
             "preserve_order_and_row_count": True,
@@ -2961,10 +4280,9 @@ class SessionManager:
                 }
                 if session.host.value.startswith("CODEX")
                 else {
-                    "kind": "CHATGPT",
+                    "kind": "UNSUPPORTED_NON_CODEX_HOST",
                     "codex_plan_mode_controls_applicable": False,
                     "codex_goal_or_task_panel_applicable": False,
-                    "mounted_plugin_store_is_runtime_authority": True,
                     "append_only_lane_and_env_laws_preserved": True,
                 }
             ),
@@ -3009,20 +4327,12 @@ class SessionManager:
             bool(exact_host_session_id)
             and exact_host_session_id != str(travel.get("origin_host_session_id") or ""),
             "STATE_TRAVEL_NEW_HOST_WINDOW_REQUIRED",
-            "State Travel must resume in a fresh host task or chat.",
+            "State Travel must resume in a fresh host task.",
             status="BLOCKED",
             target_surface=travel.get("target_surface"),
         )
         host_kind = normalize_host_kind(host)
-        if travel.get("target_surface") == "NEW_CHATGPT_CHAT":
-            require(
-                host_kind == HostKind.CHATGPT,
-                "STATE_TRAVEL_HOST_KIND_MISMATCH",
-                "This handoff requires a fresh ChatGPT chat.",
-                status="MISMATCH",
-                host=host_kind.value,
-            )
-        elif travel.get("target_surface") == "NEW_CODEX_TASK":
+        if travel.get("target_surface") == "NEW_CODEX_TASK":
             require(
                 host_kind
                 in {HostKind.CODEX_DESKTOP, HostKind.CODEX_CLI, HostKind.CODEX_VM},

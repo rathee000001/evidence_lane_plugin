@@ -1,7 +1,0 @@
-surface,release,identity,total_actions,read_actions,write_actions,skills,write_state,boundary
-Codex,1.5.0,evidence-lane,62,21,41,15,WRITE_CAPABLE,Package-local native MCP only
-ChatGPT Pro,1.5.0,evidence-lane-chatgpt-governed,62,21,41,0,41_FAIL_CLOSED,Remote registered MCP; Pro writes unavailable
-Google Drive,separate,google-drive,not_applicable,connector_defined,connector_defined,not_applicable,SEPARATE_CONNECTOR,Never Evidence Lane lifecycle proof
-Tunnel stable,1.5.0,EvidenceLane-Tunnel-v150,62,21,41,not_applicable,HOST_DEPENDENT,Remote transport only; never Codex lifecycle proof
-Tunnel future-test,unassigned,evidence-lane-next-test,unproven,unproven,unproven,unproven,DISABLED_ISOLATED,Cannot replace stable before complete proof
-Tunnel archive/fallback,previous-stable,versioned-saved-runtime,release_bound,release_bound,release_bound,release_bound,DISABLED_REUSABLE,Reactivation requires explicit user direction

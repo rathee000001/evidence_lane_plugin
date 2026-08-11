@@ -624,14 +624,15 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     if set(native.get("mcpServers") or {}) != {"evidence-lane"}:
         raise InstallationError("The package must contain one native evidence-lane MCP.")
     forbidden = (
-        plugin_root / "chatgpt-app-connection.json",
-        plugin_root / "chatgpt-app-submission.json",
         plugin_root / "release-channels.json",
         plugin_root / "remote_adapter",
         plugin_root / "evidence",
     )
-    if any(path.exists() for path in forbidden):
-        raise InstallationError("A separate ChatGPT, website, or evidence surface leaked in.")
+    external_app_artifacts = tuple(plugin_root.glob("*-app-connection.json")) + tuple(
+        plugin_root.glob("*-app-submission.json")
+    )
+    if any(path.exists() for path in forbidden) or external_app_artifacts:
+        raise InstallationError("A separate app, website, or evidence surface leaked in.")
     hooks = json.loads((plugin_root / "hooks" / "hooks.json").read_text("utf-8"))
     hook_events = dict(hooks.get("hooks") or {})
     handler_count = sum(

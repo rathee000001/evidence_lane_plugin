@@ -293,17 +293,7 @@ def check_ac10() -> dict[str, Any]:
     _require(tunnel["payload"].get("status") == "PASS", "Tunnel receipt failed.")
     _require(host["payload"].get("status") == "PASS", "Host receipt failed.")
     matrix = host["payload"].get("host_storage_matrix") or {}
-    chatgpt = matrix.get("chatgpt_durable_mcp_host") or {}
     codex = matrix.get("codex_local_pc_laptop_or_stable_vm") or {}
-    _require(
-        chatgpt.get("primary_runtime_authority")
-        == "MCP_SERVER_MOUNTED_OR_LOCAL_SQLITE",
-        "ChatGPT primary runtime differs.",
-    )
-    _require(
-        chatgpt.get("google_drive_policy") == "FORBIDDEN_FOR_CHATGPT_RUNTIME",
-        "ChatGPT GDrive runtime boundary differs.",
-    )
     _require(
         codex.get("primary_runtime_authority") == "LOCAL_DURABLE_SQLITE",
         "Stable Codex primary runtime differs.",
@@ -311,7 +301,6 @@ def check_ac10() -> dict[str, Any]:
     return {
         "tunnel_receipt": tunnel["receipt_sha256"],
         "host_receipt": host["receipt_sha256"],
-        "chatgpt_runtime": chatgpt,
         "codex_runtime": codex,
     }
 
@@ -516,11 +505,11 @@ def check_ac14() -> dict[str, Any]:
 
     return {
         "host_metadata_and_settings": _pytest(
-            "tests/test_v140_cross_surface_contracts.py",
-            "tests/test_mcp_plugin.py::test_chatgpt_pro_profile_exposes_all_actions_and_blocks_every_write",
+            "tests/test_mcp_plugin.py::test_mcp_tool_inventory_and_annotations",
+            "tests/test_mcp_plugin.py::test_v2_server_rejects_removed_chatgpt_exposure_profiles",
             "tests/test_mcp_plugin.py::test_modern_discovery_probe_receives_exact_legacy_fallback",
             "tests/test_mcp_plugin.py::test_plugin_manifest_has_evidence_lane_identity_only",
-            "tests/test_mcp_plugin.py::test_real_stdio_chatgpt_pro_profile_has_complete_visible_inventory",
+            "tests/test_mcp_plugin.py::test_real_stdio_transport_lists_tools_and_calls_doctor",
             "tests/test_full_app_ui_conformance.py::test_native_threejs_motion_remains_without_retired_3d_or_adobe_links",
             "tests/test_full_app_ui_conformance.py::test_public_plugin_metadata_and_third_party_rights_are_canonical",
             "tests/test_windows_tunnel_persistence.py",

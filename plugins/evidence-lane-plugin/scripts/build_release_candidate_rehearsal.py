@@ -109,13 +109,8 @@ REQUIRED_MEMBERS = frozenset(
         "scripts/codex_release/install_codex_stable.py",
     }
 )
-SEPARATE_HOST_RELATIVE_FILES = frozenset(
-    {
-        "chatgpt-app-connection.json",
-        "chatgpt-app-submission.json",
-        "release-channels.json",
-    }
-)
+SEPARATE_HOST_RELATIVE_FILES = frozenset({"release-channels.json"})
+SEPARATE_HOST_FILE_SUFFIXES = ("-app-connection.json", "-app-submission.json")
 SEPARATE_HOST_PREFIXES = ("evidence/", "remote_adapter/")
 SYNTHETIC_ROOT = "_evidence_lane_rehearsal"
 
@@ -190,8 +185,10 @@ def _release_paths(plugin_root: Path) -> list[Path]:
         for name in sorted(raw_files):
             candidate = root / name
             relative = candidate.relative_to(plugin_root).as_posix()
-            if relative in SEPARATE_HOST_RELATIVE_FILES or relative.startswith(
-                SEPARATE_HOST_PREFIXES
+            if (
+                relative in SEPARATE_HOST_RELATIVE_FILES
+                or relative.endswith(SEPARATE_HOST_FILE_SUFFIXES)
+                or relative.startswith(SEPARATE_HOST_PREFIXES)
             ):
                 continue
             if _excluded_file(candidate):
@@ -426,11 +423,11 @@ def build_rehearsal(
         or remote_git_policy.get("merge_allowed") is not False
         or remote_git_policy.get("pull_request_acceptance_allowed") is not False
         or remote_git_policy.get("force_push_allowed") is not False
-        or release_channels.get("host_split", {}).get(
-            "chatgpt_connection_artifacts_packaged_with_codex"
+        or release_channels.get("delivery_boundary", {}).get(
+            "external_app_artifacts_packaged_with_codex"
         )
         is not False
-        or release_channels.get("host_split", {}).get(
+        or release_channels.get("delivery_boundary", {}).get(
             "remote_website_artifacts_packaged_with_codex"
         )
         is not False
@@ -468,6 +465,7 @@ def build_rehearsal(
             "local_codex_files": "EXCLUDED",
             "zip_files": "EXCLUDED",
             "separate_host_files": sorted(SEPARATE_HOST_RELATIVE_FILES),
+            "separate_host_file_suffixes": list(SEPARATE_HOST_FILE_SUFFIXES),
             "separate_host_prefixes": list(SEPARATE_HOST_PREFIXES),
         },
         "members": source_records,

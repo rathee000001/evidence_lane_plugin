@@ -1,7 +1,7 @@
 # Portable multi-project routing
 
-Evidence Lane treats an MCP server or Secure MCP Tunnel as a transport boundary,
-not as a project binding. The runtime-global tools are limited to doctor, Flash,
+Evidence Lane treats the native Codex MCP server as a transport boundary, not
+as a project binding. The runtime-global tools are limited to doctor, Flash,
 activation, transition-law, lane-catalog, and runtime-panel reads. Every other
 MCP tool requires an explicit `project_id` in its input schema. The native route
 receipt fails closed if a project-scoped tool is ever registered without it.
@@ -46,12 +46,10 @@ validation-compatible.
 
 ## Surface placement
 
-Codex loads only the native installed Evidence Lane full-lifecycle MCP. Normal
-ChatGPT may load the separately named ChatGPT connector or a private development
-tunnel. The ChatGPT route is never installed into the Codex plugin catalog and
-cannot substitute for the native server. A private tunnel carries the MCP
-process and the configured store root, but it carries no fixed project ID; each
-project-scoped call must still supply one.
+Codex loads only the native installed Evidence Lane full-lifecycle MCP. External
+app adapters, remote MCP delivery, and network-tunnel packages are not included
+in the v2 Codex catalog and cannot substitute for the native server. Each
+project-scoped call must still supply one exact project ID.
 
 Google Drive is never selected as live transactional storage by this routing
 contract. Changing a project's storage selection still requires the exact

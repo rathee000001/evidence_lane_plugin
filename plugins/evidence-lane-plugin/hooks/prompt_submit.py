@@ -25,6 +25,7 @@ def _load_control():
         TurnControlError,
         bind_codex_host_payload,
         gap_receipt,
+        persistent_change_system_message,
         persistent_change_system_notice,
         policy_state,
         prepare_turn,
@@ -35,6 +36,7 @@ def _load_control():
         TurnControlError,
         bind_codex_host_payload,
         gap_receipt,
+        persistent_change_system_message,
         persistent_change_system_notice,
         policy_state,
         prepare_turn,
@@ -48,6 +50,7 @@ def _record(payload: dict[str, Any]) -> tuple[dict[str, Any], bool]:
         TurnControlError,
         bind_codex_host_payload,
         gap_receipt,
+        _,
         _,
         policy_state,
         prepare_turn,
@@ -198,15 +201,25 @@ def main() -> int:
     }
     display = receipt.get("persistent_change_display")
     if isinstance(display, dict):
-        _, _, _, persistent_change_system_notice, _, _, _ = _load_control()
+        (
+            _,
+            _,
+            _,
+            persistent_change_system_message,
+            persistent_change_system_notice,
+            _,
+            _,
+            _,
+        ) = _load_control()
         notice = persistent_change_system_notice(
             display,
             phase="TURN_PREPARE",
             turn_receipt=receipt,
         )
-        result["systemMessage"] = (
-            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-            + json.dumps(notice, sort_keys=True, separators=(",", ":"))
+        serialized = json.dumps(notice, sort_keys=True, separators=(",", ":"))
+        result["systemMessage"] = persistent_change_system_message(notice)
+        result["hookSpecificOutput"]["additionalContext"] += (
+            "\nEVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=" + serialized
         )
     if not should_continue:
         result["stopReason"] = (

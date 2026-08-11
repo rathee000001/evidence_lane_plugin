@@ -461,94 +461,23 @@ def test_explicit_exit_boot_closes_only_the_persistent_session(service) -> None:
     assert error.value.code == "NO_ACTIVE_SESSION_TO_RESUME"
 
 
-def test_chatgpt_state_travel_requires_fresh_chat_and_waits(service) -> None:
-    boot = service.boot_session(
-        project_id="book-faires",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CHATGPT",
-        agent_id="chatgpt-single-agent",
-        sandbox_id=None,
-        ephemeral=False,
-        runtime_context={"source": "origin-chat"},
-        host_session_id="chatgpt-origin-chat",
-        client_can_edit_source=False,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    service.build_initial("book-faires", session_id)
-    decision = service.decide(
-        "book-faires",
-        session_id,
-        decision="APPROVE",
-        decided_by="human-test",
-        decision_id="decision_chatgpt_state_travel",
-    )
-    handoff = decision["state_travel_handoff"]["state_travel"]
-    assert handoff["target_surface"] == "NEW_CHATGPT_CHAT"
-    assert handoff["next_action"] == "OPEN_NEW_CHATGPT_CHAT"
-    assert handoff["next_action_contract"]["suggested_next_prompt"] == (
-        "/evi-state-travel"
-    )
-    assert handoff["next_action_contract"]["auto_submit"] is False
-    assert handoff["host_window_opened"] is False
-    assert handoff["required_entry_commands"] == [
-        "/evi-state-travel",
-        "/evi-boot",
-    ]
-
-    with pytest.raises(EvidenceLaneError) as wrong_session:
-        service.resume_state_travel(
+def test_retired_chatgpt_host_cannot_boot_or_prepare_state_travel(service) -> None:
+    with pytest.raises(EvidenceLaneError) as blocked:
+        service.boot_session(
             project_id="book-faires",
-            session_id="session_wrong",
-            handoff_id=handoff["handoff_id"],
+            user_id="user-test",
+            workspace_id="workspace-test",
             host="CHATGPT",
-            host_session_id="chatgpt-wrong-session-attempt",
+            agent_id="retired-host-agent",
+            sandbox_id=None,
             ephemeral=False,
+            runtime_context={"source": "retired-host"},
+            host_session_id="retired-host-session",
             client_can_edit_source=False,
             server_has_durable_filesystem=True,
-            runtime_context={"source": "must-not-bind"},
         )
-    assert wrong_session.value.code == "STATE_TRAVEL_ACTIVE_SESSION_MISMATCH"
-    assert (
-        service.sessions.load("book-faires", session_id).metadata[
-            "current_host_session_id"
-        ]
-        == "chatgpt-origin-chat"
-    )
-
-    traveled = service.resume_state_travel(
-        project_id="book-faires",
-        session_id=session_id,
-        handoff_id=handoff["handoff_id"],
-        host="CHATGPT",
-        host_session_id="chatgpt-fresh-chat",
-        ephemeral=False,
-        client_can_edit_source=False,
-        server_has_durable_filesystem=True,
-        runtime_context={"source": "fresh-chat"},
-    )
-    assert traveled["state_travel"]["target_surface"] == "NEW_CHATGPT_CHAT"
-    assert traveled["state_travel"]["destination_host_session_id"] == (
-        "chatgpt-fresh-chat"
-    )
-    assert traveled["state_travel"]["boot_verified"] is True
-    assert traveled["state_travel"]["flash_verified"] is True
-    assert traveled["state_travel"]["pointer_verified"] is True
-    assert traveled["wait_state"] == "WAITING_FOR_NEXT_USER_COMMAND"
-    assert traveled["next_action"] == "WAIT_FOR_NEXT_USER_COMMAND"
-    assert traveled["suggested_next_prompt"].endswith(
-        "/evi-build to inspect governed status."
-    )
-    assert traveled["next_action_contract"]["composer_authority"] == "HOST_OWNED"
-    assert traveled["next_action_contract"]["stop_and_wait"] is True
-    assert traveled["task_started"] is False
-    assert traveled["ordered_entry_verification"] == [
-        "/evi-boot",
-        "ATOMIC_BOOT_AND_LOCKED_ENV_UOP_FLASH_VERIFIED",
-        "VERIFY_ACCEPTED_POINTER_AND_SEALS",
-        "WAITING_FOR_NEXT_USER_COMMAND",
-    ]
+    assert blocked.value.code == "HOST_KIND_INVALID"
+    assert not (service.store.project_root("book-faires") / "active_session.json").exists()
 
 
 @pytest.mark.parametrize(

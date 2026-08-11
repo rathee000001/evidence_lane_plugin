@@ -569,6 +569,7 @@ class ProjectStore:
         plan_id: str,
         insert_before_task_id: str | None = None,
         insert_before_next_hil: bool = False,
+        normalization_transition_id: str | None = None,
     ) -> dict[str, Any]:
         """Add a bounded queue; planning never creates parallel active tasks."""
         self.config(project_id)
@@ -710,6 +711,9 @@ class ProjectStore:
             input_body["insert_before_task_id"] = exact_insert_before
         if insert_before_next_hil:
             input_body["insert_before_next_hil"] = True
+        exact_normalization_id = str(normalization_transition_id or "").strip()
+        if exact_normalization_id:
+            input_body["normalization_transition_id"] = exact_normalization_id
         input_sha256 = sha256_bytes(canonical_json_bytes(input_body))
         with self._lock(project_id):
             backlog = self._load_backlog(project_id)
@@ -797,6 +801,8 @@ class ProjectStore:
             }
             if resolved_insert_before:
                 plan_row["insert_before_task_id"] = resolved_insert_before
+            if exact_normalization_id:
+                plan_row["normalization_transition_id"] = exact_normalization_id
             backlog["plans"].append(plan_row)
             for task in added_tasks:
                 append_delta_event(
@@ -823,7 +829,11 @@ class ProjectStore:
                 append_delta_event(
                     backlog,
                     task_id=linked_task_id,
-                    event_type="SUPERSEDED",
+                    event_type=(
+                        "PLAN_NORMALIZATION_SUPERSEDED"
+                        if exact_normalization_id
+                        else "SUPERSEDED"
+                    ),
                     to_status="SUPERSEDED",
                     actor=planned_by.strip(),
                     event_id=(
@@ -831,10 +841,301 @@ class ProjectStore:
                     ),
                     recorded_at=planned_at,
                     assume_initialized=True,
-                    details={"replacement_task_id": task["task_id"]},
+                    details={
+                        "replacement_task_id": task["task_id"],
+                        "normalization_transition_id": (
+                            exact_normalization_id or None
+                        ),
+                    },
                 )
                 superseded["superseded_by_task_id"] = task["task_id"]
             self._persist_backlog(project_id, backlog)
+        return self.backlog_status(project_id)
+
+    def activate_plan_normalization(
+        self,
+        project_id: str,
+        *,
+        plan_id: str,
+        review_task_id: str,
+        replacement_task_id: str,
+        session_id: str,
+        runtime_task_id: str,
+        approved_by: str,
+        approval_receipt_sha256: str,
+    ) -> dict[str, Any]:
+        """Complete the approved review gate and activate its sole successor.
+
+        All backlog events are persisted under one project lock.  Replays are
+        accepted only when the already-active row has the exact same session
+        and runtime-task binding.
+        """
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            tasks_by_id = {
+                str(task["task_id"]): task for task in backlog.get("tasks", [])
+            }
+            review = tasks_by_id.get(review_task_id)
+            replacement = tasks_by_id.get(replacement_task_id)
+            require(
+                isinstance(review, dict)
+                and isinstance(replacement, dict)
+                and review.get("plan_id") == plan_id
+                and replacement.get("plan_id") == plan_id,
+                "PLAN_NORMALIZATION_TASK_MISMATCH",
+                "The normalization review and replacement rows must belong to the exact new plan.",
+                status="MISMATCH",
+                plan_id=plan_id,
+                review_task_id=review_task_id,
+                replacement_task_id=replacement_task_id,
+            )
+            review = cast(dict[str, Any], review)
+            replacement = cast(dict[str, Any], replacement)
+            changed = False
+            now = utc_now()
+            if review.get("status") == "QUEUED":
+                append_delta_event(
+                    backlog,
+                    task_id=review_task_id,
+                    event_type="PLAN_APPROVAL_STARTED",
+                    to_status="ACTIVE",
+                    actor=approved_by,
+                    event_id=f"{plan_id}__{review_task_id}__approval_active",
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "approval_receipt_sha256": approval_receipt_sha256,
+                        "candidate_created": False,
+                        "hil_inferred": False,
+                    },
+                )
+                append_delta_event(
+                    backlog,
+                    task_id=review_task_id,
+                    event_type="PLAN_APPROVAL_COMPLETED",
+                    to_status="DONE",
+                    actor=approved_by,
+                    event_id=f"{plan_id}__{review_task_id}__approval_done",
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "approval_receipt_sha256": approval_receipt_sha256,
+                        "candidate_created": False,
+                        "hil_inferred": False,
+                    },
+                )
+                review.setdefault("history", []).append(
+                    {
+                        "event": "PLAN_APPROVAL_COMPLETED",
+                        "approved_by": approved_by,
+                        "approval_receipt_sha256": approval_receipt_sha256,
+                        "recorded_at": now,
+                    }
+                )
+                changed = True
+            require(
+                review.get("status") == "DONE",
+                "PLAN_NORMALIZATION_REVIEW_NOT_DONE",
+                "The approved normalization review gate is not complete.",
+                status="MISMATCH",
+                review_task_id=review_task_id,
+                review_status=review.get("status"),
+            )
+            active = [
+                task for task in backlog["tasks"] if task.get("status") == "ACTIVE"
+            ]
+            if replacement.get("status") == "QUEUED":
+                require(
+                    not active,
+                    "PLAN_NORMALIZATION_ACTIVE_TASK_CONFLICT",
+                    "The replacement row may activate only after the prior active row is superseded.",
+                    status="MISMATCH",
+                    active_task_ids=[task["task_id"] for task in active],
+                )
+                replacement["active_session_id"] = session_id
+                replacement["runtime_task_id"] = runtime_task_id
+                append_delta_event(
+                    backlog,
+                    task_id=replacement_task_id,
+                    event_type="PLAN_NORMALIZATION_ACTIVATED",
+                    to_status="ACTIVE",
+                    actor=session_id,
+                    event_id=(
+                        f"{plan_id}__{replacement_task_id}__"
+                        f"{runtime_task_id}__normalization_active"
+                    ),
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "session_id": session_id,
+                        "runtime_task_id": runtime_task_id,
+                        "plan_id": plan_id,
+                    },
+                )
+                replacement.setdefault("history", []).append(
+                    {
+                        "event": "CLAIMED_BY_PLAN_NORMALIZATION",
+                        "session_id": session_id,
+                        "runtime_task_id": runtime_task_id,
+                        "recorded_at": now,
+                    }
+                )
+                changed = True
+            else:
+                require(
+                    replacement.get("status") == "ACTIVE"
+                    and replacement.get("active_session_id") == session_id
+                    and replacement.get("runtime_task_id") == runtime_task_id
+                    and len(active) == 1
+                    and active[0].get("task_id") == replacement_task_id,
+                    "PLAN_NORMALIZATION_ACTIVE_BINDING_MISMATCH",
+                    "The replayed normalization does not match the sole active replacement binding.",
+                    status="MISMATCH",
+                    replacement_task_id=replacement_task_id,
+                    replacement_status=replacement.get("status"),
+                )
+            if changed:
+                self._persist_backlog(project_id, backlog)
+        return self.backlog_status(project_id)
+
+    def correct_plan_normalization(
+        self,
+        project_id: str,
+        *,
+        original_transition_id: str,
+        correction_transition_id: str,
+        mistaken_task_id: str,
+        restored_task_id: str,
+        session_id: str,
+        runtime_task_id: str,
+        corrected_by: str,
+        correction_receipt_sha256: str,
+        goal_row_offset: int,
+    ) -> dict[str, Any]:
+        """Restore one mistakenly superseded live row without rewriting history.
+
+        The two corrective events are persisted under one project lock. Replays
+        accept only the exact already-corrected binding and append no event.
+        """
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            tasks_by_id = {
+                str(task["task_id"]): task for task in backlog.get("tasks", [])
+            }
+            mistaken = tasks_by_id.get(mistaken_task_id)
+            restored = tasks_by_id.get(restored_task_id)
+            require(
+                isinstance(mistaken, dict) and isinstance(restored, dict),
+                "PLAN_NORMALIZATION_CORRECTION_TASK_MISMATCH",
+                "The correction must reference the exact mistaken and restored Plan rows.",
+                status="MISMATCH",
+                mistaken_task_id=mistaken_task_id,
+                restored_task_id=restored_task_id,
+            )
+            mistaken = cast(dict[str, Any], mistaken)
+            restored = cast(dict[str, Any], restored)
+            before = (
+                mistaken.get("status") == "ACTIVE"
+                and restored.get("status") == "SUPERSEDED"
+            )
+            after = (
+                mistaken.get("status") == "SUPERSEDED"
+                and restored.get("status") == "ACTIVE"
+            )
+            require(
+                before or after,
+                "PLAN_NORMALIZATION_CORRECTION_STATE_MISMATCH",
+                "The Plan rows are neither at the exact mistaken state nor the exact corrected state.",
+                status="MISMATCH",
+                mistaken_status=mistaken.get("status"),
+                restored_status=restored.get("status"),
+            )
+            event_details = {
+                "original_transition_id": original_transition_id,
+                "correction_transition_id": correction_transition_id,
+                "correction_receipt_sha256": correction_receipt_sha256,
+                "session_id": session_id,
+                "candidate_created": False,
+                "pending_hil": False,
+                "pointer_moved": False,
+                "goal_row_offset": goal_row_offset,
+            }
+            if before:
+                now = utc_now()
+                append_delta_event(
+                    backlog,
+                    task_id=mistaken_task_id,
+                    event_type="PLAN_NORMALIZATION_CORRECTION_SUPERSEDED",
+                    to_status="SUPERSEDED",
+                    actor=corrected_by,
+                    event_id=(
+                        f"{correction_transition_id}__{mistaken_task_id}__superseded"
+                    ),
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        **event_details,
+                        "restored_task_id": restored_task_id,
+                    },
+                )
+                append_delta_event(
+                    backlog,
+                    task_id=restored_task_id,
+                    event_type="PLAN_NORMALIZATION_CORRECTION_RESTORED",
+                    to_status="ACTIVE",
+                    actor=corrected_by,
+                    event_id=(
+                        f"{correction_transition_id}__{restored_task_id}__restored"
+                    ),
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        **event_details,
+                        "mistaken_task_id": mistaken_task_id,
+                    },
+                )
+                mistaken.pop("active_session_id", None)
+                mistaken.pop("runtime_task_id", None)
+                mistaken["superseded_by_task_id"] = restored_task_id
+                mistaken.setdefault("history", []).append(
+                    {
+                        "event": "PLAN_NORMALIZATION_CORRECTION_SUPERSEDED",
+                        "correction_transition_id": correction_transition_id,
+                        "restored_task_id": restored_task_id,
+                        "recorded_at": now,
+                    }
+                )
+                restored.pop("superseded_by_task_id", None)
+                restored["active_session_id"] = session_id
+                restored["runtime_task_id"] = runtime_task_id
+                restored.setdefault("history", []).append(
+                    {
+                        "event": "PLAN_NORMALIZATION_CORRECTION_RESTORED",
+                        "correction_transition_id": correction_transition_id,
+                        "mistaken_task_id": mistaken_task_id,
+                        "recorded_at": now,
+                    }
+                )
+                backlog["goal_row_offset"] = goal_row_offset
+                self._persist_backlog(project_id, backlog)
+            else:
+                require(
+                    restored.get("active_session_id") == session_id
+                    and restored.get("runtime_task_id") == runtime_task_id
+                    and backlog.get("goal_row_offset", 0) == goal_row_offset
+                    and not any(
+                        task.get("status") == "ACTIVE"
+                        and task.get("task_id") != restored_task_id
+                        for task in backlog["tasks"]
+                    ),
+                    "PLAN_NORMALIZATION_CORRECTION_ACTIVE_BINDING_MISMATCH",
+                    "The replayed correction does not match the sole restored active binding.",
+                    status="MISMATCH",
+                )
         return self.backlog_status(project_id)
 
     def backlog_status(self, project_id: str) -> dict[str, Any]:
@@ -856,6 +1157,14 @@ class ProjectStore:
             backlog,
         )
         ordered_tasks = sorted(backlog["tasks"], key=lambda row: int(row["sequence"]))
+        goal_row_offset = backlog.get("goal_row_offset", 0)
+        require(
+            isinstance(goal_row_offset, int) and goal_row_offset >= 0,
+            "PLAN_GOAL_ROW_OFFSET_INVALID",
+            "The current executable Plan row offset must be a non-negative integer.",
+            status="MISMATCH",
+            goal_row_offset=goal_row_offset,
+        )
         goal_rows: list[dict[str, Any]] = []
         history_rows: list[dict[str, Any]] = []
         canonical_rows: list[dict[str, Any]] = []
@@ -877,7 +1186,7 @@ class ProjectStore:
             if host_status is not None:
                 row = {
                     **common,
-                    "number": len(goal_rows) + 1,
+                    "number": goal_row_offset + len(goal_rows) + 1,
                     "status": host_status,
                 }
                 goal_rows.append(row)
@@ -928,13 +1237,7 @@ class ProjectStore:
                 if row["lifecycle_status"] in _SUPERSEDED_LIFECYCLE_STATUSES
             ],
             "execution_policy": "IMMUTABLE_NON_EXECUTABLE_HISTORY",
-            "parked_host_surfaces": [
-                {
-                    "surface": "CHATGPT_PLUGIN_LAYER",
-                    "status": "DEFERRED_NON_EXECUTABLE",
-                    "reactivation_requires": "NEW_EXPLICIT_HUMAN_PLAN_AND_HIL",
-                }
-            ],
+            "parked_host_surfaces": [],
             "canonical_plan_sha256": canonical_plan_sha256,
         }
         history_projection = {
@@ -949,6 +1252,9 @@ class ProjectStore:
             "task_count": len(goal_rows),
             "canonical_task_count": len(canonical_rows),
             "history_task_count": len(history_rows),
+            "row_offset": goal_row_offset,
+            "row_start": goal_row_offset + 1 if goal_rows else None,
+            "row_end": goal_row_offset + len(goal_rows) if goal_rows else None,
             "rows": goal_rows,
             "canonical_plan_sha256": canonical_plan_sha256,
             "history_projection_sha256": history_projection["projection_sha256"],

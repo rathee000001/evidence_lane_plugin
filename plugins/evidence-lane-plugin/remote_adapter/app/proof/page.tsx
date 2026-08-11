@@ -50,8 +50,8 @@ export default function ProofPage() {
         <div className="sectionHead"><span className="kicker">Claim boundary</span><h2>What the public site does and does not establish.</h2></div>
         <div className="claimTable">
           <div className="claimHead"><span>Observation</span><span>Permitted interpretation</span><span>Not proven</span></div>
-          <div><span>Landing page renders</span><span>The public Next.js surface is deployed</span><span>ChatGPT MCP readiness</span></div>
-          <div><span><code>/healthz</code> returns ready</span><span>Edge configuration and release identity passed its checks</span><span>End-user workflow quality</span></div>
+          <div><span>Landing page renders</span><span>The public Next.js surface builds</span><span>Native Codex package activation</span></div>
+          <div><span>Post-restart receipt passes</span><span>Installed version and native catalog matched</span><span>End-user workflow quality</span></div>
           <div><span>18-lane dummy audit passes</span><span>Fixture contract and negative gates behave as tested</span><span>Every real project topology is correct</span></div>
           <div><span>Candidate package is sealed</span><span>Its bytes and evidence are ready for review</span><span>Acceptance, Fuse, or pointer movement</span></div>
           <div><span>Exact <code>APPROVE</code> is fused</span><span>Bound candidate became accepted under the governed rule</span><span>External market value or universal superiority</span></div>

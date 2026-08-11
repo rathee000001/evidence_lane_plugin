@@ -1201,6 +1201,9 @@ class EvidenceLaneService:
             if not session.metadata.get("closed_at"):
                 active_session = {
                     "session_id": session.session_id,
+                    "session_snapshot_sha256": (
+                        self.sessions.session_snapshot_sha256(session)
+                    ),
                     "state": session.state.value,
                     "entry_pv": session.metadata.get("entry_pv"),
                     "accepted_pv": session.accepted_pv,
@@ -1208,6 +1211,9 @@ class EvidenceLaneService:
                     "candidate_id": session.candidate_id,
                     "pending_hil": session.state.value.endswith("_CANDIDATE"),
                     "task_id": (session.task.get("task_id") if session.task else None),
+                    "backlog_task_id": session.metadata.get(
+                        "active_backlog_task_id"
+                    ),
                     "source_state": session.metadata.get("source_state"),
                     "host": session.host.value,
                     "persistence_route": session.metadata.get("persistence_route"),
@@ -1246,6 +1252,9 @@ class EvidenceLaneService:
                     "highest_accepted_ordinal": result["highest_accepted_ordinal"],
                     "next_candidate_pv": result["next_candidate_pv"],
                     "accepted_manifest_sha256": (pointer.accepted_manifest_sha256),
+                    "pointer_snapshot_sha256": sha256_bytes(
+                        canonical_json_bytes(pointer.as_dict())
+                    ),
                     "freshness": current_freshness,
                     "pending_candidate": (
                         active_session["candidate_id"] if active_session else None
@@ -1267,21 +1276,20 @@ class EvidenceLaneService:
         plan_id: str | None = None,
         host_kind: str | None = None,
         host_mode: str | None = None,
+        normalization_transition: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         exact_host = str(host_kind or "").strip().upper()
         exact_mode = str(host_mode or "").strip().upper()
-        if exact_host.startswith("CHATGPT"):
+        if exact_host and not exact_host.startswith("CODEX"):
             return {
-                "status": "HOST_DEFERRED",
+                "status": "HOST_UNSUPPORTED",
                 "plan_persisted": False,
                 "host_kind": exact_host,
                 "host_mode": exact_mode or "NOT_DECLARED",
                 "canonical_authority": "PLAN_LANE",
-                "parked_scope": "CHATGPT_PLUGIN_LAYER",
-                "reactivation_requires": "NEW_EXPLICIT_HUMAN_PLAN_AND_HIL",
                 "message": (
-                    "The ChatGPT plugin layer is parked and cannot add executable "
-                    "rows to the Codex Goal projection."
+                    "The v2 Plan bridge accepts Codex hosts only and cannot add "
+                    "rows for this host to the Codex Goal projection."
                 ),
             }
         if exact_host.startswith("CODEX") and exact_mode != "PLAN":
@@ -1295,14 +1303,23 @@ class EvidenceLaneService:
                     "Turn on Codex Plan mode with /pl, finish the plan, then run "
                     "/evi-plan again so Plan Lane and the native Goal/task panel pair."
                 ),
-                "chatgpt_plan_mode_assumed": False,
             }
-        result = self.store.plan_tasks(
-            project_id,
-            tasks=tasks,
-            planned_by=planned_by,
-            plan_id=plan_id or prefixed_id("plan"),
-        )
+        exact_plan_id = plan_id or prefixed_id("plan")
+        if normalization_transition is not None:
+            result = self.sessions.normalize_plan_tasks(
+                project_id,
+                tasks=tasks,
+                planned_by=planned_by,
+                plan_id=exact_plan_id,
+                normalization_transition=normalization_transition,
+            )
+        else:
+            result = self.store.plan_tasks(
+                project_id,
+                tasks=tasks,
+                planned_by=planned_by,
+                plan_id=exact_plan_id,
+            )
         result["host_plan_bridge"] = {
             "host_kind": exact_host or "UNDECLARED",
             "host_mode": exact_mode or "UNDECLARED",

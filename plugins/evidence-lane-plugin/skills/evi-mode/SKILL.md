@@ -48,6 +48,4 @@ count increases. When a next HIL row exists, Plan Lane inserts that new step
 before the gate; a `PHYSICALLY_FINAL_HIL` row must remain physically final. The
 default boundary is `BEFORE_NEXT_HIL` unless the user says otherwise.
 
-Do not apply this Codex Plan-mode bridge to ChatGPT. ChatGPT persists its Plan
-Lane through the mounted plugin store and shared append-only runtime laws, but
-does not claim Codex `/pl`, Goal, or native task-panel controls.
+Do not apply this Codex Plan-mode bridge to an unsupported non-Codex host.

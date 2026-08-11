@@ -5,7 +5,7 @@ description: Pair a finished Codex Plan-mode plan with the canonical Evidence La
 # Evidence Lane Plan Lane
 
 Use this sidecar only for Codex native Plan mode. It is not a seventh primary
-Evidence Lane lifecycle control and does not apply Codex UI assumptions to ChatGPT.
+Evidence Lane lifecycle control.
 
 ## Preflight
 
@@ -51,6 +51,4 @@ visible through every steer until the next six-way HIL.
 ## Next Steps
 
 Display only the returned short `goal_start_prompt` as the copy/paste handoff.
-The user pastes it into the Codex Goal to begin or continue execution. In
-ChatGPT, skip `/pl`, `/evi-plan`, Goal, and native task-panel claims; use the
-persistent mounted plugin store and append-only lane laws directly.
+The user pastes it into the Codex Goal to begin or continue execution.

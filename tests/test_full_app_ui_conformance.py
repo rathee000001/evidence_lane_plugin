@@ -275,7 +275,6 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     ).read_text(encoding="utf-8")
     adapter_root = ROOT / "plugins" / "evidence-lane-plugin" / "remote_adapter"
     adapter_package = json.loads((adapter_root / "package.json").read_text(encoding="utf-8"))
-    adapter_env = (adapter_root / ".env.example").read_text(encoding="utf-8")
     adapter_readme = (adapter_root / "README.md").read_text(encoding="utf-8")
     openrouter_test = (
         adapter_root / "scripts" / "test-openrouter-boundary.mjs"
@@ -303,10 +302,9 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     assert "NO_EXTERNAL_PROJECT_CLAIMS_NO_PAID_MODEL_FALLBACK" in query_route
     assert "EVIDENCE_LANE_GENERAL_AI_ENABLED" in openrouter
     assert "OPENROUTER_API_KEY" in openrouter
-    assert "OPENROUTER_API_KEY=" in adapter_env
-    assert "NEXT_PUBLIC_OPENROUTER" not in query_route + openrouter + adapter_env
-    assert "Vercel Shared Sensitive Environment" in adapter_readme
-    assert "Variable named `OPENROUTER_API_KEY`" in adapter_readme
+    assert not (adapter_root / ".env.example").exists()
+    assert "NEXT_PUBLIC_OPENROUTER" not in query_route + openrouter
+    assert "does not expose an MCP endpoint" in adapter_readme
     assert "real_provider_calls: 0" in openrouter_test
     assert adapter_package["scripts"]["test:studio-query"] == (
         "node --experimental-strip-types scripts/test-openrouter-boundary.mjs"
@@ -491,7 +489,7 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "data-release-version={releaseIdentity.version}" in footer
     assert "data-release-commit={releaseIdentity.commit" in footer
     assert "Release <strong>{releaseIdentity.version}</strong>" in footer
-    assert 'releaseVersion = "1.5.0"' in release_identity
+    assert 'releaseVersion = "2.0.0"' in release_identity
     assert "VERCEL_GIT_COMMIT_SHA" in release_identity
     assert "NEXT_PUBLIC_EVIDENCE_LANE_RELEASE_SHA" in release_identity
     assert "GITHUB_MARKDOWN_TO_SITE_FOOTERS_DELTA_TABLE_VERCEL_AND_EXISTING_DEVPOST" in release_identity
@@ -515,7 +513,7 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "salary" not in contributors.casefold()
     assert "h1b" not in contributors.casefold()
     assert site.startswith('export const publicSiteUrl = "https://evidencelane.org";')
-    assert 'publicMcpUrl = "https://mcp.evidencelane.org/mcp"' in site
+    assert "publicMcpUrl" not in site
 
 
 def test_lanes_hero_orbits_all_eighteen_glass_icons_once_then_stops() -> None:
@@ -546,15 +544,15 @@ def test_public_plugin_metadata_and_third_party_rights_are_canonical() -> None:
     repository_copyright = (ROOT / "COPYRIGHT.md").read_text(encoding="utf-8")
 
     assert metadata["homepage"] == "https://evidencelane.org"
-    assert metadata["mcp_endpoint"] == "https://mcp.evidencelane.org/mcp"
+    assert "mcp_endpoint" not in metadata
     assert metadata["interactive_ui"]["mime_type"] == "text/html;profile=mcp-app"
     assert metadata["interactive_ui"]["render_tools"] == [
         "render_runtime_panel",
         "render_project_panel",
     ]
     assert "siteName: \"Evidence Lane\"" in layout
-    assert "data-mcp-apps=\"SUPPORTED\"" in connect
-    assert "ChatGPT owns the surrounding listing and settings layout" in connect
+    assert "local native MCP server" in connect
+    assert "ChatGPT" in connect and "Deferred" in connect
     boundary = (
         "Third-party software, services, models, assets, and trademarks remain "
         "governed"
@@ -593,20 +591,15 @@ def test_connect_endpoint_cards_are_linked_readable_and_truthful() -> None:
 
     assert '<a href={publicSiteUrl} className="endpointCard endpointCardReady">' in connect
     assert (
-        '<a href={publicMcpHealthUrl} className="endpointCard endpointCardBlocked">'
+        '<a href={repositoryUrl} className="endpointCard endpointCardProtocol">'
         in connect
     )
-    assert (
-        '<a href={publicMcpUrl} className="endpointCard endpointCardProtocol">'
-        in connect
-    )
-    assert "missing durable HTTPS origin and exact release identity" in connect
-    assert "a browser tab is not an authenticated MCP session" in connect
+    assert "website explains the product; it does not execute the lifecycle" in connect
+    assert "prewarmed separately" in connect
     assert ".endpointCard strong { color: #ffffff;" in styles
     assert ".endpointCard small { color: #d6e7f3;" in styles
     for selector in (
         ".endpointCardReady",
-        ".endpointCardBlocked",
         ".endpointCardProtocol",
     ):
         assert selector in styles

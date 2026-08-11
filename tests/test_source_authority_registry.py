@@ -353,17 +353,17 @@ def test_classification_only_never_creates_registry(tmp_path: Path) -> None:
     reason="The opt-in real DATA " + "MACHINE corpus is unavailable.",
 )
 def test_data_machine_top_level_authority_contract_is_available_for_opt_in() -> None:
-    """Cheap preflight only; the full 48-source hashing run is a governed POC step."""
+    """Cheap preflight only; additions do not rewrite the sealed 48-source registry."""
 
     sources = sorted(
         Path("F:/DATA" + " MACHINE").iterdir(),
         key=lambda row: row.name.casefold(),
     )
-    assert len(sources) == 48
-    assert sum(row.is_dir() for row in sources) == 28
-    assert sum(row.is_file() for row in sources) == 20
+    assert len(sources) >= 48
+    assert sum(row.is_dir() for row in sources) >= 28
+    assert sum(row.is_file() for row in sources) >= 20
     assert (
-        sum(row.is_file() and row.suffix.casefold() == ".zip" for row in sources) == 9
+        sum(row.is_file() and row.suffix.casefold() == ".zip" for row in sources) >= 9
     )
 
 

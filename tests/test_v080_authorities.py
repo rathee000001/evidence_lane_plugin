@@ -159,7 +159,7 @@ def test_storage_sidecar_selects_local_and_fails_closed_on_ephemeral(service) ->
     with pytest.raises(EvidenceLaneError) as blocked:
         service.storage_connector_inspect(
             "book-faires",
-            host="CHATGPT",
+            host="PUBLIC_AI",
             ephemeral=True,
             server_has_durable_filesystem=False,
         )
@@ -195,7 +195,7 @@ def test_persistent_plugin_grant_records_scope_actions_and_expiry(
     )["selected_plugin_id"] == "forensic-tool"
 
 
-def test_connector_settings_separate_hosts_and_bind_role_schema_runtime(
+def test_connector_settings_are_codex_only_and_bind_role_schema_runtime(
     tmp_path: Path,
 ) -> None:
     path = tmp_path / "connector-settings.sqlite"
@@ -219,44 +219,45 @@ def test_connector_settings_separate_hosts_and_bind_role_schema_runtime(
         host_profiles=["CODEX"],
         backend_runtime="java",
     )
-    chatgpt = governance.register(
+    remote = governance.register(
         plugin_id="remote-research",
         name="Remote Research",
         plugin_kind="toolchain",
         description="Routes bounded remote research through a host connector.",
         config_env_keys=["REMOTE_RESEARCH_TOKEN"],
-        capabilities=["record-sync"],
+        capabilities=["remote-record-sync"],
         allowed_lanes=["custom"],
         registered_by="human-test",
         purpose="Read research records selected by the user.",
         role="remote_research",
         role_schema={"citation_url": "text", "source_hash": "blob_hash"},
-        host_profiles=["CHATGPT"],
+        host_profiles=["CODEX"],
         backend_runtime="external_mcp",
     )
     assert codex["purpose_recorded_once"] is True
     assert codex["backend_execution_authorized"] is False
-    assert chatgpt["host_profiles"] == ["CHATGPT"]
+    assert remote["host_profiles"] == ["CODEX"]
     codex_settings = governance.settings(host_profile="CODEX")
-    chatgpt_settings = governance.settings(host_profile="CHATGPT")
-    assert codex_settings["configured_count"] == 1
+    assert codex_settings["configured_count"] == 2
     assert codex_settings["slots"][0]["plugin_id"] == "enterprise-sync"
-    assert chatgpt_settings["configured_count"] == 1
-    assert chatgpt_settings["slots"][0]["plugin_id"] == "remote-research"
+    assert codex_settings["slots"][1]["plugin_id"] == "remote-research"
+    with pytest.raises(EvidenceLaneError) as retired_host:
+        governance.settings(host_profile="CHATGPT")
+    assert retired_host.value.code == "PLUGIN_HOST_PROFILE_INVALID"
     codex_route = governance.route(
         capability="record-sync",
         canonical_lane_id="custom",
         host_profile="CODEX",
     )
-    chatgpt_route = governance.route(
-        capability="record-sync",
+    remote_route = governance.route(
+        capability="remote-record-sync",
         canonical_lane_id="custom",
-        host_profile="CHATGPT",
+        host_profile="CODEX",
     )
     assert codex_route["selected_plugin_id"] == "enterprise-sync"
     assert codex_route["selected_backend_runtime"] == "java"
     assert codex_route["backend_execution_authorized"] is False
-    assert chatgpt_route["selected_plugin_id"] == "remote-research"
+    assert remote_route["selected_plugin_id"] == "remote-research"
     validation = validate_connector_brain(path)
     assert validation["valid"] is True
     assert validation["role_schema_field_count"] == 5
@@ -294,14 +295,14 @@ def test_connector_route_ambiguity_fails_closed_and_records_ordered_guards(
             purpose="Read a source explicitly selected by the user.",
             allowed_actions=["source-read"],
             write_scope=["lane:research"],
-            host_profiles=["CHATGPT"],
+            host_profiles=["CODEX"],
             backend_runtime="external_mcp",
         )
 
     ambiguous = governance.route(
         capability="source-read",
         canonical_lane_id="research",
-        host_profile="CHATGPT",
+        host_profile="CODEX",
     )
     assert ambiguous["selected_plugin_id"] is None
     assert ambiguous["decision"] == "AMBIGUOUS_FAIL_CLOSED"
@@ -321,7 +322,7 @@ def test_connector_route_ambiguity_fails_closed_and_records_ordered_guards(
     selected = governance.route(
         capability="source-read",
         canonical_lane_id="research",
-        host_profile="CHATGPT",
+        host_profile="CODEX",
         preferred_plugin_id="beta-research",
     )
     assert selected["decision"] == "PERSISTENT_PLUGIN"
@@ -331,7 +332,7 @@ def test_connector_route_ambiguity_fails_closed_and_records_ordered_guards(
     denied = governance.route(
         capability="source-write",
         canonical_lane_id="research",
-        host_profile="CHATGPT",
+        host_profile="CODEX",
         preferred_plugin_id="beta-research",
     )
     assert denied["selected_plugin_id"] is None
@@ -346,21 +347,21 @@ def test_connector_route_ambiguity_fails_closed_and_records_ordered_guards(
     unknown = governance.route(
         capability="source-read",
         canonical_lane_id="research",
-        host_profile="CHATGPT",
+        host_profile="CODEX",
         preferred_plugin_id="missing-research",
     )
     assert unknown["selected_plugin_id"] is None
     assert unknown["decision"] == "REQUESTED_PLUGIN_NOT_FOUND"
 
     no_match = governance.route(
-        capability="source-read",
+        capability="unregistered-capability",
         canonical_lane_id="research",
         host_profile="CODEX",
     )
     assert no_match["selected_plugin_id"] is None
     assert no_match["decision"] == "NO_MATCH_FAIL_CLOSED"
     assert all(
-        trace["first_failed_guard"] == "HOST_ALLOWED"
+        trace["first_failed_guard"] == "CAPABILITY_AND_ACTION_ALLOWED"
         for trace in no_match["guard_trace"]
     )
 

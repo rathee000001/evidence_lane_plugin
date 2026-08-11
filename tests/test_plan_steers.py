@@ -90,8 +90,8 @@ def test_codex_plan_mode_bridge_and_canonical_steer_classification(service) -> N
     ]
 
 
-def test_chatgpt_plan_rows_are_parked_outside_the_codex_goal(service) -> None:
-    deferred = service.plan_tasks(
+def test_non_codex_plan_rows_are_rejected_outside_the_codex_goal(service) -> None:
+    unsupported = service.plan_tasks(
         "book-faires",
         tasks=[_task("chatgpt-step-001", "Persist one ChatGPT lane task.")],
         planned_by="human-test",
@@ -99,19 +99,14 @@ def test_chatgpt_plan_rows_are_parked_outside_the_codex_goal(service) -> None:
         host_kind="CHATGPT_WORK",
         host_mode=None,
     )
-    assert deferred["status"] == "HOST_DEFERRED"
-    assert deferred["plan_persisted"] is False
-    assert deferred["parked_scope"] == "CHATGPT_PLUGIN_LAYER"
+    assert unsupported["status"] == "HOST_UNSUPPORTED"
+    assert unsupported["plan_persisted"] is False
+    assert unsupported["host_kind"] == "CHATGPT_WORK"
+    assert "accepts Codex hosts only" in unsupported["message"]
     backlog = service.task_backlog("book-faires")
     assert backlog["tasks"] == []
     assert set(backlog["goal_projection"]["host_projections"]) == {"CODEX"}
-    assert backlog["history_projection"]["parked_host_surfaces"] == [
-        {
-            "surface": "CHATGPT_PLUGIN_LAYER",
-            "status": "DEFERRED_NON_EXECUTABLE",
-            "reactivation_requires": "NEW_EXPLICIT_HUMAN_PLAN_AND_HIL",
-        }
-    ]
+    assert backlog["history_projection"]["parked_host_surfaces"] == []
 
 
 def test_unlinked_steers_insert_before_physically_final_hil_and_all_persist(

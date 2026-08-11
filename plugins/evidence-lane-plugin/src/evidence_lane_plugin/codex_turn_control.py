@@ -1578,6 +1578,10 @@ def _source_change_snapshot(
             repository,
             ["status", "--porcelain=v1", "--untracked-files=all"],
         ).stdout
+        numstat = run_git(
+            repository,
+            ["diff", "--numstat", "HEAD", "--"],
+        ).stdout
     except EvidenceLaneError as exc:
         raise TurnControlError(
             "TURN_CONTROL_SOURCE_CHANGE_STATUS_UNAVAILABLE",
@@ -1605,6 +1609,22 @@ def _source_change_snapshot(
             }
         )
 
+    line_additions = 0
+    line_deletions = 0
+    binary_change_count = 0
+    tracked_diff_path_count = 0
+    for line in numstat.splitlines():
+        columns = line.split("\t", 2)
+        if len(columns) != 3:
+            continue
+        tracked_diff_path_count += 1
+        added, deleted, _ = columns
+        if added == "-" or deleted == "-":
+            binary_change_count += 1
+            continue
+        line_additions += int(added)
+        line_deletions += int(deleted)
+
     try:
         exact_cwd = Path(cwd).resolve() if cwd.strip() else None
     except OSError:
@@ -1631,6 +1651,11 @@ def _source_change_snapshot(
         "is_clean": identity.is_clean,
         "changed_path_count": len(changed_paths),
         "untracked_path_count": sum(row["status"] == "??" for row in changed_paths),
+        "tracked_diff_path_count": tracked_diff_path_count,
+        "line_additions": line_additions,
+        "line_deletions": line_deletions,
+        "binary_change_count": binary_change_count,
+        "line_delta_scope": "TRACKED_HEAD_DIFF_ONLY_UNTRACKED_EXCLUDED",
         "changed_paths_after_redaction": changed_paths[:_MAX_PERSISTENT_CHANGE_PATHS],
         "changed_paths_truncated": (len(changed_paths) > _MAX_PERSISTENT_CHANGE_PATHS),
         "task_workspace_binding": workspace_binding,
@@ -1677,6 +1702,11 @@ def _persistent_change_display(
             "is_clean",
             "changed_path_count",
             "untracked_path_count",
+            "tracked_diff_path_count",
+            "line_additions",
+            "line_deletions",
+            "binary_change_count",
+            "line_delta_scope",
             "changed_paths_after_redaction",
             "changed_paths_truncated",
             "task_workspace_binding",
@@ -1830,6 +1860,11 @@ def persistent_change_system_notice(
             "is_clean": source.get("is_clean"),
             "changed_path_count": source.get("changed_path_count"),
             "untracked_path_count": source.get("untracked_path_count"),
+            "tracked_diff_path_count": source.get("tracked_diff_path_count"),
+            "line_additions": source.get("line_additions"),
+            "line_deletions": source.get("line_deletions"),
+            "binary_change_count": source.get("binary_change_count"),
+            "line_delta_scope": source.get("line_delta_scope"),
             "changed_paths_in_notice": False,
             "source_change_snapshot_sha256": source.get(
                 "source_change_snapshot_sha256"
@@ -1880,6 +1915,38 @@ def persistent_change_system_notice(
     }
     core["notice_sha256"] = sha256_bytes(canonical_json_bytes(core))
     return core
+
+
+def persistent_change_system_message(notice: dict[str, Any]) -> str:
+    """Return one bounded secret-free host warning for the current change.
+
+    ``systemMessage`` is the documented hook output that Codex surfaces in its
+    UI. The full sealed projection remains in ``additionalContext``; this string
+    stays short enough to remain readable near the composer.
+    """
+
+    paired = dict(notice.get("paired_step_task_list") or {})
+    linked = dict(notice.get("linked_delta_status") or {})
+    active_delta = dict(linked.get("active_delta") or {})
+    source = dict(notice.get("source_change_status") or {})
+    position = paired.get("active_position") or "?"
+    task_count = paired.get("task_count") or "?"
+    active_task_id = str(paired.get("active_task_id") or "NO_ACTIVE_TASK")
+    delta_id = str(active_delta.get("delta_id") or "NO_LINKED_DELTA")
+    changed_paths = int(source.get("changed_path_count") or 0)
+    additions = int(source.get("line_additions") or 0)
+    deletions = int(source.get("line_deletions") or 0)
+    untracked = int(source.get("untracked_path_count") or 0)
+    binary = int(source.get("binary_change_count") or 0)
+    phase = str(notice.get("phase") or "CURRENT")
+    seal = str(notice.get("notice_sha256") or "UNSEALED")[:16]
+    return (
+        "Evidence Lane CURRENT CHANGE | "
+        f"Step {position}/{task_count} | {active_task_id} | "
+        f"Delta {delta_id} | {changed_paths} files "
+        f"(+{additions}/-{deletions}, {binary} binary, {untracked} untracked) | "
+        f"{phase} | seal {seal}"
+    )
 
 
 def _source_change_receipt(

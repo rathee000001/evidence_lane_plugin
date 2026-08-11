@@ -112,6 +112,7 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
         status="BLOCKED",
     )
     normalized: list[dict[str, Any]] = []
+    first_number: int | None = None
     for index, row in enumerate(rows, start=1):
         require(
             isinstance(row, dict),
@@ -121,10 +122,15 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
             position=index,
         )
         number = row.get("number", row.get("sequence", index))
+        if first_number is None and isinstance(number, int):
+            first_number = number
         require(
-            isinstance(number, int) and number == index,
+            isinstance(number, int)
+            and number >= 1
+            and first_number is not None
+            and number == first_number + index - 1,
             "STATE_TRAVEL_TASK_SEQUENCE_INVALID",
-            "State Travel task rows must be contiguous and preserve visible order.",
+            "State Travel task rows must use one positive contiguous visible range.",
             status="BLOCKED",
             position=index,
             number=number,
@@ -156,11 +162,26 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
             position=index,
         )
         normalized_row: dict[str, Any] = {
-            "number": index,
+            "number": number,
             "task_id": task_id,
             "step": text,
             "status": status,
         }
+        canonical_plan_sequence = row.get(
+            "canonical_plan_sequence",
+            row.get("plan_sequence"),
+        )
+        if canonical_plan_sequence is not None:
+            require(
+                isinstance(canonical_plan_sequence, int)
+                and canonical_plan_sequence >= index,
+                "STATE_TRAVEL_CANONICAL_PLAN_SEQUENCE_INVALID",
+                "A current Goal row must retain a valid canonical Plan sequence when supplied.",
+                status="BLOCKED",
+                position=index,
+                canonical_plan_sequence=canonical_plan_sequence,
+            )
+            normalized_row["canonical_plan_sequence"] = canonical_plan_sequence
         panel_role = str(row.get("panel_role") or "").strip().upper()
         if panel_role:
             require(

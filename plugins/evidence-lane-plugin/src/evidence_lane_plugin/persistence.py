@@ -97,7 +97,6 @@ def route_persistence(
         "CODEX_APP_INTERACTIVE": "CODEX_APP_INTERACTIVE",
         "INTERACTIVE_CODEX_APP": "CODEX_APP_INTERACTIVE",
         "CODEX_CLI_NATIVE": "CODEX_CLI_NATIVE",
-        "CHATGPT_INTERACTIVE": "CHATGPT_INTERACTIVE",
         "PUBLIC_AI": "PUBLIC_AI",
     }
     if requested_interaction:
@@ -117,8 +116,6 @@ def route_persistence(
         interaction_profile = "CODEX_APP_INTERACTIVE"
     elif kind == HostKind.CODEX_CLI:
         interaction_profile = "CODEX_CLI_NATIVE"
-    elif kind == HostKind.CHATGPT:
-        interaction_profile = "CHATGPT_INTERACTIVE"
     elif kind == HostKind.PUBLIC_AI:
         interaction_profile = "PUBLIC_AI"
     else:
@@ -190,21 +187,6 @@ def route_persistence(
         else bool(server_has_durable_filesystem)
     )
     if durable_filesystem:
-        if kind == HostKind.CHATGPT:
-            return PersistenceRoute(
-                mode="local",
-                reason=(
-                    "ChatGPT reaches the one durable mounted/local MCP server store; "
-                    "the chat surface is never the storage authority"
-                ),
-                durable_required=False,
-                server_filesystem="DURABLE",
-                host_connector_role="MCP_TRANSPORT_TO_DURABLE_LOCAL_AUTHORITY",
-                host_profile="CHATGPT_DURABLE_MCP_HOST",
-                primary_runtime_authority="MCP_SERVER_MOUNTED_OR_LOCAL_SQLITE",
-                google_drive_policy="FORBIDDEN_FOR_CHATGPT_RUNTIME",
-                **host_matrix,
-            )
         if kind == HostKind.CODEX_VM and ephemeral:
             return PersistenceRoute(
                 mode="local",
@@ -243,21 +225,6 @@ def route_persistence(
             **host_matrix,
         )
 
-    if kind == HostKind.CHATGPT:
-        return PersistenceRoute(
-            mode="configured_durable_connector",
-            reason=(
-                "ChatGPT's MCP server has no durable mounted/local filesystem, so a "
-                "non-Google-Drive transactional runtime connector is required"
-            ),
-            durable_required=True,
-            server_filesystem="EPHEMERAL_OR_UNAVAILABLE",
-            host_connector_role="TRANSACTIONAL_MCP_RUNTIME_REQUIRED",
-            host_profile="CHATGPT_MCP_HOST_WITHOUT_DURABLE_MOUNT",
-            primary_runtime_authority="CONFIGURED_TRANSACTIONAL_RUNTIME_REQUIRED",
-            google_drive_policy="FORBIDDEN_FOR_CHATGPT_RUNTIME",
-            **host_matrix,
-        )
     if kind == HostKind.CODEX_VM and ephemeral:
         return PersistenceRoute(
             mode="configured_durable_connector",

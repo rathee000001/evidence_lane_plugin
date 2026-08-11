@@ -10,7 +10,6 @@ from .errors import EvidenceLaneError
 
 
 class HostKind(StrEnum):
-    CHATGPT = "CHATGPT_WORK"
     CODEX_DESKTOP = "CODEX_DESKTOP"
     CODEX_CLI = "CODEX_CLI"
     CODEX_VM = "CODEX_VM"
@@ -18,8 +17,6 @@ class HostKind(StrEnum):
 
 
 _HOST_KIND_ALIASES = {
-    "CHATGPT": HostKind.CHATGPT,
-    "CHATGPT_WORK": HostKind.CHATGPT,
     "CODEX": HostKind.CODEX_DESKTOP,
     "CODEX_APP": HostKind.CODEX_DESKTOP,
     "CODEX_DESKTOP": HostKind.CODEX_DESKTOP,
@@ -40,8 +37,8 @@ def normalize_host_kind(value: HostKind | str) -> HostKind:
     except KeyError as exc:
         raise EvidenceLaneError(
             "HOST_KIND_INVALID",
-            "The host kind is not supported. Use a canonical value or a documented "
-            "alias such as codex or chatgpt.",
+            "The host kind is not supported. Use a canonical Codex value or a "
+            "documented Codex alias.",
             status="BLOCKED",
             details={
                 "provided": raw,

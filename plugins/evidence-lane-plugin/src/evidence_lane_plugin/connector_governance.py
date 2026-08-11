@@ -29,7 +29,7 @@ _SCHEMA_FIELD_TYPES = {
     "json",
     "blob_hash",
 }
-_HOST_PROFILE_ORDER = ("CODEX", "CHATGPT")
+_HOST_PROFILE_ORDER = ("CODEX",)
 _HOST_PROFILES = set(_HOST_PROFILE_ORDER)
 _BACKEND_RUNTIMES = {
     "python",
@@ -77,7 +77,7 @@ class ConnectorGovernance:
                 expires_at TEXT NOT NULL DEFAULT 'NO_EXPIRY',
                 role TEXT NOT NULL DEFAULT '',
                 role_schema_json TEXT NOT NULL DEFAULT '{}',
-                host_profiles_json TEXT NOT NULL DEFAULT '["CODEX","CHATGPT"]',
+                host_profiles_json TEXT NOT NULL DEFAULT '["CODEX"]',
                 backend_runtime TEXT NOT NULL DEFAULT 'python',
                 registered_at TEXT NOT NULL,
                 dropped_at TEXT,
@@ -136,7 +136,7 @@ class ConnectorGovernance:
             "expires_at": "TEXT NOT NULL DEFAULT 'NO_EXPIRY'",
             "role": "TEXT NOT NULL DEFAULT ''",
             "role_schema_json": "TEXT NOT NULL DEFAULT '{}'",
-            "host_profiles_json": "TEXT NOT NULL DEFAULT '[\"CODEX\",\"CHATGPT\"]'",
+            "host_profiles_json": "TEXT NOT NULL DEFAULT '[\"CODEX\"]'",
             "backend_runtime": "TEXT NOT NULL DEFAULT 'python'",
         }
         for name, declaration in migrations.items():
@@ -414,7 +414,7 @@ class ConnectorGovernance:
         require(
             bool(profiles) and profile_set <= _HOST_PROFILES,
             "PLUGIN_HOST_PROFILE_INVALID",
-            "A governed plugin must target CODEX, CHATGPT, or both.",
+            "A governed plugin must target CODEX.",
             status="BLOCKED",
             allowed_profiles=list(_HOST_PROFILE_ORDER),
         )
@@ -738,7 +738,7 @@ class ConnectorGovernance:
         require(
             exact_host in _HOST_PROFILES,
             "PLUGIN_HOST_PROFILE_INVALID",
-            "Connector settings require CODEX or CHATGPT.",
+            "Connector settings require CODEX.",
             status="BLOCKED",
             allowed_profiles=list(_HOST_PROFILE_ORDER),
         )
@@ -792,7 +792,7 @@ class ConnectorGovernance:
         require(
             exact_host in _HOST_PROFILES,
             "PLUGIN_HOST_PROFILE_INVALID",
-            "Plugin routing requires CODEX or CHATGPT.",
+            "Plugin routing requires CODEX.",
             status="BLOCKED",
             allowed_profiles=list(_HOST_PROFILE_ORDER),
         )

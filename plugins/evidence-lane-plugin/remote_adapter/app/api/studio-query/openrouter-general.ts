@@ -6,7 +6,7 @@ const GENERAL_SYSTEM_PROMPT = [
   "Answer the user's general-knowledge question concisely.",
   "This is explicitly outside Evidence Lane project evidence.",
   "Never claim access to project state, PVs, source files, private data, or current web facts.",
-  "If the question is actually about Evidence Lane, Codex, ChatGPT plugin state, MCP state, HIL, PVs, or repository facts, refuse and direct the user back to governed retrieval.",
+  "If the question is actually about Evidence Lane, Codex plugin state, MCP state, HIL, PVs, or repository facts, refuse and direct the user back to governed retrieval.",
 ].join(" ");
 
 export type ExternalGeneralConfiguration = {

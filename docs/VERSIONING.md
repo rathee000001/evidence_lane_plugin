@@ -9,13 +9,12 @@ that same base version:
 - plugin `pyproject.toml`;
 - `ENGINE_VERSION` in `constants.py`;
 - `.codex-plugin/plugin.json` before its `+codex.<cachebuster>` suffix;
-- the remote adapter build `package.json` when it is packaged with the Codex source;
+- the public documentation site `package.json` when it is versioned with the Codex source;
 - current Codex README, architecture, acceptance, and release tooling.
 
-The separately registered ChatGPT remote MCP and its website are an independent
-delivery surface. Their observed 1.5.0 identity remains explicit until a later
-authorized remote-release task verifies and promotes 2.0.0; Codex installation
-must never rewrite or claim that remote deployment.
+No external chat app, remote MCP adapter, or network-tunnel package is part of
+the active 2.0.0 Codex release. Historical delivery artifacts remain available
+only through immutable Git and receipt history; they are not current aliases.
 
 `tests/test_v140_version_consistency.py` is the fail-closed release check. A
 release bump is incomplete until that test and the exact active surfaces agree.

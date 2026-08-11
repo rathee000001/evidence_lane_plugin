@@ -395,11 +395,12 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     )
     forbidden = (
         plugin_root / ".app.json",
-        plugin_root / "chatgpt-app-connection.json",
-        plugin_root / "chatgpt-app-submission.json",
         plugin_root / "release-channels.json",
         plugin_root / "remote_adapter",
         plugin_root / "evidence",
+    )
+    external_app_artifacts = tuple(plugin_root.glob("*-app-connection.json")) + tuple(
+        plugin_root.glob("*-app-submission.json")
     )
     if (
         manifest.get("name") != PLUGIN_NAME
@@ -434,6 +435,7 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or set(native.get("mcpServers") or {}) != {"evidence-lane"}
         or not all(path.is_file() for path in required_release_helpers)
         or any(path.exists() for path in forbidden)
+        or bool(external_app_artifacts)
     ):
         raise AcceptanceError("The installed v2 package identity or boundary drifted.")
     hooks = json.loads((plugin_root / "hooks" / "hooks.json").read_text("utf-8"))

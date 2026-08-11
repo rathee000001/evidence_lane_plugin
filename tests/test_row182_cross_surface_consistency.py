@@ -20,9 +20,8 @@ from build_release_candidate_rehearsal import _source_inventory
 
 RELEASE = "2.0.0"
 CODEX_RELEASE = "2.0.0+codex.20260811150000"
-REMOTE_RELEASE = "1.5.0"
+REMOTE_RELEASE = "2.0.0"
 SITE = "https://evidencelane.org"
-MCP = "https://mcp.evidencelane.org/mcp"
 REPOSITORY = "https://github.com/rathee000001/evidence_lane_plugin"
 
 
@@ -61,7 +60,7 @@ def test_every_repository_markdown_path_link_resolves() -> None:
     assert {
         ROOT / "README.md",
         ROOT / "SECURITY.md",
-        ROOT / "docs" / "REMOTE_DEPLOYMENT.md",
+        ROOT / "docs" / "ARCHITECTURE.md",
     }.issubset(markdown)
     patterns = (
         re.compile(r"!?\[[^\]]*\]\(([^)]+)\)"),
@@ -128,7 +127,7 @@ def test_release_identity_urls_and_proprietary_boundary_are_consistent() -> None
     assert codex_manifest["version"] == CODEX_RELEASE
     assert public_metadata["version"] == REMOTE_RELEASE
     assert f'export const releaseVersion = "{REMOTE_RELEASE}"' in release_source
-    assert REMOTE_RELEASE != RELEASE
+    assert REMOTE_RELEASE == RELEASE
 
     assert root_project["license"] == "LicenseRef-Proprietary"
     assert plugin_project["license"] == "LicenseRef-Proprietary"
@@ -149,11 +148,8 @@ def test_release_identity_urls_and_proprietary_boundary_are_consistent() -> None
     assert codex_manifest["interface"]["termsOfServiceURL"] == f"{SITE}/terms"
     assert public_metadata["repository"] == REPOSITORY
     assert public_metadata["homepage"] == SITE
-    assert public_metadata["mcp_endpoint"] == MCP
     for exact in (
         f'export const publicSiteUrl = "{SITE}"',
-        'export const publicMcpOrigin = "https://mcp.evidencelane.org"',
-        f'export const publicMcpUrl = "{MCP}"',
         f'export const repositoryUrl = "{REPOSITORY}"',
     ):
         assert exact in site_source
@@ -202,19 +198,10 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
 
     connect = _read(ADAPTER / "app" / "connect" / "page.tsx")
     assert "endpointCardReady" in connect
-    assert "endpointCardBlocked" in connect
     assert "endpointCardProtocol" in connect
-    assert "ChatGPT owns the surrounding listing and settings layout" in connect
-    assert "62-action" in connect
-    assert "21 accepted-PV" in connect
-    assert "41 lifecycle-write" in connect
-
-    submission = json.loads(_read(PLUGIN / "chatgpt-app-submission.json"))
-    assert submission["app_info"]["display_name"] == "Evidence Lane"
-    assert submission["app_info"]["category"] == "DEVELOPER_TOOLS"
-    assert len(submission["tools"]) == 62
-    assert len(submission["test_cases"]) == 5
-    assert len(submission["negative_test_cases"]) == 3
+    assert "local native MCP server" in connect
+    assert "ChatGPT" in connect and "Deferred" in connect
+    assert not (PLUGIN / "chatgpt-app-submission.json").exists()
 
 
 def test_all_skill_manifests_are_unique_complete_and_package_owned() -> None:
@@ -249,7 +236,10 @@ def test_all_skill_manifests_are_unique_complete_and_package_owned() -> None:
     public_metadata = json.loads(
         _read(ADAPTER / "public" / ".well-known" / "evidence-lane-plugin.json")
     )
-    assert public_metadata["mcp_endpoint"] == MCP
+    assert "mcp_endpoint" not in public_metadata
+    assert "website is documentation only" in public_metadata["interactive_ui"][
+        "host_boundary"
+    ]
     assert codex_mcp["mcpServers"]["evidence-lane"].get("url") is None
 
 

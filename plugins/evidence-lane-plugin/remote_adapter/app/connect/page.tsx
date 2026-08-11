@@ -3,87 +3,120 @@ import type { Metadata } from "next";
 import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { HeroOrbit } from "../_components/hero-orbit";
 import { PageHero } from "../_components/page-hero";
-import { publicMcpHealthUrl, publicMcpUrl, publicSiteUrl } from "../_data/site";
+import { publicSiteUrl, repositoryUrl } from "../_data/site";
 
 export const metadata: Metadata = {
   title: "Connect",
-  description: "Codex Git installation and ChatGPT durable MCP connection boundaries for Evidence Lane.",
+  description: "Exact Git installation and native Codex activation boundaries for Evidence Lane.",
 };
+
+const installChecks = [
+  "Verify the governed branch, full commit SHA, and clean release file set.",
+  "Build the deterministic local package and prove the 62-tool, 21-read, 41-write catalog.",
+  "Install the exact 2.0.0 cache-busted package through the Codex Git marketplace route.",
+  "Restart Codex only when the installer reports that a catalog refresh is required.",
+  "Reopen the exact task, restore its full Plan Lane panel, and run post-restart native verification.",
+] as const;
 
 export default function ConnectPage() {
   return (
     <main>
       <PageHero
-        eyebrow="Installation and connection"
-        title="Git for Codex. A governed action surface for ChatGPT."
-        description="These are different host capabilities. ChatGPT executes accepted-evidence reads while lifecycle-write controls stay visible and fail closed; Codex keeps the full Git-backed lifecycle and accepted-state authority."
+        eyebrow="Codex installation"
+        title="One exact Git release. One native lifecycle route."
+        description="Evidence Lane 2.0 installs into Codex from a verified Git identity. The local native MCP server, not a website or external transport, owns lifecycle execution."
         aside={<HeroOrbit preset="connect" />}
       />
+
       <section className="section shell installCompare">
         <article className="installPath codexPath">
-          <span className="pathNumber">01</span><span className="compactDepthPill"><GlassIconOrb color="#69d9f5" size={28} decorative><OfficialToolIcon tool="terminal" size={15} decorative /></GlassIconOrb><span>Codex</span></span>
-          <h2>Install the plugin from an exact Git SHA.</h2>
-          <p>Codex can load the plugin's skills, commands, hooks, and local MCP components from the governed Git marketplace route. The durable local host owns SQLite and pointer state.</p>
-          <ol><li>Push and verify the governed Git commit.</li><li>Update the marketplace reference with a cachebuster.</li><li>Install and validate the exact SHA in a fresh Codex runtime.</li><li>Remove an older duplicate only after the replacement is proven.</li></ol>
-          <strong className="pathBoundary">Vercel is not required for this path.</strong>
+          <span className="pathNumber">01</span>
+          <span className="compactDepthPill">
+            <GlassIconOrb color="#69d9f5" size={28} decorative>
+              <OfficialToolIcon tool="terminal" size={15} decorative />
+            </GlassIconOrb>
+            <span>Codex stable</span>
+          </span>
+          <h2>Install from an exact governed commit.</h2>
+          <p>
+            The package contributes fifteen skills, four registered hook events,
+            the persistent task/change projection, and one native Evidence Lane
+            MCP catalog. Older stable bytes remain recoverable until replacement
+            verification succeeds.
+          </p>
+          <ol>
+            {installChecks.map((check) => <li key={check}>{check}</li>)}
+          </ol>
+          <strong className="pathBoundary">No candidate, pointer, Fuse, or HIL result is inferred by installation.</strong>
         </article>
-        <article className="installPath chatgptPath">
-          <span className="pathNumber">02</span><span className="compactDepthPill"><GlassIconOrb color="#efca72" size={28} decorative><OfficialToolIcon tool="database" size={15} decorative /></GlassIconOrb><span>ChatGPT</span></span>
-          <h2>Install the full plugin, then connect its governed ChatGPT Pro profile.</h2>
-          <p>The Evidence Lane package contributes all 15 governed skill entries to ChatGPT. Its registered MCP app exposes the complete 62-action catalog: 21 accepted-PV, ENV/UOP Flash, Entry/Exit, lane, search, diff, backlog, and panel operations execute as reads; 41 lifecycle-write actions remain visible but return a no-mutation fail-closed receipt before service invocation. ChatGPT&apos;s native project memory may continue its own append-only ENV/UOP and Project Mutation workflow, but the MCP does not perform or claim that write.</p>
-          <ol><li>Use the contributor installer with one Runtime key and one Tunnel ID, or deploy the same Git SHA behind the owned durable HTTPS edge.</li><li>Register the MCP app once and map its technical ID into the full Evidence Lane plugin package.</li><li>Verify the stable Evidence Lane name, exact 1.5.0 metadata, branded icon, all 15 packaged skill entries, 62 visible actions, the 21-read/41-fail-closed split, and <code>/healthz</code>.</li><li>Prove accepted-PV readback and one no-mutation write refusal while Codex keeps its separate exact-Git full-lifecycle path.</li></ol>
-          <strong className="pathBoundary">The Vercel filesystem is never accepted state authority.</strong>
+
+        <article className="installPath">
+          <span className="pathNumber">02</span>
+          <span className="compactDepthPill">
+            <GlassIconOrb color="#83ddb3" size={28} decorative>
+              <OfficialToolIcon tool="database" size={15} decorative />
+            </GlassIconOrb>
+            <span>Durable project runtime</span>
+          </span>
+          <h2>Storage and invocation stay separate.</h2>
+          <p>
+            Desktop and persistent Codex profiles use durable local SQLite.
+            Ephemeral profiles require a durable mount or configured transactional
+            connector. Headless API entry re-verifies ENV/UOP on every invocation.
+          </p>
+          <ul>
+            <li>Native lifecycle calls stay package-local; the interactive Codex environment tunnel is version-bound, host-managed, and prewarmed separately.</li>
+            <li>Headless/API profiles do not require that interactive tunnel.</li>
+            <li>Google Drive may carry sealed artifacts but is never live runtime authority.</li>
+            <li>Account tier and API billing do not select storage or lifecycle authority.</li>
+          </ul>
+          <strong className="pathBoundary">Every project-scoped action carries one exact project ID.</strong>
         </article>
       </section>
-      <section className="section shell provenanceBoundary">
-        <span className="kicker">Two host universes, one lifecycle law</span>
-        <h2>The same plugin skills meet different host authorities.</h2>
-        <p>Codex may pair <code>/pl</code>, <code>/evi-plan</code>, its Goal, and its visible task panel with the canonical Plan Lane. The Codex 1.5.0 package exposes all 15 governed skills and 62 native actions. ChatGPT Pro can use the 21 read-safe Boot/Flash, accepted-PV, Entry/Exit, search, and panel actions; its 41 lifecycle writes remain visible only as explicit fail-closed capabilities and cannot invoke service mutation. The current registered ChatGPT page has not yet proven the 15-skill 1.5.0 presentation, so the site does not claim it has. ChatGPT can continue its native ENV/UOP package and Project Mutation sector without pretending Codex composer controls or Git lifecycle authority exist there.</p>
-        <div className="hostUniverseMap" aria-label="Codex and ChatGPT host architecture">
-          <article>
-            <span>Codex universe</span>
-            <h3>Full local lifecycle</h3>
-            <p>Git source + local plugin runtime + project SQLite/PVs + native Plan/Goal/task panel.</p>
-            <code>source → lanes → candidate → HIL → Fuse</code>
-          </article>
-          <div aria-hidden="true"><strong>same code</strong><span>same append-only law</span><small>separate storage</small></div>
-          <article>
-            <span>ChatGPT universe</span>
-            <h3>Governed MCP action surface</h3>
-            <p>Twenty-one operations read accepted evidence. Forty-one lifecycle writes remain visible and return an explicit no-mutation refusal. Native ENV/UOP and Project Mutation remain separately owned by ChatGPT.</p>
-            <code>accepted PV → verified reads → ChatGPT guidance</code>
-          </article>
-        </div>
-        <p className="hostBoundaryNote"><strong>No cross-host shortcut:</strong> neither host reads the other host&apos;s live SQLite, pointer, task panel, or unsealed work. State Travel carries verified resume evidence; it does not merge the two universes.</p>
-      </section>
+
       <section className="section connectionBand">
         <div className="shell connectionGrid">
-          <div><span className="kicker">Canonical public surfaces</span><h2>A browser page and an MCP endpoint are different surfaces.</h2><p>The website address is <a href={publicSiteUrl}>{publicSiteUrl}</a>. ChatGPT connects to <code>{publicMcpUrl}</code>. Opening that MCP route in a normal browser is not a valid protocol session; it expects an MCP client, authentication, exact release identity, and a configured durable origin.</p></div>
+          <div>
+            <span className="kicker">Canonical public surfaces</span>
+            <h2>The website explains the product; it does not execute the lifecycle.</h2>
+            <p>
+              Read the public documentation at <a href={publicSiteUrl}>{publicSiteUrl}</a>
+              {" "}and inspect the governed source at <a href={repositoryUrl}>{repositoryUrl}</a>.
+              Installation proof still requires the exact package, local receipt,
+              native catalog, restart boundary, tests, and CI run.
+            </p>
+          </div>
           <div className="endpointCards">
-            <a href={publicSiteUrl} className="endpointCard endpointCardReady"><span>GET</span><code>{publicSiteUrl}</code><strong>Public website · live</strong><small>Open the human-readable canonical product and policy surface</small></a>
-            <a href={publicMcpHealthUrl} className="endpointCard endpointCardBlocked"><span>GET</span><code>{publicMcpHealthUrl}</code><strong>Configuration health · fail-closed</strong><small>Currently reports the missing durable HTTPS origin and exact release identity; this is an honest blocker, not readiness</small></a>
-            <a href={publicMcpUrl} className="endpointCard endpointCardProtocol"><span>MCP</span><code>{publicMcpUrl}</code><strong>ChatGPT protocol endpoint · client only</strong><small>Clickable for exact-address inspection, but a browser tab is not an authenticated MCP session</small></a>
+            <a href={publicSiteUrl} className="endpointCard endpointCardReady">
+              <span>WEB</span><code>{publicSiteUrl}</code><strong>Public documentation</strong>
+              <small>Product, lifecycle, architecture, proof, and legal boundaries</small>
+            </a>
+            <a href={repositoryUrl} className="endpointCard endpointCardProtocol">
+              <span>GIT</span><code>agent/evi-v200-systemwide-release-hil-v2.0.0</code><strong>Governed test branch</strong>
+              <small>Exact commit and CI identity are verified before installation</small>
+            </a>
           </div>
         </div>
       </section>
-      <section className="section shell connectorReality">
-        <span className="kicker">Current public connector truth</span>
-        <h2>The domain is connected. The durable public MCP runtime is not closed yet.</h2>
-        <p><code>evidencelane.org</code> and <code>mcp.evidencelane.org</code> resolve through Vercel. The MCP edge must remain fail-closed until the exact deployed release identity and durable origin pass protocol verification. The contributor OpenAI tunnel is a separate outbound transport for local testing and onboarding; both routes must expose the same 62-action <code>CHATGPT_PRO_GOVERNED</code> contract with 21 executing reads and 41 visible no-mutation write refusals.</p>
-      </section>
-      <section className="section shell connectorSlots" data-mcp-apps="SUPPORTED">
-        <div className="sectionHead"><span className="kicker">Comparable ChatGPT presentation</span><h2>Rich metadata, complete tool contracts, verified links, and supported in-chat panels.</h2><p>Evidence Lane supplies its logo, descriptions, website and legal links, annotated MCP tools, structured results, and a portable MCP Apps resource. ChatGPT owns the surrounding listing and settings layout, so the product provides equivalent governed information without claiming control of the host UI.</p></div>
+
+      <section className="section shell connectorSlots">
+        <div className="sectionHead">
+          <span className="kicker">Bounded extension</span>
+          <h2>Up to eight governed Codex connector or toolchain sidecars.</h2>
+          <p>Each slot records purpose, role, schema, capability, lane, scope, expiry, and revocation history. A sidecar never changes lifecycle authority by registration alone.</p>
+        </div>
         <div className="slotGrid">
-          <div><span>UI</span><strong>Governed console</strong><small><code>ui://evidence-lane/governed-console-v3.html</code></small></div>
-          <div><span>01</span><strong>Runtime and lanes panel</strong><small><code>render_runtime_panel</code></small></div>
-          <div><span>02</span><strong>Project and HIL panel</strong><small><code>render_project_panel</code></small></div>
-          <div><span>DATA</span><strong>No-UI tools remain usable</strong><small>Rendering is decoupled from governed data operations</small></div>
+          {Array.from({ length: 8 }, (_, index) => (
+            <div key={index}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>Available governed slot</strong>
+              <small>Purpose and schema must be explicit</small>
+            </div>
+          ))}
         </div>
       </section>
-      <section className="section shell connectorSlots">
-        <div className="sectionHead"><span className="kicker">Bounded extension</span><h2>Up to eight persistent connector or AI-toolchain sidecars.</h2><p>Each slot records its host, purpose, role, lane/schema influence, capability boundary, and revocation receipt. A connector may supply evidence; it cannot change lifecycle state.</p></div>
-        <div className="slotGrid">{Array.from({ length: 8 }, (_, index) => <div key={index}><span>{String(index + 1).padStart(2, "0")}</span><strong>Available governed slot</strong><small>Purpose and schema must be explicit</small></div>)}</div>
-      </section>
+
+      <p className="section shell hostBoundaryNote">ChatGPT — Deferred</p>
     </main>
   );
 }

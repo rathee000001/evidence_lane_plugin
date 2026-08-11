@@ -360,8 +360,8 @@ const presetRings: Record<HeroOrbitPreset, readonly HeroOrbitRing[]> = {
       nodes: [
         { label: "Codex Git", lane: "github_code", color: cyan },
         { label: "Codex local", lane: "local_code", color: green },
-        { label: "Durable MCP", lane: "project_engulf", color: gold },
-        { label: "ChatGPT read", lane: "chat_lineage", color: rose },
+        { label: "Durable SQLite", lane: "project_engulf", color: gold },
+        { label: "Headless API", lane: "chat_lineage", color: rose },
       ],
       tag: topTag("4", "host routes"),
     },
@@ -491,7 +491,7 @@ function ConnectCenter() {
         <span>HOST BOUNDARY</span>
         <strong>2</strong>
         <b>governed hosts</b>
-        <small>Codex full lifecycle<br />ChatGPT read-safe</small>
+        <small>Persistent Codex<br />Headless Codex API</small>
       </div>
     </div>
   );

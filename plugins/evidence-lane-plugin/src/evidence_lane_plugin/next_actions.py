@@ -121,7 +121,7 @@ def refresh_output_handoff(
         confirmation = "HOST_SANDBOX_FINAL_STATE_CONFIRMED"
         delivery = "LOCAL_CANDIDATE_PACKAGE_AND_GIT_EVIDENCE"
     else:
-        route = "CHATGPT_OR_USER_MEDIATED_SOURCE"
+        route = "USER_MEDIATED_SOURCE"
         confirmation = "USER_APPLIED_AND_PULL_CONFIRMED"
         delivery = "VISIBLE_OUTPUT_LINKS_PLUS_DURABLE_MCP_READBACK"
     return {

@@ -7,7 +7,7 @@ description: Add one bounded host-specific connector or AI toolchain grant with 
 
 1. Inspect `connector_plugin_catalog`.
 2. Require a lowercase plugin ID, connector/toolchain kind, one visible
-   purpose/reason, role, typed role-field schema, CODEX/CHATGPT host profiles,
+   purpose/reason, role, typed role-field schema, the CODEX host profile,
    allowed actions, canonical lanes, write scope, expiry, optional declared
    backend runtime, and configuration environment-variable names only.
 3. Call `connector_plugin_register`. Never store secret values.

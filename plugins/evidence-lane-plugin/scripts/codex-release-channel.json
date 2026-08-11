@@ -32,10 +32,9 @@
     "disable_instead_of_delete": true,
     "reactivation_requires_explicit_user_direction": true
   },
-  "host_split": {
+  "delivery_boundary": {
     "codex_lifecycle_route": "PACKAGE_LOCAL_NATIVE_MCP_ONLY",
-    "chatgpt_remote_release_promoted_by_this_contract": false,
-    "chatgpt_connection_artifacts_packaged_with_codex": false,
+    "external_app_artifacts_packaged_with_codex": false,
     "remote_website_artifacts_packaged_with_codex": false
   },
   "host_storage_tunnel_matrix": {

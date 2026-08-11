@@ -24,6 +24,25 @@ from evidence_lane_plugin.prompt_index import PromptIndex
 from .conftest import build_and_approve_pv1
 
 
+def _hook_context_json(payload: dict[str, object], prefix: str) -> dict[str, object]:
+    context = str(dict(payload["hookSpecificOutput"])["additionalContext"])
+    line = next(row for row in context.splitlines() if row.startswith(prefix))
+    return json.loads(line.removeprefix(prefix))
+
+
+def _hook_change_notice(payload: dict[str, object]) -> dict[str, object]:
+    for prefix in (
+        "EVIDENCE_LANE_PERSISTENT_CHANGE_NOTICE=",
+        "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=",
+        "EVIDENCE_LANE_PERSISTENT_CHANGE_TOOL_PROJECTION=",
+    ):
+        try:
+            return _hook_context_json(payload, prefix)
+        except StopIteration:
+            continue
+    raise AssertionError("The hook did not return a sealed Current Change projection.")
+
+
 def _profile() -> dict[str, str]:
     return {
         "model": "gpt-5.6-sol",
@@ -243,6 +262,11 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     change_path = source_repository / "tests" / "persistent-change-status.txt"
     change_path.parent.mkdir(exist_ok=True)
     change_path.write_text("visible governed change\n", encoding="utf-8")
+    readme_path = source_repository / "README.md"
+    readme_path.write_text(
+        readme_path.read_text(encoding="utf-8") + "visible tracked change\n",
+        encoding="utf-8",
+    )
 
     response_payload = {
         "session_id": host_session_id,
@@ -279,17 +303,22 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert committed_display["turn_status"]["uncommitted_count"] == 0
     assert committed_display["turn_status"]["changed_since_prepare"] is True
     assert committed_display["source_change_status"]["untracked_path_count"] == 1
-    assert committed_display["source_change_status"][
-        "changed_paths_after_redaction"
-    ] == [
-        {
-            "status": "??",
-            "path_after_redaction": "tests/persistent-change-status.txt",
-            "path_sha256": committed_display["source_change_status"][
-                "changed_paths_after_redaction"
-            ][0]["path_sha256"],
-        }
-    ]
+    source_change_status = committed_display["source_change_status"]
+    assert source_change_status["tracked_diff_path_count"] == 1
+    assert source_change_status["line_additions"] == 1
+    assert source_change_status["line_deletions"] == 0
+    assert source_change_status["binary_change_count"] == 0
+    assert source_change_status["line_delta_scope"] == (
+        "TRACKED_HEAD_DIFF_ONLY_UNTRACKED_EXCLUDED"
+    )
+    visible_changes = {
+        row["path_after_redaction"]: row["status"]
+        for row in source_change_status["changed_paths_after_redaction"]
+    }
+    assert visible_changes == {
+        "README.md": " M",
+        "tests/persistent-change-status.txt": "??",
+    }
     assert committed_display["additive_change_summary"] == prepared_display[
         "additive_change_summary"
     ]
@@ -438,7 +467,7 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
         started["persistent_change_display"]["source_change_status"][
             "changed_path_count"
         ]
-        == 1
+        == 2
     )
     lineage = ChatLineage(
         service.store.project_root("book-faires") / "lineage" / f"{session_id}.jsonl"
@@ -542,18 +571,15 @@ def test_native_hooks_claim_and_reuse_one_sealed_codex_host_alias(
             },
         )
         assert prepared_payload["continue"] is True
-        prepared = json.loads(
-            prepared_payload["hookSpecificOutput"]["additionalContext"].removeprefix(
-                "EVIDENCE_LANE_PROMPT_ENTRY="
-            )
+        prepared = _hook_context_json(
+            prepared_payload, "EVIDENCE_LANE_PROMPT_ENTRY="
         )
         assert prepared["state"] == "PREPARED_NOT_COMMITTED"
         assert prepared["prompt_index"] == prompt_index
         alias_states.append(prepared["host_binding"]["state"])
-        notice = json.loads(
-            prepared_payload["systemMessage"].removeprefix(
-                "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-            )
+        notice = _hook_change_notice(prepared_payload)
+        assert prepared_payload["systemMessage"].startswith(
+            "Evidence Lane CURRENT CHANGE | "
         )
         assert notice["host_binding"]["state"] == alias_states[-1]
         assert notice["host_binding"]["raw_host_identity_stored"] is False
@@ -568,11 +594,7 @@ def test_native_hooks_claim_and_reuse_one_sealed_codex_host_alias(
                 "tests": [{"name": "sealed-host-alias", "status": "PASS"}],
             },
         )
-        committed_notice = json.loads(
-            committed_payload["systemMessage"].removeprefix(
-                "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-            )
-        )
+        committed_notice = _hook_change_notice(committed_payload)
         assert committed_notice["turn_receipt"]["state"] == "COMMITTED"
         assert committed_notice["host_binding"]["state"] == (
             "SEALED_CODEX_HOST_ALIAS_REUSED"
@@ -623,10 +645,8 @@ def test_native_hooks_claim_and_reuse_one_sealed_codex_host_alias(
         },
     )
     assert wrong_model["continue"] is False
-    wrong_model_gap = json.loads(
-        wrong_model["hookSpecificOutput"]["additionalContext"].removeprefix(
-            "EVIDENCE_LANE_PROMPT_ENTRY="
-        )
+    wrong_model_gap = _hook_context_json(
+        wrong_model, "EVIDENCE_LANE_PROMPT_ENTRY="
     )
     assert wrong_model_gap["code"] == "TURN_CONTROL_HOST_ALIAS_MODEL_MISMATCH"
 
@@ -640,10 +660,8 @@ def test_native_hooks_claim_and_reuse_one_sealed_codex_host_alias(
         },
     )
     assert wrong_path["continue"] is False
-    wrong_path_gap = json.loads(
-        wrong_path["hookSpecificOutput"]["additionalContext"].removeprefix(
-            "EVIDENCE_LANE_PROMPT_ENTRY="
-        )
+    wrong_path_gap = _hook_context_json(
+        wrong_path, "EVIDENCE_LANE_PROMPT_ENTRY="
     )
     assert wrong_path_gap["code"] == "TURN_CONTROL_HOST_ALIAS_CONFLICT"
     with sqlite3.connect(database) as connection:
@@ -771,11 +789,8 @@ def test_post_tool_hook_claims_prepared_exact_task_outside_repository(
         encoding="utf-8",
         env=environment,
     )
-    first_notice = json.loads(
-        json.loads(first.stdout)["systemMessage"].removeprefix(
-            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-        )
-    )
+    first_payload = json.loads(first.stdout)
+    first_notice = _hook_change_notice(first_payload)
     assert first_notice["phase"] == "POST_TOOL_USE"
     assert first_notice["host_binding"]["state"] == (
         "SEALED_CODEX_HOST_ALIAS_CLAIMED"
@@ -813,11 +828,7 @@ def test_post_tool_hook_claims_prepared_exact_task_outside_repository(
         encoding="utf-8",
         env=environment,
     )
-    second_notice = json.loads(
-        json.loads(second.stdout)["systemMessage"].removeprefix(
-            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-        )
-    )
+    second_notice = _hook_change_notice(json.loads(second.stdout))
     assert second_notice["host_binding"]["state"] == (
         "SEALED_CODEX_HOST_ALIAS_REUSED"
     )
@@ -883,11 +894,7 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
     )
     projected_payload = json.loads(projected_process.stdout)
     assert projected_payload["continue"] is True
-    projected_notice = json.loads(
-        projected_payload["systemMessage"].removeprefix(
-            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-        )
-    )
+    projected_notice = _hook_change_notice(projected_payload)
     assert projected_notice["phase"] == "POST_TOOL_USE"
     assert projected_notice["paired_step_task_list"]["active_task_id"] == (
         "turn-control-row"
@@ -934,20 +941,14 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         )
         prepared_payload = json.loads(prepared_process.stdout)
         assert prepared_payload["continue"] is True
-        prepared = json.loads(
-            prepared_payload["hookSpecificOutput"]["additionalContext"].removeprefix(
-                "EVIDENCE_LANE_PROMPT_ENTRY="
-            )
+        prepared = _hook_context_json(
+            prepared_payload, "EVIDENCE_LANE_PROMPT_ENTRY="
         )
         assert prepared["state"] == "PREPARED_NOT_COMMITTED"
         assert prepared["prompt_index"] == prompt_index
         assert prepared["record_sha256"] == prepared["prompt_record_sha256"]
         assert prepared["entry_pv"] == prepared["accepted_pv"] == "PV1"
-        prepared_notice = json.loads(
-            prepared_payload["systemMessage"].removeprefix(
-                "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-            )
-        )
+        prepared_notice = _hook_change_notice(prepared_payload)
         assert prepared_notice["phase"] == "TURN_PREPARE"
         assert prepared_notice["paired_step_task_list"]["active_task_id"] == (
             "turn-control-row"
@@ -999,11 +1000,7 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         )
         committed_payload = json.loads(committed_process.stdout)
         assert committed_payload["continue"] is True
-        committed_notice = json.loads(
-            committed_payload["systemMessage"].removeprefix(
-                "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-            )
-        )
+        committed_notice = _hook_change_notice(committed_payload)
         assert committed_notice["phase"] == "TURN_COMMIT"
         assert committed_notice["turn_receipt"]["state"] == "COMMITTED"
         assert committed_notice["turn_receipt"]["prompt_index"] == prompt_index
@@ -1044,11 +1041,7 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         env=environment,
     )
     resumed_payload = json.loads(resumed_process.stdout)
-    persistent_display = json.loads(
-        resumed_payload["systemMessage"].removeprefix(
-            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-        )
-    )
+    persistent_display = _hook_change_notice(resumed_payload)
     assert persistent_display["phase"] == "SESSION_START"
     assert persistent_display["paired_step_task_list"]["task_count"] == 2
     assert persistent_display["paired_step_task_list"]["active_task_id"] == (
@@ -1092,10 +1085,8 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
     )
     stale_payload = json.loads(stale_process.stdout)
     assert stale_payload["continue"] is False
-    stale_gap = json.loads(
-        stale_payload["hookSpecificOutput"]["additionalContext"].removeprefix(
-            "EVIDENCE_LANE_PROMPT_ENTRY="
-        )
+    stale_gap = _hook_context_json(
+        stale_payload, "EVIDENCE_LANE_PROMPT_ENTRY="
     )
     assert stale_gap["state"] == "TURN_CONTROL_GAP"
     assert stale_gap["code"] == "TURN_CONTROL_EXACT_HOST_BINDING_REQUIRED"

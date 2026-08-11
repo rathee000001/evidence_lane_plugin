@@ -1,4 +1,4 @@
-"""Universal MCP runtime contract for the Evidence Lane plugin package."""
+"""Universal MCP runtime contract; 2.0.0 is the Codex package release."""
 
 from __future__ import annotations
 
@@ -31,7 +31,6 @@ from .auth import (
 from .constants import ENGINE_VERSION
 from .github_automation_governance import (
     apply_fastmcp_tool_filter,
-    parse_mcp_tool_allowlist,
 )
 from .lane_engine import prewarm_native_dependencies
 from .mcp_apps import (
@@ -65,15 +64,7 @@ _RUNTIME_GLOBAL_TOOL_NAMES = frozenset(
 )
 
 FULL_LIFECYCLE_EXPOSURE_PROFILE = "FULL_LIFECYCLE"
-CHATGPT_PRO_READ_EXPOSURE_PROFILE = "CHATGPT_PRO_READ"
-CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE = "CHATGPT_PRO_GOVERNED"
-CHATGPT_PRO_GOVERNED_TOOL_COUNT = 62
-
-# These are the twenty-one operations that execute as reads on ChatGPT Pro.
-# The governed ChatGPT surface also registers every lifecycle action so the
-# packaged controls do not disappear. The server boundary below refuses every
-# lifecycle mutation before it reaches the service.
-CHATGPT_PRO_READ_TOOL_NAMES = (
+CODEX_READ_TOOL_NAMES = (
     "connector_plugin_catalog",
     "connector_plugin_settings",
     "fetch",
@@ -110,10 +101,10 @@ _FULL_LIFECYCLE_INSTRUCTIONS = (
     "handoff without rebuilding. When explicitly triggered, State Travel "
     "verifies atomic Boot/Flash, the pointer base, any candidate, live "
     "source, Plan Lane, additive Deltas, and host execution profile in a "
-    "fresh task/chat. It resumes unfinished work at the exact row; an "
-    "accepted-entry request waits. Codex Plan/Goal/task-panel controls do "
-    "not apply to ChatGPT's separate mounted persistent runtime. A booted "
-    "session remains active until /evi-exit-boot. "
+    "fresh task. It resumes unfinished work at the exact row; an "
+    "accepted-entry request waits. Codex Plan/Goal/task-panel controls remain "
+    "bound to the exact governed task. A booted session remains active until "
+    "/evi-exit-boot. "
     "Before every HIL or State Travel stop, visibly render the returned "
     "suggested_next_prompt. The host owns composer suggestions; never "
     "claim the MCP wrote the prompt bar and never auto-submit it. "
@@ -121,40 +112,9 @@ _FULL_LIFECYCLE_INSTRUCTIONS = (
     "secrets, or write remote Git without the exact governed action."
 )
 
-_CHATGPT_PRO_GOVERNED_INSTRUCTIONS = (
-    "Evidence Lane is the stable product name; 2.0.0 is the Codex package "
-    "version while the separately registered ChatGPT release is independently "
-    "verified. This "
-    "registered MCP connection exposes the complete Evidence Lane action catalog "
-    "for ChatGPT Pro so all fifteen packaged skills and the exact six controls "
-    "remain visible. Packaged skills remain available. Exactly twenty-one read operations execute. Every lifecycle "
-    "write remains registered but is refused before service invocation as "
-    "UNAVAILABLE_ON_CHATGPT_PRO; it must never disappear, simulate success, or "
-    "claim mutation. Read and "
-    "explain the accepted project version, ENV/UOP Flash "
-    "status, Entry and Exit Slips, Chat Lineage, the Project Mutation "
-    "sector, lane evidence, task backlog, diffs, and governed runtime or "
-    "project panels. Use the verified corpus to guide the user across the "
-    "whole product instead of turning the conversation into a code review. "
-    "The evi-boot skill may use runtime doctor, Flash, activation, accepted-PV, "
-    "and panel reads to verify an already active runtime as CHATGPT_PRO_READ_ATTACH. "
-    "This MCP profile cannot create or resume a runtime session, Build, Refresh, "
-    "Fuse, approve, reject, roll back, move a pointer, edit source, mutate the Project Mutation "
-    "sector, write remote Git, install another connector, or deploy; requests for "
-    "those visible actions return a structured fail-closed receipt with no lifecycle effect. "
-    "ChatGPT may continue its own native append-only ENV/UOP and Project "
-    "Mutation workflow under host law; never claim that this MCP performed "
-    "that mutation. Codex remains the separate Git-installed full-lifecycle "
-    "host. Vercel and the owned HTTPS domain serve this ChatGPT read path "
-    "only. Meshy, generated GLB assets, 3D production dependencies, and "
-    "Meshy account linkage are outside this connector. Preserve the native "
-    "Three.js/WebGL website presentation. Never infer a HIL decision or "
-    "expose secrets."
-)
-
 
 class _MCPExposureBoundary:
-    """Keep ChatGPT lifecycle actions visible while refusing every mutation."""
+    """Apply the Codex-native authorization boundary before service invocation."""
 
     def __init__(
         self,
@@ -177,33 +137,6 @@ class _MCPExposureBoundary:
         lifecycle: bool = False,
         **kwargs: Any,
     ) -> Any:
-        if (
-            self._exposure_profile == CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE
-            and lifecycle
-        ):
-            return {
-                "schema": "evidence-lane.chatgpt-pro-unavailable-action.v1",
-                "status": "UNAVAILABLE_ON_CHATGPT_PRO",
-                "requested_tool": tool_name,
-                "exposure_profile": CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
-                "lifecycle_effect": "NONE",
-                "mutation_performed": False,
-                "pointer_moved": False,
-                "simulated": False,
-                "visible_controls": [
-                    "Boot",
-                    "Rollback",
-                    "Build",
-                    "Refresh",
-                    "Mode",
-                    "Source Intake",
-                ],
-                "reason": (
-                    "The ChatGPT Pro connection exposes this governed action for "
-                    "discoverability but does not have lifecycle-write authority."
-                ),
-                "required_host": "CODEX_FULL_LIFECYCLE_OR_OTHER_EXPLICITLY_WRITE_CAPABLE_HOST",
-            }
         if self._authorization_policy is not None:
             project_id: str | None = None
             if tool_name not in _RUNTIME_GLOBAL_TOOL_NAMES:
@@ -293,8 +226,6 @@ def _normalize_exposure_profile(value: str | None) -> str:
         "": FULL_LIFECYCLE_EXPOSURE_PROFILE,
         "CODEX_FULL_LIFECYCLE": FULL_LIFECYCLE_EXPOSURE_PROFILE,
         FULL_LIFECYCLE_EXPOSURE_PROFILE: FULL_LIFECYCLE_EXPOSURE_PROFILE,
-        CHATGPT_PRO_READ_EXPOSURE_PROFILE: CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
-        CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE: CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
     }
     try:
         return aliases[normalized]
@@ -305,8 +236,8 @@ def _normalize_exposure_profile(value: str | None) -> str:
 
 
 def _mcp_instructions(exposure_profile: str) -> str:
-    if exposure_profile == CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE:
-        return _CHATGPT_PRO_GOVERNED_INSTRUCTIONS
+    if exposure_profile != FULL_LIFECYCLE_EXPOSURE_PROFILE:
+        raise RuntimeError("Evidence Lane 2.0 supports only the Codex full lifecycle.")
     return _FULL_LIFECYCLE_INSTRUCTIONS
 
 _READ_ONLY = ToolAnnotations(
@@ -342,6 +273,23 @@ def _meta(label: str, done: str) -> dict[str, Any]:
     }
 
 
+def _evidence_lane_icons(public_site_url: str) -> list[Icon]:
+    return [
+        Icon(
+            src=f"{public_site_url.rstrip('/')}/evidence-lane-icon.png",
+            mimeType="image/png",
+            sizes=["256x256"],
+        )
+    ]
+
+
+def _apply_evidence_lane_tool_icons(mcp: FastMCP, public_site_url: str) -> None:
+    """Bind the stable Evidence Lane identity to every advertised tool record."""
+
+    for tool in mcp._tool_manager.list_tools():
+        tool.icons = _evidence_lane_icons(public_site_url)
+
+
 class _EvidenceLaneFastMCP(FastMCP):
     """Expose current top-level tool security schemes plus the legacy mirror."""
 
@@ -367,10 +315,7 @@ def _apply_oauth_tool_security_schemes(
             tool.annotations is not None
             and tool.annotations.readOnlyHint is False
         )
-        if (
-            is_write
-            and exposure_profile != CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE
-        ):
+        if is_write:
             scopes.append(WRITE_SCOPE)
             if tool.name in {"remote_git_prepare_push", "remote_git_execute_push"}:
                 scopes.append(REMOTE_GIT_SCOPE)
@@ -397,6 +342,10 @@ def _native_route_receipt(
             "description": tool.description,
             "input_schema": tool.parameters,
             "output_schema": tool.output_schema,
+            "icons": [
+                icon.model_dump(by_alias=True, exclude_none=True)
+                for icon in (tool.icons or [])
+            ],
             "annotations": (
                 tool.annotations.model_dump(exclude_none=True)
                 if tool.annotations is not None
@@ -488,14 +437,13 @@ def _native_route_receipt(
             "codex_apps",
             "google_drive",
             "plugin_runtime",
-            "chatgpt_connector",
-            "tunnel",
+            "external_connector",
+            "network_tunnel",
             "legacy_version_namespace",
         ],
         "surface_placement": {
             "codex": "NATIVE_PLUGIN_FULL_LIFECYCLE_ONLY",
-            "chatgpt": "BROWSER_PLUGIN_CONNECTOR_OR_PRIVATE_DEV_TUNNEL_ONLY",
-            "chatgpt_connector_inside_codex_allowed": False,
+            "external_connector_inside_codex_allowed": False,
         },
         "catalog_reload_required_after_package_change": True,
     }
@@ -527,13 +475,6 @@ def create_mcp_server(
         authorization_policy,
     )
     effective_allowed_tool_names = allowed_tool_names
-    if exact_exposure_profile == CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE:
-        explicit = parse_mcp_tool_allowlist(allowed_tool_names)
-        if explicit is not None:
-            raise RuntimeError(
-                "CHATGPT_PRO_GOVERNED requires the complete registered tool inventory."
-            )
-        effective_allowed_tool_names = None
     auth = None
     verifier: TokenVerifier | None = None
     if bearer_token and oauth_config:
@@ -570,13 +511,7 @@ def create_mcp_server(
         "Evidence Lane",
         instructions=_mcp_instructions(exact_exposure_profile),
         website_url=exact_public_site,
-        icons=[
-            Icon(
-                src=f"{exact_public_site}/evidence-lane-icon.png",
-                mimeType="image/png",
-                sizes=["256x256"],
-            )
-        ],
+        icons=_evidence_lane_icons(exact_public_site),
         host=host,
         port=port,
         streamable_http_path="/mcp",
@@ -586,7 +521,7 @@ def create_mcp_server(
     )
     # FastMCP 1.28.1 exposes website/icons but not its low-level server version.
     # Set the same pinned engine identity that clients read from pyproject.toml
-    # instead of allowing the SDK's default 1.0.0 to leak into ChatGPT metadata.
+    # instead of allowing the SDK's default 1.0.0 to leak into Codex metadata.
     mcp._mcp_server.version = ENGINE_VERSION
 
     def route_aware_doctor() -> dict[str, Any]:
@@ -633,6 +568,7 @@ def create_mcp_server(
             "accepted-pointer, candidate, and HIL facts."
         ),
         mime_type=MCP_APP_MIME_TYPE,
+        icons=_evidence_lane_icons(exact_public_site),
         meta=governed_panel_resource_meta(exact_public_site),
     )
     def evidence_lane_governed_console() -> str:
@@ -1198,9 +1134,8 @@ def create_mcp_server(
         name="connector_plugin_settings",
         title="Open the eight-slot connector settings surface",
         description=(
-            "Return eight host-specific connector slots for CODEX or CHATGPT, "
-            "including governed role/schema and optional backend-runtime metadata. "
-            "The profiles are independent and credential values remain host-managed."
+            "Return eight Codex connector slots, including governed role/schema and "
+            "optional backend-runtime metadata. Credential values remain host-managed."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Reading connector settings", "Connector settings ready"),
@@ -1208,7 +1143,7 @@ def create_mcp_server(
     )
     def connector_plugin_settings(
         project_id: str,
-        host_profile: Literal["CODEX", "CHATGPT"],
+        host_profile: Literal["CODEX"],
     ) -> dict[str, Any]:
         return application.invoke(
             "connector_plugin_settings",
@@ -1245,7 +1180,7 @@ def create_mcp_server(
         expires_at: str = "NO_EXPIRY",
         role: str | None = None,
         role_schema: dict[str, str] | None = None,
-        host_profiles: list[Literal["CODEX", "CHATGPT"]] | None = None,
+        host_profiles: list[Literal["CODEX"]] | None = None,
         backend_runtime: Literal[
             "python", "java", "kotlin", "go", "rust", "cpp", "external_mcp"
         ] = "python",
@@ -1317,7 +1252,7 @@ def create_mcp_server(
         project_id: str,
         capability: str,
         canonical_lane_id: str | None = None,
-        host_profile: Literal["CODEX", "CHATGPT"] = "CODEX",
+        host_profile: Literal["CODEX"] = "CODEX",
         preferred_plugin_id: str | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
@@ -1657,8 +1592,16 @@ def create_mcp_server(
         description=(
             "Append one bounded task plan to the project backlog. Every task keeps "
             "its own exact class, outcome, paths, tools, acceptance checks, and stop "
-            "condition. Planning activates nothing: the one-agent/one-active-task "
-            "law still requires task_classify for one queued task at a time."
+            "condition. Planning normally activates nothing: the one-agent/one-active-task "
+            "law still requires task_classify for one queued task at a time. An optional "
+            "normalization_transition is the sole exception: it requires exact Plan, "
+            "session, and pointer hashes plus an approval receipt, then journal-appends "
+            "the approved successor rows and atomically rebinds the same session without "
+            "adding another tool, candidate, HIL, pointer move, or Git action. A "
+            "correction_of_transition_id contract may journal-restore the exact prior "
+            "active row after a mistaken committed normalization; it appends two history "
+            "events but no row, preserves the original journal, and may seal a fixed "
+            "display offset for dynamically renumbered current-execution rows."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Queuing linear task plan", "Linear task plan queued"),
@@ -1671,6 +1614,7 @@ def create_mcp_server(
         plan_id: str | None = None,
         host_kind: str | None = None,
         host_mode: str | None = None,
+        normalization_transition: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "pv_plan_tasks",
@@ -1681,6 +1625,7 @@ def create_mcp_server(
             plan_id=plan_id,
             host_kind=host_kind,
             host_mode=host_mode,
+            normalization_transition=normalization_transition,
             lifecycle=True,
         )
 
@@ -1823,7 +1768,7 @@ def create_mcp_server(
         name="session_resume",
         title="Resume persistent Evidence Lane session",
         description=(
-            "Bind a fresh Codex or ChatGPT host task to the one already-active "
+            "Bind a fresh Codex task to the one already-active "
             "governed session, preserving its accepted entry, pending candidate, "
             "exact HIL follow-up, pointer generation, and prompt-index boundary. "
             "Performs no PV build, promotion, rollback, or source mutation."
@@ -1916,14 +1861,14 @@ def create_mcp_server(
 
     @mcp.tool(
         name="task_record_activity",
-        title="Append visible task evidence",
+        title="Append visible Chat Lineage activity",
         description=(
             "Append one visible, operational, reproducible prompt/tool/command/file/"
             "test/build/diff/output/warning/error/usage event to redacted, idempotent "
             "ChatLineage. Private model reasoning and secrets are excluded."
         ),
         annotations=_LOCAL_WRITE,
-        meta=_meta("Appending visible task evidence", "Task evidence appended"),
+        meta=_meta("Appending Chat Lineage activity", "Chat Lineage activity appended"),
         structured_output=True,
     )
     def task_record_activity(
@@ -1948,8 +1893,7 @@ def create_mcp_server(
         name="task_confirm_source_update",
         title="Confirm final host source state",
         description=(
-            "Confirm the exact host-specific source boundary before Refresh. ChatGPT "
-            "requires USER_APPLIED_AND_PULL_CONFIRMED. Codex hosts require "
+            "Confirm the exact Codex source boundary before Refresh with "
             "HOST_SANDBOX_FINAL_STATE_CONFIRMED. This tool does not pull or mutate "
             "source itself."
         ),
@@ -2536,20 +2480,10 @@ def create_mcp_server(
             lifecycle=True,
         )
 
+    _apply_evidence_lane_tool_icons(mcp, exact_public_site)
     if oauth_config is not None:
         _apply_oauth_tool_security_schemes(mcp, exact_exposure_profile)
     exposure_receipt = apply_fastmcp_tool_filter(mcp, effective_allowed_tool_names)
-    if exact_exposure_profile == CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE:
-        exposed = tuple(exposure_receipt["exposed_tools"])
-        if len(exposed) != CHATGPT_PRO_GOVERNED_TOOL_COUNT:
-            raise RuntimeError(
-                "CHATGPT_PRO_GOVERNED requires exactly "
-                f"{CHATGPT_PRO_GOVERNED_TOOL_COUNT} visible tools."
-            )
-        if not set(CHATGPT_PRO_READ_TOOL_NAMES).issubset(exposed):
-            raise RuntimeError(
-                "CHATGPT_PRO_GOVERNED is missing one or more required read tools."
-            )
     mcp._evidence_lane_tool_exposure_receipt = exposure_receipt  # type: ignore[attr-defined]
     mcp._evidence_lane_exposure_profile = exact_exposure_profile  # type: ignore[attr-defined]
     route_receipt = _native_route_receipt(

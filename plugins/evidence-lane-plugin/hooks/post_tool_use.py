@@ -26,6 +26,7 @@ def _load_control():
         bind_codex_host_payload,
         current_persistent_change_display,
         gap_receipt,
+        persistent_change_system_message,
         persistent_change_system_notice,
         policy_state,
     )
@@ -35,6 +36,7 @@ def _load_control():
         bind_codex_host_payload,
         current_persistent_change_display,
         gap_receipt,
+        persistent_change_system_message,
         persistent_change_system_notice,
         policy_state,
     )
@@ -47,6 +49,7 @@ def _project(payload: dict[str, Any]) -> dict[str, Any]:
         bind_codex_host_payload,
         current_persistent_change_display,
         gap_receipt,
+        _,
         _,
         policy_state,
     ) = _load_control()
@@ -148,16 +151,22 @@ def main() -> int:
     result: dict[str, Any] = {"continue": True}
     display = receipt.get("persistent_change_display")
     if isinstance(display, dict):
-        _, _, _, _, persistent_change_system_notice, _ = _load_control()
+        (
+            _,
+            _,
+            _,
+            _,
+            persistent_change_system_message,
+            persistent_change_system_notice,
+            _,
+        ) = _load_control()
         notice = persistent_change_system_notice(
             display,
             phase="POST_TOOL_USE",
             turn_receipt=receipt,
         )
         serialized = json.dumps(notice, sort_keys=True, separators=(",", ":"))
-        result["systemMessage"] = (
-            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=" + serialized
-        )
+        result["systemMessage"] = persistent_change_system_message(notice)
         result["hookSpecificOutput"] = {
             "hookEventName": "PostToolUse",
             "additionalContext": (

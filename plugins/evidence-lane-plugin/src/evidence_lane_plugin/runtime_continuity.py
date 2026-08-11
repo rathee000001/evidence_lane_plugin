@@ -69,14 +69,6 @@ def build_runtime_continuity(
         project_id=project_id,
     )
     project_route = cast(dict[str, Any], raw_project_route)
-    if kind == HostKind.CHATGPT:
-        require(
-            persistence_route["google_drive_policy"]
-            == "FORBIDDEN_FOR_CHATGPT_RUNTIME",
-            "CHATGPT_GOOGLE_DRIVE_ROUTE_FORBIDDEN",
-            "ChatGPT must use the durable MCP host and never Google Drive runtime state.",
-            status="BLOCKED",
-        )
     accepted_integrity_validated = bool(
         accepted_pv and accepted_manifest_sha256 and accepted_package_sha256
     )
@@ -208,7 +200,15 @@ def validate_runtime_continuity(value: dict[str, Any]) -> dict[str, Any]:
         expected=expected or None,
         actual=actual,
     )
+    invocation_present = "invocation" in value
+    invocation = value.get("invocation")
     require(
+        not invocation_present or isinstance(invocation, dict),
+        "RUNTIME_CONTINUITY_INVOCATION_INVALID",
+        "The runtime continuity invocation contract must be structured when present.",
+        status="FAIL",
+    )
+    base_boundary_valid = (
         value.get("env_uop", {}).get("bytes_in_pv") is False
         and value.get("entry_exit_slip", {}).get("env_uop_bytes_embedded") is False
         and value.get("entry_pointer", {}).get(
@@ -221,20 +221,45 @@ def validate_runtime_continuity(value: dict[str, Any]) -> dict[str, Any]:
         is True
         and value.get("mcp_access", {}).get("client_bypasses_mcp_for_runtime_writes")
         is False
-        and value.get("invocation", {}).get("api_billing_affects_storage_or_tunnel")
-        is False
-        and value.get("invocation", {}).get(
-            "account_tier_affects_storage_or_tunnel"
-        )
-        is False
-        and value.get("invocation", {}).get("six_way_hil_preserved") is True
         and value.get("pointer_moved") is False
-        and value.get("hil_approval_inferred") is False,
+        and value.get("hil_approval_inferred") is False
+    )
+    require(
+        base_boundary_valid,
         "RUNTIME_CONTINUITY_BOUNDARY_INVALID",
         "Runtime continuity must remain reference-only, MCP-governed, and pointer-neutral.",
         status="FAIL",
     )
-    invocation = value.get("invocation", {})
+    # The receipt hash is verified before compatibility is considered. Receipts
+    # created before invocation-profile sealing remain immutable accepted
+    # evidence when their original reference-only boundary is intact. They are
+    # returned byte-for-byte; the next boot/resume emits a fresh current receipt.
+    if not invocation_present:
+        require(
+            value.get("entry_exit_slip", {}).get("continuity_reference_required")
+            is True
+            and value.get("entry_exit_slip", {}).get("pointer_movement") is False
+            and value.get("entry_exit_slip", {}).get("hil_approval_inferred")
+            is False
+            and value.get("mcp_access", {}).get("env_uop_governs_writes") is True
+            and value.get("mcp_access", {}).get("one_writer_required") is True
+            and value.get("candidate_created") is False
+            and value.get("lifecycle_effect") == "NONE",
+            "RUNTIME_CONTINUITY_LEGACY_BOUNDARY_INVALID",
+            "A pre-invocation runtime receipt must preserve the complete legacy reference-only boundary.",
+            status="FAIL",
+        )
+        return value
+
+    invocation = cast(dict[str, Any], invocation)
+    require(
+        invocation.get("api_billing_affects_storage_or_tunnel") is False
+        and invocation.get("account_tier_affects_storage_or_tunnel") is False
+        and invocation.get("six_way_hil_preserved") is True,
+        "RUNTIME_CONTINUITY_INVOCATION_BOUNDARY_INVALID",
+        "Runtime invocation continuity must not alter storage, tunnel, or six-way HIL law.",
+        status="FAIL",
+    )
     if invocation.get("headless_api") is True:
         require(
             invocation.get("tunnel_requirement") == "NOT_REQUIRED_FOR_API_LAYER"

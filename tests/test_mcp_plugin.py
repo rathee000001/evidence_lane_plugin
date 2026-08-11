@@ -30,10 +30,6 @@ from evidence_lane_plugin.mcp_apps import (
     governed_panel_html,
 )
 from evidence_lane_plugin.mcp_server import (
-    CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
-    CHATGPT_PRO_GOVERNED_TOOL_COUNT,
-    CHATGPT_PRO_READ_EXPOSURE_PROFILE,
-    CHATGPT_PRO_READ_TOOL_NAMES,
     NATIVE_MCP_SERVER_IDENTITY,
     NATIVE_MCP_TOOL_NAMESPACE,
     create_mcp_server,
@@ -50,6 +46,27 @@ from mcp.server.auth.provider import AccessToken
 from mcp.types import CallToolResult
 
 from .conftest import build_and_approve_pv1
+
+EXPECTED_TOOL_COUNT = 62
+
+
+def _hook_context_json(payload: dict[str, object], prefix: str) -> dict[str, object]:
+    context = str(dict(payload["hookSpecificOutput"])["additionalContext"])
+    line = next(row for row in context.splitlines() if row.startswith(prefix))
+    return json.loads(line.removeprefix(prefix))
+
+
+def _hook_change_notice(payload: dict[str, object]) -> dict[str, object]:
+    for prefix in (
+        "EVIDENCE_LANE_PERSISTENT_CHANGE_NOTICE=",
+        "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=",
+        "EVIDENCE_LANE_PERSISTENT_CHANGE_TOOL_PROJECTION=",
+    ):
+        try:
+            return _hook_context_json(payload, prefix)
+        except StopIteration:
+            continue
+    raise AssertionError("The hook did not return a sealed Current Change projection.")
 
 
 def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
@@ -161,98 +178,18 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         assert tool.inputSchema["type"] == "object"
 
 
-def test_chatgpt_pro_profile_exposes_all_actions_and_blocks_every_write(
+def test_v2_server_rejects_removed_chatgpt_exposure_profiles(
     tmp_path: Path,
 ) -> None:
-    service = EvidenceLaneService(data_root=tmp_path / "chatgpt-pro-store")
-    server = create_mcp_server(
-        service=service,
-        exposure_profile=CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
-    )
-    tools = asyncio.run(server.list_tools())
-    names = tuple(sorted(tool.name for tool in tools))
-    assert len(names) == CHATGPT_PRO_GOVERNED_TOOL_COUNT == 62
-    assert set(CHATGPT_PRO_READ_TOOL_NAMES).issubset(names)
-    assert sum(tool.annotations.readOnlyHint is True for tool in tools) == 21
-    assert sum(tool.annotations.readOnlyHint is False for tool in tools) == 41
-    for visible_but_blocked in (
-        "pv_build_initial",
-        "pv_refresh",
-        "pv_fuse",
-        "pv_rollback",
-        "pv_task_transition",
-        "remote_git_execute_push",
-        "connector_plugin_register",
-        "storage_connector_select",
+    for removed_profile in (
+        "CHATGPT_PRO_GOVERNED",
+        "CHATGPT_PRO_READ_ONLY",
     ):
-        assert visible_but_blocked in names
-    blocked_tool = next(
-        tool for tool in server._tool_manager.list_tools()  # type: ignore[attr-defined]
-        if tool.name == "pv_build_initial"
-    )
-    blocked = blocked_tool.fn(project_id="unregistered", session_id="none")
-    assert blocked == {
-        "schema": "evidence-lane.chatgpt-pro-unavailable-action.v1",
-        "status": "UNAVAILABLE_ON_CHATGPT_PRO",
-        "requested_tool": "pv_build_initial",
-        "exposure_profile": "CHATGPT_PRO_GOVERNED",
-        "lifecycle_effect": "NONE",
-        "mutation_performed": False,
-        "pointer_moved": False,
-        "simulated": False,
-        "visible_controls": [
-            "Boot",
-            "Rollback",
-            "Build",
-            "Refresh",
-            "Mode",
-            "Source Intake",
-        ],
-        "reason": (
-            "The ChatGPT Pro connection exposes this governed action for "
-            "discoverability but does not have lifecycle-write authority."
-        ),
-        "required_host": (
-            "CODEX_FULL_LIFECYCLE_OR_OTHER_EXPLICITLY_WRITE_CAPABLE_HOST"
-        ),
-    }
-    assert server._evidence_lane_exposure_profile == "CHATGPT_PRO_GOVERNED"  # type: ignore[attr-defined]
-    instructions = server._mcp_server.instructions
-    assert "complete Evidence Lane action catalog" in instructions
-    assert "Exactly twenty-one read operations execute" in instructions
-    assert "UNAVAILABLE_ON_CHATGPT_PRO" in instructions
-    assert "whole product instead of turning the conversation into a code review" in (
-        instructions
-    )
-    assert "Project Mutation sector" in instructions
-    assert "Codex remains the separate Git-installed full-lifecycle host" in instructions
-    assert "Vercel and the owned HTTPS domain serve this ChatGPT read path only" in instructions
-    assert "cannot create or resume a runtime session, Build, Refresh" in instructions
-    assert "CHATGPT_PRO_READ_ATTACH" in instructions
-    assert "Meshy" in instructions and "Three.js/WebGL" in instructions
-
-
-def test_chatgpt_pro_profile_rejects_a_conflicting_manual_allowlist(
-    tmp_path: Path,
-) -> None:
-    with pytest.raises(RuntimeError, match="complete registered tool inventory"):
-        create_mcp_server(
-            service=EvidenceLaneService(data_root=tmp_path / "conflict-store"),
-            exposure_profile=CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
-            allowed_tool_names='["runtime_doctor"]',
-        )
-
-
-def test_legacy_chatgpt_read_profile_aliases_to_governed_visible_surface(
-    tmp_path: Path,
-) -> None:
-    server = create_mcp_server(
-        service=EvidenceLaneService(data_root=tmp_path / "legacy-alias-store"),
-        exposure_profile=CHATGPT_PRO_READ_EXPOSURE_PROFILE,
-    )
-    tools = asyncio.run(server.list_tools())
-    assert len(tools) == CHATGPT_PRO_GOVERNED_TOOL_COUNT
-    assert server._evidence_lane_exposure_profile == "CHATGPT_PRO_GOVERNED"  # type: ignore[attr-defined]
+        with pytest.raises(RuntimeError, match="Unsupported"):
+            create_mcp_server(
+                service=EvidenceLaneService(data_root=tmp_path / removed_profile),
+                exposure_profile=removed_profile,
+            )
 
 
 def test_modern_discovery_probe_receives_exact_legacy_fallback() -> None:
@@ -284,7 +221,7 @@ def test_all_registered_tools_accept_generated_evidence_lane_namespaces(
     )
     tools = asyncio.run(server.list_tools())
     canonical_names = frozenset(tool.name for tool in tools)
-    assert len(canonical_names) == CHATGPT_PRO_GOVERNED_TOOL_COUNT == 62
+    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 62
 
     for namespace in (
         "evidence_lane",
@@ -358,7 +295,7 @@ def test_native_route_receipt_seals_the_exact_unique_catalog(tmp_path: Path) -> 
     assert receipt["status"] == "PASS"
     assert receipt["server_identity"] == NATIVE_MCP_SERVER_IDENTITY == "evidence-lane"
     assert receipt["canonical_tool_namespace"] == NATIVE_MCP_TOOL_NAMESPACE
-    assert receipt["tool_count"] == CHATGPT_PRO_GOVERNED_TOOL_COUNT == 62
+    assert receipt["tool_count"] == EXPECTED_TOOL_COUNT == 62
     assert receipt["tool_names_unique"] is True
     assert receipt["runtime_global_tool_count"] == 6
     assert receipt["project_scoped_tool_count"] == 56
@@ -370,14 +307,13 @@ def test_native_route_receipt_seals_the_exact_unique_catalog(tmp_path: Path) -> 
     assert receipt["cross_project_fallback_allowed"] is False
     assert receipt["surface_placement"] == {
         "codex": "NATIVE_PLUGIN_FULL_LIFECYCLE_ONLY",
-        "chatgpt": "BROWSER_PLUGIN_CONNECTOR_OR_PRIVATE_DEV_TUNNEL_ONLY",
-        "chatgpt_connector_inside_codex_allowed": False,
+        "external_connector_inside_codex_allowed": False,
     }
     assert re.fullmatch(r"[0-9A-F]{64}", receipt["tool_catalog_sha256"])
     assert receipt["mcp_apps_resource_uri"] == GOVERNED_PANEL_URI
     assert receipt["host_display_namespace_is_authority"] is False
     assert receipt["catalog_reload_required_after_package_change"] is True
-    assert "chatgpt_connector" in receipt["rejected_lifecycle_surfaces"]
+    assert "external_connector" in receipt["rejected_lifecycle_surfaces"]
 
     doctor_tool = server._tool_manager.get_tool("runtime_doctor")  # type: ignore[attr-defined]
     assert doctor_tool is not None
@@ -429,7 +365,7 @@ def test_packaged_skill_tool_references_match_live_canonical_catalog(
     canonical_names = frozenset(
         tool.name for tool in asyncio.run(server.list_tools())
     )
-    assert len(canonical_names) == CHATGPT_PRO_GOVERNED_TOOL_COUNT == 62
+    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 62
     tool_families = frozenset(name.partition("_")[0] for name in canonical_names)
     skill_paths = sorted((plugin / "skills").glob("*/SKILL.md"))
     command_paths = sorted((plugin / "commands").glob("*.md"))
@@ -478,6 +414,14 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
     assert str(resource.uri) == GOVERNED_PANEL_URI
     assert GOVERNED_PANEL_URI.endswith("/governed-console-v3.html")
     assert resource.mimeType == MCP_APP_MIME_TYPE
+    assert resource.icons is not None
+    assert [icon.model_dump(by_alias=True, exclude_none=True) for icon in resource.icons] == [
+        {
+            "src": f"{public_site}/evidence-lane-icon.png",
+            "mimeType": "image/png",
+            "sizes": ["256x256"],
+        }
+    ]
     assert resource.meta == {
         "ui": {
             "prefersBorder": True,
@@ -738,6 +682,12 @@ def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> No
     assert icon.src == f"{public_site}/evidence-lane-icon.png"
     assert icon.mimeType == "image/png"
     assert icon.sizes == ["256x256"]
+    tools = asyncio.run(server.list_tools())
+    assert len(tools) == EXPECTED_TOOL_COUNT
+    assert all(tool.icons is not None and len(tool.icons) == 1 for tool in tools)
+    assert {
+        tool.icons[0].src for tool in tools if tool.icons is not None
+    } == {f"{public_site}/evidence-lane-icon.png"}
 
 
 def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
@@ -782,40 +732,8 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert '"continue": True' in stop_source
     assert (plugin / "hooks" / "post_tool_use.py").is_file()
     assert not (plugin / ".app.json").exists()
-    chatgpt_connection = json.loads(
-        (plugin / "chatgpt-app-connection.json").read_text(encoding="utf-8")
-    )
-    assert chatgpt_connection["host"] == "CHATGPT"
-    assert chatgpt_connection["delivery"] == "REGISTERED_REMOTE_MCP_ONLY"
-    assert {
-        key: chatgpt_connection["connection"][key]
-        for key in (
-            "name",
-            "id",
-            "mcp_endpoint",
-            "exposure_profile",
-            "visible_tool_count",
-            "active_read_tool_count",
-            "fail_closed_write_tool_count",
-        )
-    } == {
-        "name": "evidence-lane-chatgpt-governed",
-        "id": "plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f",
-        "mcp_endpoint": "https://mcp.evidencelane.org/mcp",
-        "exposure_profile": "CHATGPT_PRO_GOVERNED",
-        "visible_tool_count": 62,
-        "active_read_tool_count": 21,
-        "fail_closed_write_tool_count": 41,
-    }
-    assert chatgpt_connection["connection"]["genuinely_write_capable_tool_count"] == 0
-    assert chatgpt_connection["publisher"]["display_name"] == "Praveen Rathee"
-    assert chatgpt_connection["presentation"]["required_visible_release"] == "1.5.0"
-    assert chatgpt_connection["skills"]["codex_package_skill_count"] == 15
-    assert chatgpt_connection["skills"]["verified_live_chatgpt_visible_skill_count"] == 0
-    assert chatgpt_connection["install_allowed"] is False
-    assert chatgpt_connection["codex_install_manifest_reference"] is False
-    assert chatgpt_connection["google_drive_bundled"] is False
-    assert chatgpt_connection["direct_stdio_fallback_allowed"] is False
+    assert not (plugin / "chatgpt-app-connection.json").exists()
+    assert not (plugin / "chatgpt-app-submission.json").exists()
     marketplace = json.loads(
         (root / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8")
     )
@@ -841,7 +759,6 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
         root / "requirements.in",
         root / "SECURITY.md",
         plugin / ".mcp.json",
-        plugin / "chatgpt-app-connection.json",
         plugin / "pyproject.toml",
         plugin / "requirements.lock.txt",
     ]
@@ -1145,8 +1062,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         env=environment,
     )
     hook_payload = json.loads(completed.stdout)
-    context = hook_payload["hookSpecificOutput"]["additionalContext"]
-    indexed = json.loads(context.removeprefix("EVIDENCE_LANE_PROMPT_ENTRY="))
+    indexed = _hook_context_json(hook_payload, "EVIDENCE_LANE_PROMPT_ENTRY=")
     assert hook_payload["continue"] is True, json.dumps(indexed, indent=2)
     assert indexed["state"] == "PREPARED_NOT_COMMITTED"
     assert indexed["prompt_index"] == 1
@@ -1179,11 +1095,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
     )
     stop_payload = json.loads(stopped.stdout)
     assert stop_payload["continue"] is True
-    committed_notice = json.loads(
-        stop_payload["systemMessage"].removeprefix(
-            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-        )
-    )
+    committed_notice = _hook_change_notice(stop_payload)
     assert committed_notice["turn_receipt"]["state"] == "COMMITTED"
     assert committed_notice["phase"] == "TURN_COMMIT"
     assert "decision" not in stop_payload
@@ -1236,11 +1148,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
     )
     repeated_payload = json.loads(repeated.stdout)
     assert repeated_payload["continue"] is True
-    repeated_notice = json.loads(
-        repeated_payload["systemMessage"].removeprefix(
-            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-        )
-    )
+    repeated_notice = _hook_change_notice(repeated_payload)
     assert repeated_notice["turn_receipt"]["state"] == (
         "COMMITTED_IDEMPOTENT_REUSE"
     )
@@ -1290,11 +1198,8 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         encoding="utf-8",
         env=environment,
     )
-    second_context = json.loads(second.stdout)["hookSpecificOutput"][
-        "additionalContext"
-    ]
-    second_indexed = json.loads(
-        second_context.removeprefix("EVIDENCE_LANE_PROMPT_ENTRY=")
+    second_indexed = _hook_context_json(
+        json.loads(second.stdout), "EVIDENCE_LANE_PROMPT_ENTRY="
     )
     assert second_indexed["prompt_index"] == 2
     second_stopped = subprocess.run(
@@ -1313,11 +1218,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         encoding="utf-8",
         env=environment,
     )
-    second_notice = json.loads(
-        json.loads(second_stopped.stdout)["systemMessage"].removeprefix(
-            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-        )
-    )
+    second_notice = _hook_change_notice(json.loads(second_stopped.stdout))
     assert second_notice["turn_receipt"]["state"] == "COMMITTED"
 
     status = service.prompt_index_status("book-faires", session_id)
@@ -1372,11 +1273,7 @@ def test_prompt_hook_does_not_index_unbound_chats(tmp_path: Path) -> None:
         env=environment,
     )
     payload = json.loads(completed.stdout)
-    indexed = json.loads(
-        payload["hookSpecificOutput"]["additionalContext"].removeprefix(
-            "EVIDENCE_LANE_PROMPT_ENTRY="
-        )
-    )
+    indexed = _hook_context_json(payload, "EVIDENCE_LANE_PROMPT_ENTRY=")
     assert indexed["state"] == "NOT_INDEXED"
     assert indexed["reason"] == "NO_BOUND_EVIDENCE_LANE_SESSION"
     assert not (tmp_path / "empty-store" / "prompt-index").exists()
@@ -1614,7 +1511,8 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
     assert "Type /pl, finish the plan, then run /evi-plan again." in plan_command
     assert "host_mode=PLAN" in plan_command
     assert "pv_plan_steer_delta" in plan_command
-    assert "does not apply Codex UI assumptions to ChatGPT" in plan_command
+    assert "Use this sidecar only for Codex native Plan mode" in plan_command
+    assert "ChatGPT" not in plan_command
     for name in expected_skills:
         skill_file = skills / name / "SKILL.md"
         assert skill_file.is_file(), name
@@ -1682,47 +1580,6 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
     # A genuinely clean Git/cache snapshot may need the governed, hash-locked
     # plugin-local bootstrap before stdio becomes ready. The shipped MCP
     # manifest permits 900 seconds for that same first start.
-    asyncio.run(asyncio.wait_for(exercise(), timeout=900))
-
-
-def test_real_stdio_chatgpt_pro_profile_has_complete_visible_inventory(
-    tmp_path: Path,
-) -> None:
-    root = Path(__file__).resolve().parents[1]
-    runner = root / "plugins" / "evidence-lane-plugin" / "scripts" / "run_mcp.py"
-
-    async def exercise() -> None:
-        environment = os.environ.copy()
-        environment["EVIDENCE_LANE_DATA_ROOT"] = str(tmp_path / "chatgpt-stdio-store")
-        environment["EVIDENCE_LANE_MCP_EXPOSURE_PROFILE"] = (
-            "CHATGPT_PRO_GOVERNED"
-        )
-        parameters = StdioServerParameters(
-            command=sys.executable,
-            args=[str(runner), "--transport", "stdio"],
-            env=environment,
-        )
-        async with (
-            stdio_client(parameters) as streams,
-            ClientSession(*streams) as session,
-        ):
-            initialized = await session.initialize()
-            assert initialized.serverInfo.name == "Evidence Lane"
-            assert initialized.serverInfo.version == ENGINE_VERSION == "2.0.0"
-            tools = await session.list_tools()
-            names = tuple(sorted(tool.name for tool in tools.tools))
-            assert len(names) == CHATGPT_PRO_GOVERNED_TOOL_COUNT
-            assert set(CHATGPT_PRO_READ_TOOL_NAMES).issubset(names)
-            assert sum(
-                tool.annotations.readOnlyHint is True for tool in tools.tools
-            ) == 21
-            assert sum(
-                tool.annotations.readOnlyHint is False for tool in tools.tools
-            ) == 41
-            result = await session.call_tool("runtime_doctor", {})
-            assert result.isError is False
-            assert result.structuredContent["status"] == "PASS"
-
     asyncio.run(asyncio.wait_for(exercise(), timeout=900))
 
 
@@ -2137,19 +1994,6 @@ def test_oauth_server_declares_exact_per_tool_security_schemes(
             )
 
     asyncio.run(exercise_oauth_discovery())
-
-    chatgpt_server = create_mcp_server(
-        service=EvidenceLaneService(data_root=tmp_path / "chatgpt"),
-        base_url="https://mcp.example",
-        oauth_config=config,
-        exposure_profile=CHATGPT_PRO_GOVERNED_EXPOSURE_PROFILE,
-    )
-    chatgpt_tools = {
-        tool.name: tool for tool in asyncio.run(chatgpt_server.list_tools())
-    }
-    assert chatgpt_tools["pv_build_initial"].model_extra[
-        "securitySchemes"
-    ] == [{"type": "oauth2", "scopes": [READ_SCOPE]}]
 
     monkeypatch.setattr(
         "evidence_lane_plugin.auth.get_access_token",

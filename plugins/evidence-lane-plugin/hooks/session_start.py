@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 _FLASH_PROMPT_SHA256 = (
-    "2167BBABE80656C24B18544096E725E874D4FB46066B8F4F8364A3BF14A827DB"
+    "210047AE4A121DE1ED422214C1CE73D054B470B072865B3D97A9715C5613190F"
 )
 _ENGINE_VERSION_RE = re.compile(
     r'^ENGINE_VERSION\s*=\s*"(?P<version>[^"]+)"',
@@ -63,6 +63,7 @@ def _load_turn_control():
         TurnControlError,
         bind_codex_host_payload,
         gap_receipt,
+        persistent_change_system_message,
         persistent_change_system_notice,
         policy_state,
         session_start_control,
@@ -72,6 +73,7 @@ def _load_turn_control():
         TurnControlError,
         bind_codex_host_payload,
         gap_receipt,
+        persistent_change_system_message,
         persistent_change_system_notice,
         policy_state,
         session_start_control,
@@ -84,6 +86,7 @@ def _turn_control_context(payload: dict[str, Any]) -> tuple[dict[str, Any], bool
         TurnControlError,
         bind_codex_host_payload,
         gap_receipt,
+        _,
         _,
         policy_state,
         session_start_control,
@@ -793,19 +796,24 @@ def main() -> int:
             "Governed Evidence Lane SessionStart binding failed closed before source mutation."
         )
     if isinstance(persistent_change_display, dict):
-        _, _, _, persistent_change_system_notice, _, _ = _load_turn_control()
+        (
+            _,
+            _,
+            _,
+            persistent_change_system_message,
+            persistent_change_system_notice,
+            _,
+            _,
+        ) = _load_turn_control()
         notice = persistent_change_system_notice(
             persistent_change_display,
             phase="SESSION_START",
             turn_receipt=turn_control,
         )
-        result["systemMessage"] = (
-            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-            + json.dumps(
-                notice,
-                sort_keys=True,
-                separators=(",", ":"),
-            )
+        serialized = json.dumps(notice, sort_keys=True, separators=(",", ":"))
+        result["systemMessage"] = persistent_change_system_message(notice)
+        result["hookSpecificOutput"]["additionalContext"] += (
+            "\nEVIDENCE_LANE_PERSISTENT_CHANGE_NOTICE=" + serialized
         )
     print(json.dumps(result, sort_keys=True, separators=(",", ":")))
     return 0

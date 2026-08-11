@@ -13,16 +13,15 @@ Use `/evi-storage` for the separate primary-storage inspection and selection
 sidecar. Connector/plugin registration never silently changes storage authority.
 
 - `LIST` calls `connector_plugin_catalog` and shows active and dropped history.
-- `SETTINGS:CODEX` or `SETTINGS:CHATGPT` calls
+- `SETTINGS:CODEX` calls
   `connector_plugin_settings` and returns the eight structured slots for that
-  host profile. The two profiles may contain different registrations. The host
-  may render this structure in a settings UI, but Evidence Lane does not claim
-  it can inject a new native settings panel into Codex or ChatGPT.
+  host profile. Codex may render this structure in a settings UI, but Evidence
+  Lane does not claim it can inject a new native settings panel.
 - `ADD:` calls `connector_plugin_register` only after the visible brief provides
   a lowercase ID, connector/toolchain kind, description, environment-variable
   **names** (never values), capabilities, canonical lanes, and actor. At most
   eight additional plugins may remain active. The grant also records a visible
-  one-time purpose/reason, role, typed role-field schema, `CODEX`/`CHATGPT` host
+  one-time purpose/reason, role, typed role-field schema, the `CODEX` host
   profiles, allowed actions, write scope, and an ISO expiry or `NO_EXPIRY`.
   `backend_runtime` may declare `python`, `java`, `kotlin`, `go`, `rust`, `cpp`,
   or `external_mcp`; the declaration is routing metadata and never authorizes

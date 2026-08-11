@@ -122,21 +122,21 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "enabled": False,
                     "may_replace_stable_before_acceptance": False,
                 },
-        "archive": {"release": "1.5.0"},
-        "remote_git_policy": {
-            "effective_release": "2.0.0",
-            "per_push_confirmation_token_required": False,
-            "automatic_push_scope": (
-                "EXACT_SOLE_REGISTERED_NON_PROTECTED_TEST_BRANCH"
-            ),
-            "host_managed_credentials_only": True,
-            "main_push_allowed": False,
-            "merge_allowed": False,
-            "pull_request_acceptance_allowed": False,
-            "force_push_allowed": False,
-        },
-        "host_split": {
-                    "chatgpt_connection_artifacts_packaged_with_codex": False,
+                "archive": {"release": "1.5.0"},
+                "remote_git_policy": {
+                    "effective_release": "2.0.0",
+                    "per_push_confirmation_token_required": False,
+                    "automatic_push_scope": (
+                        "EXACT_SOLE_REGISTERED_NON_PROTECTED_TEST_BRANCH"
+                    ),
+                    "host_managed_credentials_only": True,
+                    "main_push_allowed": False,
+                    "merge_allowed": False,
+                    "pull_request_acceptance_allowed": False,
+                    "force_push_allowed": False,
+                },
+                "delivery_boundary": {
+                    "external_app_artifacts_packaged_with_codex": False,
                     "remote_website_artifacts_packaged_with_codex": False,
                 },
                 "host_storage_tunnel_matrix": {

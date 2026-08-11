@@ -1,7 +1,7 @@
 {
   "schema": "evidence-lane.public-plugin-metadata.v1",
   "name": "Evidence Lane",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "short_description": "Governed project evidence with durable memory and human-controlled acceptance.",
   "long_description": "Evidence Lane turns authorized project sources and visible AI-task lineage into inspectable, content-sealed evidence packages. It keeps candidates separate from accepted truth, preserves exact source identity and pointer history, resumes exact unfinished work through verified State Travel, and requires an explicit six-way human-in-the-loop decision before promotion.",
   "developer": {
@@ -9,7 +9,6 @@
     "url": "https://github.com/rathee000001"
   },
   "homepage": "https://evidencelane.org",
-  "mcp_endpoint": "https://mcp.evidencelane.org/mcp",
   "logo": "https://evidencelane.org/evidence-lane-icon.png",
   "privacy": "https://evidencelane.org/privacy",
   "terms": "https://evidencelane.org/terms",
@@ -25,17 +24,16 @@
       "render_runtime_panel",
       "render_project_panel"
     ],
-    "host_boundary": "Evidence Lane supplies supported in-conversation panels; ChatGPT owns its native listing and settings layout."
+    "host_boundary": "The installed Codex-native MCP supplies supported in-conversation panels. This website is documentation only and does not transport lifecycle calls."
   },
   "host_contracts": {
     "codex": "Exact-Git full lifecycle. Plan Lane may project to Codex native Plan mode, Goal, and task panel through a user-mediated /pl and /evi-plan flow.",
-    "chatgpt_pro": "Candidate contract: 62 visible MCP actions with 21 executing reads and 41 visible fail-closed lifecycle-write actions. The currently observed host registration is stale and must not be installed until exact 1.5.0 metadata and catalog proof pass. ChatGPT native ENV/UOP and Project Mutation remain host-owned and are not MCP mutations."
+    "chatgpt": "DEFERRED_FUTURE_HOST_MARKER_ONLY. No active ChatGPT plugin, remote MCP adapter, tunnel deployment, or installation claim is part of the v2 Codex release."
   },
   "skill_surface": {
     "packaged_count": 15,
-    "visibility": "CODEX_15_PACKAGED_SKILLS_VERIFIED__CHATGPT_HOST_SKILL_VISIBILITY_NOT_YET_PROVEN",
+    "visibility": "CODEX_15_PACKAGED_SKILLS; installed-host visibility requires the exact post-install receipt",
     "codex_packaged_count_verified": 15,
-    "chatgpt_live_verified_count": 0,
     "read_safe_workflows": [
       "Root routing and exact six-control presentation",
       "Boot ENV/UOP Flash, runtime and accepted-PV observation",
@@ -43,23 +41,16 @@
       "Lane, search, diff, backlog and governed-panel guidance",
       "Mode, storage and lifecycle-law explanation without mutation"
     ],
-    "chatgpt_pro_write_behavior": "VISIBLE_ACTION_INTERCEPTED_BEFORE_SERVICE_INVOCATION_AND_REPORTED_UNAVAILABLE_WITHOUT_MUTATION"
+    "deferred_host_surfaces_are_not_current_release_authority": true
   },
   "exposure_profiles": {
     "codex": {
       "name": "FULL_LIFECYCLE",
       "delivery": "exact Git plugin"
     },
-    "chatgpt_pro": {
-      "name": "CHATGPT_PRO_GOVERNED",
-      "tool_count": 62,
-      "active_read_tool_count": 21,
-      "visible_fail_closed_write_tool_count": 41,
-      "all_lifecycle_mutations_blocked": true,
-      "live_registration_verified": false,
-      "install_allowed": false,
-      "visible_controls": ["Boot", "Rollback", "Build", "Refresh", "Mode", "Source Intake"],
-      "excluded_dependencies": ["Meshy", "generated GLB", "3D production dependency"]
+    "future_chatgpt": {
+      "status": "INTENTIONALLY_DEFERRED_NOT_EXECUTABLE",
+      "install_allowed": false
     }
   },
   "execution_writer_boundary": {

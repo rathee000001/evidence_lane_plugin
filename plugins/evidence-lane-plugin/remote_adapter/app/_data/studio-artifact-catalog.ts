@@ -112,12 +112,12 @@ export const studioArtifactCatalog: readonly StudioArtifact[] = [
   },
   {
     id: "capability-matrix-csv",
-    label: "Evidence Lane 1.5.0 host capability matrix",
+    label: "Evidence Lane 2.0.0 Codex capability matrix",
     format: "CSV",
-    href: "/studio-artifacts/evidence-lane-capability-matrix-v150.csv",
-    identity: "release=1.5.0 rows=6",
+    href: "/studio-artifacts/evidence-lane-capability-matrix-v200.csv",
+    identity: "release=2.0.0 rows=3",
     status: "COMMITTED_PUBLIC_SAFE",
-    purpose: "Portable comparison of Codex, ChatGPT Pro, Google Drive, and tunnel channels.",
+    purpose: "Portable comparison of durable, headless, and ephemeral Codex profiles.",
     boundary: "Declared capability must still be confirmed by live host receipts.",
   },
   {
@@ -125,9 +125,9 @@ export const studioArtifactCatalog: readonly StudioArtifact[] = [
     label: "Executable capability chart",
     format: "Chart",
     href: "/studio#artifact-lab",
-    identity: "Codex=62 ChatGPT-Pro=21",
+    identity: "Codex=62 reads=21 writes=41",
     status: "DERIVED_VIEW",
-    purpose: "Visualize executable versus fail-closed actions without hiding the denominator.",
+    purpose: "Visualize the exact native Codex catalog without hiding the denominator.",
     boundary: "The chart is derived from the release matrix and never substitutes for runtime proof.",
   },
   {

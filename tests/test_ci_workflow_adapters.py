@@ -94,7 +94,7 @@ def test_copilot_agent_profile_is_manual_bounded_and_not_an_actions_alias() -> N
 
 
 def test_public_cost_boundary_excludes_github_sandbox_and_separates_vercel() -> None:
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    readme = " ".join((ROOT / "README.md").read_text(encoding="utf-8").split())
     assert "does not configure or invoke the" in readme
     assert "usage-based GitHub Sandbox product" in readme
     assert "bounded local project work directory" in readme
@@ -102,10 +102,9 @@ def test_public_cost_boundary_excludes_github_sandbox_and_separates_vercel() -> 
     assert "The selected Vercel account plan does not change Evidence Lane authority" in (
         readme
     )
-    assert "only a thin HTTPS adapter" in readme
-    assert "ChatGPT MCP and the public website" in readme
-    assert "Vercel is not used to" in readme
-    assert "install Codex, is not the general Evidence Lane router" in readme
+    assert "public documentation site only" in readme
+    assert "Vercel is not used to install Codex" in readme
+    assert "route the native lifecycle" in readme
 
 
 def test_local_action_exposes_visible_code_mode_contract() -> None:

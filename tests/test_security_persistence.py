@@ -68,26 +68,6 @@ def test_host_persistence_matrix() -> None:
         == "configured_durable_connector"
     )
     assert (
-        route_persistence(
-            HostKind.CHATGPT,
-            ephemeral=False,
-            server_has_durable_filesystem=True,
-        ).mode
-        == "local"
-    )
-    assert (
-        route_persistence(HostKind.CHATGPT, ephemeral=False).mode
-        == "configured_durable_connector"
-    )
-    assert (
-        route_persistence(
-            HostKind.CHATGPT,
-            ephemeral=False,
-            server_has_durable_filesystem=False,
-        ).mode
-        == "configured_durable_connector"
-    )
-    assert (
         route_persistence(HostKind.PUBLIC_AI, ephemeral=False).mode
         == "configured_durable_connector"
     )
@@ -335,26 +315,28 @@ def test_plugin_local_venv_resolves_to_versioned_cache_root(tmp_path: Path) -> N
 def test_host_aliases_are_actionable() -> None:
     assert normalize_host_kind("codex") == HostKind.CODEX_DESKTOP
     assert normalize_host_kind("Codex Desktop") == HostKind.CODEX_DESKTOP
-    assert normalize_host_kind("chatgpt") == HostKind.CHATGPT
+    with pytest.raises(EvidenceLaneError) as retired_error:
+        normalize_host_kind("chatgpt")
+    assert retired_error.value.code == "HOST_KIND_INVALID"
     with pytest.raises(EvidenceLaneError) as error:
         normalize_host_kind("unknown-host")
     assert error.value.code == "HOST_KIND_INVALID"
     assert "CODEX_DESKTOP" in error.value.details["supported_values"]
 
 
-def test_remote_host_fails_closed_without_drive(service) -> None:
+def test_retired_chatgpt_host_fails_closed_before_storage_routing(service) -> None:
     with pytest.raises(EvidenceLaneError) as error:
         service.boot_session(
             project_id="book-faires",
             user_id="user-test",
             workspace_id="workspace-test",
             host="CHATGPT_WORK",
-            agent_id="chatgpt-agent",
+            agent_id="retired-host-agent",
             sandbox_id="remote-sandbox",
             ephemeral=True,
             runtime_context={},
         )
-    assert error.value.code == "DURABLE_RUNTIME_CONNECTOR_NOT_CONFIGURED"
+    assert error.value.code == "HOST_KIND_INVALID"
 
 
 def test_bootstrap_installs_self_contained_noneditable_runtime() -> None:

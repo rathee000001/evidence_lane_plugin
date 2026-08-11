@@ -117,7 +117,6 @@ FROZEN_NO_GIT_ADDITIONS = {
     "plugins/evidence-lane-plugin/LICENSE.md",
     "plugins/evidence-lane-plugin/README.md",
     "plugins/evidence-lane-plugin/THIRD_PARTY_NOTICES.md",
-    "plugins/evidence-lane-plugin/chatgpt-app-submission.json",
     "plugins/evidence-lane-plugin/remote_adapter/app/_components/hero-orbit.tsx",
     "plugins/evidence-lane-plugin/remote_adapter/app/_data/governed-linked-deltas.ts",
     "plugins/evidence-lane-plugin/remote_adapter/app/_data/prior-execution-plan.ts",

@@ -22,7 +22,7 @@ export default function Home() {
     <main>
       <section className="homeHero orbitHeroFrame shell">
         <MotionReveal className="heroCopy">
-          <span className="eyebrow"><i />Evidence Lane for Codex + ChatGPT</span>
+          <span className="eyebrow"><i />Evidence Lane 2.0 for Codex</span>
           <h1>Resume from verified project truth - not another re-explanation.</h1>
           <p>
             The first governed PV parses and seals the bounded project. Later tasks query its
@@ -156,21 +156,20 @@ export default function Home() {
 
       <section className="section shell releaseHome">
         <div>
-          <span className="kicker">Two host universes</span>
-          <h2>The same governance law meets each host at its real storage boundary.</h2>
+          <span className="kicker">Codex capability profiles</span>
+          <h2>The same governance law meets each Codex runtime at its real storage boundary.</h2>
           <p>
-            Codex runs the full governed repository lifecycle from exact Git source. ChatGPT Pro
-            shows all 15 packaged skill entries and the complete 62-action catalog. Twenty-one
-            accepted-PV, ENV/UOP, Entry/Exit, search, and panel operations execute as reads; all 41
-            lifecycle-write actions stay visible and return an explicit no-mutation refusal. ChatGPT&apos;s native Project Mutation workflow remains host-owned;
-            the MCP neither performs nor claims that mutation. Neither host borrows the other&apos;s
-            task controls, filesystem, or acceptance authority.
+            The installed package exposes all 15 governed skills and the complete 62-action native
+            catalog: 21 reads and 41 writes. Desktop and persistent profiles use durable local
+            SQLite. Headless API entry reflashes ENV/UOP for each invocation. Ephemeral profiles
+            require a durable mount or configured transactional connector. No profile can infer
+            acceptance, Fuse, or pointer movement from installation or execution success.
           </p>
           <Link className="textLink" href="/connect">Inspect the verified host and connection boundaries <span aria-hidden="true">→</span></Link>
         </div>
         <div className="homeHostTruth" aria-label="Evidence Lane host boundaries">
-          <article><span>Codex</span><strong>Full lifecycle</strong><p>Source Intake, build, tests, package seals, exact six-way HIL, and pointer-gated promotion.</p></article>
-          <article><span>ChatGPT Pro</span><strong>15 skills + 62 visible actions</strong><p>Twenty-one operations execute as accepted-evidence reads. Forty-one lifecycle writes remain visible but are stopped before service invocation; native ENV/UOP and Project Mutation stay inside ChatGPT.</p></article>
+          <article><span>Persistent Codex</span><strong>Full native lifecycle</strong><p>Source Intake, durable SQLite, tests, package seals, exact six-way HIL, and pointer-gated promotion.</p></article>
+          <article><span>Headless or ephemeral Codex</span><strong>Same laws, explicit storage</strong><p>Per-entry ENV/UOP verification plus a durable mount or configured transactional runtime when local persistence is unavailable.</p></article>
         </div>
       </section>
 

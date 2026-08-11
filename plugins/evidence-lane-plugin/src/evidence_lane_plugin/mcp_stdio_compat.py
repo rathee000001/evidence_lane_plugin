@@ -20,7 +20,7 @@ from pydantic import ValidationError
 # Codex may add one collision-safe hexadecimal suffix to the installed native
 # server's display namespace. That suffix is transport metadata only. Human
 # release labels such as ``evidence_lane_v1_2_hil`` and cross-product names such
-# as ``evidence_lane_chatgpt_read_only`` must never be normalized into native
+# as ``evidence_lane_external_read_only`` must never be normalized into native
 # lifecycle authority.
 _EVIDENCE_LANE_TOOL_NAMESPACE = re.compile(
     r"^evidence_lane(?:_[0-9a-f]{8,64})?$"
@@ -93,13 +93,13 @@ def _rewrite_tool_call_payload(
 
     Codex may give every connected MCP action a collision-safe host prefix,
     for example ``evidence_lane.render_project_panel`` or
-    ``evidence_lane_7fb71d7f.render_project_panel``. Some tunnel profiles pass
+    ``evidence_lane_7fb71d7f.render_project_panel``. Some host profiles pass
     that display namespace through in ``tools/call`` even though MCP discovery
     correctly advertised the canonical bare name. Strip only a recognized
     Evidence Lane prefix and only when the prefix is either the exact native
     identity or its collision-safe hexadecimal display form and the suffix is
     an actually registered tool on this exact server. Legacy version labels,
-    ChatGPT connector identities, unknown prefixes, and unknown tool suffixes
+    External connector identities, unknown prefixes, and unknown tool suffixes
     remain unchanged so the canonical MCP dispatcher rejects them.
     """
 
