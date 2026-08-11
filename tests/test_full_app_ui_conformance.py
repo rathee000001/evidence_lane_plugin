@@ -500,7 +500,8 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     for label in ("README", "License", "Copyright", "Security", "Contributors"):
         assert f">{label}</Link>" in footer
     assert footer.count('href="/credits"') == 1
-    for person in ("Naveen Rathee", "Kapil Dhawan", "Steven Tock", "Sumit Hooda"):
+    assert "Naveen Rathee" not in contributors
+    for person in ("Kapil Dhawan", "Steven Tock", "Sumit Hooda"):
         assert person in contributors
         assert person not in footer
     for label, url in (

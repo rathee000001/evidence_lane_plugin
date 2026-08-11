@@ -45,8 +45,6 @@ license as MIT, or convert an Actions run into a coding-agent session.
 
 ## Human contributions
 
-- [Naveen Rathee](https://www.linkedin.com/in/naveen-rathee/): Strategic
-  Challenger and Cross-Project Human Review Gate.
 - [Kapil Dhawan](https://www.linkedin.com/in/kdhawan23/): Enterprise
   Engineering and Product Communication Reviewer.
 - [Steven Tock](https://www.linkedin.com/in/steventock/): Senior Strategic

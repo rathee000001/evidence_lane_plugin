@@ -13,14 +13,40 @@ case-sensitive `APPROVE` at the correct HIL can authorize Fuse.
 
 | Execution profile | Primary PV storage | Evidence Lane tunnel |
 | --- | --- | --- |
-| Interactive Codex app on a local or persistent host | Durable local SQLite | Not required |
+| Interactive Codex app on a local or persistent host | Durable local SQLite | One-time versioned Windows channel; separate from the native Codex lifecycle |
 | Codex CLI or headless API on a local/persistent host | Durable local SQLite when available | Not required |
 | Headless API on an ephemeral VM with durable mount | Durable mounted SQLite | Not required |
 | Headless API on an ephemeral VM without durable mount | Explicit transactional durable connector | Not required |
-| Interactive Codex app on an ephemeral VM | Durable mount or explicit transactional connector | Not supplied by this package |
+| Interactive Codex app on an ephemeral VM | Durable mount or explicit transactional connector | One setup per VM lifetime; never reused by a replacement VM |
 
 Account tier and API billing do not choose the storage route. Runtime state is
 project-scoped and remains separate from any optional artifact mirror.
+
+## First-time Windows tunnel setup
+
+From a reviewed source checkout, run the supported installer in PowerShell:
+
+```powershell
+& ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1" `
+  -InteractionProfile CODEX_APP_INTERACTIVE `
+  -HostLifetime Persistent
+```
+
+Paste the `tunnel_...` ID and then the user's own Runtime API key at the masked
+prompt. The key is never printed or stored as plaintext; only a current-user
+DPAPI envelope is retained. The installer registers the versioned Windows
+sign-in task but does not promote an unverified future-test channel. After
+governed activation, prove readiness with:
+
+```powershell
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200\Manage-EvidenceLaneTunnel.ps1" -Action Status
+```
+
+The result is acceptable only when it reports `status = PASS`. Codex lifecycle
+proof still comes from the package-local native `mcp__evidence_lane__*` route;
+the tunnel is a separate transport channel. Headless API and direct CLI/API
+profiles do not require this tunnel. See the
+[complete setup, activation, repair, and removal guide](../../docs/WINDOWS_TUNNEL_PERSISTENCE.md).
 
 ## Package map
 

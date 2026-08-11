@@ -160,6 +160,37 @@ def test_current_codex_docs_and_runtime_surfaces_name_v200() -> None:
             assert fragment not in text, f"stale active version text in {relative}: {fragment}"
 
 
+def test_readmes_expose_branding_and_secret_safe_windows_tunnel_setup() -> None:
+    root_readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    plugin_readme = (
+        ROOT / "plugins" / "evidence-lane-plugin" / "README.md"
+    ).read_text(encoding="utf-8")
+
+    assert 'src="docs/assets/evidence-lane-full-logo.png"' in root_readme
+    assert 'alt="Evidence Lane"' in root_readme
+    assert 'src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png"' in (
+        root_readme
+    )
+    assert 'alt="Evidence Lane plugin icon"' in root_readme
+
+    for text in (root_readme, plugin_readme):
+        assert "## First-time Windows tunnel setup" in text
+        assert "Install-EvidenceLaneTunnel.ps1" in text
+        assert "CODEX_APP_INTERACTIVE" in text
+        assert "HostLifetime Persistent" in text
+        assert "Runtime API key" in text
+        assert "masked" in text
+        assert "DPAPI" in text
+        assert "Manage-EvidenceLaneTunnel.ps1" in text
+        assert "-Action Status" in text
+        assert "status = PASS" in text
+        assert "mcp__evidence_lane__*" in text
+        assert "Headless API" in text
+
+    assert "docs/WINDOWS_TUNNEL_PERSISTENCE.md" in root_readme
+    assert "../../docs/WINDOWS_TUNNEL_PERSISTENCE.md" in plugin_readme
+
+
 def test_historical_compatibility_and_traceability_versions_are_preserved() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     historical = (ROOT / "docs" / "DELTA_001_051_TRACEABILITY.md").read_text(

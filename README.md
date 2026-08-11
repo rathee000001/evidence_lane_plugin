@@ -1,3 +1,11 @@
+<p align="center">
+  <img src="docs/assets/evidence-lane-full-logo.png" alt="Evidence Lane" width="900" />
+</p>
+
+<p align="center">
+  <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
+</p>
+
 # Evidence Lane 2.0.0
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex. It
@@ -161,6 +169,52 @@ inflate either number.
 
 Account tier and API billing are independent classification axes. They do not
 select project storage or change the HIL law.
+
+## First-time Windows tunnel setup
+
+This setup is for the interactive Codex desktop profile on a local PC or
+persistent Windows VM. Headless API and direct CLI/API profiles do **not** need
+a tunnel at the API layer; they should keep using the appropriate durable PV
+storage route.
+
+1. In the OpenAI Platform, create a tunnel for this Windows user and keep its
+   `tunnel_...` ID and Runtime API key private. Use a Runtime key, never an
+   Admin key.
+2. Open PowerShell in the reviewed Evidence Lane checkout and run:
+
+   ```powershell
+   & ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1" `
+     -InteractionProfile CODEX_APP_INTERACTIVE `
+     -HostLifetime Persistent
+   ```
+
+3. Paste the Tunnel ID when prompted, then paste the Runtime API key into the
+   masked prompt. The script never prints the key or writes its plaintext to
+   Git, Chat Lineage, project SQLite, receipts, or logs. It stores only a
+   current-user Windows DPAPI envelope.
+4. The installer verifies or acquires the pinned tunnel client, registers the
+   versioned `EvidenceLane-Tunnel-v200` scheduled task, and binds it to Windows
+   sign-in. A newly installed future-test channel remains disabled until its
+   required health, public-route, and host-proof receipts are supplied for
+   governed activation; installation alone is not promotion.
+5. After activation, verify live readiness without exposing the key:
+
+   ```powershell
+   & "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200\Manage-EvidenceLaneTunnel.ps1" -Action Status
+   ```
+
+   Accept only `status = PASS`, with the scheduled task present, the pinned
+   binary hash valid, the process live, and the control-plane poll ready.
+6. Open Codex and verify the installed Evidence Lane plugin through its native
+   `mcp__evidence_lane__*` catalog and project panel. The tunnel is a separate
+   versioned transport channel; it does not replace or prove the package-local
+   Codex lifecycle route.
+
+For ephemeral interactive Windows VMs, use `-HostLifetime Ephemeral` and an
+exact `-VmInstanceId`; the key envelope and tunnel last only for that VM.
+Dependency acquisition, isolated tester setup, activation receipts, repair,
+and removal are documented in the
+[complete Windows tunnel guide](docs/WINDOWS_TUNNEL_PERSISTENCE.md).
 
 ## Git and CI/CD boundary
 
