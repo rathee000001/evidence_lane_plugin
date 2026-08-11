@@ -469,6 +469,7 @@ class SessionManager:
             status="BLOCKED",
             goal_row_offset=goal_row_offset,
         )
+        goal_row_offset = cast(int, goal_row_offset)
         require(
             transition.get("expected_candidate_absent") is True
             and transition.get("expected_pending_hil") is False,
@@ -503,6 +504,7 @@ class SessionManager:
             status="MISMATCH",
             correction_of_transition_id=original_transition_id,
         )
+        original = cast(dict[str, Any], original)
         original_journal_sha256 = sha256_bytes(original_path.read_bytes())
         request_body = {
             "project_id": project_id,
