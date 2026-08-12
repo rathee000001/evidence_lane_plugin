@@ -723,6 +723,185 @@ def test_dirty_local_branch_authority_replacement_preserves_exact_source(
     ]
 
 
+def test_interrupted_exit_can_replace_dirty_branch_authority_without_source_write(
+    tmp_path: Path,
+    source_repository: Path,
+) -> None:
+    checkout = tmp_path / "exit-building-authority-checkout"
+    subprocess.run(
+        ["git", "clone", "--no-local", str(source_repository), str(checkout)],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(checkout),
+            "remote",
+            "set-url",
+            "origin",
+            "https://github.com/example/book-faires.git",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    application = EvidenceLaneService(
+        data_root=tmp_path / "exit-building-authority-store"
+    )
+    application.register_project(
+        project_id="exit-building-authority",
+        display_name="Exit building branch authority",
+        repository_path=str(checkout),
+        expected_owner="example",
+        expected_name="book-faires",
+        allowed_branches=["main"],
+        sensitivity="PRIVATE",
+    )
+    boot = application.boot_session(
+        project_id="exit-building-authority",
+        user_id="user-test",
+        workspace_id="workspace-test",
+        host="CODEX_DESKTOP",
+        agent_id="codex-single-agent",
+        sandbox_id="sandbox-local",
+        ephemeral=False,
+        runtime_context={"permission_mode": "test"},
+        host_session_id="exit-building-authority-host-session",
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+    session_id = boot["session"]["session_id"]
+    application.build_initial("exit-building-authority", session_id)
+    decision = application.decide(
+        "exit-building-authority",
+        session_id,
+        decision="APPROVE",
+        decided_by="human-test",
+        decision_id="exit_building_authority_pv1",
+    )
+    handoff = decision["state_travel_handoff"]["state_travel"]
+    application.resume_state_travel(
+        project_id="exit-building-authority",
+        session_id=session_id,
+        handoff_id=handoff["handoff_id"],
+        host="CODEX_DESKTOP",
+        host_session_id="exit-building-authority-fresh-task",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"source": "exit-building-authority-test"},
+    )
+    application.sessions.classify(
+        "exit-building-authority",
+        session_id,
+        task_class="fix_bug",
+        requested_outcome="Recover exact branch authority before retrying exit.",
+        permitted_paths=["README.md", "scratch.txt"],
+        permitted_tools=[
+            "repository_read",
+            "repository_write",
+            "terminal",
+            "test",
+            "git_diff",
+            "patch",
+        ],
+        acceptance_checks=["The exact branch authority is replaced byte-safely."],
+        stop_condition="Stop at the next candidate HIL.",
+    )
+
+    from evidence_lane_plugin.models import SessionState
+
+    session = application.sessions.load("exit-building-authority", session_id)
+    session.state = SessionState.EXIT_BUILDING
+    application.sessions._save(session)
+
+    from .conftest import git
+
+    exact_branch = "fix/exit-building-authority"
+    git(checkout, "switch", "-c", exact_branch)
+    expected_commit = git(checkout, "rev-parse", "HEAD")
+    readme = checkout / "README.md"
+    readme.write_text("# Book Faires\n\nInterrupted exit bytes.\n", encoding="utf-8")
+    scratch = checkout / "scratch.txt"
+    scratch.write_text("preserve this untracked byte\n", encoding="utf-8")
+    before_status = subprocess.run(
+        ["git", "-C", str(checkout), "status", "--porcelain=v1", "-z"],
+        check=True,
+        capture_output=True,
+    ).stdout
+
+    session = application.sessions.load("exit-building-authority", session_id)
+    session.candidate_id = "PV2_CANDIDATE__SEALED"
+    application.sessions._save(session)
+    with pytest.raises(EvidenceLaneError) as sealed_candidate:
+        application.sync_git_source(
+            project_id="exit-building-authority",
+            source=str(checkout),
+            branch=exact_branch,
+            session_id=session_id,
+            expected_commit=expected_commit,
+            replace_registered_branch=True,
+        )
+    assert sealed_candidate.value.code == "PROJECT_SYNC_TASK_STATE_INVALID"
+    assert application.store.config(
+        "exit-building-authority"
+    ).allowed_branches == ["main"]
+    session = application.sessions.load("exit-building-authority", session_id)
+    session.candidate_id = None
+    application.sessions._save(session)
+
+    result = application.sync_git_source(
+        project_id="exit-building-authority",
+        source=str(checkout),
+        branch=exact_branch,
+        session_id=session_id,
+        expected_commit=expected_commit,
+        replace_registered_branch=True,
+    )
+
+    after_status = subprocess.run(
+        ["git", "-C", str(checkout), "status", "--porcelain=v1", "-z"],
+        check=True,
+        capture_output=True,
+    ).stdout
+    assert result["operation"] == "DIRTY_LOCAL_BRANCH_AUTHORITY_ONLY"
+    assert result["branch_authority"]["status"] == "REPLACED"
+    assert result["source_write_performed"] is False
+    assert result["remote_write_performed"] is False
+    assert result["fetch_performed"] is False
+    assert result["activity_recorded"] is False
+    assert (
+        result["activity_deferred_reason"]
+        == "CANDIDATE_FREE_INTERRUPTED_EXIT_AUTHORITY_RECOVERY"
+    )
+    assert before_status == after_status
+    recovered = application.sessions.load("exit-building-authority", session_id)
+    assert recovered.state == SessionState.EXIT_BUILDING
+    assert recovered.candidate_id is None
+
+    replay = application.sync_git_source(
+        project_id="exit-building-authority",
+        source=str(checkout),
+        branch=exact_branch,
+        session_id=session_id,
+        expected_commit=expected_commit,
+        replace_registered_branch=True,
+    )
+    assert replay["branch_authority"]["status"] == "UNCHANGED"
+    assert replay["source_write_performed"] is False
+    assert replay["remote_write_performed"] is False
+    assert before_status == subprocess.run(
+        ["git", "-C", str(checkout), "status", "--porcelain=v1", "-z"],
+        check=True,
+        capture_output=True,
+    ).stdout
+
+
 def test_selected_git_sync_records_active_session_lineage(
     tmp_path: Path,
     source_repository: Path,

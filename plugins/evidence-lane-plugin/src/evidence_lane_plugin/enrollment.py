@@ -114,10 +114,16 @@ def sync_selected_branch(
             ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
         ).stdout
         status_sha256 = sha256_bytes(worktree_status.encode("utf-8"))
+        explicit_authority_selection = bool(
+            str(branch_replacement_actor or "").strip()
+            and isinstance(dirty_local_authority_context, dict)
+        )
         require(
-            not branch_authorized,
+            not branch_authorized or explicit_authority_selection,
             "WORKTREE_NOT_CLEAN",
-            "Git fetch and fast-forward require a clean governed checkout.",
+            "Git fetch and fast-forward require a clean governed checkout; only "
+            "an explicit byte-preserving local branch-authority selection may "
+            "inspect a dirty checkout.",
             status="BLOCKED",
             worktree_status_sha256=status_sha256,
         )

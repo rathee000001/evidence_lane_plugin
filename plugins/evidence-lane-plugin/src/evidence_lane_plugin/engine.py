@@ -581,6 +581,15 @@ class CodePVEngine:
                 candidate_id=candidate_id,
                 proposed_pv=proposed_pv,
             )
+            invocation = runtime_continuity.get("invocation")
+            exit_prompt_label = (
+                str(
+                    invocation.get("exit_slip_next_prompt_label")
+                    or "PV_EXIT_SUGGESTED_NEXT_PROMPT"
+                )
+                if isinstance(invocation, dict)
+                else "PV_EXIT_SUGGESTED_NEXT_PROMPT"
+            )
             exit_slip = {
                 "schema": "evidence-lane.exit-slip.v1",
                 "session_id": session.session_id,
@@ -595,9 +604,7 @@ class CodePVEngine:
                 "task": task.as_dict() if task else None,
                 "runtime_continuity": runtime_continuity,
                 "pv_exit_prompt": {
-                    "label": runtime_continuity["invocation"][
-                        "exit_slip_next_prompt_label"
-                    ],
+                    "label": exit_prompt_label,
                     "suggested_next_prompt": next_action_contract[
                         "suggested_next_prompt"
                     ],
