@@ -184,8 +184,10 @@ storage route.
 
    ```powershell
    & ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1" `
+     -SlotRole stable-build `
      -InteractionProfile CODEX_APP_INTERACTIVE `
-     -HostLifetime Persistent
+     -HostLifetime Persistent `
+     -Activate
    ```
 
 3. Paste the Tunnel ID when prompted, then paste the Runtime API key into the
@@ -193,14 +195,17 @@ storage route.
    Git, Chat Lineage, project SQLite, receipts, or logs. It stores only a
    current-user Windows DPAPI envelope.
 4. The installer verifies or acquires the pinned tunnel client, registers the
-   versioned `EvidenceLane-Tunnel-v200` scheduled task, and binds it to Windows
-   sign-in. A newly installed future-test channel remains disabled until its
-   required health, public-route, and host-proof receipts are supplied for
-   governed activation; installation alone is not promotion.
+   versioned `EvidenceLane-Tunnel-v200-stable-build` scheduled task, and binds
+   it to Windows sign-in. Installation alone does not accept a candidate or
+   move a PV pointer.
 5. After activation, verify live readiness without exposing the key:
 
    ```powershell
-   & "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200\Manage-EvidenceLaneTunnel.ps1" -Action Status
+   & "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200-stable-build\Manage-EvidenceLaneTunnel.ps1" `
+     -Action Status `
+     -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200-stable-build" `
+     -ProfileName evidence_lane_v200_stable_build_transport `
+     -TaskName EvidenceLane-Tunnel-v200-stable-build
    ```
 
    Accept only `status = PASS`, with the scheduled task present, the pinned
@@ -215,6 +220,24 @@ exact `-VmInstanceId`; the key envelope and tunnel last only for that VM.
 Dependency acquisition, isolated tester setup, activation receipts, repair,
 and removal are documented in the
 [complete Windows tunnel guide](docs/WINDOWS_TUNNEL_PERSISTENCE.md).
+
+## Two-slot stable recovery
+
+After exact standalone `APPROVE` and native Fuse accepts PV11, the live Codex
+installation is normalized to exactly two Evidence Lane slots: enabled
+`stable-build` and disabled byte-exact `fallback`. The fallback is the accepted
+PV11 package; it is installed and tunnel-verified but stopped. At most one
+plugin/MCP and one matching tunnel can run. Historical Git, PV, package,
+receipt, and Delta evidence remains preserved outside the live cache.
+
+`Switch-EvidenceLaneCodexSlot.ps1` can prepare failover after either an explicit
+operator command or a sealed multi-probe stable failure. It rejects one
+transient error, stops the source tunnel before starting the target, switches
+the two exact Codex config sections atomically, and uses the controlled restart
+helper to reopen the same task. Returning to stable requires verified package,
+installed-byte, native-catalog, and clean-CI proof. A pre-restart failure
+restores the original slot; post-restart native catalog and project/session
+proof are mandatory.
 
 ## Git and CI/CD boundary
 

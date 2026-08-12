@@ -1,46 +1,57 @@
 {
-  "schema": "evidence-lane.release-channels.v1",
+  "schema": "evidence-lane.release-channels.v2",
   "product": "Evidence Lane",
   "stable": {
-    "release": "1.5.0",
-    "codex_marketplace_slot": "evidence-lane-v150-github",
+    "release": "2.0.0",
+    "slot_role": "stable-build",
+    "codex_marketplace_slot": "evidence-lane-v200-github",
     "enabled": true,
+    "byte_frozen": false,
     "native_server_identity": "evidence-lane",
     "native_tool_count": 62,
     "native_read_tool_count": 21,
     "native_write_tool_count": 41,
     "skill_count": 15,
     "codex_apps_allowed": false,
+    "generated_namespace_allowed": false,
+    "direct_stdio_fallback_allowed": false,
     "google_drive_bundled": false,
     "tunnel_release_must_match": true,
-    "tunnel_channel": "stable",
+    "tunnel_channel": "stable-build",
     "independent_runtime_task_profile_and_tunnel_identity": true
   },
-  "future_test": {
-    "codex_marketplace_slot": "evidence-lane-next-test",
+  "fallback": {
+    "release": "2.0.0",
+    "slot_role": "fallback",
+    "codex_marketplace_slot": "evidence-lane-pv11-fallback",
     "enabled": false,
-    "may_replace_stable_before_acceptance": false,
-    "candidate_mutates_stable_slot": false,
-    "tunnel_channel": "future-test",
-    "starts_and_proves_readiness_without_stopping_stable": true,
-    "failed_candidate_leaves_stable_untouched": true
+    "materialization_gate": "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE",
+    "accepted_pv": "PV11",
+    "accepted_generation": 11,
+    "byte_frozen": true,
+    "package_must_equal_accepted_pv": true,
+    "prewarmed_means_installed_verified_and_stopped": true,
+    "tunnel_channel": "fallback"
   },
-  "archive": {
-    "retain_previous_stable_plugin": true,
-    "retain_previous_tunnel_runtime": true,
-    "disable_instead_of_delete": true,
-    "reactivation_requires_explicit_user_direction": true,
-    "tunnel_channel": "archive/fallback",
-    "prior_promotion_receipts_retained": true
+  "live_slot_policy": {
+    "exact_slot_count_after_pv11_acceptance": 2,
+    "allowed_slots": [
+      "stable-build",
+      "fallback"
+    ],
+    "max_enabled_plugin_count": 1,
+    "max_active_native_mcp_count": 1,
+    "max_active_tunnel_count": 1,
+    "inactive_slot_remains_installed": true,
+    "obsolete_live_slots_removed_through_supported_codex_cli": true,
+    "immutable_history_and_evidence_preserved": true
   },
   "promotion_gate": {
     "explicit_six_way_hil_required": true,
     "required_matching_release_receipts": [
       "CODEX_NATIVE_PLUGIN",
       "TUNNEL_VERSION",
-      "GIT_COMMIT_AND_TREE",
-      "VERCEL_DEPLOYMENT",
-      "DEVPOST_PUBLICATION"
+      "GIT_COMMIT_AND_TREE"
     ],
     "required_catalog": {
       "tools": 62,
@@ -49,44 +60,37 @@
       "skills": 15
     },
     "promotion_order": [
-      "INSTALL_OR_UPDATE_FUTURE_TEST_SLOT",
-      "VERIFY_ALL_MATCHING_RELEASE_RECEIPTS",
+      "VERIFY_STABLE_BUILD",
       "PRESENT_EXACT_SIX_WAY_HIL",
-      "PROMOTE_ACCEPTED_TEST_TO_STABLE",
-      "MOVE_PRIOR_STABLE_TO_DISABLED_ARCHIVE",
-      "CREATE_NEW_EMPTY_FUTURE_TEST_BOUNDARY"
+      "NATIVE_FUSE_EXACT_APPROVE_TO_PV11",
+      "MATERIALIZE_BYTE_EXACT_PV11_FALLBACK_DISABLED",
+      "VERIFY_EXACT_TWO_SLOT_FAILOVER_AND_RETURN"
     ],
     "fail_closed_on_version_mismatch": true
   },
-  "tunnel_channel_manager": {
-    "script": "scripts/windows_tunnel/Manage-EvidenceLaneTunnelVersions.ps1",
-    "register_default": "future-test",
-    "candidate_action": "VerifyCandidate",
-    "promotion_action": "Promote",
-    "promotion_receipts": [
-      "HEALTH_SHA256",
-      "PUBLIC_ROUTE_SHA256",
-      "HOST_PROOF_SHA256"
-    ],
-    "promotion_switches_registry_only_after_both_routes_are_ready": true,
-    "displaced_stable_is_disabled_after_channel_commit": true,
+  "two_slot_operator": {
+    "script": "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1",
+    "registry_schema": "evidence-lane.codex-two-slot-registry.v1",
+    "single_transient_error_switch_allowed": false,
+    "stop_source_tunnel_before_start_target": true,
+    "target_tunnel_ready_before_plugin_switch": true,
+    "controlled_exact_task_restart_required": true,
+    "post_restart_native_catalog_and_project_session_proof_required": true,
+    "switch_failure_restores_source_slot": true,
     "codex_native_lifecycle_route_eligible": false
   },
   "history": {
     "append_only": true,
     "hash_chained": true,
     "events_required_for": [
-      "INSTALL",
-      "REGISTER",
-      "ACTIVATION_STARTED",
-      "ACTIVATED",
-      "ACTIVATION_FAILED",
-      "ROLLBACK_ACTIVATED",
-      "PROMOTED_TO_STABLE",
-      "MOVED_TO_ARCHIVE",
-      "VERCEL_BOUND",
-      "GIT_BOUND",
-      "DEVPOST_BOUND"
+      "SLOT_MATERIALIZED",
+      "SWITCH_PREPARED",
+      "SOURCE_TUNNEL_STOPPED",
+      "TARGET_TUNNEL_READY",
+      "PLUGIN_SLOT_SWITCHED",
+      "EXACT_TASK_RESTARTED",
+      "NATIVE_ROUTE_PROVED",
+      "SWITCH_FAILED_SOURCE_RESTORED"
     ]
   }
 }

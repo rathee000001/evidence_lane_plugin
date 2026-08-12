@@ -5,9 +5,11 @@ param(
     [string]$TunnelId = "",
     [string]$PluginRoot = "",
     [string]$DataRoot = "$env:USERPROFILE\EvidenceLanePV",
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200",
-    [string]$ProfileName = "evidence_lane_v200_transport",
-    [string]$TaskName = "EvidenceLane-Tunnel-v200",
+    [ValidateSet("stable-build", "fallback")]
+    [string]$SlotRole = "stable-build",
+    [string]$RuntimeRoot = "",
+    [string]$ProfileName = "",
+    [string]$TaskName = "",
     [string]$RuntimeKeyEnvelopeSource = "",
     [ValidateSet("Auto", "Persistent", "Ephemeral")]
     [string]$HostLifetime = "Auto",
@@ -17,14 +19,25 @@ param(
     [ValidateSet("UNSPECIFIED", "PRO", "PLUS", "BUSINESS", "EDU", "ENTERPRISE")]
     [string]$AccountTier = "UNSPECIFIED",
     [switch]$RotateRuntimeKey,
-    [switch]$Activate,
-    [string]$HealthReceiptSha256 = "",
-    [string]$PublicRouteReceiptSha256 = "",
-    [string]$HostProofReceiptSha256 = ""
+    [switch]$Activate
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+$slotToken = $SlotRole.Replace("-", "_")
+if ([string]::IsNullOrWhiteSpace($RuntimeRoot)) {
+    $RuntimeRoot = Join-Path $env:USERPROFILE "EvidenceLanePV\tunnel-runtime-v200-$SlotRole"
+}
+if ([string]::IsNullOrWhiteSpace($ProfileName)) {
+    $ProfileName = "evidence_lane_v200_${slotToken}_transport"
+}
+if ([string]::IsNullOrWhiteSpace($TaskName)) {
+    $TaskName = "EvidenceLane-Tunnel-v200-$SlotRole"
+}
+if ($SlotRole -eq "fallback" -and $Activate) {
+    throw "The fallback tunnel cannot be activated by the installer. Use the sealed two-slot operator after exact PV11 acceptance."
+}
 
 $expectedClientSha256 = "D893D8127EEE35070D265C1BE29BFE008F8D9FCB476E7FEBF56C8FDC6C0615C8"
 $stableClient = Join-Path $RuntimeRoot "bin\tunnel-client-v0.0.10.exe"
@@ -32,12 +45,10 @@ $secretRoot = Join-Path $RuntimeRoot "secrets"
 $secretFile = Join-Path $secretRoot "control-plane-runtime-key.dpapi"
 $bootTarget = Join-Path $RuntimeRoot "EvidenceLaneTunnel.Boot.ps1"
 $manageTarget = Join-Path $RuntimeRoot "Manage-EvidenceLaneTunnel.ps1"
-$versionManagerTarget = Join-Path $RuntimeRoot "Manage-EvidenceLaneTunnelVersions.ps1"
 $childTarget = Join-Path $RuntimeRoot "_INTERNAL_EVIDENCE_LANE_MCP_LAYER_DO_NOT_RUN.ps1"
 $markerFile = Join-Path $RuntimeRoot "evidence-lane-tunnel-installation.json"
 $sourceBoot = Join-Path $PSScriptRoot "EvidenceLaneTunnel.Boot.ps1"
 $sourceManage = Join-Path $PSScriptRoot "Manage-EvidenceLaneTunnel.ps1"
-$sourceVersionManager = Join-Path $PSScriptRoot "Manage-EvidenceLaneTunnelVersions.ps1"
 $profileDir = Join-Path $env:APPDATA "tunnel-client"
 $profileFile = Join-Path $profileDir ($ProfileName + ".yaml")
 $runtimeKeyEnvelopeReused = $false
@@ -288,13 +299,61 @@ function Write-LayeredChildLauncher {
     $escapedDataRoot = $ExactDataRoot.Replace("'", "''")
     $launcher = @"
 `$ErrorActionPreference = "Stop"
-`$env:EVIDENCE_LANE_MCP_EXPOSURE_PROFILE = "CHATGPT_PRO_GOVERNED"
+`$env:EVIDENCE_LANE_MCP_EXPOSURE_PROFILE = "CODEX_INTERACTIVE_SUPPORT"
 `$env:EVIDENCE_LANE_PUBLIC_SITE_URL = "https://evidencelane.org"
 `$env:EVIDENCE_LANE_DATA_ROOT = '$escapedDataRoot'
 & '$escapedPython' '$escapedRunner' --transport stdio
 exit `$LASTEXITCODE
 "@
     Set-Content -LiteralPath $childTarget -Value $launcher -Encoding UTF8
+}
+
+function Assert-NoOtherActiveTunnel {
+    param(
+        [Parameter(Mandatory = $true)][string]$ExactDataRoot,
+        [Parameter(Mandatory = $true)][string]$ExactRuntimeRoot
+    )
+
+    $otherRuntimeRoots = @(
+        Get-ChildItem -LiteralPath $ExactDataRoot `
+            -Directory -Filter "tunnel-runtime-*" -ErrorAction SilentlyContinue |
+            Where-Object {
+                [IO.Path]::GetFullPath($_.FullName) -ne $ExactRuntimeRoot
+            }
+    )
+    foreach ($otherRoot in $otherRuntimeRoots) {
+        $otherMarkerPath = Join-Path $otherRoot.FullName "evidence-lane-tunnel-installation.json"
+        $otherManager = Join-Path $otherRoot.FullName "Manage-EvidenceLaneTunnel.ps1"
+        if (
+            -not (Test-Path -LiteralPath $otherMarkerPath -PathType Leaf) -or
+            -not (Test-Path -LiteralPath $otherManager -PathType Leaf)
+        ) {
+            continue
+        }
+        try {
+            $otherMarker = Get-Content -LiteralPath $otherMarkerPath -Raw | ConvertFrom-Json
+            $statusText = & $powershell `
+                -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
+                -File $otherManager `
+                -Action Status `
+                -RuntimeRoot $otherRoot.FullName `
+                -ProfileName ([string]$otherMarker.profile_name) `
+                -TaskName ([string]$otherMarker.task_name) 2>$null
+            $status = ($statusText | Out-String).Trim() | ConvertFrom-Json
+            if (
+                $status.control_plane_poll_ready -eq $true -or
+                $status.process_running -eq $true
+            ) {
+                throw "Another Evidence Lane tunnel is active. Stop it through the sealed slot operator before activating this slot."
+            }
+        }
+        catch {
+            if ($_.Exception.Message -like "Another Evidence Lane tunnel is active.*") {
+                throw
+            }
+            throw "A sibling Evidence Lane tunnel could not be proven stopped; activation is blocked."
+        }
+    }
 }
 
 $exactPluginRoot = Resolve-PluginRoot
@@ -321,7 +380,6 @@ New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
 Copy-Item -LiteralPath $resolvedSource -Destination $stableClient -Force
 Copy-Item -LiteralPath $sourceBoot -Destination $bootTarget -Force
 Copy-Item -LiteralPath $sourceManage -Destination $manageTarget -Force
-Copy-Item -LiteralPath $sourceVersionManager -Destination $versionManagerTarget -Force
 Protect-SecretDirectory
 
 if ($RotateRuntimeKey -or -not (Test-Path -LiteralPath $secretFile -PathType Leaf)) {
@@ -374,9 +432,11 @@ $marker = [ordered]@{
     profile_name = $ProfileName
     profile_file = $profileFile
     task_name = $TaskName
-    exposure_profile = "CHATGPT_PRO_GOVERNED"
+    slot_role = $SlotRole
+    byte_frozen = $SlotRole -eq "fallback"
+    exposure_profile = "CODEX_INTERACTIVE_SUPPORT"
     transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"
-    served_exposure_layer = "CHATGPT_PRO_GOVERNED"
+    served_exposure_layer = "CODEX_INTERACTIVE_SUPPORT"
     chatgpt_is_layer_not_transport_identity = $true
     codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"
     codex_tunnel_lifecycle_proof_allowed = $false
@@ -391,7 +451,8 @@ $marker = [ordered]@{
     stable_client_sha256 = $expectedClientSha256
     pid_file = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "evidence_lane_v200_tunnel.pid"
     health_url_file = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "evidence_lane_v200_health.url"
-    version_manager = $versionManagerTarget
+    live_slot_authority = "SEALED_POST_PV11_TWO_SLOT_REGISTRY"
+    legacy_version_manager_authoritative = $false
     saved_version = $true
     reusable_without_reinstall = $true
     runtime_key_envelope_reused = $runtimeKeyEnvelopeReused
@@ -431,60 +492,39 @@ Register-ScheduledTask `
     -Trigger $trigger `
     -Principal $principal `
     -Settings $settings `
-    -Description "Pinned Evidence Lane 2.0.0 host-neutral secure MCP tunnel; automatic after Windows user sign-in." `
+    -Description "Pinned Evidence Lane 2.0.0 $SlotRole secure MCP tunnel; automatic only while this exact slot is enabled." `
     -Force | Out-Null
 
-$tunnelRegistryDataRoot = if ($exactHostLifetime -eq "Ephemeral") {
-    Split-Path -Parent ([IO.Path]::GetFullPath($RuntimeRoot))
-}
-else {
-    $exactDataRoot
-}
-$savedManagerRoot = Join-Path $tunnelRegistryDataRoot "tunnel-versions"
-$savedManager = Join-Path $savedManagerRoot "Manage-EvidenceLaneTunnelVersions.ps1"
-New-Item -ItemType Directory -Path $savedManagerRoot -Force | Out-Null
-Copy-Item -LiteralPath $sourceVersionManager -Destination $savedManager -Force
 Disable-ScheduledTask -TaskName $TaskName | Out-Null
-& $savedManager `
-    -Action Register `
-    -RuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot)) `
-    -Channel "future-test" `
-    -DataRoot $tunnelRegistryDataRoot *> $null
-if ($LASTEXITCODE -ne 0) {
-    throw "The v2.0 tunnel could not be added to the saved version registry."
-}
 if ($Activate) {
-    & $savedManager `
-        -Action VerifyCandidate `
-        -Release "2.0.0" `
-        -DataRoot $tunnelRegistryDataRoot *> $null
+    Assert-NoOtherActiveTunnel `
+        -ExactDataRoot $exactDataRoot `
+        -ExactRuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot))
+    & $manageTarget `
+        -Action Start `
+        -RuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot)) `
+        -ProfileName $ProfileName `
+        -ProfileDir $profileDir `
+        -TaskName $TaskName *> $null
     if ($LASTEXITCODE -ne 0) {
-        throw "The v2.0 future-test tunnel failed; the stable route was never stopped."
-    }
-    & $savedManager `
-        -Action Promote `
-        -Release "2.0.0" `
-        -DataRoot $tunnelRegistryDataRoot `
-        -HealthReceiptSha256 $HealthReceiptSha256 `
-        -PublicRouteReceiptSha256 $PublicRouteReceiptSha256 `
-        -HostProofReceiptSha256 $HostProofReceiptSha256 *> $null
-    if ($LASTEXITCODE -ne 0) {
-        throw "The v2.0 tunnel promotion was blocked; the existing stable channel remains authoritative."
+        throw "The stable-build tunnel did not reach readiness."
     }
 }
 
 [ordered]@{
     status = "PASS"
     release = "2.0.0"
+    slot_role = $SlotRole
+    byte_frozen = $SlotRole -eq "fallback"
     task_name = $TaskName
     trigger = "AT_LOGON"
     current_user_dpapi = $true
     stable_client = $stableClient
     stable_client_sha256 = (Get-FileHash -LiteralPath $stableClient -Algorithm SHA256).Hash
     profile = $ProfileName
-    exposure_profile = "CHATGPT_PRO_GOVERNED"
+    exposure_profile = "CODEX_INTERACTIVE_SUPPORT"
     transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"
-    served_exposure_layer = "CHATGPT_PRO_GOVERNED"
+    served_exposure_layer = "CODEX_INTERACTIVE_SUPPORT"
     chatgpt_is_layer_not_transport_identity = $true
     codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"
     codex_tunnel_lifecycle_proof_allowed = $false
@@ -511,15 +551,17 @@ if ($Activate) {
     tunnel_setup_frequency = if ($exactHostLifetime -eq "Ephemeral") { "ONCE_PER_EPHEMERAL_VM_INSTANCE" } else { "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE" }
     tunnel_key_retention = if ($exactHostLifetime -eq "Ephemeral") { "CURRENT_VM_LIFETIME_ONLY" } else { "CURRENT_WINDOWS_USER_DPAPI_PROFILE" }
     tunnel_runtime_lifetime = if ($exactHostLifetime -eq "Ephemeral") { "CURRENT_VM_LIFETIME_ONLY" } else { "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST" }
-    chatgpt_link_required_once = $true
-    saved_version = $true
+    codex_platform_tunnel_setup_required_once = $true
+    saved_slot = $true
     reusable_without_reinstall = $true
-    version_registry = Join-Path $savedManagerRoot "registry.json"
-    tunnel_registry_lifetime = if ($exactHostLifetime -eq "Ephemeral") { "CURRENT_VM_LIFETIME_ONLY" } else { "PERSISTENT_HOST" }
-    fallback_versions_preserved = $true
-    registered_channel = "future-test"
-    promotion_requires_three_receipt_hashes = $true
-    failed_candidate_leaves_stable_untouched = $true
+    two_slot_registry_authority = "SEALED_POST_PV11_TWO_SLOT_REGISTRY"
+    legacy_version_manager_authoritative = $false
+    registry_materialization_gate = "EXACT_STANDALONE_APPROVE_PLUS_NATIVE_FUSE_ACCEPTING_PV11"
+    accepted_fallback_preserved = $true
+    registered_slot = $SlotRole
+    fallback_is_disabled = $SlotRole -eq "fallback"
+    fallback_prevalidation_requires_zero_tunnel_isolation = $SlotRole -eq "fallback"
+    failover_requires_sealed_two_slot_operator = $true
     activated = [bool]$Activate
     started = [bool]$Activate
 } | ConvertTo-Json -Depth 4

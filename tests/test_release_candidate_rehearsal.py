@@ -18,7 +18,7 @@ from build_release_candidate_rehearsal import (
     build_rehearsal,
 )
 
-VERSION = "2.0.0+codex.20260812002336"
+VERSION = "2.0.0+codex.20260812010807"
 COMMIT = "a" * 40
 TREE = "b" * 40
 
@@ -108,6 +108,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                 "schema": "evidence-lane.codex-release-channel.v2",
                 "stable": {
                     "release": "2.0.0",
+                    "slot_role": "stable-build",
                     "native_server_identity": "evidence-lane",
                     "native_tool_count": 62,
                     "native_read_tool_count": 21,
@@ -118,11 +119,33 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "direct_stdio_fallback_allowed": False,
                     "google_drive_bundled": False,
                 },
-                "future_test": {
+                "fallback": {
+                    "release": "2.0.0",
+                    "slot_role": "fallback",
                     "enabled": False,
-                    "may_replace_stable_before_acceptance": False,
+                    "materialization_gate": (
+                        "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
+                    ),
+                    "accepted_pv": "PV11",
+                    "accepted_generation": 11,
+                    "byte_frozen": True,
+                    "package_must_equal_accepted_pv": True,
                 },
-                "archive": {"release": "1.5.0"},
+                "live_slot_policy": {
+                    "exact_slot_count_after_pv11_acceptance": 2,
+                    "allowed_slots": ["stable-build", "fallback"],
+                    "max_enabled_plugin_count": 1,
+                    "max_active_native_mcp_count": 1,
+                    "max_active_tunnel_count": 1,
+                },
+                "failover_operator": {
+                    "script": (
+                        "scripts/codex_release/"
+                        "Switch-EvidenceLaneCodexSlot.ps1"
+                    ),
+                    "registry_schema": "evidence-lane.codex-two-slot-registry.v1",
+                    "single_transient_error_switch_allowed": False,
+                },
                 "remote_git_policy": {
                     "effective_release": "2.0.0",
                     "per_push_confirmation_token_required": False,
@@ -188,6 +211,11 @@ def _plugin_fixture(tmp_path: Path) -> Path:
         plugin,
         "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
         "# fixture restart helper\n",
+    )
+    _write(
+        plugin,
+        "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1",
+        "# fixture two-slot operator\n",
     )
     _write(
         plugin,
@@ -305,6 +333,7 @@ def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(tmp_path: Path)
         assert "scripts/codex-release-channel.json" in names
         assert "scripts/codex_release/install_codex_stable.py" in names
         assert "scripts/codex_release/Restart-EvidenceLaneCodex.ps1" in names
+        assert "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1" in names
         assert "scripts/codex_release/accept_codex_stable.py" in names
         assert "chatgpt-app-connection.json" not in names
         assert "chatgpt-app-submission.json" not in names

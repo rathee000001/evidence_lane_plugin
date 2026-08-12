@@ -40,7 +40,7 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert "runtime_key_plaintext_written = $false" in installer
     assert 'Read-Host "Tunnel ID from the OpenAI Platform tunnel page"' in installer
     assert "'^tunnel_[A-Za-z0-9]+$'" in installer
-    assert 'EVIDENCE_LANE_MCP_EXPOSURE_PROFILE = "CHATGPT_PRO_GOVERNED"' in installer
+    assert 'EVIDENCE_LANE_MCP_EXPOSURE_PROFILE = "CODEX_INTERACTIVE_SUPPORT"' in installer
     assert "EVIDENCE_LANE_DATA_ROOT" in installer
     assert 'project_binding = "NONE_TRANSPORT_ONLY"' in installer
     assert 'project_route_argument = "project_id"' in installer
@@ -49,24 +49,28 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert "_INTERNAL_EVIDENCE_LANE_MCP_LAYER_DO_NOT_RUN.ps1" in installer
     assert "--control-plane-api-key-ref \"env:CONTROL_PLANE_API_KEY\"" in installer
     assert "--mcp-command $mcpCommand" in installer
-    assert 'TaskName = "EvidenceLane-Tunnel-v200"' in installer
+    assert '[ValidateSet("stable-build", "fallback")]' in installer
+    assert 'TaskName = "EvidenceLane-Tunnel-v200-$SlotRole"' in installer
     assert "exact_visible_tool_count = 62" in installer
     assert "exact_active_read_tool_count = 21" in installer
     assert "exact_fail_closed_write_tool_count = 41" in installer
-    assert "chatgpt_link_required_once = $true" in installer
-    assert (
-        r'RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200"'
-        in installer
-    )
+    assert "codex_platform_tunnel_setup_required_once = $true" in installer
+    assert r'"EvidenceLanePV\tunnel-runtime-v200-$SlotRole"' in installer
     assert "RuntimeKeyEnvelopeSource" in installer
-    assert "saved_version = $true" in installer
-    assert "fallback_versions_preserved = $true" in installer
-    assert "Manage-EvidenceLaneTunnelVersions.ps1" in installer
+    assert "saved_slot = $true" in installer
+    assert "accepted_fallback_preserved = $true" in installer
+    assert "Manage-EvidenceLaneTunnelVersions.ps1" not in installer
+    assert "legacy_version_manager_authoritative = $false" in installer
+    assert 'registered_slot = $SlotRole' in installer
+    assert 'The fallback tunnel cannot be activated by the installer' in installer
+    assert "Assert-NoOtherActiveTunnel" in installer
+    assert "Another Evidence Lane tunnel is active" in installer
+    assert "could not be proven stopped; activation is blocked" in installer
     assert "Disable-ScheduledTask -TaskName $TaskName" in installer
     assert "if ($Activate)" in installer
     assert "MigrateCurrentRuntime" not in installer
     assert "evidence-lane.versioned-secure-mcp-tunnel-installation.v1" in installer
-    assert "Pinned Evidence Lane 2.0.0 host-neutral secure MCP tunnel" in installer
+    assert "Pinned Evidence Lane 2.0.0 $SlotRole secure MCP tunnel" in installer
     assert "Google Drive" not in installer
     assert "GDrive" not in installer
 
@@ -87,7 +91,7 @@ def test_installer_classifies_api_persistent_and_ephemeral_host_lifetimes() -> N
     assert "raw_vm_instance_id_stored = $false" in installer
     assert "cannot import a Runtime key envelope from durable storage" in installer
     assert '$exactHostLifetime -ne "Ephemeral"' in installer
-    assert 'tunnel_registry_lifetime = if ($exactHostLifetime -eq "Ephemeral")' in installer
+    assert 'two_slot_registry_authority = "SEALED_POST_PV11_TWO_SLOT_REGISTRY"' in installer
     assert "account_tier_affects_routing = $false" in installer
     assert "api_billing_affects_routing = $false" in installer
 
@@ -120,6 +124,8 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert "exact_active_read_tool_count = 21" in manager
     assert "exact_fail_closed_write_tool_count = 41" in manager
     assert "runtime_key_plaintext_reported = $false" in manager
+    assert "slot_role = if ($null -ne $marker)" in manager
+    assert "byte_frozen = if ($null -ne $marker)" in manager
     assert 'project_binding = "NONE_TRANSPORT_ONLY"' in manager
     assert 'project_route_argument = "project_id"' in manager
     assert "project_route_argument_required = $true" in manager
@@ -135,8 +141,9 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert "reusable_without_reinstall = $true" in manager
 
 
-def test_version_manager_stages_candidates_before_atomic_promotion() -> None:
+def test_legacy_version_manager_remains_migration_only_not_live_slot_authority() -> None:
     manager = _read("Manage-EvidenceLaneTunnelVersions.ps1")
+    installer = _read("Install-EvidenceLaneTunnel.ps1")
     assert '[ValidateSet("Register", "List", "VerifyCandidate", "Promote", "Activate")]' in manager
     assert 'evidence-lane.tunnel-version-registry.v1' in manager
     assert "evidence-lane-tunnel-installation.json" in manager
@@ -158,6 +165,8 @@ def test_version_manager_stages_candidates_before_atomic_promotion() -> None:
     assert "--require-control-plane-poll" in manager
     assert "Remove-Item -LiteralPath $exactRuntimeRoot -Recurse" not in manager
     assert "evidence-lane.versioned-secure-mcp-tunnel-installation.v1" in manager
+    assert "Manage-EvidenceLaneTunnelVersions.ps1" not in installer
+    assert "legacy_version_manager_authoritative = $false" in installer
 
 
 def test_version_manager_reads_legacy_registry_without_history_fields(

@@ -1,9 +1,11 @@
 # Evidence Lane 2.0 local Codex installation and reload
 
 Evidence Lane 2.0 uses Codex's supported local-marketplace path. It never edits
-`~/.codex/plugins/cache` directly and never treats the immutable 1.5 package as
-a working directory. The v1.5 cache and marketplace remain archive evidence;
-only their enabled configuration is switched off after the v2 install succeeds.
+`~/.codex/plugins/cache` directly. Before PV11 acceptance, cleanup is deferred.
+After exact standalone `APPROVE` and native Fuse, supported plugin management
+normalizes the live registry/cache to the enabled stable-build slot and the
+disabled byte-exact PV11 fallback slot; immutable evidence remains outside the
+live cache.
 
 The official Codex plugin authoring documentation describes local/repository
 marketplaces, `codex plugin marketplace add`, `codex plugin add`, and a desktop
@@ -55,6 +57,17 @@ restart after a local plugin changes:
 Every installation update repeats package verification, host installation,
 restart, native catalog readback, focused tests, and final installed-package
 HIL. A source-tree test alone is not installed-package proof.
+
+## Two-slot recovery
+
+The packaged `Switch-EvidenceLaneCodexSlot.ps1` operator is inactive until a
+sealed post-Fuse two-slot registry proves both installed slots. On explicit
+operator failover or a sealed multi-probe stable failure it stops the stable
+tunnel, starts and verifies the fallback tunnel, enables only the fallback
+plugin/MCP, and invokes the same exact-task restart helper. Returning to stable
+requires a sealed repair proof. A single transient error is rejected. Any
+failure before restart restores the source slot. After restart, native catalog
+and project/session binding must be proved again.
 
 ## Persistent Plan and change display
 
