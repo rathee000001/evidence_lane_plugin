@@ -105,7 +105,7 @@ def test_all_active_codex_product_version_surfaces_are_v200() -> None:
     )
     assert ENGINE_VERSION == CURRENT_VERSION
     assert str(plugin_manifest["version"]).split("+", 1)[0] == CURRENT_VERSION
-    assert str(plugin_manifest["version"]).endswith("+codex.20260811150000")
+    assert str(plugin_manifest["version"]).endswith("+codex.20260812002336")
     assert adapter_manifest["version"] == CURRENT_VERSION
 
 
