@@ -1448,6 +1448,7 @@ class EvidenceLaneService:
         active_path = self.store.project_root(project_id) / "active_session.json"
         session = None
         permitted_paths = None
+        interrupted_exit_authority_recovery = False
         if active_path.is_file():
             active = json.loads(active_path.read_text(encoding="utf-8"))
             require(
@@ -1459,14 +1460,24 @@ class EvidenceLaneService:
                 active_session_id=active.get("session_id"),
             )
             session = self.sessions.load(project_id, str(session_id))
+            interrupted_exit_authority_recovery = (
+                replace_registered_branch
+                and session.state.value == "EXIT_BUILDING"
+                and session.task is not None
+                and session.candidate_id is None
+            )
             require(
                 session.task is not None
                 and session.state.value
-                in {"TASK_CLASSIFIED", "AWAITING_USER_APPLY_COMMIT"},
+                in {"TASK_CLASSIFIED", "AWAITING_USER_APPLY_COMMIT"}
+                or interrupted_exit_authority_recovery,
                 "PROJECT_SYNC_TASK_STATE_INVALID",
-                "Git sync inside an active session requires one classified task.",
+                "Git sync inside an active session requires one classified task, "
+                "or an explicit candidate-free interrupted-exit branch-authority "
+                "recovery.",
                 status="BLOCKED",
                 state=session.state.value,
+                candidate_id=session.candidate_id,
             )
             task_payload = cast(dict[str, Any], session.task)
             permitted_paths = list(task_payload["permitted_paths"])
@@ -1498,7 +1509,7 @@ class EvidenceLaneService:
                 else None
             ),
         )
-        if session is not None:
+        if session is not None and not interrupted_exit_authority_recovery:
             activity = self.sessions.record_activity(
                 project_id,
                 session.session_id,
@@ -1530,6 +1541,11 @@ class EvidenceLaneService:
                 },
             )
             result["activity"] = activity["event"]
+        elif interrupted_exit_authority_recovery:
+            result["activity_recorded"] = False
+            result["activity_deferred_reason"] = (
+                "CANDIDATE_FREE_INTERRUPTED_EXIT_AUTHORITY_RECOVERY"
+            )
         return result
 
     def boot_session(

@@ -35,6 +35,42 @@ def test_legacy_reference_only_runtime_receipt_remains_valid(service) -> None:
     assert "invocation" not in validated
 
 
+def test_legacy_runtime_receipt_builds_exit_slip_without_rewriting_it(service) -> None:
+    boot = boot_local(service)
+    session_id = boot["session"]["session_id"]
+    legacy = _legacy_runtime_continuity(boot["runtime_continuity"])
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["runtime_continuity"] = legacy
+    service.sessions._save(session)
+
+    built = service.build_initial("book-faires", session_id)
+    candidate_path = service.store.candidate_path(
+        "book-faires", built["candidate"]["candidate_id"]
+    )
+    entry = json.loads((candidate_path / "entry_slip.json").read_text(encoding="utf-8"))
+    exit_slip = json.loads(
+        (candidate_path / "exit_slip.json").read_text(encoding="utf-8")
+    )
+
+    assert entry["runtime_continuity"] == legacy
+    assert exit_slip["runtime_continuity"] == legacy
+    assert exit_slip["pv_exit_prompt"] == {
+        "label": "PV_EXIT_SUGGESTED_NEXT_PROMPT",
+        "suggested_next_prompt": built["suggested_next_prompt"],
+        "choices": [
+            "APPROVE",
+            "APPROVE_WITH_DELTA",
+            "MORE_RESEARCH",
+            "ROLLBACK",
+            "REJECT",
+            "FAIL",
+        ],
+        "copyable": True,
+        "host_owned_composer": True,
+        "auto_submit": False,
+    }
+
+
 def test_legacy_runtime_receipt_rejects_unsafe_boundary(service) -> None:
     boot = boot_local(service)
     legacy = _legacy_runtime_continuity(boot["runtime_continuity"])
