@@ -77,7 +77,7 @@ def _fixture_catalog_source() -> str:
 
 def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     source = tmp_path / "source"
-    version = "2.0.0+codex.20260812010807"
+    version = "2.0.0+codex.20260812020014"
     _write(
         source / ".codex-plugin" / "plugin.json",
         json.dumps(
@@ -577,6 +577,12 @@ def test_restart_helper_is_exact_process_and_same_task_only() -> None:
     text = RESTART.read_text(encoding="utf-8")
 
     assert '[switch]$ConfirmRestart' in text
+    assert 'OpenAI.CodexBeta_2p2nqsd0c76g0!App' in text
+    assert 'OpenAI.Codex_2p2nqsd0c76g0!App' not in text
+    assert '$script:CodexBetaProcessName = "ChatGPT (Beta).exe"' in text
+    assert 'OpenAI\\.CodexBeta_' in text
+    assert "Get-CodexBetaPackageProcesses" in text
+    assert "prior_beta_process_tree_fully_stopped = $true" in text
     assert "Get-RootCodexProcess $TargetProcessId" in text
     assert 'Stop-Process -Id $TargetProcessId -Force' in text
     assert 'Stop-Process -Name' not in text
@@ -589,15 +595,30 @@ def test_restart_helper_is_exact_process_and_same_task_only() -> None:
     assert "Assert-CodexThreadProtocol" in text
     assert "ConvertTo-WindowsCommandLineArgument" in text
     assert "-ArgumentList $argumentLine" in text
-    assert "Start-Process -FilePath $taskUri" in text
+    assert "Invoke-CodexBetaActivation $taskUri" in text
+    assert "EvidenceLaneCodexBetaActivation" in text
+    assert "Start-Process -FilePath $taskUri" not in text
     assert 'schema = "evidence-lane.codex-task-binding.v1"' in text
     assert 'state = "EXACT_TASK_BINDING_PREPARED"' in text
     assert 'claim_scope = "EXACT_CODEX_THREAD_ID_ONLY"' in text
     assert "task_binding_receipt_sha256" in text
-    assert 'state = "EXACT_TASK_RELAUNCH_REQUESTED_CODEX_ROOT_OBSERVED"' in text
+    assert (
+        'state = "BETA_ROOT_RELAUNCHED_EXACT_TASK_REQUESTED_AWAITING_NATIVE_PROOF"'
+        in text
+    )
+    assert 'state = "BETA_RELAUNCH_FAILED"' in text
+    assert "operator_recovery_required = $true" in text
+    assert "manual_open_can_satisfy_helper_success = $false" in text
     assert "RELAUNCH_REQUESTED_USER_MUST_OPEN_SAME_TASK" not in text
     assert "coordinate_clicking_used = $false" in text
+    assert "user_opened_beta_manually = $false" in text
+    assert "task_2_used = $false" in text
+    assert 'native_workspace_binding_source = "EXISTING_CODEX_TASK_STATE"' in text
+    assert "native_workspace_binding_mutated = $false" in text
+    assert "native_local_workspace_and_changes_proof_pending = $true" in text
+    assert "codex_native_changes_ui_mutated = $false" in text
     assert "active_task_ui_independently_proven = $false" in text
+    assert "native_catalog_and_project_session_proof_pending = $true" in text
     assert "lifecycle_resume_call_required = $false" in text
     assert "state_travel_required = $false" in text
     assert "hot_reload_claimed = $false" in text

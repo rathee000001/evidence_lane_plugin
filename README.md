@@ -139,7 +139,10 @@ The Codex task panel and its active change notice are one continuity pair:
 Package changes require a supported Codex restart because a running task may
 hold a frozen capability snapshot. The restart helper binds the exact project,
 Evidence Lane session, Codex task UUID, host session, installation receipt, and
-root Codex process before it can relaunch the same task deep link.
+root `ChatGPT (Beta)` Codex process before it activates the exact
+`OpenAI.CodexBeta_2p2nqsd0c76g0!App` identity and reopens the same task. This
+preserves the existing task-owned Git workspace and native Changes surface; the
+plugin neither recreates nor claims ownership of Codex's `+added/-deleted` UI.
 
 ## Hooks
 
@@ -284,10 +287,13 @@ The supported v2 verification sequence is:
 2. verify source, commit, tree, package, catalog, skill, hook, and secret seals;
 3. stage and activate through the supported Codex marketplace route;
 4. run the pre-restart installed-package acceptance check;
-5. prepare a restart receipt bound to the exact task and root process;
-6. restart Codex and reopen the exact `codex://threads/<task-id>` deep link;
+5. prepare a restart receipt bound to the exact task and root ChatGPT Beta
+   process;
+6. restart the exact Beta AppUserModelID and pass it the exact
+   `codex://threads/<task-id>` deep link;
 7. verify the native catalog, hooks, project/runtime panels, icon, persistent
-   task/change display, and local store from the installed package;
+   task/change display, task-owned Git workspace and native Changes UI, and
+   local store from the installed package;
 8. stop at the six-way HIL.
 
 See [Codex v2 local installation](docs/CODEX_V200_LOCAL_INSTALL_AND_RELOAD.md).

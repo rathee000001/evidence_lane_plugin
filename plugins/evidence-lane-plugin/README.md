@@ -79,11 +79,14 @@ namespaces, and host-connection metadata.
    pre-restart receipt proves bytes only; it is not installed-host HIL.
 4. Run `scripts/codex_release/Restart-EvidenceLaneCodex.ps1` with the exact
    project, Evidence Lane session, Codex task UUID, host session, installation
-   receipt, and verified root Codex process. The helper relaunches the same task
-   through its `codex://threads/<task-id>` deep link.
+   receipt, and verified root `ChatGPT (Beta)` Codex process. The helper
+   activates only `OpenAI.CodexBeta_2p2nqsd0c76g0!App` and passes it the same
+   task's `codex://threads/<task-id>` deep link. It does not use another task,
+   modify the task's native workspace binding, or implement Codex's Changes UI.
 5. After restart, verify native route identity, 62/21/41 counts, all 15 skills,
    hook execution, icon, project/runtime panels, persistent task/change display,
-   and local durable storage from the installed package.
+   native Git workspace and Changes surface, and local durable storage from the
+   installed package.
 6. Stop at the explicit six-way HIL.
 
 ## Stable-build and accepted-PV11 fallback
