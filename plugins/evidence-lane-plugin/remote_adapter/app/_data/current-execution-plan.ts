@@ -1,7 +1,7 @@
 import {
   websiteCurrentExecution,
   websiteCurrentExecutionBoundary,
-} from "./website-current-execution";
+} from "./website-current-execution.ts";
 
 export type ExecutionPlanStatus = "COMPLETED" | "IN_PROGRESS" | "PENDING";
 
@@ -14,29 +14,26 @@ export type ExecutionPlanRow = {
 
 export const currentExecutionPlan: readonly ExecutionPlanRow[] = websiteCurrentExecution.map((row) => ({
   number: row.order,
-  status: row.status === "IN PROGRESS" ? "IN_PROGRESS" : row.status,
+  status: row.status,
   step: row.summary,
-  boundary: row.order === 196 ? "HIL" : "PRE_HIL",
+  boundary: row.panelRole === "PHYSICALLY_FINAL_HIL" ? "HIL" : "PRE_HIL",
 }));
 
 export const executionPlanBoundary = {
-  authority: "SEALED_ORIGIN_PLUS_LIVE_LINEAR_PROJECTION_AS_PUBLIC_ROWS_081_196",
+  authority: websiteCurrentExecutionBoundary.canonicalAuthority,
   sealedHistoricalDeltaRows: 80,
   liveProjectionRows: currentExecutionPlan.length,
   completedRows: currentExecutionPlan.filter((row) => row.status === "COMPLETED").length,
-  activeRow: 184,
-  activeTaskPosition: 104,
-  activeReceiptPosition: 112,
+  activeRow: websiteCurrentExecutionBoundary.activePublicOrder,
+  activeTaskId: websiteCurrentExecutionBoundary.activeTaskId,
+  activeTaskPosition: websiteCurrentExecutionBoundary.activeTaskPosition,
   pendingRows: currentExecutionPlan.filter((row) => row.status === "PENDING").map((row) => row.number),
   exactlyOneActiveRow: currentExecutionPlan.filter((row) => row.status === "IN_PROGRESS").length === 1,
-  persistentUntil: "ROW_196_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE",
-  lastExecutionStep: 195,
-  physicallyLastStep: 196,
-  sealedOriginReceiptPanelSha256: websiteCurrentExecutionBoundary.sealedOriginReceiptPanelSha256,
-  sealedOriginPublicProjectionSha256: websiteCurrentExecutionBoundary.sealedOriginPublicProjectionSha256,
-  livePanelSha256: websiteCurrentExecutionBoundary.livePanelSha256,
-  canonicalPlanProjectionSha256: websiteCurrentExecutionBoundary.canonicalPlanProjectionSha256,
-  panelReactivation: websiteCurrentExecutionBoundary.panelReactivation,
-  executionWriterBoundary: websiteCurrentExecutionBoundary.executionWriterBoundary,
-  goalContinuity: websiteCurrentExecutionBoundary.goalContinuity,
+  persistentUntil: websiteCurrentExecutionBoundary.persistentUntil,
+  lastExecutionStep: websiteCurrentExecutionBoundary.finalHilPublicOrder - 1,
+  physicallyLastStep: websiteCurrentExecutionBoundary.finalHilPublicOrder,
+  physicallyLastTaskId: websiteCurrentExecutionBoundary.finalHilTaskId,
+  canonicalPlanSha256: websiteCurrentExecutionBoundary.canonicalPlanSha256,
+  executableProjectionSha256: websiteCurrentExecutionBoundary.executableProjectionSha256,
+  websitePlanSnapshotSha256: websiteCurrentExecutionBoundary.websitePlanSnapshotSha256,
 } as const;

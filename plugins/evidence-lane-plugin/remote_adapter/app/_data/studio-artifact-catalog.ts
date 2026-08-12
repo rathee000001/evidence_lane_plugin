@@ -45,7 +45,7 @@ export const studioArtifactCatalog: readonly StudioArtifact[] = [
     label: "Append-only Delta ledger",
     format: "Table",
     href: "/#delta-ledger",
-    identity: "live-projection=124-positions final-row=196 active-row=184 panel-ui=governed-console-v3",
+    identity: `authority=${websiteCurrentExecutionBoundary.canonicalAuthority} live-projection=${websiteCurrentExecutionBoundary.taskCount}-rows final-row=${websiteCurrentExecutionBoundary.finalHilPublicOrder} active-row=${websiteCurrentExecutionBoundary.activePublicOrder} snapshot=${websiteCurrentExecutionBoundary.websitePlanSnapshotSha256}`,
     status: "DERIVED_VIEW",
     purpose: "Ordered corrections, supersessions, and live task projection.",
     boundary: "Historical sealed receipts remain immutable and distinct from the live projection.",
@@ -177,3 +177,4 @@ export const studioRetrievalServices = {
   vector: "WIRED_NOT_CONFIGURED_OPTIONAL",
   generation: "DETERMINISTIC_REVIEWED_FALLBACK_OPENROUTER_OPTIONAL",
 } as const;
+import { websiteCurrentExecutionBoundary } from "./website-current-execution.ts";

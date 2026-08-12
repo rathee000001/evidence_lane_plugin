@@ -105,10 +105,10 @@ export const floatingStudioSuggestions = {
   default: [
     "What business problem does Evidence Lane solve?",
     "What do Build, Refresh, HIL, and Fuse each mean?",
-    "What is active Row 184 in the current 124-position execution plan?",
+    `What is active Row ${websiteCurrentExecutionBoundary.activePublicOrder} in the current ${websiteCurrentExecutionBoundary.taskCount}-row execution plan?`,
     "What is proven today, and what remains unknown?",
     "How do durable and ephemeral Codex profiles differ?",
-    "Why does the final HIL now sit at Row 196?",
+    `Why is the physically final HIL at Row ${websiteCurrentExecutionBoundary.finalHilPublicOrder}?`,
   ],
 } as const;
 
@@ -397,3 +397,4 @@ export const credits = [
   ["Google Gemini", "Reasoning dialogue and comparative questioning used during research."],
   ["Anthropic Claude", "Independent Fable-plugin exploration and comparative implementation feedback."],
 ] as const;
+import { websiteCurrentExecutionBoundary } from "./website-current-execution.ts";

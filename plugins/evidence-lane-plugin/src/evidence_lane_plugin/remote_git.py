@@ -19,6 +19,7 @@ from .hashing import atomic_write_json
 from .ids import prefixed_id
 from .store import ProjectStore
 from .timeutil import utc_now
+from .website_plan_projection import require_website_plan_projection_for_push
 
 
 class RemoteGitController:
@@ -135,6 +136,12 @@ class RemoteGitController:
             "The governed repository tree does not match the prepared local ref.",
             status="MISMATCH",
         )
+        website_plan_gate = require_website_plan_projection_for_push(
+            self.store,
+            project_id=project_id,
+            repository=config.repository_path,
+            commit=local_commit,
+        )
         remote_identity = resolve_named_remote_identity(
             config.repository_path,
             remote=safe_remote,
@@ -163,6 +170,7 @@ class RemoteGitController:
             "local_commit": local_commit,
             "local_tree": local_tree,
             "remote_branch": exact_branch,
+            "website_plan_gate": website_plan_gate,
             "requested_by": requested_by,
             "prepared_at": utc_now(),
             "authorization": {
@@ -293,6 +301,20 @@ class RemoteGitController:
             "REMOTE_ACTION_REPOSITORY_OR_REMOTE_STALE",
             "The governed repository or selected remote changed after preparation.",
             status="STALE",
+        )
+        current_website_plan_gate = require_website_plan_projection_for_push(
+            self.store,
+            project_id=project_id,
+            repository=config.repository_path,
+            commit=pinned_commit,
+        )
+        require(
+            action.get("website_plan_gate") == current_website_plan_gate,
+            "REMOTE_WEBSITE_PLAN_GATE_STALE_AFTER_PREPARE",
+            "The canonical Plan changed after the remote push was prepared.",
+            status="STALE",
+            prepared_website_plan_gate=action.get("website_plan_gate"),
+            current_website_plan_gate=current_website_plan_gate,
         )
         result = remote_push(
             config.repository_path,

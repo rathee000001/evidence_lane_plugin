@@ -1,0 +1,1317 @@
+{
+  "schema": "evidence-lane.website-plan-projection.v1",
+  "canonical_authority": "PLAN_LANE",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "task_count": 119,
+  "canonical_task_count": 173,
+  "history_task_count": 54,
+  "row_offset": 80,
+  "row_start": 81,
+  "row_end": 199,
+  "status_counts": {
+    "completed": 83,
+    "in_progress": 1,
+    "pending": 35
+  },
+  "active_row": 164,
+  "active_task_id": "EL-CODEX-TURN_PREPARE_CAPTURE-PROPOSAL-04",
+  "active_task_position": 84,
+  "physically_final_hil_row": 199,
+  "physically_final_hil_task_id": "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR",
+  "physically_final_hil_task_position": 119,
+  "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
+  "canonical_plan_sha256": "FEB3216FF5D82E628436B400697852CC80B5044F08FCFB9E9F32FB1BB0FC3C90",
+  "history_projection_sha256": "5C336413C913BA11CA6E2FC16E972E262892558598E753D102834657CA6EF351",
+  "executable_projection_sha256": "8CA51C9426818C90D60560D6F1053CC9F58E4F57108D211D5D20084AA3D06C8A",
+  "lifecycle_event_count": 639,
+  "lifecycle_event_head_sha256": "23EECF4698EA8749A36EB1FF10975D3EEBFE1BC2AC51077692CFDCC053D348BD",
+  "planning_event_count": 15,
+  "planning_event_head_sha256": "28F90F316FA2C24D3DC179F2F81C27DDEAF88D7979CB20E9EB990C4FF86DAD06",
+  "runtime_projection_content_sha256": "8D3637AADA3BD7A15C3E2D75360BD32B7041D4E325E618BC770523F5B33110DB",
+  "rows": [
+    {
+      "row": 81,
+      "task_position": 1,
+      "task_id": "EL-CODEX-PERSISTENT-LIFECYCLE-DELTA-003",
+      "description": "Align the Codex lifecycle UI and state flow with the persistent Claude Code behavior: first synchronize the reviewed Codex branch commit and reseal PV1; diagnose the Claude Code main-line difference read-only; make prompt controls persistent, expose rollback, generate Refresh and exit-PV sealing automatically, and allow Fuse only after the user exactly approves the exit candidate.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 1,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 82,
+      "task_position": 2,
+      "task_id": "EVIDENCE-LANE-PLUGIN-READONLY-COMPARISON-FORENSIC-DELTA-002",
+      "description": "Produce a pinned read-only forensic comparison between the corrected Codex plugin candidate and Claude Code main, separating host-owned composer behavior from plugin-owned commands, hooks, MCP tools, persistence, Refresh, rollback, and Fuse law.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 2,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 83,
+      "task_position": 3,
+      "task_id": "EVIDENCE-LANE-PLUGIN-CODEX-COMMANDS-CHATGPT-PARITY-DELTA-001",
+      "description": "Complete Codex and ChatGPT lifecycle-surface parity with persistent native skills, /EV-first intake, rollback/status/HIL discoverability, truthful OAuth and persistence routing, and no unsupported composer-control claim.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 3,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 84,
+      "task_position": 4,
+      "task_id": "EL-RELEASE-DOCS-TEST-COMMIT-DELTA-004",
+      "description": "Refresh all affected README, architecture, runbook, state-machine, traceability, version, test, and evidence artifacts; run the complete validation matrix; create one clean local Git commit; and return to a new HIL.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 4,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 85,
+      "task_position": 5,
+      "task_id": "EL-GOVERNED-PUBLISH-REINSTALL-DEPLOY-DELTA-005",
+      "description": "After an accepted release PV, prepare the separately confirmed remote branch push, publish only with its exact one-use token, reinstall Codex from the exact Git commit, verify a fresh task, and deploy/connect ChatGPT only on an authorized durable host with production OAuth.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 5,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 86,
+      "task_position": 6,
+      "task_id": "EL-CHAT-LINEAGE-UNIVERSAL-RUNTIME-DELTA-006",
+      "description": "Make ChatLineage the persistent first-read runtime authority for governed turns: add an explicit exact-file ChatLineage intake path; store append-only visible turn state in a dedicated SQLite authority with canonical lineage head, previous/current state-hash chain, prompt index, pointer entry/exit receipts, file links, source receipts, and FTS history; automatically append the exact user-visible prompt and exact visible response subject only to deterministic secret redaction, plus a visible reasoning summary that never contains private chain-of-thought; and require plugin boot/resume to read the accepted pointer and lineage head before task execution. Do not claim that arbitrary models outside the plugin read this state.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 6,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 87,
+      "task_position": 7,
+      "task_id": "EL-ENV-UOP-VERIFIED-RUNTIME-PROJECTION-DELTA-007",
+      "description": "Keep the locked ENV15/UOP15 package as the sole immutable authority while making repeated boot fast and host-compatible through a digest-keyed derived runtime projection. Reuse the existing full member/hash/Mermaid/SQLite verification and installation flash receipt; add only a versioned compatibility manifest, read-only query/index projection, and thin host adapters keyed by authority digest, plugin schema, and host ABI. Never copy ENV/UOP law into project AGENTS.md, memory, PV bytes, code.sqlite, or source. Reuse a warm projection only when the installation is content-addressed/read-only and its identity is verified; mutable development checkouts must fully reverify. Any digest/schema/ABI mismatch invalidates the projection and fails closed.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 7,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 88,
+      "task_position": 8,
+      "task_id": "EL-MULTI-SOURCE-AUTOROUTE-DELTA-008",
+      "description": "Expose one and only one /evi-mode control-sidecar command, separate from source intake. Allow one turn to select multiple source-intake commands/files and deterministically route each unambiguous file by type into its canonical lane. Require the user to name the exact file and intended lane for semantic or ambiguous sources including Plan and ChatLineage. Preserve one-source/one-lane, no duplicate writes, explicit override receipts, and immediate relock.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 8,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 89,
+      "task_position": 9,
+      "task_id": "EL-CHAT-LINEAGE-USAGE-METRICS-DELTA-009",
+      "description": "Add prompt/task usage metrics to ChatLineage without pretending the plugin can intercept telemetry a host does not expose. Record host-reported model, submodel, input/output/cached/reasoning token fields and task totals when supplied; otherwise record either an ENV/UOP estimate with explicit assumptions and confidence or UNAVAILABLE. Preserve provenance for every metric and never capture hidden reasoning, credentials, billing identifiers, or private host telemetry.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 9,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 90,
+      "task_position": 10,
+      "task_id": "EL-EXIT-SLIP-NEXT-ACTION-DELTA-010",
+      "description": "Because the host owns the composer and may not support persistent prompt-bar text, place one state-derived next-action suggestion in the automatic exit slip and render it immediately before the six-option HIL. The suggestion must use the /evi namespace, distinguish automatic State Travel/Refresh from explicit user action, and never imply that a host window, prompt bar, approval, or pointer transition occurred.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 10,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 91,
+      "task_position": 11,
+      "task_id": "EL-STATE-TRAVEL-FRESH-WINDOW-DELTA-011",
+      "description": "Expose State Travel as the first Evidence Lane control. After exact candidate approval and byte-preserving Fuse, seal a handoff that requires a genuinely fresh Codex task or ChatGPT chat, atomically verifies Boot plus ENV/UOP Flash there, validates the exact accepted pointer generation and PV seals, appends the entry receipt, and stops at WAITING_FOR_NEXT_USER_COMMAND. Never claim the host opened a window when it did not.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 11,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 92,
+      "task_position": 12,
+      "task_id": "EL-MODE-INTERSECTION-SIDECAR-DELTA-012",
+      "description": "Provide one /evi-mode command, separate from source intake and callable at any lifecycle position, that classifies one or more ordered locked ENV/UOP mode intersections, maps them to canonical lanes including ChatLineage, records only a privacy-minimized visible classification receipt, and returns to the exact prior lifecycle state.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 12,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 93,
+      "task_position": 13,
+      "task_id": "EL-LOCAL-DRIVE-CAPABILITY-ROUTING-DELTA-013",
+      "description": "Route sealed PV persistence by the MCP server's actual durability capability. Durable Codex Desktop and local CLI use the user-owned local store as authority and never require or call Google Drive. Ephemeral VMs, public remote models, and servers without durable local storage require the normal user-connected Google Drive route for sealed PVs and bounded receipts. A host brand alone must never override measured durability.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 13,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 94,
+      "task_position": 14,
+      "task_id": "EL-PERSISTENT-ATOMIC-BOOT-FLASH-DELTA-014",
+      "description": "Make one /evi-01-boot command atomically verify installation, locked ENV/UOP Flash, selected project, accepted pointer, and the persistent governed session. Remove the separate user-facing Flash command. Once booted, the project session remains active across Codex tasks or ChatGPT chats through stored session state and startup context until the user explicitly invokes /evi-exit-boot. Exit Boot closes only the governed session; it does not uninstall the plugin, remove the installation-scoped Flash, delete PVs, or move a pointer.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 14,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 95,
+      "task_position": 15,
+      "task_id": "EL-EVI-ORDERED-SURFACE-DELTA-015",
+      "description": "Normalize every user-facing lifecycle and lane command to the /evi namespace and present one generalized top-down stack: State Travel first; atomic Boot+Flash; all source-intake lanes including Git, Local, SQLite PV Candidate Loader, ChatLineage, and Project Engulf; Build PV Entry; bounded task controls; automatic completion/Refresh/exit candidate; six-way HIL; exact-APPROVE Fuse; pointer-only Rollback; and explicit Exit Boot. Retain stable internal MCP identifiers where required for API compatibility.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 15,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 96,
+      "task_position": 16,
+      "task_id": "EL-CODEX-STEER-CHATLINEAGE-DELTA-016",
+      "description": "When the active host is Codex Desktop or Codex CLI and the host exposes steer events, append each user steer automatically to the governed ChatLineage as a privacy-minimized visible event linked to the active prompt, task, session, and lineage head. Preserve exact visible user text only after deterministic secret redaction; never capture private chain-of-thought, hidden host state, or unsupported events. Hosts without a steer event API must report HOST_CAPABILITY_UNAVAILABLE rather than fabricate capture.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 16,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 97,
+      "task_position": 17,
+      "task_id": "EL-STORAGE-CONNECTOR-POLICY-DELTA-017",
+      "description": "At atomic /evi-01-boot, classify the actual host surface and persistence capability: durable local Codex Desktop and durable local Codex CLI use local authority by default; Codex VM, ChatGPT/public remote models, and any host without proven durable local storage require an explicitly selected durable external connector. Add one separate /evi-change-storage-connector command that lets the user inspect and select an available durable storage backend without exposing OAuth or credentials. Storage changes are governed, receipt-backed, project-scoped, reversible, and never confused with /evi-exit-boot.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 17,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 98,
+      "task_position": 18,
+      "task_id": "EL-GOVERNED-ADDITIONAL-PLUGINS-DELTA-018",
+      "description": "Add a separate /evi-additional-plugin command that lets the user name up to eight already activated Codex or ChatGPT plugins/connectors and describe the bounded assistance requested from each. Evidence Lane remains the governor: it records grants, lane purpose, allowed actions, write scope, expiry, and receipts, while the host/model invokes the selected plugin directly. Add a separate /evi-drop-additional-plugin command to revoke one grant. These grants persist with the governed project until explicitly dropped, but never merge with Evidence Lane Boot, /evi-exit-boot, plugin installation, or HIL acceptance.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 18,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 99,
+      "task_position": 19,
+      "task_id": "EL-CHATGPT-PUBLIC-CHROME-INSTALL-DELTA-019",
+      "description": "After the release PV is accepted, the exact Git commit is pushed through its separately confirmed action, and a production public HTTPS MCP endpoint with durable external persistence and production OAuth is deployed, use the user's existing signed-in Chrome main profile to add Evidence Lane through ChatGPT's custom-plugin UI. Enter the public /mcp server URL rather than a Git repository URL or temporary local tunnel, preserve the user's authentication choice, complete only the explicitly authorized plugin installation, then verify the installed plugin in a fresh ChatGPT chat without claiming HIL or State Travel success.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 19,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 100,
+      "task_position": 20,
+      "task_id": "EL-PLAN-LANE-AUTOMATIC-LIFECYCLE-DELTA-020",
+      "description": "Make the governed Plan lane an automatic append-only runtime projection whenever Planning mode is selected and whenever a linear Delta changes lifecycle status. Preserve one immutable Delta identity and append universal transition events for added/QUEUED, ACTIVE, DONE, ACCEPTED, REJECTED, DROPPED, SUPERSEDED, FAILED, and ROLLED_BACK states; link superseding and superseded tasks explicitly; keep current status derived from the event ledger; and use one transition classifier shared by the backlog and Plan lane. Do not mix the separate /evi-mode sidecar, /evi-08-plan source intake/read surface, or /evi-50-task-plan backlog command.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 20,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 101,
+      "task_position": 21,
+      "task_id": "EL-GIT-HOST-PICKUP-BOOT-HIL-DELTA-021",
+      "description": "Close the same linear HIL by making the Git-installed Evidence Lane package validate and pick up cleanly in fresh Codex and ChatGPT hosts: normal /evi cold start must perform atomic Boot plus locked ENV/UOP Flash before displaying the ordered source-intake stack, a prepared post-Fuse handoff must still run State Travel first, Git and Local intake must remain explicit and branch-bounded, Planning-mode detection must keep auto-appending its privacy-minimized Plan runtime event, all Delta lifecycle changes must use the universal append-only status classifier, Google Drive must be connected only through the host's normal connector route, and prompt-indexed rollback must remain pointer-only without raw prompts or private reasoning.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 21,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 102,
+      "task_position": 22,
+      "task_id": "EL-STATE-TRAVEL-SUCCESSOR-HASH-BRIDGE-DELTA-022",
+      "description": "Add a successor-package hash bridge that preserves the immutable legacy State Travel package identity, records the legacy expected hash, binds the new implementation commit/package seals, and never rewrites the original package.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 22,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 103,
+      "task_position": 23,
+      "task_id": "EL-SIX-CONTROL-AUTOROUTED-SURFACE-DELTA-023",
+      "description": "Replace the public lifecycle catalog after root /evi with exactly six user controls—Boot, Rollback, Build, Refresh, Mode, and Source Intake—while retaining State Travel as the top conditional recovery event and preserving internal compatibility APIs.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 23,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 104,
+      "task_position": 24,
+      "task_id": "EL-ATOMIC-BOOT-HOST-STORAGE-CAPABILITY-DELTA-024",
+      "description": "Make Boot atomic across runtime doctor, locked ENV15/UOP15 Flash, persistent session boot/resume, host-kind detection, durable/ephemeral capability detection, and fail-closed local SQLite versus configured durable connector selection.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 24,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 105,
+      "task_position": 25,
+      "task_id": "EL-PROJECT-SECTOR-CHATLINEAGE-CANDIDATE-FANOUT-DELTA-025",
+      "description": "Implement project-sector candidate overlays and visible ChatLineage fan-out for prompts/steers, assistant-visible output, tools, commands, files, tests, builds, output links, actors, model identity, available usage metrics, hashes, and pointers; exclude secrets and private reasoning.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 25,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 106,
+      "task_position": 26,
+      "task_id": "EL-DYNAMIC-MODE-SOURCE-PLUGIN-CLASSIFICATION-DELTA-026",
+      "description": "Implement generalized Source Intake auto-detection with explicit overrides plus a separate one-command Mode sidecar supporting ordered intersections, custom modes, source/plugin classification, all 18 canonical lanes, and Project Engulf.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 26,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 107,
+      "task_position": 27,
+      "task_id": "EL-ACTOR-MODEL-TOKEN-OUTPUT-TELEMETRY-DELTA-027",
+      "description": "Add privacy-minimized actor, model/submodel, available token/usage, output, tool, file, test, build, pointer, and hash telemetry to visible ChatLineage without fabricating unavailable host metrics.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 27,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 108,
+      "task_position": 28,
+      "task_id": "EL-IMPLICIT-APPROVAL-BY-CONTINUATION-DELTA-028",
+      "description": "Reject implicit approval by continuation across HIL, candidate classification, Fuse, rollback, install, deploy, and State Travel; preserve exact-token and explicit-action gates.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 28,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 109,
+      "task_position": 29,
+      "task_id": "EL-FULL-GIT-HISTORY-BRAIN-DELTA-029",
+      "description": "Add a full Git-history brain with immutable commit/ref/file provenance, content-addressed reuse, deterministic history queries, and no remote write during indexing.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 29,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 110,
+      "task_position": 30,
+      "task_id": "EL-CHUNK-INCREMENTAL-REFRESH-HISTORY-DELTA-030",
+      "description": "Implement content-addressed chunking, single-index reuse, changed-section-only incremental Refresh, historical chunk lineage, deterministic fusion/fallback, and rollback-safe reuse.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 30,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 111,
+      "task_position": 31,
+      "task_id": "EL-SEMANTIC-LANE-SCHEMA-MMD-TEST-DELTA-031",
+      "description": "Extend lane-specific SQLite/FTS schemas, MMD/DOT topology artifacts, integrity/FK/history validation, and dummy-source tests for every one of the 18 canonical lanes.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 31,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 112,
+      "task_position": 32,
+      "task_id": "EL-MINI-BRAIN-FUSION-PROJECT-ROUTING-DELTA-032",
+      "description": "Implement deterministic mini-brain fusion and project-sector routing with candidate overlay isolation, explicit fallback semantics, and pointer-only rollback compatibility.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 32,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 113,
+      "task_position": 33,
+      "task_id": "EL-AI-TOOLCHAIN-CONNECTOR-BRAIN-DELTA-033",
+      "description": "Add connector/plugin governance for host-exposed AI toolchains with bounded purpose/scope/expiry receipts, at most eight additional persistent grants, and a separate exact-drop operation.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 33,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 114,
+      "task_position": 34,
+      "task_id": "EL-HOST-SPECIFIC-REFRESH-OUTPUT-HANDOFF-DELTA-034",
+      "description": "Implement host-specific Refresh completion and visible output handoff receipts across Codex app/CLI and ChatGPT while keeping composer suggestions host-owned and non-submitting.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 34,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 115,
+      "task_position": 35,
+      "task_id": "EL-CHATGPT-REMOTE-MCP-DURABLE-RUNTIME-DELTA-035",
+      "description": "Implement the ChatGPT remote MCP adapter on the repository-defined Vercel architecture using durable auth/storage/queue services, while keeping Codex local/Git-backed and Vercel out of general routing.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 35,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 116,
+      "task_position": 36,
+      "task_id": "EL-RELEASE-DOCS-INSTALL-HIL-DELTA-036",
+      "description": "Complete release docs, command docs, manifests, schemas, hooks, packaging, full validation, one governed commit/push, exact-SHA Codex install with cachebuster, eligible ChatGPT preview evidence, successor addendum seal, and a fresh unaccepted six-way HIL.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 36,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 117,
+      "task_position": 37,
+      "task_id": "EL-OPTIONAL-GIT-ARM-PROVENANCE-FALLBACK-DELTA-037",
+      "description": "Add an explicit optional Git history arm with truthful fallback receipts while preserving deterministic content indexing.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 37,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 118,
+      "task_position": 38,
+      "task_id": "EL-TOLERANT-HIL-INTENT-CLASSIFIER-DELTA-038",
+      "description": "Classify natural HIL continuation and approval intent without hard parser dead ends or inferred promotion.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 38,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 119,
+      "task_position": 39,
+      "task_id": "EL-MIDTURN-STEER-CHATLINEAGE-DELTA-039",
+      "description": "Append visible mid-turn steers as distinct ordered idempotent ChatLineage events with redaction and no private reasoning.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 39,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 120,
+      "task_position": 40,
+      "task_id": "EL-INDEPENDENT-RND-NAMING-POC-DELTA-040",
+      "description": "Publish an independently named Evidence Lane R&D assessment with original adversarial questions and user-attested ownership boundaries.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 40,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 121,
+      "task_position": 41,
+      "task_id": "EL-VERCEL-ROUTE-RELEASE-IDENTITY-DELTA-041",
+      "description": "Preserve public health and MCP paths through the Vercel catch-all while keeping the adapter fail-closed and Git-SHA bound.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 41,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 122,
+      "task_position": 42,
+      "task_id": "EL-DETACHABLE-BOOT-PLUGIN-SIDECAR-BRANDING-DELTA-042",
+      "description": "Prioritize a fully detachable /evi-exit-boot that closes the governed session, deactivates ENV15/UOP15 Flash context and prompt capture, and leaves the installed plugin plus immutable store available for a later explicit Boot; expose one /evi-plugin administrative sidecar for catalog, bounded persistent add, and exact drop of at most eight additional plugins; and add the owner's Evidence Lane logo/icon, copyright, license, contribution boundary, and accurate model and toolchain credits without unverified human contributors.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 42,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 123,
+      "task_position": 43,
+      "task_id": "EL-DETERMINISTIC-PARALLEL-LANE-BUILD-REFRESH-DELTA-043",
+      "description": "Run independent 18-lane Build and changed-lane Refresh computation concurrently inside one writer, then fail closed at a deterministic source-hash barrier before candidate assembly.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 43,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 124,
+      "task_position": 44,
+      "task_id": "EL-CONNECTOR-SETTINGS-ROLE-SCHEMA-POLYGLOT-DELTA-044",
+      "description": "Add an eight-slot structured connector settings surface with independent CODEX and CHATGPT profiles. Bind each registration once to a visible purpose/reason, role, typed role schema, actions, lanes, write scope, expiry, and an optional Python/Java/Kotlin/Go/Rust/C++/external-MCP backend declaration. Persist schema definitions and hashes without credentials; keep exact drop, deterministic routing, and no implicit backend execution authority.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 44,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 125,
+      "task_position": 45,
+      "task_id": "EL-MCP-NATIVE-COLDSTART-LIFECYCLE-PERFORMANCE-DELTA-045",
+      "description": "Fix the MCP lifecycle stall by initializing optional NumPy/OpenCV/ONNX OCR dependencies before the FastMCP event loop starts, reusing the process-local engine, and retaining bounded parallel lane computation plus the deterministic source-hash barrier. Prove the fix through the public stdio MCP lifecycle rather than direct-builder timing or a larger timeout.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 45,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 126,
+      "task_position": 46,
+      "task_id": "EL-CHATGPT-PUBLIC-RUNTIME-INSTALL-CLEANUP-HIL-DELTA-046",
+      "description": "Audit the current ChatGPT v1.0 app and Git-backed installation provenance plus the Codex duplicate-command source. Implement a public Next.js Evidence Lane page and a secure exact-SHA ChatGPT MCP route without making Vercel the Codex router or primary local authority. Install and verify the latest exact release in Codex and ChatGPT through the supported Git/Chrome routes, then remove only proven-obsolete Evidence Lane duplicates. Update packaging, docs, tests, and release evidence; push one governed branch commit; build a fresh unaccepted PV3 candidate and stop at six-way HIL.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 46,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 127,
+      "task_position": 47,
+      "task_id": "EL-SECRET-SAFE-TRACKED-SOURCE-BOUNDARY-DELTA-047",
+      "description": "Index only governed source files and exclude secrets, .env files, .runtime artifacts, ignored files, and untracked operational material before any exact bytes enter SQLite, chunks, FTS, topology, or a PV package.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 47,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 128,
+      "task_position": 48,
+      "task_id": "EL-SQLITE-MMD-DOT-RECONCILIATION-DELTA-048",
+      "description": "Reconcile every lane Mermaid and DOT graph against its own SQLite counts and fail closed on structural stubs, count mismatch, parse failure, or rendering divergence.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 48,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 129,
+      "task_position": 49,
+      "task_id": "EL-MULTIPAGE-ANIMATED-WEBSITE-DELTA-049",
+      "description": "Build a responsive white-theme multi-page Evidence Lane website with approved F-drive brand assets and original motion, while preserving Vercel as the ChatGPT adapter only.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 49,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 130,
+      "task_position": 50,
+      "task_id": "EL-V070-BASELINE-FULL-POSTINSTALL-POC-DELTA-050",
+      "description": "Create a full independent post-install POC using the complete 18-page v0.7 assessment structure as the baseline, not the later question-only summary.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 50,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 131,
+      "task_position": 51,
+      "task_id": "EL-V110-EXACT-SHA-INSTALL-DEPLOY-AUDIT-HIL-DELTA-051",
+      "description": "Publish one governed v1.1 commit, verify remote parity, install the exact Git release in Codex, deploy the ChatGPT adapter/website, verify supported ChatGPT installation where possible, run complete audits, and seal a fresh unaccepted HIL.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 51,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 132,
+      "task_position": 52,
+      "task_id": "EL-V120-EXACT-TOPOLOGY-BRAND-SITE-DELTA-052",
+      "description": "Replace the generic code graph with the locked logical SQLite/MMD/DOT code topology, align Evidence Lane full/compact branding, and deliver an accessible interactive Vercel website that explains the ephemeral-session pain, six controls, and all eighteen toolchains without reviving 3D telemetry nodes.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 52,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 133,
+      "task_position": 53,
+      "task_id": "EL-V120-REAL-GIT-18-LANE-POC-FORENSIC-DELTA-053",
+      "description": "Create a reproducible v1.2 PoC whose GitHub Code lane is the exact Evidence Lane plugin candidate commit and whose other seventeen lanes are bounded one-shot fixtures; run initial and Refresh builds plus independent per-lane forensic audits.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 53,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 134,
+      "task_position": 54,
+      "task_id": "EL-V120-TUNNEL-FIRST-CHATGPT-CODEX-INSTALL-DELTA-054",
+      "description": "Test the candidate in ChatGPT through an MCP tunnel first while preserving the working older app, use the Vercel MCP route only if tunnel proof fails, and reinstall the exact candidate through the normal governed Codex marketplace flow.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 54,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 135,
+      "task_position": 55,
+      "task_id": "EL-V120-PV4-HIL-AND-POSTAPPROVE-MAIN-ORDER-DELTA-055",
+      "description": "Confirm the exact final source boundary, seal a fresh unaccepted PV4 candidate, present the six-way HIL, and preserve a precise post-APPROVE route for governed non-force remote push and main promotion without treating tests as approval.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 55,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 136,
+      "task_position": 56,
+      "task_id": "EL-V120-FULL-APP-INTERACTION-PROMPT-STUDIO-DELTA-056",
+      "description": "Use the explicitly authorized F-drive full-app frontend read-only to port its pill schema, glass-container depth, neon pulse behavior, and interaction patterns into the Evidence Lane website; add an icon-to-brain-orb processing animation that emits four sealed lane artifacts and a grounded Evidence Lane Prompt Studio.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 56,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 137,
+      "task_position": 57,
+      "task_id": "EL-V120-EXTERNAL-CONNECTOR-BRAIN-INTAKE-DELTA-057",
+      "description": "Inventory and pin the exact relevant local downloaded repositories, installed V5.9 SQLite brains, Graphify evidence, and official github/gh-aw source requested by the user; keep all external/local authority read-only and distinguish implemented code from historical or speculative knowledge.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 57,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 138,
+      "task_position": 58,
+      "task_id": "EL-V120-GH-AW-MCP-ROUTE-CORRECTION-DELTA-058",
+      "description": "Use only verified findings from Delta 057 to correct or strengthen Evidence Lane connector and MCP route logic, with negative tests that prevent unsupported route, auth, host, or release-identity claims.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 58,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 139,
+      "task_position": 59,
+      "task_id": "EL-V120-SECURE-TUNNEL-ID-AND-INSTALL-DELTA-059",
+      "description": "Create or bind one OpenAI Secure MCP Tunnel for the exact Evidence Lane candidate, run the official tunnel-client doctor/runtime path, connect the replacement in ChatGPT developer mode when supported, and preserve the older app until exact release readback succeeds.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 59,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 140,
+      "task_position": 60,
+      "task_id": "EL-V120-CONNECTOR-SOURCE-USE-REPORT-DELTA-060",
+      "description": "Produce a separate pinned report of every external repository/brain inspected, what was reused, what was rejected, and the exact Evidence Lane file/test delta; then join Deltas 052–060 into the existing final-source confirmation and one fresh unaccepted PV4 HIL.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 60,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 141,
+      "task_position": 61,
+      "task_id": "EL-V120-EXACT-FULL-APP-UI-ASSET-COMPONENT-CONFORMANCE-DELTA-061",
+      "description": "Replace website-created lane glyph, brain-orb, pill, and glass-shell approximations with the explicitly authorized F-drive full-app frontend assets, component schemas, theme tokens, geometry, motion, and interaction behavior; adapt only the browser-safe frontend contract to Next.js and preserve the icon-to-brain-to-four-files Evidence Lane flow.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 61,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 142,
+      "task_position": 62,
+      "task_id": "EL-V120-VIEWPORT-SQLITE-GLASS-WORKSPACE-DELTA-062",
+      "description": "Recompose every public website route as one viewport-locked EvidenceOS-style SQLite glass workspace: use a persistent side rail for all eighteen lanes plus README, Architecture, and Artifacts; preserve stable top context, middle interactive builder, and bottom prompt containers; use only the light/frosted accepted glass and popup contracts; and make lane selection or hover run the exact existing-icon-to-one-brain-orb-to-four-files story with useful lane-tool hover details.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 62,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 143,
+      "task_position": 63,
+      "task_id": "EL-V120-HISTORICAL-PV-STATUS-COMPAT-DELTA-065",
+      "description": "Create a fresh unaccepted PV5 corrective candidate from accepted PV4 that fixes pv_status historical compatibility: immutable historical accepted PVs remain seal-validated without being requalified for promotion under newer topology contracts, while the current accepted PV remains strictly promotable-validated. Reconcile the 17-task ledger and stop at the six-way HIL.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 63,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 144,
+      "task_position": 64,
+      "task_id": "EL-V130-ALL-48-SOURCE-AUTHORITY-DELTA-066",
+      "description": "Implement the immutable all-48 source authority registry and crosswalk for every top-level item under F:\\DATA MACHINE, preserving exact path and live identity, kind, duplicate relation, privacy, license, generator evidence status, architecture version, application version, plugin version, ingestion lane, concrete use, test mapping, and explicit rejection reason without copying private payloads into the release.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 64,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 145,
+      "task_position": 65,
+      "task_id": "EL-V130-SAFE-BRAIN-ZIP-SQLITE-INTAKE-DELTA-067",
+      "description": "Implement bounded, schema-adaptive intake for direct SQLite brains, extracted brain folders, SQLite-bearing ZIPs, and code ZIPs: stream and inspect archives safely, virtual-index unextracted code into a sealed SQLite package, inspect embedded databases read-only, preserve manifests and hashes, and never execute archive content or arbitrary SQL.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 65,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 146,
+      "task_position": 66,
+      "task_id": "EL-V130-PROJECT-CUSTOM-SCHEMA-COMPILER-DELTA-068",
+      "description": "Add a genuine project-scoped Custom Source Schema contract and Source Intake surface that compiles a bounded declarative schema with types, primary and foreign keys, indexes, mappings, validation rules, schema version/hash, migration policy, and receipts, then maps source records into those tables without arbitrary SQL.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 66,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 147,
+      "task_position": 67,
+      "task_id": "EL-V130-V1-V2-V3-V59-ARCHITECTURE-FUSION-DELTA-069",
+      "description": "Implement a provenance-preserving compatibility layer that uses verified V1, V2, V3, ChatGPT full-V3, ENV14/ENV15, and native-app package structures across all eighteen lanes while keeping conflicting schemas, historical failures, and generator/version axes explicit instead of flattening them into one version claim.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 67,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 148,
+      "task_position": 68,
+      "task_id": "EL-V130-CODE-MODE-PCM-UOP-RECEIPTS-DELTA-070",
+      "description": "Make Code mode, ENV/UOP and PCM operator selection executable and visible: classify the request, select bounded operators, emit entry, index, CI/CD-loop and exit receipts with LOADED, SKIPPED, FAILED or NOT_APPLICABLE status, and append only visible operational lineage without hidden reasoning.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 68,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 149,
+      "task_position": 69,
+      "task_id": "EL-V130-GRAPHIFY-STABLE-POLYGLOT-IMPACT-DELTA-071",
+      "description": "Implement an independent bounded Graphify-informed polyglot graph adapter with stable entity IDs, extracted versus inferred edge provenance, symbol/import/route/dependency resolution, incremental graph diff, affected-subgraph traversal, shrink protection, caching, sanitization, and deterministic exports without transplanting Graphify runtime or UI wholesale.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 69,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 150,
+      "task_position": 70,
+      "task_id": "EL-V130-FULL-GIT-HISTORY-CHANGE-IMPACT-DELTA-072",
+      "description": "Extend the Git/code engine and POC to prove complete history and impact: refs, commits, parents, exact blobs, file versions, changes, hunks, exact line changes, renames, chunks, symbols, imports, routes, dependencies, workflows, tests and artifact impacts, while treating folders without Git metadata as content-only snapshots.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 70,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 151,
+      "task_position": 71,
+      "task_id": "EL-V130-18-LANE-SCHEMA-TOPOLOGY-DELTA-073",
+      "description": "Replace fixed and fingerprint-only diagrams with additive schema-derived topology for all eighteen lanes: tables, keys, foreign keys, FTS links, source-to-artifact relations, counts and bounded samples produce stable MMD and DOT from one model with base-node preservation and no silent shrink.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 71,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 152,
+      "task_position": 72,
+      "task_id": "EL-V130-DETERMINISTIC-MMD-SVG-PNG-RENDER-DELTA-074",
+      "description": "Repair and harden deterministic MMD to SVG and PNG rendering as a retryable derived stage: resolve mmdc and Chromium explicitly, pin configuration and tool identity, isolate browser state, verify outputs against source hashes, reject stale receipts, and keep SQLite/MMD/DOT authority valid when rendering is unavailable.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 72,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 153,
+      "task_position": 73,
+      "task_id": "EL-V130-STABLE-FOUR-FILE-TABLE-AUDIT-DELTA-075",
+      "description": "Normalize and enforce each lane's stable four-file contract as SQLite, MMD, DOT and tools JSON, with derived SVG/PNG plus manifest, pointer and stage receipts; implement an every-table forensic audit that checks schema, rows, bounded samples, FKs, FTS, relations, provenance and cross-artifact consistency.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 73,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 154,
+      "task_position": 74,
+      "task_id": "EL-V130-GUARDED-CICD-ADAPTERS-DELTA-076",
+      "description": "Add a real guarded CI/CD loop and bounded adapters derived from the supplied gh-aw, CodeQL, GitHub MCP, Branch Deploy and Local Action sources: pinned workflow manifests, safe-output compilation, request-scoped tool filtering, negative security fixtures, branch-preview preflight/lock/no-op reason codes, and disposable local action execution without granting autonomous deploy or HIL power.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 74,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 155,
+      "task_position": 75,
+      "task_id": "EL-V130-DOCS-SITE-POC-REPORT-DELTA-077",
+      "description": "Update the interactive documentation, website and POC report to explain the actual user problem, pain, solution, architecture, all-source registry, custom schemas, operator receipts, install/recovery, host capability matrix, current evidence and limits, while correcting all generator/version claims and removing historical overstatements.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 75,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 156,
+      "task_position": 76,
+      "task_id": "EL-V130-ALL-SOURCE-18-LANE-DUMMY-POC-DELTA-078",
+      "description": "Run and preserve a source-complete controlled POC using the current repository and all 48 registered inputs: route every retained authority, run a real full-history Git ingestion, populate and validate all eighteen lanes, use clearly labeled fixtures only where required, produce the four lane artifacts and renders, and audit every table and source disposition.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 76,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 157,
+      "task_position": 77,
+      "task_id": "EL-V130-BRANCH-PREVIEW-TUNNEL-HOSTS-DELTA-079",
+      "description": "Complete the governed pre-HIL release loop on a new feature branch: final tests, commit and push exact branch SHA, Vercel preview only, durable hidden Windows tunnel startup with protected credentials and restart evidence, exact-SHA Codex install/fresh-task pickup, and a supported ChatGPT fresh non-Pro diagnostic/read-write-readback test or an explicit host-level blocker.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 77,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 158,
+      "task_position": 78,
+      "task_id": "EL-V130-PV6-FORENSIC-SEAL-SIX-WAY-HIL-DELTA-080",
+      "description": "Reconcile all Deltas and source-use evidence, confirm the exact final Codex source boundary, run the deterministic full Refresh, seal a fresh unaccepted PV6 candidate with exact repository, engine, manifest, package, Exit Slip and lane-bundle identities, render the governed next prompt, and stop at the same six-way HIL.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 78,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 159,
+      "task_position": 79,
+      "task_id": "EL-V140-SYSTEMWIDE-RELEASE-IDENTITY-DELTA-081",
+      "description": "Establish Evidence Lane 1.4.0 as the single current release identity across authoritative plugin/runtime metadata, package manifests, README and current documentation, website product and structured metadata, GitHub-facing repository surfaces, tests, and new release evidence; preserve immutable historical 1.3 evidence and explicitly historical prior-version references; create one clean exact-source feature commit; Refresh to a new unaccepted PV8 candidate; and stop at the exact six-way HIL. Main merge, production website publication, GitHub release/publication changes, and the existing Devpost entry update occur only after a fresh approval of that candidate.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 79,
+      "linked_delta_ids": [
+        "delta_v140_systemwide_release_identity_20260808t1118z",
+        "DELTA_088_HIL_CONTINUITY_PERSISTENT_PANEL_20260808",
+        "DELTA_089_TOKEN_WAIT_GOAL_PAUSE_CONTINUE_OTHERS_20260808",
+        "DELTA_090_USE_INSTALLED_V140_IN_CURRENT_TASK_20260808",
+        "DELTA_091_PERSISTENT_PANEL_FIRST_ACTION_LAW_20260808",
+        "DELTA_092_UI_ORBIT_AND_STUDIO_CORRECTION_20260808",
+        "DELTA_093_EVERY_PAGE_HERO_ORBIT_CLARIFICATION_20260808",
+        "DELTA_094_APPEND_ONLY_WEBSITE_LEDGER_REPAIR_20260808",
+        "DELTA_095_PRIMARY_HERO_ORBIT_AND_ORB_CENTERING_SCHEMA_20260808",
+        "DELTA_096_CANONICAL_APPEND_ONLY_LEDGER_SOURCE_RECONCILIATION_20260808",
+        "DELTA_097_FRESH_INSTALLED_REPO_AND_LANE_NATIVE_POC_20260808",
+        "DELTA_098_CHATGPT_PLUGIN_WRITE_PARITY_AND_LEDGER_SOURCE_20260808",
+        "DELTA_099_DESKTOP1_SINGLE_CHATGPT_PROFILE_LAW_20260808",
+        "delta_v140_post80_execution_reconstruction_20260808t1642z"
+      ]
+    },
+    {
+      "row": 160,
+      "task_position": 80,
+      "task_id": "EL-CODEX-V200-LOCAL-STABLE-INSTALL-ACTIVATION-REFRESH-DELTA-147",
+      "description": "Create a new governed Evidence Lane 2.0.0 branch and local stable baseline, install and test the verified package locally before the final HIL, expose exact hook/skill/tool and active-Delta change status on every update, refresh version-bound derived runtime state safely, bind the matching tunnel channel separately, and prove the final installed plugin under sealed Code mode CI/CD laws.",
+      "status": "COMPLETED",
+      "lifecycle_status": "ACCEPTED",
+      "plan_sequence": 82,
+      "linked_delta_ids": [
+        "EL-CODEX-V200-LOCAL-STABLE-INSTALL-ACTIVATION-REFRESH-DELTA-147",
+        "CORRECTION_V200_RELOAD_TUNNEL_EPHEMERAL_ACCOUNT_TESTER_LICENSE_BOUNDARIES_20260810",
+        "CORRECTION_V200_HEADLESS_API_EPHEMERAL_VM_NO_TUNNEL_PV_EXIT_CONTINUITY_20260810",
+        "CORRECTION_V200_REFRESH_COMPLETE_DELTA_LIST_NO_UNRESOLVED_CONFLICT_20260810",
+        "EL-CODEX-V200-HOST-STORAGE-TUNNEL-CAPABILITY-MATRIX-CORRECTION-20260810",
+        "CORRECTION_V200_RESTART_AUTO_REOPEN_EXACT_TASK_20260811",
+        "CORRECTION_V200_CODEX_PROJECT_PANEL_AND_PLUGIN_IDENTITY_UI_20260811",
+        "CORRECTION_V200_PERSISTENT_CHANGE_DISPLAY_HOOK_SKILL_INVENTORY_20260811",
+        "CORRECTION_V200_EXACT_CODEX_TASK_HOOK_BINDING_AND_TASK142_CONSOLIDATION_20260811",
+        "CORRECTION_TASK147_EXACT_TEST_BRANCH_REMOTE_PUSH_AND_GITHUB_ACTIONS_20260811",
+        "CORRECTION_V200_CODEX_ONLY_GITHUB_README_AND_CHATGPT_LAYER_DECOUPLING_20260811",
+        "CORRECTION_V200_ROW82_CROSS_LINEAGE_ARCHITECTURE_STUDY_GATE_20260811",
+        "CORRECTION_V200_ROW82_SDK_PLUGIN_GITHUB_APP_DISTRIBUTION_BOUNDARY_20260811",
+        "CORRECTION_V200_ROW82_UNFINISHED_ONLY_GRANULAR_REPLAN_AND_HOOK_COVERAGE_20260811",
+        "EL-CODEX-TASK147-NATIVE-DIFF-CHATLINEAGE-PV-VISIBILITY-CORRECTION-20260811-01",
+        "EL-CODEX-TASK147-DIFF-PROOF-DEFER-TO-STATE-TRAVEL-TASK2-20260811-01",
+        "EL-CODEX-TASK147-TUNNEL-GUIDE-PV11-CURRENT-TASK-CORRECTION-20260811-03",
+        "EL-CODEX-TASK147-ROOT-CODEX-ONLY-FILE-AUDIT-CORRECTION-20260812-01",
+        "EL-CODEX-TASK147-PV11-TWO-SLOT-FALLBACK-STABLE-CORRECTION-20260812-01",
+        "EL-CODEX-TASK147-PV11-TWO-SLOT-CACHE-TUNNEL-CORRECTION-20260812-02",
+        "EL-CODEX-TASK147-TWO-SLOT-DETERMINISTIC-FAILOVER-OPERATOR-CORRECTION-20260812-03",
+        "EL-CODEX-TASK147-POST-MAIN-FRESH-BRANCH-SUBINDEX-CORRECTION-20260812-04",
+        "EL-CODEX-TASK147-BETA-HOST-RESTART-VERIFICATION-CORRECTION-20260812-05",
+        "EL-CODEX-TASK147-BETA-NATIVE-CHANGES-PERSISTENCE-CORRECTION-20260812-06",
+        "EL-CODEX-TASK147-ROW160-STATE-TRAVEL-SEQUENCE-CORRECTION-20260812-07",
+        "EL-CODEX-TASK147-NATIVE-CHANGES-REPAIR-DROPPED-20260812-08",
+        "EL-CODEX-TASK147-POST-MAIN-V210-BRANCH-NAMING-CORRECTION-20260812-09",
+        "EL-CODEX-TASK147-EXPLICIT-ROW-NUMBER-HOST-REFRESH-CORRECTION-20260812-10",
+        "EL-CODEX-TASK147-ROW-MARKER-DISPLAY-ONLY-TASK2-CLASSIFICATION-DEFERRED-20260812-11",
+        "EL-CODEX-TASK147-SUPERSEDE-RETAIN-DROP-REMOVE-DISPLAY-SEMANTICS-CORRECTION-20260812-12"
+      ],
+      "panel_role": "STANDARD"
+    },
+    {
+      "row": 161,
+      "task_position": 81,
+      "task_id": "EL-CODEX-POST-PV11-STATE-TRAVEL-TASK2-HANDOFF-DELTA-148",
+      "description": "After Task147 is complete on exact updated main, PV11 has been created and accepted only through a fresh exact standalone APPROVE, the accepted PV11 fallback and stable-build slots are proven with at most one active server and tunnel, seal and execute one exact unfinished-work State Travel handoff into Codex_Evidence_Lane_plugin_statetravel_task_2. Reopen the same governed project/session/Plan state there, preserve the task-owned Git workspace and all dirty/untracked evidence, verify the installed native catalog and project panel, and leave the first subsequent queued implementation row ready on a fresh work branch from exact updated main.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 133,
+      "linked_delta_ids": [
+        "EL-CODEX-POST-PV11-STATE-TRAVEL-TASK2-HANDOFF-DELTA-148",
+        "EL-CODEX-ROW161-VERIFIED-HANDOFF-NONCANDIDATE-CLOSEOUT-STEER-20260812-001"
+      ]
+    },
+    {
+      "row": 162,
+      "task_position": 82,
+      "task_id": "EL-CODEX-PV11-FALLBACK-SLOT-INSTALL-PREWARM-DELTA-149",
+      "description": "Before any subsequent stable-build mutation, materialize and hash-verify the exact accepted PV11/current-main Evidence Lane 2.0.0 package in the dedicated evidence-lane-pv11-fallback Codex marketplace slot, keep that fallback plugin and MCP disabled, preserve evidence-lane-v200-github as the sole enabled stable route, seal the two-slot recovery registry and exact current-task restart/reattach binding, and stop without restarting or activating fallback.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 136,
+      "linked_delta_ids": [
+        "EL-CODEX-PV11-FALLBACK-SLOT-INSTALL-PREWARM-DELTA-149"
+      ]
+    },
+    {
+      "row": 163,
+      "task_position": 83,
+      "task_id": "EL-CODEX-EXACT_TASK_PROJECT_SESSION_BINDING-PROPOSAL-03",
+      "description": "Bind the exact Codex thread UUID/deep link, project, governed session, active row, accepted pointer, plugin build, and host-session identity independently of title or CWD.",
+      "status": "COMPLETED",
+      "lifecycle_status": "DONE",
+      "plan_sequence": 137,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 164,
+      "task_position": 84,
+      "task_id": "EL-CODEX-TURN_PREPARE_CAPTURE-PROPOSAL-04",
+      "description": "Run PREPARE for every prompt, mid-Goal steer, Goal, correction, and HIL token with exact visible-input capture, secret redaction, idempotent IDs, and prior lineage head before reasoning.",
+      "status": "IN_PROGRESS",
+      "lifecycle_status": "ACTIVE",
+      "plan_sequence": 138,
+      "linked_delta_ids": [
+        "EL-CODEX-ROW163-TASK2-PROMPT-INDEX-CAPTURE-GAP-STEER-20260812-001",
+        "EL-CODEX-ROW163-MANDATORY-PREPARE-PV-RETRIEVAL-HOOK-LAW-20260812-002",
+        "EL-CODEX-ROW164-PREPARE-VS-PANEL-REFRESH-STEER-20260812-001",
+        "EL-CODEX-ROW164-PERSISTENT-PANEL-ACTIVATION-STEER-20260812-001",
+        "EL-CODEX-ROW164-GITLANE-STABLE-V210-ACTIVATION-CORRECTION-20260812-001",
+        "EL-CODEX-ROW164-GIT-FIRST-CI-GATED-STABLE-V210-INSTALL-CORRECTION-20260812-002",
+        "EL-CODEX-ROW164-GIT-CI-VERCEL-PREVIEW-TUNNEL-STABLE-REFRESH-CORRECTION-20260812-003",
+        "EL-CODEX-ROW164-EXACT-TWO-SLOT-CATALOG-CACHE-CLEANUP-CORRECTION-20260812-004",
+        "EL-CODEX-ROW164-TASK1-INSTALLED-SURFACE-PARITY-FORENSIC-CORRECTION-20260812-005",
+        "EL-CODEX-ROW164-COMMIT-BOUND-PLAN-LEDGER-PREVIEW-CORRECTION-20260812-006",
+        "EL-CODEX-ROW164-TASK1-V200-BASELINE-NOT-FUTURE-ROW-CORRECTION-20260812-007"
+      ]
+    },
+    {
+      "row": 165,
+      "task_position": 85,
+      "task_id": "EL-CODEX-TURN_CLASSIFY_DELTA_BIND-PROPOSAL-05",
+      "description": "Classify task class, lane set, ordered mode/operator intersection, lifecycle state, authority boundary, prior executable Delta, and target row; append corrections as immutable superseding Deltas.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 139,
+      "linked_delta_ids": [
+        "EL-CODEX-TURN-CLASSIFIER-QUESTION-VS-PLAN-STEER-CORRECTION-20260812-001"
+      ]
+    },
+    {
+      "row": 166,
+      "task_position": 86,
+      "task_id": "EL-CODEX-CHATLINEAGE_SQLITE_FTS_HASHCHAIN-PROPOSAL-06",
+      "description": "Persist secret-redacted visible prompts, steers, responses, operational events, source locators, receipts, chunks, FTS, timestamps, actor/model/host identity, and prior/current hashes in project-scoped SQLite.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 140,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 167,
+      "task_position": 87,
+      "task_id": "EL-CODEX-GOAL_METRIC_PRIVATE_RESEARCH_METADATA-PROPOSAL-07",
+      "description": "Record Goal-accounted token metrics with provenance, including corrected continuity total 44,198,517, and keep this project's memory/learning research question project-private.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 141,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 168,
+      "task_position": 88,
+      "task_id": "EL-CODEX-GOVERNED_RETRIEVAL-PROPOSAL-08",
+      "description": "Retrieve only bounded accepted-PV evidence plus an explicitly authorized candidate overlay, returning project/lane/source/locator/chunk/hash provenance and honest no-hit results; scrollback is transport only.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 142,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 169,
+      "task_position": 89,
+      "task_id": "EL-CODEX-EXECUTION_EVENT_COMMIT-PROPOSAL-09",
+      "description": "Append only visible governed tool, command, file, test, build, diff, output, warning, error, usage-availability, and response-subject events; close each ordinary turn with COMMIT.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 143,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 170,
+      "task_position": 90,
+      "task_id": "EL-CODEX-ENTRY_EXIT_RECOVERY-PROPOSAL-10",
+      "description": "Emit Entry/Prepare on binding and Exit Slip only at HIL, explicit pause, genuine block, governed error, Exit Boot, State Travel/handoff, or end of a stateless ephemeral invocation; resume the same row.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 144,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 171,
+      "task_position": 91,
+      "task_id": "EL-CODEX-PERSISTENT_PLAN_CURRENT_CHANGE-PROPOSAL-11",
+      "description": "Project the complete persistent task list with the exact active row and current executable Delta/change, retaining accepted and superseded history without duplicate authority.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 145,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 172,
+      "task_position": 92,
+      "task_id": "EL-CODEX-LIFECYCLE_HOOK_MATRIX-PROPOSAL-12",
+      "description": "Cover SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PreCompact, PostCompact, Stop, and best-effort SessionEnd; keep PermissionRequest conditional and subagent events out of scope.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 146,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 173,
+      "task_position": 93,
+      "task_id": "EL-CODEX-INSTALLED_HOOK_INVOCATION-PROPOSAL-13",
+      "description": "Register the approved hook matrix at the supported plugin surface and prove actual Windows host invocation, deterministic interpreter/plugin-root resolution, idempotency, payload contracts, and secret-safe diagnostics.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 147,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 174,
+      "task_position": 94,
+      "task_id": "EL-CODEX-HOT_RECONNECT_DEEPLINK_FALLBACK-PROPOSAL-14",
+      "description": "Prewarm installation outside MCP handshake, hot-reinitialize and reconnect the same open Codex task through its exact deep link, using app restart only as a bounded fallback.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 148,
+      "linked_delta_ids": [
+        "EL-CODEX-ROW173-WINDOWS-REBOOT-AUTOSTART-RECOVERY-STEER-20260812-001",
+        "EL-CODEX-ROW173-GENERAL-GOVERNED-GOAL-REBOOT-RESUME-STEER-20260812-002",
+        "EL-CODEX-ROW174-SAME-TASK-HOT-REATTACH-RECOVERY-LAW-20260812-001"
+      ]
+    },
+    {
+      "row": 175,
+      "task_position": 95,
+      "task_id": "EL-CODEX-STATE_TRAVEL_EXACT_ONCE-PROPOSAL-15",
+      "description": "Resolve queued clientThreadId to one real destination and enforce one global State Travel resume per handoff plus destination host-session tuple; retain duplicate/archived identities as history.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 149,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 176,
+      "task_position": 96,
+      "task_id": "EL-CODEX-ENV_BUILDER_PROJECT_CAPTURE_ROUTE-PROPOSAL-16",
+      "description": "Select before ingestion between sparse ENV-builder authority capture and full secret-redacted governed-project ChatLineage capture, with inclusion/exclusion reasons and no cross-route leakage.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 150,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 177,
+      "task_position": 97,
+      "task_id": "EL-CODEX-ENV_UOP_DUAL_HASH_IDENTITY-PROPOSAL-17",
+      "description": "Expose separate immutable source-authority subset hashes and Codex-derived ENV/UOP projection identity; retain PARTIAL_INTEGRITY and require a new build identity when derived members change.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 151,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 178,
+      "task_position": 98,
+      "task_id": "EL-CODEX-EIGHTEEN_LANE_FOUR_FILE_CONTRACT-PROPOSAL-18",
+      "description": "Harden all 18 lane contracts beyond schema presence: actual parser/toolchain capability, required/optional truth, deterministic chunks/retrieval, SQLite/MMD/DOT/tools authority, topology, receipts, absence law, and V1/V2/V3 non-regression.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 152,
+      "linked_delta_ids": [
+        "EL-CODEX-ROW177-PNPM-NEXT-DEPENDENCY-GRAPH-DETECTOR-CORRECTION-20260812-001"
+      ]
+    },
+    {
+      "row": 179,
+      "task_position": 99,
+      "task_id": "EL-CODEX-CODEX_ONLY_SOURCE_DOC_PACKAGE-PROPOSAL-19",
+      "description": "Make current v2 executable source, manifests, README/docs, tests, workflows, inventory, and product claims Codex-only; retain immutable ChatGPT history and at most one non-actionable Deferred marker.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 153,
+      "linked_delta_ids": [
+        "EL-CODEX-ROW151-README-BRANDING-CONTRIBUTOR-CORRECTION-20260811-01",
+        "EL-CODEX-ROW151-README-BRANDING-CONTRIBUTOR-TUNNEL-GUIDE-CORRECTION-20260811-02",
+        "EL-CODEX-ROW179-V210-SUCCESSOR-STABLE-IDENTITY-CORRECTION-20260812-001"
+      ]
+    },
+    {
+      "row": 180,
+      "task_position": 100,
+      "task_id": "EL-CODEX-PROJECT_PANEL_ICON_RESOURCE-PROPOSAL-20",
+      "description": "Restore truthful Evidence Lane icon/identity metadata and governed-console resource with Overview, all 18 lanes, and six-way HIL consequences; rendering stays read-only.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 154,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 181,
+      "task_position": 101,
+      "task_id": "EL-CODEX-RUNTIME_MODEL_STORAGE_TUNNEL_CLASSIFIER-PROPOSAL-21",
+      "description": "Classify measured host durability/locality, exact model/reasoning/service profile, account-versus-API route when exposed, native capabilities, storage, project/session/version namespace, and tunnel need without secrets.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 155,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 182,
+      "task_position": 102,
+      "task_id": "EL-CODEX-LOCAL_EPHEMERAL_HEADLESS_ROUTING-PROPOSAL-22",
+      "description": "Route persistent local/API execution to local durable PV without an API tunnel, interactive ephemeral Codex to VM-lifetime tunnel, and stateless headless calls to durable continuity plus per-invocation ENV/UOP and Exit packaging.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 156,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 183,
+      "task_position": 103,
+      "task_id": "EL-CODEX-TWO_PLANE_LEARNING_CONTRACT-PROPOSAL-23",
+      "description": "Define separate Project Truth and Agent Learning schemas, identities, namespaces, writes, reads, candidates, promotion, rollback, temporal/supersede rules, privacy, and contamination guards under ENV/UOP.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 157,
+      "linked_delta_ids": [
+        "EL-CODEX-TASK2-AGENT-LEARNING-FORENSIC-LINEAGE-STUDY-20260812-13",
+        "EL-CODEX-ROW182-LEGACY-AGENT-LEARNING-CONTRACT-SUPERSEDING-CORRECTION-20260812-001"
+      ]
+    },
+    {
+      "row": 184,
+      "task_position": 104,
+      "task_id": "EL-CODEX-LEARNING_CANDIDATE_HIL-PROPOSAL-24",
+      "description": "Implement learning only through sealed candidates carrying evidence, outcome, scope, type, confidence, counterevidence, contradiction/supersession, expiry, identity, and hashes; HIL never moves Project Truth.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 158,
+      "linked_delta_ids": [
+        "EL-CODEX-ROW183-SEPARATE-LEARNING-AND-PROJECT-TRUTH-HIL-CORRECTION-20260812-001"
+      ]
+    },
+    {
+      "row": 185,
+      "task_position": 105,
+      "task_id": "EL-CODEX-TWO_PLANE_LEARNING_BENCHMARK-PROPOSAL-25",
+      "description": "Benchmark clean boot/resume/restart with independent namespaces, accepted Project Truth, one separately approved procedural lesson, stale/rejected/no-hit/contradictory/revoked cases, and no-learning baseline.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 159,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 186,
+      "task_position": 106,
+      "task_id": "EL-CODEX-INTERNAL_SDK_HEADLESS_ADAPTER-PROPOSAL-26",
+      "description": "Build the internal Codex SDK/headless adapter after turn control and runtime classification; each call binds project/session/pointer/lineage/ENV-UOP/model/write scope and retrieves minimal truth and learning slices separately.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 160,
+      "linked_delta_ids": [
+        "EL-CODEX-TASK2-REMOTE-ADAPTER-DEPENDENCY-GRAPH-COVERAGE-CORRECTION-20260812-14"
+      ]
+    },
+    {
+      "row": 187,
+      "task_position": 107,
+      "task_id": "EL-CODEX-GITHUB_APP_ARTIFACT_DISTRIBUTION_DESIGN-PROPOSAL-27",
+      "description": "Freeze the post-HIL tester flow: form, approval, identity, terms receipt, entitlement, short-lived artifact authorization, signed package, install receipt, feedback, revocation, and no dev-repo read credential.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 161,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 188,
+      "task_position": 108,
+      "task_id": "EL-CODEX-COHERENT_V2_CORRECTION_FREEZE-PROPOSAL-28",
+      "description": "Freeze one bounded v2 correction wave, exact files, dependencies, Code-mode PCM/MBA governance, acceptance checks, and superseded current-Delta projection before source mutation.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 162,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 189,
+      "task_position": 109,
+      "task_id": "EL-CODEX-TARGETED_LOCAL_VERIFICATION-PROPOSAL-29",
+      "description": "Run focused local tests for changed hooks, lineage, projection, panel/resource, classification, routing, SDK/learning boundaries, packaging, secrets, and negative paths.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 163,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 190,
+      "task_position": 110,
+      "task_id": "EL-CODEX-ONE_COMMIT_TEST_BRANCH_PUSH-PROPOSAL-30",
+      "description": "Create one authorized commit on agent/evi-v200-systemwide-release-hil-v2.0.0 and push through governed native remote-Git with host-managed credentials, preserving unrelated bytes.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 164,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 191,
+      "task_position": 111,
+      "task_id": "EL-CODEX-GITHUB_ACTIONS_CLEAN_CI-PROPOSAL-31",
+      "description": "Use GitHub Actions clean-checkout CI for the exact pushed commit and permit at most one bounded correction commit/push for a real CI defect.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 165,
+      "linked_delta_ids": [
+        "EL-CODEX-ROW190-EXISTING-AUTOMATIC-CI-PREHIL-SCOPE-CORRECTION-20260812-001"
+      ]
+    },
+    {
+      "row": 192,
+      "task_position": 112,
+      "task_id": "EL-CODEX-BUSINESS-HOMEPAGE-STORY-USER-PAIN-DELTA-150",
+      "description": "Create a source-grounded business-language Evidence Lane homepage story from the user's pain perspective, using one read-only subagent report plus independent current-authority verification, and place it immediately before the POC validation rows.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 166,
+      "linked_delta_ids": [
+        "EL-CODEX-BUSINESS-HOMEPAGE-STORY-USER-PAIN-DELTA-150"
+      ]
+    },
+    {
+      "row": 193,
+      "task_position": 113,
+      "task_id": "EL-CODEX-REAL_GIT_FULL_HISTORY_POC-PROPOSAL-32",
+      "description": "In an isolated local fixture, prove refs/parents/history, main-versus-test file/hunk/symbol/schema/behavior/provenance analysis, branch PV rollback, and real Git lane test without outbound mutation.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 167,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 194,
+      "task_position": 114,
+      "task_id": "EL-CODEX-NON_GIT_18_LANE_POC_RENDER-PROPOSAL-33",
+      "description": "Run one deterministic dummy POC for every loaded non-Git lane, validating four-file sectors, SQLite/FK/schema/row/FTS/hash receipts, MMD/DOT/JSON, and usable SVG/PNG for ordinary and large fixtures.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 168,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 195,
+      "task_position": 115,
+      "task_id": "EL-CODEX-LIFECYCLE_REFRESH_ROLLBACK_PROOF-PROPOSAL-34",
+      "description": "Prove changed-section Refresh, snapshots/diffs, candidate-only output, exact-approval Fuse gating, pointer-only Rollback, no implicit acceptance, and six-way semantics using non-promoting fixtures.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 169,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 196,
+      "task_position": 116,
+      "task_id": "EL-CODEX-MULTIPROJECT_MULTIVERSION_ISOLATION-PROPOSAL-35",
+      "description": "Prove multiple projects and plugin versions cannot collide across MCP process, catalog, cache, channel/tunnel, session, pointer, lineage, storage, hook, panel, or task identity.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 170,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 197,
+      "task_position": 117,
+      "task_id": "EL-CODEX-PACKAGE_INSTALL_HOT_REATTACH-PROPOSAL-36",
+      "description": "Build one collision-free v2 package, seal source/package/commit/tree/worktree/catalog/skill/hook/resource identities, install supportedly, and hot-reattach the exact open task; restart is fallback.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 171,
+      "linked_delta_ids": [
+        "EL-CODEX-ROW195-TWO-SLOT-HASH-VERIFIED-RETENTION-CORRECTION-20260812-001",
+        "EL-CODEX-ROW195-TWO-SLOT-FALLBACK-CURRENT-TASK-REATTACH-LAW-20260812-003",
+        "EL-CODEX-ROW196-SINGLE-STABLE-SLOT-INPLACE-UPDATE-STEER-20260812-001",
+        "EL-CODEX-ROW196-GENERAL-GIT-CI-STABLE-UPDATE-RECOVERY-TUNNEL-SEPARATION-20260812-004"
+      ]
+    },
+    {
+      "row": 198,
+      "task_position": 118,
+      "task_id": "EL-CODEX-FINAL_FORENSIC_ACCEPTANCE-PROPOSAL-37",
+      "description": "Aggregate fresh receipts from every predecessor, account for every historical Codex-native requirement, prove only deferred ChatGPT/public work is parked, and verify exits without rerunning CI rituals.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 172,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 199,
+      "task_position": 119,
+      "task_id": "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR",
+      "description": "After every predecessor passes, run final full regression from the installed package, explicit governed Refresh to one immutable unaccepted candidate, render exact receipts and six HIL choices, and stop.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 173,
+      "linked_delta_ids": [],
+      "panel_role": "PHYSICALLY_FINAL_HIL"
+    }
+  ],
+  "snapshot_sha256": "2636AF5F6C03D5636C0A4AAAEFABB9307B2C471CD67EDC2F5448F1F31DE6E9DE"
+}

@@ -343,27 +343,24 @@ def test_owner_repository_and_existing_devpost_identity_do_not_drift() -> None:
     assert "only the existing Devpost project" in readme
 
 
-def test_current_plan_projection_is_exactly_row_184_and_row_196_stays_final() -> None:
+def test_current_plan_projection_uses_the_sealed_plan_snapshot() -> None:
     execution = _read(ADAPTER / "app" / "_data" / "website-current-execution.ts")
     guidance = _read(ADAPTER / "app" / "_data" / "business-guidance.ts")
+    snapshot = json.loads(
+        _read(ADAPTER / "app" / "_data" / "website-plan-projection.json")
+    )
     public_metadata = json.loads(
         _read(ADAPTER / "public" / ".well-known" / "evidence-lane-plugin.json")
     )
-    assert 'order: 184,\n    id: "ROW_184",\n    status: "IN PROGRESS"' in execution
-    assert 'order: 195,\n    id: "ROW_195",\n    status: "PENDING"' in execution
-    assert 'order: 196,\n    id: "ROW_196",\n    status: "PENDING"' in execution
-    assert "ADDITIVE_V150_PROJECT_PANEL_LANES_HIL_RENDER_CORRECTION_20260810" in execution
-    assert "ADDITIVE_LINEAR_GROWTH_ROW196_FINAL_HIL_CORRECTION_20260810" in execution
-    assert "activePublicOrder: 184" in execution
-    assert "activeTaskPosition: 104" in execution
-    assert "activeReceiptPosition: 112" in execution
-    assert "Row 184 remains the sole active row" in guidance
-    assert public_metadata["plan_lane"]["active_public_row"] == 184
-    assert public_metadata["plan_lane"]["active_public_task_position"] == 104
-    assert public_metadata["plan_lane"]["active_governed_receipt_position"] == 112
-    assert public_metadata["plan_lane"]["physically_final_hil_public_row"] == 196
-    assert public_metadata["plan_lane"]["physically_final_hil_governed_receipt_position"] == 124
+    assert 'import planProjection from "./website-plan-projection.json"' in execution
+    assert "websiteCurrentExecutionBoundary" in guidance
+    assert snapshot["canonical_authority"] == "PLAN_LANE"
+    assert snapshot["active_row"] == 164
+    assert snapshot["physically_final_hil_row"] == 199
+    assert public_metadata["plan_lane"]["active_public_row"] == snapshot["active_row"]
+    assert public_metadata["plan_lane"]["active_public_task_position"] == snapshot["active_task_position"]
+    assert public_metadata["plan_lane"]["physically_final_hil_public_row"] == snapshot["physically_final_hil_row"]
+    assert public_metadata["plan_lane"]["website_plan_snapshot_sha256"] == snapshot["snapshot_sha256"]
     current_plan = _read(ADAPTER / "app" / "_data" / "current-execution-plan.ts")
-    assert "activeRow: 184" in current_plan
-    assert "activeTaskPosition: 104" in current_plan
-    assert "activeReceiptPosition: 112" in current_plan
+    assert "activeRow: websiteCurrentExecutionBoundary.activePublicOrder" in current_plan
+    assert "activeTaskPosition: websiteCurrentExecutionBoundary.activeTaskPosition" in current_plan

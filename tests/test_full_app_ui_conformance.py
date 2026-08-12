@@ -423,6 +423,9 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     website_current_plan_data = (
         APP / "_data" / "website-current-execution.ts"
     ).read_text(encoding="utf-8")
+    website_plan_snapshot = json.loads(
+        (APP / "_data" / "website-plan-projection.json").read_text(encoding="utf-8")
+    )
     footer = (COMPONENTS / "site-footer.tsx").read_text(encoding="utf-8")
     release_identity = (APP / "_data" / "release-identity.ts").read_text(encoding="utf-8")
     layout = (APP / "layout.tsx").read_text(encoding="utf-8")
@@ -441,41 +444,32 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert 'id="current-execution-plan"' not in landing
     assert "One additive ledger. {deltaLedgerBoundary.totalRows} governed public rows." in landing
     assert "websiteCurrentExecution.map" in current_plan_data
-    assert 'activeRow: 184' in current_plan_data
-    assert 'activeTaskPosition: 104' in current_plan_data
-    assert 'activeReceiptPosition: 112' in current_plan_data
-    assert (
-        'persistentUntil: "ROW_196_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE"'
-        in current_plan_data
-    )
+    assert "activeRow: websiteCurrentExecutionBoundary.activePublicOrder" in current_plan_data
+    assert "activeTaskPosition: websiteCurrentExecutionBoundary.activeTaskPosition" in current_plan_data
+    assert "persistentUntil: websiteCurrentExecutionBoundary.persistentUntil" in current_plan_data
     assert (
         'exactlyOneActiveRow: currentExecutionPlan.filter((row) => row.status === "IN_PROGRESS").length === 1'
         in current_plan_data
     )
-    assert "lastExecutionStep: 195" in current_plan_data
-    assert "physicallyLastStep: 196" in current_plan_data
-    assert "SEALED_ORIGIN_PLUS_LIVE_LINEAR_PROJECTION_AS_PUBLIC_ROWS_081_196" in current_plan_data
-    assert 'order: 180,\n    id: "ROW_180",\n    status: "COMPLETED"' in website_current_plan_data
-    assert 'order: 181,\n    id: "ROW_181",\n    status: "COMPLETED"' in website_current_plan_data
-    assert 'order: 182,\n    id: "ROW_182",\n    status: "COMPLETED"' in website_current_plan_data
-    assert 'order: 183,\n    id: "ROW_183",\n    status: "COMPLETED"' in website_current_plan_data
-    assert 'order: 184,\n    id: "ROW_184",\n    status: "IN PROGRESS"' in website_current_plan_data
-    assert 'order: 195,\n    id: "ROW_195",\n    status: "PENDING"' in website_current_plan_data
-    assert 'order: 196,\n    id: "ROW_196",\n    status: "PENDING"' in website_current_plan_data
-    assert "full final local verification suite" in website_current_plan_data
-    assert "real Git test" in website_current_plan_data
-    assert "GitHub agent proof" in website_current_plan_data
-    assert "lane-absence case" in website_current_plan_data
-    assert "public website routes, footer links" in website_current_plan_data
-    assert "1348634/evidence_os" in website_current_plan_data
+    assert "physicallyLastStep: websiteCurrentExecutionBoundary.finalHilPublicOrder" in current_plan_data
+    assert 'authority: websiteCurrentExecutionBoundary.canonicalAuthority' in current_plan_data
+    assert 'import planProjection from "./website-plan-projection.json"' in website_current_plan_data
+    assert website_plan_snapshot["canonical_authority"] == "PLAN_LANE"
+    assert website_plan_snapshot["task_count"] == 119
+    assert website_plan_snapshot["row_start"] == 81
+    assert website_plan_snapshot["row_end"] == 199
+    assert website_plan_snapshot["active_row"] == 164
+    assert website_plan_snapshot["physically_final_hil_row"] == 199
+    assert website_plan_snapshot["rows"][-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
     assert 'phase: "Current execution"' in ledger_data
     assert "websiteCurrentExecution.map" in ledger_data
     assert "...currentExecution" in ledger_data
     assert "sealedHistoricalDeltaRows" in ledger_data
     assert "liveExecutionRows" in ledger_data
-    assert "81&ndash;196" in ledger
-    assert "Delta SHA-256" in ledger
-    assert "Linked correction" in ledger
+    assert "deltaLedgerBoundary.rowStart" in ledger
+    assert "deltaLedgerBoundary.rowEnd" in ledger
+    assert "Linked Deltas" in ledger
+    assert "websitePlanSnapshotSha256" in ledger
     assert "80 sealed historical Delta rows" in (
         COMPONENTS / "current-execution-plan.tsx"
     ).read_text(encoding="utf-8")

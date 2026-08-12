@@ -69,10 +69,10 @@
     {
       "id": "linear-panel-growth",
       "path": "/",
-      "question": "Why is Row 196 physically final in the 124-position task list?",
+      "question": "Which current PLAN_LANE row is active, and which row is physically final?",
       "expected_guide": "plan-lineage",
       "minimum_suggestions": 6,
-      "required_answer_fragments": ["119-position", "Row 184", "Rows 191 through 195", "Row 196"]
+      "required_answer_fragments": ["{{TASK_COUNT}} contiguous rows", "Row {{ACTIVE_ROW}}", "{{ACTIVE_TASK_ID}}", "Row {{FINAL_ROW}}", "{{FINAL_TASK_ID}}"]
     },
     {
       "id": "unsupported-question-refusal",

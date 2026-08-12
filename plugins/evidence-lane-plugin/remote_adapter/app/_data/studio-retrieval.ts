@@ -11,6 +11,7 @@ import {
   studioSuggestionsFor,
 } from "./studio-route-context";
 import { floatingStudioSuggestions, promptSuggestions } from "./site";
+import { websiteCurrentExecutionBoundary } from "./website-current-execution.ts";
 
 export type StudioSource = { label: string; href: string };
 
@@ -373,7 +374,7 @@ export function verifyStudioRetrievalConfidence() {
   const canaries = [
     { id: "general-no-hit", question: "How do I cook pasta al dente?", expectedGrounded: false },
     { id: "project-nonsense-no-hit", question: "What is Evidence Lane quantum banana authority?", expectedGrounded: false },
-    { id: "active-plan-hit", question: "What is active Row 184 in the current 124-position execution Plan Lane?", expectedGrounded: true },
+    { id: "active-plan-hit", question: `What is active Row ${websiteCurrentExecutionBoundary.activePublicOrder} in the current ${websiteCurrentExecutionBoundary.taskCount}-row execution Plan Lane?`, expectedGrounded: true },
     { id: "pointer-hil-hit", question: "How do accepted pointers, Exit Slips, and HIL separate human input from AI work?", expectedGrounded: true },
     ...displayedSuggestionCanaries,
   ].map((canary) => {

@@ -1,7 +1,7 @@
 import {
   websiteCurrentExecution,
   websiteCurrentExecutionBoundary,
-} from "./website-current-execution";
+} from "./website-current-execution.ts";
 
 export type DeltaPhase = "Foundation" | "V1.2 evolution" | "V1.3 hardening" | "Current execution";
 
@@ -11,11 +11,7 @@ export type DeltaLedgerEntry = {
   phase: DeltaPhase;
   status: string;
   summary: string;
-  deltaSha256?: string;
-  eventSha256?: string;
-  correctionDeltaId?: string;
-  correctionDeltaSha256?: string;
-  correctionEventSha256?: string;
+  linkedDeltaIds?: readonly string[];
 };
 
 const foundationIds = [
@@ -127,15 +123,11 @@ const hardening: DeltaLedgerEntry[] = [
 
 const currentExecution: DeltaLedgerEntry[] = websiteCurrentExecution.map((row) => ({
   order: row.order,
-  id: row.deltaId ?? row.id,
+  id: row.id,
   phase: "Current execution",
   status: row.status,
   summary: row.summary,
-  deltaSha256: row.deltaSha256,
-  eventSha256: row.eventSha256,
-  correctionDeltaId: row.correctionDeltaId,
-  correctionDeltaSha256: row.correctionDeltaSha256,
-  correctionEventSha256: row.correctionEventSha256,
+  linkedDeltaIds: row.linkedDeltaIds,
 }));
 
 export const deltaLedger: readonly DeltaLedgerEntry[] = [
@@ -153,17 +145,17 @@ export const deltaLedgerBoundary = {
   currentExecutionActive: websiteCurrentExecutionBoundary.activeRows,
   currentExecutionPending: websiteCurrentExecutionBoundary.pendingRows,
   activePublicOrder: websiteCurrentExecutionBoundary.activePublicOrder,
+  activeTaskId: websiteCurrentExecutionBoundary.activeTaskId,
   activeTaskPosition: websiteCurrentExecutionBoundary.activeTaskPosition,
-  activeReceiptPosition: websiteCurrentExecutionBoundary.activeReceiptPosition,
-  finalSweepPublicOrder: websiteCurrentExecutionBoundary.finalSweepPublicOrder,
-  finalSweepTaskPosition: websiteCurrentExecutionBoundary.finalSweepTaskPosition,
-  finalSweepReceiptPosition: websiteCurrentExecutionBoundary.finalSweepReceiptPosition,
-  lastPreHilPublicOrder: websiteCurrentExecutionBoundary.lastPreHilPublicOrder,
-  lastPreHilTaskPosition: websiteCurrentExecutionBoundary.lastPreHilTaskPosition,
-  lastPreHilReceiptPosition: websiteCurrentExecutionBoundary.lastPreHilReceiptPosition,
   finalHilPublicOrder: websiteCurrentExecutionBoundary.finalHilPublicOrder,
+  finalHilTaskId: websiteCurrentExecutionBoundary.finalHilTaskId,
   finalHilTaskPosition: websiteCurrentExecutionBoundary.finalHilTaskPosition,
-  finalHilReceiptPosition: websiteCurrentExecutionBoundary.finalHilReceiptPosition,
+  rowStart: websiteCurrentExecutionBoundary.firstPublicOrder,
+  rowEnd: websiteCurrentExecutionBoundary.lastPublicOrder,
   taskCount: websiteCurrentExecutionBoundary.taskCount,
+  canonicalPlanSha256: websiteCurrentExecutionBoundary.canonicalPlanSha256,
+  executableProjectionSha256: websiteCurrentExecutionBoundary.executableProjectionSha256,
+  websitePlanSnapshotSha256: websiteCurrentExecutionBoundary.websitePlanSnapshotSha256,
+  persistentUntil: websiteCurrentExecutionBoundary.persistentUntil,
   acceptedAuthorityEffect: "NONE",
 } as const;

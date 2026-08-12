@@ -181,14 +181,12 @@ export default function Home() {
             <p>
               Rows 1&ndash;80 preserve the sealed foundation, v1.2 evolution, and v1.3 hardening
               record byte-for-byte. Current execution begins only after row 80 and now runs consecutively
-              from public row 081 through 196: {deltaLedgerBoundary.liveExecutionRows} full, unabridged rows,
+              from public row {deltaLedgerBoundary.rowStart} through {deltaLedgerBoundary.rowEnd}: {deltaLedgerBoundary.liveExecutionRows} full, unabridged rows,
               with {deltaLedgerBoundary.currentExecutionCompleted} completed,
               {` ${deltaLedgerBoundary.currentExecutionActive}`} active, and
               {` ${deltaLedgerBoundary.currentExecutionPending}`} pending. Public row
-              {` ${deltaLedgerBoundary.activePublicOrder}`} / public task position
-              {` ${deltaLedgerBoundary.activeTaskPosition}`} / governed receipt position
-              {` ${deltaLedgerBoundary.activeReceiptPosition}`} is the sole active row; row
-              {` ${deltaLedgerBoundary.finalSweepPublicOrder}`} is the final fresh sweep and row
+              {` ${deltaLedgerBoundary.activePublicOrder}`} / {deltaLedgerBoundary.activeTaskId} / public task position
+              {` ${deltaLedgerBoundary.activeTaskPosition}`} is the sole active row; row
               {` ${deltaLedgerBoundary.finalHilPublicOrder}`} is the physically final six-way HIL.
               Filters change only the view, never the text, order, or authority.
             </p>

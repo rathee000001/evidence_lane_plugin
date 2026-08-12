@@ -19,7 +19,7 @@ export function CurrentExecutionPlan() {
         <span className="active"><strong>{active?.number}</strong> in progress</span>
         <span><strong>{pending}</strong> pending</span>
       </div>
-      <ol aria-label="Current 116-row public Evidence Lane execution projection">
+      <ol aria-label={`Current ${executionPlanBoundary.liveProjectionRows}-row public Evidence Lane execution projection`}>
         {currentExecutionPlan.map((row) => (
           <li
             className={`executionPlanRow status${row.status}`}
@@ -36,7 +36,11 @@ export function CurrentExecutionPlan() {
         ))}
       </ol>
       <p className="executionPlanLaw">
-        This exact 116-row public projection runs from Row 081 through Row 196 without rewriting the 80 sealed historical Delta rows or the immutable 119-position State Travel origin. Eight governed positions before Row 081 plus these 116 public rows form the live 124-position panel. Row 184 / position 112 is solely active; Rows 191 through 195 are additive work; and Row 196 / position 124 is physically last as the final six-way HIL. The panel remains visible until that HIL is actually decided; a missing user token pauses its dependent work and never completes the Goal.
+        This exact {executionPlanBoundary.liveProjectionRows}-row projection is generated from the
+        canonical PLAN_LANE without rewriting the 80 sealed historical Delta rows. Row
+        {` ${executionPlanBoundary.activeRow}`} / {executionPlanBoundary.activeTaskId} is solely active;
+        Row {executionPlanBoundary.physicallyLastStep} / {executionPlanBoundary.physicallyLastTaskId}
+        is physically final. The same panel persists until {executionPlanBoundary.persistentUntil}.
       </p>
     </div>
   );

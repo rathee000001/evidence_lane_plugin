@@ -1,21 +1,11 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
-import vm from "node:vm";
 
-const sourcePath = new URL("../app/_data/website-current-execution.ts", import.meta.url);
-const source = fs.readFileSync(sourcePath, "utf8");
-const marker = "export const websiteCurrentExecution: readonly WebsiteExecutionRow[] = ";
-const start = source.indexOf(marker) + marker.length;
-const end = source.indexOf("] as const;", start) + 1;
-
-if (start < marker.length || end <= start) {
-  throw new Error("Could not isolate the Current execution row projection.");
-}
-
-const rows = vm.runInNewContext(
-  `(${source.slice(start, end)})`,
-  Object.create(null),
-  { timeout: 1_000 },
+const snapshot = JSON.parse(
+  fs.readFileSync(new URL("../app/_data/website-plan-projection.json", import.meta.url), "utf8"),
+);
+const publicMetadata = JSON.parse(
+  fs.readFileSync(new URL("../public/.well-known/evidence-lane-plugin.json", import.meta.url), "utf8"),
 );
 
 function stable(value) {
@@ -28,54 +18,67 @@ function stable(value) {
   return value;
 }
 
-const payload = stable({
-  schema: "evidence-lane.live-task-panel.v1",
-  sealed_origin_receipt_panel_sha256:
-    "9533BFC6C96F4E3FC95DC1B5D9D9981EA78957B821CAA9AF90D895C2C6F36A40",
-  sealed_origin_public_projection_sha256:
-    "B3E3C620F95DAA59B9E0206C69EBBF42AE4E1E2B142F3B60E81BBFB4E83B31D0",
-  governed_prefix_positions: 8,
-  public_rows: rows,
-});
-const canonical = JSON.stringify(payload);
-const actualSha256 = crypto
+const { snapshot_sha256: expectedSnapshotSha256, ...body } = snapshot;
+const canonical = `${JSON.stringify(stable(body))}\n`;
+const actualSnapshotSha256 = crypto
   .createHash("sha256")
   .update(canonical, "utf8")
   .digest("hex")
   .toUpperCase();
-const expectedSha256 = source.match(/livePanelSha256: "([A-F0-9]{64})"/)?.[1];
-const activeRows = rows.filter((row) => row.status === "IN PROGRESS");
-const publicOrders = rows.map((row) => row.order);
-const expectedOrders = Array.from({ length: 116 }, (_, index) => index + 81);
-const panelCorrection = rows.find((row) => row.order === 195);
-const finalHil = rows.at(-1);
+const rows = snapshot.rows;
+const activeRows = rows.filter((row) => row.status === "IN_PROGRESS");
+const finalHilRows = rows.filter((row) => row.panel_role === "PHYSICALLY_FINAL_HIL");
+const publicOrders = rows.map((row) => row.row);
+const expectedOrders = Array.from(
+  { length: snapshot.task_count },
+  (_, index) => index + snapshot.row_start,
+);
+const finalHil = finalHilRows[0];
+const planMetadata = publicMetadata.plan_lane;
 
 const assertions = {
-  exact_public_orders: JSON.stringify(publicOrders) === JSON.stringify(expectedOrders),
-  one_active_row_184: activeRows.length === 1 && activeRows[0].order === 184,
-  panel_correction_row_195:
-    panelCorrection?.deltaId ===
-      "ADDITIVE_V150_PROJECT_PANEL_LANES_HIL_RENDER_CORRECTION_20260810" &&
-    panelCorrection?.correctionDeltaId ===
-      "ADDITIVE_LINEAR_GROWTH_ROW196_FINAL_HIL_CORRECTION_20260810",
-  final_hil_row_196:
-    finalHil?.order === 196 &&
+  canonical_plan_lane: snapshot.canonical_authority === "PLAN_LANE",
+  exact_contiguous_public_orders:
+    JSON.stringify(publicOrders) === JSON.stringify(expectedOrders) &&
+    publicOrders.at(-1) === snapshot.row_end,
+  exact_status_counts:
+    rows.filter((row) => row.status === "COMPLETED").length === snapshot.status_counts.completed &&
+    activeRows.length === snapshot.status_counts.in_progress &&
+    rows.filter((row) => row.status === "PENDING").length === snapshot.status_counts.pending,
+  one_exact_active_row:
+    activeRows.length === 1 &&
+    activeRows[0].row === snapshot.active_row &&
+    activeRows[0].task_id === snapshot.active_task_id,
+  physically_final_hil:
+    finalHilRows.length === 1 &&
+    finalHil?.row === snapshot.physically_final_hil_row &&
+    finalHil?.task_id === snapshot.physically_final_hil_task_id &&
     finalHil?.status === "PENDING" &&
-    finalHil?.summary.includes("PHYSICALLY AND SEMANTICALLY FINAL SIX-WAY HIL"),
-  governed_position_count_124: rows.length + 8 === 124,
-  live_panel_sha256_matches: actualSha256 === expectedSha256,
+    rows.at(-1)?.row === finalHil?.row,
+  persistence_law:
+    snapshot.persistent_until === "NEXT_SIX_WAY_HIL_PRESENTED",
+  snapshot_sha256_matches: actualSnapshotSha256 === expectedSnapshotSha256,
+  public_metadata_matches:
+    planMetadata.canonical_authority === snapshot.canonical_authority &&
+    planMetadata.live_projection_rows === snapshot.task_count &&
+    planMetadata.row_start === snapshot.row_start &&
+    planMetadata.row_end === snapshot.row_end &&
+    planMetadata.active_public_row === snapshot.active_row &&
+    planMetadata.physically_final_hil_public_row === snapshot.physically_final_hil_row &&
+    planMetadata.website_plan_snapshot_sha256 === snapshot.snapshot_sha256 &&
+    planMetadata.executable_projection_sha256 === snapshot.executable_projection_sha256,
 };
 
 const receipt = {
-  schema: "evidence-lane.current-execution-panel-test-receipt.v1",
+  schema: "evidence-lane.current-execution-panel-test-receipt.v2",
   status: Object.values(assertions).every(Boolean) ? "PASS" : "FAIL",
+  canonical_authority: snapshot.canonical_authority,
   public_row_count: rows.length,
-  governed_position_count: rows.length + 8,
-  first_public_row: rows[0]?.order,
-  sole_active_public_row: activeRows[0]?.order ?? null,
-  last_pre_hil_public_row: panelCorrection?.order ?? null,
-  physically_final_hil_public_row: finalHil?.order ?? null,
-  live_panel_sha256: actualSha256,
+  first_public_row: rows[0]?.row,
+  sole_active_public_row: activeRows[0]?.row ?? null,
+  physically_final_hil_public_row: finalHil?.row ?? null,
+  executable_projection_sha256: snapshot.executable_projection_sha256,
+  website_plan_snapshot_sha256: actualSnapshotSha256,
   canonical_bytes: Buffer.byteLength(canonical),
   assertions,
 };

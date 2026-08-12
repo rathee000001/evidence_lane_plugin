@@ -53,6 +53,13 @@ function commandPlan(profile, pythonExecutable, pnpmExecutable) {
       ]
     ],
     'governed-quality': [
+      [
+        pythonExecutable,
+        [
+          'plugins/evidence-lane-plugin/scripts/sync_website_plan_projection.py',
+          '--check'
+        ]
+      ],
       [pythonExecutable, ['-m', 'ruff', 'check', '.']],
       [pythonExecutable, ['-m', 'mypy']]
     ],

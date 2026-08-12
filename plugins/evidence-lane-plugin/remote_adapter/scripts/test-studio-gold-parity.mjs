@@ -13,6 +13,22 @@ import {
 } from "../app/_data/studio-artifact-catalog.ts";
 
 const evaluation = JSON.parse(readFileSync(new URL("./studio-gold-parity-evaluation.json", import.meta.url), "utf8"));
+const planProjection = JSON.parse(readFileSync(new URL("../app/_data/website-plan-projection.json", import.meta.url), "utf8"));
+const planTokens = {
+  "{{TASK_COUNT}}": String(planProjection.task_count),
+  "{{ACTIVE_ROW}}": String(planProjection.active_row),
+  "{{ACTIVE_TASK_ID}}": planProjection.active_task_id,
+  "{{FINAL_ROW}}": String(planProjection.physically_final_hil_row),
+  "{{FINAL_TASK_ID}}": planProjection.physically_final_hil_task_id,
+};
+for (const testCase of evaluation.cases) {
+  testCase.required_answer_fragments = testCase.required_answer_fragments.map((fragment) =>
+    Object.entries(planTokens).reduce(
+      (value, [token, replacement]) => value.replaceAll(token, replacement),
+      fragment,
+    ),
+  );
+}
 const receipts = [];
 
 assert.equal(evaluation.candidate.production_role, "HISTORICAL_BASELINE_ONLY");

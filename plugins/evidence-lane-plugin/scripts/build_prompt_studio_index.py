@@ -138,6 +138,10 @@ FROZEN_NO_GIT_ADDITIONS = {
     "plugins/evidence-lane-plugin/scripts/codex_release/accept_codex_stable.py",
     "plugins/evidence-lane-plugin/scripts/codex_release/install_codex_stable.py",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/codex_turn_control.py",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_data/website-plan-projection.json",
+    "plugins/evidence-lane-plugin/scripts/codex_release/seal_external_release_receipts.py",
+    "plugins/evidence-lane-plugin/scripts/sync_website_plan_projection.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/website_plan_projection.py",
 }
 FROZEN_NO_GIT_REMOVALS = {
     "plugins/evidence-lane-plugin/.app.json",

@@ -32,8 +32,8 @@ export function DeltaLedgerExplorer() {
           <span>One additive governed ledger</span>
           <strong>{deltaLedgerBoundary.totalRows} public rows: {deltaLedgerBoundary.sealedHistoricalDeltaRows} sealed Deltas + {deltaLedgerBoundary.liveExecutionRows} Current execution rows</strong>
           <small>
-            Current execution is the exact flat, consecutive live 081&ndash;196 projection over the immutable State Travel origin.
-            Every row keeps its full human-readable contract; Rows 191&ndash;195 also expose their native Delta and event receipts.
+            Current execution is the exact flat, consecutive live {deltaLedgerBoundary.rowStart}&ndash;{deltaLedgerBoundary.rowEnd} projection from canonical PLAN_LANE authority.
+            Every row keeps its full human-readable contract; linked Delta IDs remain references to native authority.
           </small>
         </div>
         <GlassPill
@@ -88,13 +88,11 @@ export function DeltaLedgerExplorer() {
                 <div>
                   <code>{entry.id}</code>
                   <p>{entry.summary}</p>
-                  {entry.deltaSha256 ? <small>Delta SHA-256: <code>{entry.deltaSha256}</code></small> : null}
-                  {entry.eventSha256 ? <small>Event SHA-256: <code>{entry.eventSha256}</code></small> : null}
-                  {entry.correctionDeltaId ? (
+                  {entry.linkedDeltaIds?.length ? (
                     <small>
-                      Linked correction: <code>{entry.correctionDeltaId}</code><br />
-                      Delta SHA-256: <code>{entry.correctionDeltaSha256}</code><br />
-                      Event SHA-256: <code>{entry.correctionEventSha256}</code>
+                      Linked Deltas: {entry.linkedDeltaIds.map((deltaId, index) => (
+                        <span key={deltaId}>{index ? ", " : ""}<code>{deltaId}</code></span>
+                      ))}
                     </small>
                   ) : null}
                 </div>
@@ -104,13 +102,12 @@ export function DeltaLedgerExplorer() {
           </ol>
           <p className="deltaLedgerBoundary">
             Rows 1&ndash;80 remain the unchanged sealed historical Delta evidence. Public rows
-            81&ndash;196 are the consecutive live Current execution projection: {deltaLedgerBoundary.liveExecutionRows} full rows,
+            {deltaLedgerBoundary.rowStart}&ndash;{deltaLedgerBoundary.rowEnd} are the consecutive live Current execution projection: {deltaLedgerBoundary.liveExecutionRows} full rows,
             with {deltaLedgerBoundary.currentExecutionCompleted} completed,
             {` ${deltaLedgerBoundary.currentExecutionActive}`} active, and {` ${deltaLedgerBoundary.currentExecutionPending}`} pending.
-            Public row {deltaLedgerBoundary.activePublicOrder} / public task position {deltaLedgerBoundary.activeTaskPosition} / governed receipt position {deltaLedgerBoundary.activeReceiptPosition} is active;
-            public row {deltaLedgerBoundary.finalSweepPublicOrder} / public task position {deltaLedgerBoundary.finalSweepTaskPosition} / governed receipt position {deltaLedgerBoundary.finalSweepReceiptPosition} is the final fresh sweep;
-            public row {deltaLedgerBoundary.lastPreHilPublicOrder} / public task position {deltaLedgerBoundary.lastPreHilTaskPosition} / governed receipt position {deltaLedgerBoundary.lastPreHilReceiptPosition} is the last additive pre-HIL row;
-            public row {deltaLedgerBoundary.finalHilPublicOrder} / public task position {deltaLedgerBoundary.finalHilTaskPosition} / governed receipt position {deltaLedgerBoundary.finalHilReceiptPosition} is physically final.
+            Public row {deltaLedgerBoundary.activePublicOrder} / {deltaLedgerBoundary.activeTaskId} / public task position {deltaLedgerBoundary.activeTaskPosition} is active;
+            public row {deltaLedgerBoundary.finalHilPublicOrder} / {deltaLedgerBoundary.finalHilTaskId} / public task position {deltaLedgerBoundary.finalHilTaskPosition} is physically final.
+            Snapshot <code>{deltaLedgerBoundary.websitePlanSnapshotSha256}</code> seals this view and it persists until <code>{deltaLedgerBoundary.persistentUntil}</code>.
             This projection does not authorize Fuse, accepted-pointer movement, main merge, production publication,
             Devpost mutation, or human approval.
           </p>

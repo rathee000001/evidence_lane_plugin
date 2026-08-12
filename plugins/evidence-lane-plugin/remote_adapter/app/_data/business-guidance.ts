@@ -87,8 +87,8 @@ export const businessGuide: readonly BusinessGuideEntry[] = [
   {
     id: "plan-lineage",
     title: "Plan Lane and Chat Lineage preserve direction",
-    keywords: ["plan lane", "chat lineage", "active row", "row 184", "124 positions", "task list", "later steer", "delta", "full poc", "row 196", "project panel"],
-    answer: "Plan Lane shows the current ordered work and its decision boundaries. Chat Lineage records visible prompts, user steers, assistant output, tools, files, tests, and receipts. The sealed 119-position State Travel panel remains immutable historical evidence with Row 191 physically final in that sealed origin. The live linear projection has grown to 124 positions: Row 184 remains the sole active row, additive work occupies Rows 191 through 195, and the exact six-way HIL moved to Row 196 so it remains physically final. Row 195 corrects the native project panel so Overview remains unchanged, Lanes projects all 18 canonical accepted-PV lanes, and HIL always explains the exact six decisions without changing authority. Nothing was inserted into or renumbered inside the sealed origin receipt.",
+    keywords: ["plan lane", "chat lineage", "active row", `row ${websiteCurrentExecutionBoundary.activePublicOrder}`, "task list", "later steer", "delta", `row ${websiteCurrentExecutionBoundary.finalHilPublicOrder}`, "project panel"],
+    answer: `Plan Lane shows the current ordered work and its decision boundaries. Chat Lineage records visible prompts, user steers, assistant output, tools, files, tests, and receipts. The live executable projection comes from canonical PLAN_LANE authority and contains ${websiteCurrentExecutionBoundary.taskCount} contiguous rows from Row ${websiteCurrentExecutionBoundary.firstPublicOrder} through Row ${websiteCurrentExecutionBoundary.lastPublicOrder}. Row ${websiteCurrentExecutionBoundary.activePublicOrder} / ${websiteCurrentExecutionBoundary.activeTaskId} is the sole active row. Row ${websiteCurrentExecutionBoundary.finalHilPublicOrder} / ${websiteCurrentExecutionBoundary.finalHilTaskId} remains PHYSICALLY_FINAL_HIL. Linked Deltas remain native references rather than duplicated JSON, and the projection persists until ${websiteCurrentExecutionBoundary.persistentUntil}.`,
     href: "/#delta-ledger",
   },
   {
@@ -193,3 +193,4 @@ export function businessGuideFor(question: string) {
   }
   return best && best.score >= 2 ? best.entry : null;
 }
+import { websiteCurrentExecutionBoundary } from "./website-current-execution.ts";
