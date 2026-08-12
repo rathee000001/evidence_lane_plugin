@@ -100,9 +100,12 @@ The switch order is fixed:
 2. stop the source tunnel and prove zero active tunnels;
 3. start the target tunnel and prove it is the sole ready tunnel;
 4. atomically enable only the target plugin and target MCP section;
-5. prepare the controlled restart against the target installation receipt;
-6. restart Codex at the exact `codex://threads/<task-id>` deep link;
-7. after restart, prove the native catalog and exact project/session binding.
+5. prepare the controlled restart against the target installation receipt and
+   exact root `ChatGPT (Beta)` process;
+6. activate only `OpenAI.CodexBeta_2p2nqsd0c76g0!App` with the exact
+   `codex://threads/<task-id>` deep link;
+7. after restart, prove the native catalog, exact project/session binding,
+   task-owned Git workspace, and native Changes surface.
 
 If any step before restart fails, the operator restores the original config and
 source tunnel and writes a secret-free failure receipt. It never creates or

@@ -256,7 +256,7 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert package_status["catalog"]["read"] == 21
     assert package_status["catalog"]["write"] == 41
     assert package_status["refresh_state"] == "NO_PENDING_CANDIDATE"
-    assert package_status["tunnel_channel"] == "stable"
+    assert package_status["tunnel_channel"] == "stable-build"
     assert package_status["raw_paths_included"] is False
 
     change_path = source_repository / "tests" / "persistent-change-status.txt"
