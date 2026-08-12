@@ -1376,6 +1376,11 @@ def test_session_start_survives_cachebuster_and_remains_read_only(
 
     def stage_cache(version: str) -> Path:
         staged = tmp_path / "plugin-cache" / version
+        shutil.copytree(
+            source_plugin / "src" / "evidence_lane_plugin",
+            staged / "src" / "evidence_lane_plugin",
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+        )
         copies = {
             source_plugin / "hooks" / "session_start.py": (
                 staged / "hooks" / "session_start.py"
@@ -1383,24 +1388,8 @@ def test_session_start_survives_cachebuster_and_remains_read_only(
             source_plugin / ".codex-plugin" / "plugin.json": (
                 staged / ".codex-plugin" / "plugin.json"
             ),
-                source_plugin / "src" / "evidence_lane_plugin" / "constants.py": (
-                    staged / "src" / "evidence_lane_plugin" / "constants.py"
-                ),
-                source_plugin / "scripts" / "codex-release-channel.json": (
-                    staged / "scripts" / "codex-release-channel.json"
-                ),
-                source_plugin
-            / "src"
-            / "evidence_lane_plugin"
-            / "session_flash"
-            / "env15"
-            / "UNIVERSAL_FLASH_PROMPT.md": (
-                staged
-                / "src"
-                / "evidence_lane_plugin"
-                / "session_flash"
-                / "env15"
-                / "UNIVERSAL_FLASH_PROMPT.md"
+            source_plugin / "scripts" / "codex-release-channel.json": (
+                staged / "scripts" / "codex-release-channel.json"
             ),
         }
         for source, target in copies.items():
