@@ -9,7 +9,9 @@ Run only when the user explicitly requests State Travel or the current host
 context is genuinely exhausted. A prepared handoff is eligibility evidence,
 not an instruction to travel.
 
-Call `pv_status`, then preserve the active governed session. State Travel does
+After the destination lifecycle PREPARE receipt, the skill—not a hook—calls
+native `pv_status`, `pv_task_backlog`, and one bounded `pv_query`, then
+preserves the active governed session. State Travel does
 not require an accepted candidate. Its default is
 `UNFINISHED_VERIFIED_WORK` whenever the session is not at an accepted lifecycle
 state. Build the `resume_contract` from the canonical Plan Lane and visible task
@@ -23,7 +25,8 @@ drops or changes one. A `PHYSICALLY_FINAL_HIL` row must remain physically final.
 
 The sealed resume contract must carry the executable persistent-panel
 reactivation law. At the destination, re-project the exact complete task list
-as the first action after verification and before source inspection, mutation,
+with the host `update_plan` tool after those native reads and before source
+inspection, mutation,
 testing, Git activity, or another lifecycle call. Apply the same ordering after
 every token-driven continuation, stalled Goal, context compaction, browser or
 Codex restart, session continuation, or session resume. A non-empty panel must
@@ -31,6 +34,12 @@ have exactly one in-progress row; preserve its order and every completed and
 pending description unabridged; keep it visible through every pause and HIL;
 drop it only after the physically final six-way HIL is decided and every
 decision-dependent action is complete.
+
+SessionStart, UserPromptSubmit, and PostToolUse hooks remain lifecycle-only.
+They must not embed the full Plan Lane or direct `update_plan`; the active skill
+owns all native PV reads and host behavior. After a steer is sealed with
+`pv_plan_steer_delta`, repeat the three native reads and the complete panel
+projection before continuing.
 
 For a Codex handoff, also capture the exact non-secret model, submodel,
 reasoning-effort, reasoning-speed, and optional service-tier selectors. The

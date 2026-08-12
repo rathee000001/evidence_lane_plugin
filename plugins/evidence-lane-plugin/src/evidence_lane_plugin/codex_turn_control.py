@@ -14,6 +14,7 @@ import os
 import re
 import sqlite3
 import time
+import tomllib
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
@@ -38,7 +39,6 @@ _CODEX_TASK_ID_RE = re.compile(
     r"^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-"
     r"[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"
 )
-_TERM_RE = re.compile(r"[\w.$/@:-]+", flags=re.UNICODE)
 _LINK_RE = re.compile(r"\[[^\]]*\]\(([^)]+)\)|https?://[^\s)>]+")
 _TURN_SECRET_ASSIGNMENT_RE = re.compile(
     r"(?i)\b(?:authorization|password|token|secret|api[_-]?key|"
@@ -85,6 +85,35 @@ class TurnControlError(RuntimeError):
             "message": self.message,
             "details": self.details,
         }
+
+
+def resolve_codex_hook_store_root(
+    *,
+    environment: dict[str, str] | None = None,
+    home: Path | None = None,
+) -> Path:
+    """Resolve the governed local authority used by every Codex hook.
+
+    Codex injects ``PLUGIN_DATA`` as installation-scoped private storage for
+    each plugin selector.  Evidence Lane project, session, PV, PromptIndex,
+    and ChatLineage state is deliberately user-owned and shared across the
+    stable/fallback selectors, so that host value must never become its
+    authority root.  Tests and explicitly configured deployments may bind an
+    alternate durable authority through ``EVIDENCE_LANE_DATA_ROOT`` only.
+    """
+
+    values = os.environ if environment is None else environment
+    configured_root = values.get("EVIDENCE_LANE_DATA_ROOT")
+    if configured_root is not None:
+        configured_root = str(configured_root).strip()
+        if not configured_root:
+            raise TurnControlError(
+                "EVIDENCE_LANE_DATA_ROOT_INVALID",
+                "EVIDENCE_LANE_DATA_ROOT cannot be empty when configured.",
+            )
+        return Path(configured_root).expanduser().resolve()
+    durable_home = (home or Path.home()).expanduser().resolve()
+    return (durable_home / "EvidenceLanePV").resolve()
 
 
 def _now() -> str:
@@ -256,6 +285,394 @@ def _package_surface_inventory() -> dict[str, Any]:
     }
 
 
+def package_surface_inventory() -> dict[str, Any]:
+    """Return the sealed installed Codex surface inventory for native receipts."""
+
+    return _package_surface_inventory()
+
+
+def _powershell_ordered_json_sha256(value: dict[str, Any]) -> str:
+    """Match ConvertTo-Json -Compress for the bounded ASCII recovery registry."""
+
+    return sha256_bytes(
+        json.dumps(
+            value,
+            ensure_ascii=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    )
+
+
+def verify_codex_fallback_prewarmer(
+    root: Path,
+    *,
+    project_id: str,
+    session_id: str,
+    codex_home: Path | None = None,
+) -> dict[str, Any]:
+    """Verify the disabled accepted-PV fallback and exact task recovery bind.
+
+    This is a local read-only proof.  It does not activate a plugin, start a
+    server or tunnel, restart Codex, mutate source, build a candidate, or move
+    the accepted pointer.  The registry is self-sealed and every referenced
+    installation/preparation byte is re-hashed before the proof is returned.
+    """
+
+    installation_root = root / "installations" / "codex-v200"
+    registry_path = installation_root / "two-slot" / "CODEX_TWO_SLOT_REGISTRY.json"
+    _require(
+        registry_path.is_file(),
+        "FALLBACK_PREWARM_REGISTRY_REQUIRED",
+        "The sealed Codex two-slot recovery registry is missing.",
+    )
+    registry = _json(registry_path)
+    registry_body = {
+        key: value
+        for key, value in registry.items()
+        if key not in {"seal", "registry_body_sha256"}
+    }
+    sealed_registry_body = {
+        key: value for key, value in registry.items() if key != "seal"
+    }
+    seal = dict(registry.get("seal") or {})
+    _require(
+        registry.get("schema") == "evidence-lane.codex-two-slot-registry.v1"
+        and registry.get("status") == "PASS"
+        and registry.get("state") == "STABLE_ACTIVE_FALLBACK_PREWARMED_DISABLED"
+        and registry.get("project_id") == project_id
+        and registry.get("evidence_session_id") == session_id
+        and registry.get("accepted_pv") == "PV11"
+        and registry.get("accepted_generation") == 11
+        and registry.get("prior_generation") == 10
+        and registry.get("active_slot") == "stable-build"
+        and registry.get("exact_live_slot_count") == 2
+        and registry.get("max_enabled_plugin_count") == 1
+        and registry.get("max_active_native_mcp_count") == 1
+        and registry.get("max_active_tunnel_count") == 0
+        and registry.get("tunnel_required") is False
+        and registry.get("tunnel_started") is False
+        and registry.get("server_has_durable_filesystem") is True
+        and registry.get("secret_material_present") is False
+        and registry.get("registry_body_sha256")
+        == _powershell_ordered_json_sha256(registry_body)
+        and seal.get("algorithm") == "SHA256"
+        and seal.get("body_sha256")
+        == _powershell_ordered_json_sha256(sealed_registry_body),
+        "FALLBACK_PREWARM_REGISTRY_INVALID",
+        "The Codex two-slot recovery registry is not the exact sealed PV11 boundary.",
+    )
+    slots = dict(registry.get("slots") or {})
+    stable = dict(slots.get("stable-build") or {})
+    fallback = dict(slots.get("fallback") or {})
+    _require(
+        len(slots) == 2
+        and stable.get("slot_role") == "stable-build"
+        and stable.get("enabled") is True
+        and stable.get("native_mcp_enabled") is True
+        and stable.get("byte_frozen") is False
+        and fallback.get("slot_role") == "fallback"
+        and fallback.get("enabled") is False
+        and fallback.get("native_mcp_enabled") is False
+        and fallback.get("byte_frozen") is True
+        and fallback.get("accepted_pv") == "PV11"
+        and fallback.get("accepted_generation") == 11
+        and fallback.get("package_sha256")
+        == registry.get("accepted_package_sha256")
+        and fallback.get("plugin_version")
+        == registry.get("accepted_plugin_version")
+        and dict(stable.get("tunnel") or {}).get("required") is False
+        and dict(fallback.get("tunnel") or {}).get("required") is False,
+        "FALLBACK_PREWARM_SLOT_INVALID",
+        "Stable and fallback are not the exact mutually exclusive two-slot boundary.",
+    )
+
+    fallback_receipt_path = Path(str(fallback.get("install_receipt") or ""))
+    _require(
+        fallback_receipt_path.is_absolute()
+        and _within(fallback_receipt_path, installation_root)
+        and fallback_receipt_path.is_file(),
+        "FALLBACK_PREWARM_INSTALL_RECEIPT_REQUIRED",
+        "The fallback installation receipt is missing or outside its authority root.",
+    )
+    fallback_receipt_file_sha256 = sha256_file(fallback_receipt_path)
+    _require(
+        fallback_receipt_file_sha256 == fallback.get("install_receipt_sha256"),
+        "FALLBACK_PREWARM_INSTALL_RECEIPT_FILE_SEAL_MISMATCH",
+        "The fallback installation receipt file seal does not match the registry.",
+    )
+    fallback_receipt = _json(fallback_receipt_path)
+    fallback_receipt_body = {
+        key: value
+        for key, value in fallback_receipt.items()
+        if key != "receipt_sha256"
+    }
+    activation = dict(fallback_receipt.get("activation") or {})
+    catalog = dict((fallback_receipt.get("plugin") or {}).get("catalog") or {})
+    source_parity = dict(fallback_receipt.get("source_parity") or {})
+    fallback_install_stable_selector = str(
+        activation.get("stable_selector") or ""
+    )
+    known_stable_selectors = {
+        str(stable.get("plugin_selector") or ""),
+        *(
+            str(value)
+            for value in registry.get("historical_disabled_entries") or []
+        ),
+    }
+    _require(
+        fallback_receipt.get("schema")
+        == "evidence-lane.codex-stable-installation.v2"
+        and fallback_receipt.get("status") == "PASS"
+        and fallback_receipt.get("project_id") == project_id
+        and fallback_receipt.get("evidence_session_id") == session_id
+        and fallback_receipt.get("task_id") == registry.get("task_id")
+        and fallback_receipt.get("host_session_id")
+        == registry.get("host_session_id")
+        and fallback_receipt.get("accepted_pv") == "PV11"
+        and fallback_receipt.get("accepted_generation") == 11
+        and fallback_receipt.get("accepted_manifest_sha256")
+        == registry.get("accepted_manifest_sha256")
+        and fallback_receipt.get("archive_sha256")
+        == fallback.get("package_sha256")
+        and fallback_receipt.get("byte_frozen") is True
+        and fallback_receipt.get("slot_role") == "fallback"
+        and fallback_receipt.get("receipt_sha256")
+        == _powershell_ordered_json_sha256(fallback_receipt_body)
+        and activation.get("plugin_selector") == fallback.get("plugin_selector")
+        and activation.get("plugin_enabled") is False
+        and activation.get("mcp_enabled") is False
+        and activation.get("active_server_started") is False
+        and activation.get("restart_invoked") is False
+        and fallback_install_stable_selector in known_stable_selectors
+        and fallback_install_stable_selector != fallback.get("plugin_selector")
+        and activation.get("stable_plugin_enabled") is True
+        and activation.get("stable_mcp_enabled") is True
+        and catalog == {"tools": 62, "read": 21, "write": 41, "skills": 15}
+        and source_parity.get("mismatch_count") == 0
+        and fallback_receipt.get("generated_cache_written_directly") is False
+        and fallback_receipt.get("supported_cli_materialization") is True
+        and fallback_receipt.get("shadow_junction_removed") is True
+        and fallback_receipt.get("source_mutated") is False
+        and fallback_receipt.get("git_mutated") is False
+        and fallback_receipt.get("candidate_created_or_accepted") is False
+        and fallback_receipt.get("pointer_moved") is False
+        and fallback_receipt.get("hil_inferred") is False
+        and fallback_receipt.get("tunnel_started") is False,
+        "FALLBACK_PREWARM_INSTALL_RECEIPT_INVALID",
+        "The fallback installation receipt is not an exact disabled accepted-PV11 proof.",
+    )
+
+    exact_codex_home = (codex_home or (Path.home() / ".codex")).resolve()
+    config_path = exact_codex_home / "config.toml"
+    _require(
+        config_path.is_file(),
+        "FALLBACK_PREWARM_CODEX_CONFIG_REQUIRED",
+        "The live Codex configuration is unavailable.",
+    )
+    try:
+        configured = tomllib.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, tomllib.TOMLDecodeError) as exc:
+        raise TurnControlError(
+            "FALLBACK_PREWARM_CODEX_CONFIG_INVALID",
+            "The live Codex configuration could not be parsed.",
+            error_type=type(exc).__name__,
+        ) from exc
+    plugin_config = dict(configured.get("plugins") or {})
+    evidence_selectors = sorted(
+        key for key in plugin_config if str(key).startswith("evidence-lane-plugin@")
+    )
+    expected_selectors = {
+        str(stable.get("plugin_selector")),
+        str(fallback.get("plugin_selector")),
+    }
+    _require(
+        expected_selectors.issubset(evidence_selectors),
+        "FALLBACK_PREWARM_CODEX_SLOT_CONFIG_MISSING",
+        "The live Codex configuration is missing a current recovery slot.",
+    )
+    enabled_selectors: list[str] = []
+    for selector in evidence_selectors:
+        entry = dict(plugin_config.get(selector) or {})
+        mcp = dict((entry.get("mcp_servers") or {}).get("evidence-lane") or {})
+        plugin_enabled = entry.get("enabled") is True
+        mcp_enabled = mcp.get("enabled") is True
+        _require(
+            plugin_enabled == mcp_enabled,
+            "FALLBACK_PREWARM_CODEX_SLOT_CONFIG_SPLIT",
+            "One Evidence Lane plugin/MCP registration has split activation state.",
+            selector=selector,
+        )
+        if plugin_enabled:
+            enabled_selectors.append(selector)
+        elif selector not in expected_selectors:
+            _require(
+                entry.get("enabled") is False and mcp.get("enabled") is False,
+                "FALLBACK_PREWARM_HISTORICAL_SLOT_NOT_DISABLED",
+                "An older Evidence Lane registration is not explicitly disabled.",
+                selector=selector,
+            )
+    _require(
+        enabled_selectors == [stable.get("plugin_selector")],
+        "FALLBACK_PREWARM_CODEX_EXCLUSIVE_ACTIVATION_MISMATCH",
+        "Stable must remain the sole enabled Evidence Lane route.",
+        enabled_selectors=enabled_selectors,
+    )
+
+    cache_root = exact_codex_home / "plugins" / "cache"
+    marketplace_root = exact_codex_home / "local-marketplaces"
+    for name, slot in (("stable-build", stable), ("fallback", fallback)):
+        cache = Path(str(slot.get("cache_root") or ""))
+        marketplace = Path(str(slot.get("marketplace_root") or ""))
+        _require(
+            cache.is_dir()
+            and marketplace.is_dir()
+            and _within(cache, cache_root)
+            and _within(marketplace, marketplace_root),
+            "FALLBACK_PREWARM_SLOT_BYTES_REQUIRED",
+            "A current Codex recovery slot is missing or outside the installed roots.",
+            slot=name,
+        )
+        plugin_manifest = cache / ".codex-plugin" / "plugin.json"
+        marketplace_manifest = marketplace / ".agents" / "plugins" / "marketplace.json"
+        _require(
+            plugin_manifest.is_file()
+            and marketplace_manifest.is_file()
+            and sha256_file(plugin_manifest) == slot.get("plugin_manifest_sha256")
+            and sha256_file(marketplace_manifest)
+            == slot.get("marketplace_catalog_sha256")
+            and _json(plugin_manifest).get("version") == slot.get("plugin_version"),
+            "FALLBACK_PREWARM_SLOT_MANIFEST_SEAL_MISMATCH",
+            "An installed recovery-slot manifest or version does not match its seal.",
+            slot=name,
+        )
+
+    task_id = str(registry.get("task_id") or "")
+    task_binding_path = Path(
+        str(registry.get("fallback_recovery_task_binding") or "")
+    )
+    _require(
+        _CODEX_TASK_ID_RE.fullmatch(task_id) is not None
+        and task_binding_path.is_absolute()
+        and _within(task_binding_path, installation_root / "two-slot")
+        and task_binding_path.is_file()
+        and sha256_file(task_binding_path)
+        == registry.get("fallback_recovery_task_binding_sha256"),
+        "FALLBACK_PREWARM_TASK_BINDING_REQUIRED",
+        "The exact sealed fallback task recovery binding is missing or stale.",
+    )
+    task_binding = _json(task_binding_path)
+    preparation_path = Path(str(task_binding.get("preparation_receipt") or ""))
+    install_path = Path(str(task_binding.get("install_receipt") or ""))
+    _require(
+        task_binding.get("schema") == "evidence-lane.codex-task-binding.v1"
+        and task_binding.get("state") == "EXACT_TASK_BINDING_PREPARED"
+        and task_binding.get("project_id") == project_id
+        and task_binding.get("evidence_session_id") == session_id
+        and task_binding.get("task_id") == task_id
+        and task_binding.get("governed_host_session_id")
+        == registry.get("host_session_id")
+        and task_binding.get("plugin_version") == fallback.get("plugin_version")
+        and task_binding.get("task_uri_sha256")
+        == sha256_bytes(f"codex://threads/{task_id}".encode())
+        and task_binding.get("claim_scope") == "EXACT_CODEX_THREAD_ID_ONLY"
+        and task_binding.get("alias_claim_allowed") is True
+        and task_binding.get("source_mutated") is False
+        and task_binding.get("candidate_created_or_accepted") is False
+        and task_binding.get("pointer_moved") is False
+        and task_binding.get("hil_inferred") is False
+        and preparation_path.is_absolute()
+        and _within(preparation_path, installation_root)
+        and preparation_path.is_file()
+        and install_path == fallback_receipt_path
+        and task_binding.get("install_receipt_sha256")
+        == fallback_receipt_file_sha256
+        and task_binding.get("preparation_receipt_sha256")
+        == sha256_file(preparation_path),
+        "FALLBACK_PREWARM_TASK_BINDING_INVALID",
+        "The current Codex task recovery binding is stale, cross-task, or promoting.",
+    )
+    preparation = _json(preparation_path)
+    continuation = dict(preparation.get("continuation") or {})
+    _require(
+        preparation.get("schema") == "evidence-lane.codex-restart-preparation.v2"
+        and preparation.get("state") == "PREPARED_NOT_RESTARTED"
+        and preparation.get("project_id") == project_id
+        and preparation.get("evidence_session_id") == session_id
+        and preparation.get("task_id") == task_id
+        and preparation.get("host_session_id") == registry.get("host_session_id")
+        and preparation.get("install_receipt_sha256")
+        == fallback_receipt_file_sha256
+        and preparation.get("plugin_version") == fallback.get("plugin_version")
+        and continuation.get("same_task_required") is True
+        and continuation.get("task_navigation_mode") == "CODEX_THREAD_DEEPLINK"
+        and continuation.get("task_uri_sha256")
+        == task_binding.get("task_uri_sha256")
+        and continuation.get("coordinate_clicking_used") is False
+        and continuation.get("lifecycle_resume_call_required") is False
+        and continuation.get("state_travel_required") is False
+        and preparation.get("hot_reload_claimed") is False
+        and preparation.get("process_stopped") is False
+        and preparation.get("source_mutated") is False
+        and preparation.get("candidate_created_or_accepted") is False
+        and preparation.get("pointer_moved") is False
+        and preparation.get("hil_inferred") is False,
+        "FALLBACK_PREWARM_RESTART_PREPARATION_INVALID",
+        "The recovery helper did not prepare this exact task without restarting it.",
+    )
+
+    running_plugin_root = Path(__file__).resolve().parents[2]
+    switch_helper = running_plugin_root / "scripts" / "codex_release" / "Switch-EvidenceLaneCodexSlot.ps1"
+    restart_helper = running_plugin_root / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1"
+    _require(
+        switch_helper.is_file()
+        and restart_helper.is_file()
+        and sha256_file(switch_helper) == registry.get("switch_helper_sha256")
+        and sha256_file(restart_helper) == registry.get("restart_helper_sha256"),
+        "FALLBACK_PREWARM_RECOVERY_HELPER_SEAL_MISMATCH",
+        "The running stable package does not contain the helpers sealed by the recovery registry.",
+    )
+
+    proof = {
+        "schema": "evidence-lane.codex-fallback-prewarm-proof.v1",
+        "status": "PASS",
+        "project_id": project_id,
+        "session_id": session_id,
+        "task_id": task_id,
+        "host_session_id": registry.get("host_session_id"),
+        "accepted_pv": "PV11",
+        "accepted_generation": 11,
+        "accepted_manifest_sha256": registry.get("accepted_manifest_sha256"),
+        "registry_sha256": sha256_file(registry_path),
+        "fallback_install_receipt_sha256": fallback_receipt_file_sha256,
+        "task_binding_receipt_sha256": sha256_file(task_binding_path),
+        "restart_preparation_receipt_sha256": sha256_file(preparation_path),
+        "config_sha256": sha256_file(config_path),
+        "stable_plugin_selector": stable.get("plugin_selector"),
+        "fallback_plugin_selector": fallback.get("plugin_selector"),
+        "fallback_package_sha256": fallback.get("package_sha256"),
+        "fallback_byte_frozen": True,
+        "stable_enabled": True,
+        "fallback_enabled": False,
+        "enabled_evidence_lane_plugin_count": 1,
+        "active_tunnel_count": 0,
+        "tunnel_required": False,
+        "current_task_recovery_prepared": True,
+        "restart_invoked": False,
+        "fallback_activated": False,
+        "source_mutated": False,
+        "git_mutated": False,
+        "candidate_created": False,
+        "pending_hil": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+        "verified_at": _now(),
+    }
+    return {
+        **proof,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(proof)),
+    }
+
+
 def _package_update_status(root: Path) -> dict[str, Any]:
     current = _package_surface_inventory()
     receipt_path = (
@@ -391,6 +808,13 @@ def _host_binding_epoch(session: dict[str, Any]) -> str:
         "accepted_pv": session.get("accepted_pv"),
         "accepted_pointer_generation": session.get(
             "accepted_pointer_generation"
+        ),
+        "active_backlog_task_id": metadata.get("active_backlog_task_id"),
+        "active_backlog_task_status": metadata.get("active_backlog_task_status"),
+        "runtime_task_id": (
+            dict(session.get("task") or {}).get("task_id")
+            if isinstance(session.get("task"), dict)
+            else None
         ),
         "state_travel_handoff_sha256": travel.get("handoff_sha256"),
         "state_travel_verified_snapshot_sha256": travel.get(
@@ -1177,19 +1601,19 @@ def _binding_snapshot(
     )
     resume_contract = state_travel.get("resume_contract") or {}
     task_list = resume_contract.get("task_list") or []
-    active_rows = [
+    resume_active_rows = [
         dict(row)
         for row in task_list
         if isinstance(row, dict)
         and str(row.get("status") or "").upper() in _ACTIVE_PLAN_STATUSES
     ]
     _require(
-        len(active_rows) == 1,
+        len(resume_active_rows) == 1,
         "TURN_CONTROL_PLAN_ROW_REQUIRED",
-        "Exactly one persistent Plan row must be active before Codex execution.",
-        active_plan_rows=len(active_rows),
+        "The State Travel contract must preserve exactly one original resume row.",
+        active_plan_rows=len(resume_active_rows),
     )
-    sealed_plan_row = active_rows[0]
+    sealed_resume_row = resume_active_rows[0]
     state_travel_task_list_sha256 = _sha(
         resume_contract.get("task_list_sha256"),
         field="state_travel.resume_contract.task_list_sha256",
@@ -1197,20 +1621,41 @@ def _binding_snapshot(
     backlog_status = ProjectStore(root).backlog_status(project_id)
     goal_projection = backlog_status.get("goal_projection") or {}
     goal_rows = goal_projection.get("rows") or []
-    current_plan_rows = [
+    resume_row_matches = [
         dict(row)
         for row in goal_rows
         if isinstance(row, dict)
-        and row.get("task_id") == sealed_plan_row.get("task_id")
+        and row.get("task_id") == sealed_resume_row.get("task_id")
     ]
     _require(
-        len(current_plan_rows) == 1,
-        "TURN_CONTROL_CANONICAL_PLAN_ROW_MISMATCH",
-        "The sealed resume row must resolve exactly once in the current append-only Plan Lane.",
-        sealed_task_id=sealed_plan_row.get("task_id"),
-        current_match_count=len(current_plan_rows),
+        len(resume_row_matches) == 1,
+        "TURN_CONTROL_STATE_TRAVEL_RESUME_ROW_MISMATCH",
+        "The original State Travel resume row must remain exactly once in Plan history.",
+        sealed_task_id=sealed_resume_row.get("task_id"),
+        current_match_count=len(resume_row_matches),
     )
-    plan_row = current_plan_rows[0]
+    current_active_rows = [
+        dict(row)
+        for row in goal_rows
+        if isinstance(row, dict)
+        and str(row.get("status") or "").lower() == "in_progress"
+        and str(row.get("lifecycle_status") or "").upper() == "ACTIVE"
+    ]
+    _require(
+        len(current_active_rows) == 1,
+        "TURN_CONTROL_CANONICAL_ACTIVE_PLAN_ROW_REQUIRED",
+        "Exactly one current canonical Plan row must be active for this Codex turn.",
+        current_active_plan_rows=len(current_active_rows),
+    )
+    plan_row = current_active_rows[0]
+    _require(
+        metadata.get("active_backlog_task_id") == plan_row.get("task_id")
+        and metadata.get("active_backlog_task_status") == "ACTIVE",
+        "TURN_CONTROL_SESSION_ACTIVE_PLAN_BINDING_MISMATCH",
+        "The governed session and current canonical Plan row do not agree.",
+        session_active_task_id=metadata.get("active_backlog_task_id"),
+        canonical_active_task_id=plan_row.get("task_id"),
+    )
     plan_projection_sha256 = _sha(
         goal_projection.get("projection_sha256"),
         field="goal_projection.projection_sha256",
@@ -1231,7 +1676,7 @@ def _binding_snapshot(
     runtime_task = session.get("task") or {}
     if isinstance(runtime_task, dict) and runtime_task.get("task_id"):
         task = dict(runtime_task)
-        task_binding_source = "SESSION_RUNTIME_TASK_PLUS_CANONICAL_PLAN_ROW"
+        task_binding_source = "SESSION_RUNTIME_TASK_PLUS_CANONICAL_ACTIVE_PLAN_ROW"
     else:
         task = dict(plan_task_contract)
         task_binding_source = "CANONICAL_ACTIVE_PLAN_ROW_AFTER_STATE_TRAVEL"
@@ -1343,13 +1788,26 @@ def _binding_snapshot(
         "persistent_plan_row": {
             "position": int(plan_row.get("number") or 0),
             "task_id": plan_row.get("task_id"),
-            "status": sealed_plan_row.get("status"),
+            "status": plan_row.get("status"),
+            "lifecycle_status": plan_row.get("lifecycle_status"),
             "step_sha256": sha256_bytes(
                 str(plan_row.get("step") or "").encode("utf-8")
             ),
             "state_travel_task_list_sha256": state_travel_task_list_sha256,
             "goal_projection_sha256": plan_projection_sha256,
+            "canonical_plan_sha256": goal_projection.get("canonical_plan_sha256"),
+            "event_head_sha256": backlog_status.get("event_head_sha256"),
             "goal_projection_task_count": int(goal_projection.get("task_count") or 0),
+            "persistent_until": goal_projection.get("persistent_until"),
+            "state_travel_resume_row": {
+                "position": int(sealed_resume_row.get("position") or 0),
+                "task_id": sealed_resume_row.get("task_id"),
+                "sealed_status": sealed_resume_row.get("status"),
+                "current_status": resume_row_matches[0].get("status"),
+                "current_lifecycle_status": resume_row_matches[0].get(
+                    "lifecycle_status"
+                ),
+            },
             "linked_steer_delta_receipts": steer_delta_receipts,
             "bounded_write_scope": list(
                 plan_task_contract.get("permitted_paths") or []
@@ -1402,6 +1860,234 @@ def _binding_snapshot(
     }
     binding["binding_sha256"] = sha256_bytes(canonical_json_bytes(binding))
     return binding
+
+
+def seal_exact_task_project_session_binding(
+    root: str | Path,
+    *,
+    project_id: str,
+    evidence_session_id: str,
+    expected_active_task_id: str,
+) -> dict[str, Any]:
+    """Seal one exact Codex task/project/session/Plan/runtime binding.
+
+    Discovery is deliberately limited to installer-prepared exact Codex task
+    receipts whose project, governed session, and governed host-session identity
+    already match the active local authority.  Task titles and repository CWDs are
+    not accepted as identity signals.  Multiple matching receipts fail closed.
+    """
+
+    exact_root = Path(root).resolve()
+    project_root = exact_root / "projects" / project_id
+    active_session_path = project_root / "active_session.json"
+    project_path = project_root / "project.json"
+    _require(
+        active_session_path.is_file() and project_path.is_file(),
+        "CODEX_EXACT_BINDING_PROJECT_AUTHORITY_REQUIRED",
+        "The active project/session authority is unavailable.",
+    )
+    active_session = _json(active_session_path)
+    _require(
+        active_session.get("project_id") == project_id
+        and active_session.get("session_id") == evidence_session_id,
+        "CODEX_EXACT_BINDING_ACTIVE_SESSION_MISMATCH",
+        "The requested governed session is not the active project session.",
+    )
+    session_path = project_root / "sessions" / f"{evidence_session_id}.json"
+    _require(
+        session_path.is_file(),
+        "CODEX_EXACT_BINDING_SESSION_REQUIRED",
+        "The exact governed session record is missing.",
+    )
+    session = _json(session_path)
+    project = _json(project_path)
+    metadata = dict(session.get("metadata") or {})
+    governed_host_session_id = str(
+        metadata.get("current_host_session_id") or ""
+    ).strip()
+    _require(
+        session.get("project_id") == project_id
+        and session.get("session_id") == evidence_session_id
+        and not metadata.get("closed_at")
+        and bool(governed_host_session_id),
+        "CODEX_EXACT_BINDING_SESSION_IDENTITY_MISMATCH",
+        "The active governed project, session, and host-session identities do not agree.",
+    )
+
+    turn_binding = _binding_snapshot(
+        exact_root,
+        {
+            "project_root": project_root,
+            "project": project,
+            "session": session,
+            "binding_match": "EXACT_INSTALLER_PREPARED_CODEX_TASK",
+        },
+    )
+    active_plan = dict(turn_binding.get("persistent_plan_row") or {})
+    _require(
+        active_plan.get("task_id") == expected_active_task_id
+        and active_plan.get("status") == "in_progress"
+        and active_plan.get("lifecycle_status") == "ACTIVE"
+        and active_plan.get("persistent_until")
+        == "NEXT_SIX_WAY_HIL_PRESENTED",
+        "CODEX_EXACT_BINDING_ACTIVE_PLAN_MISMATCH",
+        "The requested task is not the sole current executable Plan row.",
+        expected_active_task_id=expected_active_task_id,
+        actual_active_task_id=active_plan.get("task_id"),
+    )
+
+    installation_root = exact_root / "installations" / "codex-v200"
+    binding_root = installation_root / "task-bindings"
+    _require(
+        binding_root.is_dir(),
+        "CODEX_EXACT_BINDING_INSTALLER_RECEIPTS_REQUIRED",
+        "The installer-prepared Codex task-binding authority is missing.",
+    )
+    candidates: list[tuple[Path, dict[str, Any]]] = []
+    for path in sorted(binding_root.glob("*.json"), key=lambda item: item.name):
+        try:
+            raw = _json(path)
+        except TurnControlError:
+            continue
+        if (
+            raw.get("schema") == "evidence-lane.codex-task-binding.v1"
+            and raw.get("project_id") == project_id
+            and raw.get("evidence_session_id") == evidence_session_id
+            and raw.get("governed_host_session_id") == governed_host_session_id
+        ):
+            candidates.append((path, raw))
+    _require(
+        len(candidates) == 1,
+        "CODEX_EXACT_BINDING_AMBIGUOUS_OR_MISSING",
+        "Exactly one installer-prepared Codex task receipt must bind this project, session, and host session.",
+        matching_task_bindings=len(candidates),
+    )
+    task_binding_path, raw_task_binding = candidates[0]
+    codex_task_id = str(raw_task_binding.get("task_id") or "").strip()
+    _require(
+        _CODEX_TASK_ID_RE.fullmatch(codex_task_id) is not None
+        and task_binding_path.stem.lower() == codex_task_id.lower(),
+        "CODEX_EXACT_BINDING_THREAD_ID_MISMATCH",
+        "The installer receipt filename and exact Codex thread UUID do not agree.",
+    )
+    task_binding = _read_codex_task_binding(
+        exact_root,
+        observed_host_session_id=codex_task_id,
+    )
+    _require(
+        isinstance(task_binding, dict)
+        and task_binding.get("project_id") == project_id
+        and task_binding.get("evidence_session_id") == evidence_session_id
+        and task_binding.get("governed_host_session_id")
+        == governed_host_session_id,
+        "CODEX_EXACT_BINDING_TASK_RECEIPT_MISMATCH",
+        "The exact Codex thread receipt does not bind the active governed identities.",
+    )
+    assert task_binding is not None
+
+    install_path = Path(str(task_binding["install_receipt"]))
+    installation = _json(install_path)
+    plugin = dict(installation.get("plugin") or {})
+    activation = dict(installation.get("activation") or {})
+    plugin_add = dict(activation.get("plugin_add") or {})
+    installed_path = Path(str(plugin_add.get("installedPath") or ""))
+    running_plugin_root = Path(__file__).resolve().parents[2]
+    _require(
+        activation.get("state") == "INSTALLED_RESTART_REQUIRED"
+        and plugin.get("version") == task_binding.get("plugin_version")
+        and plugin_add.get("version") == plugin.get("version")
+        and str(plugin_add.get("pluginId") or "").startswith(
+            "evidence-lane-plugin@"
+        )
+        and installed_path.is_absolute()
+        and installed_path.is_dir()
+        and installed_path.resolve() == running_plugin_root.resolve(),
+        "CODEX_EXACT_BINDING_RUNNING_BUILD_MISMATCH",
+        "The running plugin is not the exact installer-bound stable build.",
+    )
+    surface = _package_surface_inventory()
+    _require(
+        surface.get("plugin_version") == plugin.get("version")
+        and surface.get("catalog")
+        == {"tools": 62, "read": 21, "write": 41, "skills": 15},
+        "CODEX_EXACT_BINDING_RUNNING_SURFACE_MISMATCH",
+        "The running plugin surface does not match the exact v2 catalog.",
+    )
+    task_uri = f"codex://threads/{codex_task_id}"
+    _require(
+        task_binding.get("task_uri_sha256")
+        == sha256_bytes(task_uri.encode("utf-8")),
+        "CODEX_EXACT_BINDING_DEEPLINK_MISMATCH",
+        "The exact Codex task UUID and deep-link identity do not agree.",
+    )
+
+    receipt_body = {
+        "schema": "evidence-lane.codex-exact-task-project-session-binding.v1",
+        "status": "PASS",
+        "project_id": project_id,
+        "evidence_session_id": evidence_session_id,
+        "codex_thread_id": codex_task_id,
+        "task_uri": task_uri,
+        "task_uri_sha256": task_binding.get("task_uri_sha256"),
+        "governed_host_session_id": governed_host_session_id,
+        "active_plan_row": active_plan,
+        "accepted_pointer": {
+            "accepted_pv": turn_binding.get("accepted_pv"),
+            "generation": turn_binding.get("pointer_generation"),
+            "manifest_sha256": turn_binding.get("entry_manifest_sha256"),
+            "package_sha256": turn_binding.get("entry_package_sha256"),
+        },
+        "running_plugin": {
+            "plugin_id": plugin.get("plugin_id"),
+            "plugin_version": plugin.get("version"),
+            "plugin_selector": plugin_add.get("pluginId"),
+            "archive_sha256": installation.get("archive_sha256"),
+            "install_receipt_sha256": task_binding.get(
+                "install_receipt_sha256"
+            ),
+            "surface_inventory_sha256": surface.get(
+                "surface_inventory_sha256"
+            ),
+            "catalog": surface.get("catalog"),
+        },
+        "runtime_task_id": dict(session.get("task") or {}).get("task_id"),
+        "task_binding_receipt_sha256": task_binding.get(
+            "task_binding_receipt_sha256"
+        ),
+        "preparation_receipt_sha256": task_binding.get(
+            "preparation_receipt_sha256"
+        ),
+        "binding_epoch_sha256": _host_binding_epoch(session),
+        "turn_binding_sha256": turn_binding.get("binding_sha256"),
+        "identity_basis": "EXACT_CODEX_THREAD_RECEIPT_PLUS_NATIVE_PLAN_AND_POINTER",
+        "task_title_used": False,
+        "cwd_used": False,
+        "candidate_created": False,
+        "pending_hil": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+        "sealed_at": task_binding.get("prepared_at_utc"),
+    }
+    receipt = {
+        **receipt_body,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+    }
+    binding_epoch_sha256 = str(receipt_body["binding_epoch_sha256"])
+    receipt_path = (
+        project_root
+        / "receipts"
+        / "codex-task-bindings"
+        / f"{codex_task_id.lower()}__{binding_epoch_sha256[:24].lower()}.json"
+    )
+    if receipt_path.is_file():
+        _require(
+            _json(receipt_path) == receipt,
+            "CODEX_EXACT_BINDING_RECEIPT_CONFLICT",
+            "The exact binding epoch already contains different sealed bytes.",
+        )
+    else:
+        atomic_write_json(receipt_path, receipt)
+    return receipt
 
 
 def _warm_attach_receipt(
@@ -1976,20 +2662,6 @@ def _source_change_receipt(
     return core
 
 
-def _fts_query(text: str) -> str | None:
-    terms: list[str] = []
-    for term in _TERM_RE.findall(text):
-        normalized = term.strip().lower()
-        if len(normalized) < 3 or normalized in terms:
-            continue
-        terms.append(normalized)
-        if len(terms) == 8:
-            break
-    if not terms:
-        return None
-    return " OR ".join(f'"{term.replace(chr(34), chr(34) * 2)}"' for term in terms)
-
-
 def _read_only(path: Path) -> sqlite3.Connection:
     _require(
         path.is_file(),
@@ -2003,94 +2675,48 @@ def _read_only(path: Path) -> sqlite3.Connection:
     return connection
 
 
-def _retrieval_receipt(
+def _behavior_query_handoff_receipt(
     *,
-    project_root: Path,
     binding: dict[str, Any],
     visible_text: str,
 ) -> dict[str, Any]:
-    query = _fts_query(visible_text)
-    lineage_results: list[dict[str, Any]] = []
-    code_results: list[dict[str, Any]] = []
-    if query:
-        lineage_path = project_root / "lineage" / "chat_lineage.sqlite"
-        with _read_only(lineage_path) as connection:
-            rows = connection.execute(
-                """
-                SELECT project_lineage_event.event_id AS event_id,
-                       project_lineage_event.event_type AS event_type,
-                       project_lineage_event.session_id AS session_id,
-                       project_lineage_event.global_index AS global_index,
-                       project_lineage_event.visible_payload_sha256 AS visible_payload_sha256,
-                       project_lineage_event.event_sha256 AS event_sha256,
-                       bm25(project_lineage_fts) AS rank
-                FROM project_lineage_fts
-                JOIN project_lineage_event USING(event_id)
-                WHERE project_lineage_fts MATCH ?
-                ORDER BY rank, global_index DESC LIMIT 6
-                """,
-                (query,),
-            ).fetchall()
-            lineage_results = [
-                {
-                    "event_id": row["event_id"],
-                    "event_type": row["event_type"],
-                    "session_id": row["session_id"],
-                    "global_index": int(row["global_index"]),
-                    "visible_payload_sha256": row["visible_payload_sha256"],
-                    "event_sha256": row["event_sha256"],
-                    "rank": float(row["rank"]),
-                }
-                for row in rows
-            ]
-        code_path = (
-            project_root / "accepted" / str(binding["accepted_pv"]) / "code.sqlite"
-        )
-        with _read_only(code_path) as connection:
-            rows = connection.execute(
-                """
-                SELECT chunks_fts.path AS path,
-                       chunks_fts.chunk_id AS chunk_id,
-                       c.start_line AS start_line,
-                       c.end_line AS end_line,
-                       c.sha256 AS chunk_sha256,
-                       f.sha256 AS file_sha256,
-                       bm25(chunks_fts) AS rank
-                FROM chunks_fts
-                JOIN chunks c ON c.chunk_id=CAST(chunks_fts.chunk_id AS INTEGER)
-                JOIN files f ON f.file_id=c.file_id
-                WHERE chunks_fts MATCH ?
-                ORDER BY rank, path, start_line LIMIT 6
-                """,
-                (query,),
-            ).fetchall()
-            code_results = [
-                {
-                    "ref_id": f"chunk:{row['chunk_id']}",
-                    "path": row["path"],
-                    "start_line": int(row["start_line"]),
-                    "end_line": int(row["end_line"]),
-                    "chunk_sha256": row["chunk_sha256"],
-                    "file_sha256": row["file_sha256"],
-                    "rank": float(row["rank"]),
-                }
-                for row in rows
-            ]
+    """Seal the handoff from lifecycle PREPARE to skill-owned behavior.
+
+    PREPARE intentionally performs no project or accepted-PV retrieval. The
+    active Evidence Lane skill must make the visible native MCP reads and then
+    refresh the host Step Task List. Keeping the compatibility receipt field
+    avoids rewriting existing turn-control SQLite while making ownership and
+    the unsatisfied behavior gate explicit.
+    """
+
     receipt = {
-        "schema": "evidence-lane.codex-governed-retrieval.v1",
+        "schema": "evidence-lane.codex-native-behavior-query-handoff.v1",
+        "outcome": "PENDING_NATIVE_SKILL_QUERY",
         "query_sha256": sha256_bytes(visible_text.encode("utf-8")),
-        "query_terms_present": query is not None,
+        "query_terms_present": False,
         "accepted_pv": binding["accepted_pv"],
         "pointer_generation": binding["pointer_generation"],
         "entry_manifest_sha256": binding["entry_manifest_sha256"],
-        "lineage_results": lineage_results,
-        "accepted_code_results": code_results,
-        "lineage_result_count": len(lineage_results),
-        "accepted_code_result_count": len(code_results),
-        "bounded_result_limit_per_authority": 6,
+        "lineage_results": [],
+        "accepted_code_results": [],
+        "lineage_result_count": 0,
+        "accepted_code_result_count": 0,
+        "bounded_result_limit_per_authority": 0,
+        "candidate_overlay_used": False,
         "scrollback_used": False,
         "transcript_used": False,
-        "no_hit_is_valid": not lineage_results and not code_results,
+        "no_hit_is_valid": False,
+        "query_owner": "SKILL",
+        "hook_lookup_performed": False,
+        "native_behavior_query_required": True,
+        "native_behavior_query_satisfied": False,
+        "required_native_read_sequence": [
+            "pv_status",
+            "pv_task_backlog",
+            "pv_query",
+        ],
+        "host_plan_refresh_owner": "SKILL",
+        "host_plan_tool": "update_plan",
     }
     receipt["retrieval_receipt_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
     return receipt
@@ -2596,13 +3222,125 @@ def _control_lock(project_root: Path):
             pass
 
 
+_GOAL_CONTEXT_MARKER = re.compile(
+    r"^\s*<codex_internal_context\b(?=[^>]*\bsource=(?:\"goal\"|'goal'))[^>]*>",
+    flags=re.IGNORECASE,
+)
+
+
+def _goal_context_marker_present(visible_input: str) -> bool:
+    return _GOAL_CONTEXT_MARKER.match(visible_input) is not None
+
+
 def _input_kind(host_payload: dict[str, Any]) -> str:
-    source = str(host_payload.get("source") or "user_prompt").strip().lower()
-    if host_payload.get("is_goal") is True or "goal" in source:
-        return "goal"
-    if host_payload.get("is_steer") is True or "steer" in source:
-        return "steer"
-    return "user_prompt"
+    """Return only the classification knowable without sealed turn history.
+
+    This is used by deterministic gap receipts.  A caller's ``source`` or
+    ``is_steer``/``is_goal`` flags are deliberately ignored.
+    """
+
+    visible = _turn_redact_text(str(host_payload.get("prompt") or ""))
+    return "goal" if _goal_context_marker_present(visible) else "user_prompt"
+
+
+def _derive_input_kind(
+    visible_input: str,
+    *,
+    prior_same_turn_input: bool,
+) -> tuple[str, str]:
+    """Derive prompt/steer/Goal from native input plus sealed turn state."""
+
+    if _goal_context_marker_present(visible_input):
+        return "goal", "CODEX_INTERNAL_GOAL_CONTEXT_MARKER"
+    if prior_same_turn_input:
+        return "steer", "PRIOR_SEALED_INPUT_FOR_SAME_HOST_TURN"
+    return "user_prompt", "FIRST_SEALED_INPUT_FOR_HOST_TURN"
+
+
+def _capture_dispatch(
+    host_payload: dict[str, Any], *, input_kind: str, classification_basis: str
+) -> dict[str, Any]:
+    """Seal truthful host-dispatch provenance for one visible input.
+
+    Codex's pending-input dispatcher invokes ``UserPromptSubmit`` for every
+    ``TurnInput::UserInput`` before the model sees it.  The route is shared;
+    Evidence Lane derives the visible-input subtype from sealed state.
+    """
+
+    expected = {
+        "user_prompt": {
+            "surface": "USER_PROMPT_CORRECTION_OR_HIL_TOKEN",
+            "host_route": "turn/start -> inspect_pending_input(TurnInput::UserInput)",
+            "native_hook_event": "UserPromptSubmit",
+        },
+        "steer": {
+            "surface": "MID_GOAL_STEER",
+            "host_route": "turn/steer -> inspect_pending_input(TurnInput::UserInput)",
+            "native_hook_event": "UserPromptSubmit",
+        },
+        "goal": {
+            "surface": "GOAL_CONTINUATION",
+            "host_route": (
+                "turn/start(goal continuation) -> "
+                "inspect_pending_input(TurnInput::UserInput)"
+            ),
+            "native_hook_event": "UserPromptSubmit",
+        },
+    }[input_kind]
+    supplied = host_payload.get("evidence_lane_capture_dispatch")
+    if not isinstance(supplied, dict):
+        return {
+            **expected,
+            "native_dispatch_surface": None,
+            "native_dispatch_route": None,
+            "host_dispatch_supported": False,
+            "pre_reasoning_dispatch_proven": False,
+            "input_kind_derived_from_sealed_state": True,
+            "classification_basis": classification_basis,
+            "caller_input_kind_authority": False,
+            "state": "CALLER_HAS_NO_NATIVE_DISPATCH_RECEIPT",
+        }
+    exact = {
+        "native_dispatch_surface": str(supplied.get("surface") or ""),
+        "native_dispatch_route": str(supplied.get("host_route") or ""),
+        "native_hook_event": supplied.get("native_hook_event"),
+        "host_dispatch_supported": supplied.get("host_dispatch_supported") is True,
+        "pre_reasoning_dispatch_proven": supplied.get(
+            "pre_reasoning_dispatch_proven"
+        )
+        is True,
+        "input_kind_derived_from_sealed_state": supplied.get(
+            "input_kind_derived_from_sealed_state"
+        )
+        is True,
+        "caller_input_kind_authority": supplied.get("caller_input_kind_authority")
+        is True,
+    }
+    proven = (
+        exact["native_dispatch_surface"] == "PENDING_VISIBLE_USER_INPUT"
+        and exact["native_dispatch_route"]
+        == "inspect_pending_input(TurnInput::UserInput)"
+        and exact["native_hook_event"] == expected["native_hook_event"]
+        and exact["host_dispatch_supported"] is True
+        and exact["pre_reasoning_dispatch_proven"] is True
+        and exact["input_kind_derived_from_sealed_state"] is True
+        and supplied.get("caller_input_kind_authority") is False
+        and exact["caller_input_kind_authority"] is False
+    )
+    _require(
+        proven,
+        "TURN_CONTROL_NATIVE_DISPATCH_RECEIPT_INVALID",
+        "A visible input cannot claim pre-reasoning capture through the wrong host surface.",
+        input_kind=input_kind,
+        expected_surface="PENDING_VISIBLE_USER_INPUT",
+        supplied_surface=exact["native_dispatch_surface"],
+    )
+    return {
+        **expected,
+        **exact,
+        "classification_basis": classification_basis,
+        "state": "NATIVE_PRE_REASONING_DISPATCH_PROVEN",
+    }
 
 
 def _host_key(host_session_id: str) -> str:
@@ -2700,7 +3438,6 @@ def record_non_strict_visible_input(
         "TURN_CONTROL_SECRET_REDACTION_FAILED",
         "A secret-like value remained in the visible input after redaction.",
     )
-    input_kind = _input_kind(host_payload)
     visible_input_sha256 = sha256_bytes(visible_input.encode("utf-8"))
     task = session.get("task") if isinstance(session.get("task"), dict) else {}
     task_id = str(task.get("task_id") or "") or None
@@ -2722,19 +3459,31 @@ def record_non_strict_visible_input(
             if row.get("project_id") == project_id
             and row.get("evidence_session_id") == evidence_session_id
         ]
+        same_turn_records = [
+            row
+            for row in records
+            if row.get("host_session_id") == host_session_id
+            and row.get("turn_id") == turn_id
+        ]
         duplicate = next(
             (
                 row
-                for row in records
-                if row.get("host_session_id") == host_session_id
-                and row.get("turn_id") == turn_id
-                and row.get("input_kind", "user_prompt") == input_kind
-                and row.get("prompt_sha256_after_redaction")
+                for row in same_turn_records
+                if row.get("prompt_sha256_after_redaction")
                 == visible_input_sha256
             ),
             None,
         )
         if duplicate is None:
+            input_kind, classification_basis = _derive_input_kind(
+                visible_input,
+                prior_same_turn_input=bool(same_turn_records),
+            )
+            capture_dispatch = _capture_dispatch(
+                host_payload,
+                input_kind=input_kind,
+                classification_basis=classification_basis,
+            )
             prior = records[-1] if records else None
             prompt_index = int(prior.get("prompt_index") or 0) + 1 if prior else 1
             recorded_at = _now()
@@ -2743,6 +3492,8 @@ def record_non_strict_visible_input(
                 "host_session_id": host_session_id,
                 "turn_id": turn_id,
                 "input_kind": input_kind,
+                "input_kind_classification_basis": classification_basis,
+                "capture_dispatch": capture_dispatch,
                 "prompt_index": prompt_index,
                 "visible_prompt_after_redaction": visible_input,
                 "prompt_sha256_after_redaction": visible_input_sha256,
@@ -2779,6 +3530,25 @@ def record_non_strict_visible_input(
             action = "INDEXED"
         else:
             record = duplicate
+            input_kind = str(record.get("input_kind") or "user_prompt")
+            classification_basis = str(
+                record.get("input_kind_classification_basis")
+                or (record.get("capture_dispatch") or {}).get(
+                    "classification_basis"
+                )
+                or "LEGACY_EXACT_INPUT_REPLAY"
+            )
+            capture_dispatch = _capture_dispatch(
+                host_payload,
+                input_kind=input_kind,
+                classification_basis=classification_basis,
+            )
+            if isinstance(record.get("capture_dispatch"), dict):
+                _require(
+                    record["capture_dispatch"] == capture_dispatch,
+                    "TURN_CONTROL_NATIVE_DISPATCH_RECEIPT_DRIFT",
+                    "The replayed visible input no longer matches its native dispatch receipt.",
+                )
             prompt_index = int(record["prompt_index"])
             recorded_at = str(record["recorded_at"])
             action = "INDEXED_IDEMPOTENT_REUSE"
@@ -2838,6 +3608,11 @@ def record_non_strict_visible_input(
         "prompt_index": prompt_index,
         "turn_id": turn_id,
         "input_kind": input_kind,
+        "input_kind_classification_basis": classification_basis,
+        "capture_dispatch": capture_dispatch,
+        "pre_reasoning_host_dispatch_proven": capture_dispatch[
+            "pre_reasoning_dispatch_proven"
+        ],
         "project_id": project_id,
         "evidence_session_id": evidence_session_id,
         "entry_pv": accepted_pv,
@@ -3024,6 +3799,7 @@ def _project_prepared_entry(
             "turn_id": entry["turn_id"],
             "prompt_index": entry["prompt_index"],
             "input_kind": entry["input_kind"],
+            "capture_dispatch": entry["capture_dispatch"],
             "visible_input_after_redaction": entry["visible_input_after_redaction"],
             "visible_input_sha256_after_redaction": entry[
                 "visible_input_sha256_after_redaction"
@@ -3051,11 +3827,22 @@ def _project_prepared_entry(
             "state": "PREPARED_NOT_COMMITTED",
             "turn_id": entry["turn_id"],
             "input_kind": entry["input_kind"],
+            "capture_dispatch": entry["capture_dispatch"],
             "prompt_index": entry["prompt_index"],
             "prompt_record_sha256": entry["prompt_record_sha256"],
             "control_record_sha256": entry["control_record_sha256"],
             "binding_sha256": entry["binding_sha256"],
             "retrieval_receipt_sha256": entry["retrieval_receipt_sha256"],
+            "behavior_query_owner": entry["retrieval"]["query_owner"],
+            "hook_lookup_performed": entry["retrieval"][
+                "hook_lookup_performed"
+            ],
+            "native_behavior_query_required": entry["retrieval"][
+                "native_behavior_query_required"
+            ],
+            "native_behavior_query_satisfied": entry["retrieval"][
+                "native_behavior_query_satisfied"
+            ],
             "prior_lineage_head_sha256": entry["prior_lineage_head_sha256"],
             "persistent_plan_row": entry["binding"]["persistent_plan_row"],
             "lane_classification": entry["lane_classification"],
@@ -3133,7 +3920,6 @@ def prepare_turn(
         "TURN_CONTROL_SECRET_REDACTION_FAILED",
         "A secret-like value remained in the visible input after redaction.",
     )
-    input_kind = _input_kind(host_payload)
     visible_input_sha256 = sha256_bytes(visible_input.encode("utf-8"))
     attachments = _attachment_identities(
         host_payload,
@@ -3169,26 +3955,66 @@ def prepare_turn(
                 """,
                 (host_session_id, turn_id),
             ).fetchall()
-            existing_entry = None
-            for row in existing_rows:
-                candidate = json.loads(row["record_json"])
-                if (
-                    candidate.get("input_kind") == input_kind
-                    and candidate.get("visible_input_sha256_after_redaction")
-                    == visible_input_sha256
-                    and candidate.get("attachment_identities") == attachments
-                ):
-                    existing_entry = candidate
-                    break
+            existing_entries = [
+                json.loads(row["record_json"]) for row in existing_rows
+            ]
+            exact_entries = [
+                candidate
+                for candidate in existing_entries
+                if candidate.get("visible_input_sha256_after_redaction")
+                == visible_input_sha256
+                and candidate.get("attachment_identities") == attachments
+            ]
+            _require(
+                len(exact_entries) <= 1,
+                "TURN_CONTROL_EXACT_INPUT_REPLAY_AMBIGUOUS",
+                "The same visible input resolves to multiple PREPARE records for one host turn.",
+                matching_records=len(exact_entries),
+            )
+            existing_entry = exact_entries[0] if exact_entries else None
             if existing_entry is not None:
+                input_kind = str(existing_entry.get("input_kind") or "user_prompt")
+                classification_basis = str(
+                    (existing_entry.get("capture_dispatch") or {}).get(
+                        "classification_basis"
+                    )
+                    or "LEGACY_EXACT_INPUT_REPLAY"
+                )
+                capture_dispatch = _capture_dispatch(
+                    host_payload,
+                    input_kind=input_kind,
+                    classification_basis=classification_basis,
+                )
                 _require(
-                    existing_entry.get("binding_sha256") == binding["binding_sha256"],
+                    existing_entry.get("capture_dispatch") == capture_dispatch,
+                    "TURN_CONTROL_NATIVE_DISPATCH_RECEIPT_DRIFT",
+                    "The replayed PREPARE no longer matches its native dispatch receipt.",
+                )
+                _require(
+                    existing_entry.get("binding_sha256")
+                    == binding["binding_sha256"],
                     "TURN_CONTROL_BINDING_DRIFT",
                     "The exact PREPARE exists but its project, pointer, Mode, or Plan binding drifted.",
                 )
                 entry = existing_entry
                 action = "PREPARED_IDEMPOTENT_REUSE"
             else:
+                prior_same_turn_prompt = any(
+                    row.get("host_session_id") == host_session_id
+                    and row.get("turn_id") == turn_id
+                    for row in prompt_records
+                )
+                input_kind, classification_basis = _derive_input_kind(
+                    visible_input,
+                    prior_same_turn_input=bool(
+                        existing_entries or prior_same_turn_prompt
+                    ),
+                )
+                capture_dispatch = _capture_dispatch(
+                    host_payload,
+                    input_kind=input_kind,
+                    classification_basis=classification_basis,
+                )
                 latest = connection.execute(
                     """
                     SELECT prompt_index, control_record_sha256, prompt_record_sha256
@@ -3226,8 +4052,7 @@ def prepare_turn(
                 prior_lineage_head = (
                     lineage_events[-1].get("event_sha256") if lineage_events else None
                 )
-                retrieval = _retrieval_receipt(
-                    project_root=project_root,
+                retrieval = _behavior_query_handoff_receipt(
                     binding=binding,
                     visible_text=visible_input,
                 )
@@ -3237,6 +4062,7 @@ def prepare_turn(
                     "host_session_id": host_session_id,
                     "turn_id": turn_id,
                     "input_kind": input_kind,
+                    "capture_dispatch": capture_dispatch,
                     "prompt_index": prompt_index,
                     "visible_prompt_after_redaction": visible_input,
                     "prompt_sha256_after_redaction": visible_input_sha256,
@@ -3279,6 +4105,7 @@ def prepare_turn(
                     "host_session_id": host_session_id,
                     "turn_id": turn_id,
                     "input_kind": input_kind,
+                    "capture_dispatch": capture_dispatch,
                     "prompt_index": prompt_index,
                     "prompt_record": prompt_record,
                     "prompt_record_sha256": prompt_record["record_sha256"],
@@ -3405,12 +4232,41 @@ def prepare_turn(
         "evidence_session_id": entry["evidence_session_id"],
         "turn_id": entry["turn_id"],
         "input_kind": entry["input_kind"],
+        "capture_dispatch": entry["capture_dispatch"],
+        "pre_reasoning_host_dispatch_proven": entry["capture_dispatch"][
+            "pre_reasoning_dispatch_proven"
+        ],
         "prompt_index": entry["prompt_index"],
         "prompt_record_sha256": entry["prompt_record_sha256"],
         "record_sha256": entry["prompt_record_sha256"],
         "control_record_sha256": entry["control_record_sha256"],
         "binding_sha256": entry["binding_sha256"],
         "retrieval_receipt_sha256": entry["retrieval_receipt_sha256"],
+        "retrieval_outcome": entry["retrieval"]["outcome"],
+        "retrieval_lineage_result_count": entry["retrieval"][
+            "lineage_result_count"
+        ],
+        "retrieval_accepted_code_result_count": entry["retrieval"][
+            "accepted_code_result_count"
+        ],
+        "retrieval_candidate_overlay_used": entry["retrieval"][
+            "candidate_overlay_used"
+        ],
+        "behavior_query_owner": entry["retrieval"]["query_owner"],
+        "hook_lookup_performed": entry["retrieval"]["hook_lookup_performed"],
+        "native_behavior_query_required": entry["retrieval"][
+            "native_behavior_query_required"
+        ],
+        "native_behavior_query_satisfied": entry["retrieval"][
+            "native_behavior_query_satisfied"
+        ],
+        "required_native_read_sequence": entry["retrieval"][
+            "required_native_read_sequence"
+        ],
+        "host_plan_refresh_owner": entry["retrieval"][
+            "host_plan_refresh_owner"
+        ],
+        "host_plan_tool": entry["retrieval"]["host_plan_tool"],
         "persistent_plan_row": entry["binding"]["persistent_plan_row"],
         "accepted_pv": entry["binding"]["accepted_pv"],
         "entry_pv": entry["binding"]["accepted_pv"],

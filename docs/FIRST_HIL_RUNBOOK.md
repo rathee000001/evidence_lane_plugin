@@ -18,8 +18,10 @@
    Mermaid/DOT, lifecycle/CAS failure modes, and host output handoff.
 9. Make one governed implementation commit, push without force, and prove local
    and remote SHA equality.
-10. Install that exact SHA through the Codex Git marketplace route with a fresh
-    cachebuster. Do not remove the older install until the new one is verified.
+10. Install that exact SHA through the one persistent stable Codex marketplace
+    selector. Seal the fresh build identity in the install receipt, reinstall
+    the same stable slot, and preserve the separate disabled fallback; never
+    create a build-specific plugin selector.
 11. Treat the public documentation site as a separate preview surface. If its
     authorization or exact release identity is missing, record the blocker and
     do not deploy.

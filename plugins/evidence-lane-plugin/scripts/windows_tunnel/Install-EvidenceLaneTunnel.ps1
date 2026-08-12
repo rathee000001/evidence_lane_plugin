@@ -54,11 +54,12 @@ $profileFile = Join-Path $profileDir ($ProfileName + ".yaml")
 $runtimeKeyEnvelopeReused = $false
 $tunnelIdReused = $false
 $dependencyAcquisition = "EXISTING_VERIFIED_CLIENT"
+$release = if ($SlotRole -eq "fallback") { "2.0.0" } else { "2.1.0" }
 
 if ($InteractionProfile -in @("HEADLESS_API", "DIRECT_CLI_API")) {
     [ordered]@{
         status = "PASS"
-        release = "2.0.0"
+        release = $release
         interaction_profile = $InteractionProfile
         account_tier = $AccountTier
         tunnel_requirement = "NOT_REQUIRED_FOR_API_LAYER"
@@ -427,7 +428,7 @@ if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $profileFile -PathType 
 
 $marker = [ordered]@{
     schema = "evidence-lane.versioned-secure-mcp-tunnel-installation.v1"
-    release = "2.0.0"
+    release = $release
     runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
     profile_name = $ProfileName
     profile_file = $profileFile
@@ -492,7 +493,7 @@ Register-ScheduledTask `
     -Trigger $trigger `
     -Principal $principal `
     -Settings $settings `
-    -Description "Pinned Evidence Lane 2.0.0 $SlotRole secure MCP tunnel; automatic only while this exact slot is enabled." `
+    -Description "Pinned Evidence Lane $release $SlotRole secure MCP tunnel; automatic only while this exact slot is enabled." `
     -Force | Out-Null
 
 Disable-ScheduledTask -TaskName $TaskName | Out-Null
@@ -513,7 +514,7 @@ if ($Activate) {
 
 [ordered]@{
     status = "PASS"
-    release = "2.0.0"
+    release = $release
     slot_role = $SlotRole
     byte_frozen = $SlotRole -eq "fallback"
     task_name = $TaskName

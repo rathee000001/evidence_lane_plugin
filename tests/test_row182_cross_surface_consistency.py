@@ -18,9 +18,9 @@ if str(SCRIPTS) not in sys.path:
 
 from build_release_candidate_rehearsal import _source_inventory
 
-RELEASE = "2.0.0"
-CODEX_RELEASE = "2.0.0+codex.20260812035500"
-REMOTE_RELEASE = "2.0.0"
+RELEASE = "2.1.0"
+CODEX_RELEASE = "2.1.0+codex.20260812193232"
+REMOTE_RELEASE = "2.1.0"
 SITE = "https://evidencelane.org"
 REPOSITORY = "https://github.com/rathee000001/evidence_lane_plugin"
 

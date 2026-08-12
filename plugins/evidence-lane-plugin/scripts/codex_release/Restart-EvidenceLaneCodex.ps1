@@ -17,22 +17,47 @@ param(
     [string]$PreparationReceipt,
     [string]$PreparationReceiptSha256,
     [string]$ReceiptDirectory = "$env:USERPROFILE\EvidenceLanePV\installations\codex-v200\restart",
-    [ValidateSet("OpenAI.CodexBeta_2p2nqsd0c76g0!App")]
-    [string]$AppId = "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
+    [ValidateSet(
+        "OpenAI.Codex_2p2nqsd0c76g0!App",
+        "OpenAI.CodexBeta_2p2nqsd0c76g0!App"
+    )]
+    [string]$AppId,
     [switch]$ConfirmRestart
 )
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$script:CodexBetaAppId = "OpenAI.CodexBeta_2p2nqsd0c76g0!App"
-$script:CodexBetaPackageFamily = "OpenAI.CodexBeta_2p2nqsd0c76g0"
-$script:CodexBetaProcessName = "ChatGPT (Beta).exe"
-$script:CodexBetaRootPathPattern = '\\WindowsApps\\OpenAI\.CodexBeta_[^\\]+\\app\\ChatGPT \(Beta\)\.exe$'
-$script:CodexBetaPackagePathPattern = '\\WindowsApps\\OpenAI\.CodexBeta_[^\\]+\\app\\'
+$script:HostAppProfiles = [ordered]@{
+    "OpenAI.Codex_2p2nqsd0c76g0!App" = [ordered]@{
+        app_id = "OpenAI.Codex_2p2nqsd0c76g0!App"
+        host_application = "CHATGPT_CODEX"
+        package_name = "OpenAI.Codex"
+        package_family_name = "OpenAI.Codex_2p2nqsd0c76g0"
+        start_app_name = "ChatGPT"
+        process_name = "ChatGPT.exe"
+        manifest_executable = "app/ChatGPT.exe"
+        root_path_pattern = '\\WindowsApps\\OpenAI\.Codex_[^\\]+\\app\\ChatGPT\.exe$'
+        package_path_pattern = '\\WindowsApps\\OpenAI\.Codex_[^\\]+\\app\\'
+    }
+    "OpenAI.CodexBeta_2p2nqsd0c76g0!App" = [ordered]@{
+        app_id = "OpenAI.CodexBeta_2p2nqsd0c76g0!App"
+        host_application = "CHATGPT_BETA_CODEX"
+        package_name = "OpenAI.CodexBeta"
+        package_family_name = "OpenAI.CodexBeta_2p2nqsd0c76g0"
+        start_app_name = "ChatGPT (Beta)"
+        process_name = "ChatGPT (Beta).exe"
+        manifest_executable = "app/ChatGPT (Beta).exe"
+        root_path_pattern = '\\WindowsApps\\OpenAI\.CodexBeta_[^\\]+\\app\\ChatGPT \(Beta\)\.exe$'
+        package_path_pattern = '\\WindowsApps\\OpenAI\.CodexBeta_[^\\]+\\app\\'
+    }
+}
 
-if ($AppId -cne $script:CodexBetaAppId) {
-    throw "Only the exact ChatGPT Beta AppUserModelID may be relaunched."
+function Get-HostAppProfile([string]$ExactAppId) {
+    if ([string]::IsNullOrWhiteSpace($ExactAppId) -or -not $script:HostAppProfiles.Contains($ExactAppId)) {
+        throw "The exact Codex AppUserModelID is not in the approved stable/Beta allowlist."
+    }
+    return $script:HostAppProfiles[$ExactAppId]
 }
 
 function Get-Sha256([string]$Path) {
@@ -84,7 +109,7 @@ function ConvertTo-WindowsCommandLineArgument([AllowEmptyString()][string]$Value
     return $quoted.ToString()
 }
 
-function Assert-CodexThreadProtocol() {
+function Assert-CodexThreadProtocol([object]$HostProfile) {
     $protocolPath = "Registry::HKEY_CLASSES_ROOT\codex"
     if (-not (Test-Path -LiteralPath $protocolPath)) {
         throw "The registered Codex desktop protocol is unavailable."
@@ -96,22 +121,22 @@ function Assert-CodexThreadProtocol() {
     $registeredApps = @(
         Get-StartApps |
             Where-Object {
-                $_.AppID -ceq $script:CodexBetaAppId -and
-                $_.Name -ceq "ChatGPT (Beta)"
+                $_.AppID -ceq [string]$HostProfile.app_id -and
+                $_.Name -ceq [string]$HostProfile.start_app_name
             }
     )
     if ($registeredApps.Count -ne 1) {
-        throw "The exact ChatGPT Beta application registration is unavailable."
+        throw "The exact target Codex application registration is unavailable."
     }
     $packages = @(
-        Get-AppxPackage -Name "OpenAI.CodexBeta" |
+        Get-AppxPackage -Name ([string]$HostProfile.package_name) |
             Where-Object {
-                $_.PackageFamilyName -ceq $script:CodexBetaPackageFamily -and
+                $_.PackageFamilyName -ceq [string]$HostProfile.package_family_name -and
                 $_.Status -eq "Ok"
             }
     )
     if ($packages.Count -ne 1) {
-        throw "The exact ChatGPT Beta package is unavailable or unhealthy."
+        throw "The exact target Codex package is unavailable or unhealthy."
     }
     $manifestPath = Join-Path ([string]$packages[0].InstallLocation) "AppxManifest.xml"
     [xml]$manifest = Get-Content -LiteralPath $manifestPath -Raw
@@ -119,7 +144,7 @@ function Assert-CodexThreadProtocol() {
         $manifest.SelectNodes("//*[local-name()='Application']") |
             Where-Object {
                 $_.GetAttribute("Id") -ceq "App" -and
-                $_.GetAttribute("Executable") -ceq "app/ChatGPT (Beta).exe"
+                $_.GetAttribute("Executable") -ceq [string]$HostProfile.manifest_executable
             }
     )
     $codexProtocols = @(
@@ -127,59 +152,80 @@ function Assert-CodexThreadProtocol() {
             Where-Object { $_.GetAttribute("Name") -ceq "codex" }
     )
     if ($expectedApplications.Count -ne 1 -or $codexProtocols.Count -lt 1) {
-        throw "The ChatGPT Beta package does not expose the expected app and Codex protocol."
+        throw "The target Codex package does not expose the expected app and Codex protocol."
     }
 }
 
-function Get-RootCodexProcess([int]$ProcessId) {
+function Get-RootCodexProcess([int]$ProcessId, [object]$HostProfile) {
     $row = Get-CimInstance Win32_Process -Filter "ProcessId=$ProcessId"
     if ($null -eq $row) { throw "The exact target process does not exist." }
     $path = [string]$row.ExecutablePath
     $command = [string]$row.CommandLine
     if (
-        $row.Name -cne $script:CodexBetaProcessName -or
+        $row.Name -cne [string]$HostProfile.process_name -or
         $command -match "--type=" -or
-        $path -notmatch $script:CodexBetaRootPathPattern
+        $path -notmatch [string]$HostProfile.root_path_pattern
     ) {
-        throw "Only the exact root ChatGPT Beta Codex process may be restarted."
+        throw "Only the exact root process for the bound Codex host may be restarted."
     }
     return $row
 }
 
-function Get-NewRootCodexProcess([int]$PriorProcessId) {
+function Resolve-RootCodexTarget([int]$ProcessId, [string]$ExpectedAppId = "") {
+    $candidateProfiles = if ([string]::IsNullOrWhiteSpace($ExpectedAppId)) {
+        @($script:HostAppProfiles.Values)
+    }
+    else {
+        @(Get-HostAppProfile $ExpectedAppId)
+    }
+    $matches = @()
+    foreach ($profile in $candidateProfiles) {
+        try {
+            $process = Get-RootCodexProcess -ProcessId $ProcessId -HostProfile $profile
+            $matches += [ordered]@{ process = $process; profile = $profile }
+        }
+        catch {}
+    }
+    if ($matches.Count -ne 1) {
+        throw "The exact target process does not resolve to one approved stable/Beta Codex host."
+    }
+    return $matches[0]
+}
+
+function Get-NewRootCodexProcess([int]$PriorProcessId, [object]$HostProfile) {
     $matches = @(
         Get-CimInstance Win32_Process |
             Where-Object {
                 [int]$_.ProcessId -ne $PriorProcessId -and
-                [string]$_.Name -ceq $script:CodexBetaProcessName -and
+                [string]$_.Name -ceq [string]$HostProfile.process_name -and
                 [string]$_.CommandLine -notmatch "--type=" -and
-                [string]$_.ExecutablePath -match $script:CodexBetaRootPathPattern
+                [string]$_.ExecutablePath -match [string]$HostProfile.root_path_pattern
             }
     )
     if ($matches.Count -gt 1) {
-        throw "More than one new ChatGPT Beta Codex root process was observed."
+        throw "More than one new root process for the bound Codex host was observed."
     }
     if ($matches.Count -eq 1) { return $matches[0] }
     return $null
 }
 
-function Get-CodexBetaPackageProcesses() {
+function Get-CodexHostPackageProcesses([object]$HostProfile) {
     return @(
         Get-CimInstance Win32_Process |
             Where-Object {
                 -not [string]::IsNullOrWhiteSpace([string]$_.ExecutablePath) -and
-                [string]$_.ExecutablePath -match $script:CodexBetaPackagePathPattern
+                [string]$_.ExecutablePath -match [string]$HostProfile.package_path_pattern
             }
     )
 }
 
-function Invoke-CodexBetaActivation([string]$Arguments) {
-    if (-not ("EvidenceLaneCodexBetaActivation" -as [type])) {
+function Invoke-CodexHostActivation([object]$HostProfile, [string]$Arguments) {
+    if (-not ("EvidenceLaneCodexHostActivation" -as [type])) {
         $activationSource = @'
 using System;
 using System.Runtime.InteropServices;
 
-public static class EvidenceLaneCodexBetaActivation
+public static class EvidenceLaneCodexHostActivation
 {
     [Flags]
     private enum ActivateOptions : uint
@@ -228,10 +274,13 @@ public static class EvidenceLaneCodexBetaActivation
         Add-Type -TypeDefinition $activationSource
     }
     try {
-        return [uint32][EvidenceLaneCodexBetaActivation]::Activate($AppId, $Arguments)
+        return [uint32][EvidenceLaneCodexHostActivation]::Activate(
+            [string]$HostProfile.app_id,
+            $Arguments
+        )
     }
     catch {
-        throw "ChatGPT Beta activation failed: $($_.Exception.Message)"
+        throw "The exact bound Codex host activation failed: $($_.Exception.Message)"
     }
 }
 
@@ -256,17 +305,23 @@ if ($TaskId -notmatch $taskIdPattern) {
 $taskUri = "codex://threads/$TaskId"
 $taskUriSha256 = Get-StringSha256 $taskUri
 $installationDirectory = Split-Path -Parent $exactInstallReceipt
-$taskBindingDirectory = Join-Path $installationDirectory "task-bindings"
+$taskBindingRoot = $installationDirectory
+if ((Split-Path -Leaf $installationDirectory) -eq "two-slot") {
+    $taskBindingRoot = Split-Path -Parent $installationDirectory
+}
+$taskBindingDirectory = Join-Path $taskBindingRoot "task-bindings"
 $taskBindingPath = Join-Path $taskBindingDirectory ($TaskId.ToLowerInvariant() + ".json")
 $observedInstallSha = Get-Sha256 $exactInstallReceipt
 if ($InstallReceiptSha256 -and $observedInstallSha -ne $InstallReceiptSha256.ToUpperInvariant()) {
     throw "The exact install receipt SHA-256 does not match."
 }
 $install = Get-Content -LiteralPath $exactInstallReceipt -Raw | ConvertFrom-Json
+$installedPluginVersion = [string]$install.plugin.version
 if (
     $install.schema -ne "evidence-lane.codex-stable-installation.v2" -or
     $install.status -ne "PASS" -or
-    $install.plugin.version -notlike "2.0.0+codex.*" -or
+    $installedPluginVersion -notmatch '^\d+\.\d+\.\d+\+codex\.[0-9A-Za-z.-]+$' -or
+    [string]$install.activation.plugin_add.version -ne $installedPluginVersion -or
     $install.activation.state -ne "INSTALLED_RESTART_REQUIRED" -or
     $install.candidate_created_or_accepted -ne $false -or
     $install.pointer_moved -ne $false
@@ -276,8 +331,11 @@ if (
 
 if ($Action -eq "Prepare") {
     if ($TargetProcessId -le 0) { throw "Prepare requires -TargetProcessId." }
-    Assert-CodexThreadProtocol
-    $process = Get-RootCodexProcess $TargetProcessId
+    $target = Resolve-RootCodexTarget -ProcessId $TargetProcessId -ExpectedAppId $AppId
+    $process = $target.process
+    $hostProfile = $target.profile
+    $AppId = [string]$hostProfile.app_id
+    Assert-CodexThreadProtocol $hostProfile
     $receiptPath = Join-Path $ReceiptDirectory "CODEX_RESTART_PREPARATION.json"
     $body = [ordered]@{
         schema = "evidence-lane.codex-restart-preparation.v2"
@@ -290,13 +348,13 @@ if ($Action -eq "Prepare") {
         install_receipt_sha256 = $observedInstallSha
         plugin_version = [string]$install.plugin.version
         target = [ordered]@{
-            host_application = "CHATGPT_BETA_CODEX"
-            package_family_name = $script:CodexBetaPackageFamily
+            host_application = [string]$hostProfile.host_application
+            package_family_name = [string]$hostProfile.package_family_name
             process_id = [int]$process.ProcessId
             process_name = [string]$process.Name
             executable_path = [string]$process.ExecutablePath
             command_line_has_renderer_type = $false
-            app_id = $AppId
+            app_id = [string]$hostProfile.app_id
         }
         continuation = [ordered]@{
             same_task_required = $true
@@ -369,6 +427,7 @@ if ($Action -eq "Restart") {
         throw "The preparation receipt SHA-256 does not match."
     }
     $prepared = Get-Content -LiteralPath $exactPreparation -Raw | ConvertFrom-Json
+    $hostProfile = Get-HostAppProfile $AppId
     if (-not (Test-Path -LiteralPath $taskBindingPath -PathType Leaf)) {
         throw "The exact Codex task binding receipt is missing."
     }
@@ -381,9 +440,9 @@ if ($Action -eq "Restart") {
         $prepared.task_id -ne $TaskId -or
         $prepared.host_session_id -ne $HostSessionId -or
         $prepared.install_receipt_sha256 -ne $observedInstallSha -or
-        $prepared.target.host_application -ne "CHATGPT_BETA_CODEX" -or
-        $prepared.target.package_family_name -ne $script:CodexBetaPackageFamily -or
-        $prepared.target.process_name -ne $script:CodexBetaProcessName -or
+        $prepared.target.host_application -ne [string]$hostProfile.host_application -or
+        $prepared.target.package_family_name -ne [string]$hostProfile.package_family_name -or
+        $prepared.target.process_name -ne [string]$hostProfile.process_name -or
         $prepared.target.app_id -ne $AppId -or
         [int]$prepared.target.process_id -ne $TargetProcessId -or
         $taskBinding.schema -ne "evidence-lane.codex-task-binding.v1" -or
@@ -399,7 +458,7 @@ if ($Action -eq "Restart") {
     ) {
         throw "The preparation receipt does not bind this exact task and process."
     }
-    $process = Get-RootCodexProcess $TargetProcessId
+    $process = Get-RootCodexProcess -ProcessId $TargetProcessId -HostProfile $hostProfile
     if ([string]$process.ExecutablePath -ne [string]$prepared.target.executable_path) {
         throw "The exact target executable changed after preparation."
     }
@@ -438,6 +497,7 @@ if ($Action -eq "Relaunch") {
             throw "Internal relaunch receipt mismatch."
         }
         $prepared = Get-Content -LiteralPath $PreparationReceipt -Raw | ConvertFrom-Json
+        $hostProfile = Get-HostAppProfile $AppId
         if (-not (Test-Path -LiteralPath $taskBindingPath -PathType Leaf)) {
             throw "The exact Codex task binding receipt is missing."
         }
@@ -451,9 +511,9 @@ if ($Action -eq "Relaunch") {
             $prepared.host_session_id -ne $HostSessionId -or
             $prepared.install_receipt_sha256 -ne $observedInstallSha -or
             $prepared.continuation.task_uri_sha256 -ne $taskUriSha256 -or
-            $prepared.target.host_application -ne "CHATGPT_BETA_CODEX" -or
-            $prepared.target.package_family_name -ne $script:CodexBetaPackageFamily -or
-            $prepared.target.process_name -ne $script:CodexBetaProcessName -or
+            $prepared.target.host_application -ne [string]$hostProfile.host_application -or
+            $prepared.target.package_family_name -ne [string]$hostProfile.package_family_name -or
+            $prepared.target.process_name -ne [string]$hostProfile.process_name -or
             $prepared.target.app_id -ne $AppId -or
             [int]$prepared.target.process_id -ne $TargetProcessId -or
             $taskBinding.schema -ne "evidence-lane.codex-task-binding.v1" -or
@@ -477,30 +537,30 @@ if ($Action -eq "Relaunch") {
             Start-Sleep -Milliseconds 250
         }
         $treeDeadline = [DateTimeOffset]::UtcNow.AddSeconds(60)
-        while (@(Get-CodexBetaPackageProcesses).Count -gt 0) {
+        while (@(Get-CodexHostPackageProcesses $hostProfile).Count -gt 0) {
             if ([DateTimeOffset]::UtcNow -ge $treeDeadline) {
-                throw "The exact ChatGPT Beta process tree did not stop within 60 seconds."
+                throw "The exact bound Codex host process tree did not stop within 60 seconds."
             }
             Start-Sleep -Milliseconds 250
         }
-        Assert-CodexThreadProtocol
-        $launchRequestProcessId = Invoke-CodexBetaActivation $taskUri
+        Assert-CodexThreadProtocol $hostProfile
+        $launchRequestProcessId = Invoke-CodexHostActivation -HostProfile $hostProfile -Arguments $taskUri
         $newRoot = $null
         $launchDeadline = [DateTimeOffset]::UtcNow.AddSeconds(60)
         while ($null -eq $newRoot) {
             if ([DateTimeOffset]::UtcNow -ge $launchDeadline) {
-                throw "No new ChatGPT Beta Codex root process appeared after exact AppUserModelID activation."
+                throw "No new root process for the bound Codex host appeared after exact AppUserModelID activation."
             }
             Start-Sleep -Milliseconds 250
-            $newRoot = Get-NewRootCodexProcess $TargetProcessId
+            $newRoot = Get-NewRootCodexProcess -PriorProcessId $TargetProcessId -HostProfile $hostProfile
         }
-        $verifiedRoot = Get-RootCodexProcess ([int]$newRoot.ProcessId)
-        $navigationRequestProcessId = Invoke-CodexBetaActivation $taskUri
+        $verifiedRoot = Get-RootCodexProcess -ProcessId ([int]$newRoot.ProcessId) -HostProfile $hostProfile
+        $navigationRequestProcessId = Invoke-CodexHostActivation -HostProfile $hostProfile -Arguments $taskUri
         Start-Sleep -Milliseconds 500
-        [void](Get-RootCodexProcess ([int]$verifiedRoot.ProcessId))
+        [void](Get-RootCodexProcess -ProcessId ([int]$verifiedRoot.ProcessId) -HostProfile $hostProfile)
         Write-JsonReceipt $relaunchPath ([ordered]@{
             schema = "evidence-lane.codex-relaunch-receipt.v2"
-            state = "BETA_ROOT_RELAUNCHED_EXACT_TASK_REQUESTED_AWAITING_NATIVE_PROOF"
+            state = "BOUND_CODEX_HOST_ROOT_RELAUNCHED_EXACT_TASK_REQUESTED_AWAITING_NATIVE_PROOF"
             project_id = $ProjectId
             evidence_session_id = $EvidenceSessionId
             task_id = $TaskId
@@ -508,12 +568,12 @@ if ($Action -eq "Relaunch") {
             preparation_receipt_sha256 = $PreparationReceiptSha256.ToUpperInvariant()
             task_binding_receipt_sha256 = Get-Sha256 $taskBindingPath
             install_receipt_sha256 = $observedInstallSha
-            host_application = "CHATGPT_BETA_CODEX"
-            package_family_name = $script:CodexBetaPackageFamily
-            app_id = $AppId
-            prior_beta_process_tree_fully_stopped = $true
+            host_application = [string]$hostProfile.host_application
+            package_family_name = [string]$hostProfile.package_family_name
+            app_id = [string]$hostProfile.app_id
+            prior_bound_host_process_tree_fully_stopped = $true
             task_navigation = [ordered]@{
-                mode = "EXACT_BETA_APPUSERMODELID_WITH_CODEX_THREAD_ARGUMENT"
+                mode = "EXACT_BOUND_APPUSERMODELID_WITH_CODEX_THREAD_ARGUMENT"
                 task_uri_sha256 = $taskUriSha256
                 coordinate_clicking_used = $false
                 launch_request_process_id = [uint32]$launchRequestProcessId
@@ -522,7 +582,7 @@ if ($Action -eq "Relaunch") {
                 new_root_process_name = [string]$verifiedRoot.Name
                 new_root_executable_path = [string]$verifiedRoot.ExecutablePath
                 request_observed = $true
-                user_opened_beta_manually = $false
+                user_opened_host_manually = $false
                 task_2_used = $false
                 active_task_ui_independently_proven = $false
                 native_local_workspace_and_changes_proof_pending = $true
@@ -539,7 +599,7 @@ if ($Action -eq "Relaunch") {
     catch {
         Write-JsonReceipt $failurePath ([ordered]@{
             schema = "evidence-lane.codex-relaunch-failure.v1"
-            state = "BETA_RELAUNCH_FAILED"
+            state = "BOUND_CODEX_HOST_RELAUNCH_FAILED"
             project_id = $ProjectId
             evidence_session_id = $EvidenceSessionId
             task_id = $TaskId

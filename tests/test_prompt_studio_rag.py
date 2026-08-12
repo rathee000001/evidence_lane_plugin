@@ -29,7 +29,7 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     sqlite_path = EVIDENCE / "studio_search.sqlite"
 
     assert manifest["schema"] == "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1"
-    assert manifest["release"] == "1.5.0"
+    assert manifest["release"] == "2.1.0"
     assert manifest["history_mode"] == "FROZEN_SEALED_INDEX_NO_GIT"
     assert "no Git command is invoked" in manifest["corpus"]["boundary"]
     assert manifest["validation"]["sqlite_integrity"] == "ok"

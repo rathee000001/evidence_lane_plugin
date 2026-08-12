@@ -1,10 +1,10 @@
-"""Verify the installed Evidence Lane 2.0 Codex package before final HIL.
+"""Verify the installed Evidence Lane 2.1 Codex Git stable before final HIL.
 
 This checker is read-only except for its explicit receipt output. It compares the
-supported local marketplace with Codex's generated installed cache, validates the
-enabled selector, statically proves the 62/21/41 catalog and fifteen skills, and
-optionally binds a post-restart native route receipt. It never calls lifecycle,
-Git, tunnel, candidate, pointer, or HIL actions.
+exact Git marketplace checkout with Codex's generated installed cache, validates
+the enabled canonical selector, statically proves the 62/21/41 catalog and
+fifteen skills, and optionally binds a post-restart native route receipt. It
+never calls lifecycle, Git, tunnel, candidate, pointer, or HIL actions.
 """
 
 from __future__ import annotations
@@ -20,11 +20,79 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-BASE_RELEASE = "2.0.0"
+BASE_RELEASE = "2.1.0"
+FALLBACK_RELEASE = "2.0.0"
 PLUGIN_NAME = "evidence-lane-plugin"
-MARKETPLACE_NAME = "evidence-lane-v200-github"
+MARKETPLACE_NAME = "evidence-lane-github"
+MARKETPLACE_DISPLAY_NAME = "GitLane Stable 2.1"
 PLUGIN_SELECTOR = f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"
+HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
+EXPECTED_CODEX_HOOK_EVENTS = {
+    "postToolUse",
+    "sessionStart",
+    "stop",
+    "userPromptSubmit",
+}
 EXPECTED_CATALOG = {"tools": 62, "read": 21, "write": 41, "skills": 15}
+EXPECTED_BEHAVIOR_OWNERSHIP = {
+    "hooks": "LIFECYCLE_CAPTURE_AND_SEALED_EVENTS_ONLY",
+    "skills": "NATIVE_PV_READS_AND_HOST_BEHAVIOR",
+    "prompt_and_steer_native_reads": [
+        "pv_status",
+        "pv_task_backlog",
+        "pv_query",
+    ],
+    "query_must_use_native_mcp_route": True,
+    "internal_hook_lookup_satisfies_native_query": False,
+    "host_plan_tool": "update_plan",
+    "hook_may_embed_full_plan_rows": False,
+    "hook_may_call_or_instruct_host_behavior": False,
+    "skill_must_refresh_after_every_prompt_or_steer": True,
+    "fail_closed_when_behavior_route_unavailable": True,
+}
+EXPECTED_STABLE_ACTIVATION_GATE = {
+    "local_rehearsal_stage_only": True,
+    "local_rehearsal_activation_allowed": False,
+    "exact_commit_package_builder": (
+        "scripts/codex_release/build_codex_exact_commit_package.py"
+    ),
+    "release_authority_joiner": (
+        "scripts/codex_release/seal_codex_git_ci_release_authority.py"
+    ),
+    "external_release_receipt_sealer": (
+        "scripts/codex_release/seal_external_release_receipts.py"
+    ),
+    "stable_update_helper": (
+        "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1"
+    ),
+    "stable_update_reopens_same_bound_host_app": True,
+    "stable_update_rebinds_general_goal_recovery": True,
+    "release_authority_schema": "evidence-lane.codex-git-ci-vercel-release-authority.v2",
+    "exact_clean_commit_required": True,
+    "governed_native_remote_push_required": True,
+    "successful_github_ci_required": True,
+    "successful_vercel_branch_preview_required": True,
+    "production_deployment_allowed": False,
+    "exact_commit_git_marketplace_required": True,
+    "git_marketplace_name": MARKETPLACE_NAME,
+    "git_marketplace_display_name": MARKETPLACE_DISPLAY_NAME,
+    "git_marketplace_source": "rathee000001/evidence_lane_plugin",
+    "one_time_legacy_stable_selector_migration_allowed": True,
+    "post_proof_obsolete_cleanup_required": True,
+    "same_stable_selector_required_after_migration": True,
+    "installed_runtime_prewarm_required": True,
+    "runtime_ready_before_task_reopen_required": True,
+    "fallback_activation_inferred": False,
+}
+EXPECTED_BRAND_IDENTITY = {
+    "display_name": "Evidence Lane",
+    "icon_path": "assets/evidence-lane-icon.png",
+    "icon_sha256": "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA",
+    "resource_uri": "ui://evidence-lane/governed-console-v3.html",
+    "manifest_icon_fields": ["interface.composerIcon", "interface.logo"],
+    "required_at_stage": True,
+    "required_at_runtime_prewarm": True,
+}
 EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     "routing_axes_independent": True,
     "account_tier_affects_routing": False,
@@ -387,13 +455,39 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     fallback = dict(release.get("fallback") or {})
     live_slots = dict(release.get("live_slot_policy") or {})
     failover = dict(release.get("failover_operator") or {})
+    goal_recovery = dict(release.get("goal_recovery") or {})
+    behavior_ownership = dict(release.get("behavior_ownership") or {})
+    stable_activation_gate = dict(release.get("stable_activation_gate") or {})
+    brand_identity = dict(release.get("brand_identity") or {})
     promotion = dict(release.get("promotion_gate") or {})
     remote_git = dict(release.get("remote_git_policy") or {})
     skills = sorted((plugin_root / "skills").glob("*/SKILL.md"))
     native = json.loads((plugin_root / ".mcp.json").read_text("utf-8"))
+    interface = dict(manifest.get("interface") or {})
+    brand_icon = plugin_root / str(brand_identity.get("icon_path") or "")
     required_release_helpers = (
         plugin_root / "scripts" / "codex_release" / "install_codex_stable.py",
+        plugin_root
+        / "scripts"
+        / "codex_release"
+        / "build_codex_exact_commit_package.py",
+        plugin_root
+        / "scripts"
+        / "codex_release"
+        / "seal_codex_git_ci_release_authority.py",
+        plugin_root
+        / "scripts"
+        / "codex_release"
+        / "seal_external_release_receipts.py",
+        plugin_root
+        / "scripts"
+        / "codex_release"
+        / "Update-EvidenceLaneCodexStableAndResume.ps1",
         plugin_root / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1",
+        plugin_root
+        / "scripts"
+        / "codex_release"
+        / "Manage-EvidenceLaneCodexGoalRecovery.ps1",
         plugin_root
         / "scripts"
         / "codex_release"
@@ -422,6 +516,9 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or stable.get("codex_marketplace_slot") != MARKETPLACE_NAME
         or stable.get("byte_frozen") is not False
         or stable.get("updates_require_verified_unique_build_identity") is not True
+        or stable.get("stable_selector_is_persistent") is not True
+        or stable.get("stable_updates_reinstall_in_place") is not True
+        or stable.get("build_identity_is_receipt_not_selector") is not True
         or stable.get("native_tool_count") != EXPECTED_CATALOG["tools"]
         or stable.get("native_read_tool_count") != EXPECTED_CATALOG["read"]
         or stable.get("native_write_tool_count") != EXPECTED_CATALOG["write"]
@@ -431,7 +528,7 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or stable.get("generated_namespace_allowed") is not False
         or stable.get("direct_stdio_fallback_allowed") is not False
         or stable.get("google_drive_bundled") is not False
-        or fallback.get("release") != BASE_RELEASE
+        or fallback.get("release") != FALLBACK_RELEASE
         or fallback.get("slot_role") != "fallback"
         or fallback.get("codex_marketplace_slot")
         != "evidence-lane-pv11-fallback"
@@ -445,6 +542,8 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or live_slots.get("exact_slot_count_after_pv11_acceptance") != 2
         or live_slots.get("allowed_slots") != ["stable-build", "fallback"]
         or live_slots.get("max_enabled_plugin_count") != 1
+        or live_slots.get("exact_registered_plugin_count") != 2
+        or live_slots.get("stable_selector_growth_allowed") is not False
         or live_slots.get("max_active_native_mcp_count") != 1
         or live_slots.get("max_active_tunnel_count") != 1
         or live_slots.get("inactive_slot_remains_installed") is not True
@@ -457,6 +556,37 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or failover.get("target_tunnel_ready_before_plugin_switch") is not True
         or failover.get("controlled_exact_task_restart_required") is not True
         or failover.get("switch_failure_restores_source_slot") is not True
+        or goal_recovery.get("script")
+        != "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1"
+        or goal_recovery.get("scope")
+        != "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_ON_THIS_WINDOWS_USER"
+        or goal_recovery.get("trigger") != "AT_LOGON_CURRENT_WINDOWS_USER"
+        or goal_recovery.get("exact_task_uuid_required") is not True
+        or goal_recovery.get("exact_host_app_binding_required") is not True
+        or goal_recovery.get("supported_host_app_ids")
+        != [
+            "OpenAI.Codex_2p2nqsd0c76g0!App",
+            "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
+        ]
+        or goal_recovery.get("persisted_goal_read_route")
+        != "CODEX_APP_SERVER_THREAD_READ_PLUS_THREAD_GOAL_GET"
+        or goal_recovery.get("thread_resume_writer_allowed") is not False
+        or goal_recovery.get("synthetic_prompt_allowed") is not False
+        or goal_recovery.get("turn_start_allowed") is not False
+        or goal_recovery.get("state_travel_allowed") is not False
+        or goal_recovery.get("candidate_hil_pointer_or_git_mutation_allowed")
+        is not False
+        or goal_recovery.get("requires_stable_enabled_fallback_disabled") is not True
+        or goal_recovery.get("stable_selector_growth_allowed") is not False
+        or goal_recovery.get("raw_goal_objective_stored") is not False
+        or behavior_ownership != EXPECTED_BEHAVIOR_OWNERSHIP
+        or stable_activation_gate != EXPECTED_STABLE_ACTIVATION_GATE
+        or brand_identity != EXPECTED_BRAND_IDENTITY
+        or interface.get("displayName") != brand_identity.get("display_name")
+        or interface.get("composerIcon") != "./assets/evidence-lane-icon.png"
+        or interface.get("logo") != "./assets/evidence-lane-icon.png"
+        or not brand_icon.is_file()
+        or _sha256(brand_icon) != brand_identity.get("icon_sha256")
         or release.get("host_storage_tunnel_matrix")
         != EXPECTED_HOST_STORAGE_TUNNEL_MATRIX
         or promotion.get("mode") != "CODE"
@@ -563,12 +693,42 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
     marketplace = args.marketplace_plugin.resolve()
     config = args.codex_config.resolve()
     archive = args.archive.resolve()
-    rehearsal_path = args.rehearsal_receipt.resolve()
+    package_argument = getattr(args, "package_receipt", None) or getattr(
+        args, "rehearsal_receipt", None
+    )
+    if package_argument is None:
+        raise AcceptanceError("An exact package receipt is required.")
+    rehearsal_path = Path(package_argument).resolve()
     install_path = args.installation_receipt.resolve()
     rehearsal = json.loads(rehearsal_path.read_text(encoding="utf-8"))
     installation = _sealed_json(install_path, hash_field="receipt_sha256")
     activation = dict(installation.get("activation") or {})
+    activation_authority = dict(installation.get("activation_authority") or {})
+    runtime_prewarm = dict(activation.get("runtime_prewarm") or {})
+    runtime_prewarm_core = dict(runtime_prewarm)
+    runtime_prewarm_sha256 = str(
+        runtime_prewarm_core.pop("receipt_sha256", "")
+    ).upper()
     plugin_add = dict(activation.get("plugin_add") or {})
+    exact_selector = str(plugin_add.get("pluginId") or "")
+    hook_trust = dict(activation.get("hook_trust") or {})
+    hook_trust_core = dict(hook_trust)
+    hook_trust_sha256 = str(
+        hook_trust_core.pop("receipt_sha256", "")
+    ).upper()
+    hook_records = hook_trust.get("records")
+    if not isinstance(hook_records, list):
+        hook_records = []
+    hook_events = {
+        str(row.get("event_name") or "")
+        for row in hook_records
+        if isinstance(row, dict)
+    }
+    hook_keys = [
+        str(row.get("hook_key") or "")
+        for row in hook_records
+        if isinstance(row, dict)
+    ]
     surface_change = dict(installation.get("surface_change_display") or {})
     if (
         rehearsal.get("status") != "PASS"
@@ -577,7 +737,30 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         or installation.get("status") != "PASS"
         or installation.get("schema") != "evidence-lane.codex-stable-installation.v2"
         or installation.get("archive_sha256") != _sha256(archive)
+        or activation_authority.get("status") != "PASS"
+        or activation_authority.get("boundary")
+        != "GOVERNED_GIT_BRANCH_CLEAN_CI_VERCEL_PREVIEW_EXACT_COMMIT"
+        or activation_authority.get("vercel_preview_ready") is not True
+        or activation_authority.get("production_deployment") is not False
         or activation.get("state") != "INSTALLED_RESTART_REQUIRED"
+        or activation.get("runtime_ready_before_task_reopen") is not True
+        or installation.get("runtime_ready_before_task_reopen") is not True
+        or runtime_prewarm.get("status") != "PASS"
+        or runtime_prewarm.get("runtime_ready_before_task_reopen") is not True
+        or runtime_prewarm.get("task_reopened") is not False
+        or runtime_prewarm.get("tool_count") != EXPECTED_CATALOG["tools"]
+        or re.fullmatch(
+            r"[A-F0-9]{64}",
+            str(runtime_prewarm.get("tool_catalog_sha256") or ""),
+        )
+        is None
+        or runtime_prewarm.get("resource_uri")
+        != EXPECTED_BRAND_IDENTITY["resource_uri"]
+        or runtime_prewarm.get("brand_icon_sha256")
+        != EXPECTED_BRAND_IDENTITY["icon_sha256"]
+        or runtime_prewarm_sha256
+        != _sha256_bytes(_json_bytes(runtime_prewarm_core))
+        or exact_selector != PLUGIN_SELECTOR
         or plugin_add.get("installedPath") is None
         or Path(plugin_add["installedPath"]).resolve() != installed
         or installation.get("generated_cache_written_directly") is not False
@@ -590,20 +773,81 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         )
         is not True
         or installation.get("two_slot_operator_packaged") is not True
+        or installation.get("post_proof_obsolete_cleanup_completed") is not True
+        or installation.get("obsolete_cleanup_used_supported_codex_apis") is not True
         or installation.get("credential_requested_or_stored") is not False
         or surface_change.get("schema")
         != "evidence-lane.codex-installed-surface-change-display.v2"
         or surface_change.get("raw_paths_included") is not False
         or surface_change.get("private_research_question_included") is not False
+        or hook_trust.get("schema") != HOOK_TRUST_SCHEMA
+        or hook_trust.get("status") != "PASS"
+        or hook_trust.get("plugin_selector") != exact_selector
+        or hook_trust.get("hook_count") != 4
+        or hook_events != EXPECTED_CODEX_HOOK_EVENTS
+        or len(hook_records) != 4
+        or len(hook_keys) != len(set(hook_keys))
+        or hook_trust.get("after_trust_statuses") != ["trusted"]
+        or hook_trust_sha256
+        != _sha256_bytes(_json_bytes(hook_trust_core))
+        or any(
+            not isinstance(row, dict)
+            or row.get("enabled") is not True
+            or row.get("trust_status") != "trusted"
+            or not str(row.get("hook_key") or "").startswith(
+                f"{exact_selector}:"
+            )
+            or re.fullmatch(
+                r"sha256:[0-9a-f]{64}",
+                str(row.get("current_hash") or ""),
+            )
+            is None
+            for row in hook_records
+        )
+        or dict(activation.get("git_marketplace_source") or {}).get("status")
+        != "PASS"
+        or dict(activation.get("git_marketplace_source") or {}).get("source_type")
+        != "git"
+        or dict(activation.get("git_marketplace_source") or {}).get(
+            "exact_commit_package_bytes_match"
+        )
+        is not True
+        or dict(activation.get("post_proof_cleanup") or {}).get("status") != "PASS"
+        or dict(activation.get("post_proof_cleanup") or {}).get(
+            "exact_installed_slot_count"
+        )
+        != 2
     ):
         raise AcceptanceError("The archive or supported installation receipt drifted.")
     configured = tomllib.loads(config.read_text(encoding="utf-8"))
+    plugin_settings = dict(configured.get("plugins") or {})
     enabled = sorted(
         selector
-        for selector, value in (configured.get("plugins") or {}).items()
+        for selector, value in plugin_settings.items()
         if selector.startswith(f"{PLUGIN_NAME}@") and value.get("enabled") is True
     )
-    if enabled != [PLUGIN_SELECTOR]:
+    exact_mcp = dict(plugin_settings.get(exact_selector) or {}).get("mcp_servers")
+    exact_mcp_settings = (
+        dict(exact_mcp).get("evidence-lane")
+        if isinstance(exact_mcp, dict)
+        else None
+    )
+    inactive_mcp_enabled = [
+        selector
+        for selector, value in plugin_settings.items()
+        if selector.startswith(f"{PLUGIN_NAME}@")
+        and selector != exact_selector
+        and isinstance(value, dict)
+        and isinstance(value.get("mcp_servers"), dict)
+        and isinstance(value["mcp_servers"].get("evidence-lane"), dict)
+        and value["mcp_servers"]["evidence-lane"].get("enabled") is True
+    ]
+    if (
+        enabled != [exact_selector]
+        or not isinstance(exact_mcp_settings, dict)
+        or exact_mcp_settings.get("enabled") is not True
+        or inactive_mcp_enabled
+    ):
         raise AcceptanceError("Exactly the v2 Evidence Lane selector must be enabled.")
     installed_identity = _validate_plugin(installed)
     marketplace_identity = _validate_plugin(marketplace)
@@ -643,9 +887,17 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         "package_inventory": package_inventory,
         "catalog": dict(EXPECTED_CATALOG),
         "surface_change_display": surface_change,
-        "enabled_selector": PLUGIN_SELECTOR,
+        "enabled_selector": exact_selector,
+        "hook_trust_receipt_sha256": hook_trust_sha256,
+        "hook_trust": {
+            "status": "PASS",
+            "hook_count": 4,
+            "registered_events": sorted(EXPECTED_CODEX_HOOK_EVENTS),
+            "after_trust_statuses": ["trusted"],
+            "selector": exact_selector,
+        },
         "archive_sha256": _sha256(archive),
-        "rehearsal_receipt_sha256": _sha256(rehearsal_path),
+        "package_receipt_sha256": _sha256(rehearsal_path),
         "installation_receipt_sha256": _sha256(install_path),
         "native_route": native,
         "restart_verified": native is not None,
@@ -668,7 +920,13 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--marketplace-plugin", type=Path, required=True)
     parser.add_argument("--codex-config", type=Path, required=True)
     parser.add_argument("--archive", type=Path, required=True)
-    parser.add_argument("--rehearsal-receipt", type=Path, required=True)
+    package = parser.add_mutually_exclusive_group(required=True)
+    package.add_argument("--package-receipt", type=Path)
+    package.add_argument(
+        "--rehearsal-receipt",
+        type=Path,
+        help="Compatibility name for historical staging receipts.",
+    )
     parser.add_argument("--installation-receipt", type=Path, required=True)
     parser.add_argument("--native-route-receipt", type=Path)
     parser.add_argument("--output", type=Path, required=True)

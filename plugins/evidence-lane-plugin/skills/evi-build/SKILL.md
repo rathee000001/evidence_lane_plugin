@@ -5,6 +5,11 @@ description: Evidence Lane unaccepted candidate build and exact six-way HIL gate
 
 # Evidence Lane Build and HIL
 
+Before any tool call, read and apply
+`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+ownership contract. This skill owns behavior; hooks provide lifecycle receipts
+only.
+
 From an initial entry call `pv_build_initial`. From a completed bounded task,
 use `/evi-refresh`. At pending HIL, show exactly `APPROVE`,
 `APPROVE_WITH_DELTA`, `MORE_RESEARCH`, `ROLLBACK`, `REJECT`, and `FAIL`.

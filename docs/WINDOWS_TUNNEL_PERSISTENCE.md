@@ -1,6 +1,6 @@
 # Persistent Windows tunnel and two-slot recovery
 
-Evidence Lane 2.0 keeps the Codex lifecycle on the package-local native MCP.
+Evidence Lane 2.1 keeps the Codex lifecycle on the package-local native MCP.
 The Windows tunnel is a separate, version-bound interactive-host support
 channel. Tunnel health never substitutes for the native 62-tool catalog,
 project/session binding, accepted pointer, or HIL proof.
@@ -76,7 +76,8 @@ Deltas, and evidence remain preserved outside the live cache.
 The two-slot registry is keyed by exact plugin selector, build identity, package
 SHA-256, installation receipt, cache root, tunnel marker, task name, and profile
 name. It is not keyed only by semantic version, because stable-build and the
-PV11 fallback are both product version 2.0.0.
+mutable stable is product version 2.1.0 while the disabled PV11 fallback remains
+exact product version 2.0.0.
 
 ## Deterministic failover operator
 

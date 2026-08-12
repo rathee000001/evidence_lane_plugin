@@ -5,6 +5,11 @@ description: Evidence Lane atomic runtime doctor, ENV15/UOP15 Flash, host detect
 
 # Evidence Lane Boot
 
+Before any tool call, read and apply
+`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+ownership contract. This skill owns behavior; hooks provide lifecycle receipts
+only.
+
 In one atomic flow call `runtime_doctor`, `session_flash_status`, then exactly
 one of `session_boot` or `session_resume`. Never duplicate an active governed
 session. Boot/resume must finish with runtime activation `ACTIVE`, locked Flash

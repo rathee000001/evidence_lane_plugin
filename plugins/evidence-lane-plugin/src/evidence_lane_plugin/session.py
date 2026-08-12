@@ -10,7 +10,7 @@ from .constants import ENGINE_VERSION
 from .engine import CodePVEngine
 from .errors import EvidenceLaneError, require
 from .freshness import evaluate_freshness
-from .git_adapter import identity_json, inspect_repository
+from .git_adapter import identity_json, inspect_repository, run_git
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
 from .ids import prefixed_id
 from .ingest import iter_source_files
@@ -77,6 +77,12 @@ _PLAN_NORMALIZATION_PHASES = {
 }
 _SAFE_ID_CHARACTERS = set(
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
+)
+_FALLBACK_PREWARM_TASK_ID = (
+    "EL-CODEX-PV11-FALLBACK-SLOT-INSTALL-PREWARM-DELTA-149"
+)
+_EXACT_TASK_PROJECT_SESSION_BINDING_TASK_ID = (
+    "EL-CODEX-EXACT_TASK_PROJECT_SESSION_BINDING-PROPOSAL-03"
 )
 
 
@@ -2293,6 +2299,1364 @@ class SessionManager:
         )
         return {"status": "PASS", "grant": grant, "session": session.as_dict()}
 
+    def _verify_state_travel_task_advance(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        completed_backlog_task_id: str,
+        replacement_backlog_task_id: str,
+        replacement_task: TaskContract,
+        native_route_receipt: dict[str, Any] | None,
+        installed_surface_inventory: dict[str, Any] | None,
+        project_panel_snapshot: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """Seal the exact non-promoting proof for a consumed handoff row.
+
+        State Travel is the implementation and acceptance condition for this
+        narrow row type.  The proof is intentionally gathered from the active
+        native MCP process, the installed package, the read-only project panel,
+        the live runtime binding, the Plan Lane, and the actual remote ``main``
+        ref before either Plan status is changed.
+        """
+
+        session = self.load(project_id, session_id)
+        pointer = self.store.pointer(project_id)
+        travel = session.metadata.get("state_travel")
+        require(
+            isinstance(travel, dict)
+            and travel.get("status") == "VERIFIED_RESUME_READY"
+            and travel.get("continuation_ready") is True
+            and travel.get("project_id") == project_id
+            and travel.get("session_id") == session_id,
+            "STATE_TRAVEL_TASK_ADVANCE_VERIFIED_HANDOFF_REQUIRED",
+            "The active handoff row may advance only from one consumed, resume-ready State Travel receipt.",
+            status="BLOCKED",
+        )
+        travel = cast(dict[str, Any], travel)
+        handoff_id = str(travel.get("handoff_id") or "").strip()
+        destination_host_session_id = str(
+            travel.get("destination_host_session_id") or ""
+        ).strip()
+        current_host_session_id = str(
+            session.metadata.get("current_host_session_id") or ""
+        ).strip()
+        matching_history = [
+            row
+            for row in session.metadata.get("state_travel_history", [])
+            if isinstance(row, dict)
+            and row.get("handoff_id") == handoff_id
+            and row.get("status") == "VERIFIED_RESUME_READY"
+            and row.get("destination_host_session_id")
+            == destination_host_session_id
+        ]
+        require(
+            bool(handoff_id)
+            and len(matching_history) == 1
+            and destination_host_session_id == current_host_session_id
+            and travel.get("boot_verified") is True
+            and travel.get("flash_verified") is True
+            and travel.get("pointer_verified") is True
+            and travel.get("plan_lane_verified") is True
+            and travel.get("live_source_verified") is True
+            and travel.get("execution_profile_verified") is True
+            and travel.get("host_settings_mutated") is False,
+            "STATE_TRAVEL_TASK_ADVANCE_HANDOFF_IDENTITY_MISMATCH",
+            "The consumed State Travel receipt, destination host session, or entry verification is not exact.",
+            status="MISMATCH",
+            handoff_id=handoff_id or None,
+            matching_history_count=len(matching_history),
+            destination_host_session_id=destination_host_session_id or None,
+            current_host_session_id=current_host_session_id or None,
+        )
+        require(
+            session.state == SessionState.TASK_CLASSIFIED
+            and session.candidate_id is None
+            and not session.metadata.get("pending_hil")
+            and session.metadata.get("active_backlog_task_id")
+            == completed_backlog_task_id
+            and session.metadata.get("active_backlog_task_status") == "DONE"
+            and session.metadata.get("client_source_edit_authority") == "DIRECT"
+            and isinstance(session.task, dict),
+            "STATE_TRAVEL_TASK_ADVANCE_SESSION_BOUNDARY_MISMATCH",
+            "The session is not at the exact completed handoff-row boundary.",
+            status="MISMATCH",
+            state=session.state.value,
+            active_backlog_task_id=session.metadata.get(
+                "active_backlog_task_id"
+            ),
+            active_backlog_task_status=session.metadata.get(
+                "active_backlog_task_status"
+            ),
+            candidate_id=session.candidate_id,
+            pending_hil=bool(session.metadata.get("pending_hil")),
+            client_source_edit_authority=session.metadata.get(
+                "client_source_edit_authority"
+            ),
+        )
+        require(
+            pointer.accepted_pv is not None
+            and pointer.accepted_pv == session.accepted_pv
+            and pointer.accepted_pv == travel.get("accepted_pv")
+            and pointer.generation == session.accepted_pointer_generation
+            and pointer.generation == travel.get("pointer_generation")
+            and pointer.accepted_manifest_sha256 == travel.get("manifest_sha256"),
+            "STATE_TRAVEL_TASK_ADVANCE_POINTER_MISMATCH",
+            "The accepted pointer changed after the verified handoff entry.",
+            status="STALE",
+            pointer=pointer.as_dict(),
+        )
+
+        runtime_status = self.runtime_activation.status()
+        runtime_binding = next(
+            (
+                row
+                for row in runtime_status.get("active_sessions", [])
+                if row.get("project_id") == project_id
+                and row.get("session_id") == session_id
+            ),
+            None,
+        )
+        require(
+            runtime_status.get("state") == "ACTIVE"
+            and runtime_status.get("prompt_capture_active") is True
+            and runtime_status.get("visible_response_capture_active") is True
+            and isinstance(runtime_binding, dict)
+            and destination_host_session_id
+            in runtime_binding.get("host_session_ids", []),
+            "STATE_TRAVEL_TASK_ADVANCE_RUNTIME_BINDING_MISMATCH",
+            "The live runtime is not attached to the exact destination host session.",
+            status="MISMATCH",
+            runtime_state=runtime_status.get("state"),
+            destination_host_session_id=destination_host_session_id,
+        )
+
+        route = native_route_receipt or {}
+        require(
+            route.get("schema") == "evidence-lane.native-mcp-route-receipt.v1"
+            and route.get("status") == "PASS"
+            and route.get("server_identity") == "evidence-lane"
+            and route.get("canonical_tool_namespace") == "mcp__evidence_lane__"
+            and route.get("exposure_profile") == "FULL_LIFECYCLE"
+            and route.get("tool_count") == 62
+            and route.get("tool_names_unique") is True
+            and route.get("project_route_argument_required") is True
+            and route.get("cross_project_fallback_allowed") is False
+            and len(str(route.get("tool_catalog_sha256") or "")) == 64,
+            "STATE_TRAVEL_TASK_ADVANCE_NATIVE_ROUTE_MISMATCH",
+            "The closeout must execute through the exact 62-tool native Evidence Lane route.",
+            status="MISMATCH",
+        )
+        surface = installed_surface_inventory or {}
+        surface_core = {
+            key: surface.get(key)
+            for key in (
+                "schema",
+                "plugin_version",
+                "hooks",
+                "skills",
+                "catalog",
+                "raw_paths_included",
+            )
+        }
+        expected_catalog = {"tools": 62, "read": 21, "write": 41, "skills": 15}
+        require(
+            surface.get("schema")
+            == "evidence-lane.codex-installed-surface-inventory.v2"
+            and str(surface.get("plugin_version") or "").split("+", 1)[0]
+            == ENGINE_VERSION
+            and surface.get("catalog") == expected_catalog
+            and isinstance(surface.get("skills"), dict)
+            and surface["skills"].get("count") == 15
+            and surface.get("raw_paths_included") is False
+            and surface.get("surface_inventory_sha256")
+            == sha256_bytes(canonical_json_bytes(surface_core)),
+            "STATE_TRAVEL_TASK_ADVANCE_INSTALLED_SURFACE_MISMATCH",
+            "The installed plugin surface does not prove the exact v2 catalog and skill inventory.",
+            status="MISMATCH",
+            expected_catalog=expected_catalog,
+        )
+
+        panel = project_panel_snapshot or {}
+        panel_facts = {
+            str(row.get("label")): row.get("value")
+            for row in panel.get("facts", [])
+            if isinstance(row, dict)
+        }
+        panel_hil = panel.get("hil")
+        require(
+            panel.get("schema") == "evidence-lane.mcp-app-panel.v1"
+            and panel.get("panel") == "project"
+            and panel.get("status") == "PASS"
+            and panel.get("read_only") is True
+            and panel_facts.get("Project") == project_id
+            and panel_facts.get("Accepted PV") == str(pointer.accepted_pv)
+            and panel_facts.get("Pointer generation") == str(pointer.generation)
+            and panel_facts.get("Active state") == SessionState.TASK_CLASSIFIED.value
+            and panel_facts.get("Pending candidate") == "NONE"
+            and isinstance(panel_hil, dict)
+            and panel_hil.get("pending") is False
+            and panel_hil.get("candidate") is None
+            and panel_hil.get("decision_state") == "NO_PENDING_CANDIDATE",
+            "STATE_TRAVEL_TASK_ADVANCE_PROJECT_PANEL_MISMATCH",
+            "The native project panel does not match the candidate-free accepted pointer boundary.",
+            status="MISMATCH",
+        )
+
+        backlog = self.store.backlog_status(project_id)
+        goal = cast(dict[str, Any], backlog["goal_projection"])
+        rows = cast(list[dict[str, Any]], goal["rows"])
+        numbers = [int(row["number"]) for row in rows]
+        active = cast(list[dict[str, Any]], backlog["active"])
+        first_queued = next(
+            (
+                row
+                for row in sorted(
+                    backlog["tasks"], key=lambda item: int(item["sequence"])
+                )
+                if row.get("status") == "QUEUED"
+            ),
+            None,
+        )
+        resume_contract = cast(
+            dict[str, Any], travel.get("resume_contract") or {}
+        )
+        resume_step = resume_contract.get("resume_step")
+        resume_row = next(
+            (
+                row
+                for row in resume_contract.get("task_list", [])
+                if isinstance(row, dict) and row.get("number") == resume_step
+            ),
+            None,
+        )
+        final_contract_row = next(
+            reversed(
+                [
+                    row
+                    for row in resume_contract.get("task_list", [])
+                    if isinstance(row, dict)
+                ]
+            ),
+            None,
+        )
+        tasks_by_id = {
+            str(row.get("task_id")): row for row in backlog.get("tasks", [])
+        }
+        completed_plan_task = tasks_by_id.get(completed_backlog_task_id)
+        replacement_plan_task = tasks_by_id.get(replacement_backlog_task_id)
+        plan_before = (
+            len(active) == 1
+            and active[0].get("task_id") == completed_backlog_task_id
+            and isinstance(first_queued, dict)
+            and first_queued.get("task_id") == replacement_backlog_task_id
+            and isinstance(completed_plan_task, dict)
+            and completed_plan_task.get("status") == "ACTIVE"
+            and isinstance(replacement_plan_task, dict)
+            and replacement_plan_task.get("status") == "QUEUED"
+        )
+        plan_after = (
+            len(active) == 1
+            and active[0].get("task_id") == replacement_backlog_task_id
+            and isinstance(completed_plan_task, dict)
+            and completed_plan_task.get("status") == "DONE"
+            and isinstance(
+                completed_plan_task.get("state_travel_completion_receipt"),
+                dict,
+            )
+            and isinstance(replacement_plan_task, dict)
+            and replacement_plan_task.get("status") == "ACTIVE"
+            and replacement_plan_task.get("active_session_id") == session_id
+            and replacement_plan_task.get("runtime_task_id")
+            == replacement_task.task_id
+        )
+        require(
+            backlog.get("status") == "PASS"
+            and goal.get("canonical_authority") == "PLAN_LANE"
+            and goal.get("persistent_until") == "NEXT_SIX_WAY_HIL_PRESENTED"
+            and bool(rows)
+            and numbers == list(range(numbers[0], numbers[0] + len(numbers)))
+            and (plan_before or plan_after)
+            and isinstance(resume_row, dict)
+            and resume_row.get("task_id") == completed_backlog_task_id
+            and resume_row.get("status") == "IN_PROGRESS"
+            and isinstance(final_contract_row, dict)
+            and rows[-1].get("task_id") == final_contract_row.get("task_id")
+            and rows[-1].get("panel_role")
+            == final_contract_row.get("panel_role")
+            == "PHYSICALLY_FINAL_HIL",
+            "STATE_TRAVEL_TASK_ADVANCE_PLAN_MISMATCH",
+            "The current Plan is not the contiguous one-active projection sealed by the handoff.",
+            status="MISMATCH",
+            active_task_ids=[row.get("task_id") for row in active],
+            plan_before=plan_before,
+            plan_after=plan_after,
+            first_queued_task_id=(
+                first_queued.get("task_id")
+                if isinstance(first_queued, dict)
+                else None
+            ),
+        )
+
+        config = self.store.config(project_id)
+        source = identity_json(
+            inspect_repository(
+                config.repository_path,
+                expected_owner=config.expected_owner,
+                expected_name=config.expected_name,
+            ),
+            config.repository_path,
+        )
+        entry_source = cast(dict[str, Any], travel.get("source_snapshot") or {})
+        remote_main_result = run_git(
+            config.repository_path,
+            ["ls-remote", "--exit-code", "origin", "refs/heads/main"],
+        )
+        remote_main_rows = [
+            line.split()
+            for line in remote_main_result.stdout.splitlines()
+            if line.strip()
+        ]
+        remote_main_sha = (
+            remote_main_rows[0][0].lower()
+            if len(remote_main_rows) == 1 and len(remote_main_rows[0]) >= 2
+            else ""
+        )
+        porcelain = run_git(
+            config.repository_path,
+            ["status", "--porcelain=v1", "--untracked-files=all"],
+        ).stdout
+        tracked_deletions = [
+            line[:2]
+            for line in porcelain.splitlines()
+            if len(line) >= 2 and "D" in line[:2]
+        ]
+        require(
+            len(remote_main_sha) == 40
+            and all(character in "0123456789abcdef" for character in remote_main_sha)
+            and remote_main_sha == str(source.get("commit_sha") or "").lower()
+            and str(source.get("branch") or "") not in {"", "main", "DETACHED"}
+            and str(source.get("tree_sha") or "").lower()
+            == str(entry_source.get("tree_sha") or "").lower()
+            and not tracked_deletions,
+            "STATE_TRAVEL_TASK_ADVANCE_SOURCE_MISMATCH",
+            "The task branch is not based on exact remote main, the entry tree changed, or tracked files were deleted.",
+            status="MISMATCH",
+            current_branch=source.get("branch"),
+            current_commit=source.get("commit_sha"),
+            remote_main_commit=remote_main_sha or None,
+            entry_tree=entry_source.get("tree_sha"),
+            current_tree=source.get("tree_sha"),
+            tracked_deletion_count=len(tracked_deletions),
+        )
+
+        prior_task = cast(dict[str, Any], session.task)
+        prior_runtime_task_id = str(prior_task.get("task_id") or "").strip()
+        require(
+            bool(prior_runtime_task_id),
+            "STATE_TRAVEL_TASK_ADVANCE_PRIOR_RUNTIME_TASK_REQUIRED",
+            "The handoff row has no runtime task identity.",
+            status="MISMATCH",
+        )
+        if plan_after:
+            existing_receipt = cast(
+                dict[str, Any],
+                cast(dict[str, Any], completed_plan_task)[
+                    "state_travel_completion_receipt"
+                ],
+            )
+            existing_body = {
+                key: value
+                for key, value in existing_receipt.items()
+                if key != "receipt_sha256"
+            }
+            require(
+                existing_receipt.get("receipt_sha256")
+                == sha256_bytes(canonical_json_bytes(existing_body))
+                and existing_receipt.get("schema")
+                == "evidence-lane.verified-state-travel-task-advance.v1"
+                and existing_receipt.get("project_id") == project_id
+                and existing_receipt.get("session_id") == session_id
+                and existing_receipt.get("handoff_id") == handoff_id
+                and existing_receipt.get("completed_backlog_task_id")
+                == completed_backlog_task_id
+                and existing_receipt.get("replacement_backlog_task_id")
+                == replacement_backlog_task_id
+                and existing_receipt.get("prior_runtime_task_id")
+                == prior_runtime_task_id
+                and existing_receipt.get("replacement_runtime_task_id")
+                == replacement_task.task_id
+                and existing_receipt.get("accepted_pv") == pointer.accepted_pv
+                and existing_receipt.get("pointer_generation")
+                == pointer.generation
+                and existing_receipt.get("manifest_sha256")
+                == pointer.accepted_manifest_sha256
+                and existing_receipt.get("native_route", {}).get(
+                    "tool_catalog_sha256"
+                )
+                == route.get("tool_catalog_sha256")
+                and existing_receipt.get("installed_surface", {}).get(
+                    "surface_inventory_sha256"
+                )
+                == surface.get("surface_inventory_sha256")
+                and existing_receipt.get("project_panel_sha256")
+                == sha256_bytes(canonical_json_bytes(panel))
+                and existing_receipt.get("current_source_identity_sha256")
+                == sha256_bytes(canonical_json_bytes(source))
+                and existing_receipt.get("current_worktree_sha256")
+                == source.get("worktree_sha256")
+                and existing_receipt.get("current_porcelain_sha256")
+                == sha256_bytes(porcelain.encode("utf-8"))
+                and existing_receipt.get("remote_main_commit")
+                == remote_main_sha
+                and existing_receipt.get("candidate_created") is False
+                and existing_receipt.get("pending_hil") is False
+                and existing_receipt.get("pointer_moved") is False
+                and existing_receipt.get("hil_inferred") is False,
+                "STATE_TRAVEL_TASK_ADVANCE_PLAN_RECOVERY_MISMATCH",
+                "A partially committed Plan advance does not match the exact live route, source, pointer, or successor contract.",
+                status="MISMATCH",
+            )
+            return {
+                "receipt": existing_receipt,
+                "prior_task": prior_task,
+                "source": source,
+                "backlog": backlog,
+                "plan_recovery": True,
+            }
+        body = {
+            "schema": "evidence-lane.verified-state-travel-task-advance.v1",
+            "project_id": project_id,
+            "session_id": session_id,
+            "handoff_id": handoff_id,
+            "handoff_sha256": travel.get("handoff_sha256"),
+            "state_travel_status": travel.get("status"),
+            "state_travel_completed_at": travel.get("completed_at"),
+            "destination_host": travel.get("destination_host"),
+            "destination_host_session_id": destination_host_session_id,
+            "completed_backlog_task_id": completed_backlog_task_id,
+            "replacement_backlog_task_id": replacement_backlog_task_id,
+            "prior_runtime_task_id": prior_runtime_task_id,
+            "prior_run_id": session.metadata.get("run_id"),
+            "replacement_runtime_task_id": replacement_task.task_id,
+            "successor_classified_at": utc_now(),
+            "accepted_pv": pointer.accepted_pv,
+            "pointer_generation": pointer.generation,
+            "manifest_sha256": pointer.accepted_manifest_sha256,
+            "entry_plan_snapshot_sha256": travel.get("plan_snapshot", {}).get(
+                "snapshot_sha256"
+            ),
+            "current_canonical_plan_sha256": backlog[
+                "canonical_plan_projection"
+            ]["projection_sha256"],
+            "current_executable_projection_sha256": goal["projection_sha256"],
+            "current_event_head_sha256": backlog.get("event_head_sha256"),
+            "persistent_until": goal.get("persistent_until"),
+            "native_route": {
+                "server_identity": route.get("server_identity"),
+                "canonical_tool_namespace": route.get(
+                    "canonical_tool_namespace"
+                ),
+                "exposure_profile": route.get("exposure_profile"),
+                "tool_count": route.get("tool_count"),
+                "tool_catalog_sha256": route.get("tool_catalog_sha256"),
+            },
+            "installed_surface": {
+                "plugin_version": surface.get("plugin_version"),
+                "catalog": surface.get("catalog"),
+                "surface_inventory_sha256": surface.get(
+                    "surface_inventory_sha256"
+                ),
+            },
+            "project_panel_sha256": sha256_bytes(canonical_json_bytes(panel)),
+            "runtime_activation_generation": runtime_status.get("generation"),
+            "runtime_host_session_verified": True,
+            "entry_source_identity_sha256": entry_source.get("identity_sha256"),
+            "current_source_identity_sha256": sha256_bytes(
+                canonical_json_bytes(source)
+            ),
+            "current_worktree_sha256": source.get("worktree_sha256"),
+            "current_porcelain_sha256": sha256_bytes(
+                porcelain.encode("utf-8")
+            ),
+            "remote_main_commit": remote_main_sha,
+            "task_branch": source.get("branch"),
+            "entry_tree_preserved": True,
+            "tracked_deletions_absent": True,
+            "candidate_created": False,
+            "pending_hil": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        }
+        return {
+            "receipt": {
+                **body,
+                "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
+            },
+            "prior_task": prior_task,
+            "source": source,
+            "backlog": backlog,
+        }
+
+    def _append_state_travel_task_advance_lineage(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        session: SessionRecord,
+        task: TaskContract,
+        receipt: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Idempotently complete both visible lineage events for one advance."""
+
+        receipt_sha256 = str(receipt.get("receipt_sha256") or "").strip()
+        require(
+            len(receipt_sha256) == 64
+            and bool(str(receipt.get("successor_classified_at") or "").strip()),
+            "STATE_TRAVEL_TASK_ADVANCE_LINEAGE_RECEIPT_INVALID",
+            "The state-travel advance receipt cannot bind deterministic lineage events.",
+            status="MISMATCH",
+        )
+        event_suffix = receipt_sha256[:32].lower()
+        lineage = ChatLineage(self._lineage_path(project_id, session_id))
+        completion_event = lineage.append(
+            event_type="task.state_travel_handoff.completed",
+            visible_payload=receipt,
+            occurred_at=str(receipt.get("state_travel_completed_at") or ""),
+            session_id=session_id,
+            task_id=str(receipt["prior_runtime_task_id"]),
+            run_id=(
+                str(receipt.get("prior_run_id"))
+                if receipt.get("prior_run_id") is not None
+                else None
+            ),
+            event_id=f"evt_st_advance_completed_{event_suffix}",
+        )
+        classification_event = lineage.append(
+            event_type="task.classified",
+            visible_payload=task.as_dict(),
+            occurred_at=str(receipt["successor_classified_at"]),
+            session_id=session_id,
+            task_id=task.task_id,
+            run_id=str(session.metadata["run_id"]),
+            event_id=f"evt_st_advance_classified_{event_suffix}",
+        )
+        return {
+            "completion_event": completion_event,
+            "classification_event": classification_event,
+        }
+
+    def _replay_state_travel_task_advance(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        task: TaskContract,
+        receipt: dict[str, Any],
+        native_route_receipt: dict[str, Any] | None,
+        installed_surface_inventory: dict[str, Any] | None,
+        project_panel_snapshot: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """Return one exact retry without appending another Plan or lineage event."""
+
+        session = self.load(project_id, session_id)
+        receipt_body = {
+            key: value for key, value in receipt.items() if key != "receipt_sha256"
+        }
+        route = native_route_receipt or {}
+        surface = installed_surface_inventory or {}
+        panel = project_panel_snapshot or {}
+        pointer = self.store.pointer(project_id)
+        require(
+            receipt.get("schema")
+            == "evidence-lane.verified-state-travel-task-advance.v1"
+            and receipt.get("project_id") == project_id
+            and receipt.get("session_id") == session_id
+            and receipt.get("replacement_backlog_task_id")
+            == session.metadata.get("active_backlog_task_id")
+            and receipt.get("replacement_runtime_task_id") == task.task_id
+            and receipt.get("receipt_sha256")
+            == sha256_bytes(canonical_json_bytes(receipt_body))
+            and session.task == task.as_dict()
+            and session.candidate_id is None
+            and not session.metadata.get("pending_hil")
+            and pointer.accepted_pv == receipt.get("accepted_pv")
+            and pointer.generation == receipt.get("pointer_generation")
+            and pointer.accepted_manifest_sha256 == receipt.get("manifest_sha256"),
+            "STATE_TRAVEL_TASK_ADVANCE_REPLAY_MISMATCH",
+            "The retried successor classification does not match its sealed non-promoting receipt.",
+            status="MISMATCH",
+        )
+        require(
+            route.get("status") == "PASS"
+            and route.get("server_identity")
+            == receipt.get("native_route", {}).get("server_identity")
+            and route.get("canonical_tool_namespace")
+            == receipt.get("native_route", {}).get("canonical_tool_namespace")
+            and route.get("tool_count")
+            == receipt.get("native_route", {}).get("tool_count")
+            and route.get("tool_catalog_sha256")
+            == receipt.get("native_route", {}).get("tool_catalog_sha256")
+            and surface.get("surface_inventory_sha256")
+            == receipt.get("installed_surface", {}).get(
+                "surface_inventory_sha256"
+            )
+            and sha256_bytes(canonical_json_bytes(panel))
+            == receipt.get("project_panel_sha256"),
+            "STATE_TRAVEL_TASK_ADVANCE_REPLAY_SURFACE_MISMATCH",
+            "The retried call no longer uses the native route, installed surface, or project panel sealed by the advance receipt.",
+            status="MISMATCH",
+        )
+        plan_transition = self.store.advance_verified_state_travel_task(
+            project_id,
+            completed_backlog_task_id=str(
+                receipt["completed_backlog_task_id"]
+            ),
+            replacement_backlog_task_id=str(
+                receipt["replacement_backlog_task_id"]
+            ),
+            session_id=session_id,
+            prior_runtime_task_id=str(receipt["prior_runtime_task_id"]),
+            replacement_contract=task.as_dict(),
+            completion_receipt=receipt,
+        )
+        require(
+            plan_transition.get("idempotent_reuse") is True,
+            "STATE_TRAVEL_TASK_ADVANCE_REPLAY_PLAN_MISMATCH",
+            "The Plan was not already at the exact sealed successor state.",
+            status="MISMATCH",
+        )
+        lineage = self._append_state_travel_task_advance_lineage(
+            project_id,
+            session_id,
+            session=session,
+            task=task,
+            receipt=receipt,
+        )
+        return {
+            "status": "PASS",
+            "idempotent_reuse": True,
+            "receipt": receipt,
+            "plan_transition": plan_transition,
+            "lineage": lineage,
+        }
+
+    def _verify_fallback_prewarmer_task_advance(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        completed_backlog_task_id: str,
+        replacement_backlog_task_id: str,
+        replacement_task: TaskContract,
+        fallback_prewarmer_proof: dict[str, Any] | None,
+        native_route_receipt: dict[str, Any] | None,
+        installed_surface_inventory: dict[str, Any] | None,
+        project_panel_snapshot: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """Seal one candidate-free transition out of the disabled fallback row."""
+
+        session = self.load(project_id, session_id)
+        pointer = self.store.pointer(project_id)
+        proof = fallback_prewarmer_proof or {}
+        proof_body = {
+            key: value for key, value in proof.items() if key != "receipt_sha256"
+        }
+        require(
+            completed_backlog_task_id == _FALLBACK_PREWARM_TASK_ID
+            and proof.get("schema")
+            == "evidence-lane.codex-fallback-prewarm-proof.v1"
+            and proof.get("status") == "PASS"
+            and proof.get("project_id") == project_id
+            and proof.get("session_id") == session_id
+            and proof.get("host_session_id")
+            == session.metadata.get("current_host_session_id")
+            and proof.get("accepted_pv") == pointer.accepted_pv
+            and proof.get("accepted_generation") == pointer.generation
+            and proof.get("accepted_manifest_sha256")
+            == pointer.accepted_manifest_sha256
+            and proof.get("fallback_byte_frozen") is True
+            and proof.get("stable_enabled") is True
+            and proof.get("fallback_enabled") is False
+            and proof.get("enabled_evidence_lane_plugin_count") == 1
+            and proof.get("active_tunnel_count") == 0
+            and proof.get("tunnel_required") is False
+            and proof.get("current_task_recovery_prepared") is True
+            and proof.get("restart_invoked") is False
+            and proof.get("fallback_activated") is False
+            and proof.get("source_mutated") is False
+            and proof.get("git_mutated") is False
+            and proof.get("candidate_created") is False
+            and proof.get("pending_hil") is False
+            and proof.get("pointer_moved") is False
+            and proof.get("hil_inferred") is False
+            and proof.get("receipt_sha256")
+            == sha256_bytes(canonical_json_bytes(proof_body)),
+            "FALLBACK_PREWARM_TASK_ADVANCE_PROOF_MISMATCH",
+            "The active fallback row lacks one exact disabled-PV11 recovery proof.",
+            status="MISMATCH",
+            proof_error=proof.get("error"),
+        )
+        require(
+            session.state == SessionState.TASK_CLASSIFIED
+            and session.candidate_id is None
+            and not session.metadata.get("pending_hil")
+            and session.metadata.get("active_backlog_task_id")
+            == completed_backlog_task_id
+            and session.metadata.get("active_backlog_task_status") == "ACTIVE"
+            and session.metadata.get("client_source_edit_authority") == "DIRECT"
+            and isinstance(session.task, dict),
+            "FALLBACK_PREWARM_TASK_ADVANCE_SESSION_MISMATCH",
+            "The session is not bound to the exact active fallback prewarm row.",
+            status="MISMATCH",
+        )
+
+        route = native_route_receipt or {}
+        surface = installed_surface_inventory or {}
+        panel = project_panel_snapshot or {}
+        surface_core = {
+            key: surface.get(key)
+            for key in (
+                "schema",
+                "plugin_version",
+                "hooks",
+                "skills",
+                "catalog",
+                "raw_paths_included",
+            )
+        }
+        expected_catalog = {"tools": 62, "read": 21, "write": 41, "skills": 15}
+        panel_facts = {
+            str(row.get("label")): row.get("value")
+            for row in panel.get("facts", [])
+            if isinstance(row, dict)
+        }
+        panel_hil = panel.get("hil")
+        require(
+            route.get("schema") == "evidence-lane.native-mcp-route-receipt.v1"
+            and route.get("status") == "PASS"
+            and route.get("server_identity") == "evidence-lane"
+            and route.get("canonical_tool_namespace") == "mcp__evidence_lane__"
+            and route.get("exposure_profile") == "FULL_LIFECYCLE"
+            and route.get("tool_count") == 62
+            and route.get("tool_names_unique") is True
+            and route.get("project_route_argument_required") is True
+            and route.get("cross_project_fallback_allowed") is False
+            and len(str(route.get("tool_catalog_sha256") or "")) == 64,
+            "FALLBACK_PREWARM_TASK_ADVANCE_NATIVE_ROUTE_MISMATCH",
+            "Fallback closeout must execute through the exact native 62-tool route.",
+            status="MISMATCH",
+        )
+        require(
+            surface.get("schema")
+            == "evidence-lane.codex-installed-surface-inventory.v2"
+            and str(surface.get("plugin_version") or "").split("+", 1)[0]
+            == ENGINE_VERSION
+            and surface.get("catalog") == expected_catalog
+            and isinstance(surface.get("skills"), dict)
+            and surface["skills"].get("count") == 15
+            and surface.get("raw_paths_included") is False
+            and surface.get("surface_inventory_sha256")
+            == sha256_bytes(canonical_json_bytes(surface_core)),
+            "FALLBACK_PREWARM_TASK_ADVANCE_INSTALLED_SURFACE_MISMATCH",
+            "The running stable package does not expose the exact v2 surface.",
+            status="MISMATCH",
+        )
+        require(
+            panel.get("schema") == "evidence-lane.mcp-app-panel.v1"
+            and panel.get("panel") == "project"
+            and panel.get("status") == "PASS"
+            and panel.get("read_only") is True
+            and panel_facts.get("Project") == project_id
+            and panel_facts.get("Accepted PV") == str(pointer.accepted_pv)
+            and panel_facts.get("Pointer generation") == str(pointer.generation)
+            and panel_facts.get("Active state") == SessionState.TASK_CLASSIFIED.value
+            and panel_facts.get("Pending candidate") == "NONE"
+            and isinstance(panel_hil, dict)
+            and panel_hil.get("pending") is False
+            and panel_hil.get("candidate") is None,
+            "FALLBACK_PREWARM_TASK_ADVANCE_PROJECT_PANEL_MISMATCH",
+            "The project panel no longer matches the candidate-free PV11 boundary.",
+            status="MISMATCH",
+        )
+
+        backlog = self.store.backlog_status(project_id)
+        goal = cast(dict[str, Any], backlog["goal_projection"])
+        rows = cast(list[dict[str, Any]], goal["rows"])
+        numbers = [int(row["number"]) for row in rows]
+        active = cast(list[dict[str, Any]], backlog["active"])
+        first_queued = next(
+            (
+                row
+                for row in sorted(
+                    backlog["tasks"], key=lambda item: int(item["sequence"])
+                )
+                if row.get("status") == "QUEUED"
+            ),
+            None,
+        )
+        tasks_by_id = {
+            str(row.get("task_id")): row for row in backlog.get("tasks", [])
+        }
+        completed_plan_task = tasks_by_id.get(completed_backlog_task_id)
+        replacement_plan_task = tasks_by_id.get(replacement_backlog_task_id)
+        require(
+            backlog.get("status") == "PASS"
+            and goal.get("canonical_authority") == "PLAN_LANE"
+            and goal.get("persistent_until") == "NEXT_SIX_WAY_HIL_PRESENTED"
+            and numbers == list(range(numbers[0], numbers[0] + len(numbers)))
+            and len(active) == 1
+            and active[0].get("task_id") == completed_backlog_task_id
+            and isinstance(first_queued, dict)
+            and first_queued.get("task_id") == replacement_backlog_task_id
+            and isinstance(completed_plan_task, dict)
+            and completed_plan_task.get("status") == "ACTIVE"
+            and isinstance(replacement_plan_task, dict)
+            and replacement_plan_task.get("status") == "QUEUED"
+            and rows[-1].get("panel_role") == "PHYSICALLY_FINAL_HIL",
+            "FALLBACK_PREWARM_TASK_ADVANCE_PLAN_MISMATCH",
+            "The Plan is not the contiguous one-active fallback-to-successor boundary.",
+            status="MISMATCH",
+        )
+        prior_task = cast(dict[str, Any], session.task)
+        prior_runtime_task_id = str(prior_task.get("task_id") or "").strip()
+        require(
+            bool(prior_runtime_task_id),
+            "FALLBACK_PREWARM_TASK_ADVANCE_PRIOR_RUNTIME_TASK_REQUIRED",
+            "The active fallback row has no runtime task identity.",
+            status="MISMATCH",
+        )
+        body = {
+            "schema": "evidence-lane.verified-fallback-prewarm-task-advance.v1",
+            "project_id": project_id,
+            "session_id": session_id,
+            "completed_backlog_task_id": completed_backlog_task_id,
+            "replacement_backlog_task_id": replacement_backlog_task_id,
+            "prior_runtime_task_id": prior_runtime_task_id,
+            "prior_run_id": session.metadata.get("run_id"),
+            "replacement_runtime_task_id": replacement_task.task_id,
+            "successor_classified_at": utc_now(),
+            "accepted_pv": pointer.accepted_pv,
+            "pointer_generation": pointer.generation,
+            "manifest_sha256": pointer.accepted_manifest_sha256,
+            "current_canonical_plan_sha256": backlog[
+                "canonical_plan_projection"
+            ]["projection_sha256"],
+            "current_executable_projection_sha256": goal["projection_sha256"],
+            "current_event_head_sha256": backlog.get("event_head_sha256"),
+            "persistent_until": goal.get("persistent_until"),
+            "native_route": {
+                "server_identity": route.get("server_identity"),
+                "canonical_tool_namespace": route.get("canonical_tool_namespace"),
+                "exposure_profile": route.get("exposure_profile"),
+                "tool_count": route.get("tool_count"),
+                "tool_catalog_sha256": route.get("tool_catalog_sha256"),
+            },
+            "installed_surface": {
+                "plugin_version": surface.get("plugin_version"),
+                "catalog": surface.get("catalog"),
+                "surface_inventory_sha256": surface.get(
+                    "surface_inventory_sha256"
+                ),
+            },
+            "project_panel_sha256": sha256_bytes(canonical_json_bytes(panel)),
+            "fallback_prewarmer_proof": proof,
+            "fallback_activated": False,
+            "restart_invoked": False,
+            "candidate_created": False,
+            "pending_hil": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        }
+        return {
+            "receipt": {
+                **body,
+                "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
+            },
+            "prior_task": prior_task,
+            "backlog": backlog,
+        }
+
+    def _append_fallback_prewarmer_task_advance_lineage(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        session: SessionRecord,
+        task: TaskContract,
+        receipt: dict[str, Any],
+    ) -> dict[str, Any]:
+        receipt_sha256 = str(receipt.get("receipt_sha256") or "").strip()
+        require(
+            len(receipt_sha256) == 64,
+            "FALLBACK_PREWARM_TASK_ADVANCE_LINEAGE_RECEIPT_INVALID",
+            "The fallback advance cannot bind deterministic lineage events.",
+            status="MISMATCH",
+        )
+        event_suffix = receipt_sha256[:32].lower()
+        lineage = ChatLineage(self._lineage_path(project_id, session_id))
+        completion_event = lineage.append(
+            event_type="task.fallback_prewarmer.completed",
+            visible_payload=receipt,
+            occurred_at=str(
+                receipt.get("fallback_prewarmer_proof", {}).get("verified_at")
+                or receipt["successor_classified_at"]
+            ),
+            session_id=session_id,
+            task_id=str(receipt["prior_runtime_task_id"]),
+            run_id=(
+                str(receipt.get("prior_run_id"))
+                if receipt.get("prior_run_id") is not None
+                else None
+            ),
+            event_id=f"evt_fb_advance_completed_{event_suffix}",
+        )
+        classification_event = lineage.append(
+            event_type="task.classified",
+            visible_payload=task.as_dict(),
+            occurred_at=str(receipt["successor_classified_at"]),
+            session_id=session_id,
+            task_id=task.task_id,
+            run_id=str(session.metadata["run_id"]),
+            event_id=f"evt_fb_advance_classified_{event_suffix}",
+        )
+        return {
+            "completion_event": completion_event,
+            "classification_event": classification_event,
+        }
+
+    def _replay_fallback_prewarmer_task_advance(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        task: TaskContract,
+        receipt: dict[str, Any],
+        fallback_prewarmer_proof: dict[str, Any] | None,
+        native_route_receipt: dict[str, Any] | None,
+        installed_surface_inventory: dict[str, Any] | None,
+        project_panel_snapshot: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        session = self.load(project_id, session_id)
+        receipt_body = {
+            key: value for key, value in receipt.items() if key != "receipt_sha256"
+        }
+        proof = fallback_prewarmer_proof or {}
+        route = native_route_receipt or {}
+        surface = installed_surface_inventory or {}
+        panel = project_panel_snapshot or {}
+        require(
+            receipt.get("schema")
+            == "evidence-lane.verified-fallback-prewarm-task-advance.v1"
+            and receipt.get("project_id") == project_id
+            and receipt.get("session_id") == session_id
+            and receipt.get("replacement_backlog_task_id")
+            == session.metadata.get("active_backlog_task_id")
+            and receipt.get("replacement_runtime_task_id") == task.task_id
+            and receipt.get("receipt_sha256")
+            == sha256_bytes(canonical_json_bytes(receipt_body))
+            and receipt.get("fallback_prewarmer_proof", {}).get("receipt_sha256")
+            == proof.get("receipt_sha256")
+            and receipt.get("native_route", {}).get("tool_catalog_sha256")
+            == route.get("tool_catalog_sha256")
+            and receipt.get("installed_surface", {}).get(
+                "surface_inventory_sha256"
+            )
+            == surface.get("surface_inventory_sha256")
+            and receipt.get("project_panel_sha256")
+            == sha256_bytes(canonical_json_bytes(panel))
+            and session.task == task.as_dict()
+            and session.candidate_id is None
+            and not session.metadata.get("pending_hil"),
+            "FALLBACK_PREWARM_TASK_ADVANCE_REPLAY_MISMATCH",
+            "The retried successor no longer matches its fallback closeout receipt.",
+            status="MISMATCH",
+        )
+        plan_transition = self.store.advance_verified_fallback_prewarmer_task(
+            project_id,
+            completed_backlog_task_id=str(receipt["completed_backlog_task_id"]),
+            replacement_backlog_task_id=str(
+                receipt["replacement_backlog_task_id"]
+            ),
+            session_id=session_id,
+            prior_runtime_task_id=str(receipt["prior_runtime_task_id"]),
+            replacement_contract=task.as_dict(),
+            completion_receipt=receipt,
+        )
+        require(
+            plan_transition.get("idempotent_reuse") is True,
+            "FALLBACK_PREWARM_TASK_ADVANCE_REPLAY_PLAN_MISMATCH",
+            "The Plan is not already at the exact fallback successor state.",
+            status="MISMATCH",
+        )
+        lineage = self._append_fallback_prewarmer_task_advance_lineage(
+            project_id,
+            session_id,
+            session=session,
+            task=task,
+            receipt=receipt,
+        )
+        return {
+            "status": "PASS",
+            "idempotent_reuse": True,
+            "receipt": receipt,
+            "plan_transition": plan_transition,
+            "lineage": lineage,
+        }
+
+    def _verify_task_checkpoint_advance(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        completed_backlog_task_id: str,
+        replacement_backlog_task_id: str,
+        replacement_task: TaskContract,
+        verification_kind: str,
+        verification_proof: dict[str, Any] | None,
+        native_route_receipt: dict[str, Any] | None,
+        installed_surface_inventory: dict[str, Any] | None,
+        project_panel_snapshot: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """Seal one reusable candidate-free checkpoint after native proof."""
+
+        session = self.load(project_id, session_id)
+        pointer = self.store.pointer(project_id)
+        proof = verification_proof or {}
+        proof_body = {
+            key: value for key, value in proof.items() if key != "receipt_sha256"
+        }
+        require(
+            bool(verification_kind)
+            and proof.get("schema")
+            == "evidence-lane.codex-exact-task-project-session-binding.v1"
+            and proof.get("status") == "PASS"
+            and proof.get("project_id") == project_id
+            and proof.get("evidence_session_id") == session_id
+            and proof.get("active_plan_row", {}).get("task_id")
+            == completed_backlog_task_id
+            and proof.get("active_plan_row", {}).get("status") == "in_progress"
+            and proof.get("active_plan_row", {}).get("lifecycle_status") == "ACTIVE"
+            and proof.get("accepted_pointer", {}).get("accepted_pv")
+            == pointer.accepted_pv
+            and proof.get("accepted_pointer", {}).get("generation")
+            == pointer.generation
+            and proof.get("accepted_pointer", {}).get("manifest_sha256")
+            == pointer.accepted_manifest_sha256
+            and proof.get("governed_host_session_id")
+            == session.metadata.get("current_host_session_id")
+            and proof.get("task_title_used") is False
+            and proof.get("cwd_used") is False
+            and proof.get("candidate_created") is False
+            and proof.get("pending_hil") is False
+            and proof.get("pointer_moved") is False
+            and proof.get("hil_inferred") is False
+            and proof.get("receipt_sha256")
+            == sha256_bytes(canonical_json_bytes(proof_body)),
+            "TASK_CHECKPOINT_ADVANCE_PROOF_MISMATCH",
+            "The active task lacks one exact, self-sealed native verification proof.",
+            status="MISMATCH",
+            verification_kind=verification_kind,
+            proof_error=proof.get("error"),
+        )
+        require(
+            session.state == SessionState.TASK_CLASSIFIED
+            and session.candidate_id is None
+            and not session.metadata.get("pending_hil")
+            and session.metadata.get("active_backlog_task_id")
+            == completed_backlog_task_id
+            and session.metadata.get("active_backlog_task_status") == "ACTIVE"
+            and session.metadata.get("client_source_edit_authority") == "DIRECT"
+            and isinstance(session.task, dict),
+            "TASK_CHECKPOINT_ADVANCE_SESSION_MISMATCH",
+            "The governed session is not at the exact candidate-free active row.",
+            status="MISMATCH",
+        )
+
+        route = native_route_receipt or {}
+        surface = installed_surface_inventory or {}
+        panel = project_panel_snapshot or {}
+        surface_core = {
+            key: surface.get(key)
+            for key in (
+                "schema",
+                "plugin_version",
+                "hooks",
+                "skills",
+                "catalog",
+                "raw_paths_included",
+            )
+        }
+        expected_catalog = {"tools": 62, "read": 21, "write": 41, "skills": 15}
+        panel_facts = {
+            str(row.get("label")): row.get("value")
+            for row in panel.get("facts", [])
+            if isinstance(row, dict)
+        }
+        panel_hil = panel.get("hil")
+        require(
+            route.get("schema") == "evidence-lane.native-mcp-route-receipt.v1"
+            and route.get("status") == "PASS"
+            and route.get("server_identity") == "evidence-lane"
+            and route.get("canonical_tool_namespace") == "mcp__evidence_lane__"
+            and route.get("exposure_profile") == "FULL_LIFECYCLE"
+            and route.get("tool_count") == 62
+            and route.get("tool_names_unique") is True
+            and route.get("project_route_argument_required") is True
+            and route.get("cross_project_fallback_allowed") is False
+            and len(str(route.get("tool_catalog_sha256") or "")) == 64,
+            "TASK_CHECKPOINT_ADVANCE_NATIVE_ROUTE_MISMATCH",
+            "Checkpoint advancement requires the exact native 62-tool route.",
+            status="MISMATCH",
+        )
+        require(
+            surface.get("schema")
+            == "evidence-lane.codex-installed-surface-inventory.v2"
+            and str(surface.get("plugin_version") or "").split("+", 1)[0]
+            == ENGINE_VERSION
+            and surface.get("catalog") == expected_catalog
+            and isinstance(surface.get("skills"), dict)
+            and surface["skills"].get("count") == 15
+            and surface.get("raw_paths_included") is False
+            and surface.get("surface_inventory_sha256")
+            == sha256_bytes(canonical_json_bytes(surface_core))
+            and proof.get("running_plugin", {}).get("plugin_version")
+            == surface.get("plugin_version")
+            and proof.get("running_plugin", {}).get("surface_inventory_sha256")
+            == surface.get("surface_inventory_sha256"),
+            "TASK_CHECKPOINT_ADVANCE_INSTALLED_SURFACE_MISMATCH",
+            "The checkpoint proof and running installed v2 surface do not agree.",
+            status="MISMATCH",
+        )
+        require(
+            panel.get("schema") == "evidence-lane.mcp-app-panel.v1"
+            and panel.get("panel") == "project"
+            and panel.get("status") == "PASS"
+            and panel.get("read_only") is True
+            and panel_facts.get("Project") == project_id
+            and panel_facts.get("Accepted PV") == str(pointer.accepted_pv)
+            and panel_facts.get("Pointer generation") == str(pointer.generation)
+            and panel_facts.get("Active state") == SessionState.TASK_CLASSIFIED.value
+            and panel_facts.get("Pending candidate") == "NONE"
+            and isinstance(panel_hil, dict)
+            and panel_hil.get("pending") is False
+            and panel_hil.get("candidate") is None,
+            "TASK_CHECKPOINT_ADVANCE_PROJECT_PANEL_MISMATCH",
+            "The project panel is not at the candidate-free accepted-pointer boundary.",
+            status="MISMATCH",
+        )
+
+        backlog = self.store.backlog_status(project_id)
+        goal = cast(dict[str, Any], backlog["goal_projection"])
+        rows = cast(list[dict[str, Any]], goal["rows"])
+        numbers = [int(row["number"]) for row in rows]
+        active = cast(list[dict[str, Any]], backlog["active"])
+        first_queued = next(
+            (
+                row
+                for row in sorted(
+                    backlog["tasks"], key=lambda item: int(item["sequence"])
+                )
+                if row.get("status") == "QUEUED"
+            ),
+            None,
+        )
+        require(
+            backlog.get("status") == "PASS"
+            and goal.get("canonical_authority") == "PLAN_LANE"
+            and goal.get("persistent_until") == "NEXT_SIX_WAY_HIL_PRESENTED"
+            and numbers == list(range(numbers[0], numbers[0] + len(numbers)))
+            and len(active) == 1
+            and active[0].get("task_id") == completed_backlog_task_id
+            and isinstance(first_queued, dict)
+            and first_queued.get("task_id") == replacement_backlog_task_id
+            and rows[-1].get("panel_role") == "PHYSICALLY_FINAL_HIL",
+            "TASK_CHECKPOINT_ADVANCE_PLAN_MISMATCH",
+            "Plan Lane is not at the contiguous one-active checkpoint boundary.",
+            status="MISMATCH",
+        )
+        prior_task = cast(dict[str, Any], session.task)
+        prior_runtime_task_id = str(prior_task.get("task_id") or "").strip()
+        require(
+            bool(prior_runtime_task_id),
+            "TASK_CHECKPOINT_ADVANCE_PRIOR_RUNTIME_TASK_REQUIRED",
+            "The active row has no runtime task identity.",
+            status="MISMATCH",
+        )
+        body = {
+            "schema": "evidence-lane.verified-task-checkpoint-advance.v1",
+            "project_id": project_id,
+            "session_id": session_id,
+            "verification_kind": verification_kind,
+            "completed_backlog_task_id": completed_backlog_task_id,
+            "replacement_backlog_task_id": replacement_backlog_task_id,
+            "prior_runtime_task_id": prior_runtime_task_id,
+            "prior_run_id": session.metadata.get("run_id"),
+            "replacement_runtime_task_id": replacement_task.task_id,
+            "successor_classified_at": utc_now(),
+            "accepted_pv": pointer.accepted_pv,
+            "pointer_generation": pointer.generation,
+            "manifest_sha256": pointer.accepted_manifest_sha256,
+            "current_canonical_plan_sha256": backlog[
+                "canonical_plan_projection"
+            ]["projection_sha256"],
+            "current_executable_projection_sha256": goal["projection_sha256"],
+            "current_event_head_sha256": backlog.get("event_head_sha256"),
+            "persistent_until": goal.get("persistent_until"),
+            "native_route": {
+                "server_identity": route.get("server_identity"),
+                "canonical_tool_namespace": route.get("canonical_tool_namespace"),
+                "exposure_profile": route.get("exposure_profile"),
+                "tool_count": route.get("tool_count"),
+                "tool_catalog_sha256": route.get("tool_catalog_sha256"),
+            },
+            "installed_surface": {
+                "plugin_version": surface.get("plugin_version"),
+                "catalog": surface.get("catalog"),
+                "surface_inventory_sha256": surface.get(
+                    "surface_inventory_sha256"
+                ),
+            },
+            "project_panel_sha256": sha256_bytes(canonical_json_bytes(panel)),
+            "verification_proof": proof,
+            "candidate_created": False,
+            "pending_hil": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        }
+        return {
+            "receipt": {
+                **body,
+                "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
+            },
+            "prior_task": prior_task,
+            "backlog": backlog,
+        }
+
+    def _append_task_checkpoint_advance_lineage(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        session: SessionRecord,
+        task: TaskContract,
+        receipt: dict[str, Any],
+    ) -> dict[str, Any]:
+        receipt_sha256 = str(receipt.get("receipt_sha256") or "").strip()
+        require(
+            len(receipt_sha256) == 64,
+            "TASK_CHECKPOINT_ADVANCE_LINEAGE_RECEIPT_INVALID",
+            "The checkpoint advance cannot bind deterministic lineage events.",
+            status="MISMATCH",
+        )
+        suffix = receipt_sha256[:32].lower()
+        lineage = ChatLineage(self._lineage_path(project_id, session_id))
+        completion_event = lineage.append(
+            event_type="task.checkpoint.completed",
+            visible_payload=receipt,
+            occurred_at=str(receipt["successor_classified_at"]),
+            session_id=session_id,
+            task_id=str(receipt["prior_runtime_task_id"]),
+            run_id=(
+                str(receipt.get("prior_run_id"))
+                if receipt.get("prior_run_id") is not None
+                else None
+            ),
+            event_id=f"evt_checkpoint_completed_{suffix}",
+        )
+        classification_event = lineage.append(
+            event_type="task.classified",
+            visible_payload=task.as_dict(),
+            occurred_at=str(receipt["successor_classified_at"]),
+            session_id=session_id,
+            task_id=task.task_id,
+            run_id=str(session.metadata["run_id"]),
+            event_id=f"evt_checkpoint_classified_{suffix}",
+        )
+        return {
+            "completion_event": completion_event,
+            "classification_event": classification_event,
+        }
+
+    def _replay_task_checkpoint_advance(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        task: TaskContract,
+        receipt: dict[str, Any],
+        verification_proof: dict[str, Any] | None,
+        native_route_receipt: dict[str, Any] | None,
+        installed_surface_inventory: dict[str, Any] | None,
+        project_panel_snapshot: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        session = self.load(project_id, session_id)
+        receipt_body = {
+            key: value for key, value in receipt.items() if key != "receipt_sha256"
+        }
+        proof = verification_proof or {}
+        route = native_route_receipt or {}
+        surface = installed_surface_inventory or {}
+        panel = project_panel_snapshot or {}
+        require(
+            receipt.get("schema")
+            == "evidence-lane.verified-task-checkpoint-advance.v1"
+            and receipt.get("project_id") == project_id
+            and receipt.get("session_id") == session_id
+            and receipt.get("replacement_backlog_task_id")
+            == session.metadata.get("active_backlog_task_id")
+            and receipt.get("replacement_runtime_task_id") == task.task_id
+            and receipt.get("receipt_sha256")
+            == sha256_bytes(canonical_json_bytes(receipt_body))
+            and receipt.get("verification_proof", {}).get("receipt_sha256")
+            == proof.get("receipt_sha256")
+            and receipt.get("native_route", {}).get("tool_catalog_sha256")
+            == route.get("tool_catalog_sha256")
+            and receipt.get("installed_surface", {}).get(
+                "surface_inventory_sha256"
+            )
+            == surface.get("surface_inventory_sha256")
+            and receipt.get("project_panel_sha256")
+            == sha256_bytes(canonical_json_bytes(panel))
+            and session.task == task.as_dict()
+            and session.candidate_id is None
+            and not session.metadata.get("pending_hil"),
+            "TASK_CHECKPOINT_ADVANCE_REPLAY_MISMATCH",
+            "The retried successor no longer matches its checkpoint receipt.",
+            status="MISMATCH",
+        )
+        plan_transition = self.store.advance_verified_task_checkpoint(
+            project_id,
+            completed_backlog_task_id=str(receipt["completed_backlog_task_id"]),
+            replacement_backlog_task_id=str(
+                receipt["replacement_backlog_task_id"]
+            ),
+            session_id=session_id,
+            prior_runtime_task_id=str(receipt["prior_runtime_task_id"]),
+            replacement_contract=task.as_dict(),
+            completion_receipt=receipt,
+        )
+        require(
+            plan_transition.get("idempotent_reuse") is True,
+            "TASK_CHECKPOINT_ADVANCE_REPLAY_PLAN_MISMATCH",
+            "Plan Lane is not already at the exact checkpoint successor state.",
+            status="MISMATCH",
+        )
+        lineage = self._append_task_checkpoint_advance_lineage(
+            project_id,
+            session_id,
+            session=session,
+            task=task,
+            receipt=receipt,
+        )
+        return {
+            "status": "PASS",
+            "idempotent_reuse": True,
+            "receipt": receipt,
+            "plan_transition": plan_transition,
+            "lineage": lineage,
+        }
+
     def classify(
         self,
         project_id: str,
@@ -2305,11 +3669,237 @@ class SessionManager:
         acceptance_checks: list[str],
         stop_condition: str,
         backlog_task_id: str | None = None,
+        _native_route_receipt: dict[str, Any] | None = None,
+        _installed_surface_inventory: dict[str, Any] | None = None,
+        _project_panel_snapshot: dict[str, Any] | None = None,
+        _fallback_prewarm_proof: dict[str, Any] | None = None,
+        _task_checkpoint_proof: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         session = self.load(project_id, session_id)
         pointer = self.store.pointer(project_id)
         classification_reconciliation: dict[str, Any] | None = None
-        if session.state == SessionState.TASK_CLASSIFIED and backlog_task_id:
+        active_backlog_task_id = str(
+            session.metadata.get("active_backlog_task_id") or ""
+        ).strip()
+        travel = session.metadata.get("state_travel")
+        prior_advance_receipt = session.metadata.get(
+            "last_state_travel_task_advance"
+        )
+        prior_fallback_advance_receipt = session.metadata.get(
+            "last_fallback_prewarmer_task_advance"
+        )
+        prior_task_checkpoint_receipt = session.metadata.get(
+            "last_task_checkpoint_advance"
+        )
+        state_travel_advance_replay_requested = (
+            session.state == SessionState.TASK_CLASSIFIED
+            and bool(backlog_task_id)
+            and backlog_task_id == active_backlog_task_id
+            and isinstance(prior_advance_receipt, dict)
+            and prior_advance_receipt.get("replacement_backlog_task_id")
+            == backlog_task_id
+            and isinstance(travel, dict)
+            and travel.get("handoff_id")
+            == prior_advance_receipt.get("handoff_id")
+        )
+        state_travel_advance_requested = (
+            session.state == SessionState.TASK_CLASSIFIED
+            and bool(backlog_task_id)
+            and bool(active_backlog_task_id)
+            and backlog_task_id != active_backlog_task_id
+            and isinstance(travel, dict)
+            and travel.get("status") == "VERIFIED_RESUME_READY"
+            and not isinstance(prior_advance_receipt, dict)
+            and active_backlog_task_id != _FALLBACK_PREWARM_TASK_ID
+        )
+        fallback_advance_replay_requested = (
+            session.state == SessionState.TASK_CLASSIFIED
+            and bool(backlog_task_id)
+            and backlog_task_id == active_backlog_task_id
+            and isinstance(prior_fallback_advance_receipt, dict)
+            and prior_fallback_advance_receipt.get("replacement_backlog_task_id")
+            == backlog_task_id
+        )
+        fallback_advance_requested = (
+            session.state == SessionState.TASK_CLASSIFIED
+            and active_backlog_task_id == _FALLBACK_PREWARM_TASK_ID
+            and bool(backlog_task_id)
+            and backlog_task_id != active_backlog_task_id
+        )
+        task_checkpoint_replay_requested = (
+            session.state == SessionState.TASK_CLASSIFIED
+            and bool(backlog_task_id)
+            and backlog_task_id == active_backlog_task_id
+            and isinstance(prior_task_checkpoint_receipt, dict)
+            and prior_task_checkpoint_receipt.get("replacement_backlog_task_id")
+            == backlog_task_id
+        )
+        task_checkpoint_advance_requested = (
+            session.state == SessionState.TASK_CLASSIFIED
+            and active_backlog_task_id
+            == _EXACT_TASK_PROJECT_SESSION_BINDING_TASK_ID
+            and bool(backlog_task_id)
+            and backlog_task_id != active_backlog_task_id
+        )
+        deterministic_task_id: str | None = None
+        if state_travel_advance_requested or state_travel_advance_replay_requested:
+            deterministic_task_id = "task_st_" + sha256_bytes(
+                canonical_json_bytes(
+                    {
+                        "project_id": project_id,
+                        "session_id": session_id,
+                        "handoff_id": cast(dict[str, Any], travel).get(
+                            "handoff_id"
+                        ),
+                        "replacement_backlog_task_id": backlog_task_id,
+                    }
+                )
+            )[:26].lower()
+        elif fallback_advance_requested or fallback_advance_replay_requested:
+            deterministic_task_id = "task_fb_" + sha256_bytes(
+                canonical_json_bytes(
+                    {
+                        "project_id": project_id,
+                        "session_id": session_id,
+                        "fallback_prewarmer_proof_sha256": (
+                            (_fallback_prewarm_proof or {}).get("receipt_sha256")
+                        ),
+                        "replacement_backlog_task_id": backlog_task_id,
+                    }
+                )
+            )[:26].lower()
+        elif task_checkpoint_advance_requested or task_checkpoint_replay_requested:
+            deterministic_task_id = "task_ck_" + sha256_bytes(
+                canonical_json_bytes(
+                    {
+                        "project_id": project_id,
+                        "session_id": session_id,
+                        "verification_proof_sha256": (
+                            (_task_checkpoint_proof or {}).get("receipt_sha256")
+                        ),
+                        "replacement_backlog_task_id": backlog_task_id,
+                    }
+                )
+            )[:26].lower()
+        task = classify_task(
+            task_class=task_class,
+            requested_outcome=requested_outcome,
+            permitted_paths=permitted_paths,
+            permitted_tools=permitted_tools,
+            acceptance_checks=acceptance_checks,
+            stop_condition=stop_condition,
+            task_id=deterministic_task_id,
+        )
+        state_travel_task_advance: dict[str, Any] | None = None
+        fallback_prewarmer_task_advance: dict[str, Any] | None = None
+        task_checkpoint_advance: dict[str, Any] | None = None
+        if state_travel_advance_replay_requested:
+            state_travel_task_advance = self._replay_state_travel_task_advance(
+                project_id,
+                session_id,
+                task=task,
+                receipt=cast(dict[str, Any], prior_advance_receipt),
+                native_route_receipt=_native_route_receipt,
+                installed_surface_inventory=_installed_surface_inventory,
+                project_panel_snapshot=_project_panel_snapshot,
+            )
+            return {
+                "status": "PASS",
+                "session": session.as_dict(),
+                "task": task.as_dict(),
+                "classification_reconciliation": None,
+                "state_travel_task_advance": state_travel_task_advance,
+            }
+        if fallback_advance_replay_requested:
+            fallback_prewarmer_task_advance = (
+                self._replay_fallback_prewarmer_task_advance(
+                    project_id,
+                    session_id,
+                    task=task,
+                    receipt=cast(
+                        dict[str, Any], prior_fallback_advance_receipt
+                    ),
+                    fallback_prewarmer_proof=_fallback_prewarm_proof,
+                    native_route_receipt=_native_route_receipt,
+                    installed_surface_inventory=_installed_surface_inventory,
+                    project_panel_snapshot=_project_panel_snapshot,
+                )
+            )
+            return {
+                "status": "PASS",
+                "session": session.as_dict(),
+                "task": task.as_dict(),
+                "classification_reconciliation": None,
+                "state_travel_task_advance": None,
+                "fallback_prewarmer_task_advance": (
+                    fallback_prewarmer_task_advance
+                ),
+            }
+        if task_checkpoint_replay_requested:
+            task_checkpoint_advance = self._replay_task_checkpoint_advance(
+                project_id,
+                session_id,
+                task=task,
+                receipt=cast(dict[str, Any], prior_task_checkpoint_receipt),
+                verification_proof=_task_checkpoint_proof,
+                native_route_receipt=_native_route_receipt,
+                installed_surface_inventory=_installed_surface_inventory,
+                project_panel_snapshot=_project_panel_snapshot,
+            )
+            return {
+                "status": "PASS",
+                "session": session.as_dict(),
+                "task": task.as_dict(),
+                "classification_reconciliation": None,
+                "state_travel_task_advance": None,
+                "fallback_prewarmer_task_advance": None,
+                "task_checkpoint_advance": task_checkpoint_advance,
+            }
+        if state_travel_advance_requested:
+            state_travel_task_advance = self._verify_state_travel_task_advance(
+                project_id,
+                session_id,
+                completed_backlog_task_id=active_backlog_task_id,
+                replacement_backlog_task_id=cast(str, backlog_task_id),
+                replacement_task=task,
+                native_route_receipt=_native_route_receipt,
+                installed_surface_inventory=_installed_surface_inventory,
+                project_panel_snapshot=_project_panel_snapshot,
+            )
+        if fallback_advance_requested:
+            fallback_prewarmer_task_advance = (
+                self._verify_fallback_prewarmer_task_advance(
+                    project_id,
+                    session_id,
+                    completed_backlog_task_id=active_backlog_task_id,
+                    replacement_backlog_task_id=cast(str, backlog_task_id),
+                    replacement_task=task,
+                    fallback_prewarmer_proof=_fallback_prewarm_proof,
+                    native_route_receipt=_native_route_receipt,
+                    installed_surface_inventory=_installed_surface_inventory,
+                    project_panel_snapshot=_project_panel_snapshot,
+                )
+            )
+        if task_checkpoint_advance_requested:
+            task_checkpoint_advance = self._verify_task_checkpoint_advance(
+                project_id,
+                session_id,
+                completed_backlog_task_id=active_backlog_task_id,
+                replacement_backlog_task_id=cast(str, backlog_task_id),
+                replacement_task=task,
+                verification_kind="EXACT_TASK_PROJECT_SESSION_BINDING",
+                verification_proof=_task_checkpoint_proof,
+                native_route_receipt=_native_route_receipt,
+                installed_surface_inventory=_installed_surface_inventory,
+                project_panel_snapshot=_project_panel_snapshot,
+            )
+        if (
+            session.state == SessionState.TASK_CLASSIFIED
+            and backlog_task_id
+            and not state_travel_advance_requested
+            and not fallback_advance_requested
+            and not task_checkpoint_advance_requested
+        ):
             backlog = self.store.backlog_status(project_id)
             first_queued = next(
                 (
@@ -2513,16 +4103,21 @@ class SessionManager:
             SessionState.RESEARCH_TASK_PENDING,
         }
         require(
-            session.state
-            in {
-                SessionState.BOOTED,
-                SessionState.PVN_ACCEPTED,
-                SessionState.PVN1_ACCEPTED,
-                SessionState.PVN1_ENTRY,
-                SessionState.CORRECTION_TASK_PENDING,
-                SessionState.RESEARCH_TASK_PENDING,
-            }
-            and (pointer.accepted_pv is not None or pending_state),
+            state_travel_task_advance is not None
+            or fallback_prewarmer_task_advance is not None
+            or task_checkpoint_advance is not None
+            or (
+                session.state
+                in {
+                    SessionState.BOOTED,
+                    SessionState.PVN_ACCEPTED,
+                    SessionState.PVN1_ACCEPTED,
+                    SessionState.PVN1_ENTRY,
+                    SessionState.CORRECTION_TASK_PENDING,
+                    SessionState.RESEARCH_TASK_PENDING,
+                }
+                and (pointer.accepted_pv is not None or pending_state)
+            ),
             "TASK_CLASSIFICATION_STATE_INVALID",
             "A task requires an accepted entry PV, except for the exact stored "
             "follow-up to an unaccepted initial PV1 candidate.",
@@ -2531,7 +4126,10 @@ class SessionManager:
             accepted_pv=pointer.accepted_pv,
         )
         require(
-            session.task is None,
+            session.task is None
+            or state_travel_task_advance is not None
+            or fallback_prewarmer_task_advance is not None
+            or task_checkpoint_advance is not None,
             "ONE_TASK_RULE_ACTIVE",
             "The session already has an active task.",
             status="BLOCKED",
@@ -2574,14 +4172,45 @@ class SessionManager:
                     "pending HIL task."
                 ),
             )
-        task = classify_task(
-            task_class=task_class,
-            requested_outcome=requested_outcome,
-            permitted_paths=permitted_paths,
-            permitted_tools=permitted_tools,
-            acceptance_checks=acceptance_checks,
-            stop_condition=stop_condition,
-        )
+        prior_state_travel_run: dict[str, Any] | None = None
+        prior_fallback_prewarmer_run: dict[str, Any] | None = None
+        prior_task_checkpoint_run: dict[str, Any] | None = None
+        if state_travel_task_advance is not None:
+            prior_state_travel_run = {
+                "state": session.state.value,
+                "task": state_travel_task_advance["prior_task"],
+                "run_id": session.metadata.get("run_id"),
+                "task_mode_binding": session.metadata.get("task_mode_binding"),
+                "active_backlog_task_id": active_backlog_task_id,
+                "active_backlog_task_status": session.metadata.get(
+                    "active_backlog_task_status"
+                ),
+            }
+            session.metadata.pop("task_mode_binding", None)
+        if fallback_prewarmer_task_advance is not None:
+            prior_fallback_prewarmer_run = {
+                "state": session.state.value,
+                "task": fallback_prewarmer_task_advance["prior_task"],
+                "run_id": session.metadata.get("run_id"),
+                "task_mode_binding": session.metadata.get("task_mode_binding"),
+                "active_backlog_task_id": active_backlog_task_id,
+                "active_backlog_task_status": session.metadata.get(
+                    "active_backlog_task_status"
+                ),
+            }
+            session.metadata.pop("task_mode_binding", None)
+        if task_checkpoint_advance is not None:
+            prior_task_checkpoint_run = {
+                "state": session.state.value,
+                "task": task_checkpoint_advance["prior_task"],
+                "run_id": session.metadata.get("run_id"),
+                "task_mode_binding": session.metadata.get("task_mode_binding"),
+                "active_backlog_task_id": active_backlog_task_id,
+                "active_backlog_task_status": session.metadata.get(
+                    "active_backlog_task_status"
+                ),
+            }
+            session.metadata.pop("task_mode_binding", None)
         active_mode_binding = session.metadata.get("active_mode_binding")
         if isinstance(active_mode_binding, dict):
             governance = active_mode_binding.get("mode_governance")
@@ -2638,6 +4267,9 @@ class SessionManager:
         require(
             pending_state
             or classification_reconciliation is not None
+            or state_travel_task_advance is not None
+            or fallback_prewarmer_task_advance is not None
+            or task_checkpoint_advance is not None
             or task.task_class not in mutating_classes
             or current_freshness.get("state") == "FRESH",
             "STALE_ENTRY_MUTATION_BLOCKED",
@@ -2667,13 +4299,116 @@ class SessionManager:
                 status="STALE",
             )
         if backlog_task_id:
-            claimed = self.store.claim_backlog_task(
-                project_id,
-                backlog_task_id=backlog_task_id,
-                session_id=session_id,
-                contract=task.as_dict(),
-            )
-            session.metadata["active_backlog_task_id"] = claimed["task_id"]
+            if state_travel_task_advance is not None:
+                receipt = cast(
+                    dict[str, Any], state_travel_task_advance["receipt"]
+                )
+                claimed_advance = self.store.advance_verified_state_travel_task(
+                    project_id,
+                    completed_backlog_task_id=active_backlog_task_id,
+                    replacement_backlog_task_id=backlog_task_id,
+                    session_id=session_id,
+                    prior_runtime_task_id=str(
+                        receipt["prior_runtime_task_id"]
+                    ),
+                    replacement_contract=task.as_dict(),
+                    completion_receipt=receipt,
+                )
+                state_travel_task_advance["plan_transition"] = claimed_advance
+                session.metadata["active_backlog_task_id"] = backlog_task_id
+                session.metadata["active_backlog_task_status"] = "ACTIVE"
+                session.metadata.setdefault("completed_runs", []).append(
+                    {
+                        **cast(dict[str, Any], prior_state_travel_run),
+                        "completion_disposition": (
+                            "VERIFIED_STATE_TRAVEL_HANDOFF_COMPLETED_WITHOUT_CANDIDATE"
+                        ),
+                        "state_travel_task_advance_receipt_sha256": receipt[
+                            "receipt_sha256"
+                        ],
+                    }
+                )
+                session.metadata.setdefault(
+                    "state_travel_task_advances", []
+                ).append(receipt)
+                session.metadata["last_state_travel_task_advance"] = receipt
+            elif fallback_prewarmer_task_advance is not None:
+                receipt = cast(
+                    dict[str, Any], fallback_prewarmer_task_advance["receipt"]
+                )
+                claimed_advance = (
+                    self.store.advance_verified_fallback_prewarmer_task(
+                        project_id,
+                        completed_backlog_task_id=active_backlog_task_id,
+                        replacement_backlog_task_id=backlog_task_id,
+                        session_id=session_id,
+                        prior_runtime_task_id=str(
+                            receipt["prior_runtime_task_id"]
+                        ),
+                        replacement_contract=task.as_dict(),
+                        completion_receipt=receipt,
+                    )
+                )
+                fallback_prewarmer_task_advance["plan_transition"] = (
+                    claimed_advance
+                )
+                session.metadata["active_backlog_task_id"] = backlog_task_id
+                session.metadata["active_backlog_task_status"] = "ACTIVE"
+                session.metadata.setdefault("completed_runs", []).append(
+                    {
+                        **cast(dict[str, Any], prior_fallback_prewarmer_run),
+                        "completion_disposition": (
+                            "VERIFIED_FALLBACK_PREWARM_COMPLETED_WITHOUT_CANDIDATE"
+                        ),
+                        "fallback_prewarmer_task_advance_receipt_sha256": receipt[
+                            "receipt_sha256"
+                        ],
+                    }
+                )
+                session.metadata.setdefault(
+                    "fallback_prewarmer_task_advances", []
+                ).append(receipt)
+                session.metadata["last_fallback_prewarmer_task_advance"] = receipt
+            elif task_checkpoint_advance is not None:
+                receipt = cast(
+                    dict[str, Any], task_checkpoint_advance["receipt"]
+                )
+                claimed_advance = self.store.advance_verified_task_checkpoint(
+                    project_id,
+                    completed_backlog_task_id=active_backlog_task_id,
+                    replacement_backlog_task_id=backlog_task_id,
+                    session_id=session_id,
+                    prior_runtime_task_id=str(receipt["prior_runtime_task_id"]),
+                    replacement_contract=task.as_dict(),
+                    completion_receipt=receipt,
+                )
+                task_checkpoint_advance["plan_transition"] = claimed_advance
+                session.metadata["active_backlog_task_id"] = backlog_task_id
+                session.metadata["active_backlog_task_status"] = "ACTIVE"
+                session.metadata.setdefault("completed_runs", []).append(
+                    {
+                        **cast(dict[str, Any], prior_task_checkpoint_run),
+                        "completion_disposition": (
+                            "VERIFIED_TASK_CHECKPOINT_COMPLETED_WITHOUT_CANDIDATE"
+                        ),
+                        "task_checkpoint_advance_receipt_sha256": receipt[
+                            "receipt_sha256"
+                        ],
+                    }
+                )
+                session.metadata.setdefault(
+                    "task_checkpoint_advances", []
+                ).append(receipt)
+                session.metadata["last_task_checkpoint_advance"] = receipt
+            else:
+                claimed = self.store.claim_backlog_task(
+                    project_id,
+                    backlog_task_id=backlog_task_id,
+                    session_id=session_id,
+                    contract=task.as_dict(),
+                )
+                session.metadata["active_backlog_task_id"] = claimed["task_id"]
+                session.metadata["active_backlog_task_status"] = "ACTIVE"
         session.task = task.as_dict()
         session.candidate_id = None
         target_state = (
@@ -2681,14 +4416,143 @@ class SessionManager:
             if session.metadata.get("client_source_edit_authority") == "USER_MEDIATED"
             else SessionState.TASK_CLASSIFIED
         )
-        session.state = transition(
-            session.state,
-            LifecycleEvent.CLASSIFY_TASK,
-            target_state,
-        )
-        session.metadata["run_id"] = prefixed_id("run")
+        if state_travel_task_advance is not None:
+            require(
+                target_state == SessionState.TASK_CLASSIFIED,
+                "STATE_TRAVEL_TASK_ADVANCE_CLIENT_AUTHORITY_MISMATCH",
+                "Verified handoff closeout requires direct client source authority.",
+                status="MISMATCH",
+            )
+            session.state = transition(
+                session.state,
+                LifecycleEvent.ADVANCE_VERIFIED_STATE_TRAVEL_TASK,
+                target_state,
+            )
+            session.metadata["run_id"] = (
+                "run_st_"
+                + sha256_bytes(
+                    canonical_json_bytes(
+                        {
+                            "project_id": project_id,
+                            "session_id": session_id,
+                            "task_id": task.task_id,
+                        }
+                    )
+                )[:26].lower()
+            )
+        elif fallback_prewarmer_task_advance is not None:
+            require(
+                target_state == SessionState.TASK_CLASSIFIED,
+                "FALLBACK_PREWARM_TASK_ADVANCE_CLIENT_AUTHORITY_MISMATCH",
+                "Fallback closeout requires direct client source authority.",
+                status="MISMATCH",
+            )
+            session.state = transition(
+                session.state,
+                LifecycleEvent.ADVANCE_VERIFIED_FALLBACK_PREWARM_TASK,
+                target_state,
+            )
+            session.metadata["run_id"] = (
+                "run_fb_"
+                + sha256_bytes(
+                    canonical_json_bytes(
+                        {
+                            "project_id": project_id,
+                            "session_id": session_id,
+                            "task_id": task.task_id,
+                        }
+                    )
+                )[:26].lower()
+            )
+        elif task_checkpoint_advance is not None:
+            require(
+                target_state == SessionState.TASK_CLASSIFIED,
+                "TASK_CHECKPOINT_ADVANCE_CLIENT_AUTHORITY_MISMATCH",
+                "Verified checkpoint closeout requires direct client source authority.",
+                status="MISMATCH",
+            )
+            session.state = transition(
+                session.state,
+                LifecycleEvent.ADVANCE_VERIFIED_TASK_CHECKPOINT,
+                target_state,
+            )
+            session.metadata["run_id"] = (
+                "run_ck_"
+                + sha256_bytes(
+                    canonical_json_bytes(
+                        {
+                            "project_id": project_id,
+                            "session_id": session_id,
+                            "task_id": task.task_id,
+                        }
+                    )
+                )[:26].lower()
+            )
+        else:
+            session.state = transition(
+                session.state,
+                LifecycleEvent.CLASSIFY_TASK,
+                target_state,
+            )
+            session.metadata["run_id"] = prefixed_id("run")
         session.metadata["source_update_confirmed"] = False
-        if classification_reconciliation is not None:
+        if state_travel_task_advance is not None:
+            receipt = cast(dict[str, Any], state_travel_task_advance["receipt"])
+            session.metadata["task_source_basis"] = {
+                "kind": "VERIFIED_STATE_TRAVEL_HANDOFF_ADVANCE",
+                "accepted_pv": pointer.accepted_pv,
+                "pointer_generation": pointer.generation,
+                "completed_backlog_task_id": active_backlog_task_id,
+                "replacement_backlog_task_id": backlog_task_id,
+                "state_travel_task_advance_receipt_sha256": receipt[
+                    "receipt_sha256"
+                ],
+                "current_source_identity_sha256": receipt[
+                    "current_source_identity_sha256"
+                ],
+            }
+            session.metadata["source_state"] = (
+                "VERIFIED_STATE_TRAVEL_HANDOFF_ADVANCE"
+            )
+            session.metadata["accepted_pv_query_scope"] = "ENTRY_STATE_ONLY"
+        elif fallback_prewarmer_task_advance is not None:
+            receipt = cast(
+                dict[str, Any], fallback_prewarmer_task_advance["receipt"]
+            )
+            session.metadata["task_source_basis"] = {
+                "kind": "VERIFIED_FALLBACK_PREWARM_ADVANCE",
+                "accepted_pv": pointer.accepted_pv,
+                "pointer_generation": pointer.generation,
+                "completed_backlog_task_id": active_backlog_task_id,
+                "replacement_backlog_task_id": backlog_task_id,
+                "fallback_prewarmer_task_advance_receipt_sha256": receipt[
+                    "receipt_sha256"
+                ],
+                "fallback_prewarmer_proof_sha256": receipt[
+                    "fallback_prewarmer_proof"
+                ]["receipt_sha256"],
+            }
+            session.metadata["source_state"] = "VERIFIED_FALLBACK_PREWARM_ADVANCE"
+            session.metadata["accepted_pv_query_scope"] = "ENTRY_STATE_ONLY"
+        elif task_checkpoint_advance is not None:
+            receipt = cast(dict[str, Any], task_checkpoint_advance["receipt"])
+            session.metadata["task_source_basis"] = {
+                "kind": "VERIFIED_TASK_CHECKPOINT_ADVANCE",
+                "accepted_pv": pointer.accepted_pv,
+                "pointer_generation": pointer.generation,
+                "completed_backlog_task_id": active_backlog_task_id,
+                "replacement_backlog_task_id": backlog_task_id,
+                "verification_kind": receipt["verification_kind"],
+                "task_checkpoint_advance_receipt_sha256": receipt[
+                    "receipt_sha256"
+                ],
+                "verification_proof_sha256": receipt[
+                    "verification_proof"
+                ]["receipt_sha256"],
+            }
+            session.metadata["source_state"] = "VERIFIED_TASK_CHECKPOINT_ADVANCE"
+            session.metadata["accepted_pv_query_scope"] = "ENTRY_STATE_ONLY"
+        elif classification_reconciliation is not None:
             session.metadata["task_source_basis"] = {
                 "kind": "RECONCILED_UNFINISHED_SOURCE_BOUNDARY",
                 "accepted_pv": pointer.accepted_pv,
@@ -2726,6 +4590,40 @@ class SessionManager:
                 "accepted_pv": pointer.accepted_pv,
             }
         self._save(session)
+        state_travel_lineage: dict[str, Any] | None = None
+        fallback_prewarmer_lineage: dict[str, Any] | None = None
+        task_checkpoint_lineage: dict[str, Any] | None = None
+        if state_travel_task_advance is not None:
+            receipt = cast(dict[str, Any], state_travel_task_advance["receipt"])
+            state_travel_lineage = self._append_state_travel_task_advance_lineage(
+                project_id,
+                session_id,
+                session=session,
+                task=task,
+                receipt=receipt,
+            )
+        if fallback_prewarmer_task_advance is not None:
+            receipt = cast(
+                dict[str, Any], fallback_prewarmer_task_advance["receipt"]
+            )
+            fallback_prewarmer_lineage = (
+                self._append_fallback_prewarmer_task_advance_lineage(
+                    project_id,
+                    session_id,
+                    session=session,
+                    task=task,
+                    receipt=receipt,
+                )
+            )
+        if task_checkpoint_advance is not None:
+            receipt = cast(dict[str, Any], task_checkpoint_advance["receipt"])
+            task_checkpoint_lineage = self._append_task_checkpoint_advance_lineage(
+                project_id,
+                session_id,
+                session=session,
+                task=task,
+                receipt=receipt,
+            )
         if classification_reconciliation is not None:
             ChatLineage(self._lineage_path(project_id, session_id)).append(
                 event_type="task.completed_classification.reconciled",
@@ -2735,24 +4633,35 @@ class SessionManager:
                 task_id=classification_reconciliation["prior_task_id"],
                 run_id=classification_reconciliation["prior_run_id"],
             )
-        lineage_payload = task.as_dict()
-        if pending_state:
-            lineage_payload["resumed_from_pending"] = cast(dict[str, Any], pending)[
-                "kind"
-            ]
-        ChatLineage(self._lineage_path(project_id, session_id)).append(
-            event_type="task.classified",
-            visible_payload=lineage_payload,
-            occurred_at=utc_now(),
-            session_id=session_id,
-            task_id=task.task_id,
-            run_id=session.metadata["run_id"],
-        )
+        if (
+            state_travel_task_advance is None
+            and fallback_prewarmer_task_advance is None
+            and task_checkpoint_advance is None
+        ):
+            lineage_payload = task.as_dict()
+            if pending_state:
+                lineage_payload["resumed_from_pending"] = cast(
+                    dict[str, Any], pending
+                )["kind"]
+            ChatLineage(self._lineage_path(project_id, session_id)).append(
+                event_type="task.classified",
+                visible_payload=lineage_payload,
+                occurred_at=utc_now(),
+                session_id=session_id,
+                task_id=task.task_id,
+                run_id=session.metadata["run_id"],
+            )
         return {
             "status": "PASS",
             "session": session.as_dict(),
             "task": task.as_dict(),
             "classification_reconciliation": classification_reconciliation,
+            "state_travel_task_advance": state_travel_task_advance,
+            "state_travel_lineage": state_travel_lineage,
+            "fallback_prewarmer_task_advance": fallback_prewarmer_task_advance,
+            "fallback_prewarmer_lineage": fallback_prewarmer_lineage,
+            "task_checkpoint_advance": task_checkpoint_advance,
+            "task_checkpoint_lineage": task_checkpoint_lineage,
         }
 
     def record_activity(

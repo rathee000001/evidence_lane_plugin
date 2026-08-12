@@ -1,4 +1,4 @@
-"""Universal MCP runtime contract; 2.0.0 is the Codex package release."""
+"""Universal MCP runtime contract; 2.1.0 is the Codex package release."""
 
 from __future__ import annotations
 
@@ -27,6 +27,12 @@ from .auth import (
     OAuthJWTVerifier,
     OAuthToolAuthorizationPolicy,
     StaticBearerVerifier,
+)
+from .codex_turn_control import (
+    TurnControlError,
+    package_surface_inventory,
+    seal_exact_task_project_session_binding,
+    verify_codex_fallback_prewarmer,
 )
 from .constants import ENGINE_VERSION
 from .github_automation_governance import (
@@ -1844,6 +1850,67 @@ def create_mcp_server(
         stop_condition: str,
         backlog_task_id: str | None = None,
     ) -> dict[str, Any]:
+        native_route_receipt = getattr(
+            mcp, "_evidence_lane_native_route_receipt", None
+        )
+        active_session = application.sessions.load(project_id, session_id)
+        fallback_prewarm_proof: dict[str, Any] | None = None
+        task_checkpoint_proof: dict[str, Any] | None = None
+        if (
+            active_session.metadata.get("active_backlog_task_id")
+            == "EL-CODEX-PV11-FALLBACK-SLOT-INSTALL-PREWARM-DELTA-149"
+        ):
+            try:
+                fallback_prewarm_proof = verify_codex_fallback_prewarmer(
+                    application.store.root,
+                    project_id=project_id,
+                    session_id=session_id,
+                )
+            except TurnControlError as exc:
+                fallback_prewarm_proof = {
+                    "schema": "evidence-lane.codex-fallback-prewarm-proof.v1",
+                    "status": "FAIL",
+                    "error": exc.as_dict(),
+                }
+        if (
+            active_session.metadata.get("active_backlog_task_id")
+            == "EL-CODEX-EXACT_TASK_PROJECT_SESSION_BINDING-PROPOSAL-03"
+        ):
+            try:
+                task_checkpoint_proof = seal_exact_task_project_session_binding(
+                    application.store.root,
+                    project_id=project_id,
+                    evidence_session_id=session_id,
+                    expected_active_task_id=(
+                        "EL-CODEX-EXACT_TASK_PROJECT_SESSION_BINDING-PROPOSAL-03"
+                    ),
+                )
+            except TurnControlError as exc:
+                task_checkpoint_proof = {
+                    "schema": (
+                        "evidence-lane.codex-exact-task-project-session-binding.v1"
+                    ),
+                    "status": "FAIL",
+                    "error": exc.as_dict(),
+                }
+        else:
+            prior_checkpoint = active_session.metadata.get(
+                "last_task_checkpoint_advance"
+            )
+            if (
+                isinstance(prior_checkpoint, dict)
+                and prior_checkpoint.get("replacement_backlog_task_id")
+                == backlog_task_id
+                and isinstance(prior_checkpoint.get("verification_proof"), dict)
+            ):
+                task_checkpoint_proof = dict(
+                    prior_checkpoint["verification_proof"]
+                )
+        project_panel_snapshot = build_project_panel_snapshot(
+            project_id=project_id,
+            project_status=application.status(project_id),
+            public_site_url=exact_public_site,
+        )
         return application.invoke(
             "task_classify",
             application.sessions.classify,
@@ -1856,6 +1923,11 @@ def create_mcp_server(
             acceptance_checks=acceptance_checks,
             stop_condition=stop_condition,
             backlog_task_id=backlog_task_id,
+            _native_route_receipt=native_route_receipt,
+            _installed_surface_inventory=package_surface_inventory(),
+            _project_panel_snapshot=project_panel_snapshot,
+            _fallback_prewarm_proof=fallback_prewarm_proof,
+            _task_checkpoint_proof=task_checkpoint_proof,
             lifecycle=True,
         )
 

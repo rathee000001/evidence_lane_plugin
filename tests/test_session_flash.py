@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 from pathlib import Path
@@ -13,6 +14,7 @@ from evidence_lane_plugin.flash_authority import (
     SessionFlashAuthority,
 )
 from evidence_lane_plugin.pv_package import validate_pv_package
+from evidence_lane_plugin.runtime_activation import RuntimeActivation
 
 from .conftest import boot_local
 
@@ -25,6 +27,151 @@ STABLE_FLASH_PROMPT_SHA256 = (
 STABLE_FLASH_AUTHORITY_DIGEST = (
     "644AEEAE1434B3808E544BA9C634ACE3685F21F73D3F86E0CF5DE31D4A6B48A5"
 )
+
+
+def _sealed_json_sha256(payload: dict[str, object]) -> str:
+    return hashlib.sha256(
+        (
+            json.dumps(
+                payload,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            + "\n"
+        ).encode("utf-8")
+    ).hexdigest().upper()
+
+
+def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
+    runtime = RuntimeActivation(tmp_path)
+    runtime.path.parent.mkdir(parents=True, exist_ok=True)
+    runtime.path.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.runtime-activation.v1",
+                "plugin_id": "evidence-lane-plugin",
+                "state": "ACTIVE",
+                "generation": 1,
+                "active_sessions": [
+                    {"project_id": "project-a", "session_id": "session-a"}
+                ],
+                "flash_context_attached": True,
+                "prompt_capture_active": True,
+                "visible_response_capture_active": True,
+                "immutable_store_preserved": True,
+                "plugin_installation_preserved": True,
+                "hil_approval_inferred": False,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    unproven = runtime.status_with_host_proof()
+    assert unproven["prompt_capture_configured"] is True
+    assert unproven["prompt_capture_active"] is False
+    assert unproven["host_hook_status"]["status"] == "UNAVAILABLE"
+
+    selector = "evidence-lane-plugin@evidence-lane-v200-task2-build-test"
+    events = ["postToolUse", "sessionStart", "stop", "userPromptSubmit"]
+    hook_trust: dict[str, object] = {
+        "schema": "evidence-lane.codex-hook-trust.v1",
+        "status": "PASS",
+        "plugin_selector": selector,
+        "hook_count": 4,
+        "registered_events": events,
+        "records": [
+            {
+                "event_name": event,
+                "hook_key": f"{selector}:hooks/hooks.json:{event}:0:0",
+                "current_hash": f"sha256:{index:064x}",
+                "enabled": True,
+                "trust_status": "trusted",
+            }
+            for index, event in enumerate(events, start=1)
+        ],
+        "before_trust_statuses": ["untrusted"],
+        "after_trust_statuses": ["trusted"],
+        "supported_codex_api": ["hooks/list", "config/batchWrite"],
+        "config_version": f"sha256:{'a' * 64}",
+        "workspace_sha256": "B" * 64,
+        "raw_workspace_path_included": False,
+        "hook_commands_included": False,
+        "source_paths_included": False,
+        "unrelated_hook_state_mutated": False,
+    }
+    hook_trust["receipt_sha256"] = _sealed_json_sha256(hook_trust)
+    installation: dict[str, object] = {
+        "schema": "evidence-lane.codex-stable-installation.v2",
+        "status": "PASS",
+        "activation": {
+            "state": "INSTALLED_RESTART_REQUIRED",
+            "plugin_add": {"pluginId": selector},
+            "hook_trust": hook_trust,
+        },
+    }
+    installation["receipt_sha256"] = _sealed_json_sha256(installation)
+    current_installation = (
+        tmp_path
+        / "installations"
+        / "codex-v200"
+        / "CURRENT_INSTALLATION.json"
+    )
+    current_installation.parent.mkdir(parents=True, exist_ok=True)
+    current_installation.write_text(
+        json.dumps(
+            installation,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    proven = runtime.status_with_host_proof()
+    assert proven["host_hook_status"]["status"] == "TRUSTED"
+    assert proven["host_hooks_runnable"] is True
+    assert proven["prompt_capture_active"] is True
+    assert proven["prompt_capture_partially_available"] is True
+    assert proven["required_pre_reasoning_capture_complete"] is True
+    assert proven["missing_required_pre_reasoning_surfaces"] == []
+    assert proven["capture_gap_code"] is None
+    surfaces = {
+        row["surface"]: row
+        for row in proven["required_pre_reasoning_capture_surfaces"]
+    }
+    assert surfaces["USER_PROMPT_CORRECTION_OR_HIL_TOKEN"][
+        "pre_reasoning_dispatch_runnable"
+    ] is True
+    assert surfaces["MID_GOAL_STEER"]["state"] == (
+        "RUNNABLE_REQUIRES_PER_INPUT_PREPARE_RECEIPT"
+    )
+    assert surfaces["GOAL_CONTINUATION"]["state"] == (
+        "RUNNABLE_REQUIRES_PER_INPUT_PREPARE_RECEIPT"
+    )
+    assert proven["visible_response_capture_active"] is True
+
+
+def test_runtime_status_does_not_treat_activation_as_prompt_invocation_proof(
+    service,
+) -> None:
+    boot = boot_local(service)
+    session_id = boot["session"]["session_id"]
+    status = service.runtime_activation_status()
+    bounded = next(
+        row
+        for row in status["per_session_capture_evidence"]
+        if row["project_id"] == "book-faires"
+        and row["evidence_session_id"] == session_id
+    )
+    assert bounded["indexed_visible_input_count"] == 0
+    assert bounded["per_input_invocation_proven"] is False
+    assert status["runtime_flags_are_invocation_proof"] is False
+    assert status["active_session_capture_gap_count"] == 1
+    assert status["active_session_capture_gap_code"] == (
+        "ACTIVE_RUNTIME_WITHOUT_SEALED_PROMPT_INDEX_RECORD"
+    )
 
 
 def test_v2_reuses_the_existing_stable_flash_authority(tmp_path: Path) -> None:

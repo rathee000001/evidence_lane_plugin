@@ -68,10 +68,10 @@ def test_session_start_exposes_interactive_first_use_tunnel_onboarding(
     ] is False
     assert plugin["effective_remote_git_policy"]["main_push_allowed"] is False
     assert activation["state"] == "FIRST_USE_TUNNEL_ONBOARDING_REQUIRED"
-    assert activation["release"] == "2.0.0"
+    assert activation["release"] == "2.1.0"
     assert activation["slot_role"] == "stable-build"
     assert str(activation["runtime_root"]).endswith(
-        "tunnel-runtime-v200-stable-build"
+        "tunnel-runtime-v210-stable-build"
     )
     assert activation["interaction_profile"] == "CODEX_APP_INTERACTIVE"
     assert activation["host_lifetime"] == "PERSISTENT"
@@ -135,7 +135,7 @@ def test_session_start_routes_fallback_hook_to_fallback_tunnel_slot(service) -> 
 def test_session_start_validates_marker_without_claiming_tunnel_health(service) -> None:
     root = Path(__file__).resolve().parents[1]
     boot_local(service)
-    runtime_root = service.store.root / "tunnel-runtime-v200-stable-build"
+    runtime_root = service.store.root / "tunnel-runtime-v210-stable-build"
     runtime_root.mkdir(parents=True)
     marker = runtime_root / "evidence-lane-tunnel-installation.json"
     marker.write_text(
@@ -144,7 +144,7 @@ def test_session_start_validates_marker_without_claiming_tunnel_health(service) 
                 "schema": (
                     "evidence-lane.versioned-secure-mcp-tunnel-installation.v1"
                 ),
-                "release": "2.0.0",
+                "release": "2.1.0",
                 "slot_role": "stable-build",
                 "legacy_version_manager_authoritative": False,
                 "interaction_profile": "CODEX_APP_INTERACTIVE",

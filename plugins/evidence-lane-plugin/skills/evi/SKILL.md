@@ -5,7 +5,10 @@ description: Evidence Lane root router with user-timed State Travel and exactly 
 
 # Evidence Lane root
 
-First call `pv_status`. A prepared exact-work handoff makes State Travel
+After the lifecycle PREPARE hook, the skill—not the hook—first calls the native
+`pv_status`, `pv_task_backlog`, and one prompt-relevant bounded `pv_query`.
+Internal hook retrieval is lifecycle evidence only and never satisfies this
+native read sequence. A prepared exact-work handoff makes State Travel
 eligible, but eligibility alone must not display, invoke, or consume it. Route
 to State Travel only when the user explicitly requests it or the current host
 context is genuinely exhausted and a continuity handoff is needed. Otherwise
@@ -13,7 +16,8 @@ run `/evi-boot` atomically and resume the existing governed session; State
 Travel is not a normal intake step.
 
 Whenever a canonical task panel exists, re-project its exact complete rows as
-the first action after any token-driven continuation, stalled Goal, context
+the skill-owned `update_plan` action after those native reads and after any
+token-driven continuation, stalled Goal, context
 compaction, browser or Codex restart, session continuation or resume, or State
 Travel destination entry. This must precede source inspection, source mutation,
 testing, Git activity, and every later lifecycle call. Require exactly one
@@ -21,6 +25,13 @@ in-progress row, preserve order and every completed or pending description
 unabridged, keep the panel visible through every pause and HIL, and drop it only
 after the physically final six-way HIL is decided and all decision-dependent
 work is complete.
+
+Hooks remain lifecycle-only: they may seal PREPARE/COMMIT and bounded event
+receipts, but they never call `pv_status`, `pv_task_backlog`, `pv_query`, or
+`update_plan`, and never carry the full Plan Lane. After every
+`pv_plan_steer_delta`, the skill repeats the three native reads and redraws the
+same complete panel. Fail closed when either the native MCP route or host plan
+tool is absent.
 
 Preserve one governed project, one live writer, linear execution, and
 evidence-first verification under the exact host execution profile. Read-only

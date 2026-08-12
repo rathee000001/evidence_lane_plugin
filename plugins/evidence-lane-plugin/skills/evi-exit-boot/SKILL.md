@@ -5,6 +5,11 @@ description: Explicitly close one persistent Evidence Lane session and detach li
 
 # Evidence Lane Exit Boot
 
+Before any tool call, read and apply
+`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+ownership contract. This skill owns behavior; hooks provide lifecycle receipts
+only.
+
 Call `session_close` with a visible reason. Close only the active governed
 session and require the returned runtime-activation receipt to show that exact
 session detached. When no other governed sessions remain, the installation

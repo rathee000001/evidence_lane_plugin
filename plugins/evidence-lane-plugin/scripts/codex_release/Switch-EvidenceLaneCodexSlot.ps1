@@ -43,7 +43,6 @@ Set-StrictMode -Version Latest
 
 $script:PluginName = "evidence-lane-plugin"
 $script:ServerName = "evidence-lane"
-$script:ExpectedTaskId = "019fedc7-cb86-7b40-94ce-1784a999f12b"
 $script:ZeroHash = "0" * 64
 
 function Get-Sha256([string]$Path) {
@@ -111,6 +110,14 @@ function Get-Slot([object]$TwoSlotRegistry, [string]$Name) {
 function Get-OtherSlot([string]$Name) {
     if ($Name -eq "stable-build") { return "fallback" }
     return "stable-build"
+}
+
+function Test-TunnelRequired([object]$RegistryBody) {
+    $property = $RegistryBody.PSObject.Properties["tunnel_required"]
+    if ($null -eq $property) {
+        return $true
+    }
+    return [bool]$property.Value
 }
 
 function Assert-InstallReceipt([object]$Slot, [string]$SlotName) {
@@ -186,6 +193,8 @@ function Read-TwoSlotRegistry() {
     $body = Get-Content -LiteralPath $exactRegistry -Raw | ConvertFrom-Json
     $stable = Get-Slot -TwoSlotRegistry $body -Name "stable-build"
     $fallback = Get-Slot -TwoSlotRegistry $body -Name "fallback"
+    $tunnelRequired = Test-TunnelRequired -RegistryBody $body
+    $expectedMaxActiveTunnels = if ($tunnelRequired) { 1 } else { 0 }
     if (
         $body.schema -ne "evidence-lane.codex-two-slot-registry.v1" -or
         $body.status -ne "PASS" -or
@@ -198,7 +207,7 @@ function Read-TwoSlotRegistry() {
         $body.host_session_id -ne $HostSessionId -or
         [int]$body.exact_live_slot_count -ne 2 -or
         [int]$body.max_enabled_plugin_count -ne 1 -or
-        [int]$body.max_active_tunnel_count -ne 1 -or
+        [int]$body.max_active_tunnel_count -ne $expectedMaxActiveTunnels -or
         $body.secret_material_present -ne $false -or
         @($body.slots.PSObject.Properties).Count -ne 2 -or
         $stable.plugin_selector -eq $fallback.plugin_selector -or
@@ -211,8 +220,7 @@ function Read-TwoSlotRegistry() {
         $fallback.accepted_pv -ne "PV11" -or
         [int]$fallback.accepted_generation -ne 11 -or
         $fallback.package_sha256 -ne $body.accepted_package_sha256 -or
-        $fallback.plugin_version -ne $body.accepted_plugin_version -or
-        $TaskId -ne $script:ExpectedTaskId
+        $fallback.plugin_version -ne $body.accepted_plugin_version
     ) {
         throw "The two-slot registry is not the exact accepted-PV11 boundary."
     }
@@ -227,7 +235,9 @@ function Read-TwoSlotRegistry() {
             throw "The $name live plugin cache is missing."
         }
         [void](Assert-InstallReceipt -Slot $slot -SlotName $name)
-        [void](Assert-TunnelSlot -Slot $slot -SlotName $name)
+        if ($tunnelRequired) {
+            [void](Assert-TunnelSlot -Slot $slot -SlotName $name)
+        }
     }
     return [ordered]@{
         path = $exactRegistry
@@ -250,6 +260,14 @@ function Read-PluginActivation() {
     foreach ($match in $evidenceMatches) {
         $selector = $match.Groups["selector"].Value
         $tail = $match.Groups["tail"].Value
+        $isRoot = [string]::IsNullOrWhiteSpace($tail)
+        $isEvidenceMcp = $tail -in @(
+            '.mcp_servers."evidence-lane"',
+            '.mcp_servers.evidence-lane'
+        )
+        if (-not $isRoot -and -not $isEvidenceMcp) {
+            continue
+        }
         $start = $match.Index + $match.Length
         $next = @(
             $sectionMatches |
@@ -263,10 +281,10 @@ function Read-PluginActivation() {
             throw "An Evidence Lane plugin section has no explicit enabled flag."
         }
         $enabled = $enabledMatch.Groups["value"].Value -eq "true"
-        if ([string]::IsNullOrWhiteSpace($tail)) {
+        if ($isRoot) {
             $roots[$selector] = $enabled
         }
-        elseif ($tail -eq '.mcp_servers."evidence-lane"') {
+        elseif ($isEvidenceMcp) {
             $mcps[$selector] = $enabled
         }
     }
@@ -278,19 +296,44 @@ function Read-PluginActivation() {
     }
 }
 
+function Assert-CurrentSlotsAndDisabledHistory(
+    [object]$Activation,
+    [string[]]$ExpectedSelectors
+) {
+    foreach ($selector in $ExpectedSelectors) {
+        if (
+            -not $Activation.roots.ContainsKey($selector) -or
+            -not $Activation.mcps.ContainsKey($selector)
+        ) {
+            throw "The Codex config is missing one exact current Evidence Lane slot."
+        }
+    }
+    $historicalSelectors = @(
+        @($Activation.roots.Keys) + @($Activation.mcps.Keys) |
+            Where-Object { $_ -notin $ExpectedSelectors } |
+            Sort-Object -Unique
+    )
+    foreach ($selector in $historicalSelectors) {
+        if (
+            -not $Activation.roots.ContainsKey($selector) -or
+            -not $Activation.mcps.ContainsKey($selector) -or
+            [bool]$Activation.roots[$selector] -or
+            [bool]$Activation.mcps[$selector]
+        ) {
+            throw "An older Evidence Lane registration is enabled or incomplete."
+        }
+    }
+    return $historicalSelectors
+}
+
 function Assert-ExclusiveActivation([object]$RegistryBody, [string]$ExpectedActiveSlot) {
     $activation = Read-PluginActivation
     $stable = Get-Slot -TwoSlotRegistry $RegistryBody -Name "stable-build"
     $fallback = Get-Slot -TwoSlotRegistry $RegistryBody -Name "fallback"
     $expectedSelectors = @([string]$stable.plugin_selector, [string]$fallback.plugin_selector)
-    if (
-        @($activation.roots.Keys).Count -ne 2 -or
-        @($activation.mcps.Keys).Count -ne 2 -or
-        @($activation.roots.Keys | Where-Object { $_ -notin $expectedSelectors }).Count -ne 0 -or
-        @($activation.mcps.Keys | Where-Object { $_ -notin $expectedSelectors }).Count -ne 0
-    ) {
-        throw "The Codex config does not contain exactly the two registered Evidence Lane slots."
-    }
+    $historicalSelectors = Assert-CurrentSlotsAndDisabledHistory `
+        -Activation $activation `
+        -ExpectedSelectors $expectedSelectors
     foreach ($name in @("stable-build", "fallback")) {
         $slot = Get-Slot -TwoSlotRegistry $RegistryBody -Name $name
         $expected = $name -eq $ExpectedActiveSlot
@@ -301,6 +344,7 @@ function Assert-ExclusiveActivation([object]$RegistryBody, [string]$ExpectedActi
             throw "Codex plugin and MCP activation are not mutually exclusive."
         }
     }
+    $activation["disabled_historical_selectors"] = @($historicalSelectors)
     return $activation
 }
 
@@ -402,6 +446,24 @@ function Invoke-Tunnel([object]$Slot, [string]$TunnelAction) {
 }
 
 function Get-TunnelSnapshot([object]$RegistryBody) {
+    if (-not (Test-TunnelRequired -RegistryBody $RegistryBody)) {
+        $notRequired = [ordered]@{}
+        foreach ($name in @("stable-build", "fallback")) {
+            $notRequired[$name] = [ordered]@{
+                ready = $false
+                process_running = $false
+                task_registered = $false
+                manager_exit_code = $null
+                state = "NOT_REQUIRED_LOCAL_DURABLE_HOST"
+            }
+        }
+        return [ordered]@{
+            required = $false
+            slots = $notRequired
+            ready_count = 0
+            running_count = 0
+        }
+    }
     $rows = [ordered]@{}
     $readyCount = 0
     $runningCount = 0
@@ -423,6 +485,7 @@ function Get-TunnelSnapshot([object]$RegistryBody) {
         throw "More than one Evidence Lane tunnel is active."
     }
     return [ordered]@{
+        required = $true
         slots = $rows
         ready_count = $readyCount
         running_count = $runningCount
@@ -434,14 +497,9 @@ function Get-LiveSlotBinding([object]$RegistryBody) {
     $stable = Get-Slot -TwoSlotRegistry $RegistryBody -Name "stable-build"
     $fallback = Get-Slot -TwoSlotRegistry $RegistryBody -Name "fallback"
     $expectedSelectors = @([string]$stable.plugin_selector, [string]$fallback.plugin_selector)
-    if (
-        @($activation.roots.Keys).Count -ne 2 -or
-        @($activation.mcps.Keys).Count -ne 2 -or
-        @($activation.roots.Keys | Where-Object { $_ -notin $expectedSelectors }).Count -ne 0 -or
-        @($activation.mcps.Keys | Where-Object { $_ -notin $expectedSelectors }).Count -ne 0
-    ) {
-        throw "The Codex config does not contain exactly the two registered Evidence Lane slots."
-    }
+    $historicalSelectors = Assert-CurrentSlotsAndDisabledHistory `
+        -Activation $activation `
+        -ExpectedSelectors $expectedSelectors
     $enabledSlots = @()
     foreach ($name in @("stable-build", "fallback")) {
         $slot = Get-Slot -TwoSlotRegistry $RegistryBody -Name $name
@@ -458,19 +516,29 @@ function Get-LiveSlotBinding([object]$RegistryBody) {
     }
     $activeSlot = [string]$enabledSlots[0]
     $tunnels = Get-TunnelSnapshot -RegistryBody $RegistryBody
-    if (
-        $tunnels.ready_count -ne 1 -or
-        $tunnels.running_count -ne 1 -or
-        $tunnels.slots[$activeSlot].ready -ne $true -or
-        $tunnels.slots[(Get-OtherSlot $activeSlot)].process_running -ne $false
-    ) {
-        throw "The enabled plugin and sole ready tunnel do not form one matching slot."
+    if ($tunnels.required) {
+        if (
+            $tunnels.ready_count -ne 1 -or
+            $tunnels.running_count -ne 1 -or
+            $tunnels.slots[$activeSlot].ready -ne $true -or
+            $tunnels.slots[(Get-OtherSlot $activeSlot)].process_running -ne $false
+        ) {
+            throw "The enabled plugin and sole ready tunnel do not form one matching slot."
+        }
+    }
+    elseif ($tunnels.ready_count -ne 0 -or $tunnels.running_count -ne 0) {
+        throw "A local durable no-tunnel registry reported an active tunnel."
     }
     return [ordered]@{
         active_slot = $activeSlot
         activation = $activation
         tunnels = $tunnels
-        active_slot_source = "LIVE_CODEX_CONFIG_AND_TUNNEL_MATCH"
+        disabled_historical_selectors = @($historicalSelectors)
+        active_slot_source = if ($tunnels.required) {
+            "LIVE_CODEX_CONFIG_AND_TUNNEL_MATCH"
+        } else {
+            "LIVE_CODEX_CONFIG_LOCAL_DURABLE_NO_TUNNEL"
+        }
     }
 }
 
@@ -586,8 +654,10 @@ if ($Action -eq "Verify") {
         active_slot = $sourceSlot
         active_slot_source = $liveBinding.active_slot_source
         enabled_plugin_count = 1
-        active_tunnel_count = 1
+        active_tunnel_count = [int]$liveBinding.tunnels.running_count
+        tunnel_required = [bool]$liveBinding.tunnels.required
         installed_slot_count = 2
+        disabled_historical_slot_count = @($liveBinding.disabled_historical_selectors).Count
         fallback_byte_frozen = $true
         fallback_accepted_pv = "PV11"
         config_sha256 = $liveBinding.activation.sha256
@@ -635,9 +705,10 @@ if ($Action -eq "Prepare") {
         restart_helper_sha256 = $restartHelperSha
         target_process_id = $TargetProcessId
         exact_task_uri = "codex://threads/$TaskId"
-        stop_source_before_start_target = $true
+        tunnel_required = [bool]$liveBinding.tunnels.required
+        stop_source_before_start_target = [bool]$liveBinding.tunnels.required
         max_active_mcp_servers = 1
-        max_active_tunnels = 1
+        max_active_tunnels = if ($liveBinding.tunnels.required) { 1 } else { 0 }
         transient_single_error_auto_switch_allowed = $false
         source_mutated = $false
         candidate_created_or_accepted = $false
@@ -691,31 +762,34 @@ if ($Action -eq "Switch") {
         throw "The switch preparation is stale or cross-boundary."
     }
     [void](Assert-DecisionEvidence -RegistryBody $registryBody -SourceSlot $sourceSlot)
-    $sourceStopped = $false
+    $tunnelRequired = [bool]$liveBinding.tunnels.required
+    $sourceStopped = -not $tunnelRequired
     $configSwitched = $false
     try {
-        $stop = Invoke-Tunnel -Slot $source -TunnelAction "Stop"
-        if ($stop.exit_code -ne 0) { throw "The source tunnel did not stop cleanly." }
-        $sourceStopped = $true
-        $afterStop = Get-TunnelSnapshot -RegistryBody $registryBody
-        if ($afterStop.running_count -ne 0) {
-            throw "A tunnel remains active after stopping the source slot."
-        }
-        $start = Invoke-Tunnel -Slot $target -TunnelAction "Start"
-        if (
-            $start.exit_code -ne 0 -or
-            $null -eq $start.payload -or
-            $start.payload.control_plane_poll_ready -ne $true
-        ) {
-            throw "The target tunnel failed readiness."
-        }
-        $afterStart = Get-TunnelSnapshot -RegistryBody $registryBody
-        if (
-            $afterStart.ready_count -ne 1 -or
-            $afterStart.slots[$TargetSlot].ready -ne $true -or
-            $afterStart.slots[$sourceSlot].process_running -ne $false
-        ) {
-            throw "The target tunnel did not become the sole active tunnel."
+        if ($tunnelRequired) {
+            $stop = Invoke-Tunnel -Slot $source -TunnelAction "Stop"
+            if ($stop.exit_code -ne 0) { throw "The source tunnel did not stop cleanly." }
+            $sourceStopped = $true
+            $afterStop = Get-TunnelSnapshot -RegistryBody $registryBody
+            if ($afterStop.running_count -ne 0) {
+                throw "A tunnel remains active after stopping the source slot."
+            }
+            $start = Invoke-Tunnel -Slot $target -TunnelAction "Start"
+            if (
+                $start.exit_code -ne 0 -or
+                $null -eq $start.payload -or
+                $start.payload.control_plane_poll_ready -ne $true
+            ) {
+                throw "The target tunnel failed readiness."
+            }
+            $afterStart = Get-TunnelSnapshot -RegistryBody $registryBody
+            if (
+                $afterStart.ready_count -ne 1 -or
+                $afterStart.slots[$TargetSlot].ready -ne $true -or
+                $afterStart.slots[$sourceSlot].process_running -ne $false
+            ) {
+                throw "The target tunnel did not become the sole active tunnel."
+            }
         }
         $configReceipt = Set-ExclusiveActivation `
             -RegistryBody $registryBody `
@@ -754,10 +828,11 @@ if ($Action -eq "Switch") {
             registry_sha256 = $registrySeal.sha256
             preparation_receipt_sha256 = $sealedPreparation.sha256
             config = $configReceipt
-            source_tunnel_stopped_first = $true
-            target_tunnel_ready_before_plugin_switch = $true
+            tunnel_required = $tunnelRequired
+            source_tunnel_stopped_first = if ($tunnelRequired) { $true } else { $null }
+            target_tunnel_ready_before_plugin_switch = if ($tunnelRequired) { $true } else { $null }
             enabled_plugin_count = 1
-            active_tunnel_count = 1
+            active_tunnel_count = if ($tunnelRequired) { 1 } else { 0 }
             restart_preparation_receipt = $restartPrepared.receipt_path
             restart_preparation_receipt_sha256 = $restartPrepared.receipt_sha256
             exact_task_uri = "codex://threads/$TaskId"
@@ -797,14 +872,16 @@ if ($Action -eq "Switch") {
             $configRestored = $true
         }
         catch { $configRestored = $false }
-        $targetDisabled = $false
-        try {
-            $targetStop = Invoke-Tunnel -Slot $target -TunnelAction "Stop"
-            $targetDisabled = $targetStop.exit_code -eq 0
+        $targetDisabled = -not $tunnelRequired
+        if ($tunnelRequired) {
+            try {
+                $targetStop = Invoke-Tunnel -Slot $target -TunnelAction "Stop"
+                $targetDisabled = $targetStop.exit_code -eq 0
+            }
+            catch { $targetDisabled = $false }
         }
-        catch { $targetDisabled = $false }
-        $sourceRestored = -not $sourceStopped
-        if ($sourceStopped) {
+        $sourceRestored = -not $tunnelRequired -or -not $sourceStopped
+        if ($tunnelRequired -and $sourceStopped) {
             try {
                 $sourceStart = Invoke-Tunnel -Slot $source -TunnelAction "Start"
                 $sourceRestored = (

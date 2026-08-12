@@ -10,7 +10,7 @@ from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
-CURRENT_VERSION = "2.0.0"
+CURRENT_VERSION = "2.1.0"
 V13_PATTERN = re.compile(r"(?i)(?:\bv1\.3(?:\.0)?\b|\b1\.3\.0\b)")
 
 HISTORICAL_OR_DEPENDENCY_FILES = {
@@ -79,7 +79,7 @@ def _tracked_text_files() -> list[Path]:
     ]
 
 
-def test_all_active_codex_product_version_surfaces_are_v200() -> None:
+def test_all_active_codex_product_version_surfaces_are_v210() -> None:
     plugin_manifest = json.loads(
         (
             ROOT
@@ -105,39 +105,39 @@ def test_all_active_codex_product_version_surfaces_are_v200() -> None:
     )
     assert ENGINE_VERSION == CURRENT_VERSION
     assert str(plugin_manifest["version"]).split("+", 1)[0] == CURRENT_VERSION
-    assert str(plugin_manifest["version"]).endswith("+codex.20260812035500")
+    assert str(plugin_manifest["version"]).endswith("+codex.20260812193232")
     assert adapter_manifest["version"] == CURRENT_VERSION
 
 
-def test_current_codex_docs_and_runtime_surfaces_name_v200() -> None:
+def test_current_codex_docs_and_runtime_surfaces_name_v210() -> None:
     required_fragments = {
         "README.md": [
-            "# Evidence Lane 2.0.0",
-            "The single active Codex product release is **2.0.0**",
-            "## v2.0.0 release and historical compatibility invariants",
+            "# Evidence Lane 2.1.0",
+            "The mutable stable Codex successor release is **2.1.0**",
+            "## v2.1.0 release and historical compatibility invariants",
         ],
         "docs/ARCHITECTURE.md": [
-            "Evidence Lane 2.0.0",
-            "built v2.0.0 candidates must pass both gates",
+            "Evidence Lane 2.1.0",
+            "built v2.1.0 candidates must pass both gates",
         ],
         "docs/VERSIONING.md": [
-            "The active Evidence Lane Codex product release is `2.0.0`",
+            "The mutable stable Evidence Lane Codex product release is `2.1.0`",
         ],
         "docs/WINDOWS_TUNNEL_PERSISTENCE.md": [
             "The live Codex registry and live cache contain exactly two Evidence Lane slots",
         ],
         "plugins/evidence-lane-plugin/.codex-plugin/plugin.json": [
-            "2.0.0 is the stable Codex release identity",
+            "2.1.0 is the mutable stable Codex successor release",
         ],
         "plugins/evidence-lane-plugin/scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1": [
-            "Pinned Evidence Lane 2.0.0 $SlotRole secure MCP tunnel",
+            "Pinned Evidence Lane $release $SlotRole secure MCP tunnel",
         ],
         "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py": [
-            "2.0.0 is the Codex package",
+            "2.1.0 is the Codex package",
         ],
         "plugins/evidence-lane-plugin/README.md": [
-            "# Evidence Lane plugin 2.0.0",
-            "Version 2.0.0 is the stable-build Codex slot",
+            "# Evidence Lane plugin 2.1.0",
+            "Version 2.1.0 is the mutable stable-build Codex successor slot",
         ],
     }
 

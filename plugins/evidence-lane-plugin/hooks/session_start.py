@@ -48,11 +48,14 @@ def _plugin_root() -> Path:
 
 
 def _store_root() -> Path:
-    return Path(
-        os.environ.get("EVIDENCE_LANE_DATA_ROOT")
-        or os.environ.get("PLUGIN_DATA")
-        or Path.home() / "EvidenceLanePV"
-    ).resolve()
+    source_root = _plugin_root() / "src"
+    if str(source_root) not in sys.path:
+        sys.path.insert(0, str(source_root))
+    from evidence_lane_plugin.codex_turn_control import (
+        resolve_codex_hook_store_root,
+    )
+
+    return resolve_codex_hook_store_root()
 
 
 def _load_turn_control():
@@ -210,7 +213,10 @@ def _plugin_version_context() -> dict[str, object]:
             and stable.get("google_drive_bundled") is False
             and stable.get("slot_role") == "stable-build"
             and stable.get("byte_frozen") is False
-            and fallback.get("release") == runtime_version
+            and stable.get("stable_selector_is_persistent") is True
+            and stable.get("stable_updates_reinstall_in_place") is True
+            and stable.get("build_identity_is_receipt_not_selector") is True
+            and fallback.get("release") == "2.0.0"
             and fallback.get("slot_role") == "fallback"
             and fallback.get("codex_marketplace_slot")
             == "evidence-lane-pv11-fallback"
@@ -220,6 +226,8 @@ def _plugin_version_context() -> dict[str, object]:
             and fallback.get("byte_frozen") is True
             and live_slots.get("exact_slot_count_after_pv11_acceptance") == 2
             and live_slots.get("max_enabled_plugin_count") == 1
+            and live_slots.get("exact_registered_plugin_count") == 2
+            and live_slots.get("stable_selector_growth_allowed") is False
             and live_slots.get("max_active_native_mcp_count") == 1
             and live_slots.get("max_active_tunnel_count") == 1
             and failover.get("registry_schema")
@@ -369,11 +377,6 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
                 "secret_read": False,
                 "cross_project_disclosure": False,
             }
-        version = str(_plugin_version_context().get("runtime_engine_version") or "")
-        match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", version)
-        if match is None:
-            raise ValueError("runtime engine version is not exact semver")
-        token = f"v{match.group(1)}{match.group(2)}{match.group(3)}"
         release_contract = json.loads(
             (_plugin_root() / "scripts" / "codex-release-channel.json").read_text(
                 encoding="utf-8"
@@ -399,6 +402,13 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
                 if fallback_marketplace and fallback_marketplace in plugin_path
                 else "stable-build"
             )
+        slot_contract_key = "stable" if slot_role == "stable-build" else "fallback"
+        slot_contract = dict(release_contract.get(slot_contract_key) or {})
+        version = str(slot_contract.get("release") or "")
+        match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", version)
+        if match is None:
+            raise ValueError("selected slot release is not exact semver")
+        token = f"v{match.group(1)}{match.group(2)}{match.group(3)}"
         expected_ephemeral = (
             str(route.get("vm_lifetime") or "") == "EPHEMERAL_VM"
         )

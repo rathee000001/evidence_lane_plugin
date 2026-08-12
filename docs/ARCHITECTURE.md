@@ -1,6 +1,6 @@
-# Evidence Lane 2.0.0 architecture
+# Evidence Lane 2.1.0 architecture
 
-Evidence Lane 2.0.0 is a Codex-native, local-first evidence lifecycle. The
+Evidence Lane 2.1.0 is a Codex-native, local-first evidence lifecycle. The
 architecture separates source truth, derived project memory, task/Delta state,
 candidate state, accepted truth, and host presentation so no one surface can
 silently promote another.
@@ -148,7 +148,7 @@ action records formula, loop, operators, commands, exit code, commit/tree, and
 receipt hash. Preview compilation and CodeQL are evidence gates, not lifecycle
 promotion.
 
-All built v2.0.0 candidates must pass both gates: clean-checkout CI for the
+All built v2.1.0 candidates must pass both gates: clean-checkout CI for the
 exact source commit and installed-host verification for the exact package.
 
 ## Installation and restart

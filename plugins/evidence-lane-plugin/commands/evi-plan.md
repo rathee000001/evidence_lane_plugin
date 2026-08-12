@@ -9,7 +9,9 @@ Evidence Lane lifecycle control.
 
 ## Preflight
 
-1. Read `pv_status` and preserve the active lifecycle position.
+1. After the lifecycle PREPARE receipt, the skill—not a hook—reads native
+   `pv_status`, `pv_task_backlog`, and one bounded prompt-relevant `pv_query`,
+   and preserves the active lifecycle position.
 2. Confirm the host is Codex.
 3. Confirm native Plan mode is active. If it is not, perform no Plan Lane write
    and return: `Type /pl, finish the plan, then run /evi-plan again.`
@@ -35,13 +37,24 @@ candidate, HIL decision, pointer movement, deployment, or Fuse occurs.
    - mark the physically final HIL task with
      `panel_role=PHYSICALLY_FINAL_HIL`; never insert a steer behind it;
    - omit `boundary` to use `BEFORE_NEXT_HIL`.
+4. After the Plan write or every steer, repeat `pv_status`, `pv_task_backlog`,
+   and the bounded native `pv_query`; validate the returned Plan Lane; then call
+   the host `update_plan` tool with the complete exact projection. Hooks must
+   never perform or instruct this behavior.
 
 ## Verification
 
 Require `goal_projection.canonical_authority=PLAN_LANE`, contiguous row numbers,
-at most one in-progress row, an exact projection hash, and
+exactly one in-progress row for an active executable Goal, an exact projection
+hash, and
 `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`. Verify the returned host contract
 states that MCP cannot change the native Goal or model/mode selectors.
+
+Every host label is exactly
+`Row <canonical row> / <task ID> — <exact description>`. Never place raw linked
+Delta JSON in a host step label. If the native route or host `update_plan` tool
+is unavailable, fail closed rather than treating a lifecycle hook receipt or
+internal SQLite lookup as a replacement.
 
 ## Summary
 

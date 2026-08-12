@@ -18,7 +18,7 @@ from build_release_candidate_rehearsal import (
     build_rehearsal,
 )
 
-VERSION = "2.0.0+codex.20260812020014"
+VERSION = "2.1.0+codex.20260812193232"
 COMMIT = "a" * 40
 TREE = "b" * 40
 
@@ -51,11 +51,26 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                 "name": "evidence-lane-plugin",
                 "version": VERSION,
                 "mcpServers": "./.mcp.json",
+                "interface": {
+                    "displayName": "Evidence Lane",
+                    "composerIcon": "./assets/evidence-lane-icon.png",
+                    "logo": "./assets/evidence-lane-icon.png",
+                },
             }
         )
         + "\n",
     )
-    _write(plugin, "assets/evidence-lane-icon.png", b"png")
+    _write(
+        plugin,
+        "assets/evidence-lane-icon.png",
+        (
+            ROOT
+            / "plugins"
+            / "evidence-lane-plugin"
+            / "assets"
+            / "evidence-lane-icon.png"
+        ).read_bytes(),
+    )
     _write(
         plugin,
         "chatgpt-app-connection.json",
@@ -107,8 +122,14 @@ def _plugin_fixture(tmp_path: Path) -> Path:
             {
                 "schema": "evidence-lane.codex-release-channel.v2",
                 "stable": {
-                    "release": "2.0.0",
+                    "release": "2.1.0",
                     "slot_role": "stable-build",
+                    "codex_marketplace_slot": "evidence-lane-github",
+                    "marketplace_display_name": "GitLane Stable 2.1",
+                    "install_source": "GIT_EXACT_COMMIT",
+                    "stable_selector_is_persistent": True,
+                    "stable_updates_reinstall_in_place": True,
+                    "build_identity_is_receipt_not_selector": True,
                     "native_server_identity": "evidence-lane",
                     "native_tool_count": 62,
                     "native_read_tool_count": 21,
@@ -135,6 +156,8 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "exact_slot_count_after_pv11_acceptance": 2,
                     "allowed_slots": ["stable-build", "fallback"],
                     "max_enabled_plugin_count": 1,
+                    "exact_registered_plugin_count": 2,
+                    "stable_selector_growth_allowed": False,
                     "max_active_native_mcp_count": 1,
                     "max_active_tunnel_count": 1,
                 },
@@ -146,8 +169,108 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "registry_schema": "evidence-lane.codex-two-slot-registry.v1",
                     "single_transient_error_switch_allowed": False,
                 },
+                "goal_recovery": {
+                    "script": (
+                        "scripts/codex_release/"
+                        "Manage-EvidenceLaneCodexGoalRecovery.ps1"
+                    ),
+                    "scope": (
+                        "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_"
+                        "ON_THIS_WINDOWS_USER"
+                    ),
+                    "trigger": "AT_LOGON_CURRENT_WINDOWS_USER",
+                    "exact_task_uuid_required": True,
+                    "exact_host_app_binding_required": True,
+                    "supported_host_app_ids": [
+                        "OpenAI.Codex_2p2nqsd0c76g0!App",
+                        "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
+                    ],
+                    "persisted_goal_read_route": (
+                        "CODEX_APP_SERVER_THREAD_READ_PLUS_THREAD_GOAL_GET"
+                    ),
+                    "thread_resume_writer_allowed": False,
+                    "synthetic_prompt_allowed": False,
+                    "turn_start_allowed": False,
+                    "state_travel_allowed": False,
+                    "candidate_hil_pointer_or_git_mutation_allowed": False,
+                    "requires_stable_enabled_fallback_disabled": True,
+                    "stable_selector_growth_allowed": False,
+                    "raw_goal_objective_stored": False,
+                },
+                "behavior_ownership": {
+                    "hooks": "LIFECYCLE_CAPTURE_AND_SEALED_EVENTS_ONLY",
+                    "skills": "NATIVE_PV_READS_AND_HOST_BEHAVIOR",
+                    "prompt_and_steer_native_reads": [
+                        "pv_status",
+                        "pv_task_backlog",
+                        "pv_query",
+                    ],
+                    "query_must_use_native_mcp_route": True,
+                    "internal_hook_lookup_satisfies_native_query": False,
+                    "host_plan_tool": "update_plan",
+                    "hook_may_embed_full_plan_rows": False,
+                    "hook_may_call_or_instruct_host_behavior": False,
+                    "skill_must_refresh_after_every_prompt_or_steer": True,
+                    "fail_closed_when_behavior_route_unavailable": True,
+                },
+                "stable_activation_gate": {
+                    "local_rehearsal_stage_only": True,
+                    "local_rehearsal_activation_allowed": False,
+                    "exact_commit_package_builder": (
+                        "scripts/codex_release/build_codex_exact_commit_package.py"
+                    ),
+                    "release_authority_joiner": (
+                        "scripts/codex_release/"
+                        "seal_codex_git_ci_release_authority.py"
+                    ),
+                    "external_release_receipt_sealer": (
+                        "scripts/codex_release/"
+                        "seal_external_release_receipts.py"
+                    ),
+                    "stable_update_helper": (
+                        "scripts/codex_release/"
+                        "Update-EvidenceLaneCodexStableAndResume.ps1"
+                    ),
+                    "stable_update_reopens_same_bound_host_app": True,
+                    "stable_update_rebinds_general_goal_recovery": True,
+                    "release_authority_schema": (
+                        "evidence-lane.codex-git-ci-vercel-release-authority.v2"
+                    ),
+                    "exact_clean_commit_required": True,
+                    "governed_native_remote_push_required": True,
+                    "successful_github_ci_required": True,
+                    "successful_vercel_branch_preview_required": True,
+                    "production_deployment_allowed": False,
+                    "exact_commit_git_marketplace_required": True,
+                    "git_marketplace_name": "evidence-lane-github",
+                    "git_marketplace_display_name": "GitLane Stable 2.1",
+                    "git_marketplace_source": "rathee000001/evidence_lane_plugin",
+                    "one_time_legacy_stable_selector_migration_allowed": True,
+                    "post_proof_obsolete_cleanup_required": True,
+                    "same_stable_selector_required_after_migration": True,
+                    "installed_runtime_prewarm_required": True,
+                    "runtime_ready_before_task_reopen_required": True,
+                    "fallback_activation_inferred": False,
+                },
+                "brand_identity": {
+                    "display_name": "Evidence Lane",
+                    "icon_path": "assets/evidence-lane-icon.png",
+                    "icon_sha256": (
+                        "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3D"
+                        "EF87B8A129C4FA"
+                    ),
+                    "resource_uri": (
+                        "ui://evidence-lane/governed-console-v3.html"
+                    ),
+                    "manifest_icon_fields": [
+                        "interface.composerIcon",
+                        "interface.logo",
+                    ],
+                    "required_at_stage": True,
+                    "required_at_runtime_prewarm": True,
+                },
                 "remote_git_policy": {
-                    "effective_release": "2.0.0",
+                    "effective_release": "2.1.0",
                     "per_push_confirmation_token_required": False,
                     "automatic_push_scope": (
                         "EXACT_SOLE_REGISTERED_NON_PROTECTED_TEST_BRANCH"
@@ -209,8 +332,33 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     )
     _write(
         plugin,
+        "scripts/codex_release/build_codex_exact_commit_package.py",
+        "# fixture exact package builder\n",
+    )
+    _write(
+        plugin,
+        "scripts/codex_release/seal_codex_git_ci_release_authority.py",
+        "# fixture release authority joiner\n",
+    )
+    _write(
+        plugin,
+        "scripts/codex_release/seal_external_release_receipts.py",
+        "# fixture external receipt sealer\n",
+    )
+    _write(
+        plugin,
+        "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1",
+        "# fixture stable updater\n",
+    )
+    _write(
+        plugin,
         "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
         "# fixture restart helper\n",
+    )
+    _write(
+        plugin,
+        "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1",
+        "# fixture Goal recovery helper\n",
     )
     _write(
         plugin,
@@ -227,7 +375,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     _write(plugin, "remote_adapter/app/manifest.ts", "export const manifest = {};\n")
     _write(plugin, "remote_adapter/package.json", '{"dependencies":{}}\n')
     _write(plugin, "remote_adapter/pnpm-lock.yaml", "lockfileVersion: '9.0'\n")
-    _write(plugin, "pyproject.toml", '[project]\nname="fixture"\nversion="2.0.0"\n')
+    _write(plugin, "pyproject.toml", '[project]\nname="fixture"\nversion="2.1.0"\n')
     _write(plugin, "requirements.lock.txt", "mcp==1.28.1\n")
     _write(plugin, "src/evidence_lane_plugin/__init__.py", "VERSION = 'fixture'\n")
     for index in range(15):
@@ -332,7 +480,17 @@ def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(tmp_path: Path)
             assert required in names
         assert "scripts/codex-release-channel.json" in names
         assert "scripts/codex_release/install_codex_stable.py" in names
+        assert "scripts/codex_release/build_codex_exact_commit_package.py" in names
+        assert "scripts/codex_release/seal_codex_git_ci_release_authority.py" in names
+        assert (
+            "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1"
+            in names
+        )
         assert "scripts/codex_release/Restart-EvidenceLaneCodex.ps1" in names
+        assert (
+            "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1"
+            in names
+        )
         assert "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1" in names
         assert "scripts/codex_release/accept_codex_stable.py" in names
         assert "chatgpt-app-connection.json" not in names
@@ -368,7 +526,7 @@ def test_rehearsal_rejects_meshy_dependency_or_mcp_binding(tmp_path: Path) -> No
     _write(
         plugin,
         "pyproject.toml",
-        '[project]\nname="fixture"\nversion="2.0.0"\ndependencies=["meshy-sdk==1.0.0"]\n',
+        '[project]\nname="fixture"\nversion="2.1.0"\ndependencies=["meshy-sdk==1.0.0"]\n',
     )
     with pytest.raises(PackageBoundaryError, match="Meshy"):
         _build(plugin, tmp_path / "output")

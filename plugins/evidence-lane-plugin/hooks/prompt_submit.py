@@ -3,18 +3,52 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Any
 
 
+def _normalize_user_prompt_dispatch(payload: dict[str, Any]) -> dict[str, Any]:
+    """Bind one pending visible user input to native ``UserPromptSubmit``.
+
+    Codex dispatches every pending ``TurnInput::UserInput`` through this hook,
+    including input submitted through ``turn/steer``.  Evidence Lane derives
+    prompt/steer/Goal kind from the sealed turn history and the native Goal
+    context marker; caller-provided classification flags are never authority.
+    """
+
+    normalized = dict(payload)
+    supplied_source = str(normalized.get("source") or "").strip().lower()
+    ignored_input_kind_claim = bool(
+        normalized.get("is_goal") is not None
+        or normalized.get("is_steer") is not None
+        or supplied_source
+    )
+    normalized.pop("source", None)
+    normalized.pop("is_goal", None)
+    normalized.pop("is_steer", None)
+    normalized["evidence_lane_capture_dispatch"] = {
+        "surface": "PENDING_VISIBLE_USER_INPUT",
+        "host_route": "inspect_pending_input(TurnInput::UserInput)",
+        "native_hook_event": "UserPromptSubmit",
+        "host_dispatch_supported": True,
+        "pre_reasoning_dispatch_proven": True,
+        "input_kind_derived_from_sealed_state": True,
+        "caller_input_kind_authority": False,
+        "caller_input_kind_claim_present": ignored_input_kind_claim,
+    }
+    return normalized
+
+
 def _store_root() -> Path:
-    return Path(
-        os.environ.get("EVIDENCE_LANE_DATA_ROOT")
-        or os.environ.get("PLUGIN_DATA")
-        or Path.home() / "EvidenceLanePV"
-    ).resolve()
+    source_root = Path(__file__).resolve().parents[1] / "src"
+    if str(source_root) not in sys.path:
+        sys.path.insert(0, str(source_root))
+    from evidence_lane_plugin.codex_turn_control import (
+        resolve_codex_hook_store_root,
+    )
+
+    return resolve_codex_hook_store_root()
 
 
 def _load_control():
@@ -45,6 +79,7 @@ def _load_control():
 
 
 def _record(payload: dict[str, Any]) -> tuple[dict[str, Any], bool]:
+    payload = _normalize_user_prompt_dispatch(payload)
     root = _store_root()
     (
         TurnControlError,

@@ -82,7 +82,7 @@ function Get-TunnelStatus {
     }
     return [ordered]@{
         status = if ($ready) { "PASS" } else { "BLOCKED" }
-        release = "2.0.0"
+        release = if ($null -ne $marker) { [string]$marker.release } else { $null }
         slot_role = if ($null -ne $marker) { [string]$marker.slot_role } else { $null }
         byte_frozen = if ($null -ne $marker) { [bool]$marker.byte_frozen } else { $false }
         task_name = $TaskName
@@ -134,6 +134,7 @@ if ($Action -eq "Status") {
 }
 
 if ($Action -eq "Stop") {
+    $priorStatus = Get-TunnelStatus
     Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
     $process = Get-VerifiedTunnelProcess
     if ($null -ne $process) {
@@ -145,7 +146,7 @@ if ($Action -eq "Stop") {
     Remove-Item -LiteralPath $healthUrlFile -Force -ErrorAction SilentlyContinue
     [ordered]@{
         status = "STOPPED_SAVED"
-        release = "2.0.0"
+        release = $priorStatus.release
         task_name = $TaskName
         runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
         reusable_without_reinstall = $true

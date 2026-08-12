@@ -438,11 +438,73 @@ class EvidenceLaneService:
     def session_flash_status(self) -> dict[str, Any]:
         return {
             **self.flash_authority.status(),
-            "runtime_activation": self.runtime_activation.status(),
+            "runtime_activation": self.runtime_activation.status_with_host_proof(),
         }
 
     def runtime_activation_status(self) -> dict[str, Any]:
-        return {"status": "PASS", **self.runtime_activation.status()}
+        projection = self.runtime_activation.status_with_host_proof()
+        configured_active = projection.get("state") == "ACTIVE"
+        hooks_runnable = projection.get("host_hooks_runnable") is True
+        capture_complete = (
+            projection.get("required_pre_reasoning_capture_complete") is True
+        )
+        indexed_by_session: list[dict[str, Any]] = []
+        all_prompt_records = PromptIndex(self.store.root)._all_records()
+        for active in projection.get("active_sessions", []):
+            if not isinstance(active, dict):
+                continue
+            project_id = str(active.get("project_id") or "")
+            evidence_session_id = str(active.get("session_id") or "")
+            host_session_ids = {
+                str(value)
+                for value in active.get("host_session_ids", [])
+                if str(value)
+            }
+            session_records = [
+                row
+                for row in all_prompt_records
+                if row.get("project_id") == project_id
+                and row.get("evidence_session_id") == evidence_session_id
+                and row.get("host_session_id") in host_session_ids
+            ]
+            indexed_by_session.append(
+                {
+                    "project_id": project_id,
+                    "evidence_session_id": evidence_session_id,
+                    "bound_host_session_count": len(host_session_ids),
+                    "indexed_visible_input_count": len(session_records),
+                    "latest_prompt_index": (
+                        max(
+                            int(row.get("prompt_index") or 0)
+                            for row in session_records
+                        )
+                        if session_records
+                        else None
+                    ),
+                    "per_input_invocation_proven": bool(session_records),
+                }
+            )
+        active_without_capture = [
+            row
+            for row in indexed_by_session
+            if int(row["indexed_visible_input_count"]) == 0
+        ]
+        return {
+            "status": (
+                "PASS"
+                if not configured_active or (hooks_runnable and capture_complete)
+                else "FAIL"
+            ),
+            "per_session_capture_evidence": indexed_by_session,
+            "active_session_capture_gap_count": len(active_without_capture),
+            "active_session_capture_gap_code": (
+                "ACTIVE_RUNTIME_WITHOUT_SEALED_PROMPT_INDEX_RECORD"
+                if active_without_capture
+                else None
+            ),
+            "runtime_flags_are_invocation_proof": False,
+            **projection,
+        }
 
     def transition_law(self) -> dict[str, Any]:
         return {"status": "PASS", **transition_catalog()}

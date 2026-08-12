@@ -126,6 +126,24 @@ FROZEN_NO_GIT_ADDITIONS = {
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/goal_usage.py",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_stdio_compat.py",
     "plugins/evidence-lane-plugin/scripts/build_release_candidate_rehearsal.py",
+    "plugins/evidence-lane-plugin/scripts/codex_release/build_codex_exact_commit_package.py",
+    "plugins/evidence-lane-plugin/scripts/codex_release/seal_codex_git_ci_release_authority.py",
+    "plugins/evidence-lane-plugin/hooks/post_tool_use.py",
+    "plugins/evidence-lane-plugin/release-channels.json",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_components/studio-artifact-lab.tsx",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-artifact-catalog.ts",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-route-context.ts",
+    "plugins/evidence-lane-plugin/remote_adapter/scripts/studio-gold-parity-evaluation.json",
+    "plugins/evidence-lane-plugin/scripts/codex-release-channel.json",
+    "plugins/evidence-lane-plugin/scripts/codex_release/accept_codex_stable.py",
+    "plugins/evidence-lane-plugin/scripts/codex_release/install_codex_stable.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/codex_turn_control.py",
+}
+FROZEN_NO_GIT_REMOVALS = {
+    "plugins/evidence-lane-plugin/.app.json",
+    "plugins/evidence-lane-plugin/chatgpt-app-submission.json",
+    "plugins/evidence-lane-plugin/remote_adapter/api/index.py",
+    "plugins/evidence-lane-plugin/remote_adapter/requirements.txt",
 }
 FROZEN_NO_GIT_FIXED_ADDITIONS = {
     "docs/DEPENDENCY_LICENSE_AUDIT.md",
@@ -282,13 +300,17 @@ def _frozen_history_inputs(
     expected_added = {
         path for path in FROZEN_NO_GIT_ADDITIONS if (repo / path).is_file()
     }
-    if indexed_plugin_paths | expected_added != live_plugin_paths:
-        missing = sorted(indexed_plugin_paths - live_plugin_paths)
-        added = sorted(live_plugin_paths - indexed_plugin_paths - expected_added)
+    declared_removed = {
+        path for path in FROZEN_NO_GIT_REMOVALS if not (repo / path).is_file()
+    }
+    missing = sorted(indexed_plugin_paths - live_plugin_paths - declared_removed)
+    added = sorted(live_plugin_paths - indexed_plugin_paths - expected_added)
+    if missing or added:
         raise RuntimeError(
             "frozen no-Git source manifest mismatch; "
             f"missing={missing[:20]!r}; added={added[:20]!r}"
         )
+    tracked_paths.difference_update(declared_removed)
     tracked_paths.update(expected_added)
     tracked_paths.update(
         path for path in FROZEN_NO_GIT_FIXED_ADDITIONS if (repo / path).is_file()
@@ -500,7 +522,7 @@ def _build_artifacts(
 
     browser_artifact = {
         "schema": SCHEMA,
-        "release": "1.5.0",
+        "release": "2.1.0",
         "history_through_sha": history_sha,
         "history_through_date": history_date,
         "history_mode": history_mode,
@@ -585,7 +607,7 @@ def _build_artifacts(
     )
     metadata = {
         "schema": SCHEMA,
-        "release": "1.5.0",
+        "release": "2.1.0",
         "history_through_sha": history_sha,
         "history_through_date": history_date,
         "history_mode": history_mode,
@@ -657,7 +679,7 @@ def _build_artifacts(
     browser_sha = _sha256_bytes(browser_bytes)
     manifest = {
         "schema": SCHEMA,
-        "release": "1.5.0",
+        "release": "2.1.0",
         "history_through_sha": history_sha,
         "history_mode": history_mode,
         "history_commit_count": sum(1 for row in source_rows if row["kind"] == "git_history"),

@@ -69,7 +69,7 @@ def test_v2_codex_package_has_no_active_chatgpt_host_surface() -> None:
     skill_files = sorted((PLUGIN / "skills").glob("*/SKILL.md"))
 
     assert manifest["interface"]["displayName"] == "Evidence Lane"
-    assert manifest["version"].startswith("2.0.0+")
+    assert manifest["version"].startswith("2.1.0+")
     assert manifest["skills"] == "./skills/"
     assert manifest["mcpServers"] == "./.mcp.json"
     assert "apps" not in manifest

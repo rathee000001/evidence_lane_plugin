@@ -44,7 +44,8 @@ Do not deploy any service that may still use the compromised key.
 
 ## Codex, headless API, tunnel, and remote Git boundaries
 
-The active 2.0.0 Codex release uses the package-local native MCP route. Normal
+The mutable stable 2.1.0 Codex release uses the package-local native MCP route.
+The disabled accepted PV11 fallback remains exact 2.0.0. Normal
 Codex attachment does not depend on the public website, a Vercel adapter, a
 ChatGPT plugin, or a remote OAuth service. Vercel hosts public documentation
 only and receives no project truth, lifecycle authority, candidate state, or

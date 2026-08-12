@@ -377,15 +377,22 @@ def test_mid_turn_steers_append_in_order_and_deduplicate(
         context = payload["hookSpecificOutput"]["additionalContext"]
         return json.loads(context.removeprefix("EVIDENCE_LANE_PROMPT_ENTRY="))
 
+    initial = submit("start the governed turn")
     first = submit("keep the same HIL")
     second = submit("add optional Git evidence")
     repeated = submit("add optional Git evidence")
+    assert initial["state"] == "INDEXED"
+    assert initial["input_kind"] == "user_prompt"
     assert first["state"] == "INDEXED"
     assert second["state"] == "INDEXED"
     assert repeated["state"] == "INDEXED_IDEMPOTENT_REUSE"
-    assert [first["prompt_index"], second["prompt_index"]] == [1, 2]
+    assert [
+        initial["prompt_index"],
+        first["prompt_index"],
+        second["prompt_index"],
+    ] == [1, 2, 3]
     records = list((service.store.root / "prompt-index").rglob("*.json"))
-    assert len(records) == 2
+    assert len(records) == 3
     lineage_path = (
         service.store.project_root("book-faires") / "lineage" / f"{session_id}.jsonl"
     )
@@ -396,6 +403,6 @@ def test_mid_turn_steers_append_in_order_and_deduplicate(
     ]
     steers = [row for row in events if row["event_type"] == "turn.visible_user_steer"]
     assert len(steers) == 2
-    assert [row["visible_payload"]["prompt_index"] for row in steers] == [1, 2]
+    assert [row["visible_payload"]["prompt_index"] for row in steers] == [2, 3]
     assert all(row["actor_type"] == "user" for row in steers)
     assert all(row["private_reasoning_stored"] is False for row in steers)

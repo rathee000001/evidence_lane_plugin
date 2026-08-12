@@ -5,6 +5,11 @@ description: Evidence Lane Mode sidecar for ordered known intersections and expl
 
 # Evidence Lane Mode
 
+Before any tool call, read and apply
+`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+ownership contract. This skill owns behavior; hooks provide lifecycle receipts
+only.
+
 Call `mode_classify` without changing the lifecycle position. Preserve the
 user's mode order, always include Mode and Chat Lineage, and map known modes to
 the locked ENV15 namespace. An unknown mode is never guessed: require a short

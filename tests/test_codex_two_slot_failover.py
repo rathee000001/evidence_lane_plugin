@@ -18,10 +18,10 @@ OPERATOR = (
     / "codex_release"
     / "Switch-EvidenceLaneCodexSlot.ps1"
 )
-TASK_ID = "019fedc7-cb86-7b40-94ce-1784a999f12b"
+TASK_ID = "019ff25a-30f6-7382-993d-12c5979d696d"
 PROJECT_ID = "test-codex-evidence-lane-plugin"
 SESSION_ID = "session_01kz48pm60mt58v5fyzqq6yq1g"
-HOST_SESSION_ID = "codex-evidence-lane-plugin-statetravel-task-1-20260810"
+HOST_SESSION_ID = "codex-evidence-lane-plugin-statetravel-task-2-20260812"
 
 
 def _sha(path: Path) -> str:
@@ -45,6 +45,8 @@ def _fixture(
     *,
     active_slot: str = "stable-build",
     fail_fallback_start: bool = False,
+    tunnel_required: bool = True,
+    include_disabled_history: bool = False,
 ) -> dict[str, Path]:
     codex_home = tmp_path / "codex"
     data_root = tmp_path / "EvidenceLanePV"
@@ -66,6 +68,18 @@ def _fixture(
                 "",
             ]
         )
+    if include_disabled_history:
+        historical = "evidence-lane-plugin@evidence-lane-v130-fallback"
+        config_lines.extend(
+            [
+                f'[plugins."{historical}"]',
+                "enabled = false",
+                "",
+                f'[plugins."{historical}".mcp_servers."evidence-lane"]',
+                "enabled = false",
+                "",
+            ]
+        )
     config = codex_home / "config.toml"
     config.parent.mkdir(parents=True, exist_ok=True)
     config.write_text("\n".join(config_lines), encoding="utf-8")
@@ -74,7 +88,7 @@ def _fixture(
     accepted_package_sha = "B" * 64
     for name in ("stable-build", "fallback"):
         version = (
-            "2.0.0+codex.stable-build"
+            "2.1.0+codex.stable-build"
             if name == "stable-build"
             else "2.0.0+codex.accepted-pv11"
         )
@@ -187,7 +201,8 @@ def _fixture(
             "materialized_initial_slot": "stable-build",
             "exact_live_slot_count": 2,
             "max_enabled_plugin_count": 1,
-            "max_active_tunnel_count": 1,
+            "max_active_tunnel_count": 1 if tunnel_required else 0,
+            "tunnel_required": tunnel_required,
             "secret_material_present": False,
             "slots": slots,
         },
@@ -262,6 +277,13 @@ def _base_command(fixture: dict[str, Path], *, action: str, target: str) -> list
     ]
 
 
+def test_operator_uses_the_sealed_registry_task_instead_of_a_source_constant() -> None:
+    text = OPERATOR.read_text(encoding="utf-8")
+    assert "ExpectedTaskId" not in text
+    assert "019fedc7-cb86-7b40-94ce-1784a999f12b" not in text
+    assert "$body.task_id -ne $TaskId" in text
+
+
 def test_verify_proves_exactly_one_matching_plugin_and_tunnel(tmp_path: Path) -> None:
     fixture = _fixture(tmp_path)
     completed = subprocess.run(
@@ -302,6 +324,108 @@ def test_verify_derives_fallback_from_live_config_and_tunnel_not_registry(
     assert payload["active_tunnel_count"] == 1
 
 
+def test_local_durable_verify_and_switch_require_no_tunnel(tmp_path: Path) -> None:
+    fixture = _fixture(
+        tmp_path,
+        tunnel_required=False,
+        include_disabled_history=True,
+    )
+    shutil.rmtree(fixture["data_root"] / "tunnels")
+
+    verified = subprocess.run(
+        _base_command(fixture, action="Verify", target="fallback"),
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert verified.returncode == 0, verified.stdout + verified.stderr
+    verification = json.loads(verified.stdout)
+    assert verification["active_slot"] == "stable-build"
+    assert verification["active_slot_source"] == (
+        "LIVE_CODEX_CONFIG_LOCAL_DURABLE_NO_TUNNEL"
+    )
+    assert verification["tunnel_required"] is False
+    assert verification["active_tunnel_count"] == 0
+    assert verification["disabled_historical_slot_count"] == 1
+
+    prepare = _base_command(fixture, action="Prepare", target="fallback")
+    prepare.extend(
+        [
+            "-Reason",
+            "EXPLICIT_OPERATOR_FAILOVER",
+            "-TargetProcessId",
+            str(os.getpid()),
+            "-ConfirmExplicitOperator",
+        ]
+    )
+    prepared = subprocess.run(
+        prepare,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert prepared.returncode == 0, prepared.stdout + prepared.stderr
+    preparation = json.loads(prepared.stdout)
+    preparation_body = json.loads(
+        Path(preparation["receipt_path"]).read_text(encoding="utf-8")
+    )
+    assert preparation_body["tunnel_required"] is False
+    assert preparation_body["stop_source_before_start_target"] is False
+    assert preparation_body["max_active_tunnels"] == 0
+
+    switch = _base_command(fixture, action="Switch", target="fallback")
+    switch.extend(
+        [
+            "-Reason",
+            "EXPLICIT_OPERATOR_FAILOVER",
+            "-TargetProcessId",
+            str(os.getpid()),
+            "-PreparationReceipt",
+            preparation["receipt_path"],
+            "-PreparationReceiptSha256",
+            preparation["receipt_sha256"],
+            "-ConfirmExplicitOperator",
+            "-ConfirmSwitch",
+        ]
+    )
+    switched = subprocess.run(
+        switch,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert switched.returncode == 0, switched.stdout + switched.stderr
+    transition = json.loads(
+        (
+            fixture["data_root"]
+            / "receipts"
+            / "CODEX_TWO_SLOT_SWITCH_TRANSITION.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert transition["tunnel_required"] is False
+    assert transition["source_tunnel_stopped_first"] is None
+    assert transition["target_tunnel_ready_before_plugin_switch"] is None
+    assert transition["active_tunnel_count"] == 0
+
+    post_switch = subprocess.run(
+        _base_command(fixture, action="Verify", target="stable-build"),
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert post_switch.returncode == 0, post_switch.stdout + post_switch.stderr
+    assert json.loads(post_switch.stdout)["active_slot"] == "fallback"
+    config_after = fixture["config"].read_text(encoding="utf-8")
+    assert (
+        '[plugins."evidence-lane-plugin@evidence-lane-v130-fallback"]\n'
+        "enabled = false"
+    ) in config_after
+
+
 def test_prepare_rejects_one_transient_failure_without_writes(tmp_path: Path) -> None:
     fixture = _fixture(tmp_path)
     decision = fixture["data_root"] / "transient-health.json"
@@ -311,7 +435,7 @@ def test_prepare_rejects_one_transient_failure_without_writes(tmp_path: Path) ->
             "schema": "evidence-lane.stable-health-failure.v1",
             "status": "DETERMINISTIC_STABLE_FAILURE",
             "plugin_selector": "evidence-lane-plugin@evidence-lane-v200-github",
-            "plugin_version": "2.0.0+codex.stable-build",
+            "plugin_version": "2.1.0+codex.stable-build",
             "consecutive_failures": 1,
             "sample_window_seconds": 5,
             "distinct_probe_types": 1,
@@ -462,6 +586,39 @@ def test_switch_stops_source_before_starting_fallback_and_is_replay_verifiable(
     assert transition["active_slot_authority"] == (
         "LIVE_CODEX_CONFIG_AND_TUNNEL_MATCH"
     )
+
+
+def test_verify_accepts_supported_config_api_serialized_mcp_tables(
+    tmp_path: Path,
+) -> None:
+    fixture = _fixture(tmp_path, tunnel_required=False)
+    shutil.rmtree(fixture["data_root"] / "tunnels")
+    config = fixture["config"]
+    text = config.read_text(encoding="utf-8")
+    for selector in (
+        "evidence-lane-plugin@evidence-lane-v200-github",
+        "evidence-lane-plugin@evidence-lane-pv11-fallback",
+    ):
+        quoted = f'[plugins."{selector}".mcp_servers."evidence-lane"]'
+        serialized = (
+            f'[plugins."{selector}".mcp_servers]\n\n'
+            f'[plugins."{selector}".mcp_servers.evidence-lane]'
+        )
+        text = text.replace(quoted, serialized)
+    config.write_text(text, encoding="utf-8")
+
+    completed = subprocess.run(
+        _base_command(fixture, action="Verify", target="fallback"),
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    result = json.loads(completed.stdout)
+    assert result["status"] == "PASS"
+    assert result["active_slot"] == "stable-build"
 
 
 def test_failed_fallback_start_rolls_back_stable_config_and_tunnel(

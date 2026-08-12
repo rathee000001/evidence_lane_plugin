@@ -2,9 +2,11 @@
   "schema": "evidence-lane.release-channels.v2",
   "product": "Evidence Lane",
   "stable": {
-    "release": "2.0.0",
+    "release": "2.1.0",
     "slot_role": "stable-build",
-    "codex_marketplace_slot": "evidence-lane-v200-github",
+    "codex_marketplace_slot": "evidence-lane-github",
+    "marketplace_display_name": "GitLane Stable 2.1",
+    "install_source": "GIT_EXACT_COMMIT",
     "enabled": true,
     "byte_frozen": false,
     "native_server_identity": "evidence-lane",
@@ -18,7 +20,13 @@
     "google_drive_bundled": false,
     "tunnel_release_must_match": true,
     "tunnel_channel": "stable-build",
-    "independent_runtime_task_profile_and_tunnel_identity": true
+    "independent_runtime_task_profile_and_tunnel_identity": true,
+    "stable_update_reopens_same_bound_host_app": true,
+    "stable_update_rebinds_general_goal_recovery": true,
+    "supported_codex_host_app_ids": [
+      "OpenAI.Codex_2p2nqsd0c76g0!App",
+      "OpenAI.CodexBeta_2p2nqsd0c76g0!App"
+    ]
   },
   "fallback": {
     "release": "2.0.0",
@@ -43,6 +51,8 @@
     "max_active_native_mcp_count": 1,
     "max_active_tunnel_count": 1,
     "inactive_slot_remains_installed": true,
+    "exact_registered_plugin_count": 2,
+    "stable_selector_growth_allowed": false,
     "obsolete_live_slots_removed_through_supported_codex_cli": true,
     "immutable_history_and_evidence_preserved": true
   },

@@ -3,18 +3,20 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Any
 
 
 def _store_root() -> Path:
-    return Path(
-        os.environ.get("EVIDENCE_LANE_DATA_ROOT")
-        or os.environ.get("PLUGIN_DATA")
-        or Path.home() / "EvidenceLanePV"
-    ).resolve()
+    source_root = Path(__file__).resolve().parents[1] / "src"
+    if str(source_root) not in sys.path:
+        sys.path.insert(0, str(source_root))
+    from evidence_lane_plugin.codex_turn_control import (
+        resolve_codex_hook_store_root,
+    )
+
+    return resolve_codex_hook_store_root()
 
 
 def _load_control():

@@ -489,7 +489,7 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "data-release-version={releaseIdentity.version}" in footer
     assert "data-release-commit={releaseIdentity.commit" in footer
     assert "Release <strong>{releaseIdentity.version}</strong>" in footer
-    assert 'releaseVersion = "2.0.0"' in release_identity
+    assert 'releaseVersion = "2.1.0"' in release_identity
     assert "VERCEL_GIT_COMMIT_SHA" in release_identity
     assert "NEXT_PUBLIC_EVIDENCE_LANE_RELEASE_SHA" in release_identity
     assert "GITHUB_MARKDOWN_TO_SITE_FOOTERS_DELTA_TABLE_VERCEL_AND_EXISTING_DEVPOST" in release_identity

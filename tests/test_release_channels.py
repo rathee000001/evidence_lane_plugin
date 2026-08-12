@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 
 
-def test_v200_declares_exact_stable_build_and_pv11_fallback_slots() -> None:
+def test_v210_declares_exact_stable_build_and_v200_pv11_fallback_slots() -> None:
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
@@ -16,12 +16,17 @@ def test_v200_declares_exact_stable_build_and_pv11_fallback_slots() -> None:
     live_slots = contract["live_slot_policy"]
 
     assert stable == {
-        "release": "2.0.0",
+        "release": "2.1.0",
         "slot_role": "stable-build",
-        "codex_marketplace_slot": "evidence-lane-v200-github",
+        "codex_marketplace_slot": "evidence-lane-github",
+        "marketplace_display_name": "GitLane Stable 2.1",
+        "install_source": "GIT_EXACT_COMMIT",
         "enabled": True,
         "byte_frozen": False,
         "updates_require_verified_unique_build_identity": True,
+        "stable_selector_is_persistent": True,
+        "stable_updates_reinstall_in_place": True,
+        "build_identity_is_receipt_not_selector": True,
         "native_server_identity": "evidence-lane",
         "native_tool_count": 62,
         "native_read_tool_count": 21,
@@ -52,6 +57,8 @@ def test_v200_declares_exact_stable_build_and_pv11_fallback_slots() -> None:
     assert live_slots["exact_slot_count_after_pv11_acceptance"] == 2
     assert live_slots["allowed_slots"] == ["stable-build", "fallback"]
     assert live_slots["max_enabled_plugin_count"] == 1
+    assert live_slots["exact_registered_plugin_count"] == 2
+    assert live_slots["stable_selector_growth_allowed"] is False
     assert live_slots["max_active_native_mcp_count"] == 1
     assert live_slots["max_active_tunnel_count"] == 1
     assert live_slots["inactive_slot_remains_installed"] is True
@@ -112,7 +119,7 @@ def test_v200_remote_git_policy_supersedes_only_historical_flash_sentence() -> N
     policy = contract["remote_git_policy"]
 
     assert policy == {
-        "effective_release": "2.0.0",
+        "effective_release": "2.1.0",
         "v150_flash_confirmation_sentence": (
             "HISTORICAL_HASH_LOCKED_COMPATIBILITY_BYTE_NOT_EFFECTIVE_V2_POLICY"
         ),
@@ -172,3 +179,147 @@ def test_two_slot_operator_is_bounded_and_rejects_transient_auto_failover() -> N
     assert 'Invoke-Tunnel -Slot $target -TunnelAction "Start"' in operator
     assert "Restart-EvidenceLaneCodex.ps1" in operator
     assert "Rolled back to $sourceSlot" in operator
+
+
+def test_goal_recovery_is_one_general_read_only_logon_manager() -> None:
+    contract = json.loads(
+        (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
+    )
+    policy = contract["goal_recovery"]
+
+    assert policy == {
+        "script": "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1",
+        "scope": (
+            "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_"
+            "ON_THIS_WINDOWS_USER"
+        ),
+        "trigger": "AT_LOGON_CURRENT_WINDOWS_USER",
+        "exact_task_uuid_required": True,
+        "exact_host_app_binding_required": True,
+        "supported_host_app_ids": [
+            "OpenAI.Codex_2p2nqsd0c76g0!App",
+            "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
+        ],
+        "persisted_goal_read_route": (
+            "CODEX_APP_SERVER_THREAD_READ_PLUS_THREAD_GOAL_GET"
+        ),
+        "thread_resume_writer_allowed": False,
+        "synthetic_prompt_allowed": False,
+        "turn_start_allowed": False,
+        "state_travel_allowed": False,
+        "candidate_hil_pointer_or_git_mutation_allowed": False,
+        "requires_stable_enabled_fallback_disabled": True,
+        "stable_selector_growth_allowed": False,
+        "raw_goal_objective_stored": False,
+    }
+
+
+def test_codex_behavior_belongs_to_skills_and_hooks_remain_lifecycle_only() -> None:
+    contract = json.loads(
+        (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
+    )
+    ownership = contract["behavior_ownership"]
+
+    assert ownership == {
+        "hooks": "LIFECYCLE_CAPTURE_AND_SEALED_EVENTS_ONLY",
+        "skills": "NATIVE_PV_READS_AND_HOST_BEHAVIOR",
+        "prompt_and_steer_native_reads": [
+            "pv_status",
+            "pv_task_backlog",
+            "pv_query",
+        ],
+        "query_must_use_native_mcp_route": True,
+        "internal_hook_lookup_satisfies_native_query": False,
+        "host_plan_tool": "update_plan",
+        "hook_may_embed_full_plan_rows": False,
+        "hook_may_call_or_instruct_host_behavior": False,
+        "skill_must_refresh_after_every_prompt_or_steer": True,
+        "fail_closed_when_behavior_route_unavailable": True,
+    }
+
+    behavior_sources = [
+        PLUGIN / "skills" / "evidence-lane-code-lifecycle" / "SKILL.md",
+        PLUGIN / "skills" / "evi" / "SKILL.md",
+        PLUGIN / "skills" / "evi-state-travel" / "SKILL.md",
+        PLUGIN / "commands" / "evi-plan.md",
+    ]
+    for source in behavior_sources:
+        text = source.read_text("utf-8")
+        assert "pv_status" in text
+        assert "pv_task_backlog" in text
+        assert "pv_query" in text
+        assert "update_plan" in text
+
+    explicit_behavior_skills = {
+        "evi",
+        "evi-state-travel",
+        "evidence-lane-code-lifecycle",
+    }
+    for skill in sorted((PLUGIN / "skills").glob("*/SKILL.md")):
+        if skill.parent.name in explicit_behavior_skills:
+            continue
+        assert "../evidence-lane-code-lifecycle/SKILL.md" in skill.read_text("utf-8")
+
+    hook_text = "\n".join(
+        (PLUGIN / "hooks" / name).read_text("utf-8")
+        for name in ("prompt_submit.py", "session_start.py", "post_tool_use.py")
+    )
+    assert "EVIDENCE_LANE_HOST_STEP_TASK_LIST_PROJECTION=" not in hook_text
+    assert "EVIDENCE_LANE_HOST_PLAN_ACTION=" not in hook_text
+    assert "CALL_UPDATE_PLAN_WITH_THE_EXACT_ROWS_BEFORE_ANY_OTHER_ACTION" not in hook_text
+    assert "update_plan" not in hook_text
+
+
+def test_stable_activation_requires_git_ci_authority_and_runtime_prewarm() -> None:
+    contract = json.loads(
+        (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
+    )
+
+    assert contract["stable_activation_gate"] == {
+        "local_rehearsal_stage_only": True,
+        "local_rehearsal_activation_allowed": False,
+        "exact_commit_package_builder": (
+            "scripts/codex_release/build_codex_exact_commit_package.py"
+        ),
+        "release_authority_joiner": (
+            "scripts/codex_release/seal_codex_git_ci_release_authority.py"
+        ),
+        "external_release_receipt_sealer": (
+            "scripts/codex_release/seal_external_release_receipts.py"
+        ),
+        "stable_update_helper": (
+            "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1"
+        ),
+        "stable_update_reopens_same_bound_host_app": True,
+        "stable_update_rebinds_general_goal_recovery": True,
+        "release_authority_schema": (
+            "evidence-lane.codex-git-ci-vercel-release-authority.v2"
+        ),
+        "exact_clean_commit_required": True,
+        "governed_native_remote_push_required": True,
+        "successful_github_ci_required": True,
+        "successful_vercel_branch_preview_required": True,
+        "production_deployment_allowed": False,
+        "exact_commit_git_marketplace_required": True,
+        "git_marketplace_name": "evidence-lane-github",
+        "git_marketplace_display_name": "GitLane Stable 2.1",
+        "git_marketplace_source": "rathee000001/evidence_lane_plugin",
+        "one_time_legacy_stable_selector_migration_allowed": True,
+        "post_proof_obsolete_cleanup_required": True,
+        "same_stable_selector_required_after_migration": True,
+        "installed_runtime_prewarm_required": True,
+        "runtime_ready_before_task_reopen_required": True,
+        "fallback_activation_inferred": False,
+    }
+    assert contract["brand_identity"] == {
+        "display_name": "Evidence Lane",
+        "icon_path": "assets/evidence-lane-icon.png",
+        "icon_sha256": (
+            "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3D"
+            "EF87B8A129C4FA"
+        ),
+        "resource_uri": "ui://evidence-lane/governed-console-v3.html",
+        "manifest_icon_fields": ["interface.composerIcon", "interface.logo"],
+        "required_at_stage": True,
+        "required_at_runtime_prewarm": True,
+    }

@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 ENGINE_NAME = "evidence-lane-universal-pv-engine"
-ENGINE_VERSION = "2.0.0"
+ENGINE_VERSION = "2.1.0"
 SCHEMA_VERSION = "3.0.0"
-SUPPORTED_SCHEMA_VERSIONS = frozenset({"2.0.0", SCHEMA_VERSION})
+SUPPORTED_SCHEMA_VERSIONS = frozenset({"2.0.0", "2.1.0", SCHEMA_VERSION})
 TOOL_RESULT_SCHEMA = "evidence-lane.pv.tool-result.v1"
 LIFECYCLE_RESULT_SCHEMA = "evidence-lane.pv.lifecycle-result.v1"
 PV_MANIFEST_SCHEMA = "evidence-lane.universal-pv.manifest.v2"

@@ -24,6 +24,7 @@ BOUNDARY = "NON_LIFECYCLE_LOCAL_PACKAGE_REHEARSAL"
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
 EXPECTED_SKILL_COUNT = 15
 EXPECTED_LANE_COUNT = 18
+FALLBACK_RELEASE = "2.0.0"
 EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     "routing_axes_independent": True,
     "account_tier_affects_routing": False,
@@ -47,6 +48,67 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
         "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
         "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
     },
+}
+EXPECTED_BEHAVIOR_OWNERSHIP = {
+    "hooks": "LIFECYCLE_CAPTURE_AND_SEALED_EVENTS_ONLY",
+    "skills": "NATIVE_PV_READS_AND_HOST_BEHAVIOR",
+    "prompt_and_steer_native_reads": [
+        "pv_status",
+        "pv_task_backlog",
+        "pv_query",
+    ],
+    "query_must_use_native_mcp_route": True,
+    "internal_hook_lookup_satisfies_native_query": False,
+    "host_plan_tool": "update_plan",
+    "hook_may_embed_full_plan_rows": False,
+    "hook_may_call_or_instruct_host_behavior": False,
+    "skill_must_refresh_after_every_prompt_or_steer": True,
+    "fail_closed_when_behavior_route_unavailable": True,
+}
+EXPECTED_STABLE_ACTIVATION_GATE = {
+    "local_rehearsal_stage_only": True,
+    "local_rehearsal_activation_allowed": False,
+    "exact_commit_package_builder": (
+        "scripts/codex_release/build_codex_exact_commit_package.py"
+    ),
+    "release_authority_joiner": (
+        "scripts/codex_release/seal_codex_git_ci_release_authority.py"
+    ),
+    "external_release_receipt_sealer": (
+        "scripts/codex_release/seal_external_release_receipts.py"
+    ),
+    "stable_update_helper": (
+        "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1"
+    ),
+    "stable_update_reopens_same_bound_host_app": True,
+    "stable_update_rebinds_general_goal_recovery": True,
+    "release_authority_schema": (
+        "evidence-lane.codex-git-ci-vercel-release-authority.v2"
+    ),
+    "exact_clean_commit_required": True,
+    "governed_native_remote_push_required": True,
+    "successful_github_ci_required": True,
+    "successful_vercel_branch_preview_required": True,
+    "production_deployment_allowed": False,
+    "exact_commit_git_marketplace_required": True,
+    "git_marketplace_name": "evidence-lane-github",
+    "git_marketplace_display_name": "GitLane Stable 2.1",
+    "git_marketplace_source": "rathee000001/evidence_lane_plugin",
+    "one_time_legacy_stable_selector_migration_allowed": True,
+    "post_proof_obsolete_cleanup_required": True,
+    "same_stable_selector_required_after_migration": True,
+    "installed_runtime_prewarm_required": True,
+    "runtime_ready_before_task_reopen_required": True,
+    "fallback_activation_inferred": False,
+}
+EXPECTED_BRAND_IDENTITY = {
+    "display_name": "Evidence Lane",
+    "icon_path": "assets/evidence-lane-icon.png",
+    "icon_sha256": "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA",
+    "resource_uri": "ui://evidence-lane/governed-console-v3.html",
+    "manifest_icon_fields": ["interface.composerIcon", "interface.logo"],
+    "required_at_stage": True,
+    "required_at_runtime_prewarm": True,
 }
 
 EXCLUDED_DIRECTORY_NAMES = frozenset(
@@ -105,9 +167,14 @@ REQUIRED_MEMBERS = frozenset(
         "requirements.lock.txt",
         "scripts/codex-release-channel.json",
         "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
+        "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1",
         "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1",
+        "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1",
         "scripts/codex_release/accept_codex_stable.py",
+        "scripts/codex_release/build_codex_exact_commit_package.py",
         "scripts/codex_release/install_codex_stable.py",
+        "scripts/codex_release/seal_codex_git_ci_release_authority.py",
+        "scripts/codex_release/seal_external_release_receipts.py",
     }
 )
 SEPARATE_HOST_RELATIVE_FILES = frozenset({"release-channels.json"})
@@ -391,12 +458,23 @@ def build_rehearsal(
     fallback = release_channels.get("fallback", {})
     live_slots = release_channels.get("live_slot_policy", {})
     failover = release_channels.get("failover_operator", {})
+    goal_recovery = release_channels.get("goal_recovery", {})
+    behavior_ownership = release_channels.get("behavior_ownership", {})
+    stable_activation_gate = release_channels.get("stable_activation_gate", {})
+    brand_identity = release_channels.get("brand_identity", {})
+    brand_icon = plugin_root / str(brand_identity.get("icon_path") or "")
     promotion = release_channels.get("promotion_gate", {})
     remote_git_policy = release_channels.get("remote_git_policy", {})
     if (
         release_channels.get("schema") != "evidence-lane.codex-release-channel.v2"
         or stable.get("release") != expected_version.split("+", 1)[0]
         or stable.get("slot_role") != "stable-build"
+        or stable.get("codex_marketplace_slot") != "evidence-lane-github"
+        or stable.get("marketplace_display_name") != "GitLane Stable 2.1"
+        or stable.get("install_source") != "GIT_EXACT_COMMIT"
+        or stable.get("stable_selector_is_persistent") is not True
+        or stable.get("stable_updates_reinstall_in_place") is not True
+        or stable.get("build_identity_is_receipt_not_selector") is not True
         or stable.get("native_server_identity") != "evidence-lane"
         or (
             stable.get("native_tool_count"),
@@ -409,7 +487,7 @@ def build_rehearsal(
         or stable.get("generated_namespace_allowed") is not False
         or stable.get("direct_stdio_fallback_allowed") is not False
         or stable.get("google_drive_bundled") is not False
-        or fallback.get("release") != expected_version.split("+", 1)[0]
+        or fallback.get("release") != FALLBACK_RELEASE
         or fallback.get("slot_role") != "fallback"
         or fallback.get("enabled") is not False
         or fallback.get("materialization_gate")
@@ -421,6 +499,8 @@ def build_rehearsal(
         or live_slots.get("exact_slot_count_after_pv11_acceptance") != 2
         or live_slots.get("allowed_slots") != ["stable-build", "fallback"]
         or live_slots.get("max_enabled_plugin_count") != 1
+        or live_slots.get("exact_registered_plugin_count") != 2
+        or live_slots.get("stable_selector_growth_allowed") is not False
         or live_slots.get("max_active_native_mcp_count") != 1
         or live_slots.get("max_active_tunnel_count") != 1
         or failover.get("script")
@@ -428,6 +508,40 @@ def build_rehearsal(
         or failover.get("registry_schema")
         != "evidence-lane.codex-two-slot-registry.v1"
         or failover.get("single_transient_error_switch_allowed") is not False
+        or goal_recovery.get("script")
+        != "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1"
+        or goal_recovery.get("scope")
+        != "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_ON_THIS_WINDOWS_USER"
+        or goal_recovery.get("trigger") != "AT_LOGON_CURRENT_WINDOWS_USER"
+        or goal_recovery.get("exact_task_uuid_required") is not True
+        or goal_recovery.get("exact_host_app_binding_required") is not True
+        or goal_recovery.get("supported_host_app_ids")
+        != [
+            "OpenAI.Codex_2p2nqsd0c76g0!App",
+            "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
+        ]
+        or goal_recovery.get("persisted_goal_read_route")
+        != "CODEX_APP_SERVER_THREAD_READ_PLUS_THREAD_GOAL_GET"
+        or goal_recovery.get("thread_resume_writer_allowed") is not False
+        or goal_recovery.get("synthetic_prompt_allowed") is not False
+        or goal_recovery.get("turn_start_allowed") is not False
+        or goal_recovery.get("state_travel_allowed") is not False
+        or goal_recovery.get("candidate_hil_pointer_or_git_mutation_allowed")
+        is not False
+        or goal_recovery.get("requires_stable_enabled_fallback_disabled") is not True
+        or goal_recovery.get("stable_selector_growth_allowed") is not False
+        or goal_recovery.get("raw_goal_objective_stored") is not False
+        or behavior_ownership != EXPECTED_BEHAVIOR_OWNERSHIP
+        or stable_activation_gate != EXPECTED_STABLE_ACTIVATION_GATE
+        or brand_identity != EXPECTED_BRAND_IDENTITY
+        or plugin_manifest.get("interface", {}).get("displayName")
+        != brand_identity.get("display_name")
+        or plugin_manifest.get("interface", {}).get("composerIcon")
+        != "./assets/evidence-lane-icon.png"
+        or plugin_manifest.get("interface", {}).get("logo")
+        != "./assets/evidence-lane-icon.png"
+        or not brand_icon.is_file()
+        or _sha256_file(brand_icon) != brand_identity.get("icon_sha256")
         or promotion.get("explicit_six_way_hil_required") is not True
         or promotion.get("fail_closed_on_version_mismatch") is not True
         or release_channels.get("host_storage_tunnel_matrix")

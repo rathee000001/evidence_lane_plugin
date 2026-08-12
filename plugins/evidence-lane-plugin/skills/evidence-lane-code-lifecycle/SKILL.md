@@ -7,6 +7,39 @@ description: Govern one universal Evidence Lane project across user-timed fresh-
 
 Use one linear state machine. Runtime context is never accepted evidence.
 
+## Codex hook and skill ownership
+
+- Hooks own lifecycle only: secret-redacted visible-input capture, Entry,
+  PREPARE, COMMIT, registered lifecycle events, and bounded sealed status
+  receipts. A hook must not call native PV tools, call a host behavior tool,
+  embed the complete Plan Lane, or instruct the host to call `update_plan`.
+- Every hook binds the same user-owned durable authority: an explicit
+  `EVIDENCE_LANE_DATA_ROOT`, otherwise `~/EvidenceLanePV`. Codex-injected
+  `PLUGIN_DATA` is selector-scoped installation storage and must never become
+  project, session, PV, PromptIndex, ChatLineage, Plan, or Delta authority. Do
+  not create or consult a shadow authority under a stable or fallback slot.
+- Skills own governed behavior. For every visible user prompt, Goal
+  continuation, correction, or mid-Goal steer, wait for the lifecycle PREPARE
+  receipt and then, before substantive reasoning, source inspection, mutation,
+  tests, Git, or a lifecycle write, call the installed native Evidence Lane
+  route in this order: `pv_status`, `pv_task_backlog`, and one bounded
+  `pv_query` against accepted authority. Select an allowlisted query that is
+  relevant to the prompt; use a bounded `receipts` query for lifecycle-only
+  prompts rather than inventing a semantic match. The `pv_query` must be a real
+  native MCP call visible in Codex Sources. Internal hook SQLite lookup is not
+  equivalent proof.
+- When a canonical Plan Lane exists, validate
+  `canonical_authority=PLAN_LANE`, contiguous rows, exactly one active row, and
+  `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`; then the skill calls the host
+  `update_plan` tool with every exact row. Each label is only
+  `Row <canonical row> / <task ID> — <exact description>`; linked Delta JSON
+  remains in native Evidence Lane authority.
+- After `pv_plan_steer_delta`, repeat `pv_status`, `pv_task_backlog`, the bounded
+  native `pv_query`, and the complete `update_plan` projection before resuming
+  work. If the installed native route or host plan tool is unavailable, fail
+  closed and report the missing behavior route; a hook receipt never substitutes
+  for it.
+
 ## Non-negotiable gates
 
 - `/evi-state-travel` may run only after an explicit user request or genuine

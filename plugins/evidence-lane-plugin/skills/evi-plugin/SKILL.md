@@ -5,6 +5,11 @@ description: Govern persistent connector and AI-toolchain sidecars without chang
 
 # Evidence Lane persistent plugin sidecar
 
+Before any tool call, read and apply
+`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+ownership contract. This skill owns behavior; hooks provide lifecycle receipts
+only.
+
 This is an administrative sidecar, not a seventh primary Evidence Lane
 control. It never changes the current lifecycle position, accepts a candidate,
 moves a pointer, or invokes State Travel.

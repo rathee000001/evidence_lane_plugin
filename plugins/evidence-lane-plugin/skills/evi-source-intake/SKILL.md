@@ -5,6 +5,11 @@ description: Evidence Lane generalized ordered source intake with optional Git h
 
 # Evidence Lane Source Intake
 
+Before any tool call, read and apply
+`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+ownership contract. This skill owns behavior; hooks provide lifecycle receipts
+only.
+
 Call `source_intake_classify` for the user's ordered sources. Auto-detect Git,
 local code, SQLite/PV brains, Chat Lineage, discussion, analysis, plan, Mode,
 docs, data/Excel, PPT, PDF/OCR, images/OCR, artifacts, custom, research,

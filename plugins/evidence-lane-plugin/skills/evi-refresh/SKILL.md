@@ -5,6 +5,11 @@ description: Evidence Lane changed-section incremental Refresh that seals an una
 
 # Evidence Lane Refresh
 
+Before any tool call, read and apply
+`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+ownership contract. This skill owns behavior; hooks provide lifecycle receipts
+only.
+
 Require the host-specific source confirmation, then call `pv_refresh` or
 `task_complete_and_refresh`. Reuse content-addressed chunks and the single Git
 history index, rebuild only changed sections/lanes, preserve tombstones and

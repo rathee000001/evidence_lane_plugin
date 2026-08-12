@@ -5,6 +5,11 @@ description: Add one bounded host-specific connector or AI toolchain grant with 
 
 # Add Additional Plugin
 
+Before any tool call, read and apply
+`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+ownership contract. This skill owns behavior; hooks provide lifecycle receipts
+only.
+
 1. Inspect `connector_plugin_catalog`.
 2. Require a lowercase plugin ID, connector/toolchain kind, one visible
    purpose/reason, role, typed role-field schema, the CODEX host profile,

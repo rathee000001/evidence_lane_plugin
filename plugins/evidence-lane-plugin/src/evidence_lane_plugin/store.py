@@ -1567,6 +1567,822 @@ class ProjectStore:
             self._persist_backlog(project_id, backlog)
             return task
 
+    def advance_verified_state_travel_task(
+        self,
+        project_id: str,
+        *,
+        completed_backlog_task_id: str,
+        replacement_backlog_task_id: str,
+        session_id: str,
+        prior_runtime_task_id: str,
+        replacement_contract: dict[str, Any],
+        completion_receipt: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Atomically close one verified handoff row and activate its successor.
+
+        This is deliberately narrower than normal task completion.  It accepts no
+        implementation evidence and creates no candidate: the completion authority
+        is the already-consumed, server-verified State Travel receipt.  Keeping both
+        Delta events under the project lock prevents a transient zero-active or
+        two-active Plan projection.
+        """
+
+        receipt_sha256 = str(completion_receipt.get("receipt_sha256") or "").strip()
+        receipt_body = {
+            key: value
+            for key, value in completion_receipt.items()
+            if key != "receipt_sha256"
+        }
+        require(
+            completion_receipt.get("schema")
+            == "evidence-lane.verified-state-travel-task-advance.v1"
+            and len(receipt_sha256) == 64
+            and receipt_sha256 == sha256_bytes(canonical_json_bytes(receipt_body))
+            and completion_receipt.get("candidate_created") is False
+            and completion_receipt.get("pending_hil") is False
+            and completion_receipt.get("pointer_moved") is False
+            and completion_receipt.get("hil_inferred") is False,
+            "STATE_TRAVEL_TASK_ADVANCE_RECEIPT_INVALID",
+            "The verified handoff completion receipt is missing, malformed, or not non-promoting.",
+            status="MISMATCH",
+        )
+        handoff_id = str(completion_receipt.get("handoff_id") or "").strip()
+        require(
+            bool(handoff_id)
+            and completion_receipt.get("project_id") == project_id
+            and completion_receipt.get("session_id") == session_id
+            and completion_receipt.get("completed_backlog_task_id")
+            == completed_backlog_task_id
+            and completion_receipt.get("replacement_backlog_task_id")
+            == replacement_backlog_task_id,
+            "STATE_TRAVEL_TASK_ADVANCE_RECEIPT_BINDING_MISMATCH",
+            "The verified handoff completion receipt does not bind this exact Plan transition.",
+            status="MISMATCH",
+        )
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            tasks_by_id = {
+                str(task["task_id"]): task for task in backlog.get("tasks", [])
+            }
+            completed = tasks_by_id.get(completed_backlog_task_id)
+            replacement = tasks_by_id.get(replacement_backlog_task_id)
+            require(
+                isinstance(completed, dict) and isinstance(replacement, dict),
+                "STATE_TRAVEL_TASK_ADVANCE_PLAN_TASK_MISMATCH",
+                "The handoff row or its requested successor is absent from the Plan Lane.",
+                status="MISMATCH",
+                completed_backlog_task_id=completed_backlog_task_id,
+                replacement_backlog_task_id=replacement_backlog_task_id,
+            )
+            completed = cast(dict[str, Any], completed)
+            replacement = cast(dict[str, Any], replacement)
+            exact_fields = (
+                "task_class",
+                "requested_outcome",
+                "permitted_paths",
+                "permitted_tools",
+                "acceptance_checks",
+                "stop_condition",
+            )
+            mismatches = {
+                field: {
+                    "planned": replacement.get(field),
+                    "classified": replacement_contract.get(field),
+                }
+                for field in exact_fields
+                if replacement.get(field) != replacement_contract.get(field)
+            }
+            require(
+                not mismatches,
+                "STATE_TRAVEL_TASK_ADVANCE_CONTRACT_MISMATCH",
+                "The successor classification must exactly match its queued Plan contract.",
+                status="MISMATCH",
+                mismatches=mismatches,
+            )
+            replacement_runtime_task_id = str(
+                replacement_contract.get("task_id") or ""
+            ).strip()
+            require(
+                bool(replacement_runtime_task_id),
+                "STATE_TRAVEL_TASK_ADVANCE_RUNTIME_TASK_ID_REQUIRED",
+                "The successor classification has no runtime task identity.",
+                status="BLOCKED",
+            )
+
+            active = [
+                task for task in backlog["tasks"] if task.get("status") == "ACTIVE"
+            ]
+            first_queued = next(
+                (
+                    task
+                    for task in sorted(
+                        backlog["tasks"], key=lambda item: int(item["sequence"])
+                    )
+                    if task.get("status") == "QUEUED"
+                ),
+                None,
+            )
+            before = (
+                len(active) == 1
+                and active[0].get("task_id") == completed_backlog_task_id
+                and completed.get("status") == "ACTIVE"
+                and completed.get("active_session_id") == session_id
+                and completed.get("runtime_task_id") == prior_runtime_task_id
+                and replacement.get("status") == "QUEUED"
+                and isinstance(first_queued, dict)
+                and first_queued.get("task_id") == replacement_backlog_task_id
+            )
+            persisted_replacement_runtime_task_id = str(
+                replacement.get("runtime_task_id") or ""
+            ).strip()
+            after = (
+                len(active) == 1
+                and active[0].get("task_id") == replacement_backlog_task_id
+                and completed.get("status") == "DONE"
+                and completed.get("state_travel_completion_receipt_sha256")
+                == receipt_sha256
+                and completed.get("state_travel_completion_receipt")
+                == completion_receipt
+                and replacement.get("status") == "ACTIVE"
+                and replacement.get("active_session_id") == session_id
+                and bool(persisted_replacement_runtime_task_id)
+            )
+            require(
+                before or after,
+                "STATE_TRAVEL_TASK_ADVANCE_PLAN_STATE_MISMATCH",
+                "The Plan is neither at the exact verified handoff boundary nor its idempotent successor state.",
+                status="MISMATCH",
+                active_task_ids=[task.get("task_id") for task in active],
+                completed_status=completed.get("status"),
+                replacement_status=replacement.get("status"),
+                first_queued_task_id=(
+                    first_queued.get("task_id")
+                    if isinstance(first_queued, dict)
+                    else None
+                ),
+            )
+            if after:
+                replacement_runtime_task_id = persisted_replacement_runtime_task_id
+
+            completed_event_id = (
+                f"{completed_backlog_task_id}__{handoff_id}__state_travel_done"
+            )
+            replacement_event_id = (
+                f"{replacement_backlog_task_id}__{session_id}__"
+                f"{replacement_runtime_task_id}__state_travel_active"
+            )
+            completion_event: dict[str, Any] | None
+            activation_event: dict[str, Any] | None
+            if before:
+                now = utc_now()
+                completion_details = {
+                    "handoff_id": handoff_id,
+                    "session_id": session_id,
+                    "completion_receipt_sha256": receipt_sha256,
+                    "candidate_created": False,
+                    "pending_hil": False,
+                    "pointer_moved": False,
+                    "hil_inferred": False,
+                }
+                completion_event = append_delta_event(
+                    backlog,
+                    task_id=completed_backlog_task_id,
+                    event_type="STATE_TRAVEL_HANDOFF_COMPLETED",
+                    to_status="DONE",
+                    actor=session_id,
+                    event_id=completed_event_id,
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details=completion_details,
+                )
+                completed.pop("active_session_id", None)
+                completed.pop("runtime_task_id", None)
+                completed["state_travel_completion_receipt_sha256"] = (
+                    receipt_sha256
+                )
+                completed["state_travel_completion_receipt"] = completion_receipt
+                completed.setdefault("history", []).append(
+                    {
+                        "event": "STATE_TRAVEL_HANDOFF_COMPLETED",
+                        "handoff_id": handoff_id,
+                        "session_id": session_id,
+                        "completion_receipt_sha256": receipt_sha256,
+                        "recorded_at": now,
+                    }
+                )
+                activation_event = append_delta_event(
+                    backlog,
+                    task_id=replacement_backlog_task_id,
+                    event_type="ACTIVATED_AFTER_STATE_TRAVEL",
+                    to_status="ACTIVE",
+                    actor=session_id,
+                    event_id=replacement_event_id,
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "session_id": session_id,
+                        "runtime_task_id": replacement_runtime_task_id,
+                        "completed_backlog_task_id": completed_backlog_task_id,
+                        "handoff_id": handoff_id,
+                        "completion_receipt_sha256": receipt_sha256,
+                    },
+                )
+                replacement["active_session_id"] = session_id
+                replacement["runtime_task_id"] = replacement_runtime_task_id
+                replacement.setdefault("history", []).append(
+                    {
+                        "event": "CLAIMED_AFTER_STATE_TRAVEL",
+                        "session_id": session_id,
+                        "runtime_task_id": replacement_runtime_task_id,
+                        "completed_backlog_task_id": completed_backlog_task_id,
+                        "handoff_id": handoff_id,
+                        "recorded_at": now,
+                    }
+                )
+                self._persist_backlog(project_id, backlog)
+            else:
+                completion_event = next(
+                    (
+                        event
+                        for event in backlog["events"]
+                        if event.get("event_id") == completed_event_id
+                    ),
+                    None,
+                )
+                activation_event = next(
+                    (
+                        event
+                        for event in backlog["events"]
+                        if event.get("event_id") == replacement_event_id
+                    ),
+                    None,
+                )
+                require(
+                    isinstance(completion_event, dict)
+                    and isinstance(activation_event, dict),
+                    "STATE_TRAVEL_TASK_ADVANCE_EVENT_LEDGER_MISMATCH",
+                    "The idempotent Plan state is missing its exact completion or activation event.",
+                    status="MISMATCH",
+                )
+
+            return {
+                "status": "PASS",
+                "idempotent_reuse": after,
+                "completed_task": completed,
+                "active_task": replacement,
+                "completion_event": completion_event,
+                "activation_event": activation_event,
+                "completion_receipt": completion_receipt,
+            }
+
+    def advance_verified_fallback_prewarmer_task(
+        self,
+        project_id: str,
+        *,
+        completed_backlog_task_id: str,
+        replacement_backlog_task_id: str,
+        session_id: str,
+        prior_runtime_task_id: str,
+        replacement_contract: dict[str, Any],
+        completion_receipt: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Close the exact disabled-PV11 fallback row without building a PV."""
+
+        receipt_sha256 = str(completion_receipt.get("receipt_sha256") or "").strip()
+        receipt_body = {
+            key: value
+            for key, value in completion_receipt.items()
+            if key != "receipt_sha256"
+        }
+        fallback_proof = completion_receipt.get("fallback_prewarmer_proof")
+        require(
+            completion_receipt.get("schema")
+            == "evidence-lane.verified-fallback-prewarm-task-advance.v1"
+            and len(receipt_sha256) == 64
+            and receipt_sha256 == sha256_bytes(canonical_json_bytes(receipt_body))
+            and completed_backlog_task_id
+            == "EL-CODEX-PV11-FALLBACK-SLOT-INSTALL-PREWARM-DELTA-149"
+            and isinstance(fallback_proof, dict)
+            and fallback_proof.get("schema")
+            == "evidence-lane.codex-fallback-prewarm-proof.v1"
+            and fallback_proof.get("status") == "PASS"
+            and completion_receipt.get("candidate_created") is False
+            and completion_receipt.get("pending_hil") is False
+            and completion_receipt.get("pointer_moved") is False
+            and completion_receipt.get("hil_inferred") is False,
+            "FALLBACK_PREWARM_TASK_ADVANCE_RECEIPT_INVALID",
+            "The fallback prewarm completion receipt is malformed or promoting.",
+            status="MISMATCH",
+        )
+        require(
+            completion_receipt.get("project_id") == project_id
+            and completion_receipt.get("session_id") == session_id
+            and completion_receipt.get("completed_backlog_task_id")
+            == completed_backlog_task_id
+            and completion_receipt.get("replacement_backlog_task_id")
+            == replacement_backlog_task_id
+            and completion_receipt.get("prior_runtime_task_id")
+            == prior_runtime_task_id,
+            "FALLBACK_PREWARM_TASK_ADVANCE_RECEIPT_BINDING_MISMATCH",
+            "The fallback prewarm receipt does not bind this exact Plan transition.",
+            status="MISMATCH",
+        )
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            tasks_by_id = {
+                str(task["task_id"]): task for task in backlog.get("tasks", [])
+            }
+            completed = tasks_by_id.get(completed_backlog_task_id)
+            replacement = tasks_by_id.get(replacement_backlog_task_id)
+            require(
+                isinstance(completed, dict) and isinstance(replacement, dict),
+                "FALLBACK_PREWARM_TASK_ADVANCE_PLAN_TASK_MISMATCH",
+                "The fallback row or its requested successor is absent from the Plan Lane.",
+                status="MISMATCH",
+            )
+            completed = cast(dict[str, Any], completed)
+            replacement = cast(dict[str, Any], replacement)
+            exact_fields = (
+                "task_class",
+                "requested_outcome",
+                "permitted_paths",
+                "permitted_tools",
+                "acceptance_checks",
+                "stop_condition",
+            )
+            mismatches = {
+                field: {
+                    "planned": replacement.get(field),
+                    "classified": replacement_contract.get(field),
+                }
+                for field in exact_fields
+                if replacement.get(field) != replacement_contract.get(field)
+            }
+            require(
+                not mismatches,
+                "FALLBACK_PREWARM_TASK_ADVANCE_CONTRACT_MISMATCH",
+                "The successor classification must exactly match its queued Plan contract.",
+                status="MISMATCH",
+                mismatches=mismatches,
+            )
+            replacement_runtime_task_id = str(
+                replacement_contract.get("task_id") or ""
+            ).strip()
+            require(
+                bool(replacement_runtime_task_id),
+                "FALLBACK_PREWARM_TASK_ADVANCE_RUNTIME_TASK_ID_REQUIRED",
+                "The successor classification has no runtime task identity.",
+                status="BLOCKED",
+            )
+            active = [
+                task for task in backlog["tasks"] if task.get("status") == "ACTIVE"
+            ]
+            first_queued = next(
+                (
+                    task
+                    for task in sorted(
+                        backlog["tasks"], key=lambda item: int(item["sequence"])
+                    )
+                    if task.get("status") == "QUEUED"
+                ),
+                None,
+            )
+            before = (
+                len(active) == 1
+                and active[0].get("task_id") == completed_backlog_task_id
+                and completed.get("status") == "ACTIVE"
+                and completed.get("active_session_id") == session_id
+                and completed.get("runtime_task_id") == prior_runtime_task_id
+                and replacement.get("status") == "QUEUED"
+                and isinstance(first_queued, dict)
+                and first_queued.get("task_id") == replacement_backlog_task_id
+            )
+            persisted_replacement_runtime_task_id = str(
+                replacement.get("runtime_task_id") or ""
+            ).strip()
+            after = (
+                len(active) == 1
+                and active[0].get("task_id") == replacement_backlog_task_id
+                and completed.get("status") == "DONE"
+                and completed.get("fallback_prewarmer_completion_receipt_sha256")
+                == receipt_sha256
+                and completed.get("fallback_prewarmer_completion_receipt")
+                == completion_receipt
+                and replacement.get("status") == "ACTIVE"
+                and replacement.get("active_session_id") == session_id
+                and bool(persisted_replacement_runtime_task_id)
+            )
+            require(
+                before or after,
+                "FALLBACK_PREWARM_TASK_ADVANCE_PLAN_STATE_MISMATCH",
+                "The Plan is neither at the fallback row nor its idempotent successor state.",
+                status="MISMATCH",
+                active_task_ids=[task.get("task_id") for task in active],
+                completed_status=completed.get("status"),
+                replacement_status=replacement.get("status"),
+                first_queued_task_id=(
+                    first_queued.get("task_id")
+                    if isinstance(first_queued, dict)
+                    else None
+                ),
+            )
+            if after:
+                replacement_runtime_task_id = persisted_replacement_runtime_task_id
+
+            proof_sha256 = str(
+                cast(dict[str, Any], fallback_proof).get("receipt_sha256") or ""
+            )
+            completion_event_id = (
+                f"{completed_backlog_task_id}__{proof_sha256[:24].lower()}__done"
+            )
+            activation_event_id = (
+                f"{replacement_backlog_task_id}__{session_id}__"
+                f"{replacement_runtime_task_id}__fallback_active"
+            )
+            completion_event: dict[str, Any] | None
+            activation_event: dict[str, Any] | None
+            if before:
+                now = utc_now()
+                completion_event = append_delta_event(
+                    backlog,
+                    task_id=completed_backlog_task_id,
+                    event_type="FALLBACK_PREWARM_VERIFIED",
+                    to_status="DONE",
+                    actor=session_id,
+                    event_id=completion_event_id,
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "session_id": session_id,
+                        "completion_receipt_sha256": receipt_sha256,
+                        "fallback_prewarmer_proof_sha256": proof_sha256,
+                        "fallback_activated": False,
+                        "restart_invoked": False,
+                        "candidate_created": False,
+                        "pending_hil": False,
+                        "pointer_moved": False,
+                        "hil_inferred": False,
+                    },
+                )
+                completed.pop("active_session_id", None)
+                completed.pop("runtime_task_id", None)
+                completed["fallback_prewarmer_completion_receipt_sha256"] = (
+                    receipt_sha256
+                )
+                completed["fallback_prewarmer_completion_receipt"] = (
+                    completion_receipt
+                )
+                completed.setdefault("history", []).append(
+                    {
+                        "event": "FALLBACK_PREWARM_VERIFIED",
+                        "session_id": session_id,
+                        "completion_receipt_sha256": receipt_sha256,
+                        "fallback_prewarmer_proof_sha256": proof_sha256,
+                        "recorded_at": now,
+                    }
+                )
+                activation_event = append_delta_event(
+                    backlog,
+                    task_id=replacement_backlog_task_id,
+                    event_type="ACTIVATED_AFTER_FALLBACK_PREWARM",
+                    to_status="ACTIVE",
+                    actor=session_id,
+                    event_id=activation_event_id,
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "session_id": session_id,
+                        "runtime_task_id": replacement_runtime_task_id,
+                        "completed_backlog_task_id": completed_backlog_task_id,
+                        "completion_receipt_sha256": receipt_sha256,
+                    },
+                )
+                replacement["active_session_id"] = session_id
+                replacement["runtime_task_id"] = replacement_runtime_task_id
+                replacement.setdefault("history", []).append(
+                    {
+                        "event": "CLAIMED_AFTER_FALLBACK_PREWARM",
+                        "session_id": session_id,
+                        "runtime_task_id": replacement_runtime_task_id,
+                        "completed_backlog_task_id": completed_backlog_task_id,
+                        "recorded_at": now,
+                    }
+                )
+                self._persist_backlog(project_id, backlog)
+            else:
+                completion_event = next(
+                    (
+                        event
+                        for event in backlog["events"]
+                        if event.get("event_id") == completion_event_id
+                    ),
+                    None,
+                )
+                activation_event = next(
+                    (
+                        event
+                        for event in backlog["events"]
+                        if event.get("event_id") == activation_event_id
+                    ),
+                    None,
+                )
+                require(
+                    isinstance(completion_event, dict)
+                    and isinstance(activation_event, dict),
+                    "FALLBACK_PREWARM_TASK_ADVANCE_EVENT_LEDGER_MISMATCH",
+                    "The idempotent fallback state is missing its completion or activation event.",
+                    status="MISMATCH",
+                )
+
+            return {
+                "status": "PASS",
+                "idempotent_reuse": after,
+                "completed_task": completed,
+                "active_task": replacement,
+                "completion_event": completion_event,
+                "activation_event": activation_event,
+                "completion_receipt": completion_receipt,
+            }
+
+    def advance_verified_task_checkpoint(
+        self,
+        project_id: str,
+        *,
+        completed_backlog_task_id: str,
+        replacement_backlog_task_id: str,
+        session_id: str,
+        prior_runtime_task_id: str,
+        replacement_contract: dict[str, Any],
+        completion_receipt: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Atomically advance one independently verified, candidate-free row."""
+
+        receipt_sha256 = str(completion_receipt.get("receipt_sha256") or "").strip()
+        receipt_body = {
+            key: value
+            for key, value in completion_receipt.items()
+            if key != "receipt_sha256"
+        }
+        proof = completion_receipt.get("verification_proof")
+        proof_body = (
+            {key: value for key, value in proof.items() if key != "receipt_sha256"}
+            if isinstance(proof, dict)
+            else {}
+        )
+        require(
+            completion_receipt.get("schema")
+            == "evidence-lane.verified-task-checkpoint-advance.v1"
+            and len(receipt_sha256) == 64
+            and receipt_sha256 == sha256_bytes(canonical_json_bytes(receipt_body))
+            and isinstance(proof, dict)
+            and proof.get("status") == "PASS"
+            and len(str(proof.get("receipt_sha256") or "")) == 64
+            and proof.get("receipt_sha256")
+            == sha256_bytes(canonical_json_bytes(proof_body))
+            and bool(str(completion_receipt.get("verification_kind") or "").strip())
+            and completion_receipt.get("candidate_created") is False
+            and completion_receipt.get("pending_hil") is False
+            and completion_receipt.get("pointer_moved") is False
+            and completion_receipt.get("hil_inferred") is False,
+            "TASK_CHECKPOINT_ADVANCE_RECEIPT_INVALID",
+            "The verified task-checkpoint receipt is malformed, unsealed, or promoting.",
+            status="MISMATCH",
+        )
+        require(
+            completion_receipt.get("project_id") == project_id
+            and completion_receipt.get("session_id") == session_id
+            and completion_receipt.get("completed_backlog_task_id")
+            == completed_backlog_task_id
+            and completion_receipt.get("replacement_backlog_task_id")
+            == replacement_backlog_task_id
+            and completion_receipt.get("prior_runtime_task_id")
+            == prior_runtime_task_id,
+            "TASK_CHECKPOINT_ADVANCE_RECEIPT_BINDING_MISMATCH",
+            "The verified checkpoint does not bind this exact Plan transition.",
+            status="MISMATCH",
+        )
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            tasks_by_id = {
+                str(task["task_id"]): task for task in backlog.get("tasks", [])
+            }
+            completed = tasks_by_id.get(completed_backlog_task_id)
+            replacement = tasks_by_id.get(replacement_backlog_task_id)
+            require(
+                isinstance(completed, dict) and isinstance(replacement, dict),
+                "TASK_CHECKPOINT_ADVANCE_PLAN_TASK_MISMATCH",
+                "The verified row or requested successor is absent from Plan Lane.",
+                status="MISMATCH",
+            )
+            completed = cast(dict[str, Any], completed)
+            replacement = cast(dict[str, Any], replacement)
+            exact_fields = (
+                "task_class",
+                "requested_outcome",
+                "permitted_paths",
+                "permitted_tools",
+                "acceptance_checks",
+                "stop_condition",
+            )
+            mismatches = {
+                field: {
+                    "planned": replacement.get(field),
+                    "classified": replacement_contract.get(field),
+                }
+                for field in exact_fields
+                if replacement.get(field) != replacement_contract.get(field)
+            }
+            require(
+                not mismatches,
+                "TASK_CHECKPOINT_ADVANCE_CONTRACT_MISMATCH",
+                "The successor classification must exactly match its queued Plan contract.",
+                status="MISMATCH",
+                mismatches=mismatches,
+            )
+            replacement_runtime_task_id = str(
+                replacement_contract.get("task_id") or ""
+            ).strip()
+            require(
+                bool(replacement_runtime_task_id),
+                "TASK_CHECKPOINT_ADVANCE_RUNTIME_TASK_ID_REQUIRED",
+                "The successor classification has no runtime task identity.",
+                status="BLOCKED",
+            )
+            active = [
+                task for task in backlog["tasks"] if task.get("status") == "ACTIVE"
+            ]
+            first_queued = next(
+                (
+                    task
+                    for task in sorted(
+                        backlog["tasks"], key=lambda item: int(item["sequence"])
+                    )
+                    if task.get("status") == "QUEUED"
+                ),
+                None,
+            )
+            before = (
+                len(active) == 1
+                and active[0].get("task_id") == completed_backlog_task_id
+                and completed.get("status") == "ACTIVE"
+                and completed.get("active_session_id") == session_id
+                and completed.get("runtime_task_id") == prior_runtime_task_id
+                and replacement.get("status") == "QUEUED"
+                and isinstance(first_queued, dict)
+                and first_queued.get("task_id") == replacement_backlog_task_id
+            )
+            persisted_replacement_runtime_task_id = str(
+                replacement.get("runtime_task_id") or ""
+            ).strip()
+            after = (
+                len(active) == 1
+                and active[0].get("task_id") == replacement_backlog_task_id
+                and completed.get("status") == "DONE"
+                and completed.get("task_checkpoint_completion_receipt_sha256")
+                == receipt_sha256
+                and completed.get("task_checkpoint_completion_receipt")
+                == completion_receipt
+                and replacement.get("status") == "ACTIVE"
+                and replacement.get("active_session_id") == session_id
+                and bool(persisted_replacement_runtime_task_id)
+            )
+            require(
+                before or after,
+                "TASK_CHECKPOINT_ADVANCE_PLAN_STATE_MISMATCH",
+                "Plan Lane is neither at the verified checkpoint nor its idempotent successor state.",
+                status="MISMATCH",
+                active_task_ids=[task.get("task_id") for task in active],
+                completed_status=completed.get("status"),
+                replacement_status=replacement.get("status"),
+                first_queued_task_id=(
+                    first_queued.get("task_id")
+                    if isinstance(first_queued, dict)
+                    else None
+                ),
+            )
+            if after:
+                replacement_runtime_task_id = persisted_replacement_runtime_task_id
+
+            proof_sha256 = str(cast(dict[str, Any], proof)["receipt_sha256"])
+            completion_event_id = (
+                f"{completed_backlog_task_id}__{proof_sha256[:24].lower()}__checkpoint_done"
+            )
+            activation_event_id = (
+                f"{replacement_backlog_task_id}__{session_id}__"
+                f"{replacement_runtime_task_id}__checkpoint_active"
+            )
+            completion_event: dict[str, Any] | None
+            activation_event: dict[str, Any] | None
+            if before:
+                now = utc_now()
+                completion_event = append_delta_event(
+                    backlog,
+                    task_id=completed_backlog_task_id,
+                    event_type="VERIFIED_TASK_CHECKPOINT_COMPLETED",
+                    to_status="DONE",
+                    actor=session_id,
+                    event_id=completion_event_id,
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "session_id": session_id,
+                        "verification_kind": completion_receipt.get(
+                            "verification_kind"
+                        ),
+                        "completion_receipt_sha256": receipt_sha256,
+                        "verification_proof_sha256": proof_sha256,
+                        "candidate_created": False,
+                        "pending_hil": False,
+                        "pointer_moved": False,
+                        "hil_inferred": False,
+                    },
+                )
+                completed.pop("active_session_id", None)
+                completed.pop("runtime_task_id", None)
+                completed["task_checkpoint_completion_receipt_sha256"] = (
+                    receipt_sha256
+                )
+                completed["task_checkpoint_completion_receipt"] = completion_receipt
+                completed.setdefault("history", []).append(
+                    {
+                        "event": "VERIFIED_TASK_CHECKPOINT_COMPLETED",
+                        "session_id": session_id,
+                        "verification_kind": completion_receipt.get(
+                            "verification_kind"
+                        ),
+                        "completion_receipt_sha256": receipt_sha256,
+                        "verification_proof_sha256": proof_sha256,
+                        "recorded_at": now,
+                    }
+                )
+                activation_event = append_delta_event(
+                    backlog,
+                    task_id=replacement_backlog_task_id,
+                    event_type="ACTIVATED_AFTER_VERIFIED_TASK_CHECKPOINT",
+                    to_status="ACTIVE",
+                    actor=session_id,
+                    event_id=activation_event_id,
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "session_id": session_id,
+                        "runtime_task_id": replacement_runtime_task_id,
+                        "completed_backlog_task_id": completed_backlog_task_id,
+                        "completion_receipt_sha256": receipt_sha256,
+                    },
+                )
+                replacement["active_session_id"] = session_id
+                replacement["runtime_task_id"] = replacement_runtime_task_id
+                replacement.setdefault("history", []).append(
+                    {
+                        "event": "CLAIMED_AFTER_VERIFIED_TASK_CHECKPOINT",
+                        "session_id": session_id,
+                        "runtime_task_id": replacement_runtime_task_id,
+                        "completed_backlog_task_id": completed_backlog_task_id,
+                        "recorded_at": now,
+                    }
+                )
+                self._persist_backlog(project_id, backlog)
+            else:
+                completion_event = next(
+                    (
+                        event
+                        for event in backlog["events"]
+                        if event.get("event_id") == completion_event_id
+                    ),
+                    None,
+                )
+                activation_event = next(
+                    (
+                        event
+                        for event in backlog["events"]
+                        if event.get("event_id") == activation_event_id
+                    ),
+                    None,
+                )
+                require(
+                    isinstance(completion_event, dict)
+                    and isinstance(activation_event, dict),
+                    "TASK_CHECKPOINT_ADVANCE_EVENT_LEDGER_MISMATCH",
+                    "The idempotent checkpoint state lacks its completion or activation event.",
+                    status="MISMATCH",
+                )
+            return {
+                "status": "PASS",
+                "idempotent_reuse": after,
+                "completed_task": completed,
+                "active_task": replacement,
+                "completion_event": completion_event,
+                "activation_event": activation_event,
+                "completion_receipt": completion_receipt,
+            }
+
     def batch_completion_receipt(
         self,
         project_id: str,

@@ -1,8 +1,11 @@
-"""Stage and activate one sealed Evidence Lane 2.0 Codex marketplace package.
+"""Stage and activate one sealed Evidence Lane 2.1 Codex marketplace package.
 
-The script uses the supported Codex marketplace and plugin commands. It never
-writes the generated plugin cache directly, never deletes an older release, and
-never asks for or stores Git, OpenAI, OAuth, PAT, or tunnel credentials.
+The script uses the supported Codex marketplace and plugin commands. Stable
+package bytes are reinstalled under one persistent stable selector; build
+hashes belong in receipts, never in new plugin identities.  The separately
+sealed PV11 fallback selector remains installed and disabled.  The script never
+writes the generated plugin cache directly and never asks for or stores Git,
+OpenAI, OAuth, PAT, or tunnel credentials.
 """
 
 from __future__ import annotations
@@ -12,21 +15,87 @@ import ast
 import hashlib
 import json
 import os
+import queue
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
+import threading
+import time
 import tomllib
 import uuid
 import zipfile
 from pathlib import Path
 from typing import Any
 
-BASE_RELEASE = "2.0.0"
-MARKETPLACE_NAME = "evidence-lane-v200-github"
+BASE_RELEASE = "2.1.0"
+FALLBACK_RELEASE = "2.0.0"
+MARKETPLACE_NAME = "evidence-lane-github"
+MARKETPLACE_DISPLAY_NAME = "GitLane Stable 2.1"
+MARKETPLACE_SOURCE = "rathee000001/evidence_lane_plugin"
 PLUGIN_NAME = "evidence-lane-plugin"
 PLUGIN_SELECTOR = f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"
 EXPECTED_CATALOG = {"tools": 62, "read": 21, "write": 41, "skills": 15}
+EXPECTED_BEHAVIOR_OWNERSHIP = {
+    "hooks": "LIFECYCLE_CAPTURE_AND_SEALED_EVENTS_ONLY",
+    "skills": "NATIVE_PV_READS_AND_HOST_BEHAVIOR",
+    "prompt_and_steer_native_reads": [
+        "pv_status",
+        "pv_task_backlog",
+        "pv_query",
+    ],
+    "query_must_use_native_mcp_route": True,
+    "internal_hook_lookup_satisfies_native_query": False,
+    "host_plan_tool": "update_plan",
+    "hook_may_embed_full_plan_rows": False,
+    "hook_may_call_or_instruct_host_behavior": False,
+    "skill_must_refresh_after_every_prompt_or_steer": True,
+    "fail_closed_when_behavior_route_unavailable": True,
+}
+EXPECTED_STABLE_ACTIVATION_GATE = {
+    "local_rehearsal_stage_only": True,
+    "local_rehearsal_activation_allowed": False,
+    "exact_commit_package_builder": (
+        "scripts/codex_release/build_codex_exact_commit_package.py"
+    ),
+    "release_authority_joiner": (
+        "scripts/codex_release/seal_codex_git_ci_release_authority.py"
+    ),
+    "external_release_receipt_sealer": (
+        "scripts/codex_release/seal_external_release_receipts.py"
+    ),
+    "stable_update_helper": (
+        "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1"
+    ),
+    "stable_update_reopens_same_bound_host_app": True,
+    "stable_update_rebinds_general_goal_recovery": True,
+    "release_authority_schema": "evidence-lane.codex-git-ci-vercel-release-authority.v2",
+    "exact_clean_commit_required": True,
+    "governed_native_remote_push_required": True,
+    "successful_github_ci_required": True,
+    "successful_vercel_branch_preview_required": True,
+    "production_deployment_allowed": False,
+    "exact_commit_git_marketplace_required": True,
+    "git_marketplace_name": MARKETPLACE_NAME,
+    "git_marketplace_display_name": MARKETPLACE_DISPLAY_NAME,
+    "git_marketplace_source": MARKETPLACE_SOURCE,
+    "one_time_legacy_stable_selector_migration_allowed": True,
+    "post_proof_obsolete_cleanup_required": True,
+    "same_stable_selector_required_after_migration": True,
+    "installed_runtime_prewarm_required": True,
+    "runtime_ready_before_task_reopen_required": True,
+    "fallback_activation_inferred": False,
+}
+EXPECTED_BRAND_IDENTITY = {
+    "display_name": "Evidence Lane",
+    "icon_path": "assets/evidence-lane-icon.png",
+    "icon_sha256": "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA",
+    "resource_uri": "ui://evidence-lane/governed-console-v3.html",
+    "manifest_icon_fields": ["interface.composerIcon", "interface.logo"],
+    "required_at_stage": True,
+    "required_at_runtime_prewarm": True,
+}
 EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     "routing_axes_independent": True,
     "account_tier_affects_routing": False,
@@ -52,6 +121,13 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     },
 }
 INSTALL_SCHEMA = "evidence-lane.codex-stable-installation.v2"
+HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
+EXPECTED_CODEX_HOOK_EVENTS = {
+    "postToolUse",
+    "sessionStart",
+    "stop",
+    "userPromptSubmit",
+}
 
 
 class InstallationError(RuntimeError):
@@ -71,6 +147,52 @@ def _json_bytes(value: Any) -> bytes:
         json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         + "\n"
     ).encode("utf-8")
+
+
+def _source_inventory(root: Path) -> dict[str, Any]:
+    """Return one deterministic full-file inventory for exact-source comparison."""
+
+    rows = []
+    for path in sorted(row for row in root.rglob("*") if row.is_file()):
+        relative = path.relative_to(root).as_posix()
+        if relative.startswith("_evidence_lane_rehearsal/"):
+            continue
+        rows.append(
+            {
+                "path": relative,
+                "bytes": path.stat().st_size,
+                "sha256": _sha256(path),
+            }
+        )
+    return {
+        "file_count": len(rows),
+        "manifest_sha256": hashlib.sha256(_json_bytes(rows)).hexdigest().upper(),
+        "files": rows,
+    }
+
+
+def _assert_exact_git_marketplace_source(
+    *,
+    extracted_inventory: dict[str, Any],
+    marketplace_root: Path,
+) -> dict[str, Any]:
+    plugin_root = marketplace_root / "plugins" / PLUGIN_NAME
+    if not plugin_root.is_dir():
+        raise InstallationError("The Git marketplace lacks the Evidence Lane plugin root.")
+    marketplace_inventory = _source_inventory(plugin_root)
+    if marketplace_inventory != extracted_inventory:
+        raise InstallationError(
+            "The Git marketplace bytes do not match the exact commit package."
+        )
+    return {
+        "status": "PASS",
+        "source_type": "git",
+        "repository": MARKETPLACE_SOURCE,
+        "marketplace_name": MARKETPLACE_NAME,
+        "file_count": marketplace_inventory["file_count"],
+        "manifest_sha256": marketplace_inventory["manifest_sha256"],
+        "exact_commit_package_bytes_match": True,
+    }
 
 
 def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
@@ -377,18 +499,157 @@ def _inside(path: Path, parent: Path) -> bool:
     return True
 
 
-def _load_receipt(receipt_path: Path, archive: Path) -> dict[str, Any]:
+def _load_receipt(
+    receipt_path: Path,
+    archive: Path,
+    *,
+    activation: bool,
+) -> dict[str, Any]:
     receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
     sealed = receipt.get("archive") or {}
+    schema = receipt.get("schema")
+    boundary = receipt.get("boundary")
+    exact_commit_package = (
+        schema == "evidence-lane.codex-exact-commit-package.v1.receipt"
+        and boundary == "EXACT_GIT_COMMIT_PACKAGE_UNACCEPTED"
+    )
+    local_rehearsal = (
+        schema == "evidence-lane.non-lifecycle-local-package-rehearsal.v1.receipt"
+        and boundary == "NON_LIFECYCLE_LOCAL_PACKAGE_REHEARSAL"
+    )
+    self_seal_valid = True
+    if exact_commit_package:
+        receipt_sha256 = str(receipt.get("receipt_sha256") or "").upper()
+        core = dict(receipt)
+        core.pop("receipt_sha256", None)
+        self_seal_valid = (
+            re.fullmatch(r"[A-F0-9]{64}", receipt_sha256) is not None
+            and hashlib.sha256(_json_bytes(core)).hexdigest().upper()
+            == receipt_sha256
+        )
     if (
-        receipt.get("status") != "PASS"
+        not (exact_commit_package or local_rehearsal)
+        or (activation and not exact_commit_package)
+        or not self_seal_valid
+        or receipt.get("status") != "PASS"
         or sealed.get("filename") != archive.name
         or sealed.get("sha256") != _sha256(archive)
         or receipt.get("governed_candidate_created") is not False
+        or receipt.get("git_invoked") is not False
         or receipt.get("accepted_pointer_moved") is not False
     ):
-        raise InstallationError("The rehearsal receipt does not seal this archive.")
+        raise InstallationError(
+            "The package receipt does not seal this archive or is not eligible "
+            "for the requested staging/activation boundary."
+        )
     return receipt
+
+
+def _load_release_authority(
+    *,
+    authority_path: Path,
+    authority_file_sha256: str,
+    archive: Path,
+    package_receipt_path: Path,
+    package_receipt: dict[str, Any],
+) -> dict[str, Any]:
+    expected_file_sha256 = authority_file_sha256.strip().upper()
+    if (
+        re.fullmatch(r"[A-F0-9]{64}", expected_file_sha256) is None
+        or _sha256(authority_path) != expected_file_sha256
+    ):
+        raise InstallationError(
+            "The governed Git/CI/Vercel release-authority file seal drifted."
+        )
+    authority = json.loads(authority_path.read_text(encoding="utf-8"))
+    receipt_sha256 = str(authority.get("receipt_sha256") or "").upper()
+    authority_body = dict(authority)
+    authority_body.pop("receipt_sha256", None)
+    calculated_receipt_sha256 = hashlib.sha256(
+        _json_bytes(authority_body)
+    ).hexdigest().upper()
+    source = dict(authority.get("source") or {})
+    remote = dict(authority.get("remote_git") or {})
+    ci = dict(authority.get("github_ci") or {})
+    preview = dict(authority.get("vercel_preview") or {})
+    source_commit = str(source.get("commit") or "").lower()
+    source_tree = str(source.get("tree") or "").lower()
+    branch = str(source.get("branch") or "")
+    base_anchor = dict(package_receipt.get("base_anchor") or {})
+    required_check_count = int(ci.get("required_check_count") or 0)
+    successful_check_count = int(ci.get("successful_check_count") or 0)
+    if (
+        authority.get("schema")
+        != "evidence-lane.codex-git-ci-vercel-release-authority.v2"
+        or package_receipt.get("schema")
+        != "evidence-lane.codex-exact-commit-package.v1.receipt"
+        or package_receipt.get("boundary")
+        != "EXACT_GIT_COMMIT_PACKAGE_UNACCEPTED"
+        or authority.get("status") != "PASS"
+        or authority.get("boundary")
+        != "GOVERNED_GIT_BRANCH_CLEAN_CI_VERCEL_PREVIEW_EXACT_COMMIT"
+        or receipt_sha256 != calculated_receipt_sha256
+        or authority.get("archive_sha256") != _sha256(archive)
+        or authority.get("package_receipt_sha256") != _sha256(package_receipt_path)
+        or authority.get("working_source_manifest_sha256")
+        != package_receipt.get("working_source_manifest_sha256")
+        or re.fullmatch(r"[0-9a-f]{40}", source_commit) is None
+        or re.fullmatch(r"[0-9a-f]{40}", source_tree) is None
+        or branch in {"main", "master"}
+        or not branch
+        or source.get("exact_commit_export") is not True
+        or source.get("exact_commit_projection_clean") is not True
+        or source.get("working_checkout_clean_required") is not False
+        or source.get("untracked_bytes_excluded") is not True
+        or str(base_anchor.get("commit") or "").lower() != source_commit
+        or str(base_anchor.get("tree") or "").lower() != source_tree
+        or remote.get("route") != "NATIVE_GOVERNED_REMOTE_GIT"
+        or remote.get("push_status") != "EXECUTED"
+        or str(remote.get("remote_branch_commit") or "").lower() != source_commit
+        or remote.get("protected_branch") is not False
+        or re.fullmatch(
+            r"[A-F0-9]{64}",
+            str(remote.get("native_receipt_sha256") or "").upper(),
+        )
+        is None
+        or ci.get("status") != "PASS"
+        or str(ci.get("head_sha") or "").lower() != source_commit
+        or ci.get("required_checks_complete") is not True
+        or required_check_count < 1
+        or successful_check_count != required_check_count
+        or int(ci.get("failed_check_count") or 0) != 0
+        or re.fullmatch(
+            r"[A-F0-9]{64}",
+            str(ci.get("receipt_sha256") or "").upper(),
+        )
+        is None
+        or str(ci.get("repository") or "") != MARKETPLACE_SOURCE
+        or preview.get("status") != "PASS"
+        or preview.get("state") != "READY"
+        or preview.get("target") != "PREVIEW"
+        or preview.get("repository") != MARKETPLACE_SOURCE
+        or preview.get("branch") != branch
+        or str(preview.get("head_sha") or "").lower() != source_commit
+        or preview.get("git_integration") is not True
+        or preview.get("manual_deploy") is not False
+        or preview.get("production_deployment") is not False
+        or not str(preview.get("deployment_id") or "").startswith("dpl_")
+        or not str(preview.get("url") or "").endswith(".vercel.app")
+        or re.fullmatch(
+            r"[A-F0-9]{64}",
+            str(preview.get("receipt_sha256") or "").upper(),
+        )
+        is None
+        or authority.get("governed_candidate_created") is not False
+        or authority.get("accepted_pointer_moved") is not False
+        or authority.get("hil_inferred") is not False
+    ):
+        raise InstallationError(
+            "Activation requires one exact clean Git commit, governed native push, "
+            "successful GitHub CI, and one READY non-production Vercel Git preview "
+            "bound to this archive."
+        )
+    return authority
 
 
 def _enrich_legacy_hook_surface(
@@ -566,6 +827,10 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     fallback = contract.get("fallback") or {}
     live_slots = contract.get("live_slot_policy") or {}
     failover = contract.get("failover_operator") or {}
+    goal_recovery = contract.get("goal_recovery") or {}
+    behavior_ownership = contract.get("behavior_ownership") or {}
+    stable_activation_gate = contract.get("stable_activation_gate") or {}
+    brand_identity = contract.get("brand_identity") or {}
     remote_git = contract.get("remote_git_policy") or {}
     promotion = contract.get("promotion_gate") or {}
     skill_count = len(list((plugin_root / "skills").glob("*/SKILL.md")))
@@ -579,9 +844,31 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         flags=re.MULTILINE,
     )
     catalog = _catalog(plugin_root)
+    interface = dict(manifest.get("interface") or {})
+    brand_icon = plugin_root / str(brand_identity.get("icon_path") or "")
     release_helpers = (
         plugin_root / "scripts" / "codex_release" / "install_codex_stable.py",
+        plugin_root
+        / "scripts"
+        / "codex_release"
+        / "build_codex_exact_commit_package.py",
+        plugin_root
+        / "scripts"
+        / "codex_release"
+        / "seal_codex_git_ci_release_authority.py",
+        plugin_root
+        / "scripts"
+        / "codex_release"
+        / "seal_external_release_receipts.py",
+        plugin_root
+        / "scripts"
+        / "codex_release"
+        / "Update-EvidenceLaneCodexStableAndResume.ps1",
         plugin_root / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1",
+        plugin_root
+        / "scripts"
+        / "codex_release"
+        / "Manage-EvidenceLaneCodexGoalRecovery.ps1",
         plugin_root
         / "scripts"
         / "codex_release"
@@ -597,9 +884,14 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or contract.get("schema") != "evidence-lane.codex-release-channel.v2"
         or stable.get("release") != BASE_RELEASE
         or stable.get("slot_role") != "stable-build"
-        or stable.get("codex_marketplace_slot") != "evidence-lane-v200-github"
+        or stable.get("codex_marketplace_slot") != MARKETPLACE_NAME
+        or stable.get("marketplace_display_name") != MARKETPLACE_DISPLAY_NAME
+        or stable.get("install_source") != "GIT_EXACT_COMMIT"
         or stable.get("byte_frozen") is not False
         or stable.get("updates_require_verified_unique_build_identity") is not True
+        or stable.get("stable_selector_is_persistent") is not True
+        or stable.get("stable_updates_reinstall_in_place") is not True
+        or stable.get("build_identity_is_receipt_not_selector") is not True
         or stable.get("native_tool_count") != EXPECTED_CATALOG["tools"]
         or stable.get("native_read_tool_count") != EXPECTED_CATALOG["read"]
         or stable.get("native_write_tool_count") != EXPECTED_CATALOG["write"]
@@ -612,7 +904,7 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or project.get("project", {}).get("version") != BASE_RELEASE
         or engine_match is None
         or engine_match.group("version") != BASE_RELEASE
-        or fallback.get("release") != BASE_RELEASE
+        or fallback.get("release") != FALLBACK_RELEASE
         or fallback.get("slot_role") != "fallback"
         or fallback.get("codex_marketplace_slot")
         != "evidence-lane-pv11-fallback"
@@ -630,6 +922,8 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or live_slots.get("exact_slot_count_after_pv11_acceptance") != 2
         or live_slots.get("allowed_slots") != ["stable-build", "fallback"]
         or live_slots.get("max_enabled_plugin_count") != 1
+        or live_slots.get("exact_registered_plugin_count") != 2
+        or live_slots.get("stable_selector_growth_allowed") is not False
         or live_slots.get("max_active_native_mcp_count") != 1
         or live_slots.get("max_active_tunnel_count") != 1
         or live_slots.get("inactive_slot_remains_installed") is not True
@@ -643,6 +937,37 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or failover.get("target_tunnel_ready_before_plugin_switch") is not True
         or failover.get("controlled_exact_task_restart_required") is not True
         or failover.get("switch_failure_restores_source_slot") is not True
+        or goal_recovery.get("script")
+        != "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1"
+        or goal_recovery.get("scope")
+        != "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_ON_THIS_WINDOWS_USER"
+        or goal_recovery.get("trigger") != "AT_LOGON_CURRENT_WINDOWS_USER"
+        or goal_recovery.get("exact_task_uuid_required") is not True
+        or goal_recovery.get("exact_host_app_binding_required") is not True
+        or goal_recovery.get("supported_host_app_ids")
+        != [
+            "OpenAI.Codex_2p2nqsd0c76g0!App",
+            "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
+        ]
+        or goal_recovery.get("persisted_goal_read_route")
+        != "CODEX_APP_SERVER_THREAD_READ_PLUS_THREAD_GOAL_GET"
+        or goal_recovery.get("thread_resume_writer_allowed") is not False
+        or goal_recovery.get("synthetic_prompt_allowed") is not False
+        or goal_recovery.get("turn_start_allowed") is not False
+        or goal_recovery.get("state_travel_allowed") is not False
+        or goal_recovery.get("candidate_hil_pointer_or_git_mutation_allowed")
+        is not False
+        or goal_recovery.get("requires_stable_enabled_fallback_disabled") is not True
+        or goal_recovery.get("stable_selector_growth_allowed") is not False
+        or goal_recovery.get("raw_goal_objective_stored") is not False
+        or behavior_ownership != EXPECTED_BEHAVIOR_OWNERSHIP
+        or stable_activation_gate != EXPECTED_STABLE_ACTIVATION_GATE
+        or brand_identity != EXPECTED_BRAND_IDENTITY
+        or interface.get("displayName") != brand_identity.get("display_name")
+        or interface.get("composerIcon") != "./assets/evidence-lane-icon.png"
+        or interface.get("logo") != "./assets/evidence-lane-icon.png"
+        or not brand_icon.is_file()
+        or _sha256(brand_icon) != brand_identity.get("icon_sha256")
         or contract.get("host_storage_tunnel_matrix")
         != EXPECTED_HOST_STORAGE_TUNNEL_MATRIX
         or remote_git.get("effective_release") != BASE_RELEASE
@@ -716,11 +1041,11 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     }
 
 
-def _marketplace_bytes() -> bytes:
+def _marketplace_bytes(marketplace_name: str) -> bytes:
     return _json_bytes(
         {
-            "name": MARKETPLACE_NAME,
-            "interface": {"displayName": "Evidence Lane 2.0 Stable"},
+            "name": marketplace_name,
+            "interface": {"displayName": MARKETPLACE_DISPLAY_NAME},
             "plugins": [
                 {
                     "name": PLUGIN_NAME,
@@ -746,6 +1071,7 @@ def _stage_marketplace(
     data_root: Path,
     identity: dict[str, Any],
     archive_sha256: str,
+    marketplace_name: str = MARKETPLACE_NAME,
     comparison_surface: dict[str, Any] | None = None,
     comparison_baseline: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -784,11 +1110,11 @@ def _stage_marketplace(
             ignore=shutil.ignore_patterns("_evidence_lane_rehearsal"),
         )
         marketplace_path = staging / ".agents" / "plugins" / "marketplace.json"
-        _write_atomic(marketplace_path, _marketplace_bytes())
+        _write_atomic(marketplace_path, _marketplace_bytes(marketplace_name))
         prepared = {
             "schema": "evidence-lane.codex-marketplace-stage.v2",
             "state": "STAGED_NOT_HOST_ACTIVE",
-            "marketplace": MARKETPLACE_NAME,
+            "marketplace": marketplace_name,
             "plugin": identity,
             "archive_sha256": archive_sha256,
             "comparison_baseline": comparison_baseline,
@@ -872,108 +1198,1074 @@ def _run_codex(
         raise InstallationError("Codex did not return the requested JSON receipt.") from exc
 
 
-def _set_exclusive_evidence_lane_channel(
-    *,
-    config_path: Path,
-    data_root: Path,
-) -> dict[str, Any]:
-    raw = config_path.read_text(encoding="utf-8")
-    parsed = tomllib.loads(raw)
-    plugins = parsed.get("plugins") or {}
-    if PLUGIN_SELECTOR not in plugins:
-        raise InstallationError("Codex did not persist the v2 plugin selector.")
-    section = re.compile(r'^\[plugins\."(?P<selector>[^"]+)"(?P<tail>.*)\]$')
-    enabled = re.compile(r"^(?P<indent>\s*)enabled\s*=\s*(?:true|false)\s*$")
-    lines = raw.splitlines(keepends=True)
-    current_selector: str | None = None
-    changed: list[str] = []
-    saw_v2_root = False
-    saw_v2_mcp = False
-    for index, line in enumerate(lines):
-        match = section.match(line.rstrip("\r\n"))
-        if match:
-            current_selector = match.group("selector")
-            if current_selector == PLUGIN_SELECTOR and not match.group("tail"):
-                saw_v2_root = True
-            if (
-                current_selector == PLUGIN_SELECTOR
-                and match.group("tail") == '.mcp_servers."evidence-lane"'
-            ):
-                saw_v2_mcp = True
-            continue
-        match_enabled = enabled.match(line.rstrip("\r\n"))
-        if not match_enabled or not current_selector:
-            continue
-        if not current_selector.startswith(f"{PLUGIN_NAME}@"):
-            continue
-        desired = current_selector == PLUGIN_SELECTOR
-        replacement = f'{match_enabled.group("indent")}enabled = {str(desired).lower()}'
-        newline = "\r\n" if line.endswith("\r\n") else "\n" if line.endswith("\n") else ""
-        if line.rstrip("\r\n") != replacement:
-            lines[index] = replacement + newline
-            changed.append(current_selector)
-    if not saw_v2_root:
-        raise InstallationError("The v2 plugin root section is absent from Codex config.")
-    if not saw_v2_mcp:
-        newline = "\r\n" if "\r\n" in raw else "\n"
-        if lines and not lines[-1].endswith(("\n", "\r")):
-            lines[-1] += newline
-        lines.extend(
-            [
-                newline,
-                (
-                    f'[plugins."{PLUGIN_SELECTOR}".mcp_servers.'
-                    f'"evidence-lane"]{newline}'
-                ),
-                f"enabled = true{newline}",
-            ]
+def _prewarm_installed_runtime(plugin_root: Path) -> dict[str, Any]:
+    """Build and probe the installed cache before any task can be reopened."""
+
+    bootstrap = plugin_root / "scripts" / "bootstrap.py"
+    brand_icon = plugin_root / EXPECTED_BRAND_IDENTITY["icon_path"]
+    if not bootstrap.is_file():
+        raise InstallationError("The installed package has no governed bootstrap.")
+    if (
+        not brand_icon.is_file()
+        or _sha256(brand_icon) != EXPECTED_BRAND_IDENTITY["icon_sha256"]
+    ):
+        raise InstallationError(
+            "The installed Evidence Lane icon is missing or changed before prewarm."
         )
-        changed.append(f"{PLUGIN_SELECTOR}.mcp_servers.evidence-lane")
-    before_sha = hashlib.sha256(raw.encode("utf-8")).hexdigest().upper()
-    after = "".join(lines)
-    config_archive = data_root / "installations" / "codex-v200" / "config-archives"
-    config_archive.mkdir(parents=True, exist_ok=True)
-    backup = config_archive / f"config-{before_sha}.toml"
-    if not backup.exists():
-        _write_atomic(backup, raw.encode("utf-8"))
-    if changed:
-        _write_atomic(config_path, after.encode("utf-8"))
-    verified = tomllib.loads(config_path.read_text(encoding="utf-8"))
-    for selector, settings in (verified.get("plugins") or {}).items():
-        if selector.startswith(f"{PLUGIN_NAME}@"):
-            expected = selector == PLUGIN_SELECTOR
-            if bool(settings.get("enabled")) is not expected:
-                raise InstallationError("Evidence Lane channel exclusivity did not persist.")
-            mcp_settings = (settings.get("mcp_servers") or {}).get("evidence-lane")
-            if expected and (
-                not isinstance(mcp_settings, dict)
-                or bool(mcp_settings.get("enabled")) is not True
-            ):
-                raise InstallationError("The v2 native MCP activation did not persist.")
+    started = time.monotonic()
+    try:
+        boot = subprocess.run(
+            [sys.executable, str(bootstrap)],
+            check=False,
+            cwd=plugin_root,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            timeout=900,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise InstallationError(
+            "The installed runtime bootstrap did not complete before task reopen."
+        ) from exc
+    if boot.returncode != 0:
+        raise InstallationError(
+            "The installed runtime bootstrap failed before task reopen "
+            f"(exit {boot.returncode})."
+        )
+    runtime_python = (
+        plugin_root / ".venv" / "Scripts" / "python.exe"
+        if os.name == "nt"
+        else plugin_root / ".venv" / "bin" / "python"
+    )
+    if not runtime_python.is_file():
+        raise InstallationError("The governed bootstrap did not create its runtime.")
+    environment = os.environ.copy()
+    source = str((plugin_root / "src").resolve())
+    existing_pythonpath = environment.get("PYTHONPATH", "")
+    environment["PYTHONPATH"] = os.pathsep.join(
+        part for part in (source, existing_pythonpath) if part
+    )
+    probe_source = (
+        "import json; "
+        "from evidence_lane_plugin.constants import ENGINE_VERSION; "
+        "from evidence_lane_plugin.lane_engine import prewarm_native_dependencies; "
+        "from evidence_lane_plugin.mcp_server import "
+        "CODEX_READ_TOOL_NAMES,NATIVE_MCP_SERVER_IDENTITY,create_mcp_server; "
+        "prewarm_native_dependencies(); "
+        "server=create_mcp_server(); "
+        "route=server._evidence_lane_native_route_receipt; "
+        "print(json.dumps({"
+        "'engine_version':ENGINE_VERSION,"
+        "'native_server_identity':NATIVE_MCP_SERVER_IDENTITY,"
+        "'read_tool_count':len(CODEX_READ_TOOL_NAMES),"
+        "'tool_count':route['tool_count'],"
+        "'tool_catalog_sha256':route['tool_catalog_sha256'],"
+        "'route_status':route['status'],"
+        "'resource_uri':route['mcp_apps_resource_uri'],"
+        "'native_dependency_prewarm_completed':True"
+        "},sort_keys=True))"
+    )
+    try:
+        probe = subprocess.run(
+            [str(runtime_python), "-c", probe_source],
+            check=False,
+            cwd=plugin_root,
+            env=environment,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            timeout=300,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise InstallationError(
+            "The installed native runtime probe did not complete before task reopen."
+        ) from exc
+    if probe.returncode != 0:
+        raise InstallationError(
+            "The installed native runtime probe failed before task reopen "
+            f"(exit {probe.returncode})."
+        )
+    try:
+        output_lines = [
+            line for line in probe.stdout.decode("utf-8").splitlines() if line.strip()
+        ]
+        result = json.loads(output_lines[-1])
+    except (IndexError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise InstallationError(
+            "The installed native runtime probe returned no exact JSON receipt."
+        ) from exc
+    expected_result = {
+        "engine_version": BASE_RELEASE,
+        "native_server_identity": "evidence-lane",
+        "read_tool_count": EXPECTED_CATALOG["read"],
+        "tool_count": EXPECTED_CATALOG["tools"],
+        "route_status": "PASS",
+        "resource_uri": EXPECTED_BRAND_IDENTITY["resource_uri"],
+        "native_dependency_prewarm_completed": True,
+    }
+    result_without_catalog_seal = dict(result)
+    catalog_seal = result_without_catalog_seal.pop("tool_catalog_sha256", None)
+    if result_without_catalog_seal != expected_result:
+        raise InstallationError("The installed native runtime identity drifted.")
+    if re.fullmatch(r"[A-F0-9]{64}", str(catalog_seal)) is None:
+        raise InstallationError("The installed native catalog seal is missing.")
+    core = {
+        "schema": "evidence-lane.codex-installed-runtime-prewarm.v1",
+        "status": "PASS",
+        "runtime_ready_before_task_reopen": True,
+        "plugin_root_sha256": hashlib.sha256(
+            str(plugin_root.resolve()).encode("utf-8")
+        ).hexdigest().upper(),
+        "runtime_python_sha256": _sha256(runtime_python),
+        "bootstrap_stdout_sha256": hashlib.sha256(boot.stdout).hexdigest().upper(),
+        "bootstrap_stderr_sha256": hashlib.sha256(boot.stderr).hexdigest().upper(),
+        "probe_stdout_sha256": hashlib.sha256(probe.stdout).hexdigest().upper(),
+        "probe_stderr_sha256": hashlib.sha256(probe.stderr).hexdigest().upper(),
+        "engine_version": result["engine_version"],
+        "native_server_identity": result["native_server_identity"],
+        "tool_count": result["tool_count"],
+        "tool_catalog_sha256": catalog_seal,
+        "resource_uri": result["resource_uri"],
+        "brand_icon_sha256": _sha256(brand_icon),
+        "catalog_expected": dict(EXPECTED_CATALOG),
+        "native_dependency_prewarm_completed": True,
+        "duration_ms": int((time.monotonic() - started) * 1000),
+        "task_reopened": False,
+    }
+    core["receipt_sha256"] = hashlib.sha256(_json_bytes(core)).hexdigest().upper()
+    return core
+
+
+def _resolve_stable_marketplace_name(
+    *,
+    requested_name: str,
+    two_slot_authority: dict[str, Any] | None,
+) -> str:
+    """Return the one canonical Git stable name, allowing one legacy migration."""
+
+    if two_slot_authority is None:
+        if requested_name != MARKETPLACE_NAME:
+            raise InstallationError(
+                "A build hash must not create a new stable marketplace identity."
+            )
+        return MARKETPLACE_NAME
+
+    registry = dict(two_slot_authority.get("registry") or {})
+    stable = dict((registry.get("slots") or {}).get("stable-build") or {})
+    prior_selector = str(stable.get("plugin_selector") or "")
+    if not prior_selector.startswith(f"{PLUGIN_NAME}@"):
+        raise InstallationError("The two-slot registry has no exact stable selector.")
+    if requested_name != MARKETPLACE_NAME:
+        raise InstallationError(
+            "The stable route must use the canonical GitLane marketplace identity."
+        )
+    return MARKETPLACE_NAME
+
+
+def _prepare_in_place_stable_reinstall(
+    *,
+    executable: Path,
+    codex_home: Path,
+    plugin_selector: str,
+    marketplace_name: str,
+    two_slot_authority: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Preflight a canonical stable update without pruning historical slots.
+
+    During the one-time migration the currently working stable route remains
+    installed until the canonical Git route has been installed, prewarmed,
+    selected exclusively, and hook-trusted.  A later refresh of the already
+    canonical selector removes and re-adds that same selector while Codex is
+    closed; the immutable disabled fallback remains untouched.
+    """
+
+    before_plugins = _run_codex(executable, codex_home, ["plugin", "list", "--json"])
+    installed = before_plugins.get("installed")
+    if not isinstance(installed, list):
+        raise InstallationError("Codex plugin list did not expose installed plugins.")
+    evidence_plugins = [
+        dict(row)
+        for row in installed
+        if isinstance(row, dict)
+        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
+    ]
+    fallback_selector: str | None = None
+    prior_stable_selector: str | None = None
+    if two_slot_authority is not None:
+        registry = dict(two_slot_authority.get("registry") or {})
+        slots = dict(registry.get("slots") or {})
+        stable = dict(slots.get("stable-build") or {})
+        fallback = dict(slots.get("fallback") or {})
+        prior_stable_selector = str(stable.get("plugin_selector") or "")
+        fallback_selector = str(fallback.get("plugin_selector") or "")
+        by_selector = {
+            str(row.get("pluginId") or ""): row for row in evidence_plugins
+        }
+        if (
+            prior_stable_selector not in by_selector
+            or by_selector[prior_stable_selector].get("enabled") is not True
+            or fallback_selector not in by_selector
+            or by_selector[fallback_selector].get("enabled") is not False
+            or any(
+                row.get("enabled") is not False
+                for row in evidence_plugins
+                if row.get("pluginId") != prior_stable_selector
+            )
+        ):
+            raise InstallationError(
+                "The sealed stable/fallback slots are not safe for an in-place update."
+            )
+
+    target_was_installed = any(
+        row.get("pluginId") == plugin_selector for row in evidence_plugins
+    )
+    same_selector_refresh = prior_stable_selector == plugin_selector
+    if same_selector_refresh and target_was_installed:
+        _run_codex(
+            executable,
+            codex_home,
+            ["plugin", "remove", plugin_selector, "--json"],
+        )
+
+    marketplace_list = _run_codex(
+        executable,
+        codex_home,
+        ["plugin", "marketplace", "list", "--json"],
+    )
+    marketplaces = marketplace_list.get("marketplaces")
+    if not isinstance(marketplaces, list):
+        raise InstallationError("Codex marketplace list has an invalid shape.")
+    marketplace_names = {
+        str(row.get("name") or "")
+        for row in marketplaces
+        if isinstance(row, dict)
+    }
+    target_marketplace_removed = False
+    if same_selector_refresh and marketplace_name in marketplace_names:
+        _run_codex(
+            executable,
+            codex_home,
+            ["plugin", "marketplace", "remove", marketplace_name, "--json"],
+        )
+        target_marketplace_removed = True
+
+    receipt = {
+        "schema": "evidence-lane.codex-stable-in-place-update.v1",
+        "stable_selector": plugin_selector,
+        "stable_marketplace": marketplace_name,
+        "prior_stable_selector": prior_stable_selector,
+        "target_was_installed": target_was_installed,
+        "one_time_legacy_selector_migration": (
+            bool(prior_stable_selector) and prior_stable_selector != plugin_selector
+        ),
+        "same_selector_refresh": same_selector_refresh,
+        "stable_removed_for_same_selector_reinstall": (
+            same_selector_refresh and target_was_installed
+        ),
+        "target_marketplace_removed_for_exact_ref_refresh": target_marketplace_removed,
+        "fallback_selector": fallback_selector,
+        "fallback_removed": False,
+        "removed_obsolete_selectors": [],
+        "removed_obsolete_marketplaces": [],
+        "obsolete_cleanup_deferred_until_new_route_proof": True,
+        "new_stable_selector_created": False,
+        "generated_cache_written_directly": False,
+    }
+    receipt["receipt_sha256"] = hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
+    return receipt
+
+
+def _cleanup_obsolete_after_new_route_proof(
+    *,
+    executable: Path,
+    codex_home: Path,
+    plugin_selector: str,
+    fallback_selector: str,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Remove obsolete registrations only after the new route is proven live."""
+
+    before = _run_codex(executable, codex_home, ["plugin", "list", "--json"])
+    installed = before.get("installed")
+    if not isinstance(installed, list):
+        raise InstallationError("Codex plugin list did not expose installed plugins.")
+    evidence = [
+        dict(row)
+        for row in installed
+        if isinstance(row, dict)
+        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
+    ]
+    by_selector = {str(row.get("pluginId") or ""): row for row in evidence}
+    if (
+        plugin_selector not in by_selector
+        or by_selector[plugin_selector].get("enabled") is not True
+        or fallback_selector not in by_selector
+        or by_selector[fallback_selector].get("enabled") is not False
+        or any(
+            row.get("enabled") is not False
+            for row in evidence
+            if row.get("pluginId") != plugin_selector
+        )
+    ):
+        raise InstallationError(
+            "The canonical stable route is not exclusively proven before cleanup."
+        )
+
+    removed_selectors: list[str] = []
+    for selector in sorted(set(by_selector) - {plugin_selector, fallback_selector}):
+        _run_codex(executable, codex_home, ["plugin", "remove", selector, "--json"])
+        removed_selectors.append(selector)
+
+    fallback_marketplace = fallback_selector.split("@", 1)[1]
+    marketplace_list = _run_codex(
+        executable, codex_home, ["plugin", "marketplace", "list", "--json"]
+    )
+    marketplaces = marketplace_list.get("marketplaces")
+    if not isinstance(marketplaces, list):
+        raise InstallationError("Codex marketplace list has an invalid shape.")
+    removed_marketplaces: list[str] = []
+    for row in marketplaces:
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("name") or "")
+        if (
+            not name.startswith("evidence-lane-")
+            or name in {MARKETPLACE_NAME, fallback_marketplace}
+        ):
+            continue
+        _run_codex(
+            executable,
+            codex_home,
+            ["plugin", "marketplace", "remove", name, "--json"],
+        )
+        removed_marketplaces.append(name)
+
+    after = _run_codex(executable, codex_home, ["plugin", "list", "--json"])
+    after_installed = after.get("installed")
+    if not isinstance(after_installed, list):
+        raise InstallationError("Codex plugin list did not expose final plugins.")
+    final_evidence = [
+        dict(row)
+        for row in after_installed
+        if isinstance(row, dict)
+        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
+    ]
+    final_by_selector = {
+        str(row.get("pluginId") or ""): row for row in final_evidence
+    }
+    if (
+        set(final_by_selector) != {plugin_selector, fallback_selector}
+        or final_by_selector[plugin_selector].get("enabled") is not True
+        or final_by_selector[fallback_selector].get("enabled") is not False
+    ):
+        raise InstallationError("Post-proof cleanup did not leave exactly two slots.")
+    receipt = {
+        "schema": "evidence-lane.codex-post-proof-slot-cleanup.v1",
+        "status": "PASS",
+        "canonical_stable_selector": plugin_selector,
+        "fallback_selector": fallback_selector,
+        "removed_obsolete_selectors": removed_selectors,
+        "removed_obsolete_marketplaces": removed_marketplaces,
+        "exact_installed_slot_count": 2,
+        "enabled_slot_count": 1,
+        "fallback_enabled": False,
+        "generated_cache_deleted_directly": False,
+    }
+    receipt["receipt_sha256"] = hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
+    return receipt, after
+
+
+def _trust_sealed_plugin_hooks(
+    *,
+    executable: Path,
+    codex_home: Path,
+    data_root: Path,
+    hook_cwd: Path,
+    plugin_selector: str,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Trust only the exact installed selector's four current hook hashes.
+
+    Codex intentionally treats each cache-busted plugin selector as a new hook
+    authority.  Merely installing and enabling the plugin therefore does not
+    make its unmanaged hooks runnable.  This helper uses the same supported
+    app-server ``hooks/list`` and ``config/batchWrite`` route as Codex's hook
+    review UI; it never edits ``config.toml`` directly and never trusts a hook
+    outside the exact selector supplied by the caller.
+    """
+
+    resolved_cwd = hook_cwd.resolve()
+    if not resolved_cwd.is_dir():
+        raise InstallationError("The exact hook workspace is unavailable.")
+    environment = os.environ.copy()
+    environment["CODEX_HOME"] = str(codex_home)
+    process = subprocess.Popen(
+        [str(executable), "app-server", "--stdio"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        bufsize=1,
+        env=environment,
+    )
+    stdin = process.stdin
+    stdout = process.stdout
+    stderr = process.stderr
+    if stdin is None or stdout is None or stderr is None:
+        process.kill()
+        raise InstallationError("Codex app-server stdio was not available.")
+
+    responses: queue.Queue[dict[str, Any]] = queue.Queue()
+    stderr_lines: list[str] = []
+
+    def read_stdout() -> None:
+        for line in stdout:
+            try:
+                payload = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(payload, dict):
+                responses.put(payload)
+
+    def read_stderr() -> None:
+        for line in stderr:
+            stderr_lines.append(line.rstrip())
+
+    stdout_reader = threading.Thread(target=read_stdout, daemon=True)
+    stderr_reader = threading.Thread(target=read_stderr, daemon=True)
+    stdout_reader.start()
+    stderr_reader.start()
+
+    def send(payload: dict[str, Any]) -> None:
+        try:
+            stdin.write(
+                json.dumps(payload, separators=(",", ":")) + "\n"
+            )
+            stdin.flush()
+        except (BrokenPipeError, OSError) as exc:
+            raise InstallationError("Codex app-server closed unexpectedly.") from exc
+
+    def wait_for(request_id: int, *, timeout: float = 20.0) -> dict[str, Any]:
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            try:
+                payload = responses.get(timeout=min(0.5, remaining))
+            except queue.Empty:
+                if process.poll() is not None:
+                    break
+                continue
+            if payload.get("id") == request_id:
+                if "error" in payload:
+                    raise InstallationError(
+                        "Codex app-server request failed: "
+                        + json.dumps(payload["error"], sort_keys=True)
+                    )
+                return payload
+        detail = " | ".join(stderr_lines[-3:])
+        raise InstallationError(
+            "Codex app-server did not return the required hook receipt"
+            + (f": {detail}" if detail else ".")
+        )
+
+    def selector_hooks(reply: dict[str, Any]) -> list[dict[str, Any]]:
+        data = dict(reply.get("result") or {}).get("data")
+        if not isinstance(data, list):
+            raise InstallationError("Codex hooks/list returned an invalid shape.")
+        resolved_key = os.path.normcase(str(resolved_cwd))
+        entries = [
+            row
+            for row in data
+            if isinstance(row, dict)
+            and os.path.normcase(str(Path(str(row.get("cwd") or "")).resolve()))
+            == resolved_key
+        ]
+        if len(entries) != 1 or entries[0].get("errors"):
+            raise InstallationError("Codex did not return one clean hook workspace.")
+        hooks = [
+            dict(row)
+            for row in entries[0].get("hooks") or []
+            if isinstance(row, dict) and row.get("pluginId") == plugin_selector
+        ]
+        events = {str(row.get("eventName") or "") for row in hooks}
+        keys = [str(row.get("key") or "") for row in hooks]
+        if (
+            len(hooks) != 4
+            or events != EXPECTED_CODEX_HOOK_EVENTS
+            or len(keys) != len(set(keys))
+            or any(
+                row.get("source") != "plugin"
+                or row.get("isManaged") is not False
+                or row.get("enabled") is not True
+                or not str(row.get("key") or "").startswith(
+                    f"{plugin_selector}:"
+                )
+                or re.fullmatch(
+                    r"sha256:[0-9a-f]{64}",
+                    str(row.get("currentHash") or ""),
+                )
+                is None
+                for row in hooks
+            )
+        ):
+            raise InstallationError(
+                "The exact installed selector's four-hook authority drifted."
+            )
+        return sorted(hooks, key=lambda row: str(row["eventName"]))
+
+    try:
+        send(
+            {
+                "method": "initialize",
+                "id": 1000,
+                "params": {
+                    "clientInfo": {
+                        "name": "evidence_lane_installer",
+                        "title": "Evidence Lane Installer",
+                        "version": BASE_RELEASE,
+                    }
+                },
+            }
+        )
+        wait_for(1000)
+        send({"method": "initialized", "params": {}})
+        config_path = codex_home / "config.toml"
+        config_raw = config_path.read_text(encoding="utf-8")
+        parsed_config = tomllib.loads(config_raw)
+        plugins = dict(parsed_config.get("plugins") or {})
+        if plugin_selector not in plugins:
+            raise InstallationError("Codex did not persist the v2 plugin selector.")
+        changed_selectors: list[str] = []
+        for selector, raw_settings in list(plugins.items()):
+            if not selector.startswith(f"{PLUGIN_NAME}@"):
+                continue
+            settings = dict(raw_settings or {})
+            desired = selector == plugin_selector
+            servers = dict(settings.get("mcp_servers") or {})
+            evidence_server = dict(servers.get("evidence-lane") or {})
             if (
-                not expected
-                and isinstance(mcp_settings, dict)
-                and bool(mcp_settings.get("enabled")) is not False
+                bool(settings.get("enabled")) is not desired
+                or bool(evidence_server.get("enabled")) is not desired
             ):
-                raise InstallationError("A prior Evidence Lane MCP channel remains active.")
+                changed_selectors.append(selector)
+            settings["enabled"] = desired
+            evidence_server["enabled"] = desired
+            servers["evidence-lane"] = evidence_server
+            settings["mcp_servers"] = servers
+            plugins[selector] = settings
+        before_config_sha256 = hashlib.sha256(
+            config_raw.encode("utf-8")
+        ).hexdigest().upper()
+        config_archive = (
+            data_root
+            / "installations"
+            / "codex-v200"
+            / "config-archives"
+        )
+        config_backup = config_archive / f"config-{before_config_sha256}.toml"
+        if not config_backup.exists():
+            _write_atomic(config_backup, config_raw.encode("utf-8"))
+        send(
+            {
+                "method": "config/batchWrite",
+                "id": 1001,
+                "params": {
+                    "edits": [
+                        {
+                            "keyPath": "plugins",
+                            "value": plugins,
+                            "mergeStrategy": "upsert",
+                        }
+                    ],
+                    "filePath": None,
+                    "expectedVersion": None,
+                    "reloadUserConfig": True,
+                },
+            }
+        )
+        channel_reply = wait_for(1001)
+        channel_result = dict(channel_reply.get("result") or {})
+        channel_config_version = str(channel_result.get("version") or "")
+        if (
+            channel_result.get("status") != "ok"
+            or re.fullmatch(
+                r"sha256:[0-9a-f]{64}", channel_config_version
+            )
+            is None
+        ):
+            raise InstallationError("Codex did not seal the exclusive channel write.")
+        verified_plugins = dict(
+            tomllib.loads(config_path.read_text(encoding="utf-8")).get("plugins")
+            or {}
+        )
+        for selector, settings in verified_plugins.items():
+            if not selector.startswith(f"{PLUGIN_NAME}@"):
+                continue
+            desired = selector == plugin_selector
+            mcp = dict(settings.get("mcp_servers") or {}).get("evidence-lane")
+            if (
+                bool(settings.get("enabled")) is not desired
+                or not isinstance(mcp, dict)
+                or bool(mcp.get("enabled")) is not desired
+            ):
+                raise InstallationError(
+                    "The supported exclusive Evidence Lane channel write did not persist."
+                )
+        config_receipt = {
+            "before_sha256": before_config_sha256,
+            "after_sha256": _sha256(config_path),
+            "backup": str(config_backup),
+            "changed_selectors": sorted(set(changed_selectors)),
+            "supported_codex_api": "config/batchWrite",
+            "config_version": channel_config_version,
+            "previous_release_cache_deleted": False,
+        }
+        send(
+            {
+                "method": "hooks/list",
+                "id": 1002,
+                "params": {"cwds": [str(resolved_cwd)]},
+            }
+        )
+        before = selector_hooks(wait_for(1002))
+        before_statuses = sorted(
+            {str(row.get("trustStatus") or "unknown") for row in before}
+        )
+        trust_value = {
+            str(row["key"]): {"trusted_hash": str(row["currentHash"])}
+            for row in before
+        }
+        send(
+            {
+                "method": "config/batchWrite",
+                "id": 1003,
+                "params": {
+                    "edits": [
+                        {
+                            "keyPath": "hooks.state",
+                            "value": trust_value,
+                            "mergeStrategy": "upsert",
+                        }
+                    ],
+                    "filePath": None,
+                    "expectedVersion": None,
+                    "reloadUserConfig": True,
+                },
+            }
+        )
+        write_reply = wait_for(1003)
+        write_result = dict(write_reply.get("result") or {})
+        config_version = str(write_result.get("version") or "")
+        if (
+            write_result.get("status") != "ok"
+            or re.fullmatch(r"sha256:[0-9a-f]{64}", config_version) is None
+        ):
+            raise InstallationError("Codex did not seal the hook-trust write.")
+        send(
+            {
+                "method": "hooks/list",
+                "id": 1004,
+                "params": {"cwds": [str(resolved_cwd)]},
+            }
+        )
+        after = selector_hooks(wait_for(1004))
+        if any(row.get("trustStatus") != "trusted" for row in after):
+            raise InstallationError("The exact installed hooks remain untrusted.")
+        records = [
+            {
+                "event_name": str(row["eventName"]),
+                "hook_key": str(row["key"]),
+                "current_hash": str(row["currentHash"]),
+                "enabled": True,
+                "trust_status": "trusted",
+            }
+            for row in after
+        ]
+        receipt = {
+            "schema": HOOK_TRUST_SCHEMA,
+            "status": "PASS",
+            "plugin_selector": plugin_selector,
+            "hook_count": len(records),
+            "registered_events": sorted(EXPECTED_CODEX_HOOK_EVENTS),
+            "records": records,
+            "before_trust_statuses": before_statuses,
+            "after_trust_statuses": ["trusted"],
+            "supported_codex_api": ["hooks/list", "config/batchWrite"],
+            "config_version": config_version,
+            "workspace_sha256": hashlib.sha256(
+                os.path.normcase(str(resolved_cwd)).encode("utf-8")
+            ).hexdigest().upper(),
+            "raw_workspace_path_included": False,
+            "hook_commands_included": False,
+            "source_paths_included": False,
+            "unrelated_hook_state_mutated": False,
+        }
+        receipt["receipt_sha256"] = hashlib.sha256(
+            _json_bytes(receipt)
+        ).hexdigest().upper()
+        return receipt, config_receipt
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=3)
+
+
+def _ordered_json_sha256(value: Any) -> str:
+    """Match the v1 two-slot registry's preserved-property-order seal."""
+
+    return hashlib.sha256(
+        json.dumps(
+            value,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest().upper()
+
+
+def _load_two_slot_update_authority(
+    *,
+    data_root: Path,
+    comparison_baseline: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    registry_path = (
+        data_root
+        / "installations"
+        / "codex-v200"
+        / "two-slot"
+        / "CODEX_TWO_SLOT_REGISTRY.json"
+    )
+    if not registry_path.is_file():
+        return None
+    if comparison_baseline is None:
+        raise InstallationError(
+            "The materialized two-slot registry requires the exact prior stable baseline."
+        )
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    if not isinstance(registry, dict):
+        raise InstallationError("The two-slot registry is not a JSON object.")
+    without_seal = {key: value for key, value in registry.items() if key != "seal"}
+    without_internal_hashes = {
+        key: value
+        for key, value in registry.items()
+        if key not in {"registry_body_sha256", "seal"}
+    }
+    seal = dict(registry.get("seal") or {})
+    slots = dict(registry.get("slots") or {})
+    stable = dict(slots.get("stable-build") or {})
+    fallback = dict(slots.get("fallback") or {})
+    baseline_path = Path(str(comparison_baseline.get("installation_receipt") or ""))
+    stable_install_path = Path(str(stable.get("install_receipt") or ""))
+    fallback_install_path = Path(str(fallback.get("install_receipt") or ""))
+    fallback_install_sha256 = str(fallback.get("install_receipt_sha256") or "")
+    if (
+        registry.get("schema") != "evidence-lane.codex-two-slot-registry.v1"
+        or registry.get("status") != "PASS"
+        or registry.get("state") != "STABLE_ACTIVE_FALLBACK_PREWARMED_DISABLED"
+        or registry.get("post_fuse_materialized") is not True
+        or registry.get("accepted_pv") != "PV11"
+        or registry.get("accepted_generation") != 11
+        or registry.get("exact_live_slot_count") != 2
+        or registry.get("max_enabled_plugin_count") != 1
+        or set(slots) != {"stable-build", "fallback"}
+        or seal.get("algorithm") != "SHA256"
+        or seal.get("body_sha256") != _ordered_json_sha256(without_seal)
+        or registry.get("registry_body_sha256")
+        != _ordered_json_sha256(without_internal_hashes)
+        or stable.get("slot_role") != "stable-build"
+        or stable.get("byte_frozen") is not False
+        or stable.get("enabled") is not True
+        or stable.get("native_mcp_enabled") is not True
+        or not stable_install_path.is_file()
+        or stable_install_path.resolve() != baseline_path.resolve()
+        or stable.get("install_receipt_sha256")
+        != comparison_baseline.get("installation_receipt_sha256")
+        or _sha256(stable_install_path)
+        != comparison_baseline.get("installation_receipt_sha256")
+        or fallback.get("slot_role") != "fallback"
+        or fallback.get("byte_frozen") is not True
+        or fallback.get("enabled") is not False
+        or fallback.get("native_mcp_enabled") is not False
+        or fallback.get("accepted_pv") != "PV11"
+        or fallback.get("accepted_generation") != 11
+        or fallback.get("package_sha256")
+        != registry.get("accepted_package_sha256")
+        or not fallback_install_path.is_file()
+        or re.fullmatch(r"[A-F0-9]{64}", fallback_install_sha256) is None
+        or _sha256(fallback_install_path) != fallback_install_sha256
+    ):
+        raise InstallationError(
+            "The exact stable/fallback registry is not eligible for stable advancement."
+        )
     return {
-        "before_sha256": before_sha,
-        "after_sha256": _sha256(config_path),
-        "backup": str(backup),
-        "changed_selectors": sorted(set(changed)),
-        "previous_release_cache_deleted": False,
+        "path": registry_path,
+        "before_file_sha256": _sha256(registry_path),
+        "registry": registry,
+        "prior_stable_selector": stable.get("plugin_selector"),
+        "fallback_snapshot_sha256": hashlib.sha256(
+            _json_bytes(fallback)
+        ).hexdigest().upper(),
+    }
+
+
+def _advance_two_slot_stable_registry(
+    *,
+    authority: dict[str, Any] | None,
+    plugin_selector: str,
+    plugin_version: str,
+    installed_path: Path,
+    marketplace_root: Path,
+    install_receipt: Path,
+    archive_sha256: str,
+    source_manifest_sha256: str,
+    codex_home: Path,
+    data_root: Path,
+    plugin_list: dict[str, Any],
+) -> dict[str, Any]:
+    if authority is None:
+        return {
+            "status": "NOT_APPLICABLE",
+            "reason": "POST_FUSE_TWO_SLOT_REGISTRY_NOT_MATERIALIZED",
+        }
+    installed = plugin_list.get("installed")
+    if not isinstance(installed, list):
+        raise InstallationError("Codex plugin list did not expose installed plugins.")
+    evidence_plugins = [
+        dict(row)
+        for row in installed
+        if isinstance(row, dict)
+        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
+    ]
+    enabled = [row for row in evidence_plugins if row.get("enabled") is True]
+    registry = dict(authority["registry"])
+    slots = dict(registry["slots"])
+    fallback = dict(slots["fallback"])
+    fallback_selector = str(fallback.get("plugin_selector") or "")
+    prior_stable_selector = str(authority.get("prior_stable_selector") or "")
+    canonical_migration = (
+        prior_stable_selector != plugin_selector
+        and plugin_selector == PLUGIN_SELECTOR
+        and prior_stable_selector.startswith(f"{PLUGIN_NAME}@evidence-lane-v200-")
+    )
+    by_selector = {
+        str(row.get("pluginId") or ""): row for row in evidence_plugins
+    }
+    if (
+        (plugin_selector != prior_stable_selector and not canonical_migration)
+        or set(by_selector) != {plugin_selector, fallback_selector}
+        or len(enabled) != 1
+        or enabled[0].get("pluginId") != plugin_selector
+        or plugin_selector not in by_selector
+        or fallback_selector not in by_selector
+        or by_selector[fallback_selector].get("enabled") is not False
+        or any(
+            row.get("enabled") is not False
+            for row in evidence_plugins
+            if row.get("pluginId") != plugin_selector
+        )
+    ):
+        raise InstallationError(
+            "Codex does not expose one stable enabled and one fallback disabled."
+        )
+    config_path = codex_home / "config.toml"
+    config = tomllib.loads(config_path.read_text(encoding="utf-8"))
+    plugin_config = dict(config.get("plugins") or {})
+    for selector, settings in plugin_config.items():
+        if not selector.startswith(f"{PLUGIN_NAME}@"):
+            continue
+        expected = selector == plugin_selector
+        mcp = dict(settings.get("mcp_servers") or {}).get("evidence-lane")
+        if (
+            bool(settings.get("enabled")) is not expected
+            or not isinstance(mcp, dict)
+            or bool(mcp.get("enabled")) is not expected
+        ):
+            raise InstallationError(
+                "The plugin and native MCP activation are not exactly exclusive."
+            )
+    expected_cache = (
+        codex_home
+        / "plugins"
+        / "cache"
+        / plugin_selector.split("@", 1)[1]
+        / PLUGIN_NAME
+    )
+    if (
+        not installed_path.is_dir()
+        or not _inside(installed_path, expected_cache)
+        or not install_receipt.is_file()
+        or re.fullmatch(r"[A-F0-9]{64}", source_manifest_sha256) is None
+    ):
+        raise InstallationError("The new stable slot authority is incomplete.")
+    marketplace_catalog = marketplace_root / ".agents" / "plugins" / "marketplace.json"
+    plugin_manifest = installed_path / ".codex-plugin" / "plugin.json"
+    if not marketplace_catalog.is_file() or not plugin_manifest.is_file():
+        raise InstallationError("The new stable marketplace identity is incomplete.")
+
+    stable = dict(slots["stable-build"])
+    stable.update(
+        {
+            "byte_frozen": False,
+            "cache_authority_manifest_sha256": source_manifest_sha256,
+            "cache_root": str(installed_path),
+            "enabled": True,
+            "install_receipt": str(install_receipt),
+            "install_receipt_sha256": _sha256(install_receipt),
+            "marketplace_catalog_sha256": _sha256(marketplace_catalog),
+            "marketplace_root": str(marketplace_root),
+            "native_mcp_enabled": True,
+            "package_sha256": archive_sha256,
+            "plugin_manifest_sha256": _sha256(plugin_manifest),
+            "plugin_selector": plugin_selector,
+            "plugin_version": plugin_version,
+            "slot_role": "stable-build",
+        }
+    )
+    slots["stable-build"] = stable
+    slots["fallback"] = fallback
+    registry["slots"] = slots
+    registry["active_slot"] = "stable-build"
+    registry["state"] = "STABLE_ACTIVE_FALLBACK_PREWARMED_DISABLED"
+    registry["live_registered_selectors"] = sorted(by_selector)
+    registry["exact_registered_plugin_count"] = 2
+    registry["activation_proof"] = {
+        "command": "codex plugin list --json",
+        "config_path": str(config_path),
+        "config_sha256": _sha256(config_path),
+        "fallback_native_mcp_enabled": False,
+        "fallback_plugin_enabled": False,
+        "plugin_list_json_utf8_sha256": hashlib.sha256(
+            _json_bytes(plugin_list)
+        ).hexdigest().upper(),
+        "plugin_list_json_canonicalized": True,
+        "stable_native_mcp_enabled": True,
+        "stable_plugin_enabled": True,
+    }
+    fallback_snapshot_sha256 = hashlib.sha256(
+        _json_bytes(fallback)
+    ).hexdigest().upper()
+    if fallback_snapshot_sha256 != authority["fallback_snapshot_sha256"]:
+        raise InstallationError("The immutable fallback registry object changed.")
+    registry["registry_body_sha256"] = _ordered_json_sha256(
+        {
+            key: value
+            for key, value in registry.items()
+            if key not in {"registry_body_sha256", "seal"}
+        }
+    )
+    seal = dict(registry.get("seal") or {})
+    seal["body_sha256"] = _ordered_json_sha256(
+        {key: value for key, value in registry.items() if key != "seal"}
+    )
+    registry["seal"] = seal
+    registry_path = Path(authority["path"])
+    _write_atomic(
+        registry_path,
+        (
+            json.dumps(registry, ensure_ascii=False, indent=2) + "\n"
+        ).encode("utf-8"),
+    )
+    after_file_sha256 = _sha256(registry_path)
+    update = {
+        "schema": "evidence-lane.codex-two-slot-stable-update.v1",
+        "status": "PASS",
+        "before_registry_file_sha256": authority["before_file_sha256"],
+        "after_registry_file_sha256": after_file_sha256,
+        "registry_body_sha256": registry["registry_body_sha256"],
+        "registry_seal_body_sha256": seal["body_sha256"],
+        "prior_stable_selector": authority["prior_stable_selector"],
+        "current_stable_selector": plugin_selector,
+        "stable_selector_reused": (
+            authority["prior_stable_selector"] == plugin_selector
+        ),
+        "stable_selector_migrated_to_canonical_git": canonical_migration,
+        "same_stable_selector_required_after_migration": True,
+        "legacy_stable_removed_after_new_route_proof": canonical_migration,
+        "new_stable_selector_created": False,
+        "current_stable_install_receipt_sha256": _sha256(install_receipt),
+        "fallback_selector": fallback_selector,
+        "fallback_snapshot_sha256": fallback_snapshot_sha256,
+        "fallback_enabled": False,
+        "fallback_byte_frozen": True,
+        "enabled_plugin_count": 1,
+        "registered_plugin_count": 2,
+        "active_tunnel_count": 0,
+        "candidate_created_or_accepted": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+        "restart_invoked": False,
+    }
+    update["receipt_sha256"] = hashlib.sha256(
+        _json_bytes(update)
+    ).hexdigest().upper()
+    update_path = (
+        data_root
+        / "installations"
+        / "codex-v200"
+        / "two-slot"
+        / f"STABLE_REGISTRY_UPDATE_{archive_sha256[:16]}.json"
+    )
+    _write_atomic(update_path, _json_bytes(update))
+    return {
+        **update,
+        "registry_path": str(registry_path),
+        "receipt_path": str(update_path),
+        "receipt_file_sha256": _sha256(update_path),
     }
 
 
 def install(args: argparse.Namespace) -> dict[str, Any]:
     archive = args.archive.resolve()
-    receipt_path = args.rehearsal_receipt.resolve()
+    receipt_argument = getattr(args, "package_receipt", None) or getattr(
+        args, "rehearsal_receipt", None
+    )
+    if receipt_argument is None:
+        raise InstallationError("An exact package receipt is required.")
+    receipt_path = Path(receipt_argument).resolve()
     codex_home = args.codex_home.resolve()
     data_root = args.data_root.resolve()
-    marketplace_root = codex_home / "local-marketplaces" / MARKETPLACE_NAME
+    requested_marketplace_name = str(
+        getattr(args, "marketplace_name", MARKETPLACE_NAME)
+    )
+    trust_sealed_hooks = bool(getattr(args, "trust_sealed_hooks", False))
+    if bool(args.activate) != trust_sealed_hooks:
+        raise InstallationError(
+            "Activation and explicit sealed-hook trust must be requested together."
+        )
     if _inside(archive, codex_home / "plugins" / "cache"):
         raise InstallationError("A generated cache package cannot be installation input.")
-    _load_receipt(receipt_path, archive)
+    rehearsal = _load_receipt(
+        receipt_path,
+        archive,
+        activation=bool(args.activate),
+    )
+    release_authority_path = getattr(args, "release_authority_receipt", None)
+    release_authority_file_sha256 = getattr(
+        args, "release_authority_receipt_sha256", None
+    )
+    if (release_authority_path is None) != (
+        release_authority_file_sha256 is None
+    ):
+        raise InstallationError(
+            "The governed Git/CI/Vercel release-authority receipt and file SHA-256 "
+            "must be supplied together."
+        )
+    release_authority: dict[str, Any] | None = None
+    if args.activate:
+        if release_authority_path is None:
+            raise InstallationError(
+                "A local rehearsal may be staged but activation requires the "
+                "governed Git/CI/Vercel release-authority receipt."
+            )
+        release_authority = _load_release_authority(
+            authority_path=Path(release_authority_path).resolve(),
+            authority_file_sha256=str(release_authority_file_sha256),
+            archive=archive,
+            package_receipt_path=receipt_path,
+            package_receipt=rehearsal,
+        )
     baseline_path = getattr(args, "baseline_installation_receipt", None)
     baseline_sha256 = getattr(
         args, "baseline_installation_receipt_sha256", None
@@ -990,61 +2282,186 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
             expected_sha256=str(baseline_sha256),
             data_root=data_root,
         )
+    two_slot_authority = _load_two_slot_update_authority(
+        data_root=data_root,
+        comparison_baseline=comparison_baseline,
+    )
+    marketplace_name = _resolve_stable_marketplace_name(
+        requested_name=requested_marketplace_name,
+        two_slot_authority=two_slot_authority,
+    )
+    if marketplace_name != MARKETPLACE_NAME:
+        raise InstallationError(
+            "The stable marketplace name must be the canonical GitLane slot."
+        )
+    plugin_selector = f"{PLUGIN_NAME}@{marketplace_name}"
+    marketplace_root = codex_home / "local-marketplaces" / marketplace_name
+    extracted_inventory: dict[str, Any]
     with tempfile.TemporaryDirectory(prefix="evidence-lane-v200-install-") as raw:
         extracted = Path(raw) / "plugin"
         extracted.mkdir()
         _safe_extract(archive, extracted)
         identity = _validate_plugin(extracted)
-        stage = _stage_marketplace(
-            extracted=extracted,
-            marketplace_root=marketplace_root,
-            data_root=data_root,
-            identity=identity,
-            archive_sha256=_sha256(archive),
-            comparison_surface=comparison_surface,
-            comparison_baseline=comparison_baseline,
-        )
+        extracted_inventory = _source_inventory(extracted)
+        if args.activate:
+            stage = {
+                "schema": "evidence-lane.codex-git-marketplace-stage.v1",
+                "state": "EXACT_COMMIT_GIT_MARKETPLACE_PENDING",
+                "marketplace": MARKETPLACE_NAME,
+                "marketplace_display_name": MARKETPLACE_DISPLAY_NAME,
+                "repository": MARKETPLACE_SOURCE,
+                "plugin": identity,
+                "archive_sha256": _sha256(archive),
+                "comparison_baseline": comparison_baseline,
+                "surface_change_display": _surface_change_display(
+                    previous=comparison_surface,
+                    current=identity["surface_inventory"],
+                ),
+                "exact_commit_package_inventory_sha256": extracted_inventory[
+                    "manifest_sha256"
+                ],
+                "local_marketplace_staged": False,
+                "generated_cache_written_directly": False,
+                "prior_release_deleted": False,
+            }
+        else:
+            stage = _stage_marketplace(
+                extracted=extracted,
+                marketplace_root=marketplace_root,
+                data_root=data_root,
+                identity=identity,
+                archive_sha256=_sha256(archive),
+                marketplace_name=marketplace_name,
+                comparison_surface=comparison_surface,
+                comparison_baseline=comparison_baseline,
+            )
     activation: dict[str, Any] = {
         "state": "STAGED_RESTART_NOT_YET_REQUIRED",
         "plugin_add_invoked": False,
     }
     config_receipt: dict[str, Any] | None = None
+    plugin_list: dict[str, Any] | None = None
+    installed_path: Path | None = None
+    in_place_update: dict[str, Any] | None = None
+    runtime_prewarm: dict[str, Any] | None = None
+    git_marketplace_source: dict[str, Any] | None = None
+    post_proof_cleanup: dict[str, Any] | None = None
     if args.activate:
         executable = args.codex_executable.resolve()
         if not executable.is_file():
             raise InstallationError("The exact Codex executable is unavailable.")
+        if two_slot_authority is None:
+            raise InstallationError(
+                "Activation requires the materialized stable/fallback two-slot authority."
+            )
+        in_place_update = _prepare_in_place_stable_reinstall(
+            executable=executable,
+            codex_home=codex_home,
+            plugin_selector=plugin_selector,
+            marketplace_name=marketplace_name,
+            two_slot_authority=two_slot_authority,
+        )
         listed = _run_codex(
             executable,
             codex_home,
             ["plugin", "marketplace", "list", "--json"],
         )
         known = {row["name"]: Path(row["root"]).resolve() for row in listed["marketplaces"]}
-        if MARKETPLACE_NAME in known:
-            if known[MARKETPLACE_NAME] != marketplace_root.resolve():
-                raise InstallationError("The v2 marketplace name is bound elsewhere.")
-            marketplace_add = {"alreadyAdded": True, "marketplaceName": MARKETPLACE_NAME}
-        else:
-            marketplace_add = _run_codex(
-                executable,
-                codex_home,
-                ["plugin", "marketplace", "add", str(marketplace_root), "--json"],
+        if marketplace_name in known:
+            raise InstallationError(
+                "The canonical Git marketplace still exists after update preflight."
             )
+        source_commit = str(release_authority["source"]["commit"])
+        marketplace_add = _run_codex(
+            executable,
+            codex_home,
+            [
+                "plugin",
+                "marketplace",
+                "add",
+                MARKETPLACE_SOURCE,
+                "--ref",
+                source_commit,
+                "--json",
+            ],
+        )
+        refreshed_marketplaces = _run_codex(
+            executable,
+            codex_home,
+            ["plugin", "marketplace", "list", "--json"],
+        )
+        refreshed_rows = refreshed_marketplaces.get("marketplaces")
+        if not isinstance(refreshed_rows, list):
+            raise InstallationError("Codex marketplace list has an invalid shape.")
+        exact_rows = [
+            dict(row)
+            for row in refreshed_rows
+            if isinstance(row, dict) and row.get("name") == MARKETPLACE_NAME
+        ]
+        if len(exact_rows) != 1:
+            raise InstallationError("Codex did not configure one canonical Git marketplace.")
+        marketplace_root = Path(str(exact_rows[0].get("root") or "")).resolve()
+        git_marketplace_source = _assert_exact_git_marketplace_source(
+            extracted_inventory=extracted_inventory,
+            marketplace_root=marketplace_root,
+        )
+        git_marketplace_source["commit"] = source_commit
         plugin_add = _run_codex(
             executable,
             codex_home,
-            ["plugin", "add", PLUGIN_SELECTOR, "--json"],
+            ["plugin", "add", plugin_selector, "--json"],
         )
         installed_path = Path(str(plugin_add.get("installedPath") or "")).resolve()
-        expected_cache = codex_home / "plugins" / "cache" / MARKETPLACE_NAME / PLUGIN_NAME
+        expected_cache = (
+            codex_home / "plugins" / "cache" / marketplace_name / PLUGIN_NAME
+        )
         if (
-            plugin_add.get("pluginId") != PLUGIN_SELECTOR
+            plugin_add.get("pluginId") != plugin_selector
             or plugin_add.get("version") != identity["version"]
             or not _inside(installed_path, expected_cache)
         ):
             raise InstallationError("Codex installed a mismatched plugin cache identity.")
-        config_receipt = _set_exclusive_evidence_lane_channel(
-            config_path=codex_home / "config.toml",
+        runtime_prewarm = _prewarm_installed_runtime(installed_path)
+        hook_trust, config_receipt = _trust_sealed_plugin_hooks(
+            executable=executable,
+            codex_home=codex_home,
             data_root=data_root,
+            hook_cwd=Path(getattr(args, "hook_cwd", Path.cwd())),
+            plugin_selector=plugin_selector,
+        )
+        plugin_list = _run_codex(
+            executable,
+            codex_home,
+            ["plugin", "list", "--json"],
+        )
+        installed_rows = plugin_list.get("installed")
+        if not isinstance(installed_rows, list):
+            raise InstallationError("Codex plugin list did not expose installed plugins.")
+        exact_installed = [
+            dict(row)
+            for row in installed_rows
+            if isinstance(row, dict) and row.get("pluginId") == plugin_selector
+        ]
+        if len(exact_installed) != 1:
+            raise InstallationError("Codex did not expose one canonical installed plugin.")
+        marketplace_source = dict(exact_installed[0].get("marketplaceSource") or {})
+        if (
+            marketplace_source.get("sourceType") != "git"
+            or MARKETPLACE_SOURCE.lower()
+            not in str(marketplace_source.get("source") or "").lower()
+        ):
+            raise InstallationError("The installed stable route is not Git-backed.")
+        fallback_selector = str(
+            (two_slot_authority["registry"]["slots"]["fallback"] or {}).get(
+                "plugin_selector"
+            )
+            or ""
+        )
+        post_proof_cleanup, plugin_list = _cleanup_obsolete_after_new_route_proof(
+            executable=executable,
+            codex_home=codex_home,
+            plugin_selector=plugin_selector,
+            fallback_selector=fallback_selector,
         )
         activation = {
             "state": "INSTALLED_RESTART_REQUIRED",
@@ -1052,6 +2469,13 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
             "marketplace_add": marketplace_add,
             "plugin_add": plugin_add,
             "exclusive_channel": config_receipt,
+            "hook_trust": hook_trust,
+            "in_place_update": in_place_update,
+            "runtime_prewarm": runtime_prewarm,
+            "git_marketplace_source": git_marketplace_source,
+            "post_proof_cleanup": post_proof_cleanup,
+            "runtime_ready_before_task_reopen": True,
+            "prompt_capture_runnable_after_restart": True,
             "hot_reload_claimed": False,
         }
     body = {
@@ -1059,10 +2483,35 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         "status": "PASS",
         "plugin": identity,
         "catalog_expected": dict(EXPECTED_CATALOG),
-        "rehearsal_receipt_sha256": _sha256(receipt_path),
+        "package_receipt_sha256": _sha256(receipt_path),
+        "activation_authority": (
+            {
+                "status": release_authority["status"],
+                "boundary": release_authority["boundary"],
+                "source_commit": release_authority["source"]["commit"],
+                "source_tree": release_authority["source"]["tree"],
+                "branch": release_authority["source"]["branch"],
+                "github_repository": release_authority["github_ci"]["repository"],
+                "vercel_preview_deployment_id": release_authority[
+                    "vercel_preview"
+                ]["deployment_id"],
+                "vercel_preview_url": release_authority["vercel_preview"]["url"],
+                "vercel_preview_ready": True,
+                "production_deployment": False,
+                "receipt_sha256": release_authority["receipt_sha256"],
+                "receipt_file_sha256": str(
+                    release_authority_file_sha256 or ""
+                ).upper(),
+            }
+            if release_authority is not None
+            else {
+                "status": "NOT_APPLICABLE",
+                "reason": "STAGING_ONLY_LOCAL_REHEARSAL",
+            }
+        ),
         "archive_sha256": _sha256(archive),
         "marketplace": {
-            "name": MARKETPLACE_NAME,
+            "name": marketplace_name,
             "root": str(marketplace_root),
             **stage,
         },
@@ -1076,27 +2525,95 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         "live_cache_cleanup_deferred_until_exact_pv11_acceptance": True,
         "two_slot_operator_packaged": True,
         "previous_release_cache_deleted": False,
+        "stable_selector_reused": bool(
+            two_slot_authority is not None
+            and two_slot_authority.get("prior_stable_selector") == plugin_selector
+        ),
+        "stable_selector_migrated_to_canonical_git": bool(
+            two_slot_authority is not None
+            and two_slot_authority.get("prior_stable_selector") != plugin_selector
+        ),
+        "post_proof_obsolete_cleanup_completed": bool(
+            post_proof_cleanup and post_proof_cleanup.get("status") == "PASS"
+        ),
+        "obsolete_cleanup_used_supported_codex_apis": bool(args.activate),
+        "stable_build_identity_location": "SEALED_INSTALL_RECEIPT_NOT_SELECTOR",
+        "new_stable_selector_created": False,
         "generated_cache_written_directly": False,
         "credential_requested_or_stored": False,
         "candidate_created_or_accepted": False,
         "pointer_moved": False,
         "hil_inferred": False,
         "restart_required": bool(args.activate),
+        "runtime_ready_before_task_reopen": bool(
+            runtime_prewarm
+            and runtime_prewarm.get("runtime_ready_before_task_reopen") is True
+        ),
     }
     body["receipt_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()
     receipt_dir = data_root / "installations" / "codex-v200"
     install_receipt = receipt_dir / f"INSTALL_{body['archive_sha256'][:16]}.json"
     _write_atomic(install_receipt, _json_bytes(body))
     _write_atomic(receipt_dir / "CURRENT_INSTALLATION.json", _json_bytes(body))
-    return {**body, "receipt_path": str(install_receipt)}
+    two_slot_update = (
+        _advance_two_slot_stable_registry(
+            authority=two_slot_authority,
+            plugin_selector=plugin_selector,
+            plugin_version=str(identity["version"]),
+            installed_path=installed_path,
+            marketplace_root=marketplace_root,
+            install_receipt=install_receipt,
+            archive_sha256=str(body["archive_sha256"]),
+            source_manifest_sha256=str(
+                rehearsal.get("working_source_manifest_sha256") or ""
+            ),
+            codex_home=codex_home,
+            data_root=data_root,
+            plugin_list=plugin_list,
+        )
+        if args.activate and installed_path is not None and plugin_list is not None
+        else {
+            "status": "NOT_APPLICABLE",
+            "reason": "STAGING_PASS_ONLY",
+        }
+    )
+    return {
+        **body,
+        "receipt_path": str(install_receipt),
+        "two_slot_registry_update": two_slot_update,
+    }
 
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive", type=Path, required=True)
-    parser.add_argument("--rehearsal-receipt", type=Path, required=True)
+    package = parser.add_mutually_exclusive_group(required=True)
+    package.add_argument("--package-receipt", type=Path)
+    package.add_argument(
+        "--rehearsal-receipt",
+        type=Path,
+        help="Compatibility name for staging-only local rehearsal receipts.",
+    )
+    parser.add_argument(
+        "--release-authority-receipt",
+        type=Path,
+        help=(
+            "Sealed exact-commit governed-push and successful-GitHub-CI "
+            "authority. Required for activation; never required for staging."
+        ),
+    )
+    parser.add_argument("--release-authority-receipt-sha256")
     parser.add_argument("--baseline-installation-receipt", type=Path)
     parser.add_argument("--baseline-installation-receipt-sha256")
+    parser.add_argument(
+        "--marketplace-name",
+        default=MARKETPLACE_NAME,
+        help=(
+            "Compatibility input for the one stable marketplace selector. "
+            "A different build-specific selector is rejected; after PV11 the "
+            "sealed two-slot registry supplies the persistent stable identity."
+        ),
+    )
     parser.add_argument(
         "--codex-home",
         type=Path,
@@ -1112,6 +2629,20 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--codex-executable", type=Path)
     parser.add_argument("--activate", action="store_true")
+    parser.add_argument(
+        "--trust-sealed-hooks",
+        action="store_true",
+        help=(
+            "Trust exactly the installed selector's four current hook hashes "
+            "through Codex hooks/list plus config/batchWrite. Required with --activate."
+        ),
+    )
+    parser.add_argument(
+        "--hook-cwd",
+        type=Path,
+        default=Path.cwd(),
+        help="Exact governed workspace used for Codex hook discovery.",
+    )
     return parser
 
 
@@ -1119,6 +2650,18 @@ def main() -> int:
     args = _parser().parse_args()
     if args.activate and args.codex_executable is None:
         raise InstallationError("--activate requires --codex-executable.")
+    if args.activate != args.trust_sealed_hooks:
+        raise InstallationError(
+            "--activate and --trust-sealed-hooks must be supplied together."
+        )
+    if args.activate and (
+        args.release_authority_receipt is None
+        or args.release_authority_receipt_sha256 is None
+    ):
+        raise InstallationError(
+            "--activate requires the governed Git/CI/Vercel release-authority receipt "
+            "and its file SHA-256."
+        )
     print(json.dumps(install(args), indent=2, sort_keys=True))
     return 0
 

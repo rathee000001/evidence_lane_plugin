@@ -6,22 +6,24 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane 2.0.0
+# Evidence Lane 2.1.0
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex. It
 keeps source identity, project memory, task state, Deltas, candidate packages,
 accepted project versions, and human decisions traceable across long-running
 work.
 
-The single active Codex product release is **2.0.0**. The product name remains
-**Evidence Lane**. Historical 1.5.0 commits, packages, accepted project
-versions, and sealed receipts remain immutable provenance; they are not current
-runtime identity.
+The mutable stable Codex successor release is **2.1.0**. The product name
+remains **Evidence Lane**. The disabled fallback remains the exact accepted
+PV11/main **2.0.0** package; historical commits, packages, accepted project
+versions, and sealed receipts remain immutable provenance rather than current
+stable identity.
 
-## v2.0.0 release and historical compatibility invariants
+## v2.1.0 release and historical compatibility invariants
 
-Version 2.0.0 replaces the active Codex release slot without rewriting prior
-evidence. Historical labels such as `pre-v1.1`, v1.1 corrections, dependency
+Version 2.1.0 updates the existing mutable Codex stable slot without rewriting
+the accepted 2.0.0/PV11 fallback or any prior evidence. Historical labels such
+as `pre-v1.1`, v1.1 corrections, dependency
 versions, accepted PVs, candidate receipts, and State Travel packages retain
 their original identities. Compatibility evidence may explain ancestry; it
 cannot override the current source, installed package, native ledger, or HIL.
@@ -352,7 +354,7 @@ CI, installation, or this README.
 
 ## Current release boundary
 
-The source branch may call 2.0.0 the active stable Codex slot only when its
+The source branch may call 2.1.0 the active stable Codex slot only when its
 version fields agree. Installed-host readiness still requires the exact package
 receipt, clean CI for that commit, supported restart, native route readback, and
 explicit six-way HIL. No README statement substitutes for those proofs.

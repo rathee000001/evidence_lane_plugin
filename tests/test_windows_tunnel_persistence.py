@@ -70,7 +70,8 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert "if ($Activate)" in installer
     assert "MigrateCurrentRuntime" not in installer
     assert "evidence-lane.versioned-secure-mcp-tunnel-installation.v1" in installer
-    assert "Pinned Evidence Lane 2.0.0 $SlotRole secure MCP tunnel" in installer
+    assert "Pinned Evidence Lane $release $SlotRole secure MCP tunnel" in installer
+    assert 'if ($SlotRole -eq "fallback") { "2.0.0" } else { "2.1.0" }' in installer
     assert "Google Drive" not in installer
     assert "GDrive" not in installer
 

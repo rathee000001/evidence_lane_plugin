@@ -112,10 +112,10 @@ export const studioArtifactCatalog: readonly StudioArtifact[] = [
   },
   {
     id: "capability-matrix-csv",
-    label: "Evidence Lane 2.0.0 Codex capability matrix",
+    label: "Evidence Lane 2.1.0 Codex capability matrix",
     format: "CSV",
-    href: "/studio-artifacts/evidence-lane-capability-matrix-v200.csv",
-    identity: "release=2.0.0 rows=3",
+    href: "/studio-artifacts/evidence-lane-capability-matrix-v210.csv",
+    identity: "release=2.1.0 rows=3",
     status: "COMMITTED_PUBLIC_SAFE",
     purpose: "Portable comparison of durable, headless, and ephemeral Codex profiles.",
     boundary: "Declared capability must still be confirmed by live host receipts.",
