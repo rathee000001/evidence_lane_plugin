@@ -112,6 +112,7 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
         status="BLOCKED",
     )
     normalized: list[dict[str, Any]] = []
+    first_number: int | None = None
     for index, row in enumerate(rows, start=1):
         require(
             isinstance(row, dict),
@@ -121,10 +122,15 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
             position=index,
         )
         number = row.get("number", row.get("sequence", index))
+        if first_number is None and isinstance(number, int):
+            first_number = number
         require(
-            isinstance(number, int) and number == index,
+            isinstance(number, int)
+            and number >= 1
+            and first_number is not None
+            and number == first_number + index - 1,
             "STATE_TRAVEL_TASK_SEQUENCE_INVALID",
-            "State Travel task rows must be contiguous and preserve visible order.",
+            "State Travel task rows must use one positive contiguous visible range.",
             status="BLOCKED",
             position=index,
             number=number,
@@ -155,14 +161,98 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
             status="BLOCKED",
             position=index,
         )
-        normalized.append(
-            {
-                "number": index,
-                "task_id": task_id,
-                "step": text,
-                "status": status,
-            }
+        normalized_row: dict[str, Any] = {
+            "number": number,
+            "task_id": task_id,
+            "step": text,
+            "status": status,
+        }
+        canonical_plan_sequence = row.get(
+            "canonical_plan_sequence",
+            row.get("plan_sequence"),
         )
+        if canonical_plan_sequence is not None:
+            require(
+                isinstance(canonical_plan_sequence, int)
+                and canonical_plan_sequence >= index,
+                "STATE_TRAVEL_CANONICAL_PLAN_SEQUENCE_INVALID",
+                "A current Goal row must retain a valid canonical Plan sequence when supplied.",
+                status="BLOCKED",
+                position=index,
+                canonical_plan_sequence=canonical_plan_sequence,
+            )
+            normalized_row["canonical_plan_sequence"] = canonical_plan_sequence
+        panel_role = str(row.get("panel_role") or "").strip().upper()
+        if panel_role:
+            require(
+                panel_role
+                in {"STANDARD", "HIL_GATE", "PHYSICALLY_FINAL_HIL"},
+                "STATE_TRAVEL_TASK_PANEL_ROLE_INVALID",
+                "A State Travel row contains an unsupported persistent-panel role.",
+                status="BLOCKED",
+                position=index,
+                panel_role=panel_role,
+            )
+            normalized_row["panel_role"] = panel_role
+        raw_steers = row.get("steer_deltas")
+        if raw_steers:
+            require(
+                isinstance(raw_steers, list) and len(raw_steers) <= 500,
+                "STATE_TRAVEL_TASK_STEERS_INVALID",
+                "A task-panel row contains an invalid steer Delta list.",
+                status="BLOCKED",
+                position=index,
+            )
+            normalized_steers: list[dict[str, Any]] = []
+            for steer_position, steer in enumerate(raw_steers, start=1):
+                require(
+                    isinstance(steer, dict),
+                    "STATE_TRAVEL_TASK_STEER_INVALID",
+                    "Every task-panel steer Delta must be a structured row.",
+                    status="BLOCKED",
+                    position=index,
+                    steer_position=steer_position,
+                )
+                delta_id = str(steer.get("delta_id") or "").strip()
+                delta_text = steer.get("text")
+                boundary = str(
+                    steer.get("boundary") or "BEFORE_NEXT_HIL"
+                ).strip().upper()
+                require(
+                    bool(delta_id)
+                    and len(delta_id) <= 96
+                    and isinstance(delta_text, str)
+                    and bool(delta_text.strip())
+                    and len(delta_text) <= 50000
+                    and bool(boundary)
+                    and len(boundary) <= 128,
+                    "STATE_TRAVEL_TASK_STEER_CONTRACT_INVALID",
+                    "A task-panel steer Delta has incomplete immutable content.",
+                    status="BLOCKED",
+                    position=index,
+                    steer_position=steer_position,
+                )
+                normalized_steer = {
+                    "delta_id": delta_id,
+                    "text": delta_text,
+                    "boundary": boundary,
+                    "boundary_defaulted": bool(
+                        steer.get(
+                            "boundary_defaulted",
+                            boundary == "BEFORE_NEXT_HIL",
+                        )
+                    ),
+                    "classification": str(
+                        steer.get("classification") or "LINKED_EXISTING_STEP"
+                    ),
+                    "linked_task_id": str(
+                        steer.get("linked_task_id") or task_id
+                    ),
+                    "recorded_by": str(steer.get("recorded_by") or "UNKNOWN"),
+                }
+                normalized_steers.append(normalized_steer)
+            normalized_row["steer_deltas"] = normalized_steers
+        normalized.append(normalized_row)
     in_progress = [row for row in normalized if row["status"] == "IN_PROGRESS"]
     require(
         len(in_progress) <= 1,
@@ -170,6 +260,13 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
         "The persistent task panel may contain at most one in-progress row.",
         status="BLOCKED",
         active_rows=[row["number"] for row in in_progress],
+    )
+    require(
+        not normalized or len(in_progress) == 1,
+        "STATE_TRAVEL_ACTIVE_STEP_REQUIRED",
+        "A non-empty persistent task panel requires exactly one in-progress row.",
+        status="BLOCKED",
+        task_count=len(normalized),
     )
     return normalized
 
@@ -234,4 +331,31 @@ def normalize_additive_deltas(rows: Any) -> list[dict[str, Any]]:
                 "defaulted_to_pre_hil": boundary == "BEFORE_NEXT_HIL",
             }
         )
+    delta_ids = [row["delta_id"] for row in normalized]
+    require(
+        len(delta_ids) == len(set(delta_ids)),
+        "STATE_TRAVEL_DELTA_ID_DUPLICATE",
+        "A State Travel handoff may seal each additive Delta ID only once.",
+        status="BLOCKED",
+        delta_ids=delta_ids,
+    )
     return normalized
+
+
+def additive_deltas_from_task_list(
+    task_list: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Project every persisted Plan Lane steer into the State Travel Delta seal."""
+
+    projected: list[dict[str, Any]] = []
+    for task in task_list:
+        for steer in task.get("steer_deltas", []):
+            projected.append(
+                {
+                    "delta_id": steer["delta_id"],
+                    "text": steer["text"],
+                    "linked_step": task["number"],
+                    "boundary": steer["boundary"],
+                }
+            )
+    return normalize_additive_deltas(projected)

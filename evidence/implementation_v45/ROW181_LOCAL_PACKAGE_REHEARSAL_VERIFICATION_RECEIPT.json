@@ -1,0 +1,108 @@
+{
+  "schema": "evidence-lane.row181-local-package-rehearsal-verification.v1",
+  "public_row": 181,
+  "persistent_task_position": 109,
+  "status": "PASS_NON_LIFECYCLE_LOCAL_PACKAGE_REHEARSAL",
+  "completion_scope": "LOCAL_PACKAGE_REHEARSAL_ONLY",
+  "governance_boundary": {
+    "accepted_pointer_moved": false,
+    "candidate_id": null,
+    "fuse_invoked": false,
+    "git_invoked_by_packager": false,
+    "governed_candidate_created": false,
+    "lifecycle_refresh_invoked": false,
+    "source_update_confirmed": false
+  },
+  "base_anchor": {
+    "commit": "7133107020262cec9dce8bd1c70e46b6ded07800",
+    "tree": "f6c6e16ec4e781dd89ade2c2dbf6a26522c50744",
+    "meaning": "SEALED_V1_4_BASE_ANCHOR_NOT_A_CLAIM_THAT_CURRENT_DIRTY_BYTES_EQUAL_THIS_TREE"
+  },
+  "working_source": {
+    "identity_algorithm": "SHA256_CANONICAL_MEMBER_RECORDS_V1",
+    "manifest_sha256": "A923EA3173AF9056DF872C196974C6BC3BE62FE35BA37C3F5FA7D1E9DDA00E23",
+    "source_member_count": 337
+  },
+  "archive": {
+    "path": "row181_local_package_rehearsal/evidence-lane-1.4.0+codex.20260808180919-local-rehearsal-FA878537C5BDF19C.zip",
+    "sha256": "4EFD4D4BFCA8CC1D279B3581D2E89DF8A27DE217B9A99D94E445828236192F17",
+    "bytes": 26071866,
+    "member_count": 341,
+    "repeat_build_count": 3,
+    "repeat_build_identity": "EXACT_SHA256_AND_BYTE_COUNT_MATCH_AFTER_REMOTE_ADAPTER_PRODUCTION_BUILD",
+    "posix_member_paths": true,
+    "fixed_member_timestamp": "1980-01-01T00:00:00",
+    "fixed_member_mode": "0600"
+  },
+  "embedded_inventory": {
+    "skills": 15,
+    "public_lane_bundles": 18,
+    "json_documents": 37,
+    "sqlite_databases": 21,
+    "mmd_files": 20,
+    "dot_files": 20,
+    "includes_prompt_studio_json_and_sqlite": true,
+    "includes_locked_env_uop_sqlite_mmd_dot": true,
+    "includes_full_public_lane_sqlite_mmd_dot_png_svg_receipts": true,
+    "includes_codex_metadata": true,
+    "includes_chatgpt_submission_metadata": true,
+    "includes_local_stdio_mcp_definition": true,
+    "includes_remote_adapter_source_and_public_assets": true
+  },
+  "artifact_boundary": {
+    "prompt_studio_browser_json_sha256": "A4D17CB67463A29B0F4C56A198E03810A257397F960CDCBF3FBAD8D23CE19E39",
+    "prompt_studio_sqlite_sha256": "876771D1F4D2A69E4A2CACD6984F227FB5541AE1E7456F87BDD1311FF72C42DB",
+    "prompt_studio_corpus_sha256": "5EB352B11391B3AB8A08DEDE9048F77C275F64E84F9E4369CDC9852FB92A0987",
+    "source": "ROW180_VERIFIED_DETERMINISTIC_BYTES_PACKAGED_BYTE_FOR_BYTE",
+    "regeneration_claim": false
+  },
+  "verification": {
+    "packager_unit_tests": {
+      "status": "PASS",
+      "passed": 6,
+      "failed": 0
+    },
+    "combined_package_cross_surface_mcp_security_and_lane_suite": {
+      "status": "PASS",
+      "passed": 54,
+      "failed": 0,
+      "seconds": 54.75
+    },
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "remote_adapter_production_build": {
+      "status": "PASS",
+      "next_version": "16.1.5",
+      "route_count": 22
+    },
+    "archive_audit": {
+      "status": "PASS",
+      "source_member_hash_mismatches": 0,
+      "sqlite_integrity_failures": 0,
+      "sqlite_foreign_key_failures": 0,
+      "json_parse_failures": 0,
+      "unsafe_member_paths": 0,
+      "duplicate_members": 0
+    }
+  },
+  "negative_proofs": {
+    "cache_or_runtime_members": 0,
+    "live_environment_members": 0,
+    "high_confidence_secret_hits": 0,
+    "meshy_dependency_or_mcp_bindings": 0,
+    "glb_or_gltf_members": 0,
+    "governed_candidate_created": false,
+    "accepted_pointer_movement": false
+  },
+  "artifact_hashes": {
+    "packager_sha256": "DD01906F09FC847C3539C737370074A7F64B9F3E3AE4929041471572571DD2E2",
+    "packager_tests_sha256": "00A388593A2FE031A41AEC9918F18642CF7B063D5EA1E854FEF59011CB9CB51D",
+    "packager_receipt_sha256": "18F23B2A447A1E0C94ACEFBF76131262E03D2F31754AA9662EF7940BA7E483AD"
+  },
+  "deferred_exactly": {
+    "final_committed_source_binding": "ROW183_AFTER_USER_REENABLES_GIT",
+    "governed_refresh_and_candidate_seal": "ROW187",
+    "accepted_candidate": false,
+    "reason": "ROW181_REHEARSAL_MUST_NOT_PREEMPT_THE_PRESERVED_ROW187_REFRESH_OR_FALSELY_BIND_DIRTY_BYTES_TO_THE_BASE_TREE"
+  }
+}

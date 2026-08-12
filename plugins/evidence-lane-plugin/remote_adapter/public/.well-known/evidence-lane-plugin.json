@@ -1,7 +1,7 @@
 {
   "schema": "evidence-lane.public-plugin-metadata.v1",
   "name": "Evidence Lane",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "short_description": "Governed project evidence with durable memory and human-controlled acceptance.",
   "long_description": "Evidence Lane turns authorized project sources and visible AI-task lineage into inspectable, content-sealed evidence packages. It keeps candidates separate from accepted truth, preserves exact source identity and pointer history, resumes exact unfinished work through verified State Travel, and requires an explicit six-way human-in-the-loop decision before promotion.",
   "developer": {
@@ -9,7 +9,6 @@
     "url": "https://github.com/rathee000001"
   },
   "homepage": "https://evidencelane.org",
-  "mcp_endpoint": "https://mcp.evidencelane.org/mcp",
   "logo": "https://evidencelane.org/evidence-lane-icon.png",
   "privacy": "https://evidencelane.org/privacy",
   "terms": "https://evidencelane.org/terms",
@@ -19,22 +18,135 @@
   "repository": "https://github.com/rathee000001/evidence_lane_plugin",
   "interactive_ui": {
     "standard": "MCP Apps",
-    "resource_uri": "ui://evidence-lane/governed-console-v1.html",
+    "resource_uri": "ui://evidence-lane/governed-console-v3.html",
     "mime_type": "text/html;profile=mcp-app",
     "render_tools": [
       "render_runtime_panel",
       "render_project_panel"
     ],
-    "host_boundary": "Evidence Lane supplies supported in-conversation panels; ChatGPT owns its native listing and settings layout."
+    "host_boundary": "The installed Codex-native MCP supplies supported in-conversation panels. This website is documentation only and does not transport lifecycle calls."
   },
   "host_contracts": {
-    "codex": "Plan Lane may project to Codex native Plan mode, Goal, and task panel through a user-mediated /pl and /evi-plan flow.",
-    "chatgpt": "The persistent plugin runtime reads and append-writes its mounted or configured durable host storage; Codex Plan, Goal, and task-panel controls are not claimed."
+    "codex": "Exact-Git full lifecycle. Plan Lane may project to Codex native Plan mode, Goal, and task panel through a user-mediated /pl and /evi-plan flow.",
+    "chatgpt": "DEFERRED_FUTURE_HOST_MARKER_ONLY. No active ChatGPT plugin, remote MCP adapter, tunnel deployment, or installation claim is part of the v2 Codex release."
+  },
+  "skill_surface": {
+    "packaged_count": 15,
+    "visibility": "CODEX_15_PACKAGED_SKILLS; installed-host visibility requires the exact post-install receipt",
+    "codex_packaged_count_verified": 15,
+    "read_safe_workflows": [
+      "Root routing and exact six-control presentation",
+      "Boot ENV/UOP Flash, runtime and accepted-PV observation",
+      "Accepted-PV Entry and Exit Slip observation",
+      "Lane, search, diff, backlog and governed-panel guidance",
+      "Mode, storage and lifecycle-law explanation without mutation"
+    ],
+    "deferred_host_surfaces_are_not_current_release_authority": true
+  },
+  "exposure_profiles": {
+    "codex": {
+      "name": "FULL_LIFECYCLE",
+      "delivery": "exact Git plugin"
+    },
+    "future_chatgpt": {
+      "status": "INTENTIONALLY_DEFERRED_NOT_EXECUTABLE",
+      "install_allowed": false
+    }
+  },
+  "execution_writer_boundary": {
+    "schema": "evidence-lane.execution-writer-boundary.v1",
+    "project_policy": "ONE_GOVERNED_PROJECT",
+    "writer_policy": "ONE_LIVE_WRITER",
+    "execution_order": "LINEAR",
+    "verification_order": "EVIDENCE_FIRST",
+    "execution_profile": {
+      "model": "gpt-5.6-sol",
+      "submodel": "sol",
+      "reasoning_effort": "ultra",
+      "reasoning_speed": "standard"
+    },
+    "execution_profile_change_authority": "EXPLICIT_USER_CHANGE_ONLY",
+    "entry_recovery_agents": "READ_ONLY_ONLY_AT_GENUINE_STATE_TRAVEL_ENTRY",
+    "later_subagents": "EXPLICIT_USER_COMMAND_ONLY",
+    "alternate_checkout_writer": "FORBIDDEN_UNLESS_EXPLICIT_USER_CHANGE",
+    "background_mutation": "FORBIDDEN_UNLESS_EXPLICIT_USER_CHANGE",
+    "browser_profile": "ONE_USER_SELECTED_PROFILE_ONLY_UNLESS_EXPLICIT_USER_CHANGE"
+  },
+  "goal_continuity": {
+    "schema": "evidence-lane.goal-continuity.v1",
+    "receipt_binding": "EXACT_TASK_LIST_SHA256_AND_GOVERNED_SESSION_ID",
+    "plan_authority": "SAME_CANONICAL_PLAN_LANE",
+    "source_boundary": "SAME_ACTIVE_SOURCE_BOUNDARY",
+    "writer_session": "SAME_SINGLE_WRITER_SESSION",
+    "pause_triggers": [
+      "UI_CRASH",
+      "TOKEN_WAIT",
+      "REQUIRED_USER_INPUT",
+      "HIL_WAIT"
+    ],
+    "pause_effect": "PAUSE_DEPENDENT_WORK_ONLY",
+    "goal_completion_effect_while_waiting": "FORBIDDEN",
+    "usage_reporting_task_status_effect": "NONE",
+    "reconstruction_requires": [
+      "ALL_COMPLETED_BUT_STILL_GOVERNING_ROWS",
+      "EXACTLY_ONE_ACTIVE_ROW_WHEN_PANEL_PRESENT",
+      "ALL_PENDING_ROWS"
+    ],
+    "completed_governing_rows_may_be_omitted": false,
+    "goal_completion_allowed_when": "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE"
   },
   "plan_lane": {
     "current_public_projection": "https://evidencelane.org/#current-execution-plan",
+    "sealed_historical_delta_rows": 80,
+    "candidate_comparison_deployment": "https://evidence-lane-chatgpt-mcp-adapter-hllaqjvmi.vercel.app",
+    "candidate_comparison_commit": "93bf4a409faf544a96db8501cbdeefc002f9a32e",
+    "production_role": "HISTORICAL_BASELINE_ONLY_UNTIL_ACCEPTED_PUBLICATION",
+    "live_projection_rows": 116,
+    "governed_receipt_rows": 124,
+    "active_public_row": 184,
+    "active_public_task_position": 104,
+    "active_governed_receipt_position": 112,
+    "last_pre_hil_public_row": 195,
+    "last_pre_hil_governed_receipt_position": 123,
+    "physically_final_hil_public_row": 196,
+    "physically_final_hil_governed_receipt_position": 124,
+    "sealed_origin_panel_sha256": "9533BFC6C96F4E3FC95DC1B5D9D9981EA78957B821CAA9AF90D895C2C6F36A40",
+    "live_panel_hash_algorithm": "SHA256_STABLE_JSON_SEALED_ORIGIN_SHA_PLUS_PUBLIC_ROWS_V1",
+    "live_panel_sha256": "E8752CE9F1AE4F17F1F509A9DFC63468AFD91B41309BA18DED7D0BA09728CA05",
+    "canonical_plan_projection_sha256": "7A314F493335FB0123F06767CA12B5C4D8BC1D9B97127FF6C825799FE000550B",
+    "native_plan_task_count": 84,
+    "native_plan_event_count": 342,
+    "native_plan_event_head_sha256": "A8EED3AFDCAC1A047628B15B0CDC4DCCD6AD8FA5D758D23923BE9E1FF4C2CA70",
+    "native_plan_runtime_sqlite_sha256": "B81D92C3F0EE3F5F93D1078931DDC0EFE846BE74023732A206E1CAB89BCB17AA",
     "steer_default_boundary": "BEFORE_NEXT_HIL",
-    "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED"
+    "persistent_until": "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE",
+    "panel_reactivation": {
+      "schema": "evidence-lane.persistent-panel-reactivation.v1",
+      "triggers": [
+        "TOKEN_DRIVEN_CONTINUATION",
+        "STALLED_GOAL",
+        "CONTEXT_COMPACTION",
+        "BROWSER_RESTART",
+        "CODEX_RESTART",
+        "SESSION_CONTINUATION",
+        "SESSION_RESUME",
+        "STATE_TRAVEL_DESTINATION_ENTRY"
+      ],
+      "first_required_action": "REPROJECT_EXACT_COMPLETE_TASK_LIST",
+      "must_precede": [
+        "SOURCE_INSPECTION",
+        "SOURCE_MUTATION",
+        "TESTING",
+        "GIT_ACTIVITY",
+        "LIFECYCLE_CALL"
+      ],
+      "exactly_one_in_progress": true,
+      "preserve_order_and_row_count": true,
+      "preserve_completed_and_pending_descriptions_unabridged": true,
+      "visible_through_pause_and_hil": true,
+      "drop_allowed_when": "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE"
+    }
   },
+  "release_propagation": "GitHub Markdown, all relevant website pages and footers, the website Delta table, Vercel production from main, and existing Devpost project 1348634/evidence_os must resolve from the same accepted release evidence.",
   "publication_state": "CANDIDATE_PENDING_VERIFICATION"
 }

@@ -119,7 +119,6 @@ export function ModeOperatorExplorer({ data }: { data: OperatorGuide }) {
   const [origin, setOrigin] = useState<SelectionOrigin>("plugin");
   const active = data.modes.find((mode) => mode.id === activeId) ?? data.modes[0];
   const contract = active.variants[origin];
-
   return (
     <div className="operatorExplorer">
       <header className="operatorExplorerHeader">

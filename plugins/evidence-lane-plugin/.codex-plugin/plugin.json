@@ -1,7 +1,7 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "1.3.0+codex.20260806060737",
-  "description": "Private six-control Evidence Lane with secret-safe tracked intake, reconciled SQLite/Mermaid/DOT brains, explicit Chat Lineage, and exact-APPROVE Fuse.",
+  "version": "2.0.0+codex.20260811150000",
+  "description": "Human-governed project memory that preserves exact evidence, resumes unfinished work, and keeps acceptance under the user's control.",
   "author": {
     "name": "Praveen Rathee",
     "url": "https://github.com/rathee000001"
@@ -17,22 +17,24 @@
     "hil"
   ],
   "skills": "./skills/",
-  "apps": "./.app.json",
   "interface": {
     "displayName": "Evidence Lane",
-    "shortDescription": "Run six governed controls over universal evidence brains.",
-    "longDescription": "Evidence Lane exposes Boot, Rollback, Build, Refresh, Mode, and Source Intake after root /evi. Boot atomically verifies locked ENV15/UOP15 Flash, prewarms optional native OCR dependencies before the MCP event loop, attaches secret-redacted visible lineage capture, and routes durable local versus configured remote storage fail-closed; Exit Boot detaches that runtime while preserving the installation and immutable evidence. Source Intake auto-detects all eighteen lanes and Project Engulf, uses tracked-only Git intake plus fail-closed secret and operational-path exclusions before SQLite/CAS/FTS, offers AUTO/REQUIRED/DISABLED Git history enrichment, and always includes Chat Lineage. Each lane's SQLite facts must reconcile with exact Mermaid and DOT node, edge, subgraph, and count claims. Mode accepts ordered known intersections and explicit custom schemas. The Codex-only /evi-plan sidecar pairs native /pl planning with a canonical Plan Lane and copy/paste Goal prompt; ChatGPT uses its separate mounted persistent plugin store without claiming Codex Plan, Goal, or task-panel UI. The separate /evi-plugin administrative sidecar governs at most eight persistent connectors or AI toolchains with independent Codex/ChatGPT profiles, one-time purpose and role schemas, exact drop, and optional declared backend runtimes. Natural HIL intent is classified without promotion, while exact APPROVE alone invokes Fuse. State Travel remains user-triggered and preserves exact unfinished work or explicit accepted context, including pointer/candidate, source, Plan Lane, additive Deltas, resume row, and host execution profile.",
+    "shortDescription": "Evidence Lane 2.0.0 - 62 native actions (21 read / 41 write) - 15 governed skills.",
+    "longDescription": "Evidence Lane is human-governed project memory for Codex. It preserves exact source, evidence, Delta, task, candidate, and accepted-version identity across long-running work. Evidence Lane 2.0.0 is the stable Codex release identity. This package carries fifteen governed skills and one package-local native MCP server named evidence-lane with sixty-two canonical actions: twenty-one read-only and forty-one write-capable. It supports Source Intake, Build, Refresh, pointer-only Rollback, exact-APPROVE Fuse, State Travel, Mode, local durable storage, plugin administration, panels, search, diff, and governed Git evidence while keeping candidate acceptance human-controlled. Historical 1.5.0 Git, package, and PV receipts remain immutable archive evidence. Google Drive is a separately named and authorized connector, never the Evidence Lane MCP, lifecycle proof, namespace owner, or durable local project authority. Codex lifecycle evidence must come from the package-local native server, never codex_apps, plugin-runtime, generated namespaces, direct-stdio fallback, or an external connector. Natural HIL intent never promotes a candidate, and only exact case-sensitive APPROVE may authorize Fuse on a genuinely write-capable governed host.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "websiteURL": "https://evidencelane.org",
     "capabilities": [
+      "Interactive",
       "Read",
       "Write"
     ],
+    "privacyPolicyURL": "https://evidencelane.org/privacy",
+    "termsOfServiceURL": "https://evidencelane.org/terms",
     "defaultPrompt": [
-      "Run /evi, atomically Boot plus locked ENV/UOP Flash, and show the six controls.",
-      "Use /evi-source-intake with ordered sources and auto-detection or exact lane overrides.",
-      "Use /evi-refresh to seal an unaccepted candidate, show six-way HIL, and wait for my exact decision."
+      "Boot Evidence Lane, verify ENV/UOP Flash, and show the six controls with host availability.",
+      "Show the accepted PV, Entry/Exit Slips, source lanes, and persistent plan without mutation.",
+      "Explain the current six-way HIL and exact next decision in clear business language."
     ],
     "brandColor": "#18A9C8",
     "composerIcon": "./assets/evidence-lane-icon.png",

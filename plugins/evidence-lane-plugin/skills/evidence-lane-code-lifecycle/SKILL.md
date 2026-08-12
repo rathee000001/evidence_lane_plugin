@@ -10,7 +10,7 @@ Use one linear state machine. Runtime context is never accepted evidence.
 ## Non-negotiable gates
 
 - `/evi-state-travel` may run only after an explicit user request or genuine
-  host-context exhaustion and in a genuinely fresh destination task or chat. A
+  host-context exhaustion and in a genuinely fresh destination Codex task. A
   prepared handoff is eligibility evidence, not an automatic instruction. By
   default preserve the exact unfinished state, task/pending correction,
   candidate, pointer base, live source, Plan Lane, additive Deltas, resume row,
@@ -34,7 +34,15 @@ Use one linear state machine. Runtime context is never accepted evidence.
   monotonic PV ordinal.
 - Record visible operational evidence only. Redact secrets and never store
   hidden chain-of-thought or private model reasoning.
-- Remote Git writes require a separately prepared, exact one-use confirmation.
+- Remote Git writes require a separately prepared exact action. Version 2 may
+  execute the sole registered non-protected test branch without a per-push
+  confirmation token; main, merge, PR acceptance, force, branch mismatch, and
+  host-credential intake remain forbidden.
+- Preserve one governed project, one live writer, linear execution, and
+  evidence-first verification under the exact host execution profile. Read-only
+  recovery agents are allowed only at a genuine State Travel entry. After
+  entry, no subagent, alternate-checkout writer, background mutation, or second
+  browser profile is allowed unless the user explicitly changes this boundary.
 
 ## Six public controls
 
@@ -50,6 +58,14 @@ After root `/evi`, expose exactly this order:
 State Travel remains a separate recovery event and is shown only for its two
 allowed triggers. Internal MCP tool names remain stable for compatibility and
 are not additional public controls.
+
+Skills, commands, receipts, and saved contracts use only the canonical bare MCP
+tool names advertised by the exact active server. Host-generated connector
+namespaces are display and transport metadata, not lifecycle identity. The
+stdio compatibility boundary may normalize one only when the remaining name is
+in that server's live registered-tool catalog; unknown names remain unchanged
+and fail closed. Never route an Evidence Lane lifecycle call through a storage
+connector or another plugin namespace.
 
 `/evi-source-intake` accepts ordered sources, auto-detects their canonical
 lanes, and accepts exact per-source overrides. It supports all eighteen lanes
@@ -69,9 +85,25 @@ lifecycle position without creating a candidate or moving a pointer.
 Plan mode is not active, return the `/pl` reminder without persisting a plan.
 After planning, persist the canonical Plan Lane and return the short prompt the
 user copies into the host-owned Goal. Linked steers append to an existing row;
-unrelated steers append a new numbered row. The default steer boundary is
-before the next HIL, and the full task panel persists until that HIL. ChatGPT
-uses its mounted persistent plugin store and never claims Codex Plan/Goal UI.
+unrelated steers insert a new numbered row before the next HIL when present.
+Mark the physically final HIL task with `panel_role=PHYSICALLY_FINAL_HIL`, and
+never place a later correction behind it. The default steer boundary is
+before the next HIL, and the full task panel persists until that HIL.
+
+If the host task panel disappears after a token continuation, stalled Goal,
+compaction, browser or Codex restart, session continuation, resume, or State
+Travel entry, re-project the complete canonical Plan Lane first. Do this before
+source inspection, mutation, testing, Git activity, or another lifecycle call.
+Keep exactly one active row, preserve every completed and pending description
+unabridged, and drop the panel only after the physically final HIL decision and
+all decision-dependent work are complete.
+
+The host Goal remains attached to the same canonical Plan Lane, active source
+boundary, and single-writer session throughout that interval. A UI crash,
+token wait, required user input, or HIL wait pauses dependent work only and may
+not complete the Goal. Usage reporting is separate accounting and has no task
+status effect. Every reconstruction includes completed-but-still-governing
+rows, the one active row, and all pending rows.
 
 ## Brain and sector law
 
@@ -100,13 +132,13 @@ limited to eight additional active plugins; drop requires its exact token.
 
 1. Append requested Deltas with `pv_plan_tasks`; never delete, reorder, or
    silently complete backlog history. Record each steer through
-   `pv_plan_steer_delta`, linking it to an existing row or appending a new row.
+   `pv_plan_steer_delta`, linking it to an existing row or inserting a new row
+   before the next governed HIL.
 2. Classify exactly one bounded task and record visible activities.
 3. Use accepted evidence as entry truth and live repository evidence for
    source changed after entry.
-4. Confirm final host source state with
-   `HOST_SANDBOX_FINAL_STATE_CONFIRMED` for writable Codex or
-   `USER_APPLIED_AND_PULL_CONFIRMED` for user-mediated ChatGPT.
+4. Confirm final Codex source state with
+   `HOST_SANDBOX_FINAL_STATE_CONFIRMED`.
 5. `task_complete_and_refresh` seals the final unaccepted candidate. A changed
    schema/tool identity permits a declared full fallback; otherwise reuse
    unchanged lane and chunk artifacts.

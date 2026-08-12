@@ -1,21 +1,37 @@
-"""Universal tool-only MCP contract for Codex and ChatGPT-capable hosts."""
+"""Universal MCP runtime contract; 2.0.0 is the Codex package release."""
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 from typing import Any, Literal
 
+import anyio
 from mcp.server.auth.provider import TokenVerifier
+from mcp.server.auth.routes import build_resource_metadata_url
 from mcp.server.auth.settings import AuthSettings
 from mcp.server.fastmcp import FastMCP
-from mcp.types import Icon, ToolAnnotations
+from mcp.types import CallToolResult, Icon, TextContent, ToolAnnotations
+from mcp.types import Tool as MCPTool
 from pydantic import AnyHttpUrl
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from .auth import OAuthJWTConfig, OAuthJWTVerifier, StaticBearerVerifier
+from .auth import (
+    READ_SCOPE,
+    REMOTE_GIT_SCOPE,
+    WRITE_SCOPE,
+    OAuthAuthorizationError,
+    OAuthJWTConfig,
+    OAuthJWTVerifier,
+    OAuthToolAuthorizationPolicy,
+    StaticBearerVerifier,
+)
 from .constants import ENGINE_VERSION
-from .github_automation_governance import apply_fastmcp_tool_filter
+from .github_automation_governance import (
+    apply_fastmcp_tool_filter,
+)
 from .lane_engine import prewarm_native_dependencies
 from .mcp_apps import (
     GOVERNED_PANEL_URI,
@@ -26,9 +42,203 @@ from .mcp_apps import (
     governed_panel_resource_meta,
     governed_panel_tool_meta,
 )
+from .mcp_stdio_compat import (
+    install_tool_namespace_compat,
+    run_discovery_compatible_stdio,
+)
 from .service import EvidenceLaneService
 
 _PUBLIC_SITE_URL = "https://evidencelane.org"
+NATIVE_MCP_SERVER_IDENTITY = "evidence-lane"
+NATIVE_MCP_TOOL_NAMESPACE = "mcp__evidence_lane__"
+
+_RUNTIME_GLOBAL_TOOL_NAMES = frozenset(
+    {
+        "lane_catalog",
+        "lifecycle_transition_law",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "session_flash_status",
+    }
+)
+
+FULL_LIFECYCLE_EXPOSURE_PROFILE = "FULL_LIFECYCLE"
+CODEX_READ_TOOL_NAMES = (
+    "connector_plugin_catalog",
+    "connector_plugin_settings",
+    "fetch",
+    "lane_catalog",
+    "lane_fetch",
+    "lane_search",
+    "lane_status",
+    "lifecycle_transition_law",
+    "prompt_index_status",
+    "pv_diff",
+    "pv_query",
+    "pv_status",
+    "pv_summary",
+    "pv_task_backlog",
+    "render_project_panel",
+    "render_runtime_panel",
+    "runtime_activation_status",
+    "runtime_doctor",
+    "search",
+    "session_flash_status",
+    "storage_connector_inspect",
+)
+
+_FULL_LIFECYCLE_INSTRUCTIONS = (
+    "A prepared exact-work handoff makes /evi-state-travel eligible but "
+    "never auto-selects or consumes it. Display and run State Travel only "
+    "after an explicit user request or genuine host-context exhaustion. "
+    "Otherwise start /evi with atomic /evi-boot plus locked ENV/UOP Flash "
+    "as the first normal action, then display "
+    "exactly Boot, Rollback, Build, Refresh, Mode, and Source Intake. "
+    "Source Intake is one generalized ordered control for all eighteen "
+    "lanes and Project Engulf and always includes Chat Lineage. Fuse "
+    "requires exact APPROVE through pv_fuse and seals a fresh-window "
+    "handoff without rebuilding. When explicitly triggered, State Travel "
+    "verifies atomic Boot/Flash, the pointer base, any candidate, live "
+    "source, Plan Lane, additive Deltas, and host execution profile in a "
+    "fresh task. It resumes unfinished work at the exact row; an "
+    "accepted-entry request waits. Codex Plan/Goal/task-panel controls remain "
+    "bound to the exact governed task. A booted session remains active until "
+    "/evi-exit-boot. "
+    "Before every HIL or State Travel stop, visibly render the returned "
+    "suggested_next_prompt. The host owns composer suggestions; never "
+    "claim the MCP wrote the prompt bar and never auto-submit it. "
+    "Never infer HIL approval, store private reasoning, expose connector "
+    "secrets, or write remote Git without the exact governed action."
+)
+
+
+class _MCPExposureBoundary:
+    """Apply the Codex-native authorization boundary before service invocation."""
+
+    def __init__(
+        self,
+        application: EvidenceLaneService,
+        exposure_profile: str,
+        authorization_policy: OAuthToolAuthorizationPolicy | None = None,
+    ) -> None:
+        self._application = application
+        self._exposure_profile = exposure_profile
+        self._authorization_policy = authorization_policy
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._application, name)
+
+    def invoke(
+        self,
+        tool_name: str,
+        callback: Any,
+        *args: Any,
+        lifecycle: bool = False,
+        **kwargs: Any,
+    ) -> Any:
+        if self._authorization_policy is not None:
+            project_id: str | None = None
+            if tool_name not in _RUNTIME_GLOBAL_TOOL_NAMES:
+                raw_project = kwargs.get("project_id")
+                if raw_project is None and args:
+                    raw_project = args[0]
+                project_id = str(raw_project) if raw_project is not None else ""
+            try:
+                self._authorization_policy.authorize_current_request(
+                    tool_name=tool_name,
+                    lifecycle=lifecycle,
+                    project_id=project_id,
+                )
+            except OAuthAuthorizationError as error:
+                return _oauth_authorization_result(
+                    error,
+                    config=self._authorization_policy.config,
+                    tool_name=tool_name,
+                    lifecycle=lifecycle,
+                )
+        return self._application.invoke(
+            tool_name,
+            callback,
+            *args,
+            lifecycle=lifecycle,
+            **kwargs,
+        )
+
+
+def _oauth_authorization_result(
+    error: OAuthAuthorizationError,
+    *,
+    config: OAuthJWTConfig,
+    tool_name: str,
+    lifecycle: bool,
+) -> CallToolResult:
+    challenge_meta: dict[str, Any] | None = None
+    if error.code == "AUTHENTICATED_OAUTH_CONTEXT_REQUIRED" or error.required_scopes:
+        error_name = (
+            "invalid_token"
+            if error.code == "AUTHENTICATED_OAUTH_CONTEXT_REQUIRED"
+            else "insufficient_scope"
+        )
+        description = (
+            "A valid Evidence Lane OAuth access token is required."
+            if error_name == "invalid_token"
+            else "The access token lacks one or more scopes required by this tool."
+        )
+        metadata_url = str(
+            build_resource_metadata_url(AnyHttpUrl(config.audience))
+        )
+        parameters = [
+            f'error="{error_name}"',
+            f'error_description="{description}"',
+            f'resource_metadata="{metadata_url}"',
+        ]
+        if error.required_scopes:
+            scope_value = " ".join(error.required_scopes)
+            parameters.append(f'scope="{scope_value}"')
+        challenge_meta = {"mcp/www_authenticate": ["Bearer " + ", ".join(parameters)]}
+
+    structured = {
+        "schema": "evidence-lane.oauth-authorization-block.v1",
+        "status": "AUTHORIZATION_BLOCKED",
+        "code": error.code,
+        "requested_tool": tool_name,
+        "lifecycle_action": lifecycle,
+        "mutation_performed": False,
+        "pointer_moved": False,
+    }
+    return CallToolResult(
+        isError=True,
+        content=[
+            TextContent(
+                type="text",
+                text="Evidence Lane authorization blocked this tool without mutation.",
+            )
+        ],
+        structuredContent=structured,
+        _meta=challenge_meta,
+    )
+
+
+def _normalize_exposure_profile(value: str | None) -> str:
+    normalized = (value or FULL_LIFECYCLE_EXPOSURE_PROFILE).strip().upper()
+    aliases = {
+        "": FULL_LIFECYCLE_EXPOSURE_PROFILE,
+        "CODEX_FULL_LIFECYCLE": FULL_LIFECYCLE_EXPOSURE_PROFILE,
+        FULL_LIFECYCLE_EXPOSURE_PROFILE: FULL_LIFECYCLE_EXPOSURE_PROFILE,
+    }
+    try:
+        return aliases[normalized]
+    except KeyError as exc:
+        raise RuntimeError(
+            "Unsupported EVIDENCE_LANE_MCP_EXPOSURE_PROFILE: " + normalized
+        ) from exc
+
+
+def _mcp_instructions(exposure_profile: str) -> str:
+    if exposure_profile != FULL_LIFECYCLE_EXPOSURE_PROFILE:
+        raise RuntimeError("Evidence Lane 2.0 supports only the Codex full lifecycle.")
+    return _FULL_LIFECYCLE_INSTRUCTIONS
 
 _READ_ONLY = ToolAnnotations(
     readOnlyHint=True,
@@ -63,6 +273,182 @@ def _meta(label: str, done: str) -> dict[str, Any]:
     }
 
 
+def _evidence_lane_icons(public_site_url: str) -> list[Icon]:
+    return [
+        Icon(
+            src=f"{public_site_url.rstrip('/')}/evidence-lane-icon.png",
+            mimeType="image/png",
+            sizes=["256x256"],
+        )
+    ]
+
+
+def _apply_evidence_lane_tool_icons(mcp: FastMCP, public_site_url: str) -> None:
+    """Bind the stable Evidence Lane identity to every advertised tool record."""
+
+    for tool in mcp._tool_manager.list_tools():
+        tool.icons = _evidence_lane_icons(public_site_url)
+
+
+class _EvidenceLaneFastMCP(FastMCP):
+    """Expose current top-level tool security schemes plus the legacy mirror."""
+
+    async def list_tools(self) -> list[MCPTool]:
+        listed = await super().list_tools()
+        result: list[MCPTool] = []
+        for tool in listed:
+            payload = tool.model_dump(by_alias=True, exclude_none=True)
+            security_schemes = (tool.meta or {}).get("securitySchemes")
+            if security_schemes is not None:
+                payload["securitySchemes"] = security_schemes
+            result.append(MCPTool.model_validate(payload))
+        return result
+
+
+def _apply_oauth_tool_security_schemes(
+    mcp: FastMCP,
+    exposure_profile: str,
+) -> None:
+    for tool in mcp._tool_manager.list_tools():
+        scopes = [READ_SCOPE]
+        is_write = bool(
+            tool.annotations is not None
+            and tool.annotations.readOnlyHint is False
+        )
+        if is_write:
+            scopes.append(WRITE_SCOPE)
+            if tool.name in {"remote_git_prepare_push", "remote_git_execute_push"}:
+                scopes.append(REMOTE_GIT_SCOPE)
+        security_schemes = [{"type": "oauth2", "scopes": scopes}]
+        tool.meta = {
+            **(tool.meta or {}),
+            "securitySchemes": security_schemes,
+        }
+
+
+def _native_route_receipt(
+    mcp: FastMCP,
+    exposure_profile: str,
+    oauth_config: OAuthJWTConfig | None = None,
+) -> dict[str, Any]:
+    """Seal the exact native catalog without treating a host prefix as identity."""
+
+    tools = sorted(mcp._tool_manager.list_tools(), key=lambda item: item.name)
+    names = [tool.name for tool in tools]
+    catalog = [
+        {
+            "name": tool.name,
+            "title": tool.title,
+            "description": tool.description,
+            "input_schema": tool.parameters,
+            "output_schema": tool.output_schema,
+            "icons": [
+                icon.model_dump(by_alias=True, exclude_none=True)
+                for icon in (tool.icons or [])
+            ],
+            "annotations": (
+                tool.annotations.model_dump(exclude_none=True)
+                if tool.annotations is not None
+                else None
+            ),
+            "meta": tool.meta,
+        }
+        for tool in tools
+    ]
+    canonical = json.dumps(
+        catalog,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    project_scoped_tools = [
+        tool for tool in tools if tool.name not in _RUNTIME_GLOBAL_TOOL_NAMES
+    ]
+    missing_project_route = sorted(
+        tool.name
+        for tool in project_scoped_tools
+        if "project_id" not in set(tool.parameters.get("required") or [])
+    )
+    catalog_valid = len(names) == len(set(names)) and not missing_project_route
+    return {
+        "schema": "evidence-lane.native-mcp-route-receipt.v1",
+        "status": "PASS" if catalog_valid else "BLOCKED",
+        "server_identity": NATIVE_MCP_SERVER_IDENTITY,
+        "canonical_tool_namespace": NATIVE_MCP_TOOL_NAMESPACE,
+        "exposure_profile": exposure_profile,
+        "tool_count": len(names),
+        "tool_names_unique": len(names) == len(set(names)),
+        "runtime_global_tool_count": len(
+            [name for name in names if name in _RUNTIME_GLOBAL_TOOL_NAMES]
+        ),
+        "project_scoped_tool_count": len(project_scoped_tools),
+        "project_route_argument": "project_id",
+        "project_route_argument_required": not missing_project_route,
+        "project_route_schema_status": (
+            "PASS" if not missing_project_route else "BLOCKED"
+        ),
+        "project_scoped_tools_missing_project_id": missing_project_route,
+        "transport_project_binding": (
+            "OAUTH_SUBJECT_CLIENT_ENVIRONMENT_ROLE_AND_EXACT_PROJECT"
+            if oauth_config is not None
+            else "NONE_TRANSPORT_ONLY"
+        ),
+        "project_resolution": (
+            "EXACT_PROJECT_ID_TO_CONFIGURED_ROOT_PROJECTS_SUBDIRECTORY"
+        ),
+        "cross_project_fallback_allowed": False,
+        "oauth_authorization_policy": {
+            "enabled": oauth_config is not None,
+            "base_scope": READ_SCOPE if oauth_config is not None else None,
+            "per_tool_security_schemes": oauth_config is not None,
+            "deployment_environment": (
+                oauth_config.deployment_environment
+                if oauth_config is not None
+                else None
+            ),
+            "allowed_client_count": (
+                len(oauth_config.allowed_client_ids)
+                if oauth_config is not None
+                else 0
+            ),
+            "roles_claim": (
+                oauth_config.roles_claim if oauth_config is not None else None
+            ),
+            "projects_claim": (
+                oauth_config.projects_claim if oauth_config is not None else None
+            ),
+            "environment_claim": (
+                oauth_config.environment_claim if oauth_config is not None else None
+            ),
+            "production_lifecycle_owner_only": oauth_config is not None,
+            "remote_git_owner_only": oauth_config is not None,
+            "remote_git_scope": (
+                REMOTE_GIT_SCOPE if oauth_config is not None else None
+            ),
+        },
+        "tool_catalog_sha256": hashlib.sha256(canonical).hexdigest().upper(),
+        "mcp_apps_resource_uri": GOVERNED_PANEL_URI,
+        "host_display_namespace_is_authority": False,
+        "accepted_display_namespaces": [
+            "evidence_lane",
+            "evidence_lane_<8-to-64-lowercase-hex-collision-suffix>",
+        ],
+        "rejected_lifecycle_surfaces": [
+            "codex_apps",
+            "google_drive",
+            "plugin_runtime",
+            "external_connector",
+            "network_tunnel",
+            "legacy_version_namespace",
+        ],
+        "surface_placement": {
+            "codex": "NATIVE_PLUGIN_FULL_LIFECYCLE_ONLY",
+            "external_connector_inside_codex_allowed": False,
+        },
+        "catalog_reload_required_after_package_change": True,
+    }
+
+
 def create_mcp_server(
     *,
     service: EvidenceLaneService | None = None,
@@ -73,26 +459,46 @@ def create_mcp_server(
     oauth_config: OAuthJWTConfig | None = None,
     public_site_url: str | None = None,
     allowed_tool_names: str | tuple[str, ...] | list[str] | None = None,
+    exposure_profile: str | None = None,
 ) -> FastMCP:
-    application = service or EvidenceLaneService()
-    release_identity = application.engine.doctor()["engine"]
+    backend_application = service or EvidenceLaneService()
+    release_identity = backend_application.engine.doctor()["engine"]
+    exact_exposure_profile = _normalize_exposure_profile(exposure_profile)
+    authorization_policy = (
+        OAuthToolAuthorizationPolicy(oauth_config)
+        if oauth_config is not None
+        else None
+    )
+    application = _MCPExposureBoundary(
+        backend_application,
+        exact_exposure_profile,
+        authorization_policy,
+    )
+    effective_allowed_tool_names = allowed_tool_names
     auth = None
     verifier: TokenVerifier | None = None
     if bearer_token and oauth_config:
         raise ValueError("Choose either static bearer or OAuth JWT authentication.")
     if bearer_token:
         exact_base = (base_url or f"http://{host}:{port}").rstrip("/")
+        exact_resource = f"{exact_base}/mcp"
         auth = AuthSettings(
             issuer_url=AnyHttpUrl(f"{exact_base}/"),
-            resource_server_url=AnyHttpUrl(f"{exact_base}/"),
+            resource_server_url=AnyHttpUrl(exact_resource),
             required_scopes=["evidence-lane:read"],
         )
         verifier = StaticBearerVerifier(bearer_token)
     elif oauth_config:
         exact_base = (base_url or f"http://{host}:{port}").rstrip("/")
+        exact_resource = f"{exact_base}/mcp"
+        if oauth_config.audience != exact_resource:
+            raise ValueError(
+                "OAuth audience must exactly equal the externally visible MCP "
+                f"resource URL: {exact_resource}"
+            )
         auth = AuthSettings(
             issuer_url=AnyHttpUrl(oauth_config.issuer_url),
-            resource_server_url=AnyHttpUrl(f"{exact_base}/"),
+            resource_server_url=AnyHttpUrl(exact_resource),
             required_scopes=list(oauth_config.required_scopes),
         )
         verifier = OAuthJWTVerifier(oauth_config)
@@ -101,40 +507,11 @@ def create_mcp_server(
         or os.environ.get("EVIDENCE_LANE_PUBLIC_SITE_URL")
         or _PUBLIC_SITE_URL
     ).rstrip("/")
-    mcp = FastMCP(
+    mcp = _EvidenceLaneFastMCP(
         "Evidence Lane",
-        instructions=(
-            "A prepared exact-work handoff makes /evi-state-travel eligible but "
-            "never auto-selects or consumes it. Display and run State Travel only "
-            "after an explicit user request or genuine host-context exhaustion. "
-            "Otherwise start /evi with atomic /evi-boot plus locked ENV/UOP Flash "
-            "as the first normal action, then display "
-            "exactly Boot, Rollback, Build, Refresh, Mode, and Source Intake. "
-            "Source Intake is one generalized ordered control for all eighteen "
-            "lanes and Project Engulf and always includes Chat Lineage. Fuse "
-            "requires exact APPROVE through pv_fuse and seals a fresh-window "
-            "handoff without rebuilding. When explicitly triggered, State Travel "
-            "verifies atomic Boot/Flash, the pointer base, any candidate, live "
-            "source, Plan Lane, additive Deltas, and host execution profile in a "
-            "fresh task/chat. It resumes unfinished work at the exact row; an "
-            "accepted-entry request waits. Codex Plan/Goal/task-panel controls do "
-            "not apply to ChatGPT's separate mounted persistent runtime. A booted "
-            "session remains active until /evi-exit-boot. "
-            "Before every HIL or State Travel stop, visibly render the returned "
-            "suggested_next_prompt. The host owns composer suggestions; never "
-            "claim the MCP wrote the prompt bar and never auto-submit it. "
-            "Never infer HIL approval, store private reasoning, expose connector "
-            "secrets, or write remote "
-            "Git without the exact governed action."
-        ),
+        instructions=_mcp_instructions(exact_exposure_profile),
         website_url=exact_public_site,
-        icons=[
-            Icon(
-                src=f"{exact_public_site}/evidence-lane-icon.png",
-                mimeType="image/png",
-                sizes=["256x256"],
-            )
-        ],
+        icons=_evidence_lane_icons(exact_public_site),
         host=host,
         port=port,
         streamable_http_path="/mcp",
@@ -144,8 +521,22 @@ def create_mcp_server(
     )
     # FastMCP 1.28.1 exposes website/icons but not its low-level server version.
     # Set the same pinned engine identity that clients read from pyproject.toml
-    # instead of allowing the SDK's default 1.0.0 to leak into ChatGPT metadata.
+    # instead of allowing the SDK's default 1.0.0 to leak into Codex metadata.
     mcp._mcp_server.version = ENGINE_VERSION
+
+    def route_aware_doctor() -> dict[str, Any]:
+        doctor = application.doctor()
+        receipt = getattr(mcp, "_evidence_lane_native_route_receipt", None)
+        return {
+            **doctor,
+            "mcp_route_identity": receipt
+            or {
+                "schema": "evidence-lane.native-mcp-route-receipt.v1",
+                "status": "BLOCKED",
+                "server_identity": NATIVE_MCP_SERVER_IDENTITY,
+                "reason": "NATIVE_TOOL_CATALOG_NOT_FINALIZED",
+            },
+        }
 
     @mcp.custom_route(
         "/healthz",
@@ -162,6 +553,9 @@ def create_mcp_server(
                 "release_sha": release_identity.get("commit"),
                 "engine_version": release_identity.get("release"),
                 "package_sha256": release_identity.get("package_sha256"),
+                "mcp_route_identity": getattr(
+                    mcp, "_evidence_lane_native_route_receipt", None
+                ),
             }
         )
 
@@ -174,6 +568,7 @@ def create_mcp_server(
             "accepted-pointer, candidate, and HIL facts."
         ),
         mime_type=MCP_APP_MIME_TYPE,
+        icons=_evidence_lane_icons(exact_public_site),
         meta=governed_panel_resource_meta(exact_public_site),
     )
     def evidence_lane_governed_console() -> str:
@@ -192,7 +587,7 @@ def create_mcp_server(
         structured_output=True,
     )
     def runtime_doctor() -> dict[str, Any]:
-        return application.invoke("runtime_doctor", application.doctor)
+        return application.invoke("runtime_doctor", route_aware_doctor)
 
     @mcp.tool(
         name="session_flash_status",
@@ -277,7 +672,7 @@ def create_mcp_server(
     def render_runtime_panel() -> dict[str, Any]:
         def snapshot() -> dict[str, Any]:
             return build_runtime_panel_snapshot(
-                doctor=application.doctor(),
+                doctor=route_aware_doctor(),
                 lane_catalog=application.lane_catalog(),
                 public_site_url=exact_public_site,
             )
@@ -739,9 +1134,8 @@ def create_mcp_server(
         name="connector_plugin_settings",
         title="Open the eight-slot connector settings surface",
         description=(
-            "Return eight host-specific connector slots for CODEX or CHATGPT, "
-            "including governed role/schema and optional backend-runtime metadata. "
-            "The profiles are independent and credential values remain host-managed."
+            "Return eight Codex connector slots, including governed role/schema and "
+            "optional backend-runtime metadata. Credential values remain host-managed."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Reading connector settings", "Connector settings ready"),
@@ -749,7 +1143,7 @@ def create_mcp_server(
     )
     def connector_plugin_settings(
         project_id: str,
-        host_profile: Literal["CODEX", "CHATGPT"],
+        host_profile: Literal["CODEX"],
     ) -> dict[str, Any]:
         return application.invoke(
             "connector_plugin_settings",
@@ -786,7 +1180,7 @@ def create_mcp_server(
         expires_at: str = "NO_EXPIRY",
         role: str | None = None,
         role_schema: dict[str, str] | None = None,
-        host_profiles: list[Literal["CODEX", "CHATGPT"]] | None = None,
+        host_profiles: list[Literal["CODEX"]] | None = None,
         backend_runtime: Literal[
             "python", "java", "kotlin", "go", "rust", "cpp", "external_mcp"
         ] = "python",
@@ -858,7 +1252,7 @@ def create_mcp_server(
         project_id: str,
         capability: str,
         canonical_lane_id: str | None = None,
-        host_profile: Literal["CODEX", "CHATGPT"] = "CODEX",
+        host_profile: Literal["CODEX"] = "CODEX",
         preferred_plugin_id: str | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
@@ -1198,8 +1592,16 @@ def create_mcp_server(
         description=(
             "Append one bounded task plan to the project backlog. Every task keeps "
             "its own exact class, outcome, paths, tools, acceptance checks, and stop "
-            "condition. Planning activates nothing: the one-agent/one-active-task "
-            "law still requires task_classify for one queued task at a time."
+            "condition. Planning normally activates nothing: the one-agent/one-active-task "
+            "law still requires task_classify for one queued task at a time. An optional "
+            "normalization_transition is the sole exception: it requires exact Plan, "
+            "session, and pointer hashes plus an approval receipt, then journal-appends "
+            "the approved successor rows and atomically rebinds the same session without "
+            "adding another tool, candidate, HIL, pointer move, or Git action. A "
+            "correction_of_transition_id contract may journal-restore the exact prior "
+            "active row after a mistaken committed normalization; it appends two history "
+            "events but no row, preserves the original journal, and may seal a fixed "
+            "display offset for dynamically renumbered current-execution rows."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Queuing linear task plan", "Linear task plan queued"),
@@ -1212,6 +1614,7 @@ def create_mcp_server(
         plan_id: str | None = None,
         host_kind: str | None = None,
         host_mode: str | None = None,
+        normalization_transition: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "pv_plan_tasks",
@@ -1222,6 +1625,7 @@ def create_mcp_server(
             plan_id=plan_id,
             host_kind=host_kind,
             host_mode=host_mode,
+            normalization_transition=normalization_transition,
             lifecycle=True,
         )
 
@@ -1232,8 +1636,10 @@ def create_mcp_server(
             "Record a visible user steer before the next HIL by default. The host "
             "agent must classify it as either linked to one existing Plan Lane task "
             "or unrelated and therefore one complete new task row. Linked steers "
-            "never replace the task or change the count; unrelated steers append a "
-            "new numbered row and increase the persistent task-panel count."
+            "never replace the task or change the count; unrelated steers insert "
+            "one new numbered row before the next HIL when that gate is present "
+            "and increase the persistent task-panel count. A task may declare "
+            "panel_role=PHYSICALLY_FINAL_HIL so that row remains physically final."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Recording steer Delta", "Steer Delta recorded"),
@@ -1362,7 +1768,7 @@ def create_mcp_server(
         name="session_resume",
         title="Resume persistent Evidence Lane session",
         description=(
-            "Bind a fresh Codex or ChatGPT host task to the one already-active "
+            "Bind a fresh Codex task to the one already-active "
             "governed session, preserving its accepted entry, pending candidate, "
             "exact HIL follow-up, pointer generation, and prompt-index boundary. "
             "Performs no PV build, promotion, rollback, or source mutation."
@@ -1455,14 +1861,14 @@ def create_mcp_server(
 
     @mcp.tool(
         name="task_record_activity",
-        title="Append visible task evidence",
+        title="Append visible Chat Lineage activity",
         description=(
             "Append one visible, operational, reproducible prompt/tool/command/file/"
             "test/build/diff/output/warning/error/usage event to redacted, idempotent "
             "ChatLineage. Private model reasoning and secrets are excluded."
         ),
         annotations=_LOCAL_WRITE,
-        meta=_meta("Appending visible task evidence", "Task evidence appended"),
+        meta=_meta("Appending Chat Lineage activity", "Chat Lineage activity appended"),
         structured_output=True,
     )
     def task_record_activity(
@@ -1487,8 +1893,7 @@ def create_mcp_server(
         name="task_confirm_source_update",
         title="Confirm final host source state",
         description=(
-            "Confirm the exact host-specific source boundary before Refresh. ChatGPT "
-            "requires USER_APPLIED_AND_PULL_CONFIRMED. Codex hosts require "
+            "Confirm the exact Codex source boundary before Refresh with "
             "HOST_SANDBOX_FINAL_STATE_CONFIRMED. This tool does not pull or mutate "
             "source itself."
         ),
@@ -2018,11 +2423,11 @@ def create_mcp_server(
 
     @mcp.tool(
         name="remote_git_prepare_push",
-        title="Prepare separately gated Git push",
+        title="Prepare automatic exact test-branch push",
         description=(
             "Prepare—but do not execute—one remote branch push bound to the current "
-            "accepted PV and pointer generation. Returns a one-use exact confirmation "
-            "token that must be provided through a separate explicit user action."
+            "accepted PV and pointer generation. The exact sole registered "
+            "non-protected test branch is preauthorized without a per-push token."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta(
@@ -2050,11 +2455,12 @@ def create_mcp_server(
 
     @mcp.tool(
         name="remote_git_execute_push",
-        title="Execute confirmed Git branch push",
+        title="Execute preauthorized exact test-branch push",
         description=(
             "Execute exactly one previously prepared remote branch push only when "
-            "the accepted pointer is unchanged and the exact one-use confirmation "
-            "token is supplied. Never merges or approves a pull request."
+            "the sole registered branch, accepted pointer, commit, and tree remain "
+            "exact. Uses host-managed credentials; never pushes main, merges, or "
+            "approves a pull request."
         ),
         annotations=_REMOTE_WRITE,
         meta=_meta("Executing confirmed remote Git push", "Remote Git push finished"),
@@ -2063,22 +2469,32 @@ def create_mcp_server(
     def remote_git_execute_push(
         project_id: str,
         action_id: str,
-        confirmation_token: str,
-        confirmed_by: str,
+        executed_by: str,
     ) -> dict[str, Any]:
         return application.invoke(
             "remote_git_execute_push",
             application.remote_git.execute_push,
             project_id,
             action_id=action_id,
-            confirmation_token=confirmation_token,
-            confirmed_by=confirmed_by,
+            executed_by=executed_by,
             lifecycle=True,
         )
 
-    exposure_receipt = apply_fastmcp_tool_filter(mcp, allowed_tool_names)
+    _apply_evidence_lane_tool_icons(mcp, exact_public_site)
+    if oauth_config is not None:
+        _apply_oauth_tool_security_schemes(mcp, exact_exposure_profile)
+    exposure_receipt = apply_fastmcp_tool_filter(mcp, effective_allowed_tool_names)
     mcp._evidence_lane_tool_exposure_receipt = exposure_receipt  # type: ignore[attr-defined]
-    return mcp
+    mcp._evidence_lane_exposure_profile = exact_exposure_profile  # type: ignore[attr-defined]
+    route_receipt = _native_route_receipt(
+        mcp,
+        exact_exposure_profile,
+        oauth_config,
+    )
+    if route_receipt["status"] != "PASS":
+        raise RuntimeError("Evidence Lane native MCP tool names are not unique.")
+    mcp._evidence_lane_native_route_receipt = route_receipt  # type: ignore[attr-defined]
+    return install_tool_namespace_compat(mcp)
 
 
 def run_server(
@@ -2093,6 +2509,15 @@ def run_server(
         "issuer_url": os.environ.get("EVIDENCE_LANE_MCP_OAUTH_ISSUER_URL", "").strip(),
         "jwks_url": os.environ.get("EVIDENCE_LANE_MCP_OAUTH_JWKS_URL", "").strip(),
         "audience": os.environ.get("EVIDENCE_LANE_MCP_OAUTH_AUDIENCE", "").strip(),
+        "deployment_environment": os.environ.get(
+            "EVIDENCE_LANE_MCP_OAUTH_ENVIRONMENT", ""
+        ).strip(),
+        "allowed_client_ids": os.environ.get(
+            "EVIDENCE_LANE_MCP_OAUTH_ALLOWED_CLIENT_IDS", ""
+        ).strip(),
+        "allowed_roles": os.environ.get(
+            "EVIDENCE_LANE_MCP_OAUTH_ALLOWED_ROLES", ""
+        ).strip(),
     }
     oauth_any = any(oauth_values.values())
     oauth_complete = all(oauth_values.values())
@@ -2109,10 +2534,15 @@ def run_server(
             item
             for item in os.environ.get(
                 "EVIDENCE_LANE_MCP_OAUTH_SCOPES",
-                "evidence-lane:read evidence-lane:write",
+                READ_SCOPE,
             ).split()
             if item
         )
+        if set(scopes) != {READ_SCOPE}:
+            raise RuntimeError(
+                "EVIDENCE_LANE_MCP_OAUTH_SCOPES is the base transport gate and "
+                f"must contain only {READ_SCOPE}; per-tool policy adds write scopes."
+            )
         algorithms = tuple(
             item.strip()
             for item in os.environ.get(
@@ -2125,6 +2555,17 @@ def run_server(
             jwks_url=oauth_values["jwks_url"],
             audience=oauth_values["audience"],
             required_scopes=scopes,
+            deployment_environment=oauth_values["deployment_environment"],
+            allowed_client_ids=tuple(
+                item.strip()
+                for item in oauth_values["allowed_client_ids"].split(",")
+                if item.strip()
+            ),
+            allowed_roles=tuple(
+                item.strip()
+                for item in oauth_values["allowed_roles"].split(",")
+                if item.strip()
+            ),
             algorithms=algorithms,
         )
     if transport == "streamable-http" and host not in {"127.0.0.1", "localhost", "::1"}:
@@ -2150,5 +2591,9 @@ def run_server(
         base_url=base_url,
         oauth_config=oauth_config,
         allowed_tool_names=os.environ.get("EVIDENCE_LANE_MCP_ALLOWED_TOOLS"),
+        exposure_profile=os.environ.get("EVIDENCE_LANE_MCP_EXPOSURE_PROFILE"),
     )
-    server.run(transport=transport)
+    if transport == "stdio":
+        anyio.run(run_discovery_compatible_stdio, server)
+    else:
+        server.run(transport=transport)

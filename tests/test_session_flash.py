@@ -16,6 +16,52 @@ from evidence_lane_plugin.pv_package import validate_pv_package
 
 from .conftest import boot_local
 
+STABLE_FLASH_MANIFEST_SHA256 = (
+    "4585D703515D2DE245F688E3047F192C6BD3D507475B57855918561933C5293A"
+)
+STABLE_FLASH_PROMPT_SHA256 = (
+    "2167BBABE80656C24B18544096E725E874D4FB46066B8F4F8364A3BF14A827DB"
+)
+STABLE_FLASH_AUTHORITY_DIGEST = (
+    "644AEEAE1434B3808E544BA9C634ACE3685F21F73D3F86E0CF5DE31D4A6B48A5"
+)
+
+
+def test_v2_reuses_the_existing_stable_flash_authority(tmp_path: Path) -> None:
+    authority = SessionFlashAuthority(data_root=tmp_path / "store")
+    report = authority.verify()
+    assert report["manifest_sha256"] == STABLE_FLASH_MANIFEST_SHA256
+    assert report["prompt"]["sha256"] == STABLE_FLASH_PROMPT_SHA256
+    assert report["authority_digest"] == STABLE_FLASH_AUTHORITY_DIGEST
+
+    authority.receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    authority.receipt_path.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.session-flash-receipt.v1",
+                "receipt_id": "flash_644aeeae1434b3808e544ba9",
+                "plugin_id": "evidence-lane-plugin",
+                "state": "FLASHED_UNTIL_PLUGIN_REMOVED",
+                "authority_version": FLASH_AUTHORITY_VERSION,
+                "authority_digest": STABLE_FLASH_AUTHORITY_DIGEST,
+                "manifest_sha256": STABLE_FLASH_MANIFEST_SHA256,
+                "flashed_at": "2026-08-07T21:32:21.754144Z",
+                "scope": "PLUGIN_INSTALLATION_OUTSIDE_PV",
+                "inside_pv": False,
+                "hil_approval_inferred": False,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    reused = authority.ensure_flashed()
+    assert reused["status"] == "PASS"
+    assert reused["flash_action"] == "REUSED"
+    assert reused["receipt"]["receipt_id"] == "flash_644aeeae1434b3808e544ba9"
+
 
 def test_locked_env_uop_flash_is_visible_idempotent_and_outside_pv(service) -> None:
     before = service.session_flash_status()

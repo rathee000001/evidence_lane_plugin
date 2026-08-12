@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import threading
 from pathlib import Path
 
 import evidence_lane_plugin.service as service_module
@@ -75,7 +76,7 @@ def test_status_keeps_historical_evidence_without_requalifying_it(
         historical_contract_probe,
     )
     status = service.status("book-faires")
-    assert calls == [("PV1", False), ("PV2", False)]
+    assert sorted(calls) == [("PV1", False), ("PV2", False)]
     history = {row["pv_id"]: row for row in status["accepted_history"]}
     assert history["PV1"] == {
         "pv_id": "PV1",
@@ -149,3 +150,30 @@ def test_status_keeps_historical_evidence_without_requalifying_it(
     with pytest.raises(EvidenceLaneError) as tampered_history:
         service.status("book-faires")
     assert tampered_history.value.code == "PV_CHECKSUM_MISMATCH"
+
+
+def test_status_validates_accepted_history_concurrently(
+    service,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _accept_pv2(service)
+    real_validate = service_module.validate_pv_package
+    both_started = threading.Barrier(2)
+    calls: list[str] = []
+
+    def concurrent_probe(
+        directory: str | Path,
+        *,
+        require_promotable: bool = True,
+    ) -> dict:
+        calls.append(Path(directory).name)
+        both_started.wait(timeout=5)
+        return real_validate(directory, require_promotable=require_promotable)
+
+    monkeypatch.setattr(service_module, "validate_pv_package", concurrent_probe)
+
+    status = service.status("book-faires")
+
+    assert sorted(calls) == ["PV1", "PV2"]
+    assert [row["pv_id"] for row in status["accepted_history"]] == ["PV1", "PV2"]
+    assert all(row["integrity_validated"] for row in status["accepted_history"])

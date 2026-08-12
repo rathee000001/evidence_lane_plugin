@@ -1,4 +1,7 @@
-import { currentExecutionPlan } from "./current-execution-plan";
+import {
+  websiteCurrentExecution,
+  websiteCurrentExecutionBoundary,
+} from "./website-current-execution";
 
 export type DeltaPhase = "Foundation" | "V1.2 evolution" | "V1.3 hardening" | "Current execution";
 
@@ -8,6 +11,11 @@ export type DeltaLedgerEntry = {
   phase: DeltaPhase;
   status: string;
   summary: string;
+  deltaSha256?: string;
+  eventSha256?: string;
+  correctionDeltaId?: string;
+  correctionDeltaSha256?: string;
+  correctionEventSha256?: string;
 };
 
 const foundationIds = [
@@ -114,15 +122,20 @@ const hardening: DeltaLedgerEntry[] = [
   { order: 77, id: "EL-V130-INTERACTIVE-SOURCE-BACKED-OPERATOR-GUIDE-DELTA-077", phase: "V1.3 hardening", status: "PASS", summary: "Interactive source-backed formulas, operators, and mode-specific HIL guide." },
   { order: 78, id: "EL-V130-ALL-SOURCE-ALL-LANE-FULL-HISTORY-RECONCILIATION-DELTA-078", phase: "V1.3 hardening", status: "PASS", summary: "All-source, all-lane, full-history reconciliation." },
   { order: 79, id: "EL-V130-WINDOWS-TUNNEL-AND-HOST-STORAGE-CONTINUITY-DELTA-079B-CD", phase: "V1.3 hardening", status: "PASS", summary: "Persistent Windows tunnel plus Codex/ChatGPT host, storage, ENV, and mode continuity." },
-  { order: 80, id: "EL-V130-ACCEPTED-AUTHORITY-SUCCESSOR-AND-RELEASE-GATE-DELTA-080", phase: "V1.3 hardening", status: "PV6 CORRECTION ACTIVE", summary: "Accepted PV5 compatibility, executable pre-PV6 gate, release evidence, and replacement PV6 HIL." },
+  { order: 80, id: "EL-V130-ACCEPTED-AUTHORITY-SUCCESSOR-AND-RELEASE-GATE-DELTA-080", phase: "V1.3 hardening", status: "ACCEPTED IN PV7", summary: "Historical accepted-authority successor, release evidence, and exact six-way HIL boundary." },
 ];
 
-const currentExecution: DeltaLedgerEntry[] = currentExecutionPlan.map((row) => ({
-  order: 80 + row.number,
-  id: `PV6-CURRENT-PLAN-STEP-${String(row.number).padStart(3, "0")}`,
+const currentExecution: DeltaLedgerEntry[] = websiteCurrentExecution.map((row) => ({
+  order: row.order,
+  id: row.deltaId ?? row.id,
   phase: "Current execution",
-  status: row.status.replace("_", " "),
-  summary: row.step,
+  status: row.status,
+  summary: row.summary,
+  deltaSha256: row.deltaSha256,
+  eventSha256: row.eventSha256,
+  correctionDeltaId: row.correctionDeltaId,
+  correctionDeltaSha256: row.correctionDeltaSha256,
+  correctionEventSha256: row.correctionEventSha256,
 }));
 
 export const deltaLedger: readonly DeltaLedgerEntry[] = [
@@ -136,6 +149,21 @@ export const deltaLedgerBoundary = {
   totalRows: deltaLedger.length,
   sealedHistoricalDeltaRows: foundation.length + evolution.length + hardening.length,
   liveExecutionRows: currentExecution.length,
-  activeExecutionRow: 46,
+  currentExecutionCompleted: websiteCurrentExecutionBoundary.completedRows,
+  currentExecutionActive: websiteCurrentExecutionBoundary.activeRows,
+  currentExecutionPending: websiteCurrentExecutionBoundary.pendingRows,
+  activePublicOrder: websiteCurrentExecutionBoundary.activePublicOrder,
+  activeTaskPosition: websiteCurrentExecutionBoundary.activeTaskPosition,
+  activeReceiptPosition: websiteCurrentExecutionBoundary.activeReceiptPosition,
+  finalSweepPublicOrder: websiteCurrentExecutionBoundary.finalSweepPublicOrder,
+  finalSweepTaskPosition: websiteCurrentExecutionBoundary.finalSweepTaskPosition,
+  finalSweepReceiptPosition: websiteCurrentExecutionBoundary.finalSweepReceiptPosition,
+  lastPreHilPublicOrder: websiteCurrentExecutionBoundary.lastPreHilPublicOrder,
+  lastPreHilTaskPosition: websiteCurrentExecutionBoundary.lastPreHilTaskPosition,
+  lastPreHilReceiptPosition: websiteCurrentExecutionBoundary.lastPreHilReceiptPosition,
+  finalHilPublicOrder: websiteCurrentExecutionBoundary.finalHilPublicOrder,
+  finalHilTaskPosition: websiteCurrentExecutionBoundary.finalHilTaskPosition,
+  finalHilReceiptPosition: websiteCurrentExecutionBoundary.finalHilReceiptPosition,
+  taskCount: websiteCurrentExecutionBoundary.taskCount,
   acceptedAuthorityEffect: "NONE",
 } as const;

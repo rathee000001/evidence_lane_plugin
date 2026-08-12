@@ -81,6 +81,167 @@ def test_interrupted_exit_retries_only_without_a_sealed_candidate(
     assert recoveries[0]["visible_payload"]["candidate_absent"] is True
 
 
+def test_completed_stale_classification_reconciles_into_first_queued_task_only(
+    service,
+    source_repository: Path,
+) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class="verify_result",
+        requested_outcome="Preserve the obsolete classified task as history.",
+        permitted_paths=[],
+        permitted_tools=["repository_read", "test"],
+        acceptance_checks=["The obsolete task remains auditable."],
+        stop_condition="Stop without creating a candidate.",
+    )
+    completed_task = {
+        "task_id": "completed-before-reconciliation",
+        "task_class": "verify_result",
+        "requested_outcome": "Seal the already completed prerequisite.",
+        "permitted_paths": [],
+        "permitted_tools": ["repository_read"],
+        "acceptance_checks": ["The prerequisite evidence remains sealed."],
+        "stop_condition": "Stop at its unaccepted HIL.",
+    }
+    replacement = {
+        "task_id": "first-queued-replacement",
+        "task_class": "fix_bug",
+        "requested_outcome": "Repair the Goal projection boundary.",
+        "permitted_paths": ["README.md"],
+        "permitted_tools": ["repository_write", "test"],
+        "acceptance_checks": ["The Goal projection boundary is exact."],
+        "stop_condition": "Stop at a fresh unaccepted HIL.",
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[completed_task],
+        planned_by="human-test",
+        plan_id="completed-before-reconciliation-plan",
+    )
+    evidence = [
+        {
+            "task_id": completed_task["task_id"],
+            "status": "PASS",
+            "implementation_evidence": ["The prerequisite was implemented."],
+            "verification_evidence": ["The prerequisite check passed."],
+            "limitations": ["The receipt remains unaccepted pending HIL."],
+        }
+    ]
+    batch_receipt = service.store.record_backlog_batch_done(
+        "book-faires",
+        session_id=session_id,
+        candidate_id="PV2_CANDIDATE__STALE_CLASSIFICATION_FIXTURE",
+        task_evidence=evidence,
+        confirmation="BATCH_DELTA_IMPLEMENTATION_EVIDENCE_CONFIRMED",
+    )
+    service.plan_tasks(
+        "book-faires",
+        tasks=[replacement],
+        planned_by="human-test",
+        plan_id="first-queued-replacement-plan",
+    )
+    stale = service.sessions.load("book-faires", session_id)
+    stale.metadata["active_backlog_task_status"] = "DONE"
+    stale.metadata["batch_backlog_task_status"] = "DONE_PENDING_HIL"
+    stale.metadata["batch_completion_receipt_id"] = batch_receipt["receipt_id"]
+    service.sessions._save(stale)
+    readme = source_repository / "README.md"
+    readme.write_text(
+        readme.read_text(encoding="utf-8") + "\nUnfinished future-test source.\n",
+        encoding="utf-8",
+    )
+    pointer_before = service.store.pointer("book-faires").as_dict()
+
+    classified = service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=replacement["task_class"],
+        requested_outcome=replacement["requested_outcome"],
+        permitted_paths=replacement["permitted_paths"],
+        permitted_tools=replacement["permitted_tools"],
+        acceptance_checks=replacement["acceptance_checks"],
+        stop_condition=replacement["stop_condition"],
+        backlog_task_id=replacement["task_id"],
+    )
+
+    reconciliation = classified["classification_reconciliation"]
+    assert reconciliation["prior_task_id"]
+    assert reconciliation["replacement_backlog_task_id"] == replacement["task_id"]
+    assert reconciliation["candidate_created"] is False
+    assert reconciliation["hil_inferred"] is False
+    assert reconciliation["pointer_moved"] is False
+    assert classified["session"]["candidate_id"] is None
+    assert classified["session"]["state"] == "TASK_CLASSIFIED"
+    assert classified["session"]["metadata"]["task_source_basis"]["kind"] == (
+        "RECONCILED_UNFINISHED_SOURCE_BOUNDARY"
+    )
+    assert classified["session"]["metadata"]["active_backlog_task_id"] == (
+        replacement["task_id"]
+    )
+    assert service.store.pointer("book-faires").as_dict() == pointer_before
+    backlog = service.task_backlog("book-faires")
+    assert backlog["counts"] == {"ACTIVE": 1, "DONE": 1}
+    assert [row["task_id"] for row in backlog["active"]] == [replacement["task_id"]]
+    completed_runs = classified["session"]["metadata"]["completed_runs"]
+    assert completed_runs[-1]["completion_disposition"] == (
+        "STALE_CLASSIFICATION_RECONCILED_WITHOUT_HIL"
+    )
+
+
+def test_stale_classification_reconciliation_fails_without_sealed_batch_receipt(
+    service,
+) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class="verify_result",
+        requested_outcome="Keep one active classified task.",
+        permitted_paths=[],
+        permitted_tools=["repository_read"],
+        acceptance_checks=["The task remains active."],
+        stop_condition="Stop without a candidate.",
+    )
+    replacement = {
+        "task_id": "unsafe-replacement",
+        "task_class": "verify_result",
+        "requested_outcome": "Attempt an unsafe replacement.",
+        "permitted_paths": [],
+        "permitted_tools": ["repository_read"],
+        "acceptance_checks": ["The attempt fails closed."],
+        "stop_condition": "Stop immediately.",
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[replacement],
+        planned_by="human-test",
+        plan_id="unsafe-replacement-plan",
+    )
+    stale = service.sessions.load("book-faires", session_id)
+    stale.metadata["active_backlog_task_status"] = "DONE"
+    stale.metadata["batch_backlog_task_status"] = "DONE_PENDING_HIL"
+    stale.metadata["batch_completion_receipt_id"] = "batchdone_missing"
+    service.sessions._save(stale)
+
+    with pytest.raises(EvidenceLaneError) as blocked:
+        service.sessions.classify(
+            "book-faires",
+            session_id,
+            task_class=replacement["task_class"],
+            requested_outcome=replacement["requested_outcome"],
+            permitted_paths=replacement["permitted_paths"],
+            permitted_tools=replacement["permitted_tools"],
+            acceptance_checks=replacement["acceptance_checks"],
+            stop_condition=replacement["stop_condition"],
+            backlog_task_id=replacement["task_id"],
+        )
+    assert blocked.value.code == "COMPLETED_TASK_RECONCILIATION_MISMATCH"
+    assert service.task_backlog("book-faires")["counts"] == {"QUEUED": 1}
+    assert service.store.pointer("book-faires").accepted_pv == "PV1"
+
+
 def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(
     service,
     source_repository: Path,
@@ -300,94 +461,23 @@ def test_explicit_exit_boot_closes_only_the_persistent_session(service) -> None:
     assert error.value.code == "NO_ACTIVE_SESSION_TO_RESUME"
 
 
-def test_chatgpt_state_travel_requires_fresh_chat_and_waits(service) -> None:
-    boot = service.boot_session(
-        project_id="book-faires",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CHATGPT",
-        agent_id="chatgpt-single-agent",
-        sandbox_id=None,
-        ephemeral=False,
-        runtime_context={"source": "origin-chat"},
-        host_session_id="chatgpt-origin-chat",
-        client_can_edit_source=False,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    service.build_initial("book-faires", session_id)
-    decision = service.decide(
-        "book-faires",
-        session_id,
-        decision="APPROVE",
-        decided_by="human-test",
-        decision_id="decision_chatgpt_state_travel",
-    )
-    handoff = decision["state_travel_handoff"]["state_travel"]
-    assert handoff["target_surface"] == "NEW_CHATGPT_CHAT"
-    assert handoff["next_action"] == "OPEN_NEW_CHATGPT_CHAT"
-    assert handoff["next_action_contract"]["suggested_next_prompt"] == (
-        "/evi-state-travel"
-    )
-    assert handoff["next_action_contract"]["auto_submit"] is False
-    assert handoff["host_window_opened"] is False
-    assert handoff["required_entry_commands"] == [
-        "/evi-state-travel",
-        "/evi-boot",
-    ]
-
-    with pytest.raises(EvidenceLaneError) as wrong_session:
-        service.resume_state_travel(
+def test_retired_chatgpt_host_cannot_boot_or_prepare_state_travel(service) -> None:
+    with pytest.raises(EvidenceLaneError) as blocked:
+        service.boot_session(
             project_id="book-faires",
-            session_id="session_wrong",
-            handoff_id=handoff["handoff_id"],
+            user_id="user-test",
+            workspace_id="workspace-test",
             host="CHATGPT",
-            host_session_id="chatgpt-wrong-session-attempt",
+            agent_id="retired-host-agent",
+            sandbox_id=None,
             ephemeral=False,
+            runtime_context={"source": "retired-host"},
+            host_session_id="retired-host-session",
             client_can_edit_source=False,
             server_has_durable_filesystem=True,
-            runtime_context={"source": "must-not-bind"},
         )
-    assert wrong_session.value.code == "STATE_TRAVEL_ACTIVE_SESSION_MISMATCH"
-    assert (
-        service.sessions.load("book-faires", session_id).metadata[
-            "current_host_session_id"
-        ]
-        == "chatgpt-origin-chat"
-    )
-
-    traveled = service.resume_state_travel(
-        project_id="book-faires",
-        session_id=session_id,
-        handoff_id=handoff["handoff_id"],
-        host="CHATGPT",
-        host_session_id="chatgpt-fresh-chat",
-        ephemeral=False,
-        client_can_edit_source=False,
-        server_has_durable_filesystem=True,
-        runtime_context={"source": "fresh-chat"},
-    )
-    assert traveled["state_travel"]["target_surface"] == "NEW_CHATGPT_CHAT"
-    assert traveled["state_travel"]["destination_host_session_id"] == (
-        "chatgpt-fresh-chat"
-    )
-    assert traveled["state_travel"]["boot_verified"] is True
-    assert traveled["state_travel"]["flash_verified"] is True
-    assert traveled["state_travel"]["pointer_verified"] is True
-    assert traveled["wait_state"] == "WAITING_FOR_NEXT_USER_COMMAND"
-    assert traveled["next_action"] == "WAIT_FOR_NEXT_USER_COMMAND"
-    assert traveled["suggested_next_prompt"].endswith(
-        "/evi-build to inspect governed status."
-    )
-    assert traveled["next_action_contract"]["composer_authority"] == "HOST_OWNED"
-    assert traveled["next_action_contract"]["stop_and_wait"] is True
-    assert traveled["task_started"] is False
-    assert traveled["ordered_entry_verification"] == [
-        "/evi-boot",
-        "ATOMIC_BOOT_AND_LOCKED_ENV_UOP_FLASH_VERIFIED",
-        "VERIFY_ACCEPTED_POINTER_AND_SEALS",
-        "WAITING_FOR_NEXT_USER_COMMAND",
-    ]
+    assert blocked.value.code == "HOST_KIND_INVALID"
+    assert not (service.store.project_root("book-faires") / "active_session.json").exists()
 
 
 @pytest.mark.parametrize(

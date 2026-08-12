@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import math
@@ -86,6 +87,7 @@ PUBLIC_TEXT_SUFFIXES = {
 }
 PUBLIC_PLUGIN_EXCLUSIONS = (
     "plugins/evidence-lane-plugin/evidence/",
+    "plugins/evidence-lane-plugin/remote_adapter/.vercel/",
     "plugins/evidence-lane-plugin/remote_adapter/public/",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/session_flash/",
 )
@@ -98,6 +100,35 @@ PUBLIC_PLUGIN_EXACT_EXCLUSIONS = {
     "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json",
     "plugins/evidence-lane-plugin/requirements.lock.txt",
     "plugins/evidence-lane-plugin/remote_adapter/package-lock.json",
+}
+LOCAL_SCAN_IGNORED_PARTS = {
+    ".git",
+    ".mypy_cache",
+    ".next",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".runtime",
+    ".venv",
+    "build",
+    "node_modules",
+}
+FROZEN_NO_GIT_ADDITIONS = {
+    "plugins/evidence-lane-plugin/COPYRIGHT.md",
+    "plugins/evidence-lane-plugin/LICENSE.md",
+    "plugins/evidence-lane-plugin/README.md",
+    "plugins/evidence-lane-plugin/THIRD_PARTY_NOTICES.md",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_components/hero-orbit.tsx",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_data/governed-linked-deltas.ts",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_data/prior-execution-plan.ts",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_data/release-identity.ts",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_data/website-current-execution.ts",
+    "plugins/evidence-lane-plugin/remote_adapter/app/api/studio-query/openrouter-general.ts",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/goal_usage.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_stdio_compat.py",
+    "plugins/evidence-lane-plugin/scripts/build_release_candidate_rehearsal.py",
+}
+FROZEN_NO_GIT_FIXED_ADDITIONS = {
+    "docs/DEPENDENCY_LICENSE_AUDIT.md",
 }
 
 
@@ -149,6 +180,7 @@ def _source_specs(
         ("LICENSE.md", "Proprietary license", _github_blob("LICENSE.md", revision), "policy"),
         ("COPYRIGHT.md", "Copyright and ownership", _github_blob("COPYRIGHT.md", revision), "policy"),
         ("docs/CREDITS_AND_CONTRIBUTIONS.md", "Credits and contribution policy", "/credits", "policy"),
+        ("docs/DEPENDENCY_LICENSE_AUDIT.md", "Direct dependency license audit", "/credits", "policy"),
         ("docs/UPSTREAM_REFERENCE_PROVENANCE.md", "Upstream reference provenance", "/credits", "provenance"),
     ]
     specs = [(repo / path, title, href, kind) for path, title, href, kind in fixed]
@@ -175,13 +207,20 @@ def _source_specs(
     return specs
 
 
-def _load_documents(repo: Path) -> list[SourceDocument]:
-    tracked_paths = {
-        value
-        for value in _run(repo, "git", "ls-files", "-z").split("\0")
-        if value
-    }
-    revision = _run(repo, "git", "rev-parse", "HEAD")
+def _load_documents(
+    repo: Path,
+    *,
+    tracked_paths: set[str] | None = None,
+    revision: str | None = None,
+) -> list[SourceDocument]:
+    if tracked_paths is None:
+        tracked_paths = {
+            value
+            for value in _run(repo, "git", "ls-files", "-z").split("\0")
+            if value
+        }
+    if revision is None:
+        revision = _run(repo, "git", "rev-parse", "HEAD")
     documents: list[SourceDocument] = []
     for path, title, href, kind in _source_specs(repo, revision, tracked_paths):
         if not path.is_file():
@@ -193,6 +232,122 @@ def _load_documents(repo: Path) -> list[SourceDocument]:
         _assert_public_safe(relative, text)
         documents.append(SourceDocument(relative, title, href, kind, text))
     return documents
+
+
+def _local_public_plugin_paths(repo: Path) -> set[str]:
+    paths: set[str] = set()
+    plugin_root = repo / "plugins/evidence-lane-plugin"
+    for path in plugin_root.rglob("*"):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(repo)
+        if LOCAL_SCAN_IGNORED_PARTS.intersection(relative.parts) or any(
+            part.casefold().endswith(".egg-info") for part in relative.parts
+        ):
+            continue
+        normalized = relative.as_posix()
+        if _public_plugin_path(normalized):
+            paths.add(normalized)
+    return paths
+
+
+def _frozen_history_inputs(
+    repo: Path,
+    artifact_path: Path,
+) -> tuple[
+    list[SourceDocument],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    str,
+    str,
+]:
+    artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
+    if artifact.get("schema") != SCHEMA:
+        raise RuntimeError(f"frozen history schema mismatch: {artifact.get('schema')}")
+    history_sha = str(artifact.get("history_through_sha") or "")
+    history_date = str(artifact.get("history_through_date") or "")
+    if not re.fullmatch(r"[0-9a-f]{40}", history_sha):
+        raise RuntimeError("frozen history input has no exact 40-character commit SHA")
+    if not history_date:
+        raise RuntimeError("frozen history input has no commit date")
+
+    all_sources = list(artifact.get("sources") or [])
+    git_sources = [row for row in all_sources if row.get("kind") == "git_history"]
+    public_sources = [row for row in all_sources if row.get("kind") != "git_history"]
+    tracked_paths = {str(row["path"]) for row in public_sources}
+    indexed_plugin_paths = {
+        path for path in tracked_paths if path.startswith("plugins/evidence-lane-plugin/")
+    }
+    live_plugin_paths = _local_public_plugin_paths(repo)
+    expected_added = {
+        path for path in FROZEN_NO_GIT_ADDITIONS if (repo / path).is_file()
+    }
+    if indexed_plugin_paths | expected_added != live_plugin_paths:
+        missing = sorted(indexed_plugin_paths - live_plugin_paths)
+        added = sorted(live_plugin_paths - indexed_plugin_paths - expected_added)
+        raise RuntimeError(
+            "frozen no-Git source manifest mismatch; "
+            f"missing={missing[:20]!r}; added={added[:20]!r}"
+        )
+    tracked_paths.update(expected_added)
+    tracked_paths.update(
+        path for path in FROZEN_NO_GIT_FIXED_ADDITIONS if (repo / path).is_file()
+    )
+    documents = _load_documents(
+        repo,
+        tracked_paths=tracked_paths,
+        revision=history_sha,
+    )
+    if {document.path for document in documents} != tracked_paths:
+        raise RuntimeError("frozen no-Git source manifest did not round-trip exactly")
+
+    first_history_source_id = len(documents) + 1
+    old_to_new: dict[int, int] = {}
+    frozen_source_rows: list[dict[str, Any]] = []
+    for offset, row in enumerate(sorted(git_sources, key=lambda item: int(item["id"]))):
+        old_id = int(row["id"])
+        new_id = first_history_source_id + offset
+        old_to_new[old_id] = new_id
+        frozen_source_rows.append(
+            {
+                "id": new_id,
+                "path": str(row["path"]),
+                "title": str(row["title"]),
+                "href": str(row["href"]),
+                "kind": "git_history",
+                "sha256": str(row["sha256"]),
+                "bytes": int(row["bytes"]),
+            }
+        )
+
+    frozen_chunks: list[dict[str, Any]] = []
+    for row in artifact.get("chunks") or []:
+        old_source_id = int(row["source_id"])
+        if old_source_id not in old_to_new:
+            continue
+        text = str(row["text"])
+        path = next(
+            source["path"]
+            for source in frozen_source_rows
+            if source["id"] == old_to_new[old_source_id]
+        )
+        _assert_public_safe(str(path), text)
+        term_counts = Counter(_tokens(text))
+        frozen_chunks.append(
+            {
+                "id": str(row["id"]),
+                "source_id": old_to_new[old_source_id],
+                "ordinal": int(row["ordinal"]),
+                "locator": str(row["locator"]),
+                "text": text,
+                "sha256": str(row["sha256"]),
+                "token_count": sum(term_counts.values()),
+                "term_counts": dict(sorted(term_counts.items())),
+            }
+        )
+    if not frozen_source_rows or not frozen_chunks:
+        raise RuntimeError("frozen history input contains no reusable Git evidence")
+    return documents, frozen_source_rows, frozen_chunks, history_sha, history_date
 
 
 def _git_documents(repo: Path) -> list[SourceDocument]:
@@ -279,15 +434,34 @@ def _chunk_documents(documents: list[SourceDocument]) -> list[dict[str, Any]]:
     return chunks
 
 
-def _build_artifacts(repo: Path) -> dict[str, Any]:
+def _build_artifacts(
+    repo: Path,
+    *,
+    frozen_git_history_from: Path | None = None,
+) -> dict[str, Any]:
     evidence_dir = repo / "plugins/evidence-lane-plugin/evidence/prompt_studio"
     browser_path = repo / "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json"
     database_path = evidence_dir / "studio_search.sqlite"
     manifest_path = evidence_dir / "manifest.json"
     evidence_dir.mkdir(parents=True, exist_ok=True)
 
-    documents = _load_documents(repo) + _git_documents(repo)
-    chunks = _chunk_documents(documents)
+    history_mode = "LIVE_GIT"
+    frozen_source_rows: list[dict[str, Any]] = []
+    frozen_chunks: list[dict[str, Any]] = []
+    if frozen_git_history_from is None:
+        documents = _load_documents(repo) + _git_documents(repo)
+        history_sha = _run(repo, "git", "rev-parse", "HEAD")
+        history_date = _run(repo, "git", "show", "-s", "--format=%cI", history_sha)
+    else:
+        history_mode = "FROZEN_SEALED_INDEX_NO_GIT"
+        (
+            documents,
+            frozen_source_rows,
+            frozen_chunks,
+            history_sha,
+            history_date,
+        ) = _frozen_history_inputs(repo, frozen_git_history_from)
+    chunks = _chunk_documents(documents) + frozen_chunks
     document_count = len(chunks)
     document_frequency: Counter[str] = Counter()
     for chunk in chunks:
@@ -316,9 +490,8 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
                 "bytes": len(document.text.encode("utf-8")),
             }
         )
+    source_rows.extend(frozen_source_rows)
 
-    history_sha = _run(repo, "git", "rev-parse", "HEAD")
-    history_date = _run(repo, "git", "show", "-s", "--format=%cI", history_sha)
     corpus_binding = "\n".join(
         f"{row['path']}\t{row['sha256']}" for row in source_rows
     )
@@ -327,9 +500,10 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
 
     browser_artifact = {
         "schema": SCHEMA,
-        "release": "1.3.0",
+        "release": "1.5.0",
         "history_through_sha": history_sha,
         "history_through_date": history_date,
+        "history_mode": history_mode,
         "corpus_sha256": corpus_sha,
         "source_count": len(source_rows),
         "chunk_count": len(chunks),
@@ -411,9 +585,10 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
     )
     metadata = {
         "schema": SCHEMA,
-        "release": "1.3.0",
+        "release": "1.5.0",
         "history_through_sha": history_sha,
         "history_through_date": history_date,
+        "history_mode": history_mode,
         "corpus_sha256": corpus_sha,
         "source_count": str(len(source_rows)),
         "chunk_count": str(len(chunks)),
@@ -482,11 +657,23 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
     browser_sha = _sha256_bytes(browser_bytes)
     manifest = {
         "schema": SCHEMA,
-        "release": "1.3.0",
+        "release": "1.5.0",
         "history_through_sha": history_sha,
+        "history_mode": history_mode,
         "history_commit_count": sum(1 for row in source_rows if row["kind"] == "git_history"),
         "corpus": {
-            "boundary": "all Git-tracked public-safe Evidence Lane plugin text plus canonical repository policies and ancestor Git metadata; generated proof binaries, retrieval self-inputs, private session flash, runtime state, brains, and secrets are excluded",
+            "boundary": (
+                "all Git-tracked public-safe Evidence Lane plugin text plus canonical "
+                "repository policies and ancestor Git metadata; generated proof binaries, "
+                "retrieval self-inputs, private session flash, runtime state, brains, and "
+                "secrets are excluded"
+                if history_mode == "LIVE_GIT"
+                else
+                "the exact prior public source manifest re-read from current local bytes plus "
+                "frozen, previously sealed ancestor Git chunks; no Git command is invoked; "
+                "generated proof binaries, retrieval self-inputs, private session flash, "
+                "runtime state, brains, and secrets are excluded"
+            ),
             "sha256": corpus_sha,
             "source_count": len(source_rows),
             "chunk_count": len(chunks),
@@ -503,8 +690,24 @@ def _build_artifacts(repo: Path) -> dict[str, Any]:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--frozen-git-history-from",
+        type=Path,
+        help=(
+            "Regenerate current public source bytes without invoking Git while carrying "
+            "forward exact previously sealed Git-history sources and chunks."
+        ),
+    )
+    args = parser.parse_args()
     repo = Path(__file__).resolve().parents[3]
-    manifest = _build_artifacts(repo)
+    frozen_input = args.frozen_git_history_from
+    if frozen_input is not None and not frozen_input.is_absolute():
+        frozen_input = repo / frozen_input
+    manifest = _build_artifacts(
+        repo,
+        frozen_git_history_from=frozen_input,
+    )
     print(json.dumps(manifest, indent=2, sort_keys=True))
 
 

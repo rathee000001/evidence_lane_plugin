@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       <Link href="/">← Evidence Lane</Link>
       <span className="kicker">Public policy</span>
       <h1>Privacy</h1>
-      <p>The public website stores no Evidence Lane project data. The ChatGPT MCP edge forwards authenticated requests only to the configured durable origin and does not treat Vercel files, logs, or memory as accepted state authority.</p>
+      <p>The public website stores no Evidence Lane project data and does not expose a lifecycle MCP endpoint. Vercel files, logs, and memory are never accepted-state authority.</p>
       <h2>Data handled</h2>
       <p>When connected, the durable Evidence Lane service may process source material and visible chat context that a user intentionally supplies. Source policy excludes governed secret, credential, environment, runtime, and untracked operational material before indexing. Hidden chain-of-thought and private model reasoning are never Evidence Lane inputs.</p>
       <h2>Retention and control</h2>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { EvidenceBrainAsset } from "../_components/evidence-assets";
+import { HeroOrbit } from "../_components/hero-orbit";
 import { LaneProofExplorer } from "../_components/lane-proof-explorer";
 import { PageHero } from "../_components/page-hero";
 import { proofRules } from "../_data/site";
@@ -17,11 +17,7 @@ export default function ProofPage() {
         eyebrow="Proof before claim"
         title="Tests can disprove a report. They cannot manufacture acceptance."
         description="Evidence Lane separates verified implementation behavior, historical design context, unaccepted candidate evidence, external deployment state, and human lifecycle authority."
-        aside={
-          <div className="routeBrainOrb" aria-label="Pulsing Evidence Lane glass brain">
-            <EvidenceBrainAsset color="#e6aa48" label="" priority />
-          </div>
-        }
+        aside={<HeroOrbit preset="proof" />}
       />
       <section className="section shell dummyLaneProofs" id="dummy-lane-proofs">
         <div className="sectionHead wideHead">
@@ -32,7 +28,7 @@ export default function ProofPage() {
         <LaneProofExplorer />
       </section>
       <section className="section shell proofRules">
-        <div className="sectionHead wideHead"><span className="kicker">Current v1.3 correction standard</span><h2>Five rules that must fail loudly.</h2></div>
+        <div className="sectionHead wideHead"><span className="kicker">Current v1.5.0 candidate standard</span><h2>Five rules that must fail loudly.</h2></div>
         <div className="proofRuleGrid">
           {proofRules.map(([title, text], index) => <article key={title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{title}</h3><p>{text}</p></article>)}
         </div>
@@ -54,8 +50,8 @@ export default function ProofPage() {
         <div className="sectionHead"><span className="kicker">Claim boundary</span><h2>What the public site does and does not establish.</h2></div>
         <div className="claimTable">
           <div className="claimHead"><span>Observation</span><span>Permitted interpretation</span><span>Not proven</span></div>
-          <div><span>Landing page renders</span><span>The public Next.js surface is deployed</span><span>ChatGPT MCP readiness</span></div>
-          <div><span><code>/healthz</code> returns ready</span><span>Edge configuration and release identity passed its checks</span><span>End-user workflow quality</span></div>
+          <div><span>Landing page renders</span><span>The public Next.js surface builds</span><span>Native Codex package activation</span></div>
+          <div><span>Post-restart receipt passes</span><span>Installed version and native catalog matched</span><span>End-user workflow quality</span></div>
           <div><span>18-lane dummy audit passes</span><span>Fixture contract and negative gates behave as tested</span><span>Every real project topology is correct</span></div>
           <div><span>Candidate package is sealed</span><span>Its bytes and evidence are ready for review</span><span>Acceptance, Fuse, or pointer movement</span></div>
           <div><span>Exact <code>APPROVE</code> is fused</span><span>Bound candidate became accepted under the governed rule</span><span>External market value or universal superiority</span></div>

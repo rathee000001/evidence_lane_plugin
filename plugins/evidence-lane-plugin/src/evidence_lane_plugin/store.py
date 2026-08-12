@@ -7,6 +7,7 @@ import os
 import shutil
 import threading
 import time
+import unicodedata
 from collections import Counter
 from pathlib import Path
 from typing import Any, ClassVar, Self, cast
@@ -46,16 +47,72 @@ _BATCH_CONTRACT_FIELDS = (
     "stop_condition",
 )
 
+_PLAN_PANEL_ROLES = {
+    "STANDARD",
+    "HIL_GATE",
+    "PHYSICALLY_FINAL_HIL",
+}
+
+_GOAL_STATUS_BY_LIFECYCLE = {
+    "ACTIVE": "in_progress",
+    "QUEUED": "pending",
+    "DONE": "completed",
+    "ACCEPTED": "completed",
+}
+
+_PARKED_LIFECYCLE_STATUSES = {"DROPPED"}
+_SUPERSEDED_LIFECYCLE_STATUSES = {"SUPERSEDED"}
+
+
+def _next_plan_hil_task_id(tasks: list[dict[str, Any]]) -> str | None:
+    """Return the next visible HIL row without treating stop text as a gate."""
+
+    ordered = sorted(tasks, key=lambda row: int(row["sequence"]))
+    active_sequence = next(
+        (
+            int(task["sequence"])
+            for task in ordered
+            if str(task.get("status")) == "ACTIVE"
+        ),
+        0,
+    )
+    unfinished = [
+        task
+        for task in ordered
+        if int(task["sequence"]) > active_sequence
+        and str(task.get("status")) not in {"ACCEPTED", "DONE", "SUPERSEDED"}
+    ]
+    for task in unfinished:
+        if str(task.get("panel_role") or "").upper() in {
+            "HIL_GATE",
+            "PHYSICALLY_FINAL_HIL",
+        }:
+            return str(task["task_id"])
+        outcome = str(task.get("requested_outcome") or "").upper()
+        if "HIL" in outcome and (
+            "PRESENT" in outcome
+            or "DECISION" in outcome
+            or "GATE" in outcome
+        ):
+            return str(task["task_id"])
+    return None
+
 
 class _ProjectLock:
     _process_locks: ClassVar[dict[str, threading.RLock]] = {}
     _guard: ClassVar[threading.Lock] = threading.Lock()
 
+    @classmethod
+    def process_lock(cls, path: Path) -> threading.RLock:
+        """Return the process-local lock shared by readers and writers."""
+
+        with cls._guard:
+            return cls._process_locks.setdefault(str(path), threading.RLock())
+
     def __init__(self, path: Path, *, timeout: float = 10.0) -> None:
         self.path = path
         self.timeout = timeout
-        with self._guard:
-            self._lock = self._process_locks.setdefault(str(path), threading.RLock())
+        self._lock = self.process_lock(path)
         self._fd: int | None = None
 
     def __enter__(self) -> Self:
@@ -91,9 +148,145 @@ class _ProjectLock:
 
 
 class ProjectStore:
-    def __init__(self, root: str | Path) -> None:
-        self.root = Path(root).resolve()
-        self.root.mkdir(parents=True, exist_ok=True)
+    def __init__(
+        self,
+        root: str | Path,
+        *,
+        configuration_source: str = "EXPLICIT_SERVICE_CONFIGURATION",
+    ) -> None:
+        raw_root = os.path.expandvars(os.fspath(root)).strip()
+        require(
+            bool(raw_root),
+            "EVIDENCE_LANE_DATA_ROOT_INVALID",
+            "The Evidence Lane data root cannot be empty.",
+            status="BLOCKED",
+        )
+        try:
+            resolved = Path(raw_root).expanduser().resolve()
+            require(
+                not resolved.exists() or resolved.is_dir(),
+                "EVIDENCE_LANE_DATA_ROOT_UNAVAILABLE",
+                "The configured Evidence Lane data root is not a directory.",
+                status="BLOCKED",
+                resolved_root=str(resolved),
+            )
+            resolved.mkdir(parents=True, exist_ok=True)
+        except EvidenceLaneError:
+            raise
+        except OSError as exc:
+            raise EvidenceLaneError(
+                "EVIDENCE_LANE_DATA_ROOT_UNAVAILABLE",
+                "The configured Evidence Lane data root could not be opened.",
+                status="BLOCKED",
+                details={
+                    "resolved_root": str(Path(raw_root).expanduser()),
+                    "os_error": type(exc).__name__,
+                },
+            ) from exc
+        require(
+            resolved.is_absolute() and resolved.is_dir() and os.access(resolved, os.R_OK | os.W_OK),
+            "EVIDENCE_LANE_DATA_ROOT_UNAVAILABLE",
+            "The configured Evidence Lane data root is not readable and writable.",
+            status="BLOCKED",
+            resolved_root=str(resolved),
+        )
+        self.root = resolved
+        self.configuration_source = configuration_source
+
+    @staticmethod
+    def canonical_project_key(project_id: str) -> str:
+        """Return the comparison-only key; the exact ID remains authoritative."""
+
+        return unicodedata.normalize("NFKC", project_id).casefold()
+
+    def _registry_path(self) -> Path:
+        return self.root / "registry.json"
+
+    def _registry_lock(self) -> _ProjectLock:
+        return _ProjectLock(self.root / ".registry.lock")
+
+    def _load_root_registry(self) -> dict[str, Any]:
+        with _ProjectLock.process_lock(self.root / ".registry.lock"):
+            return self._load_root_registry_unlocked()
+
+    def _load_root_registry_unlocked(self) -> dict[str, Any]:
+        path = self._registry_path()
+        if not path.is_file():
+            return {"schema": PROJECT_REGISTRY_SCHEMA, "projects": {}}
+        try:
+            registry = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise EvidenceLaneError(
+                "PROJECT_REGISTRY_INVALID",
+                "The Evidence Lane root project registry is unreadable.",
+                status="FAIL",
+                details={"registry": str(path), "error": type(exc).__name__},
+            ) from exc
+        require(
+            registry.get("schema") == PROJECT_REGISTRY_SCHEMA
+            and isinstance(registry.get("projects"), dict),
+            "PROJECT_REGISTRY_INVALID",
+            "The Evidence Lane root project registry has an invalid shape.",
+            status="FAIL",
+            registry=str(path),
+        )
+        return registry
+
+    def _assert_exact_project_route(self, project_id: str) -> None:
+        registry = self._load_root_registry()
+        requested_key = self.canonical_project_key(project_id)
+        collisions = sorted(
+            existing_id
+            for existing_id in registry["projects"]
+            if self.canonical_project_key(existing_id) == requested_key
+            and existing_id != project_id
+        )
+        require(
+            not collisions,
+            "PROJECT_ID_COLLISION",
+            "The requested project ID collides by case or Unicode normalization with an existing exact binding.",
+            status="BLOCKED",
+            project_id=project_id,
+            colliding_project_ids=collisions,
+            normalization="NFKC_CASEFOLD_COMPARISON_EXACT_ID_AUTHORITY",
+        )
+
+    def inspect_root(self) -> dict[str, Any]:
+        registry = self._load_root_registry()
+        return {
+            "schema": "evidence-lane.portable-store-root.v1",
+            "status": "PASS",
+            "resolved_root": str(self.root),
+            "configuration_source": self.configuration_source,
+            "root_is_absolute": self.root.is_absolute(),
+            "root_exists": self.root.is_dir(),
+            "root_readable": os.access(self.root, os.R_OK),
+            "root_writable": os.access(self.root, os.W_OK),
+            "durability_capability": "CONFIGURED_USER_DURABLE_FILESYSTEM",
+            "projects_container": str(self.root / "projects"),
+            "registered_project_count": len(registry["projects"]),
+            "primary_runtime_storage": "PROJECT_LOCAL_SQLITE_UNLESS_EXPLICITLY_SELECTED_OTHERWISE",
+            "google_drive_primary_runtime_allowed": False,
+            "secret_values_persisted": False,
+        }
+
+    def inspect_project_route(self, project_id: str) -> dict[str, Any]:
+        safe = self.validate_project_id(project_id)
+        root = self.project_root(safe)
+        return {
+            "schema": "evidence-lane.project-store-route.v1",
+            "status": "PASS",
+            "project_id": safe,
+            "canonical_comparison_key": self.canonical_project_key(safe),
+            "canonical_id_policy": "ASCII_EXACT_WITH_NFKC_CASEFOLD_COLLISION_GUARD",
+            "resolved_store_root": str(self.root),
+            "relative_project_route": f"projects/{safe}",
+            "resolved_project_root": str(root),
+            "contained_beneath_store_root": True,
+            "transport_project_binding": "EXPLICIT_PROJECT_ID_PER_PROJECT_SCOPED_TOOL",
+            "cross_project_fallback_allowed": False,
+            "secret_values_persisted": False,
+        }
 
     @staticmethod
     def validate_project_id(project_id: str) -> str:
@@ -111,8 +304,17 @@ class ProjectStore:
 
     def project_root(self, project_id: str) -> Path:
         safe = self.validate_project_id(project_id)
+        self._assert_exact_project_route(safe)
         result = (self.root / "projects" / safe).resolve()
-        result.relative_to(self.root)
+        try:
+            result.relative_to(self.root)
+        except ValueError as exc:
+            raise EvidenceLaneError(
+                "PROJECT_ROUTE_ESCAPE",
+                "The project route escaped the configured Evidence Lane store root.",
+                status="BLOCKED",
+                details={"project_id": safe},
+            ) from exc
         return result
 
     def _source_authority_path(self, project_id: str) -> Path:
@@ -134,40 +336,82 @@ class ProjectStore:
         return _ProjectLock(self.project_root(project_id) / ".store.lock")
 
     def register_project(self, config: ProjectConfig) -> dict[str, Any]:
-        root = self.project_root(config.project_id)
-        with self._lock(config.project_id):
-            for folder in ("accepted", "candidates", "receipts", "sessions", "lineage"):
-                (root / folder).mkdir(parents=True, exist_ok=True)
-            project_path = root / "project.json"
-            payload = {
-                "schema": PROJECT_REGISTRY_SCHEMA,
-                **config.as_dict(),
-            }
-            if project_path.exists():
-                existing = json.loads(project_path.read_text(encoding="utf-8"))
-                require(
-                    existing == payload,
-                    "PROJECT_REGISTRATION_CONFLICT",
-                    "The project ID is already registered with different authority.",
-                    status="MISMATCH",
-                    project_id=config.project_id,
-                )
-            else:
-                atomic_write_json(project_path, payload)
-            pointer_path = root / "active_pointer.json"
-            if not pointer_path.exists():
-                pointer = ActivePointer(
-                    project_id=config.project_id,
-                    accepted_pv=None,
-                    accepted_manifest_sha256=None,
-                    generation=0,
-                    updated_at=utc_now(),
-                )
-                atomic_write_json(
-                    pointer_path,
-                    {"schema": POINTER_SCHEMA, **pointer.as_dict()},
-                )
-            self._update_root_registry(config.project_id, payload)
+        self.validate_project_id(config.project_id)
+        with self._registry_lock():
+            registry = self._load_root_registry()
+            canonical_key = self.canonical_project_key(config.project_id)
+            repository_path_hash = sha256_bytes(
+                config.repository_path.encode("utf-8")
+            )
+            id_collisions = sorted(
+                existing_id
+                for existing_id in registry["projects"]
+                if existing_id != config.project_id
+                and self.canonical_project_key(existing_id) == canonical_key
+            )
+            require(
+                not id_collisions,
+                "PROJECT_ID_COLLISION",
+                "The project ID collides by case or Unicode normalization with an existing exact binding.",
+                status="BLOCKED",
+                project_id=config.project_id,
+                colliding_project_ids=id_collisions,
+            )
+            source_collisions = sorted(
+                existing_id
+                for existing_id, row in registry["projects"].items()
+                if existing_id != config.project_id
+                and isinstance(row, dict)
+                and row.get("repository_path_hash") == repository_path_hash
+            )
+            require(
+                not source_collisions,
+                "PROJECT_SOURCE_BINDING_DUPLICATE",
+                "The repository path is already bound to another governed project ID.",
+                status="BLOCKED",
+                project_id=config.project_id,
+                existing_project_ids=source_collisions,
+            )
+            root = self.project_root(config.project_id)
+            with self._lock(config.project_id):
+                for folder in (
+                    "accepted",
+                    "candidates",
+                    "receipts",
+                    "sessions",
+                    "lineage",
+                ):
+                    (root / folder).mkdir(parents=True, exist_ok=True)
+                project_path = root / "project.json"
+                payload = {
+                    "schema": PROJECT_REGISTRY_SCHEMA,
+                    **config.as_dict(),
+                }
+                if project_path.exists():
+                    existing = json.loads(project_path.read_text(encoding="utf-8"))
+                    require(
+                        existing == payload,
+                        "PROJECT_REGISTRATION_CONFLICT",
+                        "The project ID is already registered with different authority.",
+                        status="MISMATCH",
+                        project_id=config.project_id,
+                    )
+                else:
+                    atomic_write_json(project_path, payload)
+                pointer_path = root / "active_pointer.json"
+                if not pointer_path.exists():
+                    pointer = ActivePointer(
+                        project_id=config.project_id,
+                        accepted_pv=None,
+                        accepted_manifest_sha256=None,
+                        generation=0,
+                        updated_at=utc_now(),
+                    )
+                    atomic_write_json(
+                        pointer_path,
+                        {"schema": POINTER_SCHEMA, **pointer.as_dict()},
+                    )
+                self._update_root_registry(config.project_id, payload, registry)
         return self.project_status(config.project_id)
 
     def replace_branch_authority(
@@ -177,6 +421,7 @@ class ProjectStore:
         branch: str,
         selected_by: str,
         repository: dict[str, Any],
+        selection_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Replace, never broaden, the registered branch with one explicit branch."""
 
@@ -223,6 +468,11 @@ class ProjectStore:
                 "remote_write_performed": False,
                 "prior_project_sha256": sha256_bytes(canonical_json_bytes(existing)),
                 "updated_project_sha256": sha256_bytes(canonical_json_bytes(updated)),
+                **(
+                    {"selection_context": selection_context}
+                    if selection_context is not None
+                    else {}
+                ),
             }
             receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_body))
             receipt = {
@@ -247,21 +497,23 @@ class ProjectStore:
         }
 
     def _update_root_registry(
-        self, project_id: str, project_payload: dict[str, Any]
+        self,
+        project_id: str,
+        project_payload: dict[str, Any],
+        registry: dict[str, Any] | None = None,
     ) -> None:
-        registry_path = self.root / "registry.json"
-        if registry_path.exists():
-            registry = json.loads(registry_path.read_text(encoding="utf-8"))
-        else:
-            registry = {"schema": PROJECT_REGISTRY_SCHEMA, "projects": {}}
-        registry["projects"][project_id] = {
+        registry_path = self._registry_path()
+        exact_registry = registry or self._load_root_registry()
+        exact_registry["projects"][project_id] = {
             "display_name": project_payload["display_name"],
             "enabled": project_payload["enabled"],
+            "canonical_project_key": self.canonical_project_key(project_id),
+            "relative_project_route": f"projects/{project_id}",
             "repository_path_hash": sha256_bytes(
                 project_payload["repository_path"].encode("utf-8")
             ),
         }
-        atomic_write_json(registry_path, registry)
+        atomic_write_json(registry_path, exact_registry)
 
     def _backlog_path(self, project_id: str) -> Path:
         return self.project_root(project_id) / "task_backlog.json"
@@ -315,8 +567,11 @@ class ProjectStore:
         tasks: list[dict[str, Any]],
         planned_by: str,
         plan_id: str,
+        insert_before_task_id: str | None = None,
+        insert_before_next_hil: bool = False,
+        normalization_transition_id: str | None = None,
     ) -> dict[str, Any]:
-        """Append a bounded queue; planning never creates parallel active tasks."""
+        """Add a bounded queue; planning never creates parallel active tasks."""
         self.config(project_id)
         require(
             1 <= len(tasks) <= 100,
@@ -415,6 +670,18 @@ class ProjectStore:
                     supersedes_task_id=supersedes_task_id,
                 )
                 normalized_task["supersedes_task_id"] = supersedes_task_id
+            panel_role = str(task.get("panel_role") or "").strip().upper()
+            if panel_role:
+                require(
+                    panel_role in _PLAN_PANEL_ROLES,
+                    "BACKLOG_TASK_PANEL_ROLE_INVALID",
+                    "A queued task contains an unsupported persistent-panel role.",
+                    status="BLOCKED",
+                    task_id=task_id,
+                    panel_role=panel_role,
+                    supported=sorted(_PLAN_PANEL_ROLES),
+                )
+                normalized_task["panel_role"] = panel_role
             normalized.append(normalized_task)
         ids = [task["task_id"] for task in normalized]
         require(
@@ -423,11 +690,31 @@ class ProjectStore:
             "A task plan may not repeat a task ID.",
             status="BLOCKED",
         )
-        input_sha256 = sha256_bytes(
-            canonical_json_bytes(
-                {"planned_by": planned_by.strip(), "tasks": normalized}
+        exact_insert_before = str(insert_before_task_id or "").strip()
+        if exact_insert_before:
+            require(
+                len(exact_insert_before) <= 96
+                and all(
+                    character in _PROJECT_ID_CHARS
+                    for character in exact_insert_before
+                ),
+                "TASK_PLAN_INSERTION_TARGET_INVALID",
+                "A task-plan insertion target must be one stable task ID.",
+                status="BLOCKED",
+                insert_before_task_id=exact_insert_before,
             )
-        )
+        input_body: dict[str, Any] = {
+            "planned_by": planned_by.strip(),
+            "tasks": normalized,
+        }
+        if exact_insert_before:
+            input_body["insert_before_task_id"] = exact_insert_before
+        if insert_before_next_hil:
+            input_body["insert_before_next_hil"] = True
+        exact_normalization_id = str(normalization_transition_id or "").strip()
+        if exact_normalization_id:
+            input_body["normalization_transition_id"] = exact_normalization_id
+        input_sha256 = sha256_bytes(canonical_json_bytes(input_body))
         with self._lock(project_id):
             backlog = self._load_backlog(project_id)
             ensure_event_ledger(backlog)
@@ -465,8 +752,34 @@ class ProjectStore:
                 status="MISMATCH",
                 task_ids=missing_superseded,
             )
+            resolved_insert_before = exact_insert_before
+            if not resolved_insert_before and insert_before_next_hil:
+                resolved_insert_before = (
+                    _next_plan_hil_task_id(backlog["tasks"]) or ""
+                )
+            if resolved_insert_before:
+                require(
+                    resolved_insert_before in existing_ids,
+                    "TASK_PLAN_INSERTION_TARGET_NOT_FOUND",
+                    "The requested pre-HIL insertion target is not in the Plan Lane.",
+                    status="MISMATCH",
+                    insert_before_task_id=resolved_insert_before,
+                )
             planned_at = utc_now()
+            insertion_index = len(backlog["tasks"])
             first_sequence = len(backlog["tasks"]) + 1
+            if resolved_insert_before:
+                insertion_index = next(
+                    index
+                    for index, task in enumerate(backlog["tasks"])
+                    if str(task["task_id"]) == resolved_insert_before
+                )
+                first_sequence = int(backlog["tasks"][insertion_index]["sequence"])
+                for existing_task in backlog["tasks"]:
+                    if int(existing_task["sequence"]) >= first_sequence:
+                        existing_task["sequence"] = int(existing_task["sequence"]) + len(
+                            normalized
+                        )
             added_tasks = [
                 {
                     **task,
@@ -478,16 +791,19 @@ class ProjectStore:
                 }
                 for offset, task in enumerate(normalized)
             ]
-            backlog["tasks"].extend(added_tasks)
-            backlog["plans"].append(
-                {
-                    "plan_id": plan_id,
-                    "planned_by": planned_by.strip(),
-                    "input_sha256": input_sha256,
-                    "task_ids": ids,
-                    "planned_at": planned_at,
-                }
-            )
+            backlog["tasks"][insertion_index:insertion_index] = added_tasks
+            plan_row = {
+                "plan_id": plan_id,
+                "planned_by": planned_by.strip(),
+                "input_sha256": input_sha256,
+                "task_ids": ids,
+                "planned_at": planned_at,
+            }
+            if resolved_insert_before:
+                plan_row["insert_before_task_id"] = resolved_insert_before
+            if exact_normalization_id:
+                plan_row["normalization_transition_id"] = exact_normalization_id
+            backlog["plans"].append(plan_row)
             for task in added_tasks:
                 append_delta_event(
                     backlog,
@@ -501,6 +817,7 @@ class ProjectStore:
                     details={
                         "plan_id": plan_id,
                         "sequence": task["sequence"],
+                        "insert_before_task_id": resolved_insert_before or None,
                     },
                 )
             tasks_by_id = {str(row["task_id"]): row for row in backlog["tasks"]}
@@ -512,7 +829,11 @@ class ProjectStore:
                 append_delta_event(
                     backlog,
                     task_id=linked_task_id,
-                    event_type="SUPERSEDED",
+                    event_type=(
+                        "PLAN_NORMALIZATION_SUPERSEDED"
+                        if exact_normalization_id
+                        else "SUPERSEDED"
+                    ),
                     to_status="SUPERSEDED",
                     actor=planned_by.strip(),
                     event_id=(
@@ -520,10 +841,301 @@ class ProjectStore:
                     ),
                     recorded_at=planned_at,
                     assume_initialized=True,
-                    details={"replacement_task_id": task["task_id"]},
+                    details={
+                        "replacement_task_id": task["task_id"],
+                        "normalization_transition_id": (
+                            exact_normalization_id or None
+                        ),
+                    },
                 )
                 superseded["superseded_by_task_id"] = task["task_id"]
             self._persist_backlog(project_id, backlog)
+        return self.backlog_status(project_id)
+
+    def activate_plan_normalization(
+        self,
+        project_id: str,
+        *,
+        plan_id: str,
+        review_task_id: str,
+        replacement_task_id: str,
+        session_id: str,
+        runtime_task_id: str,
+        approved_by: str,
+        approval_receipt_sha256: str,
+    ) -> dict[str, Any]:
+        """Complete the approved review gate and activate its sole successor.
+
+        All backlog events are persisted under one project lock.  Replays are
+        accepted only when the already-active row has the exact same session
+        and runtime-task binding.
+        """
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            tasks_by_id = {
+                str(task["task_id"]): task for task in backlog.get("tasks", [])
+            }
+            review = tasks_by_id.get(review_task_id)
+            replacement = tasks_by_id.get(replacement_task_id)
+            require(
+                isinstance(review, dict)
+                and isinstance(replacement, dict)
+                and review.get("plan_id") == plan_id
+                and replacement.get("plan_id") == plan_id,
+                "PLAN_NORMALIZATION_TASK_MISMATCH",
+                "The normalization review and replacement rows must belong to the exact new plan.",
+                status="MISMATCH",
+                plan_id=plan_id,
+                review_task_id=review_task_id,
+                replacement_task_id=replacement_task_id,
+            )
+            review = cast(dict[str, Any], review)
+            replacement = cast(dict[str, Any], replacement)
+            changed = False
+            now = utc_now()
+            if review.get("status") == "QUEUED":
+                append_delta_event(
+                    backlog,
+                    task_id=review_task_id,
+                    event_type="PLAN_APPROVAL_STARTED",
+                    to_status="ACTIVE",
+                    actor=approved_by,
+                    event_id=f"{plan_id}__{review_task_id}__approval_active",
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "approval_receipt_sha256": approval_receipt_sha256,
+                        "candidate_created": False,
+                        "hil_inferred": False,
+                    },
+                )
+                append_delta_event(
+                    backlog,
+                    task_id=review_task_id,
+                    event_type="PLAN_APPROVAL_COMPLETED",
+                    to_status="DONE",
+                    actor=approved_by,
+                    event_id=f"{plan_id}__{review_task_id}__approval_done",
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "approval_receipt_sha256": approval_receipt_sha256,
+                        "candidate_created": False,
+                        "hil_inferred": False,
+                    },
+                )
+                review.setdefault("history", []).append(
+                    {
+                        "event": "PLAN_APPROVAL_COMPLETED",
+                        "approved_by": approved_by,
+                        "approval_receipt_sha256": approval_receipt_sha256,
+                        "recorded_at": now,
+                    }
+                )
+                changed = True
+            require(
+                review.get("status") == "DONE",
+                "PLAN_NORMALIZATION_REVIEW_NOT_DONE",
+                "The approved normalization review gate is not complete.",
+                status="MISMATCH",
+                review_task_id=review_task_id,
+                review_status=review.get("status"),
+            )
+            active = [
+                task for task in backlog["tasks"] if task.get("status") == "ACTIVE"
+            ]
+            if replacement.get("status") == "QUEUED":
+                require(
+                    not active,
+                    "PLAN_NORMALIZATION_ACTIVE_TASK_CONFLICT",
+                    "The replacement row may activate only after the prior active row is superseded.",
+                    status="MISMATCH",
+                    active_task_ids=[task["task_id"] for task in active],
+                )
+                replacement["active_session_id"] = session_id
+                replacement["runtime_task_id"] = runtime_task_id
+                append_delta_event(
+                    backlog,
+                    task_id=replacement_task_id,
+                    event_type="PLAN_NORMALIZATION_ACTIVATED",
+                    to_status="ACTIVE",
+                    actor=session_id,
+                    event_id=(
+                        f"{plan_id}__{replacement_task_id}__"
+                        f"{runtime_task_id}__normalization_active"
+                    ),
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "session_id": session_id,
+                        "runtime_task_id": runtime_task_id,
+                        "plan_id": plan_id,
+                    },
+                )
+                replacement.setdefault("history", []).append(
+                    {
+                        "event": "CLAIMED_BY_PLAN_NORMALIZATION",
+                        "session_id": session_id,
+                        "runtime_task_id": runtime_task_id,
+                        "recorded_at": now,
+                    }
+                )
+                changed = True
+            else:
+                require(
+                    replacement.get("status") == "ACTIVE"
+                    and replacement.get("active_session_id") == session_id
+                    and replacement.get("runtime_task_id") == runtime_task_id
+                    and len(active) == 1
+                    and active[0].get("task_id") == replacement_task_id,
+                    "PLAN_NORMALIZATION_ACTIVE_BINDING_MISMATCH",
+                    "The replayed normalization does not match the sole active replacement binding.",
+                    status="MISMATCH",
+                    replacement_task_id=replacement_task_id,
+                    replacement_status=replacement.get("status"),
+                )
+            if changed:
+                self._persist_backlog(project_id, backlog)
+        return self.backlog_status(project_id)
+
+    def correct_plan_normalization(
+        self,
+        project_id: str,
+        *,
+        original_transition_id: str,
+        correction_transition_id: str,
+        mistaken_task_id: str,
+        restored_task_id: str,
+        session_id: str,
+        runtime_task_id: str,
+        corrected_by: str,
+        correction_receipt_sha256: str,
+        goal_row_offset: int,
+    ) -> dict[str, Any]:
+        """Restore one mistakenly superseded live row without rewriting history.
+
+        The two corrective events are persisted under one project lock. Replays
+        accept only the exact already-corrected binding and append no event.
+        """
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            tasks_by_id = {
+                str(task["task_id"]): task for task in backlog.get("tasks", [])
+            }
+            mistaken = tasks_by_id.get(mistaken_task_id)
+            restored = tasks_by_id.get(restored_task_id)
+            require(
+                isinstance(mistaken, dict) and isinstance(restored, dict),
+                "PLAN_NORMALIZATION_CORRECTION_TASK_MISMATCH",
+                "The correction must reference the exact mistaken and restored Plan rows.",
+                status="MISMATCH",
+                mistaken_task_id=mistaken_task_id,
+                restored_task_id=restored_task_id,
+            )
+            mistaken = cast(dict[str, Any], mistaken)
+            restored = cast(dict[str, Any], restored)
+            before = (
+                mistaken.get("status") == "ACTIVE"
+                and restored.get("status") == "SUPERSEDED"
+            )
+            after = (
+                mistaken.get("status") == "SUPERSEDED"
+                and restored.get("status") == "ACTIVE"
+            )
+            require(
+                before or after,
+                "PLAN_NORMALIZATION_CORRECTION_STATE_MISMATCH",
+                "The Plan rows are neither at the exact mistaken state nor the exact corrected state.",
+                status="MISMATCH",
+                mistaken_status=mistaken.get("status"),
+                restored_status=restored.get("status"),
+            )
+            event_details = {
+                "original_transition_id": original_transition_id,
+                "correction_transition_id": correction_transition_id,
+                "correction_receipt_sha256": correction_receipt_sha256,
+                "session_id": session_id,
+                "candidate_created": False,
+                "pending_hil": False,
+                "pointer_moved": False,
+                "goal_row_offset": goal_row_offset,
+            }
+            if before:
+                now = utc_now()
+                append_delta_event(
+                    backlog,
+                    task_id=mistaken_task_id,
+                    event_type="PLAN_NORMALIZATION_CORRECTION_SUPERSEDED",
+                    to_status="SUPERSEDED",
+                    actor=corrected_by,
+                    event_id=(
+                        f"{correction_transition_id}__{mistaken_task_id}__superseded"
+                    ),
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        **event_details,
+                        "restored_task_id": restored_task_id,
+                    },
+                )
+                append_delta_event(
+                    backlog,
+                    task_id=restored_task_id,
+                    event_type="PLAN_NORMALIZATION_CORRECTION_RESTORED",
+                    to_status="ACTIVE",
+                    actor=corrected_by,
+                    event_id=(
+                        f"{correction_transition_id}__{restored_task_id}__restored"
+                    ),
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        **event_details,
+                        "mistaken_task_id": mistaken_task_id,
+                    },
+                )
+                mistaken.pop("active_session_id", None)
+                mistaken.pop("runtime_task_id", None)
+                mistaken["superseded_by_task_id"] = restored_task_id
+                mistaken.setdefault("history", []).append(
+                    {
+                        "event": "PLAN_NORMALIZATION_CORRECTION_SUPERSEDED",
+                        "correction_transition_id": correction_transition_id,
+                        "restored_task_id": restored_task_id,
+                        "recorded_at": now,
+                    }
+                )
+                restored.pop("superseded_by_task_id", None)
+                restored["active_session_id"] = session_id
+                restored["runtime_task_id"] = runtime_task_id
+                restored.setdefault("history", []).append(
+                    {
+                        "event": "PLAN_NORMALIZATION_CORRECTION_RESTORED",
+                        "correction_transition_id": correction_transition_id,
+                        "mistaken_task_id": mistaken_task_id,
+                        "recorded_at": now,
+                    }
+                )
+                backlog["goal_row_offset"] = goal_row_offset
+                self._persist_backlog(project_id, backlog)
+            else:
+                require(
+                    restored.get("active_session_id") == session_id
+                    and restored.get("runtime_task_id") == runtime_task_id
+                    and backlog.get("goal_row_offset", 0) == goal_row_offset
+                    and not any(
+                        task.get("status") == "ACTIVE"
+                        and task.get("task_id") != restored_task_id
+                        for task in backlog["tasks"]
+                    ),
+                    "PLAN_NORMALIZATION_CORRECTION_ACTIVE_BINDING_MISMATCH",
+                    "The replayed correction does not match the sole restored active binding.",
+                    status="MISMATCH",
+                )
         return self.backlog_status(project_id)
 
     def backlog_status(self, project_id: str) -> dict[str, Any]:
@@ -545,31 +1157,117 @@ class ProjectStore:
             backlog,
         )
         ordered_tasks = sorted(backlog["tasks"], key=lambda row: int(row["sequence"]))
-        panel_status = {
-            "ACTIVE": "in_progress",
-            "DONE": "completed",
-            "ACCEPTED": "completed",
-        }
-        goal_rows = [
-            {
-                "number": int(task["sequence"]),
+        goal_row_offset = backlog.get("goal_row_offset", 0)
+        require(
+            isinstance(goal_row_offset, int) and goal_row_offset >= 0,
+            "PLAN_GOAL_ROW_OFFSET_INVALID",
+            "The current executable Plan row offset must be a non-negative integer.",
+            status="MISMATCH",
+            goal_row_offset=goal_row_offset,
+        )
+        goal_rows: list[dict[str, Any]] = []
+        history_rows: list[dict[str, Any]] = []
+        canonical_rows: list[dict[str, Any]] = []
+        for task in ordered_tasks:
+            lifecycle_status = str(task["status"])
+            common = {
                 "task_id": str(task["task_id"]),
                 "step": str(task["requested_outcome"]),
-                "status": panel_status.get(str(task["status"]), "pending"),
-                "lifecycle_status": str(task["status"]),
+                "plan_sequence": int(task["sequence"]),
+                "lifecycle_status": lifecycle_status,
                 "steer_deltas": list(task.get("steer_deltas") or []),
+                **(
+                    {"panel_role": str(task["panel_role"])}
+                    if task.get("panel_role")
+                    else {}
+                ),
             }
-            for task in ordered_tasks
-        ]
+            host_status = _GOAL_STATUS_BY_LIFECYCLE.get(lifecycle_status)
+            if host_status is not None:
+                row = {
+                    **common,
+                    "number": goal_row_offset + len(goal_rows) + 1,
+                    "status": host_status,
+                }
+                goal_rows.append(row)
+                canonical_rows.append(
+                    {
+                        **common,
+                        "projection_lane": "GOAL",
+                        "goal_number": row["number"],
+                    }
+                )
+                continue
+            history_row = {
+                **common,
+                "history_number": len(history_rows) + 1,
+                "execution_status": "NON_EXECUTABLE",
+            }
+            history_rows.append(history_row)
+            canonical_rows.append(
+                {
+                    **common,
+                    "projection_lane": "HISTORY",
+                    "history_number": history_row["history_number"],
+                    "execution_status": "NON_EXECUTABLE",
+                }
+            )
+        canonical_plan_body = {
+            "canonical_authority": "PLAN_LANE",
+            "project_id": project_id,
+            "task_count": len(canonical_rows),
+            "rows": canonical_rows,
+        }
+        canonical_plan_sha256 = sha256_bytes(
+            canonical_json_bytes(canonical_plan_body)
+        )
+        history_projection_body = {
+            "canonical_authority": "PLAN_LANE",
+            "project_id": project_id,
+            "task_count": len(history_rows),
+            "rows": history_rows,
+            "parking_rows": [
+                row
+                for row in history_rows
+                if row["lifecycle_status"] in _PARKED_LIFECYCLE_STATUSES
+            ],
+            "superseded_rows": [
+                row
+                for row in history_rows
+                if row["lifecycle_status"] in _SUPERSEDED_LIFECYCLE_STATUSES
+            ],
+            "execution_policy": "IMMUTABLE_NON_EXECUTABLE_HISTORY",
+            "parked_host_surfaces": [],
+            "canonical_plan_sha256": canonical_plan_sha256,
+        }
+        history_projection = {
+            **history_projection_body,
+            "projection_sha256": sha256_bytes(
+                canonical_json_bytes(history_projection_body)
+            ),
+        }
         goal_projection_body = {
             "canonical_authority": "PLAN_LANE",
             "project_id": project_id,
             "task_count": len(goal_rows),
+            "canonical_task_count": len(canonical_rows),
+            "history_task_count": len(history_rows),
+            "row_offset": goal_row_offset,
+            "row_start": goal_row_offset + 1 if goal_rows else None,
+            "row_end": goal_row_offset + len(goal_rows) if goal_rows else None,
             "rows": goal_rows,
+            "canonical_plan_sha256": canonical_plan_sha256,
+            "history_projection_sha256": history_projection["projection_sha256"],
+            "lifecycle_status_mapping": dict(_GOAL_STATUS_BY_LIFECYCLE),
+            "non_executable_statuses": sorted(
+                set(DELTA_STATUSES) - set(_GOAL_STATUS_BY_LIFECYCLE)
+            ),
             "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
             "steer_default_boundary": "BEFORE_NEXT_HIL",
             "linked_steer_policy": "APPEND_TO_EXISTING_STEP_WITHOUT_REPLACEMENT",
-            "unlinked_steer_policy": "APPEND_NEW_NUMBERED_STEP_AND_INCREASE_COUNT",
+            "unlinked_steer_policy": (
+                "INSERT_NEW_NUMBERED_STEP_BEFORE_NEXT_HIL_AND_INCREASE_COUNT"
+            ),
         }
         goal_projection = {
             **goal_projection_body,
@@ -585,19 +1283,15 @@ class ProjectStore:
                     "native_task_panel": True,
                     "goal_start_requires_user_paste": True,
                 },
-                "CHATGPT": {
-                    "native_plan_mode": False,
-                    "native_goal": False,
-                    "native_task_panel": False,
-                    "mounted_plugin_store_is_authority": True,
-                    "append_only_lane_law_preserved": True,
-                },
             },
             "goal_start_prompt": (
                 f"Use the persisted Evidence Lane Plan Lane for project {project_id} "
-                "as this Codex task's Goal. Resume the first in-progress or pending "
-                "step, keep the full task panel visible through every steer, and stop "
-                "at the next governed six-way HIL."
+                "as this Codex task's Goal. Resume the sole in-progress row, or the "
+                "first pending row when none is active. Execute only Goal rows; "
+                "DROPPED, SUPERSEDED, REJECTED, FAILED, and ROLLED_BACK rows remain "
+                "immutable non-executable Plan history. Keep the full executable "
+                "task panel visible through every steer, and stop at the next "
+                "governed six-way HIL."
             ),
         }
         return {
@@ -618,6 +1312,11 @@ class ProjectStore:
             "universal_statuses": list(DELTA_STATUSES),
             "plan_runtime_projection": runtime,
             "goal_projection": goal_projection,
+            "history_projection": history_projection,
+            "canonical_plan_projection": {
+                **canonical_plan_body,
+                "projection_sha256": canonical_plan_sha256,
+            },
             "tasks": backlog["tasks"],
             "plans": backlog["plans"],
         }
@@ -633,7 +1332,7 @@ class ProjectStore:
         new_task_contract: dict[str, Any] | None = None,
         boundary: str = "BEFORE_NEXT_HIL",
     ) -> dict[str, Any]:
-        """Canonically link a steer or append one new linear Plan Lane row."""
+        """Link a steer or insert one new row before the next visible HIL."""
 
         exact_text = delta_text
         exact_actor = actor.strip()
@@ -682,13 +1381,21 @@ class ProjectStore:
                 "An unlinked steer requires one complete bounded task contract.",
                 status="BLOCKED",
             )
-            new_task = cast(dict[str, Any], new_task_contract)
+            new_task = dict(cast(dict[str, Any], new_task_contract))
+            explicit_insert_before = str(
+                new_task.pop("insert_before_task_id", "") or ""
+            ).strip()
             plan_digest = sha256_bytes(exact_delta_id.encode("utf-8")).lower()
             self.plan_tasks(
                 project_id,
                 tasks=[new_task],
                 planned_by=exact_actor,
                 plan_id=f"steerplan_{plan_digest[:32]}",
+                insert_before_task_id=explicit_insert_before or None,
+                insert_before_next_hil=(
+                    not explicit_insert_before
+                    and exact_boundary == "BEFORE_NEXT_HIL"
+                ),
             )
             exact_link = str(new_task.get("task_id") or "").strip()
 
@@ -859,6 +1566,25 @@ class ProjectStore:
             )
             self._persist_backlog(project_id, backlog)
             return task
+
+    def batch_completion_receipt(
+        self,
+        project_id: str,
+        receipt_id: str,
+    ) -> dict[str, Any] | None:
+        """Return one immutable batch-completion receipt without changing Plan state."""
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            receipt = next(
+                (
+                    row
+                    for row in backlog.get("batch_completion_receipts", [])
+                    if row.get("receipt_id") == receipt_id
+                ),
+                None,
+            )
+            return dict(receipt) if isinstance(receipt, dict) else None
 
     def record_backlog_done(
         self,

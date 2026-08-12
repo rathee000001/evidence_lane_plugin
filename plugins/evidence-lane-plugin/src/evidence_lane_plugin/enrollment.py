@@ -19,6 +19,7 @@ from .git_adapter import (
     run_git,
     validate_remote_ref,
 )
+from .hashing import canonical_json_bytes, sha256_bytes
 from .models import ProjectConfig
 from .store import ProjectStore
 
@@ -69,8 +70,15 @@ def sync_selected_branch(
     expected_commit: str | None = None,
     permitted_paths: list[str] | None = None,
     branch_replacement_actor: str | None = None,
+    dirty_local_authority_context: dict[str, str] | None = None,
 ) -> dict[str, Any]:
-    """Fetch one explicit source/branch and apply only a clean fast-forward."""
+    """Select one branch or apply one explicit clean fast-forward.
+
+    A dirty governed checkout remains ineligible for fetch or merge. The sole
+    exception is a source-byte-preserving authority replacement for the exact
+    local checkout already on the requested branch and commit. That path is
+    available only through an active task context and performs no Git write.
+    """
     config = store.config(project_id)
     exact_branch = validate_remote_ref(branch, field="branch")
     branch_authorized = exact_branch in config.allowed_branches
@@ -98,9 +106,129 @@ def sync_selected_branch(
         expected_owner=config.expected_owner,
         expected_name=config.expected_name,
         expected_branch=exact_branch,
-        require_clean=True,
     )
     before = identity_json(before_identity, config.repository_path)
+    if not before_identity.is_clean:
+        worktree_status = run_git(
+            config.repository_path,
+            ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
+        ).stdout
+        status_sha256 = sha256_bytes(worktree_status.encode("utf-8"))
+        require(
+            not branch_authorized,
+            "WORKTREE_NOT_CLEAN",
+            "Git fetch and fast-forward require a clean governed checkout.",
+            status="BLOCKED",
+            worktree_status_sha256=status_sha256,
+        )
+        configured_repository = Path(config.repository_path).resolve()
+        require(
+            source_kind == "LOCAL_GIT_SOURCE"
+            and Path(bounded_source).resolve() == configured_repository,
+            "DIRTY_BRANCH_AUTHORITY_LOCAL_CHECKOUT_REQUIRED",
+            "A dirty branch-authority-only replacement requires the exact "
+            "registered local checkout as its source.",
+            status="BLOCKED",
+        )
+        require(
+            permitted_paths is not None
+            and isinstance(dirty_local_authority_context, dict)
+            and all(
+                str(dirty_local_authority_context.get(field, "")).strip()
+                for field in (
+                    "session_id",
+                    "task_id",
+                    "task_class",
+                    "lifecycle_state",
+                    "task_contract_sha256",
+                )
+            ),
+            "DIRTY_BRANCH_AUTHORITY_ACTIVE_TASK_REQUIRED",
+            "A dirty branch-authority-only replacement requires one exact "
+            "active governed task contract.",
+            status="BLOCKED",
+        )
+        exact_expected = str(expected_commit or "").strip().lower()
+        require(
+            bool(_COMMIT_RE.fullmatch(exact_expected)),
+            "DIRTY_BRANCH_AUTHORITY_EXPECTED_COMMIT_REQUIRED",
+            "A dirty branch-authority-only replacement requires the exact "
+            "current commit.",
+            status="BLOCKED",
+        )
+        require(
+            before_identity.commit_sha == exact_expected,
+            "PROJECT_SYNC_EXPECTED_COMMIT_MISMATCH",
+            "The governed checkout does not match the exact expected commit.",
+            status="MISMATCH",
+            expected_commit=exact_expected,
+            checkout_commit=before_identity.commit_sha,
+        )
+        exact_dirty_context = dict(dirty_local_authority_context or {})
+        selection_context: dict[str, Any] = {
+            **exact_dirty_context,
+            "selection_mode": "DIRTY_LOCAL_BRANCH_AUTHORITY_ONLY",
+            "source_kind": source_kind,
+            "expected_commit": exact_expected,
+            "permitted_paths_sha256": sha256_bytes(
+                canonical_json_bytes(permitted_paths)
+            ),
+            "worktree_status_sha256": status_sha256,
+            "worktree_status_bytes": len(worktree_status.encode("utf-8")),
+            "worktree_status_records": len(
+                [entry for entry in worktree_status.split("\0") if entry]
+            ),
+            "dirty_worktree_preserved": True,
+            "fetch_performed": False,
+            "source_write_performed": False,
+            "remote_write_performed": False,
+            "merge_commit_created": False,
+        }
+        branch_authority = store.replace_branch_authority(
+            project_id,
+            branch=exact_branch,
+            selected_by=str(branch_replacement_actor),
+            repository=before,
+            selection_context=selection_context,
+        )
+        after_identity = inspect_repository(
+            config.repository_path,
+            expected_owner=config.expected_owner,
+            expected_name=config.expected_name,
+            expected_branch=exact_branch,
+            expected_commit=exact_expected,
+        )
+        after = identity_json(after_identity, config.repository_path)
+        after_status = run_git(
+            config.repository_path,
+            ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
+        ).stdout
+        require(
+            before == after and worktree_status == after_status,
+            "DIRTY_BRANCH_AUTHORITY_SOURCE_CHANGED",
+            "The branch-authority-only replacement did not preserve the exact "
+            "source and dirty worktree inventory.",
+            status="MISMATCH",
+        )
+        return {
+            "status": "PASS",
+            "project_id": project_id,
+            "operation": "DIRTY_LOCAL_BRANCH_AUTHORITY_ONLY",
+            "source_kind": source_kind,
+            "branch": exact_branch,
+            "before": before,
+            "after": after,
+            "fetched_commit": exact_expected,
+            "fast_forward_applied": False,
+            "changed_paths": [],
+            "branch_authority": branch_authority,
+            "dirty_worktree_preserved": True,
+            "worktree_status_sha256": status_sha256,
+            "fetch_performed": False,
+            "source_write_performed": False,
+            "remote_write_performed": False,
+            "merge_commit_created": False,
+        }
     run_git(
         config.repository_path,
         ["fetch", "--no-tags", "--", bounded_source, f"refs/heads/{exact_branch}"],
@@ -203,6 +331,7 @@ def sync_selected_branch(
     return {
         "status": "PASS",
         "project_id": project_id,
+        "operation": "CLEAN_FETCH_FAST_FORWARD_SYNC",
         "source_kind": source_kind,
         "branch": exact_branch,
         "before": before,
@@ -211,6 +340,9 @@ def sync_selected_branch(
         "fast_forward_applied": fetched_commit != before_identity.commit_sha,
         "changed_paths": changed,
         "branch_authority": branch_authority,
+        "dirty_worktree_preserved": False,
+        "fetch_performed": True,
+        "source_write_performed": fetched_commit != before_identity.commit_sha,
         "remote_write_performed": False,
         "merge_commit_created": False,
     }

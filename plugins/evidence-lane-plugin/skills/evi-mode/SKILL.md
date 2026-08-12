@@ -32,14 +32,20 @@ host) and `host_mode=PLAN`. The returned Plan Lane is the canonical goal/task
 list. Display its short `goal_start_prompt` for the user to copy and paste into
 the host-owned Codex Goal; MCP does not mutate the Goal or mode selector.
 
+Keep that Goal bound to the same canonical Plan Lane, active source boundary,
+and single-writer session. A UI crash, token wait, required user input, or HIL
+wait pauses only the dependent work; it never completes the Goal. Usage
+reporting is separate accounting with no task-status effect. On every Goal or
+panel reconstruction, include all completed-but-still-governing rows, exactly
+one active row, and all pending rows without shortening or reordering them.
+
 Keep the full task panel visible until the next six-way HIL. For every visible
 steer, decide canonically whether it belongs to an existing task. Call
 `pv_plan_steer_delta` with that `linked_task_id` when linked; append its exact
 text without replacing the row or changing the count. If it is unrelated, pass
-one complete `new_task_contract`; the Plan Lane appends a numbered step and the
-count increases. The default boundary is `BEFORE_NEXT_HIL` unless the user says
-otherwise.
+one complete `new_task_contract`; the Plan Lane adds a numbered step and the
+count increases. When a next HIL row exists, Plan Lane inserts that new step
+before the gate; a `PHYSICALLY_FINAL_HIL` row must remain physically final. The
+default boundary is `BEFORE_NEXT_HIL` unless the user says otherwise.
 
-Do not apply this Codex Plan-mode bridge to ChatGPT. ChatGPT persists its Plan
-Lane through the mounted plugin store and shared append-only runtime laws, but
-does not claim Codex `/pl`, Goal, or native task-panel controls.
+Do not apply this Codex Plan-mode bridge to an unsupported non-Codex host.

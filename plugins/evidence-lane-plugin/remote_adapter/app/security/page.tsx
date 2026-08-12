@@ -16,9 +16,9 @@ export default function SecurityPage() {
       <h2>Secret exclusion happens before indexing</h2>
       <p><code>.env</code> variants, private keys, credential paths, runtime caches, configured secret values, and recognized credential-shaped content are excluded before SQLite, CAS, FTS, graph, history, or PV insertion. Receipts record policy outcomes without copying secret bytes or secret values.</p>
       <h2>Remote actions require exact authority</h2>
-      <p>Git pushes, deployment mutations, merges, installation, pointer movement, and Fuse are separate governed actions. A build, passing test, or deployment does not imply HIL approval. Prepared remote actions bind an exact repository, branch, commit, scope, and one-time confirmation.</p>
-      <h2>Public MCP remains fail closed until durable</h2>
-      <p>The purchased website and MCP domains are configured, but a public connector is not operational merely because DNS and Vercel routing exist. Readiness requires a Vercel-reachable durable HTTPS origin, exact release identity, authentication, bounded storage and queue behavior, and successful protocol verification. The local OpenAI tunnel is a separate stdio/control-plane path and is not substituted as that public origin.</p>
+      <p>Git pushes, deployment mutations, merges, installation, pointer movement, and Fuse are separate governed actions. A build, passing test, or deployment does not imply HIL approval. Prepared remote actions bind an exact repository, branch, commit, and scope. A valid standing grant may cover repeated pushes only to its exact non-protected test branch; main, merge, force, and PR acceptance remain blocked.</p>
+      <h2>The website is not lifecycle infrastructure</h2>
+      <p>The public documentation site exposes no lifecycle MCP endpoint and stores no accepted project state. Native Codex installation, local durable SQLite, exact package identity, and post-restart verification remain the supported execution boundary.</p>
       <h2>Third-party boundary</h2>
       <p>Upstream projects, services, models, assets, and trademarks retain their own terms and rights. Evidence Lane records adopted contracts, bounded research roles, and refusals on the <Link href="/provenance#upstream-reference-ledger">Upstream provenance</Link> page.</p>
       <h2>Reporting</h2>

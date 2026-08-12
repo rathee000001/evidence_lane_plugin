@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
@@ -22,10 +23,11 @@ from .errors import EvidenceLaneError, require
 from .flash_authority import SessionFlashAuthority
 from .freshness import evaluate_freshness
 from .git_adapter import inspect_repository
-from .hashing import sha256_bytes
+from .hashing import canonical_json_bytes, sha256_bytes
 from .hil_intent import classify_hil_intent
 from .ids import prefixed_id
 from .lane_reader import LaneReader
+from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 from .lineage import ProjectChatLineage
 from .models import ProjectConfig, normalize_host_kind
 from .next_actions import HIL_CHOICES, HIL_SUGGESTED_PROMPT
@@ -60,6 +62,97 @@ from .storage_selection import StorageSelection
 from .store import ProjectStore
 from .timeutil import utc_now
 
+_STATUS_VALIDATION_WORKERS = 8
+
+
+def _accepted_lane_projection(
+    store: ProjectStore,
+    project_id: str,
+    accepted_pv: str | None,
+) -> dict[str, Any]:
+    """Return compact public-safe lane facts from the validated accepted package."""
+
+    if not accepted_pv:
+        return {
+            "authority": "NO_ACCEPTED_PV",
+            "pv_ref": None,
+            "canonical_lane_count": len(CANONICAL_LANE_IDS),
+            "emitted_lane_count": 0,
+            "absent_lane_ids": list(CANONICAL_LANE_IDS),
+            "lanes": [
+                {
+                    "id": lane_id,
+                    "label": LANE_REGISTRY[lane_id].display_label,
+                    "value": "NO ACCEPTED PV | no lane authority available",
+                    "state": "NO_ACCEPTED_PV",
+                    "contract_status": "NOT_APPLICABLE",
+                    "member_count": 0,
+                }
+                for lane_id in CANONICAL_LANE_IDS
+            ],
+        }
+
+    manifest = json.loads(
+        (store.accepted_path(project_id, accepted_pv) / "manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    universal = manifest.get("universal_lanes")
+    if not isinstance(universal, dict):
+        universal = {}
+    emitted = {
+        str(lane_id)
+        for lane_id in (universal.get("emitted_lane_ids") or [])
+        if str(lane_id) in CANONICAL_LANE_IDS
+    }
+    contracts = universal.get("four_file_contracts")
+    if not isinstance(contracts, dict):
+        contracts = {}
+    lanes: list[dict[str, Any]] = []
+    for lane_id in CANONICAL_LANE_IDS:
+        contract = contracts.get(lane_id)
+        if not isinstance(contract, dict):
+            contract = {}
+        members = contract.get("members")
+        member_count = len(members) if isinstance(members, list) else 0
+        state = "EMITTED" if lane_id in emitted else "NOT_EMITTED"
+        contract_status = (
+            str(contract.get("status") or "UNKNOWN")
+            if lane_id in emitted
+            else "NOT_APPLICABLE"
+        )
+        lanes.append(
+            {
+                "id": lane_id,
+                "label": LANE_REGISTRY[lane_id].display_label,
+                "value": (
+                    f"{state} | {contract_status} | {member_count} sealed files | "
+                    f"accepted {accepted_pv}"
+                ),
+                "state": state,
+                "contract_status": contract_status,
+                "member_count": member_count,
+                "authority": "ACCEPTED_IMMUTABLE_AUTHORITY",
+                "pv_ref": accepted_pv,
+            }
+        )
+    absent = [lane_id for lane_id in CANONICAL_LANE_IDS if lane_id not in emitted]
+    return {
+        "authority": "ACCEPTED_IMMUTABLE_AUTHORITY",
+        "pv_ref": accepted_pv,
+        "canonical_lane_count": len(CANONICAL_LANE_IDS),
+        "manifest_declared_canonical_lane_count": int(
+            universal.get("canonical_lane_count") or 0
+        ),
+        "emitted_lane_count": len(emitted),
+        "absent_lane_ids": absent,
+        "bundle_sha256": universal.get("bundle_sha256"),
+        "topology_status": (
+            "PASS" if universal.get("topology_valid") is True else "NOT_PROVEN"
+        ),
+        "lanes": lanes,
+    }
+
 
 class EvidenceLaneService:
     def __init__(
@@ -69,16 +162,42 @@ class EvidenceLaneService:
         sync_service: PVSyncService | None = None,
     ) -> None:
         repository_root = identity_repository_root(__file__)
-        configured_root = (
-            Path(data_root)
-            if data_root
-            else Path(
-                os.environ.get("EVIDENCE_LANE_DATA_ROOT")
-                or os.environ.get("PLUGIN_DATA")
-                or Path.home() / "EvidenceLanePV"
+        configured_environment_root = os.environ.get("EVIDENCE_LANE_DATA_ROOT")
+        legacy_plugin_root = os.environ.get("PLUGIN_DATA")
+        if data_root is not None:
+            require(
+                bool(os.fspath(data_root).strip()),
+                "EVIDENCE_LANE_DATA_ROOT_INVALID",
+                "An explicitly configured Evidence Lane data root cannot be empty.",
+                status="BLOCKED",
             )
+            configured_root = Path(data_root)
+            root_source = "EXPLICIT_SERVICE_CONFIGURATION"
+        elif configured_environment_root is not None:
+            require(
+                bool(configured_environment_root.strip()),
+                "EVIDENCE_LANE_DATA_ROOT_INVALID",
+                "EVIDENCE_LANE_DATA_ROOT cannot be empty when it is configured.",
+                status="BLOCKED",
+            )
+            configured_root = Path(configured_environment_root)
+            root_source = "EVIDENCE_LANE_DATA_ROOT"
+        elif legacy_plugin_root is not None:
+            require(
+                bool(legacy_plugin_root.strip()),
+                "EVIDENCE_LANE_DATA_ROOT_INVALID",
+                "PLUGIN_DATA cannot be empty when it is configured.",
+                status="BLOCKED",
+            )
+            configured_root = Path(legacy_plugin_root)
+            root_source = "PLUGIN_DATA_MIGRATION_COMPATIBILITY"
+        else:
+            configured_root = Path.home() / "EvidenceLanePV"
+            root_source = "PLATFORM_PER_USER_DURABLE_DEFAULT"
+        self.store = ProjectStore(
+            configured_root,
+            configuration_source=root_source,
         )
-        self.store = ProjectStore(configured_root)
         self.flash_authority = SessionFlashAuthority(data_root=configured_root)
         self.runtime_activation = RuntimeActivation(configured_root)
         self.storage_selection = StorageSelection(self.store)
@@ -108,6 +227,7 @@ class EvidenceLaneService:
         selection = self.storage_selection.inspect(project_id)
         result: dict[str, Any] = {
             **selection,
+            "project_route": self.store.inspect_project_route(project_id),
             "configured_runtime_connector_available": bool(
                 self.sync_service is not None
                 and self.sync_service.runtime_state_capable
@@ -121,6 +241,9 @@ class EvidenceLaneService:
                 server_has_durable_filesystem=server_has_durable_filesystem,
             )
             result["effective_route"] = route.as_dict()
+            result["effective_route"]["project_route"] = (
+                self.store.inspect_project_route(project_id)
+            )
         return result
 
     def storage_connector_select(
@@ -135,12 +258,14 @@ class EvidenceLaneService:
         host: str,
         ephemeral: bool,
         server_has_durable_filesystem: bool | None,
+        runtime_context: dict[str, Any] | None = None,
     ) -> tuple[PersistenceRoute, dict[str, Any]]:
         host_kind = normalize_host_kind(host)
         automatic = route_persistence(
             host_kind,
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
+            runtime_context=runtime_context,
         )
         selection = self.storage_selection.inspect(project_id)
         if selection["mode"] == "AUTO":
@@ -169,6 +294,18 @@ class EvidenceLaneService:
             host_connector_role="PRIMARY_TRANSACTIONAL_RUNTIME_AUTHORITY",
             primary_runtime_authority="CONFIGURED_TRANSACTIONAL_RUNTIME_REQUIRED",
         ), selection
+
+    def _persistence_route_payload(
+        self,
+        project_id: str,
+        route: PersistenceRoute,
+    ) -> dict[str, Any]:
+        return {
+            **route.as_dict(),
+            "project_route": self.store.inspect_project_route(project_id),
+            "transport_project_binding": "EXPLICIT_PROJECT_ID_PER_PROJECT_SCOPED_TOOL",
+            "cross_project_fallback_allowed": False,
+        }
 
     def _environment_sync_service(self) -> PVSyncService | None:
         token = os.environ.get("EVIDENCE_LANE_GOOGLE_DRIVE_ACCESS_TOKEN", "")
@@ -268,6 +405,7 @@ class EvidenceLaneService:
         report["installation"] = installation
         report["session_flash"] = flash
         report["runtime_activation"] = runtime_activation
+        report["store_routing"] = self.store.inspect_root()
         report["checks"]["session_flash_bundle"] = flash["status"] == "PASS"
         report["status"] = "PASS" if all(report["checks"].values()) else "FAIL"
         report["warnings"] = flash["warnings"]
@@ -992,16 +1130,34 @@ class EvidenceLaneService:
         """Return the durable accepted/candidate/session envelope without mutation."""
         result = self.store.project_status(project_id)
         pointer = self.store.pointer(project_id)
+        accepted_ids = self.store.accepted_ids(project_id)
+        accepted_validations: list[dict[str, Any]] = []
+        if accepted_ids:
+            # Accepted PVs are independent immutable directories. Validate them
+            # concurrently so status keeps full checksum/tamper detection without
+            # serially re-reading an entire multi-generation history.
+            with ThreadPoolExecutor(
+                max_workers=min(_STATUS_VALIDATION_WORKERS, len(accepted_ids))
+            ) as executor:
+                accepted_validations = list(
+                    executor.map(
+                        lambda pv_id: validate_pv_package(
+                            self.store.accepted_path(project_id, pv_id),
+                            require_promotable=False,
+                        ),
+                        accepted_ids,
+                    )
+                )
         accepted_history: list[dict[str, Any]] = []
-        for pv_id in self.store.accepted_ids(project_id):
+        for pv_id, validation in zip(
+            accepted_ids,
+            accepted_validations,
+            strict=True,
+        ):
             is_current = pointer.accepted_pv == pv_id
             # Current topology rules qualify the active authority only. Older
             # accepted PVs remain immutable, checksum-validated evidence even
             # when their topology predates the current promotability contract.
-            validation = validate_pv_package(
-                self.store.accepted_path(project_id, pv_id),
-                require_promotable=False,
-            )
             lane_validation = validation["lanes"]
             accepted_history.append(
                 {
@@ -1045,6 +1201,9 @@ class EvidenceLaneService:
             if not session.metadata.get("closed_at"):
                 active_session = {
                     "session_id": session.session_id,
+                    "session_snapshot_sha256": (
+                        self.sessions.session_snapshot_sha256(session)
+                    ),
                     "state": session.state.value,
                     "entry_pv": session.metadata.get("entry_pv"),
                     "accepted_pv": session.accepted_pv,
@@ -1052,12 +1211,38 @@ class EvidenceLaneService:
                     "candidate_id": session.candidate_id,
                     "pending_hil": session.state.value.endswith("_CANDIDATE"),
                     "task_id": (session.task.get("task_id") if session.task else None),
+                    "backlog_task_id": session.metadata.get(
+                        "active_backlog_task_id"
+                    ),
                     "source_state": session.metadata.get("source_state"),
+                    "host": session.host.value,
+                    "persistence_route": session.metadata.get("persistence_route"),
                 }
+        storage_selection = self.storage_selection.inspect(project_id)
+        project_route = {
+            **self.store.inspect_project_route(project_id),
+            "storage_mode": storage_selection["mode"],
+            "storage_connector_id": storage_selection.get("connector_id"),
+            "google_drive_primary_runtime_allowed": False,
+        }
+        if active_session:
+            active_route = active_session.get("persistence_route") or {}
+            project_route["active_host_profile"] = active_route.get("host_profile")
+            project_route["active_server_filesystem"] = active_route.get(
+                "server_filesystem"
+            )
+        lane_projection = _accepted_lane_projection(
+            self.store,
+            project_id,
+            pointer.accepted_pv,
+        )
         result.update(
             {
                 "status": "PASS",
                 "store": str(self.store.root),
+                "project_route": project_route,
+                "storage_selection": storage_selection,
+                "lane_projection": lane_projection,
                 "accepted_history": accepted_history,
                 "current_freshness": current_freshness,
                 "active_session": active_session,
@@ -1067,6 +1252,9 @@ class EvidenceLaneService:
                     "highest_accepted_ordinal": result["highest_accepted_ordinal"],
                     "next_candidate_pv": result["next_candidate_pv"],
                     "accepted_manifest_sha256": (pointer.accepted_manifest_sha256),
+                    "pointer_snapshot_sha256": sha256_bytes(
+                        canonical_json_bytes(pointer.as_dict())
+                    ),
                     "freshness": current_freshness,
                     "pending_candidate": (
                         active_session["candidate_id"] if active_session else None
@@ -1088,9 +1276,22 @@ class EvidenceLaneService:
         plan_id: str | None = None,
         host_kind: str | None = None,
         host_mode: str | None = None,
+        normalization_transition: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         exact_host = str(host_kind or "").strip().upper()
         exact_mode = str(host_mode or "").strip().upper()
+        if exact_host and not exact_host.startswith("CODEX"):
+            return {
+                "status": "HOST_UNSUPPORTED",
+                "plan_persisted": False,
+                "host_kind": exact_host,
+                "host_mode": exact_mode or "NOT_DECLARED",
+                "canonical_authority": "PLAN_LANE",
+                "message": (
+                    "The v2 Plan bridge accepts Codex hosts only and cannot add "
+                    "rows for this host to the Codex Goal projection."
+                ),
+            }
         if exact_host.startswith("CODEX") and exact_mode != "PLAN":
             return {
                 "status": "PLAN_MODE_REQUIRED",
@@ -1102,14 +1303,23 @@ class EvidenceLaneService:
                     "Turn on Codex Plan mode with /pl, finish the plan, then run "
                     "/evi-plan again so Plan Lane and the native Goal/task panel pair."
                 ),
-                "chatgpt_plan_mode_assumed": False,
             }
-        result = self.store.plan_tasks(
-            project_id,
-            tasks=tasks,
-            planned_by=planned_by,
-            plan_id=plan_id or prefixed_id("plan"),
-        )
+        exact_plan_id = plan_id or prefixed_id("plan")
+        if normalization_transition is not None:
+            result = self.sessions.normalize_plan_tasks(
+                project_id,
+                tasks=tasks,
+                planned_by=planned_by,
+                plan_id=exact_plan_id,
+                normalization_transition=normalization_transition,
+            )
+        else:
+            result = self.store.plan_tasks(
+                project_id,
+                tasks=tasks,
+                planned_by=planned_by,
+                plan_id=exact_plan_id,
+            )
         result["host_plan_bridge"] = {
             "host_kind": exact_host or "UNDECLARED",
             "host_mode": exact_mode or "UNDECLARED",
@@ -1119,10 +1329,7 @@ class EvidenceLaneService:
             ],
             "copy_paste_required": exact_host.startswith("CODEX"),
             "host_goal_mutation_supported_by_mcp": False,
-            "chatgpt_uses_codex_plan_ui": False,
-            "chatgpt_mounted_plugin_store_is_authority": exact_host.startswith(
-                "CHATGPT"
-            ),
+            "host_scope": "CODEX_ONLY",
         }
         return result
 
@@ -1275,6 +1482,21 @@ class EvidenceLaneService:
                 if replace_registered_branch and session is not None
                 else None
             ),
+            dirty_local_authority_context=(
+                {
+                    "session_id": session.session_id,
+                    "task_id": str(task_payload["task_id"]),
+                    "task_class": str(task_payload["task_class"]),
+                    "lifecycle_state": session.state.value,
+                    "task_contract_sha256": sha256_bytes(
+                        canonical_json_bytes(task_payload)
+                    ),
+                }
+                if replace_registered_branch
+                and session is not None
+                and permitted_paths is not None
+                else None
+            ),
         )
         if session is not None:
             activity = self.sessions.record_activity(
@@ -1292,6 +1514,17 @@ class EvidenceLaneService:
                     "after_commit": result["after"]["commit_sha"],
                     "changed_paths": result["changed_paths"],
                     "branch_authority": result["branch_authority"],
+                    "operation": result.get("operation"),
+                    "dirty_worktree_preserved": result.get(
+                        "dirty_worktree_preserved", False
+                    ),
+                    "worktree_status_sha256": result.get(
+                        "worktree_status_sha256"
+                    ),
+                    "fetch_performed": result.get("fetch_performed", True),
+                    "source_write_performed": result.get(
+                        "source_write_performed", False
+                    ),
                     "remote_write_performed": False,
                     "merge_commit_created": False,
                 },
@@ -1324,6 +1557,7 @@ class EvidenceLaneService:
             host=host_kind.value,
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
+            runtime_context=runtime_context,
         )
         if route.durable_required and (
             self.sync_service is None or not self.sync_service.runtime_state_capable
@@ -1336,6 +1570,7 @@ class EvidenceLaneService:
                 status="BLOCKED",
                 details={"mode": route.mode, "reason": route.reason},
             )
+        route_payload = self._persistence_route_payload(project_id, route)
         result = self.sessions.boot(
             project_id=project_id,
             user_id=user_id,
@@ -1344,7 +1579,7 @@ class EvidenceLaneService:
             agent_id=agent_id,
             sandbox_id=sandbox_id,
             persistence_mode=route.mode,
-            persistence_route=route.as_dict(),
+            persistence_route=route_payload,
             ephemeral=ephemeral,
             runtime_context=runtime_context,
             flash=flash,
@@ -1353,7 +1588,7 @@ class EvidenceLaneService:
             server_has_durable_filesystem=route.server_filesystem == "DURABLE",
         )
         result["persistence_route"] = {
-            **route.as_dict(),
+            **route_payload,
             "selection": storage_selection,
         }
         result["project_lineage_entry"] = project_lineage_entry
@@ -1383,6 +1618,7 @@ class EvidenceLaneService:
             host=host_kind.value,
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
+            runtime_context=runtime_context,
         )
         if route.durable_required and (
             self.sync_service is None or not self.sync_service.runtime_state_capable
@@ -1394,12 +1630,13 @@ class EvidenceLaneService:
                 status="BLOCKED",
                 details={"mode": route.mode, "reason": route.reason},
             )
+        route_payload = self._persistence_route_payload(project_id, route)
         result = self.sessions.resume(
             project_id=project_id,
             host=host_kind,
             host_session_id=host_session_id,
             persistence_mode=route.mode,
-            persistence_route=route.as_dict(),
+            persistence_route=route_payload,
             ephemeral=ephemeral,
             client_can_edit_source=client_can_edit_source,
             server_has_durable_filesystem=route.server_filesystem == "DURABLE",
@@ -1408,7 +1645,7 @@ class EvidenceLaneService:
         )
         result["session_flash"] = flash
         result["persistence_route"] = {
-            **route.as_dict(),
+            **route_payload,
             "selection": storage_selection,
         }
         result["project_lineage_entry"] = project_lineage_entry

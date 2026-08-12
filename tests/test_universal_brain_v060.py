@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import asyncio
 import hashlib
-import importlib.util
 import json
 import sqlite3
 import subprocess
@@ -399,12 +397,8 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     )
     adapter_root = adapter_path.parents[1]
     vercel = json.loads((adapter_root / "vercel.json").read_text(encoding="utf-8"))
-    assert {rewrite["source"] for rewrite in vercel["rewrites"]} == {
-        "/mcp",
-        "/healthz",
-        "/.well-known/oauth-protected-resource",
-    }
-    assert "/(.*)" not in {rewrite["source"] for rewrite in vercel["rewrites"]}
+    assert not adapter_path.exists()
+    assert vercel == {"$schema": "https://openapi.vercel.sh/vercel.json"}
     landing = (adapter_root / "app" / "page.tsx").read_text(encoding="utf-8")
     release = (adapter_root / "app" / "_components" / "release-status.tsx").read_text(
         encoding="utf-8"
@@ -415,12 +409,12 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     assert "Resume from verified project truth" in landing
     assert "DeltaLedgerExplorer" in landing
     assert "PluginSurfaceCatalog" in landing
-    assert "PulsatingBrain" in landing
-    for retired in ("UniversalCommandDeck", "LaneToolchainExplorer", "SourceBrainLab", "EvidenceOrbit"):
+    assert "HeroOrbit" in landing
+    for retired in ("UniversalCommandDeck", "LaneToolchainExplorer", "SourceBrainLab"):
         assert retired not in landing
     lanes_page = (adapter_root / "app" / "lanes" / "page.tsx").read_text(encoding="utf-8")
     assert "LaneToolchainExplorer" in lanes_page
-    assert "ChatGPT MCP edge fail-closed" in release
+    assert "Documentation release identity exact" in release
     assert "prefers-reduced-motion" in styles
     active_tsx = "\n".join(
         path.read_text(encoding="utf-8")
@@ -430,6 +424,9 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     active_brand_source = active_tsx + (adapter_root / "app" / "manifest.ts").read_text(
         encoding="utf-8"
     )
+    home_orbit = (
+        adapter_root / "app" / "_components" / "hero-orbit.tsx"
+    ).read_text(encoding="utf-8")
     assert "/evidence-lane-full-logo.png" in active_brand_source
     assert "/evidence-lane-icon.png" in active_brand_source
     assert "evidence-root-fibers.png" not in active_brand_source
@@ -437,8 +434,11 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     assert "evidence-executive-scanner.png" not in active_brand_source
     assert "evidence-glass-orb.png" not in active_brand_source
     assert "/assets/evidence-static-brain.png" in active_brand_source
-    assert "TorusGeometry" in active_tsx
-    assert "THREE.Points" in active_tsx
+    assert "homeGovernanceRings" in home_orbit
+    assert "PulsatingBrain" in home_orbit
+    assert "GlassIconOrb" in home_orbit
+    assert ".heroOrbitRing" in styles
+    assert "prefers-reduced-motion" in styles
     assert package["dependencies"]["three"] == "0.185.1"
     assert package["dependencies"]["framer-motion"] == "12.38.0"
     for lane_id in CANONICAL_LANE_IDS:
@@ -482,65 +482,9 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
         .upper()
         == "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA"
     )
-    spec = importlib.util.spec_from_file_location(
-        "evidence_lane_remote_adapter", adapter_path
+    connect = (adapter_root / "app" / "connect" / "page.tsx").read_text(
+        encoding="utf-8"
     )
-    assert spec is not None and spec.loader is not None
-    adapter = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(adapter)
-    monkeypatch.delenv("EVIDENCE_LANE_DURABLE_MCP_ORIGIN", raising=False)
-    monkeypatch.delenv("EVIDENCE_LANE_RELEASE_SHA", raising=False)
-    monkeypatch.delenv("VERCEL_GIT_COMMIT_SHA", raising=False)
-    sent: list[dict[str, object]] = []
-
-    async def receive() -> dict[str, object]:
-        return {"type": "http.request", "body": b"", "more_body": False}
-
-    async def send(message: dict[str, object]) -> None:
-        sent.append(message)
-
-    asyncio.run(
-        adapter.app(
-            {
-                "type": "http",
-                "path": "/healthz",
-                "method": "GET",
-                "headers": [],
-                "query_string": b"",
-            },
-            receive,
-            send,
-        )
-    )
-    assert sent[0]["status"] == 503
-    body = json.loads(bytes(sent[1]["body"]).decode("utf-8"))
-    assert body["status"] == "BLOCKED"
-    assert body["local_state_authority"] is False
-    assert set(body["errors"]) == {
-        "DURABLE_HTTPS_ORIGIN_REQUIRED",
-        "EXACT_RELEASE_SHA_REQUIRED",
-    }
-
-    sent.clear()
-    asyncio.run(
-        adapter.app(
-            {
-                "type": "http",
-                "path": "/api/index.py",
-                "method": "GET",
-                "headers": [],
-                "query_string": b"__evi_path=healthz&probe=1",
-            },
-            receive,
-            send,
-        )
-    )
-    assert sent[0]["status"] == 503
-    rewritten = json.loads(bytes(sent[1]["body"]).decode("utf-8"))
-    assert rewritten["service"] == "evidence-lane-chatgpt-adapter"
-    assert adapter._external_route(
-        {
-            "path": "/api/index.py",
-            "query_string": b"__evi_path=mcp&session=visible",
-        }
-    ) == ("/mcp", "session=visible")
+    assert "local native MCP server" in connect
+    assert "ChatGPT" in connect and "Deferred" in connect
+    assert "/mcp" not in connect

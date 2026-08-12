@@ -72,18 +72,23 @@ async function verifyDesktop(browser) {
 
   for (const route of routes) {
     await visit(page, route, "desktop");
-    if (["/", "/lanes", "/proof", "/connect", "/readme", "/security"].includes(route)) {
+    if (["/", "/lanes", "/operators", "/architecture", "/studio", "/proof", "/connect", "/readme", "/security"].includes(route)) {
       await revealForScreenshot(page);
       await page.screenshot({ path: path.join(outputDir, `desktop-${safeName(route)}.png`), fullPage: true });
     }
   }
 
   await page.goto(`${baseUrl}/`, { waitUntil: "networkidle" });
-  await page.getByRole("heading", { name: "One additive ledger. 131 governed rows. No erased history." }).scrollIntoViewIfNeeded();
+  const homeOrbit = page.locator(".evidenceOrbit");
+  assert(await homeOrbit.isVisible(), "desktop home: 18/15/1 concentric governance map is not visible");
+  assert(await homeOrbit.locator(".sourceLaneOrbit .evidenceOrbitNode").count() === 18, "desktop home: source-lane ring is not exactly 18 nodes");
+  assert(await homeOrbit.locator(".pluginSurfaceOrbit .evidenceOrbitNode").count() === 15, "desktop home: plugin-surface ring is not exactly 15 nodes");
+  assert(await homeOrbit.getByText("Human HIL", { exact: true }).isVisible(), "desktop home: one human HIL is missing from the center");
+  await page.getByRole("heading", { name: "One additive ledger. 87 governed rows. No erased history." }).scrollIntoViewIfNeeded();
   await page.getByRole("button", { name: "Open Delta ledger" }).click();
   const ledger = page.locator(".deltaLedgerExplorer #complete-delta-ledger-table");
   assert(await ledger.isVisible(), "desktop home: combined Delta ledger did not open inside its explorer");
-  assert(await ledger.locator(".deltaLedgerRow").count() === 131, `desktop home: expected 131 combined ledger rows, found ${await ledger.locator(".deltaLedgerRow").count()}`);
+  assert(await ledger.locator(".deltaLedgerRow").count() === 87, `desktop home: expected 87 combined ledger rows, found ${await ledger.locator(".deltaLedgerRow").count()}`);
   await ledger.screenshot({ path: path.join(outputDir, "desktop-combined-delta-ledger.png") });
 
   await page.goto(`${baseUrl}/lanes`, { waitUntil: "networkidle" });
@@ -97,10 +102,10 @@ async function verifyDesktop(browser) {
     const response = await context.request.get(href);
     assert(response.ok(), `desktop proof: artifact download failed ${response.status()} ${href}`);
   }
-  await page.getByRole("button", { name: /Open full-screen .* 4K Mermaid render/ }).click();
-  assert(await page.locator(".proofLightbox").isVisible(), "desktop proof: 4K full-screen viewer did not open");
+  await page.getByRole("button", { name: /Open full-screen .* exact-MMD vector render/ }).click();
+  assert(await page.locator(".proofLightbox").isVisible(), "desktop proof: 8K/vector full-screen viewer did not open");
   await page.getByRole("button", { name: "Zoom in" }).click();
-  assert((await page.locator(".proofLightboxToolbar").innerText()).includes("120%"), "desktop proof: zoom-in control did not update the scale");
+  assert((await page.locator(".proofLightboxToolbar").innerText()).includes("135%"), "desktop proof: zoom-in control did not update the scale");
   await page.screenshot({ path: path.join(outputDir, "desktop-proof-lightbox.png"), fullPage: false });
   await page.keyboard.press("Escape");
   assert(!(await page.locator(".proofLightbox").count()), "desktop proof: Escape did not close the full-screen viewer");

@@ -1,0 +1,86 @@
+{
+  "schema": "evidence-lane.studio-gold-parity-evaluation.v1",
+  "candidate": {
+    "release": "1.5.0",
+    "source_commit": "93bf4a409faf544a96db8501cbdeefc002f9a32e",
+    "preview": "https://evidence-lane-chatgpt-mcp-adapter-hllaqjvmi.vercel.app",
+    "production_role": "HISTORICAL_BASELINE_ONLY"
+  },
+  "reference": {
+    "repository": "rathee000001/nyit-gold-intelligence-2026",
+    "commit": "5208da8ab294aad723cb079dd81e4f2113c06dfa",
+    "route": "/gold-ai",
+    "role": "PINNED_QUALITY_REFERENCE_NOT_EVIDENCE_AUTHORITY"
+  },
+  "minimum_route_count": 9,
+  "required_artifact_formats": ["SQLite", "Markdown", "JSON", "CSV", "Chart", "Table", "MMD", "DOT"],
+  "cases": [
+    {
+      "id": "whole-project-business-synthesis",
+      "path": "/studio",
+      "question": "Explain the whole Evidence Lane project in business language.",
+      "expected_guide": "overview",
+      "minimum_suggestions": 6,
+      "required_answer_fragments": ["18 lanes", "six-way HIL", "62 canonical tools", "ChatGPT Pro", "Google Drive"]
+    },
+    {
+      "id": "architecture-page-awareness",
+      "path": "/architecture",
+      "question": "How do parallel lanes converge on serial authority?",
+      "expected_route": "architecture",
+      "expected_guide": "architecture-flow",
+      "minimum_suggestions": 6,
+      "required_answer_fragments": ["deterministic candidate manifest", "authority path is serial", "model can accept itself"]
+    },
+    {
+      "id": "host-capability-truth",
+      "path": "/connect",
+      "question": "How do Codex and ChatGPT capabilities differ in release 1.5.0?",
+      "expected_route": "connect",
+      "expected_guide": "hosts-storage",
+      "minimum_suggestions": 6,
+      "required_answer_fragments": ["62 canonical tools", "21 read operations", "41 lifecycle-write actions", "version 1.0.0"]
+    },
+    {
+      "id": "install-metadata-hard-gate",
+      "path": "/connect",
+      "question": "Which install-page metadata must match before installation?",
+      "expected_guide": "install-surface",
+      "minimum_suggestions": 6,
+      "required_answer_fragments": ["Praveen Rathee", "15 skills", "21 reads", "41 writes", "hard mismatch"]
+    },
+    {
+      "id": "artifact-inspection",
+      "path": "/studio",
+      "question": "Which artifact formats can I inspect here?",
+      "expected_guide": "studio-artifacts",
+      "minimum_suggestions": 6,
+      "required_answer_fragments": ["SQLite", "Markdown", "CSV", "MMD", "DOT", "WIRED_NOT_CONFIGURED"]
+    },
+    {
+      "id": "exact-six-way-hil",
+      "path": "/hil",
+      "question": "What are the six exact HIL choices?",
+      "expected_route": "hil",
+      "expected_guide": "hil",
+      "minimum_suggestions": 6,
+      "required_answer_fragments": ["APPROVE", "APPROVE_WITH_DELTA", "MORE_RESEARCH", "ROLLBACK", "REJECT", "FAIL"]
+    },
+    {
+      "id": "linear-panel-growth",
+      "path": "/",
+      "question": "Why is Row 196 physically final in the 124-position task list?",
+      "expected_guide": "plan-lineage",
+      "minimum_suggestions": 6,
+      "required_answer_fragments": ["119-position", "Row 184", "Rows 191 through 195", "Row 196"]
+    },
+    {
+      "id": "unsupported-question-refusal",
+      "path": "/studio",
+      "question": "Who will win an unrelated football match next year?",
+      "expected_guide": null,
+      "minimum_suggestions": 6,
+      "required_answer_fragments": []
+    }
+  ]
+}

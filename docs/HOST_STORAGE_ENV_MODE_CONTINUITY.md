@@ -1,64 +1,88 @@
-# Host Storage, ENV Continuity, and Mode Execution
+# Host storage, ENV/UOP continuity, and governed learning
 
-This contract keeps three authorities separate: the client surface, the MCP
-transport, and the durable Evidence Lane runtime. A chat or desktop window is
-never itself the database authority.
+Evidence Lane keeps the Codex client, native MCP transport, durable project
+runtime, Project Truth, and Agent Learning distinct. A desktop window, model
+context, cache, or transcript is never the database authority.
 
-## Host storage matrix
+## Independent capability axes
 
-| Host profile | Live primary runtime | Google Drive policy |
-| --- | --- | --- |
-| Stable Codex PC, laptop, CLI, or permanent VM | Durable local SQLite | Not selected |
-| ChatGPT connected to a durable mounted or local MCP server | MCP server mounted or local SQLite | Forbidden for ChatGPT runtime |
-| Ephemeral Codex VM with an explicitly durable mount | Durable mount SQLite | Sealed Entry/Exit carrier allowed, never primary |
-| Ephemeral Codex VM without a durable mount | Configured transactional runtime connector | Sealed Entry/Exit carrier allowed, never primary |
-| ChatGPT MCP server without durable storage | Configured non-Drive transactional runtime connector | Forbidden for ChatGPT runtime |
+Storage durability, interaction profile, VM lifetime, account tier, and API
+billing are independent. Account tier and billing never select storage. The v2
+Codex plugin uses its local native MCP route and bundles no network tunnel.
 
-Google Drive does not provide transactional sessions, backlog, ChatLineage,
-candidate state, receipt state, and pointer compare-and-swap. It therefore
-cannot be the live Evidence Lane runtime.
+| Codex profile | Live primary runtime | External network setup | Flash frequency |
+| --- | --- | --- | --- |
+| Desktop, local CLI, or persistent VM | Durable local SQLite | Not required for native MCP | Every Boot or Resume |
+| Headless API with durable local storage | Durable local SQLite | Not required at API layer | Every invocation entry |
+| Ephemeral VM with durable mount | Durable mount SQLite | Not required for native MCP | Every Boot, Resume, or API entry |
+| Ephemeral VM without durable mount | Configured transactional connector | Not required for native MCP | Every Boot, Resume, or API entry |
+
+Google Drive can carry sealed Entry/Exit artifacts but cannot provide the
+transactional sessions, backlog, Chat Lineage, candidate state, receipt state,
+or pointer compare-and-swap required by the live runtime.
+
+Every project-scoped tool requires an exact `project_id` and resolves only
+beneath `<configured-store-root>/projects/<project_id>`. There is no implicit
+default project or cross-project fallback.
 
 ## Boot and Resume continuity
 
 Every Boot or Resume produces a sealed
 `evidence-lane.runtime-continuity.v1` receipt containing:
 
-- canonical host and host-session binding;
+- canonical Codex host and host-session binding;
 - exact accepted PV, pointer generation, manifest hash, and package hash;
-- selected primary storage route plus MCP read/write policy;
+- selected storage route plus native MCP read/write policy;
+- exact project ID, resolved store root, and isolated project route;
 - locked ENV/UOP authority and Flash receipt hashes;
-- explicit proof that ENV/UOP bytes are not embedded in a PV;
-- explicit proof that the receipt moves no pointer and infers no HIL approval.
+- proof that ENV/UOP bytes are not embedded in a PV;
+- proof that the receipt moves no pointer and infers no HIL approval;
+- invocation profile and the stable `PV_EXIT_SUGGESTED_NEXT_PROMPT` label.
 
-The same validated receipt is copied into Entry and Exit Slips. MCP reads target
-the primary runtime. MCP mutations remain governed by ENV/UOP and one-writer
-law.
+Headless API entry rechecks the same locked Flash, loads the exact durable
+project state and accepted or pending Entry/Exit Slip, and returns a copyable
+next prompt. Ending a client process does not end the durable project runtime.
 
-### Accepted-authority evolution boundary
+An accepted PV remains immutable when later releases add stricter topology or
+promotability rules. New candidates must pass current rules; old accepted bytes
+are not silently rewritten or requalified.
 
-An accepted PV remains the immutable entry authority when later releases add
-stricter topology or promotability rules. Boot, Resume, direct continuation,
-State Travel, status, and rollback revalidate its exact bytes, manifest/package
-hashes, pointer identity, and database integrity without retroactively
-requalifying it as a new candidate. The continuity receipt reports whether that
-accepted authority is promotable under current rules. A historical-schema
-result is visible compatibility evidence, not a failure and not permission to
-alter accepted bytes. The successor candidate must pass every current rule.
+## Project Truth and Agent Learning
+
+The learning arm is already governed by the same ENV/UOP execution boundary,
+but it is not a second name for Project Truth.
+
+- Project Truth owns accepted source claims, PVs, pointers, Deltas, task state,
+  and human-ratified project evidence.
+- Agent Learning owns approved semantic, episodic, and procedural lessons.
+- The two planes may share content hashes, provenance vocabulary, retrieval
+  primitives, and human-decision vocabulary.
+- They must keep distinct schemas, namespaces, identities, write paths, query
+  results, promotion authorities, tests, receipts, failure states, and HIL.
+- Execution may propose a learning candidate but cannot write durable accepted
+  learning directly.
+- A learning candidate records source events, outcome, scope, lesson type,
+  confidence, uncertainty, counterevidence, contradiction/supersession,
+  expiry/revalidation, actor/model identity, and content hash.
+- Only exact lane-specific HIL promotes learning. Accepted learning never
+  rewrites Project Truth, an accepted pointer, or a source claim.
+
+The private memory-and-learning research question is keyed to the exact project,
+session, and active task. It is not placed in shared FTS, shared telemetry, or
+public output. Goal-accounted token metrics may use a common schema while each
+project's research question remains private to that project.
 
 ## Selected-mode execution
 
-`mode_classify` accepts either an explicit plugin/API selection or deterministic
-prompt inference. It preserves order, emits the selected lane formula, loop,
-operator families, CI/CD requirement, and receipt, then stores a pointer-neutral
-active binding. Task classification snapshots that binding. Candidate Entry and
-Exit Slips and the HIL next-action contract receive the exact snapshot.
+`mode_classify` stores a pointer-neutral active binding containing the selected
+lane formula, loop, operator families, CI/CD requirement, and receipt. Task
+classification, candidate Entry/Exit Slips, and HIL receive that exact snapshot.
 
-Code Mode is governed by:
+Code Mode is:
 
 `plan -> sandbox build -> test -> hash -> package`
 
 It requires controlled CI/CD evidence and the PCM plus MBA operator groups. The
 six HIL tokens remain exactly `APPROVE`, `APPROVE_WITH_DELTA`,
-`MORE_RESEARCH`, `ROLLBACK`, `REJECT`, and `FAIL`; their accepted object, gate,
-rollback target, and lane effect come from the selected lane. Non-Code modes do
-not inherit Code Mode's CI/CD or HIL meanings.
+`MORE_RESEARCH`, `ROLLBACK`, `REJECT`, and `FAIL`. Non-Code modes do not inherit
+Code Mode's CI/CD or HIL meanings.

@@ -1,12 +1,9 @@
 export const publicSiteUrl = "https://evidencelane.org";
-export const publicMcpOrigin = "https://mcp.evidencelane.org";
-export const publicMcpUrl = "https://mcp.evidencelane.org/mcp";
-export const publicMcpHealthUrl = "https://mcp.evidencelane.org/healthz";
 export const repositoryUrl = "https://github.com/rathee000001/evidence_lane_plugin";
 
 export const ownerSocialLinks = [
   { label: "LinkedIn", href: "https://www.linkedin.com/in/praveen-rathee-8b028030b/" },
-  { label: "Devpost", href: "https://devpost.com/software/evidence-lane-plugins-codex-claude-code" },
+  { label: "Devpost", href: "https://devpost.com/software/evidence_os" },
   { label: "YouTube", href: "https://www.youtube.com/@praveenrathee8675" },
 ] as const;
 
@@ -22,34 +19,96 @@ export const primaryNavigation = [
 ] as const;
 
 export const promptSuggestions = [
-  "What is active step 46 in the current 51-step execution Plan Lane?",
-  "How do parallel lanes converge on serial authority?",
-  "How do accepted pointers, Exit Slips, and HIL separate human input from AI work?",
-  "How does Refresh reuse parsed facts and rebuild only changed sections?",
-  "Which commit and contract define Code-mode operators?",
-  "What can the local SQLite FTS5, BM25, and TF-IDF index prove?",
+  "Explain the whole Evidence Lane project in business language.",
+  "What business problem does Evidence Lane solve?",
+  "What happens from Source Intake to an accepted project version?",
+  "What can each of the six everyday controls do?",
+  "How does the human remain in control at HIL?",
+  "How does the native Codex release preserve exact lifecycle authority?",
+  "How do persistent and ephemeral Codex storage routes differ?",
+  "What is proven today, and what remains an assumption or unknown?",
 ] as const;
 
 export const floatingStudioSuggestions = {
+  home: [
+    "Explain the whole Evidence Lane project in business language.",
+    "What business problem does Evidence Lane solve?",
+    "How does a source become accepted project truth?",
+    "Why can a successful build still remain unaccepted?",
+    "Where does the human remain in control?",
+    "What is proven today, and what remains unknown?",
+  ],
   architecture: [
+    "How does Evidence Lane turn source material into accepted project truth?",
+    "Why is a candidate different from an accepted version?",
+    "Where does the human decision sit in the architecture?",
     "How do parallel lanes converge on serial authority?",
-    "What separates a candidate from an accepted pointer?",
-    "How does Source Intake route governed sources?",
+    "What must agree between SQLite, MMD, and DOT?",
+    "What can never move the accepted pointer by itself?",
   ],
   lanes: [
-    "What four files does each detected lane emit?",
-    "When must an undetected lane have no PV folder?",
-    "How is the Git test separated from non-Git tests?",
+    "Why does Evidence Lane separate work into 18 source lanes?",
+    "What happens when Source Intake finds a new kind of material?",
+    "What can a business reviewer inspect from each detected lane?",
+    "How are code, documents, data, and chat lineage kept distinct?",
+    "What does the SQLite Brain lane inspect?",
+    "What does lane detection prove and not prove?",
+  ],
+  operators: [
+    "What does Code mode require before work starts?",
+    "How do mode operators change the work without changing truth?",
+    "Why is CI/CD controlled rather than automatic authority?",
+    "Which operator families apply to Code mode?",
+    "What happens when two mode laws intersect?",
+    "Can selecting a mode approve a candidate?",
   ],
   studio: [
-    "How is the Prompt Studio corpus built?",
-    "Why do project no-hits refuse external AI?",
-    "Why is the external route not project authority?",
+    "Explain the whole Evidence Lane project in business language.",
+    "How does Studio use the current page without treating it as truth?",
+    "Which artifact formats can I inspect here?",
+    "What happens when retrieval finds no supporting project evidence?",
+    "What roles do OpenRouter, SQL, and vector retrieval play?",
+    "What is the difference between business guidance and the audit receipt?",
+  ],
+  proof: [
+    "What does the proof page actually establish?",
+    "Which claims remain outside repository proof?",
+    "How are negative cases tested?",
+    "Why must SQLite, MMD, and DOT reconcile?",
+    "Does a ready Vercel preview prove the MCP route?",
+    "Does a passing package imply human acceptance?",
+  ],
+  provenance: [
+    "How does Evidence Lane use external references without copying authority?",
+    "What was reused from the Gold reference and what was refused?",
+    "Why is a historical brain not current release authority?",
+    "How are source commit identities preserved?",
+    "What provenance remains unknown?",
+    "Can a comparison project prove Evidence Lane behavior?",
+  ],
+  connect: [
+    "How is Evidence Lane installed from an exact Git SHA?",
+    "Why are all 62 native actions part of one Codex lifecycle?",
+    "How is the stable plugin kept separate from a future test build?",
+    "Why must the native server reject external transport substitution?",
+    "What is Google Drive allowed to do?",
+    "Which install-page metadata must match before installation?",
+  ],
+  hil: [
+    "What are the six exact HIL choices?",
+    "What does APPROVE_WITH_DELTA preserve?",
+    "Why does continued conversation not count as approval?",
+    "What happens after exact APPROVE?",
+    "Can a deployment move the accepted pointer?",
+    "What is the difference between REJECT and FAIL?",
   ],
   default: [
-    "How does Refresh reuse parsed facts and rebuild only changed sections?",
-    "How do HIL and accepted pointers differ?",
-    "What is active step 46?",
+    "What business problem does Evidence Lane solve?",
+    "What do Build, Refresh, HIL, and Fuse each mean?",
+    "What is active Row 184 in the current 124-position execution plan?",
+    "What is proven today, and what remains unknown?",
+    "How do durable and ephemeral Codex profiles differ?",
+    "Why does the final HIL now sit at Row 196?",
   ],
 } as const;
 
@@ -280,7 +339,7 @@ export const lanes = laneToolchains.map(({ name, reason }) => [name, reason] as 
 export const painLedger = [
   {
     title: "Every new task can charge a re-explanation tax",
-    observation: "A new Codex or ChatGPT task does not inherit exact files, hashes, accepted versions, steers, and gates by implication.",
+    observation: "A new Codex task does not inherit exact files, hashes, accepted versions, steers, and gates by implication.",
     failure: "The user repeats the project while the model reconstructs a plausible but potentially different state.",
     response: "Resume from the accepted pointer, PV, Exit Slip, Chat Lineage, pending candidate, and exact HIL.",
   },
@@ -304,7 +363,7 @@ export const painLedger = [
   },
   {
     title: "Hosts do not share one storage reality",
-    observation: "A stable PC, durable VM, ephemeral Codex VM, and ChatGPT MCP host have different continuity boundaries.",
+    observation: "A stable PC, durable VM, and ephemeral Codex VM have different continuity boundaries.",
     failure: "A convenient connector becomes an unverified alternative source of truth.",
     response: "Select durable local or mounted runtime authority by host class and carry only sealed entry/exit evidence.",
   },
@@ -334,7 +393,6 @@ export const proofRules = [
 
 export const credits = [
   ["Praveen Rathee", "Independent product direction, architecture, funded hardware and services, source authority, testing, and human acceptance."],
-  ["OpenAI ChatGPT", "Research partner, red-team and blue-team questioning, product critique, analysis, and decision support."],
   ["OpenAI Codex", "Implementation, debugging, test construction, forensic verification, documentation, and release evidence under human control."],
   ["Google Gemini", "Reasoning dialogue and comparative questioning used during research."],
   ["Anthropic Claude", "Independent Fable-plugin exploration and comparative implementation feedback."],

@@ -12,6 +12,29 @@ context is genuinely exhausted and a continuity handoff is needed. Otherwise
 run `/evi-boot` atomically and resume the existing governed session; State
 Travel is not a normal intake step.
 
+Whenever a canonical task panel exists, re-project its exact complete rows as
+the first action after any token-driven continuation, stalled Goal, context
+compaction, browser or Codex restart, session continuation or resume, or State
+Travel destination entry. This must precede source inspection, source mutation,
+testing, Git activity, and every later lifecycle call. Require exactly one
+in-progress row, preserve order and every completed or pending description
+unabridged, keep the panel visible through every pause and HIL, and drop it only
+after the physically final six-way HIL is decided and all decision-dependent
+work is complete.
+
+Preserve one governed project, one live writer, linear execution, and
+evidence-first verification under the exact host execution profile. Read-only
+recovery agents are allowed only during a genuine State Travel entry. After
+entry, do not start a subagent, alternate-checkout writer, background mutation,
+or second browser profile unless the user explicitly changes that boundary.
+
+Keep the host Goal attached to the same canonical Plan Lane, active source
+boundary, and single-writer session. A UI crash, token wait, required user
+input, or HIL wait pauses only dependent work and never marks the Goal
+complete. Usage reporting is accounting only and has no task-status effect.
+Every reconstruction must retain completed-but-still-governing rows, the one
+active row, and all pending rows.
+
 After root `/evi`, expose exactly these six primary controls in this order:
 
 1. `/evi-boot`
@@ -21,6 +44,27 @@ After root `/evi`, expose exactly these six primary controls in this order:
 5. `/evi-mode`
 6. `/evi-source-intake`
 
+Keep that exact control inventory on every supported Codex profile. The native
+catalog contains twenty-one reads and forty-one writes under the complete
+Git-backed lifecycle; a host capability restriction never becomes permission
+to simulate an unavailable action.
+
+Every skill and command must name MCP tools by the canonical bare name returned
+by this exact Evidence Lane server. A connector-generated display namespace is
+transport metadata: never copy it into a skill, receipt, command, or stored
+contract. The stdio boundary may remove such a namespace only when its suffix
+exactly matches a tool registered on the active server; every unknown prefix or
+suffix must reach the MCP dispatcher unchanged and fail closed.
+
+On Codex, accept lifecycle proof only from the installed native server identity
+`evidence-lane` and its canonical `mcp__evidence_lane__*` catalog. `codex_apps`,
+Google Drive, a network tunnel, an external connector, `plugin-runtime`, a legacy
+version-labelled namespace, or any duplicate surface is never a fallback. A
+collision-safe hexadecimal host display prefix may be normalized at transport
+only; it is not proof. After install, enablement, upgrade, or server-code
+replacement, require a Codex MCP catalog reload or a fresh Codex task before
+claiming the new package is active.
+
 `/evi-source-intake` is the single generalized intake surface. It auto-detects
 all eighteen canonical lanes and Project Engulf, accepts exact overrides, and
 always includes Chat Lineage. `/evi-mode` remains a separate one-command
@@ -28,7 +72,7 @@ sidecar for ordered intersections and explicit custom-mode briefs.
 
 `/evi-plugin` is an administrative sidecar outside the six primary controls.
 It lists, registers, routes, or separately drops at most eight additional
-persistent connector/toolchain plugins. Its `SETTINGS:CODEX|CHATGPT` view
+persistent connector/toolchain plugins. Its `SETTINGS:CODEX` view
 exposes eight structured slots with one-time purpose, role/schema, host profile,
 and optional governed backend runtime. It stores environment-variable names
 only, preserves dropped history, and returns to the prior lifecycle position.
@@ -54,6 +98,4 @@ supersession, and do not move the pointer.
 `/evi-plan` is a Codex-only Planning sidecar outside the six primary controls.
 If native Plan mode is not active, it returns the `/pl` reminder without
 persisting tasks. After planning, it writes the canonical Plan Lane and returns
-the short Goal prompt the user copies into the host-owned Goal. ChatGPT uses the
-same plugin code and append-only persistent store but never claims Codex Plan,
-Goal, or task-panel UI.
+the short Goal prompt the user copies into the host-owned Goal.

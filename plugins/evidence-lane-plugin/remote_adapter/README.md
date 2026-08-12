@@ -1,47 +1,24 @@
-# ChatGPT edge and public site
+# Evidence Lane Codex documentation site
 
-Reviewed public website preview:
-[`https://evidencelane.org`](https://evidencelane.org)
+This Next.js application is the public documentation and product-proof surface
+for Evidence Lane 2.0. It does not expose an MCP endpoint, proxy a lifecycle
+server, store accepted state, or participate in candidate, pointer, Fuse, or HIL
+transitions.
 
-This Vercel project has two deliberately separate surfaces:
+The installed Codex plugin is built separately from
+`plugins/evidence-lane-plugin/`; package rehearsal excludes this site directory.
+The site may explain source-backed behavior, but it cannot substitute for an
+installed-package receipt, native catalog proof, tests, CI, or post-restart HIL.
 
-- a public multipage Next.js site at `/`, `/architecture`, `/lanes`, `/proof`,
-  `/provenance`, `/connect`, plus `/privacy`, `/terms`, and `/support`;
-- a thin ChatGPT-facing reverse adapter at `/mcp`, `/healthz`, and
-  `/.well-known/oauth-protected-resource`.
+## Local verification
 
-The public site also exposes `/api/studio-query` for the full and floating
-Prompt Studio. It first queries the same committed SQLite-derived BM25,
-TF-IDF, and RRF projection used by the Studio page. Evidence Lane/project
-no-hits refuse. A non-project, general-question no-hit may call OpenRouter only
-when both of these variables are set:
+```powershell
+pnpm install --frozen-lockfile
+pnpm run test:execution-panel
+pnpm run test:studio-query
+pnpm run build
+```
 
-- `EVIDENCE_LANE_GENERAL_AI_ENABLED=true`
-- `OPENROUTER_API_KEY=<server-side key>`
-
-That route hard-codes `openrouter/free`, sends no project context or chat
-history, rejects credential-shaped input, and has no paid-model fallback. The
-key remains server-side and must be configured separately for this Vercel
-project; another project's secret is never copied or inferred.
-
-It stores no Evidence Lane state and is not the general router. Every `/mcp`
-request is forwarded to one HTTPS durable MCP origin after `/healthz` proves
-the origin's `release_sha` equals both `EVIDENCE_LANE_RELEASE_SHA` and, when
-present, `VERCEL_GIT_COMMIT_SHA`.
-
-Required preview variables:
-
-- `EVIDENCE_LANE_DURABLE_MCP_ORIGIN`
-- `EVIDENCE_LANE_RELEASE_SHA`
-
-The incoming OAuth bearer is passed through to the durable origin, which owns
-authentication, one-writer SQLite state, backlog, ChatLineage, queueing,
-candidates, receipts, and pointer CAS. A missing origin, non-HTTPS origin, or
-SHA mismatch returns `503 BLOCKED`. Vercel local files and memory are never
-treated as durable state.
-
-`vercel.json` rewrites only the three adapter routes into Python and preserves
-their public path in the reserved `__evi_path` query value. All other routes
-stay with Next.js, including `/api/studio-query`. A successful landing-page or
-Studio render proves only the public site; it does not prove MCP authentication,
-durable storage, queueing, tool calls, or external-provider availability.
+The legacy directory name `remote_adapter` is retained only to avoid an
+unnecessary path migration in the active v2 correction. No remote lifecycle
+adapter is shipped from this directory.

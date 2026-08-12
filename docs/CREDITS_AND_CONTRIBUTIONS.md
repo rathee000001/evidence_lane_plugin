@@ -9,8 +9,6 @@ source changes, or receive copyright authorship.
 
 ## Credited AI and toolchain roles
 
-- OpenAI ChatGPT: adversarial analysis, research, red/blue-team critique, and
-  product reasoning.
 - OpenAI Codex and GPT-5.6: human-directed source implementation, debugging,
   test execution, and evidence review.
 - Google Gemini: reasoning and exploratory discussion.
@@ -23,6 +21,9 @@ source changes, or receive copyright authorship.
 
 Third-party names are used only to describe provenance. Their software,
 services, licenses, and trademarks remain governed by their respective owners.
+The dated [direct dependency license audit](DEPENDENCY_LICENSE_AUDIT.md) records
+the exact pinned direct-package findings, the pypdfium2/PDFium notice boundary,
+and the transitive/SBOM review still required before publication.
 
 ## Public upstream references
 
@@ -30,9 +31,8 @@ The PV6 research cycle inspected exact commits of GitHub Agentic Workflows,
 GitHub Agentic Workflows MCP Gateway, GitHub Copilot SDK, GitHub Agentic
 Workflows threat detection, GitHub Agentic Workflows harness, Open WebUI,
 Graphify, GitHub CodeQL source, GitHub MCP Server, GitHub Branch Deploy, and
-GitHub Local Action. OpenAI plugin MCP-server, ChatGPT UI/MCP Apps, and review
-guidance supplied the current public metadata, annotation, structured-result,
-interactive-panel, CSP, and publication boundary.
+GitHub Local Action. OpenAI public MCP and app guidance supplied metadata,
+annotation, structured-result, interactive-panel, CSP, and publication context.
 The [upstream reference provenance ledger](UPSTREAM_REFERENCE_PROVENANCE.md)
 records every audited commit and tree, license, intended role, local
 implementation surface, refusal boundary, and verdict. The website renders the
@@ -45,8 +45,6 @@ license as MIT, or convert an Actions run into a coding-agent session.
 
 ## Human contributions
 
-- [Naveen Rathee](https://www.linkedin.com/in/naveen-rathee/): Strategic
-  Challenger and Cross-Project Human Review Gate.
 - [Kapil Dhawan](https://www.linkedin.com/in/kdhawan23/): Enterprise
   Engineering and Product Communication Reviewer.
 - [Steven Tock](https://www.linkedin.com/in/steventock/): Senior Strategic

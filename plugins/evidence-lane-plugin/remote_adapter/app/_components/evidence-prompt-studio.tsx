@@ -31,6 +31,15 @@ type StudioQueryResponse = {
   boundary?: string;
   grounded?: boolean;
   retrieval?: RetrievalReceipt;
+  suggestions?: string[];
+  context?: {
+    id: string;
+    path: string;
+    title: string;
+    purpose: string;
+    currentCapability: string;
+    evidenceBoundary: string;
+  };
 };
 
 type StudioCorpusSummary = {
@@ -43,8 +52,8 @@ function welcomeMessage(corpus: StudioCorpusSummary): StudioMessage {
   return {
     id: 0,
     role: "assistant",
-    title: "Evidence Lane governed retrieval",
-    text: `Search ${corpus.sourceCount} public-safe source records and ${corpus.chunkCount} LlamaIndex chunks, including Git history through ${corpus.historyThroughSha.slice(0, 12)}. Evidence Lane questions stay grounded in the committed corpus. A genuine general-question no-hit may use the zero-cost OpenRouter free-model route when the separate server-side key and enable flag are configured; that answer is visibly outside project evidence.`,
+    title: "Welcome to the Evidence Lane business guide",
+    text: "Ask about the problem Evidence Lane solves, the 18 source lanes, 15 plugin surfaces, lifecycle controls, human decisions, host boundaries, proof, release, or the native Three.js/WebGL presentation. I will explain the business outcome first and keep the technical evidence receipt available for optional review.",
     grounded: true,
     mode: "local_retrieval",
     sources: [{ label: "Prompt Studio retrieval contract", href: "/studio" }],
@@ -63,6 +72,7 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
   const welcome = useMemo(() => welcomeMessage(corpus), [corpus]);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<StudioMessage[]>([welcome]);
+  const [suggestions, setSuggestions] = useState<readonly string[]>(promptSuggestions);
   const [sequence, setSequence] = useState(1);
   const [busy, setBusy] = useState(false);
 
@@ -78,7 +88,11 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
     const userId = sequence;
     const assistantId = sequence + 1;
     const userMessage: StudioMessage = { id: userId, role: "user", text: trimmed };
-    setMessages((current) => [...current.slice(-6), userMessage]);
+    const history = messages.slice(-8).map((message) => ({
+      role: message.role,
+      text: message.text,
+    }));
+    setMessages((current) => [...current.slice(-12), userMessage]);
     setSequence((current) => current + 2);
     setQuestion("");
 
@@ -87,7 +101,7 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
       const response = await fetch("/api/studio-query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: trimmed }),
+        body: JSON.stringify({ question: trimmed, pagePath: "/studio", history }),
       });
       const result = await response.json() as StudioQueryResponse;
       const grounded = result.mode === "local_retrieval" && result.grounded === true;
@@ -107,6 +121,7 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
           mode: result.mode ?? "external_unavailable",
         },
       ]);
+      if (result.suggestions?.length) setSuggestions(result.suggestions.slice(0, 8));
     } catch {
       setMessages((current) => [
         ...current,
@@ -146,13 +161,13 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
             </span>
             <span>
               <small>Evidence AI Studio</small>
-              <strong>Governed hybrid retrieval</strong>
+              <strong>Business guide to the whole plugin</strong>
             </span>
           </div>
           <div className="promptStudioMeta">
-            <span><b>{corpus.sourceCount}</b> sources</span>
-            <span><b>{corpus.chunkCount}</b> chunks</span>
-            <span>Free general fallback</span>
+            <span><b>{corpus.sourceCount}</b> governed sources</span>
+            <span><b>{corpus.chunkCount}</b> evidence sections</span>
+            <span>Unsupported claims refuse</span>
             <span className={lastAssistant?.grounded ? "grounded" : "bounded"}>
               <i className="studioLiveDot" />
               {busy ? "Checking boundary" : lastAssistant?.grounded ? "Evidence found" : "Outside evidence"}
@@ -163,12 +178,13 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
               onClick={() => {
                 setMessages([welcome]);
                 setQuestion("");
+                setSuggestions(promptSuggestions);
               }}
             ><GlassIconOrb color="#f2a1c5" size={30} decorative><OfficialToolIcon tool="pulse" size={16} decorative /></GlassIconOrb><span>Clear</span></button>
           </div>
           <div className="promptStudioMode">
             <span className="studioLiveDot" />
-            <strong>BM25 + TF-IDF + RRF / SQLite-derived authority / free-only general no-hit route</strong>
+            <strong>Business answer first / supporting sources visible / audit receipt on demand</strong>
           </div>
         </header>
 
@@ -181,7 +197,9 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
                 {message.mode ? <small className="promptModeLabel">{message.mode.replaceAll("_", " ")}</small> : null}
                 <p>{message.text}</p>
                 {message.retrieval ? (
-                  <div className="promptRetrievalReceipt" aria-label="Retrieval receipt">
+                  <details className="promptRetrievalReceipt">
+                    <summary>Open evidence receipt</summary>
+                    <div aria-label="Retrieval receipt">
                     <span>BM25 {message.retrieval.bm25.toFixed(4)}</span>
                     <span>TF-IDF {message.retrieval.tfidf.toFixed(4)}</span>
                     <span>RRF {message.retrieval.rrf.toFixed(6)}</span>
@@ -191,11 +209,18 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
                     {message.retrieval.unmatchedTerms.length ? <code>unmatched {message.retrieval.unmatchedTerms.join(", ")}</code> : null}
                     <code>{message.retrieval.chunks.join(" | ")}</code>
                     <code>corpus {message.retrieval.corpus.slice(0, 16)}</code>
-                  </div>
+                    <code>route {message.retrieval.routeContext} / history {message.retrieval.historyTurns}</code>
+                    <code>guide {message.retrieval.answerGuideId}</code>
+                    <code>artifacts {message.retrieval.artifactIds.join(", ") || "none"}</code>
+                    <code>SQL {message.retrieval.sqlStatus}</code>
+                    <code>vector {message.retrieval.vectorStatus}</code>
+                    <code>generation {message.retrieval.generationStatus}</code>
+                    </div>
+                  </details>
                 ) : null}
                 {message.sources ? (
                   <footer>
-                    <small>{message.grounded ? "Ranked source chunks" : "Boundary / provider reference"}</small>
+                    <small>{message.grounded ? "Supporting business guidance sources" : "Boundary / provider reference"}</small>
                     {message.sources.map((source) => (
                       <Link href={source.href} key={`${message.id}-${source.href}-${source.label}`}>{source.label}</Link>
                     ))}
@@ -204,11 +229,11 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
               </div>
             </article>
           ))}
-          {busy ? <p className="promptBusy">Checking the committed corpus boundary before any free-model handoff...</p> : null}
+          {busy ? <p className="promptBusy">Checking the governed guide and its evidence boundary...</p> : null}
         </div>
 
         <div className="promptSuggestionCluster" aria-label="Suggested Evidence Lane questions">
-          {promptSuggestions.map((suggestion) => (
+          {suggestions.map((suggestion) => (
             <button
               className="promptSuggestionCard"
               type="button"
@@ -223,17 +248,17 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
         </div>
 
         <form className="promptComposer" onSubmit={onSubmit}>
-          <label htmlFor="evidence-studio-question">Search the committed corpus or ask a general no-hit question</label>
+          <label htmlFor="evidence-studio-question">Ask a business question about Evidence Lane</label>
           <textarea
             id="evidence-studio-question"
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
             onKeyDown={onKeyDown}
             rows={3}
-            placeholder="Which commit defines Refresh byte reuse? Or ask a general question outside the project corpus."
+            placeholder="What happens from Source Intake to an accepted project version?"
           />
           <div>
-            <small>Ctrl/Cmd + Enter / project no-hits refuse / general no-hits may use openrouter/free only</small>
+            <small>Ctrl/Cmd + Enter / supported project answers stay governed / unsupported claims refuse</small>
             <button className={`rilPill${question.trim() ? " active" : ""}`} type="submit" disabled={!question.trim() || busy}>
               <GlassIconOrb color="#83ddb3" size={30} decorative><OfficialToolIcon tool="terminal" size={16} decorative /></GlassIconOrb>
               <span>{busy ? "Checking" : "Ask Studio"} <b aria-hidden="true">&rarr;</b></span>

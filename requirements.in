@@ -10,8 +10,9 @@ pdfplumber==0.11.10
 Pillow==12.3.0
 pyarrow==25.0.0
 PyJWT[crypto]==2.13.0
-PyMuPDF==1.28.0
 pypdf==6.14.2
+pypdfium2==5.12.1
+pydantic==2.13.4
 pytesseract==0.3.13
 pywin32==312; sys_platform == "win32"
 python-calamine==0.8.2

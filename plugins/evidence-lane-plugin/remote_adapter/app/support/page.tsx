@@ -9,13 +9,13 @@ export default function SupportPage() {
       <Link href="/">← Evidence Lane</Link>
       <span className="kicker">Operational support</span>
       <h1>Support and diagnostics</h1>
-      <p>Start with <Link href="/healthz" prefetch={false}>/healthz</Link>. A fail-closed response is intentional when the durable HTTPS origin, authentication, storage/queue, or exact release SHA is absent or mismatched.</p>
-      <h2>Connector endpoint</h2>
-      <p>The ChatGPT connector endpoint is <code>/mcp</code>. Opening it as a normal browser page is not a functional MCP test; use an MCP client or inspector with the required authentication and protocol headers.</p>
+      <p>Start with the exact Git branch and commit, deterministic package receipt, installed version, native 62-tool catalog, and post-restart acceptance receipt.</p>
+      <h2>Native plugin route</h2>
+      <p>The supported lifecycle route is the installed package-local Evidence Lane MCP inside Codex. This website does not expose a lifecycle endpoint.</p>
       <h2>Website routing</h2>
-      <p>The public multipage website is served by Next.js. Only <code>/mcp</code>, <code>/healthz</code>, and the OAuth protected-resource metadata route are rewritten to the Python adapter.</p>
+      <p>The public multipage website is served by Next.js as documentation only. No route is rewritten to a lifecycle server.</p>
       <h2>Release reports</h2>
-      <p>Every governed release should provide its Git SHA, Vercel deployment identity when applicable, package hashes, install evidence, test evidence, remaining blockers, and an unaccepted HIL candidate.</p>
+      <p>Every governed release should provide its Git SHA, package hashes, native install and restart evidence, test and CI evidence, remaining blockers, and an unaccepted HIL candidate.</p>
     </main>
   );
 }

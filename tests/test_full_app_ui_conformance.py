@@ -193,7 +193,7 @@ def test_all_eighteen_canonical_lanes_drive_the_interactive_toolchain() -> None:
     assert "overflow-x: auto" not in lane_picker_rule.group(1)
 
 
-def test_v130_home_uses_delta_story_plugin_catalog_and_universal_glass_pills() -> None:
+def test_v140_home_uses_concentric_delta_story_plugin_catalog_and_universal_glass_pills() -> None:
     landing = (APP / "page.tsx").read_text(encoding="utf-8")
     header = (COMPONENTS / "site-header.tsx").read_text(encoding="utf-8")
     catalog = (COMPONENTS / "plugin-surface-catalog.tsx").read_text(encoding="utf-8")
@@ -204,11 +204,16 @@ def test_v130_home_uses_delta_story_plugin_catalog_and_universal_glass_pills() -
     site_data = (APP / "_data" / "site.ts").read_text(encoding="utf-8")
     operators = (COMPONENTS / "mode-operator-explorer.tsx").read_text(encoding="utf-8")
     architecture = (APP / "architecture" / "page.tsx").read_text(encoding="utf-8")
+    orbit = (COMPONENTS / "evidence-orbit.tsx").read_text(encoding="utf-8")
 
     assert "DeltaLedgerExplorer" in landing
     assert "PluginSurfaceCatalog" in landing
-    assert "PulsatingBrain" in landing
-    for retired in ("EvidenceOrbit", "SourceBrainLab", "UniversalCommandDeck", "LaneToolchainExplorer"):
+    assert "HeroOrbit" in landing
+    assert "sourceLanes" in orbit and "pluginSurfaces" in orbit
+    assert 'aria-label="18 source lanes"' in orbit
+    assert 'aria-label="15 plugin surfaces"' in orbit
+    assert "Human HIL" in orbit
+    for retired in ("SourceBrainLab", "UniversalCommandDeck", "LaneToolchainExplorer"):
         assert retired not in landing
 
     assert surfaces.count("primaryControl: true") == 6
@@ -218,7 +223,7 @@ def test_v130_home_uses_delta_story_plugin_catalog_and_universal_glass_pills() -
     assert "T023_UNIVERSAL_POPUP_FADE_V001" in popup
     assert 'role="dialog"' in popup and 'aria-modal="true"' in popup
     assert "order: index + 1" in ledger and "order: 80," in ledger
-    assert "PV6 CORRECTION ACTIVE" in ledger
+    assert "ACCEPTED IN PV7" in ledger
     assert ".rilFloatingNav .brand" in css
     assert "background: transparent" in css
     assert "--universal-popup-fade-duration: 140ms" in css
@@ -265,6 +270,15 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     studio = (COMPONENTS / "evidence-prompt-studio.tsx").read_text(encoding="utf-8")
     retrieval = (APP / "_data" / "studio-retrieval.ts").read_text(encoding="utf-8")
     query_route = (APP / "api" / "studio-query" / "route.ts").read_text(encoding="utf-8")
+    openrouter = (
+        APP / "api" / "studio-query" / "openrouter-general.ts"
+    ).read_text(encoding="utf-8")
+    adapter_root = ROOT / "plugins" / "evidence-lane-plugin" / "remote_adapter"
+    adapter_package = json.loads((adapter_root / "package.json").read_text(encoding="utf-8"))
+    adapter_readme = (adapter_root / "README.md").read_text(encoding="utf-8")
+    openrouter_test = (
+        adapter_root / "scripts" / "test-openrouter-boundary.mjs"
+    ).read_text(encoding="utf-8")
     floating = (COMPONENTS / "floating-evidence-studio.tsx").read_text(encoding="utf-8")
     layout = (APP / "layout.tsx").read_text(encoding="utf-8")
     css = (APP / "globals.css").read_text(encoding="utf-8")
@@ -277,17 +291,28 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     assert "bm25" in retrieval and "tfidf" in retrieval and "rrf" in retrieval
     assert "promptStopWords" in retrieval
     assert "!promptStopWords.has(token)" in retrieval
-    assert "Ranked source chunks" in studio and "Boundary / provider reference" in studio
+    assert "Supporting business guidance sources" in studio and "Boundary / provider reference" in studio
     assert "promptRetrievalReceipt" in studio and ".promptRetrievalReceipt" in css
     assert ".promptStudio { min-height: 760px; border: 0; background: transparent; }" in css
     assert 'className="promptSuggestionCard"' in studio
     assert ".promptSuggestionCluster .promptSuggestionCard" in css
     assert "FloatingEvidenceStudio" in layout and "floatingStudioPanel" in floating
     assert 'fetch("/api/studio-query"' in floating
-    assert 'const OPENROUTER_FREE_MODEL = "openrouter/free"' in query_route
+    assert 'OPENROUTER_FREE_MODEL = "openrouter/free"' in openrouter
     assert "NO_EXTERNAL_PROJECT_CLAIMS_NO_PAID_MODEL_FALLBACK" in query_route
-    assert "EVIDENCE_LANE_GENERAL_AI_ENABLED" in query_route
-    assert "OPENROUTER_API_KEY" in query_route
+    assert "EVIDENCE_LANE_GENERAL_AI_ENABLED" in openrouter
+    assert "OPENROUTER_API_KEY" in openrouter
+    assert not (adapter_root / ".env.example").exists()
+    assert "NEXT_PUBLIC_OPENROUTER" not in query_route + openrouter
+    assert "does not expose an MCP endpoint" in adapter_readme
+    assert "real_provider_calls: 0" in openrouter_test
+    assert adapter_package["scripts"]["test:studio-query"] == (
+        "node --experimental-strip-types scripts/test-openrouter-boundary.mjs"
+    )
+    post_body = query_route.split("export async function POST", 1)[1]
+    assert post_body.index("answerFromEvidence(question, { pagePath, history })") < post_body.index(
+        "isEvidenceLaneQuestion(question)"
+    ) < post_body.index("requestFreeGeneralAnswer")
     assert "verifyStudioRetrievalConfidence" in retrieval
     assert 'id: "general-no-hit"' in retrieval
     assert 'id: "project-nonsense-no-hit"' in retrieval
@@ -310,6 +335,84 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     )
 
 
+def test_evidence_ai_studio_is_a_business_guide_for_the_whole_plugin() -> None:
+    studio_page = (APP / "studio" / "page.tsx").read_text(encoding="utf-8")
+    studio = (COMPONENTS / "evidence-prompt-studio.tsx").read_text(encoding="utf-8")
+    floating = (COMPONENTS / "floating-evidence-studio.tsx").read_text(encoding="utf-8")
+    retrieval = (APP / "_data" / "studio-retrieval.ts").read_text(encoding="utf-8")
+    guide = (APP / "_data" / "business-guidance.ts").read_text(encoding="utf-8")
+
+    assert "business guide to the whole Evidence Lane plugin" in studio_page
+    assert "without turning the main conversation into code discussion" in studio_page
+    assert "Business guide to the whole plugin" in studio
+    assert "Business answer first" in floating
+    assert "businessGuideFor" in retrieval
+    assert "raw source extracts" in retrieval
+    assert "selected.map((result) => excerpt" not in retrieval
+    assert studio.count("<details") >= 1
+    assert floating.count("<details") >= 1
+    assert len(re.findall(r'^    id: "[a-z-]+",$', guide, flags=re.MULTILINE)) >= 18
+    for topic in (
+        "Why Evidence Lane exists",
+        "Eighteen source lanes",
+        "Fifteen clear plugin surfaces",
+        "HIL keeps the decision with the human",
+        "State Travel resumes unfinished work exactly",
+        "Codex and ChatGPT keep separate storage realities",
+        "Release and publication happen after acceptance",
+    ):
+        assert topic in guide
+
+
+def test_studio_candidate_is_route_aware_bounded_and_artifact_inspectable() -> None:
+    route = (APP / "api" / "studio-query" / "route.ts").read_text(encoding="utf-8")
+    retrieval = (APP / "_data" / "studio-retrieval.ts").read_text(encoding="utf-8")
+    route_context = (APP / "_data" / "studio-route-context.ts").read_text(encoding="utf-8")
+    artifacts = (APP / "_data" / "studio-artifact-catalog.ts").read_text(encoding="utf-8")
+    full_studio = (COMPONENTS / "evidence-prompt-studio.tsx").read_text(encoding="utf-8")
+    floating = (COMPONENTS / "floating-evidence-studio.tsx").read_text(encoding="utf-8")
+    artifact_lab = (COMPONENTS / "studio-artifact-lab.tsx").read_text(encoding="utf-8")
+    guide = (APP / "_data" / "business-guidance.ts").read_text(encoding="utf-8")
+
+    assert "MAX_HISTORY_TURNS = 8" in route
+    assert "boundedPagePath" in route and "boundedHistory" in route
+    assert "studioRouteContextFor(options.pagePath)" in retrieval
+    assert "historyTurns" in retrieval and "artifactIds" in retrieval
+    assert "pagePath: \"/studio\", history" in full_studio
+    assert "pagePath: pathname, history" in floating
+    assert "result.suggestions" in full_studio and "result.suggestions" in floating
+    assert len(re.findall(r'^    id: "[a-z-]+",$', route_context, flags=re.MULTILINE)) >= 9
+    assert route_context.count("suggestions: [") >= 9
+    for artifact_format in ("SQLite", "Markdown", "JSON", "CSV", "Chart", "Table", "MMD", "DOT"):
+        assert f'"{artifact_format}"' in artifacts
+        assert f'"{artifact_format}"' in artifact_lab
+    assert "WIRED_NOT_CONFIGURED_READ_ONLY_ONLY" in artifacts
+    assert "WIRED_NOT_CONFIGURED_OPTIONAL" in artifacts
+    assert "Executable action chart" in artifact_lab
+    assert "Host capability table" in artifact_lab
+    assert "whole project" in guide
+    assert "Release 1.5.0" in guide
+
+
+def test_native_threejs_motion_remains_without_retired_3d_or_adobe_links() -> None:
+    studio_page = (APP / "studio" / "page.tsx").read_text(encoding="utf-8")
+    active_site_text = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in APP.rglob("*")
+        if path.is_file()
+        and path.name != "studio-rag-index.json"
+        and path.suffix in {".ts", ".tsx", ".css"}
+    ).casefold()
+
+    assert "https://www.adobe.com/express/" not in studio_page
+    assert "Open official Adobe Express" not in studio_page
+    assert "adobe.com" not in active_site_text
+    assert 'from "meshy' not in active_site_text
+    assert "@meshy" not in active_site_text
+    assert ".glb" not in active_site_text
+    assert "meshy.ai" not in active_site_text
+
+
 def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() -> None:
     landing = (APP / "page.tsx").read_text(encoding="utf-8")
     ledger = (COMPONENTS / "delta-ledger-explorer.tsx").read_text(encoding="utf-8")
@@ -317,7 +420,12 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     current_plan_data = (APP / "_data" / "current-execution-plan.ts").read_text(
         encoding="utf-8"
     )
+    website_current_plan_data = (
+        APP / "_data" / "website-current-execution.ts"
+    ).read_text(encoding="utf-8")
     footer = (COMPONENTS / "site-footer.tsx").read_text(encoding="utf-8")
+    release_identity = (APP / "_data" / "release-identity.ts").read_text(encoding="utf-8")
+    layout = (APP / "layout.tsx").read_text(encoding="utf-8")
     site = (APP / "_data" / "site.ts").read_text(encoding="utf-8")
     contributors = (APP / "_data" / "contributors.ts").read_text(encoding="utf-8")
 
@@ -331,26 +439,46 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "Human / AI boundary" in landing
     assert landing.index('className="section shell releaseHome"') < landing.index('id="delta-ledger"')
     assert 'id="current-execution-plan"' not in landing
-    assert "One additive ledger. 131 governed rows." in landing
-    step_rows = re.findall(r'^  ".*",$', current_plan_data, flags=re.MULTILINE)
-    assert len(step_rows) == 51
-    assert 'activeRow: 46' in current_plan_data
-    assert 'completedRows: 45' in current_plan_data
-    assert 'persistentUntil: "NEXT_SIX_WAY_HIL_PRESENTED"' in current_plan_data
-    assert 'priorHilDecisionAlreadyRecorded: "APPROVE_WITH_DELTA"' in current_plan_data
-    assert "CURRENT_PLAN_LANE_NOT_HISTORICAL_ACCEPTED_DELTA_LEDGER" in current_plan_data
-    assert "row-46 one-shot lane proof as prior evidence" in current_plan_data
+    assert "One additive ledger. {deltaLedgerBoundary.totalRows} governed public rows." in landing
+    assert "websiteCurrentExecution.map" in current_plan_data
+    assert 'activeRow: 184' in current_plan_data
+    assert 'activeTaskPosition: 104' in current_plan_data
+    assert 'activeReceiptPosition: 112' in current_plan_data
     assert (
-        "main Evidence Lane repository with its full reachable commit and parent history"
+        'persistentUntil: "ROW_196_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE"'
         in current_plan_data
     )
-    assert "neither loaded nor detected leaves no PV folder or placeholder" in current_plan_data
+    assert (
+        'exactlyOneActiveRow: currentExecutionPlan.filter((row) => row.status === "IN_PROGRESS").length === 1'
+        in current_plan_data
+    )
+    assert "lastExecutionStep: 195" in current_plan_data
+    assert "physicallyLastStep: 196" in current_plan_data
+    assert "SEALED_ORIGIN_PLUS_LIVE_LINEAR_PROJECTION_AS_PUBLIC_ROWS_081_196" in current_plan_data
+    assert 'order: 180,\n    id: "ROW_180",\n    status: "COMPLETED"' in website_current_plan_data
+    assert 'order: 181,\n    id: "ROW_181",\n    status: "COMPLETED"' in website_current_plan_data
+    assert 'order: 182,\n    id: "ROW_182",\n    status: "COMPLETED"' in website_current_plan_data
+    assert 'order: 183,\n    id: "ROW_183",\n    status: "COMPLETED"' in website_current_plan_data
+    assert 'order: 184,\n    id: "ROW_184",\n    status: "IN PROGRESS"' in website_current_plan_data
+    assert 'order: 195,\n    id: "ROW_195",\n    status: "PENDING"' in website_current_plan_data
+    assert 'order: 196,\n    id: "ROW_196",\n    status: "PENDING"' in website_current_plan_data
+    assert "full final local verification suite" in website_current_plan_data
+    assert "real Git test" in website_current_plan_data
+    assert "GitHub agent proof" in website_current_plan_data
+    assert "lane-absence case" in website_current_plan_data
+    assert "public website routes, footer links" in website_current_plan_data
+    assert "1348634/evidence_os" in website_current_plan_data
     assert 'phase: "Current execution"' in ledger_data
-    assert "80 + row.number" in ledger_data
+    assert "websiteCurrentExecution.map" in ledger_data
     assert "...currentExecution" in ledger_data
     assert "sealedHistoricalDeltaRows" in ledger_data
     assert "liveExecutionRows" in ledger_data
-    assert "Rows 81&ndash;131" in ledger
+    assert "81&ndash;196" in ledger
+    assert "Delta SHA-256" in ledger
+    assert "Linked correction" in ledger
+    assert "80 sealed historical Delta rows" in (
+        COMPONENTS / "current-execution-plan.tsx"
+    ).read_text(encoding="utf-8")
     assert "useState(false)" in ledger
     assert 'aria-expanded={expanded}' in ledger
     assert 'expanded ? "Collapse Delta ledger" : "Open Delta ledger"' in ledger
@@ -358,17 +486,27 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
 
     for heading in ("Policies", "Repository", "Contributors", "Praveen Rathee"):
         assert f"<strong>{heading}</strong>" in footer
+    assert "data-release-version={releaseIdentity.version}" in footer
+    assert "data-release-commit={releaseIdentity.commit" in footer
+    assert "Release <strong>{releaseIdentity.version}</strong>" in footer
+    assert 'releaseVersion = "2.0.0"' in release_identity
+    assert "VERCEL_GIT_COMMIT_SHA" in release_identity
+    assert "NEXT_PUBLIC_EVIDENCE_LANE_RELEASE_SHA" in release_identity
+    assert "GITHUB_MARKDOWN_TO_SITE_FOOTERS_DELTA_TABLE_VERCEL_AND_EXISTING_DEVPOST" in release_identity
+    assert '"evidence-lane:release-version"' in layout
+    assert '"evidence-lane:release-commit"' in layout
     for route in ("/license", "/copyright", "/credits"):
         assert (APP / route.removeprefix("/") / "page.tsx").is_file()
     for label in ("README", "License", "Copyright", "Security", "Contributors"):
         assert f">{label}</Link>" in footer
     assert footer.count('href="/credits"') == 1
-    for person in ("Naveen Rathee", "Kapil Dhawan", "Steven Tock", "Sumit Hooda"):
+    assert "Naveen Rathee" not in contributors
+    for person in ("Kapil Dhawan", "Steven Tock", "Sumit Hooda"):
         assert person in contributors
         assert person not in footer
     for label, url in (
         ("LinkedIn", "https://www.linkedin.com/in/praveen-rathee-8b028030b/"),
-        ("Devpost", "https://devpost.com/software/evidence-lane-plugins-codex-claude-code"),
+        ("Devpost", "https://devpost.com/software/evidence_os"),
         ("YouTube", "https://www.youtube.com/@praveenrathee8675"),
     ):
         assert f'label: "{label}"' in site
@@ -376,7 +514,7 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "salary" not in contributors.casefold()
     assert "h1b" not in contributors.casefold()
     assert site.startswith('export const publicSiteUrl = "https://evidencelane.org";')
-    assert 'publicMcpUrl = "https://mcp.evidencelane.org/mcp"' in site
+    assert "publicMcpUrl" not in site
 
 
 def test_lanes_hero_orbits_all_eighteen_glass_icons_once_then_stops() -> None:
@@ -407,15 +545,15 @@ def test_public_plugin_metadata_and_third_party_rights_are_canonical() -> None:
     repository_copyright = (ROOT / "COPYRIGHT.md").read_text(encoding="utf-8")
 
     assert metadata["homepage"] == "https://evidencelane.org"
-    assert metadata["mcp_endpoint"] == "https://mcp.evidencelane.org/mcp"
+    assert "mcp_endpoint" not in metadata
     assert metadata["interactive_ui"]["mime_type"] == "text/html;profile=mcp-app"
     assert metadata["interactive_ui"]["render_tools"] == [
         "render_runtime_panel",
         "render_project_panel",
     ]
     assert "siteName: \"Evidence Lane\"" in layout
-    assert "data-mcp-apps=\"SUPPORTED\"" in connect
-    assert "ChatGPT owns the surrounding listing and settings layout" in connect
+    assert "local native MCP server" in connect
+    assert "ChatGPT" in connect and "Deferred" in connect
     boundary = (
         "Third-party software, services, models, assets, and trademarks remain "
         "governed"
@@ -454,20 +592,15 @@ def test_connect_endpoint_cards_are_linked_readable_and_truthful() -> None:
 
     assert '<a href={publicSiteUrl} className="endpointCard endpointCardReady">' in connect
     assert (
-        '<a href={publicMcpHealthUrl} className="endpointCard endpointCardBlocked">'
+        '<a href={repositoryUrl} className="endpointCard endpointCardProtocol">'
         in connect
     )
-    assert (
-        '<a href={publicMcpUrl} className="endpointCard endpointCardProtocol">'
-        in connect
-    )
-    assert "missing durable HTTPS origin and exact release identity" in connect
-    assert "a browser tab is not an authenticated MCP session" in connect
+    assert "website explains the product; it does not execute the lifecycle" in connect
+    assert "prewarmed separately" in connect
     assert ".endpointCard strong { color: #ffffff;" in styles
     assert ".endpointCard small { color: #d6e7f3;" in styles
     for selector in (
         ".endpointCardReady",
-        ".endpointCardBlocked",
         ".endpointCardProtocol",
     ):
         assert selector in styles

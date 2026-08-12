@@ -2,21 +2,22 @@ import Link from "next/link";
 
 import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { EvidencePromptStudio } from "../_components/evidence-prompt-studio";
+import { HeroOrbit } from "../_components/hero-orbit";
+import { StudioArtifactLab } from "../_components/studio-artifact-lab";
 import { studioCorpus } from "../_data/studio-retrieval";
 
 export default function StudioPage() {
   return (
     <main>
-      <section className="pageHero studioHero shell">
+      <section className="pageHero studioHero orbitHeroFrame shell">
         <div>
           <span className="eyebrow"><i />Evidence AI Studio</span>
-          <h1>Ask the product. See the evidence boundary.</h1>
+          <h1>Your business guide to the whole Evidence Lane plugin.</h1>
           <p>
-            Query the committed plugin, current 51-step Plan Lane, historical Delta ledger,
-            policy, lane, mode, website, and Git-history corpus instead of re-explaining it. The
-            local hybrid index returns extractive evidence and refuses unsupported project claims.
-            Only a genuine general-question no-hit may cross the separately configured free-model
-            boundary, and that answer is never labeled as Evidence Lane evidence.
+            Ask what the product solves, how a source becomes governed evidence, what each control
+            does, where the human decision sits, and what must happen before release. Answers are
+            written for operators, founders, reviewers, and business stakeholders. Supporting
+            evidence remains available without turning the main conversation into code discussion.
           </p>
           <div className="actions">
             <Link className="primary universal-pill actionGlassPill" href="/architecture" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001">
@@ -29,29 +30,18 @@ export default function StudioPage() {
             </Link>
           </div>
         </div>
-        <aside className="studioHeroPanel" aria-label="Prompt Studio contract">
-          <span>COMMITTED LOCAL RAG</span>
-          <strong>LlamaIndex + hybrid projection · SQLite FTS5 authority</strong>
-          <p>Project answers identify exact source paths and content hashes; external general answers identify their provider boundary.</p>
-          <dl>
-            <div><dt>Corpus</dt><dd>Public-safe committed evidence</dd></div>
-            <div><dt>Ranking</dt><dd>Visible hybrid scores</dd></div>
-            <div><dt>Project no hit</dt><dd>Visible refusal</dd></div>
-            <div><dt>General no hit</dt><dd>Optional openrouter/free only</dd></div>
-          </dl>
-        </aside>
+        <aside><HeroOrbit preset="studio" /></aside>
       </section>
 
       <section className="section studioPageBand">
         <div className="shell">
           <div className="sectionHead wideHead">
-            <span className="kicker light">Interactive knowledge surface</span>
-            <h2>Search parsed evidence instead of rebuilding project context.</h2>
+            <span className="kicker light">Interactive product guide</span>
+            <h2>Understand the decision before opening the technical receipt.</h2>
             <p>
-              LlamaIndex supplies deterministic chunks; the committed SQLite authority stores
-              those chunks in FTS5 and materializes TF-IDF. Prompt Studio and the floating Studio
-              share the same hash-bound JSON projection and deterministic BM25, TF-IDF, and
-              reciprocal-rank fusion. Neither client executes SQLite or receives provider secrets.
+              Evidence AI Studio matches each supported question to reviewed business guidance
+              and supporting public-safe sources. The detailed ranking record is still preserved,
+              but it sits behind an audit disclosure so the main answer remains readable.
             </p>
           </div>
           <EvidencePromptStudio corpus={{
@@ -63,10 +53,15 @@ export default function StudioPage() {
       </section>
 
       <section className="section shell studioRules">
-        <article><span>01</span><h2>Parse once</h2><p>Versioned chunks and accepted lane facts remain reusable until exact source changes require Refresh.</p></article>
-        <article><span>02</span><h2>Rank visibly</h2><p>Every supported response exposes source paths, chunk hashes, and hybrid retrieval scores.</p></article>
-        <article><span>03</span><h2>Separate cleanly</h2><p>Unsupported project questions refuse. General no-hits may use only the zero-cost external route when explicitly configured, with no paid fallback and no project authority.</p></article>
+        <article><span>01</span><h2>Explain the business outcome</h2><p>Answers start with the problem, decision, responsibility, and operational consequence.</p></article>
+        <article><span>02</span><h2>Keep proof inspectable</h2><p>Supporting sources and the detailed retrieval receipt remain available when a reviewer needs them.</p></article>
+        <article><span>03</span><h2>Refuse unsupported claims</h2><p>An unknown project answer stays unknown. A general model never becomes project authority.</p></article>
       </section>
+
+      <section className="section shell">
+        <StudioArtifactLab />
+      </section>
+
     </main>
   );
 }

@@ -37,6 +37,14 @@ def test_workflows_are_study_branch_only_and_preview_does_not_deploy() -> None:
     assert "vercel deploy" not in preview.lower()
     assert "--prod" not in preview.lower()
     assert "permissions:\n  contents: read" in preview
+    assert "docker build" in preview
+    assert "EVIDENCE_LANE_RELEASE_SHA=${EVIDENCE_LANE_RELEASE_SHA}" in preview
+    assert "durable-image-identity.json" in preview
+    assert "durable-image-health.json" in preview
+    assert 'payload["release_sha"] == os.environ["EVIDENCE_LANE_RELEASE_SHA"]' in (
+        preview
+    )
+    assert 'payload["mcp_route_identity"]["tool_count"] == 62' in preview
 
 
 def test_codeql_is_pinned_and_preserves_local_evidence_without_api_upload() -> None:
@@ -85,13 +93,18 @@ def test_copilot_agent_profile_is_manual_bounded_and_not_an_actions_alias() -> N
     assert "Never use one as proof of another" in instructions
 
 
-def test_public_cost_boundary_excludes_usage_based_github_sandbox() -> None:
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+def test_public_cost_boundary_excludes_github_sandbox_and_separates_vercel() -> None:
+    readme = " ".join((ROOT / "README.md").read_text(encoding="utf-8").split())
     assert "does not configure or invoke the" in readme
     assert "usage-based GitHub Sandbox product" in readme
     assert "bounded local project work directory" in readme
     assert "paid overages and" in readme
-    assert "Vercel Pro is not required or enabled" in readme
+    assert "The selected Vercel account plan does not change Evidence Lane authority" in (
+        readme
+    )
+    assert "public documentation site only" in readme
+    assert "Vercel is not used to install Codex" in readme
+    assert "route the native lifecycle" in readme
 
 
 def test_local_action_exposes_visible_code_mode_contract() -> None:

@@ -1,25 +1,26 @@
 {
   "corpus": {
-    "boundary": "all Git-tracked public-safe Evidence Lane plugin text plus canonical repository policies and ancestor Git metadata; generated proof binaries, retrieval self-inputs, private session flash, runtime state, brains, and secrets are excluded",
-    "chunk_count": 1773,
-    "sha256": "FC6DDEAC20443CFE0E612BE7DFCB8B82B93B18924B89316B35A6CA2F87F8D7F5",
-    "source_count": 243
+    "boundary": "the exact prior public source manifest re-read from current local bytes plus frozen, previously sealed ancestor Git chunks; no Git command is invoked; generated proof binaries, retrieval self-inputs, private session flash, runtime state, brains, and secrets are excluded",
+    "chunk_count": 1996,
+    "sha256": "A09359A416791C5614FC6A26684B98116F7360B281919D52C2954B8FF6301D0B",
+    "source_count": 265
   },
-  "history_commit_count": 68,
-  "history_through_sha": "c5dee07b6506733d63d454550ed4a6f821c3c167",
+  "history_commit_count": 73,
+  "history_mode": "FROZEN_SEALED_INDEX_NO_GIT",
+  "history_through_sha": "1f16034fda58a46c313af826a9d1465fcf32db17",
   "outputs": {
     "browser_json": {
-      "bytes": 8602175,
+      "bytes": 9840021,
       "path": "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json",
-      "sha256": "58B5260848136C0BEF455C60FF71CB037216BC330B03733034BA75D6093F9B47"
+      "sha256": "38D2605DB41A8A18133227E31361E3864C7EA96D5A3E47442F5766FEA94D7BDB"
     },
     "sqlite": {
-      "bytes": 11567104,
+      "bytes": 13250560,
       "path": "plugins/evidence-lane-plugin/evidence/prompt_studio/studio_search.sqlite",
-      "sha256": "05ED1D9C6040668003AD6D8A132803783A6A33AA5376A47EC487999E61525A87"
+      "sha256": "8D0D5BC934CDD00D0D96737FB8D2913637E29446348134ABDBAE02B1491C8A38"
     }
   },
-  "release": "1.3.0",
+  "release": "1.5.0",
   "retrieval": {
     "chunker": "llama-index-core==0.14.23 SentenceSplitter(480,64)",
     "hybrid": "reciprocal-rank fusion k=60",
@@ -29,7 +30,7 @@
   },
   "schema": "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1",
   "validation": {
-    "fts_refresh_hits": 130,
+    "fts_refresh_hits": 150,
     "secret_scan": "PASS",
     "sqlite_integrity": "ok"
   }

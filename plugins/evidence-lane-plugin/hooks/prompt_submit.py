@@ -1,22 +1,12 @@
-"""Index the secret-redacted visible prompt without retaining raw secrets."""
+"""Authoritative secret-redacted PREPARE adapter for governed Codex turns."""
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
-import re
 import sys
-import time
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-
-_SECRET_PATTERNS = (
-    re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9_-]{16,}\b"),
-    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{16,}\b"),
-    re.compile(r"(?i)\b(?:authorization|bearer|password|token|secret)\b\s*[:=]\s*\S+"),
-)
 
 
 def _store_root() -> Path:
@@ -27,444 +17,215 @@ def _store_root() -> Path:
     ).resolve()
 
 
-def _runtime_activation(root: Path) -> dict[str, Any]:
-    path = root / "installation" / "runtime_activation.json"
-    if not path.is_file():
-        return {"state": "DETACHED", "active_sessions": []}
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, json.JSONDecodeError):
-        return {
-            "state": "DETACHED",
-            "active_sessions": [],
-            "reason": "RUNTIME_ACTIVATION_RECEIPT_INVALID",
-        }
-    sessions = payload.get("active_sessions")
-    if (
-        payload.get("schema") != "evidence-lane.runtime-activation.v1"
-        or payload.get("plugin_id") != "evidence-lane-plugin"
-        or payload.get("state") != "ACTIVE"
-        or not isinstance(sessions, list)
-        or not sessions
-        or payload.get("prompt_capture_active") is not True
-    ):
-        return {"state": "DETACHED", "active_sessions": []}
-    return payload
-
-
-def _binding_is_attached(
-    activation: dict[str, Any], binding: dict[str, Any]
-) -> bool:
-    return any(
-        row.get("project_id") == binding.get("project_id")
-        and row.get("session_id") == binding.get("evidence_session_id")
-        for row in activation.get("active_sessions", [])
-        if isinstance(row, dict)
+def _load_control():
+    source_root = Path(__file__).resolve().parents[1] / "src"
+    if str(source_root) not in sys.path:
+        sys.path.insert(0, str(source_root))
+    from evidence_lane_plugin.codex_turn_control import (
+        TurnControlError,
+        bind_codex_host_payload,
+        gap_receipt,
+        persistent_change_system_message,
+        persistent_change_system_notice,
+        policy_state,
+        prepare_turn,
+        record_non_strict_visible_input,
     )
 
-
-def _canonical_bytes(value: dict[str, Any]) -> bytes:
     return (
-        json.dumps(
-            value,
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-            allow_nan=False,
-        )
-        + "\n"
-    ).encode("utf-8")
-
-
-def _sha256(value: bytes) -> str:
-    return hashlib.sha256(value).hexdigest().upper()
-
-
-def _safe_prompt(prompt: str) -> tuple[str, str, int]:
-    redacted = prompt
-    for pattern in _SECRET_PATTERNS:
-        redacted = pattern.sub("[REDACTED]", redacted)
-    return redacted, _sha256(redacted.encode("utf-8")), len(redacted)
-
-
-def _within(child: Path, parent: Path) -> bool:
-    try:
-        child.resolve().relative_to(parent.resolve())
-        return True
-    except (OSError, ValueError):
-        return False
-
-
-def _active_binding(
-    root: Path,
-    *,
-    host_session_id: str,
-    cwd: str,
-) -> dict[str, Any]:
-    projects_root = root / "projects"
-    if not projects_root.is_dir():
-        return {}
-    exact_matches: list[dict[str, Any]] = []
-    cwd_matches: list[dict[str, Any]] = []
-    current_cwd = Path(cwd).resolve() if cwd else None
-    for project_root in sorted(projects_root.iterdir(), key=lambda item: item.name):
-        try:
-            active = json.loads(
-                (project_root / "active_session.json").read_text(encoding="utf-8")
-            )
-            session = json.loads(
-                (project_root / "sessions" / f"{active['session_id']}.json").read_text(
-                    encoding="utf-8"
-                )
-            )
-            if session.get("metadata", {}).get("closed_at"):
-                continue
-            project = json.loads(
-                (project_root / "project.json").read_text(encoding="utf-8")
-            )
-        except (OSError, KeyError, ValueError, json.JSONDecodeError):
-            continue
-        binding = {
-            "project_id": session.get("project_id"),
-            "evidence_session_id": session.get("session_id"),
-            "entry_pv": session.get("metadata", {}).get("entry_pv"),
-            "pointer_generation": session.get("accepted_pointer_generation"),
-            "task_id": (
-                session.get("task", {}).get("task_id")
-                if isinstance(session.get("task"), dict)
-                else None
-            ),
-            "lifecycle_state": session.get("state"),
-            "project_root": project_root,
-        }
-        if (
-            session.get("metadata", {}).get("current_host_session_id")
-            == host_session_id
-        ):
-            exact_matches.append(binding)
-        elif current_cwd and _within(current_cwd, Path(project["repository_path"])):
-            cwd_matches.append(binding)
-    if len(exact_matches) == 1:
-        return exact_matches[0]
-    if not exact_matches and len(cwd_matches) == 1:
-        return cwd_matches[0]
-    return {}
-
-
-def _acquire_lock(path: Path) -> int:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    for _ in range(40):
-        try:
-            return os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-        except FileExistsError:
-            time.sleep(0.025)
-    raise TimeoutError("Evidence Lane prompt-lineage lock is busy.")
-
-
-def _atomic_write(path: Path, payload: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(f".{path.name}.{os.getpid()}.{time.time_ns()}.tmp")
-    descriptor = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-    try:
-        os.write(descriptor, payload)
-        os.fsync(descriptor)
-    finally:
-        os.close(descriptor)
-    os.replace(temporary, path)
-
-
-def _append_lineage(
-    *,
-    binding: dict[str, Any],
-    record: dict[str, Any],
-    input_kind: str,
-) -> dict[str, Any]:
-    lineage_path = (
-        Path(binding["project_root"])
-        / "lineage"
-        / f"{binding['evidence_session_id']}.jsonl"
+        TurnControlError,
+        bind_codex_host_payload,
+        gap_receipt,
+        persistent_change_system_message,
+        persistent_change_system_notice,
+        policy_state,
+        prepare_turn,
+        record_non_strict_visible_input,
     )
-    lock_path = lineage_path.with_suffix(".jsonl.turn-index.lock")
-    lock_descriptor = _acquire_lock(lock_path)
-    try:
-        events: list[dict[str, Any]] = []
-        if lineage_path.exists():
-            events = [
-                json.loads(line)
-                for line in lineage_path.read_text(encoding="utf-8").splitlines()
-                if line.strip()
-            ]
-        event_id = (
-            "evt_"
-            + _sha256(
-                (
-                    str(binding["evidence_session_id"])
-                    + "\0"
-                    + str(record["turn_id"])
-                    + "\0"
-                    + input_kind
-                    + "\0"
-                    + str(record["record_sha256"])
-                ).encode("utf-8")
-            )[:26].lower()
-        )
-        existing = next(
-            (event for event in events if event.get("event_id") == event_id),
-            None,
-        )
-        if existing is not None:
-            return existing
-        safe_payload = {
-            "turn_id": record["turn_id"],
-            "prompt_index": record["prompt_index"],
-            "input_kind": input_kind,
-            "visible_user_prompt_after_redaction": record[
-                "visible_prompt_after_redaction"
-            ],
-            "prompt_sha256_after_redaction": record["prompt_sha256_after_redaction"],
-            "prompt_record_sha256": record["record_sha256"],
-            "entry_pv": record.get("entry_pv"),
-            "pointer_generation": record.get("pointer_generation"),
-            "lifecycle_state": binding.get("lifecycle_state"),
-            "private_reasoning_excluded": True,
-        }
-        event = {
-            "schema": "evidence-lane.chat-lineage.event.v1",
-            "event_id": event_id,
-            "event_type": (
-                "turn.visible_user_steer"
-                if input_kind == "steer"
-                else "turn.visible_user_prompt"
-            ),
-            "occurred_at": record["recorded_at"],
-            "session_id": binding["evidence_session_id"],
-            "task_id": binding.get("task_id"),
-            "run_id": None,
-            "lineage_index": len(events) + 1,
-            "previous_event_sha256": (
-                events[-1].get("event_sha256") if events else None
-            ),
-            "actor_type": "user",
-            "model": None,
-            "submodel": None,
-            "token_metrics": {"availability": "UNAVAILABLE"},
-            "visible_payload": safe_payload,
-            "visible_payload_sha256": _sha256(_canonical_bytes(safe_payload)),
-            "private_reasoning_stored": False,
-        }
-        event["event_sha256"] = _sha256(
-            _canonical_bytes(
-                {key: value for key, value in event.items() if key != "event_sha256"}
-            )
-        )
-        events.append(event)
-        _atomic_write(lineage_path, b"".join(_canonical_bytes(item) for item in events))
-        try:
-            from evidence_lane_plugin.lineage import ChatLineage
-
-            ChatLineage(lineage_path).projection_status()
-        except Exception as projection_error:  # noqa: BLE001 - hook fails open
-            if os.environ.get("EVIDENCE_LANE_HOOK_DEBUG") == "1":
-                print(
-                    f"EVIDENCE_LANE_LINEAGE_PROJECTION={type(projection_error).__name__}",
-                    file=sys.stderr,
-                )
-        return event
-    finally:
-        os.close(lock_descriptor)
-        try:
-            lock_path.unlink()
-        except FileNotFoundError:
-            pass
 
 
-def _record(payload: dict[str, Any]) -> dict[str, Any]:
-    host_session_id = str(payload.get("session_id", "")).strip()
-    turn_id = str(payload.get("turn_id", "")).strip()
-    prompt = str(payload.get("prompt", ""))
-    if not host_session_id or not turn_id:
-        return {
-            "state": "NOT_INDEXED",
-            "reason": "HOST_SESSION_OR_TURN_ID_MISSING",
-        }
+def _record(payload: dict[str, Any]) -> tuple[dict[str, Any], bool]:
     root = _store_root()
-    activation = _runtime_activation(root)
-    binding = _active_binding(
+    (
+        TurnControlError,
+        bind_codex_host_payload,
+        gap_receipt,
+        _,
+        _,
+        policy_state,
+        prepare_turn,
+        record_non_strict_visible_input,
+    ) = _load_control()
+    raw_policy = policy_state(
         root,
-        host_session_id=host_session_id,
-        cwd=str(payload.get("cwd", "")),
-    )
-    if not binding:
-        return {
-            "state": "NOT_INDEXED",
-            "reason": "NO_BOUND_EVIDENCE_LANE_SESSION",
-            "raw_prompt_stored": False,
-        }
-    if activation.get("state") != "ACTIVE":
-        return {
-            "state": "NOT_INDEXED",
-            "reason": "EVIDENCE_LANE_RUNTIME_DETACHED",
-            "raw_prompt_stored": False,
-        }
-    if not _binding_is_attached(activation, binding):
-        return {
-            "state": "NOT_INDEXED",
-            "reason": "GOVERNED_SESSION_NOT_RUNTIME_ATTACHED",
-            "raw_prompt_stored": False,
-        }
-    host_key = f"host-{_sha256(host_session_id.encode('utf-8'))[:40].lower()}"
-    folder = root / "prompt-index" / host_key
-    folder.mkdir(parents=True, exist_ok=True)
-    input_source = str(payload.get("source") or "user_prompt").strip().lower()
-    input_kind = (
-        "steer"
-        if payload.get("is_steer") is True or "steer" in input_source
-        else "user_prompt"
-    )
-    existing: list[dict[str, Any]] = []
-    for path in (root / "prompt-index").glob("host-*/*.json"):
-        try:
-            candidate = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError, json.JSONDecodeError):
-            continue
-        if candidate.get("project_id") == binding.get("project_id") and candidate.get(
-            "evidence_session_id"
-        ) == binding.get("evidence_session_id"):
-            existing.append(candidate)
-    existing.sort(key=lambda row: int(row.get("prompt_index", 0)))
-    visible_prompt, prompt_hash, prompt_chars = _safe_prompt(prompt)
-    duplicate = next(
-        (
-            row
-            for row in existing
-            if row.get("turn_id") == turn_id
-            and row.get("prompt_sha256_after_redaction") == prompt_hash
-            and row.get("input_kind", "user_prompt") == input_kind
+        host_session_id=str(payload.get("session_id") or "").strip(),
+        cwd=str(payload.get("cwd") or ""),
+        transcript_path=str(
+            payload.get("transcript_path")
+            or payload.get("agent_transcript_path")
+            or ""
         ),
-        None,
     )
-    if duplicate is not None:
-        event = _append_lineage(
-            binding=binding,
-            record=duplicate,
-            input_kind=input_kind,
-        )
-        return {
-            "state": "INDEXED_IDEMPOTENT_REUSE",
-            "prompt_index": duplicate["prompt_index"],
-            "turn_id": turn_id,
-            "input_kind": input_kind,
-            "project_id": duplicate["project_id"],
-            "evidence_session_id": duplicate["evidence_session_id"],
-            "entry_pv": duplicate.get("entry_pv"),
-            "raw_prompt_stored": False,
-            "redacted_visible_prompt_stored": True,
-            "record_sha256": duplicate["record_sha256"],
-            "lineage_event_id": event["event_id"],
-            "lineage_event_sha256": event["event_sha256"],
-        }
-    prior_hash = None
-    prompt_index = 1
-    if existing:
-        prior = existing[-1]
-        prior_hash = prior.get("record_sha256")
-        prompt_index = int(prior.get("prompt_index", len(existing))) + 1
-    record = {
-        "schema": "evidence-lane.prompt-index.v1",
-        "host_session_id": host_session_id,
-        "turn_id": turn_id,
-        "input_kind": input_kind,
-        "prompt_index": prompt_index,
-        "visible_prompt_after_redaction": visible_prompt,
-        "prompt_sha256_after_redaction": prompt_hash,
-        "prompt_chars_after_redaction": prompt_chars,
-        "raw_prompt_stored": False,
-        "redacted_visible_prompt_stored": True,
-        "project_id": binding.get("project_id"),
-        "evidence_session_id": binding.get("evidence_session_id"),
-        "entry_pv": binding.get("entry_pv"),
-        "pointer_generation": binding.get("pointer_generation"),
-        "cwd_sha256": _sha256(str(payload.get("cwd", "")).encode("utf-8")),
-        "prior_record_sha256": prior_hash,
-        "recorded_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-    }
-    record["record_sha256"] = _sha256(_canonical_bytes(record))
-    turn_key = _sha256(turn_id.encode("utf-8"))[:16].lower()
-    while True:
-        path = folder / f"{prompt_index:08d}-{turn_key}.json"
-        try:
-            descriptor = os.open(
-                path,
-                os.O_CREAT | os.O_EXCL | os.O_WRONLY,
-                0o600,
-            )
-            break
-        except FileExistsError:
-            prompt_index += 1
-            record["prompt_index"] = prompt_index
-            record["record_sha256"] = _sha256(
-                _canonical_bytes(
-                    {
-                        key: value
-                        for key, value in record.items()
-                        if key != "record_sha256"
-                    }
-                )
-            )
     try:
-        os.write(descriptor, _canonical_bytes(record))
-    finally:
-        os.close(descriptor)
-    event = _append_lineage(
-        binding=binding,
-        record=record,
-        input_kind=input_kind,
+        normalized_payload, host_binding = bind_codex_host_payload(
+            root,
+            host_payload=payload,
+            event_name="UserPromptSubmit",
+            allow_alias_claim=True,
+        )
+    except TurnControlError as exc:
+        return (
+            gap_receipt(
+                root,
+                host_payload=payload,
+                error=exc,
+                policy=raw_policy,
+            ),
+            not bool(raw_policy.get("strict_required")),
+        )
+    policy = policy_state(
+        root,
+        host_session_id=str(normalized_payload.get("session_id") or "").strip(),
+        cwd=str(normalized_payload.get("cwd") or ""),
+        transcript_path=str(
+            normalized_payload.get("transcript_path")
+            or normalized_payload.get("agent_transcript_path")
+            or ""
+        ),
     )
-    return {
-        "state": "INDEXED",
-        "prompt_index": prompt_index,
-        "turn_id": turn_id,
-        "input_kind": input_kind,
-        "project_id": record["project_id"],
-        "evidence_session_id": record["evidence_session_id"],
-        "entry_pv": record["entry_pv"],
-        "raw_prompt_stored": False,
-        "redacted_visible_prompt_stored": True,
-        "record_sha256": record["record_sha256"],
-        "lineage_event_id": event["event_id"],
-        "lineage_event_sha256": event["event_sha256"],
-    }
+    if not policy.get("governed_session"):
+        return (
+            {
+                "state": "NOT_INDEXED",
+                "reason": "NO_BOUND_EVIDENCE_LANE_SESSION",
+                "raw_prompt_stored": False,
+                "private_reasoning_stored": False,
+            },
+            True,
+        )
+    if policy.get("runtime_state") != "ACTIVE":
+        error = TurnControlError(
+            "EVIDENCE_LANE_RUNTIME_DETACHED",
+            "The governed Evidence Lane runtime is detached; no prompt bytes were indexed.",
+            runtime_state=policy.get("runtime_state"),
+        )
+        return (
+            gap_receipt(
+                root,
+                host_payload=payload,
+                error=error,
+                policy=policy,
+            ),
+            not bool(policy.get("strict_required")),
+        )
+    if not policy.get("strict_required"):
+        try:
+            receipt = record_non_strict_visible_input(
+                root, host_payload=normalized_payload
+            )
+            if host_binding is not None:
+                receipt["host_binding"] = host_binding
+            return receipt, True
+        except TurnControlError as exc:
+            receipt = gap_receipt(
+                root,
+                host_payload=normalized_payload,
+                error=exc,
+                policy=policy,
+            )
+            if host_binding is not None:
+                receipt["host_binding"] = host_binding
+            return receipt, True
+        except Exception as exc:  # noqa: BLE001 - visible non-strict gap, no raw input
+            error = TurnControlError(
+                "TURN_CONTROL_NON_STRICT_VISIBLE_INDEX_UNAVAILABLE",
+                "The bounded pre-Plan visible-input index is unavailable.",
+                error_type=type(exc).__name__,
+            )
+            receipt = gap_receipt(
+                root,
+                host_payload=normalized_payload,
+                error=error,
+                policy=policy,
+            )
+            if host_binding is not None:
+                receipt["host_binding"] = host_binding
+            return receipt, True
+    try:
+        receipt = prepare_turn(root, host_payload=normalized_payload)
+        if host_binding is not None:
+            receipt["host_binding"] = host_binding
+        return receipt, True
+    except TurnControlError as exc:
+        receipt = gap_receipt(
+            root,
+            host_payload=normalized_payload,
+            error=exc,
+            policy=policy,
+        )
+        if host_binding is not None:
+            receipt["host_binding"] = host_binding
+        return receipt, False
 
 
 def main() -> int:
     try:
         payload = json.load(sys.stdin)
+        if not isinstance(payload, dict):
+            payload = {}
     except (json.JSONDecodeError, OSError):
         payload = {}
     try:
-        indexed = _record(payload)
-    except Exception as exc:  # noqa: BLE001 - hooks must fail open without prompt data
-        indexed = {
-            "state": "INDEX_FAILED",
+        receipt, should_continue = _record(payload)
+    except Exception as exc:  # noqa: BLE001 - missing control code is a visible gap
+        receipt = {
+            "schema": "evidence-lane.codex-turn-control-gap.v1",
+            "state": "TURN_CONTROL_GAP",
+            "code": "TURN_CONTROL_MODULE_OR_POLICY_UNAVAILABLE",
             "error_type": type(exc).__name__,
+            "fail_closed": True,
+            "source_mutation_authorized": False,
             "raw_prompt_stored": False,
+            "private_reasoning_stored": False,
         }
-    print(
-        json.dumps(
-            {
-                "continue": True,
-                "hookSpecificOutput": {
-                    "hookEventName": "UserPromptSubmit",
-                    "additionalContext": (
-                        "EVIDENCE_LANE_PROMPT_ENTRY="
-                        + json.dumps(indexed, sort_keys=True, separators=(",", ":"))
-                    ),
-                },
-            },
-            sort_keys=True,
-            separators=(",", ":"),
+        should_continue = False
+    result = {
+        "continue": should_continue,
+        "hookSpecificOutput": {
+            "hookEventName": "UserPromptSubmit",
+            "additionalContext": (
+                "EVIDENCE_LANE_PROMPT_ENTRY="
+                + json.dumps(receipt, sort_keys=True, separators=(",", ":"))
+            ),
+        },
+    }
+    display = receipt.get("persistent_change_display")
+    if isinstance(display, dict):
+        (
+            _,
+            _,
+            _,
+            persistent_change_system_message,
+            persistent_change_system_notice,
+            _,
+            _,
+            _,
+        ) = _load_control()
+        notice = persistent_change_system_notice(
+            display,
+            phase="TURN_PREPARE",
+            turn_receipt=receipt,
         )
-    )
+        serialized = json.dumps(notice, sort_keys=True, separators=(",", ":"))
+        result["systemMessage"] = persistent_change_system_message(notice)
+        result["hookSpecificOutput"]["additionalContext"] += (
+            "\nEVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=" + serialized
+        )
+    if not should_continue:
+        result["stopReason"] = (
+            "Governed Evidence Lane PREPARE failed closed before model reasoning or source mutation."
+        )
+    print(json.dumps(result, sort_keys=True, separators=(",", ":")))
     return 0
 
 

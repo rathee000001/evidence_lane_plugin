@@ -10,8 +10,7 @@ This is an administrative sidecar, not a seventh primary `/evi` control.
 1. Call `storage_connector_inspect` before any selection.
 2. Route by the MCP server's actual durable-filesystem capability, then by host
    profile. Stable Codex desktop/CLI/VM and any explicitly durable mount use
-   local SQLite. ChatGPT uses that same durable mounted or local MCP authority and
-   never Google Drive runtime state.
+   local SQLite.
 3. A truly ephemeral Codex VM without a durable mount requires a transactional
    runtime connector. Google Drive may carry only sealed Entry/Exit artifacts
    for this Codex profile; it is never the live sessions, backlog, lineage,

@@ -1,10 +1,12 @@
 import Link from "next/link";
 
 import { DeltaLedgerExplorer } from "./_components/delta-ledger-explorer";
-import { GlassIconOrb, OfficialToolIcon, PulsatingBrain } from "./_components/evidence-assets";
+import { GlassIconOrb, OfficialToolIcon } from "./_components/evidence-assets";
+import { HeroOrbit } from "./_components/hero-orbit";
 import { MotionReveal } from "./_components/motion-reveal";
 import { PluginSurfaceCatalog } from "./_components/plugin-surface-catalog";
 import { artifactContract, painLedger, proofMetrics } from "./_data/site";
+import { deltaLedgerBoundary } from "./_data/delta-ledger";
 
 const routes = [
   ["Architecture", "See how parallel lane computation meets serial lifecycle authority.", "/architecture", "01"],
@@ -18,9 +20,9 @@ const routes = [
 export default function Home() {
   return (
     <main>
-      <section className="homeHero shell">
+      <section className="homeHero orbitHeroFrame shell">
         <MotionReveal className="heroCopy">
-          <span className="eyebrow"><i />Evidence Lane for Codex + ChatGPT</span>
+          <span className="eyebrow"><i />Evidence Lane 2.0 for Codex</span>
           <h1>Resume from verified project truth - not another re-explanation.</h1>
           <p>
             The first governed PV parses and seals the bounded project. Later tasks query its
@@ -40,13 +42,7 @@ export default function Home() {
           </div>
         </MotionReveal>
         <MotionReveal className="heroVisual" delay={0.12}>
-          <div className="heroBrainStage">
-            <PulsatingBrain size="min(610px, 88vw)" color="#69d9f5" />
-            <span>Exact state in · governed evidence out</span>
-          </div>
-          <div className="visualBadge badgeA"><span>18</span> source lanes</div>
-          <div className="visualBadge badgeB"><span>15</span> plugin surfaces</div>
-          <div className="visualBadge badgeC"><span>1</span> human gate</div>
+          <HeroOrbit preset="home" />
         </MotionReveal>
       </section>
 
@@ -160,18 +156,20 @@ export default function Home() {
 
       <section className="section shell releaseHome">
         <div>
-          <span className="kicker">Two host universes</span>
-          <h2>The same governance law meets each host at its real storage boundary.</h2>
+          <span className="kicker">Codex capability profiles</span>
+          <h2>The same governance law meets each Codex runtime at its real storage boundary.</h2>
           <p>
-            Codex runs the full governed repository lifecycle. ChatGPT uses the same Evidence Lane
-            contracts against its own mounted persistent PV and append-only host storage. Neither
-            host borrows the other&apos;s task controls, filesystem, or acceptance authority.
+            The installed package exposes all 15 governed skills and the complete 62-action native
+            catalog: 21 reads and 41 writes. Desktop and persistent profiles use durable local
+            SQLite. Headless API entry reflashes ENV/UOP for each invocation. Ephemeral profiles
+            require a durable mount or configured transactional connector. No profile can infer
+            acceptance, Fuse, or pointer movement from installation or execution success.
           </p>
           <Link className="textLink" href="/connect">Inspect the verified host and connection boundaries <span aria-hidden="true">→</span></Link>
         </div>
         <div className="homeHostTruth" aria-label="Evidence Lane host boundaries">
-          <article><span>Codex</span><strong>Full lifecycle</strong><p>Source Intake, build, tests, package seals, exact six-way HIL, and pointer-gated promotion.</p></article>
-          <article><span>ChatGPT</span><strong>Mounted-PV continuity</strong><p>Read and append-only write through the host&apos;s own persistent storage under the same lane, ENV, and Exit-Slip laws.</p></article>
+          <article><span>Persistent Codex</span><strong>Full native lifecycle</strong><p>Source Intake, durable SQLite, tests, package seals, exact six-way HIL, and pointer-gated promotion.</p></article>
+          <article><span>Headless or ephemeral Codex</span><strong>Same laws, explicit storage</strong><p>Per-entry ENV/UOP verification plus a durable mount or configured transactional runtime when local persistence is unavailable.</p></article>
         </div>
       </section>
 
@@ -179,12 +177,20 @@ export default function Home() {
         <div className="shell">
           <div className="sectionHead wideHead">
             <span className="kicker">Historical Deltas + current Plan Lane</span>
-            <h2>One additive ledger. 131 governed rows. No erased history.</h2>
+            <h2>One additive ledger. {deltaLedgerBoundary.totalRows} governed public rows. No erased history.</h2>
             <p>
               Rows 1&ndash;80 preserve the sealed foundation, v1.2 evolution, and v1.3 hardening
-              record. The current 51-step execution plan is appended as rows 81&ndash;131 in this
-              same table: steps 1&ndash;45 are complete, step 46 is the active correction, and steps
-              47&ndash;51 remain pending. Filters change the view, never the underlying order or authority.
+              record byte-for-byte. Current execution begins only after row 80 and now runs consecutively
+              from public row 081 through 196: {deltaLedgerBoundary.liveExecutionRows} full, unabridged rows,
+              with {deltaLedgerBoundary.currentExecutionCompleted} completed,
+              {` ${deltaLedgerBoundary.currentExecutionActive}`} active, and
+              {` ${deltaLedgerBoundary.currentExecutionPending}`} pending. Public row
+              {` ${deltaLedgerBoundary.activePublicOrder}`} / public task position
+              {` ${deltaLedgerBoundary.activeTaskPosition}`} / governed receipt position
+              {` ${deltaLedgerBoundary.activeReceiptPosition}`} is the sole active row; row
+              {` ${deltaLedgerBoundary.finalSweepPublicOrder}`} is the final fresh sweep and row
+              {` ${deltaLedgerBoundary.finalHilPublicOrder}`} is the physically final six-way HIL.
+              Filters change only the view, never the text, order, or authority.
             </p>
           </div>
           <DeltaLedgerExplorer />

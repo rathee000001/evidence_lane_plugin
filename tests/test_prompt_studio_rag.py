@@ -29,12 +29,15 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     sqlite_path = EVIDENCE / "studio_search.sqlite"
 
     assert manifest["schema"] == "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1"
-    assert manifest["release"] == "1.3.0"
+    assert manifest["release"] == "1.5.0"
+    assert manifest["history_mode"] == "FROZEN_SEALED_INDEX_NO_GIT"
+    assert "no Git command is invoked" in manifest["corpus"]["boundary"]
     assert manifest["validation"]["sqlite_integrity"] == "ok"
     assert manifest["validation"]["secret_scan"] == "PASS"
     assert manifest["outputs"]["sqlite"]["sha256"] == _sha256(sqlite_path)
     assert manifest["outputs"]["browser_json"]["sha256"] == _sha256(BROWSER)
     assert browser["corpus_sha256"] == manifest["corpus"]["sha256"]
+    assert browser["history_mode"] == manifest["history_mode"]
     assert browser["source_count"] == manifest["corpus"]["source_count"]
     assert browser["chunk_count"] == manifest["corpus"]["chunk_count"]
     assert browser["tools"]["chunker"].startswith("llama-index-core==0.14.23")
@@ -112,4 +115,5 @@ def test_prompt_studio_public_corpus_excludes_private_runtime_paths() -> None:
     assert all("session_flash/" not in f"/{path}" for path in normalized_paths)
     assert all("studio-rag-index.json" not in path for path in normalized_paths)
     assert all("dummy-lane-artifacts.json" not in path for path in normalized_paths)
+    assert all(".egg-info/" not in path for path in normalized_paths)
     assert any(path.startswith("git/history/") for path in normalized_paths)

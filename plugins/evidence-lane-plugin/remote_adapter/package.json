@@ -1,11 +1,15 @@
 {
-  "name": "evidence-lane-chatgpt-edge",
+  "name": "evidence-lane-codex-site",
   "private": true,
-  "version": "1.3.0",
+  "type": "module",
+  "version": "2.0.0",
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "start": "next start"
+    "start": "next start",
+    "test:execution-panel": "node scripts/test-current-execution-panel.mjs",
+    "test:studio-query": "node --experimental-strip-types scripts/test-openrouter-boundary.mjs",
+    "test:studio-gold-parity": "node --experimental-strip-types scripts/test-studio-gold-parity.mjs"
   },
   "dependencies": {
     "framer-motion": "12.38.0",

@@ -142,7 +142,7 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
     ]
     if lane.canonical_lane_id == "pdf_ocr":
         for capability, module in (
-            ("pdf_native_text_pymupdf", "fitz"),
+            ("pdf_page_render_pypdfium2", "pypdfium2"),
             ("pdf_native_text_pypdf", "pypdf"),
             ("pdf_structural_pdfplumber", "pdfplumber"),
             ("ocr_pytesseract", "pytesseract"),
@@ -1802,79 +1802,7 @@ def _extract_pdf(
     parser_errors: list[str] = []
     parser_state = "OPAQUE_EXACT_BYTES"
     page_count = 0
-    renderer_available = False
-    if _module_available("fitz"):
-        try:
-            import fitz  # type: ignore[import-not-found]
-
-            document = fitz.open(stream=data, filetype="pdf")
-            renderer_available = True
-            try:
-                page_count = min(len(document), MAX_PDF_PAGES)
-                for page_index in range(page_count):
-                    page = document[page_index]
-                    text = page.get_text("text") or ""
-                    locator = f"page:{page_index + 1}"
-                    blocks = page.get_text("blocks")
-                    images = page.get_images(full=True)
-                    documents.append(
-                        {
-                            "locator": locator,
-                            "text": text,
-                            "metadata": {
-                                "width": page.rect.width,
-                                "height": page.rect.height,
-                                "native_text_chars": len(text),
-                            },
-                        }
-                    )
-                    facts.append(
-                        _fact(
-                            "pdf_page",
-                            locator,
-                            {
-                                "native_text_chars": len(text),
-                                "text_blocks": len(blocks),
-                                "images": len(images),
-                                "width": page.rect.width,
-                                "height": page.rect.height,
-                            },
-                        )
-                    )
-                    for block_index, block in enumerate(blocks, start=1):
-                        block_text = str(block[4] or "") if len(block) > 4 else ""
-                        facts.append(
-                            _fact(
-                                "pdf_text_block",
-                                f"{locator}:native:{block_index}",
-                                {
-                                    "bbox": list(block[:4]),
-                                    "text_chars": len(block_text),
-                                    "text_sha256": sha256_bytes(
-                                        block_text.encode("utf-8")
-                                    ),
-                                },
-                            )
-                        )
-                    for image_index, image_info in enumerate(images, start=1):
-                        facts.append(
-                            _fact(
-                                "pdf_image_block",
-                                f"{locator}:image:{image_index}",
-                                {
-                                    "xref": image_info[0],
-                                    "width": image_info[2],
-                                    "height": image_info[3],
-                                },
-                            )
-                        )
-                parser_state = "PARSED_PYMUPDF"
-            finally:
-                document.close()
-        except Exception as exc:  # noqa: BLE001 - parser fallback must remain open
-            parser_errors.append(f"PYMUPDF_{type(exc).__name__.upper()}")
-            documents.clear()
-            facts.clear()
+    ocr_page_images: list[tuple[str, list[bytes]]] = []
     if not documents and _module_available("pypdf"):
         try:
             from pypdf import PdfReader  # type: ignore[import-not-found]
@@ -1884,11 +1812,39 @@ def _extract_pdf(
             for page_index, page in enumerate(reader.pages[:page_count], start=1):
                 text = page.extract_text() or ""
                 locator = f"page:{page_index}"
+                width = float(page.mediabox.width)
+                height = float(page.mediabox.height)
+                page_images: list[bytes] = []
+                try:
+                    for image_index, image in enumerate(page.images, start=1):
+                        image_data = bytes(image.data)
+                        page_images.append(image_data)
+                        facts.append(
+                            _fact(
+                                "pdf_image_block",
+                                f"{locator}:image:{image_index}",
+                                {
+                                    "name": image.name,
+                                    "bytes": len(image_data),
+                                    "sha256": sha256_bytes(image_data),
+                                },
+                            )
+                        )
+                except Exception as exc:  # noqa: BLE001 - image fallback stays open
+                    parser_errors.append(
+                        f"PYPDF_IMAGE_PAGE_{page_index}_"
+                        f"{type(exc).__name__.upper()}"
+                    )
+                ocr_page_images.append((locator, page_images))
                 documents.append(
                     {
                         "locator": locator,
                         "text": text,
-                        "metadata": {"native_text_chars": len(text)},
+                        "metadata": {
+                            "native_text_chars": len(text),
+                            "width": width,
+                            "height": height,
+                        },
                     }
                 )
                 facts.extend(
@@ -1896,7 +1852,12 @@ def _extract_pdf(
                         _fact(
                             "pdf_page",
                             locator,
-                            {"native_text_chars": len(text)},
+                            {
+                                "native_text_chars": len(text),
+                                "images": len(page_images),
+                                "width": width,
+                                "height": height,
+                            },
                         ),
                         _fact(
                             "pdf_text_block",
@@ -1961,21 +1922,50 @@ def _extract_pdf(
             facts.clear()
     native_chars = sum(len(str(item.get("text") or "")) for item in documents)
     text_poor = native_chars < max(10, max(page_count, 1) * 5)
-    if text_poor and renderer_available and _module_available("fitz"):
-        import fitz  # type: ignore[import-not-found]
-
+    if text_poor and _module_available("pypdfium2"):
         try:
-            document = fitz.open(stream=data, filetype="pdf")
+            import pypdfium2 as pdfium  # type: ignore[import-not-found]
+
+            rendered_pages: list[tuple[str, list[bytes]]] = []
+            pdfium_document = pdfium.PdfDocument(data)
             try:
-                ocr_documents: list[dict[str, Any]] = []
-                ocr_facts: list[dict[str, Any]] = []
-                for page_index in range(min(len(document), MAX_PDF_PAGES)):
-                    locator = f"page:{page_index + 1}"
-                    pixmap = document[page_index].get_pixmap(
-                        matrix=fitz.Matrix(2, 2),
-                        alpha=False,
-                    )
-                    image_data = pixmap.tobytes("png")
+                for page_index in range(
+                    min(len(pdfium_document), MAX_PDF_PAGES)
+                ):
+                    page = pdfium_document[page_index]
+                    try:
+                        bitmap = page.render(scale=2)
+                        try:
+                            rendered = bitmap.to_pil().convert("RGB")
+                            stream = io.BytesIO()
+                            rendered.save(
+                                stream,
+                                format="PNG",
+                                optimize=False,
+                                compress_level=9,
+                            )
+                            rendered_pages.append(
+                                (f"page:{page_index + 1}", [stream.getvalue()])
+                            )
+                        finally:
+                            bitmap.close()
+                    finally:
+                        page.close()
+            finally:
+                pdfium_document.close()
+            if rendered_pages:
+                ocr_page_images = rendered_pages
+        except Exception as exc:  # noqa: BLE001 - OCR fallback must remain open
+            parser_errors.append(f"PDFIUM_{type(exc).__name__.upper()}")
+    ocr_image_available = any(images for _, images in ocr_page_images)
+    if text_poor and ocr_image_available:
+        try:
+            ocr_documents: list[dict[str, Any]] = []
+            ocr_facts: list[dict[str, Any]] = []
+            for locator, page_images in ocr_page_images:
+                page_lines: list[dict[str, Any]] = []
+                blockers: list[str] = []
+                for image_data in page_images:
                     lines, blocker = _rapidocr_lines(image_data)
                     if not lines:
                         secondary_lines, secondary = _pytesseract_lines(image_data)
@@ -1983,50 +1973,51 @@ def _extract_pdf(
                         blocker = " | ".join(
                             item for item in (blocker, secondary) if item
                         )
-                    page_documents, page_facts = _ocr_payload(
-                        prefix="pdf",
-                        locator=locator,
-                        lines=lines,
-                    )
-                    ocr_documents.extend(page_documents)
-                    ocr_facts.extend(page_facts)
-                    if not page_documents:
-                        if blocker and "RAPIDOCR_EMPTY" in blocker:
-                            ocr_facts.append(
-                                _fact(
-                                    "pdf_ocr_run",
-                                    locator,
-                                    {
-                                        "engine": "rapidocr+onnxruntime",
-                                        "state": "EMPTY",
-                                        "text_chars": 0,
-                                        "line_count": 0,
-                                    },
-                                )
-                            )
+                    page_lines.extend(lines)
+                    if blocker:
+                        blockers.append(blocker)
+                page_documents, page_facts = _ocr_payload(
+                    prefix="pdf",
+                    locator=locator,
+                    lines=page_lines,
+                )
+                ocr_documents.extend(page_documents)
+                ocr_facts.extend(page_facts)
+                if not page_documents:
+                    if any("RAPIDOCR_EMPTY" in blocker for blocker in blockers):
                         ocr_facts.append(
                             _fact(
-                                "pdf_review_region",
+                                "pdf_ocr_run",
                                 locator,
                                 {
-                                    "reason": blocker or "OCR_EMPTY",
-                                    "native_text_chars": sum(
-                                        len(str(item.get("text") or ""))
-                                        for item in documents
-                                        if item.get("locator") == locator
-                                    ),
-                                    "exact_bytes_preserved": True,
+                                    "engine": "rapidocr+onnxruntime",
+                                    "state": "EMPTY",
+                                    "text_chars": 0,
+                                    "line_count": 0,
                                 },
                             )
                         )
-                if ocr_documents:
-                    documents = ocr_documents
-                    facts.extend(ocr_facts)
-                    parser_state = "PARSED_OCR_LOCAL"
-                else:
-                    facts.extend(ocr_facts)
-            finally:
-                document.close()
+                    ocr_facts.append(
+                        _fact(
+                            "pdf_review_region",
+                            locator,
+                            {
+                                "reason": " | ".join(blockers) or "OCR_EMPTY",
+                                "native_text_chars": sum(
+                                    len(str(item.get("text") or ""))
+                                    for item in documents
+                                    if item.get("locator") == locator
+                                ),
+                                "exact_bytes_preserved": True,
+                            },
+                        )
+                    )
+            if ocr_documents:
+                documents = ocr_documents
+                facts.extend(ocr_facts)
+                parser_state = "PARSED_OCR_LOCAL"
+            else:
+                facts.extend(ocr_facts)
         except Exception as exc:  # noqa: BLE001 - OCR failure is governed evidence
             parser_errors.append(f"PDF_OCR_{type(exc).__name__.upper()}")
     elif text_poor:
@@ -2036,9 +2027,9 @@ def _extract_pdf(
                 "file",
                 {
                     "reason": (
-                        "PDF_RASTERIZER_UNAVAILABLE"
-                        if not renderer_available
-                        else "OCR_ENGINE_UNAVAILABLE"
+                        "PDF_RASTERIZER_OR_EMBEDDED_IMAGE_UNAVAILABLE"
+                        if not ocr_image_available
+                        else "OCR_ENGINE_UNAVAILABLE_OR_EMPTY"
                     ),
                     "parser_errors": parser_errors,
                     "native_text_chars": native_chars,

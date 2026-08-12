@@ -1,4 +1,6 @@
-FROM python:3.14.2-slim-bookworm
+FROM python:3.14.2-slim-bookworm@sha256:e87711ef5c86aaeaa7031718a69db79d334d94c545c709583f651b8185870941
+
+ARG EVIDENCE_LANE_RELEASE_SHA
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -8,6 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         git \
+        libgl1 \
         libgomp1 \
         tesseract-ocr \
         tini \
@@ -29,6 +32,7 @@ RUN python -m pip install \
         --no-build-isolation \
         --no-deps \
         /app \
+    && python -c "import sys; from pathlib import Path; import evidence_lane_plugin; from evidence_lane_plugin.engine_identity import write_embedded_release_commit; write_embedded_release_commit(Path(evidence_lane_plugin.__file__).resolve().parent, sys.argv[1])" "$EVIDENCE_LANE_RELEASE_SHA" \
     && useradd --create-home --uid 10001 evidence-lane \
     && mkdir -p /var/lib/evidence-lane \
     && chown -R evidence-lane:evidence-lane /var/lib/evidence-lane

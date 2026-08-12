@@ -202,9 +202,9 @@ export const laneRuntimeContracts: Readonly<Record<string, LaneRuntimeContract>>
     command: "evi-source-intake --lane pdf_ocr",
     mutation: "explicit_named_one_turn_grant_receipt_snapshot_relock",
     tools: [
-      { name: "PyMuPDF", icon: "media", role: "native PDF text and images", availability: "optional" },
-      { name: "pypdf", icon: "media", role: "PDF fallback extraction", availability: "optional" },
-      { name: "pdfplumber", icon: "media", role: "structural PDF extraction", availability: "optional" },
+      { name: "pypdf", icon: "media", role: "native PDF text and embedded-image extraction", availability: "required" },
+      { name: "pypdfium2", icon: "media", role: "full-page PDF raster fallback", availability: "required" },
+      { name: "pdfplumber", icon: "media", role: "structural PDF extraction", availability: "required" },
       { name: "RapidOCR + ONNX", icon: "pulse", role: "local OCR", availability: "optional" },
       { name: "pytesseract + Tesseract", icon: "terminal", role: "secondary local OCR", availability: "optional" },
       { name: "Pillow", icon: "media", role: "page image handling", availability: "optional" },

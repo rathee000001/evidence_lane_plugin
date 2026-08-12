@@ -13,8 +13,8 @@ export default function ReadmePage() {
     <main className="legal shell repositoryDocument">
       <Link href="/">&larr; Evidence Lane</Link>
       <span className="kicker">Repository guide · website edition</span>
-      <h1>Evidence Lane 1.3.0</h1>
-      <p>Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex with a separately bounded persistent-storage and HTTPS MCP path for ChatGPT. It turns authorized sources and visible task lineage into inspectable lane packages while keeping candidate state separate from accepted truth.</p>
+      <h1>Evidence Lane 2.0.0</h1>
+      <p>Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex. It turns authorized sources and visible task lineage into inspectable lane packages while keeping candidate state separate from accepted truth.</p>
       <h2>The problem</h2>
       <p>Long AI-assisted work crosses task windows, models, hosts, repositories, and toolchains. Reconstructing the project from prose creates re-explanation tax and context drift. Evidence Lane resumes from exact pointers, lane facts, Exit Slips, Chat Lineage, pending work, and the human gate.</p>
       <h2>Six everyday controls</h2>
@@ -31,8 +31,8 @@ export default function ReadmePage() {
       <p>The row-46 proof loads all 18 dummy lanes, gives the GitHub Code lane a real three-commit synthetic repository and parent chain, validates initial and unchanged-Refresh packages, and produces independent forensic reports. Each public MMD/DOT pair is the engine&apos;s complete lane topology; the 8K PNG and lossless SVG are rendered from that exact MMD rather than from a generic four-file overview. Inspect and download the published artifacts on <Link href="/proof#dummy-lane-proofs">Proof</Link>. The separate post-acceptance real-Git test remains bound to the main Evidence Lane repository&apos;s full reachable history.</p>
       <h2>Proof law</h2>
       <ul>{proofRules.map(([name, detail]) => <li key={name}><strong>{name}:</strong> {detail}</li>)}</ul>
-      <h2>Host boundary</h2>
-      <p><strong>Codex</strong> can run the complete local Git lifecycle and may project the canonical Plan Lane into Codex Plan mode, Goal, and its native task panel. <strong>ChatGPT</strong> uses the same plugin law inside its own host universe: it reads and append-writes only its mounted persistent PV/storage boundary under ENV/UOP, lane, Exit-Slip, and HIL rules. It does not borrow Codex storage or pretend Codex composer controls exist.</p>
+      <h2>Codex boundary</h2>
+      <p><strong>Codex</strong> installs from exact Git source, runs the complete local lifecycle, and may project the canonical Plan Lane into Codex Plan mode, Goal, and its native task panel. The installed package exposes all 15 skills and exactly 62 native actions: 21 reads and 41 writes. The public website is documentation only and cannot substitute for native package, catalog, restart, test, CI, or HIL proof.</p>
       <p>Continue with <Link href="/architecture">Architecture</Link>, inspect <Link href="/lanes">all lane contracts</Link>, download <Link href="/proof#dummy-lane-proofs">dummy lane proofs</Link>, read <Link href="/security">Security</Link>, or review <Link href="/provenance#upstream-reference-ledger">Upstream provenance</Link>.</p>
     </main>
   );

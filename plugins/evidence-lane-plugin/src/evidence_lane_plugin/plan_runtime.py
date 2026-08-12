@@ -135,6 +135,29 @@ def _validate_transition(
             event_type=event_type,
         )
         return
+    if (
+        from_status == "ACTIVE"
+        and to_status == "SUPERSEDED"
+        and event_type
+        in {
+            "PLAN_NORMALIZATION_SUPERSEDED",
+            "PLAN_NORMALIZATION_CORRECTION_SUPERSEDED",
+        }
+    ):
+        # A normal steer may not silently retire the sole live task.  The
+        # Plan-normalization transaction is the one exception: it verifies
+        # and journals the matching session rebind before exposing the new
+        # active row, so the append-only Plan and live task cannot diverge.
+        return
+    if (
+        from_status == "SUPERSEDED"
+        and to_status == "ACTIVE"
+        and event_type == "PLAN_NORMALIZATION_CORRECTION_RESTORED"
+    ):
+        # This reverse transition is available only to the journaled correction
+        # path. It preserves the mistaken supersession as immutable history while
+        # restoring the exact pre-normalization live task contract.
+        return
     require(
         to_status in _ALLOWED_TRANSITIONS[from_status],
         "DELTA_STATUS_TRANSITION_INVALID",

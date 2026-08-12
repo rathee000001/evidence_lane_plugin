@@ -20,10 +20,10 @@
    and remote SHA equality.
 10. Install that exact SHA through the Codex Git marketplace route with a fresh
     cachebuster. Do not remove the older install until the new one is verified.
-11. Deploy only an eligible ChatGPT adapter branch preview. If durable origin,
-    OAuth, Vercel auth, or exact release identity is missing, record the precise
-    manual blocker and do not deploy.
-12. Confirm the compromised OpenAI key has been manually revoked. Without proof,
+11. Treat the public documentation site as a separate preview surface. If its
+    authorization or exact release identity is missing, record the blocker and
+    do not deploy.
+12. Confirm any previously compromised provider key has been manually revoked. Without proof,
     release remains blocked.
 13. Build and validate the successor State Travel addendum without altering the
     original package or claiming State Travel.

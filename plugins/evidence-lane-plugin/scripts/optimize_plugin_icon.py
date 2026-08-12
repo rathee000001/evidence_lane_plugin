@@ -1,8 +1,8 @@
 """Derive the compact plugin PNG from the authorized Evidence Lane cube asset.
 
 This is a mechanical resize and palette optimization only.  It creates no new
-artwork and keeps the alpha channel so compact Codex and ChatGPT surfaces show
-the supplied cube without a telemetry/root-node substitution.
+artwork and keeps the alpha channel so compact Codex surfaces show the supplied
+cube without a telemetry/root-node substitution.
 """
 
 from __future__ import annotations

@@ -1,5 +1,6 @@
 .git
 .github
+**/.evidence-lane-release-sha
 .runtime
 .hil
 **/.venv

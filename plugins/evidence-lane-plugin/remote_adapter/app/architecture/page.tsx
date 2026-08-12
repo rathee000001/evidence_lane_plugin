@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { EvidenceBrainAsset, GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
+import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
+import { HeroOrbit } from "../_components/hero-orbit";
 import { PageHero } from "../_components/page-hero";
 import { SourceLaneIcon } from "../_components/source-lane-icon";
 import { artifactContract } from "../_data/site";
@@ -34,11 +35,7 @@ export default function ArchitecturePage() {
         eyebrow="System architecture"
         title="Parallel evidence work. Serial authority."
         description="Evidence Lane can calculate independent source sectors concurrently. Candidate sealing, human decision, Fuse, accepted pointers, rollback, and State Travel remain ordered and compare-and-swap governed."
-        aside={
-          <div className="routeBrainOrb" aria-label="Pulsing Evidence Lane glass brain">
-            <EvidenceBrainAsset color="#37c7e7" label="" priority />
-          </div>
-        }
+        aside={<HeroOrbit preset="architecture" />}
       />
 
       <section className="section shell topologySection">
@@ -107,11 +104,11 @@ export default function ArchitecturePage() {
       </section>
 
       <section className="section shell boundaryCompare">
-        <div className="sectionHead wideHead"><span className="kicker">Host boundary</span><h2>Two delivery paths, one release identity.</h2></div>
+        <div className="sectionHead wideHead"><span className="kicker">Codex execution profiles</span><h2>One native lifecycle boundary across three storage realities.</h2></div>
         <div className="compareGrid">
-          <article><span className="compactDepthPill"><GlassIconOrb color="#69d9f5" size={28} decorative><OfficialToolIcon tool="terminal" size={15} decorative /></GlassIconOrb><span>Codex</span></span><h3>Git-native and local-first</h3><p>The plugin is installed from the exact Git SHA. SQLite and accepted-pointer authority remain on the durable user host. Vercel is absent from this path.</p></article>
-          <article><span className="compactDepthPill"><GlassIconOrb color="#efca72" size={28} decorative><OfficialToolIcon tool="database" size={15} decorative /></GlassIconOrb><span>ChatGPT</span></span><h3>Durable remote MCP</h3><p>A thin Vercel edge publishes the protocol endpoint and public website, then forwards only to a configured durable HTTPS service with the same release SHA.</p></article>
-          <article><span className="compactDepthPill"><GlassIconOrb color="#f2a1c5" size={28} decorative><OfficialToolIcon tool="pulse" size={15} decorative /></GlassIconOrb><span>Failure</span></span><h3>Closed, visible, and diagnosable</h3><p>Missing auth, storage, queue, durable origin, or exact identity blocks MCP. A successful website render never proves connector readiness.</p></article>
+          <article><span className="compactDepthPill"><GlassIconOrb color="#69d9f5" size={28} decorative><OfficialToolIcon tool="terminal" size={15} decorative /></GlassIconOrb><span>Persistent Codex</span></span><h3>Local-first and warm-attached</h3><p>The plugin is installed from the exact Git SHA. SQLite, Plan Lane, Agent Learning, and accepted-pointer authority remain on the durable user host through the package-local native MCP server.</p></article>
+          <article><span className="compactDepthPill"><GlassIconOrb color="#efca72" size={28} decorative><OfficialToolIcon tool="database" size={15} decorative /></GlassIconOrb><span>Headless Codex API</span></span><h3>Native tools without a network transport dependency</h3><p>When the API process runs on a local or persistent machine, Evidence Lane follows that machine's local project storage. A perishable worker restores only from an exact sealed exit package and configured storage carrier.</p></article>
+          <article><span className="compactDepthPill"><GlassIconOrb color="#f2a1c5" size={28} decorative><OfficialToolIcon tool="pulse" size={15} decorative /></GlassIconOrb><span>Failure boundary</span></span><h3>Closed, visible, and diagnosable</h3><p>Missing storage, package identity, execution-profile proof, native catalog parity, or task-panel continuity blocks lifecycle work. A successful website render proves none of those runtime conditions.</p></article>
         </div>
       </section>
     </main>

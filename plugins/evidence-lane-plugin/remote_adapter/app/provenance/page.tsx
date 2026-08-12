@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PageHero } from "../_components/page-hero";
+import { HeroOrbit } from "../_components/hero-orbit";
 import { documentationReferences, upstreamReferences } from "../_data/upstream-references";
 import { credits } from "../_data/site";
 
@@ -24,7 +25,7 @@ export default function ProvenancePage() {
         eyebrow="Independent research and development"
         title="Evidence Lane followed its own route."
         description="The project was developed through Praveen Rathee’s own product direction, accounts, hardware, time, testing, and iterative work with multiple AI systems. Outside questions may be used as tests; they are not the project’s identity or source authority."
-        aside={<div className="provenanceStamp"><strong>R&amp;D</strong><span>Praveen Rathee</span><small>Human acceptance authority</small></div>}
+        aside={<HeroOrbit preset="provenance" />}
       />
       <section className="section shell timelineSection">
         <div className="sectionHead"><span className="kicker">Evolution</span><h2>The current plugin has history, not a borrowed origin story.</h2></div>
@@ -34,7 +35,7 @@ export default function ProvenancePage() {
       </section>
       <section className="section sourceBoundaryBand">
         <div className="shell sourceBoundary">
-          <div><span className="kicker">Reference law</span><h2>Historical brains calibrate depth. Current source and tests govern claims.</h2><p>The June SQLite brains, master-fact CSVs, plan HTML, and early pitch preserve problem framing and topology ambition. They are read-only design references. They do not overwrite current plugin truth, bypass source policy, or prove the current v1.3 implementation.</p></div>
+          <div><span className="kicker">Reference law</span><h2>Historical brains calibrate depth. Current source and tests govern claims.</h2><p>The June SQLite brains, master-fact CSVs, plan HTML, and early pitch preserve problem framing and topology ambition. They are read-only design references. They do not overwrite current plugin truth, bypass source policy, or prove the current v1.5.0 implementation.</p></div>
           <div className="sourceTypes">
             <article><strong>Historical evidence</strong><p>Intent, earlier architecture, presentation language, and prior experiments.</p></article>
             <article><strong>Current authority</strong><p>Exact Git source, governed ledger, tests, manifests, hashes, installs, and deployment receipts.</p></article>

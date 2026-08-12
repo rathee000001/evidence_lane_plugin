@@ -17,14 +17,32 @@ panel, including completed rows, the one exact in-progress row, pending rows,
 all additive Deltas, and the exact resume step. Never substitute historical
 accepted Delta-ledger rows for the current execution plan. A steer Delta is
 `BEFORE_NEXT_HIL` unless the user explicitly names another boundary.
+The State Travel seal must derive and include every steer Delta persisted on the
+active Plan Lane. Fail closed if an explicit task list or additive-Delta list
+drops or changes one. A `PHYSICALLY_FINAL_HIL` row must remain physically final.
+
+The sealed resume contract must carry the executable persistent-panel
+reactivation law. At the destination, re-project the exact complete task list
+as the first action after verification and before source inspection, mutation,
+testing, Git activity, or another lifecycle call. Apply the same ordering after
+every token-driven continuation, stalled Goal, context compaction, browser or
+Codex restart, session continuation, or session resume. A non-empty panel must
+have exactly one in-progress row; preserve its order and every completed and
+pending description unabridged; keep it visible through every pause and HIL;
+drop it only after the physically final six-way HIL is decided and every
+decision-dependent action is complete.
 
 For a Codex handoff, also capture the exact non-secret model, submodel,
 reasoning-effort, reasoning-speed, and optional service-tier selectors. The
 plugin cannot change host-owned selectors; the destination must use the same
 profile and `pv_state_travel_resume` must reject a mismatch before rebinding.
-At the handoff entry only, read-only recovery subagents may help reconstruct
-visible state. After entry, preserve one sole writer and use subagents only on
-an explicit user command.
+The sealed resume and next-action receipts must carry the exact execution and
+writer boundary: one governed project, one live writer, linear execution,
+evidence-first verification, and the verified host execution profile. At a
+genuine State Travel entry only, read-only recovery agents may help reconstruct
+visible state. After entry, do not start a subagent, alternate-checkout writer,
+background mutation, or second browser profile unless the user explicitly
+changes that boundary.
 
 If the user explicitly requests accepted context, set `entry_mode` to
 `ACCEPTED_ENTRY`. Otherwise do not clear an active task, pending correction,
@@ -32,16 +50,13 @@ candidate, or resume row. Call `pv_state_travel_prepare` to seal the pointer
 base, accepted package if one exists, candidate if one exists, live source,
 Plan Lane, task state, additive Deltas, and execution profile.
 
-In a genuinely fresh task or chat, call `pv_state_travel_resume`. It atomically
+In a genuinely fresh Codex task, call `pv_state_travel_resume`. It atomically
 verifies runtime doctor, locked ENV15/UOP15 Flash, new host ID, pointer base,
 package/candidate seals, live-source identity, Plan Lane, and execution profile.
 `UNFINISHED_VERIFIED_WORK` continues at `RESUME_EXACT_UNFINISHED_STEP` without
 reclassification or HIL replay. `ACCEPTED_ENTRY` stops at
 `WAITING_FOR_NEXT_USER_COMMAND`.
 
-Codex and ChatGPT are separate host universes. Codex may project Plan Lane into
-its native Goal and task panel. ChatGPT has no Codex `/pl`, Goal, or task-panel
-contract; it reads and appends through the same persistent plugin runtime in
-its mounted host storage under the shared append-only lane and ENV/Exit-Slip
-laws. Never invent cross-host UI parity, build, Fuse, infer approval, or move a
-pointer merely because a handoff exists.
+Codex may project Plan Lane into its native Goal and task panel. Never invent
+cross-host UI parity, build, Fuse, infer approval, or move a pointer merely
+because a handoff exists.
