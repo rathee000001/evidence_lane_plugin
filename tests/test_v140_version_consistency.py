@@ -191,6 +191,34 @@ def test_readmes_expose_branding_and_secret_safe_windows_tunnel_setup() -> None:
     assert "../../docs/WINDOWS_TUNNEL_PERSISTENCE.md" in plugin_readme
 
 
+def test_root_release_configuration_has_no_active_chatgpt_adapter_claims() -> None:
+    environment = (ROOT / ".env.example").read_text(encoding="utf-8")
+    security = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
+
+    for stale in (
+        "ChatGPT custom plugins",
+        "ChatGPT-only Vercel preview adapter",
+        "EVIDENCE_LANE_DURABLE_MCP_ORIGIN",
+        "EVIDENCE_LANE_OPENAI_APPS_CHALLENGE_TOKEN",
+    ):
+        assert stale not in environment
+
+    for stale in (
+        "Vercel may host only the thin ChatGPT adapter",
+        "thin ChatGPT adapter",
+    ):
+        assert stale not in security
+
+    assert "package-local native MCP route" in security
+    assert "Vercel hosts public documentation" in security
+    assert "headless/API Streamable" in environment
+    assert "HTTP service" in environment
+    assert re.search(
+        r"Headless\s+API and direct CLI/API profiles do not require this tunnel",
+        security,
+    )
+
+
 def test_historical_compatibility_and_traceability_versions_are_preserved() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     historical = (ROOT / "docs" / "DELTA_001_051_TRACEABILITY.md").read_text(

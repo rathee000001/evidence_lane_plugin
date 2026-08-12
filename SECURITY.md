@@ -42,34 +42,43 @@ implementation runtime, so revocation is a hard manual release blocker:
 
 Do not deploy any service that may still use the compromised key.
 
-## Remote boundaries
+## Codex, headless API, tunnel, and remote Git boundaries
 
-Remote Git push stays disabled until a separate exact action request and one-use
-confirmation are recorded. Vercel may host only the thin ChatGPT adapter. The
-adapter requires HTTPS, an exact 40-character release SHA, a release-matched
-durable MCP origin, and configured authentication at that origin. It stores no
-runtime authority and fails closed if identity or origin health does not match.
+The active 2.0.0 Codex release uses the package-local native MCP route. Normal
+Codex attachment does not depend on the public website, a Vercel adapter, a
+ChatGPT plugin, or a remote OAuth service. Vercel hosts public documentation
+only and receives no project truth, lifecycle authority, candidate state, or
+accepted pointer.
 
-The durable MCP origin accepts either one private static bearer for a bounded
-Codex-only route or an established OAuth 2.1 IdP, never both. OAuth JWTs use an
-allowlisted asymmetric algorithm and must bind issuer, audience, expiry,
+The versioned Windows tunnel is a separate transport channel. Its installer
+accepts the user's own Runtime key only through a masked prompt, stores only a
+current-user DPAPI envelope, and binds the scheduled task to the pinned client
+hash and configured tunnel ID. A live tunnel is not proof that the package-local
+Codex MCP server, exact project/session, or accepted pointer is valid. Headless
+API and direct CLI/API profiles do not require this tunnel.
+
+An explicitly deployed headless/API Streamable HTTP service may use either one
+private static bearer or an established OAuth 2.1 IdP, never both. OAuth JWTs
+use an allowlisted asymmetric algorithm and bind issuer, audience, expiry,
 not-before time, token ID, subject, exact client ID, deployment environment,
 role, and project grants. Tool execution enforces read/write scopes and exact
-project authorization. Production lifecycle writes are owner-only; remote Git
-also requires its dedicated scope and owner role. Tester identities are valid
-only against an isolated staging environment. A client ID, role, or successful
-login does not imply project, lifecycle, Git, deployment, publication, or HIL
-authority.
+project authorization. The configured audience must equal the externally
+visible HTTPS `/mcp` resource in protected-resource metadata; a private origin,
+parent site URL, or different audience fails closed. The required JWT `jti` is
+an auditable identifier, not a claim that access tokens are one-use.
 
-The configured OAuth audience must exactly equal the externally visible HTTPS
-`/mcp` resource in protected-resource metadata. A private origin URL, parent
-site URL, or different audience fails server construction rather than creating
-a split identity.
+This optional service is not the post-HIL tester-entitlement or GitHub App
+distribution design. A login, client ID, role, token, form, or license does not
+imply repository access, plugin installation, project authority, lifecycle
+writes, Git access, deployment, publication, candidate acceptance, pointer
+movement, or HIL approval.
 
-The required JWT `jti` is an auditable token identifier, not a claim that access
-tokens are one-use. Live deployments still require bounded expiry, issuer-side
-revocation or introspection where available, signing-key rotation, and tested
-credential-compromise response.
+For the explicitly configured non-default test branch, an exact prepared
+fast-forward push may use the project's standing authorization. Every push
+receipt still binds the project, branch, commit, tree, remote, and action ID.
+That policy never authorizes force-push, default/protected-branch mutation,
+merge to `main`, publication, deployment, candidate acceptance, pointer
+movement, or Fuse; each remains a separate governed action.
 
 ## Private CodeQL evidence
 
