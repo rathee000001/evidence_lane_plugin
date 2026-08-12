@@ -77,7 +77,7 @@ def _fixture_catalog_source() -> str:
 
 def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     source = tmp_path / "source"
-    version = "2.0.0+codex.20260812002336"
+    version = "2.0.0+codex.20260812010807"
     _write(
         source / ".codex-plugin" / "plugin.json",
         json.dumps(
@@ -99,7 +99,10 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                 "schema": "evidence-lane.codex-release-channel.v2",
                 "stable": {
                     "release": "2.0.0",
+                    "slot_role": "stable-build",
                     "codex_marketplace_slot": "evidence-lane-v200-github",
+                    "byte_frozen": False,
+                    "updates_require_verified_unique_build_identity": True,
                     "native_tool_count": 62,
                     "native_read_tool_count": 21,
                     "native_write_tool_count": 41,
@@ -109,7 +112,43 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                     "direct_stdio_fallback_allowed": False,
                     "google_drive_bundled": False,
                 },
-                "archive": {"release": "1.5.0"},
+                "fallback": {
+                    "release": "2.0.0",
+                    "slot_role": "fallback",
+                    "codex_marketplace_slot": "evidence-lane-pv11-fallback",
+                    "enabled": False,
+                    "materialization_gate": (
+                        "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
+                    ),
+                    "accepted_pv": "PV11",
+                    "accepted_generation": 11,
+                    "byte_frozen": True,
+                    "package_must_equal_accepted_pv": True,
+                    "prewarmed_means_installed_verified_and_stopped": True,
+                    "simultaneous_mcp_allowed": False,
+                    "simultaneous_tunnel_allowed": False,
+                },
+                "live_slot_policy": {
+                    "exact_slot_count_after_pv11_acceptance": 2,
+                    "allowed_slots": ["stable-build", "fallback"],
+                    "max_enabled_plugin_count": 1,
+                    "max_active_native_mcp_count": 1,
+                    "max_active_tunnel_count": 1,
+                    "inactive_slot_remains_installed": True,
+                    "manual_loaded_cache_deletion_allowed": False,
+                },
+                "failover_operator": {
+                    "script": (
+                        "scripts/codex_release/"
+                        "Switch-EvidenceLaneCodexSlot.ps1"
+                    ),
+                    "registry_schema": "evidence-lane.codex-two-slot-registry.v1",
+                    "single_transient_error_switch_allowed": False,
+                    "stop_source_tunnel_before_start_target": True,
+                    "target_tunnel_ready_before_plugin_switch": True,
+                    "controlled_exact_task_restart_required": True,
+                    "switch_failure_restores_source_slot": True,
+                },
                 "remote_git_policy": {
                     "effective_release": "2.0.0",
                     "per_push_confirmation_token_required": False,
@@ -165,6 +204,13 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     _write(source / "scripts" / "codex_release" / "install_codex_stable.py", "# fixture\n")
     _write(
         source / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1",
+        "# fixture\n",
+    )
+    _write(
+        source
+        / "scripts"
+        / "codex_release"
+        / "Switch-EvidenceLaneCodexSlot.ps1",
         "# fixture\n",
     )
     _write(source / "scripts" / "codex_release" / "accept_codex_stable.py", "# fixture\n")
@@ -261,6 +307,12 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
     assert result["activation"]["state"] == "STAGED_RESTART_NOT_YET_REQUIRED"
     assert result["generated_cache_written_directly"] is False
     assert result["previous_release_cache_deleted"] is False
+    assert result["fallback_materialization_gate"] == (
+        "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
+    )
+    assert result["fallback_materialized"] is False
+    assert result["live_cache_cleanup_deferred_until_exact_pv11_acceptance"] is True
+    assert result["two_slot_operator_packaged"] is True
     assert result["credential_requested_or_stored"] is False
     assert result["surface_change_display"]["state"] == "INITIAL_V2_BASELINE"
     assert result["surface_change_display"]["hooks"]["count"] == 4
@@ -689,6 +741,12 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         },
         "generated_cache_written_directly": False,
         "previous_release_cache_deleted": False,
+        "fallback_materialization_gate": (
+            "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
+        ),
+        "fallback_materialized": False,
+        "live_cache_cleanup_deferred_until_exact_pv11_acceptance": True,
+        "two_slot_operator_packaged": True,
         "credential_requested_or_stored": False,
     }
     installed_surface = acceptance._surface_inventory(installed, version=version)

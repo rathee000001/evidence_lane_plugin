@@ -7,18 +7,21 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 
 
-def test_v200_is_stable_and_v150_is_retained_archive() -> None:
+def test_v200_declares_exact_stable_build_and_pv11_fallback_slots() -> None:
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
     stable = contract["stable"]
-    future = contract["future_test"]
-    archive = contract["archive"]
+    fallback = contract["fallback"]
+    live_slots = contract["live_slot_policy"]
 
     assert stable == {
         "release": "2.0.0",
+        "slot_role": "stable-build",
         "codex_marketplace_slot": "evidence-lane-v200-github",
         "enabled": True,
+        "byte_frozen": False,
+        "updates_require_verified_unique_build_identity": True,
         "native_server_identity": "evidence-lane",
         "native_tool_count": 62,
         "native_read_tool_count": 21,
@@ -29,18 +32,30 @@ def test_v200_is_stable_and_v150_is_retained_archive() -> None:
         "direct_stdio_fallback_allowed": False,
         "google_drive_bundled": False,
         "tunnel_release_must_match": True,
-        "tunnel_channel": "stable",
+        "tunnel_channel": "stable-build",
     }
-    assert future["codex_marketplace_slot"] == "evidence-lane-next-test"
-    assert future["enabled"] is False
-    assert future["may_replace_stable_before_acceptance"] is False
-    assert future["candidate_mutates_stable_slot"] is False
-    assert future["starts_and_proves_readiness_without_stopping_stable"] is True
-    assert future["failed_candidate_leaves_stable_untouched"] is True
-    assert archive["retain_previous_stable_plugin"] is True
-    assert archive["retain_previous_tunnel_runtime"] is True
-    assert archive["disable_instead_of_delete"] is True
-    assert archive["release"] == "1.5.0"
+    assert fallback == {
+        "release": "2.0.0",
+        "slot_role": "fallback",
+        "codex_marketplace_slot": "evidence-lane-pv11-fallback",
+        "enabled": False,
+        "materialization_gate": "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE",
+        "accepted_pv": "PV11",
+        "accepted_generation": 11,
+        "byte_frozen": True,
+        "package_must_equal_accepted_pv": True,
+        "prewarmed_means_installed_verified_and_stopped": True,
+        "simultaneous_mcp_allowed": False,
+        "simultaneous_tunnel_allowed": False,
+        "tunnel_channel": "fallback",
+    }
+    assert live_slots["exact_slot_count_after_pv11_acceptance"] == 2
+    assert live_slots["allowed_slots"] == ["stable-build", "fallback"]
+    assert live_slots["max_enabled_plugin_count"] == 1
+    assert live_slots["max_active_native_mcp_count"] == 1
+    assert live_slots["max_active_tunnel_count"] == 1
+    assert live_slots["inactive_slot_remains_installed"] is True
+    assert live_slots["manual_loaded_cache_deletion_allowed"] is False
 
 
 def test_promotion_requires_matching_cross_surface_receipts_and_hil() -> None:
@@ -128,35 +143,32 @@ def test_tunnel_version_history_is_append_only_and_hash_chained() -> None:
     assert 'EventType "ROLLBACK_ACTIVATED"' in manager
 
 
-def test_candidate_tunnel_cannot_interrupt_stable_before_promotion() -> None:
-    channel_manager = {
-        "candidate_action": "VerifyCandidate",
-        "promotion_action": "Promote",
-        "promotion_receipts": [
-            "HEALTH_SHA256",
-            "PUBLIC_ROUTE_SHA256",
-            "HOST_PROOF_SHA256",
-        ],
-        "codex_native_lifecycle_route_eligible": False,
-    }
-    manager = (
-        PLUGIN / "scripts" / "windows_tunnel" / "Manage-EvidenceLaneTunnelVersions.ps1"
+def test_two_slot_operator_is_bounded_and_rejects_transient_auto_failover() -> None:
+    contract = json.loads(
+        (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
+    )
+    policy = contract["failover_operator"]
+    operator = (
+        PLUGIN
+        / "scripts"
+        / "codex_release"
+        / "Switch-EvidenceLaneCodexSlot.ps1"
     ).read_text("utf-8")
 
-    assert channel_manager["candidate_action"] == "VerifyCandidate"
-    assert channel_manager["promotion_action"] == "Promote"
-    assert channel_manager["promotion_receipts"] == [
-        "HEALTH_SHA256",
-        "PUBLIC_ROUTE_SHA256",
-        "HOST_PROOF_SHA256",
-    ]
-    assert channel_manager["codex_native_lifecycle_route_eligible"] is False
-    assert 'EventType "FUTURE_TEST_FAILED_STABLE_UNTOUCHED"' in manager
-    assert 'EventType "PROMOTION_STARTED_STABLE_STILL_READY"' in manager
-    assert 'EventType "PROMOTED_TO_STABLE"' in manager
-    assert 'EventType "MOVED_TO_ARCHIVE"' in manager
-    candidate_block = manager.split('if ($Action -eq "VerifyCandidate")', 1)[1].split(
-        'if ($Action -eq "Promote")', 1
-    )[0]
-    assert "Stop-SavedVersion -Entry $oldStable" not in candidate_block
-    assert "stable_untouched = $true" in candidate_block
+    assert policy["registry_schema"] == "evidence-lane.codex-two-slot-registry.v1"
+    assert policy["deterministic_failure_minimum_consecutive_probes"] == 3
+    assert policy["deterministic_failure_minimum_window_seconds"] == 30
+    assert policy["deterministic_failure_minimum_distinct_probe_types"] == 2
+    assert policy["single_transient_error_switch_allowed"] is False
+    assert policy["stop_source_tunnel_before_start_target"] is True
+    assert policy["target_tunnel_ready_before_plugin_switch"] is True
+    assert policy["switch_failure_restores_source_slot"] is True
+    assert '"stable-build", "fallback"' in operator
+    assert "consecutive_failures -lt 3" in operator
+    assert "sample_window_seconds -lt 30" in operator
+    assert "distinct_probe_types -lt 2" in operator
+    assert "single_transient_error -ne $false" in operator
+    assert 'Invoke-Tunnel -Slot $source -TunnelAction "Stop"' in operator
+    assert 'Invoke-Tunnel -Slot $target -TunnelAction "Start"' in operator
+    assert "Restart-EvidenceLaneCodex.ps1" in operator
+    assert "Rolled back to $sourceSlot" in operator

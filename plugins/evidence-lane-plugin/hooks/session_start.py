@@ -188,6 +188,9 @@ def _plugin_version_context() -> dict[str, object]:
         )
         remote_git_policy = dict(release_contract.get("remote_git_policy") or {})
         stable = dict(release_contract.get("stable") or {})
+        fallback = dict(release_contract.get("fallback") or {})
+        live_slots = dict(release_contract.get("live_slot_policy") or {})
+        failover = dict(release_contract.get("failover_operator") or {})
         promotion = dict(release_contract.get("promotion_gate") or {})
         policy_valid = (
             release_contract.get("schema")
@@ -205,6 +208,26 @@ def _plugin_version_context() -> dict[str, object]:
             and stable.get("generated_namespace_allowed") is False
             and stable.get("direct_stdio_fallback_allowed") is False
             and stable.get("google_drive_bundled") is False
+            and stable.get("slot_role") == "stable-build"
+            and stable.get("byte_frozen") is False
+            and fallback.get("release") == runtime_version
+            and fallback.get("slot_role") == "fallback"
+            and fallback.get("codex_marketplace_slot")
+            == "evidence-lane-pv11-fallback"
+            and fallback.get("enabled") is False
+            and fallback.get("accepted_pv") == "PV11"
+            and fallback.get("accepted_generation") == 11
+            and fallback.get("byte_frozen") is True
+            and live_slots.get("exact_slot_count_after_pv11_acceptance") == 2
+            and live_slots.get("max_enabled_plugin_count") == 1
+            and live_slots.get("max_active_native_mcp_count") == 1
+            and live_slots.get("max_active_tunnel_count") == 1
+            and failover.get("registry_schema")
+            == "evidence-lane.codex-two-slot-registry.v1"
+            and failover.get("script")
+            == "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
+            and failover.get("single_transient_error_switch_allowed")
+            is False
             and release_contract.get("host_storage_tunnel_matrix")
             == _EXPECTED_HOST_STORAGE_TUNNEL_MATRIX
             and remote_git_policy.get("effective_release") == runtime_version
@@ -351,6 +374,31 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
         if match is None:
             raise ValueError("runtime engine version is not exact semver")
         token = f"v{match.group(1)}{match.group(2)}{match.group(3)}"
+        release_contract = json.loads(
+            (_plugin_root() / "scripts" / "codex-release-channel.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        configured_slot = str(
+            os.environ.get("EVIDENCE_LANE_CODEX_SLOT_ROLE") or ""
+        ).strip()
+        if configured_slot:
+            if configured_slot not in {"stable-build", "fallback"}:
+                raise ValueError("configured Codex slot role is unsupported")
+            slot_role = configured_slot
+        else:
+            plugin_path = str(_plugin_root()).replace("\\", "/").lower()
+            fallback_marketplace = str(
+                (release_contract.get("fallback") or {}).get(
+                    "codex_marketplace_slot"
+                )
+                or ""
+            ).lower()
+            slot_role = (
+                "fallback"
+                if fallback_marketplace and fallback_marketplace in plugin_path
+                else "stable-build"
+            )
         expected_ephemeral = (
             str(route.get("vm_lifetime") or "") == "EPHEMERAL_VM"
         )
@@ -361,9 +409,11 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
             Path(configured_runtime_root).resolve()
             if configured_runtime_root
             else (
-                Path.home() / "EvidenceLanePV" / f"tunnel-runtime-{token}"
+                Path.home()
+                / "EvidenceLanePV"
+                / f"tunnel-runtime-{token}-{slot_role}"
                 if expected_ephemeral
-                else _store_root() / f"tunnel-runtime-{token}"
+                else _store_root() / f"tunnel-runtime-{token}-{slot_role}"
             )
         )
         marker_path = runtime_root / "evidence-lane-tunnel-installation.json"
@@ -388,6 +438,7 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
                 "state": "EPHEMERAL_VM_INSTANCE_ID_REQUIRED",
                 "project_id": project_id,
                 "release": version,
+                "slot_role": slot_role,
                 "interaction_profile": interaction,
                 "host_lifetime": expected_lifetime,
                 "runtime_root": str(runtime_root),
@@ -401,6 +452,7 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
                 "state": "FIRST_USE_TUNNEL_ONBOARDING_REQUIRED",
                 "project_id": project_id,
                 "release": version,
+                "slot_role": slot_role,
                 "interaction_profile": interaction,
                 "host_lifetime": expected_lifetime,
                 "account_tier": route.get("account_tier"),
@@ -423,6 +475,8 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
             marker.get("schema")
             == "evidence-lane.versioned-secure-mcp-tunnel-installation.v1"
             and marker.get("release") == version
+            and marker.get("slot_role") == slot_role
+            and marker.get("legacy_version_manager_authoritative") is False
             and marker.get("interaction_profile") == interaction
             and marker.get("host_lifetime") == expected_lifetime
             and marker.get("runtime_key_plaintext_written") is False
@@ -441,6 +495,7 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
             ),
             "project_id": project_id,
             "release": version,
+            "slot_role": slot_role,
             "interaction_profile": interaction,
             "host_lifetime": expected_lifetime,
             "runtime_root": str(runtime_root),

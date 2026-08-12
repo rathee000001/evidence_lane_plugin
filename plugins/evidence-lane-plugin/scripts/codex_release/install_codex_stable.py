@@ -563,6 +563,9 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         )
     )
     stable = contract.get("stable") or {}
+    fallback = contract.get("fallback") or {}
+    live_slots = contract.get("live_slot_policy") or {}
+    failover = contract.get("failover_operator") or {}
     remote_git = contract.get("remote_git_policy") or {}
     promotion = contract.get("promotion_gate") or {}
     skill_count = len(list((plugin_root / "skills").glob("*/SKILL.md")))
@@ -579,6 +582,10 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     release_helpers = (
         plugin_root / "scripts" / "codex_release" / "install_codex_stable.py",
         plugin_root / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1",
+        plugin_root
+        / "scripts"
+        / "codex_release"
+        / "Switch-EvidenceLaneCodexSlot.ps1",
         plugin_root / "scripts" / "codex_release" / "accept_codex_stable.py",
     )
     if (
@@ -589,7 +596,10 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or (plugin_root / ".app.json").exists()
         or contract.get("schema") != "evidence-lane.codex-release-channel.v2"
         or stable.get("release") != BASE_RELEASE
+        or stable.get("slot_role") != "stable-build"
         or stable.get("codex_marketplace_slot") != "evidence-lane-v200-github"
+        or stable.get("byte_frozen") is not False
+        or stable.get("updates_require_verified_unique_build_identity") is not True
         or stable.get("native_tool_count") != EXPECTED_CATALOG["tools"]
         or stable.get("native_read_tool_count") != EXPECTED_CATALOG["read"]
         or stable.get("native_write_tool_count") != EXPECTED_CATALOG["write"]
@@ -602,7 +612,37 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or project.get("project", {}).get("version") != BASE_RELEASE
         or engine_match is None
         or engine_match.group("version") != BASE_RELEASE
-        or contract.get("archive", {}).get("release") != "1.5.0"
+        or fallback.get("release") != BASE_RELEASE
+        or fallback.get("slot_role") != "fallback"
+        or fallback.get("codex_marketplace_slot")
+        != "evidence-lane-pv11-fallback"
+        or fallback.get("enabled") is not False
+        or fallback.get("materialization_gate")
+        != "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
+        or fallback.get("accepted_pv") != "PV11"
+        or fallback.get("accepted_generation") != 11
+        or fallback.get("byte_frozen") is not True
+        or fallback.get("package_must_equal_accepted_pv") is not True
+        or fallback.get("prewarmed_means_installed_verified_and_stopped")
+        is not True
+        or fallback.get("simultaneous_mcp_allowed") is not False
+        or fallback.get("simultaneous_tunnel_allowed") is not False
+        or live_slots.get("exact_slot_count_after_pv11_acceptance") != 2
+        or live_slots.get("allowed_slots") != ["stable-build", "fallback"]
+        or live_slots.get("max_enabled_plugin_count") != 1
+        or live_slots.get("max_active_native_mcp_count") != 1
+        or live_slots.get("max_active_tunnel_count") != 1
+        or live_slots.get("inactive_slot_remains_installed") is not True
+        or live_slots.get("manual_loaded_cache_deletion_allowed") is not False
+        or failover.get("script")
+        != "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
+        or failover.get("registry_schema")
+        != "evidence-lane.codex-two-slot-registry.v1"
+        or failover.get("single_transient_error_switch_allowed") is not False
+        or failover.get("stop_source_tunnel_before_start_target") is not True
+        or failover.get("target_tunnel_ready_before_plugin_switch") is not True
+        or failover.get("controlled_exact_task_restart_required") is not True
+        or failover.get("switch_failure_restores_source_slot") is not True
         or contract.get("host_storage_tunnel_matrix")
         != EXPECTED_HOST_STORAGE_TUNNEL_MATRIX
         or remote_git.get("effective_release") != BASE_RELEASE
@@ -1029,7 +1069,12 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         "surface_change_display": stage["surface_change_display"],
         "comparison_baseline": stage.get("comparison_baseline"),
         "activation": activation,
-        "archive_release_retained": "1.5.0",
+        "fallback_materialization_gate": (
+            "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
+        ),
+        "fallback_materialized": False,
+        "live_cache_cleanup_deferred_until_exact_pv11_acceptance": True,
+        "two_slot_operator_packaged": True,
         "previous_release_cache_deleted": False,
         "generated_cache_written_directly": False,
         "credential_requested_or_stored": False,

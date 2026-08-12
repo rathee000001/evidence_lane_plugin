@@ -3,8 +3,11 @@
   "product": "Evidence Lane",
   "stable": {
     "release": "2.0.0",
+    "slot_role": "stable-build",
     "codex_marketplace_slot": "evidence-lane-v200-github",
     "enabled": true,
+    "byte_frozen": false,
+    "updates_require_verified_unique_build_identity": true,
     "native_server_identity": "evidence-lane",
     "native_tool_count": 62,
     "native_read_tool_count": 21,
@@ -15,22 +18,52 @@
     "direct_stdio_fallback_allowed": false,
     "google_drive_bundled": false,
     "tunnel_release_must_match": true,
-    "tunnel_channel": "stable"
+    "tunnel_channel": "stable-build"
   },
-  "future_test": {
-    "codex_marketplace_slot": "evidence-lane-next-test",
+  "fallback": {
+    "release": "2.0.0",
+    "slot_role": "fallback",
+    "codex_marketplace_slot": "evidence-lane-pv11-fallback",
     "enabled": false,
-    "may_replace_stable_before_acceptance": false,
-    "candidate_mutates_stable_slot": false,
-    "starts_and_proves_readiness_without_stopping_stable": true,
-    "failed_candidate_leaves_stable_untouched": true
+    "materialization_gate": "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE",
+    "accepted_pv": "PV11",
+    "accepted_generation": 11,
+    "byte_frozen": true,
+    "package_must_equal_accepted_pv": true,
+    "prewarmed_means_installed_verified_and_stopped": true,
+    "simultaneous_mcp_allowed": false,
+    "simultaneous_tunnel_allowed": false,
+    "tunnel_channel": "fallback"
   },
-  "archive": {
-    "release": "1.5.0",
-    "retain_previous_stable_plugin": true,
-    "retain_previous_tunnel_runtime": true,
-    "disable_instead_of_delete": true,
-    "reactivation_requires_explicit_user_direction": true
+  "live_slot_policy": {
+    "exact_slot_count_after_pv11_acceptance": 2,
+    "allowed_slots": [
+      "stable-build",
+      "fallback"
+    ],
+    "max_enabled_plugin_count": 1,
+    "max_active_native_mcp_count": 1,
+    "max_active_tunnel_count": 1,
+    "inactive_slot_remains_installed": true,
+    "obsolete_live_registrations_removed_through_codex_cli": true,
+    "obsolete_live_cache_removed_through_codex_cli": true,
+    "manual_loaded_cache_deletion_allowed": false,
+    "immutable_git_pv_package_receipt_delta_evidence_preserved": true
+  },
+  "failover_operator": {
+    "script": "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1",
+    "registry_schema": "evidence-lane.codex-two-slot-registry.v1",
+    "explicit_operator_failover_allowed": true,
+    "deterministic_failure_minimum_consecutive_probes": 3,
+    "deterministic_failure_minimum_window_seconds": 30,
+    "deterministic_failure_minimum_distinct_probe_types": 2,
+    "single_transient_error_switch_allowed": false,
+    "stop_source_tunnel_before_start_target": true,
+    "target_tunnel_ready_before_plugin_switch": true,
+    "controlled_exact_task_restart_required": true,
+    "post_restart_native_catalog_and_project_session_proof_required": true,
+    "switch_failure_restores_source_slot": true,
+    "credentials_in_receipts_allowed": false
   },
   "delivery_boundary": {
     "codex_lifecycle_route": "PACKAGE_LOCAL_NATIVE_MCP_ONLY",

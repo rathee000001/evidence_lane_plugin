@@ -105,6 +105,7 @@ REQUIRED_MEMBERS = frozenset(
         "requirements.lock.txt",
         "scripts/codex-release-channel.json",
         "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
+        "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1",
         "scripts/codex_release/accept_codex_stable.py",
         "scripts/codex_release/install_codex_stable.py",
     }
@@ -387,12 +388,15 @@ def build_rehearsal(
         )
     )
     stable = release_channels.get("stable", {})
-    future_test = release_channels.get("future_test", {})
+    fallback = release_channels.get("fallback", {})
+    live_slots = release_channels.get("live_slot_policy", {})
+    failover = release_channels.get("failover_operator", {})
     promotion = release_channels.get("promotion_gate", {})
     remote_git_policy = release_channels.get("remote_git_policy", {})
     if (
         release_channels.get("schema") != "evidence-lane.codex-release-channel.v2"
         or stable.get("release") != expected_version.split("+", 1)[0]
+        or stable.get("slot_role") != "stable-build"
         or stable.get("native_server_identity") != "evidence-lane"
         or (
             stable.get("native_tool_count"),
@@ -405,11 +409,27 @@ def build_rehearsal(
         or stable.get("generated_namespace_allowed") is not False
         or stable.get("direct_stdio_fallback_allowed") is not False
         or stable.get("google_drive_bundled") is not False
-        or future_test.get("enabled") is not False
-        or future_test.get("may_replace_stable_before_acceptance") is not False
+        or fallback.get("release") != expected_version.split("+", 1)[0]
+        or fallback.get("slot_role") != "fallback"
+        or fallback.get("enabled") is not False
+        or fallback.get("materialization_gate")
+        != "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
+        or fallback.get("accepted_pv") != "PV11"
+        or fallback.get("accepted_generation") != 11
+        or fallback.get("byte_frozen") is not True
+        or fallback.get("package_must_equal_accepted_pv") is not True
+        or live_slots.get("exact_slot_count_after_pv11_acceptance") != 2
+        or live_slots.get("allowed_slots") != ["stable-build", "fallback"]
+        or live_slots.get("max_enabled_plugin_count") != 1
+        or live_slots.get("max_active_native_mcp_count") != 1
+        or live_slots.get("max_active_tunnel_count") != 1
+        or failover.get("script")
+        != "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
+        or failover.get("registry_schema")
+        != "evidence-lane.codex-two-slot-registry.v1"
+        or failover.get("single_transient_error_switch_allowed") is not False
         or promotion.get("explicit_six_way_hil_required") is not True
         or promotion.get("fail_closed_on_version_mismatch") is not True
-        or release_channels.get("archive", {}).get("release") != "1.5.0"
         or release_channels.get("host_storage_tunnel_matrix")
         != EXPECTED_HOST_STORAGE_TUNNEL_MATRIX
         or remote_git_policy.get("effective_release")
@@ -433,7 +453,7 @@ def build_rehearsal(
         is not False
     ):
         raise PackageBoundaryError(
-            "The stable, future-test, archive, or release-history contract drifted."
+            "The stable-build, fallback, or release-history contract drifted."
         )
 
     source_records, source_paths = _source_inventory(plugin_root)

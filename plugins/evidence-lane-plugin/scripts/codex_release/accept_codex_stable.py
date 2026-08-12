@@ -384,6 +384,9 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         (plugin_root / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
     stable = dict(release.get("stable") or {})
+    fallback = dict(release.get("fallback") or {})
+    live_slots = dict(release.get("live_slot_policy") or {})
+    failover = dict(release.get("failover_operator") or {})
     promotion = dict(release.get("promotion_gate") or {})
     remote_git = dict(release.get("remote_git_policy") or {})
     skills = sorted((plugin_root / "skills").glob("*/SKILL.md"))
@@ -391,6 +394,10 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     required_release_helpers = (
         plugin_root / "scripts" / "codex_release" / "install_codex_stable.py",
         plugin_root / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1",
+        plugin_root
+        / "scripts"
+        / "codex_release"
+        / "Switch-EvidenceLaneCodexSlot.ps1",
         plugin_root / "scripts" / "codex_release" / "accept_codex_stable.py",
     )
     forbidden = (
@@ -411,7 +418,10 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or _engine_version(plugin_root) != BASE_RELEASE
         or release.get("schema") != "evidence-lane.codex-release-channel.v2"
         or stable.get("release") != BASE_RELEASE
+        or stable.get("slot_role") != "stable-build"
         or stable.get("codex_marketplace_slot") != MARKETPLACE_NAME
+        or stable.get("byte_frozen") is not False
+        or stable.get("updates_require_verified_unique_build_identity") is not True
         or stable.get("native_tool_count") != EXPECTED_CATALOG["tools"]
         or stable.get("native_read_tool_count") != EXPECTED_CATALOG["read"]
         or stable.get("native_write_tool_count") != EXPECTED_CATALOG["write"]
@@ -421,6 +431,32 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or stable.get("generated_namespace_allowed") is not False
         or stable.get("direct_stdio_fallback_allowed") is not False
         or stable.get("google_drive_bundled") is not False
+        or fallback.get("release") != BASE_RELEASE
+        or fallback.get("slot_role") != "fallback"
+        or fallback.get("codex_marketplace_slot")
+        != "evidence-lane-pv11-fallback"
+        or fallback.get("enabled") is not False
+        or fallback.get("materialization_gate")
+        != "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
+        or fallback.get("accepted_pv") != "PV11"
+        or fallback.get("accepted_generation") != 11
+        or fallback.get("byte_frozen") is not True
+        or fallback.get("package_must_equal_accepted_pv") is not True
+        or live_slots.get("exact_slot_count_after_pv11_acceptance") != 2
+        or live_slots.get("allowed_slots") != ["stable-build", "fallback"]
+        or live_slots.get("max_enabled_plugin_count") != 1
+        or live_slots.get("max_active_native_mcp_count") != 1
+        or live_slots.get("max_active_tunnel_count") != 1
+        or live_slots.get("inactive_slot_remains_installed") is not True
+        or failover.get("script")
+        != "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
+        or failover.get("registry_schema")
+        != "evidence-lane.codex-two-slot-registry.v1"
+        or failover.get("single_transient_error_switch_allowed") is not False
+        or failover.get("stop_source_tunnel_before_start_target") is not True
+        or failover.get("target_tunnel_ready_before_plugin_switch") is not True
+        or failover.get("controlled_exact_task_restart_required") is not True
+        or failover.get("switch_failure_restores_source_slot") is not True
         or release.get("host_storage_tunnel_matrix")
         != EXPECTED_HOST_STORAGE_TUNNEL_MATRIX
         or promotion.get("mode") != "CODE"
@@ -546,6 +582,14 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         or Path(plugin_add["installedPath"]).resolve() != installed
         or installation.get("generated_cache_written_directly") is not False
         or installation.get("previous_release_cache_deleted") is not False
+        or installation.get("fallback_materialization_gate")
+        != "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
+        or installation.get("fallback_materialized") is not False
+        or installation.get(
+            "live_cache_cleanup_deferred_until_exact_pv11_acceptance"
+        )
+        is not True
+        or installation.get("two_slot_operator_packaged") is not True
         or installation.get("credential_requested_or_stored") is not False
         or surface_change.get("schema")
         != "evidence-lane.codex-installed-surface-change-display.v2"

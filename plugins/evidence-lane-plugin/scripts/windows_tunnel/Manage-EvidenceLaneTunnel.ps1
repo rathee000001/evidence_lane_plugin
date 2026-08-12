@@ -83,6 +83,8 @@ function Get-TunnelStatus {
     return [ordered]@{
         status = if ($ready) { "PASS" } else { "BLOCKED" }
         release = "2.0.0"
+        slot_role = if ($null -ne $marker) { [string]$marker.slot_role } else { $null }
+        byte_frozen = if ($null -ne $marker) { [bool]$marker.byte_frozen } else { $false }
         task_name = $TaskName
         task_registered = $null -ne $task
         task_state = if ($null -ne $task) { [string]$task.State } else { $null }
@@ -94,9 +96,9 @@ function Get-TunnelStatus {
         profile_file = $profileFile
         profile_exists = -not [string]::IsNullOrWhiteSpace($profileText)
         evidence_lane_layer_launcher_configured = $profileText.Contains("_INTERNAL_EVIDENCE_LANE_MCP_LAYER_DO_NOT_RUN.ps1")
-        exposure_profile = "CHATGPT_PRO_GOVERNED"
+        exposure_profile = "CODEX_INTERACTIVE_SUPPORT"
         transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"
-        served_exposure_layer = "CHATGPT_PRO_GOVERNED"
+        served_exposure_layer = "CODEX_INTERACTIVE_SUPPORT"
         chatgpt_is_layer_not_transport_identity = $true
         codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"
         codex_tunnel_lifecycle_proof_allowed = $false

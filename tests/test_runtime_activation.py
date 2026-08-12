@@ -15,6 +15,7 @@ def _run_session_start(
     host_session_id: str,
     *,
     tunnel_runtime_root: Path | None = None,
+    slot_role: str | None = None,
 ) -> str:
     hook = (
         root
@@ -29,6 +30,8 @@ def _run_session_start(
         environment["EVIDENCE_LANE_TUNNEL_RUNTIME_ROOT"] = str(
             tunnel_runtime_root
         )
+    if slot_role is not None:
+        environment["EVIDENCE_LANE_CODEX_SLOT_ROLE"] = slot_role
     completed = subprocess.run(
         [sys.executable, str(hook)],
         input=json.dumps(
@@ -66,6 +69,10 @@ def test_session_start_exposes_interactive_first_use_tunnel_onboarding(
     assert plugin["effective_remote_git_policy"]["main_push_allowed"] is False
     assert activation["state"] == "FIRST_USE_TUNNEL_ONBOARDING_REQUIRED"
     assert activation["release"] == "2.0.0"
+    assert activation["slot_role"] == "stable-build"
+    assert str(activation["runtime_root"]).endswith(
+        "tunnel-runtime-v200-stable-build"
+    )
     assert activation["interaction_profile"] == "CODEX_APP_INTERACTIVE"
     assert activation["host_lifetime"] == "PERSISTENT"
     assert Path(str(activation["installer"])).is_file()
@@ -110,10 +117,25 @@ def test_session_start_excludes_tunnel_from_headless_api_layer(service) -> None:
     }
 
 
+def test_session_start_routes_fallback_hook_to_fallback_tunnel_slot(service) -> None:
+    root = Path(__file__).resolve().parents[1]
+    boot_local(service)
+    context = _run_session_start(
+        root,
+        service.store.root,
+        "host-session-test",
+        slot_role="fallback",
+    )
+    activation = _context_envelope(context, "HOST_ACTIVATION_ENVELOPE")
+    assert activation["state"] == "FIRST_USE_TUNNEL_ONBOARDING_REQUIRED"
+    assert activation["slot_role"] == "fallback"
+    assert str(activation["runtime_root"]).endswith("tunnel-runtime-v200-fallback")
+
+
 def test_session_start_validates_marker_without_claiming_tunnel_health(service) -> None:
     root = Path(__file__).resolve().parents[1]
     boot_local(service)
-    runtime_root = service.store.root / "tunnel-runtime-v200"
+    runtime_root = service.store.root / "tunnel-runtime-v200-stable-build"
     runtime_root.mkdir(parents=True)
     marker = runtime_root / "evidence-lane-tunnel-installation.json"
     marker.write_text(
@@ -123,6 +145,8 @@ def test_session_start_validates_marker_without_claiming_tunnel_health(service) 
                     "evidence-lane.versioned-secure-mcp-tunnel-installation.v1"
                 ),
                 "release": "2.0.0",
+                "slot_role": "stable-build",
+                "legacy_version_manager_authoritative": False,
                 "interaction_profile": "CODEX_APP_INTERACTIVE",
                 "host_lifetime": "PERSISTENT",
                 "vm_instance_id_sha256": "NOT_APPLICABLE",

@@ -1,6 +1,6 @@
 # Evidence Lane plugin 2.0.0
 
-Version 2.0.0 is the stable Codex slot. It provides a
+Version 2.0.0 is the stable-build Codex slot. It provides a
 package-local native MCP server, 62 canonical actions (21 read-only and 41
 write-capable), 15 governed skills, four registered hook events, local durable
 project storage, persistent Plan/Delta continuity, and an exact six-way HIL.
@@ -28,18 +28,24 @@ From a reviewed source checkout, run the supported installer in PowerShell:
 
 ```powershell
 & ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1" `
+  -SlotRole stable-build `
   -InteractionProfile CODEX_APP_INTERACTIVE `
-  -HostLifetime Persistent
+  -HostLifetime Persistent `
+  -Activate
 ```
 
 Paste the `tunnel_...` ID and then the user's own Runtime API key at the masked
 prompt. The key is never printed or stored as plaintext; only a current-user
 DPAPI envelope is retained. The installer registers the versioned Windows
-sign-in task but does not promote an unverified future-test channel. After
+sign-in task but never activates the disabled fallback slot. After
 governed activation, prove readiness with:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200\Manage-EvidenceLaneTunnel.ps1" -Action Status
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200-stable-build\Manage-EvidenceLaneTunnel.ps1" `
+  -Action Status `
+  -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200-stable-build" `
+  -ProfileName evidence_lane_v200_stable_build_transport `
+  -TaskName EvidenceLane-Tunnel-v200-stable-build
 ```
 
 The result is acceptable only when it reports `status = PASS`. Codex lifecycle
@@ -57,7 +63,7 @@ profiles do not require this tunnel. See the
 - `hooks/` — four registered events and four handlers across five package files.
 - `scripts/codex-release-channel.json` — v2 release and Git policy.
 - `scripts/codex_release/` — deterministic build/install, controlled restart,
-  and installed-package acceptance checks.
+  two-slot failover, and installed-package acceptance checks.
 
 The Codex archive excludes site source, evidence directories, generated app
 namespaces, and host-connection metadata.
@@ -79,6 +85,24 @@ namespaces, and host-connection metadata.
    hook execution, icon, project/runtime panels, persistent task/change display,
    and local durable storage from the installed package.
 6. Stop at the explicit six-way HIL.
+
+## Stable-build and accepted-PV11 fallback
+
+After exact standalone `APPROVE` and native Fuse accepts PV11, the supported
+live installation is normalized to exactly two slots: the enabled mutable
+`stable-build` slot and a disabled byte-frozen `fallback` slot containing the
+exact accepted PV11 package. “Prewarmed” means the fallback plugin and tunnel
+are installed and verified but stopped; two MCP servers or two tunnels never
+run together.
+
+`scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1` accepts either an
+explicit operator failover or a sealed multi-probe stable failure. It rejects a
+single transient error, stops the source tunnel before starting the target,
+enables only the matching plugin/MCP, and delegates the exact-task relaunch to
+`Restart-EvidenceLaneCodex.ps1`. A repaired stable build must pass package,
+installed-byte, native-catalog, and clean-CI checks before the reverse switch.
+Any pre-restart failure restores the original slot. Native catalog and exact
+project/session proof are mandatory again after restart.
 
 ## Persistent Plan and change display
 
@@ -102,7 +126,7 @@ candidate acceptance, pointer movement, or Fuse.
 
 ## Release boundary
 
-Historical 1.5.0 commits, packages, caches, PVs, and receipts remain immutable
-archive evidence. A changed v2 source tree receives a fresh collision-free
-build identity, a new deterministic package, one coherent CI cycle, a supported
-reinstall/restart, and a new installed-host HIL.
+Historical 1.x commits, packages, PVs, and receipts remain immutable evidence;
+they are not extra live slots. A changed v2 source tree receives a fresh
+collision-free build identity, a new deterministic package, one coherent CI
+cycle, a supported reinstall/restart, and a new installed-host HIL.
