@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import runpy
 import sys
 import zipfile
 from pathlib import Path
@@ -14,6 +15,8 @@ if str(SCRIPTS) not in sys.path:
 
 from build_release_candidate_rehearsal import (
     BOUNDARY,
+    EXPECTED_BEHAVIOR_OWNERSHIP,
+    EXPECTED_STABLE_ACTIVATION_GATE,
     PackageBoundaryError,
     build_rehearsal,
 )
@@ -197,61 +200,8 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "stable_selector_growth_allowed": False,
                     "raw_goal_objective_stored": False,
                 },
-                "behavior_ownership": {
-                    "hooks": "LIFECYCLE_CAPTURE_AND_SEALED_EVENTS_ONLY",
-                    "skills": "NATIVE_PV_READS_AND_HOST_BEHAVIOR",
-                    "prompt_and_steer_native_reads": [
-                        "pv_status",
-                        "pv_task_backlog",
-                        "pv_query",
-                    ],
-                    "query_must_use_native_mcp_route": True,
-                    "internal_hook_lookup_satisfies_native_query": False,
-                    "host_plan_tool": "update_plan",
-                    "hook_may_embed_full_plan_rows": False,
-                    "hook_may_call_or_instruct_host_behavior": False,
-                    "skill_must_refresh_after_every_prompt_or_steer": True,
-                    "fail_closed_when_behavior_route_unavailable": True,
-                },
-                "stable_activation_gate": {
-                    "local_rehearsal_stage_only": True,
-                    "local_rehearsal_activation_allowed": False,
-                    "exact_commit_package_builder": (
-                        "scripts/codex_release/build_codex_exact_commit_package.py"
-                    ),
-                    "release_authority_joiner": (
-                        "scripts/codex_release/"
-                        "seal_codex_git_ci_release_authority.py"
-                    ),
-                    "external_release_receipt_sealer": (
-                        "scripts/codex_release/"
-                        "seal_external_release_receipts.py"
-                    ),
-                    "stable_update_helper": (
-                        "scripts/codex_release/"
-                        "Update-EvidenceLaneCodexStableAndResume.ps1"
-                    ),
-                    "stable_update_reopens_same_bound_host_app": True,
-                    "stable_update_rebinds_general_goal_recovery": True,
-                    "release_authority_schema": (
-                        "evidence-lane.codex-git-ci-vercel-release-authority.v2"
-                    ),
-                    "exact_clean_commit_required": True,
-                    "governed_native_remote_push_required": True,
-                    "successful_github_ci_required": True,
-                    "successful_vercel_branch_preview_required": True,
-                    "production_deployment_allowed": False,
-                    "exact_commit_git_marketplace_required": True,
-                    "git_marketplace_name": "evidence-lane-github",
-                    "git_marketplace_display_name": "GitLane Stable 2.1",
-                    "git_marketplace_source": "rathee000001/evidence_lane_plugin",
-                    "one_time_legacy_stable_selector_migration_allowed": True,
-                    "post_proof_obsolete_cleanup_required": True,
-                    "same_stable_selector_required_after_migration": True,
-                    "installed_runtime_prewarm_required": True,
-                    "runtime_ready_before_task_reopen_required": True,
-                    "fallback_activation_inferred": False,
-                },
+                "behavior_ownership": EXPECTED_BEHAVIOR_OWNERSHIP,
+                "stable_activation_gate": EXPECTED_STABLE_ACTIVATION_GATE,
                 "brand_identity": {
                     "display_name": "Evidence Lane",
                     "icon_path": "assets/evidence-lane-icon.png",
@@ -417,6 +367,32 @@ def _build(plugin: Path, output: Path) -> dict[str, object]:
         base_tree=TREE,
         expected_version=VERSION,
     )
+
+
+def test_live_release_policy_matches_every_package_and_install_validator() -> None:
+    plugin = ROOT / "plugins" / "evidence-lane-plugin"
+    contract = json.loads(
+        (plugin / "scripts" / "codex-release-channel.json").read_text("utf-8")
+    )
+    validators = [
+        {
+            "EXPECTED_BEHAVIOR_OWNERSHIP": EXPECTED_BEHAVIOR_OWNERSHIP,
+            "EXPECTED_STABLE_ACTIVATION_GATE": EXPECTED_STABLE_ACTIVATION_GATE,
+        },
+        runpy.run_path(
+            str(plugin / "scripts" / "codex_release" / "install_codex_stable.py")
+        ),
+        runpy.run_path(
+            str(plugin / "scripts" / "codex_release" / "accept_codex_stable.py")
+        ),
+    ]
+    for validator in validators:
+        assert validator["EXPECTED_BEHAVIOR_OWNERSHIP"] == contract[
+            "behavior_ownership"
+        ]
+        assert validator["EXPECTED_STABLE_ACTIVATION_GATE"] == contract[
+            "stable_activation_gate"
+        ]
 
 
 def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(tmp_path: Path) -> None:
