@@ -210,7 +210,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                         "EF87B8A129C4FA"
                     ),
                     "resource_uri": (
-                        "ui://evidence-lane/governed-console-v3.html"
+                        "ui://evidence-lane/governed-console-v4.html"
                     ),
                     "manifest_icon_fields": [
                         "interface.composerIcon",

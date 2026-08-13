@@ -220,7 +220,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                         "EF87B8A129C4FA"
                     ),
                     "resource_uri": (
-                        "ui://evidence-lane/governed-console-v3.html"
+                        "ui://evidence-lane/governed-console-v4.html"
                     ),
                     "manifest_icon_fields": [
                         "interface.composerIcon",
@@ -1093,7 +1093,7 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
             "tool_count": 62,
             "tool_catalog_sha256": "A" * 64,
             "route_status": "PASS",
-            "resource_uri": "ui://evidence-lane/governed-console-v3.html",
+            "resource_uri": "ui://evidence-lane/governed-console-v4.html",
             "native_dependency_prewarm_completed": True,
         }
         return subprocess.CompletedProcess(
@@ -1112,7 +1112,7 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
     assert receipt["tool_count"] == 62
     assert receipt["tool_catalog_sha256"] == "A" * 64
     assert receipt["resource_uri"] == (
-        "ui://evidence-lane/governed-console-v3.html"
+        "ui://evidence-lane/governed-console-v4.html"
     )
     assert receipt["task_reopened"] is False
     assert receipt["bootstrap_attempt_count"] == 1
@@ -1155,7 +1155,7 @@ def test_installed_runtime_bootstrap_retries_once_on_same_sealed_bytes(
             "tool_count": 62,
             "tool_catalog_sha256": "A" * 64,
             "route_status": "PASS",
-            "resource_uri": "ui://evidence-lane/governed-console-v3.html",
+            "resource_uri": "ui://evidence-lane/governed-console-v4.html",
             "native_dependency_prewarm_completed": True,
         }
         return subprocess.CompletedProcess(
@@ -2082,7 +2082,7 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         "native_server_identity": "evidence-lane",
         "tool_count": 62,
         "tool_catalog_sha256": "A" * 64,
-        "resource_uri": "ui://evidence-lane/governed-console-v3.html",
+        "resource_uri": "ui://evidence-lane/governed-console-v4.html",
         "brand_icon_sha256": (
             "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3D"
             "EF87B8A129C4FA"

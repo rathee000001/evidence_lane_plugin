@@ -42,6 +42,8 @@ The packaged Codex plugin contains:
   best-effort SessionEnd flush;
 - durable local SQLite as the default project authority;
 - a persistent Plan panel paired with the active linked Delta/change display;
+- the governed console resource `ui://evidence-lane/governed-console-v4.html`,
+  sealed consistently across runtime prewarm and release installation;
 - exact State Travel receipts for fresh-task continuation;
 - a six-way human gate before any candidate can become accepted truth.
 

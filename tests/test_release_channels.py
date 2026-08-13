@@ -532,7 +532,7 @@ def test_stable_activation_requires_git_ci_authority_and_runtime_prewarm() -> No
             "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3D"
             "EF87B8A129C4FA"
         ),
-        "resource_uri": "ui://evidence-lane/governed-console-v3.html",
+        "resource_uri": "ui://evidence-lane/governed-console-v4.html",
         "manifest_icon_fields": ["interface.composerIcon", "interface.logo"],
         "required_at_stage": True,
         "required_at_runtime_prewarm": True,

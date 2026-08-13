@@ -5,6 +5,9 @@ fallback remains the exact accepted PV11/main 2.0.0 package. The stable provides
 package-local native MCP server, 62 canonical actions (21 read-only and 41
 write-capable), 15 governed skills, eight registered lifecycle events, local durable
 project storage, persistent Plan/Delta continuity, and an exact six-way HIL.
+The installed runtime prewarm and release validators bind the same governed
+console resource, `ui://evidence-lane/governed-console-v4.html`, and fail closed
+if that identity drifts.
 
 Hooks transport lifecycle only: SessionStart, UserPromptSubmit, PreToolUse,
 PostToolUse, PreCompact, PostCompact, Stop, and best-effort SessionEnd. The

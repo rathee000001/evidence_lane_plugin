@@ -203,7 +203,7 @@
     "display_name": "Evidence Lane",
     "icon_path": "assets/evidence-lane-icon.png",
     "icon_sha256": "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA",
-    "resource_uri": "ui://evidence-lane/governed-console-v3.html",
+    "resource_uri": "ui://evidence-lane/governed-console-v4.html",
     "manifest_icon_fields": [
       "interface.composerIcon",
       "interface.logo"
