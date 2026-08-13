@@ -73,12 +73,21 @@ def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
     assert unproven["host_hook_status"]["status"] == "UNAVAILABLE"
 
     selector = "evidence-lane-plugin@evidence-lane-v200-task2-build-test"
-    events = ["postToolUse", "sessionStart", "stop", "userPromptSubmit"]
+    events = [
+        "postCompact",
+        "postToolUse",
+        "preCompact",
+        "preToolUse",
+        "sessionEnd",
+        "sessionStart",
+        "stop",
+        "userPromptSubmit",
+    ]
     hook_trust: dict[str, object] = {
         "schema": "evidence-lane.codex-hook-trust.v1",
         "status": "PASS",
         "plugin_selector": selector,
-        "hook_count": 4,
+        "hook_count": 8,
         "registered_events": events,
         "records": [
             {

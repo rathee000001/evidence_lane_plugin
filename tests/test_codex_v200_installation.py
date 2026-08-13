@@ -1184,7 +1184,16 @@ def test_supported_codex_api_trusts_only_exact_selector_hooks(
 ) -> None:
     module = _module()
     selector = "evidence-lane-plugin@evidence-lane-v200-task2-build-test"
-    events = ["postToolUse", "sessionStart", "stop", "userPromptSubmit"]
+    events = [
+        "postCompact",
+        "postToolUse",
+        "preCompact",
+        "preToolUse",
+        "sessionEnd",
+        "sessionStart",
+        "stop",
+        "userPromptSubmit",
+    ]
     hashes = {
         event: f"sha256:{index:064x}"
         for index, event in enumerate(events, start=1)
@@ -1329,7 +1338,7 @@ def test_supported_codex_api_trusts_only_exact_selector_hooks(
     )
 
     assert result["status"] == "PASS"
-    assert result["hook_count"] == 4
+    assert result["hook_count"] == 8
     assert result["registered_events"] == events
     assert result["before_trust_statuses"] == ["untrusted"]
     assert result["after_trust_statuses"] == ["trusted"]
@@ -2042,9 +2051,13 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         "schema": "evidence-lane.codex-hook-trust.v1",
         "status": "PASS",
         "plugin_selector": selector,
-        "hook_count": 4,
+        "hook_count": 8,
         "registered_events": [
+            "postCompact",
             "postToolUse",
+            "preCompact",
+            "preToolUse",
+            "sessionEnd",
             "sessionStart",
             "stop",
             "userPromptSubmit",
@@ -2058,7 +2071,16 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
                 "trust_status": "trusted",
             }
             for index, event in enumerate(
-                ["postToolUse", "sessionStart", "stop", "userPromptSubmit"],
+                [
+                    "postCompact",
+                    "postToolUse",
+                    "preCompact",
+                    "preToolUse",
+                    "sessionEnd",
+                    "sessionStart",
+                    "stop",
+                    "userPromptSubmit",
+                ],
                 start=1,
             )
         ],

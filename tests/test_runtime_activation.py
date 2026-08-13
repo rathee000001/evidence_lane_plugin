@@ -153,11 +153,15 @@ def _write_active_runtime_and_installation(
     return runtime
 
 
-def test_runtime_hook_status_separates_four_host_dispatches_from_package_events(
+def test_runtime_hook_status_separates_host_dispatches_from_package_events(
     tmp_path: Path,
 ) -> None:
     host_events = [
+        "postCompact",
         "postToolUse",
+        "preCompact",
+        "preToolUse",
+        "sessionEnd",
         "sessionStart",
         "stop",
         "userPromptSubmit",
@@ -180,9 +184,9 @@ def test_runtime_hook_status_separates_four_host_dispatches_from_package_events(
 
     hook_status = runtime.host_hook_status()
     assert hook_status["status"] == "TRUSTED"
-    assert hook_status["hook_count"] == 4
+    assert hook_status["hook_count"] == 8
     assert hook_status["registered_events"] == host_events
-    assert hook_status["host_dispatch_hook_count"] == 4
+    assert hook_status["host_dispatch_hook_count"] == 8
     assert hook_status["host_dispatch_registered_events"] == host_events
     assert hook_status["host_dispatch_trust_status"] == "SEALED_CONFIG_TRUST"
     assert hook_status["package_hook_event_count"] == 8
@@ -207,11 +211,15 @@ def test_runtime_hook_status_separates_four_host_dispatches_from_package_events(
     assert goal["per_input_invocation_proven"] is False
 
 
-def test_runtime_hook_status_accepts_sealed_four_event_package_baseline(
+def test_runtime_hook_status_rejects_sealed_four_event_package_baseline(
     tmp_path: Path,
 ) -> None:
     host_events = [
+        "postCompact",
         "postToolUse",
+        "preCompact",
+        "preToolUse",
+        "sessionEnd",
         "sessionStart",
         "stop",
         "userPromptSubmit",
@@ -228,14 +236,15 @@ def test_runtime_hook_status_accepts_sealed_four_event_package_baseline(
     )
 
     hook_status = runtime.host_hook_status()
-    assert hook_status["status"] == "TRUSTED"
-    assert hook_status["host_dispatch_hook_count"] == 4
+    assert hook_status["status"] == "MISMATCH"
+    assert hook_status["trusted"] is False
+    assert hook_status["host_dispatch_hook_count"] == 8
     assert hook_status["package_hook_event_count"] == 4
-    assert hook_status["package_inventory_status"] == "SEALED"
+    assert hook_status["package_inventory_status"] == "MISMATCH"
     assert hook_status["installed_host_dispatch_independently_proven"] is False
 
 
-def test_runtime_hook_status_rejects_eight_event_host_dispatch_claim(
+def test_runtime_hook_status_accepts_eight_event_host_dispatch_claim(
     tmp_path: Path,
 ) -> None:
     runtime = _write_active_runtime_and_installation(
@@ -263,9 +272,9 @@ def test_runtime_hook_status_rejects_eight_event_host_dispatch_claim(
     )
 
     hook_status = runtime.host_hook_status()
-    assert hook_status["status"] == "MISMATCH"
-    assert hook_status["trusted"] is False
-    assert hook_status["host_dispatch_trust_status"] == "MISMATCH"
+    assert hook_status["status"] == "TRUSTED"
+    assert hook_status["trusted"] is True
+    assert hook_status["host_dispatch_trust_status"] == "SEALED_CONFIG_TRUST"
     assert hook_status["installed_host_dispatch_independently_proven"] is False
 
 

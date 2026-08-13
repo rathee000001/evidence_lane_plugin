@@ -143,23 +143,25 @@ then redraws all canonical Plan rows through host `update_plan`. Hook-side
 SQLite lookup, a lifecycle warning, or an embedded full-row payload is not a
 substitute and is prohibited.
 
-All four lifecycle adapters resolve one shared durable Evidence Lane authority:
+All eight registered lifecycle events resolve one shared durable Evidence Lane
+authority through six command handlers:
 the explicitly configured `EVIDENCE_LANE_DATA_ROOT`, otherwise the user-owned
 `~/EvidenceLanePV`. Codex injects `PLUGIN_DATA` separately for each plugin
 selector; that directory is installation-private and is never project, session,
 PV, PromptIndex, ChatLineage, Plan, or Delta authority. A stable or fallback
 selector therefore cannot silently create a parallel Evidence Lane state tree.
 
-The installed inventory reports hook concepts separately: four registered
-events and handlers, five package files including `hooks.json`, and the exact
-event names. It does not label a configuration file as an additional hook.
+The installed inventory reports hook concepts separately: eight registered
+events, six command handlers, seven package files including `hooks.json`, and
+the exact event names. It does not label a configuration file as an additional
+hook.
 The skill count remains fifteen until a genuinely distinct workflow is added;
 version changes alone do not manufacture a new skill.
 
 Installation and runtime activation are separate facts. An active governed
 session means prompt/response capture is configured; `runtime_activation_status`
 reports capture as actually active only when the current installation receipt
-also proves the exact selector's four trusted hook hashes. A changed build must
+also proves the exact selector's eight trusted hook hashes. A changed build must
 reuse that selector; selector growth or missing hook proof is a failure.
 
 Each installation keeps an immutable archive-hash receipt and refreshes only

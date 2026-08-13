@@ -108,7 +108,7 @@ Windows-logon recovery manager for exact governed Codex Goal tasks.
    `--release-authority-receipt-sha256`, the exact Codex executable, and the
    governed `--hook-cwd`. The installer uses
    Codex's supported plugin commands, `hooks/list`, and `config/batchWrite`; it
-   trusts only the exact installed selector's four current hook hashes and
+   trusts only the exact installed selector's eight current hook hashes and
    never writes the generated cache directly. The one permitted legacy update
    migrates the old mutable selector to
    `evidence-lane-plugin@evidence-lane-github`; every later update reinstalls

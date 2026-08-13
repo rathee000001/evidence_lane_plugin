@@ -349,7 +349,7 @@ Focused release checks live under `tests/` and the reusable Code-mode action at
 | `plugins/evidence-lane-plugin/.mcp.json` | Package-local native MCP launch contract |
 | `plugins/evidence-lane-plugin/src/evidence_lane_plugin/` | Lifecycle engine and native server |
 | `plugins/evidence-lane-plugin/skills/` | Fifteen governed skills |
-| `plugins/evidence-lane-plugin/hooks/` | Four hook events and their handlers |
+| `plugins/evidence-lane-plugin/hooks/` | Eight lifecycle events across six command handlers |
 | `plugins/evidence-lane-plugin/scripts/codex_release/` | Deterministic package install, restart, and acceptance checks |
 | `docs/` | Current Codex architecture, runbooks, security, and provenance |
 | `tests/` | Unit, integration, package, and contract verification |

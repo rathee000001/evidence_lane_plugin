@@ -160,7 +160,11 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
 INSTALL_SCHEMA = "evidence-lane.codex-stable-installation.v2"
 HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
 EXPECTED_CODEX_HOST_HOOK_EVENTS = {
+    "postCompact",
     "postToolUse",
+    "preCompact",
+    "preToolUse",
+    "sessionEnd",
     "sessionStart",
     "stop",
     "userPromptSubmit",
@@ -1744,7 +1748,7 @@ def _trust_sealed_plugin_hooks(
     hook_cwd: Path,
     plugin_selector: str,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Trust only the exact installed selector's four current hook hashes.
+    """Trust only the exact installed selector's eight current hook hashes.
 
     Codex intentionally treats each cache-busted plugin selector as a new hook
     authority.  Merely installing and enabling the plugin therefore does not
@@ -1853,7 +1857,7 @@ def _trust_sealed_plugin_hooks(
         events = {str(row.get("eventName") or "") for row in hooks}
         keys = [str(row.get("key") or "") for row in hooks]
         if (
-            len(hooks) != 4
+            len(hooks) != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
             or events != EXPECTED_CODEX_HOST_HOOK_EVENTS
             or len(keys) != len(set(keys))
             or any(
@@ -1872,7 +1876,7 @@ def _trust_sealed_plugin_hooks(
             )
         ):
             raise InstallationError(
-                "The exact installed selector's four-hook authority drifted."
+                "The exact installed selector's eight-hook authority drifted."
             )
         return sorted(hooks, key=lambda row: str(row["eventName"]))
 
@@ -2811,7 +2815,7 @@ def _parser() -> argparse.ArgumentParser:
         "--trust-sealed-hooks",
         action="store_true",
         help=(
-            "Trust exactly the installed selector's four current hook hashes "
+            "Trust exactly the installed selector's eight current hook hashes "
             "through Codex hooks/list plus config/batchWrite. Required with --activate."
         ),
     )

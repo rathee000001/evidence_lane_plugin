@@ -2,7 +2,7 @@
   "corpus": {
     "boundary": "the exact prior public source manifest re-read from current local bytes plus frozen, previously sealed ancestor Git chunks; no Git command is invoked; generated proof binaries, retrieval self-inputs, private session flash, runtime state, brains, and secrets are excluded",
     "chunk_count": 2536,
-    "sha256": "620F5B574FA1B61C152A3FC949A12B1FC630F9F835E7421ECA3F7C6BD110DFE8",
+    "sha256": "CCD126ADAF65ABFECED6BEF7C28241FB7B10600FC1F256E9E06284A6B1757157",
     "source_count": 333
   },
   "history_commit_count": 127,
@@ -10,14 +10,14 @@
   "history_through_sha": "be8f28e97f4279853bd55a2a6945f1e96d3b778e",
   "outputs": {
     "browser_json": {
-      "bytes": 12391900,
+      "bytes": 12392821,
       "path": "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json",
-      "sha256": "E2A290B18605FA86A79B61F8C188193BC1664D13F8CD6FECE8560B86AFD32B86"
+      "sha256": "3A55146CF80FC1C8B5A25B80789D48EADC9044612EBEBFECB8FF9B339B67B9F7"
     },
     "sqlite": {
       "bytes": 16568320,
       "path": "plugins/evidence-lane-plugin/evidence/prompt_studio/studio_search.sqlite",
-      "sha256": "64D880613AD84310F8ED84D88A480985C57F818EFFDDD722419D3E1CC016B289"
+      "sha256": "E98E7775E46E2A381BF29AB65AADD01D2E87666F1CE73904119F219B1F82B903"
     }
   },
   "release": "2.1.0",

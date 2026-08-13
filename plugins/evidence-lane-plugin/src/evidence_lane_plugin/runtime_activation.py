@@ -15,7 +15,11 @@ from .timeutil import utc_now
 RUNTIME_ACTIVATION_SCHEMA = "evidence-lane.runtime-activation.v1"
 HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
 _EXPECTED_HOST_DISPATCH_TO_PACKAGE_EVENTS = {
+    "postCompact": "PostCompact",
     "postToolUse": "PostToolUse",
+    "preCompact": "PreCompact",
+    "preToolUse": "PreToolUse",
+    "sessionEnd": "SessionEnd",
     "sessionStart": "SessionStart",
     "stop": "Stop",
     "userPromptSubmit": "UserPromptSubmit",

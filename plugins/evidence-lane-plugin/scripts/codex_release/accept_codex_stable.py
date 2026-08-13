@@ -28,7 +28,11 @@ MARKETPLACE_DISPLAY_NAME = "GitLane Stable 2.1"
 PLUGIN_SELECTOR = f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"
 HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
 EXPECTED_CODEX_HOST_HOOK_EVENTS = {
+    "postCompact",
     "postToolUse",
+    "preCompact",
+    "preToolUse",
+    "sessionEnd",
     "sessionStart",
     "stop",
     "userPromptSubmit",
@@ -831,9 +835,10 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         or hook_trust.get("schema") != HOOK_TRUST_SCHEMA
         or hook_trust.get("status") != "PASS"
         or hook_trust.get("plugin_selector") != exact_selector
-        or hook_trust.get("hook_count") != 4
+        or hook_trust.get("hook_count")
+        != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
         or hook_events != EXPECTED_CODEX_HOST_HOOK_EVENTS
-        or len(hook_records) != 4
+        or len(hook_records) != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
         or len(hook_keys) != len(set(hook_keys))
         or hook_trust.get("after_trust_statuses") != ["trusted"]
         or hook_trust_sha256
@@ -948,7 +953,7 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         "hook_trust_receipt_sha256": hook_trust_sha256,
         "hook_trust": {
             "status": "PASS",
-            "hook_count": 4,
+            "hook_count": len(EXPECTED_CODEX_HOST_HOOK_EVENTS),
             "registered_events": sorted(EXPECTED_CODEX_HOST_HOOK_EVENTS),
             "after_trust_statuses": ["trusted"],
             "selector": exact_selector,
