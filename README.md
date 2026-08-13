@@ -135,6 +135,10 @@ The Codex task panel and its active change notice are one continuity pair:
   and skill inventory;
 - both rehydrate from durable Plan and Chat Lineage state after the exact task
   is reopened;
+- a row advances only through an acceptance-backed checkpoint from current-run
+  test or build evidence covering that row's exact acceptance contract; the
+  transition changes only the Plan backlog and never creates a candidate,
+  infers HIL, or moves the accepted PV pointer;
 - the plugin emits only supported hook output and does not claim ownership of
   host UI placement.
 

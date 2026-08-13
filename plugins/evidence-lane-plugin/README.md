@@ -191,6 +191,15 @@ from the sealed turn ledger, and recognizes a Goal only from the native
 PREPARE receipt. After a steer appends a Delta, `PostToolUse` separately
 refreshes the same persistent Goal step list and CURRENT CHANGE panel.
 
+Moving from the active row to its queued successor is a separate, fail-closed
+checkpoint. The current run must contain one sealed `task.test.output` or
+`task.build.output` event whose checks exactly equal the active row's native
+acceptance contract. The checkpoint binds that event to the exact task,
+session, accepted pointer, and installed plugin, marks only the active Plan row
+done, and activates only the requested queued successor. It never creates a
+candidate, infers HIL, or moves the accepted PV pointer; missing or mismatched
+evidence leaves the active row unchanged.
+
 The change display reports the active task, linked Delta IDs, source/install/
 runtime version, activation and Refresh state, catalog counts, hook inventory,
 and skill inventory. Codex owns the final UI placement, so visible placement and

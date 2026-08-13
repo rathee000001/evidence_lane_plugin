@@ -3326,10 +3326,19 @@ class SessionManager:
         proof_body = {
             key: value for key, value in proof.items() if key != "receipt_sha256"
         }
-        require(
-            bool(verification_kind)
+        exact_binding_proof = (
+            verification_kind == "EXACT_TASK_PROJECT_SESSION_BINDING"
             and proof.get("schema")
             == "evidence-lane.codex-exact-task-project-session-binding.v1"
+        )
+        acceptance_proof = (
+            verification_kind == "ACTIVE_TASK_ACCEPTANCE"
+            and proof.get("schema")
+            == "evidence-lane.active-task-acceptance-checkpoint.v1"
+        )
+        require(
+            bool(verification_kind)
+            and (exact_binding_proof or acceptance_proof)
             and proof.get("status") == "PASS"
             and proof.get("project_id") == project_id
             and proof.get("evidence_session_id") == session_id
@@ -3359,6 +3368,36 @@ class SessionManager:
             verification_kind=verification_kind,
             proof_error=proof.get("error"),
         )
+        backlog = self.store.backlog_status(project_id)
+        completed_task = next(
+            (
+                row
+                for row in backlog["tasks"]
+                if row.get("task_id") == completed_backlog_task_id
+            ),
+            None,
+        )
+        if acceptance_proof:
+            acceptance = proof.get("acceptance_contract")
+            evidence = proof.get("acceptance_evidence")
+            require(
+                isinstance(completed_task, dict)
+                and isinstance(acceptance, dict)
+                and acceptance.get("checks")
+                == completed_task.get("acceptance_checks")
+                and acceptance.get("checks_sha256")
+                == sha256_bytes(
+                    canonical_json_bytes(completed_task.get("acceptance_checks"))
+                )
+                and isinstance(evidence, dict)
+                and evidence.get("event_type")
+                in {"task.test.output", "task.build.output"}
+                and len(str(evidence.get("event_sha256") or "")) == 64
+                and len(str(evidence.get("visible_payload_sha256") or "")) == 64,
+                "TASK_CHECKPOINT_ADVANCE_ACCEPTANCE_MISMATCH",
+                "The checkpoint proof does not cover the active task's exact acceptance contract.",
+                status="MISMATCH",
+            )
         require(
             session.state == SessionState.TASK_CLASSIFIED
             and session.candidate_id is None
@@ -3446,7 +3485,6 @@ class SessionManager:
             status="MISMATCH",
         )
 
-        backlog = self.store.backlog_status(project_id)
         goal = cast(dict[str, Any], backlog["goal_projection"])
         rows = cast(list[dict[str, Any]], goal["rows"])
         numbers = [int(row["number"]) for row in rows]
@@ -3736,10 +3774,11 @@ class SessionManager:
         )
         task_checkpoint_advance_requested = (
             session.state == SessionState.TASK_CLASSIFIED
-            and active_backlog_task_id
-            == _EXACT_TASK_PROJECT_SESSION_BINDING_TASK_ID
+            and bool(active_backlog_task_id)
             and bool(backlog_task_id)
             and backlog_task_id != active_backlog_task_id
+            and active_backlog_task_id != _FALLBACK_PREWARM_TASK_ID
+            and isinstance(_task_checkpoint_proof, dict)
         )
         deterministic_task_id: str | None = None
         if state_travel_advance_requested or state_travel_advance_replay_requested:
@@ -3881,13 +3920,22 @@ class SessionManager:
                 )
             )
         if task_checkpoint_advance_requested:
+            proof_schema = str((_task_checkpoint_proof or {}).get("schema") or "")
+            verification_kind = (
+                "EXACT_TASK_PROJECT_SESSION_BINDING"
+                if proof_schema
+                == "evidence-lane.codex-exact-task-project-session-binding.v1"
+                else str(
+                    (_task_checkpoint_proof or {}).get("verification_kind") or ""
+                )
+            )
             task_checkpoint_advance = self._verify_task_checkpoint_advance(
                 project_id,
                 session_id,
                 completed_backlog_task_id=active_backlog_task_id,
                 replacement_backlog_task_id=cast(str, backlog_task_id),
                 replacement_task=task,
-                verification_kind="EXACT_TASK_PROJECT_SESSION_BINDING",
+                verification_kind=verification_kind,
                 verification_proof=_task_checkpoint_proof,
                 native_route_receipt=_native_route_receipt,
                 installed_surface_inventory=_installed_surface_inventory,

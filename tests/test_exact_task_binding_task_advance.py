@@ -10,6 +10,7 @@ from .conftest import build_and_approve_pv1
 
 EXACT_BINDING_TASK_ID = "EL-CODEX-EXACT_TASK_PROJECT_SESSION_BINDING-PROPOSAL-03"
 PREPARE_TASK_ID = "EL-CODEX-TURN_PREPARE_CAPTURE-PROPOSAL-04"
+CLASSIFY_TASK_ID = "EL-CODEX-TURN_CLASSIFY_DELTA_BIND-PROPOSAL-05"
 
 
 def _native_route_receipt() -> dict[str, Any]:
@@ -85,6 +86,56 @@ def _exact_binding_proof(service, session_id: str) -> dict[str, Any]:
         "pointer_moved": False,
         "hil_inferred": False,
         "sealed_at": "2026-08-12T09:40:00Z",
+    }
+    return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
+
+
+def _acceptance_proof(
+    service, session_id: str, event: dict[str, Any]
+) -> dict[str, Any]:
+    binding = _exact_binding_proof(service, session_id)
+    backlog = service.task_backlog("book-faires")
+    active = backlog["active"][0]
+    checks = active["acceptance_checks"]
+    session = service.sessions.load("book-faires", session_id)
+    body = {
+        "schema": "evidence-lane.active-task-acceptance-checkpoint.v1",
+        "status": "PASS",
+        "verification_kind": "ACTIVE_TASK_ACCEPTANCE",
+        "project_id": "book-faires",
+        "evidence_session_id": session_id,
+        "governed_host_session_id": session.metadata["current_host_session_id"],
+        "active_plan_row": binding["active_plan_row"],
+        "accepted_pointer": binding["accepted_pointer"],
+        "running_plugin": binding["running_plugin"],
+        "runtime_task_id": session.task["task_id"],
+        "run_id": session.metadata["run_id"],
+        "acceptance_contract": {
+            "checks": checks,
+            "checks_sha256": sha256_bytes(canonical_json_bytes(checks)),
+        },
+        "acceptance_evidence": {
+            key: event.get(key)
+            for key in (
+                "event_id",
+                "event_type",
+                "occurred_at",
+                "lineage_index",
+                "visible_payload_sha256",
+                "event_sha256",
+            )
+        },
+        "exact_binding_receipt_sha256": binding["receipt_sha256"],
+        "identity_basis": (
+            "EXACT_CODEX_TASK_BINDING_PLUS_CURRENT_RUN_ACCEPTANCE_ACTIVITY"
+        ),
+        "task_title_used": False,
+        "cwd_used": False,
+        "candidate_created": False,
+        "pending_hil": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+        "sealed_at": event["occurred_at"],
     }
     return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
 
@@ -190,3 +241,99 @@ def test_exact_binding_checkpoint_advances_without_candidate_and_replays(
     assert replay["task_checkpoint_advance"]["idempotent_reuse"] is True
     assert service.task_backlog("book-faires")["event_count"] == backlog["event_count"]
     assert service.store.pointer("book-faires").as_dict() == pointer_before
+
+
+def test_acceptance_checkpoint_advances_first_queued_without_hil(service) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    prepare = {
+        "task_id": PREPARE_TASK_ID,
+        "task_class": "fix_bug",
+        "requested_outcome": "Prepare and index every visible prompt before reasoning.",
+        "permitted_paths": ["src/app.py"],
+        "permitted_tools": ["repository_write", "test"],
+        "acceptance_checks": ["Every visible prompt has one PREPARE receipt."],
+        "stop_condition": "Stop after PREPARE proof.",
+    }
+    successor = {
+        "task_id": CLASSIFY_TASK_ID,
+        "task_class": "add_bounded_feature",
+        "requested_outcome": "Classify every governed turn deterministically.",
+        "permitted_paths": ["src/app.py"],
+        "permitted_tools": ["repository_write", "test"],
+        "acceptance_checks": ["Every governed turn resolves deterministically."],
+        "stop_condition": "Stop after classifier proof.",
+    }
+    final_hil = {
+        "task_id": "physically-final-hil-row",
+        "task_class": "verify_result",
+        "requested_outcome": "Present the physically final HIL.",
+        "permitted_paths": [],
+        "permitted_tools": ["repository_read"],
+        "acceptance_checks": ["Every predecessor passed."],
+        "stop_condition": "Stop at HIL.",
+        "panel_role": "PHYSICALLY_FINAL_HIL",
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[prepare, successor, final_hil],
+        planned_by="human-test",
+        plan_id="acceptance-checkpoint-plan",
+    )
+    classified = service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=prepare["task_class"],
+        requested_outcome=prepare["requested_outcome"],
+        permitted_paths=prepare["permitted_paths"],
+        permitted_tools=prepare["permitted_tools"],
+        acceptance_checks=prepare["acceptance_checks"],
+        stop_condition=prepare["stop_condition"],
+        backlog_task_id=prepare["task_id"],
+    )
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["current_host_session_id"] = "acceptance-checkpoint-host"
+    session.metadata["active_backlog_task_status"] = "ACTIVE"
+    service.sessions._save(session)
+    activity = service.sessions.record_activity(
+        "book-faires",
+        session_id,
+        activity_type="test.output",
+        event_id="row-prepare-acceptance",
+        visible_payload={
+            "active_task_id": PREPARE_TASK_ID,
+            "acceptance_checks": prepare["acceptance_checks"],
+            "result": "PASS",
+            "candidate_created": False,
+            "pending_hil": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        },
+    )["event"]
+    pointer_before = service.store.pointer("book-faires").as_dict()
+    proof = _acceptance_proof(service, session_id, activity)
+    advanced = service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=successor["task_class"],
+        requested_outcome=successor["requested_outcome"],
+        permitted_paths=successor["permitted_paths"],
+        permitted_tools=successor["permitted_tools"],
+        acceptance_checks=successor["acceptance_checks"],
+        stop_condition=successor["stop_condition"],
+        backlog_task_id=successor["task_id"],
+        _native_route_receipt=_native_route_receipt(),
+        _installed_surface_inventory=package_surface_inventory(),
+        _project_panel_snapshot=_project_panel(service),
+        _task_checkpoint_proof=proof,
+    )
+    receipt = advanced["task_checkpoint_advance"]["receipt"]
+    assert receipt["verification_kind"] == "ACTIVE_TASK_ACCEPTANCE"
+    assert receipt["prior_runtime_task_id"] == classified["task"]["task_id"]
+    assert receipt["candidate_created"] is False
+    assert receipt["pending_hil"] is False
+    assert receipt["pointer_moved"] is False
+    assert receipt["hil_inferred"] is False
+    assert service.store.pointer("book-faires").as_dict() == pointer_before
+    backlog = service.task_backlog("book-faires")
+    assert backlog["counts"] == {"ACTIVE": 1, "DONE": 1, "QUEUED": 1}
+    assert backlog["active"][0]["task_id"] == CLASSIFY_TASK_ID

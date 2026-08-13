@@ -2090,6 +2090,159 @@ def seal_exact_task_project_session_binding(
     return receipt
 
 
+def seal_active_task_acceptance_checkpoint(
+    root: str | Path,
+    *,
+    project_id: str,
+    evidence_session_id: str,
+    expected_active_task_id: str,
+) -> dict[str, Any]:
+    """Seal one acceptance-backed, candidate-free active-task checkpoint."""
+
+    exact_root = Path(root).resolve()
+    project_root = exact_root / "projects" / project_id
+    session_path = project_root / "sessions" / f"{evidence_session_id}.json"
+    backlog_path = project_root / "task_backlog.json"
+    _require(
+        session_path.is_file() and backlog_path.is_file(),
+        "CODEX_TASK_CHECKPOINT_AUTHORITY_REQUIRED",
+        "The active session and Plan authority are required for checkpoint sealing.",
+    )
+    session = _json(session_path)
+    backlog = _json(backlog_path)
+    metadata = dict(session.get("metadata") or {})
+    runtime_task = dict(session.get("task") or {})
+    runtime_task_id = str(runtime_task.get("task_id") or "").strip()
+    run_id = str(metadata.get("run_id") or "").strip()
+    active_rows = [
+        dict(row)
+        for row in backlog.get("tasks") or []
+        if isinstance(row, dict) and row.get("status") == "ACTIVE"
+    ]
+    _require(
+        len(active_rows) == 1
+        and active_rows[0].get("task_id") == expected_active_task_id
+        and metadata.get("active_backlog_task_id") == expected_active_task_id
+        and metadata.get("active_backlog_task_status") == "ACTIVE"
+        and bool(runtime_task_id)
+        and bool(run_id),
+        "CODEX_TASK_CHECKPOINT_ACTIVE_ROW_MISMATCH",
+        "Exactly one active Plan row and current runtime task must match the checkpoint.",
+        expected_active_task_id=expected_active_task_id,
+    )
+    active_task = active_rows[0]
+    acceptance_checks = [
+        str(value).strip()
+        for value in active_task.get("acceptance_checks") or []
+        if str(value).strip()
+    ]
+    _require(
+        bool(acceptance_checks),
+        "CODEX_TASK_CHECKPOINT_ACCEPTANCE_REQUIRED",
+        "The active Plan row has no exact acceptance contract to verify.",
+    )
+
+    lineage_path = project_root / "lineage" / f"{evidence_session_id}.jsonl"
+    events = ChatLineage(lineage_path).events()
+    matching: list[dict[str, Any]] = []
+    for event in events:
+        if (
+            event.get("session_id") != evidence_session_id
+            or event.get("task_id") != runtime_task_id
+            or event.get("run_id") != run_id
+            or event.get("event_type")
+            not in {"task.test.output", "task.build.output"}
+        ):
+            continue
+        payload = dict(event.get("visible_payload") or {})
+        covered = payload.get("acceptance_checks")
+        if not isinstance(covered, list):
+            singular = str(payload.get("acceptance_check") or "").strip()
+            covered = [singular] if singular else []
+        exact_covered = [str(value).strip() for value in covered if str(value).strip()]
+        if (
+            payload.get("active_task_id", payload.get("task_id"))
+            == expected_active_task_id
+            and payload.get("result") == "PASS"
+            and exact_covered == acceptance_checks
+            and payload.get("candidate_created") is False
+            and payload.get("pending_hil") is False
+            and payload.get("pointer_moved") is False
+            and payload.get("hil_inferred") is False
+        ):
+            matching.append(event)
+    _require(
+        bool(matching),
+        "CODEX_TASK_CHECKPOINT_ACCEPTANCE_EVIDENCE_REQUIRED",
+        "No current-run activity proves the active row's complete acceptance contract.",
+        expected_active_task_id=expected_active_task_id,
+        acceptance_checks=acceptance_checks,
+    )
+    evidence = matching[-1]
+    binding = seal_exact_task_project_session_binding(
+        exact_root,
+        project_id=project_id,
+        evidence_session_id=evidence_session_id,
+        expected_active_task_id=expected_active_task_id,
+    )
+    receipt_body = {
+        "schema": "evidence-lane.active-task-acceptance-checkpoint.v1",
+        "status": "PASS",
+        "verification_kind": "ACTIVE_TASK_ACCEPTANCE",
+        "project_id": project_id,
+        "evidence_session_id": evidence_session_id,
+        "governed_host_session_id": binding["governed_host_session_id"],
+        "active_plan_row": binding["active_plan_row"],
+        "accepted_pointer": binding["accepted_pointer"],
+        "running_plugin": binding["running_plugin"],
+        "runtime_task_id": runtime_task_id,
+        "run_id": run_id,
+        "acceptance_contract": {
+            "checks": acceptance_checks,
+            "checks_sha256": sha256_bytes(canonical_json_bytes(acceptance_checks)),
+        },
+        "acceptance_evidence": {
+            key: evidence.get(key)
+            for key in (
+                "event_id",
+                "event_type",
+                "occurred_at",
+                "lineage_index",
+                "visible_payload_sha256",
+                "event_sha256",
+            )
+        },
+        "exact_binding_receipt_sha256": binding["receipt_sha256"],
+        "identity_basis": "EXACT_CODEX_TASK_BINDING_PLUS_CURRENT_RUN_ACCEPTANCE_ACTIVITY",
+        "task_title_used": False,
+        "cwd_used": False,
+        "candidate_created": False,
+        "pending_hil": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+        "sealed_at": evidence["occurred_at"],
+    }
+    receipt = {
+        **receipt_body,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+    }
+    receipt_path = (
+        project_root
+        / "receipts"
+        / "task-checkpoints"
+        / f"{str(evidence['event_sha256'])[:32].lower()}.json"
+    )
+    if receipt_path.is_file():
+        _require(
+            _json(receipt_path) == receipt,
+            "CODEX_TASK_CHECKPOINT_RECEIPT_CONFLICT",
+            "The acceptance event already seals different checkpoint bytes.",
+        )
+    else:
+        atomic_write_json(receipt_path, receipt)
+    return receipt
+
+
 def _warm_attach_receipt(
     root: Path,
     *,

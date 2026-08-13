@@ -31,6 +31,7 @@ from .auth import (
 from .codex_turn_control import (
     TurnControlError,
     package_surface_inventory,
+    seal_active_task_acceptance_checkpoint,
     seal_exact_task_project_session_binding,
     verify_codex_fallback_prewarmer,
 )
@@ -1856,6 +1857,9 @@ def create_mcp_server(
         active_session = application.sessions.load(project_id, session_id)
         fallback_prewarm_proof: dict[str, Any] | None = None
         task_checkpoint_proof: dict[str, Any] | None = None
+        active_backlog_task_id = str(
+            active_session.metadata.get("active_backlog_task_id") or ""
+        ).strip()
         if (
             active_session.metadata.get("active_backlog_task_id")
             == "EL-CODEX-PV11-FALLBACK-SLOT-INSTALL-PREWARM-DELTA-149"
@@ -1873,7 +1877,7 @@ def create_mcp_server(
                     "error": exc.as_dict(),
                 }
         if (
-            active_session.metadata.get("active_backlog_task_id")
+            active_backlog_task_id
             == "EL-CODEX-EXACT_TASK_PROJECT_SESSION_BINDING-PROPOSAL-03"
         ):
             try:
@@ -1891,6 +1895,27 @@ def create_mcp_server(
                         "evidence-lane.codex-exact-task-project-session-binding.v1"
                     ),
                     "status": "FAIL",
+                    "error": exc.as_dict(),
+                }
+        elif (
+            bool(backlog_task_id)
+            and bool(active_backlog_task_id)
+            and backlog_task_id != active_backlog_task_id
+            and active_backlog_task_id
+            != "EL-CODEX-PV11-FALLBACK-SLOT-INSTALL-PREWARM-DELTA-149"
+        ):
+            try:
+                task_checkpoint_proof = seal_active_task_acceptance_checkpoint(
+                    application.store.root,
+                    project_id=project_id,
+                    evidence_session_id=session_id,
+                    expected_active_task_id=active_backlog_task_id,
+                )
+            except TurnControlError as exc:
+                task_checkpoint_proof = {
+                    "schema": "evidence-lane.active-task-acceptance-checkpoint.v1",
+                    "status": "FAIL",
+                    "verification_kind": "ACTIVE_TASK_ACCEPTANCE",
                     "error": exc.as_dict(),
                 }
         else:
