@@ -35,8 +35,10 @@ GOAL_RECOVERY = (
 )
 ACCEPTANCE = PLUGIN / "scripts" / "codex_release" / "accept_codex_stable.py"
 HOOK_NOTICE_MARKERS = {
+    "lifecycle_boundary.py": "EVIDENCE_LANE_LIFECYCLE_BOUNDARY=",
     "session_start.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_NOTICE=",
     "prompt_submit.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=",
+    "pre_tool_use.py": "EVIDENCE_LANE_PRE_TOOL_USE=",
     "post_tool_use.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_TOOL_PROJECTION=",
     "stop_response.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=",
 }
@@ -334,13 +336,12 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                 "hooks": {
                     "SessionStart": [{"hooks": [{"type": "command"}]}],
                     "UserPromptSubmit": [{"hooks": [{"type": "command"}]}],
-                    "PostToolUse": [
-                        {
-                            "matcher": "mcp__evidence_lane__pv_plan_steer_delta",
-                            "hooks": [{"type": "command"}],
-                        }
-                    ],
+                    "PreToolUse": [{"hooks": [{"type": "command"}]}],
+                    "PostToolUse": [{"hooks": [{"type": "command"}]}],
+                    "PreCompact": [{"hooks": [{"type": "command"}]}],
+                    "PostCompact": [{"hooks": [{"type": "command"}]}],
                     "Stop": [{"hooks": [{"type": "command"}]}],
+                    "SessionEnd": [{"hooks": [{"type": "command"}]}],
                 }
             }
         ),
@@ -601,14 +602,18 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
     assert result["two_slot_operator_packaged"] is True
     assert result["credential_requested_or_stored"] is False
     assert result["surface_change_display"]["state"] == "INITIAL_V2_BASELINE"
-    assert result["surface_change_display"]["hooks"]["count"] == 4
+    assert result["surface_change_display"]["hooks"]["count"] == 8
     assert result["surface_change_display"]["hooks"]["count_semantics"] == (
         "REGISTERED_EVENT_COUNT"
     )
-    assert result["surface_change_display"]["hooks"]["hook_file_count"] == 5
-    assert result["surface_change_display"]["hooks"]["handler_count"] == 4
+    assert result["surface_change_display"]["hooks"]["hook_file_count"] == 7
+    assert result["surface_change_display"]["hooks"]["handler_count"] == 8
     assert result["surface_change_display"]["hooks"]["registered_events"] == [
+        "PostCompact",
         "PostToolUse",
+        "PreCompact",
+        "PreToolUse",
+        "SessionEnd",
         "SessionStart",
         "Stop",
         "UserPromptSubmit",
@@ -1510,10 +1515,18 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
     source = tmp_path / "source"
     prior_source = tmp_path / "prior-source"
     shutil.copytree(source, prior_source)
-    (prior_source / "hooks" / "post_tool_use.py").unlink()
+    for name in ("lifecycle_boundary.py", "post_tool_use.py", "pre_tool_use.py"):
+        (prior_source / "hooks" / name).unlink()
     prior_hooks_path = prior_source / "hooks" / "hooks.json"
     prior_hooks = json.loads(prior_hooks_path.read_text(encoding="utf-8"))
-    del prior_hooks["hooks"]["PostToolUse"]
+    for event in (
+        "PostCompact",
+        "PostToolUse",
+        "PreCompact",
+        "PreToolUse",
+        "SessionEnd",
+    ):
+        del prior_hooks["hooks"][event]
     prior_hooks_path.write_text(json.dumps(prior_hooks), encoding="utf-8")
     prior_version = "2.0.0+codex.host-stable"
     prior_manifest_path = prior_source / ".codex-plugin" / "plugin.json"
@@ -1602,10 +1615,16 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
         prior_version
     )
     assert preflight["surface_change_display"]["hooks"]["added_events"] == [
-        "PostToolUse"
+        "PostCompact",
+        "PostToolUse",
+        "PreCompact",
+        "PreToolUse",
+        "SessionEnd",
     ]
     assert preflight["surface_change_display"]["hooks"]["added_files"] == [
-        "post_tool_use.py"
+        "lifecycle_boundary.py",
+        "post_tool_use.py",
+        "pre_tool_use.py",
     ]
     assert preflight["comparison_baseline"]["surface_enrichment"] == (
         "VERIFIED_ARCHIVED_MARKETPLACE_EVENT_INVENTORY"
@@ -1976,13 +1995,12 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
                 "hooks": {
                     "SessionStart": [{"hooks": [{"type": "command"}]}],
                     "UserPromptSubmit": [{"hooks": [{"type": "command"}]}],
-                    "PostToolUse": [
-                        {
-                            "matcher": "mcp__evidence_lane__pv_plan_steer_delta",
-                            "hooks": [{"type": "command"}],
-                        }
-                    ],
+                    "PreToolUse": [{"hooks": [{"type": "command"}]}],
+                    "PostToolUse": [{"hooks": [{"type": "command"}]}],
+                    "PreCompact": [{"hooks": [{"type": "command"}]}],
+                    "PostCompact": [{"hooks": [{"type": "command"}]}],
                     "Stop": [{"hooks": [{"type": "command"}]}],
+                    "SessionEnd": [{"hooks": [{"type": "command"}]}],
                 }
             }
         ),

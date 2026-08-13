@@ -159,11 +159,21 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
 }
 INSTALL_SCHEMA = "evidence-lane.codex-stable-installation.v2"
 HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
-EXPECTED_CODEX_HOOK_EVENTS = {
+EXPECTED_CODEX_HOST_HOOK_EVENTS = {
     "postToolUse",
     "sessionStart",
     "stop",
     "userPromptSubmit",
+}
+EXPECTED_PACKAGE_HOOK_EVENTS = {
+    "PostCompact",
+    "PostToolUse",
+    "PreCompact",
+    "PreToolUse",
+    "SessionEnd",
+    "SessionStart",
+    "Stop",
+    "UserPromptSubmit",
 }
 
 
@@ -283,6 +293,17 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
                 "post_tool_use.py",
                 "session_start.py",
                 "prompt_submit.py",
+                "stop_response.py",
+            }
+        ),
+        frozenset(
+            {
+                "hooks.json",
+                "lifecycle_boundary.py",
+                "post_tool_use.py",
+                "pre_tool_use.py",
+                "prompt_submit.py",
+                "session_start.py",
                 "stop_response.py",
             }
         ),
@@ -1104,12 +1125,11 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     )
     post_groups = hook_events.get("PostToolUse") or []
     post_matcher = str(post_groups[0].get("matcher") or "") if post_groups else ""
-    if set(hook_events) != {
-        "SessionStart",
-        "UserPromptSubmit",
-        "PostToolUse",
-        "Stop",
-    } or handler_count != 4 or "pv_plan_steer_delta" not in post_matcher:
+    if (
+        set(hook_events) != EXPECTED_PACKAGE_HOOK_EVENTS
+        or handler_count != len(EXPECTED_PACKAGE_HOOK_EVENTS)
+        or post_matcher
+    ):
         raise InstallationError("The persistent hook event set drifted.")
     persistent_notice_markers = {
         "session_start.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_NOTICE=",
@@ -1834,7 +1854,7 @@ def _trust_sealed_plugin_hooks(
         keys = [str(row.get("key") or "") for row in hooks]
         if (
             len(hooks) != 4
-            or events != EXPECTED_CODEX_HOOK_EVENTS
+            or events != EXPECTED_CODEX_HOST_HOOK_EVENTS
             or len(keys) != len(set(keys))
             or any(
                 row.get("source") != "plugin"
@@ -2029,7 +2049,7 @@ def _trust_sealed_plugin_hooks(
             "status": "PASS",
             "plugin_selector": plugin_selector,
             "hook_count": len(records),
-            "registered_events": sorted(EXPECTED_CODEX_HOOK_EVENTS),
+            "registered_events": sorted(EXPECTED_CODEX_HOST_HOOK_EVENTS),
             "records": records,
             "before_trust_statuses": before_statuses,
             "after_trust_statuses": ["trusted"],

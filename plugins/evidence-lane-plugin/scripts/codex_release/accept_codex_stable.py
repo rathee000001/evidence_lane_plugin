@@ -27,11 +27,21 @@ MARKETPLACE_NAME = "evidence-lane-github"
 MARKETPLACE_DISPLAY_NAME = "GitLane Stable 2.1"
 PLUGIN_SELECTOR = f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"
 HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
-EXPECTED_CODEX_HOOK_EVENTS = {
+EXPECTED_CODEX_HOST_HOOK_EVENTS = {
     "postToolUse",
     "sessionStart",
     "stop",
     "userPromptSubmit",
+}
+EXPECTED_PACKAGE_HOOK_EVENTS = {
+    "PostCompact",
+    "PostToolUse",
+    "PreCompact",
+    "PreToolUse",
+    "SessionEnd",
+    "SessionStart",
+    "Stop",
+    "UserPromptSubmit",
 }
 EXPECTED_CATALOG = {"tools": 62, "read": 21, "write": 41, "skills": 15}
 EXPECTED_BEHAVIOR_OWNERSHIP = {
@@ -357,7 +367,9 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
         raise AcceptanceError("The installed persistent hook inventory is incomplete.")
     if {path.name for path in hook_paths} != {
         "hooks.json",
+        "lifecycle_boundary.py",
         "post_tool_use.py",
+        "pre_tool_use.py",
         "session_start.py",
         "prompt_submit.py",
         "stop_response.py",
@@ -652,12 +664,11 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     )
     post_groups = hook_events.get("PostToolUse") or []
     post_matcher = str(post_groups[0].get("matcher") or "") if post_groups else ""
-    if set(hook_events) != {
-        "SessionStart",
-        "UserPromptSubmit",
-        "PostToolUse",
-        "Stop",
-    } or handler_count != 4 or "pv_plan_steer_delta" not in post_matcher:
+    if (
+        set(hook_events) != EXPECTED_PACKAGE_HOOK_EVENTS
+        or handler_count != len(EXPECTED_PACKAGE_HOOK_EVENTS)
+        or post_matcher
+    ):
         raise AcceptanceError("The installed persistent turn hooks drifted.")
     persistent_notice_markers = {
         "session_start.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_NOTICE=",
@@ -821,7 +832,7 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         or hook_trust.get("status") != "PASS"
         or hook_trust.get("plugin_selector") != exact_selector
         or hook_trust.get("hook_count") != 4
-        or hook_events != EXPECTED_CODEX_HOOK_EVENTS
+        or hook_events != EXPECTED_CODEX_HOST_HOOK_EVENTS
         or len(hook_records) != 4
         or len(hook_keys) != len(set(hook_keys))
         or hook_trust.get("after_trust_statuses") != ["trusted"]
@@ -897,11 +908,20 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         != installed_identity["surface_inventory"]["hooks"]["count"]
         or surface_change.get("hooks", {}).get("count_semantics")
         != "REGISTERED_EVENT_COUNT"
-        or surface_change.get("hooks", {}).get("registered_event_count") != 4
+        or surface_change.get("hooks", {}).get("registered_event_count") != 8
         or surface_change.get("hooks", {}).get("registered_events")
-        != ["PostToolUse", "SessionStart", "Stop", "UserPromptSubmit"]
-        or surface_change.get("hooks", {}).get("handler_count") != 4
-        or surface_change.get("hooks", {}).get("hook_file_count") != 5
+        != [
+            "PostCompact",
+            "PostToolUse",
+            "PreCompact",
+            "PreToolUse",
+            "SessionEnd",
+            "SessionStart",
+            "Stop",
+            "UserPromptSubmit",
+        ]
+        or surface_change.get("hooks", {}).get("handler_count") != 8
+        or surface_change.get("hooks", {}).get("hook_file_count") != 7
         or surface_change.get("skills", {}).get("count")
         != EXPECTED_CATALOG["skills"]
         or surface_change.get("catalog", {}).get("tools")
@@ -929,7 +949,7 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         "hook_trust": {
             "status": "PASS",
             "hook_count": 4,
-            "registered_events": sorted(EXPECTED_CODEX_HOOK_EVENTS),
+            "registered_events": sorted(EXPECTED_CODEX_HOST_HOOK_EVENTS),
             "after_trust_statuses": ["trusted"],
             "selector": exact_selector,
         },
