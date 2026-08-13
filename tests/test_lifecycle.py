@@ -3,11 +3,94 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 
 from .conftest import boot_local, build_and_approve_pv1, git
+
+
+def _prepare_single_task_hil_correction(
+    service,
+    source_repository: Path,
+) -> tuple[str, dict[str, Any], dict[str, Any], dict[str, Any]]:
+    session_id, _ = build_and_approve_pv1(service)
+    completed_task = {
+        "task_id": "single-task-before-hil-correction",
+        "task_class": "fix_bug",
+        "requested_outcome": "Add the first governed README correction.",
+        "permitted_paths": ["README.md"],
+        "permitted_tools": ["repository_write", "test"],
+        "acceptance_checks": ["The first correction is candidate-sealed."],
+        "stop_condition": "Stop at the unaccepted PV2 HIL.",
+    }
+    replacement = {
+        "task_id": "first-queued-after-hil-correction",
+        "task_class": "fix_bug",
+        "requested_outcome": "Apply the exact HIL correction and reseal PV2.",
+        "permitted_paths": ["README.md"],
+        "permitted_tools": ["repository_write", "test"],
+        "acceptance_checks": ["The exact HIL correction is candidate-sealed."],
+        "stop_condition": "Stop at a fresh unaccepted PV2 HIL.",
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[completed_task, replacement],
+        planned_by="human-test",
+        plan_id="single-task-hil-correction-plan",
+    )
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=completed_task["task_class"],
+        requested_outcome=completed_task["requested_outcome"],
+        permitted_paths=completed_task["permitted_paths"],
+        permitted_tools=completed_task["permitted_tools"],
+        acceptance_checks=completed_task["acceptance_checks"],
+        stop_condition=completed_task["stop_condition"],
+        backlog_task_id=completed_task["task_id"],
+    )
+    readme = source_repository / "README.md"
+    readme.write_text(
+        readme.read_text(encoding="utf-8") + "\nFirst governed correction.\n",
+        encoding="utf-8",
+    )
+    service.sessions.record_activity(
+        "book-faires",
+        session_id,
+        activity_type="file.modified",
+        visible_payload={"path": "README.md"},
+    )
+    service.sessions.confirm_source_update(
+        "book-faires",
+        session_id,
+        confirmation="HOST_SANDBOX_FINAL_STATE_CONFIRMED",
+    )
+    refreshed = service.refresh("book-faires", session_id)
+    correction_delta = "Repair only the exact governed README correction."
+    decision = service.decide(
+        "book-faires",
+        session_id,
+        decision="APPROVE_WITH_DELTA",
+        decided_by="human-test",
+        correction_delta=correction_delta,
+        decision_id="decision_single_task_hil_correction",
+    )
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class="fix_bug",
+        requested_outcome=correction_delta,
+        permitted_paths=["README.md"],
+        permitted_tools=["repository_write", "test"],
+        acceptance_checks=["The exact correction remains bounded."],
+        stop_condition="Continue only through the first queued Plan row.",
+    )
+    return session_id, completed_task, replacement, {
+        "candidate": refreshed["candidate"],
+        "decision": decision["decision"],
+    }
 
 
 def test_interrupted_exit_retries_only_without_a_sealed_candidate(
@@ -240,6 +323,109 @@ def test_stale_classification_reconciliation_fails_without_sealed_batch_receipt(
     assert blocked.value.code == "COMPLETED_TASK_RECONCILIATION_MISMATCH"
     assert service.task_backlog("book-faires")["counts"] == {"QUEUED": 1}
     assert service.store.pointer("book-faires").accepted_pv == "PV1"
+
+
+def test_single_task_hil_correction_reconciles_into_first_queued_task(
+    service,
+    source_repository: Path,
+) -> None:
+    session_id, completed_task, replacement, sealed = (
+        _prepare_single_task_hil_correction(service, source_repository)
+    )
+    pointer_before = service.store.pointer("book-faires").as_dict()
+
+    classified = service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=replacement["task_class"],
+        requested_outcome=replacement["requested_outcome"],
+        permitted_paths=replacement["permitted_paths"],
+        permitted_tools=replacement["permitted_tools"],
+        acceptance_checks=replacement["acceptance_checks"],
+        stop_condition=replacement["stop_condition"],
+        backlog_task_id=replacement["task_id"],
+    )
+
+    reconciliation = classified["classification_reconciliation"]
+    assert reconciliation["completion_basis_kind"] == (
+        "SEALED_SINGLE_TASK_HIL_CORRECTION"
+    )
+    assert reconciliation["completion_basis_receipt_id"] == (
+        sealed["decision"]["decision_id"]
+    )
+    assert reconciliation["completed_backlog_task_id"] == completed_task["task_id"]
+    assert reconciliation["candidate_created"] is False
+    assert reconciliation["hil_inferred"] is False
+    assert reconciliation["pointer_moved"] is False
+    assert classified["session"]["candidate_id"] is None
+    assert classified["session"]["metadata"][
+        "last_reconciled_hil_correction_decision_id"
+    ] == sealed["decision"]["decision_id"]
+    assert "resumed_from_pending" not in classified["session"]["metadata"]
+    assert classified["session"]["metadata"]["active_backlog_task_id"] == (
+        replacement["task_id"]
+    )
+    completed_runs = classified["session"]["metadata"]["completed_runs"]
+    assert completed_runs[-1]["completion_disposition"] == (
+        "HIL_CORRECTION_RECONCILED_WITHOUT_CANDIDATE"
+    )
+    assert service.store.pointer("book-faires").as_dict() == pointer_before
+    assert service.store.candidate_path(
+        "book-faires", sealed["candidate"]["candidate_id"]
+    ).is_dir()
+    backlog = service.task_backlog("book-faires")
+    assert backlog["counts"] == {"ACTIVE": 1, "DONE": 1}
+    assert [row["task_id"] for row in backlog["active"]] == [
+        replacement["task_id"]
+    ]
+
+
+def test_single_task_hil_correction_reconciliation_rejects_tampered_receipt(
+    service,
+    source_repository: Path,
+) -> None:
+    session_id, _completed_task, replacement, sealed = (
+        _prepare_single_task_hil_correction(service, source_repository)
+    )
+    decision_id = sealed["decision"]["decision_id"]
+    receipt_path = (
+        service.store.project_root("book-faires")
+        / "receipts"
+        / f"{decision_id}.json"
+    )
+    tampered = json.loads(receipt_path.read_text(encoding="utf-8"))
+    tampered["decided_by"] = "tampered-actor"
+    receipt_path.write_text(
+        json.dumps(tampered, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    pointer_before = service.store.pointer("book-faires").as_dict()
+
+    with pytest.raises(EvidenceLaneError) as blocked:
+        service.sessions.classify(
+            "book-faires",
+            session_id,
+            task_class=replacement["task_class"],
+            requested_outcome=replacement["requested_outcome"],
+            permitted_paths=replacement["permitted_paths"],
+            permitted_tools=replacement["permitted_tools"],
+            acceptance_checks=replacement["acceptance_checks"],
+            stop_condition=replacement["stop_condition"],
+            backlog_task_id=replacement["task_id"],
+        )
+    assert blocked.value.code == "COMPLETED_TASK_RECONCILIATION_MISMATCH"
+    assert (
+        "single_correction.single_decision_receipt_matches_session"
+        in blocked.value.details["failed_checks"]
+    )
+    assert service.store.pointer("book-faires").as_dict() == pointer_before
+    assert service.store.candidate_path(
+        "book-faires", sealed["candidate"]["candidate_id"]
+    ).is_dir()
+    assert service.task_backlog("book-faires")["counts"] == {
+        "DONE": 1,
+        "QUEUED": 1,
+    }
 
 
 def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(

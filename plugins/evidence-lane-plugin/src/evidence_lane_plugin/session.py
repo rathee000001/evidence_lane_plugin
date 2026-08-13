@@ -4194,6 +4194,176 @@ class SessionManager:
                 and batch_receipt.get("receipt_sha256")
                 == sha256_bytes(canonical_json_bytes(batch_receipt_body))
             )
+            decisions = session.metadata.get("decisions")
+            last_decision = (
+                decisions[-1]
+                if isinstance(decisions, list)
+                and decisions
+                and isinstance(decisions[-1], dict)
+                else None
+            )
+            resumed_from_pending = session.metadata.get("resumed_from_pending")
+            task_source_basis = session.metadata.get("task_source_basis")
+            last_backlog_outcome = session.metadata.get("last_backlog_outcome")
+            completed_backlog_row = next(
+                (
+                    row
+                    for row in backlog["tasks"]
+                    if isinstance(last_backlog_outcome, dict)
+                    and row.get("task_id") == last_backlog_outcome.get("task_id")
+                ),
+                None,
+            )
+            completed_backlog_history = (
+                completed_backlog_row.get("history", [])
+                if isinstance(completed_backlog_row, dict)
+                and isinstance(completed_backlog_row.get("history"), list)
+                else []
+            )
+            correction_decision_id = str(
+                (last_decision or {}).get("decision_id") or ""
+            ).strip()
+            correction_receipt: dict[str, Any] | None = None
+            if correction_decision_id:
+                correction_receipt_path = (
+                    self.store.project_root(project_id)
+                    / "receipts"
+                    / f"{correction_decision_id}.json"
+                )
+                if correction_receipt_path.is_file():
+                    try:
+                        loaded_correction_receipt = json.loads(
+                            correction_receipt_path.read_text(encoding="utf-8")
+                        )
+                    except (OSError, ValueError, TypeError):
+                        loaded_correction_receipt = None
+                    if isinstance(loaded_correction_receipt, dict):
+                        correction_receipt = loaded_correction_receipt
+            correction_candidate_validation: dict[str, Any] | None = None
+            correction_candidate_id = str(
+                (last_decision or {}).get("candidate_id") or ""
+            ).strip()
+            if correction_candidate_id:
+                try:
+                    correction_candidate_validation = validate_pv_package(
+                        self.store.candidate_path(
+                            project_id,
+                            correction_candidate_id,
+                        ),
+                        require_promotable=False,
+                    )
+                except (EvidenceLaneError, OSError, ValueError, TypeError):
+                    correction_candidate_validation = None
+            batch_completion_checks = {
+                "batch_status_done_pending_hil": session.metadata.get(
+                    "batch_backlog_task_status"
+                )
+                == "DONE_PENDING_HIL",
+                "batch_receipt_id_present": bool(exact_completion_receipt),
+                "batch_receipt_verified": batch_receipt_valid,
+            }
+            single_correction_checks = {
+                "single_batch_status_absent": not session.metadata.get(
+                    "batch_backlog_task_status"
+                ),
+                "single_batch_receipt_absent": not exact_completion_receipt,
+                "single_resumed_contract_present": isinstance(
+                    resumed_from_pending, dict
+                ),
+                "single_resumed_kind_correction": (
+                    isinstance(resumed_from_pending, dict)
+                    and resumed_from_pending.get("kind") == "CORRECTION"
+                ),
+                "single_decision_receipt_present": isinstance(
+                    correction_receipt, dict
+                ),
+                "single_decision_receipt_matches_session": (
+                    isinstance(correction_receipt, dict)
+                    and correction_receipt == last_decision
+                ),
+                "single_decision_is_approve_with_delta": (
+                    isinstance(last_decision, dict)
+                    and last_decision.get("decision") == "APPROVE_WITH_DELTA"
+                ),
+                "single_decision_matches_resumed_contract": (
+                    isinstance(last_decision, dict)
+                    and isinstance(resumed_from_pending, dict)
+                    and last_decision.get("decision_id")
+                    == resumed_from_pending.get("decision_id")
+                    and last_decision.get("candidate_id")
+                    == resumed_from_pending.get("source_candidate_id")
+                    and last_decision.get("correction_delta")
+                    == resumed_from_pending.get("requested_outcome")
+                    and resumed_from_pending.get("accepted_pv_context")
+                    == pointer.accepted_pv
+                ),
+                "single_current_task_matches_correction": (
+                    isinstance(exact_old_task, dict)
+                    and isinstance(resumed_from_pending, dict)
+                    and exact_old_task.get("task_class") == TaskClass.FIX_BUG.value
+                    and exact_old_task.get("task_class")
+                    == resumed_from_pending.get("required_task_class")
+                    and exact_old_task.get("requested_outcome")
+                    == resumed_from_pending.get("requested_outcome")
+                ),
+                "single_source_basis_matches_candidate": (
+                    isinstance(task_source_basis, dict)
+                    and isinstance(last_decision, dict)
+                    and task_source_basis.get("kind") == "HIL_CANDIDATE_SOURCE"
+                    and task_source_basis.get("candidate_id")
+                    == last_decision.get("candidate_id")
+                    and task_source_basis.get("accepted_pv_context")
+                    == pointer.accepted_pv
+                ),
+                "single_candidate_integrity_verified": (
+                    isinstance(correction_candidate_validation, dict)
+                    and isinstance(last_decision, dict)
+                    and correction_candidate_validation.get("manifest_sha256")
+                    == last_decision.get("candidate_manifest_sha256")
+                    and correction_candidate_validation.get("package_sha256")
+                    == last_decision.get("candidate_package_sha256")
+                ),
+                "single_pointer_retained_by_decision": (
+                    isinstance(last_decision, dict)
+                    and last_decision.get("accepted_pv_retained")
+                    == pointer.accepted_pv
+                    and last_decision.get("pointer_generation_before")
+                    == pointer.generation
+                    and last_decision.get("pointer_generation_after")
+                    == pointer.generation
+                ),
+                "single_backlog_outcome_done": (
+                    isinstance(last_backlog_outcome, dict)
+                    and last_backlog_outcome.get("decision")
+                    == "APPROVE_WITH_DELTA"
+                    and last_backlog_outcome.get("status") == "DONE"
+                    and isinstance(completed_backlog_row, dict)
+                    and completed_backlog_row.get("status") == "DONE"
+                ),
+                "single_backlog_history_matches_decision": (
+                    isinstance(completed_backlog_row, dict)
+                    and isinstance(last_decision, dict)
+                    and any(
+                        isinstance(history_row, dict)
+                        and history_row.get("event") == "HIL_DECISION"
+                        and history_row.get("decision") == "APPROVE_WITH_DELTA"
+                        and history_row.get("candidate_id")
+                        == last_decision.get("candidate_id")
+                        for history_row in completed_backlog_history
+                    )
+                ),
+            }
+            batch_completion_valid = all(batch_completion_checks.values())
+            single_correction_valid = all(single_correction_checks.values())
+            completion_basis_kind = (
+                "SEALED_BATCH_COMPLETION"
+                if batch_completion_valid
+                else (
+                    "SEALED_SINGLE_TASK_HIL_CORRECTION"
+                    if single_correction_valid
+                    else None
+                )
+            )
             exact_agent_id = str(session.metadata.get("agent_id") or "").strip()
             exact_host_session_id = str(
                 session.metadata.get("current_host_session_id") or ""
@@ -4225,12 +4395,7 @@ class SessionManager:
                     "active_backlog_task_status"
                 )
                 == "DONE",
-                "prior_batch_status_done_pending_hil": session.metadata.get(
-                    "batch_backlog_task_status"
-                )
-                == "DONE_PENDING_HIL",
-                "batch_receipt_id_present": bool(exact_completion_receipt),
-                "batch_receipt_verified": batch_receipt_valid,
+                "completion_basis_verified": completion_basis_kind is not None,
                 "agent_identity_present": bool(exact_agent_id),
                 "host_session_identity_present": bool(exact_host_session_id),
                 "runtime_binding_matches": isinstance(runtime_binding, dict)
@@ -4246,6 +4411,20 @@ class SessionManager:
                 ),
             }
             reconcilable = all(reconciliation_checks.values())
+            failed_completion_checks = []
+            if completion_basis_kind is None:
+                failed_completion_checks = [
+                    *(
+                        f"batch.{key}"
+                        for key, passed in batch_completion_checks.items()
+                        if not passed
+                    ),
+                    *(
+                        f"single_correction.{key}"
+                        for key, passed in single_correction_checks.items()
+                        if not passed
+                    ),
+                ]
             require(
                 reconcilable,
                 "COMPLETED_TASK_RECONCILIATION_MISMATCH",
@@ -4264,7 +4443,12 @@ class SessionManager:
                 session_accepted_pv=session.accepted_pv,
                 session_pointer_generation=session.accepted_pointer_generation,
                 failed_checks=sorted(
-                    key for key, passed in reconciliation_checks.items() if not passed
+                    [
+                        key
+                        for key, passed in reconciliation_checks.items()
+                        if not passed
+                    ]
+                    + failed_completion_checks
                 ),
             )
             prior_task = cast(dict[str, Any], exact_old_task)
@@ -4292,7 +4476,23 @@ class SessionManager:
                 ),
                 "batch_completion_receipt_id": exact_completion_receipt,
                 "task_mode_binding": session.metadata.get("task_mode_binding"),
+                "resumed_from_pending": resumed_from_pending,
+                "task_source_basis": task_source_basis,
             }
+            completion_basis_receipt_id = (
+                exact_completion_receipt
+                if completion_basis_kind == "SEALED_BATCH_COMPLETION"
+                else correction_decision_id
+            )
+            completion_basis_sha256 = (
+                str((batch_receipt or {}).get("receipt_sha256") or "")
+                if completion_basis_kind == "SEALED_BATCH_COMPLETION"
+                else (
+                    sha256_bytes(canonical_json_bytes(correction_receipt))
+                    if isinstance(correction_receipt, dict)
+                    else ""
+                )
+            )
             reconciliation_body = {
                 "schema": "evidence-lane.completed-task-reconciliation.v1",
                 "project_id": project_id,
@@ -4307,6 +4507,16 @@ class SessionManager:
                 "host_session_id": exact_host_session_id,
                 "runtime_activation_generation": runtime_status.get("generation"),
                 "batch_completion_receipt_id": exact_completion_receipt,
+                "completion_basis_kind": completion_basis_kind,
+                "completion_basis_receipt_id": completion_basis_receipt_id,
+                "completion_basis_sha256": completion_basis_sha256,
+                "completed_backlog_task_id": (
+                    last_backlog_outcome.get("task_id")
+                    if completion_basis_kind
+                    == "SEALED_SINGLE_TASK_HIL_CORRECTION"
+                    and isinstance(last_backlog_outcome, dict)
+                    else None
+                ),
                 "candidate_present": False,
                 "pending_hil": False,
                 "pointer_moved": False,
@@ -4325,6 +4535,8 @@ class SessionManager:
                     **prior,
                     "completion_disposition": (
                         "STALE_CLASSIFICATION_RECONCILED_WITHOUT_HIL"
+                        if completion_basis_kind == "SEALED_BATCH_COMPLETION"
+                        else "HIL_CORRECTION_RECONCILED_WITHOUT_CANDIDATE"
                     ),
                     "reconciliation_receipt_sha256": (
                         classification_reconciliation["receipt_sha256"]
@@ -4334,15 +4546,21 @@ class SessionManager:
             session.metadata.setdefault("classification_reconciliations", []).append(
                 classification_reconciliation
             )
-            session.metadata["last_reconciled_batch_completion_receipt_id"] = (
-                exact_completion_receipt
-            )
+            if completion_basis_kind == "SEALED_BATCH_COMPLETION":
+                session.metadata["last_reconciled_batch_completion_receipt_id"] = (
+                    exact_completion_receipt
+                )
+            else:
+                session.metadata["last_reconciled_hil_correction_decision_id"] = (
+                    correction_decision_id
+                )
             session.task = None
             session.metadata.pop("run_id", None)
             session.metadata.pop("task_mode_binding", None)
             session.metadata.pop("active_backlog_task_status", None)
             session.metadata.pop("batch_backlog_task_status", None)
             session.metadata.pop("batch_completion_receipt_id", None)
+            session.metadata.pop("resumed_from_pending", None)
             session.metadata["source_update_confirmed"] = False
             target_entry = (
                 SessionState.PVN_ACCEPTED

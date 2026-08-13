@@ -120,6 +120,14 @@ Natural-language approval is never enough for Fuse. Only exact,
 case-sensitive `APPROVE` at the correct pending-candidate HIL can authorize the
 promotion operation.
 
+An `APPROVE_WITH_DELTA` follow-up from one completed Plan task may bind the
+first queued successor only when the immutable decision receipt, non-promoted
+candidate hashes, exact correction contract, completed task ledger, accepted
+pointer generation, host/session writer identity, and live runtime binding all
+match. That reconciliation creates no candidate, infers no approval, and moves
+no pointer. A missing or altered receipt fails closed; completed batch work
+continues to require its separate sealed batch-completion receipt.
+
 ## Source Intake and lanes
 
 Source Intake accepts one or more ordered sources, detects suitable lane routes,
