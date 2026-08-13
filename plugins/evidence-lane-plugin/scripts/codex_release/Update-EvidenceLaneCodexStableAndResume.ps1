@@ -31,7 +31,7 @@ param(
     [string]$DataRoot = "$env:USERPROFILE\EvidenceLanePV",
     [string]$CodexExecutable = "$env:APPDATA\npm\node_modules\@openai\codex\node_modules\@openai\codex-win32-x64\vendor\x86_64-pc-windows-msvc\bin\codex.exe",
     [string]$PythonExecutable = "python.exe",
-    [string]$InstallerScript = "$PSScriptRoot\install_codex_stable.py",
+    [string]$InstallerScript,
     [string]$HookCwd = (Get-Location).Path,
     [string]$ReceiptDirectory = "$env:USERPROFILE\EvidenceLanePV\installations\codex-v200\same-slot-update",
     [string]$ScheduledTaskName,
@@ -46,6 +46,12 @@ param(
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+$InstallerScript = if ([string]::IsNullOrWhiteSpace($InstallerScript)) {
+    Join-Path $PSScriptRoot "install_codex_stable.py"
+}
+else {
+    $InstallerScript
+}
 $script:Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $script:CanonicalStableSelector = "evidence-lane-plugin@evidence-lane-github"
 $script:ExpectedGitRepository = "rathee000001/evidence_lane_plugin"

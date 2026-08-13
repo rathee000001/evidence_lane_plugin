@@ -1730,6 +1730,7 @@ def test_same_slot_update_requires_git_ci_and_prewarm_before_task_reopen() -> No
     assert "$install.stable_selector_migrated_to_canonical_git -eq $true" in text
     assert '$script:CanonicalStableSelector = "evidence-lane-plugin@evidence-lane-github"' in text
     assert '$script:ExpectedGitRepository = "rathee000001/evidence_lane_plugin"' in text
+    assert 'Join-Path $PSScriptRoot "install_codex_stable.py"' in text
     assert 'target = "PREVIEW"' not in text
     assert '$releaseAuthority.vercel_preview.target -cne "PREVIEW"' in text
     assert "goal_recovery_manager_rebound = $true" in text
@@ -1741,6 +1742,42 @@ def test_same_slot_update_requires_git_ci_and_prewarm_before_task_reopen() -> No
     assert "Select-Object -Last 80" in text
     assert '"The exact GitLane installer failed:`n"' in text
     assert text.index("runtime_prewarm.status") < text.rindex("Open-ExactTask")
+
+
+def test_git_marketplace_fetch_has_a_longer_bounded_timeout(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    observed: list[int] = []
+
+    def fake_subprocess_run(*args: object, **kwargs: object) -> object:
+        del args
+        observed.append(int(kwargs["timeout"]))
+
+        class Completed:
+            returncode = 0
+            stdout = "{}"
+            stderr = ""
+
+        return Completed()
+
+    monkeypatch.setattr(module.subprocess, "run", fake_subprocess_run)
+    executable = tmp_path / "codex.exe"
+    executable.write_bytes(b"")
+
+    module._run_codex(
+        executable,
+        tmp_path / "codex-home",
+        ["plugin", "marketplace", "add", "repository", "--json"],
+    )
+    module._run_codex(
+        executable,
+        tmp_path / "codex-home",
+        ["plugin", "list", "--json"],
+    )
+
+    assert observed == [480, 120]
 
 
 def test_same_slot_update_helper_parses_as_powershell() -> None:

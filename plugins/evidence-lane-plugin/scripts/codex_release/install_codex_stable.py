@@ -1237,6 +1237,11 @@ def _run_codex(
 ) -> dict[str, Any]:
     environment = os.environ.copy()
     environment["CODEX_HOME"] = str(codex_home)
+    timeout_seconds = (
+        480
+        if arguments[:3] == ["plugin", "marketplace", "add"]
+        else 120
+    )
     completed = subprocess.run(
         [str(executable), *arguments],
         check=False,
@@ -1244,7 +1249,7 @@ def _run_codex(
         text=True,
         encoding="utf-8",
         env=environment,
-        timeout=120,
+        timeout=timeout_seconds,
     )
     if completed.returncode != 0:
         raise InstallationError(
