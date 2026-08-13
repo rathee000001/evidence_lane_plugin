@@ -102,6 +102,10 @@ def seal_release_authority(
     commit = str(export.get("commit") or "").lower()
     tree = str(export.get("tree") or "").lower()
     branch = str(export.get("branch") or "")
+    plugin_source_manifest_sha256 = str(
+        export.get("plugin_source_manifest_sha256") or ""
+    ).upper()
+    plugin_source_member_count = export.get("plugin_source_member_count")
     remote_repository = dict(remote.get("repository_identity") or {})
     authorization = dict(remote.get("authorization") or {})
     output_security = dict(remote.get("output_security") or {})
@@ -120,6 +124,10 @@ def seal_release_authority(
         or export.get("projection_clean") is not True
         or export.get("working_checkout_bytes_used") is not False
         or export.get("untracked_bytes_used") is not False
+        or _SHA256.fullmatch(plugin_source_manifest_sha256) is None
+        or not isinstance(plugin_source_member_count, int)
+        or plugin_source_member_count < 1
+        or export.get("git_archive_member_count") != plugin_source_member_count
         or remote.get("schema") != "evidence-lane.remote-git-action.v2"
         or remote.get("action") != "PUSH_BRANCH"
         or remote.get("status") != "EXECUTED"
@@ -181,6 +189,8 @@ def seal_release_authority(
         "working_source_manifest_sha256": package[
             "working_source_manifest_sha256"
         ],
+        "plugin_source_manifest_sha256": plugin_source_manifest_sha256,
+        "plugin_source_member_count": plugin_source_member_count,
         "source": {
             "branch": branch,
             "commit": commit,

@@ -175,14 +175,36 @@ def _assert_exact_git_marketplace_source(
     *,
     extracted_inventory: dict[str, Any],
     marketplace_root: Path,
+    expected_git_manifest_sha256: str,
+    expected_git_file_count: int,
 ) -> dict[str, Any]:
     plugin_root = marketplace_root / "plugins" / PLUGIN_NAME
     if not plugin_root.is_dir():
         raise InstallationError("The Git marketplace lacks the Evidence Lane plugin root.")
     marketplace_inventory = _source_inventory(plugin_root)
-    if marketplace_inventory != extracted_inventory:
+    normalized_expected_manifest = expected_git_manifest_sha256.strip().upper()
+    if (
+        re.fullmatch(r"[A-F0-9]{64}", normalized_expected_manifest) is None
+        or not isinstance(expected_git_file_count, int)
+        or expected_git_file_count < 1
+        or marketplace_inventory["file_count"] != expected_git_file_count
+        or marketplace_inventory["manifest_sha256"]
+        != normalized_expected_manifest
+    ):
         raise InstallationError(
-            "The Git marketplace bytes do not match the exact commit package."
+            "The Git marketplace bytes do not match the complete exact Git commit tree."
+        )
+    marketplace_by_path = {
+        str(row["path"]): row for row in marketplace_inventory["files"]
+    }
+    package_files = extracted_inventory.get("files")
+    if not isinstance(package_files, list) or any(
+        not isinstance(row, dict)
+        or marketplace_by_path.get(str(row.get("path") or "")) != row
+        for row in package_files
+    ) or len(package_files) != extracted_inventory.get("file_count"):
+        raise InstallationError(
+            "The install-package subset does not match the exact Git marketplace."
         )
     return {
         "status": "PASS",
@@ -191,6 +213,11 @@ def _assert_exact_git_marketplace_source(
         "marketplace_name": MARKETPLACE_NAME,
         "file_count": marketplace_inventory["file_count"],
         "manifest_sha256": marketplace_inventory["manifest_sha256"],
+        "package_subset_file_count": extracted_inventory["file_count"],
+        "git_only_file_count": (
+            marketplace_inventory["file_count"] - extracted_inventory["file_count"]
+        ),
+        "exact_git_commit_tree_match": True,
         "exact_commit_package_bytes_match": True,
     }
 
@@ -513,6 +540,22 @@ def _load_receipt(
         schema == "evidence-lane.codex-exact-commit-package.v1.receipt"
         and boundary == "EXACT_GIT_COMMIT_PACKAGE_UNACCEPTED"
     )
+    exact_export = dict(receipt.get("exact_commit_export") or {})
+    plugin_source_manifest_sha256 = str(
+        exact_export.get("plugin_source_manifest_sha256") or ""
+    ).upper()
+    plugin_source_member_count = exact_export.get("plugin_source_member_count")
+    exact_export_valid = (not exact_commit_package) or (
+        re.fullmatch(r"[A-F0-9]{64}", plugin_source_manifest_sha256) is not None
+        and isinstance(plugin_source_member_count, int)
+        and plugin_source_member_count >= int(receipt.get("source_member_count") or 0)
+        and exact_export.get("git_archive_member_count")
+        == plugin_source_member_count
+        and exact_export.get("plugin_path") == "plugins/evidence-lane-plugin"
+        and exact_export.get("projection_clean") is True
+        and exact_export.get("working_checkout_bytes_used") is False
+        and exact_export.get("untracked_bytes_used") is False
+    )
     local_rehearsal = (
         schema == "evidence-lane.non-lifecycle-local-package-rehearsal.v1.receipt"
         and boundary == "NON_LIFECYCLE_LOCAL_PACKAGE_REHEARSAL"
@@ -540,6 +583,7 @@ def _load_receipt(
         not (exact_commit_package or local_rehearsal)
         or (activation and not exact_commit_package)
         or not self_seal_valid
+        or not exact_export_valid
         or receipt.get("status") != "PASS"
         or sealed.get("filename") != archive.name
         or sealed.get("sha256") != _sha256(archive)
@@ -585,6 +629,7 @@ def _load_release_authority(
     source_tree = str(source.get("tree") or "").lower()
     branch = str(source.get("branch") or "")
     base_anchor = dict(package_receipt.get("base_anchor") or {})
+    package_export = dict(package_receipt.get("exact_commit_export") or {})
     required_check_count = int(ci.get("required_check_count") or 0)
     successful_check_count = int(ci.get("successful_check_count") or 0)
     if (
@@ -602,6 +647,10 @@ def _load_release_authority(
         or authority.get("package_receipt_sha256") != _sha256(package_receipt_path)
         or authority.get("working_source_manifest_sha256")
         != package_receipt.get("working_source_manifest_sha256")
+        or authority.get("plugin_source_manifest_sha256")
+        != package_export.get("plugin_source_manifest_sha256")
+        or authority.get("plugin_source_member_count")
+        != package_export.get("plugin_source_member_count")
         or re.fullmatch(r"[0-9a-f]{40}", source_commit) is None
         or re.fullmatch(r"[0-9a-f]{40}", source_tree) is None
         or branch in {"main", "master"}
@@ -1211,7 +1260,7 @@ def _prewarm_installed_runtime(plugin_root: Path) -> dict[str, Any]:
     """Build and probe the installed cache before any task can be reopened."""
 
     bootstrap = plugin_root / "scripts" / "bootstrap.py"
-    brand_icon = plugin_root / EXPECTED_BRAND_IDENTITY["icon_path"]
+    brand_icon = plugin_root / str(EXPECTED_BRAND_IDENTITY["icon_path"])
     if not bootstrap.is_file():
         raise InstallationError("The installed package has no governed bootstrap.")
     if (
@@ -1485,7 +1534,7 @@ def _prepare_in_place_stable_reinstall(
         )
         target_marketplace_removed = True
 
-    receipt = {
+    receipt: dict[str, Any] = {
         "schema": "evidence-lane.codex-stable-in-place-update.v1",
         "stable_selector": plugin_selector,
         "stable_marketplace": marketplace_name,
@@ -2409,6 +2458,8 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
             raise InstallationError(
                 "The canonical Git marketplace still exists after update preflight."
             )
+        if release_authority is None:
+            raise InstallationError("The exact release authority was not loaded.")
         source_commit = str(release_authority["source"]["commit"])
         marketplace_add = _run_codex(
             executable,
@@ -2442,6 +2493,18 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         git_marketplace_source = _assert_exact_git_marketplace_source(
             extracted_inventory=extracted_inventory,
             marketplace_root=marketplace_root,
+            expected_git_manifest_sha256=str(
+                rehearsal.get("exact_commit_export", {}).get(
+                    "plugin_source_manifest_sha256"
+                )
+                or ""
+            ),
+            expected_git_file_count=int(
+                rehearsal.get("exact_commit_export", {}).get(
+                    "plugin_source_member_count"
+                )
+                or 0
+            ),
         )
         git_marketplace_source["commit"] = source_commit
         plugin_add = _run_codex(

@@ -51,6 +51,27 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest().upper()
 
 
+def _source_inventory(root: Path) -> dict[str, Any]:
+    """Seal every exact Git-exported plugin file, not only package members."""
+
+    rows = []
+    for path in sorted(row for row in root.rglob("*") if row.is_file()):
+        relative = path.relative_to(root).as_posix()
+        if relative.startswith("_evidence_lane_rehearsal/"):
+            continue
+        rows.append(
+            {
+                "path": relative,
+                "bytes": path.stat().st_size,
+                "sha256": _sha256(path),
+            }
+        )
+    return {
+        "file_count": len(rows),
+        "manifest_sha256": hashlib.sha256(_json_bytes(rows)).hexdigest().upper(),
+    }
+
+
 def _git(repository: Path, arguments: list[str], *, timeout: int = 120) -> str:
     completed = subprocess.run(
         ["git", "-C", str(repository), *arguments],
@@ -164,6 +185,11 @@ def build_exact_commit_package(
         exported_plugin = export_root / normalized_plugin_path
         if not exported_plugin.is_dir():
             raise ExactCommitPackageError("The exact commit lacks the plugin path.")
+        exported_plugin_inventory = _source_inventory(exported_plugin)
+        if exported_plugin_inventory["file_count"] != export_member_count:
+            raise ExactCommitPackageError(
+                "The exact plugin export member count and source inventory diverged."
+            )
         local_receipt = build_rehearsal(
             plugin_root=exported_plugin,
             output_dir=output_dir,
@@ -196,6 +222,10 @@ def build_exact_commit_package(
             "plugin_path": normalized_plugin_path,
             "git_archive_sha256": export_zip_sha256,
             "git_archive_member_count": export_member_count,
+            "plugin_source_manifest_sha256": exported_plugin_inventory[
+                "manifest_sha256"
+            ],
+            "plugin_source_member_count": exported_plugin_inventory["file_count"],
             "projection_clean": True,
             "working_checkout_bytes_used": False,
             "untracked_bytes_used": False,

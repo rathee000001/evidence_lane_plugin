@@ -472,6 +472,12 @@ def _release_authority_receipt(
         "working_source_manifest_sha256": package[
             "working_source_manifest_sha256"
         ],
+        "plugin_source_manifest_sha256": package["exact_commit_export"][
+            "plugin_source_manifest_sha256"
+        ],
+        "plugin_source_member_count": package["exact_commit_export"][
+            "plugin_source_member_count"
+        ],
         "source": {
             "branch": "agent/evi-v200-test",
             "commit": commit,
@@ -569,6 +575,8 @@ def _exact_package_receipt(
             "plugin_path": "plugins/evidence-lane-plugin",
             "git_archive_sha256": "D" * 64,
             "git_archive_member_count": 1,
+            "plugin_source_manifest_sha256": "E" * 64,
+            "plugin_source_member_count": 1,
             "projection_clean": True,
             "working_checkout_bytes_used": False,
             "untracked_bytes_used": False,
@@ -1037,6 +1045,68 @@ def test_exact_commit_package_rejects_git_write_receipt(
 
     with pytest.raises(module.InstallationError, match="not eligible"):
         module._load_receipt(mutated_receipt, archive, activation=True)
+
+
+def test_git_marketplace_verifies_full_commit_tree_and_package_subset(
+    tmp_path: Path,
+) -> None:
+    module = _module()
+    package_root = tmp_path / "package"
+    marketplace_plugin = (
+        tmp_path / "marketplace" / "plugins" / "evidence-lane-plugin"
+    )
+    _write(package_root / "README.md", "package member\n")
+    _write(marketplace_plugin / "README.md", "package member\n")
+    _write(marketplace_plugin / "remote_adapter" / "package.json", "{}\n")
+    package_inventory = module._source_inventory(package_root)
+    git_inventory = module._source_inventory(marketplace_plugin)
+
+    result = module._assert_exact_git_marketplace_source(
+        extracted_inventory=package_inventory,
+        marketplace_root=tmp_path / "marketplace",
+        expected_git_manifest_sha256=git_inventory["manifest_sha256"],
+        expected_git_file_count=git_inventory["file_count"],
+    )
+
+    assert result["exact_git_commit_tree_match"] is True
+    assert result["exact_commit_package_bytes_match"] is True
+    assert result["file_count"] == 2
+    assert result["package_subset_file_count"] == 1
+    assert result["git_only_file_count"] == 1
+
+
+def test_git_marketplace_rejects_full_tree_or_package_subset_drift(
+    tmp_path: Path,
+) -> None:
+    module = _module()
+    package_root = tmp_path / "package"
+    marketplace_plugin = (
+        tmp_path / "marketplace" / "plugins" / "evidence-lane-plugin"
+    )
+    _write(package_root / "README.md", "package member\n")
+    _write(marketplace_plugin / "README.md", "package member\n")
+    _write(marketplace_plugin / "remote_adapter" / "package.json", "{}\n")
+    package_inventory = module._source_inventory(package_root)
+    git_inventory = module._source_inventory(marketplace_plugin)
+
+    _write(marketplace_plugin / "remote_adapter" / "package.json", "drift\n")
+    with pytest.raises(module.InstallationError, match="complete exact Git"):
+        module._assert_exact_git_marketplace_source(
+            extracted_inventory=package_inventory,
+            marketplace_root=tmp_path / "marketplace",
+            expected_git_manifest_sha256=git_inventory["manifest_sha256"],
+            expected_git_file_count=git_inventory["file_count"],
+        )
+
+    _write(marketplace_plugin / "remote_adapter" / "package.json", "{}\n")
+    _write(package_root / "README.md", "package drift\n")
+    with pytest.raises(module.InstallationError, match="package subset"):
+        module._assert_exact_git_marketplace_source(
+            extracted_inventory=module._source_inventory(package_root),
+            marketplace_root=tmp_path / "marketplace",
+            expected_git_manifest_sha256=git_inventory["manifest_sha256"],
+            expected_git_file_count=git_inventory["file_count"],
+        )
 
 
 def test_installed_runtime_is_prewarmed_before_task_reopen(

@@ -126,6 +126,10 @@ def test_exact_commit_builder_exports_only_the_named_git_commit(
     assert result["exact_commit_export"]["projection_clean"] is True
     assert result["exact_commit_export"]["working_checkout_bytes_used"] is False
     assert result["exact_commit_export"]["untracked_bytes_used"] is False
+    assert result["exact_commit_export"]["plugin_source_member_count"] == 1
+    assert len(
+        result["exact_commit_export"]["plugin_source_manifest_sha256"]
+    ) == 64
     assert result["git_write_invoked"] is False
     assert len(result["receipt_sha256"]) == 64
 
@@ -148,6 +152,11 @@ def _authority_inputs(tmp_path: Path) -> dict[str, Path | str]:
                 "branch": branch,
                 "commit": commit,
                 "tree": tree,
+                "plugin_path": "plugins/evidence-lane-plugin",
+                "git_archive_sha256": "D" * 64,
+                "git_archive_member_count": 1,
+                "plugin_source_manifest_sha256": "E" * 64,
+                "plugin_source_member_count": 1,
                 "projection_clean": True,
                 "working_checkout_bytes_used": False,
                 "untracked_bytes_used": False,
