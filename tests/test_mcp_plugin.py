@@ -1633,9 +1633,10 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
             assert namespaced.isError is False
             assert namespaced.structuredContent["status"] == "PASS"
 
-    # A genuinely clean Git/cache snapshot may need the governed, hash-locked
-    # plugin-local bootstrap before stdio becomes ready. The shipped MCP
-    # manifest permits 900 seconds for that same first start.
+    # A genuinely new dependency-lock/Python-ABI pair may need one governed,
+    # hash-locked durable bootstrap before stdio becomes ready. Installed
+    # packages prewarm it before task reopen; subsequent cache reconstruction
+    # reuses the sealed runtime rather than invoking pip during the handshake.
     asyncio.run(asyncio.wait_for(exercise(), timeout=900))
 
 

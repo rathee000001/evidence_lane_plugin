@@ -31,7 +31,7 @@ param(
     [string]$CodexConfig = "$env:USERPROFILE\.codex\config.toml",
     [string]$CodexHome = "$env:USERPROFILE\.codex",
     [string]$DataRoot = "$env:USERPROFILE\EvidenceLanePV",
-    [string]$RestartHelper = "$PSScriptRoot\Restart-EvidenceLaneCodex.ps1",
+    [string]$RestartHelper = "",
     [string]$ReceiptDirectory = "$env:USERPROFILE\EvidenceLanePV\installations\codex-v200\two-slot",
     [string]$PowerShellExecutable = "powershell.exe",
     [switch]$ConfirmExplicitOperator,
@@ -45,6 +45,10 @@ $script:PluginName = "evidence-lane-plugin"
 $script:ServerName = "evidence-lane"
 $script:ZeroHash = "0" * 64
 
+if ([string]::IsNullOrWhiteSpace($RestartHelper)) {
+    $RestartHelper = Join-Path $PSScriptRoot "Restart-EvidenceLaneCodex.ps1"
+}
+
 function Get-Sha256([string]$Path) {
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
         throw "Required sealed file is missing: $Path"
@@ -57,6 +61,37 @@ function Assert-ExpectedHash([string]$Name, [string]$Value) {
         throw "$Name must be one exact SHA-256."
     }
     return $Value.ToUpperInvariant()
+}
+
+function ConvertTo-WindowsCommandLineArgument([AllowEmptyString()][string]$Value) {
+    if ($null -eq $Value -or $Value.Length -eq 0) { return '""' }
+    if ($Value -notmatch '[\s"]') { return $Value }
+
+    $quoted = [System.Text.StringBuilder]::new()
+    [void]$quoted.Append([char]34)
+    $backslashes = 0
+    foreach ($character in $Value.ToCharArray()) {
+        if ($character -eq [char]92) {
+            $backslashes += 1
+            continue
+        }
+        if ($character -eq [char]34) {
+            [void]$quoted.Append([string]::new([char]92, (2 * $backslashes) + 1))
+            [void]$quoted.Append([char]34)
+            $backslashes = 0
+            continue
+        }
+        if ($backslashes -gt 0) {
+            [void]$quoted.Append([string]::new([char]92, $backslashes))
+            $backslashes = 0
+        }
+        [void]$quoted.Append($character)
+    }
+    if ($backslashes -gt 0) {
+        [void]$quoted.Append([string]::new([char]92, 2 * $backslashes))
+    }
+    [void]$quoted.Append([char]34)
+    return $quoted.ToString()
 }
 
 function Assert-ContainedPath([string]$Name, [string]$Path, [string]$Parent) {
@@ -384,21 +419,24 @@ function Set-ExclusiveActivation([object]$RegistryBody, [string]$ActiveSlot) {
         ) {
             continue
         }
-        if (
-            -not [string]::IsNullOrWhiteSpace($currentTail) -and
-            $currentTail -ne '.mcp_servers."evidence-lane"'
-        ) {
+        $isRoot = [string]::IsNullOrWhiteSpace($currentTail)
+        $isEvidenceMcp = $currentTail -in @(
+            '.mcp_servers."evidence-lane"',
+            '.mcp_servers.evidence-lane'
+        )
+        if (-not $isRoot -and -not $isEvidenceMcp) {
             continue
         }
         $newline = if ($lines[$index].EndsWith("`r`n")) { "`r`n" } elseif ($lines[$index].EndsWith("`n")) { "`n" } else { "" }
         $value = ([bool]$selectors[$currentSelector]).ToString().ToLowerInvariant()
         $lines[$index] = $enabledMatch.Groups["indent"].Value + "enabled = $value$newline"
-        $seen["$currentSelector|$currentTail"] = $true
+        $normalizedTail = if ($isRoot) { "" } else { ".mcp_servers.evidence-lane" }
+        $seen["$currentSelector|$normalizedTail"] = $true
     }
     foreach ($selector in $selectors.Keys) {
         if (
             -not $seen.ContainsKey("$selector|") -or
-            -not $seen.ContainsKey("$selector|.mcp_servers.`"evidence-lane`"")
+            -not $seen.ContainsKey("$selector|.mcp_servers.evidence-lane")
         ) {
             throw "Both exact plugin and MCP sections must exist before switching."
         }
@@ -811,7 +849,10 @@ if ($Action -eq "Switch") {
             throw "The exact-task restart helper rejected preparation."
         }
         $restartPrepared = (($restartOutput | Out-String).Trim() | ConvertFrom-Json)
-        if ($restartPrepared.status -ne "PASS") {
+        if (
+            $restartPrepared.status -ne "PASS" -or
+            [string]::IsNullOrWhiteSpace([string]$restartPrepared.app_id)
+        ) {
             throw "The exact-task restart preparation did not pass."
         }
         $transition = [ordered]@{
@@ -837,6 +878,7 @@ if ($Action -eq "Switch") {
             restart_preparation_receipt_sha256 = $restartPrepared.receipt_sha256
             exact_task_uri = "codex://threads/$TaskId"
             native_catalog_and_binding_proof_pending = $true
+            restart_dispatch = "DETACHED_BEFORE_BOUND_HOST_EXIT"
             candidate_created_or_accepted = $false
             pointer_moved = $false
             hil_inferred = $false
@@ -845,21 +887,30 @@ if ($Action -eq "Switch") {
         }
         $transitionPath = Join-Path $ReceiptDirectory "CODEX_TWO_SLOT_SWITCH_TRANSITION.json"
         Write-JsonReceipt -Path $transitionPath -Body $transition
-        & $PowerShellExecutable `
-            -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
-            -File $RestartHelper `
-            -Action Restart `
-            -InstallReceipt ([string]$target.install_receipt) `
-            -InstallReceiptSha256 ([string]$target.install_receipt_sha256) `
-            -ProjectId $ProjectId `
-            -EvidenceSessionId $EvidenceSessionId `
-            -TaskId $TaskId `
-            -HostSessionId $HostSessionId `
-            -TargetProcessId $TargetProcessId `
-            -PreparationReceipt ([string]$restartPrepared.receipt_path) `
-            -PreparationReceiptSha256 ([string]$restartPrepared.receipt_sha256) `
-            -ReceiptDirectory (Join-Path $ReceiptDirectory "restart") `
-            -ConfirmRestart
+        $restartArguments = @(
+            "-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+            "-File", $RestartHelper,
+            "-Action", "Restart",
+            "-InstallReceipt", [string]$target.install_receipt,
+            "-InstallReceiptSha256", [string]$target.install_receipt_sha256,
+            "-ProjectId", $ProjectId,
+            "-EvidenceSessionId", $EvidenceSessionId,
+            "-TaskId", $TaskId,
+            "-HostSessionId", $HostSessionId,
+            "-AppId", [string]$restartPrepared.app_id,
+            "-TargetProcessId", [string]$TargetProcessId,
+            "-PreparationReceipt", [string]$restartPrepared.receipt_path,
+            "-PreparationReceiptSha256", [string]$restartPrepared.receipt_sha256,
+            "-ReceiptDirectory", (Join-Path $ReceiptDirectory "restart"),
+            "-ConfirmRestart"
+        )
+        $restartArgumentLine = ($restartArguments | ForEach-Object {
+            ConvertTo-WindowsCommandLineArgument ([string]$_)
+        }) -join " "
+        Start-Process `
+            -FilePath $PowerShellExecutable `
+            -ArgumentList $restartArgumentLine `
+            -WindowStyle Hidden | Out-Null
         exit 0
     }
     catch {

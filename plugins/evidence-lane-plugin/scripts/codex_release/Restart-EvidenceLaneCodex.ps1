@@ -317,11 +317,31 @@ if ($InstallReceiptSha256 -and $observedInstallSha -ne $InstallReceiptSha256.ToU
 }
 $install = Get-Content -LiteralPath $exactInstallReceipt -Raw | ConvertFrom-Json
 $installedPluginVersion = [string]$install.plugin.version
+$pluginAddProperty = $install.activation.PSObject.Properties["plugin_add"]
+$pluginSelectorProperty = $install.activation.PSObject.Properties["plugin_selector"]
+$installedPathProperty = $install.activation.PSObject.Properties["installed_path"]
+$activationVersionBound = $false
+if ($null -ne $pluginAddProperty) {
+    $activationVersionBound = (
+        [string]$pluginAddProperty.Value.version -eq $installedPluginVersion
+    )
+}
+elseif (
+    $null -ne $pluginSelectorProperty -and
+    [string]$pluginSelectorProperty.Value -like "evidence-lane-plugin@*" -and
+    $null -ne $installedPathProperty -and
+    -not [string]::IsNullOrWhiteSpace([string]$installedPathProperty.Value) -and
+    (Test-Path -LiteralPath ([string]$installedPathProperty.Value) -PathType Container)
+) {
+    # Accepted fallback receipts created before plugin_add was emitted still bind
+    # the exact selector, installed cache, version, receipt hash, and registry slot.
+    $activationVersionBound = $true
+}
 if (
     $install.schema -ne "evidence-lane.codex-stable-installation.v2" -or
     $install.status -ne "PASS" -or
     $installedPluginVersion -notmatch '^\d+\.\d+\.\d+\+codex\.[0-9A-Za-z.-]+$' -or
-    [string]$install.activation.plugin_add.version -ne $installedPluginVersion -or
+    -not $activationVersionBound -or
     $install.activation.state -ne "INSTALLED_RESTART_REQUIRED" -or
     $install.candidate_created_or_accepted -ne $false -or
     $install.pointer_moved -ne $false
@@ -412,6 +432,7 @@ if ($Action -eq "Prepare") {
         receipt_sha256 = $preparationReceiptSha256
         task_binding_receipt_path = $taskBindingPath
         task_binding_receipt_sha256 = Get-Sha256 $taskBindingPath
+        app_id = [string]$hostProfile.app_id
         next_action = "RUN_RESTART_WITH_EXACT_RECEIPT_SHA_AND_CONFIRMRESTART"
     } | ConvertTo-Json -Depth 8
     exit 0

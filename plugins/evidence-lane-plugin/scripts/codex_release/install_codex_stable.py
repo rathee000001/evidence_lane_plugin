@@ -1322,13 +1322,17 @@ def _run_codex(
         raise InstallationError("Codex did not return the requested JSON receipt.") from exc
 
 
-def _prewarm_installed_runtime(plugin_root: Path) -> dict[str, Any]:
+def _prewarm_installed_runtime(
+    plugin_root: Path,
+    *,
+    data_root: Path,
+) -> dict[str, Any]:
     """Build and probe the installed cache before any task can be reopened."""
 
-    bootstrap = plugin_root / "scripts" / "bootstrap.py"
+    runner = plugin_root / "scripts" / "run_mcp.py"
     brand_icon = plugin_root / str(EXPECTED_BRAND_IDENTITY["icon_path"])
-    if not bootstrap.is_file():
-        raise InstallationError("The installed package has no governed bootstrap.")
+    if not runner.is_file():
+        raise InstallationError("The installed package has no governed MCP runner.")
     if (
         not brand_icon.is_file()
         or _sha256(brand_icon) != EXPECTED_BRAND_IDENTITY["icon_sha256"]
@@ -1338,16 +1342,19 @@ def _prewarm_installed_runtime(plugin_root: Path) -> dict[str, Any]:
         )
     started = time.monotonic()
     bootstrap_attempts: list[dict[str, Any]] = []
+    prewarm_environment = os.environ.copy()
+    prewarm_environment["EVIDENCE_LANE_DATA_ROOT"] = str(data_root.resolve())
     boot: subprocess.CompletedProcess[bytes] | None = None
     for attempt in range(1, 3):
         try:
             boot = subprocess.run(
-                [sys.executable, str(bootstrap)],
+                [sys.executable, str(runner), "--prewarm-only"],
                 check=False,
                 cwd=plugin_root,
                 stdin=subprocess.DEVNULL,
                 capture_output=True,
                 timeout=900,
+                env=prewarm_environment,
             )
         except (OSError, subprocess.TimeoutExpired) as exc:
             raise InstallationError(
@@ -1368,13 +1375,49 @@ def _prewarm_installed_runtime(plugin_root: Path) -> dict[str, Any]:
             "The installed runtime bootstrap failed twice on the same sealed bytes "
             f"before task reopen (attempts={bootstrap_attempts})."
         )
-    runtime_python = (
-        plugin_root / ".venv" / "Scripts" / "python.exe"
-        if os.name == "nt"
-        else plugin_root / ".venv" / "bin" / "python"
-    )
+    try:
+        prewarm_lines = [
+            line for line in boot.stdout.decode("utf-8").splitlines() if line.strip()
+        ]
+        prewarm_result = json.loads(prewarm_lines[-1])
+    except (IndexError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise InstallationError(
+            "The installed runtime prewarm returned no exact JSON receipt."
+        ) from exc
+    if (
+        prewarm_result.get("schema")
+        != "evidence-lane.codex-native-runtime-prewarm.v1"
+        or prewarm_result.get("status") != "PASS"
+    ):
+        raise InstallationError("The installed runtime prewarm identity drifted.")
+    runtime_python = Path(str(prewarm_result.get("runtime_python") or "")).resolve()
+    runtime_projection_root = Path(
+        str(prewarm_result.get("runtime_projection_root") or "")
+    ).resolve()
+    runtime_environment = Path(
+        str(prewarm_result.get("runtime_environment") or "")
+    ).resolve()
+    runtime_identity = dict(prewarm_result.get("runtime_identity") or {})
+    expected_runtime_parent = (data_root / "runtime" / "codex").resolve()
+    expected_lock_sha256 = _sha256(plugin_root / "requirements.lock.txt")
     if not runtime_python.is_file():
         raise InstallationError("The governed bootstrap did not create its runtime.")
+    if (
+        not _inside(runtime_projection_root, expected_runtime_parent)
+        or runtime_environment != runtime_projection_root / "venv"
+        or not _inside(runtime_python, runtime_environment)
+        or runtime_identity.get("schema")
+        != "evidence-lane.codex-native-runtime.v1"
+        or runtime_identity.get("requirements_lock_sha256")
+        != expected_lock_sha256
+        or re.fullmatch(
+            r"[A-F0-9]{64}", str(runtime_identity.get("runtime_key") or "")
+        )
+        is None
+    ):
+        raise InstallationError(
+            "The derived runtime is outside its sealed durable authority."
+        )
     environment = os.environ.copy()
     source = str((plugin_root / "src").resolve())
     existing_pythonpath = environment.get("PYTHONPATH", "")
@@ -1452,6 +1495,8 @@ def _prewarm_installed_runtime(plugin_root: Path) -> dict[str, Any]:
             str(plugin_root.resolve()).encode("utf-8")
         ).hexdigest().upper(),
         "runtime_python_sha256": _sha256(runtime_python),
+        "runtime_projection_root": str(runtime_projection_root),
+        "runtime_identity": runtime_identity,
         "bootstrap_attempt_count": len(bootstrap_attempts),
         "bootstrap_attempts": bootstrap_attempts,
         "bootstrap_stdout_sha256": hashlib.sha256(boot.stdout).hexdigest().upper(),
@@ -2603,7 +2648,10 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
             or not _inside(installed_path, expected_cache)
         ):
             raise InstallationError("Codex installed a mismatched plugin cache identity.")
-        runtime_prewarm = _prewarm_installed_runtime(installed_path)
+        runtime_prewarm = _prewarm_installed_runtime(
+            installed_path,
+            data_root=data_root,
+        )
         hook_trust, config_receipt = _trust_sealed_plugin_hooks(
             executable=executable,
             codex_home=codex_home,

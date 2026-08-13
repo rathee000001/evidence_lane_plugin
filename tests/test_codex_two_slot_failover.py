@@ -213,13 +213,15 @@ def _fixture(
         "param([string]$Action,[string]$InstallReceipt,[string]$InstallReceiptSha256,"
         "[string]$ProjectId,[string]$EvidenceSessionId,[string]$TaskId,"
         "[string]$HostSessionId,[int]$TargetProcessId,[string]$PreparationReceipt,"
-        "[string]$PreparationReceiptSha256,[string]$ReceiptDirectory,[switch]$ConfirmRestart)\n"
+        "[string]$PreparationReceiptSha256,[string]$ReceiptDirectory,[string]$AppId,"
+        "[switch]$ConfirmRestart)\n"
         "if ($Action -eq 'Prepare') {\n"
         "  New-Item -ItemType Directory -Path $ReceiptDirectory -Force | Out-Null\n"
         "  $receipt = Join-Path $ReceiptDirectory 'FAKE_RESTART_PREPARATION.json'\n"
         "  Set-Content -LiteralPath $receipt -Value '{\"status\":\"PASS\"}' -NoNewline\n"
         "  $sha = (Get-FileHash -LiteralPath $receipt -Algorithm SHA256).Hash\n"
-        "  [ordered]@{status='PASS';receipt_path=$receipt;receipt_sha256=$sha} | ConvertTo-Json\n"
+        "  [ordered]@{status='PASS';receipt_path=$receipt;receipt_sha256=$sha;"
+        "app_id='OpenAI.CodexBeta_2p2nqsd0c76g0!App'} | ConvertTo-Json\n"
         "  exit 0\n"
         "}\n"
         "if ($Action -eq 'Restart' -and $ConfirmRestart) { exit 0 }\n"
@@ -619,6 +621,60 @@ def test_verify_accepts_supported_config_api_serialized_mcp_tables(
     result = json.loads(completed.stdout)
     assert result["status"] == "PASS"
     assert result["active_slot"] == "stable-build"
+
+    prepare = _base_command(fixture, action="Prepare", target="fallback")
+    prepare.extend(
+        [
+            "-Reason",
+            "EXPLICIT_OPERATOR_FAILOVER",
+            "-TargetProcessId",
+            str(os.getpid()),
+            "-ConfirmExplicitOperator",
+        ]
+    )
+    prepared = subprocess.run(
+        prepare,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert prepared.returncode == 0, prepared.stdout + prepared.stderr
+    preparation = json.loads(prepared.stdout)
+
+    switch = _base_command(fixture, action="Switch", target="fallback")
+    switch.extend(
+        [
+            "-Reason",
+            "EXPLICIT_OPERATOR_FAILOVER",
+            "-TargetProcessId",
+            str(os.getpid()),
+            "-PreparationReceipt",
+            preparation["receipt_path"],
+            "-PreparationReceiptSha256",
+            preparation["receipt_sha256"],
+            "-ConfirmExplicitOperator",
+            "-ConfirmSwitch",
+        ]
+    )
+    switched = subprocess.run(
+        switch,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert switched.returncode == 0, switched.stdout + switched.stderr
+
+    post_switch = subprocess.run(
+        _base_command(fixture, action="Verify", target="stable-build"),
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert post_switch.returncode == 0, post_switch.stdout + post_switch.stderr
+    assert json.loads(post_switch.stdout)["active_slot"] == "fallback"
 
 
 def test_failed_fallback_start_rolls_back_stable_config_and_tunnel(

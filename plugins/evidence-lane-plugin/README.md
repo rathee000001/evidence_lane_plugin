@@ -8,6 +8,9 @@ project storage, persistent Plan/Delta continuity, and an exact six-way HIL.
 The installed runtime prewarm and release validators bind the same governed
 console resource, `ui://evidence-lane/governed-console-v4.html`, and fail closed
 if that identity drifts.
+The generated Python environment is a lock-digest/Python-ABI keyed projection
+under `EvidenceLanePV/runtime/codex`, not inside Codex's reconstructable plugin
+cache. The exact active stable or fallback slot remains source authority.
 
 Hooks transport lifecycle only: SessionStart, UserPromptSubmit, PreToolUse,
 PostToolUse, PreCompact, PostCompact, Stop, and best-effort SessionEnd. The
@@ -117,7 +120,8 @@ Windows-logon recovery manager for exact governed Codex Goal tasks.
    are removed only after the new route is installed, prewarmed, and read back.
    Installation fails
    closed if the hook inventory or post-write trust readback is not exact. It
-   bootstraps and probes the installed native runtime before any task reopen.
+   bootstraps and probes the durable derived native runtime before any task
+   reopen; a warm protocol launch must not invoke pip again.
 4. Run `scripts/codex_release/accept_codex_stable.py` before restart. A
    pre-restart receipt proves bytes only; it is not installed-host HIL.
 5. Run `scripts/codex_release/Restart-EvidenceLaneCodex.ps1` with the exact

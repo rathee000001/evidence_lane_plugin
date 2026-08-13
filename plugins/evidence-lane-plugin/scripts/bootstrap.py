@@ -1,7 +1,8 @@
-"""Explicit, allowlisted installation into the plugin-local virtual environment."""
+"""Explicit, allowlisted installation into a selected private environment."""
 
 from __future__ import annotations
 
+import argparse
 import os
 
 # Fixed local executable and argument lists only; no shell command is constructed.
@@ -10,6 +11,11 @@ import subprocess  # nosec B404
 import sys
 import venv
 from pathlib import Path
+
+_SCRIPT_ROOT = Path(__file__).resolve().parent
+if str(_SCRIPT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_ROOT))
+from runtime_contract import write_marker
 
 
 def _authoritative_runtime_environment(plugin_root: Path) -> dict[str, str]:
@@ -50,16 +56,36 @@ def _cleanup_generated_build_artifacts(plugin_root: Path) -> None:
         shutil.rmtree(target)
 
 
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--environment", type=Path)
+    parser.add_argument("--identity-file", type=Path)
+    return parser
+
+
 def main() -> int:
+    args = _parser().parse_args()
     plugin_root = Path(__file__).resolve().parents[1]
-    environment = plugin_root / ".venv"
+    environment = (
+        args.environment.expanduser().resolve()
+        if args.environment is not None
+        else plugin_root / ".venv"
+    )
+    identity_file = (
+        args.identity_file.expanduser().resolve()
+        if args.identity_file is not None
+        else None
+    )
     lock = plugin_root / "requirements.lock.txt"
     project = plugin_root / "pyproject.toml"
     if not lock.is_file():
         raise SystemExit(f"Missing pinned dependency lock: {lock}")
     if not project.is_file():
         raise SystemExit(f"Missing self-contained plugin project: {project}")
+    if identity_file is not None and identity_file.exists():
+        identity_file.unlink()
     if not environment.exists():
+        environment.parent.mkdir(parents=True, exist_ok=True)
         venv.EnvBuilder(with_pip=True, clear=False).create(environment)
     python = (
         environment / "Scripts" / "python.exe"
@@ -113,6 +139,8 @@ def main() -> int:
         check=True,
         env=runtime_environment,
     )
+    if identity_file is not None:
+        write_marker(plugin_root, identity_file)
     print(f"Evidence Lane ready: {environment}")
     return 0
 

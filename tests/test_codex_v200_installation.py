@@ -1068,24 +1068,46 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
 ) -> None:
     module = _module()
     plugin_root = tmp_path / "installed"
-    _write(plugin_root / "scripts" / "bootstrap.py", "# fixture\n")
+    _write(plugin_root / "scripts" / "run_mcp.py", "# fixture\n")
+    _write(plugin_root / "requirements.lock.txt", "fixture lock\n")
     (plugin_root / "assets").mkdir(parents=True, exist_ok=True)
     shutil.copy2(
         PLUGIN / "assets" / "evidence-lane-icon.png",
         plugin_root / "assets" / "evidence-lane-icon.png",
     )
+    data_root = tmp_path / "pv"
+    runtime_root = data_root / "runtime" / "codex" / ("A" * 32)
     runtime_python = (
-        plugin_root / ".venv" / "Scripts" / "python.exe"
+        runtime_root / "venv" / "Scripts" / "python.exe"
         if module.os.name == "nt"
-        else plugin_root / ".venv" / "bin" / "python"
+        else runtime_root / "venv" / "bin" / "python"
     )
     _write(runtime_python, "fixture runtime")
     calls: list[list[str]] = []
 
-    def fake_run(arguments: list[str], **_: object) -> subprocess.CompletedProcess[bytes]:
+    def fake_run(arguments: list[str], **kwargs: object) -> subprocess.CompletedProcess[bytes]:
         calls.append(arguments)
         if len(calls) == 1:
-            return subprocess.CompletedProcess(arguments, 0, b"bootstrap ok\n", b"")
+            assert kwargs["env"]["EVIDENCE_LANE_DATA_ROOT"] == str(
+                data_root.resolve()
+            )
+            prewarm = {
+                "schema": "evidence-lane.codex-native-runtime-prewarm.v1",
+                "status": "PASS",
+                "runtime_identity": {
+                    "schema": "evidence-lane.codex-native-runtime.v1",
+                    "runtime_key": "A" * 64,
+                    "requirements_lock_sha256": module._sha256(
+                        plugin_root / "requirements.lock.txt"
+                    ),
+                },
+                "runtime_projection_root": str(runtime_root),
+                "runtime_environment": str(runtime_root / "venv"),
+                "runtime_python": str(runtime_python),
+            }
+            return subprocess.CompletedProcess(
+                arguments, 0, (json.dumps(prewarm) + "\n").encode(), b""
+            )
         payload = {
             "engine_version": "2.1.0",
             "native_server_identity": "evidence-lane",
@@ -1104,7 +1126,7 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
         )
 
     monkeypatch.setattr(module.subprocess, "run", fake_run)
-    receipt = module._prewarm_installed_runtime(plugin_root)
+    receipt = module._prewarm_installed_runtime(plugin_root, data_root=data_root)
 
     assert receipt["status"] == "PASS"
     assert receipt["runtime_ready_before_task_reopen"] is True
@@ -1118,7 +1140,11 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
     assert receipt["bootstrap_attempt_count"] == 1
     assert receipt["bootstrap_attempts"][0]["returncode"] == 0
     assert len(receipt["receipt_sha256"]) == 64
-    assert calls[0] == [module.sys.executable, str(plugin_root / "scripts" / "bootstrap.py")]
+    assert calls[0] == [
+        module.sys.executable,
+        str(plugin_root / "scripts" / "run_mcp.py"),
+        "--prewarm-only",
+    ]
     assert calls[1][0] == str(runtime_python)
 
 
@@ -1128,26 +1154,49 @@ def test_installed_runtime_bootstrap_retries_once_on_same_sealed_bytes(
 ) -> None:
     module = _module()
     plugin_root = tmp_path / "installed"
-    _write(plugin_root / "scripts" / "bootstrap.py", "# fixture\n")
+    _write(plugin_root / "scripts" / "run_mcp.py", "# fixture\n")
+    _write(plugin_root / "requirements.lock.txt", "fixture lock\n")
     (plugin_root / "assets").mkdir(parents=True, exist_ok=True)
     shutil.copy2(
         PLUGIN / "assets" / "evidence-lane-icon.png",
         plugin_root / "assets" / "evidence-lane-icon.png",
     )
+    data_root = tmp_path / "pv"
+    runtime_root = data_root / "runtime" / "codex" / ("A" * 32)
     runtime_python = (
-        plugin_root / ".venv" / "Scripts" / "python.exe"
+        runtime_root / "venv" / "Scripts" / "python.exe"
         if module.os.name == "nt"
-        else plugin_root / ".venv" / "bin" / "python"
+        else runtime_root / "venv" / "bin" / "python"
     )
     _write(runtime_python, "fixture runtime")
     calls: list[list[str]] = []
 
-    def fake_run(arguments: list[str], **_: object) -> subprocess.CompletedProcess[bytes]:
+    def fake_run(arguments: list[str], **kwargs: object) -> subprocess.CompletedProcess[bytes]:
         calls.append(arguments)
+        if len(calls) <= 2:
+            assert kwargs["env"]["EVIDENCE_LANE_DATA_ROOT"] == str(
+                data_root.resolve()
+            )
         if len(calls) == 1:
             return subprocess.CompletedProcess(arguments, 1, b"first stdout\n", b"first stderr\n")
         if len(calls) == 2:
-            return subprocess.CompletedProcess(arguments, 0, b"second bootstrap ok\n", b"")
+            prewarm = {
+                "schema": "evidence-lane.codex-native-runtime-prewarm.v1",
+                "status": "PASS",
+                "runtime_identity": {
+                    "schema": "evidence-lane.codex-native-runtime.v1",
+                    "runtime_key": "A" * 64,
+                    "requirements_lock_sha256": module._sha256(
+                        plugin_root / "requirements.lock.txt"
+                    ),
+                },
+                "runtime_projection_root": str(runtime_root),
+                "runtime_environment": str(runtime_root / "venv"),
+                "runtime_python": str(runtime_python),
+            }
+            return subprocess.CompletedProcess(
+                arguments, 0, (json.dumps(prewarm) + "\n").encode(), b""
+            )
         payload = {
             "engine_version": "2.1.0",
             "native_server_identity": "evidence-lane",
@@ -1166,7 +1215,7 @@ def test_installed_runtime_bootstrap_retries_once_on_same_sealed_bytes(
         )
 
     monkeypatch.setattr(module.subprocess, "run", fake_run)
-    receipt = module._prewarm_installed_runtime(plugin_root)
+    receipt = module._prewarm_installed_runtime(plugin_root, data_root=data_root)
 
     assert receipt["status"] == "PASS"
     assert receipt["bootstrap_attempt_count"] == 2
@@ -1176,6 +1225,63 @@ def test_installed_runtime_bootstrap_retries_once_on_same_sealed_bytes(
     ).hexdigest().upper()
     assert calls[0] == calls[1]
     assert calls[2][0] == str(runtime_python)
+
+
+def test_installed_runtime_rejects_projection_outside_durable_authority(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    plugin_root = tmp_path / "installed"
+    _write(plugin_root / "scripts" / "run_mcp.py", "# fixture\n")
+    _write(plugin_root / "requirements.lock.txt", "fixture lock\n")
+    (plugin_root / "assets").mkdir(parents=True, exist_ok=True)
+    shutil.copy2(
+        PLUGIN / "assets" / "evidence-lane-icon.png",
+        plugin_root / "assets" / "evidence-lane-icon.png",
+    )
+    escaped_root = tmp_path / "outside-authority"
+    runtime_python = (
+        escaped_root / "venv" / "Scripts" / "python.exe"
+        if module.os.name == "nt"
+        else escaped_root / "venv" / "bin" / "python"
+    )
+    _write(runtime_python, "fixture runtime")
+    prewarm = {
+        "schema": "evidence-lane.codex-native-runtime-prewarm.v1",
+        "status": "PASS",
+        "runtime_identity": {
+            "schema": "evidence-lane.codex-native-runtime.v1",
+            "runtime_key": "A" * 64,
+            "requirements_lock_sha256": module._sha256(
+                plugin_root / "requirements.lock.txt"
+            ),
+        },
+        "runtime_projection_root": str(escaped_root),
+        "runtime_environment": str(escaped_root / "venv"),
+        "runtime_python": str(runtime_python),
+    }
+
+    def fake_run(
+        arguments: list[str], **kwargs: object
+    ) -> subprocess.CompletedProcess[bytes]:
+        assert kwargs["env"]["EVIDENCE_LANE_DATA_ROOT"] == str(
+            (tmp_path / "pv").resolve()
+        )
+        return subprocess.CompletedProcess(
+            arguments,
+            0,
+            (json.dumps(prewarm) + "\n").encode(),
+            b"",
+        )
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+
+    with pytest.raises(module.InstallationError, match="durable authority"):
+        module._prewarm_installed_runtime(
+            plugin_root,
+            data_root=tmp_path / "pv",
+        )
 
 
 def test_supported_codex_api_trusts_only_exact_selector_hooks(
@@ -1710,6 +1816,10 @@ def test_restart_helper_is_exact_process_and_same_task_only() -> None:
     assert "prior_bound_host_process_tree_fully_stopped = $true" in text
     assert "Resolve-RootCodexTarget" in text
     assert 'Stop-Process -Id $TargetProcessId -Force' in text
+    assert '$pluginAddProperty = $install.activation.PSObject.Properties["plugin_add"]' in text
+    assert '$pluginSelectorProperty = $install.activation.PSObject.Properties["plugin_selector"]' in text
+    assert '$installedPathProperty = $install.activation.PSObject.Properties["installed_path"]' in text
+    assert 'app_id = [string]$hostProfile.app_id' in text
     assert 'Stop-Process -Name' not in text
     assert "utf8NoBOM" not in text
     assert "$utf8NoBom = [System.Text.UTF8Encoding]::new($false)" in text

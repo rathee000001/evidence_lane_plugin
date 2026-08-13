@@ -44,6 +44,9 @@ The packaged Codex plugin contains:
 - a persistent Plan panel paired with the active linked Delta/change display;
 - the governed console resource `ui://evidence-lane/governed-console-v4.html`,
   sealed consistently across runtime prewarm and release installation;
+- a lock-digest/Python-ABI keyed derived runtime under the durable
+  `EvidenceLanePV/runtime/codex` root, so Codex may reconstruct its marketplace
+  cache without triggering dependency installation during the MCP handshake;
 - exact State Travel receipts for fresh-task continuation;
 - a six-way human gate before any candidate can become accepted truth.
 
@@ -246,6 +249,11 @@ installation is normalized to exactly two Evidence Lane slots: enabled
 PV11 package; it is installed and tunnel-verified but stopped. At most one
 plugin/MCP and one matching tunnel can run. Historical Git, PV, package,
 receipt, and Delta evidence remains preserved outside the live cache.
+
+The two installed plugin slots remain source authority. Their generated Python
+dependencies live outside the reconstructable marketplace cache in one sealed,
+content-addressed runtime projection. Every launch validates the full lock and
+Python identity marker, then imports source from the exact active slot.
 
 `Switch-EvidenceLaneCodexSlot.ps1` can prepare failover after either an explicit
 operator command or a sealed multi-probe stable failure. It rejects one

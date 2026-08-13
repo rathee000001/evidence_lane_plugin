@@ -361,7 +361,9 @@ def test_bootstrap_installs_self_contained_noneditable_runtime() -> None:
     runner = (
         root / "plugins" / "evidence-lane-plugin" / "scripts" / "run_mcp.py"
     ).read_text(encoding="utf-8")
-    assert "_bootstrap_runtime(plugin_root)" in runner
+    assert "runtime_environment(plugin_root)" in runner
+    assert '"--identity-file"' in runner
+    assert '"--prewarm-only"' in runner
 
     mcp_config = json.loads(
         (root / "plugins" / "evidence-lane-plugin" / ".mcp.json").read_text(
