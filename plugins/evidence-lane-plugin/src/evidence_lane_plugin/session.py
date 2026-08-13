@@ -4984,9 +4984,10 @@ class SessionManager:
         current_host_session_id = str(
             session.metadata.get("current_host_session_id") or ""
         ).strip()
-        execution_profile = (
-            session.metadata.get("execution_profile")
-            if isinstance(session.metadata.get("execution_profile"), dict)
+        execution_profile_value = session.metadata.get("execution_profile")
+        execution_profile: dict[str, Any] = (
+            cast(dict[str, Any], execution_profile_value)
+            if isinstance(execution_profile_value, dict)
             else {}
         )
         event_payload.setdefault(

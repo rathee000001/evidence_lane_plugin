@@ -18,7 +18,7 @@ import tomllib
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from .constants import ENGINE_VERSION
 from .errors import EvidenceLaneError
@@ -148,9 +148,10 @@ def _turn_redact(value: Any) -> Any:
 def _lineage_host_identity(host_payload: dict[str, Any]) -> dict[str, Any]:
     """Return a privacy-safe host identity for visible ChatLineage events."""
 
-    runtime_context = (
-        host_payload.get("runtime_context")
-        if isinstance(host_payload.get("runtime_context"), dict)
+    runtime_context_value = host_payload.get("runtime_context")
+    runtime_context: dict[str, Any] = (
+        cast(dict[str, Any], runtime_context_value)
+        if isinstance(runtime_context_value, dict)
         else {}
     )
     host_session_id = str(host_payload.get("session_id") or "").strip()
@@ -3497,7 +3498,7 @@ def _capture_dispatch(
     proof. Goal control uses ``thread/goal/set`` and fails closed here.
     """
 
-    expected = {
+    expected_by_kind: dict[str, dict[str, Any]] = {
         "user_prompt": {
             "surface": "USER_PROMPT_CORRECTION_OR_HIL_TOKEN",
             "host_route": "turn/start -> inspect_pending_input(TurnInput::UserInput)",
@@ -3513,7 +3514,8 @@ def _capture_dispatch(
             "host_route": "thread/goal/set (not TurnInput::UserInput)",
             "native_hook_event": None,
         },
-    }[input_kind]
+    }
+    expected = expected_by_kind[input_kind]
     _require(
         input_kind != "goal",
         "TURN_CONTROL_GOAL_PRE_REASONING_HOOK_UNAVAILABLE",
@@ -3819,12 +3821,22 @@ def record_non_strict_visible_input(
             project_root / "lineage" / f"{evidence_session_id}.jsonl"
         )
         host_identity = record.get("lineage_host_identity")
-        telemetry = {
-            "model": record.get("lineage_model"),
-            "submodel": record.get("lineage_submodel"),
-            "token_metrics": record.get("lineage_token_metrics")
-            or {"availability": "UNAVAILABLE"},
-        }
+        lineage_model_value = record.get("lineage_model")
+        lineage_submodel_value = record.get("lineage_submodel")
+        lineage_metrics_value = record.get("lineage_token_metrics")
+        lineage_model = (
+            lineage_model_value if isinstance(lineage_model_value, str) else None
+        )
+        lineage_submodel = (
+            lineage_submodel_value
+            if isinstance(lineage_submodel_value, str)
+            else None
+        )
+        lineage_token_metrics = (
+            cast(dict[str, Any], lineage_metrics_value)
+            if isinstance(lineage_metrics_value, dict)
+            else {"availability": "UNAVAILABLE"}
+        )
         try:
             event = lineage.append(
                 event_type={
@@ -3858,9 +3870,9 @@ def record_non_strict_visible_input(
                 task_id=task_id,
                 event_id=event_id,
                 actor_type="user",
-                model=telemetry["model"],
-                submodel=telemetry["submodel"],
-                token_metrics=telemetry["token_metrics"],
+                model=lineage_model,
+                submodel=lineage_submodel,
+                token_metrics=lineage_token_metrics,
             )
         except EvidenceLaneError as exc:
             raise TurnControlError(
@@ -4870,7 +4882,7 @@ def record_lifecycle_boundary_event(
         )
         return {"state": "SEALED_IDEMPOTENT_REUSE", "receipt": receipt}
 
-    core = {
+    core: dict[str, Any] = {
         "schema": "evidence-lane.codex-lifecycle-boundary.v1",
         "receipt_id": receipt_id,
         "event_name": event_name,
@@ -5496,9 +5508,10 @@ def seal_lifecycle_exit_slip(
         "A lifecycle Exit Slip requires one secret-redacted visible reason.",
     )
     if exact_reason == "STATELESS_EPHEMERAL_END":
-        runtime_context = (
-            host_payload.get("runtime_context")
-            if isinstance(host_payload.get("runtime_context"), dict)
+        runtime_context_value = host_payload.get("runtime_context")
+        runtime_context: dict[str, Any] = (
+            cast(dict[str, Any], runtime_context_value)
+            if isinstance(runtime_context_value, dict)
             else {}
         )
         _require(
