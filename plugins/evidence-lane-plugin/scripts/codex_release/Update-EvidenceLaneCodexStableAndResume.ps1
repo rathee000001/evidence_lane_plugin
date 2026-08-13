@@ -461,8 +461,29 @@ try {
         "--activate", "--trust-sealed-hooks",
         "--hook-cwd", ([IO.Path]::GetFullPath($HookCwd))
     )
-    $rawOutput = @(& $python @installerArguments 2>&1)
-    if ($LASTEXITCODE -ne 0) { throw ($rawOutput -join "`n") }
+    $priorErrorActionPreference = $ErrorActionPreference
+    try {
+        # Windows PowerShell converts native stderr into ErrorRecord objects.  With
+        # Stop semantics that truncated the installer failure to only "Traceback".
+        # Capture the complete bounded native output before restoring fail-closed
+        # PowerShell semantics so the sealed failure receipt remains diagnostic.
+        $ErrorActionPreference = "Continue"
+        $rawOutput = @(
+            & $python @installerArguments 2>&1 |
+                ForEach-Object { [string]$_ }
+        )
+        $installerExitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $priorErrorActionPreference
+    }
+    if ($installerExitCode -ne 0) {
+        $boundedOutput = @($rawOutput | Select-Object -Last 80) -join "`n"
+        if ($boundedOutput.Length -gt 24000) {
+            $boundedOutput = $boundedOutput.Substring($boundedOutput.Length - 24000)
+        }
+        throw ("The exact GitLane installer failed:`n" + $boundedOutput)
+    }
     $install = ($rawOutput -join "`n") | ConvertFrom-Json
     $selectorReusedOrMigrated = (
         ($install.stable_selector_reused -eq $true) -xor

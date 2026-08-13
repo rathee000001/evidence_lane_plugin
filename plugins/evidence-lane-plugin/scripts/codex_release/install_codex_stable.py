@@ -1427,6 +1427,11 @@ def _prepare_in_place_stable_reinstall(
         row.get("pluginId") == plugin_selector for row in evidence_plugins
     )
     same_selector_refresh = prior_stable_selector == plugin_selector
+    if target_was_installed and not same_selector_refresh:
+        raise InstallationError(
+            "The canonical Git selector is unexpectedly installed during legacy "
+            "stable migration."
+        )
     if same_selector_refresh and target_was_installed:
         _run_codex(
             executable,
@@ -1442,13 +1447,37 @@ def _prepare_in_place_stable_reinstall(
     marketplaces = marketplace_list.get("marketplaces")
     if not isinstance(marketplaces, list):
         raise InstallationError("Codex marketplace list has an invalid shape.")
-    marketplace_names = {
-        str(row.get("name") or "")
-        for row in marketplaces
-        if isinstance(row, dict)
-    }
+    marketplace_rows = [dict(row) for row in marketplaces if isinstance(row, dict)]
+    target_marketplace_rows = [
+        row for row in marketplace_rows if row.get("name") == marketplace_name
+    ]
+    if len(target_marketplace_rows) > 1:
+        raise InstallationError(
+            "Codex exposed more than one canonical Git marketplace identity."
+        )
+    target_marketplace_preexisting = bool(target_marketplace_rows)
+    target_marketplace_source_verified = False
+    if target_marketplace_preexisting:
+        marketplace_source = dict(
+            target_marketplace_rows[0].get("marketplaceSource") or {}
+        )
+        source_value = str(marketplace_source.get("source") or "").lower()
+        if (
+            marketplace_source.get("sourceType") != "git"
+            or MARKETPLACE_SOURCE.lower() not in source_value
+        ):
+            raise InstallationError(
+                "The pre-existing canonical marketplace is not the governed Git "
+                "source."
+            )
+        target_marketplace_source_verified = True
     target_marketplace_removed = False
-    if same_selector_refresh and marketplace_name in marketplace_names:
+    legacy_selector_migration = (
+        bool(prior_stable_selector) and prior_stable_selector != plugin_selector
+    )
+    if target_marketplace_preexisting and (
+        same_selector_refresh or legacy_selector_migration
+    ):
         _run_codex(
             executable,
             codex_home,
@@ -1462,14 +1491,14 @@ def _prepare_in_place_stable_reinstall(
         "stable_marketplace": marketplace_name,
         "prior_stable_selector": prior_stable_selector,
         "target_was_installed": target_was_installed,
-        "one_time_legacy_selector_migration": (
-            bool(prior_stable_selector) and prior_stable_selector != plugin_selector
-        ),
+        "one_time_legacy_selector_migration": legacy_selector_migration,
         "same_selector_refresh": same_selector_refresh,
         "stable_removed_for_same_selector_reinstall": (
             same_selector_refresh and target_was_installed
         ),
         "target_marketplace_removed_for_exact_ref_refresh": target_marketplace_removed,
+        "target_marketplace_preexisting": target_marketplace_preexisting,
+        "target_marketplace_source_verified": target_marketplace_source_verified,
         "fallback_selector": fallback_selector,
         "fallback_removed": False,
         "removed_obsolete_selectors": [],

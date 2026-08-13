@@ -733,6 +733,7 @@ def test_two_consecutive_updates_reuse_one_stable_selector(
         },
         "marketplaces": {
             legacy_marketplace,
+            stable_marketplace,
             fallback_marketplace,
             obsolete_marketplace,
         },
@@ -758,7 +759,23 @@ def test_two_consecutive_updates_reuse_one_stable_selector(
         if arguments == ["plugin", "marketplace", "list", "--json"]:
             return {
                 "marketplaces": [
-                    {"name": name, "root": str(tmp_path / name)}
+                    {
+                        "name": name,
+                        "root": str(tmp_path / name),
+                        **(
+                            {
+                                "marketplaceSource": {
+                                    "sourceType": "git",
+                                    "source": (
+                                        "https://github.com/rathee000001/"
+                                        "evidence_lane_plugin.git"
+                                    ),
+                                }
+                            }
+                            if name == stable_marketplace
+                            else {}
+                        ),
+                    }
                     for name in sorted(state["marketplaces"])
                 ]
             }
@@ -785,11 +802,19 @@ def test_two_consecutive_updates_reuse_one_stable_selector(
         two_slot_authority=authority,
     )
     assert first["one_time_legacy_selector_migration"] is True
+    assert first["target_marketplace_preexisting"] is True
+    assert first["target_marketplace_source_verified"] is True
+    assert first["target_marketplace_removed_for_exact_ref_refresh"] is True
     assert first["obsolete_cleanup_deferred_until_new_route_proof"] is True
     assert state["plugins"] == {
         legacy_selector: True,
         fallback_selector: False,
         obsolete_selector: False,
+    }
+    assert state["marketplaces"] == {
+        legacy_marketplace,
+        fallback_marketplace,
+        obsolete_marketplace,
     }
 
     state["plugins"][legacy_selector] = False
@@ -827,6 +852,69 @@ def test_two_consecutive_updates_reuse_one_stable_selector(
     assert second["new_stable_selector_created"] is False
     assert state["plugins"] == {fallback_selector: False}
     assert state["marketplaces"] == {fallback_marketplace}
+
+
+def test_legacy_migration_rejects_wrong_canonical_marketplace_source(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    legacy_selector = "evidence-lane-plugin@evidence-lane-v200-task2-build-stable"
+    stable_selector = "evidence-lane-plugin@evidence-lane-github"
+    fallback_selector = "evidence-lane-plugin@evidence-lane-pv11-fallback"
+    calls: list[list[str]] = []
+
+    def fake_run(
+        executable: Path,
+        codex_home: Path,
+        arguments: list[str],
+    ) -> dict[str, object]:
+        del executable, codex_home
+        calls.append(arguments)
+        if arguments == ["plugin", "list", "--json"]:
+            return {
+                "installed": [
+                    {"pluginId": legacy_selector, "enabled": True},
+                    {"pluginId": fallback_selector, "enabled": False},
+                ]
+            }
+        if arguments == ["plugin", "marketplace", "list", "--json"]:
+            return {
+                "marketplaces": [
+                    {
+                        "name": "evidence-lane-github",
+                        "root": str(tmp_path / "wrong-source"),
+                        "marketplaceSource": {
+                            "sourceType": "git",
+                            "source": "https://github.com/example/wrong.git",
+                        },
+                    }
+                ]
+            }
+        raise AssertionError(arguments)
+
+    monkeypatch.setattr(module, "_run_codex", fake_run)
+    authority = {
+        "registry": {
+            "slots": {
+                "stable-build": {"plugin_selector": legacy_selector},
+                "fallback": {"plugin_selector": fallback_selector},
+            }
+        }
+    }
+    with pytest.raises(module.InstallationError, match="governed Git source"):
+        module._prepare_in_place_stable_reinstall(
+            executable=tmp_path / "codex.exe",
+            codex_home=tmp_path / "codex-home",
+            plugin_selector=stable_selector,
+            marketplace_name="evidence-lane-github",
+            two_slot_authority=authority,
+        )
+
+    assert not any(
+        arguments[:3] == ["plugin", "marketplace", "remove"]
+        for arguments in calls
+    )
 
 
 def test_activation_requires_explicit_sealed_hook_trust(tmp_path: Path) -> None:
@@ -1579,6 +1667,9 @@ def test_same_slot_update_requires_git_ci_and_prewarm_before_task_reopen() -> No
     assert 'OpenAI.CodexBeta_2p2nqsd0c76g0!App' in text
     assert "runtime_ready_before_task_reopen = $true" in text
     assert "fallback_activated = $false" in text
+    assert '$ErrorActionPreference = "Continue"' in text
+    assert "Select-Object -Last 80" in text
+    assert '"The exact GitLane installer failed:`n"' in text
     assert text.index("runtime_prewarm.status") < text.rindex("Open-ExactTask")
 
 
