@@ -898,6 +898,59 @@ def test_git_ci_release_authority_binds_exact_commit_archive_and_checks(
     assert authority["github_ci"]["successful_check_count"] == 8
 
 
+def test_exact_commit_package_accepts_read_only_git_export(
+    tmp_path: Path,
+) -> None:
+    module = _module()
+    archive, local_receipt, _ = _fixture_archive(tmp_path)
+    receipt = _exact_package_receipt(
+        tmp_path,
+        archive=archive,
+        local_receipt=local_receipt,
+    )
+
+    loaded = module._load_receipt(receipt, archive, activation=True)
+
+    assert loaded["git_invoked"] is True
+    assert loaded["git_write_invoked"] is False
+
+
+def test_exact_commit_package_rejects_git_write_receipt(
+    tmp_path: Path,
+) -> None:
+    module = _module()
+    archive, local_receipt, _ = _fixture_archive(tmp_path)
+    receipt = _exact_package_receipt(
+        tmp_path,
+        archive=archive,
+        local_receipt=local_receipt,
+    )
+    mutated = json.loads(receipt.read_text("utf-8"))
+    mutated["git_write_invoked"] = True
+    mutated_core = dict(mutated)
+    mutated_core.pop("receipt_sha256")
+    mutated["receipt_sha256"] = hashlib.sha256(
+        (
+            json.dumps(
+                mutated_core,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            + "\n"
+        ).encode("utf-8")
+    ).hexdigest().upper()
+    mutated_receipt = tmp_path / "EXACT_COMMIT_PACKAGE_WITH_GIT_WRITE.json"
+    _write(
+        mutated_receipt,
+        json.dumps(mutated, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        + "\n",
+    )
+
+    with pytest.raises(module.InstallationError, match="not eligible"):
+        module._load_receipt(mutated_receipt, archive, activation=True)
+
+
 def test_installed_runtime_is_prewarmed_before_task_reopen(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

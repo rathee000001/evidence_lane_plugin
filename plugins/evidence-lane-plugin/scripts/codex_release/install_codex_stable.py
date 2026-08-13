@@ -517,6 +517,15 @@ def _load_receipt(
         schema == "evidence-lane.non-lifecycle-local-package-rehearsal.v1.receipt"
         and boundary == "NON_LIFECYCLE_LOCAL_PACKAGE_REHEARSAL"
     )
+    git_boundary_valid = (
+        exact_commit_package
+        and receipt.get("git_invoked") is True
+        and receipt.get("git_write_invoked") is False
+    ) or (
+        local_rehearsal
+        and receipt.get("git_invoked") is False
+        and receipt.get("git_write_invoked") in (None, False)
+    )
     self_seal_valid = True
     if exact_commit_package:
         receipt_sha256 = str(receipt.get("receipt_sha256") or "").upper()
@@ -535,7 +544,7 @@ def _load_receipt(
         or sealed.get("filename") != archive.name
         or sealed.get("sha256") != _sha256(archive)
         or receipt.get("governed_candidate_created") is not False
-        or receipt.get("git_invoked") is not False
+        or not git_boundary_valid
         or receipt.get("accepted_pointer_moved") is not False
     ):
         raise InstallationError(
