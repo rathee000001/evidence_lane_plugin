@@ -39,6 +39,62 @@ Use one linear state machine. Runtime context is never accepted evidence.
   work. If the installed native route or host plan tool is unavailable, fail
   closed and report the missing behavior route; a hook receipt never substitutes
   for it.
+- Classify the visible request before any Plan mutation. Questions,
+  explanations, small read-only asks, and bounded artifact readbacks are
+  ordinary tasks: record their visible lineage and run the mandatory native
+  read sequence, but do not call `pv_plan_steer_delta` or change the Step Task
+  List. A request is a Plan steer only when it changes the active Goal's
+  executable outcome, dependency, acceptance check, stop condition, release
+  route, or HIL path. Link that steer to the exact existing logical row when
+  possible; otherwise add exactly one independently testable row. Then refresh
+  the complete panel and CURRENT CHANGE once. Never manufacture a Plan event or
+  row merely to reproduce a historical Sources-sidebar call count.
+
+### Persistent Step Task List re-entry
+
+The complete host Step Task List is a durable Plan Lane projection, not Goal
+state. An active Codex Goal is neither a prerequisite for restoration nor a
+substitute for native Plan authority. Preserve this invariant even when no Goal
+is attached, a Goal was deleted or recreated, or the host compacted context
+automatically.
+
+Treat each of these as a deterministic panel-reentry trigger:
+
+- `SessionStart` with startup, resume, clear, or compact source;
+- `PostCompact`, including host-automatic compaction;
+- reopening the exact task after an app or host restart;
+- every visible prompt, Goal continuation, correction, and mid-Goal steer; and
+- any observation that the host panel is missing, partial, stale, or compacted.
+
+After the applicable lifecycle hook receipt, panel restoration is the first
+skill-owned behavior. For a visible prompt, PREPARE remains the lifecycle-first
+hook receipt; for a resume or `PostCompact` without a new prompt, do not wait for
+or fabricate a prompt, Goal, or PREPARE receipt. Before classifying the request,
+reasoning about it, inspecting source, mutating anything, testing, using Git, or
+calling another lifecycle write, the skill must:
+
+1. call the installed native `pv_status`;
+2. call the installed native `pv_task_backlog`;
+3. call one bounded installed-native `pv_query`;
+4. verify `canonical_authority=PLAN_LANE`, contiguous executable rows, exactly
+   one active row, `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`, and one
+   physically final `PHYSICALLY_FINAL_HIL` row in the final position; and
+5. call host `update_plan` once with the complete executable projection.
+
+Project every executable row, including all completed rows, the sole active row,
+and all pending rows. Never replace the projection with a window, page, summary,
+ellipsis, count-only placeholder, or only the unfinished suffix. Map native
+statuses to host statuses without changing task state, and render each host
+label only as `Row <canonical row> / <task ID> — <exact description>`. Never
+append acceptance checks, stop conditions, hashes, or raw linked-Delta JSON to a
+host label; they remain native authority.
+
+If the installed native route, any required native read, the canonical Plan
+invariants, or host `update_plan` is unavailable, fail closed before work. Do not
+use a fallback slot, generated namespace, app connector, cached hook projection,
+or direct stdio as replacement behavior. A lifecycle hook may signal re-entry
+and show a privacy-safe current-change receipt, but it must not perform native
+reads, embed Plan rows, or request/call host `update_plan`.
 
 ## Non-negotiable gates
 
@@ -168,6 +224,11 @@ limited to eight additional active plugins; drop requires its exact token.
    `pv_plan_steer_delta`, linking it to an existing row or inserting a new row
    before the next governed HIL.
 2. Classify exactly one bounded task and record visible activities.
+   Close an ordinary executable row only from one current-run, exact-task,
+   exact-acceptance checkpoint receipt. The successor must be the first queued
+   canonical row, and the advance must preserve an absent candidate/HIL and an
+   unchanged pointer. A PASS string from another task, run, or partial
+   acceptance set cannot advance the Plan.
 3. Use accepted evidence as entry truth and live repository evidence for
    source changed after entry.
 4. Confirm final Codex source state with
@@ -188,6 +249,27 @@ limited to eight additional active plugins; drop requires its exact token.
    context-exhaustion trigger can authorize `/evi-state-travel` in a fresh
    destination host. Acceptance is not a prerequisite for unfinished-work
    continuity.
+
+Git delivery is batched by dependency-coherent integration checkpoints, not by
+individual Delta row or file. Every row still receives its own acceptance
+evidence and lifecycle transition, PREPARE/capture/retrieval receipt, native
+PV status/backlog/query reads, task/row/current-change classification, visible
+ChatLineage activity, and full persistent Plan/CURRENT CHANGE reprojection.
+When a logical bundle of coupled rows is
+implemented and locally verified, one behavior-bearing commit synchronizes
+plugin source, root README, affected repository-level docs/manifests/workflows/
+tests, and the public Plan/Delta projection; one governed push then runs the
+complete configured clean-checkout Git/CodeQL/preview route, exact-SHA package
+proof, same-selector stable update, and installed-host readback. Derive a small
+number of bundles from shared source/schema/runtime/test boundaries; never use a
+fixed quota, conceal a failed row, or mark an unimplemented row done. A local or
+dirty-worktree package is rehearsal evidence only and must never update the
+stable slot. Update that single selector once per bundle, solely from the exact
+Git commit package after every configured check and exact-SHA preview gate has
+passed. Before that update, emit a cross-Delta verification matrix binding each
+included task ID to changed source/schema/runtime/docs surfaces, focused local
+tests, clean-checkout remote checks, installed-host checks, outcome, and exact
+failure owner. Any included-row failure fails the bundle closed.
 
 Default reads use accepted truth and disclose live freshness. Explicit
 candidate reads remain labeled `UNACCEPTED_CANDIDATE`. Use bounded fetches and

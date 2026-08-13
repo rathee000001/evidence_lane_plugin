@@ -37,7 +37,9 @@ The packaged Codex plugin contains:
 - exactly 15 governed skills;
 - six primary controls in order: Boot, Rollback, Build, Refresh, Mode, and
   Source Intake;
-- four registered hook events and four handlers across five hook package files;
+- eight registered lifecycle events across seven hook package files: warm attach,
+  PREPARE, pre/post tool receipts, pre/post compaction, Stop COMMIT, and
+  best-effort SessionEnd flush;
 - durable local SQLite as the default project authority;
 - a persistent Plan panel paired with the active linked Delta/change display;
 - exact State Travel receipts for fresh-task continuation;
@@ -158,12 +160,16 @@ The v2 package registers:
 | --- | --- |
 | `SessionStart` | Verify installed identity and prepare bounded runtime context. |
 | `UserPromptSubmit` | Bind the visible task turn without storing private reasoning. |
+| `PreToolUse` | Guard bounded governed tool activity before execution. |
 | `PostToolUse` | Reproject the linked Plan/Delta change display after relevant native actions. |
+| `PreCompact` | Seal the visible compaction boundary before context is compacted. |
+| `PostCompact` | Rehydrate the governed context after compaction. |
 | `Stop` | Preserve the response/exit boundary without inventing a HIL decision. |
+| `SessionEnd` | Best-effort flush of the lifecycle boundary when the host emits the event. |
 
-The inventory is four registered events, four handlers, and five files when
-`hooks.json` is included. The 15 skills are unchanged; file count is not used to
-inflate either number.
+The inventory is eight registered events, six command handlers, and seven files
+when `hooks.json` is included. The 15 skills are unchanged; file count is not
+used to inflate either number.
 
 ## Host and storage matrix
 
@@ -265,10 +271,28 @@ That standing test-branch policy does **not** authorize:
 - moving the accepted pointer;
 - publication, deployment, or Fuse.
 
-GitHub Actions run one coherent CI cycle per completed correction commit, not
-one workflow loop per Delta or file. The active workflows cover governed Python
-tests, source/MCP tests, lifecycle tests, lane tests, preview compilation, and
-CodeQL.
+GitHub Actions run one coherent CI cycle per dependency-coherent integration
+bundle, not one commit, workflow loop, preview, package, or stable reinstall per
+Delta row or file. Each row still keeps independent acceptance evidence and
+lifecycle status, PREPARE/retrieval, native PV reads, visible ChatLineage,
+classification, and persistent Plan/CURRENT CHANGE refresh. Bundle boundaries
+are derived from coupled source, schema, runtime, and test scope; roughly a
+small handful for a long correction wave, never a fixed quota. At each boundary,
+one cross-Delta matrix maps every included task to changed surfaces, local tests,
+remote checks, installed-host checks, outcome, and exact failure ownership; any
+included-row failure fails the bundle closed. The same behavior-bearing commit
+updates the root README, affected repository-level contracts, tests, and public
+Plan/Delta projection before the governed push. The deterministic
+`sync_website_plan_projection.py` generator reads the passing native
+`PLAN_LANE`; its `--check` mode must match the same durable authority before the
+commit is eligible for push. The generated public snapshot and metadata may be
+rendered by the feature-branch preview, but production publication remains a
+separate post-HIL action. A local or dirty-worktree package is rehearsal
+evidence only and cannot update the stable slot. The one stable selector is
+updated once per logical bundle, only from the exact Git commit package after
+every configured commit check and exact-SHA preview gate passes. The active
+workflows cover governed Python tests, source/MCP tests, lifecycle tests, lane
+tests, preview compilation, and CodeQL.
 
 Evidence Lane does not configure or invoke the usage-based GitHub Sandbox
 product. Local agent work remains inside the bounded local project work

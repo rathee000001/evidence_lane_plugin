@@ -2389,7 +2389,9 @@ def create_mcp_server(
         description=(
             "Progressive read-only search across deterministic FTS chunks, symbols, "
             "and paths. Defaults to the current accepted PV; an explicitly named "
-            "candidate is labeled UNACCEPTED_CANDIDATE and never presented as truth."
+            "candidate is labeled UNACCEPTED_CANDIDATE and never presented as truth. "
+            "An optional candidate overlay remains separate from accepted results and "
+            "requires its exact authorization token."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Searching PV source intelligence", "PV search complete"),
@@ -2400,6 +2402,8 @@ def create_mcp_server(
         query: str,
         pv_ref: str | None = None,
         limit: int = 20,
+        candidate_overlay_ref: str | None = None,
+        candidate_overlay_authorization: str | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "search",
@@ -2408,6 +2412,8 @@ def create_mcp_server(
             query,
             pv_ref=pv_ref,
             limit=limit,
+            candidate_overlay_ref=candidate_overlay_ref,
+            candidate_overlay_authorization=candidate_overlay_authorization,
         )
 
     @mcp.tool(

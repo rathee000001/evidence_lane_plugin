@@ -12,6 +12,7 @@ from urllib.parse import quote
 from . import database
 from .errors import EvidenceLaneError, require
 from .freshness import evaluate_freshness, result_status
+from .hashing import sha256_bytes
 from .pv_package import validate_pv_package
 from .store import ProjectStore
 
@@ -113,6 +114,8 @@ class PVReader:
         *,
         pv_ref: str | None = None,
         limit: int = 20,
+        candidate_overlay_ref: str | None = None,
+        candidate_overlay_authorization: str | None = None,
     ) -> dict[str, Any]:
         require(
             1 <= limit <= 100,
@@ -120,6 +123,82 @@ class PVReader:
             "Search limit must be between 1 and 100.",
             status="BLOCKED",
         )
+        if candidate_overlay_ref is not None:
+            exact_overlay_ref = candidate_overlay_ref.strip()
+            require(
+                bool(exact_overlay_ref)
+                and "_CANDIDATE__RUN_" in exact_overlay_ref,
+                "CANDIDATE_OVERLAY_REF_INVALID",
+                "A governed candidate overlay requires one exact candidate reference.",
+                status="BLOCKED",
+            )
+            expected_authorization = (
+                f"AUTHORIZE_CANDIDATE_OVERLAY:{exact_overlay_ref}"
+            )
+            require(
+                candidate_overlay_authorization == expected_authorization,
+                "CANDIDATE_OVERLAY_AUTHORIZATION_REQUIRED",
+                "Candidate evidence may overlay accepted truth only after exact explicit authorization.",
+                status="BLOCKED",
+                expected_authorization=expected_authorization,
+            )
+            accepted = self.search(
+                project_id,
+                query,
+                pv_ref=pv_ref,
+                limit=limit,
+            )
+            require(
+                accepted["accepted_truth"] is True,
+                "CANDIDATE_OVERLAY_ACCEPTED_BASE_REQUIRED",
+                "A candidate overlay requires an accepted-PV base authority.",
+                status="BLOCKED",
+                pv_ref=accepted["pv_ref"],
+            )
+            overlay = self.search(
+                project_id,
+                query,
+                pv_ref=exact_overlay_ref,
+                limit=limit,
+            )
+            require(
+                overlay["authority_state"] == "UNACCEPTED_CANDIDATE"
+                and overlay["accepted_truth"] is False,
+                "CANDIDATE_OVERLAY_AUTHORITY_INVALID",
+                "The explicitly authorized overlay did not resolve to an unaccepted candidate.",
+                status="BLOCKED",
+            )
+            if "STALE" in {accepted["status"], overlay["status"]}:
+                combined_status = "STALE"
+            elif accepted["results"] or overlay["results"]:
+                combined_status = "PASS"
+            else:
+                combined_status = "EMPTY"
+            return {
+                "status": combined_status,
+                "schema": "evidence-lane.governed-retrieval.v1",
+                "project_id": project_id,
+                "query": query,
+                "accepted_authority": accepted,
+                "candidate_overlay": overlay,
+                "accepted_results": accepted["results"],
+                "candidate_overlay_results": overlay["results"],
+                "accepted_result_count": len(accepted["results"]),
+                "candidate_overlay_result_count": len(overlay["results"]),
+                "bounded_result_limit_per_authority": limit,
+                "candidate_overlay_used": True,
+                "candidate_overlay_authorization_sha256": sha256_bytes(
+                    expected_authorization.encode("utf-8")
+                ),
+                "candidate_overlay_authorization_stored": False,
+                "accepted_and_candidate_results_separated": True,
+                "no_hit_is_valid": not (
+                    accepted["results"] or overlay["results"]
+                ),
+                "scrollback_used": False,
+                "transcript_used": False,
+                "private_reasoning_stored": False,
+            }
         package = self.resolve(project_id, pv_ref)
         with database.connect(package / "code.sqlite", readonly=True) as connection:
             context = self._authority_context(project_id, package, connection)
@@ -241,6 +320,37 @@ class PVReader:
                             },
                         }
                     )
+        for result in results:
+            metadata = dict(result.get("metadata") or {})
+            path = str(result.get("path") or "")
+            start_line = result.get("start_line")
+            end_line = result.get("end_line")
+            source_locator = f"{context['pv_ref']}:{path}"
+            if isinstance(start_line, int):
+                source_locator += f"#L{start_line}"
+                if isinstance(end_line, int) and end_line != start_line:
+                    source_locator += f"-L{end_line}"
+            result["provenance"] = {
+                "project_id": project_id,
+                "lane_id": "github_code",
+                "source_authority": context["authority_state"],
+                "accepted_truth": context["accepted_truth"],
+                "pv_ref": context["pv_ref"],
+                "source_commit": context["source_commit"],
+                "source_path": path,
+                "source_locator": source_locator,
+                "source_locator_sha256": sha256_bytes(
+                    source_locator.encode("utf-8")
+                ),
+                "ref_id": result["ref_id"],
+                "chunk_id": (
+                    result["ref_id"].removeprefix("chunk:")
+                    if metadata.get("kind") == "chunk"
+                    else None
+                ),
+                "chunk_sha256": metadata.get("chunk_sha256"),
+                "file_sha256": metadata.get("file_sha256"),
+            }
         base_status = "PASS" if results else "EMPTY"
         return {
             "status": result_status(base_status, context["freshness"]),
@@ -248,6 +358,13 @@ class PVReader:
             **context,
             "query": query,
             "results": results,
+            "result_count": len(results),
+            "bounded_result_limit": limit,
+            "candidate_overlay_used": False,
+            "no_hit_is_valid": not results,
+            "scrollback_used": False,
+            "transcript_used": False,
+            "private_reasoning_stored": False,
             "warnings": (
                 ["Explicit candidate query; results are not accepted project truth."]
                 if context["authority_state"] == "UNACCEPTED_CANDIDATE"

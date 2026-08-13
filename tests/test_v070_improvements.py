@@ -362,6 +362,7 @@ def test_mid_turn_steers_append_in_order_and_deduplicate(
                     "session_id": "host-session-test",
                     "turn_id": "turn-with-steers",
                     "cwd": str(source_repository),
+                    "hook_event_name": "UserPromptSubmit",
                     "prompt": prompt,
                     "source": "mid_turn_steer",
                     "is_steer": True,

@@ -129,6 +129,8 @@ FROZEN_NO_GIT_ADDITIONS = {
     "plugins/evidence-lane-plugin/scripts/codex_release/build_codex_exact_commit_package.py",
     "plugins/evidence-lane-plugin/scripts/codex_release/seal_codex_git_ci_release_authority.py",
     "plugins/evidence-lane-plugin/hooks/post_tool_use.py",
+    "plugins/evidence-lane-plugin/hooks/lifecycle_boundary.py",
+    "plugins/evidence-lane-plugin/hooks/pre_tool_use.py",
     "plugins/evidence-lane-plugin/release-channels.json",
     "plugins/evidence-lane-plugin/remote_adapter/app/_components/studio-artifact-lab.tsx",
     "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-artifact-catalog.ts",
@@ -711,7 +713,11 @@ def _build_artifacts(
         },
         "validation": {"sqlite_integrity": integrity, "fts_refresh_hits": fts_probe, "secret_scan": "PASS"},
     }
-    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
     return manifest
 
 

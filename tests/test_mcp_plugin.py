@@ -27,6 +27,7 @@ from evidence_lane_plugin.mcp_apps import (
     GOVERNED_PANEL_URI,
     MCP_APP_MIME_TYPE,
     build_project_panel_snapshot,
+    build_runtime_panel_snapshot,
     governed_panel_html,
 )
 from evidence_lane_plugin.mcp_server import (
@@ -412,7 +413,7 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
     assert len(resources) == 1
     resource = resources[0]
     assert str(resource.uri) == GOVERNED_PANEL_URI
-    assert GOVERNED_PANEL_URI.endswith("/governed-console-v3.html")
+    assert GOVERNED_PANEL_URI.endswith("/governed-console-v4.html")
     assert resource.mimeType == MCP_APP_MIME_TYPE
     assert resource.icons is not None
     assert [icon.model_dump(by_alias=True, exclude_none=True) for icon in resource.icons] == [
@@ -426,7 +427,7 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
         "ui": {
             "prefersBorder": True,
             "domain": public_site,
-            "csp": {"connectDomains": [], "resourceDomains": []},
+            "csp": {"connectDomains": [], "resourceDomains": [public_site]},
         }
     }
     contents = list(asyncio.run(server.read_resource(GOVERNED_PANEL_URI)))
@@ -441,6 +442,11 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
     assert "innerHTML" not in contents[0].content
     assert "Prompt template (host-owned; never auto-submitted)" in contents[0].content
     assert "hil.choices" in contents[0].content
+    assert (
+        f'<img src="{public_site}/evidence-lane-icon.png" width="42" height="42" '
+        'alt="Evidence Lane cube icon" />'
+    ) in contents[0].content
+    assert '<div class="brand-name">Evidence Lane</div>' in contents[0].content
 
     by_name = {tool.name: tool for tool in asyncio.run(server.list_tools())}
     for name in ("render_runtime_panel", "render_project_panel"):
@@ -520,6 +526,45 @@ def test_project_panel_always_explains_exact_six_way_hil_without_mutation() -> N
         "topology_status": "PASS",
     }
     assert snapshot["lanes"][0]["id"] == "github_code"
+
+
+def test_read_only_panels_carry_one_exact_evidence_lane_identity() -> None:
+    public_site = "https://preview.example.test"
+    expected_identity = {
+        "display_name": "Evidence Lane",
+        "server_identity": "evidence-lane",
+        "release": ENGINE_VERSION,
+        "website_url": public_site,
+        "icon": {
+            "src": f"{public_site}/evidence-lane-icon.png",
+            "mimeType": "image/png",
+            "sizes": ["256x256"],
+        },
+    }
+    runtime = build_runtime_panel_snapshot(
+        doctor={
+            "status": "PASS",
+            "engine": {"release": ENGINE_VERSION, "commit": "abc123"},
+            "checks": {"sqlite": True},
+            "mcp_route_identity": {
+                "server_identity": "evidence-lane",
+                "tool_count": EXPECTED_TOOL_COUNT,
+                "status": "PASS",
+            },
+        },
+        lane_catalog={"lane_count": 0, "lanes": []},
+        public_site_url=f"{public_site}/",
+    )
+    project = build_project_panel_snapshot(
+        project_id="example",
+        project_status={"status": "PASS"},
+        public_site_url=f"{public_site}/",
+    )
+
+    assert runtime["read_only"] is True
+    assert project["read_only"] is True
+    assert runtime["identity"] == expected_identity
+    assert project["identity"] == expected_identity
 
 
 def test_mcp_apps_view_executes_initialize_and_tool_result_lifecycle() -> None:
@@ -682,6 +727,21 @@ def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> No
     assert icon.src == f"{public_site}/evidence-lane-icon.png"
     assert icon.mimeType == "image/png"
     assert icon.sizes == ["256x256"]
+    initialization = identity.create_initialization_options()
+    assert initialization.server_name == "Evidence Lane"
+    assert initialization.server_version == ENGINE_VERSION
+    assert str(initialization.website_url) == public_site
+    assert initialization.icons is not None
+    assert [
+        advertised.model_dump(by_alias=True, exclude_none=True)
+        for advertised in initialization.icons
+    ] == [
+        {
+            "src": f"{public_site}/evidence-lane-icon.png",
+            "mimeType": "image/png",
+            "sizes": ["256x256"],
+        }
+    ]
     tools = asyncio.run(server.list_tools())
     assert len(tools) == EXPECTED_TOOL_COUNT
     assert all(tool.icons is not None and len(tool.icons) == 1 for tool in tools)
@@ -717,14 +777,18 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     )
     hooks = json.loads((plugin / "hooks" / "hooks.json").read_text(encoding="utf-8"))
     assert set(hooks["hooks"]) == {
+        "PostCompact",
         "SessionStart",
         "UserPromptSubmit",
+        "PreCompact",
+        "PreToolUse",
         "PostToolUse",
+        "SessionEnd",
         "Stop",
     }
     post_handler = hooks["hooks"]["PostToolUse"][0]["hooks"][0]
     assert "post_tool_use.py" in post_handler["command"]
-    assert "pv_plan_steer_delta" in hooks["hooks"]["PostToolUse"][0]["matcher"]
+    assert "matcher" not in hooks["hooks"]["PostToolUse"][0]
     stop_handler = hooks["hooks"]["Stop"][0]["hooks"][0]
     assert "stop_response.py" in stop_handler["command"]
     stop_source = (plugin / "hooks" / "stop_response.py").read_text(encoding="utf-8")
@@ -1052,6 +1116,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
                 "session_id": "host-session-prompt-index-pv2",
                 "turn_id": "turn-prompt-index-1",
                 "cwd": str(source_repository),
+                "hook_event_name": "UserPromptSubmit",
                 "prompt": secret_prompt,
             }
         ),
@@ -1189,6 +1254,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
                 "session_id": "host-session-second-task",
                 "turn_id": "turn-prompt-index-2",
                 "cwd": str(source_repository),
+                "hook_event_name": "UserPromptSubmit",
                 "prompt": "Second task checkpoint.",
             }
         ),
@@ -1263,6 +1329,7 @@ def test_prompt_hook_does_not_index_unbound_chats(tmp_path: Path) -> None:
                 "session_id": "unbound-host-session",
                 "turn_id": "unbound-turn",
                 "cwd": str(tmp_path),
+                "hook_event_name": "UserPromptSubmit",
                 "prompt": "This is not an Evidence Lane task.",
             }
         ),

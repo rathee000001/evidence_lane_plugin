@@ -132,11 +132,19 @@ def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
     proven = runtime.status_with_host_proof()
     assert proven["host_hook_status"]["status"] == "TRUSTED"
     assert proven["host_hooks_runnable"] is True
-    assert proven["prompt_capture_active"] is True
+    assert proven["prompt_capture_active"] is False
     assert proven["prompt_capture_partially_available"] is True
-    assert proven["required_pre_reasoning_capture_complete"] is True
-    assert proven["missing_required_pre_reasoning_surfaces"] == []
-    assert proven["capture_gap_code"] is None
+    assert proven["required_pre_reasoning_capture_complete"] is False
+    assert proven["supported_pre_reasoning_capture_complete"] is True
+    assert proven["missing_required_pre_reasoning_surfaces"] == [
+        "GOAL_CONTINUATION"
+    ]
+    assert proven["host_capability_unavailable_surfaces"] == [
+        "GOAL_CONTINUATION"
+    ]
+    assert proven["capture_gap_code"] == (
+        "HOST_PRE_REASONING_USER_INPUT_HOOK_UNAVAILABLE"
+    )
     surfaces = {
         row["surface"]: row
         for row in proven["required_pre_reasoning_capture_surfaces"]
@@ -148,8 +156,10 @@ def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
         "RUNNABLE_REQUIRES_PER_INPUT_PREPARE_RECEIPT"
     )
     assert surfaces["GOAL_CONTINUATION"]["state"] == (
-        "RUNNABLE_REQUIRES_PER_INPUT_PREPARE_RECEIPT"
+        "HOST_CAPABILITY_UNAVAILABLE"
     )
+    assert surfaces["GOAL_CONTINUATION"]["native_hook_event"] is None
+    assert surfaces["GOAL_CONTINUATION"]["pre_reasoning_dispatch_runnable"] is False
     assert proven["visible_response_capture_active"] is True
 
 
@@ -172,6 +182,8 @@ def test_runtime_status_does_not_treat_activation_as_prompt_invocation_proof(
     assert status["active_session_capture_gap_code"] == (
         "ACTIVE_RUNTIME_WITHOUT_SEALED_PROMPT_INDEX_RECORD"
     )
+    assert status["status"] == "FAIL"
+    assert status["adapter_record_is_independent_installed_host_proof"] is False
 
 
 def test_v2_reuses_the_existing_stable_flash_authority(tmp_path: Path) -> None:

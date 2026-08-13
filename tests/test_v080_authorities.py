@@ -32,6 +32,16 @@ def test_chat_lineage_sqlite_is_hash_bound_searchable_and_secret_free(
             "files": ["README.md"],
             "tests": ["all lanes"],
             "output_links": ["artifact://audit"],
+            "source_locators": ["PV11/github_code/source.py#L10"],
+            "receipt_sha256": "A" * 64,
+            "chunk_ids": ["chunk-001", "chunk-002"],
+            "host_identity": {
+                "host_kind": "CODEX_DESKTOP",
+                "host_profile": "CODEX_LOCAL_PC_OR_LAPTOP",
+                "host_app": "CODEX",
+                "host_session_id_sha256": "B" * 64,
+                "raw_host_session_id_stored": False,
+            },
         },
         occurred_at="2026-08-01T12:00:00Z",
         session_id="session-test",
@@ -45,8 +55,10 @@ def test_chat_lineage_sqlite_is_hash_bound_searchable_and_secret_free(
     assert status["schema"] == LINEAGE_SQLITE_SCHEMA
     assert status["event_count"] == 1
     assert status["fts_count"] == 1
+    assert status["chunk_count"] == status["chunk_fts_count"] == 1
     assert status["private_reasoning_stored"] is False
     assert status["project_authority"]["event_count"] == 1
+    assert status["project_authority"]["chunk_count"] == 1
     assert status["project_authority"]["head_event_id"] == event["event_id"]
     connection = sqlite3.connect(lineage.sqlite_path)
     assert connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
@@ -61,9 +73,118 @@ def test_chat_lineage_sqlite_is_hash_bound_searchable_and_secret_free(
         connection.execute(
             "SELECT COUNT(*) FROM lineage_link WHERE event_id=?", (event["event_id"],)
         ).fetchone()[0]
-        == 4
+        == 12
     )
+    assert {
+        row[0]
+        for row in connection.execute(
+            "SELECT DISTINCT link_kind FROM lineage_link WHERE event_id=?",
+            (event["event_id"],),
+        ).fetchall()
+    } == {
+        "chunk",
+        "command",
+        "file",
+        "host_identity",
+        "output",
+        "receipt",
+        "source_locator",
+        "test",
+    }
     connection.close()
+    project_connection = sqlite3.connect(status["project_authority"]["sqlite_path"])
+    assert project_connection.execute(
+        "SELECT COUNT(*) FROM project_lineage_link WHERE event_id=?",
+        (event["event_id"],),
+    ).fetchone()[0] == 12
+    assert project_connection.execute(
+        "SELECT COUNT(*) FROM project_lineage_fts "
+        "WHERE project_lineage_fts MATCH 'pursue'"
+    ).fetchone()[0] == 1
+    project_connection.close()
+
+
+def test_chat_lineage_chunks_restart_reuse_and_project_isolation(
+    tmp_path: Path,
+) -> None:
+    project_a = ChatLineage(
+        tmp_path / "project-a" / "lineage" / "session-a.jsonl"
+    )
+    visible_text = "alpha-isolated " + ("bounded-visible-context " * 140)
+    first = project_a.append(
+        event_type="user.prompt",
+        visible_payload={"prompt": visible_text},
+        occurred_at="2026-08-01T12:00:00Z",
+        session_id="session-a",
+        event_id="shared-visible-event-id",
+        actor_type="user",
+    )
+    second = project_a.append(
+        event_type="assistant.response",
+        visible_payload={"output": "alpha-isolated response"},
+        occurred_at="2026-08-01T12:00:01Z",
+        session_id="session-a",
+        event_id="alpha-response",
+        actor_type="assistant",
+    )
+    assert second["previous_event_sha256"] == first["event_sha256"]
+
+    first_status = project_a.projection_status()
+    assert first_status["chunk_count"] >= 4
+    assert first_status["chunk_count"] == first_status["chunk_fts_count"]
+    with sqlite3.connect(project_a.sqlite_path) as connection:
+        chunks_before = connection.execute(
+            "SELECT chunk_id,chunk_ordinal,chunk_sha256,chunk_text "
+            "FROM lineage_chunk ORDER BY event_id,chunk_ordinal"
+        ).fetchall()
+        assert connection.execute(
+            "SELECT COUNT(*) FROM lineage_chunk_fts "
+            "WHERE lineage_chunk_fts MATCH 'alpha'"
+        ).fetchone()[0] >= 1
+
+    reopened = ChatLineage(project_a.path)
+    reused = reopened.projection_status()
+    assert reused["action"] == "REUSED"
+    with sqlite3.connect(reopened.sqlite_path) as connection:
+        assert connection.execute(
+            "SELECT chunk_id,chunk_ordinal,chunk_sha256,chunk_text "
+            "FROM lineage_chunk ORDER BY event_id,chunk_ordinal"
+        ).fetchall() == chunks_before
+    assert reopened.append(
+        event_type="assistant.response",
+        visible_payload={"output": "alpha-isolated response"},
+        occurred_at="2026-08-01T12:00:01Z",
+        session_id="session-a",
+        event_id="alpha-response",
+        actor_type="assistant",
+    ) == second
+    assert len(reopened.events()) == 2
+
+    project_b = ChatLineage(
+        tmp_path / "project-b" / "lineage" / "session-b.jsonl"
+    )
+    project_b.append(
+        event_type="user.prompt",
+        visible_payload={"prompt": "beta-isolated only"},
+        occurred_at="2026-08-01T12:00:00Z",
+        session_id="session-b",
+        event_id="shared-visible-event-id",
+        actor_type="user",
+    )
+    status_b = project_b.projection_status()
+    assert (
+        first_status["project_authority"]["sqlite_path"]
+        != status_b["project_authority"]["sqlite_path"]
+    )
+    with sqlite3.connect(status_b["project_authority"]["sqlite_path"]) as connection:
+        assert connection.execute(
+            "SELECT COUNT(*) FROM project_lineage_chunk_fts "
+            "WHERE project_lineage_chunk_fts MATCH 'alpha'"
+        ).fetchone()[0] == 0
+        assert connection.execute(
+            "SELECT COUNT(*) FROM project_lineage_chunk_fts "
+            "WHERE project_lineage_chunk_fts MATCH 'beta'"
+        ).fetchone()[0] == 1
 
 
 def test_chat_lineage_projects_legacy_events_without_rewriting_source(

@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet("Register", "RecoverAtLogon", "Status", "Unregister")]
+    [ValidateSet("Register", "RecoverNow", "RecoverAtLogon", "Status", "Unregister")]
     [string]$Action = "Status",
     [string]$TaskBindingReceipt,
     [string]$TaskId,
@@ -659,6 +659,66 @@ if ($Action -eq "Unregister") {
         active_binding_count = $remaining.Count
         scheduled_task_disabled = $remaining.Count -eq 0
     } | ConvertTo-Json -Depth 16
+    exit 0
+}
+
+if ($Action -eq "RecoverNow") {
+    Assert-TaskId $TaskId
+    $bindingPath = Get-BindingPath $TaskId
+    $record = Read-SealedBinding $bindingPath
+    if ($record.payload.state -ne "ACTIVE_GOAL_BOUND") {
+        throw "RecoverNow requires one exact active governed Goal binding."
+    }
+    $boundHostProfile = Resolve-GoalBindingHostProfile $record
+    $slotAuthority = Read-TwoSlotAuthority `
+        -Path ([string]$record.payload.slot_authority.registry_path) `
+        -Binding $record.payload
+    $probe = Invoke-CodexGoalProbe -ExactTaskId $TaskId
+    if ($probe.goal_status -ne "active") {
+        throw "RecoverNow may open only an active persisted Codex Goal."
+    }
+    $activation = Invoke-CodexTaskActivation `
+        -ExactTaskId $TaskId `
+        -HostProfile $boundHostProfile
+    $receipt = [ordered]@{
+        schema = $script:RecoverySchema
+        status = "PASS"
+        state = "EXACT_TASK_OPEN_REQUESTED_ACTIVE_GOAL_PERSISTED_HOST_CONTINUATION_PENDING"
+        recovery_mode = "EXPLICIT_EXACT_TASK_NOW"
+        task_id = $TaskId
+        project_id = [string]$record.payload.project_id
+        evidence_session_id = [string]$record.payload.evidence_session_id
+        active_plan_task_id = [string]$record.payload.active_plan_task_id
+        host_app_id = [string]$boundHostProfile.app_id
+        host_application = [string]$boundHostProfile.host_application
+        binding_payload_sha256 = [string]$record.payload_sha256
+        stable_selector = [string]$slotAuthority.stable_selector
+        fallback_selector = [string]$slotAuthority.fallback_selector
+        goal = $probe
+        activation = $activation
+        source_mutated = $false
+        prompt_submitted = $false
+        turn_started = $false
+        state_travel_invoked = $false
+        candidate_hil_or_pointer_mutated = $false
+        recorded_at_utc = [DateTimeOffset]::UtcNow.ToString("o")
+    }
+    $receiptDirectory = Join-Path ([IO.Path]::GetFullPath($RecoveryRoot)) "receipts"
+    [void](New-Item -ItemType Directory -Force -Path $receiptDirectory)
+    $receiptPath = Join-Path $receiptDirectory ("RECOVERY_NOW_" + $TaskId.ToLowerInvariant() + "_" + [DateTimeOffset]::UtcNow.ToString("yyyyMMddTHHmmssfffZ") + ".json")
+    Write-AtomicJson $receiptPath $receipt
+    [ordered]@{
+        status = "PASS"
+        state = [string]$receipt.state
+        task_id = $TaskId
+        active_plan_task_id = [string]$record.payload.active_plan_task_id
+        host_app_id = [string]$boundHostProfile.app_id
+        activation = $activation
+        receipt_path = $receiptPath
+        receipt_sha256 = Get-Sha256 $receiptPath
+        prompt_submitted = $false
+        lifecycle_mutated = $false
+    } | ConvertTo-Json -Depth 32
     exit 0
 }
 

@@ -664,6 +664,7 @@ try {
     exit 0
 }
 catch {
+    $installationError = $_
     $transientTaskRemoved = $false
     if (-not [string]::IsNullOrWhiteSpace($ScheduledTaskName)) {
         try {
@@ -672,23 +673,34 @@ catch {
         }
         catch {}
     }
+    $taskActivation = $null
+    $taskActivationError = $null
+    if (-not [string]::IsNullOrWhiteSpace($HostAppId)) {
+        try {
+            $taskActivation = Open-ExactTask (Get-HostAppProfile $HostAppId)
+        }
+        catch {
+            $taskActivationError = $_.Exception.Message
+        }
+    }
     $failure = [ordered]@{
         schema = "evidence-lane.codex-stable-same-slot-update-failure.v1"
         status = "FAIL"
         project_id = $ProjectId
         evidence_session_id = $EvidenceSessionId
         task_id = $TaskId
-        error_type = $_.Exception.GetType().Name
-        error = $_.Exception.Message
+        error_type = $installationError.Exception.GetType().Name
+        error = $installationError.Exception.Message
         fallback_activated = $false
         transient_scheduled_task_removed = $transientTaskRemoved
+        exact_task_reopen_requested = $null -ne $taskActivation
+        task_activation = $taskActivation
+        task_activation_error = $taskActivationError
+        operator_recovery_required = $null -eq $taskActivation
         candidate_created = $false
         pointer_moved = $false
         recorded_at_utc = [DateTimeOffset]::UtcNow.ToString("o")
     }
     Write-Json $resultPath $failure
-    if (-not [string]::IsNullOrWhiteSpace($HostAppId)) {
-        [void](Open-ExactTask (Get-HostAppProfile $HostAppId))
-    }
     exit 1
 }

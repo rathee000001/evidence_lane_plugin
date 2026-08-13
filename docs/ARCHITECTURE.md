@@ -111,15 +111,19 @@ row. It never infers HIL, moves the pointer, or creates a candidate.
 
 ## Hooks and visible continuity
 
-The v2 package registers four hook events:
+The v2.1 package registers eight hook events:
 
 - `SessionStart` — verify installation and prepare bounded session context;
 - `UserPromptSubmit` — bind the visible turn without storing private reasoning;
+- `PreToolUse` — fail closed when the governed PREPARE binding is absent;
 - `PostToolUse` — refresh the linked task/Delta change projection after relevant
   native actions;
-- `Stop` — preserve the response/exit boundary.
+- `PreCompact` — seal the current compaction boundary;
+- `PostCompact` — rehydrate lifecycle context and require skill re-entry;
+- `Stop` — preserve the response/exit boundary;
+- `SessionEnd` — best-effort lifecycle flush without inferring completion.
 
-The package inventory is four events, four handlers, and five hook files
+The package inventory is eight events, six command handlers, and seven hook files
 including `hooks.json`. Hook output can request a persistent change notice, but
 Codex owns its final placement. The icon and rendered panel are therefore
 installed-host observations, not facts inferred from source metadata.

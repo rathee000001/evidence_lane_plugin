@@ -355,8 +355,16 @@ def test_current_plan_projection_uses_the_sealed_plan_snapshot() -> None:
     assert 'import planProjection from "./website-plan-projection.json"' in execution
     assert "websiteCurrentExecutionBoundary" in guidance
     assert snapshot["canonical_authority"] == "PLAN_LANE"
+    assert snapshot["task_count"] == 120
+    assert snapshot["row_start"] == 81
+    assert snapshot["row_end"] == 200
     assert snapshot["active_row"] == 164
-    assert snapshot["physically_final_hil_row"] == 199
+    assert snapshot["physically_final_hil_row"] == 200
+    assert [row["row"] for row in snapshot["rows"]] == list(range(81, 201))
+    assert [
+        row["row"] for row in snapshot["rows"] if row["status"] == "IN_PROGRESS"
+    ] == [164]
+    assert snapshot["rows"][-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
     assert public_metadata["plan_lane"]["active_public_row"] == snapshot["active_row"]
     assert public_metadata["plan_lane"]["active_public_task_position"] == snapshot["active_task_position"]
     assert public_metadata["plan_lane"]["physically_final_hil_public_row"] == snapshot["physically_final_hil_row"]

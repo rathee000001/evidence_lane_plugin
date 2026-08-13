@@ -65,6 +65,95 @@ def test_v210_declares_exact_stable_build_and_v200_pv11_fallback_slots() -> None
     assert live_slots["manual_loaded_cache_deletion_allowed"] is False
 
 
+def test_v210_logical_integration_bundle_matrix_is_complete_and_fail_closed() -> None:
+    matrix = json.loads(
+        (ROOT / "docs" / "V210_LOGICAL_INTEGRATION_BUNDLE_MATRIX.json").read_text(
+            "utf-8"
+        )
+    )
+    assert matrix["schema"] == (
+        "evidence-lane.codex-logical-integration-bundle-matrix.v1"
+    )
+    assert matrix["delivery_cadence"] == (
+        "DEPENDENCY_COHERENT_INTEGRATION_BUNDLE"
+    )
+    assert matrix["accepted_reference"] == {
+        "pv": "PV11",
+        "role": "IMMUTABLE_FORENSIC_REFERENCE_AND_DISABLED_FALLBACK",
+        "development_base": False,
+        "stable_install_source": False,
+    }
+    assert matrix["commit_authority"] == {
+        "source": "EXACT_GIT_COMMIT_PACKAGE_ONLY",
+        "final_commit_sha": None,
+        "state": "PENDING_LOGICAL_BUNDLE_COMMIT",
+        "local_or_dirty_worktree_install_allowed": False,
+    }
+    assert matrix["plan_projection"] == {
+        "canonical_authority": "PLAN_LANE",
+        "row_start": 81,
+        "row_end": 200,
+        "task_count": 120,
+        "active_row": 164,
+        "physically_final_hil_row": 200,
+        "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
+        "executable_projection_sha256": (
+            "0968F63D7F2CE0093BCDFE98FD45AE9C9D3C23CB1F8BCBB8B05D4F684EF8070C"
+        ),
+    }
+    rows = matrix["rows"]
+    assert [row["task_id"] for row in rows] == [
+        "EL-CODEX-TURN_PREPARE_CAPTURE-PROPOSAL-04",
+        "EL-CODEX-TURN_CLASSIFY_DELTA_BIND-PROPOSAL-05",
+        "EL-CODEX-CHATLINEAGE_SQLITE_FTS_HASHCHAIN-PROPOSAL-06",
+        "EL-CODEX-GOAL_METRIC_PRIVATE_RESEARCH_METADATA-PROPOSAL-07",
+        "EL-CODEX-GOVERNED_RETRIEVAL-PROPOSAL-08",
+        "EL-CODEX-EXECUTION_EVENT_COMMIT-PROPOSAL-09",
+        "EL-CODEX-ENTRY_EXIT_RECOVERY-PROPOSAL-10",
+        "EL-CODEX-PERSISTENT_PLAN_CURRENT_CHANGE-PROPOSAL-11",
+    ]
+    required = {
+        "task_id",
+        "changed_surfaces",
+        "local_tests",
+        "remote_checks",
+        "installed_host_checks",
+        "outcome",
+        "failure_owner",
+    }
+    assert all(set(row) == required for row in rows)
+    assert all(
+        row["changed_surfaces"]
+        and row["local_tests"]
+        and row["remote_checks"]
+        and row["installed_host_checks"]
+        and row["outcome"] == "LOCAL_PASS_PENDING_REMOTE_AND_INSTALLED_HOST"
+        and row["failure_owner"]
+        for row in rows
+    )
+    assert matrix["bundle_gate"]["policy"] == (
+        "ANY_INCLUDED_ROW_FAILURE_FAILS_BUNDLE_CLOSED"
+    )
+    assert matrix["bundle_gate"]["local_outcome"] == "PASS_EXACT_TREE"
+    assert matrix["bundle_gate"]["remote_outcome"] == "PENDING_EXACT_COMMIT"
+    assert matrix["bundle_gate"]["installed_host_outcome"] == "PENDING_REMOTE_PASS"
+    assert matrix["bundle_gate"]["stable_selector_updates"] == 0
+    validation = matrix["local_validation"]
+    assert validation["pytest"] == {
+        "status": "PASS",
+        "test_count": 440,
+        "execution": "SIX_BOUNDED_SHARDS_AFTER_MONOLITHIC_15_MINUTE_TIMEOUT",
+        "stale_test_correction": "CURRENT_EXECUTION_ASSERTS_GENERATED_PLAN_AUTHORITY",
+    }
+    assert validation["website_plan_projection"]["status"] == "PASS"
+    assert validation["prompt_studio"]["sqlite_integrity"] == "ok"
+    assert set(validation["adapter_checks"].values()) == {
+        "PASS",
+        "PASS_22_ROUTES",
+    }
+    assert validation["diff_check"] == "PASS"
+
+
 def test_promotion_requires_matching_cross_surface_receipts_and_hil() -> None:
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
@@ -234,8 +323,53 @@ def test_codex_behavior_belongs_to_skills_and_hooks_remain_lifecycle_only() -> N
         "hook_may_embed_full_plan_rows": False,
         "hook_may_call_or_instruct_host_behavior": False,
         "skill_must_refresh_after_every_prompt_or_steer": True,
+        "ordinary_question_appends_plan_delta": False,
+        "plan_steer_requires_executable_goal_contract_change": True,
+        "plan_steer_refreshes_full_panel_and_current_change_once": True,
         "fail_closed_when_behavior_route_unavailable": True,
     }
+    assert contract["lifecycle_hook_matrix"] == {
+        "hooks_own_lifecycle_transport_only": True,
+        "skills_own_behavior_native_reads_classification_and_plan_refresh": True,
+        "required_events": [
+            "SessionStart",
+            "UserPromptSubmit",
+            "PreToolUse",
+            "PostToolUse",
+            "PreCompact",
+            "PostCompact",
+            "Stop",
+            "SessionEnd",
+        ],
+        "event_owners": {
+            "SessionStart": "WARM_ATTACH_AND_INTERRUPTED_TURN_RECOVERY",
+            "UserPromptSubmit": "PREPARE_VISIBLE_INPUT",
+            "PreToolUse": "PREPARE_AND_EXACT_BINDING_GUARD",
+            "PostToolUse": "VISIBLE_TOOL_RECEIPT_AND_CHANGE_PROJECTION",
+            "PreCompact": "COMPACTION_SEAL",
+            "PostCompact": "DURABLE_REHYDRATION",
+            "Stop": "VISIBLE_RESPONSE_COMMIT",
+            "SessionEnd": "BEST_EFFORT_BOUNDARY_FLUSH",
+        },
+        "permission_request_policy": (
+            "CONDITIONAL_ONLY_WHEN_HOST_CAPABILITY_IS_PROVEN"
+        ),
+        "subagent_events_in_scope": False,
+        "raw_prompt_or_tool_payload_in_boundary_receipts": False,
+        "private_reasoning_stored": False,
+    }
+    hook_config = json.loads((PLUGIN / "hooks" / "hooks.json").read_text("utf-8"))
+    assert list(hook_config["hooks"]) == contract["lifecycle_hook_matrix"][
+        "required_events"
+    ]
+    assert "PermissionRequest" not in hook_config["hooks"]
+    assert all("Subagent" not in event for event in hook_config["hooks"])
+
+    lifecycle = (
+        PLUGIN / "skills" / "evidence-lane-code-lifecycle" / "SKILL.md"
+    ).read_text("utf-8")
+    assert "ordinary tasks" in lifecycle
+    assert "dependency-coherent integration checkpoints" in lifecycle
 
     behavior_sources = [
         PLUGIN / "skills" / "evidence-lane-code-lifecycle" / "SKILL.md",
@@ -262,7 +396,13 @@ def test_codex_behavior_belongs_to_skills_and_hooks_remain_lifecycle_only() -> N
 
     hook_text = "\n".join(
         (PLUGIN / "hooks" / name).read_text("utf-8")
-        for name in ("prompt_submit.py", "session_start.py", "post_tool_use.py")
+        for name in (
+            "prompt_submit.py",
+            "session_start.py",
+            "pre_tool_use.py",
+            "post_tool_use.py",
+            "lifecycle_boundary.py",
+        )
     )
     assert "EVIDENCE_LANE_HOST_STEP_TASK_LIST_PROJECTION=" not in hook_text
     assert "EVIDENCE_LANE_HOST_PLAN_ACTION=" not in hook_text
@@ -274,6 +414,44 @@ def test_stable_activation_requires_git_ci_authority_and_runtime_prewarm() -> No
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
+
+    gate = contract["stable_activation_gate"]
+    assert gate["delivery_cadence"] == "DEPENDENCY_COHERENT_INTEGRATION_BUNDLES"
+    assert gate["per_delta_commit_ci_install_forbidden"] is True
+    assert gate["bundle_count_is_derived_not_quota"] is True
+    assert gate["bundle_boundary_derivation_axes"] == [
+        "SOURCE_SCHEMA_RUNTIME_COUPLING",
+        "CROSS_DELTA_TEST_GRAPH",
+        "INSTALLED_HOST_PROOF_BOUNDARY",
+    ]
+    assert gate["row_acceptance_evidence_remains_individual"] is True
+    assert gate["per_delta_governance_routes_preserved"] == [
+        "PREPARE_CAPTURE_RETRIEVAL",
+        "TASK_ROW_CURRENT_CHANGE_CLASSIFICATION",
+        "PV_STATUS_BACKLOG_QUERY_READS",
+        "CHATLINEAGE_ACTIVITY",
+        "EXACT_ACCEPTANCE_EVIDENCE",
+        "LIFECYCLE_TRANSITION",
+        "PERSISTENT_PLAN_CURRENT_CHANGE_REPROJECTION",
+    ]
+    assert gate["cross_delta_verification_matrix_required"] is True
+    assert gate["cross_delta_matrix_dimensions"] == [
+        "TASK_ID",
+        "CHANGED_SURFACES",
+        "LOCAL_TESTS",
+        "REMOTE_CHECKS",
+        "INSTALLED_HOST_CHECKS",
+        "OUTCOME",
+        "FAILURE_OWNER",
+    ]
+    assert gate["bundle_failure_policy"] == (
+        "ANY_INCLUDED_ROW_FAILURE_FAILS_BUNDLE_CLOSED"
+    )
+    assert gate["bundle_commit_syncs_root_and_repository_docs"] is True
+    assert gate["stable_install_source"] == "EXACT_GIT_COMMIT_PACKAGE_ONLY"
+    assert gate["local_or_dirty_worktree_stable_install_allowed"] is False
+    assert gate["all_configured_commit_checks_required_before_stable_install"] is True
+    assert gate["one_stable_update_per_integration_bundle"] is True
 
     assert contract["stable_activation_gate"] == {
         "local_rehearsal_stage_only": True,
@@ -310,6 +488,42 @@ def test_stable_activation_requires_git_ci_authority_and_runtime_prewarm() -> No
         "installed_runtime_prewarm_required": True,
         "runtime_ready_before_task_reopen_required": True,
         "fallback_activation_inferred": False,
+        "delivery_cadence": "DEPENDENCY_COHERENT_INTEGRATION_BUNDLES",
+        "per_delta_commit_ci_install_forbidden": True,
+        "bundle_count_is_derived_not_quota": True,
+        "bundle_boundary_derivation_axes": [
+            "SOURCE_SCHEMA_RUNTIME_COUPLING",
+            "CROSS_DELTA_TEST_GRAPH",
+            "INSTALLED_HOST_PROOF_BOUNDARY",
+        ],
+        "row_acceptance_evidence_remains_individual": True,
+        "per_delta_governance_routes_preserved": [
+            "PREPARE_CAPTURE_RETRIEVAL",
+            "TASK_ROW_CURRENT_CHANGE_CLASSIFICATION",
+            "PV_STATUS_BACKLOG_QUERY_READS",
+            "CHATLINEAGE_ACTIVITY",
+            "EXACT_ACCEPTANCE_EVIDENCE",
+            "LIFECYCLE_TRANSITION",
+            "PERSISTENT_PLAN_CURRENT_CHANGE_REPROJECTION",
+        ],
+        "cross_delta_verification_matrix_required": True,
+        "cross_delta_matrix_dimensions": [
+            "TASK_ID",
+            "CHANGED_SURFACES",
+            "LOCAL_TESTS",
+            "REMOTE_CHECKS",
+            "INSTALLED_HOST_CHECKS",
+            "OUTCOME",
+            "FAILURE_OWNER",
+        ],
+        "bundle_failure_policy": (
+            "ANY_INCLUDED_ROW_FAILURE_FAILS_BUNDLE_CLOSED"
+        ),
+        "bundle_commit_syncs_root_and_repository_docs": True,
+        "stable_install_source": "EXACT_GIT_COMMIT_PACKAGE_ONLY",
+        "local_or_dirty_worktree_stable_install_allowed": False,
+        "all_configured_commit_checks_required_before_stable_install": True,
+        "one_stable_update_per_integration_bundle": True,
     }
     assert contract["brand_identity"] == {
         "display_name": "Evidence Lane",

@@ -1162,9 +1162,67 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
         "ui://evidence-lane/governed-console-v3.html"
     )
     assert receipt["task_reopened"] is False
+    assert receipt["bootstrap_attempt_count"] == 1
+    assert receipt["bootstrap_attempts"][0]["returncode"] == 0
     assert len(receipt["receipt_sha256"]) == 64
     assert calls[0] == [module.sys.executable, str(plugin_root / "scripts" / "bootstrap.py")]
     assert calls[1][0] == str(runtime_python)
+
+
+def test_installed_runtime_bootstrap_retries_once_on_same_sealed_bytes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    plugin_root = tmp_path / "installed"
+    _write(plugin_root / "scripts" / "bootstrap.py", "# fixture\n")
+    (plugin_root / "assets").mkdir(parents=True, exist_ok=True)
+    shutil.copy2(
+        PLUGIN / "assets" / "evidence-lane-icon.png",
+        plugin_root / "assets" / "evidence-lane-icon.png",
+    )
+    runtime_python = (
+        plugin_root / ".venv" / "Scripts" / "python.exe"
+        if module.os.name == "nt"
+        else plugin_root / ".venv" / "bin" / "python"
+    )
+    _write(runtime_python, "fixture runtime")
+    calls: list[list[str]] = []
+
+    def fake_run(arguments: list[str], **_: object) -> subprocess.CompletedProcess[bytes]:
+        calls.append(arguments)
+        if len(calls) == 1:
+            return subprocess.CompletedProcess(arguments, 1, b"first stdout\n", b"first stderr\n")
+        if len(calls) == 2:
+            return subprocess.CompletedProcess(arguments, 0, b"second bootstrap ok\n", b"")
+        payload = {
+            "engine_version": "2.1.0",
+            "native_server_identity": "evidence-lane",
+            "read_tool_count": 21,
+            "tool_count": 62,
+            "tool_catalog_sha256": "A" * 64,
+            "route_status": "PASS",
+            "resource_uri": "ui://evidence-lane/governed-console-v3.html",
+            "native_dependency_prewarm_completed": True,
+        }
+        return subprocess.CompletedProcess(
+            arguments,
+            0,
+            (json.dumps(payload) + "\n").encode("utf-8"),
+            b"",
+        )
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+    receipt = module._prewarm_installed_runtime(plugin_root)
+
+    assert receipt["status"] == "PASS"
+    assert receipt["bootstrap_attempt_count"] == 2
+    assert [row["returncode"] for row in receipt["bootstrap_attempts"]] == [1, 0]
+    assert receipt["bootstrap_attempts"][0]["stdout_sha256"] == hashlib.sha256(
+        b"first stdout\n"
+    ).hexdigest().upper()
+    assert calls[0] == calls[1]
+    assert calls[2][0] == str(runtime_python)
 
 
 def test_supported_codex_api_trusts_only_exact_selector_hooks(
@@ -1741,6 +1799,9 @@ def test_same_slot_update_requires_git_ci_and_prewarm_before_task_reopen() -> No
     assert '$ErrorActionPreference = "Continue"' in text
     assert "Select-Object -Last 80" in text
     assert '"The exact GitLane installer failed:`n"' in text
+    assert "exact_task_reopen_requested = $null -ne $taskActivation" in text
+    assert "operator_recovery_required = $null -eq $taskActivation" in text
+    assert text.index("$taskActivation = Open-ExactTask") < text.index("Write-Json $resultPath $failure")
     assert text.index("runtime_prewarm.status") < text.rindex("Open-ExactTask")
 
 
@@ -1841,7 +1902,7 @@ if ($actual -cne $expected) {
 def test_goal_recovery_helper_is_general_logon_exact_task_and_read_only() -> None:
     text = GOAL_RECOVERY.read_text(encoding="utf-8")
 
-    assert '[ValidateSet("Register", "RecoverAtLogon", "Status", "Unregister")]' in text
+    assert '[ValidateSet("Register", "RecoverNow", "RecoverAtLogon", "Status", "Unregister")]' in text
     assert 'New-ScheduledTaskTrigger -AtLogOn -User $identity' in text
     assert 'scope = "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_ON_THIS_WINDOWS_USER"' in text
     assert 'method = "thread/read"' in text
@@ -1851,6 +1912,9 @@ def test_goal_recovery_helper_is_general_logon_exact_task_and_read_only() -> Non
     assert '$taskUri = "codex://threads/$ExactTaskId"' in text
     assert "EvidenceLaneGoalRecoveryActivation" in text
     assert "Test-RecoveredThisBoot" in text
+    assert 'if ($Action -eq "RecoverNow")' in text
+    assert 'recovery_mode = "EXPLICIT_EXACT_TASK_NOW"' in text
+    assert 'state = "EXACT_TASK_OPEN_REQUESTED_ACTIVE_GOAL_PERSISTED_HOST_CONTINUATION_PENDING"' in text
     assert 'stable_selector_growth_allowed = $false' in text
     assert 'fallback_must_remain_disabled = $true' in text
     assert 'synthetic_prompt_allowed = $false' in text

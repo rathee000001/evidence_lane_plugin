@@ -39,7 +39,7 @@ export default function ConnectPage() {
           </span>
           <h2>Install from an exact governed commit.</h2>
           <p>
-            The package contributes fifteen skills, four registered hook events,
+            The package contributes fifteen skills, eight registered hook events,
             the persistent task/change projection, and one native Evidence Lane
             MCP catalog. Older stable bytes remain recoverable until replacement
             verification succeeds.

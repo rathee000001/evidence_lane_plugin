@@ -2,32 +2,32 @@
   "schema": "evidence-lane.website-plan-projection.v1",
   "canonical_authority": "PLAN_LANE",
   "project_id": "test-codex-evidence-lane-plugin",
-  "task_count": 119,
-  "canonical_task_count": 173,
+  "task_count": 120,
+  "canonical_task_count": 174,
   "history_task_count": 54,
   "row_offset": 80,
   "row_start": 81,
-  "row_end": 199,
+  "row_end": 200,
   "status_counts": {
     "completed": 83,
     "in_progress": 1,
-    "pending": 35
+    "pending": 36
   },
   "active_row": 164,
   "active_task_id": "EL-CODEX-TURN_PREPARE_CAPTURE-PROPOSAL-04",
   "active_task_position": 84,
-  "physically_final_hil_row": 199,
+  "physically_final_hil_row": 200,
   "physically_final_hil_task_id": "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR",
-  "physically_final_hil_task_position": 119,
+  "physically_final_hil_task_position": 120,
   "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
-  "canonical_plan_sha256": "23ABC597A114807D74A85486747BA5688A0D95A432CB7FF2453B6972D4AE0F36",
-  "history_projection_sha256": "FC13088F81A79F02A1D5D33690A3F14CD86549FFFA1FE3E4381DD88F1965A68A",
-  "executable_projection_sha256": "DBFAE5688786490F17D674E9E13541E149AFDE761FD14C651A35D756EE33407E",
-  "lifecycle_event_count": 643,
-  "lifecycle_event_head_sha256": "90D377E87E2150292534F31AC170FBAC70A4B31FC118446883630600EDA3B77C",
+  "canonical_plan_sha256": "AB76B680D4216BE40227AF3E152CC770B0A28167D01A2373C815E78234603DDA",
+  "history_projection_sha256": "06C9CDA25A7DAA911ED2B73DDF43EF24649D86B1B0B263DEEAC827BDA7AB7828",
+  "executable_projection_sha256": "0968F63D7F2CE0093BCDFE98FD45AE9C9D3C23CB1F8BCBB8B05D4F684EF8070C",
+  "lifecycle_event_count": 652,
+  "lifecycle_event_head_sha256": "FF769DC644B6D50726773B9A894ACC13D57AFD92077EB13E99AB9CFD83D8BBC0",
   "planning_event_count": 15,
   "planning_event_head_sha256": "28F90F316FA2C24D3DC179F2F81C27DDEAF88D7979CB20E9EB990C4FF86DAD06",
-  "runtime_projection_content_sha256": "41168C0D3F7AE5CE5706023340164A0DEFE3A13D0978B916DC51BB08952BEDA4",
+  "runtime_projection_content_sha256": "B0F08A40FE634759578280B97B4F7F2EC2BBBE2067EAADC680B182ED9C6E481D",
   "rows": [
     {
       "row": 81,
@@ -936,43 +936,47 @@
     {
       "row": 165,
       "task_position": 85,
+      "task_id": "EL-CODEX-PV12-ACCEPTED-MAIN-FALLBACK-STATE-TRAVEL-DELTA-151",
+      "description": "After Row164 passes, confirm one exact commit-bound source boundary, run deterministic Refresh to one immutable unaccepted PV12 candidate, render exact receipts and six HIL choices, and stop. Only after one fresh exact standalone APPROVE, Fuse PV12 byte-for-byte, promote or merge the exact accepted commit to main through the separately governed non-force route, replace and hash-verify the installed disabled fallback slot with that exact accepted PV12/main package while GitLane Stable 2.1 remains the sole enabled route, then seal and execute one exact UNFINISHED_VERIFIED_WORK State Travel handoff that preserves the dirty/untracked workspace and resumes the next executable row in a genuinely fresh exact task. The later physically final release HIL becomes PV13.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 139,
+      "linked_delta_ids": [
+        "EL-CODEX-PV12-MAIN-FALLBACK-STATE-TRAVEL-GATE-DELTA-151",
+        "EL-CODEX-ROW165-STATE-TRAVEL-TASK3-FIVE-PHASE-ENTRY-STEER-20260813-001"
+      ],
+      "panel_role": "HIL_GATE"
+    },
+    {
+      "row": 166,
+      "task_position": 86,
       "task_id": "EL-CODEX-TURN_CLASSIFY_DELTA_BIND-PROPOSAL-05",
       "description": "Classify task class, lane set, ordered mode/operator intersection, lifecycle state, authority boundary, prior executable Delta, and target row; append corrections as immutable superseding Deltas.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 139,
+      "plan_sequence": 140,
       "linked_delta_ids": [
         "EL-CODEX-TURN-CLASSIFIER-QUESTION-VS-PLAN-STEER-CORRECTION-20260812-001",
         "EL-CODEX-ROW165-REPOSITORY-WIDE-COMMIT-DOC-SYNC-CORRECTION-20260813-002"
       ]
     },
     {
-      "row": 166,
-      "task_position": 86,
+      "row": 167,
+      "task_position": 87,
       "task_id": "EL-CODEX-CHATLINEAGE_SQLITE_FTS_HASHCHAIN-PROPOSAL-06",
       "description": "Persist secret-redacted visible prompts, steers, responses, operational events, source locators, receipts, chunks, FTS, timestamps, actor/model/host identity, and prior/current hashes in project-scoped SQLite.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 140,
+      "plan_sequence": 141,
       "linked_delta_ids": [
         "EL-CODEX-ROW165-REPOSITORY-WIDE-COMMIT-DOC-SYNC-CORRECTION-20260813-001"
       ]
     },
     {
-      "row": 167,
-      "task_position": 87,
-      "task_id": "EL-CODEX-GOAL_METRIC_PRIVATE_RESEARCH_METADATA-PROPOSAL-07",
-      "description": "Record Goal-accounted token metrics with provenance, including corrected continuity total 44,198,517, and keep this project's memory/learning research question project-private.",
-      "status": "PENDING",
-      "lifecycle_status": "QUEUED",
-      "plan_sequence": 141,
-      "linked_delta_ids": []
-    },
-    {
       "row": 168,
       "task_position": 88,
-      "task_id": "EL-CODEX-GOVERNED_RETRIEVAL-PROPOSAL-08",
-      "description": "Retrieve only bounded accepted-PV evidence plus an explicitly authorized candidate overlay, returning project/lane/source/locator/chunk/hash provenance and honest no-hit results; scrollback is transport only.",
+      "task_id": "EL-CODEX-GOAL_METRIC_PRIVATE_RESEARCH_METADATA-PROPOSAL-07",
+      "description": "Record Goal-accounted token metrics with provenance, including corrected continuity total 44,198,517, and keep this project's memory/learning research question project-private.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 142,
@@ -981,8 +985,8 @@
     {
       "row": 169,
       "task_position": 89,
-      "task_id": "EL-CODEX-EXECUTION_EVENT_COMMIT-PROPOSAL-09",
-      "description": "Append only visible governed tool, command, file, test, build, diff, output, warning, error, usage-availability, and response-subject events; close each ordinary turn with COMMIT.",
+      "task_id": "EL-CODEX-GOVERNED_RETRIEVAL-PROPOSAL-08",
+      "description": "Retrieve only bounded accepted-PV evidence plus an explicitly authorized candidate overlay, returning project/lane/source/locator/chunk/hash provenance and honest no-hit results; scrollback is transport only.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 143,
@@ -991,8 +995,8 @@
     {
       "row": 170,
       "task_position": 90,
-      "task_id": "EL-CODEX-ENTRY_EXIT_RECOVERY-PROPOSAL-10",
-      "description": "Emit Entry/Prepare on binding and Exit Slip only at HIL, explicit pause, genuine block, governed error, Exit Boot, State Travel/handoff, or end of a stateless ephemeral invocation; resume the same row.",
+      "task_id": "EL-CODEX-EXECUTION_EVENT_COMMIT-PROPOSAL-09",
+      "description": "Append only visible governed tool, command, file, test, build, diff, output, warning, error, usage-availability, and response-subject events; close each ordinary turn with COMMIT.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 144,
@@ -1001,8 +1005,8 @@
     {
       "row": 171,
       "task_position": 91,
-      "task_id": "EL-CODEX-PERSISTENT_PLAN_CURRENT_CHANGE-PROPOSAL-11",
-      "description": "Project the complete persistent task list with the exact active row and current executable Delta/change, retaining accepted and superseded history without duplicate authority.",
+      "task_id": "EL-CODEX-ENTRY_EXIT_RECOVERY-PROPOSAL-10",
+      "description": "Emit Entry/Prepare on binding and Exit Slip only at HIL, explicit pause, genuine block, governed error, Exit Boot, State Travel/handoff, or end of a stateless ephemeral invocation; resume the same row.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 145,
@@ -1011,18 +1015,20 @@
     {
       "row": 172,
       "task_position": 92,
-      "task_id": "EL-CODEX-LIFECYCLE_HOOK_MATRIX-PROPOSAL-12",
-      "description": "Cover SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PreCompact, PostCompact, Stop, and best-effort SessionEnd; keep PermissionRequest conditional and subagent events out of scope.",
+      "task_id": "EL-CODEX-PERSISTENT_PLAN_CURRENT_CHANGE-PROPOSAL-11",
+      "description": "Project the complete persistent task list with the exact active row and current executable Delta/change, retaining accepted and superseded history without duplicate authority.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 146,
-      "linked_delta_ids": []
+      "linked_delta_ids": [
+        "EL-CODEX-ROW170-PERSISTENT-FULL-PANEL-RESUME-COMPACTION-HARDENING-20260813-001"
+      ]
     },
     {
       "row": 173,
       "task_position": 93,
-      "task_id": "EL-CODEX-INSTALLED_HOOK_INVOCATION-PROPOSAL-13",
-      "description": "Register the approved hook matrix at the supported plugin surface and prove actual Windows host invocation, deterministic interpreter/plugin-root resolution, idempotency, payload contracts, and secret-safe diagnostics.",
+      "task_id": "EL-CODEX-LIFECYCLE_HOOK_MATRIX-PROPOSAL-12",
+      "description": "Cover SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PreCompact, PostCompact, Stop, and best-effort SessionEnd; keep PermissionRequest conditional and subagent events out of scope.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 147,
@@ -1031,11 +1037,21 @@
     {
       "row": 174,
       "task_position": 94,
+      "task_id": "EL-CODEX-INSTALLED_HOOK_INVOCATION-PROPOSAL-13",
+      "description": "Register the approved hook matrix at the supported plugin surface and prove actual Windows host invocation, deterministic interpreter/plugin-root resolution, idempotency, payload contracts, and secret-safe diagnostics.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 148,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 175,
+      "task_position": 95,
       "task_id": "EL-CODEX-HOT_RECONNECT_DEEPLINK_FALLBACK-PROPOSAL-14",
       "description": "Prewarm installation outside MCP handshake, hot-reinitialize and reconnect the same open Codex task through its exact deep link, using app restart only as a bounded fallback.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 148,
+      "plan_sequence": 149,
       "linked_delta_ids": [
         "EL-CODEX-ROW173-WINDOWS-REBOOT-AUTOSTART-RECOVERY-STEER-20260812-001",
         "EL-CODEX-ROW173-GENERAL-GOVERNED-GOAL-REBOOT-RESUME-STEER-20260812-002",
@@ -1043,30 +1059,22 @@
       ]
     },
     {
-      "row": 175,
-      "task_position": 95,
+      "row": 176,
+      "task_position": 96,
       "task_id": "EL-CODEX-STATE_TRAVEL_EXACT_ONCE-PROPOSAL-15",
       "description": "Resolve queued clientThreadId to one real destination and enforce one global State Travel resume per handoff plus destination host-session tuple; retain duplicate/archived identities as history.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 149,
-      "linked_delta_ids": []
-    },
-    {
-      "row": 176,
-      "task_position": 96,
-      "task_id": "EL-CODEX-ENV_BUILDER_PROJECT_CAPTURE_ROUTE-PROPOSAL-16",
-      "description": "Select before ingestion between sparse ENV-builder authority capture and full secret-redacted governed-project ChatLineage capture, with inclusion/exclusion reasons and no cross-route leakage.",
-      "status": "PENDING",
-      "lifecycle_status": "QUEUED",
       "plan_sequence": 150,
-      "linked_delta_ids": []
+      "linked_delta_ids": [
+        "EL-CODEX-ROW176-DUAL-ROUTE-TASK3-STATE-TRAVEL-HARDENING-20260813-001"
+      ]
     },
     {
       "row": 177,
       "task_position": 97,
-      "task_id": "EL-CODEX-ENV_UOP_DUAL_HASH_IDENTITY-PROPOSAL-17",
-      "description": "Expose separate immutable source-authority subset hashes and Codex-derived ENV/UOP projection identity; retain PARTIAL_INTEGRITY and require a new build identity when derived members change.",
+      "task_id": "EL-CODEX-ENV_BUILDER_PROJECT_CAPTURE_ROUTE-PROPOSAL-16",
+      "description": "Select before ingestion between sparse ENV-builder authority capture and full secret-redacted governed-project ChatLineage capture, with inclusion/exclusion reasons and no cross-route leakage.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 151,
@@ -1075,23 +1083,33 @@
     {
       "row": 178,
       "task_position": 98,
+      "task_id": "EL-CODEX-ENV_UOP_DUAL_HASH_IDENTITY-PROPOSAL-17",
+      "description": "Expose separate immutable source-authority subset hashes and Codex-derived ENV/UOP projection identity; retain PARTIAL_INTEGRITY and require a new build identity when derived members change.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 152,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 179,
+      "task_position": 99,
       "task_id": "EL-CODEX-EIGHTEEN_LANE_FOUR_FILE_CONTRACT-PROPOSAL-18",
       "description": "Harden all 18 lane contracts beyond schema presence: actual parser/toolchain capability, required/optional truth, deterministic chunks/retrieval, SQLite/MMD/DOT/tools authority, topology, receipts, absence law, and V1/V2/V3 non-regression.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 152,
+      "plan_sequence": 153,
       "linked_delta_ids": [
         "EL-CODEX-ROW177-PNPM-NEXT-DEPENDENCY-GRAPH-DETECTOR-CORRECTION-20260812-001"
       ]
     },
     {
-      "row": 179,
-      "task_position": 99,
+      "row": 180,
+      "task_position": 100,
       "task_id": "EL-CODEX-CODEX_ONLY_SOURCE_DOC_PACKAGE-PROPOSAL-19",
       "description": "Make current v2 executable source, manifests, README/docs, tests, workflows, inventory, and product claims Codex-only; retain immutable ChatGPT history and at most one non-actionable Deferred marker.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 153,
+      "plan_sequence": 154,
       "linked_delta_ids": [
         "EL-CODEX-ROW151-README-BRANDING-CONTRIBUTOR-CORRECTION-20260811-01",
         "EL-CODEX-ROW151-README-BRANDING-CONTRIBUTOR-TUNNEL-GUIDE-CORRECTION-20260811-02",
@@ -1099,30 +1117,22 @@
       ]
     },
     {
-      "row": 180,
-      "task_position": 100,
+      "row": 181,
+      "task_position": 101,
       "task_id": "EL-CODEX-PROJECT_PANEL_ICON_RESOURCE-PROPOSAL-20",
       "description": "Restore truthful Evidence Lane icon/identity metadata and governed-console resource with Overview, all 18 lanes, and six-way HIL consequences; rendering stays read-only.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 154,
-      "linked_delta_ids": []
-    },
-    {
-      "row": 181,
-      "task_position": 101,
-      "task_id": "EL-CODEX-RUNTIME_MODEL_STORAGE_TUNNEL_CLASSIFIER-PROPOSAL-21",
-      "description": "Classify measured host durability/locality, exact model/reasoning/service profile, account-versus-API route when exposed, native capabilities, storage, project/session/version namespace, and tunnel need without secrets.",
-      "status": "PENDING",
-      "lifecycle_status": "QUEUED",
       "plan_sequence": 155,
-      "linked_delta_ids": []
+      "linked_delta_ids": [
+        "EL-CODEX-ROW181-ICON-PROJECT-RUNTIME-PANEL-HARDENING-STEER-20260813-001"
+      ]
     },
     {
       "row": 182,
       "task_position": 102,
-      "task_id": "EL-CODEX-LOCAL_EPHEMERAL_HEADLESS_ROUTING-PROPOSAL-22",
-      "description": "Route persistent local/API execution to local durable PV without an API tunnel, interactive ephemeral Codex to VM-lifetime tunnel, and stateless headless calls to durable continuity plus per-invocation ENV/UOP and Exit packaging.",
+      "task_id": "EL-CODEX-RUNTIME_MODEL_STORAGE_TUNNEL_CLASSIFIER-PROPOSAL-21",
+      "description": "Classify measured host durability/locality, exact model/reasoning/service profile, account-versus-API route when exposed, native capabilities, storage, project/session/version namespace, and tunnel need without secrets.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 156,
@@ -1131,65 +1141,67 @@
     {
       "row": 183,
       "task_position": 103,
-      "task_id": "EL-CODEX-TWO_PLANE_LEARNING_CONTRACT-PROPOSAL-23",
-      "description": "Define separate Project Truth and Agent Learning schemas, identities, namespaces, writes, reads, candidates, promotion, rollback, temporal/supersede rules, privacy, and contamination guards under ENV/UOP.",
+      "task_id": "EL-CODEX-LOCAL_EPHEMERAL_HEADLESS_ROUTING-PROPOSAL-22",
+      "description": "Route persistent local/API execution to local durable PV without an API tunnel, interactive ephemeral Codex to VM-lifetime tunnel, and stateless headless calls to durable continuity plus per-invocation ENV/UOP and Exit packaging.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 157,
-      "linked_delta_ids": [
-        "EL-CODEX-TASK2-AGENT-LEARNING-FORENSIC-LINEAGE-STUDY-20260812-13",
-        "EL-CODEX-ROW182-LEGACY-AGENT-LEARNING-CONTRACT-SUPERSEDING-CORRECTION-20260812-001"
-      ]
+      "linked_delta_ids": []
     },
     {
       "row": 184,
       "task_position": 104,
-      "task_id": "EL-CODEX-LEARNING_CANDIDATE_HIL-PROPOSAL-24",
-      "description": "Implement learning only through sealed candidates carrying evidence, outcome, scope, type, confidence, counterevidence, contradiction/supersession, expiry, identity, and hashes; HIL never moves Project Truth.",
+      "task_id": "EL-CODEX-TWO_PLANE_LEARNING_CONTRACT-PROPOSAL-23",
+      "description": "Define separate Project Truth and Agent Learning schemas, identities, namespaces, writes, reads, candidates, promotion, rollback, temporal/supersede rules, privacy, and contamination guards under ENV/UOP.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 158,
       "linked_delta_ids": [
-        "EL-CODEX-ROW183-SEPARATE-LEARNING-AND-PROJECT-TRUTH-HIL-CORRECTION-20260812-001"
+        "EL-CODEX-TASK2-AGENT-LEARNING-FORENSIC-LINEAGE-STUDY-20260812-13",
+        "EL-CODEX-ROW182-LEGACY-AGENT-LEARNING-CONTRACT-SUPERSEDING-CORRECTION-20260812-001",
+        "EL-CODEX-ROW184-CUMULATIVE-CROSS-DELTA-AGENT-LEARNING-ARM-STEER-20260813-001",
+        "EL-CODEX-ROW184-FOUR-WAY-KNOWLEDGE-ENV-UOP-SEPARATION-STEER-20260813-002"
       ]
     },
     {
       "row": 185,
       "task_position": 105,
-      "task_id": "EL-CODEX-TWO_PLANE_LEARNING_BENCHMARK-PROPOSAL-25",
-      "description": "Benchmark clean boot/resume/restart with independent namespaces, accepted Project Truth, one separately approved procedural lesson, stale/rejected/no-hit/contradictory/revoked cases, and no-learning baseline.",
+      "task_id": "EL-CODEX-LEARNING_CANDIDATE_HIL-PROPOSAL-24",
+      "description": "Implement learning only through sealed candidates carrying evidence, outcome, scope, type, confidence, counterevidence, contradiction/supersession, expiry, identity, and hashes; HIL never moves Project Truth.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 159,
-      "linked_delta_ids": []
+      "linked_delta_ids": [
+        "EL-CODEX-ROW183-SEPARATE-LEARNING-AND-PROJECT-TRUTH-HIL-CORRECTION-20260812-001"
+      ]
     },
     {
       "row": 186,
       "task_position": 106,
+      "task_id": "EL-CODEX-TWO_PLANE_LEARNING_BENCHMARK-PROPOSAL-25",
+      "description": "Benchmark clean boot/resume/restart with independent namespaces, accepted Project Truth, one separately approved procedural lesson, stale/rejected/no-hit/contradictory/revoked cases, and no-learning baseline.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 160,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 187,
+      "task_position": 107,
       "task_id": "EL-CODEX-INTERNAL_SDK_HEADLESS_ADAPTER-PROPOSAL-26",
       "description": "Build the internal Codex SDK/headless adapter after turn control and runtime classification; each call binds project/session/pointer/lineage/ENV-UOP/model/write scope and retrieves minimal truth and learning slices separately.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 160,
+      "plan_sequence": 161,
       "linked_delta_ids": [
         "EL-CODEX-TASK2-REMOTE-ADAPTER-DEPENDENCY-GRAPH-COVERAGE-CORRECTION-20260812-14"
       ]
     },
     {
-      "row": 187,
-      "task_position": 107,
-      "task_id": "EL-CODEX-GITHUB_APP_ARTIFACT_DISTRIBUTION_DESIGN-PROPOSAL-27",
-      "description": "Freeze the post-HIL tester flow: form, approval, identity, terms receipt, entitlement, short-lived artifact authorization, signed package, install receipt, feedback, revocation, and no dev-repo read credential.",
-      "status": "PENDING",
-      "lifecycle_status": "QUEUED",
-      "plan_sequence": 161,
-      "linked_delta_ids": []
-    },
-    {
       "row": 188,
       "task_position": 108,
-      "task_id": "EL-CODEX-COHERENT_V2_CORRECTION_FREEZE-PROPOSAL-28",
-      "description": "Freeze one bounded v2 correction wave, exact files, dependencies, Code-mode PCM/MBA governance, acceptance checks, and superseded current-Delta projection before source mutation.",
+      "task_id": "EL-CODEX-GITHUB_APP_ARTIFACT_DISTRIBUTION_DESIGN-PROPOSAL-27",
+      "description": "Freeze the post-HIL tester flow: form, approval, identity, terms receipt, entitlement, short-lived artifact authorization, signed package, install receipt, feedback, revocation, and no dev-repo read credential.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 162,
@@ -1198,8 +1210,8 @@
     {
       "row": 189,
       "task_position": 109,
-      "task_id": "EL-CODEX-TARGETED_LOCAL_VERIFICATION-PROPOSAL-29",
-      "description": "Run focused local tests for changed hooks, lineage, projection, panel/resource, classification, routing, SDK/learning boundaries, packaging, secrets, and negative paths.",
+      "task_id": "EL-CODEX-COHERENT_V2_CORRECTION_FREEZE-PROPOSAL-28",
+      "description": "Freeze one bounded v2 correction wave, exact files, dependencies, Code-mode PCM/MBA governance, acceptance checks, and superseded current-Delta projection before source mutation.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 163,
@@ -1208,55 +1220,56 @@
     {
       "row": 190,
       "task_position": 110,
-      "task_id": "EL-CODEX-ONE_COMMIT_TEST_BRANCH_PUSH-PROPOSAL-30",
-      "description": "Create one authorized commit on agent/evi-v200-systemwide-release-hil-v2.0.0 and push through governed native remote-Git with host-managed credentials, preserving unrelated bytes.",
+      "task_id": "EL-CODEX-TARGETED_LOCAL_VERIFICATION-PROPOSAL-29",
+      "description": "Run focused local tests for changed hooks, lineage, projection, panel/resource, classification, routing, SDK/learning boundaries, packaging, secrets, and negative paths.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 164,
-      "linked_delta_ids": [
-        "EL-CODEX-LOGICAL-INTEGRATION-BUNDLE-CI-INSTALL-CADENCE-CORRECTION-20260813-001",
-        "EL-CODEX-LOGICAL-INTEGRATION-BUNDLE-PER-ROW-GOVERNANCE-MATRIX-CORRECTION-20260813-002"
-      ]
+      "linked_delta_ids": []
     },
     {
       "row": 191,
       "task_position": 111,
-      "task_id": "EL-CODEX-GITHUB_ACTIONS_CLEAN_CI-PROPOSAL-31",
-      "description": "Use GitHub Actions clean-checkout CI for the exact pushed commit and permit at most one bounded correction commit/push for a real CI defect.",
+      "task_id": "EL-CODEX-ONE_COMMIT_TEST_BRANCH_PUSH-PROPOSAL-30",
+      "description": "Create one authorized commit on agent/evi-v200-systemwide-release-hil-v2.0.0 and push through governed native remote-Git with host-managed credentials, preserving unrelated bytes.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 165,
       "linked_delta_ids": [
-        "EL-CODEX-ROW190-EXISTING-AUTOMATIC-CI-PREHIL-SCOPE-CORRECTION-20260812-001"
+        "EL-CODEX-LOGICAL-INTEGRATION-BUNDLE-CI-INSTALL-CADENCE-CORRECTION-20260813-001",
+        "EL-CODEX-LOGICAL-INTEGRATION-BUNDLE-PER-ROW-GOVERNANCE-MATRIX-CORRECTION-20260813-002",
+        "EL-CODEX-TASK3-V220-BRANCH-COMMIT-STABLE-IDENTITY-STEER-20260813-001"
       ]
     },
     {
       "row": 192,
       "task_position": 112,
-      "task_id": "EL-CODEX-BUSINESS-HOMEPAGE-STORY-USER-PAIN-DELTA-150",
-      "description": "Create a source-grounded business-language Evidence Lane homepage story from the user's pain perspective, using one read-only subagent report plus independent current-authority verification, and place it immediately before the POC validation rows.",
+      "task_id": "EL-CODEX-GITHUB_ACTIONS_CLEAN_CI-PROPOSAL-31",
+      "description": "Use GitHub Actions clean-checkout CI for the exact pushed commit and permit at most one bounded correction commit/push for a real CI defect.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 166,
       "linked_delta_ids": [
-        "EL-CODEX-BUSINESS-HOMEPAGE-STORY-USER-PAIN-DELTA-150"
+        "EL-CODEX-ROW190-EXISTING-AUTOMATIC-CI-PREHIL-SCOPE-CORRECTION-20260812-001"
       ]
     },
     {
       "row": 193,
       "task_position": 113,
-      "task_id": "EL-CODEX-REAL_GIT_FULL_HISTORY_POC-PROPOSAL-32",
-      "description": "In an isolated local fixture, prove refs/parents/history, main-versus-test file/hunk/symbol/schema/behavior/provenance analysis, branch PV rollback, and real Git lane test without outbound mutation.",
+      "task_id": "EL-CODEX-BUSINESS-HOMEPAGE-STORY-USER-PAIN-DELTA-150",
+      "description": "Create a source-grounded business-language Evidence Lane homepage story from the user's pain perspective, using one read-only subagent report plus independent current-authority verification, and place it immediately before the POC validation rows.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 167,
-      "linked_delta_ids": []
+      "linked_delta_ids": [
+        "EL-CODEX-BUSINESS-HOMEPAGE-STORY-USER-PAIN-DELTA-150"
+      ]
     },
     {
       "row": 194,
       "task_position": 114,
-      "task_id": "EL-CODEX-NON_GIT_18_LANE_POC_RENDER-PROPOSAL-33",
-      "description": "Run one deterministic dummy POC for every loaded non-Git lane, validating four-file sectors, SQLite/FK/schema/row/FTS/hash receipts, MMD/DOT/JSON, and usable SVG/PNG for ordinary and large fixtures.",
+      "task_id": "EL-CODEX-REAL_GIT_FULL_HISTORY_POC-PROPOSAL-32",
+      "description": "In an isolated local fixture, prove refs/parents/history, main-versus-test file/hunk/symbol/schema/behavior/provenance analysis, branch PV rollback, and real Git lane test without outbound mutation.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 168,
@@ -1265,8 +1278,8 @@
     {
       "row": 195,
       "task_position": 115,
-      "task_id": "EL-CODEX-LIFECYCLE_REFRESH_ROLLBACK_PROOF-PROPOSAL-34",
-      "description": "Prove changed-section Refresh, snapshots/diffs, candidate-only output, exact-approval Fuse gating, pointer-only Rollback, no implicit acceptance, and six-way semantics using non-promoting fixtures.",
+      "task_id": "EL-CODEX-NON_GIT_18_LANE_POC_RENDER-PROPOSAL-33",
+      "description": "Run one deterministic dummy POC for every loaded non-Git lane, validating four-file sectors, SQLite/FK/schema/row/FTS/hash receipts, MMD/DOT/JSON, and usable SVG/PNG for ordinary and large fixtures.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 169,
@@ -1275,8 +1288,8 @@
     {
       "row": 196,
       "task_position": 116,
-      "task_id": "EL-CODEX-MULTIPROJECT_MULTIVERSION_ISOLATION-PROPOSAL-35",
-      "description": "Prove multiple projects and plugin versions cannot collide across MCP process, catalog, cache, channel/tunnel, session, pointer, lineage, storage, hook, panel, or task identity.",
+      "task_id": "EL-CODEX-LIFECYCLE_REFRESH_ROLLBACK_PROOF-PROPOSAL-34",
+      "description": "Prove changed-section Refresh, snapshots/diffs, candidate-only output, exact-approval Fuse gating, pointer-only Rollback, no implicit acceptance, and six-way semantics using non-promoting fixtures.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 170,
@@ -1285,11 +1298,21 @@
     {
       "row": 197,
       "task_position": 117,
+      "task_id": "EL-CODEX-MULTIPROJECT_MULTIVERSION_ISOLATION-PROPOSAL-35",
+      "description": "Prove multiple projects and plugin versions cannot collide across MCP process, catalog, cache, channel/tunnel, session, pointer, lineage, storage, hook, panel, or task identity.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 171,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 198,
+      "task_position": 118,
       "task_id": "EL-CODEX-PACKAGE_INSTALL_HOT_REATTACH-PROPOSAL-36",
       "description": "Build one collision-free v2 package, seal source/package/commit/tree/worktree/catalog/skill/hook/resource identities, install supportedly, and hot-reattach the exact open task; restart is fallback.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 171,
+      "plan_sequence": 172,
       "linked_delta_ids": [
         "EL-CODEX-ROW195-TWO-SLOT-HASH-VERIFIED-RETENTION-CORRECTION-20260812-001",
         "EL-CODEX-ROW195-TWO-SLOT-FALLBACK-CURRENT-TASK-REATTACH-LAW-20260812-003",
@@ -1298,26 +1321,26 @@
       ]
     },
     {
-      "row": 198,
-      "task_position": 118,
+      "row": 199,
+      "task_position": 119,
       "task_id": "EL-CODEX-FINAL_FORENSIC_ACCEPTANCE-PROPOSAL-37",
       "description": "Aggregate fresh receipts from every predecessor, account for every historical Codex-native requirement, prove only deferred ChatGPT/public work is parked, and verify exits without rerunning CI rituals.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 172,
+      "plan_sequence": 173,
       "linked_delta_ids": []
     },
     {
-      "row": 199,
-      "task_position": 119,
+      "row": 200,
+      "task_position": 120,
       "task_id": "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR",
       "description": "After every predecessor passes, run final full regression from the installed package, explicit governed Refresh to one immutable unaccepted candidate, render exact receipts and six HIL choices, and stop.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 173,
+      "plan_sequence": 174,
       "linked_delta_ids": [],
       "panel_role": "PHYSICALLY_FINAL_HIL"
     }
   ],
-  "snapshot_sha256": "BC31B5003220ABAA571C1735EE36D8BBEF43DFEC2A1D8B5690632257DAC61D15"
+  "snapshot_sha256": "A575EEC7C385F712A4F9E5840E502A84BAFAD519B94C8577FFEB60891D5A5AA1"
 }

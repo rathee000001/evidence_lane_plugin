@@ -283,6 +283,9 @@ def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(
     )
     assert activity["source_state"] == "MUTATED_AFTER_ENTRY"
     assert activity["accepted_pv_query_scope"] == "ENTRY_STATE_ONLY"
+    host_identity = activity["event"]["visible_payload"]["host_identity"]
+    assert host_identity["raw_host_session_id_stored"] is False
+    assert host_identity["host_kind"] == "CODEX_DESKTOP"
     refresh = service.complete_task_and_refresh(
         "book-faires",
         session_id,

@@ -33,6 +33,13 @@ receipts, but they never call `pv_status`, `pv_task_backlog`, `pv_query`, or
 same complete panel. Fail closed when either the native MCP route or host plan
 tool is absent.
 
+Before Plan mutation, distinguish an ordinary question/readback from a Plan
+steer. Ordinary requests keep their lineage plus native reads but append no
+Delta and do not change the Step Task List. Only a request that changes the
+active Goal contract, dependency, acceptance, stop, release, or HIL path calls
+`pv_plan_steer_delta`; link it to the existing logical row when possible, then
+redraw the complete panel and CURRENT CHANGE exactly once.
+
 Preserve one governed project, one live writer, linear execution, and
 evidence-first verification under the exact host execution profile. Read-only
 recovery agents are allowed only during a genuine State Travel entry. After

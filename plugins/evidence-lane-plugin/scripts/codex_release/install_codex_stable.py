@@ -1276,23 +1276,36 @@ def _prewarm_installed_runtime(plugin_root: Path) -> dict[str, Any]:
             "The installed Evidence Lane icon is missing or changed before prewarm."
         )
     started = time.monotonic()
-    try:
-        boot = subprocess.run(
-            [sys.executable, str(bootstrap)],
-            check=False,
-            cwd=plugin_root,
-            stdin=subprocess.DEVNULL,
-            capture_output=True,
-            timeout=900,
+    bootstrap_attempts: list[dict[str, Any]] = []
+    boot: subprocess.CompletedProcess[bytes] | None = None
+    for attempt in range(1, 3):
+        try:
+            boot = subprocess.run(
+                [sys.executable, str(bootstrap)],
+                check=False,
+                cwd=plugin_root,
+                stdin=subprocess.DEVNULL,
+                capture_output=True,
+                timeout=900,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise InstallationError(
+                "The installed runtime bootstrap did not complete before task reopen."
+            ) from exc
+        bootstrap_attempts.append(
+            {
+                "attempt": attempt,
+                "returncode": int(boot.returncode),
+                "stdout_sha256": hashlib.sha256(boot.stdout).hexdigest().upper(),
+                "stderr_sha256": hashlib.sha256(boot.stderr).hexdigest().upper(),
+            }
         )
-    except (OSError, subprocess.TimeoutExpired) as exc:
+        if boot.returncode == 0:
+            break
+    if boot is None or boot.returncode != 0:
         raise InstallationError(
-            "The installed runtime bootstrap did not complete before task reopen."
-        ) from exc
-    if boot.returncode != 0:
-        raise InstallationError(
-            "The installed runtime bootstrap failed before task reopen "
-            f"(exit {boot.returncode})."
+            "The installed runtime bootstrap failed twice on the same sealed bytes "
+            f"before task reopen (attempts={bootstrap_attempts})."
         )
     runtime_python = (
         plugin_root / ".venv" / "Scripts" / "python.exe"
@@ -1378,6 +1391,8 @@ def _prewarm_installed_runtime(plugin_root: Path) -> dict[str, Any]:
             str(plugin_root.resolve()).encode("utf-8")
         ).hexdigest().upper(),
         "runtime_python_sha256": _sha256(runtime_python),
+        "bootstrap_attempt_count": len(bootstrap_attempts),
+        "bootstrap_attempts": bootstrap_attempts,
         "bootstrap_stdout_sha256": hashlib.sha256(boot.stdout).hexdigest().upper(),
         "bootstrap_stderr_sha256": hashlib.sha256(boot.stderr).hexdigest().upper(),
         "probe_stdout_sha256": hashlib.sha256(probe.stdout).hexdigest().upper(),

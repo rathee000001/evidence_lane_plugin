@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
 import sys
 from pathlib import Path
+
+from evidence_lane_plugin.runtime_activation import RuntimeActivation
 
 from .conftest import boot_local
 
@@ -50,6 +53,220 @@ def _context_envelope(context: str, label: str) -> dict[str, object]:
     prefix = f"{label}="
     line = next(line for line in context.splitlines() if line.startswith(prefix))
     return json.loads(line.removeprefix(prefix))
+
+
+def _sealed_json_sha256(payload: dict[str, object]) -> str:
+    return hashlib.sha256(
+        (
+            json.dumps(
+                payload,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            + "\n"
+        ).encode("utf-8")
+    ).hexdigest().upper()
+
+
+def _write_active_runtime_and_installation(
+    root: Path,
+    *,
+    host_dispatch_events: list[str],
+    package_events: list[str] | None,
+) -> RuntimeActivation:
+    runtime = RuntimeActivation(root)
+    runtime.path.parent.mkdir(parents=True, exist_ok=True)
+    runtime.path.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.runtime-activation.v1",
+                "plugin_id": "evidence-lane-plugin",
+                "state": "ACTIVE",
+                "generation": 1,
+                "active_sessions": [
+                    {"project_id": "project-a", "session_id": "session-a"}
+                ],
+                "flash_context_attached": True,
+                "prompt_capture_active": True,
+                "visible_response_capture_active": True,
+                "immutable_store_preserved": True,
+                "plugin_installation_preserved": True,
+                "hil_approval_inferred": False,
+            }
+        ),
+        encoding="utf-8",
+    )
+    selector = "evidence-lane-plugin@evidence-lane-github"
+    hook_trust: dict[str, object] = {
+        "schema": "evidence-lane.codex-hook-trust.v1",
+        "status": "PASS",
+        "plugin_selector": selector,
+        "hook_count": len(host_dispatch_events),
+        "registered_events": host_dispatch_events,
+        "records": [
+            {
+                "event_name": event,
+                "hook_key": f"{selector}:hooks/hooks.json:{event}:0:0",
+                "current_hash": f"sha256:{index:064x}",
+                "enabled": True,
+                "trust_status": "trusted",
+            }
+            for index, event in enumerate(host_dispatch_events, start=1)
+        ],
+        "before_trust_statuses": ["untrusted"],
+        "after_trust_statuses": ["trusted"],
+    }
+    hook_trust["receipt_sha256"] = _sealed_json_sha256(hook_trust)
+    installation: dict[str, object] = {
+        "schema": "evidence-lane.codex-stable-installation.v2",
+        "status": "PASS",
+        "activation": {
+            "state": "INSTALLED_RESTART_REQUIRED",
+            "plugin_add": {"pluginId": selector},
+            "hook_trust": hook_trust,
+        },
+    }
+    if package_events is not None:
+        surface: dict[str, object] = {
+            "schema": "evidence-lane.codex-installed-surface-change-display.v2",
+            "hooks": {
+                "count": len(package_events),
+                "registered_event_count": len(package_events),
+                "registered_events": package_events,
+            },
+        }
+        surface["change_display_sha256"] = _sealed_json_sha256(surface)
+        installation["surface_change_display"] = surface
+    installation["receipt_sha256"] = _sealed_json_sha256(installation)
+    current_installation = (
+        root
+        / "installations"
+        / "codex-v200"
+        / "CURRENT_INSTALLATION.json"
+    )
+    current_installation.parent.mkdir(parents=True, exist_ok=True)
+    current_installation.write_text(
+        json.dumps(installation, sort_keys=True, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
+    return runtime
+
+
+def test_runtime_hook_status_separates_four_host_dispatches_from_package_events(
+    tmp_path: Path,
+) -> None:
+    host_events = [
+        "postToolUse",
+        "sessionStart",
+        "stop",
+        "userPromptSubmit",
+    ]
+    package_events = [
+        "PostCompact",
+        "PostToolUse",
+        "PreCompact",
+        "PreToolUse",
+        "SessionEnd",
+        "SessionStart",
+        "Stop",
+        "UserPromptSubmit",
+    ]
+    runtime = _write_active_runtime_and_installation(
+        tmp_path,
+        host_dispatch_events=host_events,
+        package_events=package_events,
+    )
+
+    hook_status = runtime.host_hook_status()
+    assert hook_status["status"] == "TRUSTED"
+    assert hook_status["hook_count"] == 4
+    assert hook_status["registered_events"] == host_events
+    assert hook_status["host_dispatch_hook_count"] == 4
+    assert hook_status["host_dispatch_registered_events"] == host_events
+    assert hook_status["host_dispatch_trust_status"] == "SEALED_CONFIG_TRUST"
+    assert hook_status["package_hook_event_count"] == 8
+    assert hook_status["package_registered_events"] == package_events
+    assert hook_status["package_inventory_status"] == "SEALED"
+    assert hook_status["installed_host_dispatch_independently_proven"] is False
+
+    projected = runtime.status_with_host_proof()
+    assert projected["supported_pre_reasoning_capture_complete"] is True
+    assert projected["required_pre_reasoning_capture_complete"] is False
+    assert projected["prompt_capture_active"] is False
+    assert projected["host_capability_unavailable_surfaces"] == [
+        "GOAL_CONTINUATION"
+    ]
+    goal = next(
+        row
+        for row in projected["required_pre_reasoning_capture_surfaces"]
+        if row["surface"] == "GOAL_CONTINUATION"
+    )
+    assert goal["state"] == "HOST_CAPABILITY_UNAVAILABLE"
+    assert goal["native_hook_event"] is None
+    assert goal["per_input_invocation_proven"] is False
+
+
+def test_runtime_hook_status_accepts_sealed_four_event_package_baseline(
+    tmp_path: Path,
+) -> None:
+    host_events = [
+        "postToolUse",
+        "sessionStart",
+        "stop",
+        "userPromptSubmit",
+    ]
+    runtime = _write_active_runtime_and_installation(
+        tmp_path,
+        host_dispatch_events=host_events,
+        package_events=[
+            "PostToolUse",
+            "SessionStart",
+            "Stop",
+            "UserPromptSubmit",
+        ],
+    )
+
+    hook_status = runtime.host_hook_status()
+    assert hook_status["status"] == "TRUSTED"
+    assert hook_status["host_dispatch_hook_count"] == 4
+    assert hook_status["package_hook_event_count"] == 4
+    assert hook_status["package_inventory_status"] == "SEALED"
+    assert hook_status["installed_host_dispatch_independently_proven"] is False
+
+
+def test_runtime_hook_status_rejects_eight_event_host_dispatch_claim(
+    tmp_path: Path,
+) -> None:
+    runtime = _write_active_runtime_and_installation(
+        tmp_path,
+        host_dispatch_events=[
+            "postCompact",
+            "postToolUse",
+            "preCompact",
+            "preToolUse",
+            "sessionEnd",
+            "sessionStart",
+            "stop",
+            "userPromptSubmit",
+        ],
+        package_events=[
+            "PostCompact",
+            "PostToolUse",
+            "PreCompact",
+            "PreToolUse",
+            "SessionEnd",
+            "SessionStart",
+            "Stop",
+            "UserPromptSubmit",
+        ],
+    )
+
+    hook_status = runtime.host_hook_status()
+    assert hook_status["status"] == "MISMATCH"
+    assert hook_status["trusted"] is False
+    assert hook_status["host_dispatch_trust_status"] == "MISMATCH"
+    assert hook_status["installed_host_dispatch_independently_proven"] is False
 
 
 def test_session_start_exposes_interactive_first_use_tunnel_onboarding(
@@ -270,6 +487,7 @@ def test_prompt_hook_fails_closed_when_bound_runtime_is_detached(
                 "session_id": "host-session-test",
                 "turn_id": "turn-detached",
                 "cwd": str(source_repository),
+                "hook_event_name": "UserPromptSubmit",
                 "prompt": "This must not be captured while detached.",
             }
         ),

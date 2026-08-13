@@ -14,11 +14,33 @@ from .timeutil import utc_now
 
 RUNTIME_ACTIVATION_SCHEMA = "evidence-lane.runtime-activation.v1"
 HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
-_EXPECTED_HOOK_EVENTS = {
-    "postToolUse",
-    "sessionStart",
-    "stop",
-    "userPromptSubmit",
+_EXPECTED_HOST_DISPATCH_TO_PACKAGE_EVENTS = {
+    "postToolUse": "PostToolUse",
+    "sessionStart": "SessionStart",
+    "stop": "Stop",
+    "userPromptSubmit": "UserPromptSubmit",
+}
+_EXPECTED_HOST_DISPATCH_EVENTS = frozenset(
+    _EXPECTED_HOST_DISPATCH_TO_PACKAGE_EVENTS
+)
+_BASELINE_PACKAGE_HOOK_EVENTS = frozenset(
+    _EXPECTED_HOST_DISPATCH_TO_PACKAGE_EVENTS.values()
+)
+_EXTENDED_PACKAGE_HOOK_EVENTS = frozenset(
+    {
+        "PostCompact",
+        "PostToolUse",
+        "PreCompact",
+        "PreToolUse",
+        "SessionEnd",
+        "SessionStart",
+        "Stop",
+        "UserPromptSubmit",
+    }
+)
+_SUPPORTED_PACKAGE_HOOK_EVENT_INVENTORIES = {
+    _BASELINE_PACKAGE_HOOK_EVENTS,
+    _EXTENDED_PACKAGE_HOOK_EVENTS,
 }
 _REQUIRED_PRE_REASONING_SURFACES = (
     {
@@ -26,21 +48,21 @@ _REQUIRED_PRE_REASONING_SURFACES = (
         "host_route": "turn/start -> inspect_pending_input(TurnInput::UserInput)",
         "native_hook_event": "userPromptSubmit",
         "host_dispatch_supported": True,
+        "capability_basis": "CODEX_TURNINPUT_USERINPUT_HOOK_RUNTIME",
     },
     {
         "surface": "MID_GOAL_STEER",
         "host_route": "turn/steer -> inspect_pending_input(TurnInput::UserInput)",
         "native_hook_event": "userPromptSubmit",
         "host_dispatch_supported": True,
+        "capability_basis": "CODEX_TURNINPUT_USERINPUT_HOOK_RUNTIME",
     },
     {
         "surface": "GOAL_CONTINUATION",
-        "host_route": (
-            "turn/start(goal continuation) -> "
-            "inspect_pending_input(TurnInput::UserInput)"
-        ),
-        "native_hook_event": "userPromptSubmit",
-        "host_dispatch_supported": True,
+        "host_route": "thread/goal/set (not TurnInput::UserInput)",
+        "native_hook_event": None,
+        "host_dispatch_supported": False,
+        "capability_basis": "MEASURED_CODEX_DESKTOP_GOAL_ROUTE_BYPASSES_USERPROMPTSUBMIT",
     },
 )
 _SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
@@ -158,6 +180,13 @@ class RuntimeActivation:
             "plugin_selector": None,
             "hook_count": 0,
             "registered_events": [],
+            "host_dispatch_hook_count": 0,
+            "host_dispatch_registered_events": [],
+            "host_dispatch_trust_status": "UNAVAILABLE",
+            "package_hook_event_count": 0,
+            "package_registered_events": [],
+            "package_inventory_status": "UNAVAILABLE",
+            "installed_host_dispatch_independently_proven": False,
             "installation_receipt_sha256": None,
             "hook_trust_receipt_sha256": None,
             "reason": "SEALED_CURRENT_INSTALLATION_HOOK_TRUST_UNAVAILABLE",
@@ -184,18 +213,38 @@ class RuntimeActivation:
         records = hook_trust.get("records")
         if not isinstance(records, list):
             records = []
-        events = {
+        host_dispatch_events = {
             str(row.get("event_name") or "")
             for row in records
             if isinstance(row, dict)
         }
+        declared_host_dispatch_events = hook_trust.get("registered_events")
+        if not isinstance(declared_host_dispatch_events, list):
+            declared_host_dispatch_events = []
         keys = [
             str(row.get("hook_key") or "")
             for row in records
             if isinstance(row, dict)
         ]
+        surface_change = dict(installation.get("surface_change_display") or {})
+        surface_core = dict(surface_change)
+        claimed_surface_sha256 = str(
+            surface_core.pop("change_display_sha256", "")
+        ).upper()
+        package_hooks = dict(surface_change.get("hooks") or {})
+        package_events = package_hooks.get("registered_events")
+        if not isinstance(package_events, list):
+            package_events = []
+        package_event_set = {
+            str(event) for event in package_events if isinstance(event, str)
+        }
+        package_inventory_present = bool(surface_change)
+        normalized_host_dispatch_events = {
+            _EXPECTED_HOST_DISPATCH_TO_PACKAGE_EVENTS.get(event, "")
+            for event in host_dispatch_events
+        }
         selector = str(hook_trust.get("plugin_selector") or "")
-        valid = (
+        sealed_installation_valid = (
             installation.get("schema")
             == "evidence-lane.codex-stable-installation.v2"
             and installation.get("status") == "PASS"
@@ -208,10 +257,19 @@ class RuntimeActivation:
             and claimed_hook_sha256 == _sealed_json_sha256(hook_core)
             and selector == plugin_add.get("pluginId")
             and selector.startswith("evidence-lane-plugin@")
-            and hook_trust.get("hook_count") == 4
-            and events == _EXPECTED_HOOK_EVENTS
-            and len(records) == 4
-            and len(keys) == len(set(keys)) == 4
+        )
+        host_dispatch_valid = (
+            hook_trust.get("hook_count")
+            == len(_EXPECTED_HOST_DISPATCH_EVENTS)
+            and set(declared_host_dispatch_events)
+            == _EXPECTED_HOST_DISPATCH_EVENTS
+            and len(declared_host_dispatch_events)
+            == len(_EXPECTED_HOST_DISPATCH_EVENTS)
+            and host_dispatch_events == _EXPECTED_HOST_DISPATCH_EVENTS
+            and len(records) == len(_EXPECTED_HOST_DISPATCH_EVENTS)
+            and len(keys)
+            == len(set(keys))
+            == len(_EXPECTED_HOST_DISPATCH_EVENTS)
             and hook_trust.get("after_trust_statuses") == ["trusted"]
             and all(
                 isinstance(row, dict)
@@ -225,20 +283,77 @@ class RuntimeActivation:
                 for row in records
             )
         )
+        package_inventory_valid = (
+            not package_inventory_present
+            or (
+                surface_change.get("schema")
+                == "evidence-lane.codex-installed-surface-change-display.v2"
+                and _SHA256_RE.fullmatch(claimed_surface_sha256) is not None
+                and claimed_surface_sha256 == _sealed_json_sha256(surface_core)
+                and package_hooks.get("count") == len(package_event_set)
+                and package_hooks.get("registered_event_count")
+                == len(package_event_set)
+                and len(package_events) == len(package_event_set)
+                and frozenset(package_event_set)
+                in _SUPPORTED_PACKAGE_HOOK_EVENT_INVENTORIES
+                and normalized_host_dispatch_events.issubset(package_event_set)
+            )
+        )
+        valid = (
+            sealed_installation_valid
+            and host_dispatch_valid
+            and package_inventory_valid
+        )
         if not valid:
+            reason = "CURRENT_INSTALLATION_HOOK_TRUST_SEAL_MISMATCH"
+            if (
+                sealed_installation_valid
+                and host_dispatch_valid
+                and not package_inventory_valid
+            ):
+                reason = "CURRENT_INSTALLATION_PACKAGE_HOOK_INVENTORY_MISMATCH"
             return {
                 **unavailable,
                 "status": "MISMATCH",
                 "plugin_selector": selector or None,
-                "reason": "CURRENT_INSTALLATION_HOOK_TRUST_SEAL_MISMATCH",
+                "host_dispatch_hook_count": len(host_dispatch_events),
+                "host_dispatch_registered_events": sorted(
+                    host_dispatch_events
+                ),
+                "host_dispatch_trust_status": (
+                    "SEALED_CONFIG_TRUST"
+                    if sealed_installation_valid and host_dispatch_valid
+                    else "MISMATCH"
+                ),
+                "package_hook_event_count": len(package_event_set),
+                "package_registered_events": sorted(package_event_set),
+                "package_inventory_status": (
+                    "SEALED"
+                    if package_inventory_present and package_inventory_valid
+                    else (
+                        "MISMATCH"
+                        if package_inventory_present
+                        else "UNAVAILABLE"
+                    )
+                ),
+                "reason": reason,
             }
         return {
             "schema": "evidence-lane.codex-host-hook-status.v1",
             "status": "TRUSTED",
             "trusted": True,
             "plugin_selector": selector,
-            "hook_count": 4,
-            "registered_events": sorted(events),
+            "hook_count": len(_EXPECTED_HOST_DISPATCH_EVENTS),
+            "registered_events": sorted(host_dispatch_events),
+            "host_dispatch_hook_count": len(host_dispatch_events),
+            "host_dispatch_registered_events": sorted(host_dispatch_events),
+            "host_dispatch_trust_status": "SEALED_CONFIG_TRUST",
+            "package_hook_event_count": len(package_event_set),
+            "package_registered_events": sorted(package_event_set),
+            "package_inventory_status": (
+                "SEALED" if package_inventory_present else "UNAVAILABLE"
+            ),
+            "installed_host_dispatch_independently_proven": False,
             "installation_receipt_sha256": claimed_installation_sha256,
             "hook_trust_receipt_sha256": claimed_hook_sha256,
             "reason": None,
@@ -290,6 +405,11 @@ class RuntimeActivation:
         complete_coverage = all(
             row["pre_reasoning_dispatch_runnable"] for row in capture_surfaces
         )
+        supported_coverage = all(
+            row["pre_reasoning_dispatch_runnable"]
+            for row in capture_surfaces
+            if row["host_dispatch_supported"]
+        )
         missing_surfaces = [
             row["surface"]
             for row in capture_surfaces
@@ -298,6 +418,11 @@ class RuntimeActivation:
         partial_capture = any(
             row["pre_reasoning_dispatch_runnable"] for row in capture_surfaces
         )
+        unavailable_surfaces = [
+            row["surface"]
+            for row in capture_surfaces
+            if row["state"] == "HOST_CAPABILITY_UNAVAILABLE"
+        ]
         projected = dict(configured)
         projected.update(
             {
@@ -311,8 +436,10 @@ class RuntimeActivation:
                 ),
                 "prompt_capture_partially_available": partial_capture,
                 "required_pre_reasoning_capture_complete": complete_coverage,
+                "supported_pre_reasoning_capture_complete": supported_coverage,
                 "required_pre_reasoning_capture_surfaces": capture_surfaces,
                 "missing_required_pre_reasoning_surfaces": missing_surfaces,
+                "host_capability_unavailable_surfaces": unavailable_surfaces,
                 "per_input_prepare_receipt_required": True,
                 "visible_response_capture_active": (
                     session_active and response_configured and hooks_trusted
@@ -322,6 +449,10 @@ class RuntimeActivation:
                 "capture_truth_law": (
                     "ALL_VISIBLE_INPUT_SURFACES_REQUIRE_PRE_REASONING_HOST_DISPATCH_"
                     "AND_ONE_SEALED_PREPARE_RECEIPT_PER_INPUT"
+                ),
+                "unsupported_surface_law": (
+                    "HOST_CAPABILITY_UNAVAILABLE_MUST_FAIL_CLOSED_AND_MUST_NOT_BE_"
+                    "RELABELED_AS_CAPTURED"
                 ),
                 "capture_gap_code": (
                     None

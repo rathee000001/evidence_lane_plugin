@@ -62,6 +62,15 @@ _GOAL_USAGE_SEMANTICS = {
     "GOAL_CUMULATIVE_SNAPSHOT",
     "TURN_DELTA",
 }
+_LIFECYCLE_EXIT_REASONS = {
+    "HIL_WAIT",
+    "EXPLICIT_PAUSE",
+    "GENUINE_BLOCK",
+    "GOVERNED_ERROR",
+    "EXIT_BOOT",
+    "STATE_TRAVEL_HANDOFF",
+    "STATELESS_EPHEMERAL_END",
+}
 _PROJECT_TASK_PRIVATE_ANALYSIS = "PROJECT_TASK_PRIVATE_ANALYSIS"
 _MEMORY_PLUS_LEARNING_RESEARCH_QUESTION = (
     "How can this governed project preserve exact task memory and measure learning "
@@ -134,6 +143,54 @@ def _turn_redact(value: Any) -> Any:
     if isinstance(value, (list, tuple)):
         return [_turn_redact(item) for item in value]
     return value
+
+
+def _lineage_host_identity(host_payload: dict[str, Any]) -> dict[str, Any]:
+    """Return a privacy-safe host identity for visible ChatLineage events."""
+
+    runtime_context = (
+        host_payload.get("runtime_context")
+        if isinstance(host_payload.get("runtime_context"), dict)
+        else {}
+    )
+    host_session_id = str(host_payload.get("session_id") or "").strip()
+    identity = {
+        "host_kind": _turn_redact_text(
+            str(
+                host_payload.get("host_kind")
+                or host_payload.get("host")
+                or runtime_context.get("host_kind")
+                or "CODEX"
+            )
+        ),
+        "host_profile": _turn_redact_text(
+            str(
+                host_payload.get("host_profile")
+                or runtime_context.get("host_profile")
+                or "UNAVAILABLE"
+            )
+        ),
+        "host_app": _turn_redact_text(
+            str(
+                host_payload.get("host_app")
+                or host_payload.get("app")
+                or runtime_context.get("host_app")
+                or "UNAVAILABLE"
+            )
+        ),
+        "host_session_id_sha256": (
+            sha256_bytes(host_session_id.encode("utf-8"))
+            if host_session_id
+            else None
+        ),
+        "raw_host_session_id_stored": False,
+    }
+    _require(
+        not contains_secret(identity),
+        "TURN_CONTROL_HOST_IDENTITY_REDACTION_FAILED",
+        "A secret-like value remained in the privacy-safe host identity.",
+    )
+    return identity
 
 
 def _require(condition: bool, code: str, message: str, **details: Any) -> None:
@@ -239,8 +296,17 @@ def _package_surface_inventory() -> dict[str, Any]:
     )
     _require(
         registered_events
-        == ["PostToolUse", "SessionStart", "Stop", "UserPromptSubmit"]
-        and handler_count == 4,
+        == [
+            "PostCompact",
+            "PostToolUse",
+            "PreCompact",
+            "PreToolUse",
+            "SessionEnd",
+            "SessionStart",
+            "Stop",
+            "UserPromptSubmit",
+        ]
+        and handler_count == 8,
         "TURN_CONTROL_PACKAGE_HOOK_EVENT_INVENTORY_REQUIRED",
         "The installed persistent hook event inventory is not exact.",
     )
@@ -2097,7 +2163,14 @@ def seal_active_task_acceptance_checkpoint(
     evidence_session_id: str,
     expected_active_task_id: str,
 ) -> dict[str, Any]:
-    """Seal one acceptance-backed, candidate-free active-task checkpoint."""
+    """Seal one acceptance-backed, candidate-free active-task checkpoint.
+
+    The exact Codex task binding remains the identity authority.  Advancement
+    additionally requires one current-run ChatLineage activity whose visible
+    payload covers the active Plan row's complete acceptance contract.  A
+    generic task transition therefore cannot be manufactured from title, CWD,
+    an old run, or an unrelated PASS event.
+    """
 
     exact_root = Path(root).resolve()
     project_root = exact_root / "projects" / project_id
@@ -2213,7 +2286,9 @@ def seal_active_task_acceptance_checkpoint(
             )
         },
         "exact_binding_receipt_sha256": binding["receipt_sha256"],
-        "identity_basis": "EXACT_CODEX_TASK_BINDING_PLUS_CURRENT_RUN_ACCEPTANCE_ACTIVITY",
+        "identity_basis": (
+            "EXACT_CODEX_TASK_BINDING_PLUS_CURRENT_RUN_ACCEPTANCE_ACTIVITY"
+        ),
         "task_title_used": False,
         "cwd_used": False,
         "candidate_created": False,
@@ -3415,9 +3490,11 @@ def _capture_dispatch(
 ) -> dict[str, Any]:
     """Seal truthful host-dispatch provenance for one visible input.
 
-    Codex's pending-input dispatcher invokes ``UserPromptSubmit`` for every
-    ``TurnInput::UserInput`` before the model sees it.  The route is shared;
-    Evidence Lane derives the visible-input subtype from sealed state.
+    Codex's pending-input dispatcher invokes ``UserPromptSubmit`` for each
+    ``TurnInput::UserInput`` before the model sees it. The hook adapter can
+    prove that it executed against a host-shaped payload; only a separate
+    installed-host acceptance correlation may claim independent dispatch
+    proof. Goal control uses ``thread/goal/set`` and fails closed here.
     """
 
     expected = {
@@ -3433,13 +3510,18 @@ def _capture_dispatch(
         },
         "goal": {
             "surface": "GOAL_CONTINUATION",
-            "host_route": (
-                "turn/start(goal continuation) -> "
-                "inspect_pending_input(TurnInput::UserInput)"
-            ),
-            "native_hook_event": "UserPromptSubmit",
+            "host_route": "thread/goal/set (not TurnInput::UserInput)",
+            "native_hook_event": None,
         },
     }[input_kind]
+    _require(
+        input_kind != "goal",
+        "TURN_CONTROL_GOAL_PRE_REASONING_HOOK_UNAVAILABLE",
+        "Codex Goal control bypasses UserPromptSubmit; governed Goal PREPARE is unavailable and must fail closed.",
+        surface=expected["surface"],
+        host_route=expected["host_route"],
+        host_capability="UNAVAILABLE",
+    )
     supplied = host_payload.get("evidence_lane_capture_dispatch")
     if not isinstance(supplied, dict):
         return {
@@ -3448,6 +3530,8 @@ def _capture_dispatch(
             "native_dispatch_route": None,
             "host_dispatch_supported": False,
             "pre_reasoning_dispatch_proven": False,
+            "adapter_invocation_observed": False,
+            "installed_host_dispatch_independently_proven": False,
             "input_kind_derived_from_sealed_state": True,
             "classification_basis": classification_basis,
             "caller_input_kind_authority": False,
@@ -3457,9 +3541,15 @@ def _capture_dispatch(
         "native_dispatch_surface": str(supplied.get("surface") or ""),
         "native_dispatch_route": str(supplied.get("host_route") or ""),
         "native_hook_event": supplied.get("native_hook_event"),
-        "host_dispatch_supported": supplied.get("host_dispatch_supported") is True,
-        "pre_reasoning_dispatch_proven": supplied.get(
-            "pre_reasoning_dispatch_proven"
+        "host_payload_hook_event_name": str(
+            supplied.get("host_payload_hook_event_name") or ""
+        ),
+        "adapter_invocation_observed": supplied.get(
+            "adapter_invocation_observed"
+        )
+        is True,
+        "installed_host_dispatch_independently_proven": supplied.get(
+            "installed_host_dispatch_independently_proven"
         )
         is True,
         "input_kind_derived_from_sealed_state": supplied.get(
@@ -3474,8 +3564,10 @@ def _capture_dispatch(
         and exact["native_dispatch_route"]
         == "inspect_pending_input(TurnInput::UserInput)"
         and exact["native_hook_event"] == expected["native_hook_event"]
-        and exact["host_dispatch_supported"] is True
-        and exact["pre_reasoning_dispatch_proven"] is True
+        and exact["host_payload_hook_event_name"] == "UserPromptSubmit"
+        and str(host_payload.get("hook_event_name") or "") == "UserPromptSubmit"
+        and exact["adapter_invocation_observed"] is True
+        and exact["installed_host_dispatch_independently_proven"] is False
         and exact["input_kind_derived_from_sealed_state"] is True
         and supplied.get("caller_input_kind_authority") is False
         and exact["caller_input_kind_authority"] is False
@@ -3491,8 +3583,12 @@ def _capture_dispatch(
     return {
         **expected,
         **exact,
+        "host_dispatch_supported": True,
+        "pre_reasoning_dispatch_proven": True,
+        "pre_reasoning_proof_basis": "VALIDATED_USERPROMPTSUBMIT_HOST_PAYLOAD_AND_ADAPTER_INVOCATION",
+        "independent_installed_host_proof_required": True,
         "classification_basis": classification_basis,
-        "state": "NATIVE_PRE_REASONING_DISPATCH_PROVEN",
+        "state": "USERPROMPTSUBMIT_ADAPTER_INVOKED",
     }
 
 
@@ -3640,6 +3736,7 @@ def record_non_strict_visible_input(
             prior = records[-1] if records else None
             prompt_index = int(prior.get("prompt_index") or 0) + 1 if prior else 1
             recorded_at = _now()
+            lineage_telemetry = _response_telemetry(host_payload)
             record = {
                 "schema": "evidence-lane.prompt-index.v1",
                 "host_session_id": host_session_id,
@@ -3660,6 +3757,10 @@ def record_non_strict_visible_input(
                 "cwd_sha256": sha256_bytes(
                     str(host_payload.get("cwd") or "").encode("utf-8")
                 ),
+                "lineage_host_identity": _lineage_host_identity(host_payload),
+                "lineage_model": lineage_telemetry["model"],
+                "lineage_submodel": lineage_telemetry["submodel"],
+                "lineage_token_metrics": lineage_telemetry["token_metrics"],
                 "prior_record_sha256": (
                     prior.get("record_sha256") if prior is not None else None
                 ),
@@ -3717,6 +3818,13 @@ def record_non_strict_visible_input(
         lineage = ChatLineage(
             project_root / "lineage" / f"{evidence_session_id}.jsonl"
         )
+        host_identity = record.get("lineage_host_identity")
+        telemetry = {
+            "model": record.get("lineage_model"),
+            "submodel": record.get("lineage_submodel"),
+            "token_metrics": record.get("lineage_token_metrics")
+            or {"availability": "UNAVAILABLE"},
+        }
         try:
             event = lineage.append(
                 event_type={
@@ -3737,6 +3845,11 @@ def record_non_strict_visible_input(
                     "entry_pv": accepted_pv,
                     "pointer_generation": pointer_generation,
                     "lifecycle_state": session.get("state"),
+                    **(
+                        {"host_identity": host_identity}
+                        if isinstance(host_identity, dict)
+                        else {}
+                    ),
                     "strict_turn_control_active": False,
                     "private_reasoning_excluded": True,
                 },
@@ -3745,6 +3858,9 @@ def record_non_strict_visible_input(
                 task_id=task_id,
                 event_id=event_id,
                 actor_type="user",
+                model=telemetry["model"],
+                submodel=telemetry["submodel"],
+                token_metrics=telemetry["token_metrics"],
             )
         except EvidenceLaneError as exc:
             raise TurnControlError(
@@ -3943,30 +4059,39 @@ def _project_prepared_entry(
             (str(entry["prompt_record_sha256"]) + "\0visible-input").encode("utf-8")
         )[:26].lower()
     )
+    input_visible_payload = {
+        "turn_id": entry["turn_id"],
+        "prompt_index": entry["prompt_index"],
+        "input_kind": entry["input_kind"],
+        "capture_dispatch": entry["capture_dispatch"],
+        "visible_input_after_redaction": entry["visible_input_after_redaction"],
+        "visible_input_sha256_after_redaction": entry[
+            "visible_input_sha256_after_redaction"
+        ],
+        "attachment_identities": entry["attachment_identities"],
+        "prompt_record_sha256": entry["prompt_record_sha256"],
+        "entry_slip": entry["entry_slip"],
+        **(
+            {"host_identity": entry["lineage_host_identity"]}
+            if isinstance(entry.get("lineage_host_identity"), dict)
+            else {}
+        ),
+        "private_reasoning_excluded": True,
+    }
     input_event = lineage.append(
         event_type={
             "steer": "turn.visible_user_steer",
             "goal": "turn.visible_user_goal",
         }.get(str(entry["input_kind"]), "turn.visible_user_prompt"),
-        visible_payload={
-            "turn_id": entry["turn_id"],
-            "prompt_index": entry["prompt_index"],
-            "input_kind": entry["input_kind"],
-            "capture_dispatch": entry["capture_dispatch"],
-            "visible_input_after_redaction": entry["visible_input_after_redaction"],
-            "visible_input_sha256_after_redaction": entry[
-                "visible_input_sha256_after_redaction"
-            ],
-            "attachment_identities": entry["attachment_identities"],
-            "prompt_record_sha256": entry["prompt_record_sha256"],
-            "entry_slip": entry["entry_slip"],
-            "private_reasoning_excluded": True,
-        },
+        visible_payload=input_visible_payload,
         occurred_at=entry["prepared_at"],
         session_id=entry["evidence_session_id"],
         task_id=entry["task_id"],
         event_id=input_event_id,
         actor_type="user",
+        model=entry.get("lineage_model"),
+        submodel=entry.get("lineage_submodel"),
+        token_metrics=entry.get("lineage_token_metrics"),
     )
     prepare_event_id = (
         "evt_"
@@ -4008,6 +4133,11 @@ def _project_prepared_entry(
                     "source_change_snapshot_sha256"
                 )
             ),
+            **(
+                {"host_identity": entry["lineage_host_identity"]}
+                if isinstance(entry.get("lineage_host_identity"), dict)
+                else {}
+            ),
             "scrollback_authority": False,
             "transcript_authority": False,
             "private_reasoning_excluded": True,
@@ -4017,6 +4147,9 @@ def _project_prepared_entry(
         task_id=entry["task_id"],
         event_id=prepare_event_id,
         actor_type="system",
+        model=entry.get("lineage_model"),
+        submodel=entry.get("lineage_submodel"),
+        token_metrics=entry.get("lineage_token_metrics"),
     )
     projection = lineage.projection_status()
     return {
@@ -4083,6 +4216,8 @@ def prepare_turn(
         binding=binding,
         cwd=str(host_payload.get("cwd") or ""),
     )
+    lineage_host_identity = _lineage_host_identity(host_payload)
+    lineage_telemetry = _response_telemetry(host_payload)
     with _control_lock(project_root):
         try:
             prompt_records = [
@@ -4290,6 +4425,10 @@ def prepare_turn(
                         "bounded_write_scope"
                     ],
                     "source_change_entry": live_source_snapshot,
+                    "lineage_host_identity": lineage_host_identity,
+                    "lineage_model": lineage_telemetry["model"],
+                    "lineage_submodel": lineage_telemetry["submodel"],
+                    "lineage_token_metrics": lineage_telemetry["token_metrics"],
                     "prepared_at": prepared_at,
                     "scrollback_authority": False,
                     "transcript_authority": False,
@@ -4529,6 +4668,7 @@ def record_tool_event(
         if phase == "before"
         else host_payload.get("tool_response")
     )
+    telemetry = _response_telemetry(host_payload)
     event_payload = {
         "turn_id": turn_id,
         "tool_use_id": tool_use_id,
@@ -4536,6 +4676,7 @@ def record_tool_event(
         "tool_name": tool_name,
         "control_record_sha256": entry["control_record_sha256"],
         "binding_sha256": binding["binding_sha256"],
+        "host_identity": _lineage_host_identity(host_payload),
         **visible,
         "private_reasoning_excluded": True,
     }
@@ -4546,6 +4687,48 @@ def record_tool_event(
             (tool_use_id + "\0" + phase + "\0" + tool_event_sha256).encode("utf-8")
         )[:26].lower()
     )
+    with _connection(project_root) as connection:
+        existing = connection.execute(
+            "SELECT event_json FROM turn_tool_event WHERE tool_use_id=? AND phase=?",
+            (tool_use_id, phase),
+        ).fetchone()
+    if existing:
+        stored = json.loads(existing["event_json"])
+        stored_payload = stored.get("event_payload")
+        _require(
+            isinstance(stored_payload, dict)
+            and sha256_bytes(canonical_json_bytes(stored_payload))
+            == stored.get("tool_event_sha256"),
+            "TURN_CONTROL_TOOL_EVENT_INTEGRITY_FAILED",
+            "The existing tool event failed its payload SHA-256 verification.",
+        )
+        comparable_payload = event_payload
+        if "host_identity" not in stored_payload:
+            # v2.0 tool events predate the additive privacy-safe host-identity
+            # projection. Replaying that exact visible event must reuse the
+            # immutable record instead of appending a second lineage event.
+            comparable_payload = {
+                key: value
+                for key, value in event_payload.items()
+                if key != "host_identity"
+            }
+        _require(
+            stored_payload == comparable_payload
+            and stored.get("control_record_sha256")
+            == entry["control_record_sha256"]
+            and stored.get("tool_use_id") == tool_use_id
+            and stored.get("phase") == phase
+            and stored.get("tool_name") == tool_name,
+            "TURN_CONTROL_TOOL_EVENT_CONFLICT",
+            "A tool-use identity already binds different visible activity.",
+        )
+        return {
+            "state": "RECORDED_IDEMPOTENT_REUSE",
+            "tool_event_sha256": stored["tool_event_sha256"],
+            "lineage_event_sha256": stored["lineage_event_sha256"],
+            "control_record_sha256": entry["control_record_sha256"],
+            "phase": phase,
+        }
     lineage_path = project_root / "lineage" / f"{binding['evidence_session_id']}.jsonl"
     lineage_event = ChatLineage(lineage_path).append(
         event_type=f"turn.tool.{phase}",
@@ -4555,12 +4738,11 @@ def record_tool_event(
         task_id=binding["task_id"],
         event_id=event_id,
         actor_type="tool",
+        model=telemetry["model"],
+        submodel=telemetry["submodel"],
+        token_metrics=telemetry["token_metrics"],
     )
     with _connection(project_root) as connection:
-        existing = connection.execute(
-            "SELECT event_json FROM turn_tool_event WHERE tool_use_id=? AND phase=?",
-            (tool_use_id, phase),
-        ).fetchone()
         row = {
             "tool_event_sha256": tool_event_sha256,
             "control_record_sha256": entry["control_record_sha256"],
@@ -4571,37 +4753,167 @@ def record_tool_event(
             "event_payload": event_payload,
             "recorded_at": _now(),
         }
-        if existing:
-            stored = json.loads(existing["event_json"])
-            _require(
-                stored["tool_event_sha256"] == tool_event_sha256,
-                "TURN_CONTROL_TOOL_EVENT_CONFLICT",
-                "A tool-use identity already binds different visible activity.",
-            )
-            action = "RECORDED_IDEMPOTENT_REUSE"
-        else:
-            connection.execute(
-                "INSERT INTO turn_tool_event VALUES(?,?,?,?,?,?,?,?)",
-                (
-                    tool_event_sha256,
-                    entry["control_record_sha256"],
-                    tool_use_id,
-                    phase,
-                    tool_name,
-                    lineage_event["event_sha256"],
-                    json.dumps(row, sort_keys=True, separators=(",", ":")),
-                    row["recorded_at"],
-                ),
-            )
-            connection.commit()
-            action = "RECORDED"
+        connection.execute(
+            "INSERT INTO turn_tool_event VALUES(?,?,?,?,?,?,?,?)",
+            (
+                tool_event_sha256,
+                entry["control_record_sha256"],
+                tool_use_id,
+                phase,
+                tool_name,
+                lineage_event["event_sha256"],
+                json.dumps(row, sort_keys=True, separators=(",", ":")),
+                row["recorded_at"],
+            ),
+        )
+        connection.commit()
     return {
-        "state": action,
+        "state": "RECORDED",
         "tool_event_sha256": tool_event_sha256,
         "lineage_event_sha256": lineage_event["event_sha256"],
         "control_record_sha256": entry["control_record_sha256"],
         "phase": phase,
     }
+
+
+_LIFECYCLE_BOUNDARY_PHASES = {
+    "PreCompact": "COMPACTION_SEAL",
+    "PostCompact": "COMPACTION_REHYDRATION",
+    "SessionEnd": "BEST_EFFORT_SESSION_BOUNDARY_FLUSH",
+}
+
+
+def record_lifecycle_boundary_event(
+    store_root: str | Path,
+    *,
+    host_payload: dict[str, Any],
+    event_name: str,
+) -> dict[str, Any]:
+    """Seal one privacy-safe host lifecycle boundary without owning behavior.
+
+    These receipts transport lifecycle state only. They never run PV queries,
+    classify a task, mutate Plan Lane, refresh a candidate, or move a pointer;
+    those behavior decisions remain owned by the installed Evidence Lane skill.
+    """
+
+    phase = _LIFECYCLE_BOUNDARY_PHASES.get(event_name)
+    _require(
+        bool(phase),
+        "TURN_CONTROL_LIFECYCLE_EVENT_UNSUPPORTED",
+        "The lifecycle boundary event is not part of the approved hook matrix.",
+        event_name=event_name,
+    )
+    root = Path(store_root).resolve()
+    host_session_id = str(host_payload.get("session_id") or "").strip()
+    _require(
+        bool(host_session_id),
+        "TURN_CONTROL_HOST_SESSION_REQUIRED",
+        "A lifecycle boundary requires the exact Codex host-session identity.",
+    )
+    candidate = _one_bound_session(
+        root,
+        host_session_id=host_session_id,
+        cwd=str(host_payload.get("cwd") or ""),
+        transcript_path=str(
+            host_payload.get("transcript_path")
+            or host_payload.get("agent_transcript_path")
+            or ""
+        ),
+    )
+    session = candidate["session"]
+    metadata = dict(session.get("metadata") or {})
+    project_id = str(session["project_id"])
+    evidence_session_id = str(session["session_id"])
+    project_root = root / "projects" / project_id
+    occurrence_source = str(
+        host_payload.get("hook_event_id")
+        or host_payload.get("event_id")
+        or host_payload.get("turn_id")
+        or host_payload.get("tool_use_id")
+        or host_payload.get("source")
+        or event_name
+    ).strip()
+    occurrence_sha256 = sha256_bytes(occurrence_source.encode("utf-8"))
+    receipt_id = (
+        "lifecycle_"
+        + sha256_bytes(
+            (
+                event_name
+                + "\0"
+                + evidence_session_id
+                + "\0"
+                + occurrence_sha256
+                + "\0"
+                + _host_binding_epoch(session)
+            ).encode("utf-8")
+        )[:26].lower()
+    )
+    receipt_path = (
+        project_root / "lineage" / "lifecycle_hooks" / f"{receipt_id}.json"
+    )
+    if receipt_path.is_file():
+        receipt = _json(receipt_path)
+        claimed = str(receipt.get("receipt_sha256") or "")
+        actual = sha256_bytes(
+            canonical_json_bytes(
+                {key: value for key, value in receipt.items() if key != "receipt_sha256"}
+            )
+        )
+        _require(
+            claimed == actual
+            and receipt.get("event_name") == event_name
+            and receipt.get("project_id") == project_id
+            and receipt.get("evidence_session_id") == evidence_session_id
+            and receipt.get("occurrence_sha256") == occurrence_sha256,
+            "TURN_CONTROL_LIFECYCLE_RECEIPT_CONFLICT",
+            "The existing lifecycle boundary receipt failed identity or SHA-256 verification.",
+        )
+        return {"state": "SEALED_IDEMPOTENT_REUSE", "receipt": receipt}
+
+    core = {
+        "schema": "evidence-lane.codex-lifecycle-boundary.v1",
+        "receipt_id": receipt_id,
+        "event_name": event_name,
+        "phase": phase,
+        "project_id": project_id,
+        "evidence_session_id": evidence_session_id,
+        "active_task_id": metadata.get("active_backlog_task_id"),
+        "binding_epoch_sha256": _host_binding_epoch(session),
+        "occurrence_sha256": occurrence_sha256,
+        "host_identity": _lineage_host_identity(host_payload),
+        "hook_owns_lifecycle_transport_only": True,
+        "skill_owns_behavior_and_native_reads": True,
+        "plan_or_delta_mutated": False,
+        "candidate_created_or_refreshed": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+        "raw_prompt_stored": False,
+        "raw_tool_payload_stored": False,
+        "private_reasoning_stored": False,
+        "sealed_at": _now(),
+    }
+    lineage = ChatLineage(
+        project_root / "lineage" / f"{evidence_session_id}.jsonl"
+    ).append(
+        event_type=f"turn.lifecycle.{event_name.lower()}",
+        visible_payload=core,
+        occurred_at=core["sealed_at"],
+        session_id=evidence_session_id,
+        task_id=str(metadata.get("active_backlog_task_id") or "") or None,
+        event_id="evt_" + receipt_id,
+        actor_type="host",
+        model=_response_telemetry(host_payload)["model"],
+        submodel=_response_telemetry(host_payload)["submodel"],
+        token_metrics={"availability": "UNAVAILABLE"},
+    )
+    receipt = {
+        **core,
+        "lineage_event_sha256": lineage["event_sha256"],
+    }
+    receipt["receipt_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    atomic_write_json(receipt_path, receipt)
+    return {"state": "SEALED", "receipt": receipt}
 
 
 def _response_telemetry(host_payload: dict[str, Any]) -> dict[str, Any]:
@@ -4751,6 +5063,11 @@ def commit_turn(
         )
         selected = rows[0]
         entry = json.loads(selected["entry_json"])
+        existing_commit = (
+            json.loads(selected["commit_json"])
+            if selected["commit_json"] is not None
+            else None
+        )
         claimed_entry_sha = str(entry.get("control_record_sha256") or "")
         entry_without_sha = {
             key: value for key, value in entry.items() if key != "control_record_sha256"
@@ -4890,6 +5207,7 @@ def commit_turn(
                 "goal_usage": goal_usage,
                 "source_change": source_change,
                 "persistent_change_display": persistent_change_display,
+                "host_identity": _lineage_host_identity(host_payload),
                 **telemetry,
                 "raw_response_stored": False,
                 "redacted_visible_response_stored": True,
@@ -4943,6 +5261,11 @@ def commit_turn(
                 "persistent_change_display_sha256": persistent_change_display[
                     "display_sha256"
                 ],
+                **(
+                    {"host_identity": response_record["host_identity"]}
+                    if isinstance(response_record.get("host_identity"), dict)
+                    else {}
+                ),
                 "private_reasoning_excluded": True,
                 "hook_continuation_requested": False,
                 "composer_mutated": False,
@@ -4957,7 +5280,7 @@ def commit_turn(
             token_metrics=telemetry["token_metrics"],
         )
         previous_head = response_event.get("previous_event_sha256")
-        exit_state = {
+        continuity_state = {
             "control_record_sha256": entry["control_record_sha256"],
             "response_record_sha256": response_record_sha256,
             "binding_sha256": binding["binding_sha256"],
@@ -4976,33 +5299,62 @@ def commit_turn(
                 "display_sha256"
             ],
         }
-        state_sha256 = sha256_bytes(canonical_json_bytes(exit_state))
-        commit = {
-            "schema": "evidence-lane.codex-turn-commit.v2",
-            "state": "COMMITTED",
-            "control_record_sha256": entry["control_record_sha256"],
-            "response_record_sha256": response_record_sha256,
-            "turn_id": turn_id,
-            "prompt_index": entry["prompt_index"],
-            "project_id": binding["project_id"],
-            "evidence_session_id": binding["evidence_session_id"],
-            "accepted_pv": binding["accepted_pv"],
-            "pointer_generation": binding["pointer_generation"],
-            "entry_slip": entry["entry_slip"],
-            "exit_slip": {
-                **exit_state,
+        state_sha256 = sha256_bytes(canonical_json_bytes(continuity_state))
+        if existing_commit is not None:
+            claimed_commit_sha256 = str(existing_commit.get("commit_sha256") or "")
+            _require(
+                claimed_commit_sha256
+                == sha256_bytes(
+                    canonical_json_bytes(
+                        {
+                            key: value
+                            for key, value in existing_commit.items()
+                            if key != "commit_sha256"
+                        }
+                    )
+                ),
+                "TURN_CONTROL_RESPONSE_COMMIT_MISMATCH",
+                "The existing ordinary-turn COMMIT failed its SHA-256 verification.",
+            )
+            commit = existing_commit
+            state_sha256 = str(commit["state_sha256"])
+        else:
+            commit = {
+                "schema": "evidence-lane.codex-turn-commit.v3",
+                "state": "COMMITTED",
+                "control_record_sha256": entry["control_record_sha256"],
+                "response_record_sha256": response_record_sha256,
+                "turn_id": turn_id,
+                "prompt_index": entry["prompt_index"],
+                "project_id": binding["project_id"],
+                "evidence_session_id": binding["evidence_session_id"],
+                "accepted_pv": binding["accepted_pv"],
+                "pointer_generation": binding["pointer_generation"],
+                "entry_slip": entry["entry_slip"],
+                **(
+                    {"host_identity": response_record["host_identity"]}
+                    if isinstance(response_record.get("host_identity"), dict)
+                    else {}
+                ),
+                "continuity_commit_receipt": {
+                    **continuity_state,
+                    "state_sha256": state_sha256,
+                    "operational_links_sha256": operational[
+                        "items_sha256_after_redaction"
+                    ],
+                    "token_metrics": telemetry["token_metrics"],
+                    "goal_usage": goal_usage,
+                    "source_change": source_change,
+                    "persistent_change_display": persistent_change_display,
+                    "receipt_role": "ORDINARY_TURN_COMMIT_NOT_LIFECYCLE_EXIT",
+                },
+                "lifecycle_exit_slip_emitted": False,
+                "lifecycle_exit_reason": None,
                 "state_sha256": state_sha256,
-                "operational_links_sha256": operational["items_sha256_after_redaction"],
-                "token_metrics": telemetry["token_metrics"],
-                "goal_usage": goal_usage,
-                "source_change": source_change,
-                "persistent_change_display": persistent_change_display,
-            },
-            "state_sha256": state_sha256,
-            "private_reasoning_stored": False,
-            "committed_at": response_record["recorded_at"],
-        }
-        commit["commit_sha256"] = sha256_bytes(canonical_json_bytes(commit))
+                "private_reasoning_stored": False,
+                "committed_at": response_record["recorded_at"],
+            }
+            commit["commit_sha256"] = sha256_bytes(canonical_json_bytes(commit))
         commit_event_id = (
             "evt_"
             + sha256_bytes((commit["commit_sha256"] + "\0commit").encode("utf-8"))[
@@ -5089,7 +5441,7 @@ def commit_turn(
         lineage_projection = lineage.projection_status()
     return {
         "state": action,
-        "schema": "evidence-lane.codex-turn-control-commit-receipt.v2",
+        "schema": "evidence-lane.codex-turn-control-commit-receipt.v3",
         "project_id": binding["project_id"],
         "evidence_session_id": binding["evidence_session_id"],
         "turn_id": turn_id,
@@ -5107,7 +5459,175 @@ def commit_turn(
         "goal_usage": goal_usage_receipt,
         "source_change": source_change,
         "persistent_change_display": persistent_change_display,
+        "ordinary_turn_commit_receipt": (
+            commit.get("continuity_commit_receipt")
+            or commit.get("exit_slip")
+        ),
+        "lifecycle_exit_slip_emitted": bool(
+            commit.get("lifecycle_exit_slip_emitted", False)
+        ),
+        "historical_exit_slip_alias_reused": (
+            "exit_slip" in commit and "continuity_commit_receipt" not in commit
+        ),
         "private_reasoning_stored": False,
+    }
+
+
+def seal_lifecycle_exit_slip(
+    store_root: str | Path,
+    *,
+    host_payload: dict[str, Any],
+    reason: str,
+    visible_reason: str,
+) -> dict[str, Any]:
+    """Seal one genuine lifecycle exit boundary without advancing the Plan row."""
+
+    exact_reason = reason.strip().upper()
+    _require(
+        exact_reason in _LIFECYCLE_EXIT_REASONS,
+        "TURN_CONTROL_LIFECYCLE_EXIT_REASON_INVALID",
+        "Ordinary turn completion is not a lifecycle Exit Slip boundary.",
+        allowed_reasons=sorted(_LIFECYCLE_EXIT_REASONS),
+    )
+    safe_visible_reason = _turn_redact_text(visible_reason.strip())
+    _require(
+        bool(safe_visible_reason) and not contains_secret(safe_visible_reason),
+        "TURN_CONTROL_LIFECYCLE_EXIT_VISIBLE_REASON_REQUIRED",
+        "A lifecycle Exit Slip requires one secret-redacted visible reason.",
+    )
+    if exact_reason == "STATELESS_EPHEMERAL_END":
+        runtime_context = (
+            host_payload.get("runtime_context")
+            if isinstance(host_payload.get("runtime_context"), dict)
+            else {}
+        )
+        _require(
+            host_payload.get("ephemeral") is True
+            or runtime_context.get("ephemeral") is True,
+            "TURN_CONTROL_STATELESS_EPHEMERAL_PROOF_REQUIRED",
+            "A stateless invocation Exit Slip requires explicit ephemeral-host proof.",
+        )
+    root = Path(store_root).resolve()
+    host_session_id = str(host_payload.get("session_id") or "").strip()
+    _require(
+        bool(host_session_id),
+        "TURN_CONTROL_HOST_TURN_IDENTITY_REQUIRED",
+        "A lifecycle Exit Slip requires the exact governed host-session identity.",
+    )
+    bound = _one_bound_session(
+        root,
+        host_session_id=host_session_id,
+        cwd=str(host_payload.get("cwd") or ""),
+    )
+    binding = _binding_snapshot(root, bound)
+    project_root = Path(bound["project_root"])
+    turn_id = str(host_payload.get("turn_id") or "").strip() or None
+    latest_control_record_sha256: str | None = None
+    latest_turn_state = "NO_TURN_RECEIPT"
+    with _connection(project_root) as connection:
+        latest = connection.execute(
+            """
+            SELECT e.control_record_sha256, c.commit_sha256
+            FROM turn_entry e
+            LEFT JOIN turn_commit c
+              ON c.control_record_sha256=e.control_record_sha256
+            WHERE e.host_session_id=?
+            ORDER BY e.prompt_index DESC LIMIT 1
+            """,
+            (host_session_id,),
+        ).fetchone()
+    if latest is not None:
+        latest_control_record_sha256 = str(latest["control_record_sha256"])
+        latest_turn_state = (
+            "COMMITTED" if latest["commit_sha256"] else "PREPARED_NOT_COMMITTED"
+        )
+    active_row = binding["persistent_plan_row"]
+    identity = {
+        "schema": "evidence-lane.codex-lifecycle-exit-identity.v1",
+        "project_id": binding["project_id"],
+        "evidence_session_id": binding["evidence_session_id"],
+        "task_id": binding["task_id"],
+        "plan_task_id": binding["plan_task_id"],
+        "active_row": active_row["position"],
+        "host_session_id_sha256": sha256_bytes(host_session_id.encode("utf-8")),
+        "turn_id": turn_id,
+        "reason": exact_reason,
+        "visible_reason_sha256": sha256_bytes(safe_visible_reason.encode("utf-8")),
+        "latest_control_record_sha256": latest_control_record_sha256,
+    }
+    exit_identity_sha256 = sha256_bytes(canonical_json_bytes(identity))
+    exit_path = (
+        project_root
+        / "lineage"
+        / "lifecycle-exit-slips"
+        / f"{exit_identity_sha256}.json"
+    )
+    if exit_path.exists():
+        receipt = _json(exit_path)
+        claimed = str(receipt.get("exit_slip_sha256") or "")
+        _require(
+            claimed
+            == sha256_bytes(
+                canonical_json_bytes(
+                    {
+                        key: value
+                        for key, value in receipt.items()
+                        if key != "exit_slip_sha256"
+                    }
+                )
+            )
+            and receipt.get("exit_identity_sha256") == exit_identity_sha256,
+            "TURN_CONTROL_LIFECYCLE_EXIT_RECEIPT_MISMATCH",
+            "The existing lifecycle Exit Slip failed identity or SHA-256 verification.",
+        )
+        state = "SEALED_IDEMPOTENT_REUSE"
+    else:
+        receipt = {
+            **identity,
+            "schema": "evidence-lane.codex-lifecycle-exit-slip.v1",
+            "exit_identity_sha256": exit_identity_sha256,
+            "visible_reason_after_redaction": safe_visible_reason,
+            "host_identity": _lineage_host_identity(host_payload),
+            "latest_turn_state": latest_turn_state,
+            "accepted_pv": binding["accepted_pv"],
+            "pointer_generation": binding["pointer_generation"],
+            "resume_same_plan_task_id": binding["plan_task_id"],
+            "resume_same_row_required": True,
+            "active_task_transitioned": False,
+            "source_mutated": False,
+            "candidate_created_or_accepted": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+            "private_reasoning_stored": False,
+            "emitted_at": _now(),
+        }
+        receipt["exit_slip_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
+        atomic_write_json(exit_path, receipt)
+        state = "SEALED"
+    event_id = "evt_" + sha256_bytes(
+        (str(receipt["exit_slip_sha256"]) + "\0lifecycle-exit").encode("utf-8")
+    )[:26].lower()
+    telemetry = _response_telemetry(host_payload)
+    lineage_event = ChatLineage(
+        project_root / "lineage" / f"{binding['evidence_session_id']}.jsonl"
+    ).append(
+        event_type="turn.lifecycle_exit_slip",
+        visible_payload=receipt,
+        occurred_at=str(receipt["emitted_at"]),
+        session_id=binding["evidence_session_id"],
+        task_id=binding["task_id"],
+        event_id=event_id,
+        actor_type="system",
+        model=telemetry["model"],
+        submodel=telemetry["submodel"],
+        token_metrics=telemetry["token_metrics"],
+    )
+    return {
+        "status": "PASS",
+        "state": state,
+        "receipt": receipt,
+        "exit_slip_path": str(exit_path),
+        "lineage_event_sha256": lineage_event["event_sha256"],
     }
 
 

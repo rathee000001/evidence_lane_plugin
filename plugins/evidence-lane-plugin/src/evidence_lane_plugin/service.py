@@ -467,12 +467,24 @@ class EvidenceLaneService:
                 and row.get("evidence_session_id") == evidence_session_id
                 and row.get("host_session_id") in host_session_ids
             ]
+            invoked_records = [
+                row
+                for row in session_records
+                if isinstance(row.get("capture_dispatch"), dict)
+                and row["capture_dispatch"].get("state")
+                == "USERPROMPTSUBMIT_ADAPTER_INVOKED"
+                and row["capture_dispatch"].get("adapter_invocation_observed")
+                is True
+                and row["capture_dispatch"].get("host_payload_hook_event_name")
+                == "UserPromptSubmit"
+            ]
             indexed_by_session.append(
                 {
                     "project_id": project_id,
                     "evidence_session_id": evidence_session_id,
                     "bound_host_session_count": len(host_session_ids),
                     "indexed_visible_input_count": len(session_records),
+                    "validated_adapter_invocation_count": len(invoked_records),
                     "latest_prompt_index": (
                         max(
                             int(row.get("prompt_index") or 0)
@@ -481,20 +493,31 @@ class EvidenceLaneService:
                         if session_records
                         else None
                     ),
-                    "per_input_invocation_proven": bool(session_records),
+                    "per_input_invocation_proven": bool(invoked_records),
+                    "installed_host_dispatch_independently_proven": False,
+                    "independent_host_proof_owner": (
+                        "INSTALLED_HOST_ACCEPTANCE_CORRELATION"
+                    ),
                 }
             )
         active_without_capture = [
             row
             for row in indexed_by_session
-            if int(row["indexed_visible_input_count"]) == 0
+            if int(row["validated_adapter_invocation_count"]) == 0
         ]
+        capability_unavailable = bool(
+            projection.get("host_capability_unavailable_surfaces")
+        )
+        if not configured_active:
+            overall_status = "PASS"
+        elif not hooks_runnable or active_without_capture:
+            overall_status = "FAIL"
+        elif capability_unavailable or not capture_complete:
+            overall_status = "HOST_CAPABILITY_UNAVAILABLE"
+        else:
+            overall_status = "PASS"
         return {
-            "status": (
-                "PASS"
-                if not configured_active or (hooks_runnable and capture_complete)
-                else "FAIL"
-            ),
+            "status": overall_status,
             "per_session_capture_evidence": indexed_by_session,
             "active_session_capture_gap_count": len(active_without_capture),
             "active_session_capture_gap_code": (
@@ -503,6 +526,7 @@ class EvidenceLaneService:
                 else None
             ),
             "runtime_flags_are_invocation_proof": False,
+            "adapter_record_is_independent_installed_host_proof": False,
             **projection,
         }
 

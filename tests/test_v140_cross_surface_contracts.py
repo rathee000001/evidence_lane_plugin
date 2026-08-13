@@ -511,58 +511,53 @@ def test_each_primary_route_owns_exactly_one_distinct_hero_map() -> None:
     assert "EvidenceOrbit" not in live_sources
 
 
-def test_current_execution_ledger_is_flat_unabridged_081_through_196() -> None:
+def test_current_execution_ledger_uses_generated_unabridged_plan_authority() -> None:
     current = _read(ADAPTER / "app" / "_data" / "website-current-execution.ts")
+    projection = json.loads(
+        _read(ADAPTER / "app" / "_data" / "website-plan-projection.json")
+    )
     ledger = _read(ADAPTER / "app" / "_data" / "delta-ledger.ts")
     explorer = _read(ADAPTER / "app" / "_components" / "delta-ledger-explorer.tsx")
     home_page = _read(ADAPTER / "app" / "page.tsx")
 
-    orders = [
-        int(value)
-        for value in re.findall(r"^    order: (\d+),$", current, re.MULTILINE)
+    rows = projection["rows"]
+    assert projection["canonical_authority"] == "PLAN_LANE"
+    assert projection["row_start"] == 81
+    assert projection["row_end"] == 200
+    assert projection["task_count"] == 120
+    assert [row["row"] for row in rows] == list(range(81, 201))
+    assert [row["task_position"] for row in rows] == list(range(1, 121))
+    assert projection["status_counts"] == {
+        "completed": 83,
+        "in_progress": 1,
+        "pending": 36,
+    }
+    active = [row for row in rows if row["status"] == "IN_PROGRESS"]
+    assert [(row["row"], row["task_id"]) for row in active] == [
+        (164, "EL-CODEX-TURN_PREPARE_CAPTURE-PROPOSAL-04")
     ]
-    ids = re.findall(r'^    id: "(ROW_\d+)",$', current, re.MULTILINE)
-    statuses = re.findall(
-        r'^    status: "([A-Z ]+)",$', current, re.MULTILINE
+    assert rows[-1]["row"] == 200
+    assert rows[-1]["task_id"] == (
+        "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR"
     )
-    assert orders == list(range(81, 197))
-    assert ids == [f"ROW_{order}" for order in range(81, 197)]
-    assert statuses.count("COMPLETED") == 102
-    assert statuses.count("IN PROGRESS") == 1
-    assert statuses.count("PENDING") == 13
-    assert 'order: 155,\n    id: "ROW_155",\n    status: "PENDING"' in current
-    assert 'order: 166,\n    id: "ROW_166",\n    status: "COMPLETED"' in current
-    assert 'order: 167,\n    id: "ROW_167",\n    status: "COMPLETED"' in current
-    assert 'order: 169,\n    id: "ROW_169",\n    status: "COMPLETED"' in current
-    assert 'order: 170,\n    id: "ROW_170",\n    status: "COMPLETED"' in current
-    assert 'order: 171,\n    id: "ROW_171",\n    status: "COMPLETED"' in current
-    assert 'order: 180,\n    id: "ROW_180",\n    status: "COMPLETED"' in current
-    assert 'order: 181,\n    id: "ROW_181",\n    status: "COMPLETED"' in current
-    assert 'order: 182,\n    id: "ROW_182",\n    status: "COMPLETED"' in current
-    assert 'order: 183,\n    id: "ROW_183",\n    status: "COMPLETED"' in current
-    assert 'order: 184,\n    id: "ROW_184",\n    status: "IN PROGRESS"' in current
-    assert 'order: 190,\n    id: "ROW_190"' in current
-    assert 'order: 191,\n    id: "ROW_191"' in current
-    assert 'order: 195,\n    id: "ROW_195"' in current
-    assert 'order: 196,\n    id: "ROW_196"' in current
-    assert "Latest superseding Home-and-Studio HIL-orbit Delta" in current
-    assert "do not alter accepted historical rows 001–080" in current
-    assert "activeTaskPosition: 104" in current
-    assert "activeReceiptPosition: 112" in current
-    assert "governedReceiptRows: 124" in current
-    assert "panelReactivation" in current
-    assert "executionWriterBoundary" in current
-    assert "goalContinuity" in current
-    assert "sealedOriginReceiptPanelSha256" in current
-    assert "livePanelSha256" in current
-    assert "canonicalPlanProjectionSha256" in current
+    assert rows[-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
+    assert projection["persistent_until"] == "NEXT_SIX_WAY_HIL_PRESENTED"
 
+    assert 'import planProjection from "./website-plan-projection.json"' in current
+    assert "const rows = planProjection.rows" in current
+    assert "rows.map((row)" in current
+    assert "linkedDeltaIds: row.linked_delta_ids" in current
+    assert "exactlyOneActiveRow" in current
+    assert "physicallyFinalHilIsLast" in current
+    assert "ROW_184" not in current
     assert "foundationIds" in ledger
     assert '{ order: 80, id: "EL-V130-ACCEPTED-AUTHORITY-SUCCESSOR-AND-RELEASE-GATE-DELTA-080"' in ledger
+    assert "websiteCurrentExecution.map" in ledger
     assert "entry.nested" not in explorer
     assert "deltaNestedGroup" not in explorer
-    assert "Delta SHA-256" in explorer
-    assert "Linked correction" in explorer
-    assert "Recorded by" not in explorer
-    assert "81&ndash;196" in explorer
-    assert "from public row 081 through 196" in home_page
+    assert "deltaLedgerBoundary.rowStart" in explorer
+    assert "deltaLedgerBoundary.rowEnd" in explorer
+    assert "deltaLedgerBoundary.websitePlanSnapshotSha256" in explorer
+    assert "deltaLedgerBoundary.rowStart" in home_page
+    assert "deltaLedgerBoundary.rowEnd" in home_page
+    assert "deltaLedgerBoundary.activeTaskId" in home_page

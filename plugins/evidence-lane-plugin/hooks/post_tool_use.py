@@ -31,6 +31,7 @@ def _load_control():
         persistent_change_system_message,
         persistent_change_system_notice,
         policy_state,
+        record_tool_event,
     )
 
     return (
@@ -41,6 +42,7 @@ def _load_control():
         persistent_change_system_message,
         persistent_change_system_notice,
         policy_state,
+        record_tool_event,
     )
 
 
@@ -54,6 +56,7 @@ def _project(payload: dict[str, Any]) -> dict[str, Any]:
         _,
         _,
         policy_state,
+        record_tool_event,
     ) = _load_control()
     raw_policy = policy_state(
         root,
@@ -110,10 +113,29 @@ def _project(payload: dict[str, Any]) -> dict[str, Any]:
             "private_reasoning_stored": False,
         }
     try:
+        tool_event = None
+        if normalized_payload.get("tool_use_id") and normalized_payload.get(
+            "tool_name"
+        ):
+            try:
+                tool_event = record_tool_event(
+                    root,
+                    host_payload=normalized_payload,
+                    phase="after",
+                )
+            except TurnControlError as exc:
+                tool_event = {
+                    "state": "NOT_RECORDED_NO_PREPARED_TURN",
+                    "code": exc.code,
+                    "raw_tool_payload_stored": False,
+                    "private_reasoning_stored": False,
+                }
         receipt = current_persistent_change_display(
             root,
             host_payload=normalized_payload,
         )
+        if tool_event is not None:
+            receipt["tool_event"] = tool_event
         if host_binding is not None:
             receipt["host_binding"] = host_binding
         return receipt
@@ -160,6 +182,7 @@ def main() -> int:
             _,
             persistent_change_system_message,
             persistent_change_system_notice,
+            _,
             _,
         ) = _load_control()
         notice = persistent_change_system_notice(

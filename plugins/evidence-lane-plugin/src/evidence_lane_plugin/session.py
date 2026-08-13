@@ -18,6 +18,7 @@ from .lanes import LaneRegistryError, resolve_lane_id
 from .lineage import ChatLineage
 from .mode_governance import validate_mode_governance_selection
 from .models import (
+    ActivePointer,
     HilDecision,
     HostKind,
     SessionRecord,
@@ -3695,6 +3696,205 @@ class SessionManager:
             "lineage": lineage,
         }
 
+    def _seal_task_classification_binding(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        session: SessionRecord,
+        task: TaskContract,
+        pointer: ActivePointer,
+        target_backlog_task_id: str | None,
+        prior_executable_task_id: str | None,
+    ) -> dict[str, Any]:
+        """Seal the exact Plan, mode, lifecycle, and authority classification."""
+
+        backlog = self.store.backlog_status(project_id)
+        goal = cast(dict[str, Any], backlog["goal_projection"])
+        goal_rows = cast(list[dict[str, Any]], goal.get("rows") or [])
+        target_row = next(
+            (
+                row
+                for row in goal_rows
+                if row.get("task_id") == target_backlog_task_id
+            ),
+            None,
+        )
+        prior_row = next(
+            (
+                row
+                for row in cast(list[dict[str, Any]], backlog.get("tasks") or [])
+                if row.get("task_id") == prior_executable_task_id
+            ),
+            None,
+        )
+
+        def linked_delta_ids(row: dict[str, Any] | None) -> list[str]:
+            if not isinstance(row, dict):
+                return []
+            return [
+                str(delta["delta_id"])
+                for delta in cast(list[dict[str, Any]], row.get("steer_deltas") or [])
+                if str(delta.get("delta_id") or "").strip()
+            ]
+
+        target_linked_delta_ids = linked_delta_ids(target_row)
+        prior_linked_delta_ids = linked_delta_ids(prior_row)
+        task_mode_binding = session.metadata.get("task_mode_binding")
+        if isinstance(task_mode_binding, dict):
+            mode_governance = task_mode_binding.get("mode_governance")
+            governance_contracts = (
+                cast(dict[str, Any], mode_governance).get("contracts") or []
+                if isinstance(mode_governance, dict)
+                else []
+            )
+            ordered_mode_operators = [
+                {
+                    "mode_id": str(contract.get("mode_id") or ""),
+                    "operator_ids": [
+                        str(operator.get("operator_id") or "")
+                        for operator in cast(
+                            list[dict[str, Any]], contract.get("operators") or []
+                        )
+                        if str(operator.get("operator_id") or "").strip()
+                    ],
+                }
+                for contract in cast(list[dict[str, Any]], governance_contracts)
+            ]
+            mode_operator_binding = {
+                "status": "BOUND",
+                "selected_mode_ids": list(
+                    task_mode_binding.get("selected_mode_ids") or []
+                ),
+                "mode_intersection": str(
+                    task_mode_binding.get("mode_intersection") or ""
+                ),
+                "canonical_lanes": list(
+                    task_mode_binding.get("canonical_lanes") or []
+                ),
+                "ordered_mode_operators": ordered_mode_operators,
+                "binding_receipt_sha256": task_mode_binding.get(
+                    "binding_receipt_sha256"
+                ),
+            }
+        else:
+            mode_operator_binding = {
+                "status": "UNSELECTED",
+                "selected_mode_ids": [],
+                "mode_intersection": None,
+                "canonical_lanes": [],
+                "ordered_mode_operators": [],
+                "binding_receipt_sha256": None,
+            }
+
+        canonical_tasks = cast(list[dict[str, Any]], backlog.get("tasks") or [])
+        superseded_task_ids = [
+            str(row["task_id"])
+            for row in canonical_tasks
+            if row.get("status") == "SUPERSEDED"
+        ]
+        current_goal_task_ids = {
+            str(row.get("task_id") or "") for row in goal_rows
+        }
+        superseded_excluded = not (
+            set(superseded_task_ids) & current_goal_task_ids
+        )
+        require(
+            superseded_excluded,
+            "SUPERSEDED_DELTA_VISIBLE_IN_CURRENT_PROJECTION",
+            "A superseded Delta remained in the current executable Goal projection.",
+            status="MISMATCH",
+        )
+
+        target_binding = (
+            {
+                "status": "BOUND",
+                "canonical_row": target_row.get("number"),
+                "task_id": target_row.get("task_id"),
+                "description": target_row.get("step"),
+                "lifecycle_status": target_row.get("lifecycle_status"),
+                "host_status": target_row.get("status"),
+                "supersedes_task_id": target_row.get("supersedes_task_id"),
+                "linked_delta_ids": target_linked_delta_ids,
+                "current_change_delta_id": (
+                    target_linked_delta_ids[-1]
+                    if target_linked_delta_ids
+                    else target_row.get("task_id")
+                ),
+            }
+            if isinstance(target_row, dict)
+            else {
+                "status": "UNBOUND_STANDALONE_TASK",
+                "canonical_row": None,
+                "task_id": None,
+                "description": None,
+                "lifecycle_status": None,
+                "host_status": None,
+                "supersedes_task_id": None,
+                "linked_delta_ids": [],
+                "current_change_delta_id": None,
+            }
+        )
+        prior_executable_delta = {
+            "task_id": prior_executable_task_id,
+            "lifecycle_status_after_classification": (
+                prior_row.get("status") if isinstance(prior_row, dict) else None
+            ),
+            "linked_delta_ids": prior_linked_delta_ids,
+            "current_change_delta_id": (
+                prior_linked_delta_ids[-1]
+                if prior_linked_delta_ids
+                else prior_executable_task_id
+            ),
+        }
+        body = {
+            "schema": "evidence-lane.task-classification-binding.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "session_id": session_id,
+            "runtime_task_id": task.task_id,
+            "run_id": session.metadata.get("run_id"),
+            "task_class": task.task_class.value,
+            "requested_outcome": task.requested_outcome,
+            "mode_operator_binding": mode_operator_binding,
+            "lifecycle_state": session.state.value,
+            "authority_boundary": {
+                "write_boundary": task.write_boundary,
+                "permitted_paths": list(task.permitted_paths),
+                "permitted_tools": list(task.permitted_tools),
+                "accepted_pv": pointer.accepted_pv,
+                "pointer_generation": pointer.generation,
+                "source_state": session.metadata.get("source_state"),
+                "accepted_pv_query_scope": session.metadata.get(
+                    "accepted_pv_query_scope"
+                ),
+            },
+            "prior_executable_delta": prior_executable_delta,
+            "target_row": target_binding,
+            "plan_authority": {
+                "canonical_authority": goal.get("canonical_authority"),
+                "canonical_plan_sha256": goal.get("canonical_plan_sha256"),
+                "executable_projection_sha256": goal.get("projection_sha256"),
+                "row_start": goal.get("row_start"),
+                "row_end": goal.get("row_end"),
+                "task_count": goal.get("task_count"),
+                "persistent_until": goal.get("persistent_until"),
+                "superseded_history_count": len(superseded_task_ids),
+                "superseded_excluded_from_current_projection": superseded_excluded,
+            },
+            "candidate_created": False,
+            "pending_hil": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+            "sealed_at": utc_now(),
+        }
+        receipt = {
+            **body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
+        }
+        session.metadata["task_classification_binding"] = receipt
+        return receipt
+
     def classify(
         self,
         project_id: str,
@@ -3848,6 +4048,9 @@ class SessionManager:
                 "task": task.as_dict(),
                 "classification_reconciliation": None,
                 "state_travel_task_advance": state_travel_task_advance,
+                "classification_binding": session.metadata.get(
+                    "task_classification_binding"
+                ),
             }
         if fallback_advance_replay_requested:
             fallback_prewarmer_task_advance = (
@@ -3873,6 +4076,9 @@ class SessionManager:
                 "fallback_prewarmer_task_advance": (
                     fallback_prewarmer_task_advance
                 ),
+                "classification_binding": session.metadata.get(
+                    "task_classification_binding"
+                ),
             }
         if task_checkpoint_replay_requested:
             task_checkpoint_advance = self._replay_task_checkpoint_advance(
@@ -3893,6 +4099,9 @@ class SessionManager:
                 "state_travel_task_advance": None,
                 "fallback_prewarmer_task_advance": None,
                 "task_checkpoint_advance": task_checkpoint_advance,
+                "classification_binding": session.metadata.get(
+                    "task_classification_binding"
+                ),
             }
         if state_travel_advance_requested:
             state_travel_task_advance = self._verify_state_travel_task_advance(
@@ -4637,6 +4846,15 @@ class SessionManager:
                 "kind": "ACCEPTED_PV_ENTRY",
                 "accepted_pv": pointer.accepted_pv,
             }
+        classification_binding = self._seal_task_classification_binding(
+            project_id,
+            session_id,
+            session=session,
+            task=task,
+            pointer=pointer,
+            target_backlog_task_id=backlog_task_id,
+            prior_executable_task_id=(active_backlog_task_id or None),
+        )
         self._save(session)
         state_travel_lineage: dict[str, Any] | None = None
         fallback_prewarmer_lineage: dict[str, Any] | None = None
@@ -4687,6 +4905,7 @@ class SessionManager:
             and task_checkpoint_advance is None
         ):
             lineage_payload = task.as_dict()
+            lineage_payload["classification_binding"] = classification_binding
             if pending_state:
                 lineage_payload["resumed_from_pending"] = cast(
                     dict[str, Any], pending
@@ -4710,6 +4929,7 @@ class SessionManager:
             "fallback_prewarmer_lineage": fallback_prewarmer_lineage,
             "task_checkpoint_advance": task_checkpoint_advance,
             "task_checkpoint_lineage": task_checkpoint_lineage,
+            "classification_binding": classification_binding,
         }
 
     def record_activity(
@@ -4761,6 +4981,29 @@ class SessionManager:
         )
         task_payload = cast(dict[str, Any], session.task)
         event_payload = dict(visible_payload)
+        current_host_session_id = str(
+            session.metadata.get("current_host_session_id") or ""
+        ).strip()
+        execution_profile = (
+            session.metadata.get("execution_profile")
+            if isinstance(session.metadata.get("execution_profile"), dict)
+            else {}
+        )
+        event_payload.setdefault(
+            "host_identity",
+            {
+                "host_kind": session.host.value,
+                "host_profile": str(
+                    execution_profile.get("host_profile") or "UNAVAILABLE"
+                ),
+                "host_session_id_sha256": (
+                    sha256_bytes(current_host_session_id.encode("utf-8"))
+                    if current_host_session_id
+                    else None
+                ),
+                "raw_host_session_id_stored": False,
+            },
+        )
         if activity_type in {
             "git.fast_forward",
             "file.created",
@@ -4782,6 +5025,13 @@ class SessionManager:
             task_id=task_payload["task_id"],
             run_id=session.metadata["run_id"],
             event_id=event_id,
+            model=str(execution_profile.get("model") or "") or None,
+            submodel=str(execution_profile.get("submodel") or "") or None,
+            token_metrics=(
+                dict(visible_payload.get("token_metrics") or {})
+                if isinstance(visible_payload.get("token_metrics"), dict)
+                else None
+            ),
         )
         return {
             "status": "PASS",

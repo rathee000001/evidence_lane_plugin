@@ -11,10 +11,11 @@ from typing import Any
 def _normalize_user_prompt_dispatch(payload: dict[str, Any]) -> dict[str, Any]:
     """Bind one pending visible user input to native ``UserPromptSubmit``.
 
-    Codex dispatches every pending ``TurnInput::UserInput`` through this hook,
-    including input submitted through ``turn/steer``.  Evidence Lane derives
-    prompt/steer/Goal kind from the sealed turn history and the native Goal
-    context marker; caller-provided classification flags are never authority.
+    Codex dispatches pending ``TurnInput::UserInput`` values through this hook,
+    including input submitted through ``turn/steer``. Goal control uses the
+    separate ``thread/goal/set`` host route and is not claimed by this adapter.
+    Evidence Lane derives prompt/steer kind from sealed turn history;
+    caller-provided classification flags are never authority.
     """
 
     normalized = dict(payload)
@@ -31,8 +32,15 @@ def _normalize_user_prompt_dispatch(payload: dict[str, Any]) -> dict[str, Any]:
         "surface": "PENDING_VISIBLE_USER_INPUT",
         "host_route": "inspect_pending_input(TurnInput::UserInput)",
         "native_hook_event": "UserPromptSubmit",
-        "host_dispatch_supported": True,
-        "pre_reasoning_dispatch_proven": True,
+        "adapter_invocation_observed": True,
+        "host_payload_hook_event_name": str(
+            normalized.get("hook_event_name") or ""
+        ),
+        "pre_reasoning_hook_contract": (
+            "USERPROMPTSUBMIT_RUNS_DURING_PENDING_INPUT_INSPECTION"
+        ),
+        "installed_host_dispatch_independently_proven": False,
+        "independent_host_proof_owner": "INSTALLED_HOST_ACCEPTANCE_CORRELATION",
         "input_kind_derived_from_sealed_state": True,
         "caller_input_kind_authority": False,
         "caller_input_kind_claim_present": ignored_input_kind_claim,

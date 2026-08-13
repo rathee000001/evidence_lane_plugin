@@ -35,9 +35,11 @@ pending description unabridged; keep it visible through every pause and HIL;
 drop it only after the physically final six-way HIL is decided and every
 decision-dependent action is complete.
 
-SessionStart, UserPromptSubmit, and PostToolUse hooks remain lifecycle-only.
-They must not embed the full Plan Lane or direct `update_plan`; the active skill
-owns all native PV reads and host behavior. After a steer is sealed with
+SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PreCompact,
+PostCompact, Stop, and best-effort SessionEnd hooks remain lifecycle-only. They
+must not embed the full Plan Lane or direct `update_plan`; the active skill owns
+all native PV reads and host behavior. PermissionRequest remains conditional on
+a proven host capability, and subagent hook events are out of scope. After a steer is sealed with
 `pv_plan_steer_delta`, repeat the three native reads and the complete panel
 projection before continuing.
 

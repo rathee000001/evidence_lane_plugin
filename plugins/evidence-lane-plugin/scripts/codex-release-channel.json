@@ -106,7 +106,38 @@
     "hook_may_embed_full_plan_rows": false,
     "hook_may_call_or_instruct_host_behavior": false,
     "skill_must_refresh_after_every_prompt_or_steer": true,
+    "ordinary_question_appends_plan_delta": false,
+    "plan_steer_requires_executable_goal_contract_change": true,
+    "plan_steer_refreshes_full_panel_and_current_change_once": true,
     "fail_closed_when_behavior_route_unavailable": true
+  },
+  "lifecycle_hook_matrix": {
+    "hooks_own_lifecycle_transport_only": true,
+    "skills_own_behavior_native_reads_classification_and_plan_refresh": true,
+    "required_events": [
+      "SessionStart",
+      "UserPromptSubmit",
+      "PreToolUse",
+      "PostToolUse",
+      "PreCompact",
+      "PostCompact",
+      "Stop",
+      "SessionEnd"
+    ],
+    "event_owners": {
+      "SessionStart": "WARM_ATTACH_AND_INTERRUPTED_TURN_RECOVERY",
+      "UserPromptSubmit": "PREPARE_VISIBLE_INPUT",
+      "PreToolUse": "PREPARE_AND_EXACT_BINDING_GUARD",
+      "PostToolUse": "VISIBLE_TOOL_RECEIPT_AND_CHANGE_PROJECTION",
+      "PreCompact": "COMPACTION_SEAL",
+      "PostCompact": "DURABLE_REHYDRATION",
+      "Stop": "VISIBLE_RESPONSE_COMMIT",
+      "SessionEnd": "BEST_EFFORT_BOUNDARY_FLUSH"
+    },
+    "permission_request_policy": "CONDITIONAL_ONLY_WHEN_HOST_CAPABILITY_IS_PROVEN",
+    "subagent_events_in_scope": false,
+    "raw_prompt_or_tool_payload_in_boundary_receipts": false,
+    "private_reasoning_stored": false
   },
   "stable_activation_gate": {
     "local_rehearsal_stage_only": true,
@@ -124,6 +155,40 @@
     "successful_vercel_branch_preview_required": true,
     "production_deployment_allowed": false,
     "exact_commit_git_marketplace_required": true,
+    "delivery_cadence": "DEPENDENCY_COHERENT_INTEGRATION_BUNDLES",
+    "per_delta_commit_ci_install_forbidden": true,
+    "bundle_count_is_derived_not_quota": true,
+    "bundle_boundary_derivation_axes": [
+      "SOURCE_SCHEMA_RUNTIME_COUPLING",
+      "CROSS_DELTA_TEST_GRAPH",
+      "INSTALLED_HOST_PROOF_BOUNDARY"
+    ],
+    "row_acceptance_evidence_remains_individual": true,
+    "per_delta_governance_routes_preserved": [
+      "PREPARE_CAPTURE_RETRIEVAL",
+      "TASK_ROW_CURRENT_CHANGE_CLASSIFICATION",
+      "PV_STATUS_BACKLOG_QUERY_READS",
+      "CHATLINEAGE_ACTIVITY",
+      "EXACT_ACCEPTANCE_EVIDENCE",
+      "LIFECYCLE_TRANSITION",
+      "PERSISTENT_PLAN_CURRENT_CHANGE_REPROJECTION"
+    ],
+    "cross_delta_verification_matrix_required": true,
+    "cross_delta_matrix_dimensions": [
+      "TASK_ID",
+      "CHANGED_SURFACES",
+      "LOCAL_TESTS",
+      "REMOTE_CHECKS",
+      "INSTALLED_HOST_CHECKS",
+      "OUTCOME",
+      "FAILURE_OWNER"
+    ],
+    "bundle_failure_policy": "ANY_INCLUDED_ROW_FAILURE_FAILS_BUNDLE_CLOSED",
+    "bundle_commit_syncs_root_and_repository_docs": true,
+    "stable_install_source": "EXACT_GIT_COMMIT_PACKAGE_ONLY",
+    "local_or_dirty_worktree_stable_install_allowed": false,
+    "all_configured_commit_checks_required_before_stable_install": true,
+    "one_stable_update_per_integration_bundle": true,
     "git_marketplace_name": "evidence-lane-github",
     "git_marketplace_display_name": "GitLane Stable 2.1",
     "git_marketplace_source": "rathee000001/evidence_lane_plugin",

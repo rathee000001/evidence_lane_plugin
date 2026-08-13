@@ -279,6 +279,13 @@ def test_acceptance_checkpoint_advances_first_queued_without_hil(service) -> Non
         planned_by="human-test",
         plan_id="acceptance-checkpoint-plan",
     )
+    service.record_steer_delta(
+        "book-faires",
+        delta_text="Bind the current classifier correction to this exact row.",
+        actor="human-test",
+        delta_id="row165-linked-classifier-correction-001",
+        linked_task_id=CLASSIFY_TASK_ID,
+    )
     classified = service.sessions.classify(
         "book-faires",
         session_id,
@@ -327,13 +334,108 @@ def test_acceptance_checkpoint_advances_first_queued_without_hil(service) -> Non
         _task_checkpoint_proof=proof,
     )
     receipt = advanced["task_checkpoint_advance"]["receipt"]
+    binding = advanced["classification_binding"]
     assert receipt["verification_kind"] == "ACTIVE_TASK_ACCEPTANCE"
     assert receipt["prior_runtime_task_id"] == classified["task"]["task_id"]
     assert receipt["candidate_created"] is False
     assert receipt["pending_hil"] is False
     assert receipt["pointer_moved"] is False
     assert receipt["hil_inferred"] is False
+    assert binding["schema"] == "evidence-lane.task-classification-binding.v1"
+    assert binding["status"] == "PASS"
+    assert binding["task_class"] == successor["task_class"]
+    assert binding["mode_operator_binding"] == {
+        "status": "UNSELECTED",
+        "selected_mode_ids": [],
+        "mode_intersection": None,
+        "canonical_lanes": [],
+        "ordered_mode_operators": [],
+        "binding_receipt_sha256": None,
+    }
+    assert binding["prior_executable_delta"] == {
+        "task_id": PREPARE_TASK_ID,
+        "lifecycle_status_after_classification": "DONE",
+        "linked_delta_ids": [],
+        "current_change_delta_id": PREPARE_TASK_ID,
+    }
+    assert binding["target_row"]["status"] == "BOUND"
+    assert binding["target_row"]["task_id"] == CLASSIFY_TASK_ID
+    assert binding["target_row"]["host_status"] == "in_progress"
+    assert binding["target_row"]["linked_delta_ids"] == [
+        "row165-linked-classifier-correction-001"
+    ]
+    assert binding["target_row"]["current_change_delta_id"] == (
+        "row165-linked-classifier-correction-001"
+    )
+    assert binding["plan_authority"]["canonical_authority"] == "PLAN_LANE"
+    assert (
+        binding["plan_authority"][
+            "superseded_excluded_from_current_projection"
+        ]
+        is True
+    )
+    assert binding["candidate_created"] is False
+    assert binding["pending_hil"] is False
+    assert binding["pointer_moved"] is False
+    assert binding["hil_inferred"] is False
+    assert binding["receipt_sha256"] == sha256_bytes(
+        canonical_json_bytes(
+            {key: value for key, value in binding.items() if key != "receipt_sha256"}
+        )
+    )
     assert service.store.pointer("book-faires").as_dict() == pointer_before
     backlog = service.task_backlog("book-faires")
     assert backlog["counts"] == {"ACTIVE": 1, "DONE": 1, "QUEUED": 1}
     assert backlog["active"][0]["task_id"] == CLASSIFY_TASK_ID
+
+
+def test_classification_binding_preserves_ordered_modes_lanes_and_operators(
+    service,
+) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    selected = service.classify_mode(
+        "book-faires",
+        "Analyze, plan, and implement this bounded correction.",
+        explicit_modes=["AL", "PL", "CD"],
+        session_id=session_id,
+    )
+    task = {
+        "task_id": CLASSIFY_TASK_ID,
+        "task_class": "add_bounded_feature",
+        "requested_outcome": "Classify every governed turn deterministically.",
+        "permitted_paths": ["src/app.py"],
+        "permitted_tools": ["repository_write", "test"],
+        "acceptance_checks": ["Every governed turn resolves deterministically."],
+        "stop_condition": "Stop after classifier proof.",
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[task],
+        planned_by="human-test",
+        plan_id="classification-binding-mode-plan",
+    )
+    classified = service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=task["task_class"],
+        requested_outcome=task["requested_outcome"],
+        permitted_paths=task["permitted_paths"],
+        permitted_tools=task["permitted_tools"],
+        acceptance_checks=task["acceptance_checks"],
+        stop_condition=task["stop_condition"],
+        backlog_task_id=task["task_id"],
+    )
+    binding = classified["classification_binding"]
+    mode = binding["mode_operator_binding"]
+    assert mode["status"] == "BOUND"
+    assert mode["selected_mode_ids"] == ["AL", "PL", "CD"]
+    assert mode["mode_intersection"] == "AL+PL+CD"
+    assert mode["canonical_lanes"] == selected["canonical_lanes"]
+    assert [row["mode_id"] for row in mode["ordered_mode_operators"]] == [
+        "AL",
+        "PL",
+        "CD",
+    ]
+    assert all(row["operator_ids"] for row in mode["ordered_mode_operators"])
+    assert binding["target_row"]["task_id"] == CLASSIFY_TASK_ID
+    assert binding["target_row"]["host_status"] == "in_progress"

@@ -13,7 +13,11 @@ MCP_APP_MIME_TYPE = "text/html;profile=mcp-app"
 # MCP Apps hosts may cache UI resources by immutable ``ui://`` identity.  Bump
 # the resource URI whenever the embedded view contract changes so a host cannot
 # pair a new tool result with an older cached bridge implementation.
-GOVERNED_PANEL_URI = "ui://evidence-lane/governed-console-v3.html"
+GOVERNED_PANEL_URI = "ui://evidence-lane/governed-console-v4.html"
+
+_DISPLAY_NAME = "Evidence Lane"
+_SERVER_IDENTITY = "evidence-lane"
+_ICON_FILENAME = "evidence-lane-icon.png"
 
 _HIL_PANEL_CONSEQUENCES = {
     "APPROVE": (
@@ -44,7 +48,7 @@ def governed_panel_resource_meta(public_site_url: str) -> dict[str, Any]:
             "domain": exact_site,
             "csp": {
                 "connectDomains": [],
-                "resourceDomains": [],
+                "resourceDomains": [exact_site],
             },
         }
     }
@@ -66,6 +70,23 @@ def governed_panel_tool_meta(label: str, done: str) -> dict[str, Any]:
 
 def _link(label: str, href: str) -> dict[str, str]:
     return {"label": label, "href": href}
+
+
+def _identity(public_site_url: str) -> dict[str, Any]:
+    """Return one explicit, transport-independent Evidence Lane brand record."""
+
+    exact_site = public_site_url.rstrip("/")
+    return {
+        "display_name": _DISPLAY_NAME,
+        "server_identity": _SERVER_IDENTITY,
+        "release": ENGINE_VERSION,
+        "website_url": exact_site,
+        "icon": {
+            "src": f"{exact_site}/{_ICON_FILENAME}",
+            "mimeType": "image/png",
+            "sizes": ["256x256"],
+        },
+    }
 
 
 def _as_dict(value: Any) -> dict[str, Any]:
@@ -101,6 +122,7 @@ def build_runtime_panel_snapshot(
     return {
         "schema": "evidence-lane.mcp-app-panel.v1",
         "panel": "runtime",
+        "identity": _identity(exact_site),
         "status": str(doctor.get("status") or "UNKNOWN"),
         "title": "Evidence Lane runtime",
         "summary": (
@@ -171,6 +193,7 @@ def build_project_panel_snapshot(
     return {
         "schema": "evidence-lane.mcp-app-panel.v1",
         "panel": "project",
+        "identity": _identity(exact_site),
         "status": str(project_status.get("status") or "UNKNOWN"),
         "title": "Governed project status",
         "summary": (
@@ -253,6 +276,7 @@ def governed_panel_html(public_site_url: str) -> str:
 
     exact_site = public_site_url.rstrip("/")
     safe_site = html.escape(exact_site, quote=True)
+    safe_icon = html.escape(f"{exact_site}/{_ICON_FILENAME}", quote=True)
     site_json = json.dumps(exact_site)
     version_json = json.dumps(ENGINE_VERSION)
     return f"""<!doctype html>
@@ -268,8 +292,10 @@ def governed_panel_html(public_site_url: str) -> str:
     .shell {{ border: 1px solid color-mix(in srgb, CanvasText 14%, transparent); border-radius: 22px;
       background: color-mix(in srgb, Canvas 82%, transparent); box-shadow: 0 18px 54px rgba(0,0,0,.12); overflow: hidden; }}
     header {{ display: flex; align-items: center; gap: 12px; padding: 16px 18px 12px; }}
-    .orb {{ width: 42px; height: 42px; display: grid; place-items: center; border-radius: 14px;
-      background: linear-gradient(145deg,#13b8d4,#6657e8); color: white; font-weight: 800; }}
+    .orb {{ width: 42px; height: 42px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 14px;
+      background: linear-gradient(145deg,#13b8d4,#6657e8); overflow: hidden; }}
+    .orb img {{ width: 100%; height: 100%; object-fit: contain; }}
+    .brand-name {{ margin-bottom: 2px; font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; opacity: .68; }}
     h1 {{ font-size: 16px; margin: 0; }}
     #summary {{ margin: 3px 0 0; opacity: .72; font-size: 12px; line-height: 1.45; }}
     .status {{ margin-left: auto; border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 800;
@@ -291,7 +317,7 @@ def governed_panel_html(public_site_url: str) -> str:
 </head>
 <body>
   <section class="shell" aria-live="polite">
-    <header><div class="orb" aria-hidden="true">EL</div><div><h1 id="title">Evidence Lane</h1><p id="summary">Waiting for a governed tool result.</p></div><span class="status" id="status">READY</span></header>
+    <header><div class="orb"><img src="{safe_icon}" width="42" height="42" alt="Evidence Lane cube icon" /></div><div><div class="brand-name">Evidence Lane</div><h1 id="title">Governed console</h1><p id="summary">Waiting for a governed tool result.</p></div><span class="status" id="status">READY</span></header>
     <nav aria-label="Evidence Lane panels">
       <button type="button" data-tab="overview" aria-selected="true">Overview</button>
       <button type="button" data-tab="lanes" aria-selected="false">Lanes</button>

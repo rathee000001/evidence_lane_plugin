@@ -3,8 +3,14 @@
 Version 2.1.0 is the mutable stable-build Codex successor slot. The disabled
 fallback remains the exact accepted PV11/main 2.0.0 package. The stable provides a
 package-local native MCP server, 62 canonical actions (21 read-only and 41
-write-capable), 15 governed skills, four registered hook events, local durable
+write-capable), 15 governed skills, eight registered lifecycle events, local durable
 project storage, persistent Plan/Delta continuity, and an exact six-way HIL.
+
+Hooks transport lifecycle only: SessionStart, UserPromptSubmit, PreToolUse,
+PostToolUse, PreCompact, PostCompact, Stop, and best-effort SessionEnd. The
+active skill owns native PV reads, classification, behavior, and the complete
+Plan/CURRENT CHANGE projection. PermissionRequest remains unregistered unless
+the host capability is positively proven; subagent hook events are out of scope.
 
 Candidate creation, remote Git push, package installation, and pointer movement
 are separate governed operations. None of them implies acceptance. Only exact
@@ -61,7 +67,7 @@ profiles do not require this tunnel. See the
 - `.mcp.json` — package-local native MCP launch contract.
 - `src/evidence_lane_plugin/` — lifecycle engine and native server.
 - `skills/` — fifteen governed skills.
-- `hooks/` — four registered events and four handlers across five package files.
+- `hooks/` — eight registered events and six command handlers across seven package files.
 - `scripts/codex-release-channel.json` — v2 release and Git policy.
 - `scripts/codex_release/build_codex_exact_commit_package.py` — read-only
   exact-commit package export that excludes dirty and untracked checkout bytes.
@@ -199,6 +205,32 @@ session, accepted pointer, and installed plugin, marks only the active Plan row
 done, and activates only the requested queued successor. It never creates a
 candidate, infers HIL, or moves the accepted PV pointer; missing or mismatched
 evidence leaves the active row unchanged.
+
+The skill classifies a request before Plan mutation. A question, explanation,
+small read-only ask, or bounded artifact readback is an ordinary task and does
+not append a Plan Delta. Only a change to the active Goal's executable contract,
+dependency, acceptance, stop, release route, or HIL path is a Plan steer. That
+steer links to the existing logical row when possible and refreshes the complete
+panel once.
+
+Delivery commits are dependency-coherent integration bundles rather than one
+commit/CI/preview/package/install cycle per Delta row. Row acceptance remains
+individual, together with PREPARE/retrieval, native PV reads, classification,
+visible ChatLineage, lifecycle transition, and panel refresh. One logical bundle
+joins related changes for cross-Delta testing, and its verification matrix maps
+every included task to changed surfaces, tests, remote/installed checks, outcome,
+and failure owner. Any included-row failure fails the bundle closed. The bundle
+then synchronizes the root README and affected repository-level evidence before
+the governed Git and installed-host gates. At that boundary,
+`scripts/sync_website_plan_projection.py` regenerates the sealed public
+Plan/Delta snapshot and public plugin metadata directly from a passing native
+`PLAN_LANE`; the same command with `--check` must report no drift before push.
+The TypeScript execution and ledger views consume that snapshot rather than
+duplicating row data. A feature-branch preview may render the commit-bound
+snapshot, but production publication remains post-HIL. Local packages are
+rehearsal-only; the single stable selector updates once at the bundle boundary
+from the exact Git commit package, after all configured checks and exact-SHA
+preview proof.
 
 The change display reports the active task, linked Delta IDs, source/install/
 runtime version, activation and Refresh state, catalog counts, hook inventory,

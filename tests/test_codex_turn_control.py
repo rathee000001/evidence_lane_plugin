@@ -15,9 +15,12 @@ from evidence_lane_plugin.codex_turn_control import (
     policy_state,
     prepare_turn,
     project_task_research_status,
+    record_lifecycle_boundary_event,
+    record_tool_event,
     record_non_strict_visible_input,
     resolve_codex_hook_store_root,
     seal_exact_task_project_session_binding,
+    seal_lifecycle_exit_slip,
     session_start_control,
 )
 from evidence_lane_plugin.lineage import ChatLineage
@@ -53,6 +56,41 @@ def _profile() -> dict[str, str]:
         "reasoning_effort": "ultra",
         "reasoning_speed": "standard",
         "service_tier": "standard",
+    }
+
+
+def _host_shaped_user_prompt_submit_payload(
+    *,
+    host_session_id: str,
+    turn_id: str,
+    cwd: Path,
+    prompt: str,
+    **extra: object,
+) -> dict[str, object]:
+    """Model the payload passed by the installed ``UserPromptSubmit`` adapter.
+
+    This proves only that the adapter was invoked against the native payload
+    shape.  It deliberately cannot claim independent installed-host dispatch
+    proof; that requires separate host/log correlation.
+    """
+
+    return {
+        "session_id": host_session_id,
+        "turn_id": turn_id,
+        "cwd": str(cwd),
+        "hook_event_name": "UserPromptSubmit",
+        "prompt": prompt,
+        "evidence_lane_capture_dispatch": {
+            "surface": "PENDING_VISIBLE_USER_INPUT",
+            "host_route": "inspect_pending_input(TurnInput::UserInput)",
+            "native_hook_event": "UserPromptSubmit",
+            "host_payload_hook_event_name": "UserPromptSubmit",
+            "adapter_invocation_observed": True,
+            "installed_host_dispatch_independently_proven": False,
+            "input_kind_derived_from_sealed_state": True,
+            "caller_input_kind_authority": False,
+        },
+        **extra,
     }
 
 
@@ -160,19 +198,21 @@ def test_non_strict_prompt_chain_continues_into_strict_prepare(
     )
     prepared = prepare_turn(
         service.store.root,
-        host_payload={
-            "session_id": host_session_id,
-            "turn_id": "strict-turn-after-pre-plan-index",
-            "cwd": str(source_repository),
-            "prompt": (
-                '<codex_internal_context source="goal">\n'
-                "Continue through the strict governed path."
-            ),
-        },
+        host_payload=_host_shaped_user_prompt_submit_payload(
+            host_session_id=host_session_id,
+            turn_id="strict-turn-after-pre-plan-index",
+            cwd=source_repository,
+            prompt="Continue through the strict governed path.",
+        ),
     )
     assert compatibility["state"] == "INDEXED"
     assert compatibility["prompt_index"] == 1
     assert prepared["state"] == "PREPARED_NOT_COMMITTED"
+    assert prepared["input_kind"] == "user_prompt"
+    assert prepared["capture_dispatch"]["adapter_invocation_observed"] is True
+    assert prepared["capture_dispatch"][
+        "installed_host_dispatch_independently_proven"
+    ] is False
     assert prepared["prompt_index"] == 2
     records = PromptIndex(service.store.root)._all_records()
     bounded = [
@@ -190,19 +230,31 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     source_repository: Path,
 ) -> None:
     session_id, host_session_id = _strict_state_travel_session(service)
-    prompt_payload = {
-        "session_id": host_session_id,
-        "turn_id": "turn-authoritative-1",
-        "cwd": str(source_repository),
-        "prompt": (
-            '<codex_internal_context source="goal">\n'
-            "Implement the Goal token=super-secret-value"
-        ),
-        "attachments": [{"path": str(source_repository / "README.md")}],
-    }
+    prompt_payload = _host_shaped_user_prompt_submit_payload(
+        host_session_id=host_session_id,
+        turn_id="turn-authoritative-1",
+        cwd=source_repository,
+        prompt="Implement the prompt token=super-secret-value",
+        host_kind="CODEX_DESKTOP",
+        host_profile="CODEX_LOCAL_PC_OR_LAPTOP",
+        host_app="CODEX",
+        model="gpt-5.6-sol",
+        submodel="sol",
+        attachments=[{"path": str(source_repository / "README.md")}],
+    )
     prepared = prepare_turn(service.store.root, host_payload=prompt_payload)
     assert prepared["state"] == "PREPARED_NOT_COMMITTED"
-    assert prepared["input_kind"] == "goal"
+    assert prepared["input_kind"] == "user_prompt"
+    assert prepared["capture_dispatch"]["state"] == (
+        "USERPROMPTSUBMIT_ADAPTER_INVOKED"
+    )
+    assert prepared["capture_dispatch"]["adapter_invocation_observed"] is True
+    assert prepared["capture_dispatch"][
+        "installed_host_dispatch_independently_proven"
+    ] is False
+    assert prepared["capture_dispatch"][
+        "independent_installed_host_proof_required"
+    ] is True
     assert prepared["attachment_identity_count"] == 1
     assert prepared["persistent_plan_row"]["task_id"] == "turn-control-row"
     assert prepared["persistent_plan_row"]["goal_projection_task_count"] == 2
@@ -210,12 +262,108 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert replayed["state"] == "PREPARED_IDEMPOTENT_REUSE"
     assert replayed["control_record_sha256"] == prepared["control_record_sha256"]
 
+    tool_payload = {
+        **prompt_payload,
+        "tool_name": "pv_status",
+        "tool_use_id": "tool-use-authoritative-1",
+        "tool_input": {"project_id": "book-faires"},
+    }
+    tool_record = record_tool_event(
+        service.store.root,
+        host_payload=tool_payload,
+        phase="before",
+    )
+    assert tool_record["state"] == "RECORDED"
+    lineage_path = (
+        service.store.project_root("book-faires") / "lineage" / f"{session_id}.jsonl"
+    )
+    lineage_count = len(lineage_path.read_text(encoding="utf-8").splitlines())
+    database = (
+        service.store.project_root("book-faires")
+        / "lineage"
+        / "codex_turn_control.sqlite"
+    )
+    with sqlite3.connect(database) as connection:
+        existing_tool = json.loads(
+            connection.execute(
+                "SELECT event_json FROM turn_tool_event "
+                "WHERE tool_use_id=? AND phase=?",
+                ("tool-use-authoritative-1", "before"),
+            ).fetchone()[0]
+        )
+        existing_tool["event_payload"].pop("host_identity")
+        legacy_sha256 = hashlib.sha256(
+            (
+                json.dumps(
+                    existing_tool["event_payload"],
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    allow_nan=False,
+                )
+                + "\n"
+            ).encode("utf-8")
+        ).hexdigest().upper()
+        existing_tool["tool_event_sha256"] = legacy_sha256
+        connection.execute(
+            "UPDATE turn_tool_event SET tool_event_sha256=?, event_json=? "
+            "WHERE tool_use_id=? AND phase=?",
+            (
+                legacy_sha256,
+                json.dumps(existing_tool, sort_keys=True, separators=(",", ":")),
+                "tool-use-authoritative-1",
+                "before",
+            ),
+        )
+        connection.commit()
+    legacy_replay = record_tool_event(
+        service.store.root,
+        host_payload=tool_payload,
+        phase="before",
+    )
+    assert legacy_replay["state"] == "RECORDED_IDEMPOTENT_REUSE"
+    assert legacy_replay["tool_event_sha256"] == legacy_sha256
+    assert len(lineage_path.read_text(encoding="utf-8").splitlines()) == lineage_count
+
+    precompact = record_lifecycle_boundary_event(
+        service.store.root,
+        host_payload={**prompt_payload, "event_id": "compact-boundary-1"},
+        event_name="PreCompact",
+    )
+    assert precompact["state"] == "SEALED"
+    assert precompact["receipt"]["phase"] == "COMPACTION_SEAL"
+    assert precompact["receipt"]["raw_prompt_stored"] is False
+    assert precompact["receipt"]["raw_tool_payload_stored"] is False
+    assert precompact["receipt"]["private_reasoning_stored"] is False
+    assert precompact["receipt"]["plan_or_delta_mutated"] is False
+    precompact_replay = record_lifecycle_boundary_event(
+        service.store.root,
+        host_payload={**prompt_payload, "event_id": "compact-boundary-1"},
+        event_name="PreCompact",
+    )
+    assert precompact_replay["state"] == "SEALED_IDEMPOTENT_REUSE"
+    assert precompact_replay["receipt"] == precompact["receipt"]
+    postcompact = record_lifecycle_boundary_event(
+        service.store.root,
+        host_payload={**prompt_payload, "event_id": "compact-boundary-2"},
+        event_name="PostCompact",
+    )
+    assert postcompact["receipt"]["phase"] == "COMPACTION_REHYDRATION"
+    session_end = record_lifecycle_boundary_event(
+        service.store.root,
+        host_payload={**prompt_payload, "event_id": "session-end-1"},
+        event_name="SessionEnd",
+    )
+    assert session_end["receipt"]["phase"] == (
+        "BEST_EFFORT_SESSION_BOUNDARY_FLUSH"
+    )
+
     prompt_record = json.loads(
         Path(prepared["prompt_projection_path"]).read_text(encoding="utf-8")
     )
     prompt_json = json.dumps(prompt_record, sort_keys=True)
     assert "super-secret-value" not in prompt_json
-    assert "Implement the Goal [REDACTED]" in prompt_json
+    assert "Implement the prompt [REDACTED]" in prompt_json
     assert prompt_record["attachment_identities"][0]["content_sha256"]
     prepared_display = prepared["persistent_change_display"]
     assert prepared_display["state"] == "PERSISTENT_CHANGES_PRESENT"
@@ -252,13 +400,17 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert package_status["version_state"] == (
         "SOURCE_RUNTIME_EXACT_INSTALL_RECEIPT_UNAVAILABLE"
     )
-    assert package_status["hooks"]["count"] == 4
+    assert package_status["hooks"]["count"] == 8
     assert package_status["hooks"]["count_semantics"] == (
         "REGISTERED_EVENT_COUNT"
     )
-    assert package_status["hooks"]["hook_file_count"] == 5
+    assert package_status["hooks"]["hook_file_count"] == 7
     assert package_status["hooks"]["registered_events"] == [
+        "PostCompact",
         "PostToolUse",
+        "PreCompact",
+        "PreToolUse",
+        "SessionEnd",
         "SessionStart",
         "Stop",
         "UserPromptSubmit",
@@ -284,6 +436,9 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
         "session_id": host_session_id,
         "turn_id": "turn-authoritative-1",
         "cwd": str(source_repository),
+        "host_kind": "CODEX_DESKTOP",
+        "host_profile": "CODEX_LOCAL_PC_OR_LAPTOP",
+        "host_app": "CODEX",
         "last_assistant_message": (
             "Implemented and verified. sk-proj-THIS_IS_A_FAKE_TEST_KEY_1234567890"
         ),
@@ -310,6 +465,35 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert committed["goal_usage"]["availability"] == "AVAILABLE"
     assert committed["goal_usage"]["goal_accounted_tokens"] == 44_198_517
     assert committed["source_change"]["changed_since_prepare"] is True
+    assert committed["lifecycle_exit_slip_emitted"] is False
+    assert committed["historical_exit_slip_alias_reused"] is False
+    assert committed["ordinary_turn_commit_receipt"]["receipt_role"] == (
+        "ORDINARY_TURN_COMMIT_NOT_LIFECYCLE_EXIT"
+    )
+    paused = seal_lifecycle_exit_slip(
+        service.store.root,
+        host_payload={
+            **response_payload,
+            "last_assistant_message": "",
+        },
+        reason="EXPLICIT_PAUSE",
+        visible_reason="Pause only this exact task and resume the same Plan row.",
+    )
+    assert paused["state"] == "SEALED"
+    assert paused["receipt"]["reason"] == "EXPLICIT_PAUSE"
+    assert paused["receipt"]["resume_same_plan_task_id"] == "turn-control-row"
+    assert paused["receipt"]["resume_same_row_required"] is True
+    assert paused["receipt"]["active_task_transitioned"] is False
+    assert paused["receipt"]["candidate_created_or_accepted"] is False
+    assert paused["receipt"]["pointer_moved"] is False
+    paused_replay = seal_lifecycle_exit_slip(
+        service.store.root,
+        host_payload=response_payload,
+        reason="EXPLICIT_PAUSE",
+        visible_reason="Pause only this exact task and resume the same Plan row.",
+    )
+    assert paused_replay["state"] == "SEALED_IDEMPOTENT_REUSE"
+    assert paused_replay["receipt"] == paused["receipt"]
     committed_display = committed["persistent_change_display"]
     assert committed_display["state"] == "PERSISTENT_CHANGES_PRESENT"
     assert committed_display["turn_status"]["uncommitted_count"] == 0
@@ -345,11 +529,6 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert "THIS_IS_A_FAKE_TEST_KEY" not in response_json
     assert response_record["visible_assistant_response_after_redaction"].endswith(
         "[REDACTED]"
-    )
-    database = (
-        service.store.project_root("book-faires")
-        / "lineage"
-        / "codex_turn_control.sqlite"
     )
     with sqlite3.connect(database) as connection:
         assert connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
@@ -391,10 +570,7 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert "super-secret-value" not in json.dumps(research)
     assert (
         research["research_questions"][0]["visible_question_after_redaction"]
-        == (
-            '<codex_internal_context source="goal">\n'
-            "Implement the Goal [REDACTED]"
-        )
+        == "Implement the prompt [REDACTED]"
     )
     aligned_question = research["research_questions"][0][
         "aligned_research_question"
@@ -490,8 +666,24 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     event_types = [row["event_type"] for row in lineage]
     assert event_types.count("turn.control_prepare") == 1
     assert event_types.count("turn.control_commit") == 1
-    assert event_types.count("turn.visible_user_goal") == 1
+    assert event_types.count("turn.visible_user_prompt") == 1
     assert event_types.count("turn.visible_assistant_response") == 1
+    visible_events = {
+        row["event_type"]: row
+        for row in lineage
+        if row["event_type"]
+        in {"turn.visible_user_prompt", "turn.visible_assistant_response"}
+    }
+    for event in visible_events.values():
+        host_identity = event["visible_payload"]["host_identity"]
+        assert host_identity["host_kind"] == "CODEX_DESKTOP"
+        assert host_identity["host_profile"] == "CODEX_LOCAL_PC_OR_LAPTOP"
+        assert host_identity["host_app"] == "CODEX"
+        assert len(host_identity["host_session_id_sha256"]) == 64
+        assert host_identity["raw_host_session_id_stored"] is False
+        assert host_session_id not in json.dumps(event, sort_keys=True)
+        assert event["model"] == "gpt-5.6-sol"
+        assert event["submodel"] == "sol"
 
 
 def test_stale_host_never_rebinds_from_cwd(service, source_repository: Path) -> None:
@@ -507,12 +699,12 @@ def test_stale_host_never_rebinds_from_cwd(service, source_repository: Path) -> 
     with pytest.raises(TurnControlError) as blocked:
         prepare_turn(
             service.store.root,
-            host_payload={
-                "session_id": "colliding-or-stale-host",
-                "turn_id": "turn-stale-host",
-                "cwd": str(source_repository),
-                "prompt": "Do not inherit the exact writer binding.",
-            },
+            host_payload=_host_shaped_user_prompt_submit_payload(
+                host_session_id="colliding-or-stale-host",
+                turn_id="turn-stale-host",
+                cwd=source_repository,
+                prompt="Do not inherit the exact writer binding.",
+            ),
         )
     assert blocked.value.code == "TURN_CONTROL_EXACT_HOST_BINDING_REQUIRED"
     assert host_session_id != "colliding-or-stale-host"
@@ -570,6 +762,7 @@ def test_native_hooks_claim_and_reuse_one_sealed_codex_host_alias(
         "session_id": observed_host_session_id,
         "cwd": str(source_repository),
         "transcript_path": str(transcript),
+        "hook_event_name": "UserPromptSubmit",
         "model": "gpt-5.6-sol",
         "permission_mode": "never",
     }
@@ -1009,7 +1202,7 @@ def test_post_tool_hook_claims_prepared_exact_task_outside_repository(
     assert rebound["reason"] == "SEALED_CODEX_HOST_ALIAS_BINDING"
 
 
-def test_native_user_prompt_hook_derives_steer_and_goal_from_sealed_state(
+def test_native_user_prompt_hook_derives_steer_and_rejects_goal_control(
     service,
     source_repository: Path,
 ) -> None:
@@ -1025,7 +1218,11 @@ def test_native_user_prompt_hook_derives_steer_and_goal_from_sealed_state(
     environment["EVIDENCE_LANE_DATA_ROOT"] = str(service.store.root)
 
     def invoke(
-        *, turn_id: str, prompt: str, **caller_claims: object
+        *,
+        turn_id: str,
+        prompt: str,
+        expected_continue: bool = True,
+        **caller_claims: object,
     ) -> dict[str, object]:
         process = subprocess.run(
             [sys.executable, str(prompt_hook)],
@@ -1034,6 +1231,7 @@ def test_native_user_prompt_hook_derives_steer_and_goal_from_sealed_state(
                     "session_id": host_session_id,
                     "turn_id": turn_id,
                     "cwd": str(source_repository),
+                    "hook_event_name": "UserPromptSubmit",
                     "prompt": prompt,
                     **caller_claims,
                 }
@@ -1045,7 +1243,7 @@ def test_native_user_prompt_hook_derives_steer_and_goal_from_sealed_state(
             env=environment,
         )
         payload = json.loads(process.stdout)
-        assert payload["continue"] is True
+        assert payload["continue"] is expected_continue
         return _hook_context_json(payload, "EVIDENCE_LANE_PROMPT_ENTRY=")
 
     initial = invoke(
@@ -1070,6 +1268,19 @@ def test_native_user_prompt_hook_derives_steer_and_goal_from_sealed_state(
     assert initial["host_plan_tool"] == "update_plan"
     assert initial["capture_dispatch"]["classification_basis"] == (
         "FIRST_SEALED_INPUT_FOR_HOST_TURN"
+    )
+    assert initial["capture_dispatch"]["state"] == (
+        "USERPROMPTSUBMIT_ADAPTER_INVOKED"
+    )
+    assert initial["capture_dispatch"]["adapter_invocation_observed"] is True
+    assert initial["capture_dispatch"][
+        "installed_host_dispatch_independently_proven"
+    ] is False
+    assert initial["capture_dispatch"][
+        "independent_installed_host_proof_required"
+    ] is True
+    assert initial["capture_dispatch"]["pre_reasoning_proof_basis"] == (
+        "VALIDATED_USERPROMPTSUBMIT_HOST_PAYLOAD_AND_ADAPTER_INVOCATION"
     )
 
     steer = invoke(
@@ -1107,23 +1318,19 @@ def test_native_user_prompt_hook_derives_steer_and_goal_from_sealed_state(
         ),
         source="steer",
         is_steer=True,
+        expected_continue=False,
     )
-    assert goal["input_kind"] == "goal"
-    assert goal["capture_dispatch"]["surface"] == "GOAL_CONTINUATION"
-    assert goal["capture_dispatch"]["classification_basis"] == (
-        "CODEX_INTERNAL_GOAL_CONTEXT_MARKER"
-    )
-    assert goal["retrieval_outcome"] == "PENDING_NATIVE_SKILL_QUERY"
-    assert goal["hook_lookup_performed"] is False
-    assert goal["native_behavior_query_satisfied"] is False
+    assert goal["state"] == "TURN_CONTROL_GAP"
+    assert goal["code"] == "TURN_CONTROL_GOAL_PRE_REASONING_HOOK_UNAVAILABLE"
+    assert goal["fail_closed"] is True
+    assert goal["source_mutation_authorized"] is False
 
     records = PromptIndex(service.store.root)._all_records()
     assert [row["input_kind"] for row in records] == [
         "user_prompt",
         "steer",
-        "goal",
     ]
-    assert [row["prompt_index"] for row in records] == [1, 2, 3]
+    assert [row["prompt_index"] for row in records] == [1, 2]
 
     with pytest.raises(TurnControlError) as invalid_dispatch:
         prepare_turn(
@@ -1132,19 +1339,40 @@ def test_native_user_prompt_hook_derives_steer_and_goal_from_sealed_state(
                 "session_id": host_session_id,
                 "turn_id": "invalid-native-dispatch-turn",
                 "cwd": str(source_repository),
+                "hook_event_name": "UserPromptSubmit",
                 "prompt": "This must fail before reasoning.",
                 "evidence_lane_capture_dispatch": {
                     "surface": "PENDING_VISIBLE_USER_INPUT",
                     "host_route": "after-model-dispatch",
                     "native_hook_event": "UserPromptSubmit",
-                    "host_dispatch_supported": True,
-                    "pre_reasoning_dispatch_proven": True,
+                    "host_payload_hook_event_name": "UserPromptSubmit",
+                    "adapter_invocation_observed": True,
+                    "installed_host_dispatch_independently_proven": False,
                     "input_kind_derived_from_sealed_state": True,
                     "caller_input_kind_authority": False,
                 },
             },
         )
     assert invalid_dispatch.value.code == (
+        "TURN_CONTROL_NATIVE_DISPATCH_RECEIPT_INVALID"
+    )
+
+    invalid_independent_claim = _host_shaped_user_prompt_submit_payload(
+        host_session_id=host_session_id,
+        turn_id="invalid-independent-host-proof-turn",
+        cwd=source_repository,
+        prompt="The adapter must not self-assert independent host proof.",
+    )
+    invalid_independent_claim["evidence_lane_capture_dispatch"] = {
+        **dict(invalid_independent_claim["evidence_lane_capture_dispatch"]),
+        "installed_host_dispatch_independently_proven": True,
+    }
+    with pytest.raises(TurnControlError) as invalid_independent:
+        prepare_turn(
+            service.store.root,
+            host_payload=invalid_independent_claim,
+        )
+    assert invalid_independent.value.code == (
         "TURN_CONTROL_NATIVE_DISPATCH_RECEIPT_INVALID"
     )
 
@@ -1193,6 +1421,7 @@ def test_native_hooks_ignore_plugin_private_data_and_use_durable_user_authority(
                 "session_id": host_session_id,
                 "turn_id": "host-plugin-data-shadow-regression",
                 "cwd": str(source_repository),
+                "hook_event_name": "UserPromptSubmit",
                 "prompt": "Capture this visible Row164 host-shaped probe once.",
             }
         ),
@@ -1279,13 +1508,13 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         "tool_input_stored": False,
         "tool_response_stored": False,
     }
-    assert projected_notice["package_change_status"]["hooks"]["count"] == 4
+    assert projected_notice["package_change_status"]["hooks"]["count"] == 8
     assert projected_notice["package_change_status"]["hooks"][
         "count_semantics"
     ] == "REGISTERED_EVENT_COUNT"
     assert projected_notice["package_change_status"]["hooks"][
         "hook_file_count"
-    ] == 5
+    ] == 7
     projected_context = projected_payload["hookSpecificOutput"]["additionalContext"]
     assert "EVIDENCE_LANE_HOST_STEP_TASK_LIST_PROJECTION=" not in projected_context
     assert "EVIDENCE_LANE_HOST_PLAN_ACTION=" not in projected_context
@@ -1304,6 +1533,7 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
                     "session_id": host_session_id,
                     "turn_id": turn_id,
                     "cwd": str(source_repository),
+                    "hook_event_name": "UserPromptSubmit",
                     # Caller claims are ignored; each new turn starts as a
                     # prompt even though turn/steer uses this same hook.
                     "source": "steer" if prompt_index == 2 else "user_prompt",
@@ -1329,8 +1559,11 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         assert prepared["input_kind"] == "user_prompt"
         assert prepared["pre_reasoning_host_dispatch_proven"] is True
         assert prepared["capture_dispatch"]["state"] == (
-            "NATIVE_PRE_REASONING_DISPATCH_PROVEN"
+            "USERPROMPTSUBMIT_ADAPTER_INVOKED"
         )
+        assert prepared["capture_dispatch"][
+            "installed_host_dispatch_independently_proven"
+        ] is False
         assert prepared["capture_dispatch"]["caller_input_kind_authority"] is False
         assert prepared["capture_dispatch"]["classification_basis"] == (
             "FIRST_SEALED_INPUT_FOR_HOST_TURN"
@@ -1346,10 +1579,10 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         assert prepared_notice["linked_delta_status"]["raw_change_text_included"] is False
         assert prepared_notice["exact_above_prompt_bar_placement_claimed"] is False
         assert prepared_notice["host_rendering_authority"] == "CODEX_HOST_OWNED"
-        assert prepared_notice["package_change_status"]["hooks"]["count"] == 4
+        assert prepared_notice["package_change_status"]["hooks"]["count"] == 8
         assert prepared_notice["package_change_status"]["hooks"][
             "hook_file_count"
-        ] == 5
+        ] == 7
         assert prepared_notice["package_change_status"]["skills"]["count"] == 15
         assert prepared_notice["package_change_status"]["catalog"] == {
             "tools": 62,
@@ -1465,6 +1698,7 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
                 "session_id": "stale-hook-host",
                 "turn_id": "stale-hook-turn",
                 "cwd": str(source_repository),
+                "hook_event_name": "UserPromptSubmit",
                 "prompt": "Never bind this turn from cwd alone.",
             }
         ),
@@ -1510,12 +1744,12 @@ def test_failed_prepare_remains_uncommitted_and_session_start_recovers(
     with pytest.raises(RuntimeError, match="forced prepare projection interruption"):
         prepare_turn(
             service.store.root,
-            host_payload={
-                "session_id": host_session_id,
-                "turn_id": "turn-interrupted-prepare",
-                "cwd": str(source_repository),
-                "prompt": "Prepare this bounded interrupted turn.",
-            },
+            host_payload=_host_shaped_user_prompt_submit_payload(
+                host_session_id=host_session_id,
+                turn_id="turn-interrupted-prepare",
+                cwd=source_repository,
+                prompt="Prepare this bounded interrupted turn.",
+            ),
         )
     monkeypatch.setattr(ChatLineage, "append", original_append)
     recovered = session_start_control(

@@ -23,6 +23,92 @@ _PRIVATE_REASONING_KEYS = {
 
 LINEAGE_SQLITE_SCHEMA = "evidence-lane.chat-lineage.sqlite.v1"
 PROJECT_LINEAGE_SQLITE_SCHEMA = "evidence-lane.project-chat-lineage.sqlite.v1"
+LINEAGE_CHUNK_CHARS = 1024
+
+_VISIBLE_LINK_KEY_MARKERS = {
+    "command": "command",
+    "commands": "command",
+    "file": "file",
+    "files": "file",
+    "test": "test",
+    "tests": "test",
+    "build": "build",
+    "builds": "build",
+    "output": "output",
+    "outputs": "output",
+    "output_link": "output",
+    "output_links": "output",
+    "links": "output",
+    "tool": "tool",
+    "tools": "tool",
+    "source_locator": "source_locator",
+    "source_locators": "source_locator",
+    "locator": "source_locator",
+    "locators": "source_locator",
+    "chunk": "chunk",
+    "chunks": "chunk",
+    "chunk_id": "chunk",
+    "chunk_ids": "chunk",
+    "receipt": "receipt",
+    "receipts": "receipt",
+    "receipt_id": "receipt",
+    "receipt_ids": "receipt",
+    "receipt_sha256": "receipt",
+    "receipt_sha256s": "receipt",
+    "host_identity": "host_identity",
+    "host_kind": "host_identity",
+    "host_profile": "host_identity",
+    "host_app": "host_identity",
+    "host_session_id_sha256": "host_identity",
+}
+_VISIBLE_LINK_KINDS = tuple(sorted(set(_VISIBLE_LINK_KEY_MARKERS.values())))
+
+
+def _visible_link_kind(key: Any, inherited_kind: str | None) -> str | None:
+    normalized = str(key).strip().lower().replace("-", "_")
+    if normalized == "raw_host_session_id_stored":
+        return None
+    exact = _VISIBLE_LINK_KEY_MARKERS.get(normalized)
+    if exact is not None:
+        return exact
+    if normalized.endswith(("_receipt_id", "_receipt_sha256")):
+        return "receipt"
+    if normalized.endswith(("_chunk_id", "_chunk_sha256")):
+        return "chunk"
+    if normalized.endswith(("_source_locator", "_source_locator_sha256")):
+        return "source_locator"
+    return inherited_kind
+
+
+def _deterministic_visible_chunks(
+    event_id: str, visible_payload_json: str
+) -> list[dict[str, Any]]:
+    """Split one redacted visible payload into stable content-addressed chunks."""
+
+    chunks: list[dict[str, Any]] = []
+    for ordinal, start in enumerate(
+        range(0, len(visible_payload_json), LINEAGE_CHUNK_CHARS), start=1
+    ):
+        text = visible_payload_json[start : start + LINEAGE_CHUNK_CHARS]
+        text_sha256 = sha256_bytes(text.encode("utf-8"))
+        chunk_id = "linchunk_" + sha256_bytes(
+            canonical_json_bytes(
+                {
+                    "event_id": event_id,
+                    "ordinal": ordinal,
+                    "text_sha256": text_sha256,
+                }
+            )
+        )[:24].lower()
+        chunks.append(
+            {
+                "chunk_id": chunk_id,
+                "chunk_ordinal": ordinal,
+                "chunk_text": text,
+                "chunk_sha256": text_sha256,
+            }
+        )
+    return chunks
 
 
 def _private_reasoning_paths(value: Any, prefix: str = "") -> list[str]:
@@ -144,6 +230,15 @@ class ChatLineage:
                 link_sha256 TEXT NOT NULL,
                 PRIMARY KEY(event_id, link_kind, link_sha256)
             ) STRICT;
+            CREATE TABLE IF NOT EXISTS lineage_chunk(
+                event_id TEXT NOT NULL REFERENCES lineage_event(event_id)
+                    ON DELETE CASCADE,
+                chunk_ordinal INTEGER NOT NULL CHECK(chunk_ordinal > 0),
+                chunk_id TEXT NOT NULL UNIQUE,
+                chunk_text TEXT NOT NULL,
+                chunk_sha256 TEXT NOT NULL,
+                PRIMARY KEY(event_id, chunk_ordinal)
+            ) STRICT;
             CREATE TABLE IF NOT EXISTS lineage_head(
                 singleton INTEGER PRIMARY KEY CHECK(singleton = 1),
                 event_count INTEGER NOT NULL,
@@ -159,37 +254,26 @@ class ChatLineage:
                 visible_payload,
                 tokenize='unicode61'
             );
+            CREATE VIRTUAL TABLE IF NOT EXISTS lineage_chunk_fts USING fts5(
+                chunk_id UNINDEXED,
+                event_id UNINDEXED,
+                chunk_text,
+                tokenize='unicode61'
+            );
             """
         )
         return connection
 
     @staticmethod
     def _visible_links(payload: Any) -> list[tuple[str, str]]:
-        """Extract visible command/file/test/build/output references only."""
+        """Extract privacy-safe visible operational and provenance references."""
 
         links: list[tuple[str, str]] = []
-        key_markers = {
-            "command": "command",
-            "commands": "command",
-            "file": "file",
-            "files": "file",
-            "test": "test",
-            "tests": "test",
-            "build": "build",
-            "builds": "build",
-            "output": "output",
-            "outputs": "output",
-            "output_link": "output",
-            "output_links": "output",
-            "tool": "tool",
-            "tools": "tool",
-        }
 
         def visit(value: Any, inherited_kind: str | None = None) -> None:
             if isinstance(value, dict):
                 for key, item in value.items():
-                    normalized = str(key).strip().lower().replace("-", "_")
-                    visit(item, key_markers.get(normalized, inherited_kind))
+                    visit(item, _visible_link_kind(key, inherited_kind))
             elif isinstance(value, list):
                 for item in value:
                     visit(item, inherited_kind)
@@ -211,6 +295,11 @@ class ChatLineage:
             "schema": LINEAGE_SQLITE_SCHEMA,
             "jsonl_sha256": jsonl_sha256,
             "events": [str(item["event_sha256"]) for item in events],
+            "visible_link_kinds": list(_VISIBLE_LINK_KINDS),
+            "chunking": {
+                "algorithm": "FIXED_UNICODE_CODEPOINT_WINDOWS_NO_OVERLAP",
+                "chunk_chars": LINEAGE_CHUNK_CHARS,
+            },
         }
         projection_sha256 = sha256_bytes(canonical_json_bytes(projection_payload))
         connection = self._projection_connection()
@@ -228,8 +317,10 @@ class ChatLineage:
             else:
                 connection.execute("BEGIN IMMEDIATE")
                 connection.execute("DELETE FROM lineage_link")
+                connection.execute("DELETE FROM lineage_chunk")
                 connection.execute("DELETE FROM lineage_event")
                 connection.execute("DELETE FROM lineage_fts")
+                connection.execute("DELETE FROM lineage_chunk_fts")
                 connection.execute("DELETE FROM lineage_head")
                 connection.execute("DELETE FROM lineage_meta")
                 connection.execute(
@@ -286,6 +377,27 @@ class ChatLineage:
                             visible_payload,
                         ),
                     )
+                    for chunk in _deterministic_visible_chunks(
+                        str(event["event_id"]), visible_payload
+                    ):
+                        connection.execute(
+                            "INSERT INTO lineage_chunk VALUES(?,?,?,?,?)",
+                            (
+                                event["event_id"],
+                                chunk["chunk_ordinal"],
+                                chunk["chunk_id"],
+                                chunk["chunk_text"],
+                                chunk["chunk_sha256"],
+                            ),
+                        )
+                        connection.execute(
+                            "INSERT INTO lineage_chunk_fts VALUES(?,?,?)",
+                            (
+                                chunk["chunk_id"],
+                                event["event_id"],
+                                chunk["chunk_text"],
+                            ),
+                        )
                     for link_kind, link_value in self._visible_links(
                         event.get("visible_payload") or {}
                     ):
@@ -314,14 +426,30 @@ class ChatLineage:
             fts_count = int(
                 connection.execute("SELECT COUNT(*) FROM lineage_fts").fetchone()[0]
             )
+            link_count = int(
+                connection.execute("SELECT COUNT(*) FROM lineage_link").fetchone()[0]
+            )
+            chunk_count = int(
+                connection.execute("SELECT COUNT(*) FROM lineage_chunk").fetchone()[0]
+            )
+            chunk_fts_count = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM lineage_chunk_fts"
+                ).fetchone()[0]
+            )
             require(
-                integrity == ["ok"] and not foreign_keys and fts_count == len(events),
+                integrity == ["ok"]
+                and not foreign_keys
+                and fts_count == len(events)
+                and chunk_count == chunk_fts_count,
                 "LINEAGE_SQLITE_PROJECTION_INVALID",
                 "The durable ChatLineage SQLite projection failed validation.",
                 status="FAIL",
                 integrity=integrity,
                 foreign_key_errors=len(foreign_keys),
                 fts_count=fts_count,
+                chunk_count=chunk_count,
+                chunk_fts_count=chunk_fts_count,
                 event_count=len(events),
             )
             return {
@@ -338,6 +466,10 @@ class ChatLineage:
                 "integrity": integrity,
                 "foreign_key_errors": 0,
                 "fts_count": fts_count,
+                "link_count": link_count,
+                "chunk_count": chunk_count,
+                "chunk_fts_count": chunk_fts_count,
+                "chunk_chars": LINEAGE_CHUNK_CHARS,
                 "private_reasoning_stored": False,
             }
         finally:
@@ -623,6 +755,23 @@ class ProjectChatLineage:
                     head_state_sha256 TEXT,
                     projection_sha256 TEXT NOT NULL
                 ) STRICT;
+                CREATE TABLE IF NOT EXISTS project_lineage_link(
+                    event_id TEXT NOT NULL REFERENCES project_lineage_event(event_id)
+                        ON DELETE CASCADE,
+                    link_kind TEXT NOT NULL,
+                    link_value TEXT NOT NULL,
+                    link_sha256 TEXT NOT NULL,
+                    PRIMARY KEY(event_id, link_kind, link_sha256)
+                ) STRICT;
+                CREATE TABLE IF NOT EXISTS project_lineage_chunk(
+                    event_id TEXT NOT NULL REFERENCES project_lineage_event(event_id)
+                        ON DELETE CASCADE,
+                    chunk_ordinal INTEGER NOT NULL CHECK(chunk_ordinal > 0),
+                    chunk_id TEXT NOT NULL UNIQUE,
+                    chunk_text TEXT NOT NULL,
+                    chunk_sha256 TEXT NOT NULL,
+                    PRIMARY KEY(event_id, chunk_ordinal)
+                ) STRICT;
                 CREATE VIRTUAL TABLE IF NOT EXISTS project_lineage_fts USING fts5(
                     event_id UNINDEXED,
                     event_type,
@@ -631,11 +780,22 @@ class ProjectChatLineage:
                     visible_payload,
                     tokenize='unicode61'
                 );
+                CREATE VIRTUAL TABLE IF NOT EXISTS project_lineage_chunk_fts USING fts5(
+                    chunk_id UNINDEXED,
+                    event_id UNINDEXED,
+                    chunk_text,
+                    tokenize='unicode61'
+                );
                 """
             )
             projection_payload = {
                 "schema": PROJECT_LINEAGE_SQLITE_SCHEMA,
                 "events": [str(item["event_sha256"]) for item in events],
+                "visible_link_kinds": list(_VISIBLE_LINK_KINDS),
+                "chunking": {
+                    "algorithm": "FIXED_UNICODE_CODEPOINT_WINDOWS_NO_OVERLAP",
+                    "chunk_chars": LINEAGE_CHUNK_CHARS,
+                },
             }
             projection_sha256 = sha256_bytes(canonical_json_bytes(projection_payload))
             existing = connection.execute(
@@ -650,8 +810,11 @@ class ProjectChatLineage:
                 head_state = existing["head_state_sha256"]
             else:
                 connection.execute("BEGIN IMMEDIATE")
+                connection.execute("DELETE FROM project_lineage_link")
+                connection.execute("DELETE FROM project_lineage_chunk")
                 connection.execute("DELETE FROM project_lineage_event")
                 connection.execute("DELETE FROM project_lineage_fts")
+                connection.execute("DELETE FROM project_lineage_chunk_fts")
                 connection.execute("DELETE FROM project_lineage_head")
                 previous_state: str | None = None
                 for index, event in enumerate(events, start=1):
@@ -710,6 +873,39 @@ class ProjectChatLineage:
                             visible_payload,
                         ),
                     )
+                    for chunk in _deterministic_visible_chunks(
+                        str(event["event_id"]), visible_payload
+                    ):
+                        connection.execute(
+                            "INSERT INTO project_lineage_chunk VALUES(?,?,?,?,?)",
+                            (
+                                event["event_id"],
+                                chunk["chunk_ordinal"],
+                                chunk["chunk_id"],
+                                chunk["chunk_text"],
+                                chunk["chunk_sha256"],
+                            ),
+                        )
+                        connection.execute(
+                            "INSERT INTO project_lineage_chunk_fts VALUES(?,?,?)",
+                            (
+                                chunk["chunk_id"],
+                                event["event_id"],
+                                chunk["chunk_text"],
+                            ),
+                        )
+                    for link_kind, link_value in ChatLineage._visible_links(
+                        event.get("visible_payload") or {}
+                    ):
+                        connection.execute(
+                            "INSERT INTO project_lineage_link VALUES(?,?,?,?)",
+                            (
+                                event["event_id"],
+                                link_kind,
+                                link_value,
+                                sha256_bytes(link_value.encode("utf-8")),
+                            ),
+                        )
                     previous_state = state_sha256
                 head_state = previous_state
                 head = events[-1] if events else None
@@ -730,16 +926,36 @@ class ProjectChatLineage:
             fts_count = int(
                 connection.execute("SELECT COUNT(*) FROM project_lineage_fts").fetchone()[0]
             )
+            link_count = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM project_lineage_link"
+                ).fetchone()[0]
+            )
+            chunk_count = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM project_lineage_chunk"
+                ).fetchone()[0]
+            )
+            chunk_fts_count = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM project_lineage_chunk_fts"
+                ).fetchone()[0]
+            )
         finally:
             connection.close()
         require(
-            integrity == ["ok"] and not foreign_keys and fts_count == len(events),
+            integrity == ["ok"]
+            and not foreign_keys
+            and fts_count == len(events)
+            and chunk_count == chunk_fts_count,
             "PROJECT_LINEAGE_SQLITE_INVALID",
             "The project ChatLineage SQLite authority failed validation.",
             status="FAIL",
             integrity=integrity,
             foreign_key_errors=len(foreign_keys),
             fts_count=fts_count,
+            chunk_count=chunk_count,
+            chunk_fts_count=chunk_fts_count,
             event_count=len(events),
         )
         head_receipt = {
@@ -759,6 +975,10 @@ class ProjectChatLineage:
             "integrity": integrity,
             "foreign_key_errors": 0,
             "fts_count": fts_count,
+            "link_count": link_count,
+            "chunk_count": chunk_count,
+            "chunk_fts_count": chunk_fts_count,
+            "chunk_chars": LINEAGE_CHUNK_CHARS,
             **head_receipt,
         }
 
