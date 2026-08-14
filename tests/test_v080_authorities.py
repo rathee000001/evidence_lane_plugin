@@ -284,7 +284,7 @@ def test_storage_sidecar_selects_local_and_fails_closed_on_ephemeral(service) ->
             ephemeral=True,
             server_has_durable_filesystem=False,
         )
-    assert blocked.value.code == "LOCAL_SQLITE_STORAGE_UNAVAILABLE"
+    assert blocked.value.code == "ACTIVE_SURFACE_UNPROVEN"
 
 
 def test_persistent_plugin_grant_records_scope_actions_and_expiry(

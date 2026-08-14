@@ -22,7 +22,7 @@ from typing import Any
 SCHEMA = "evidence-lane.non-lifecycle-local-package-rehearsal.v1"
 BOUNDARY = "NON_LIFECYCLE_LOCAL_PACKAGE_REHEARSAL"
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
-EXPECTED_SKILL_COUNT = 15
+EXPECTED_SKILL_COUNT = 17
 EXPECTED_LANE_COUNT = 18
 FALLBACK_RELEASE = "2.0.0"
 EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
@@ -664,7 +664,7 @@ def build_rehearsal(
             stable.get("native_write_tool_count"),
             stable.get("skill_count"),
         )
-        != (62, 21, 41, 15)
+        != (83, 26, 57, EXPECTED_SKILL_COUNT)
         or stable.get("codex_apps_allowed") is not False
         or stable.get("generated_namespace_allowed") is not False
         or stable.get("direct_stdio_fallback_allowed") is not False

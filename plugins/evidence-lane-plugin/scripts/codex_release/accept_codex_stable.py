@@ -2,8 +2,8 @@
 
 This checker is read-only except for its explicit receipt output. It compares the
 exact Git marketplace checkout with Codex's generated installed cache, validates
-the enabled canonical selector, statically proves the 62/21/41 catalog and
-fifteen skills, and optionally binds a post-restart native route receipt. It
+the enabled canonical selector, statically proves the 83/26/57 catalog and
+seventeen skills, and optionally binds a post-restart native route receipt. It
 never calls lifecycle, Git, tunnel, candidate, pointer, or HIL actions.
 """
 
@@ -47,7 +47,7 @@ EXPECTED_PACKAGE_HOOK_EVENTS = {
     "Stop",
     "UserPromptSubmit",
 }
-EXPECTED_CATALOG = {"tools": 62, "read": 21, "write": 41, "skills": 15}
+EXPECTED_CATALOG = {"tools": 83, "read": 26, "write": 57, "skills": 17}
 EXPECTED_BEHAVIOR_OWNERSHIP = {
     "hooks": "LIFECYCLE_CAPTURE_AND_SEALED_EVENTS_ONLY",
     "skills": "NATIVE_PV_READS_AND_HOST_BEHAVIOR",
@@ -575,7 +575,11 @@ def _catalog(plugin_root: Path) -> dict[str, Any]:
         or read != EXPECTED_CATALOG["read"]
         or write != EXPECTED_CATALOG["write"]
     ):
-        raise AcceptanceError("The installed native 62/21/41 tool catalog drifted.")
+        raise AcceptanceError(
+            "The installed native "
+            f"{EXPECTED_CATALOG['tools']}/{EXPECTED_CATALOG['read']}/"
+            f"{EXPECTED_CATALOG['write']} tool catalog drifted."
+        )
     return {
         "tools": len(rows),
         "read": read,

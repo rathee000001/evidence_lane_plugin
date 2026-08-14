@@ -53,7 +53,7 @@ function welcomeMessage(corpus: StudioCorpusSummary): StudioMessage {
     id: 0,
     role: "assistant",
     title: "Welcome to the Evidence Lane business guide",
-    text: "Ask about the problem Evidence Lane solves, the 18 source lanes, 15 plugin surfaces, lifecycle controls, human decisions, host boundaries, proof, release, or the native Three.js/WebGL presentation. I will explain the business outcome first and keep the technical evidence receipt available for optional review.",
+    text: "Ask about the problem Evidence Lane solves, the 18 source lanes, 17 plugin surfaces, lifecycle controls, Canon, Agent Learning, human decisions, host boundaries, proof, release, or the native Three.js/WebGL presentation. I will explain the business outcome first and keep the technical evidence receipt available for optional review.",
     grounded: true,
     mode: "local_retrieval",
     sources: [{ label: "Prompt Studio retrieval contract", href: "/studio" }],

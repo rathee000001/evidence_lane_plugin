@@ -21,7 +21,9 @@ def test_boot_launcher_pins_binary_and_dpapi_envelope() -> None:
     assert "ConvertTo-SecureString" in boot
     assert "ZeroFreeBSTR" in boot
     assert "--require-control-plane-poll" in boot
-    assert 'ProfileName = "evidence_lane_v200_transport"' in boot
+    assert 'ProfileName = "evidence_lane_v220_stable_build_transport"' in boot
+    assert 'ReleaseToken = "v220"' in boot
+    assert "release-bound tunnel marker" in boot
     assert 'ProfileDir = "$env:APPDATA\\tunnel-client"' in boot
     assert "RECOVER_STALE_PROCESS" in boot
     assert "CONTROL_PLANE_ORGANIZATION_ID" not in boot
@@ -53,15 +55,21 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert "--control-plane-api-key-ref \"env:CONTROL_PLANE_API_KEY\"" in installer
     assert "--mcp-command $mcpCommand" in installer
     assert '[ValidateSet("stable-build", "fallback")]' in installer
-    assert 'TaskName = "EvidenceLane-Tunnel-v200-$SlotRole"' in installer
-    assert "exact_visible_tool_count = 62" in installer
-    assert "exact_active_read_tool_count = 21" in installer
-    assert "exact_fail_closed_write_tool_count = 41" in installer
+    assert 'TaskName = "EvidenceLane-Tunnel-$releaseToken-$SlotRole"' in installer
+    assert "exact_visible_tool_count = 83" in installer
+    assert "exact_active_read_tool_count = 26" in installer
+    assert "exact_fail_closed_write_tool_count = 57" in installer
     assert "codex_platform_tunnel_setup_required_once = $true" in installer
-    assert r'"EvidenceLanePV\tunnel-runtime-v200-$SlotRole"' in installer
+    assert r'"EvidenceLanePV\tunnel-runtime-$releaseToken-$SlotRole"' in installer
     assert "RuntimeKeyEnvelopeSource" in installer
     assert "saved_slot = $true" in installer
     assert "accepted_fallback_preserved = $true" in installer
+    assert "release_identity_source = \"CODEX_RELEASE_CHANNEL_CONTRACT\"" in installer
+    assert "runtime_identity_matches_release = $true" in installer
+    assert "prior_versioned_runtimes_retained = $true" in installer
+    assert "prior_versioned_tasks_retained = $true" in installer
+    assert "prior_versioned_runtime_deletion_allowed = $false" in installer
+    assert "one_active_version_required = $true" in installer
     assert "Manage-EvidenceLaneTunnelVersions.ps1" not in installer
     assert "legacy_version_manager_authoritative = $false" in installer
     assert 'registered_slot = $SlotRole' in installer
@@ -74,7 +82,8 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert "MigrateCurrentRuntime" not in installer
     assert "evidence-lane.versioned-secure-mcp-tunnel-installation.v1" in installer
     assert "Pinned Evidence Lane $release $SlotRole secure MCP tunnel" in installer
-    assert 'if ($SlotRole -eq "fallback") { "2.0.0" } else { "2.2.0" }' in installer
+    assert "$slotContract = if ($SlotRole -eq \"fallback\")" in installer
+    assert "$release = [string]$slotContract.release" in installer
     assert "Google Drive" not in installer
     assert "GDrive" not in installer
 
@@ -124,10 +133,13 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert 'transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"' in manager
     assert 'codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"' in manager
     assert "codex_tunnel_lifecycle_proof_allowed = $false" in manager
-    assert "exact_visible_tool_count = 62" in manager
-    assert "exact_active_read_tool_count = 21" in manager
-    assert "exact_fail_closed_write_tool_count = 41" in manager
+    assert "exact_visible_tool_count = 83" in manager
+    assert "exact_active_read_tool_count = 26" in manager
+    assert "exact_fail_closed_write_tool_count = 57" in manager
     assert "runtime_key_plaintext_reported = $false" in manager
+    assert 'ReleaseToken = "v220"' in manager
+    assert "release_token = if ($null -ne $marker)" in manager
+    assert "management request does not match the exact release-bound tunnel marker" in manager
     assert "slot_role = if ($null -ne $marker)" in manager
     assert "byte_frozen = if ($null -ne $marker)" in manager
     assert 'project_binding = "NONE_TRANSPORT_ONLY"' in manager
@@ -221,16 +233,18 @@ def test_version_manager_reads_legacy_registry_without_history_fields(
     assert payload["versions"] == []
 
 
-def test_all_tunnel_scripts_use_isolated_v200_runtime_names() -> None:
-    for name in (
-        "Install-EvidenceLaneTunnel.ps1",
-        "EvidenceLaneTunnel.Boot.ps1",
-        "Manage-EvidenceLaneTunnel.ps1",
-    ):
+def test_all_tunnel_scripts_use_release_bound_runtime_names() -> None:
+    installer = _read("Install-EvidenceLaneTunnel.ps1")
+    assert '"v" + ($release -replace' in installer
+    assert '"EvidenceLanePV\\tunnel-runtime-$releaseToken-$SlotRole"' in installer
+    assert '"EvidenceLane-Tunnel-$releaseToken-$SlotRole"' in installer
+    assert '"evidence_lane_${releaseToken}"' in installer
+
+    for name in ("EvidenceLaneTunnel.Boot.ps1", "Manage-EvidenceLaneTunnel.ps1"):
         text = _read(name)
-        assert "evidence_lane_v200" in text
-        assert "tunnel-runtime-v200" in text
-        assert "EvidenceLane-Tunnel-v200" in text or name == "EvidenceLaneTunnel.Boot.ps1"
+        assert 'ReleaseToken = "v220"' in text
+        assert '"evidence_lane_${ReleaseToken}"' in text
+        assert "release-bound tunnel marker" in text
         assert "evidence_lane_v150" not in text
         assert "tunnel-runtime-v150" not in text
         assert "EvidenceLane-Tunnel-v150" not in text

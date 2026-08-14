@@ -14,10 +14,10 @@
     "stable_updates_reinstall_in_place": true,
     "build_identity_is_receipt_not_selector": true,
     "native_server_identity": "evidence-lane",
-    "native_tool_count": 62,
-    "native_read_tool_count": 21,
-    "native_write_tool_count": 41,
-    "skill_count": 15,
+    "native_tool_count": 83,
+    "native_read_tool_count": 26,
+    "native_write_tool_count": 57,
+    "skill_count": 17,
     "codex_apps_allowed": false,
     "generated_namespace_allowed": false,
     "direct_stdio_fallback_allowed": false,
@@ -39,6 +39,163 @@
     "simultaneous_mcp_allowed": false,
     "simultaneous_tunnel_allowed": false,
     "tunnel_channel": "fallback"
+  },
+  "pv_sequence_boundary": {
+    "release_line": "2.2.0",
+    "entry_pointer": "PV12",
+    "intermediate_candidate": "PV13",
+    "intermediate_approve_effect": "FUSE_PV13_ONLY",
+    "intermediate_main_merge_allowed": false,
+    "intermediate_fallback_replacement_allowed": false,
+    "physically_final_candidate": "PV14",
+    "final_approve_required_before_main_or_fallback": true,
+    "final_approve_effects": [
+      "FUSE_PV14_GENERATION_14",
+      "GOVERNED_NON_FORCE_MAIN_PROMOTION",
+      "INSTALL_EXACT_ACCEPTED_2_2_IN_ENABLED_STABLE_SLOT",
+      "INSTALL_EXACT_ACCEPTED_2_2_IN_DISABLED_RECOVERABLE_FALLBACK_SLOT"
+    ],
+    "release_2_3_in_current_goal_allowed": false,
+    "next_cycle_entry_pointer": "PV14",
+    "next_cycle_candidate": "PV15",
+    "next_cycle_requires_fresh_user_start": true
+  },
+  "workflow_scope": {
+    "plugin_release_cadence": "ONE_AUTHORIZED_LOGICAL_RELEASE_COMMIT_BATCH",
+    "plugin_release_steps": [
+      "GOVERNED_EXACT_BRANCH_COMMIT_PUSH",
+      "CLEAN_CI_AND_SECURITY",
+      "GIT_TRIGGERED_VERCEL_PREVIEW",
+      "EXACT_PACKAGE_BUILD",
+      "STABLE_SLOT_INSTALL_AND_HOT_REATTACH",
+      "PERSISTENT_OR_TRULY_HIDDEN_EVIDENCE_LANE_HELPERS_AND_TUNNEL",
+      "PLUGIN_PV_HIL"
+    ],
+    "downstream_project_pv_inherits_plugin_release_cycle": false,
+    "downstream_project_controls": [
+      "OWN_GIT_CI_DEPLOY_WORKFLOW",
+      "GOVERNED_SCHEMA_AND_LANE_EVOLUTION",
+      "BOUNDED_ADDITIONAL_PLUGINS",
+      "STORAGE_CONNECTOR_SELECTION"
+    ],
+    "intermediate_pv13_install_hil_route": {
+      "ci_prerequisite_row": 196,
+      "execution_row": 197,
+      "release": "2.2.0",
+      "branch": "agent/evi-v220-systemwide-release-hil-v2.2.0",
+      "source": "EXACT_GIT_COMMIT_AFTER_REQUIRED_CLEAN_CI_AND_GIT_TRIGGERED_VERCEL_PREVIEW",
+      "slot_role": "stable-build",
+      "plugin_selector": "evidence-lane-plugin@evidence-lane-github",
+      "installed_version_must_equal_exact_package_version": true,
+      "installed_catalog_must_equal": {
+        "native_actions": 83,
+        "read_actions": 26,
+        "write_actions": 57,
+        "governed_skills": 17,
+        "hook_events": 8,
+        "migrated_command_skills": 1
+      },
+      "installed_ui_readback_required_before_pv13_hil": true,
+      "fallback_mutation_allowed": false,
+      "main_merge_allowed": false,
+      "downstream_project_inherits_install": false
+    },
+    "full_vercel_guide_refresh": "ASSIGNED_WEBSITE_DELTA_ONLY",
+    "plan_or_pv_projection_update_is_full_site_refresh": false,
+    "env_uop_evolution_requires_new_sealed_identity": true,
+    "accepted_locked_env_uop_mutation_allowed": false
+  },
+  "goal_completion_policy": {
+    "schema": "evidence-lane.human-goal-completion-policy.v1",
+    "scope": "ALL_GOVERNED_GOALS",
+    "exact_visible_command": "MARK GOAL COMPLETE",
+    "authorization_actor": "HUMAN_ONLY",
+    "dispositions": [
+      "COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
+      "COMPLETE_FULLY"
+    ],
+    "hil_candidate_plan_test_or_automation_can_complete": false,
+    "pause_or_stall_can_complete": false,
+    "pause_or_stall_without_completion_allowed": true,
+    "completion_implies_hil_approval_fuse_or_pointer_move": false,
+    "completion_implies_git_install_merge_or_deploy": false
+  },
+  "helper_distribution_policy": {
+    "schema": "evidence-lane.helper-distribution-policy.v1",
+    "maintainer_release_helper": {
+      "script": "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1",
+      "audience": "EVIDENCE_LANE_MAINTAINER_ONLY",
+      "used_in_governed_development_build": true,
+      "public_marketplace_user_surface": false,
+      "release_bound": true,
+      "transient_task_is_hidden": true,
+      "transient_task_removed_after_run": true
+    },
+    "user_goal_recovery_helper": {
+      "script": "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1",
+      "audience": "GOVERNED_CODEX_USER",
+      "public_marketplace_user_surface": true,
+      "release": "2.2.0",
+      "release_token": "v220",
+      "scheduled_task_name": "Evidence Lane Codex Goal Recovery v220",
+      "at_logon": true,
+      "persistent_or_hidden_no_transient_console": true,
+      "prior_versions_retained": true,
+      "prior_versions_disabled": true,
+      "prior_versions_deleted": false
+    },
+    "user_stable_tunnel": {
+      "script": "scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1",
+      "audience": "GOVERNED_CODEX_USER",
+      "public_marketplace_user_surface": true,
+      "release": "2.2.0",
+      "release_token": "v220",
+      "runtime_root_suffix": "tunnel-runtime-v220-stable-build",
+      "scheduled_task_name": "EvidenceLane-Tunnel-v220-stable-build",
+      "at_logon": true,
+      "persistent_or_hidden_no_transient_console": true,
+      "one_active_version": true,
+      "prior_versions_retained": true,
+      "prior_versions_deleted": false
+    },
+    "fallback_transport": {
+      "audience": "MAINTAINER_RECOVERY_ONLY",
+      "release": "2.0.0",
+      "release_token": "v200",
+      "runtime_root_suffix": "tunnel-runtime-v200-fallback",
+      "scheduled_task_name": "EvidenceLane-Tunnel-v200-fallback",
+      "enabled": false,
+      "byte_frozen": true,
+      "public_marketplace_user_surface": false,
+      "state": "CURRENT_PRE_FINAL_HIL_OBSERVED_FALLBACK"
+    },
+    "post_hil_release_rotation": {
+      "schema": "evidence-lane.plugin-slot-helper-tunnel-rotation.v1",
+      "applies_to_plugin_maintainer_route_only": true,
+      "downstream_project_inherits_rotation": false,
+      "intermediate_pv13_can_rotate_main_or_fallback": false,
+      "current_pre_final_hil_fallback_remains_2_0": true,
+      "final_gate": "PV14_EXACT_HUMAN_APPROVE_AND_FUSE",
+      "required_order": [
+        "FUSE_EXACT_ACCEPTED_PLUGIN_PV",
+        "GOVERNED_NON_FORCE_MAIN_PROMOTION",
+        "VERIFY_MAIN_EQUALS_ACCEPTED_COMMIT",
+        "INSTALL_ACCEPTED_RELEASE_IN_STABLE_SLOT",
+        "INSTALL_SAME_ACCEPTED_RELEASE_IN_DISABLED_FALLBACK_SLOT",
+        "ROTATE_MATCHING_HELPER_AND_TUNNEL_IDENTITIES",
+        "VERIFY_STABLE_ENABLED_FALLBACK_DISABLED_AND_ONE_ACTIVE_RUNTIME"
+      ],
+      "stable_and_fallback_must_equal_exact_accepted_release": true,
+      "helper_and_tunnel_release_must_match_owning_slot": true,
+      "prior_versioned_helpers_and_tunnels_retained": true,
+      "prior_versioned_helpers_and_tunnels_disabled": true,
+      "prior_versioned_helpers_and_tunnels_deleted": false,
+      "repeat_for_each_later_plugin_release_cycle": true,
+      "current_row_may_execute_rotation": false
+    },
+    "external_tester_distribution_gate": "SEPARATELY_AUTHORIZED_GITHUB_APP_ROUTE_AFTER_PLUGIN_HIL",
+    "official_marketplace_submission_gate": "SEPARATELY_AUTHORIZED_OPENAI_CHANNEL_AFTER_EXTERNAL_TEST_EVIDENCE",
+    "current_row_authorizes_external_distribution_or_submission": false
   },
   "dependency_toolchains": {
     "search_v1": {
@@ -307,10 +464,10 @@
     "explicit_six_way_hil_required": true,
     "fail_closed_on_version_mismatch": true,
     "required_catalog": {
-      "tools": 62,
-      "read": 21,
-      "write": 41,
-      "skills": 15
+      "tools": 83,
+      "read": 26,
+      "write": 57,
+      "skills": 17
     },
     "mode": "CODE",
     "ci_cd_law": "CONTROLLED_REQUIRED",

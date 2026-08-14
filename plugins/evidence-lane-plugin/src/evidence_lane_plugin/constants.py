@@ -4,6 +4,10 @@ from __future__ import annotations
 
 ENGINE_NAME = "evidence-lane-universal-pv-engine"
 ENGINE_VERSION = "2.2.0"
+NATIVE_TOOL_COUNT = 83
+NATIVE_READ_TOOL_COUNT = 26
+NATIVE_WRITE_TOOL_COUNT = 57
+GOVERNED_SKILL_COUNT = 17
 SCHEMA_VERSION = "3.0.0"
 SUPPORTED_SCHEMA_VERSIONS = frozenset({"2.0.0", "2.1.0", SCHEMA_VERSION})
 TOOL_RESULT_SCHEMA = "evidence-lane.pv.tool-result.v1"

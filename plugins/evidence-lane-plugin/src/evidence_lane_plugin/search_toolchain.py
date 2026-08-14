@@ -39,6 +39,7 @@ _DEFAULT_EXCLUDED_FILES = {
     ".pypirc",
 }
 _HASH_RE = re.compile(r"^[A-F0-9]{64}$")
+_PLUGIN_ROOT_ENV = "EVIDENCE_LANE_PLUGIN_ROOT"
 
 
 class SearchToolchainError(ValueError):
@@ -86,6 +87,17 @@ class ToolResolution:
 
 
 def plugin_root() -> Path:
+    configured = os.environ.get(_PLUGIN_ROOT_ENV, "").strip()
+    if configured:
+        candidate = Path(configured)
+        if (
+            not candidate.is_absolute()
+            or not (candidate / "toolchains" / "search-tools.v1.json").is_file()
+            or not (candidate / ".codex-plugin" / "plugin.json").is_file()
+        ):
+            raise SearchToolchainError("SEARCH_TOOLCHAIN_PLUGIN_ROOT_INVALID")
+        return candidate.resolve()
+
     source = Path(__file__).resolve()
     for ancestor in source.parents:
         if (

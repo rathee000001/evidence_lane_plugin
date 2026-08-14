@@ -435,10 +435,10 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
         "Stop",
         "UserPromptSubmit",
     ]
-    assert package_status["skills"]["count"] == 15
-    assert package_status["catalog"]["tools"] == 62
-    assert package_status["catalog"]["read"] == 21
-    assert package_status["catalog"]["write"] == 41
+    assert package_status["skills"]["count"] == 17
+    assert package_status["catalog"]["tools"] == 83
+    assert package_status["catalog"]["read"] == 26
+    assert package_status["catalog"]["write"] == 57
     assert package_status["refresh_state"] == "NO_PENDING_CANDIDATE"
     assert package_status["tunnel_channel"] == "stable-build"
     assert package_status["raw_paths_included"] is False
@@ -2074,12 +2074,12 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         assert prepared_notice["package_change_status"]["hooks"][
             "hook_file_count"
         ] == 9
-        assert prepared_notice["package_change_status"]["skills"]["count"] == 15
+        assert prepared_notice["package_change_status"]["skills"]["count"] == 17
         assert prepared_notice["package_change_status"]["catalog"] == {
-            "tools": 62,
-            "read": 21,
-            "write": 41,
-            "skills": 15,
+            "tools": 83,
+            "read": 26,
+            "write": 57,
+            "skills": 17,
             "changed_from_previous": None,
         }
         assert prepared_notice["package_change_status"]["refresh_state"] == (

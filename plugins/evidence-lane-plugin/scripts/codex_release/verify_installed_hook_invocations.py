@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Exercise trusted Evidence Lane hooks through a real Codex app-server.
 
 The verifier is deliberately isolated. It requires a caller-provided Codex
@@ -23,7 +22,8 @@ import time
 from collections.abc import Iterable
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any
+from types import TracebackType
+from typing import Any, Self
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[2]
 SOURCE_ROOT = PLUGIN_ROOT / "src"
@@ -144,7 +144,7 @@ class _LoopbackResponsesServer:
             def log_message(self, _format: str, *_args: Any) -> None:
                 return
 
-            def do_GET(self) -> None:  # noqa: N802 - stdlib callback name
+            def do_GET(self) -> None:
                 if self.path.rstrip("/").endswith("/models"):
                     body = _json_bytes(
                         {
@@ -166,7 +166,7 @@ class _LoopbackResponsesServer:
                     return
                 self.send_error(404)
 
-            def do_POST(self) -> None:  # noqa: N802 - stdlib callback name
+            def do_POST(self) -> None:
                 content_length = int(self.headers.get("Content-Length", "0"))
                 request_body = self.rfile.read(content_length)
                 owner._request_records.append(
@@ -211,11 +211,17 @@ class _LoopbackResponsesServer:
     def requests(self) -> list[dict[str, Any]]:
         return list(self._request_records)
 
-    def __enter__(self) -> _LoopbackResponsesServer:
+    def __enter__(self) -> Self:
         self._thread.start()
         return self
 
-    def __exit__(self, *_args: Any) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        del exc_type, exc, traceback
         self._server.shutdown()
         self._server.server_close()
         self._thread.join(timeout=5)

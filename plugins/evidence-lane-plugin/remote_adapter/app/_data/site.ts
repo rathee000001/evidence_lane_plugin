@@ -9,6 +9,9 @@ export const ownerSocialLinks = [
 
 export const primaryNavigation = [
   { href: "/", label: "Home" },
+  { href: "/skills", label: "Skills" },
+  { href: "/mcp", label: "MCP" },
+  { href: "/hooks", label: "Hooks" },
   { href: "/architecture", label: "Architecture" },
   { href: "/lanes", label: "Lanes" },
   { href: "/operators", label: "Operators" },
@@ -45,6 +48,30 @@ export const floatingStudioSuggestions = {
     "How do parallel lanes converge on serial authority?",
     "What must agree between SQLite, MMD, and DOT?",
     "What can never move the accepted pointer by itself?",
+  ],
+  skills: [
+    "What are the seventeen governed Evidence Lane skills?",
+    "Which six skills are primary lifecycle controls?",
+    "Why is State Travel conditional rather than a seventh control?",
+    "Which skill owns Plan projection and HIL behavior?",
+    "What can a skill never approve by itself?",
+    "How do sidecars stay separate from lifecycle authority?",
+  ],
+  mcp: [
+    "Why does Evidence Lane use one package-local native MCP server?",
+    "What separates the 26 read actions from the 57 write actions?",
+    "How does the native route fail closed on an unsupported host?",
+    "Which actions can create a candidate or move a pointer?",
+    "Why is the website not an MCP lifecycle authority?",
+    "How are native action identities kept stable across releases?",
+  ],
+  hooks: [
+    "Which eight lifecycle events does the package register?",
+    "What information may a hook transport?",
+    "Why do skills, rather than hooks, own classification and HIL?",
+    "How is real installed-host invocation proven?",
+    "What happens when the host lacks one hook capability?",
+    "How are hook subprocesses kept hidden on Windows?",
   ],
   lanes: [
     "Why does Evidence Lane separate work into 18 source lanes?",
@@ -88,7 +115,7 @@ export const floatingStudioSuggestions = {
   ],
   connect: [
     "How is Evidence Lane installed from an exact Git SHA?",
-    "Why are all 62 native actions part of one Codex lifecycle?",
+    "Why are all 83 native actions part of one Codex lifecycle?",
     "How is the stable plugin kept separate from a future test build?",
     "Why must the native server reject external transport substitution?",
     "What is Google Drive allowed to do?",

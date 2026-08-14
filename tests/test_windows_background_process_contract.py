@@ -73,6 +73,14 @@ def test_powershell_background_routes_are_hidden_and_never_loop_restart() -> Non
 
     assert '"-WindowStyle", "Hidden"' in recovery
     assert 'windows_console_policy = "POWERSHELL_WINDOWSTYLE_HIDDEN"' in recovery
+    assert 'scheduled_task_window_style = "HIDDEN"' in recovery
+    assert 'Release = "2.2.0"' in recovery
+    assert '"Evidence Lane Codex Goal Recovery $($script:ReleaseToken)"' in recovery
+    assert 'helper_audience = "GOVERNED_CODEX_USER"' in recovery
+    assert "prior_versioned_helpers_retained = $true" in recovery
+    assert "prior_versioned_helpers_disabled = $true" in recovery
+    assert "prior_versioned_helpers_deleted = $false" in recovery
+    assert "Disable-ScheduledTask -TaskName ([string]$priorTask.TaskName)" in recovery
     assert 'host_owned_initial_mcp_spawn = "HOST_CAPABILITY_UNAVAILABLE"' in recovery
     assert 'restart_loop_allowed = $false' in recovery
 
@@ -88,6 +96,8 @@ def test_powershell_background_routes_are_hidden_and_never_loop_restart() -> Non
     )
     assert 'windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"' in tunnel
     assert 'scheduled_task_window_style = "HIDDEN"' in tunnel
+    assert 'prior_versioned_runtimes_retained = $true' in tunnel
+    assert 'prior_versioned_runtime_deletion_allowed = $false' in tunnel
     assert "-RestartCount 999" in tunnel
     assert "-MultipleInstances IgnoreNew" in tunnel
 
@@ -113,7 +123,7 @@ def test_goal_recovery_prewarm_is_exact_task_read_only_and_truthful() -> None:
     assert '-Method "mcpServer/resource/read"' in text
     assert 'canonical_plugin_selector = $script:CanonicalStableSelector' in text
     assert 'exact_tool_count = $toolCount' in text
-    assert '$toolCount -ne 62' in text
+    assert '$toolCount -ne 83' in text
     assert 'governedResourceUri = "ui://evidence-lane/governed-console-v5.html"' in text
     assert 'live_desktop_control_plane = "HOST_CAPABILITY_UNAVAILABLE_WINDOWS_APP_SERVER_DAEMON"' in text
     assert 'mcp_inventory_scope = "ISOLATED_APP_SERVER_GLOBAL_RUNTIME"' in text

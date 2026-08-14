@@ -28,6 +28,7 @@ from .auth import (
     OAuthToolAuthorizationPolicy,
     StaticBearerVerifier,
 )
+from .canon_task_graph import CanonTaskDispatcher
 from .codex_turn_control import (
     TurnControlError,
     package_surface_inventory,
@@ -35,10 +36,17 @@ from .codex_turn_control import (
     seal_exact_task_project_session_binding,
     verify_codex_fallback_prewarmer,
 )
-from .constants import ENGINE_VERSION
+from .constants import (
+    ENGINE_VERSION,
+    GOVERNED_SKILL_COUNT,
+    NATIVE_READ_TOOL_COUNT,
+    NATIVE_TOOL_COUNT,
+    NATIVE_WRITE_TOOL_COUNT,
+)
 from .github_automation_governance import (
     apply_fastmcp_tool_filter,
 )
+from .internal_sdk import build_live_local_sdk_context
 from .lane_engine import prewarm_native_dependencies
 from .mcp_apps import (
     GOVERNED_PANEL_URI,
@@ -71,7 +79,185 @@ _RUNTIME_GLOBAL_TOOL_NAMES = frozenset(
 )
 
 FULL_LIFECYCLE_EXPOSURE_PROFILE = "FULL_LIFECYCLE"
+
+SDK_NATIVE_ACTIONS: tuple[
+    tuple[str, str, str, str, str, bool], ...
+] = (
+    (
+        "canon_inspect",
+        "Inspect Canon authority",
+        "Inspect the project-isolated Canon Input authority, immutable envelopes, decisions, task graph, and continuity receipts without changing any authority.",
+        "canon_input",
+        "inspect",
+        True,
+    ),
+    (
+        "canon_inbox",
+        "Inspect Canon inbox",
+        "Read a bounded Canon inbox slice for one task or state set. Canon remains separate from Project Truth, Agent Learning, and State Travel.",
+        "canon_input",
+        "inbox",
+        True,
+    ),
+    (
+        "canon_graph",
+        "Inspect Canon task graph",
+        "Read the bounded upstream, downstream, and lateral Canon task graph with exact task UUID/deep-link bindings and no task creation.",
+        "canon_input",
+        "graph",
+        True,
+    ),
+    (
+        "canon_register_contract",
+        "Register expected Canon contract",
+        "Register one immutable receiver-side Canon contract. This admits no input and cannot promote Project Truth or Learning.",
+        "canon_input",
+        "register_contract",
+        False,
+    ),
+    (
+        "canon_seal_envelope",
+        "Seal Canon envelope",
+        "Seal one bounded upstream, downstream, or lateral Canon envelope with immutable source, destination, schema, contract, dependency, and return identities.",
+        "canon_input",
+        "seal_envelope",
+        False,
+    ),
+    (
+        "canon_receive",
+        "Receive Canon envelope",
+        "Receive one exact Canon envelope into the destination inbox without accepting it, executing work, or propagating any HIL or pointer decision.",
+        "canon_input",
+        "receive",
+        False,
+    ),
+    (
+        "canon_classify",
+        "Classify Canon envelope",
+        "Classify one received Canon envelope against the receiver's exact expected contract and determine whether its receiver-owned three-way Canon HIL is required.",
+        "canon_input",
+        "classify",
+        False,
+    ),
+    (
+        "canon_decide",
+        "Decide Canon input",
+        "Record exactly ACCEPT, REJECT, or MORE_RESEARCH at the receiver-owned Canon HIL. This never decides Project HIL, Learning HIL, Fuse, or a pointer.",
+        "canon_input",
+        "decide",
+        False,
+    ),
+    (
+        "canon_supersede",
+        "Supersede Canon input",
+        "Append an immutable supersession link for one Canon input while preserving the original envelope and decision history.",
+        "canon_input",
+        "supersede",
+        False,
+    ),
+    (
+        "canon_register_edge",
+        "Register Canon task edge",
+        "Register one dependency-safe Canon task edge without creating a host task or granting source, Git, HIL, install, or deploy authority.",
+        "canon_input",
+        "register_edge",
+        False,
+    ),
+    (
+        "canon_bind_edge",
+        "Bind received Canon edge",
+        "Bind one received Canon task edge after exact source, destination, contract, and cycle checks.",
+        "canon_input",
+        "bind_edge",
+        False,
+    ),
+    (
+        "canon_dispatch_linked_task",
+        "Dispatch linked Canon task",
+        "Dispatch exactly one TOP_LEVEL_TASK or explicitly authorized SUBAGENT through a supported host seam, then bind its exact UUID/deep link. Fail with HOST_CAPABILITY_UNAVAILABLE when the host seam is absent.",
+        "canon_input",
+        "dispatch_linked_task",
+        False,
+    ),
+    (
+        "canon_backfire_hil",
+        "Raise Canon backfire",
+        "Seal a bounded Canon backfire only for execution failure, missing source information, a new source requirement, or another linked-task input; the receiving task owns its three-way Canon HIL.",
+        "canon_input",
+        "backfire_hil",
+        False,
+    ),
+    (
+        "canon_seal_result",
+        "Seal Canon task result",
+        "Seal one bounded result for an existing Canon edge with exact evidence, schema, expiry, and source-pointer identities.",
+        "canon_input",
+        "seal_result",
+        False,
+    ),
+    (
+        "canon_seal_continuity",
+        "Seal Canon State Travel continuity",
+        "Seal Canon graph continuity for an independently authorized State Travel handoff; this does not prepare, resume, or authorize State Travel itself.",
+        "canon_input",
+        "seal_continuity",
+        False,
+    ),
+    (
+        "canon_restore_continuity",
+        "Restore Canon State Travel continuity",
+        "Restore one sealed Canon graph snapshot after exact destination binding. This cannot replay HIL, move a pointer, or create another destination.",
+        "canon_input",
+        "restore_continuity",
+        False,
+    ),
+    (
+        "learning_inspect",
+        "Inspect Agent Learning",
+        "Inspect the project-isolated Agent Learning authority, candidate ledger, pointer, and decisions without reading it as Project Truth.",
+        "agent_learning",
+        "inspect",
+        True,
+    ),
+    (
+        "learning_retrieve",
+        "Retrieve accepted Agent Learning",
+        "Retrieve a bounded project-isolated accepted Learning slice with scope, temporal, contradiction, and provenance receipts; never merge-rank it with Project Truth.",
+        "agent_learning",
+        "retrieve",
+        True,
+    ),
+    (
+        "learning_seal_candidate",
+        "Seal Agent Learning candidate",
+        "Seal one evidence-backed project-isolated Learning candidate. It remains unaccepted and cannot change Project Truth.",
+        "agent_learning",
+        "seal_candidate",
+        False,
+    ),
+    (
+        "learning_decide_candidate",
+        "Decide Agent Learning candidate",
+        "Record one exact Learning six-way HIL decision against the Learning pointer only; Project Truth and the Project six-way HIL remain untouched.",
+        "agent_learning",
+        "decide_candidate",
+        False,
+    ),
+    (
+        "learning_revoke",
+        "Revoke accepted Agent Learning",
+        "Append one immutable revocation event for accepted project-isolated Learning without deleting history or changing Project Truth.",
+        "agent_learning",
+        "revoke",
+        False,
+    ),
+)
+
+SDK_NATIVE_READ_TOOL_NAMES = tuple(
+    row[0] for row in SDK_NATIVE_ACTIONS if row[5]
+)
 CODEX_READ_TOOL_NAMES = (
+    *SDK_NATIVE_READ_TOOL_NAMES,
     "connector_plugin_catalog",
     "connector_plugin_settings",
     "fetch",
@@ -94,6 +280,15 @@ CODEX_READ_TOOL_NAMES = (
     "session_flash_status",
     "storage_connector_inspect",
 )
+
+if (
+    len(SDK_NATIVE_ACTIONS) != 21
+    or len(SDK_NATIVE_READ_TOOL_NAMES) != 5
+    or len(CODEX_READ_TOOL_NAMES) != NATIVE_READ_TOOL_COUNT
+    or NATIVE_TOOL_COUNT - NATIVE_READ_TOOL_COUNT != NATIVE_WRITE_TOOL_COUNT
+    or GOVERNED_SKILL_COUNT != 17
+):
+    raise RuntimeError("Evidence Lane public-surface count contract drifted.")
 
 _FULL_LIFECYCLE_INSTRUCTIONS = (
     "A prepared exact-work handoff makes /evi-state-travel eligible but "
@@ -467,6 +662,7 @@ def create_mcp_server(
     public_site_url: str | None = None,
     allowed_tool_names: str | tuple[str, ...] | list[str] | None = None,
     exposure_profile: str | None = None,
+    canon_dispatcher: CanonTaskDispatcher | None = None,
 ) -> FastMCP:
     backend_application = service or EvidenceLaneService()
     release_identity = backend_application.engine.doctor()["engine"]
@@ -2585,6 +2781,85 @@ def create_mcp_server(
             action_id=action_id,
             executed_by=executed_by,
             lifecycle=True,
+        )
+
+    def invoke_native_sdk_action(
+        project_id: str,
+        session_id: str,
+        request_id: str,
+        module_id: str,
+        operation: str,
+        payload: dict[str, Any],
+        read_only: bool,
+    ) -> dict[str, Any]:
+        write_scope = () if read_only else (f"{module_id}:{operation}",)
+        sdk, binding = build_live_local_sdk_context(
+            backend_application,
+            project_id=project_id,
+            session_id=session_id,
+            write_scope=write_scope,
+            canon_dispatcher=canon_dispatcher,
+        )
+        return sdk.invoke(
+            module_id=module_id,
+            operation=operation,
+            binding=binding,
+            payload=payload,
+            request_id=request_id,
+        )
+
+    def sdk_action_callable(
+        *,
+        tool_name: str,
+        module_id: str,
+        operation: str,
+        read_only: bool,
+    ) -> Any:
+        def sdk_action(
+            project_id: str,
+            session_id: str,
+            request_id: str,
+            payload: dict[str, Any] | None = None,
+        ) -> dict[str, Any]:
+            return application.invoke(
+                tool_name,
+                invoke_native_sdk_action,
+                project_id,
+                session_id,
+                request_id,
+                module_id,
+                operation,
+                dict(payload or {}),
+                read_only,
+                lifecycle=not read_only,
+            )
+
+        sdk_action.__name__ = tool_name
+        sdk_action.__qualname__ = tool_name
+        return sdk_action
+
+    for (
+        sdk_tool_name,
+        sdk_title,
+        sdk_description,
+        sdk_module_id,
+        sdk_operation,
+        sdk_read_only,
+    ) in SDK_NATIVE_ACTIONS:
+        mcp.tool(
+            name=sdk_tool_name,
+            title=sdk_title,
+            description=sdk_description,
+            annotations=_READ_ONLY if sdk_read_only else _LOCAL_WRITE,
+            meta=_meta(f"Running {sdk_title}", f"{sdk_title} finished"),
+            structured_output=True,
+        )(
+            sdk_action_callable(
+                tool_name=sdk_tool_name,
+                module_id=sdk_module_id,
+                operation=sdk_operation,
+                read_only=sdk_read_only,
+            )
         )
 
     _apply_evidence_lane_tool_icons(mcp, exact_public_site)

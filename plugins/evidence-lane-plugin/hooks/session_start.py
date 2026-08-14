@@ -103,6 +103,16 @@ def _turn_control_context(
 
 def _plugin_version_context() -> dict[str, object]:
     root = _plugin_root()
+    source_root = root / "src"
+    if str(source_root) not in sys.path:
+        sys.path.insert(0, str(source_root))
+    from evidence_lane_plugin.constants import (
+        GOVERNED_SKILL_COUNT,
+        NATIVE_READ_TOOL_COUNT,
+        NATIVE_TOOL_COUNT,
+        NATIVE_WRITE_TOOL_COUNT,
+    )
+
     manifest_path = root / ".codex-plugin" / "plugin.json"
     constants_path = root / "src" / "evidence_lane_plugin" / "constants.py"
     try:
@@ -137,7 +147,12 @@ def _plugin_version_context() -> dict[str, object]:
                 stable.get("native_write_tool_count"),
                 stable.get("skill_count"),
             )
-            == (62, 21, 41, 15)
+            == (
+                NATIVE_TOOL_COUNT,
+                NATIVE_READ_TOOL_COUNT,
+                NATIVE_WRITE_TOOL_COUNT,
+                GOVERNED_SKILL_COUNT,
+            )
             and stable.get("codex_apps_allowed") is False
             and stable.get("generated_namespace_allowed") is False
             and stable.get("direct_stdio_fallback_allowed") is False

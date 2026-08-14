@@ -232,6 +232,15 @@ not complete the Goal. Usage reporting is separate accounting and has no task
 status effect. Every reconstruction includes completed-but-still-governing
 rows, the one active row, and all pending rows.
 
+Only the human may complete a governed Goal, using the exact visible command
+`MARK GOAL COMPLETE` and one exact disposition:
+`COMPLETE_THIS_TASK_AND_STATE_TRAVEL` or `COMPLETE_FULLY`. Candidate or HIL
+state, Plan or task transitions, tests, automation, and pause/stall conditions
+may never complete it. The first disposition closes only this task's Goal
+boundary and explicitly requests a bound successor through State Travel; the
+second closes the Goal fully. Neither disposition implies HIL approval, Fuse,
+pointer movement, Git, install, merge, or deployment authority.
+
 ## Brain and sector law
 
 Use `lane_catalog` as the sole registry for canonical lane IDs, aliases,

@@ -3,8 +3,10 @@ from __future__ import annotations
 import pytest
 from evidence_lane_plugin.goal_usage import (
     EARLIER_RECORDED_TOKENS,
+    GOAL_COMPLETION_COMMAND,
     PRIOR_GOAL_TOKENS,
     build_component_token_accounting,
+    build_goal_completion_authorization,
     build_goal_usage_receipt,
     build_profile_observed_usage_context,
     compact_duration,
@@ -58,6 +60,57 @@ def test_goal_usage_receipt_never_inherits_another_project_baseline() -> None:
         "goal_completion_effect": "NONE",
         "exact_counts_preserved": True,
     }
+
+
+def test_goal_completion_is_exact_human_only_and_has_two_dispositions() -> None:
+    continued = build_goal_completion_authorization(
+        visible_command=GOAL_COMPLETION_COMMAND,
+        disposition="COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
+        actor_kind="HUMAN",
+        current_task_id="task-current",
+    )
+    assert continued["current_task_goal_completed"] is True
+    assert continued["state_travel_requested"] is True
+    assert continued["successor_goal_required"] is True
+    assert continued["full_goal_closed"] is False
+
+    final = build_goal_completion_authorization(
+        visible_command=GOAL_COMPLETION_COMMAND,
+        disposition="COMPLETE_FULLY",
+        actor_kind="HUMAN",
+        current_task_id="task-current",
+    )
+    assert final["full_goal_closed"] is True
+    assert final["state_travel_requested"] is False
+    assert final["hil_can_complete_goal"] is False
+    assert final["candidate_can_complete_goal"] is False
+    assert final["automation_can_complete_goal"] is False
+    assert final["task_transition_can_complete_goal"] is False
+    assert final["pause_or_stall_can_complete_goal"] is False
+    assert final["goal_completion_implies_hil_approval"] is False
+    assert final["goal_completion_implies_pointer_move"] is False
+
+
+@pytest.mark.parametrize(
+    ("command", "disposition", "actor"),
+    [
+        ("APPROVE", "COMPLETE_FULLY", "HUMAN"),
+        (GOAL_COMPLETION_COMMAND, "COMPLETE_FULLY", "AUTOMATION"),
+        (GOAL_COMPLETION_COMMAND, "PAUSE", "HUMAN"),
+    ],
+)
+def test_hil_automation_and_pause_cannot_complete_goal(
+    command: str,
+    disposition: str,
+    actor: str,
+) -> None:
+    with pytest.raises(ValueError):
+        build_goal_completion_authorization(
+            visible_command=command,
+            disposition=disposition,
+            actor_kind=actor,
+            current_task_id="task-current",
+        )
 
 
 @pytest.mark.parametrize("value", [-1, True, 1.5])

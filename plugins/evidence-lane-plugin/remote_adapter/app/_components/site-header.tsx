@@ -7,16 +7,19 @@ import { usePathname } from "next/navigation";
 import { primaryNavigation } from "../_data/site";
 import { GlassIconOrb, OfficialToolIcon, type OfficialToolIconName } from "./evidence-assets";
 
-const navIdentity: readonly { color: string; icon: OfficialToolIconName }[] = [
-  { color: "#69d9f5", icon: "node" },
-  { color: "#69d9f5", icon: "pulse" },
-  { color: "#83ddb3", icon: "database" },
-  { color: "#b6a0ff", icon: "terminal" },
-  { color: "#f2a1c5", icon: "node" },
-  { color: "#efca72", icon: "package" },
-  { color: "#7fc9ef", icon: "git" },
-  { color: "#9ed368", icon: "docker" },
-] as const;
+const navIdentity: Readonly<Record<string, { color: string; icon: OfficialToolIconName }>> = {
+  "/": { color: "#69d9f5", icon: "node" },
+  "/skills": { color: "#a99af7", icon: "package" },
+  "/mcp": { color: "#83ddb3", icon: "terminal" },
+  "/hooks": { color: "#f2a1c5", icon: "pulse" },
+  "/architecture": { color: "#69d9f5", icon: "pulse" },
+  "/lanes": { color: "#83ddb3", icon: "database" },
+  "/operators": { color: "#b6a0ff", icon: "terminal" },
+  "/studio": { color: "#f2a1c5", icon: "node" },
+  "/proof": { color: "#efca72", icon: "package" },
+  "/provenance": { color: "#7fc9ef", icon: "git" },
+  "/connect": { color: "#9ed368", icon: "docker" },
+};
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -36,7 +39,7 @@ export function SiteHeader() {
         </div>
         <div className="navPillCluster">
           <div className="navLinks" role="list">
-            {primaryNavigation.map((item, index) => (
+            {primaryNavigation.map((item) => (
               <Link
                 className={`navGlassPill universal-pill${pathname === item.href ? " active" : ""}`}
                 href={item.href}
@@ -46,8 +49,8 @@ export function SiteHeader() {
                 data-pill-content-mode="text"
                 data-pill-containment="no-overlap"
               >
-                <GlassIconOrb color={navIdentity[index].color} size={28} decorative>
-                  <OfficialToolIcon tool={navIdentity[index].icon} size={15} decorative />
+                <GlassIconOrb color={navIdentity[item.href].color} size={28} decorative>
+                  <OfficialToolIcon tool={navIdentity[item.href].icon} size={15} decorative />
                 </GlassIconOrb>
                 <span>{item.label}</span>
               </Link>

@@ -5,13 +5,26 @@ param(
     [string]$TaskBindingReceipt,
     [string]$TaskId,
     [string]$ActivePlanTaskId,
-    [string]$RecoveryRoot = "$env:USERPROFILE\EvidenceLanePV\installations\codex-v200\goal-recovery",
+    [string]$Release = "2.2.0",
+    [string]$RecoveryRoot = "",
     [string]$TwoSlotRegistry = "$env:USERPROFILE\EvidenceLanePV\installations\codex-v200\two-slot\CODEX_TWO_SLOT_REGISTRY.json",
-    [string]$ScheduledTaskName = "Evidence Lane Codex Goal Recovery"
+    [string]$ScheduledTaskName = ""
 )
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+
+if ($Release -notmatch '^\d+\.\d+\.\d+$') {
+    throw "The Goal recovery helper requires one exact semantic release."
+}
+$script:Release = $Release
+$script:ReleaseToken = "v" + ($Release -replace '\.', '')
+if ([string]::IsNullOrWhiteSpace($RecoveryRoot)) {
+    $RecoveryRoot = Join-Path $env:USERPROFILE "EvidenceLanePV\installations\helpers\$($script:ReleaseToken)\goal-recovery"
+}
+if ([string]::IsNullOrWhiteSpace($ScheduledTaskName)) {
+    $ScheduledTaskName = "Evidence Lane Codex Goal Recovery $($script:ReleaseToken)"
+}
 
 $script:Schema = "evidence-lane.codex-goal-recovery-binding.v1"
 $script:ManagerSchema = "evidence-lane.codex-goal-recovery-manager.v1"
@@ -378,8 +391,8 @@ function Invoke-CodexGoalProbe([string]$ExactTaskId) {
         }
         $evidenceServer = $evidenceServers[0]
         $toolCount = @($evidenceServer.tools.PSObject.Properties).Count
-        if ($toolCount -ne 62) {
-            throw "The Evidence Lane MCP catalog did not expose the exact 62-tool contract."
+        if ($toolCount -ne 83) {
+            throw "The Evidence Lane MCP catalog did not expose the exact 83-tool contract."
         }
         $governedResourceUri = "ui://evidence-lane/governed-console-v5.html"
         $governedResources = @(
@@ -582,6 +595,7 @@ function Install-RecoveryManager() {
         "-NoLogo", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-ExecutionPolicy", "Bypass",
         "-File", $durableScript,
         "-Action", "RecoverAtLogon",
+        "-Release", $script:Release,
         "-RecoveryRoot", $exactRoot,
         "-TwoSlotRegistry", ([IO.Path]::GetFullPath($TwoSlotRegistry)),
         "-ScheduledTaskName", $ScheduledTaskName
@@ -622,9 +636,36 @@ function Install-RecoveryManager() {
         -Settings $settings `
         -Description "Reopen exact active Evidence Lane governed Codex Goal tasks after Windows logon; never submits a prompt or changes lifecycle state." `
         -Force | Out-Null
+    $retainedPriorManagers = @()
+    foreach ($priorTask in @(Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object {
+        [string]$_.TaskName -like "Evidence Lane Codex Goal Recovery*" -and
+        [string]$_.TaskName -ne $ScheduledTaskName
+    })) {
+        $ownedAction = @($priorTask.Actions | Where-Object {
+            [string]$_.Execute -like "*powershell*" -and
+            [string]$_.Arguments -like "*Manage-EvidenceLaneCodexGoalRecovery.ps1*" -and
+            [string]$_.Arguments -like "*-Action*RecoverAtLogon*"
+        })
+        if ($ownedAction.Count -ne 1) {
+            continue
+        }
+        Stop-ScheduledTask -TaskName ([string]$priorTask.TaskName) -ErrorAction SilentlyContinue
+        Disable-ScheduledTask -TaskName ([string]$priorTask.TaskName) -ErrorAction Stop | Out-Null
+        $retainedPriorManagers += [ordered]@{
+            task_name = [string]$priorTask.TaskName
+            retained = $true
+            disabled = $true
+            deleted = $false
+        }
+    }
     $manager = [ordered]@{
         schema = $script:ManagerSchema
         status = "PASS"
+        release = $script:Release
+        release_token = $script:ReleaseToken
+        helper_audience = "GOVERNED_CODEX_USER"
+        public_marketplace_runtime_helper = $true
+        maintainer_release_helper = $false
         scope = "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_ON_THIS_WINDOWS_USER"
         durable_script = $durableScript
         durable_script_sha256 = Get-Sha256 $durableScript
@@ -633,6 +674,12 @@ function Install-RecoveryManager() {
         start_when_available = $true
         max_instances = 1
         windows_console_policy = "POWERSHELL_WINDOWSTYLE_HIDDEN"
+        scheduled_task_window_style = "HIDDEN"
+        survives_windows_logon = $true
+        prior_versioned_helpers_retained = $true
+        prior_versioned_helpers_disabled = $true
+        prior_versioned_helpers_deleted = $false
+        retained_prior_managers = $retainedPriorManagers
         host_owned_initial_mcp_spawn = "HOST_CAPABILITY_UNAVAILABLE"
         raw_goal_objective_stored = $false
         synthetic_prompt_allowed = $false
@@ -734,6 +781,14 @@ if ($Action -eq "Register") {
         goal = $goalProbe
         slot_authority = $slotAuthority
         recovery_law = [ordered]@{
+            release = $script:Release
+            release_token = $script:ReleaseToken
+            helper_audience = "GOVERNED_CODEX_USER"
+            public_marketplace_runtime_helper = $true
+            maintainer_release_helper = $false
+            prior_versioned_helpers_retained = $true
+            prior_versioned_helpers_disabled = $true
+            prior_versioned_helpers_deleted = $false
             exact_task_only = $true
             all_governed_goal_tasks_supported = $true
             open_exact_task_after_logon = $true
@@ -769,6 +824,9 @@ if ($Action -eq "Register") {
     [ordered]@{
         status = "PASS"
         state = "ACTIVE_GOAL_REGISTERED_FOR_WINDOWS_LOGON_RECOVERY"
+        release = $script:Release
+        release_token = $script:ReleaseToken
+        helper_audience = "GOVERNED_CODEX_USER"
         task_id = $TaskId
         active_plan_task_id = $ActivePlanTaskId
         binding_path = $bindingPath
@@ -1000,6 +1058,9 @@ $scheduled = Get-ScheduledTask -TaskName $ScheduledTaskName -ErrorAction Silentl
 [ordered]@{
     status = "PASS"
     state = "GOAL_RECOVERY_STATUS"
+    release = $script:Release
+    release_token = $script:ReleaseToken
+    helper_audience = "GOVERNED_CODEX_USER"
     recovery_root = $exactRoot
     manager_installed = Test-Path -LiteralPath (Join-Path $exactRoot "MANAGER.json") -PathType Leaf
     scheduled_task_present = $null -ne $scheduled

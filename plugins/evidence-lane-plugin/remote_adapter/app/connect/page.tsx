@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 
 const installChecks = [
   "Verify the governed branch, full commit SHA, and clean release file set.",
-  "Build the deterministic local package and prove the 62-tool, 21-read, 41-write catalog.",
-  "Install the exact 2.1.0 cache-busted package through the Codex Git marketplace route.",
+  "Build the deterministic local package and prove the 83-tool, 26-read, 57-write catalog.",
+  "Install the exact 2.2.0 cache-busted package through the Codex Git marketplace route after the governed pre-HIL build route authorizes that test installation.",
   "Restart Codex only when the installer reports that a catalog refresh is required.",
   "Reopen the exact task, restore its full Plan Lane panel, and run post-restart native verification.",
 ] as const;
@@ -24,7 +24,7 @@ export default function ConnectPage() {
       <PageHero
         eyebrow="Codex installation"
         title="One exact Git release. One native lifecycle route."
-        description="Evidence Lane 2.0 installs into Codex from a verified Git identity. The local native MCP server, not a website or external transport, owns lifecycle execution."
+        description="Evidence Lane 2.2 installs into Codex from a verified Git identity. The local native MCP server, not a website or external transport, owns lifecycle execution."
         aside={<HeroOrbit preset="connect" />}
       />
 
@@ -39,7 +39,7 @@ export default function ConnectPage() {
           </span>
           <h2>Install from an exact governed commit.</h2>
           <p>
-            The package contributes fifteen skills, eight registered hook events,
+            The package contributes seventeen skills, eight registered hook events,
             the persistent task/change projection, and one native Evidence Lane
             MCP catalog. Older stable bytes remain recoverable until replacement
             verification succeeds.
@@ -92,7 +92,7 @@ export default function ConnectPage() {
               <small>Product, lifecycle, architecture, proof, and legal boundaries</small>
             </a>
             <a href={repositoryUrl} className="endpointCard endpointCardProtocol">
-              <span>GIT</span><code>agent/evi-v210-systemwide-release-hil-v2.1.0</code><strong>Governed test branch</strong>
+              <span>GIT</span><code>agent/evi-v220-systemwide-release-hil-v2.2.0</code><strong>Governed pre-HIL test branch</strong>
               <small>Exact commit and CI identity are verified before installation</small>
             </a>
           </div>

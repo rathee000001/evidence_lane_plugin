@@ -44,7 +44,7 @@ def test_workflows_are_study_branch_only_and_preview_does_not_deploy() -> None:
     assert 'payload["release_sha"] == os.environ["EVIDENCE_LANE_RELEASE_SHA"]' in (
         preview
     )
-    assert 'payload["mcp_route_identity"]["tool_count"] == 62' in preview
+    assert 'payload["mcp_route_identity"]["tool_count"] == 83' in preview
 
 
 def test_codeql_is_pinned_and_preserves_local_evidence_without_api_upload() -> None:

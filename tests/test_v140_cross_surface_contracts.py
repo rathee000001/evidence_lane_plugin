@@ -69,12 +69,12 @@ def test_v2_codex_package_has_no_active_chatgpt_host_surface() -> None:
     skill_files = sorted((PLUGIN / "skills").glob("*/SKILL.md"))
 
     assert manifest["interface"]["displayName"] == "Evidence Lane"
-    assert manifest["version"].startswith("2.1.0+")
+    assert manifest["version"].startswith("2.2.0+")
     assert manifest["skills"] == "./skills/"
     assert manifest["mcpServers"] == "./.mcp.json"
     assert "apps" not in manifest
     assert not (PLUGIN / ".app.json").exists()
-    assert len(skill_files) == 15
+    assert len(skill_files) == 17
     assert not (PLUGIN / "chatgpt-app-connection.json").exists()
     assert not (PLUGIN / "chatgpt-app-submission.json").exists()
     assert not (PLUGIN / "remote_adapter" / "api" / "index.py").exists()
@@ -523,20 +523,20 @@ def test_current_execution_ledger_uses_generated_unabridged_plan_authority() -> 
     rows = projection["rows"]
     assert projection["canonical_authority"] == "PLAN_LANE"
     assert projection["row_start"] == 81
-    assert projection["row_end"] == 200
-    assert projection["task_count"] == 120
-    assert [row["row"] for row in rows] == list(range(81, 201))
-    assert [row["task_position"] for row in rows] == list(range(1, 121))
+    assert projection["row_end"] == 206
+    assert projection["task_count"] == 126
+    assert [row["row"] for row in rows] == list(range(81, 207))
+    assert [row["task_position"] for row in rows] == list(range(1, 127))
     assert projection["status_counts"] == {
-        "completed": 83,
+        "completed": 115,
         "in_progress": 1,
-        "pending": 36,
+        "pending": 10,
     }
     active = [row for row in rows if row["status"] == "IN_PROGRESS"]
     assert [(row["row"], row["task_id"]) for row in active] == [
-        (164, "EL-CODEX-TURN_PREPARE_CAPTURE-PROPOSAL-04")
+        (196, "EL-CODEX-GITHUB_ACTIONS_CLEAN_CI-PROPOSAL-31")
     ]
-    assert rows[-1]["row"] == 200
+    assert rows[-1]["row"] == 206
     assert rows[-1]["task_id"] == (
         "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR"
     )

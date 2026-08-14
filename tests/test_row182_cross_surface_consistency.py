@@ -20,7 +20,7 @@ from build_release_candidate_rehearsal import _source_inventory
 
 RELEASE = "2.2.0"
 CODEX_RELEASE = "2.2.0+codex.20260814082900"
-PUBLIC_SITE_SNAPSHOT_RELEASE = "2.1.0"
+PUBLIC_SITE_SNAPSHOT_RELEASE = "2.2.0"
 SITE = "https://evidencelane.org"
 REPOSITORY = "https://github.com/rathee000001/evidence_lane_plugin"
 
@@ -131,9 +131,9 @@ def test_release_identity_urls_and_proprietary_boundary_are_consistent() -> None
         in release_source
     )
     assert public_metadata["plan_lane"]["production_role"] == (
-        "HISTORICAL_BASELINE_ONLY_UNTIL_ACCEPTED_PUBLICATION"
+        "PRE_HIL_BRANCH_PROJECTION_NOT_ACCEPTED_PUBLICATION"
     )
-    assert PUBLIC_SITE_SNAPSHOT_RELEASE != RELEASE
+    assert PUBLIC_SITE_SNAPSHOT_RELEASE == RELEASE
 
     assert root_project["license"] == "LicenseRef-Proprietary"
     assert plugin_project["license"] == "LicenseRef-Proprietary"
@@ -169,14 +169,17 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
         "copyright",
         "credits",
         "hil",
+        "hooks",
         "lanes",
         "license",
+        "mcp",
         "operators",
         "privacy",
         "proof",
         "provenance",
         "readme",
         "security",
+        "skills",
         "studio",
         "support",
         "terms",
@@ -212,7 +215,7 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
 
 def test_all_skill_manifests_are_unique_complete_and_package_owned() -> None:
     skill_files = sorted((PLUGIN / "skills").glob("*/SKILL.md"))
-    assert len(skill_files) == 15
+    assert len(skill_files) == 17
     names: list[str] = []
     descriptions: list[str] = []
     for path in skill_files:
@@ -229,8 +232,8 @@ def test_all_skill_manifests_are_unique_complete_and_package_owned() -> None:
         assert len(description.group(1).strip()) >= 40
         names.append(name.group(1).strip())
         descriptions.append(description.group(1).strip())
-    assert len(names) == len(set(names)) == 15
-    assert len(descriptions) == len(set(descriptions)) == 15
+    assert len(names) == len(set(names)) == 17
+    assert len(descriptions) == len(set(descriptions)) == 17
 
     codex_mcp = json.loads(_read(PLUGIN / ".mcp.json"))
     assert codex_mcp["mcpServers"]["evidence-lane"]["command"] == "python"
@@ -350,7 +353,7 @@ def test_owner_repository_and_existing_devpost_identity_do_not_drift() -> None:
     assert "only the existing Devpost project" in readme
 
 
-def test_historical_public_plan_projection_preserves_its_sealed_snapshot() -> None:
+def test_current_public_plan_projection_preserves_its_sealed_snapshot() -> None:
     execution = _read(ADAPTER / "app" / "_data" / "website-current-execution.ts")
     guidance = _read(ADAPTER / "app" / "_data" / "business-guidance.ts")
     snapshot = json.loads(
@@ -362,18 +365,18 @@ def test_historical_public_plan_projection_preserves_its_sealed_snapshot() -> No
     assert 'import planProjection from "./website-plan-projection.json"' in execution
     assert "websiteCurrentExecutionBoundary" in guidance
     assert snapshot["canonical_authority"] == "PLAN_LANE"
-    assert snapshot["task_count"] == 120
+    assert snapshot["task_count"] == 126
     assert snapshot["row_start"] == 81
-    assert snapshot["row_end"] == 200
-    assert snapshot["active_row"] == 164
-    assert snapshot["physically_final_hil_row"] == 200
-    assert [row["row"] for row in snapshot["rows"]] == list(range(81, 201))
+    assert snapshot["row_end"] == 206
+    assert snapshot["active_row"] == 196
+    assert snapshot["physically_final_hil_row"] == 206
+    assert [row["row"] for row in snapshot["rows"]] == list(range(81, 207))
     assert [
         row["row"] for row in snapshot["rows"] if row["status"] == "IN_PROGRESS"
-    ] == [164]
+    ] == [196]
     assert snapshot["rows"][-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
     assert public_metadata["plan_lane"]["production_role"] == (
-        "HISTORICAL_BASELINE_ONLY_UNTIL_ACCEPTED_PUBLICATION"
+        "PRE_HIL_BRANCH_PROJECTION_NOT_ACCEPTED_PUBLICATION"
     )
     assert public_metadata["plan_lane"]["active_public_row"] == snapshot["active_row"]
     assert public_metadata["plan_lane"]["active_public_task_position"] == snapshot["active_task_position"]

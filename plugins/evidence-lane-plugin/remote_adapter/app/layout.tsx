@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import "./globals.css";
 import { FloatingEvidenceStudio } from "./_components/floating-evidence-studio";
+import { RepositorySourceStrip } from "./_components/repository-source-strip";
 import { SiteAtmosphere } from "./_components/site-atmosphere";
 import { SiteFooter } from "./_components/site-footer";
 import { SiteHeader } from "./_components/site-header";
@@ -55,6 +56,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <SiteAtmosphere />
         <SiteHeader />
+        <RepositorySourceStrip />
         {children}
         <FloatingEvidenceStudio />
         <SiteFooter />

@@ -36,7 +36,151 @@ MARKETPLACE_DISPLAY_NAME = "GitLane Stable 2.2"
 MARKETPLACE_SOURCE = "rathee000001/evidence_lane_plugin"
 PLUGIN_NAME = "evidence-lane-plugin"
 PLUGIN_SELECTOR = f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"
-EXPECTED_CATALOG = {"tools": 62, "read": 21, "write": 41, "skills": 15}
+EXPECTED_CATALOG = {"tools": 83, "read": 26, "write": 57, "skills": 17}
+EXPECTED_WORKFLOW_SCOPE = {
+    "plugin_release_cadence": "ONE_AUTHORIZED_LOGICAL_RELEASE_COMMIT_BATCH",
+    "plugin_release_steps": [
+        "GOVERNED_EXACT_BRANCH_COMMIT_PUSH",
+        "CLEAN_CI_AND_SECURITY",
+        "GIT_TRIGGERED_VERCEL_PREVIEW",
+        "EXACT_PACKAGE_BUILD",
+        "STABLE_SLOT_INSTALL_AND_HOT_REATTACH",
+        "PERSISTENT_OR_TRULY_HIDDEN_EVIDENCE_LANE_HELPERS_AND_TUNNEL",
+        "PLUGIN_PV_HIL",
+    ],
+    "downstream_project_pv_inherits_plugin_release_cycle": False,
+    "downstream_project_controls": [
+        "OWN_GIT_CI_DEPLOY_WORKFLOW",
+        "GOVERNED_SCHEMA_AND_LANE_EVOLUTION",
+        "BOUNDED_ADDITIONAL_PLUGINS",
+        "STORAGE_CONNECTOR_SELECTION",
+    ],
+    "intermediate_pv13_install_hil_route": {
+        "ci_prerequisite_row": 196,
+        "execution_row": 197,
+        "release": BASE_RELEASE,
+        "branch": "agent/evi-v220-systemwide-release-hil-v2.2.0",
+        "source": (
+            "EXACT_GIT_COMMIT_AFTER_REQUIRED_CLEAN_CI_AND_"
+            "GIT_TRIGGERED_VERCEL_PREVIEW"
+        ),
+        "slot_role": "stable-build",
+        "plugin_selector": PLUGIN_SELECTOR,
+        "installed_version_must_equal_exact_package_version": True,
+        "installed_catalog_must_equal": {
+            "native_actions": 83,
+            "read_actions": 26,
+            "write_actions": 57,
+            "governed_skills": 17,
+            "hook_events": 8,
+            "migrated_command_skills": 1,
+        },
+        "installed_ui_readback_required_before_pv13_hil": True,
+        "fallback_mutation_allowed": False,
+        "main_merge_allowed": False,
+        "downstream_project_inherits_install": False,
+    },
+    "full_vercel_guide_refresh": "ASSIGNED_WEBSITE_DELTA_ONLY",
+    "plan_or_pv_projection_update_is_full_site_refresh": False,
+    "env_uop_evolution_requires_new_sealed_identity": True,
+    "accepted_locked_env_uop_mutation_allowed": False,
+}
+EXPECTED_GOAL_COMPLETION_POLICY = {
+    "schema": "evidence-lane.human-goal-completion-policy.v1",
+    "scope": "ALL_GOVERNED_GOALS",
+    "exact_visible_command": "MARK GOAL COMPLETE",
+    "authorization_actor": "HUMAN_ONLY",
+    "dispositions": [
+        "COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
+        "COMPLETE_FULLY",
+    ],
+    "hil_candidate_plan_test_or_automation_can_complete": False,
+    "pause_or_stall_can_complete": False,
+    "pause_or_stall_without_completion_allowed": True,
+    "completion_implies_hil_approval_fuse_or_pointer_move": False,
+    "completion_implies_git_install_merge_or_deploy": False,
+}
+EXPECTED_HELPER_DISTRIBUTION_POLICY = {
+    "schema": "evidence-lane.helper-distribution-policy.v1",
+    "maintainer_release_helper": {
+        "script": "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1",
+        "audience": "EVIDENCE_LANE_MAINTAINER_ONLY",
+        "used_in_governed_development_build": True,
+        "public_marketplace_user_surface": False,
+        "release_bound": True,
+        "transient_task_is_hidden": True,
+        "transient_task_removed_after_run": True,
+    },
+    "user_goal_recovery_helper": {
+        "script": "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1",
+        "audience": "GOVERNED_CODEX_USER",
+        "public_marketplace_user_surface": True,
+        "release": BASE_RELEASE,
+        "release_token": "v220",
+        "scheduled_task_name": "Evidence Lane Codex Goal Recovery v220",
+        "at_logon": True,
+        "persistent_or_hidden_no_transient_console": True,
+        "prior_versions_retained": True,
+        "prior_versions_disabled": True,
+        "prior_versions_deleted": False,
+    },
+    "user_stable_tunnel": {
+        "script": "scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1",
+        "audience": "GOVERNED_CODEX_USER",
+        "public_marketplace_user_surface": True,
+        "release": BASE_RELEASE,
+        "release_token": "v220",
+        "runtime_root_suffix": "tunnel-runtime-v220-stable-build",
+        "scheduled_task_name": "EvidenceLane-Tunnel-v220-stable-build",
+        "at_logon": True,
+        "persistent_or_hidden_no_transient_console": True,
+        "one_active_version": True,
+        "prior_versions_retained": True,
+        "prior_versions_deleted": False,
+    },
+    "fallback_transport": {
+        "audience": "MAINTAINER_RECOVERY_ONLY",
+        "release": FALLBACK_RELEASE,
+        "release_token": "v200",
+        "runtime_root_suffix": "tunnel-runtime-v200-fallback",
+        "scheduled_task_name": "EvidenceLane-Tunnel-v200-fallback",
+        "enabled": False,
+        "byte_frozen": True,
+        "public_marketplace_user_surface": False,
+        "state": "CURRENT_PRE_FINAL_HIL_OBSERVED_FALLBACK",
+    },
+    "post_hil_release_rotation": {
+        "schema": "evidence-lane.plugin-slot-helper-tunnel-rotation.v1",
+        "applies_to_plugin_maintainer_route_only": True,
+        "downstream_project_inherits_rotation": False,
+        "intermediate_pv13_can_rotate_main_or_fallback": False,
+        "current_pre_final_hil_fallback_remains_2_0": True,
+        "final_gate": "PV14_EXACT_HUMAN_APPROVE_AND_FUSE",
+        "required_order": [
+            "FUSE_EXACT_ACCEPTED_PLUGIN_PV",
+            "GOVERNED_NON_FORCE_MAIN_PROMOTION",
+            "VERIFY_MAIN_EQUALS_ACCEPTED_COMMIT",
+            "INSTALL_ACCEPTED_RELEASE_IN_STABLE_SLOT",
+            "INSTALL_SAME_ACCEPTED_RELEASE_IN_DISABLED_FALLBACK_SLOT",
+            "ROTATE_MATCHING_HELPER_AND_TUNNEL_IDENTITIES",
+            "VERIFY_STABLE_ENABLED_FALLBACK_DISABLED_AND_ONE_ACTIVE_RUNTIME",
+        ],
+        "stable_and_fallback_must_equal_exact_accepted_release": True,
+        "helper_and_tunnel_release_must_match_owning_slot": True,
+        "prior_versioned_helpers_and_tunnels_retained": True,
+        "prior_versioned_helpers_and_tunnels_disabled": True,
+        "prior_versioned_helpers_and_tunnels_deleted": False,
+        "repeat_for_each_later_plugin_release_cycle": True,
+        "current_row_may_execute_rotation": False,
+    },
+    "external_tester_distribution_gate": (
+        "SEPARATELY_AUTHORIZED_GITHUB_APP_ROUTE_AFTER_PLUGIN_HIL"
+    ),
+    "official_marketplace_submission_gate": (
+        "SEPARATELY_AUTHORIZED_OPENAI_CHANNEL_AFTER_EXTERNAL_TEST_EVIDENCE"
+    ),
+    "current_row_authorizes_external_distribution_or_submission": False,
+}
 EXPECTED_BEHAVIOR_OWNERSHIP = {
     "hooks": "LIFECYCLE_CAPTURE_AND_SEALED_EVENTS_ONLY",
     "skills": "NATIVE_PV_READS_AND_HOST_BEHAVIOR",
@@ -549,7 +693,11 @@ def _catalog(plugin_root: Path) -> dict[str, Any]:
         or read != EXPECTED_CATALOG["read"]
         or write != EXPECTED_CATALOG["write"]
     ):
-        raise InstallationError("The native 62/21/41 tool catalog drifted.")
+        raise InstallationError(
+            "The native "
+            f"{EXPECTED_CATALOG['tools']}/{EXPECTED_CATALOG['read']}/"
+            f"{EXPECTED_CATALOG['write']} tool catalog drifted."
+        )
     return {
         "tools": len(rows),
         "read": read,
@@ -1121,6 +1269,9 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     live_slots = contract.get("live_slot_policy") or {}
     failover = contract.get("failover_operator") or {}
     goal_recovery = contract.get("goal_recovery") or {}
+    workflow_scope = contract.get("workflow_scope") or {}
+    goal_completion_policy = contract.get("goal_completion_policy") or {}
+    helper_distribution = contract.get("helper_distribution_policy") or {}
     behavior_ownership = contract.get("behavior_ownership") or {}
     stable_activation_gate = contract.get("stable_activation_gate") or {}
     brand_identity = contract.get("brand_identity") or {}
@@ -1253,6 +1404,9 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or goal_recovery.get("requires_stable_enabled_fallback_disabled") is not True
         or goal_recovery.get("stable_selector_growth_allowed") is not False
         or goal_recovery.get("raw_goal_objective_stored") is not False
+        or workflow_scope != EXPECTED_WORKFLOW_SCOPE
+        or goal_completion_policy != EXPECTED_GOAL_COMPLETION_POLICY
+        or helper_distribution != EXPECTED_HELPER_DISTRIBUTION_POLICY
         or behavior_ownership != EXPECTED_BEHAVIOR_OWNERSHIP
         or stable_activation_gate != EXPECTED_STABLE_ACTIVATION_GATE
         or brand_identity != EXPECTED_BRAND_IDENTITY

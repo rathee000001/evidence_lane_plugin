@@ -4,7 +4,7 @@ Evidence Lane 2.2 keeps the Codex lifecycle on the package-local native MCP.
 The Windows tunnel is a separate, version-bound support channel selected only
 when measured runtime capability explicitly requires it. A durable local Codex
 desktop does not install or use it for lifecycle work. Tunnel health never
-substitutes for the native 62-tool catalog,
+substitutes for the native 83-tool catalog,
 project/session binding, accepted pointer, or HIL proof.
 
 Both the ChatGPT stable desktop channel and ChatGPT Beta desktop channel can
@@ -61,11 +61,12 @@ the DPAPI envelope and tunnel runtime end with that VM.
 Verify the installed runtime without exposing credentials:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200-stable-build\Manage-EvidenceLaneTunnel.ps1" `
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build\Manage-EvidenceLaneTunnel.ps1" `
   -Action Status `
-  -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200-stable-build" `
-  -ProfileName evidence_lane_v200_stable_build_transport `
-  -TaskName EvidenceLane-Tunnel-v200-stable-build
+  -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build" `
+  -ProfileName evidence_lane_v220_stable_build_transport `
+  -TaskName EvidenceLane-Tunnel-v220-stable-build `
+  -ReleaseToken v220
 ```
 
 `PASS` requires the scheduled task, exact client path and SHA-256, one live PID,
@@ -97,6 +98,18 @@ name. It is not keyed only by semantic version. The pre-HIL source target is
 2.2.0, the accepted/base GitLane release is 2.1.0, and direct host evidence
 showed the disabled fallback at 2.0.0. Those identities remain separate until
 their later governed install/readback gates pass.
+
+The updater that performs an Evidence Lane release is maintainer-only. The
+versioned Goal-recovery helper and Stable tunnel are the governed-user support
+surface; each matches the installed plugin release and launches persistently or
+with `-WindowStyle Hidden`. Older versioned helper/tunnel tasks and runtimes are
+retained and disabled rather than deleted. The intermediate PV13 decision may
+Fuse PV13 only and cannot rotate main or fallback. After exact human approval
+and Fuse of the physically final PV14, the maintainer route must promote the
+accepted commit, install that exact 2.2 package into both enabled Stable and
+disabled fallback, rotate matching helper/tunnel identities, and prove only one
+runtime active. Later plugin releases repeat this serial transaction. A user's
+ordinary project PV never invokes or inherits it.
 
 ## Deterministic failover operator
 

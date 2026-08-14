@@ -110,7 +110,7 @@ def test_sdk_catalog_covers_every_independent_governed_arm() -> None:
     assert all(row["independent_replay_ledger"] for row in modules.values())
 
 
-def test_canon_sdk_arm_exposes_full_engine_and_truthful_host_gap() -> None:
+def test_canon_sdk_arm_exposes_full_engine_with_fail_closed_host_dispatch() -> None:
     catalog = InternalEvidenceLaneSDK.module_catalog()
     canon = next(row for row in catalog["modules"] if row["module_id"] == "canon_input")
     contract_operations = {row["name"] for row in canon["operations"]}
@@ -137,8 +137,27 @@ def test_canon_sdk_arm_exposes_full_engine_and_truthful_host_gap() -> None:
         object(), runtime_binding=_binding().as_dict()
     )
     available = adapter.available_operations()["canon_input"]
-    assert contract_operations - {"dispatch_linked_task"} == available
-    assert "dispatch_linked_task" not in available
+    assert contract_operations == available
+
+
+def test_learning_sdk_arm_exposes_candidate_lifecycle() -> None:
+    catalog = InternalEvidenceLaneSDK.module_catalog()
+    learning = next(
+        row for row in catalog["modules"] if row["module_id"] == "agent_learning"
+    )
+    contract_operations = {row["name"] for row in learning["operations"]}
+    assert contract_operations == {
+        "inspect",
+        "retrieve",
+        "seal_candidate",
+        "decide_candidate",
+        "revoke",
+    }
+
+    adapter = build_local_service_adapter(
+        object(), runtime_binding=_binding().as_dict()
+    )
+    assert adapter.available_operations()["agent_learning"] == contract_operations
 
 
 def test_separate_retrieval_never_fuses_truth_and_learning(tmp_path: Path) -> None:

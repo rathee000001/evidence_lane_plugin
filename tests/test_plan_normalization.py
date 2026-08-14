@@ -567,13 +567,13 @@ def test_plan_normalization_correction_recovers_after_plan_write(
     )
 
 
-def test_plan_normalization_extends_existing_tool_without_catalog_growth(
+def test_plan_normalization_preserves_current_public_catalog(
     service,
 ) -> None:
     server = create_mcp_server(service=service)
     tools = asyncio.run(server.list_tools())
-    assert len(tools) == 62
-    assert sum(tool.annotations.readOnlyHint is True for tool in tools) == 21
-    assert sum(tool.annotations.readOnlyHint is False for tool in tools) == 41
+    assert len(tools) == 83
+    assert sum(tool.annotations.readOnlyHint is True for tool in tools) == 26
+    assert sum(tool.annotations.readOnlyHint is False for tool in tools) == 57
     plan_tool = next(tool for tool in tools if tool.name == "pv_plan_tasks")
     assert "normalization_transition" in plan_tool.inputSchema["properties"]

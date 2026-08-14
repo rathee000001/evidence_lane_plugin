@@ -25,15 +25,31 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+$releaseChannelPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\codex-release-channel.json"))
+if (-not (Test-Path -LiteralPath $releaseChannelPath -PathType Leaf)) {
+    throw "The exact Evidence Lane release-channel contract is missing."
+}
+$releaseChannel = Get-Content -LiteralPath $releaseChannelPath -Raw | ConvertFrom-Json
+$slotContract = if ($SlotRole -eq "fallback") { $releaseChannel.fallback } else { $releaseChannel.stable }
+if (
+    $releaseChannel.schema -ne "evidence-lane.codex-release-channel.v2" -or
+    [string]$slotContract.slot_role -ne $SlotRole -or
+    [string]$slotContract.release -notmatch '^\d+\.\d+\.\d+$'
+) {
+    throw "The requested tunnel slot does not match the exact release-channel contract."
+}
+$release = [string]$slotContract.release
+$releaseToken = "v" + ($release -replace '\.', '')
+$filePrefix = "evidence_lane_${releaseToken}"
 $slotToken = $SlotRole.Replace("-", "_")
 if ([string]::IsNullOrWhiteSpace($RuntimeRoot)) {
-    $RuntimeRoot = Join-Path $env:USERPROFILE "EvidenceLanePV\tunnel-runtime-v200-$SlotRole"
+    $RuntimeRoot = Join-Path $env:USERPROFILE "EvidenceLanePV\tunnel-runtime-$releaseToken-$SlotRole"
 }
 if ([string]::IsNullOrWhiteSpace($ProfileName)) {
-    $ProfileName = "evidence_lane_v200_${slotToken}_transport"
+    $ProfileName = "${filePrefix}_${slotToken}_transport"
 }
 if ([string]::IsNullOrWhiteSpace($TaskName)) {
-    $TaskName = "EvidenceLane-Tunnel-v200-$SlotRole"
+    $TaskName = "EvidenceLane-Tunnel-$releaseToken-$SlotRole"
 }
 if ($SlotRole -eq "fallback" -and $Activate) {
     throw "The fallback tunnel cannot be activated by the installer. Use the sealed two-slot operator after exact PV11 acceptance."
@@ -54,8 +70,6 @@ $profileFile = Join-Path $profileDir ($ProfileName + ".yaml")
 $runtimeKeyEnvelopeReused = $false
 $tunnelIdReused = $false
 $dependencyAcquisition = "EXISTING_VERIFIED_CLIENT"
-$release = if ($SlotRole -eq "fallback") { "2.0.0" } else { "2.2.0" }
-
 if ($InteractionProfile -in @("HEADLESS_API", "DIRECT_CLI_API")) {
     [ordered]@{
         status = "PASS"
@@ -339,6 +353,7 @@ function Assert-NoOtherActiveTunnel {
                 -Action Status `
                 -RuntimeRoot $otherRoot.FullName `
                 -ProfileName ([string]$otherMarker.profile_name) `
+                -ReleaseToken ([string]$otherMarker.release_token) `
                 -TaskName ([string]$otherMarker.task_name) 2>$null
             $status = ($statusText | Out-String).Trim() | ConvertFrom-Json
             if (
@@ -429,6 +444,9 @@ if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $profileFile -PathType 
 $marker = [ordered]@{
     schema = "evidence-lane.versioned-secure-mcp-tunnel-installation.v1"
     release = $release
+    release_token = $releaseToken
+    release_identity_source = "CODEX_RELEASE_CHANNEL_CONTRACT"
+    runtime_identity_matches_release = $true
     runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
     profile_name = $ProfileName
     profile_file = $profileFile
@@ -450,8 +468,8 @@ $marker = [ordered]@{
     tunnel_id = $exactTunnelId
     stable_client = $stableClient
     stable_client_sha256 = $expectedClientSha256
-    pid_file = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "evidence_lane_v200_tunnel.pid"
-    health_url_file = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "evidence_lane_v200_health.url"
+    pid_file = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "${filePrefix}_tunnel.pid"
+    health_url_file = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "${filePrefix}_health.url"
     live_slot_authority = "SEALED_POST_PV11_TWO_SLOT_REGISTRY"
     legacy_version_manager_authoritative = $false
     saved_version = $true
@@ -472,11 +490,16 @@ $marker = [ordered]@{
     runtime_key_plaintext_written = $false
     windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"
     scheduled_task_window_style = "HIDDEN"
+    distribution_audience = if ($SlotRole -eq "fallback") { "MAINTAINER_RECOVERY_ONLY" } else { "USER_STABLE_MARKETPLACE_RUNTIME" }
+    prior_versioned_runtimes_retained = $true
+    prior_versioned_tasks_retained = $true
+    prior_versioned_runtime_deletion_allowed = $false
+    one_active_version_required = $true
 }
 $marker | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $markerFile -Encoding UTF8
 
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
-$arguments = '-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + $bootTarget + '" -RuntimeRoot "' + $RuntimeRoot + '" -ProfileName "' + $ProfileName + '" -ProfileDir "' + $profileDir + '"'
+$arguments = '-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + $bootTarget + '" -RuntimeRoot "' + $RuntimeRoot + '" -ProfileName "' + $ProfileName + '" -ProfileDir "' + $profileDir + '" -ReleaseToken "' + $releaseToken + '"'
 $action = New-ScheduledTaskAction -Execute $powershell -Argument $arguments
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity
 $principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel Limited
@@ -508,6 +531,7 @@ if ($Activate) {
         -RuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot)) `
         -ProfileName $ProfileName `
         -ProfileDir $profileDir `
+        -ReleaseToken $releaseToken `
         -TaskName $TaskName *> $null
     if ($LASTEXITCODE -ne 0) {
         throw "The stable-build tunnel did not reach readiness."
@@ -517,6 +541,9 @@ if ($Activate) {
 [ordered]@{
     status = "PASS"
     release = $release
+    release_token = $releaseToken
+    release_identity_source = "CODEX_RELEASE_CHANNEL_CONTRACT"
+    runtime_identity_matches_release = $true
     slot_role = $SlotRole
     byte_frozen = $SlotRole -eq "fallback"
     task_name = $TaskName
@@ -536,13 +563,18 @@ if ($Activate) {
     project_route_argument = "project_id"
     project_route_argument_required = $true
     cross_project_fallback_allowed = $false
-    exact_visible_tool_count = 62
-    exact_active_read_tool_count = 21
-    exact_fail_closed_write_tool_count = 41
+    exact_visible_tool_count = 83
+    exact_active_read_tool_count = 26
+    exact_fail_closed_write_tool_count = 57
     tunnel_id_recorded = $true
     runtime_key_plaintext_written = $false
     windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"
     scheduled_task_window_style = "HIDDEN"
+    distribution_audience = if ($SlotRole -eq "fallback") { "MAINTAINER_RECOVERY_ONLY" } else { "USER_STABLE_MARKETPLACE_RUNTIME" }
+    prior_versioned_runtimes_retained = $true
+    prior_versioned_tasks_retained = $true
+    prior_versioned_runtime_deletion_allowed = $false
+    one_active_version_required = $true
     runtime_key_envelope_reused = $runtimeKeyEnvelopeReused
     tunnel_id_reused = $tunnelIdReused
     dependency_acquisition = $dependencyAcquisition

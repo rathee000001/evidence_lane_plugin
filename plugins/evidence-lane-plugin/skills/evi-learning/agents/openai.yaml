@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evidence Lane Learning"
+  short_description: "Govern project-isolated AI learning"
+  default_prompt: "Use $evi-learning to inspect or decide an AI learning candidate."

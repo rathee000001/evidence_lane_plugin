@@ -17,6 +17,7 @@ from evidence_lane_plugin.search_toolchain import (
     bounded_text_search,
     declared_search_toolchain_identity,
     load_search_toolchain_manifest,
+    plugin_root,
     resolve_search_tool,
 )
 
@@ -57,6 +58,24 @@ def test_search_toolchain_manifest_seals_binaries_licenses_and_fallbacks() -> No
     engine_tools = toolchain_manifest()["external_search_tools"]
     assert engine_tools["manifest_sha256"] == identity["manifest_sha256"]
     assert engine_tools["identity_sha256"] == identity["identity_sha256"]
+
+
+def test_explicit_plugin_root_supports_installed_runtime_and_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("EVIDENCE_LANE_PLUGIN_ROOT", str(PLUGIN))
+    assert plugin_root() == PLUGIN.resolve()
+
+    invalid = tmp_path / "not a plugin"
+    invalid.mkdir()
+    monkeypatch.setenv("EVIDENCE_LANE_PLUGIN_ROOT", str(invalid))
+    with pytest.raises(SearchToolchainError, match="PLUGIN_ROOT_INVALID"):
+        plugin_root()
+
+    monkeypatch.setenv("EVIDENCE_LANE_PLUGIN_ROOT", "relative/plugin")
+    with pytest.raises(SearchToolchainError, match="PLUGIN_ROOT_INVALID"):
+        plugin_root()
 
 
 @pytest.mark.skipif(os.name != "nt", reason="packaged executable is Windows x64")

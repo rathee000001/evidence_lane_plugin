@@ -57,6 +57,14 @@ complete. Usage reporting is accounting only and has no task-status effect.
 Every reconstruction must retain completed-but-still-governing rows, the one
 active row, and all pending rows.
 
+Goal completion is a separate human-owned boundary for every governed project.
+Only the exact visible command `MARK GOAL COMPLETE` may authorize it, with one
+of two exact dispositions: `COMPLETE_THIS_TASK_AND_STATE_TRAVEL` or
+`COMPLETE_FULLY`. A HIL decision, candidate, Plan transition, passing test,
+automation, task advance, pause, or stall cannot mark a Goal complete. Goal
+completion never implies HIL approval, Fuse, pointer movement, Git, install,
+merge, or deploy authority.
+
 After root `/evi`, expose exactly these six primary controls in this order:
 
 1. `/evi-boot`
@@ -67,7 +75,7 @@ After root `/evi`, expose exactly these six primary controls in this order:
 6. `/evi-source-intake`
 
 Keep that exact control inventory on every supported Codex profile. The native
-catalog contains twenty-one reads and forty-one writes under the complete
+catalog contains twenty-six reads and fifty-seven writes under the complete
 Git-backed lifecycle; a host capability restriction never becomes permission
 to simulate an unavailable action.
 
@@ -99,6 +107,16 @@ exposes eight structured slots with one-time purpose, role/schema, host profile,
 and optional governed backend runtime. It stores environment-variable names
 only, preserves dropped history, and returns to the prior lifecycle position.
 
+`/evi-canon` is a separate linked-work sidecar outside the six primary
+controls. It governs bounded task-to-task and explicitly authorized
+task-to-subagent exchange through exact graph edges, immutable envelopes,
+receiver-owned three-way Canon decisions, results, and bounded backfire.
+Canon cannot promote Project Truth or Agent Learning, replay Project HIL, or
+move a PV pointer. `/evi-learning` is a separate project-isolated AI Learning
+sidecar for accepted-lesson retrieval, evidence-backed candidates, Learning
+decisions, and revocation. Learning never becomes Project Truth, Canon, or the
+Formula Engine.
+
 `/evi-build` presents the six HIL outcomes. Only the exact case-sensitive user
 token `APPROVE` may call `pv_fuse`; continuation, discussion, install, tests,
 or any other token never implies approval. `/evi-refresh` creates an unaccepted
@@ -118,6 +136,11 @@ user instead continues in the unchanged host after Fuse, call
 supersession, and do not move the pointer.
 
 `/evi-plan` is a Codex-only Planning sidecar outside the six primary controls.
-If native Plan mode is not active, it returns the `/pl` reminder without
-persisting tasks. After planning, it writes the canonical Plan Lane and returns
-the short Goal prompt the user copies into the host-owned Goal.
+For ordinary planning it validates the host Plan context before a native Plan
+write. At a State Travel destination, the active skill restores the complete
+host Plan, stops for explicit host Plan acceptance, then invokes the Evidence
+Plan verification automatically. If the API cannot attest its Plan-mode
+selector, record `HOST_MODE_SELECTOR_UNAVAILABLE` without fabricating mode
+activation. After Evidence Plan passes, the active skill starts the carried
+Goal through the supported host action; do not ask the user to type `/pl`,
+`/evi-plan`, or paste a Goal prompt between destination phases.

@@ -135,10 +135,10 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "stable_updates_reinstall_in_place": True,
                     "build_identity_is_receipt_not_selector": True,
                     "native_server_identity": "evidence-lane",
-                    "native_tool_count": 62,
-                    "native_read_tool_count": 21,
-                    "native_write_tool_count": 41,
-                    "skill_count": 15,
+                    "native_tool_count": 83,
+                    "native_read_tool_count": 26,
+                    "native_write_tool_count": 57,
+                    "skill_count": 17,
                     "codex_apps_allowed": False,
                     "generated_namespace_allowed": False,
                     "direct_stdio_fallback_allowed": False,
@@ -426,7 +426,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     _write(plugin, "pyproject.toml", '[project]\nname="fixture"\nversion="2.2.0"\n')
     _write(plugin, "requirements.lock.txt", "mcp==1.28.1\n")
     _write(plugin, "src/evidence_lane_plugin/__init__.py", "VERSION = 'fixture'\n")
-    for index in range(15):
+    for index in range(17):
         _write(
             plugin,
             f"skills/skill-{index:02d}/SKILL.md",
@@ -523,7 +523,7 @@ def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(tmp_path: Path)
     assert first["governed_candidate_created"] is False
     assert first["git_invoked"] is False
     assert first["accepted_pointer_moved"] is False
-    assert first["skill_count"] == 15
+    assert first["skill_count"] == 17
     assert first["canonical_lane_count"] == 18
     search_toolchain = first["search_toolchain"]
     assert search_toolchain["status"] == "PASS"
@@ -618,8 +618,8 @@ def test_rehearsal_rejects_meshy_dependency_or_mcp_binding(tmp_path: Path) -> No
 
 def test_rehearsal_fails_closed_on_skill_inventory_drift(tmp_path: Path) -> None:
     plugin = _plugin_fixture(tmp_path)
-    (plugin / "skills" / "skill-14" / "SKILL.md").unlink()
-    with pytest.raises(PackageBoundaryError, match="Expected 15 skills"):
+    (plugin / "skills" / "skill-16" / "SKILL.md").unlink()
+    with pytest.raises(PackageBoundaryError, match="Expected 17 skills"):
         _build(plugin, tmp_path / "output")
 
 

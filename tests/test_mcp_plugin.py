@@ -31,8 +31,10 @@ from evidence_lane_plugin.mcp_apps import (
     governed_panel_html,
 )
 from evidence_lane_plugin.mcp_server import (
+    CODEX_READ_TOOL_NAMES,
     NATIVE_MCP_SERVER_IDENTITY,
     NATIVE_MCP_TOOL_NAMESPACE,
+    SDK_NATIVE_ACTIONS,
     create_mcp_server,
     run_server,
 )
@@ -51,7 +53,7 @@ from .conftest import (
     state_travel_destination_creation,
 )
 
-EXPECTED_TOOL_COUNT = 62
+EXPECTED_TOOL_COUNT = 83
 
 
 def _hook_context_json(payload: dict[str, object], prefix: str) -> dict[str, object]:
@@ -79,7 +81,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     )
     tools = asyncio.run(server.list_tools())
     by_name = {tool.name: tool for tool in tools}
-    assert set(by_name) == {
+    base_tool_names = {
         "runtime_doctor",
         "render_runtime_panel",
         "render_project_panel",
@@ -143,6 +145,9 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "storage_connector_inspect",
         "storage_connector_select",
     }
+    sdk_tool_names = {row[0] for row in SDK_NATIVE_ACTIONS}
+    assert len(sdk_tool_names) == 21
+    assert set(by_name) == base_tool_names | sdk_tool_names
     assert by_name["search"].annotations.readOnlyHint is True
     assert by_name["fetch"].annotations.readOnlyHint is True
     assert by_name["session_flash_status"].annotations.readOnlyHint is True
@@ -171,6 +176,10 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     assert by_name["pv_state_travel_resume"].annotations.destructiveHint is False
     assert by_name["hil_return_to_accepted"].annotations.destructiveHint is True
     assert by_name["remote_git_execute_push"].annotations.openWorldHint is True
+    for tool_name, _, _, _, _, read_only in SDK_NATIVE_ACTIONS:
+        assert by_name[tool_name].annotations.readOnlyHint is read_only
+        assert by_name[tool_name].annotations.destructiveHint is False
+    assert len(CODEX_READ_TOOL_NAMES) == 26
     assert (
         "preferred_plugin_id"
         in by_name["connector_plugin_route"].inputSchema["properties"]
@@ -225,7 +234,7 @@ def test_all_registered_tools_accept_generated_evidence_lane_namespaces(
     )
     tools = asyncio.run(server.list_tools())
     canonical_names = frozenset(tool.name for tool in tools)
-    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 62
+    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 83
 
     for namespace in (
         "evidence_lane",
@@ -299,10 +308,10 @@ def test_native_route_receipt_seals_the_exact_unique_catalog(tmp_path: Path) -> 
     assert receipt["status"] == "PASS"
     assert receipt["server_identity"] == NATIVE_MCP_SERVER_IDENTITY == "evidence-lane"
     assert receipt["canonical_tool_namespace"] == NATIVE_MCP_TOOL_NAMESPACE
-    assert receipt["tool_count"] == EXPECTED_TOOL_COUNT == 62
+    assert receipt["tool_count"] == EXPECTED_TOOL_COUNT == 83
     assert receipt["tool_names_unique"] is True
     assert receipt["runtime_global_tool_count"] == 6
-    assert receipt["project_scoped_tool_count"] == 56
+    assert receipt["project_scoped_tool_count"] == 77
     assert receipt["project_route_argument"] == "project_id"
     assert receipt["project_route_argument_required"] is True
     assert receipt["project_route_schema_status"] == "PASS"
@@ -369,12 +378,12 @@ def test_packaged_skill_tool_references_match_live_canonical_catalog(
     canonical_names = frozenset(
         tool.name for tool in asyncio.run(server.list_tools())
     )
-    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 62
+    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 83
     tool_families = frozenset(name.partition("_")[0] for name in canonical_names)
     skill_paths = sorted((plugin / "skills").glob("*/SKILL.md"))
     command_paths = sorted((plugin / "commands").glob("*.md"))
     contract_paths = [*skill_paths, *command_paths]
-    assert len(skill_paths) == 15
+    assert len(skill_paths) == 17
     assert [path.name for path in command_paths] == ["evi-plan.md"]
 
     referenced_tools: set[str] = set()
@@ -1579,6 +1588,8 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
         "evi-change-storage-connector",
         "evi-additional-plugin",
         "evi-drop-additional-plugin",
+        "evi-canon",
+        "evi-learning",
         *public_order,
     }
     assert [path.name for path in commands.glob("*.md")] == ["evi-plan.md"]

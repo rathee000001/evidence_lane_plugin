@@ -90,8 +90,8 @@ export function StudioArtifactLab() {
           <caption>Host capability table</caption>
           <thead><tr><th>Host</th><th>Visible</th><th>Executable</th><th>Fail closed</th></tr></thead>
           <tbody>
-            <tr><th>Codex native 1.5.0</th><td>62</td><td>62</td><td>0</td></tr>
-            <tr><th>ChatGPT Pro remote</th><td>62</td><td>21 reads</td><td>41 writes</td></tr>
+            <tr><th>Codex native 2.2.0</th><td>62</td><td>62</td><td>0</td></tr>
+            <tr><th>Codex 2.2 native</th><td>83</td><td>26 reads</td><td>57 writes</td></tr>
           </tbody>
         </table>
       </div>

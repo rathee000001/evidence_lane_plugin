@@ -25,7 +25,13 @@ from .canon_runtime_continuity import (
     seal_host_exit_continuity_packet,
     seal_observed_experience_packet,
 )
-from .constants import ENGINE_VERSION
+from .constants import (
+    ENGINE_VERSION,
+    GOVERNED_SKILL_COUNT,
+    NATIVE_READ_TOOL_COUNT,
+    NATIVE_TOOL_COUNT,
+    NATIVE_WRITE_TOOL_COUNT,
+)
 from .errors import EvidenceLaneError
 from .git_adapter import calculate_worktree_sha256, inspect_repository, run_git
 from .goal_usage import (
@@ -2136,7 +2142,12 @@ def seal_exact_task_project_session_binding(
     _require(
         surface.get("plugin_version") == plugin.get("version")
         and surface.get("catalog")
-        == {"tools": 62, "read": 21, "write": 41, "skills": 15},
+        == {
+            "tools": NATIVE_TOOL_COUNT,
+            "read": NATIVE_READ_TOOL_COUNT,
+            "write": NATIVE_WRITE_TOOL_COUNT,
+            "skills": GOVERNED_SKILL_COUNT,
+        },
         "CODEX_EXACT_BINDING_RUNNING_SURFACE_MISMATCH",
         "The running plugin surface does not match the exact v2 catalog.",
     )

@@ -1,9 +1,13 @@
 # Evidence Lane Codex documentation site
 
 This Next.js application is the public documentation and product-proof surface
-for Evidence Lane 2.0. It does not expose an MCP endpoint, proxy a lifecycle
+for Evidence Lane 2.2. It does not expose an MCP endpoint, proxy a lifecycle
 server, store accepted state, or participate in candidate, pointer, Fuse, or HIL
 transitions.
+
+Every public route renders the exact Git-tracked Markdown authority from which
+its business-language story is derived. The canonical mapping is
+`docs/PUBLIC_SITE_SOURCE_MAP.md`; the website remains a read-only projection.
 
 The installed Codex plugin is built separately from
 `plugins/evidence-lane-plugin/`; package rehearsal excludes this site directory.

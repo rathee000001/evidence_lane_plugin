@@ -1,0 +1,79 @@
+{
+  "schema": "evidence-lane.search-toolchain-manifest.v1",
+  "version": 1,
+  "scope": "ALL_GOVERNED_PROJECTS",
+  "resolution_order": [
+    "PACKAGE_LOCAL_VERIFIED_BINARY",
+    "EXPLICIT_CONFIGURED_VERIFIED_HOST_BINARY",
+    "DETERMINISTIC_BUILTIN_FALLBACK"
+  ],
+  "auto_download_during_mcp_handshake": false,
+  "path_lookup_allowed": false,
+  "shell_execution_allowed": false,
+  "source_write_authority": false,
+  "git_authority": false,
+  "lifecycle_authority": false,
+  "candidate_authority": false,
+  "hil_authority": false,
+  "pointer_authority": false,
+  "bounds": {
+    "max_query_chars": 1024,
+    "max_candidates": 10000,
+    "max_candidate_chars": 4096,
+    "max_results": 500,
+    "max_files": 20000,
+    "max_file_bytes": 5242880,
+    "max_total_read_bytes": 67108864,
+    "max_process_output_bytes": 2097152,
+    "timeout_seconds": 10
+  },
+  "tools": [
+    {
+      "tool_id": "ripgrep",
+      "command": "rg",
+      "role": "BOUNDED_LITERAL_CONTENT_AND_FILE_SEARCH",
+      "version": "15.2.0",
+      "version_pattern": "^ripgrep 15\\.2\\.0(?: |$)",
+      "license_spdx": "MIT OR Unlicense",
+      "upstream": "https://github.com/BurntSushi/ripgrep",
+      "configured_path_env": "EVIDENCE_LANE_RG_EXECUTABLE",
+      "configured_sha256_env": "EVIDENCE_LANE_RG_SHA256",
+      "fallback_backend": "PYTHON_BOUNDED_LITERAL_SCAN",
+      "package_binaries": {
+        "windows-x86_64": {
+          "path": "toolchains/bin/windows-x86_64/rg.exe",
+          "sha256": "14231169855EC5205CF5A1B6F1DB358FF4AED4247C86B69CE8AAE647C77F6680",
+          "size_bytes": 4218880,
+          "provenance": "WinGet BurntSushi.ripgrep.MSVC 15.2.0; package bytes independently hash-verified",
+          "licenses": [
+            "toolchains/licenses/ripgrep-15.2.0/LICENSE-MIT",
+            "toolchains/licenses/ripgrep-15.2.0/UNLICENSE"
+          ]
+        }
+      }
+    },
+    {
+      "tool_id": "fzf",
+      "command": "fzf",
+      "role": "BOUNDED_NONINTERACTIVE_DETERMINISTIC_RANKING",
+      "version": "0.74.2",
+      "version_pattern": "^0\\.74\\.2(?: |$)",
+      "license_spdx": "MIT",
+      "upstream": "https://github.com/junegunn/fzf",
+      "configured_path_env": "EVIDENCE_LANE_FZF_EXECUTABLE",
+      "configured_sha256_env": "EVIDENCE_LANE_FZF_SHA256",
+      "fallback_backend": "PYTHON_DETERMINISTIC_SUBSEQUENCE_RANK",
+      "package_binaries": {
+        "windows-x86_64": {
+          "path": "toolchains/bin/windows-x86_64/fzf.exe",
+          "sha256": "8C3CF9EFF34D6093BC1E69AA5129A262508C3F35F38B4343C3D8423179E74E53",
+          "size_bytes": 5488128,
+          "provenance": "WinGet junegunn.fzf 0.74.2; package bytes independently hash-verified",
+          "licenses": [
+            "toolchains/licenses/fzf-0.74.2/LICENSE"
+          ]
+        }
+      }
+    }
+  ]
+}

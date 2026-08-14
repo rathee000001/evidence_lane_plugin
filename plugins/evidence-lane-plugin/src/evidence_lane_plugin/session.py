@@ -7,7 +7,13 @@ from pathlib import Path
 from typing import Any, cast
 
 from .canon_runtime_continuity import seal_observed_experience_packet
-from .constants import ENGINE_VERSION
+from .constants import (
+    ENGINE_VERSION,
+    GOVERNED_SKILL_COUNT,
+    NATIVE_READ_TOOL_COUNT,
+    NATIVE_TOOL_COUNT,
+    NATIVE_WRITE_TOOL_COUNT,
+)
 from .engine import CodePVEngine
 from .errors import EvidenceLaneError, require
 from .freshness import evaluate_freshness
@@ -2493,13 +2499,13 @@ class SessionManager:
             and route.get("server_identity") == "evidence-lane"
             and route.get("canonical_tool_namespace") == "mcp__evidence_lane__"
             and route.get("exposure_profile") == "FULL_LIFECYCLE"
-            and route.get("tool_count") == 62
+            and route.get("tool_count") == NATIVE_TOOL_COUNT
             and route.get("tool_names_unique") is True
             and route.get("project_route_argument_required") is True
             and route.get("cross_project_fallback_allowed") is False
             and len(str(route.get("tool_catalog_sha256") or "")) == 64,
             "STATE_TRAVEL_TASK_ADVANCE_NATIVE_ROUTE_MISMATCH",
-            "The closeout must execute through the exact 62-tool native Evidence Lane route.",
+            "The closeout must execute through the exact current native Evidence Lane route.",
             status="MISMATCH",
         )
         surface = installed_surface_inventory or {}
@@ -2514,7 +2520,12 @@ class SessionManager:
                 "raw_paths_included",
             )
         }
-        expected_catalog = {"tools": 62, "read": 21, "write": 41, "skills": 15}
+        expected_catalog = {
+            "tools": NATIVE_TOOL_COUNT,
+            "read": NATIVE_READ_TOOL_COUNT,
+            "write": NATIVE_WRITE_TOOL_COUNT,
+            "skills": GOVERNED_SKILL_COUNT,
+        }
         require(
             surface.get("schema")
             == "evidence-lane.codex-installed-surface-inventory.v2"
@@ -2522,7 +2533,7 @@ class SessionManager:
             == ENGINE_VERSION
             and surface.get("catalog") == expected_catalog
             and isinstance(surface.get("skills"), dict)
-            and surface["skills"].get("count") == 15
+            and surface["skills"].get("count") == GOVERNED_SKILL_COUNT
             and surface.get("raw_paths_included") is False
             and surface.get("surface_inventory_sha256")
             == sha256_bytes(canonical_json_bytes(surface_core)),
@@ -3080,7 +3091,12 @@ class SessionManager:
                 "raw_paths_included",
             )
         }
-        expected_catalog = {"tools": 62, "read": 21, "write": 41, "skills": 15}
+        expected_catalog = {
+            "tools": NATIVE_TOOL_COUNT,
+            "read": NATIVE_READ_TOOL_COUNT,
+            "write": NATIVE_WRITE_TOOL_COUNT,
+            "skills": GOVERNED_SKILL_COUNT,
+        }
         panel_facts = {
             str(row.get("label")): row.get("value")
             for row in panel.get("facts", [])
@@ -3093,13 +3109,13 @@ class SessionManager:
             and route.get("server_identity") == "evidence-lane"
             and route.get("canonical_tool_namespace") == "mcp__evidence_lane__"
             and route.get("exposure_profile") == "FULL_LIFECYCLE"
-            and route.get("tool_count") == 62
+            and route.get("tool_count") == NATIVE_TOOL_COUNT
             and route.get("tool_names_unique") is True
             and route.get("project_route_argument_required") is True
             and route.get("cross_project_fallback_allowed") is False
             and len(str(route.get("tool_catalog_sha256") or "")) == 64,
             "FALLBACK_PREWARM_TASK_ADVANCE_NATIVE_ROUTE_MISMATCH",
-            "Fallback closeout must execute through the exact native 62-tool route.",
+            "Fallback closeout must execute through the exact current native route.",
             status="MISMATCH",
         )
         require(
@@ -3109,7 +3125,7 @@ class SessionManager:
             == ENGINE_VERSION
             and surface.get("catalog") == expected_catalog
             and isinstance(surface.get("skills"), dict)
-            and surface["skills"].get("count") == 15
+            and surface["skills"].get("count") == GOVERNED_SKILL_COUNT
             and surface.get("raw_paths_included") is False
             and surface.get("surface_inventory_sha256")
             == sha256_bytes(canonical_json_bytes(surface_core)),
@@ -3481,7 +3497,12 @@ class SessionManager:
                 "raw_paths_included",
             )
         }
-        expected_catalog = {"tools": 62, "read": 21, "write": 41, "skills": 15}
+        expected_catalog = {
+            "tools": NATIVE_TOOL_COUNT,
+            "read": NATIVE_READ_TOOL_COUNT,
+            "write": NATIVE_WRITE_TOOL_COUNT,
+            "skills": GOVERNED_SKILL_COUNT,
+        }
         panel_facts = {
             str(row.get("label")): row.get("value")
             for row in panel.get("facts", [])
@@ -3494,13 +3515,13 @@ class SessionManager:
             and route.get("server_identity") == "evidence-lane"
             and route.get("canonical_tool_namespace") == "mcp__evidence_lane__"
             and route.get("exposure_profile") == "FULL_LIFECYCLE"
-            and route.get("tool_count") == 62
+            and route.get("tool_count") == NATIVE_TOOL_COUNT
             and route.get("tool_names_unique") is True
             and route.get("project_route_argument_required") is True
             and route.get("cross_project_fallback_allowed") is False
             and len(str(route.get("tool_catalog_sha256") or "")) == 64,
             "TASK_CHECKPOINT_ADVANCE_NATIVE_ROUTE_MISMATCH",
-            "Checkpoint advancement requires the exact native 62-tool route.",
+            "Checkpoint advancement requires the exact current native route.",
             status="MISMATCH",
         )
         require(
@@ -3510,7 +3531,7 @@ class SessionManager:
             == ENGINE_VERSION
             and surface.get("catalog") == expected_catalog
             and isinstance(surface.get("skills"), dict)
-            and surface["skills"].get("count") == 15
+            and surface["skills"].get("count") == GOVERNED_SKILL_COUNT
             and surface.get("raw_paths_included") is False
             and surface.get("surface_inventory_sha256")
             == sha256_bytes(canonical_json_bytes(surface_core))

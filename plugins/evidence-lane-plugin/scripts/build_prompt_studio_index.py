@@ -17,6 +17,7 @@ from typing import Any
 
 LLAMA_INDEX_VERSION = "0.14.23"
 SCHEMA = "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1"
+MAX_PUBLIC_STUDIO_SQLITE_BYTES = 24 * 1024 * 1024
 _RUN_TIMEOUT_SECONDS = 60
 TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9._/-]{1,63}", re.IGNORECASE)
 SECRET_PATTERNS = (
@@ -113,14 +114,40 @@ LOCAL_SCAN_IGNORED_PARTS = {
     "node_modules",
 }
 FROZEN_NO_GIT_ADDITIONS = {
+    "plugins/evidence-lane-plugin/hooks/invoke_hook.py",
+    "plugins/evidence-lane-plugin/scripts/codex_release/probe_installed_hooks.py",
+    "plugins/evidence-lane-plugin/scripts/codex_release/verify_installed_hook_invocations.py",
+    "plugins/evidence-lane-plugin/scripts/runtime_contract.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/agent_learning.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/canon_runtime_continuity.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/canon_task_graph.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/capture_routing.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/dependency_detection.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/flash_identity.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/github_app_distribution.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/hook_contract.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/hook_skill_runtime.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/host_entry_continuity.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/host_plan_rehydration.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/installed_hook_receipts.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/internal_sdk.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/lane_contract.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/runtime_host_classifier.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/canon-envelope.schema.json",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/canon-expected-contract.schema.json",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/canon-task-edge.schema.json",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/github-app-manifest.schema.json",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/search_toolchain.py",
     "plugins/evidence-lane-plugin/COPYRIGHT.md",
     "plugins/evidence-lane-plugin/LICENSE.md",
     "plugins/evidence-lane-plugin/README.md",
     "plugins/evidence-lane-plugin/THIRD_PARTY_NOTICES.md",
     "plugins/evidence-lane-plugin/remote_adapter/app/_components/hero-orbit.tsx",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_components/repository-source-strip.tsx",
     "plugins/evidence-lane-plugin/remote_adapter/app/_data/governed-linked-deltas.ts",
     "plugins/evidence-lane-plugin/remote_adapter/app/_data/prior-execution-plan.ts",
     "plugins/evidence-lane-plugin/remote_adapter/app/_data/release-identity.ts",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_data/repository-documents.ts",
     "plugins/evidence-lane-plugin/remote_adapter/app/_data/website-current-execution.ts",
     "plugins/evidence-lane-plugin/remote_adapter/app/api/studio-query/openrouter-general.ts",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/goal_usage.py",
@@ -143,7 +170,15 @@ FROZEN_NO_GIT_ADDITIONS = {
     "plugins/evidence-lane-plugin/remote_adapter/app/_data/website-plan-projection.json",
     "plugins/evidence-lane-plugin/scripts/codex_release/seal_external_release_receipts.py",
     "plugins/evidence-lane-plugin/scripts/sync_website_plan_projection.py",
+    "plugins/evidence-lane-plugin/skills/evi-canon/SKILL.md",
+    "plugins/evidence-lane-plugin/skills/evi-canon/agents/openai.yaml",
+    "plugins/evidence-lane-plugin/skills/evi-learning/SKILL.md",
+    "plugins/evidence-lane-plugin/skills/evi-learning/agents/openai.yaml",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/website_plan_projection.py",
+    "plugins/evidence-lane-plugin/toolchains/search-tools.v1.json",
+    "plugins/evidence-lane-plugin/remote_adapter/app/skills/page.tsx",
+    "plugins/evidence-lane-plugin/remote_adapter/app/mcp/page.tsx",
+    "plugins/evidence-lane-plugin/remote_adapter/app/hooks/page.tsx",
 }
 FROZEN_NO_GIT_REMOVALS = {
     "plugins/evidence-lane-plugin/.app.json",
@@ -152,7 +187,12 @@ FROZEN_NO_GIT_REMOVALS = {
     "plugins/evidence-lane-plugin/remote_adapter/requirements.txt",
 }
 FROZEN_NO_GIT_FIXED_ADDITIONS = {
+    "ARCHITECTURE.md",
     "docs/DEPENDENCY_LICENSE_AUDIT.md",
+    "docs/HOOKS.md",
+    "docs/MCP.md",
+    "docs/PUBLIC_SITE_SOURCE_MAP.md",
+    "docs/SKILLS.md",
 }
 
 
@@ -200,12 +240,17 @@ def _source_specs(
 ) -> list[tuple[Path, str, str, str]]:
     fixed: list[tuple[str, str, str, str]] = [
         ("README.md", "Repository README", _github_blob("README.md", revision), "documentation"),
+        ("ARCHITECTURE.md", "Evidence Lane 2.2 system architecture", _github_blob("ARCHITECTURE.md", revision), "documentation"),
         ("SECURITY.md", "Security policy", _github_blob("SECURITY.md", revision), "policy"),
         ("LICENSE.md", "Proprietary license", _github_blob("LICENSE.md", revision), "policy"),
         ("COPYRIGHT.md", "Copyright and ownership", _github_blob("COPYRIGHT.md", revision), "policy"),
         ("docs/CREDITS_AND_CONTRIBUTIONS.md", "Credits and contribution policy", "/credits", "policy"),
         ("docs/DEPENDENCY_LICENSE_AUDIT.md", "Direct dependency license audit", "/credits", "policy"),
         ("docs/UPSTREAM_REFERENCE_PROVENANCE.md", "Upstream reference provenance", "/credits", "provenance"),
+        ("docs/SKILLS.md", "Governed skill contract", "/skills", "documentation"),
+        ("docs/MCP.md", "Native MCP contract", "/mcp", "documentation"),
+        ("docs/HOOKS.md", "Lifecycle hook contract", "/hooks", "documentation"),
+        ("docs/PUBLIC_SITE_SOURCE_MAP.md", "Public website source map", _github_blob("docs/PUBLIC_SITE_SOURCE_MAP.md", revision), "documentation"),
     ]
     specs = [(repo / path, title, href, kind) for path, title, href, kind in fixed]
     internal_hrefs = {
@@ -214,13 +259,13 @@ def _source_specs(
         "plugins/evidence-lane-plugin/remote_adapter/app/_data/current-execution-plan.ts": "/#delta-ledger",
         "plugins/evidence-lane-plugin/remote_adapter/app/_data/lane-contracts.ts": "/lanes",
         "plugins/evidence-lane-plugin/remote_adapter/app/_data/mode-governance.json": "/operators",
-        "plugins/evidence-lane-plugin/remote_adapter/app/_data/plugin-surfaces.ts": "/architecture",
+        "plugins/evidence-lane-plugin/remote_adapter/app/_data/plugin-surfaces.ts": "/skills",
         "plugins/evidence-lane-plugin/remote_adapter/app/_data/upstream-references.ts": "/provenance",
     }
     for route in (
-        "architecture", "connect", "copyright", "credits", "hil", "lanes", "license",
+        "architecture", "connect", "copyright", "credits", "hil", "hooks", "lanes", "license", "mcp",
         "operators", "privacy", "proof", "provenance", "readme", "security", "studio",
-        "support", "terms",
+        "skills", "support", "terms",
     ):
         internal_hrefs[f"plugins/evidence-lane-plugin/remote_adapter/app/{route}/page.tsx"] = f"/{route}"
     for relative in sorted(path for path in tracked_paths if _public_plugin_path(path)):
@@ -680,6 +725,12 @@ def _build_artifacts(
     connection.close()
     if integrity != "ok" or fts_probe < 1:
         raise RuntimeError(f"retrieval artifact validation failed: integrity={integrity}, refresh_hits={fts_probe}")
+    database_size = database_path.stat().st_size
+    if database_size > MAX_PUBLIC_STUDIO_SQLITE_BYTES:
+        raise RuntimeError(
+            "public retrieval SQLite exceeds the governed 24 MiB artifact cap: "
+            f"{database_size} bytes"
+        )
 
     database_sha = _sha256_bytes(database_path.read_bytes())
     browser_sha = _sha256_bytes(browser_bytes)
@@ -708,10 +759,15 @@ def _build_artifacts(
         },
         "retrieval": browser_artifact["tools"],
         "outputs": {
-            "sqlite": {"path": database_path.relative_to(repo).as_posix(), "sha256": database_sha, "bytes": database_path.stat().st_size},
+            "sqlite": {"path": database_path.relative_to(repo).as_posix(), "sha256": database_sha, "bytes": database_size},
             "browser_json": {"path": browser_path.relative_to(repo).as_posix(), "sha256": browser_sha, "bytes": len(browser_bytes)},
         },
-        "validation": {"sqlite_integrity": integrity, "fts_refresh_hits": fts_probe, "secret_scan": "PASS"},
+        "validation": {
+            "sqlite_integrity": integrity,
+            "fts_refresh_hits": fts_probe,
+            "secret_scan": "PASS",
+            "sqlite_public_size_limit_bytes": MAX_PUBLIC_STUDIO_SQLITE_BYTES,
+        },
     }
     manifest_path.write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n",

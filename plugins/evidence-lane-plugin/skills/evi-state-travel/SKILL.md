@@ -163,3 +163,14 @@ event can clear the Phase-3 acceptance gate.
 Codex may project Plan Lane into its native Goal and task panel. Never invent
 cross-host UI parity, build, Fuse, infer approval, or move a pointer merely
 because a handoff exists.
+
+State Travel never completes a Goal by itself. When the human uses the exact
+visible `MARK GOAL COMPLETE` command with disposition
+`COMPLETE_THIS_TASK_AND_STATE_TRAVEL`, close only the current task's Goal
+boundary and carry the unfinished governed objective into the exact bound
+successor. No HIL, Fuse, pointer, Git, install, merge, or deployment authority
+is implied; specifically, Goal completion is not HIL approval. Without that
+exact human disposition, preserve the Goal as active,
+paused, or stalled according to host truth.
+The other human-only disposition, `COMPLETE_FULLY`, closes the whole Goal and
+does not invoke State Travel.

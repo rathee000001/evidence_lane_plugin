@@ -21,6 +21,11 @@ PRIOR_GOAL_TOKENS = 0
 PRIOR_GOAL_ELAPSED_SECONDS = 0
 EARLIER_RECORDED_TOKENS = 0
 EARLIER_RECORDED_ELAPSED_SECONDS = 0
+GOAL_COMPLETION_COMMAND = "MARK GOAL COMPLETE"
+GOAL_COMPLETION_DISPOSITIONS = (
+    "COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
+    "COMPLETE_FULLY",
+)
 
 
 TOKEN_COMPONENT_KEYS = (
@@ -337,6 +342,61 @@ class GoalUsageReceipt:
             "goal_completion_effect": "NONE",
             "exact_counts_preserved": True,
         }
+
+
+def build_goal_completion_authorization(
+    *,
+    visible_command: str,
+    disposition: str,
+    actor_kind: str,
+    current_task_id: str,
+) -> dict[str, Any]:
+    """Validate the sole human-owned Goal completion boundary.
+
+    HIL, candidate, Plan, test, automation, and lifecycle state may pause or
+    stall a Goal, but none can complete it.  State Travel is one explicit
+    human disposition: it closes the current task's Goal boundary while
+    preserving unfinished governed work for an exact successor task.  It does
+    not turn Goal completion into HIL or pointer authority.
+    """
+
+    command = str(visible_command or "").strip()
+    exact_disposition = str(disposition or "").strip().upper()
+    exact_actor = str(actor_kind or "").strip().upper()
+    task_id = str(current_task_id or "").strip()
+    if command != GOAL_COMPLETION_COMMAND:
+        raise ValueError("Goal completion requires the exact visible human command")
+    if exact_actor != "HUMAN":
+        raise ValueError("Only the human may authorize Goal completion")
+    if exact_disposition not in GOAL_COMPLETION_DISPOSITIONS:
+        raise ValueError("Goal completion requires one exact human disposition")
+    if not task_id or len(task_id) > 256:
+        raise ValueError("Goal completion requires one exact current task identity")
+    return {
+        "schema": "evidence-lane.goal-completion-authorization.v1",
+        "status": "AUTHORIZED_BY_EXACT_HUMAN_COMMAND",
+        "visible_command": GOAL_COMPLETION_COMMAND,
+        "actor_kind": "HUMAN",
+        "current_task_id": task_id,
+        "disposition": exact_disposition,
+        "current_task_goal_completed": True,
+        "state_travel_requested": (
+            exact_disposition == "COMPLETE_THIS_TASK_AND_STATE_TRAVEL"
+        ),
+        "successor_goal_required": (
+            exact_disposition == "COMPLETE_THIS_TASK_AND_STATE_TRAVEL"
+        ),
+        "full_goal_closed": exact_disposition == "COMPLETE_FULLY",
+        "hil_can_complete_goal": False,
+        "candidate_can_complete_goal": False,
+        "automation_can_complete_goal": False,
+        "task_transition_can_complete_goal": False,
+        "pause_or_stall_can_complete_goal": False,
+        "goal_completion_implies_hil_approval": False,
+        "goal_completion_implies_fuse": False,
+        "goal_completion_implies_pointer_move": False,
+        "goal_completion_implies_git_or_install": False,
+    }
 
 
 def build_goal_usage_receipt(

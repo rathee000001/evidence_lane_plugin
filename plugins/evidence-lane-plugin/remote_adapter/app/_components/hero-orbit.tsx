@@ -21,6 +21,9 @@ import { SourceLaneIcon } from "./source-lane-icon";
 
 export type HeroOrbitPreset =
   | "home"
+  | "skills"
+  | "mcp"
+  | "hooks"
   | "architecture"
   | "operators"
   | "studio"
@@ -251,6 +254,61 @@ const homeGovernanceRings: readonly HeroOrbitRing[] = [
 
 const presetRings: Record<HeroOrbitPreset, readonly HeroOrbitRing[]> = {
   home: homeGovernanceRings,
+  skills: [
+    { label: "Governed skills", size: 72, nodes: pluginSurfaceNodes, tag: bottomTag("15", "governed skills") },
+    { label: "Primary controls", size: 92, nodes: controlNodes, tag: topTag("6", "primary controls") },
+  ],
+  mcp: [
+    {
+      label: "Native action classes",
+      size: 66,
+      nodes: [
+        { label: "Read-only", tool: "database", color: cyan },
+        { label: "Write-capable", tool: "terminal", color: green },
+        { label: "Lifecycle gated", tool: "pulse", color: rose },
+        { label: "Fail closed", tool: "package", color: gold },
+      ],
+      tag: bottomTag("83", "native actions"),
+    },
+    {
+      label: "Native authority",
+      size: 86,
+      nodes: [
+        { label: "Package root", tool: "package", color: violet },
+        { label: "Project session", lane: "chat_lineage", color: rose },
+        { label: "Local SQLite", tool: "database", color: green },
+        { label: "Exact receipts", tool: "git", color: cyan },
+      ],
+      tag: topTag("1", "package-local server"),
+    },
+  ],
+  hooks: [
+    {
+      label: "Lifecycle events",
+      size: 72,
+      nodes: [
+        { label: "SessionStart", tool: "pulse", color: cyan },
+        { label: "UserPromptSubmit", tool: "node", color: green },
+        { label: "PreToolUse", tool: "terminal", color: violet },
+        { label: "PostToolUse", tool: "terminal", color: gold },
+        { label: "PreCompact", tool: "package", color: rose },
+        { label: "PostCompact", tool: "package", color: lime },
+        { label: "Stop", tool: "pulse", color: cyan },
+        { label: "SessionEnd", tool: "database", color: green },
+      ],
+      tag: bottomTag("8", "lifecycle events"),
+    },
+    {
+      label: "Ownership boundaries",
+      size: 92,
+      nodes: [
+        { label: "Hooks transport", tool: "node", color: cyan },
+        { label: "Skills govern", tool: "package", color: violet },
+        { label: "Host renders", tool: "pulse", color: gold },
+      ],
+      tag: topTag("3", "separate owners"),
+    },
+  ],
   architecture: [
     {
       label: "Serial lifecycle",
@@ -505,8 +563,19 @@ function HilCenter() {
   );
 }
 
+function SurfaceCenter({ count, label, preset }: { count: string; label: string; preset: string }) {
+  return (
+    <div className="heroOrbitCenter heroOrbitCenter--proof" data-hero-center={`${preset}-surface`}>
+      <div className="numberAside heroOrbitLaneCore"><strong>{count}</strong><span>{label}</span><small>Codex-native 2.2</small></div>
+    </div>
+  );
+}
+
 function HeroCenter({ preset }: { preset: HeroOrbitPreset }) {
   if (preset === "home" || preset === "architecture") return <BrainCenter preset={preset} />;
+  if (preset === "skills") return <SurfaceCenter count="15" label="governed skills" preset={preset} />;
+  if (preset === "mcp") return <SurfaceCenter count="83" label="native actions" preset={preset} />;
+  if (preset === "hooks") return <SurfaceCenter count="8" label="lifecycle events" preset={preset} />;
   if (preset === "operators") return <OperatorCenter />;
   if (preset === "studio") return <StudioCenter />;
   if (preset === "proof") return <ProofCenter />;

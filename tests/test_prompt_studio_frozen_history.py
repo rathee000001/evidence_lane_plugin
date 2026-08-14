@@ -19,11 +19,16 @@ SCRIPT = (
 )
 FIXED_PUBLIC_PATHS = (
     "README.md",
+    "ARCHITECTURE.md",
     "SECURITY.md",
     "LICENSE.md",
     "COPYRIGHT.md",
     "docs/CREDITS_AND_CONTRIBUTIONS.md",
     "docs/DEPENDENCY_LICENSE_AUDIT.md",
+    "docs/HOOKS.md",
+    "docs/MCP.md",
+    "docs/PUBLIC_SITE_SOURCE_MAP.md",
+    "docs/SKILLS.md",
     "docs/UPSTREAM_REFERENCE_PROVENANCE.md",
 )
 PLUGIN_PUBLIC_PATH = "plugins/evidence-lane-plugin/README.md"
@@ -123,8 +128,9 @@ def test_frozen_history_regeneration_never_invokes_git(
     assert "no Git command is invoked" in manifest["corpus"]["boundary"]
     assert manifest["validation"] == {
         "sqlite_integrity": "ok",
-        "fts_refresh_hits": 9,
+        "fts_refresh_hits": 14,
         "secret_scan": "PASS",
+        "sqlite_public_size_limit_bytes": 24 * 1024 * 1024,
     }
     browser = json.loads(
         (

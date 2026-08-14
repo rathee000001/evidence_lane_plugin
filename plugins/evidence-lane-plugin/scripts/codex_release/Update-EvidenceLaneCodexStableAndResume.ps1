@@ -592,7 +592,14 @@ try {
     if (-not (Test-Path -LiteralPath $goalRecoveryScript -PathType Leaf)) {
         throw "The installed canonical stable package is missing the general Goal recovery manager."
     }
-    $goalRecoveryRoot = Join-Path ([IO.Path]::GetFullPath($DataRoot)) "installations\codex-v200\goal-recovery"
+    $installedReleaseChannel = Get-Content -LiteralPath (Join-Path $installedPluginRoot "scripts\codex-release-channel.json") -Raw | ConvertFrom-Json
+    $stableRelease = [string]$installedReleaseChannel.stable.release
+    if ($stableRelease -notmatch '^\d+\.\d+\.\d+$') {
+        throw "The installed stable package does not expose one exact helper release identity."
+    }
+    $stableReleaseToken = "v" + ($stableRelease -replace '\.', '')
+    $goalRecoveryRoot = Join-Path ([IO.Path]::GetFullPath($DataRoot)) "installations\helpers\$stableReleaseToken\goal-recovery"
+    $goalRecoveryTaskName = "Evidence Lane Codex Goal Recovery $stableReleaseToken"
     $twoSlotRegistry = Join-Path ([IO.Path]::GetFullPath($DataRoot)) "installations\codex-v200\two-slot\CODEX_TWO_SLOT_REGISTRY.json"
     $goalRecoveryOutput = @(
         & powershell.exe -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass `
@@ -600,8 +607,10 @@ try {
             -Action Register `
             -TaskBindingReceipt $boundary.binding_path `
             -ActivePlanTaskId $ActivePlanTaskId `
+            -Release $stableRelease `
             -RecoveryRoot $goalRecoveryRoot `
-            -TwoSlotRegistry $twoSlotRegistry 2>&1
+            -TwoSlotRegistry $twoSlotRegistry `
+            -ScheduledTaskName $goalRecoveryTaskName 2>&1
     )
     if ($LASTEXITCODE -ne 0) {
         throw ("The general Goal recovery manager rebind failed: " + ($goalRecoveryOutput -join "`n"))
@@ -612,6 +621,9 @@ try {
         $goalRecovery.state -cne "ACTIVE_GOAL_REGISTERED_FOR_WINDOWS_LOGON_RECOVERY" -or
         $goalRecovery.task_id -cne $TaskId -or
         $goalRecovery.active_plan_task_id -cne $ActivePlanTaskId -or
+        $goalRecovery.release -cne $stableRelease -or
+        $goalRecovery.release_token -cne $stableReleaseToken -or
+        $goalRecovery.helper_audience -cne "GOVERNED_CODEX_USER" -or
         $goalRecovery.host_app_id -cne [string]$hostProfile.app_id
     ) {
         throw "The installed general Goal recovery manager did not rebind this exact active task and host app."
@@ -655,6 +667,12 @@ try {
         host_application = [string]$hostProfile.host_application
         host_app_id = [string]$hostProfile.app_id
         goal_recovery_manager_rebound = $true
+        goal_recovery_release = $stableRelease
+        goal_recovery_release_token = $stableReleaseToken
+        goal_recovery_task_name = $goalRecoveryTaskName
+        goal_recovery_helper_audience = "GOVERNED_CODEX_USER"
+        maintainer_update_helper_audience = "EVIDENCE_LANE_MAINTAINER_ONLY"
+        prior_versioned_helpers_retained_disabled = $true
         goal_recovery_binding_sha256 = [string]$goalRecovery.binding_sha256
         candidate_created = $false
         pending_hil = $false

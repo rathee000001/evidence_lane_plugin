@@ -26,23 +26,64 @@ provenance rather than current source identity.
 
 Version 2.2.0 advances the governed source line from accepted PV12/2.1 without
 claiming that either installed slot has already changed. The exact-commit
-CI/preview/package route later updates the same stable selector; fallback
-rotation remains post-PV13-APPROVE work. Historical labels such as `pre-v1.1`,
+CI/preview/package route later updates the same stable selector. The intermediate
+PV13 gate may Fuse PV13 only after a fresh exact APPROVE; it cannot merge main or
+replace the disabled fallback. Only the physically final PV14 gate may, after a
+fresh exact APPROVE, authorize PV14 Fuse, governed non-force main promotion, and
+exact 2.2 package proof in both the enabled stable slot and the disabled
+recoverable fallback slot. Version 2.3 belongs to a later user-started cycle
+after this Goal closes; accepted PV14 is that cycle's entry pointer, not work in
+the current 2.2 release. Historical labels such as `pre-v1.1`,
 v1.1 corrections, dependency
 versions, accepted PVs, candidate receipts, and State Travel packages retain
 their original identities. Compatibility evidence may explain ancestry; it
 cannot override the current source, installed package, native ledger, or HIL.
+
+The commit/CI/Git-preview/package/install/tunnel sequence above is the
+**Evidence Lane plugin-maintainer release cycle**, applied once per authorized
+logical release commit batch. It is not inherited by downstream governed
+projects when they create their own PVs. Those projects retain their own Git,
+CI, deployment, lane/schema, plugin, and storage-connector choices. A normal
+Plan/PV projection update also does not perform the separately queued full
+Vercel guide refresh. ENV/UOP may be inspected, routed, offloaded, or evolved
+only through a new sealed identity; an accepted locked identity is immutable.
+
+Row196 establishes the exact-commit prerequisite: the reviewed commit on
+`agent/evi-v220-systemwide-release-hil-v2.2.0` must pass required clean CI and
+its Git-triggered Vercel preview. The immediate Row197/PV13 install-HIL route
+then installs that exact package as **2.2.0** in
+`evidence-lane-plugin@evidence-lane-github` and must read back 83 actions
+(26 read/57 write), 17 skills, eight hook events, and the migrated command
+surface before presenting the PV13 HIL. This intermediate install cannot merge
+main, mutate fallback, or impose an install cycle on a downstream project.
+
+Goal completion is human-owned and independent of PV/HIL state. Only the exact
+visible `MARK GOAL COMPLETE` command may close a governed Goal, with either
+`COMPLETE_THIS_TASK_AND_STATE_TRAVEL` or `COMPLETE_FULLY`. HIL, candidates,
+tests, automation, task transitions, pauses, and stalls cannot complete it and
+completion itself authorizes no Fuse, pointer, Git, install, merge, or deploy.
+
+Evidence Lane also keeps two Windows-helper audiences separate. The release
+updater is maintainer-only; governed users receive the version-bound Goal
+recovery helper and, only on hosts whose classifier requires it, the matching
+Stable tunnel. Prior versioned helpers and tunnels are retained but disabled,
+never silently deleted, and only one version may be active. Before the final
+PV14 decision the observed fallback remains 2.0. After an exact final PV14
+APPROVE and Fuse, the maintainer route must promote the exact accepted commit,
+install that same 2.2 package in both enabled Stable and disabled fallback,
+rotate their matching helper/tunnel identities, and re-prove one active
+runtime. Downstream project PVs never inherit this release-slot rotation.
 
 ## Current Codex contract
 
 The packaged Codex plugin contains:
 
 - one package-local native MCP server named `evidence-lane`;
-- exactly 62 canonical actions: 21 read-only and 41 write-capable;
-- exactly 15 governed skills;
+- exactly 83 canonical actions: 26 read-only and 57 write-capable;
+- exactly 17 governed skills;
 - six primary controls in order: Boot, Rollback, Build, Refresh, Mode, and
   Source Intake;
-- eight registered lifecycle events across seven hook package files: warm attach,
+- eight registered lifecycle events across nine hook package files: warm attach,
   PREPARE, pre/post tool receipts, pre/post compaction, Stop COMMIT, and
   best-effort SessionEnd flush;
 - durable local SQLite as the default project authority;
@@ -58,6 +99,67 @@ The packaged Codex plugin contains:
 The native lifecycle route is `mcp__evidence_lane__*`. Generated namespaces,
 app connectors, direct-stdio compatibility aliases, and unrelated storage
 connectors are not lifecycle proof.
+
+### Complete skill surface
+
+| Skill | Surface | Primary control | Governed role |
+| --- | --- | --- | --- |
+| `evi` | Root router | No | Presents the six controls and conditional State Travel without silently selecting one. |
+| `evi-boot` | Lifecycle | Yes | Verifies runtime, ENV/UOP Flash, host, storage, session, and accepted pointer. |
+| `evi-rollback` | Lifecycle | Yes | Performs pointer-only movement among immutable accepted PVs. |
+| `evi-build` | Lifecycle | Yes | Seals an unaccepted candidate and stops at exact six-way HIL. |
+| `evi-refresh` | Lifecycle | Yes | Rebuilds changed evidence while preserving content-addressed history. |
+| `evi-mode` | Mode | Yes | Applies ordered ENV/UOP mode and operator intersections. |
+| `evi-source-intake` | Source | Yes | Classifies and routes bounded sources across all canonical lanes. |
+| `evi-state-travel` | Continuity | No | Seals or resumes exact unfinished work through a bound fresh task. |
+| `evi-canon` | Task coordination | No | Governs typed task-to-task Canon envelopes, linked tasks/subagents, receiver-owned three-way Canon HIL, backfire, results, and graph continuity. |
+| `evi-learning` | AI learning | No | Governs project-isolated Learning retrieval, candidates, Learning HIL, and revocation without changing Project Truth. |
+| `evi-storage` | Storage | No | Inspects and selects eligible project-scoped persistence. |
+| `evi-change-storage-connector` | Storage | No | Preserves the compatibility route for an explicit connector change. |
+| `evi-plugin` | Connector administration | No | Governs the bounded additional-plugin/toolchain catalog. |
+| `evi-additional-plugin` | Connector grant | No | Adds one purpose-, role-, scope-, and expiry-bound grant. |
+| `evi-drop-additional-plugin` | Connector revocation | No | Revokes one exact active grant without erasing history. |
+| `evi-exit-boot` | Session | No | Closes the exact governed session while retaining installation and evidence. |
+| `evidence-lane-code-lifecycle` | Code lifecycle | No | Applies the complete one-writer Code-mode build, test, package, and HIL law. |
+
+### Complete native MCP surface summary
+
+| Native surface | Exact 2.2.0 value | Authority boundary |
+| --- | --- | --- |
+| Server | `evidence-lane` | One package-local Codex MCP; website and tunnel routes are not substitutes. |
+| Canonical namespace | `mcp__evidence_lane__*` | Collision-safe display suffixes never change canonical identity. |
+| Read-only actions | 26 | Inspect authority without lifecycle mutation. |
+| Write-capable actions | 57 | Each call proves its own project, session, task, host, and lifecycle preconditions. |
+| Total canonical actions | 83 | Visibility is capability discovery, not permission or approval. |
+| Governed console | `ui://evidence-lane/governed-console-v5.html` | Read-only rendering cannot decide HIL or move a pointer. |
+| Durable default | Project-scoped local SQLite | Storage connectors and Google Drive remain separate surfaces. |
+
+## Architecture and public documentation
+
+The current architecture is available at [ARCHITECTURE.md](ARCHITECTURE.md).
+The website exposes the exact Git-tracked source document for every public
+route; its complete route-to-document contract is
+[docs/PUBLIC_SITE_SOURCE_MAP.md](docs/PUBLIC_SITE_SOURCE_MAP.md). Separate
+current contracts cover [skills](docs/SKILLS.md), [native MCP](docs/MCP.md),
+[hooks](docs/HOOKS.md), [Canon](docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md),
+[AI/Agent Learning and host continuity](docs/HOST_STORAGE_ENV_MODE_CONTINUITY.md),
+and the [full internal SDK](docs/INTERNAL_CODEX_SDK.md).
+
+```mermaid
+flowchart TD
+    Host["Codex host and exact task"] --> Hooks["8 lifecycle hooks\ntransport visible events"]
+    Host --> Skills["17 governed skills\nclassify and sequence work"]
+    Hooks --> Skills
+    Skills --> MCP["Native evidence-lane MCP\n26 read + 57 write actions"]
+    MCP --> SDK["Full internal SDK\nengine + contracts + provider adapters"]
+    SDK --> Authorities["Separate authorities\nProject Truth | Canon Input | AI Learning | ChatLineage | Host Entry"]
+    Sources["Authorized sources"] --> Lanes["18 bounded evidence lanes"]
+    Authorities --> Lanes
+    Lanes --> Candidate["Immutable unaccepted candidate"]
+    Candidate --> HIL["Exact six-way Project HIL"]
+    HIL -->|"exact APPROVE then Fuse"| Pointer["Accepted PV pointer"]
+    HIL -->|"all other choices"| NoPromotion["No implicit promotion"]
+```
 
 ## What problem it solves
 
@@ -195,8 +297,9 @@ The v2 package registers:
 | `Stop` | Preserve the response/exit boundary without inventing a HIL decision. |
 | `SessionEnd` | Best-effort flush of the lifecycle boundary when the host emits the event. |
 
-The inventory is eight registered events, six command handlers, and seven files
-when `hooks.json` is included. The 15 skills are unchanged; file count is not
+The inventory is eight registered events, six command handlers, and nine files
+including the dispatcher, Windows wrapper, and `hooks.json`. The 17 skills are
+independently counted; file count is not
 used to inflate either number.
 
 ## Host and storage matrix
@@ -251,17 +354,18 @@ ChatGPT/Work surface cannot select this route.
    Git, Chat Lineage, project SQLite, receipts, or logs. It stores only a
    current-user Windows DPAPI envelope.
 4. The installer verifies or acquires the pinned tunnel client, registers the
-   versioned `EvidenceLane-Tunnel-v200-stable-build` scheduled task, and binds
+   versioned `EvidenceLane-Tunnel-v220-stable-build` scheduled task, and binds
    it to Windows sign-in. Installation alone does not accept a candidate or
    move a PV pointer.
 5. After activation, verify live readiness without exposing the key:
 
    ```powershell
-   & "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200-stable-build\Manage-EvidenceLaneTunnel.ps1" `
+   & "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build\Manage-EvidenceLaneTunnel.ps1" `
      -Action Status `
-     -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200-stable-build" `
-     -ProfileName evidence_lane_v200_stable_build_transport `
-     -TaskName EvidenceLane-Tunnel-v200-stable-build
+     -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build" `
+     -ProfileName evidence_lane_v220_stable_build_transport `
+     -TaskName EvidenceLane-Tunnel-v220-stable-build `
+     -ReleaseToken v220
    ```
 
    Accept only `status = PASS`, with the scheduled task present, the pinned
@@ -376,6 +480,9 @@ The supported v2 verification sequence is:
 8. stop at the six-way HIL.
 
 See [Codex v2 local installation](docs/CODEX_V200_LOCAL_INSTALL_AND_RELOAD.md).
+The current machine-checked catalog and the required per-Delta classification
+law are in the
+[2.2 public-surface parity matrix](docs/V220_PUBLIC_SURFACE_PARITY_MATRIX.json).
 
 ## Build and test locally
 
@@ -395,8 +502,8 @@ Focused release checks live under `tests/` and the reusable Code-mode action at
 | `plugins/evidence-lane-plugin/.codex-plugin/plugin.json` | Codex product identity and UI metadata |
 | `plugins/evidence-lane-plugin/.mcp.json` | Package-local native MCP launch contract |
 | `plugins/evidence-lane-plugin/src/evidence_lane_plugin/` | Lifecycle engine and native server |
-| `plugins/evidence-lane-plugin/skills/` | Fifteen governed skills |
-| `plugins/evidence-lane-plugin/hooks/` | Eight lifecycle events across six command handlers |
+| `plugins/evidence-lane-plugin/skills/` | Seventeen governed skills |
+| `plugins/evidence-lane-plugin/hooks/` | Eight lifecycle events across nine package files |
 | `plugins/evidence-lane-plugin/scripts/codex_release/` | Deterministic package install, restart, and acceptance checks |
 | `docs/` | Current Codex architecture, runbooks, security, and provenance |
 | `tests/` | Unit, integration, package, and contract verification |

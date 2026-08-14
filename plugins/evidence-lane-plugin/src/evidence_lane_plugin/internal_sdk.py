@@ -19,11 +19,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol, cast
 
-from .agent_learning import inspect_learning_authority, retrieve_accepted_learning
+from .agent_learning import (
+    decide_learning_candidate,
+    inspect_learning_authority,
+    retrieve_accepted_learning,
+    revoke_learning_candidate,
+    seal_learning_candidate,
+)
 from .canon_task_graph import (
+    CanonTaskDispatcher,
     bind_received_canon_task_edge,
     classify_canon_envelope,
     decide_canon_input,
+    dispatch_linked_canon_task,
     inspect_canon_authority,
     inspect_canon_inbox,
     inspect_canon_task_graph,
@@ -1059,6 +1067,7 @@ def build_local_service_adapter(
     service: Any,
     *,
     runtime_binding: Mapping[str, Any],
+    canon_dispatcher: CanonTaskDispatcher | None = None,
 ) -> RegisteredSDKAdapter:
     """Bind the private SDK to the in-process Evidence Lane service.
 
@@ -1281,6 +1290,17 @@ def build_local_service_adapter(
             **_canon_payload(binding, payload),
         )
 
+    def _canon_dispatch(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return dispatch_linked_canon_task(
+            _canon_root(binding),
+            project_id=binding.project_id,
+            dispatcher=canon_dispatcher,
+            **_canon_payload(binding, payload),
+        )
+
     def _canon_backfire(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
@@ -1330,6 +1350,25 @@ def build_local_service_adapter(
             project_id=binding.project_id,
         )
 
+    def _learning_payload(
+        binding: SDKBinding, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        exact = dict(payload)
+        supplied_project = exact.pop("project_id", binding.project_id)
+        require(
+            supplied_project == binding.project_id,
+            "SDK_LEARNING_PROJECT_BINDING_MISMATCH",
+            "The Learning SDK payload cannot override its exact project binding.",
+            status="BLOCKED",
+        )
+        require(
+            "project_root" not in exact,
+            "SDK_LEARNING_ROOT_OVERRIDE_BLOCKED",
+            "The Learning SDK payload cannot override the bound project authority root.",
+            status="BLOCKED",
+        )
+        return exact
+
     def _learning_retrieve(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
@@ -1337,7 +1376,37 @@ def build_local_service_adapter(
         return retrieve_accepted_learning(
             service.store.project_root(binding.project_id),
             project_id=binding.project_id,
-            **payload,
+            **_learning_payload(binding, payload),
+        )
+
+    def _learning_seal_candidate(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return seal_learning_candidate(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+            **_learning_payload(binding, payload),
+        )
+
+    def _learning_decide_candidate(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return decide_learning_candidate(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+            **_learning_payload(binding, payload),
+        )
+
+    def _learning_revoke(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return revoke_learning_candidate(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+            **_learning_payload(binding, payload),
         )
 
     def _lineage(binding: SDKBinding) -> ChatLineage:
@@ -1436,12 +1505,16 @@ def build_local_service_adapter(
         ("canon_input", "supersede"): _canon_supersede,
         ("canon_input", "register_edge"): _canon_register_edge,
         ("canon_input", "bind_edge"): _canon_bind_edge,
+        ("canon_input", "dispatch_linked_task"): _canon_dispatch,
         ("canon_input", "backfire_hil"): _canon_backfire,
         ("canon_input", "seal_result"): _canon_seal_result,
         ("canon_input", "seal_continuity"): _canon_seal_continuity,
         ("canon_input", "restore_continuity"): _canon_restore_continuity,
         ("agent_learning", "inspect"): _learning_inspect,
         ("agent_learning", "retrieve"): _learning_retrieve,
+        ("agent_learning", "seal_candidate"): _learning_seal_candidate,
+        ("agent_learning", "decide_candidate"): _learning_decide_candidate,
+        ("agent_learning", "revoke"): _learning_revoke,
         ("chat_lineage", "status"): _lineage_status,
         ("chat_lineage", "events"): _lineage_events,
         ("host_entry_continuity", "inspect"): _host_entry,
@@ -1488,4 +1561,108 @@ def build_local_service_adapter(
         adapter_id="evidence-lane.local-service.v1",
         snapshot_provider=snapshot,
         handlers=handlers,
+    )
+
+
+def build_live_local_sdk_context(
+    service: Any,
+    *,
+    project_id: str,
+    session_id: str,
+    write_scope: tuple[str, ...] = (),
+    canon_dispatcher: CanonTaskDispatcher | None = None,
+) -> tuple[InternalEvidenceLaneSDK, SDKBinding]:
+    """Derive one exact live binding and its in-process SDK adapter.
+
+    Public MCP actions use this bridge so the typed action name, current
+    accepted pointer, active native Plan row, ENV/UOP identities, lineage head,
+    host task, and execution profile are checked together before an SDK arm is
+    invoked.  Callers cannot supply or weaken those identities.
+    """
+
+    session = service.sessions.load(project_id, session_id)
+    pointer = service.store.pointer(project_id)
+    backlog = service.store.backlog_status(project_id)
+    active = [
+        row
+        for row in backlog["goal_projection"]["rows"]
+        if row["status"] == "in_progress"
+    ]
+    require(
+        len(active) == 1,
+        "SDK_ACTIVE_PLAN_ROW_REQUIRED",
+        "The live SDK bridge requires exactly one active native Plan row.",
+        status="MISMATCH",
+        active_count=len(active),
+    )
+    lineage_path = (
+        service.store.project_root(project_id) / "lineage" / f"{session_id}.jsonl"
+    )
+    events = ChatLineage(lineage_path).events()
+    lineage_head = (
+        str(events[-1]["event_sha256"])
+        if events
+        else sha256_bytes(
+            canonical_json_bytes(
+                {
+                    "project_id": project_id,
+                    "session_id": session_id,
+                    "state": "NO_LINEAGE_EVENTS",
+                }
+            )
+        )
+    )
+    profile_value = session.metadata.get("execution_profile")
+    profile = dict(profile_value) if isinstance(profile_value, Mapping) else {}
+    required_profile = {
+        "model",
+        "submodel",
+        "reasoning_effort",
+        "reasoning_speed",
+    }
+    require(
+        required_profile <= set(profile)
+        and all(str(profile[field] or "").strip() for field in required_profile),
+        "SDK_EXECUTION_PROFILE_REQUIRED",
+        "The live SDK bridge requires the exact governed execution profile.",
+        status="MISMATCH",
+        missing=sorted(required_profile - set(profile)),
+    )
+    host_session_id = str(
+        session.metadata.get("current_host_session_id") or ""
+    ).strip()
+    require(
+        bool(host_session_id),
+        "SDK_HOST_SESSION_BINDING_REQUIRED",
+        "The live SDK bridge requires the exact governed host-session identity.",
+        status="MISMATCH",
+    )
+    env_uop = derive_host_entry_env_uop(service.flash_authority.status())
+    binding = SDKBinding.from_dict(
+        {
+            "project_id": project_id,
+            "session_id": session_id,
+            "task_id": str(active[0]["task_id"]),
+            "accepted_pv": pointer.accepted_pv,
+            "pointer_generation": pointer.generation,
+            "accepted_manifest_sha256": pointer.accepted_manifest_sha256,
+            "lineage_head_sha256": lineage_head,
+            **env_uop,
+            "model": str(profile["model"]),
+            "submodel": str(profile["submodel"]),
+            "reasoning_effort": str(profile["reasoning_effort"]),
+            "reasoning_speed": str(profile["reasoning_speed"]),
+            "host_kind": session.host.value,
+            "host_session_id": host_session_id,
+            "write_scope": list(write_scope),
+        }
+    )
+    adapter = build_local_service_adapter(
+        service,
+        runtime_binding=binding.as_dict(),
+        canon_dispatcher=canon_dispatcher,
+    )
+    return (
+        InternalEvidenceLaneSDK(service.store.project_root(project_id), adapter),
+        binding,
     )

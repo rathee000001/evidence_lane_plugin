@@ -5,6 +5,7 @@ ARG EVIDENCE_LANE_RELEASE_SHA
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     EVIDENCE_LANE_DATA_ROOT=/var/lib/evidence-lane \
+    EVIDENCE_LANE_PLUGIN_ROOT=/app/plugins/evidence-lane-plugin \
     EVIDENCE_LANE_MCP_PORT=8080
 
 RUN apt-get update \

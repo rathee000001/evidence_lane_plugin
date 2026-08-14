@@ -77,8 +77,8 @@ def _fixture_hook_source(marker: str) -> str:
 
 def _fixture_catalog_source() -> str:
     functions = ["_READ_ONLY = object()", "_WRITE = object()"]
-    for index in range(62):
-        annotation = "_READ_ONLY" if index < 21 else "_WRITE"
+    for index in range(83):
+        annotation = "_READ_ONLY" if index < 26 else "_WRITE"
         functions.extend(
             [
                 f'@server.tool(name="tool_{index:02d}", annotations={annotation})',
@@ -134,10 +134,10 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                     "stable_selector_is_persistent": True,
                     "stable_updates_reinstall_in_place": True,
                     "build_identity_is_receipt_not_selector": True,
-                    "native_tool_count": 62,
-                    "native_read_tool_count": 21,
-                    "native_write_tool_count": 41,
-                    "skill_count": 15,
+                    "native_tool_count": 83,
+                    "native_read_tool_count": 26,
+                    "native_write_tool_count": 57,
+                    "skill_count": 17,
                     "codex_apps_allowed": False,
                     "generated_namespace_allowed": False,
                     "direct_stdio_fallback_allowed": False,
@@ -229,6 +229,13 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                     "stable_selector_growth_allowed": False,
                     "raw_goal_objective_stored": False,
                 },
+                "workflow_scope": installer.EXPECTED_WORKFLOW_SCOPE,
+                "goal_completion_policy": (
+                    installer.EXPECTED_GOAL_COMPLETION_POLICY
+                ),
+                "helper_distribution_policy": (
+                    installer.EXPECTED_HELPER_DISTRIBUTION_POLICY
+                ),
                 "behavior_ownership": installer.EXPECTED_BEHAVIOR_OWNERSHIP,
                 "stable_activation_gate": installer.EXPECTED_STABLE_ACTIVATION_GATE,
                 "brand_identity": {
@@ -399,7 +406,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
         source / "src" / "evidence_lane_plugin" / "mcp_server.py",
         _fixture_catalog_source(),
     )
-    for number in range(15):
+    for number in range(17):
         _write(source / "skills" / f"skill-{number:02d}" / "SKILL.md", "# Test\n")
     _write(source / "README.md", "# Evidence Lane\n")
     _write(
@@ -551,7 +558,7 @@ def _exact_package_receipt(
             "working_source_manifest_sha256"
         ],
         "source_member_count": 1,
-        "skill_count": 15,
+        "skill_count": 17,
         "canonical_lane_count": 18,
         "exact_commit_export": {
             "branch": "agent/evi-v200-test",
@@ -654,7 +661,7 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
         "Stop",
         "UserPromptSubmit",
     ]
-    assert result["surface_change_display"]["skills"]["count"] == 15
+    assert result["surface_change_display"]["skills"]["count"] == 17
     assert result["surface_change_display"]["search_toolchain"]["status"] == "PASS"
     assert result["surface_change_display"]["search_toolchain"]["record_count"] == 2
     assert [
@@ -668,10 +675,10 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
         "raw_paths_included"
     ] is False
     assert result["surface_change_display"]["catalog"] == {
-        "tools": 62,
-        "read": 21,
-        "write": 41,
-        "skills": 15,
+        "tools": 83,
+        "read": 26,
+        "write": 57,
+        "skills": 17,
         "changed_from_previous": False,
     }
     assert (data_root / "installations" / "codex-v200" / "CURRENT_INSTALLATION.json").is_file()
@@ -1188,8 +1195,8 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
         payload = {
             "engine_version": "2.2.0",
             "native_server_identity": "evidence-lane",
-            "read_tool_count": 21,
-            "tool_count": 62,
+            "read_tool_count": 26,
+            "tool_count": 83,
             "tool_catalog_sha256": "A" * 64,
             "route_status": "PASS",
             "resource_uri": "ui://evidence-lane/governed-console-v5.html",
@@ -1208,7 +1215,7 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
     assert receipt["status"] == "PASS"
     assert receipt["runtime_ready_before_task_reopen"] is True
     assert receipt["native_dependency_prewarm_completed"] is True
-    assert receipt["tool_count"] == 62
+    assert receipt["tool_count"] == 83
     assert receipt["tool_catalog_sha256"] == "A" * 64
     assert receipt["resource_uri"] == (
         "ui://evidence-lane/governed-console-v5.html"
@@ -1277,8 +1284,8 @@ def test_installed_runtime_bootstrap_retries_once_on_same_sealed_bytes(
         payload = {
             "engine_version": "2.2.0",
             "native_server_identity": "evidence-lane",
-            "read_tool_count": 21,
-            "tool_count": 62,
+            "read_tool_count": 26,
+            "tool_count": 83,
             "tool_catalog_sha256": "A" * 64,
             "route_status": "PASS",
             "resource_uri": "ui://evidence-lane/governed-console-v5.html",
@@ -1882,13 +1889,13 @@ def test_installer_rejects_native_catalog_drift_before_staging(tmp_path: Path) -
     server = source / "src" / "evidence_lane_plugin" / "mcp_server.py"
     server.write_text(
         server.read_text(encoding="utf-8").replace(
-            '@server.tool(name="tool_61", annotations=_WRITE)',
-            "# removed tool 61",
+            '@server.tool(name="tool_82", annotations=_WRITE)',
+            "# removed tool 82",
         ),
         encoding="utf-8",
     )
 
-    with pytest.raises(module.InstallationError, match="62/21/41"):
+    with pytest.raises(module.InstallationError, match="83/26/57"):
         module._validate_plugin(source)
 
 
@@ -2312,14 +2319,14 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         "probe_stderr_sha256": "2" * 64,
         "engine_version": "2.2.0",
         "native_server_identity": "evidence-lane",
-        "tool_count": 62,
+        "tool_count": 83,
         "tool_catalog_sha256": "A" * 64,
         "resource_uri": "ui://evidence-lane/governed-console-v5.html",
         "brand_icon_sha256": (
             "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3D"
             "EF87B8A129C4FA"
         ),
-        "catalog_expected": {"tools": 62, "read": 21, "write": 41, "skills": 15},
+        "catalog_expected": {"tools": 83, "read": 26, "write": 57, "skills": 17},
         "native_dependency_prewarm_completed": True,
         "duration_ms": 1,
         "task_reopened": False,
@@ -2438,10 +2445,10 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
                 "raw_paths_included": False,
             },
             "catalog": {
-            "tools": 62,
-            "read": 21,
-            "write": 41,
-            "skills": 15,
+            "tools": 83,
+            "read": 26,
+            "write": 57,
+            "skills": 17,
             "changed_from_previous": False,
         },
         "previous_surface_inventory_sha256": None,
@@ -2479,7 +2486,7 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
     assert pre["state"] == (
         "PRE_RESTART_INSTALLED_PACKAGE_VERIFIED_RESTART_REQUIRED"
     )
-    assert pre["catalog"] == {"tools": 62, "read": 21, "write": 41, "skills": 15}
+    assert pre["catalog"] == {"tools": 83, "read": 26, "write": 57, "skills": 17}
     assert pre["installed_plugin"]["version"] == version
     assert pre["package_inventory"]["source_bytes_match_marketplace"] is True
     assert pre["package_inventory"]["codex_generated_migration_count"] == 1
@@ -2501,7 +2508,7 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
                 "server_identity": "evidence-lane",
                 "canonical_tool_namespace": "mcp__evidence_lane__",
                 "exposure_profile": "FULL_LIFECYCLE",
-                "tool_count": 62,
+                "tool_count": 83,
                 "tool_names_unique": True,
                 "project_route_argument_required": True,
                 "cross_project_fallback_allowed": False,

@@ -4,8 +4,8 @@ Version 2.2.0 is the current pre-HIL Codex source release on the governed v2.2
 branch. Accepted Project Truth and the GitLane base remain PV12/2.1.0. Direct
 host evidence showed the disabled fallback at historical PV11/main 2.0.0; this
 source-only row neither repairs nor activates either installed slot. The source provides a
-package-local native MCP server, 62 canonical actions (21 read-only and 41
-write-capable), 15 governed skills, eight registered lifecycle events, local durable
+package-local native MCP server, 83 canonical actions (26 read-only and 57
+write-capable), 17 governed skills, eight registered lifecycle events, local durable
 project storage, persistent Plan/Delta continuity, and an exact six-way HIL.
 Agent Learning is a separate project-scoped authority, not another name for
 Project Truth or Canon. It seals evidence-backed candidates, records lifecycle
@@ -69,6 +69,22 @@ Candidate creation, remote Git push, package installation, and pointer movement
 are separate governed operations. None of them implies acceptance. Only exact
 case-sensitive `APPROVE` at the correct HIL can authorize Fuse.
 
+The current maintainer Row196 route binds the CI-green, Git-triggered-preview
+commit from `agent/evi-v220-systemwide-release-hil-v2.2.0`. The immediate
+Row197/PV13 install-HIL route installs that exact 2.2 package in the enabled
+Stable selector and requires installed readback of 83 actions (26 read/57
+write), 17 skills, eight hook events, and the migrated command surface before
+the PV13 HIL is presented. It cannot merge main or change the disabled fallback.
+That plugin release/install cadence is not part of an ordinary downstream
+user's project PV workflow.
+
+Only the human command `MARK GOAL COMPLETE` may complete a governed Goal, with
+`COMPLETE_THIS_TASK_AND_STATE_TRAVEL` or `COMPLETE_FULLY`. HIL, candidate,
+tests, Plan/task state, automation, pause, and stall have no Goal-completion
+authority. Version-bound Goal-recovery helpers and required Stable tunnels are
+user support surfaces; the release updater is maintainer-only. Older helper and
+tunnel versions remain retained and disabled with one active version.
+
 ## Codex host and storage matrix
 
 | Execution profile | Primary PV storage | Evidence Lane tunnel |
@@ -118,11 +134,12 @@ sign-in task but never activates the disabled fallback slot. After
 governed activation, prove readiness with:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200-stable-build\Manage-EvidenceLaneTunnel.ps1" `
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build\Manage-EvidenceLaneTunnel.ps1" `
   -Action Status `
-  -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200-stable-build" `
-  -ProfileName evidence_lane_v200_stable_build_transport `
-  -TaskName EvidenceLane-Tunnel-v200-stable-build
+  -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build" `
+  -ProfileName evidence_lane_v220_stable_build_transport `
+  -TaskName EvidenceLane-Tunnel-v220-stable-build `
+  -ReleaseToken v220
 ```
 
 The result is acceptable only when it reports `status = PASS`. Codex lifecycle
@@ -136,7 +153,7 @@ and direct CLI/API profiles do not require this tunnel. See the
 - `.codex-plugin/plugin.json` — Codex product and host metadata.
 - `.mcp.json` — package-local native MCP launch contract.
 - `src/evidence_lane_plugin/` — lifecycle engine and native server.
-- `skills/` — fifteen governed skills.
+- `skills/` — seventeen governed skills.
 - `hooks/` — eight registered events and sealed Windows/Python dispatch wrappers across nine package files.
 - `toolchains/` — the governed `ripgrep`/`fzf` dependency manifest,
   hash-pinned Windows binaries, upstream licenses, and deterministic fallback
@@ -201,7 +218,7 @@ Windows-logon recovery manager for exact governed Codex Goal tasks.
    bound at preparation, and passes it the same task's
    `codex://threads/<task-id>` deep link. It does not use another task,
    modify the task's native workspace binding, or implement Codex's Changes UI.
-6. After restart, verify native route identity, 62/21/41 counts, all 15 skills,
+6. After restart, verify native route identity, 83/26/57 counts, all 17 skills,
    hook execution, icon, project/runtime panels, persistent task/change display,
    native Git workspace and Changes surface, and local durable storage from the
    installed package.

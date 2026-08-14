@@ -1,7 +1,7 @@
 {
   "schema": "evidence-lane.public-plugin-metadata.v1",
   "name": "Evidence Lane",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "short_description": "Governed project evidence with durable memory and human-controlled acceptance.",
   "long_description": "Evidence Lane turns authorized project sources and visible AI-task lineage into inspectable, content-sealed evidence packages. It keeps candidates separate from accepted truth, preserves exact source identity and pointer history, resumes exact unfinished work through verified State Travel, and requires an explicit six-way human-in-the-loop decision before promotion.",
   "developer": {
@@ -18,7 +18,7 @@
   "repository": "https://github.com/rathee000001/evidence_lane_plugin",
   "interactive_ui": {
     "standard": "MCP Apps",
-    "resource_uri": "ui://evidence-lane/governed-console-v3.html",
+    "resource_uri": "ui://evidence-lane/governed-console-v5.html",
     "mime_type": "text/html;profile=mcp-app",
     "render_tools": [
       "render_runtime_panel",
@@ -27,13 +27,13 @@
     "host_boundary": "The installed Codex-native MCP supplies supported in-conversation panels. This website is documentation only and does not transport lifecycle calls."
   },
   "host_contracts": {
-    "codex": "Exact-Git full lifecycle. Plan Lane may project to Codex native Plan mode, Goal, and task panel through a user-mediated /pl and /evi-plan flow.",
+    "codex": "Exact-Git full lifecycle. A State Travel destination automatically resumes exactly once, restores the full host Plan, waits for explicit host Plan acceptance when required, then runs native Plan verification and starts the carried Goal without requiring typed /pl or /evi-plan commands.",
     "chatgpt": "DEFERRED_FUTURE_HOST_MARKER_ONLY. No active ChatGPT plugin, remote MCP adapter, tunnel deployment, or installation claim is part of the v2 Codex release."
   },
   "skill_surface": {
-    "packaged_count": 15,
-    "visibility": "CODEX_15_PACKAGED_SKILLS; installed-host visibility requires the exact post-install receipt",
-    "codex_packaged_count_verified": 15,
+    "packaged_count": 17,
+    "visibility": "CODEX_17_PACKAGED_SKILLS; installed-host visibility requires the exact post-install receipt",
+    "codex_packaged_count_verified": 17,
     "read_safe_workflows": [
       "Root routing and exact six-control presentation",
       "Boot ENV/UOP Flash, runtime and accepted-PV observation",
@@ -42,6 +42,15 @@
       "Mode, storage and lifecycle-law explanation without mutation"
     ],
     "deferred_host_surfaces_are_not_current_release_authority": true
+  },
+  "native_action_surface": {
+    "server": "evidence-lane",
+    "canonical_count": 83,
+    "read_only_count": 26,
+    "write_capable_count": 57,
+    "canon_actions": 16,
+    "agent_learning_actions": 5,
+    "installed_host_visibility_requires_exact_post_install_receipt": true
   },
   "exposure_profiles": {
     "codex": {
@@ -100,29 +109,29 @@
     "sealed_historical_delta_rows": 80,
     "candidate_comparison_deployment": "https://evidence-lane-chatgpt-mcp-adapter-hllaqjvmi.vercel.app",
     "candidate_comparison_commit": "93bf4a409faf544a96db8501cbdeefc002f9a32e",
-    "production_role": "HISTORICAL_BASELINE_ONLY_UNTIL_ACCEPTED_PUBLICATION",
+    "production_role": "PRE_HIL_BRANCH_PROJECTION_NOT_ACCEPTED_PUBLICATION",
     "canonical_authority": "PLAN_LANE",
-    "live_projection_rows": 125,
+    "live_projection_rows": 126,
     "row_start": 81,
-    "row_end": 205,
-    "completed_rows": 114,
+    "row_end": 206,
+    "completed_rows": 115,
     "in_progress_rows": 1,
     "pending_rows": 10,
-    "active_public_row": 195,
-    "active_task_id": "EL-CODEX-ONE_COMMIT_TEST_BRANCH_PUSH-PROPOSAL-30",
-    "active_public_task_position": 115,
-    "physically_final_hil_public_row": 205,
+    "active_public_row": 196,
+    "active_task_id": "EL-CODEX-GITHUB_ACTIONS_CLEAN_CI-PROPOSAL-31",
+    "active_public_task_position": 116,
+    "physically_final_hil_public_row": 206,
     "physically_final_hil_task_id": "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR",
-    "physically_final_hil_task_position": 125,
-    "canonical_plan_sha256": "3232031626B7EC3571FA9452A16A26A3839F0C954AC72C61F8CF8ABB7CC08020",
-    "history_projection_sha256": "05F0EB5513141AD32EAC96D0B9323C5F70BB2E7B05A5E5253C8AE927FBBED669",
-    "executable_projection_sha256": "700D8BE5C429702009E09024A0E44E8C425DF520F763371CB49714232AF51223",
-    "website_plan_snapshot_sha256": "0FDA6CC9B551160765119A2B889C1630DA6CE1CBE0683386036BA4C213E6D26B",
-    "native_plan_event_count": 780,
-    "native_plan_event_head_sha256": "A7A73F2EB74C1F7246506ACB12A51C9C4792EC08790B4A579E633B415A391DE5",
+    "physically_final_hil_task_position": 126,
+    "canonical_plan_sha256": "33131DC61902030BFFD2C9A346D0D52370F4BBACA3897842083C209A2D717FA5",
+    "history_projection_sha256": "9986136434D864CA9B7ACD12124000A1C8ACE889A304FC4221DDF40D08D83BCA",
+    "executable_projection_sha256": "6FFEAE85E22C3E01453CBD5FEDB23E20DC8411B1E984DFDC78F5817E624ED880",
+    "website_plan_snapshot_sha256": "BEE3C1B28948D5FECD2508661385F9AFDC611D17F213BF2D59C2297ABC1067DE",
+    "native_plan_event_count": 797,
+    "native_plan_event_head_sha256": "5F996A9F6F71AD42C5A001EC594D890F72080732C5E1C67157104DF517842FE8",
     "planning_event_count": 15,
     "planning_event_head_sha256": "28F90F316FA2C24D3DC179F2F81C27DDEAF88D7979CB20E9EB990C4FF86DAD06",
-    "runtime_projection_content_sha256": "77491B29546B5C948E23E45DAD5C1FB16981461BC0E2C76465E1B0BE2CFF1A30",
+    "runtime_projection_content_sha256": "9C84C9D8AAAE65DF4C46B49326BF6346EEEDDBFBD19EEDBED81F765AE33F878E",
     "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED"
   },
   "release_propagation": "GitHub Markdown, all relevant website pages and footers, the website Delta table, Vercel production from main, and existing Devpost project 1348634/evidence_os must resolve from the same accepted release evidence.",

@@ -65,10 +65,10 @@ accepted immutable PV under its own receipt.
 ## Native MCP surface
 
 The package-local server identity is `evidence-lane`; the canonical display
-namespace is `mcp__evidence_lane__`. It exposes exactly 62 actions:
+namespace is `mcp__evidence_lane__`. It exposes exactly 83 actions:
 
-- 21 read-only operations;
-- 41 write-capable operations.
+- 26 read-only operations;
+- 57 write-capable operations.
 
 The server may expose a collision-safe host display suffix, but the route
 receipt proves canonical tool names and rejects generated, app, legacy, or
@@ -77,6 +77,28 @@ external-connector surfaces as lifecycle authority.
 The six primary controls are Boot, Rollback, Build, Refresh, Mode, and Source
 Intake. State Travel is a user-timed recovery path and `/evi-plan` is a Codex
 Plan-mode sidecar.
+
+## Four separate continuity authorities
+
+Project Truth, Canon Input, AI/Agent Learning, and host-entry continuity are
+independently namespaced authorities. Canon coordinates exact linked tasks and
+may carry conditional backfire or State Travel context; it cannot promote
+Project Truth or Learning. Agent Learning owns separately reviewed semantic,
+episodic, and procedural lessons; it cannot overwrite accepted project facts.
+Host-entry continuity binds exact unfinished work into an intended host/task
+consumer; it cannot replay a Canon or HIL decision. ChatLineage provides the
+secret-redacted visible event and hash-chain substrate without storing private
+reasoning.
+
+The private internal SDK exposes the full engine and contracts through separate
+modules for Project Truth, Canon, Learning, ChatLineage, host entry, lifecycle,
+Plan/Delta/tasks, source/lane retrieval, ENV/UOP and operators, storage,
+candidate/HIL/pointer operations, and provider adapters. It is not a reduced
+retrieval wrapper, and unsupported host capabilities fail explicitly.
+
+See [Canon](CANON_TASK_GRAPH_AND_INPUT_HIL.md),
+[Agent Learning and host continuity](HOST_STORAGE_ENV_MODE_CONTINUITY.md), and
+[the internal SDK](INTERNAL_CODEX_SDK.md).
 
 ## Local durable storage
 
@@ -166,7 +188,7 @@ The v2.2 package registers eight hook events:
 - `Stop` — preserve the response/exit boundary;
 - `SessionEnd` — best-effort lifecycle flush without inferring completion.
 
-The package inventory is eight events, six command handlers, and seven hook files
+The package inventory is eight events, six command handlers, and nine hook files
 including `hooks.json`. Hook output can request a persistent change notice, but
 Codex owns its final placement. The icon and rendered panel are therefore
 installed-host observations, not facts inferred from source metadata.
@@ -220,3 +242,11 @@ and task deep link. Any mismatch stops before process termination.
   package-local native lifecycle route.
 - Tests, commits, pushes, packages, installs, and restarts are evidence only.
 - HIL is never inferred.
+
+## Public website projection
+
+The public Next.js site is documentation only. Every route exposes a visible
+link to its Git-tracked Markdown authority, and clean CI checks complete route
+coverage. Page copy may simplify the source for business readers but cannot
+invent a version, capability, authority, or release claim. The canonical map
+is [PUBLIC_SITE_SOURCE_MAP.md](PUBLIC_SITE_SOURCE_MAP.md).

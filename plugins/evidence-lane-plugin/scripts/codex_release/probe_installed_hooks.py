@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Read one Codex ``hooks/list`` inventory without changing host state."""
 
 from __future__ import annotations

@@ -4,6 +4,9 @@ import { publicSiteUrl } from "./_data/site";
 
 const paths = [
   "",
+  "/skills",
+  "/mcp",
+  "/hooks",
   "/architecture",
   "/lanes",
   "/operators",

@@ -21,8 +21,14 @@ const planTokens = {
   "{{FINAL_ROW}}": String(planProjection.physically_final_hil_row),
   "{{FINAL_TASK_ID}}": planProjection.physically_final_hil_task_id,
 };
+const currentSurfaceFragments = {
+  "whole-project-business-synthesis": ["18 lanes", "six-way HIL", "83 actions", "PV12", "Codex layer"],
+  "host-capability-truth": ["2.2.0", "PV12", "2.1", "2.0", "package-local native route"],
+  "install-metadata-hard-gate": ["Praveen Rathee", "17 skills", "26 read", "57 write", "PV14"],
+};
 for (const testCase of evaluation.cases) {
-  testCase.required_answer_fragments = testCase.required_answer_fragments.map((fragment) =>
+  const requiredFragments = currentSurfaceFragments[testCase.id] ?? testCase.required_answer_fragments;
+  testCase.required_answer_fragments = requiredFragments.map((fragment) =>
     Object.entries(planTokens).reduce(
       (value, [token, replacement]) => value.replaceAll(token, replacement),
       fragment,
@@ -32,6 +38,7 @@ for (const testCase of evaluation.cases) {
 const receipts = [];
 
 assert.equal(evaluation.candidate.production_role, "HISTORICAL_BASELINE_ONLY");
+assert.equal(evaluation.candidate.release, "1.5.0");
 assert.match(evaluation.candidate.preview, /vercel\.app$/);
 assert.equal(studioRouteContexts.length >= evaluation.minimum_route_count, true);
 
