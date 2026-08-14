@@ -10,6 +10,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
 
+from .capture_routing import CaptureRouteAuthority
 from .connector_governance import ConnectorGovernance
 from .constants import LIFECYCLE_RESULT_SCHEMA, TOOL_RESULT_SCHEMA
 from .custom_source_schema import (
@@ -22,9 +23,15 @@ from .enrollment import enroll_project, sync_selected_branch
 from .errors import EvidenceLaneError, require
 from .flash_authority import SessionFlashAuthority
 from .freshness import evaluate_freshness
-from .git_adapter import inspect_repository
+from .git_adapter import calculate_worktree_sha256, inspect_repository
 from .hashing import canonical_json_bytes, sha256_bytes
 from .hil_intent import classify_hil_intent
+from .host_entry_continuity import (
+    TransactionalHostEntryBackend,
+    consume_host_entry_envelope,
+    derive_host_entry_authority_heads,
+    derive_host_entry_env_uop,
+)
 from .ids import prefixed_id
 from .lane_reader import LaneReader
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
@@ -216,6 +223,32 @@ class EvidenceLaneService:
         self.remote_git = RemoteGitController(self.store)
         self.sync_service = sync_service or self._environment_sync_service()
 
+    def _capture_route_binding(self, project_id: str) -> dict[str, Any]:
+        """Bind the capture policy before any session lineage ingestion."""
+
+        project_root = self.store.project_root(project_id)
+        project_path = project_root / "project.json"
+        registered = json.loads(project_path.read_text(encoding="utf-8"))
+        config = self.store.config(project_id)
+        selection_reason = (
+            "EXPLICIT_PROJECT_CONFIGURATION"
+            if "capture_route" in registered
+            else "LEGACY_PROJECT_COMPATIBILITY_DEFAULT_FULL_ROUTE"
+        )
+        authority = CaptureRouteAuthority(project_root)
+        if authority.binding_path.is_file():
+            return {
+                "status": "PASS",
+                "state": "BOUND_IDEMPOTENT_REUSE",
+                **authority.binding(),
+            }
+        return authority.bind(
+            project_id=project_id,
+            route=config.capture_route,
+            selected_by="ATOMIC_BOOT_OR_RESUME_PRE_INGESTION",
+            reason=selection_reason,
+        )
+
     def storage_connector_inspect(
         self,
         project_id: str,
@@ -259,6 +292,7 @@ class EvidenceLaneService:
         ephemeral: bool,
         server_has_durable_filesystem: bool | None,
         runtime_context: dict[str, Any] | None = None,
+        host_session_id: str | None = None,
     ) -> tuple[PersistenceRoute, dict[str, Any]]:
         host_kind = normalize_host_kind(host)
         automatic = route_persistence(
@@ -266,6 +300,7 @@ class EvidenceLaneService:
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
             runtime_context=runtime_context,
+            host_session_id=host_session_id,
         )
         selection = self.storage_selection.inspect(project_id)
         if selection["mode"] == "AUTO":
@@ -306,6 +341,122 @@ class EvidenceLaneService:
             "transport_project_binding": "EXPLICIT_PROJECT_ID_PER_PROJECT_SCOPED_TOOL",
             "cross_project_fallback_allowed": False,
         }
+
+    def _consume_remote_host_entry_for_resume(
+        self,
+        project_id: str,
+        *,
+        route: PersistenceRoute,
+        host_session_id: str,
+        runtime_context: dict[str, Any] | None,
+        project_lineage_entry: dict[str, Any],
+        flash: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        """Gate insufficiently durable resume on one exact host-entry claim."""
+
+        if route.server_filesystem == "DURABLE":
+            return None
+        require(
+            route.durable_required
+            and self.sync_service is not None
+            and self.sync_service.runtime_state_capable,
+            "DURABLE_RUNTIME_CONNECTOR_NOT_CONFIGURED",
+            "Remote host entry requires the configured transactional runtime connector.",
+            status="BLOCKED",
+        )
+        context = cast(dict[str, Any], runtime_context or {})
+        envelope = context.get("host_entry_envelope")
+        invocation_id = str(context.get("host_entry_invocation_id") or "").strip()
+        require(
+            isinstance(envelope, dict) and bool(invocation_id),
+            "HOST_ENTRY_ENVELOPE_REQUIRED_BEFORE_RESUME",
+            "An insufficiently durable host must provide one exact host-entry envelope and invocation identity before Resume.",
+            status="BLOCKED",
+        )
+        envelope = cast(dict[str, Any], envelope)
+        active_path = self.store.project_root(project_id) / "active_session.json"
+        require(
+            active_path.is_file(),
+            "HOST_ENTRY_ACTIVE_SESSION_REQUIRED",
+            "Remote host entry requires the exact persistent governed session.",
+            status="BLOCKED",
+        )
+        active = json.loads(active_path.read_text(encoding="utf-8"))
+        session = self.sessions.load(project_id, str(active["session_id"]))
+        projection = self.store.backlog_status(project_id)["goal_projection"]
+        active_rows = [
+            row for row in projection["rows"] if row["status"] == "in_progress"
+        ]
+        require(
+            len(active_rows) == 1,
+            "HOST_ENTRY_ACTIVE_PLAN_ROW_REQUIRED",
+            "Remote host entry requires one and only one active canonical Plan row.",
+            status="MISMATCH",
+            active_count=len(active_rows),
+        )
+        active_row = active_rows[0]
+        pointer = self.store.pointer(project_id)
+        pointer_payload = pointer.as_dict()
+        expected_pointer = {
+            "accepted_pv": pointer.accepted_pv,
+            "generation": pointer.generation,
+            "manifest_sha256": pointer.accepted_manifest_sha256,
+            "pointer_sha256": sha256_bytes(canonical_json_bytes(pointer_payload)),
+        }
+        lineage_head = str(project_lineage_entry.get("head_state_sha256") or "")
+        authority_heads = derive_host_entry_authority_heads(
+            self.store.project_root(project_id),
+            project_id=project_id,
+            accepted_pointer=pointer_payload,
+            chat_lineage_head_sha256=lineage_head,
+        )
+        env_uop = derive_host_entry_env_uop(flash)
+        config = self.store.config(project_id)
+        worktree_sha256 = calculate_worktree_sha256(config.repository_path)
+        exact_host_session_id = host_session_id.strip()
+        consumer_binding = {
+            "task_id": exact_host_session_id,
+            "task_deep_link_sha256": sha256_bytes(
+                f"codex://threads/{exact_host_session_id}".encode()
+            ),
+            "host_binding_id": envelope.get("host_binding_id"),
+            "host_session_id_sha256": sha256_bytes(
+                exact_host_session_id.encode("utf-8")
+            ),
+            "invocation_id_sha256": sha256_bytes(invocation_id.encode("utf-8")),
+        }
+        candidate_overlay_sha256 = (
+            sha256_bytes(
+                canonical_json_bytes(
+                    {
+                        "candidate_id": session.candidate_id,
+                        "session_state": session.state.value,
+                        "accepted_pointer_generation": pointer.generation,
+                    }
+                )
+            )
+            if session.candidate_id
+            else None
+        )
+        return consume_host_entry_envelope(
+            self.store.project_root(project_id),
+            cast(dict[str, Any], envelope),
+            expected_project_id=project_id,
+            expected_evidence_session_id=session.session_id,
+            expected_plan_task_id=str(active_row["task_id"]),
+            expected_pointer=expected_pointer,
+            expected_active_plan_row=int(active_row["number"]),
+            expected_env_uop=env_uop,
+            expected_worktree_sha256=worktree_sha256,
+            expected_authority_heads=authority_heads,
+            consumer_binding=consumer_binding,
+            consumed_at=utc_now(),
+            backend=cast(
+                TransactionalHostEntryBackend,
+                cast(PVSyncService, self.sync_service).backend,
+            ),
+            expected_candidate_overlay_sha256=candidate_overlay_sha256,
+        )
 
     def _environment_sync_service(self) -> PVSyncService | None:
         token = os.environ.get("EVIDENCE_LANE_GOOGLE_DRIVE_ACCESS_TOKEN", "")
@@ -1481,6 +1632,7 @@ class EvidenceLaneService:
         expected_name: str,
         allowed_branches: list[str],
         sensitivity: str = "PRIVATE",
+        capture_route: str = "GOVERNED_PROJECT_FULL",
     ) -> dict[str, Any]:
         return {
             "status": "PASS",
@@ -1495,6 +1647,7 @@ class EvidenceLaneService:
                     source_lane="local_code",
                     persistence_mode="governed_by_host",
                     sensitivity=sensitivity.upper(),
+                    capture_route=capture_route,
                 )
             ),
         }
@@ -1509,6 +1662,7 @@ class EvidenceLaneService:
         expected_name: str,
         branch: str,
         sensitivity: str = "PRIVATE",
+        capture_route: str = "GOVERNED_PROJECT_FULL",
     ) -> dict[str, Any]:
         return enroll_project(
             self.store,
@@ -1519,6 +1673,7 @@ class EvidenceLaneService:
             expected_name=expected_name,
             branch=branch,
             sensitivity=sensitivity,
+            capture_route=capture_route,
         )
 
     def sync_git_source(
@@ -1649,6 +1804,7 @@ class EvidenceLaneService:
         client_can_edit_source: bool | None = None,
         server_has_durable_filesystem: bool | None = None,
     ) -> dict[str, Any]:
+        capture_route_binding = self._capture_route_binding(project_id)
         project_lineage_entry = ProjectChatLineage(
             self.store.project_root(project_id) / "lineage"
         ).sync()
@@ -1660,6 +1816,7 @@ class EvidenceLaneService:
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
             runtime_context=runtime_context,
+            host_session_id=host_session_id,
         )
         if route.durable_required and (
             self.sync_service is None or not self.sync_service.runtime_state_capable
@@ -1671,6 +1828,12 @@ class EvidenceLaneService:
                 "Google Drive may mirror sealed artifacts but is never this primary authority.",
                 status="BLOCKED",
                 details={"mode": route.mode, "reason": route.reason},
+            )
+        if route.server_filesystem != "DURABLE":
+            raise EvidenceLaneError(
+                "HOST_ENTRY_REMOTE_BOOT_REQUIRES_EXACT_SESSION_RECOVERY",
+                "A new insufficiently durable Boot cannot invent a governed session; recover the exact durable session and consume its host-entry envelope through Resume.",
+                status="BLOCKED",
             )
         route_payload = self._persistence_route_payload(project_id, route)
         result = self.sessions.boot(
@@ -1694,6 +1857,7 @@ class EvidenceLaneService:
             "selection": storage_selection,
         }
         result["project_lineage_entry"] = project_lineage_entry
+        result["capture_route_binding"] = capture_route_binding
         result["project_lineage"] = ProjectChatLineage(
             self.store.project_root(project_id) / "lineage"
         ).sync()
@@ -1710,6 +1874,7 @@ class EvidenceLaneService:
         server_has_durable_filesystem: bool | None = None,
         runtime_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        capture_route_binding = self._capture_route_binding(project_id)
         project_lineage_entry = ProjectChatLineage(
             self.store.project_root(project_id) / "lineage"
         ).sync()
@@ -1721,6 +1886,7 @@ class EvidenceLaneService:
             ephemeral=ephemeral,
             server_has_durable_filesystem=server_has_durable_filesystem,
             runtime_context=runtime_context,
+            host_session_id=host_session_id,
         )
         if route.durable_required and (
             self.sync_service is None or not self.sync_service.runtime_state_capable
@@ -1733,6 +1899,14 @@ class EvidenceLaneService:
                 details={"mode": route.mode, "reason": route.reason},
             )
         route_payload = self._persistence_route_payload(project_id, route)
+        host_entry_consumption = self._consume_remote_host_entry_for_resume(
+            project_id,
+            route=route,
+            host_session_id=host_session_id,
+            runtime_context=runtime_context,
+            project_lineage_entry=project_lineage_entry,
+            flash=flash,
+        )
         result = self.sessions.resume(
             project_id=project_id,
             host=host_kind,
@@ -1744,6 +1918,7 @@ class EvidenceLaneService:
             server_has_durable_filesystem=route.server_filesystem == "DURABLE",
             runtime_context=runtime_context,
             flash=flash,
+            host_entry_consumption=host_entry_consumption,
         )
         result["session_flash"] = flash
         result["persistence_route"] = {
@@ -1751,6 +1926,7 @@ class EvidenceLaneService:
             "selection": storage_selection,
         }
         result["project_lineage_entry"] = project_lineage_entry
+        result["capture_route_binding"] = capture_route_binding
         result["project_lineage"] = ProjectChatLineage(
             self.store.project_root(project_id) / "lineage"
         ).sync()
@@ -1772,6 +1948,46 @@ class EvidenceLaneService:
         )
 
     def resume_state_travel(
+        self,
+        *,
+        project_id: str,
+        session_id: str,
+        handoff_id: str,
+        host: str,
+        host_session_id: str,
+        ephemeral: bool,
+        client_can_edit_source: bool | None = None,
+        server_has_durable_filesystem: bool | None = None,
+        runtime_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Consume one handoff globally once or return its no-rebind receipt."""
+
+        capture_route_binding = self._capture_route_binding(project_id)
+        with self.store.state_travel_resume_lock(project_id):
+            replay = self.sessions.state_travel_resume_replay(
+                project_id,
+                session_id,
+                handoff_id=handoff_id,
+                host=host,
+                host_session_id=host_session_id,
+                runtime_context=runtime_context,
+            )
+            if replay is not None:
+                return {**replay, "capture_route_binding": capture_route_binding}
+            result = self._resume_state_travel_locked(
+                project_id=project_id,
+                session_id=session_id,
+                handoff_id=handoff_id,
+                host=host,
+                host_session_id=host_session_id,
+                ephemeral=ephemeral,
+                client_can_edit_source=client_can_edit_source,
+                server_has_durable_filesystem=server_has_durable_filesystem,
+                runtime_context=runtime_context,
+            )
+            return {**result, "capture_route_binding": capture_route_binding}
+
+    def _resume_state_travel_locked(
         self,
         *,
         project_id: str,
@@ -1831,11 +2047,13 @@ class EvidenceLaneService:
         travel_mode = verified["state_travel"].get("travel_mode", "ACCEPTED_ENTRY")
         ordered_entry_verification = (
             [
-                "/evi-boot",
-                "ATOMIC_BOOT_AND_LOCKED_ENV_UOP_FLASH_VERIFIED",
-                "VERIFY_POINTER_BASE_AND_ANY_PRESERVED_CANDIDATE",
-                "VERIFY_PLAN_LANE_SOURCE_AND_EXECUTION_PROFILE",
-                "RESUME_EXACT_UNFINISHED_STEP",
+                "PHASE_1_CREATE_AND_BIND_EXACTLY_ONE_FRESH_DESTINATION",
+                "PHASE_2_ATOMIC_BOOT_FLASH_AND_PV_STATE_TRAVEL_RESUME_EXACTLY_ONCE",
+                "VERIFY_RECEIPT_POINTER_PACKAGE_SOURCE_PROFILE_AND_FULL_PLAN",
+                "PHASE_3_RESTORE_COMPLETE_HOST_PLAN",
+                "WAITING_FOR_EXPLICIT_HOST_PLAN_ACCEPTANCE",
+                "PHASE_4_AUTOMATIC_EVIDENCE_PLAN_AFTER_ACCEPTANCE",
+                "PHASE_5_AUTOMATIC_TRANSFERRED_GOAL_START_AFTER_PLAN_PROOF",
             ]
             if travel_mode == "UNFINISHED_VERIFIED_WORK"
             else [

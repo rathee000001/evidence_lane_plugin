@@ -93,7 +93,7 @@ def _fixture_catalog_source() -> str:
 def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     installer = _module()
     source = tmp_path / "source"
-    version = "2.1.0+codex.20260812193232"
+    version = "2.2.0+codex.20260814082900"
     _write(
         source / ".codex-plugin" / "plugin.json",
         json.dumps(
@@ -124,10 +124,10 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
             {
                 "schema": "evidence-lane.codex-release-channel.v2",
                 "stable": {
-                    "release": "2.1.0",
+                    "release": "2.2.0",
                     "slot_role": "stable-build",
                     "codex_marketplace_slot": "evidence-lane-github",
-                    "marketplace_display_name": "GitLane Stable 2.1",
+                    "marketplace_display_name": "GitLane Stable 2.2",
                     "install_source": "GIT_EXACT_COMMIT",
                     "byte_frozen": False,
                     "updates_require_verified_unique_build_identity": True,
@@ -158,6 +158,25 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                     "prewarmed_means_installed_verified_and_stopped": True,
                     "simultaneous_mcp_allowed": False,
                     "simultaneous_tunnel_allowed": False,
+                },
+                "dependency_toolchains": {
+                    "search_v1": {
+                        "required": True,
+                        "scope": "ALL_GOVERNED_PROJECTS",
+                        "manifest": "toolchains/search-tools.v1.json",
+                        "package_local_tools": [
+                            "ripgrep@15.2.0/windows-x86_64",
+                            "fzf@0.74.2/windows-x86_64",
+                        ],
+                        "resolution_order": [
+                            "PACKAGE_LOCAL_VERIFIED_BINARY",
+                            "EXPLICIT_CONFIGURED_VERIFIED_HOST_BINARY",
+                            "DETERMINISTIC_BUILTIN_FALLBACK",
+                        ],
+                        "fallbacks_required": True,
+                        "path_lookup_allowed": False,
+                        "auto_download_during_mcp_handshake": False,
+                    }
                 },
                 "live_slot_policy": {
                     "exact_slot_count_after_pv11_acceptance": 2,
@@ -220,7 +239,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                         "EF87B8A129C4FA"
                     ),
                     "resource_uri": (
-                        "ui://evidence-lane/governed-console-v4.html"
+                        "ui://evidence-lane/governed-console-v5.html"
                     ),
                     "manifest_icon_fields": [
                         "interface.composerIcon",
@@ -230,7 +249,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                     "required_at_runtime_prewarm": True,
                 },
                 "remote_git_policy": {
-                    "effective_release": "2.1.0",
+                    "effective_release": "2.2.0",
                     "per_push_confirmation_token_required": False,
                     "automatic_push_scope": (
                         "EXACT_SOLE_REGISTERED_NON_PROTECTED_TEST_BRANCH"
@@ -262,10 +281,12 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                     },
                     "interactive_codex_app_local_or_persistent": {
                         "pv_storage": "DURABLE_LOCAL_SQLITE",
-                        "tunnel_setup_frequency": (
-                            "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
+                        "tunnel_requirement": (
+                            "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
                         ),
-                        "tunnel_key_retention": "HOST_MANAGED_PERSISTENT_PROFILE",
+                        "tunnel_setup_frequency": "NONE",
+                        "tunnel_key_retention": "NOT_APPLICABLE",
+                        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
                     },
                     "interactive_codex_app_ephemeral_vm": {
                         "pv_storage": (
@@ -276,6 +297,18 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                         ),
                         "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
                         "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+                    },
+                    "desktop_container_surface_scope": {
+                        "supported_container_channels": [
+                            "CHATGPT_DESKTOP_STABLE_OR_CURRENT",
+                            "CHATGPT_DESKTOP_BETA",
+                        ],
+                        "active_surface": "CODEX",
+                        "chatgpt_chat_work_scope": "OUT_OF_SCOPE_DEFERRED",
+                        "authority_binding": (
+                            "EXACT_HOST_SESSION_PLUS_NATIVE_EVIDENCE_LANE_MCP_ROUTE"
+                        ),
+                        "process_package_title_cwd_authority": False,
                     },
                 },
             }
@@ -351,13 +384,16 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
             source / "hooks" / name,
             _fixture_hook_source(marker),
         )
+    _write(source / "hooks" / "invoke_hook.py", "# sealed fixture wrapper\n")
+    _write(source / "hooks" / "invoke_hook.ps1", "# sealed fixture wrapper\n")
+    shutil.copytree(PLUGIN / "toolchains", source / "toolchains")
     _write(
         source / "pyproject.toml",
-        '[project]\nname = "evidence-lane-plugin"\nversion = "2.1.0"\n',
+        '[project]\nname = "evidence-lane-plugin"\nversion = "2.2.0"\n',
     )
     _write(
         source / "src" / "evidence_lane_plugin" / "constants.py",
-        'ENGINE_VERSION = "2.1.0"\n',
+        'ENGINE_VERSION = "2.2.0"\n',
     )
     _write(
         source / "src" / "evidence_lane_plugin" / "mcp_server.py",
@@ -606,7 +642,7 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
     assert result["surface_change_display"]["hooks"]["count_semantics"] == (
         "REGISTERED_EVENT_COUNT"
     )
-    assert result["surface_change_display"]["hooks"]["hook_file_count"] == 7
+    assert result["surface_change_display"]["hooks"]["hook_file_count"] == 9
     assert result["surface_change_display"]["hooks"]["handler_count"] == 8
     assert result["surface_change_display"]["hooks"]["registered_events"] == [
         "PostCompact",
@@ -619,6 +655,18 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
         "UserPromptSubmit",
     ]
     assert result["surface_change_display"]["skills"]["count"] == 15
+    assert result["surface_change_display"]["search_toolchain"]["status"] == "PASS"
+    assert result["surface_change_display"]["search_toolchain"]["record_count"] == 2
+    assert [
+        row["tool_id"]
+        for row in result["surface_change_display"]["search_toolchain"]["records"]
+    ] == ["ripgrep", "fzf"]
+    assert result["surface_change_display"]["search_toolchain"][
+        "fallbacks_required"
+    ] is True
+    assert result["surface_change_display"]["search_toolchain"][
+        "raw_paths_included"
+    ] is False
     assert result["surface_change_display"]["catalog"] == {
         "tools": 62,
         "read": 21,
@@ -647,6 +695,35 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
     )
     assert repeated["marketplace"]["state"] == "ALREADY_STAGED_EXACT"
     assert repeated["surface_change_display"] == result["surface_change_display"]
+
+
+def test_installer_seals_search_dependencies_and_rejects_binary_tamper(
+    tmp_path: Path,
+) -> None:
+    module = _module()
+    _fixture_archive(tmp_path)
+    source = tmp_path / "source"
+
+    inventory = module._surface_inventory(
+        source,
+        version="2.2.0+codex.20260814082900",
+    )["search_toolchain"]
+    assert inventory["status"] == "PASS"
+    assert inventory["record_count"] == 2
+    assert [row["tool_id"] for row in inventory["records"]] == [
+        "ripgrep",
+        "fzf",
+    ]
+    assert all(len(row["binary_sha256"]) == 64 for row in inventory["records"])
+    assert all(row["license_sha256"] for row in inventory["records"])
+
+    rg_binary = source / "toolchains" / "bin" / "windows-x86_64" / "rg.exe"
+    rg_binary.write_bytes(rg_binary.read_bytes() + b"tamper")
+    with pytest.raises(module.InstallationError, match="identity drifted"):
+        module._surface_inventory(
+            source,
+            version="2.2.0+codex.20260814082900",
+        )
 
 
 def test_installer_rejects_build_specific_stable_selector_growth(
@@ -1109,13 +1186,13 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
                 arguments, 0, (json.dumps(prewarm) + "\n").encode(), b""
             )
         payload = {
-            "engine_version": "2.1.0",
+            "engine_version": "2.2.0",
             "native_server_identity": "evidence-lane",
             "read_tool_count": 21,
             "tool_count": 62,
             "tool_catalog_sha256": "A" * 64,
             "route_status": "PASS",
-            "resource_uri": "ui://evidence-lane/governed-console-v4.html",
+            "resource_uri": "ui://evidence-lane/governed-console-v5.html",
             "native_dependency_prewarm_completed": True,
         }
         return subprocess.CompletedProcess(
@@ -1134,7 +1211,7 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
     assert receipt["tool_count"] == 62
     assert receipt["tool_catalog_sha256"] == "A" * 64
     assert receipt["resource_uri"] == (
-        "ui://evidence-lane/governed-console-v4.html"
+        "ui://evidence-lane/governed-console-v5.html"
     )
     assert receipt["task_reopened"] is False
     assert receipt["bootstrap_attempt_count"] == 1
@@ -1198,13 +1275,13 @@ def test_installed_runtime_bootstrap_retries_once_on_same_sealed_bytes(
                 arguments, 0, (json.dumps(prewarm) + "\n").encode(), b""
             )
         payload = {
-            "engine_version": "2.1.0",
+            "engine_version": "2.2.0",
             "native_server_identity": "evidence-lane",
             "read_tool_count": 21,
             "tool_count": 62,
             "tool_catalog_sha256": "A" * 64,
             "route_status": "PASS",
-            "resource_uri": "ui://evidence-lane/governed-console-v4.html",
+            "resource_uri": "ui://evidence-lane/governed-console-v5.html",
             "native_dependency_prewarm_completed": True,
         }
         return subprocess.CompletedProcess(
@@ -1502,7 +1579,7 @@ def test_stable_activation_advances_registry_without_changing_fallback(
     stable = {
         "slot_role": "stable-build",
         "plugin_selector": stable_selector,
-        "plugin_version": "2.1.0+codex.test",
+        "plugin_version": "2.2.0+codex.test",
         "package_sha256": "A" * 64,
         "byte_frozen": False,
         "enabled": True,
@@ -1543,12 +1620,12 @@ def test_stable_activation_advances_registry_without_changing_fallback(
         / "cache"
         / stable_marketplace
         / "evidence-lane-plugin"
-        / "2.1.0+codex.test"
+        / "2.2.0+codex.test"
     )
     marketplace_root = codex_home / "local-marketplaces" / stable_marketplace
     _write(
         installed_path / ".codex-plugin" / "plugin.json",
-        json.dumps({"version": "2.1.0+codex.test"}),
+        json.dumps({"version": "2.2.0+codex.test"}),
     )
     _write(
         marketplace_root / ".agents" / "plugins" / "marketplace.json",
@@ -1575,7 +1652,7 @@ def test_stable_activation_advances_registry_without_changing_fallback(
         "installed": [
             {
                 "pluginId": stable_selector,
-                "version": "2.1.0+codex.test",
+                "version": "2.2.0+codex.test",
                 "enabled": True,
             },
             {
@@ -1588,7 +1665,7 @@ def test_stable_activation_advances_registry_without_changing_fallback(
     result = module._advance_two_slot_stable_registry(
         authority=authority,
         plugin_selector=stable_selector,
-        plugin_version="2.1.0+codex.test",
+        plugin_version="2.2.0+codex.test",
         installed_path=installed_path,
         marketplace_root=marketplace_root,
         install_receipt=new_install,
@@ -1630,8 +1707,19 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
     source = tmp_path / "source"
     prior_source = tmp_path / "prior-source"
     shutil.copytree(source, prior_source)
-    for name in ("lifecycle_boundary.py", "post_tool_use.py", "pre_tool_use.py"):
+    for name in (
+        "invoke_hook.ps1",
+        "invoke_hook.py",
+        "lifecycle_boundary.py",
+        "post_tool_use.py",
+        "pre_tool_use.py",
+    ):
         (prior_source / "hooks" / name).unlink()
+    shutil.rmtree(prior_source / "toolchains")
+    prior_channel_path = prior_source / "scripts" / "codex-release-channel.json"
+    prior_channel = json.loads(prior_channel_path.read_text(encoding="utf-8"))
+    prior_channel.pop("dependency_toolchains")
+    prior_channel_path.write_text(json.dumps(prior_channel), encoding="utf-8")
     prior_hooks_path = prior_source / "hooks" / "hooks.json"
     prior_hooks = json.loads(prior_hooks_path.read_text(encoding="utf-8"))
     for event in (
@@ -1737,6 +1825,8 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
         "SessionEnd",
     ]
     assert preflight["surface_change_display"]["hooks"]["added_files"] == [
+        "invoke_hook.ps1",
+        "invoke_hook.py",
         "lifecycle_boundary.py",
         "post_tool_use.py",
         "pre_tool_use.py",
@@ -1988,13 +2078,13 @@ if ($actual -cne $expected) {
 def test_goal_recovery_helper_is_general_logon_exact_task_and_read_only() -> None:
     text = GOAL_RECOVERY.read_text(encoding="utf-8")
 
-    assert '[ValidateSet("Register", "RecoverNow", "RecoverAtLogon", "Status", "Unregister")]' in text
+    assert '[ValidateSet("Probe", "Register", "RecoverNow", "RecoverAtLogon", "Status", "Unregister")]' in text
     assert 'New-ScheduledTaskTrigger -AtLogOn -User $identity' in text
     assert 'scope = "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_ON_THIS_WINDOWS_USER"' in text
-    assert 'method = "thread/read"' in text
-    assert 'method = "thread/goal/get"' in text
-    assert 'method = "thread/resume"' not in text
-    assert 'method = "turn/start"' not in text
+    assert '-Method "thread/read"' in text
+    assert '-Method "thread/goal/get"' in text
+    assert '-Method "thread/resume"' not in text
+    assert '-Method "turn/start"' not in text
     assert '$taskUri = "codex://threads/$ExactTaskId"' in text
     assert "EvidenceLaneGoalRecoveryActivation" in text
     assert "Test-RecoveredThisBoot" in text
@@ -2015,6 +2105,16 @@ def test_goal_recovery_helper_is_general_logon_exact_task_and_read_only() -> Non
     assert "cannot safely supersede the legacy Goal binding" in text
     assert 'exact_bound_host_app_required = $true' in text
     assert 'stable_and_beta_hosts_supported = $true' in text
+    assert 'both_desktop_channels_expose_chatgpt_and_codex_surfaces = $true' in text
+    assert 'evidence_lane_governs_codex_surface_only = $true' in text
+    assert 'exact_task_deeplink_is_primary_hot_reattach = $true' in text
+    assert 'restart_is_bounded_fallback_only = $true' in text
+    assert 'restart_loop_allowed = $false' in text
+    assert 'route = "ISOLATED_OFFICIAL_CODEX_APP_SERVER"' in text
+    assert 'live_desktop_control_plane = "HOST_CAPABILITY_UNAVAILABLE_WINDOWS_APP_SERVER_DAEMON"' in text
+    assert 'config_mcp_server_reload_request_passed = $true' in text
+    assert 'exact_tool_count = $toolCount' in text
+    assert 'app_server_process_hidden = $true' in text
 
 
 def test_goal_recovery_helper_parses_as_powershell() -> None:
@@ -2097,11 +2197,11 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
     )
     _write(
         source / "pyproject.toml",
-        '[project]\nname = "evidence-lane-plugin"\nversion = "2.1.0"\n',
+        '[project]\nname = "evidence-lane-plugin"\nversion = "2.2.0"\n',
     )
     _write(
         source / "src" / "evidence_lane_plugin" / "constants.py",
-        'ENGINE_VERSION = "2.1.0"\n',
+        'ENGINE_VERSION = "2.2.0"\n',
     )
     _write(
         source / "src" / "evidence_lane_plugin" / "mcp_server.py",
@@ -2210,11 +2310,11 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         "bootstrap_stderr_sha256": "0" * 64,
         "probe_stdout_sha256": "1" * 64,
         "probe_stderr_sha256": "2" * 64,
-        "engine_version": "2.1.0",
+        "engine_version": "2.2.0",
         "native_server_identity": "evidence-lane",
         "tool_count": 62,
         "tool_catalog_sha256": "A" * 64,
-        "resource_uri": "ui://evidence-lane/governed-console-v4.html",
+        "resource_uri": "ui://evidence-lane/governed-console-v5.html",
         "brand_icon_sha256": (
             "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3D"
             "EF87B8A129C4FA"
@@ -2311,16 +2411,33 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
                 "event_inventory_sha256"
             ],
         },
-        "skills": {
+            "skills": {
             "count": installed_surface["skills"]["count"],
             "added": [
                 row["name"] for row in installed_surface["skills"]["records"]
             ],
             "changed": [],
             "removed": [],
-            "inventory_sha256": installed_surface["skills"]["inventory_sha256"],
-        },
-        "catalog": {
+                "inventory_sha256": installed_surface["skills"]["inventory_sha256"],
+            },
+            "search_toolchain": {
+                "status": installed_surface["search_toolchain"]["status"],
+                "record_count": installed_surface["search_toolchain"]["record_count"],
+                "manifest_sha256": installed_surface["search_toolchain"][
+                    "manifest_sha256"
+                ],
+                "inventory_sha256": installed_surface["search_toolchain"][
+                    "inventory_sha256"
+                ],
+                "resolution_order": installed_surface["search_toolchain"][
+                    "resolution_order"
+                ],
+                "records": installed_surface["search_toolchain"]["records"],
+                "fallbacks_required": True,
+                "changed_from_previous": False,
+                "raw_paths_included": False,
+            },
+            "catalog": {
             "tools": 62,
             "read": 21,
             "write": 41,

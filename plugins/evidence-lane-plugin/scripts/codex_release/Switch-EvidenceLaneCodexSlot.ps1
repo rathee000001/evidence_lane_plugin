@@ -463,7 +463,7 @@ function Set-ExclusiveActivation([object]$RegistryBody, [string]$ActiveSlot) {
 function Invoke-Tunnel([object]$Slot, [string]$TunnelAction) {
     $tunnel = Assert-TunnelSlot -Slot $Slot -SlotName "selected"
     $output = & $PowerShellExecutable `
-        -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
+        -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass `
         -File $tunnel.manager `
         -Action $TunnelAction `
         -RuntimeRoot $tunnel.runtime_root `
@@ -834,7 +834,7 @@ if ($Action -eq "Switch") {
             -ActiveSlot $TargetSlot
         $configSwitched = $true
         $restartOutput = & $PowerShellExecutable `
-            -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
+            -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass `
             -File $RestartHelper `
             -Action Prepare `
             -InstallReceipt ([string]$target.install_receipt) `

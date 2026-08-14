@@ -1,12 +1,30 @@
-# Evidence Lane plugin 2.1.0
+# Evidence Lane plugin 2.2.0
 
-Version 2.1.0 is the mutable stable-build Codex successor slot. The disabled
-fallback remains the exact accepted PV11/main 2.0.0 package. The stable provides a
+Version 2.2.0 is the current pre-HIL Codex source release on the governed v2.2
+branch. Accepted Project Truth and the GitLane base remain PV12/2.1.0. Direct
+host evidence showed the disabled fallback at historical PV11/main 2.0.0; this
+source-only row neither repairs nor activates either installed slot. The source provides a
 package-local native MCP server, 62 canonical actions (21 read-only and 41
 write-capable), 15 governed skills, eight registered lifecycle events, local durable
 project storage, persistent Plan/Delta continuity, and an exact six-way HIL.
+Agent Learning is a separate project-scoped authority, not another name for
+Project Truth or Canon. It seals evidence-backed candidates, records lifecycle
+and decision events append-only, and moves only its own pointer after an exact
+Learning HIL decision. Rejection, failure, expiry, revocation, supersession,
+and rollback retain immutable history. Project Truth conflicts suppress a
+lesson with a receipt; no Learning action can create a Project candidate,
+invoke Project HIL, or move the accepted Project PV.
+Canon is independently implemented as a typed project/task graph and bounded
+input authority. Exact expected contracts auto-admit; undefined or incompatible
+packets stop only the receiving top-level task at its three-way `ACCEPT`,
+`REJECT`, or `MORE_RESEARCH` Canon Input HIL. Cross-task and cross-project
+edges bind exact UUIDs/deep links, return contracts, replay identities, and
+source PV seals. They never propagate source-write, Project/Learning HIL,
+candidate, Fuse, or pointer authority. Subagents require current user authority
+and cannot own HIL. See
+[the Canon task graph contract](../../docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md).
 The installed runtime prewarm and release validators bind the same governed
-console resource, `ui://evidence-lane/governed-console-v4.html`, and fail closed
+console resource, `ui://evidence-lane/governed-console-v5.html`, and fail closed
 if that identity drifts.
 The generated Python environment is a lock-digest/Python-ABI keyed projection
 under `EvidenceLanePV/runtime/codex`, not inside Codex's reconstructable plugin
@@ -18,6 +36,35 @@ active skill owns native PV reads, classification, behavior, and the complete
 Plan/CURRENT CHANGE projection. PermissionRequest remains unregistered unless
 the host capability is positively proven; subagent hook events are out of scope.
 
+Bounded repository search is package-owned for every governed project. The
+Windows x86-64 package carries hash-pinned `ripgrep` 15.2.0 and `fzf` 0.74.2
+executables plus their upstream license files. Runtime selection is strictly
+package-local verified binary, then an explicitly configured absolute host
+binary with an exact supplied SHA-256, then a deterministic Python fallback.
+PATH lookup, shell execution, and download during MCP handshake are forbidden.
+Every invocation is noninteractive, size/time bounded, secret-path filtered,
+redacted, and receipt-backed; these helpers have no source-write, Git,
+lifecycle, candidate, HIL, or pointer authority.
+
+The private internal Codex SDK is the full engine-and-contract layer, not a
+reduced retrieval wrapper. Its provider-neutral ABI keeps Project Truth, Canon
+Input, AI/Agent Learning, ChatLineage, host-entry continuity, lifecycle/hooks,
+Plan/Delta/tasks, source/lane retrieval, ENV/UOP plus Formula/PCM/MBA,
+storage/connectors, HIL/candidate/pointer, and provider/host adapters in
+independent namespaces and replay ledgers. Every call binds the exact
+project/session/task/pointer/lineage/ENV-UOP/model/host/write scope. Unsupported
+host operations fail explicitly, and Project Truth and Learning retrieval stay
+separate. See [the internal SDK contract](../../docs/INTERNAL_CODEX_SDK.md).
+
+The provider-neutral GitHub App boundary is also compiled pre-HIL: a packaged
+least-privilege manifest schema, signature-before-parse webhook verifier,
+replay-safe installation-token broker, check-run receipt mapper, and signed
+tester-artifact entitlement flow. The deterministic adapter uses fixtures only;
+it neither registers or installs an app nor stores credentials, grants private
+development-repository access, distributes to external testers, publishes, or
+promotes any Evidence Lane authority. See
+[the pre-HIL GitHub App contract](../../docs/GITHUB_APP_PRE_HIL_CONTRACT.md).
+
 Candidate creation, remote Git push, package installation, and pointer movement
 are separate governed operations. None of them implies acceptance. Only exact
 case-sensitive `APPROVE` at the correct HIL can authorize Fuse.
@@ -26,24 +73,41 @@ case-sensitive `APPROVE` at the correct HIL can authorize Fuse.
 
 | Execution profile | Primary PV storage | Evidence Lane tunnel |
 | --- | --- | --- |
-| Interactive Codex app on a local or persistent host | Durable local SQLite | One-time versioned Windows channel; separate from the native Codex lifecycle |
+| Interactive Codex app on a local or persistent host with the active `CODEX` surface proven | Durable local SQLite | Not required; package-local native MCP is the lifecycle route |
 | Codex CLI or headless API on a local/persistent host | Durable local SQLite when available | Not required |
 | Headless API on an ephemeral VM with durable mount | Durable mounted SQLite | Not required |
 | Headless API on an ephemeral VM without durable mount | Explicit transactional durable connector | Not required |
 | Interactive Codex app on an ephemeral VM | Durable mount or explicit transactional connector | One setup per VM lifetime; never reused by a replacement VM |
 
+When storage is not durable, governed work starts only after one expiring,
+secret-safe host-entry envelope is claimed exactly once by the intended task
+and host binding. It carries hashes and receipts, not raw paths, credentials,
+or private reasoning, and cannot promote Project Truth, accept Canon or Agent
+Learning, replay HIL, or move the accepted pointer. Exact retries reuse the
+prior receipt. A missing connector, stale generation, different worktree,
+unauthorized candidate overlay, expired envelope, or different consumer fails
+closed. Durable local Codex continues directly from local SQLite without this
+envelope.
+
 Account tier and API billing do not choose the storage route. Runtime state is
 project-scoped and remains separate from any optional artifact mirror.
 
-## First-time Windows tunnel setup
+## Bounded Windows tunnel setup
 
-From a reviewed source checkout, run the supported installer in PowerShell:
+Run this only after runtime classification explicitly selects the separate
+interactive ephemeral-VM support channel. Stable/current and Beta desktop
+containers are both multi-surface; Evidence Lane governs only a proven
+`active_surface=CODEX`. A local durable Codex surface does not use a tunnel.
+
+From a reviewed source checkout, run the supported installer in PowerShell for
+the exact ephemeral VM:
 
 ```powershell
 & ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1" `
   -SlotRole stable-build `
   -InteractionProfile CODEX_APP_INTERACTIVE `
-  -HostLifetime Persistent `
+  -HostLifetime Ephemeral `
+  -VmInstanceId "<exact-vm-instance-id>" `
   -Activate
 ```
 
@@ -63,8 +127,8 @@ governed activation, prove readiness with:
 
 The result is acceptable only when it reports `status = PASS`. Codex lifecycle
 proof still comes from the package-local native `mcp__evidence_lane__*` route;
-the tunnel is a separate transport channel. Headless API and direct CLI/API
-profiles do not require this tunnel. See the
+the tunnel is a separate transport channel. Local durable desktop, headless API,
+and direct CLI/API profiles do not require this tunnel. See the
 [complete setup, activation, repair, and removal guide](../../docs/WINDOWS_TUNNEL_PERSISTENCE.md).
 
 ## Package map
@@ -73,7 +137,10 @@ profiles do not require this tunnel. See the
 - `.mcp.json` — package-local native MCP launch contract.
 - `src/evidence_lane_plugin/` — lifecycle engine and native server.
 - `skills/` — fifteen governed skills.
-- `hooks/` — eight registered events and six command handlers across seven package files.
+- `hooks/` — eight registered events and sealed Windows/Python dispatch wrappers across nine package files.
+- `toolchains/` — the governed `ripgrep`/`fzf` dependency manifest,
+  hash-pinned Windows binaries, upstream licenses, and deterministic fallback
+  contract used by all projects.
 - `scripts/codex-release-channel.json` — v2 release and Git policy.
 - `scripts/codex_release/build_codex_exact_commit_package.py` — read-only
   exact-commit package export that excludes dirty and untracked checkout bytes.
@@ -82,7 +149,9 @@ profiles do not require this tunnel. See the
   and the Git-integrated Vercel branch preview for that same commit.
 - `scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1` — one
   canonical Git stable-slot update, installed-runtime prewarm, recovery-manager
-  rebind, and exact-task reopen in the same stable or Beta Codex app.
+  rebind, and exact-task reopen in the same ChatGPT stable or ChatGPT Beta
+  desktop channel. Both desktop channels expose ChatGPT and Codex surfaces;
+  Evidence Lane governs the Codex surface only.
 - `scripts/codex_release/` — controlled restart, two-slot failover, Goal
   recovery, and installed-package acceptance checks.
 
@@ -138,25 +207,43 @@ Windows-logon recovery manager for exact governed Codex Goal tasks.
    installed package.
 7. Stop at the explicit six-way HIL.
 
-Hooks own lifecycle capture and sealed Entry/PREPARE/COMMIT events only. The
-active skill owns behavior: after every prompt or steer it calls native
-`pv_status`, `pv_task_backlog`, and bounded `pv_query`, then restores the full
-canonical Step Task List with host `update_plan`. Hooks never embed that full
-panel or instruct the host behavior tool. Every hook uses the explicit
+Hook command files own only validation, secret redaction, bounds,
+deduplication identity, and transport-envelope sealing. The installed
+lifecycle skill runtime consumes those exact envelopes and owns sealed
+Entry/PREPARE/COMMIT and other lifecycle actions. The active skill then calls
+native `pv_status`, `pv_task_backlog`, and bounded `pv_query` after every prompt
+or steer and restores the full canonical Step Task List with host
+`update_plan`. Hook adapters never embed that full panel or instruct the host
+behavior tool. Every skill-owned lifecycle consumer uses the explicit
 `EVIDENCE_LANE_DATA_ROOT` when configured and otherwise the user-owned durable
 `~/EvidenceLanePV`; Codex-injected `PLUGIN_DATA` is selector-private
 installation storage and cannot become project, PV, session, PromptIndex, or
 ChatLineage authority.
 
-## Stable-build and accepted-PV11 fallback
+### Project capture routes
 
-After exact standalone `APPROVE` and native Fuse accepts PV11, the supported
-live installation is normalized to exactly two slots: the enabled mutable
-`stable-build` slot and a disabled byte-frozen `fallback` slot containing the
-exact accepted PV11 package. “Prewarmed” means the fallback plugin and tunnel
-are installed and verified but stopped; two MCP servers or two tunnels never
-run together. Later stable builds update the same stable selector in place;
-only the package/receipt identity changes.
+Every governed project binds one capture route before its first lineage write.
+`GOVERNED_PROJECT_FULL` retains the complete secret-redacted visible prompt,
+steer, response, operational, source-link, and COMMIT stream with deterministic
+chunks and FTS. `ENV_BUILDER_SPARSE` retains only accepted Deltas, hard gates,
+schema decisions, receipts, governed artifacts, and valid lifecycle Exit Slips;
+other visible units become hash-bound exclusion receipts and their raw text does
+not enter JSONL, chunks, or FTS. The binding is project-scoped and immutable,
+route or project ambiguity fails before ingestion, and a `source_project_id`
+remains provenance rather than permission to cross the active project boundary.
+
+## Stable-build and fallback identity boundary
+
+The supported live topology is exactly two slots: an enabled mutable
+`stable-build` slot and a disabled byte-frozen `fallback` slot. Their identities
+must come from exact package, registry, cache, selector, and native readback—not
+from this README. Direct host evidence showed fallback still at PV11/2.0 while
+the accepted/base GitLane release had advanced to PV12/2.1; the later governed
+split-brain row must reconcile that state. The pre-HIL 2.2 source does not
+install, activate, or relabel either slot. “Prewarmed” means a fallback package
+and tunnel are installed and verified but stopped; two MCP servers or two
+tunnels never run together. Later stable builds update the same stable selector
+in place; only the package/receipt identity changes.
 
 `scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1` accepts either an
 explicit operator failover or a sealed multi-probe stable failure. It rejects a
@@ -172,7 +259,9 @@ project/session proof are mandatory again after restart.
 `Manage-EvidenceLaneCodexGoalRecovery.ps1` is one Windows-user manager for all
 Evidence-Lane-governed Codex Goal tasks on that machine. `Register` consumes an
 exact task-binding receipt, verifies the persisted active Goal through
-`thread/read` plus `thread/goal/get`, seals only the objective hash, and records
+`thread/read` plus `thread/goal/get`, prewarms the canonical plugin/MCP/resource
+catalog in one hidden isolated official Codex app-server, seals only the
+objective hash, and records
    the active Plan task, exact stable/fallback identities, and exact stable-or-
    Beta Codex host identity. One `AtLogOn` scheduled task enumerates those
    bindings and opens each exact `codex://threads/<task-id>` route in its bound
@@ -181,7 +270,14 @@ exact task-binding receipt, verifies the persisted active Goal through
 Recovery never calls `turn/start`, injects or submits a prompt, replays State
 Travel, changes candidate/HIL/pointer/Git state, or enables the fallback.
 Opening the task requests host continuation; the receipt does not claim that a
-new model turn ran until Codex itself continues the persisted Goal. `Unregister`
+new model turn ran until Codex itself continues the persisted Goal. Windows does
+not expose the Codex app-server daemon control plane, so the isolated prewarm is
+reported separately from the live desktop process; the exact task deep link is
+the primary no-kill reattach and one controlled app restart remains a bounded
+fallback, never a loop. Every plugin-owned Python/PowerShell helper and tunnel
+background launch uses `CREATE_NO_WINDOW` or `-WindowStyle Hidden`; an initial
+host-owned MCP spawn is reported as `HOST_CAPABILITY_UNAVAILABLE` when the host
+does not expose its launch flags. `Unregister`
 closes the binding while preserving history and disables the scheduled task
 when no active Goal bindings remain.
 

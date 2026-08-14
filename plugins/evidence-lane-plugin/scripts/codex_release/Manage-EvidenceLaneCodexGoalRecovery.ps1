@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet("Register", "RecoverNow", "RecoverAtLogon", "Status", "Unregister")]
+    [ValidateSet("Probe", "Register", "RecoverNow", "RecoverAtLogon", "Status", "Unregister")]
     [string]$Action = "Status",
     [string]$TaskBindingReceipt,
     [string]$TaskId,
@@ -21,6 +21,10 @@ $script:HostAppProfiles = [ordered]@{
     "OpenAI.Codex_2p2nqsd0c76g0!App" = [ordered]@{
         app_id = "OpenAI.Codex_2p2nqsd0c76g0!App"
         host_application = "CHATGPT_CODEX"
+        desktop_release_channel = "CHATGPT_STABLE"
+        available_surfaces = @("CHATGPT", "CODEX")
+        governed_surface = "CODEX"
+        chatgpt_surface_governed = $false
         package_name = "OpenAI.Codex"
         package_family_name = "OpenAI.Codex_2p2nqsd0c76g0"
         start_app_name = "ChatGPT"
@@ -28,6 +32,10 @@ $script:HostAppProfiles = [ordered]@{
     "OpenAI.CodexBeta_2p2nqsd0c76g0!App" = [ordered]@{
         app_id = "OpenAI.CodexBeta_2p2nqsd0c76g0!App"
         host_application = "CHATGPT_BETA_CODEX"
+        desktop_release_channel = "CHATGPT_BETA"
+        available_surfaces = @("CHATGPT", "CODEX")
+        governed_surface = "CODEX"
+        chatgpt_surface_governed = $false
         package_name = "OpenAI.CodexBeta"
         package_family_name = "OpenAI.CodexBeta_2p2nqsd0c76g0"
         start_app_name = "ChatGPT (Beta)"
@@ -250,6 +258,26 @@ function Read-AppServerResponse([Diagnostics.Process]$Process, [int]$RequestId, 
     throw "Timed out waiting for Codex app-server request $RequestId."
 }
 
+function Invoke-AppServerRequest(
+    [Diagnostics.Process]$Process,
+    [int]$RequestId,
+    [string]$Method,
+    [object]$Params,
+    [int]$TimeoutSeconds
+) {
+    $request = [ordered]@{
+        method = $Method
+        id = $RequestId
+        params = $Params
+    }
+    $Process.StandardInput.WriteLine((ConvertTo-CanonicalJson $request))
+    $Process.StandardInput.Flush()
+    return Read-AppServerResponse `
+        -Process $Process `
+        -RequestId $RequestId `
+        -TimeoutSeconds $TimeoutSeconds
+}
+
 function Invoke-CodexGoalProbe([string]$ExactTaskId) {
     Assert-TaskId $ExactTaskId
     $launcher = Get-ExactCodexLauncher
@@ -272,7 +300,7 @@ function Invoke-CodexGoalProbe([string]$ExactTaskId) {
                 clientInfo = [ordered]@{
                     name = "evidence_lane_goal_recovery"
                     title = "Evidence Lane Goal Recovery"
-                    version = "2.1.0"
+                    version = "2.2.0"
                 }
             }
         }
@@ -280,25 +308,98 @@ function Invoke-CodexGoalProbe([string]$ExactTaskId) {
         $process.StandardInput.Flush()
         [void](Read-AppServerResponse -Process $process -RequestId 0 -TimeoutSeconds 15)
         $process.StandardInput.WriteLine((ConvertTo-CanonicalJson ([ordered]@{ method = "initialized"; params = [ordered]@{} })))
-        $process.StandardInput.WriteLine((ConvertTo-CanonicalJson ([ordered]@{
-            method = "thread/read"
-            id = 1
-            params = [ordered]@{ threadId = $ExactTaskId; includeTurns = $false }
-        })))
-        $process.StandardInput.Flush()
-        $threadResult = Read-AppServerResponse -Process $process -RequestId 1 -TimeoutSeconds 20
-        $process.StandardInput.WriteLine((ConvertTo-CanonicalJson ([ordered]@{
-            method = "thread/goal/get"
-            id = 2
-            params = [ordered]@{ threadId = $ExactTaskId }
-        })))
-        $process.StandardInput.Flush()
-        $goalResult = Read-AppServerResponse -Process $process -RequestId 2 -TimeoutSeconds 15
+        $threadResult = Invoke-AppServerRequest `
+            -Process $process `
+            -RequestId 1 `
+            -Method "thread/read" `
+            -Params ([ordered]@{ threadId = $ExactTaskId; includeTurns = $false }) `
+            -TimeoutSeconds 20
+        $goalResult = Invoke-AppServerRequest `
+            -Process $process `
+            -RequestId 2 `
+            -Method "thread/goal/get" `
+            -Params ([ordered]@{ threadId = $ExactTaskId }) `
+            -TimeoutSeconds 15
         if ($null -eq $threadResult.thread -or [string]$threadResult.thread.id -ne $ExactTaskId) {
             throw "Codex returned a mismatched persisted task."
         }
         if ($null -eq $goalResult.goal -or [string]$goalResult.goal.threadId -ne $ExactTaskId) {
             throw "The exact Codex task has no persisted Goal."
+        }
+        [void](Invoke-AppServerRequest `
+            -Process $process `
+            -RequestId 3 `
+            -Method "config/mcpServer/reload" `
+            -Params ([ordered]@{}) `
+            -TimeoutSeconds 30)
+        $pluginResult = Invoke-AppServerRequest `
+            -Process $process `
+            -RequestId 4 `
+            -Method "plugin/list" `
+            -Params ([ordered]@{
+                cwds = @([string]$threadResult.thread.cwd)
+                marketplaceKinds = @("local")
+            }) `
+            -TimeoutSeconds 30
+        $pluginMatches = @(
+            foreach ($marketplace in @($pluginResult.marketplaces)) {
+                foreach ($plugin in @($marketplace.plugins)) {
+                    if ([string]$plugin.id -ceq $script:CanonicalStableSelector) {
+                        [ordered]@{
+                            marketplace_name = [string]$marketplace.name
+                            marketplace_path = if ($null -eq $marketplace.path) { $null } else { [string]$marketplace.path }
+                            plugin = $plugin
+                        }
+                    }
+                }
+            }
+        )
+        if ($pluginMatches.Count -ne 1) {
+            throw "The isolated Codex app-server did not resolve exactly one canonical Evidence Lane stable plugin."
+        }
+        $pluginMatch = $pluginMatches[0]
+        if ($pluginMatch.plugin.installed -ne $true -or $pluginMatch.plugin.enabled -ne $true) {
+            throw "The canonical Evidence Lane stable plugin is not both installed and enabled."
+        }
+        $mcpStatus = Invoke-AppServerRequest `
+            -Process $process `
+            -RequestId 5 `
+            -Method "mcpServerStatus/list" `
+            -Params ([ordered]@{
+                detail = "full"
+                limit = 100
+            }) `
+            -TimeoutSeconds 120
+        $evidenceServers = @(
+            @($mcpStatus.data) | Where-Object { [string]$_.name -ceq "evidence-lane" }
+        )
+        if ($evidenceServers.Count -ne 1) {
+            throw "The isolated Codex app-server did not resolve exactly one Evidence Lane MCP server."
+        }
+        $evidenceServer = $evidenceServers[0]
+        $toolCount = @($evidenceServer.tools.PSObject.Properties).Count
+        if ($toolCount -ne 62) {
+            throw "The Evidence Lane MCP catalog did not expose the exact 62-tool contract."
+        }
+        $governedResourceUri = "ui://evidence-lane/governed-console-v5.html"
+        $governedResources = @(
+            @($evidenceServer.resources) |
+                Where-Object { [string]$_.uri -ceq $governedResourceUri }
+        )
+        if ($governedResources.Count -ne 1) {
+            throw "The Evidence Lane governed-console resource is missing or duplicated."
+        }
+        $resourceResult = Invoke-AppServerRequest `
+            -Process $process `
+            -RequestId 6 `
+            -Method "mcpServer/resource/read" `
+            -Params ([ordered]@{
+                server = "evidence-lane"
+                uri = $governedResourceUri
+            }) `
+            -TimeoutSeconds 60
+        if (@($resourceResult.contents).Count -lt 1) {
+            throw "The Evidence Lane governed-console resource returned no content."
         }
         $goal = $goalResult.goal
         return [ordered]@{
@@ -313,9 +414,35 @@ function Invoke-CodexGoalProbe([string]$ExactTaskId) {
             goal_time_used_seconds = [long]$goal.timeUsedSeconds
             goal_updated_at = [long]$goal.updatedAt
             query_route = "CODEX_APP_SERVER_THREAD_READ_PLUS_THREAD_GOAL_GET"
+            runtime_prewarm = [ordered]@{
+                status = "PASS"
+                route = "ISOLATED_OFFICIAL_CODEX_APP_SERVER"
+                app_server_process_hidden = $true
+                config_mcp_server_reload_request_passed = $true
+                canonical_plugin_selector = $script:CanonicalStableSelector
+                canonical_plugin_installed = [bool]$pluginMatch.plugin.installed
+                canonical_plugin_enabled = [bool]$pluginMatch.plugin.enabled
+                canonical_plugin_local_version = [string]$pluginMatch.plugin.localVersion
+                marketplace_name = [string]$pluginMatch.marketplace_name
+                marketplace_path_sha256 = if ($null -eq $pluginMatch.marketplace_path) { $null } else { Get-StringSha256 ([string]$pluginMatch.marketplace_path) }
+                raw_marketplace_path_stored = $false
+                mcp_server_name = [string]$evidenceServer.name
+                mcp_server_version = [string]$evidenceServer.serverInfo.version
+                exact_tool_count = $toolCount
+                mcp_inventory_scope = "ISOLATED_APP_SERVER_GLOBAL_RUNTIME"
+                task_continuity_scope = "PERSISTED_EXACT_THREAD_AND_GOAL"
+                thread_scoped_mcp_inventory_available = $false
+                governed_resource_uri = $governedResourceUri
+                governed_resource_payload_sha256 = Get-StringSha256 (ConvertTo-CanonicalJson $resourceResult)
+                live_desktop_process_reconfigured = $false
+                live_desktop_control_plane = "HOST_CAPABILITY_UNAVAILABLE_WINDOWS_APP_SERVER_DAEMON"
+                live_host_next_active_turn_refresh_claimed = $false
+            }
             thread_resume_invoked = $false
             turn_started = $false
             prompt_injected = $false
+            app_restarted = $false
+            restart_fallback_invoked = $false
             launcher = $launcher
         }
     }
@@ -390,6 +517,10 @@ public static class EvidenceLaneGoalRecoveryActivation {
     return [ordered]@{
         app_id = [string]$HostProfile.app_id
         host_application = [string]$HostProfile.host_application
+        desktop_release_channel = [string]$HostProfile.desktop_release_channel
+        available_surfaces = @($HostProfile.available_surfaces)
+        governed_surface = [string]$HostProfile.governed_surface
+        chatgpt_surface_governed = [bool]$HostProfile.chatgpt_surface_governed
         package_family_name = [string]$HostProfile.package_family_name
         task_uri_sha256 = Get-StringSha256 $taskUri
         activation_request_process_id = [uint32]$processId
@@ -448,7 +579,7 @@ function Install-RecoveryManager() {
     }
     $powershell = (Get-Command powershell.exe).Source
     $argumentValues = @(
-        "-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+        "-NoLogo", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-ExecutionPolicy", "Bypass",
         "-File", $durableScript,
         "-Action", "RecoverAtLogon",
         "-RecoveryRoot", $exactRoot,
@@ -501,6 +632,8 @@ function Install-RecoveryManager() {
         trigger = "AT_LOGON_CURRENT_WINDOWS_USER"
         start_when_available = $true
         max_instances = 1
+        windows_console_policy = "POWERSHELL_WINDOWSTYLE_HIDDEN"
+        host_owned_initial_mcp_spawn = "HOST_CAPABILITY_UNAVAILABLE"
         raw_goal_objective_stored = $false
         synthetic_prompt_allowed = $false
         turn_start_allowed = $false
@@ -535,6 +668,26 @@ function Test-RecoveredThisBoot([string]$ExactTaskId, [string]$BootIdSha256) {
         catch {}
     }
     return $false
+}
+
+if ($Action -eq "Probe") {
+    Assert-TaskId $TaskId
+    $probe = Invoke-CodexGoalProbe -ExactTaskId $TaskId
+    $probeSha256 = Get-StringSha256 (ConvertTo-CanonicalJson $probe)
+    [ordered]@{
+        status = "PASS"
+        state = "ISOLATED_RUNTIME_PREWARM_PROVEN_LIVE_DESKTOP_RELOAD_UNAVAILABLE"
+        task_id = $TaskId
+        goal_status = [string]$probe.goal_status
+        runtime_prewarm = $probe.runtime_prewarm
+        probe_sha256 = $probeSha256
+        source_mutated = $false
+        task_opened = $false
+        app_restarted = $false
+        prompt_submitted = $false
+        lifecycle_mutated = $false
+    } | ConvertTo-Json -Depth 32
+    exit 0
 }
 
 if ($Action -eq "Register") {
@@ -596,6 +749,13 @@ if ($Action -eq "Register") {
             stable_selector_growth_allowed = $false
             exact_bound_host_app_required = $true
             stable_and_beta_hosts_supported = $true
+            both_desktop_channels_expose_chatgpt_and_codex_surfaces = $true
+            evidence_lane_governs_codex_surface_only = $true
+            helper_and_tunnel_console_windows_allowed = $false
+            isolated_runtime_prewarm_before_task_open = $true
+            exact_task_deeplink_is_primary_hot_reattach = $true
+            restart_is_bounded_fallback_only = $true
+            restart_loop_allowed = $false
         }
         registered_at_utc = [DateTimeOffset]::UtcNow.ToString("o")
     }
@@ -696,6 +856,14 @@ if ($Action -eq "RecoverNow") {
         fallback_selector = [string]$slotAuthority.fallback_selector
         goal = $probe
         activation = $activation
+        hot_reattach = [ordered]@{
+            runtime_prewarm = $probe.runtime_prewarm
+            exact_task_deeplink_requested = $true
+            live_desktop_control_plane = "HOST_CAPABILITY_UNAVAILABLE_WINDOWS_APP_SERVER_DAEMON"
+            app_restart_required = $false
+            restart_fallback_invoked = $false
+            restart_loop_allowed = $false
+        }
         source_mutated = $false
         prompt_submitted = $false
         turn_started = $false
@@ -763,6 +931,7 @@ if ($Action -eq "RecoverAtLogon") {
                 turn_started = $false
                 state_travel_invoked = $false
                 candidate_hil_or_pointer_mutated = $false
+                hot_reattach = $null
                 recorded_at_utc = [DateTimeOffset]::UtcNow.ToString("o")
             }
             try {
@@ -789,6 +958,14 @@ if ($Action -eq "RecoverAtLogon") {
                 }
                 else {
                     $receipt.activation = Invoke-CodexTaskActivation -ExactTaskId $exactTaskId -HostProfile $boundHostProfile
+                    $receipt.hot_reattach = [ordered]@{
+                        runtime_prewarm = $probe.runtime_prewarm
+                        exact_task_deeplink_requested = $true
+                        live_desktop_control_plane = "HOST_CAPABILITY_UNAVAILABLE_WINDOWS_APP_SERVER_DAEMON"
+                        app_restart_required = $false
+                        restart_fallback_invoked = $false
+                        restart_loop_allowed = $false
+                    }
                     $receipt.state = "EXACT_TASK_OPEN_REQUESTED_ACTIVE_GOAL_PERSISTED_HOST_CONTINUATION_PENDING"
                 }
             }

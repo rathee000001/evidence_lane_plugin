@@ -364,6 +364,7 @@ def enroll_project(
     expected_name: str,
     branch: str,
     sensitivity: str,
+    capture_route: str = "GOVERNED_PROJECT_FULL",
 ) -> dict[str, Any]:
     """Adopt an exact local path or clone HTTPS source without remote mutation."""
     store.validate_project_id(project_id)
@@ -428,6 +429,7 @@ def enroll_project(
                 errors="replace",
                 timeout=300,
                 check=False,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             )
             require(
                 completed.returncode == 0,
@@ -478,6 +480,7 @@ def enroll_project(
             ),
             persistence_mode="governed_by_host",
             sensitivity=sensitivity.upper(),
+            capture_route=capture_route,
         )
     )
     return {

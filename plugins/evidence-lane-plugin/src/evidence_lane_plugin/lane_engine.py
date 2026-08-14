@@ -31,6 +31,7 @@ from .artifact_contract import (
     stable_artifact_names,
     validate_four_file_contract,
 )
+from .dependency_detection import parse_pnpm_lock_dependencies
 from .git_history import (
     create_git_history_schema,
     git_history_signature,
@@ -45,6 +46,11 @@ from .hashing import (
     sha256_file,
 )
 from .ingest import extract_code_lane_facts, governed_source_files
+from .lane_contract import (
+    LANE_DISPOSITION_SCHEMA,
+    build_lane_disposition_projection,
+    validate_lane_disposition_projection,
+)
 from .lanes import (
     CANONICAL_LANE_IDS,
     CODE_LOGICAL_TOPOLOGY,
@@ -270,6 +276,32 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
                 "detail": "Schema, integrity, foreign keys, FTS objects; imported SQL is never run.",
             }
         )
+    required = {
+        "exact_source_bytes",
+        "fts5_bm25",
+        "tfidf",
+        "mermaid_source",
+        "dot_source",
+    }
+    optional = {
+        "mermaid_render_mmdc",
+        "graphviz_render_dot",
+        "document_parser_docling",
+        "excel_openpyxl",
+        "excel_pandas",
+        "parquet_pyarrow",
+        "excel_calamine",
+        "image_opencv",
+    }
+    for row in rows:
+        capability = row["capability"]
+        row["requirement"] = (
+            "REQUIRED"
+            if capability in required
+            else "OPTIONAL"
+            if capability in optional
+            else "CONDITIONAL"
+        )
     return rows
 
 
@@ -288,6 +320,15 @@ def _tool_identity(lane: LaneDefinition) -> dict[str, Any]:
             "four_file_schema": FOUR_FILE_CONTRACT_SCHEMA,
             "tools_authority_schema": TOOLS_ARTIFACT_AUTHORITY_SCHEMA,
             "module_sha256": sha256_file(artifact_contract_module),
+        },
+        "parser_implementation": {
+            "lane_engine_sha256": sha256_file(Path(__file__).resolve()),
+            "code_ingest_sha256": sha256_file(
+                Path(extract_code_lane_facts.__code__.co_filename).resolve()
+            ),
+            "dependency_detection_sha256": sha256_file(
+                Path(parse_pnpm_lock_dependencies.__code__.co_filename).resolve()
+            ),
         },
     }
     payload["sha256"] = sha256_bytes(canonical_json_bytes(payload))
@@ -5272,6 +5313,13 @@ def build_lane_bundle(
             "Completed lane databases do not bind the frozen source snapshot; "
             "the partial output is not a candidate."
         )
+    lane_dispositions = build_lane_disposition_projection(
+        output,
+        emitted_lane_ids=emitted_lane_ids,
+        removed_lane_ids=removed_lane_ids,
+        reports_by_lane=reports_by_lane,
+    )
+    atomic_write_json(output / "lane_dispositions.json", lane_dispositions)
     execution_receipt = {
         "schema": "evidence-lane.parallel-lane-execution.v1",
         "single_writer": True,
@@ -5290,6 +5338,12 @@ def build_lane_bundle(
         "final_source_snapshot_sha256": final_source_snapshot_sha256,
         "source_snapshot_unchanged": True,
         "source_binding": source_binding,
+        "lane_disposition_projection_sha256": lane_dispositions[
+            "projection_sha256"
+        ],
+        "unloaded_lane_artifacts_fabricated": lane_dispositions[
+            "unloaded_lane_artifacts_fabricated"
+        ],
         "source_policy": {
             "selection_mode": source_selection,
             "tracked_only": source_selection == "GIT_TRACKED_ONLY",
@@ -5371,6 +5425,13 @@ def build_lane_bundle(
         ),
         "git_optional_arm": git_arm,
         "parallel_execution": execution_receipt,
+        "lane_dispositions": {
+            "projection_sha256": lane_dispositions["projection_sha256"],
+            "disposition_counts": lane_dispositions["disposition_counts"],
+            "unloaded_lane_artifacts_fabricated": lane_dispositions[
+                "unloaded_lane_artifacts_fabricated"
+            ],
+        },
     }
     manifest = {
         "schema": LANE_BUNDLE_SCHEMA,
@@ -5391,6 +5452,12 @@ def build_lane_bundle(
         "source_snapshot_sha256": source_snapshot_sha256,
         "source_policy": execution_receipt["source_policy"],
         "parallel_execution": execution_receipt,
+        "lane_disposition_contract": {
+            "schema": LANE_DISPOSITION_SCHEMA,
+            "path": "lane_dispositions.json",
+            "projection_sha256": lane_dispositions["projection_sha256"],
+            "canonical_lane_count": len(CANONICAL_LANE_IDS),
+        },
         "reports": reports,
         "summary": summary,
         "created_at": recorded_at,
@@ -5591,6 +5658,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
                 "topology_reconciliation": topology_report,
                 "four_file_contract": four_file_report,
             }
+    lane_disposition_report = validate_lane_disposition_projection(root, manifest)
     expected_registry_ids = list(CANONICAL_LANE_IDS)
     registry_ids = [row.get("canonical_lane_id") for row in registry.get("lanes", [])]
     bundle_sha256 = sha256_bytes(canonical_json_bytes(actual_members))
@@ -5622,6 +5690,14 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         and execution.get("deterministic_assembly_order")
         == list(emitted_lane_ids)
         and execution.get("submitted_lane_count") == len(emitted_lane_ids)
+        and (
+            not lane_disposition_report["enforced"]
+            or (
+                execution.get("lane_disposition_projection_sha256")
+                == lane_disposition_report.get("projection_sha256")
+                and execution.get("unloaded_lane_artifacts_fabricated") is False
+            )
+        )
         and (
             not conditional_lane_emission
             or (
@@ -5687,6 +5763,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         and lane_directory_set_valid
         and execution_valid
         and topology_valid
+        and lane_disposition_report["valid"]
         and not lane_manifest_errors
         and all(report["valid"] for report in lane_reports.values())
     )
@@ -5709,6 +5786,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         "checksum_mismatches": checksum_mismatches,
         "lane_manifest_errors": lane_manifest_errors,
         "four_file_contracts": four_file_contracts,
+        "lane_disposition_contract": lane_disposition_report,
         "source_routes_valid": route_values_valid,
         "parallel_execution_valid": execution_valid,
         "parallel_execution_legacy_compatibility": (

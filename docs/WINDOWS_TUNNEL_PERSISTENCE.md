@@ -1,20 +1,35 @@
 # Persistent Windows tunnel and two-slot recovery
 
-Evidence Lane 2.1 keeps the Codex lifecycle on the package-local native MCP.
-The Windows tunnel is a separate, version-bound interactive-host support
-channel. Tunnel health never substitutes for the native 62-tool catalog,
+Evidence Lane 2.2 keeps the Codex lifecycle on the package-local native MCP.
+The Windows tunnel is a separate, version-bound support channel selected only
+when measured runtime capability explicitly requires it. A durable local Codex
+desktop does not install or use it for lifecycle work. Tunnel health never
+substitutes for the native 62-tool catalog,
 project/session binding, accepted pointer, or HIL proof.
+
+Both the ChatGPT stable desktop channel and ChatGPT Beta desktop channel can
+contain ChatGPT and Codex surfaces. This package governs only the Codex surface
+in either channel; the channel name is not a claim that the other surface is
+absent.
 
 The installer pins the OpenAI `tunnel-client` v0.0.10 binary by SHA-256, asks
 for the user's Tunnel ID once, encrypts the Runtime API key with current-user
 Windows DPAPI, and registers an exact scheduled task. It never prints or stores
 the plaintext key in source, prompts, receipts, Plan rows, SQLite, Git, or logs.
+The tunnel is either one persistent scheduled process or stopped. Its scheduled
+PowerShell action, layered MCP child, repair/status helpers, and all
+plugin-owned Python subprocesses are launched with a no-console contract
+(`-WindowStyle Hidden` or `CREATE_NO_WINDOW`). Repeated visible console flashes
+are a failure, not a supported restart strategy. Launch flags of a host-owned
+initial MCP process remain `HOST_CAPABILITY_UNAVAILABLE` when the host does not
+expose them.
 
 ## Host routing
 
 | Host profile | PV storage | Tunnel rule |
 | --- | --- | --- |
-| Interactive Codex on a local PC or persistent VM | Durable local SQLite | Install once; the selected slot starts at Windows sign-in |
+| Interactive Codex on a local PC with proven durable storage | Durable local SQLite | Not required for the native Codex lifecycle |
+| Interactive Codex on a durable remote workspace | Durable remote SQLite or explicit connector when required | Not required unless a separate host capability receipt explicitly selects it |
 | Interactive Codex on an ephemeral VM | Durable mount or explicit transactional connector | Install for that VM lifetime only |
 | Codex CLI or headless API on a local/persistent host | Durable local SQLite when available | Not required at the API layer |
 | Headless API on an ephemeral VM | Durable mount or explicit transactional connector | Not required at the API layer |
@@ -23,15 +38,18 @@ Account tier and API billing do not select storage or tunnel routing. Every
 project-scoped native call still supplies the exact `project_id`; cross-project
 fallback is forbidden.
 
-## First-time setup
+## Capability-gated setup
 
-From a reviewed checkout, run:
+Do not run this for a durable local Codex desktop. After the runtime classifier
+proves an interactive ephemeral VM that requires the support channel, run from
+a reviewed checkout with that VM's exact identity:
 
 ```powershell
 & ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1" `
   -SlotRole stable-build `
   -InteractionProfile CODEX_APP_INTERACTIVE `
-  -HostLifetime Persistent `
+  -HostLifetime Ephemeral `
+  -VmInstanceId "<exact-vm-instance-id>" `
   -Activate
 ```
 
@@ -75,14 +93,17 @@ Deltas, and evidence remain preserved outside the live cache.
 
 The two-slot registry is keyed by exact plugin selector, build identity, package
 SHA-256, installation receipt, cache root, tunnel marker, task name, and profile
-name. It is not keyed only by semantic version, because stable-build and the
-mutable stable is product version 2.1.0 while the disabled PV11 fallback remains
-exact product version 2.0.0.
+name. It is not keyed only by semantic version. The pre-HIL source target is
+2.2.0, the accepted/base GitLane release is 2.1.0, and direct host evidence
+showed the disabled fallback at 2.0.0. Those identities remain separate until
+their later governed install/readback gates pass.
 
 ## Deterministic failover operator
 
-`scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1` composes the saved
-tunnel managers with `Restart-EvidenceLaneCodex.ps1`.
+`scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1` composes saved tunnel
+managers with `Restart-EvidenceLaneCodex.ps1` only for a route whose capability
+receipt explicitly requires a tunnel. The native local no-tunnel route skips
+tunnel start/stop and must still enforce exactly one active plugin/MCP slot.
 
 Failover may be prepared in either of two ways:
 

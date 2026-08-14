@@ -13,8 +13,13 @@ Evidence Lane lifecycle control.
    `pv_status`, `pv_task_backlog`, and one bounded prompt-relevant `pv_query`,
    and preserves the active lifecycle position.
 2. Confirm the host is Codex.
-3. Confirm native Plan mode is active. If it is not, perform no Plan Lane write
-   and return: `Type /pl, finish the plan, then run /evi-plan again.`
+3. For an ordinary planning turn, confirm native Plan mode is active. For a
+   State Travel Phase-4 invocation, require the sealed destination contract,
+   complete host Plan projection, and explicit host Plan acceptance instead;
+   do not ask the user to type `/pl` or `/evi-plan`. If the API cannot attest
+   its selector, record `HOST_MODE_SELECTOR_UNAVAILABLE` without fabricating
+   activation. Perform no Plan Lane write when canonical authority already
+   exists.
 4. Require a final visible ordered plan with stable task IDs, exact outcomes,
    bounded paths/tools, acceptance checks, and stop conditions.
 
@@ -39,8 +44,9 @@ candidate, HIL decision, pointer movement, deployment, or Fuse occurs.
    - omit `boundary` to use `BEFORE_NEXT_HIL`.
 4. After the Plan write or every steer, repeat `pv_status`, `pv_task_backlog`,
    and the bounded native `pv_query`; validate the returned Plan Lane; then call
-   the host `update_plan` tool with the complete exact projection. Hooks must
-   never perform or instruct this behavior.
+   the host `update_plan` tool with the complete exact projection. In a State
+   Travel destination, this step runs automatically only after explicit host
+   Plan acceptance. Hooks must never perform or instruct this behavior.
 
 ## Verification
 
@@ -51,7 +57,17 @@ hash, and
 states that MCP cannot change the native Goal or model/mode selectors.
 
 Every host label is exactly
-`Row <canonical row> / <task ID> — <exact description>`. Never place raw linked
+`Row <canonical row> / <task ID> — [CLASS=<classification>; GROUP=<plan group>; BATCH=<commit batch or UNASSIGNED>; DEP=<task IDs or ROOT>; GIT=<stage>@<provenance>; VERSION=<marker>@<provenance>; BRANCH=<marker>@<provenance>; ROLE=<panel role>; STATE=<lifecycle status>] <exact description>`.
+Preserve declared metadata and dependencies. Use the prior executable row only
+as the deterministic linear dependency fallback; render missing metadata as
+`UNASSIGNED` or `NOT_DECLARED` rather than inventing it. This contract applies
+to every governed project and corpus. Exclude immutable DROPPED and SUPERSEDED
+history from executable numbering, dependency fallback, and effective
+commit/version markers. When current non-superseded task text and linked
+corrections conflict, render
+`CONFLICTING_DECLARATIONS@RECONCILIATION_REQUIRED` until an exact
+`CURRENT_VERSION=...` or `CURRENT_BRANCH=...` directive resolves it; never
+rewrite immutable descriptions or infer a newer release. Never place raw linked
 Delta JSON in a host step label. If the native route or host `update_plan` tool
 is unavailable, fail closed rather than treating a lifecycle hook receipt or
 internal SQLite lookup as a replacement.
@@ -63,5 +79,8 @@ visible through every steer until the next six-way HIL.
 
 ## Next Steps
 
-Display only the returned short `goal_start_prompt` as the copy/paste handoff.
-The user pastes it into the Codex Goal to begin or continue execution.
+For an ordinary invocation, display the returned short `goal_start_prompt` as
+the handoff supported by that host. For State Travel Phase 4, do not request a
+manual paste: after verification passes, Phase 5 automatically calls the
+supported Goal action in the same destination. Host Plan acceptance remains
+separate from Evidence Lane HIL and never moves a PV pointer.

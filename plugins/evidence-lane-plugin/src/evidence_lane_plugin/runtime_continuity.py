@@ -7,6 +7,11 @@ from typing import Any, cast
 from .errors import require
 from .hashing import canonical_json_bytes, sha256_bytes
 from .models import HostKind, normalize_host_kind
+from .runtime_host_classifier import (
+    build_runtime_namespace,
+    validate_runtime_host_classifier,
+    validate_runtime_namespace,
+)
 
 RUNTIME_CONTINUITY_SCHEMA = "evidence-lane.runtime-continuity.v1"
 
@@ -14,6 +19,8 @@ RUNTIME_CONTINUITY_SCHEMA = "evidence-lane.runtime-continuity.v1"
 def build_runtime_continuity(
     *,
     project_id: str,
+    governed_session_id: str,
+    workspace_id: str,
     host: HostKind | str,
     host_session_id: str | None,
     ephemeral: bool,
@@ -24,6 +31,7 @@ def build_runtime_continuity(
     accepted_manifest_sha256: str | None,
     accepted_package_sha256: str | None,
     accepted_promotable_under_current_rules: bool | None = None,
+    host_entry_consumption: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Bind a host route to the locked Flash and exact entry pointer."""
 
@@ -69,6 +77,16 @@ def build_runtime_continuity(
         project_id=project_id,
     )
     project_route = cast(dict[str, Any], raw_project_route)
+    runtime_classifier = validate_runtime_host_classifier(
+        cast(dict[str, Any], persistence_route.get("runtime_classifier") or {})
+    )
+    runtime_namespace = build_runtime_namespace(
+        project_id=project_id,
+        governed_session_id=governed_session_id,
+        workspace_id=workspace_id,
+        host_session_id=host_session_id,
+        classifier=runtime_classifier,
+    )
     accepted_integrity_validated = bool(
         accepted_pv and accepted_manifest_sha256 and accepted_package_sha256
     )
@@ -94,6 +112,59 @@ def build_runtime_continuity(
             "Headless API continuity must not depend on a tunnel.",
             status="MISMATCH",
         )
+    host_entry_required = (
+        persistence_route.get("server_filesystem")
+        == "EPHEMERAL_OR_UNAVAILABLE"
+    )
+    host_entry_receipt_sha256: str | None = None
+    if host_entry_required:
+        receipt = (
+            host_entry_consumption.get("receipt")
+            if isinstance(host_entry_consumption, dict)
+            else None
+        )
+        require(
+            isinstance(host_entry_consumption, dict)
+            and host_entry_consumption.get("status") == "PASS"
+            and host_entry_consumption.get("state")
+            in {"CONSUMED", "CONSUMED_IDEMPOTENT_REUSE"}
+            and isinstance(receipt, dict)
+            and receipt.get("schema")
+            == "evidence-lane.host-entry-consumption.v1"
+            and receipt.get("project_id") == project_id
+            and receipt.get("evidence_session_id") == governed_session_id
+            and receipt.get("accepted_pointer_generation") == pointer_generation
+            and receipt.get("pointer_moved") is False
+            and receipt.get("hil_inferred") is False,
+            "RUNTIME_CONTINUITY_HOST_ENTRY_CONSUMPTION_REQUIRED",
+            "An insufficiently durable host must consume one exact host-entry envelope before runtime continuity is issued.",
+            status="BLOCKED",
+        )
+        receipt = cast(dict[str, Any], receipt)
+        host_entry_receipt_sha256 = str(receipt["receipt_sha256"])
+    host_entry_route = {
+        "required_before_governed_work": host_entry_required,
+        "state": (
+            "CONSUMED_EXACT_ONCE_FROM_TRANSACTIONAL_CONNECTOR"
+            if host_entry_required
+            else "NOT_REQUIRED_DURABLE_LOCAL_AUTHORITY"
+        ),
+        "continuity_authority": (
+            "HOST_ENTRY_ENVELOPE"
+            if host_entry_required
+            else persistence_route.get("primary_runtime_authority")
+        ),
+        "transactional_exact_once_required": host_entry_required,
+        "accepted_pointer_generation_must_match": True,
+        "worktree_and_four_authority_heads_must_match": True,
+        "expiry_and_replay_nonce_required": host_entry_required,
+        "consumption_receipt_sha256": host_entry_receipt_sha256,
+        "candidate_overlay_requires_exact_authorization": True,
+        "project_truth_promotion_allowed": False,
+        "learning_promotion_allowed": False,
+        "canon_acceptance_allowed": False,
+        "hil_replay_allowed": False,
+    }
     core = {
         "schema": RUNTIME_CONTINUITY_SCHEMA,
         "host": {
@@ -101,6 +172,8 @@ def build_runtime_continuity(
             "host_session_id": str(host_session_id or "").strip() or None,
             "ephemeral": bool(ephemeral),
         },
+        "runtime_classifier": runtime_classifier,
+        "runtime_namespace": runtime_namespace,
         "project": {
             "project_id": project_id,
             "relative_project_route": project_route["relative_project_route"],
@@ -148,8 +221,21 @@ def build_runtime_continuity(
             "pointer_movement": False,
             "hil_approval_inferred": False,
         },
+        "host_entry": host_entry_route,
         "invocation": {
             "interaction_profile": interaction_profile,
+            "container_channel": runtime_classifier["container_channel"],
+            "container_version": runtime_classifier["container_version"],
+            "active_surface": runtime_classifier["active_surface"],
+            "active_surface_evidence": runtime_classifier[
+                "active_surface_evidence"
+            ],
+            "workspace_class": runtime_classifier["workspace_class"],
+            "execution_profile": runtime_classifier["execution_profile"],
+            "execution_profile_status": runtime_classifier[
+                "execution_profile_status"
+            ],
+            "account_route": runtime_classifier["account_route"],
             "headless_api": headless_api,
             "api_billing_affects_storage_or_tunnel": False,
             "account_tier_affects_storage_or_tunnel": False,
@@ -208,6 +294,44 @@ def validate_runtime_continuity(value: dict[str, Any]) -> dict[str, Any]:
         "The runtime continuity invocation contract must be structured when present.",
         status="FAIL",
     )
+    host_entry = value.get("host_entry")
+    if host_entry is not None:
+        require(
+            isinstance(host_entry, dict)
+            and host_entry.get("accepted_pointer_generation_must_match") is True
+            and host_entry.get("worktree_and_four_authority_heads_must_match")
+            is True
+            and host_entry.get("candidate_overlay_requires_exact_authorization")
+            is True
+            and host_entry.get("project_truth_promotion_allowed") is False
+            and host_entry.get("learning_promotion_allowed") is False
+            and host_entry.get("canon_acceptance_allowed") is False
+            and host_entry.get("hil_replay_allowed") is False,
+            "RUNTIME_CONTINUITY_HOST_ENTRY_BOUNDARY_INVALID",
+            "The runtime host-entry boundary is incomplete or authority-crossing.",
+            status="FAIL",
+        )
+        server_filesystem = value.get("storage", {}).get("server_filesystem")
+        remote_required = server_filesystem == "EPHEMERAL_OR_UNAVAILABLE"
+        require(
+            host_entry.get("required_before_governed_work") is remote_required
+            and host_entry.get("transactional_exact_once_required")
+            is remote_required
+            and host_entry.get("state")
+            == (
+                "CONSUMED_EXACT_ONCE_FROM_TRANSACTIONAL_CONNECTOR"
+                if remote_required
+                else "NOT_REQUIRED_DURABLE_LOCAL_AUTHORITY"
+            )
+            and (
+                bool(str(host_entry.get("consumption_receipt_sha256") or ""))
+                if remote_required
+                else host_entry.get("consumption_receipt_sha256") is None
+            ),
+            "RUNTIME_CONTINUITY_HOST_ENTRY_ROUTE_MISMATCH",
+            "The host-entry requirement does not match measured storage durability.",
+            status="MISMATCH",
+        )
     base_boundary_valid = (
         value.get("env_uop", {}).get("bytes_in_pv") is False
         and value.get("entry_exit_slip", {}).get("env_uop_bytes_embedded") is False
@@ -260,6 +384,35 @@ def validate_runtime_continuity(value: dict[str, Any]) -> dict[str, Any]:
         "Runtime invocation continuity must not alter storage, tunnel, or six-way HIL law.",
         status="FAIL",
     )
+    runtime_classifier = value.get("runtime_classifier")
+    runtime_namespace = value.get("runtime_namespace")
+    if runtime_classifier is not None or runtime_namespace is not None:
+        require(
+            isinstance(runtime_classifier, dict)
+            and isinstance(runtime_namespace, dict),
+            "RUNTIME_CONTINUITY_CLASSIFIER_NAMESPACE_REQUIRED",
+            "Current runtime continuity requires both classifier and namespace receipts.",
+            status="FAIL",
+        )
+        validate_runtime_host_classifier(cast(dict[str, Any], runtime_classifier))
+        validate_runtime_namespace(cast(dict[str, Any], runtime_namespace))
+        runtime_classifier = cast(dict[str, Any], runtime_classifier)
+        runtime_namespace = cast(dict[str, Any], runtime_namespace)
+        require(
+            runtime_namespace.get("project_id")
+            == value.get("project", {}).get("project_id")
+            and bool(runtime_namespace.get("governed_session_id"))
+            and runtime_namespace.get("active_surface") == "CODEX"
+            and invocation.get("active_surface") == "CODEX"
+            and invocation.get("container_channel")
+            == runtime_classifier.get("container_channel")
+            and invocation.get("workspace_class")
+            == runtime_namespace.get("workspace_class")
+            == runtime_classifier.get("workspace_class"),
+            "RUNTIME_CONTINUITY_CLASSIFIER_NAMESPACE_MISMATCH",
+            "Runtime classifier, namespace, and continuity identities diverge.",
+            status="MISMATCH",
+        )
     if invocation.get("headless_api") is True:
         require(
             invocation.get("tunnel_requirement") == "NOT_REQUIRED_FOR_API_LAYER"

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import threading
 import time
@@ -12,6 +13,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, ClassVar, Self, cast
 
+from .capture_routing import CaptureRouteAuthority, normalize_capture_route
 from .constants import POINTER_SCHEMA, PROJECT_REGISTRY_SCHEMA
 from .errors import EvidenceLaneError, require
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
@@ -62,6 +64,682 @@ _GOAL_STATUS_BY_LIFECYCLE = {
 
 _PARKED_LIFECYCLE_STATUSES = {"DROPPED"}
 _SUPERSEDED_LIFECYCLE_STATUSES = {"SUPERSEDED"}
+
+_PLAN_METADATA_ID_CHARS = set(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
+)
+_PLAN_VERSION_RE = re.compile(
+    r"(?<![A-Za-z0-9])v?(\d+\.\d+(?:\.\d+)?(?:\+[A-Za-z0-9._-]+)?)"
+    r"(?![A-Za-z0-9])",
+    re.IGNORECASE,
+)
+_PLAN_CURRENT_VERSION_DIRECTIVE_RE = re.compile(
+    r"\bCURRENT_VERSION\s*=\s*"
+    r"(v?\d+\.\d+(?:\.\d+)?(?:\+[A-Za-z0-9._-]+)?)",
+    re.IGNORECASE,
+)
+_PLAN_BRANCH_RE = re.compile(r"\bagent/[A-Za-z0-9._/-]+", re.IGNORECASE)
+_PLAN_CURRENT_BRANCH_DIRECTIVE_RE = re.compile(
+    r"\bCURRENT_BRANCH\s*=\s*"
+    r"([A-Za-z0-9_/-](?:[A-Za-z0-9._/-]*[A-Za-z0-9_/-])?)",
+    re.IGNORECASE,
+)
+_PLAN_COMMIT_BATCH_DIRECTIVE_RE = re.compile(
+    r"\bCOMMIT_BATCH\s*=\s*"
+    r"([A-Za-z0-9_-](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?)",
+    re.IGNORECASE,
+)
+_PLAN_GIT_STAGE_DIRECTIVE_RE = re.compile(
+    r"\bGIT_STAGE\s*=\s*"
+    r"([A-Za-z0-9_-](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?)",
+    re.IGNORECASE,
+)
+_PLAN_GROUP_DIRECTIVE_RE = re.compile(
+    r"\bPLAN_GROUP\s*=\s*"
+    r"([A-Za-z0-9_-](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?)",
+    re.IGNORECASE,
+)
+_PLAN_DEPENDENCIES_DIRECTIVE_RE = re.compile(
+    r"\bDEPENDS_ON\s*=\s*"
+    r"([A-Za-z0-9._-]+(?:\s*[+,]\s*[A-Za-z0-9._-]+)*)",
+    re.IGNORECASE,
+)
+_PLAN_CANDIDATE_PV_DIRECTIVE_RE = re.compile(
+    r"\bCANDIDATE_PV\s*=\s*(PV\d+)\b",
+    re.IGNORECASE,
+)
+_PLAN_ACCEPTED_PV_DIRECTIVE_RE = re.compile(
+    r"\bACCEPTED_PV\s*=\s*(PV\d+)\b",
+    re.IGNORECASE,
+)
+_PLAN_ACCEPTED_VERSION_DIRECTIVE_RE = re.compile(
+    r"\bACCEPTED_VERSION\s*=\s*"
+    r"(v?\d+\.\d+(?:\.\d+)?(?:\+[A-Za-z0-9._-]+)?)",
+    re.IGNORECASE,
+)
+_PLAN_FALLBACK_OBSERVED_VERSION_DIRECTIVE_RE = re.compile(
+    r"\bFALLBACK_OBSERVED_VERSION\s*=\s*"
+    r"(v?\d+\.\d+(?:\.\d+)?(?:\+[A-Za-z0-9._-]+)?)",
+    re.IGNORECASE,
+)
+_PLAN_FALLBACK_EXPECTED_ACCEPTED_VERSION_DIRECTIVE_RE = re.compile(
+    r"\bFALLBACK_EXPECTED_ACCEPTED_VERSION\s*=\s*"
+    r"(v?\d+\.\d+(?:\.\d+)?(?:\+[A-Za-z0-9._-]+)?)",
+    re.IGNORECASE,
+)
+
+
+def _bounded_plan_metadata_id(value: Any, *, fallback: str) -> str:
+    """Return one public-safe Plan metadata identifier without inventing it."""
+
+    exact = str(value or "").strip()
+    if not exact:
+        return fallback
+    require(
+        len(exact) <= 128
+        and all(character in _PLAN_METADATA_ID_CHARS for character in exact),
+        "PLAN_PROJECTION_METADATA_ID_INVALID",
+        "Plan group and commit-batch identifiers must be bounded public-safe IDs.",
+        status="MISMATCH",
+        value=exact,
+    )
+    return exact
+
+
+def _bounded_plan_dependencies(value: Any, *, task_id: str) -> list[str]:
+    """Validate explicit dependency IDs without inventing project topology."""
+
+    require(
+        isinstance(value, list)
+        and len(value) <= 64
+        and all(
+            isinstance(dependency, str)
+            and bool(dependency.strip())
+            and len(dependency.strip()) <= 128
+            and all(
+                character in _PLAN_METADATA_ID_CHARS
+                for character in dependency.strip()
+            )
+            for dependency in value
+        ),
+        "PLAN_DEPENDENCIES_INVALID",
+        "Explicit Plan dependencies must be bounded public-safe task IDs.",
+        status="MISMATCH",
+        task_id=task_id,
+    )
+    dependencies = list(
+        dict.fromkeys(dependency.strip() for dependency in value)
+    )
+    require(
+        task_id not in dependencies,
+        "PLAN_DEPENDENCY_SELF_REFERENCE",
+        "A Plan row may not depend on itself.",
+        status="MISMATCH",
+        task_id=task_id,
+    )
+    return dependencies
+
+
+def _bounded_plan_version(value: Any, *, task_id: str) -> str:
+    """Validate one exact current-version marker without guessing semantics."""
+
+    exact = str(value or "").strip()
+    if exact[:1].lower() == "v":
+        exact = exact[1:]
+    require(
+        bool(exact) and _PLAN_VERSION_RE.fullmatch(exact) is not None,
+        "PLAN_VERSION_MARKER_INVALID",
+        "A current-version marker must be one bounded semantic version token.",
+        status="MISMATCH",
+        task_id=task_id,
+        value=exact,
+    )
+    return exact
+
+
+def _bounded_plan_branch(value: Any, *, task_id: str) -> str:
+    """Validate one exact branch marker without treating a title as authority."""
+
+    exact = str(value or "").strip()
+    require(
+        bool(exact)
+        and len(exact) <= 192
+        and not exact.startswith("/")
+        and not exact.endswith("/")
+        and ".." not in exact
+        and all(
+            character
+            in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._/-"
+            for character in exact
+        ),
+        "PLAN_BRANCH_MARKER_INVALID",
+        "A current-branch marker must be one bounded public-safe branch name.",
+        status="MISMATCH",
+        task_id=task_id,
+        value=exact,
+    )
+    return exact
+
+
+def _latest_linked_directive(
+    task: dict[str, Any],
+    *,
+    pattern: re.Pattern[str],
+    directive_name: str,
+) -> tuple[str | None, str | None]:
+    """Return the latest exact linked-Delta directive and its provenance."""
+
+    selected: tuple[str, str] | None = None
+    for steer in task.get("steer_deltas") or []:
+        if not isinstance(steer, dict):
+            continue
+        values = list(
+            dict.fromkeys(
+                match.group(1).strip()
+                for match in pattern.finditer(str(steer.get("text") or ""))
+            )
+        )
+        require(
+            len(values) <= 1,
+            "PLAN_LINKED_DIRECTIVE_CONFLICT",
+            "One linked Delta contains conflicting exact Plan metadata directives.",
+            status="MISMATCH",
+            task_id=task.get("task_id"),
+            delta_id=steer.get("delta_id"),
+            directive=directive_name,
+            values=values,
+        )
+        if values:
+            selected = (
+                values[0],
+                f"LINKED_DELTA:{steer.get('delta_id') or 'UNKNOWN'!s}",
+            )
+    return selected or (None, None)
+
+
+def _version_claims(task: dict[str, Any]) -> list[dict[str, str]]:
+    """Inventory exact version tokens without deciding which claim is current."""
+
+    sources = [
+        ("TASK_CONTRACT", str(task.get("task_id") or ""), task.get("requested_outcome")),
+        *[
+            (
+                "LINKED_DELTA",
+                str(steer.get("delta_id") or "UNKNOWN"),
+                steer.get("text"),
+            )
+            for steer in task.get("steer_deltas") or []
+            if isinstance(steer, dict)
+        ],
+    ]
+    claims: list[dict[str, str]] = []
+    seen: set[tuple[str, str, str]] = set()
+    for source_kind, source_id, text in sources:
+        for match in _PLAN_VERSION_RE.finditer(str(text or "")):
+            version = _bounded_plan_version(
+                match.group(1), task_id=str(task.get("task_id") or "")
+            )
+            identity = (version, source_kind, source_id)
+            if identity in seen:
+                continue
+            seen.add(identity)
+            claims.append(
+                {
+                    "version": version,
+                    "source_kind": source_kind,
+                    "source_id": source_id,
+                }
+            )
+    require(
+        len(claims) <= 64,
+        "PLAN_VERSION_CLAIMS_UNBOUNDED",
+        "A Plan row contains too many version claims for deterministic projection.",
+        status="MISMATCH",
+        task_id=task.get("task_id"),
+    )
+    return claims
+
+
+def _branch_claims(task: dict[str, Any]) -> list[dict[str, str]]:
+    """Inventory exact governed branch tokens without selecting stale history."""
+
+    sources = [
+        ("TASK_CONTRACT", str(task.get("task_id") or ""), task.get("requested_outcome")),
+        *[
+            (
+                "LINKED_DELTA",
+                str(steer.get("delta_id") or "UNKNOWN"),
+                steer.get("text"),
+            )
+            for steer in task.get("steer_deltas") or []
+            if isinstance(steer, dict)
+        ],
+    ]
+    claims: list[dict[str, str]] = []
+    seen: set[tuple[str, str, str]] = set()
+    for source_kind, source_id, text in sources:
+        for match in _PLAN_BRANCH_RE.finditer(str(text or "")):
+            branch = _bounded_plan_branch(
+                match.group(0), task_id=str(task.get("task_id") or "")
+            )
+            identity = (branch, source_kind, source_id)
+            if identity in seen:
+                continue
+            seen.add(identity)
+            claims.append(
+                {
+                    "branch": branch,
+                    "source_kind": source_kind,
+                    "source_id": source_id,
+                }
+            )
+    require(
+        len(claims) <= 64,
+        "PLAN_BRANCH_CLAIMS_UNBOUNDED",
+        "A Plan row contains too many branch claims for deterministic projection.",
+        status="MISMATCH",
+        task_id=task.get("task_id"),
+    )
+    return claims
+
+
+def _effective_version_marker(
+    task: dict[str, Any],
+    *,
+    inherited_value: str | None = None,
+    inherited_source: str | None = None,
+) -> dict[str, Any]:
+    """Resolve current version only from an exact declaration; conflicts stay visible."""
+
+    task_id = str(task.get("task_id") or "")
+    claims = _version_claims(task)
+    linked_value, linked_source = _latest_linked_directive(
+        task,
+        pattern=_PLAN_CURRENT_VERSION_DIRECTIVE_RE,
+        directive_name="CURRENT_VERSION",
+    )
+    if linked_value:
+        marker = _bounded_plan_version(linked_value, task_id=task_id)
+        source = str(linked_source)
+    elif inherited_value:
+        marker = _bounded_plan_version(inherited_value, task_id=task_id)
+        source = str(inherited_source or "ACTIVE_PLAN_CONTEXT")
+    else:
+        explicit = task.get("current_version") or task.get("version_marker")
+        if explicit:
+            marker = _bounded_plan_version(explicit, task_id=task_id)
+            source = "EXPLICIT_TASK_CONTRACT"
+        else:
+            unique = list(dict.fromkeys(claim["version"] for claim in claims))
+            if len(unique) == 1:
+                marker = unique[0]
+                source = "SOLE_CURRENT_AUTHORITY_CLAIM"
+            elif len(unique) > 1:
+                marker = "CONFLICTING_DECLARATIONS"
+                source = "RECONCILIATION_REQUIRED"
+            else:
+                marker = "NOT_DECLARED"
+                source = "NO_CURRENT_AUTHORITY_CLAIM"
+    return {
+        "version_marker": marker,
+        "version_marker_source": source,
+        "version_claims": claims,
+        "version_reconciliation_required": marker == "CONFLICTING_DECLARATIONS",
+    }
+
+
+def _effective_branch_marker(
+    task: dict[str, Any],
+    *,
+    inherited_value: str | None = None,
+    inherited_source: str | None = None,
+) -> dict[str, Any]:
+    """Resolve current branch only from an exact declaration; conflicts stay visible."""
+
+    task_id = str(task.get("task_id") or "")
+    claims = _branch_claims(task)
+    linked_value, linked_source = _latest_linked_directive(
+        task,
+        pattern=_PLAN_CURRENT_BRANCH_DIRECTIVE_RE,
+        directive_name="CURRENT_BRANCH",
+    )
+    if linked_value:
+        marker = _bounded_plan_branch(linked_value, task_id=task_id)
+        source = str(linked_source)
+    elif inherited_value:
+        marker = _bounded_plan_branch(inherited_value, task_id=task_id)
+        source = str(inherited_source or "ACTIVE_PLAN_CONTEXT")
+    else:
+        explicit = task.get("current_branch") or task.get("git_branch")
+        if explicit:
+            marker = _bounded_plan_branch(explicit, task_id=task_id)
+            source = "EXPLICIT_TASK_CONTRACT"
+        else:
+            unique = list(dict.fromkeys(claim["branch"] for claim in claims))
+            if len(unique) == 1:
+                marker = unique[0]
+                source = "SOLE_CURRENT_AUTHORITY_CLAIM"
+            elif len(unique) > 1:
+                marker = "CONFLICTING_DECLARATIONS"
+                source = "RECONCILIATION_REQUIRED"
+            else:
+                marker = "NOT_DECLARED"
+                source = "NO_CURRENT_AUTHORITY_CLAIM"
+    return {
+        "branch_marker": marker,
+        "branch_marker_source": source,
+        "branch_claims": claims,
+        "branch_reconciliation_required": marker == "CONFLICTING_DECLARATIONS",
+    }
+
+
+def _active_plan_release_context(tasks: list[dict[str, Any]]) -> dict[str, Any]:
+    """Project exact release directives from the sole ACTIVE executable row."""
+
+    active = [task for task in tasks if task.get("status") == "ACTIVE"]
+    if not active:
+        return {
+            "status": "NOT_DECLARED",
+            "scope": "ACTIVE_AND_QUEUED_EXECUTABLE_ROWS_ONLY",
+        }
+    require(
+        len(active) == 1,
+        "PLAN_RELEASE_CONTEXT_MULTIPLE_ACTIVE_ROWS",
+        "Current release context requires exactly one ACTIVE Plan row.",
+        status="MISMATCH",
+        active_task_ids=[task.get("task_id") for task in active],
+    )
+    task = active[0]
+    task_id = str(task.get("task_id") or "")
+    directives: tuple[
+        tuple[str, re.Pattern[str], str, str], ...
+    ] = (
+        (
+            "target_version",
+            _PLAN_CURRENT_VERSION_DIRECTIVE_RE,
+            "CURRENT_VERSION",
+            "version",
+        ),
+        (
+            "target_branch",
+            _PLAN_CURRENT_BRANCH_DIRECTIVE_RE,
+            "CURRENT_BRANCH",
+            "branch",
+        ),
+        (
+            "candidate_pv_target",
+            _PLAN_CANDIDATE_PV_DIRECTIVE_RE,
+            "CANDIDATE_PV",
+            "pv",
+        ),
+        (
+            "accepted_pv",
+            _PLAN_ACCEPTED_PV_DIRECTIVE_RE,
+            "ACCEPTED_PV",
+            "pv",
+        ),
+        (
+            "accepted_version",
+            _PLAN_ACCEPTED_VERSION_DIRECTIVE_RE,
+            "ACCEPTED_VERSION",
+            "version",
+        ),
+        (
+            "fallback_observed_version",
+            _PLAN_FALLBACK_OBSERVED_VERSION_DIRECTIVE_RE,
+            "FALLBACK_OBSERVED_VERSION",
+            "version",
+        ),
+        (
+            "fallback_expected_accepted_version",
+            _PLAN_FALLBACK_EXPECTED_ACCEPTED_VERSION_DIRECTIVE_RE,
+            "FALLBACK_EXPECTED_ACCEPTED_VERSION",
+            "version",
+        ),
+    )
+    context: dict[str, Any] = {
+        "status": "DECLARED",
+        "source_task_id": task_id,
+        "scope": "ACTIVE_AND_QUEUED_EXECUTABLE_ROWS_ONLY",
+        "completed_rows_inherit_context": False,
+        "history_rows_inherit_context": False,
+        "creates_candidate": False,
+        "moves_pointer": False,
+    }
+    for field, pattern, directive_name, value_kind in directives:
+        value, source = _latest_linked_directive(
+            task,
+            pattern=pattern,
+            directive_name=directive_name,
+        )
+        if not value:
+            continue
+        if value_kind == "version":
+            exact = _bounded_plan_version(value, task_id=task_id)
+        elif value_kind == "branch":
+            exact = _bounded_plan_branch(value, task_id=task_id)
+        else:
+            exact = value.upper()
+        context[field] = exact
+        context[f"{field}_source"] = str(source)
+    if "target_version" not in context and "target_branch" not in context:
+        context["status"] = "NOT_DECLARED"
+    return context
+
+
+def _active_context_source(
+    release_context: dict[str, Any] | None,
+    field: str,
+) -> str | None:
+    """Return visible provenance for a marker inherited from the ACTIVE row."""
+
+    if not release_context or field not in release_context:
+        return None
+    source = str(release_context.get(f"{field}_source") or "NOT_DECLARED")
+    delta_id = source.removeprefix("LINKED_DELTA:")
+    return (
+        "ACTIVE_PLAN_CONTEXT:"
+        f"{release_context.get('source_task_id') or 'UNKNOWN'}:{delta_id}"
+    )
+
+
+def _git_commit_stage(task: dict[str, Any]) -> tuple[str, str]:
+    """Project Git intent only from an explicit contract or exact task text."""
+
+    linked_value, linked_source = _latest_linked_directive(
+        task,
+        pattern=_PLAN_GIT_STAGE_DIRECTIVE_RE,
+        directive_name="GIT_STAGE",
+    )
+    if linked_value:
+        explicit = linked_value.strip().upper()
+        require(
+            len(explicit) <= 64
+            and all(
+                character in _PLAN_METADATA_ID_CHARS for character in explicit
+            ),
+            "PLAN_GIT_COMMIT_STAGE_INVALID",
+            "An exact linked Git stage must be one bounded public-safe label.",
+            status="MISMATCH",
+            task_id=task.get("task_id"),
+        )
+        return explicit, str(linked_source)
+    explicit = str(task.get("git_commit_stage") or "").strip().upper()
+    if explicit:
+        require(
+            len(explicit) <= 64
+            and all(
+                character in _PLAN_METADATA_ID_CHARS for character in explicit
+            ),
+            "PLAN_GIT_COMMIT_STAGE_INVALID",
+            "An explicit Git commit stage must be one bounded public-safe label.",
+            status="MISMATCH",
+            task_id=task.get("task_id"),
+        )
+        return explicit, "EXPLICIT_TASK_CONTRACT"
+    outcome = str(task.get("requested_outcome") or "")
+    has_commit = re.search(r"\bcommit(?:ted|ting|s)?\b", outcome, re.IGNORECASE)
+    has_push = re.search(r"\bpush(?:ed|ing|es)?\b", outcome, re.IGNORECASE)
+    if has_commit and has_push:
+        return "COMMIT_AND_PUSH", "EXACT_TASK_TEXT"
+    if has_commit:
+        return "COMMIT", "EXACT_TASK_TEXT"
+    if has_push:
+        return "PUSH", "EXACT_TASK_TEXT"
+    return "NOT_DECLARED", "NO_EXPLICIT_CONTRACT_OR_TASK_TEXT"
+
+
+def _plan_row_metadata(
+    task: dict[str, Any],
+    *,
+    previous_executable_task_id: str | None,
+    earlier_executable_task_ids: set[str],
+    effective_for_execution: bool,
+    active_release_context: dict[str, Any] | None = None,
+    apply_active_release_context: bool = False,
+) -> dict[str, Any]:
+    """Build deterministic universal metadata for a host-visible Plan row."""
+
+    linked_dependencies, linked_dependencies_source = _latest_linked_directive(
+        task,
+        pattern=_PLAN_DEPENDENCIES_DIRECTIVE_RE,
+        directive_name="DEPENDS_ON",
+    )
+    raw_dependencies = (
+        re.split(r"\s*[+,]\s*", linked_dependencies)
+        if linked_dependencies
+        else task.get("dependencies")
+    )
+    if not effective_for_execution:
+        dependencies = []
+        dependency_source = "NON_EXECUTABLE_HISTORY"
+    elif raw_dependencies is not None:
+        dependencies = _bounded_plan_dependencies(
+            raw_dependencies,
+            task_id=str(task.get("task_id") or ""),
+        )
+        unknown_dependencies = sorted(
+            set(dependencies) - earlier_executable_task_ids
+        )
+        require(
+            not unknown_dependencies,
+            "PLAN_DEPENDENCY_NOT_EARLIER_EXECUTABLE_ROW",
+            "Explicit Plan dependencies must name earlier executable rows only.",
+            status="MISMATCH",
+            task_id=task.get("task_id"),
+            invalid_dependencies=unknown_dependencies,
+        )
+        dependency_source = (
+            str(linked_dependencies_source)
+            if linked_dependencies
+            else "EXPLICIT_TASK_CONTRACT"
+        )
+    elif previous_executable_task_id:
+        dependencies = [previous_executable_task_id]
+        dependency_source = "LINEAR_PREDECESSOR"
+    else:
+        dependencies = []
+        dependency_source = "LINEAR_ROOT"
+    linked_batch, linked_batch_source = _latest_linked_directive(
+        task,
+        pattern=_PLAN_COMMIT_BATCH_DIRECTIVE_RE,
+        directive_name="COMMIT_BATCH",
+    )
+    linked_group, linked_group_source = _latest_linked_directive(
+        task,
+        pattern=_PLAN_GROUP_DIRECTIVE_RE,
+        directive_name="PLAN_GROUP",
+    )
+    plan_group = _bounded_plan_metadata_id(
+        linked_group or task.get("plan_group") or task.get("plan_id"),
+        fallback="UNASSIGNED",
+    )
+    plan_group_source = (
+        str(linked_group_source)
+        if linked_group
+        else (
+            "EXPLICIT_TASK_CONTRACT"
+            if task.get("plan_group")
+            else "PLAN_ID_FALLBACK"
+            if task.get("plan_id")
+            else "NO_EXPLICIT_CONTRACT_OR_LINKED_DIRECTIVE"
+        )
+    )
+    commit_batch_id = _bounded_plan_metadata_id(
+        linked_batch or task.get("commit_batch_id") or task.get("batch_id"),
+        fallback="UNASSIGNED",
+    )
+    commit_batch_source = (
+        str(linked_batch_source)
+        if linked_batch
+        else (
+            "EXPLICIT_TASK_CONTRACT"
+            if task.get("commit_batch_id") or task.get("batch_id")
+            else "NO_EXPLICIT_CONTRACT_OR_LINKED_DIRECTIVE"
+        )
+    )
+    commit_stage, commit_stage_source = _git_commit_stage(task)
+    inherited_version = (
+        str(active_release_context.get("target_version"))
+        if apply_active_release_context
+        and active_release_context
+        and active_release_context.get("target_version")
+        else None
+    )
+    inherited_branch = (
+        str(active_release_context.get("target_branch"))
+        if apply_active_release_context
+        and active_release_context
+        and active_release_context.get("target_branch")
+        else None
+    )
+    version = _effective_version_marker(
+        task,
+        inherited_value=inherited_version,
+        inherited_source=_active_context_source(
+            active_release_context,
+            "target_version",
+        ),
+    )
+    branch = _effective_branch_marker(
+        task,
+        inherited_value=inherited_branch,
+        inherited_source=_active_context_source(
+            active_release_context,
+            "target_branch",
+        ),
+    )
+    return {
+        "task_classification": str(task.get("task_class") or "UNCLASSIFIED"),
+        "plan_group": plan_group,
+        "plan_group_source": plan_group_source,
+        "commit_batch_id": commit_batch_id,
+        "commit_batch_source": commit_batch_source,
+        "dependencies": dependencies,
+        "dependency_source": dependency_source,
+        "git_commit_stage": commit_stage,
+        "git_commit_stage_source": commit_stage_source,
+        **version,
+        **branch,
+        "effective_for_execution": effective_for_execution,
+    }
+
+
+def _visible_plan_row_label(row: dict[str, Any]) -> str:
+    """Return the compact deterministic host label; never embed Delta JSON."""
+
+    dependencies = row.get("dependencies") or []
+    dependency_label = "+".join(str(value) for value in dependencies) or "ROOT"
+    return (
+        f"Row {row['number']} / {row['task_id']} — "
+        f"[CLASS={row['task_classification']}; GROUP={row['plan_group']}; "
+        f"BATCH={row['commit_batch_id']}; DEP={dependency_label}; "
+        f"GIT={row['git_commit_stage']}@{row['git_commit_stage_source']}; "
+        f"VERSION={row['version_marker']}@{row['version_marker_source']}; "
+        f"BRANCH={row['branch_marker']}@{row['branch_marker_source']}; "
+        f"ROLE={row.get('panel_role') or 'STANDARD'}; "
+        f"STATE={row['lifecycle_status']}] {row['step']}"
+    )
 
 
 def _next_plan_hil_task_id(tasks: list[dict[str, Any]]) -> str | None:
@@ -335,8 +1013,18 @@ class ProjectStore:
     def _lock(self, project_id: str) -> _ProjectLock:
         return _ProjectLock(self.project_root(project_id) / ".store.lock")
 
+    def state_travel_resume_lock(self, project_id: str) -> _ProjectLock:
+        """Serialize one State Travel handoff consumption across MCP processes."""
+
+        self.validate_project_id(project_id)
+        return _ProjectLock(
+            self.project_root(project_id) / ".state-travel-resume.lock"
+        )
+
     def register_project(self, config: ProjectConfig) -> dict[str, Any]:
         self.validate_project_id(config.project_id)
+        config.capture_route = normalize_capture_route(config.capture_route)
+        capture_binding: dict[str, Any]
         with self._registry_lock():
             registry = self._load_root_registry()
             canonical_key = self.canonical_project_key(config.project_id)
@@ -389,8 +1077,17 @@ class ProjectStore:
                 }
                 if project_path.exists():
                     existing = json.loads(project_path.read_text(encoding="utf-8"))
+                    legacy_payload = {
+                        key: value
+                        for key, value in payload.items()
+                        if key != "capture_route"
+                    }
                     require(
-                        existing == payload,
+                        existing == payload
+                        or (
+                            "capture_route" not in existing
+                            and existing == legacy_payload
+                        ),
                         "PROJECT_REGISTRATION_CONFLICT",
                         "The project ID is already registered with different authority.",
                         status="MISMATCH",
@@ -411,8 +1108,17 @@ class ProjectStore:
                         pointer_path,
                         {"schema": POINTER_SCHEMA, **pointer.as_dict()},
                     )
+                capture_binding = CaptureRouteAuthority(root).bind(
+                    project_id=config.project_id,
+                    route=config.capture_route,
+                    selected_by="PROJECT_REGISTRATION",
+                    reason="PROJECT_CAPTURE_ROUTE_SELECTED_BEFORE_INGESTION",
+                )
                 self._update_root_registry(config.project_id, payload, registry)
-        return self.project_status(config.project_id)
+        return {
+            **self.project_status(config.project_id),
+            "capture_route_binding": capture_binding,
+        }
 
     def replace_branch_authority(
         self,
@@ -682,6 +1388,50 @@ class ProjectStore:
                     supported=sorted(_PLAN_PANEL_ROLES),
                 )
                 normalized_task["panel_role"] = panel_role
+            plan_group = str(task.get("plan_group") or "").strip()
+            if plan_group:
+                normalized_task["plan_group"] = _bounded_plan_metadata_id(
+                    plan_group,
+                    fallback="UNASSIGNED",
+                )
+            commit_batch_id = str(
+                task.get("commit_batch_id") or task.get("batch_id") or ""
+            ).strip()
+            if commit_batch_id:
+                normalized_task["commit_batch_id"] = (
+                    _bounded_plan_metadata_id(
+                        commit_batch_id,
+                        fallback="UNASSIGNED",
+                    )
+                )
+            if "dependencies" in task:
+                normalized_task["dependencies"] = _bounded_plan_dependencies(
+                    task.get("dependencies"),
+                    task_id=task_id,
+                )
+            git_commit_stage = str(
+                task.get("git_commit_stage") or ""
+            ).strip().upper()
+            if git_commit_stage:
+                normalized_task["git_commit_stage"] = _git_commit_stage(
+                    {**normalized_task, "git_commit_stage": git_commit_stage}
+                )[0]
+            current_version = str(
+                task.get("current_version") or task.get("version_marker") or ""
+            ).strip()
+            if current_version:
+                normalized_task["current_version"] = _bounded_plan_version(
+                    current_version,
+                    task_id=task_id,
+                )
+            current_branch = str(
+                task.get("current_branch") or task.get("git_branch") or ""
+            ).strip()
+            if current_branch:
+                normalized_task["current_branch"] = _bounded_plan_branch(
+                    current_branch,
+                    task_id=task_id,
+                )
             normalized.append(normalized_task)
         ids = [task["task_id"] for task in normalized]
         require(
@@ -765,6 +1515,39 @@ class ProjectStore:
                     status="MISMATCH",
                     insert_before_task_id=resolved_insert_before,
                 )
+            insertion_sequence = (
+                int(
+                    next(
+                        task["sequence"]
+                        for task in backlog["tasks"]
+                        if str(task["task_id"]) == resolved_insert_before
+                    )
+                )
+                if resolved_insert_before
+                else len(backlog["tasks"]) + 1
+            )
+            earlier_executable_ids = {
+                str(task["task_id"])
+                for task in backlog["tasks"]
+                if int(task["sequence"]) < insertion_sequence
+                and str(task.get("status")) in _GOAL_STATUS_BY_LIFECYCLE
+                and str(task["task_id"]) not in superseded_ids
+            }
+            for task in normalized:
+                explicit_dependencies = task.get("dependencies")
+                if explicit_dependencies is not None:
+                    invalid_dependencies = sorted(
+                        set(explicit_dependencies) - earlier_executable_ids
+                    )
+                    require(
+                        not invalid_dependencies,
+                        "PLAN_DEPENDENCY_NOT_EARLIER_EXECUTABLE_ROW",
+                        "Explicit Plan dependencies must name earlier executable rows only.",
+                        status="MISMATCH",
+                        task_id=task["task_id"],
+                        invalid_dependencies=invalid_dependencies,
+                    )
+                earlier_executable_ids.add(str(task["task_id"]))
             planned_at = utc_now()
             insertion_index = len(backlog["tasks"])
             first_sequence = len(backlog["tasks"]) + 1
@@ -1157,6 +1940,7 @@ class ProjectStore:
             backlog,
         )
         ordered_tasks = sorted(backlog["tasks"], key=lambda row: int(row["sequence"]))
+        active_release_context = _active_plan_release_context(ordered_tasks)
         goal_row_offset = backlog.get("goal_row_offset", 0)
         require(
             isinstance(goal_row_offset, int) and goal_row_offset >= 0,
@@ -1168,31 +1952,82 @@ class ProjectStore:
         goal_rows: list[dict[str, Any]] = []
         history_rows: list[dict[str, Any]] = []
         canonical_rows: list[dict[str, Any]] = []
+        earlier_executable_task_ids: set[str] = set()
+        superseded_by: dict[str, list[str]] = {}
+        for candidate in ordered_tasks:
+            superseded_task_id = str(
+                candidate.get("supersedes_task_id") or ""
+            ).strip()
+            if superseded_task_id:
+                superseded_by.setdefault(superseded_task_id, []).append(
+                    str(candidate["task_id"])
+                )
         for task in ordered_tasks:
             lifecycle_status = str(task["status"])
+            host_status = _GOAL_STATUS_BY_LIFECYCLE.get(lifecycle_status)
+            previous_executable_task_id = (
+                str(goal_rows[-1]["task_id"])
+                if goal_rows and host_status is not None
+                else None
+            )
+            projection_metadata = _plan_row_metadata(
+                task,
+                previous_executable_task_id=previous_executable_task_id,
+                earlier_executable_task_ids=earlier_executable_task_ids,
+                effective_for_execution=host_status is not None,
+                active_release_context=active_release_context,
+                apply_active_release_context=(
+                    lifecycle_status in {"ACTIVE", "QUEUED"}
+                ),
+            )
+            supersedes_task_id = str(
+                task.get("supersedes_task_id") or ""
+            ).strip()
+            superseded_by_task_ids = list(
+                dict.fromkeys(
+                    [
+                        *superseded_by.get(str(task["task_id"]), []),
+                        *(
+                            [str(task["superseded_by_task_id"])]
+                            if task.get("superseded_by_task_id")
+                            else []
+                        ),
+                    ]
+                )
+            )
             common = {
                 "task_id": str(task["task_id"]),
                 "step": str(task["requested_outcome"]),
                 "plan_sequence": int(task["sequence"]),
                 "lifecycle_status": lifecycle_status,
                 "steer_deltas": list(task.get("steer_deltas") or []),
+                **projection_metadata,
                 **(
                     {"panel_role": str(task["panel_role"])}
                     if task.get("panel_role")
                     else {}
                 ),
+                **(
+                    {"supersedes_task_id": supersedes_task_id}
+                    if supersedes_task_id
+                    else {}
+                ),
+                "superseded_by_task_ids": superseded_by_task_ids,
             }
-            host_status = _GOAL_STATUS_BY_LIFECYCLE.get(lifecycle_status)
             if host_status is not None:
                 row = {
                     **common,
+                    "authority_scope": "CURRENT_EXECUTABLE_PLAN",
                     "number": goal_row_offset + len(goal_rows) + 1,
                     "status": host_status,
                 }
+                row["visible_label"] = _visible_plan_row_label(row)
                 goal_rows.append(row)
+                earlier_executable_task_ids.add(str(task["task_id"]))
                 canonical_rows.append(
                     {
                         **common,
+                        "authority_scope": "CURRENT_EXECUTABLE_PLAN",
                         "projection_lane": "GOAL",
                         "goal_number": row["number"],
                     }
@@ -1200,6 +2035,11 @@ class ProjectStore:
                 continue
             history_row = {
                 **common,
+                "authority_scope": (
+                    "IMMUTABLE_SUPERSEDED_HISTORY"
+                    if lifecycle_status in _SUPERSEDED_LIFECYCLE_STATUSES
+                    else "IMMUTABLE_NON_EXECUTABLE_HISTORY"
+                ),
                 "history_number": len(history_rows) + 1,
                 "execution_status": "NON_EXECUTABLE",
             }
@@ -1207,6 +2047,7 @@ class ProjectStore:
             canonical_rows.append(
                 {
                     **common,
+                    "authority_scope": history_row["authority_scope"],
                     "projection_lane": "HISTORY",
                     "history_number": history_row["history_number"],
                     "execution_status": "NON_EXECUTABLE",
@@ -1256,6 +2097,33 @@ class ProjectStore:
             "row_start": goal_row_offset + 1 if goal_rows else None,
             "row_end": goal_row_offset + len(goal_rows) if goal_rows else None,
             "rows": goal_rows,
+            "visible_label_contract": (
+                "Row <number> / <task_id> — [CLASS=<classification>; "
+                "GROUP=<plan_group>; BATCH=<commit_batch_id>; "
+                "DEP=<task_ids_or_ROOT>; "
+                "GIT=<stage>@<provenance>; "
+                "VERSION=<marker>@<provenance>; "
+                "BRANCH=<marker>@<provenance>; "
+                "ROLE=<panel_role_or_STANDARD>; "
+                "STATE=<lifecycle_status>] "
+                "<exact description>"
+            ),
+            "visible_label_metadata_schema": (
+                "evidence-lane.host-plan-row-metadata.v2"
+            ),
+            "visible_label_source": "STRUCTURED_CANONICAL_PLAN_METADATA",
+            "raw_linked_delta_json_in_visible_label": False,
+            "executable_authority_scope": "CURRENT_NON_SUPERSEDED_PLAN_ROWS_ONLY",
+            "history_excluded_from_executable_markers": True,
+            "active_release_context": active_release_context,
+            "active_release_context_policy": (
+                "TASK_LINKED_EXACT_DIRECTIVE_THEN_ACTIVE_PLAN_CONTEXT_"
+                "THEN_TASK_CONTRACT_THEN_UNRESOLVED_CLAIMS"
+            ),
+            "version_conflict_policy": (
+                "MARK_RECONCILIATION_REQUIRED_NEVER_INFER_CURRENT_VERSION"
+            ),
+            "commit_version_markers_change_lifecycle_status": False,
             "canonical_plan_sha256": canonical_plan_sha256,
             "history_projection_sha256": history_projection["projection_sha256"],
             "lifecycle_status_mapping": dict(_GOAL_STATUS_BY_LIFECYCLE),
@@ -1282,6 +2150,22 @@ class ProjectStore:
                     "native_goal": True,
                     "native_task_panel": True,
                     "goal_start_requires_user_paste": True,
+                    "state_travel_destination": {
+                        "automatic_continue_in_new_chat_when_supported": True,
+                        "exactly_one_destination_required": True,
+                        "source_destination_task_binding_required": True,
+                        "host_capability_failure_behavior": "FAIL_CLOSED",
+                        "automatic_plan_projection": True,
+                        "explicit_host_plan_acceptance_required": True,
+                        "plan_acceptance_is_evidence_lane_hil": False,
+                        "goal_or_source_work_before_plan_acceptance": False,
+                        "manual_plan_mode_command_required": False,
+                        "manual_evi_plan_command_required": False,
+                        "goal_start_requires_user_paste": False,
+                        "host_mode_selector_status_when_unavailable": (
+                            "HOST_MODE_SELECTOR_UNAVAILABLE"
+                        ),
+                    },
                 },
             },
             "goal_start_prompt": (

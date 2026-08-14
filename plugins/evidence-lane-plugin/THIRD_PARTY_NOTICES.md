@@ -23,6 +23,14 @@ See the [pypdfium2 project](https://github.com/pypdfium2-team/pypdfium2) and
 removed because its AGPL-or-commercial licensing model requires a deliberate
 distribution decision that this proprietary package must not infer.
 
+The Windows x86-64 Codex package includes `ripgrep==15.2.0` under its upstream
+MIT-or-Unlicense choice and `fzf==0.74.2` under its upstream MIT license. Their
+exact license texts are preserved under `toolchains/licenses/`; the executable
+bytes, versions, sizes, and SHA-256 identities are sealed by
+`toolchains/search-tools.v1.json`. These tools are bounded read/rank helpers,
+not lifecycle authorities, and deterministic Python fallbacks remain packaged
+for unsupported, missing, or identity-mismatched binaries.
+
 The source package excludes virtual environments, installed wheels,
 `node_modules`, local environment files, caches, source maps, TypeScript build
 state, and generated 3D assets. Before commercial or binary publication,

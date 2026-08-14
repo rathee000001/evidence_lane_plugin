@@ -428,6 +428,113 @@ def test_single_task_hil_correction_reconciliation_rejects_tampered_receipt(
     }
 
 
+def test_visible_task_activity_is_redacted_allowlisted_and_idempotent(
+    service,
+    source_repository: Path,
+) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class="add_bounded_feature",
+        requested_outcome="Record the exact visible operational event surface.",
+        permitted_paths=["README.md"],
+        permitted_tools=["repository_read", "repository_write", "test"],
+        acceptance_checks=["One redacted idempotent event exists per activity."],
+        stop_condition="Stop after the ordinary-turn activity proof.",
+    )
+    activity_types = [
+        "tool.selected",
+        "command.executed",
+        "file.inspected",
+        "file.created",
+        "file.modified",
+        "file.deleted",
+        "test.output",
+        "build.output",
+        "git.diff",
+        "warning",
+        "error",
+        "response",
+        "usage",
+    ]
+    receipts: dict[str, dict[str, Any]] = {}
+    for index, activity_type in enumerate(activity_types, start=1):
+        visible_payload: dict[str, Any] = {
+            "subject": activity_type,
+            "visible_detail": "access_token=super-secret-value",
+        }
+        if activity_type == "usage":
+            visible_payload["token_metrics"] = {"availability": "UNAVAILABLE"}
+        receipt = service.sessions.record_activity(
+            "book-faires",
+            session_id,
+            activity_type=activity_type,
+            visible_payload=visible_payload,
+            event_id=f"row170-visible-activity-{index}",
+        )
+        event = receipt["event"]
+        receipts[activity_type] = receipt
+        assert receipt["status"] == "PASS"
+        assert event["event_type"] == f"task.{activity_type}"
+        assert event["private_reasoning_stored"] is False
+        assert "super-secret-value" not in json.dumps(event, sort_keys=True)
+        assert event["visible_payload"]["visible_detail"] == "[REDACTED]"
+
+    lineage_path = (
+        service.store.project_root("book-faires")
+        / "lineage"
+        / f"{session_id}.jsonl"
+    )
+    before_replay = lineage_path.read_text(encoding="utf-8").splitlines()
+    response_replay = service.sessions.record_activity(
+        "book-faires",
+        session_id,
+        activity_type="response",
+        visible_payload={
+            "subject": "response",
+            "visible_detail": "access_token=super-secret-value",
+        },
+        event_id="row170-visible-activity-12",
+    )
+    after_replay = lineage_path.read_text(encoding="utf-8").splitlines()
+    assert response_replay["event"] == receipts["response"]["event"]
+    assert after_replay == before_replay
+
+    with pytest.raises(EvidenceLaneError) as conflicting_replay:
+        service.sessions.record_activity(
+            "book-faires",
+            session_id,
+            activity_type="response",
+            visible_payload={
+                "subject": "response",
+                "visible_detail": "a different visible response",
+            },
+            event_id="row170-visible-activity-12",
+        )
+    assert conflicting_replay.value.code == "LINEAGE_EVENT_ID_CONFLICT"
+
+    with pytest.raises(EvidenceLaneError) as private_reasoning_blocked:
+        service.sessions.record_activity(
+            "book-faires",
+            session_id,
+            activity_type="response",
+            visible_payload={"private_reasoning": "must never persist"},
+        )
+    assert private_reasoning_blocked.value.code == (
+        "LINEAGE_PRIVATE_REASONING_FORBIDDEN"
+    )
+
+    with pytest.raises(EvidenceLaneError) as unsupported_blocked:
+        service.sessions.record_activity(
+            "book-faires",
+            session_id,
+            activity_type="private.output",
+            visible_payload={"subject": "forbidden"},
+        )
+    assert unsupported_blocked.value.code == "ACTIVITY_TYPE_UNSUPPORTED"
+
+
 def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(
     service,
     source_repository: Path,

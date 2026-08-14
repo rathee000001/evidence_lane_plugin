@@ -102,6 +102,28 @@ def boot_local(application: EvidenceLaneService) -> dict:
     )
 
 
+def state_travel_destination_creation(
+    source_task_id: str,
+    destination_task_id: str,
+) -> dict[str, object]:
+    """Return the exact supported host creation receipt used by resume tests."""
+
+    return {
+        "schema": "evidence-lane.host-destination-creation.v1",
+        "capability_status": "SUPPORTED",
+        "host_action": "CONTINUE_IN_NEW_CHAT",
+        "programmatic": True,
+        "creation_count": 1,
+        "source_task_id": source_task_id,
+        "source_task_deep_link": f"codex://threads/{source_task_id}",
+        "destination_task_id": destination_task_id,
+        "destination_task_deep_link": (
+            f"codex://threads/{destination_task_id}"
+        ),
+        "canonical_title_increment_verified": True,
+    }
+
+
 def build_and_approve_pv1(application: EvidenceLaneService) -> tuple[str, dict]:
     boot = boot_local(application)
     session_id = boot["session"]["session_id"]

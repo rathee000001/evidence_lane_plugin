@@ -13,7 +13,7 @@ MCP_APP_MIME_TYPE = "text/html;profile=mcp-app"
 # MCP Apps hosts may cache UI resources by immutable ``ui://`` identity.  Bump
 # the resource URI whenever the embedded view contract changes so a host cannot
 # pair a new tool result with an older cached bridge implementation.
-GOVERNED_PANEL_URI = "ui://evidence-lane/governed-console-v4.html"
+GOVERNED_PANEL_URI = "ui://evidence-lane/governed-console-v5.html"
 
 _DISPLAY_NAME = "Evidence Lane"
 _SERVER_IDENTITY = "evidence-lane"

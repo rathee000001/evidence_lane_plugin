@@ -39,14 +39,28 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     },
     "interactive_codex_app_local_or_persistent": {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
-        "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
-        "tunnel_key_retention": "HOST_MANAGED_PERSISTENT_PROFILE",
+        "tunnel_requirement": "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
+        "tunnel_setup_frequency": "NONE",
+        "tunnel_key_retention": "NOT_APPLICABLE",
+        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
     },
     "interactive_codex_app_ephemeral_vm": {
         "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
         "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
         "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
         "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+    },
+    "desktop_container_surface_scope": {
+        "supported_container_channels": [
+            "CHATGPT_DESKTOP_STABLE_OR_CURRENT",
+            "CHATGPT_DESKTOP_BETA",
+        ],
+        "active_surface": "CODEX",
+        "chatgpt_chat_work_scope": "OUT_OF_SCOPE_DEFERRED",
+        "authority_binding": (
+            "EXACT_HOST_SESSION_PLUS_NATIVE_EVIDENCE_LANE_MCP_ROUTE"
+        ),
+        "process_package_title_cwd_authority": False,
     },
 }
 EXPECTED_BEHAVIOR_OWNERSHIP = {
@@ -129,7 +143,7 @@ EXPECTED_STABLE_ACTIVATION_GATE = {
     "all_configured_commit_checks_required_before_stable_install": True,
     "one_stable_update_per_integration_bundle": True,
     "git_marketplace_name": "evidence-lane-github",
-    "git_marketplace_display_name": "GitLane Stable 2.1",
+    "git_marketplace_display_name": "GitLane Stable 2.2",
     "git_marketplace_source": "rathee000001/evidence_lane_plugin",
     "one_time_legacy_stable_selector_migration_allowed": True,
     "post_proof_obsolete_cleanup_required": True,
@@ -142,7 +156,7 @@ EXPECTED_BRAND_IDENTITY = {
     "display_name": "Evidence Lane",
     "icon_path": "assets/evidence-lane-icon.png",
     "icon_sha256": "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA",
-    "resource_uri": "ui://evidence-lane/governed-console-v4.html",
+    "resource_uri": "ui://evidence-lane/governed-console-v5.html",
     "manifest_icon_fields": ["interface.composerIcon", "interface.logo"],
     "required_at_stage": True,
     "required_at_runtime_prewarm": True,
@@ -212,6 +226,12 @@ REQUIRED_MEMBERS = frozenset(
         "scripts/codex_release/install_codex_stable.py",
         "scripts/codex_release/seal_codex_git_ci_release_authority.py",
         "scripts/codex_release/seal_external_release_receipts.py",
+        "toolchains/search-tools.v1.json",
+        "toolchains/bin/windows-x86_64/rg.exe",
+        "toolchains/bin/windows-x86_64/fzf.exe",
+        "toolchains/licenses/ripgrep-15.2.0/LICENSE-MIT",
+        "toolchains/licenses/ripgrep-15.2.0/UNLICENSE",
+        "toolchains/licenses/fzf-0.74.2/LICENSE",
     }
 )
 SEPARATE_HOST_RELATIVE_FILES = frozenset({"release-channels.json"})
@@ -340,6 +360,131 @@ def _source_inventory(plugin_root: Path) -> tuple[list[dict[str, Any]], dict[str
         )
         sources[relative] = path
     return records, sources
+
+
+def _search_toolchain_identity(
+    plugin_root: Path,
+    release_channels: dict[str, Any],
+) -> dict[str, Any]:
+    dependency_contract = dict(
+        (release_channels.get("dependency_toolchains") or {}).get("search_v1") or {}
+    )
+    if dependency_contract != {
+        "required": True,
+        "scope": "ALL_GOVERNED_PROJECTS",
+        "manifest": "toolchains/search-tools.v1.json",
+        "package_local_tools": [
+            "ripgrep@15.2.0/windows-x86_64",
+            "fzf@0.74.2/windows-x86_64",
+        ],
+        "resolution_order": [
+            "PACKAGE_LOCAL_VERIFIED_BINARY",
+            "EXPLICIT_CONFIGURED_VERIFIED_HOST_BINARY",
+            "DETERMINISTIC_BUILTIN_FALLBACK",
+        ],
+        "fallbacks_required": True,
+        "path_lookup_allowed": False,
+        "auto_download_during_mcp_handshake": False,
+    }:
+        raise PackageBoundaryError("The governed search dependency contract drifted.")
+    manifest_path = plugin_root / dependency_contract["manifest"]
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise PackageBoundaryError(
+            "The governed search dependency manifest is missing."
+        ) from exc
+    tools = manifest.get("tools")
+    if (
+        manifest.get("schema") != "evidence-lane.search-toolchain-manifest.v1"
+        or manifest.get("version") != 1
+        or manifest.get("scope") != "ALL_GOVERNED_PROJECTS"
+        or manifest.get("resolution_order")
+        != dependency_contract["resolution_order"]
+        or manifest.get("auto_download_during_mcp_handshake") is not False
+        or manifest.get("path_lookup_allowed") is not False
+        or manifest.get("shell_execution_allowed") is not False
+        or not isinstance(tools, list)
+        or [row.get("tool_id") for row in tools if isinstance(row, dict)]
+        != ["ripgrep", "fzf"]
+    ):
+        raise PackageBoundaryError("The governed search dependency manifest drifted.")
+    expected_tools = {
+        "ripgrep": {
+            "version": "15.2.0",
+            "role": "BOUNDED_LITERAL_CONTENT_AND_FILE_SEARCH",
+            "license_spdx": "MIT OR Unlicense",
+            "fallback_backend": "PYTHON_BOUNDED_LITERAL_SCAN",
+        },
+        "fzf": {
+            "version": "0.74.2",
+            "role": "BOUNDED_NONINTERACTIVE_DETERMINISTIC_RANKING",
+            "license_spdx": "MIT",
+            "fallback_backend": "PYTHON_DETERMINISTIC_SUBSEQUENCE_RANK",
+        },
+    }
+    records: list[dict[str, Any]] = []
+    for tool in tools:
+        if not isinstance(tool, dict):
+            raise PackageBoundaryError("A governed search dependency record is invalid.")
+        expected = expected_tools[str(tool.get("tool_id") or "")]
+        if any(tool.get(key) != value for key, value in expected.items()):
+            raise PackageBoundaryError("A governed search dependency identity drifted.")
+        package_binaries = tool.get("package_binaries")
+        if not isinstance(package_binaries, dict) or set(package_binaries) != {
+            "windows-x86_64"
+        }:
+            raise PackageBoundaryError("A governed search binary platform drifted.")
+        binary_record = package_binaries["windows-x86_64"]
+        if not isinstance(binary_record, dict):
+            raise PackageBoundaryError("A governed search binary record is invalid.")
+        binary = (plugin_root / str(binary_record.get("path") or "")).resolve()
+        licenses = [
+            (plugin_root / str(item)).resolve()
+            for item in binary_record.get("licenses") or []
+        ]
+        try:
+            binary.relative_to(plugin_root)
+            for license_path in licenses:
+                license_path.relative_to(plugin_root)
+        except ValueError as exc:
+            raise PackageBoundaryError(
+                "A governed search dependency escaped the package."
+            ) from exc
+        if (
+            not binary.is_file()
+            or binary.stat().st_size != binary_record.get("size_bytes")
+            or _sha256_file(binary) != binary_record.get("sha256")
+            or not licenses
+            or any(not item.is_file() for item in licenses)
+        ):
+            raise PackageBoundaryError("A governed search dependency hash drifted.")
+        records.append(
+            {
+                "tool_id": tool["tool_id"],
+                **expected,
+                "platform_id": "windows-x86_64",
+                "binary_sha256": binary_record["sha256"],
+                "size_bytes": binary_record["size_bytes"],
+                "license_sha256": sorted(_sha256_file(item) for item in licenses),
+            }
+        )
+    body = {
+        "schema": "evidence-lane.packaged-search-toolchain.v1",
+        "status": "PASS",
+        "scope": "ALL_GOVERNED_PROJECTS",
+        "manifest_sha256": _sha256_file(manifest_path),
+        "resolution_order": dependency_contract["resolution_order"],
+        "records": records,
+        "record_count": len(records),
+        "path_lookup_allowed": False,
+        "shell_execution_allowed": False,
+        "auto_download_during_mcp_handshake": False,
+        "deterministic_fallbacks_required": True,
+        "raw_paths_included": False,
+    }
+    body["identity_sha256"] = _sha256_bytes(_json_bytes(body))
+    return body
 
 
 def _validate_sha1(label: str, value: str) -> str:
@@ -507,7 +652,7 @@ def build_rehearsal(
         or stable.get("release") != expected_version.split("+", 1)[0]
         or stable.get("slot_role") != "stable-build"
         or stable.get("codex_marketplace_slot") != "evidence-lane-github"
-        or stable.get("marketplace_display_name") != "GitLane Stable 2.1"
+        or stable.get("marketplace_display_name") != "GitLane Stable 2.2"
         or stable.get("install_source") != "GIT_EXACT_COMMIT"
         or stable.get("stable_selector_is_persistent") is not True
         or stable.get("stable_updates_reinstall_in_place") is not True
@@ -607,6 +752,7 @@ def build_rehearsal(
             "The stable-build, fallback, or release-history contract drifted."
         )
 
+    search_toolchain = _search_toolchain_identity(plugin_root, release_channels)
     source_records, source_paths = _source_inventory(plugin_root)
     source_names = {record["path"] for record in source_records}
     missing = sorted(REQUIRED_MEMBERS - source_names)
@@ -628,6 +774,7 @@ def build_rehearsal(
             "member_count": len(source_records),
             "total_bytes": sum(record["bytes"] for record in source_records),
         },
+        "search_toolchain": search_toolchain,
         "exclusion_policy": {
             "directory_names": sorted(EXCLUDED_DIRECTORY_NAMES),
             "directory_suffixes": [".egg-info"],
@@ -657,6 +804,7 @@ def build_rehearsal(
         "working_source_manifest_sha256": source_manifest_sha,
         "skill_count": skill_inventory["count"],
         "canonical_lane_count": EXPECTED_LANE_COUNT,
+        "search_toolchain": search_toolchain,
         "synthetic_metadata_sha256": synthetic_hashes,
         "negative_proofs": {
             "cache_or_runtime_members": 0,
@@ -739,6 +887,7 @@ def build_rehearsal(
         "source_member_count": len(source_records),
         "skill_count": skill_inventory["count"],
         "canonical_lane_count": EXPECTED_LANE_COUNT,
+        "search_toolchain": search_toolchain,
         "governed_candidate_created": False,
         "git_invoked": False,
         "accepted_pointer_moved": False,

@@ -1,5 +1,5 @@
 {
-  "description": "Evidence Lane exact-session lifecycle transport: warm-attach at SessionStart, PREPARE at UserPromptSubmit, guard and receipt tool activity at PreToolUse/PostToolUse, seal and rehydrate compaction at PreCompact/PostCompact, COMMIT at Stop, and best-effort flush at SessionEnd. Skills own behavior, native reads, classification, and Plan refresh. Hooks never mutate source, PVs, pointers, candidates, HIL, or credentials.",
+  "description": "Evidence Lane exact-session lifecycle transport: eight ordered hook adapters validate, redact, bound, deduplicate, seal, and pass host signals to the installed lifecycle skill runtime. The skill runtime owns Entry, PREPARE, tool/change receipts, compaction continuity, COMMIT, and best-effort boundary flush; skills also own native reads, classification, Plan refresh, Goal behavior, and HIL sequencing. Hook adapters never own source, Git, PV, pointer, candidate, HIL, Plan, Goal, or credential behavior.",
   "hooks": {
     "SessionStart": [
       {
@@ -7,8 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/session_start.py\"",
-            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\session_start.py\"",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler session_start.py",
+            "commandWindows": "& \"$env:SystemRoot\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File \"${PLUGIN_ROOT}\\hooks\\invoke_hook.ps1\" SessionStart session_start.py",
             "timeout": 10,
             "statusMessage": "Warm-attaching Evidence Lane locally"
           }
@@ -20,8 +20,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/prompt_submit.py\"",
-            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\prompt_submit.py\"",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event UserPromptSubmit --handler prompt_submit.py",
+            "commandWindows": "& \"$env:SystemRoot\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File \"${PLUGIN_ROOT}\\hooks\\invoke_hook.ps1\" UserPromptSubmit prompt_submit.py",
             "timeout": 10,
             "statusMessage": "Preparing Evidence Lane governed turn"
           }
@@ -33,8 +33,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/pre_tool_use.py\"",
-            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\pre_tool_use.py\"",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler pre_tool_use.py",
+            "commandWindows": "& \"$env:SystemRoot\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File \"${PLUGIN_ROOT}\\hooks\\invoke_hook.ps1\" PreToolUse pre_tool_use.py",
             "timeout": 10,
             "statusMessage": "Guarding Evidence Lane governed tool use"
           }
@@ -46,8 +46,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/post_tool_use.py\"",
-            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\post_tool_use.py\"",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler post_tool_use.py",
+            "commandWindows": "& \"$env:SystemRoot\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File \"${PLUGIN_ROOT}\\hooks\\invoke_hook.ps1\" PostToolUse post_tool_use.py",
             "timeout": 10,
             "statusMessage": "Projecting Evidence Lane Plan and changes"
           }
@@ -59,8 +59,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/lifecycle_boundary.py\" PreCompact",
-            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\lifecycle_boundary.py\" PreCompact",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler lifecycle_boundary.py",
+            "commandWindows": "& \"$env:SystemRoot\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File \"${PLUGIN_ROOT}\\hooks\\invoke_hook.ps1\" PreCompact lifecycle_boundary.py",
             "timeout": 10,
             "statusMessage": "Sealing Evidence Lane compaction boundary"
           }
@@ -72,8 +72,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/lifecycle_boundary.py\" PostCompact",
-            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\lifecycle_boundary.py\" PostCompact",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler lifecycle_boundary.py",
+            "commandWindows": "& \"$env:SystemRoot\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File \"${PLUGIN_ROOT}\\hooks\\invoke_hook.ps1\" PostCompact lifecycle_boundary.py",
             "timeout": 10,
             "statusMessage": "Rehydrating Evidence Lane after compaction"
           }
@@ -85,8 +85,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/stop_response.py\"",
-            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\stop_response.py\"",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler stop_response.py",
+            "commandWindows": "& \"$env:SystemRoot\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File \"${PLUGIN_ROOT}\\hooks\\invoke_hook.ps1\" Stop stop_response.py",
             "timeout": 10,
             "statusMessage": "Committing Evidence Lane governed turn"
           }
@@ -98,9 +98,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/lifecycle_boundary.py\" SessionEnd",
-            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\lifecycle_boundary.py\" SessionEnd",
-            "timeout": 10,
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler lifecycle_boundary.py",
+            "commandWindows": "& \"$env:SystemRoot\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File \"${PLUGIN_ROOT}\\hooks\\invoke_hook.ps1\" SessionEnd lifecycle_boundary.py",
+            "timeout": 3,
             "statusMessage": "Flushing Evidence Lane lifecycle boundary"
           }
         ]

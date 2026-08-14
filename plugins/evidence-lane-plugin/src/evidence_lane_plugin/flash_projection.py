@@ -134,6 +134,14 @@ class FlashRuntimeProjection:
             and not foreign_keys
             and meta.get("schema") == FLASH_PROJECTION_SCHEMA
             and meta.get("authority_digest") == expected["authority_digest"]
+            and meta.get("source_authority_manifest_sha256")
+            == expected["source_authority_manifest_sha256"]
+            and meta.get("codex_projection_identity_sha256")
+            == expected["codex_projection_identity_sha256"]
+            and meta.get("build_identity_sha256")
+            == expected["build_identity_sha256"]
+            and meta.get("projection_cache_identity_sha256")
+            == expected["projection_cache_identity_sha256"]
             and meta.get("host_abi") == expected["host_abi"]
             and row_count == fts_count,
             "FLASH_RUNTIME_PROJECTION_INVALID",
@@ -153,10 +161,22 @@ class FlashRuntimeProjection:
 
     def ensure(self, report: dict[str, Any]) -> dict[str, Any]:
         host_abi = _host_abi()
+        dual_identity = report["dual_identity"]
+        build_identity = dual_identity["build_identity"]
         key_payload = {
             "schema": FLASH_PROJECTION_SCHEMA,
             "authority_digest": report["authority_digest"],
             "manifest_sha256": report["manifest_sha256"],
+            "source_authority_manifest_sha256": dual_identity[
+                "source_authority"
+            ]["manifest_sha256"],
+            "codex_projection_identity_sha256": dual_identity[
+                "codex_projection"
+            ]["identity_sha256"],
+            "build_identity_sha256": build_identity["identity_sha256"],
+            "projection_cache_identity_sha256": build_identity[
+                "projection_cache_identity_sha256"
+            ],
             "host_abi": host_abi,
         }
         projection_key = sha256_bytes(canonical_json_bytes(key_payload))
@@ -186,6 +206,15 @@ class FlashRuntimeProjection:
                     "path": str(path),
                     "projection_key": projection_key,
                     "sqlite_sha256": manifest["sqlite_sha256"],
+                    "source_authority_manifest_sha256": key_payload[
+                        "source_authority_manifest_sha256"
+                    ],
+                    "codex_projection_identity_sha256": key_payload[
+                        "codex_projection_identity_sha256"
+                    ],
+                    "build_identity_sha256": key_payload[
+                        "build_identity_sha256"
+                    ],
                     "installed_content_addressed_bundle": True,
                     "source_verification": "FULL_BEFORE_REUSE",
                     **validation,
@@ -241,6 +270,19 @@ class FlashRuntimeProjection:
                     ("schema", FLASH_PROJECTION_SCHEMA),
                     ("authority_digest", report["authority_digest"]),
                     ("manifest_sha256", report["manifest_sha256"]),
+                    (
+                        "source_authority_manifest_sha256",
+                        key_payload["source_authority_manifest_sha256"],
+                    ),
+                    (
+                        "codex_projection_identity_sha256",
+                        key_payload["codex_projection_identity_sha256"],
+                    ),
+                    ("build_identity_sha256", key_payload["build_identity_sha256"]),
+                    (
+                        "projection_cache_identity_sha256",
+                        key_payload["projection_cache_identity_sha256"],
+                    ),
                     ("host_abi", host_abi),
                 ),
             )
@@ -299,6 +341,13 @@ class FlashRuntimeProjection:
             "manifest_path": str(manifest_path),
             "projection_key": projection_key,
             "sqlite_sha256": manifest["sqlite_sha256"],
+            "source_authority_manifest_sha256": key_payload[
+                "source_authority_manifest_sha256"
+            ],
+            "codex_projection_identity_sha256": key_payload[
+                "codex_projection_identity_sha256"
+            ],
+            "build_identity_sha256": key_payload["build_identity_sha256"],
             "installed_content_addressed_bundle": can_reuse,
             "source_verification": "FULL_BEFORE_REUSE",
             **validation,

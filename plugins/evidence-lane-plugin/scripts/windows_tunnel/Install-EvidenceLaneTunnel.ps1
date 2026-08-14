@@ -54,7 +54,7 @@ $profileFile = Join-Path $profileDir ($ProfileName + ".yaml")
 $runtimeKeyEnvelopeReused = $false
 $tunnelIdReused = $false
 $dependencyAcquisition = "EXISTING_VERIFIED_CLIENT"
-$release = if ($SlotRole -eq "fallback") { "2.0.0" } else { "2.1.0" }
+$release = if ($SlotRole -eq "fallback") { "2.0.0" } else { "2.2.0" }
 
 if ($InteractionProfile -in @("HEADLESS_API", "DIRECT_CLI_API")) {
     [ordered]@{
@@ -334,7 +334,7 @@ function Assert-NoOtherActiveTunnel {
         try {
             $otherMarker = Get-Content -LiteralPath $otherMarkerPath -Raw | ConvertFrom-Json
             $statusText = & $powershell `
-                -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
+                -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass `
                 -File $otherManager `
                 -Action Status `
                 -RuntimeRoot $otherRoot.FullName `
@@ -413,7 +413,7 @@ $childForCommand = $childTarget.Replace('\', '/')
 # tunnel-client parses this value as a portable command line. Raw Windows
 # backslashes are escape characters there, so always supply normalized absolute
 # paths and quote them for user profiles that contain spaces.
-$mcpCommand = '"' + $powershellForCommand + '" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' + $childForCommand + '"'
+$mcpCommand = '"' + $powershellForCommand + '" -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + $childForCommand + '"'
 & $stableClient init `
     --profile-dir $profileDir `
     --profile $ProfileName `
@@ -470,11 +470,13 @@ $marker = [ordered]@{
     tunnel_runtime_lifetime = if ($exactHostLifetime -eq "Ephemeral") { "CURRENT_VM_LIFETIME_ONLY" } else { "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST" }
     dependency_acquisition = $dependencyAcquisition
     runtime_key_plaintext_written = $false
+    windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"
+    scheduled_task_window_style = "HIDDEN"
 }
 $marker | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $markerFile -Encoding UTF8
 
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
-$arguments = '-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' + $bootTarget + '" -RuntimeRoot "' + $RuntimeRoot + '" -ProfileName "' + $ProfileName + '" -ProfileDir "' + $profileDir + '"'
+$arguments = '-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + $bootTarget + '" -RuntimeRoot "' + $RuntimeRoot + '" -ProfileName "' + $ProfileName + '" -ProfileDir "' + $profileDir + '"'
 $action = New-ScheduledTaskAction -Execute $powershell -Argument $arguments
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity
 $principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel Limited
@@ -539,6 +541,8 @@ if ($Activate) {
     exact_fail_closed_write_tool_count = 41
     tunnel_id_recorded = $true
     runtime_key_plaintext_written = $false
+    windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"
+    scheduled_task_window_style = "HIDDEN"
     runtime_key_envelope_reused = $runtimeKeyEnvelopeReused
     tunnel_id_reused = $tunnelIdReused
     dependency_acquisition = $dependencyAcquisition

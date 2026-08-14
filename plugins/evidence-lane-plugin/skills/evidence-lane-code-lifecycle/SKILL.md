@@ -9,31 +9,43 @@ Use one linear state machine. Runtime context is never accepted evidence.
 
 ## Codex hook and skill ownership
 
-- Hooks own lifecycle only: secret-redacted visible-input capture, Entry,
-  PREPARE, COMMIT, registered lifecycle events, and bounded sealed status
-  receipts. A hook must not call native PV tools, call a host behavior tool,
-  embed the complete Plan Lane, or instruct the host to call `update_plan`.
+- Hook command files own only host-signal parsing plus deterministic validation,
+  secret redaction, bounds, deduplication identity, and transport-envelope
+  sealing. They hand the exact envelope to the package's
+  `hook_skill_runtime` consumer; they do not import or directly own Entry,
+  PREPARE, prospective policy guards, tool/change receipts, compaction
+  seal/rehydration, COMMIT, or boundary flush behavior.
+- The installed lifecycle skill owns those actions through
+  `hook_skill_runtime` after exact envelope validation. The consumer records
+  `skill_action_owner=INSTALLED_EVIDENCE_LANE_CODE_LIFECYCLE_SKILL` and
+  `hook_behavior_executed=false`. Neither the hook adapter nor its transport
+  envelope may call native PV tools, call a host behavior tool, embed the
+  complete Plan Lane, infer HIL, or call `update_plan`. The consumed lifecycle
+  receipt may carry a content-addressed host-Plan rehydration request whose
+  behavior owner is this active skill; transport is not execution.
 - Every hook binds the same user-owned durable authority: an explicit
   `EVIDENCE_LANE_DATA_ROOT`, otherwise `~/EvidenceLanePV`. Codex-injected
   `PLUGIN_DATA` is selector-scoped installation storage and must never become
   project, session, PV, PromptIndex, ChatLineage, Plan, or Delta authority. Do
   not create or consult a shadow authority under a stable or fallback slot.
-- Skills own governed behavior. For every visible user prompt, Goal
-  continuation, correction, or mid-Goal steer, wait for the lifecycle PREPARE
-  receipt and then, before substantive reasoning, source inspection, mutation,
-  tests, Git, or a lifecycle write, call the installed native Evidence Lane
-  route in this order: `pv_status`, `pv_task_backlog`, and one bounded
-  `pv_query` against accepted authority. Select an allowlisted query that is
-  relevant to the prompt; use a bounded `receipts` query for lifecycle-only
-  prompts rather than inventing a semantic match. The `pv_query` must be a real
-  native MCP call visible in Codex Sources. Internal hook SQLite lookup is not
-  equivalent proof.
+- For every visible user prompt, Goal continuation, correction, or mid-Goal
+  steer, require the sealed `UserPromptSubmit` transport envelope and its
+  skill-owned PREPARE receipt. Then, before substantive reasoning, source
+  inspection, mutation, tests, Git, or a lifecycle write, call the installed
+  native Evidence Lane route in this order: `pv_status`, `pv_task_backlog`, and
+  one bounded `pv_query` against accepted authority. Select an allowlisted query
+  that is relevant to the prompt; use a bounded `receipts` query for
+  lifecycle-only prompts rather than inventing a semantic match. The
+  `pv_query` must be a real native MCP call visible in Codex Sources. Internal
+  hook SQLite lookup is not equivalent proof.
 - When a canonical Plan Lane exists, validate
   `canonical_authority=PLAN_LANE`, contiguous rows, exactly one active row, and
   `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`; then the skill calls the host
-  `update_plan` tool with every exact row. Each label is only
-  `Row <canonical row> / <task ID> — <exact description>`; linked Delta JSON
-  remains in native Evidence Lane authority.
+  `update_plan` tool with every exact executable row. Each label is the native
+  structured projection
+  `Row <canonical row> / <task ID> — [CLASS=<classification>; GROUP=<plan group>; BATCH=<commit batch or UNASSIGNED>; DEP=<earlier task IDs or ROOT>; GIT=<stage>@<provenance>; VERSION=<marker>@<provenance>; BRANCH=<marker>@<provenance>; ROLE=<panel role>; STATE=<lifecycle status>] <exact description>`.
+  Linked Delta JSON remains in native Evidence Lane authority and is never
+  copied into a host label.
 - After `pv_plan_steer_delta`, repeat `pv_status`, `pv_task_backlog`, the bounded
   native `pv_query`, and the complete `update_plan` projection before resuming
   work. If the installed native route or host plan tool is unavailable, fail
@@ -81,20 +93,46 @@ calling another lifecycle write, the skill must:
    physically final `PHYSICALLY_FINAL_HIL` row in the final position; and
 5. call host `update_plan` once with the complete executable projection.
 
+When the lifecycle or task-classification receipt contains
+`host_plan_rehydration`, validate its self-hash and exact project/session/task
+binding. If its action is
+`CALL_HOST_UPDATE_PLAN_EXACTLY_ONCE_FOR_THIS_TRIGGER`, pass
+`receipt.projection.items` unchanged to host `update_plan`; an idempotent replay
+of the same request is not a second issuance. A later independently observed
+panel-loss event may create a new request identity for the same projection.
+After the host action, use `task_record_activity` with activity type
+`host.plan.observation` only for facts the host actually exposes. Visibility
+requires the exact right-side Plan artifact ID, projection SHA, and item count;
+explicit acceptance additionally requires the host Accept-control event. An
+empty `update_plan` receipt, Sources presence, the Evidence Lane icon, or native
+backlog readback proves neither visibility nor acceptance. Record
+`HOST_CAPABILITY_UNAVAILABLE` and fail closed when the host cannot perform the
+action; never fabricate the artifact or its acceptance.
+
 Project every executable row, including all completed rows, the sole active row,
 and all pending rows. Never replace the projection with a window, page, summary,
 ellipsis, count-only placeholder, or only the unfinished suffix. Map native
-statuses to host statuses without changing task state, and render each host
-label only as `Row <canonical row> / <task ID> — <exact description>`. Never
-append acceptance checks, stop conditions, hashes, or raw linked-Delta JSON to a
-host label; they remain native authority.
+  statuses to host statuses without changing task state. Hydrate classification,
+  Plan group, commit batch, dependency, Git stage, current version, current
+  branch, and panel role only from structured current non-superseded Plan authority. Preserve the
+exact task ID and description. Use the immediately prior executable task as the
+linear dependency only when no validated earlier dependency set was declared.
+Render missing batch/version/branch/Git metadata as `UNASSIGNED` or
+`NOT_DECLARED`; render conflicting current version or branch claims as
+`CONFLICTING_DECLARATIONS@RECONCILIATION_REQUIRED` until an exact current marker
+is linked. Never infer current release identity from historical, DROPPED, or
+SUPERSEDED rows, and never reactivate a completed row because its immutable text
+mentions an old commit or version. Never append acceptance checks, stop
+conditions, hashes, or raw linked-Delta JSON to a host label; they remain native
+authority. This projection law applies to every governed project and corpus.
 
 If the installed native route, any required native read, the canonical Plan
 invariants, or host `update_plan` is unavailable, fail closed before work. Do not
 use a fallback slot, generated namespace, app connector, cached hook projection,
-or direct stdio as replacement behavior. A lifecycle hook may signal re-entry
-and show a privacy-safe current-change receipt, but it must not perform native
-reads, embed Plan rows, or request/call host `update_plan`.
+or direct stdio as replacement behavior. A lifecycle hook may signal re-entry,
+show a privacy-safe current-change receipt, and transport a sealed exact
+rehydration request. It must not perform native reads or call host
+`update_plan`; the active skill validates and executes that request.
 
 ## Non-negotiable gates
 

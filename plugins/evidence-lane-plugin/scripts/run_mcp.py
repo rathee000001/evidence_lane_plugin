@@ -92,6 +92,7 @@ def _runtime_ready(
             ],
             check=False,
             stdin=subprocess.DEVNULL,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=30,
@@ -123,6 +124,7 @@ def _bootstrap_runtime(
         # package-manager progress remain visible on the diagnostic stream.
         stdout=sys.stderr,
         stderr=sys.stderr,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     if completed.returncode != 0:
         raise SystemExit(
@@ -180,6 +182,15 @@ def main() -> int:
                 str(args.port),
             ],
             check=False,
+            # The stdio relay must remain in the MCP client's process group so
+            # client termination reaches the whole relay. Its caller owns the
+            # hidden console contract. Non-stdio relays have no such transport
+            # coupling and receive the Windows no-console flag directly.
+            creationflags=(
+                0
+                if args.transport == "stdio"
+                else getattr(subprocess, "CREATE_NO_WINDOW", 0)
+            ),
         )
         return completed.returncode
     source = plugin_root / "src"

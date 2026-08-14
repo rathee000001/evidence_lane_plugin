@@ -6,24 +6,29 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane 2.1.0
+# Evidence Lane 2.2.0
 
 Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex. It
 keeps source identity, project memory, task state, Deltas, candidate packages,
 accepted project versions, and human decisions traceable across long-running
 work.
 
-The mutable stable Codex successor release is **2.1.0**. The product name
-remains **Evidence Lane**. The disabled fallback remains the exact accepted
-PV11/main **2.0.0** package; historical commits, packages, accepted project
-versions, and sealed receipts remain immutable provenance rather than current
-stable identity.
+The current pre-HIL Codex source release is **2.2.0** on
+`agent/evi-v220-systemwide-release-hil-v2.2.0`. The product name remains
+**Evidence Lane**. Accepted Project Truth remains PV12/generation 12 on the
+2.1.0 base. The disabled fallback host surface was directly observed at
+**2.0.0**; that observation is not PV12/2.1 installation proof and its repair
+remains a separately governed later-row operation. Historical commits,
+packages, accepted project versions, and sealed receipts remain immutable
+provenance rather than current source identity.
 
-## v2.1.0 release and historical compatibility invariants
+## v2.2.0 source and historical compatibility invariants
 
-Version 2.1.0 updates the existing mutable Codex stable slot without rewriting
-the accepted 2.0.0/PV11 fallback or any prior evidence. Historical labels such
-as `pre-v1.1`, v1.1 corrections, dependency
+Version 2.2.0 advances the governed source line from accepted PV12/2.1 without
+claiming that either installed slot has already changed. The exact-commit
+CI/preview/package route later updates the same stable selector; fallback
+rotation remains post-PV13-APPROVE work. Historical labels such as `pre-v1.1`,
+v1.1 corrections, dependency
 versions, accepted PVs, candidate receipts, and State Travel packages retain
 their original identities. Compatibility evidence may explain ancestry; it
 cannot override the current source, installed package, native ledger, or HIL.
@@ -42,7 +47,7 @@ The packaged Codex plugin contains:
   best-effort SessionEnd flush;
 - durable local SQLite as the default project authority;
 - a persistent Plan panel paired with the active linked Delta/change display;
-- the governed console resource `ui://evidence-lane/governed-console-v4.html`,
+- the governed console resource `ui://evidence-lane/governed-console-v5.html`,
   sealed consistently across runtime prewarm and release installation;
 - a lock-digest/Python-ABI keyed derived runtime under the durable
   `EvidenceLanePV/runtime/codex` root, so Codex may reconstruct its marketplace
@@ -140,6 +145,16 @@ Every lane retains source identity, parser/tool capability status, hashes,
 provenance edges, and bounded failure states. Unsupported or missing
 capabilities remain visible and fail closed.
 
+Each new lane bundle also carries one ordered, hash-bound disposition row for
+all eighteen canonical lanes. A loaded lane is `PRESERVED` or truthfully
+`PARTIAL`; a lane with no current source is `MISSING`; and a lane removed from
+the current source set is `DEFERRED` while its earlier evidence remains
+history. Missing or deferred lanes emit no directory or four-file placeholder.
+Every emitted row distinguishes required, conditional, and optional parser or
+tool capabilities and binds deterministic chunks/FTS, SQLite, MMD, DOT,
+`tools.json`, topology, and receipts. Historical V1/V2/V3 packages remain
+readable without being rewritten.
+
 ## Persistent task and change display
 
 The Codex task panel and its active change notice are one continuity pair:
@@ -188,33 +203,46 @@ used to inflate either number.
 
 | Codex execution profile | Primary PV storage | Network tunnel |
 | --- | --- | --- |
-| Desktop Codex on a local/persistent host | Durable local SQLite | Version-bound host tunnel is installed once, starts with Windows, and has zero setup wait when warm |
+| Desktop Codex on a local/persistent host with the active `CODEX` surface proven | Durable local SQLite | Not required; package-local native MCP is the lifecycle route |
 | Local CLI without the interactive app | Durable local SQLite | Not required by the API layer |
 | Headless API/CLI on a local or persistent VM | Local durable PV store when available | Not required by the API layer |
 | Headless API on an ephemeral VM with durable mount | Mounted durable SQLite | Not required by the API layer |
 | Headless API on an ephemeral VM without durable mount | Explicit transactional durable connector | Not required by the API layer |
 | Interactive Codex app on an ephemeral VM | Durable mount or transactional connector | Environment setup may be required once per VM lifetime |
 
+An ephemeral or stateless invocation also requires an exact host-entry
+envelope persisted by a transactional connector. The envelope preserves the
+accepted pointer, active Plan row, task/worktree binding, locked ENV/UOP, and
+separate authority heads without becoming a new PV. It is expiring and
+single-consumption; exact retries are idempotent, and stale or mismatched entry
+fails closed. Proven durable local Codex uses local SQLite directly and does not
+create an unnecessary external entry dependency.
+
 Account tier and API billing are independent classification axes. They do not
 select project storage or change the HIL law.
 
-## First-time Windows tunnel setup
+## Bounded Windows tunnel setup
 
-This setup is for the interactive Codex desktop profile on a local PC or
-persistent Windows VM. Headless API and direct CLI/API profiles do **not** need
-a tunnel at the API layer; they should keep using the appropriate durable PV
-storage route.
+This setup is only for a runtime classification that explicitly requires the
+separate tunnel support channel, such as an interactive ephemeral Codex VM. A
+durable local Codex desktop, local CLI, or headless API route does **not** use it
+for the native Evidence Lane lifecycle. The classifier must first prove the
+desktop container channel, `active_surface=CODEX`, workspace class, durability,
+and exact host/session namespace; package name, process title, CWD, or a
+ChatGPT/Work surface cannot select this route.
 
 1. In the OpenAI Platform, create a tunnel for this Windows user and keep its
    `tunnel_...` ID and Runtime API key private. Use a Runtime key, never an
    Admin key.
-2. Open PowerShell in the reviewed Evidence Lane checkout and run:
+2. Open PowerShell in the reviewed Evidence Lane checkout and run the exact
+   host-classified setup. This ephemeral example is bound to one VM lifetime:
 
    ```powershell
    & ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1" `
      -SlotRole stable-build `
      -InteractionProfile CODEX_APP_INTERACTIVE `
-     -HostLifetime Persistent `
+     -HostLifetime Ephemeral `
+     -VmInstanceId "<exact-vm-instance-id>" `
      -Activate
    ```
 
@@ -241,7 +269,7 @@ storage route.
 6. Open Codex and verify the installed Evidence Lane plugin through its native
    `mcp__evidence_lane__*` catalog and project panel. The tunnel is a separate
    versioned transport channel; it does not replace or prove the package-local
-   Codex lifecycle route.
+   Codex lifecycle route and is never Evidence Lane lifecycle authority.
 
 For ephemeral interactive Windows VMs, use `-HostLifetime Ephemeral` and an
 exact `-VmInstanceId`; the key envelope and tunnel last only for that VM.
@@ -249,13 +277,16 @@ Dependency acquisition, isolated tester setup, activation receipts, repair,
 and removal are documented in the
 [complete Windows tunnel guide](docs/WINDOWS_TUNNEL_PERSISTENCE.md).
 
-## Two-slot stable recovery
+## Observed two-slot state and governed recovery boundary
 
-After exact standalone `APPROVE` and native Fuse accepts PV11, the live Codex
-installation is normalized to exactly two Evidence Lane slots: enabled
-`stable-build` and disabled byte-exact `fallback`. The fallback is the accepted
-PV11 package; it is installed and tunnel-verified but stopped. At most one
-plugin/MCP and one matching tunnel can run. Historical Git, PV, package,
+The intended live Codex topology is exactly two Evidence Lane slots: enabled
+`stable-build` and disabled `fallback`. The current source contract does not
+pretend the host has already reached that desired identity. Direct host evidence
+showed the disabled fallback at the historical PV11/2.0 package while the
+accepted/base release had advanced to PV12/2.1. The later fallback-split-brain
+row must reconcile UI, CLI, selector, cache, package, and hash readback before
+calling it current. This row neither changes nor activates either slot. At most
+one plugin/MCP and one matching tunnel may run, and historical Git, PV, package,
 receipt, and Delta evidence remains preserved outside the live cache.
 
 The two installed plugin slots remain source authority. Their generated Python
@@ -400,7 +431,8 @@ CI, installation, or this README.
 
 ## Current release boundary
 
-The source branch may call 2.1.0 the active stable Codex slot only when its
-version fields agree. Installed-host readiness still requires the exact package
-receipt, clean CI for that commit, supported restart, native route readback, and
-explicit six-way HIL. No README statement substitutes for those proofs.
+The source branch may call 2.2.0 the current pre-HIL source release only when
+its version fields agree. It may call GitLane Stable 2.2 installed only after
+the exact commit, clean CI, exact-SHA preview, package, same-selector update,
+supported restart, and native-route readback all pass. No README statement
+substitutes for those proofs, and no pre-HIL source change rotates fallback.

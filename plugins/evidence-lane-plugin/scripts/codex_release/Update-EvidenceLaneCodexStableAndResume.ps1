@@ -59,6 +59,10 @@ $script:HostAppProfiles = [ordered]@{
     "OpenAI.Codex_2p2nqsd0c76g0!App" = [ordered]@{
         app_id = "OpenAI.Codex_2p2nqsd0c76g0!App"
         host_application = "CHATGPT_CODEX"
+        desktop_release_channel = "CHATGPT_STABLE"
+        available_surfaces = @("CHATGPT", "CODEX")
+        governed_surface = "CODEX"
+        chatgpt_surface_governed = $false
         package_name = "OpenAI.Codex"
         package_family_name = "OpenAI.Codex_2p2nqsd0c76g0"
         start_app_name = "ChatGPT"
@@ -70,6 +74,10 @@ $script:HostAppProfiles = [ordered]@{
     "OpenAI.CodexBeta_2p2nqsd0c76g0!App" = [ordered]@{
         app_id = "OpenAI.CodexBeta_2p2nqsd0c76g0!App"
         host_application = "CHATGPT_BETA_CODEX"
+        desktop_release_channel = "CHATGPT_BETA"
+        available_surfaces = @("CHATGPT", "CODEX")
+        governed_surface = "CODEX"
+        chatgpt_surface_governed = $false
         package_name = "OpenAI.CodexBeta"
         package_family_name = "OpenAI.CodexBeta_2p2nqsd0c76g0"
         start_app_name = "ChatGPT (Beta)"
@@ -369,7 +377,7 @@ if ($Action -eq "Schedule") {
     Write-Json $schedulePath $scheduled
 
     $arguments = @(
-        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $PSCommandPath,
+        "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-ExecutionPolicy", "Bypass", "-File", $PSCommandPath,
         "-Action", "Complete",
         "-Archive", $boundary.archive,
         "-PackageReceipt", $boundary.package_receipt,
@@ -587,7 +595,7 @@ try {
     $goalRecoveryRoot = Join-Path ([IO.Path]::GetFullPath($DataRoot)) "installations\codex-v200\goal-recovery"
     $twoSlotRegistry = Join-Path ([IO.Path]::GetFullPath($DataRoot)) "installations\codex-v200\two-slot\CODEX_TWO_SLOT_REGISTRY.json"
     $goalRecoveryOutput = @(
-        & powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
+        & powershell.exe -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass `
             -File $goalRecoveryScript `
             -Action Register `
             -TaskBindingReceipt $boundary.binding_path `

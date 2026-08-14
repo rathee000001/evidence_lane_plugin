@@ -60,6 +60,7 @@ def _commit(repository: Path, message: str, timestamp: str) -> str:
         capture_output=True,
         text=True,
         encoding="utf-8",
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     subprocess.run(
         ["git", "-C", str(repository), "commit", "-m", message],
@@ -68,6 +69,7 @@ def _commit(repository: Path, message: str, timestamp: str) -> str:
         text=True,
         encoding="utf-8",
         env=environment,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     return _git(repository, "rev-parse", "HEAD")
 
@@ -80,6 +82,7 @@ def _build_synthetic_repository(repository: Path) -> dict[str, str]:
         capture_output=True,
         text=True,
         encoding="utf-8",
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     _git(repository, "config", "core.autocrlf", "false")
     _git(repository, "config", "user.name", "Evidence Lane Fixture")

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import runpy
 import sys
@@ -21,7 +22,7 @@ from build_release_candidate_rehearsal import (
     build_rehearsal,
 )
 
-VERSION = "2.1.0+codex.20260812193232"
+VERSION = "2.2.0+codex.20260814082900"
 COMMIT = "a" * 40
 TREE = "b" * 40
 
@@ -125,10 +126,10 @@ def _plugin_fixture(tmp_path: Path) -> Path:
             {
                 "schema": "evidence-lane.codex-release-channel.v2",
                 "stable": {
-                    "release": "2.1.0",
+                    "release": "2.2.0",
                     "slot_role": "stable-build",
                     "codex_marketplace_slot": "evidence-lane-github",
-                    "marketplace_display_name": "GitLane Stable 2.1",
+                    "marketplace_display_name": "GitLane Stable 2.2",
                     "install_source": "GIT_EXACT_COMMIT",
                     "stable_selector_is_persistent": True,
                     "stable_updates_reinstall_in_place": True,
@@ -154,6 +155,25 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "accepted_generation": 11,
                     "byte_frozen": True,
                     "package_must_equal_accepted_pv": True,
+                },
+                "dependency_toolchains": {
+                    "search_v1": {
+                        "required": True,
+                        "scope": "ALL_GOVERNED_PROJECTS",
+                        "manifest": "toolchains/search-tools.v1.json",
+                        "package_local_tools": [
+                            "ripgrep@15.2.0/windows-x86_64",
+                            "fzf@0.74.2/windows-x86_64",
+                        ],
+                        "resolution_order": [
+                            "PACKAGE_LOCAL_VERIFIED_BINARY",
+                            "EXPLICIT_CONFIGURED_VERIFIED_HOST_BINARY",
+                            "DETERMINISTIC_BUILTIN_FALLBACK",
+                        ],
+                        "fallbacks_required": True,
+                        "path_lookup_allowed": False,
+                        "auto_download_during_mcp_handshake": False,
+                    }
                 },
                 "live_slot_policy": {
                     "exact_slot_count_after_pv11_acceptance": 2,
@@ -210,7 +230,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                         "EF87B8A129C4FA"
                     ),
                     "resource_uri": (
-                        "ui://evidence-lane/governed-console-v4.html"
+                        "ui://evidence-lane/governed-console-v5.html"
                     ),
                     "manifest_icon_fields": [
                         "interface.composerIcon",
@@ -220,7 +240,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "required_at_runtime_prewarm": True,
                 },
                 "remote_git_policy": {
-                    "effective_release": "2.1.0",
+                    "effective_release": "2.2.0",
                     "per_push_confirmation_token_required": False,
                     "automatic_push_scope": (
                         "EXACT_SOLE_REGISTERED_NON_PROTECTED_TEST_BRANCH"
@@ -251,10 +271,12 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     },
                     "interactive_codex_app_local_or_persistent": {
                         "pv_storage": "DURABLE_LOCAL_SQLITE",
-                        "tunnel_setup_frequency": (
-                            "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
+                        "tunnel_requirement": (
+                            "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
                         ),
-                        "tunnel_key_retention": "HOST_MANAGED_PERSISTENT_PROFILE",
+                        "tunnel_setup_frequency": "NONE",
+                        "tunnel_key_retention": "NOT_APPLICABLE",
+                        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
                     },
                     "interactive_codex_app_ephemeral_vm": {
                         "pv_storage": (
@@ -266,11 +288,87 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                         "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
                         "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
                     },
+                    "desktop_container_surface_scope": {
+                        "supported_container_channels": [
+                            "CHATGPT_DESKTOP_STABLE_OR_CURRENT",
+                            "CHATGPT_DESKTOP_BETA",
+                        ],
+                        "active_surface": "CODEX",
+                        "chatgpt_chat_work_scope": "OUT_OF_SCOPE_DEFERRED",
+                        "authority_binding": (
+                            "EXACT_HOST_SESSION_PLUS_NATIVE_EVIDENCE_LANE_MCP_ROUTE"
+                        ),
+                        "process_package_title_cwd_authority": False,
+                    },
                 },
                 "promotion_gate": {
                     "explicit_six_way_hil_required": True,
                     "fail_closed_on_version_mismatch": True,
                 },
+            }
+        )
+        + "\n",
+    )
+    rg_bytes = b"fixture-ripgrep-15.2.0\n"
+    fzf_bytes = b"fixture-fzf-0.74.2\n"
+    _write(plugin, "toolchains/bin/windows-x86_64/rg.exe", rg_bytes)
+    _write(plugin, "toolchains/bin/windows-x86_64/fzf.exe", fzf_bytes)
+    _write(plugin, "toolchains/licenses/ripgrep-15.2.0/LICENSE-MIT", "MIT\n")
+    _write(plugin, "toolchains/licenses/ripgrep-15.2.0/UNLICENSE", "Unlicense\n")
+    _write(plugin, "toolchains/licenses/fzf-0.74.2/LICENSE", "MIT\n")
+    _write(
+        plugin,
+        "toolchains/search-tools.v1.json",
+        json.dumps(
+            {
+                "schema": "evidence-lane.search-toolchain-manifest.v1",
+                "version": 1,
+                "scope": "ALL_GOVERNED_PROJECTS",
+                "resolution_order": [
+                    "PACKAGE_LOCAL_VERIFIED_BINARY",
+                    "EXPLICIT_CONFIGURED_VERIFIED_HOST_BINARY",
+                    "DETERMINISTIC_BUILTIN_FALLBACK",
+                ],
+                "auto_download_during_mcp_handshake": False,
+                "path_lookup_allowed": False,
+                "shell_execution_allowed": False,
+                "tools": [
+                    {
+                        "tool_id": "ripgrep",
+                        "role": "BOUNDED_LITERAL_CONTENT_AND_FILE_SEARCH",
+                        "version": "15.2.0",
+                        "license_spdx": "MIT OR Unlicense",
+                        "fallback_backend": "PYTHON_BOUNDED_LITERAL_SCAN",
+                        "package_binaries": {
+                            "windows-x86_64": {
+                                "path": "toolchains/bin/windows-x86_64/rg.exe",
+                                "sha256": hashlib.sha256(rg_bytes).hexdigest().upper(),
+                                "size_bytes": len(rg_bytes),
+                                "licenses": [
+                                    "toolchains/licenses/ripgrep-15.2.0/LICENSE-MIT",
+                                    "toolchains/licenses/ripgrep-15.2.0/UNLICENSE",
+                                ],
+                            }
+                        },
+                    },
+                    {
+                        "tool_id": "fzf",
+                        "role": "BOUNDED_NONINTERACTIVE_DETERMINISTIC_RANKING",
+                        "version": "0.74.2",
+                        "license_spdx": "MIT",
+                        "fallback_backend": "PYTHON_DETERMINISTIC_SUBSEQUENCE_RANK",
+                        "package_binaries": {
+                            "windows-x86_64": {
+                                "path": "toolchains/bin/windows-x86_64/fzf.exe",
+                                "sha256": hashlib.sha256(fzf_bytes).hexdigest().upper(),
+                                "size_bytes": len(fzf_bytes),
+                                "licenses": [
+                                    "toolchains/licenses/fzf-0.74.2/LICENSE"
+                                ],
+                            }
+                        },
+                    },
+                ],
             }
         )
         + "\n",
@@ -325,7 +423,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     _write(plugin, "remote_adapter/app/manifest.ts", "export const manifest = {};\n")
     _write(plugin, "remote_adapter/package.json", '{"dependencies":{}}\n')
     _write(plugin, "remote_adapter/pnpm-lock.yaml", "lockfileVersion: '9.0'\n")
-    _write(plugin, "pyproject.toml", '[project]\nname="fixture"\nversion="2.1.0"\n')
+    _write(plugin, "pyproject.toml", '[project]\nname="fixture"\nversion="2.2.0"\n')
     _write(plugin, "requirements.lock.txt", "mcp==1.28.1\n")
     _write(plugin, "src/evidence_lane_plugin/__init__.py", "VERSION = 'fixture'\n")
     for index in range(15):
@@ -427,6 +525,16 @@ def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(tmp_path: Path)
     assert first["accepted_pointer_moved"] is False
     assert first["skill_count"] == 15
     assert first["canonical_lane_count"] == 18
+    search_toolchain = first["search_toolchain"]
+    assert search_toolchain["status"] == "PASS"
+    assert search_toolchain["scope"] == "ALL_GOVERNED_PROJECTS"
+    assert search_toolchain["record_count"] == 2
+    assert [row["tool_id"] for row in search_toolchain["records"]] == [
+        "ripgrep",
+        "fzf",
+    ]
+    assert search_toolchain["deterministic_fallbacks_required"] is True
+    assert search_toolchain["raw_paths_included"] is False
     assert Path(str(first["receipt_path"])).name.startswith("LOCAL_PACKAGE_REHEARSAL_")
 
     first_archive = Path(str(first["receipt_path"])).parent / first["archive"][  # type: ignore[index]
@@ -502,7 +610,7 @@ def test_rehearsal_rejects_meshy_dependency_or_mcp_binding(tmp_path: Path) -> No
     _write(
         plugin,
         "pyproject.toml",
-        '[project]\nname="fixture"\nversion="2.1.0"\ndependencies=["meshy-sdk==1.0.0"]\n',
+        '[project]\nname="fixture"\nversion="2.2.0"\ndependencies=["meshy-sdk==1.0.0"]\n',
     )
     with pytest.raises(PackageBoundaryError, match="Meshy"):
         _build(plugin, tmp_path / "output")

@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from .dependency_detection import parse_pnpm_lock_dependencies
 from .errors import EvidenceLaneError, require
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .source_authority import initialize_source_authority_registry
@@ -28,7 +29,7 @@ from .timeutil import utc_now
 GRAPH_SCHEMA = "evidence-lane.source-graph.v1"
 GRAPH_DIFF_SCHEMA = "evidence-lane.source-graph-diff.v1"
 GRAPH_IMPACT_SCHEMA = "evidence-lane.source-graph-impact.v1"
-EXTRACTOR_VERSION = "evidence-lane-bounded-polyglot-v1.0.0"
+EXTRACTOR_VERSION = "evidence-lane-bounded-polyglot-v1.1.0"
 
 CONFIDENCES = ("EXTRACTED", "INFERRED", "AMBIGUOUS")
 _CONFIDENCE_RANK = {value: index for index, value in enumerate(CONFIDENCES)}
@@ -95,6 +96,7 @@ _LANGUAGE_BY_SUFFIX = {
 
 _MANIFEST_NAMES = {
     "package.json",
+    "pnpm-lock.yaml",
     "pyproject.toml",
     "requirements.txt",
     "requirements.in",
@@ -794,7 +796,12 @@ def _manifest_dependencies(member_path: str, text: str) -> list[dict[str, str]]:
         )
 
     try:
-        if name == "package.json":
+        if name == "pnpm-lock.yaml":
+            result = parse_pnpm_lock_dependencies(text)
+            if result["status"] != "PASS":
+                return []
+            dependencies.extend(dict(row) for row in result["dependencies"])
+        elif name == "package.json":
             payload = json.loads(text)
             for group in (
                 "dependencies",
@@ -879,8 +886,22 @@ def _parse_member(member_path: str, text: str, language: str) -> dict[str, Any]:
         }
     if _is_manifest(member_path):
         result["dependencies"] = _manifest_dependencies(member_path, text)
+        if PurePosixPath(member_path).name.casefold() == "pnpm-lock.yaml":
+            pnpm = parse_pnpm_lock_dependencies(text)
+            result["parser_id"] = str(pnpm["detector_id"])
+            result["parse_state"] = (
+                "PARSED_MANIFEST"
+                if pnpm["status"] == "PASS"
+                else "PARSE_FAILED_MANIFEST"
+            )
+            result["parse_reason"] = str(pnpm["reason"])
+            result["dependency_resolutions"] = pnpm["resolved_packages"]
+            result["dependency_overrides"] = pnpm["overrides"]
+            result["zero_dependency_report_valid"] = not (
+                pnpm["dependencies"] or pnpm["resolved_packages"]
+            )
         if not language:
-            result["parse_state"] = "PARSED_MANIFEST"
+            result["parse_state"] = result.get("parse_state", "PARSED_MANIFEST")
     return result
 
 
@@ -1586,7 +1607,9 @@ def build_registered_source_graph(
                             occurrence=occurrence,
                             member_path=member_path,
                             line_number=None,
-                            parser_id="manifest-parser-v1",
+                            parser_id=str(
+                                item.get("detector_id") or "manifest-parser-v1"
+                            ),
                             extraction="DEPENDENCY_DECLARATION",
                             resolution="EXTERNAL_PACKAGE_IDENTITY",
                             file_sha256=file_sha256,
@@ -1595,6 +1618,8 @@ def build_registered_source_graph(
                             str(item.get("constraint") or "").encode("utf-8")
                         ),
                         "dependency_group": item["group"],
+                        "dependency_detector_id": item.get("detector_id"),
+                        "lock_importer": item.get("importer"),
                     },
                 }
             )

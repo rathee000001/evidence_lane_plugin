@@ -46,7 +46,10 @@ from mcp.client.stdio import StdioServerParameters, stdio_client
 from mcp.server.auth.provider import AccessToken
 from mcp.types import CallToolResult
 
-from .conftest import build_and_approve_pv1
+from .conftest import (
+    build_and_approve_pv1,
+    state_travel_destination_creation,
+)
 
 EXPECTED_TOOL_COUNT = 62
 
@@ -413,7 +416,7 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
     assert len(resources) == 1
     resource = resources[0]
     assert str(resource.uri) == GOVERNED_PANEL_URI
-    assert GOVERNED_PANEL_URI.endswith("/governed-console-v4.html")
+    assert GOVERNED_PANEL_URI.endswith("/governed-console-v5.html")
     assert resource.mimeType == MCP_APP_MIME_TYPE
     assert resource.icons is not None
     assert [icon.model_dump(by_alias=True, exclude_none=True) for icon in resource.icons] == [
@@ -656,7 +659,7 @@ if (initMessages.length !== 1) throw new Error("expected exactly one initialize 
 const init = initMessages[0];
 if (init.origin !== "*") throw new Error("unexpected postMessage target origin");
 if (init.message.params.appInfo.name !== "Evidence Lane") throw new Error("wrong app name");
-if (init.message.params.appInfo.version !== "2.1.0") throw new Error("wrong app version");
+if (init.message.params.appInfo.version !== "2.2.0") throw new Error("wrong app version");
 if (Object.keys(init.message.params.appCapabilities).length !== 0) throw new Error("wrong app capabilities");
 if (init.message.params.protocolVersion !== "2026-01-26") throw new Error("wrong protocol version");
 if (operations.indexOf("listener:message") > operations.indexOf("post:ui/initialize")) {{
@@ -719,7 +722,7 @@ def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> No
         public_site_url=public_site,
     )
     identity = server._mcp_server
-    assert identity.version == ENGINE_VERSION == "2.1.0"
+    assert identity.version == ENGINE_VERSION == "2.2.0"
     assert str(identity.website_url) == public_site
     assert identity.icons is not None
     assert len(identity.icons) == 1
@@ -1101,7 +1104,15 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         ephemeral=False,
         client_can_edit_source=True,
         server_has_durable_filesystem=True,
-        runtime_context={"execution_profile": execution_profile},
+        runtime_context={
+            "execution_profile": execution_profile,
+            "state_travel_destination_creation": (
+                state_travel_destination_creation(
+                    "host-session-prompt-index-bootstrap",
+                    "host-session-prompt-index-pv2",
+                )
+            ),
+        },
     )
 
     root = Path(__file__).resolve().parents[1]
@@ -1245,7 +1256,15 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         ephemeral=False,
         client_can_edit_source=True,
         server_has_durable_filesystem=True,
-        runtime_context={"execution_profile": execution_profile},
+        runtime_context={
+            "execution_profile": execution_profile,
+            "state_travel_destination_creation": (
+                state_travel_destination_creation(
+                    "host-session-prompt-index-pv2",
+                    "host-session-second-task",
+                )
+            ),
+        },
     )
     second = subprocess.run(
         [sys.executable, str(hook)],
@@ -1564,7 +1583,10 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
     }
     assert [path.name for path in commands.glob("*.md")] == ["evi-plan.md"]
     plan_command = (commands / "evi-plan.md").read_text(encoding="utf-8")
-    assert "Type /pl, finish the plan, then run /evi-plan again." in plan_command
+    assert "do not ask the user to type `/pl` or `/evi-plan`" in plan_command
+    assert "explicit host Plan acceptance" in plan_command
+    assert "HOST_MODE_SELECTOR_UNAVAILABLE" in plan_command
+    assert "Type /pl, finish the plan, then run /evi-plan again." not in plan_command
     assert "host_mode=PLAN" in plan_command
     assert "pv_plan_steer_delta" in plan_command
     assert "Use this sidecar only for Codex native Plan mode" in plan_command
@@ -1595,9 +1617,14 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
     readme_text = (root / "README.md").read_text(encoding="utf-8")
     assert "/pv-" not in skill_text.lower()
     assert "/ev " not in skill_text.lower()
-    assert "/git" not in skill_text.lower()
-    assert "/local" not in skill_text.lower()
-    assert "source-command-evi" not in skill_text.lower()
+    assert "`/git`" not in skill_text.lower()
+    assert "`/local`" not in skill_text.lower()
+    assert (
+        skill_text.lower().count(
+            "evidence-lane-plugin:source-command-evi-plan"
+        )
+        == 1
+    )
     assert "/pv-" not in readme_text.lower()
     assert "/ev " not in readme_text.lower()
 

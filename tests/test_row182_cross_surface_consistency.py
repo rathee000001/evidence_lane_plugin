@@ -18,9 +18,9 @@ if str(SCRIPTS) not in sys.path:
 
 from build_release_candidate_rehearsal import _source_inventory
 
-RELEASE = "2.1.0"
-CODEX_RELEASE = "2.1.0+codex.20260812193232"
-REMOTE_RELEASE = "2.1.0"
+RELEASE = "2.2.0"
+CODEX_RELEASE = "2.2.0+codex.20260814082900"
+PUBLIC_SITE_SNAPSHOT_RELEASE = "2.1.0"
 SITE = "https://evidencelane.org"
 REPOSITORY = "https://github.com/rathee000001/evidence_lane_plugin"
 
@@ -125,9 +125,15 @@ def test_release_identity_urls_and_proprietary_boundary_are_consistent() -> None
     assert adapter_package["version"] == RELEASE
     assert ENGINE_VERSION == RELEASE
     assert codex_manifest["version"] == CODEX_RELEASE
-    assert public_metadata["version"] == REMOTE_RELEASE
-    assert f'export const releaseVersion = "{REMOTE_RELEASE}"' in release_source
-    assert REMOTE_RELEASE == RELEASE
+    assert public_metadata["version"] == PUBLIC_SITE_SNAPSHOT_RELEASE
+    assert (
+        f'export const releaseVersion = "{PUBLIC_SITE_SNAPSHOT_RELEASE}"'
+        in release_source
+    )
+    assert public_metadata["plan_lane"]["production_role"] == (
+        "HISTORICAL_BASELINE_ONLY_UNTIL_ACCEPTED_PUBLICATION"
+    )
+    assert PUBLIC_SITE_SNAPSHOT_RELEASE != RELEASE
 
     assert root_project["license"] == "LicenseRef-Proprietary"
     assert plugin_project["license"] == "LicenseRef-Proprietary"
@@ -276,6 +282,7 @@ def test_release_package_excludes_local_state_maps_secrets_and_3d_dependencies()
         not name.casefold().endswith((".map", ".tsbuildinfo", ".glb", ".gltf"))
         for name in names
     )
+    assert all(not name.startswith("remote_adapter/") for name in names)
 
     adapter_package = json.loads(_read(ADAPTER / "package.json"))
     dependencies = {
@@ -343,7 +350,7 @@ def test_owner_repository_and_existing_devpost_identity_do_not_drift() -> None:
     assert "only the existing Devpost project" in readme
 
 
-def test_current_plan_projection_uses_the_sealed_plan_snapshot() -> None:
+def test_historical_public_plan_projection_preserves_its_sealed_snapshot() -> None:
     execution = _read(ADAPTER / "app" / "_data" / "website-current-execution.ts")
     guidance = _read(ADAPTER / "app" / "_data" / "business-guidance.ts")
     snapshot = json.loads(
@@ -365,6 +372,9 @@ def test_current_plan_projection_uses_the_sealed_plan_snapshot() -> None:
         row["row"] for row in snapshot["rows"] if row["status"] == "IN_PROGRESS"
     ] == [164]
     assert snapshot["rows"][-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
+    assert public_metadata["plan_lane"]["production_role"] == (
+        "HISTORICAL_BASELINE_ONLY_UNTIL_ACCEPTED_PUBLICATION"
+    )
     assert public_metadata["plan_lane"]["active_public_row"] == snapshot["active_row"]
     assert public_metadata["plan_lane"]["active_public_task_position"] == snapshot["active_task_position"]
     assert public_metadata["plan_lane"]["physically_final_hil_public_row"] == snapshot["physically_final_hil_row"]
@@ -372,3 +382,39 @@ def test_current_plan_projection_uses_the_sealed_plan_snapshot() -> None:
     current_plan = _read(ADAPTER / "app" / "_data" / "current-execution-plan.ts")
     assert "activeRow: websiteCurrentExecutionBoundary.activePublicOrder" in current_plan
     assert "activeTaskPosition: websiteCurrentExecutionBoundary.activeTaskPosition" in current_plan
+
+
+def test_current_codex_surfaces_reject_active_chatgpt_delivery_claims() -> None:
+    current_surfaces = {
+        "README.md": _read(ROOT / "README.md"),
+        "SECURITY.md": _read(ROOT / "SECURITY.md"),
+        "docs/ARCHITECTURE.md": _read(ROOT / "docs" / "ARCHITECTURE.md"),
+        "docs/VERSIONING.md": _read(ROOT / "docs" / "VERSIONING.md"),
+        "docs/IMPLEMENTATION_TRACEABILITY.md": _read(
+            ROOT / "docs" / "IMPLEMENTATION_TRACEABILITY.md"
+        ),
+        "plugins/evidence-lane-plugin/README.md": _read(PLUGIN / "README.md"),
+        "plugins/evidence-lane-plugin/.codex-plugin/plugin.json": _read(
+            PLUGIN / ".codex-plugin" / "plugin.json"
+        ),
+    }
+    forbidden = (
+        "ChatGPT-only Vercel adapter",
+        "ChatGPT plugin is active",
+        "ChatGPT installation is supported",
+        "production ChatGPT remote MCP is active",
+    )
+    for relative, text in current_surfaces.items():
+        for claim in forbidden:
+            assert claim not in text, f"active external-host claim in {relative}: {claim}"
+
+    public_metadata = json.loads(
+        _read(ADAPTER / "public" / ".well-known" / "evidence-lane-plugin.json")
+    )
+    assert public_metadata["interactive_ui"]["host_boundary"].endswith(
+        "This website is documentation only and does not transport lifecycle calls."
+    )
+    assert public_metadata["exposure_profiles"]["future_chatgpt"] == {
+        "status": "INTENTIONALLY_DEFERRED_NOT_EXECUTABLE",
+        "install_allowed": False,
+    }

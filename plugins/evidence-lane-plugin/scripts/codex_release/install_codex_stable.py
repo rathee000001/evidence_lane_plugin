@@ -1,4 +1,4 @@
-"""Stage and activate one sealed Evidence Lane 2.1 Codex marketplace package.
+"""Stage and activate one sealed Evidence Lane 2.2 Codex marketplace package.
 
 The script uses the supported Codex marketplace and plugin commands. Stable
 package bytes are reinstalled under one persistent stable selector; build
@@ -29,10 +29,10 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
-BASE_RELEASE = "2.1.0"
+BASE_RELEASE = "2.2.0"
 FALLBACK_RELEASE = "2.0.0"
 MARKETPLACE_NAME = "evidence-lane-github"
-MARKETPLACE_DISPLAY_NAME = "GitLane Stable 2.1"
+MARKETPLACE_DISPLAY_NAME = "GitLane Stable 2.2"
 MARKETPLACE_SOURCE = "rathee000001/evidence_lane_plugin"
 PLUGIN_NAME = "evidence-lane-plugin"
 PLUGIN_SELECTOR = f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"
@@ -128,7 +128,7 @@ EXPECTED_BRAND_IDENTITY = {
     "display_name": "Evidence Lane",
     "icon_path": "assets/evidence-lane-icon.png",
     "icon_sha256": "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA",
-    "resource_uri": "ui://evidence-lane/governed-console-v4.html",
+    "resource_uri": "ui://evidence-lane/governed-console-v5.html",
     "manifest_icon_fields": ["interface.composerIcon", "interface.logo"],
     "required_at_stage": True,
     "required_at_runtime_prewarm": True,
@@ -147,14 +147,28 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     },
     "interactive_codex_app_local_or_persistent": {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
-        "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
-        "tunnel_key_retention": "HOST_MANAGED_PERSISTENT_PROFILE",
+        "tunnel_requirement": "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
+        "tunnel_setup_frequency": "NONE",
+        "tunnel_key_retention": "NOT_APPLICABLE",
+        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
     },
     "interactive_codex_app_ephemeral_vm": {
         "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
         "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
         "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
         "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+    },
+    "desktop_container_surface_scope": {
+        "supported_container_channels": [
+            "CHATGPT_DESKTOP_STABLE_OR_CURRENT",
+            "CHATGPT_DESKTOP_BETA",
+        ],
+        "active_surface": "CODEX",
+        "chatgpt_chat_work_scope": "OUT_OF_SCOPE_DEFERRED",
+        "authority_binding": (
+            "EXACT_HOST_SESSION_PLUS_NATIVE_EVIDENCE_LANE_MCP_ROUTE"
+        ),
+        "process_package_title_cwd_authority": False,
     },
 }
 INSTALL_SCHEMA = "evidence-lane.codex-stable-installation.v2"
@@ -277,6 +291,7 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
     hook_paths = [
         plugin_root / "hooks" / "hooks.json",
         *sorted((plugin_root / "hooks").glob("*.py")),
+        *sorted((plugin_root / "hooks").glob("*.ps1")),
     ]
     skill_paths = sorted((plugin_root / "skills").glob("*/SKILL.md"))
     if not all(path.is_file() for path in hook_paths):
@@ -303,6 +318,8 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
         frozenset(
             {
                 "hooks.json",
+                "invoke_hook.ps1",
+                "invoke_hook.py",
                 "lifecycle_boundary.py",
                 "post_tool_use.py",
                 "pre_tool_use.py",
@@ -361,16 +378,138 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
     hook_inventory["inventory_sha256"] = hashlib.sha256(
         _json_bytes(hook_inventory)
     ).hexdigest().upper()
+    release_channel_path = plugin_root / "scripts" / "codex-release-channel.json"
+    try:
+        release_channel = json.loads(release_channel_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise InstallationError("The Codex release-channel contract is missing.") from exc
+    search_contract = dict(
+        (release_channel.get("dependency_toolchains") or {}).get("search_v1") or {}
+    )
+    search_required = search_contract.get("required") is True
+    if search_required:
+        if (
+            search_contract.get("scope") != "ALL_GOVERNED_PROJECTS"
+            or search_contract.get("manifest") != "toolchains/search-tools.v1.json"
+            or search_contract.get("fallbacks_required") is not True
+            or search_contract.get("path_lookup_allowed") is not False
+            or search_contract.get("auto_download_during_mcp_handshake") is not False
+        ):
+            raise InstallationError("The governed search dependency contract drifted.")
+        search_toolchain = _search_toolchain_inventory(plugin_root)
+    else:
+        manifest_path = plugin_root / "toolchains" / "search-tools.v1.json"
+        search_toolchain = (
+            _search_toolchain_inventory(plugin_root)
+            if manifest_path.is_file()
+            else _historical_search_toolchain_absence()
+        )
     core = {
         "schema": "evidence-lane.codex-installed-surface-inventory.v2",
         "plugin_version": version,
         "hooks": hook_inventory,
         "skills": inventory(skill_paths, skill=True),
+        "search_toolchain": search_toolchain,
         "catalog": dict(EXPECTED_CATALOG),
         "raw_paths_included": False,
     }
     core["surface_inventory_sha256"] = hashlib.sha256(_json_bytes(core)).hexdigest().upper()
     return core
+
+
+def _historical_search_toolchain_absence() -> dict[str, Any]:
+    body = {
+        "schema": "evidence-lane.codex-packaged-search-toolchain.v1",
+        "status": "NOT_DECLARED_HISTORICAL_PACKAGE",
+        "manifest_sha256": None,
+        "resolution_order": [],
+        "records": [],
+        "record_count": 0,
+        "path_lookup_allowed": False,
+        "auto_download_during_mcp_handshake": False,
+        "fallbacks_required": False,
+    }
+    body["inventory_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()
+    return body
+
+
+def _search_toolchain_inventory(plugin_root: Path) -> dict[str, Any]:
+    manifest_path = plugin_root / "toolchains" / "search-tools.v1.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise InstallationError("The governed search toolchain manifest is missing.") from exc
+    tools = manifest.get("tools")
+    if (
+        manifest.get("schema") != "evidence-lane.search-toolchain-manifest.v1"
+        or manifest.get("scope") != "ALL_GOVERNED_PROJECTS"
+        or manifest.get("resolution_order")
+        != [
+            "PACKAGE_LOCAL_VERIFIED_BINARY",
+            "EXPLICIT_CONFIGURED_VERIFIED_HOST_BINARY",
+            "DETERMINISTIC_BUILTIN_FALLBACK",
+        ]
+        or manifest.get("auto_download_during_mcp_handshake") is not False
+        or manifest.get("path_lookup_allowed") is not False
+        or manifest.get("shell_execution_allowed") is not False
+        or not isinstance(tools, list)
+        or [row.get("tool_id") for row in tools if isinstance(row, dict)]
+        != ["ripgrep", "fzf"]
+    ):
+        raise InstallationError("The governed search toolchain contract drifted.")
+    records: list[dict[str, Any]] = []
+    for tool in tools:
+        if not isinstance(tool, dict):
+            raise InstallationError("The search toolchain record is invalid.")
+        package_binaries = tool.get("package_binaries")
+        if not isinstance(package_binaries, dict):
+            raise InstallationError("The search tool package inventory is invalid.")
+        for platform_id, binary_record in sorted(package_binaries.items()):
+            if not isinstance(binary_record, dict):
+                raise InstallationError("The search tool binary record is invalid.")
+            binary = (plugin_root / str(binary_record.get("path") or "")).resolve()
+            try:
+                binary.relative_to(plugin_root.resolve())
+            except ValueError as exc:
+                raise InstallationError("A search tool escaped the plugin package.") from exc
+            licenses = [
+                (plugin_root / str(item)).resolve()
+                for item in binary_record.get("licenses") or []
+            ]
+            if (
+                not binary.is_file()
+                or binary.stat().st_size != binary_record.get("size_bytes")
+                or _sha256(binary) != binary_record.get("sha256")
+                or not licenses
+                or any(not path.is_file() for path in licenses)
+            ):
+                raise InstallationError("A packaged search tool identity drifted.")
+            records.append(
+                {
+                    "tool_id": tool["tool_id"],
+                    "platform_id": platform_id,
+                    "version": tool["version"],
+                    "role": tool["role"],
+                    "license_spdx": tool["license_spdx"],
+                    "binary_sha256": binary_record["sha256"],
+                    "size_bytes": binary_record["size_bytes"],
+                    "license_sha256": sorted(_sha256(path) for path in licenses),
+                    "fallback_backend": tool["fallback_backend"],
+                }
+            )
+    body = {
+        "schema": "evidence-lane.codex-packaged-search-toolchain.v1",
+        "status": "PASS",
+        "manifest_sha256": _sha256(manifest_path),
+        "resolution_order": manifest["resolution_order"],
+        "records": records,
+        "record_count": len(records),
+        "path_lookup_allowed": False,
+        "auto_download_during_mcp_handshake": False,
+        "fallbacks_required": True,
+    }
+    body["inventory_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()
+    return body
 
 
 def _catalog(plugin_root: Path) -> dict[str, Any]:
@@ -485,6 +624,27 @@ def _surface_change_display(
             )
         return result
 
+    current_search = dict(current["search_toolchain"])
+    previous_search = (
+        dict(previous.get("search_toolchain") or {})
+        if previous is not None
+        else {}
+    )
+    search_display = {
+        "status": current_search["status"],
+        "record_count": current_search["record_count"],
+        "manifest_sha256": current_search["manifest_sha256"],
+        "inventory_sha256": current_search["inventory_sha256"],
+        "resolution_order": current_search["resolution_order"],
+        "records": current_search["records"],
+        "fallbacks_required": current_search["fallbacks_required"],
+        "changed_from_previous": (
+            previous is not None
+            and previous_search.get("inventory_sha256")
+            != current_search["inventory_sha256"]
+        ),
+        "raw_paths_included": False,
+    }
     core = {
         "schema": "evidence-lane.codex-installed-surface-change-display.v2",
         "state": "INITIAL_V2_BASELINE" if previous is None else "VERSIONED_UPDATE",
@@ -494,6 +654,7 @@ def _surface_change_display(
         "current_plugin_version": current["plugin_version"],
         "hooks": changes("hooks"),
         "skills": changes("skills"),
+        "search_toolchain": search_display,
         "catalog": {
             **current["catalog"],
             "changed_from_previous": (
@@ -539,6 +700,7 @@ def _verified_staged_surface_change_display(
     hooks = dict(value.get("hooks") or {})
     skills = dict(value.get("skills") or {})
     catalog = dict(value.get("catalog") or {})
+    search_toolchain = dict(value.get("search_toolchain") or {})
     if (
         value.get("schema")
         != "evidence-lane.codex-installed-surface-change-display.v2"
@@ -560,6 +722,17 @@ def _verified_staged_surface_change_display(
         or skills.get("count") != current["skills"]["count"]
         or skills.get("inventory_sha256")
         != current["skills"]["inventory_sha256"]
+        or search_toolchain.get("status")
+        != current["search_toolchain"]["status"]
+        or search_toolchain.get("record_count")
+        != current["search_toolchain"]["record_count"]
+        or search_toolchain.get("manifest_sha256")
+        != current["search_toolchain"]["manifest_sha256"]
+        or search_toolchain.get("inventory_sha256")
+        != current["search_toolchain"]["inventory_sha256"]
+        or search_toolchain.get("records")
+        != current["search_toolchain"]["records"]
+        or search_toolchain.get("raw_paths_included") is not False
         or any(catalog.get(key) != current["catalog"][key] for key in EXPECTED_CATALOG)
     ):
         raise InstallationError("The exact staged surface change display drifted.")
@@ -1291,6 +1464,12 @@ def _stage_marketplace(
             shutil.rmtree(staging)
 
 
+def _windows_hidden_creationflags() -> int:
+    """Return the no-console flag for every installer-owned child process."""
+
+    return getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+
+
 def _run_codex(
     executable: Path,
     codex_home: Path,
@@ -1311,6 +1490,7 @@ def _run_codex(
         encoding="utf-8",
         env=environment,
         timeout=timeout_seconds,
+        creationflags=_windows_hidden_creationflags(),
     )
     if completed.returncode != 0:
         raise InstallationError(
@@ -1355,6 +1535,7 @@ def _prewarm_installed_runtime(
                 capture_output=True,
                 timeout=900,
                 env=prewarm_environment,
+                creationflags=_windows_hidden_creationflags(),
             )
         except (OSError, subprocess.TimeoutExpired) as exc:
             raise InstallationError(
@@ -1453,6 +1634,7 @@ def _prewarm_installed_runtime(
             stdin=subprocess.DEVNULL,
             capture_output=True,
             timeout=300,
+            creationflags=_windows_hidden_creationflags(),
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise InstallationError(
@@ -1817,6 +1999,7 @@ def _trust_sealed_plugin_hooks(
         encoding="utf-8",
         bufsize=1,
         env=environment,
+        creationflags=_windows_hidden_creationflags(),
     )
     stdin = process.stdin
     stdout = process.stdout
@@ -1894,6 +2077,10 @@ def _trust_sealed_plugin_hooks(
         ]
         if len(entries) != 1 or entries[0].get("errors"):
             raise InstallationError("Codex did not return one clean hook workspace.")
+        if entries[0].get("warnings"):
+            raise InstallationError(
+                "Codex returned an installed-hook warning; installation cannot pass."
+            )
         hooks = [
             dict(row)
             for row in entries[0].get("hooks") or []

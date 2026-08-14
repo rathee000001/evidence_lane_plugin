@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 
 
-def test_v210_declares_exact_stable_build_and_v200_pv11_fallback_slots() -> None:
+def test_v220_declares_exact_stable_build_and_v200_pv11_fallback_slots() -> None:
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
@@ -16,10 +16,10 @@ def test_v210_declares_exact_stable_build_and_v200_pv11_fallback_slots() -> None
     live_slots = contract["live_slot_policy"]
 
     assert stable == {
-        "release": "2.1.0",
+        "release": "2.2.0",
         "slot_role": "stable-build",
         "codex_marketplace_slot": "evidence-lane-github",
-        "marketplace_display_name": "GitLane Stable 2.1",
+        "marketplace_display_name": "GitLane Stable 2.2",
         "install_source": "GIT_EXACT_COMMIT",
         "enabled": True,
         "byte_frozen": False,
@@ -190,8 +190,10 @@ def test_v200_host_storage_tunnel_matrix_keeps_routing_axes_independent() -> Non
     }
     assert matrix["interactive_codex_app_local_or_persistent"] == {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
-        "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
-        "tunnel_key_retention": "HOST_MANAGED_PERSISTENT_PROFILE",
+        "tunnel_requirement": "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
+        "tunnel_setup_frequency": "NONE",
+        "tunnel_key_retention": "NOT_APPLICABLE",
+        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
     }
     assert matrix["interactive_codex_app_ephemeral_vm"] == {
         "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
@@ -199,16 +201,28 @@ def test_v200_host_storage_tunnel_matrix_keeps_routing_axes_independent() -> Non
         "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
         "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
     }
+    assert matrix["desktop_container_surface_scope"] == {
+        "supported_container_channels": [
+            "CHATGPT_DESKTOP_STABLE_OR_CURRENT",
+            "CHATGPT_DESKTOP_BETA",
+        ],
+        "active_surface": "CODEX",
+        "chatgpt_chat_work_scope": "OUT_OF_SCOPE_DEFERRED",
+        "authority_binding": (
+            "EXACT_HOST_SESSION_PLUS_NATIVE_EVIDENCE_LANE_MCP_ROUTE"
+        ),
+        "process_package_title_cwd_authority": False,
+    }
 
 
-def test_v200_remote_git_policy_supersedes_only_historical_flash_sentence() -> None:
+def test_v220_remote_git_policy_supersedes_only_historical_flash_sentence() -> None:
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
     policy = contract["remote_git_policy"]
 
     assert policy == {
-        "effective_release": "2.1.0",
+        "effective_release": "2.2.0",
         "v150_flash_confirmation_sentence": (
             "HISTORICAL_HASH_LOCKED_COMPATIBILITY_BYTE_NOT_EFFECTIVE_V2_POLICY"
         ),
@@ -329,8 +343,17 @@ def test_codex_behavior_belongs_to_skills_and_hooks_remain_lifecycle_only() -> N
         "fail_closed_when_behavior_route_unavailable": True,
     }
     assert contract["lifecycle_hook_matrix"] == {
+        "schema": "evidence-lane.codex-hook-lifecycle-contract.v1",
+        "contract_version": 1,
         "hooks_own_lifecycle_transport_only": True,
-        "skills_own_behavior_native_reads_classification_and_plan_refresh": True,
+        "hook_adapters_import_behavior_functions": False,
+        "skill_runtime_consumer": (
+            "src/evidence_lane_plugin/hook_skill_runtime.py"
+        ),
+        "skill_runtime_owner": (
+            "INSTALLED_EVIDENCE_LANE_CODE_LIFECYCLE_SKILL"
+        ),
+        "skills_own_prepare_behavior_native_reads_classification_plan_refresh_goal_and_hil": True,
         "required_events": [
             "SessionStart",
             "UserPromptSubmit",
@@ -341,20 +364,39 @@ def test_codex_behavior_belongs_to_skills_and_hooks_remain_lifecycle_only() -> N
             "Stop",
             "SessionEnd",
         ],
-        "event_owners": {
-            "SessionStart": "WARM_ATTACH_AND_INTERRUPTED_TURN_RECOVERY",
-            "UserPromptSubmit": "PREPARE_VISIBLE_INPUT",
-            "PreToolUse": "PREPARE_AND_EXACT_BINDING_GUARD",
-            "PostToolUse": "VISIBLE_TOOL_RECEIPT_AND_CHANGE_PROJECTION",
-            "PreCompact": "COMPACTION_SEAL",
-            "PostCompact": "DURABLE_REHYDRATION",
-            "Stop": "VISIBLE_RESPONSE_COMMIT",
-            "SessionEnd": "BEST_EFFORT_BOUNDARY_FLUSH",
+        "hook_transport_owners": {
+            "SessionStart": "HOST_ENTRY_SIGNAL",
+            "UserPromptSubmit": "VISIBLE_INPUT_SIGNAL",
+            "PreToolUse": "PROSPECTIVE_TOOL_SIGNAL",
+            "PostToolUse": "VISIBLE_TOOL_RESULT_SIGNAL",
+            "PreCompact": "COMPACTION_SEAL_SIGNAL",
+            "PostCompact": "COMPACTION_REENTRY_SIGNAL",
+            "Stop": "VISIBLE_RESPONSE_STOP_SIGNAL",
+            "SessionEnd": "SESSION_END_SIGNAL",
         },
+        "skill_action_owners": {
+            "SessionStart": "SKILL_BOOT_RESUME_OR_PANEL_REENTRY",
+            "UserPromptSubmit": "SKILL_PREPARE_THEN_NATIVE_READ_SEQUENCE",
+            "PreToolUse": "SKILL_BOUNDARY_AND_POLICY_OWNER",
+            "PostToolUse": "SKILL_RECEIPT_AND_PLAN_REFRESH_OWNER",
+            "PreCompact": "SKILL_CONTINUITY_SEAL_OWNER",
+            "PostCompact": "SKILL_REBIND_AND_FULL_PLAN_REENTRY_OWNER",
+            "Stop": "SKILL_IDEMPOTENT_COMMIT_OWNER",
+            "SessionEnd": "SKILL_BEST_EFFORT_BOUNDARY_FLUSH_OWNER",
+        },
+        "session_end_delivery": "BEST_EFFORT_HOST_CAPABILITY_GATED",
         "permission_request_policy": (
-            "CONDITIONAL_ONLY_WHEN_HOST_CAPABILITY_IS_PROVEN"
+            "CONDITIONAL_ONLY_AFTER_EXPLICIT_HOST_CAPABILITY_PROOF"
         ),
+        "unavailable_event_state": "HOST_CAPABILITY_UNAVAILABLE",
         "subagent_events_in_scope": False,
+        "transport_envelope_schema": (
+            "evidence-lane.codex-hook-transport-envelope.v1"
+        ),
+        "max_transport_bytes": 65_536,
+        "max_visible_input_chars": 32_768,
+        "full_plan_in_hook_payload": False,
+        "linked_delta_json_in_hook_payload": False,
         "raw_prompt_or_tool_payload_in_boundary_receipts": False,
         "private_reasoning_stored": False,
     }
@@ -480,7 +522,7 @@ def test_stable_activation_requires_git_ci_authority_and_runtime_prewarm() -> No
         "production_deployment_allowed": False,
         "exact_commit_git_marketplace_required": True,
         "git_marketplace_name": "evidence-lane-github",
-        "git_marketplace_display_name": "GitLane Stable 2.1",
+        "git_marketplace_display_name": "GitLane Stable 2.2",
         "git_marketplace_source": "rathee000001/evidence_lane_plugin",
         "one_time_legacy_stable_selector_migration_allowed": True,
         "post_proof_obsolete_cleanup_required": True,
@@ -532,7 +574,7 @@ def test_stable_activation_requires_git_ci_authority_and_runtime_prewarm() -> No
             "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3D"
             "EF87B8A129C4FA"
         ),
-        "resource_uri": "ui://evidence-lane/governed-console-v4.html",
+        "resource_uri": "ui://evidence-lane/governed-console-v5.html",
         "manifest_icon_fields": ["interface.composerIcon", "interface.logo"],
         "required_at_stage": True,
         "required_at_runtime_prewarm": True,

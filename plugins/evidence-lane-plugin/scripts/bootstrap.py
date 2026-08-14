@@ -104,6 +104,7 @@ def main() -> int:
             str(lock),
         ],
         check=True,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     _cleanup_generated_build_artifacts(plugin_root)
     try:
@@ -120,6 +121,7 @@ def main() -> int:
                 str(plugin_root),
             ],
             check=True,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
     finally:
         _cleanup_generated_build_artifacts(plugin_root)
@@ -133,11 +135,13 @@ def main() -> int:
         ],
         check=True,
         env=runtime_environment,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     subprocess.run(  # nosec B603
         [str(python), "-m", "evidence_lane_plugin.cli", "doctor"],
         check=True,
         env=runtime_environment,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     if identity_file is not None:
         write_marker(plugin_root, identity_file)

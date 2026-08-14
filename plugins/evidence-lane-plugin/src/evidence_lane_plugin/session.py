@@ -6,12 +6,14 @@ import json
 from pathlib import Path
 from typing import Any, cast
 
+from .canon_runtime_continuity import seal_observed_experience_packet
 from .constants import ENGINE_VERSION
 from .engine import CodePVEngine
 from .errors import EvidenceLaneError, require
 from .freshness import evaluate_freshness
 from .git_adapter import identity_json, inspect_repository, run_git
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
+from .host_plan_rehydration import prepare_host_plan_rehydration
 from .ids import prefixed_id
 from .ingest import iter_source_files
 from .lanes import LaneRegistryError, resolve_lane_id
@@ -85,6 +87,10 @@ _FALLBACK_PREWARM_TASK_ID = (
 _EXACT_TASK_PROJECT_SESSION_BINDING_TASK_ID = (
     "EL-CODEX-EXACT_TASK_PROJECT_SESSION_BINDING-PROPOSAL-03"
 )
+_STATE_TRAVEL_CONSUMED_STATUSES = {
+    "VERIFIED_WAITING",
+    "VERIFIED_RESUME_READY",
+}
 
 
 def _require_sha256(value: Any, *, field: str) -> str:
@@ -145,6 +151,44 @@ class SessionManager:
 
     def _active_path(self, project_id: str) -> Path:
         return self.store.project_root(project_id) / "active_session.json"
+
+    def _prepare_host_plan_rehydration(
+        self,
+        project_id: str,
+        session: SessionRecord,
+        *,
+        trigger: str,
+        trigger_event_id: str,
+        observed_artifact: dict[str, Any] | None = None,
+        host_capability: str = "SUPPORTED",
+        host_goal_active: bool | None = None,
+    ) -> dict[str, Any] | None:
+        """Prepare the exact host projection when a physical-final Plan exists."""
+
+        host_task_id = str(
+            session.metadata.get("current_host_session_id") or ""
+        ).strip()
+        goal_rows = cast(
+            list[dict[str, Any]],
+            self.store.backlog_status(project_id).get("goal_projection", {}).get(
+                "rows", []
+            ),
+        )
+        if not host_task_id or not any(
+            row.get("panel_role") == "PHYSICALLY_FINAL_HIL" for row in goal_rows
+        ):
+            return None
+        return prepare_host_plan_rehydration(
+            self.store.root,
+            project_id=project_id,
+            evidence_session_id=session.session_id,
+            host_task_id=host_task_id,
+            trigger=trigger,
+            trigger_event_id=trigger_event_id,
+            host_capability=host_capability,
+            observed_artifact=observed_artifact,
+            host_goal_active=host_goal_active,
+        )
 
     @staticmethod
     def _source_edit_authority(
@@ -1595,6 +1639,7 @@ class SessionManager:
         host_session_id: str | None = None,
         client_can_edit_source: bool | None = None,
         server_has_durable_filesystem: bool | None = None,
+        host_entry_consumption: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         installation = self.ensure_installation()
         config = self.store.config(project_id)
@@ -1683,6 +1728,8 @@ class SessionManager:
         )
         runtime_continuity = build_runtime_continuity(
             project_id=project_id,
+            governed_session_id=session_id,
+            workspace_id=workspace_id,
             host=host_kind,
             host_session_id=exact_host_session_id,
             ephemeral=ephemeral,
@@ -1699,6 +1746,7 @@ class SessionManager:
             accepted_promotable_under_current_rules=(
                 entry_validation["promotable"] if entry_validation else None
             ),
+            host_entry_consumption=host_entry_consumption,
         )
         session = SessionRecord(
             session_id=session_id,
@@ -1729,6 +1777,7 @@ class SessionManager:
                 "persistence_mode": persistence_mode,
                 "persistence_route": dict(persistence_route),
                 "runtime_continuity": runtime_continuity,
+                "host_entry_consumption": host_entry_consumption,
                 "runtime_continuity_history": [
                     {
                         "host": host_kind.value,
@@ -1938,6 +1987,7 @@ class SessionManager:
         server_has_durable_filesystem: bool | None = None,
         runtime_context: dict[str, Any] | None = None,
         flash: dict[str, Any],
+        host_entry_consumption: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Bind a fresh host prompt session to the one persistent governed session."""
         active_path = self._active_path(project_id)
@@ -2009,6 +2059,8 @@ class SessionManager:
         session.metadata["persistence_mode"] = persistence_mode
         runtime_continuity = build_runtime_continuity(
             project_id=project_id,
+            governed_session_id=session.session_id,
+            workspace_id=session.workspace_id,
             host=host_kind,
             host_session_id=exact_host_session_id,
             ephemeral=ephemeral,
@@ -2025,6 +2077,7 @@ class SessionManager:
             accepted_promotable_under_current_rules=(
                 entry_validation["promotable"] if entry_validation else None
             ),
+            host_entry_consumption=host_entry_consumption,
         )
         if isinstance(previous_continuity, dict):
             previous_receipt_sha256 = str(
@@ -2048,6 +2101,7 @@ class SessionManager:
                 )
         session.metadata["persistence_route"] = dict(persistence_route)
         session.metadata["runtime_continuity"] = runtime_continuity
+        session.metadata["host_entry_consumption"] = host_entry_consumption
         session.metadata.setdefault("runtime_continuity_history", []).append(
             {
                 "host": host_kind.value,
@@ -5136,6 +5190,18 @@ class SessionManager:
                 task_id=task.task_id,
                 run_id=session.metadata["run_id"],
             )
+        host_plan_rehydration = self._prepare_host_plan_rehydration(
+            project_id,
+            session,
+            trigger="TASK_CLASSIFICATION_TRANSITION",
+            trigger_event_id=str(classification_binding["receipt_sha256"]),
+            host_goal_active=None,
+        )
+        if host_plan_rehydration is not None:
+            session.metadata["last_host_plan_rehydration_receipt_sha256"] = cast(
+                dict[str, Any], host_plan_rehydration["receipt"]
+            )["receipt_sha256"]
+            self._save(session)
         return {
             "status": "PASS",
             "session": session.as_dict(),
@@ -5148,6 +5214,7 @@ class SessionManager:
             "task_checkpoint_advance": task_checkpoint_advance,
             "task_checkpoint_lineage": task_checkpoint_lineage,
             "classification_binding": classification_binding,
+            "host_plan_rehydration": host_plan_rehydration,
         }
 
     def record_activity(
@@ -5189,6 +5256,7 @@ class SessionManager:
             "error",
             "response",
             "usage",
+            "host.plan.observation",
         }
         require(
             activity_type in allowed,
@@ -5236,10 +5304,60 @@ class SessionManager:
             event_payload["source_state_after_activity"] = "MUTATED_AFTER_ENTRY"
             event_payload["accepted_pv_query_scope"] = "ENTRY_STATE_ONLY"
             self._save(session)
-        event = ChatLineage(self._lineage_path(project_id, session_id)).append(
+        steer_active_plan: dict[str, Any] | None = None
+        if activity_type == "steer":
+            backlog_status = self.store.backlog_status(project_id)
+            goal_projection = cast(
+                dict[str, Any], backlog_status.get("goal_projection") or {}
+            )
+            active_rows = [
+                dict(row)
+                for row in goal_projection.get("rows") or []
+                if isinstance(row, dict)
+                and str(row.get("status") or "").lower() == "in_progress"
+                and str(row.get("lifecycle_status") or "").upper() == "ACTIVE"
+            ]
+            require(
+                len(active_rows) == 1,
+                "CANON_RUNTIME_ACTIVE_PLAN_BINDING_INVALID",
+                "A visible steer requires exactly one canonical active Plan row.",
+                status="MISMATCH",
+                active_rows=len(active_rows),
+            )
+            steer_active_plan = active_rows[0]
+            steer_active_plan.update(
+                {
+                    "canonical_plan_sha256": goal_projection.get(
+                        "canonical_plan_sha256"
+                    ),
+                    "goal_projection_sha256": goal_projection.get(
+                        "projection_sha256"
+                    ),
+                    "event_head_sha256": backlog_status.get("event_head_sha256"),
+                }
+            )
+        lineage = ChatLineage(self._lineage_path(project_id, session_id))
+        existing_event = (
+            next(
+                (
+                    row
+                    for row in lineage.events()
+                    if row.get("event_id") == event_id
+                ),
+                None,
+            )
+            if event_id is not None
+            else None
+        )
+        occurred_at = (
+            str(existing_event["occurred_at"])
+            if existing_event is not None
+            else utc_now()
+        )
+        event = lineage.append(
             event_type=f"task.{activity_type}",
             visible_payload=event_payload,
-            occurred_at=utc_now(),
+            occurred_at=occurred_at,
             session_id=session_id,
             task_id=task_payload["task_id"],
             run_id=session.metadata["run_id"],
@@ -5252,9 +5370,60 @@ class SessionManager:
                 else None
             ),
         )
+        observed_experience: dict[str, Any] | None = None
+        host_plan_rehydration: dict[str, Any] | None = None
+        if steer_active_plan is not None:
+            pointer = self.store.pointer(project_id)
+            observed_experience = seal_observed_experience_packet(
+                self.store.project_root(project_id),
+                project_id=project_id,
+                evidence_session_id=session_id,
+                runtime_task_id=str(task_payload["task_id"]),
+                plan_task_id=str(steer_active_plan["task_id"]),
+                active_plan=steer_active_plan,
+                event=event,
+                expected_accepted_pv=str(pointer.accepted_pv or ""),
+                expected_pointer_generation=pointer.generation,
+                input_kind="steer",
+            )
+        if activity_type == "host.plan.observation":
+            observed_artifact_value = visible_payload.get("observed_artifact")
+            require(
+                isinstance(observed_artifact_value, dict),
+                "HOST_PLAN_OBSERVATION_PAYLOAD_REQUIRED",
+                "A host Plan observation activity requires one observed_artifact object.",
+                status="BLOCKED",
+            )
+            host_plan_rehydration = self._prepare_host_plan_rehydration(
+                project_id,
+                session,
+                trigger=str(
+                    visible_payload.get("trigger") or "EXPLICIT_HOST_OBSERVATION"
+                ),
+                trigger_event_id=str(event["event_id"]),
+                observed_artifact=cast(
+                    dict[str, Any], observed_artifact_value
+                ),
+                host_capability=str(
+                    visible_payload.get("host_capability") or "SUPPORTED"
+                ),
+                host_goal_active=(
+                    bool(visible_payload["host_goal_active"])
+                    if "host_goal_active" in visible_payload
+                    else None
+                ),
+            )
+            require(
+                host_plan_rehydration is not None,
+                "HOST_PLAN_REHYDRATION_NOT_APPLICABLE",
+                "The current governed Plan has no physically final HIL projection.",
+                status="BLOCKED",
+            )
         return {
             "status": "PASS",
             "event": event,
+            "observed_experience": observed_experience,
+            "host_plan_rehydration": host_plan_rehydration,
             "source_state": session.metadata.get("source_state"),
             "accepted_pv_query_scope": session.metadata.get("accepted_pv_query_scope"),
         }
@@ -6289,6 +6458,18 @@ class SessionManager:
                 "canonical_plan_sequence": int(row["plan_sequence"]),
                 "steer_deltas": list(row.get("steer_deltas") or []),
             }
+            for metadata_field in (
+                "task_classification",
+                "plan_group",
+                "commit_batch_id",
+                "dependencies",
+                "dependency_source",
+                "git_commit_stage",
+                "git_commit_stage_source",
+                "visible_label",
+            ):
+                if metadata_field in row:
+                    projected[metadata_field] = row[metadata_field]
             if row.get("panel_role"):
                 projected["panel_role"] = str(row["panel_role"])
             rows.append(projected)
@@ -6357,6 +6538,172 @@ class SessionManager:
             "identity_sha256": sha256_bytes(canonical_json_bytes(body)),
         }
 
+    @staticmethod
+    def _state_travel_task_deep_link(
+        host_kind: str,
+        task_id: str,
+    ) -> str | None:
+        if not host_kind.startswith("CODEX") or not task_id:
+            return None
+        return f"codex://threads/{task_id}"
+
+    @staticmethod
+    def _state_travel_destination_resolution(
+        creation: dict[str, Any],
+        *,
+        destination_task_id: str,
+        destination_task_deep_link: str | None,
+    ) -> dict[str, Any]:
+        """Resolve one queued clientThreadId to one live destination identity."""
+
+        raw_client_thread_id = creation.get(
+            "client_thread_id",
+            creation.get("clientThreadId"),
+        )
+        client_thread_id = str(raw_client_thread_id or "").strip()
+        resolution = creation.get("destination_resolution")
+        if not client_thread_id:
+            require(
+                creation.get("destination_task_id") == destination_task_id
+                and creation.get("destination_task_deep_link")
+                == destination_task_deep_link,
+                "STATE_TRAVEL_DESTINATION_CREATION_BINDING_MISMATCH",
+                "The host destination-creation receipt does not bind the exact "
+                "destination task UUID and deep link.",
+                status="MISMATCH",
+            )
+            return {
+                "schema": "evidence-lane.host-destination-resolution.v1",
+                "status": "DIRECT_DESTINATION_TASK_ID",
+                "client_thread_id": None,
+                "destination_task_id": destination_task_id,
+                "destination_task_deep_link": destination_task_deep_link,
+                "live_destination_task_ids": [destination_task_id],
+                "duplicate_task_ids": [],
+                "archived_task_ids": [],
+            }
+
+        require(
+            isinstance(resolution, dict),
+            "STATE_TRAVEL_DESTINATION_CLIENT_THREAD_UNRESOLVED",
+            "A queued clientThreadId must resolve to exactly one real destination "
+            "task before State Travel resume.",
+            status="BLOCKED",
+            client_thread_id=client_thread_id,
+        )
+        resolution = cast(dict[str, Any], resolution)
+
+        def task_id_list(field: str) -> list[str]:
+            raw = resolution.get(field, [])
+            require(
+                isinstance(raw, list)
+                and len(raw) <= 100
+                and all(
+                    isinstance(value, str)
+                    and bool(value.strip())
+                    and len(value.strip()) <= 256
+                    for value in raw
+                ),
+                "STATE_TRAVEL_DESTINATION_RESOLUTION_HISTORY_INVALID",
+                "Destination resolution history must contain bounded task IDs.",
+                status="BLOCKED",
+                field=field,
+            )
+            normalized = [value.strip() for value in cast(list[str], raw)]
+            require(
+                len(normalized) == len(set(normalized)),
+                "STATE_TRAVEL_DESTINATION_RESOLUTION_HISTORY_DUPLICATE",
+                "Destination resolution history cannot repeat one task identity.",
+                status="MISMATCH",
+                field=field,
+            )
+            return normalized
+
+        live_task_ids = task_id_list("live_destination_task_ids")
+        duplicate_task_ids = task_id_list("duplicate_task_ids")
+        archived_task_ids = task_id_list("archived_task_ids")
+        require(
+            resolution.get("schema")
+            == "evidence-lane.host-destination-resolution.v1"
+            and resolution.get("status") == "RESOLVED_UNIQUE"
+            and str(resolution.get("client_thread_id") or "").strip()
+            == client_thread_id
+            and resolution.get("destination_task_id") == destination_task_id
+            and resolution.get("destination_task_deep_link")
+            == destination_task_deep_link
+            and live_task_ids == [destination_task_id]
+            and destination_task_id not in duplicate_task_ids
+            and destination_task_id not in archived_task_ids
+            and not set(duplicate_task_ids).intersection(archived_task_ids),
+            "STATE_TRAVEL_DESTINATION_CLIENT_THREAD_AMBIGUOUS",
+            "The queued clientThreadId did not resolve to exactly one live "
+            "destination; duplicate and archived identities remain history only.",
+            status="MISMATCH",
+            client_thread_id=client_thread_id,
+            live_destination_task_ids=live_task_ids,
+            duplicate_task_ids=duplicate_task_ids,
+            archived_task_ids=archived_task_ids,
+        )
+        return {
+            "schema": "evidence-lane.host-destination-resolution.v1",
+            "status": "RESOLVED_UNIQUE",
+            "client_thread_id": client_thread_id,
+            "destination_task_id": destination_task_id,
+            "destination_task_deep_link": destination_task_deep_link,
+            "live_destination_task_ids": live_task_ids,
+            "duplicate_task_ids": duplicate_task_ids,
+            "archived_task_ids": archived_task_ids,
+        }
+
+    @staticmethod
+    def _state_travel_plugin_build_identity() -> dict[str, Any]:
+        """Seal the package-local build rather than trusting a slot title."""
+
+        manifest_path = (
+            Path(__file__).resolve().parents[2]
+            / ".codex-plugin"
+            / "plugin.json"
+        )
+        require(
+            manifest_path.is_file(),
+            "STATE_TRAVEL_PLUGIN_MANIFEST_MISSING",
+            "State Travel requires the running package-local plugin manifest.",
+            status="BLOCKED",
+        )
+        manifest_bytes = manifest_path.read_bytes()
+        try:
+            manifest = json.loads(manifest_bytes.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise EvidenceLaneError(
+                "STATE_TRAVEL_PLUGIN_MANIFEST_INVALID",
+                "The running package-local plugin manifest is not valid UTF-8 JSON.",
+                status="BLOCKED",
+            ) from exc
+        plugin_name = str(manifest.get("name") or "").strip()
+        plugin_version = str(manifest.get("version") or "").strip()
+        require(
+            plugin_name == "evidence-lane-plugin"
+            and bool(plugin_version)
+            and plugin_version.split("+", 1)[0] == ENGINE_VERSION,
+            "STATE_TRAVEL_PLUGIN_BUILD_IDENTITY_MISMATCH",
+            "The running plugin manifest does not match the Evidence Lane engine.",
+            status="MISMATCH",
+            plugin_name=plugin_name or None,
+            plugin_version=plugin_version or None,
+            engine_version=ENGINE_VERSION,
+        )
+        body = {
+            "schema": "evidence-lane.state-travel-plugin-build.v1",
+            "plugin_name": plugin_name,
+            "plugin_version": plugin_version,
+            "engine_version": ENGINE_VERSION,
+            "plugin_manifest_sha256": sha256_bytes(manifest_bytes),
+        }
+        return {
+            **body,
+            "identity_sha256": sha256_bytes(canonical_json_bytes(body)),
+        }
+
     def _state_travel_resume_contract(
         self,
         project_id: str,
@@ -6364,6 +6711,7 @@ class SessionManager:
         supplied: dict[str, Any] | None,
         *,
         travel_mode: str,
+        source_snapshot: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         raw = supplied or {}
         task_list_source = "EXPLICIT_STATE_TRAVEL_INPUT"
@@ -6409,6 +6757,7 @@ class SessionManager:
                 raw_task_list = []
                 task_list_source = "NO_ACTIVE_PLAN"
         task_list = normalize_task_list(raw_task_list)
+        goal_projection = cast(dict[str, Any], backlog["goal_projection"])
         if canonical_plan_task_list and raw.get("task_list") is not None:
             require(
                 task_list == canonical_plan_task_list,
@@ -6542,8 +6891,10 @@ class SessionManager:
             )
         default_prompt = (
             f"Resume Evidence Lane project {project_id} at step {resume_step}: "
-            f"{resume_row['step']} Re-project the exact complete task panel as the "
-            "first destination action, preserve every status, description, order, "
+            f"{resume_row['step']} After the fresh destination is created, bound, "
+            "and resumed exactly once, re-project the exact complete task panel, "
+            "wait for explicit host Plan acceptance, then run Evidence Plan and "
+            "start the carried Goal automatically. Preserve every status, description, order, "
             "and additive Delta, and keep it visible as sole writer through every "
             "pause and HIL until the physically final six-way HIL is decided and "
             "all decision-dependent work is complete."
@@ -6583,8 +6934,17 @@ class SessionManager:
                 "SOURCE_MUTATION",
                 "TESTING",
                 "GIT_ACTIVITY",
-                "LIFECYCLE_CALL",
+                "SUBSEQUENT_LIFECYCLE_CALL",
             ],
+            "state_travel_destination_first_native_lifecycle_action": (
+                "PV_STATE_TRAVEL_RESUME_EXACTLY_ONCE"
+            ),
+            "state_travel_destination_first_host_action_after_resume": (
+                "REPROJECT_EXACT_COMPLETE_TASK_LIST"
+            ),
+            "host_plan_acceptance_required_before_evidence_plan": bool(task_list),
+            "host_plan_acceptance_is_evidence_lane_hil": False,
+            "goal_or_source_work_before_host_plan_acceptance": False,
             "task_list_sha256": task_list_sha256,
             "visible_row_start": task_list[0]["number"] if task_list else None,
             "visible_row_end": task_list[-1]["number"] if task_list else None,
@@ -6597,6 +6957,10 @@ class SessionManager:
             "non_empty_task_list_requires_exactly_one_in_progress": True,
             "preserve_order_and_row_count": True,
             "preserve_completed_and_pending_descriptions_unabridged": True,
+            "preserve_row_task_name_class_group_batch_dependencies_git_stage": True,
+            "visible_label_contract": goal_projection.get(
+                "visible_label_contract"
+            ),
             "visible_through_pause_and_hil": True,
             "drop_allowed_when": (
                 "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_"
@@ -6652,6 +7016,233 @@ class SessionManager:
                 "DECISION_DEPENDENT_WORK_COMPLETE"
             ),
         }
+        codex_host = session.host.value.startswith("CODEX")
+        source_task_id = str(
+            session.metadata.get("current_host_session_id") or ""
+        ).strip()
+        if codex_host and travel_mode == "UNFINISHED_VERIFIED_WORK":
+            require(
+                bool(source_task_id),
+                "STATE_TRAVEL_SOURCE_TASK_ID_REQUIRED",
+                "Unfinished Codex State Travel requires the exact source task identity.",
+                status="BLOCKED",
+            )
+        source_task_deep_link = self._state_travel_task_deep_link(
+            session.host.value,
+            source_task_id,
+        )
+        plugin_build = (
+            self._state_travel_plugin_build_identity() if codex_host else None
+        )
+        pointer = self.store.pointer(project_id)
+        source_task_binding_body = {
+            "schema": "evidence-lane.state-travel-source-task-binding.v1",
+            "project_id": project_id,
+            "evidence_session_id": session.session_id,
+            "source_task_id": source_task_id or None,
+            "source_task_deep_link": source_task_deep_link,
+            "source_task_deep_link_sha256": (
+                sha256_bytes(source_task_deep_link.encode("utf-8"))
+                if source_task_deep_link
+                else None
+            ),
+            "accepted_pointer": {
+                "accepted_pv": pointer.accepted_pv,
+                "generation": pointer.generation,
+                "manifest_sha256": pointer.accepted_manifest_sha256,
+            },
+            "active_row": active_rows[0]["number"] if active_rows else None,
+            "active_task_id": (
+                active_rows[0]["task_id"] if active_rows else None
+            ),
+            "source_identity_sha256": (
+                source_snapshot.get("identity_sha256")
+                if isinstance(source_snapshot, dict)
+                else None
+            ),
+            "source_worktree_sha256": (
+                source_snapshot.get("worktree_sha256")
+                if isinstance(source_snapshot, dict)
+                else None
+            ),
+            "plugin_build": plugin_build,
+            "execution_profile": execution_profile,
+            "destination_task_id": "BOUND_AT_DESTINATION_ENTRY",
+            "destination_task_deep_link": "BOUND_AT_DESTINATION_ENTRY",
+            "identity_basis": (
+                "EXACT_SOURCE_AND_DESTINATION_TASK_IDS_PLUS_DEEP_LINKS_"
+                "PROJECT_SESSION_POINTER_SOURCE_PLUGIN_AND_PLAN"
+            ),
+            "task_title_used_as_identity": False,
+            "cwd_used_as_identity": False,
+        }
+        source_task_binding = {
+            **source_task_binding_body,
+            "binding_sha256": sha256_bytes(
+                canonical_json_bytes(source_task_binding_body)
+            ),
+        }
+        physically_final_hil = next(
+            (
+                row
+                for row in reversed(task_list)
+                if row.get("panel_role") == "PHYSICALLY_FINAL_HIL"
+            ),
+            None,
+        )
+        destination_orchestration = {
+            "schema": (
+                "evidence-lane.state-travel-destination-orchestration.v2"
+            ),
+            "enabled": bool(
+                codex_host
+                and task_list
+                and travel_mode == "UNFINISHED_VERIFIED_WORK"
+            ),
+            "trigger": "STATE_TRAVEL_DESTINATION_ENTRY",
+            "execution": "AUTOMATIC_LINEAR_HOST_ORCHESTRATION",
+            "canonical_task_title_increment_law": (
+                "SOURCE_TASK_X_TO_FRESH_DESTINATION_TASK_X_PLUS_1"
+            ),
+            "destination_creation_action": "CONTINUE_IN_NEW_CHAT",
+            "destination_creation_programmatic_when_supported": True,
+            "destination_creation_user_click_required": False,
+            "destination_creation_exactly_once": True,
+            "destination_creation_capability_detection_required": True,
+            "destination_creation_capability_unavailable_behavior": (
+                "FAIL_CLOSED_WITHOUT_RESUME_OR_GOAL"
+            ),
+            "source_task_binding": source_task_binding,
+            "destination_binding_required_fields": [
+                "SOURCE_TASK_ID_AND_DEEP_LINK",
+                "DESTINATION_TASK_ID_AND_DEEP_LINK",
+                "PROJECT_AND_EVIDENCE_SESSION",
+                "ACCEPTED_POINTER",
+                "ACTIVE_ROW",
+                "HOST_SESSION",
+                "PLUGIN_BUILD",
+                "SOURCE_IDENTITY_AND_DIRTY_UNTRACKED_WORKTREE",
+                "EXECUTION_PROFILE",
+            ],
+            "title_or_cwd_only_binding_allowed": False,
+            "manual_plan_mode_command_required": False,
+            "manual_evi_plan_command_required": False,
+            "manual_goal_prompt_paste_required": False,
+            "host_mode_selector_mutation_supported": False,
+            "host_mode_selector_status": (
+                "HOST_MODE_SELECTOR_UNAVAILABLE" if codex_host else "NOT_APPLICABLE"
+            ),
+            "existing_plan_authority_behavior": (
+                "VERIFY_AND_PROJECT_WITHOUT_REWRITE_OR_DUPLICATION"
+            ),
+            "task_list_sha256": task_list_sha256,
+            "row_start": task_list[0]["number"] if task_list else None,
+            "row_end": task_list[-1]["number"] if task_list else None,
+            "sole_active_row": active_rows[0]["number"] if active_rows else None,
+            "sole_active_task_id": (
+                active_rows[0]["task_id"] if active_rows else None
+            ),
+            "physically_final_hil_row": (
+                physically_final_hil["number"] if physically_final_hil else None
+            ),
+            "physically_final_hil_task_id": (
+                physically_final_hil["task_id"] if physically_final_hil else None
+            ),
+            "plan_projection_native_reads": [
+                "pv_status",
+                "pv_task_backlog",
+                "pv_query",
+            ],
+            "bounded_query_required": True,
+            "host_plan_tool": "update_plan",
+            "host_plan_projection_count": 2,
+            "host_plan_acceptance_required": True,
+            "host_plan_acceptance_control_must_be_visible": True,
+            "host_plan_automatic_acceptance_allowed": False,
+            "host_plan_acceptance_is_evidence_lane_hil": False,
+            "host_plan_acceptance_pointer_effect": "NONE",
+            "phase_4_or_5_before_plan_acceptance_allowed": False,
+            "goal_action": "CREATE_OR_RESUME_TRANSFERRED_PLUGIN_GOAL",
+            "goal_start_prompt": str(goal_projection["goal_start_prompt"]),
+            "pre_goal_source_work_allowed": False,
+            "phase_receipts_required_in_order": [
+                "DESTINATION_CREATED_AND_BOUND",
+                "BOOT_FLASH_AND_RESUME_VERIFIED",
+                "HOST_PLAN_PROJECTED_AND_EXPLICITLY_ACCEPTED",
+                "EVIDENCE_PLAN_VERIFIED",
+                "GOAL_STARTED_OR_RESUMED",
+            ],
+            "ordered_phases": [
+                {
+                    "number": 1,
+                    "phase": "CREATE_AND_BIND_FRESH_DESTINATION_TASK",
+                    "owner": "CODEX_HOST_ORCHESTRATOR",
+                    "action": "CONTINUE_IN_NEW_CHAT",
+                    "programmatic_when_supported": True,
+                    "user_click_required": False,
+                    "exactly_once": True,
+                    "bind": source_task_binding,
+                    "fail_closed_without_host_capability": True,
+                },
+                {
+                    "number": 2,
+                    "phase": "ATOMIC_BOOT_FLASH_AND_RESUME_EXACTLY_ONCE",
+                    "owner": "NATIVE_EVIDENCE_LANE",
+                    "action": "pv_state_travel_resume",
+                    "first_state_travel_lifecycle_action": True,
+                    "retry_allowed": False,
+                    "requires": [
+                        "DESTINATION_CREATION_AND_BINDING_RECEIPT",
+                        "HANDOFF_RECEIPT",
+                        "ACCEPTED_POINTER_AND_PACKAGE",
+                        "RUNTIME_DOCTOR_AND_LOCKED_FLASH",
+                        "LIVE_SOURCE_IDENTITY",
+                        "EXECUTION_PROFILE",
+                        "CANONICAL_PLAN_AUTHORITY",
+                        "SOLE_ACTIVE_ROW",
+                        "PHYSICALLY_FINAL_HIL_ROW_WHEN_DECLARED",
+                    ],
+                },
+                {
+                    "number": 3,
+                    "phase": "RESTORE_HOST_PLAN_AND_WAIT_FOR_EXPLICIT_ACCEPTANCE",
+                    "owner": "ACTIVE_STATE_TRAVEL_SKILL",
+                    "action": "update_plan",
+                    "projection": "COMPLETE_UNABRIDGED_TASK_LIST",
+                    "surface_acceptance_control": True,
+                    "automatic_acceptance_allowed": False,
+                    "wait_state": "WAITING_FOR_EXPLICIT_HOST_PLAN_ACCEPTANCE",
+                    "evidence_lane_hil": False,
+                    "pointer_effect": "NONE",
+                    "blocks_phases": [4, 5],
+                },
+                {
+                    "number": 4,
+                    "phase": "VERIFY_EVIDENCE_PLAN_AFTER_HOST_ACCEPTANCE",
+                    "owner": "ACTIVE_STATE_TRAVEL_SKILL",
+                    "skill": "evidence-lane-plugin:source-command-evi-plan",
+                    "requires_host_plan_acceptance": True,
+                    "native_reads": [
+                        "pv_status",
+                        "pv_task_backlog",
+                        "pv_query",
+                    ],
+                    "bounded_query_required": True,
+                    "action": "update_plan",
+                    "plan_lane_write_allowed_when_authority_exists": False,
+                    "duplicate_rows_allowed": False,
+                    "manual_command_required": False,
+                },
+                {
+                    "number": 5,
+                    "phase": "START_OR_RESUME_TRANSFERRED_PLUGIN_GOAL",
+                    "owner": "CODEX_HOST",
+                    "action": "create_or_resume_goal",
+                    "requires_completed_phases": [1, 2, 3, 4],
+                    "manual_prompt_required": False,
+                },
+            ],
+        }
         body = {
             "schema": "evidence-lane.state-travel-resume-contract.v1",
             "project_id": project_id,
@@ -6681,6 +7272,8 @@ class SessionManager:
             "host_profile_application": "HOST_MEDIATED_EXACT_MATCH_REQUIRED",
             "execution_writer_boundary": execution_writer_boundary,
             "goal_continuity": goal_continuity,
+            "source_task_binding": source_task_binding,
+            "destination_orchestration": destination_orchestration,
             "collaboration_law": {
                 "writer_policy": "SOLE_WRITER",
                 "entry_recovery_subagents": (
@@ -6705,6 +7298,11 @@ class SessionManager:
                     "native_goal_projection": True,
                     "native_task_panel_projection": True,
                     "goal_or_model_selector_mutation_supported_by_mcp": False,
+                    "host_mode_selector_status": "HOST_MODE_SELECTOR_UNAVAILABLE",
+                    "state_travel_destination_plan_projection": (
+                        "AUTOMATIC_HOST_EQUIVALENT"
+                    ),
+                    "state_travel_manual_plan_command_required": False,
                 }
                 if session.host.value.startswith("CODEX")
                 else {
@@ -6769,11 +7367,12 @@ class SessionManager:
                 status="MISMATCH",
                 host=host_kind.value,
             )
-        resume_contract = travel.get("resume_contract")
+        resume_contract = cast(
+            dict[str, Any],
+            travel.get("resume_contract") or {},
+        )
         expected_profile = (
             cast(dict[str, str], resume_contract.get("execution_profile", {}))
-            if isinstance(resume_contract, dict)
-            else {}
         )
         actual_profile = execution_profile_from_context(runtime_context)
         mismatches = execution_profile_mismatches(expected_profile, actual_profile)
@@ -6787,6 +7386,114 @@ class SessionManager:
             mismatches=mismatches,
             host_settings_mutation_supported=False,
         )
+        destination_orchestration = cast(
+            dict[str, Any],
+            resume_contract.get("destination_orchestration") or {},
+        )
+        destination_task_binding: dict[str, Any] | None = None
+        if destination_orchestration.get("enabled") is True:
+            runtime = runtime_context or {}
+            creation = runtime.get("state_travel_destination_creation")
+            require(
+                isinstance(creation, dict)
+                and creation.get("capability_status") == "SUPPORTED",
+                "STATE_TRAVEL_HOST_CONTINUE_IN_NEW_CHAT_UNAVAILABLE",
+                "The host did not prove supported programmatic Continue in new chat; "
+                "the destination must fail closed before resume.",
+                status="BLOCKED",
+                capability_status=(
+                    creation.get("capability_status")
+                    if isinstance(creation, dict)
+                    else "UNAVAILABLE"
+                ),
+            )
+            creation = cast(dict[str, Any], creation)
+            source_binding = cast(
+                dict[str, Any],
+                resume_contract.get("source_task_binding") or {},
+            )
+            source_binding_body = {
+                key: value
+                for key, value in source_binding.items()
+                if key != "binding_sha256"
+            }
+            source_task_id = str(source_binding.get("source_task_id") or "")
+            source_task_deep_link = self._state_travel_task_deep_link(
+                str(travel.get("origin_host") or ""),
+                source_task_id,
+            )
+            destination_task_deep_link = self._state_travel_task_deep_link(
+                host_kind.value,
+                exact_host_session_id,
+            )
+            destination_resolution = self._state_travel_destination_resolution(
+                creation,
+                destination_task_id=exact_host_session_id,
+                destination_task_deep_link=destination_task_deep_link,
+            )
+            require(
+                source_binding.get("binding_sha256")
+                == sha256_bytes(canonical_json_bytes(source_binding_body))
+                and source_task_id
+                == str(travel.get("origin_host_session_id") or "")
+                and source_binding.get("source_task_deep_link")
+                == source_task_deep_link
+                and creation.get("schema")
+                == "evidence-lane.host-destination-creation.v1"
+                and creation.get("host_action") == "CONTINUE_IN_NEW_CHAT"
+                and creation.get("programmatic") is True
+                and creation.get("creation_count") == 1
+                and creation.get("source_task_id") == source_task_id
+                and creation.get("source_task_deep_link")
+                == source_task_deep_link
+                and creation.get("canonical_title_increment_verified") is True,
+                "STATE_TRAVEL_DESTINATION_CREATION_BINDING_MISMATCH",
+                "The host destination-creation receipt does not bind exactly one "
+                "fresh source/destination task pair and canonical title increment.",
+                status="MISMATCH",
+            )
+            current_plugin_build = self._state_travel_plugin_build_identity()
+            require(
+                current_plugin_build == source_binding.get("plugin_build"),
+                "STATE_TRAVEL_DESTINATION_PLUGIN_BUILD_MISMATCH",
+                "The destination task is not running the exact prepared plugin build.",
+                status="MISMATCH",
+                expected=source_binding.get("plugin_build"),
+                actual=current_plugin_build,
+            )
+            binding_body = {
+                "schema": "evidence-lane.state-travel-destination-task-binding.v1",
+                "project_id": project_id,
+                "evidence_session_id": session_id,
+                "source_task_id": source_task_id,
+                "source_task_deep_link": source_task_deep_link,
+                "destination_task_id": exact_host_session_id,
+                "destination_task_deep_link": destination_task_deep_link,
+                "destination_resolution": destination_resolution,
+                "host_action": creation.get("host_action"),
+                "creation_count": creation.get("creation_count"),
+                "canonical_title_increment_verified": True,
+                "accepted_pointer": source_binding.get("accepted_pointer"),
+                "active_row": source_binding.get("active_row"),
+                "active_task_id": source_binding.get("active_task_id"),
+                "source_identity_sha256": source_binding.get(
+                    "source_identity_sha256"
+                ),
+                "source_worktree_sha256": source_binding.get(
+                    "source_worktree_sha256"
+                ),
+                "plugin_build": current_plugin_build,
+                "execution_profile": actual_profile,
+                "identity_basis": source_binding.get("identity_basis"),
+                "task_title_used_as_identity": False,
+                "cwd_used_as_identity": False,
+            }
+            destination_task_binding = {
+                **binding_body,
+                "binding_sha256": sha256_bytes(
+                    canonical_json_bytes(binding_body)
+                ),
+            }
         pointer = self.store.pointer(project_id)
         require(
             pointer.accepted_pv == travel.get("accepted_pv")
@@ -6852,6 +7559,208 @@ class SessionManager:
             "execution_profile": actual_profile,
             "execution_profile_verified": bool(expected_profile),
             "host_settings_mutated": False,
+            "destination_task_binding": destination_task_binding,
+            "destination_task_binding_verified": bool(destination_task_binding),
+        }
+
+    def state_travel_resume_replay(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        handoff_id: str,
+        host: HostKind | str,
+        host_session_id: str,
+        runtime_context: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        """Return a no-rebind replay receipt for one already-consumed handoff."""
+
+        session = self.load(project_id, session_id)
+        current = session.metadata.get("state_travel")
+        history = session.metadata.get("state_travel_history", [])
+        receipts = [current] if isinstance(current, dict) else []
+        if isinstance(history, list):
+            receipts.extend(row for row in history if isinstance(row, dict))
+        matches = [
+            cast(dict[str, Any], row)
+            for row in receipts
+            if row.get("handoff_id") == handoff_id
+        ]
+        if not matches:
+            return None
+        if (
+            isinstance(current, dict)
+            and current.get("handoff_id") == handoff_id
+            and current.get("status") == "PREPARED"
+        ):
+            return None
+        consumed = next(
+            (
+                row
+                for row in matches
+                if row.get("status") in _STATE_TRAVEL_CONSUMED_STATUSES
+            ),
+            None,
+        )
+        require(
+            consumed is not None,
+            "STATE_TRAVEL_HANDOFF_SUPERSEDED",
+            "The requested State Travel handoff is historical but was not consumed; "
+            "it cannot bind a destination.",
+            status="BLOCKED",
+            handoff_id=handoff_id,
+            historical_statuses=sorted(
+                {str(row.get("status") or "UNKNOWN") for row in matches}
+            ),
+        )
+        consumed = cast(dict[str, Any], consumed)
+        exact_host_session_id = host_session_id.strip()
+        host_kind = normalize_host_kind(host)
+        require(
+            consumed.get("destination_host") == host_kind.value
+            and consumed.get("destination_host_session_id")
+            == exact_host_session_id,
+            "STATE_TRAVEL_REPLAY_DESTINATION_MISMATCH",
+            "An already-consumed handoff cannot be rebound to another destination "
+            "host-session tuple.",
+            status="MISMATCH",
+            handoff_id=handoff_id,
+            expected_destination_host=consumed.get("destination_host"),
+            expected_destination_host_session_id=consumed.get(
+                "destination_host_session_id"
+            ),
+            supplied_destination_host=host_kind.value,
+            supplied_destination_host_session_id=exact_host_session_id,
+        )
+        resume_contract = cast(
+            dict[str, Any],
+            consumed.get("resume_contract") or {},
+        )
+        expected_profile = cast(
+            dict[str, str],
+            resume_contract.get("execution_profile") or {},
+        )
+        actual_profile = execution_profile_from_context(runtime_context)
+        mismatches = execution_profile_mismatches(expected_profile, actual_profile)
+        require(
+            not mismatches,
+            "STATE_TRAVEL_REPLAY_EXECUTION_PROFILE_MISMATCH",
+            "An already-consumed handoff cannot be replayed under a different "
+            "execution profile.",
+            status="MISMATCH",
+            mismatches=mismatches,
+        )
+        destination_binding = cast(
+            dict[str, Any],
+            consumed.get("destination_task_binding") or {},
+        )
+        if destination_binding:
+            require(
+                destination_binding.get("destination_task_id")
+                == exact_host_session_id,
+                "STATE_TRAVEL_REPLAY_DESTINATION_BINDING_MISMATCH",
+                "The consumed destination-task binding does not match the replay "
+                "host-session tuple.",
+                status="MISMATCH",
+            )
+            creation = (runtime_context or {}).get(
+                "state_travel_destination_creation"
+            )
+            require(
+                isinstance(creation, dict),
+                "STATE_TRAVEL_REPLAY_DESTINATION_CREATION_REQUIRED",
+                "Replay classification requires the original destination-creation "
+                "identity without invoking it again.",
+                status="BLOCKED",
+            )
+            supplied_resolution = self._state_travel_destination_resolution(
+                cast(dict[str, Any], creation),
+                destination_task_id=exact_host_session_id,
+                destination_task_deep_link=cast(
+                    str | None,
+                    destination_binding.get("destination_task_deep_link"),
+                ),
+            )
+            stored_resolution = destination_binding.get("destination_resolution")
+            require(
+                not isinstance(stored_resolution, dict)
+                or (
+                    stored_resolution.get("client_thread_id")
+                    == supplied_resolution.get("client_thread_id")
+                    and stored_resolution.get("destination_task_id")
+                    == supplied_resolution.get("destination_task_id")
+                ),
+                "STATE_TRAVEL_REPLAY_CLIENT_THREAD_BINDING_MISMATCH",
+                "The replay supplied a different queued clientThreadId resolution.",
+                status="MISMATCH",
+            )
+
+        pointer_before = self.store.pointer(project_id).as_dict()
+        candidate_before = session.candidate_id
+        pending_hil_before = bool(session.metadata.get("pending_hil"))
+        incident_body = {
+            "schema": "evidence-lane.state-travel-replay-incident.v1",
+            "incident_id": prefixed_id("state_travel_replay"),
+            "status": "ALREADY_CONSUMED_NO_REBIND",
+            "project_id": project_id,
+            "session_id": session_id,
+            "handoff_id": handoff_id,
+            "handoff_sha256": consumed.get("handoff_sha256"),
+            "original_consumption_receipt_sha256": cast(
+                dict[str, Any],
+                consumed.get("resume_consumption_receipt") or {},
+            ).get("receipt_sha256"),
+            "destination_host": host_kind.value,
+            "destination_host_session_id": exact_host_session_id,
+            "resume_invoked": False,
+            "host_rebound": False,
+            "source_mutated": False,
+            "pointer_moved": False,
+            "candidate_created": False,
+            "candidate_mutated": False,
+            "pending_hil_mutated": False,
+            "hil_inferred": False,
+            "pointer_before": pointer_before,
+            "candidate_id_before": candidate_before,
+            "pending_hil_before": pending_hil_before,
+            "recorded_at": utc_now(),
+        }
+        incident = {
+            **incident_body,
+            "incident_sha256": sha256_bytes(canonical_json_bytes(incident_body)),
+        }
+        session.metadata.setdefault("state_travel_replay_history", []).append(
+            incident
+        )
+        session.metadata["last_state_travel_replay_incident"] = incident
+        self._save(session)
+        pointer_after = self.store.pointer(project_id).as_dict()
+        require(
+            pointer_after == pointer_before
+            and session.candidate_id == candidate_before
+            and bool(session.metadata.get("pending_hil")) == pending_hil_before,
+            "STATE_TRAVEL_REPLAY_INCIDENT_INVARIANT_FAILED",
+            "Replay incident recording changed governed lifecycle authority.",
+            status="FAIL",
+        )
+        return {
+            "status": "ALREADY_CONSUMED_NO_REBIND",
+            "state_travel": consumed,
+            "idempotent_reuse": True,
+            "replay_incident": incident,
+            "session": session.as_dict(),
+            "pointer": pointer_after,
+            "wait_state": consumed.get("wait_state"),
+            "next_action": "RETURN_ORIGINAL_CONSUMPTION_RECEIPT_NO_REBIND",
+            "suggested_next_prompt": cast(
+                dict[str, Any],
+                consumed.get("next_action_contract") or {},
+            ).get("suggested_next_prompt"),
+            "next_action_contract": consumed.get("next_action_contract"),
+            "task_started": False,
+            "continuation_ready": consumed.get("continuation_ready"),
+            "boot_repeated": False,
+            "flash_repeated": False,
         }
 
     def prepare_state_travel(
@@ -6916,11 +7825,17 @@ class SessionManager:
                 "The verified pointer base does not match the accepted package.",
                 status="MISMATCH",
             )
+        source_snapshot = (
+            self._state_travel_source_snapshot(project_id)
+            if travel_mode == "UNFINISHED_VERIFIED_WORK"
+            else None
+        )
         exact_resume_contract = self._state_travel_resume_contract(
             project_id,
             session,
             resume_contract,
             travel_mode=travel_mode,
+            source_snapshot=source_snapshot,
         )
         candidate_snapshot = self._state_travel_candidate_snapshot(
             project_id,
@@ -6942,11 +7857,6 @@ class SessionManager:
             canonical_json_bytes(task_snapshot)
         )
         plan_snapshot = self._state_travel_plan_snapshot(project_id)
-        source_snapshot = (
-            self._state_travel_source_snapshot(project_id)
-            if travel_mode == "UNFINISHED_VERIFIED_WORK"
-            else None
-        )
         pointer_body = pointer.as_dict()
         pointer_snapshot = {
             **pointer_body,
@@ -7077,6 +7987,9 @@ class SessionManager:
                     "execution_writer_boundary"
                 ),
                 goal_continuity=exact_resume_contract.get("goal_continuity"),
+                destination_orchestration=exact_resume_contract.get(
+                    "destination_orchestration"
+                ),
             ),
             "host_window_opened": False,
             "host_window_opening_is_host_mediated": True,
@@ -7282,6 +8195,9 @@ class SessionManager:
                     "execution_writer_boundary"
                 ),
                 goal_continuity=resume_contract.get("goal_continuity"),
+                destination_orchestration=resume_contract.get(
+                    "destination_orchestration"
+                ),
             )
             continuation_ready = False
         elif travel_mode == "ACCEPTED_ENTRY":
@@ -7304,6 +8220,9 @@ class SessionManager:
                     "execution_writer_boundary"
                 ),
                 goal_continuity=resume_contract.get("goal_continuity"),
+                destination_orchestration=resume_contract.get(
+                    "destination_orchestration"
+                ),
             )
             continuation_ready = False
         else:
@@ -7316,26 +8235,73 @@ class SessionManager:
                 ),
                 "task_or_candidate_cleared": False,
                 "pointer_moved": False,
+                "destination_orchestration": resume_contract.get(
+                    "destination_orchestration"
+                ),
+                "destination_task_binding": destination.get(
+                    "destination_task_binding"
+                ),
             }
             state_travel_status = "VERIFIED_RESUME_READY"
-            wait_state = "RESUME_READY"
-            next_action = "RESUME_EXACT_UNFINISHED_STEP"
+            wait_state = "WAITING_FOR_HOST_PLAN_ACCEPTANCE"
+            next_action = "RESTORE_HOST_PLAN_AND_WAIT_FOR_EXPLICIT_ACCEPTANCE"
             next_action_contract = state_travel_next_action(
-                state="RESUME_EXACT_UNFINISHED_STEP",
-                command="CONTINUE_PRESERVED_PLAN_LANE",
+                state="WAITING_FOR_HOST_PLAN_ACCEPTANCE",
+                command="HOST_UPDATE_PLAN_THEN_WAIT_FOR_EXPLICIT_ACCEPTANCE",
                 suggested_next_prompt=str(resume_contract["suggested_next_prompt"]),
                 target_surface=str(travel.get("target_surface")),
                 display_position="AFTER_STATE_TRAVEL_VERIFICATION",
-                stop_and_wait=False,
+                stop_and_wait=True,
                 task_panel_reactivation=resume_contract.get("panel_reactivation"),
                 execution_writer_boundary=resume_contract.get(
                     "execution_writer_boundary"
                 ),
                 goal_continuity=resume_contract.get("goal_continuity"),
+                destination_orchestration=resume_contract.get(
+                    "destination_orchestration"
+                ),
             )
             continuation_ready = True
 
         completed_at = utc_now()
+        resume_tuple = {
+            "handoff_id": handoff_id,
+            "destination_host": session.host.value,
+            "destination_host_session_id": current_host_session_id,
+        }
+        consumption_body = {
+            "schema": "evidence-lane.state-travel-resume-consumption.v1",
+            "status": "CONSUMED_EXACTLY_ONCE",
+            "project_id": project_id,
+            "session_id": session_id,
+            "handoff_id": handoff_id,
+            "handoff_sha256": travel.get("handoff_sha256"),
+            "resume_tuple": resume_tuple,
+            "resume_tuple_sha256": sha256_bytes(
+                canonical_json_bytes(resume_tuple)
+            ),
+            "destination_task_binding_sha256": cast(
+                dict[str, Any],
+                destination.get("destination_task_binding") or {},
+            ).get("binding_sha256"),
+            "resume_invocation_count": 1,
+            "host_rebound": True,
+            "source_mutated": False,
+            "pointer_moved": False,
+            "candidate_created": False,
+            "candidate_mutated": False,
+            "pending_hil_mutated": False,
+            "hil_inferred": False,
+            "accepted_pv": pointer.accepted_pv,
+            "pointer_generation": pointer.generation,
+            "candidate_id": session.candidate_id,
+            "pending_hil": bool(session.metadata.get("pending_hil")),
+            "consumed_at": completed_at,
+        }
+        resume_consumption_receipt = {
+            **consumption_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(consumption_body)),
+        }
         verified = {
             **travel,
             "status": state_travel_status,
@@ -7354,15 +8320,70 @@ class SessionManager:
             "execution_profile_verified": destination[
                 "execution_profile_verified"
             ],
+            "destination_task_binding": destination.get(
+                "destination_task_binding"
+            ),
+            "destination_task_binding_verified": destination.get(
+                "destination_task_binding_verified"
+            ),
             "host_settings_mutated": False,
             "completed_at": completed_at,
+            "resume_consumption_receipt": resume_consumption_receipt,
             "wait_state": wait_state,
             "continuation_ready": continuation_ready,
+            "native_resume_ready": (
+                travel_mode == "UNFINISHED_VERIFIED_WORK"
+                and continuation_ready
+            ),
+            "host_plan_acceptance_pending": (
+                travel_mode == "UNFINISHED_VERIFIED_WORK"
+            ),
+            "host_plan_acceptance_is_evidence_lane_hil": False,
+            "evidence_plan_verification_pending": (
+                travel_mode == "UNFINISHED_VERIFIED_WORK"
+            ),
+            "goal_start_allowed": False,
+            "source_work_allowed": False,
+            "continuation_ready_scope": (
+                "NATIVE_RESUME_VERIFIED_ONLY_PENDING_HOST_PLAN_ACCEPTANCE_"
+                "EVIDENCE_PLAN_AND_GOAL"
+                if travel_mode == "UNFINISHED_VERIFIED_WORK"
+                else "WAIT_STATE"
+            ),
             "next_action_contract": next_action_contract,
         }
         session.metadata["state_travel"] = verified
         session.metadata.setdefault("state_travel_history", []).append(verified)
         self._save(session)
+        host_plan_rehydration = None
+        if (
+            travel_mode == "UNFINISHED_VERIFIED_WORK"
+            and resume_contract.get("task_list_source")
+            == "ACTIVE_PLAN_LANE_DERIVED"
+        ):
+            host_plan_rehydration = self._prepare_host_plan_rehydration(
+                project_id,
+                session,
+                trigger="STATE_TRAVEL_DESTINATION_ENTRY",
+                trigger_event_id=str(resume_consumption_receipt["receipt_sha256"]),
+                host_goal_active=False,
+            )
+            require(
+                host_plan_rehydration is not None,
+                "STATE_TRAVEL_HOST_PLAN_REHYDRATION_REQUIRED",
+                "Unfinished State Travel requires an exact physically-final host Plan projection.",
+                status="MISMATCH",
+            )
+            host_plan_rehydration = cast(dict[str, Any], host_plan_rehydration)
+            verified["host_plan_rehydration"] = host_plan_rehydration
+            session.metadata["state_travel"] = verified
+            cast(list[dict[str, Any]], session.metadata["state_travel_history"])[
+                -1
+            ] = verified
+            session.metadata["last_host_plan_rehydration_receipt_sha256"] = cast(
+                dict[str, Any], host_plan_rehydration["receipt"]
+            )["receipt_sha256"]
+            self._save(session)
         event = ChatLineage(self._lineage_path(project_id, session_id)).append(
             event_type="pv.state_travel.verified",
             visible_payload={
@@ -7388,6 +8409,12 @@ class SessionManager:
                 "execution_profile_verified": destination[
                     "execution_profile_verified"
                 ],
+                "destination_task_binding_verified": destination.get(
+                    "destination_task_binding_verified"
+                ),
+                "host_plan_acceptance_pending": (
+                    travel_mode == "UNFINISHED_VERIFIED_WORK"
+                ),
                 "next_action": next_action,
             },
             occurred_at=completed_at,
@@ -7416,6 +8443,7 @@ class SessionManager:
                 "suggested_next_prompt"
             ],
             "next_action_contract": next_action_contract,
+            "host_plan_rehydration": host_plan_rehydration,
             "task_started": False,
             "continuation_ready": continuation_ready,
             "event": event,

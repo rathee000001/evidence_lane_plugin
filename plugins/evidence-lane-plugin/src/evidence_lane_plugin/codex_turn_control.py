@@ -15,20 +15,36 @@ import re
 import sqlite3
 import time
 import tomllib
+from collections.abc import Mapping
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
+from .canon_runtime_continuity import (
+    seal_host_exit_continuity_packet,
+    seal_observed_experience_packet,
+)
 from .constants import ENGINE_VERSION
 from .errors import EvidenceLaneError
 from .git_adapter import calculate_worktree_sha256, inspect_repository, run_git
+from .goal_usage import (
+    TOKEN_COMPONENT_KEYS,
+    build_component_token_accounting,
+    build_profile_observed_usage_context,
+)
 from .hashing import (
     atomic_write_json,
     canonical_json_bytes,
     sha256_bytes,
     sha256_file,
 )
+from .hook_contract import (
+    HOOK_EVENT_NAMES,
+    lifecycle_hook_contract,
+    validate_hook_configuration,
+)
+from .host_plan_rehydration import prepare_host_plan_rehydration
 from .lineage import ChatLineage
 from .prompt_index import PromptIndex
 from .redaction import contains_secret, redact_text
@@ -56,6 +72,9 @@ _TOKEN_METRIC_KEYS = {
     "cache_read_input_tokens",
     "cache_creation_input_tokens",
     "reasoning_tokens",
+    "main_agent_tokens",
+    "agent_tokens",
+    "subagent_tokens",
 }
 _GOAL_USAGE_SEMANTICS = {
     "GOAL_FINAL_COUNTER",
@@ -257,6 +276,7 @@ def _package_surface_inventory() -> dict[str, Any]:
     hook_paths = [
         plugin_root / "hooks" / "hooks.json",
         *sorted((plugin_root / "hooks").glob("*.py")),
+        *sorted((plugin_root / "hooks").glob("*.ps1")),
     ]
     skill_paths = sorted((plugin_root / "skills").glob("*/SKILL.md"))
     _require(
@@ -286,6 +306,7 @@ def _package_surface_inventory() -> dict[str, Any]:
 
     hook_files = inventory(hook_paths, skill=False)
     hook_configuration = _json(plugin_root / "hooks" / "hooks.json")
+    hook_contract_validation = validate_hook_configuration(hook_configuration)
     hook_events = dict(hook_configuration.get("hooks") or {})
     registered_events = sorted(hook_events)
     handler_count = sum(
@@ -296,17 +317,7 @@ def _package_surface_inventory() -> dict[str, Any]:
         if isinstance(group, dict)
     )
     _require(
-        registered_events
-        == [
-            "PostCompact",
-            "PostToolUse",
-            "PreCompact",
-            "PreToolUse",
-            "SessionEnd",
-            "SessionStart",
-            "Stop",
-            "UserPromptSubmit",
-        ]
+        registered_events == sorted(HOOK_EVENT_NAMES)
         and handler_count == 8,
         "TURN_CONTROL_PACKAGE_HOOK_EVENT_INVENTORY_REQUIRED",
         "The installed persistent hook event inventory is not exact.",
@@ -323,6 +334,8 @@ def _package_surface_inventory() -> dict[str, Any]:
         "event_inventory_sha256": sha256_bytes(
             canonical_json_bytes(registered_events)
         ),
+        "lifecycle_contract": lifecycle_hook_contract(),
+        "configuration_validation": hook_contract_validation,
     }
     hook_inventory["inventory_sha256"] = sha256_bytes(
         canonical_json_bytes(hook_inventory)
@@ -1269,6 +1282,53 @@ def _one_bound_session(
         runtime_state=activation.get("state"),
     )
     return candidate
+
+
+def _prepare_bound_host_plan_rehydration(
+    root: Path,
+    *,
+    bound: dict[str, Any],
+    host_payload: dict[str, Any],
+    trigger: str,
+    trigger_event_id: str,
+) -> dict[str, Any] | None:
+    """Prepare a skill-owned host Plan request without executing host behavior."""
+
+    session = cast(dict[str, Any], bound["session"])
+    metadata = cast(dict[str, Any], session.get("metadata") or {})
+    host_task_id = str(metadata.get("current_host_session_id") or "").strip()
+    if not host_task_id:
+        return None
+    observation_value = host_payload.get("host_plan_artifact_observation")
+    observation = (
+        cast(dict[str, Any], observation_value)
+        if isinstance(observation_value, dict)
+        else None
+    )
+    try:
+        return prepare_host_plan_rehydration(
+            root,
+            project_id=str(session["project_id"]),
+            evidence_session_id=str(session["session_id"]),
+            host_task_id=host_task_id,
+            trigger=trigger,
+            trigger_event_id=trigger_event_id,
+            host_capability=str(
+                host_payload.get("host_plan_capability_status") or "SUPPORTED"
+            ),
+            observed_artifact=observation,
+            host_goal_active=(
+                bool(host_payload["host_goal_active"])
+                if "host_goal_active" in host_payload
+                else None
+            ),
+        )
+    except EvidenceLaneError as exc:
+        raise TurnControlError(
+            exc.code,
+            exc.message,
+            **dict(exc.details),
+        ) from exc
 
 
 def _validate_alias_claim_profile(
@@ -3228,21 +3288,34 @@ def _ensure_research_question(
     }
 
 
-def _goal_usage_observation(host_payload: dict[str, Any]) -> dict[str, Any]:
-    """Normalize only trustworthy Goal-accounted counters exposed by the host."""
+def _goal_usage_observation(
+    host_payload: dict[str, Any],
+    *,
+    binding: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Normalize trustworthy Goal totals and independently exposed components."""
 
     raw = host_payload.get("goal_usage")
     if raw is None:
         observation: dict[str, Any] = {
-            "schema": "evidence-lane.goal-usage-observation.v1",
+            "schema": "evidence-lane.goal-usage-observation.v2",
             "availability": "UNAVAILABLE",
             "reason": "HOST_GOAL_ACCOUNTED_COUNTER_NOT_EXPOSED",
-            "accounting_basis": "GOAL_ACCOUNTED_TOKENS_ONLY",
+            "accounting_basis": "HOST_EXPOSED_COMPONENTS_AND_FINAL_TOTAL_ONLY",
             "goal_id": None,
             "metric_semantics": None,
             "goal_accounted_tokens": None,
+            "component_values": {key: None for key in TOKEN_COMPONENT_KEYS},
+            "host_total_tokens": None,
+            "profile_observed_context": {
+                "availability": "UNAVAILABLE",
+                "reason": "PROFILE_OBSERVATION_NOT_SUPPLIED",
+                "causal_attribution_inferred": False,
+            },
             "provided_fields": [],
-            "aggregation_rule": "NEVER_SUM_CUMULATIVE_SNAPSHOTS",
+            "aggregation_rule": (
+                "HOST_TOTAL_ELSE_NON_OVERLAPPING_AGENT_TOTALS_ELSE_INPUT_PLUS_OUTPUT"
+            ),
             "task_status_effect": "NONE",
             "goal_completion_effect": "NONE",
             "private_reasoning_stored": False,
@@ -3267,18 +3340,121 @@ def _goal_usage_observation(host_payload: dict[str, Any]) -> dict[str, Any]:
     )
     goal_id = str(safe.get("goal_id") or "").strip()
     semantics = str(safe.get("metric_semantics") or "").strip().upper()
-    tokens = safe.get("goal_accounted_tokens")
     provenance = safe.get("provenance")
-    complete = (
+    raw_profile_observations = safe.get("profile_observations")
+    raw_user_attribution = safe.get("user_exclusive_attribution")
+    profile_observed_context: dict[str, Any]
+    if raw_profile_observations is None and raw_user_attribution is None:
+        profile_observed_context = {
+            "availability": "UNAVAILABLE",
+            "reason": "PROFILE_OBSERVATION_NOT_SUPPLIED",
+            "causal_attribution_inferred": False,
+        }
+    else:
+        _require(
+            isinstance(raw_profile_observations, list)
+            and isinstance(raw_user_attribution, str)
+            and bool(raw_user_attribution.strip())
+            and isinstance(binding, dict),
+            "TURN_CONTROL_PROFILE_OBSERVED_CONTEXT_INVALID",
+            "Profile-observed usage requires observations, a user attribution, and exact governed binding.",
+        )
+        try:
+            profile_observed_context = build_profile_observed_usage_context(
+                observations=cast(
+                    list[Mapping[str, object]], raw_profile_observations
+                ),
+                user_exclusive_attribution=raw_user_attribution,
+                binding=cast(Mapping[str, object], binding),
+            )
+        except (TypeError, ValueError) as exc:
+            raise TurnControlError(
+                "TURN_CONTROL_PROFILE_OBSERVED_CONTEXT_INVALID",
+                str(exc),
+            ) from exc
+    raw_components = safe.get("components")
+    if raw_components is None:
+        raw_components = {}
+    _require(
+        isinstance(raw_components, dict),
+        "TURN_CONTROL_GOAL_USAGE_COMPONENTS_INVALID",
+        "Goal usage components must be one structured object when supplied.",
+    )
+    component_values: dict[str, int | None] = {}
+    for key in TOKEN_COMPONENT_KEYS:
+        aliases = ("agent_tokens",) if key == "main_agent_tokens" else ()
+        supplied = next(
+            (
+                source[name]
+                for source in (raw_components, safe)
+                for name in (key, *aliases)
+                if name in source
+            ),
+            None,
+        )
+        _require(
+            supplied is None
+            or supplied == "UNAVAILABLE"
+            or (
+                isinstance(supplied, int)
+                and not isinstance(supplied, bool)
+                and supplied >= 0
+            ),
+            "TURN_CONTROL_GOAL_USAGE_COMPONENT_INVALID",
+            "Each supplied Goal usage component must be a non-negative integer or UNAVAILABLE.",
+            component=key,
+        )
+        component_values[key] = (
+            supplied if isinstance(supplied, int) and not isinstance(supplied, bool) else None
+        )
+
+    legacy_total = safe.get("goal_accounted_tokens")
+    host_total = safe.get("total_tokens", legacy_total)
+    _require(
+        host_total is None
+        or host_total == "UNAVAILABLE"
+        or (
+            isinstance(host_total, int)
+            and not isinstance(host_total, bool)
+            and host_total >= 0
+        ),
+        "TURN_CONTROL_GOAL_TOTAL_INVALID",
+        "A supplied Goal final total must be a non-negative integer or UNAVAILABLE.",
+    )
+    exact_host_total = (
+        host_total
+        if isinstance(host_total, int) and not isinstance(host_total, bool)
+        else None
+    )
+    main_agent = component_values["main_agent_tokens"]
+    subagent = component_values["subagent_tokens"]
+    input_tokens = component_values["input_tokens"]
+    output_tokens = component_values["output_tokens"]
+    if exact_host_total is not None:
+        aggregate_tokens = exact_host_total
+        aggregate_basis = "HOST_EXPOSED_FINAL_TOTAL"
+    elif main_agent is not None and subagent is not None:
+        aggregate_tokens = main_agent + subagent
+        aggregate_basis = "SUM_NON_OVERLAPPING_MAIN_AGENT_AND_SUBAGENT_TOTALS"
+    elif (
+        main_agent is None
+        and subagent is None
+        and input_tokens is not None
+        and output_tokens is not None
+    ):
+        aggregate_tokens = input_tokens + output_tokens
+        aggregate_basis = "SUM_NON_OVERLAPPING_INPUT_AND_OUTPUT"
+    else:
+        aggregate_tokens = None
+        aggregate_basis = "UNAVAILABLE_INSUFFICIENT_NON_OVERLAPPING_COMPONENTS"
+
+    trustworthy_identity = (
         bool(goal_id)
         and semantics in _GOAL_USAGE_SEMANTICS
-        and isinstance(tokens, int)
-        and not isinstance(tokens, bool)
-        and tokens >= 0
         and isinstance(provenance, dict)
         and bool(str(provenance.get("source") or "").strip())
     )
-    if complete:
+    if trustworthy_identity:
         elapsed_seconds = safe.get("elapsed_seconds")
         _require(
             elapsed_seconds is None
@@ -3291,15 +3467,31 @@ def _goal_usage_observation(host_payload: dict[str, Any]) -> dict[str, Any]:
             "Goal elapsed seconds must be an exact non-negative integer when supplied.",
         )
         observation = {
-            "schema": "evidence-lane.goal-usage-observation.v1",
-            "availability": "AVAILABLE",
-            "accounting_basis": "GOAL_ACCOUNTED_TOKENS_ONLY",
+            "schema": "evidence-lane.goal-usage-observation.v2",
+            "availability": (
+                "AVAILABLE" if aggregate_tokens is not None else "UNAVAILABLE"
+            ),
+            "reason": (
+                None
+                if aggregate_tokens is not None
+                else "FINAL_AGGREGATE_NOT_EXPOSED_OR_PROVABLY_DERIVABLE"
+            ),
+            "accounting_basis": "HOST_EXPOSED_COMPONENTS_AND_FINAL_TOTAL_ONLY",
             "goal_id": goal_id,
             "metric_semantics": semantics,
-            "goal_accounted_tokens": tokens,
+            "goal_accounted_tokens": aggregate_tokens,
+            "component_values": component_values,
+            "host_total_tokens": exact_host_total,
+            "profile_observed_context": profile_observed_context,
+            "aggregate_basis": aggregate_basis,
             "elapsed_seconds": elapsed_seconds,
             "provenance": provenance,
-            "aggregation_rule": "NEVER_SUM_CUMULATIVE_SNAPSHOTS",
+            "aggregation_rule": (
+                "HOST_TOTAL_ELSE_NON_OVERLAPPING_AGENT_TOTALS_ELSE_INPUT_PLUS_OUTPUT"
+            ),
+            "cached_input_is_subset_of_input": True,
+            "reasoning_is_subset_of_output": True,
+            "output_only_is_total": False,
             "task_status_effect": "NONE",
             "goal_completion_effect": "NONE",
             "exact_counts_preserved": True,
@@ -3307,15 +3499,20 @@ def _goal_usage_observation(host_payload: dict[str, Any]) -> dict[str, Any]:
         }
     else:
         observation = {
-            "schema": "evidence-lane.goal-usage-observation.v1",
+            "schema": "evidence-lane.goal-usage-observation.v2",
             "availability": "UNAVAILABLE",
             "reason": "INCOMPLETE_OR_UNTRUSTWORTHY_GOAL_USAGE_PROVENANCE",
-            "accounting_basis": "GOAL_ACCOUNTED_TOKENS_ONLY",
+            "accounting_basis": "HOST_EXPOSED_COMPONENTS_AND_FINAL_TOTAL_ONLY",
             "goal_id": None,
             "metric_semantics": None,
             "goal_accounted_tokens": None,
+            "component_values": component_values,
+            "host_total_tokens": exact_host_total,
+            "profile_observed_context": profile_observed_context,
             "provided_fields": sorted(str(key) for key in safe),
-            "aggregation_rule": "NEVER_SUM_CUMULATIVE_SNAPSHOTS",
+            "aggregation_rule": (
+                "HOST_TOTAL_ELSE_NON_OVERLAPPING_AGENT_TOTALS_ELSE_INPUT_PLUS_OUTPUT"
+            ),
             "task_status_effect": "NONE",
             "goal_completion_effect": "NONE",
             "private_reasoning_stored": False,
@@ -3364,16 +3561,39 @@ def _ensure_goal_usage(
             """,
             (entry["project_id"], entry["evidence_session_id"]),
         ).fetchone()
+        component_accounting = None
+        provenance = observation.get("provenance")
+        if isinstance(provenance, dict) and str(provenance.get("source") or "").strip():
+            component_accounting = build_component_token_accounting(
+                components=cast(
+                    dict[str, object], observation.get("component_values") or {}
+                ),
+                total_tokens=observation.get("host_total_tokens"),
+                provenance=provenance,
+                binding={
+                    "project_id": entry["project_id"],
+                    "evidence_session_id": entry["evidence_session_id"],
+                    "task_id": entry["task_id"],
+                    "host_session_id_sha256": sha256_bytes(
+                        str(entry["host_session_id"]).encode("utf-8")
+                    ),
+                },
+            )
         record = {
-            "schema": "evidence-lane.project-goal-usage-record.v1",
+            "schema": "evidence-lane.project-goal-usage-record.v2",
             "project_id": entry["project_id"],
             "evidence_session_id": entry["evidence_session_id"],
             "task_id": entry["task_id"],
+            "plan_task_id": entry.get("plan_task_id"),
+            "host_session_id_sha256": sha256_bytes(
+                str(entry["host_session_id"]).encode("utf-8")
+            ),
             "turn_id": entry["turn_id"],
             "prompt_index": entry["prompt_index"],
             "control_record_sha256": entry["control_record_sha256"],
             "observation": observation,
             "observation_sha256": observation["observation_sha256"],
+            "component_accounting": component_accounting,
             "prior_usage_record_sha256": (
                 prior["usage_record_sha256"] if prior else None
             ),
@@ -3415,7 +3635,9 @@ def _ensure_goal_usage(
         "goal_id": observation.get("goal_id"),
         "metric_semantics": observation.get("metric_semantics"),
         "goal_accounted_tokens": observation.get("goal_accounted_tokens"),
-        "aggregation_rule": "NEVER_SUM_CUMULATIVE_SNAPSHOTS",
+        "component_accounting": record.get("component_accounting"),
+        "profile_observed_context": observation.get("profile_observed_context"),
+        "aggregation_rule": observation.get("aggregation_rule"),
         "project_local_only": True,
         "private_reasoning_stored": False,
     }
@@ -4904,6 +5126,16 @@ def record_lifecycle_boundary_event(
         "private_reasoning_stored": False,
         "sealed_at": _now(),
     }
+    if event_name in {"PreCompact", "PostCompact"}:
+        core["host_plan_rehydration"] = _prepare_bound_host_plan_rehydration(
+            root,
+            bound=candidate,
+            host_payload=host_payload,
+            trigger=event_name.upper(),
+            trigger_event_id=receipt_id,
+        )
+        core["hook_performed_host_update_plan"] = False
+        core["host_plan_behavior_owner"] = "ACTIVE_EVIDENCE_LANE_SKILL"
     lineage = ChatLineage(
         project_root / "lineage" / f"{evidence_session_id}.jsonl"
     ).append(
@@ -5047,7 +5279,13 @@ def commit_turn(
     project_root = Path(bound["project_root"])
     telemetry = _response_telemetry(host_payload)
     operational = _operational_links(host_payload)
-    goal_usage = _goal_usage_observation(host_payload)
+    usage_binding = {
+        "project_id": str(binding["project_id"]),
+        "evidence_session_id": str(binding["evidence_session_id"]),
+        "task_id": str(binding["task_id"]),
+        "host_session_id_sha256": sha256_bytes(host_session_id.encode("utf-8")),
+    }
+    goal_usage = _goal_usage_observation(host_payload, binding=usage_binding)
     live_source_snapshot = _source_change_snapshot(
         root,
         binding=binding,
@@ -5385,6 +5623,18 @@ def commit_turn(
             submodel=telemetry["submodel"],
             token_metrics=telemetry["token_metrics"],
         )
+        observed_experience = seal_observed_experience_packet(
+            project_root,
+            project_id=str(binding["project_id"]),
+            evidence_session_id=str(binding["evidence_session_id"]),
+            runtime_task_id=str(binding["task_id"]),
+            plan_task_id=str(binding["plan_task_id"]),
+            active_plan=cast(dict[str, Any], binding["persistent_plan_row"]),
+            event=commit_event,
+            expected_accepted_pv=str(binding["accepted_pv"]),
+            expected_pointer_generation=int(binding["pointer_generation"]),
+            input_kind=str(entry.get("input_kind") or "user_prompt"),
+        )
         with _connection(project_root) as connection:
             existing = connection.execute(
                 "SELECT commit_json FROM turn_commit WHERE control_record_sha256=?",
@@ -5464,6 +5714,7 @@ def commit_turn(
         "state_sha256": state_sha256,
         "response_lineage_event_sha256": response_event["event_sha256"],
         "commit_lineage_event_sha256": commit_event["event_sha256"],
+        "observed_experience": observed_experience,
         "lineage_projection": lineage_projection,
         "response_projection_path": str(response_path),
         "operational_links": operational,
@@ -5507,6 +5758,7 @@ def seal_lifecycle_exit_slip(
         "TURN_CONTROL_LIFECYCLE_EXIT_VISIBLE_REASON_REQUIRED",
         "A lifecycle Exit Slip requires one secret-redacted visible reason.",
     )
+    stateless_ephemeral_proof: dict[str, Any] | None = None
     if exact_reason == "STATELESS_EPHEMERAL_END":
         runtime_context_value = host_payload.get("runtime_context")
         runtime_context: dict[str, Any] = (
@@ -5514,12 +5766,38 @@ def seal_lifecycle_exit_slip(
             if isinstance(runtime_context_value, dict)
             else {}
         )
-        _require(
+        ephemeral = (
             host_payload.get("ephemeral") is True
-            or runtime_context.get("ephemeral") is True,
-            "TURN_CONTROL_STATELESS_EPHEMERAL_PROOF_REQUIRED",
-            "A stateless invocation Exit Slip requires explicit ephemeral-host proof.",
+            or runtime_context.get("ephemeral") is True
         )
+        stateless = (
+            host_payload.get("stateless") is True
+            or host_payload.get("stateless_invocation") is True
+            or runtime_context.get("stateless") is True
+            or runtime_context.get("stateless_invocation") is True
+        )
+        interaction_profile = str(
+            host_payload.get("interaction_profile")
+            or runtime_context.get("interaction_profile")
+            or ""
+        ).strip().upper()
+        _require(
+            ephemeral
+            and stateless
+            and interaction_profile in {"HEADLESS_API", "DIRECT_CLI_API"},
+            "TURN_CONTROL_STATELESS_EPHEMERAL_PROOF_REQUIRED",
+            "A stateless invocation Exit Slip requires explicit ephemeral, stateless, "
+            "and headless/API interaction proof.",
+            ephemeral=ephemeral,
+            stateless=stateless,
+            interaction_profile=interaction_profile or "UNAVAILABLE",
+        )
+        stateless_ephemeral_proof = {
+            "ephemeral": True,
+            "stateless": True,
+            "interaction_profile": interaction_profile,
+            "proof_source": "EXPLICIT_HOST_OR_RUNTIME_CONTEXT",
+        }
     root = Path(store_root).resolve()
     host_session_id = str(host_payload.get("session_id") or "").strip()
     _require(
@@ -5538,19 +5816,31 @@ def seal_lifecycle_exit_slip(
     latest_control_record_sha256: str | None = None
     latest_turn_state = "NO_TURN_RECEIPT"
     with _connection(project_root) as connection:
-        latest = connection.execute(
+        latest_rows = connection.execute(
             """
-            SELECT e.control_record_sha256, c.commit_sha256
+            SELECT e.record_json, c.commit_sha256
             FROM turn_entry e
             LEFT JOIN turn_commit c
               ON c.control_record_sha256=e.control_record_sha256
             WHERE e.host_session_id=?
-            ORDER BY e.prompt_index DESC LIMIT 1
+            ORDER BY e.prompt_index DESC
             """,
             (host_session_id,),
-        ).fetchone()
+        ).fetchall()
+        latest = next(
+            (
+                row
+                for row in latest_rows
+                if json.loads(row["record_json"]).get("task_id")
+                == binding["task_id"]
+            ),
+            None,
+        )
     if latest is not None:
-        latest_control_record_sha256 = str(latest["control_record_sha256"])
+        latest_entry = json.loads(latest["record_json"])
+        latest_control_record_sha256 = str(
+            latest_entry["control_record_sha256"]
+        )
         latest_turn_state = (
             "COMMITTED" if latest["commit_sha256"] else "PREPARED_NOT_COMMITTED"
         )
@@ -5567,6 +5857,7 @@ def seal_lifecycle_exit_slip(
         "reason": exact_reason,
         "visible_reason_sha256": sha256_bytes(safe_visible_reason.encode("utf-8")),
         "latest_control_record_sha256": latest_control_record_sha256,
+        "stateless_ephemeral_proof": stateless_ephemeral_proof,
     }
     exit_identity_sha256 = sha256_bytes(canonical_json_bytes(identity))
     exit_path = (
@@ -5635,12 +5926,31 @@ def seal_lifecycle_exit_slip(
         submodel=telemetry["submodel"],
         token_metrics=telemetry["token_metrics"],
     )
+    session_metadata = cast(
+        dict[str, Any], (bound.get("session") or {}).get("metadata") or {}
+    )
+    host_exit_continuity = seal_host_exit_continuity_packet(
+        project_root,
+        project_id=str(binding["project_id"]),
+        evidence_session_id=str(binding["evidence_session_id"]),
+        runtime_task_id=str(binding["task_id"]),
+        plan_task_id=str(binding["plan_task_id"]),
+        active_plan=cast(dict[str, Any], binding["persistent_plan_row"]),
+        event=lineage_event,
+        exit_slip=receipt,
+        persistence_route=cast(
+            dict[str, Any], session_metadata.get("persistence_route") or {}
+        ),
+        expected_accepted_pv=str(binding["accepted_pv"]),
+        expected_pointer_generation=int(binding["pointer_generation"]),
+    )
     return {
         "status": "PASS",
         "state": state,
         "receipt": receipt,
         "exit_slip_path": str(exit_path),
         "lineage_event_sha256": lineage_event["event_sha256"],
+        "host_exit_continuity": host_exit_continuity,
     }
 
 
@@ -5834,6 +6144,21 @@ def session_start_control(
         ),
         warm_attach_receipt=warm_attach_receipt,
     )
+    session_source = str(host_payload.get("source") or "").strip().lower()
+    session_trigger = (
+        "HOT_REATTACH"
+        if "reattach" in session_source
+        else "SESSION_START_COLD"
+        if session_source in {"cold", "new", "startup"}
+        else "SESSION_START_WARM"
+    )
+    host_plan_rehydration = _prepare_bound_host_plan_rehydration(
+        root,
+        bound=bound,
+        host_payload=host_payload,
+        trigger=session_trigger,
+        trigger_event_id=str(warm_attach_receipt["receipt_sha256"]),
+    )
     return {
         "state": (
             "RECOVERED_PREPARED_NOT_COMMITTED"
@@ -5852,6 +6177,9 @@ def session_start_control(
         "uncommitted": recovered,
         "lineage_projection": projection,
         "warm_attach_receipt": warm_attach_receipt,
+        "host_plan_rehydration": host_plan_rehydration,
+        "host_plan_behavior_owner": "ACTIVE_EVIDENCE_LANE_SKILL",
+        "hook_performed_host_update_plan": False,
         "persistent_change_display": persistent_change_display,
         "scrollback_authority": False,
         "transcript_authority": False,

@@ -5,8 +5,10 @@ description: Evidence Lane root router with user-timed State Travel and exactly 
 
 # Evidence Lane root
 
-After the lifecycle PREPARE hook, the skill—not the hook—first calls the native
-`pv_status`, `pv_task_backlog`, and one prompt-relevant bounded `pv_query`.
+After the `UserPromptSubmit` hook seals its transport envelope and the installed
+lifecycle skill runtime consumes it into a PREPARE receipt, the skill first
+calls native `pv_status`, `pv_task_backlog`, and one prompt-relevant bounded
+`pv_query`.
 Internal hook retrieval is lifecycle evidence only and never satisfies this
 native read sequence. A prepared exact-work handoff makes State Travel
 eligible, but eligibility alone must not display, invoke, or consume it. Route
@@ -26,8 +28,10 @@ unabridged, keep the panel visible through every pause and HIL, and drop it only
 after the physically final six-way HIL is decided and all decision-dependent
 work is complete.
 
-Hooks remain lifecycle-only: they may seal PREPARE/COMMIT and bounded event
-receipts, but they never call `pv_status`, `pv_task_backlog`, `pv_query`, or
+Hook command files remain transport-only: they validate, redact, bound,
+deduplicate, and seal event envelopes. The installed lifecycle skill runtime
+owns PREPARE/COMMIT and bounded lifecycle receipts after envelope validation.
+Hook adapters never call `pv_status`, `pv_task_backlog`, `pv_query`, or
 `update_plan`, and never carry the full Plan Lane. After every
 `pv_plan_steer_delta`, the skill repeats the three native reads and redraws the
 same complete panel. Fail closed when either the native MCP route or host plan

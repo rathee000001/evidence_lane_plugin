@@ -148,6 +148,7 @@ def state_travel_next_action(
     task_panel_reactivation: dict[str, Any] | None = None,
     execution_writer_boundary: dict[str, Any] | None = None,
     goal_continuity: dict[str, Any] | None = None,
+    destination_orchestration: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return the host-neutral prompt contract for State Travel."""
 
@@ -169,4 +170,6 @@ def state_travel_next_action(
         contract["execution_writer_boundary"] = execution_writer_boundary
     if goal_continuity is not None:
         contract["goal_continuity"] = goal_continuity
+    if destination_orchestration is not None:
+        contract["destination_orchestration"] = destination_orchestration
     return contract

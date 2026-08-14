@@ -1,4 +1,4 @@
-"""Universal MCP runtime contract; 2.1.0 is the Codex package release."""
+"""Universal MCP runtime contract; 2.2.0 is the Codex package release."""
 
 from __future__ import annotations
 
@@ -1509,6 +1509,7 @@ def create_mcp_server(
         expected_name: str,
         branch: str,
         sensitivity: str = "PRIVATE",
+        capture_route: str = "GOVERNED_PROJECT_FULL",
     ) -> dict[str, Any]:
         return application.invoke(
             "pv_enroll_project",
@@ -1520,6 +1521,7 @@ def create_mcp_server(
             expected_name=expected_name,
             branch=branch,
             sensitivity=sensitivity,
+            capture_route=capture_route,
             lifecycle=True,
         )
 
@@ -1579,6 +1581,7 @@ def create_mcp_server(
         expected_name: str,
         allowed_branches: list[str],
         sensitivity: str = "PRIVATE",
+        capture_route: str = "GOVERNED_PROJECT_FULL",
     ) -> dict[str, Any]:
         return application.invoke(
             "project_register",
@@ -1590,6 +1593,7 @@ def create_mcp_server(
             expected_name=expected_name,
             allowed_branches=allowed_branches,
             sensitivity=sensitivity,
+            capture_route=capture_route,
             lifecycle=True,
         )
 

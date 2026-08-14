@@ -36,6 +36,25 @@ _TASK_STATUSES = {
     "QUEUED": "PENDING",
 }
 
+_PLAN_METADATA_ID_CHARS = set(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
+)
+
+
+def _plan_metadata_id(value: Any, *, field: str, position: int) -> str:
+    exact = str(value or "").strip()
+    require(
+        bool(exact)
+        and len(exact) <= 128
+        and all(character in _PLAN_METADATA_ID_CHARS for character in exact),
+        "STATE_TRAVEL_TASK_METADATA_INVALID",
+        "State Travel Plan metadata must use bounded public-safe identifiers.",
+        status="BLOCKED",
+        position=position,
+        field=field,
+    )
+    return exact
+
 
 def execution_profile_from_context(context: dict[str, Any] | None) -> dict[str, str]:
     """Extract only non-secret host execution-selector fields."""
@@ -194,6 +213,76 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
                 panel_role=panel_role,
             )
             normalized_row["panel_role"] = panel_role
+        task_classification = str(
+            row.get("task_classification") or row.get("task_class") or ""
+        ).strip()
+        if task_classification:
+            normalized_row["task_classification"] = _plan_metadata_id(
+                task_classification,
+                field="task_classification",
+                position=index,
+            )
+        plan_group = str(row.get("plan_group") or "").strip()
+        if plan_group:
+            normalized_row["plan_group"] = _plan_metadata_id(
+                plan_group,
+                field="plan_group",
+                position=index,
+            )
+        commit_batch_id = str(row.get("commit_batch_id") or "").strip()
+        if commit_batch_id:
+            normalized_row["commit_batch_id"] = _plan_metadata_id(
+                commit_batch_id,
+                field="commit_batch_id",
+                position=index,
+            )
+        if "dependencies" in row:
+            dependencies = row.get("dependencies")
+            require(
+                isinstance(dependencies, list)
+                and len(dependencies) <= 64
+                and all(
+                    isinstance(value, str)
+                    and bool(value.strip())
+                    and len(value.strip()) <= 128
+                    and all(
+                        character in _PLAN_METADATA_ID_CHARS
+                        for character in value.strip()
+                    )
+                    for value in dependencies
+                ),
+                "STATE_TRAVEL_TASK_DEPENDENCIES_INVALID",
+                "State Travel dependencies must be bounded public-safe task IDs.",
+                status="BLOCKED",
+                position=index,
+            )
+            normalized_row["dependencies"] = list(
+                dict.fromkeys(value.strip() for value in dependencies)
+            )
+        for metadata_field in (
+            "dependency_source",
+            "git_commit_stage",
+            "git_commit_stage_source",
+        ):
+            metadata_value = str(row.get(metadata_field) or "").strip()
+            if metadata_value:
+                normalized_row[metadata_field] = _plan_metadata_id(
+                    metadata_value,
+                    field=metadata_field,
+                    position=index,
+                )
+        visible_label = row.get("visible_label")
+        if visible_label is not None:
+            require(
+                isinstance(visible_label, str)
+                and bool(visible_label.strip())
+                and len(visible_label) <= 25000,
+                "STATE_TRAVEL_TASK_VISIBLE_LABEL_INVALID",
+                "A State Travel visible label must be bounded non-empty text.",
+                status="BLOCKED",
+                position=index,
+            )
+            normalized_row["visible_label"] = visible_label
         raw_steers = row.get("steer_deltas")
         if raw_steers:
             require(

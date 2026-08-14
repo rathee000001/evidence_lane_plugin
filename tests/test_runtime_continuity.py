@@ -18,6 +18,8 @@ from .conftest import boot_local, build_and_approve_pv1
 def _legacy_runtime_continuity(current: dict) -> dict:
     legacy = copy.deepcopy(current)
     legacy.pop("invocation")
+    legacy.pop("runtime_classifier")
+    legacy.pop("runtime_namespace")
     legacy.pop("continuity_receipt_sha256")
     legacy["continuity_receipt_sha256"] = sha256_bytes(
         canonical_json_bytes(legacy)
@@ -160,9 +162,32 @@ def test_boot_build_and_resume_preserve_reference_only_runtime_continuity(
     )
     assert continuity["mcp_access"]["one_writer_required"] is True
     assert continuity["invocation"]["headless_api"] is False
+    assert continuity["runtime_classifier"]["active_surface"] == "CODEX"
+    assert continuity["runtime_classifier"]["workspace_class"] == (
+        "LOCAL_WORKSPACE"
+    )
+    assert continuity["runtime_namespace"]["project_id"] == "book-faires"
+    assert continuity["runtime_namespace"]["governed_session_id"] == session_id
+    assert continuity["runtime_namespace"]["raw_workspace_id_stored"] is False
+    assert continuity["runtime_namespace"]["raw_host_session_id_stored"] is False
     assert continuity["invocation"]["flash_verification"] == (
         "VERIFY_LOCKED_ENV_UOP_AT_EVERY_BOOT_OR_RESUME"
     )
+    assert continuity["host_entry"] == {
+        "required_before_governed_work": False,
+        "state": "NOT_REQUIRED_DURABLE_LOCAL_AUTHORITY",
+        "continuity_authority": "LOCAL_DURABLE_SQLITE",
+        "transactional_exact_once_required": False,
+        "accepted_pointer_generation_must_match": True,
+        "worktree_and_four_authority_heads_must_match": True,
+        "expiry_and_replay_nonce_required": False,
+        "consumption_receipt_sha256": None,
+        "candidate_overlay_requires_exact_authorization": True,
+        "project_truth_promotion_allowed": False,
+        "learning_promotion_allowed": False,
+        "canon_acceptance_allowed": False,
+        "hil_replay_allowed": False,
+    }
 
     built = service.build_initial("book-faires", session_id)
     candidate_path = service.store.candidate_path(

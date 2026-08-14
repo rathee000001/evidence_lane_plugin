@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import EvidenceLaneError, require
+from .flash_identity import build_flash_dual_identity
 from .flash_projection import FlashRuntimeProjection
 from .hashing import (
     atomic_write_json,
@@ -267,6 +268,12 @@ class SessionFlashAuthority:
             "The source packet audit does not preserve the partial-integrity boundary.",
             status="FAIL",
         )
+        manifest_sha256 = sha256_file(self.manifest_path)
+        dual_identity = build_flash_dual_identity(
+            manifest=manifest,
+            manifest_sha256=manifest_sha256,
+            source_audit=source_audit,
+        )
         authority_digest = sha256_bytes(
             canonical_json_bytes(
                 {
@@ -282,7 +289,7 @@ class SessionFlashAuthority:
             "status": "PASS",
             "authority_version": manifest["authority_version"],
             "authority_digest": authority_digest,
-            "manifest_sha256": sha256_file(self.manifest_path),
+            "manifest_sha256": manifest_sha256,
             "member_count": len(members),
             "flash_scope": manifest["flash_scope"],
             "persistence_state": manifest["persistence_state"],
@@ -299,6 +306,7 @@ class SessionFlashAuthority:
                 "inside_pv": False,
             },
             "warnings": [manifest["warning"]],
+            "dual_identity": dual_identity,
         }
         result["runtime_projection"] = FlashRuntimeProjection(
             data_root=self.data_root,
@@ -317,6 +325,66 @@ class SessionFlashAuthority:
             "The installation-scoped session-flash receipt is invalid.",
             status="MISMATCH",
         )
+        identity = report["dual_identity"]
+        source_identity = identity["source_authority"]["manifest_sha256"]
+        projection_identity = identity["codex_projection"]["identity_sha256"]
+        build_identity = identity["build_identity"]
+        identity_fields = (
+            "source_authority_manifest_sha256",
+            "codex_projection_identity_sha256",
+            "projection_cache_identity_sha256",
+            "build_identity_sha256",
+            "plugin_version",
+        )
+        present_identity_fields = [field for field in identity_fields if field in receipt]
+        require(
+            not present_identity_fields
+            or len(present_identity_fields) == len(identity_fields),
+            "SESSION_FLASH_DUAL_IDENTITY_RECEIPT_PARTIAL",
+            "The installed Flash receipt contains an incomplete dual identity.",
+            status="FAIL",
+            present_fields=present_identity_fields,
+        )
+        if present_identity_fields:
+            same_plugin_version = (
+                receipt.get("plugin_version") == build_identity["plugin_version"]
+            )
+            require(
+                receipt.get("codex_projection_identity_sha256")
+                == projection_identity,
+                (
+                    "SESSION_FLASH_SAME_VERSION_PROJECTION_REUSE_FORBIDDEN"
+                    if same_plugin_version
+                    else "SESSION_FLASH_PROJECTION_BUILD_CHANGED"
+                ),
+                (
+                    "A changed Codex ENV/UOP projection cannot reuse the same "
+                    "plugin version, channel, or cache identity."
+                ),
+                status="BLOCKED",
+                installed_plugin_version=receipt.get("plugin_version"),
+                bundled_plugin_version=build_identity["plugin_version"],
+                installed_projection_identity=receipt.get(
+                    "codex_projection_identity_sha256"
+                ),
+                bundled_projection_identity=projection_identity,
+            )
+            require(
+                receipt.get("source_authority_manifest_sha256")
+                == source_identity,
+                "SESSION_FLASH_SOURCE_AUTHORITY_CHANGED",
+                "The independently verified ENV/UOP source-authority identity changed.",
+                status="BLOCKED",
+            )
+            require(
+                receipt.get("projection_cache_identity_sha256")
+                == build_identity["projection_cache_identity_sha256"]
+                and receipt.get("build_identity_sha256")
+                == build_identity["identity_sha256"],
+                "SESSION_FLASH_BUILD_IDENTITY_CHANGED",
+                "The ENV/UOP build identity changed and cannot reuse this receipt.",
+                status="BLOCKED",
+            )
         require(
             receipt.get("authority_version") == report["authority_version"]
             and receipt.get("authority_digest") == report["authority_digest"]
@@ -379,6 +447,21 @@ class SessionFlashAuthority:
             "authority_version": report["authority_version"],
             "authority_digest": report["authority_digest"],
             "manifest_sha256": report["manifest_sha256"],
+            "source_authority_manifest_sha256": report["dual_identity"][
+                "source_authority"
+            ]["manifest_sha256"],
+            "codex_projection_identity_sha256": report["dual_identity"][
+                "codex_projection"
+            ]["identity_sha256"],
+            "projection_cache_identity_sha256": report["dual_identity"][
+                "build_identity"
+            ]["projection_cache_identity_sha256"],
+            "build_identity_sha256": report["dual_identity"]["build_identity"][
+                "identity_sha256"
+            ],
+            "plugin_version": report["dual_identity"]["build_identity"][
+                "plugin_version"
+            ],
             "flashed_at": utc_now(),
             "scope": "PLUGIN_INSTALLATION_OUTSIDE_PV",
             "inside_pv": False,

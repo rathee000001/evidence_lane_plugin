@@ -67,10 +67,9 @@ def test_host_persistence_matrix() -> None:
         route_persistence(HostKind.CODEX_VM, ephemeral=True).mode
         == "configured_durable_connector"
     )
-    assert (
-        route_persistence(HostKind.PUBLIC_AI, ephemeral=False).mode
-        == "configured_durable_connector"
-    )
+    with pytest.raises(EvidenceLaneError) as blocked:
+        route_persistence(HostKind.PUBLIC_AI, ephemeral=False)
+    assert blocked.value.code == "ACTIVE_SURFACE_UNPROVEN"
 
 
 @pytest.mark.parametrize("account_tier", ["PRO", "PLUS", "BUSINESS", "EDU", "ENTERPRISE"])
@@ -143,7 +142,7 @@ def test_local_api_profiles_use_local_pv_storage_without_tunnel(
     assert route.account_tier == "API"
 
 
-def test_persistent_interactive_codex_app_uses_one_time_tunnel_setup() -> None:
+def test_persistent_interactive_codex_app_uses_native_layer_without_tunnel() -> None:
     route = route_persistence(
         HostKind.CODEX_DESKTOP,
         ephemeral=False,
@@ -155,13 +154,12 @@ def test_persistent_interactive_codex_app_uses_one_time_tunnel_setup() -> None:
     )
 
     assert route.mode == "local"
-    assert route.tunnel_setup_frequency == (
-        "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
+    assert route.tunnel_requirement == (
+        "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
     )
-    assert route.tunnel_key_retention == "HOST_MANAGED_PERSISTENT_PROFILE"
-    assert route.tunnel_runtime_lifetime == (
-        "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST"
-    )
+    assert route.tunnel_setup_frequency == "NONE"
+    assert route.tunnel_key_retention == "NOT_APPLICABLE"
+    assert route.tunnel_runtime_lifetime == "NOT_APPLICABLE"
 
 
 def test_doctor_reports_drive_as_capability_routed_not_globally_required(

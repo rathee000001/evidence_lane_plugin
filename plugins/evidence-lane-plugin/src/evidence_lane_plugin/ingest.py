@@ -19,6 +19,7 @@ from .constants import (
     DEFAULT_CHUNK_OVERLAP,
     DEFAULT_MAX_FILE_BYTES,
 )
+from .dependency_detection import parse_pnpm_lock_dependencies
 from .errors import EvidenceLaneError, require
 from .hashing import sha256_bytes
 from .source_policy import content_exclusion_reason, path_exclusion_reason
@@ -148,6 +149,7 @@ def _candidate_source_files(root: Path) -> tuple[str, list[tuple[str, Path]]]:
             capture_output=True,
             check=False,
             timeout=60,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
     except (FileNotFoundError, subprocess.TimeoutExpired):
         completed = None
@@ -387,7 +389,24 @@ def _route_facts(text: str, family: str) -> list[dict[str, Any]]:
 def _dependency_facts(path: str, text: str) -> list[dict[str, str | None]]:
     name = Path(path).name.lower()
     dependencies: list[dict[str, str | None]] = []
-    if name == "package.json":
+    if name == "pnpm-lock.yaml":
+        result = parse_pnpm_lock_dependencies(text)
+        if result["status"] != "PASS":
+            return dependencies
+        for row in result["dependencies"]:
+            dependencies.append(
+                {
+                    "ecosystem": "pnpm",
+                    "name": str(row["name"]),
+                    "constraint_text": str(row["constraint"]) or None,
+                    "dependency_group": str(row["group"]),
+                    "source_path": path,
+                    "detector_id": str(row["detector_id"]),
+                    "lock_importer": str(row["importer"]),
+                    "resolved_version": str(row["resolved_version"]) or None,
+                }
+            )
+    elif name == "package.json":
         try:
             payload = json.loads(text)
         except json.JSONDecodeError:
@@ -451,6 +470,30 @@ def extract_code_lane_facts(path: str, text: str) -> list[dict[str, Any]]:
         symbols, imports = _script_facts(text)
     else:
         symbols, imports = [], []
+    dependency_facts = _dependency_facts(path, text)
+    detector_facts: list[dict[str, Any]] = []
+    if Path(path).name.casefold() == "pnpm-lock.yaml":
+        detector = parse_pnpm_lock_dependencies(text)
+        detector_facts.append(
+            {
+                "kind": "code_dependency_detector",
+                "locator": path,
+                "payload": {
+                    "detector_id": detector["detector_id"],
+                    "status": detector["status"],
+                    "reason": detector["reason"],
+                    "lockfile_version": detector["lockfile_version"],
+                    "dependency_count": len(detector["dependencies"]),
+                    "resolved_package_count": len(detector["resolved_packages"]),
+                    "override_count": len(detector["overrides"]),
+                    "ecosystem": "pnpm",
+                    "python_or_pip_detector_used": False,
+                    "zero_dependency_report_valid": not (
+                        detector["dependencies"] or detector["resolved_packages"]
+                    ),
+                },
+            }
+        )
     return [
         *({"kind": "code_symbol", "locator": path, "payload": row} for row in symbols),
         *({"kind": "code_import", "locator": path, "payload": row} for row in imports),
@@ -460,8 +503,9 @@ def extract_code_lane_facts(path: str, text: str) -> list[dict[str, Any]]:
         ),
         *(
             {"kind": "code_dependency", "locator": path, "payload": row}
-            for row in _dependency_facts(path, text)
+            for row in dependency_facts
         ),
+        *detector_facts,
     ]
 
 

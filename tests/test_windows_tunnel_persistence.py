@@ -35,6 +35,9 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert "ConvertFrom-SecureString" in installer
     assert "New-ScheduledTaskTrigger -AtLogOn" in installer
     assert "-RestartCount 999" in installer
+    assert "-WindowStyle Hidden" in installer
+    assert 'windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"' in installer
+    assert 'scheduled_task_window_style = "HIDDEN"' in installer
     assert "-StartWhenAvailable" in installer
     assert "-LogonType Interactive" in installer
     assert "runtime_key_plaintext_written = $false" in installer
@@ -71,7 +74,7 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert "MigrateCurrentRuntime" not in installer
     assert "evidence-lane.versioned-secure-mcp-tunnel-installation.v1" in installer
     assert "Pinned Evidence Lane $release $SlotRole secure MCP tunnel" in installer
-    assert 'if ($SlotRole -eq "fallback") { "2.0.0" } else { "2.1.0" }' in installer
+    assert 'if ($SlotRole -eq "fallback") { "2.0.0" } else { "2.2.0" }' in installer
     assert "Google Drive" not in installer
     assert "GDrive" not in installer
 

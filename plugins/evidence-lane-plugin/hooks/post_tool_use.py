@@ -1,4 +1,4 @@
-"""Read-only ongoing Goal projection for Evidence Lane PostToolUse."""
+"""Thin PostToolUse transport adapter for the lifecycle skill."""
 
 from __future__ import annotations
 
@@ -8,147 +8,27 @@ from pathlib import Path
 from typing import Any
 
 
-def _store_root() -> Path:
+def _load_runtime():
     source_root = Path(__file__).resolve().parents[1] / "src"
     if str(source_root) not in sys.path:
         sys.path.insert(0, str(source_root))
-    from evidence_lane_plugin.codex_turn_control import (
-        resolve_codex_hook_store_root,
-    )
-
-    return resolve_codex_hook_store_root()
-
-
-def _load_control():
-    source_root = Path(__file__).resolve().parents[1] / "src"
-    if str(source_root) not in sys.path:
-        sys.path.insert(0, str(source_root))
-    from evidence_lane_plugin.codex_turn_control import (
-        TurnControlError,
-        bind_codex_host_payload,
-        current_persistent_change_display,
-        gap_receipt,
-        persistent_change_system_message,
-        persistent_change_system_notice,
-        policy_state,
-        record_tool_event,
+    from evidence_lane_plugin.hook_contract import build_hook_transport_envelope
+    from evidence_lane_plugin.hook_skill_runtime import (
+        consume_post_tool_transport,
+        render_persistent_notice,
     )
 
     return (
-        TurnControlError,
-        bind_codex_host_payload,
-        current_persistent_change_display,
-        gap_receipt,
-        persistent_change_system_message,
-        persistent_change_system_notice,
-        policy_state,
-        record_tool_event,
+        build_hook_transport_envelope,
+        consume_post_tool_transport,
+        render_persistent_notice,
     )
 
 
 def _project(payload: dict[str, Any]) -> dict[str, Any]:
-    root = _store_root()
-    (
-        TurnControlError,
-        bind_codex_host_payload,
-        current_persistent_change_display,
-        gap_receipt,
-        _,
-        _,
-        policy_state,
-        record_tool_event,
-    ) = _load_control()
-    raw_policy = policy_state(
-        root,
-        host_session_id=str(payload.get("session_id") or "").strip(),
-        cwd=str(payload.get("cwd") or ""),
-        transcript_path=str(
-            payload.get("transcript_path")
-            or payload.get("agent_transcript_path")
-            or ""
-        ),
-    )
-    if not raw_policy.get("governed_session"):
-        return {
-            "state": "NOT_PROJECTED",
-            "reason": "NO_BOUND_EVIDENCE_LANE_SESSION",
-            "read_only_projection": True,
-            "tool_input_stored": False,
-            "tool_response_stored": False,
-            "private_reasoning_stored": False,
-        }
-    try:
-        normalized_payload, host_binding = bind_codex_host_payload(
-            root,
-            host_payload=payload,
-            event_name="PostToolUse",
-            allow_alias_claim=True,
-        )
-    except TurnControlError as exc:
-        return gap_receipt(
-            root,
-            host_payload=payload,
-            error=exc,
-            policy=raw_policy,
-        )
-    policy = policy_state(
-        root,
-        host_session_id=str(normalized_payload.get("session_id") or "").strip(),
-        cwd=str(normalized_payload.get("cwd") or ""),
-        transcript_path=str(
-            normalized_payload.get("transcript_path")
-            or normalized_payload.get("agent_transcript_path")
-            or ""
-        ),
-    )
-    if not policy.get("strict_required"):
-        return {
-            "state": "NOT_PROJECTED",
-            "reason": "SEALED_MODE_PLUS_PLAN_NOT_ACTIVE",
-            "project_id": policy.get("project_id"),
-            "evidence_session_id": policy.get("evidence_session_id"),
-            "read_only_projection": True,
-            "tool_input_stored": False,
-            "tool_response_stored": False,
-            "private_reasoning_stored": False,
-        }
-    try:
-        tool_event = None
-        if normalized_payload.get("tool_use_id") and normalized_payload.get(
-            "tool_name"
-        ):
-            try:
-                tool_event = record_tool_event(
-                    root,
-                    host_payload=normalized_payload,
-                    phase="after",
-                )
-            except TurnControlError as exc:
-                tool_event = {
-                    "state": "NOT_RECORDED_NO_PREPARED_TURN",
-                    "code": exc.code,
-                    "raw_tool_payload_stored": False,
-                    "private_reasoning_stored": False,
-                }
-        receipt = current_persistent_change_display(
-            root,
-            host_payload=normalized_payload,
-        )
-        if tool_event is not None:
-            receipt["tool_event"] = tool_event
-        if host_binding is not None:
-            receipt["host_binding"] = host_binding
-        return receipt
-    except TurnControlError as exc:
-        receipt = gap_receipt(
-            root,
-            host_payload=normalized_payload,
-            error=exc,
-            policy=policy,
-        )
-        if host_binding is not None:
-            receipt["host_binding"] = host_binding
-        return receipt
+    build_transport, consume_transport, _ = _load_runtime()
+    transport = build_transport("PostToolUse", payload)
+    return consume_transport(payload, transport)
 
 
 def main() -> int:
@@ -160,43 +40,36 @@ def main() -> int:
         payload = {}
     try:
         receipt = _project(payload)
-    except Exception as exc:  # noqa: BLE001 - expose a projection gap, never hide it
+    except Exception as exc:  # noqa: BLE001 - expose the transport gap
         receipt = {
             "schema": "evidence-lane.codex-turn-control-gap.v1",
             "state": "TURN_CONTROL_GAP",
-            "code": "POST_TOOL_USE_CHANGE_PROJECTION_UNAVAILABLE",
+            "code": "HOOK_TRANSPORT_OR_SKILL_TOOL_RECEIPT_UNAVAILABLE",
             "error_type": type(exc).__name__,
             "fail_closed_for_persistent_display_claim": True,
             "source_mutation_authorized": False,
             "tool_input_stored": False,
             "tool_response_stored": False,
             "private_reasoning_stored": False,
+            "hook_runtime_role": (
+                "VALIDATE_REDACT_BOUND_DEDUPLICATE_AND_TRANSPORT_ONLY"
+            ),
         }
     result: dict[str, Any] = {"continue": True}
     display = receipt.get("persistent_change_display")
     if isinstance(display, dict):
-        (
-            _,
-            _,
-            _,
-            _,
-            persistent_change_system_message,
-            persistent_change_system_notice,
-            _,
-            _,
-        ) = _load_control()
-        notice = persistent_change_system_notice(
+        _, _, render_notice = _load_runtime()
+        message, notice = render_notice(
             display,
             phase="POST_TOOL_USE",
             turn_receipt=receipt,
         )
-        serialized = json.dumps(notice, sort_keys=True, separators=(",", ":"))
-        result["systemMessage"] = persistent_change_system_message(notice)
+        result["systemMessage"] = message
         result["hookSpecificOutput"] = {
             "hookEventName": "PostToolUse",
             "additionalContext": (
                 "EVIDENCE_LANE_PERSISTENT_CHANGE_TOOL_PROJECTION="
-                + serialized
+                + json.dumps(notice, sort_keys=True, separators=(",", ":"))
             ),
         }
     elif receipt.get("state") == "TURN_CONTROL_GAP":

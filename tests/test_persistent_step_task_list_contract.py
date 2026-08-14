@@ -7,6 +7,12 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 SKILL = PLUGIN / "skills" / "evidence-lane-code-lifecycle" / "SKILL.md"
 BOUNDARY_HOOK = PLUGIN / "hooks" / "lifecycle_boundary.py"
+SKILL_RUNTIME = (
+    PLUGIN
+    / "src"
+    / "evidence_lane_plugin"
+    / "hook_skill_runtime.py"
+)
 HOOKS = PLUGIN / "hooks" / "hooks.json"
 
 
@@ -33,7 +39,14 @@ def test_full_step_task_list_reentry_is_skill_owned_and_goal_independent() -> No
     assert "persistent_until=NEXT_SIX_WAY_HIL_PRESENTED" in contract
     assert "PHYSICALLY_FINAL_HIL" in contract
     assert "Never replace the projection with a window, page, summary" in contract
-    assert "Row <canonical row> / <task ID> — <exact description>" in contract
+    assert "CLASS=<classification>" in contract
+    assert "BATCH=<commit batch or UNASSIGNED>" in contract
+    assert "VERSION=<marker>@<provenance>" in contract
+    assert "BRANCH=<marker>@<provenance>" in contract
+    assert "ROLE=<panel role>" in contract
+    assert "current non-superseded Plan authority" in contract
+    assert "CONFLICTING_DECLARATIONS@RECONCILIATION_REQUIRED" in contract
+    assert "every governed project and corpus" in contract
     assert "raw linked-Delta JSON" in contract
     assert "direct stdio as replacement behavior" in contract
 
@@ -41,17 +54,23 @@ def test_full_step_task_list_reentry_is_skill_owned_and_goal_independent() -> No
 def test_postcompact_hook_signals_reentry_without_owning_behavior() -> None:
     config = json.loads(HOOKS.read_text(encoding="utf-8"))
     postcompact = config["hooks"]["PostCompact"][0]["hooks"][0]
-    assert "lifecycle_boundary.py" in postcompact["command"]
-    assert postcompact["command"].endswith(" PostCompact")
-    assert postcompact["commandWindows"].endswith(" PostCompact")
+    assert postcompact["command"].endswith(
+        "--event PostCompact --handler lifecycle_boundary.py"
+    )
+    assert postcompact["commandWindows"].endswith(
+        'PostCompact lifecycle_boundary.py'
+    )
+    assert "-WindowStyle Hidden" in postcompact["commandWindows"]
 
     hook = BOUNDARY_HOOK.read_text(encoding="utf-8")
-    assert '"state": "SKILL_REENTRY_REQUIRED"' in hook
-    assert '"goal_presence_required": False' in hook
-    assert '"hook_scope": "LIFECYCLE_SIGNAL_ONLY"' in hook
-    assert '"native_behavior_performed_by_hook": False' in hook
-    assert '"host_behavior_performed_by_hook": False' in hook
-    assert '"full_plan_rows_embedded_by_hook": False' in hook
+    runtime = SKILL_RUNTIME.read_text(encoding="utf-8")
+    assert "consume_boundary_transport" in hook
+    assert '"state": "SKILL_REENTRY_REQUIRED"' in runtime
+    assert '"goal_presence_required": False' in runtime
+    assert '"hook_scope": "LIFECYCLE_SIGNAL_ONLY"' in runtime
+    assert '"native_behavior_performed_by_hook": False' in runtime
+    assert '"host_behavior_performed_by_hook": False' in runtime
+    assert '"full_plan_rows_embedded_by_hook": False' in runtime
 
     forbidden_behavior = (
         "mcp__evidence_lane__pv_status",

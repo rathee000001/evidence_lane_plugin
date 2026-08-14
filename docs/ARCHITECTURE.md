@@ -1,6 +1,6 @@
-# Evidence Lane 2.1.0 architecture
+# Evidence Lane 2.2.0 architecture
 
-Evidence Lane 2.1.0 is a Codex-native, local-first evidence lifecycle. The
+Evidence Lane 2.2.0 is a Codex-native, local-first evidence lifecycle. The
 architecture separates source truth, derived project memory, task/Delta state,
 candidate state, accepted truth, and host presentation so no one surface can
 silently promote another.
@@ -19,6 +19,22 @@ rewrite or normalize user bytes merely to make a package clean.
 Lane builders create deterministic SQLite, graph, text, and receipt artifacts.
 Every derived artifact is tied to source hashes and tool/runtime identity. A
 changed source section invalidates only affected derived projections.
+
+The bundle-level lane disposition authority contains exactly eighteen ordered
+rows. Emitted lanes are `PRESERVED` or `PARTIAL` from measured parser states
+and capabilities; never-loaded lanes are `MISSING`; lanes removed after a
+prior build are `DEFERRED`. Only emitted lanes may own SQLite/MMD/DOT/
+`tools.json` authorities. Required, conditional, and optional capabilities,
+deterministic chunk/FTS counts, topology files, and lane receipts are explicit.
+The additive contract validates new bundles while retaining read compatibility
+for historical V1/V2/V3 manifests.
+
+Code dependency detection is ecosystem-specific. `package.json` remains an npm
+manifest, while `pnpm-lock.yaml` uses its bounded pnpm importer detector and
+cannot be silently routed through a Python or pip detector. General source
+search uses hash-pinned package-local `rg` and `fzf`, then an explicitly
+configured verified host binary, then deterministic bounded built-in
+fallbacks; PATH-only selection and handshake downloads are forbidden.
 
 ### Plan and Delta plane
 
@@ -80,6 +96,20 @@ headless environments use a durable mount when available or an explicitly
 configured transactional connector. Optional artifact mirrors never become
 live SQLite authority.
 
+Insufficiently durable hosts add a separate host-entry continuity plane. A
+secret-safe, expiring envelope binds the exact accepted generation, active Plan
+row, source/destination task identities, dirty worktree hashes, ENV/UOP
+projection, and four authority heads. Consumption is transactional and
+exact-once; exact retries reuse the prior receipt, while stale generations,
+cross-project/task bindings, unauthorized candidate overlays, and replay under
+a different consumer fail closed. The envelope and its completion receipt move
+no Project Truth pointer, accept no Canon or Learning input, and replay no HIL.
+
+Storage connectors, Google Drive, and the eight additional-plugin/toolchain
+slots are independent surfaces. A storage connector is selected only through
+an explicit capability route, Google Drive is at most a sealed artifact mirror
+or carrier, and the eight slots never carry persistence authority.
+
 ## ENV/UOP Flash and runtime continuity
 
 Boot verifies the locked ENV/UOP authority before mutable work. Runtime
@@ -93,6 +123,19 @@ continuity binds:
 - storage route;
 - source boundary;
 - model/submodel/reasoning profile when governed by the task.
+
+The runtime classifier also binds the stable/current or Beta desktop container
+channel, a host-proven `active_surface=CODEX`, local/worktree/durable-remote/
+ephemeral workspace class, account-versus-API route when exposed, and allowlisted
+native capabilities. Chat and Work surfaces are out of scope. Package, process,
+window title, or CWD alone cannot prove the active surface. The resulting
+runtime namespace separates project, governed session, workspace, host session,
+plugin version, channel, and surface while receipts retain only secret-safe
+hashes for raw workspace and host-session identifiers.
+
+Native local Codex uses the package-local MCP and durable local SQLite without
+a network tunnel. Only an explicitly classified interactive ephemeral VM may
+require the separate, one-VM-lifetime tunnel support channel.
 
 Headless API invocations reverify the locked authority at entry and load the
 prior accepted or pending Entry/Exit state from durable storage. The API layer
@@ -111,7 +154,7 @@ row. It never infers HIL, moves the pointer, or creates a candidate.
 
 ## Hooks and visible continuity
 
-The v2.1 package registers eight hook events:
+The v2.2 package registers eight hook events:
 
 - `SessionStart` — verify installation and prepare bounded session context;
 - `UserPromptSubmit` — bind the visible turn without storing private reasoning;
@@ -152,7 +195,7 @@ action records formula, loop, operators, commands, exit code, commit/tree, and
 receipt hash. Preview compilation and CodeQL are evidence gates, not lifecycle
 promotion.
 
-All built v2.1.0 candidates must pass both gates: clean-checkout CI for the
+All built v2.2.0 candidates must pass both gates: clean-checkout CI for the
 exact source commit and installed-host verification for the exact package.
 
 ## Installation and restart

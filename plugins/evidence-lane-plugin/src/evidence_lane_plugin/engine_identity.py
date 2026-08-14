@@ -16,6 +16,7 @@ from typing import Any
 from .constants import ENGINE_VERSION, SCHEMA_VERSION
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .models import EngineIdentity
+from .search_toolchain import declared_search_toolchain_identity
 
 _COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 _EMBEDDED_RELEASE_MARKER = ".evidence-lane-release-sha"
@@ -81,6 +82,7 @@ def toolchain_manifest() -> dict[str, Any]:
         "platform": __import__("platform").platform(),
         "sqlite": sqlite3.sqlite_version,
         "packages": packages,
+        "external_search_tools": declared_search_toolchain_identity(),
     }
 
 

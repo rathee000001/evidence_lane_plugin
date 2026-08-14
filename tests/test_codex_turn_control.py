@@ -9,6 +9,12 @@ import sys
 from pathlib import Path
 
 import pytest
+from evidence_lane_plugin.canon_runtime_continuity import (
+    seal_host_exit_continuity_packet,
+    seal_observed_experience_packet,
+    validate_host_exit_continuity_packet,
+    validate_observed_experience_packet,
+)
 from evidence_lane_plugin.codex_turn_control import (
     TurnControlError,
     commit_turn,
@@ -23,11 +29,17 @@ from evidence_lane_plugin.codex_turn_control import (
     seal_lifecycle_exit_slip,
     session_start_control,
 )
+from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.lineage import ChatLineage
+from evidence_lane_plugin.models import SessionState
+from evidence_lane_plugin.persistence import route_persistence
 from evidence_lane_plugin.prompt_index import PromptIndex
 from evidence_lane_plugin.service import EvidenceLaneService
 
-from .conftest import build_and_approve_pv1
+from .conftest import (
+    build_and_approve_pv1,
+    state_travel_destination_creation,
+)
 
 
 def _hook_context_json(payload: dict[str, object], prefix: str) -> dict[str, object]:
@@ -162,7 +174,15 @@ def _strict_state_travel_session(service, before_strict=None) -> tuple[str, str]
         ephemeral=False,
         client_can_edit_source=True,
         server_has_durable_filesystem=True,
-        runtime_context={"execution_profile": _profile()},
+        runtime_context={
+            "execution_profile": _profile(),
+            "state_travel_destination_creation": (
+                state_travel_destination_creation(
+                    "host-session-state-travel-pv1",
+                    host_session_id,
+                )
+            ),
+        },
     )
     session = service.sessions.load("book-faires", session_id)
     session.metadata["active_backlog_task_id"] = task["task_id"]
@@ -394,9 +414,9 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert prepared_display["turn_status"]["uncommitted_count"] == 1
     assert prepared_display["composer_mutated"] is False
     package_status = prepared_display["package_change_status"]
-    assert package_status["source_plugin_version"].startswith("2.1.0+codex.")
+    assert package_status["source_plugin_version"].startswith("2.2.0+codex.")
     assert package_status["installed_plugin_version"] is None
-    assert package_status["runtime_engine_version"] == "2.1.0"
+    assert package_status["runtime_engine_version"] == "2.2.0"
     assert package_status["version_state"] == (
         "SOURCE_RUNTIME_EXACT_INSTALL_RECEIPT_UNAVAILABLE"
     )
@@ -404,7 +424,7 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert package_status["hooks"]["count_semantics"] == (
         "REGISTERED_EVENT_COUNT"
     )
-    assert package_status["hooks"]["hook_file_count"] == 7
+    assert package_status["hooks"]["hook_file_count"] == 9
     assert package_status["hooks"]["registered_events"] == [
         "PostCompact",
         "PostToolUse",
@@ -449,10 +469,26 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
             "goal_id": "corrected-goal-continuity-through-task-019fe9aa",
             "metric_semantics": "GOAL_FINAL_COUNTER",
             "goal_accounted_tokens": 44_198_517,
+            "components": {
+                "input_tokens": 30_000_000,
+                "output_tokens": 10_000_000,
+                "cached_input_tokens": 8_000_000,
+                "reasoning_tokens": 4_000_000,
+                "main_agent_tokens": 40_000_000,
+                "subagent_tokens": 4_198_517,
+            },
             "provenance": {
                 "source": "USER_CORRECTED_LEDGER",
                 "accounting_basis": "GOAL_ACCOUNTED_TOKENS_ONLY",
+                "operator_note": "api_key=FAKE_GOAL_USAGE_SECRET_1234567890",
             },
+            "profile_observations": [
+                {"observed_on": "2026-08-12", "raw": 902_300_000},
+                {"observed_on": "2026-08-13", "raw": 549_600_000},
+            ],
+            "user_exclusive_attribution": (
+                "The governed task exclusively produced both displayed daily totals."
+            ),
         },
         "tools": [{"name": "apply_patch", "result": "PASS"}],
         "files": ["plugins/evidence-lane-plugin/hooks/prompt_submit.py"],
@@ -464,6 +500,30 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert committed["operational_links"]["availability"] == "AVAILABLE"
     assert committed["goal_usage"]["availability"] == "AVAILABLE"
     assert committed["goal_usage"]["goal_accounted_tokens"] == 44_198_517
+    accounting = committed["goal_usage"]["component_accounting"]
+    assert accounting["components"]["cached_input_tokens"]["raw"] == 8_000_000
+    assert accounting["components"]["reasoning_tokens"]["raw"] == 4_000_000
+    assert accounting["components"]["subagent_tokens"]["raw"] == 4_198_517
+    assert accounting["final_aggregate"]["raw"] == 44_198_517
+    assert accounting["final_aggregate"]["basis"] == "HOST_EXPOSED_FINAL_TOTAL"
+    assert accounting["main_and_subagent_double_count_prevented"] is True
+    assert accounting["binding"]["project_id"] == "book-faires"
+    assert accounting["binding"]["evidence_session_id"]
+    assert accounting["binding"]["task_id"] == "turn-control-row"
+    assert len(accounting["binding"]["host_session_id_sha256"]) == 64
+    assert "FAKE_GOAL_USAGE_SECRET" not in json.dumps(committed["goal_usage"])
+    profile_context = committed["goal_usage"]["profile_observed_context"]
+    assert profile_context["arithmetic_sum"]["raw"] == 1_451_900_000
+    assert profile_context["arithmetic_sum"]["display"] == "1.4519B"
+    assert profile_context["user_attestation"][
+        "proven_by_profile_screenshots"
+    ] is False
+    assert profile_context["machine_telemetry"] == (
+        "NOT_ESTABLISHED_BY_PROFILE_SCREENSHOTS"
+    )
+    assert profile_context["binding"] == accounting["binding"]
+    assert profile_context["cross_project_retrieval"] is False
+    assert profile_context["public_output_included"] is False
     assert committed["source_change"]["changed_since_prepare"] is True
     assert committed["lifecycle_exit_slip_emitted"] is False
     assert committed["historical_exit_slip_alias_reused"] is False
@@ -566,6 +626,8 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert research["access_scope"] == "PROJECT_TASK_PRIVATE_ANALYSIS"
     assert research["cross_project_retrieval"] is False
     assert research["shared_fts_indexed"] is False
+    assert research["shared_global_telemetry"] is False
+    assert research["public_output_included"] is False
     assert len(research["research_questions"]) == 1
     assert "super-secret-value" not in json.dumps(research)
     assert (
@@ -616,20 +678,14 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert warm_attach["vm_lifetime"] == "LOCAL_OR_PERSISTENT"
     assert (
         warm_attach["tunnel_requirement"]
-        == "REQUIRED_FOR_INTERACTIVE_CODEX_APP_ENVIRONMENT"
+        == "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
     )
-    assert (
-        warm_attach["tunnel_setup_frequency"]
-        == "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
-    )
-    assert (
-        warm_attach["tunnel_key_retention"]
-        == "HOST_MANAGED_PERSISTENT_PROFILE"
-    )
+    assert warm_attach["tunnel_setup_frequency"] == "NONE"
+    assert warm_attach["tunnel_key_retention"] == "NOT_APPLICABLE"
     assert warm_attach["tunnel_action"] == (
         "NONE_IN_WARM_ATTACH_USE_HOST_ACTIVATION_ENVELOPE"
     )
-    assert warm_attach["tunnel_onboarding_may_be_required"] is True
+    assert warm_attach["tunnel_onboarding_may_be_required"] is False
     assert warm_attach["tunnel_state_queried"] is False
     assert warm_attach["tunnel_provisioning_wait_ns"] == 0
     assert warm_attach["tunnel_health_check_wait_ns"] == 0
@@ -684,6 +740,441 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
         assert host_session_id not in json.dumps(event, sort_keys=True)
         assert event["model"] == "gpt-5.6-sol"
         assert event["submodel"] == "sol"
+
+
+def test_lifecycle_exit_boundary_matrix_is_idempotent_and_row_bound(
+    service,
+    source_repository: Path,
+) -> None:
+    session_id, host_session_id = _strict_state_travel_session(service)
+    prompt_payload = _host_shaped_user_prompt_submit_payload(
+        host_session_id=host_session_id,
+        turn_id="turn-before-lifecycle-boundary",
+        cwd=source_repository,
+        prompt="Prepare the exact row before a bounded lifecycle exit.",
+    )
+    prepared = prepare_turn(service.store.root, host_payload=prompt_payload)
+    committed = commit_turn(
+        service.store.root,
+        host_payload={
+            **prompt_payload,
+            "last_assistant_message": "The exact ordinary turn is committed.",
+        },
+    )
+    assert committed["lifecycle_exit_slip_emitted"] is False
+
+    boundary_reasons = [
+        "HIL_WAIT",
+        "EXPLICIT_PAUSE",
+        "GENUINE_BLOCK",
+        "GOVERNED_ERROR",
+        "EXIT_BOOT",
+        "STATE_TRAVEL_HANDOFF",
+        "STATELESS_EPHEMERAL_END",
+    ]
+    sealed: dict[str, dict[str, object]] = {}
+    for reason in boundary_reasons:
+        payload: dict[str, object] = {
+            "session_id": host_session_id,
+            "turn_id": f"lifecycle-{reason.lower()}",
+            "cwd": str(source_repository),
+        }
+        if reason == "STATELESS_EPHEMERAL_END":
+            payload["runtime_context"] = {
+                "ephemeral": True,
+                "stateless_invocation": True,
+                "interaction_profile": "HEADLESS_API",
+            }
+        result = seal_lifecycle_exit_slip(
+            service.store.root,
+            host_payload=payload,
+            reason=reason,
+            visible_reason=f"Bounded lifecycle boundary: {reason}.",
+        )
+        receipt = result["receipt"]
+        sealed[reason] = result
+        assert result["status"] == "PASS"
+        assert result["state"] == "SEALED"
+        assert receipt["reason"] == reason
+        assert receipt["project_id"] == "book-faires"
+        assert receipt["evidence_session_id"] == session_id
+        assert receipt["task_id"] == "turn-control-row"
+        assert receipt["plan_task_id"] == "turn-control-row"
+        assert receipt["active_row"] == 1
+        assert receipt["resume_same_plan_task_id"] == "turn-control-row"
+        assert receipt["resume_same_row_required"] is True
+        assert receipt["latest_control_record_sha256"] == prepared[
+            "control_record_sha256"
+        ]
+        assert receipt["latest_turn_state"] == "COMMITTED"
+        assert receipt["active_task_transitioned"] is False
+        assert receipt["candidate_created_or_accepted"] is False
+        assert receipt["pointer_moved"] is False
+        assert receipt["hil_inferred"] is False
+        assert receipt["private_reasoning_stored"] is False
+        if reason == "STATELESS_EPHEMERAL_END":
+            assert receipt["stateless_ephemeral_proof"] == {
+                "ephemeral": True,
+                "stateless": True,
+                "interaction_profile": "HEADLESS_API",
+                "proof_source": "EXPLICIT_HOST_OR_RUNTIME_CONTEXT",
+            }
+        else:
+            assert receipt["stateless_ephemeral_proof"] is None
+
+        replay = seal_lifecycle_exit_slip(
+            service.store.root,
+            host_payload=payload,
+            reason=reason,
+            visible_reason=f"Bounded lifecycle boundary: {reason}.",
+        )
+        assert replay["state"] == "SEALED_IDEMPOTENT_REUSE"
+        assert replay["receipt"] == receipt
+        assert replay["receipt"]["emitted_at"] == receipt["emitted_at"]
+        assert replay["receipt"]["exit_slip_sha256"] == receipt[
+            "exit_slip_sha256"
+        ]
+        receipt_body = {
+            key: value
+            for key, value in receipt.items()
+            if key != "exit_slip_sha256"
+        }
+        expected_receipt_sha256 = hashlib.sha256(
+            (
+                json.dumps(
+                    receipt_body,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    allow_nan=False,
+                )
+                + "\n"
+            ).encode("utf-8")
+        ).hexdigest().upper()
+        assert receipt["exit_slip_sha256"] == expected_receipt_sha256
+        assert str(receipt["emitted_at"]).endswith("Z")
+
+    with pytest.raises(TurnControlError) as ordinary_turn_blocked:
+        seal_lifecycle_exit_slip(
+            service.store.root,
+            host_payload={
+                "session_id": host_session_id,
+                "cwd": str(source_repository),
+            },
+            reason="ORDINARY_TURN",
+            visible_reason="Ordinary completion is not an Exit Slip.",
+        )
+    assert ordinary_turn_blocked.value.code == (
+        "TURN_CONTROL_LIFECYCLE_EXIT_REASON_INVALID"
+    )
+
+    for insufficient_proof in (
+        {"ephemeral": True},
+        {
+            "ephemeral": True,
+            "stateless_invocation": True,
+            "interaction_profile": "CODEX_APP_INTERACTIVE",
+        },
+    ):
+        with pytest.raises(TurnControlError) as stateless_blocked:
+            seal_lifecycle_exit_slip(
+                service.store.root,
+                host_payload={
+                    "session_id": host_session_id,
+                    "cwd": str(source_repository),
+                    "runtime_context": insufficient_proof,
+                },
+                reason="STATELESS_EPHEMERAL_END",
+                visible_reason="Insufficient stateless exit proof.",
+            )
+        assert stateless_blocked.value.code == (
+            "TURN_CONTROL_STATELESS_EPHEMERAL_PROOF_REQUIRED"
+        )
+
+    resumed = session_start_control(
+        service.store.root,
+        host_payload={
+            "session_id": host_session_id,
+            "cwd": str(source_repository),
+            "source": "resume",
+        },
+    )
+    assert resumed["state"] == "BOUND_NO_UNCOMMITTED_TURNS"
+    assert resumed["persistent_plan_row"]["task_id"] == "turn-control-row"
+    assert resumed["persistent_plan_row"]["position"] == 1
+
+    lineage = ChatLineage(
+        service.store.project_root("book-faires")
+        / "lineage"
+        / f"{session_id}.jsonl"
+    ).events()
+    lifecycle_events = [
+        event
+        for event in lineage
+        if event["event_type"] == "turn.lifecycle_exit_slip"
+    ]
+    assert len(lifecycle_events) == len(boundary_reasons)
+    assert {event["visible_payload"]["reason"] for event in lifecycle_events} == set(
+        boundary_reasons
+    )
+    assert all(event["private_reasoning_stored"] is False for event in lifecycle_events)
+    assert sealed["EXPLICIT_PAUSE"]["receipt"]["exit_slip_sha256"]
+
+
+def test_row177_observed_experience_is_typed_replay_safe_and_pointer_neutral(
+    service,
+    source_repository: Path,
+) -> None:
+    session_id, host_session_id = _strict_state_travel_session(service)
+    active_session = service.sessions.load("book-faires", session_id)
+    active_session.state = SessionState.TASK_CLASSIFIED
+    active_session.task = {
+        "task_id": "turn-control-runtime-task",
+        "task_class": "modify_code",
+        "requested_outcome": "Exercise the Row177 observation bridge.",
+        "permitted_paths": ["tests/**"],
+        "permitted_tools": ["repository_read", "test"],
+        "acceptance_checks": ["Observation packets remain pointer-neutral."],
+        "stop_condition": "Stop after Row177 proof.",
+    }
+    active_session.metadata["run_id"] = "run-row177-observation-test"
+    service.sessions._save(active_session)
+    pointer_before = service.store.pointer("book-faires").as_dict()
+    live_plan = service.store.backlog_status("book-faires")["goal_projection"]
+    live_active = next(
+        row
+        for row in live_plan["rows"]
+        if row["status"] == "in_progress" and row["lifecycle_status"] == "ACTIVE"
+    )
+    plan_steer_payload = {
+        "event_subject": "Bounded Plan-changing steer",
+        "before_plan": {
+            "canonical_plan_sha256": "A" * 64,
+            "active_row": 1,
+        },
+        "after_plan": {
+            "canonical_plan_sha256": live_plan["canonical_plan_sha256"],
+            "active_row": live_active["number"],
+            "active_task_id": live_active["task_id"],
+        },
+        "linked_delta_ids": ["DELTA-ROW177-ONE", "DELTA-ROW177-TWO"],
+        "visible_detail": "access_token=secret-plan-steer-value",
+    }
+    sealed = service.sessions.record_activity(
+        "book-faires",
+        session_id,
+        activity_type="steer",
+        visible_payload=plan_steer_payload,
+        event_id="row177-plan-changing-steer",
+    )
+    observation = sealed["observed_experience"]
+    packet = validate_observed_experience_packet(
+        observation["packet"], expected_project_id="book-faires"
+    )
+    assert observation["state"] == "SEALED"
+    assert packet["classification"]["classification"] == "PLAN_CHANGING_STEER"
+    assert packet["classification"]["plan_change_proven"] is True
+    assert packet["classification"]["future_learning_candidate_eligibility"] == (
+        "CANDIDATE_EVIDENCE_ONLY_NOT_ACCEPTED"
+    )
+    assert packet["classification"]["learning_accepted"] is False
+    assert packet["source_event"]["raw_visible_payload_copied"] is False
+    assert "secret-plan-steer-value" not in json.dumps(packet, sort_keys=True)
+    assert packet["authority_effects"] == {
+        "project_truth": "NONE",
+        "canon_input": "NONE",
+        "agent_learning": "NONE",
+        "chat_lineage": "HASHED_VISIBLE_SOURCE_EVENT_ONLY",
+    }
+
+    replay = service.sessions.record_activity(
+        "book-faires",
+        session_id,
+        activity_type="steer",
+        visible_payload=plan_steer_payload,
+        event_id="row177-plan-changing-steer",
+    )
+    assert replay["observed_experience"]["state"] == "SEALED_IDEMPOTENT_REUSE"
+    assert replay["observed_experience"]["packet"] == packet
+
+    minor = service.sessions.record_activity(
+        "book-faires",
+        session_id,
+        activity_type="steer",
+        visible_payload={"event_subject": "Question without a Plan transition"},
+        event_id="row177-minor-steer",
+    )["observed_experience"]["packet"]
+    assert minor["classification"]["classification"] == "ORDINARY_OR_MINOR_STEER"
+    assert minor["classification"]["plan_change_proven"] is False
+    assert minor["classification"]["future_learning_candidate_eligibility"] == (
+        "EXCLUDED_NO_PLAN_CHANGE_PROOF"
+    )
+
+    prompt_payload = _host_shaped_user_prompt_submit_payload(
+        host_session_id=host_session_id,
+        turn_id="row177-ordinary-commit",
+        cwd=source_repository,
+        prompt="Answer this ordinary governed question.",
+    )
+    prepare_turn(service.store.root, host_payload=prompt_payload)
+    committed = commit_turn(
+        service.store.root,
+        host_payload={
+            **prompt_payload,
+            "last_assistant_message": "This is an ordinary visible response.",
+        },
+    )
+    ordinary = committed["observed_experience"]["packet"]
+    assert ordinary["classification"]["classification"] == (
+        "ORDINARY_VISIBLE_REQUEST_COMMIT"
+    )
+    assert ordinary["classification"]["future_learning_candidate_eligibility"] == (
+        "NOT_CLASSIFIED_AS_PLAN_STEER"
+    )
+    assert service.store.pointer("book-faires").as_dict() == pointer_before
+
+    with pytest.raises(EvidenceLaneError) as cross_project:
+        validate_observed_experience_packet(
+            packet, expected_project_id="another-project"
+        )
+    assert cross_project.value.code == "CANON_RUNTIME_CROSS_PROJECT_ROUTE_DENIED"
+
+    with pytest.raises(EvidenceLaneError) as stale_generation:
+        seal_observed_experience_packet(
+            service.store.project_root("book-faires"),
+            project_id="book-faires",
+            evidence_session_id=session_id,
+            runtime_task_id=str(packet["runtime_task_id"]),
+            plan_task_id=str(packet["plan_task_id"]),
+            active_plan=dict(packet["active_plan"]),
+            event=sealed["event"],
+            expected_accepted_pv=str(pointer_before["accepted_pv"]),
+            expected_pointer_generation=int(pointer_before["generation"]) + 1,
+            input_kind="steer",
+        )
+    assert stale_generation.value.code == "CANON_RUNTIME_POINTER_STALE"
+    assert service.store.pointer("book-faires").as_dict() == pointer_before
+
+
+def test_row177_host_exit_locator_routes_by_durability_without_truth_promotion(
+    service,
+    source_repository: Path,
+) -> None:
+    session_id, host_session_id = _strict_state_travel_session(service)
+    pointer_before = service.store.pointer("book-faires").as_dict()
+    durable_exit = seal_lifecycle_exit_slip(
+        service.store.root,
+        host_payload={
+            "session_id": host_session_id,
+            "turn_id": "row177-stateless-exit",
+            "cwd": str(source_repository),
+            "runtime_context": {
+                "ephemeral": True,
+                "stateless_invocation": True,
+                "interaction_profile": "HEADLESS_API",
+            },
+        },
+        reason="STATELESS_EPHEMERAL_END",
+        visible_reason="Seal the bounded stateless host exit.",
+    )
+    assert durable_exit["host_exit_continuity"]["state"] == (
+        "NOT_REQUIRED_DURABLE_LOCAL_AUTHORITY"
+    )
+    assert durable_exit["host_exit_continuity"]["packet"] is None
+
+    lineage_event = next(
+        event
+        for event in ChatLineage(
+            service.store.project_root("book-faires")
+            / "lineage"
+            / f"{session_id}.jsonl"
+        ).events()
+        if event["event_sha256"] == durable_exit["lineage_event_sha256"]
+    )
+    exit_slip = durable_exit["receipt"]
+    active_plan = {
+        "position": exit_slip["active_row"],
+        "task_id": exit_slip["plan_task_id"],
+        "status": "in_progress",
+        "lifecycle_status": "ACTIVE",
+    }
+    ephemeral_route = route_persistence(
+        "CODEX_VM",
+        ephemeral=True,
+        server_has_durable_filesystem=False,
+        runtime_context={"interaction_profile": "HEADLESS_API"},
+    ).as_dict()
+    sealed = seal_host_exit_continuity_packet(
+        service.store.project_root("book-faires"),
+        project_id="book-faires",
+        evidence_session_id=session_id,
+        runtime_task_id=str(exit_slip["task_id"]),
+        plan_task_id=str(exit_slip["plan_task_id"]),
+        active_plan=active_plan,
+        event=lineage_event,
+        exit_slip=exit_slip,
+        persistence_route=ephemeral_route,
+        expected_accepted_pv=str(pointer_before["accepted_pv"]),
+        expected_pointer_generation=int(pointer_before["generation"]),
+    )
+    packet = validate_host_exit_continuity_packet(
+        sealed["packet"], expected_project_id="book-faires"
+    )
+    assert sealed["state"] == "SEALED"
+    assert sealed["interaction_profile"] == "STATELESS_HEADLESS"
+    assert packet["opaque_locator"].startswith("evi+host-exit://hexit_")
+    assert packet["persistence"] == {
+        "state": "AWAITING_LATER_DURABLE_CONNECTOR_PERSISTENCE",
+        "durable_persisted": False,
+        "storage_receipt_sha256": None,
+        "exit_complete": False,
+        "continuity_claimed": False,
+        "consumer_owner": "INDEPENDENT_HOST_ENTRY_CONTINUITY_ROW",
+    }
+    assert packet["authority_effects"] == {
+        "project_truth": "NONE",
+        "canon_input": "NONE",
+        "agent_learning": "NONE",
+        "host_entry": "PENDING_LATER_EXACT_CONSUMER",
+    }
+    assert packet["pointer_moved"] is False
+    assert packet["candidate_promoted"] is False
+    assert packet["hil_inferred"] is False
+
+    replay = seal_host_exit_continuity_packet(
+        service.store.project_root("book-faires"),
+        project_id="book-faires",
+        evidence_session_id=session_id,
+        runtime_task_id=str(exit_slip["task_id"]),
+        plan_task_id=str(exit_slip["plan_task_id"]),
+        active_plan=active_plan,
+        event=lineage_event,
+        exit_slip=exit_slip,
+        persistence_route=ephemeral_route,
+        expected_accepted_pv=str(pointer_before["accepted_pv"]),
+        expected_pointer_generation=int(pointer_before["generation"]),
+    )
+    assert replay["state"] == "SEALED_IDEMPOTENT_REUSE"
+    assert replay["packet"] == packet
+
+    invalid_route = dict(ephemeral_route)
+    invalid_route["mode"] = "local"
+    with pytest.raises(EvidenceLaneError) as route_blocked:
+        seal_host_exit_continuity_packet(
+            service.store.project_root("book-faires"),
+            project_id="book-faires",
+            evidence_session_id=session_id,
+            runtime_task_id=str(exit_slip["task_id"]),
+            plan_task_id=str(exit_slip["plan_task_id"]),
+            active_plan=active_plan,
+            event=lineage_event,
+            exit_slip=exit_slip,
+            persistence_route=invalid_route,
+            expected_accepted_pv=str(pointer_before["accepted_pv"]),
+            expected_pointer_generation=int(pointer_before["generation"]),
+        )
+    assert route_blocked.value.code == "HOST_EXIT_CONTINUITY_ROUTE_INVALID"
+    assert service.store.pointer("book-faires").as_dict() == pointer_before
 
 
 def test_stale_host_never_rebinds_from_cwd(service, source_repository: Path) -> None:
@@ -1514,7 +2005,7 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
     ] == "REGISTERED_EVENT_COUNT"
     assert projected_notice["package_change_status"]["hooks"][
         "hook_file_count"
-    ] == 7
+    ] == 9
     projected_context = projected_payload["hookSpecificOutput"]["additionalContext"]
     assert "EVIDENCE_LANE_HOST_STEP_TASK_LIST_PROJECTION=" not in projected_context
     assert "EVIDENCE_LANE_HOST_PLAN_ACTION=" not in projected_context
@@ -1582,7 +2073,7 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         assert prepared_notice["package_change_status"]["hooks"]["count"] == 8
         assert prepared_notice["package_change_status"]["hooks"][
             "hook_file_count"
-        ] == 7
+        ] == 9
         assert prepared_notice["package_change_status"]["skills"]["count"] == 15
         assert prepared_notice["package_change_status"]["catalog"] == {
             "tools": 62,
@@ -1677,7 +2168,26 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
     resumed_context = resumed_payload["hookSpecificOutput"]["additionalContext"]
     assert "EVIDENCE_LANE_HOST_STEP_TASK_LIST_PROJECTION=" not in resumed_context
     assert "EVIDENCE_LANE_HOST_PLAN_ACTION=" not in resumed_context
-    assert "update_plan" not in resumed_context
+    session_control = _hook_context_json(
+        resumed_payload,
+        "CODEX_TURN_CONTROL_ENVELOPE=",
+    )
+    assert session_control["host_plan_behavior_owner"] == (
+        "ACTIVE_EVIDENCE_LANE_SKILL"
+    )
+    assert session_control["hook_performed_host_update_plan"] is False
+    rehydration = session_control["host_plan_rehydration"]
+    assert rehydration["receipt"]["action"] == (
+        "CALL_HOST_UPDATE_PLAN_EXACTLY_ONCE_FOR_THIS_TRIGGER"
+    )
+    assert rehydration["receipt"][
+        "native_runtime_invoked_host_update_plan"
+    ] is False
+    assert rehydration["receipt"]["host_plan_acceptance_status"] == (
+        "PENDING_EXPLICIT_HOST_ACCEPTANCE"
+    )
+    assert rehydration["receipt"]["candidate_created"] is False
+    assert rehydration["receipt"]["pointer_moved"] is False
     warm_attach_line = next(
         line for line in context_lines if line.startswith("CODEX_WARM_ATTACH_RECEIPT=")
     )

@@ -10,7 +10,7 @@ from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
-CURRENT_VERSION = "2.1.0"
+CURRENT_VERSION = "2.2.0"
 V13_PATTERN = re.compile(r"(?i)(?:\bv1\.3(?:\.0)?\b|\b1\.3\.0\b)")
 
 HISTORICAL_OR_DEPENDENCY_FILES = {
@@ -79,7 +79,7 @@ def _tracked_text_files() -> list[Path]:
     ]
 
 
-def test_all_active_codex_product_version_surfaces_are_v210() -> None:
+def test_all_active_codex_product_version_surfaces_are_v220() -> None:
     plugin_manifest = json.loads(
         (
             ROOT
@@ -105,39 +105,39 @@ def test_all_active_codex_product_version_surfaces_are_v210() -> None:
     )
     assert ENGINE_VERSION == CURRENT_VERSION
     assert str(plugin_manifest["version"]).split("+", 1)[0] == CURRENT_VERSION
-    assert str(plugin_manifest["version"]).endswith("+codex.20260812193232")
+    assert str(plugin_manifest["version"]).endswith("+codex.20260814082900")
     assert adapter_manifest["version"] == CURRENT_VERSION
 
 
-def test_current_codex_docs_and_runtime_surfaces_name_v210() -> None:
+def test_current_codex_docs_and_runtime_surfaces_name_v220() -> None:
     required_fragments = {
         "README.md": [
-            "# Evidence Lane 2.1.0",
-            "The mutable stable Codex successor release is **2.1.0**",
-            "## v2.1.0 release and historical compatibility invariants",
+            "# Evidence Lane 2.2.0",
+            "The current pre-HIL Codex source release is **2.2.0**",
+            "## v2.2.0 source and historical compatibility invariants",
         ],
         "docs/ARCHITECTURE.md": [
-            "Evidence Lane 2.1.0",
-            "built v2.1.0 candidates must pass both gates",
+            "Evidence Lane 2.2.0",
+            "built v2.2.0 candidates must pass both gates",
         ],
         "docs/VERSIONING.md": [
-            "The mutable stable Evidence Lane Codex product release is `2.1.0`",
+            "The current pre-HIL Evidence Lane Codex source release is `2.2.0`",
         ],
         "docs/WINDOWS_TUNNEL_PERSISTENCE.md": [
             "The live Codex registry and live cache contain exactly two Evidence Lane slots",
         ],
         "plugins/evidence-lane-plugin/.codex-plugin/plugin.json": [
-            "2.1.0 is the mutable stable Codex successor release",
+            "Evidence Lane 2.2.0 is the current pre-HIL Codex source release",
         ],
         "plugins/evidence-lane-plugin/scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1": [
             "Pinned Evidence Lane $release $SlotRole secure MCP tunnel",
         ],
         "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py": [
-            "2.1.0 is the Codex package",
+            "2.2.0 is the Codex package",
         ],
         "plugins/evidence-lane-plugin/README.md": [
-            "# Evidence Lane plugin 2.1.0",
-            "Version 2.1.0 is the mutable stable-build Codex successor slot",
+            "# Evidence Lane plugin 2.2.0",
+            "Version 2.2.0 is the current pre-HIL Codex source release",
         ],
     }
 
@@ -160,7 +160,7 @@ def test_current_codex_docs_and_runtime_surfaces_name_v210() -> None:
             assert fragment not in text, f"stale active version text in {relative}: {fragment}"
 
 
-def test_readmes_expose_branding_and_secret_safe_windows_tunnel_setup() -> None:
+def test_readmes_expose_branding_and_capability_gated_windows_tunnel_setup() -> None:
     root_readme = (ROOT / "README.md").read_text(encoding="utf-8")
     plugin_readme = (
         ROOT / "plugins" / "evidence-lane-plugin" / "README.md"
@@ -174,10 +174,13 @@ def test_readmes_expose_branding_and_secret_safe_windows_tunnel_setup() -> None:
     assert 'alt="Evidence Lane plugin icon"' in root_readme
 
     for text in (root_readme, plugin_readme):
-        assert "## First-time Windows tunnel setup" in text
+        assert "## Bounded Windows tunnel setup" in text
         assert "Install-EvidenceLaneTunnel.ps1" in text
         assert "CODEX_APP_INTERACTIVE" in text
-        assert "HostLifetime Persistent" in text
+        assert "HostLifetime Ephemeral" in text
+        assert "exact-vm-instance-id" in text
+        assert "local" in text.lower()
+        assert "does not" in text.lower()
         assert "Runtime API key" in text
         assert "masked" in text
         assert "DPAPI" in text

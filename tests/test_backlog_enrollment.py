@@ -181,17 +181,47 @@ def test_delta_drop_and_supersede_are_explicit_append_only_events(service) -> No
     assert goal["task_count"] == 1
     assert goal["canonical_task_count"] == 3
     assert goal["history_task_count"] == 2
-    assert goal["rows"] == [
-        {
-            "task_id": "delta-new",
-            "step": "Replace the superseded bounded Delta.",
-            "plan_sequence": 3,
-            "lifecycle_status": "QUEUED",
-            "steer_deltas": [],
-            "number": 1,
-            "status": "pending",
-        }
-    ]
+    assert len(goal["rows"]) == 1
+    row = goal["rows"][0]
+    assert row == {
+        "task_id": "delta-new",
+        "step": "Replace the superseded bounded Delta.",
+        "plan_sequence": 3,
+        "lifecycle_status": "QUEUED",
+        "steer_deltas": [],
+            "task_classification": "verify_result",
+            "plan_group": "plan-lifecycle-001",
+            "plan_group_source": "PLAN_ID_FALLBACK",
+            "commit_batch_id": "UNASSIGNED",
+        "commit_batch_source": "NO_EXPLICIT_CONTRACT_OR_LINKED_DIRECTIVE",
+        "dependencies": [],
+        "dependency_source": "LINEAR_ROOT",
+        "git_commit_stage": "NOT_DECLARED",
+        "git_commit_stage_source": "NO_EXPLICIT_CONTRACT_OR_TASK_TEXT",
+        "version_marker": "NOT_DECLARED",
+        "version_marker_source": "NO_CURRENT_AUTHORITY_CLAIM",
+        "version_claims": [],
+        "version_reconciliation_required": False,
+        "branch_marker": "NOT_DECLARED",
+        "branch_marker_source": "NO_CURRENT_AUTHORITY_CLAIM",
+        "branch_claims": [],
+        "branch_reconciliation_required": False,
+        "effective_for_execution": True,
+        "supersedes_task_id": "delta-old",
+        "superseded_by_task_ids": [],
+        "authority_scope": "CURRENT_EXECUTABLE_PLAN",
+        "number": 1,
+        "status": "pending",
+        "visible_label": (
+            "Row 1 / delta-new — [CLASS=verify_result; "
+            "GROUP=plan-lifecycle-001; BATCH=UNASSIGNED; DEP=ROOT; "
+            "GIT=NOT_DECLARED@NO_EXPLICIT_CONTRACT_OR_TASK_TEXT; "
+            "VERSION=NOT_DECLARED@NO_CURRENT_AUTHORITY_CLAIM; "
+                "BRANCH=NOT_DECLARED@NO_CURRENT_AUTHORITY_CLAIM; "
+                "ROLE=STANDARD; STATE=QUEUED] "
+            "Replace the superseded bounded Delta."
+        ),
+    }
     history = backlog["history_projection"]
     assert [row["task_id"] for row in history["rows"]] == [
         "delta-drop",
@@ -208,6 +238,16 @@ def test_delta_drop_and_supersede_are_explicit_append_only_events(service) -> No
     assert [row["task_id"] for row in history["superseded_rows"]] == [
         "delta-old"
     ]
+    assert all(row["effective_for_execution"] is False for row in history["rows"])
+    assert all(
+        row["dependency_source"] == "NON_EXECUTABLE_HISTORY"
+        for row in history["rows"]
+    )
+    assert next(
+        row for row in history["rows"] if row["task_id"] == "delta-old"
+    )["authority_scope"] == "IMMUTABLE_SUPERSEDED_HISTORY"
+    assert row["dependencies"] == []
+    assert row["supersedes_task_id"] == "delta-old"
     replacement = next(
         task for task in backlog["tasks"] if task["task_id"] == "delta-new"
     )

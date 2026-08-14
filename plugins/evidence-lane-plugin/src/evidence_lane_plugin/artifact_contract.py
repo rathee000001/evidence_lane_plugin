@@ -101,7 +101,7 @@ def build_four_file_contract(
 
 
 def _tool_identity_core(tools: dict[str, Any]) -> dict[str, Any]:
-    return {
+    core = {
         key: tools.get(key)
         for key in (
             "lane",
@@ -111,6 +111,11 @@ def _tool_identity_core(tools: dict[str, Any]) -> dict[str, Any]:
             "artifact_contract",
         )
     }
+    # Additive v3 compatibility: historical tools.json files predate the
+    # parser implementation seal and retain their original identity bytes.
+    if "parser_implementation" in tools:
+        core["parser_implementation"] = tools.get("parser_implementation")
+    return core
 
 
 def validate_four_file_contract(
