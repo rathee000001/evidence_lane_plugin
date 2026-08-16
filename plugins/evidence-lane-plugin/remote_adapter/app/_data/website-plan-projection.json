@@ -2,32 +2,32 @@
   "schema": "evidence-lane.website-plan-projection.v1",
   "canonical_authority": "PLAN_LANE",
   "project_id": "test-codex-evidence-lane-plugin",
-  "task_count": 172,
-  "canonical_task_count": 229,
+  "task_count": 173,
+  "canonical_task_count": 230,
   "history_task_count": 57,
   "row_offset": 80,
   "row_start": 81,
-  "row_end": 252,
+  "row_end": 253,
   "status_counts": {
     "completed": 143,
     "in_progress": 1,
-    "pending": 28
+    "pending": 29
   },
   "active_row": 224,
   "active_task_id": "EL-CODEX-T6-LOCAL-V220-INSTALL-SLOT-BINDING-DELTA-001",
   "active_task_position": 144,
-  "physically_final_hil_row": 252,
+  "physically_final_hil_row": 253,
   "physically_final_hil_task_id": "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR",
-  "physically_final_hil_task_position": 172,
+  "physically_final_hil_task_position": 173,
   "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
-  "canonical_plan_sha256": "00F968CD462D1E14B52AE6803922997A9E2BF237FC7603AEC48C8E456F4E930B",
-  "history_projection_sha256": "5A66D2ED76E46152E8292F4D868F4F02D88CFFEBC6633CB14CD96EB22384324A",
-  "executable_projection_sha256": "05C4BA7E345045B0B522254A57E4C2760B54758D1E627D2D4A4B37FD1D45BD02",
-  "lifecycle_event_count": 953,
-  "lifecycle_event_head_sha256": "BDF6A4C3C1CFFCCF0BB1E214C800135DF1FB282772CBCE44C6819D5499F3047A",
+  "canonical_plan_sha256": "1DCA43A3092F731652F4C7C4327C66D4B3B4BCF9EC5DF3C23D069355A3BD831C",
+  "history_projection_sha256": "BA30CACDCC328A3ECC6FD9E784D1767A4FFB68322F75220D04F697861ACC8D06",
+  "executable_projection_sha256": "8FB30CEF53871936B58C2511AA0C6D395C9ACD91051B509720214DCE92F6C038",
+  "lifecycle_event_count": 956,
+  "lifecycle_event_head_sha256": "E40D31DADF38A4560A75D150062FE4D93AAF832AE9090149C4B1A9BECB3D5C99",
   "planning_event_count": 15,
   "planning_event_head_sha256": "28F90F316FA2C24D3DC179F2F81C27DDEAF88D7979CB20E9EB990C4FF86DAD06",
-  "runtime_projection_content_sha256": "A9D2AEB6A9E676A3CA8E96E1A30EB34A7B2F607DF099AE69578AEB96B7EA2868",
+  "runtime_projection_content_sha256": "C0313137305DA5BF7AD9CD3F275061003B593A0C1CDDA5A4C898A0C0C3B1E772",
   "rows": [
     {
       "row": 81,
@@ -1933,35 +1933,40 @@
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 217,
-      "linked_delta_ids": [],
+      "linked_delta_ids": [
+        "EL-CODEX-T6-PUBLIC-PLAN-PROJECTION-CI-COUNT-CORRECTION-20260816-003"
+      ],
       "panel_role": "STANDARD"
     },
     {
       "row": 244,
       "task_position": 164,
-      "task_id": "EL-CODEX-T6-PV13-HIL-AFTER-PUBLIC-REFRESH-SUCCESSOR-001",
-      "description": "After all v2.2 implementation rows, the complete business homepage, full Vercel website refresh, existing Devpost update, exact governed commit/push, clean CI/security, exact package install/readback, helper/tunnel proof, and public-surface readbacks pass, create one immutable unaccepted PV13 candidate, render the exact six-way HIL, and stop. Only a fresh explicit PV13 decision may continue; after APPROVE, main promotion occurs before the remaining PV14 POC, testing, installed verification, integrated acceptance, and defect-hardening rows.",
+      "task_id": "EL-CODEX-T6-PRE-PV13-GITHUB-APP-PRODUCTION-RUNTIME-DELTA-003",
+      "description": "Before PV13 HIL, replace the mock-only GitHub App boundary with a production-capable, private-repository-scoped GitHub App runtime and truthful public contract, while retaining SDK/marketplace as the sole Evidence Lane plugin installation route.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 218,
-      "linked_delta_ids": [],
-      "panel_role": "HIL_GATE"
+      "linked_delta_ids": [
+        "EL-CODEX-T6-GITHUB-APP-PRODUCTION-RUNTIME-PRE-PV13-HIL-20260816-002"
+      ],
+      "panel_role": "STANDARD"
     },
     {
       "row": 245,
       "task_position": 165,
-      "task_id": "EL-CODEX-REAL_GIT_FULL_HISTORY_POC-PROPOSAL-32",
-      "description": "In an isolated local fixture, prove refs/parents/history, main-versus-test file/hunk/symbol/schema/behavior/provenance analysis, branch PV rollback, and real Git lane test without outbound mutation.",
+      "task_id": "EL-CODEX-T6-PV13-HIL-AFTER-PUBLIC-REFRESH-SUCCESSOR-001",
+      "description": "After all v2.2 implementation rows, the complete business homepage, full Vercel website refresh, existing Devpost update, exact governed commit/push, clean CI/security, exact package install/readback, helper/tunnel proof, and public-surface readbacks pass, create one immutable unaccepted PV13 candidate, render the exact six-way HIL, and stop. Only a fresh explicit PV13 decision may continue; after APPROVE, main promotion occurs before the remaining PV14 POC, testing, installed verification, integrated acceptance, and defect-hardening rows.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 221,
-      "linked_delta_ids": []
+      "plan_sequence": 219,
+      "linked_delta_ids": [],
+      "panel_role": "HIL_GATE"
     },
     {
       "row": 246,
       "task_position": 166,
-      "task_id": "EL-CODEX-NON_GIT_18_LANE_POC_RENDER-PROPOSAL-33",
-      "description": "Run one deterministic dummy POC for every loaded non-Git lane, validating four-file sectors, SQLite/FK/schema/row/FTS/hash receipts, MMD/DOT/JSON, and usable SVG/PNG for ordinary and large fixtures.",
+      "task_id": "EL-CODEX-REAL_GIT_FULL_HISTORY_POC-PROPOSAL-32",
+      "description": "In an isolated local fixture, prove refs/parents/history, main-versus-test file/hunk/symbol/schema/behavior/provenance analysis, branch PV rollback, and real Git lane test without outbound mutation.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 222,
@@ -1970,8 +1975,8 @@
     {
       "row": 247,
       "task_position": 167,
-      "task_id": "EL-CODEX-LIFECYCLE_REFRESH_ROLLBACK_PROOF-PROPOSAL-34",
-      "description": "Prove changed-section Refresh, snapshots/diffs, candidate-only output, exact-approval Fuse gating, pointer-only Rollback, no implicit acceptance, and six-way semantics using non-promoting fixtures.",
+      "task_id": "EL-CODEX-NON_GIT_18_LANE_POC_RENDER-PROPOSAL-33",
+      "description": "Run one deterministic dummy POC for every loaded non-Git lane, validating four-file sectors, SQLite/FK/schema/row/FTS/hash receipts, MMD/DOT/JSON, and usable SVG/PNG for ordinary and large fixtures.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 223,
@@ -1980,8 +1985,8 @@
     {
       "row": 248,
       "task_position": 168,
-      "task_id": "EL-CODEX-MULTIPROJECT_MULTIVERSION_ISOLATION-PROPOSAL-35",
-      "description": "Prove multiple projects and plugin versions cannot collide across MCP process, catalog, cache, channel/tunnel, session, pointer, lineage, storage, hook, panel, or task identity.",
+      "task_id": "EL-CODEX-LIFECYCLE_REFRESH_ROLLBACK_PROOF-PROPOSAL-34",
+      "description": "Prove changed-section Refresh, snapshots/diffs, candidate-only output, exact-approval Fuse gating, pointer-only Rollback, no implicit acceptance, and six-way semantics using non-promoting fixtures.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
       "plan_sequence": 224,
@@ -1990,11 +1995,21 @@
     {
       "row": 249,
       "task_position": 169,
+      "task_id": "EL-CODEX-MULTIPROJECT_MULTIVERSION_ISOLATION-PROPOSAL-35",
+      "description": "Prove multiple projects and plugin versions cannot collide across MCP process, catalog, cache, channel/tunnel, session, pointer, lineage, storage, hook, panel, or task identity.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 225,
+      "linked_delta_ids": []
+    },
+    {
+      "row": 250,
+      "task_position": 170,
       "task_id": "EL-CODEX-PACKAGE_INSTALL_HOT_REATTACH-PROPOSAL-36",
       "description": "Build one collision-free v2 package, seal source/package/commit/tree/worktree/catalog/skill/hook/resource identities, install supportedly, and hot-reattach the exact open task; restart is fallback.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 225,
+      "plan_sequence": 226,
       "linked_delta_ids": [
         "EL-CODEX-ROW195-TWO-SLOT-HASH-VERIFIED-RETENTION-CORRECTION-20260812-001",
         "EL-CODEX-ROW195-TWO-SLOT-FALLBACK-CURRENT-TASK-REATTACH-LAW-20260812-003",
@@ -2006,36 +2021,36 @@
       ]
     },
     {
-      "row": 250,
-      "task_position": 170,
+      "row": 251,
+      "task_position": 171,
       "task_id": "EL-CODEX-CANON-CROSS-PLANE-ACCEPTANCE-SUCCESSOR",
       "description": "Run the fresh integrated adversarial pre-HIL acceptance suite across Project Truth, Canon Input, Agent Learning, host-entry continuity, SDK/adapters, GitHub App mocks, hooks, State Travel, persistent Plan, Windows helper/tunnel behavior, dependency security, storage routing, multi-project/version isolation, and exact 2.2 receipts, proving all authority and post-HIL boundaries remain separate and fail closed.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 227,
+      "plan_sequence": 228,
       "linked_delta_ids": [
         "EL-CODEX-CANON-CROSS-PLANE-ACCEPTANCE-SUCCESSOR"
       ],
       "panel_role": "STANDARD"
     },
     {
-      "row": 251,
-      "task_position": 171,
+      "row": 252,
+      "task_position": 172,
       "task_id": "EL-CODEX-FINAL_FORENSIC_ACCEPTANCE-PROPOSAL-37",
       "description": "Aggregate fresh receipts from every predecessor, account for every historical Codex-native requirement, prove only deferred ChatGPT/public work is parked, and verify exits without rerunning CI rituals.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 228,
+      "plan_sequence": 229,
       "linked_delta_ids": []
     },
     {
-      "row": 252,
-      "task_position": 172,
+      "row": 253,
+      "task_position": 173,
       "task_id": "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR",
       "description": "After every predecessor passes, run final full regression from the installed package, explicit governed Refresh to one immutable unaccepted candidate, render exact receipts and six HIL choices, and stop.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 229,
+      "plan_sequence": 230,
       "linked_delta_ids": [
         "EL-CODEX-ROW203-PV13-EXPLICIT-HIL-FUSE-MAIN-FALLBACK-GOAL-CONTINUATION-CORRECTION-20260813-030",
         "EL-CODEX-FINAL-PV14-HIL-POST-PV13-SEQUENCE-CORRECTION-20260814-043",
@@ -2044,5 +2059,5 @@
       "panel_role": "PHYSICALLY_FINAL_HIL"
     }
   ],
-  "snapshot_sha256": "C42F26382A72FAF2392E1AFEAD9F0E31D3D67C0815FAE5E290DFDC598B95FFD6"
+  "snapshot_sha256": "DBCD2CC9E4B0FBDDAAAF95CC139EDB0AD901F29C6B77B56317BC487E59775CCF"
 }
