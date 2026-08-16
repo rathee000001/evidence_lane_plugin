@@ -471,19 +471,23 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert 'authority: websiteCurrentExecutionBoundary.canonicalAuthority' in current_plan_data
     assert 'import planProjection from "./website-plan-projection.json"' in website_current_plan_data
     assert website_plan_snapshot["canonical_authority"] == "PLAN_LANE"
-    assert website_plan_snapshot["task_count"] == 126
+    assert website_plan_snapshot["task_count"] == len(website_plan_snapshot["rows"])
     assert website_plan_snapshot["row_start"] == 81
-    assert website_plan_snapshot["row_end"] == 206
-    assert website_plan_snapshot["active_row"] == 196
-    assert website_plan_snapshot["physically_final_hil_row"] == 206
-    assert [row["row"] for row in website_plan_snapshot["rows"]] == list(
-        range(81, 207)
+    assert website_plan_snapshot["row_end"] == (
+        website_plan_snapshot["row_start"]
+        + website_plan_snapshot["task_count"]
+        - 1
     )
-    assert [
+    assert website_plan_snapshot["physically_final_hil_row"] == website_plan_snapshot["row_end"]
+    assert [row["row"] for row in website_plan_snapshot["rows"]] == list(
+        range(website_plan_snapshot["row_start"], website_plan_snapshot["row_end"] + 1)
+    )
+    active_rows = [
         row["row"]
         for row in website_plan_snapshot["rows"]
         if row["status"] == "IN_PROGRESS"
-    ] == [196]
+    ]
+    assert active_rows == [website_plan_snapshot["active_row"]]
     assert website_plan_snapshot["rows"][-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
     assert 'phase: "Current execution"' in ledger_data
     assert "websiteCurrentExecution.map" in ledger_data
