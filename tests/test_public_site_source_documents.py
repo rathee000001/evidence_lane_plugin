@@ -59,15 +59,11 @@ def test_every_public_route_has_one_git_markdown_authority() -> None:
         assert document in tracked, document
 
 
-def test_shared_layout_exposes_the_route_authority_strip() -> None:
+def test_shared_layout_does_not_render_repository_authority_strip() -> None:
     layout = (APP / "layout.tsx").read_text(encoding="utf-8")
-    component = (APP / "_components" / "repository-source-strip.tsx").read_text(
-        encoding="utf-8"
-    )
 
-    assert "<RepositorySourceStrip />" in layout
-    assert "data-authority-document" in component
-    assert "Open Markdown" in component
+    assert "RepositorySourceStrip" not in layout
+    assert not (APP / "_components" / "repository-source-strip.tsx").exists()
 
 
 def test_primary_plugin_pages_are_first_class_routes() -> None:
