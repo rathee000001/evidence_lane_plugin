@@ -139,7 +139,9 @@ def lifecycle_hook_contract() -> dict[str, Any]:
             "evidence_lane_plugin.hook_skill_runtime"
         ),
         "windows_interpreter_resolution": "SEALED_DERIVED_RUNTIME_ONLY",
-        "windows_process_window_mode": "HIDDEN",
+        "windows_process_window_mode": "HOST_MANAGED_NO_CHILD_WINDOW",
+        "windows_command_launcher": "EvidenceLaneHookHost.exe",
+        "windows_child_create_no_window": True,
         "windows_path_lookup_allowed": False,
         "session_end_host_timeout_seconds": 3,
         "permission_request_policy": (
@@ -189,13 +191,13 @@ def validate_hook_configuration(configuration: Mapping[str, Any]) -> dict[str, A
         if (
             "hooks/invoke_hook.py" not in command
             or f"--event {contract.event_name}" not in command
-            or "hooks\\invoke_hook.ps1" not in command_windows
+            or "hooks\\EvidenceLaneHookHost.exe" not in command_windows
             or contract.event_name not in command_windows
-            or "-WindowStyle Hidden" not in command_windows
             or not command_windows.startswith(
-                '& "$env:SystemRoot\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" '
+                '& "${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe" '
             )
-            or '"${PLUGIN_ROOT}\\hooks\\invoke_hook.ps1"' not in command_windows
+            or "powershell.exe" in command_windows.casefold()
+            or "invoke_hook.ps1" in command_windows.casefold()
             or "%SystemRoot%" in command_windows
             or "%PLUGIN_ROOT%" in command_windows
             or command_windows.casefold().startswith("python ")
@@ -209,8 +211,9 @@ def validate_hook_configuration(configuration: Mapping[str, Any]) -> dict[str, A
                 "event_name": contract.event_name,
                 "handler": contract.handler,
                 "timeout": expected_timeout,
-                "windows_launcher": "invoke_hook.ps1",
-                "windows_process_window_mode": "HIDDEN",
+                "windows_launcher": "EvidenceLaneHookHost.exe",
+                "windows_process_window_mode": "HOST_MANAGED_NO_CHILD_WINDOW",
+                "windows_child_create_no_window": True,
                 "windows_interpreter_resolution": (
                     "SEALED_DERIVED_RUNTIME_ONLY"
                 ),

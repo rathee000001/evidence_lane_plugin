@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import os
 import re
@@ -24,6 +25,7 @@ from .plan_runtime import (
     append_planning_mode_event,
     ensure_event_ledger,
     plan_runtime_status,
+    query_plan_runtime_projection,
     write_plan_runtime_projection,
 )
 from .pv_package import compare_package_bytes, validate_pv_package
@@ -54,6 +56,8 @@ _PLAN_PANEL_ROLES = {
     "HIL_GATE",
     "PHYSICALLY_FINAL_HIL",
 }
+
+_HOST_PLAN_WINDOW_SIZE = 10
 
 _GOAL_STATUS_BY_LIFECYCLE = {
     "ACTIVE": "in_progress",
@@ -546,6 +550,21 @@ def _active_context_source(
 def _git_commit_stage(task: dict[str, Any]) -> tuple[str, str]:
     """Project Git intent only from an explicit contract or exact task text."""
 
+    if task.get("current_contract_authority") == "ACTIVE_CONTRACT_REBIND":
+        explicit = str(task.get("git_commit_stage") or "").strip().upper()
+        if explicit:
+            require(
+                len(explicit) <= 64
+                and all(
+                    character in _PLAN_METADATA_ID_CHARS
+                    for character in explicit
+                ),
+                "PLAN_GIT_COMMIT_STAGE_INVALID",
+                "An amended Git commit stage must be one bounded public-safe label.",
+                status="MISMATCH",
+                task_id=task.get("task_id"),
+            )
+            return explicit, "ACTIVE_CONTRACT_REBIND"
     linked_value, linked_source = _latest_linked_directive(
         task,
         pattern=_PLAN_GIT_STAGE_DIRECTIVE_RE,
@@ -600,10 +619,17 @@ def _plan_row_metadata(
 ) -> dict[str, Any]:
     """Build deterministic universal metadata for a host-visible Plan row."""
 
-    linked_dependencies, linked_dependencies_source = _latest_linked_directive(
-        task,
-        pattern=_PLAN_DEPENDENCIES_DIRECTIVE_RE,
-        directive_name="DEPENDS_ON",
+    active_contract_rebound = (
+        task.get("current_contract_authority") == "ACTIVE_CONTRACT_REBIND"
+    )
+    linked_dependencies, linked_dependencies_source = (
+        (None, None)
+        if active_contract_rebound
+        else _latest_linked_directive(
+            task,
+            pattern=_PLAN_DEPENDENCIES_DIRECTIVE_RE,
+            directive_name="DEPENDS_ON",
+        )
     )
     raw_dependencies = (
         re.split(r"\s*[+,]\s*", linked_dependencies)
@@ -640,15 +666,23 @@ def _plan_row_metadata(
     else:
         dependencies = []
         dependency_source = "LINEAR_ROOT"
-    linked_batch, linked_batch_source = _latest_linked_directive(
-        task,
-        pattern=_PLAN_COMMIT_BATCH_DIRECTIVE_RE,
-        directive_name="COMMIT_BATCH",
+    linked_batch, linked_batch_source = (
+        (None, None)
+        if active_contract_rebound
+        else _latest_linked_directive(
+            task,
+            pattern=_PLAN_COMMIT_BATCH_DIRECTIVE_RE,
+            directive_name="COMMIT_BATCH",
+        )
     )
-    linked_group, linked_group_source = _latest_linked_directive(
-        task,
-        pattern=_PLAN_GROUP_DIRECTIVE_RE,
-        directive_name="PLAN_GROUP",
+    linked_group, linked_group_source = (
+        (None, None)
+        if active_contract_rebound
+        else _latest_linked_directive(
+            task,
+            pattern=_PLAN_GROUP_DIRECTIVE_RE,
+            directive_name="PLAN_GROUP",
+        )
     )
     plan_group = _bounded_plan_metadata_id(
         linked_group or task.get("plan_group") or task.get("plan_id"),
@@ -658,7 +692,11 @@ def _plan_row_metadata(
         str(linked_group_source)
         if linked_group
         else (
-            "EXPLICIT_TASK_CONTRACT"
+            (
+                "ACTIVE_CONTRACT_REBIND"
+                if active_contract_rebound
+                else "EXPLICIT_TASK_CONTRACT"
+            )
             if task.get("plan_group")
             else "PLAN_ID_FALLBACK"
             if task.get("plan_id")
@@ -673,7 +711,11 @@ def _plan_row_metadata(
         str(linked_batch_source)
         if linked_batch
         else (
-            "EXPLICIT_TASK_CONTRACT"
+            (
+                "ACTIVE_CONTRACT_REBIND"
+                if active_contract_rebound
+                else "EXPLICIT_TASK_CONTRACT"
+            )
             if task.get("commit_batch_id") or task.get("batch_id")
             else "NO_EXPLICIT_CONTRACT_OR_LINKED_DIRECTIVE"
         )
@@ -740,6 +782,60 @@ def _visible_plan_row_label(row: dict[str, Any]) -> str:
         f"ROLE={row.get('panel_role') or 'STANDARD'}; "
         f"STATE={row['lifecycle_status']}] {row['step']}"
     )
+
+
+def _host_plan_window_fingerprint(status: dict[str, Any]) -> dict[str, Any]:
+    """Hash only fields that can change the bounded host Step List."""
+
+    goal = cast(dict[str, Any], status.get("goal_projection") or {})
+    rows = cast(list[dict[str, Any]], goal.get("rows") or [])
+    active_indexes = [
+        index
+        for index, row in enumerate(rows)
+        if row.get("status") == "in_progress"
+        and row.get("lifecycle_status") == "ACTIVE"
+    ]
+    require(
+        len(active_indexes) <= 1,
+        "HOST_PLAN_WINDOW_FINGERPRINT_ACTIVE_ROW_INVALID",
+        "The host Plan window fingerprint requires at most one ACTIVE row.",
+        status="MISMATCH",
+        active_count=len(active_indexes),
+    )
+    start = (
+        (active_indexes[0] // _HOST_PLAN_WINDOW_SIZE) * _HOST_PLAN_WINDOW_SIZE
+        if active_indexes
+        else 0
+    )
+    window_rows = rows[start : start + _HOST_PLAN_WINDOW_SIZE]
+    projected_rows = [
+        {
+            "number": int(row["number"]),
+            "task_id": str(row["task_id"]),
+            "status": str(row["status"]),
+            "lifecycle_status": str(row["lifecycle_status"]),
+            "task_classification": str(row["task_classification"]),
+            "plan_group": str(row["plan_group"]),
+            "commit_batch_id": str(row["commit_batch_id"]),
+            "dependencies": list(row.get("dependencies") or []),
+            "git_commit_stage": str(row["git_commit_stage"]),
+            "panel_role": str(row.get("panel_role") or "STANDARD"),
+        }
+        for row in window_rows
+    ]
+    body = {
+        "window_size": _HOST_PLAN_WINDOW_SIZE,
+        "row_start": int(window_rows[0]["number"]) if window_rows else None,
+        "row_end": int(window_rows[-1]["number"]) if window_rows else None,
+        "active_task_id": (
+            str(rows[active_indexes[0]]["task_id"]) if active_indexes else None
+        ),
+        "rows": projected_rows,
+    }
+    return {
+        **body,
+        "fingerprint_sha256": sha256_bytes(canonical_json_bytes(body)),
+    }
 
 
 def _next_plan_hil_task_id(tasks: list[dict[str, Any]]) -> str | None:
@@ -1227,6 +1323,26 @@ class ProjectStore:
     def _plan_runtime_path(self, project_id: str) -> Path:
         return self.project_root(project_id) / "plan_runtime_projection.sqlite"
 
+    def _plan_atomic_insertion_journal_path(
+        self,
+        project_id: str,
+        batch_id: str,
+    ) -> Path:
+        return (
+            self.project_root(project_id)
+            / "plan_atomic_insertions"
+            / f"{batch_id}.json"
+        )
+
+    def _write_plan_atomic_insertion_journal(
+        self,
+        path: Path,
+        payload: dict[str, Any],
+    ) -> None:
+        """Persist one recoverable Plan insertion journal transition."""
+
+        atomic_write_json(path, payload)
+
     def _persist_backlog(
         self,
         project_id: str,
@@ -1266,40 +1382,198 @@ class ProjectStore:
             backlog,
         )
 
-    def plan_tasks(
+    def plan_runtime_query(
         self,
         project_id: str,
         *,
-        tasks: list[dict[str, Any]],
-        planned_by: str,
-        plan_id: str,
-        insert_before_task_id: str | None = None,
-        insert_before_next_hil: bool = False,
-        normalization_transition_id: str | None = None,
+        task_id: str | None = None,
+        query: str | None = None,
+        limit: int = 8,
     ) -> dict[str, Any]:
-        """Add a bounded queue; planning never creates parallel active tasks."""
+        """Retrieve one exact Plan row or a bounded live-Plan FTS slice."""
+
         self.config(project_id)
-        require(
-            1 <= len(tasks) <= 100,
-            "TASK_PLAN_SIZE_INVALID",
-            "A linear task plan must contain between one and one hundred tasks.",
-            status="BLOCKED",
-            count=len(tasks),
+        return query_plan_runtime_projection(
+            self._plan_runtime_path(project_id),
+            task_id=task_id,
+            query=query,
+            limit=limit,
         )
+
+    def refresh_plan_runtime_projection(
+        self,
+        project_id: str,
+        *,
+        refresh_id: str,
+        expected_backlog_sha256: str,
+        expected_projection_content_sha256: str,
+        refreshed_by: str,
+        reason: str,
+    ) -> dict[str, Any]:
+        """Rebuild only the disposable Plan SQLite index under exact CAS."""
+
+        self.config(project_id)
+        exact_refresh_id = str(refresh_id or "").strip()
+        exact_actor = str(refreshed_by or "").strip()
+        exact_reason = str(reason or "").strip()
         require(
-            bool(planned_by.strip()),
-            "TASK_PLAN_ACTOR_REQUIRED",
-            "Task planning requires the visible human or agent identity.",
+            bool(exact_refresh_id)
+            and len(exact_refresh_id) <= 96
+            and all(
+                character in _PROJECT_ID_CHARS
+                for character in exact_refresh_id
+            )
+            and bool(exact_actor)
+            and bool(exact_reason),
+            "PLAN_RUNTIME_REFRESH_CONTRACT_INVALID",
+            "A Plan runtime refresh requires one bounded identity, actor, and reason.",
             status="BLOCKED",
         )
-        require(
-            bool(plan_id)
-            and len(plan_id) <= 96
-            and all(character in _PROJECT_ID_CHARS for character in plan_id),
-            "TASK_PLAN_ID_INVALID",
-            "The task plan ID is invalid.",
-            status="BLOCKED",
+        expected_backlog = str(expected_backlog_sha256 or "").strip().upper()
+        expected_projection = str(
+            expected_projection_content_sha256 or ""
+        ).strip().upper()
+        for field, value in (
+            ("expected_backlog_sha256", expected_backlog),
+            ("expected_projection_content_sha256", expected_projection),
+        ):
+            require(
+                re.fullmatch(r"[0-9A-F]{64}", value) is not None,
+                "PLAN_RUNTIME_REFRESH_SHA256_INVALID",
+                "Plan runtime refresh authorities require exact SHA-256 values.",
+                status="BLOCKED",
+                field=field,
+            )
+        request_body = {
+            "project_id": project_id,
+            "refresh_id": exact_refresh_id,
+            "expected_backlog_sha256": expected_backlog,
+            "expected_projection_content_sha256": expected_projection,
+            "refreshed_by": exact_actor,
+            "reason": exact_reason,
+        }
+        request_sha256 = sha256_bytes(canonical_json_bytes(request_body))
+        receipt_path = (
+            self.project_root(project_id)
+            / "plan_runtime_refreshes"
+            / f"{exact_refresh_id}.json"
         )
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            observed_backlog_sha256 = sha256_bytes(
+                canonical_json_bytes(backlog)
+            )
+            require(
+                observed_backlog_sha256 == expected_backlog,
+                "PLAN_RUNTIME_REFRESH_BACKLOG_MISMATCH",
+                "The canonical Plan backlog changed before derived-index refresh.",
+                status="MISMATCH",
+                expected=expected_backlog,
+                observed=observed_backlog_sha256,
+                writes_performed=False,
+            )
+            before = plan_runtime_status(
+                self._plan_runtime_path(project_id),
+                copy.deepcopy(backlog),
+            )
+            require(
+                before.get("expected_projection_content_sha256")
+                == expected_projection,
+                "PLAN_RUNTIME_REFRESH_PROJECTION_MISMATCH",
+                "The source runtime expects a different derived Plan projection.",
+                status="MISMATCH",
+                expected=expected_projection,
+                observed=before.get("expected_projection_content_sha256"),
+                writes_performed=False,
+            )
+            existing: dict[str, Any] | None = None
+            if receipt_path.is_file():
+                try:
+                    existing = json.loads(
+                        receipt_path.read_text(encoding="utf-8")
+                    )
+                except (OSError, json.JSONDecodeError) as exc:
+                    raise EvidenceLaneError(
+                        "PLAN_RUNTIME_REFRESH_RECEIPT_INVALID",
+                        "The derived Plan refresh receipt is unreadable.",
+                        status="FAIL",
+                        details={"path": str(receipt_path)},
+                    ) from exc
+                require(
+                    existing.get("schema")
+                    == "evidence-lane.plan-runtime-refresh-receipt.v1"
+                    and existing.get("request_sha256") == request_sha256,
+                    "PLAN_RUNTIME_REFRESH_REPLAY_CONFLICT",
+                    "The refresh identity already binds another request.",
+                    status="BLOCKED",
+                )
+            receipt_reused = existing is not None
+            rebuilt = before.get("status") != "PASS"
+            if rebuilt:
+                write_plan_runtime_projection(
+                    self._plan_runtime_path(project_id),
+                    backlog,
+                )
+            after = plan_runtime_status(
+                self._plan_runtime_path(project_id),
+                copy.deepcopy(backlog),
+            )
+            require(
+                after.get("status") == "PASS"
+                and after.get("projection_content_sha256")
+                == expected_projection,
+                "PLAN_RUNTIME_REFRESH_VERIFICATION_FAILED",
+                "The rebuilt Plan SQLite projection did not match source authority.",
+                status="FAIL",
+                after_status=after.get("status"),
+                observed_projection_content_sha256=after.get(
+                    "projection_content_sha256"
+                ),
+            )
+            if existing is None:
+                receipt_body = {
+                    "schema": "evidence-lane.plan-runtime-refresh-receipt.v1",
+                    "status": "PASS",
+                    **request_body,
+                    "request_sha256": request_sha256,
+                    "before_status": before.get("status"),
+                    "before_sqlite_sha256": before.get("sqlite_sha256"),
+                    "after_sqlite_sha256": after["sqlite_sha256"],
+                    "projection_content_sha256": after[
+                        "projection_content_sha256"
+                    ],
+                    "projection_rebuilt": rebuilt,
+                    "recovered_unsealed_refresh": (
+                        not rebuilt and before.get("status") == "PASS"
+                    ),
+                    "canonical_backlog_mutated": False,
+                    "goal_completion_mutated": False,
+                    "candidate_created": False,
+                    "hil_invoked": False,
+                    "pointer_moved": False,
+                    "git_executed": False,
+                    "install_executed": False,
+                    "refreshed_at": utc_now(),
+                }
+                existing = {
+                    **receipt_body,
+                    "receipt_sha256": sha256_bytes(
+                        canonical_json_bytes(receipt_body)
+                    ),
+                }
+                atomic_write_json(receipt_path, existing)
+        return {
+            **cast(dict[str, Any], existing),
+            "idempotent_replay": receipt_reused,
+            "receipt_path": str(receipt_path),
+        }
+
+    def _normalize_plan_task_rows(
+        self,
+        tasks: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Normalize bounded task contracts without reading or writing Plan state."""
+
         normalized: list[dict[str, Any]] = []
         for position, task in enumerate(tasks, start=1):
             task_id = str(task.get("task_id", ""))
@@ -1398,11 +1672,9 @@ class ProjectStore:
                 task.get("commit_batch_id") or task.get("batch_id") or ""
             ).strip()
             if commit_batch_id:
-                normalized_task["commit_batch_id"] = (
-                    _bounded_plan_metadata_id(
-                        commit_batch_id,
-                        fallback="UNASSIGNED",
-                    )
+                normalized_task["commit_batch_id"] = _bounded_plan_metadata_id(
+                    commit_batch_id,
+                    fallback="UNASSIGNED",
                 )
             if "dependencies" in task:
                 normalized_task["dependencies"] = _bounded_plan_dependencies(
@@ -1440,6 +1712,44 @@ class ProjectStore:
             "A task plan may not repeat a task ID.",
             status="BLOCKED",
         )
+        return normalized
+
+    def plan_tasks(
+        self,
+        project_id: str,
+        *,
+        tasks: list[dict[str, Any]],
+        planned_by: str,
+        plan_id: str,
+        insert_before_task_id: str | None = None,
+        insert_before_next_hil: bool = False,
+        normalization_transition_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Add a bounded queue; planning never creates parallel active tasks."""
+        self.config(project_id)
+        require(
+            1 <= len(tasks) <= 100,
+            "TASK_PLAN_SIZE_INVALID",
+            "A linear task plan must contain between one and one hundred tasks.",
+            status="BLOCKED",
+            count=len(tasks),
+        )
+        require(
+            bool(planned_by.strip()),
+            "TASK_PLAN_ACTOR_REQUIRED",
+            "Task planning requires the visible human or agent identity.",
+            status="BLOCKED",
+        )
+        require(
+            bool(plan_id)
+            and len(plan_id) <= 96
+            and all(character in _PROJECT_ID_CHARS for character in plan_id),
+            "TASK_PLAN_ID_INVALID",
+            "The task plan ID is invalid.",
+            status="BLOCKED",
+        )
+        normalized = self._normalize_plan_task_rows(tasks)
+        ids = [task["task_id"] for task in normalized]
         exact_insert_before = str(insert_before_task_id or "").strip()
         if exact_insert_before:
             require(
@@ -1635,6 +1945,843 @@ class ProjectStore:
             self._persist_backlog(project_id, backlog)
         return self.backlog_status(project_id)
 
+    def _build_plan_atomic_insertion_candidate(
+        self,
+        backlog: dict[str, Any],
+        *,
+        insertions: list[dict[str, Any]],
+        planned_by: str,
+        plan_id: str,
+        batch_id: str,
+        research_batch_sha256: str,
+        input_sha256: str,
+        planned_at: str,
+        expected_physical_final_task_id: str,
+    ) -> tuple[dict[str, Any], list[str]]:
+        """Build and validate one multi-target Plan insertion in memory."""
+
+        candidate = copy.deepcopy(backlog)
+        ensure_event_ledger(candidate)
+        ordered = sorted(candidate["tasks"], key=lambda row: int(row["sequence"]))
+        require(
+            [int(row["sequence"]) for row in ordered]
+            == list(range(1, len(ordered) + 1)),
+            "PLAN_SEQUENCE_NOT_CONTIGUOUS",
+            "Atomic insertion requires one contiguous canonical Plan sequence.",
+            status="MISMATCH",
+        )
+        existing_ids = {str(row["task_id"]) for row in ordered}
+        target_ids = [str(group["insert_before_task_id"]) for group in insertions]
+        missing_targets = sorted(set(target_ids) - existing_ids)
+        require(
+            not missing_targets,
+            "TASK_PLAN_INSERTION_TARGET_NOT_FOUND",
+            "One or more atomic insertion targets are absent from the Plan Lane.",
+            status="MISMATCH",
+            task_ids=missing_targets,
+        )
+        final_rows = [
+            row
+            for row in ordered
+            if str(row.get("panel_role") or "").upper()
+            == "PHYSICALLY_FINAL_HIL"
+        ]
+        require(
+            len(final_rows) == 1
+            and str(final_rows[0]["task_id"])
+            == expected_physical_final_task_id
+            and str(ordered[-1]["task_id"])
+            == expected_physical_final_task_id,
+            "PLAN_PHYSICAL_FINAL_HIL_MISMATCH",
+            "Atomic insertion requires the expected HIL identity to remain physically final.",
+            status="MISMATCH",
+            expected_task_id=expected_physical_final_task_id,
+            observed_task_ids=[str(row.get("task_id")) for row in final_rows],
+            observed_last_task_id=(str(ordered[-1]["task_id"]) if ordered else None),
+        )
+        all_new_tasks = [task for group in insertions for task in group["tasks"]]
+        new_ids = [str(task["task_id"]) for task in all_new_tasks]
+        require(
+            not existing_ids.intersection(new_ids),
+            "BACKLOG_TASK_ALREADY_EXISTS",
+            "An atomic insertion task ID already exists in this project.",
+            status="BLOCKED",
+            duplicates=sorted(existing_ids.intersection(new_ids)),
+        )
+        superseded_ids = [
+            str(task["supersedes_task_id"])
+            for task in all_new_tasks
+            if task.get("supersedes_task_id")
+        ]
+        require(
+            len(superseded_ids) == len(set(superseded_ids)),
+            "DELTA_SUPERSEDED_TASK_DUPLICATE",
+            "One atomic insertion may supersede an existing task only once.",
+            status="BLOCKED",
+        )
+        missing_superseded = sorted(set(superseded_ids) - existing_ids)
+        require(
+            not missing_superseded,
+            "DELTA_SUPERSEDED_TASK_NOT_FOUND",
+            "A superseding Delta references a task outside the existing backlog.",
+            status="MISMATCH",
+            task_ids=missing_superseded,
+        )
+        added_by_target: dict[str, list[dict[str, Any]]] = {}
+        for group in insertions:
+            target_id = str(group["insert_before_task_id"])
+            added_by_target[target_id] = [
+                {
+                    **task,
+                    "plan_id": plan_id,
+                    "status": "QUEUED",
+                    "planned_at": planned_at,
+                    "history": [],
+                }
+                for task in group["tasks"]
+            ]
+        merged: list[dict[str, Any]] = []
+        insertion_target_by_task: dict[str, str] = {}
+        for existing in ordered:
+            target_id = str(existing["task_id"])
+            for added in added_by_target.get(target_id, []):
+                merged.append(added)
+                insertion_target_by_task[str(added["task_id"])] = target_id
+            merged.append(existing)
+        for sequence, task in enumerate(merged, start=1):
+            task["sequence"] = sequence
+        candidate["tasks"] = merged
+        candidate["plans"].append(
+            {
+                "plan_id": plan_id,
+                "planned_by": planned_by,
+                "input_sha256": input_sha256,
+                "task_ids": new_ids,
+                "planned_at": planned_at,
+                "atomic_insertion": {
+                    "batch_id": batch_id,
+                    "research_batch_sha256": research_batch_sha256,
+                    "group_count": len(insertions),
+                    "insert_before_task_ids": target_ids,
+                },
+            }
+        )
+        for task in all_new_tasks:
+            task_id = str(task["task_id"])
+            added = next(row for row in merged if str(row["task_id"]) == task_id)
+            append_delta_event(
+                candidate,
+                task_id=task_id,
+                event_type="ADDED",
+                to_status="QUEUED",
+                actor=planned_by,
+                event_id=f"{plan_id}__{task_id}__added",
+                recorded_at=planned_at,
+                assume_initialized=True,
+                details={
+                    "plan_id": plan_id,
+                    "sequence": added["sequence"],
+                    "atomic_batch_id": batch_id,
+                    "insert_before_task_id": insertion_target_by_task[task_id],
+                },
+            )
+        tasks_by_id = {str(row["task_id"]): row for row in candidate["tasks"]}
+        for task in all_new_tasks:
+            task_id = str(task["task_id"])
+            linked_task_id = str(task.get("supersedes_task_id") or "")
+            if not linked_task_id:
+                continue
+            append_delta_event(
+                candidate,
+                task_id=linked_task_id,
+                event_type="SUPERSEDED",
+                to_status="SUPERSEDED",
+                actor=planned_by,
+                event_id=f"{plan_id}__{linked_task_id}__superseded_by__{task_id}",
+                recorded_at=planned_at,
+                assume_initialized=True,
+                details={
+                    "replacement_task_id": task_id,
+                    "atomic_batch_id": batch_id,
+                },
+            )
+            tasks_by_id[linked_task_id]["superseded_by_task_id"] = task_id
+        earlier_executable_ids: set[str] = set()
+        for task in candidate["tasks"]:
+            if str(task.get("status")) not in _GOAL_STATUS_BY_LIFECYCLE:
+                continue
+            dependencies = task.get("dependencies")
+            if dependencies is not None:
+                invalid_dependencies = sorted(
+                    {str(value) for value in dependencies}
+                    - earlier_executable_ids
+                )
+                require(
+                    not invalid_dependencies,
+                    "PLAN_DEPENDENCY_NOT_EARLIER_EXECUTABLE_ROW",
+                    "Explicit Plan dependencies must name earlier executable rows only.",
+                    status="MISMATCH",
+                    task_id=task["task_id"],
+                    invalid_dependencies=invalid_dependencies,
+                )
+            earlier_executable_ids.add(str(task["task_id"]))
+        final_rows = [
+            row
+            for row in candidate["tasks"]
+            if str(row.get("panel_role") or "").upper()
+            == "PHYSICALLY_FINAL_HIL"
+        ]
+        require(
+            len(final_rows) == 1
+            and str(final_rows[0]["task_id"])
+            == expected_physical_final_task_id
+            and str(candidate["tasks"][-1]["task_id"])
+            == expected_physical_final_task_id,
+            "PLAN_PHYSICAL_FINAL_HIL_NOT_PRESERVED",
+            "Atomic insertion would move or duplicate the physically final HIL.",
+            status="MISMATCH",
+        )
+        return candidate, new_ids
+
+    def plan_tasks_atomic_insert(
+        self,
+        project_id: str,
+        *,
+        insertions: list[dict[str, Any]],
+        planned_by: str,
+        plan_id: str,
+        batch_id: str,
+        research_batch_sha256: str,
+        expected_backlog_sha256: str,
+        expected_canonical_plan_sha256: str,
+        expected_executable_projection_sha256: str,
+        expected_physical_final_task_id: str,
+    ) -> dict[str, Any]:
+        """Insert bounded Plan groups at exact targets in one recoverable commit."""
+
+        self.config(project_id)
+        exact_actor = str(planned_by or "").strip()
+        exact_plan_id = str(plan_id or "").strip()
+        exact_batch_id = str(batch_id or "").strip()
+        exact_final_task_id = str(
+            expected_physical_final_task_id or ""
+        ).strip()
+        require(
+            bool(exact_actor),
+            "TASK_PLAN_ACTOR_REQUIRED",
+            "Task planning requires the visible human or agent identity.",
+            status="BLOCKED",
+        )
+        for value, code, label in (
+            (exact_plan_id, "TASK_PLAN_ID_INVALID", "task plan ID"),
+            (exact_batch_id, "TASK_PLAN_BATCH_ID_INVALID", "atomic batch ID"),
+            (
+                exact_final_task_id,
+                "PLAN_PHYSICAL_FINAL_TASK_ID_INVALID",
+                "physical-final task ID",
+            ),
+        ):
+            require(
+                bool(value)
+                and len(value) <= 96
+                and all(character in _PROJECT_ID_CHARS for character in value),
+                code,
+                f"The {label} is invalid.",
+                status="BLOCKED",
+            )
+        normalized_hashes: dict[str, str] = {}
+        for name, value in (
+            ("research_batch_sha256", research_batch_sha256),
+            ("expected_backlog_sha256", expected_backlog_sha256),
+            ("expected_canonical_plan_sha256", expected_canonical_plan_sha256),
+            (
+                "expected_executable_projection_sha256",
+                expected_executable_projection_sha256,
+            ),
+        ):
+            exact_hash = str(value).strip().upper()
+            require(
+                re.fullmatch(r"[0-9A-F]{64}", exact_hash) is not None,
+                "PLAN_ATOMIC_INSERTION_SHA256_INVALID",
+                "Atomic Plan insertion requires exact SHA-256 authorities.",
+                status="BLOCKED",
+                field=name,
+            )
+            normalized_hashes[name] = exact_hash
+        require(
+            isinstance(insertions, list) and 1 <= len(insertions) <= 8,
+            "PLAN_ATOMIC_INSERTION_GROUP_COUNT_INVALID",
+            "Atomic Plan insertion requires between one and eight target groups.",
+            status="BLOCKED",
+        )
+        normalized_insertions: list[dict[str, Any]] = []
+        total_tasks = 0
+        target_ids: list[str] = []
+        for position, group in enumerate(insertions, start=1):
+            require(
+                isinstance(group, dict),
+                "PLAN_ATOMIC_INSERTION_GROUP_INVALID",
+                "Every atomic Plan insertion group must be an object.",
+                status="BLOCKED",
+                position=position,
+            )
+            target_id = str(group.get("insert_before_task_id") or "").strip()
+            require(
+                bool(target_id)
+                and len(target_id) <= 96
+                and all(character in _PROJECT_ID_CHARS for character in target_id),
+                "TASK_PLAN_INSERTION_TARGET_INVALID",
+                "Every atomic insertion group requires one stable target task ID.",
+                status="BLOCKED",
+                position=position,
+            )
+            raw_tasks = group.get("tasks")
+            require(
+                isinstance(raw_tasks, list) and 1 <= len(raw_tasks) <= 100,
+                "PLAN_ATOMIC_INSERTION_GROUP_SIZE_INVALID",
+                "Every atomic insertion group requires a bounded non-empty task list.",
+                status="BLOCKED",
+                position=position,
+            )
+            normalized_tasks = self._normalize_plan_task_rows(
+                cast(list[dict[str, Any]], raw_tasks)
+            )
+            total_tasks += len(normalized_tasks)
+            target_ids.append(target_id)
+            normalized_insertions.append(
+                {"insert_before_task_id": target_id, "tasks": normalized_tasks}
+            )
+        require(
+            total_tasks <= 100,
+            "TASK_PLAN_SIZE_INVALID",
+            "An atomic task plan may contain at most one hundred tasks.",
+            status="BLOCKED",
+            count=total_tasks,
+        )
+        require(
+            len(target_ids) == len(set(target_ids)),
+            "PLAN_ATOMIC_INSERTION_TARGET_DUPLICATE",
+            "Each atomic insertion target may appear only once per batch.",
+            status="BLOCKED",
+        )
+        new_ids = [
+            str(task["task_id"])
+            for group in normalized_insertions
+            for task in group["tasks"]
+        ]
+        require(
+            len(new_ids) == len(set(new_ids)),
+            "BACKLOG_TASK_ID_DUPLICATE",
+            "An atomic task plan may not repeat a task ID across groups.",
+            status="BLOCKED",
+        )
+        input_body = {
+            "planned_by": exact_actor,
+            "plan_id": exact_plan_id,
+            "batch_id": exact_batch_id,
+            **normalized_hashes,
+            "expected_physical_final_task_id": exact_final_task_id,
+            "insertions": normalized_insertions,
+        }
+        input_sha256 = sha256_bytes(canonical_json_bytes(input_body))
+        journal_path = self._plan_atomic_insertion_journal_path(
+            project_id,
+            exact_batch_id,
+        )
+        receipt: dict[str, Any]
+        idempotent_replay = False
+        recovered_prepared = False
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            current_backlog_sha256 = sha256_bytes(canonical_json_bytes(backlog))
+            journal: dict[str, Any] | None = None
+            if journal_path.is_file():
+                journal = json.loads(journal_path.read_text(encoding="utf-8"))
+                require(
+                    journal.get("schema")
+                    == "evidence-lane.plan-atomic-insertion-journal.v1"
+                    and journal.get("project_id") == project_id
+                    and journal.get("batch_id") == exact_batch_id
+                    and journal.get("input_sha256") == input_sha256,
+                    "PLAN_ATOMIC_INSERTION_JOURNAL_MISMATCH",
+                    "The existing atomic insertion journal binds different input.",
+                    status="MISMATCH",
+                )
+                state = str(journal.get("state") or "")
+                before_sha = str(journal.get("before_backlog_sha256") or "")
+                after_sha = str(journal.get("after_backlog_sha256") or "")
+                require(
+                    state in {"PREPARED", "COMMITTED"},
+                    "PLAN_ATOMIC_INSERTION_JOURNAL_STATE_INVALID",
+                    "The atomic insertion journal has an unsupported state.",
+                    status="MISMATCH",
+                    state=state,
+                )
+                if state == "COMMITTED":
+                    require(
+                        current_backlog_sha256 == after_sha,
+                        "PLAN_ATOMIC_INSERTION_REPLAY_STATE_MISMATCH",
+                        "The committed atomic insertion no longer matches the Plan authority.",
+                        status="MISMATCH",
+                    )
+                    receipt = dict(journal["receipt"])
+                    idempotent_replay = True
+                else:
+                    require(
+                        current_backlog_sha256 in {before_sha, after_sha},
+                        "PLAN_ATOMIC_INSERTION_RECOVERY_DIVERGED",
+                        "The Plan changed outside the prepared atomic insertion boundary.",
+                        status="MISMATCH",
+                    )
+                    if current_backlog_sha256 == before_sha:
+                        candidate, _ = self._build_plan_atomic_insertion_candidate(
+                            backlog,
+                            insertions=normalized_insertions,
+                            planned_by=exact_actor,
+                            plan_id=exact_plan_id,
+                            batch_id=exact_batch_id,
+                            research_batch_sha256=normalized_hashes[
+                                "research_batch_sha256"
+                            ],
+                            input_sha256=input_sha256,
+                            planned_at=str(journal["planned_at"]),
+                            expected_physical_final_task_id=exact_final_task_id,
+                        )
+                        require(
+                            sha256_bytes(canonical_json_bytes(candidate)) == after_sha,
+                            "PLAN_ATOMIC_INSERTION_RECOVERY_REBUILD_MISMATCH",
+                            "The prepared insertion did not rebuild the sealed Plan result.",
+                            status="MISMATCH",
+                        )
+                        self._persist_backlog(project_id, candidate)
+                        backlog = candidate
+                    else:
+                        self._persist_backlog(project_id, backlog)
+                    receipt = dict(journal["receipt"])
+                    recovered_prepared = True
+                    committed = {
+                        **journal,
+                        "state": "COMMITTED",
+                        "committed_at": utc_now(),
+                    }
+                    self._write_plan_atomic_insertion_journal(
+                        journal_path,
+                        committed,
+                    )
+            else:
+                existing_plan = next(
+                    (
+                        plan
+                        for plan in backlog["plans"]
+                        if str(plan.get("plan_id")) == exact_plan_id
+                    ),
+                    None,
+                )
+                require(
+                    existing_plan is None,
+                    "TASK_PLAN_ID_CONFLICT",
+                    "The task plan ID already exists without its atomic journal.",
+                    status="BLOCKED",
+                )
+                before_status = self.backlog_status(
+                    project_id,
+                    _loaded_backlog=copy.deepcopy(backlog),
+                )
+                observed_canonical_sha = str(
+                    before_status["canonical_plan_projection"]["projection_sha256"]
+                )
+                observed_executable_sha = str(
+                    before_status["goal_projection"]["projection_sha256"]
+                )
+                require(
+                    current_backlog_sha256
+                    == normalized_hashes["expected_backlog_sha256"]
+                    and observed_canonical_sha
+                    == normalized_hashes["expected_canonical_plan_sha256"]
+                    and observed_executable_sha
+                    == normalized_hashes[
+                        "expected_executable_projection_sha256"
+                    ],
+                    "PLAN_ATOMIC_INSERTION_AUTHORITY_HASH_MISMATCH",
+                    "The live Plan backlog or projections do not match the sealed insertion input.",
+                    status="MISMATCH",
+                    observed_backlog_sha256=current_backlog_sha256,
+                    observed_canonical_plan_sha256=observed_canonical_sha,
+                    observed_executable_projection_sha256=observed_executable_sha,
+                )
+                planned_at = utc_now()
+                candidate, added_ids = self._build_plan_atomic_insertion_candidate(
+                    backlog,
+                    insertions=normalized_insertions,
+                    planned_by=exact_actor,
+                    plan_id=exact_plan_id,
+                    batch_id=exact_batch_id,
+                    research_batch_sha256=normalized_hashes[
+                        "research_batch_sha256"
+                    ],
+                    input_sha256=input_sha256,
+                    planned_at=planned_at,
+                    expected_physical_final_task_id=exact_final_task_id,
+                )
+                after_status = self.backlog_status(
+                    project_id,
+                    _loaded_backlog=copy.deepcopy(candidate),
+                )
+                after_backlog_sha256 = sha256_bytes(
+                    canonical_json_bytes(candidate)
+                )
+                final_row = next(
+                    row
+                    for row in after_status["goal_projection"]["rows"]
+                    if row["task_id"] == exact_final_task_id
+                )
+                receipt = {
+                    "schema": "evidence-lane.plan-atomic-insertion-receipt.v1",
+                    "status": "PASS",
+                    "project_id": project_id,
+                    "plan_id": exact_plan_id,
+                    "batch_id": exact_batch_id,
+                    "input_sha256": input_sha256,
+                    "research_batch_sha256": normalized_hashes[
+                        "research_batch_sha256"
+                    ],
+                    "group_count": len(normalized_insertions),
+                    "task_count": len(added_ids),
+                    "task_ids": added_ids,
+                    "before_backlog_sha256": current_backlog_sha256,
+                    "after_backlog_sha256": after_backlog_sha256,
+                    "before_canonical_plan_sha256": observed_canonical_sha,
+                    "after_canonical_plan_sha256": after_status[
+                        "canonical_plan_projection"
+                    ]["projection_sha256"],
+                    "before_executable_projection_sha256": observed_executable_sha,
+                    "after_executable_projection_sha256": after_status[
+                        "goal_projection"
+                    ]["projection_sha256"],
+                    "physical_final_task_id": exact_final_task_id,
+                    "physical_final_row": final_row["number"],
+                    "planned_at": planned_at,
+                    "pointer_moved": False,
+                    "candidate_created": False,
+                    "hil_invoked": False,
+                    "goal_mutated": False,
+                    "git_executed": False,
+                }
+                prepared = {
+                    "schema": "evidence-lane.plan-atomic-insertion-journal.v1",
+                    "state": "PREPARED",
+                    "project_id": project_id,
+                    "batch_id": exact_batch_id,
+                    "input_sha256": input_sha256,
+                    "before_backlog_sha256": current_backlog_sha256,
+                    "after_backlog_sha256": after_backlog_sha256,
+                    "planned_at": planned_at,
+                    "prepared_at": utc_now(),
+                    "receipt": receipt,
+                }
+                self._write_plan_atomic_insertion_journal(journal_path, prepared)
+                self._persist_backlog(project_id, candidate)
+                self._write_plan_atomic_insertion_journal(
+                    journal_path,
+                    {**prepared, "state": "COMMITTED", "committed_at": utc_now()},
+                )
+        status = self.backlog_status(project_id)
+        return {
+            **status,
+            "atomic_insertion_receipt": {
+                **receipt,
+                "idempotent_replay": idempotent_replay,
+                "recovered_prepared_insertion": recovered_prepared,
+            },
+        }
+
+    def amend_active_task_contract(
+        self,
+        project_id: str,
+        *,
+        amendment_id: str,
+        session_id: str,
+        active_task_id: str,
+        replacement_contract: dict[str, Any],
+        amended_by: str,
+        approval_receipt_sha256: str,
+        expected_backlog_sha256: str,
+        expected_canonical_plan_sha256: str,
+        expected_executable_projection_sha256: str,
+        request_sha256: str,
+    ) -> dict[str, Any]:
+        """Append one exact active-contract amendment without changing row identity."""
+
+        self.config(project_id)
+        exact_amendment_id = str(amendment_id or "").strip()
+        exact_session_id = str(session_id or "").strip()
+        exact_task_id = str(active_task_id or "").strip()
+        exact_actor = str(amended_by or "").strip()
+        for field, value in (
+            ("amendment_id", exact_amendment_id),
+            ("active_task_id", exact_task_id),
+        ):
+            require(
+                bool(value)
+                and len(value) <= 96
+                and all(character in _PROJECT_ID_CHARS for character in value),
+                "ACTIVE_CONTRACT_REBIND_ID_INVALID",
+                "Active-contract amendment identities must be bounded public-safe IDs.",
+                status="BLOCKED",
+                field=field,
+            )
+        require(
+            exact_session_id.startswith("session_")
+            and exact_session_id.replace("_", "").isalnum()
+            and bool(exact_actor),
+            "ACTIVE_CONTRACT_REBIND_ID_INVALID",
+            "The active-contract amendment requires exact session and actor identities.",
+            status="BLOCKED",
+        )
+        exact_hashes: dict[str, str] = {}
+        for field, value in (
+            ("approval_receipt_sha256", approval_receipt_sha256),
+            ("expected_backlog_sha256", expected_backlog_sha256),
+            ("expected_canonical_plan_sha256", expected_canonical_plan_sha256),
+            (
+                "expected_executable_projection_sha256",
+                expected_executable_projection_sha256,
+            ),
+            ("request_sha256", request_sha256),
+        ):
+            exact = str(value or "").strip().upper()
+            require(
+                re.fullmatch(r"[0-9A-F]{64}", exact) is not None,
+                "ACTIVE_CONTRACT_REBIND_SHA256_INVALID",
+                "Active-contract amendment authorities require exact SHA-256 values.",
+                status="BLOCKED",
+                field=field,
+            )
+            exact_hashes[field] = exact
+        require(
+            isinstance(replacement_contract, dict),
+            "ACTIVE_CONTRACT_REBIND_REPLACEMENT_INVALID",
+            "The active-contract replacement must be one structured task contract.",
+            status="BLOCKED",
+        )
+        normalized = self._normalize_plan_task_rows(
+            [{**replacement_contract, "task_id": exact_task_id}]
+        )[0]
+        contract_fields = (
+            "task_id",
+            "task_class",
+            "requested_outcome",
+            "permitted_paths",
+            "permitted_tools",
+            "acceptance_checks",
+            "stop_condition",
+            "plan_group",
+            "commit_batch_id",
+            "dependencies",
+            "git_commit_stage",
+            "current_version",
+            "current_branch",
+        )
+        receipt: dict[str, Any]
+        idempotent_replay = False
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            target = next(
+                (
+                    task
+                    for task in backlog["tasks"]
+                    if str(task["task_id"]) == exact_task_id
+                ),
+                None,
+            )
+            require(
+                isinstance(target, dict),
+                "ACTIVE_CONTRACT_REBIND_TASK_NOT_FOUND",
+                "The exact active Plan task is absent.",
+                status="MISMATCH",
+                task_id=exact_task_id,
+            )
+            target = cast(dict[str, Any], target)
+            existing_amendments = target.get("task_contract_amendments")
+            require(
+                existing_amendments is None
+                or isinstance(existing_amendments, list),
+                "ACTIVE_CONTRACT_REBIND_HISTORY_INVALID",
+                "The task contract amendment history is not append-only data.",
+                status="MISMATCH",
+            )
+            amendments = (
+                cast(list[dict[str, Any]], existing_amendments)
+                if isinstance(existing_amendments, list)
+                else []
+            )
+            existing = next(
+                (
+                    row
+                    for row in amendments
+                    if isinstance(row, dict)
+                    and row.get("amendment_id") == exact_amendment_id
+                ),
+                None,
+            )
+            if existing is not None:
+                require(
+                    existing.get("request_sha256")
+                    == exact_hashes["request_sha256"],
+                    "ACTIVE_CONTRACT_REBIND_REPLAY_CONFLICT",
+                    "The amendment ID already binds a different request.",
+                    status="BLOCKED",
+                )
+                receipt = dict(existing["receipt"])
+                idempotent_replay = True
+            else:
+                current_backlog_sha256 = sha256_bytes(
+                    canonical_json_bytes(backlog)
+                )
+                status = self.backlog_status(
+                    project_id,
+                    _loaded_backlog=copy.deepcopy(backlog),
+                )
+                observed_canonical_sha256 = str(
+                    status["canonical_plan_projection"]["projection_sha256"]
+                )
+                observed_executable_sha256 = str(
+                    status["goal_projection"]["projection_sha256"]
+                )
+                require(
+                    current_backlog_sha256
+                    == exact_hashes["expected_backlog_sha256"]
+                    and observed_canonical_sha256
+                    == exact_hashes["expected_canonical_plan_sha256"]
+                    and observed_executable_sha256
+                    == exact_hashes[
+                        "expected_executable_projection_sha256"
+                    ],
+                    "ACTIVE_CONTRACT_REBIND_PLAN_PRECONDITION_MISMATCH",
+                    "The live Plan authority differs from the approved rebind boundary.",
+                    status="MISMATCH",
+                    observed_backlog_sha256=current_backlog_sha256,
+                    observed_canonical_plan_sha256=observed_canonical_sha256,
+                    observed_executable_projection_sha256=(
+                        observed_executable_sha256
+                    ),
+                )
+                active_ids = [
+                    str(row["task_id"])
+                    for row in backlog["tasks"]
+                    if row.get("status") == "ACTIVE"
+                ]
+                require(
+                    active_ids == [exact_task_id]
+                    and target.get("status") == "ACTIVE",
+                    "ACTIVE_CONTRACT_REBIND_ACTIVE_TASK_MISMATCH",
+                    "The replacement may amend only the sole exact ACTIVE Plan row.",
+                    status="MISMATCH",
+                    active_task_ids=active_ids,
+                )
+                prior_contract = {
+                    field: copy.deepcopy(target[field])
+                    for field in contract_fields
+                    if field in target
+                }
+                replacement = {
+                    field: copy.deepcopy(normalized[field])
+                    for field in contract_fields
+                    if field in normalized
+                }
+                for field in contract_fields:
+                    if field != "task_id":
+                        target.pop(field, None)
+                target.update(replacement)
+                target["current_contract_authority"] = "ACTIVE_CONTRACT_REBIND"
+                amended_at = utc_now()
+                prior_contract_sha256 = sha256_bytes(
+                    canonical_json_bytes(prior_contract)
+                )
+                replacement_contract_sha256 = sha256_bytes(
+                    canonical_json_bytes(replacement)
+                )
+                receipt_body = {
+                    "schema": "evidence-lane.active-contract-amendment-receipt.v1",
+                    "status": "PASS",
+                    "project_id": project_id,
+                    "session_id": exact_session_id,
+                    "active_task_id": exact_task_id,
+                    "amendment_id": exact_amendment_id,
+                    "request_sha256": exact_hashes["request_sha256"],
+                    "approval_receipt_sha256": exact_hashes[
+                        "approval_receipt_sha256"
+                    ],
+                    "prior_contract_sha256": prior_contract_sha256,
+                    "replacement_contract_sha256": (
+                        replacement_contract_sha256
+                    ),
+                    "plan_row_identity_preserved": True,
+                    "plan_row_status_preserved": True,
+                    "candidate_created": False,
+                    "hil_invoked": False,
+                    "pointer_moved": False,
+                    "goal_completion_mutated": False,
+                    "git_executed": False,
+                    "install_executed": False,
+                    "amended_at": amended_at,
+                }
+                receipt = {
+                    **receipt_body,
+                    "receipt_sha256": sha256_bytes(
+                        canonical_json_bytes(receipt_body)
+                    ),
+                }
+                if existing_amendments is None:
+                    target["task_contract_amendments"] = amendments
+                amendments.append(
+                    {
+                        "schema": "evidence-lane.active-contract-amendment.v1",
+                        "amendment_id": exact_amendment_id,
+                        "session_id": exact_session_id,
+                        "amended_by": exact_actor,
+                        "request_sha256": exact_hashes["request_sha256"],
+                        "approval_receipt_sha256": exact_hashes[
+                            "approval_receipt_sha256"
+                        ],
+                        "prior_contract": prior_contract,
+                        "replacement_contract": replacement,
+                        "receipt": receipt,
+                        "recorded_at": amended_at,
+                    }
+                )
+                append_delta_event(
+                    backlog,
+                    task_id=exact_task_id,
+                    event_type="TASK_CONTRACT_AMENDED",
+                    to_status="ACTIVE",
+                    actor=exact_actor,
+                    event_id=f"{exact_amendment_id}__contract_amended",
+                    recorded_at=amended_at,
+                    assume_initialized=True,
+                    details={
+                        "session_id": exact_session_id,
+                        "prior_contract_sha256": prior_contract_sha256,
+                        "replacement_contract_sha256": (
+                            replacement_contract_sha256
+                        ),
+                        "approval_receipt_sha256": exact_hashes[
+                            "approval_receipt_sha256"
+                        ],
+                    },
+                )
+                self._persist_backlog(project_id, backlog)
+        status = self.backlog_status(project_id)
+        return {
+            **status,
+            "active_contract_amendment_receipt": {
+                **receipt,
+                "idempotent_replay": idempotent_replay,
+            },
+        }
+
     def activate_plan_normalization(
         self,
         project_id: str,
@@ -1783,6 +2930,191 @@ class ProjectStore:
                 self._persist_backlog(project_id, backlog)
         return self.backlog_status(project_id)
 
+    def activate_priority_steer(
+        self,
+        project_id: str,
+        *,
+        old_active_task_id: str,
+        replacement_task_id: str,
+        session_id: str,
+        runtime_task_id: str,
+        decided_by: str,
+        reason_sha256: str,
+        interruption_id: str,
+    ) -> dict[str, Any]:
+        """Pause one live Delta and activate one inserted correction atomically.
+
+        The interrupted row is not completed, dropped, or superseded.  It is
+        returned to QUEUED immediately behind the inserted correction so the
+        same persistent Goal can resume it after the priority work finishes.
+        Replays accept only the exact already-swapped binding.
+        """
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            tasks_by_id = {
+                str(task["task_id"]): task for task in backlog.get("tasks", [])
+            }
+            old_active = tasks_by_id.get(old_active_task_id)
+            replacement = tasks_by_id.get(replacement_task_id)
+            require(
+                isinstance(old_active, dict) and isinstance(replacement, dict),
+                "PLAN_PRIORITY_STEER_TASK_MISMATCH",
+                "The priority steer must bind the exact live and inserted Plan rows.",
+                status="MISMATCH",
+                old_active_task_id=old_active_task_id,
+                replacement_task_id=replacement_task_id,
+            )
+            old_active = cast(dict[str, Any], old_active)
+            replacement = cast(dict[str, Any], replacement)
+            before = (
+                old_active.get("status") == "ACTIVE"
+                and replacement.get("status") == "QUEUED"
+            )
+            after = (
+                old_active.get("status") == "QUEUED"
+                and replacement.get("status") == "ACTIVE"
+            )
+            require(
+                before or after,
+                "PLAN_PRIORITY_STEER_STATE_MISMATCH",
+                "The Plan rows are neither at the exact pre-steer nor committed state.",
+                status="MISMATCH",
+                old_active_status=old_active.get("status"),
+                replacement_status=replacement.get("status"),
+            )
+            require(
+                int(replacement.get("sequence") or 0) + 1
+                == int(old_active.get("sequence") or 0),
+                "PLAN_PRIORITY_STEER_ORDER_MISMATCH",
+                "The inserted correction must be immediately before the paused Delta.",
+                status="MISMATCH",
+                replacement_sequence=replacement.get("sequence"),
+                old_active_sequence=old_active.get("sequence"),
+            )
+            changed = False
+            if before:
+                active = [
+                    task
+                    for task in backlog["tasks"]
+                    if task.get("status") == "ACTIVE"
+                ]
+                require(
+                    len(active) == 1
+                    and active[0].get("task_id") == old_active_task_id
+                    and old_active.get("active_session_id") == session_id,
+                    "PLAN_PRIORITY_STEER_ACTIVE_BINDING_MISMATCH",
+                    "The priority steer requires the sole exact active session binding.",
+                    status="MISMATCH",
+                    active_task_ids=[task.get("task_id") for task in active],
+                    active_session_id=old_active.get("active_session_id"),
+                )
+                now = utc_now()
+                pause_event = append_delta_event(
+                    backlog,
+                    task_id=old_active_task_id,
+                    event_type="PRIORITY_STEER_PAUSED",
+                    to_status="QUEUED",
+                    actor=decided_by,
+                    event_id=f"{interruption_id}__paused",
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "replacement_task_id": replacement_task_id,
+                        "reason_sha256": reason_sha256,
+                        "session_id": session_id,
+                        "history_preserved": True,
+                        "candidate_created": False,
+                        "pending_hil": False,
+                        "pointer_moved": False,
+                    },
+                )
+                old_active.pop("active_session_id", None)
+                old_active.pop("runtime_task_id", None)
+                old_active.setdefault("history", []).append(
+                    {
+                        "event": "PRIORITY_STEER_PAUSED",
+                        "event_id": pause_event["event_id"],
+                        "replacement_task_id": replacement_task_id,
+                        "reason_sha256": reason_sha256,
+                        "recorded_at": now,
+                    }
+                )
+                replacement["active_session_id"] = session_id
+                replacement["runtime_task_id"] = runtime_task_id
+                activation_event = append_delta_event(
+                    backlog,
+                    task_id=replacement_task_id,
+                    event_type="PRIORITY_STEER_ACTIVATED",
+                    to_status="ACTIVE",
+                    actor=decided_by,
+                    event_id=f"{interruption_id}__activated",
+                    recorded_at=now,
+                    assume_initialized=True,
+                    details={
+                        "paused_task_id": old_active_task_id,
+                        "reason_sha256": reason_sha256,
+                        "session_id": session_id,
+                        "runtime_task_id": runtime_task_id,
+                        "candidate_created": False,
+                        "pending_hil": False,
+                        "pointer_moved": False,
+                    },
+                )
+                replacement.setdefault("history", []).append(
+                    {
+                        "event": "PRIORITY_STEER_ACTIVATED",
+                        "event_id": activation_event["event_id"],
+                        "paused_task_id": old_active_task_id,
+                        "session_id": session_id,
+                        "runtime_task_id": runtime_task_id,
+                        "recorded_at": now,
+                    }
+                )
+                self._persist_backlog(project_id, backlog)
+                changed = True
+            else:
+                require(
+                    replacement.get("active_session_id") == session_id
+                    and replacement.get("runtime_task_id") == runtime_task_id
+                    and len(
+                        [
+                            task
+                            for task in backlog["tasks"]
+                            if task.get("status") == "ACTIVE"
+                        ]
+                    )
+                    == 1,
+                    "PLAN_PRIORITY_STEER_REPLAY_BINDING_MISMATCH",
+                    "The replayed priority steer does not match the sole active binding.",
+                    status="MISMATCH",
+                )
+            result = self.backlog_status(project_id)
+            receipt_body = {
+                "schema": "evidence-lane.plan-priority-steer.v1",
+                "status": "PASS",
+                "interruption_id": interruption_id,
+                "project_id": project_id,
+                "session_id": session_id,
+                "paused_task_id": old_active_task_id,
+                "active_task_id": replacement_task_id,
+                "runtime_task_id": runtime_task_id,
+                "reason_sha256": reason_sha256,
+                "idempotent_replay": not changed,
+                "history_preserved": True,
+                "candidate_created": False,
+                "pending_hil": False,
+                "pointer_moved": False,
+            }
+            result["priority_steer_receipt"] = {
+                **receipt_body,
+                "receipt_sha256": sha256_bytes(
+                    canonical_json_bytes(receipt_body)
+                ),
+            }
+            return result
+
     def correct_plan_normalization(
         self,
         project_id: str,
@@ -1921,9 +3253,18 @@ class ProjectStore:
                 )
         return self.backlog_status(project_id)
 
-    def backlog_status(self, project_id: str) -> dict[str, Any]:
+    def backlog_status(
+        self,
+        project_id: str,
+        *,
+        _loaded_backlog: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         self.config(project_id)
-        backlog = self._load_backlog(project_id)
+        backlog = (
+            _loaded_backlog
+            if _loaded_backlog is not None
+            else self._load_backlog(project_id)
+        )
         ensure_event_ledger(backlog)
         for task in backlog["tasks"]:
             task["lifecycle_events"] = [
@@ -2257,6 +3598,9 @@ class ProjectStore:
             "Classify the steer as exactly one linked existing step or one new step.",
             status="BLOCKED",
         )
+        host_window_before = _host_plan_window_fingerprint(
+            self.backlog_status(project_id)
+        )
 
         if is_new_step:
             require(
@@ -2354,14 +3698,117 @@ class ProjectStore:
                 self._persist_backlog(project_id, backlog)
                 idempotent_reuse = False
         status = self.backlog_status(project_id)
+        host_window_after = _host_plan_window_fingerprint(status)
+        window_task_ids = [
+            str(row["task_id"]) for row in host_window_after["rows"]
+        ]
+        active_row_present = bool(host_window_after["active_task_id"])
+        linked_row_is_currently_visible = (
+            active_row_present and exact_link in window_task_ids
+        )
+        visible_window_changed = (
+            host_window_before["fingerprint_sha256"]
+            != host_window_after["fingerprint_sha256"]
+        )
+        host_plan_window_effect = {
+            "schema": "evidence-lane.plan-steer-host-window-effect.v2",
+            "window_size": _HOST_PLAN_WINDOW_SIZE,
+            "row_start": host_window_after["row_start"],
+            "row_end": host_window_after["row_end"],
+            "linked_task_id": exact_link,
+            "active_row_present": active_row_present,
+            "linked_row_is_currently_visible": linked_row_is_currently_visible,
+            "before_fingerprint_sha256": host_window_before[
+                "fingerprint_sha256"
+            ],
+            "after_fingerprint_sha256": host_window_after[
+                "fingerprint_sha256"
+            ],
+            "visible_window_changed": visible_window_changed,
+            "action": (
+                "SYNC_CURRENT_HOST_WINDOW_ONCE"
+                if visible_window_changed
+                else (
+                    "LEDGER_ONLY_REUSE_CURRENT_HOST_WINDOW"
+                    if active_row_present
+                    else "LEDGER_ONLY_NO_ACTIVE_HOST_WINDOW"
+                )
+            ),
+            "host_update_plan_required": visible_window_changed,
+            "evi_refresh_invoked": False,
+            "full_native_ledger_remains_authority": True,
+            "text_only_linked_steer_rebuilds_host_window": False,
+        }
+        goal_status = cast(dict[str, Any], status.get("goal_projection") or {})
+        runtime_status = cast(
+            dict[str, Any], status.get("plan_runtime_projection") or {}
+        )
+        active_task_id = host_window_after.get("active_task_id")
+        active_row = next(
+            (
+                int(row["number"])
+                for row in host_window_after["rows"]
+                if row.get("task_id") == active_task_id
+            ),
+            None,
+        )
+        compact_steer = {
+            "delta_id": steer_row["delta_id"],
+            "delta_sha256": sha256_bytes(exact_text.encode("utf-8")),
+            "boundary": steer_row["boundary"],
+            "boundary_defaulted": steer_row["boundary_defaulted"],
+            "classification": steer_row["classification"],
+            "linked_task_id": steer_row["linked_task_id"],
+            "recorded_by": steer_row["recorded_by"],
+            "delta_text_returned": False,
+        }
+        compact_event = (
+            {
+                "sequence": event["sequence"],
+                "event_id": event["event_id"],
+                "task_id": event["task_id"],
+                "event_type": event["event_type"],
+                "from_status": event["from_status"],
+                "to_status": event["to_status"],
+                "actor": event["actor"],
+                "recorded_at": event["recorded_at"],
+                "event_sha256": event["event_sha256"],
+                "details": event["details"],
+            }
+            if event is not None
+            else None
+        )
+        backlog_receipt = {
+            "schema": "evidence-lane.plan-backlog-write-receipt.v1",
+            "project_id": project_id,
+            "canonical_task_count": int(
+                goal_status.get("canonical_task_count") or 0
+            ),
+            "executable_task_count": int(goal_status.get("task_count") or 0),
+            "history_task_count": int(goal_status.get("history_task_count") or 0),
+            "counts": status.get("counts"),
+            "active_task_id": active_task_id,
+            "absolute_active_row": active_row,
+            "canonical_plan_sha256": goal_status.get("canonical_plan_sha256"),
+            "executable_projection_sha256": goal_status.get("projection_sha256"),
+            "plan_runtime_sqlite_sha256": runtime_status.get("sqlite_sha256"),
+            "plan_runtime_projection_content_sha256": runtime_status.get(
+                "projection_content_sha256"
+            ),
+            "full_backlog_returned": False,
+            "full_plan_returned": False,
+            "raw_pv_payload_loaded": False,
+            "raw_chat_scrollback_loaded": False,
+        }
         return {
             "status": "PASS",
             "idempotent_reuse": idempotent_reuse,
-            "steer": steer_row,
-            "event": event,
+            "steer": compact_steer,
+            "event": compact_event,
             "task_count": status["goal_projection"]["task_count"],
             "task_count_changed": is_new_step,
-            "backlog": status,
+            "host_plan_window_effect": host_plan_window_effect,
+            "backlog_receipt": backlog_receipt,
         }
 
     def claim_backlog_task(

@@ -5,6 +5,7 @@ import subprocess
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.host_plan_rehydration import (
+    _exact_projection,
     prepare_host_plan_rehydration,
     validate_host_plan_rehydration_receipt,
 )
@@ -80,33 +81,100 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
     receipt = validate_host_plan_rehydration_receipt(automatic["receipt"])
     projection = receipt["projection"]
     assert projection["row_start"] == 1
-    assert projection["row_end"] == projection["item_count"] == 3
+    assert projection["row_end"] == 3
+    assert projection["item_count"] == 4
+    assert projection["delta_item_count"] == 3
+    assert projection["fixed_header_item_count"] == 1
+    assert projection["step_one_is_delta_row"] is False
     assert projection["sole_active_row"] == 1
     assert projection["physically_final_hil_row"] == 3
     assert [row["status"] for row in projection["items"]] == [
+        "completed",
         "in_progress",
         "pending",
         "pending",
     ]
-    assert "CLASS=fix_bug" in projection["items"][0]["step"]
-    assert "GROUP=host_plan_runtime_continuity" in projection["items"][0][
-        "step"
-    ]
-    assert "BATCH=state_travel_runtime_foundations" in projection["items"][0][
-        "step"
-    ]
-    assert "GIT=IMPLEMENT_BEFORE_GROUP_COMMIT" in projection["items"][0][
-        "step"
-    ]
-    assert "ROLE=PHYSICALLY_FINAL_HIL" in projection["items"][-1]["step"]
-    assert receipt["action"] == (
-        "CALL_HOST_UPDATE_PLAN_EXACTLY_ONCE_FOR_THIS_TRIGGER"
+    assert projection["ui_row_max_lines"] == 3
+    assert projection["ui_projection_contains_full_plan_row"] is False
+    assert projection["ui_overflow_creates_canonical_row"] is False
+    assert all(
+        len(row["step"].splitlines()) <= 3 for row in projection["items"]
     )
+    assert projection["items"][0]["step"].startswith("Tracker || Done=")
+    assert projection["items"][1]["step"].splitlines()[0].startswith(
+        "R1|ID=HOST~"
+    )
+    assert "|C=FIX|" in projection["items"][1]["step"]
+    assert "|Git" not in projection["items"][1]["step"]
+    assert "|D=ROOT|" in projection["items"][1]["step"]
+    assert "|FTS=1:" in projection["items"][1]["step"]
+    assert "Restore the exact metadata-rich host Plan" in projection["items"][1][
+        "step"
+    ]
+    assert projection["detail_retrieval_contract"] == {
+        "full_row_authority": "PLAN_LANE",
+        "primary_lookup": "EXACT_TASK_ID",
+        "linked_evidence_lookup": "BOUNDED_FTS_ON_DEMAND",
+        "raw_pv_loaded_into_model_context": False,
+        "raw_chat_scrollback_loaded_into_model_context": False,
+        "ui_projection_reconstructs_full_row": False,
+    }
+    assert [row["task_id"] for row in projection["item_bindings"]] == [
+        None,
+        "host-plan-active-row",
+        "host-plan-pending-row",
+        "host-plan-final-hil",
+    ]
+    assert projection["item_bindings"][1]["fts_link_id"].startswith(
+        "plan:1:"
+    )
+    assert receipt["action"] == "ACTIVATE_HOST_PLAN_CURRENT_WINDOW"
     assert receipt["host_artifact_visibility_status"] == "UNCONFIRMED"
     assert receipt["host_plan_acceptance_status"] == (
-        "PENDING_EXPLICIT_HOST_ACCEPTANCE"
+        "NOT_REQUIRED_FOR_EXISTING_TASK_PLAN"
     )
     assert receipt["native_runtime_invoked_host_update_plan"] is False
+    assert receipt["host_surface_persistence"] == {
+        "schema": "evidence-lane.host-surface-persistence.v2",
+        "native_plan_surface": "CODEX_RIGHT_SIDE_PLAN",
+        "native_changes_surface": "CODEX_RIGHT_SIDE_CHANGES",
+        "plan_activation_action": "update_plan",
+        "host_plan_mode": "FIXED_HEADER_PLUS_NINE_DELTA_WINDOW",
+        "ordinary_turn_action": "REUSE_CURRENT_NATIVE_ARTIFACT",
+        "plan_steer_action": (
+            "SYNC_ONLY_WHEN_CURRENT_WINDOW_UI_FINGERPRINT_CHANGES"
+        ),
+        "evi_refresh_command_invoked_by_host_plan_sync": False,
+        "task_transition_action": "UPDATE_STATUSES_WITHIN_CURRENT_WINDOW",
+        "window_completion_action": (
+            "SEAL_COMPLETED_WINDOW_AND_ACTIVATE_NEXT_WINDOW"
+        ),
+        "final_window_cardinality": (
+            "ONE_FIXED_HEADER_PLUS_EXACT_REMAINING_DELTA_ROWS_UP_TO_NINE"
+        ),
+        "full_ledger_remains_native_authority": True,
+        "pv_exit_reconstructs_new_entry": False,
+        "changes_surface_binding": "EXACT_TASK_UUID_AND_WORKTREE",
+        "required_until": (
+            "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_"
+            "HANDOFF_PASSES"
+        ),
+        "goal_completion_authority": "HUMAN_ONLY",
+        "hil_may_complete_goal": False,
+        "drop_is_continuity_failure": True,
+        "rehydrate_before_source_or_lifecycle_work": True,
+        "canonical_rehydration_source": (
+            "PLAN_LANE_BACKLOG_NOT_THREAD_HISTORY"
+        ),
+        "full_thread_history_hydration_allowed": False,
+        "collaboration_overlay_hydration_allowed_during_recovery": False,
+        "recovery_concurrency": "ONE_ACTIVE_TASK_ZERO_SUBAGENTS",
+        "renderer_reset_effect": (
+            "FAIL_CLOSED_THEN_REPROJECT_EXACTLY_ONCE_PER_EVENT"
+        ),
+        "host_owned_surface_survival_guaranteed_by_plugin": False,
+        "missing_host_capability_behavior": "FAIL_CLOSED",
+    }
 
     pointer_before = service.store.pointer("book-faires").as_dict()
     git_before = subprocess.run(
@@ -150,7 +218,7 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
         projection["projection_sha256"]
     )
     assert panel_loss["receipt"]["action"] == (
-        "CALL_HOST_UPDATE_PLAN_EXACTLY_ONCE_FOR_THIS_TRIGGER"
+        "REACTIVATE_EXISTING_HOST_PLAN_WINDOW"
     )
     observation = panel_loss["receipt"]["observation"]
     assert observation["sources_presence_is_visibility_proof"] is False
@@ -193,10 +261,12 @@ def test_host_plan_visibility_acceptance_capability_and_project_boundaries(
         observed_artifact=visible,
         host_goal_active=True,
     )["receipt"]
-    assert visible_result["action"] == "NO_UPDATE_PLAN_CURRENT_ARTIFACT_VISIBLE"
+    assert visible_result["action"] == (
+        "NO_HOST_PLAN_ACTION_CURRENT_WINDOW_VISIBLE"
+    )
     assert visible_result["host_artifact_visibility_status"] == "CONFIRMED_VISIBLE"
     assert visible_result["host_plan_acceptance_status"] == (
-        "PENDING_EXPLICIT_HOST_ACCEPTANCE"
+        "NOT_REQUIRED_FOR_EXISTING_TASK_PLAN"
     )
 
     accepted = prepare_host_plan_rehydration(
@@ -260,6 +330,12 @@ def test_host_plan_visibility_acceptance_capability_and_project_boundaries(
         ("GOAL_ACTIVE_TURN", True),
         ("NO_GOAL_TURN", False),
         ("STALE_ARTIFACT", None),
+        ("APP_RENDERER_RELOAD", True),
+        ("HOST_REACT_ROOT_RERENDER", True),
+        ("THREAD_HYDRATION_OVERFLOW", True),
+        ("COLLABORATION_OVERLAY_CONFLICT", True),
+        ("TASK_PANEL_LOSS", True),
+        ("CHANGES_SURFACE_LOSS", True),
     ],
 )
 def test_all_recovery_triggers_preserve_the_same_native_projection(
@@ -283,3 +359,197 @@ def test_all_recovery_triggers_preserve_the_same_native_projection(
     assert result["host_goal_presence_changes_projection"] is False
     assert result["candidate_created"] is False
     assert result["pointer_moved"] is False
+
+
+class _BacklogOnlyStore:
+    def __init__(self, goal_projection: dict[str, object]) -> None:
+        self._goal_projection = goal_projection
+
+    def backlog_status(self, project_id: str) -> dict[str, object]:
+        assert project_id == "window-project"
+        return {"goal_projection": self._goal_projection}
+
+    def pointer(self, project_id: str):
+        assert project_id == "window-project"
+
+        class _Pointer:
+            @staticmethod
+            def as_dict() -> dict[str, object]:
+                return {"accepted_pv": "PV12", "generation": 12}
+
+        return _Pointer()
+
+
+def _window_goal(*, active_row: int, total_rows: int = 26) -> dict[str, object]:
+    rows: list[dict[str, object]] = []
+    for number in range(1, total_rows + 1):
+        task_id = f"window-task-{number:02d}"
+        step = f"Execute bounded window task {number}."
+        if number < active_row:
+            status = "completed"
+            lifecycle_status = "DONE"
+        elif number == active_row:
+            status = "in_progress"
+            lifecycle_status = "ACTIVE"
+        else:
+            status = "pending"
+            lifecycle_status = "QUEUED"
+        role = "PHYSICALLY_FINAL_HIL" if number == total_rows else "STANDARD"
+        rows.append(
+            {
+                "number": number,
+                "task_id": task_id,
+                "step": step,
+                "status": status,
+                "lifecycle_status": lifecycle_status,
+                "panel_role": role,
+                "visible_label": (
+                    f"Row {number} / {task_id} — "
+                    f"[CLASS=test; GROUP=window; BATCH=batch; DEP=ROOT; "
+                    f"GIT=NOT_DECLARED@TASK_TEXT; VERSION=2.2.0@TASK_TEXT; "
+                    f"BRANCH=test@TASK_TEXT; ROLE={role}; "
+                    f"STATE={lifecycle_status}] {step}"
+                ),
+            }
+        )
+    return {
+        "canonical_authority": "PLAN_LANE",
+        "canonical_plan_sha256": "A" * 64,
+        "projection_sha256": f"projection-{active_row}",
+        "visible_label_contract": "metadata-rich",
+        "visible_label_metadata_schema": "v1",
+        "row_start": 1,
+        "row_end": total_rows,
+        "task_count": total_rows,
+        "rows": rows,
+    }
+
+
+def test_host_plan_projects_the_active_row_as_step_two_with_next_eight_rows() -> None:
+    projection = _exact_projection(
+        _BacklogOnlyStore(_window_goal(active_row=11)),  # type: ignore[arg-type]
+        project_id="window-project",
+    )
+    assert projection["total_executable_count"] == 26
+    assert projection["window_size"] == 9
+    assert projection["maximum_host_item_count"] == 10
+    assert projection["window_index"] == 1
+    assert projection["row_start"] == 11
+    assert projection["row_end"] == 19
+    assert projection["item_count"] == 10
+    assert len(projection["items"][0]["step"].splitlines()) == 2
+    assert all(
+        2 <= len(item["step"].splitlines()) <= 3
+        and all(len(line) <= 72 for line in item["step"].splitlines())
+        for item in projection["items"][1:]
+    )
+    assert projection["sole_active_row"] == 11
+    assert projection["completed_window_count"] == 1
+    assert projection["completed_window_history"][0]["row_start"] == 1
+    assert projection["completed_window_history"][0]["row_end"] == 9
+    assert projection["next_window_row_start"] == 20
+    assert projection["next_window_row_end"] == 26
+    assert projection["physically_final_hil_visible_in_window"] is False
+    assert projection["continuity_header"] == {
+        "schema": "evidence-lane.host-plan-continuity-header.v1",
+        "surface": "HOST_STEP_TASK_LIST_HEADER",
+        "purpose": "CROSS_WINDOW_EXECUTION_CONTINUITY",
+        "accepted_pv": "PV12",
+        "pointer_generation": 12,
+        "absolute_active_row": 11,
+        "absolute_active_task_id": "window-task-11",
+        "window_row_start": 11,
+        "window_row_end": 19,
+        "window_ordinal": 2,
+        "window_count": 3,
+        "total_executable_count": 26,
+        "completed_count": 10,
+        "queued_count": 15,
+        "queued_row_start": 12,
+        "queued_row_end": 26,
+        "queued_after_window_count": 7,
+        "queued_after_window_row_start": 20,
+        "queued_after_window_row_end": 26,
+        "next_hil_boundary_row": 26,
+        "next_hil_boundary_task_id": "window-task-26",
+        "physically_final_row": 26,
+        "physically_final_task_id": "window-task-26",
+        "physically_final_candidate": None,
+        "physically_final_hil_scope": "FINAL_PROJECT_HIL_NOT_INTERMEDIATE",
+        "detailed_hil_queue_surface": "EVIDENCE_LANE_PROJECT_RENDERER",
+        "hil_controls_in_step_task_list": False,
+        "visible_text": (
+            "Tracker || Done=10/26 || Current=R11-R19 || Queued=R20-R26\n"
+            "Active=R11 || PV=PV12/g12 || NextHIL=R26 || Final=R26/PV?"
+        ),
+    }
+    assert projection["host_update_plan_contract"] == {
+        "explanation": (
+            "Evidence Lane bounded Step Task List | Step 1 fixed progress | "
+            "Steps 2-10 native Delta rows"
+        ),
+        "plan": projection["items"],
+        "header_surface": "HOST_STEP_TASK_LIST_STEP_1",
+        "header_role": "FIXED_PROGRESS_HEADER",
+        "header_is_plan_item": True,
+        "header_is_delta_row": False,
+        "detailed_hil_queue_in_step_task_list": False,
+    }
+
+
+def test_host_plan_final_window_contains_only_the_exact_remaining_rows() -> None:
+    projection = _exact_projection(
+        _BacklogOnlyStore(_window_goal(active_row=21)),  # type: ignore[arg-type]
+        project_id="window-project",
+    )
+    assert projection["window_index"] == 2
+    assert projection["row_start"] == 21
+    assert projection["row_end"] == 26
+    assert projection["item_count"] == 7
+    assert projection["completed_window_count"] == 2
+    assert projection["next_window_row_start"] is None
+    assert projection["remaining_after_current_window"] == 0
+    assert projection["physically_final_hil_visible_in_window"] is True
+    final_step_lines = projection["items"][-1]["step"].splitlines()
+    assert len(final_step_lines) == 2
+    assert final_step_lines[0].startswith("R26|ID=")
+    assert final_step_lines[1] == "Do: Execute bounded window task 26."
+    assert projection["continuity_header"]["physically_final_row"] == 26
+
+
+def test_host_plan_header_ignores_out_of_scope_future_pv_mentions() -> None:
+    goal = _window_goal(active_row=21)
+    rows = goal["rows"]
+    assert isinstance(rows, list)
+    rows[-1]["steer_deltas"] = [
+        {
+            "text": (
+                "PHYSICALLY FINAL PV14 HIL. Complete PV14 first. "
+                "PV15 is a future out-of-scope cycle."
+            )
+        }
+    ]
+    projection = _exact_projection(
+        _BacklogOnlyStore(goal),  # type: ignore[arg-type]
+        project_id="window-project",
+    )
+    assert projection["continuity_header"]["physically_final_candidate"] == (
+        "PV14"
+    )
+    assert "Final=R26/PV14" in projection["items"][0]["step"]
+
+
+def test_host_plan_shows_git_only_on_declared_execution_row() -> None:
+    goal = _window_goal(active_row=1, total_rows=3)
+    rows = goal["rows"]
+    assert isinstance(rows, list)
+    rows[0]["git_commit_stage"] = "PREPARE_PATCH_BEFORE_GROUP_COMMIT"
+    rows[1]["git_commit_stage"] = "COMMIT_AND_PUSH_EXACT_TASK"
+    rows[2]["git_commit_stage"] = "COMMIT_AND_PUSH_EXACT_TASK"
+    projection = _exact_projection(
+        _BacklogOnlyStore(goal),  # type: ignore[arg-type]
+        project_id="window-project",
+    )
+    assert "|Git" not in projection["items"][1]["step"].splitlines()[0]
+    assert "|Git" in projection["items"][2]["step"].splitlines()[0]
+    assert "|Git" not in projection["items"][3]["step"]

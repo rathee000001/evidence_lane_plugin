@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 
 
-def test_v220_declares_exact_stable_build_and_v200_pv11_fallback_slots() -> None:
+def test_v220_declares_exact_stable_build_and_v210_pv12_fallback_slots() -> None:
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
@@ -40,13 +40,28 @@ def test_v220_declares_exact_stable_build_and_v200_pv11_fallback_slots() -> None
         "tunnel_channel": "stable-build",
     }
     assert fallback == {
-        "release": "2.0.0",
+        "release": "2.1.0",
         "slot_role": "fallback",
         "codex_marketplace_slot": "evidence-lane-pv11-fallback",
+        "authority_identity": "fallback",
+        "selector_role": "OPERATIONAL_LOCATOR_ONLY",
+        "selector_is_authority": False,
+        "generation_neutral_selector": "evidence-lane-fallback",
+        "legacy_generation_alias_active": True,
+        "authorization_fields": [
+            "accepted_pv",
+            "accepted_generation",
+            "accepted_manifest_sha256",
+            "accepted_package_sha256",
+            "accepted_universal_pv_package_sha256",
+            "plugin_manifest_sha256",
+            "cache_authority_manifest_sha256",
+            "install_receipt_sha256",
+        ],
         "enabled": False,
-        "materialization_gate": "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE",
-        "accepted_pv": "PV11",
-        "accepted_generation": 11,
+        "materialization_gate": "POST_EXACT_PV12_APPROVE_AND_NATIVE_FUSE",
+        "accepted_pv": "PV12",
+        "accepted_generation": 12,
         "byte_frozen": True,
         "package_must_equal_accepted_pv": True,
         "prewarmed_means_installed_verified_and_stopped": True,
@@ -199,7 +214,7 @@ def test_helper_tunnel_rotation_is_plugin_maintainer_only_and_final_hil_gated() 
     assert rotation["applies_to_plugin_maintainer_route_only"] is True
     assert rotation["downstream_project_inherits_rotation"] is False
     assert rotation["intermediate_pv13_can_rotate_main_or_fallback"] is False
-    assert rotation["current_pre_final_hil_fallback_remains_2_0"] is True
+    assert rotation["current_pre_final_hil_fallback_is_2_1"] is True
     assert rotation["final_gate"] == "PV14_EXACT_HUMAN_APPROVE_AND_FUSE"
     assert rotation["required_order"][-1] == (
         "VERIFY_STABLE_ENABLED_FALLBACK_DISABLED_AND_ONE_ACTIVE_RUNTIME"
@@ -722,7 +737,7 @@ def test_stable_activation_requires_git_ci_authority_and_runtime_prewarm() -> No
             "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3D"
             "EF87B8A129C4FA"
         ),
-        "resource_uri": "ui://evidence-lane/governed-console-v5.html",
+        "resource_uri": "ui://evidence-lane/governed-console-v6.html",
         "manifest_icon_fields": ["interface.composerIcon", "interface.logo"],
         "required_at_stage": True,
         "required_at_runtime_prewarm": True,

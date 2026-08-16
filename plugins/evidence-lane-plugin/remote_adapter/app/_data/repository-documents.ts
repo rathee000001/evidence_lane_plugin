@@ -15,6 +15,7 @@ export const repositoryDocumentsByRoute = {
   "/skills": { path: "docs/SKILLS.md", label: "Skills contract" },
   "/mcp": { path: "docs/MCP.md", label: "Native MCP contract" },
   "/hooks": { path: "docs/HOOKS.md", label: "Lifecycle hook contract" },
+  "/commands": { path: "docs/COMMANDS.md", label: "Command and control routes" },
   "/architecture": { path: "ARCHITECTURE.md", label: "System architecture" },
   "/lanes": { path: "docs/ARCHITECTURE.md", label: "Detailed lane architecture" },
   "/operators": {
@@ -34,14 +35,20 @@ export const repositoryDocumentsByRoute = {
   "/hil": { path: "docs/FIRST_HIL_RUNBOOK.md", label: "Six-way HIL runbook" },
   "/privacy": { path: "SECURITY.md", label: "Security and privacy policy" },
   "/security": { path: "SECURITY.md", label: "Security policy" },
-  "/terms": { path: "LICENSE.md", label: "License terms" },
+  "/terms": { path: "docs/TERMS_AND_CONDITIONS.md", label: "Terms and conditions" },
   "/license": { path: "LICENSE.md", label: "License terms" },
-  "/copyright": { path: "COPYRIGHT.md", label: "Copyright authority" },
+  "/copyright": { path: "docs/COPYRIGHT.md", label: "Copyright authority" },
+  "/third-party": {
+    path: "plugins/evidence-lane-plugin/THIRD_PARTY_NOTICES.md",
+    label: "Third-party licenses and rights",
+  },
   "/credits": {
     path: "docs/CREDITS_AND_CONTRIBUTIONS.md",
     label: "Credits and contribution policy",
   },
   "/support": { path: "README.md", label: "Repository overview" },
+  "/helper": { path: "docs/USER_HELPER_GUIDE.md", label: "User helper guide" },
+  "/tunnel": { path: "docs/USER_TUNNEL_GUIDE.md", label: "User tunnel guide" },
 } as const satisfies Record<string, RepositoryDocument>;
 
 export type RepositoryDocumentRoute = keyof typeof repositoryDocumentsByRoute;

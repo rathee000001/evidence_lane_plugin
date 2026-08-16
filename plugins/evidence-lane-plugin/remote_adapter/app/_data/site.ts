@@ -12,6 +12,7 @@ export const primaryNavigation = [
   { href: "/skills", label: "Skills" },
   { href: "/mcp", label: "MCP" },
   { href: "/hooks", label: "Hooks" },
+  { href: "/commands", label: "Commands" },
   { href: "/architecture", label: "Architecture" },
   { href: "/lanes", label: "Lanes" },
   { href: "/operators", label: "Operators" },
@@ -398,7 +399,7 @@ export const painLedger = [
 
 export const proofMetrics = [
   ["18", "canonical lanes", "Every routed source resolves to one inspectable lane contract."],
-  ["15", "plugin surfaces", "Six lifecycle controls plus nine explicit routers and sidecars."],
+  ["17", "governed skills", "Six primary controls plus eleven explicit routers and sidecars."],
   ["6", "everyday controls", "Boot, Rollback, Build, Refresh, Mode, and Source Intake."],
   ["1", "promotion token", "Only exact, case-sensitive APPROVE can authorize Fuse."],
 ] as const;

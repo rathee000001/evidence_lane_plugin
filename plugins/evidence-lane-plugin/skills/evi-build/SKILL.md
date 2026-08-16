@@ -32,3 +32,11 @@ floors, exact MMD/DOT identity parity, and emitted count claims. Rendering alone
 is not proof. Previously sealed pre-v1.1 lane bundles may remain readable only
 through the explicitly reported compatibility path; do not describe their raw
 topology as reconciled and do not use that path for a new candidate.
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evi-build`. `MCP_ROUTING_FAIL_CLOSED`: if the
+bundled `evidence-lane` dependency, an exact tool, or a required result is
+missing or ambiguous, stop and report it; never rewrite prefixes, substitute a
+tool, reorder a write, or infer success.

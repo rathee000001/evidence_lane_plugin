@@ -69,7 +69,7 @@
       "hook": "NOT_APPLICABLE",
       "host_command": "NOT_APPLICABLE",
       "sdk_arm": "REUSE_source_lane_retrieval",
-      "dependency": "CREATE_HASH_PINNED_ripgrep_AND_fzf_WITH_DETERMINISTIC_FALLBACKS"
+      "dependency": "CREATE_SQLITE_FTS5_AUTHORITY_AND_HASH_PINNED_ripgrep_PREINDEX_FALLBACK"
     },
     {
       "group": "STATE_TRAVEL_DESTINATION_AUTOMATION",

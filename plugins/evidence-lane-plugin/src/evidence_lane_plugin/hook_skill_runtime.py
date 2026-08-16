@@ -22,6 +22,7 @@ from .codex_turn_control import (
     persistent_change_system_message,
     persistent_change_system_notice,
     policy_state,
+    prepare_goal_continuation_turn,
     prepare_turn,
     record_lifecycle_boundary_event,
     record_non_strict_visible_input,
@@ -348,11 +349,31 @@ def consume_pre_tool_transport(
                 ),
                 True,
             )
-        receipt = record_tool_event(root, host_payload=normalized, phase="before")
+        goal_continuation_entry = None
+        try:
+            receipt = record_tool_event(
+                root,
+                host_payload=normalized,
+                phase="before",
+            )
+        except TurnControlError as exc:
+            if exc.code != "TURN_CONTROL_PREFLIGHT_REQUIRED":
+                raise
+            goal_continuation_entry = prepare_goal_continuation_turn(
+                root,
+                host_payload=normalized,
+            )
+            receipt = record_tool_event(
+                root,
+                host_payload=normalized,
+                phase="before",
+            )
         if host_binding is not None:
             receipt["host_binding"] = host_binding
+        if goal_continuation_entry is not None:
+            receipt["goal_continuation_entry"] = goal_continuation_entry
         receipt["prospective_mutation_guard"] = (
-            "PREPARE_AND_EXACT_BINDING_REQUIRED"
+            "USERPROMPTSUBMIT_PREPARE_OR_EXACT_SEALED_GOAL_BINDING_REQUIRED"
         )
         receipt["source_mutation_authorized"] = True
         return (

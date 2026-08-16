@@ -17,9 +17,9 @@ from collections import Counter
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import lru_cache
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from threading import Lock
-from typing import Any, ClassVar
+from typing import Any, ClassVar, cast
 
 from defusedxml import ElementTree
 
@@ -55,12 +55,19 @@ from .lanes import (
     CANONICAL_LANE_IDS,
     CODE_LOGICAL_TOPOLOGY,
     CORE_SCHEMA_TABLES,
+    LANE_ARTIFACT_ROLE_REGISTRY_SHA256,
     LANE_REGISTRY,
+    LANE_SCHEMA_EVOLUTION_POLICY_SHA256,
+    LANE_SCHEMA_REGISTRY_SHA256,
     PRIMARY_CODE_LANES,
     SQLITE_BRAIN_BUILDER_MASTER_TOPOLOGY_AUTHORITY_SHA256,
     SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256,
     LaneDefinition,
     catalog,
+    lane_artifact_contract,
+    lane_schema_asset,
+    lane_schema_evolution_contract,
+    lane_schema_registry_contract,
     route_batch,
     route_source,
 )
@@ -308,6 +315,7 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
 def _tool_identity(lane: LaneDefinition) -> dict[str, Any]:
     capabilities = _capability_rows(lane)
     topology_generator = _topology_generator_identity(lane)
+    schema_asset = lane_schema_asset(lane.canonical_lane_id)
     artifact_contract_module = Path(
         bind_tools_to_artifacts.__code__.co_filename
     ).resolve()
@@ -315,6 +323,17 @@ def _tool_identity(lane: LaneDefinition) -> dict[str, Any]:
         "lane": lane.as_dict(),
         "capabilities": capabilities,
         "lane_schema_version": LANE_SCHEMA_VERSION,
+        "lane_schema_asset": {
+            "registry": lane_schema_registry_contract(),
+            "schema_id": schema_asset["schema_id"],
+            "schema_version": schema_asset["schema_version"],
+            "contract_sha256": schema_asset["contract_sha256"],
+            "sqlite_master_projection_sha256": schema_asset[
+                "sqlite_master_projection_sha256"
+            ],
+            "extension_namespace": schema_asset["extension_namespace"],
+            "migration_head": schema_asset["migration_ledger"][-1],
+        },
         "topology_generator": topology_generator,
         "artifact_contract": {
             "four_file_schema": FOUR_FILE_CONTRACT_SCHEMA,
@@ -331,7 +350,21 @@ def _tool_identity(lane: LaneDefinition) -> dict[str, Any]:
             ),
         },
     }
-    payload["sha256"] = sha256_bytes(canonical_json_bytes(payload))
+    # The four-file contract deliberately hashes the established tool-identity
+    # core.  ``lane_schema_asset`` is an additive public projection; its exact
+    # bytes are already sealed inside ``lane`` and ``topology_generator``.
+    identity_core = {
+        key: payload[key]
+        for key in (
+            "lane",
+            "capabilities",
+            "lane_schema_version",
+            "topology_generator",
+            "artifact_contract",
+            "parser_implementation",
+        )
+    }
+    payload["sha256"] = sha256_bytes(canonical_json_bytes(identity_core))
     return payload
 
 
@@ -345,6 +378,7 @@ def _topology_generator_identity(lane: LaneDefinition) -> dict[str, Any]:
     reconciliation_module_path = Path(
         reconcile_lane_topology.__code__.co_filename
     ).resolve()
+    schema_asset = lane_schema_asset(lane.canonical_lane_id)
     payload = {
         "schema": TOPOLOGY_GENERATOR_SCHEMA,
         "module": module_path.name,
@@ -355,6 +389,8 @@ def _topology_generator_identity(lane: LaneDefinition) -> dict[str, Any]:
         ),
         "lane_id": lane.canonical_lane_id,
         "lane_schema_contract": list(lane.schema_contract),
+        "lane_schema_contract_sha256": schema_asset["contract_sha256"],
+        "lane_schema_registry_sha256": LANE_SCHEMA_REGISTRY_SHA256,
         "mmd_dot_shared_graph": True,
         "physical_schema_projection_schema": PHYSICAL_SCHEMA_PROJECTION_SCHEMA,
         "sqlite_brain_builder_mmd_authority_sha256": (
@@ -2995,7 +3031,1193 @@ def _chunks(text: str) -> Iterable[tuple[int, int, str]]:
         ordinal += 1
 
 
+LANE_SCHEMA_BUILDER_PROJECTION_SCHEMA = (
+    "evidence-lane.lane-schema-builder-projection.v1"
+)
+LANE_SCHEMA_MIGRATION_PLAN_SCHEMA = (
+    "evidence-lane.lane-schema-migration-plan.v1"
+)
+LANE_SCHEMA_MIGRATION_RECEIPT_SCHEMA = (
+    "evidence-lane.lane-schema-migration-receipt.v1"
+)
+LANE_SCHEMA_MIGRATION_STATUS_SCHEMA = (
+    "evidence-lane.lane-schema-migration-status.v1"
+)
+_LANE_SCHEMA_IDENTIFIER_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+_LANE_SCHEMA_MIGRATION_ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
+_LANE_SCHEMA_COLUMN_TYPES = frozenset({"INTEGER", "TEXT", "REAL", "BLOB", "ANY"})
+_LANE_SCHEMA_FK_ACTIONS = frozenset(
+    {"NO ACTION", "RESTRICT", "SET NULL", "SET DEFAULT", "CASCADE"}
+)
+_LANE_SCHEMA_LEDGER_DDL = (
+    """CREATE TABLE IF NOT EXISTS lane_schema_migration(
+        sequence INTEGER PRIMARY KEY,
+        migration_id TEXT NOT NULL UNIQUE,
+        lane_id TEXT NOT NULL,
+        namespace TEXT NOT NULL,
+        from_version INTEGER NOT NULL,
+        to_version INTEGER NOT NULL,
+        request_sha256 TEXT NOT NULL,
+        ddl_sha256 TEXT NOT NULL,
+        pre_schema_sha256 TEXT NOT NULL,
+        post_schema_sha256 TEXT NOT NULL,
+        foreign_key_projection_sha256 TEXT NOT NULL,
+        index_projection_sha256 TEXT NOT NULL,
+        fts_rebuild_proof_sha256 TEXT NOT NULL,
+        compatibility_proof_sha256 TEXT NOT NULL,
+        prior_receipt_sha256 TEXT,
+        explicit_user_confirmation_sha256 TEXT,
+        applied_by TEXT NOT NULL,
+        applied_at TEXT NOT NULL,
+        receipt_sha256 TEXT NOT NULL UNIQUE,
+        receipt_json TEXT NOT NULL,
+        CHECK(to_version = from_version + 1)
+    ) STRICT""",
+    """CREATE UNIQUE INDEX IF NOT EXISTS
+        lane_schema_migration_lane_sequence_idx
+        ON lane_schema_migration(lane_id, sequence)""",
+    """CREATE TRIGGER IF NOT EXISTS lane_schema_migration_no_update
+        BEFORE UPDATE ON lane_schema_migration
+        BEGIN
+            SELECT RAISE(ABORT, 'lane schema migration ledger is immutable');
+        END""",
+    """CREATE TRIGGER IF NOT EXISTS lane_schema_migration_no_delete
+        BEFORE DELETE ON lane_schema_migration
+        BEGIN
+            SELECT RAISE(ABORT, 'lane schema migration ledger is immutable');
+        END""",
+)
+LANE_SCHEMA_LEDGER_DDL_SHA256 = sha256_bytes(
+    canonical_json_bytes(list(_LANE_SCHEMA_LEDGER_DDL))
+)
+
+
+class LaneSchemaEvolutionError(ValueError):
+    """Fail-closed structured lane-schema evolution error."""
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+def _lane_schema_error(code: str, message: str) -> None:
+    raise LaneSchemaEvolutionError(code, message)
+
+
+def _lane_schema_identifier(value: Any, *, label: str) -> str:
+    normalized = str(value or "")
+    if not _LANE_SCHEMA_IDENTIFIER_RE.fullmatch(normalized):
+        _lane_schema_error(
+            "LANE_SCHEMA_UNSAFE_IDENTIFIER",
+            f"{label} is not a safe lower-snake-case SQLite identifier.",
+        )
+    return normalized
+
+
+def _quoted_lane_schema_identifier(value: str) -> str:
+    return f'"{value}"'
+
+
+def _normalized_lane_schema_column(
+    raw: Any,
+    *,
+    allow_primary_key: bool,
+) -> dict[str, Any]:
+    if not isinstance(raw, dict) or set(raw) != {
+        "name",
+        "type",
+        "nullable",
+        "primary_key",
+    }:
+        _lane_schema_error(
+            "LANE_SCHEMA_COLUMN_CONTRACT_INVALID",
+            "Every column must declare name, type, nullable, and primary_key.",
+        )
+    name = _lane_schema_identifier(raw["name"], label="column name")
+    column_type = str(raw["type"] or "").upper()
+    if column_type not in _LANE_SCHEMA_COLUMN_TYPES:
+        _lane_schema_error(
+            "LANE_SCHEMA_COLUMN_TYPE_UNSUPPORTED",
+            f"Unsupported STRICT column type: {column_type!r}.",
+        )
+    if not isinstance(raw["nullable"], bool) or not isinstance(
+        raw["primary_key"], bool
+    ):
+        _lane_schema_error(
+            "LANE_SCHEMA_COLUMN_FLAGS_INVALID",
+            "Column nullable and primary_key flags must be booleans.",
+        )
+    if raw["primary_key"] and not allow_primary_key:
+        _lane_schema_error(
+            "LANE_SCHEMA_ADD_COLUMN_PRIMARY_KEY_FORBIDDEN",
+            "ADD_COLUMN cannot introduce a primary key.",
+        )
+    if raw["primary_key"] and raw["nullable"]:
+        _lane_schema_error(
+            "LANE_SCHEMA_PRIMARY_KEY_NULLABLE",
+            "A primary-key column cannot be nullable.",
+        )
+    return {
+        "name": name,
+        "type": column_type,
+        "nullable": raw["nullable"],
+        "primary_key": raw["primary_key"],
+    }
+
+
+def _lane_schema_column_ddl(column: dict[str, Any]) -> str:
+    result = (
+        f'{_quoted_lane_schema_identifier(column["name"])} '
+        f'{column["type"]}'
+    )
+    if column["primary_key"]:
+        result += " PRIMARY KEY"
+    elif not column["nullable"]:
+        result += " NOT NULL"
+    return result
+
+
+def compile_lane_schema_migration(
+    lane: LaneDefinition,
+    migration: dict[str, Any],
+) -> dict[str, Any]:
+    """Compile one structured additive migration without touching SQLite."""
+
+    contract = lane_schema_evolution_contract(lane.canonical_lane_id)
+    if not isinstance(migration, dict) or set(migration) != {
+        "migration_id",
+        "from_version",
+        "to_version",
+        "operations",
+        "rebuild_fts",
+    }:
+        _lane_schema_error(
+            "LANE_SCHEMA_MIGRATION_CONTRACT_INVALID",
+            "A migration requires exact identity, versions, operations, and FTS intent.",
+        )
+    migration_id = str(migration["migration_id"] or "")
+    if (
+        not _LANE_SCHEMA_MIGRATION_ID_RE.fullmatch(migration_id)
+        or not migration_id.startswith(contract["migration_id_prefix"])
+    ):
+        _lane_schema_error(
+            "LANE_SCHEMA_MIGRATION_ID_INVALID",
+            "The migration ID is outside the lane extension namespace.",
+        )
+    from_version = migration["from_version"]
+    to_version = migration["to_version"]
+    if (
+        not isinstance(from_version, int)
+        or isinstance(from_version, bool)
+        or not isinstance(to_version, int)
+        or isinstance(to_version, bool)
+        or to_version != from_version + 1
+    ):
+        _lane_schema_error(
+            "LANE_SCHEMA_VERSION_TRANSITION_INVALID",
+            "A migration must advance exactly one positive schema version.",
+        )
+    if not isinstance(migration["rebuild_fts"], bool):
+        _lane_schema_error(
+            "LANE_SCHEMA_FTS_INTENT_INVALID",
+            "rebuild_fts must be an explicit boolean.",
+        )
+    operations = migration["operations"]
+    if not isinstance(operations, list) or not operations:
+        _lane_schema_error(
+            "LANE_SCHEMA_OPERATIONS_EMPTY",
+            "At least one structured additive operation is required.",
+        )
+
+    prefix = str(contract["physical_name_prefix"])
+    normalized_operations: list[dict[str, Any]] = []
+    ddl: list[str] = []
+    created_tables: set[str] = set()
+    created_indexes: set[str] = set()
+    for ordinal, raw in enumerate(operations, start=1):
+        if not isinstance(raw, dict):
+            _lane_schema_error(
+                "LANE_SCHEMA_OPERATION_INVALID",
+                f"Operation {ordinal} is not an object.",
+            )
+        kind = str(raw.get("kind") or "")
+        if kind == "CREATE_TABLE":
+            if set(raw) != {"kind", "table", "columns", "foreign_keys"}:
+                _lane_schema_error(
+                    "LANE_SCHEMA_CREATE_TABLE_CONTRACT_INVALID",
+                    "CREATE_TABLE has an unexpected shape.",
+                )
+            table = _lane_schema_identifier(raw["table"], label="table")
+            if not table.startswith(prefix) or table in created_tables:
+                _lane_schema_error(
+                    "LANE_SCHEMA_EXTENSION_TABLE_INVALID",
+                    "Extension tables must use the exact lane prefix and be unique.",
+                )
+            columns_raw = raw["columns"]
+            if not isinstance(columns_raw, list) or not columns_raw:
+                _lane_schema_error(
+                    "LANE_SCHEMA_TABLE_COLUMNS_EMPTY",
+                    "CREATE_TABLE requires at least one column.",
+                )
+            columns = [
+                _normalized_lane_schema_column(row, allow_primary_key=True)
+                for row in columns_raw
+            ]
+            column_names = [row["name"] for row in columns]
+            if len(column_names) != len(set(column_names)):
+                _lane_schema_error(
+                    "LANE_SCHEMA_DUPLICATE_COLUMN",
+                    "CREATE_TABLE column names must be unique.",
+                )
+            if sum(bool(row["primary_key"]) for row in columns) > 1:
+                _lane_schema_error(
+                    "LANE_SCHEMA_MULTIPLE_PRIMARY_KEYS",
+                    "CREATE_TABLE supports at most one structured primary key.",
+                )
+            foreign_keys_raw = raw["foreign_keys"]
+            if not isinstance(foreign_keys_raw, list):
+                _lane_schema_error(
+                    "LANE_SCHEMA_FOREIGN_KEYS_INVALID",
+                    "foreign_keys must be a list.",
+                )
+            foreign_keys: list[dict[str, Any]] = []
+            constraints: list[str] = []
+            for foreign_key in foreign_keys_raw:
+                if not isinstance(foreign_key, dict) or set(foreign_key) != {
+                    "columns",
+                    "referenced_table",
+                    "referenced_columns",
+                    "on_delete",
+                }:
+                    _lane_schema_error(
+                        "LANE_SCHEMA_FOREIGN_KEY_CONTRACT_INVALID",
+                        "A foreign key has an unexpected shape.",
+                    )
+                local_columns = foreign_key["columns"]
+                target_columns = foreign_key["referenced_columns"]
+                if (
+                    not isinstance(local_columns, list)
+                    or not local_columns
+                    or not isinstance(target_columns, list)
+                    or len(local_columns) != len(target_columns)
+                ):
+                    _lane_schema_error(
+                        "LANE_SCHEMA_FOREIGN_KEY_COLUMNS_INVALID",
+                        "Foreign-key column sets must be nonempty and equal in length.",
+                    )
+                normalized_local = [
+                    _lane_schema_identifier(value, label="foreign-key column")
+                    for value in local_columns
+                ]
+                normalized_target = [
+                    _lane_schema_identifier(value, label="referenced column")
+                    for value in target_columns
+                ]
+                if not set(normalized_local) <= set(column_names):
+                    _lane_schema_error(
+                        "LANE_SCHEMA_FOREIGN_KEY_LOCAL_COLUMN_MISSING",
+                        "A foreign key references an undeclared local column.",
+                    )
+                referenced_table = _lane_schema_identifier(
+                    foreign_key["referenced_table"],
+                    label="referenced table",
+                )
+                on_delete = str(foreign_key["on_delete"] or "").upper()
+                if on_delete not in _LANE_SCHEMA_FK_ACTIONS:
+                    _lane_schema_error(
+                        "LANE_SCHEMA_FOREIGN_KEY_ACTION_INVALID",
+                        "The requested ON DELETE action is unsupported.",
+                    )
+                normalized_fk = {
+                    "columns": normalized_local,
+                    "referenced_table": referenced_table,
+                    "referenced_columns": normalized_target,
+                    "on_delete": on_delete,
+                }
+                foreign_keys.append(normalized_fk)
+                constraints.append(
+                    "FOREIGN KEY ("
+                    + ", ".join(
+                        _quoted_lane_schema_identifier(value)
+                        for value in normalized_local
+                    )
+                    + ") REFERENCES "
+                    + _quoted_lane_schema_identifier(referenced_table)
+                    + " ("
+                    + ", ".join(
+                        _quoted_lane_schema_identifier(value)
+                        for value in normalized_target
+                    )
+                    + f") ON DELETE {on_delete}"
+                )
+            definitions = [
+                *(_lane_schema_column_ddl(row) for row in columns),
+                *constraints,
+            ]
+            ddl.append(
+                f"CREATE TABLE {_quoted_lane_schema_identifier(table)} ("
+                + ", ".join(definitions)
+                + ") STRICT"
+            )
+            created_tables.add(table)
+            normalized_operations.append(
+                {
+                    "kind": kind,
+                    "table": table,
+                    "columns": columns,
+                    "foreign_keys": foreign_keys,
+                }
+            )
+        elif kind == "ADD_COLUMN":
+            if set(raw) != {"kind", "table", "column"}:
+                _lane_schema_error(
+                    "LANE_SCHEMA_ADD_COLUMN_CONTRACT_INVALID",
+                    "ADD_COLUMN has an unexpected shape.",
+                )
+            table = _lane_schema_identifier(raw["table"], label="table")
+            if not table.startswith(prefix):
+                _lane_schema_error(
+                    "LANE_SCHEMA_CORE_TABLE_ALTER_FORBIDDEN",
+                    "ADD_COLUMN is limited to this lane's extension tables.",
+                )
+            column = _normalized_lane_schema_column(
+                raw["column"],
+                allow_primary_key=False,
+            )
+            if not column["nullable"]:
+                _lane_schema_error(
+                    "LANE_SCHEMA_ADD_COLUMN_NOT_NULL_FORBIDDEN",
+                    "ADD_COLUMN must remain nullable to preserve existing rows.",
+                )
+            ddl.append(
+                f"ALTER TABLE {_quoted_lane_schema_identifier(table)} "
+                f"ADD COLUMN {_lane_schema_column_ddl(column)}"
+            )
+            normalized_operations.append(
+                {"kind": kind, "table": table, "column": column}
+            )
+        elif kind == "CREATE_INDEX":
+            if set(raw) != {"kind", "index", "table", "columns", "unique"}:
+                _lane_schema_error(
+                    "LANE_SCHEMA_CREATE_INDEX_CONTRACT_INVALID",
+                    "CREATE_INDEX has an unexpected shape.",
+                )
+            index = _lane_schema_identifier(raw["index"], label="index")
+            table = _lane_schema_identifier(raw["table"], label="table")
+            columns_raw = raw["columns"]
+            if (
+                not index.startswith(prefix)
+                or not table.startswith(prefix)
+                or index in created_indexes
+                or not isinstance(columns_raw, list)
+                or not columns_raw
+                or not isinstance(raw["unique"], bool)
+            ):
+                _lane_schema_error(
+                    "LANE_SCHEMA_EXTENSION_INDEX_INVALID",
+                    "Extension indexes require exact names, columns, and uniqueness intent.",
+                )
+            index_columns = [
+                _lane_schema_identifier(value, label="indexed column")
+                for value in columns_raw
+            ]
+            if len(index_columns) != len(set(index_columns)):
+                _lane_schema_error(
+                    "LANE_SCHEMA_DUPLICATE_INDEX_COLUMN",
+                    "An index cannot repeat a column.",
+                )
+            ddl.append(
+                "CREATE "
+                + ("UNIQUE " if raw["unique"] else "")
+                + f"INDEX {_quoted_lane_schema_identifier(index)} ON "
+                + _quoted_lane_schema_identifier(table)
+                + " ("
+                + ", ".join(
+                    _quoted_lane_schema_identifier(value)
+                    for value in index_columns
+                )
+                + ")"
+            )
+            created_indexes.add(index)
+            normalized_operations.append(
+                {
+                    "kind": kind,
+                    "index": index,
+                    "table": table,
+                    "columns": index_columns,
+                    "unique": raw["unique"],
+                }
+            )
+        else:
+            _lane_schema_error(
+                "LANE_SCHEMA_OPERATION_UNSUPPORTED",
+                f"Unsupported additive operation: {kind!r}.",
+            )
+
+    ddl_sha256 = sha256_bytes(canonical_json_bytes(ddl))
+    body = {
+        "schema": LANE_SCHEMA_MIGRATION_PLAN_SCHEMA,
+        "policy_sha256": LANE_SCHEMA_EVOLUTION_POLICY_SHA256,
+        "lane_id": lane.canonical_lane_id,
+        "extension_namespace": contract["extension_namespace"],
+        "migration_id": migration_id,
+        "from_version": from_version,
+        "to_version": to_version,
+        "operations": normalized_operations,
+        "rebuild_fts": migration["rebuild_fts"],
+        "ddl": ddl,
+        "ddl_sha256": ddl_sha256,
+        "ledger_ddl_sha256": LANE_SCHEMA_LEDGER_DDL_SHA256,
+        "additive_only": True,
+        "raw_sql_accepted": False,
+    }
+    plan_sha256 = sha256_bytes(canonical_json_bytes(body))
+    confirmation = (
+        "AUTHORIZE_LANE_SCHEMA_EVOLUTION::"
+        f"{lane.canonical_lane_id}::{migration_id}::{ddl_sha256}"
+    )
+    return {
+        **body,
+        "plan_sha256": plan_sha256,
+        "explicit_user_confirmation_required": contract[
+            "explicit_user_confirmation_required"
+        ],
+        "required_confirmation": confirmation,
+        "status": (
+            "USER_CONFIRMATION_REQUIRED"
+            if contract["explicit_user_confirmation_required"]
+            else "READY"
+        ),
+    }
+
+
+def _lane_schema_master_projection(
+    connection: sqlite3.Connection,
+) -> list[dict[str, Any]]:
+    return [
+        {
+            "type": str(row[0]),
+            "name": str(row[1]),
+            "table": str(row[2]),
+            "sql": row[3],
+        }
+        for row in connection.execute(
+            """
+            SELECT type, name, tbl_name, sql
+            FROM sqlite_master
+            WHERE name NOT LIKE 'sqlite_%'
+              AND type IN ('table', 'index', 'trigger', 'view')
+            ORDER BY type, name
+            """
+        )
+    ]
+
+
+def _lane_schema_column_projection(
+    connection: sqlite3.Connection,
+) -> dict[str, list[dict[str, Any]]]:
+    result: dict[str, list[dict[str, Any]]] = {}
+    tables = [
+        str(row[0])
+        for row in connection.execute(
+            """
+            SELECT name FROM sqlite_master
+            WHERE type='table' AND name NOT LIKE 'sqlite_%'
+            ORDER BY name
+            """
+        )
+    ]
+    for table in tables:
+        safe = _lane_schema_identifier(table, label="existing table")
+        result[table] = [
+            {
+                "cid": int(row[0]),
+                "name": str(row[1]),
+                "type": str(row[2]),
+                "not_null": bool(row[3]),
+                "default": row[4],
+                "primary_key": int(row[5]),
+                "hidden": int(row[6]),
+            }
+            for row in connection.execute(
+                f'PRAGMA table_xinfo("{safe}")'  # nosec B608
+            )
+        ]
+    return result
+
+
+def _lane_schema_foreign_key_projection(
+    connection: sqlite3.Connection,
+) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for table in sorted(_lane_schema_column_projection(connection)):
+        safe = _lane_schema_identifier(table, label="existing table")
+        for row in connection.execute(
+            f'PRAGMA foreign_key_list("{safe}")'  # nosec B608
+        ):
+            result.append(
+                {
+                    "table": table,
+                    "id": int(row[0]),
+                    "sequence": int(row[1]),
+                    "referenced_table": str(row[2]),
+                    "from": str(row[3]),
+                    "to": str(row[4]),
+                    "on_update": str(row[5]),
+                    "on_delete": str(row[6]),
+                    "match": str(row[7]),
+                }
+            )
+    return result
+
+
+def _lane_schema_index_projection(
+    connection: sqlite3.Connection,
+) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for row in connection.execute(
+        """
+        SELECT name, tbl_name, sql FROM sqlite_master
+        WHERE type='index' AND name NOT LIKE 'sqlite_%'
+        ORDER BY name
+        """
+    ):
+        index = _lane_schema_identifier(row[0], label="existing index")
+        columns = [
+            str(column[2])
+            for column in connection.execute(
+                f'PRAGMA index_info("{index}")'  # nosec B608
+            )
+        ]
+        result.append(
+            {
+                "name": index,
+                "table": str(row[1]),
+                "sql": row[2],
+                "columns": columns,
+            }
+        )
+    return result
+
+
+def _lane_schema_snapshot(connection: sqlite3.Connection) -> dict[str, Any]:
+    objects = _lane_schema_master_projection(connection)
+    columns = _lane_schema_column_projection(connection)
+    foreign_keys = _lane_schema_foreign_key_projection(connection)
+    indexes = _lane_schema_index_projection(connection)
+    body = {
+        "objects": objects,
+        "columns": columns,
+        "foreign_keys": foreign_keys,
+        "indexes": indexes,
+    }
+    return {
+        **body,
+        "schema_sha256": sha256_bytes(canonical_json_bytes(body)),
+        "foreign_key_projection_sha256": sha256_bytes(
+            canonical_json_bytes(foreign_keys)
+        ),
+        "index_projection_sha256": sha256_bytes(
+            canonical_json_bytes(indexes)
+        ),
+    }
+
+
+def _lane_schema_compatibility_proof(
+    connection: sqlite3.Connection,
+    lane: LaneDefinition,
+    before: dict[str, Any],
+) -> dict[str, Any]:
+    after = _lane_schema_snapshot(connection)
+    before_objects = {
+        (row["type"], row["name"]): row for row in before["objects"]
+    }
+    after_objects = {
+        (row["type"], row["name"]): row for row in after["objects"]
+    }
+    missing_objects = sorted(
+        f"{kind}:{name}"
+        for kind, name in set(before_objects) - set(after_objects)
+    )
+    changed_non_table_objects = sorted(
+        f"{kind}:{name}"
+        for (kind, name), row in before_objects.items()
+        if kind != "table"
+        and (kind, name) in after_objects
+        and row["sql"] != after_objects[(kind, name)]["sql"]
+    )
+    incompatible_tables: list[str] = []
+    for table, columns in before["columns"].items():
+        current = after["columns"].get(table)
+        if current is None or current[: len(columns)] != columns:
+            incompatible_tables.append(table)
+    before_foreign_keys = {
+        canonical_json_bytes(row).decode("utf-8") for row in before["foreign_keys"]
+    }
+    after_foreign_keys = {
+        canonical_json_bytes(row).decode("utf-8") for row in after["foreign_keys"]
+    }
+    removed_foreign_keys = sorted(before_foreign_keys - after_foreign_keys)
+    builder_projection = lane_schema_builder_projection(connection, lane)
+    valid = bool(
+        not missing_objects
+        and not changed_non_table_objects
+        and not incompatible_tables
+        and not removed_foreign_keys
+        and builder_projection["status"] == "PASS"
+    )
+    body = {
+        "schema": "evidence-lane.lane-schema-compatibility-proof.v1",
+        "status": "PASS" if valid else "FAIL",
+        "valid": valid,
+        "pre_schema_sha256": before["schema_sha256"],
+        "post_schema_sha256": after["schema_sha256"],
+        "missing_objects": missing_objects,
+        "changed_non_table_objects": changed_non_table_objects,
+        "incompatible_tables": sorted(incompatible_tables),
+        "removed_foreign_keys": removed_foreign_keys,
+        "existing_object_count": len(before["objects"]),
+        "result_object_count": len(after["objects"]),
+        "base_schema_builder_projection": builder_projection,
+    }
+    return {
+        **body,
+        "proof_sha256": sha256_bytes(canonical_json_bytes(body)),
+        "post_snapshot": after,
+    }
+
+
+def _lane_schema_foreign_key_target_errors(
+    connection: sqlite3.Connection,
+) -> list[dict[str, str]]:
+    columns = _lane_schema_column_projection(connection)
+    errors: list[dict[str, str]] = []
+    for row in _lane_schema_foreign_key_projection(connection):
+        target = columns.get(row["referenced_table"])
+        target_names = {column["name"] for column in target or []}
+        if target is None or row["to"] not in target_names:
+            errors.append(
+                {
+                    "table": row["table"],
+                    "column": row["from"],
+                    "referenced_table": row["referenced_table"],
+                    "referenced_column": row["to"],
+                }
+            )
+    return errors
+
+
+def _lane_fts_content_projection(
+    connection: sqlite3.Connection,
+    lane: LaneDefinition,
+) -> dict[str, Any]:
+    fts = _lane_schema_identifier(lane.fts_table, label="lane FTS table")
+    rows = [
+        {
+            "rowid": int(row[0]),
+            "path": str(row[1]),
+            "locator": str(row[2]),
+            "text_content": str(row[3]),
+            "chunk_id": int(row[4]),
+        }
+        for row in connection.execute(
+            f"""SELECT rowid, path, locator, text_content, chunk_id
+                FROM \"{fts}\" ORDER BY rowid"""  # nosec B608
+        )
+    ]
+    return {
+        "rows": rows,
+        "row_count": len(rows),
+        "content_sha256": sha256_bytes(canonical_json_bytes(rows)),
+    }
+
+
+def _rebuild_lane_fts_with_proof(
+    connection: sqlite3.Connection,
+    lane: LaneDefinition,
+) -> dict[str, Any]:
+    before = _lane_fts_content_projection(connection, lane)
+    fts = _lane_schema_identifier(lane.fts_table, label="lane FTS table")
+    connection.execute(f'DELETE FROM "{fts}"')  # nosec B608
+    connection.executemany(
+        f"""INSERT INTO \"{fts}\"(
+                rowid, path, locator, text_content, chunk_id
+            ) VALUES (?, ?, ?, ?, ?)""",  # nosec B608
+        [
+            (
+                row["rowid"],
+                row["path"],
+                row["locator"],
+                row["text_content"],
+                row["chunk_id"],
+            )
+            for row in before["rows"]
+        ],
+    )
+    after = _lane_fts_content_projection(connection, lane)
+    valid = bool(
+        before["row_count"] == after["row_count"]
+        and before["content_sha256"] == after["content_sha256"]
+    )
+    body = {
+        "schema": "evidence-lane.lane-fts-rebuild-proof.v1",
+        "status": "PASS" if valid else "FAIL",
+        "valid": valid,
+        "lane_id": lane.canonical_lane_id,
+        "fts_table": lane.fts_table,
+        "preserved_rowids": True,
+        "before_row_count": before["row_count"],
+        "after_row_count": after["row_count"],
+        "before_content_sha256": before["content_sha256"],
+        "after_content_sha256": after["content_sha256"],
+    }
+    return {
+        **body,
+        "proof_sha256": sha256_bytes(canonical_json_bytes(body)),
+    }
+
+
+def _no_lane_fts_rebuild_proof(lane: LaneDefinition) -> dict[str, Any]:
+    body = {
+        "schema": "evidence-lane.lane-fts-rebuild-proof.v1",
+        "status": "NOT_REQUESTED",
+        "valid": True,
+        "lane_id": lane.canonical_lane_id,
+        "fts_table": lane.fts_table,
+        "preserved_rowids": True,
+        "before_row_count": None,
+        "after_row_count": None,
+        "before_content_sha256": None,
+        "after_content_sha256": None,
+    }
+    return {
+        **body,
+        "proof_sha256": sha256_bytes(canonical_json_bytes(body)),
+    }
+
+
+def _ensure_lane_schema_migration_ledger(
+    connection: sqlite3.Connection,
+) -> None:
+    for statement in _LANE_SCHEMA_LEDGER_DDL:
+        connection.execute(statement)
+
+
+def lane_schema_evolution_status(
+    connection: sqlite3.Connection,
+    lane: LaneDefinition,
+) -> dict[str, Any]:
+    """Verify the optional append-only migration ledger and effective head."""
+
+    asset = lane_schema_asset(lane.canonical_lane_id)
+    ledger_exists = connection.execute(
+        """SELECT 1 FROM sqlite_master
+           WHERE type='table' AND name='lane_schema_migration'"""
+    ).fetchone() is not None
+    meta = dict(
+        connection.execute(
+            """
+            SELECT key, value FROM lane_meta
+            WHERE key IN (
+                'lane_schema_effective_version',
+                'lane_schema_effective_head',
+                'lane_schema_effective_receipt_sha256'
+            )
+            """
+        )
+    )
+    if not ledger_exists:
+        valid = not meta
+        return {
+            "schema": LANE_SCHEMA_MIGRATION_STATUS_SCHEMA,
+            "status": "NOT_APPLIED" if valid else "FAIL",
+            "valid": valid,
+            "lane_id": lane.canonical_lane_id,
+            "base_schema_version": asset["schema_version"],
+            "effective_schema_version": asset["schema_version"],
+            "migration_count": 0,
+            "head_migration_id": None,
+            "head_receipt_sha256": None,
+            "ledger_ddl_sha256": LANE_SCHEMA_LEDGER_DDL_SHA256,
+            "receipt_chain_valid": valid,
+            "immutable_triggers_valid": valid,
+            "meta_binding_valid": valid,
+            "foreign_key_errors": [],
+            "builder_schema_byte_parity": (
+                lane_schema_builder_projection(connection, lane)["status"] == "PASS"
+            ),
+        }
+    cursor = connection.execute(
+        """
+        SELECT sequence, migration_id, lane_id, from_version, to_version,
+               request_sha256, ddl_sha256, prior_receipt_sha256,
+               receipt_sha256, receipt_json
+        FROM lane_schema_migration ORDER BY sequence
+        """
+    )
+    keys = [str(row[0]) for row in cursor.description or []]
+    rows = [dict(zip(keys, row, strict=True)) for row in cursor]
+    triggers = {
+        str(row[0])
+        for row in connection.execute(
+            """SELECT name FROM sqlite_master
+               WHERE type='trigger' AND tbl_name='lane_schema_migration'"""
+        )
+    }
+    immutable_triggers_valid = triggers == {
+        "lane_schema_migration_no_update",
+        "lane_schema_migration_no_delete",
+    }
+    expected_version = int(asset["schema_version"])
+    prior_receipt: str | None = None
+    receipt_chain_valid = bool(rows)
+    for sequence, row in enumerate(rows, start=1):
+        try:
+            receipt = json.loads(str(row["receipt_json"]))
+        except json.JSONDecodeError:
+            receipt_chain_valid = False
+            break
+        receipt_core = dict(receipt)
+        declared_receipt = str(receipt_core.pop("receipt_sha256", ""))
+        computed_receipt = sha256_bytes(canonical_json_bytes(receipt_core))
+        if not (
+            row["sequence"] == sequence
+            and row["lane_id"] == lane.canonical_lane_id
+            and row["from_version"] == expected_version
+            and row["to_version"] == expected_version + 1
+            and row["prior_receipt_sha256"] == prior_receipt
+            and row["receipt_sha256"] == declared_receipt == computed_receipt
+            and receipt.get("schema") == LANE_SCHEMA_MIGRATION_RECEIPT_SCHEMA
+            and receipt.get("lane_id") == lane.canonical_lane_id
+            and receipt.get("migration_id") == row["migration_id"]
+            and receipt.get("request_sha256") == row["request_sha256"]
+            and receipt.get("ddl_sha256") == row["ddl_sha256"]
+            and receipt.get("prior_receipt_sha256") == prior_receipt
+        ):
+            receipt_chain_valid = False
+            break
+        expected_version += 1
+        prior_receipt = declared_receipt
+    head = rows[-1] if rows else None
+    meta_binding_valid = bool(
+        head
+        and meta
+        == {
+            "lane_schema_effective_version": str(expected_version),
+            "lane_schema_effective_head": str(head["migration_id"]),
+            "lane_schema_effective_receipt_sha256": str(
+                head["receipt_sha256"]
+            ),
+        }
+    )
+    foreign_key_errors = [
+        list(row) for row in connection.execute("PRAGMA foreign_key_check")
+    ]
+    builder_parity = lane_schema_builder_projection(connection, lane)
+    valid = bool(
+        receipt_chain_valid
+        and immutable_triggers_valid
+        and meta_binding_valid
+        and not foreign_key_errors
+        and builder_parity["status"] == "PASS"
+    )
+    return {
+        "schema": LANE_SCHEMA_MIGRATION_STATUS_SCHEMA,
+        "status": "PASS" if valid else "FAIL",
+        "valid": valid,
+        "lane_id": lane.canonical_lane_id,
+        "base_schema_version": asset["schema_version"],
+        "effective_schema_version": expected_version,
+        "migration_count": len(rows),
+        "head_migration_id": head["migration_id"] if head else None,
+        "head_receipt_sha256": head["receipt_sha256"] if head else None,
+        "ledger_ddl_sha256": LANE_SCHEMA_LEDGER_DDL_SHA256,
+        "receipt_chain_valid": receipt_chain_valid,
+        "immutable_triggers_valid": immutable_triggers_valid,
+        "meta_binding_valid": meta_binding_valid,
+        "foreign_key_errors": foreign_key_errors,
+        "builder_schema_byte_parity": builder_parity["status"] == "PASS",
+    }
+
+
+def apply_lane_schema_migration(
+    connection: sqlite3.Connection,
+    lane: LaneDefinition,
+    migration: dict[str, Any],
+    *,
+    applied_by: str,
+    applied_at: str | None = None,
+    explicit_user_confirmation: str | None = None,
+) -> dict[str, Any]:
+    """Atomically apply one structured migration and append its sealed receipt."""
+
+    plan = compile_lane_schema_migration(lane, migration)
+    if (
+        plan["explicit_user_confirmation_required"]
+        and explicit_user_confirmation != plan["required_confirmation"]
+    ):
+        _lane_schema_error(
+            "LANE_SCHEMA_EXPLICIT_USER_CONFIRMATION_REQUIRED",
+            "This protected code lane requires the exact compiled confirmation.",
+        )
+    if not str(applied_by or "").strip():
+        _lane_schema_error(
+            "LANE_SCHEMA_APPLIED_BY_REQUIRED",
+            "A nonempty migration actor is required.",
+        )
+    lane_meta = dict(
+        connection.execute(
+            """SELECT key, value FROM lane_meta
+               WHERE key IN ('lane_id', 'lane_schema_asset_version')"""
+        )
+    )
+    asset = lane_schema_asset(lane.canonical_lane_id)
+    if lane_meta != {
+        "lane_id": lane.canonical_lane_id,
+        "lane_schema_asset_version": str(asset["schema_version"]),
+    }:
+        _lane_schema_error(
+            "LANE_SCHEMA_DATABASE_BINDING_MISMATCH",
+            "The SQLite lane identity or base schema version does not match.",
+        )
+    current = lane_schema_evolution_status(connection, lane)
+    if not current["valid"]:
+        _lane_schema_error(
+            "LANE_SCHEMA_LEDGER_INVALID",
+            "The current migration ledger or base schema is invalid.",
+        )
+    ledger_exists = current["migration_count"] > 0
+    if ledger_exists:
+        existing = connection.execute(
+            """SELECT request_sha256, receipt_json
+               FROM lane_schema_migration WHERE migration_id=?""",
+            (plan["migration_id"],),
+        ).fetchone()
+        if existing is not None:
+            if str(existing[0]) != plan["plan_sha256"]:
+                _lane_schema_error(
+                    "LANE_SCHEMA_MIGRATION_ID_CONFLICT",
+                    "The immutable migration ID is already bound to other bytes.",
+                )
+            return {
+                "schema": LANE_SCHEMA_MIGRATION_RECEIPT_SCHEMA,
+                "status": "PASS",
+                "state": "ALREADY_APPLIED",
+                "receipt": json.loads(str(existing[1])),
+                "plan": plan,
+                "ledger": current,
+            }
+    if plan["from_version"] != current["effective_schema_version"]:
+        _lane_schema_error(
+            "LANE_SCHEMA_VERSION_MISMATCH",
+            "The migration does not start at the exact effective schema version.",
+        )
+    before = _lane_schema_snapshot(connection)
+    connection.execute("SAVEPOINT evidence_lane_schema_evolution")
+    try:
+        _ensure_lane_schema_migration_ledger(connection)
+        for statement in plan["ddl"]:
+            connection.execute(statement)
+        target_errors = _lane_schema_foreign_key_target_errors(connection)
+        if target_errors:
+            _lane_schema_error(
+                "LANE_SCHEMA_FOREIGN_KEY_TARGET_INVALID",
+                "A migrated foreign key targets a missing table or column.",
+            )
+        fts_proof = (
+            _rebuild_lane_fts_with_proof(connection, lane)
+            if plan["rebuild_fts"]
+            else _no_lane_fts_rebuild_proof(lane)
+        )
+        integrity = [
+            str(row[0]) for row in connection.execute("PRAGMA integrity_check")
+        ]
+        foreign_key_errors = [
+            list(row) for row in connection.execute("PRAGMA foreign_key_check")
+        ]
+        compatibility = _lane_schema_compatibility_proof(
+            connection,
+            lane,
+            before,
+        )
+        if (
+            integrity != ["ok"]
+            or foreign_key_errors
+            or not fts_proof["valid"]
+            or not compatibility["valid"]
+        ):
+            _lane_schema_error(
+                "LANE_SCHEMA_COMPATIBILITY_CHECK_FAILED",
+                "Integrity, foreign-key, FTS, or compatibility proof failed.",
+            )
+        post = compatibility.pop("post_snapshot")
+        prior_receipt = current["head_receipt_sha256"]
+        confirmation_sha256 = (
+            sha256_bytes(explicit_user_confirmation.encode("utf-8"))
+            if plan["explicit_user_confirmation_required"]
+            and explicit_user_confirmation is not None
+            else None
+        )
+        receipt_core = {
+            "schema": LANE_SCHEMA_MIGRATION_RECEIPT_SCHEMA,
+            "status": "PASS",
+            "lane_id": lane.canonical_lane_id,
+            "extension_namespace": plan["extension_namespace"],
+            "migration_id": plan["migration_id"],
+            "sequence": int(current["migration_count"]) + 1,
+            "from_version": plan["from_version"],
+            "to_version": plan["to_version"],
+            "request_sha256": plan["plan_sha256"],
+            "ddl_sha256": plan["ddl_sha256"],
+            "ledger_ddl_sha256": LANE_SCHEMA_LEDGER_DDL_SHA256,
+            "pre_schema_sha256": before["schema_sha256"],
+            "post_schema_sha256": post["schema_sha256"],
+            "foreign_key_projection_sha256": post[
+                "foreign_key_projection_sha256"
+            ],
+            "index_projection_sha256": post["index_projection_sha256"],
+            "fts_rebuild_proof": fts_proof,
+            "compatibility_proof": compatibility,
+            "integrity_check": integrity,
+            "foreign_key_errors": foreign_key_errors,
+            "prior_receipt_sha256": prior_receipt,
+            "explicit_user_confirmation_required": plan[
+                "explicit_user_confirmation_required"
+            ],
+            "explicit_user_confirmation_sha256": confirmation_sha256,
+            "raw_user_confirmation_persisted": False,
+            "applied_by": applied_by.strip(),
+            "applied_at": applied_at or utc_now(),
+            "candidate_created": False,
+            "hil_invoked": False,
+            "pointer_moved": False,
+        }
+        receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_core))
+        receipt = {**receipt_core, "receipt_sha256": receipt_sha256}
+        connection.execute(
+            """
+            INSERT INTO lane_schema_migration(
+                sequence, migration_id, lane_id, namespace,
+                from_version, to_version, request_sha256, ddl_sha256,
+                pre_schema_sha256, post_schema_sha256,
+                foreign_key_projection_sha256, index_projection_sha256,
+                fts_rebuild_proof_sha256, compatibility_proof_sha256,
+                prior_receipt_sha256, explicit_user_confirmation_sha256,
+                applied_by, applied_at, receipt_sha256, receipt_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                receipt["sequence"],
+                receipt["migration_id"],
+                receipt["lane_id"],
+                receipt["extension_namespace"],
+                receipt["from_version"],
+                receipt["to_version"],
+                receipt["request_sha256"],
+                receipt["ddl_sha256"],
+                receipt["pre_schema_sha256"],
+                receipt["post_schema_sha256"],
+                receipt["foreign_key_projection_sha256"],
+                receipt["index_projection_sha256"],
+                receipt["fts_rebuild_proof"]["proof_sha256"],
+                receipt["compatibility_proof"]["proof_sha256"],
+                receipt["prior_receipt_sha256"],
+                receipt["explicit_user_confirmation_sha256"],
+                receipt["applied_by"],
+                receipt["applied_at"],
+                receipt["receipt_sha256"],
+                canonical_json_bytes(receipt).decode("utf-8"),
+            ),
+        )
+        for key, value in (
+            ("lane_schema_effective_version", receipt["to_version"]),
+            ("lane_schema_effective_head", receipt["migration_id"]),
+            (
+                "lane_schema_effective_receipt_sha256",
+                receipt["receipt_sha256"],
+            ),
+        ):
+            connection.execute(
+                "INSERT OR REPLACE INTO lane_meta(key, value) VALUES (?, ?)",
+                (key, str(value)),
+            )
+        ledger = lane_schema_evolution_status(connection, lane)
+        if not ledger["valid"]:
+            _lane_schema_error(
+                "LANE_SCHEMA_POST_APPLY_LEDGER_INVALID",
+                "The post-apply migration ledger did not verify.",
+            )
+        connection.execute("RELEASE SAVEPOINT evidence_lane_schema_evolution")
+    except Exception as exc:
+        connection.execute("ROLLBACK TO SAVEPOINT evidence_lane_schema_evolution")
+        connection.execute("RELEASE SAVEPOINT evidence_lane_schema_evolution")
+        if isinstance(exc, LaneSchemaEvolutionError):
+            raise
+        raise LaneSchemaEvolutionError(
+            "LANE_SCHEMA_MIGRATION_SQLITE_FAILURE",
+            f"The additive migration rolled back: {type(exc).__name__}.",
+        ) from exc
+    return {
+        "schema": LANE_SCHEMA_MIGRATION_RECEIPT_SCHEMA,
+        "status": "PASS",
+        "state": "APPLIED",
+        "receipt": receipt,
+        "plan": plan,
+        "ledger": ledger,
+    }
+
+
+def lane_schema_builder_projection(
+    connection: sqlite3.Connection,
+    lane: LaneDefinition,
+) -> dict[str, Any]:
+    """Compare exact emitted SQLite definitions with the versioned lane asset."""
+
+    asset = lane_schema_asset(lane.canonical_lane_id)
+    table_rows: list[dict[str, str | None]] = []
+    missing: list[str] = []
+    for table in asset["tables"]:
+        if not re.fullmatch(r"[a-z][a-z0-9_]*", table):
+            raise ValueError(f"Unsafe lane schema table name: {table}")
+        row = connection.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name=?",
+            (table,),
+        ).fetchone()
+        if row is None:
+            missing.append(table)
+            table_rows.append({"table": table, "sql": None})
+        else:
+            table_rows.append({"table": table, "sql": str(row[0] or "")})
+    projection_body = {
+        "lane_id": lane.canonical_lane_id,
+        "tables": table_rows,
+    }
+    actual_sha256 = (
+        sha256_bytes(canonical_json_bytes(projection_body)) if not missing else None
+    )
+    expected_sha256 = str(asset["sqlite_master_projection_sha256"])
+    return {
+        "schema": LANE_SCHEMA_BUILDER_PROJECTION_SCHEMA,
+        "status": (
+            "PASS"
+            if not missing and actual_sha256 == expected_sha256
+            else "MISMATCH"
+        ),
+        "lane_id": lane.canonical_lane_id,
+        "schema_id": asset["schema_id"],
+        "schema_version": asset["schema_version"],
+        "registry_sha256": LANE_SCHEMA_REGISTRY_SHA256,
+        "contract_sha256": asset["contract_sha256"],
+        "expected_sqlite_master_projection_sha256": expected_sha256,
+        "actual_sqlite_master_projection_sha256": actual_sha256,
+        "table_count": len(table_rows),
+        "missing_tables": missing,
+        "builder_schema_byte_parity": not missing and actual_sha256 == expected_sha256,
+    }
+
+
 def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) -> None:
+    schema_asset = lane_schema_asset(lane.canonical_lane_id)
     fts = lane.fts_table
     if not re.fullmatch(r"[a-z][a-z0-9_]*", fts):
         raise ValueError(f"Unsafe FTS table name: {fts}")
@@ -3143,11 +4365,13 @@ def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) ->
         "mutation_receipt",
         lane.fts_table,
     }
-    for table in lane.schema_contract:
+    for table in schema_asset["tables"]:
         if table in shared_tables:
             continue
         if not re.fullmatch(r"[a-z][a-z0-9_]*", table):
             raise ValueError(f"Unsafe lane schema table name: {table}")
+        if schema_asset["lane_table_builder"] == "GIT_HISTORY_V2":
+            continue
         connection.execute(
             f"""
             CREATE TABLE IF NOT EXISTS {table}(
@@ -3157,6 +4381,12 @@ def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) ->
                 payload_json TEXT NOT NULL
             ) STRICT
             """
+        )
+    parity = lane_schema_builder_projection(connection, lane)
+    if parity["status"] != "PASS":
+        raise ValueError(
+            "Lane schema builder bytes do not match the versioned asset: "
+            f"{lane.canonical_lane_id}"
         )
 
 
@@ -3372,6 +4602,7 @@ def _rebuild_retrieval(connection: sqlite3.Connection, lane: LaneDefinition) -> 
 
 
 def _validate_lane_database(path: Path, lane: LaneDefinition) -> dict[str, Any]:
+    schema_asset = lane_schema_asset(lane.canonical_lane_id)
     connection = sqlite3.connect(
         f"file:{path.resolve().as_posix()}?mode=ro&immutable=1",
         uri=True,
@@ -3382,6 +4613,22 @@ def _validate_lane_database(path: Path, lane: LaneDefinition) -> dict[str, Any]:
     schema = connection.execute(
         "SELECT value FROM lane_meta WHERE key='schema_version'"
     ).fetchone()
+    schema_binding = dict(
+        connection.execute(
+            """
+            SELECT key, value FROM lane_meta
+            WHERE key IN (
+                'lane_schema_id',
+                'lane_schema_asset_version',
+                'lane_schema_contract_sha256',
+                'lane_schema_registry_sha256',
+                'lane_schema_sqlite_master_projection_sha256',
+                'lane_schema_extension_namespace',
+                'lane_schema_migration_head'
+            )
+            """
+        )
+    )
     counts = {
         table: int(
             connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]  # nosec B608
@@ -3399,12 +4646,32 @@ def _validate_lane_database(path: Path, lane: LaneDefinition) -> dict[str, Any]:
     fts_count = int(
         connection.execute(f"SELECT COUNT(*) FROM {lane.fts_table}").fetchone()[0]  # nosec B608
     )
+    builder_projection = lane_schema_builder_projection(connection, lane)
+    evolution = lane_schema_evolution_status(connection, lane)
     connection.close()
     valid = (
         integrity == ["ok"]
         and not foreign_keys
         and schema is not None
         and schema[0] == LANE_SCHEMA_VERSION
+        and schema_binding
+        == {
+            "lane_schema_id": schema_asset["schema_id"],
+            "lane_schema_asset_version": str(schema_asset["schema_version"]),
+            "lane_schema_contract_sha256": schema_asset["contract_sha256"],
+            "lane_schema_registry_sha256": LANE_SCHEMA_REGISTRY_SHA256,
+            "lane_schema_sqlite_master_projection_sha256": schema_asset[
+                "sqlite_master_projection_sha256"
+            ],
+            "lane_schema_extension_namespace": schema_asset[
+                "extension_namespace"
+            ],
+            "lane_schema_migration_head": schema_asset["migration_ledger"][-1][
+                "migration_id"
+            ],
+        }
+        and builder_projection["status"] == "PASS"
+        and evolution["valid"]
         and fts_count == counts["chunk_index"]
     )
     return {
@@ -3412,6 +4679,9 @@ def _validate_lane_database(path: Path, lane: LaneDefinition) -> dict[str, Any]:
         "integrity": integrity,
         "foreign_key_errors": foreign_keys,
         "schema_version": schema[0] if schema else None,
+        "lane_schema_binding": schema_binding,
+        "lane_schema_builder_projection": builder_projection,
+        "lane_schema_evolution": evolution,
         "counts": counts,
         "fts_rows": fts_count,
         "valid": valid,
@@ -4551,6 +5821,363 @@ def _lane_topology(
     return graph.finish()
 
 
+LANE_ARTIFACT_ROLE_PROJECTION_SCHEMA = (
+    "evidence-lane.lane-artifact-role-projection.v1"
+)
+LANE_ARTIFACT_EXTENSION_RECEIPT_SCHEMA = (
+    "evidence-lane.lane-artifact-extension-receipt.v1"
+)
+_LANE_ARTIFACT_EXTENSION_ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+
+class LaneArtifactContractError(ValueError):
+    """Fail-closed lane artifact-role or extension error."""
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+def _lane_artifact_error(code: str, message: str) -> None:
+    raise LaneArtifactContractError(code, message)
+
+
+def _lane_extension_target(
+    lane_root: Path,
+    extension_id: str,
+    relative_path: Any,
+) -> tuple[str, Path]:
+    value = str(relative_path or "")
+    pure = PurePosixPath(value)
+    expected_prefix = ("extensions", extension_id)
+    if (
+        not value
+        or "\\" in value
+        or pure.is_absolute()
+        or any(part in {"", ".", ".."} for part in pure.parts)
+        or pure.parts[:2] != expected_prefix
+        or len(pure.parts) < 3
+    ):
+        _lane_artifact_error(
+            "LANE_ARTIFACT_EXTENSION_PATH_INVALID",
+            "An extension artifact must remain below its exact lane extension root.",
+        )
+    root = lane_root.resolve()
+    target = root.joinpath(*pure.parts)
+    current = root
+    for part in pure.parts:
+        current = current / part
+        if current.exists() and current.is_symlink():
+            _lane_artifact_error(
+                "LANE_ARTIFACT_EXTENSION_SYMLINK_FORBIDDEN",
+                "Extension artifact paths cannot contain symlinks.",
+            )
+    resolved = target.resolve()
+    if resolved != root and root not in resolved.parents:
+        _lane_artifact_error(
+            "LANE_ARTIFACT_EXTENSION_PATH_ESCAPE",
+            "An extension artifact resolved outside its lane root.",
+        )
+    return pure.as_posix(), resolved
+
+
+def compile_lane_artifact_extension(
+    lane_root: str | Path,
+    lane: LaneDefinition,
+    extension: dict[str, Any],
+) -> dict[str, Any]:
+    """Validate and seal one lane-scoped artifact extension read-only."""
+
+    root = Path(lane_root).resolve()
+    contract = lane_artifact_contract(lane.canonical_lane_id)
+    if not isinstance(extension, dict) or set(extension) != {
+        "extension_id",
+        "roles",
+    }:
+        _lane_artifact_error(
+            "LANE_ARTIFACT_EXTENSION_CONTRACT_INVALID",
+            "An extension requires one exact ID and a role list.",
+        )
+    extension_id = str(extension["extension_id"] or "")
+    if not _LANE_ARTIFACT_EXTENSION_ID_RE.fullmatch(extension_id):
+        _lane_artifact_error(
+            "LANE_ARTIFACT_EXTENSION_ID_INVALID",
+            "An extension ID must be safe lower snake case.",
+        )
+    roles = extension["roles"]
+    if not isinstance(roles, list) or not roles:
+        _lane_artifact_error(
+            "LANE_ARTIFACT_EXTENSION_ROLES_EMPTY",
+            "An extension must declare at least one artifact role.",
+        )
+    role_catalog = {
+        row["role_name"]: row
+        for row in (
+            *contract["extension_required_roles"],
+            *contract["conditional_roles"],
+            *contract["optional_roles"],
+        )
+    }
+    normalized: list[dict[str, Any]] = []
+    declared_paths: set[str] = set()
+    declared_role_names: set[str] = set()
+    for raw in roles:
+        if not isinstance(raw, dict) or set(raw) != {
+            "role_name",
+            "classification",
+            "relative_path",
+            "condition",
+        }:
+            _lane_artifact_error(
+                "LANE_ARTIFACT_EXTENSION_ROLE_INVALID",
+                "An extension role has an unexpected shape.",
+            )
+        role_name = str(raw["role_name"] or "")
+        expected = role_catalog.get(role_name)
+        classification = str(raw["classification"] or "")
+        if (
+            expected is None
+            or classification != expected["classification"]
+            or role_name in declared_role_names
+        ):
+            _lane_artifact_error(
+                "LANE_ARTIFACT_EXTENSION_ROLE_NOT_ALLOWED",
+                "The artifact role is not allowed for this lane or is duplicated.",
+            )
+        exact_expected = cast(dict[str, Any], expected)
+        condition = raw["condition"]
+        required_now = classification == "REQUIRED"
+        if classification == "CONDITIONAL":
+            if (
+                not isinstance(condition, dict)
+                or set(condition) != {"condition_id", "active"}
+                or condition.get("condition_id")
+                != exact_expected["condition"]
+                or not isinstance(condition.get("active"), bool)
+            ):
+                _lane_artifact_error(
+                    "LANE_ARTIFACT_EXTENSION_CONDITION_INVALID",
+                    "A conditional role requires its exact condition and active state.",
+                )
+            required_now = bool(condition["active"])
+            normalized_condition: dict[str, Any] | None = {
+                "condition_id": str(condition["condition_id"]),
+                "active": bool(condition["active"]),
+            }
+        else:
+            if condition is not None:
+                _lane_artifact_error(
+                    "LANE_ARTIFACT_EXTENSION_CONDITION_FORBIDDEN",
+                    "Required and optional roles cannot carry a condition.",
+                )
+            normalized_condition = None
+        relative_path, target = _lane_extension_target(
+            root,
+            extension_id,
+            raw["relative_path"],
+        )
+        if relative_path in declared_paths:
+            _lane_artifact_error(
+                "LANE_ARTIFACT_EXTENSION_PATH_DUPLICATE",
+                "An extension cannot bind two roles to the same file.",
+            )
+        exists = target.is_file()
+        if required_now and not exists:
+            _lane_artifact_error(
+                "LANE_ARTIFACT_EXTENSION_REQUIRED_FILE_MISSING",
+                "A required or active conditional extension artifact is missing.",
+            )
+        role_id = (
+            f"evidence_lane.{lane.canonical_lane_id}.extensions."
+            f"{extension_id}.{role_name}"
+        )
+        normalized.append(
+            {
+                "role_id": role_id,
+                "role_name": role_name,
+                "classification": classification,
+                "condition": normalized_condition,
+                "required_now": required_now,
+                "relative_path": relative_path,
+                "exists": exists,
+                "bytes": target.stat().st_size if exists else None,
+                "sha256": sha256_file(target) if exists else None,
+            }
+        )
+        declared_paths.add(relative_path)
+        declared_role_names.add(role_name)
+    if "extension_authority" not in declared_role_names:
+        _lane_artifact_error(
+            "LANE_ARTIFACT_EXTENSION_AUTHORITY_REQUIRED",
+            "Every extension requires one sealed extension_authority file.",
+        )
+    extension_root = root / "extensions" / extension_id
+    actual_paths = {
+        path.relative_to(root).as_posix()
+        for path in extension_root.rglob("*")
+        if path.is_file()
+    } if extension_root.is_dir() else set()
+    undeclared = sorted(actual_paths - declared_paths)
+    if undeclared:
+        _lane_artifact_error(
+            "LANE_ARTIFACT_EXTENSION_UNDECLARED_FILE",
+            "An extension directory contains undeclared files.",
+        )
+    body = {
+        "schema": LANE_ARTIFACT_EXTENSION_RECEIPT_SCHEMA,
+        "status": "PASS",
+        "lane_id": lane.canonical_lane_id,
+        "lane_contract_sha256": contract["contract_sha256"],
+        "registry_sha256": LANE_ARTIFACT_ROLE_REGISTRY_SHA256,
+        "extension_id": extension_id,
+        "extension_namespace": (
+            f"evidence_lane.{lane.canonical_lane_id}.extensions.{extension_id}"
+        ),
+        "root": f"extensions/{extension_id}",
+        "roles": normalized,
+        "undeclared_files": [],
+        "unrelated_lane_effect": "NONE",
+    }
+    return {
+        **body,
+        "extension_receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
+    }
+
+
+def build_lane_artifact_role_contract(
+    lane_root: str | Path,
+    lane: LaneDefinition,
+    *,
+    extensions: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Project core and declared extension files into one lane-local contract."""
+
+    root = Path(lane_root).resolve()
+    contract = lane_artifact_contract(lane.canonical_lane_id)
+    required: list[dict[str, Any]] = []
+    core_valid = True
+    for role in contract["required_roles"]:
+        path = root / role["path"]
+        self_manifest = role["seal"] == "SELF_MANIFEST"
+        exists = True if self_manifest else path.is_file()
+        core_valid = core_valid and exists
+        required.append(
+            {
+                **role,
+                "exists": exists,
+                "self_manifest": self_manifest,
+                "bytes": path.stat().st_size if exists and not self_manifest else None,
+                "sha256": sha256_file(path) if exists and not self_manifest else None,
+            }
+        )
+    compiled_extensions = [
+        compile_lane_artifact_extension(root, lane, extension)
+        for extension in (extensions or [])
+    ]
+    extension_ids = [row["extension_id"] for row in compiled_extensions]
+    if len(extension_ids) != len(set(extension_ids)):
+        _lane_artifact_error(
+            "LANE_ARTIFACT_EXTENSION_ID_DUPLICATE",
+            "A lane cannot declare the same extension twice.",
+        )
+    declared_extension_paths = {
+        role["relative_path"]
+        for extension in compiled_extensions
+        for role in extension["roles"]
+        if role["exists"]
+    }
+    extension_root = root / "extensions"
+    actual_extension_paths = {
+        path.relative_to(root).as_posix()
+        for path in extension_root.rglob("*")
+        if path.is_file()
+    } if extension_root.is_dir() else set()
+    undeclared_extension_files = sorted(
+        actual_extension_paths - declared_extension_paths
+    )
+    valid = core_valid and not undeclared_extension_files
+    body = {
+        "schema": LANE_ARTIFACT_ROLE_PROJECTION_SCHEMA,
+        "status": "PASS" if valid else "FAIL",
+        "valid": valid,
+        "lane_id": lane.canonical_lane_id,
+        "registry_sha256": LANE_ARTIFACT_ROLE_REGISTRY_SHA256,
+        "lane_contract_sha256": contract["contract_sha256"],
+        "required_roles": required,
+        "conditional_role_catalog": contract["conditional_roles"],
+        "optional_role_catalog": contract["optional_roles"],
+        "extensions": compiled_extensions,
+        "undeclared_extension_files": undeclared_extension_files,
+        "unrelated_lane_effect": "NONE",
+    }
+    return {
+        **body,
+        "projection_sha256": sha256_bytes(canonical_json_bytes(body)),
+    }
+
+
+def validate_lane_artifact_role_contract(
+    lane_root: str | Path,
+    lane: LaneDefinition,
+    declared: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Recompute one current artifact projection or accept historical absence."""
+
+    root = Path(lane_root).resolve()
+    if declared is None:
+        return {
+            "schema": LANE_ARTIFACT_ROLE_PROJECTION_SCHEMA,
+            "status": "PASS",
+            "valid": True,
+            "enforced": False,
+            "compatibility": "HISTORICAL_LANE_MANIFEST_CONTRACT_ABSENT",
+            "lane_id": lane.canonical_lane_id,
+        }
+    try:
+        extension_specs = [
+            {
+                "extension_id": extension["extension_id"],
+                "roles": [
+                    {
+                        "role_name": role["role_name"],
+                        "classification": role["classification"],
+                        "relative_path": role["relative_path"],
+                        "condition": role["condition"],
+                    }
+                    for role in extension["roles"]
+                ],
+            }
+            for extension in declared.get("extensions", [])
+        ]
+        computed = build_lane_artifact_role_contract(
+            root,
+            lane,
+            extensions=extension_specs,
+        )
+    except (KeyError, TypeError, LaneArtifactContractError, OSError) as exc:
+        return {
+            "schema": LANE_ARTIFACT_ROLE_PROJECTION_SCHEMA,
+            "status": "FAIL",
+            "valid": False,
+            "enforced": True,
+            "lane_id": lane.canonical_lane_id,
+            "error": type(exc).__name__,
+        }
+    valid = bool(
+        declared == computed
+        and computed["valid"]
+        and (root / "lane_manifest.json").is_file()
+    )
+    return {
+        **computed,
+        "status": "PASS" if valid else "FAIL",
+        "valid": valid,
+        "enforced": True,
+        "declared_projection_sha256": declared.get("projection_sha256"),
+        "computed_projection_sha256": computed["projection_sha256"],
+    }
+
+
 def _lane_stable_files(lane: LaneDefinition) -> tuple[str, ...]:
     return stable_artifact_names(lane)
 
@@ -4566,7 +6193,8 @@ def _lane_evidence_files(lane: LaneDefinition) -> tuple[str, ...]:
 
 
 def _lane_required_files(lane: LaneDefinition) -> tuple[str, ...]:
-    return (*_lane_evidence_files(lane), "lane_manifest.json")
+    contract = lane_artifact_contract(lane.canonical_lane_id)
+    return tuple(row["path"] for row in contract["required_roles"])
 
 
 def _prior_lane_topology_is_reconcilable(
@@ -4612,6 +6240,7 @@ def _build_one_lane(
     source_snapshot: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
     output.mkdir(parents=True, exist_ok=False)
+    schema_asset = lane_schema_asset(lane.canonical_lane_id)
     tools = _tool_identity(lane)
     prior_db = prior_lane / lane.sqlite_filename if prior_lane else None
     prior_tools = (
@@ -4813,6 +6442,22 @@ def _build_one_lane(
             ("lane_id", lane.canonical_lane_id),
             ("parser_id", lane.parser_id),
             ("chunker_version", lane.chunker_version),
+            ("lane_schema_id", schema_asset["schema_id"]),
+            ("lane_schema_asset_version", schema_asset["schema_version"]),
+            ("lane_schema_contract_sha256", schema_asset["contract_sha256"]),
+            ("lane_schema_registry_sha256", LANE_SCHEMA_REGISTRY_SHA256),
+            (
+                "lane_schema_sqlite_master_projection_sha256",
+                schema_asset["sqlite_master_projection_sha256"],
+            ),
+            (
+                "lane_schema_extension_namespace",
+                schema_asset["extension_namespace"],
+            ),
+            (
+                "lane_schema_migration_head",
+                schema_asset["migration_ledger"][-1]["migration_id"],
+            ),
             ("tool_identity_sha256", tools["sha256"]),
             (
                 "topology_generator_sha256",
@@ -4925,6 +6570,7 @@ def _build_one_lane(
         for filename in _lane_evidence_files(lane)
     }
     four_file_contract = build_four_file_contract(output, lane)
+    artifact_role_contract = build_lane_artifact_role_contract(output, lane)
     lane_manifest = {
         "schema": LANE_MANIFEST_SCHEMA,
         "lane": lane.as_dict(),
@@ -4933,6 +6579,7 @@ def _build_one_lane(
         "evidence_artifacts": evidence_hashes,
         "required_artifacts": list(_lane_required_files(lane)),
         "four_file_contract": four_file_contract,
+        "artifact_role_contract": artifact_role_contract,
         "pointer_evidence": "lane_pointer.json",
         "refresh_receipt": "refresh_receipt.json",
         "validation": validation,
@@ -5569,6 +7216,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
     lane_reports: dict[str, Any] = {}
     lane_manifest_errors: dict[str, Any] = {}
     four_file_contracts: dict[str, Any] = {}
+    artifact_role_contracts: dict[str, Any] = {}
     for lane_id in emitted_lane_ids:
         lane = LANE_REGISTRY[lane_id]
         lane_root = root / lane_id
@@ -5606,6 +7254,16 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
             ),
         )
         four_file_contracts[lane_id] = four_file_report
+        artifact_role_report = validate_lane_artifact_role_contract(
+            lane_root,
+            lane,
+            (
+                lane_manifest.get("artifact_role_contract")
+                if current_manifest
+                else None
+            ),
+        )
+        artifact_role_contracts[lane_id] = artifact_role_report
         mmd_valid = (
             topology_report["structural"]["mermaid"]["status"] == "PASS"
         )
@@ -5627,6 +7285,11 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
                 current_manifest
                 and not topology_compatibility
                 and not four_file_report["valid"]
+            )
+            or (
+                current_manifest
+                and not topology_compatibility
+                and not artifact_role_report["valid"]
             )
             or not required_files <= actual_lane_files
             or (not topology_compatibility and not mmd_valid)
@@ -5657,6 +7320,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
                 "dot_valid": dot_valid,
                 "topology_reconciliation": topology_report,
                 "four_file_contract": four_file_report,
+                "artifact_role_contract": artifact_role_report,
             }
     lane_disposition_report = validate_lane_disposition_projection(root, manifest)
     expected_registry_ids = list(CANONICAL_LANE_IDS)
@@ -5786,6 +7450,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         "checksum_mismatches": checksum_mismatches,
         "lane_manifest_errors": lane_manifest_errors,
         "four_file_contracts": four_file_contracts,
+        "artifact_role_contracts": artifact_role_contracts,
         "lane_disposition_contract": lane_disposition_report,
         "source_routes_valid": route_values_valid,
         "parallel_execution_valid": execution_valid,

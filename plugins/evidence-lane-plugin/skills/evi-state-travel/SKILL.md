@@ -25,16 +25,32 @@ active Plan Lane. Fail closed if an explicit task list or additive-Delta list
 drops or changes one. A `PHYSICALLY_FINAL_HIL` row must remain physically final.
 
 The sealed resume contract must carry the executable persistent-panel
-reactivation law. At the destination, re-project the exact complete task list
-with the host `update_plan` tool after those native reads and before source
-inspection, mutation,
+reactivation law. At the destination, validate the exact complete native task
+ledger, derive the aligned host window of at most ten rows containing the sole
+ACTIVE row, and call host `update_plan` with the receipt's exact compact
+continuity header as `explanation` plus that exact window as `plan` after those
+native reads and before source inspection, mutation,
 testing, Git activity, or another lifecycle call. Apply the same ordering after
-every token-driven continuation, stalled Goal, context compaction, browser or
-Codex restart, session continuation, or session resume. A non-empty panel must
-have exactly one in-progress row; preserve its order and every completed and
-pending description unabridged; keep it visible through every pause and HIL;
-drop it only after the physically final six-way HIL is decided and every
-decision-dependent action is complete.
+every token-driven continuation, stalled Goal, context compaction, supported
+reconnect, renderer reload, Plan/Changes-surface loss, browser or Codex restart,
+session continuation, or session resume. A non-empty current window must have
+exactly one in-progress row; preserve the complete ledger order and every
+completed and pending description unabridged in native authority. Keep the
+native right-side Plan artifact and
+the exact task/worktree-bound Changes surface present through every pause and
+HIL. A missing, partial, stale, or silently dropped surface is a continuity
+failure: rehydrate it before work through the supported native host action, or
+fail closed when that capability is unavailable. Do not claim the plugin can
+prevent a host crash. Drop the surfaces only after the human explicitly marks
+the Goal complete, or after an exact task-completion-and-State-Travel handoff
+passes and the successor owns the complete projection.
+
+The Step Task List continuity header shows only accepted PV/pointer generation,
+absolute ACTIVE row, current window/total rows, the next HIL boundary, and the
+physical-final row. It is not an eleventh task item. Detailed next and queued
+HIL records, proposed PV identities, six-way choices, and dependency/
+continuation connections belong exclusively to the Evidence Lane project
+renderer/resource and must never be mixed into the Step Task List.
 
 Every host-visible task row uses the sealed universal label projection: exact
 row number, stable task/Delta ID, exact description, lifecycle status, task
@@ -58,9 +74,13 @@ PostCompact, Stop, and best-effort SessionEnd hooks remain lifecycle-only. They
 may transport a sealed content-addressed host-Plan rehydration request, but
 must not execute `update_plan`; the active skill owns all native PV reads and
 host behavior. PermissionRequest remains conditional on a proven host
-capability, and subagent hook events are out of scope. After a steer is sealed with
-`pv_plan_steer_delta`, repeat the three native reads and the complete panel
-projection before continuing.
+capability, and subagent hook events are out of scope. After a steer is sealed
+with `pv_plan_steer_delta`, repeat the three native reads, validate the complete
+ledger, and inspect the receipt's linked task. Synchronize the current host
+window once only when that linked task is inside it; otherwise retain the Delta
+in native authority and defer host synchronization until its window becomes
+active. This conditional host-window synchronization never invokes or aliases
+`/evi-refresh`.
 
 For a Codex handoff, also capture the exact non-secret model, submodel,
 reasoning-effort, reasoning-speed, and optional service-tier selectors. The
@@ -80,6 +100,15 @@ candidate, or resume row. Call `pv_state_travel_prepare` to seal the pointer
 base, accepted package if one exists, candidate if one exists, live source,
 Plan Lane, task state, additive Deltas, and execution profile.
 
+An orphaned stale-host PREPARED handoff may be superseded only by one exact
+same-session user correction before it is consumed and while the accepted
+pointer remains unchanged. Require the old handoff ID, old handoff SHA-256,
+exact old origin host-session ID, scope `ORPHANED_STALE_HOST_TASK`, confirmation
+`SUPERSEDE_ORPHANED_PREPARED_HANDOFF`, and the new exact host-session binding.
+Preserve the old receipt in immutable history, append the supersession event,
+and prepare exactly one replacement. Never resume the stale handoff, fabricate
+cancellation, retry a mismatched correction, infer HIL, or move a pointer.
+
 Before entering a genuinely fresh Codex task, use the host-supported
 `Continue in new chat` operation programmatically when available. Create
 exactly one destination and apply the canonical Task X to Task X+1 naming law.
@@ -93,6 +122,30 @@ host action first returns a queued `clientThreadId`, resolve it to exactly one
 live destination task UUID and deep link before resume. Bind that resolution
 receipt to the handoff and retain duplicate or archived task identities only
 as immutable history. Zero or multiple live matches fail closed.
+
+State Travel is a task transition, never an application-restart mechanism.
+Before the one-shot native resume, require a host-continuity receipt that binds
+the exact source and destination UUID/deep-link pair, the initial destination
+shell's source/destination UUIDs, the host creation result, one unchanged host
+process instance, and exactly one live canonical destination-title identity.
+The receipt must prove zero app restarts, renderer reloads, UI freezes,
+unexpected navigation/task activation, and background-agent activation during
+destination creation. A wrong nested source task (including a stale Task4/Task5
+shell), duplicate title identity, unexpected task opening, app restart/reload,
+or missing host proof is `STATE_TRAVEL_HOST_CONTINUITY_FAILURE`. Stop before
+handoff consumption, never retry that one-shot route, preserve all bytes, and
+require an explicit fresh correction. A restart/reattach helper, tunnel helper,
+scheduled recovery helper, or subagent may not satisfy or bypass this proof.
+
+The same receipt must prove `BOUNDED_HANDOFF_ENVELOPE_ONLY` hydration, zero
+unbounded thread-history reads, zero collaboration-overlay hydration, and
+`CANONICAL_PLAN_LANE_NOT_THREAD_HISTORY` as the reconstruction source. Do not
+open subagent panels, hydrate avatar/agent overlays, or read the source task's
+full chat scrollback during destination creation or Plan recovery. A
+thread-hydration overflow or host React-root rerender is a first-class host
+continuity failure even when the root Codex process remains alive. Fail closed,
+keep the handoff unconsumed, and reproject the exact native Plan before work;
+never claim the plugin can prevent a host-owned renderer reset.
 
 In that freshly bound Codex task, call `pv_state_travel_resume` exactly once as
 the first State Travel lifecycle action. It atomically
@@ -111,24 +164,31 @@ closed and can never rebind the consumed handoff.
 For unfinished work, execute exactly five ordered destination phases:
 
 1. Programmatically create exactly one fresh destination and bind both task
-   identities plus the complete governed authority described above.
+   identities plus the complete governed authority described above. Verify the
+   no-restart host-continuity receipt before Phase 2; app/renderer restart,
+   duplicate-title activation, and background-agent activation are forbidden.
 2. Run atomic Boot/locked Flash and the exact-once native State Travel resume;
    verify the returned receipt, pointer/package, runtime, source, profile,
    plugin build, worktree, canonical Plan, sole active row, and physically final
    HIL. Never retry a failed one-shot resume; classify an identical post-PASS
    call only through `ALREADY_CONSUMED_NO_REBIND`.
-3. Restore the complete unabridged host Plan with `update_plan`, including the
+3. Validate the complete unabridged native Plan, then restore its aligned
+   current host window of at most ten rows with `update_plan`, including the
    universal row metadata labels. Surface the host's Plan acceptance control
    and stop at `WAITING_FOR_EXPLICIT_HOST_PLAN_ACCEPTANCE`. Never accept it
    automatically. Host Plan acceptance is not Evidence Lane HIL, creates no
    candidate, and cannot move a PV pointer.
+   Reconstruct from the bounded handoff and canonical Plan Lane only; do not
+   hydrate complete chat history or a collaboration overlay. Run this critical
+   section with one active task and zero subagents.
 4. Only after the explicit Plan acceptance is observed, automatically apply
    `evidence-lane-plugin:source-command-evi-plan`: read native `pv_status`,
    `pv_task_backlog`, and one bounded prompt-relevant `pv_query`; validate
    canonical `PLAN_LANE` authority, contiguous rows, exact metadata labels, the
    sole active row, and the physically final HIL row; then validate the same
-   complete host projection. Do not write a replacement Plan Lane or duplicate
-   rows when canonical authority already exists.
+   current aligned host window and its completed-window history. Do not write a
+   replacement Plan Lane or duplicate rows when canonical authority already
+   exists.
 5. Only after phases 1–4 pass, create or resume the transferred plugin Goal
    from the returned `goal_start_prompt`, then continue source work at the
    exact active row.
@@ -174,3 +234,12 @@ exact human disposition, preserve the Goal as active,
 paused, or stalled according to host truth.
 The other human-only disposition, `COMPLETE_FULLY`, closes the whole Goal and
 does not invoke State Travel.
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evi-state-travel`.
+`MCP_ROUTING_FAIL_CLOSED`: if the bundled `evidence-lane` dependency, an exact
+tool, or a required result is missing or ambiguous, stop and report it; never
+rewrite prefixes, substitute a tool, retry State Travel, reorder a write, or
+infer success.

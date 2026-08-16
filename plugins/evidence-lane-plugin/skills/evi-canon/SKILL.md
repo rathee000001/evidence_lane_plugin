@@ -43,11 +43,23 @@ write-authorization identity; Canon itself grants no source write.
 
 Use `canon_register_edge` for a proposed graph edge and `canon_bind_edge` for
 an already created destination. Use `canon_dispatch_linked_task` only when the
-host exposes a supported programmatic task or subagent operation. The action
-must create exactly one destination and return its exact UUID/deep link. If the
-host seam is absent, preserve the request and report
-`HOST_CAPABILITY_UNAVAILABLE`; never fabricate creation, fall back to a title,
-or ask Canon to perform host UI actions it cannot perform.
+host injects the supported CodexHostDispatcher adapter over an idempotent
+native task-create operation. The host operation receives one stable dispatch
+ID and must return a self-sealed
+evidence-lane.codex-host-task-create-receipt.v1 binding the exact request,
+destination UUID, deep link, and replay state. A plain callable, title match,
+or unsealed `created_once` boolean is not sufficient. A persisted v2 Canon
+dispatch receipt may be replayed without calling the host again. If the host
+seam is absent, preserve the request and report `HOST_CAPABILITY_UNAVAILABLE`;
+never fabricate creation, fall back to a title, or ask Canon to perform host UI
+actions it cannot perform.
+
+A Codex lifecycle hook firing is not itself a task-create receipt. A host may
+implement the injected operation with Codex App Server, a Workspace Agent
+trigger, or a hook-owned bridge, but it must normalize the supported host
+result into the exact sealed UUID/deep-link receipt above. A thread ID without
+the required deep link, or a conversation URL without the required task UUID,
+remains insufficient and fails closed.
 
 Directions are `UPSTREAM`, `DOWNSTREAM`, or `LATERAL`. Reject cycles, duplicate
 destinations, ambiguous routing, cross-project leakage, unsealed contracts,
@@ -88,9 +100,29 @@ then `canon_restore_continuity` only after the destination's exact State Travel
 resume has passed. These actions never prepare or resume State Travel, create a
 destination, replay HIL, or move a pointer.
 
+## Schema authority
+
+Treat `../../schemas/canon/canon-schema-manifest.v1.json` as the first-class
+Canon schema authority. The ledger builder must execute the exact sealed
+`canon-ledger.v1.sql` bytes and validate decision, dispatch, and State Travel
+restore receipts against `canon-receipts.v1.schema.json` before persistence or
+replay. The only implicit ledger migration is the additive, idempotent v0 to v1
+transition recorded in the canon_schema_migration table; an unknown older version, a
+newer version, an asset-hash mismatch, a destructive rewrite, or an unknown
+receipt schema fails closed. Earlier receipt bytes are immutable, and a
+breaking receipt change requires a new major schema ID.
+
 ## Exit receipt
 
 Return the Canon envelope/edge/result IDs and hashes, source and destination
 task bindings, scope and direction, receiver decision state, any backfire state,
 and explicit authority effects. State plainly that Project Truth, Agent
 Learning, and pointer authority were unchanged.
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evi-canon`. `MCP_ROUTING_FAIL_CLOSED`: if the
+bundled `evidence-lane` dependency, an exact tool, or a required result is
+missing or ambiguous, stop and report it; never rewrite prefixes, substitute a
+tool, reorder a write, or infer success.

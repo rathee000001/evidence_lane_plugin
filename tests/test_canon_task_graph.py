@@ -5,6 +5,10 @@ from pathlib import Path
 
 import pytest
 from evidence_lane_plugin.canon_task_graph import (
+    CANON_DISPATCH_RECEIPT_SCHEMA_V2,
+    CODEX_HOST_CREATE_CAPABILITY,
+    CODEX_HOST_CREATE_RECEIPT_SCHEMA,
+    CodexHostDispatcher,
     bind_received_canon_task_edge,
     decide_canon_input,
     dispatch_linked_canon_task,
@@ -21,7 +25,7 @@ from evidence_lane_plugin.canon_task_graph import (
     supersede_canon_input,
 )
 from evidence_lane_plugin.errors import EvidenceLaneError
-from evidence_lane_plugin.hashing import sha256_bytes
+from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from jsonschema import Draft202012Validator
 
 SOURCE_PROJECT = "canon-source"
@@ -547,10 +551,131 @@ class _Dispatcher:
     def __init__(self, destination: dict) -> None:
         self.destination = destination
         self.calls = 0
+        self.seen: set[str] = set()
+        self.adapter = CodexHostDispatcher(self._create)
+        self.host_kind = self.adapter.host_kind
+        self.capability = self.adapter.capability
+
+    def _create(self, request: dict) -> dict:
+        self.calls += 1
+        key = str(request["idempotency_key"])
+        replayed = key in self.seen
+        self.seen.add(key)
+        body = {
+            "schema": CODEX_HOST_CREATE_RECEIPT_SCHEMA,
+            "host_kind": "CODEX",
+            "operation": "CREATE_LINKED_TASK",
+            "capability": CODEX_HOST_CREATE_CAPABILITY,
+            "idempotency_key": key,
+            "request_sha256": request["request_sha256"],
+            "destination": self.destination,
+            "created_once": True,
+            "replayed": replayed,
+            "host_receipt_id": f"host_{key}",
+            "issued_at": CREATED_AT,
+        }
+        return {
+            **body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
+        }
 
     def create_linked_task(self, request: dict) -> dict:
-        self.calls += 1
-        return {**self.destination, "created_once": True}
+        return dict(self.adapter.create_linked_task(request))
+
+
+def _dispatch_kwargs(source: dict) -> dict:
+    return {
+        "project_id": SOURCE_PROJECT,
+        "source": source,
+        "task_title": "Bounded destination",
+        "task_mode": "TOP_LEVEL_TASK",
+        "scope_class": "READ_ONLY",
+        "permitted_paths": [],
+        "permitted_tools": ["repository_read"],
+        "user_subagent_authorized": False,
+        "host_write_authorization_sha256": None,
+        "direction": "DOWNSTREAM",
+        "contract_sha256": _hash("host-dispatch-contract"),
+        "schema_sha256": _hash("host-dispatch-schema"),
+        "edge_revision": 1,
+        "permitted_actions": ["READ_EVIDENCE"],
+        "dependency_ids": [],
+        "expected_return_contract_sha256": _hash("host-dispatch-return"),
+        "expires_at": EXPIRES_AT,
+        "requested_at": CREATED_AT,
+    }
+
+
+def test_codex_dispatch_is_unavailable_without_supported_host_operation(
+    tmp_path: Path,
+) -> None:
+    source_root = _root(tmp_path, SOURCE_PROJECT)
+    with pytest.raises(EvidenceLaneError) as unavailable:
+        dispatch_linked_canon_task(
+            source_root,
+            dispatcher=None,
+            **_dispatch_kwargs(_endpoint(SOURCE_PROJECT, "source")),
+        )
+    assert _error_code(unavailable) == "HOST_CAPABILITY_UNAVAILABLE"
+
+
+def test_codex_dispatch_rejects_a_mismatched_host_receipt(tmp_path: Path) -> None:
+    source_root = _root(tmp_path, SOURCE_PROJECT)
+    destination = _endpoint(DESTINATION_PROJECT, "destination")
+
+    def mismatched(request: dict) -> dict:
+        body = {
+            "schema": CODEX_HOST_CREATE_RECEIPT_SCHEMA,
+            "host_kind": "CODEX",
+            "operation": "CREATE_LINKED_TASK",
+            "capability": CODEX_HOST_CREATE_CAPABILITY,
+            "idempotency_key": "wrong-idempotency-key",
+            "request_sha256": request["request_sha256"],
+            "destination": destination,
+            "created_once": True,
+            "replayed": False,
+            "host_receipt_id": "host_wrong",
+            "issued_at": CREATED_AT,
+        }
+        return {
+            **body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
+        }
+
+    with pytest.raises(EvidenceLaneError) as mismatch:
+        dispatch_linked_canon_task(
+            source_root,
+            dispatcher=CodexHostDispatcher(mismatched),
+            **_dispatch_kwargs(_endpoint(SOURCE_PROJECT, "source")),
+        )
+    assert _error_code(mismatch) == "CANON_CODEX_HOST_RECEIPT_BINDING_MISMATCH"
+
+
+def test_codex_host_adapter_reuses_the_stable_creation_key() -> None:
+    destination = _endpoint(DESTINATION_PROJECT, "destination")
+    dispatcher = _Dispatcher(destination)
+    request = {
+        "schema": "evidence-lane.codex-host-linked-task-create-request.v1",
+        "host_kind": "CODEX",
+        "operation": "CREATE_LINKED_TASK",
+        "capability": CODEX_HOST_CREATE_CAPABILITY,
+        "idempotency_key": "cdispatch_stable",
+        "request_sha256": _hash("stable-host-request"),
+        "required_receipt_schema": CODEX_HOST_CREATE_RECEIPT_SCHEMA,
+        "canon_request": {},
+    }
+
+    first = dispatcher.create_linked_task(request)
+    second = dispatcher.create_linked_task(request)
+
+    assert dispatcher.calls == 2
+    assert first["task_uuid"] == second["task_uuid"] == destination["task_uuid"]
+    assert first["task_deep_link"] == second["task_deep_link"]
+    assert first["host_creation_receipt"]["replayed"] is False
+    assert second["host_creation_receipt"]["replayed"] is True
+    assert first["host_creation_receipt"]["host_receipt_id"] == second[
+        "host_creation_receipt"
+    ]["host_receipt_id"]
 
 
 def test_cross_project_dispatch_edge_binding_and_typed_result_round_trip(
@@ -610,7 +735,7 @@ def test_cross_project_dispatch_edge_binding_and_typed_result_round_trip(
         source_root,
         project_id=SOURCE_PROJECT,
         source=source,
-        dispatcher=dispatcher,
+        dispatcher=None,
         task_title="Bounded destination",
         task_mode="TOP_LEVEL_TASK",
         scope_class="READ_ONLY",
@@ -656,6 +781,8 @@ def test_cross_project_dispatch_edge_binding_and_typed_result_round_trip(
 
     assert dispatcher.calls == 1
     assert replay["idempotent_reuse"] is True
+    assert dispatch["receipt"]["schema"] == CANON_DISPATCH_RECEIPT_SCHEMA_V2
+    assert dispatch["receipt"]["host_creation_receipt"]["destination"] == destination
     assert received["state"] == "EXPECTED_ADMITTED"
     assert graph["missing_returns"] == []
     assert sealed_result["envelope"]["project_truth_pointer_moved"] is False

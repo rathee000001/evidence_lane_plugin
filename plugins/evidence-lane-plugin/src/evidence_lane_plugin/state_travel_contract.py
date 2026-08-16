@@ -24,6 +24,20 @@ _CODEX_REQUIRED_PROFILE_FIELDS = (
     "reasoning_speed",
 )
 
+_HOST_CONTINUITY_ZERO_COUNTERS = (
+    "app_restart_count",
+    "renderer_reload_count",
+    "ui_freeze_count",
+    "unexpected_navigation_count",
+    "unexpected_task_activation_count",
+    "background_agent_activation_count",
+    "unbounded_thread_hydration_count",
+    "collaboration_overlay_hydration_count",
+)
+
+_BOUNDED_DESTINATION_HYDRATION_MODE = "BOUNDED_HANDOFF_ENVELOPE_ONLY"
+_PLAN_PROJECTION_SOURCE = "CANONICAL_PLAN_LANE_NOT_THREAD_HISTORY"
+
 _TASK_STATUSES = {
     "COMPLETED": "COMPLETED",
     "COMPLETE": "COMPLETED",
@@ -116,6 +130,136 @@ def execution_profile_mismatches(
         field: {"expected": value, "actual": actual.get(field)}
         for field, value in expected.items()
         if actual.get(field) != value
+    }
+
+
+def normalize_destination_host_continuity(
+    proof: Any,
+    *,
+    source_task_id: str,
+    source_task_deep_link: str | None,
+    destination_task_id: str,
+    destination_task_deep_link: str | None,
+) -> dict[str, Any]:
+    """Validate the no-restart, UUID-bound destination creation boundary.
+
+    State Travel is a host task transition, never an application restart or a
+    title/CWD lookup.  The host must therefore prove one uninterrupted process
+    instance, one exact source/destination UUID pair, one exact initial shell,
+    and no unexpected task or background-agent activation before native resume.
+    Full chat-history hydration and collaboration-overlay hydration are also
+    forbidden on this critical path: only the sealed bounded handoff envelope
+    and canonical Plan Lane may reconstruct the destination.  A missing
+    capability is a mismatch rather than permission to guess.
+    """
+
+    require(
+        isinstance(proof, dict),
+        "STATE_TRAVEL_HOST_CONTINUITY_FAILURE",
+        "State Travel requires an explicit no-restart host-continuity proof "
+        "before the one-shot resume can be consumed.",
+        status="MISMATCH",
+        retry_allowed=False,
+        handoff_consumption_allowed=False,
+        app_restart_allowed=False,
+    )
+    exact = dict(proof)
+    process_before = str(exact.get("host_process_instance_id_before") or "").strip()
+    process_after = str(exact.get("host_process_instance_id_after") or "").strip()
+    incidents = exact.get("observed_incidents")
+    live_title_ids = exact.get("live_canonical_title_task_ids")
+    counters = {field: exact.get(field) for field in _HOST_CONTINUITY_ZERO_COUNTERS}
+    counters_are_zero = all(
+        isinstance(value, int) and not isinstance(value, bool) and value == 0
+        for value in counters.values()
+    )
+    identity_matches = (
+        exact.get("source_task_id") == source_task_id
+        and exact.get("source_task_deep_link") == source_task_deep_link
+        and exact.get("destination_task_id") == destination_task_id
+        and exact.get("destination_task_deep_link") == destination_task_deep_link
+        and exact.get("initial_shell_source_task_id") == source_task_id
+        and exact.get("initial_shell_destination_task_id") == destination_task_id
+        and exact.get("host_creation_result_task_id") == destination_task_id
+        and exact.get("host_creation_result_deep_link")
+        == destination_task_deep_link
+    )
+    require(
+        exact.get("schema")
+        == "evidence-lane.state-travel-host-continuity.v1"
+        and exact.get("status") == "PASS"
+        and identity_matches
+        and bool(process_before)
+        and len(process_before) <= 256
+        and process_before == process_after
+        and exact.get("app_restart_invoked") is False
+        and exact.get("title_used_as_identity") is False
+        and exact.get("cwd_used_as_identity") is False
+        and exact.get("thread_hydration_mode")
+        == _BOUNDED_DESTINATION_HYDRATION_MODE
+        and exact.get("full_thread_history_requested") is False
+        and exact.get("plan_projection_source") == _PLAN_PROJECTION_SOURCE
+        and exact.get("collaboration_overlay_active") is False
+        and counters_are_zero
+        and incidents == []
+        and live_title_ids == [destination_task_id],
+        "STATE_TRAVEL_HOST_CONTINUITY_FAILURE",
+        "The destination crossed a forbidden host-continuity boundary: app "
+        "restart/reload/freeze, unbounded thread or collaboration-overlay "
+        "hydration, unexpected task or agent activation, duplicate title "
+        "identity, or source/destination shell mismatch.",
+        status="MISMATCH",
+        retry_allowed=False,
+        handoff_consumption_allowed=False,
+        app_restart_allowed=False,
+        source_task_id_match=exact.get("source_task_id") == source_task_id,
+        initial_shell_source_match=(
+            exact.get("initial_shell_source_task_id") == source_task_id
+        ),
+        destination_task_id_match=(
+            exact.get("destination_task_id") == destination_task_id
+        ),
+        initial_shell_destination_match=(
+            exact.get("initial_shell_destination_task_id")
+            == destination_task_id
+        ),
+        host_process_continuous=(
+            bool(process_before) and process_before == process_after
+        ),
+        counters=counters,
+        observed_incident_count=(
+            len(incidents) if isinstance(incidents, list) else None
+        ),
+        live_canonical_title_task_ids=(
+            live_title_ids if isinstance(live_title_ids, list) else None
+        ),
+    )
+    return {
+        "schema": "evidence-lane.state-travel-host-continuity.v1",
+        "status": "PASS",
+        "source_task_id": source_task_id,
+        "source_task_deep_link": source_task_deep_link,
+        "destination_task_id": destination_task_id,
+        "destination_task_deep_link": destination_task_deep_link,
+        "initial_shell_source_task_id": source_task_id,
+        "initial_shell_destination_task_id": destination_task_id,
+        "host_creation_result_task_id": destination_task_id,
+        "host_creation_result_deep_link": destination_task_deep_link,
+        "host_process_instance_id_before": process_before,
+        "host_process_instance_id_after": process_after,
+        "app_restart_invoked": False,
+        "thread_hydration_mode": _BOUNDED_DESTINATION_HYDRATION_MODE,
+        "full_thread_history_requested": False,
+        "plan_projection_source": _PLAN_PROJECTION_SOURCE,
+        "collaboration_overlay_active": False,
+        **{field: 0 for field in _HOST_CONTINUITY_ZERO_COUNTERS},
+        "observed_incidents": [],
+        "live_canonical_title_task_ids": [destination_task_id],
+        "title_used_as_identity": False,
+        "cwd_used_as_identity": False,
+        "host_process_continuity_proven": True,
+        "retry_allowed_after_failure": False,
+        "handoff_consumption_allowed_after_failure": False,
     }
 
 

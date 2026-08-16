@@ -18,6 +18,6 @@ rights.
 
 Do not reproduce, redistribute, publish, sublicense, commercialize, or create
 derivative releases from protected material without a separate written
-agreement from Praveen Rathee. See [LICENSE.md](LICENSE.md) for the repository
-access terms and [docs/CREDITS_AND_CONTRIBUTIONS.md](docs/CREDITS_AND_CONTRIBUTIONS.md)
+agreement from Praveen Rathee. See [LICENSE.md](../LICENSE.md) for the repository
+access terms and [Credits and contributions](CREDITS_AND_CONTRIBUTIONS.md)
 for the separate contribution record.

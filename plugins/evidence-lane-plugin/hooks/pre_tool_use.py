@@ -18,10 +18,28 @@ def _load_runtime():
     return build_hook_transport_envelope, consume_pre_tool_transport
 
 
+def _load_behavior_handoff():
+    hook_root = Path(__file__).resolve().parent
+    if str(hook_root) not in sys.path:
+        sys.path.insert(0, str(hook_root))
+    from behavior_handoff import attach_consumed_behavior_handoff
+
+    return attach_consumed_behavior_handoff
+
+
 def _guard(payload: dict[str, Any]) -> tuple[dict[str, Any], bool]:
     build_transport, consume_transport = _load_runtime()
     transport = build_transport("PreToolUse", payload)
-    return consume_transport(payload, transport)
+    receipt, should_continue = consume_transport(payload, transport)
+    return (
+        _load_behavior_handoff()(
+            "PreToolUse",
+            transport,
+            receipt,
+            skill_consumer=consume_transport,
+        ),
+        should_continue,
+    )
 
 
 def main() -> int:
@@ -47,18 +65,21 @@ def main() -> int:
             ),
         }
         should_continue = False
+    if receipt.get("state") in {"NOT_GOVERNED", "NOT_STRICT"}:
+        print("{}")
+        return 0
     result: dict[str, Any] = {
-        "continue": should_continue,
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "additionalContext": "EVIDENCE_LANE_PRE_TOOL_GUARD="
             + json.dumps(receipt, sort_keys=True, separators=(",", ":")),
-        },
+        }
     }
     if not should_continue:
-        result["stopReason"] = (
-            "Governed Evidence Lane skill-owned PREPARE or exact binding was "
-            "absent before tool use."
+        result["hookSpecificOutput"]["permissionDecision"] = "deny"
+        result["hookSpecificOutput"]["permissionDecisionReason"] = (
+            "Governed Evidence Lane UserPromptSubmit PREPARE or exact sealed "
+            "active-Goal continuation binding was absent before tool use."
         )
     print(json.dumps(result, sort_keys=True, separators=(",", ":")))
     return 0

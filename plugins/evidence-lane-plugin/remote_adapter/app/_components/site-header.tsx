@@ -7,11 +7,14 @@ import { usePathname } from "next/navigation";
 import { primaryNavigation } from "../_data/site";
 import { GlassIconOrb, OfficialToolIcon, type OfficialToolIconName } from "./evidence-assets";
 
-const navIdentity: Readonly<Record<string, { color: string; icon: OfficialToolIconName }>> = {
+type PrimaryNavigationHref = (typeof primaryNavigation)[number]["href"];
+
+const navIdentity = {
   "/": { color: "#69d9f5", icon: "node" },
   "/skills": { color: "#a99af7", icon: "package" },
   "/mcp": { color: "#83ddb3", icon: "terminal" },
   "/hooks": { color: "#f2a1c5", icon: "pulse" },
+  "/commands": { color: "#efca72", icon: "terminal" },
   "/architecture": { color: "#69d9f5", icon: "pulse" },
   "/lanes": { color: "#83ddb3", icon: "database" },
   "/operators": { color: "#b6a0ff", icon: "terminal" },
@@ -19,7 +22,9 @@ const navIdentity: Readonly<Record<string, { color: string; icon: OfficialToolIc
   "/proof": { color: "#efca72", icon: "package" },
   "/provenance": { color: "#7fc9ef", icon: "git" },
   "/connect": { color: "#9ed368", icon: "docker" },
-};
+} satisfies Readonly<
+  Record<PrimaryNavigationHref, { color: string; icon: OfficialToolIconName }>
+>;
 
 export function SiteHeader() {
   const pathname = usePathname();

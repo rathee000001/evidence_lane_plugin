@@ -19,6 +19,7 @@ from evidence_lane_plugin.codex_turn_control import (
     TurnControlError,
     commit_turn,
     policy_state,
+    prepare_goal_continuation_turn,
     prepare_turn,
     project_task_research_status,
     record_lifecycle_boundary_event,
@@ -30,6 +31,13 @@ from evidence_lane_plugin.codex_turn_control import (
     session_start_control,
 )
 from evidence_lane_plugin.errors import EvidenceLaneError
+from evidence_lane_plugin.hashing import (
+    atomic_write_json,
+    sha256_bytes,
+    sha256_file,
+)
+from evidence_lane_plugin.hook_contract import build_hook_transport_envelope
+from evidence_lane_plugin.hook_skill_runtime import consume_pre_tool_transport
 from evidence_lane_plugin.lineage import ChatLineage
 from evidence_lane_plugin.models import SessionState
 from evidence_lane_plugin.persistence import route_persistence
@@ -106,7 +114,12 @@ def _host_shaped_user_prompt_submit_payload(
     }
 
 
-def _strict_state_travel_session(service, before_strict=None) -> tuple[str, str]:
+def _strict_state_travel_session(
+    service,
+    before_strict=None,
+    *,
+    host_session_id: str = "strict-codex-turn-control-host",
+) -> tuple[str, str]:
     session_id, _ = build_and_approve_pv1(service)
     if before_strict is not None:
         before_strict(session_id)
@@ -164,7 +177,6 @@ def _strict_state_travel_session(service, before_strict=None) -> tuple[str, str]
         session_id,
         resume_contract={"execution_profile": _profile()},
     )["state_travel"]
-    host_session_id = "strict-codex-turn-control-host"
     service.resume_state_travel(
         project_id="book-faires",
         session_id=session_id,
@@ -189,6 +201,162 @@ def _strict_state_travel_session(service, before_strict=None) -> tuple[str, str]
     session.metadata["active_backlog_task_status"] = "ACTIVE"
     service.sessions._save(session)
     return session_id, host_session_id
+
+
+def _seal_active_goal_recovery_binding(
+    service,
+    *,
+    session_id: str,
+    host_session_id: str,
+    active_plan_task_id: str = "turn-control-row",
+) -> Path:
+    root = service.store.root
+    plugin_root = Path(__file__).resolve().parents[1] / "plugins" / "evidence-lane-plugin"
+    plugin_version = json.loads(
+        (plugin_root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+    )["version"]
+    installation_root = root / "installations" / "codex-v200"
+    install_path = installation_root / "INSTALL_goal-continuation.json"
+    installation = {
+        "schema": "evidence-lane.codex-stable-installation.v2",
+        "status": "PASS",
+        "plugin": {"version": plugin_version},
+    }
+    atomic_write_json(install_path, installation)
+    atomic_write_json(installation_root / "CURRENT_INSTALLATION.json", installation)
+    install_sha256 = sha256_file(install_path)
+    preparation_path = installation_root / "restart" / "GOAL_CONTINUATION.json"
+    preparation = {
+        "schema": "evidence-lane.codex-restart-preparation.v2",
+        "state": "PREPARED_NOT_RESTARTED",
+        "project_id": "book-faires",
+        "evidence_session_id": session_id,
+        "task_id": host_session_id,
+        "host_session_id": host_session_id,
+        "install_receipt_sha256": install_sha256,
+        "plugin_version": plugin_version,
+    }
+    atomic_write_json(preparation_path, preparation)
+    task_uri_sha256 = sha256_bytes(
+        f"codex://threads/{host_session_id}".encode()
+    )
+    task_binding_path = (
+        installation_root / "task-bindings" / f"{host_session_id.lower()}.json"
+    )
+    task_binding = {
+        "schema": "evidence-lane.codex-task-binding.v1",
+        "state": "EXACT_TASK_BINDING_PREPARED",
+        "project_id": "book-faires",
+        "evidence_session_id": session_id,
+        "task_id": host_session_id,
+        "governed_host_session_id": host_session_id,
+        "plugin_version": plugin_version,
+        "task_uri_sha256": task_uri_sha256,
+        "preparation_receipt": str(preparation_path.resolve()),
+        "preparation_receipt_sha256": sha256_file(preparation_path),
+        "install_receipt": str(install_path.resolve()),
+        "install_receipt_sha256": install_sha256,
+        "claim_scope": "EXACT_CODEX_THREAD_ID_ONLY",
+        "alias_claim_allowed": True,
+        "source_mutated": False,
+        "candidate_created_or_accepted": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+    }
+    atomic_write_json(task_binding_path, task_binding)
+    pointer = service.store.pointer("book-faires")
+    runtime_selector = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    payload = {
+        "state": "ACTIVE_GOAL_BOUND",
+        "manager_scope": "SHARED_MULTI_PROJECT_MULTI_TASK",
+        "binding_scope": "MUTABLE_EXACT_TASK_ROW",
+        "binding_revision": 1,
+        "previous_binding_sha256": "",
+        "last_binding_correlation_id": "binding_test_goal_continuation",
+        "project_id": "book-faires",
+        "evidence_session_id": session_id,
+        "task_id": host_session_id,
+        "governed_host_session_id": host_session_id,
+        "active_plan_task_id": active_plan_task_id,
+        "canonical_authority": "PLAN_LANE",
+        "runtime_plugin_selector": runtime_selector,
+        "local_recovery_authority": {
+            "primary_selector": runtime_selector,
+            "byte_identical": True,
+            "recovery_enabled": False,
+            "accepted_2_1_automatic_recovery_allowed": False,
+        },
+        "task_binding_receipt": str(task_binding_path.resolve()),
+        "task_binding_receipt_sha256": sha256_file(task_binding_path),
+        "task_uri_sha256": task_uri_sha256,
+        "goal": {
+            "task_id": host_session_id,
+            "task_status": "notLoaded",
+            "goal_status": "active",
+            "goal_objective_sha256": sha256_bytes(b"test governed goal"),
+            "raw_goal_objective_stored": False,
+            "runtime_prewarm": {
+                "status": "PASS",
+                "canonical_plugin_selector": runtime_selector,
+                "bound_plugin_selector": runtime_selector,
+                "canonical_plugin_installed": True,
+                "canonical_plugin_enabled": True,
+                "canonical_plugin_local_version": plugin_version,
+                "exact_tool_count": 83,
+                "thread_scoped_mcp_inventory_available": False,
+                "live_host_next_active_turn_refresh_claimed": False,
+            },
+            "thread_resume_invoked": False,
+            "turn_started": False,
+            "prompt_injected": False,
+            "app_restarted": False,
+            "restart_fallback_invoked": False,
+        },
+        "slot_authority": {
+            "accepted_pv": pointer.accepted_pv,
+            "accepted_generation": pointer.generation,
+        },
+        "recovery_law": {
+            "release": "2.2.0",
+            "release_token": "v220",
+            "exact_task_only": True,
+            "persisted_goal_must_remain_active": True,
+            "raw_goal_objective_stored": False,
+            "synthetic_prompt_allowed": False,
+            "turn_start_allowed": False,
+            "thread_resume_writer_allowed": False,
+            "state_travel_allowed": False,
+            "candidate_hil_pointer_or_git_mutation_allowed": False,
+            "restart_loop_allowed": False,
+        },
+        "registered_at_utc": "2026-08-15T00:00:00Z",
+    }
+    payload_sha256 = hashlib.sha256(
+        json.dumps(
+            payload,
+            ensure_ascii=True,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest().upper()
+    goal_binding_path = (
+        root
+        / "installations"
+        / "helpers"
+        / "v220"
+        / "goal-recovery"
+        / "bindings"
+        / f"{host_session_id.lower()}.json"
+    )
+    atomic_write_json(
+        goal_binding_path,
+        {
+            "schema": "evidence-lane.codex-goal-recovery-binding.v1",
+            "payload": payload,
+            "payload_sha256": payload_sha256,
+        },
+    )
+    return goal_binding_path
 
 
 def test_non_strict_prompt_chain_continues_into_strict_prepare(
@@ -424,7 +592,7 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert package_status["hooks"]["count_semantics"] == (
         "REGISTERED_EVENT_COUNT"
     )
-    assert package_status["hooks"]["hook_file_count"] == 9
+    assert package_status["hooks"]["hook_file_count"] == 12
     assert package_status["hooks"]["registered_events"] == [
         "PostCompact",
         "PostToolUse",
@@ -1293,11 +1461,7 @@ def test_native_hooks_claim_and_reuse_one_sealed_codex_host_alias(
                 "tests": [{"name": "sealed-host-alias", "status": "PASS"}],
             },
         )
-        committed_notice = _hook_change_notice(committed_payload)
-        assert committed_notice["turn_receipt"]["state"] == "COMMITTED"
-        assert committed_notice["host_binding"]["state"] == (
-            "SEALED_CODEX_HOST_ALIAS_REUSED"
-        )
+        assert committed_payload == {}
 
     assert alias_states == [
         "SEALED_CODEX_HOST_ALIAS_CLAIMED",
@@ -1868,6 +2032,117 @@ def test_native_user_prompt_hook_derives_steer_and_rejects_goal_control(
     )
 
 
+def test_first_pre_tool_use_binds_exact_sealed_goal_without_synthetic_prompt(
+    service,
+    source_repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    host_session_id = "11111111-2222-4333-8444-555555555555"
+    session_id, _ = _strict_state_travel_session(
+        service,
+        host_session_id=host_session_id,
+    )
+    _seal_active_goal_recovery_binding(
+        service,
+        session_id=session_id,
+        host_session_id=host_session_id,
+    )
+    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", str(service.store.root))
+    payload = {
+        "session_id": host_session_id,
+        "turn_id": "automatic-goal-turn-1",
+        "cwd": str(source_repository),
+        "hook_event_name": "PreToolUse",
+        "tool_name": "shell_command",
+        "tool_use_id": "goal-first-tool-1",
+        "tool_input": {"command": "pytest -q"},
+    }
+    transport = build_hook_transport_envelope("PreToolUse", payload)
+    receipt, should_continue = consume_pre_tool_transport(payload, transport)
+    assert should_continue is True
+    assert receipt["source_mutation_authorized"] is True
+    assert receipt["prospective_mutation_guard"] == (
+        "USERPROMPTSUBMIT_PREPARE_OR_EXACT_SEALED_GOAL_BINDING_REQUIRED"
+    )
+    continuation = receipt["goal_continuation_entry"]
+    assert continuation["state"] == "GOAL_CONTINUATION_BOUND_NOT_COMMITTED"
+    assert continuation["input_kind"] == "goal"
+    assert continuation["input_origin"] == "SEALED_ACTIVE_GOAL_RECOVERY_BINDING"
+    assert continuation["pre_reasoning_host_dispatch_proven"] is False
+    assert continuation["tool_boundary_continuation_proven"] is True
+    assert continuation["raw_goal_objective_stored"] is False
+    assert continuation["synthetic_prompt_used"] is False
+    assert continuation["user_prompt_submit_observed"] is False
+    assert continuation["research_question"] == {
+        "state": "NOT_APPLICABLE",
+        "reason": "NO_NEW_VISIBLE_USER_RESEARCH_QUESTION",
+        "access_scope": "PROJECT_TASK_PRIVATE_ANALYSIS",
+        "cross_project_retrieval": False,
+        "synthetic_question_created": False,
+    }
+    authority = continuation["goal_recovery_authority"]
+    assert authority["state"] == (
+        "SEALED_ACTIVE_GOAL_RECOVERY_BINDING_VERIFIED"
+    )
+    assert authority["task_id"] == host_session_id
+    assert authority["active_plan_task_id"] == "turn-control-row"
+
+    records = PromptIndex(service.store.root)._all_records()
+    goal_record = records[-1]
+    assert goal_record["record_kind"] == "SEALED_GOAL_CONTINUATION"
+    assert goal_record["visible_prompt_after_redaction"] is None
+    assert goal_record["redacted_visible_prompt_stored"] is False
+    assert goal_record["raw_goal_objective_stored"] is False
+    assert goal_record["synthetic_prompt_used"] is False
+    lineage = ChatLineage(
+        service.store.project_root("book-faires")
+        / "lineage"
+        / f"{session_id}.jsonl"
+    ).events()
+    continuation_events = [
+        row for row in lineage if row.get("event_type") == "turn.sealed_goal_continuation"
+    ]
+    assert len(continuation_events) == 1
+    assert continuation_events[0]["actor_type"] == "system"
+
+    replay = prepare_goal_continuation_turn(
+        service.store.root,
+        host_payload=payload,
+    )
+    assert replay["state"] == "GOAL_CONTINUATION_BOUND_IDEMPOTENT_REUSE"
+    assert replay["control_record_sha256"] == continuation[
+        "control_record_sha256"
+    ]
+
+
+def test_first_pre_tool_use_without_exact_goal_binding_remains_denied(
+    service,
+    source_repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    host_session_id = "AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE"
+    _strict_state_travel_session(
+        service,
+        host_session_id=host_session_id,
+    )
+    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", str(service.store.root))
+    payload = {
+        "session_id": host_session_id,
+        "turn_id": "automatic-goal-turn-without-binding",
+        "cwd": str(source_repository),
+        "hook_event_name": "PreToolUse",
+        "tool_name": "shell_command",
+        "tool_use_id": "goal-first-tool-missing-binding",
+        "tool_input": {"command": "pytest -q"},
+    }
+    transport = build_hook_transport_envelope("PreToolUse", payload)
+    receipt, should_continue = consume_pre_tool_transport(payload, transport)
+    assert should_continue is False
+    assert receipt["state"] == "TURN_CONTROL_GAP"
+    assert receipt["code"] == "TURN_CONTROL_GOAL_RECOVERY_BINDING_REQUIRED"
+    assert receipt["source_mutation_authorized"] is False
+
+
 def test_native_hooks_ignore_plugin_private_data_and_use_durable_user_authority(
     tmp_path: Path,
     source_repository: Path,
@@ -2005,7 +2280,7 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
     ] == "REGISTERED_EVENT_COUNT"
     assert projected_notice["package_change_status"]["hooks"][
         "hook_file_count"
-    ] == 9
+    ] == 12
     projected_context = projected_payload["hookSpecificOutput"]["additionalContext"]
     assert "EVIDENCE_LANE_HOST_STEP_TASK_LIST_PROJECTION=" not in projected_context
     assert "EVIDENCE_LANE_HOST_PLAN_ACTION=" not in projected_context
@@ -2073,7 +2348,7 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         assert prepared_notice["package_change_status"]["hooks"]["count"] == 8
         assert prepared_notice["package_change_status"]["hooks"][
             "hook_file_count"
-        ] == 9
+        ] == 12
         assert prepared_notice["package_change_status"]["skills"]["count"] == 17
         assert prepared_notice["package_change_status"]["catalog"] == {
             "tools": 83,
@@ -2110,12 +2385,7 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
             env=environment,
         )
         committed_payload = json.loads(committed_process.stdout)
-        assert committed_payload["continue"] is True
-        committed_notice = _hook_change_notice(committed_payload)
-        assert committed_notice["phase"] == "TURN_COMMIT"
-        assert committed_notice["turn_receipt"]["state"] == "COMMITTED"
-        assert committed_notice["turn_receipt"]["prompt_index"] == prompt_index
-        assert committed_notice["private_reasoning_stored"] is False
+        assert committed_payload == {}
 
     prompt_records = PromptIndex(service.store.root)._all_records()
     assert [row["prompt_index"] for row in prompt_records] == [1, 2]
@@ -2178,13 +2448,13 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
     assert session_control["hook_performed_host_update_plan"] is False
     rehydration = session_control["host_plan_rehydration"]
     assert rehydration["receipt"]["action"] == (
-        "CALL_HOST_UPDATE_PLAN_EXACTLY_ONCE_FOR_THIS_TRIGGER"
+        "REACTIVATE_EXISTING_HOST_PLAN_WINDOW"
     )
     assert rehydration["receipt"][
         "native_runtime_invoked_host_update_plan"
     ] is False
     assert rehydration["receipt"]["host_plan_acceptance_status"] == (
-        "PENDING_EXPLICIT_HOST_ACCEPTANCE"
+        "NOT_REQUIRED_FOR_EXISTING_TASK_PLAN"
     )
     assert rehydration["receipt"]["candidate_created"] is False
     assert rehydration["receipt"]["pointer_moved"] is False

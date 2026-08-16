@@ -1504,6 +1504,149 @@ class EvidenceLaneService:
         )
         return result
 
+    def status_window(self, project_id: str) -> dict[str, Any]:
+        """Return a bounded model-facing status projection.
+
+        The lifecycle engine and governed UI may use :meth:`status` when they
+        need complete local verification.  Public model routes receive counts,
+        the current pointer, the active session boundary, and current accepted
+        package facts only; accepted history, candidate IDs, lane rows, and the
+        Plan ledger stay behind exact query routes.
+        """
+
+        base = self.store.project_status(project_id)
+        pointer = self.store.pointer(project_id)
+        accepted_ids = cast(list[str], base.get("accepted") or [])
+        candidate_ids = cast(list[str], base.get("candidates") or [])
+        current_validation: dict[str, Any] | None = None
+        if pointer.accepted_pv:
+            validation = validate_pv_package(
+                self.store.accepted_path(project_id, pointer.accepted_pv),
+                require_promotable=False,
+            )
+            current_validation = {
+                "pv_id": pointer.accepted_pv,
+                "manifest_sha256": validation["manifest_sha256"],
+                "package_sha256": validation["package_sha256"],
+                "integrity_validated": True,
+                "promotability_required": False,
+                "promotable_under_current_rules": validation["promotable"],
+                "lane_topology_status": validation["lanes"]["status"],
+            }
+
+        current_freshness: dict[str, Any] = {
+            "state": "NO_ACCEPTED_PV",
+            "reason": "PV1 has not been accepted for this project.",
+        }
+        if pointer.accepted_pv:
+            current_freshness = evaluate_freshness(
+                self.store,
+                project_id,
+                self.store.accepted_path(project_id, pointer.accepted_pv),
+            )
+
+        active_session: dict[str, Any] | None = None
+        active_path = self.store.project_root(project_id) / "active_session.json"
+        if active_path.is_file():
+            active = json.loads(active_path.read_text(encoding="utf-8"))
+            session = self.sessions.load(project_id, active["session_id"])
+            if not session.metadata.get("closed_at"):
+                active_session = {
+                    "session_id": session.session_id,
+                    "session_snapshot_sha256": (
+                        self.sessions.session_snapshot_sha256(session)
+                    ),
+                    "state": session.state.value,
+                    "entry_pv": session.metadata.get("entry_pv"),
+                    "accepted_pv": session.accepted_pv,
+                    "pointer_generation": session.accepted_pointer_generation,
+                    "pending_candidate": session.candidate_id,
+                    "pending_hil": session.state.value.endswith("_CANDIDATE"),
+                    "task_id": session.task.get("task_id") if session.task else None,
+                    "backlog_task_id": session.metadata.get(
+                        "active_backlog_task_id"
+                    ),
+                    "source_state": session.metadata.get("source_state"),
+                    "host": session.host.value,
+                }
+
+        storage_selection = self.storage_selection.inspect(project_id)
+        project_route = {
+            **self.store.inspect_project_route(project_id),
+            "storage_mode": storage_selection["mode"],
+            "storage_connector_id": storage_selection.get("connector_id"),
+            "google_drive_primary_runtime_allowed": False,
+        }
+        lane_projection = _accepted_lane_projection(
+            self.store,
+            project_id,
+            pointer.accepted_pv,
+        )
+        lane_window = {
+            key: value
+            for key, value in lane_projection.items()
+            if key not in {"lanes", "absent_lane_ids"}
+        }
+        lane_window["absent_lane_count"] = len(
+            cast(list[Any], lane_projection.get("absent_lane_ids") or [])
+        )
+
+        return {
+            "schema": "evidence-lane.pv-status-window.v1",
+            "status": "PASS",
+            "project": base["project"],
+            "pointer": pointer.as_dict(),
+            "accepted_summary": {
+                "count": len(accepted_ids),
+                "highest_accepted_ordinal": base["highest_accepted_ordinal"],
+                "current": current_validation,
+            },
+            "candidate_summary": {
+                "preserved_count": len(candidate_ids),
+                "next_candidate_pv": base["next_candidate_pv"],
+                "active_candidate": (
+                    active_session["pending_candidate"] if active_session else None
+                ),
+            },
+            "task_backlog": base["task_backlog"],
+            "project_route": project_route,
+            "storage_selection": storage_selection,
+            "lane_projection": lane_window,
+            "current_freshness": current_freshness,
+            "active_session": active_session,
+            "persistent_state_envelope": {
+                "accepted_pv": pointer.accepted_pv,
+                "pointer_generation": pointer.generation,
+                "highest_accepted_ordinal": base["highest_accepted_ordinal"],
+                "next_candidate_pv": base["next_candidate_pv"],
+                "accepted_manifest_sha256": pointer.accepted_manifest_sha256,
+                "pointer_snapshot_sha256": sha256_bytes(
+                    canonical_json_bytes(pointer.as_dict())
+                ),
+                "freshness_state": current_freshness["state"],
+                "pending_candidate": (
+                    active_session["pending_candidate"] if active_session else None
+                ),
+                "pending_hil": (
+                    bool(active_session["pending_hil"]) if active_session else False
+                ),
+            },
+            "model_context_boundary": {
+                "accepted_history_returned": False,
+                "candidate_id_list_returned": False,
+                "lane_rows_returned": False,
+                "full_plan_ledger_returned": False,
+                "full_pv_payload_loaded": False,
+                "detail_routes": [
+                    "pv_summary",
+                    "pv_query",
+                    "search",
+                    "fetch",
+                    "pv_task_backlog",
+                ],
+            },
+        }
+
     def plan_tasks(
         self,
         project_id: str,
@@ -1514,6 +1657,8 @@ class EvidenceLaneService:
         host_kind: str | None = None,
         host_mode: str | None = None,
         normalization_transition: dict[str, Any] | None = None,
+        atomic_insertion: dict[str, Any] | None = None,
+        active_contract_rebind: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         exact_host = str(host_kind or "").strip().upper()
         exact_mode = str(host_mode or "").strip().upper()
@@ -1542,6 +1687,17 @@ class EvidenceLaneService:
                 ),
             }
         exact_plan_id = plan_id or prefixed_id("plan")
+        write_modes = (
+            normalization_transition,
+            atomic_insertion,
+            active_contract_rebind,
+        )
+        require(
+            sum(mode is not None for mode in write_modes) <= 1,
+            "PLAN_TASKS_WRITE_MODE_CONFLICT",
+            "Plan normalization, atomic insertion, and active-contract rebind are mutually exclusive.",
+            status="BLOCKED",
+        )
         if normalization_transition is not None:
             result = self.sessions.normalize_plan_tasks(
                 project_id,
@@ -1549,6 +1705,69 @@ class EvidenceLaneService:
                 planned_by=planned_by,
                 plan_id=exact_plan_id,
                 normalization_transition=normalization_transition,
+            )
+        elif atomic_insertion is not None:
+            require(
+                isinstance(atomic_insertion, dict) and not tasks,
+                "PLAN_ATOMIC_INSERTION_CONTRACT_INVALID",
+                "Atomic insertion requires one object and an empty top-level task list.",
+                status="BLOCKED",
+            )
+            priority_interruption = atomic_insertion.get(
+                "priority_interruption"
+            )
+            if priority_interruption is not None:
+                require(
+                    isinstance(priority_interruption, dict),
+                    "PLAN_PRIORITY_STEER_CONTRACT_INVALID",
+                    "The atomic priority interruption must be one object.",
+                    status="BLOCKED",
+                )
+                result = self.sessions.apply_priority_plan_interruption(
+                    project_id,
+                    planned_by=planned_by,
+                    plan_id=exact_plan_id,
+                    atomic_insertion=atomic_insertion,
+                    priority_interruption=priority_interruption,
+                )
+            else:
+                result = self.store.plan_tasks_atomic_insert(
+                    project_id,
+                    insertions=cast(
+                        list[dict[str, Any]], atomic_insertion.get("insertions")
+                    ),
+                    planned_by=planned_by,
+                    plan_id=exact_plan_id,
+                    batch_id=str(atomic_insertion.get("batch_id") or ""),
+                    research_batch_sha256=str(
+                        atomic_insertion.get("research_batch_sha256") or ""
+                    ),
+                    expected_backlog_sha256=str(
+                        atomic_insertion.get("expected_backlog_sha256") or ""
+                    ),
+                    expected_canonical_plan_sha256=str(
+                        atomic_insertion.get("expected_canonical_plan_sha256") or ""
+                    ),
+                    expected_executable_projection_sha256=str(
+                        atomic_insertion.get("expected_executable_projection_sha256")
+                        or ""
+                    ),
+                    expected_physical_final_task_id=str(
+                        atomic_insertion.get("expected_physical_final_task_id") or ""
+                    ),
+                )
+        elif active_contract_rebind is not None:
+            require(
+                isinstance(active_contract_rebind, dict) and not tasks,
+                "ACTIVE_CONTRACT_REBIND_CONTRACT_INVALID",
+                "An active-contract rebind requires one object and an empty top-level task list.",
+                status="BLOCKED",
+            )
+            self._capture_route_binding(project_id)
+            result = self.sessions.rebind_active_task_contract(
+                project_id,
+                rebound_by=planned_by,
+                active_contract_rebind=active_contract_rebind,
             )
         else:
             result = self.store.plan_tasks(
@@ -1593,6 +1812,127 @@ class EvidenceLaneService:
 
     def task_backlog(self, project_id: str) -> dict[str, Any]:
         return self.store.backlog_status(project_id)
+
+    def task_backlog_window(
+        self,
+        project_id: str,
+        *,
+        task_id: str | None = None,
+        query: str | None = None,
+        limit: int = 10,
+    ) -> dict[str, Any]:
+        """Return a compact active window or one bounded live-Plan query."""
+
+        exact_task_id = str(task_id or "").strip()
+        exact_query = str(query or "").strip()
+        if exact_task_id or exact_query:
+            return self.store.plan_runtime_query(
+                project_id,
+                task_id=exact_task_id or None,
+                query=exact_query or None,
+                limit=min(int(limit), 20),
+            )
+        require(
+            1 <= int(limit) <= 10,
+            "TASK_BACKLOG_WINDOW_LIMIT_INVALID",
+            "The host/model Plan projection is bounded to at most ten rows.",
+            status="BLOCKED",
+            limit=limit,
+        )
+        backlog = self.store.backlog_status(project_id)
+        goal = cast(dict[str, Any], backlog.get("goal_projection") or {})
+        rows = cast(list[dict[str, Any]], goal.get("rows") or [])
+        active_indexes = [
+            index
+            for index, row in enumerate(rows)
+            if row.get("status") == "in_progress"
+            and row.get("lifecycle_status") == "ACTIVE"
+        ]
+        require(
+            len(active_indexes) <= 1,
+            "TASK_BACKLOG_WINDOW_ACTIVE_ROW_INVALID",
+            "The live Plan projection contains multiple ACTIVE rows.",
+            status="MISMATCH",
+            active_count=len(active_indexes),
+        )
+        window_size = int(limit)
+        active_index = active_indexes[0] if active_indexes else 0
+        window_start = (active_index // window_size) * window_size
+        window_rows = rows[window_start : window_start + window_size]
+        compact_rows = [
+            {
+                "number": int(row["number"]),
+                "task_id": str(row["task_id"]),
+                "status": str(row["status"]),
+                "lifecycle_status": str(row["lifecycle_status"]),
+                "task_classification": str(row["task_classification"]),
+                "plan_group": str(row["plan_group"]),
+                "commit_batch_id": str(row["commit_batch_id"]),
+                "git_commit_stage": str(row["git_commit_stage"]),
+                "dependencies": list(row.get("dependencies") or []),
+                "panel_role": str(row.get("panel_role") or "STANDARD"),
+                "exact_detail_lookup": {
+                    "task_id": str(row["task_id"]),
+                    "mode": "EXACT_TASK_ID_THEN_BOUNDED_FTS",
+                },
+            }
+            for row in window_rows
+        ]
+        runtime = cast(
+            dict[str, Any], backlog.get("plan_runtime_projection") or {}
+        )
+        plan_runtime_receipt = {
+            "schema": "evidence-lane.plan-runtime-bounded-receipt.v1",
+            "status": runtime.get("status"),
+            "sqlite_sha256": runtime.get("sqlite_sha256"),
+            "projection_content_sha256": runtime.get(
+                "projection_content_sha256"
+            ),
+            "event_count": runtime.get("event_count"),
+            "steer_count": runtime.get("steer_count"),
+            "execution_row_count": runtime.get("execution_row_count"),
+            "history_row_count": runtime.get("history_row_count"),
+            "fts_record_count": runtime.get("fts_record_count"),
+            "fts5_enabled": runtime.get("fts5_enabled"),
+            "detail_lookup_policy": runtime.get("detail_lookup_policy"),
+            "full_runtime_projection_returned": False,
+            "raw_pv_payload_loaded": False,
+            "raw_chat_scrollback_loaded": False,
+        }
+        return {
+            "status": "PASS",
+            "schema": "evidence-lane.task-backlog-window.v1",
+            "project_id": project_id,
+            "canonical_authority": "PLAN_LANE",
+            "canonical_task_count": int(goal.get("canonical_task_count") or 0),
+            "total_executable_count": len(rows),
+            "history_task_count": int(goal.get("history_task_count") or 0),
+            "counts": backlog.get("counts"),
+            "canonical_plan_sha256": goal.get("canonical_plan_sha256"),
+            "executable_projection_sha256": goal.get("projection_sha256"),
+            "window_size": window_size,
+            "window_row_start": (
+                int(window_rows[0]["number"]) if window_rows else None
+            ),
+            "window_row_end": (
+                int(window_rows[-1]["number"]) if window_rows else None
+            ),
+            "absolute_active_row": (
+                int(rows[active_index]["number"]) if active_indexes else None
+            ),
+            "absolute_active_task_id": (
+                str(rows[active_index]["task_id"]) if active_indexes else None
+            ),
+            "rows": compact_rows,
+            "row_ui_contract": "THREE_LINES_MAX_NO_FULL_DESCRIPTION",
+            "full_ledger_returned": False,
+            "full_row_reconstructed_in_model_context": False,
+            "accepted_pv_payload_loaded": False,
+            "raw_chat_scrollback_loaded": False,
+            "exact_row_query_available": True,
+            "bounded_fts_query_available": True,
+            "plan_runtime_receipt": plan_runtime_receipt,
+        }
 
     def transition_task(
         self,
@@ -2301,3 +2641,203 @@ class EvidenceLaneService:
                 status="BLOCKED",
             )
         return self.sync_service
+
+
+SERVICE_ROUTE_REVIEW_SCHEMA = "evidence-lane.service-route-review.v1"
+
+# These are service entry points reached by declared native MCP workflows.  The
+# list is intentionally independent from Python visibility: adding a public
+# method to EvidenceLaneService must not silently make it a product capability.
+SERVICE_MCP_WORKFLOW_METHODS = frozenset(
+    {
+        "boot_session",
+        "build_initial",
+        "classify_hil_intent",
+        "classify_mode",
+        "complete_task_and_refresh",
+        "configure_lane_routes",
+        "connector_plugin_catalog",
+        "connector_plugin_drop",
+        "connector_plugin_register",
+        "connector_plugin_route",
+        "connector_plugin_settings",
+        "doctor",
+        "enroll_project",
+        "fuse",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "plan_tasks",
+        "prepare_state_travel",
+        "prompt_index_status",
+        "record_hil_decision",
+        "record_steer_delta",
+        "refresh",
+        "register_project",
+        "resume_session",
+        "resume_state_travel",
+        "rollback",
+        "runtime_activation_status",
+        "session_flash_status",
+        "source_custom_schema_compile",
+        "source_git_commit_impact",
+        "source_git_history_build",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_identity_register",
+        "source_intake",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "status",
+        "status_window",
+        "storage_connector_inspect",
+        "storage_connector_select",
+        "sync_git_source",
+        "task_backlog",
+        "task_backlog_window",
+        "transition_law",
+        "transition_task",
+    }
+)
+
+# The local SDK reaches this exact subset of the same public workflows.  SDK
+# handler ownership remains separately validated by inspect_sdk_handler_parity.
+SERVICE_SDK_WORKFLOW_METHODS = frozenset(
+    {
+        "classify_mode",
+        "connector_plugin_catalog",
+        "connector_plugin_route",
+        "doctor",
+        "fuse",
+        "prompt_index_status",
+        "record_hil_decision",
+        "rollback",
+        "runtime_activation_status",
+        "session_flash_status",
+        "source_intake",
+        "status_window",
+        "storage_connector_inspect",
+        "storage_connector_select",
+        "task_backlog_window",
+        "transition_law",
+        "transition_task",
+    }
+)
+
+# invoke is the canonical MCP result/error envelope, not an independently
+# invokable product operation.
+SERVICE_DISPATCH_BOUNDARY_METHODS = frozenset({"invoke"})
+
+# decide is the shared implementation below two deliberately separate public
+# HIL workflows.  Routing it directly would bypass the exact-APPROVE Fuse gate.
+SERVICE_INTERNAL_ORCHESTRATION_METHODS = {
+    "decide": {
+        "workflow": "SPLIT_PROJECT_HIL_DECISION_CORE",
+        "public_entrypoints": ["record_hil_decision", "fuse"],
+        "reason": (
+            "Non-promotion outcomes are owned by record_hil_decision; exact "
+            "APPROVE promotion is owned exclusively by fuse."
+        ),
+    }
+}
+
+
+def inspect_service_route_parity(
+    service_type: type[EvidenceLaneService] = EvidenceLaneService,
+) -> dict[str, Any]:
+    """Classify every public service method without inventing product routes."""
+
+    inventory = {
+        name
+        for name in dir(service_type)
+        if not name.startswith("_") and callable(getattr(service_type, name, None))
+    }
+    internal = set(SERVICE_INTERNAL_ORCHESTRATION_METHODS)
+    dispatch = set(SERVICE_DISPATCH_BOUNDARY_METHODS)
+    mcp = set(SERVICE_MCP_WORKFLOW_METHODS)
+    sdk = set(SERVICE_SDK_WORKFLOW_METHODS)
+    classified = mcp | dispatch | internal
+    overlaps = sorted(
+        (mcp & dispatch) | (mcp & internal) | (dispatch & internal)
+    )
+    unclassified = sorted(inventory - classified)
+    unknown = sorted(classified - inventory)
+    sdk_without_public_workflow = sorted(sdk - mcp)
+    require(
+        not overlaps
+        and not unclassified
+        and not unknown
+        and not sdk_without_public_workflow,
+        "SERVICE_ROUTE_CLASSIFICATION_MISMATCH",
+        "Every public service method must have one exact workflow classification.",
+        status="MISMATCH",
+        overlapping_methods=overlaps,
+        unclassified_methods=unclassified,
+        classified_methods_missing_from_service=unknown,
+        sdk_methods_without_public_workflow=sdk_without_public_workflow,
+    )
+
+    methods: list[dict[str, Any]] = []
+    for name in sorted(inventory):
+        if name in internal:
+            contract = SERVICE_INTERNAL_ORCHESTRATION_METHODS[name]
+            methods.append(
+                {
+                    "method": name,
+                    "classification": "INTERNAL_ORCHESTRATION_ONLY",
+                    "workflow": contract["workflow"],
+                    "route_owners": list(contract["public_entrypoints"]),
+                    "public_route_eligible": False,
+                    "implementation_delta_eligible": False,
+                    "reason": contract["reason"],
+                }
+            )
+            continue
+        if name in dispatch:
+            methods.append(
+                {
+                    "method": name,
+                    "classification": "MCP_RESULT_BOUNDARY",
+                    "workflow": "CANONICAL_TOOL_AND_LIFECYCLE_ENVELOPE",
+                    "route_owners": ["MCP_DISPATCH"],
+                    "public_route_eligible": False,
+                    "implementation_delta_eligible": False,
+                    "reason": "Shared dispatch/error boundary, not a product operation.",
+                }
+            )
+            continue
+        owners = ["NATIVE_MCP"]
+        if name in sdk:
+            owners.append("INTERNAL_SDK")
+        methods.append(
+            {
+                "method": name,
+                "classification": (
+                    "MCP_AND_INTERNAL_SDK_WORKFLOW"
+                    if name in sdk
+                    else "MCP_WORKFLOW"
+                ),
+                "workflow": "DECLARED_PUBLIC_WORKFLOW",
+                "route_owners": owners,
+                "public_route_eligible": True,
+                "implementation_delta_eligible": False,
+                "reason": "The method is already reached by its declared workflow.",
+            }
+        )
+
+    body = {
+        "schema": SERVICE_ROUTE_REVIEW_SCHEMA,
+        "status": "PASS",
+        "service_public_method_count": len(inventory),
+        "mcp_workflow_method_count": len(mcp),
+        "sdk_workflow_method_count": len(sdk),
+        "dispatch_boundary_method_count": len(dispatch),
+        "internal_orchestration_method_count": len(internal),
+        "eligible_unrouted_method_count": 0,
+        "eligible_unrouted_methods": [],
+        "implementation_delta_candidates": [],
+        "methods": methods,
+    }
+    return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}

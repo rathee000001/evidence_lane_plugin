@@ -28,27 +28,42 @@ Use one linear state machine. Runtime context is never accepted evidence.
   `PLUGIN_DATA` is selector-scoped installation storage and must never become
   project, session, PV, PromptIndex, ChatLineage, Plan, or Delta authority. Do
   not create or consult a shadow authority under a stable or fallback slot.
-- For every visible user prompt, Goal continuation, correction, or mid-Goal
-  steer, require the sealed `UserPromptSubmit` transport envelope and its
-  skill-owned PREPARE receipt. Then, before substantive reasoning, source
+- For every visible user prompt, correction, or mid-Goal steer, require the
+  sealed `UserPromptSubmit` transport envelope and its skill-owned PREPARE
+  receipt. Automatic Goal continuation is a separate non-prompt route because
+  Codex does not dispatch `thread/goal/set` through `UserPromptSubmit`: at its
+  first `PreToolUse` boundary, require the current exact-task Goal-recovery
+  binding, current installation/task-binding receipt, active Goal, active Plan
+  row, project/session, pointer, and runtime selector to verify together. Store
+  no raw Goal objective, create no synthetic prompt, and fail closed on any
+  mismatch. Then, before source
   inspection, mutation, tests, Git, or a lifecycle write, call the installed
-  native Evidence Lane route in this order: `pv_status`, `pv_task_backlog`, and
-  one bounded `pv_query` against accepted authority. Select an allowlisted query
+  native Evidence Lane route in this order: `pv_status`, the default bounded
+  `pv_task_backlog` current window, one exact active-task
+  `pv_task_backlog(task_id=...)` lookup, and one bounded `pv_query` against
+  accepted authority. Select an allowlisted query
   that is relevant to the prompt; use a bounded `receipts` query for
   lifecycle-only prompts rather than inventing a semantic match. The
   `pv_query` must be a real native MCP call visible in Codex Sources. Internal
   hook SQLite lookup is not equivalent proof.
 - When a canonical Plan Lane exists, validate
   `canonical_authority=PLAN_LANE`, contiguous rows, exactly one active row, and
-  `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`; then the skill calls the host
-  `update_plan` tool with every exact executable row. Each label is the native
-  structured projection
-  `Row <canonical row> / <task ID> — [CLASS=<classification>; GROUP=<plan group>; BATCH=<commit batch or UNASSIGNED>; DEP=<earlier task IDs or ROOT>; GIT=<stage>@<provenance>; VERSION=<marker>@<provenance>; BRANCH=<marker>@<provenance>; ROLE=<panel role>; STATE=<lifecycle status>] <exact description>`.
-  Linked Delta JSON remains in native Evidence Lane authority and is never
-  copied into a host label.
+  `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`. Keep that complete ledger as
+  native authority, then activate or update only the aligned host window of at
+  most ten executable rows containing the sole ACTIVE row. Each host item is
+  exactly a maximum three-line projection: row/task identity;
+  class/group/batch; and Git/state/role/dependency. Full descriptions,
+  version/branch provenance, acceptance, stop law, linked Deltas, and evidence
+  links remain in live Plan SQLite and are retrieved only by exact task ID plus
+  bounded FTS. They are never copied into the host item or loaded from a raw PV.
 - After `pv_plan_steer_delta`, repeat `pv_status`, `pv_task_backlog`, the bounded
-  native `pv_query`, and the complete `update_plan` projection before resuming
-  work. If the installed native route or host plan tool is unavailable, fail
+  native `pv_query`, and verify the complete ledger. Synchronize the host window
+  only when its UI fingerprint changed in membership, numbering, status,
+  class, group, batch, Git stage, role, or dependency. A text-only linked steer
+  or a steer outside the current window changes live Plan authority without
+  rebuilding the host artifact. This conditional
+  host-window synchronization is not `/evi-refresh`. If the installed native
+  route or host plan tool is unavailable, fail
   closed and report the missing behavior route; a hook receipt never substitutes
   for it.
 - Classify the visible request before any Plan mutation. Questions,
@@ -58,30 +73,46 @@ Use one linear state machine. Runtime context is never accepted evidence.
   List. A request is a Plan steer only when it changes the active Goal's
   executable outcome, dependency, acceptance check, stop condition, release
   route, or HIL path. Link that steer to the exact existing logical row when
-  possible; otherwise add exactly one independently testable row. Then refresh
-  the complete panel and CURRENT CHANGE once. Never manufacture a Plan event or
+  possible; otherwise add exactly one independently testable row. Refresh the
+  host window only when that mutation changes its UI fingerprint. Never manufacture a Plan event or
   row merely to reproduce a historical Sources-sidebar call count.
+
+- Maintain one deterministic direct command map. An explicit installed command
+  name and an ordinary-language request inferred to the same workflow must
+  select the same owning skill, native MCP action group, preconditions, receipt
+  contract, and stop boundary. Do not make an agent rediscover or redesign the
+  route each turn.
 
 ### Persistent Step Task List re-entry
 
-The complete host Step Task List is a durable Plan Lane projection, not Goal
-state. An active Codex Goal is neither a prerequisite for restoration nor a
-substitute for native Plan authority. Preserve this invariant even when no Goal
-is attached, a Goal was deleted or recreated, or the host compacted context
-automatically.
+The complete native Plan Lane/Delta ledger is durable authority, not Goal
+state. The Codex host Step Task List is its persistent aligned window of at
+most ten executable rows. An active Codex Goal is neither a prerequisite for
+window activation nor a substitute for native Plan authority. Preserve this
+invariant even when no Goal is attached, a Goal was deleted or recreated, or
+the host compacted context automatically.
 
 Treat each of these as a deterministic panel-reentry trigger:
 
 - `SessionStart` with startup, resume, clear, or compact source;
 - `PostCompact`, including host-automatic compaction;
 - reopening the exact task after an app or host restart;
-- every visible prompt, Goal continuation, correction, and mid-Goal steer; and
+- an app-renderer reload or loss of the right-side Plan or Changes surface;
+- a host React-root rerender, unbounded thread-hydration event, or
+  collaboration-overlay conflict;
+- a Plan steer, native task-status transition, or active-row window crossing;
+  and
 - any observation that the host panel is missing, partial, stale, or compacted.
+
+An ordinary prompt, tool call, or Goal turn with no Plan/status/surface change
+reuses the current native artifact. It does not call `update_plan` again.
 
 After the applicable lifecycle hook receipt, panel restoration is the first
 skill-owned behavior. For a visible prompt, PREPARE remains the lifecycle-first
-hook receipt; for a resume or `PostCompact` without a new prompt, do not wait for
-or fabricate a prompt, Goal, or PREPARE receipt. Before classifying the request,
+hook receipt. For an already-active Goal continuation, use only the sealed
+first-tool Goal-continuation entry described above; it is not a user-prompt
+PREPARE. For a resume or `PostCompact` without a new prompt or active sealed
+Goal, do not wait for or fabricate a prompt, Goal, or PREPARE receipt. Before classifying the request,
 reasoning about it, inspecting source, mutating anything, testing, using Git, or
 calling another lifecycle write, the skill must:
 
@@ -91,13 +122,48 @@ calling another lifecycle write, the skill must:
 4. verify `canonical_authority=PLAN_LANE`, contiguous executable rows, exactly
    one active row, `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`, and one
    physically final `PHYSICALLY_FINAL_HIL` row in the final position; and
-5. call host `update_plan` once with the complete executable projection.
+5. derive the aligned current window from the canonical row origin and ACTIVE
+   row; call host `update_plan` only when the receipt says ACTIVATE,
+   REACTIVATE, SYNC_AFTER_PLAN_STEER, UPDATE_STATUSES, or ADVANCE_WINDOW.
+
+The native Plan artifact and the exact task/worktree-bound Changes surface are
+one host-continuity boundary. While the Goal remains human-active, neither may
+silently disappear. An observed missing, partial, stale, or dropped surface is
+a first-class continuity failure and must trigger exact UUID-bound rehydration
+before any source or lifecycle work. `update_plan` is the supported native Plan
+activation; the plugin must not fabricate Changes-surface activation or claim
+that it can prevent a host crash. If the host cannot restore or attest a required
+surface, record `HOST_CAPABILITY_UNAVAILABLE` and fail closed. HIL, tests,
+automation, and task-row completion never authorize the host surface to drop;
+only a human Goal-completion disposition or a passed exact task State Travel
+handoff transfers that responsibility.
+
+Panel recovery is a bounded authority reconstruction, not chat replay. Use the
+canonical Plan Lane/backlog and sealed task binding; never hydrate full thread
+history or a subagent/avatar overlay to rebuild the panel. Serialize the
+critical section as one active task with zero subagents. A renderer-root reset,
+thread-hydration overflow, or overlay conflict remains a first-class failure
+even when the root app process survives: fail closed, issue one exact
+`update_plan` projection per observed event, and do no source or lifecycle work
+until the current artifact is restored. Evidence Lane does not claim it can
+guarantee survival of host-owned UI state.
 
 When the lifecycle or task-classification receipt contains
 `host_plan_rehydration`, validate its self-hash and exact project/session/task
-binding. If its action is
-`CALL_HOST_UPDATE_PLAN_EXACTLY_ONCE_FOR_THIS_TRIGGER`, pass
-`receipt.projection.items` unchanged to host `update_plan`; an idempotent replay
+binding. If its action is one of the exact host-window actions requiring
+`update_plan`, pass `receipt.projection.host_update_plan_contract.explanation`
+as the host Plan explanation and
+`receipt.projection.host_update_plan_contract.plan` unchanged as its items. The
+explanation is the compact continuity header: accepted PV/pointer generation,
+absolute ACTIVE row, current window/total rows, next HIL boundary, and physical
+final row. It is not a task item and never contains HIL choices or a queued-HIL
+control surface. Each task item is a maximum three-line UI projection. Retrieve
+the full canonical row and its linked records by exact task ID plus bounded FTS
+only when execution needs them; never load the raw PV, rebuild a row from chat,
+or create a native row merely because its UI label overflowed.
+Detailed next/queued HIL records, proposed PV identities, and
+dependency connections belong only to the read-only Evidence Lane project
+renderer. An idempotent replay
 of the same request is not a second issuance. A later independently observed
 panel-loss event may create a new request identity for the same projection.
 After the host action, use `task_record_activity` with activity type
@@ -109,10 +175,15 @@ backlog readback proves neither visibility nor acceptance. Record
 `HOST_CAPABILITY_UNAVAILABLE` and fail closed when the host cannot perform the
 action; never fabricate the artifact or its acceptance.
 
-Project every executable row, including all completed rows, the sole active row,
-and all pending rows. Never replace the projection with a window, page, summary,
-ellipsis, count-only placeholder, or only the unfinished suffix. Map native
-  statuses to host statuses without changing task state. Hydrate classification,
+Project exactly the current aligned window: up to ten consecutive rows from
+the complete ledger, containing the sole ACTIVE row. Keep earlier completed
+windows as sealed completed-window history; when the current window becomes
+terminal, activate the next queued window. The final window contains the exact
+remaining count when fewer than ten rows remain. Window progression spans
+pre-HIL, HIL-gated post-HIL, and later continuation rows; the physically final
+HIL remains physically last in the complete native ledger and appears in its
+own final window. Map native statuses to host statuses without changing task
+state. Hydrate classification,
   Plan group, commit batch, dependency, Git stage, current version, current
   branch, and panel role only from structured current non-superseded Plan authority. Preserve the
 exact task ID and description. Use the immediately prior executable task as the
@@ -125,6 +196,17 @@ SUPERSEDED rows, and never reactivate a completed row because its immutable text
 mentions an old commit or version. Never append acceptance checks, stop
 conditions, hashes, or raw linked-Delta JSON to a host label; they remain native
 authority. This projection law applies to every governed project and corpus.
+
+Use this maximum three-line host item contract:
+
+1. `ROW=<absolute row> | TASK=<stable task ID> | STATE=<native/host status>`;
+2. `CLASS=<classification> | GROUP=<Plan group> | BATCH=<commit batch or UNASSIGNED> | ROLE=<panel role> | DEP=<validated graph dependency>`; and
+3. `GRAPH=<Plan SQLite graph pointer> | FTS=<exact task/FTS locator>`.
+
+Add `GIT=<declared Git stage>` only to the exact row where Git actually
+executes; omit it from every other host item. Version/branch provenance,
+descriptions, acceptance checks, receipts, and linked Deltas remain available
+through the exact SQLite/FTS locator and stay outside the host label.
 
 If the installed native route, any required native read, the canonical Plan
 invariants, or host `update_plan` is unavailable, fail closed before work. Do not
@@ -144,6 +226,18 @@ rehydration request. It must not perform native reads or call host
   and host execution profile. Resume that row after verification. Use accepted
   entry and `WAITING_FOR_NEXT_USER_COMMAND` only when the user explicitly asks
   for accepted context or the origin is already at an accepted boundary.
+- State Travel must never restart/relaunch Codex, reload its renderer, activate
+  a stale or duplicate task, or invoke a recovery helper, tunnel helper,
+  scheduled helper, or subagent during destination creation. Require one
+  unchanged host-process identity plus the exact source/destination shell and
+  host-result UUID/deep-link proof before native resume. Any mismatch is
+  `STATE_TRAVEL_HOST_CONTINUITY_FAILURE`: fail before consumption, do not retry,
+  preserve bytes, and require explicit correction.
+- State Travel and panel recovery must use the bounded sealed handoff plus
+  canonical Plan authority, never a full `thread/read` history hydration.
+  Require zero unbounded-history and collaboration-overlay hydration events
+  during the critical section; a React-root rerender or hydration overflow is
+  the same fail-before-work continuity class.
 - Otherwise `/evi-boot` is first. It atomically runs runtime doctor, locked
   ENV15/UOP15 Flash verification, storage selection, and `session_boot` or
   `session_resume`. Reuse an existing governed session; never duplicate it.
@@ -186,6 +280,14 @@ State Travel remains a separate recovery event and is shown only for its two
 allowed triggers. Internal MCP tool names remain stable for compatibility and
 are not additional public controls.
 
+`/evi-refresh` is the existing governed changed-section source/PV Refresh
+control. The user may invoke it by exact command or describe the same intent in
+ordinary language; deterministic prompt classification must route both forms
+to the same Refresh skill, native action group, preconditions, receipts, and
+stop boundary. Host Plan activation, reactivation, status synchronization, and
+window advancement are separate host actions and must never call or alias
+`/evi-refresh`.
+
 Skills, commands, receipts, and saved contracts use only the canonical bare MCP
 tool names advertised by the exact active server. Host-generated connector
 namespaces are display and transport metadata, not lifecycle identity. The
@@ -215,22 +317,28 @@ user copies into the host-owned Goal. Linked steers append to an existing row;
 unrelated steers insert a new numbered row before the next HIL when present.
 Mark the physically final HIL task with `panel_role=PHYSICALLY_FINAL_HIL`, and
 never place a later correction behind it. The default steer boundary is
-before the next HIL, and the full task panel persists until that HIL.
+before the next HIL. The complete native ledger persists until that HIL while
+the host Step Task List displays its current aligned window.
 
-If the host task panel disappears after a token continuation, stalled Goal,
-compaction, browser or Codex restart, session continuation, resume, or State
-Travel entry, re-project the complete canonical Plan Lane first. Do this before
+If the host task panel or Changes surface disappears after a token continuation,
+stalled Goal, compaction, renderer reload, browser or Codex restart, session
+continuation, resume, or State
+Travel entry, validate the complete canonical Plan Lane and reactivate its
+current aligned host window first. Do this before
 source inspection, mutation, testing, Git activity, or another lifecycle call.
-Keep exactly one active row, preserve every completed and pending description
-unabridged, and drop the panel only after the physically final HIL decision and
-all decision-dependent work are complete.
+Keep exactly one active row and preserve every completed and pending
+description unabridged in native authority; the host window shows the exact
+current subset. Keep the native surfaces until the human marks the Goal complete or
+an exact task-completion-and-State-Travel handoff passes; a final HIL alone does
+not drop them.
 
 The host Goal remains attached to the same canonical Plan Lane, active source
 boundary, and single-writer session throughout that interval. A UI crash,
 token wait, required user input, or HIL wait pauses dependent work only and may
 not complete the Goal. Usage reporting is separate accounting and has no task
 status effect. Every reconstruction includes completed-but-still-governing
-rows, the one active row, and all pending rows.
+rows, the one active row, and all pending rows in native validation, then
+reactivates only the exact current host window.
 
 Only the human may complete a governed Goal, using the exact visible command
 `MARK GOAL COMPLETE` and one exact disposition:
@@ -276,6 +384,18 @@ limited to eight additional active plugins; drop requires its exact token.
    canonical row, and the advance must preserve an absent candidate/HIL and an
    unchanged pointer. A PASS string from another task, run, or partial
    acceptance set cannot advance the Plan.
+   A normalized Task6 parity row uses the stronger existing `task_classify`
+   route and must pass `active_delta_verification` with schema
+   `evidence-lane.per-delta-local-verification-input.v1`. Obtain the exact
+   task_contract_sha256 through `pv_task_backlog(task_id=...)`; bind the
+   current pointer generation and ordered dependencies; continue the previous
+   sealed post-worktree hash as the next pre-worktree hash; name every changed
+   source/test path with its live SHA-256; and include bounded test selectors,
+   commands, command/output SHA-256 values, PASS outputs, and negative cases.
+   The acceptance-check list must equal the active Plan row exactly, and all
+   candidate/HIL/pointer/Git/install flags must remain false. Missing, stale,
+   tampered, generic-PASS, or non-first-successor evidence fails before Plan or
+   session transition. The public MCP catalog does not grow for this route.
 3. Use accepted evidence as entry truth and live repository evidence for
    source changed after entry.
 4. Confirm final Codex source state with
@@ -301,7 +421,8 @@ Git delivery is batched by dependency-coherent integration checkpoints, not by
 individual Delta row or file. Every row still receives its own acceptance
 evidence and lifecycle transition, PREPARE/capture/retrieval receipt, native
 PV status/backlog/query reads, task/row/current-change classification, visible
-ChatLineage activity, and full persistent Plan/CURRENT CHANGE reprojection.
+ChatLineage activity, complete-ledger validation, and current host-window/
+CURRENT CHANGE synchronization.
 When a logical bundle of coupled rows is
 implemented and locally verified, one behavior-bearing commit synchronizes
 plugin source, root README, affected repository-level docs/manifests/workflows/
@@ -321,3 +442,13 @@ failure owner. Any included-row failure fails the bundle closed.
 Default reads use accepted truth and disclose live freshness. Explicit
 candidate reads remain labeled `UNACCEPTED_CANDIDATE`. Use bounded fetches and
 allowlisted queries; never execute arbitrary source SQL.
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evidence-lane-code-lifecycle`. This route names
+the transition, Delta lifecycle, activity, and remote-Git primitives that are
+intentionally low-level. `MCP_ROUTING_FAIL_CLOSED`: if the bundled
+`evidence-lane` dependency, an exact tool, or a required result is missing or
+ambiguous, stop and report it; never rewrite prefixes, substitute a tool,
+reorder a write, or infer success.

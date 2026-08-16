@@ -2,8 +2,9 @@
 
 Version 2.2.0 is the current pre-HIL Codex source release on the governed v2.2
 branch. Accepted Project Truth and the GitLane base remain PV12/2.1.0. Direct
-host evidence showed the disabled fallback at historical PV11/main 2.0.0; this
-source-only row neither repairs nor activates either installed slot. The source provides a
+host readback confirms the disabled fallback payload is also 2.1.0 even though
+its marketplace selector retains a historical PV11 name. That stale selector
+label is not package identity. The source provides a
 package-local native MCP server, 83 canonical actions (26 read-only and 57
 write-capable), 17 governed skills, eight registered lifecycle events, local durable
 project storage, persistent Plan/Delta continuity, and an exact six-way HIL.
@@ -24,7 +25,7 @@ candidate, Fuse, or pointer authority. Subagents require current user authority
 and cannot own HIL. See
 [the Canon task graph contract](../../docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md).
 The installed runtime prewarm and release validators bind the same governed
-console resource, `ui://evidence-lane/governed-console-v5.html`, and fail closed
+console resource, `ui://evidence-lane/governed-console-v6.html`, and fail closed
 if that identity drifts.
 The generated Python environment is a lock-digest/Python-ABI keyed projection
 under `EvidenceLanePV/runtime/codex`, not inside Codex's reconstructable plugin
@@ -36,15 +37,14 @@ active skill owns native PV reads, classification, behavior, and the complete
 Plan/CURRENT CHANGE projection. PermissionRequest remains unregistered unless
 the host capability is positively proven; subagent hook events are out of scope.
 
-Bounded repository search is package-owned for every governed project. The
-Windows x86-64 package carries hash-pinned `ripgrep` 15.2.0 and `fzf` 0.74.2
-executables plus their upstream license files. Runtime selection is strictly
-package-local verified binary, then an explicitly configured absolute host
-binary with an exact supplied SHA-256, then a deterministic Python fallback.
-PATH lookup, shell execution, and download during MCP handshake are forbidden.
-Every invocation is noninteractive, size/time bounded, secret-path filtered,
-redacted, and receipt-backed; these helpers have no source-write, Git,
-lifecycle, candidate, HIL, or pointer authority.
+Indexed project retrieval is authoritative SQLite FTS5/BM25 over the Plan,
+lane, ChatLineage, and project-sector databases. Only bounded query results
+with exact pointer/locator provenance enter model context; a PV package or full
+database never does. The Windows x86-64 package also carries hash-pinned
+`ripgrep` 15.2.0 for bounded pre-index file/content discovery, with an exact
+configured-host-binary route and deterministic Python fallback. `ripgrep` is
+not the FTS authority. PATH lookup, shell execution, and download during MCP
+handshake are forbidden, and no search surface has lifecycle or HIL authority.
 
 The private internal Codex SDK is the full engine-and-contract layer, not a
 reduced retrieval wrapper. Its provider-neutral ABI keeps Project Truth, Canon
@@ -84,6 +84,17 @@ tests, Plan/task state, automation, pause, and stall have no Goal-completion
 authority. Version-bound Goal-recovery helpers and required Stable tunnels are
 user support surfaces; the release updater is maintainer-only. Older helper and
 tunnel versions remain retained and disabled with one active version.
+
+There are two helper layers and they never substitute for one another. The
+maintainer installation/release helper belongs only to Evidence Lane's own
+versioned build, slot, and exact-commit route. The governed-user helper is a
+multi-project Windows-logon service keyed by `project_id` plus exact task UUID/
+deep link; it may preserve an explicitly configured schedule such as a future
+HIL reminder or user-authorized host action, but it receives no maintainer
+release authority. Both layers are versioned, retain disabled historical
+versions, survive Windows boot only through their sealed scheduled-task
+contracts, and launch persistently or with a true hidden/no-window policy.
+Neither layer may restart/reload/navigate Codex during State Travel.
 
 ## Codex host and storage matrix
 
@@ -154,10 +165,10 @@ and direct CLI/API profiles do not require this tunnel. See the
 - `.mcp.json` — package-local native MCP launch contract.
 - `src/evidence_lane_plugin/` — lifecycle engine and native server.
 - `skills/` — seventeen governed skills.
-- `hooks/` — eight registered events and sealed Windows/Python dispatch wrappers across nine package files.
-- `toolchains/` — the governed `ripgrep`/`fzf` dependency manifest,
-  hash-pinned Windows binaries, upstream licenses, and deterministic fallback
-  contract used by all projects.
+- `hooks/` — eight registered events across twelve sealed package files, including the synchronous Windows host that prevents the PowerShell bridge from creating a visible console.
+- `toolchains/` — the governed SQLite FTS5 authority contract plus the
+  hash-pinned `ripgrep` pre-index helper, upstream license, and deterministic
+  fallback contract used by all projects.
 - `scripts/codex-release-channel.json` — v2 release and Git policy.
 - `scripts/codex_release/build_codex_exact_commit_package.py` — read-only
   exact-commit package export that excludes dirty and untracked checkout bytes.
@@ -229,9 +240,11 @@ deduplication identity, and transport-envelope sealing. The installed
 lifecycle skill runtime consumes those exact envelopes and owns sealed
 Entry/PREPARE/COMMIT and other lifecycle actions. The active skill then calls
 native `pv_status`, `pv_task_backlog`, and bounded `pv_query` after every prompt
-or steer and restores the full canonical Step Task List with host
-`update_plan`. Hook adapters never embed that full panel or instruct the host
-behavior tool. Every skill-owned lifecycle consumer uses the explicit
+or steer, validates the complete canonical Plan Lane, and activates only the
+aligned current host Step Task List window with `update_plan`. Its explanation
+is the compact PV/pointer/absolute-row/window continuity header; detailed next
+and queued HILs plus their connections remain in the project renderer. Hook
+adapters never embed the ledger or instruct the host behavior tool. Every skill-owned lifecycle consumer uses the explicit
 `EVIDENCE_LANE_DATA_ROOT` when configured and otherwise the user-owned durable
 `~/EvidenceLanePV`; Codex-injected `PLUGIN_DATA` is selector-private
 installation storage and cannot become project, PV, session, PromptIndex, or
@@ -254,10 +267,11 @@ remains provenance rather than permission to cross the active project boundary.
 The supported live topology is exactly two slots: an enabled mutable
 `stable-build` slot and a disabled byte-frozen `fallback` slot. Their identities
 must come from exact package, registry, cache, selector, and native readback—not
-from this README. Direct host evidence showed fallback still at PV11/2.0 while
-the accepted/base GitLane release had advanced to PV12/2.1; the later governed
-split-brain row must reconcile that state. The pre-HIL 2.2 source does not
-install, activate, or relabel either slot. “Prewarmed” means a fallback package
+from this README. Direct host evidence shows both installed payloads at 2.1,
+with the older disabled selector carrying a stale historical name. A one-time
+explicit local-test rotation may install 2.2 in a separately named test-stable
+slot, retain the current GitLane 2.1 slot as fallback, and prune only the older
+duplicate registration after exact readback. “Prewarmed” means a fallback package
 and tunnel are installed and verified but stopped; two MCP servers or two
 tunnels never run together. Later stable builds update the same stable selector
 in place; only the package/receipt identity changes.
@@ -290,8 +304,9 @@ Opening the task requests host continuation; the receipt does not claim that a
 new model turn ran until Codex itself continues the persisted Goal. Windows does
 not expose the Codex app-server daemon control plane, so the isolated prewarm is
 reported separately from the live desktop process; the exact task deep link is
-the primary no-kill reattach and one controlled app restart remains a bounded
-fallback, never a loop. Every plugin-owned Python/PowerShell helper and tunnel
+   the primary no-kill reattach. One controlled app restart remains a bounded,
+   explicitly invoked Goal-recovery fallback only; it is forbidden during State
+   Travel and never forms a loop. Every plugin-owned Python/PowerShell helper and tunnel
 background launch uses `CREATE_NO_WINDOW` or `-WindowStyle Hidden`; an initial
 host-owned MCP spawn is reported as `HOST_CAPABILITY_UNAVAILABLE` when the host
 does not expose its launch flags. `Unregister`
@@ -304,18 +319,40 @@ The task panel and linked change status are one durable pair. `SessionStart`
 rehydrates the exact task binding, `UserPromptSubmit` binds the visible turn,
 `PostToolUse` reprojects the active task/Delta display after relevant native
 actions, and `Stop` preserves the exit boundary without inventing a decision.
+The pair maps to the native right-side Plan artifact and the exact task/worktree-
+bound Changes surface. It remains required until the human marks the Goal
+complete or a passed task-completion-and-State-Travel handoff transfers the full
+projection. Renderer reload, panel loss, partial/stale display, and unexpected
+task navigation are deterministic recovery triggers. Restore through native
+`update_plan` and exact task binding before work; if the host cannot do so,
+report `HOST_CAPABILITY_UNAVAILABLE` rather than claiming UI persistence.
+
+Recovery is deliberately bounded: the plugin reconstructs the panel from the
+sealed task binding and canonical Plan Lane, never by hydrating the full chat
+history or collaboration/avatar overlay. React-root rerender, thread-hydration
+overflow, overlay conflict, or surface loss is a first-class continuity failure
+even when the root app process survives. Recovery runs with one active task and
+zero subagents, fails closed, and reprojects before work. Host-owned UI survival
+cannot be guaranteed by the plugin.
 
 These are two different laws. A successful `pv_plan_steer_delta` is followed by
 the existing `PostToolUse` projection of the same Plan/Current Change panel; it
 does not prove that the steer was captured before reasoning. Codex routes every
 pending `TurnInput::UserInput` through `UserPromptSubmit` before model input,
-including `turn/steer`; a Goal continuation travels through the same pending-
-input dispatcher. The PREPARE adapter therefore ignores caller `source`,
-`is_steer`, and `is_goal` claims, derives first prompt versus same-turn steer
-from the sealed turn ledger, and recognizes a Goal only from the native
-`<codex_internal_context source="goal">` marker. Each input needs its own sealed
-PREPARE receipt. After a steer appends a Delta, `PostToolUse` separately
-refreshes the same persistent Goal step list and CURRENT CHANGE panel.
+including `turn/steer`; `thread/goal/set` bypasses that pending-input dispatcher.
+The PREPARE adapter therefore ignores caller `source`, `is_steer`, and `is_goal`
+claims and derives first prompt versus same-turn steer from the sealed turn
+ledger. Each visible user input needs its own sealed PREPARE receipt. An
+automatic Goal continuation instead binds at its first `PreToolUse` boundary
+only when the current exact-task recovery binding, installed package/task
+receipt, active Goal, active Plan row, project/session, selector, and pointer all
+verify. It stores no raw Goal objective and creates no synthetic prompt; a Goal
+marker sent through `UserPromptSubmit` still fails closed. Every exact-task
+restart must write the new task-binding receipt, refresh the same task's sealed
+Goal binding against that exact receipt, and only then stop the host. A stale
+Goal-to-task-binding seal fails closed and cannot be repaired by inventing a
+prompt or replaying State Travel. After a steer appends a Delta, `PostToolUse`
+separately refreshes the same persistent Goal step list and CURRENT CHANGE panel.
 
 Moving from the active row to its queued successor is a separate, fail-closed
 checkpoint. The current run must contain one sealed `task.test.output` or

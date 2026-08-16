@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from .canon_runtime_continuity import seal_observed_experience_packet
+from .capture_routing import CaptureRouteAuthority
 from .constants import (
     ENGINE_VERSION,
     GOVERNED_SKILL_COUNT,
@@ -17,13 +18,19 @@ from .constants import (
 from .engine import CodePVEngine
 from .errors import EvidenceLaneError, require
 from .freshness import evaluate_freshness
-from .git_adapter import identity_json, inspect_repository, run_git
-from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
+from .git_adapter import (
+    calculate_worktree_sha256,
+    identity_json,
+    inspect_repository,
+    run_git,
+)
+from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes, sha256_file
 from .host_plan_rehydration import prepare_host_plan_rehydration
 from .ids import prefixed_id
 from .ingest import iter_source_files
 from .lanes import LaneRegistryError, resolve_lane_id
 from .lineage import ChatLineage
+from .mcp_apps import PROJECT_PANEL_SCHEMA
 from .mode_governance import validate_mode_governance_selection
 from .models import (
     ActivePointer,
@@ -54,6 +61,7 @@ from .state_travel_contract import (
     execution_profile_from_context,
     execution_profile_mismatches,
     normalize_additive_deltas,
+    normalize_destination_host_continuity,
     normalize_task_list,
     require_unfinished_execution_profile,
 )
@@ -84,6 +92,15 @@ _PLAN_NORMALIZATION_PHASES = {
     "SESSION_REBOUND",
     "COMMITTED",
 }
+_ACTIVE_CONTRACT_REBIND_SCHEMA = (
+    "evidence-lane.active-contract-rebind-transaction.v1"
+)
+_ACTIVE_CONTRACT_REBIND_PHASES = {
+    "PREPARED",
+    "PLAN_AMENDED",
+    "SESSION_REBOUND",
+    "COMMITTED",
+}
 _SAFE_ID_CHARACTERS = set(
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
 )
@@ -106,6 +123,19 @@ def _require_sha256(value: Any, *, field: str) -> str:
         and all(character in "0123456789ABCDEF" for character in exact),
         "PLAN_NORMALIZATION_SHA256_INVALID",
         "Every Plan-normalization precondition hash must be one exact SHA-256.",
+        status="BLOCKED",
+        field=field,
+    )
+    return exact
+
+
+def _require_active_contract_sha256(value: Any, *, field: str) -> str:
+    exact = str(value or "").strip().upper()
+    require(
+        len(exact) == 64
+        and all(character in "0123456789ABCDEF" for character in exact),
+        "ACTIVE_CONTRACT_REBIND_SHA256_INVALID",
+        "Every active-contract rebind authority must be one exact SHA-256.",
         status="BLOCKED",
         field=field,
     )
@@ -168,6 +198,7 @@ class SessionManager:
         observed_artifact: dict[str, Any] | None = None,
         host_capability: str = "SUPPORTED",
         host_goal_active: bool | None = None,
+        affected_plan_task_ids: list[str] | None = None,
     ) -> dict[str, Any] | None:
         """Prepare the exact host projection when a physical-final Plan exists."""
 
@@ -184,7 +215,7 @@ class SessionManager:
             row.get("panel_role") == "PHYSICALLY_FINAL_HIL" for row in goal_rows
         ):
             return None
-        return prepare_host_plan_rehydration(
+        result = prepare_host_plan_rehydration(
             self.store.root,
             project_id=project_id,
             evidence_session_id=session.session_id,
@@ -194,7 +225,40 @@ class SessionManager:
             host_capability=host_capability,
             observed_artifact=observed_artifact,
             host_goal_active=host_goal_active,
+            affected_plan_task_ids=affected_plan_task_ids,
         )
+        receipt = cast(dict[str, Any], result["receipt"])
+        projection = cast(dict[str, Any], receipt["projection"])
+        session.metadata["host_plan_window"] = {
+            "schema": "evidence-lane.host-plan-window-state.v1",
+            "canonical_plan_sha256": projection.get("canonical_plan_sha256"),
+            "executable_projection_sha256": projection.get(
+                "executable_projection_sha256"
+            ),
+            "projection_sha256": projection.get("projection_sha256"),
+            "full_row_start": projection.get("full_row_start"),
+            "full_row_end": projection.get("full_row_end"),
+            "total_executable_count": projection.get(
+                "total_executable_count"
+            ),
+            "window_index": projection.get("window_index"),
+            "row_start": projection.get("row_start"),
+            "row_end": projection.get("row_end"),
+            "item_count": projection.get("item_count"),
+            "window_ui_fingerprint_sha256": projection.get(
+                "window_ui_fingerprint_sha256"
+            ),
+            "window_task_ids": projection.get("window_task_ids"),
+            "sole_active_row": projection.get("sole_active_row"),
+            "completed_window_count": projection.get(
+                "completed_window_count"
+            ),
+            "action": receipt.get("action"),
+            "receipt_sha256": receipt.get("receipt_sha256"),
+            "recorded_at": receipt.get("sealed_at"),
+        }
+        self._save(session)
+        return result
 
     @staticmethod
     def _source_edit_authority(
@@ -430,6 +494,64 @@ class SessionManager:
         journal: dict[str, Any],
     ) -> None:
         path = self._plan_normalization_path(project_id, transition_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        atomic_write_json(path, journal)
+
+    def _active_contract_rebind_path(
+        self,
+        project_id: str,
+        rebind_id: str,
+    ) -> Path:
+        exact = str(rebind_id or "").strip()
+        require(
+            bool(exact)
+            and len(exact) <= 96
+            and all(character in _SAFE_ID_CHARACTERS for character in exact),
+            "ACTIVE_CONTRACT_REBIND_ID_INVALID",
+            "An active-contract rebind requires one stable public-safe ID.",
+            status="BLOCKED",
+        )
+        root = self.store.project_root(project_id)
+        path = (root / "active_contract_rebindings" / f"{exact}.json").resolve()
+        path.relative_to(root)
+        return path
+
+    def _load_active_contract_rebind_journal(
+        self,
+        project_id: str,
+        rebind_id: str,
+    ) -> dict[str, Any] | None:
+        path = self._active_contract_rebind_path(project_id, rebind_id)
+        if not path.is_file():
+            return None
+        try:
+            journal = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise EvidenceLaneError(
+                "ACTIVE_CONTRACT_REBIND_JOURNAL_INVALID",
+                "The active-contract rebind journal is unreadable.",
+                status="FAIL",
+                details={"path": str(path), "error": type(exc).__name__},
+            ) from exc
+        require(
+            journal.get("schema") == _ACTIVE_CONTRACT_REBIND_SCHEMA
+            and journal.get("project_id") == project_id
+            and journal.get("rebind_id") == rebind_id
+            and journal.get("phase") in _ACTIVE_CONTRACT_REBIND_PHASES,
+            "ACTIVE_CONTRACT_REBIND_JOURNAL_INVALID",
+            "The active-contract rebind journal has an invalid shape.",
+            status="FAIL",
+            path=str(path),
+        )
+        return cast(dict[str, Any], journal)
+
+    def _write_active_contract_rebind_journal(
+        self,
+        project_id: str,
+        rebind_id: str,
+        journal: dict[str, Any],
+    ) -> None:
+        path = self._active_contract_rebind_path(project_id, rebind_id)
         path.parent.mkdir(parents=True, exist_ok=True)
         atomic_write_json(path, journal)
 
@@ -1597,6 +1719,1103 @@ class SessionManager:
             },
         }
 
+    def rebind_active_task_contract(
+        self,
+        project_id: str,
+        *,
+        rebound_by: str,
+        active_contract_rebind: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Amend one active Plan contract and rebind its existing runtime task.
+
+        Plan and session state are separate durable authorities. The journal makes
+        their in-place amendment recoverable without replacing the Plan row,
+        runtime task, governed session, host task, Goal, candidate, or pointer.
+        """
+
+        require(
+            isinstance(active_contract_rebind, dict),
+            "ACTIVE_CONTRACT_REBIND_CONTRACT_INVALID",
+            "The active-contract rebind must be one structured contract.",
+            status="BLOCKED",
+        )
+        contract = dict(active_contract_rebind)
+        rebind_id = str(contract.get("rebind_id") or "").strip()
+        session_id = str(contract.get("session_id") or "").strip()
+        active_task_id = str(contract.get("active_task_id") or "").strip()
+        runtime_task_id = str(
+            contract.get("expected_runtime_task_id") or ""
+        ).strip()
+        task6_thread_id = str(contract.get("task6_thread_id") or "").strip()
+        actor = str(rebound_by or "").strip()
+        approval_receipt_path = str(
+            contract.get("approval_receipt_path") or ""
+        ).strip()
+        for field, value in (
+            ("rebind_id", rebind_id),
+            ("session_id", session_id),
+            ("active_task_id", active_task_id),
+            ("expected_runtime_task_id", runtime_task_id),
+            ("task6_thread_id", task6_thread_id),
+            ("rebound_by", actor),
+            ("approval_receipt_path", approval_receipt_path),
+        ):
+            require(
+                bool(value),
+                "ACTIVE_CONTRACT_REBIND_CONTRACT_INVALID",
+                "The active-contract rebind is missing one exact identity.",
+                status="BLOCKED",
+                field=field,
+            )
+        self._active_contract_rebind_path(project_id, rebind_id)
+        require(
+            session_id.startswith("session_")
+            and session_id.replace("_", "").isalnum()
+            and len(active_task_id) <= 96
+            and all(character in _SAFE_ID_CHARACTERS for character in active_task_id)
+            and len(runtime_task_id) <= 96
+            and all(
+                character in _SAFE_ID_CHARACTERS for character in runtime_task_id
+            )
+            and len(task6_thread_id) <= 96
+            and all(
+                character in _SAFE_ID_CHARACTERS for character in task6_thread_id
+            ),
+            "ACTIVE_CONTRACT_REBIND_ID_INVALID",
+            "The governed session, Plan, runtime-task, or host-task identity is invalid.",
+            status="BLOCKED",
+        )
+        require(
+            contract.get("expected_candidate_absent") is True
+            and contract.get("expected_pending_hil") is False,
+            "ACTIVE_CONTRACT_REBIND_UNACCEPTED_STATE_EXPECTATION_REQUIRED",
+            "The rebind must explicitly expect no candidate and pending_hil=false.",
+            status="BLOCKED",
+        )
+        expected_hashes = {
+            field: _require_active_contract_sha256(
+                contract.get(field), field=field
+            )
+            for field in (
+                "expected_backlog_sha256",
+                "expected_canonical_plan_sha256",
+                "expected_executable_projection_sha256",
+                "expected_session_sha256",
+                "expected_pointer_sha256",
+                "approval_receipt_sha256",
+            )
+        }
+        replacement_supplied = contract.get("replacement_contract")
+        require(
+            isinstance(replacement_supplied, dict),
+            "ACTIVE_CONTRACT_REBIND_REPLACEMENT_INVALID",
+            "The rebind requires one structured replacement task contract.",
+            status="BLOCKED",
+        )
+        replacement_plan_contract = self.store._normalize_plan_task_rows(
+            [
+                {
+                    **cast(dict[str, Any], replacement_supplied),
+                    "task_id": active_task_id,
+                }
+            ]
+        )[0]
+        replacement_runtime_contract = classify_task(
+            task_id=runtime_task_id,
+            task_class=str(replacement_plan_contract["task_class"]),
+            requested_outcome=str(
+                replacement_plan_contract["requested_outcome"]
+            ),
+            permitted_paths=cast(
+                list[str], replacement_plan_contract["permitted_paths"]
+            ),
+            permitted_tools=cast(
+                list[str], replacement_plan_contract["permitted_tools"]
+            ),
+            acceptance_checks=cast(
+                list[str], replacement_plan_contract["acceptance_checks"]
+            ),
+            stop_condition=str(replacement_plan_contract["stop_condition"]),
+        )
+
+        repository_root = Path(
+            self.store.config(project_id).repository_path
+        ).resolve()
+        supplied_approval_path = Path(approval_receipt_path)
+        require(
+            not supplied_approval_path.is_absolute(),
+            "ACTIVE_CONTRACT_REBIND_APPROVAL_PATH_INVALID",
+            "The approval receipt path must be repository-relative.",
+            status="BLOCKED",
+            path=approval_receipt_path,
+        )
+        approval_path = (repository_root / supplied_approval_path).resolve()
+        try:
+            approval_path.relative_to(repository_root)
+            approval_inside_repository = True
+        except ValueError:
+            approval_inside_repository = False
+        require(
+            approval_inside_repository and approval_path.is_file(),
+            "ACTIVE_CONTRACT_REBIND_APPROVAL_PATH_INVALID",
+            "The exact approval receipt must be a file inside the registered repository.",
+            status="MISMATCH",
+            path=approval_receipt_path,
+        )
+        observed_approval_sha256 = sha256_file(approval_path)
+        require(
+            observed_approval_sha256
+            == expected_hashes["approval_receipt_sha256"],
+            "ACTIVE_CONTRACT_REBIND_APPROVAL_HASH_MISMATCH",
+            "The visible user-authority receipt bytes differ from the sealed hash.",
+            status="MISMATCH",
+            expected=expected_hashes["approval_receipt_sha256"],
+            observed=observed_approval_sha256,
+            writes_performed=False,
+        )
+        try:
+            approval = json.loads(approval_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise EvidenceLaneError(
+                "ACTIVE_CONTRACT_REBIND_APPROVAL_INVALID",
+                "The visible user-authority receipt is not valid JSON.",
+                status="MISMATCH",
+                details={"error": type(exc).__name__},
+            ) from exc
+        identity_invariants = approval.get("identity_invariants")
+        forbidden_effects = approval.get("not_authorized")
+        forbidden_text = " ".join(
+            str(value).lower()
+            for value in (
+                forbidden_effects if isinstance(forbidden_effects, list) else []
+            )
+        )
+        require(
+            approval.get("schema")
+            == "evidence-lane.visible-user-authority-receipt.v1"
+            and approval.get("authority_kind")
+            == "HOST_PLAN_EXECUTION_AND_CONTRACT_CORRECTION"
+            and approval.get("project_id") == project_id
+            and approval.get("session_id") == session_id
+            and approval.get("task6_thread_id") == task6_thread_id
+            and isinstance(identity_invariants, dict)
+            and all(
+                cast(dict[str, Any], identity_invariants).get(field) is True
+                for field in (
+                    "same_project",
+                    "same_session",
+                    "same_task6",
+                    "same_active_plan_row",
+                    "same_dirty_worktree",
+                )
+            )
+            and all(
+                marker in forbidden_text
+                for marker in (
+                    "hil",
+                    "candidate",
+                    "pointer",
+                    "goal completion",
+                    "git",
+                    "plugin install",
+                )
+            ),
+            "ACTIVE_CONTRACT_REBIND_APPROVAL_INVALID",
+            "The receipt does not bind the exact Task6 correction and exclusions.",
+            status="MISMATCH",
+            writes_performed=False,
+        )
+
+        request_body = {
+            "project_id": project_id,
+            "rebind_id": rebind_id,
+            "session_id": session_id,
+            "active_task_id": active_task_id,
+            "runtime_task_id": runtime_task_id,
+            "task6_thread_id": task6_thread_id,
+            "rebound_by": actor,
+            "approval_receipt_path": supplied_approval_path.as_posix(),
+            "approval_receipt_sha256": observed_approval_sha256,
+            "expected_hashes": expected_hashes,
+            "replacement_contract": replacement_plan_contract,
+        }
+        request_sha256 = sha256_bytes(canonical_json_bytes(request_body))
+        journal = self._load_active_contract_rebind_journal(
+            project_id, rebind_id
+        )
+        if journal is not None:
+            require(
+                journal.get("request_sha256") == request_sha256,
+                "ACTIVE_CONTRACT_REBIND_REPLAY_CONFLICT",
+                "The rebind ID already binds a different request.",
+                status="BLOCKED",
+                rebind_id=rebind_id,
+            )
+        else:
+            raw_backlog = self.store._load_backlog(project_id)
+            backlog = self.store.backlog_status(project_id)
+            session = self.load(project_id, session_id)
+            pointer = self.store.pointer(project_id)
+            current_hashes = {
+                "backlog_sha256": sha256_bytes(
+                    canonical_json_bytes(raw_backlog)
+                ),
+                "canonical_plan_sha256": str(
+                    backlog["canonical_plan_projection"]["projection_sha256"]
+                ),
+                "executable_projection_sha256": str(
+                    backlog["goal_projection"]["projection_sha256"]
+                ),
+                "session_sha256": self.session_snapshot_sha256(session),
+                "pointer_sha256": sha256_bytes(
+                    canonical_json_bytes(pointer.as_dict())
+                ),
+            }
+            mismatches = {
+                key: {"expected": expected, "current": current_hashes[key]}
+                for key, expected in (
+                    (
+                        "backlog_sha256",
+                        expected_hashes["expected_backlog_sha256"],
+                    ),
+                    (
+                        "canonical_plan_sha256",
+                        expected_hashes["expected_canonical_plan_sha256"],
+                    ),
+                    (
+                        "executable_projection_sha256",
+                        expected_hashes[
+                            "expected_executable_projection_sha256"
+                        ],
+                    ),
+                    (
+                        "session_sha256",
+                        expected_hashes["expected_session_sha256"],
+                    ),
+                    (
+                        "pointer_sha256",
+                        expected_hashes["expected_pointer_sha256"],
+                    ),
+                )
+                if expected != current_hashes[key]
+            }
+            require(
+                not mismatches,
+                "ACTIVE_CONTRACT_REBIND_PRECONDITION_MISMATCH",
+                "Plan, session, and pointer authorities must match before any rebind write.",
+                status="MISMATCH",
+                mismatches=mismatches,
+                writes_performed=False,
+            )
+            active_ids = [str(row["task_id"]) for row in backlog["active"]]
+            require(
+                active_ids == [active_task_id]
+                and session.metadata.get("active_backlog_task_id")
+                == active_task_id
+                and isinstance(session.task, dict)
+                and session.task.get("task_id") == runtime_task_id
+                and session.metadata.get("current_host_session_id")
+                == task6_thread_id
+                and session.state == SessionState.TASK_CLASSIFIED,
+                "ACTIVE_CONTRACT_REBIND_ACTIVE_BINDING_MISMATCH",
+                "The exact active Plan, runtime task, governed session, and Task6 binding must agree.",
+                status="MISMATCH",
+                active_task_ids=active_ids,
+                session_backlog_task_id=session.metadata.get(
+                    "active_backlog_task_id"
+                ),
+                session_runtime_task_id=(
+                    session.task.get("task_id")
+                    if isinstance(session.task, dict)
+                    else None
+                ),
+                session_host_task_id=session.metadata.get(
+                    "current_host_session_id"
+                ),
+                writes_performed=False,
+            )
+            require(
+                session.candidate_id is None
+                and not bool(session.metadata.get("pending_hil"))
+                and not isinstance(session.metadata.get("pending_task"), dict),
+                "ACTIVE_CONTRACT_REBIND_CANDIDATE_OR_HIL_PRESENT",
+                "A contract rebind cannot run with a candidate or pending HIL state.",
+                status="BLOCKED",
+                candidate_id=session.candidate_id,
+                pending_hil=bool(session.metadata.get("pending_hil")),
+                writes_performed=False,
+            )
+            require(
+                pointer.generation == session.accepted_pointer_generation
+                and pointer.accepted_pv == session.accepted_pv
+                and cast(dict[str, Any], identity_invariants).get("accepted_pv")
+                == pointer.accepted_pv
+                and cast(dict[str, Any], identity_invariants).get(
+                    "pointer_generation"
+                )
+                == pointer.generation,
+                "ACTIVE_CONTRACT_REBIND_SESSION_POINTER_STALE",
+                "The session, pointer, and visible authority receipt do not share one accepted authority.",
+                status="STALE",
+                writes_performed=False,
+            )
+            now = utc_now()
+            journal = {
+                "schema": _ACTIVE_CONTRACT_REBIND_SCHEMA,
+                "status": "IN_PROGRESS",
+                "project_id": project_id,
+                "rebind_id": rebind_id,
+                "session_id": session_id,
+                "active_task_id": active_task_id,
+                "runtime_task_id": runtime_task_id,
+                "task6_thread_id": task6_thread_id,
+                "request_sha256": request_sha256,
+                "approval_receipt_sha256": observed_approval_sha256,
+                "baseline": {
+                    **current_hashes,
+                    "task_count": len(backlog["tasks"]),
+                    "event_count": backlog["event_count"],
+                    "event_head_sha256": backlog["event_head_sha256"],
+                    "physical_final_task_id": backlog["tasks"][-1]["task_id"],
+                    "prior_runtime_contract_sha256": sha256_bytes(
+                        canonical_json_bytes(cast(dict[str, Any], session.task))
+                    ),
+                    "candidate_absent": True,
+                    "pending_hil": False,
+                },
+                "replacement_plan_contract": replacement_plan_contract,
+                "replacement_runtime_contract": (
+                    replacement_runtime_contract.as_dict()
+                ),
+                "started_at": now,
+                "phase": "PREPARED",
+                "phase_updated_at": now,
+            }
+            self._write_active_contract_rebind_journal(
+                project_id, rebind_id, journal
+            )
+
+        def advance(phase: str, **details: Any) -> None:
+            journal["phase"] = phase
+            journal["phase_updated_at"] = utc_now()
+            journal.update(details)
+            self._write_active_contract_rebind_journal(
+                project_id, rebind_id, journal
+            )
+
+        if journal["phase"] == "PREPARED":
+            amended = self.store.amend_active_task_contract(
+                project_id,
+                amendment_id=rebind_id,
+                session_id=session_id,
+                active_task_id=active_task_id,
+                replacement_contract=replacement_plan_contract,
+                amended_by=actor,
+                approval_receipt_sha256=observed_approval_sha256,
+                expected_backlog_sha256=expected_hashes[
+                    "expected_backlog_sha256"
+                ],
+                expected_canonical_plan_sha256=expected_hashes[
+                    "expected_canonical_plan_sha256"
+                ],
+                expected_executable_projection_sha256=expected_hashes[
+                    "expected_executable_projection_sha256"
+                ],
+                request_sha256=request_sha256,
+            )
+            amendment_receipt = cast(
+                dict[str, Any], amended["active_contract_amendment_receipt"]
+            )
+            advance(
+                "PLAN_AMENDED",
+                amendment_receipt_sha256=amendment_receipt["receipt_sha256"],
+                amended_canonical_plan_sha256=amended[
+                    "canonical_plan_projection"
+                ]["projection_sha256"],
+                amended_executable_projection_sha256=amended[
+                    "goal_projection"
+                ]["projection_sha256"],
+                amended_event_head_sha256=amended["event_head_sha256"],
+            )
+
+        if journal["phase"] == "PLAN_AMENDED":
+            session = self.load(project_id, session_id)
+            pointer = self.store.pointer(project_id)
+            rebinds = session.metadata.setdefault(
+                "active_contract_rebinds", []
+            )
+            require(
+                isinstance(rebinds, list),
+                "ACTIVE_CONTRACT_REBIND_SESSION_HISTORY_INVALID",
+                "The session contract-rebind history must be append-only data.",
+                status="MISMATCH",
+            )
+            existing = next(
+                (
+                    item
+                    for item in cast(list[Any], rebinds)
+                    if isinstance(item, dict)
+                    and item.get("rebind_id") == rebind_id
+                ),
+                None,
+            )
+            expected_runtime_payload = replacement_runtime_contract.as_dict()
+            if existing is not None:
+                require(
+                    existing.get("request_sha256") == request_sha256
+                    and session.task == expected_runtime_payload
+                    and session.metadata.get("active_backlog_task_id")
+                    == active_task_id
+                    and session.metadata.get("current_host_session_id")
+                    == task6_thread_id,
+                    "ACTIVE_CONTRACT_REBIND_SESSION_REPLAY_CONFLICT",
+                    "Crash recovery found a different session rebind under the same identity.",
+                    status="MISMATCH",
+                )
+                rebind_receipt = cast(dict[str, Any], existing)
+            else:
+                require(
+                    session.metadata.get("active_backlog_task_id")
+                    == active_task_id
+                    and isinstance(session.task, dict)
+                    and session.task.get("task_id") == runtime_task_id
+                    and session.metadata.get("current_host_session_id")
+                    == task6_thread_id,
+                    "ACTIVE_CONTRACT_REBIND_SESSION_REBIND_MISMATCH",
+                    "Crash recovery found neither the prior nor exact rebound session contract.",
+                    status="MISMATCH",
+                )
+                prior_runtime_contract_sha256 = sha256_bytes(
+                    canonical_json_bytes(cast(dict[str, Any], session.task))
+                )
+                require(
+                    prior_runtime_contract_sha256
+                    == journal["baseline"]["prior_runtime_contract_sha256"],
+                    "ACTIVE_CONTRACT_REBIND_PRIOR_RUNTIME_DRIFT",
+                    "The runtime task contract changed after the transaction prepared.",
+                    status="MISMATCH",
+                )
+                rebound_at = utc_now()
+                rebind_body = {
+                    "schema": "evidence-lane.active-contract-session-rebind.v1",
+                    "status": "PASS",
+                    "project_id": project_id,
+                    "session_id": session_id,
+                    "rebind_id": rebind_id,
+                    "request_sha256": request_sha256,
+                    "approval_receipt_sha256": observed_approval_sha256,
+                    "active_plan_task_id": active_task_id,
+                    "runtime_task_id": runtime_task_id,
+                    "task6_thread_id": task6_thread_id,
+                    "prior_runtime_contract_sha256": (
+                        prior_runtime_contract_sha256
+                    ),
+                    "replacement_runtime_contract_sha256": sha256_bytes(
+                        canonical_json_bytes(expected_runtime_payload)
+                    ),
+                    "runtime_task_identity_preserved": True,
+                    "active_plan_row_identity_preserved": True,
+                    "governed_session_identity_preserved": True,
+                    "host_task_identity_preserved": True,
+                    "recovery_binding_contract": {
+                        "manager_scope": "SHARED_MULTI_PROJECT_MULTI_TASK",
+                        "registry_mutability": "MUTABLE_APPEND_OR_REFRESH",
+                        "invocation_binding_scope": "EXACT_CALLING_TASK",
+                        "reentry_target": task6_thread_id,
+                        "installer_helper": "SEPARATE_COMPONENT",
+                    },
+                    "candidate_created": False,
+                    "pending_hil": False,
+                    "pointer_moved": False,
+                    "goal_completion_mutated": False,
+                    "git_executed": False,
+                    "install_executed": False,
+                    "helper_launched": False,
+                    "tunnel_launched": False,
+                    "rebound_at": rebound_at,
+                }
+                rebind_receipt = {
+                    **rebind_body,
+                    "receipt_sha256": sha256_bytes(
+                        canonical_json_bytes(rebind_body)
+                    ),
+                }
+                session.task = expected_runtime_payload
+                session.metadata["active_backlog_task_id"] = active_task_id
+                session.metadata["active_contract_rebind_receipt"] = (
+                    rebind_receipt
+                )
+                cast(list[dict[str, Any]], rebinds).append(rebind_receipt)
+                self._seal_task_classification_binding(
+                    project_id,
+                    session_id,
+                    session=session,
+                    task=replacement_runtime_contract,
+                    pointer=pointer,
+                    target_backlog_task_id=active_task_id,
+                    prior_executable_task_id=active_task_id,
+                )
+                self._save(session)
+            ChatLineage(self._lineage_path(project_id, session_id)).append(
+                event_type="task.active_contract.rebound",
+                visible_payload=rebind_receipt,
+                occurred_at=str(rebind_receipt["rebound_at"]),
+                session_id=session_id,
+                task_id=runtime_task_id,
+                run_id=str(session.metadata.get("run_id") or "") or None,
+                event_id=f"{rebind_id}__session_rebound",
+            )
+            advance(
+                "SESSION_REBOUND",
+                session_rebind_receipt_sha256=rebind_receipt[
+                    "receipt_sha256"
+                ],
+                rebound_session_sha256=self.session_snapshot_sha256(
+                    self.load(project_id, session_id)
+                ),
+            )
+
+        runtime_status = self.store.plan_runtime_status(project_id)
+        plan_runtime_refresh: dict[str, Any] | None = None
+        if runtime_status.get("status") != "PASS":
+            expected_projection_content_sha256 = str(
+                runtime_status.get("expected_projection_content_sha256") or ""
+            )
+            refresh_id = (
+                f"{rebind_id}__"
+                f"{expected_projection_content_sha256[:24].lower()}"
+            )
+            plan_runtime_refresh = self.store.refresh_plan_runtime_projection(
+                project_id,
+                refresh_id=refresh_id,
+                expected_backlog_sha256=sha256_bytes(
+                    canonical_json_bytes(
+                        self.store._load_backlog(project_id)
+                    )
+                ),
+                expected_projection_content_sha256=(
+                    expected_projection_content_sha256
+                ),
+                refreshed_by=actor,
+                reason="ACTIVE_CONTRACT_REBIND_DERIVED_INDEX_PARITY",
+            )
+
+        backlog = self.store.backlog_status(project_id)
+        session = self.load(project_id, session_id)
+        pointer_sha256 = self.pointer_snapshot_sha256(project_id)
+        task_by_id = {
+            str(row["task_id"]): row for row in backlog["tasks"]
+        }
+        active_plan_task = task_by_id.get(active_task_id)
+        plan_contract_after = (
+            {
+                field: active_plan_task.get(field)
+                for field in replacement_plan_contract
+            }
+            if isinstance(active_plan_task, dict)
+            else None
+        )
+        amendments = (
+            active_plan_task.get("task_contract_amendments", [])
+            if isinstance(active_plan_task, dict)
+            else []
+        )
+        amendment = next(
+            (
+                item
+                for item in amendments
+                if isinstance(item, dict)
+                and item.get("amendment_id") == rebind_id
+            ),
+            None,
+        )
+        classification_binding = session.metadata.get(
+            "task_classification_binding"
+        )
+        capture_route = CaptureRouteAuthority(
+            self.store.project_root(project_id)
+        ).status()
+        session_rebinds = session.metadata.get("active_contract_rebinds")
+        session_rebind = next(
+            (
+                item
+                for item in session_rebinds
+                if isinstance(item, dict)
+                and item.get("rebind_id") == rebind_id
+            ),
+            None,
+        ) if isinstance(session_rebinds, list) else None
+        checks = {
+            "sole_active_row_preserved": [
+                str(row["task_id"]) for row in backlog["active"]
+            ]
+            == [active_task_id],
+            "active_plan_contract_replaced": (
+                plan_contract_after == replacement_plan_contract
+                and isinstance(active_plan_task, dict)
+                and active_plan_task.get("current_contract_authority")
+                == "ACTIVE_CONTRACT_REBIND"
+            ),
+            "append_only_plan_amendment_present": (
+                isinstance(amendment, dict)
+                and amendment.get("request_sha256") == request_sha256
+            ),
+            "runtime_task_identity_preserved": (
+                isinstance(session.task, dict)
+                and session.task == replacement_runtime_contract.as_dict()
+                and session.task.get("task_id") == runtime_task_id
+            ),
+            "session_plan_binding_preserved": session.metadata.get(
+                "active_backlog_task_id"
+            )
+            == active_task_id,
+            "task6_host_binding_preserved": session.metadata.get(
+                "current_host_session_id"
+            )
+            == task6_thread_id,
+            "classification_binding_resealed": (
+                isinstance(classification_binding, dict)
+                and classification_binding.get("runtime_task_id")
+                == runtime_task_id
+                and classification_binding.get("task_class")
+                == replacement_runtime_contract.task_class.value
+                and classification_binding.get("authority_boundary", {}).get(
+                    "write_boundary"
+                )
+                == replacement_runtime_contract.write_boundary
+            ),
+            "session_rebind_receipt_present": (
+                isinstance(session_rebind, dict)
+                and session_rebind.get("request_sha256") == request_sha256
+            ),
+            "capture_route_bound": (
+                capture_route.get("project_id") == project_id
+                and capture_route.get("capture_route")
+                in {"ENV_BUILDER_SPARSE", "GOVERNED_PROJECT_FULL"}
+            ),
+            "candidate_absent": session.candidate_id is None,
+            "pending_hil_false": not bool(session.metadata.get("pending_hil")),
+            "pointer_unchanged": pointer_sha256
+            == expected_hashes["expected_pointer_sha256"],
+            "task_count_unchanged": len(backlog["tasks"])
+            == journal["baseline"]["task_count"],
+            "physical_final_task_preserved": backlog["tasks"][-1]["task_id"]
+            == journal["baseline"]["physical_final_task_id"],
+        }
+        require(
+            all(checks.values()),
+            "ACTIVE_CONTRACT_REBIND_COMMIT_VERIFICATION_FAILED",
+            "The rebind cannot commit until Plan, session, Task6, and pointer invariants pass.",
+            status="FAIL",
+            failed_checks=sorted(
+                key for key, passed in checks.items() if not passed
+            ),
+        )
+        final_body = {
+            "canonical_plan_sha256": backlog["canonical_plan_projection"][
+                "projection_sha256"
+            ],
+            "executable_projection_sha256": backlog["goal_projection"][
+                "projection_sha256"
+            ],
+            "history_projection_sha256": backlog["history_projection"][
+                "projection_sha256"
+            ],
+            "plan_runtime_sqlite_sha256": backlog["plan_runtime_projection"][
+                "sqlite_sha256"
+            ],
+            "event_count": backlog["event_count"],
+            "event_head_sha256": backlog["event_head_sha256"],
+            "session_sha256": self.session_snapshot_sha256(session),
+            "pointer_sha256": pointer_sha256,
+            "task_count": len(backlog["tasks"]),
+            "counts": backlog["counts"],
+            "active_task_id": active_task_id,
+            "runtime_task_id": runtime_task_id,
+            "task6_thread_id": task6_thread_id,
+            "capture_route": capture_route["capture_route"],
+            "capture_route_binding_sha256": capture_route[
+                "binding_sha256"
+            ],
+            "physically_final_task_id": backlog["tasks"][-1]["task_id"],
+            "candidate_created": False,
+            "pending_hil": False,
+            "pointer_moved": False,
+            "goal_completion_mutated": False,
+            "git_executed": False,
+            "install_executed": False,
+            "helper_launched": False,
+            "tunnel_launched": False,
+        }
+        if journal["phase"] != "COMMITTED":
+            advance(
+                "COMMITTED",
+                status="PASS",
+                committed_at=utc_now(),
+                result=final_body,
+                result_sha256=sha256_bytes(canonical_json_bytes(final_body)),
+            )
+            idempotent_replay = False
+        else:
+            sealed_result = dict(cast(dict[str, Any], journal.get("result")))
+            current_result = dict(final_body)
+            sealed_sqlite_sha256 = sealed_result.pop(
+                "plan_runtime_sqlite_sha256", None
+            )
+            current_sqlite_sha256 = current_result.pop(
+                "plan_runtime_sqlite_sha256", None
+            )
+            require(
+                sealed_result == current_result
+                and (
+                    sealed_sqlite_sha256 == current_sqlite_sha256
+                    or (
+                        isinstance(plan_runtime_refresh, dict)
+                        and plan_runtime_refresh.get("status") == "PASS"
+                        and plan_runtime_refresh.get("after_sqlite_sha256")
+                        == current_sqlite_sha256
+                    )
+                ),
+                "ACTIVE_CONTRACT_REBIND_COMMITTED_STATE_DRIFT",
+                "The committed active-contract rebind no longer matches its sealed result.",
+                status="MISMATCH",
+                rebind_id=rebind_id,
+            )
+            idempotent_replay = True
+        return {
+            **backlog,
+            "active_contract_rebind": {
+                **final_body,
+                "schema": _ACTIVE_CONTRACT_REBIND_SCHEMA,
+                "status": "PASS",
+                "rebind_id": rebind_id,
+                "request_sha256": request_sha256,
+                "approval_receipt_sha256": observed_approval_sha256,
+                "journal_phase": journal["phase"],
+                "journal_path": str(
+                    self._active_contract_rebind_path(project_id, rebind_id)
+                ),
+                "result_sha256": journal["result_sha256"],
+                "current_result_sha256": sha256_bytes(
+                    canonical_json_bytes(final_body)
+                ),
+                "idempotent_replay": idempotent_replay,
+                "crash_recoverable": True,
+                "writes_on_precondition_mismatch": 0,
+                "plan_runtime_refresh": plan_runtime_refresh,
+            },
+        }
+
+    def apply_priority_plan_interruption(
+        self,
+        project_id: str,
+        *,
+        planned_by: str,
+        plan_id: str,
+        atomic_insertion: dict[str, Any],
+        priority_interruption: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Insert one priority Delta, pause the live row, and rebind the session.
+
+        Each phase is idempotent: the atomic-insertion journal owns the new row,
+        the ProjectStore swaps ACTIVE/QUEUED under one lock, and the session save
+        can be replayed if a process stops between the Plan and session phases.
+        """
+
+        contract = dict(priority_interruption)
+        interruption_id = str(contract.get("interruption_id") or "").strip()
+        session_id = str(contract.get("session_id") or "").strip()
+        old_active_task_id = str(
+            contract.get("old_active_task_id") or ""
+        ).strip()
+        replacement_task_id = str(
+            contract.get("replacement_task_id") or ""
+        ).strip()
+        reason = str(contract.get("reason") or "").strip()
+        for field, value in (
+            ("interruption_id", interruption_id),
+            ("session_id", session_id),
+            ("old_active_task_id", old_active_task_id),
+            ("replacement_task_id", replacement_task_id),
+            ("reason", reason),
+        ):
+            require(
+                bool(value),
+                "PLAN_PRIORITY_STEER_CONTRACT_INVALID",
+                "The priority Plan steer is missing one exact identity or reason.",
+                status="BLOCKED",
+                field=field,
+            )
+        require(
+            contract.get("expected_candidate_absent") is True
+            and contract.get("expected_pending_hil") is False,
+            "PLAN_PRIORITY_STEER_UNACCEPTED_STATE_EXPECTATION_REQUIRED",
+            "The priority steer must explicitly expect no candidate and no pending HIL.",
+            status="BLOCKED",
+        )
+        insertions = atomic_insertion.get("insertions")
+        require(
+            isinstance(insertions, list) and len(insertions) == 1,
+            "PLAN_PRIORITY_STEER_INSERTION_INVALID",
+            "A priority steer requires exactly one bounded insertion group.",
+            status="BLOCKED",
+        )
+        insertion_groups = cast(list[dict[str, Any]], insertions)
+        group = insertion_groups[0]
+        inserted_tasks = group.get("tasks")
+        require(
+            group.get("insert_before_task_id") == old_active_task_id
+            and isinstance(inserted_tasks, list)
+            and len(inserted_tasks) == 1
+            and cast(dict[str, Any], inserted_tasks[0]).get("task_id")
+            == replacement_task_id,
+            "PLAN_PRIORITY_STEER_INSERTION_ORDER_INVALID",
+            "The sole inserted correction must be immediately before the live row.",
+            status="MISMATCH",
+        )
+        session = self.load(project_id, session_id)
+        pointer = self.store.pointer(project_id)
+        backlog_before = self.store.backlog_status(project_id)
+        task_ids_before = {
+            str(row["task_id"]): row for row in backlog_before["tasks"]
+        }
+        replacement_before = task_ids_before.get(replacement_task_id)
+        active_ids_before = [
+            str(row["task_id"]) for row in backlog_before["active"]
+        ]
+        initial_state = replacement_before is None
+        replay_state = (
+            isinstance(replacement_before, dict)
+            and replacement_before.get("status") == "ACTIVE"
+            and task_ids_before.get(old_active_task_id, {}).get("status")
+            == "QUEUED"
+        )
+        require(
+            (
+                initial_state
+                and active_ids_before == [old_active_task_id]
+                and session.metadata.get("active_backlog_task_id")
+                == old_active_task_id
+            )
+            or (
+                replay_state
+                and active_ids_before == [replacement_task_id]
+                and session.metadata.get("active_backlog_task_id")
+                in {old_active_task_id, replacement_task_id}
+            ),
+            "PLAN_PRIORITY_STEER_ACTIVE_BINDING_MISMATCH",
+            "The live Plan and governed session do not match the priority steer boundary.",
+            status="MISMATCH",
+            active_task_ids=active_ids_before,
+            session_backlog_task_id=session.metadata.get(
+                "active_backlog_task_id"
+            ),
+        )
+        require(
+            session.state == SessionState.TASK_CLASSIFIED
+            and session.candidate_id is None
+            and not bool(session.metadata.get("pending_hil"))
+            and not isinstance(session.metadata.get("pending_task"), dict)
+            and pointer.generation == session.accepted_pointer_generation
+            and pointer.accepted_pv == session.accepted_pv,
+            "PLAN_PRIORITY_STEER_SESSION_BOUNDARY_INVALID",
+            "Priority work may interrupt only the exact candidate-free classified session.",
+            status="BLOCKED",
+            session_state=session.state.value,
+            candidate_id=session.candidate_id,
+            pending_hil=bool(session.metadata.get("pending_hil")),
+        )
+        if initial_state:
+            appended = self.store.plan_tasks_atomic_insert(
+                project_id,
+                insertions=cast(list[dict[str, Any]], insertions),
+                planned_by=planned_by,
+                plan_id=plan_id,
+                batch_id=str(atomic_insertion.get("batch_id") or ""),
+                research_batch_sha256=str(
+                    atomic_insertion.get("research_batch_sha256") or ""
+                ),
+                expected_backlog_sha256=str(
+                    atomic_insertion.get("expected_backlog_sha256") or ""
+                ),
+                expected_canonical_plan_sha256=str(
+                    atomic_insertion.get("expected_canonical_plan_sha256") or ""
+                ),
+                expected_executable_projection_sha256=str(
+                    atomic_insertion.get("expected_executable_projection_sha256")
+                    or ""
+                ),
+                expected_physical_final_task_id=str(
+                    atomic_insertion.get("expected_physical_final_task_id") or ""
+                ),
+            )
+        else:
+            # The committed insertion journal seals the Plan immediately before
+            # the priority swap.  Once ACTIVE/QUEUED changes, generic insertion
+            # replay must (correctly) reject the newer backlog hash.  Recover the
+            # exact committed receipt here only after proving that the inserted
+            # row, its contract, and the journal all bind this interruption.
+            replacement_before_row = cast(dict[str, Any], replacement_before)
+            exact_batch_id = str(atomic_insertion.get("batch_id") or "").strip()
+            journal_path = self.store._plan_atomic_insertion_journal_path(
+                project_id,
+                exact_batch_id,
+            )
+            require(
+                bool(exact_batch_id) and journal_path.is_file(),
+                "PLAN_PRIORITY_STEER_INSERTION_JOURNAL_MISSING",
+                "The replayed priority steer is missing its committed insertion journal.",
+                status="MISMATCH",
+                batch_id=exact_batch_id,
+            )
+            journal = json.loads(journal_path.read_text(encoding="utf-8"))
+            receipt = journal.get("receipt")
+            normalized_inserted = self.store._normalize_plan_task_rows(
+                cast(list[dict[str, Any]], inserted_tasks)
+            )[0]
+            inserted_contract_matches = all(
+                replacement_before_row.get(key) == value
+                for key, value in normalized_inserted.items()
+            )
+            require(
+                journal.get("schema")
+                == "evidence-lane.plan-atomic-insertion-journal.v1"
+                and journal.get("state") == "COMMITTED"
+                and journal.get("project_id") == project_id
+                and journal.get("batch_id") == exact_batch_id
+                and isinstance(receipt, dict)
+                and receipt.get("plan_id") == plan_id
+                and receipt.get("batch_id") == exact_batch_id
+                and receipt.get("research_batch_sha256")
+                == atomic_insertion.get("research_batch_sha256")
+                and receipt.get("task_ids") == [replacement_task_id]
+                and receipt.get("task_count") == 1
+                and receipt.get("group_count") == 1
+                and receipt.get("physical_final_task_id")
+                == atomic_insertion.get("expected_physical_final_task_id")
+                and replacement_before_row.get("plan_id") == plan_id
+                and inserted_contract_matches,
+                "PLAN_PRIORITY_STEER_INSERTION_REPLAY_MISMATCH",
+                "The replayed priority steer does not match its sealed insertion contract.",
+                status="MISMATCH",
+                batch_id=exact_batch_id,
+                replacement_task_id=replacement_task_id,
+            )
+            appended = {
+                **backlog_before,
+                "atomic_insertion_receipt": {
+                    **cast(dict[str, Any], receipt),
+                    "idempotent_replay": True,
+                    "recovered_prepared_insertion": False,
+                },
+            }
+        reason_sha256 = sha256_bytes(reason.encode("utf-8"))
+        activated = self.store.activate_priority_steer(
+            project_id,
+            old_active_task_id=old_active_task_id,
+            replacement_task_id=replacement_task_id,
+            session_id=session_id,
+            runtime_task_id=replacement_task_id,
+            decided_by=planned_by,
+            reason_sha256=reason_sha256,
+            interruption_id=interruption_id,
+        )
+        session = self.load(project_id, session_id)
+        replacement = next(
+            row
+            for row in activated["tasks"]
+            if row["task_id"] == replacement_task_id
+        )
+        already_rebound = (
+            session.metadata.get("active_backlog_task_id")
+            == replacement_task_id
+            and isinstance(session.task, dict)
+            and session.task.get("task_id") == replacement_task_id
+        )
+        if not already_rebound:
+            require(
+                session.metadata.get("active_backlog_task_id")
+                == old_active_task_id
+                and isinstance(session.task, dict),
+                "PLAN_PRIORITY_STEER_SESSION_REBIND_MISMATCH",
+                "The session is bound to neither the paused nor priority Delta.",
+                status="MISMATCH",
+            )
+            prior_task = cast(dict[str, Any], session.task)
+            replacement_contract = classify_task(
+                task_id=replacement_task_id,
+                task_class=str(replacement["task_class"]),
+                requested_outcome=str(replacement["requested_outcome"]),
+                permitted_paths=cast(list[str], replacement["permitted_paths"]),
+                permitted_tools=cast(list[str], replacement["permitted_tools"]),
+                acceptance_checks=cast(
+                    list[str], replacement["acceptance_checks"]
+                ),
+                stop_condition=str(replacement["stop_condition"]),
+            ).as_dict()
+            rebound_at = utc_now()
+            run_id = f"run_priority_{sha256_bytes(interruption_id.encode('utf-8'))[:24].lower()}"
+            rebind_body = {
+                "schema": "evidence-lane.plan-priority-steer-rebind.v1",
+                "interruption_id": interruption_id,
+                "plan_id": plan_id,
+                "session_id": session_id,
+                "paused_backlog_task_id": old_active_task_id,
+                "paused_runtime_task_id": prior_task.get("task_id"),
+                "replacement_backlog_task_id": replacement_task_id,
+                "replacement_runtime_task_id": replacement_task_id,
+                "reason_sha256": reason_sha256,
+                "candidate_created": False,
+                "pending_hil": False,
+                "pointer_moved": False,
+                "rebound_at": rebound_at,
+            }
+            rebind_receipt = {
+                **rebind_body,
+                "receipt_sha256": sha256_bytes(
+                    canonical_json_bytes(rebind_body)
+                ),
+            }
+            session.metadata.setdefault("priority_steer_rebinds", []).append(
+                rebind_receipt
+            )
+            session.metadata["active_backlog_task_id"] = replacement_task_id
+            session.metadata["active_backlog_task_status"] = "ACTIVE"
+            session.metadata["run_id"] = run_id
+            session.metadata["source_update_confirmed"] = False
+            session.task = replacement_contract
+            self._save(session)
+            ChatLineage(self._lineage_path(project_id, session_id)).append(
+                event_type="plan.priority_steer.rebound",
+                visible_payload=rebind_receipt,
+                occurred_at=rebound_at,
+                session_id=session_id,
+                task_id=replacement_task_id,
+                run_id=run_id,
+                event_id=f"{interruption_id}__session_rebound",
+            )
+        else:
+            rebind_receipt = next(
+                (
+                    cast(dict[str, Any], row)
+                    for row in session.metadata.get("priority_steer_rebinds", [])
+                    if isinstance(row, dict)
+                    and row.get("interruption_id") == interruption_id
+                ),
+                {},
+            )
+            require(
+                bool(rebind_receipt),
+                "PLAN_PRIORITY_STEER_REPLAY_RECEIPT_MISSING",
+                "The replayed session binding is missing its priority-steer receipt.",
+                status="MISMATCH",
+            )
+        activated["atomic_insertion_receipt"] = appended[
+            "atomic_insertion_receipt"
+        ]
+        activated["priority_steer_rebind"] = rebind_receipt
+        return activated
+
     def ensure_installation(self) -> dict[str, Any]:
         path = self.store.root / "installation.json"
         if path.exists():
@@ -2551,7 +3770,7 @@ class SessionManager:
         }
         panel_hil = panel.get("hil")
         require(
-            panel.get("schema") == "evidence-lane.mcp-app-panel.v1"
+            panel.get("schema") == PROJECT_PANEL_SCHEMA
             and panel.get("panel") == "project"
             and panel.get("status") == "PASS"
             and panel.get("read_only") is True
@@ -3134,7 +4353,7 @@ class SessionManager:
             status="MISMATCH",
         )
         require(
-            panel.get("schema") == "evidence-lane.mcp-app-panel.v1"
+            panel.get("schema") == PROJECT_PANEL_SCHEMA
             and panel.get("panel") == "project"
             and panel.get("status") == "PASS"
             and panel.get("read_only") is True
@@ -3407,9 +4626,14 @@ class SessionManager:
             and proof.get("schema")
             == "evidence-lane.active-task-acceptance-checkpoint.v1"
         )
+        per_delta_proof = (
+            verification_kind == "PER_DELTA_LOCAL_VERIFICATION"
+            and proof.get("schema")
+            == "evidence-lane.per-delta-local-verification-checkpoint.v1"
+        )
         require(
             bool(verification_kind)
-            and (exact_binding_proof or acceptance_proof)
+            and (exact_binding_proof or acceptance_proof or per_delta_proof)
             and proof.get("status") == "PASS"
             and proof.get("project_id") == project_id
             and proof.get("evidence_session_id") == session_id
@@ -3448,6 +4672,22 @@ class SessionManager:
             ),
             None,
         )
+        per_delta_required = isinstance(completed_task, dict) and (
+            str(completed_task.get("task_id") or "").startswith(
+                "EL-CODEX-T6-PARITY-"
+            )
+            or str(completed_task.get("commit_batch_id") or "")
+            == "PV13_TASK6_PARITY"
+            or str(completed_task.get("current_contract_authority") or "")
+            == "ACTIVE_CONTRACT_REBIND"
+        )
+        require(
+            not per_delta_required or per_delta_proof,
+            "TASK_CHECKPOINT_ADVANCE_DELTA_VERIFICATION_REQUIRED",
+            "A normalized Task6 parity row cannot advance on a generic PASS checkpoint.",
+            status="BLOCKED",
+            completed_backlog_task_id=completed_backlog_task_id,
+        )
         if acceptance_proof:
             acceptance = proof.get("acceptance_contract")
             evidence = proof.get("acceptance_evidence")
@@ -3467,6 +4707,82 @@ class SessionManager:
                 and len(str(evidence.get("visible_payload_sha256") or "")) == 64,
                 "TASK_CHECKPOINT_ADVANCE_ACCEPTANCE_MISMATCH",
                 "The checkpoint proof does not cover the active task's exact acceptance contract.",
+                status="MISMATCH",
+            )
+        if per_delta_proof:
+            delta = proof.get("delta_verification")
+            delta_body = (
+                {key: value for key, value in delta.items() if key != "receipt_sha256"}
+                if isinstance(delta, dict)
+                else {}
+            )
+            exact_checks = (
+                completed_task.get("acceptance_checks", [])
+                if isinstance(completed_task, dict)
+                else []
+            )
+            exact_dependencies = (
+                completed_task.get("dependencies", [])
+                if isinstance(completed_task, dict)
+                else []
+            )
+            changed_paths = (
+                delta.get("changed_paths", []) if isinstance(delta, dict) else []
+            )
+            test_runs = delta.get("test_runs", []) if isinstance(delta, dict) else []
+            repository = Path(self.store.config(project_id).repository_path).resolve()
+            live_paths_match = isinstance(changed_paths, list) and all(
+                isinstance(row, dict)
+                and (repository / Path(str(row.get("path") or ""))).resolve().is_file()
+                and (repository / Path(str(row.get("path") or "")))
+                .resolve()
+                .is_relative_to(repository)
+                and sha256_file(
+                    (repository / Path(str(row.get("path") or ""))).resolve()
+                )
+                == row.get("sha256")
+                for row in changed_paths
+            )
+            test_runs_match = isinstance(test_runs, list) and all(
+                isinstance(row, dict)
+                and row.get("status") == "PASS"
+                and sha256_bytes(str(row.get("command") or "").encode("utf-8"))
+                == row.get("command_sha256")
+                and sha256_bytes(str(row.get("output") or "").encode("utf-8"))
+                == row.get("output_sha256")
+                and bool(row.get("negative_cases"))
+                for row in test_runs
+            )
+            require(
+                isinstance(completed_task, dict)
+                and isinstance(delta, dict)
+                and delta.get("schema")
+                == "evidence-lane.per-delta-local-verification.v1"
+                and delta.get("status") == "PASS"
+                and delta.get("receipt_sha256")
+                == sha256_bytes(canonical_json_bytes(delta_body))
+                and delta.get("active_task_id") == completed_backlog_task_id
+                and delta.get("task_contract_sha256")
+                == proof.get("active_plan_row", {}).get("task_contract_sha256")
+                and delta.get("dependency_generation") == pointer.generation
+                and delta.get("dependency_task_ids") == exact_dependencies
+                and delta.get("acceptance_checks") == exact_checks
+                and delta.get("acceptance_checks_sha256")
+                == sha256_bytes(canonical_json_bytes(exact_checks))
+                and delta.get("post_worktree_sha256")
+                == calculate_worktree_sha256(repository)
+                and len(changed_paths) >= 1
+                and live_paths_match
+                and len(test_runs) >= 1
+                and test_runs_match
+                and delta.get("candidate_created") is False
+                and delta.get("pending_hil") is False
+                and delta.get("pointer_moved") is False
+                and delta.get("hil_inferred") is False
+                and delta.get("git_executed") is False
+                and delta.get("install_executed") is False,
+                "TASK_CHECKPOINT_ADVANCE_DELTA_VERIFICATION_MISMATCH",
+                "The checkpoint does not bind exact live per-Delta code and test evidence.",
                 status="MISMATCH",
             )
         require(
@@ -3544,7 +4860,7 @@ class SessionManager:
             status="MISMATCH",
         )
         require(
-            panel.get("schema") == "evidence-lane.mcp-app-panel.v1"
+            panel.get("schema") == PROJECT_PANEL_SCHEMA
             and panel.get("panel") == "project"
             and panel.get("status") == "PASS"
             and panel.get("read_only") is True
@@ -6944,6 +8260,12 @@ class SessionManager:
                 "SESSION_CONTINUATION",
                 "SESSION_RESUME",
                 "STATE_TRAVEL_DESTINATION_ENTRY",
+                "APP_RENDERER_RELOAD",
+                "HOST_REACT_ROOT_RERENDER",
+                "THREAD_HYDRATION_OVERFLOW",
+                "COLLABORATION_OVERLAY_CONFLICT",
+                "TASK_PANEL_LOSS",
+                "CHANGES_SURFACE_LOSS",
             ],
             "first_required_action": (
                 "REPROJECT_EXACT_COMPLETE_TASK_LIST"
@@ -6983,9 +8305,29 @@ class SessionManager:
                 "visible_label_contract"
             ),
             "visible_through_pause_and_hil": True,
+            "native_host_surfaces": [
+                "CODEX_RIGHT_SIDE_PLAN",
+                "CODEX_RIGHT_SIDE_CHANGES",
+            ],
+            "native_plan_activation_action": "update_plan",
+            "changes_surface_binding": "EXACT_TASK_UUID_AND_WORKTREE",
+            "surface_drop_before_goal_completion": (
+                "HOST_CONTINUITY_FAILURE_THEN_REHYDRATE_BEFORE_WORK"
+            ),
+            "canonical_rehydration_source": (
+                "PLAN_LANE_BACKLOG_NOT_THREAD_HISTORY"
+            ),
+            "full_thread_history_hydration_allowed": False,
+            "collaboration_overlay_hydration_allowed_during_recovery": False,
+            "recovery_concurrency": "ONE_ACTIVE_TASK_ZERO_SUBAGENTS",
+            "renderer_reset_effect": (
+                "FAIL_CLOSED_THEN_REPROJECT_EXACTLY_ONCE_PER_EVENT"
+            ),
+            "host_owned_surface_guarantee_claimed": False,
+            "goal_completion_authority": "HUMAN_ONLY",
             "drop_allowed_when": (
-                "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_"
-                "DECISION_DEPENDENT_WORK_COMPLETE"
+                "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_"
+                "HANDOFF_PASSES"
             ),
         }
         execution_writer_boundary = {
@@ -7033,9 +8375,14 @@ class SessionManager:
             ],
             "completed_governing_rows_may_be_omitted": False,
             "goal_completion_allowed_when": (
-                "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_"
-                "DECISION_DEPENDENT_WORK_COMPLETE"
+                "HUMAN_EXPLICIT_GOAL_COMPLETION_DISPOSITION"
             ),
+            "goal_completion_authority": "HUMAN_ONLY",
+            "hil_may_complete_goal": False,
+            "goal_completion_modes": [
+                "COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
+                "COMPLETE_FULLY",
+            ],
         }
         codex_host = session.host.value.startswith("CODEX")
         source_task_id = str(
@@ -7133,6 +8480,34 @@ class SessionManager:
             "destination_creation_capability_unavailable_behavior": (
                 "FAIL_CLOSED_WITHOUT_RESUME_OR_GOAL"
             ),
+            "host_continuity_failure_code": (
+                "STATE_TRAVEL_HOST_CONTINUITY_FAILURE"
+            ),
+            "app_restart_or_renderer_reload_allowed": False,
+            "full_thread_history_hydration_allowed": False,
+            "collaboration_overlay_hydration_allowed": False,
+            "destination_thread_hydration_mode": (
+                "BOUNDED_HANDOFF_ENVELOPE_ONLY"
+            ),
+            "host_plan_projection_source": (
+                "CANONICAL_PLAN_LANE_NOT_THREAD_HISTORY"
+            ),
+            "unexpected_task_or_agent_activation_allowed": False,
+            "host_continuity_failure_retry_allowed": False,
+            "host_continuity_failure_handoff_consumption_allowed": False,
+            "host_continuity_required_proof": {
+                "schema": "evidence-lane.state-travel-host-continuity.v1",
+                "same_host_process_instance": True,
+                "exact_initial_shell_source_and_destination_task_ids": True,
+                "exact_host_creation_result_task_id_and_deep_link": True,
+                "zero_app_restart_renderer_reload_ui_freeze_events": True,
+                "zero_unexpected_navigation_task_or_agent_activations": True,
+                "zero_unbounded_thread_or_collaboration_overlay_hydrations": True,
+                "bounded_handoff_envelope_only": True,
+                "canonical_plan_not_thread_history": True,
+                "one_live_canonical_destination_title_identity": True,
+                "title_or_cwd_identity_allowed": False,
+            },
             "source_task_binding": source_task_binding,
             "destination_binding_required_fields": [
                 "SOURCE_TASK_ID_AND_DEEP_LINK",
@@ -7144,6 +8519,7 @@ class SessionManager:
                 "PLUGIN_BUILD",
                 "SOURCE_IDENTITY_AND_DIRTY_UNTRACKED_WORKTREE",
                 "EXECUTION_PROFILE",
+                "HOST_PROCESS_AND_INITIAL_SHELL_CONTINUITY",
             ],
             "title_or_cwd_only_binding_allowed": False,
             "manual_plan_mode_command_required": False,
@@ -7204,6 +8580,14 @@ class SessionManager:
                     "exactly_once": True,
                     "bind": source_task_binding,
                     "fail_closed_without_host_capability": True,
+                    "app_restart_allowed": False,
+                    "renderer_reload_allowed": False,
+                    "full_thread_history_hydration_allowed": False,
+                    "collaboration_overlay_hydration_allowed": False,
+                    "thread_hydration_mode": (
+                        "BOUNDED_HANDOFF_ENVELOPE_ONLY"
+                    ),
+                    "host_continuity_proof_required_before_phase_2": True,
                 },
                 {
                     "number": 2,
@@ -7222,6 +8606,7 @@ class SessionManager:
                         "CANONICAL_PLAN_AUTHORITY",
                         "SOLE_ACTIVE_ROW",
                         "PHYSICALLY_FINAL_HIL_ROW_WHEN_DECLARED",
+                        "HOST_PROCESS_AND_INITIAL_SHELL_CONTINUITY",
                     ],
                 },
                 {
@@ -7284,8 +8669,8 @@ class SessionManager:
             ),
             "panel_reactivation": panel_reactivation,
             "task_panel_persistent_until": (
-                "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_"
-                "DECISION_DEPENDENT_WORK_COMPLETE"
+                "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_"
+                "HANDOFF_PASSES"
             ),
             "execution_profile": execution_profile,
             "execution_profile_match_required": bool(execution_profile),
@@ -7452,6 +8837,13 @@ class SessionManager:
                 destination_task_id=exact_host_session_id,
                 destination_task_deep_link=destination_task_deep_link,
             )
+            host_continuity = normalize_destination_host_continuity(
+                creation.get("host_continuity"),
+                source_task_id=source_task_id,
+                source_task_deep_link=source_task_deep_link,
+                destination_task_id=exact_host_session_id,
+                destination_task_deep_link=destination_task_deep_link,
+            )
             require(
                 source_binding.get("binding_sha256")
                 == sha256_bytes(canonical_json_bytes(source_binding_body))
@@ -7491,6 +8883,7 @@ class SessionManager:
                 "destination_task_id": exact_host_session_id,
                 "destination_task_deep_link": destination_task_deep_link,
                 "destination_resolution": destination_resolution,
+                "host_continuity": host_continuity,
                 "host_action": creation.get("host_action"),
                 "creation_count": creation.get("creation_count"),
                 "canonical_title_increment_verified": True,
@@ -7900,6 +9293,7 @@ class SessionManager:
         existing = session.metadata.get("state_travel")
         superseded_prepared: dict[str, Any] | None = None
         supersession_disposition: dict[str, Any] | None = None
+        supersession_event_type: str | None = None
         if isinstance(existing, dict) and existing.get("status") == "PREPARED":
             if existing.get("verified_snapshot_sha256") != verified_snapshot_sha256:
                 supplied = resume_contract or {}
@@ -7923,24 +9317,78 @@ class SessionManager:
                 origin_host_session_id = str(
                     existing.get("origin_host_session_id") or ""
                 )
-                require(
-                    bool(current_host_session_id)
-                    and current_host_session_id == origin_host_session_id,
-                    "STATE_TRAVEL_PREPARED_SUPERSESSION_HOST_MISMATCH",
-                    "A prepared handoff may be replaced only by an explicit user "
-                    "correction in the unchanged origin host session.",
-                    status="BLOCKED",
-                    current_host_session_id=current_host_session_id or None,
-                    origin_host_session_id=origin_host_session_id or None,
+                same_host_correction = bool(current_host_session_id) and (
+                    current_host_session_id == origin_host_session_id
                 )
+                if same_host_correction:
+                    disposition_status = (
+                        "SUPERSEDED_BY_SAME_HOST_USER_CORRECTION"
+                    )
+                    supersession_event_type = (
+                        "pv.state_travel.superseded_same_host_user_correction"
+                    )
+                else:
+                    orphan_handoff_sha256 = str(
+                        supplied.get("supersede_prepared_handoff_sha256") or ""
+                    )
+                    orphan_origin_host_session_id = str(
+                        supplied.get(
+                            "supersede_prepared_origin_host_session_id"
+                        )
+                        or ""
+                    )
+                    orphan_scope = str(
+                        supplied.get("supersede_prepared_scope") or ""
+                    )
+                    orphan_confirmation = str(
+                        supplied.get("supersede_prepared_confirmation") or ""
+                    )
+                    require(
+                        bool(current_host_session_id)
+                        and bool(origin_host_session_id)
+                        and current_host_session_id != origin_host_session_id
+                        and orphan_handoff_sha256
+                        == str(existing.get("handoff_sha256") or "")
+                        and orphan_origin_host_session_id
+                        == origin_host_session_id
+                        and orphan_scope == "ORPHANED_STALE_HOST_TASK"
+                        and orphan_confirmation
+                        == "SUPERSEDE_ORPHANED_PREPARED_HANDOFF",
+                        "STATE_TRAVEL_PREPARED_ORPHAN_CORRECTION_INVALID",
+                        "Cross-host replacement requires the exact stale prepared "
+                        "handoff identity, its origin host identity, and an explicit "
+                        "user orphan-disposition confirmation.",
+                        status="BLOCKED",
+                        current_host_session_id=current_host_session_id or None,
+                        origin_host_session_id=origin_host_session_id or None,
+                        supplied_handoff_sha256=(
+                            orphan_handoff_sha256 or None
+                        ),
+                        expected_handoff_sha256=(
+                            existing.get("handoff_sha256") or None
+                        ),
+                        supplied_origin_host_session_id=(
+                            orphan_origin_host_session_id or None
+                        ),
+                        supplied_scope=orphan_scope or None,
+                    )
+                    disposition_status = (
+                        "SUPERSEDED_BY_EXPLICIT_ORPHAN_USER_CORRECTION"
+                    )
+                    supersession_event_type = (
+                        "pv.state_travel.superseded_orphan_user_correction"
+                    )
                 superseded_prepared = dict(existing)
                 supersession_disposition = {
                     "schema": "evidence-lane.state-travel-disposition.v1",
-                    "status": "SUPERSEDED_BY_SAME_HOST_USER_CORRECTION",
+                    "status": disposition_status,
                     "handoff_id": existing.get("handoff_id"),
                     "handoff_sha256": existing.get("handoff_sha256"),
                     "supersede_reason": supersede_reason,
                     "host_session_id": current_host_session_id,
+                    "origin_host_session_id": origin_host_session_id,
+                    "replacement_host_session_id": current_host_session_id,
+                    "orphaned_stale_host_task": not same_host_correction,
                     "pointer_moved": False,
                     "state_travel_consumed": False,
                     "superseded_at": utc_now(),
@@ -8035,8 +9483,15 @@ class SessionManager:
         lineage = ChatLineage(self._lineage_path(project_id, session_id))
         supersession_event = None
         if supersession_disposition is not None:
+            require(
+                supersession_event_type is not None,
+                "STATE_TRAVEL_SUPERSESSION_EVENT_TYPE_REQUIRED",
+                "State Travel supersession requires one exact visible event type.",
+                status="MISMATCH",
+            )
+            assert supersession_event_type is not None
             supersession_event = lineage.append(
-                event_type="pv.state_travel.superseded_same_host_user_correction",
+                event_type=supersession_event_type,
                 visible_payload=supersession_disposition,
                 occurred_at=supersession_disposition["superseded_at"],
                 session_id=session_id,

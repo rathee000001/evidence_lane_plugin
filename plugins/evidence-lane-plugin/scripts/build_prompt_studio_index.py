@@ -243,7 +243,7 @@ def _source_specs(
         ("ARCHITECTURE.md", "Evidence Lane 2.2 system architecture", _github_blob("ARCHITECTURE.md", revision), "documentation"),
         ("SECURITY.md", "Security policy", _github_blob("SECURITY.md", revision), "policy"),
         ("LICENSE.md", "Proprietary license", _github_blob("LICENSE.md", revision), "policy"),
-        ("COPYRIGHT.md", "Copyright and ownership", _github_blob("COPYRIGHT.md", revision), "policy"),
+        ("docs/COPYRIGHT.md", "Copyright and ownership", _github_blob("docs/COPYRIGHT.md", revision), "policy"),
         ("docs/CREDITS_AND_CONTRIBUTIONS.md", "Credits and contribution policy", "/credits", "policy"),
         ("docs/DEPENDENCY_LICENSE_AUDIT.md", "Direct dependency license audit", "/credits", "policy"),
         ("docs/UPSTREAM_REFERENCE_PROVENANCE.md", "Upstream reference provenance", "/credits", "provenance"),

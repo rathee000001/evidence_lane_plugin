@@ -25,10 +25,28 @@ def _load_runtime():
     )
 
 
+def _load_behavior_handoff():
+    hook_root = Path(__file__).resolve().parent
+    if str(hook_root) not in sys.path:
+        sys.path.insert(0, str(hook_root))
+    from behavior_handoff import attach_consumed_behavior_handoff
+
+    return attach_consumed_behavior_handoff
+
+
 def _record(payload: dict[str, Any]) -> tuple[dict[str, Any], bool]:
     build_transport, consume_transport, _ = _load_runtime()
     transport = build_transport("UserPromptSubmit", payload)
-    return consume_transport(payload, transport)
+    receipt, should_continue = consume_transport(payload, transport)
+    return (
+        _load_behavior_handoff()(
+            "UserPromptSubmit",
+            transport,
+            receipt,
+            skill_consumer=consume_transport,
+        ),
+        should_continue,
+    )
 
 
 def main() -> int:
@@ -55,6 +73,9 @@ def main() -> int:
             ),
         }
         should_continue = False
+    if receipt.get("state") in {"NOT_INDEXED", "NOT_GOVERNED"}:
+        print("{}")
+        return 0
     result: dict[str, Any] = {
         "continue": should_continue,
         "hookSpecificOutput": {

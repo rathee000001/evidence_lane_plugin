@@ -12,7 +12,6 @@ import argparse
 import hashlib
 import json
 import os
-import runpy
 import sys
 from pathlib import Path
 from typing import Any
@@ -56,7 +55,7 @@ def _failure(event_name: str, code: str, *, handler: str | None = None) -> int:
         "process_window_mode": "HIDDEN_ON_WINDOWS",
         "interpreter_resolution": "SEALED_DERIVED_RUNTIME_ONLY",
         "plugin_root_resolution": "HANDLER_RELATIVE_TO_INVOKE_HOOK_MODULE",
-        "continue": False,
+        "host_control_fields_emitted": False,
         "source_mutation_authorized": False,
         "lifecycle_mutated": False,
         "candidate_created": False,
@@ -67,19 +66,31 @@ def _failure(event_name: str, code: str, *, handler: str | None = None) -> int:
         "private_reasoning_stored": False,
     }
     body["diagnostic_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()
-    result = {
-        "continue": False,
-        "stopReason": (
-            f"Evidence Lane {body['event_name']} hook failed closed: {code}."
-        ),
-        "hookSpecificOutput": {
-            "hookEventName": body["event_name"],
-            "additionalContext": (
-                "EVIDENCE_LANE_HOOK_LAUNCH_DIAGNOSTIC="
-                + _json_bytes(body).decode("utf-8")
-            ),
-        },
-    }
+    reason = f"Evidence Lane {body['event_name']} hook failed closed: {code}."
+    diagnostic = (
+        "EVIDENCE_LANE_HOOK_LAUNCH_DIAGNOSTIC="
+        + _json_bytes(body).decode("utf-8")
+    )
+    if body["event_name"] in {"SessionEnd", "Stop"}:
+        # A launch failure at either terminal event must remain output-inert.
+        # In particular, Stop may never block or request another model turn.
+        result: dict[str, Any] = {}
+    elif body["event_name"] == "PreToolUse":
+        result = {
+            "systemMessage": diagnostic,
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": reason,
+            },
+        }
+    else:
+        # Surface the bounded failure without controlling the host turn.  The
+        # Evidence Lane action still failed closed, but a broken optional hook
+        # must not make Codex itself unusable.
+        result = {
+            "systemMessage": diagnostic,
+        }
     print(_json_bytes(result).decode("utf-8"))
     return 0
 
@@ -117,10 +128,33 @@ def _reexec_sealed_runtime(plugin_root: Path, argv: list[str]) -> None:
     ).resolve()
     if not python.is_file() or not marker_is_valid(plugin_root, marker):
         raise RuntimeError("SEALED_RUNTIME_UNAVAILABLE_OR_INVALID")
+    bound_runtime_root = os.environ.get(
+        "EVIDENCE_LANE_HOOK_BOUND_RUNTIME_ROOT", ""
+    ).strip()
+    if bound_runtime_root and marker.parent.resolve() != Path(
+        bound_runtime_root
+    ).resolve():
+        raise RuntimeError("SEALED_RUNTIME_INSTALL_BINDING_MISMATCH")
     if Path(sys.executable).resolve() != python:
         os.execv(str(python), [str(python), str(Path(__file__).resolve()), *argv])
     if Path(sys.executable).resolve() != python:
         raise RuntimeError("SEALED_RUNTIME_INTERPRETER_MISMATCH")
+
+
+def _execute_isolated_handler(
+    event_name: str,
+    handler: Path,
+    handler_args: tuple[str, ...],
+    raw_payload: str,
+) -> dict[str, Any]:
+    hooks_root = Path(__file__).resolve().parent
+    if str(hooks_root) not in sys.path:
+        sys.path.insert(0, str(hooks_root))
+    from event_isolation import (  # type: ignore[import-not-found]
+        execute_isolated_hook,
+    )
+
+    return execute_isolated_hook(event_name, handler, handler_args, raw_payload)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -164,35 +198,34 @@ def main(argv: list[str] | None = None) -> int:
             handler=handler_name,
         )
 
-    source_root = (plugin_root / "src").resolve()
-    if str(source_root) not in sys.path:
-        sys.path.insert(0, str(source_root))
     os.environ["EVIDENCE_LANE_HOOK_PLUGIN_ROOT_SHA256"] = _path_sha256(
         plugin_root
     )
     os.environ["EVIDENCE_LANE_HOOK_INTERPRETER_SHA256"] = _path_sha256(
         Path(sys.executable).resolve()
     )
-    prior_argv = sys.argv
     try:
-        sys.argv = [str(handler), *expected[1]]
-        runpy.run_path(str(handler), run_name="__main__")
-    except SystemExit as exc:
-        if exc.code in (None, 0):
-            return 0
+        raw_payload = sys.stdin.read()
+        output = _execute_isolated_handler(
+            event_name,
+            handler,
+            expected[1],
+            raw_payload,
+        )
+    except RuntimeError as exc:
+        code = str(exc)
         return _failure(
             event_name,
-            "HOOK_HANDLER_NONZERO_EXIT",
+            code if code.startswith("HOOK_") else "HOOK_EVENT_ISOLATION_UNAVAILABLE",
             handler=handler_name,
         )
     except Exception:  # noqa: BLE001 - diagnostic must remain secret-safe
         return _failure(
             event_name,
-            "HOOK_HANDLER_UNHANDLED_EXCEPTION",
+            "HOOK_EVENT_ISOLATION_UNHANDLED_EXCEPTION",
             handler=handler_name,
         )
-    finally:
-        sys.argv = prior_argv
+    print(_json_bytes(output).decode("utf-8"))
     return 0
 
 

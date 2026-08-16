@@ -62,19 +62,6 @@ def _hook_context_json(payload: dict[str, object], prefix: str) -> dict[str, obj
     return json.loads(line.removeprefix(prefix))
 
 
-def _hook_change_notice(payload: dict[str, object]) -> dict[str, object]:
-    for prefix in (
-        "EVIDENCE_LANE_PERSISTENT_CHANGE_NOTICE=",
-        "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=",
-        "EVIDENCE_LANE_PERSISTENT_CHANGE_TOOL_PROJECTION=",
-    ):
-        try:
-            return _hook_context_json(payload, prefix)
-        except StopIteration:
-            continue
-    raise AssertionError("The hook did not return a sealed Current Change projection.")
-
-
 def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     server = create_mcp_server(
         service=EvidenceLaneService(data_root=tmp_path / "store")
@@ -184,6 +171,10 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "preferred_plugin_id"
         in by_name["connector_plugin_route"].inputSchema["properties"]
     )
+    assert (
+        "active_delta_verification"
+        in by_name["task_classify"].inputSchema["properties"]
+    )
     for tool in tools:
         assert tool.title
         assert tool.description
@@ -203,6 +194,15 @@ def test_v2_server_rejects_removed_chatgpt_exposure_profiles(
                 service=EvidenceLaneService(data_root=tmp_path / removed_profile),
                 exposure_profile=removed_profile,
             )
+
+
+def test_v2_server_accepts_versioned_codex_tunnel_profile(tmp_path: Path) -> None:
+    server = create_mcp_server(
+        service=EvidenceLaneService(data_root=tmp_path / "codex-tunnel"),
+        exposure_profile="CODEX_INTERACTIVE_SUPPORT",
+    )
+
+    assert server is not None
 
 
 def test_modern_discovery_probe_receives_exact_legacy_fallback() -> None:
@@ -425,7 +425,7 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
     assert len(resources) == 1
     resource = resources[0]
     assert str(resource.uri) == GOVERNED_PANEL_URI
-    assert GOVERNED_PANEL_URI.endswith("/governed-console-v5.html")
+    assert GOVERNED_PANEL_URI.endswith("/governed-console-v6.html")
     assert resource.mimeType == MCP_APP_MIME_TYPE
     assert resource.icons is not None
     assert [icon.model_dump(by_alias=True, exclude_none=True) for icon in resource.icons] == [
@@ -538,6 +538,104 @@ def test_project_panel_always_explains_exact_six_way_hil_without_mutation() -> N
         "topology_status": "PASS",
     }
     assert snapshot["lanes"][0]["id"] == "github_code"
+
+
+def test_project_panel_separates_next_and_queued_plan_hils_from_step_list() -> None:
+    rows = []
+    for number in range(191, 207):
+        lifecycle = (
+            "DONE" if number < 196 else "ACTIVE" if number == 196 else "QUEUED"
+        )
+        status = (
+            "completed"
+            if number < 196
+            else "in_progress"
+            if number == 196
+            else "pending"
+        )
+        role = (
+            "HIL_GATE"
+            if number == 197
+            else "PHYSICALLY_FINAL_HIL"
+            if number == 206
+            else "STANDARD"
+        )
+        task_id = (
+            "EL-PV13-CANDIDATE-HIL"
+            if number == 197
+            else "EL-NATIVE-FUSED-RELEASE-HIL"
+            if number == 206
+            else f"EL-TASK-{number}"
+        )
+        rows.append(
+            {
+                "number": number,
+                "task_id": task_id,
+                "step": f"Execute governed row {number}.",
+                "lifecycle_status": lifecycle,
+                "status": status,
+                "panel_role": role,
+                "dependencies": [] if number == 191 else [rows[-1]["task_id"]],
+            }
+        )
+    snapshot = build_project_panel_snapshot(
+        project_id="example",
+        project_status={
+            "status": "PASS",
+            "next_candidate_pv": "PV13",
+            "persistent_state_envelope": {
+                "accepted_pv": "PV12",
+                "pointer_generation": 12,
+                "pending_candidate": None,
+                "pending_hil": False,
+            },
+        },
+        plan_backlog={
+            "status": "PASS",
+            "goal_projection": {
+                "canonical_authority": "PLAN_LANE",
+                "canonical_plan_sha256": "A" * 64,
+                "projection_sha256": "B" * 64,
+                "rows": rows,
+            },
+        },
+        public_site_url="https://preview.example.test",
+    )
+    queue = snapshot["hil"]["project_hil_queue"]
+    assert queue["status"] == "PASS"
+    assert queue["active_row"] == 196
+    assert queue["next_pending_hil"] == {
+        "queue_state": "NEXT_PENDING_HIL",
+        "row": 197,
+        "task_id": "EL-PV13-CANDIDATE-HIL",
+        "description": "Execute governed row 197.",
+        "panel_role": "HIL_GATE",
+        "lifecycle_status": "QUEUED",
+        "proposed_pv": "PV13",
+        "dependencies": ["EL-TASK-196"],
+    }
+    assert queue["queued_hils"][0]["row"] == 206
+    assert queue["queued_hils"][0]["proposed_pv"] == "PV14"
+    assert queue["queued_hils"][0]["panel_role"] == "PHYSICALLY_FINAL_HIL"
+    assert queue["connections"] == [
+        {
+            "from_task_id": "EL-TASK-196",
+            "to_task_id": "EL-PV13-CANDIDATE-HIL",
+            "relation": "PLAN_DEPENDENCY",
+        },
+        {
+            "from_task_id": "EL-TASK-205",
+            "to_task_id": "EL-NATIVE-FUSED-RELEASE-HIL",
+            "relation": "PLAN_DEPENDENCY",
+        },
+        {
+            "from_task_id": "EL-PV13-CANDIDATE-HIL",
+            "to_task_id": "EL-NATIVE-FUSED-RELEASE-HIL",
+            "relation": "HIL_QUEUE_CONTINUATION",
+        },
+    ]
+    assert queue["step_task_list_authority"] is False
+    assert queue["render_changes_authority"] is False
 
 
 def test_read_only_panels_carry_one_exact_evidence_lane_identity() -> None:
@@ -805,7 +903,9 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert "stop_response.py" in stop_handler["command"]
     stop_source = (plugin / "hooks" / "stop_response.py").read_text(encoding="utf-8")
     assert '"decision"' not in stop_source
-    assert '"continue": True' in stop_source
+    assert "from event_isolation import stop_output" in stop_source
+    assert "print(json.dumps(contract_output" in stop_source
+    assert '"continue": True' not in stop_source
     assert (plugin / "hooks" / "post_tool_use.py").is_file()
     assert not (plugin / ".app.json").exists()
     assert not (plugin / "chatgpt-app-connection.json").exists()
@@ -814,7 +914,7 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
         (root / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8")
     )
     assert marketplace["name"] == "evidence-lane-github"
-    assert marketplace["interface"]["displayName"] == "GitLane Stable 2.1"
+    assert marketplace["interface"]["displayName"] == "Main Git Plugin Version"
     scan_roots = [
         root / ".agents",
         root / "docs",
@@ -1179,10 +1279,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         env=environment,
     )
     stop_payload = json.loads(stopped.stdout)
-    assert stop_payload["continue"] is True
-    committed_notice = _hook_change_notice(stop_payload)
-    assert committed_notice["turn_receipt"]["state"] == "COMMITTED"
-    assert committed_notice["phase"] == "TURN_COMMIT"
+    assert stop_payload == {}
     assert "decision" not in stop_payload
     response_records = list((service.store.root / "response-index").rglob("*.json"))
     assert len(response_records) == 1
@@ -1232,11 +1329,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         env=environment,
     )
     repeated_payload = json.loads(repeated.stdout)
-    assert repeated_payload["continue"] is True
-    repeated_notice = _hook_change_notice(repeated_payload)
-    assert repeated_notice["turn_receipt"]["state"] == (
-        "COMMITTED_IDEMPOTENT_REUSE"
-    )
+    assert repeated_payload == {}
     assert len(list((service.store.root / "response-index").rglob("*.json"))) == 1
     repeated_events = [
         json.loads(line)
@@ -1312,8 +1405,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         encoding="utf-8",
         env=environment,
     )
-    second_notice = _hook_change_notice(json.loads(second_stopped.stdout))
-    assert second_notice["turn_receipt"]["state"] == "COMMITTED"
+    assert json.loads(second_stopped.stdout) == {}
 
     status = service.prompt_index_status("book-faires", session_id)
     assert status["raw_prompt_stored"] is False
@@ -1368,9 +1460,7 @@ def test_prompt_hook_does_not_index_unbound_chats(tmp_path: Path) -> None:
         env=environment,
     )
     payload = json.loads(completed.stdout)
-    indexed = _hook_context_json(payload, "EVIDENCE_LANE_PROMPT_ENTRY=")
-    assert indexed["state"] == "NOT_INDEXED"
-    assert indexed["reason"] == "NO_BOUND_EVIDENCE_LANE_SESSION"
+    assert payload == {}
     assert not (tmp_path / "empty-store" / "prompt-index").exists()
 
 

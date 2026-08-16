@@ -12,6 +12,7 @@ the bound Markdown does not support.
 | `/skills` | `docs/SKILLS.md` |
 | `/mcp` | `docs/MCP.md` |
 | `/hooks` | `docs/HOOKS.md` |
+| `/commands` | `docs/COMMANDS.md` |
 | `/architecture` | `ARCHITECTURE.md` |
 | `/lanes` | `docs/ARCHITECTURE.md` |
 | `/operators` | `docs/HOST_STORAGE_ENV_MODE_CONTINUITY.md` |
@@ -21,10 +22,14 @@ the bound Markdown does not support.
 | `/connect` | `docs/HOST_CAPABILITY_MATRIX.md` |
 | `/hil` | `docs/FIRST_HIL_RUNBOOK.md` |
 | `/privacy` and `/security` | `SECURITY.md` |
-| `/terms` and `/license` | `LICENSE.md` |
-| `/copyright` | `COPYRIGHT.md` |
+| `/terms` | `docs/TERMS_AND_CONDITIONS.md` |
+| `/license` | `LICENSE.md` |
+| `/copyright` | `docs/COPYRIGHT.md` |
+| `/third-party` | `plugins/evidence-lane-plugin/THIRD_PARTY_NOTICES.md` |
 | `/credits` | `docs/CREDITS_AND_CONTRIBUTIONS.md` |
 | `/support` | `README.md` |
+| `/helper` | `docs/USER_HELPER_GUIDE.md` |
+| `/tunnel` | `docs/USER_TUNNEL_GUIDE.md` |
 
 Clean CI validates that every public route has exactly one mapping, every
 mapped path exists and is Git-tracked in the correction commit, the source

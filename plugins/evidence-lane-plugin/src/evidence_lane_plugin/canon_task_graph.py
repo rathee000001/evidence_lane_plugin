@@ -11,7 +11,8 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol, cast
@@ -26,7 +27,19 @@ CANON_EVENT_SCHEMA = "evidence-lane.canon-input-event.v1"
 CANON_DECISION_RECEIPT_SCHEMA = "evidence-lane.canon-decision-receipt.v1"
 CANON_EDGE_SCHEMA = "evidence-lane.canon-task-edge.v1"
 CANON_DISPATCH_RECEIPT_SCHEMA = "evidence-lane.canon-dispatch-receipt.v1"
+CANON_DISPATCH_RECEIPT_SCHEMA_V2 = "evidence-lane.canon-dispatch-receipt.v2"
+CODEX_HOST_CREATE_RECEIPT_SCHEMA = (
+    "evidence-lane.codex-host-task-create-receipt.v1"
+)
+CODEX_HOST_CREATE_CAPABILITY = "CODEX_HOST_CREATE_LINKED_TASK_IDEMPOTENT_V1"
 CANON_CONTINUITY_SCHEMA = "evidence-lane.canon-state-travel-continuity.v1"
+CANON_RESTORE_RECEIPT_SCHEMA = (
+    "evidence-lane.canon-state-travel-restore-receipt.v1"
+)
+CANON_SCHEMA_MANIFEST_SCHEMA = "evidence-lane.canon-schema-manifest.v1"
+CANON_LEDGER_SCHEMA = "evidence-lane.canon-ledger.v1"
+CANON_LEDGER_SCHEMA_VERSION = 1
+CANON_RECEIPT_REGISTRY_SCHEMA = "evidence-lane.canon-receipt-schema-registry.v1"
 
 _SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
 _PV_RE = re.compile(r"^PV[1-9][0-9]*$")
@@ -80,13 +93,76 @@ _AUTHORITY_EFFECTS_NONE = {
     "chat_lineage": "NONE",
     "host_entry_continuity": "NONE",
 }
+_CANON_SCHEMA_ROOT = Path(__file__).resolve().parent / "schemas" / "canon"
+_CANON_RECEIPT_SCHEMAS = {
+    CANON_DECISION_RECEIPT_SCHEMA,
+    CANON_DISPATCH_RECEIPT_SCHEMA,
+    CANON_DISPATCH_RECEIPT_SCHEMA_V2,
+    CODEX_HOST_CREATE_RECEIPT_SCHEMA,
+    CANON_RESTORE_RECEIPT_SCHEMA,
+}
 
 
 class CanonTaskDispatcher(Protocol):
     """Provider-neutral host seam for an explicitly authorized task launch."""
 
+    host_kind: str
+    capability: str
+
     def create_linked_task(self, request: Mapping[str, Any]) -> Mapping[str, Any]:
         """Create one task and return its exact UUID/deep-link binding."""
+
+
+@dataclass(frozen=True)
+class CodexHostDispatcher:
+    """Exact injectable Codex host seam; unavailable without a host operation."""
+
+    create_operation: Callable[[Mapping[str, Any]], Mapping[str, Any]]
+    host_kind: str = field(default="CODEX", init=False)
+    capability: str = field(default=CODEX_HOST_CREATE_CAPABILITY, init=False)
+
+    def create_linked_task(self, request: Mapping[str, Any]) -> Mapping[str, Any]:
+        require(
+            request.get("schema")
+            == "evidence-lane.codex-host-linked-task-create-request.v1"
+            and request.get("host_kind") == self.host_kind
+            and request.get("operation") == "CREATE_LINKED_TASK"
+            and request.get("capability") == self.capability,
+            "CANON_CODEX_HOST_REQUEST_INVALID",
+            "The Codex host adapter received an unsupported task-create request.",
+            status="MISMATCH",
+        )
+        response = self.create_operation(dict(request))
+        require(
+            isinstance(response, Mapping),
+            "CANON_CODEX_HOST_RECEIPT_REQUIRED",
+            "The Codex host operation did not return one receipt object.",
+            status="FAIL",
+        )
+        receipt = dict(response)
+        validate_canon_receipt(receipt)
+        require(
+            receipt.get("schema") == CODEX_HOST_CREATE_RECEIPT_SCHEMA
+            and receipt.get("host_kind") == self.host_kind
+            and receipt.get("operation") == "CREATE_LINKED_TASK"
+            and receipt.get("capability") == self.capability
+            and receipt.get("idempotency_key") == request.get("idempotency_key")
+            and receipt.get("request_sha256") == request.get("request_sha256")
+            and receipt.get("created_once") is True
+            and isinstance(receipt.get("destination"), Mapping),
+            "CANON_CODEX_HOST_RECEIPT_BINDING_MISMATCH",
+            "The Codex host receipt does not bind the exact idempotent request.",
+            status="MISMATCH",
+        )
+        destination = _endpoint(
+            cast(Mapping[str, Any], receipt["destination"]),
+            field="host_receipt.destination",
+        )
+        return {
+            **destination,
+            "created_once": True,
+            "host_creation_receipt": receipt,
+        }
 
 
 def _exact_text(value: Any, *, field: str) -> str:
@@ -165,6 +241,288 @@ def _ledger_path(root: Path) -> Path:
     return _canon_root(root) / "canon-input.sqlite"
 
 
+def _load_canon_schema_contract() -> dict[str, Any]:
+    manifest_path = _CANON_SCHEMA_ROOT / "canon-schema-manifest.v1.json"
+    require(
+        manifest_path.is_file(),
+        "CANON_SCHEMA_MANIFEST_REQUIRED",
+        "The first-class Canon schema manifest is missing.",
+        status="MISMATCH",
+        path=str(manifest_path),
+    )
+    try:
+        manifest_bytes = manifest_path.read_bytes()
+        manifest = cast(dict[str, Any], json.loads(manifest_bytes))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        require(
+            False,
+            "CANON_SCHEMA_MANIFEST_INVALID",
+            "The first-class Canon schema manifest is unreadable.",
+            status="MISMATCH",
+            path=str(manifest_path),
+        )
+        raise AssertionError("unreachable") from exc
+    ledger = manifest.get("ledger")
+    receipts = manifest.get("receipts")
+    require(
+        manifest.get("schema") == CANON_SCHEMA_MANIFEST_SCHEMA
+        and manifest.get("schema_family") == "CANON"
+        and manifest.get("manifest_version") == 1
+        and isinstance(ledger, Mapping)
+        and isinstance(receipts, Mapping),
+        "CANON_SCHEMA_MANIFEST_INVALID",
+        "The Canon schema manifest identity or sections are invalid.",
+        status="MISMATCH",
+    )
+    ledger = cast(Mapping[str, Any], ledger)
+    receipts = cast(Mapping[str, Any], receipts)
+    ledger_asset_name = str(ledger.get("asset") or "")
+    receipt_asset_name = str(receipts.get("asset") or "")
+    ledger_path = (_CANON_SCHEMA_ROOT / ledger_asset_name).resolve()
+    receipt_path = (_CANON_SCHEMA_ROOT / receipt_asset_name).resolve()
+    require(
+        Path(ledger_asset_name).name == ledger_asset_name
+        and Path(receipt_asset_name).name == receipt_asset_name
+        and ledger_path.parent == _CANON_SCHEMA_ROOT.resolve()
+        and receipt_path.parent == _CANON_SCHEMA_ROOT.resolve()
+        and ledger_path.is_file()
+        and receipt_path.is_file(),
+        "CANON_SCHEMA_ASSET_REQUIRED",
+        "A Canon schema asset is absent or outside the schema authority root.",
+        status="MISMATCH",
+    )
+    ledger_bytes = ledger_path.read_bytes()
+    receipt_bytes = receipt_path.read_bytes()
+    ledger_sha256 = sha256_bytes(ledger_bytes)
+    receipt_sha256 = sha256_bytes(receipt_bytes)
+    require(
+        ledger.get("schema_id") == CANON_LEDGER_SCHEMA
+        and ledger.get("sqlite_user_version") == CANON_LEDGER_SCHEMA_VERSION
+        and ledger_sha256 == str(ledger.get("asset_sha256") or "").upper()
+        and receipts.get("schema_id") == CANON_RECEIPT_REGISTRY_SCHEMA
+        and receipts.get("registry_version") == 1
+        and receipt_sha256 == str(receipts.get("asset_sha256") or "").upper(),
+        "CANON_SCHEMA_ASSET_HASH_MISMATCH",
+        "Canon schema asset bytes do not match the sealed manifest.",
+        status="MISMATCH",
+    )
+    try:
+        ledger_sql = ledger_bytes.decode("utf-8")
+        receipt_schema = cast(dict[str, Any], json.loads(receipt_bytes))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        require(
+            False,
+            "CANON_SCHEMA_ASSET_INVALID",
+            "A Canon schema asset is not valid UTF-8 SQL or JSON.",
+            status="MISMATCH",
+        )
+        raise AssertionError("unreachable") from exc
+    definitions = receipt_schema.get("$defs")
+    require(
+        receipt_schema.get("$schema")
+        == "https://json-schema.org/draft/2020-12/schema"
+        and receipt_schema.get("x-evidence-lane-version") == 1
+        and receipt_schema.get("x-evidence-lane-hash-field") == "receipt_sha256"
+        and isinstance(definitions, Mapping),
+        "CANON_RECEIPT_SCHEMA_INVALID",
+        "The Canon receipt registry is not the supported schema contract.",
+        status="MISMATCH",
+    )
+    defined_receipt_schemas = {
+        str((definition.get("properties") or {}).get("schema", {}).get("const"))
+        for definition in cast(Mapping[str, Any], definitions).values()
+        if isinstance(definition, Mapping)
+        and isinstance(definition.get("properties"), Mapping)
+        and isinstance(
+            cast(Mapping[str, Any], definition.get("properties")).get("schema"),
+            Mapping,
+        )
+    }
+    supported_schema_ids = {
+        str(value) for value in receipts.get("supported_schema_ids") or []
+    }
+    migration_policy = ledger.get("migration_policy")
+    transitions = (
+        migration_policy.get("transitions")
+        if isinstance(migration_policy, Mapping)
+        else None
+    )
+    require(
+        defined_receipt_schemas == _CANON_RECEIPT_SCHEMAS
+        and supported_schema_ids == _CANON_RECEIPT_SCHEMAS
+        and isinstance(migration_policy, Mapping)
+        and migration_policy.get("accepted_from_versions") == [0, 1]
+        and transitions
+        == [
+            {
+                "from_version": 0,
+                "to_version": 1,
+                "mode": "ADDITIVE_IDEMPOTENT_CREATE_ONLY",
+                "data_rewrite": False,
+                "drop_or_rename": False,
+            }
+        ]
+        and migration_policy.get("newer_version")
+        == "FAIL_CLOSED_RUNTIME_TOO_OLD"
+        and migration_policy.get("rollback")
+        == "UNSUPPORTED_NO_DESTRUCTIVE_REWRITE",
+        "CANON_SCHEMA_MIGRATION_POLICY_INVALID",
+        "Canon schema versions or migration rules are incomplete or mutable.",
+        status="MISMATCH",
+    )
+    return {
+        "manifest": manifest,
+        "manifest_path": manifest_path,
+        "manifest_sha256": sha256_bytes(manifest_bytes),
+        "ledger_sql": ledger_sql,
+        "ledger_path": ledger_path,
+        "ledger_sha256": ledger_sha256,
+        "receipt_schema": receipt_schema,
+        "receipt_path": receipt_path,
+        "receipt_sha256": receipt_sha256,
+    }
+
+
+def _canon_sqlite_schema_signature(connection: sqlite3.Connection) -> str:
+    rows = [
+        dict(row)
+        for row in connection.execute(
+            """
+            SELECT type,name,tbl_name,sql
+            FROM sqlite_master
+            WHERE type IN ('table','index') AND name NOT LIKE 'sqlite_%'
+            ORDER BY type,name
+            """
+        ).fetchall()
+    ]
+    return sha256_bytes(canonical_json_bytes(rows))
+
+
+def _expected_canon_sqlite_schema_signature(ledger_sql: str) -> str:
+    expected = sqlite3.connect(":memory:")
+    expected.row_factory = sqlite3.Row
+    try:
+        expected.execute("PRAGMA foreign_keys=ON")
+        expected.executescript(ledger_sql)
+        return _canon_sqlite_schema_signature(expected)
+    finally:
+        expected.close()
+
+
+def _apply_canon_ledger_schema(
+    connection: sqlite3.Connection,
+    contract: Mapping[str, Any],
+) -> dict[str, Any]:
+    current_version = int(connection.execute("PRAGMA user_version").fetchone()[0])
+    require(
+        current_version in {0, CANON_LEDGER_SCHEMA_VERSION},
+        "CANON_LEDGER_VERSION_UNSUPPORTED",
+        "The Canon ledger requires one explicit supported migration path.",
+        status="MISMATCH",
+        current_version=current_version,
+        supported_versions=[0, CANON_LEDGER_SCHEMA_VERSION],
+    )
+    ledger_sql = str(contract["ledger_sql"])
+    expected_signature = _expected_canon_sqlite_schema_signature(ledger_sql)
+    migration_mode = "ADDITIVE_IDEMPOTENT_CREATE_ONLY"
+    if current_version == CANON_LEDGER_SCHEMA_VERSION:
+        actual_signature = _canon_sqlite_schema_signature(connection)
+        require(
+            actual_signature == expected_signature,
+            "CANON_LEDGER_BUILDER_SCHEMA_MISMATCH",
+            "The live Canon ledger schema differs from the sealed DDL asset.",
+            status="MISMATCH",
+            expected_schema_signature_sha256=expected_signature,
+            actual_schema_signature_sha256=actual_signature,
+        )
+    else:
+        require(
+            not connection.in_transaction,
+            "CANON_LEDGER_MIGRATION_TRANSACTION_INVALID",
+            "The Canon ledger migration requires an unused transaction boundary.",
+            status="MISMATCH",
+        )
+        try:
+            connection.executescript("BEGIN IMMEDIATE;\n" + ledger_sql)
+            actual_signature = _canon_sqlite_schema_signature(connection)
+            require(
+                actual_signature == expected_signature,
+                "CANON_LEDGER_BUILDER_SCHEMA_MISMATCH",
+                "The additive Canon migration did not produce the sealed schema.",
+                status="MISMATCH",
+                expected_schema_signature_sha256=expected_signature,
+                actual_schema_signature_sha256=actual_signature,
+            )
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO canon_schema_migration(
+                    schema_name,from_version,to_version,asset_sha256,
+                    migration_mode,applied_at
+                ) VALUES(?,?,?,?,?,?)
+                """,
+                (
+                    CANON_LEDGER_SCHEMA,
+                    0,
+                    CANON_LEDGER_SCHEMA_VERSION,
+                    contract["ledger_sha256"],
+                    migration_mode,
+                    datetime.now(UTC)
+                    .isoformat(timespec="microseconds")
+                    .replace("+00:00", "Z"),
+                ),
+            )
+            connection.execute(f"PRAGMA user_version={CANON_LEDGER_SCHEMA_VERSION}")
+        except sqlite3.DatabaseError as exc:
+            if connection.in_transaction:
+                connection.rollback()
+            require(
+                False,
+                "CANON_LEDGER_BUILDER_SCHEMA_MISMATCH",
+                "The additive Canon migration could not produce the sealed schema.",
+                status="MISMATCH",
+                sqlite_error=type(exc).__name__,
+            )
+            raise AssertionError("unreachable") from exc
+        except Exception:
+            if connection.in_transaction:
+                connection.rollback()
+            raise
+
+    try:
+        migration = connection.execute(
+            """
+            SELECT from_version,to_version,asset_sha256,migration_mode
+            FROM canon_schema_migration
+            WHERE schema_name=? AND to_version=?
+            """,
+            (CANON_LEDGER_SCHEMA, CANON_LEDGER_SCHEMA_VERSION),
+        ).fetchone()
+        require(
+            migration is not None
+            and int(migration["from_version"]) == 0
+            and int(migration["to_version"]) == CANON_LEDGER_SCHEMA_VERSION
+            and str(migration["asset_sha256"]) == contract["ledger_sha256"]
+            and str(migration["migration_mode"]) == migration_mode,
+            "CANON_LEDGER_MIGRATION_RECEIPT_MISMATCH",
+            "The Canon ledger lacks its exact additive migration receipt.",
+            status="MISMATCH",
+        )
+        if current_version == 0:
+            connection.commit()
+    except Exception:
+        if current_version == 0 and connection.in_transaction:
+            connection.rollback()
+        raise
+    return {
+        "schema": CANON_LEDGER_SCHEMA,
+        "version_before": current_version,
+        "version_after": CANON_LEDGER_SCHEMA_VERSION,
+        "migration_mode": migration_mode,
+        "ledger_asset_sha256": contract["ledger_sha256"],
+        "schema_signature_sha256": actual_signature,
+    }
+
+
 def _connect(root: Path) -> sqlite3.Connection:
     path = _ledger_path(root)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -173,90 +531,289 @@ def _connect(root: Path) -> sqlite3.Connection:
     connection.execute("PRAGMA foreign_keys=ON")
     connection.execute("PRAGMA journal_mode=DELETE")
     connection.execute("PRAGMA synchronous=FULL")
-    connection.executescript(
-        """
-        CREATE TABLE IF NOT EXISTS canon_contract(
-            contract_sha256 TEXT PRIMARY KEY,
-            contract_id TEXT NOT NULL,
-            contract_version INTEGER NOT NULL CHECK(contract_version > 0),
-            destination_project_id TEXT NOT NULL,
-            destination_task_uuid TEXT NOT NULL,
-            active INTEGER NOT NULL CHECK(active IN (0,1)),
-            contract_json TEXT NOT NULL
-        ) STRICT;
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_canon_contract_version
-        ON canon_contract(contract_id,contract_version,destination_task_uuid);
-        CREATE TABLE IF NOT EXISTS canon_packet(
-            canon_id TEXT PRIMARY KEY,
-            canon_sha256 TEXT NOT NULL UNIQUE,
-            owner_project_id TEXT NOT NULL,
-            local_role TEXT NOT NULL,
-            source_project_id TEXT NOT NULL,
-            source_task_uuid TEXT NOT NULL,
-            destination_project_id TEXT NOT NULL,
-            destination_task_uuid TEXT NOT NULL,
-            destination_contract_sha256 TEXT NOT NULL,
-            canon_type TEXT NOT NULL,
-            revision INTEGER NOT NULL CHECK(revision > 0),
-            idempotency_key TEXT NOT NULL,
-            current_state TEXT NOT NULL,
-            envelope_json TEXT NOT NULL
-        ) STRICT;
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_canon_packet_replay
-        ON canon_packet(owner_project_id,local_role,idempotency_key);
-        CREATE INDEX IF NOT EXISTS idx_canon_packet_inbox
-        ON canon_packet(destination_task_uuid,current_state);
-        CREATE TABLE IF NOT EXISTS canon_event(
-            sequence INTEGER PRIMARY KEY AUTOINCREMENT,
-            event_id TEXT NOT NULL UNIQUE,
-            canon_id TEXT NOT NULL REFERENCES canon_packet(canon_id),
-            event_type TEXT NOT NULL,
-            from_state TEXT,
-            to_state TEXT NOT NULL,
-            occurred_at TEXT NOT NULL,
-            decision_key_sha256 TEXT,
-            previous_event_sha256 TEXT,
-            event_sha256 TEXT NOT NULL UNIQUE,
-            event_json TEXT NOT NULL
-        ) STRICT;
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_canon_decision_once
-        ON canon_event(decision_key_sha256)
-        WHERE decision_key_sha256 IS NOT NULL;
-        CREATE TABLE IF NOT EXISTS canon_receipt(
-            receipt_sha256 TEXT PRIMARY KEY,
-            canon_id TEXT NOT NULL REFERENCES canon_packet(canon_id),
-            receipt_type TEXT NOT NULL,
-            receipt_json TEXT NOT NULL
-        ) STRICT;
-        CREATE TABLE IF NOT EXISTS canon_edge(
-            edge_id TEXT PRIMARY KEY,
-            edge_sha256 TEXT NOT NULL UNIQUE,
-            source_node TEXT NOT NULL,
-            destination_node TEXT NOT NULL,
-            expected_return_contract_sha256 TEXT NOT NULL,
-            edge_json TEXT NOT NULL
-        ) STRICT;
-        CREATE TABLE IF NOT EXISTS canon_dispatch(
-            dispatch_id TEXT PRIMARY KEY,
-            request_sha256 TEXT NOT NULL,
-            receipt_sha256 TEXT NOT NULL UNIQUE,
-            receipt_json TEXT NOT NULL
-        ) STRICT;
-        CREATE TABLE IF NOT EXISTS canon_backfire_dedup(
-            dedup_key_sha256 TEXT PRIMARY KEY,
-            request_sha256 TEXT NOT NULL,
-            canon_id TEXT NOT NULL,
-            canon_sha256 TEXT NOT NULL
-        ) STRICT;
-        CREATE TABLE IF NOT EXISTS canon_continuity_receipt(
-            consumption_key_sha256 TEXT PRIMARY KEY,
-            snapshot_sha256 TEXT NOT NULL,
-            receipt_sha256 TEXT NOT NULL UNIQUE,
-            receipt_json TEXT NOT NULL
-        ) STRICT;
-        """
-    )
+    try:
+        _apply_canon_ledger_schema(connection, _load_canon_schema_contract())
+    except Exception:
+        connection.close()
+        raise
     return connection
+
+
+def _json_schema_type_matches(value: Any, expected: str) -> bool:
+    return {
+        "array": isinstance(value, list),
+        "boolean": isinstance(value, bool),
+        "integer": isinstance(value, int) and not isinstance(value, bool),
+        "null": value is None,
+        "number": isinstance(value, (int, float)) and not isinstance(value, bool),
+        "object": isinstance(value, Mapping),
+        "string": isinstance(value, str),
+    }.get(expected, False)
+
+
+def _validate_canon_schema_value(
+    value: Any,
+    node: Mapping[str, Any],
+    root_schema: Mapping[str, Any],
+    *,
+    field: str,
+) -> None:
+    reference = node.get("$ref")
+    if reference is not None:
+        parts = str(reference).split("/")
+        require(
+            len(parts) == 3
+            and parts[:2] == ["#", "$defs"]
+            and isinstance(root_schema.get("$defs"), Mapping)
+            and isinstance(
+                cast(Mapping[str, Any], root_schema["$defs"]).get(parts[2]),
+                Mapping,
+            ),
+            "CANON_RECEIPT_SCHEMA_REFERENCE_INVALID",
+            "A Canon receipt schema reference is unsupported.",
+            status="MISMATCH",
+            field=field,
+            reference=reference,
+        )
+        _validate_canon_schema_value(
+            value,
+            cast(
+                Mapping[str, Any],
+                cast(Mapping[str, Any], root_schema["$defs"])[parts[2]],
+            ),
+            root_schema,
+            field=field,
+        )
+        return
+    declared_type = node.get("type")
+    if declared_type is not None:
+        allowed_types = (
+            [str(item) for item in declared_type]
+            if isinstance(declared_type, list)
+            else [str(declared_type)]
+        )
+        require(
+            any(_json_schema_type_matches(value, item) for item in allowed_types),
+            "CANON_RECEIPT_FIELD_TYPE_INVALID",
+            "A Canon receipt field violates its first-class schema type.",
+            status="MISMATCH",
+            field=field,
+            allowed_types=allowed_types,
+        )
+    if "const" in node:
+        require(
+            value == node["const"],
+            "CANON_RECEIPT_FIELD_CONST_INVALID",
+            "A Canon receipt field violates its immutable schema constant.",
+            status="MISMATCH",
+            field=field,
+        )
+    if "enum" in node:
+        require(
+            value in node["enum"],
+            "CANON_RECEIPT_FIELD_ENUM_INVALID",
+            "A Canon receipt field is outside its schema enumeration.",
+            status="MISMATCH",
+            field=field,
+        )
+    if isinstance(value, str):
+        require(
+            len(value) >= int(node.get("minLength") or 0),
+            "CANON_RECEIPT_FIELD_LENGTH_INVALID",
+            "A Canon receipt text field is shorter than its schema contract.",
+            status="MISMATCH",
+            field=field,
+        )
+        if node.get("pattern") is not None:
+            require(
+                re.fullmatch(str(node["pattern"]), value) is not None,
+                "CANON_RECEIPT_FIELD_PATTERN_INVALID",
+                "A Canon receipt field does not match its schema pattern.",
+                status="MISMATCH",
+                field=field,
+            )
+        if node.get("format") == "date-time":
+            try:
+                parsed = datetime.fromisoformat(value)
+            except ValueError as exc:
+                require(
+                    False,
+                    "CANON_RECEIPT_TIMESTAMP_INVALID",
+                    "A Canon receipt timestamp is not ISO-8601.",
+                    status="MISMATCH",
+                    field=field,
+                )
+                raise AssertionError("unreachable") from exc
+            require(
+                parsed.tzinfo is not None,
+                "CANON_RECEIPT_TIMESTAMP_TIMEZONE_REQUIRED",
+                "A Canon receipt timestamp requires an explicit timezone.",
+                status="MISMATCH",
+                field=field,
+            )
+    if (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and node.get("minimum") is not None
+    ):
+        require(
+            value >= node["minimum"],
+            "CANON_RECEIPT_FIELD_MINIMUM_INVALID",
+            "A Canon receipt number is below its schema minimum.",
+            status="MISMATCH",
+            field=field,
+        )
+    if isinstance(value, Mapping):
+        properties = node.get("properties")
+        required_fields = [str(item) for item in node.get("required") or []]
+        require(
+            all(item in value for item in required_fields),
+            "CANON_RECEIPT_REQUIRED_FIELD_MISSING",
+            "A Canon receipt is missing one schema-required field.",
+            status="MISMATCH",
+            field=field,
+            required_fields=required_fields,
+        )
+        if properties is None:
+            return
+        require(
+            isinstance(properties, Mapping),
+            "CANON_RECEIPT_SCHEMA_PROPERTIES_INVALID",
+            "A Canon receipt object schema has invalid properties.",
+            status="MISMATCH",
+            field=field,
+        )
+        property_map = cast(Mapping[str, Any], properties)
+        if node.get("additionalProperties") is False:
+            require(
+                set(value) <= set(property_map),
+                "CANON_RECEIPT_ADDITIONAL_FIELD_INVALID",
+                "A Canon receipt contains a field outside its immutable schema.",
+                status="MISMATCH",
+                field=field,
+                extra_fields=sorted(set(value) - set(property_map)),
+            )
+        for name, child in property_map.items():
+            if name in value and isinstance(child, Mapping):
+                _validate_canon_schema_value(
+                    value[name],
+                    cast(Mapping[str, Any], child),
+                    root_schema,
+                    field=f"{field}.{name}",
+                )
+
+
+def validate_canon_receipt(value: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate one exact self-sealed receipt against the schema asset."""
+
+    contract = _load_canon_schema_contract()
+    receipt_schema = cast(Mapping[str, Any], contract["receipt_schema"])
+    definitions = cast(Mapping[str, Any], receipt_schema["$defs"])
+    exact = dict(value)
+    schema_id = str(exact.get("schema") or "")
+    candidates = [
+        definition
+        for definition in definitions.values()
+        if isinstance(definition, Mapping)
+        and isinstance(definition.get("properties"), Mapping)
+        and isinstance(
+            cast(Mapping[str, Any], definition["properties"]).get("schema"),
+            Mapping,
+        )
+        and cast(
+            Mapping[str, Any],
+            cast(Mapping[str, Any], definition["properties"])["schema"],
+        ).get("const")
+        == schema_id
+    ]
+    require(
+        len(candidates) == 1 and schema_id in _CANON_RECEIPT_SCHEMAS,
+        "CANON_RECEIPT_SCHEMA_UNSUPPORTED",
+        "The Canon receipt schema is not in the first-class registry.",
+        status="MISMATCH",
+        schema_id=schema_id or None,
+    )
+    _validate_canon_schema_value(
+        exact,
+        cast(Mapping[str, Any], candidates[0]),
+        receipt_schema,
+        field="receipt",
+    )
+    if schema_id == CANON_DISPATCH_RECEIPT_SCHEMA_V2:
+        nested = exact.get("host_creation_receipt")
+        require(
+            isinstance(nested, Mapping),
+            "CANON_CODEX_HOST_RECEIPT_REQUIRED",
+            "A v2 Canon dispatch receipt requires its exact Codex host receipt.",
+            status="MISMATCH",
+        )
+        nested_receipt = cast(Mapping[str, Any], nested)
+        validate_canon_receipt(nested_receipt)
+        require(
+            exact.get("destination") == nested_receipt.get("destination")
+            and exact.get("request_sha256")
+            == nested_receipt.get("request_sha256")
+            and exact.get("dispatch_id")
+            == nested_receipt.get("idempotency_key"),
+            "CANON_CODEX_HOST_RECEIPT_BINDING_MISMATCH",
+            "The Canon dispatch receipt and Codex host receipt bind different work.",
+            status="MISMATCH",
+        )
+    claimed_sha256 = _sha256(exact.get("receipt_sha256"), field="receipt_sha256")
+    body = dict(exact)
+    body.pop("receipt_sha256", None)
+    require(
+        claimed_sha256 == sha256_bytes(canonical_json_bytes(body)),
+        "CANON_RECEIPT_SELF_SEAL_MISMATCH",
+        "The Canon receipt does not match its self-sealed body bytes.",
+        status="MISMATCH",
+        schema_id=schema_id,
+    )
+    proof_body = {
+        "schema": "evidence-lane.canon-receipt-schema-validation.v1",
+        "status": "PASS",
+        "receipt_schema": schema_id,
+        "receipt_sha256": claimed_sha256,
+        "registry_asset_sha256": contract["receipt_sha256"],
+        "manifest_sha256": contract["manifest_sha256"],
+    }
+    return {
+        **proof_body,
+        "validation_receipt_sha256": sha256_bytes(canonical_json_bytes(proof_body)),
+    }
+
+
+def inspect_canon_schema_contract() -> dict[str, Any]:
+    """Return the bounded first-class ledger/receipt schema authority."""
+
+    contract = _load_canon_schema_contract()
+    manifest = cast(Mapping[str, Any], contract["manifest"])
+    ledger = cast(Mapping[str, Any], manifest["ledger"])
+    receipts = cast(Mapping[str, Any], manifest["receipts"])
+    body = {
+        "schema": "evidence-lane.canon-schema-contract-receipt.v1",
+        "status": "PASS",
+        "manifest_schema": manifest["schema"],
+        "manifest_sha256": contract["manifest_sha256"],
+        "ledger_schema": ledger["schema_id"],
+        "ledger_version": ledger["sqlite_user_version"],
+        "ledger_asset_sha256": contract["ledger_sha256"],
+        "ledger_schema_signature_sha256": (
+            _expected_canon_sqlite_schema_signature(str(contract["ledger_sql"]))
+        ),
+        "ledger_migration_policy": ledger["migration_policy"],
+        "receipt_registry_schema": receipts["schema_id"],
+        "receipt_registry_version": receipts["registry_version"],
+        "receipt_asset_sha256": contract["receipt_sha256"],
+        "supported_receipt_schemas": sorted(_CANON_RECEIPT_SCHEMAS),
+        "receipt_migration_policy": receipts["migration_policy"],
+        "builder_executes_exact_asset_bytes": True,
+        "unknown_version_behavior": "FAIL_CLOSED",
+    }
+    return {
+        **body,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
+    }
 
 
 def _immutable_json(path: Path, value: dict[str, Any]) -> str:
@@ -1505,6 +2062,7 @@ def decide_canon_input(
                 if receipt_row is not None
                 else {}
             )
+            validate_canon_receipt(receipt)
             connection.commit()
             after = _require_authorities_unchanged(
                 root, before, operation="decide_input_replay"
@@ -1578,6 +2136,7 @@ def decide_canon_input(
             **receipt_body,
             "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
         }
+        validate_canon_receipt(receipt)
         connection.execute(
             """
             INSERT INTO canon_receipt(
@@ -2090,12 +2649,6 @@ def dispatch_linked_canon_task(
 
     root = _project_root(project_root, project_id=project_id)
     before = _authority_snapshot(root)
-    require(
-        dispatcher is not None and callable(getattr(dispatcher, "create_linked_task", None)),
-        "HOST_CAPABILITY_UNAVAILABLE",
-        "The host does not expose a supported programmatic linked-task operation.",
-        status="UNAVAILABLE",
-    )
     exact_source = _endpoint(source, field="source")
     require(
         exact_source["project_id"] == project_id,
@@ -2182,6 +2735,7 @@ def dispatch_linked_canon_task(
                 status="MISMATCH",
             )
             receipt = cast(dict[str, Any], json.loads(str(existing["receipt_json"])))
+            validate_canon_receipt(receipt)
             after = _require_authorities_unchanged(
                 root, before, operation="dispatch_replay"
             )
@@ -2196,8 +2750,28 @@ def dispatch_linked_canon_task(
             }
     finally:
         connection.close()
+    require(
+        dispatcher is not None
+        and callable(getattr(dispatcher, "create_linked_task", None))
+        and getattr(dispatcher, "host_kind", None) == "CODEX"
+        and getattr(dispatcher, "capability", None)
+        == CODEX_HOST_CREATE_CAPABILITY,
+        "HOST_CAPABILITY_UNAVAILABLE",
+        "The host does not expose the supported idempotent Codex task-create operation.",
+        status="UNAVAILABLE",
+    )
     exact_dispatcher = cast(CanonTaskDispatcher, dispatcher)
-    response = exact_dispatcher.create_linked_task(request_body)
+    host_request = {
+        "schema": "evidence-lane.codex-host-linked-task-create-request.v1",
+        "host_kind": "CODEX",
+        "operation": "CREATE_LINKED_TASK",
+        "capability": CODEX_HOST_CREATE_CAPABILITY,
+        "idempotency_key": dispatch_id,
+        "request_sha256": request_sha256,
+        "required_receipt_schema": CODEX_HOST_CREATE_RECEIPT_SCHEMA,
+        "canon_request": request_body,
+    }
+    response = exact_dispatcher.create_linked_task(host_request)
     require(
         isinstance(response, Mapping),
         "CANON_DISPATCH_RESPONSE_INVALID",
@@ -2205,11 +2779,24 @@ def dispatch_linked_canon_task(
         status="FAIL",
     )
     destination = _endpoint(response, field="destination")
+    host_creation_receipt = response.get("host_creation_receipt")
     require(
-        response.get("created_once") is True,
+        response.get("created_once") is True
+        and isinstance(host_creation_receipt, Mapping),
         "CANON_DISPATCH_EXACT_ONCE_UNPROVEN",
-        "The host did not prove one exact destination creation.",
+        "The host did not return one exact idempotent destination receipt.",
         status="FAIL",
+    )
+    host_creation_receipt = cast(Mapping[str, Any], host_creation_receipt)
+    validate_canon_receipt(host_creation_receipt)
+    require(
+        host_creation_receipt.get("schema") == CODEX_HOST_CREATE_RECEIPT_SCHEMA
+        and host_creation_receipt.get("idempotency_key") == dispatch_id
+        and host_creation_receipt.get("request_sha256") == request_sha256
+        and host_creation_receipt.get("destination") == destination,
+        "CANON_CODEX_HOST_RECEIPT_BINDING_MISMATCH",
+        "The Codex host receipt does not bind the exact destination and request.",
+        status="MISMATCH",
     )
     owner = (
         destination["task_uuid"] if mode == "TOP_LEVEL_TASK" else exact_source["task_uuid"]
@@ -2265,7 +2852,7 @@ def dispatch_linked_canon_task(
         edge=edge_body,
     )
     receipt_body = {
-        "schema": CANON_DISPATCH_RECEIPT_SCHEMA,
+        "schema": CANON_DISPATCH_RECEIPT_SCHEMA_V2,
         "dispatch_id": dispatch_id,
         "request_sha256": request_sha256,
         "source": exact_source,
@@ -2273,6 +2860,7 @@ def dispatch_linked_canon_task(
         "task_mode": mode,
         "scope_class": scope,
         "created_once": True,
+        "host_creation_receipt": dict(host_creation_receipt),
         "edge": registered["edge"],
         "approval_propagated": False,
         "pointer_propagated": False,
@@ -2283,6 +2871,7 @@ def dispatch_linked_canon_task(
         **receipt_body,
         "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
     }
+    validate_canon_receipt(receipt)
     connection = _connect(root)
     try:
         connection.execute("BEGIN IMMEDIATE")
@@ -2926,6 +3515,7 @@ def restore_canon_state_travel_continuity(
         ).fetchone()
         if existing is not None:
             receipt = cast(dict[str, Any], json.loads(str(existing["receipt_json"])))
+            validate_canon_receipt(receipt)
             after = _require_authorities_unchanged(
                 root, before, operation="restore_continuity_replay"
             )
@@ -2940,7 +3530,7 @@ def restore_canon_state_travel_continuity(
     finally:
         connection.close()
     receipt_body = {
-        "schema": "evidence-lane.canon-state-travel-restore-receipt.v1",
+        "schema": CANON_RESTORE_RECEIPT_SCHEMA,
         "project_id": project_id,
         "snapshot_sha256": claimed,
         "destination": destination,
@@ -2956,6 +3546,7 @@ def restore_canon_state_travel_continuity(
         **receipt_body,
         "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
     }
+    validate_canon_receipt(receipt)
     connection = _connect(root)
     try:
         connection.execute("BEGIN IMMEDIATE")
@@ -3011,6 +3602,7 @@ def inspect_canon_authority(
                 "canon_dispatch",
                 "canon_backfire_dedup",
                 "canon_continuity_receipt",
+                "canon_schema_migration",
             )
         }
         event_head = _last_event_sha256(connection)
@@ -3026,6 +3618,7 @@ def inspect_canon_authority(
     finally:
         connection.close()
     graph = inspect_canon_task_graph(root, project_id=project_id)
+    schema_contract = inspect_canon_schema_contract()
     body = {
         "status": "PASS" if integrity == ["ok"] and not foreign_keys else "FAIL",
         "project_id": project_id,
@@ -3038,6 +3631,26 @@ def inspect_canon_authority(
         "packet_states": states,
         "event_head_sha256": event_head,
         "graph_sha256": graph["graph_sha256"],
+        "schema_contract": {
+            "manifest_sha256": schema_contract["manifest_sha256"],
+            "ledger_schema": schema_contract["ledger_schema"],
+            "ledger_version": schema_contract["ledger_version"],
+            "ledger_asset_sha256": schema_contract["ledger_asset_sha256"],
+            "ledger_schema_signature_sha256": schema_contract[
+                "ledger_schema_signature_sha256"
+            ],
+            "receipt_registry_schema": schema_contract[
+                "receipt_registry_schema"
+            ],
+            "receipt_registry_version": schema_contract[
+                "receipt_registry_version"
+            ],
+            "receipt_asset_sha256": schema_contract["receipt_asset_sha256"],
+            "supported_receipt_schemas": schema_contract[
+                "supported_receipt_schemas"
+            ],
+            "receipt_sha256": schema_contract["receipt_sha256"],
+        },
         "project_truth_pointer_sha256": _authority_snapshot(root)[
             "project_truth_pointer_sha256"
         ],

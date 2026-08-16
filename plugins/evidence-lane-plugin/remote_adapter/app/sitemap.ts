@@ -7,6 +7,7 @@ const paths = [
   "/skills",
   "/mcp",
   "/hooks",
+  "/commands",
   "/architecture",
   "/lanes",
   "/operators",
@@ -21,8 +22,11 @@ const paths = [
   "/support",
   "/license",
   "/copyright",
+  "/third-party",
   "/credits",
   "/security",
+  "/helper",
+  "/tunnel",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -1,0 +1,10 @@
+title: Evidence Lane
+description: Governed project evidence, continuity, and release authority.
+url: https://rathee000001.github.io
+baseurl: /evidence_lane_plugin
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+exclude:
+  - README.md

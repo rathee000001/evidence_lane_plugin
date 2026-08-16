@@ -31,10 +31,12 @@ for historical V1/V2/V3 manifests.
 
 Code dependency detection is ecosystem-specific. `package.json` remains an npm
 manifest, while `pnpm-lock.yaml` uses its bounded pnpm importer detector and
-cannot be silently routed through a Python or pip detector. General source
-search uses hash-pinned package-local `rg` and `fzf`, then an explicitly
-configured verified host binary, then deterministic bounded built-in
-fallbacks; PATH-only selection and handshake downloads are forbidden.
+cannot be silently routed through a Python or pip detector. Indexed retrieval
+uses SQLite FTS5/BM25 with bounded pointer-bearing results. General pre-index
+source discovery uses hash-pinned package-local `rg`, then an explicitly
+configured verified host binary, then a deterministic bounded built-in
+fallback; PATH-only selection and handshake downloads are forbidden. No PV
+package or full SQLite authority is loaded into model context.
 
 ### Plan and Delta plane
 
@@ -170,9 +172,35 @@ context exhaustion. A handoff alone does not invoke it. The sealed handoff
 binds the project, session, accepted pointer, candidate/HIL state, source
 boundary, Plan/Delta event head, host profile, and destination task identity.
 
-Resume consumes a valid handoff once, fails closed on any mismatch, restores
-the complete task panel before source inspection, and resumes the exact active
-row. It never infers HIL, moves the pointer, or creates a candidate.
+Resume consumes a valid handoff once, fails closed on any mismatch, validates
+the complete native Plan ledger, activates its aligned current host window
+before source inspection, and resumes the exact active row. It never infers
+HIL, moves the pointer, or creates a candidate.
+
+State Travel is not app recovery. Destination creation must preserve one host
+process instance and prove the exact source UUID/deep link, destination UUID/
+deep link, initial shell binding, and host creation result before resume. An app
+restart, renderer reload/freeze, unexpected navigation or task/agent activation,
+duplicate destination title, or stale nested source task is
+`STATE_TRAVEL_HOST_CONTINUITY_FAILURE`. It fails before handoff consumption and
+is never retried automatically. Goal-recovery, tunnel, scheduled, release, and
+subagent helpers cannot perform or bypass this phase.
+
+Only the bounded sealed handoff and canonical Plan Lane may hydrate destination
+continuity. Full chat-history reads and collaboration/avatar-overlay hydration
+are forbidden during destination creation and Plan recovery. A thread-hydration
+overflow or React-root rerender is a first-class continuity failure even when
+the root Codex process survives. Recovery runs with one active task and zero
+subagents, fails closed on reset, revalidates the complete native ledger, and
+reactivates the exact current host window before work; it never claims to
+prevent host-owned renderer failure.
+
+The bounded right-side Step Task List window and exact task/worktree-bound
+Changes surface form one visible continuity boundary. While the human Goal remains active, a missing,
+partial, stale, or dropped surface must be rehydrated through supported native
+host actions before source or lifecycle work, or fail closed with
+`HOST_CAPABILITY_UNAVAILABLE`. Evidence Lane can require and verify this behavior
+but cannot claim that it prevents a host crash.
 
 ## Hooks and visible continuity
 
@@ -188,7 +216,7 @@ The v2.2 package registers eight hook events:
 - `Stop` — preserve the response/exit boundary;
 - `SessionEnd` — best-effort lifecycle flush without inferring completion.
 
-The package inventory is eight events, six command handlers, and nine hook files
+The package inventory is eight events, six command handlers, and twelve hook files
 including `hooks.json`. Hook output can request a persistent change notice, but
 Codex owns its final placement. The icon and rendered panel are therefore
 installed-host observations, not facts inferred from source metadata.
@@ -197,7 +225,15 @@ installed-host observations, not facts inferred from source metadata.
 
 `render_project_panel` and `render_runtime_panel` return MCP Apps-compatible
 resource metadata and a structured snapshot. The project panel shows accepted
-PV, candidate, active task, Deltas, source state, and HIL boundary. The runtime
+PV, candidate, active task, Deltas, source state, and a separate canonical Plan
+HIL queue: next pending HIL, later queued HILs, proposed PV identities,
+physical-final HIL, and dependency/continuation connections. The host Step Task
+List instead contains only the current execution window and its compact
+continuity header; it contains no HIL controls or queued-HIL cards.
+Each visible Step row is capped at three logical lines. This is only a UI
+projection bound: the full Plan row and linked graph remain in canonical Plan
+authority and are queried by exact task ID with bounded FTS detail retrieval.
+Text overflow never splits, appends, or reconstructs native Plan rows. The runtime
 panel shows installation, activation, Flash, storage, catalog, hook, skill, and
 version state.
 

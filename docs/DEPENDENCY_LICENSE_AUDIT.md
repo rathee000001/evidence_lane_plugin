@@ -1,7 +1,7 @@
 # Direct dependency license audit
 
-Audit date: **2026-08-09**
-Release line: **Evidence Lane 1.5.0 source / governed v1.4 correction base**
+Audit date: **2026-08-15**
+Release line: **Evidence Lane 2.2.0 pre-HIL source / accepted PV12 2.1 base**
 
 This is an engineering distribution check, not legal advice and not a complete
 transitive-license clearance. It records the direct dependencies declared by
@@ -65,7 +65,7 @@ distribution separately.
 
 ## Direct public adapter dependencies
 
-Installed metadata reports MIT for `framer-motion@12.38.0`, `next@16.1.5`,
+Installed metadata reports MIT for `framer-motion@12.38.0`, `next@16.3.1`,
 `react@19.2.4`, `react-dom@19.2.4`, `three@0.185.1`, `@types/node@24.10.1`,
 `@types/react@19.2.7`, `@types/react-dom@19.2.3`, and `@types/three@0.185.3`.
 `typescript@5.9.3` reports Apache-2.0.
@@ -82,6 +82,11 @@ Before any commercial or binary publication, generate an SBOM for the exact
 release artifact, inspect the complete transitive graph and bundled native
 binaries, preserve all required notices, and obtain qualified legal review when
 the distribution model requires it.
+
+This page covers license-bearing direct dependencies and redistributed tools.
+The separate [Tools](TOOLS.md) page lists the complete declared lane/runtime
+tool surface, including internal components that have no independent
+third-party license entry.
 
 **Verdict: FIX-THEN-PURSUE (high confidence).** The identified direct AGPL or
 commercial-license risk has been removed from active source and manifests, so

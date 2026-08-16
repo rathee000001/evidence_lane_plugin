@@ -1,4 +1,4 @@
-"""Governed ripgrep/fzf capability with deterministic internal fallbacks."""
+"""Governed SQLite FTS5 authority plus bounded ripgrep file-search fallback."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import platform
 import re
 import subprocess  # nosec B404 - exact executable, fixed argv, no shell
 import threading
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, BinaryIO
@@ -141,10 +141,20 @@ def load_search_toolchain_manifest(root: Path | None = None) -> dict[str, Any]:
         or value.get("shell_execution_allowed") is not False
     ):
         raise SearchToolchainError("SEARCH_TOOLCHAIN_MANIFEST_INVALID")
+    fts = value.get("fts_authority")
+    if fts != {
+        "backend": "SQLITE_FTS5",
+        "query_mode": "BOUNDED_FTS5",
+        "scope": "PLAN_LANE_CHATLINEAGE_AND_PROJECT_SECTORS",
+        "pointer_and_locator_required": True,
+        "model_context_policy": "BOUNDED_QUERY_RESULTS_ONLY",
+        "pv_package_loaded_into_model_context": False,
+        "fallback": "FAIL_CLOSED_WHEN_SQLITE_FTS5_UNAVAILABLE",
+    }:
+        raise SearchToolchainError("SEARCH_FTS_AUTHORITY_INVALID")
     tools = value.get("tools")
     if not isinstance(tools, list) or [row.get("tool_id") for row in tools] != [
         "ripgrep",
-        "fzf",
     ]:
         raise SearchToolchainError("SEARCH_TOOLCHAIN_INVENTORY_INVALID")
     return value
@@ -180,6 +190,7 @@ def declared_search_toolchain_identity(root: Path | None = None) -> dict[str, An
         "manifest_sha256": sha256_file(manifest_path),
         "scope": manifest["scope"],
         "resolution_order": manifest["resolution_order"],
+        "fts_authority": manifest["fts_authority"],
         "binaries": binaries,
     }
     body["identity_sha256"] = sha256_bytes(canonical_json_bytes(body))
@@ -597,122 +608,6 @@ def bounded_text_search(
         "stable_order": "PATH_CASEFOLD_LINE_COLUMN",
         "secret_paths_excluded": True,
         "results_redacted": True,
-        "source_mutated": False,
-        "git_mutated": False,
-        "lifecycle_mutated": False,
-        "candidate_created": False,
-        "hil_inferred": False,
-        "pointer_moved": False,
-    }
-    receipt["invocation_receipt_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
-    return {"results": results, "receipt": receipt}
-
-
-def _fallback_rank(query: str, candidates: Sequence[str], limit: int) -> list[str]:
-    query_folded = query.casefold()
-
-    def score(value: str) -> tuple[int, int, int, str, str]:
-        folded = value.casefold()
-        exact = folded.find(query_folded)
-        positions: list[int] = []
-        cursor = 0
-        for character in query_folded:
-            found = folded.find(character, cursor)
-            if found < 0:
-                return (2, len(folded), len(folded), folded, value)
-            positions.append(found)
-            cursor = found + 1
-        span = positions[-1] - positions[0] + 1 if positions else 0
-        return (0 if exact >= 0 else 1, exact if exact >= 0 else span, len(folded), folded, value)
-
-    ranked = [candidate for candidate in candidates if score(candidate)[0] < 2]
-    return sorted(ranked, key=score)[:limit]
-
-
-def bounded_fuzzy_rank(
-    query: str,
-    candidates: Iterable[str],
-    *,
-    limit: int = 100,
-    plugin_source_root: Path | None = None,
-    configured_path: str | Path | None = None,
-    configured_sha256: str | None = None,
-) -> dict[str, Any]:
-    """Rank bounded candidates noninteractively through fzf or Python."""
-
-    manifest = load_search_toolchain_manifest(plugin_source_root)
-    bounds = manifest["bounds"]
-    values = list(dict.fromkeys(str(value) for value in candidates))
-    if not query or len(query) > bounds["max_query_chars"] or "\0" in query:
-        raise SearchToolchainError("RANK_QUERY_BOUND_INVALID")
-    if not 1 <= limit <= bounds["max_results"]:
-        raise SearchToolchainError("RANK_RESULT_LIMIT_INVALID")
-    if len(values) > bounds["max_candidates"] or any(
-        len(value) > bounds["max_candidate_chars"]
-        or any(token in value for token in ("\0", "\r", "\n"))
-        for value in values
-    ):
-        raise SearchToolchainError("RANK_CANDIDATE_BOUND_INVALID")
-    resolution = resolve_search_tool(
-        "fzf",
-        root=plugin_source_root,
-        configured_path=configured_path,
-        configured_sha256=configured_sha256,
-    )
-    selected = resolution
-    results: list[str] = []
-    binary_failure: str | None = None
-    if resolution.executable is not None:
-        payload = b"\0".join(value.encode("utf-8") for value in values) + b"\0"
-        code, stdout, _stderr, binary_failure = _run_bounded(
-            resolution.executable,
-            ["--read0", "--print0", "--filter", query, "--no-color"],
-            input_bytes=payload,
-            timeout_seconds=bounds["timeout_seconds"],
-            max_output_bytes=bounds["max_process_output_bytes"],
-        )
-        if binary_failure is None and code in {0, 1}:
-            try:
-                results = [
-                    item.decode("utf-8") for item in stdout.split(b"\0") if item
-                ]
-            except UnicodeDecodeError:
-                binary_failure = "SEARCH_TOOL_OUTPUT_INVALID"
-            if binary_failure is None and (
-                len(results) != len(set(results))
-                or any(item not in values for item in results)
-            ):
-                binary_failure = "SEARCH_TOOL_OUTPUT_INVALID"
-            results = results[:limit]
-        elif binary_failure is None:
-            binary_failure = "SEARCH_TOOL_NONZERO_EXIT"
-    if resolution.executable is None or binary_failure is not None:
-        selected = ToolResolution(
-            resolution.tool_id,
-            "DETERMINISTIC_BUILTIN_FALLBACK",
-            None,
-            None,
-            None,
-            None,
-            binary_failure or resolution.reason,
-            resolution.manifest_sha256,
-            resolution.fallback_backend,
-        )
-        results = _fallback_rank(query, values, limit)
-
-    receipt: dict[str, Any] = {
-        "schema": INVOCATION_SCHEMA,
-        "status": "PASS",
-        "operation": "BOUNDED_FUZZY_RANK",
-        "capability": selected.receipt(),
-        "query_sha256": sha256_bytes(query.encode("utf-8")),
-        "candidate_set_sha256": sha256_bytes(canonical_json_bytes(values)),
-        "candidate_count": len(values),
-        "result_count": len(results),
-        "limit": limit,
-        "input_order_is_tiebreak_authority": True,
-        "noninteractive": True,
-        "shell_used": False,
         "source_mutated": False,
         "git_mutated": False,
         "lifecycle_mutated": False,

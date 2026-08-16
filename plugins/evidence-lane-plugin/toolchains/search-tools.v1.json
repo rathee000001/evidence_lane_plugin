@@ -16,6 +16,15 @@
   "candidate_authority": false,
   "hil_authority": false,
   "pointer_authority": false,
+  "fts_authority": {
+    "backend": "SQLITE_FTS5",
+    "query_mode": "BOUNDED_FTS5",
+    "scope": "PLAN_LANE_CHATLINEAGE_AND_PROJECT_SECTORS",
+    "pointer_and_locator_required": true,
+    "model_context_policy": "BOUNDED_QUERY_RESULTS_ONLY",
+    "pv_package_loaded_into_model_context": false,
+    "fallback": "FAIL_CLOSED_WHEN_SQLITE_FTS5_UNAVAILABLE"
+  },
   "bounds": {
     "max_query_chars": 1024,
     "max_candidates": 10000,
@@ -48,29 +57,6 @@
           "licenses": [
             "toolchains/licenses/ripgrep-15.2.0/LICENSE-MIT",
             "toolchains/licenses/ripgrep-15.2.0/UNLICENSE"
-          ]
-        }
-      }
-    },
-    {
-      "tool_id": "fzf",
-      "command": "fzf",
-      "role": "BOUNDED_NONINTERACTIVE_DETERMINISTIC_RANKING",
-      "version": "0.74.2",
-      "version_pattern": "^0\\.74\\.2(?: |$)",
-      "license_spdx": "MIT",
-      "upstream": "https://github.com/junegunn/fzf",
-      "configured_path_env": "EVIDENCE_LANE_FZF_EXECUTABLE",
-      "configured_sha256_env": "EVIDENCE_LANE_FZF_SHA256",
-      "fallback_backend": "PYTHON_DETERMINISTIC_SUBSEQUENCE_RANK",
-      "package_binaries": {
-        "windows-x86_64": {
-          "path": "toolchains/bin/windows-x86_64/fzf.exe",
-          "sha256": "8C3CF9EFF34D6093BC1E69AA5129A262508C3F35F38B4343C3D8423179E74E53",
-          "size_bytes": 5488128,
-          "provenance": "WinGet junegunn.fzf 0.74.2; package bytes independently hash-verified",
-          "licenses": [
-            "toolchains/licenses/fzf-0.74.2/LICENSE"
           ]
         }
       }

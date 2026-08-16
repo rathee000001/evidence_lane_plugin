@@ -66,6 +66,22 @@ def test_full_width_ril_gold_story_replaces_the_desktop_app_shell() -> None:
         assert forbidden.casefold() not in active_tsx.casefold()
 
 
+def test_primary_navigation_has_one_typed_visual_identity_per_route() -> None:
+    header = (COMPONENTS / "site-header.tsx").read_text(encoding="utf-8")
+    site = (APP / "_data" / "site.ts").read_text(encoding="utf-8")
+    navigation = site.split("export const primaryNavigation = [", 1)[1].split(
+        "] as const;", 1
+    )[0]
+    hrefs = re.findall(r'href: "([^"]+)"', navigation)
+
+    assert len(hrefs) == 12
+    assert len(set(hrefs)) == len(hrefs)
+    assert "satisfies Readonly<" in header
+    assert "Record<PrimaryNavigationHref" in header
+    for href in hrefs:
+        assert f'"{href}": {{ color:' in header
+
+
 def test_source_lab_exposes_generator_six_sources_and_four_brains() -> None:
     lab = (COMPONENTS / "source-brain-lab.tsx").read_text(encoding="utf-8")
 
@@ -497,9 +513,32 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "GITHUB_MARKDOWN_TO_SITE_FOOTERS_DELTA_TABLE_VERCEL_AND_EXISTING_DEVPOST" in release_identity
     assert '"evidence-lane:release-version"' in layout
     assert '"evidence-lane:release-commit"' in layout
-    for route in ("/license", "/copyright", "/credits"):
+    for route in (
+        "/license",
+        "/copyright",
+        "/credits",
+        "/commands",
+        "/third-party",
+        "/helper",
+        "/tunnel",
+    ):
         assert (APP / route.removeprefix("/") / "page.tsx").is_file()
-    for label in ("README", "License", "Copyright", "Security", "Contributors"):
+    for label in (
+        "README",
+        "Architecture",
+        "Skills",
+        "Native MCP",
+        "Hooks",
+        "Commands",
+        "License",
+        "Copyright",
+        "Terms and conditions",
+        "Third-party licenses and rights",
+        "Security",
+        "Human contributors",
+        "User Helper Guide",
+        "User Tunnel Guide",
+    ):
         assert f">{label}</Link>" in footer
     assert footer.count('href="/credits"') == 1
     assert "Naveen Rathee" not in contributors
@@ -544,7 +583,9 @@ def test_public_plugin_metadata_and_third_party_rights_are_canonical() -> None:
     license_page = (APP / "license" / "page.tsx").read_text(encoding="utf-8")
     copyright_page = (APP / "copyright" / "page.tsx").read_text(encoding="utf-8")
     repository_license = (ROOT / "LICENSE.md").read_text(encoding="utf-8")
-    repository_copyright = (ROOT / "COPYRIGHT.md").read_text(encoding="utf-8")
+    repository_copyright = (ROOT / "docs" / "COPYRIGHT.md").read_text(
+        encoding="utf-8"
+    )
 
     assert metadata["homepage"] == "https://evidencelane.org"
     assert "mcp_endpoint" not in metadata

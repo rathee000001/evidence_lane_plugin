@@ -180,6 +180,8 @@ const pluginSurfaceNodes: readonly HeroOrbitNode[] = [
   { label: "Exit Boot", tool: "terminal", color: cyan },
   { label: "Plan Lane", lane: "plan", color: violet },
   { label: "Lifecycle", tool: "pulse", color: gold },
+  { label: "Canon", tool: "git", color: rose },
+  { label: "AI Learning", tool: "node", color: green },
 ];
 
 const studioOutputs: readonly StudioOutput[] = [
@@ -248,14 +250,14 @@ const homeGovernanceRings: readonly HeroOrbitRing[] = [
     tag: bottomTag("6", "exact HIL decisions"),
   },
   { label: "Governed controls", size: 68, nodes: controlNodes, tag: leftTag("6", "governed controls", 70) },
-  { label: "Plugin surfaces", size: 82, nodes: pluginSurfaceNodes, tag: leftTag("15", "plugin surfaces", 31) },
+  { label: "Plugin surfaces", size: 82, nodes: pluginSurfaceNodes, tag: leftTag("17", "plugin surfaces", 31) },
   { label: "Source lanes", size: 96, nodes: laneNodes, tag: topTag("18", "source lanes") },
 ];
 
 const presetRings: Record<HeroOrbitPreset, readonly HeroOrbitRing[]> = {
   home: homeGovernanceRings,
   skills: [
-    { label: "Governed skills", size: 72, nodes: pluginSurfaceNodes, tag: bottomTag("15", "governed skills") },
+    { label: "Governed skills", size: 72, nodes: pluginSurfaceNodes, tag: bottomTag("17", "governed skills") },
     { label: "Primary controls", size: 92, nodes: controlNodes, tag: topTag("6", "primary controls") },
   ],
   mcp: [
@@ -573,7 +575,7 @@ function SurfaceCenter({ count, label, preset }: { count: string; label: string;
 
 function HeroCenter({ preset }: { preset: HeroOrbitPreset }) {
   if (preset === "home" || preset === "architecture") return <BrainCenter preset={preset} />;
-  if (preset === "skills") return <SurfaceCenter count="15" label="governed skills" preset={preset} />;
+  if (preset === "skills") return <SurfaceCenter count="17" label="governed skills" preset={preset} />;
   if (preset === "mcp") return <SurfaceCenter count="83" label="native actions" preset={preset} />;
   if (preset === "hooks") return <SurfaceCenter count="8" label="lifecycle events" preset={preset} />;
   if (preset === "operators") return <OperatorCenter />;

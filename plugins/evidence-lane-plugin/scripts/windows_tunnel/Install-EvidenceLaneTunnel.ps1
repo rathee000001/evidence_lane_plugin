@@ -5,8 +5,12 @@ param(
     [string]$TunnelId = "",
     [string]$PluginRoot = "",
     [string]$DataRoot = "$env:USERPROFILE\EvidenceLanePV",
-    [ValidateSet("stable-build", "fallback")]
-    [string]$SlotRole = "stable-build",
+    [ValidateSet(
+        "main-git-release",
+        "branch-commit-recovery",
+        "mutable-local-testing"
+    )]
+    [string]$SlotRole = "main-git-release",
     [string]$RuntimeRoot = "",
     [string]$ProfileName = "",
     [string]$TaskName = "",
@@ -30,29 +34,36 @@ if (-not (Test-Path -LiteralPath $releaseChannelPath -PathType Leaf)) {
     throw "The exact Evidence Lane release-channel contract is missing."
 }
 $releaseChannel = Get-Content -LiteralPath $releaseChannelPath -Raw | ConvertFrom-Json
-$slotContract = if ($SlotRole -eq "fallback") { $releaseChannel.fallback } else { $releaseChannel.stable }
+$slotContractKey = @{
+    "main-git-release" = "stable"
+    "branch-commit-recovery" = "branch_recovery"
+    "mutable-local-testing" = "local_testing"
+}[$SlotRole]
+$slotContract = $releaseChannel.$slotContractKey
+$slotRelease = if ($null -ne $slotContract.PSObject.Properties["release"]) {
+    [string]$slotContract.release
+} else {
+    [string]$slotContract.release_line
+}
 if (
     $releaseChannel.schema -ne "evidence-lane.codex-release-channel.v2" -or
     [string]$slotContract.slot_role -ne $SlotRole -or
-    [string]$slotContract.release -notmatch '^\d+\.\d+\.\d+$'
+    $slotRelease -notmatch '^\d+\.\d+\.\d+$'
 ) {
     throw "The requested tunnel slot does not match the exact release-channel contract."
 }
-$release = [string]$slotContract.release
+$release = $slotRelease
 $releaseToken = "v" + ($release -replace '\.', '')
 $filePrefix = "evidence_lane_${releaseToken}"
 $slotToken = $SlotRole.Replace("-", "_")
 if ([string]::IsNullOrWhiteSpace($RuntimeRoot)) {
-    $RuntimeRoot = Join-Path $env:USERPROFILE "EvidenceLanePV\tunnel-runtime-$releaseToken-$SlotRole"
+    $RuntimeRoot = Join-Path $env:USERPROFILE "EvidenceLanePV\tunnel-runtime-$releaseToken-stable-build"
 }
 if ([string]::IsNullOrWhiteSpace($ProfileName)) {
-    $ProfileName = "${filePrefix}_${slotToken}_transport"
+    $ProfileName = "${filePrefix}_stable_build_transport"
 }
 if ([string]::IsNullOrWhiteSpace($TaskName)) {
-    $TaskName = "EvidenceLane-Tunnel-$releaseToken-$SlotRole"
-}
-if ($SlotRole -eq "fallback" -and $Activate) {
-    throw "The fallback tunnel cannot be activated by the installer. Use the sealed two-slot operator after exact PV11 acceptance."
+    $TaskName = "EvidenceLane-Tunnel-$releaseToken-stable-build"
 }
 
 $expectedClientSha256 = "D893D8127EEE35070D265C1BE29BFE008F8D9FCB476E7FEBF56C8FDC6C0615C8"
@@ -61,10 +72,12 @@ $secretRoot = Join-Path $RuntimeRoot "secrets"
 $secretFile = Join-Path $secretRoot "control-plane-runtime-key.dpapi"
 $bootTarget = Join-Path $RuntimeRoot "EvidenceLaneTunnel.Boot.ps1"
 $manageTarget = Join-Path $RuntimeRoot "Manage-EvidenceLaneTunnel.ps1"
+$hostTarget = Join-Path $RuntimeRoot "EvidenceLaneTunnelHost.exe"
 $childTarget = Join-Path $RuntimeRoot "_INTERNAL_EVIDENCE_LANE_MCP_LAYER_DO_NOT_RUN.ps1"
 $markerFile = Join-Path $RuntimeRoot "evidence-lane-tunnel-installation.json"
 $sourceBoot = Join-Path $PSScriptRoot "EvidenceLaneTunnel.Boot.ps1"
 $sourceManage = Join-Path $PSScriptRoot "Manage-EvidenceLaneTunnel.ps1"
+$sourceHost = Join-Path $PSScriptRoot "EvidenceLaneTunnelHost.exe"
 $profileDir = Join-Path $env:APPDATA "tunnel-client"
 $profileFile = Join-Path $profileDir ($ProfileName + ".yaml")
 $runtimeKeyEnvelopeReused = $false
@@ -347,14 +360,27 @@ function Assert-NoOtherActiveTunnel {
         }
         try {
             $otherMarker = Get-Content -LiteralPath $otherMarkerPath -Raw | ConvertFrom-Json
-            $statusText = & $powershell `
-                -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass `
-                -File $otherManager `
-                -Action Status `
-                -RuntimeRoot $otherRoot.FullName `
-                -ProfileName ([string]$otherMarker.profile_name) `
-                -ReleaseToken ([string]$otherMarker.release_token) `
-                -TaskName ([string]$otherMarker.task_name) 2>$null
+            $managerCommand = Get-Command -Name $otherManager -CommandType ExternalScript -ErrorAction Stop
+            $statusArguments = @(
+                "-NoLogo", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden",
+                "-ExecutionPolicy", "Bypass", "-File", $otherManager,
+                "-Action", "Status", "-RuntimeRoot", $otherRoot.FullName
+            )
+            foreach ($optionalParameter in @("ProfileName", "TaskName", "ReleaseToken")) {
+                if (-not $managerCommand.Parameters.ContainsKey($optionalParameter)) {
+                    continue
+                }
+                $markerProperty = switch ($optionalParameter) {
+                    "ProfileName" { "profile_name" }
+                    "TaskName" { "task_name" }
+                    default { "release_token" }
+                }
+                $markerValue = [string]$otherMarker.$markerProperty
+                if (-not [string]::IsNullOrWhiteSpace($markerValue)) {
+                    $statusArguments += @("-$optionalParameter", $markerValue)
+                }
+            }
+            $statusText = & $powershell @statusArguments 2>$null
             $status = ($statusText | Out-String).Trim() | ConvertFrom-Json
             if (
                 $status.control_plane_poll_ready -eq $true -or
@@ -372,10 +398,27 @@ function Assert-NoOtherActiveTunnel {
     }
 }
 
+function Disable-StoppedPriorTunnelTasks {
+    param([Parameter(Mandatory = $true)][string]$ExactTaskName)
+
+    foreach ($priorTask in @(Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object {
+        [string]$_.TaskName -like "EvidenceLane-Tunnel-*" -and
+        [string]$_.TaskName -ne $ExactTaskName
+    })) {
+        if ([string]$priorTask.State -eq "Running") {
+            throw "A prior Evidence Lane tunnel task is still running; use its sealed manager before activating this release."
+        }
+        Disable-ScheduledTask -TaskName ([string]$priorTask.TaskName) -ErrorAction Stop | Out-Null
+    }
+}
+
 $exactPluginRoot = Resolve-PluginRoot
 $runner = Join-Path $exactPluginRoot "scripts\run_mcp.py"
 if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
     throw "The exact Evidence Lane MCP launcher is missing: $runner"
+}
+if (-not (Test-Path -LiteralPath $sourceHost -PathType Leaf)) {
+    throw "The no-visible-console Evidence Lane tunnel host is missing: $sourceHost"
 }
 $python = Resolve-PythonCommand -ExactPluginRoot $exactPluginRoot
 $exactDataRoot = [IO.Path]::GetFullPath($DataRoot)
@@ -396,6 +439,7 @@ New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
 Copy-Item -LiteralPath $resolvedSource -Destination $stableClient -Force
 Copy-Item -LiteralPath $sourceBoot -Destination $bootTarget -Force
 Copy-Item -LiteralPath $sourceManage -Destination $manageTarget -Force
+Copy-Item -LiteralPath $sourceHost -Destination $hostTarget -Force
 Protect-SecretDirectory
 
 if ($RotateRuntimeKey -or -not (Test-Path -LiteralPath $secretFile -PathType Leaf)) {
@@ -451,8 +495,12 @@ $marker = [ordered]@{
     profile_name = $ProfileName
     profile_file = $profileFile
     task_name = $TaskName
+    scheduled_task_launcher = $hostTarget
+    scheduled_task_launcher_sha256 = (Get-FileHash -LiteralPath $hostTarget -Algorithm SHA256).Hash
+    scheduled_task_launcher_subsystem = "WINDOWS_GUI_NO_VISIBLE_CONSOLE"
+    scheduled_task_launcher_create_no_window = $true
     slot_role = $SlotRole
-    byte_frozen = $SlotRole -eq "fallback"
+    byte_frozen = $SlotRole -eq "branch-commit-recovery"
     exposure_profile = "CODEX_INTERACTIVE_SUPPORT"
     transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"
     served_exposure_layer = "CODEX_INTERACTIVE_SUPPORT"
@@ -488,9 +536,9 @@ $marker = [ordered]@{
     tunnel_runtime_lifetime = if ($exactHostLifetime -eq "Ephemeral") { "CURRENT_VM_LIFETIME_ONLY" } else { "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST" }
     dependency_acquisition = $dependencyAcquisition
     runtime_key_plaintext_written = $false
-    windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"
+    windows_console_policy = "WINDOWS_GUI_HOST_CREATE_NO_WINDOW"
     scheduled_task_window_style = "HIDDEN"
-    distribution_audience = if ($SlotRole -eq "fallback") { "MAINTAINER_RECOVERY_ONLY" } else { "USER_STABLE_MARKETPLACE_RUNTIME" }
+    distribution_audience = if ($SlotRole -eq "branch-commit-recovery") { "MAINTAINER_RECOVERY_ONLY" } else { "USER_OR_MAINTAINER_ACTIVE_2_2_RUNTIME" }
     prior_versioned_runtimes_retained = $true
     prior_versioned_tasks_retained = $true
     prior_versioned_runtime_deletion_allowed = $false
@@ -499,8 +547,8 @@ $marker = [ordered]@{
 $marker | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $markerFile -Encoding UTF8
 
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
-$arguments = '-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + $bootTarget + '" -RuntimeRoot "' + $RuntimeRoot + '" -ProfileName "' + $ProfileName + '" -ProfileDir "' + $profileDir + '" -ReleaseToken "' + $releaseToken + '"'
-$action = New-ScheduledTaskAction -Execute $powershell -Argument $arguments
+$arguments = '"' + $RuntimeRoot + '" "' + $ProfileName + '" "' + $profileDir + '" "' + $releaseToken + '"'
+$action = New-ScheduledTaskAction -Execute $hostTarget -Argument $arguments
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity
 $principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel Limited
 $settings = New-ScheduledTaskSettingsSet `
@@ -526,6 +574,7 @@ if ($Activate) {
     Assert-NoOtherActiveTunnel `
         -ExactDataRoot $exactDataRoot `
         -ExactRuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot))
+    Disable-StoppedPriorTunnelTasks -ExactTaskName $TaskName
     & $manageTarget `
         -Action Start `
         -RuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot)) `
@@ -534,7 +583,7 @@ if ($Activate) {
         -ReleaseToken $releaseToken `
         -TaskName $TaskName *> $null
     if ($LASTEXITCODE -ne 0) {
-        throw "The stable-build tunnel did not reach readiness."
+        throw "The version-matched Evidence Lane tunnel did not reach readiness."
     }
 }
 
@@ -545,7 +594,7 @@ if ($Activate) {
     release_identity_source = "CODEX_RELEASE_CHANNEL_CONTRACT"
     runtime_identity_matches_release = $true
     slot_role = $SlotRole
-    byte_frozen = $SlotRole -eq "fallback"
+    byte_frozen = $SlotRole -eq "branch-commit-recovery"
     task_name = $TaskName
     trigger = "AT_LOGON"
     current_user_dpapi = $true
@@ -570,7 +619,7 @@ if ($Activate) {
     runtime_key_plaintext_written = $false
     windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"
     scheduled_task_window_style = "HIDDEN"
-    distribution_audience = if ($SlotRole -eq "fallback") { "MAINTAINER_RECOVERY_ONLY" } else { "USER_STABLE_MARKETPLACE_RUNTIME" }
+    distribution_audience = if ($SlotRole -eq "branch-commit-recovery") { "MAINTAINER_RECOVERY_ONLY" } else { "USER_OR_MAINTAINER_ACTIVE_2_2_RUNTIME" }
     prior_versioned_runtimes_retained = $true
     prior_versioned_tasks_retained = $true
     prior_versioned_runtime_deletion_allowed = $false
@@ -591,13 +640,13 @@ if ($Activate) {
     codex_platform_tunnel_setup_required_once = $true
     saved_slot = $true
     reusable_without_reinstall = $true
-    two_slot_registry_authority = "SEALED_POST_PV11_TWO_SLOT_REGISTRY"
+    three_slot_registry_authority = "SEALED_MAIN_BRANCH_RECOVERY_LOCAL_TESTING_REGISTRY"
     legacy_version_manager_authoritative = $false
     registry_materialization_gate = "EXACT_STANDALONE_APPROVE_PLUS_NATIVE_FUSE_ACCEPTING_PV11"
-    accepted_fallback_preserved = $true
+    branch_commit_recovery_preserved = $true
     registered_slot = $SlotRole
-    fallback_is_disabled = $SlotRole -eq "fallback"
-    fallback_prevalidation_requires_zero_tunnel_isolation = $SlotRole -eq "fallback"
+    pre_2_2_fallback_allowed = $false
+    branch_recovery_is_selected = $SlotRole -eq "branch-commit-recovery"
     failover_requires_sealed_two_slot_operator = $true
     activated = [bool]$Activate
     started = [bool]$Activate

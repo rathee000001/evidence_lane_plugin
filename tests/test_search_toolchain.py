@@ -12,8 +12,6 @@ from evidence_lane_plugin.search_toolchain import (
     INVOCATION_SCHEMA,
     MANIFEST_SCHEMA,
     SearchToolchainError,
-    ToolResolution,
-    bounded_fuzzy_rank,
     bounded_text_search,
     declared_search_toolchain_identity,
     load_search_toolchain_manifest,
@@ -48,7 +46,17 @@ def test_search_toolchain_manifest_seals_binaries_licenses_and_fallbacks() -> No
     assert manifest["auto_download_during_mcp_handshake"] is False
     assert manifest["path_lookup_allowed"] is False
     assert manifest["shell_execution_allowed"] is False
-    assert [row["tool_id"] for row in manifest["tools"]] == ["ripgrep", "fzf"]
+    assert [row["tool_id"] for row in manifest["tools"]] == ["ripgrep"]
+    assert manifest["fts_authority"] == {
+        "backend": "SQLITE_FTS5",
+        "query_mode": "BOUNDED_FTS5",
+        "scope": "PLAN_LANE_CHATLINEAGE_AND_PROJECT_SECTORS",
+        "pointer_and_locator_required": True,
+        "model_context_policy": "BOUNDED_QUERY_RESULTS_ONLY",
+        "pv_package_loaded_into_model_context": False,
+        "fallback": "FAIL_CLOSED_WHEN_SQLITE_FTS5_UNAVAILABLE",
+    }
+    assert identity["fts_authority"] == manifest["fts_authority"]
     assert all(row["package_binary_present"] for row in identity["binaries"])
     assert all(row["package_binary_matches"] for row in identity["binaries"])
     assert all(row["license_files_present"] for row in identity["binaries"])
@@ -79,10 +87,9 @@ def test_explicit_plugin_root_supports_installed_runtime_and_fails_closed(
 
 
 @pytest.mark.skipif(os.name != "nt", reason="packaged executable is Windows x64")
-def test_package_local_rg_and_fzf_are_exact_version_and_hash_verified() -> None:
+def test_package_local_rg_is_exact_version_and_hash_verified() -> None:
     expected = {
         "ripgrep": "14231169855EC5205CF5A1B6F1DB358FF4AED4247C86B69CE8AAE647C77F6680",
-        "fzf": "8C3CF9EFF34D6093BC1E69AA5129A262508C3F35F38B4343C3D8423179E74E53",
     }
     for tool_id, digest in expected.items():
         resolution = resolve_search_tool(tool_id, root=PLUGIN)
@@ -153,9 +160,13 @@ def test_missing_corrupt_wrong_platform_and_windowsapps_routes_fall_back(
         "evidence_lane_plugin.search_toolchain._platform_id",
         lambda: "unsupported-test-platform",
     )
-    cross_platform = resolve_search_tool("fzf", root=PLUGIN)
+    cross_platform = resolve_search_tool("ripgrep", root=PLUGIN)
     assert cross_platform.backend == "DETERMINISTIC_BUILTIN_FALLBACK"
     assert "PACKAGE_BINARY_PLATFORM_UNAVAILABLE" in cross_platform.reason
+
+    with pytest.raises(SearchToolchainError, match="SEARCH_TOOL_UNKNOWN"):
+        resolve_search_tool("fzf", root=PLUGIN)
+    assert not (PLUGIN / "toolchains" / "bin" / "windows-x86_64" / "fzf.exe").exists()
 
 
 def test_rg_search_and_python_fallback_are_bounded_stable_and_secret_safe(
@@ -198,78 +209,6 @@ def test_rg_search_and_python_fallback_are_bounded_stable_and_secret_safe(
     )
 
 
-def test_fzf_ranking_and_fallback_are_noninteractive_and_bounded(
-    tmp_path: Path,
-) -> None:
-    values = ["alpha", "beta", "gamma"]
-    native = bounded_fuzzy_rank(
-        "alpha",
-        values,
-        plugin_source_root=PLUGIN,
-    )
-    fallback = bounded_fuzzy_rank(
-        "alpha",
-        values,
-        plugin_source_root=_fallback_root(tmp_path),
-    )
-    assert native["results"] == fallback["results"] == ["alpha"]
-    assert native["receipt"]["noninteractive"] is True
-    assert native["receipt"]["shell_used"] is False
-    assert native["receipt"]["candidate_created"] is False
-    assert native["receipt"]["pointer_moved"] is False
-
-    with pytest.raises(SearchToolchainError, match="CANDIDATE_BOUND"):
-        bounded_fuzzy_rank("a", ["safe", "bad\nvalue"], plugin_source_root=PLUGIN)
+def test_query_bound_is_enforced_without_fuzzy_selector(tmp_path: Path) -> None:
     with pytest.raises(SearchToolchainError, match="QUERY_BOUND"):
         bounded_text_search(tmp_path, "x" * 1025, plugin_source_root=PLUGIN)
-
-
-def test_malicious_output_and_timeout_use_fallback_without_false_success(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    executable = tmp_path / "tool.exe"
-    executable.write_bytes(b"fixture")
-    resolution = ToolResolution(
-        "fzf",
-        "PACKAGE_LOCAL_VERIFIED_BINARY",
-        executable,
-        "0.74.2 fixture",
-        "A" * 64,
-        "B" * 64,
-        "PACKAGE_BINARY_VERIFIED",
-        "C" * 64,
-        "PYTHON_DETERMINISTIC_SUBSEQUENCE_RANK",
-    )
-    monkeypatch.setattr(
-        "evidence_lane_plugin.search_toolchain.resolve_search_tool",
-        lambda *args, **kwargs: resolution,
-    )
-    monkeypatch.setattr(
-        "evidence_lane_plugin.search_toolchain._run_bounded",
-        lambda *args, **kwargs: (0, b"injected\0", b"", None),
-    )
-    malicious = bounded_fuzzy_rank(
-        "alpha",
-        ["alpha", "beta"],
-        plugin_source_root=PLUGIN,
-    )
-    assert malicious["results"] == ["alpha"]
-    assert malicious["receipt"]["capability"]["backend"] == (
-        "DETERMINISTIC_BUILTIN_FALLBACK"
-    )
-    assert malicious["receipt"]["capability"]["reason"] == (
-        "SEARCH_TOOL_OUTPUT_INVALID"
-    )
-
-    monkeypatch.setattr(
-        "evidence_lane_plugin.search_toolchain._run_bounded",
-        lambda *args, **kwargs: (-1, b"", b"", "SEARCH_TOOL_TIMEOUT"),
-    )
-    timed_out = bounded_fuzzy_rank(
-        "alpha",
-        ["alpha", "beta"],
-        plugin_source_root=PLUGIN,
-    )
-    assert timed_out["results"] == ["alpha"]
-    assert timed_out["receipt"]["capability"]["reason"] == "SEARCH_TOOL_TIMEOUT"

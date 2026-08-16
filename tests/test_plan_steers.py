@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
+
+from .conftest import build_and_approve_pv1
 
 
 def _task(task_id: str, outcome: str) -> dict:
@@ -86,11 +90,86 @@ def test_codex_plan_mode_bridge_and_canonical_steer_classification(service) -> N
     assert appended["task_count_changed"] is True
     assert appended["steer"]["classification"] == "NEW_STEP"
     assert appended["event"]["event_type"] == "STEER_DELTA_NEW_STEP"
-    assert [row["number"] for row in appended["backlog"]["goal_projection"]["rows"]] == [
-        1,
-        2,
-        3,
+    assert appended["backlog_receipt"]["canonical_task_count"] == 3
+    assert appended["backlog_receipt"]["executable_task_count"] == 3
+    assert appended["backlog_receipt"]["full_backlog_returned"] is False
+    assert appended["backlog_receipt"]["full_plan_returned"] is False
+    assert appended["steer"]["delta_text_returned"] is False
+    assert "text" not in appended["steer"]
+    assert "backlog" not in appended
+    assert len(json.dumps(appended, sort_keys=True).encode("utf-8")) < 8192
+
+
+def test_plan_steer_updates_only_when_current_host_window_fingerprint_changes(
+    service,
+) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    tasks = [
+        _task(f"window-step-{number:02d}", f"Execute window row {number}.")
+        for number in range(1, 13)
     ]
+    service.plan_tasks(
+        "book-faires",
+        tasks=tasks,
+        planned_by="human-test",
+        plan_id="ten-row-window-steer-routing",
+    )
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=str(tasks[0]["task_class"]),
+        requested_outcome=str(tasks[0]["requested_outcome"]),
+        permitted_paths=list(tasks[0]["permitted_paths"]),
+        permitted_tools=list(tasks[0]["permitted_tools"]),
+        acceptance_checks=list(tasks[0]["acceptance_checks"]),
+        stop_condition=str(tasks[0]["stop_condition"]),
+        backlog_task_id=str(tasks[0]["task_id"]),
+    )
+
+    outside = service.record_steer_delta(
+        "book-faires",
+        delta_text="Attach this correction to a later host window.",
+        actor="human-test",
+        delta_id="steer-outside-current-window",
+        linked_task_id="window-step-12",
+    )
+    outside_effect = outside["host_plan_window_effect"]
+    assert outside_effect["schema"] == (
+        "evidence-lane.plan-steer-host-window-effect.v2"
+    )
+    assert outside_effect["row_start"] == 1
+    assert outside_effect["row_end"] == 10
+    assert outside_effect["linked_row_is_currently_visible"] is False
+    assert outside_effect["visible_window_changed"] is False
+    assert outside_effect["action"] == "LEDGER_ONLY_REUSE_CURRENT_HOST_WINDOW"
+    assert outside_effect["host_update_plan_required"] is False
+
+    inside_text_only = service.record_steer_delta(
+        "book-faires",
+        delta_text="Attach this correction to the visible host window.",
+        actor="human-test",
+        delta_id="steer-inside-current-window",
+        linked_task_id="window-step-05",
+    )
+    text_effect = inside_text_only["host_plan_window_effect"]
+    assert text_effect["linked_row_is_currently_visible"] is True
+    assert text_effect["visible_window_changed"] is False
+    assert text_effect["action"] == "LEDGER_ONLY_REUSE_CURRENT_HOST_WINDOW"
+    assert text_effect["host_update_plan_required"] is False
+
+    inside_metadata = service.record_steer_delta(
+        "book-faires",
+        delta_text="PLAN_GROUP=updated-window-group.",
+        actor="human-test",
+        delta_id="steer-inside-window-metadata",
+        linked_task_id="window-step-05",
+    )
+    effect = inside_metadata["host_plan_window_effect"]
+    assert effect["linked_row_is_currently_visible"] is True
+    assert effect["visible_window_changed"] is True
+    assert effect["action"] == "SYNC_CURRENT_HOST_WINDOW_ONCE"
+    assert effect["host_update_plan_required"] is True
+    assert effect["evi_refresh_invoked"] is False
 
 
 def test_non_codex_plan_rows_are_rejected_outside_the_codex_goal(service) -> None:

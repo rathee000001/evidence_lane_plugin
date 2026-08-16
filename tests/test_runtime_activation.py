@@ -209,6 +209,13 @@ def test_runtime_hook_status_separates_host_dispatches_from_package_events(
     assert goal["state"] == "HOST_CAPABILITY_UNAVAILABLE"
     assert goal["native_hook_event"] is None
     assert goal["per_input_invocation_proven"] is False
+    assert goal["tool_boundary_continuation_supported"] is True
+    assert goal["tool_boundary_hook_event"] == "preToolUse"
+    assert goal["tool_boundary_authority"] == (
+        "SEALED_ACTIVE_GOAL_RECOVERY_BINDING"
+    )
+    assert goal["tool_boundary_continuation_runnable"] is True
+    assert goal["synthetic_prompt_required"] is False
 
 
 def test_runtime_hook_status_rejects_sealed_four_event_package_baseline(

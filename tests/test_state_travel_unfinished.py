@@ -17,6 +17,43 @@ def _profile() -> dict[str, str]:
     }
 
 
+def _host_continuity(
+    source_task_id: str,
+    destination_task_id: str,
+) -> dict[str, object]:
+    return {
+        "schema": "evidence-lane.state-travel-host-continuity.v1",
+        "status": "PASS",
+        "source_task_id": source_task_id,
+        "source_task_deep_link": f"codex://threads/{source_task_id}",
+        "destination_task_id": destination_task_id,
+        "destination_task_deep_link": f"codex://threads/{destination_task_id}",
+        "initial_shell_source_task_id": source_task_id,
+        "initial_shell_destination_task_id": destination_task_id,
+        "host_creation_result_task_id": destination_task_id,
+        "host_creation_result_deep_link": f"codex://threads/{destination_task_id}",
+        "host_process_instance_id_before": "codex-beta-process-001",
+        "host_process_instance_id_after": "codex-beta-process-001",
+        "app_restart_invoked": False,
+        "app_restart_count": 0,
+        "renderer_reload_count": 0,
+        "ui_freeze_count": 0,
+        "unexpected_navigation_count": 0,
+        "unexpected_task_activation_count": 0,
+        "background_agent_activation_count": 0,
+        "unbounded_thread_hydration_count": 0,
+        "collaboration_overlay_hydration_count": 0,
+        "thread_hydration_mode": "BOUNDED_HANDOFF_ENVELOPE_ONLY",
+        "full_thread_history_requested": False,
+        "plan_projection_source": "CANONICAL_PLAN_LANE_NOT_THREAD_HISTORY",
+        "collaboration_overlay_active": False,
+        "observed_incidents": [],
+        "live_canonical_title_task_ids": [destination_task_id],
+        "title_used_as_identity": False,
+        "cwd_used_as_identity": False,
+    }
+
+
 def _destination_creation(
     source_task_id: str,
     destination_task_id: str,
@@ -34,6 +71,10 @@ def _destination_creation(
             f"codex://threads/{destination_task_id}"
         ),
         "canonical_title_increment_verified": True,
+        "host_continuity": _host_continuity(
+            source_task_id,
+            destination_task_id,
+        ),
     }
 
 
@@ -54,6 +95,10 @@ def _queued_destination_creation(
         "source_task_deep_link": f"codex://threads/{source_task_id}",
         "clientThreadId": client_thread_id,
         "canonical_title_increment_verified": True,
+        "host_continuity": _host_continuity(
+            source_task_id,
+            destination_task_id,
+        ),
         "destination_resolution": {
             "schema": "evidence-lane.host-destination-resolution.v1",
             "status": "RESOLVED_UNIQUE",
@@ -183,9 +228,14 @@ def test_state_travel_preserves_unaccepted_candidate_and_exact_resume_row(
         ],
         "completed_governing_rows_may_be_omitted": False,
         "goal_completion_allowed_when": (
-            "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_"
-            "DECISION_DEPENDENT_WORK_COMPLETE"
+            "HUMAN_EXPLICIT_GOAL_COMPLETION_DISPOSITION"
         ),
+        "goal_completion_authority": "HUMAN_ONLY",
+        "hil_may_complete_goal": False,
+        "goal_completion_modes": [
+            "COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
+            "COMPLETE_FULLY",
+        ],
     }
     assert handoff["next_action_contract"]["goal_continuity"] == goal_continuity
     orchestration = handoff["resume_contract"]["destination_orchestration"]
@@ -210,6 +260,20 @@ def test_state_travel_preserves_unaccepted_candidate_and_exact_resume_row(
     )
     assert orchestration["destination_creation_exactly_once"] is True
     assert orchestration["destination_creation_user_click_required"] is False
+    assert orchestration["app_restart_or_renderer_reload_allowed"] is False
+    assert orchestration["full_thread_history_hydration_allowed"] is False
+    assert orchestration["collaboration_overlay_hydration_allowed"] is False
+    assert orchestration["destination_thread_hydration_mode"] == (
+        "BOUNDED_HANDOFF_ENVELOPE_ONLY"
+    )
+    assert orchestration["host_plan_projection_source"] == (
+        "CANONICAL_PLAN_LANE_NOT_THREAD_HISTORY"
+    )
+    assert orchestration["unexpected_task_or_agent_activation_allowed"] is False
+    assert orchestration["host_continuity_failure_retry_allowed"] is False
+    assert orchestration["host_continuity_required_proof"][
+        "exact_initial_shell_source_and_destination_task_ids"
+    ] is True
     assert orchestration["host_plan_acceptance_required"] is True
     assert orchestration["host_plan_automatic_acceptance_allowed"] is False
     assert orchestration["host_plan_acceptance_is_evidence_lane_hil"] is False
@@ -248,6 +312,12 @@ def test_state_travel_preserves_unaccepted_candidate_and_exact_resume_row(
             "SESSION_CONTINUATION",
             "SESSION_RESUME",
             "STATE_TRAVEL_DESTINATION_ENTRY",
+            "APP_RENDERER_RELOAD",
+            "HOST_REACT_ROOT_RERENDER",
+            "THREAD_HYDRATION_OVERFLOW",
+            "COLLABORATION_OVERLAY_CONFLICT",
+            "TASK_PANEL_LOSS",
+            "CHANGES_SURFACE_LOSS",
         ],
         "first_required_action": "REPROJECT_EXACT_COMPLETE_TASK_LIST",
         "must_precede": [
@@ -283,17 +353,37 @@ def test_state_travel_preserves_unaccepted_candidate_and_exact_resume_row(
             "panel_reactivation"
         ]["visible_label_contract"],
         "visible_through_pause_and_hil": True,
+        "native_host_surfaces": [
+            "CODEX_RIGHT_SIDE_PLAN",
+            "CODEX_RIGHT_SIDE_CHANGES",
+        ],
+        "native_plan_activation_action": "update_plan",
+        "changes_surface_binding": "EXACT_TASK_UUID_AND_WORKTREE",
+        "surface_drop_before_goal_completion": (
+            "HOST_CONTINUITY_FAILURE_THEN_REHYDRATE_BEFORE_WORK"
+        ),
+        "canonical_rehydration_source": (
+            "PLAN_LANE_BACKLOG_NOT_THREAD_HISTORY"
+        ),
+        "full_thread_history_hydration_allowed": False,
+        "collaboration_overlay_hydration_allowed_during_recovery": False,
+        "recovery_concurrency": "ONE_ACTIVE_TASK_ZERO_SUBAGENTS",
+        "renderer_reset_effect": (
+            "FAIL_CLOSED_THEN_REPROJECT_EXACTLY_ONCE_PER_EVENT"
+        ),
+        "host_owned_surface_guarantee_claimed": False,
+        "goal_completion_authority": "HUMAN_ONLY",
         "drop_allowed_when": (
-            "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_"
-            "DECISION_DEPENDENT_WORK_COMPLETE"
+            "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_"
+            "HANDOFF_PASSES"
         ),
     }
     assert handoff["next_action_contract"]["task_panel_reactivation"] == (
         panel_reactivation
     )
     assert handoff["resume_contract"]["task_panel_persistent_until"] == (
-        "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_"
-        "DECISION_DEPENDENT_WORK_COMPLETE"
+        "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_"
+        "HANDOFF_PASSES"
     )
 
     wrong_profile = {**profile, "reasoning_effort": "medium"}
@@ -385,6 +475,10 @@ def test_state_travel_preserves_unaccepted_candidate_and_exact_resume_row(
     assert destination_binding["source_task_id"] == "origin-codex-task"
     assert destination_binding["destination_task_id"] == "matching-profile-task"
     assert destination_binding["creation_count"] == 1
+    assert destination_binding["host_continuity"][
+        "host_process_continuity_proven"
+    ] is True
+    assert destination_binding["host_continuity"]["app_restart_count"] == 0
     assert destination_binding["task_title_used_as_identity"] is False
     assert destination_binding["cwd_used_as_identity"] is False
 
@@ -442,6 +536,105 @@ def test_state_travel_preserves_unaccepted_candidate_and_exact_resume_row(
         "STATE_TRAVEL_REPLAY_DESTINATION_MISMATCH"
     )
     assert service.store.pointer("book-faires").as_dict() == pointer_before_replay
+
+
+@pytest.mark.parametrize(
+    ("field", "bad_value"),
+    [
+        ("initial_shell_source_task_id", "wrong-source-task"),
+        ("initial_shell_destination_task_id", "wrong-destination-task"),
+        ("host_process_instance_id_after", "restarted-codex-process"),
+        ("app_restart_invoked", True),
+        ("app_restart_count", 1),
+        ("renderer_reload_count", 1),
+        ("ui_freeze_count", 1),
+        ("unexpected_navigation_count", 1),
+        ("unexpected_task_activation_count", 1),
+        ("background_agent_activation_count", 1),
+        ("unbounded_thread_hydration_count", 1),
+        ("collaboration_overlay_hydration_count", 1),
+        ("thread_hydration_mode", "FULL_THREAD_HISTORY"),
+        ("full_thread_history_requested", True),
+        ("plan_projection_source", "THREAD_SCROLLBACK"),
+        ("collaboration_overlay_active", True),
+        (
+            "live_canonical_title_task_ids",
+            ["continuity-destination-task", "duplicate-title-task"],
+        ),
+    ],
+)
+def test_state_travel_host_continuity_incident_fails_before_consumption(
+    service,
+    field: str,
+    bad_value: object,
+) -> None:
+    profile = _profile()
+    boot = service.boot_session(
+        project_id="book-faires",
+        user_id="user-test",
+        workspace_id="workspace-test",
+        host="CODEX_DESKTOP",
+        agent_id="sole-writer",
+        sandbox_id="sandbox-local",
+        ephemeral=False,
+        runtime_context={"execution_profile": profile},
+        host_session_id="continuity-origin-task",
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+    session_id = boot["session"]["session_id"]
+    handoff = service.prepare_state_travel(
+        "book-faires",
+        session_id,
+        resume_contract={
+            "task_list": [
+                {
+                    "number": 1,
+                    "step": "Resume without restarting the host",
+                    "status": "IN_PROGRESS",
+                },
+                {
+                    "number": 2,
+                    "step": "Present the final HIL",
+                    "status": "PENDING",
+                    "panel_role": "PHYSICALLY_FINAL_HIL",
+                },
+            ],
+            "resume_step": 1,
+            "additive_deltas": [],
+            "execution_profile": profile,
+        },
+    )["state_travel"]
+    creation = _destination_creation(
+        "continuity-origin-task",
+        "continuity-destination-task",
+    )
+    continuity = dict(creation["host_continuity"])
+    continuity[field] = bad_value
+    creation["host_continuity"] = continuity
+
+    with pytest.raises(EvidenceLaneError) as failure:
+        service.resume_state_travel(
+            project_id="book-faires",
+            session_id=session_id,
+            handoff_id=handoff["handoff_id"],
+            host="CODEX_DESKTOP",
+            host_session_id="continuity-destination-task",
+            ephemeral=False,
+            client_can_edit_source=True,
+            server_has_durable_filesystem=True,
+            runtime_context={
+                "execution_profile": profile,
+                "state_travel_destination_creation": creation,
+            },
+        )
+
+    assert failure.value.code == "STATE_TRAVEL_HOST_CONTINUITY_FAILURE"
+    assert failure.value.details["retry_allowed"] is False
+    assert failure.value.details["handoff_consumption_allowed"] is False
+    current = service.sessions.load("book-faires", session_id)
+    assert current.metadata["current_host_session_id"] == "continuity-origin-task"
+    assert current.metadata["state_travel"]["status"] == "PREPARED"
 
 
 def test_state_travel_resolves_one_queued_client_thread_and_retains_history(
@@ -758,6 +951,128 @@ def test_non_empty_state_travel_panel_requires_exactly_one_active_row() -> None:
             ]
         )
     assert multiple_active.value.code == "STATE_TRAVEL_MULTIPLE_ACTIVE_STEPS"
+
+
+def test_state_travel_explicitly_supersedes_orphaned_stale_host_handoff(
+    service,
+) -> None:
+    profile = _profile()
+    boot = service.boot_session(
+        project_id="book-faires",
+        user_id="user-test",
+        workspace_id="workspace-test",
+        host="CODEX_DESKTOP",
+        agent_id="sole-writer",
+        sandbox_id="sandbox-local",
+        ephemeral=False,
+        runtime_context={"execution_profile": profile},
+        host_session_id="stale-origin-task-4",
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+    session_id = boot["session"]["session_id"]
+    task_rows = [
+        {"number": 1, "step": "Keep exact work", "status": "IN_PROGRESS"},
+        {"number": 2, "step": "Present final HIL", "status": "PENDING"},
+    ]
+    first = service.prepare_state_travel(
+        "book-faires",
+        session_id,
+        resume_contract={
+            "task_list": task_rows,
+            "resume_step": 1,
+            "additive_deltas": [],
+            "execution_profile": profile,
+        },
+    )["state_travel"]
+    pointer_before = service.store.pointer("book-faires").as_dict()
+
+    current = service.sessions.load("book-faires", session_id)
+    current.metadata["current_host_session_id"] = "replacement-task-6"
+    service.sessions._save(current)
+    corrected_rows = [
+        {**task_rows[0], "step": "Keep exact work after stale Task4"},
+        task_rows[1],
+    ]
+    base_contract = {
+        "task_list": corrected_rows,
+        "resume_step": 1,
+        "additive_deltas": [
+            {
+                "delta_id": "ORPHAN_CORRECTION_001",
+                "text": "Replace only the stale prepared receipt.",
+                "linked_step": 1,
+            }
+        ],
+        "execution_profile": profile,
+        "supersede_prepared_handoff_id": first["handoff_id"],
+        "supersede_prepared_reason": "EXPLICIT_USER_CORRECTION",
+    }
+
+    with pytest.raises(EvidenceLaneError) as missing_orphan_authority:
+        service.prepare_state_travel(
+            "book-faires",
+            session_id,
+            resume_contract=base_contract,
+        )
+    assert missing_orphan_authority.value.code == (
+        "STATE_TRAVEL_PREPARED_ORPHAN_CORRECTION_INVALID"
+    )
+
+    with pytest.raises(EvidenceLaneError) as wrong_old_receipt:
+        service.prepare_state_travel(
+            "book-faires",
+            session_id,
+            resume_contract={
+                **base_contract,
+                "supersede_prepared_handoff_sha256": "0" * 64,
+                "supersede_prepared_origin_host_session_id": (
+                    "stale-origin-task-4"
+                ),
+                "supersede_prepared_scope": "ORPHANED_STALE_HOST_TASK",
+                "supersede_prepared_confirmation": (
+                    "SUPERSEDE_ORPHANED_PREPARED_HANDOFF"
+                ),
+            },
+        )
+    assert wrong_old_receipt.value.code == (
+        "STATE_TRAVEL_PREPARED_ORPHAN_CORRECTION_INVALID"
+    )
+
+    replacement_result = service.prepare_state_travel(
+        "book-faires",
+        session_id,
+        resume_contract={
+            **base_contract,
+            "supersede_prepared_handoff_sha256": first["handoff_sha256"],
+            "supersede_prepared_origin_host_session_id": "stale-origin-task-4",
+            "supersede_prepared_scope": "ORPHANED_STALE_HOST_TASK",
+            "supersede_prepared_confirmation": (
+                "SUPERSEDE_ORPHANED_PREPARED_HANDOFF"
+            ),
+        },
+    )
+    replacement = replacement_result["state_travel"]
+    assert replacement["handoff_id"] != first["handoff_id"]
+    disposition = replacement["supersedes_prepared_handoff"]
+    assert disposition["status"] == (
+        "SUPERSEDED_BY_EXPLICIT_ORPHAN_USER_CORRECTION"
+    )
+    assert disposition["handoff_id"] == first["handoff_id"]
+    assert disposition["origin_host_session_id"] == "stale-origin-task-4"
+    assert disposition["replacement_host_session_id"] == "replacement-task-6"
+    assert disposition["orphaned_stale_host_task"] is True
+    assert disposition["state_travel_consumed"] is False
+    assert disposition["pointer_moved"] is False
+    assert service.store.pointer("book-faires").as_dict() == pointer_before
+    persisted = service.sessions.load("book-faires", session_id)
+    assert persisted.metadata["state_travel_history"][-1] == first
+    assert persisted.metadata["state_travel"]["handoff_id"] == replacement[
+        "handoff_id"
+    ]
+    assert replacement_result["supersession_event"]["event_type"] == (
+        "pv.state_travel.superseded_orphan_user_correction"
+    )
 
 
 def test_state_travel_derives_full_active_plan_and_seals_every_plan_steer(

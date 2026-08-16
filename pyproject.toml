@@ -53,6 +53,8 @@ where = ["plugins/evidence-lane-plugin/src"]
 evidence_lane_plugin = [
   "schema.sql",
   "schemas/*.json",
+  "schemas/canon/*.json",
+  "schemas/canon/*.sql",
   "session_flash/env15/*.json",
   "session_flash/env15/*.md",
   "session_flash/env15/env/*",

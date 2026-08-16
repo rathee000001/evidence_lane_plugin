@@ -25,10 +25,25 @@ def _load_runtime():
     )
 
 
+def _load_behavior_handoff():
+    hook_root = Path(__file__).resolve().parent
+    if str(hook_root) not in sys.path:
+        sys.path.insert(0, str(hook_root))
+    from behavior_handoff import attach_consumed_behavior_handoff
+
+    return attach_consumed_behavior_handoff
+
+
 def _project(payload: dict[str, Any]) -> dict[str, Any]:
     build_transport, consume_transport, _ = _load_runtime()
     transport = build_transport("PostToolUse", payload)
-    return consume_transport(payload, transport)
+    receipt = consume_transport(payload, transport)
+    return _load_behavior_handoff()(
+        "PostToolUse",
+        transport,
+        receipt,
+        skill_consumer=consume_transport,
+    )
 
 
 def main() -> int:
@@ -55,7 +70,7 @@ def main() -> int:
                 "VALIDATE_REDACT_BOUND_DEDUPLICATE_AND_TRANSPORT_ONLY"
             ),
         }
-    result: dict[str, Any] = {"continue": True}
+    result: dict[str, Any] = {}
     display = receipt.get("persistent_change_display")
     if isinstance(display, dict):
         _, _, render_notice = _load_runtime()
@@ -64,7 +79,19 @@ def main() -> int:
             phase="POST_TOOL_USE",
             turn_receipt=receipt,
         )
-        result["systemMessage"] = message
+        notice_id = str(
+            notice.get("notice_sha256")
+            or notice.get("change_display_sha256")
+            or receipt.get("receipt_sha256")
+            or receipt.get("event_sha256")
+            or "UNAVAILABLE"
+        )[:24]
+        result["continue"] = True
+        result["systemMessage"] = (
+            message
+            + "\nEVIDENCE_LANE_PERSISTENT_CHANGE_TOOL_PROJECTION="
+            + notice_id
+        )
         result["hookSpecificOutput"] = {
             "hookEventName": "PostToolUse",
             "additionalContext": (
@@ -75,7 +102,8 @@ def main() -> int:
     elif receipt.get("state") == "TURN_CONTROL_GAP":
         result["systemMessage"] = (
             "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY_GAP="
-            + json.dumps(receipt, sort_keys=True, separators=(",", ":"))
+            f"{receipt.get('code', 'UNKNOWN')}:"
+            f"{receipt.get('error_type', 'UNKNOWN')}"
         )
     print(json.dumps(result, sort_keys=True, separators=(",", ":")))
     return 0

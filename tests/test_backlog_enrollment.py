@@ -284,6 +284,141 @@ def test_plan_runtime_projection_detects_semantic_sqlite_tamper(service) -> None
     )
 
 
+def test_plan_runtime_v2_reports_legacy_projection_stale_without_read_failure(
+    service,
+) -> None:
+    service.plan_tasks(
+        "book-faires",
+        tasks=[
+            _planned_task(
+                "legacy-runtime",
+                "Keep canonical Plan authority readable across a hot upgrade.",
+            )
+        ],
+        planned_by="human-test",
+        plan_id="legacy-plan-runtime",
+    )
+    projection_path = service.store._plan_runtime_path("book-faires")
+    projection_path.unlink()
+    with sqlite3.connect(projection_path) as connection:
+        connection.executescript(
+            """
+            PRAGMA user_version = 1;
+            CREATE TABLE projection_meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            INSERT INTO projection_meta (key, value)
+            VALUES ('schema', 'evidence-lane.plan-runtime-projection.v1');
+            CREATE TABLE delta_task (
+                task_id TEXT PRIMARY KEY,
+                current_status TEXT NOT NULL
+            );
+            """
+        )
+
+    status = service.store.plan_runtime_status("book-faires")
+    assert status["status"] == "STALE"
+    assert status["reason"] == "DERIVED_SCHEMA_REBUILD_REQUIRED"
+    assert status["observed_schema"].endswith(".v1")
+    assert status["sqlite_user_version"] == 1
+    assert status["expected_sqlite_user_version"] == 2
+    assert status["rebuild_action"] == (
+        "NEXT_GOVERNED_PLAN_WRITE_ATOMIC_REBUILD"
+    )
+    assert status["canonical_plan_sector_mutated"] is False
+    assert status["raw_pv_model_context_loading"] is False
+
+
+def test_plan_runtime_v2_indexes_full_contract_steers_rows_and_bounded_fts(
+    service,
+) -> None:
+    service.plan_tasks(
+        "book-faires",
+        tasks=[
+            {
+                **_planned_task(
+                    "runtime-root",
+                    "Implement the bounded Plan runtime authority.",
+                ),
+                "plan_group": "runtime-foundation",
+                "commit_batch_id": "runtime-batch",
+                "dependencies": [],
+            },
+            _planned_task(
+                "runtime-child",
+                "Verify the live Plan query contract without loading a PV.",
+            ),
+        ],
+        planned_by="human-test",
+        plan_id="plan-runtime-v2",
+    )
+    service.record_steer_delta(
+        "book-faires",
+        delta_text=(
+            "PLAN_GROUP=canon-runtime COMMIT_BATCH=canon-query "
+            "DEPENDS_ON=runtime-root GIT_STAGE=NO_COMMIT. "
+            "Keep Memory SQLite separate from the AI Learning arm."
+        ),
+        actor="human-test",
+        delta_id="runtime-child-steer",
+        linked_task_id="runtime-child",
+    )
+
+    status = service.store.plan_runtime_status("book-faires")
+    assert status["status"] == "PASS"
+    assert status["sqlite_user_version"] == 2
+    assert status["full_task_contracts_indexed"] is True
+    assert status["steer_deltas_indexed"] is True
+    assert status["steer_count"] == 1
+    assert status["execution_row_count"] == 2
+    assert status["history_row_count"] == 0
+    assert status["fts_record_count"] == 3
+    assert status["accepted_pv_payload_copied"] is False
+    assert status["raw_pv_model_context_loading"] is False
+    assert status["memory_sqlite_authority"] == (
+        "SEPARATE_FROM_AI_LEARNING_AND_PROJECT_TRUTH"
+    )
+
+    exact = service.store.plan_runtime_query(
+        "book-faires",
+        task_id="runtime-child",
+    )
+    assert exact["query_mode"] == "EXACT_TASK_ID"
+    assert exact["row"]["plan_group"] == "canon-runtime"
+    assert exact["row"]["commit_batch_id"] == "canon-query"
+    assert exact["row"]["dependencies_json"] == '["runtime-root"]'
+    assert exact["row"]["git_commit_stage"] == "NO_COMMIT"
+    assert exact["contract"]["requested_outcome"].startswith(
+        "Verify the live Plan query contract"
+    )
+    assert [steer["delta_id"] for steer in exact["steers"]] == [
+        "runtime-child-steer"
+    ]
+    assert exact["accepted_pv_payload_loaded"] is False
+
+    fts = service.store.plan_runtime_query(
+        "book-faires",
+        query="Memory SQLite learning",
+    )
+    assert fts["query_mode"] == "BOUNDED_FTS5"
+    assert [hit["source_id"] for hit in fts["hits"]] == [
+        "runtime-child-steer"
+    ]
+    assert fts["accepted_pv_payload_loaded"] is False
+
+    window = service.task_backlog_window("book-faires")
+    assert window["full_ledger_returned"] is False
+    assert window["accepted_pv_payload_loaded"] is False
+    assert len(window["rows"]) == 2
+    assert all("step" not in row and "requested_outcome" not in row for row in window["rows"])
+    assert "plan_runtime_projection" not in window
+    assert window["plan_runtime_receipt"]["full_runtime_projection_returned"] is False
+    assert window["plan_runtime_receipt"]["raw_pv_payload_loaded"] is False
+    assert window["plan_runtime_receipt"]["raw_chat_scrollback_loaded"] is False
+    assert len(json.dumps(window, sort_keys=True).encode("utf-8")) < 8192
+
+
 def test_legacy_backlog_statuses_migrate_without_dropping_history(service) -> None:
     planned_at = "2026-07-30T00:00:00Z"
     legacy_statuses = {

@@ -59,6 +59,7 @@ INTERNAL_SDK_RESPONSE_SCHEMA = "evidence-lane.internal-sdk-response.v1"
 INTERNAL_SDK_REPLAY_SCHEMA = "evidence-lane.internal-sdk-replay.v1"
 INTERNAL_SDK_MAX_PAYLOAD_BYTES = 256 * 1024
 INTERNAL_SDK_MAX_TIMEOUT_MS = 60_000
+INTERNAL_SDK_HANDLER_PARITY_SCHEMA = "evidence-lane.sdk-handler-parity.v1"
 
 _SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
 _SAFE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$")
@@ -167,9 +168,6 @@ SDK_MODULES: tuple[SDKModuleSpec, ...] = (
             "doctor:READ",
             "transition_law:READ",
             "runtime_status:READ",
-            "boot_or_resume:WRITE_LIFECYCLE",
-            "record_visible_event:WRITE_LINEAGE",
-            "seal_exit_entry:WRITE_HOST_ENTRY",
         ),
     ),
     SDKModuleSpec(
@@ -179,7 +177,6 @@ SDK_MODULES: tuple[SDKModuleSpec, ...] = (
         _operations(
             "status:READ",
             "backlog:READ",
-            "classify_delta:WRITE_PLAN",
             "transition_task:WRITE_PLAN",
             "project_host_plan:WRITE_HOST_PLAN",
         ),
@@ -201,7 +198,7 @@ SDK_MODULES: tuple[SDKModuleSpec, ...] = (
         "ENV_UOP_FORMULA_PCM_MBA",
         _operations(
             "status:READ",
-            "classify_mode:READ",
+            "classify_mode:WRITE_LINEAGE",
             "compile_formula:WRITE_DERIVED_OPERATOR",
             "route_operator:WRITE_DERIVED_OPERATOR",
         ),
@@ -223,7 +220,6 @@ SDK_MODULES: tuple[SDKModuleSpec, ...] = (
         "HIL_CANDIDATE_POINTER",
         _operations(
             "status:READ",
-            "prepare_candidate:WRITE_CANDIDATE",
             "render_hil:READ",
             "record_decision:WRITE_HIL",
             "fuse:WRITE_PROJECT_TRUTH",
@@ -243,6 +239,58 @@ SDK_MODULES: tuple[SDKModuleSpec, ...] = (
 )
 
 _MODULE_BY_ID = {item.module_id: item for item in SDK_MODULES}
+SDK_EXTERNAL_PROVIDER_OPERATIONS = {
+    ("host_entry_continuity", "issue"): "codex-host-entry-provider.v1",
+    ("host_entry_continuity", "consume"): "codex-host-entry-provider.v1",
+    (
+        "host_entry_continuity",
+        "roll_generation",
+    ): "codex-host-entry-provider.v1",
+    ("plan_delta_tasks", "project_host_plan"): "codex-host-plan-provider.v1",
+    (
+        "env_uop_operator_runtime",
+        "compile_formula",
+    ): "env-uop-operator-provider.v1",
+    (
+        "env_uop_operator_runtime",
+        "route_operator",
+    ): "env-uop-operator-provider.v1",
+    (
+        "provider_host_adapters",
+        "invoke_headless",
+    ): "codex-headless-provider.v1",
+}
+SDK_NARROWED_OPERATION_CLAIMS = {
+    "lifecycle_hooks:boot_or_resume": (
+        "Ambiguous combined lifecycle write removed; native Boot and Resume routes "
+        "retain their separate contracts."
+    ),
+    "lifecycle_hooks:record_visible_event": (
+        "Duplicate lineage write removed; chat_lineage:append is the owning ABI."
+    ),
+    "lifecycle_hooks:seal_exit_entry": (
+        "Undefined combined exit write removed; host-entry providers own exact slips."
+    ),
+    "plan_delta_tasks:classify_delta": (
+        "Unbound classifier claim removed; native Plan ingestion owns classification."
+    ),
+    "hil_candidate_pointer:prepare_candidate": (
+        "Ambiguous build-or-refresh claim removed; lifecycle candidate routes remain "
+        "separate."
+    ),
+}
+
+
+def _operation_execution_contract(
+    module_id: str, operation: str
+) -> dict[str, Any]:
+    provider = SDK_EXTERNAL_PROVIDER_OPERATIONS.get((module_id, operation))
+    return {
+        "execution_owner": (
+            "EXTERNAL_PROVIDER_ADAPTER" if provider else "LOCAL_SERVICE_HANDLER"
+        ),
+        "provider_adapter_id": provider,
+    }
 _AUTHORITY_EFFECT_KEYS = (
     "project_truth",
     "canon_input",
@@ -593,6 +641,91 @@ class RegisteredSDKAdapter:
         return self._handlers[(module_id, operation)](binding, payload, context)
 
 
+def inspect_sdk_handler_parity(
+    adapter: InternalSDKAdapter,
+    *,
+    construction_profile: str,
+) -> dict[str, Any]:
+    """Classify every ABI operation against one exact adapter construction."""
+
+    exact_profile = _exact_text(
+        construction_profile, field="construction_profile"
+    )
+    declared = {
+        (module.module_id, operation.name)
+        for module in SDK_MODULES
+        for operation in module.operations
+    }
+    local_required = declared - set(SDK_EXTERNAL_PROVIDER_OPERATIONS)
+    available = adapter.available_operations()
+    provided = {
+        (module_id, operation)
+        for module_id, operations in available.items()
+        for operation in operations
+    }
+    unknown = sorted(provided - declared)
+    missing_local = sorted(local_required - provided)
+    external_claimed = sorted(provided & set(SDK_EXTERNAL_PROVIDER_OPERATIONS))
+    require(
+        not unknown and not missing_local,
+        "SDK_HANDLER_PARITY_MISMATCH",
+        "The adapter construction does not cover every locally owned SDK operation.",
+        status="MISMATCH",
+        adapter_id=adapter.adapter_id,
+        construction_profile=exact_profile,
+        unknown_operations=[f"{module}:{operation}" for module, operation in unknown],
+        missing_local_handlers=[
+            f"{module}:{operation}" for module, operation in missing_local
+        ],
+    )
+    if exact_profile == "LOCAL_SERVICE":
+        require(
+            not external_claimed,
+            "SDK_EXTERNAL_PROVIDER_IMPERSONATION_BLOCKED",
+            "The local service adapter cannot claim host/provider-owned operations.",
+            status="BLOCKED",
+            operations=[
+                f"{module}:{operation}" for module, operation in external_claimed
+            ],
+        )
+    operation_rows = []
+    for module in SDK_MODULES:
+        for operation in module.operations:
+            key = (module.module_id, operation.name)
+            contract = _operation_execution_contract(*key)
+            operation_rows.append(
+                {
+                    "module_id": module.module_id,
+                    "operation": operation.name,
+                    "effect": operation.effect,
+                    **contract,
+                    "handler_registered": key in provided,
+                    "status": (
+                        "REGISTERED"
+                        if key in provided
+                        else "EXTERNAL_PROVIDER_REQUIRED"
+                    ),
+                }
+            )
+    body = {
+        "schema": INTERNAL_SDK_HANDLER_PARITY_SCHEMA,
+        "status": "PASS",
+        "abi": INTERNAL_SDK_ABI,
+        "adapter_id": adapter.adapter_id,
+        "construction_profile": exact_profile,
+        "declared_operation_count": len(declared),
+        "registered_local_handler_count": len(provided),
+        "external_provider_operation_count": len(
+            SDK_EXTERNAL_PROVIDER_OPERATIONS
+        ),
+        "narrowed_operation_claim_count": len(SDK_NARROWED_OPERATION_CLAIMS),
+        "unclassified_operation_count": 0,
+        "operations": operation_rows,
+        "narrowed_operation_claims": dict(SDK_NARROWED_OPERATION_CLAIMS),
+    }
+    return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
+
+
 class InternalEvidenceLaneSDK:
     """Validated router over isolated authority modules and provider adapters."""
 
@@ -614,13 +747,20 @@ class InternalEvidenceLaneSDK:
                     "namespace": module.namespace,
                     "authority": module.authority,
                     "operations": [
-                        {"name": operation.name, "effect": operation.effect}
+                        {
+                            "name": operation.name,
+                            "effect": operation.effect,
+                            **_operation_execution_contract(
+                                module.module_id, operation.name
+                            ),
+                        }
                         for operation in module.operations
                     ],
                     "independent_replay_ledger": True,
                 }
                 for module in SDK_MODULES
             ],
+            "narrowed_operation_claims": dict(SDK_NARROWED_OPERATION_CLAIMS),
         }
 
     def capability_status(self) -> dict[str, Any]:
@@ -628,6 +768,14 @@ class InternalEvidenceLaneSDK:
         modules: list[dict[str, Any]] = []
         for module in SDK_MODULES:
             provided = available.get(module.module_id, set())
+            external = {
+                operation.name: SDK_EXTERNAL_PROVIDER_OPERATIONS[
+                    (module.module_id, operation.name)
+                ]
+                for operation in module.operations
+                if (module.module_id, operation.name)
+                in SDK_EXTERNAL_PROVIDER_OPERATIONS
+            }
             modules.append(
                 {
                     "module_id": module.module_id,
@@ -639,6 +787,14 @@ class InternalEvidenceLaneSDK:
                         for item in module.operations
                         if item.name not in provided
                     ),
+                    "external_provider_operations": external,
+                    "unclassified_operations": sorted(
+                        item.name
+                        for item in module.operations
+                        if item.name not in provided
+                        and (module.module_id, item.name)
+                        not in SDK_EXTERNAL_PROVIDER_OPERATIONS
+                    ),
                 }
             )
         return {
@@ -647,6 +803,7 @@ class InternalEvidenceLaneSDK:
             "adapter_id": self.adapter.adapter_id,
             "modules": modules,
             "unsupported_operations_are_explicit": True,
+            "external_provider_ownership_is_explicit": True,
         }
 
     def _ledger_path(self, module: SDKModuleSpec) -> Path:
@@ -1136,7 +1293,7 @@ def build_local_service_adapter(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
         context.checkpoint()
-        return service.status(binding.project_id)
+        return service.status_window(binding.project_id)
 
     def _truth_search(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
@@ -1440,6 +1597,85 @@ def build_local_service_adapter(
             "events": events,
         }
 
+    def _lineage_append(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        allowed = {
+            "event_type",
+            "visible_payload",
+            "occurred_at",
+            "session_id",
+            "task_id",
+            "run_id",
+            "event_id",
+            "actor_type",
+            "model",
+            "submodel",
+            "token_metrics",
+        }
+        require(
+            set(payload) <= allowed,
+            "SDK_LINEAGE_APPEND_FIELD_UNSUPPORTED",
+            "Lineage append accepts only the exact visible event fields.",
+            status="BLOCKED",
+            fields=sorted(set(payload) - allowed),
+        )
+        supplied_session = str(payload.get("session_id") or binding.session_id)
+        supplied_task = str(payload.get("task_id") or binding.task_id)
+        supplied_model = str(payload.get("model") or binding.model)
+        supplied_submodel = str(payload.get("submodel") or binding.submodel)
+        require(
+            supplied_session == binding.session_id
+            and supplied_task == binding.task_id
+            and supplied_model == binding.model
+            and supplied_submodel == binding.submodel,
+            "SDK_LINEAGE_APPEND_BINDING_MISMATCH",
+            "A lineage event cannot override its SDK session, task, or model binding.",
+            status="BLOCKED",
+        )
+        visible_payload = payload.get("visible_payload")
+        require(
+            isinstance(visible_payload, dict),
+            "SDK_LINEAGE_VISIBLE_PAYLOAD_INVALID",
+            "A lineage append requires one visible payload object.",
+            status="BLOCKED",
+        )
+        exact_visible_payload = cast(dict[str, Any], visible_payload)
+        result = _lineage(binding).append(
+            event_type=_exact_text(payload.get("event_type"), field="event_type"),
+            visible_payload=dict(exact_visible_payload),
+            occurred_at=_exact_text(payload.get("occurred_at"), field="occurred_at"),
+            session_id=binding.session_id,
+            task_id=binding.task_id,
+            run_id=(str(payload["run_id"]) if payload.get("run_id") else None),
+            event_id=(
+                str(payload["event_id"]) if payload.get("event_id") else None
+            ),
+            actor_type=(
+                str(payload["actor_type"])
+                if payload.get("actor_type")
+                else "CODEX"
+            ),
+            model=binding.model,
+            submodel=binding.submodel,
+            token_metrics=(
+                dict(payload["token_metrics"])
+                if isinstance(payload.get("token_metrics"), dict)
+                else None
+            ),
+        )
+        return {
+            **result,
+            "authority_effects": {
+                "project_truth": "NONE",
+                "canon_input": "NONE",
+                "agent_learning": "NONE",
+                "chat_lineage": "APPENDED",
+                "host_entry_continuity": "NONE",
+            },
+        }
+
     def _host_entry(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
@@ -1463,7 +1699,51 @@ def build_local_service_adapter(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
         context.checkpoint()
-        return service.task_backlog(binding.project_id)
+        exact = dict(payload)
+        supplied_project = exact.pop("project_id", binding.project_id)
+        require(
+            supplied_project == binding.project_id,
+            "SDK_PLAN_PROJECT_BINDING_MISMATCH",
+            "A Plan SDK read cannot override its exact project binding.",
+            status="BLOCKED",
+        )
+        return service.task_backlog_window(binding.project_id, **exact)
+
+    def _plan_transition(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        exact = dict(payload)
+        supplied_project = exact.pop("project_id", binding.project_id)
+        task_id = str(exact.get("task_id") or binding.task_id)
+        require(
+            supplied_project == binding.project_id and task_id == binding.task_id,
+            "SDK_PLAN_TRANSITION_BINDING_MISMATCH",
+            "An SDK Plan transition is bound to its exact project and active task.",
+            status="BLOCKED",
+        )
+        exact["task_id"] = task_id
+        return service.transition_task(binding.project_id, **exact)
+
+    def _source_intake(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        exact = dict(payload)
+        supplied_project = exact.pop("project_id", binding.project_id)
+        supplied_session = exact.pop("session_id", binding.session_id)
+        require(
+            supplied_project == binding.project_id
+            and supplied_session == binding.session_id,
+            "SDK_SOURCE_INTAKE_BINDING_MISMATCH",
+            "Source Intake cannot override its SDK project or session binding.",
+            status="BLOCKED",
+        )
+        return service.source_intake(
+            binding.project_id,
+            session_id=binding.session_id,
+            **exact,
+        )
 
     def _env(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
@@ -1471,11 +1751,120 @@ def build_local_service_adapter(
         context.checkpoint()
         return service.session_flash_status()
 
+    def _classify_mode(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        exact = dict(payload)
+        supplied_project = exact.pop("project_id", binding.project_id)
+        supplied_session = exact.pop("session_id", binding.session_id)
+        require(
+            supplied_project == binding.project_id
+            and supplied_session == binding.session_id,
+            "SDK_MODE_BINDING_MISMATCH",
+            "Mode classification cannot override its SDK project or session binding.",
+            status="BLOCKED",
+        )
+        result = service.classify_mode(
+            binding.project_id,
+            session_id=binding.session_id,
+            **exact,
+        )
+        return {
+            **result,
+            "authority_effects": {
+                "project_truth": "NONE",
+                "canon_input": "NONE",
+                "agent_learning": "NONE",
+                "chat_lineage": "APPENDED",
+                "host_entry_continuity": "NONE",
+            },
+        }
+
     def _storage(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
         context.checkpoint()
         return service.storage_connector_inspect(binding.project_id, **payload)
+
+    def _storage_select(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        exact = dict(payload)
+        supplied_project = exact.pop("project_id", binding.project_id)
+        require(
+            supplied_project == binding.project_id,
+            "SDK_STORAGE_PROJECT_BINDING_MISMATCH",
+            "Storage selection cannot override its SDK project binding.",
+            status="BLOCKED",
+        )
+        return service.storage_connector_select(binding.project_id, **exact)
+
+    def _hil_payload(
+        binding: SDKBinding, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        exact = dict(payload)
+        supplied_project = exact.pop("project_id", binding.project_id)
+        supplied_session = exact.pop("session_id", binding.session_id)
+        require(
+            supplied_project == binding.project_id
+            and supplied_session == binding.session_id,
+            "SDK_HIL_BINDING_MISMATCH",
+            "A HIL SDK operation cannot override its project or session binding.",
+            status="BLOCKED",
+        )
+        return exact
+
+    def _hil_record_decision(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return service.record_hil_decision(
+            binding.project_id,
+            binding.session_id,
+            **_hil_payload(binding, payload),
+        )
+
+    def _hil_fuse(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        result = service.fuse(
+            binding.project_id,
+            binding.session_id,
+            **_hil_payload(binding, payload),
+        )
+        return {
+            **result,
+            "authority_effects": {
+                "project_truth": "FUSED",
+                "canon_input": "NONE",
+                "agent_learning": "NONE",
+                "chat_lineage": "NONE",
+                "host_entry_continuity": "NONE",
+            },
+        }
+
+    def _hil_rollback(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        result = service.rollback(
+            binding.project_id,
+            binding.session_id,
+            **_hil_payload(binding, payload),
+        )
+        return {
+            **result,
+            "authority_effects": {
+                "project_truth": "ROLLED_BACK",
+                "canon_input": "NONE",
+                "agent_learning": "NONE",
+                "chat_lineage": "NONE",
+                "host_entry_continuity": "NONE",
+            },
+        }
 
     def _capabilities(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
@@ -1485,7 +1874,10 @@ def build_local_service_adapter(
             "status": "PASS",
             "adapter_id": "evidence-lane.local-service.v1",
             "host_kind": binding.host_kind,
-            "headless_supported": True,
+            "headless_supported": False,
+            "headless_provider_adapter_id": SDK_EXTERNAL_PROVIDER_OPERATIONS[
+                ("provider_host_adapters", "invoke_headless")
+            ],
         }
 
     handlers: dict[tuple[str, str], SDKHandler] = {
@@ -1517,6 +1909,7 @@ def build_local_service_adapter(
         ("agent_learning", "revoke"): _learning_revoke,
         ("chat_lineage", "status"): _lineage_status,
         ("chat_lineage", "events"): _lineage_events,
+        ("chat_lineage", "append"): _lineage_append,
         ("host_entry_continuity", "inspect"): _host_entry,
         ("lifecycle_hooks", "doctor"): lambda binding, payload, context: (
             service.doctor()
@@ -1527,17 +1920,15 @@ def build_local_service_adapter(
         ("lifecycle_hooks", "runtime_status"): _runtime,
         ("plan_delta_tasks", "status"): _plan,
         ("plan_delta_tasks", "backlog"): _plan,
+        ("plan_delta_tasks", "transition_task"): _plan_transition,
         ("source_lane_retrieval", "search"): _truth_search,
         ("source_lane_retrieval", "fetch"): _truth_fetch,
         ("source_lane_retrieval", "query"): _truth_query,
+        ("source_lane_retrieval", "source_intake"): _source_intake,
         ("env_uop_operator_runtime", "status"): _env,
-        (
-            "env_uop_operator_runtime",
-            "classify_mode",
-        ): lambda binding, payload, context: service.classify_mode(
-            binding.project_id, binding.session_id, **payload
-        ),
+        ("env_uop_operator_runtime", "classify_mode"): _classify_mode,
         ("storage_connectors", "inspect"): _storage,
+        ("storage_connectors", "select"): _storage_select,
         ("storage_connectors", "plugin_catalog"): lambda binding, payload, context: (
             service.connector_plugin_catalog(binding.project_id)
         ),
@@ -1548,6 +1939,9 @@ def build_local_service_adapter(
         ("hil_candidate_pointer", "render_hil"): lambda binding, payload, context: (
             service.prompt_index_status(binding.project_id, binding.session_id)
         ),
+        ("hil_candidate_pointer", "record_decision"): _hil_record_decision,
+        ("hil_candidate_pointer", "fuse"): _hil_fuse,
+        ("hil_candidate_pointer", "rollback"): _hil_rollback,
         ("provider_host_adapters", "capabilities"): _capabilities,
         (
             "provider_host_adapters",
@@ -1557,11 +1951,13 @@ def build_local_service_adapter(
             "binding": snapshot(binding),
         },
     }
-    return RegisteredSDKAdapter(
+    adapter = RegisteredSDKAdapter(
         adapter_id="evidence-lane.local-service.v1",
         snapshot_provider=snapshot,
         handlers=handlers,
     )
+    inspect_sdk_handler_parity(adapter, construction_profile="LOCAL_SERVICE")
+    return adapter
 
 
 def build_live_local_sdk_context(

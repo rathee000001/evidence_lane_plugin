@@ -41,6 +41,7 @@ def test_every_repository_markdown_path_link_resolves() -> None:
         ".vercel",
         "__pycache__",
         "node_modules",
+        "tests",
     }
     derived_evidence_roots = {
         ROOT / "evidence" / "implementation_v45",
@@ -166,10 +167,12 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
         "",
         "architecture",
         "connect",
+        "commands",
         "copyright",
         "credits",
         "hil",
         "hooks",
+        "helper",
         "lanes",
         "license",
         "mcp",
@@ -183,6 +186,8 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
         "studio",
         "support",
         "terms",
+        "third-party",
+        "tunnel",
     }
     for route in route_names:
         page = ADAPTER / "app" / route / "page.tsx" if route else ADAPTER / "app" / "page.tsx"
@@ -200,8 +205,12 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
         "readme",
         "license",
         "copyright",
+        "third-party",
         "security",
         "credits",
+        "commands",
+        "helper",
+        "tunnel",
     ):
         assert f'href="/{route}"' in footer
 

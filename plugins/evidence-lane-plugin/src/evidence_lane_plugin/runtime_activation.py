@@ -67,6 +67,11 @@ _REQUIRED_PRE_REASONING_SURFACES = (
         "native_hook_event": None,
         "host_dispatch_supported": False,
         "capability_basis": "MEASURED_CODEX_DESKTOP_GOAL_ROUTE_BYPASSES_USERPROMPTSUBMIT",
+        "tool_boundary_continuation_supported": True,
+        "tool_boundary_hook_event": "preToolUse",
+        "tool_boundary_authority": "SEALED_ACTIVE_GOAL_RECOVERY_BINDING",
+        "tool_boundary_route": "thread/goal/set -> first PreToolUse boundary",
+        "synthetic_prompt_required": False,
     },
 )
 _SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
@@ -403,6 +408,12 @@ class RuntimeActivation:
                     "sealed_hook_trusted": bool(registered and hooks_trusted),
                     "pre_reasoning_dispatch_runnable": runnable,
                     "per_input_invocation_proven": False,
+                    "tool_boundary_continuation_runnable": bool(
+                        contract.get("tool_boundary_continuation_supported")
+                        and session_active
+                        and hooks_trusted
+                        and "preToolUse" in registered_events
+                    ),
                     "state": state,
                 }
             )

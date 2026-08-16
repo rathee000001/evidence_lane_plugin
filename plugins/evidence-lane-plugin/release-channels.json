@@ -1,106 +1,91 @@
 {
-  "schema": "evidence-lane.release-channels.v2",
+  "schema": "evidence-lane.release-channels.v3",
   "product": "Evidence Lane",
-  "stable": {
-    "release": "2.1.0",
-    "slot_role": "stable-build",
-    "codex_marketplace_slot": "evidence-lane-github",
-    "marketplace_display_name": "GitLane Stable 2.1",
-    "install_source": "GIT_EXACT_COMMIT",
-    "enabled": true,
-    "byte_frozen": false,
-    "native_server_identity": "evidence-lane",
-    "native_tool_count": 62,
-    "native_read_tool_count": 21,
-    "native_write_tool_count": 41,
-    "skill_count": 15,
-    "codex_apps_allowed": false,
-    "generated_namespace_allowed": false,
-    "direct_stdio_fallback_allowed": false,
-    "google_drive_bundled": false,
-    "tunnel_release_must_match": true,
-    "tunnel_channel": "stable-build",
-    "independent_runtime_task_profile_and_tunnel_identity": true,
-    "stable_update_reopens_same_bound_host_app": true,
-    "stable_update_rebinds_general_goal_recovery": true,
-    "supported_codex_host_app_ids": [
-      "OpenAI.Codex_2p2nqsd0c76g0!App",
-      "OpenAI.CodexBeta_2p2nqsd0c76g0!App"
-    ]
-  },
-  "fallback": {
-    "release": "2.0.0",
-    "slot_role": "fallback",
-    "codex_marketplace_slot": "evidence-lane-pv11-fallback",
-    "enabled": false,
-    "materialization_gate": "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE",
-    "accepted_pv": "PV11",
-    "accepted_generation": 11,
-    "byte_frozen": true,
-    "package_must_equal_accepted_pv": true,
-    "prewarmed_means_installed_verified_and_stopped": true,
-    "tunnel_channel": "fallback"
+  "slots": {
+    "main_git_release": {
+      "release_line": "2.2.0",
+      "slot_role": "main-git-release",
+      "codex_marketplace_slot": "evidence-lane-github",
+      "marketplace_display_name": "Main Git Plugin Version",
+      "install_source": "GIT_EXACT_COMMIT",
+      "update_gate": "GOVERNED_GIT_CHECKPOINT",
+      "enabled": false
+    },
+    "branch_commit_recovery": {
+      "release_line": "2.2.0",
+      "slot_role": "branch-commit-recovery",
+      "codex_marketplace_slot": "evidence-lane-v220-stable-recovery",
+      "marketplace_display_name": "Branch Commit Git Recovery",
+      "install_source": "GOVERNED_BRANCH_COMMIT_EXACT_PACKAGE",
+      "update_gate": "LOCAL_TEST_GREEN_AND_GOVERNED_BRANCH_COMMIT",
+      "enabled": false,
+      "byte_frozen_between_checkpoints": true
+    },
+    "local_testing": {
+      "release_line": "2.2.0",
+      "slot_role": "mutable-local-testing",
+      "codex_marketplace_slot": "evidence-lane-v220-testing-new",
+      "marketplace_display_name": "Local Testing Slot",
+      "install_source": "FRESH_VERSIONED_LOCAL_PACKAGE",
+      "same_marketplace_selector_reused": true,
+      "fresh_package_version_per_local_build": true,
+      "enabled_during_current_local_test": true
+    }
   },
   "live_slot_policy": {
-    "exact_slot_count_after_pv11_acceptance": 2,
-    "allowed_slots": [
-      "stable-build",
-      "fallback"
-    ],
+    "exact_slot_count": 3,
+    "exact_registered_plugin_count": 3,
     "max_enabled_plugin_count": 1,
     "max_active_native_mcp_count": 1,
     "max_active_tunnel_count": 1,
-    "inactive_slot_remains_installed": true,
-    "exact_registered_plugin_count": 2,
-    "stable_selector_growth_allowed": false,
-    "obsolete_live_slots_removed_through_supported_codex_cli": true,
-    "immutable_history_and_evidence_preserved": true
-  },
-  "promotion_gate": {
-    "explicit_six_way_hil_required": true,
-    "required_matching_release_receipts": [
-      "CODEX_NATIVE_PLUGIN",
-      "TUNNEL_VERSION",
-      "GIT_COMMIT_AND_TREE"
+    "allowed_marketplaces": [
+      "evidence-lane-github",
+      "evidence-lane-v220-stable-recovery",
+      "evidence-lane-v220-testing-new"
     ],
-    "required_catalog": {
-      "tools": 62,
-      "read": 21,
-      "write": 41,
-      "skills": 15
-    },
-    "promotion_order": [
-      "VERIFY_STABLE_BUILD",
-      "PRESENT_EXACT_SIX_WAY_HIL",
-      "NATIVE_FUSE_EXACT_APPROVE_TO_PV11",
-      "MATERIALIZE_BYTE_EXACT_PV11_FALLBACK_DISABLED",
-      "VERIFY_EXACT_TWO_SLOT_FAILOVER_AND_RETURN"
+    "forbidden_obsolete_marketplaces": [
+      "evidence-lane-v220-local-successor",
+      "evidence-lane-pv11-fallback"
     ],
-    "fail_closed_on_version_mismatch": true
+    "obsolete_registrations_removed_through_supported_codex_cli": true,
+    "manual_loaded_cache_deletion_allowed": false
   },
-  "two_slot_operator": {
-    "script": "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1",
-    "registry_schema": "evidence-lane.codex-two-slot-registry.v1",
-    "single_transient_error_switch_allowed": false,
-    "stop_source_tunnel_before_start_target": true,
-    "target_tunnel_ready_before_plugin_switch": true,
+  "local_build_cycle": {
+    "required_order": [
+      "BUILD_FRESH_LOCAL_PACKAGE_VERSION",
+      "INSTALL_IN_EXISTING_LOCAL_TESTING_MARKETPLACE",
+      "VERIFY_EXACT_EIGHT_HOOKS_AND_NATIVE_SURFACE",
+      "STAGE_VERSION_MATCHED_TUNNEL",
+      "RESTART_EXACT_CALLING_APP_AND_TASK_ONCE",
+      "RUN_LOCAL_DELTA_TESTS"
+    ],
+    "restart_helper": "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
+    "restart_helper_installs_plugin": false,
+    "combined_post_stop_installer_retired": true,
+    "branch_recovery_mutated_by_local_build": false
+  },
+  "checkpoint_convergence": {
+    "trigger": "LOCAL_TEST_GREEN_AND_GOVERNED_BRANCH_COMMIT",
+    "required_order": [
+      "SEAL_EXACT_BRANCH_COMMIT_PACKAGE",
+      "REFRESH_MAIN_GIT_RELEASE_SLOT",
+      "REFRESH_BRANCH_COMMIT_RECOVERY_SLOT",
+      "REFRESH_LOCAL_TESTING_SLOT",
+      "VERIFY_ALL_THREE_BYTE_IDENTICAL"
+    ],
+    "all_three_slots_byte_identical_after_checkpoint": true,
+    "pre_2_2_recovery_allowed": false
+  },
+  "failure_recovery": {
+    "source_slot": "mutable-local-testing",
+    "target_slot": "branch-commit-recovery",
+    "main_git_slot_is_not_local_failure_target": true,
     "controlled_exact_task_restart_required": true,
-    "post_restart_native_catalog_and_project_session_proof_required": true,
-    "switch_failure_restores_source_slot": true,
-    "codex_native_lifecycle_route_eligible": false
+    "post_restart_native_catalog_and_project_session_proof_required": true
   },
   "history": {
     "append_only": true,
     "hash_chained": true,
-    "events_required_for": [
-      "SLOT_MATERIALIZED",
-      "SWITCH_PREPARED",
-      "SOURCE_TUNNEL_STOPPED",
-      "TARGET_TUNNEL_READY",
-      "PLUGIN_SLOT_SWITCHED",
-      "EXACT_TASK_RESTARTED",
-      "NATIVE_ROUTE_PROVED",
-      "SWITCH_FAILED_SOURCE_RESTORED"
-    ]
+    "receipts_preserved_after_obsolete_slot_unregistration": true
   }
 }

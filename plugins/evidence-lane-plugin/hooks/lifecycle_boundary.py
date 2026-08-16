@@ -25,6 +25,15 @@ def _load_runtime():
     return build_hook_transport_envelope, consume_boundary_transport
 
 
+def _load_behavior_handoff():
+    hook_root = Path(__file__).resolve().parent
+    if str(hook_root) not in sys.path:
+        sys.path.insert(0, str(hook_root))
+    from behavior_handoff import attach_consumed_behavior_handoff
+
+    return attach_consumed_behavior_handoff
+
+
 def _record(payload: dict[str, Any], event_name: str) -> tuple[dict[str, Any], bool]:
     if event_name == "SessionEnd":
         # Codex intentionally ignores SessionEnd stdout and caps the hook at
@@ -52,7 +61,16 @@ def _record(payload: dict[str, Any], event_name: str) -> tuple[dict[str, Any], b
         )
     build_transport, consume_transport = _load_runtime()
     transport = build_transport(event_name, payload)
-    return consume_transport(payload, event_name, transport)
+    receipt, should_continue = consume_transport(payload, event_name, transport)
+    return (
+        _load_behavior_handoff()(
+            event_name,
+            transport,
+            receipt,
+            skill_consumer=consume_transport,
+        ),
+        should_continue,
+    )
 
 
 def _bounded_notice(receipt: dict[str, Any], event_name: str) -> str:
@@ -103,13 +121,17 @@ def main() -> int:
         print("{}")
         return 0
 
+    if receipt.get("state") == "NOT_GOVERNED":
+        print("{}")
+        return 0
+
     # PreCompact/PostCompact accept only the universal command-output fields;
     # hookSpecificOutput is invalid for both native schemas.
     result: dict[str, Any] = {
-        "continue": should_continue,
         "systemMessage": _bounded_notice(receipt, event_name),
     }
     if not should_continue:
+        result["continue"] = False
         result["stopReason"] = (
             "Governed Evidence Lane skill-owned lifecycle boundary failed closed."
         )

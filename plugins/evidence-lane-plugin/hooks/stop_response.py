@@ -15,20 +15,42 @@ def _load_runtime():
     from evidence_lane_plugin.hook_contract import build_hook_transport_envelope
     from evidence_lane_plugin.hook_skill_runtime import (
         consume_stop_transport,
-        render_persistent_notice,
     )
 
     return (
         build_hook_transport_envelope,
         consume_stop_transport,
-        render_persistent_notice,
     )
 
 
+def _load_behavior_handoff():
+    hook_root = Path(__file__).resolve().parent
+    if str(hook_root) not in sys.path:
+        sys.path.insert(0, str(hook_root))
+    from behavior_handoff import attach_consumed_behavior_handoff
+
+    return attach_consumed_behavior_handoff
+
+
+def _load_stop_output():
+    hook_root = Path(__file__).resolve().parent
+    if str(hook_root) not in sys.path:
+        sys.path.insert(0, str(hook_root))
+    from event_isolation import stop_output
+
+    return stop_output
+
+
 def _record(payload: dict[str, Any]) -> dict[str, Any]:
-    build_transport, consume_transport, _ = _load_runtime()
+    build_transport, consume_transport = _load_runtime()
     transport = build_transport("Stop", payload)
-    return consume_transport(payload, transport)
+    receipt = consume_transport(payload, transport)
+    return _load_behavior_handoff()(
+        "Stop",
+        transport,
+        receipt,
+        skill_consumer=consume_transport,
+    )
 
 
 def main() -> int:
@@ -38,9 +60,13 @@ def main() -> int:
             payload = {}
     except (json.JSONDecodeError, OSError):
         payload = {}
+    handoff_failed = False
     try:
+        contract_output = _load_stop_output()()
         receipt = _record(payload)
     except Exception as exc:  # noqa: BLE001 - Stop exposes the gap
+        handoff_failed = True
+        contract_output = {}
         receipt = {
             "schema": "evidence-lane.codex-turn-control-gap.v1",
             "state": "TURN_CONTROL_GAP",
@@ -53,34 +79,12 @@ def main() -> int:
                 "VALIDATE_REDACT_BOUND_DEDUPLICATE_AND_TRANSPORT_ONLY"
             ),
         }
-    result: dict[str, Any] = {"continue": True}
-    if receipt.get("state") not in {
-        "NOT_INDEXED",
-        "TURN_CONTROL_NOT_REQUIRED_YET",
-    }:
-        display = receipt.get("persistent_change_display")
-        if isinstance(display, dict):
-            _, _, render_notice = _load_runtime()
-            message, notice = render_notice(
-                display,
-                phase="TURN_COMMIT",
-                turn_receipt=receipt,
-            )
-            result["systemMessage"] = message
-            result["hookSpecificOutput"] = {
-                "hookEventName": "Stop",
-                "additionalContext": (
-                    "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY="
-                    + json.dumps(notice, sort_keys=True, separators=(",", ":"))
-                ),
-            }
-        else:
-            result["systemMessage"] = (
-                "EVIDENCE_LANE_RESPONSE_COMMIT="
-                + json.dumps(receipt, sort_keys=True, separators=(",", ":"))
-            )
-    print(json.dumps(result, sort_keys=True, separators=(",", ":")))
-    return 0
+    # Stop may commit a bounded receipt internally, but its host output must
+    # always be inert.  Any non-empty Stop output can block or recursively
+    # continue a Codex turn depending on host interpretation.
+    del receipt
+    print(json.dumps(contract_output, sort_keys=True, separators=(",", ":")))
+    return 1 if handoff_failed else 0
 
 
 if __name__ == "__main__":

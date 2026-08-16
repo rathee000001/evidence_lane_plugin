@@ -22,7 +22,7 @@ FIXED_PUBLIC_PATHS = (
     "ARCHITECTURE.md",
     "SECURITY.md",
     "LICENSE.md",
-    "COPYRIGHT.md",
+    "docs/COPYRIGHT.md",
     "docs/CREDITS_AND_CONTRIBUTIONS.md",
     "docs/DEPENDENCY_LICENSE_AUDIT.md",
     "docs/HOOKS.md",

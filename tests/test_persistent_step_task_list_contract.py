@@ -16,7 +16,7 @@ SKILL_RUNTIME = (
 HOOKS = PLUGIN / "hooks" / "hooks.json"
 
 
-def test_full_step_task_list_reentry_is_skill_owned_and_goal_independent() -> None:
+def test_bounded_step_task_list_reentry_is_skill_owned_and_goal_independent() -> None:
     contract = SKILL.read_text(encoding="utf-8")
 
     assert "### Persistent Step Task List re-entry" in contract
@@ -29,7 +29,8 @@ def test_full_step_task_list_reentry_is_skill_owned_and_goal_independent() -> No
         "call the installed native `pv_status`",
         "call the installed native `pv_task_backlog`",
         "call one bounded installed-native `pv_query`",
-        "call host `update_plan` once with the complete executable projection",
+        "derive the aligned current window",
+        "call host `update_plan` only when the receipt says ACTIVATE",
     ]
     positions = [contract.index(item) for item in ordered]
     assert positions == sorted(positions)
@@ -38,12 +39,20 @@ def test_full_step_task_list_reentry_is_skill_owned_and_goal_independent() -> No
     assert "exactly\n   one active row" in contract
     assert "persistent_until=NEXT_SIX_WAY_HIL_PRESENTED" in contract
     assert "PHYSICALLY_FINAL_HIL" in contract
-    assert "Never replace the projection with a window, page, summary" in contract
+    assert "aligned window of at\nmost ten executable rows" in contract
+    assert "complete native Plan Lane/Delta ledger is durable authority" in contract
+    assert "never load the raw PV" in contract
+    assert "ROW=<absolute row>" in contract
+    assert "TASK=<stable task ID>" in contract
+    assert "STATE=<native/host status>" in contract
     assert "CLASS=<classification>" in contract
+    assert "GROUP=<Plan group>" in contract
     assert "BATCH=<commit batch or UNASSIGNED>" in contract
-    assert "VERSION=<marker>@<provenance>" in contract
-    assert "BRANCH=<marker>@<provenance>" in contract
     assert "ROLE=<panel role>" in contract
+    assert "DEP=<validated graph dependency>" in contract
+    assert "GRAPH=<Plan SQLite graph pointer>" in contract
+    assert "FTS=<exact task/FTS locator>" in contract
+    assert "only to the exact row where Git actually\nexecutes" in contract
     assert "current non-superseded Plan authority" in contract
     assert "CONFLICTING_DECLARATIONS@RECONCILIATION_REQUIRED" in contract
     assert "every governed project and corpus" in contract

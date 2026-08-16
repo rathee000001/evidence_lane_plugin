@@ -1,0 +1,9 @@
+interface:
+  display_name: "Evidence Lane Mode"
+  short_description: "Classify and bind operating modes"
+  default_prompt: "Use $evi-mode to classify the requested operating modes and bind only their supported intersection."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "evidence-lane"
+      description: "Evidence Lane native MCP server"

@@ -14,6 +14,30 @@ locked ENV/UOP boundary. It is not Project Truth, Canon Input, ChatLineage, a
 Formula Engine operator, autonomous training, or the Project PV pointer. Brain
 scaling means bounded indexed retrieval and composition, never self-training.
 
+## Host memory boundary
+
+ChatGPT/Codex host memories are an optional generated recall layer, not
+Evidence Lane authority. The host documents local Codex memories as generated
+state under Codex home and recommends checked-in documentation or `AGENTS.md`
+for guidance that must always apply. Do not scan, import, trust, or promote host
+memory automatically, and do not treat a memory filename, summary, recollection,
+or host injection as Project Truth, accepted Learning, ChatLineage, Canon, or a
+task receipt.
+
+A host-memory record may enter Learning evidence only through one explicit,
+immutable `host-memory-import://<receipt-sha256>` provenance receipt. That
+receipt must bind the exact project/task/Delta/PV, source kind and role-based
+locator, source-record SHA-256, source-context identity hash, observed/imported
+times, actor, purpose, and unchanged Project Truth pointer hash. Persist no raw
+memory text, secret, or private reasoning. A direct `codex-local-memory://`,
+`chatgpt-memory://`, or `host-memory://` evidence reference fails closed.
+
+Recording provenance creates no Learning candidate and invokes no Learning or
+Project HIL. Candidate sealing remains a later explicit action; its result is
+still `PENDING_LEARNING_HIL`. Hooks never import memory and attach explicit
+`host_memory_imported=false`, `learning_candidate_created=false`, and
+`learning_hil_invoked=false` boundaries to their behavior handoff.
+
 ## Inspect and retrieve
 
 Run `pv_status`, `pv_task_backlog`, and one bounded `pv_query` before using a
@@ -26,6 +50,23 @@ two authorities.
 No hit is a valid result. Expired, rejected, failed, superseded, revoked,
 out-of-scope, or Project-Truth-conflicting lessons must remain excluded with an
 explicit reason.
+
+The Learning ledger is schema-versioned and validates its exact SQLite tables,
+indexes, and FTS5 projection before use. Retrieval queries the FTS5 projection
+with BM25 and returns only the bounded result slice; never scan or place the
+full ledger in model context. The public family remains exactly five actions:
+`learning_inspect`, `learning_retrieve`, `learning_seal_candidate`,
+`learning_decide_candidate`, and `learning_revoke`.
+
+## Expiry ownership
+
+Retrieval owns logical temporal exclusion at its caller-supplied `as_of` and
+must exclude an expired lesson even when no `EXPIRED` event has yet been
+materialized. Only `AGENT_LEARNING_AUTHORITY_MAINTENANCE` may append those
+expiry events through the internal maintenance function. Expiry is not a sixth
+MCP/SDK action, not hook-owned, and not an assumed background scheduler. Both
+logical exclusion and event materialization leave the Learning and Project
+Truth pointers unchanged.
 
 ## Seal a candidate
 
@@ -67,4 +108,13 @@ promote Learning.
 Return the Learning candidate or retrieval identities, scope, evidence and
 counterevidence references, lifecycle state, Learning pointer effect, conflict
 suppression, and explicit proof that Project Truth and Project HIL were
-untouched.
+untouched. When host-memory provenance is present, also return its exact import
+receipt SHA-256 and label the source `NONAUTHORITATIVE_HELPFUL_RECALL_ONLY`.
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evi-learning`. `MCP_ROUTING_FAIL_CLOSED`: if the
+bundled `evidence-lane` dependency, an exact tool, or a required result is
+missing or ambiguous, stop and report it; never rewrite prefixes, substitute a
+tool, reorder a write, or infer success.

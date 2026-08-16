@@ -44,3 +44,11 @@ sidecar. Connector/plugin registration never silently changes storage authority.
 Never persist credentials, access tokens, private model reasoning, or hidden
 configuration values. Return to the exact prior lifecycle position after the
 sidecar operation.
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evi-plugin`. `MCP_ROUTING_FAIL_CLOSED`: if the
+bundled `evidence-lane` dependency, an exact tool, or a required result is
+missing or ambiguous, stop and report it; never rewrite prefixes, substitute a
+tool, reorder a write, or infer success.

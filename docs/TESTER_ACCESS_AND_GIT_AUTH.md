@@ -32,7 +32,7 @@ invitation.
 ### Explicit contributor repository path
 
 1. The contributor requests repository access under their own GitHub identity and
-   reviews `LICENSE.md`, `COPYRIGHT.md`, `THIRD_PARTY_NOTICES.md`, and the test
+   reviews `LICENSE.md`, `docs/COPYRIGHT.md`, `THIRD_PARTY_NOTICES.md`, and the test
    scope before installation.
 2. The repository owner grants only the required repository role and test
    branch scope. Production secrets, owner credentials, accepted project data,

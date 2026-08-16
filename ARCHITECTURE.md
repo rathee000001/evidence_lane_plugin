@@ -101,12 +101,56 @@ candidate, test, Plan transition, automation, pause, or stall may complete a
 Goal, and Goal completion grants no HIL, Fuse, pointer, Git, install, merge, or
 deployment authority.
 
+State Travel is strictly a no-restart task transition. Phase 1 must prove one
+unchanged Codex host-process instance, the exact source and destination task
+UUID/deep-link pair, the initial destination shell's source/destination binding,
+the exact host creation result, and one live canonical destination identity.
+Any renderer reload/freeze, app restart, stale or duplicate task activation,
+unexpected navigation, or background-agent activation is
+`STATE_TRAVEL_HOST_CONTINUITY_FAILURE`: stop before handoff consumption, do not
+retry, and preserve all bytes. The maintainer release helper, governed-user Goal
+recovery helper, tunnel helper, scheduled recovery task, and subagents are not
+State Travel executors.
+
+Destination entry and panel recovery use a bounded sealed handoff plus the
+canonical Plan Lane, never full chat-history hydration. Unbounded `thread/read`,
+collaboration/avatar-overlay hydration, or a React-root rerender is a
+first-class continuity failure even when the Codex root process remains alive.
+The critical section is serialized to one active task and zero subagents; on a
+renderer reset it fails closed, revalidates the complete native ledger, and
+reactivates the exact current host window before work.
+The plugin can enforce and attest this boundary but cannot guarantee survival
+of host-owned renderer state.
+
+The host Step Task List and exact task/worktree-bound Changes surface remain a
+durable visible pair while the Goal is human-active. Every missing, partial,
+stale, compacted, or renderer-dropped observation triggers exact native Plan
+rehydration and task binding before work. If the host cannot perform or attest
+that action, fail closed rather than treating native backlog or Sources presence
+as UI proof. The pair may be released only when the human completes the Goal or
+an exact task-completion-and-State-Travel handoff passes to its successor.
+
+The Step Task List is a bounded execution projection, not the whole ledger. Its
+host explanation carries a compact continuity header: accepted PV/pointer
+generation, absolute ACTIVE row, current ten-row-or-smaller window, total
+executable rows, next HIL boundary, and physical-final row.
+Each visible task is a maximum three-line UI projection. The full Plan row,
+description, metadata, linked Deltas, dependencies, and evidence remain in the
+canonical Plan authority and are retrieved by exact task identity plus bounded
+FTS only when needed; UI wrapping or overflow never creates a canonical row.
+Detailed next and queued HIL records, proposed PV identities, six-way choices,
+and exact dependency/continuation connections live only in the Evidence Lane
+project renderer. Neither surface can accept HIL or move a pointer.
+
 ## Plan, Canon, and task coordination
 
-Plan Lane is the sole row and lifecycle-status authority. Its host Step Task
-List is a complete projection with one visible item per executable row, exact
-task ID and description, derived class/group/batch/commit/version/dependency
-markers, exactly one active row, and the physically final HIL last. Linked
+Plan Lane is the sole row and lifecycle-status authority. The host Step Task
+List contains only the aligned current window of at most ten executable rows,
+with exact task ID and description plus derived class/group/batch/commit/
+version/dependency markers. Earlier windows remain sealed completed-window
+history and the next window activates only after the current one is terminal;
+the final window contains the exact remainder. The full native ledger retains
+exactly one active row and one physically final HIL as its last row. Linked
 steers append immutable Deltas; completed and superseded history is never
 silently reopened.
 
@@ -143,7 +187,7 @@ flowchart TB
       Skills["17 governed skills\n6 primary controls + routers and sidecars"]
       MCP["Native evidence-lane MCP\n83 actions = 26 read + 57 write"]
       SDK["Full internal SDK\nengine + contracts + provider/host adapters"]
-      Search["Verified rg + fzf\nPython deterministic fallbacks"]
+      Search["SQLite FTS5 authority\nverified rg pre-index fallback"]
     end
 
     subgraph Authorities["Independent authority planes"]
@@ -200,11 +244,12 @@ Hooks transport `SessionStart`, `UserPromptSubmit`, `PreToolUse`,
 `SessionEnd`. Skills own PREPARE, native reads, classification, Plan refresh,
 and HIL behavior. The host owns UI rendering and permission prompts.
 
-Package-owned search uses hash-pinned ripgrep 15.2.0 and fzf 0.74.2 where a
-matching platform binary is packaged. The resolution order is package-local
-verified binary, explicitly configured absolute host binary with exact SHA-256,
-then a deterministic bounded Python fallback. PATH guessing, shell execution,
-and downloads during MCP startup are forbidden.
+SQLite FTS5/BM25 is the indexed query authority for Plan, lane, ChatLineage,
+and project-sector data. Queries return only bounded rows carrying pointer and
+locator provenance; full PV packages and databases never enter model context.
+Package-owned ripgrep 15.2.0 is only the bounded pre-index file/content helper,
+with an exact configured-host route and deterministic Python fallback. PATH
+guessing, shell execution, and downloads during MCP startup are forbidden.
 
 ## Host and storage boundary
 
@@ -231,10 +276,12 @@ Vercel Git preview, package verification, and stable-slot verification before
 the final HIL. Main promotion, fallback replacement, production publication,
 and Project Truth acceptance remain separate post-HIL operations.
 
-The disabled fallback was directly observed at 2.0.0. That is a measured host
-fact, not a display-cache assumption and not proof that it already contains
-accepted PV12/2.1 bytes. It remains untouched until the later explicitly
-governed fallback-rotation step.
+Selector names are labels, not package authority. Exact package, cache,
+registry, helper, tunnel, hook, and native-runtime readback determines each
+slot's identity. A maintainer may use separately named local-test and recovery
+slots, but no local installation changes accepted Project Truth. Slot rotation
+or duplicate-registration cleanup requires its own exact receipt and never
+deletes immutable evidence.
 
 ## Public documentation source law
 

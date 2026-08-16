@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import html
 import json
+import re
+from itertools import pairwise
 from typing import Any
 
 from .constants import ENGINE_VERSION
@@ -13,7 +15,8 @@ MCP_APP_MIME_TYPE = "text/html;profile=mcp-app"
 # MCP Apps hosts may cache UI resources by immutable ``ui://`` identity.  Bump
 # the resource URI whenever the embedded view contract changes so a host cannot
 # pair a new tool result with an older cached bridge implementation.
-GOVERNED_PANEL_URI = "ui://evidence-lane/governed-console-v5.html"
+GOVERNED_PANEL_URI = "ui://evidence-lane/governed-console-v6.html"
+PROJECT_PANEL_SCHEMA = "evidence-lane.mcp-app-panel.v2"
 
 _DISPLAY_NAME = "Evidence Lane"
 _SERVER_IDENTITY = "evidence-lane"
@@ -97,6 +100,206 @@ def _as_list(value: Any) -> list[Any]:
     return value if isinstance(value, list) else []
 
 
+_PV_TOKEN_RE = re.compile(r"\bPV\s*0*(\d+)\b", re.IGNORECASE)
+_HIL_PANEL_ROLES = frozenset({"HIL_GATE", "PHYSICALLY_FINAL_HIL"})
+_UNFINISHED_PLAN_STATES = frozenset({"ACTIVE", "QUEUED"})
+
+
+def _pv_ordinal(value: Any) -> int | None:
+    """Return one positive PV ordinal from an exact public-safe token."""
+
+    match = _PV_TOKEN_RE.fullmatch(str(value or "").strip())
+    if match is None:
+        return None
+    ordinal = int(match.group(1))
+    return ordinal if ordinal > 0 else None
+
+
+def _row_pv_ordinals(row: dict[str, Any]) -> list[int]:
+    """Read PV tokens only from immutable row identity/description fields."""
+
+    text = " ".join(
+        (
+            str(row.get("task_id") or ""),
+            str(row.get("step") or ""),
+        )
+    )
+    return sorted({int(value) for value in _PV_TOKEN_RE.findall(text) if int(value)})
+
+
+def _is_project_pv_hil(row: dict[str, Any]) -> bool:
+    """Distinguish project-PV HILs from independent Canon or research gates."""
+
+    role = str(row.get("panel_role") or "").strip().upper()
+    text = " ".join(
+        (
+            str(row.get("task_id") or ""),
+            str(row.get("step") or ""),
+        )
+    ).upper()
+    return bool(
+        role == "PHYSICALLY_FINAL_HIL"
+        or _row_pv_ordinals(row)
+        or (
+            "HIL" in text
+            and any(
+                marker in text
+                for marker in ("CANDIDATE", "FUSE", "POINTER", "REFRESH", "RELEASE")
+            )
+        )
+    )
+
+
+def _project_hil_queue(
+    *,
+    project_status: dict[str, Any],
+    plan_backlog: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Project future Plan HILs without changing Plan or PV authority.
+
+    The canonical Plan remains the row/status/dependency authority.  This is a
+    project-renderer projection only; it is deliberately independent of the
+    bounded host Step Task List window.
+    """
+
+    backlog = _as_dict(plan_backlog)
+    goal = _as_dict(backlog.get("goal_projection"))
+    raw_rows = [row for row in _as_list(goal.get("rows")) if isinstance(row, dict)]
+    if not raw_rows:
+        return {
+            "schema": "evidence-lane.project-hil-queue.v1",
+            "status": "NOT_AVAILABLE",
+            "authority": "PLAN_LANE",
+            "reason": "CANONICAL_PLAN_NOT_SUPPLIED_TO_PROJECT_RENDERER",
+            "next_pending_hil": None,
+            "queued_hils": [],
+            "connections": [],
+        }
+
+    rows = sorted(raw_rows, key=lambda row: int(row.get("number") or 0))
+    row_numbers = [int(row.get("number") or 0) for row in rows]
+    contiguous = row_numbers == list(range(row_numbers[0], row_numbers[-1] + 1))
+    active_rows = [
+        row
+        for row in rows
+        if str(row.get("lifecycle_status") or "").strip().upper() == "ACTIVE"
+    ]
+    final_rows = [
+        row
+        for row in rows
+        if str(row.get("panel_role") or "").strip().upper()
+        == "PHYSICALLY_FINAL_HIL"
+    ]
+    structurally_valid = bool(
+        contiguous
+        and len(active_rows) <= 1
+        and len(final_rows) == 1
+        and final_rows[0] is rows[-1]
+    )
+
+    unfinished_hils = [
+        row
+        for row in rows
+        if str(row.get("panel_role") or "").strip().upper() in _HIL_PANEL_ROLES
+        and str(row.get("lifecycle_status") or "").strip().upper()
+        in _UNFINISHED_PLAN_STATES
+    ]
+    envelope = _as_dict(project_status.get("persistent_state_envelope"))
+    accepted_pv = envelope.get("accepted_pv")
+    accepted_ordinal = _pv_ordinal(accepted_pv) or 0
+    next_candidate_pv = project_status.get("next_candidate_pv") or envelope.get(
+        "next_candidate_pv"
+    )
+    next_ordinal = _pv_ordinal(next_candidate_pv) or accepted_ordinal + 1
+
+    projected_hils: list[dict[str, Any]] = []
+    pv_cursor = max(next_ordinal, accepted_ordinal + 1)
+    for row in unfinished_hils:
+        explicit_ordinals = [
+            ordinal for ordinal in _row_pv_ordinals(row) if ordinal >= pv_cursor
+        ]
+        project_pv_hil = _is_project_pv_hil(row)
+        proposed_ordinal = (
+            min(explicit_ordinals)
+            if explicit_ordinals
+            else pv_cursor
+            if project_pv_hil
+            else None
+        )
+        if proposed_ordinal is not None:
+            pv_cursor = proposed_ordinal + 1
+        projected_hils.append(
+            {
+                "queue_state": (
+                    "NEXT_PENDING_HIL" if not projected_hils else "QUEUED_HIL"
+                ),
+                "row": int(row.get("number") or 0),
+                "task_id": str(row.get("task_id") or ""),
+                "description": str(row.get("step") or ""),
+                "panel_role": str(row.get("panel_role") or "HIL_GATE"),
+                "lifecycle_status": str(row.get("lifecycle_status") or "UNKNOWN"),
+                "proposed_pv": (
+                    f"PV{proposed_ordinal}"
+                    if proposed_ordinal is not None
+                    else "NOT_APPLICABLE_NON_PROJECT_HIL"
+                ),
+                "dependencies": [
+                    str(value) for value in _as_list(row.get("dependencies"))
+                ],
+            }
+        )
+
+    connections: list[dict[str, Any]] = []
+    for item in projected_hils:
+        for dependency in item["dependencies"]:
+            connections.append(
+                {
+                    "from_task_id": dependency,
+                    "to_task_id": item["task_id"],
+                    "relation": "PLAN_DEPENDENCY",
+                }
+            )
+    for previous, current in pairwise(projected_hils):
+        connections.append(
+            {
+                "from_task_id": previous["task_id"],
+                "to_task_id": current["task_id"],
+                "relation": "HIL_QUEUE_CONTINUATION",
+            }
+        )
+
+    next_pending = projected_hils[0] if projected_hils else None
+    physically_final = next(
+        (
+            item
+            for item in projected_hils
+            if item["panel_role"] == "PHYSICALLY_FINAL_HIL"
+        ),
+        None,
+    )
+    return {
+        "schema": "evidence-lane.project-hil-queue.v1",
+        "status": "PASS" if structurally_valid else "MISMATCH",
+        "authority": "PLAN_LANE",
+        "canonical_plan_sha256": goal.get("canonical_plan_sha256"),
+        "goal_projection_sha256": goal.get("projection_sha256"),
+        "accepted_pv": accepted_pv,
+        "pointer_generation": envelope.get("pointer_generation"),
+        "canonical_row_start": row_numbers[0],
+        "canonical_row_end": row_numbers[-1],
+        "canonical_row_count": len(rows),
+        "active_row": (
+            int(active_rows[0].get("number") or 0) if len(active_rows) == 1 else None
+        ),
+        "next_pending_hil": next_pending,
+        "queued_hils": projected_hils[1:],
+        "physically_final_hil": physically_final,
+        "connections": connections,
+        "render_changes_authority": False,
+        "step_task_list_authority": False,
+    }
+
+
 def build_runtime_panel_snapshot(
     *,
     doctor: dict[str, Any],
@@ -171,6 +374,7 @@ def build_project_panel_snapshot(
     project_id: str,
     project_status: dict[str, Any],
     public_site_url: str,
+    plan_backlog: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Project only public-safe pointer and HIL facts for one project."""
 
@@ -190,15 +394,19 @@ def build_project_panel_snapshot(
         if pending_hil
         else "INFORMATION_ONLY_NO_PENDING_CANDIDATE"
     )
+    project_hil_queue = _project_hil_queue(
+        project_status=project_status,
+        plan_backlog=plan_backlog,
+    )
     return {
-        "schema": "evidence-lane.mcp-app-panel.v1",
+        "schema": PROJECT_PANEL_SCHEMA,
         "panel": "project",
         "identity": _identity(exact_site),
         "status": str(project_status.get("status") or "UNKNOWN"),
         "title": "Governed project status",
         "summary": (
-            "Read-only accepted pointer, active-session, candidate, and HIL "
-            "boundary. Rendering this panel never accepts or promotes a candidate."
+            "Read-only accepted pointer, active-session, candidate, and project "
+            "HIL queue. Rendering this panel never accepts or promotes a candidate."
         ),
         "facts": [
             {"label": "Project", "value": project_id},
@@ -260,6 +468,7 @@ def build_project_panel_snapshot(
             "composer_authority": "HOST_OWNED",
             "auto_submit": False,
             "render_changes_authority": False,
+            "project_hil_queue": project_hil_queue,
         },
         "links": [
             _link("Website", exact_site),
@@ -407,12 +616,35 @@ def governed_panel_html(public_site_url: str) -> str:
         }} else if (activeTab === "hil") {{
           const hil = data.hil;
           if (hil) {{
+            const queue = hil.project_hil_queue || {{}};
             const hilCards = [
               {{label: "Pending", value: hil.pending ? "YES" : "NO"}},
               {{label: "Candidate", value: hil.candidate || "NONE"}},
               {{label: "Decision state", value: hil.decision_state || "UNKNOWN"}},
               {{label: "Authority rule", value: hil.rule || "Exact HIL decision required"}},
+              {{label: "Project HIL queue", value: `${{queue.status || "NOT AVAILABLE"}} | ${{queue.authority || "PLAN_LANE"}}`}},
             ];
+            const nextHil = queue.next_pending_hil;
+            if (nextHil) {{
+              hilCards.push({{
+                label: `Next pending HIL | ${{nextHil.proposed_pv || "PV UNRESOLVED"}}`,
+                value: `Row ${{nextHil.row}} / ${{nextHil.task_id}} | ${{nextHil.panel_role}} | dependencies: ${{(nextHil.dependencies || []).join(", ") || "ROOT"}}`,
+              }});
+            }} else {{
+              hilCards.push({{label: "Next pending HIL", value: "NONE"}});
+            }}
+            (Array.isArray(queue.queued_hils) ? queue.queued_hils : []).forEach((item) => {{
+              hilCards.push({{
+                label: `Queued HIL | ${{item?.proposed_pv || "PV UNRESOLVED"}}`,
+                value: `Row ${{item?.row}} / ${{item?.task_id}} | ${{item?.panel_role}} | dependencies: ${{(item?.dependencies || []).join(", ") || "ROOT"}}`,
+              }});
+            }});
+            (Array.isArray(queue.connections) ? queue.connections : []).forEach((item) => {{
+              hilCards.push({{
+                label: item?.relation || "HIL connection",
+                value: `${{item?.from_task_id || "UNKNOWN"}} -> ${{item?.to_task_id || "UNKNOWN"}}`,
+              }});
+            }});
             (Array.isArray(hil.choices) ? hil.choices : []).forEach((choice) => {{
               hilCards.push({{
                 label: choice?.token || "HIL choice",

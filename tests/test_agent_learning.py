@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 from pathlib import Path
 
 import pytest
 from evidence_lane_plugin.agent_learning import (
+    LEARNING_EXPIRY_OWNER,
     decide_learning_candidate,
     expire_learning_candidates,
     inspect_learning_authority,
+    learning_runtime_contract,
     project_truth_pointer_sha256,
     retrieve_accepted_learning,
     revoke_learning_candidate,
@@ -15,6 +18,7 @@ from evidence_lane_plugin.agent_learning import (
 )
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import atomic_write_json, sha256_bytes
+from evidence_lane_plugin.mcp_server import SDK_NATIVE_ACTIONS
 
 PROJECT_ID = "learning-fixture"
 T0 = "2026-08-13T12:00:00+00:00"
@@ -253,8 +257,11 @@ def test_expiry_and_revocation_remove_lessons_from_retrieval(tmp_path: Path) -> 
         root,
         project_id=PROJECT_ID,
         as_of="2026-08-13T14:31:00+00:00",
+        expiry_owner=LEARNING_EXPIRY_OWNER,
     )
     assert expired["expired_candidate_ids"] == [expiring["candidate"]["candidate_id"]]
+    assert expired["receipt"]["expiry_owner"] == LEARNING_EXPIRY_OWNER
+    assert expired["receipt"]["learning_pointer_moved"] is False
     assert retrieve_accepted_learning(
         root,
         project_id=PROJECT_ID,
@@ -320,3 +327,156 @@ def test_cross_project_secret_and_tamper_guards_fail_closed(tmp_path: Path) -> N
     with pytest.raises(EvidenceLaneError) as tampered:
         inspect_learning_authority(root, project_id=PROJECT_ID)
     assert tampered.value.code == "LEARNING_CANDIDATE_FILE_LEDGER_MISMATCH"
+
+
+def test_runtime_contract_has_five_routes_and_explicit_expiry_owner() -> None:
+    contract = learning_runtime_contract()
+
+    assert contract["public_actions"] == [
+        "learning_inspect",
+        "learning_retrieve",
+        "learning_seal_candidate",
+        "learning_decide_candidate",
+        "learning_revoke",
+    ]
+    assert contract["public_action_count"] == 5
+    assert contract["search"]["engine"] == "SQLITE_FTS5"
+    assert contract["search"]["full_ledger_loaded_into_model_context"] is False
+    assert contract["expiry"]["event_materialization_owner"] == (
+        LEARNING_EXPIRY_OWNER
+    )
+    assert contract["expiry"]["public_action"] is None
+    assert contract["expiry"]["hook_owned"] is False
+    registered = [
+        name
+        for name, _title, _description, module, _operation, _read_only in (
+            SDK_NATIVE_ACTIONS
+        )
+        if module == "agent_learning"
+    ]
+    assert registered == contract["public_actions"]
+
+
+def test_retrieval_excludes_expired_before_event_materialization(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    sealed = _seal(
+        root,
+        statement="Temporal expiry is retrieval owned.",
+        expires_at="2026-08-13T14:30:00+00:00",
+    )
+    _decide(root, sealed, "APPROVE", decided_at=T2)
+
+    result = retrieve_accepted_learning(
+        root,
+        project_id=PROJECT_ID,
+        query="temporal expiry retrieval",
+        scope_selectors=[PROJECT_ID],
+        as_of="2026-08-13T14:31:00+00:00",
+    )
+
+    assert result["result"] == "NO_HIT"
+    assert result["suppressed"][0]["state"] == "SUPPRESSED_TEMPORAL_EXPIRY"
+    assert result["suppressed"][0]["expiry_event_materialized"] is False
+    assert result["search_engine"] == "SQLITE_FTS5_BM25"
+    assert inspect_learning_authority(root, project_id=PROJECT_ID)[
+        "candidate_states"
+    ][sealed["candidate"]["candidate_id"]] == "ACCEPTED"
+
+
+def test_expiry_materialization_rejects_every_other_owner(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    sealed = _seal(
+        root,
+        statement="Only Learning maintenance may materialize expiry.",
+        expires_at="2026-08-13T14:30:00+00:00",
+    )
+    _decide(root, sealed, "APPROVE", decided_at=T2)
+
+    with pytest.raises(EvidenceLaneError) as blocked:
+        expire_learning_candidates(
+            root,
+            project_id=PROJECT_ID,
+            as_of="2026-08-13T14:31:00+00:00",
+            expiry_owner="CODEX_HOOK",
+        )
+
+    assert blocked.value.code == "LEARNING_EXPIRY_OWNER_REQUIRED"
+    assert inspect_learning_authority(root, project_id=PROJECT_ID)[
+        "candidate_states"
+    ][sealed["candidate"]["candidate_id"]] == "ACCEPTED"
+
+
+def test_v0_ledger_migrates_additively_and_rebuilds_fts(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    sealed = _seal(root, statement="Legacy learning row survives migration.")
+    ledger = root / "learning" / "agent-learning.sqlite"
+    connection = sqlite3.connect(ledger)
+    connection.execute("DROP TABLE learning_candidate_fts")
+    connection.execute("DROP TABLE learning_schema_metadata")
+    connection.commit()
+    connection.close()
+
+    inspected = inspect_learning_authority(root, project_id=PROJECT_ID)
+
+    assert inspected["candidate_count"] == 1
+    assert inspected["indexed_candidate_count"] == 1
+    assert inspected["candidate_states"][sealed["candidate"]["candidate_id"]] == (
+        "PENDING_LEARNING_HIL"
+    )
+
+
+def test_v1_schema_drift_fails_closed_without_auto_repair(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    inspect_learning_authority(root, project_id=PROJECT_ID)
+    ledger = root / "learning" / "agent-learning.sqlite"
+    connection = sqlite3.connect(ledger)
+    connection.execute("DROP INDEX idx_learning_candidate_dedup")
+    connection.commit()
+    connection.close()
+
+    with pytest.raises(EvidenceLaneError) as drifted:
+        inspect_learning_authority(root, project_id=PROJECT_ID)
+
+    assert drifted.value.code == "LEARNING_LEDGER_SCHEMA_MISMATCH"
+    connection = sqlite3.connect(ledger)
+    index = connection.execute(
+        "SELECT name FROM sqlite_master WHERE type='index' AND name=?",
+        ("idx_learning_candidate_dedup",),
+    ).fetchone()
+    connection.close()
+    assert index is None
+
+
+def test_failed_v0_migration_rolls_back_every_schema_change(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    learning_root = root / "learning"
+    learning_root.mkdir()
+    ledger = learning_root / "agent-learning.sqlite"
+    connection = sqlite3.connect(ledger)
+    connection.execute(
+        "CREATE TABLE learning_candidate(candidate_id TEXT PRIMARY KEY) STRICT"
+    )
+    connection.commit()
+    connection.close()
+
+    with pytest.raises(EvidenceLaneError) as failed:
+        inspect_learning_authority(root, project_id=PROJECT_ID)
+
+    assert failed.value.code == "LEARNING_LEDGER_SCHEMA_MISMATCH"
+    connection = sqlite3.connect(ledger)
+    objects = {
+        str(row[0])
+        for row in connection.execute(
+            "SELECT name FROM sqlite_master WHERE type IN ('table','index')"
+        )
+    }
+    columns = [
+        str(row[1])
+        for row in connection.execute("PRAGMA table_info(learning_candidate)")
+    ]
+    connection.close()
+    assert "learning_schema_metadata" not in objects
+    assert "learning_candidate_fts" not in objects
+    assert columns == ["candidate_id"]

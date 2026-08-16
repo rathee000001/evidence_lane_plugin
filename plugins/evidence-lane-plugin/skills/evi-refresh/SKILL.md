@@ -16,3 +16,11 @@ history index, rebuild only changed sections/lanes, preserve tombstones and
 history, validate all SQLite/FK/FTS/MMD/DOT artifacts, and create a fresh
 unaccepted candidate. Return host-specific output links/handoff and stop at
 the six-way HIL without Fuse.
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evi-refresh`. `MCP_ROUTING_FAIL_CLOSED`: if the
+bundled `evidence-lane` dependency, an exact tool, or a required result is
+missing or ambiguous, stop and report it; never rewrite prefixes, substitute a
+tool, reorder a write, or infer success.

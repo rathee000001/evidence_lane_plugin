@@ -21,3 +21,11 @@ only.
    receipt. If multiple plugins qualify, require an exact preferred plugin ID;
    never choose by registration or lexical order.
 5. Return to the prior lifecycle position; registration is not acceptance.
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evi-additional-plugin`.
+`MCP_ROUTING_FAIL_CLOSED`: if the bundled `evidence-lane` dependency, an exact
+tool, or a required result is missing or ambiguous, stop and report it; never
+rewrite prefixes, substitute a tool, reorder a write, or infer success.

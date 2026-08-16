@@ -1,0 +1,48 @@
+{
+  "schema": "evidence-lane.lane-schema-evolution-policy.v1",
+  "policy_version": 1,
+  "ledger": {
+    "schema": "evidence-lane.lane-schema-migration-ledger.v1",
+    "table": "lane_schema_migration",
+    "append_only": true,
+    "hash_chained": true,
+    "updates_forbidden": true,
+    "deletes_forbidden": true
+  },
+  "migration": {
+    "schema": "evidence-lane.lane-schema-migration-plan.v1",
+    "allowed_operations": [
+      "CREATE_TABLE",
+      "ADD_COLUMN",
+      "CREATE_INDEX"
+    ],
+    "raw_sql_allowed": false,
+    "additive_only": true,
+    "single_version_increment": true,
+    "physical_name_prefix_template": "elx_{lane_id}_",
+    "migration_id_prefix_template": "{lane_id}.extension."
+  },
+  "compatibility": {
+    "existing_objects_must_remain": true,
+    "existing_columns_must_remain_byte_compatible": true,
+    "existing_indexes_must_remain": true,
+    "foreign_key_check_required": true,
+    "integrity_check_required": true,
+    "base_schema_builder_parity_required": true
+  },
+  "fts_rebuild": {
+    "explicit_request_only": true,
+    "preserve_rowids": true,
+    "before_after_content_hash_required": true,
+    "before_after_row_count_required": true
+  },
+  "protected_lanes": {
+    "lane_ids": [
+      "github_code",
+      "local_code"
+    ],
+    "explicit_user_confirmation_required": true,
+    "confirmation_template": "AUTHORIZE_LANE_SCHEMA_EVOLUTION::{lane_id}::{migration_id}::{ddl_sha256}",
+    "missing_or_mismatched_confirmation_effect": "FAIL_CLOSED_BEFORE_SQLITE_WRITE"
+  }
+}
