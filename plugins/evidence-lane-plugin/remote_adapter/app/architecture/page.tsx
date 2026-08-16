@@ -38,6 +38,19 @@ export default function ArchitecturePage() {
         aside={<HeroOrbit preset="architecture" />}
       />
 
+      <section className="section shell">
+        <div className="sectionHead wideHead">
+          <span className="kicker">Codex-native plugin architecture</span>
+          <h2>Skills govern. MCP executes. Hooks transport lifecycle events.</h2>
+          <p>The three surfaces share one package identity but keep different responsibilities. Their Git-tracked contracts are exposed as separate public pages so a website summary cannot blur authority.</p>
+        </div>
+        <div className="compareGrid">
+          <article><span className="compactDepthPill"><GlassIconOrb color="#a99af7" size={28} decorative><OfficialToolIcon tool="package" size={15} decorative /></GlassIconOrb><span>17 skills</span></span><h3>Governed workflows</h3><p>Skills own PREPARE, bounded native reads, classification, Plan refresh, and HIL behavior.</p><Link className="textLink" href="/skills">Open Skills <span aria-hidden="true">→</span></Link></article>
+          <article><span className="compactDepthPill"><GlassIconOrb color="#83ddb3" size={28} decorative><OfficialToolIcon tool="terminal" size={15} decorative /></GlassIconOrb><span>83 actions</span></span><h3>Package-local MCP</h3><p>The native server exposes 26 read-only and 57 write-capable actions with explicit runtime gates.</p><Link className="textLink" href="/mcp">Open MCP <span aria-hidden="true">→</span></Link></article>
+          <article><span className="compactDepthPill"><GlassIconOrb color="#f2a1c5" size={28} decorative><OfficialToolIcon tool="pulse" size={15} decorative /></GlassIconOrb><span>8 events</span></span><h3>Lifecycle transport</h3><p>Hooks carry visible host events; they do not classify work, accept candidates, or move pointers.</p><Link className="textLink" href="/hooks">Open Hooks <span aria-hidden="true">→</span></Link></article>
+        </div>
+      </section>
+
       <section className="section shell topologySection">
         <div className="sectionHead wideHead">
           <span className="kicker">End-to-end flow</span>

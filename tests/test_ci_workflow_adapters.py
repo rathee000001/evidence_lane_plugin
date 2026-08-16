@@ -15,22 +15,26 @@ ACTION = ROOT / ".github" / "actions" / "evidence-lane-ci"
 def test_all_workflow_action_references_are_immutable() -> None:
     receipt = audit_workflow_action_pins(WORKFLOWS)
     assert receipt["status"] == "PASS"
-    assert receipt["file_count"] == 4
-    assert receipt["reference_count"] == 16
+    assert receipt["file_count"] == 5
+    assert receipt["reference_count"] == 21
     assert receipt["violation_count"] == 0
     assert receipt["kind_counts"] == {
         "LOCAL_SAME_COMMIT": 2,
-        "REMOTE_FULL_COMMIT_SHA": 14,
+        "REMOTE_FULL_COMMIT_SHA": 19,
     }
 
 
-def test_workflows_are_study_branch_only_and_preview_does_not_deploy() -> None:
+def test_workflow_branch_boundaries_and_preview_does_not_deploy() -> None:
     for path in WORKFLOWS.glob("*.yml"):
         text = path.read_text(encoding="utf-8")
         if "push:" in text:
-            assert '- "agent/**"' in text
+            if path.name == "evidence-lane-github-pages.yml":
+                assert "      - main" in text
+                assert "      - agent/evi-v220-systemwide-release-hil-v2.2.0" in text
+            else:
+                assert '- "agent/**"' in text
+                assert "branches:\n      - main" not in text
         assert "pull_request:" not in text
-        assert "branches:\n      - main" not in text
     preview = (WORKFLOWS / "evidence-lane-preview-build.yml").read_text(
         encoding="utf-8"
     )
@@ -44,7 +48,7 @@ def test_workflows_are_study_branch_only_and_preview_does_not_deploy() -> None:
     assert 'payload["release_sha"] == os.environ["EVIDENCE_LANE_RELEASE_SHA"]' in (
         preview
     )
-    assert 'payload["mcp_route_identity"]["tool_count"] == 62' in preview
+    assert 'payload["mcp_route_identity"]["tool_count"] == 83' in preview
 
 
 def test_codeql_is_pinned_and_preserves_local_evidence_without_api_upload() -> None:

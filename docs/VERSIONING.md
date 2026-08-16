@@ -2,8 +2,8 @@
 
 ## Active product release
 
-The mutable stable Evidence Lane Codex product release is `2.1.0`. These surfaces must use
-that same base version:
+The current pre-HIL Evidence Lane Codex source release is `2.2.0`. These
+source and package-build surfaces must use that same base version:
 
 - root `pyproject.toml`;
 - plugin `pyproject.toml`;
@@ -12,12 +12,16 @@ that same base version:
 - the public documentation site `package.json` when it is versioned with the Codex source;
 - current Codex README, architecture, acceptance, and release tooling.
 
-The disabled fallback remains the exact accepted PV11/main `2.0.0` package and
-must never be relabeled as 2.1.0. No external chat app or remote MCP adapter is
-part of the active 2.1.0 Codex release. Historical delivery artifacts remain available
-only through immutable Git and receipt history; they are not current aliases.
+Accepted Project Truth remains PV12/generation 12 on the `2.1.0` base. The
+disabled fallback host surface was directly observed at historical PV11/main
+`2.0.0`; it must not be relabeled as PV12/2.1 proof, and this source-only row
+does not repair or activate it. No external chat app or remote MCP adapter is
+part of the active `2.2.0` Codex source release. Historical delivery artifacts
+remain available only through immutable Git and receipt history; they are not
+current aliases.
 
-`tests/test_v140_version_consistency.py` is the fail-closed release check. A
+`tests/test_v140_version_consistency.py` is the fail-closed source-release
+check. A
 release bump is incomplete until that test and the exact active surfaces agree.
 
 ## Versions that must not be rewritten

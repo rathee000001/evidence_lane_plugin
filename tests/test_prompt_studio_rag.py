@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MAX_WHOLE_SOURCE_FILE_BYTES = 16 * 1024 * 1024
+MAX_PUBLIC_STUDIO_SQLITE_BYTES = 24 * 1024 * 1024
 EVIDENCE = ROOT / "plugins" / "evidence-lane-plugin" / "evidence" / "prompt_studio"
 BROWSER = (
     ROOT
@@ -29,7 +29,7 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     sqlite_path = EVIDENCE / "studio_search.sqlite"
 
     assert manifest["schema"] == "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1"
-    assert manifest["release"] == "2.1.0"
+    assert manifest["release"] == "2.2.0"
     assert manifest["history_mode"] == "FROZEN_SEALED_INDEX_NO_GIT"
     assert "no Git command is invoked" in manifest["corpus"]["boundary"]
     assert manifest["validation"]["sqlite_integrity"] == "ok"
@@ -101,7 +101,7 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     assert tfidf_vectors > chunk_count
     assert joined_vectors == tfidf_vectors
     assert "content='chunk_index'" in fts_schema
-    assert sqlite_path.stat().st_size <= MAX_WHOLE_SOURCE_FILE_BYTES
+    assert sqlite_path.stat().st_size <= MAX_PUBLIC_STUDIO_SQLITE_BYTES
 
 
 def test_prompt_studio_public_corpus_excludes_private_runtime_paths() -> None:

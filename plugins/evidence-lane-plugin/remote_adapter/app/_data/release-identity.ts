@@ -1,6 +1,6 @@
 import { repositoryUrl } from "./site";
 
-export const releaseVersion = "2.1.0";
+export const releaseVersion = "2.2.0";
 
 const deployedCommitCandidate =
   process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.NEXT_PUBLIC_EVIDENCE_LANE_RELEASE_SHA ?? "";

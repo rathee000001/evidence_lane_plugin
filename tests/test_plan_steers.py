@@ -1,5 +1,12 @@
 from __future__ import annotations
 
+import json
+
+import pytest
+from evidence_lane_plugin.errors import EvidenceLaneError
+
+from .conftest import build_and_approve_pv1
+
 
 def _task(task_id: str, outcome: str) -> dict:
     return {
@@ -83,11 +90,86 @@ def test_codex_plan_mode_bridge_and_canonical_steer_classification(service) -> N
     assert appended["task_count_changed"] is True
     assert appended["steer"]["classification"] == "NEW_STEP"
     assert appended["event"]["event_type"] == "STEER_DELTA_NEW_STEP"
-    assert [row["number"] for row in appended["backlog"]["goal_projection"]["rows"]] == [
-        1,
-        2,
-        3,
+    assert appended["backlog_receipt"]["canonical_task_count"] == 3
+    assert appended["backlog_receipt"]["executable_task_count"] == 3
+    assert appended["backlog_receipt"]["full_backlog_returned"] is False
+    assert appended["backlog_receipt"]["full_plan_returned"] is False
+    assert appended["steer"]["delta_text_returned"] is False
+    assert "text" not in appended["steer"]
+    assert "backlog" not in appended
+    assert len(json.dumps(appended, sort_keys=True).encode("utf-8")) < 8192
+
+
+def test_plan_steer_updates_only_when_current_host_window_fingerprint_changes(
+    service,
+) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    tasks = [
+        _task(f"window-step-{number:02d}", f"Execute window row {number}.")
+        for number in range(1, 13)
     ]
+    service.plan_tasks(
+        "book-faires",
+        tasks=tasks,
+        planned_by="human-test",
+        plan_id="ten-row-window-steer-routing",
+    )
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=str(tasks[0]["task_class"]),
+        requested_outcome=str(tasks[0]["requested_outcome"]),
+        permitted_paths=list(tasks[0]["permitted_paths"]),
+        permitted_tools=list(tasks[0]["permitted_tools"]),
+        acceptance_checks=list(tasks[0]["acceptance_checks"]),
+        stop_condition=str(tasks[0]["stop_condition"]),
+        backlog_task_id=str(tasks[0]["task_id"]),
+    )
+
+    outside = service.record_steer_delta(
+        "book-faires",
+        delta_text="Attach this correction to a later host window.",
+        actor="human-test",
+        delta_id="steer-outside-current-window",
+        linked_task_id="window-step-12",
+    )
+    outside_effect = outside["host_plan_window_effect"]
+    assert outside_effect["schema"] == (
+        "evidence-lane.plan-steer-host-window-effect.v2"
+    )
+    assert outside_effect["row_start"] == 1
+    assert outside_effect["row_end"] == 10
+    assert outside_effect["linked_row_is_currently_visible"] is False
+    assert outside_effect["visible_window_changed"] is False
+    assert outside_effect["action"] == "LEDGER_ONLY_REUSE_CURRENT_HOST_WINDOW"
+    assert outside_effect["host_update_plan_required"] is False
+
+    inside_text_only = service.record_steer_delta(
+        "book-faires",
+        delta_text="Attach this correction to the visible host window.",
+        actor="human-test",
+        delta_id="steer-inside-current-window",
+        linked_task_id="window-step-05",
+    )
+    text_effect = inside_text_only["host_plan_window_effect"]
+    assert text_effect["linked_row_is_currently_visible"] is True
+    assert text_effect["visible_window_changed"] is False
+    assert text_effect["action"] == "LEDGER_ONLY_REUSE_CURRENT_HOST_WINDOW"
+    assert text_effect["host_update_plan_required"] is False
+
+    inside_metadata = service.record_steer_delta(
+        "book-faires",
+        delta_text="PLAN_GROUP=updated-window-group.",
+        actor="human-test",
+        delta_id="steer-inside-window-metadata",
+        linked_task_id="window-step-05",
+    )
+    effect = inside_metadata["host_plan_window_effect"]
+    assert effect["linked_row_is_currently_visible"] is True
+    assert effect["visible_window_changed"] is True
+    assert effect["action"] == "SYNC_CURRENT_HOST_WINDOW_ONCE"
+    assert effect["host_update_plan_required"] is True
+    assert effect["evi_refresh_invoked"] is False
 
 
 def test_non_codex_plan_rows_are_rejected_outside_the_codex_goal(service) -> None:
@@ -157,3 +239,305 @@ def test_unlinked_steers_insert_before_physically_final_hil_and_all_persist(
         row["steer_deltas"][0]["delta_id"]
         for row in ordered[1:-1]
     ] == [f"late-steer-{index:03d}" for index in range(1, 8)]
+
+
+def test_universal_host_plan_labels_preserve_structured_execution_metadata(
+    service,
+) -> None:
+    first = {
+        **_task("metadata-step-001", "Verify the first governed result."),
+        "plan_group": "corpus-ingest",
+        "commit_batch_id": "batch-alpha",
+        "dependencies": [],
+    }
+    second = {
+        **_task(
+            "metadata-step-002",
+            "Create the bounded integration commit after verification.",
+        ),
+        "task_class": "prepare_patch",
+        "permitted_paths": ["src/**"],
+        "permitted_tools": ["repository_read", "repository_write"],
+        "plan_group": "corpus-ingest",
+        "commit_batch_id": "batch-alpha",
+        "dependencies": ["metadata-step-001"],
+        "git_commit_stage": "COMMIT",
+        "current_version": "2.2.0",
+        "current_branch": "agent/evi-v220-metadata",
+    }
+    final_hil = {
+        **_task(
+            "metadata-final-hil",
+            "Present the physically final six-way HIL.",
+        ),
+        "panel_role": "PHYSICALLY_FINAL_HIL",
+    }
+    planned = service.plan_tasks(
+        "book-faires",
+        tasks=[first, second, final_hil],
+        planned_by="human-test",
+        plan_id="universal-metadata-plan",
+    )
+
+    goal = planned["goal_projection"]
+    rows = goal["rows"]
+    assert goal["raw_linked_delta_json_in_visible_label"] is False
+    assert "CLASS=<classification>" in goal["visible_label_contract"]
+    assert "BATCH=<commit_batch_id>" in goal["visible_label_contract"]
+    assert rows[0]["task_classification"] == "verify_result"
+    assert rows[0]["plan_group"] == "corpus-ingest"
+    assert rows[0]["commit_batch_id"] == "batch-alpha"
+    assert rows[0]["commit_batch_source"] == "EXPLICIT_TASK_CONTRACT"
+    assert rows[0]["dependencies"] == []
+    assert rows[0]["dependency_source"] == "EXPLICIT_TASK_CONTRACT"
+    assert rows[0]["git_commit_stage"] == "NOT_DECLARED"
+    assert rows[1]["task_classification"] == "prepare_patch"
+    assert rows[1]["dependencies"] == ["metadata-step-001"]
+    assert rows[1]["git_commit_stage"] == "COMMIT"
+    assert rows[1]["git_commit_stage_source"] == "EXPLICIT_TASK_CONTRACT"
+    assert rows[1]["version_marker"] == "2.2.0"
+    assert rows[1]["version_marker_source"] == "EXPLICIT_TASK_CONTRACT"
+    assert rows[1]["branch_marker"] == "agent/evi-v220-metadata"
+    assert rows[1]["branch_marker_source"] == "EXPLICIT_TASK_CONTRACT"
+    assert rows[1]["authority_scope"] == "CURRENT_EXECUTABLE_PLAN"
+    assert rows[1]["effective_for_execution"] is True
+    assert rows[1]["visible_label"].startswith(
+        "Row 2 / metadata-step-002 — [CLASS=prepare_patch; "
+        "GROUP=corpus-ingest; BATCH=batch-alpha; "
+        "DEP=metadata-step-001; GIT=COMMIT@EXPLICIT_TASK_CONTRACT; "
+        "VERSION=2.2.0@EXPLICIT_TASK_CONTRACT; "
+        "BRANCH=agent/evi-v220-metadata@EXPLICIT_TASK_CONTRACT; "
+        "ROLE=STANDARD; STATE=QUEUED]"
+    )
+    assert rows[2]["plan_group"] == "universal-metadata-plan"
+    assert rows[2]["commit_batch_id"] == "UNASSIGNED"
+    assert rows[2]["dependencies"] == ["metadata-step-002"]
+    assert rows[2]["dependency_source"] == "LINEAR_PREDECESSOR"
+    assert rows[2]["panel_role"] == "PHYSICALLY_FINAL_HIL"
+    assert rows[-1]["task_id"] == "metadata-final-hil"
+
+    state_travel_projection = goal["host_projections"]["CODEX"][
+        "state_travel_destination"
+    ]
+    assert state_travel_projection["explicit_host_plan_acceptance_required"] is True
+    assert state_travel_projection["plan_acceptance_is_evidence_lane_hil"] is False
+    assert state_travel_projection["goal_or_source_work_before_plan_acceptance"] is False
+
+
+def test_current_plan_hydration_marks_conflicts_until_exact_linked_resolution(
+    service,
+) -> None:
+    service.plan_tasks(
+        "book-faires",
+        tasks=[
+            _task(
+                "release-row",
+                "Commit version 2.0.0 on agent/evi-v200-release.",
+            ),
+            {
+                **_task(
+                    "release-final-hil",
+                    "Present the physically final six-way HIL.",
+                ),
+                "panel_role": "PHYSICALLY_FINAL_HIL",
+            },
+        ],
+        planned_by="human-test",
+        plan_id="release-hydration-plan",
+    )
+    service.record_steer_delta(
+        "book-faires",
+        delta_text=(
+            "Preserve version 2.0.0 and agent/evi-v200-release as historical "
+            "wording; the proposed current line is 2.1.0 on "
+            "agent/evi-v210-release."
+        ),
+        actor="human-test",
+        delta_id="release-conflict-steer",
+        linked_task_id="release-row",
+    )
+    conflicted = service.task_backlog("book-faires")["goal_projection"]["rows"][0]
+    assert conflicted["version_marker"] == "CONFLICTING_DECLARATIONS"
+    assert conflicted["version_marker_source"] == "RECONCILIATION_REQUIRED"
+    assert conflicted["version_reconciliation_required"] is True
+    assert conflicted["branch_marker"] == "CONFLICTING_DECLARATIONS"
+    assert conflicted["branch_marker_source"] == "RECONCILIATION_REQUIRED"
+    assert conflicted["branch_reconciliation_required"] is True
+
+    service.record_steer_delta(
+        "book-faires",
+        delta_text=(
+            "CURRENT_VERSION=2.1.0 CURRENT_BRANCH=agent/evi-v210-release "
+            "COMMIT_BATCH=bundle-release GIT_STAGE=COMMIT_AND_PUSH."
+        ),
+        actor="human-test",
+        delta_id="release-current-authority-steer",
+        linked_task_id="release-row",
+    )
+    resolved = service.task_backlog("book-faires")["goal_projection"]["rows"][0]
+    assert resolved["version_marker"] == "2.1.0"
+    assert resolved["version_marker_source"] == (
+        "LINKED_DELTA:release-current-authority-steer"
+    )
+    assert resolved["version_reconciliation_required"] is False
+    assert resolved["branch_marker"] == "agent/evi-v210-release"
+    assert resolved["branch_marker_source"] == (
+        "LINKED_DELTA:release-current-authority-steer"
+    )
+    assert resolved["branch_reconciliation_required"] is False
+    assert resolved["commit_batch_id"] == "bundle-release"
+    assert resolved["commit_batch_source"] == (
+        "LINKED_DELTA:release-current-authority-steer"
+    )
+    assert resolved["git_commit_stage"] == "COMMIT_AND_PUSH"
+    assert resolved["git_commit_stage_source"] == (
+        "LINKED_DELTA:release-current-authority-steer"
+    )
+    assert "VERSION=2.1.0@LINKED_DELTA:release-current-authority-steer" in (
+        resolved["visible_label"]
+    )
+    assert service.task_backlog("book-faires")["goal_projection"]["rows"][-1][
+        "panel_role"
+    ] == "PHYSICALLY_FINAL_HIL"
+
+
+def test_active_release_context_hydrates_only_current_and_future_rows(service) -> None:
+    service.plan_tasks(
+        "book-faires",
+        tasks=[
+            _task("release-active", "Reconcile the current release context."),
+            _task(
+                "release-legacy-commit",
+                "Commit version 2.0.0 on agent/evi-v200-release.",
+            ),
+            {
+                **_task(
+                    "release-final-hil",
+                    "Present the physically final six-way HIL.",
+                ),
+                "panel_role": "PHYSICALLY_FINAL_HIL",
+            },
+        ],
+        planned_by="human-test",
+        plan_id="active-release-context-plan",
+    )
+    active_contract = next(
+        task
+        for task in service.task_backlog("book-faires")["tasks"]
+        if task["task_id"] == "release-active"
+    )
+    runtime_contract = {
+        "task_id": "runtime-release-active",
+        **{
+            field: active_contract[field]
+            for field in (
+                "task_class",
+                "requested_outcome",
+                "permitted_paths",
+                "permitted_tools",
+                "acceptance_checks",
+                "stop_condition",
+            )
+        },
+    }
+    service.store.claim_backlog_task(
+        "book-faires",
+        backlog_task_id="release-active",
+        session_id="session-release-context",
+        contract=runtime_contract,
+    )
+    service.record_steer_delta(
+        "book-faires",
+        delta_text=(
+            "CURRENT_VERSION=2.2.0 "
+            "CURRENT_BRANCH=agent/evi-v220-release "
+            "CANDIDATE_PV=PV13 ACCEPTED_PV=PV12 "
+            "ACCEPTED_VERSION=2.1.0 "
+            "FALLBACK_OBSERVED_VERSION=2.0.0 "
+            "FALLBACK_EXPECTED_ACCEPTED_VERSION=2.1.0."
+        ),
+        actor="human-test",
+        delta_id="active-release-context-steer",
+        linked_task_id="release-active",
+    )
+
+    projection = service.task_backlog("book-faires")["goal_projection"]
+    rows = projection["rows"]
+    assert rows[0]["version_marker"] == "2.2.0"
+    assert rows[0]["version_marker_source"] == (
+        "LINKED_DELTA:active-release-context-steer"
+    )
+    assert rows[1]["version_marker"] == "2.2.0"
+    assert rows[1]["version_marker_source"] == (
+        "ACTIVE_PLAN_CONTEXT:release-active:active-release-context-steer"
+    )
+    assert rows[1]["branch_marker"] == "agent/evi-v220-release"
+    assert rows[1]["branch_marker_source"] == (
+        "ACTIVE_PLAN_CONTEXT:release-active:active-release-context-steer"
+    )
+    assert "version 2.0.0" in rows[1]["step"]
+    assert "VERSION=2.2.0@ACTIVE_PLAN_CONTEXT" in rows[1]["visible_label"]
+    assert rows[-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
+    assert "ROLE=PHYSICALLY_FINAL_HIL" in rows[-1]["visible_label"]
+    release = projection["active_release_context"]
+    assert release["target_version"] == "2.2.0"
+    assert release["target_branch"] == "agent/evi-v220-release"
+    assert release["candidate_pv_target"] == "PV13"
+    assert release["accepted_pv"] == "PV12"
+    assert release["accepted_version"] == "2.1.0"
+    assert release["fallback_observed_version"] == "2.0.0"
+    assert release["fallback_expected_accepted_version"] == "2.1.0"
+    assert release["creates_candidate"] is False
+    assert release["moves_pointer"] is False
+
+
+def test_plan_dependencies_must_reference_earlier_executable_rows(service) -> None:
+    with pytest.raises(EvidenceLaneError) as blocked:
+        service.plan_tasks(
+            "book-faires",
+            tasks=[
+                {
+                    **_task("dependency-root", "Verify the dependency root."),
+                    "dependencies": ["dependency-future"],
+                },
+                _task("dependency-future", "Verify the future row."),
+            ],
+            planned_by="human-test",
+            plan_id="invalid-forward-dependency-plan",
+        )
+    assert blocked.value.code == "PLAN_DEPENDENCY_NOT_EARLIER_EXECUTABLE_ROW"
+    assert service.task_backlog("book-faires")["goal_projection"]["rows"] == []
+
+
+def test_linked_group_and_dependency_directives_survive_legacy_task_storage(
+    service,
+) -> None:
+    service.plan_tasks(
+        "book-faires",
+        tasks=[
+            _task("directive-root", "Verify the directive root."),
+            _task("directive-child", "Verify the directive child."),
+        ],
+        planned_by="human-test",
+        plan_id="legacy-storage-plan",
+    )
+    service.record_steer_delta(
+        "book-faires",
+        delta_text=(
+            "PLAN_GROUP=canon-runtime COMMIT_BATCH=canon-foundation "
+            "DEPENDS_ON=directive-root GIT_STAGE=NO_COMMIT."
+        ),
+        actor="human-test",
+        delta_id="directive-metadata-steer",
+        linked_task_id="directive-child",
+    )
+
+    row = service.task_backlog("book-faires")["goal_projection"]["rows"][1]
+    assert row["plan_group"] == "canon-runtime"
+    assert row["plan_group_source"] == "LINKED_DELTA:directive-metadata-steer"
+    assert row["commit_batch_id"] == "canon-foundation"
+    assert row["dependencies"] == ["directive-root"]
+    assert row["dependency_source"] == "LINKED_DELTA:directive-metadata-steer"
+    assert row["git_commit_stage"] == "NO_COMMIT"
+    assert "GROUP=canon-runtime; BATCH=canon-foundation" in row["visible_label"]
+    assert "DEP=directive-root" in row["visible_label"]

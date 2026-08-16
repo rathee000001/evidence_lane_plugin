@@ -1,9 +1,9 @@
-"""Verify the installed Evidence Lane 2.1 Codex Git stable before final HIL.
+"""Verify the installed Evidence Lane 2.2 Codex Git release before final HIL.
 
 This checker is read-only except for its explicit receipt output. It compares the
 exact Git marketplace checkout with Codex's generated installed cache, validates
-the enabled canonical selector, statically proves the 62/21/41 catalog and
-fifteen skills, and optionally binds a post-restart native route receipt. It
+the enabled canonical selector, statically proves the 83/26/57 catalog and
+seventeen skills, and optionally binds a post-restart native route receipt. It
 never calls lifecycle, Git, tunnel, candidate, pointer, or HIL actions.
 """
 
@@ -20,11 +20,12 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-BASE_RELEASE = "2.1.0"
-FALLBACK_RELEASE = "2.0.0"
+BASE_RELEASE = "2.2.0"
 PLUGIN_NAME = "evidence-lane-plugin"
 MARKETPLACE_NAME = "evidence-lane-github"
-MARKETPLACE_DISPLAY_NAME = "GitLane Stable 2.1"
+MARKETPLACE_DISPLAY_NAME = "Main Git Plugin Version"
+BRANCH_RECOVERY_MARKETPLACE_NAME = "evidence-lane-v220-stable-recovery"
+LOCAL_TESTING_MARKETPLACE_NAME = "evidence-lane-v220-testing-new"
 PLUGIN_SELECTOR = f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"
 HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
 EXPECTED_CODEX_HOST_HOOK_EVENTS = {
@@ -47,7 +48,7 @@ EXPECTED_PACKAGE_HOOK_EVENTS = {
     "Stop",
     "UserPromptSubmit",
 }
-EXPECTED_CATALOG = {"tools": 62, "read": 21, "write": 41, "skills": 15}
+EXPECTED_CATALOG = {"tools": 83, "read": 26, "write": 57, "skills": 17}
 EXPECTED_BEHAVIOR_OWNERSHIP = {
     "hooks": "LIFECYCLE_CAPTURE_AND_SEALED_EVENTS_ONLY",
     "skills": "NATIVE_PV_READS_AND_HOST_BEHAVIOR",
@@ -79,9 +80,10 @@ EXPECTED_STABLE_ACTIVATION_GATE = {
     "external_release_receipt_sealer": (
         "scripts/codex_release/seal_external_release_receipts.py"
     ),
-    "stable_update_helper": (
-        "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1"
-    ),
+    "stable_install_command": "scripts/codex_release/install_codex_stable.py",
+    "stable_update_helper": "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
+    "install_completed_before_restart_helper": True,
+    "restart_helper_installs_plugin": False,
     "stable_update_reopens_same_bound_host_app": True,
     "stable_update_rebinds_general_goal_recovery": True,
     "release_authority_schema": "evidence-lane.codex-git-ci-vercel-release-authority.v2",
@@ -139,7 +141,7 @@ EXPECTED_BRAND_IDENTITY = {
     "display_name": "Evidence Lane",
     "icon_path": "assets/evidence-lane-icon.png",
     "icon_sha256": "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA",
-    "resource_uri": "ui://evidence-lane/governed-console-v4.html",
+    "resource_uri": "ui://evidence-lane/governed-console-v6.html",
     "manifest_icon_fields": ["interface.composerIcon", "interface.logo"],
     "required_at_stage": True,
     "required_at_runtime_prewarm": True,
@@ -158,14 +160,28 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     },
     "interactive_codex_app_local_or_persistent": {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
-        "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
-        "tunnel_key_retention": "HOST_MANAGED_PERSISTENT_PROFILE",
+        "tunnel_requirement": "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
+        "tunnel_setup_frequency": "NONE",
+        "tunnel_key_retention": "NOT_APPLICABLE",
+        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
     },
     "interactive_codex_app_ephemeral_vm": {
         "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
         "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
         "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
         "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+    },
+    "desktop_container_surface_scope": {
+        "supported_container_channels": [
+            "CHATGPT_DESKTOP_STABLE_OR_CURRENT",
+            "CHATGPT_DESKTOP_BETA",
+        ],
+        "active_surface": "CODEX",
+        "chatgpt_chat_work_scope": "OUT_OF_SCOPE_DEFERRED",
+        "authority_binding": (
+            "EXACT_HOST_SESSION_PLUS_NATIVE_EVIDENCE_LANE_MCP_ROUTE"
+        ),
+        "process_package_title_cwd_authority": False,
     },
 }
 SCHEMA = "evidence-lane.codex-installed-acceptance.v2"
@@ -364,19 +380,43 @@ def _verified_cache_inventory(installed: Path, marketplace: Path) -> dict[str, A
 def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
     hook_paths = [
         plugin_root / "hooks" / "hooks.json",
+        *sorted((plugin_root / "hooks").glob("*.exe")),
         *sorted((plugin_root / "hooks").glob("*.py")),
+        *sorted((plugin_root / "hooks").glob("*.ps1")),
     ]
     skill_paths = sorted((plugin_root / "skills").glob("*/SKILL.md"))
     if not all(path.is_file() for path in hook_paths):
         raise AcceptanceError("The installed persistent hook inventory is incomplete.")
-    if {path.name for path in hook_paths} != {
-        "hooks.json",
-        "lifecycle_boundary.py",
-        "post_tool_use.py",
-        "pre_tool_use.py",
-        "session_start.py",
-        "prompt_submit.py",
-        "stop_response.py",
+    if frozenset(path.name for path in hook_paths) not in {
+        frozenset(
+            {
+                "hooks.json",
+                "invoke_hook.ps1",
+                "invoke_hook.py",
+                "lifecycle_boundary.py",
+                "post_tool_use.py",
+                "pre_tool_use.py",
+                "session_start.py",
+                "prompt_submit.py",
+                "stop_response.py",
+            }
+        ),
+        frozenset(
+            {
+                "behavior_handoff.py",
+                "event_isolation.py",
+                "EvidenceLaneHookHost.exe",
+                "hooks.json",
+                "invoke_hook.ps1",
+                "invoke_hook.py",
+                "lifecycle_boundary.py",
+                "post_tool_use.py",
+                "pre_tool_use.py",
+                "session_start.py",
+                "prompt_submit.py",
+                "stop_response.py",
+            }
+        ),
     }:
         raise AcceptanceError("The installed persistent hook inventory is not exact.")
 
@@ -428,11 +468,106 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
         "plugin_version": version,
         "hooks": hook_inventory,
         "skills": inventory(skill_paths, skill=True),
+        "search_toolchain": _search_toolchain_inventory(plugin_root),
         "catalog": dict(EXPECTED_CATALOG),
         "raw_paths_included": False,
     }
     core["surface_inventory_sha256"] = _sha256_bytes(_json_bytes(core))
     return core
+
+
+def _search_toolchain_inventory(plugin_root: Path) -> dict[str, Any]:
+    manifest_path = plugin_root / "toolchains" / "search-tools.v1.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise AcceptanceError(
+            "The installed governed search toolchain manifest is missing."
+        ) from exc
+    tools = manifest.get("tools")
+    if (
+        manifest.get("schema") != "evidence-lane.search-toolchain-manifest.v1"
+        or manifest.get("scope") != "ALL_GOVERNED_PROJECTS"
+        or manifest.get("resolution_order")
+        != [
+            "PACKAGE_LOCAL_VERIFIED_BINARY",
+            "EXPLICIT_CONFIGURED_VERIFIED_HOST_BINARY",
+            "DETERMINISTIC_BUILTIN_FALLBACK",
+        ]
+        or manifest.get("auto_download_during_mcp_handshake") is not False
+        or manifest.get("path_lookup_allowed") is not False
+        or manifest.get("shell_execution_allowed") is not False
+        or not isinstance(tools, list)
+        or [row.get("tool_id") for row in tools if isinstance(row, dict)]
+        != ["ripgrep"]
+        or manifest.get("fts_authority")
+        != {
+            "backend": "SQLITE_FTS5",
+            "query_mode": "BOUNDED_FTS5",
+            "scope": "PLAN_LANE_CHATLINEAGE_AND_PROJECT_SECTORS",
+            "pointer_and_locator_required": True,
+            "model_context_policy": "BOUNDED_QUERY_RESULTS_ONLY",
+            "pv_package_loaded_into_model_context": False,
+            "fallback": "FAIL_CLOSED_WHEN_SQLITE_FTS5_UNAVAILABLE",
+        }
+    ):
+        raise AcceptanceError("The installed governed search toolchain drifted.")
+    records: list[dict[str, Any]] = []
+    for tool in tools:
+        if not isinstance(tool, dict):
+            raise AcceptanceError("An installed search tool record is invalid.")
+        package_binaries = tool.get("package_binaries")
+        if not isinstance(package_binaries, dict):
+            raise AcceptanceError("An installed search binary inventory is invalid.")
+        for platform_id, binary_record in sorted(package_binaries.items()):
+            if not isinstance(binary_record, dict):
+                raise AcceptanceError("An installed search binary record is invalid.")
+            binary = (plugin_root / str(binary_record.get("path") or "")).resolve()
+            try:
+                binary.relative_to(plugin_root.resolve())
+            except ValueError as exc:
+                raise AcceptanceError(
+                    "An installed search tool escaped the plugin package."
+                ) from exc
+            licenses = [
+                (plugin_root / str(item)).resolve()
+                for item in binary_record.get("licenses") or []
+            ]
+            if (
+                not binary.is_file()
+                or binary.stat().st_size != binary_record.get("size_bytes")
+                or _sha256(binary) != binary_record.get("sha256")
+                or not licenses
+                or any(not path.is_file() for path in licenses)
+            ):
+                raise AcceptanceError("An installed search tool identity drifted.")
+            records.append(
+                {
+                    "tool_id": tool["tool_id"],
+                    "platform_id": platform_id,
+                    "version": tool["version"],
+                    "role": tool["role"],
+                    "license_spdx": tool["license_spdx"],
+                    "binary_sha256": binary_record["sha256"],
+                    "size_bytes": binary_record["size_bytes"],
+                    "license_sha256": sorted(_sha256(path) for path in licenses),
+                    "fallback_backend": tool["fallback_backend"],
+                }
+            )
+    body = {
+        "schema": "evidence-lane.codex-packaged-search-toolchain.v1",
+        "status": "PASS",
+        "manifest_sha256": _sha256(manifest_path),
+        "fts_authority": manifest["fts_authority"],
+        "resolution_order": manifest["resolution_order"],
+        "records": records,
+        "record_count": len(records),
+        "path_lookup_allowed": False,
+        "auto_download_during_mcp_handshake": False,
+        "fallbacks_required": True,
+    }
+    body["inventory_sha256"] = _sha256_bytes(_json_bytes(body))
+    return body
 
 
 def _catalog(plugin_root: Path) -> dict[str, Any]:
@@ -474,7 +609,11 @@ def _catalog(plugin_root: Path) -> dict[str, Any]:
         or read != EXPECTED_CATALOG["read"]
         or write != EXPECTED_CATALOG["write"]
     ):
-        raise AcceptanceError("The installed native 62/21/41 tool catalog drifted.")
+        raise AcceptanceError(
+            "The installed native "
+            f"{EXPECTED_CATALOG['tools']}/{EXPECTED_CATALOG['read']}/"
+            f"{EXPECTED_CATALOG['write']} tool catalog drifted."
+        )
     return {
         "tools": len(rows),
         "read": read,
@@ -505,7 +644,8 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         (plugin_root / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
     stable = dict(release.get("stable") or {})
-    fallback = dict(release.get("fallback") or {})
+    branch_recovery = dict(release.get("branch_recovery") or {})
+    local_testing = dict(release.get("local_testing") or {})
     live_slots = dict(release.get("live_slot_policy") or {})
     failover = dict(release.get("failover_operator") or {})
     goal_recovery = dict(release.get("goal_recovery") or {})
@@ -565,8 +705,10 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or _engine_version(plugin_root) != BASE_RELEASE
         or release.get("schema") != "evidence-lane.codex-release-channel.v2"
         or stable.get("release") != BASE_RELEASE
-        or stable.get("slot_role") != "stable-build"
+        or stable.get("slot_role") != "main-git-release"
         or stable.get("codex_marketplace_slot") != MARKETPLACE_NAME
+        or stable.get("marketplace_display_name") != MARKETPLACE_DISPLAY_NAME
+        or stable.get("install_source") != "GIT_EXACT_COMMIT"
         or stable.get("byte_frozen") is not False
         or stable.get("updates_require_verified_unique_build_identity") is not True
         or stable.get("stable_selector_is_persistent") is not True
@@ -581,21 +723,32 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or stable.get("generated_namespace_allowed") is not False
         or stable.get("direct_stdio_fallback_allowed") is not False
         or stable.get("google_drive_bundled") is not False
-        or fallback.get("release") != FALLBACK_RELEASE
-        or fallback.get("slot_role") != "fallback"
-        or fallback.get("codex_marketplace_slot")
-        != "evidence-lane-pv11-fallback"
-        or fallback.get("enabled") is not False
-        or fallback.get("materialization_gate")
-        != "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
-        or fallback.get("accepted_pv") != "PV11"
-        or fallback.get("accepted_generation") != 11
-        or fallback.get("byte_frozen") is not True
-        or fallback.get("package_must_equal_accepted_pv") is not True
-        or live_slots.get("exact_slot_count_after_pv11_acceptance") != 2
-        or live_slots.get("allowed_slots") != ["stable-build", "fallback"]
+        or branch_recovery.get("release") != BASE_RELEASE
+        or branch_recovery.get("slot_role") != "branch-commit-recovery"
+        or branch_recovery.get("codex_marketplace_slot")
+        != BRANCH_RECOVERY_MARKETPLACE_NAME
+        or branch_recovery.get("marketplace_display_name")
+        != "Branch Commit Git Recovery"
+        or branch_recovery.get("enabled") is not False
+        or branch_recovery.get("byte_frozen_between_branch_checkpoints") is not True
+        or branch_recovery.get("must_not_follow_uncommitted_local_bytes") is not True
+        or local_testing.get("release_line") != BASE_RELEASE
+        or local_testing.get("slot_role") != "mutable-local-testing"
+        or local_testing.get("codex_marketplace_slot")
+        != LOCAL_TESTING_MARKETPLACE_NAME
+        or local_testing.get("marketplace_display_name") != "Local Testing Slot"
+        or local_testing.get("fresh_package_version_per_local_build") is not True
+        or local_testing.get("branch_recovery_mutation_allowed_during_local_build")
+        is not False
+        or live_slots.get("exact_slot_count") != 3
+        or live_slots.get("allowed_slots")
+        != [
+            "main-git-release",
+            "branch-commit-recovery",
+            "mutable-local-testing",
+        ]
         or live_slots.get("max_enabled_plugin_count") != 1
-        or live_slots.get("exact_registered_plugin_count") != 2
+        or live_slots.get("exact_registered_plugin_count") != 3
         or live_slots.get("stable_selector_growth_allowed") is not False
         or live_slots.get("max_active_native_mcp_count") != 1
         or live_slots.get("max_active_tunnel_count") != 1
@@ -603,7 +756,9 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or failover.get("script")
         != "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
         or failover.get("registry_schema")
-        != "evidence-lane.codex-two-slot-registry.v1"
+        != "evidence-lane.codex-three-slot-registry.v1"
+        or failover.get("failure_target_slot") != "branch-commit-recovery"
+        or failover.get("mutable_local_failure_never_targets_main_git") is not True
         or failover.get("single_transient_error_switch_allowed") is not False
         or failover.get("stop_source_tunnel_before_start_target") is not True
         or failover.get("target_tunnel_ready_before_plugin_switch") is not True
@@ -629,7 +784,16 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or goal_recovery.get("state_travel_allowed") is not False
         or goal_recovery.get("candidate_hil_pointer_or_git_mutation_allowed")
         is not False
-        or goal_recovery.get("requires_stable_enabled_fallback_disabled") is not True
+        or goal_recovery.get(
+            "requires_exactly_one_enabled_allowed_three_slot_selector"
+        )
+        is not True
+        or goal_recovery.get("allowed_runtime_selectors")
+        != [
+            "evidence-lane-plugin@evidence-lane-github",
+            "evidence-lane-plugin@evidence-lane-v220-stable-recovery",
+            "evidence-lane-plugin@evidence-lane-v220-testing-new",
+        ]
         or goal_recovery.get("stable_selector_growth_allowed") is not False
         or goal_recovery.get("raw_goal_objective_stored") is not False
         or behavior_ownership != EXPECTED_BEHAVIOR_OWNERSHIP
@@ -683,8 +847,7 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     for name, marker in persistent_notice_markers.items():
         source = (plugin_root / "hooks" / name).read_text(encoding="utf-8")
         required = (
-            "persistent_change_system_notice",
-            "persistent_change_system_message",
+            "render_persistent_notice",
             'result["systemMessage"]',
             marker,
         )
@@ -818,10 +981,10 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         or installation.get("generated_cache_written_directly") is not False
         or installation.get("previous_release_cache_deleted") is not False
         or installation.get("fallback_materialization_gate")
-        != "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
+        != "POST_EXACT_PV12_APPROVE_AND_NATIVE_FUSE"
         or installation.get("fallback_materialized") is not False
         or installation.get(
-            "live_cache_cleanup_deferred_until_exact_pv11_acceptance"
+            "live_cache_cleanup_deferred_until_exact_pv12_acceptance"
         )
         is not True
         or installation.get("two_slot_operator_packaged") is not True
@@ -926,9 +1089,21 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
             "UserPromptSubmit",
         ]
         or surface_change.get("hooks", {}).get("handler_count") != 8
-        or surface_change.get("hooks", {}).get("hook_file_count") != 7
+        or surface_change.get("hooks", {}).get("hook_file_count") not in {9, 12}
         or surface_change.get("skills", {}).get("count")
         != EXPECTED_CATALOG["skills"]
+        or surface_change.get("search_toolchain", {}).get("status") != "PASS"
+        or surface_change.get("search_toolchain", {}).get("record_count") != 1
+        or surface_change.get("search_toolchain", {}).get("inventory_sha256")
+        != installed_identity["surface_inventory"]["search_toolchain"][
+            "inventory_sha256"
+        ]
+        or surface_change.get("search_toolchain", {}).get("fts_authority")
+        != installed_identity["surface_inventory"]["search_toolchain"][
+            "fts_authority"
+        ]
+        or surface_change.get("search_toolchain", {}).get("raw_paths_included")
+        is not False
         or surface_change.get("catalog", {}).get("tools")
         != EXPECTED_CATALOG["tools"]
     ):

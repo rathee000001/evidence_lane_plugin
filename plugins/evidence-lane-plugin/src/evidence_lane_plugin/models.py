@@ -133,6 +133,7 @@ class ProjectConfig:
     source_lane: str = ""
     persistence_mode: str = "local"
     sensitivity: str = "PUBLIC"
+    capture_route: str = "GOVERNED_PROJECT_FULL"
     enabled: bool = True
 
     def as_dict(self) -> dict[str, Any]:

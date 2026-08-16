@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol, TypedDict
 
 import httpx
@@ -12,6 +12,7 @@ from .constants import POINTER_SCHEMA
 from .errors import EvidenceLaneError, require
 from .hashing import canonical_json_bytes, sha256_bytes
 from .models import HostKind, normalize_host_kind
+from .runtime_host_classifier import classify_runtime_host
 from .sealing import deterministic_archive, seal_archive
 from .store import ProjectStore
 from .timeutil import utc_now
@@ -57,6 +58,7 @@ class PersistenceRoute:
     account_tier_affects_routing: bool = False
     api_billing_affects_routing: bool = False
     routing_axes_independent: bool = True
+    runtime_classifier: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -73,6 +75,7 @@ class _PersistenceHostMatrix(TypedDict):
     account_tier_affects_routing: bool
     api_billing_affects_routing: bool
     routing_axes_independent: bool
+    runtime_classifier: dict[str, Any]
 
 
 def route_persistence(
@@ -81,10 +84,18 @@ def route_persistence(
     ephemeral: bool,
     server_has_durable_filesystem: bool | None = None,
     runtime_context: dict[str, Any] | None = None,
+    host_session_id: str | None = None,
 ) -> PersistenceRoute:
     """Route by the MCP server's storage capability, not UI brand alone."""
     kind = normalize_host_kind(host)
     context = dict(runtime_context or {})
+    runtime_classifier = classify_runtime_host(
+        kind,
+        ephemeral=ephemeral,
+        server_has_durable_filesystem=server_has_durable_filesystem,
+        runtime_context=context,
+        host_session_id=host_session_id,
+    )
     requested_interaction = str(context.get("interaction_profile") or "").strip()
     interaction_aliases = {
         "API": "HEADLESS_API",
@@ -153,10 +164,10 @@ def route_persistence(
         tunnel_key_retention = "CURRENT_VM_LIFETIME_ONLY"
         tunnel_runtime_lifetime = "CURRENT_VM_LIFETIME_ONLY"
     elif interactive_codex_app:
-        tunnel_requirement = "REQUIRED_FOR_INTERACTIVE_CODEX_APP_ENVIRONMENT"
-        tunnel_setup_frequency = "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
-        tunnel_key_retention = "HOST_MANAGED_PERSISTENT_PROFILE"
-        tunnel_runtime_lifetime = "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST"
+        tunnel_requirement = "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
+        tunnel_setup_frequency = "NONE"
+        tunnel_key_retention = "NOT_APPLICABLE"
+        tunnel_runtime_lifetime = "NOT_APPLICABLE"
     else:
         tunnel_requirement = "NOT_PART_OF_THIS_SURFACE_ROUTE"
         tunnel_setup_frequency = "NONE"
@@ -174,6 +185,7 @@ def route_persistence(
         "account_tier_affects_routing": False,
         "api_billing_affects_routing": False,
         "routing_axes_independent": True,
+        "runtime_classifier": runtime_classifier,
     }
     durable_filesystem = (
         not ephemeral
@@ -269,6 +281,7 @@ class InMemoryPersistence:
     def __init__(self) -> None:
         self.runtime_state_capable = True
         self.objects: dict[tuple[str, str, str], dict[str, Any]] = {}
+        self.claims: dict[tuple[str, str, str], dict[str, Any]] = {}
 
     def put(
         self,
@@ -304,6 +317,54 @@ class InMemoryPersistence:
             "stored_at": utc_now(),
         }
         self.objects[key] = receipt
+        return receipt
+
+    def claim_once(
+        self,
+        *,
+        project_id: str,
+        namespace: str,
+        key: str,
+        value_sha256: str,
+        claimant_sha256: str,
+    ) -> dict[str, Any]:
+        """Atomically bind one test-runtime key to one exact claimant."""
+
+        if namespace == "host-entry-consumption":
+            persisted = self.objects.get(
+                (project_id, "receipts", f"{key}.json")
+            )
+            require(
+                persisted is not None
+                and persisted["sha256"] == value_sha256,
+                "PERSISTENCE_EXACT_ONCE_SOURCE_NOT_DURABLE",
+                "A transactional claim requires the exact durably persisted source object.",
+                status="BLOCKED",
+                object=f"{project_id}/receipts/{key}.json",
+            )
+        claim_key = (project_id, namespace, key)
+        existing = self.claims.get(claim_key)
+        if existing is not None:
+            require(
+                existing["value_sha256"] == value_sha256
+                and existing["claimant_sha256"] == claimant_sha256,
+                "PERSISTENCE_EXACT_ONCE_CLAIM_CONFLICT",
+                "A transactional runtime key was already claimed by different bytes.",
+                status="BLOCKED",
+                object="/".join(claim_key),
+            )
+            return {**existing, "idempotent": True}
+        receipt = {
+            "backend": "memory-test",
+            "project_id": project_id,
+            "namespace": namespace,
+            "key": key,
+            "value_sha256": value_sha256,
+            "claimant_sha256": claimant_sha256,
+            "claimed": True,
+            "idempotent": False,
+        }
+        self.claims[claim_key] = receipt
         return receipt
 
 

@@ -29,3 +29,11 @@ This is an administrative sidecar, not a seventh primary `/evi` control.
 7. Re-inspect after selection and render the complete host route. MCP reads use
    the selected primary runtime; MCP writes remain under ENV/UOP and one-writer
    law. Never describe Google Drive as primary runtime storage.
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evi-storage`. `MCP_ROUTING_FAIL_CLOSED`: if the
+bundled `evidence-lane` dependency, an exact tool, or a required result is
+missing or ambiguous, stop and report it; never rewrite prefixes, substitute a
+tool, reorder a write, or infer success.

@@ -1,0 +1,53 @@
+{
+  "schema": "evidence-lane.canon-schema-manifest.v1",
+  "schema_family": "CANON",
+  "manifest_version": 1,
+  "ledger": {
+    "schema_id": "evidence-lane.canon-ledger.v1",
+    "sqlite_user_version": 1,
+    "asset": "canon-ledger.v1.sql",
+    "asset_sha256": "731EE277B30F564FA91B19A0DB7E4C01EDE786415DD6E752A0053AF118FA07FA",
+    "migration_policy": {
+      "accepted_from_versions": [0, 1],
+      "transitions": [
+        {
+          "from_version": 0,
+          "to_version": 1,
+          "mode": "ADDITIVE_IDEMPOTENT_CREATE_ONLY",
+          "data_rewrite": false,
+          "drop_or_rename": false
+        }
+      ],
+      "same_version_reentry": "VERIFY_ASSET_AND_SCHEMA_THEN_REUSE",
+      "unknown_older_version": "FAIL_CLOSED_EXPLICIT_MIGRATION_REQUIRED",
+      "newer_version": "FAIL_CLOSED_RUNTIME_TOO_OLD",
+      "rollback": "UNSUPPORTED_NO_DESTRUCTIVE_REWRITE"
+    }
+  },
+  "receipts": {
+    "schema_id": "evidence-lane.canon-receipt-schema-registry.v1",
+    "registry_version": 1,
+    "asset": "canon-receipts.v1.schema.json",
+    "asset_sha256": "373448ADBB78A87C7318112B9E350A9B8DEC7439984CE24BE47988834BD7556E",
+    "supported_schema_ids": [
+      "evidence-lane.canon-decision-receipt.v1",
+      "evidence-lane.canon-dispatch-receipt.v1",
+      "evidence-lane.canon-dispatch-receipt.v2",
+      "evidence-lane.codex-host-task-create-receipt.v1",
+      "evidence-lane.canon-state-travel-restore-receipt.v1"
+    ],
+    "migration_policy": {
+      "earlier_receipt_bytes_are_immutable": true,
+      "compatible_change": "ADD_NEW_SCHEMA_ID_OR_OPTIONAL_FIELD_ONLY",
+      "breaking_change": "NEW_MAJOR_SCHEMA_ID_REQUIRED",
+      "in_place_rewrite": "FORBIDDEN",
+      "unknown_schema": "FAIL_CLOSED"
+    }
+  },
+  "authority": {
+    "builder_must_execute_exact_ledger_asset_bytes": true,
+    "builder_must_validate_receipts_against_registry": true,
+    "asset_hash_mismatch": "FAIL_CLOSED",
+    "runtime_may_infer_schema": false
+  }
+}

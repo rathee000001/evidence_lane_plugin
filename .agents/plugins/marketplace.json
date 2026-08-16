@@ -1,7 +1,7 @@
 {
   "name": "evidence-lane-github",
   "interface": {
-    "displayName": "GitLane Stable 2.1"
+    "displayName": "Main Git Plugin Version"
   },
   "plugins": [
     {

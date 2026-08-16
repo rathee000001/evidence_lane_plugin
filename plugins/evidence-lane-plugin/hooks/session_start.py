@@ -31,14 +31,28 @@ _EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     },
     "interactive_codex_app_local_or_persistent": {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
-        "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
-        "tunnel_key_retention": "HOST_MANAGED_PERSISTENT_PROFILE",
+        "tunnel_requirement": "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
+        "tunnel_setup_frequency": "NONE",
+        "tunnel_key_retention": "NOT_APPLICABLE",
+        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
     },
     "interactive_codex_app_ephemeral_vm": {
         "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
         "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
         "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
         "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+    },
+    "desktop_container_surface_scope": {
+        "supported_container_channels": [
+            "CHATGPT_DESKTOP_STABLE_OR_CURRENT",
+            "CHATGPT_DESKTOP_BETA",
+        ],
+        "active_surface": "CODEX",
+        "chatgpt_chat_work_scope": "OUT_OF_SCOPE_DEFERRED",
+        "authority_binding": (
+            "EXACT_HOST_SESSION_PLUS_NATIVE_EVIDENCE_LANE_MCP_ROUTE"
+        ),
+        "process_package_title_cwd_authority": False,
     },
 }
 
@@ -62,116 +76,61 @@ def _load_turn_control():
     source_root = _plugin_root() / "src"
     if str(source_root) not in sys.path:
         sys.path.insert(0, str(source_root))
-    from evidence_lane_plugin.codex_turn_control import (
-        TurnControlError,
-        bind_codex_host_payload,
-        gap_receipt,
-        persistent_change_system_message,
-        persistent_change_system_notice,
-        policy_state,
-        session_start_control,
+    from evidence_lane_plugin.hook_skill_runtime import (
+        consume_session_start_transport,
+        render_persistent_notice,
     )
 
+    return consume_session_start_transport, render_persistent_notice
+
+
+def _load_behavior_handoff():
+    hook_root = Path(__file__).resolve().parent
+    if str(hook_root) not in sys.path:
+        sys.path.insert(0, str(hook_root))
+    from behavior_handoff import attach_consumed_behavior_handoff
+
+    return attach_consumed_behavior_handoff
+
+
+def _build_transport_envelope(payload: dict[str, Any]) -> dict[str, Any]:
+    source_root = _plugin_root() / "src"
+    if str(source_root) not in sys.path:
+        sys.path.insert(0, str(source_root))
+    from evidence_lane_plugin.hook_contract import build_hook_transport_envelope
+
+    return build_hook_transport_envelope("SessionStart", payload)
+
+
+def _turn_control_context(
+    payload: dict[str, Any],
+    transport: dict[str, Any],
+) -> tuple[dict[str, Any], bool]:
+    consume_transport, _ = _load_turn_control()
+    receipt, should_continue = consume_transport(payload, transport)
     return (
-        TurnControlError,
-        bind_codex_host_payload,
-        gap_receipt,
-        persistent_change_system_message,
-        persistent_change_system_notice,
-        policy_state,
-        session_start_control,
-    )
-
-
-def _turn_control_context(payload: dict[str, Any]) -> tuple[dict[str, Any], bool]:
-    root = _store_root()
-    (
-        TurnControlError,
-        bind_codex_host_payload,
-        gap_receipt,
-        _,
-        _,
-        policy_state,
-        session_start_control,
-    ) = _load_turn_control()
-    raw_policy = policy_state(
-        root,
-        host_session_id=str(payload.get("session_id") or "").strip(),
-        cwd=str(payload.get("cwd") or ""),
-        transcript_path=str(
-            payload.get("transcript_path")
-            or payload.get("agent_transcript_path")
-            or ""
+        _load_behavior_handoff()(
+            "SessionStart",
+            transport,
+            receipt,
+            skill_consumer=consume_transport,
         ),
+        should_continue,
     )
-    try:
-        normalized_payload, host_binding = bind_codex_host_payload(
-            root,
-            host_payload=payload,
-            event_name="SessionStart",
-            allow_alias_claim=True,
-        )
-    except TurnControlError as exc:
-        return (
-            gap_receipt(
-                root,
-                host_payload=payload,
-                error=exc,
-                policy=raw_policy,
-            ),
-            not bool(raw_policy.get("strict_required")),
-        )
-    policy = policy_state(
-        root,
-        host_session_id=str(normalized_payload.get("session_id") or "").strip(),
-        cwd=str(normalized_payload.get("cwd") or ""),
-        transcript_path=str(
-            normalized_payload.get("transcript_path")
-            or normalized_payload.get("agent_transcript_path")
-            or ""
-        ),
-    )
-    if not policy.get("governed_session"):
-        return (
-            {
-                "state": "NO_BOUND_EVIDENCE_LANE_SESSION",
-                "strict_required": False,
-                "scrollback_authority": False,
-                "transcript_authority": False,
-            },
-            True,
-        )
-    if not policy.get("strict_required"):
-        return (
-            {
-                "state": "TURN_CONTROL_NOT_REQUIRED_YET",
-                "reason": "SEALED_MODE_PLUS_PLAN_NOT_ACTIVE",
-                "project_id": policy.get("project_id"),
-                "evidence_session_id": policy.get("evidence_session_id"),
-                "scrollback_authority": False,
-                "transcript_authority": False,
-            },
-            True,
-        )
-    try:
-        receipt = session_start_control(root, host_payload=normalized_payload)
-        if host_binding is not None:
-            receipt["host_binding"] = host_binding
-        return receipt, True
-    except TurnControlError as exc:
-        receipt = gap_receipt(
-            root,
-            host_payload=normalized_payload,
-            error=exc,
-            policy=policy,
-        )
-        if host_binding is not None:
-            receipt["host_binding"] = host_binding
-        return receipt, False
 
 
 def _plugin_version_context() -> dict[str, object]:
     root = _plugin_root()
+    source_root = root / "src"
+    if str(source_root) not in sys.path:
+        sys.path.insert(0, str(source_root))
+    from evidence_lane_plugin.constants import (
+        GOVERNED_SKILL_COUNT,
+        NATIVE_READ_TOOL_COUNT,
+        NATIVE_TOOL_COUNT,
+        NATIVE_WRITE_TOOL_COUNT,
+    )
+
     manifest_path = root / ".codex-plugin" / "plugin.json"
     constants_path = root / "src" / "evidence_lane_plugin" / "constants.py"
     try:
@@ -191,7 +150,8 @@ def _plugin_version_context() -> dict[str, object]:
         )
         remote_git_policy = dict(release_contract.get("remote_git_policy") or {})
         stable = dict(release_contract.get("stable") or {})
-        fallback = dict(release_contract.get("fallback") or {})
+        branch_recovery = dict(release_contract.get("branch_recovery") or {})
+        local_testing = dict(release_contract.get("local_testing") or {})
         live_slots = dict(release_contract.get("live_slot_policy") or {})
         failover = dict(release_contract.get("failover_operator") or {})
         promotion = dict(release_contract.get("promotion_gate") or {})
@@ -206,32 +166,53 @@ def _plugin_version_context() -> dict[str, object]:
                 stable.get("native_write_tool_count"),
                 stable.get("skill_count"),
             )
-            == (62, 21, 41, 15)
+            == (
+                NATIVE_TOOL_COUNT,
+                NATIVE_READ_TOOL_COUNT,
+                NATIVE_WRITE_TOOL_COUNT,
+                GOVERNED_SKILL_COUNT,
+            )
             and stable.get("codex_apps_allowed") is False
             and stable.get("generated_namespace_allowed") is False
             and stable.get("direct_stdio_fallback_allowed") is False
             and stable.get("google_drive_bundled") is False
-            and stable.get("slot_role") == "stable-build"
+            and stable.get("slot_role") == "main-git-release"
             and stable.get("byte_frozen") is False
             and stable.get("stable_selector_is_persistent") is True
             and stable.get("stable_updates_reinstall_in_place") is True
             and stable.get("build_identity_is_receipt_not_selector") is True
-            and fallback.get("release") == "2.0.0"
-            and fallback.get("slot_role") == "fallback"
-            and fallback.get("codex_marketplace_slot")
-            == "evidence-lane-pv11-fallback"
-            and fallback.get("enabled") is False
-            and fallback.get("accepted_pv") == "PV11"
-            and fallback.get("accepted_generation") == 11
-            and fallback.get("byte_frozen") is True
-            and live_slots.get("exact_slot_count_after_pv11_acceptance") == 2
+            and branch_recovery.get("release") == runtime_version
+            and branch_recovery.get("slot_role") == "branch-commit-recovery"
+            and branch_recovery.get("codex_marketplace_slot")
+            == "evidence-lane-v220-stable-recovery"
+            and branch_recovery.get("enabled") is False
+            and branch_recovery.get("byte_frozen_between_branch_checkpoints")
+            is True
+            and branch_recovery.get("must_not_follow_uncommitted_local_bytes")
+            is True
+            and local_testing.get("release_line") == runtime_version
+            and local_testing.get("slot_role") == "mutable-local-testing"
+            and local_testing.get("codex_marketplace_slot")
+            == "evidence-lane-v220-testing-new"
+            and local_testing.get("fresh_package_version_per_local_build") is True
+            and local_testing.get("branch_recovery_mutation_allowed_during_local_build")
+            is False
+            and live_slots.get("exact_slot_count") == 3
+            and live_slots.get("allowed_slots")
+            == [
+                "main-git-release",
+                "branch-commit-recovery",
+                "mutable-local-testing",
+            ]
             and live_slots.get("max_enabled_plugin_count") == 1
-            and live_slots.get("exact_registered_plugin_count") == 2
+            and live_slots.get("exact_registered_plugin_count") == 3
             and live_slots.get("stable_selector_growth_allowed") is False
             and live_slots.get("max_active_native_mcp_count") == 1
             and live_slots.get("max_active_tunnel_count") == 1
             and failover.get("registry_schema")
-            == "evidence-lane.codex-two-slot-registry.v1"
+            == "evidence-lane.codex-three-slot-registry.v1"
+            and failover.get("failure_target_slot") == "branch-commit-recovery"
+            and failover.get("mutable_local_failure_never_targets_main_git") is True
             and failover.get("script")
             == "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
             and failover.get("single_transient_error_switch_allowed")
@@ -368,6 +349,59 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
                 "api_billing_affects_routing": False,
                 "cross_project_disclosure": False,
             }
+        persistent_local_codex = (
+            interaction == "CODEX_APP_INTERACTIVE"
+            and str(route.get("vm_lifetime") or "") != "EPHEMERAL_VM"
+            and route.get("server_filesystem") == "DURABLE"
+            and route.get("primary_runtime_authority")
+            == "LOCAL_DURABLE_SQLITE"
+        )
+        if (
+            requirement == "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
+            or persistent_local_codex
+        ):
+            classifier = dict(route.get("runtime_classifier") or {})
+            classifier_current = (
+                classifier.get("schema")
+                == "evidence-lane.runtime-host-classifier.v1"
+                and classifier.get("active_surface") == "CODEX"
+                and classifier.get("evidence_lane_execution_scope")
+                == "CODEX_LAYER_ONLY"
+            )
+            return {
+                "state": (
+                    "TUNNEL_NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
+                    if classifier_current
+                    else "LOCAL_CODEX_RUNTIME_CLASSIFICATION_REQUIRED"
+                ),
+                "project_id": project_id,
+                "interaction_profile": interaction,
+                "primary_runtime_authority": route.get(
+                    "primary_runtime_authority"
+                ),
+                "active_surface": (
+                    classifier.get("active_surface")
+                    if classifier_current
+                    else "UNPROVEN_LEGACY_SESSION"
+                ),
+                "container_channel": classifier.get(
+                    "container_channel", "HOST_CAPABILITY_UNAVAILABLE"
+                ),
+                "runtime_classifier_status": (
+                    classifier.get("status")
+                    if classifier_current
+                    else "FRESH_BOOT_OR_RESUME_REQUIRED"
+                ),
+                "local_pv_storage_allowed_when_durable": True,
+                "tunnel_requirement": (
+                    "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
+                ),
+                "tunnel_mutated": False,
+                "secret_read": False,
+                "account_tier_affects_routing": False,
+                "api_billing_affects_routing": False,
+                "cross_project_disclosure": False,
+            }
         if requirement != "REQUIRED_FOR_INTERACTIVE_CODEX_APP_ENVIRONMENT":
             return {
                 "state": "TUNNEL_NOT_PART_OF_THIS_SURFACE_ROUTE",
@@ -386,25 +420,44 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
             os.environ.get("EVIDENCE_LANE_CODEX_SLOT_ROLE") or ""
         ).strip()
         if configured_slot:
-            if configured_slot not in {"stable-build", "fallback"}:
+            if configured_slot not in {
+                "main-git-release",
+                "branch-commit-recovery",
+                "mutable-local-testing",
+            }:
                 raise ValueError("configured Codex slot role is unsupported")
             slot_role = configured_slot
         else:
             plugin_path = str(_plugin_root()).replace("\\", "/").lower()
-            fallback_marketplace = str(
-                (release_contract.get("fallback") or {}).get(
+            branch_marketplace = str(
+                (release_contract.get("branch_recovery") or {}).get(
                     "codex_marketplace_slot"
                 )
                 or ""
             ).lower()
-            slot_role = (
-                "fallback"
-                if fallback_marketplace and fallback_marketplace in plugin_path
-                else "stable-build"
-            )
-        slot_contract_key = "stable" if slot_role == "stable-build" else "fallback"
+            local_marketplace = str(
+                (release_contract.get("local_testing") or {}).get(
+                    "codex_marketplace_slot"
+                )
+                or ""
+            ).lower()
+            if branch_marketplace and branch_marketplace in plugin_path:
+                slot_role = "branch-commit-recovery"
+            elif local_marketplace and local_marketplace in plugin_path:
+                slot_role = "mutable-local-testing"
+            else:
+                slot_role = "main-git-release"
+        slot_contract_key = {
+            "main-git-release": "stable",
+            "branch-commit-recovery": "branch_recovery",
+            "mutable-local-testing": "local_testing",
+        }[slot_role]
         slot_contract = dict(release_contract.get(slot_contract_key) or {})
-        version = str(slot_contract.get("release") or "")
+        version = str(
+            slot_contract.get("release")
+            or slot_contract.get("release_line")
+            or ""
+        )
         match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", version)
         if match is None:
             raise ValueError("selected slot release is not exact semver")
@@ -724,13 +777,19 @@ def _persistent_envelope(project_id: str | None) -> dict[str, object]:
 def main() -> int:
     try:
         payload = json.load(sys.stdin)
+        if not isinstance(payload, dict):
+            payload = {}
     except (json.JSONDecodeError, OSError):
         payload = {}
     source = str(payload.get("source", "startup"))
     host_session_id = str(payload.get("session_id", "")).strip()
     activation = _runtime_activation()
     try:
-        turn_control, turn_control_continue = _turn_control_context(payload)
+        transport = _build_transport_envelope(payload)
+        turn_control, turn_control_continue = _turn_control_context(
+            payload,
+            transport,
+        )
     except Exception as exc:  # noqa: BLE001 - startup must expose missing control
         turn_control = {
             "schema": "evidence-lane.codex-turn-control-gap.v1",
@@ -741,7 +800,22 @@ def main() -> int:
             "source_mutation_authorized": False,
             "private_reasoning_stored": False,
         }
+        transport = {
+            "schema": "evidence-lane.codex-hook-transport-envelope.v1",
+            "event_name": "SessionStart",
+            "state": "HOOK_TRANSPORT_REJECTED",
+            "error_type": type(exc).__name__,
+            "raw_payload_stored": False,
+            "raw_secret_stored": False,
+            "private_reasoning_stored": False,
+            "hook_behavior_executed": False,
+        }
         turn_control_continue = activation.get("state") != "ACTIVE"
+    turn_control.setdefault("hook_transport_envelope", transport)
+    turn_control.setdefault(
+        "hook_runtime_role",
+        "VALIDATE_REDACT_BOUND_DEDUPLICATE_AND_TRANSPORT_ONLY",
+    )
     flash_context = (
         _flash_context()
         if activation.get("state") == "ACTIVE"
@@ -861,22 +935,14 @@ def main() -> int:
             "Governed Evidence Lane SessionStart binding failed closed before source mutation."
         )
     if isinstance(persistent_change_display, dict):
-        (
-            _,
-            _,
-            _,
-            persistent_change_system_message,
-            persistent_change_system_notice,
-            _,
-            _,
-        ) = _load_turn_control()
-        notice = persistent_change_system_notice(
+        _, render_notice = _load_turn_control()
+        message, notice = render_notice(
             persistent_change_display,
             phase="SESSION_START",
             turn_receipt=turn_control,
         )
         serialized = json.dumps(notice, sort_keys=True, separators=(",", ":"))
-        result["systemMessage"] = persistent_change_system_message(notice)
+        result["systemMessage"] = message
         result["hookSpecificOutput"]["additionalContext"] += (
             "\nEVIDENCE_LANE_PERSISTENT_CHANGE_NOTICE=" + serialized
         )

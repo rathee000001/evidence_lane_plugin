@@ -28,20 +28,31 @@ export function SiteFooter() {
         <div>
           <strong>Policies</strong>
           <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
+          <Link href="/terms">Terms and conditions</Link>
+          <Link href="/license">License</Link>
+          <Link href="/copyright">Copyright</Link>
+          <Link href="/third-party">Third-party licenses and rights</Link>
+          <Link href="/security">Security</Link>
           <Link href="/support">Support</Link>
         </div>
         <div>
           <strong>Repository</strong>
           <Link href="/readme">README</Link>
-          <Link href="/license">License</Link>
-          <Link href="/copyright">Copyright</Link>
-          <Link href="/security">Security</Link>
+          <Link href="/architecture">Architecture</Link>
+          <Link href="/skills">Skills</Link>
+          <Link href="/mcp">Native MCP</Link>
+          <Link href="/hooks">Hooks</Link>
+          <Link href="/commands">Commands</Link>
           <Link href="/provenance#upstream-reference-ledger">Upstream provenance</Link>
         </div>
         <div>
+          <strong>User guides</strong>
+          <Link href="/helper">User Helper Guide</Link>
+          <Link href="/tunnel">User Tunnel Guide</Link>
+        </div>
+        <div>
           <strong>Contributors</strong>
-          <Link href="/credits">Contributors</Link>
+          <Link href="/credits">Human contributors</Link>
         </div>
         <div>
           <strong>Praveen Rathee</strong>

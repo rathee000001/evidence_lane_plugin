@@ -1,0 +1,976 @@
+{
+  "schema": "evidence-lane.skill-mcp-routing.v1",
+  "server_identity": "evidence-lane",
+  "tool_owners": {
+    "canon_backfire_hil": "evi-canon",
+    "canon_bind_edge": "evi-canon",
+    "canon_classify": "evi-canon",
+    "canon_decide": "evi-canon",
+    "canon_dispatch_linked_task": "evi-canon",
+    "canon_graph": "evi-canon",
+    "canon_inbox": "evi-canon",
+    "canon_inspect": "evi-canon",
+    "canon_receive": "evi-canon",
+    "canon_register_contract": "evi-canon",
+    "canon_register_edge": "evi-canon",
+    "canon_restore_continuity": "evi-canon",
+    "canon_seal_continuity": "evi-canon",
+    "canon_seal_envelope": "evi-canon",
+    "canon_seal_result": "evi-canon",
+    "canon_supersede": "evi-canon",
+    "connector_plugin_catalog": "evi-plugin",
+    "connector_plugin_drop": "evi-drop-additional-plugin",
+    "connector_plugin_register": "evi-additional-plugin",
+    "connector_plugin_route": "evi-plugin",
+    "connector_plugin_settings": "evi-plugin",
+    "fetch": "evi-source-intake",
+    "git_sync_selected": "evidence-lane-code-lifecycle",
+    "hil_decide": "evi-build",
+    "hil_intent_classify": "evi-build",
+    "hil_return_to_accepted": "evi-build",
+    "lane_catalog": "evi-source-intake",
+    "lane_configure_routes": "evi-source-intake",
+    "lane_fetch": "evi-source-intake",
+    "lane_search": "evi-source-intake",
+    "lane_status": "evi-source-intake",
+    "learning_decide_candidate": "evi-learning",
+    "learning_inspect": "evi-learning",
+    "learning_retrieve": "evi-learning",
+    "learning_revoke": "evi-learning",
+    "learning_seal_candidate": "evi-learning",
+    "lifecycle_transition_law": "evi",
+    "mode_classify": "evi-mode",
+    "project_register": "evi-boot",
+    "prompt_index_status": "evi-source-intake",
+    "pv_begin_next_turn": "evidence-lane-code-lifecycle",
+    "pv_build_initial": "evi-build",
+    "pv_diff": "evi",
+    "pv_enroll_project": "evi-boot",
+    "pv_fuse": "evi-build",
+    "pv_plan_steer_delta": "evi-mode",
+    "pv_plan_tasks": "evi-mode",
+    "pv_query": "evi",
+    "pv_refresh": "evi-refresh",
+    "pv_rollback": "evi-rollback",
+    "pv_state_travel_prepare": "evi-state-travel",
+    "pv_state_travel_resume": "evi-state-travel",
+    "pv_status": "evi",
+    "pv_summary": "evi",
+    "pv_task_backlog": "evi",
+    "pv_task_transition": "evidence-lane-code-lifecycle",
+    "remote_git_execute_push": "evidence-lane-code-lifecycle",
+    "remote_git_prepare_push": "evidence-lane-code-lifecycle",
+    "render_project_panel": "evi-boot",
+    "render_runtime_panel": "evi-boot",
+    "runtime_activation_status": "evi-boot",
+    "runtime_doctor": "evi-boot",
+    "search": "evi-source-intake",
+    "session_boot": "evi-boot",
+    "session_close": "evi-exit-boot",
+    "session_flash_status": "evi-boot",
+    "session_resume": "evi-boot",
+    "source_custom_schema_compile": "evi-source-intake",
+    "source_git_commit_impact": "evi-source-intake",
+    "source_git_history_build": "evi-source-intake",
+    "source_graph_build": "evi-source-intake",
+    "source_graph_diff": "evi-source-intake",
+    "source_graph_impact": "evi-source-intake",
+    "source_identity_register": "evi-source-intake",
+    "source_intake_classify": "evi-source-intake",
+    "source_intake_schema_configure": "evi-source-intake",
+    "source_sqlite_inspect": "evi-source-intake",
+    "storage_connector_inspect": "evi-storage",
+    "storage_connector_select": "evi-change-storage-connector",
+    "task_classify": "evidence-lane-code-lifecycle",
+    "task_complete_and_refresh": "evi-refresh",
+    "task_confirm_source_update": "evidence-lane-code-lifecycle",
+    "task_record_activity": "evidence-lane-code-lifecycle"
+  },
+  "workflows": {
+    "evi": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "pv_status"
+          ],
+          "workflow": "accepted-authority-read"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "pv_task_backlog"
+          ],
+          "workflow": "accepted-authority-read"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "pv_query"
+          ],
+          "workflow": "accepted-authority-read"
+        },
+        {
+          "order": 4,
+          "tools": [
+            "lifecycle_transition_law",
+            "pv_summary",
+            "pv_diff"
+          ],
+          "workflow": "governance-read"
+        },
+        {
+          "order": 5,
+          "tools": [
+            "pv_plan_steer_delta"
+          ],
+          "workflow": "plan-steer"
+        },
+        {
+          "order": 6,
+          "tools": [
+            "lane_catalog"
+          ],
+          "workflow": "lane-evidence-read"
+        },
+        {
+          "order": 7,
+          "tools": [
+            "lane_status"
+          ],
+          "workflow": "lane-evidence-read"
+        },
+        {
+          "order": 8,
+          "tools": [
+            "lane_search"
+          ],
+          "workflow": "lane-evidence-read"
+        },
+        {
+          "order": 9,
+          "tools": [
+            "lane_fetch"
+          ],
+          "workflow": "lane-evidence-read"
+        },
+        {
+          "order": 10,
+          "tools": [
+            "pv_fuse"
+          ],
+          "workflow": "exact-fuse"
+        },
+        {
+          "order": 11,
+          "tools": [
+            "pv_begin_next_turn"
+          ],
+          "workflow": "same-host-next-turn"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-additional-plugin": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "connector_plugin_catalog"
+          ],
+          "workflow": "register-connector"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "connector_plugin_register"
+          ],
+          "workflow": "register-connector"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-boot": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "project_register"
+          ],
+          "workflow": "project-enrollment"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "pv_enroll_project"
+          ],
+          "workflow": "project-enrollment"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "runtime_doctor"
+          ],
+          "workflow": "boot-or-resume"
+        },
+        {
+          "order": 4,
+          "tools": [
+            "session_flash_status"
+          ],
+          "workflow": "boot-or-resume"
+        },
+        {
+          "order": 5,
+          "tools": [
+            "session_boot",
+            "session_resume"
+          ],
+          "workflow": "boot-or-resume"
+        },
+        {
+          "order": 6,
+          "tools": [
+            "runtime_activation_status"
+          ],
+          "workflow": "boot-or-resume"
+        },
+        {
+          "order": 7,
+          "tools": [
+            "render_runtime_panel"
+          ],
+          "workflow": "boot-or-resume"
+        },
+        {
+          "order": 8,
+          "tools": [
+            "render_project_panel"
+          ],
+          "workflow": "boot-or-resume"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-build": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "pv_build_initial"
+          ],
+          "workflow": "initial-candidate"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "pv_fuse",
+            "hil_decide",
+            "hil_intent_classify"
+          ],
+          "workflow": "hil-outcome"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "hil_return_to_accepted"
+          ],
+          "workflow": "non-promotion-hil-return"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-canon": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "pv_status"
+          ],
+          "workflow": "canon-authority-read"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "pv_task_backlog"
+          ],
+          "workflow": "canon-authority-read"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "pv_query"
+          ],
+          "workflow": "canon-authority-read"
+        },
+        {
+          "order": 4,
+          "tools": [
+            "canon_inspect",
+            "canon_inbox",
+            "canon_graph"
+          ],
+          "workflow": "canon-authority-read"
+        },
+        {
+          "order": 5,
+          "tools": [
+            "canon_register_contract"
+          ],
+          "workflow": "canon-contract"
+        },
+        {
+          "order": 6,
+          "tools": [
+            "canon_seal_envelope"
+          ],
+          "workflow": "canon-envelope"
+        },
+        {
+          "order": 7,
+          "tools": [
+            "canon_receive"
+          ],
+          "workflow": "canon-envelope"
+        },
+        {
+          "order": 8,
+          "tools": [
+            "canon_classify"
+          ],
+          "workflow": "canon-envelope"
+        },
+        {
+          "order": 9,
+          "tools": [
+            "canon_decide",
+            "canon_supersede"
+          ],
+          "workflow": "canon-decision"
+        },
+        {
+          "order": 10,
+          "tools": [
+            "canon_register_edge"
+          ],
+          "workflow": "canon-task-edge"
+        },
+        {
+          "order": 11,
+          "tools": [
+            "canon_bind_edge"
+          ],
+          "workflow": "canon-task-edge"
+        },
+        {
+          "order": 12,
+          "tools": [
+            "canon_dispatch_linked_task"
+          ],
+          "workflow": "canon-task-edge"
+        },
+        {
+          "order": 13,
+          "tools": [
+            "canon_backfire_hil"
+          ],
+          "workflow": "canon-backfire"
+        },
+        {
+          "order": 14,
+          "tools": [
+            "canon_seal_result"
+          ],
+          "workflow": "canon-result"
+        },
+        {
+          "order": 15,
+          "tools": [
+            "canon_seal_continuity"
+          ],
+          "workflow": "canon-state-travel-continuity"
+        },
+        {
+          "order": 16,
+          "tools": [
+            "canon_restore_continuity"
+          ],
+          "workflow": "canon-state-travel-continuity"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-change-storage-connector": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "storage_connector_inspect"
+          ],
+          "workflow": "select-storage"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "storage_connector_select"
+          ],
+          "workflow": "select-storage"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-drop-additional-plugin": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "connector_plugin_drop"
+          ],
+          "workflow": "drop-connector"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-exit-boot": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "session_close"
+          ],
+          "workflow": "close-session"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-learning": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "pv_status"
+          ],
+          "workflow": "learning-authority-read"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "pv_task_backlog"
+          ],
+          "workflow": "learning-authority-read"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "pv_query"
+          ],
+          "workflow": "learning-authority-read"
+        },
+        {
+          "order": 4,
+          "tools": [
+            "learning_inspect",
+            "learning_retrieve"
+          ],
+          "workflow": "learning-authority-read"
+        },
+        {
+          "order": 5,
+          "tools": [
+            "learning_seal_candidate"
+          ],
+          "workflow": "learning-candidate"
+        },
+        {
+          "order": 6,
+          "tools": [
+            "learning_decide_candidate"
+          ],
+          "workflow": "learning-candidate"
+        },
+        {
+          "order": 7,
+          "tools": [
+            "learning_revoke"
+          ],
+          "workflow": "learning-revoke"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-mode": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "mode_classify"
+          ],
+          "workflow": "classify-mode"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "pv_plan_tasks"
+          ],
+          "workflow": "persist-plan"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "pv_plan_steer_delta"
+          ],
+          "workflow": "plan-steer"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-plugin": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "connector_plugin_catalog"
+          ],
+          "workflow": "inspect-connectors"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "connector_plugin_settings"
+          ],
+          "workflow": "inspect-connectors"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "connector_plugin_register",
+            "connector_plugin_drop"
+          ],
+          "workflow": "change-connector-registration"
+        },
+        {
+          "order": 4,
+          "tools": [
+            "connector_plugin_route"
+          ],
+          "workflow": "route-connector"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-refresh": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "pv_refresh",
+            "task_complete_and_refresh"
+          ],
+          "workflow": "refresh-candidate"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-rollback": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "pv_rollback"
+          ],
+          "workflow": "pointer-rollback"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-source-intake": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "source_intake_classify"
+          ],
+          "workflow": "classify-source-intake"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "source_identity_register"
+          ],
+          "workflow": "source-identity-intake"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "source_sqlite_inspect"
+          ],
+          "workflow": "sqlite-source-intake"
+        },
+        {
+          "order": 4,
+          "tools": [
+            "source_git_history_build"
+          ],
+          "workflow": "git-read-intake"
+        },
+        {
+          "order": 5,
+          "tools": [
+            "source_git_commit_impact"
+          ],
+          "workflow": "git-read-intake"
+        },
+        {
+          "order": 6,
+          "tools": [
+            "source_custom_schema_compile"
+          ],
+          "workflow": "custom-schema-intake"
+        },
+        {
+          "order": 7,
+          "tools": [
+            "source_graph_build"
+          ],
+          "workflow": "source-graph-intake"
+        },
+        {
+          "order": 8,
+          "tools": [
+            "source_graph_diff",
+            "source_graph_impact"
+          ],
+          "workflow": "source-graph-intake"
+        },
+        {
+          "order": 9,
+          "tools": [
+            "lane_catalog"
+          ],
+          "workflow": "source-route-configuration"
+        },
+        {
+          "order": 10,
+          "tools": [
+            "lane_configure_routes"
+          ],
+          "workflow": "source-route-configuration"
+        },
+        {
+          "order": 11,
+          "tools": [
+            "source_intake_schema_configure"
+          ],
+          "workflow": "source-route-configuration"
+        },
+        {
+          "order": 12,
+          "tools": [
+            "lane_status"
+          ],
+          "workflow": "bounded-source-retrieval"
+        },
+        {
+          "order": 13,
+          "tools": [
+            "prompt_index_status"
+          ],
+          "workflow": "bounded-source-retrieval"
+        },
+        {
+          "order": 14,
+          "tools": [
+            "search",
+            "lane_search"
+          ],
+          "workflow": "bounded-source-retrieval"
+        },
+        {
+          "order": 15,
+          "tools": [
+            "fetch",
+            "lane_fetch"
+          ],
+          "workflow": "bounded-source-retrieval"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-state-travel": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "pv_status"
+          ],
+          "workflow": "state-travel-authority-read"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "pv_task_backlog"
+          ],
+          "workflow": "state-travel-authority-read"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "pv_query"
+          ],
+          "workflow": "state-travel-authority-read"
+        },
+        {
+          "order": 4,
+          "tools": [
+            "pv_plan_steer_delta"
+          ],
+          "workflow": "state-travel-plan-steer"
+        },
+        {
+          "order": 5,
+          "tools": [
+            "pv_state_travel_prepare"
+          ],
+          "workflow": "prepare-state-travel"
+        },
+        {
+          "order": 6,
+          "tools": [
+            "pv_state_travel_resume"
+          ],
+          "workflow": "resume-state-travel"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-storage": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "storage_connector_inspect"
+          ],
+          "workflow": "inspect-storage"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evidence-lane-code-lifecycle": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "pv_status"
+          ],
+          "workflow": "accepted-authority-read"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "pv_task_backlog"
+          ],
+          "workflow": "accepted-authority-read"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "pv_query"
+          ],
+          "workflow": "accepted-authority-read"
+        },
+        {
+          "order": 4,
+          "tools": [
+            "pv_plan_steer_delta"
+          ],
+          "workflow": "plan-steer"
+        },
+        {
+          "order": 5,
+          "tools": [
+            "task_record_activity"
+          ],
+          "workflow": "record-task-activity"
+        },
+        {
+          "order": 6,
+          "tools": [
+            "session_boot",
+            "session_resume"
+          ],
+          "workflow": "boot-or-resume"
+        },
+        {
+          "order": 7,
+          "tools": [
+            "pv_begin_next_turn"
+          ],
+          "workflow": "same-host-next-turn"
+        },
+        {
+          "order": 8,
+          "tools": [
+            "pv_fuse"
+          ],
+          "workflow": "exact-fuse"
+        },
+        {
+          "order": 9,
+          "tools": [
+            "lane_catalog"
+          ],
+          "workflow": "task-execution"
+        },
+        {
+          "order": 10,
+          "tools": [
+            "pv_plan_tasks"
+          ],
+          "workflow": "task-execution"
+        },
+        {
+          "order": 11,
+          "tools": [
+            "task_classify"
+          ],
+          "workflow": "task-execution"
+        },
+        {
+          "order": 12,
+          "tools": [
+            "task_confirm_source_update"
+          ],
+          "workflow": "task-execution"
+        },
+        {
+          "order": 13,
+          "tools": [
+            "pv_task_transition"
+          ],
+          "workflow": "task-execution"
+        },
+        {
+          "order": 14,
+          "tools": [
+            "task_complete_and_refresh"
+          ],
+          "workflow": "task-execution"
+        },
+        {
+          "order": 15,
+          "tools": [
+            "git_sync_selected"
+          ],
+          "workflow": "governed-git-delivery"
+        },
+        {
+          "order": 16,
+          "tools": [
+            "remote_git_prepare_push"
+          ],
+          "workflow": "governed-git-delivery"
+        },
+        {
+          "order": 17,
+          "tools": [
+            "remote_git_execute_push"
+          ],
+          "workflow": "governed-git-delivery"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    }
+  },
+  "low_level_tools": {
+    "git_sync_selected": {
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "reached_via": "governed-git-delivery"
+    },
+    "hil_return_to_accepted": {
+      "owner_skill": "evi-build",
+      "reached_via": "non-promotion-hil-return"
+    },
+    "lane_configure_routes": {
+      "owner_skill": "evi-source-intake",
+      "reached_via": "source-route-configuration"
+    },
+    "lifecycle_transition_law": {
+      "owner_skill": "evi",
+      "reached_via": "governance-read"
+    },
+    "project_register": {
+      "owner_skill": "evi-boot",
+      "reached_via": "project-enrollment"
+    },
+    "prompt_index_status": {
+      "owner_skill": "evi-source-intake",
+      "reached_via": "bounded-source-retrieval"
+    },
+    "pv_diff": {
+      "owner_skill": "evi",
+      "reached_via": "governance-read"
+    },
+    "pv_enroll_project": {
+      "owner_skill": "evi-boot",
+      "reached_via": "project-enrollment"
+    },
+    "pv_summary": {
+      "owner_skill": "evi",
+      "reached_via": "governance-read"
+    },
+    "pv_task_transition": {
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "reached_via": "task-execution"
+    },
+    "remote_git_execute_push": {
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "reached_via": "governed-git-delivery"
+    },
+    "remote_git_prepare_push": {
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "reached_via": "governed-git-delivery"
+    },
+    "source_custom_schema_compile": {
+      "owner_skill": "evi-source-intake",
+      "reached_via": "custom-schema-intake"
+    },
+    "source_git_commit_impact": {
+      "owner_skill": "evi-source-intake",
+      "reached_via": "git-read-intake"
+    },
+    "source_git_history_build": {
+      "owner_skill": "evi-source-intake",
+      "reached_via": "git-read-intake"
+    },
+    "source_graph_build": {
+      "owner_skill": "evi-source-intake",
+      "reached_via": "source-graph-intake"
+    },
+    "source_graph_diff": {
+      "owner_skill": "evi-source-intake",
+      "reached_via": "source-graph-intake"
+    },
+    "source_graph_impact": {
+      "owner_skill": "evi-source-intake",
+      "reached_via": "source-graph-intake"
+    },
+    "source_identity_register": {
+      "owner_skill": "evi-source-intake",
+      "reached_via": "source-identity-intake"
+    },
+    "source_sqlite_inspect": {
+      "owner_skill": "evi-source-intake",
+      "reached_via": "sqlite-source-intake"
+    },
+    "task_confirm_source_update": {
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "reached_via": "task-execution"
+    }
+  },
+  "catalog_contract": {
+    "tool_count": 83,
+    "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+    "host_display_namespace_is_authority": false,
+    "installed_validation": "REBUILD_AND_COMPARE_AGAINST_THE_INSTALLED_NATIVE_CATALOG_AT_RELEASE_BOUNDARY"
+  }
+}

@@ -181,17 +181,47 @@ def test_delta_drop_and_supersede_are_explicit_append_only_events(service) -> No
     assert goal["task_count"] == 1
     assert goal["canonical_task_count"] == 3
     assert goal["history_task_count"] == 2
-    assert goal["rows"] == [
-        {
-            "task_id": "delta-new",
-            "step": "Replace the superseded bounded Delta.",
-            "plan_sequence": 3,
-            "lifecycle_status": "QUEUED",
-            "steer_deltas": [],
-            "number": 1,
-            "status": "pending",
-        }
-    ]
+    assert len(goal["rows"]) == 1
+    row = goal["rows"][0]
+    assert row == {
+        "task_id": "delta-new",
+        "step": "Replace the superseded bounded Delta.",
+        "plan_sequence": 3,
+        "lifecycle_status": "QUEUED",
+        "steer_deltas": [],
+            "task_classification": "verify_result",
+            "plan_group": "plan-lifecycle-001",
+            "plan_group_source": "PLAN_ID_FALLBACK",
+            "commit_batch_id": "UNASSIGNED",
+        "commit_batch_source": "NO_EXPLICIT_CONTRACT_OR_LINKED_DIRECTIVE",
+        "dependencies": [],
+        "dependency_source": "LINEAR_ROOT",
+        "git_commit_stage": "NOT_DECLARED",
+        "git_commit_stage_source": "NO_EXPLICIT_CONTRACT_OR_TASK_TEXT",
+        "version_marker": "NOT_DECLARED",
+        "version_marker_source": "NO_CURRENT_AUTHORITY_CLAIM",
+        "version_claims": [],
+        "version_reconciliation_required": False,
+        "branch_marker": "NOT_DECLARED",
+        "branch_marker_source": "NO_CURRENT_AUTHORITY_CLAIM",
+        "branch_claims": [],
+        "branch_reconciliation_required": False,
+        "effective_for_execution": True,
+        "supersedes_task_id": "delta-old",
+        "superseded_by_task_ids": [],
+        "authority_scope": "CURRENT_EXECUTABLE_PLAN",
+        "number": 1,
+        "status": "pending",
+        "visible_label": (
+            "Row 1 / delta-new — [CLASS=verify_result; "
+            "GROUP=plan-lifecycle-001; BATCH=UNASSIGNED; DEP=ROOT; "
+            "GIT=NOT_DECLARED@NO_EXPLICIT_CONTRACT_OR_TASK_TEXT; "
+            "VERSION=NOT_DECLARED@NO_CURRENT_AUTHORITY_CLAIM; "
+                "BRANCH=NOT_DECLARED@NO_CURRENT_AUTHORITY_CLAIM; "
+                "ROLE=STANDARD; STATE=QUEUED] "
+            "Replace the superseded bounded Delta."
+        ),
+    }
     history = backlog["history_projection"]
     assert [row["task_id"] for row in history["rows"]] == [
         "delta-drop",
@@ -208,6 +238,16 @@ def test_delta_drop_and_supersede_are_explicit_append_only_events(service) -> No
     assert [row["task_id"] for row in history["superseded_rows"]] == [
         "delta-old"
     ]
+    assert all(row["effective_for_execution"] is False for row in history["rows"])
+    assert all(
+        row["dependency_source"] == "NON_EXECUTABLE_HISTORY"
+        for row in history["rows"]
+    )
+    assert next(
+        row for row in history["rows"] if row["task_id"] == "delta-old"
+    )["authority_scope"] == "IMMUTABLE_SUPERSEDED_HISTORY"
+    assert row["dependencies"] == []
+    assert row["supersedes_task_id"] == "delta-old"
     replacement = next(
         task for task in backlog["tasks"] if task["task_id"] == "delta-new"
     )
@@ -242,6 +282,141 @@ def test_plan_runtime_projection_detects_semantic_sqlite_tamper(service) -> None
         status["projection_content_sha256"]
         != status["expected_projection_content_sha256"]
     )
+
+
+def test_plan_runtime_v2_reports_legacy_projection_stale_without_read_failure(
+    service,
+) -> None:
+    service.plan_tasks(
+        "book-faires",
+        tasks=[
+            _planned_task(
+                "legacy-runtime",
+                "Keep canonical Plan authority readable across a hot upgrade.",
+            )
+        ],
+        planned_by="human-test",
+        plan_id="legacy-plan-runtime",
+    )
+    projection_path = service.store._plan_runtime_path("book-faires")
+    projection_path.unlink()
+    with sqlite3.connect(projection_path) as connection:
+        connection.executescript(
+            """
+            PRAGMA user_version = 1;
+            CREATE TABLE projection_meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            INSERT INTO projection_meta (key, value)
+            VALUES ('schema', 'evidence-lane.plan-runtime-projection.v1');
+            CREATE TABLE delta_task (
+                task_id TEXT PRIMARY KEY,
+                current_status TEXT NOT NULL
+            );
+            """
+        )
+
+    status = service.store.plan_runtime_status("book-faires")
+    assert status["status"] == "STALE"
+    assert status["reason"] == "DERIVED_SCHEMA_REBUILD_REQUIRED"
+    assert status["observed_schema"].endswith(".v1")
+    assert status["sqlite_user_version"] == 1
+    assert status["expected_sqlite_user_version"] == 2
+    assert status["rebuild_action"] == (
+        "NEXT_GOVERNED_PLAN_WRITE_ATOMIC_REBUILD"
+    )
+    assert status["canonical_plan_sector_mutated"] is False
+    assert status["raw_pv_model_context_loading"] is False
+
+
+def test_plan_runtime_v2_indexes_full_contract_steers_rows_and_bounded_fts(
+    service,
+) -> None:
+    service.plan_tasks(
+        "book-faires",
+        tasks=[
+            {
+                **_planned_task(
+                    "runtime-root",
+                    "Implement the bounded Plan runtime authority.",
+                ),
+                "plan_group": "runtime-foundation",
+                "commit_batch_id": "runtime-batch",
+                "dependencies": [],
+            },
+            _planned_task(
+                "runtime-child",
+                "Verify the live Plan query contract without loading a PV.",
+            ),
+        ],
+        planned_by="human-test",
+        plan_id="plan-runtime-v2",
+    )
+    service.record_steer_delta(
+        "book-faires",
+        delta_text=(
+            "PLAN_GROUP=canon-runtime COMMIT_BATCH=canon-query "
+            "DEPENDS_ON=runtime-root GIT_STAGE=NO_COMMIT. "
+            "Keep Memory SQLite separate from the AI Learning arm."
+        ),
+        actor="human-test",
+        delta_id="runtime-child-steer",
+        linked_task_id="runtime-child",
+    )
+
+    status = service.store.plan_runtime_status("book-faires")
+    assert status["status"] == "PASS"
+    assert status["sqlite_user_version"] == 2
+    assert status["full_task_contracts_indexed"] is True
+    assert status["steer_deltas_indexed"] is True
+    assert status["steer_count"] == 1
+    assert status["execution_row_count"] == 2
+    assert status["history_row_count"] == 0
+    assert status["fts_record_count"] == 3
+    assert status["accepted_pv_payload_copied"] is False
+    assert status["raw_pv_model_context_loading"] is False
+    assert status["memory_sqlite_authority"] == (
+        "SEPARATE_FROM_AI_LEARNING_AND_PROJECT_TRUTH"
+    )
+
+    exact = service.store.plan_runtime_query(
+        "book-faires",
+        task_id="runtime-child",
+    )
+    assert exact["query_mode"] == "EXACT_TASK_ID"
+    assert exact["row"]["plan_group"] == "canon-runtime"
+    assert exact["row"]["commit_batch_id"] == "canon-query"
+    assert exact["row"]["dependencies_json"] == '["runtime-root"]'
+    assert exact["row"]["git_commit_stage"] == "NO_COMMIT"
+    assert exact["contract"]["requested_outcome"].startswith(
+        "Verify the live Plan query contract"
+    )
+    assert [steer["delta_id"] for steer in exact["steers"]] == [
+        "runtime-child-steer"
+    ]
+    assert exact["accepted_pv_payload_loaded"] is False
+
+    fts = service.store.plan_runtime_query(
+        "book-faires",
+        query="Memory SQLite learning",
+    )
+    assert fts["query_mode"] == "BOUNDED_FTS5"
+    assert [hit["source_id"] for hit in fts["hits"]] == [
+        "runtime-child-steer"
+    ]
+    assert fts["accepted_pv_payload_loaded"] is False
+
+    window = service.task_backlog_window("book-faires")
+    assert window["full_ledger_returned"] is False
+    assert window["accepted_pv_payload_loaded"] is False
+    assert len(window["rows"]) == 2
+    assert all("step" not in row and "requested_outcome" not in row for row in window["rows"])
+    assert "plan_runtime_projection" not in window
+    assert window["plan_runtime_receipt"]["full_runtime_projection_returned"] is False
+    assert window["plan_runtime_receipt"]["raw_pv_payload_loaded"] is False
+    assert window["plan_runtime_receipt"]["raw_chat_scrollback_loaded"] is False
+    assert len(json.dumps(window, sort_keys=True).encode("utf-8")) < 8192
 
 
 def test_legacy_backlog_statuses_migrate_without_dropping_history(service) -> None:

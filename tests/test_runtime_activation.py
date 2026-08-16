@@ -209,6 +209,13 @@ def test_runtime_hook_status_separates_host_dispatches_from_package_events(
     assert goal["state"] == "HOST_CAPABILITY_UNAVAILABLE"
     assert goal["native_hook_event"] is None
     assert goal["per_input_invocation_proven"] is False
+    assert goal["tool_boundary_continuation_supported"] is True
+    assert goal["tool_boundary_hook_event"] == "preToolUse"
+    assert goal["tool_boundary_authority"] == (
+        "SEALED_ACTIVE_GOAL_RECOVERY_BINDING"
+    )
+    assert goal["tool_boundary_continuation_runnable"] is True
+    assert goal["synthetic_prompt_required"] is False
 
 
 def test_runtime_hook_status_rejects_sealed_four_event_package_baseline(
@@ -278,7 +285,7 @@ def test_runtime_hook_status_accepts_eight_event_host_dispatch_claim(
     assert hook_status["installed_host_dispatch_independently_proven"] is False
 
 
-def test_session_start_exposes_interactive_first_use_tunnel_onboarding(
+def test_session_start_exposes_local_codex_native_no_tunnel_route(
     service,
 ) -> None:
     root = Path(__file__).resolve().parents[1]
@@ -293,15 +300,15 @@ def test_session_start_exposes_interactive_first_use_tunnel_onboarding(
         "per_push_confirmation_token_required"
     ] is False
     assert plugin["effective_remote_git_policy"]["main_push_allowed"] is False
-    assert activation["state"] == "FIRST_USE_TUNNEL_ONBOARDING_REQUIRED"
-    assert activation["release"] == "2.1.0"
-    assert activation["slot_role"] == "stable-build"
-    assert str(activation["runtime_root"]).endswith(
-        "tunnel-runtime-v210-stable-build"
+    assert activation["state"] == (
+        "TUNNEL_NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
     )
     assert activation["interaction_profile"] == "CODEX_APP_INTERACTIVE"
-    assert activation["host_lifetime"] == "PERSISTENT"
-    assert Path(str(activation["installer"])).is_file()
+    assert activation["primary_runtime_authority"] == "LOCAL_DURABLE_SQLITE"
+    assert activation["active_surface"] == "CODEX"
+    assert activation["tunnel_requirement"] == (
+        "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
+    )
     assert activation["tunnel_mutated"] is False
     assert activation["secret_read"] is False
     assert activation["cross_project_disclosure"] is False
@@ -343,7 +350,7 @@ def test_session_start_excludes_tunnel_from_headless_api_layer(service) -> None:
     }
 
 
-def test_session_start_routes_fallback_hook_to_fallback_tunnel_slot(service) -> None:
+def test_session_start_does_not_route_local_fallback_hook_to_a_tunnel(service) -> None:
     root = Path(__file__).resolve().parents[1]
     boot_local(service)
     context = _run_session_start(
@@ -353,12 +360,16 @@ def test_session_start_routes_fallback_hook_to_fallback_tunnel_slot(service) -> 
         slot_role="fallback",
     )
     activation = _context_envelope(context, "HOST_ACTIVATION_ENVELOPE")
-    assert activation["state"] == "FIRST_USE_TUNNEL_ONBOARDING_REQUIRED"
-    assert activation["slot_role"] == "fallback"
-    assert str(activation["runtime_root"]).endswith("tunnel-runtime-v200-fallback")
+    assert activation["state"] == (
+        "TUNNEL_NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
+    )
+    assert "slot_role" not in activation
+    assert "runtime_root" not in activation
 
 
-def test_session_start_validates_marker_without_claiming_tunnel_health(service) -> None:
+def test_session_start_ignores_local_tunnel_marker_without_claiming_health(
+    service,
+) -> None:
     root = Path(__file__).resolve().parents[1]
     boot_local(service)
     runtime_root = service.store.root / "tunnel-runtime-v210-stable-build"
@@ -385,9 +396,11 @@ def test_session_start_validates_marker_without_claiming_tunnel_health(service) 
     context = _run_session_start(root, service.store.root, "host-session-test")
     activation = _context_envelope(context, "HOST_ACTIVATION_ENVELOPE")
 
-    assert activation["state"] == "TUNNEL_INSTALLATION_PRESENT_HOST_MANAGED"
-    assert activation["health_claimed"] is False
-    assert len(str(activation["marker_sha256"])) == 64
+    assert activation["state"] == (
+        "TUNNEL_NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
+    )
+    assert "health_claimed" not in activation
+    assert "marker_sha256" not in activation
     assert activation["tunnel_mutated"] is False
     assert activation["secret_read"] is False
 

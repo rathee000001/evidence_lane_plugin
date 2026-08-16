@@ -4,7 +4,9 @@ export type PluginSurfaceFamily =
   | "Session"
   | "Mode"
   | "Connector"
-  | "Storage";
+  | "Storage"
+  | "Canon"
+  | "Learning";
 
 export type PluginSurface = {
   id: string;
@@ -64,6 +66,17 @@ export const pluginSurfaces: readonly PluginSurface[] = [
     primaryControl: true,
   },
   {
+    id: "evi-canon",
+    label: "Canon",
+    command: "/evi-canon",
+    family: "Canon",
+    description: "Governs bounded task-to-task and task-to-subagent Canon exchange.",
+    setting: "Bind the exact graph edge, task class, scope, direction, receiver, and expiry.",
+    produces: "Sealed Canon envelopes, dispatch receipts, receiver decisions, results, or bounded backfire.",
+    boundary: "Canon cannot promote Project Truth or Agent Learning, replay HIL, or move a PV pointer.",
+    primaryControl: false,
+  },
+  {
     id: "evi-change-storage-connector",
     label: "Change storage connector",
     command: "/evi-change-storage-connector",
@@ -117,6 +130,17 @@ export const pluginSurfaces: readonly PluginSurface[] = [
     produces: "A mode-binding receipt and visible formula.",
     boundary: "Mode selection does not create a candidate or move a pointer.",
     primaryControl: true,
+  },
+  {
+    id: "evi-learning",
+    label: "Agent Learning",
+    command: "/evi-learning",
+    family: "Learning",
+    description: "Governs project-isolated AI Learning retrieval and candidate lifecycle.",
+    setting: "Retrieve bounded accepted lessons or seal evidence-backed candidates under ENV/UOP.",
+    produces: "Learning-only receipts, candidates, decisions, pointers, and revocations.",
+    boundary: "Learning cannot overwrite Project Truth, consume Canon authority, or act as the Formula Engine.",
+    primaryControl: false,
   },
   {
     id: "evi-plugin",

@@ -13,7 +13,7 @@ const sourceLanes = [
 const pluginSurfaces = [
   "Boot", "Rollback", "Build", "Refresh", "Mode", "Source Intake", "State Travel",
   "Storage", "Storage connector", "Plugin", "Add plugin", "Drop plugin", "Exit Boot",
-  "Plan Lane", "Lifecycle",
+  "Plan Lane", "Lifecycle", "Canon", "Agent Learning",
 ] as const;
 
 function orbitStyle(index: number, total: number) {
@@ -24,7 +24,7 @@ export function EvidenceOrbit() {
   return (
     <figure
       className="evidenceOrbit"
-      aria-label="Concentric Evidence Lane map: 18 governed source lanes flow through 15 plugin surfaces to one human HIL"
+      aria-label="Concentric Evidence Lane map: 18 governed source lanes flow through 17 plugin surfaces to one human HIL"
     >
       <div className="evidenceOrbitHalo" aria-hidden="true" />
       <div className="evidenceOrbitRing sourceLaneOrbit" aria-label="18 source lanes">
@@ -34,7 +34,7 @@ export function EvidenceOrbit() {
           </span>
         ))}
       </div>
-      <div className="evidenceOrbitRing pluginSurfaceOrbit" aria-label="15 plugin surfaces">
+      <div className="evidenceOrbitRing pluginSurfaceOrbit" aria-label="17 plugin surfaces">
         {pluginSurfaces.map((surface, index) => (
           <span className="evidenceOrbitNode" key={surface} style={orbitStyle(index, pluginSurfaces.length)} title={surface}>
             <i>{index + 1}</i><b>{surface}</b>
@@ -49,7 +49,7 @@ export function EvidenceOrbit() {
       </div>
       <figcaption>
         <span><strong>18</strong> source lanes</span>
-        <span><strong>15</strong> plugin surfaces</span>
+        <span><strong>17</strong> plugin surfaces</span>
         <span><strong>1</strong> human gate</span>
       </figcaption>
     </figure>

@@ -80,6 +80,7 @@ def _git(repository: Path, arguments: list[str], *, timeout: int = 120) -> str:
         text=True,
         encoding="utf-8",
         timeout=timeout,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     if completed.returncode != 0:
         raise ExactCommitPackageError(

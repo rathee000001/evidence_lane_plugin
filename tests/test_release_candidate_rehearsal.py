@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import runpy
 import sys
@@ -21,7 +22,7 @@ from build_release_candidate_rehearsal import (
     build_rehearsal,
 )
 
-VERSION = "2.1.0+codex.20260812193232"
+VERSION = "2.2.0+codex.20260814082900"
 COMMIT = "a" * 40
 TREE = "b" * 40
 
@@ -46,6 +47,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     _write(plugin, "LICENSE.md", "# Proprietary license\n")
     _write(plugin, "README.md", "# Evidence Lane plugin\n")
     _write(plugin, "THIRD_PARTY_NOTICES.md", "# Third-party notices\n")
+    _write(plugin, "tests/should_not_ship.py", "raise AssertionError('maintainer-only')\n")
     _write(
         plugin,
         ".codex-plugin/plugin.json",
@@ -125,41 +127,79 @@ def _plugin_fixture(tmp_path: Path) -> Path:
             {
                 "schema": "evidence-lane.codex-release-channel.v2",
                 "stable": {
-                    "release": "2.1.0",
-                    "slot_role": "stable-build",
+                    "release": "2.2.0",
+                    "slot_role": "main-git-release",
                     "codex_marketplace_slot": "evidence-lane-github",
-                    "marketplace_display_name": "GitLane Stable 2.1",
+                    "marketplace_display_name": "Main Git Plugin Version",
                     "install_source": "GIT_EXACT_COMMIT",
                     "stable_selector_is_persistent": True,
                     "stable_updates_reinstall_in_place": True,
                     "build_identity_is_receipt_not_selector": True,
                     "native_server_identity": "evidence-lane",
-                    "native_tool_count": 62,
-                    "native_read_tool_count": 21,
-                    "native_write_tool_count": 41,
-                    "skill_count": 15,
+                    "native_tool_count": 83,
+                    "native_read_tool_count": 26,
+                    "native_write_tool_count": 57,
+                    "skill_count": 17,
                     "codex_apps_allowed": False,
                     "generated_namespace_allowed": False,
                     "direct_stdio_fallback_allowed": False,
                     "google_drive_bundled": False,
                 },
-                "fallback": {
-                    "release": "2.0.0",
-                    "slot_role": "fallback",
-                    "enabled": False,
-                    "materialization_gate": (
-                        "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
+                "branch_recovery": {
+                    "release": "2.2.0",
+                    "slot_role": "branch-commit-recovery",
+                    "codex_marketplace_slot": (
+                        "evidence-lane-v220-stable-recovery"
                     ),
-                    "accepted_pv": "PV11",
-                    "accepted_generation": 11,
-                    "byte_frozen": True,
-                    "package_must_equal_accepted_pv": True,
+                    "marketplace_display_name": "Branch Commit Git Recovery",
+                    "enabled": False,
+                    "byte_frozen_between_branch_checkpoints": True,
+                    "must_not_follow_uncommitted_local_bytes": True,
+                },
+                "local_testing": {
+                    "release_line": "2.2.0",
+                    "slot_role": "mutable-local-testing",
+                    "codex_marketplace_slot": "evidence-lane-v220-testing-new",
+                    "marketplace_display_name": "Local Testing Slot",
+                    "same_marketplace_selector_reused": True,
+                    "fresh_package_version_per_local_build": True,
+                    "helper_installs_plugin": False,
+                },
+                "dependency_toolchains": {
+                    "search_v1": {
+                        "required": True,
+                        "scope": "ALL_GOVERNED_PROJECTS",
+                        "manifest": "toolchains/search-tools.v1.json",
+                        "package_local_tools": [
+                            "ripgrep@15.2.0/windows-x86_64",
+                        ],
+                        "authoritative_full_text_backend": "SQLITE_FTS5",
+                        "model_context_policy": "BOUNDED_QUERY_RESULTS_ONLY",
+                        "pv_package_loaded_into_model_context": False,
+                        "resolution_order": [
+                            "PACKAGE_LOCAL_VERIFIED_BINARY",
+                            "EXPLICIT_CONFIGURED_VERIFIED_HOST_BINARY",
+                            "DETERMINISTIC_BUILTIN_FALLBACK",
+                        ],
+                        "fallbacks_required": True,
+                        "path_lookup_allowed": False,
+                        "auto_download_during_mcp_handshake": False,
+                    }
                 },
                 "live_slot_policy": {
-                    "exact_slot_count_after_pv11_acceptance": 2,
-                    "allowed_slots": ["stable-build", "fallback"],
+                    "exact_slot_count": 3,
+                    "allowed_slots": [
+                        "main-git-release",
+                        "branch-commit-recovery",
+                        "mutable-local-testing",
+                    ],
+                    "allowed_marketplaces": [
+                        "evidence-lane-github",
+                        "evidence-lane-v220-stable-recovery",
+                        "evidence-lane-v220-testing-new",
+                    ],
                     "max_enabled_plugin_count": 1,
-                    "exact_registered_plugin_count": 2,
+                    "exact_registered_plugin_count": 3,
                     "stable_selector_growth_allowed": False,
                     "max_active_native_mcp_count": 1,
                     "max_active_tunnel_count": 1,
@@ -169,7 +209,9 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                         "scripts/codex_release/"
                         "Switch-EvidenceLaneCodexSlot.ps1"
                     ),
-                    "registry_schema": "evidence-lane.codex-two-slot-registry.v1",
+                    "registry_schema": "evidence-lane.codex-three-slot-registry.v1",
+                    "failure_target_slot": "branch-commit-recovery",
+                    "mutable_local_failure_never_targets_main_git": True,
                     "single_transient_error_switch_allowed": False,
                 },
                 "goal_recovery": {
@@ -196,7 +238,18 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "turn_start_allowed": False,
                     "state_travel_allowed": False,
                     "candidate_hil_pointer_or_git_mutation_allowed": False,
-                    "requires_stable_enabled_fallback_disabled": True,
+                    "requires_exactly_one_enabled_allowed_three_slot_selector": True,
+                    "allowed_runtime_selectors": [
+                        "evidence-lane-plugin@evidence-lane-github",
+                        (
+                            "evidence-lane-plugin@"
+                            "evidence-lane-v220-stable-recovery"
+                        ),
+                        (
+                            "evidence-lane-plugin@"
+                            "evidence-lane-v220-testing-new"
+                        ),
+                    ],
                     "stable_selector_growth_allowed": False,
                     "raw_goal_objective_stored": False,
                 },
@@ -210,7 +263,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                         "EF87B8A129C4FA"
                     ),
                     "resource_uri": (
-                        "ui://evidence-lane/governed-console-v4.html"
+                        "ui://evidence-lane/governed-console-v6.html"
                     ),
                     "manifest_icon_fields": [
                         "interface.composerIcon",
@@ -220,7 +273,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "required_at_runtime_prewarm": True,
                 },
                 "remote_git_policy": {
-                    "effective_release": "2.1.0",
+                    "effective_release": "2.2.0",
                     "per_push_confirmation_token_required": False,
                     "automatic_push_scope": (
                         "EXACT_SOLE_REGISTERED_NON_PROTECTED_TEST_BRANCH"
@@ -251,10 +304,12 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     },
                     "interactive_codex_app_local_or_persistent": {
                         "pv_storage": "DURABLE_LOCAL_SQLITE",
-                        "tunnel_setup_frequency": (
-                            "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
+                        "tunnel_requirement": (
+                            "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
                         ),
-                        "tunnel_key_retention": "HOST_MANAGED_PERSISTENT_PROFILE",
+                        "tunnel_setup_frequency": "NONE",
+                        "tunnel_key_retention": "NOT_APPLICABLE",
+                        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
                     },
                     "interactive_codex_app_ephemeral_vm": {
                         "pv_storage": (
@@ -266,11 +321,76 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                         "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
                         "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
                     },
+                    "desktop_container_surface_scope": {
+                        "supported_container_channels": [
+                            "CHATGPT_DESKTOP_STABLE_OR_CURRENT",
+                            "CHATGPT_DESKTOP_BETA",
+                        ],
+                        "active_surface": "CODEX",
+                        "chatgpt_chat_work_scope": "OUT_OF_SCOPE_DEFERRED",
+                        "authority_binding": (
+                            "EXACT_HOST_SESSION_PLUS_NATIVE_EVIDENCE_LANE_MCP_ROUTE"
+                        ),
+                        "process_package_title_cwd_authority": False,
+                    },
                 },
                 "promotion_gate": {
                     "explicit_six_way_hil_required": True,
                     "fail_closed_on_version_mismatch": True,
                 },
+            }
+        )
+        + "\n",
+    )
+    rg_bytes = b"fixture-ripgrep-15.2.0\n"
+    _write(plugin, "toolchains/bin/windows-x86_64/rg.exe", rg_bytes)
+    _write(plugin, "toolchains/licenses/ripgrep-15.2.0/LICENSE-MIT", "MIT\n")
+    _write(plugin, "toolchains/licenses/ripgrep-15.2.0/UNLICENSE", "Unlicense\n")
+    _write(
+        plugin,
+        "toolchains/search-tools.v1.json",
+        json.dumps(
+            {
+                "schema": "evidence-lane.search-toolchain-manifest.v1",
+                "version": 1,
+                "scope": "ALL_GOVERNED_PROJECTS",
+                "resolution_order": [
+                    "PACKAGE_LOCAL_VERIFIED_BINARY",
+                    "EXPLICIT_CONFIGURED_VERIFIED_HOST_BINARY",
+                    "DETERMINISTIC_BUILTIN_FALLBACK",
+                ],
+                "auto_download_during_mcp_handshake": False,
+                "path_lookup_allowed": False,
+                "shell_execution_allowed": False,
+                "fts_authority": {
+                    "backend": "SQLITE_FTS5",
+                    "query_mode": "BOUNDED_FTS5",
+                    "scope": "PLAN_LANE_CHATLINEAGE_AND_PROJECT_SECTORS",
+                    "pointer_and_locator_required": True,
+                    "model_context_policy": "BOUNDED_QUERY_RESULTS_ONLY",
+                    "pv_package_loaded_into_model_context": False,
+                    "fallback": "FAIL_CLOSED_WHEN_SQLITE_FTS5_UNAVAILABLE",
+                },
+                "tools": [
+                    {
+                        "tool_id": "ripgrep",
+                        "role": "BOUNDED_LITERAL_CONTENT_AND_FILE_SEARCH",
+                        "version": "15.2.0",
+                        "license_spdx": "MIT OR Unlicense",
+                        "fallback_backend": "PYTHON_BOUNDED_LITERAL_SCAN",
+                        "package_binaries": {
+                            "windows-x86_64": {
+                                "path": "toolchains/bin/windows-x86_64/rg.exe",
+                                "sha256": hashlib.sha256(rg_bytes).hexdigest().upper(),
+                                "size_bytes": len(rg_bytes),
+                                "licenses": [
+                                    "toolchains/licenses/ripgrep-15.2.0/LICENSE-MIT",
+                                    "toolchains/licenses/ripgrep-15.2.0/UNLICENSE",
+                                ],
+                            }
+                        },
+                    },
+                ],
             }
         )
         + "\n",
@@ -313,7 +433,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     _write(
         plugin,
         "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1",
-        "# fixture two-slot operator\n",
+        "# fixture three-slot operator\n",
     )
     _write(
         plugin,
@@ -325,10 +445,10 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     _write(plugin, "remote_adapter/app/manifest.ts", "export const manifest = {};\n")
     _write(plugin, "remote_adapter/package.json", '{"dependencies":{}}\n')
     _write(plugin, "remote_adapter/pnpm-lock.yaml", "lockfileVersion: '9.0'\n")
-    _write(plugin, "pyproject.toml", '[project]\nname="fixture"\nversion="2.1.0"\n')
+    _write(plugin, "pyproject.toml", '[project]\nname="fixture"\nversion="2.2.0"\n')
     _write(plugin, "requirements.lock.txt", "mcp==1.28.1\n")
     _write(plugin, "src/evidence_lane_plugin/__init__.py", "VERSION = 'fixture'\n")
-    for index in range(15):
+    for index in range(17):
         _write(
             plugin,
             f"skills/skill-{index:02d}/SKILL.md",
@@ -425,8 +545,19 @@ def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(tmp_path: Path)
     assert first["governed_candidate_created"] is False
     assert first["git_invoked"] is False
     assert first["accepted_pointer_moved"] is False
-    assert first["skill_count"] == 15
+    assert first["skill_count"] == 17
     assert first["canonical_lane_count"] == 18
+    assert "tests" in first["exclusion_policy"]["directory_names"]
+    search_toolchain = first["search_toolchain"]
+    assert search_toolchain["status"] == "PASS"
+    assert search_toolchain["scope"] == "ALL_GOVERNED_PROJECTS"
+    assert search_toolchain["record_count"] == 1
+    assert [row["tool_id"] for row in search_toolchain["records"]] == [
+        "ripgrep",
+    ]
+    assert search_toolchain["fts_authority"]["backend"] == "SQLITE_FTS5"
+    assert search_toolchain["deterministic_fallbacks_required"] is True
+    assert search_toolchain["raw_paths_included"] is False
     assert Path(str(first["receipt_path"])).name.startswith("LOCAL_PACKAGE_REHEARSAL_")
 
     first_archive = Path(str(first["receipt_path"])).parent / first["archive"][  # type: ignore[index]
@@ -448,6 +579,7 @@ def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(tmp_path: Path)
         assert not any("__pycache__" in name for name in names)
         assert not any(".egg-info" in name for name in names)
         assert not any("migrated-command-skills" in name for name in names)
+        assert not any(name == "tests" or name.startswith("tests/") for name in names)
         assert names.count("_evidence_lane_rehearsal/exit-slip.json") == 1
         assert not any(name.endswith(".map") for name in names)
         assert not any(name.endswith(".tsbuildinfo") for name in names)
@@ -502,7 +634,7 @@ def test_rehearsal_rejects_meshy_dependency_or_mcp_binding(tmp_path: Path) -> No
     _write(
         plugin,
         "pyproject.toml",
-        '[project]\nname="fixture"\nversion="2.1.0"\ndependencies=["meshy-sdk==1.0.0"]\n',
+        '[project]\nname="fixture"\nversion="2.2.0"\ndependencies=["meshy-sdk==1.0.0"]\n',
     )
     with pytest.raises(PackageBoundaryError, match="Meshy"):
         _build(plugin, tmp_path / "output")
@@ -510,8 +642,8 @@ def test_rehearsal_rejects_meshy_dependency_or_mcp_binding(tmp_path: Path) -> No
 
 def test_rehearsal_fails_closed_on_skill_inventory_drift(tmp_path: Path) -> None:
     plugin = _plugin_fixture(tmp_path)
-    (plugin / "skills" / "skill-14" / "SKILL.md").unlink()
-    with pytest.raises(PackageBoundaryError, match="Expected 15 skills"):
+    (plugin / "skills" / "skill-16" / "SKILL.md").unlink()
+    with pytest.raises(PackageBoundaryError, match="Expected 17 skills"):
         _build(plugin, tmp_path / "output")
 
 

@@ -56,3 +56,11 @@ On write-capable Codex, finish a successful Boot or Resume verification with
 `render_runtime_panel` and, when a project is in scope, `render_project_panel`.
 These are read-only proof calls. Use canonical bare tool names only; a host
 display namespace is never part of the Evidence Lane tool contract.
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evi-boot`. `MCP_ROUTING_FAIL_CLOSED`: if the
+bundled `evidence-lane` dependency, an exact tool, or a required result is
+missing or ambiguous, stop and report it; never rewrite prefixes, substitute a
+tool, reorder a write, or infer success.

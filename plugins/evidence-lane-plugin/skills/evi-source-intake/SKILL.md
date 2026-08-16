@@ -33,6 +33,52 @@ bytes or secret environment-variable names in an exclusion receipt. Non-Git
 sources use the same deterministic path/content policy but do not claim a
 tracked-only boundary.
 
+## Authoritative bounded lane-query workflow
+
+`EVIDENCE_LANE_BOUNDED_LANE_QUERY_V1` is the only skill-owned workflow for
+reading lane evidence. It queries immutable lane authority progressively; it
+never loads a full PV package, Plan backlog, lane SQLite database, or raw FTS
+corpus into model context.
+
+1. Call `lane_catalog` once and resolve the supplied alias to its exact
+   `canonical_lane_id`, `sqlite_filename`, FTS table, and mutation policy. Do
+   not guess a lane name, filename, table, or filesystem location.
+2. Call `lane_status` with the exact project_id, canonical lane, and optional
+   pv_ref. Omit pv_ref only to select the current accepted pointer; name a
+   candidate explicitly and continue to label it unaccepted. Bind subsequent
+   reads to the returned project, PV, lane, bundle, pointer, SQLite/MMD/DOT
+   hashes, and freshness evidence.
+3. Call `lane_search` for one lane with the exact project/PV binding,
+   `retrieval="hybrid"`, and `limit=20` unless the task contract requires a
+   smaller value. The enforced range is 1 through 100 results and at most the
+   first 12 lexical query terms. Use `bm25` or `tfidf` only when the user or
+   task contract requires that ranking explicitly.
+4. Call `lane_fetch` only with an exact `path` returned by search. Use
+   `max_bytes=100000` unless a smaller task boundary applies; the enforced
+   range is 1 through 1,000,000 bytes. Binary exact bytes remain inside SQLite.
+5. Preserve, without relabelling, top-level project_id, pv_ref, canonical
+   lane identity, lane/bundle/pointer hashes, authority state, and freshness.
+   Preserve each hit's ref_id, path, locator, chunk_sha256, source_sha256, and
+   parser_state; for a fetch also preserve sha256, size_bytes, truncated,
+   structured facts, and freshness. `EMPTY` is a
+   valid no-hit result. `STALE`, candidate, or dirty-live-source evidence stays
+   visibly qualified and never becomes accepted truth by inference.
+
+The exact diagnostic templates are:
+
+- accepted lane SQLite:
+  `<EVIDENCE_LANE_DATA_ROOT>/projects/<project_id>/accepted/<PVn>/lanes/<canonical_lane_id>/<sqlite_filename>`
+- explicitly named candidate lane SQLite:
+  `<EVIDENCE_LANE_DATA_ROOT>/projects/<project_id>/candidates/<candidate_id>/lanes/<canonical_lane_id>/<sqlite_filename>`
+
+These templates verify returned provenance only. Do not use shell SQL, direct
+filesystem discovery, arbitrary SQL, transcript search, browser history, or
+scrollback as a substitute for `lane_catalog` -> `lane_status` ->
+`lane_search` -> bounded `lane_fetch`. Fail closed on an invalid bundle,
+project/PV/lane mismatch, missing exact path, invalid limit, or absent native
+tool. Parallel, cross-lane, and cross-project reads require their separately
+governed workflows; do not simulate them by widening this single-lane route.
+
 ## Schema-derived lane pills
 
 When the user asks to add a new Source Intake pill, call
@@ -52,3 +98,13 @@ Suggested user forms:
 
 - `/evi-source-intake ADD "<pill name>" --purpose "<need>" --schema <definition>`
 - `/evi-source-intake MODIFY "<pill name>" --schema <next-version-definition> --previous-sha256 <exact-sha256>`
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evi-source-intake`. This route names the
+schema, identity, SQLite, graph, Git-history, enrollment, and lane-query
+primitives that are intentionally low-level. `MCP_ROUTING_FAIL_CLOSED`: if the
+bundled `evidence-lane` dependency, an exact tool, or a required result is
+missing or ambiguous, stop and report it; never rewrite prefixes, substitute a
+tool, reorder a write, or infer success.

@@ -35,7 +35,16 @@ class PVReader:
             path = self.store.candidate_path(project_id, exact_reference)
         else:
             path = self.store.accepted_path(project_id, exact_reference)
-        validate_pv_package(path)
+        validation = validate_pv_package(path)
+        require(
+            validation.get("project_id") == project_id,
+            "PV_PROJECT_BINDING_MISMATCH",
+            "The immutable PV package is bound to a different governed project.",
+            status="MISMATCH",
+            requested_project_id=project_id,
+            package_project_id=validation.get("project_id"),
+            pv_ref=exact_reference,
+        )
         return path
 
     def _authority_context(
@@ -49,6 +58,13 @@ class PVReader:
             connection.execute(
                 "SELECT * FROM repositories ORDER BY repository_id DESC LIMIT 1"
             ).fetchone()
+        )
+        manifest = json.loads((package / "manifest.json").read_text(encoding="utf-8"))
+        package_pointer = json.loads(
+            (package / "active_pointer.json").read_text(encoding="utf-8")
+        )
+        project_identity = json.loads(
+            (package / "project_identity.json").read_text(encoding="utf-8")
         )
         is_candidate = "_CANDIDATE__RUN_" in package.name
         if is_candidate:
@@ -64,13 +80,99 @@ class PVReader:
             "current_accepted": authority_state == "CURRENT_ACCEPTED_PV",
             "pv_ref": package.name,
             "accepted_pv": pointer.accepted_pv,
+            "accepted_manifest_sha256": pointer.accepted_manifest_sha256,
             "accepted_pointer_generation": pointer.generation,
+            "package_project_id": project_identity.get("project_id"),
+            "package_entry_project_id": package_pointer.get("project_id"),
+            "package_entry_accepted_pv": package_pointer.get("accepted_pv"),
+            "package_entry_pointer_generation": package_pointer.get("generation"),
+            "candidate_parent_accepted_pv": manifest.get("parent_accepted_pv"),
+            "candidate_parent_manifest_sha256": manifest.get(
+                "parent_manifest_sha256"
+            ),
             "source_commit": repository["commit_sha"],
             "source_tree": repository["tree_sha"],
             "source_worktree_sha256": repository["worktree_sha256"],
             "repository_url": repository["repository_url"],
             "freshness": freshness,
             "live_truth_status": freshness["state"],
+            "retrieval_authority": "IMMUTABLE_PV_PACKAGE",
+            "live_source_used": False,
+            "browser_history_used": False,
+            "scrollback_used": False,
+            "transcript_used": False,
+        }
+
+    @staticmethod
+    def _require_candidate_overlay_binding(
+        project_id: str,
+        accepted: dict[str, Any],
+        overlay: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Fail closed unless a candidate is sealed against the current base PV."""
+
+        require(
+            accepted.get("authority_state") == "CURRENT_ACCEPTED_PV"
+            and accepted.get("current_accepted") is True
+            and accepted.get("pv_ref") == accepted.get("accepted_pv"),
+            "CANDIDATE_OVERLAY_STALE_POINTER",
+            "A candidate overlay requires the current accepted pointer as its base.",
+            status="STALE",
+            requested_base=accepted.get("pv_ref"),
+            current_accepted_pv=accepted.get("accepted_pv"),
+            current_pointer_generation=accepted.get("accepted_pointer_generation"),
+        )
+        require(
+            overlay.get("package_project_id") == project_id
+            and overlay.get("package_entry_project_id") == project_id,
+            "CANDIDATE_OVERLAY_PROJECT_BINDING_MISMATCH",
+            "The candidate overlay is not sealed to this governed project.",
+            status="MISMATCH",
+            requested_project_id=project_id,
+            package_project_id=overlay.get("package_project_id"),
+            package_entry_project_id=overlay.get("package_entry_project_id"),
+        )
+        require(
+            overlay.get("package_entry_pointer_generation")
+            == accepted.get("accepted_pointer_generation"),
+            "CANDIDATE_OVERLAY_STALE_POINTER",
+            "The candidate overlay was built against a stale pointer generation.",
+            status="STALE",
+            candidate_pointer_generation=overlay.get(
+                "package_entry_pointer_generation"
+            ),
+            current_pointer_generation=accepted.get("accepted_pointer_generation"),
+        )
+        require(
+            overlay.get("package_entry_accepted_pv") == accepted.get("pv_ref")
+            and overlay.get("candidate_parent_accepted_pv")
+            == accepted.get("pv_ref")
+            and overlay.get("candidate_parent_manifest_sha256")
+            == accepted.get("accepted_manifest_sha256"),
+            "CANDIDATE_OVERLAY_BASE_BINDING_MISMATCH",
+            "The candidate overlay is not sealed to the selected accepted-PV base.",
+            status="BLOCKED",
+            accepted_base_pv=accepted.get("pv_ref"),
+            candidate_entry_pv=overlay.get("package_entry_accepted_pv"),
+            candidate_parent_pv=overlay.get("candidate_parent_accepted_pv"),
+            accepted_manifest_sha256=accepted.get("accepted_manifest_sha256"),
+            candidate_parent_manifest_sha256=overlay.get(
+                "candidate_parent_manifest_sha256"
+            ),
+        )
+        return {
+            "status": "PASS",
+            "project_id": project_id,
+            "accepted_pv": accepted["pv_ref"],
+            "accepted_manifest_sha256": accepted["accepted_manifest_sha256"],
+            "pointer_generation": accepted["accepted_pointer_generation"],
+            "candidate_pv_ref": overlay["pv_ref"],
+            "candidate_parent_accepted_pv": overlay[
+                "candidate_parent_accepted_pv"
+            ],
+            "candidate_parent_manifest_sha256": overlay[
+                "candidate_parent_manifest_sha256"
+            ],
         }
 
     @staticmethod
@@ -168,6 +270,11 @@ class PVReader:
                 "The explicitly authorized overlay did not resolve to an unaccepted candidate.",
                 status="BLOCKED",
             )
+            overlay_binding = self._require_candidate_overlay_binding(
+                project_id,
+                accepted,
+                overlay,
+            )
             if "STALE" in {accepted["status"], overlay["status"]}:
                 combined_status = "STALE"
             elif accepted["results"] or overlay["results"]:
@@ -191,12 +298,15 @@ class PVReader:
                     expected_authorization.encode("utf-8")
                 ),
                 "candidate_overlay_authorization_stored": False,
+                "candidate_overlay_binding": overlay_binding,
                 "accepted_and_candidate_results_separated": True,
                 "no_hit_is_valid": not (
                     accepted["results"] or overlay["results"]
                 ),
                 "scrollback_used": False,
                 "transcript_used": False,
+                "browser_history_used": False,
+                "live_source_used": False,
                 "private_reasoning_stored": False,
             }
         package = self.resolve(project_id, pv_ref)
@@ -364,6 +474,8 @@ class PVReader:
             "no_hit_is_valid": not results,
             "scrollback_used": False,
             "transcript_used": False,
+            "browser_history_used": False,
+            "live_source_used": False,
             "private_reasoning_stored": False,
             "warnings": (
                 ["Explicit candidate query; results are not accepted project truth."]

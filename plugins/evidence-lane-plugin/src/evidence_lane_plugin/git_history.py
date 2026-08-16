@@ -40,6 +40,7 @@ def _git(root: Path, *args: str, timeout: int = 180) -> bytes:
         capture_output=True,
         check=False,
         timeout=timeout,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     if completed.returncode != 0:
         raise EvidenceLaneError(
@@ -341,6 +342,7 @@ def _read_blobs(root: Path, blob_shas: list[str]) -> dict[str, bytes]:
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     require(
         process.stdin is not None and process.stdout is not None,

@@ -38,6 +38,24 @@ the locked source verification and projection-manifest/hash checks pass. A
 mutable development checkout rebuilds it. The projection lives under the
 installation data root, never in source, ChatLineage, or PV bytes.
 
+### Dual identity law
+
+Flash status and receipts expose two separate sealed manifests:
+
+- the immutable source-authority subset contains only the exact ENV/UOP SQLite
+  and PNG members independently shared with the audited source packet;
+- the Codex projection contains the MMD, DOT, SVG, law, lock, prompt, and audit
+  members plus the locked Flash manifest hash, package version and manifest,
+  projection schema, and generator hashes.
+
+The source-authority manifest keeps `PARTIAL_INTEGRITY`, the subset-only usable
+boundary, and every missing declared parent-packet member visible. The Codex
+projection is explicitly derived and is never evidence that the entire parent
+packet was embedded byte-for-byte. The runtime cache key and build identity
+bind both manifests. A changed derived member, manifest, version, or generator
+therefore gets a different projection/cache/build identity; an installed
+receipt cannot reuse a changed projection under the same plugin version.
+
 ## Parent-packet forensic result
 
 The supplied parent packet cannot be called intact:

@@ -1,0 +1,9 @@
+interface:
+  display_name: "Add Evidence Lane Plugin"
+  short_description: "Register one bounded connector grant"
+  default_prompt: "Use $evi-additional-plugin to register one bounded connector or toolchain grant."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "evidence-lane"
+      description: "Evidence Lane native MCP server"

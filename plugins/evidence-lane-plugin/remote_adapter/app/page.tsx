@@ -9,12 +9,15 @@ import { artifactContract, painLedger, proofMetrics } from "./_data/site";
 import { deltaLedgerBoundary } from "./_data/delta-ledger";
 
 const routes = [
-  ["Architecture", "See how parallel lane computation meets serial lifecycle authority.", "/architecture", "01"],
-  ["18 lanes", "Open each lane's tools, settings, SQLite schema, process, and four files.", "/lanes", "02"],
-  ["Operators", "Inspect mode formulas, ENV/UOP laws, operators, and lane-specific HIL effects.", "/operators", "03"],
-  ["Prompt Studio", "Ask grounded product questions and see the evidence boundary in the answer.", "/studio", "04"],
-  ["Proof", "Separate verified behavior, historical evidence, open blockers, and candidate claims.", "/proof", "05"],
-  ["Provenance", "Audit source roles and credits without confusing them with the product itself.", "/provenance", "06"],
+  ["Skills", "Inspect all seventeen governed skills and their authority boundaries.", "/skills", "01"],
+  ["Native MCP", "See the package-local server and its 83 governed action contracts.", "/mcp", "02"],
+  ["Hooks", "Inspect all eight lifecycle events and their transport-only boundary.", "/hooks", "03"],
+  ["Architecture", "See how parallel lane computation meets serial lifecycle authority.", "/architecture", "04"],
+  ["18 lanes", "Open each lane's tools, settings, SQLite schema, process, and four files.", "/lanes", "05"],
+  ["Operators", "Inspect mode formulas, ENV/UOP laws, operators, and lane-specific HIL effects.", "/operators", "06"],
+  ["Prompt Studio", "Ask grounded product questions and see the evidence boundary in the answer.", "/studio", "07"],
+  ["Proof", "Separate verified behavior, historical evidence, open blockers, and candidate claims.", "/proof", "08"],
+  ["Provenance", "Audit source roles and credits without confusing them with the product itself.", "/provenance", "09"],
 ] as const;
 
 export default function Home() {
@@ -22,7 +25,7 @@ export default function Home() {
     <main>
       <section className="homeHero orbitHeroFrame shell">
         <MotionReveal className="heroCopy">
-          <span className="eyebrow"><i />Evidence Lane 2.0 for Codex</span>
+          <span className="eyebrow"><i />Evidence Lane 2.2 for Codex</span>
           <h1>Resume from verified project truth - not another re-explanation.</h1>
           <p>
             The first governed PV parses and seals the bounded project. Later tasks query its
@@ -159,8 +162,8 @@ export default function Home() {
           <span className="kicker">Codex capability profiles</span>
           <h2>The same governance law meets each Codex runtime at its real storage boundary.</h2>
           <p>
-            The installed package exposes all 15 governed skills and the complete 62-action native
-            catalog: 21 reads and 41 writes. Desktop and persistent profiles use durable local
+            The installed package exposes all 17 governed skills and the complete 83-action native
+            catalog: 26 reads and 57 writes. Desktop and persistent profiles use durable local
             SQLite. Headless API entry reflashes ENV/UOP for each invocation. Ephemeral profiles
             require a durable mount or configured transactional connector. No profile can infer
             acceptance, Fuse, or pointer movement from installation or execution success.

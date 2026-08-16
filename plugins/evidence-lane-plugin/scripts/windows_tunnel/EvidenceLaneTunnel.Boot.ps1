@@ -1,20 +1,35 @@
 [CmdletBinding()]
 param(
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200",
-    [string]$ProfileName = "evidence_lane_v200_transport",
-    [string]$ProfileDir = "$env:APPDATA\tunnel-client"
+    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build",
+    [string]$ProfileName = "evidence_lane_v220_stable_build_transport",
+    [string]$ProfileDir = "$env:APPDATA\tunnel-client",
+    [string]$ReleaseToken = "v220"
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $expectedClientSha256 = "D893D8127EEE35070D265C1BE29BFE008F8D9FCB476E7FEBF56C8FDC6C0615C8"
+$markerFile = Join-Path $RuntimeRoot "evidence-lane-tunnel-installation.json"
+if (-not (Test-Path -LiteralPath $markerFile -PathType Leaf)) {
+    throw "The version-bound Evidence Lane tunnel marker is missing."
+}
+$marker = Get-Content -LiteralPath $markerFile -Raw | ConvertFrom-Json
+if (
+    $marker.schema -ne "evidence-lane.versioned-secure-mcp-tunnel-installation.v1" -or
+    [string]$marker.release_token -ne $ReleaseToken -or
+    [IO.Path]::GetFullPath([string]$marker.runtime_root) -ne [IO.Path]::GetFullPath($RuntimeRoot) -or
+    [string]$marker.profile_name -ne $ProfileName
+) {
+    throw "The boot request does not match the exact release-bound tunnel marker."
+}
+$filePrefix = "evidence_lane_${ReleaseToken}"
 $client = Join-Path $RuntimeRoot "bin\tunnel-client-v0.0.10.exe"
 $secretFile = Join-Path $RuntimeRoot "secrets\control-plane-runtime-key.dpapi"
-$healthUrlFile = Join-Path $RuntimeRoot "evidence_lane_v200_health.url"
-$pidFile = Join-Path $RuntimeRoot "evidence_lane_v200_tunnel.pid"
-$daemonLog = Join-Path $RuntimeRoot "evidence_lane_v200_tunnel.log"
-$operatorLog = Join-Path $RuntimeRoot "evidence_lane_v200_operator.log"
+$healthUrlFile = Join-Path $RuntimeRoot "${filePrefix}_health.url"
+$pidFile = Join-Path $RuntimeRoot "${filePrefix}_tunnel.pid"
+$daemonLog = Join-Path $RuntimeRoot "${filePrefix}_tunnel.log"
+$operatorLog = Join-Path $RuntimeRoot "${filePrefix}_operator.log"
 
 function Write-OperatorEvent {
     param(

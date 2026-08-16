@@ -22,9 +22,8 @@ from typing import Any
 SCHEMA = "evidence-lane.non-lifecycle-local-package-rehearsal.v1"
 BOUNDARY = "NON_LIFECYCLE_LOCAL_PACKAGE_REHEARSAL"
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
-EXPECTED_SKILL_COUNT = 15
+EXPECTED_SKILL_COUNT = 17
 EXPECTED_LANE_COUNT = 18
-FALLBACK_RELEASE = "2.0.0"
 EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     "routing_axes_independent": True,
     "account_tier_affects_routing": False,
@@ -39,14 +38,28 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     },
     "interactive_codex_app_local_or_persistent": {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
-        "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
-        "tunnel_key_retention": "HOST_MANAGED_PERSISTENT_PROFILE",
+        "tunnel_requirement": "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
+        "tunnel_setup_frequency": "NONE",
+        "tunnel_key_retention": "NOT_APPLICABLE",
+        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
     },
     "interactive_codex_app_ephemeral_vm": {
         "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
         "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
         "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
         "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+    },
+    "desktop_container_surface_scope": {
+        "supported_container_channels": [
+            "CHATGPT_DESKTOP_STABLE_OR_CURRENT",
+            "CHATGPT_DESKTOP_BETA",
+        ],
+        "active_surface": "CODEX",
+        "chatgpt_chat_work_scope": "OUT_OF_SCOPE_DEFERRED",
+        "authority_binding": (
+            "EXACT_HOST_SESSION_PLUS_NATIVE_EVIDENCE_LANE_MCP_ROUTE"
+        ),
+        "process_package_title_cwd_authority": False,
     },
 }
 EXPECTED_BEHAVIOR_OWNERSHIP = {
@@ -80,9 +93,10 @@ EXPECTED_STABLE_ACTIVATION_GATE = {
     "external_release_receipt_sealer": (
         "scripts/codex_release/seal_external_release_receipts.py"
     ),
-    "stable_update_helper": (
-        "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1"
-    ),
+    "stable_install_command": "scripts/codex_release/install_codex_stable.py",
+    "stable_update_helper": "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
+    "install_completed_before_restart_helper": True,
+    "restart_helper_installs_plugin": False,
     "stable_update_reopens_same_bound_host_app": True,
     "stable_update_rebinds_general_goal_recovery": True,
     "release_authority_schema": (
@@ -129,7 +143,7 @@ EXPECTED_STABLE_ACTIVATION_GATE = {
     "all_configured_commit_checks_required_before_stable_install": True,
     "one_stable_update_per_integration_bundle": True,
     "git_marketplace_name": "evidence-lane-github",
-    "git_marketplace_display_name": "GitLane Stable 2.1",
+    "git_marketplace_display_name": "Main Git Plugin Version",
     "git_marketplace_source": "rathee000001/evidence_lane_plugin",
     "one_time_legacy_stable_selector_migration_allowed": True,
     "post_proof_obsolete_cleanup_required": True,
@@ -142,7 +156,7 @@ EXPECTED_BRAND_IDENTITY = {
     "display_name": "Evidence Lane",
     "icon_path": "assets/evidence-lane-icon.png",
     "icon_sha256": "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA",
-    "resource_uri": "ui://evidence-lane/governed-console-v4.html",
+    "resource_uri": "ui://evidence-lane/governed-console-v6.html",
     "manifest_icon_fields": ["interface.composerIcon", "interface.logo"],
     "required_at_stage": True,
     "required_at_runtime_prewarm": True,
@@ -166,6 +180,7 @@ EXCLUDED_DIRECTORY_NAMES = frozenset(
         "dist",
         "migrated-command-skills",
         "node_modules",
+        "tests",
     }
 )
 EXCLUDED_FILE_NAMES = frozenset(
@@ -212,6 +227,10 @@ REQUIRED_MEMBERS = frozenset(
         "scripts/codex_release/install_codex_stable.py",
         "scripts/codex_release/seal_codex_git_ci_release_authority.py",
         "scripts/codex_release/seal_external_release_receipts.py",
+        "toolchains/search-tools.v1.json",
+        "toolchains/bin/windows-x86_64/rg.exe",
+        "toolchains/licenses/ripgrep-15.2.0/LICENSE-MIT",
+        "toolchains/licenses/ripgrep-15.2.0/UNLICENSE",
     }
 )
 SEPARATE_HOST_RELATIVE_FILES = frozenset({"release-channels.json"})
@@ -342,6 +361,138 @@ def _source_inventory(plugin_root: Path) -> tuple[list[dict[str, Any]], dict[str
     return records, sources
 
 
+def _search_toolchain_identity(
+    plugin_root: Path,
+    release_channels: dict[str, Any],
+) -> dict[str, Any]:
+    dependency_contract = dict(
+        (release_channels.get("dependency_toolchains") or {}).get("search_v1") or {}
+    )
+    if dependency_contract != {
+        "required": True,
+        "scope": "ALL_GOVERNED_PROJECTS",
+        "manifest": "toolchains/search-tools.v1.json",
+        "package_local_tools": [
+            "ripgrep@15.2.0/windows-x86_64",
+        ],
+        "authoritative_full_text_backend": "SQLITE_FTS5",
+        "model_context_policy": "BOUNDED_QUERY_RESULTS_ONLY",
+        "pv_package_loaded_into_model_context": False,
+        "resolution_order": [
+            "PACKAGE_LOCAL_VERIFIED_BINARY",
+            "EXPLICIT_CONFIGURED_VERIFIED_HOST_BINARY",
+            "DETERMINISTIC_BUILTIN_FALLBACK",
+        ],
+        "fallbacks_required": True,
+        "path_lookup_allowed": False,
+        "auto_download_during_mcp_handshake": False,
+    }:
+        raise PackageBoundaryError("The governed search dependency contract drifted.")
+    manifest_path = plugin_root / dependency_contract["manifest"]
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise PackageBoundaryError(
+            "The governed search dependency manifest is missing."
+        ) from exc
+    tools = manifest.get("tools")
+    if (
+        manifest.get("schema") != "evidence-lane.search-toolchain-manifest.v1"
+        or manifest.get("version") != 1
+        or manifest.get("scope") != "ALL_GOVERNED_PROJECTS"
+        or manifest.get("resolution_order")
+        != dependency_contract["resolution_order"]
+        or manifest.get("auto_download_during_mcp_handshake") is not False
+        or manifest.get("path_lookup_allowed") is not False
+        or manifest.get("shell_execution_allowed") is not False
+        or not isinstance(tools, list)
+        or [row.get("tool_id") for row in tools if isinstance(row, dict)]
+        != ["ripgrep"]
+        or manifest.get("fts_authority")
+        != {
+            "backend": "SQLITE_FTS5",
+            "query_mode": "BOUNDED_FTS5",
+            "scope": "PLAN_LANE_CHATLINEAGE_AND_PROJECT_SECTORS",
+            "pointer_and_locator_required": True,
+            "model_context_policy": "BOUNDED_QUERY_RESULTS_ONLY",
+            "pv_package_loaded_into_model_context": False,
+            "fallback": "FAIL_CLOSED_WHEN_SQLITE_FTS5_UNAVAILABLE",
+        }
+    ):
+        raise PackageBoundaryError("The governed search dependency manifest drifted.")
+    expected_tools = {
+        "ripgrep": {
+            "version": "15.2.0",
+            "role": "BOUNDED_LITERAL_CONTENT_AND_FILE_SEARCH",
+            "license_spdx": "MIT OR Unlicense",
+            "fallback_backend": "PYTHON_BOUNDED_LITERAL_SCAN",
+        },
+    }
+    records: list[dict[str, Any]] = []
+    for tool in tools:
+        if not isinstance(tool, dict):
+            raise PackageBoundaryError("A governed search dependency record is invalid.")
+        expected = expected_tools[str(tool.get("tool_id") or "")]
+        if any(tool.get(key) != value for key, value in expected.items()):
+            raise PackageBoundaryError("A governed search dependency identity drifted.")
+        package_binaries = tool.get("package_binaries")
+        if not isinstance(package_binaries, dict) or set(package_binaries) != {
+            "windows-x86_64"
+        }:
+            raise PackageBoundaryError("A governed search binary platform drifted.")
+        binary_record = package_binaries["windows-x86_64"]
+        if not isinstance(binary_record, dict):
+            raise PackageBoundaryError("A governed search binary record is invalid.")
+        binary = (plugin_root / str(binary_record.get("path") or "")).resolve()
+        licenses = [
+            (plugin_root / str(item)).resolve()
+            for item in binary_record.get("licenses") or []
+        ]
+        try:
+            binary.relative_to(plugin_root)
+            for license_path in licenses:
+                license_path.relative_to(plugin_root)
+        except ValueError as exc:
+            raise PackageBoundaryError(
+                "A governed search dependency escaped the package."
+            ) from exc
+        if (
+            not binary.is_file()
+            or binary.stat().st_size != binary_record.get("size_bytes")
+            or _sha256_file(binary) != binary_record.get("sha256")
+            or not licenses
+            or any(not item.is_file() for item in licenses)
+        ):
+            raise PackageBoundaryError("A governed search dependency hash drifted.")
+        records.append(
+            {
+                "tool_id": tool["tool_id"],
+                **expected,
+                "platform_id": "windows-x86_64",
+                "binary_sha256": binary_record["sha256"],
+                "size_bytes": binary_record["size_bytes"],
+                "license_sha256": sorted(_sha256_file(item) for item in licenses),
+            }
+        )
+    body = {
+        "schema": "evidence-lane.packaged-search-toolchain.v1",
+        "status": "PASS",
+        "scope": "ALL_GOVERNED_PROJECTS",
+        "manifest_sha256": _sha256_file(manifest_path),
+        "fts_authority": manifest["fts_authority"],
+        "resolution_order": dependency_contract["resolution_order"],
+        "records": records,
+        "record_count": len(records),
+        "path_lookup_allowed": False,
+        "shell_execution_allowed": False,
+        "auto_download_during_mcp_handshake": False,
+        "deterministic_fallbacks_required": True,
+        "raw_paths_included": False,
+    }
+    body["identity_sha256"] = _sha256_bytes(_json_bytes(body))
+    return body
+
+
 def _validate_sha1(label: str, value: str) -> str:
     normalized = value.strip().casefold()
     if re.fullmatch(r"[0-9a-f]{40}", normalized) is None:
@@ -456,11 +607,21 @@ def build_rehearsal(
     base_commit: str,
     base_tree: str,
     expected_version: str,
+    package_version: str | None = None,
 ) -> dict[str, Any]:
     plugin_root = plugin_root.resolve()
     output_dir = output_dir.resolve()
     base_commit = _validate_sha1("base_commit", base_commit)
     base_tree = _validate_sha1("base_tree", base_tree)
+    package_version = package_version or expected_version
+    if (
+        re.fullmatch(r"\d+\.\d+\.\d+\+codex\.[0-9A-Za-z.-]+", package_version)
+        is None
+        or package_version.split("+", 1)[0] != expected_version.split("+", 1)[0]
+    ):
+        raise PackageBoundaryError(
+            "The local package version must be a fresh Codex build on the same release line."
+        )
     if not plugin_root.is_dir():
         raise PackageBoundaryError(f"Plugin root does not exist: {plugin_root}")
 
@@ -492,7 +653,8 @@ def build_rehearsal(
         )
     )
     stable = release_channels.get("stable", {})
-    fallback = release_channels.get("fallback", {})
+    branch_recovery = release_channels.get("branch_recovery", {})
+    local_testing = release_channels.get("local_testing", {})
     live_slots = release_channels.get("live_slot_policy", {})
     failover = release_channels.get("failover_operator", {})
     goal_recovery = release_channels.get("goal_recovery", {})
@@ -505,9 +667,9 @@ def build_rehearsal(
     if (
         release_channels.get("schema") != "evidence-lane.codex-release-channel.v2"
         or stable.get("release") != expected_version.split("+", 1)[0]
-        or stable.get("slot_role") != "stable-build"
+        or stable.get("slot_role") != "main-git-release"
         or stable.get("codex_marketplace_slot") != "evidence-lane-github"
-        or stable.get("marketplace_display_name") != "GitLane Stable 2.1"
+        or stable.get("marketplace_display_name") != "Main Git Plugin Version"
         or stable.get("install_source") != "GIT_EXACT_COMMIT"
         or stable.get("stable_selector_is_persistent") is not True
         or stable.get("stable_updates_reinstall_in_place") is not True
@@ -519,31 +681,51 @@ def build_rehearsal(
             stable.get("native_write_tool_count"),
             stable.get("skill_count"),
         )
-        != (62, 21, 41, 15)
+        != (83, 26, 57, EXPECTED_SKILL_COUNT)
         or stable.get("codex_apps_allowed") is not False
         or stable.get("generated_namespace_allowed") is not False
         or stable.get("direct_stdio_fallback_allowed") is not False
         or stable.get("google_drive_bundled") is not False
-        or fallback.get("release") != FALLBACK_RELEASE
-        or fallback.get("slot_role") != "fallback"
-        or fallback.get("enabled") is not False
-        or fallback.get("materialization_gate")
-        != "POST_EXACT_PV11_APPROVE_AND_NATIVE_FUSE"
-        or fallback.get("accepted_pv") != "PV11"
-        or fallback.get("accepted_generation") != 11
-        or fallback.get("byte_frozen") is not True
-        or fallback.get("package_must_equal_accepted_pv") is not True
-        or live_slots.get("exact_slot_count_after_pv11_acceptance") != 2
-        or live_slots.get("allowed_slots") != ["stable-build", "fallback"]
+        or branch_recovery.get("release") != expected_version.split("+", 1)[0]
+        or branch_recovery.get("slot_role") != "branch-commit-recovery"
+        or branch_recovery.get("codex_marketplace_slot")
+        != "evidence-lane-v220-stable-recovery"
+        or branch_recovery.get("marketplace_display_name")
+        != "Branch Commit Git Recovery"
+        or branch_recovery.get("byte_frozen_between_branch_checkpoints") is not True
+        or branch_recovery.get("must_not_follow_uncommitted_local_bytes") is not True
+        or local_testing.get("release_line") != expected_version.split("+", 1)[0]
+        or local_testing.get("slot_role") != "mutable-local-testing"
+        or local_testing.get("codex_marketplace_slot")
+        != "evidence-lane-v220-testing-new"
+        or local_testing.get("marketplace_display_name") != "Local Testing Slot"
+        or local_testing.get("same_marketplace_selector_reused") is not True
+        or local_testing.get("fresh_package_version_per_local_build") is not True
+        or local_testing.get("helper_installs_plugin") is not False
+        or live_slots.get("exact_slot_count") != 3
+        or live_slots.get("allowed_slots")
+        != [
+            "main-git-release",
+            "branch-commit-recovery",
+            "mutable-local-testing",
+        ]
+        or live_slots.get("allowed_marketplaces")
+        != [
+            "evidence-lane-github",
+            "evidence-lane-v220-stable-recovery",
+            "evidence-lane-v220-testing-new",
+        ]
         or live_slots.get("max_enabled_plugin_count") != 1
-        or live_slots.get("exact_registered_plugin_count") != 2
+        or live_slots.get("exact_registered_plugin_count") != 3
         or live_slots.get("stable_selector_growth_allowed") is not False
         or live_slots.get("max_active_native_mcp_count") != 1
         or live_slots.get("max_active_tunnel_count") != 1
         or failover.get("script")
         != "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
         or failover.get("registry_schema")
-        != "evidence-lane.codex-two-slot-registry.v1"
+        != "evidence-lane.codex-three-slot-registry.v1"
+        or failover.get("failure_target_slot") != "branch-commit-recovery"
+        or failover.get("mutable_local_failure_never_targets_main_git") is not True
         or failover.get("single_transient_error_switch_allowed") is not False
         or goal_recovery.get("script")
         != "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1"
@@ -565,7 +747,16 @@ def build_rehearsal(
         or goal_recovery.get("state_travel_allowed") is not False
         or goal_recovery.get("candidate_hil_pointer_or_git_mutation_allowed")
         is not False
-        or goal_recovery.get("requires_stable_enabled_fallback_disabled") is not True
+        or goal_recovery.get(
+            "requires_exactly_one_enabled_allowed_three_slot_selector"
+        )
+        is not True
+        or goal_recovery.get("allowed_runtime_selectors")
+        != [
+            "evidence-lane-plugin@evidence-lane-github",
+            "evidence-lane-plugin@evidence-lane-v220-stable-recovery",
+            "evidence-lane-plugin@evidence-lane-v220-testing-new",
+        ]
         or goal_recovery.get("stable_selector_growth_allowed") is not False
         or goal_recovery.get("raw_goal_objective_stored") is not False
         or behavior_ownership != EXPECTED_BEHAVIOR_OWNERSHIP
@@ -604,10 +795,25 @@ def build_rehearsal(
         is not False
     ):
         raise PackageBoundaryError(
-            "The stable-build, fallback, or release-history contract drifted."
+            "The three-slot local/Git/recovery contract drifted."
         )
 
+    search_toolchain = _search_toolchain_identity(plugin_root, release_channels)
     source_records, source_paths = _source_inventory(plugin_root)
+    source_overrides: dict[str, bytes] = {}
+    if package_version != expected_version:
+        packaged_manifest = dict(plugin_manifest)
+        packaged_manifest["version"] = package_version
+        packaged_manifest_bytes = _json_bytes(packaged_manifest)
+        manifest_member = ".codex-plugin/plugin.json"
+        source_overrides[manifest_member] = packaged_manifest_bytes
+        for record in source_records:
+            if record["path"] == manifest_member:
+                record["bytes"] = len(packaged_manifest_bytes)
+                record["sha256"] = _sha256_bytes(packaged_manifest_bytes)
+                break
+        else:
+            raise PackageBoundaryError("The package-local plugin manifest is missing.")
     source_names = {record["path"] for record in source_records}
     missing = sorted(REQUIRED_MEMBERS - source_names)
     if missing:
@@ -628,6 +834,7 @@ def build_rehearsal(
             "member_count": len(source_records),
             "total_bytes": sum(record["bytes"] for record in source_records),
         },
+        "search_toolchain": search_toolchain,
         "exclusion_policy": {
             "directory_names": sorted(EXCLUDED_DIRECTORY_NAMES),
             "directory_suffixes": [".egg-info"],
@@ -652,11 +859,14 @@ def build_rehearsal(
         "schema": f"{SCHEMA}.exit-slip",
         "boundary": BOUNDARY,
         "status": "LOCAL_REHEARSAL_VERIFIED_NOT_A_GOVERNED_CANDIDATE",
-        "version": expected_version,
+        "version": package_version,
+        "source_version": expected_version,
+        "fresh_local_package_version": package_version != expected_version,
         "base_anchor": {"commit": base_commit, "tree": base_tree},
         "working_source_manifest_sha256": source_manifest_sha,
         "skill_count": skill_inventory["count"],
         "canonical_lane_count": EXPECTED_LANE_COUNT,
+        "search_toolchain": search_toolchain,
         "synthetic_metadata_sha256": synthetic_hashes,
         "negative_proofs": {
             "cache_or_runtime_members": 0,
@@ -693,7 +903,7 @@ def build_rehearsal(
             }
         )
     )[:16]
-    archive_name = f"evidence-lane-{expected_version}-local-rehearsal-{descriptor}.zip"
+    archive_name = f"evidence-lane-{package_version}-local-rehearsal-{descriptor}.zip"
     final_archive = output_dir / archive_name
     handle, raw_temporary = tempfile.mkstemp(
         prefix=".row181-package-", suffix=".tmp", dir=output_dir
@@ -703,7 +913,9 @@ def build_rehearsal(
     try:
         with zipfile.ZipFile(temporary, "w", allowZip64=True) as archive:
             for name in all_names:
-                if name in synthetic:
+                if name in source_overrides:
+                    content = source_overrides[name]
+                elif name in synthetic:
                     content = synthetic[name]
                 else:
                     content = source_paths[name].read_bytes()
@@ -736,9 +948,14 @@ def build_rehearsal(
         },
         "base_anchor": {"commit": base_commit, "tree": base_tree},
         "working_source_manifest_sha256": source_manifest_sha,
+        "source_version": expected_version,
+        "package_version": package_version,
+        "fresh_local_package_version": package_version != expected_version,
         "source_member_count": len(source_records),
         "skill_count": skill_inventory["count"],
         "canonical_lane_count": EXPECTED_LANE_COUNT,
+        "search_toolchain": search_toolchain,
+        "exclusion_policy": source_manifest["exclusion_policy"],
         "governed_candidate_created": False,
         "git_invoked": False,
         "accepted_pointer_moved": False,
@@ -758,6 +975,13 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--base-commit", required=True)
     parser.add_argument("--base-tree", required=True)
     parser.add_argument("--expected-version", required=True)
+    parser.add_argument(
+        "--package-version",
+        help=(
+            "Fresh package-local version for reinstalling the same mutable testing "
+            "marketplace without reusing an installed cache path."
+        ),
+    )
     return parser
 
 
@@ -769,6 +993,7 @@ def main() -> int:
         base_commit=args.base_commit,
         base_tree=args.base_tree,
         expected_version=args.expected_version,
+        package_version=args.package_version,
     )
     print(json.dumps(receipt, indent=2, sort_keys=True))
     return 0

@@ -17,3 +17,11 @@ runtime must be `DETACHED`: ENV/UOP Flash context and visible prompt/response
 capture are off. Preserve the plugin installation, locked Flash verification
 receipt, immutable store, lineage, backlog, candidates, accepted PVs, and
 pointer history. A later `/evi-boot` re-verifies and reattaches them.
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evi-exit-boot`. `MCP_ROUTING_FAIL_CLOSED`: if the
+bundled `evidence-lane` dependency, an exact tool, or a required result is
+missing or ambiguous, stop and report it; never rewrite prefixes, substitute a
+tool, reorder a write, or infer success.

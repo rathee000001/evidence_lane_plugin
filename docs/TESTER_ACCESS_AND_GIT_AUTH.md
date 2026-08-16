@@ -8,8 +8,31 @@ This document explains the access path; it does not create new legal rights.
 
 ## Tester path
 
-1. The tester requests repository access under their own GitHub identity and
-   reviews `LICENSE.md`, `COPYRIGHT.md`, `THIRD_PARTY_NOTICES.md`, and the test
+The default external tester path is now a signed installer artifact, not read
+access to the private development repository. Repository access is an exceptional
+contributor path requiring a separate explicit owner grant; it is not created by
+an artifact entitlement, GitHub App installation, successful check, or test
+invitation.
+
+### Signed-artifact tester path
+
+1. The tester submits a bounded request under a host-verified identity and the
+   exact artifact-only scope.
+2. A human owner approves the exact request and terms hash.
+3. Evidence Lane records an entitlement for one artifact identity and SHA-256,
+   then issues a short-lived signed authorization without persisting the bearer
+   value.
+4. Download verification rejects expiry, revocation, missing entitlement, or
+   artifact substitution. The flow provides no development-repository read or
+   write credential.
+5. Installation and feedback produce bounded receipts; revocation or expiry
+   closes access. Production registration, credentials, external distribution,
+   and publication remain separate post-HIL actions.
+
+### Explicit contributor repository path
+
+1. The contributor requests repository access under their own GitHub identity and
+   reviews `LICENSE.md`, `docs/COPYRIGHT.md`, `THIRD_PARTY_NOTICES.md`, and the test
    scope before installation.
 2. The repository owner grants only the required repository role and test
    branch scope. Production secrets, owner credentials, accepted project data,

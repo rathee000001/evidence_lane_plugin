@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from evidence_lane_plugin.codex_turn_control import package_surface_inventory
+from evidence_lane_plugin.constants import NATIVE_TOOL_COUNT
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from evidence_lane_plugin.mcp_apps import build_project_panel_snapshot
 
@@ -20,7 +21,7 @@ def _native_route_receipt() -> dict[str, Any]:
         "server_identity": "evidence-lane",
         "canonical_tool_namespace": "mcp__evidence_lane__",
         "exposure_profile": "FULL_LIFECYCLE",
-        "tool_count": 62,
+        "tool_count": NATIVE_TOOL_COUNT,
         "tool_names_unique": True,
         "project_route_argument_required": True,
         "cross_project_fallback_allowed": False,

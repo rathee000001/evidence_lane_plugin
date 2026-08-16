@@ -75,6 +75,7 @@ def _git(*arguments: str) -> str:
         capture_output=True,
         text=True,
         encoding="utf-8",
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     return completed.stdout.strip()
 

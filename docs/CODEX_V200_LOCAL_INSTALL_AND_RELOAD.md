@@ -1,6 +1,8 @@
-# Evidence Lane 2.0 local Codex installation and reload
+# Evidence Lane Codex local installation and reload
 
-Evidence Lane 2.0 uses Codex's supported local-marketplace path. It never edits
+The historical `codex-v200` storage/schema names remain compatibility
+identifiers; they do not describe the current package release. Evidence Lane
+2.2 uses Codex's supported local-marketplace path. It never edits
 `~/.codex/plugins/cache` directly. Before PV11 acceptance, cleanup is deferred.
 After exact standalone `APPROVE` and native Fuse, supported plugin management
 normalizes the live registry/cache to the enabled stable-build slot and the
@@ -18,8 +20,8 @@ restart after a local plugin changes:
    `scripts/build_release_candidate_rehearsal.py`. This artifact is for local
    staging and tests only; its boundary explicitly forbids live activation.
 2. Run `scripts/codex_release/install_codex_stable.py` first without
-   `--activate`. It verifies the archive, exact v2 manifest, 62/21/41 catalog
-   contract, fifteen skills, host separation, and prior-release retention. For
+   `--activate`. It verifies the archive, exact v2 manifest, 83/26/57 catalog
+   contract, seventeen skills, host separation, and prior-release retention. For
    an update, pass the exact prior host-loaded stable installation receipt and
    its SHA-256 as the comparison baseline; a staged-but-never-restarted cache
    can never silently become the baseline. Legacy receipts that counted hook
@@ -107,8 +109,10 @@ Register` after the exact task-binding receipt exists. Registration is general
 to all governed Codex Goal tasks under the current Windows user; it is not tied
 to this repository, one test project, or one stable build. The manager installs
 one durable copy under
-`EvidenceLanePV/installations/codex-v200/goal-recovery`, registers one current-
-user `AtLogOn` task, and stores one sealed binding per exact Codex task UUID.
+`EvidenceLanePV/installations/helpers/v220/goal-recovery`, registers the
+versioned current-user `Evidence Lane Codex Goal Recovery v220` `AtLogOn` task,
+and stores one sealed binding per exact Codex task UUID. Prior versioned helpers
+are retained and disabled, not deleted.
 
 At logon the manager verifies the binding, two-slot invariant, persisted task,
 and active Goal read-only, then requests the exact task deep link once for that
@@ -155,8 +159,9 @@ The installed inventory reports hook concepts separately: eight registered
 events, six command handlers, seven package files including `hooks.json`, and
 the exact event names. It does not label a configuration file as an additional
 hook.
-The skill count remains fifteen until a genuinely distinct workflow is added;
-version changes alone do not manufacture a new skill.
+The current package has seventeen skills. Canon and AI/Agent Learning are
+independently governed workflows, not version-only aliases; version changes by
+themselves still do not manufacture a new skill.
 
 Installation and runtime activation are separate facts. An active governed
 session means prompt/response capture is configured; `runtime_activation_status`

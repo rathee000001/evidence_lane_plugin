@@ -7,6 +7,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any, cast
 
+from .capture_routing import CaptureRouteAuthority
 from .constants import LINEAGE_SCHEMA
 from .errors import EvidenceLaneError, require
 from .hashing import atomic_write_bytes, canonical_json_bytes, sha256_bytes
@@ -580,8 +581,32 @@ class ChatLineage:
                 "A secret-like value remained after ChatLineage redaction.",
                 status="BLOCKED",
             )
-        events = self._events()
         exact_event_id = event_id or prefixed_id("evt")
+        capture_authority = CaptureRouteAuthority.for_lineage(self.path)
+        if capture_authority is not None:
+            try:
+                capture_decision = capture_authority.classify_and_record(
+                    event_id=exact_event_id,
+                    event_type=event_type,
+                    visible_payload=safe_payload,
+                    occurred_at=occurred_at,
+                    session_id=session_id,
+                    task_id=task_id,
+                    run_id=run_id,
+                )
+            except EvidenceLaneError as exc:
+                if exc.code != "CAPTURE_DECISION_EVENT_ID_CONFLICT":
+                    raise
+                raise EvidenceLaneError(
+                    "LINEAGE_EVENT_ID_CONFLICT",
+                    "An existing ChatLineage event uses the same ID with different content.",
+                    status="BLOCKED",
+                    details={"event_id": exact_event_id},
+                ) from exc
+            if capture_decision["included"] is not True:
+                event_type = "capture.excluded"
+                safe_payload = capture_authority.exclusion_payload(capture_decision)
+        events = self._events()
         matches = [
             existing
             for existing in events
@@ -673,6 +698,9 @@ class ChatLineage:
         project = self._sync_project_authority()
         if project is not None:
             result["project_authority"] = project
+        capture_authority = CaptureRouteAuthority.for_lineage(self.path)
+        if capture_authority is not None:
+            result["capture_route"] = capture_authority.status()
         return result
 
 

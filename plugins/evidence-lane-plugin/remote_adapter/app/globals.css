@@ -2846,6 +2846,47 @@ main { padding-top: 106px; }
   .routeBrainOrb { width: 330px; }
 }
 
+/* 2.2 public-source projection: every route exposes its exact Git Markdown
+   authority below the floating navigation without becoming lifecycle truth. */
+.repositorySourceStrip {
+  position: fixed;
+  z-index: 79;
+  top: 108px;
+  left: 50%;
+  width: min(940px, calc(100vw - 40px));
+  min-height: 44px;
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #28475e;
+  border: 1px solid rgba(169, 205, 227, .76);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 16px 36px rgba(36, 76, 107, .12), inset 1px 1px 0 white;
+  backdrop-filter: blur(22px) saturate(1.15);
+  transform: translateX(-50%);
+}
+.repositorySourceStrip > span { min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+.repositorySourceStrip small { color: #2182a2; font-size: 7px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.repositorySourceStrip strong { margin-top: 2px; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.repositorySourceStrip code { min-width: 0; overflow: hidden; color: #60788a; font: 750 9px/1.2 "Cascadia Code", Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
+.repositorySourceStrip a { flex: 0 0 auto; padding: 6px 10px; color: white; border-radius: 999px; background: #14263a; font-size: 9px; font-weight: 850; }
+main { padding-top: 164px; }
+
+@media (max-width: 820px) {
+  .repositorySourceStrip { top: 148px; width: calc(100vw - 24px); justify-content: flex-start; }
+  .repositorySourceStrip code { flex: 1; }
+  main { padding-top: 200px; }
+}
+
+@media (max-width: 560px) {
+  .repositorySourceStrip > span { display: none; }
+  .repositorySourceStrip code { flex: 1; }
+  .repositorySourceStrip a { padding-inline: 8px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .floatingBrandLogo,
   .evidenceBrainAsset,

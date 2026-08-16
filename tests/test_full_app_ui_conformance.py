@@ -66,6 +66,22 @@ def test_full_width_ril_gold_story_replaces_the_desktop_app_shell() -> None:
         assert forbidden.casefold() not in active_tsx.casefold()
 
 
+def test_primary_navigation_has_one_typed_visual_identity_per_route() -> None:
+    header = (COMPONENTS / "site-header.tsx").read_text(encoding="utf-8")
+    site = (APP / "_data" / "site.ts").read_text(encoding="utf-8")
+    navigation = site.split("export const primaryNavigation = [", 1)[1].split(
+        "] as const;", 1
+    )[0]
+    hrefs = re.findall(r'href: "([^"]+)"', navigation)
+
+    assert len(hrefs) == 12
+    assert len(set(hrefs)) == len(hrefs)
+    assert "satisfies Readonly<" in header
+    assert "Record<PrimaryNavigationHref" in header
+    for href in hrefs:
+        assert f'"{href}": {{ color:' in header
+
+
 def test_source_lab_exposes_generator_six_sources_and_four_brains() -> None:
     lab = (COMPONENTS / "source-brain-lab.tsx").read_text(encoding="utf-8")
 
@@ -211,13 +227,13 @@ def test_v140_home_uses_concentric_delta_story_plugin_catalog_and_universal_glas
     assert "HeroOrbit" in landing
     assert "sourceLanes" in orbit and "pluginSurfaces" in orbit
     assert 'aria-label="18 source lanes"' in orbit
-    assert 'aria-label="15 plugin surfaces"' in orbit
+    assert 'aria-label="17 plugin surfaces"' in orbit
     assert "Human HIL" in orbit
     for retired in ("SourceBrainLab", "UniversalCommandDeck", "LaneToolchainExplorer"):
         assert retired not in landing
 
     assert surfaces.count("primaryControl: true") == 6
-    assert len(re.findall(r'^    id: "[a-z0-9-]+",$', surfaces, flags=re.MULTILINE)) == 15
+    assert len(re.findall(r'^    id: "[a-z0-9-]+",$', surfaces, flags=re.MULTILINE)) == 17
     assert "T023_UNIVERSAL_GLASS_PILL_V001" in header
     assert "GlassIconOrb" in header and "GlassIconOrb" in catalog and "GlassIconOrb" in popup
     assert "T023_UNIVERSAL_POPUP_FADE_V001" in popup
@@ -240,7 +256,7 @@ def test_v140_home_uses_concentric_delta_story_plugin_catalog_and_universal_glas
     assert 'className="sourceIntakeDepthPill"' in architecture
     assert "SourceLaneIcon" in architecture
     assert 'className="source-lane-orb"' in architecture
-    assert architecture.count('className="compactDepthPill"') == 3
+    assert architecture.count('className="compactDepthPill"') == 6
     assert architecture.count("<GlassIconOrb") >= 7
     assert ".parallelDiagram::before" in css
     assert ".flowDepthPill" in css and "width: max-content" in css
@@ -355,10 +371,10 @@ def test_evidence_ai_studio_is_a_business_guide_for_the_whole_plugin() -> None:
     for topic in (
         "Why Evidence Lane exists",
         "Eighteen source lanes",
-        "Fifteen clear plugin surfaces",
+        "Seventeen clear plugin surfaces",
         "HIL keeps the decision with the human",
         "State Travel resumes unfinished work exactly",
-        "Codex and ChatGPT keep separate storage realities",
+        "Codex source, accepted truth, installed stable, and fallback stay separate",
         "Release and publication happen after acceptance",
     ):
         assert topic in guide
@@ -391,7 +407,7 @@ def test_studio_candidate_is_route_aware_bounded_and_artifact_inspectable() -> N
     assert "Executable action chart" in artifact_lab
     assert "Host capability table" in artifact_lab
     assert "whole project" in guide
-    assert "Release 1.5.0" in guide
+    assert "current 2.2.0 pre-HIL source" in guide
 
 
 def test_native_threejs_motion_remains_without_retired_3d_or_adobe_links() -> None:
@@ -455,19 +471,19 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert 'authority: websiteCurrentExecutionBoundary.canonicalAuthority' in current_plan_data
     assert 'import planProjection from "./website-plan-projection.json"' in website_current_plan_data
     assert website_plan_snapshot["canonical_authority"] == "PLAN_LANE"
-    assert website_plan_snapshot["task_count"] == 120
+    assert website_plan_snapshot["task_count"] == 126
     assert website_plan_snapshot["row_start"] == 81
-    assert website_plan_snapshot["row_end"] == 200
-    assert website_plan_snapshot["active_row"] == 164
-    assert website_plan_snapshot["physically_final_hil_row"] == 200
+    assert website_plan_snapshot["row_end"] == 206
+    assert website_plan_snapshot["active_row"] == 196
+    assert website_plan_snapshot["physically_final_hil_row"] == 206
     assert [row["row"] for row in website_plan_snapshot["rows"]] == list(
-        range(81, 201)
+        range(81, 207)
     )
     assert [
         row["row"]
         for row in website_plan_snapshot["rows"]
         if row["status"] == "IN_PROGRESS"
-    ] == [164]
+    ] == [196]
     assert website_plan_snapshot["rows"][-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
     assert 'phase: "Current execution"' in ledger_data
     assert "websiteCurrentExecution.map" in ledger_data
@@ -491,15 +507,38 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "data-release-version={releaseIdentity.version}" in footer
     assert "data-release-commit={releaseIdentity.commit" in footer
     assert "Release <strong>{releaseIdentity.version}</strong>" in footer
-    assert 'releaseVersion = "2.1.0"' in release_identity
+    assert 'releaseVersion = "2.2.0"' in release_identity
     assert "VERCEL_GIT_COMMIT_SHA" in release_identity
     assert "NEXT_PUBLIC_EVIDENCE_LANE_RELEASE_SHA" in release_identity
     assert "GITHUB_MARKDOWN_TO_SITE_FOOTERS_DELTA_TABLE_VERCEL_AND_EXISTING_DEVPOST" in release_identity
     assert '"evidence-lane:release-version"' in layout
     assert '"evidence-lane:release-commit"' in layout
-    for route in ("/license", "/copyright", "/credits"):
+    for route in (
+        "/license",
+        "/copyright",
+        "/credits",
+        "/commands",
+        "/third-party",
+        "/helper",
+        "/tunnel",
+    ):
         assert (APP / route.removeprefix("/") / "page.tsx").is_file()
-    for label in ("README", "License", "Copyright", "Security", "Contributors"):
+    for label in (
+        "README",
+        "Architecture",
+        "Skills",
+        "Native MCP",
+        "Hooks",
+        "Commands",
+        "License",
+        "Copyright",
+        "Terms and conditions",
+        "Third-party licenses and rights",
+        "Security",
+        "Human contributors",
+        "User Helper Guide",
+        "User Tunnel Guide",
+    ):
         assert f">{label}</Link>" in footer
     assert footer.count('href="/credits"') == 1
     assert "Naveen Rathee" not in contributors
@@ -544,7 +583,9 @@ def test_public_plugin_metadata_and_third_party_rights_are_canonical() -> None:
     license_page = (APP / "license" / "page.tsx").read_text(encoding="utf-8")
     copyright_page = (APP / "copyright" / "page.tsx").read_text(encoding="utf-8")
     repository_license = (ROOT / "LICENSE.md").read_text(encoding="utf-8")
-    repository_copyright = (ROOT / "COPYRIGHT.md").read_text(encoding="utf-8")
+    repository_copyright = (ROOT / "docs" / "COPYRIGHT.md").read_text(
+        encoding="utf-8"
+    )
 
     assert metadata["homepage"] == "https://evidencelane.org"
     assert "mcp_endpoint" not in metadata

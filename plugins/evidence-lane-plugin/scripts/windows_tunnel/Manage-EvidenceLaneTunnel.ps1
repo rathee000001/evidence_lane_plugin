@@ -3,10 +3,11 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("Start", "Stop", "Status", "Repair", "Remove")]
     [string]$Action,
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v200",
-    [string]$ProfileName = "evidence_lane_v200_transport",
+    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build",
+    [string]$ProfileName = "evidence_lane_v220_stable_build_transport",
     [string]$ProfileDir = "$env:APPDATA\tunnel-client",
-    [string]$TaskName = "EvidenceLane-Tunnel-v200",
+    [string]$ReleaseToken = "v220",
+    [string]$TaskName = "EvidenceLane-Tunnel-v220-stable-build",
     [int]$ReadyTimeoutSeconds = 90,
     [switch]$ConfirmRemoval
 )
@@ -16,10 +17,23 @@ $ErrorActionPreference = "Stop"
 
 $expectedClientSha256 = "D893D8127EEE35070D265C1BE29BFE008F8D9FCB476E7FEBF56C8FDC6C0615C8"
 $client = Join-Path $RuntimeRoot "bin\tunnel-client-v0.0.10.exe"
-$pidFile = Join-Path $RuntimeRoot "evidence_lane_v200_tunnel.pid"
-$healthUrlFile = Join-Path $RuntimeRoot "evidence_lane_v200_health.url"
+$filePrefix = "evidence_lane_${ReleaseToken}"
+$pidFile = Join-Path $RuntimeRoot "${filePrefix}_tunnel.pid"
+$healthUrlFile = Join-Path $RuntimeRoot "${filePrefix}_health.url"
 $profileFile = Join-Path $ProfileDir ($ProfileName + ".yaml")
 $markerFile = Join-Path $RuntimeRoot "evidence-lane-tunnel-installation.json"
+if (Test-Path -LiteralPath $markerFile -PathType Leaf) {
+    $boundMarker = Get-Content -LiteralPath $markerFile -Raw | ConvertFrom-Json
+    if (
+        $boundMarker.schema -ne "evidence-lane.versioned-secure-mcp-tunnel-installation.v1" -or
+        [string]$boundMarker.release_token -ne $ReleaseToken -or
+        [IO.Path]::GetFullPath([string]$boundMarker.runtime_root) -ne [IO.Path]::GetFullPath($RuntimeRoot) -or
+        [string]$boundMarker.profile_name -ne $ProfileName -or
+        [string]$boundMarker.task_name -ne $TaskName
+    ) {
+        throw "The management request does not match the exact release-bound tunnel marker."
+    }
+}
 
 function Get-VerifiedTunnelProcess {
     $parsedPid = 0
@@ -83,6 +97,8 @@ function Get-TunnelStatus {
     return [ordered]@{
         status = if ($ready) { "PASS" } else { "BLOCKED" }
         release = if ($null -ne $marker) { [string]$marker.release } else { $null }
+        release_token = if ($null -ne $marker) { [string]$marker.release_token } else { $ReleaseToken }
+        runtime_identity_matches_release = if ($null -ne $marker) { [bool]$marker.runtime_identity_matches_release } else { $false }
         slot_role = if ($null -ne $marker) { [string]$marker.slot_role } else { $null }
         byte_frozen = if ($null -ne $marker) { [bool]$marker.byte_frozen } else { $false }
         task_name = $TaskName
@@ -107,11 +123,15 @@ function Get-TunnelStatus {
         project_route_argument = "project_id"
         project_route_argument_required = $true
         cross_project_fallback_allowed = $false
-        exact_visible_tool_count = 62
-        exact_active_read_tool_count = 21
-        exact_fail_closed_write_tool_count = 41
+        exact_visible_tool_count = 83
+        exact_active_read_tool_count = 26
+        exact_fail_closed_write_tool_count = 57
         health_url_file = $healthUrlFile
         runtime_key_plaintext_reported = $false
+        windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"
+        prior_versioned_runtimes_retained = $true
+        prior_versioned_tasks_retained = $true
+        one_active_version_required = $true
     }
 }
 
@@ -147,6 +167,7 @@ if ($Action -eq "Stop") {
     [ordered]@{
         status = "STOPPED_SAVED"
         release = $priorStatus.release
+        release_token = $priorStatus.release_token
         task_name = $TaskName
         runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
         reusable_without_reinstall = $true

@@ -8,7 +8,11 @@ from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.git_adapter import GitResult
 from evidence_lane_plugin.mcp_apps import build_project_panel_snapshot
 
-from .conftest import build_and_approve_pv1, git
+from .conftest import (
+    build_and_approve_pv1,
+    git,
+    state_travel_destination_creation,
+)
 
 
 def _execution_profile() -> dict[str, str]:
@@ -138,7 +142,15 @@ def test_verified_state_travel_handoff_advances_without_candidate_and_replays_on
         ephemeral=False,
         client_can_edit_source=True,
         server_has_durable_filesystem=True,
-        runtime_context={"execution_profile": profile},
+        runtime_context={
+            "execution_profile": profile,
+            "state_travel_destination_creation": (
+                state_travel_destination_creation(
+                    "host-session-state-travel-pv1",
+                    "state-travel-successor-task",
+                )
+            ),
+        },
     )
     assert resumed["status"] == "PASS"
     assert resumed["state_travel"]["status"] == "VERIFIED_RESUME_READY"

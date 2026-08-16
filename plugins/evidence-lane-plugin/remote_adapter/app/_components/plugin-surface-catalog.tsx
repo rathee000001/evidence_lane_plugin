@@ -18,6 +18,8 @@ const familyColors = {
   Mode: "#b6a0ff",
   Connector: "#f2a1c5",
   Storage: "#7fc9ef",
+  Canon: "#f5b970",
+  Learning: "#77c9a5",
 } as const;
 
 const familyIcons: Record<(typeof pluginSurfaces)[number]["family"], OfficialToolIconName> = {
@@ -27,6 +29,8 @@ const familyIcons: Record<(typeof pluginSurfaces)[number]["family"], OfficialToo
   Mode: "node",
   Connector: "docker",
   Storage: "database",
+  Canon: "git",
+  Learning: "node",
 };
 
 function nextIndex(
@@ -55,9 +59,9 @@ export function PluginSurfaceCatalog() {
   return (
     <div className="pluginSurfaceCatalog">
       <div className="pluginSurfaceSummary" aria-label="Plugin surface counts">
-        <div><strong>15</strong><span>installed surfaces</span></div>
+        <div><strong>17</strong><span>installed surfaces</span></div>
         <div><strong>6</strong><span>primary lifecycle controls</span></div>
-        <div><strong>9</strong><span>bounded routers and sidecars</span></div>
+        <div><strong>11</strong><span>bounded routers and sidecars</span></div>
       </div>
 
       <div

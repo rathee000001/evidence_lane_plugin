@@ -1,0 +1,4 @@
+surface,release,identity,total_actions,read_actions,write_actions,skills,hooks,storage,network_transport,boundary
+Codex desktop or local CLI,2.2.0,evidence-lane,83,26,57,17,8,DURABLE_LOCAL_SQLITE,LOCAL_NATIVE_MCP,Installed exact-commit and post-restart proof required
+Codex headless API,2.2.0,evidence-lane,83,26,57,17,8,DURABLE_LOCAL_OR_MOUNT,LOCAL_NATIVE_MCP,ENV/UOP verified at every invocation entry
+Codex ephemeral VM,2.2.0,evidence-lane,83,26,57,17,8,DURABLE_MOUNT_OR_TRANSACTIONAL_CONNECTOR,LOCAL_NATIVE_MCP,Optional sealed-artifact carrier is never primary runtime

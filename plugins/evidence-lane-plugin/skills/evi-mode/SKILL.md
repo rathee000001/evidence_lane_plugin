@@ -54,3 +54,11 @@ before the gate; a `PHYSICALLY_FINAL_HIL` row must remain physically final. The
 default boundary is `BEFORE_NEXT_HIL` unless the user says otherwise.
 
 Do not apply this Codex Plan-mode bridge to an unsupported non-Codex host.
+
+## MCP routing contract
+
+Before the first MCP call, read `../evi/references/mcp-tool-routing.v1.json`
+and use the ordered route for `evi-mode`. `MCP_ROUTING_FAIL_CLOSED`: if the
+bundled `evidence-lane` dependency, an exact tool, or a required result is
+missing or ambiguous, stop and report it; never rewrite prefixes, substitute a
+tool, reorder a write, or infer success.
