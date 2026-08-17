@@ -356,7 +356,7 @@ def test_all_recovery_triggers_preserve_the_same_native_projection(
         host_goal_active=goal_active,
     )["receipt"]
     assert result["projection"] == expected
-    assert result["host_goal_presence_changes_projection"] is False
+    assert result["host_goal_presence_changes_projection"] is True
     assert result["candidate_created"] is False
     assert result["pointer_moved"] is False
 

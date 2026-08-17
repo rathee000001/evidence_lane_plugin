@@ -923,7 +923,8 @@ def prepare_host_plan_rehydration(
         "trigger": exact_trigger,
         "trigger_event_id": exact_event_id,
         "host_goal_active": host_goal_active,
-        "host_goal_presence_changes_projection": False,
+        "host_goal_presence_changes_projection": projection.get("sole_active_row")
+        is not None,
         "previous_window_exists": previous_window_exists,
         "same_window_as_previous": same_window,
         "full_ledger_changed_since_previous_window_receipt": ledger_changed,
