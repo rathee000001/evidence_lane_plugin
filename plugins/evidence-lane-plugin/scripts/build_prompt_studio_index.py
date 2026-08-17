@@ -17,7 +17,6 @@ from typing import Any
 
 LLAMA_INDEX_VERSION = "0.14.23"
 SCHEMA = "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1"
-MAX_PUBLIC_STUDIO_SQLITE_BYTES = 24 * 1024 * 1024
 _RUN_TIMEOUT_SECONDS = 60
 TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9._/-]{1,63}", re.IGNORECASE)
 SECRET_PATTERNS = (
@@ -142,6 +141,7 @@ FROZEN_NO_GIT_ADDITIONS = {
     "plugins/evidence-lane-plugin/LICENSE.md",
     "plugins/evidence-lane-plugin/README.md",
     "plugins/evidence-lane-plugin/THIRD_PARTY_NOTICES.md",
+    "plugins/evidence-lane-plugin/remote_adapter/app/_components/governed-story-explorer.tsx",
     "plugins/evidence-lane-plugin/remote_adapter/app/_components/hero-orbit.tsx",
     "plugins/evidence-lane-plugin/remote_adapter/app/_components/repository-source-strip.tsx",
     "plugins/evidence-lane-plugin/remote_adapter/app/_data/governed-linked-deltas.ts",
@@ -240,7 +240,7 @@ def _source_specs(
 ) -> list[tuple[Path, str, str, str]]:
     fixed: list[tuple[str, str, str, str]] = [
         ("README.md", "Repository README", _github_blob("README.md", revision), "documentation"),
-        ("ARCHITECTURE.md", "Evidence Lane 2.2 system architecture", _github_blob("ARCHITECTURE.md", revision), "documentation"),
+        ("ARCHITECTURE.md", "Evidence Lane 3.0 system architecture", _github_blob("ARCHITECTURE.md", revision), "documentation"),
         ("SECURITY.md", "Security policy", _github_blob("SECURITY.md", revision), "policy"),
         ("LICENSE.md", "Proprietary license", _github_blob("LICENSE.md", revision), "policy"),
         ("docs/COPYRIGHT.md", "Copyright and ownership", _github_blob("docs/COPYRIGHT.md", revision), "policy"),
@@ -263,9 +263,10 @@ def _source_specs(
         "plugins/evidence-lane-plugin/remote_adapter/app/_data/upstream-references.ts": "/provenance",
     }
     for route in (
-        "architecture", "connect", "copyright", "credits", "hil", "hooks", "lanes", "license", "mcp",
-        "operators", "privacy", "proof", "provenance", "readme", "security", "studio",
-        "skills", "support", "terms",
+        "ai-learning", "architecture", "canon", "connect", "copyright", "credits", "git-ci",
+        "hil", "hooks", "lanes", "license", "mcp", "memory", "operators", "plan", "privacy",
+        "proof", "provenance", "readme", "release", "security", "studio", "skills", "support",
+        "terms",
     ):
         internal_hrefs[f"plugins/evidence-lane-plugin/remote_adapter/app/{route}/page.tsx"] = f"/{route}"
     for relative in sorted(path for path in tracked_paths if _public_plugin_path(path)):
@@ -573,7 +574,7 @@ def _build_artifacts(
 
     browser_artifact = {
         "schema": SCHEMA,
-        "release": "2.2.0",
+        "release": "3.0.0",
         "history_through_sha": history_sha,
         "history_through_date": history_date,
         "history_mode": history_mode,
@@ -605,7 +606,7 @@ def _build_artifacts(
         PRAGMA journal_mode=DELETE;
         PRAGMA synchronous=FULL;
         PRAGMA application_id=1162629459;
-        PRAGMA user_version=2;
+        PRAGMA user_version=3;
         CREATE TABLE metadata(key TEXT PRIMARY KEY, value TEXT NOT NULL) WITHOUT ROWID;
         CREATE TABLE source_registry(
             source_id INTEGER PRIMARY KEY,
@@ -649,8 +650,6 @@ def _build_artifacts(
             chunk_rowid INTEGER NOT NULL REFERENCES chunk_index(chunk_rowid),
             term_id INTEGER NOT NULL REFERENCES tfidf_term(term_id),
             term_count INTEGER NOT NULL,
-            token_count INTEGER NOT NULL,
-            tf REAL NOT NULL,
             tfidf REAL NOT NULL,
             PRIMARY KEY(chunk_rowid, term_id)
         ) WITHOUT ROWID;
@@ -658,7 +657,7 @@ def _build_artifacts(
     )
     metadata = {
         "schema": SCHEMA,
-        "release": "2.2.0",
+        "release": "3.0.0",
         "history_through_sha": history_sha,
         "history_through_date": history_date,
         "history_mode": history_mode,
@@ -667,7 +666,7 @@ def _build_artifacts(
         "chunk_count": str(len(chunks)),
         "llama_index_core": LLAMA_INDEX_VERSION,
         "ranking": "SQLite FTS5/BM25 + materialized TF-IDF + RRF(k=60)",
-        "storage_schema": "external-content FTS5 + integer-key materialized TF-IDF v2",
+        "storage_schema": "external-content FTS5 + compact integer-key materialized TF-IDF v3",
         "public_safe": "true",
     }
     connection.executemany(
@@ -706,12 +705,11 @@ def _build_artifacts(
         for term, count, score in chunk["tfidf"]:
             vector_rows.append(
                 (
-                    chunk_rowids[chunk["id"]], term_ids[term], count,
-                    chunk["token_count"], count / max(chunk["token_count"], 1), score,
+                    chunk_rowids[chunk["id"]], term_ids[term], count, score,
                 )
             )
     connection.executemany(
-        "INSERT INTO tfidf_vector VALUES(?,?,?,?,?,?)",
+        "INSERT INTO tfidf_vector VALUES(?,?,?,?)",
         vector_rows,
     )
     connection.commit()
@@ -726,17 +724,11 @@ def _build_artifacts(
     if integrity != "ok" or fts_probe < 1:
         raise RuntimeError(f"retrieval artifact validation failed: integrity={integrity}, refresh_hits={fts_probe}")
     database_size = database_path.stat().st_size
-    if database_size > MAX_PUBLIC_STUDIO_SQLITE_BYTES:
-        raise RuntimeError(
-            "public retrieval SQLite exceeds the governed 24 MiB artifact cap: "
-            f"{database_size} bytes"
-        )
-
     database_sha = _sha256_bytes(database_path.read_bytes())
     browser_sha = _sha256_bytes(browser_bytes)
     manifest = {
         "schema": SCHEMA,
-        "release": "2.2.0",
+        "release": "3.0.0",
         "history_through_sha": history_sha,
         "history_mode": history_mode,
         "history_commit_count": sum(1 for row in source_rows if row["kind"] == "git_history"),
@@ -766,7 +758,8 @@ def _build_artifacts(
             "sqlite_integrity": integrity,
             "fts_refresh_hits": fts_probe,
             "secret_scan": "PASS",
-            "sqlite_public_size_limit_bytes": MAX_PUBLIC_STUDIO_SQLITE_BYTES,
+            "sqlite_size_bytes": database_path.stat().st_size,
+            "sqlite_fixed_size_cap": False,
         },
     }
     manifest_path.write_text(

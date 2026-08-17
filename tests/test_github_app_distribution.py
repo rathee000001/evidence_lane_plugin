@@ -3,14 +3,21 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.github_app_distribution import (
+    GITHUB_APP_WEBHOOK_ROUTE,
+    GITHUB_REST_API_VERSION,
     ArtifactEntitlementStore,
     DeterministicMockGitHubProvider,
+    GitHubAPIResponse,
     GitHubAppManifest,
+    GitHubRESTInstallationTokenProvider,
+    GitHubWebhookRoute,
     InstallationBinding,
     InstallationTokenBroker,
     InstallationTokenRequest,
@@ -46,12 +53,12 @@ def _manifest(**overrides: object) -> GitHubAppManifest:
     return GitHubAppManifest.from_mapping(raw)
 
 
-def _binding() -> InstallationBinding:
+def _binding(*, installation_id: str = "installation-7") -> InstallationBinding:
     manifest = _manifest()
     return InstallationBinding.create(
         binding_id="binding-1",
         manifest=manifest,
-        installation_id="installation-7",
+        installation_id=installation_id,
         project_id="project-a",
         task_id="task-a",
         accepted_pv="PV12",
@@ -181,6 +188,95 @@ def test_webhook_exact_duplicate_is_idempotent_but_changed_replay_fails() -> Non
     assert exc.value.code == "GITHUB_APP_WEBHOOK_REPLAY_CONFLICT"
 
 
+class _RecordingWebhookHandler:
+    handler_id = "TEST_CHECK_RUN_HANDLER"
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, Mapping[str, Any]]] = []
+
+    def handle(self, *, event: str, payload: Mapping[str, Any]) -> Mapping[str, Any]:
+        self.calls.append((event, payload))
+        return {"outcome": "RECORDED", "action": payload.get("action")}
+
+
+def _webhook_headers(*, secret: bytes, body: bytes) -> dict[str, str]:
+    signature = "sha256=" + hmac.new(secret, body, hashlib.sha256).hexdigest()
+    return {
+        "Content-Type": "application/json; charset=utf-8",
+        "X-GitHub-Delivery": "delivery-route-1",
+        "X-GitHub-Event": "check_run",
+        "X-Hub-Signature-256": signature,
+    }
+
+
+def test_public_webhook_route_authenticates_dispatches_once_and_hashes_result() -> None:
+    secret = b"test-webhook-secret-32-bytes!!"
+    body = json.dumps({"action": "completed", "check_run": {"id": 42}}).encode()
+    handler = _RecordingWebhookHandler()
+    route = GitHubWebhookRoute(
+        verifier=WebhookVerifier(
+            webhook_secret=secret,
+            allowed_events=["check_run"],
+        ),
+        handler=handler,
+    )
+    request = {
+        "method": "POST",
+        "path": GITHUB_APP_WEBHOOK_ROUTE,
+        "headers": _webhook_headers(secret=secret, body=body),
+        "body": body,
+        "received_at": NOW,
+        "now": NOW,
+    }
+    first = route.dispatch(**request)
+    replay = route.dispatch(**request)
+    assert first["status"] == "PASS"
+    assert first["raw_payload_persisted"] is False
+    assert first["handler_result_persisted"] is False
+    assert first["handler_id"] == handler.handler_id
+    assert receipt_contains_secret(first) is False
+    assert replay["status"] == "IDEMPOTENT_REPLAY"
+    assert replay["handler_reinvoked"] is False
+    assert len(handler.calls) == 1
+
+
+@pytest.mark.parametrize(
+    ("overrides", "expected"),
+    [
+        ({"path": "/api/not-evidence-lane"}, "GITHUB_APP_WEBHOOK_ROUTE_INVALID"),
+        (
+            {"headers": {"Content-Type": "text/plain"}},
+            "GITHUB_APP_WEBHOOK_CONTENT_TYPE_INVALID",
+        ),
+        ({"body": b""}, "GITHUB_APP_WEBHOOK_BODY_BOUND_EXCEEDED"),
+    ],
+)
+def test_public_webhook_route_rejects_invalid_surface(
+    overrides: dict[str, object], expected: str
+) -> None:
+    secret = b"test-webhook-secret-32-bytes!!"
+    body = b'{"action":"completed"}'
+    route = GitHubWebhookRoute(
+        verifier=WebhookVerifier(
+            webhook_secret=secret,
+            allowed_events=["check_run"],
+        ),
+        handler=_RecordingWebhookHandler(),
+    )
+    request: dict[str, object] = {
+        "method": "POST",
+        "path": GITHUB_APP_WEBHOOK_ROUTE,
+        "headers": _webhook_headers(secret=secret, body=body),
+        "body": body,
+        "received_at": NOW,
+        "now": NOW,
+    }
+    request.update(overrides)
+    with pytest.raises(EvidenceLaneError) as exc:
+        route.dispatch(**request)  # type: ignore[arg-type]
+    assert exc.value.code == expected
+
+
 def test_token_broker_is_provider_neutral_short_lived_and_secret_safe() -> None:
     provider = DeterministicMockGitHubProvider(b"provider-test-seed-32-bytes!!!")
     broker = InstallationTokenBroker(
@@ -196,6 +292,125 @@ def test_token_broker_is_provider_neutral_short_lived_and_secret_safe() -> None:
     assert receipt["token_value_persisted"] is False
     assert receipt_contains_secret(receipt) is False
     assert len(provider.calls) == 1
+
+
+class _TestAppJWTProvider:
+    provider_id = "TEST_APP_JWT_SIGNER"
+
+    def __init__(self) -> None:
+        self.calls: list[str] = []
+
+    def issue_app_jwt(self, *, requested_at: str) -> str:
+        self.calls.append(requested_at)
+        return "test-app-jwt-value-never-persisted"
+
+
+class _TestGitHubTransport:
+    transport_id = "TEST_GITHUB_HTTPS_TRANSPORT"
+
+    def __init__(self, response: GitHubAPIResponse) -> None:
+        self.response = response
+        self.calls: list[dict[str, object]] = []
+
+    def request_json(
+        self,
+        *,
+        method: str,
+        path: str,
+        headers: Mapping[str, str],
+        body: Mapping[str, Any],
+    ) -> GitHubAPIResponse:
+        self.calls.append(
+            {"method": method, "path": path, "headers": headers, "body": body}
+        )
+        return self.response
+
+
+def _github_token_response(**overrides: object) -> GitHubAPIResponse:
+    body: dict[str, object] = {
+        "token": "ghs_real-shaped-token-never-persisted",
+        "expires_at": "2026-08-14T12:30:00Z",
+        "permissions": {
+            "metadata": "read",
+            "actions": "read",
+            "checks": "write",
+        },
+        "repository_selection": "selected",
+        "repositories": [{"full_name": "owner/repo"}],
+    }
+    body.update(overrides)
+    return GitHubAPIResponse(status_code=201, body=body, request_id="github-req-1")
+
+
+def test_production_github_provider_uses_exact_endpoint_scope_and_redacted_proof() -> (
+    None
+):
+    jwt_provider = _TestAppJWTProvider()
+    transport = _TestGitHubTransport(_github_token_response())
+    provider = GitHubRESTInstallationTokenProvider(
+        jwt_provider=jwt_provider,
+        transport=transport,
+    )
+    broker = InstallationTokenBroker(
+        manifest=_manifest(),
+        binding=_binding(installation_id="7"),
+        provider=provider,
+    )
+    token, broker_receipt = broker.issue(_token_request(installation_id="7"), now=NOW)
+    assert token == "ghs_real-shaped-token-never-persisted"
+    assert len(jwt_provider.calls) == 1
+    assert len(transport.calls) == 1
+    call = transport.calls[0]
+    assert call["method"] == "POST"
+    assert call["path"] == "/app/installations/7/access_tokens"
+    assert call["body"] == {
+        "repositories": ["repo"],
+        "permissions": {
+            "actions": "read",
+            "checks": "write",
+            "metadata": "read",
+        },
+    }
+    headers = call["headers"]
+    assert isinstance(headers, Mapping)
+    assert headers["X-GitHub-Api-Version"] == GITHUB_REST_API_VERSION
+    assert headers["Authorization"].startswith("Bearer ")
+    provider_receipt = provider.last_integration_receipt
+    assert provider_receipt is not None
+    assert provider_receipt["app_jwt_persisted"] is False
+    assert provider_receipt["installation_token_persisted"] is False
+    assert receipt_contains_secret(provider_receipt) is False
+    assert token not in json.dumps(provider_receipt)
+    assert token not in json.dumps(broker_receipt)
+
+
+@pytest.mark.parametrize(
+    ("response", "expected"),
+    [
+        (
+            _github_token_response(permissions={"metadata": "read", "actions": "read"}),
+            "GITHUB_APP_PROVIDER_PERMISSION_DRIFT",
+        ),
+        (
+            _github_token_response(repositories=[{"full_name": "owner/other"}]),
+            "GITHUB_APP_PROVIDER_REPOSITORY_DRIFT",
+        ),
+        (
+            GitHubAPIResponse(status_code=403, body={}),
+            "GITHUB_APP_PROVIDER_REQUEST_FAILED",
+        ),
+    ],
+)
+def test_production_github_provider_fails_closed_on_provider_drift(
+    response: GitHubAPIResponse, expected: str
+) -> None:
+    provider = GitHubRESTInstallationTokenProvider(
+        jwt_provider=_TestAppJWTProvider(),
+        transport=_TestGitHubTransport(response),
+    )
+    with pytest.raises(EvidenceLaneError) as exc:
+        provider.issue(_token_request(installation_id="7"))
+    assert exc.value.code == expected
 
 
 def test_token_broker_rejects_stale_cross_repository_and_overbroad_requests() -> None:

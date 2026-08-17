@@ -54,7 +54,7 @@ def _config(stable: str, candidate: str) -> str:
 
 def _fixture(module, tmp_path: Path) -> dict[str, object]:
     stable = "evidence-lane-plugin@evidence-lane-github"
-    candidate = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    candidate = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     version = "2.1.0+codex.fixture"
     data_root = tmp_path / "pv"
     codex_home = tmp_path / "codex"
@@ -104,13 +104,13 @@ def _fixture(module, tmp_path: Path) -> dict[str, object]:
             "status": "PASS",
             "plugin": {
                 "plugin_id": module.PLUGIN_NAME,
-                "version": "2.2.0+codex.failed",
+                "version": "3.0.0+codex.failed",
             },
             "activation": {
                 "state": "INSTALLED_RESTART_REQUIRED",
                 "plugin_add": {
                     "pluginId": candidate,
-                    "version": "2.2.0+codex.failed",
+                    "version": "3.0.0+codex.failed",
                 },
             },
             "candidate_created_or_accepted": False,
@@ -196,7 +196,7 @@ def _fixture(module, tmp_path: Path) -> dict[str, object]:
                 "project_id": "test-codex-evidence-lane-plugin",
                 "evidence_session_id": "session_fixture",
                 "task_id": task_id,
-                "plugin_version": "2.2.0+codex.failed",
+                "plugin_version": "3.0.0+codex.failed",
                 "task_uri_sha256": "E" * 64,
                 "install_receipt_sha256": current_sha256,
             },

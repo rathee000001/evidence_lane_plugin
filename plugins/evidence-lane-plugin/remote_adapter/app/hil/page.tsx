@@ -32,7 +32,7 @@ export default function HilPage() {
         <Link href="/">&larr; Evidence Lane</Link>
         <span className="compactDepthPill"><GlassIconOrb color="#efca72" size={30} decorative><OfficialToolIcon tool="package" size={16} decorative /></GlassIconOrb><span>Human decision surface</span></span>
         <p>This route is intentionally different from <Link href="/connect">Connect</Link>. Connect explains installation and host boundaries; HIL displays the vocabulary and state transition law for one exact candidate.</p>
-        <div className="hilStateStrip"><article><span>Accepted truth</span><strong>PV12 · generation 12</strong></article><article><span>Active work</span><strong>2.2.0 pre-HIL source · no candidate sealed</strong></article><article><span>Pointer effect</span><strong>None</strong></article></div>
+        <div className="hilStateStrip"><article><span>Accepted truth</span><strong>PV12 · generation 12</strong></article><article><span>Active work</span><strong>3.0.0 pre-HIL source · no candidate sealed</strong></article><article><span>Pointer effect</span><strong>None</strong></article></div>
         <h2>Exact six-way vocabulary</h2>
         <div className="hilChoiceGrid">
           {choices.map(([token, meaning], index) => <article key={token}><span>{String(index + 1).padStart(2, "0")}</span><code>{token}</code><p>{meaning}</p></article>)}

@@ -33,6 +33,8 @@ param(
         "OpenAI.CodexBeta_2p2nqsd0c76g0!App"
     )]
     [string]$AppId,
+    [ValidateSet("NATIVE_MCP_AVAILABLE", "HOST_TOOL_GAP")]
+    [string]$HostToolTransport = "NATIVE_MCP_AVAILABLE",
     [switch]$ConfirmRestart
 )
 
@@ -339,8 +341,14 @@ function Write-NewJsonLease([string]$Path, [System.Collections.IDictionary]$Body
 function Get-InstalledPluginRoot([object]$Install) {
     $pluginAdd = $Install.activation.PSObject.Properties["plugin_add"]
     $installedPath = $Install.activation.PSObject.Properties["installed_path"]
-    $candidate = if ($null -ne $pluginAdd) {
-        [string]$pluginAdd.Value.installedPath
+    $pluginAddInstalledPath = if ($null -ne $pluginAdd -and $null -ne $pluginAdd.Value) {
+        $pluginAdd.Value.PSObject.Properties["installedPath"]
+    }
+    else {
+        $null
+    }
+    $candidate = if ($null -ne $pluginAddInstalledPath) {
+        [string]$pluginAddInstalledPath.Value
     }
     elseif ($null -ne $installedPath) {
         [string]$installedPath.Value
@@ -723,6 +731,64 @@ function Get-EvidenceLaneConfigState([string]$Path) {
     }
 }
 
+function Get-EvidenceLaneHookState([string]$Path, [string]$Selector) {
+    $states = @{}
+    $currentKey = $null
+    foreach ($line in Get-Content -LiteralPath $Path) {
+        $trimmed = $line.Trim()
+        if ($trimmed -match '^\[hooks\.state\."(?<key>[^"]+)"\]$') {
+            $currentKey = [string]$Matches.key
+            if (-not $states.ContainsKey($currentKey)) {
+                $states[$currentKey] = [ordered]@{
+                    trusted_hash_values = @()
+                    enabled_values = @()
+                }
+            }
+        }
+        elseif ($trimmed -match '^\[') {
+            $currentKey = $null
+        }
+        elseif (
+            $null -ne $currentKey -and
+            $trimmed -match '^trusted_hash\s*=\s*"(?<value>sha256:[0-9a-f]{64})"\s*(?:#.*)?$'
+        ) {
+            $states[$currentKey].trusted_hash_values = @(
+                $states[$currentKey].trusted_hash_values
+            ) + [string]$Matches.value
+        }
+        elseif (
+            $null -ne $currentKey -and
+            $trimmed -match '^enabled\s*=\s*(?<value>true|false)\s*(?:#.*)?$'
+        ) {
+            $states[$currentKey].enabled_values = @(
+                $states[$currentKey].enabled_values
+            ) + ([string]$Matches.value -ceq "true")
+        }
+    }
+
+    $prefix = $Selector + ":hooks/hooks.json:"
+    $records = @(
+        foreach ($key in @($states.Keys | Sort-Object)) {
+            if (-not ([string]$key).StartsWith($prefix, [System.StringComparison]::Ordinal)) {
+                continue
+            }
+            $row = $states[$key]
+            if (
+                @($row.trusted_hash_values).Count -ne 1 -or
+                @($row.enabled_values).Count -ne 1
+            ) {
+                throw "Every selector hook must expose one trusted hash and one enabled bit."
+            }
+            [pscustomobject]@{
+                hook_key = [string]$key
+                trusted_hash = [string]$row.trusted_hash_values[0]
+                enabled = [bool]$row.enabled_values[0]
+            }
+        }
+    )
+    [pscustomobject]@{ records = $records }
+}
+
 $exactInstallReceipt = (Resolve-Path -LiteralPath $InstallReceipt).Path
 $taskIdPattern = '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$'
 if ($TaskId -notmatch $taskIdPattern) {
@@ -806,7 +872,7 @@ $isLocalCasRestart = (
 )
 $isDisabledHookRecoveryRestart = (
     [string]$install.activation.state -ceq
-        "LOCAL_2_2_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED"
+        "LOCAL_3_0_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED"
 )
 $isLocalTestRestart = $isLocalCasRestart -or $isDisabledHookRecoveryRestart
 $installedPluginRoot = Get-InstalledPluginRoot $install
@@ -814,12 +880,12 @@ $exactThreeSlotRegistry = ""
 $observedThreeSlotRegistrySha256 = ""
 $threeSlotRegistryBody = $null
 $mainGitSelector = "evidence-lane-plugin@evidence-lane-github"
-$branchRecoverySelector = "evidence-lane-plugin@evidence-lane-v220-stable-recovery"
-$mutableLocalSelector = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+$branchRecoverySelector = "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
+$mutableLocalSelector = "evidence-lane-plugin@evidence-lane-v300-testing-new"
 if ($isLocalTestRestart) {
     $registryProperty = $install.PSObject.Properties["three_slot_registry"]
     if ($null -eq $registryProperty -or $null -eq $registryProperty.Value) {
-        throw "A 2.2 local restart requires the exact sealed three-slot registry."
+        throw "A 3.0 local restart requires the exact sealed three-slot registry."
     }
     $declaredRegistry = [string]$registryProperty.Value.registry_path
     $declaredRegistrySha256 = [string]$registryProperty.Value.registry_file_sha256
@@ -857,7 +923,7 @@ if ($isLocalTestRestart) {
         [string]$threeSlotRegistryBody.active_selector -cne $mutableLocalSelector -or
         [string]$threeSlotRegistryBody.failure_target_slot -cne "branch-commit-recovery" -or
         $threeSlotRegistryBody.mutable_local_failure_never_targets_main_git -ne $true -or
-        $threeSlotRegistryBody.pre_2_2_fallback_allowed -ne $false -or
+        $threeSlotRegistryBody.pre_3_0_fallback_allowed -ne $false -or
         [string]$mainSlot.plugin_selector -cne $mainGitSelector -or
         [string]$branchSlot.plugin_selector -cne $branchRecoverySelector -or
         [string]$localSlot.plugin_selector -cne $mutableLocalSelector -or
@@ -1003,6 +1069,7 @@ elseif ($isDisabledHookRecoveryRestart) {
     $hookIsolation = $install.activation.hook_event_isolation
     $runtimeReadiness = $install.activation.readiness
     $configState = Get-EvidenceLaneConfigState $exactCodexConfig
+    $configHookState = Get-EvidenceLaneHookState $exactCodexConfig $candidateSelector
     $expectedHookEvents = @(
         "postCompact",
         "postToolUse",
@@ -1024,8 +1091,20 @@ elseif ($isDisabledHookRecoveryRestart) {
         $hookRecords | Where-Object {
             [string]$_.hook_key -cnotlike ($candidateSelector + ":hooks/hooks.json:*") -or
             [string]$_.trust_status -cne "trusted" -or
-            $_.enabled -ne $true -or
+            $_.enabled -ne $false -or
             [string]$_.current_hash -cnotmatch '^sha256:[0-9a-f]{64}$'
+        }
+    )
+    $receiptHookHashes = @{}
+    foreach ($record in $hookRecords) {
+        $receiptHookHashes[[string]$record.hook_key] = [string]$record.current_hash
+    }
+    $liveHookRecords = @($configHookState.records)
+    $invalidLiveHookRecords = @(
+        $liveHookRecords | Where-Object {
+            $_.enabled -ne $false -or
+            -not $receiptHookHashes.ContainsKey([string]$_.hook_key) -or
+            [string]$_.trusted_hash -cne $receiptHookHashes[[string]$_.hook_key]
         }
     )
     $rollbackBackup = [string]$install.activation.transaction.rollback_config_backup
@@ -1084,8 +1163,10 @@ elseif ($isDisabledHookRecoveryRestart) {
         [int]$hookTrust.hook_count -ne 8 -or
         $hookTrust.unrelated_hook_state_mutated -ne $false -or
         $hookRecords.Count -ne 8 -or
+        $liveHookRecords.Count -ne 8 -or
         $hookEventDifference.Count -ne 0 -or
         $invalidHookRecords.Count -ne 0 -or
+        $invalidLiveHookRecords.Count -ne 0 -or
         $hookIsolation.schema -cne "evidence-lane.codex-installed-hook-event-isolation.v1" -or
         $hookIsolation.status -cne "PASS" -or
         $hookIsolation.state -cne "INACTIVE_KILL_SWITCH_VERIFIED" -or
@@ -1098,7 +1179,7 @@ elseif ($isDisabledHookRecoveryRestart) {
         $runtimeReadiness.gates.hooks_trusted -ne $true -or
         $runtimeReadiness.gates.restart_or_reload_completed -ne $false -or
         $install.activation_authority.status -cne "PASS" -or
-        $install.activation_authority.boundary -cne "EXPLICIT_DISABLED_LOCAL_2_2_HOOK_RECOVERY" -or
+        $install.activation_authority.boundary -cne "EXPLICIT_DISABLED_LOCAL_3_0_HOOK_RECOVERY" -or
         [string]$install.activation_authority.selector -cne $candidateSelector -or
         $install.activation_authority.accepted_two_slot_registry_mutated -ne $false -or
         $install.runtime_ready_before_task_reopen -ne $false -or
@@ -1138,8 +1219,9 @@ elseif (
     throw "The supplied v2 installation receipt is not restart-eligible."
 }
 
+$tunnelRequired = $HostToolTransport -eq "HOST_TOOL_GAP"
 $tunnelBoundary = $null
-if ($Action -ne "Prepare" -or $TargetProcessId -gt 0) {
+if ($tunnelRequired -and ($Action -ne "Prepare" -or $TargetProcessId -gt 0)) {
     $tunnelBoundary = Get-VersionMatchedTunnelBoundary `
         -ExactPluginRoot $installedPluginRoot `
         -PluginVersion $installedPluginVersion `
@@ -1155,6 +1237,8 @@ $restartAuthority = [ordered]@{
     install_completed_before_restart = $true
     helper_installs_plugin = $false
     fixed_restart_delay_allowed = $false
+    host_tool_transport = $HostToolTransport
+    tunnel_required = $tunnelRequired
 }
 if ($isLocalCasRestart) {
     $restartAuthority.local_test_commit_receipt = $exactLocalTestCommit
@@ -1186,9 +1270,9 @@ elseif ($isDisabledHookRecoveryRestart) {
     $restartAuthority.mutable_local_selector = $mutableLocalSelector
     $restartAuthority.mutable_local_failure_target = $branchRecoverySelector
     $restartAuthority.mutable_local_failure_never_targets_main_git = $true
-    $restartAuthority.branch_commit_recovery_remains_prior_checkpoint = $true
-    $restartAuthority.branch_commit_recovery_byte_identical_before_checkpoint = $false
-    $restartAuthority.pre_2_2_recovery_allowed = $false
+    $restartAuthority.branch_commit_recovery_remains_prior_checkpoint = [bool]$threeSlotRegistryBody.branch_recovery_must_remain_prior_checkpoint_until_commit
+    $restartAuthority.branch_commit_recovery_byte_identical_before_checkpoint = [bool]$threeSlotRegistryBody.branch_recovery_byte_identical_to_mutable_local
+    $restartAuthority.pre_3_0_recovery_allowed = $false
 }
 if ($null -ne $tunnelBoundary) {
     $restartAuthority.tunnel_marker_path = [string]$tunnelBoundary.marker_path
@@ -1253,9 +1337,11 @@ if ($Action -eq "Prepare") {
             single_flight_required = $true
             exact_task_reopen_count = 1
             fixed_delay_used = $false
-            tunnel_marker_sha256 = [string]$tunnelBoundary.marker_sha256
-            tunnel_task_name = [string]$tunnelBoundary.task_name
-            tunnel_starts_with_reopened_host = $true
+            host_tool_transport = $HostToolTransport
+            tunnel_required = $tunnelRequired
+            tunnel_marker_sha256 = if ($tunnelRequired) { [string]$tunnelBoundary.marker_sha256 } else { $null }
+            tunnel_task_name = if ($tunnelRequired) { [string]$tunnelBoundary.task_name } else { $null }
+            tunnel_starts_with_reopened_host = $tunnelRequired
             maximized_full_window_required = $true
         }
         hot_reload_claimed = $false
@@ -1286,8 +1372,10 @@ if ($Action -eq "Prepare") {
         install_completed_before_restart = $true
         helper_installs_plugin = $false
         single_flight_required = $true
-        tunnel_marker_sha256 = [string]$tunnelBoundary.marker_sha256
-        tunnel_task_name = [string]$tunnelBoundary.task_name
+        host_tool_transport = $HostToolTransport
+        tunnel_required = $tunnelRequired
+        tunnel_marker_sha256 = if ($tunnelRequired) { [string]$tunnelBoundary.marker_sha256 } else { $null }
+        tunnel_task_name = if ($tunnelRequired) { [string]$tunnelBoundary.task_name } else { $null }
         claim_scope = "EXACT_CODEX_THREAD_ID_ONLY"
         alias_claim_allowed = $true
         native_workspace_binding_source = "EXISTING_CODEX_TASK_STATE"
@@ -1388,7 +1476,9 @@ if ($Action -eq "Restart") {
         task_id = $TaskId
         host_session_id = $HostSessionId
         install_receipt_sha256 = $observedInstallSha
-        tunnel_marker_sha256 = [string]$tunnelBoundary.marker_sha256
+        host_tool_transport = $HostToolTransport
+        tunnel_required = $tunnelRequired
+        tunnel_marker_sha256 = if ($tunnelRequired) { [string]$tunnelBoundary.marker_sha256 } else { $null }
         target_process_id = $TargetProcessId
         parent_process_id = $PID
         helper_process_id = $null
@@ -1412,7 +1502,8 @@ if ($Action -eq "Restart") {
         "-DataRoot", ([IO.Path]::GetFullPath($DataRoot)),
         "-RestartLeasePath", $leasePath,
         "-RestartLeaseToken", $leaseToken,
-        "-AppId", $AppId
+        "-AppId", $AppId,
+        "-HostToolTransport", $HostToolTransport
     )
     if ($isLocalTestRestart) {
         $arguments += @(
@@ -1440,7 +1531,9 @@ if ($Action -eq "Restart") {
             task_id = $TaskId
             host_session_id = $HostSessionId
             install_receipt_sha256 = $observedInstallSha
-            tunnel_marker_sha256 = [string]$tunnelBoundary.marker_sha256
+            host_tool_transport = $HostToolTransport
+            tunnel_required = $tunnelRequired
+            tunnel_marker_sha256 = if ($tunnelRequired) { [string]$tunnelBoundary.marker_sha256 } else { $null }
             target_process_id = $TargetProcessId
             parent_process_id = $PID
             helper_process_id = [int]$helperProcess.Id
@@ -1497,7 +1590,9 @@ if ($Action -eq "Relaunch") {
             [string]$restartLease.task_id -cne $TaskId -or
             [string]$restartLease.host_session_id -cne $HostSessionId -or
             [string]$restartLease.install_receipt_sha256 -cne $observedInstallSha -or
-            [string]$restartLease.tunnel_marker_sha256 -cne ([string]$tunnelBoundary.marker_sha256) -or
+            [string]$restartLease.host_tool_transport -cne $HostToolTransport -or
+            [bool]$restartLease.tunnel_required -ne $tunnelRequired -or
+            [string]$restartLease.tunnel_marker_sha256 -cne $(if ($tunnelRequired) { [string]$tunnelBoundary.marker_sha256 } else { "" }) -or
             [int]$restartLease.target_process_id -ne $TargetProcessId
         ) {
             throw "The single-flight restart lease does not bind this exact helper and task."
@@ -1559,8 +1654,12 @@ if ($Action -eq "Relaunch") {
             }
             Start-Sleep -Milliseconds 250
         }
-        $tunnelStart = Start-VersionMatchedTunnel $tunnelBoundary
-        $tunnelReady = Wait-VersionMatchedTunnelReady $tunnelBoundary
+        $tunnelStart = $null
+        $tunnelReady = $null
+        if ($tunnelRequired) {
+            $tunnelStart = Start-VersionMatchedTunnel $tunnelBoundary
+            $tunnelReady = Wait-VersionMatchedTunnelReady $tunnelBoundary
+        }
         Assert-CodexThreadProtocol $hostProfile
         $launchRequestProcessId = Invoke-CodexHostActivation -HostProfile $hostProfile -Arguments $taskUri
         $newRoot = $null
@@ -1579,7 +1678,7 @@ if ($Action -eq "Relaunch") {
         [void](Get-RootCodexProcess -ProcessId ([int]$verifiedRoot.ProcessId) -HostProfile $hostProfile)
         Write-JsonReceipt $relaunchPath ([ordered]@{
             schema = "evidence-lane.codex-relaunch-receipt.v2"
-            state = "BOUND_CODEX_HOST_ROOT_RELAUNCHED_ONCE_MAXIMIZED_VERSION_MATCHED_TUNNEL_READY_AWAITING_NATIVE_PROOF"
+            state = if ($tunnelRequired) { "BOUND_CODEX_HOST_ROOT_RELAUNCHED_ONCE_MAXIMIZED_VERSION_MATCHED_TUNNEL_READY_AWAITING_NATIVE_PROOF" } else { "BOUND_CODEX_HOST_ROOT_RELAUNCHED_ONCE_MAXIMIZED_NATIVE_MCP_AVAILABLE_AWAITING_NATIVE_PROOF" }
             project_id = $ProjectId
             evidence_session_id = $EvidenceSessionId
             task_id = $TaskId
@@ -1600,15 +1699,27 @@ if ($Action -eq "Relaunch") {
                 single_flight_verified = $true
                 released_after_receipt = $true
             }
-            tunnel = [ordered]@{
-                marker_path = [string]$tunnelBoundary.marker_path
-                marker_sha256 = [string]$tunnelBoundary.marker_sha256
-                runtime_root = [string]$tunnelBoundary.runtime_root
-                task_name = [string]$tunnelBoundary.task_name
-                start = $tunnelStart
-                readiness = $tunnelReady
-                version_matched_to_installed_plugin = $true
-                helper_installed_plugin = $false
+            tunnel = if ($tunnelRequired) {
+                [ordered]@{
+                    required = $true
+                    host_tool_transport = $HostToolTransport
+                    marker_path = [string]$tunnelBoundary.marker_path
+                    marker_sha256 = [string]$tunnelBoundary.marker_sha256
+                    runtime_root = [string]$tunnelBoundary.runtime_root
+                    task_name = [string]$tunnelBoundary.task_name
+                    start = $tunnelStart
+                    readiness = $tunnelReady
+                    version_matched_to_installed_plugin = $true
+                    helper_installed_plugin = $false
+                }
+            } else {
+                [ordered]@{
+                    required = $false
+                    host_tool_transport = $HostToolTransport
+                    started = $false
+                    reason = "NATIVE_MCP_AVAILABLE"
+                    helper_installed_plugin = $false
+                }
             }
             window = $windowProof
             task_navigation = [ordered]@{
@@ -1636,7 +1747,7 @@ if ($Action -eq "Relaunch") {
                 exact_task_reopen_count = 1
                 fixed_delay_used = $false
                 condition_driven_waits_only = $true
-                tunnel_started_by_helper = $true
+                tunnel_started_by_helper = $tunnelRequired
                 maximized_full_window_verified = $true
             }
             source_mutated = $false

@@ -1,8 +1,8 @@
-"""Verify the installed Evidence Lane 2.2 Codex Git release before final HIL.
+"""Verify the installed Evidence Lane 3.0 Codex Git release before final HIL.
 
 This checker is read-only except for its explicit receipt output. It compares the
 exact Git marketplace checkout with Codex's generated installed cache, validates
-the enabled canonical selector, statically proves the 83/26/57 catalog and
+the enabled canonical selector, statically proves the 87/27/60 catalog and
 seventeen skills, and optionally binds a post-restart native route receipt. It
 never calls lifecycle, Git, tunnel, candidate, pointer, or HIL actions.
 """
@@ -20,12 +20,12 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-BASE_RELEASE = "2.2.0"
+BASE_RELEASE = "3.0.0"
 PLUGIN_NAME = "evidence-lane-plugin"
 MARKETPLACE_NAME = "evidence-lane-github"
 MARKETPLACE_DISPLAY_NAME = "Main Git Plugin Version"
-BRANCH_RECOVERY_MARKETPLACE_NAME = "evidence-lane-v220-stable-recovery"
-LOCAL_TESTING_MARKETPLACE_NAME = "evidence-lane-v220-testing-new"
+BRANCH_RECOVERY_MARKETPLACE_NAME = "evidence-lane-v300-stable-recovery"
+LOCAL_TESTING_MARKETPLACE_NAME = "evidence-lane-v300-testing-new"
 PLUGIN_SELECTOR = f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"
 HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
 EXPECTED_CODEX_HOST_HOOK_EVENTS = {
@@ -48,7 +48,7 @@ EXPECTED_PACKAGE_HOOK_EVENTS = {
     "Stop",
     "UserPromptSubmit",
 }
-EXPECTED_CATALOG = {"tools": 83, "read": 26, "write": 57, "skills": 17}
+EXPECTED_CATALOG = {"tools": 87, "read": 27, "write": 60, "skills": 17}
 EXPECTED_BEHAVIOR_OWNERSHIP = {
     "hooks": "LIFECYCLE_CAPTURE_AND_SEALED_EVENTS_ONLY",
     "skills": "NATIVE_PV_READS_AND_HOST_BEHAVIOR",
@@ -160,16 +160,43 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     },
     "interactive_codex_app_local_or_persistent": {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
-        "tunnel_requirement": "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
-        "tunnel_setup_frequency": "NONE",
-        "tunnel_key_retention": "NOT_APPLICABLE",
-        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+            "tunnel_setup_frequency": "NONE",
+            "tunnel_key_retention": "NOT_APPLICABLE",
+            "tunnel_runtime_lifetime": "NOT_APPLICABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+            "tunnel_key_retention": "CURRENT_WINDOWS_USER_DPAPI_PROFILE",
+            "tunnel_runtime_lifetime": "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST",
+        },
+    },
+    "codex_cli_local_or_persistent": {
+        "pv_storage": "DURABLE_LOCAL_SQLITE",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+        },
     },
     "interactive_codex_app_ephemeral_vm": {
         "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
-        "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
-        "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
-        "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
+            "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
+            "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+        },
     },
     "desktop_container_surface_scope": {
         "supported_container_channels": [
@@ -791,8 +818,8 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or goal_recovery.get("allowed_runtime_selectors")
         != [
             "evidence-lane-plugin@evidence-lane-github",
-            "evidence-lane-plugin@evidence-lane-v220-stable-recovery",
-            "evidence-lane-plugin@evidence-lane-v220-testing-new",
+            "evidence-lane-plugin@evidence-lane-v300-stable-recovery",
+            "evidence-lane-plugin@evidence-lane-v300-testing-new",
         ]
         or goal_recovery.get("stable_selector_growth_allowed") is not False
         or goal_recovery.get("raw_goal_objective_stored") is not False

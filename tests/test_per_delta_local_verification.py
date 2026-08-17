@@ -75,7 +75,9 @@ def _tasks() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         "task_id": ACTIVE_TASK_ID,
         "task_class": "fix_bug",
         "requested_outcome": "Implement one normalized parity correction.",
-        "permitted_paths": ["src/**", "tests/**"],
+        # A directory authority is equivalent to its bounded descendants. This
+        # mirrors live Plan rows that name ``tests`` instead of ``tests/**``.
+        "permitted_paths": ["src", "tests"],
         "permitted_tools": ["repository_write", "test"],
         "acceptance_checks": [
             "The exact source and test hashes pass bounded local verification."

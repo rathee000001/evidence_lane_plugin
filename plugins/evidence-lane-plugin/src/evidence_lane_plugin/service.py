@@ -71,6 +71,717 @@ from .timeutil import utc_now
 
 _STATUS_VALIDATION_WORKERS = 8
 
+# Public tool results are copied into the host conversation by the MCP SDK.  A
+# result that is safe inside the private service can therefore still be unsafe
+# at the public boundary (for example, a successful Plan write historically
+# returned the complete canonical and executable projections).  Keep one hard
+# byte ceiling here so MCP, SDK, command, and skill routes share the same
+# fail-closed model-context contract.
+_MODEL_CONTEXT_RESULT_MAX_BYTES = 64 * 1024
+_MODEL_CONTEXT_DATA_MAX_BYTES = 48 * 1024
+_MODEL_CONTEXT_AUXILIARY_MAX_BYTES = 4 * 1024
+_MODEL_CONTEXT_SCALAR_MAX_BYTES = 8 * 1024
+_MODEL_CONTEXT_COLLECTION_MAX_ITEMS = 50
+_MODEL_CONTEXT_MAPPING_MAX_ITEMS = 128
+_MODEL_CONTEXT_MAX_DEPTH = 8
+_MODEL_CONTEXT_APPROX_TOKEN_MAX = 16 * 1024
+_MODEL_CONTEXT_BOUNDARY_SCHEMA = "evidence-lane.model-context-boundary.v1"
+_MODEL_CONTEXT_WITHHELD_SCHEMA = "evidence-lane.model-context-withheld-receipt.v1"
+_MODEL_CONTEXT_AUXILIARY_WITHHELD_SCHEMA = (
+    "evidence-lane.model-context-auxiliary-withheld-receipt.v1"
+)
+_MODEL_CONTEXT_DETAIL_ROUTES = [
+    "pv_status",
+    "pv_task_backlog",
+    "pv_query",
+    "search",
+    "fetch",
+    "lane_search",
+]
+_MODEL_CONTEXT_AUTHORITY_KEYS = frozenset(
+    {
+        "backlog",
+        "canonical_plan_projection",
+        "full_backlog",
+        "full_chatlineage",
+        "full_chat_scrollback",
+        "full_plan",
+        "goal_projection",
+        "history_projection",
+        "plan_runtime_projection",
+        "raw_file",
+        "raw_markdown",
+        "raw_package_projection",
+        "raw_pv_payload",
+        "raw_sqlite",
+    }
+)
+
+
+def _bounded_value_receipt(
+    value: object,
+    *,
+    reason: str,
+) -> dict[str, Any]:
+    """Describe one withheld nested value without copying it into context."""
+
+    encoded = canonical_json_bytes(value)
+    return {
+        "schema": _MODEL_CONTEXT_WITHHELD_SCHEMA,
+        "payload_withheld": True,
+        "reason": reason,
+        "result_bytes": len(encoded),
+        "result_sha256": sha256_bytes(encoded),
+        "raw_payload_returned": False,
+    }
+
+
+def _bound_nested_public_value(
+    value: object,
+    *,
+    path: tuple[str, ...] = (),
+    depth: int = 0,
+) -> object:
+    """Bound nested values before the complete-envelope byte ceiling runs.
+
+    Public reads may return an exact excerpt, row, or FTS window.  They may not
+    return an authority database, recursive history, or arbitrarily large
+    scalar merely because the complete result happens to remain below a later
+    transport limit.
+    """
+
+    if depth > _MODEL_CONTEXT_MAX_DEPTH:
+        return _bounded_value_receipt(value, reason="MAX_DEPTH_EXCEEDED")
+    if isinstance(value, dict):
+        bounded: dict[str, Any] = {}
+        entries = list(value.items())
+        for raw_key, nested in entries[:_MODEL_CONTEXT_MAPPING_MAX_ITEMS]:
+            key = str(raw_key)
+            if key.lower() in _MODEL_CONTEXT_AUTHORITY_KEYS:
+                bounded[key] = _bounded_value_receipt(
+                    nested,
+                    reason="FULL_AUTHORITY_FIELD_BLOCKED",
+                )
+                continue
+            bounded[key] = _bound_nested_public_value(
+                nested,
+                path=(*path, key),
+                depth=depth + 1,
+            )
+        if len(entries) > _MODEL_CONTEXT_MAPPING_MAX_ITEMS:
+            omitted = dict(entries[_MODEL_CONTEXT_MAPPING_MAX_ITEMS:])
+            bounded["_withheld_mapping_tail"] = _bounded_value_receipt(
+                omitted,
+                reason="MAPPING_ITEM_LIMIT_EXCEEDED",
+            )
+            bounded["_withheld_mapping_tail"]["omitted_items"] = (
+                len(entries) - _MODEL_CONTEXT_MAPPING_MAX_ITEMS
+            )
+        return bounded
+    if isinstance(value, list):
+        bounded_items = [
+            _bound_nested_public_value(
+                item,
+                path=(*path, str(index)),
+                depth=depth + 1,
+            )
+            for index, item in enumerate(value[:_MODEL_CONTEXT_COLLECTION_MAX_ITEMS])
+        ]
+        if len(value) > _MODEL_CONTEXT_COLLECTION_MAX_ITEMS:
+            tail = value[_MODEL_CONTEXT_COLLECTION_MAX_ITEMS:]
+            receipt = _bounded_value_receipt(
+                tail,
+                reason="COLLECTION_ITEM_LIMIT_EXCEEDED",
+            )
+            receipt["omitted_items"] = len(tail)
+            bounded_items.append(receipt)
+        return bounded_items
+    if isinstance(value, str):
+        encoded = value.encode("utf-8")
+        if len(encoded) <= _MODEL_CONTEXT_SCALAR_MAX_BYTES:
+            return value
+        prefix = encoded[:_MODEL_CONTEXT_SCALAR_MAX_BYTES].decode(
+            "utf-8", errors="ignore"
+        )
+        return (
+            prefix
+            + "\n[MODEL_CONTEXT_TRUNCATED bytes="
+            + str(len(encoded))
+            + " sha256="
+            + sha256_bytes(encoded)
+            + "]"
+        )
+    return value
+
+
+def _compact_fetch_result(data: dict[str, Any]) -> dict[str, Any]:
+    """Keep one exact fetch excerpt and remove the duplicate content field."""
+
+    bounded = dict(data)
+    text = bounded.get("text")
+    content = bounded.get("content")
+    if isinstance(text, str) and content == text:
+        bounded.pop("content", None)
+        bounded["content_duplicate_returned"] = False
+    bounded["model_context_boundary"] = {
+        "schema": _MODEL_CONTEXT_BOUNDARY_SCHEMA,
+        "exact_bounded_read": True,
+        "full_file_returned": False,
+        "raw_database_returned": False,
+        "duplicate_content_returned": False,
+        "max_scalar_bytes": _MODEL_CONTEXT_SCALAR_MAX_BYTES,
+    }
+    return bounded
+
+
+def _authority_field_paths(
+    value: object,
+    *,
+    path: tuple[str, ...] = (),
+    depth: int = 0,
+) -> list[str]:
+    """Locate forbidden authority payload fields without reading their values."""
+
+    if depth > _MODEL_CONTEXT_MAX_DEPTH:
+        return []
+    if isinstance(value, dict):
+        found: list[str] = []
+        for raw_key, nested in list(value.items())[:_MODEL_CONTEXT_MAPPING_MAX_ITEMS]:
+            key = str(raw_key)
+            exact_path = (*path, key)
+            if key.lower() in _MODEL_CONTEXT_AUTHORITY_KEYS:
+                found.append(".".join(exact_path))
+            else:
+                found.extend(
+                    _authority_field_paths(
+                        nested,
+                        path=exact_path,
+                        depth=depth + 1,
+                    )
+                )
+            if len(found) >= 32:
+                return found[:32]
+        return found
+    if isinstance(value, list):
+        found = []
+        for index, nested in enumerate(value[:_MODEL_CONTEXT_COLLECTION_MAX_ITEMS]):
+            found.extend(
+                _authority_field_paths(
+                    nested,
+                    path=(*path, str(index)),
+                    depth=depth + 1,
+                )
+            )
+            if len(found) >= 32:
+                return found[:32]
+        return found
+    return []
+
+
+def _compact_fields(
+    payload: object,
+    fields: tuple[str, ...],
+) -> dict[str, Any]:
+    """Copy only explicitly public receipt fields from one mapping."""
+
+    if not isinstance(payload, dict):
+        return {}
+    return {field: payload[field] for field in fields if field in payload}
+
+
+def _compact_plan_tasks_result(data: dict[str, Any]) -> dict[str, Any]:
+    """Project one Plan mutation to a receipt, never the full Plan authority."""
+
+    goal = cast(dict[str, Any], data.get("goal_projection") or {})
+    rows = cast(list[dict[str, Any]], goal.get("rows") or [])
+    active_rows = [row for row in rows if str(row.get("status")) == "in_progress"]
+    final_rows = [
+        row
+        for row in rows
+        if str(row.get("panel_role") or "") == "PHYSICALLY_FINAL_HIL"
+    ]
+    active = active_rows[0] if len(active_rows) == 1 else {}
+    physical_final = final_rows[-1] if final_rows else {}
+    runtime = cast(dict[str, Any], data.get("plan_runtime_projection") or {})
+    history = cast(dict[str, Any], data.get("history_projection") or {})
+    canonical = cast(dict[str, Any], data.get("canonical_plan_projection") or {})
+    host = cast(dict[str, Any], data.get("host_plan_bridge") or {})
+
+    receipt_fields = (
+        "schema",
+        "status",
+        "project_id",
+        "plan_id",
+        "batch_id",
+        "research_batch_sha256",
+        "task_count",
+        "group_count",
+        "task_ids",
+        "physical_final_task_id",
+        "physical_final_sequence",
+        "canonical_plan_sha256",
+        "executable_projection_sha256",
+        "backlog_sha256_before",
+        "backlog_sha256_after",
+        "result_sha256",
+        "receipt_sha256",
+        "idempotent_replay",
+        "recovered_prepared_insertion",
+    )
+    priority_fields = (
+        "schema",
+        "status",
+        "interruption_id",
+        "session_id",
+        "old_active_task_id",
+        "replacement_task_id",
+        "paused_backlog_task_id",
+        "replacement_backlog_task_id",
+        "history_preserved",
+        "candidate_created",
+        "pending_hil",
+        "pointer_moved",
+        "receipt_sha256",
+        "idempotent_replay",
+    )
+    host_fields = (
+        "host_kind",
+        "host_mode",
+        "canonical_authority",
+        "copy_paste_required",
+        "host_goal_mutation_supported_by_mcp",
+        "host_scope",
+    )
+    return {
+        "schema": "evidence-lane.plan-write-receipt.v2",
+        "status": str(data.get("status") or "PASS"),
+        "project_id": data.get("project_id") or goal.get("project_id"),
+        "write_committed": str(data.get("status") or "PASS") == "PASS",
+        "counts": data.get("counts"),
+        "canonical_task_count": (
+            goal.get("canonical_task_count") or canonical.get("task_count")
+        ),
+        "executable_task_count": goal.get("task_count"),
+        "history_task_count": (
+            goal.get("history_task_count") or history.get("task_count")
+        ),
+        "row_start": goal.get("row_start"),
+        "row_end": goal.get("row_end"),
+        "active_row": (
+            {
+                "number": active.get("number"),
+                "task_id": active.get("task_id"),
+                "status": active.get("status"),
+                "lifecycle_status": active.get("lifecycle_status"),
+            }
+            if active
+            else None
+        ),
+        "physical_final_hil": (
+            {
+                "number": physical_final.get("number"),
+                "task_id": physical_final.get("task_id"),
+                "status": physical_final.get("status"),
+            }
+            if physical_final
+            else None
+        ),
+        "canonical_plan_sha256": (
+            goal.get("canonical_plan_sha256") or canonical.get("projection_sha256")
+        ),
+        "executable_projection_sha256": goal.get("projection_sha256"),
+        "history_projection_sha256": goal.get("history_projection_sha256"),
+        "plan_runtime_receipt": {
+            "status": runtime.get("status"),
+            "sqlite_sha256": runtime.get("sqlite_sha256"),
+            "projection_content_sha256": runtime.get("projection_content_sha256"),
+            "execution_row_count": runtime.get("execution_row_count"),
+            "history_row_count": runtime.get("history_row_count"),
+            "fts_record_count": runtime.get("fts_record_count"),
+            "fts5_enabled": runtime.get("fts5_enabled"),
+        },
+        "atomic_insertion_receipt": _compact_fields(
+            data.get("atomic_insertion_receipt"), receipt_fields
+        ),
+        "priority_steer_receipt": _compact_fields(
+            data.get("priority_steer_receipt"), priority_fields
+        ),
+        "priority_steer_rebind": _compact_fields(
+            data.get("priority_steer_rebind"), priority_fields
+        ),
+        "normalization_transition_receipt": _compact_fields(
+            data.get("normalization_transition_receipt"), receipt_fields
+        ),
+        "active_contract_rebind_receipt": _compact_fields(
+            data.get("active_contract_rebind_receipt"), receipt_fields
+        ),
+        "host_plan_bridge": _compact_fields(host, host_fields),
+        "model_context_boundary": {
+            "schema": _MODEL_CONTEXT_BOUNDARY_SCHEMA,
+            "full_backlog_returned": False,
+            "full_plan_returned": False,
+            "raw_pv_payload_loaded": False,
+            "raw_chat_scrollback_loaded": False,
+            "write_receipt_only": True,
+            "detail_routes": ["pv_status", "pv_task_backlog"],
+        },
+    }
+
+
+def _compact_plan_steer_result(data: dict[str, Any]) -> dict[str, Any]:
+    """Whitelist the public receipt for one steer, even after future drift."""
+
+    steer_fields = (
+        "delta_id",
+        "delta_sha256",
+        "boundary",
+        "boundary_defaulted",
+        "classification",
+        "linked_task_id",
+        "recorded_by",
+        "delta_text_returned",
+    )
+    event_fields = (
+        "sequence",
+        "event_id",
+        "task_id",
+        "event_type",
+        "from_status",
+        "to_status",
+        "actor",
+        "recorded_at",
+        "event_sha256",
+        "details",
+    )
+    window_fields = (
+        "schema",
+        "window_size",
+        "row_start",
+        "row_end",
+        "linked_task_id",
+        "active_row_present",
+        "linked_row_is_currently_visible",
+        "before_fingerprint_sha256",
+        "after_fingerprint_sha256",
+        "visible_window_changed",
+        "action",
+        "host_update_plan_required",
+        "evi_refresh_invoked",
+        "full_native_ledger_remains_authority",
+        "text_only_linked_steer_rebuilds_host_window",
+    )
+    backlog_fields = (
+        "schema",
+        "project_id",
+        "canonical_task_count",
+        "executable_task_count",
+        "history_task_count",
+        "counts",
+        "active_task_id",
+        "absolute_active_row",
+        "canonical_plan_sha256",
+        "executable_projection_sha256",
+        "plan_runtime_sqlite_sha256",
+        "plan_runtime_projection_content_sha256",
+        "full_backlog_returned",
+        "full_plan_returned",
+        "raw_pv_payload_loaded",
+        "raw_chat_scrollback_loaded",
+    )
+    return {
+        "schema": "evidence-lane.plan-steer-write-receipt.v2",
+        "status": str(data.get("status") or "PASS"),
+        "idempotent_reuse": bool(data.get("idempotent_reuse")),
+        "steer": _compact_fields(data.get("steer"), steer_fields),
+        "event": _compact_fields(data.get("event"), event_fields),
+        "task_count": data.get("task_count"),
+        "task_count_changed": bool(data.get("task_count_changed")),
+        "host_plan_window_effect": _compact_fields(
+            data.get("host_plan_window_effect"), window_fields
+        ),
+        "backlog_receipt": _compact_fields(data.get("backlog_receipt"), backlog_fields),
+        "model_context_boundary": {
+            "schema": _MODEL_CONTEXT_BOUNDARY_SCHEMA,
+            "full_backlog_returned": False,
+            "full_plan_returned": False,
+            "raw_delta_text_returned": False,
+            "raw_pv_payload_loaded": False,
+            "raw_chat_scrollback_loaded": False,
+            "write_receipt_only": True,
+            "detail_routes": ["pv_status", "pv_task_backlog"],
+        },
+    }
+
+
+def _compact_task_activity_result(data: dict[str, Any]) -> dict[str, Any]:
+    """Return only the append receipt for one visible ChatLineage activity."""
+
+    event_fields = (
+        "event_id",
+        "event_type",
+        "event_sha256",
+        "occurred_at",
+        "session_id",
+        "task_id",
+        "run_id",
+        "idempotent_reuse",
+    )
+    observed_fields = (
+        "schema",
+        "status",
+        "packet_id",
+        "packet_sha256",
+        "project_id",
+        "evidence_session_id",
+        "runtime_task_id",
+        "plan_task_id",
+    )
+    rehydration_fields = (
+        "schema",
+        "status",
+        "project_id",
+        "session_id",
+        "trigger",
+        "trigger_event_id",
+        "plan_projection_sha256",
+        "host_update_plan_required",
+        "host_goal_rebind_required",
+    )
+    event = _compact_fields(data.get("event"), event_fields)
+    return {
+        "schema": "evidence-lane.task-activity-write-receipt.v1",
+        "status": str(data.get("status") or "PASS"),
+        "write_committed": str(data.get("status") or "PASS") == "PASS",
+        "event": event,
+        "activity_type": (
+            str(event.get("event_type") or "").removeprefix("task.") if event else None
+        ),
+        "observed_experience": _compact_fields(
+            data.get("observed_experience"), observed_fields
+        ),
+        "host_plan_rehydration": _compact_fields(
+            data.get("host_plan_rehydration"), rehydration_fields
+        ),
+        "source_state": data.get("source_state"),
+        "accepted_pv_query_scope": data.get("accepted_pv_query_scope"),
+        "model_context_boundary": {
+            "schema": _MODEL_CONTEXT_BOUNDARY_SCHEMA,
+            "write_receipt_only": True,
+            "visible_payload_returned": False,
+            "full_chatlineage_returned": False,
+            "full_backlog_returned": False,
+            "full_plan_returned": False,
+            "raw_markdown_returned": False,
+            "raw_file_returned": False,
+            "raw_sqlite_returned": False,
+            "raw_pv_payload_loaded": False,
+            "raw_chat_scrollback_loaded": False,
+            "detail_routes": ["task_record_activity", "pv_query"],
+        },
+    }
+
+
+def _bound_public_result(tool: str, data: dict[str, Any]) -> dict[str, Any]:
+    """Enforce one byte-bounded public result across every invocation route."""
+
+    if tool == "pv_plan_tasks":
+        bounded = _compact_plan_tasks_result(data)
+    elif tool == "pv_plan_steer_delta":
+        bounded = _compact_plan_steer_result(data)
+    elif tool == "task_record_activity":
+        bounded = _compact_task_activity_result(data)
+    elif tool in {"fetch", "lane_fetch"}:
+        bounded = _compact_fetch_result(data)
+    else:
+        bounded = data
+
+    forbidden_paths = _authority_field_paths(bounded)
+    if forbidden_paths:
+        encoded = canonical_json_bytes(bounded)
+        return {
+            "schema": _MODEL_CONTEXT_WITHHELD_SCHEMA,
+            "status": str(bounded.get("status") or "PASS"),
+            "tool": tool,
+            "payload_withheld": True,
+            "reason": "FULL_AUTHORITY_FIELD_BLOCKED",
+            "forbidden_field_paths": forbidden_paths,
+            "result_bytes": len(encoded),
+            "result_sha256": sha256_bytes(encoded),
+            "max_public_data_bytes": _MODEL_CONTEXT_DATA_MAX_BYTES,
+            "max_public_result_bytes": _MODEL_CONTEXT_RESULT_MAX_BYTES,
+            "max_public_approx_tokens": _MODEL_CONTEXT_APPROX_TOKEN_MAX,
+            "full_authority_returned": False,
+            "raw_payload_returned": False,
+            "detail_routes": list(_MODEL_CONTEXT_DETAIL_ROUTES),
+            "next_action": "Use one exact bounded query or smaller line/row window.",
+        }
+
+    bounded = cast(
+        dict[str, Any],
+        _bound_nested_public_value(bounded),
+    )
+    encoded = canonical_json_bytes(bounded)
+    result_sha256 = sha256_bytes(encoded)
+    if len(encoded) > _MODEL_CONTEXT_DATA_MAX_BYTES:
+        safe_scalars = {
+            key: value
+            for key, value in bounded.items()
+            if key
+            in {
+                "status",
+                "state",
+                "schema",
+                "project_id",
+                "session_id",
+                "task_id",
+                "candidate_id",
+                "event_id",
+                "pending_hil",
+                "pointer_moved",
+                "mutation_performed",
+            }
+            and (value is None or isinstance(value, (str, int, float, bool)))
+        }
+        return {
+            "schema": _MODEL_CONTEXT_WITHHELD_SCHEMA,
+            "status": str(bounded.get("status") or "PASS"),
+            "tool": tool,
+            **safe_scalars,
+            "payload_withheld": True,
+            "result_bytes": len(encoded),
+            "result_sha256": result_sha256,
+            "max_public_data_bytes": _MODEL_CONTEXT_DATA_MAX_BYTES,
+            "max_public_result_bytes": _MODEL_CONTEXT_RESULT_MAX_BYTES,
+            "max_public_approx_tokens": _MODEL_CONTEXT_APPROX_TOKEN_MAX,
+            "approx_tokens": (len(encoded) + 3) // 4,
+            "top_level_keys": sorted(str(key) for key in bounded)[:64],
+            "full_authority_returned": False,
+            "raw_payload_returned": False,
+            "detail_routes": list(_MODEL_CONTEXT_DETAIL_ROUTES),
+            "next_action": (
+                "Use one exact bounded query or a smaller line/row window."
+            ),
+        }
+
+    # Route-specific ``model_context_boundary`` objects are public contracts in
+    # their own right.  Keep them byte-stable and add the generic byte receipt
+    # beside them rather than silently widening their schema.
+    bounded["public_result_boundary"] = {
+        "schema": _MODEL_CONTEXT_BOUNDARY_SCHEMA,
+        "payload_withheld": False,
+        "result_bytes": len(encoded),
+        "result_sha256": result_sha256,
+        "max_public_data_bytes": _MODEL_CONTEXT_DATA_MAX_BYTES,
+        "max_public_result_bytes": _MODEL_CONTEXT_RESULT_MAX_BYTES,
+        "max_public_approx_tokens": _MODEL_CONTEXT_APPROX_TOKEN_MAX,
+        "approx_tokens": (len(encoded) + 3) // 4,
+        "bounded_public_result": True,
+    }
+    return bounded
+
+
+def _bound_public_warnings(payload: object) -> list[Any]:
+    """Keep warnings list-shaped while withholding oversized diagnostic prose."""
+
+    redacted = redact(payload)
+    warnings = redacted if isinstance(redacted, list) else [redacted]
+    encoded = canonical_json_bytes(warnings)
+    if len(encoded) <= _MODEL_CONTEXT_AUXILIARY_MAX_BYTES:
+        return cast(list[Any], warnings)
+    return [
+        {
+            "schema": _MODEL_CONTEXT_AUXILIARY_WITHHELD_SCHEMA,
+            "kind": "warnings",
+            "payload_withheld": True,
+            "result_bytes": len(encoded),
+            "result_sha256": sha256_bytes(encoded),
+            "max_public_auxiliary_bytes": _MODEL_CONTEXT_AUXILIARY_MAX_BYTES,
+            "next_action": "Use the exact receipt or bounded diagnostic query.",
+        }
+    ]
+
+
+def _bound_public_error(payload: dict[str, Any]) -> dict[str, Any]:
+    """Preserve the error identity but never return unbounded error details."""
+
+    redacted = cast(dict[str, Any], redact(payload))
+    encoded = canonical_json_bytes(redacted)
+    if len(encoded) <= _MODEL_CONTEXT_AUXILIARY_MAX_BYTES:
+        return redacted
+    details = redacted.get("details")
+    detail_keys = (
+        sorted(str(key) for key in details)[:64] if isinstance(details, dict) else []
+    )
+    message = str(redacted.get("message") or "Governed operation failed.")
+    return {
+        "schema": _MODEL_CONTEXT_AUXILIARY_WITHHELD_SCHEMA,
+        "kind": "error",
+        "status": str(redacted.get("status") or "FAIL"),
+        "code": str(redacted.get("code") or "GOVERNED_OPERATION_FAILED"),
+        "message": message[:512],
+        "payload_withheld": True,
+        "result_bytes": len(encoded),
+        "result_sha256": sha256_bytes(encoded),
+        "detail_keys": detail_keys,
+        "max_public_auxiliary_bytes": _MODEL_CONTEXT_AUXILIARY_MAX_BYTES,
+        "next_action": "Use one exact bounded diagnostic query.",
+    }
+
+
+def _bound_public_envelope(tool: str, envelope: dict[str, Any]) -> dict[str, Any]:
+    """Apply the hard ceiling to the complete tool envelope, not only ``data``."""
+
+    encoded = canonical_json_bytes(envelope)
+    if len(encoded) <= _MODEL_CONTEXT_RESULT_MAX_BYTES:
+        return envelope
+
+    status = str(envelope.get("status") or "PASS")
+    compact_error = envelope.get("error")
+    if isinstance(compact_error, dict):
+        compact_error = _compact_fields(
+            compact_error,
+            (
+                "schema",
+                "kind",
+                "status",
+                "code",
+                "message",
+                "payload_withheld",
+                "result_bytes",
+                "result_sha256",
+            ),
+        )
+    minimal: dict[str, Any] = {
+        "schema": envelope.get("schema"),
+        "tool": tool,
+        "status": status,
+        "data": (
+            {
+                "schema": _MODEL_CONTEXT_WITHHELD_SCHEMA,
+                "status": status,
+                "tool": tool,
+                "payload_withheld": True,
+                "full_envelope_withheld": True,
+                "result_bytes": len(encoded),
+                "result_sha256": sha256_bytes(encoded),
+                "max_public_result_bytes": _MODEL_CONTEXT_RESULT_MAX_BYTES,
+                "full_authority_returned": False,
+                "raw_payload_returned": False,
+                "detail_routes": list(_MODEL_CONTEXT_DETAIL_ROUTES),
+                "next_action": "Use one exact bounded query or smaller line/row window.",
+            }
+            if envelope.get("data") is not None
+            else None
+        ),
+        "warnings": [],
+        "error": compact_error,
+        "provenance": envelope.get("provenance"),
+    }
+    # The minimal form contains only fixed-size scalars and hashes.  Keep this
+    # assertion adjacent to the boundary so future envelope drift fails tests.
+    assert len(canonical_json_bytes(minimal)) <= _MODEL_CONTEXT_RESULT_MAX_BYTES
+    return minimal
+
 
 def _accepted_lane_projection(
     store: ProjectStore,
@@ -481,12 +1192,18 @@ class EvidenceLaneService:
         lifecycle: bool = False,
     ) -> dict[str, Any]:
         status = str(data.get("status", "PASS"))
-        return {
+        # Warnings have their own bounded envelope field.  Excluding them from
+        # ``data`` prevents one diagnostic from being returned twice or from
+        # withholding an otherwise small successful receipt.
+        public_data = {key: value for key, value in data.items() if key != "warnings"}
+        redacted = cast(dict[str, Any], redact(public_data))
+        bounded = _bound_public_result(tool, redacted)
+        envelope = {
             "schema": LIFECYCLE_RESULT_SCHEMA if lifecycle else TOOL_RESULT_SCHEMA,
             "tool": tool,
             "status": status,
-            "data": redact(data),
-            "warnings": redact(data.get("warnings", [])),
+            "data": bounded,
+            "warnings": _bound_public_warnings(data.get("warnings", [])),
             "error": None,
             "provenance": {
                 "engine": "evidence-lane-universal-pv-engine",
@@ -494,6 +1211,7 @@ class EvidenceLaneService:
                 "fabricated_evidence": False,
             },
         }
+        return _bound_public_envelope(tool, envelope)
 
     @staticmethod
     def _error(
@@ -514,19 +1232,20 @@ class EvidenceLaneService:
                     "trace_id": __import__("uuid").uuid4().hex,
                 },
             }
-        return {
+        envelope = {
             "schema": LIFECYCLE_RESULT_SCHEMA if lifecycle else TOOL_RESULT_SCHEMA,
             "tool": tool,
             "status": payload["status"],
             "data": None,
             "warnings": [],
-            "error": redact(payload),
+            "error": _bound_public_error(payload),
             "provenance": {
                 "engine": "evidence-lane-universal-pv-engine",
                 "generated_at": utc_now(),
                 "fabricated_evidence": False,
             },
         }
+        return _bound_public_envelope(tool, envelope)
 
     def invoke(
         self,
@@ -607,9 +1326,7 @@ class EvidenceLaneService:
             project_id = str(active.get("project_id") or "")
             evidence_session_id = str(active.get("session_id") or "")
             host_session_ids = {
-                str(value)
-                for value in active.get("host_session_ids", [])
-                if str(value)
+                str(value) for value in active.get("host_session_ids", []) if str(value)
             }
             session_records = [
                 row
@@ -624,8 +1341,7 @@ class EvidenceLaneService:
                 if isinstance(row.get("capture_dispatch"), dict)
                 and row["capture_dispatch"].get("state")
                 == "USERPROMPTSUBMIT_ADAPTER_INVOKED"
-                and row["capture_dispatch"].get("adapter_invocation_observed")
-                is True
+                and row["capture_dispatch"].get("adapter_invocation_observed") is True
                 and row["capture_dispatch"].get("host_payload_hook_event_name")
                 == "UserPromptSubmit"
             ]
@@ -638,8 +1354,7 @@ class EvidenceLaneService:
                     "validated_adapter_invocation_count": len(invoked_records),
                     "latest_prompt_index": (
                         max(
-                            int(row.get("prompt_index") or 0)
-                            for row in session_records
+                            int(row.get("prompt_index") or 0) for row in session_records
                         )
                         if session_records
                         else None
@@ -926,8 +1641,7 @@ class EvidenceLaneService:
                 session_id,
                 activity_type="build.output",
                 event_id=(
-                    "source_intake_schema_"
-                    f"{str(result['receipt_sha256'])[:32].lower()}"
+                    f"source_intake_schema_{str(result['receipt_sha256'])[:32].lower()}"
                 ),
                 visible_payload={
                     "operation": result["operation"],
@@ -1414,9 +2128,7 @@ class EvidenceLaneService:
                     "promotable_under_current_rules": validation["promotable"],
                     "lane_topology_status": lane_validation["status"],
                     "lane_topology_valid": lane_validation["valid"],
-                    "historical_compatibility_path": bool(
-                        not validation["promotable"]
-                    ),
+                    "historical_compatibility_path": bool(not validation["promotable"]),
                     "successor_candidate_must_pass_current_rules": True,
                 }
             )
@@ -1448,9 +2160,7 @@ class EvidenceLaneService:
                     "candidate_id": session.candidate_id,
                     "pending_hil": session.state.value.endswith("_CANDIDATE"),
                     "task_id": (session.task.get("task_id") if session.task else None),
-                    "backlog_task_id": session.metadata.get(
-                        "active_backlog_task_id"
-                    ),
+                    "backlog_task_id": session.metadata.get("active_backlog_task_id"),
                     "source_state": session.metadata.get("source_state"),
                     "host": session.host.value,
                     "persistence_route": session.metadata.get("persistence_route"),
@@ -1563,9 +2273,7 @@ class EvidenceLaneService:
                     "pending_candidate": session.candidate_id,
                     "pending_hil": session.state.value.endswith("_CANDIDATE"),
                     "task_id": session.task.get("task_id") if session.task else None,
-                    "backlog_task_id": session.metadata.get(
-                        "active_backlog_task_id"
-                    ),
+                    "backlog_task_id": session.metadata.get("active_backlog_task_id"),
                     "source_state": session.metadata.get("source_state"),
                     "host": session.host.value,
                 }
@@ -1659,6 +2367,7 @@ class EvidenceLaneService:
         normalization_transition: dict[str, Any] | None = None,
         atomic_insertion: dict[str, Any] | None = None,
         active_contract_rebind: dict[str, Any] | None = None,
+        existing_task_promotion: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         exact_host = str(host_kind or "").strip().upper()
         exact_mode = str(host_mode or "").strip().upper()
@@ -1691,11 +2400,12 @@ class EvidenceLaneService:
             normalization_transition,
             atomic_insertion,
             active_contract_rebind,
+            existing_task_promotion,
         )
         require(
             sum(mode is not None for mode in write_modes) <= 1,
             "PLAN_TASKS_WRITE_MODE_CONFLICT",
-            "Plan normalization, atomic insertion, and active-contract rebind are mutually exclusive.",
+            "Plan normalization, atomic insertion, active-contract rebind, and existing-task promotion are mutually exclusive.",
             status="BLOCKED",
         )
         if normalization_transition is not None:
@@ -1713,9 +2423,7 @@ class EvidenceLaneService:
                 "Atomic insertion requires one object and an empty top-level task list.",
                 status="BLOCKED",
             )
-            priority_interruption = atomic_insertion.get(
-                "priority_interruption"
-            )
+            priority_interruption = atomic_insertion.get("priority_interruption")
             if priority_interruption is not None:
                 require(
                     isinstance(priority_interruption, dict),
@@ -1769,6 +2477,18 @@ class EvidenceLaneService:
                 rebound_by=planned_by,
                 active_contract_rebind=active_contract_rebind,
             )
+        elif existing_task_promotion is not None:
+            require(
+                isinstance(existing_task_promotion, dict) and not tasks,
+                "PLAN_EXISTING_TASK_PROMOTION_CONTRACT_INVALID",
+                "Existing-task promotion requires one object and an empty top-level task list.",
+                status="BLOCKED",
+            )
+            result = self.sessions.promote_existing_plan_task(
+                project_id,
+                promoted_by=planned_by,
+                existing_task_promotion=existing_task_promotion,
+            )
         else:
             result = self.store.plan_tasks(
                 project_id,
@@ -1780,9 +2500,7 @@ class EvidenceLaneService:
             "host_kind": exact_host or "UNDECLARED",
             "host_mode": exact_mode or "UNDECLARED",
             "canonical_authority": "PLAN_LANE",
-            "codex_goal_start_prompt": result["goal_projection"][
-                "goal_start_prompt"
-            ],
+            "codex_goal_start_prompt": result["goal_projection"]["goal_start_prompt"],
             "copy_paste_required": exact_host.startswith("CODEX"),
             "host_goal_mutation_supported_by_mcp": False,
             "host_scope": "CODEX_ONLY",
@@ -1878,16 +2596,12 @@ class EvidenceLaneService:
             }
             for row in window_rows
         ]
-        runtime = cast(
-            dict[str, Any], backlog.get("plan_runtime_projection") or {}
-        )
+        runtime = cast(dict[str, Any], backlog.get("plan_runtime_projection") or {})
         plan_runtime_receipt = {
             "schema": "evidence-lane.plan-runtime-bounded-receipt.v1",
             "status": runtime.get("status"),
             "sqlite_sha256": runtime.get("sqlite_sha256"),
-            "projection_content_sha256": runtime.get(
-                "projection_content_sha256"
-            ),
+            "projection_content_sha256": runtime.get("projection_content_sha256"),
             "event_count": runtime.get("event_count"),
             "steer_count": runtime.get("steer_count"),
             "execution_row_count": runtime.get("execution_row_count"),
@@ -1914,9 +2628,7 @@ class EvidenceLaneService:
             "window_row_start": (
                 int(window_rows[0]["number"]) if window_rows else None
             ),
-            "window_row_end": (
-                int(window_rows[-1]["number"]) if window_rows else None
-            ),
+            "window_row_end": (int(window_rows[-1]["number"]) if window_rows else None),
             "absolute_active_row": (
                 int(rows[active_index]["number"]) if active_indexes else None
             ),
@@ -2110,9 +2822,7 @@ class EvidenceLaneService:
                     "dirty_worktree_preserved": result.get(
                         "dirty_worktree_preserved", False
                     ),
-                    "worktree_status_sha256": result.get(
-                        "worktree_status_sha256"
-                    ),
+                    "worktree_status_sha256": result.get("worktree_status_sha256"),
                     "fetch_performed": result.get("fetch_performed", True),
                     "source_write_performed": result.get(
                         "source_write_performed", False
@@ -2286,6 +2996,61 @@ class EvidenceLaneService:
             session_id,
             resume_contract=resume_contract,
         )
+
+    def direct_force_same_worktree_state_travel(
+        self,
+        *,
+        project_id: str,
+        session_id: str,
+        binding: dict[str, Any],
+        client_can_edit_source: bool | None = True,
+        server_has_durable_filesystem: bool | None = True,
+    ) -> dict[str, Any]:
+        """Bind a fresh same-worktree task without sealed prepare/resume."""
+
+        destination = cast(dict[str, Any], binding.get("destination") or {})
+        expected = cast(dict[str, Any], binding.get("expected") or {})
+        execution_profile = cast(
+            dict[str, Any], expected.get("execution_profile") or {}
+        )
+        host_session_id = str(destination.get("task_id") or "").strip()
+        capture_route_binding = self._capture_route_binding(project_id)
+        flash = self.flash_authority.ensure_flashed()
+        route, storage_selection = self._selected_persistence_route(
+            project_id,
+            host="CODEX_DESKTOP",
+            ephemeral=False,
+            server_has_durable_filesystem=server_has_durable_filesystem,
+            runtime_context=execution_profile,
+            host_session_id=host_session_id,
+        )
+        require(
+            route.server_filesystem == "DURABLE" and not route.durable_required,
+            "DIRECT_STATE_TRAVEL_DURABLE_LOCAL_AUTHORITY_REQUIRED",
+            "Direct same-worktree State Travel requires the existing durable local authority.",
+            status="BLOCKED",
+        )
+        route_payload = self._persistence_route_payload(project_id, route)
+        with self.store.state_travel_resume_lock(project_id):
+            result = self.sessions.direct_force_same_worktree_entry(
+                project_id,
+                session_id,
+                binding=binding,
+                persistence_mode=route.mode,
+                persistence_route=route_payload,
+                flash=flash,
+                client_can_edit_source=client_can_edit_source,
+                server_has_durable_filesystem=(
+                    route.server_filesystem == "DURABLE"
+                ),
+            )
+        result["session_flash"] = flash
+        result["persistence_route"] = {
+            **route_payload,
+            "selection": storage_selection,
+        }
+        result["capture_route_binding"] = capture_route_binding
+        return result
 
     def resume_state_travel(
         self,
@@ -2662,6 +3427,7 @@ SERVICE_MCP_WORKFLOW_METHODS = frozenset(
         "connector_plugin_route",
         "connector_plugin_settings",
         "doctor",
+        "direct_force_same_worktree_state_travel",
         "enroll_project",
         "fuse",
         "lane_catalog",
@@ -2759,9 +3525,7 @@ def inspect_service_route_parity(
     mcp = set(SERVICE_MCP_WORKFLOW_METHODS)
     sdk = set(SERVICE_SDK_WORKFLOW_METHODS)
     classified = mcp | dispatch | internal
-    overlaps = sorted(
-        (mcp & dispatch) | (mcp & internal) | (dispatch & internal)
-    )
+    overlaps = sorted((mcp & dispatch) | (mcp & internal) | (dispatch & internal))
     unclassified = sorted(inventory - classified)
     unknown = sorted(classified - inventory)
     sdk_without_public_workflow = sorted(sdk - mcp)
@@ -2815,9 +3579,7 @@ def inspect_service_route_parity(
             {
                 "method": name,
                 "classification": (
-                    "MCP_AND_INTERNAL_SDK_WORKFLOW"
-                    if name in sdk
-                    else "MCP_WORKFLOW"
+                    "MCP_AND_INTERNAL_SDK_WORKFLOW" if name in sdk else "MCP_WORKFLOW"
                 ),
                 "workflow": "DECLARED_PUBLIC_WORKFLOW",
                 "route_owners": owners,

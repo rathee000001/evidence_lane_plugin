@@ -4,6 +4,7 @@ import json
 import sqlite3
 from pathlib import Path
 
+import evidence_lane_plugin.agent_learning as learning_module
 import pytest
 from evidence_lane_plugin.agent_learning import (
     LEARNING_EXPIRY_OWNER,
@@ -12,12 +13,19 @@ from evidence_lane_plugin.agent_learning import (
     inspect_learning_authority,
     learning_runtime_contract,
     project_truth_pointer_sha256,
+    query_memory_graph,
+    record_host_memory_import,
+    record_memory_link,
     retrieve_accepted_learning,
     revoke_learning_candidate,
     seal_learning_candidate,
 )
 from evidence_lane_plugin.errors import EvidenceLaneError
-from evidence_lane_plugin.hashing import atomic_write_json, sha256_bytes
+from evidence_lane_plugin.hashing import (
+    atomic_write_json,
+    canonical_json_bytes,
+    sha256_bytes,
+)
 from evidence_lane_plugin.mcp_server import SDK_NATIVE_ACTIONS
 
 PROJECT_ID = "learning-fixture"
@@ -61,6 +69,25 @@ def _evidence(
         "pv_ref": "PV12",
         "ref": f"lineage://{label}",
         "sha256": _hash(label),
+    }
+
+
+def _memory_locator(
+    *,
+    sector: str,
+    locator_kind: str,
+    locator_value: str,
+    revision: str,
+    label: str,
+    search_terms: list[str],
+) -> dict[str, object]:
+    return {
+        "sector": sector,
+        "locator_kind": locator_kind,
+        "locator_value": locator_value,
+        "revision_sha256": _hash(revision),
+        "label": label,
+        "search_terms": search_terms,
     }
 
 
@@ -329,17 +356,37 @@ def test_cross_project_secret_and_tamper_guards_fail_closed(tmp_path: Path) -> N
     assert tampered.value.code == "LEARNING_CANDIDATE_FILE_LEDGER_MISMATCH"
 
 
-def test_runtime_contract_has_five_routes_and_explicit_expiry_owner() -> None:
+def test_runtime_contract_has_eight_routes_and_explicit_memory_boundary() -> None:
     contract = learning_runtime_contract()
 
     assert contract["public_actions"] == [
         "learning_inspect",
         "learning_retrieve",
+        "learning_memory_query",
+        "learning_memory_record_link",
+        "learning_record_host_memory_import",
         "learning_seal_candidate",
         "learning_decide_candidate",
         "learning_revoke",
     ]
-    assert contract["public_action_count"] == 5
+    assert contract["memory_graph"] == {
+        "schema_version": 1,
+        "authority": "PROJECT_ISOLATED_CROSS_SECTOR_LOCATORS_ONLY",
+        "sectors": [
+            "AGENT_LEARNING",
+            "CANON",
+            "CHAT_LINEAGE",
+            "HOST_MEMORY",
+            "PLAN",
+            "PROJECT_TRUTH",
+        ],
+        "raw_database_or_markdown_stored": False,
+        "automatic_host_memory_import": False,
+        "project_truth_effect": "NONE",
+        "candidate_effect": "NONE",
+        "hil_effect": "NONE",
+    }
+    assert contract["public_action_count"] == 8
     assert contract["search"]["engine"] == "SQLITE_FTS5"
     assert contract["search"]["full_ledger_loaded_into_model_context"] is False
     assert contract["expiry"]["event_materialization_owner"] == (
@@ -355,6 +402,199 @@ def test_runtime_contract_has_five_routes_and_explicit_expiry_owner() -> None:
         if module == "agent_learning"
     ]
     assert registered == contract["public_actions"]
+
+
+def test_memory_graph_is_bounded_revisioned_and_idempotent(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    old_turn = _memory_locator(
+        sector="CHAT_LINEAGE",
+        locator_kind="TURN",
+        locator_value="chat-lineage://task/task-fixture/turn/1",
+        revision="turn-revision-1",
+        label="Retry decision before correction",
+        search_terms=["retry", "continuity", "old"],
+    )
+    corrected_turn = _memory_locator(
+        sector="CHAT_LINEAGE",
+        locator_kind="TURN",
+        locator_value="chat-lineage://task/task-fixture/turn/1",
+        revision="turn-revision-2",
+        label="Retry decision after correction",
+        search_terms=["retry", "continuity", "corrected"],
+    )
+
+    recorded = record_memory_link(
+        root,
+        project_id=PROJECT_ID,
+        source=corrected_turn,
+        target=old_turn,
+        edge_type="SUPERSEDES",
+        evidence_sha256=_hash("turn-supersession"),
+        recorded_at=T1,
+    )
+    reused = record_memory_link(
+        root,
+        project_id=PROJECT_ID,
+        source=corrected_turn,
+        target=old_turn,
+        edge_type="SUPERSEDES",
+        evidence_sha256=_hash("turn-supersession"),
+        recorded_at=T1,
+    )
+    result = query_memory_graph(
+        root,
+        project_id=PROJECT_ID,
+        query="retry continuity",
+        as_of=T2,
+        sectors=["CHAT_LINEAGE"],
+        limit=2,
+    )
+
+    assert recorded["inserted_locator_count"] == 2
+    assert recorded["idempotent_reuse"] is False
+    assert reused["inserted_locator_count"] == 0
+    assert reused["idempotent_reuse"] is True
+    assert [hit["revision_sha256"] for hit in result["hits"]] == [
+        _hash("turn-revision-2")
+    ]
+    assert result["suppressed"] == [
+        {
+            "locator_id": recorded["target_locator_id"],
+            "state": "SUPPRESSED_MEMORY_LOCATOR",
+            "edge_types": ["SUPERSEDES"],
+        }
+    ]
+    assert result["receipt"]["hit_count"] == 1
+    assert result["receipt"]["suppressed_count"] == 1
+    assert result["full_ledger_loaded_into_model_context"] is False
+    assert result["raw_database_or_markdown_returned"] is False
+    assert result["receipt"]["project_truth_pointer_moved"] is False
+    assert result["receipt"]["candidate_created"] is False
+    assert result["receipt"]["hil_invoked"] is False
+
+
+def test_memory_graph_rejects_cross_sector_prefix_and_unbounded_query(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    target = _memory_locator(
+        sector="PLAN",
+        locator_kind="TASK",
+        locator_value="plan://task/task-fixture",
+        revision="plan-revision",
+        label="Plan task",
+        search_terms=["plan", "task"],
+    )
+    invalid_source = _memory_locator(
+        sector="CANON",
+        locator_kind="NODE",
+        locator_value="chat-lineage://wrong-sector",
+        revision="canon-revision",
+        label="Wrong sector locator",
+        search_terms=["canon", "wrong"],
+    )
+
+    with pytest.raises(EvidenceLaneError) as invalid:
+        record_memory_link(
+            root,
+            project_id=PROJECT_ID,
+            source=invalid_source,
+            target=target,
+            edge_type="MAPS_TO",
+            evidence_sha256=_hash("invalid-link"),
+            recorded_at=T1,
+        )
+    assert invalid.value.code == "LEARNING_MEMORY_LOCATOR_BOUNDARY_INVALID"
+
+    with pytest.raises(EvidenceLaneError) as unbounded:
+        query_memory_graph(
+            root,
+            project_id=PROJECT_ID,
+            query="plan",
+            as_of=T2,
+            limit=21,
+        )
+    assert unbounded.value.code == "LEARNING_MEMORY_QUERY_BOUNDS_INVALID"
+
+
+def test_host_memory_import_is_explicit_non_authoritative_and_tamper_evident(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    imported = record_host_memory_import(
+        root,
+        project_id=PROJECT_ID,
+        source_kind="CODEX_LOCAL_MEMORY",
+        source_locator="codex-local-memory://memory/fixture-1",
+        source_record_sha256=_hash("host-memory-record"),
+        source_context_id="context-fixture-1",
+        observed_at=T0,
+        imported_at=T1,
+        imported_by="fixture-user",
+        purpose="Link one explicit continuity memory to its Plan Delta.",
+        task_id="task-fixture",
+        delta_id="EL-FIXTURE-DELTA-001",
+        pv_ref="PV12",
+    )
+    queried = query_memory_graph(
+        root,
+        project_id=PROJECT_ID,
+        query="host memory provenance",
+        as_of=T2,
+        sectors=["HOST_MEMORY"],
+        limit=4,
+    )
+
+    assert imported["state"] == "IMPORTED_AS_NONAUTHORITATIVE_EVIDENCE_REFERENCE"
+    assert imported["memory_graph"]["source_sector"] == "HOST_MEMORY"
+    assert imported["memory_graph"]["target_sector"] == "PLAN"
+    assert imported["raw_host_memory_stored"] is False
+    assert imported["candidate_created"] is False
+    assert imported["learning_hil_invoked"] is False
+    assert imported["project_truth_pointer_moved"] is False
+    assert queried["receipt"]["hit_count"] == 1
+
+    receipt_path = Path(imported["receipt_path"])
+    tampered = json.loads(receipt_path.read_text(encoding="utf-8"))
+    tampered["source"]["locator"] = "codex-local-memory://memory/tampered"
+    atomic_write_json(receipt_path, tampered)
+    with pytest.raises(EvidenceLaneError) as mismatch:
+        inspect_learning_authority(root, project_id=PROJECT_ID)
+    assert mismatch.value.code == "LEARNING_HOST_MEMORY_IMPORT_RECEIPT_HASH_MISMATCH"
+
+
+def test_v1_ledger_migrates_additively_to_cross_sector_memory_graph(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    inspect_learning_authority(root, project_id=PROJECT_ID)
+    ledger = root / "learning" / "agent-learning.sqlite"
+    connection = sqlite3.connect(ledger)
+    connection.execute("DROP TABLE memory_edge")
+    connection.execute("DROP TABLE memory_locator_fts")
+    connection.execute("DROP TABLE memory_locator")
+    connection.execute(
+        """
+        UPDATE learning_schema_metadata
+        SET schema_version=1,ddl_sha256=?,schema_signature_sha256=?
+        WHERE singleton=1
+        """,
+        (
+            sha256_bytes(learning_module._LEARNING_V1_SCHEMA_DDL.encode("utf-8")),
+            sha256_bytes(
+                canonical_json_bytes(learning_module._LEARNING_V1_EXPECTED_SCHEMA)
+            ),
+        ),
+    )
+    connection.commit()
+    connection.close()
+
+    inspected = inspect_learning_authority(root, project_id=PROJECT_ID)
+    assert inspected["runtime_contract"]["ledger_schema_version"] == 2
+    assert inspected["memory_locator_count"] == 0
+    assert inspected["memory_edge_count"] == 0
+    assert inspected["indexed_memory_locator_count"] == 0
+    assert inspected["memory_search_engine"] == "SQLITE_FTS5_BM25"
 
 
 def test_retrieval_excludes_expired_before_event_materialization(

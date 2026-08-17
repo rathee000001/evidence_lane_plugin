@@ -2,7 +2,7 @@
 
 ## Active product release
 
-The current pre-HIL Evidence Lane Codex source release is `2.2.0`. These
+The current pre-HIL Evidence Lane Codex source release is `3.0.0`. These
 source and package-build surfaces must use that same base version:
 
 - root `pyproject.toml`;
@@ -16,7 +16,7 @@ Accepted Project Truth remains PV12/generation 12 on the `2.1.0` base. The
 disabled fallback host surface was directly observed at historical PV11/main
 `2.0.0`; it must not be relabeled as PV12/2.1 proof, and this source-only row
 does not repair or activate it. No external chat app or remote MCP adapter is
-part of the active `2.2.0` Codex source release. Historical delivery artifacts
+part of the active `3.0.0` Codex source release. Historical delivery artifacts
 remain available only through immutable Git and receipt history; they are not
 current aliases.
 

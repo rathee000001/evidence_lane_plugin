@@ -74,12 +74,61 @@ def test_primary_navigation_has_one_typed_visual_identity_per_route() -> None:
     )[0]
     hrefs = re.findall(r'href: "([^"]+)"', navigation)
 
-    assert len(hrefs) == 12
+    assert hrefs == [
+        "/",
+        "/architecture",
+        "/lanes",
+        "/operators",
+        "/memory",
+        "/canon",
+        "/ai-learning",
+        "/git-ci",
+        "/skills",
+        "/mcp",
+        "/hooks",
+        "/commands",
+        "/proof",
+        "/provenance",
+        "/connect",
+        "/studio",
+        "/hil",
+    ]
+    assert len(hrefs) == 17
     assert len(set(hrefs)) == len(hrefs)
     assert "satisfies Readonly<" in header
     assert "Record<PrimaryNavigationHref" in header
     for href in hrefs:
         assert f'"{href}": {{ color:' in header
+
+
+def test_primary_navigation_uses_two_desktop_rows_without_horizontal_scroll() -> None:
+    css = (APP / "globals.css").read_text(encoding="utf-8")
+    nav_law = css.split("/* Current v3.0 primary-navigation law", 1)[1].split(
+        "/* Full-depth business pages", 1
+    )[0]
+    final_nav_rule = nav_law.split(".rilFloatingNav .navLinks {", 1)[1].split("}", 1)[0]
+
+    assert "display: grid" in final_nav_rule
+    assert "grid-template-columns: repeat(9, max-content)" in final_nav_rule
+    assert "overflow: visible" in final_nav_rule
+    assert "overflow-x: auto" not in final_nav_rule
+    assert "Current v3.0 primary-navigation law" in css
+
+
+def test_current_v300_depth_pages_use_interactive_governed_popups() -> None:
+    explorer = (COMPONENTS / "governed-story-explorer.tsx").read_text(encoding="utf-8")
+    popup = (COMPONENTS / "governed-popup.tsx").read_text(encoding="utf-8")
+    routes = ("memory", "canon", "ai-learning", "git-ci", "plan", "release")
+
+    assert 'role="tablist"' in explorer
+    assert "ArrowRight" in explorer and "ArrowLeft" in explorer
+    assert "GovernedPopup" in explorer
+    assert "previousFocusRef.current?.focus()" in popup
+    assert "keepFocusInside" in popup and 'event.key !== "Tab"' in popup
+    for route in routes:
+        page = (APP / route / "page.tsx").read_text(encoding="utf-8")
+        assert "GovernedStoryExplorer" in page
+        assert "depthContractGrid" in page or "deliveryChecklist" in page
 
 
 def test_source_lab_exposes_generator_six_sources_and_four_brains() -> None:
@@ -407,7 +456,7 @@ def test_studio_candidate_is_route_aware_bounded_and_artifact_inspectable() -> N
     assert "Executable action chart" in artifact_lab
     assert "Host capability table" in artifact_lab
     assert "whole project" in guide
-    assert "current 2.2.0 pre-HIL source" in guide
+    assert "current 3.0.0 pre-HIL source" in guide
 
 
 def test_native_threejs_motion_remains_without_retired_3d_or_adobe_links() -> None:
@@ -511,7 +560,7 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "data-release-version={releaseIdentity.version}" in footer
     assert "data-release-commit={releaseIdentity.commit" in footer
     assert "Release <strong>{releaseIdentity.version}</strong>" in footer
-    assert 'releaseVersion = "2.2.0"' in release_identity
+    assert 'releaseVersion = "3.0.0"' in release_identity
     assert "VERCEL_GIT_COMMIT_SHA" in release_identity
     assert "NEXT_PUBLIC_EVIDENCE_LANE_RELEASE_SHA" in release_identity
     assert "GITHUB_MARKDOWN_TO_SITE_FOOTERS_DELTA_TABLE_VERCEL_AND_EXISTING_DEVPOST" in release_identity

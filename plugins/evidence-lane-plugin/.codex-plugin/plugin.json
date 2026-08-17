@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "2.2.0+codex.20260814082900",
+  "version": "3.0.0+codex.20260816074428",
   "description": "Human-governed project memory that preserves exact evidence, resumes unfinished work, and keeps acceptance under the user's control.",
   "author": {
     "name": "Praveen Rathee",
@@ -19,8 +19,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Evidence Lane",
-    "shortDescription": "Evidence Lane 2.2.0 - 83 native actions (26 read / 57 write) - 17 governed skills.",
-    "longDescription": "Evidence Lane is human-governed project memory for Codex. It preserves exact source, evidence, Delta, task, candidate, and accepted-version identity across long-running work. Evidence Lane 2.2.0 is the current pre-HIL Codex source release on the governed v2.2 branch; it is not an installed-host claim until the later exact-commit CI, preview, package, and same-selector installation route passes. The accepted/base GitLane release remains 2.1.0, and the disabled fallback host surface was observed at 2.0.0 pending its separately governed split-brain correction. This package carries seventeen governed skills and one package-local native MCP server named evidence-lane with eighty-three canonical actions: twenty-six read-only and fifty-seven write-capable. It supports Source Intake, Build, Refresh, pointer-only Rollback, exact-APPROVE Fuse, State Travel, Canon task exchange, project-isolated AI Learning, Mode, local durable storage, plugin administration, panels, search, diff, and governed Git evidence while keeping candidate acceptance human-controlled. Historical Git, package, and PV receipts remain immutable archive evidence. Google Drive is a separately named and authorized connector, never the Evidence Lane MCP, lifecycle proof, namespace owner, or durable local project authority. Codex lifecycle evidence must come from the package-local native server, never codex_apps, plugin-runtime, generated namespaces, direct-stdio fallback, or an external connector. Natural HIL intent never promotes a candidate, and only exact case-sensitive APPROVE may authorize Fuse on a genuinely write-capable governed host.",
+    "shortDescription": "Evidence Lane 3.0.0 - 87 native actions (27 read / 60 write) - 17 governed skills.",
+    "longDescription": "Evidence Lane is human-governed project memory for Codex. It keeps source, worktree, project, Plan, ChatLineage, installed-runtime, candidate, and accepted truth distinct across long-running work. The package exposes seventeen governed skills and one package-local native MCP server with eighty-six canonical actions: twenty-seven read-only and fifty-nine write-capable. Queryable SQLite, FTS5/BM25 retrieval, graphs, pointers, receipts, Canon, AI Learning, and the cross-sector memory graph let Codex resume from bounded evidence instead of reloading raw histories. Source Intake, Build, Refresh, pointer-only Rollback, State Travel, Mode, storage and plugin administration, panels, search, diff, and governed Git evidence remain separate routes with explicit effects. Candidate acceptance stays human-controlled: natural intent never promotes a candidate, and only the exact governed approval contract may authorize Fuse on a genuinely write-capable host.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "websiteURL": "https://evidencelane.org",

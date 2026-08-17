@@ -35,7 +35,7 @@ export default function ProvenancePage() {
       </section>
       <section className="section sourceBoundaryBand">
         <div className="shell sourceBoundary">
-          <div><span className="kicker">Reference law</span><h2>Historical brains calibrate depth. Current source and tests govern claims.</h2><p>The June SQLite brains, master-fact CSVs, plan HTML, and early pitch preserve problem framing and topology ambition. They are read-only design references. They do not overwrite current plugin truth, bypass source policy, or prove the current 2.2.0 pre-HIL implementation.</p></div>
+          <div><span className="kicker">Reference law</span><h2>Historical brains calibrate depth. Current source and tests govern claims.</h2><p>The June SQLite brains, master-fact CSVs, plan HTML, and early pitch preserve problem framing and topology ambition. They are read-only design references. They do not overwrite current plugin truth, bypass source policy, or prove the current 3.0.0 pre-HIL implementation.</p></div>
           <div className="sourceTypes">
             <article><strong>Historical evidence</strong><p>Intent, earlier architecture, presentation language, and prior experiments.</p></article>
             <article><strong>Current authority</strong><p>Exact Git source, governed ledger, tests, manifests, hashes, installs, and deployment receipts.</p></article>

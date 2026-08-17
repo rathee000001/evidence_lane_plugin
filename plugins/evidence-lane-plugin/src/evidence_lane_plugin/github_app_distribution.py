@@ -1,9 +1,10 @@
-"""Provider-neutral, pre-HIL GitHub App and tester-distribution contracts.
+"""Governed GitHub App runtime and tester-distribution contracts.
 
-The module deliberately stops before registration, credentials, repository
-installation, external tester distribution, or publication.  Secrets and
-short-lived bearer values exist only in caller-owned memory; receipts contain
-hashes and authority-denial facts, never the values themselves.
+The module exposes a production GitHub REST seam and an authenticated public
+webhook route without owning private keys, installation credentials, or raw
+webhook payloads.  Secrets and short-lived bearer values exist only in
+caller-owned memory; receipts contain hashes and authority-denial facts, never
+the values themselves.
 """
 
 from __future__ import annotations
@@ -23,6 +24,8 @@ from .hashing import canonical_json_bytes, sha256_bytes
 
 GITHUB_APP_MANIFEST_SCHEMA = "evidence-lane.github-app-manifest.v1"
 GITHUB_APP_DISTRIBUTION_ABI = "evidence-lane.github-app-distribution.v1"
+GITHUB_APP_WEBHOOK_ROUTE = "/api/evidence-lane/github-app/webhook"
+GITHUB_REST_API_VERSION = "2026-03-10"
 
 _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}")
 _REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
@@ -372,6 +375,38 @@ class InstallationTokenProvider(Protocol):
     def issue(self, request: InstallationTokenRequest) -> str: ...
 
 
+class GitHubAppJWTProvider(Protocol):
+    """Caller-owned signer seam; private-key bytes never enter this module."""
+
+    provider_id: str
+
+    def issue_app_jwt(self, *, requested_at: str) -> str: ...
+
+
+@dataclass(frozen=True, slots=True)
+class GitHubAPIResponse:
+    """Bounded response returned by an injected GitHub HTTPS transport."""
+
+    status_code: int
+    body: Mapping[str, Any]
+    request_id: str | None = None
+
+
+class GitHubJSONTransport(Protocol):
+    """Exact GitHub JSON transport seam used by the production provider."""
+
+    transport_id: str
+
+    def request_json(
+        self,
+        *,
+        method: str,
+        path: str,
+        headers: Mapping[str, str],
+        body: Mapping[str, Any],
+    ) -> GitHubAPIResponse: ...
+
+
 class DeterministicMockGitHubProvider:
     """Disposable pre-HIL provider with no network or production credentials."""
 
@@ -394,6 +429,151 @@ class DeterministicMockGitHubProvider:
             self._seed, request_sha.encode("ascii"), hashlib.sha256
         ).hexdigest()
         return f"ghs_mock_{digest}"
+
+
+class GitHubRESTInstallationTokenProvider:
+    """Production GitHub REST adapter with externally owned JWT and transport.
+
+    The adapter implements GitHub's installation-token endpoint rather than a
+    mock surface.  Signing keys, app JWTs, and returned bearer tokens remain in
+    caller-owned memory.  Only a redacted integration-proof receipt is retained.
+    """
+
+    provider_id = "GITHUB_REST_INSTALLATION_TOKEN_V1"
+
+    def __init__(
+        self,
+        *,
+        jwt_provider: GitHubAppJWTProvider,
+        transport: GitHubJSONTransport,
+        api_version: str = GITHUB_REST_API_VERSION,
+    ) -> None:
+        self.jwt_provider = jwt_provider
+        self.transport = transport
+        self.api_version = _identifier(api_version, field="api_version")
+        self.last_integration_receipt: dict[str, Any] | None = None
+
+    def issue(self, request: InstallationTokenRequest) -> str:
+        require(
+            request.installation_id.isdecimal(),
+            "GITHUB_APP_INSTALLATION_ID_INVALID",
+            "The production GitHub route requires one numeric installation ID.",
+            status="BLOCKED",
+        )
+        app_jwt = self.jwt_provider.issue_app_jwt(requested_at=request.requested_at)
+        require(
+            16 <= len(app_jwt) <= 8192
+            and not any(char in app_jwt for char in "\r\n\x00"),
+            "GITHUB_APP_JWT_INVALID",
+            "The external JWT provider returned an invalid in-memory credential.",
+            status="BLOCKED",
+        )
+        path = f"/app/installations/{request.installation_id}/access_tokens"
+        request_body = {
+            "repositories": [request.repository.split("/", 1)[1]],
+            "permissions": _permission_map(request.permissions),
+        }
+        response = self.transport.request_json(
+            method="POST",
+            path=path,
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {app_jwt}",
+                "X-GitHub-Api-Version": self.api_version,
+            },
+            body=request_body,
+        )
+        require(
+            response.status_code == 201,
+            "GITHUB_APP_PROVIDER_REQUEST_FAILED",
+            "GitHub did not create an installation access token.",
+            status="BLOCKED",
+            http_status=response.status_code,
+        )
+        payload = response.body
+        token = str(payload.get("token") or "")
+        require(
+            16 <= len(token) <= 8192 and not any(char in token for char in "\r\n\x00"),
+            "GITHUB_APP_PROVIDER_TOKEN_INVALID",
+            "GitHub returned an invalid in-memory installation token.",
+            status="BLOCKED",
+        )
+        expires_at = _timestamp(payload.get("expires_at"), field="expires_at")
+        requested_at = _timestamp(request.requested_at, field="requested_at")
+        require(
+            0 < (expires_at - requested_at).total_seconds() <= 3600,
+            "GITHUB_APP_PROVIDER_EXPIRY_INVALID",
+            "GitHub returned an installation token outside the one-hour bound.",
+            status="BLOCKED",
+        )
+        permissions = _permission_pairs(payload.get("permissions"))
+        require(
+            permissions == request.permissions,
+            "GITHUB_APP_PROVIDER_PERMISSION_DRIFT",
+            "GitHub returned permissions that differ from the exact request.",
+            status="BLOCKED",
+        )
+        require(
+            str(payload.get("repository_selection") or "").strip().lower()
+            == "selected",
+            "GITHUB_APP_PROVIDER_REPOSITORY_SELECTION_DRIFT",
+            "GitHub returned an installation token outside selected-repository scope.",
+            status="BLOCKED",
+        )
+        repositories_raw = payload.get("repositories")
+        require(
+            isinstance(repositories_raw, (list, tuple)),
+            "GITHUB_APP_PROVIDER_REPOSITORIES_INVALID",
+            "GitHub did not return the selected repository proof.",
+            status="BLOCKED",
+        )
+        repositories = tuple(
+            sorted(
+                _repository(item.get("full_name"))
+                for item in cast(Sequence[object], repositories_raw)
+                if isinstance(item, Mapping)
+            )
+        )
+        require(
+            repositories == (request.repository,),
+            "GITHUB_APP_PROVIDER_REPOSITORY_DRIFT",
+            "GitHub returned repository scope that differs from the exact request.",
+            status="BLOCKED",
+        )
+        safe_payload = {
+            key: ("<REDACTED>" if key == "token" else value)
+            for key, value in payload.items()
+        }
+        request_id = (
+            _identifier(response.request_id, field="request_id")
+            if response.request_id is not None
+            else None
+        )
+        self.last_integration_receipt = _receipt(
+            "evidence-lane.github-app-provider-integration-receipt.v1",
+            status="PASS",
+            provider_id=self.provider_id,
+            jwt_provider_id=_identifier(
+                self.jwt_provider.provider_id, field="jwt_provider_id"
+            ),
+            transport_id=_identifier(self.transport.transport_id, field="transport_id"),
+            api_version=self.api_version,
+            method="POST",
+            path=path,
+            request_id=request_id,
+            request_body_sha256=sha256_bytes(canonical_json_bytes(request_body)),
+            response_status=response.status_code,
+            safe_response_sha256=sha256_bytes(canonical_json_bytes(safe_payload)),
+            repository=request.repository,
+            permissions=_permission_map(permissions),
+            expires_at=_iso(expires_at),
+            app_jwt_persisted=False,
+            installation_token_persisted=False,
+            source_write_authorized=False,
+            pointer_moved=False,
+            hil_inferred=False,
+        )
+        return token
 
 
 class InstallationTokenBroker:
@@ -608,6 +788,176 @@ class WebhookVerifier:
         )
         self._deliveries[exact_delivery] = (body_sha, receipt)
         return cast(Mapping[str, Any], decoded), receipt
+
+
+class GitHubWebhookHandler(Protocol):
+    """Bounded post-authentication event handler seam."""
+
+    handler_id: str
+
+    def handle(
+        self, *, event: str, payload: Mapping[str, Any]
+    ) -> Mapping[str, Any]: ...
+
+
+class GitHubWebhookRoute:
+    """Exact public webhook route with authentication and replay isolation."""
+
+    def __init__(
+        self,
+        *,
+        verifier: WebhookVerifier,
+        handler: GitHubWebhookHandler,
+        max_body_bytes: int = 1_048_576,
+        max_handler_result_bytes: int = 65_536,
+    ) -> None:
+        require(
+            0 < max_body_bytes <= 10_485_760,
+            "GITHUB_APP_WEBHOOK_BODY_BOUND_INVALID",
+            "The GitHub webhook body bound is invalid.",
+            status="BLOCKED",
+        )
+        require(
+            0 < max_handler_result_bytes <= 1_048_576,
+            "GITHUB_APP_WEBHOOK_RESULT_BOUND_INVALID",
+            "The GitHub webhook handler-result bound is invalid.",
+            status="BLOCKED",
+        )
+        self.verifier = verifier
+        self.handler = handler
+        self.max_body_bytes = max_body_bytes
+        self.max_handler_result_bytes = max_handler_result_bytes
+        self._route_receipts: dict[str, dict[str, Any]] = {}
+
+    @staticmethod
+    def _headers(headers: Mapping[str, str]) -> dict[str, str]:
+        normalized: dict[str, str] = {}
+        for raw_name, raw_value in headers.items():
+            name = str(raw_name).strip().lower()
+            require(
+                bool(name) and name not in normalized,
+                "GITHUB_APP_WEBHOOK_HEADERS_INVALID",
+                "Webhook headers must have unique case-insensitive names.",
+                status="BLOCKED",
+            )
+            value = str(raw_value).strip()
+            require(
+                "\r" not in value and "\n" not in value and "\x00" not in value,
+                "GITHUB_APP_WEBHOOK_HEADERS_INVALID",
+                "Webhook headers contain an invalid value.",
+                status="BLOCKED",
+            )
+            normalized[name] = value
+        return normalized
+
+    def dispatch(
+        self,
+        *,
+        method: str,
+        path: str,
+        headers: Mapping[str, str],
+        body: bytes,
+        received_at: str,
+        now: str,
+    ) -> dict[str, Any]:
+        require(
+            method.strip().upper() == "POST" and path == GITHUB_APP_WEBHOOK_ROUTE,
+            "GITHUB_APP_WEBHOOK_ROUTE_INVALID",
+            "The request does not match the exact GitHub App webhook route.",
+            status="BLOCKED",
+        )
+        exact_headers = self._headers(headers)
+        content_type = exact_headers.get("content-type", "").split(";", 1)[0].lower()
+        require(
+            content_type == "application/json",
+            "GITHUB_APP_WEBHOOK_CONTENT_TYPE_INVALID",
+            "The GitHub App webhook route requires application/json.",
+            status="BLOCKED",
+        )
+        require(
+            0 < len(body) <= self.max_body_bytes,
+            "GITHUB_APP_WEBHOOK_BODY_BOUND_EXCEEDED",
+            "The GitHub App webhook body is empty or exceeds its bounded route.",
+            status="BLOCKED",
+            body_bytes=len(body),
+            max_body_bytes=self.max_body_bytes,
+        )
+        required_headers = {
+            "delivery_id": exact_headers.get("x-github-delivery", ""),
+            "event": exact_headers.get("x-github-event", ""),
+            "signature": exact_headers.get("x-hub-signature-256", ""),
+        }
+        require(
+            all(required_headers.values()),
+            "GITHUB_APP_WEBHOOK_HEADERS_REQUIRED",
+            "The GitHub App webhook request is missing an authentication header.",
+            status="BLOCKED",
+        )
+        delivery_id = required_headers["delivery_id"]
+        payload, verification = self.verifier.verify(
+            delivery_id=delivery_id,
+            event=required_headers["event"],
+            body=body,
+            signature=required_headers["signature"],
+            delivered_at=received_at,
+            now=now,
+        )
+        if verification["status"] == "IDEMPOTENT_REPLAY":
+            prior = self._route_receipts.get(delivery_id)
+            require(
+                prior is not None,
+                "GITHUB_APP_WEBHOOK_HANDLER_INCOMPLETE",
+                "The authenticated delivery has no completed handler receipt.",
+                status="BLOCKED",
+            )
+            assert prior is not None
+            return _receipt(
+                "evidence-lane.github-app-webhook-route-replay-receipt.v1",
+                status="IDEMPOTENT_REPLAY",
+                delivery_id=delivery_id,
+                event=required_headers["event"],
+                original_route_receipt_sha256=prior["receipt_sha256"],
+                handler_reinvoked=False,
+                authority_effect="NONE",
+                pointer_moved=False,
+                hil_inferred=False,
+            )
+        result = self.handler.handle(event=required_headers["event"], payload=payload)
+        require(
+            isinstance(result, Mapping),
+            "GITHUB_APP_WEBHOOK_HANDLER_RESULT_INVALID",
+            "The authenticated GitHub webhook handler returned an invalid result.",
+            status="BLOCKED",
+        )
+        result_bytes = canonical_json_bytes(result)
+        require(
+            len(result_bytes) <= self.max_handler_result_bytes
+            and not receipt_contains_secret(result),
+            "GITHUB_APP_WEBHOOK_HANDLER_RESULT_UNSAFE",
+            "The authenticated GitHub webhook handler result is oversized or secret-bearing.",
+            status="BLOCKED",
+        )
+        receipt = _receipt(
+            "evidence-lane.github-app-webhook-route-receipt.v1",
+            status="PASS",
+            route=GITHUB_APP_WEBHOOK_ROUTE,
+            delivery_id=delivery_id,
+            event=required_headers["event"],
+            body_sha256=verification["body_sha256"],
+            signature_valid=True,
+            handler_id=_identifier(self.handler.handler_id, field="handler_id"),
+            handler_result_sha256=sha256_bytes(result_bytes),
+            handler_result_keys=len(result),
+            handler_reinvoked=False,
+            raw_payload_persisted=False,
+            handler_result_persisted=False,
+            webhook_secret_persisted=False,
+            authority_effect="NONE",
+            pointer_moved=False,
+            hil_inferred=False,
+        )
+        self._route_receipts[delivery_id] = receipt
+        return receipt
 
 
 def map_check_run_receipt(

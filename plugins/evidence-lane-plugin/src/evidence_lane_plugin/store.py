@@ -3115,6 +3115,324 @@ class ProjectStore:
             }
             return result
 
+    def promote_existing_priority_task(
+        self,
+        project_id: str,
+        *,
+        promotion_id: str,
+        old_active_task_id: str,
+        promoted_task_id: str,
+        session_id: str,
+        runtime_task_id: str,
+        promoted_by: str,
+        reason_sha256: str,
+        expected_backlog_sha256: str,
+        expected_canonical_plan_sha256: str,
+        expected_executable_projection_sha256: str,
+        expected_physical_final_task_id: str,
+    ) -> dict[str, Any]:
+        """Move one existing queued Delta immediately before the live row.
+
+        This is deliberately separate from priority insertion: no task is appended,
+        copied, superseded, completed, or dropped.  The queued task keeps its stable
+        identity and metadata, the interrupted row returns to QUEUED immediately
+        after it, and their dependency edge is rewired to preserve linear execution.
+        """
+
+        exact_hashes = {
+            "expected_backlog_sha256": str(expected_backlog_sha256 or "").upper(),
+            "expected_canonical_plan_sha256": str(
+                expected_canonical_plan_sha256 or ""
+            ).upper(),
+            "expected_executable_projection_sha256": str(
+                expected_executable_projection_sha256 or ""
+            ).upper(),
+        }
+        require(
+            all(
+                len(value) == 64
+                and all(character in "0123456789ABCDEF" for character in value)
+                for value in exact_hashes.values()
+            )
+            and bool(promotion_id)
+            and bool(promoted_by)
+            and bool(reason_sha256),
+            "PLAN_EXISTING_TASK_PROMOTION_CONTRACT_INVALID",
+            "Existing-task promotion requires exact identities and Plan hashes.",
+            status="BLOCKED",
+        )
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            before_status = self.backlog_status(
+                project_id,
+                _loaded_backlog=json.loads(json.dumps(backlog)),
+            )
+            observed_backlog_sha256 = sha256_bytes(canonical_json_bytes(backlog))
+            mismatches = {
+                name: {"expected": expected, "observed": observed}
+                for name, expected, observed in (
+                    (
+                        "backlog_sha256",
+                        exact_hashes["expected_backlog_sha256"],
+                        observed_backlog_sha256,
+                    ),
+                    (
+                        "canonical_plan_sha256",
+                        exact_hashes["expected_canonical_plan_sha256"],
+                        str(
+                            before_status["canonical_plan_projection"][
+                                "projection_sha256"
+                            ]
+                        ),
+                    ),
+                    (
+                        "executable_projection_sha256",
+                        exact_hashes["expected_executable_projection_sha256"],
+                        str(before_status["goal_projection"]["projection_sha256"]),
+                    ),
+                )
+                if expected != observed
+            }
+            require(
+                not mismatches,
+                "PLAN_EXISTING_TASK_PROMOTION_PRECONDITION_MISMATCH",
+                "The live Plan changed before the existing queued Delta could be promoted.",
+                status="MISMATCH",
+                mismatches=mismatches,
+                writes_performed=False,
+            )
+            require(
+                before_status["tasks"][-1]["task_id"]
+                == expected_physical_final_task_id,
+                "PLAN_EXISTING_TASK_PROMOTION_FINAL_HIL_MISMATCH",
+                "Existing-task promotion must preserve the exact physical-final HIL.",
+                status="MISMATCH",
+                writes_performed=False,
+            )
+            tasks = sorted(backlog["tasks"], key=lambda row: int(row["sequence"]))
+            tasks_by_id = {str(task["task_id"]): task for task in tasks}
+            old_active = tasks_by_id.get(old_active_task_id)
+            promoted = tasks_by_id.get(promoted_task_id)
+            require(
+                isinstance(old_active, dict)
+                and isinstance(promoted, dict)
+                and old_active.get("status") == "ACTIVE"
+                and promoted.get("status") == "QUEUED"
+                and int(promoted.get("sequence") or 0)
+                > int(old_active.get("sequence") or 0),
+                "PLAN_EXISTING_TASK_PROMOTION_STATE_MISMATCH",
+                "The exact queued Delta is not after the sole live row.",
+                status="MISMATCH",
+                writes_performed=False,
+            )
+            active = [task for task in tasks if task.get("status") == "ACTIVE"]
+            require(
+                len(active) == 1
+                and active[0].get("task_id") == old_active_task_id
+                and old_active.get("active_session_id") == session_id,
+                "PLAN_EXISTING_TASK_PROMOTION_ACTIVE_BINDING_MISMATCH",
+                "The live Plan does not have the exact sole active session binding.",
+                status="MISMATCH",
+                writes_performed=False,
+            )
+            old_index = tasks.index(old_active)
+            promoted_index = tasks.index(promoted)
+            predecessor_task_id = (
+                str(tasks[old_index - 1]["task_id"]) if old_index > 0 else ""
+            )
+            predecessor = (
+                tasks_by_id[predecessor_task_id] if predecessor_task_id else None
+            )
+            require(
+                predecessor is None
+                or predecessor.get("status") in {"DONE", "ACCEPTED"},
+                "PLAN_EXISTING_TASK_PROMOTION_PREDECESSOR_INCOMPLETE",
+                "The row immediately before the live row is not complete.",
+                status="MISMATCH",
+                predecessor_task_id=predecessor_task_id or None,
+                predecessor_status=(
+                    predecessor.get("status") if predecessor is not None else None
+                ),
+                writes_performed=False,
+            )
+
+            require(
+                promoted_index > 0 and promoted_index + 1 < len(tasks),
+                "PLAN_EXISTING_TASK_PROMOTION_CHAIN_BOUNDARY_INVALID",
+                "The promoted Delta must have an existing physical predecessor and successor.",
+                status="MISMATCH",
+                writes_performed=False,
+            )
+            original_promoted_predecessor_task_id = str(
+                tasks[promoted_index - 1]["task_id"]
+            )
+            original_promoted_successor = tasks[promoted_index + 1]
+            original_promoted_successor_task_id = str(
+                original_promoted_successor["task_id"]
+            )
+
+            def dependency_ids(task: dict[str, Any]) -> list[str]:
+                raw = task.get("dependencies")
+                if isinstance(raw, str):
+                    return [raw] if raw else []
+                if isinstance(raw, list):
+                    return [str(value) for value in raw if str(value)]
+                return []
+
+            promoted_dependencies = dependency_ids(promoted)
+            successor_dependencies = dependency_ids(original_promoted_successor)
+            require(
+                old_active_task_id in promoted_dependencies
+                and promoted_task_id in successor_dependencies,
+                "PLAN_EXISTING_TASK_PROMOTION_DEPENDENCY_CHAIN_MISMATCH",
+                "The queued Delta and its successor do not form the expected live dependency chain.",
+                status="MISMATCH",
+                promoted_dependencies=promoted_dependencies,
+                successor_task_id=original_promoted_successor_task_id,
+                successor_dependencies=successor_dependencies,
+                writes_performed=False,
+            )
+
+            original_promoted_dependencies = promoted.get("dependencies")
+            original_active_dependencies = old_active.get("dependencies")
+            original_successor_dependencies = original_promoted_successor.get(
+                "dependencies"
+            )
+            tasks.pop(promoted_index)
+            tasks.insert(old_index, promoted)
+            for sequence, task in enumerate(tasks, start=1):
+                task["sequence"] = sequence
+            promoted["dependencies"] = (
+                [predecessor_task_id] if predecessor_task_id else []
+            )
+            old_active["dependencies"] = [promoted_task_id]
+            original_promoted_successor["dependencies"] = [
+                original_promoted_predecessor_task_id
+                if dependency == promoted_task_id
+                else dependency
+                for dependency in successor_dependencies
+            ]
+
+            now = utc_now()
+            pause_event = append_delta_event(
+                backlog,
+                task_id=old_active_task_id,
+                event_type="EXISTING_PRIORITY_TASK_PAUSED",
+                to_status="QUEUED",
+                actor=promoted_by,
+                event_id=f"{promotion_id}__paused",
+                recorded_at=now,
+                assume_initialized=True,
+                details={
+                    "promoted_task_id": promoted_task_id,
+                    "reason_sha256": reason_sha256,
+                    "session_id": session_id,
+                    "history_preserved": True,
+                    "candidate_created": False,
+                    "pending_hil": False,
+                    "pointer_moved": False,
+                },
+            )
+            old_active.pop("active_session_id", None)
+            old_active.pop("runtime_task_id", None)
+            promoted["active_session_id"] = session_id
+            promoted["runtime_task_id"] = runtime_task_id
+            activation_event = append_delta_event(
+                backlog,
+                task_id=promoted_task_id,
+                event_type="EXISTING_PRIORITY_TASK_ACTIVATED",
+                to_status="ACTIVE",
+                actor=promoted_by,
+                event_id=f"{promotion_id}__activated",
+                recorded_at=now,
+                assume_initialized=True,
+                details={
+                    "paused_task_id": old_active_task_id,
+                    "reason_sha256": reason_sha256,
+                    "session_id": session_id,
+                    "runtime_task_id": runtime_task_id,
+                    "stable_task_identity_preserved": True,
+                    "candidate_created": False,
+                    "pending_hil": False,
+                    "pointer_moved": False,
+                },
+            )
+            promoted.setdefault("history", []).append(
+                {
+                    "event": "EXISTING_PRIORITY_TASK_ACTIVATED",
+                    "event_id": activation_event["event_id"],
+                    "prior_sequence": int(promoted_index + 1),
+                    "prior_dependencies": original_promoted_dependencies,
+                    "replacement_dependencies": promoted["dependencies"],
+                    "recorded_at": now,
+                }
+            )
+            old_active.setdefault("history", []).append(
+                {
+                    "event": "EXISTING_PRIORITY_TASK_PAUSED",
+                    "event_id": pause_event["event_id"],
+                    "prior_sequence": int(old_index + 1),
+                    "prior_dependencies": original_active_dependencies,
+                    "replacement_dependencies": promoted_task_id,
+                    "recorded_at": now,
+                }
+            )
+            original_promoted_successor.setdefault("history", []).append(
+                {
+                    "event": "EXISTING_PRIORITY_TASK_DEPENDENCY_REWIRED",
+                    "promotion_id": promotion_id,
+                    "prior_dependencies": original_successor_dependencies,
+                    "replacement_dependencies": original_promoted_successor[
+                        "dependencies"
+                    ],
+                    "recorded_at": now,
+                }
+            )
+            backlog["tasks"] = tasks
+            self._persist_backlog(project_id, backlog)
+
+        result = self.backlog_status(project_id)
+        active_rows = result["active"]
+        require(
+            len(active_rows) == 1
+            and active_rows[0]["task_id"] == promoted_task_id
+            and result["tasks"][-1]["task_id"] == expected_physical_final_task_id,
+            "PLAN_EXISTING_TASK_PROMOTION_COMMIT_VERIFICATION_FAILED",
+            "The committed promotion did not preserve its active/final boundaries.",
+            status="FAIL",
+        )
+        receipt_body = {
+            "schema": "evidence-lane.plan-existing-task-promotion.v1",
+            "status": "PASS",
+            "promotion_id": promotion_id,
+            "project_id": project_id,
+            "session_id": session_id,
+            "paused_task_id": old_active_task_id,
+            "active_task_id": promoted_task_id,
+            "predecessor_task_id": predecessor_task_id or None,
+            "original_promoted_predecessor_task_id": (
+                original_promoted_predecessor_task_id
+            ),
+            "original_promoted_successor_task_id": (
+                original_promoted_successor_task_id
+            ),
+            "runtime_task_id": runtime_task_id,
+            "reason_sha256": reason_sha256,
+            "stable_task_identity_preserved": True,
+            "task_count_unchanged": len(result["tasks"])
+            == len(before_status["tasks"]),
+            "physical_final_task_id": expected_physical_final_task_id,
+            "candidate_created": False,
+            "pending_hil": False,
+            "pointer_moved": False,
+        }
+        result["existing_task_promotion_receipt"] = {
+            **receipt_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+        }
+        return result
+
     def correct_plan_normalization(
         self,
         project_id: str,

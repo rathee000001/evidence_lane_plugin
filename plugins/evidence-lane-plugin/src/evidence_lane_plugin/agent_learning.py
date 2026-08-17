@@ -24,6 +24,9 @@ LEARNING_EVENT_SCHEMA = "evidence-lane.learning-event.v1"
 LEARNING_POINTER_SCHEMA = "evidence-lane.learning-pointer.v1"
 LEARNING_DECISION_RECEIPT_SCHEMA = "evidence-lane.learning-decision-receipt.v1"
 LEARNING_RETRIEVAL_RECEIPT_SCHEMA = "evidence-lane.learning-retrieval-receipt.v1"
+MEMORY_LOCATOR_SCHEMA = "evidence-lane.memory-locator.v1"
+MEMORY_EDGE_SCHEMA = "evidence-lane.memory-edge.v1"
+MEMORY_QUERY_RECEIPT_SCHEMA = "evidence-lane.memory-query-receipt.v1"
 HOST_MEMORY_BOUNDARY_SCHEMA = "evidence-lane.host-memory-boundary.v1"
 HOST_MEMORY_IMPORT_RECEIPT_SCHEMA = (
     "evidence-lane.host-memory-import-receipt.v1"
@@ -34,18 +37,21 @@ HOST_MEMORY_OFFICIAL_DOCS = (
 )
 LEARNING_RUNTIME_CONTRACT_SCHEMA = "evidence-lane.learning-runtime-contract.v1"
 LEARNING_LEDGER_SCHEMA = "evidence-lane.agent-learning-ledger.v1"
-LEARNING_LEDGER_SCHEMA_VERSION = 1
+LEARNING_LEDGER_SCHEMA_VERSION = 2
 LEARNING_EXPIRY_RECEIPT_SCHEMA = "evidence-lane.learning-expiry-receipt.v1"
 LEARNING_EXPIRY_OWNER = "AGENT_LEARNING_AUTHORITY_MAINTENANCE"
 
 _LEARNING_PUBLIC_ACTIONS = (
     "learning_inspect",
     "learning_retrieve",
+    "learning_memory_query",
+    "learning_memory_record_link",
+    "learning_record_host_memory_import",
     "learning_seal_candidate",
     "learning_decide_candidate",
     "learning_revoke",
 )
-_LEARNING_SCHEMA_DDL = """
+_LEARNING_V1_SCHEMA_DDL = """
 CREATE TABLE IF NOT EXISTS learning_schema_metadata(
     singleton INTEGER PRIMARY KEY CHECK(singleton=1),
     schema_id TEXT NOT NULL,
@@ -108,7 +114,7 @@ CREATE VIRTUAL TABLE IF NOT EXISTS learning_candidate_fts USING fts5(
     tokenize='unicode61'
 );
 """
-_LEARNING_EXPECTED_SCHEMA = {
+_LEARNING_V1_EXPECTED_SCHEMA = {
     "tables": {
         "learning_schema_metadata": [
             ["singleton", "INTEGER"],
@@ -183,6 +189,117 @@ _LEARNING_EXPECTED_SCHEMA = {
     },
 }
 
+_LEARNING_V2_EXTENSION_DDL = """
+CREATE TABLE IF NOT EXISTS memory_locator(
+    locator_id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    sector TEXT NOT NULL,
+    locator_kind TEXT NOT NULL,
+    locator_value TEXT NOT NULL,
+    revision_sha256 TEXT NOT NULL,
+    label TEXT NOT NULL,
+    search_text TEXT NOT NULL,
+    locator_sha256 TEXT NOT NULL UNIQUE,
+    locator_json TEXT NOT NULL,
+    recorded_at TEXT NOT NULL
+) STRICT;
+CREATE INDEX IF NOT EXISTS idx_memory_locator_project_sector
+ON memory_locator(project_id,sector,locator_id);
+CREATE TABLE IF NOT EXISTS memory_edge(
+    edge_id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    source_locator_id TEXT NOT NULL REFERENCES memory_locator(locator_id),
+    target_locator_id TEXT NOT NULL REFERENCES memory_locator(locator_id),
+    edge_type TEXT NOT NULL,
+    evidence_sha256 TEXT NOT NULL,
+    edge_sha256 TEXT NOT NULL UNIQUE,
+    edge_json TEXT NOT NULL,
+    recorded_at TEXT NOT NULL
+) STRICT;
+CREATE INDEX IF NOT EXISTS idx_memory_edge_project_source
+ON memory_edge(project_id,source_locator_id,edge_type);
+CREATE INDEX IF NOT EXISTS idx_memory_edge_project_target
+ON memory_edge(project_id,target_locator_id,edge_type);
+CREATE VIRTUAL TABLE IF NOT EXISTS memory_locator_fts USING fts5(
+    locator_id UNINDEXED,
+    project_id UNINDEXED,
+    sector,
+    locator_kind,
+    label,
+    search_text,
+    tokenize='unicode61'
+);
+"""
+
+_LEARNING_SCHEMA_DDL = _LEARNING_V1_SCHEMA_DDL + _LEARNING_V2_EXTENSION_DDL
+_LEARNING_EXPECTED_SCHEMA = {
+    "tables": {
+        **cast(dict[str, list[list[str]]], _LEARNING_V1_EXPECTED_SCHEMA["tables"]),
+        "memory_locator": [
+            ["locator_id", "TEXT"],
+            ["project_id", "TEXT"],
+            ["sector", "TEXT"],
+            ["locator_kind", "TEXT"],
+            ["locator_value", "TEXT"],
+            ["revision_sha256", "TEXT"],
+            ["label", "TEXT"],
+            ["search_text", "TEXT"],
+            ["locator_sha256", "TEXT"],
+            ["locator_json", "TEXT"],
+            ["recorded_at", "TEXT"],
+        ],
+        "memory_edge": [
+            ["edge_id", "TEXT"],
+            ["project_id", "TEXT"],
+            ["source_locator_id", "TEXT"],
+            ["target_locator_id", "TEXT"],
+            ["edge_type", "TEXT"],
+            ["evidence_sha256", "TEXT"],
+            ["edge_sha256", "TEXT"],
+            ["edge_json", "TEXT"],
+            ["recorded_at", "TEXT"],
+        ],
+        "memory_locator_fts": [
+            ["locator_id", ""],
+            ["project_id", ""],
+            ["sector", ""],
+            ["locator_kind", ""],
+            ["label", ""],
+            ["search_text", ""],
+        ],
+    },
+    "indexes": {
+        **cast(
+            dict[str, dict[str, Any]],
+            _LEARNING_V1_EXPECTED_SCHEMA["indexes"],
+        ),
+        "idx_memory_locator_project_sector": {
+            "table": "memory_locator",
+            "columns": ["project_id", "sector", "locator_id"],
+            "unique": False,
+            "partial": False,
+        },
+        "idx_memory_edge_project_source": {
+            "table": "memory_edge",
+            "columns": ["project_id", "source_locator_id", "edge_type"],
+            "unique": False,
+            "partial": False,
+        },
+        "idx_memory_edge_project_target": {
+            "table": "memory_edge",
+            "columns": ["project_id", "target_locator_id", "edge_type"],
+            "unique": False,
+            "partial": False,
+        },
+    },
+    "fts": {
+        **cast(dict[str, Any], _LEARNING_V1_EXPECTED_SCHEMA["fts"]),
+        "memory_table": "memory_locator_fts",
+        "memory_engine": "fts5",
+        "memory_ranking": "bm25",
+    },
+}
+
 _SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
 _PV_RE = re.compile(r"^PV[1-9][0-9]*$")
 _ROLLBACK_RE = re.compile(r"^ROLLBACK: LGEN([1-9][0-9]*)$")
@@ -231,6 +348,33 @@ _HOST_MEMORY_SOURCE_SCHEMES = {
     "CODEX_LOCAL_MEMORY": "codex-local-memory://",
     "CHATGPT_SAVED_MEMORY": "chatgpt-memory://",
     "CHATGPT_CHAT_HISTORY_MEMORY": "chatgpt-memory://",
+}
+_MEMORY_SECTOR_LOCATOR_PREFIXES = {
+    "CHAT_LINEAGE": "chat-lineage://",
+    "PLAN": "plan://",
+    "PROJECT_TRUTH": "project-truth://",
+    "CANON": "canon://",
+    "AGENT_LEARNING": "learning://",
+    "HOST_MEMORY": "host-memory-import://",
+}
+_MEMORY_EDGE_TYPES = {
+    "DERIVED_FROM",
+    "EVIDENCES",
+    "LEARNED_FROM",
+    "MAPS_TO",
+    "RELATED_TO",
+    "REVOKES",
+    "SUPERSEDES",
+    "SUPPRESSES",
+}
+_MEMORY_SUPPRESSING_EDGE_TYPES = {"REVOKES", "SUPERSEDES", "SUPPRESSES"}
+_MEMORY_LOCATOR_KEYS = {
+    "sector",
+    "locator_kind",
+    "locator_value",
+    "revision_sha256",
+    "label",
+    "search_terms",
 }
 _DIRECT_HOST_MEMORY_PREFIXES = (
     "codex-local-memory://",
@@ -359,6 +503,16 @@ def learning_runtime_contract() -> dict[str, Any]:
             "bounded_result_limit": [1, 20],
             "full_ledger_loaded_into_model_context": False,
         },
+        "memory_graph": {
+            "schema_version": 1,
+            "authority": "PROJECT_ISOLATED_CROSS_SECTOR_LOCATORS_ONLY",
+            "sectors": sorted(_MEMORY_SECTOR_LOCATOR_PREFIXES),
+            "raw_database_or_markdown_stored": False,
+            "automatic_host_memory_import": False,
+            "project_truth_effect": "NONE",
+            "candidate_effect": "NONE",
+            "hil_effect": "NONE",
+        },
         "public_actions": list(_LEARNING_PUBLIC_ACTIONS),
         "public_action_count": len(_LEARNING_PUBLIC_ACTIONS),
         "expiry": {
@@ -412,18 +566,48 @@ def _schema_index(
     }
 
 
-def _learning_schema_snapshot(connection: sqlite3.Connection) -> dict[str, Any]:
+def _learning_schema_snapshot(
+    connection: sqlite3.Connection,
+    expected_schema: dict[str, Any] = _LEARNING_EXPECTED_SCHEMA,
+) -> dict[str, Any]:
     expected_tables = cast(
-        dict[str, list[list[str]]], _LEARNING_EXPECTED_SCHEMA["tables"]
+        dict[str, list[list[str]]], expected_schema["tables"]
     )
     expected_indexes = cast(
-        dict[str, dict[str, Any]], _LEARNING_EXPECTED_SCHEMA["indexes"]
+        dict[str, dict[str, Any]], expected_schema["indexes"]
     )
+    expected_fts = cast(dict[str, Any], expected_schema["fts"])
     fts_row = connection.execute(
         "SELECT sql FROM sqlite_master WHERE type='table' AND name=?",
         ("learning_candidate_fts",),
     ).fetchone()
     fts_sql = str(fts_row["sql"] or "") if fts_row is not None else ""
+    fts_snapshot: dict[str, Any] = {
+        "table": "learning_candidate_fts",
+        "engine": "fts5" if "USING fts5" in fts_sql else None,
+        "ranking": "bm25" if "USING fts5" in fts_sql else None,
+    }
+    if "memory_table" in expected_fts:
+        memory_fts_row = connection.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name=?",
+            ("memory_locator_fts",),
+        ).fetchone()
+        memory_fts_sql = (
+            str(memory_fts_row["sql"] or "")
+            if memory_fts_row is not None
+            else ""
+        )
+        fts_snapshot.update(
+            {
+                "memory_table": "memory_locator_fts",
+                "memory_engine": (
+                    "fts5" if "USING fts5" in memory_fts_sql else None
+                ),
+                "memory_ranking": (
+                    "bm25" if "USING fts5" in memory_fts_sql else None
+                ),
+            }
+        )
     return {
         "tables": {
             table: _schema_columns(connection, table)
@@ -433,23 +617,22 @@ def _learning_schema_snapshot(connection: sqlite3.Connection) -> dict[str, Any]:
             index: _schema_index(connection, table=value["table"], index=index)
             for index, value in expected_indexes.items()
         },
-        "fts": {
-            "table": "learning_candidate_fts",
-            "engine": "fts5" if "USING fts5" in fts_sql else None,
-            "ranking": "bm25" if "USING fts5" in fts_sql else None,
-        },
+        "fts": fts_snapshot,
     }
 
 
-def _validate_learning_schema(connection: sqlite3.Connection) -> None:
-    snapshot = _learning_schema_snapshot(connection)
+def _validate_learning_schema(
+    connection: sqlite3.Connection,
+    expected_schema: dict[str, Any] = _LEARNING_EXPECTED_SCHEMA,
+) -> None:
+    snapshot = _learning_schema_snapshot(connection, expected_schema)
     require(
-        snapshot == _LEARNING_EXPECTED_SCHEMA,
+        snapshot == expected_schema,
         "LEARNING_LEDGER_SCHEMA_MISMATCH",
         "The Agent Learning ledger does not match its exact schema contract.",
         status="MISMATCH",
         expected_schema_signature_sha256=sha256_bytes(
-            canonical_json_bytes(_LEARNING_EXPECTED_SCHEMA)
+            canonical_json_bytes(expected_schema)
         ),
         actual_schema_signature_sha256=sha256_bytes(
             canonical_json_bytes(snapshot)
@@ -489,6 +672,37 @@ def _rebuild_learning_fts(connection: sqlite3.Connection) -> None:
         )
 
 
+def _memory_fts_document(
+    locator: dict[str, Any],
+) -> tuple[str, str, str, str, str, str]:
+    return (
+        str(locator["locator_id"]),
+        str(locator["project_id"]),
+        str(locator["sector"]),
+        str(locator["locator_kind"]),
+        str(locator["label"]),
+        str(locator["search_text"]),
+    )
+
+
+def _rebuild_memory_fts(connection: sqlite3.Connection) -> None:
+    connection.execute("DELETE FROM memory_locator_fts")
+    rows = connection.execute(
+        "SELECT locator_json FROM memory_locator ORDER BY locator_id"
+    ).fetchall()
+    for row in rows:
+        locator = cast(dict[str, Any], json.loads(str(row["locator_json"])))
+        _verify_memory_locator(locator)
+        connection.execute(
+            """
+            INSERT INTO memory_locator_fts(
+                locator_id,project_id,sector,locator_kind,label,search_text
+            ) VALUES(?,?,?,?,?,?)
+            """,
+            _memory_fts_document(locator),
+        )
+
+
 def _apply_learning_schema(connection: sqlite3.Connection) -> None:
     metadata_exists = connection.execute(
         "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
@@ -500,6 +714,7 @@ def _apply_learning_schema(connection: sqlite3.Connection) -> None:
             connection.executescript("BEGIN IMMEDIATE;\n" + _LEARNING_SCHEMA_DDL)
             _validate_learning_schema(connection)
             _rebuild_learning_fts(connection)
+            _rebuild_memory_fts(connection)
             connection.execute(
                 """
                 INSERT INTO learning_schema_metadata(
@@ -520,7 +735,7 @@ def _apply_learning_schema(connection: sqlite3.Connection) -> None:
             require(
                 False,
                 "LEARNING_LEDGER_SCHEMA_MISMATCH",
-                "The Agent Learning v0-to-v1 schema migration failed closed.",
+                "The Agent Learning unversioned-to-v2 schema migration failed closed.",
                 status="MISMATCH",
                 error_type=type(exc).__name__,
             )
@@ -535,8 +750,60 @@ def _apply_learning_schema(connection: sqlite3.Connection) -> None:
     require(
         len(rows) == 1
         and int(rows[0]["singleton"]) == 1
-        and str(rows[0]["schema_id"]) == LEARNING_LEDGER_SCHEMA
-        and int(rows[0]["schema_version"]) == LEARNING_LEDGER_SCHEMA_VERSION
+        and str(rows[0]["schema_id"]) == LEARNING_LEDGER_SCHEMA,
+        "LEARNING_LEDGER_SCHEMA_VERSION_MISMATCH",
+        "The Agent Learning ledger metadata is missing or belongs to another schema.",
+        status="MISMATCH",
+    )
+    version = int(rows[0]["schema_version"])
+    if version == 1:
+        legacy_ddl_sha256 = sha256_bytes(_LEARNING_V1_SCHEMA_DDL.encode("utf-8"))
+        legacy_signature_sha256 = sha256_bytes(
+            canonical_json_bytes(_LEARNING_V1_EXPECTED_SCHEMA)
+        )
+        require(
+            str(rows[0]["ddl_sha256"]) == legacy_ddl_sha256
+            and str(rows[0]["schema_signature_sha256"])
+            == legacy_signature_sha256,
+            "LEARNING_LEDGER_SCHEMA_VERSION_MISMATCH",
+            "The Agent Learning v1 ledger metadata is byte-drifted.",
+            status="MISMATCH",
+        )
+        _validate_learning_schema(connection, _LEARNING_V1_EXPECTED_SCHEMA)
+        try:
+            connection.executescript(
+                "BEGIN IMMEDIATE;\n" + _LEARNING_V2_EXTENSION_DDL
+            )
+            _validate_learning_schema(connection)
+            _rebuild_memory_fts(connection)
+            connection.execute(
+                """
+                UPDATE learning_schema_metadata
+                SET schema_version=?,ddl_sha256=?,schema_signature_sha256=?
+                WHERE singleton=1
+                """,
+                (
+                    LEARNING_LEDGER_SCHEMA_VERSION,
+                    contract["ledger_ddl_sha256"],
+                    contract["ledger_schema_signature_sha256"],
+                ),
+            )
+            connection.commit()
+        except sqlite3.DatabaseError as exc:
+            connection.rollback()
+            require(
+                False,
+                "LEARNING_LEDGER_SCHEMA_MISMATCH",
+                "The Agent Learning v1-to-v2 additive migration failed closed.",
+                status="MISMATCH",
+                error_type=type(exc).__name__,
+            )
+        except Exception:
+            connection.rollback()
+            raise
+        return
+    require(
+        version == LEARNING_LEDGER_SCHEMA_VERSION
         and str(rows[0]["ddl_sha256"]) == contract["ledger_ddl_sha256"]
         and str(rows[0]["schema_signature_sha256"])
         == contract["ledger_schema_signature_sha256"],
@@ -561,6 +828,480 @@ def _connect(root: Path) -> sqlite3.Connection:
         connection.close()
         raise
     return connection
+
+
+def _normalize_memory_locator(
+    value: dict[str, Any],
+    *,
+    project_id: str,
+    recorded_at: str,
+) -> dict[str, Any]:
+    require(
+        isinstance(value, dict) and set(value) == _MEMORY_LOCATOR_KEYS,
+        "LEARNING_MEMORY_LOCATOR_SHAPE_INVALID",
+        "A memory locator requires only the governed locator fields.",
+        status="BLOCKED",
+    )
+    sector = str(value["sector"]).strip().upper()
+    locator_kind = str(value["locator_kind"]).strip().upper()
+    locator_value = str(value["locator_value"]).strip()
+    label = str(value["label"]).strip()
+    terms = value["search_terms"]
+    require(
+        sector in _MEMORY_SECTOR_LOCATOR_PREFIXES
+        and bool(re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", locator_kind))
+        and locator_value.startswith(
+            _MEMORY_SECTOR_LOCATOR_PREFIXES.get(sector, "invalid://")
+        )
+        and len(locator_value) <= 512
+        and 1 <= len(label) <= 200
+        and isinstance(terms, list)
+        and 1 <= len(terms) <= 24,
+        "LEARNING_MEMORY_LOCATOR_BOUNDARY_INVALID",
+        "A memory locator must use one typed sector URI and bounded search labels.",
+        status="BLOCKED",
+    )
+    exact_terms = [str(item).strip() for item in terms]
+    require(
+        all(exact_terms)
+        and all(len(item) <= 80 for item in exact_terms)
+        and len(set(exact_terms)) == len(exact_terms),
+        "LEARNING_MEMORY_SEARCH_TERMS_INVALID",
+        "Memory search terms must be nonempty, bounded, and unique.",
+        status="BLOCKED",
+    )
+    revision_sha256 = _sha256(
+        value["revision_sha256"], field="memory_locator_revision_sha256"
+    )
+    search_text = " ".join([label, sector, locator_kind, *exact_terms])
+    require(
+        len(search_text) <= 2048
+        and not contains_secret(
+            {
+                "locator_value": locator_value,
+                "label": label,
+                "search_terms": exact_terms,
+            }
+        ),
+        "LEARNING_MEMORY_LOCATOR_CONTENT_BLOCKED",
+        "Secrets or unbounded content cannot enter the memory locator index.",
+        status="BLOCKED",
+    )
+    body: dict[str, Any] = {
+        "schema": MEMORY_LOCATOR_SCHEMA,
+        "project_id": project_id,
+        "sector": sector,
+        "locator_kind": locator_kind,
+        "locator_value": locator_value,
+        "revision_sha256": revision_sha256,
+        "label": label,
+        "search_text": search_text,
+        "recorded_at": recorded_at,
+        "raw_payload_stored": False,
+        "private_reasoning_stored": False,
+    }
+    locator_sha256 = sha256_bytes(canonical_json_bytes(body))
+    return {
+        **body,
+        "locator_id": f"memloc_{locator_sha256[:24].lower()}",
+        "locator_sha256": locator_sha256,
+    }
+
+
+def _verify_memory_locator(locator: dict[str, Any]) -> dict[str, Any]:
+    require(
+        locator.get("schema") == MEMORY_LOCATOR_SCHEMA
+        and locator.get("sector") in _MEMORY_SECTOR_LOCATOR_PREFIXES
+        and str(locator.get("locator_value", "")).startswith(
+            _MEMORY_SECTOR_LOCATOR_PREFIXES.get(
+                str(locator.get("sector", "")), "invalid://"
+            )
+        )
+        and locator.get("raw_payload_stored") is False
+        and locator.get("private_reasoning_stored") is False,
+        "LEARNING_MEMORY_LOCATOR_INVALID",
+        "A stored memory locator violates its bounded authority contract.",
+        status="MISMATCH",
+    )
+    claimed = _sha256(locator.get("locator_sha256"), field="locator_sha256")
+    body = {
+        key: value
+        for key, value in locator.items()
+        if key not in {"locator_id", "locator_sha256"}
+    }
+    require(
+        claimed == sha256_bytes(canonical_json_bytes(body))
+        and locator.get("locator_id") == f"memloc_{claimed[:24].lower()}",
+        "LEARNING_MEMORY_LOCATOR_HASH_MISMATCH",
+        "A memory locator failed its content-addressed identity check.",
+        status="MISMATCH",
+    )
+    return locator
+
+
+def _verify_memory_edge(edge: dict[str, Any]) -> dict[str, Any]:
+    require(
+        edge.get("schema") == MEMORY_EDGE_SCHEMA
+        and edge.get("edge_type") in _MEMORY_EDGE_TYPES
+        and edge.get("source_locator_id") != edge.get("target_locator_id")
+        and edge.get("raw_payload_stored") is False
+        and edge.get("project_truth_pointer_moved") is False
+        and edge.get("candidate_created") is False
+        and edge.get("hil_invoked") is False,
+        "LEARNING_MEMORY_EDGE_INVALID",
+        "A stored memory edge violates its typed nonpromotion contract.",
+        status="MISMATCH",
+    )
+    _sha256(edge.get("evidence_sha256"), field="memory_edge_evidence_sha256")
+    claimed = _sha256(edge.get("edge_sha256"), field="memory_edge_sha256")
+    body = {
+        key: value
+        for key, value in edge.items()
+        if key not in {"edge_id", "edge_sha256"}
+    }
+    require(
+        claimed == sha256_bytes(canonical_json_bytes(body))
+        and edge.get("edge_id") == f"memedge_{claimed[:24].lower()}",
+        "LEARNING_MEMORY_EDGE_HASH_MISMATCH",
+        "A memory edge failed its content-addressed identity check.",
+        status="MISMATCH",
+    )
+    return edge
+
+
+def _insert_memory_locator(
+    connection: sqlite3.Connection, locator: dict[str, Any]
+) -> bool:
+    row = connection.execute(
+        "SELECT locator_json FROM memory_locator WHERE locator_id=?",
+        (locator["locator_id"],),
+    ).fetchone()
+    if row is not None:
+        require(
+            canonical_json_bytes(json.loads(str(row["locator_json"])))
+            == canonical_json_bytes(locator),
+            "LEARNING_MEMORY_LOCATOR_IDENTITY_CONFLICT",
+            "A memory locator identity already exists with different bytes.",
+            status="MISMATCH",
+        )
+        return False
+    connection.execute(
+        """
+        INSERT INTO memory_locator(
+            locator_id,project_id,sector,locator_kind,locator_value,
+            revision_sha256,label,search_text,locator_sha256,locator_json,
+            recorded_at
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?)
+        """,
+        (
+            locator["locator_id"],
+            locator["project_id"],
+            locator["sector"],
+            locator["locator_kind"],
+            locator["locator_value"],
+            locator["revision_sha256"],
+            locator["label"],
+            locator["search_text"],
+            locator["locator_sha256"],
+            canonical_json_bytes(locator).decode("utf-8"),
+            locator["recorded_at"],
+        ),
+    )
+    connection.execute(
+        """
+        INSERT INTO memory_locator_fts(
+            locator_id,project_id,sector,locator_kind,label,search_text
+        ) VALUES(?,?,?,?,?,?)
+        """,
+        _memory_fts_document(locator),
+    )
+    return True
+
+
+def record_memory_link(
+    project_root: str | Path,
+    *,
+    project_id: str,
+    source: dict[str, Any],
+    target: dict[str, Any],
+    edge_type: str,
+    evidence_sha256: str,
+    recorded_at: str,
+) -> dict[str, Any]:
+    """Append one typed cross-sector locator edge without loading source bytes."""
+
+    root = _project_root(project_root, project_id=project_id)
+    exact_recorded_at = cast(
+        str, _timestamp(recorded_at, field="memory_link_recorded_at")
+    )
+    exact_edge_type = str(edge_type).strip().upper()
+    require(
+        exact_edge_type in _MEMORY_EDGE_TYPES,
+        "LEARNING_MEMORY_EDGE_TYPE_INVALID",
+        "A memory link requires one governed typed edge.",
+        status="BLOCKED",
+    )
+    exact_evidence_sha256 = _sha256(
+        evidence_sha256, field="memory_edge_evidence_sha256"
+    )
+    source_locator = _normalize_memory_locator(
+        source, project_id=project_id, recorded_at=exact_recorded_at
+    )
+    target_locator = _normalize_memory_locator(
+        target, project_id=project_id, recorded_at=exact_recorded_at
+    )
+    require(
+        source_locator["locator_id"] != target_locator["locator_id"],
+        "LEARNING_MEMORY_SELF_EDGE_BLOCKED",
+        "A cross-sector memory edge cannot point to the same locator revision.",
+        status="BLOCKED",
+    )
+    edge_body: dict[str, Any] = {
+        "schema": MEMORY_EDGE_SCHEMA,
+        "project_id": project_id,
+        "source_locator_id": source_locator["locator_id"],
+        "target_locator_id": target_locator["locator_id"],
+        "edge_type": exact_edge_type,
+        "evidence_sha256": exact_evidence_sha256,
+        "recorded_at": exact_recorded_at,
+        "raw_payload_stored": False,
+        "private_reasoning_stored": False,
+        "project_truth_pointer_moved": False,
+        "candidate_created": False,
+        "hil_invoked": False,
+    }
+    edge_sha256 = sha256_bytes(canonical_json_bytes(edge_body))
+    edge = {
+        **edge_body,
+        "edge_id": f"memedge_{edge_sha256[:24].lower()}",
+        "edge_sha256": edge_sha256,
+    }
+    _verify_memory_edge(edge)
+    connection = _connect(root)
+    inserted_locator_count = 0
+    idempotent_reuse = False
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+        inserted_locator_count += int(
+            _insert_memory_locator(connection, source_locator)
+        )
+        inserted_locator_count += int(
+            _insert_memory_locator(connection, target_locator)
+        )
+        existing = connection.execute(
+            "SELECT edge_json FROM memory_edge WHERE edge_id=?",
+            (edge["edge_id"],),
+        ).fetchone()
+        if existing is not None:
+            require(
+                canonical_json_bytes(json.loads(str(existing["edge_json"])))
+                == canonical_json_bytes(edge),
+                "LEARNING_MEMORY_EDGE_IDENTITY_CONFLICT",
+                "A memory edge identity already exists with different bytes.",
+                status="MISMATCH",
+            )
+            idempotent_reuse = True
+        else:
+            connection.execute(
+                """
+                INSERT INTO memory_edge(
+                    edge_id,project_id,source_locator_id,target_locator_id,
+                    edge_type,evidence_sha256,edge_sha256,edge_json,recorded_at
+                ) VALUES(?,?,?,?,?,?,?,?,?)
+                """,
+                (
+                    edge["edge_id"],
+                    project_id,
+                    edge["source_locator_id"],
+                    edge["target_locator_id"],
+                    edge["edge_type"],
+                    edge["evidence_sha256"],
+                    edge["edge_sha256"],
+                    canonical_json_bytes(edge).decode("utf-8"),
+                    edge["recorded_at"],
+                ),
+            )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
+    return {
+        "status": "PASS",
+        "state": "MEMORY_LINK_RECORDED",
+        "project_id": project_id,
+        "source_locator_id": source_locator["locator_id"],
+        "source_sector": source_locator["sector"],
+        "target_locator_id": target_locator["locator_id"],
+        "target_sector": target_locator["sector"],
+        "edge_id": edge["edge_id"],
+        "edge_type": edge["edge_type"],
+        "edge_sha256": edge["edge_sha256"],
+        "inserted_locator_count": inserted_locator_count,
+        "idempotent_reuse": idempotent_reuse,
+        "raw_payload_stored": False,
+        "project_truth_pointer_moved": False,
+        "candidate_created": False,
+        "hil_invoked": False,
+    }
+
+
+def query_memory_graph(
+    project_root: str | Path,
+    *,
+    project_id: str,
+    query: str,
+    as_of: str,
+    sectors: list[str] | None = None,
+    limit: int = 8,
+) -> dict[str, Any]:
+    """Return one bounded FTS5/BM25 locator slice with typed edge references."""
+
+    root = _project_root(project_root, project_id=project_id)
+    exact_as_of = cast(str, _timestamp(as_of, field="memory_query_as_of"))
+    exact_query = str(query).strip().lower()
+    require(
+        bool(exact_query) and 1 <= limit <= 20,
+        "LEARNING_MEMORY_QUERY_BOUNDS_INVALID",
+        "A memory query requires text and a result limit from one to twenty.",
+        status="BLOCKED",
+    )
+    query_terms = sorted(set(re.findall(r"[a-z0-9_]+", exact_query)))
+    require(
+        bool(query_terms),
+        "LEARNING_MEMORY_QUERY_TERMS_REQUIRED",
+        "The memory query has no indexable FTS5 term.",
+        status="BLOCKED",
+    )
+    requested_sectors = {
+        str(item).strip().upper() for item in (sectors or []) if str(item).strip()
+    }
+    require(
+        requested_sectors <= set(_MEMORY_SECTOR_LOCATOR_PREFIXES),
+        "LEARNING_MEMORY_QUERY_SECTOR_INVALID",
+        "A memory query requested an unknown project sector.",
+        status="BLOCKED",
+    )
+    match_query = " OR ".join(f'"{term}"' for term in query_terms)
+    connection = _connect(root)
+    selected: list[dict[str, Any]] = []
+    suppressed: list[dict[str, Any]] = []
+    try:
+        rows = connection.execute(
+            """
+            SELECT locator.locator_id,locator.sector,locator.locator_kind,
+                   locator.locator_value,locator.revision_sha256,locator.label,
+                   bm25(memory_locator_fts,0.0,0.0,1.0,1.0,5.0,2.0) AS rank
+            FROM memory_locator_fts
+            JOIN memory_locator AS locator
+              ON locator.locator_id=memory_locator_fts.locator_id
+            WHERE memory_locator_fts MATCH ?
+              AND memory_locator_fts.project_id=?
+              AND locator.recorded_at<=?
+            ORDER BY rank,locator.locator_id
+            LIMIT ?
+            """,
+            (match_query, project_id, exact_as_of, min(80, limit * 4)),
+        ).fetchall()
+        candidates = [
+            row
+            for row in rows
+            if not requested_sectors or str(row["sector"]) in requested_sectors
+        ]
+        candidate_ids = [str(row["locator_id"]) for row in candidates]
+        suppression_by_target: dict[str, list[str]] = {}
+        if candidate_ids:
+            placeholders = ",".join("?" for _ in candidate_ids)
+            suppression_rows = connection.execute(
+                f"""
+                SELECT target_locator_id,edge_type FROM memory_edge
+                WHERE project_id=? AND recorded_at<=?
+                  AND edge_type IN ('REVOKES','SUPERSEDES','SUPPRESSES')
+                  AND target_locator_id IN ({placeholders})
+                ORDER BY recorded_at,edge_id
+                """,
+                (project_id, exact_as_of, *candidate_ids),
+            ).fetchall()
+            for row in suppression_rows:
+                suppression_by_target.setdefault(
+                    str(row["target_locator_id"]), []
+                ).append(str(row["edge_type"]))
+        for row in candidates:
+            locator_id = str(row["locator_id"])
+            if locator_id in suppression_by_target:
+                if len(suppressed) < limit:
+                    suppressed.append(
+                        {
+                            "locator_id": locator_id,
+                            "state": "SUPPRESSED_MEMORY_LOCATOR",
+                            "edge_types": suppression_by_target[locator_id],
+                        }
+                    )
+                continue
+            linked = connection.execute(
+                """
+                SELECT edge_id,edge_type,source_locator_id,target_locator_id,
+                       evidence_sha256
+                FROM memory_edge
+                WHERE project_id=? AND recorded_at<=?
+                  AND (source_locator_id=? OR target_locator_id=?)
+                ORDER BY recorded_at,edge_id LIMIT 8
+                """,
+                (project_id, exact_as_of, locator_id, locator_id),
+            ).fetchall()
+            selected.append(
+                {
+                    "locator_id": locator_id,
+                    "sector": str(row["sector"]),
+                    "locator_kind": str(row["locator_kind"]),
+                    "locator_value": str(row["locator_value"]),
+                    "revision_sha256": str(row["revision_sha256"]),
+                    "label": str(row["label"]),
+                    "rank": float(row["rank"]),
+                    "edges": [
+                        {
+                            "edge_id": str(edge["edge_id"]),
+                            "edge_type": str(edge["edge_type"]),
+                            "source_locator_id": str(edge["source_locator_id"]),
+                            "target_locator_id": str(edge["target_locator_id"]),
+                            "evidence_sha256": str(edge["evidence_sha256"]),
+                        }
+                        for edge in linked
+                    ],
+                }
+            )
+            if len(selected) >= limit:
+                break
+    finally:
+        connection.close()
+    receipt_body = {
+        "schema": MEMORY_QUERY_RECEIPT_SCHEMA,
+        "project_id": project_id,
+        "as_of": exact_as_of,
+        "query_sha256": sha256_bytes(exact_query.encode("utf-8")),
+        "requested_sectors": sorted(requested_sectors),
+        "hit_count": len(selected),
+        "suppressed_count": len(suppressed),
+        "full_ledger_loaded_into_model_context": False,
+        "raw_database_or_markdown_returned": False,
+        "project_truth_pointer_moved": False,
+        "candidate_created": False,
+        "hil_invoked": False,
+    }
+    return {
+        "status": "PASS",
+        "result": "HIT" if selected else "NO_HIT",
+        "hits": selected,
+        "suppressed": suppressed,
+        "receipt": {
+            **receipt_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+        },
+        "search_engine": "SQLITE_FTS5_BM25",
+        "full_ledger_loaded_into_model_context": False,
+        "raw_database_or_markdown_returned": False,
+    }
 
 
 def _immutable_json(path: Path, value: dict[str, Any]) -> None:
@@ -877,6 +1618,46 @@ def record_host_memory_import(
         project_id=project_id,
         receipt_sha256=receipt_sha256,
     )
+    memory_graph = record_memory_link(
+        root,
+        project_id=project_id,
+        source={
+            "sector": "HOST_MEMORY",
+            "locator_kind": "PROVENANCE_RECEIPT",
+            "locator_value": f"host-memory-import://{receipt_sha256}",
+            "revision_sha256": receipt_sha256,
+            "label": f"Explicit {kind} host-memory provenance",
+            "search_terms": [
+                "host",
+                "memory",
+                "provenance",
+                kind.lower(),
+                exact_task_id,
+                exact_delta_id,
+                exact_pv_ref,
+            ],
+        },
+        target={
+            "sector": "PLAN",
+            "locator_kind": "TASK_DELTA",
+            "locator_value": (
+                f"plan://task/{exact_task_id}/delta/{exact_delta_id}"
+            ),
+            "revision_sha256": project_pointer_sha256,
+            "label": f"Plan task {exact_task_id}",
+            "search_terms": [
+                "plan",
+                "task",
+                "delta",
+                exact_task_id,
+                exact_delta_id,
+                exact_pv_ref,
+            ],
+        },
+        edge_type="EVIDENCES",
+        evidence_sha256=receipt_sha256,
+        recorded_at=exact_imported_at,
+    )
     return {
         "status": "PASS",
         "state": "IMPORTED_AS_NONAUTHORITATIVE_EVIDENCE_REFERENCE",
@@ -890,6 +1671,7 @@ def record_host_memory_import(
             "ref": f"host-memory-import://{receipt_sha256}",
             "sha256": source_hash,
         },
+        "memory_graph": memory_graph,
         "candidate_created": False,
         "accepted_learning": False,
         "learning_hil_invoked": False,
@@ -2135,6 +2917,12 @@ def inspect_learning_authority(
         pointer_rows = connection.execute(
             "SELECT pointer_json FROM learning_pointer_history ORDER BY generation"
         ).fetchall()
+        memory_locator_rows = connection.execute(
+            "SELECT locator_json FROM memory_locator ORDER BY locator_id"
+        ).fetchall()
+        memory_edge_rows = connection.execute(
+            "SELECT edge_json FROM memory_edge ORDER BY edge_id"
+        ).fetchall()
         states: dict[str, str] = {}
         expected_fts: list[tuple[str, str, str, str, str]] = []
         for row in candidates:
@@ -2202,6 +2990,45 @@ def inspect_learning_authority(
                 "A Learning pointer-history entry failed its hash check.",
                 status="MISMATCH",
             )
+        expected_memory_fts: list[tuple[str, str, str, str, str, str]] = []
+        locator_ids: set[str] = set()
+        for row in memory_locator_rows:
+            locator = cast(dict[str, Any], json.loads(str(row["locator_json"])))
+            _verify_memory_locator(locator)
+            require(
+                locator.get("project_id") == project_id,
+                "LEARNING_MEMORY_LOCATOR_PROJECT_MISMATCH",
+                "A memory locator belongs to another project authority.",
+                status="MISMATCH",
+            )
+            locator_ids.add(str(locator["locator_id"]))
+            expected_memory_fts.append(_memory_fts_document(locator))
+        indexed_memory = [
+            tuple(str(row[column]) for column in range(6))
+            for row in connection.execute(
+                """
+                SELECT locator_id,project_id,sector,locator_kind,label,search_text
+                FROM memory_locator_fts ORDER BY locator_id
+                """
+            )
+        ]
+        require(
+            indexed_memory == sorted(expected_memory_fts),
+            "LEARNING_MEMORY_FTS_INDEX_LEDGER_MISMATCH",
+            "The memory FTS5 index does not match its locator ledger.",
+            status="MISMATCH",
+        )
+        for row in memory_edge_rows:
+            edge = cast(dict[str, Any], json.loads(str(row["edge_json"])))
+            _verify_memory_edge(edge)
+            require(
+                edge.get("project_id") == project_id
+                and edge.get("source_locator_id") in locator_ids
+                and edge.get("target_locator_id") in locator_ids,
+                "LEARNING_MEMORY_EDGE_PROJECT_MISMATCH",
+                "A memory edge crosses a project or missing locator boundary.",
+                status="MISMATCH",
+            )
         current_pointer = _read_pointer(root, project_id=project_id)
         import_root = _learning_root(root) / "host-memory-imports"
         host_memory_imports = sorted(import_root.glob("*.json")) if import_root.is_dir() else []
@@ -2243,6 +3070,22 @@ def inspect_learning_authority(
         "chat_lineage_authority": "VISIBLE_EVIDENCE_SOURCE_ONLY",
         "host_memory_authority": HOST_MEMORY_AUTHORITY,
         "host_memory_import_count": len(host_memory_imports),
+        "memory_locator_count": len(memory_locator_rows),
+        "indexed_memory_locator_count": len(indexed_memory),
+        "memory_edge_count": len(memory_edge_rows),
+        "memory_sectors": sorted(
+            {
+                str(
+                    cast(
+                        dict[str, Any],
+                        json.loads(str(row["locator_json"])),
+                    )["sector"]
+                )
+                for row in memory_locator_rows
+            }
+        ),
+        "memory_search_engine": "SQLITE_FTS5_BM25",
+        "full_memory_ledger_loaded_into_model_context": False,
         "host_memory_automatic_import": False,
         "host_memory_promoted": False,
         "formula_engine_role": "OPERATOR_ROUTER_NOT_LEARNER",

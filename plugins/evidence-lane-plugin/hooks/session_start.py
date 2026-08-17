@@ -31,16 +31,43 @@ _EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     },
     "interactive_codex_app_local_or_persistent": {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
-        "tunnel_requirement": "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
-        "tunnel_setup_frequency": "NONE",
-        "tunnel_key_retention": "NOT_APPLICABLE",
-        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+            "tunnel_setup_frequency": "NONE",
+            "tunnel_key_retention": "NOT_APPLICABLE",
+            "tunnel_runtime_lifetime": "NOT_APPLICABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+            "tunnel_key_retention": "CURRENT_WINDOWS_USER_DPAPI_PROFILE",
+            "tunnel_runtime_lifetime": "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST",
+        },
+    },
+    "codex_cli_local_or_persistent": {
+        "pv_storage": "DURABLE_LOCAL_SQLITE",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+        },
     },
     "interactive_codex_app_ephemeral_vm": {
         "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
-        "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
-        "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
-        "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
+            "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
+            "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+        },
     },
     "desktop_container_surface_scope": {
         "supported_container_channels": [
@@ -184,7 +211,7 @@ def _plugin_version_context() -> dict[str, object]:
             and branch_recovery.get("release") == runtime_version
             and branch_recovery.get("slot_role") == "branch-commit-recovery"
             and branch_recovery.get("codex_marketplace_slot")
-            == "evidence-lane-v220-stable-recovery"
+            == "evidence-lane-v300-stable-recovery"
             and branch_recovery.get("enabled") is False
             and branch_recovery.get("byte_frozen_between_branch_checkpoints")
             is True
@@ -193,7 +220,7 @@ def _plugin_version_context() -> dict[str, object]:
             and local_testing.get("release_line") == runtime_version
             and local_testing.get("slot_role") == "mutable-local-testing"
             and local_testing.get("codex_marketplace_slot")
-            == "evidence-lane-v220-testing-new"
+            == "evidence-lane-v300-testing-new"
             and local_testing.get("fresh_package_version_per_local_build") is True
             and local_testing.get("branch_recovery_mutation_allowed_during_local_build")
             is False
@@ -349,64 +376,71 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
                 "api_billing_affects_routing": False,
                 "cross_project_disclosure": False,
             }
-        persistent_local_codex = (
-            interaction == "CODEX_APP_INTERACTIVE"
-            and str(route.get("vm_lifetime") or "") != "EPHEMERAL_VM"
-            and route.get("server_filesystem") == "DURABLE"
-            and route.get("primary_runtime_authority")
-            == "LOCAL_DURABLE_SQLITE"
+        classifier = dict(route.get("runtime_classifier") or {})
+        classifier_current = (
+            classifier.get("schema")
+            == "evidence-lane.runtime-host-classifier.v1"
+            and classifier.get("active_surface") == "CODEX"
+            and classifier.get("evidence_lane_execution_scope")
+            == "CODEX_LAYER_ONLY"
         )
-        if (
-            requirement == "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
-            or persistent_local_codex
-        ):
-            classifier = dict(route.get("runtime_classifier") or {})
-            classifier_current = (
-                classifier.get("schema")
-                == "evidence-lane.runtime-host-classifier.v1"
-                and classifier.get("active_surface") == "CODEX"
-                and classifier.get("evidence_lane_execution_scope")
-                == "CODEX_LAYER_ONLY"
-            )
+        native_capabilities = dict(classifier.get("native_capabilities") or {})
+        native_mcp_available = native_capabilities.get("native_mcp") is True
+        interactive_codex_surface = interaction in {
+            "CODEX_APP_INTERACTIVE",
+            "CODEX_CLI_NATIVE",
+        }
+        if interactive_codex_surface and not classifier_current:
             return {
-                "state": (
-                    "TUNNEL_NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
-                    if classifier_current
-                    else "LOCAL_CODEX_RUNTIME_CLASSIFICATION_REQUIRED"
-                ),
+                "state": "LOCAL_CODEX_RUNTIME_CLASSIFICATION_REQUIRED",
                 "project_id": project_id,
                 "interaction_profile": interaction,
-                "primary_runtime_authority": route.get(
-                    "primary_runtime_authority"
-                ),
-                "active_surface": (
-                    classifier.get("active_surface")
-                    if classifier_current
-                    else "UNPROVEN_LEGACY_SESSION"
-                ),
-                "container_channel": classifier.get(
-                    "container_channel", "HOST_CAPABILITY_UNAVAILABLE"
-                ),
-                "runtime_classifier_status": (
-                    classifier.get("status")
-                    if classifier_current
-                    else "FRESH_BOOT_OR_RESUME_REQUIRED"
-                ),
-                "local_pv_storage_allowed_when_durable": True,
-                "tunnel_requirement": (
-                    "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
-                ),
+                "runtime_classifier_status": "FRESH_BOOT_OR_RESUME_REQUIRED",
                 "tunnel_mutated": False,
                 "secret_read": False,
                 "account_tier_affects_routing": False,
                 "api_billing_affects_routing": False,
                 "cross_project_disclosure": False,
             }
-        if requirement != "REQUIRED_FOR_INTERACTIVE_CODEX_APP_ENVIRONMENT":
+        if interactive_codex_surface and native_mcp_available:
+            return {
+                "state": "TUNNEL_NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+                "project_id": project_id,
+                "interaction_profile": interaction,
+                "primary_runtime_authority": route.get(
+                    "primary_runtime_authority"
+                ),
+                "active_surface": classifier.get("active_surface"),
+                "container_channel": classifier.get(
+                    "container_channel", "HOST_CAPABILITY_UNAVAILABLE"
+                ),
+                "runtime_classifier_status": classifier.get("status"),
+                "local_pv_storage_allowed_when_durable": True,
+                "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+                "host_tool_transport": "NATIVE_MCP_AVAILABLE",
+                "native_mcp_available": True,
+                "tunnel_mutated": False,
+                "secret_read": False,
+                "account_tier_affects_routing": False,
+                "api_billing_affects_routing": False,
+                "cross_project_disclosure": False,
+            }
+        if not interactive_codex_surface:
             return {
                 "state": "TUNNEL_NOT_PART_OF_THIS_SURFACE_ROUTE",
                 "project_id": project_id,
                 "interaction_profile": interaction or "UNSPECIFIED",
+                "tunnel_mutated": False,
+                "secret_read": False,
+                "cross_project_disclosure": False,
+            }
+        if requirement != "REQUIRED_FOR_HOST_TOOL_GAP":
+            return {
+                "state": "HOST_TOOL_TRANSPORT_CONTRACT_INVALID",
+                "project_id": project_id,
+                "interaction_profile": interaction,
+                "tunnel_requirement": requirement or "UNSPECIFIED",
+                "native_mcp_available": False,
                 "tunnel_mutated": False,
                 "secret_read": False,
                 "cross_project_disclosure": False,
@@ -503,6 +537,8 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
                 "release": version,
                 "slot_role": slot_role,
                 "interaction_profile": interaction,
+                "host_tool_transport": "HOST_TOOL_GAP",
+                "native_mcp_available": False,
                 "host_lifetime": expected_lifetime,
                 "runtime_root": str(runtime_root),
                 "raw_vm_instance_id_stored": False,
@@ -527,7 +563,9 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
                 "next_action": (
                     "Run the installer once for this host/VM. It reuses a verified "
                     "prior current-user DPAPI envelope when available; otherwise it "
-                    "prompts locally for the Runtime key without logging it."
+                    "prompts locally for the Runtime key without logging it. Pass "
+                    "HostToolTransport=HOST_TOOL_GAP; native MCP routes must not "
+                    "install or start a tunnel."
                 ),
                 "tunnel_mutated": False,
                 "secret_read": False,
@@ -541,6 +579,7 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
             and marker.get("slot_role") == slot_role
             and marker.get("legacy_version_manager_authoritative") is False
             and marker.get("interaction_profile") == interaction
+            and marker.get("host_tool_transport") == "HOST_TOOL_GAP"
             and marker.get("host_lifetime") == expected_lifetime
             and marker.get("runtime_key_plaintext_written") is False
             and marker.get("vm_instance_id_sha256")
@@ -560,6 +599,8 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
             "release": version,
             "slot_role": slot_role,
             "interaction_profile": interaction,
+            "host_tool_transport": "HOST_TOOL_GAP",
+            "native_mcp_available": False,
             "host_lifetime": expected_lifetime,
             "runtime_root": str(runtime_root),
             "vm_instance_id_sha256": vm_instance_id_sha256,
@@ -816,6 +857,66 @@ def main() -> int:
         "hook_runtime_role",
         "VALIDATE_REDACT_BOUND_DEDUPLICATE_AND_TRANSPORT_ONLY",
     )
+    compact_source = source.strip().lower().replace("_", "-") in {
+        "auto-compact",
+        "compact",
+        "compaction",
+        "manual-compact",
+        "post-compact",
+        "postcompact",
+    }
+    if compact_source:
+        compact_context = turn_control.get("compact_reentry_context")
+        compact_ready = (
+            turn_control.get("state") == "COMPACT_REENTRY_READY"
+            and isinstance(compact_context, dict)
+        )
+        if compact_ready:
+            additional_context = "EVIDENCE_LANE_COMPACT_REENTRY=" + json.dumps(
+                compact_context,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+        else:
+            error = turn_control.get("error")
+            error_code = (
+                str(error.get("code") or "")
+                if isinstance(error, dict)
+                else str(turn_control.get("code") or "")
+            )
+            gap = {
+                "schema": "evidence-lane.codex-compact-reentry-gap.v1",
+                "state": "COMPACT_REENTRY_FAIL_CLOSED",
+                "error_code": error_code or "COMPACT_REENTRY_AUTHORITY_UNAVAILABLE",
+                "source_mutation_authorized": False,
+                "authority_reconstruction_allowed": False,
+                "full_plan_included": False,
+                "full_env_uop_included": False,
+                "private_reasoning_stored": False,
+            }
+            additional_context = "EVIDENCE_LANE_COMPACT_REENTRY=" + json.dumps(
+                gap,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+        result: dict[str, Any] = {
+            "continue": bool(compact_ready and turn_control_continue),
+            "hookSpecificOutput": {
+                "hookEventName": "SessionStart",
+                "additionalContext": additional_context,
+            },
+            "systemMessage": (
+                "EVIDENCE_LANE_COMPACT_REENTRY_READY"
+                if compact_ready
+                else "EVIDENCE_LANE_COMPACT_REENTRY_FAIL_CLOSED"
+            ),
+        }
+        if not result["continue"]:
+            result["stopReason"] = (
+                "Governed compact re-entry failed closed before authority reconstruction."
+            )
+        print(json.dumps(result, sort_keys=True, separators=(",", ":")))
+        return 0
     flash_context = (
         _flash_context()
         if activation.get("state") == "ACTIVE"

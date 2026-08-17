@@ -1,9 +1,9 @@
 [CmdletBinding()]
 param(
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build",
-    [string]$ProfileName = "evidence_lane_v220_stable_build_transport",
+    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v300-stable-build",
+    [string]$ProfileName = "evidence_lane_v300_stable_build_transport",
     [string]$ProfileDir = "$env:APPDATA\tunnel-client",
-    [string]$ReleaseToken = "v220"
+    [string]$ReleaseToken = "v300"
 )
 
 Set-StrictMode -Version Latest

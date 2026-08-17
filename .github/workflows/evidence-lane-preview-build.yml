@@ -65,7 +65,7 @@ jobs:
           done
           test "${ready}" = true
           python -c \
-            'import json, os, pathlib; payload = json.loads(pathlib.Path(".runtime/ci/durable-image-health.json").read_text(encoding="utf-8")); assert payload["status"] == "PASS"; assert payload["release_sha"] == os.environ["EVIDENCE_LANE_RELEASE_SHA"]; assert payload["mcp_route_identity"]["status"] == "PASS"; assert payload["mcp_route_identity"]["tool_count"] == 83'
+            'import json, os, pathlib; payload = json.loads(pathlib.Path(".runtime/ci/durable-image-health.json").read_text(encoding="utf-8")); assert payload["status"] == "PASS"; assert payload["release_sha"] == os.environ["EVIDENCE_LANE_RELEASE_SHA"]; assert payload["mcp_route_identity"]["status"] == "PASS"; assert payload["mcp_route_identity"]["tool_count"] == 87'
       - name: Set up pnpm
         uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:

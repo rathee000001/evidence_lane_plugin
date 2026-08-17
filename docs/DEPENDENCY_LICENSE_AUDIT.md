@@ -1,7 +1,7 @@
 # Direct dependency license audit
 
 Audit date: **2026-08-15**
-Release line: **Evidence Lane 2.2.0 pre-HIL source / accepted PV12 2.1 base**
+Release line: **Evidence Lane 3.0.0 pre-HIL source / accepted PV12 2.1 base**
 
 This is an engineering distribution check, not legal advice and not a complete
 transitive-license clearance. It records the direct dependencies declared by

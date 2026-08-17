@@ -6,12 +6,12 @@ import { PageHero } from "../_components/page-hero";
 
 export const metadata: Metadata = {
   title: "Native MCP",
-  description: "Evidence Lane's package-local native MCP server and eighty-three governed actions.",
+  description: "Evidence Lane's package-local native MCP server and eighty-seven governed actions.",
 };
 
 const actionClasses = [
-  ["26", "read-only actions", "Inspect accepted pointers, status, Plan, receipts, sources, lanes, Canon, Learning, and governed evidence without lifecycle mutation.", "database"],
-  ["57", "write-capable actions", "Mutate only through explicit project/session contracts, exact task identity, one-writer guards, and operation-specific receipts.", "terminal"],
+  ["27", "read-only actions", "Inspect accepted pointers, status, Plan, receipts, sources, lanes, Canon, Learning, and governed evidence without lifecycle mutation.", "database"],
+  ["60", "write-capable actions", "Mutate only through explicit project/session contracts, exact task identity, one-writer guards, and operation-specific receipts.", "terminal"],
   ["16", "Canon actions", "Three reads and thirteen writes govern linked-task exchange, dispatch, receiver-owned three-way decisions, bounded backfire, results, and continuity.", "git"],
   ["5", "Learning actions", "Two reads and three writes keep project-isolated AI Learning retrieval, candidates, decisions, and revocation separate from Project Truth.", "node"],
   ["1", "native server", "The package-local evidence-lane server is the Codex lifecycle route. Website and remote transport surfaces cannot substitute for it.", "package"],
@@ -22,7 +22,7 @@ export default function McpPage() {
     <main>
       <PageHero
         eyebrow="Native MCP"
-        title="One package-local server. Eighty-three governed actions."
+        title="One package-local server. Eighty-seven governed actions."
         description="Evidence Lane keeps read inspection, write capability, lifecycle gates, and failure receipts explicit. An action being visible never implies that its host or current state authorizes it."
         aside={<HeroOrbit preset="mcp" />}
       />

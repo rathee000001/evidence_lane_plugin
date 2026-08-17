@@ -32,9 +32,11 @@ times, actor, purpose, and unchanged Project Truth pointer hash. Persist no raw
 memory text, secret, or private reasoning. A direct `codex-local-memory://`,
 `chatgpt-memory://`, or `host-memory://` evidence reference fails closed.
 
-Recording provenance creates no Learning candidate and invokes no Learning or
-Project HIL. Candidate sealing remains a later explicit action; its result is
-still `PENDING_LEARNING_HIL`. Hooks never import memory and attach explicit
+Invoke `learning_record_host_memory_import` only after an explicit user request
+or an explicit governed workflow step. Recording provenance creates no
+Learning candidate and invokes no Learning or Project HIL. Candidate sealing
+remains a later explicit action; its result is still `PENDING_LEARNING_HIL`.
+Hooks never import memory and attach explicit
 `host_memory_imported=false`, `learning_candidate_created=false`, and
 `learning_hil_invoked=false` boundaries to their behavior handoff.
 
@@ -52,11 +54,20 @@ out-of-scope, or Project-Truth-conflicting lessons must remain excluded with an
 explicit reason.
 
 The Learning ledger is schema-versioned and validates its exact SQLite tables,
-indexes, and FTS5 projection before use. Retrieval queries the FTS5 projection
-with BM25 and returns only the bounded result slice; never scan or place the
-full ledger in model context. The public family remains exactly five actions:
-`learning_inspect`, `learning_retrieve`, `learning_seal_candidate`,
+indexes, and FTS5 projections before use. Retrieval queries FTS5 with BM25 and
+returns only the bounded result slice; never scan or place the full ledger in
+model context. The public family has eight actions: `learning_inspect`,
+`learning_retrieve`, `learning_memory_query`, `learning_memory_record_link`,
+`learning_record_host_memory_import`, `learning_seal_candidate`,
 `learning_decide_candidate`, and `learning_revoke`.
+
+Use `learning_memory_record_link` to append only typed, hashed locators and
+edges among ChatLineage, Plan, Project Truth, Canon, Agent Learning, and an
+explicit host-memory import receipt. Use `learning_memory_query` for a bounded
+cross-sector locator slice. Neither route stores or returns raw lane databases,
+Markdown, chat scrollback, or private reasoning. `SUPERSEDES`, `SUPPRESSES`,
+and `REVOKES` edges exclude stale targets at the requested retrieval time while
+preserving immutable history.
 
 ## Expiry ownership
 

@@ -41,29 +41,11 @@ function suggestionsFor(pathname: string) {
   if (pathname === "/") {
     return floatingStudioSuggestions.home;
   }
-  if (pathname.startsWith("/architecture")) {
-    return floatingStudioSuggestions.architecture;
-  }
-  if (pathname.startsWith("/lanes")) {
-    return floatingStudioSuggestions.lanes;
-  }
-  if (pathname.startsWith("/operators")) {
-    return floatingStudioSuggestions.operators;
-  }
-  if (pathname.startsWith("/studio")) {
-    return floatingStudioSuggestions.studio;
-  }
-  if (pathname.startsWith("/proof")) {
-    return floatingStudioSuggestions.proof;
-  }
-  if (pathname.startsWith("/provenance")) {
-    return floatingStudioSuggestions.provenance;
-  }
-  if (pathname.startsWith("/connect")) {
-    return floatingStudioSuggestions.connect;
-  }
-  if (pathname.startsWith("/hil")) {
-    return floatingStudioSuggestions.hil;
+  const routeKey = pathname.split("/").filter(Boolean)[0];
+  if (routeKey && routeKey in floatingStudioSuggestions) {
+    return floatingStudioSuggestions[
+      routeKey as keyof typeof floatingStudioSuggestions
+    ];
   }
   return floatingStudioSuggestions.default;
 }

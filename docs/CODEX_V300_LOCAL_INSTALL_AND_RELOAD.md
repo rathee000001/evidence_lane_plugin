@@ -2,7 +2,7 @@
 
 The historical `codex-v200` storage/schema names remain compatibility
 identifiers; they do not describe the current package release. Evidence Lane
-2.2 uses Codex's supported local-marketplace path. It never edits
+3.0 uses Codex's supported local-marketplace path. It never edits
 `~/.codex/plugins/cache` directly. Before PV11 acceptance, cleanup is deferred.
 After exact standalone `APPROVE` and native Fuse, supported plugin management
 normalizes the live registry/cache to the enabled stable-build slot and the
@@ -109,8 +109,8 @@ Register` after the exact task-binding receipt exists. Registration is general
 to all governed Codex Goal tasks under the current Windows user; it is not tied
 to this repository, one test project, or one stable build. The manager installs
 one durable copy under
-`EvidenceLanePV/installations/helpers/v220/goal-recovery`, registers the
-versioned current-user `Evidence Lane Codex Goal Recovery v220` `AtLogOn` task,
+`EvidenceLanePV/installations/helpers/v300/goal-recovery`, registers the
+versioned current-user `Evidence Lane Codex Goal Recovery v300` `AtLogOn` task,
 and stores one sealed binding per exact Codex task UUID. Prior versioned helpers
 are retained and disabled, not deleted.
 

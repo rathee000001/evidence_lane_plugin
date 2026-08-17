@@ -300,15 +300,13 @@ def test_session_start_exposes_local_codex_native_no_tunnel_route(
         "per_push_confirmation_token_required"
     ] is False
     assert plugin["effective_remote_git_policy"]["main_push_allowed"] is False
-    assert activation["state"] == (
-        "TUNNEL_NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
-    )
+    assert activation["state"] == "TUNNEL_NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
     assert activation["interaction_profile"] == "CODEX_APP_INTERACTIVE"
     assert activation["primary_runtime_authority"] == "LOCAL_DURABLE_SQLITE"
     assert activation["active_surface"] == "CODEX"
-    assert activation["tunnel_requirement"] == (
-        "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
-    )
+    assert activation["tunnel_requirement"] == "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
+    assert activation["host_tool_transport"] == "NATIVE_MCP_AVAILABLE"
+    assert activation["native_mcp_available"] is True
     assert activation["tunnel_mutated"] is False
     assert activation["secret_read"] is False
     assert activation["cross_project_disclosure"] is False
@@ -360,9 +358,9 @@ def test_session_start_does_not_route_local_fallback_hook_to_a_tunnel(service) -
         slot_role="fallback",
     )
     activation = _context_envelope(context, "HOST_ACTIVATION_ENVELOPE")
-    assert activation["state"] == (
-        "TUNNEL_NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
-    )
+    assert activation["state"] == "TUNNEL_NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
+    assert activation["host_tool_transport"] == "NATIVE_MCP_AVAILABLE"
+    assert activation["native_mcp_available"] is True
     assert "slot_role" not in activation
     assert "runtime_root" not in activation
 
@@ -396,9 +394,9 @@ def test_session_start_ignores_local_tunnel_marker_without_claiming_health(
     context = _run_session_start(root, service.store.root, "host-session-test")
     activation = _context_envelope(context, "HOST_ACTIVATION_ENVELOPE")
 
-    assert activation["state"] == (
-        "TUNNEL_NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
-    )
+    assert activation["state"] == "TUNNEL_NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
+    assert activation["host_tool_transport"] == "NATIVE_MCP_AVAILABLE"
+    assert activation["native_mcp_available"] is True
     assert "health_claimed" not in activation
     assert "marker_sha256" not in activation
     assert activation["tunnel_mutated"] is False
@@ -418,6 +416,7 @@ def test_ephemeral_interactive_tunnel_is_bound_to_one_vm_lifetime(service) -> No
         runtime_context={
             "interaction_profile": "CODEX_APP_INTERACTIVE",
             "account_tier": "BUSINESS",
+            "native_capabilities": {"native_mcp": False},
         },
         host_session_id="host-session-ephemeral",
         client_can_edit_source=True,

@@ -7,12 +7,14 @@ semantics and never treats mode selection as HIL approval or lifecycle mutation.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from typing import Any, cast
 
 from .errors import require
 from .hashing import canonical_json_bytes, sha256_bytes
 from .next_actions import HIL_CHOICES
+from .redaction import contains_secret
 
 ENV15_ENV_SQLITE_SHA256 = (
     "78EEC5EFF7BA82DF38DF62ED65F2E8A4B8E1F3A593B8387779EAD7EA45E03810"
@@ -23,6 +25,548 @@ ENV15_UOP_SQLITE_SHA256 = (
 ENV15_MODE_POLICY_PROJECTION_SHA256 = (
     "F66B383EFF37DE7550D24A00821F7F34257E26152FAD4C4A6B09166A8EB67AF1"
 )
+ENV_UOP_AUTHORITY_BOUNDARY_SCHEMA = "evidence-lane.env-uop-authority-boundary.v1"
+ENV_UOP_EXTERNAL_SECRET_REFERENCE_SCHEMA = (
+    "evidence-lane.external-host-secret-reference.v1"
+)
+ENV_UOP_EXTERNAL_SECRET_RECEIPT_SCHEMA = (
+    "evidence-lane.external-host-secret-receipt.v1"
+)
+ENV_UOP_OPERATOR_EFFECT_RECEIPT_SCHEMA = (
+    "evidence-lane.env-uop-operator-effect-receipt.v1"
+)
+ENV_UOP_EXECUTION_BUDGET_SCHEMA = "evidence-lane.env-uop-execution-budget.v1"
+ENV_UOP_COMPILED_FORMULA_SCHEMA = "evidence-lane.env-uop-compiled-formula.v1"
+ENV_UOP_OPERATOR_ROUTE_RECEIPT_SCHEMA = (
+    "evidence-lane.env-uop-operator-route-receipt.v1"
+)
+
+_ENV_UOP_EXTERNAL_SECRET_TARGET = "EXTERNAL_HOST_SECRET_PROVIDER"
+_ENV_UOP_FORBIDDEN_SECRET_STORES = frozenset(
+    {"PROMPT", "SQLITE", "CHAT_LINEAGE", "LINEAGE", "ASSET", "TEST"}
+)
+_ENV_UOP_SECRET_OUTCOMES = frozenset(
+    {"RESOLVED", "NOT_FOUND", "DENIED", "ERROR", "NOT_REQUIRED"}
+)
+_ENV_UOP_SAFE_REFERENCE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,255}$")
+_ENV_UOP_SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
+_ENV_UOP_SAFE_ROUTE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$")
+_ENV_UOP_MAX_LANES = 32
+_ENV_UOP_MAX_TOOLS = 64
+_ENV_UOP_MAX_UNITS_PER_ROUTE = 1_024
+_ENV_UOP_MAX_TOTAL_UNITS = 8_192
+_ENV_UOP_SECRET_KEY_RE = re.compile(
+    r"(?i)(?:^|[_-])(authorization|api[_-]?key|access[_-]?token|"
+    r"refresh[_-]?token|password|private[_-]?key|client[_-]?secret|"
+    r"secret[_-]?value|credential[_-]?value)(?:$|[_-])"
+)
+
+
+def env_uop_authority_boundary() -> dict[str, Any]:
+    """Return the immutable ENV/UOP ownership and secret-handling contract."""
+
+    core = {
+        "schema": ENV_UOP_AUTHORITY_BOUNDARY_SCHEMA,
+        "env_sqlite_sha256": ENV15_ENV_SQLITE_SHA256,
+        "uop_sqlite_sha256": ENV15_UOP_SQLITE_SHA256,
+        "mode_policy_projection_sha256": ENV15_MODE_POLICY_PROJECTION_SHA256,
+        "ownership": {
+            "source_authority": "LOCKED_ENV15_UOP15",
+            "operator_authority": "ENV_UOP_OPERATOR_RUNTIME",
+            "mutation_authority": "EXPLICIT_USER_OR_AUTHORIZED_MAINTAINER_ONLY",
+            "project_truth_authority": "NONE",
+        },
+        "operator_effect_policy": {
+            "scope": "DECLARED_EFFECT_ONLY",
+            "cross_authority_mutation_allowed": False,
+            "hil_effect": "NONE",
+            "pointer_effect": "NONE",
+        },
+        "credential_policy": {
+            "source": f"{_ENV_UOP_EXTERNAL_SECRET_TARGET}_ONLY",
+            "transport": "REFERENCE_ONLY",
+            "value_logging_allowed": False,
+            "forbidden_storage": sorted(_ENV_UOP_FORBIDDEN_SECRET_STORES),
+        },
+    }
+    return {**core, "boundary_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+def validate_env_uop_external_secret_reference(
+    value: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Validate a host-owned secret handle and return only a redacted receipt."""
+
+    exact = dict(value)
+    require(
+        exact.get("schema") == ENV_UOP_EXTERNAL_SECRET_REFERENCE_SCHEMA,
+        "ENV_UOP_SECRET_REFERENCE_SCHEMA_INVALID",
+        "ENV/UOP credentials require the external host secret-reference schema.",
+        status="BLOCKED",
+    )
+    forbidden_keys = sorted(
+        str(key) for key in exact if _ENV_UOP_SECRET_KEY_RE.search(str(key))
+    )
+    require(
+        not forbidden_keys and not contains_secret(exact),
+        "ENV_UOP_SECRET_VALUE_FORBIDDEN",
+        "Credential values cannot enter ENV/UOP prompts, receipts, or replay state.",
+        status="BLOCKED",
+        forbidden_keys=forbidden_keys,
+    )
+    storage_target = str(exact.get("storage_target") or "").strip().upper()
+    require(
+        storage_target not in _ENV_UOP_FORBIDDEN_SECRET_STORES
+        and storage_target == _ENV_UOP_EXTERNAL_SECRET_TARGET,
+        "ENV_UOP_SECRET_STORAGE_FORBIDDEN",
+        "ENV/UOP credentials may be resolved only by an external host secret provider.",
+        status="BLOCKED",
+        storage_target=storage_target or None,
+        forbidden_storage=sorted(_ENV_UOP_FORBIDDEN_SECRET_STORES),
+    )
+    provider_id = str(exact.get("provider_id") or "").strip()
+    reference_id = str(exact.get("reference_id") or "").strip()
+    outcome = str(exact.get("outcome") or "").strip().upper()
+    require(
+        bool(_ENV_UOP_SAFE_REFERENCE_RE.fullmatch(provider_id))
+        and bool(_ENV_UOP_SAFE_REFERENCE_RE.fullmatch(reference_id)),
+        "ENV_UOP_SECRET_REFERENCE_INVALID",
+        "The external provider and reference identifiers must be bounded opaque handles.",
+        status="BLOCKED",
+    )
+    require(
+        outcome in _ENV_UOP_SECRET_OUTCOMES,
+        "ENV_UOP_SECRET_OUTCOME_INVALID",
+        "The external host secret-provider outcome is not recognized.",
+        status="BLOCKED",
+        outcome=outcome or None,
+    )
+    reference_sha256 = sha256_bytes(reference_id.encode("utf-8"))
+    redacted_reference = (
+        f"{reference_id[:2]}...{reference_id[-2:]}"
+        if len(reference_id) > 4
+        else "[REDACTED_REFERENCE]"
+    )
+    core = {
+        "schema": ENV_UOP_EXTERNAL_SECRET_RECEIPT_SCHEMA,
+        "status": "PASS",
+        "provider_id": provider_id,
+        "storage_target": _ENV_UOP_EXTERNAL_SECRET_TARGET,
+        "reference_redacted": redacted_reference,
+        "reference_sha256": reference_sha256,
+        "outcome": outcome,
+        "value_received": False,
+        "value_logged": False,
+        "prompt_storage": False,
+        "sqlite_storage": False,
+        "lineage_storage": False,
+        "asset_storage": False,
+        "test_storage": False,
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+def bind_env_uop_operator_effect(
+    operator_id: int,
+    *,
+    requested_effect: str,
+    credential_reference: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Bind one operator to its declared effect without executing the effect."""
+
+    operator = _OPERATORS.get(operator_id)
+    require(
+        operator is not None,
+        "ENV_UOP_OPERATOR_UNKNOWN",
+        "The requested ENV/UOP operator is not registered.",
+        status="BLOCKED",
+        operator_id=operator_id,
+    )
+    declared_effect = str(cast(dict[str, Any], operator)["effect"])
+    require(
+        requested_effect == declared_effect,
+        "ENV_UOP_OPERATOR_EFFECT_MISMATCH",
+        "An ENV/UOP operator may perform only its declared effect.",
+        status="BLOCKED",
+        operator_id=operator_id,
+        requested_effect=requested_effect,
+        declared_effect=declared_effect,
+    )
+    credential_receipt = (
+        validate_env_uop_external_secret_reference(credential_reference)
+        if credential_reference is not None
+        else None
+    )
+    boundary = env_uop_authority_boundary()
+    core = {
+        "schema": ENV_UOP_OPERATOR_EFFECT_RECEIPT_SCHEMA,
+        "status": "PASS",
+        "operator_id": operator_id,
+        "operator_family": cast(dict[str, Any], operator)["family"],
+        "declared_effect": declared_effect,
+        "declared_effect_sha256": sha256_bytes(declared_effect.encode("utf-8")),
+        "authority_boundary_sha256": boundary["boundary_sha256"],
+        "credential_receipt": credential_receipt,
+        "effect_executed": False,
+        "cross_authority_mutation": False,
+        "hil_effect": "NONE",
+        "pointer_effect": "NONE",
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+def _env_uop_budget_units(value: Any, *, field: str) -> int:
+    require(
+        isinstance(value, int)
+        and not isinstance(value, bool)
+        and 1 <= value <= _ENV_UOP_MAX_UNITS_PER_ROUTE,
+        "ENV_UOP_EXECUTION_BUDGET_INVALID",
+        "Every ENV/UOP lane and tool budget must be a positive bounded integer.",
+        status="BLOCKED",
+        field=field,
+        max_units=_ENV_UOP_MAX_UNITS_PER_ROUTE,
+    )
+    return int(value)
+
+
+def _normalize_env_uop_execution_budget(
+    value: Mapping[str, Any],
+    *,
+    canonical_lanes: list[str],
+) -> dict[str, Any]:
+    """Validate exact per-lane and per-tool budgets for one compiled formula."""
+
+    exact = dict(value)
+    require(
+        set(exact)
+        == {
+            "schema",
+            "lane_units",
+            "tool_invocations",
+            "max_total_lane_units",
+            "max_total_tool_invocations",
+        }
+        and exact.get("schema") == ENV_UOP_EXECUTION_BUDGET_SCHEMA,
+        "ENV_UOP_EXECUTION_BUDGET_SHAPE_INVALID",
+        "An ENV/UOP execution budget requires the exact versioned fields.",
+        status="BLOCKED",
+    )
+    require(
+        not contains_secret(exact),
+        "ENV_UOP_EXECUTION_BUDGET_SECRET_FORBIDDEN",
+        "Secret material cannot enter ENV/UOP execution budgets.",
+        status="BLOCKED",
+    )
+    raw_lanes = exact.get("lane_units")
+    raw_tools = exact.get("tool_invocations")
+    require(
+        isinstance(raw_lanes, Mapping)
+        and isinstance(raw_tools, Mapping)
+        and bool(raw_tools),
+        "ENV_UOP_EXECUTION_BUDGET_MAP_REQUIRED",
+        "ENV/UOP execution requires explicit lane and tool budget maps.",
+        status="BLOCKED",
+    )
+    lanes = [str(item) for item in canonical_lanes]
+    require(
+        bool(lanes)
+        and len(lanes) == len(set(lanes))
+        and len(lanes) <= _ENV_UOP_MAX_LANES
+        and set(raw_lanes) == set(lanes),
+        "ENV_UOP_LANE_BUDGET_MISMATCH",
+        "Every selected canonical lane requires exactly one explicit budget.",
+        status="BLOCKED",
+        required_lanes=lanes,
+        supplied_lanes=sorted(str(item) for item in raw_lanes),
+    )
+    require(
+        len(raw_tools) <= _ENV_UOP_MAX_TOOLS,
+        "ENV_UOP_TOOL_BUDGET_LIMIT_EXCEEDED",
+        "The ENV/UOP tool budget exceeds the bounded tool-route count.",
+        status="BLOCKED",
+        max_tools=_ENV_UOP_MAX_TOOLS,
+    )
+    lane_units = {
+        lane: _env_uop_budget_units(raw_lanes[lane], field=f"lane_units.{lane}")
+        for lane in lanes
+    }
+    tool_invocations: dict[str, int] = {}
+    for raw_tool, raw_units in sorted(raw_tools.items(), key=lambda item: str(item[0])):
+        tool_id = str(raw_tool)
+        require(
+            bool(_ENV_UOP_SAFE_ROUTE_RE.fullmatch(tool_id)),
+            "ENV_UOP_TOOL_ROUTE_INVALID",
+            "ENV/UOP tool routes require bounded public-safe identifiers.",
+            status="BLOCKED",
+            tool_id=tool_id,
+        )
+        tool_invocations[tool_id] = _env_uop_budget_units(
+            raw_units,
+            field=f"tool_invocations.{tool_id}",
+        )
+    max_lane = _env_uop_budget_units(
+        exact.get("max_total_lane_units"),
+        field="max_total_lane_units",
+    )
+    max_tool = _env_uop_budget_units(
+        exact.get("max_total_tool_invocations"),
+        field="max_total_tool_invocations",
+    )
+    lane_total = sum(lane_units.values())
+    tool_total = sum(tool_invocations.values())
+    require(
+        lane_total == max_lane
+        and tool_total == max_tool
+        and lane_total <= _ENV_UOP_MAX_TOTAL_UNITS
+        and tool_total <= _ENV_UOP_MAX_TOTAL_UNITS,
+        "ENV_UOP_EXECUTION_BUDGET_TOTAL_MISMATCH",
+        "Aggregate ENV/UOP budgets must equal their explicit route allocations.",
+        status="BLOCKED",
+        lane_total=lane_total,
+        max_total_lane_units=max_lane,
+        tool_total=tool_total,
+        max_total_tool_invocations=max_tool,
+        max_total_units=_ENV_UOP_MAX_TOTAL_UNITS,
+    )
+    core = {
+        "schema": ENV_UOP_EXECUTION_BUDGET_SCHEMA,
+        "lane_units": lane_units,
+        "tool_invocations": tool_invocations,
+        "max_total_lane_units": max_lane,
+        "max_total_tool_invocations": max_tool,
+    }
+    return {**core, "budget_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+def compile_env_uop_formula(
+    mode_governance: Mapping[str, Any],
+    execution_budget: Mapping[str, Any],
+    *,
+    sdk_binding_sha256: str,
+) -> dict[str, Any]:
+    """Compile selected ENV/UOP formulas into a bounded provider route plan."""
+
+    require(
+        bool(_ENV_UOP_SHA256_RE.fullmatch(str(sdk_binding_sha256))),
+        "ENV_UOP_SDK_BINDING_INVALID",
+        "ENV/UOP compilation requires the exact SDK binding hash.",
+        status="MISMATCH",
+    )
+    selection = validate_mode_governance_selection(dict(mode_governance))
+    canonical_lanes = list(
+        dict.fromkeys(
+            str(lane)
+            for contract in cast(list[dict[str, Any]], selection["contracts"])
+            for lane in cast(list[Any], contract.get("canonical_lanes") or [])
+        )
+    )
+    budget = _normalize_env_uop_execution_budget(
+        execution_budget,
+        canonical_lanes=canonical_lanes,
+    )
+    compiled_contracts: list[dict[str, Any]] = []
+    for contract in cast(list[dict[str, Any]], selection["contracts"]):
+        compiled_operators = []
+        for operator in cast(list[dict[str, Any]], contract["operators"]):
+            effect_receipt = bind_env_uop_operator_effect(
+                int(operator["operator_id"]),
+                requested_effect=str(operator["effect"]),
+            )
+            compiled_operators.append(
+                {
+                    "operator_id": int(operator["operator_id"]),
+                    "family": str(operator["family"]),
+                    "chapter": str(operator["chapter"]),
+                    "declared_effect": str(operator["effect"]),
+                    "declared_effect_sha256": str(
+                        operator["declared_effect_sha256"]
+                    ),
+                    "effect_receipt_sha256": effect_receipt["receipt_sha256"],
+                }
+            )
+        compiled_contracts.append(
+            {
+                "mode_id": str(contract["mode_id"]),
+                "mode_name": str(contract["mode_name"]),
+                "canonical_lanes": [
+                    str(item) for item in contract["canonical_lanes"]
+                ],
+                "formula_rule": str(contract["formula"]["rule"]),
+                "formula_authority": str(contract["formula"]["authority"]),
+                "operator_receipt_sha256": str(
+                    contract["operator_receipt_sha256"]
+                ),
+                "operators": compiled_operators,
+            }
+        )
+    core = {
+        "schema": ENV_UOP_COMPILED_FORMULA_SCHEMA,
+        "status": "PASS",
+        "sdk_binding_sha256": str(sdk_binding_sha256),
+        "mode_selection_sha256": sha256_bytes(canonical_json_bytes(selection)),
+        "combined_operator_receipt_sha256": selection[
+            "combined_operator_receipt_sha256"
+        ],
+        "env_uop_authority_boundary": env_uop_authority_boundary(),
+        "canonical_lanes": canonical_lanes,
+        "execution_budget": budget,
+        "contracts": compiled_contracts,
+        "compiler_effect": "DERIVED_OPERATOR_ROUTE_PLAN_ONLY",
+        "operator_effect_executed": False,
+        "cross_authority_mutation": False,
+        "hil_effect": "NONE",
+        "pointer_effect": "NONE",
+    }
+    return {
+        **core,
+        "compiled_formula_sha256": sha256_bytes(canonical_json_bytes(core)),
+    }
+
+
+def _validate_compiled_env_uop_formula(
+    value: Mapping[str, Any],
+    *,
+    sdk_binding_sha256: str,
+) -> dict[str, Any]:
+    compiled = dict(value)
+    expected = str(compiled.pop("compiled_formula_sha256", ""))
+    require(
+        compiled.get("schema") == ENV_UOP_COMPILED_FORMULA_SCHEMA
+        and compiled.get("status") == "PASS"
+        and compiled.get("sdk_binding_sha256") == sdk_binding_sha256
+        and compiled.get("env_uop_authority_boundary")
+        == env_uop_authority_boundary()
+        and bool(_ENV_UOP_SHA256_RE.fullmatch(expected))
+        and sha256_bytes(canonical_json_bytes(compiled)) == expected,
+        "ENV_UOP_COMPILED_FORMULA_INVALID",
+        "The compiled ENV/UOP formula or its SDK binding no longer matches.",
+        status="MISMATCH",
+    )
+    return {**compiled, "compiled_formula_sha256": expected}
+
+
+def route_env_uop_operator(
+    compiled_formula: Mapping[str, Any],
+    *,
+    sdk_binding_sha256: str,
+    mode_id: str,
+    operator_id: int,
+    requested_effect: str,
+    lane_id: str,
+    tool_id: str,
+    lane_units: int,
+    tool_invocations: int,
+    credential_reference: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Route one declared operator inside the compiled lane/tool budget."""
+
+    compiled = _validate_compiled_env_uop_formula(
+        compiled_formula,
+        sdk_binding_sha256=sdk_binding_sha256,
+    )
+    contract = next(
+        (
+            item
+            for item in cast(list[dict[str, Any]], compiled["contracts"])
+            if item["mode_id"] == mode_id
+        ),
+        None,
+    )
+    require(
+        contract is not None,
+        "ENV_UOP_ROUTE_MODE_UNKNOWN",
+        "The requested mode is not in the compiled ENV/UOP formula.",
+        status="BLOCKED",
+        mode_id=mode_id,
+    )
+    exact_contract = cast(dict[str, Any], contract)
+    operator = next(
+        (
+            item
+            for item in cast(list[dict[str, Any]], exact_contract["operators"])
+            if item["operator_id"] == operator_id
+        ),
+        None,
+    )
+    require(
+        operator is not None,
+        "ENV_UOP_ROUTE_OPERATOR_UNKNOWN",
+        "The requested operator is not compiled for this mode.",
+        status="BLOCKED",
+        mode_id=mode_id,
+        operator_id=operator_id,
+    )
+    exact_operator = cast(dict[str, Any], operator)
+    require(
+        lane_id in exact_contract["canonical_lanes"],
+        "ENV_UOP_ROUTE_LANE_MISMATCH",
+        "The operator may route only through a canonical lane selected for its mode.",
+        status="BLOCKED",
+        lane_id=lane_id,
+        mode_id=mode_id,
+    )
+    budget = cast(dict[str, Any], compiled["execution_budget"])
+    lane_budget = cast(dict[str, int], budget["lane_units"])
+    tool_budget = cast(dict[str, int], budget["tool_invocations"])
+    exact_lane_units = _env_uop_budget_units(lane_units, field="lane_units")
+    exact_tool_invocations = _env_uop_budget_units(
+        tool_invocations,
+        field="tool_invocations",
+    )
+    require(
+        lane_id in lane_budget
+        and exact_lane_units <= lane_budget[lane_id]
+        and tool_id in tool_budget
+        and exact_tool_invocations <= tool_budget[tool_id],
+        "ENV_UOP_ROUTE_BUDGET_EXCEEDED",
+        "The requested ENV/UOP route exceeds its compiled lane or tool budget.",
+        status="BLOCKED",
+        lane_id=lane_id,
+        lane_budget=lane_budget.get(lane_id),
+        requested_lane_units=exact_lane_units,
+        tool_id=tool_id,
+        tool_budget=tool_budget.get(tool_id),
+        requested_tool_invocations=exact_tool_invocations,
+    )
+    require(
+        requested_effect == exact_operator["declared_effect"],
+        "ENV_UOP_ROUTE_EFFECT_MISMATCH",
+        "The routed effect must match the compiled operator effect exactly.",
+        status="BLOCKED",
+        requested_effect=requested_effect,
+        declared_effect=exact_operator["declared_effect"],
+    )
+    effect_receipt = bind_env_uop_operator_effect(
+        operator_id,
+        requested_effect=requested_effect,
+        credential_reference=credential_reference,
+    )
+    core = {
+        "schema": ENV_UOP_OPERATOR_ROUTE_RECEIPT_SCHEMA,
+        "status": "PASS",
+        "sdk_binding_sha256": sdk_binding_sha256,
+        "compiled_formula_sha256": compiled["compiled_formula_sha256"],
+        "mode_id": mode_id,
+        "operator_id": operator_id,
+        "declared_effect": requested_effect,
+        "lane_id": lane_id,
+        "tool_id": tool_id,
+        "budget_consumption": {
+            "lane_units": exact_lane_units,
+            "lane_budget": lane_budget[lane_id],
+            "tool_invocations": exact_tool_invocations,
+            "tool_budget": tool_budget[tool_id],
+        },
+        "effect_receipt": effect_receipt,
+        "route_executed": True,
+        "declared_effect_executed": False,
+        "downstream_side_effect_authorized": False,
+        "replay_owner": "INTERNAL_SDK_SQLITE_REQUEST_LEDGER",
+        "cross_authority_mutation": False,
+        "hil_effect": "NONE",
+        "pointer_effect": "NONE",
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
 
 _POLICIES: dict[str, dict[str, Any]] = {
     "D": {
@@ -619,7 +1163,13 @@ def govern_mode_selection(
                 f"custom deliverable '{selected['name']}' under its dependency policy"
             )
         operators = [
-            {"operator_id": operator_id, **_OPERATORS[operator_id]}
+            {
+                "operator_id": operator_id,
+                **_OPERATORS[operator_id],
+                "declared_effect_sha256": sha256_bytes(
+                    str(_OPERATORS[operator_id]["effect"]).encode("utf-8")
+                ),
+            }
             for operator_id in _MODE_OPERATORS[mode_id]
         ]
         operator_families = list(dict.fromkeys(str(row["family"]) for row in operators))
@@ -661,6 +1211,7 @@ def govern_mode_selection(
                 "mode_policy_projection_sha256": ENV15_MODE_POLICY_PROJECTION_SHA256,
                 "policy_row": policy["authority"],
             },
+            "env_uop_authority_boundary": env_uop_authority_boundary(),
             "scan_order": policy["scan_order"],
             "unit_of_work": policy["unit_of_work"],
             "recursive_loop": policy["recursive_loop"],
@@ -751,6 +1302,47 @@ def validate_mode_governance_selection(value: dict[str, Any]) -> dict[str, Any]:
             status="MISMATCH",
         )
         contract = cast(dict[str, Any], raw_contract)
+        require(
+            contract.get("env_uop_authority_boundary")
+            == env_uop_authority_boundary(),
+            "ENV_UOP_AUTHORITY_BOUNDARY_MISMATCH",
+            "The selected mode does not retain the exact ENV/UOP ownership boundary.",
+            status="MISMATCH",
+            mode_id=contract.get("mode_id"),
+        )
+        raw_operators = contract.get("operators")
+        require(
+            isinstance(raw_operators, list),
+            "ENV_UOP_OPERATOR_EFFECTS_MISSING",
+            "The selected mode must bind every operator to its declared effect.",
+            status="MISMATCH",
+            mode_id=contract.get("mode_id"),
+        )
+        for raw_operator in cast(list[Any], raw_operators):
+            require(
+                isinstance(raw_operator, dict),
+                "ENV_UOP_OPERATOR_EFFECT_INVALID",
+                "A selected ENV/UOP operator effect receipt is not an object.",
+                status="MISMATCH",
+            )
+            operator_row = cast(dict[str, Any], raw_operator)
+            operator_id = operator_row.get("operator_id")
+            registered = _OPERATORS.get(operator_id)
+            declared_effect = (
+                str(registered["effect"]) if isinstance(registered, dict) else ""
+            )
+            require(
+                bool(registered)
+                and operator_row.get("family") == registered.get("family")
+                and operator_row.get("chapter") == registered.get("chapter")
+                and operator_row.get("effect") == declared_effect
+                and operator_row.get("declared_effect_sha256")
+                == sha256_bytes(declared_effect.encode("utf-8")),
+                "ENV_UOP_OPERATOR_EFFECT_MISMATCH",
+                "A selected operator no longer matches its declared ENV/UOP effect.",
+                status="MISMATCH",
+                operator_id=operator_id,
+            )
         expected = str(contract.get("operator_receipt_sha256") or "")
         core = {
             key: item

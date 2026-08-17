@@ -205,6 +205,15 @@ def _validate_transition(
         # path. It preserves the mistaken supersession as immutable history while
         # restoring the exact pre-normalization live task contract.
         return
+    if (
+        from_status == "ACTIVE"
+        and to_status == "QUEUED"
+        and event_type == "EXISTING_PRIORITY_TASK_PAUSED"
+    ):
+        # A journaled same-Goal priority promotion may pause, but never finish,
+        # the interrupted row.  The promotion path proves the replacement row
+        # already exists and commits both transitions in one locked write.
+        return
     require(
         to_status in _ALLOWED_TRANSITIONS[from_status],
         "DELTA_STATUS_TRANSITION_INVALID",

@@ -22,7 +22,7 @@ from build_release_candidate_rehearsal import (
     build_rehearsal,
 )
 
-VERSION = "2.2.0+codex.20260814082900"
+VERSION = "3.0.0+codex.20260816074428"
 COMMIT = "a" * 40
 TREE = "b" * 40
 
@@ -127,7 +127,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
             {
                 "schema": "evidence-lane.codex-release-channel.v2",
                 "stable": {
-                    "release": "2.2.0",
+                    "release": "3.0.0",
                     "slot_role": "main-git-release",
                     "codex_marketplace_slot": "evidence-lane-github",
                     "marketplace_display_name": "Main Git Plugin Version",
@@ -136,9 +136,9 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "stable_updates_reinstall_in_place": True,
                     "build_identity_is_receipt_not_selector": True,
                     "native_server_identity": "evidence-lane",
-                    "native_tool_count": 83,
-                    "native_read_tool_count": 26,
-                    "native_write_tool_count": 57,
+                    "native_tool_count": 87,
+                    "native_read_tool_count": 27,
+                    "native_write_tool_count": 60,
                     "skill_count": 17,
                     "codex_apps_allowed": False,
                     "generated_namespace_allowed": False,
@@ -146,10 +146,10 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "google_drive_bundled": False,
                 },
                 "branch_recovery": {
-                    "release": "2.2.0",
+                    "release": "3.0.0",
                     "slot_role": "branch-commit-recovery",
                     "codex_marketplace_slot": (
-                        "evidence-lane-v220-stable-recovery"
+                        "evidence-lane-v300-stable-recovery"
                     ),
                     "marketplace_display_name": "Branch Commit Git Recovery",
                     "enabled": False,
@@ -157,9 +157,9 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "must_not_follow_uncommitted_local_bytes": True,
                 },
                 "local_testing": {
-                    "release_line": "2.2.0",
+                    "release_line": "3.0.0",
                     "slot_role": "mutable-local-testing",
-                    "codex_marketplace_slot": "evidence-lane-v220-testing-new",
+                    "codex_marketplace_slot": "evidence-lane-v300-testing-new",
                     "marketplace_display_name": "Local Testing Slot",
                     "same_marketplace_selector_reused": True,
                     "fresh_package_version_per_local_build": True,
@@ -195,8 +195,8 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     ],
                     "allowed_marketplaces": [
                         "evidence-lane-github",
-                        "evidence-lane-v220-stable-recovery",
-                        "evidence-lane-v220-testing-new",
+                        "evidence-lane-v300-stable-recovery",
+                        "evidence-lane-v300-testing-new",
                     ],
                     "max_enabled_plugin_count": 1,
                     "exact_registered_plugin_count": 3,
@@ -243,11 +243,11 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                         "evidence-lane-plugin@evidence-lane-github",
                         (
                             "evidence-lane-plugin@"
-                            "evidence-lane-v220-stable-recovery"
+                            "evidence-lane-v300-stable-recovery"
                         ),
                         (
                             "evidence-lane-plugin@"
-                            "evidence-lane-v220-testing-new"
+                            "evidence-lane-v300-testing-new"
                         ),
                     ],
                     "stable_selector_growth_allowed": False,
@@ -273,7 +273,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "required_at_runtime_prewarm": True,
                 },
                 "remote_git_policy": {
-                    "effective_release": "2.2.0",
+                    "effective_release": "3.0.0",
                     "per_push_confirmation_token_required": False,
                     "automatic_push_scope": (
                         "EXACT_SOLE_REGISTERED_NON_PROTECTED_TEST_BRANCH"
@@ -304,22 +304,61 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     },
                     "interactive_codex_app_local_or_persistent": {
                         "pv_storage": "DURABLE_LOCAL_SQLITE",
-                        "tunnel_requirement": (
-                            "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
-                        ),
-                        "tunnel_setup_frequency": "NONE",
-                        "tunnel_key_retention": "NOT_APPLICABLE",
-                        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
+                        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+                        "native_mcp_available": {
+                            "tunnel_requirement": (
+                                "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
+                            ),
+                            "tunnel_setup_frequency": "NONE",
+                            "tunnel_key_retention": "NOT_APPLICABLE",
+                            "tunnel_runtime_lifetime": "NOT_APPLICABLE",
+                        },
+                        "host_tool_gap": {
+                            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+                            "tunnel_setup_frequency": (
+                                "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
+                            ),
+                            "tunnel_key_retention": (
+                                "CURRENT_WINDOWS_USER_DPAPI_PROFILE"
+                            ),
+                            "tunnel_runtime_lifetime": (
+                                "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST"
+                            ),
+                        },
+                    },
+                    "codex_cli_local_or_persistent": {
+                        "pv_storage": "DURABLE_LOCAL_SQLITE",
+                        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+                        "native_mcp_available": {
+                            "tunnel_requirement": (
+                                "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
+                            ),
+                        },
+                        "host_tool_gap": {
+                            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+                            "tunnel_setup_frequency": (
+                                "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
+                            ),
+                        },
                     },
                     "interactive_codex_app_ephemeral_vm": {
                         "pv_storage": (
                             "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR"
                         ),
-                        "tunnel_setup_frequency": (
-                            "ONCE_PER_EPHEMERAL_VM_INSTANCE"
-                        ),
-                        "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
-                        "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+                        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+                        "native_mcp_available": {
+                            "tunnel_requirement": (
+                                "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
+                            ),
+                        },
+                        "host_tool_gap": {
+                            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+                            "tunnel_setup_frequency": (
+                                "ONCE_PER_EPHEMERAL_VM_INSTANCE"
+                            ),
+                            "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
+                            "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+                        },
                     },
                     "desktop_container_surface_scope": {
                         "supported_container_channels": [
@@ -445,7 +484,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     _write(plugin, "remote_adapter/app/manifest.ts", "export const manifest = {};\n")
     _write(plugin, "remote_adapter/package.json", '{"dependencies":{}}\n')
     _write(plugin, "remote_adapter/pnpm-lock.yaml", "lockfileVersion: '9.0'\n")
-    _write(plugin, "pyproject.toml", '[project]\nname="fixture"\nversion="2.2.0"\n')
+    _write(plugin, "pyproject.toml", '[project]\nname="fixture"\nversion="3.0.0"\n')
     _write(plugin, "requirements.lock.txt", "mcp==1.28.1\n")
     _write(plugin, "src/evidence_lane_plugin/__init__.py", "VERSION = 'fixture'\n")
     for index in range(17):
@@ -634,7 +673,7 @@ def test_rehearsal_rejects_meshy_dependency_or_mcp_binding(tmp_path: Path) -> No
     _write(
         plugin,
         "pyproject.toml",
-        '[project]\nname="fixture"\nversion="2.2.0"\ndependencies=["meshy-sdk==1.0.0"]\n',
+        '[project]\nname="fixture"\nversion="3.0.0"\ndependencies=["meshy-sdk==1.0.0"]\n',
     )
     with pytest.raises(PackageBoundaryError, match="Meshy"):
         _build(plugin, tmp_path / "output")

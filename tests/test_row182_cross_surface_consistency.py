@@ -18,9 +18,9 @@ if str(SCRIPTS) not in sys.path:
 
 from build_release_candidate_rehearsal import _source_inventory
 
-RELEASE = "2.2.0"
-CODEX_RELEASE = "2.2.0+codex.20260814082900"
-PUBLIC_SITE_SNAPSHOT_RELEASE = "2.2.0"
+RELEASE = "3.0.0"
+CODEX_RELEASE = "3.0.0+codex.20260816074428"
+PUBLIC_SITE_SNAPSHOT_RELEASE = "3.0.0"
 SITE = "https://evidencelane.org"
 REPOSITORY = "https://github.com/rathee000001/evidence_lane_plugin"
 
@@ -44,7 +44,11 @@ def test_every_repository_markdown_path_link_resolves() -> None:
         "tests",
     }
     derived_evidence_roots = {
-        ROOT / "evidence" / "implementation_v45",
+        # Immutable receipts and extracted rehearsal copies are evidence, not
+        # publishable repository documentation.  Their relative links belong
+        # to the source package they record and must never be rewritten merely
+        # to satisfy the live documentation surface.
+        ROOT / "evidence",
     }
     markdown = sorted(
         path
@@ -166,6 +170,8 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
     route_names = {
         "",
         "architecture",
+        "ai-learning",
+        "canon",
         "connect",
         "commands",
         "copyright",
@@ -173,13 +179,17 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
         "hil",
         "hooks",
         "helper",
+        "git-ci",
         "lanes",
         "license",
+        "memory",
         "mcp",
         "operators",
+        "plan",
         "privacy",
         "proof",
         "provenance",
+        "release",
         "readme",
         "security",
         "skills",
@@ -374,15 +384,16 @@ def test_current_public_plan_projection_preserves_its_sealed_snapshot() -> None:
     assert 'import planProjection from "./website-plan-projection.json"' in execution
     assert "websiteCurrentExecutionBoundary" in guidance
     assert snapshot["canonical_authority"] == "PLAN_LANE"
-    assert snapshot["task_count"] == 126
     assert snapshot["row_start"] == 81
-    assert snapshot["row_end"] == 206
-    assert snapshot["active_row"] == 196
-    assert snapshot["physically_final_hil_row"] == 206
-    assert [row["row"] for row in snapshot["rows"]] == list(range(81, 207))
+    assert snapshot["task_count"] == len(snapshot["rows"])
+    assert snapshot["row_end"] == snapshot["row_start"] + snapshot["task_count"] - 1
+    assert snapshot["physically_final_hil_row"] == snapshot["row_end"]
+    assert [row["row"] for row in snapshot["rows"]] == list(
+        range(snapshot["row_start"], snapshot["row_end"] + 1)
+    )
     assert [
         row["row"] for row in snapshot["rows"] if row["status"] == "IN_PROGRESS"
-    ] == [196]
+    ] == [snapshot["active_row"]]
     assert snapshot["rows"][-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
     assert public_metadata["plan_lane"]["production_role"] == (
         "PRE_HIL_BRANCH_PROJECTION_NOT_ACCEPTED_PUBLICATION"

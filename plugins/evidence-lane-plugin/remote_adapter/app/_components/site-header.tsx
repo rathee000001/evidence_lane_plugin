@@ -11,17 +11,22 @@ type PrimaryNavigationHref = (typeof primaryNavigation)[number]["href"];
 
 const navIdentity = {
   "/": { color: "#69d9f5", icon: "node" },
+  "/architecture": { color: "#69d9f5", icon: "pulse" },
+  "/lanes": { color: "#83ddb3", icon: "database" },
+  "/operators": { color: "#b6a0ff", icon: "terminal" },
+  "/memory": { color: "#69d9f5", icon: "database" },
+  "/canon": { color: "#efca72", icon: "git" },
+  "/ai-learning": { color: "#a99af7", icon: "node" },
+  "/git-ci": { color: "#83ddb3", icon: "git" },
   "/skills": { color: "#a99af7", icon: "package" },
   "/mcp": { color: "#83ddb3", icon: "terminal" },
   "/hooks": { color: "#f2a1c5", icon: "pulse" },
   "/commands": { color: "#efca72", icon: "terminal" },
-  "/architecture": { color: "#69d9f5", icon: "pulse" },
-  "/lanes": { color: "#83ddb3", icon: "database" },
-  "/operators": { color: "#b6a0ff", icon: "terminal" },
-  "/studio": { color: "#f2a1c5", icon: "node" },
   "/proof": { color: "#efca72", icon: "package" },
   "/provenance": { color: "#7fc9ef", icon: "git" },
   "/connect": { color: "#9ed368", icon: "docker" },
+  "/studio": { color: "#f2a1c5", icon: "node" },
+  "/hil": { color: "#efca72", icon: "package" },
 } satisfies Readonly<
   Record<PrimaryNavigationHref, { color: string; icon: OfficialToolIconName }>
 >;
@@ -61,12 +66,6 @@ export function SiteHeader() {
               </Link>
             ))}
           </div>
-          <Link className="navCta" href="/hil">
-            <GlassIconOrb color="#efca72" size={30} decorative>
-              <OfficialToolIcon tool="package" size={16} decorative />
-            </GlassIconOrb>
-            <b>HIL status</b>
-          </Link>
         </div>
       </nav>
     </header>

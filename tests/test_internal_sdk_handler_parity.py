@@ -6,7 +6,11 @@ from typing import Any
 
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
-from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
+from evidence_lane_plugin.hashing import (
+    atomic_write_json,
+    canonical_json_bytes,
+    sha256_bytes,
+)
 from evidence_lane_plugin.internal_sdk import (
     SDK_EXTERNAL_PROVIDER_OPERATIONS,
     SDK_NARROWED_OPERATION_CLAIMS,
@@ -48,8 +52,10 @@ def _binding() -> SDKBinding:
                 "env_uop_operator_runtime:classify_mode",
                 "plan_delta_tasks:transition_task",
                 "source_lane_retrieval:source_intake",
-                "storage_connectors:select",
-                "hil_candidate_pointer:record_decision",
+            "storage_connectors:select",
+            "agent_learning:memory_record_link",
+            "agent_learning:record_host_memory_import",
+            "hil_candidate_pointer:record_decision",
                 "hil_candidate_pointer:fuse",
                 "hil_candidate_pointer:rollback",
             ],
@@ -150,8 +156,8 @@ def test_production_local_adapter_classifies_every_declared_sdk_operation(
     )
 
     assert parity["status"] == "PASS"
-    assert parity["declared_operation_count"] == 60
-    assert parity["registered_local_handler_count"] == 53
+    assert parity["declared_operation_count"] == 63
+    assert parity["registered_local_handler_count"] == 56
     assert parity["external_provider_operation_count"] == 7
     assert parity["narrowed_operation_claim_count"] == 5
     assert parity["unclassified_operation_count"] == 0
@@ -170,6 +176,102 @@ def test_production_local_adapter_classifies_every_declared_sdk_operation(
         for operation, provider in module["external_provider_operations"].items()
     }
     assert external == SDK_EXTERNAL_PROVIDER_OPERATIONS
+
+
+def test_learning_memory_public_adapter_routes_execute_with_bounded_results(
+    tmp_path: Path,
+) -> None:
+    service = _Service(tmp_path)
+    binding = _binding()
+    project_root = service.store.project_root(binding.project_id)
+    atomic_write_json(
+        project_root / "project.json",
+        {"schema": "fixture.project.v1", "project_id": binding.project_id},
+    )
+    atomic_write_json(
+        project_root / "active_pointer.json",
+        {
+            "schema": "evidence-lane.pointer.v1",
+            "project_id": binding.project_id,
+            "accepted_pv": binding.accepted_pv,
+            "generation": binding.pointer_generation,
+            "accepted_manifest_sha256": binding.accepted_manifest_sha256,
+        },
+    )
+    adapter = build_local_service_adapter(
+        service, runtime_binding=binding.as_dict()
+    )
+    source = {
+        "sector": "CHAT_LINEAGE",
+        "locator_kind": "TURN",
+        "locator_value": "chat-lineage://task/sdk-handler/turn/1",
+        "revision_sha256": _hash("sdk-memory-source"),
+        "label": "Bounded SDK memory source",
+        "search_terms": ["sdk", "memory", "source"],
+    }
+    target = {
+        "sector": "PLAN",
+        "locator_kind": "TASK",
+        "locator_value": "plan://task/EL-CODEX-SDK-HANDLER-PARITY",
+        "revision_sha256": _hash("sdk-memory-target"),
+        "label": "Bounded SDK Plan target",
+        "search_terms": ["sdk", "memory", "plan"],
+    }
+
+    linked = adapter.invoke(
+        "agent_learning",
+        "memory_record_link",
+        binding,
+        {
+            "source": source,
+            "target": target,
+            "edge_type": "MAPS_TO",
+            "evidence_sha256": _hash("sdk-memory-evidence"),
+            "recorded_at": "2026-08-16T10:00:00Z",
+        },
+        _context("sdk-memory-link-001"),
+    )
+    queried = adapter.invoke(
+        "agent_learning",
+        "memory_query",
+        binding,
+        {
+            "query": "bounded sdk memory",
+            "as_of": "2026-08-16T10:01:00Z",
+            "sectors": ["CHAT_LINEAGE", "PLAN"],
+            "limit": 4,
+        },
+        _context("sdk-memory-query-001"),
+    )
+    imported = adapter.invoke(
+        "agent_learning",
+        "record_host_memory_import",
+        binding,
+        {
+            "source_kind": "CODEX_LOCAL_MEMORY",
+            "source_locator": "codex-local-memory://memory/sdk-handler-1",
+            "source_record_sha256": _hash("sdk-host-memory-record"),
+            "source_context_id": "sdk-handler-context-1",
+            "observed_at": "2026-08-16T09:58:00Z",
+            "imported_at": "2026-08-16T10:02:00Z",
+            "imported_by": "sdk-handler-test",
+            "purpose": "Prove explicit bounded host-memory routing through SDK.",
+            "task_id": binding.task_id,
+            "delta_id": "EL-CODEX-SDK-HANDLER-MEMORY-001",
+            "pv_ref": binding.accepted_pv,
+        },
+        _context("sdk-host-memory-import-001"),
+    )
+
+    assert linked["source_sector"] == "CHAT_LINEAGE"
+    assert linked["target_sector"] == "PLAN"
+    assert queried["full_ledger_loaded_into_model_context"] is False
+    assert queried["raw_database_or_markdown_returned"] is False
+    assert queried["receipt"]["hit_count"] == 2
+    assert imported["raw_host_memory_stored"] is False
+    assert imported["candidate_created"] is False
+    assert imported["learning_hil_invoked"] is False
+    assert imported["project_truth_pointer_moved"] is False
 
 
 def test_new_local_handlers_bind_exact_project_session_task_and_effects(

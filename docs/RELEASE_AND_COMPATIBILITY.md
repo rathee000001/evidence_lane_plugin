@@ -1,7 +1,7 @@
 # Release and compatibility
 
-The current source line is Evidence Lane 2.2.0 on
-`agent/evi-v220-systemwide-release-hil-v2.2.0`. It advances from accepted PV12
+The current source line is Evidence Lane 3.0.0 on
+`agent/evi-v300-systemwide-release-hil-v3.0.0`. It advances from accepted PV12
 without rewriting PV12, historical packages, prior accepted PVs, receipts,
 State Travel packages, or earlier version labels.
 

@@ -1,11 +1,11 @@
-# Evidence Lane plugin 2.2.0
+# Evidence Lane plugin 3.0.0
 
-Version 2.2.0 is the current pre-HIL Codex source release on the governed v2.2
+Version 3.0.0 is the current pre-HIL Codex source release on the governed v3.0
 branch. Accepted Project Truth and the GitLane base remain PV12/2.1.0. Direct
 host readback confirms the disabled fallback payload is also 2.1.0 even though
 its marketplace selector retains a historical PV11 name. That stale selector
 label is not package identity. The source provides a
-package-local native MCP server, 83 canonical actions (26 read-only and 57
+package-local native MCP server, 87 canonical actions (27 read-only and 60
 write-capable), 17 governed skills, eight registered lifecycle events, local durable
 project storage, persistent Plan/Delta continuity, and an exact six-way HIL.
 Agent Learning is a separate project-scoped authority, not another name for
@@ -70,9 +70,9 @@ are separate governed operations. None of them implies acceptance. Only exact
 case-sensitive `APPROVE` at the correct HIL can authorize Fuse.
 
 The current maintainer Row196 route binds the CI-green, Git-triggered-preview
-commit from `agent/evi-v220-systemwide-release-hil-v2.2.0`. The immediate
-Row197/PV13 install-HIL route installs that exact 2.2 package in the enabled
-Stable selector and requires installed readback of 83 actions (26 read/57
+commit from `agent/evi-v300-systemwide-release-hil-v3.0.0`. The immediate
+Row197/PV13 install-HIL route installs that exact 3.0 package in the enabled
+Stable selector and requires installed readback of 87 actions (27 read/60
 write), 17 skills, eight hook events, and the migrated command surface before
 the PV13 HIL is presented. It cannot merge main or change the disabled fallback.
 That plugin release/install cadence is not part of an ordinary downstream
@@ -122,9 +122,11 @@ project-scoped and remains separate from any optional artifact mirror.
 ## Bounded Windows tunnel setup
 
 Run this only after runtime classification explicitly selects the separate
-interactive ephemeral-VM support channel. Stable/current and Beta desktop
-containers are both multi-surface; Evidence Lane governs only a proven
-`active_surface=CODEX`. A local durable Codex surface does not use a tunnel.
+host-transport channel. Stable/current and Beta desktop containers are both
+multi-surface; Evidence Lane governs only a proven `active_surface=CODEX`.
+Local Codex and local CLI profiles may require the tunnel when the detected
+host route lacks direct MCP transport or required host tools. Headless API
+requests do not require the tunnel merely because they use API billing.
 
 From a reviewed source checkout, run the supported installer in PowerShell for
 the exact ephemeral VM:
@@ -145,12 +147,12 @@ sign-in task but never activates the disabled fallback slot. After
 governed activation, prove readiness with:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build\Manage-EvidenceLaneTunnel.ps1" `
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v300-stable-build\Manage-EvidenceLaneTunnel.ps1" `
   -Action Status `
-  -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build" `
-  -ProfileName evidence_lane_v220_stable_build_transport `
-  -TaskName EvidenceLane-Tunnel-v220-stable-build `
-  -ReleaseToken v220
+  -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v300-stable-build" `
+  -ProfileName evidence_lane_v300_stable_build_transport `
+  -TaskName EvidenceLane-Tunnel-v300-stable-build `
+  -ReleaseToken v300
 ```
 
 The result is acceptable only when it reports `status = PASS`. Codex lifecycle
@@ -229,7 +231,7 @@ Windows-logon recovery manager for exact governed Codex Goal tasks.
    bound at preparation, and passes it the same task's
    `codex://threads/<task-id>` deep link. It does not use another task,
    modify the task's native workspace binding, or implement Codex's Changes UI.
-6. After restart, verify native route identity, 83/26/57 counts, all 17 skills,
+6. After restart, verify native route identity, 87/27/60 counts, all 17 skills,
    hook execution, icon, project/runtime panels, persistent task/change display,
    native Git workspace and Changes surface, and local durable storage from the
    installed package.
@@ -269,7 +271,7 @@ The supported live topology is exactly two slots: an enabled mutable
 must come from exact package, registry, cache, selector, and native readback—not
 from this README. Direct host evidence shows both installed payloads at 2.1,
 with the older disabled selector carrying a stale historical name. A one-time
-explicit local-test rotation may install 2.2 in a separately named test-stable
+explicit local-test rotation may install 3.0 in a separately named test-stable
 slot, retain the current GitLane 2.1 slot as fallback, and prune only the older
 duplicate registration after exact readback. “Prewarmed” means a fallback package
 and tunnel are installed and verified but stopped; two MCP servers or two

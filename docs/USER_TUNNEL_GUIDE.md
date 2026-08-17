@@ -1,9 +1,11 @@
 # Evidence Lane user tunnel guide
 
-The Stable tunnel is a host transport helper for an interactive ephemeral Codex
-environment whose capability classifier requires it. Durable local Codex uses
-project-scoped local SQLite and does not require this tunnel. Headless API and
-direct CLI/API profiles also do not require the interactive tunnel.
+The Stable tunnel is a version-bound host transport helper for an interactive
+Codex environment whose capability classifier proves a host-tool gap. Durable
+local storage alone neither requires nor forbids it: local desktop and native
+CLI use native MCP when available, and use the tunnel only when those required
+tools are absent. Headless API and direct CLI/API profiles never require the
+interactive tunnel; account tier and API billing do not select this route.
 
 ## One-time setup for an eligible host
 
@@ -11,12 +13,12 @@ Use the packaged installer:
 
 `plugins/evidence-lane-plugin/scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1`
 
-The registration must bind the exact release/slot, `CODEX_APP_INTERACTIVE`,
-`HostLifetime Ephemeral`, and the real VM instance identity. A representative
-shape is:
+The registration must bind the exact release/slot, interactive profile,
+`HostToolTransport HOST_TOOL_GAP`, host lifetime, and—when ephemeral—the real VM
+instance identity. A representative ephemeral shape is:
 
 ```powershell
-./Install-EvidenceLaneTunnel.ps1 -SlotRole stable-build -InteractionProfile CODEX_APP_INTERACTIVE -HostLifetime Ephemeral -VmInstanceId exact-vm-instance-id
+./Install-EvidenceLaneTunnel.ps1 -SlotRole main-git-release -InteractionProfile CODEX_APP_INTERACTIVE -HostToolTransport HOST_TOOL_GAP -HostLifetime Ephemeral -VmInstanceId exact-vm-instance-id
 ```
 
 The Runtime API key is entered through the supported host path, stays masked,

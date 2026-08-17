@@ -2,7 +2,7 @@
   "name": "evidence-lane-codex-site",
   "private": true,
   "type": "module",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "scripts": {
     "build": "next build",
     "dev": "next dev",

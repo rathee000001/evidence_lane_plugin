@@ -3,7 +3,7 @@
   "product": "Evidence Lane",
   "slots": {
     "main_git_release": {
-      "release_line": "2.2.0",
+      "release_line": "3.0.0",
       "slot_role": "main-git-release",
       "codex_marketplace_slot": "evidence-lane-github",
       "marketplace_display_name": "Main Git Plugin Version",
@@ -12,9 +12,9 @@
       "enabled": false
     },
     "branch_commit_recovery": {
-      "release_line": "2.2.0",
+      "release_line": "3.0.0",
       "slot_role": "branch-commit-recovery",
-      "codex_marketplace_slot": "evidence-lane-v220-stable-recovery",
+      "codex_marketplace_slot": "evidence-lane-v300-stable-recovery",
       "marketplace_display_name": "Branch Commit Git Recovery",
       "install_source": "GOVERNED_BRANCH_COMMIT_EXACT_PACKAGE",
       "update_gate": "LOCAL_TEST_GREEN_AND_GOVERNED_BRANCH_COMMIT",
@@ -22,9 +22,9 @@
       "byte_frozen_between_checkpoints": true
     },
     "local_testing": {
-      "release_line": "2.2.0",
+      "release_line": "3.0.0",
       "slot_role": "mutable-local-testing",
-      "codex_marketplace_slot": "evidence-lane-v220-testing-new",
+      "codex_marketplace_slot": "evidence-lane-v300-testing-new",
       "marketplace_display_name": "Local Testing Slot",
       "install_source": "FRESH_VERSIONED_LOCAL_PACKAGE",
       "same_marketplace_selector_reused": true,
@@ -40,11 +40,11 @@
     "max_active_tunnel_count": 1,
     "allowed_marketplaces": [
       "evidence-lane-github",
-      "evidence-lane-v220-stable-recovery",
-      "evidence-lane-v220-testing-new"
+      "evidence-lane-v300-stable-recovery",
+      "evidence-lane-v300-testing-new"
     ],
     "forbidden_obsolete_marketplaces": [
-      "evidence-lane-v220-local-successor",
+      "evidence-lane-v300-local-successor",
       "evidence-lane-pv11-fallback"
     ],
     "obsolete_registrations_removed_through_supported_codex_cli": true,
@@ -74,7 +74,7 @@
       "VERIFY_ALL_THREE_BYTE_IDENTICAL"
     ],
     "all_three_slots_byte_identical_after_checkpoint": true,
-    "pre_2_2_recovery_allowed": false
+    "pre_3_0_recovery_allowed": false
   },
   "failure_recovery": {
     "source_slot": "mutable-local-testing",

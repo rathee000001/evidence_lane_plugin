@@ -3,11 +3,11 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("Start", "Stop", "Status", "Repair", "Remove")]
     [string]$Action,
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build",
-    [string]$ProfileName = "evidence_lane_v220_stable_build_transport",
+    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v300-stable-build",
+    [string]$ProfileName = "evidence_lane_v300_stable_build_transport",
     [string]$ProfileDir = "$env:APPDATA\tunnel-client",
-    [string]$ReleaseToken = "v220",
-    [string]$TaskName = "EvidenceLane-Tunnel-v220-stable-build",
+    [string]$ReleaseToken = "v300",
+    [string]$TaskName = "EvidenceLane-Tunnel-v300-stable-build",
     [int]$ReadyTimeoutSeconds = 90,
     [switch]$ConfirmRemoval
 )
@@ -123,7 +123,7 @@ function Get-TunnelStatus {
         project_route_argument = "project_id"
         project_route_argument_required = $true
         cross_project_fallback_allowed = $false
-        exact_visible_tool_count = 83
+        exact_visible_tool_count = 87
         exact_active_read_tool_count = 26
         exact_fail_closed_write_tool_count = 57
         health_url_file = $healthUrlFile

@@ -13,7 +13,7 @@ export default function ReadmePage() {
     <main className="legal shell repositoryDocument">
       <Link href="/">&larr; Evidence Lane</Link>
       <span className="kicker">Repository guide · website edition</span>
-      <h1>Evidence Lane 2.2.0</h1>
+      <h1>Evidence Lane 3.0.0</h1>
       <p>Evidence Lane is a local-first, Git-backed evidence lifecycle for Codex. It turns authorized sources and visible task lineage into inspectable lane packages while keeping candidate state separate from accepted truth.</p>
       <h2>The problem</h2>
       <p>Long AI-assisted work crosses task windows, models, hosts, repositories, and toolchains. Reconstructing the project from prose creates re-explanation tax and context drift. Evidence Lane resumes from exact pointers, lane facts, Exit Slips, Chat Lineage, pending work, and the human gate.</p>
@@ -32,7 +32,7 @@ export default function ReadmePage() {
       <h2>Proof law</h2>
       <ul>{proofRules.map(([name, detail]) => <li key={name}><strong>{name}:</strong> {detail}</li>)}</ul>
       <h2>Codex boundary</h2>
-      <p><strong>Codex</strong> installs from exact Git source, runs the complete local lifecycle, and may project the canonical Plan Lane into Codex Plan mode, Goal, and its native task panel. The installed package exposes all 17 skills and exactly 83 native actions: 26 reads and 57 writes. The public website is documentation only and cannot substitute for native package, catalog, restart, test, CI, or HIL proof.</p>
+      <p><strong>Codex</strong> installs from exact Git source, runs the complete local lifecycle, and may project the canonical Plan Lane into Codex Plan mode, Goal, and its native task panel. The installed package exposes all 17 skills and exactly 87 native actions: 27 reads and 60 writes. The public website is documentation only and cannot substitute for native package, catalog, restart, test, CI, or HIL proof.</p>
       <p>Continue with <Link href="/architecture">Architecture</Link>, inspect <Link href="/lanes">all lane contracts</Link>, download <Link href="/proof#dummy-lane-proofs">dummy lane proofs</Link>, read <Link href="/security">Security</Link>, or review <Link href="/provenance#upstream-reference-ledger">Upstream provenance</Link>.</p>
     </main>
   );

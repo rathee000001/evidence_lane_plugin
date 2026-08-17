@@ -10,7 +10,7 @@ from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
-CURRENT_VERSION = "2.2.0"
+CURRENT_VERSION = "3.0.0"
 V13_PATTERN = re.compile(r"(?i)(?:\bv1\.3(?:\.0)?\b|\b1\.3\.0\b)")
 
 HISTORICAL_OR_DEPENDENCY_FILES = {
@@ -79,7 +79,7 @@ def _tracked_text_files() -> list[Path]:
     ]
 
 
-def test_all_active_codex_product_version_surfaces_are_v220() -> None:
+def test_all_active_codex_product_version_surfaces_are_v300() -> None:
     plugin_manifest = json.loads(
         (
             ROOT
@@ -105,39 +105,41 @@ def test_all_active_codex_product_version_surfaces_are_v220() -> None:
     )
     assert ENGINE_VERSION == CURRENT_VERSION
     assert str(plugin_manifest["version"]).split("+", 1)[0] == CURRENT_VERSION
-    assert str(plugin_manifest["version"]).endswith("+codex.20260814082900")
+    assert re.fullmatch(
+        r"3\.0\.0\+codex\.\d{14}", str(plugin_manifest["version"])
+    )
     assert adapter_manifest["version"] == CURRENT_VERSION
 
 
-def test_current_codex_docs_and_runtime_surfaces_name_v220() -> None:
+def test_current_codex_docs_and_runtime_surfaces_name_v300() -> None:
     required_fragments = {
         "README.md": [
-            "# Evidence Lane 2.2.0",
-            "The current pre-HIL Codex source release is **2.2.0**",
-            "## v2.2.0 source and historical compatibility invariants",
+            "# Evidence Lane 3.0.0",
+            "The current pre-HIL Codex source release is **3.0.0**",
+            "## 3.0 source and historical compatibility invariants",
         ],
         "docs/ARCHITECTURE.md": [
-            "Evidence Lane 2.2.0",
-            "built v2.2.0 candidates must pass both gates",
+            "Evidence Lane 3.0.0",
+            "built v3.0.0 candidates must pass both gates",
         ],
         "docs/VERSIONING.md": [
-            "The current pre-HIL Evidence Lane Codex source release is `2.2.0`",
+            "The current pre-HIL Evidence Lane Codex source release is `3.0.0`",
         ],
         "docs/WINDOWS_TUNNEL_PERSISTENCE.md": [
             "The live Codex registry and live cache contain exactly two Evidence Lane slots",
         ],
         "plugins/evidence-lane-plugin/.codex-plugin/plugin.json": [
-            "Evidence Lane 2.2.0 is the current pre-HIL Codex source release",
+            "Evidence Lane 3.0.0 is the current pre-HIL Codex source release",
         ],
         "plugins/evidence-lane-plugin/scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1": [
             "Pinned Evidence Lane $release $SlotRole secure MCP tunnel",
         ],
         "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py": [
-            "2.2.0 is the Codex package",
+            "3.0.0 is the Codex package",
         ],
         "plugins/evidence-lane-plugin/README.md": [
-            "# Evidence Lane plugin 2.2.0",
-            "Version 2.2.0 is the current pre-HIL Codex source release",
+            "# Evidence Lane plugin 3.0.0",
+            "Version 3.0.0 is the current pre-HIL Codex source release",
         ],
     }
 
@@ -174,7 +176,7 @@ def test_readmes_expose_branding_and_capability_gated_windows_tunnel_setup() -> 
     assert 'alt="Evidence Lane plugin icon"' in root_readme
 
     for text in (root_readme, plugin_readme):
-        assert "## Bounded Windows tunnel setup" in text
+        assert "Bounded Windows tunnel setup" in text
         assert "Install-EvidenceLaneTunnel.ps1" in text
         assert "CODEX_APP_INTERACTIVE" in text
         assert "HostLifetime Ephemeral" in text
@@ -189,6 +191,8 @@ def test_readmes_expose_branding_and_capability_gated_windows_tunnel_setup() -> 
         assert "status = PASS" in text
         assert "mcp__evidence_lane__*" in text
         assert "Headless API" in text
+        assert "local CLI" in text
+        assert "host route lacks direct MCP transport" in text
 
     assert "docs/WINDOWS_TUNNEL_PERSISTENCE.md" in root_readme
     assert "../../docs/WINDOWS_TUNNEL_PERSISTENCE.md" in plugin_readme
@@ -213,13 +217,11 @@ def test_root_release_configuration_has_no_active_chatgpt_adapter_claims() -> No
         assert stale not in security
 
     assert "package-local native MCP route" in security
-    assert "Vercel hosts public documentation" in security
+    assert re.search(r"Vercel\s+hosts public documentation", security)
     assert "headless/API Streamable" in environment
     assert "HTTP service" in environment
-    assert re.search(
-        r"Headless\s+API and direct CLI/API profiles do not require this tunnel",
-        security,
-    )
+    assert "Local Codex and local CLI profiles may require the tunnel" in security
+    assert "Headless API requests do not require the tunnel" in security
 
 
 def test_historical_compatibility_and_traceability_versions_are_preserved() -> None:
@@ -237,7 +239,7 @@ def test_historical_compatibility_and_traceability_versions_are_preserved() -> N
         ).read_text(encoding="utf-8")
     )
 
-    assert "pre-v1.1" in readme
+    assert "pre-v1.1" not in readme
     assert "v1.1 correction" in historical
     assert "Historical versions remain evidence" in versioning
     assert "third-party dependency versions" in versioning

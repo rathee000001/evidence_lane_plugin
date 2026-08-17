@@ -149,6 +149,9 @@ def test_learning_sdk_arm_exposes_candidate_lifecycle() -> None:
     assert contract_operations == {
         "inspect",
         "retrieve",
+        "memory_query",
+        "memory_record_link",
+        "record_host_memory_import",
         "seal_candidate",
         "decide_candidate",
         "revoke",
@@ -243,6 +246,48 @@ def test_stateless_restart_and_cache_loss_replay_from_sqlite(tmp_path: Path) -> 
 
     assert first["replay"] == "RECORDED"
     assert replay["replay"] == "IDEMPOTENT_REUSE"
+    assert replay["receipt_sha256"] == first["receipt_sha256"]
+    assert calls["count"] == 1
+
+
+def test_sdk_public_response_withholds_authority_blob_and_replays_receipt(
+    tmp_path: Path,
+) -> None:
+    binding = _binding()
+    calls = {"count": 0}
+
+    def status(bound, payload, context):
+        calls["count"] += 1
+        return {
+            "status": "PASS",
+            "accepted_pv": bound.accepted_pv,
+            "raw_markdown": "private SDK authority\n" * 5_000,
+        }
+
+    root = _root(tmp_path)
+    adapter = _adapter(binding, {("project_truth", "status"): status})
+    first = InternalEvidenceLaneSDK(root, adapter).invoke(
+        module_id="project_truth",
+        operation="status",
+        binding=binding,
+        payload={},
+        request_id="sdk-bounded-output-001",
+    )
+    replay = InternalEvidenceLaneSDK(root, adapter).invoke(
+        module_id="project_truth",
+        operation="status",
+        binding=binding,
+        payload={},
+        request_id="sdk-bounded-output-001",
+    )
+
+    assert first["data"]["schema"] == ("evidence-lane.internal-sdk-withheld-receipt.v1")
+    assert first["data"]["payload_withheld"] is True
+    assert first["data"]["raw_payload_returned"] is False
+    assert first["public_result_boundary"]["full_replay_retained_in_sqlite"] is True
+    assert "private SDK authority" not in str(first)
+    assert replay["replay"] == "IDEMPOTENT_REUSE"
+    assert replay["data"]["payload_withheld"] is True
     assert replay["receipt_sha256"] == first["receipt_sha256"]
     assert calls["count"] == 1
 

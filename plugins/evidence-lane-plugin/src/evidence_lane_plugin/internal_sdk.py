@@ -22,6 +22,9 @@ from typing import Any, Protocol, cast
 from .agent_learning import (
     decide_learning_candidate,
     inspect_learning_authority,
+    query_memory_graph,
+    record_host_memory_import,
+    record_memory_link,
     retrieve_accepted_learning,
     revoke_learning_candidate,
     seal_learning_candidate,
@@ -52,14 +55,22 @@ from .host_entry_continuity import (
     inspect_host_entry_continuity,
 )
 from .lineage import ChatLineage
+from .mode_governance import (
+    compile_env_uop_formula,
+    env_uop_authority_boundary,
+    route_env_uop_operator,
+)
 from .redaction import contains_secret
 
 INTERNAL_SDK_ABI = "evidence-lane.internal-sdk.v1"
 INTERNAL_SDK_RESPONSE_SCHEMA = "evidence-lane.internal-sdk-response.v1"
 INTERNAL_SDK_REPLAY_SCHEMA = "evidence-lane.internal-sdk-replay.v1"
 INTERNAL_SDK_MAX_PAYLOAD_BYTES = 256 * 1024
+INTERNAL_SDK_MAX_PUBLIC_RESPONSE_BYTES = 24 * 1024
 INTERNAL_SDK_MAX_TIMEOUT_MS = 60_000
 INTERNAL_SDK_HANDLER_PARITY_SCHEMA = "evidence-lane.sdk-handler-parity.v1"
+INTERNAL_SDK_PUBLIC_BOUNDARY_SCHEMA = "evidence-lane.internal-sdk-public-boundary.v1"
+INTERNAL_SDK_WITHHELD_SCHEMA = "evidence-lane.internal-sdk-withheld-receipt.v1"
 
 _SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
 _SAFE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$")
@@ -68,6 +79,130 @@ _SECRET_KEY_RE = re.compile(
     r"(?i)(?:^|[_-])(authorization|api[_-]?key|access[_-]?token|"
     r"refresh[_-]?token|password|private[_-]?key|client[_-]?secret)(?:$|[_-])"
 )
+_SDK_FORBIDDEN_PUBLIC_KEYS = frozenset(
+    {
+        "backlog",
+        "canonical_plan_projection",
+        "full_backlog",
+        "full_chatlineage",
+        "full_chat_scrollback",
+        "full_plan",
+        "goal_projection",
+        "history_projection",
+        "plan_runtime_projection",
+        "raw_file",
+        "raw_markdown",
+        "raw_package_projection",
+        "raw_pv_payload",
+        "raw_sqlite",
+    }
+)
+
+
+def _sdk_forbidden_public_paths(
+    value: object,
+    *,
+    path: tuple[str, ...] = (),
+    depth: int = 0,
+) -> list[str]:
+    """Find authority blobs that may be stored but never returned publicly."""
+
+    if depth > 8:
+        return []
+    if isinstance(value, Mapping):
+        found: list[str] = []
+        for raw_key, nested in list(value.items())[:128]:
+            key = str(raw_key)
+            exact_path = (*path, key)
+            if key.lower() in _SDK_FORBIDDEN_PUBLIC_KEYS:
+                found.append(".".join(exact_path))
+            else:
+                found.extend(
+                    _sdk_forbidden_public_paths(
+                        nested,
+                        path=exact_path,
+                        depth=depth + 1,
+                    )
+                )
+            if len(found) >= 32:
+                return found[:32]
+        return found
+    if isinstance(value, list):
+        found = []
+        for index, nested in enumerate(value[:50]):
+            found.extend(
+                _sdk_forbidden_public_paths(
+                    nested,
+                    path=(*path, str(index)),
+                    depth=depth + 1,
+                )
+            )
+            if len(found) >= 32:
+                return found[:32]
+        return found
+    return []
+
+
+def _bound_sdk_public_response(response: dict[str, Any]) -> dict[str, Any]:
+    """Return an SDK receipt while keeping full replay bytes in SQLite."""
+
+    encoded = canonical_json_bytes(response)
+    forbidden_paths = _sdk_forbidden_public_paths(response.get("data"))
+    if not forbidden_paths and len(encoded) <= INTERNAL_SDK_MAX_PUBLIC_RESPONSE_BYTES:
+        return {
+            **response,
+            "public_result_boundary": {
+                "schema": INTERNAL_SDK_PUBLIC_BOUNDARY_SCHEMA,
+                "payload_withheld": False,
+                "result_bytes": len(encoded),
+                "result_sha256": sha256_bytes(encoded),
+                "max_public_response_bytes": INTERNAL_SDK_MAX_PUBLIC_RESPONSE_BYTES,
+                "bounded_public_result": True,
+            },
+        }
+
+    identity_fields = (
+        "schema",
+        "abi",
+        "status",
+        "adapter_id",
+        "module_id",
+        "namespace",
+        "authority",
+        "operation",
+        "request_id",
+        "request_sha256",
+        "binding_sha256",
+        "authority_effects",
+        "authority_merge_allowed",
+        "private_reasoning_stored",
+        "replay",
+        "receipt_sha256",
+    )
+    bounded = {key: response[key] for key in identity_fields if key in response}
+    bounded["data"] = {
+        "schema": INTERNAL_SDK_WITHHELD_SCHEMA,
+        "payload_withheld": True,
+        "reason": (
+            "FULL_AUTHORITY_FIELD_BLOCKED"
+            if forbidden_paths
+            else "PUBLIC_RESPONSE_LIMIT_EXCEEDED"
+        ),
+        "forbidden_field_paths": forbidden_paths,
+        "result_bytes": len(encoded),
+        "result_sha256": sha256_bytes(encoded),
+        "raw_payload_returned": False,
+    }
+    bounded["public_result_boundary"] = {
+        "schema": INTERNAL_SDK_PUBLIC_BOUNDARY_SCHEMA,
+        "payload_withheld": True,
+        "result_bytes": len(encoded),
+        "result_sha256": sha256_bytes(encoded),
+        "max_public_response_bytes": INTERNAL_SDK_MAX_PUBLIC_RESPONSE_BYTES,
+        "bounded_public_result": True,
+        "full_replay_retained_in_sqlite": True,
+    }
+    return bounded
 
 
 @dataclass(frozen=True, slots=True)
@@ -138,6 +273,9 @@ SDK_MODULES: tuple[SDKModuleSpec, ...] = (
         _operations(
             "inspect:READ",
             "retrieve:READ",
+            "memory_query:READ",
+            "memory_record_link:WRITE_LEARNING",
+            "record_host_memory_import:WRITE_LEARNING",
             "seal_candidate:WRITE_LEARNING",
             "decide_candidate:WRITE_LEARNING",
             "revoke:WRITE_LEARNING",
@@ -281,9 +419,7 @@ SDK_NARROWED_OPERATION_CLAIMS = {
 }
 
 
-def _operation_execution_contract(
-    module_id: str, operation: str
-) -> dict[str, Any]:
+def _operation_execution_contract(module_id: str, operation: str) -> dict[str, Any]:
     provider = SDK_EXTERNAL_PROVIDER_OPERATIONS.get((module_id, operation))
     return {
         "execution_owner": (
@@ -291,6 +427,8 @@ def _operation_execution_contract(
         ),
         "provider_adapter_id": provider,
     }
+
+
 _AUTHORITY_EFFECT_KEYS = (
     "project_truth",
     "canon_input",
@@ -641,6 +779,75 @@ class RegisteredSDKAdapter:
         return self._handlers[(module_id, operation)](binding, payload, context)
 
 
+class ProviderOverlaySDKAdapter:
+    """Overlay one exact external provider without impersonating local ownership."""
+
+    def __init__(
+        self,
+        *,
+        base_adapter: InternalSDKAdapter,
+        provider_id: str,
+        handlers: Mapping[tuple[str, str], SDKHandler],
+    ) -> None:
+        require(
+            bool(_SAFE_ID_RE.fullmatch(provider_id)),
+            "SDK_PROVIDER_ID_INVALID",
+            "A provider overlay requires one stable public-safe identity.",
+            status="BLOCKED",
+        )
+        base_operations = base_adapter.available_operations()
+        collisions = []
+        wrong_owner = []
+        for key in handlers:
+            if key[1] in base_operations.get(key[0], set()):
+                collisions.append(f"{key[0]}:{key[1]}")
+            if SDK_EXTERNAL_PROVIDER_OPERATIONS.get(key) != provider_id:
+                wrong_owner.append(f"{key[0]}:{key[1]}")
+        require(
+            not collisions and not wrong_owner,
+            "SDK_PROVIDER_OVERLAY_BOUNDARY_INVALID",
+            "A provider overlay may implement only its unclaimed externally owned operations.",
+            status="BLOCKED",
+            provider_id=provider_id,
+            collisions=sorted(collisions),
+            wrong_owner=sorted(wrong_owner),
+        )
+        self.adapter_id = provider_id
+        self._base_adapter = base_adapter
+        self._handlers = dict(handlers)
+
+    def available_operations(self) -> Mapping[str, set[str]]:
+        result = {
+            module_id: set(operations)
+            for module_id, operations in self._base_adapter.available_operations().items()
+        }
+        for module_id, operation in self._handlers:
+            result.setdefault(module_id, set()).add(operation)
+        return result
+
+    def binding_snapshot(self, binding: SDKBinding) -> Mapping[str, Any]:
+        return self._base_adapter.binding_snapshot(binding)
+
+    def invoke(
+        self,
+        module_id: str,
+        operation: str,
+        binding: SDKBinding,
+        payload: dict[str, Any],
+        context: SDKInvocationContext,
+    ) -> dict[str, Any]:
+        handler = self._handlers.get((module_id, operation))
+        if handler is not None:
+            return handler(binding, payload, context)
+        return self._base_adapter.invoke(
+            module_id,
+            operation,
+            binding,
+            payload,
+            context,
+        )
+
+
 def inspect_sdk_handler_parity(
     adapter: InternalSDKAdapter,
     *,
@@ -648,9 +855,7 @@ def inspect_sdk_handler_parity(
 ) -> dict[str, Any]:
     """Classify every ABI operation against one exact adapter construction."""
 
-    exact_profile = _exact_text(
-        construction_profile, field="construction_profile"
-    )
+    exact_profile = _exact_text(construction_profile, field="construction_profile")
     declared = {
         (module.module_id, operation.name)
         for module in SDK_MODULES
@@ -715,15 +920,150 @@ def inspect_sdk_handler_parity(
         "construction_profile": exact_profile,
         "declared_operation_count": len(declared),
         "registered_local_handler_count": len(provided),
-        "external_provider_operation_count": len(
-            SDK_EXTERNAL_PROVIDER_OPERATIONS
-        ),
+        "external_provider_operation_count": len(SDK_EXTERNAL_PROVIDER_OPERATIONS),
         "narrowed_operation_claim_count": len(SDK_NARROWED_OPERATION_CLAIMS),
         "unclassified_operation_count": 0,
         "operations": operation_rows,
         "narrowed_operation_claims": dict(SDK_NARROWED_OPERATION_CLAIMS),
     }
     return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
+
+
+def build_env_uop_operator_provider_adapter(
+    base_adapter: InternalSDKAdapter,
+) -> ProviderOverlaySDKAdapter:
+    """Attach the ENV/UOP compiler/router provider to one exact local adapter."""
+
+    inspect_sdk_handler_parity(base_adapter, construction_profile="LOCAL_SERVICE")
+    provider_id = SDK_EXTERNAL_PROVIDER_OPERATIONS[
+        ("env_uop_operator_runtime", "compile_formula")
+    ]
+    require(
+        SDK_EXTERNAL_PROVIDER_OPERATIONS[
+            ("env_uop_operator_runtime", "route_operator")
+        ]
+        == provider_id,
+        "ENV_UOP_PROVIDER_ID_MISMATCH",
+        "ENV/UOP compile and route operations require one provider owner.",
+        status="MISMATCH",
+    )
+
+    def no_authority_effects() -> dict[str, str]:
+        return {key: "NONE" for key in _AUTHORITY_EFFECT_KEYS}
+
+    def compile_formula(
+        binding: SDKBinding,
+        payload: dict[str, Any],
+        context: SDKInvocationContext,
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        require(
+            set(payload) == {"mode_governance", "execution_budget"}
+            and isinstance(payload.get("mode_governance"), Mapping)
+            and isinstance(payload.get("execution_budget"), Mapping),
+            "ENV_UOP_COMPILE_PAYLOAD_INVALID",
+            "ENV/UOP compilation requires exact governance and execution-budget objects.",
+            status="BLOCKED",
+        )
+        result = compile_env_uop_formula(
+            cast(Mapping[str, Any], payload["mode_governance"]),
+            cast(Mapping[str, Any], payload["execution_budget"]),
+            sdk_binding_sha256=binding.sha256,
+        )
+        context.checkpoint()
+        return {**result, "authority_effects": no_authority_effects()}
+
+    def route_operator(
+        binding: SDKBinding,
+        payload: dict[str, Any],
+        context: SDKInvocationContext,
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        required = {
+            "compiled_formula",
+            "mode_id",
+            "operator_id",
+            "requested_effect",
+            "lane_id",
+            "tool_id",
+            "lane_units",
+            "tool_invocations",
+        }
+        optional = {"credential_reference"}
+        require(
+            required <= set(payload)
+            and set(payload) <= required | optional
+            and isinstance(payload.get("compiled_formula"), Mapping),
+            "ENV_UOP_ROUTE_PAYLOAD_INVALID",
+            "ENV/UOP routing requires the exact compiled route fields.",
+            status="BLOCKED",
+            missing=sorted(required - set(payload)),
+            extra=sorted(set(payload) - required - optional),
+        )
+        credential_reference = payload.get("credential_reference")
+        require(
+            credential_reference is None
+            or isinstance(credential_reference, Mapping),
+            "ENV_UOP_ROUTE_CREDENTIAL_REFERENCE_INVALID",
+            "ENV/UOP routing accepts only an external credential-reference object.",
+            status="BLOCKED",
+        )
+        require(
+            isinstance(payload.get("operator_id"), int)
+            and not isinstance(payload.get("operator_id"), bool),
+            "ENV_UOP_ROUTE_OPERATOR_ID_INVALID",
+            "ENV/UOP routing requires one exact integer operator ID.",
+            status="BLOCKED",
+        )
+        result = route_env_uop_operator(
+            cast(Mapping[str, Any], payload["compiled_formula"]),
+            sdk_binding_sha256=binding.sha256,
+            mode_id=str(payload["mode_id"]),
+            operator_id=cast(int, payload["operator_id"]),
+            requested_effect=str(payload["requested_effect"]),
+            lane_id=str(payload["lane_id"]),
+            tool_id=str(payload["tool_id"]),
+            lane_units=cast(int, payload["lane_units"]),
+            tool_invocations=cast(int, payload["tool_invocations"]),
+            credential_reference=cast(
+                Mapping[str, Any] | None,
+                credential_reference,
+            ),
+        )
+        context.checkpoint()
+        return {**result, "authority_effects": no_authority_effects()}
+
+    adapter = ProviderOverlaySDKAdapter(
+        base_adapter=base_adapter,
+        provider_id=provider_id,
+        handlers={
+            ("env_uop_operator_runtime", "compile_formula"): compile_formula,
+            ("env_uop_operator_runtime", "route_operator"): route_operator,
+        },
+    )
+    parity = inspect_sdk_handler_parity(
+        adapter,
+        construction_profile="ENV_UOP_OPERATOR_PROVIDER",
+    )
+    claimed = {
+        (row["module_id"], row["operation"])
+        for row in parity["operations"]
+        if row["status"] == "REGISTERED"
+        and (row["module_id"], row["operation"])
+        in SDK_EXTERNAL_PROVIDER_OPERATIONS
+    }
+    require(
+        claimed
+        == {
+            ("env_uop_operator_runtime", "compile_formula"),
+            ("env_uop_operator_runtime", "route_operator"),
+        },
+        "ENV_UOP_PROVIDER_HANDLER_PARITY_MISMATCH",
+        "The ENV/UOP provider must claim exactly its compiler and router operations.",
+        status="MISMATCH",
+        claimed=sorted(f"{module}:{operation}" for module, operation in claimed),
+    )
+    return adapter
 
 
 class InternalEvidenceLaneSDK:
@@ -757,6 +1097,11 @@ class InternalEvidenceLaneSDK:
                         for operation in module.operations
                     ],
                     "independent_replay_ledger": True,
+                    **(
+                        {"authority_boundary": env_uop_authority_boundary()}
+                        if module.module_id == "env_uop_operator_runtime"
+                        else {}
+                    ),
                 }
                 for module in SDK_MODULES
             ],
@@ -1034,7 +1379,9 @@ class InternalEvidenceLaneSDK:
                     "The SDK replay response failed its immutable hash check.",
                     status="FAIL",
                 )
-                return {**response, "replay": "IDEMPOTENT_REUSE"}
+                return _bound_sdk_public_response(
+                    {**response, "replay": "IDEMPOTENT_REUSE"}
+                )
         finally:
             connection.close()
 
@@ -1172,10 +1519,12 @@ class InternalEvidenceLaneSDK:
                 stored = cast(
                     dict[str, Any], json.loads(str(existing["response_json"]))
                 )
-                return {**stored, "replay": "IDEMPOTENT_REUSE"}
+                return _bound_sdk_public_response(
+                    {**stored, "replay": "IDEMPOTENT_REUSE"}
+                )
         finally:
             connection.close()
-        return response
+        return _bound_sdk_public_response(response)
 
     def retrieve_separately(
         self,
@@ -1254,9 +1603,7 @@ def build_local_service_adapter(
         )
         service.sessions.load(project_id, session_id)
         lineage_path = (
-            service.store.project_root(project_id)
-            / "lineage"
-            / f"{session_id}.jsonl"
+            service.store.project_root(project_id) / "lineage" / f"{session_id}.jsonl"
         )
         events = ChatLineage(lineage_path).events()
         lineage_head = (
@@ -1536,6 +1883,36 @@ def build_local_service_adapter(
             **_learning_payload(binding, payload),
         )
 
+    def _learning_memory_query(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return query_memory_graph(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+            **_learning_payload(binding, payload),
+        )
+
+    def _learning_memory_record_link(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return record_memory_link(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+            **_learning_payload(binding, payload),
+        )
+
+    def _learning_record_host_memory_import(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return record_host_memory_import(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+            **_learning_payload(binding, payload),
+        )
+
     def _learning_seal_candidate(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
@@ -1649,13 +2026,9 @@ def build_local_service_adapter(
             session_id=binding.session_id,
             task_id=binding.task_id,
             run_id=(str(payload["run_id"]) if payload.get("run_id") else None),
-            event_id=(
-                str(payload["event_id"]) if payload.get("event_id") else None
-            ),
+            event_id=(str(payload["event_id"]) if payload.get("event_id") else None),
             actor_type=(
-                str(payload["actor_type"])
-                if payload.get("actor_type")
-                else "CODEX"
+                str(payload["actor_type"]) if payload.get("actor_type") else "CODEX"
             ),
             model=binding.model,
             submodel=binding.submodel,
@@ -1749,7 +2122,10 @@ def build_local_service_adapter(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
         context.checkpoint()
-        return service.session_flash_status()
+        return {
+            **service.session_flash_status(),
+            "env_uop_authority_boundary": env_uop_authority_boundary(),
+        }
 
     def _classify_mode(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
@@ -1801,9 +2177,7 @@ def build_local_service_adapter(
         )
         return service.storage_connector_select(binding.project_id, **exact)
 
-    def _hil_payload(
-        binding: SDKBinding, payload: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _hil_payload(binding: SDKBinding, payload: dict[str, Any]) -> dict[str, Any]:
         exact = dict(payload)
         supplied_project = exact.pop("project_id", binding.project_id)
         supplied_session = exact.pop("session_id", binding.session_id)
@@ -1904,6 +2278,12 @@ def build_local_service_adapter(
         ("canon_input", "restore_continuity"): _canon_restore_continuity,
         ("agent_learning", "inspect"): _learning_inspect,
         ("agent_learning", "retrieve"): _learning_retrieve,
+        ("agent_learning", "memory_query"): _learning_memory_query,
+        ("agent_learning", "memory_record_link"): _learning_memory_record_link,
+        (
+            "agent_learning",
+            "record_host_memory_import",
+        ): _learning_record_host_memory_import,
         ("agent_learning", "seal_candidate"): _learning_seal_candidate,
         ("agent_learning", "decide_candidate"): _learning_decide_candidate,
         ("agent_learning", "revoke"): _learning_revoke,
@@ -2024,9 +2404,7 @@ def build_live_local_sdk_context(
         status="MISMATCH",
         missing=sorted(required_profile - set(profile)),
     )
-    host_session_id = str(
-        session.metadata.get("current_host_session_id") or ""
-    ).strip()
+    host_session_id = str(session.metadata.get("current_host_session_id") or "").strip()
     require(
         bool(host_session_id),
         "SDK_HOST_SESSION_BINDING_REQUIRED",

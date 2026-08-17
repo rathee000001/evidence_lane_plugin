@@ -1,6 +1,6 @@
-# Evidence Lane 2.2.0 architecture
+# Evidence Lane 3.0.0 architecture
 
-Evidence Lane 2.2.0 is a Codex-native, local-first evidence lifecycle. The
+Evidence Lane 3.0.0 is a Codex-native, local-first evidence lifecycle. The
 architecture separates source truth, derived project memory, task/Delta state,
 candidate state, accepted truth, and host presentation so no one surface can
 silently promote another.
@@ -67,10 +67,10 @@ accepted immutable PV under its own receipt.
 ## Native MCP surface
 
 The package-local server identity is `evidence-lane`; the canonical display
-namespace is `mcp__evidence_lane__`. It exposes exactly 83 actions:
+namespace is `mcp__evidence_lane__`. It exposes exactly 87 actions:
 
-- 26 read-only operations;
-- 57 write-capable operations.
+- 27 read-only operations;
+- 60 write-capable operations.
 
 The server may expose a collision-safe host display suffix, but the route
 receipt proves canonical tool names and rejects generated, app, legacy, or
@@ -204,7 +204,7 @@ but cannot claim that it prevents a host crash.
 
 ## Hooks and visible continuity
 
-The v2.2 package registers eight hook events:
+The v3.0 package registers eight hook events:
 
 - `SessionStart` — verify installation and prepare bounded session context;
 - `UserPromptSubmit` — bind the visible turn without storing private reasoning;
@@ -253,7 +253,7 @@ action records formula, loop, operators, commands, exit code, commit/tree, and
 receipt hash. Preview compilation and CodeQL are evidence gates, not lifecycle
 promotion.
 
-All built v2.2.0 candidates must pass both gates: clean-checkout CI for the
+All built v3.0.0 candidates must pass both gates: clean-checkout CI for the
 exact source commit and installed-host verification for the exact package.
 
 ## Installation and restart

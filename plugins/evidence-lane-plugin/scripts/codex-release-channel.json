@@ -2,7 +2,7 @@
   "schema": "evidence-lane.codex-release-channel.v2",
   "product": "Evidence Lane",
   "stable": {
-    "release": "2.2.0",
+    "release": "3.0.0",
     "slot_role": "main-git-release",
     "codex_marketplace_slot": "evidence-lane-github",
     "marketplace_display_name": "Main Git Plugin Version",
@@ -14,9 +14,9 @@
     "stable_updates_reinstall_in_place": true,
     "build_identity_is_receipt_not_selector": true,
     "native_server_identity": "evidence-lane",
-    "native_tool_count": 83,
-    "native_read_tool_count": 26,
-    "native_write_tool_count": 57,
+    "native_tool_count": 87,
+    "native_read_tool_count": 27,
+    "native_write_tool_count": 60,
     "skill_count": 17,
     "codex_apps_allowed": false,
     "generated_namespace_allowed": false,
@@ -26,9 +26,9 @@
     "tunnel_channel": "stable-build"
   },
   "branch_recovery": {
-    "release": "2.2.0",
+    "release": "3.0.0",
     "slot_role": "branch-commit-recovery",
-    "codex_marketplace_slot": "evidence-lane-v220-stable-recovery",
+    "codex_marketplace_slot": "evidence-lane-v300-stable-recovery",
     "marketplace_display_name": "Branch Commit Git Recovery",
     "install_source": "GOVERNED_BRANCH_COMMIT_EXACT_PACKAGE",
     "enabled": false,
@@ -40,9 +40,9 @@
     "simultaneous_tunnel_allowed": false
   },
   "local_testing": {
-    "release_line": "2.2.0",
+    "release_line": "3.0.0",
     "slot_role": "mutable-local-testing",
-    "codex_marketplace_slot": "evidence-lane-v220-testing-new",
+    "codex_marketplace_slot": "evidence-lane-v300-testing-new",
     "marketplace_display_name": "Local Testing Slot",
     "install_source": "FRESH_VERSIONED_LOCAL_PACKAGE",
     "same_marketplace_selector_reused": true,
@@ -52,7 +52,7 @@
     "helper_installs_plugin": false
   },
   "pv_sequence_boundary": {
-    "release_line": "2.2.0",
+    "release_line": "3.0.0",
     "entry_pointer": "PV12",
     "intermediate_candidate": "PV13",
     "intermediate_approve_effect": "FUSE_PV13_ONLY",
@@ -63,10 +63,10 @@
     "final_approve_effects": [
       "FUSE_PV14_GENERATION_14",
       "GOVERNED_NON_FORCE_MAIN_PROMOTION",
-      "INSTALL_EXACT_ACCEPTED_2_2_IN_ENABLED_STABLE_SLOT",
-      "INSTALL_EXACT_ACCEPTED_2_2_IN_DISABLED_RECOVERABLE_FALLBACK_SLOT"
+      "INSTALL_EXACT_ACCEPTED_3_0_IN_ENABLED_STABLE_SLOT",
+      "INSTALL_EXACT_ACCEPTED_3_0_IN_DISABLED_RECOVERABLE_FALLBACK_SLOT"
     ],
-    "release_2_3_in_current_goal_allowed": false,
+    "release_3_1_in_current_goal_allowed": false,
     "next_cycle_entry_pointer": "PV14",
     "next_cycle_candidate": "PV15",
     "next_cycle_requires_fresh_user_start": true
@@ -92,22 +92,24 @@
     "intermediate_pv13_install_hil_route": {
       "ci_prerequisite_row": 196,
       "execution_row": 197,
-      "release": "2.2.0",
-      "branch": "agent/evi-v220-systemwide-release-hil-v2.2.0",
+      "release": "3.0.0",
+      "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
       "source": "EXACT_GIT_COMMIT_AFTER_REQUIRED_CLEAN_CI_AND_GIT_TRIGGERED_VERCEL_PREVIEW",
-      "slot_role": "stable-build",
-      "plugin_selector": "evidence-lane-plugin@evidence-lane-github",
+      "slot_role": "branch-commit-recovery",
+      "plugin_selector": "evidence-lane-plugin@evidence-lane-v300-stable-recovery",
+      "byte_identical_local_testing_selector": "evidence-lane-plugin@evidence-lane-v300-testing-new",
+      "working_role_sync_required": true,
       "installed_version_must_equal_exact_package_version": true,
       "installed_catalog_must_equal": {
-        "native_actions": 83,
-        "read_actions": 26,
-        "write_actions": 57,
+        "native_actions": 87,
+        "read_actions": 27,
+        "write_actions": 60,
         "governed_skills": 17,
         "hook_events": 8,
         "migrated_command_skills": 1
       },
       "installed_ui_readback_required_before_pv13_hil": true,
-      "fallback_mutation_allowed": false,
+      "main_git_release_slot_mutation_allowed": false,
       "main_merge_allowed": false,
       "downstream_project_inherits_install": false
     },
@@ -160,9 +162,9 @@
       "script": "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1",
       "audience": "GOVERNED_CODEX_USER",
       "public_marketplace_user_surface": true,
-      "release": "2.2.0",
-      "release_token": "v220",
-      "scheduled_task_name": "Evidence Lane Codex Goal Recovery v220",
+      "release": "3.0.0",
+      "release_token": "v300",
+      "scheduled_task_name": "Evidence Lane Codex Goal Recovery v300",
       "at_logon": true,
       "persistent_or_hidden_no_transient_console": true,
       "prior_versions_retained": true,
@@ -179,10 +181,10 @@
       "script": "scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1",
       "audience": "GOVERNED_CODEX_USER",
       "public_marketplace_user_surface": true,
-      "release": "2.2.0",
-      "release_token": "v220",
-      "runtime_root_suffix": "tunnel-runtime-v220-stable-build",
-      "scheduled_task_name": "EvidenceLane-Tunnel-v220-stable-build",
+      "release": "3.0.0",
+      "release_token": "v300",
+      "runtime_root_suffix": "tunnel-runtime-v300-stable-build",
+      "scheduled_task_name": "EvidenceLane-Tunnel-v300-stable-build",
       "at_logon": true,
       "persistent_or_hidden_no_transient_console": true,
       "one_active_version": true,
@@ -191,10 +193,10 @@
     },
     "branch_recovery_transport": {
       "audience": "MAINTAINER_RECOVERY_ONLY",
-      "release": "2.2.0",
-      "release_token": "v220",
-      "runtime_root_suffix": "tunnel-runtime-v220-stable-build",
-      "scheduled_task_name": "EvidenceLane-Tunnel-v220-stable-build",
+      "release": "3.0.0",
+      "release_token": "v300",
+      "runtime_root_suffix": "tunnel-runtime-v300-stable-build",
+      "scheduled_task_name": "EvidenceLane-Tunnel-v300-stable-build",
       "target_slot_restaged_before_switch": true,
       "one_version_matched_tunnel": true,
       "public_marketplace_user_surface": false
@@ -204,7 +206,7 @@
       "applies_to_plugin_maintainer_route_only": true,
       "downstream_project_inherits_rotation": false,
       "local_test_green_branch_checkpoint_can_converge_all_three_slots": true,
-      "pre_2_2_fallback_allowed": false,
+      "pre_3_0_fallback_allowed": false,
       "final_gate": "PV14_EXACT_HUMAN_APPROVE_AND_FUSE",
       "required_order": [
         "FUSE_EXACT_ACCEPTED_PLUGIN_PV",
@@ -258,8 +260,8 @@
     ],
     "allowed_marketplaces": [
       "evidence-lane-github",
-      "evidence-lane-v220-stable-recovery",
-      "evidence-lane-v220-testing-new"
+      "evidence-lane-v300-stable-recovery",
+      "evidence-lane-v300-testing-new"
     ],
     "max_enabled_plugin_count": 1,
     "exact_registered_plugin_count": 3,
@@ -271,7 +273,7 @@
     "obsolete_live_cache_removed_through_codex_cli": true,
     "manual_loaded_cache_deletion_allowed": false,
     "forbidden_obsolete_marketplaces": [
-      "evidence-lane-v220-local-successor",
+      "evidence-lane-v300-local-successor",
       "evidence-lane-pv11-fallback"
     ],
     "immutable_git_pv_package_receipt_delta_evidence_preserved": true
@@ -314,8 +316,8 @@
     "requires_exactly_one_enabled_allowed_three_slot_selector": true,
     "allowed_runtime_selectors": [
       "evidence-lane-plugin@evidence-lane-github",
-      "evidence-lane-plugin@evidence-lane-v220-stable-recovery",
-      "evidence-lane-plugin@evidence-lane-v220-testing-new"
+      "evidence-lane-plugin@evidence-lane-v300-stable-recovery",
+      "evidence-lane-plugin@evidence-lane-v300-testing-new"
     ],
     "stable_selector_growth_allowed": false,
     "raw_goal_objective_stored": false
@@ -491,16 +493,43 @@
     },
     "interactive_codex_app_local_or_persistent": {
       "pv_storage": "DURABLE_LOCAL_SQLITE",
-      "tunnel_requirement": "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
-      "tunnel_setup_frequency": "NONE",
-      "tunnel_key_retention": "NOT_APPLICABLE",
-      "tunnel_runtime_lifetime": "NOT_APPLICABLE"
+      "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+      "native_mcp_available": {
+        "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+        "tunnel_setup_frequency": "NONE",
+        "tunnel_key_retention": "NOT_APPLICABLE",
+        "tunnel_runtime_lifetime": "NOT_APPLICABLE"
+      },
+      "host_tool_gap": {
+        "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+        "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+        "tunnel_key_retention": "CURRENT_WINDOWS_USER_DPAPI_PROFILE",
+        "tunnel_runtime_lifetime": "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST"
+      }
+    },
+    "codex_cli_local_or_persistent": {
+      "pv_storage": "DURABLE_LOCAL_SQLITE",
+      "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+      "native_mcp_available": {
+        "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
+      },
+      "host_tool_gap": {
+        "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+        "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
+      }
     },
     "interactive_codex_app_ephemeral_vm": {
       "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
-      "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
-      "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
-      "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY"
+      "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+      "native_mcp_available": {
+        "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
+      },
+      "host_tool_gap": {
+        "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+        "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
+        "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
+        "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY"
+      }
     },
     "desktop_container_surface_scope": {
       "supported_container_channels": [
@@ -514,7 +543,7 @@
     }
   },
   "remote_git_policy": {
-    "effective_release": "2.2.0",
+    "effective_release": "3.0.0",
     "v150_flash_confirmation_sentence": "HISTORICAL_HASH_LOCKED_COMPATIBILITY_BYTE_NOT_EFFECTIVE_V2_POLICY",
     "prepare_receipt_required": true,
     "per_push_confirmation_token_required": false,
@@ -529,9 +558,9 @@
     "explicit_six_way_hil_required": true,
     "fail_closed_on_version_mismatch": true,
     "required_catalog": {
-      "tools": 83,
-      "read": 26,
-      "write": 57,
+      "tools": 87,
+      "read": 27,
+      "write": 60,
       "skills": 17
     },
     "mode": "CODE",

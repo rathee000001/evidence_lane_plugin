@@ -60,7 +60,7 @@ def _replacement_contract() -> dict:
         "commit_batch_id": "PV13_TASK6_PARITY",
         "dependencies": [],
         "git_commit_stage": "NO_COMMIT",
-        "current_version": "2.2.0",
+        "current_version": "3.0.0",
         "current_branch": "main",
     }
 
@@ -225,7 +225,7 @@ def test_active_contract_rebind_preserves_all_execution_identities(
     assert runtime_row["dependency_source"] == "ACTIVE_CONTRACT_REBIND"
     assert runtime_row["git_commit_stage"] == "NO_COMMIT"
     assert runtime_row["git_commit_stage_source"] == "ACTIVE_CONTRACT_REBIND"
-    assert runtime_row["version_marker"] == "2.2.0"
+    assert runtime_row["version_marker"] == "3.0.0"
     assert runtime_row["version_marker_source"] == "EXPLICIT_TASK_CONTRACT"
     assert runtime_row["branch_marker"] == "main"
     assert runtime_row["branch_marker_source"] == "EXPLICIT_TASK_CONTRACT"

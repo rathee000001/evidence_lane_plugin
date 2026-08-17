@@ -152,7 +152,7 @@ def test_readiness_never_infers_host_ready_from_install_or_prewarm() -> None:
 
 def test_disabled_host_normalization_may_omit_only_the_disabled_mcp_state() -> None:
     module = _module()
-    selector = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    selector = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     assert module._evidence_plugin_activation_states(
         {selector: {"enabled": False}}
     ) == {selector: False}
@@ -236,7 +236,7 @@ def test_prepare_keeps_one_last_known_good_and_seals_exact_rollback(
     module = _module()
     stable = "evidence-lane-plugin@evidence-lane-github"
     fallback = "evidence-lane-plugin@evidence-lane-pv11-fallback"
-    candidate = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    candidate = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     codex_home = tmp_path / "codex"
     data_root = tmp_path / "pv"
     marketplace_root = tmp_path / "marketplace"
@@ -256,7 +256,7 @@ def test_prepare_keeps_one_last_known_good_and_seals_exact_rollback(
                 "installed": [
                     {"pluginId": stable, "version": "2.1", "enabled": True},
                     {"pluginId": fallback, "version": "2.1", "enabled": False},
-                    {"pluginId": candidate, "version": "2.2", "enabled": False},
+                    {"pluginId": candidate, "version": "3.0", "enabled": False},
                 ]
             }
         if args == ["plugin", "remove", candidate, "--json"]:
@@ -271,7 +271,7 @@ def test_prepare_keeps_one_last_known_good_and_seals_exact_rollback(
         codex_home=codex_home,
         data_root=data_root,
         plugin_selector=candidate,
-        marketplace_name="evidence-lane-v220-testing-new",
+        marketplace_name="evidence-lane-v300-testing-new",
         marketplace_root=marketplace_root,
     )
 
@@ -290,13 +290,13 @@ def test_prepare_rejects_already_enabled_candidate(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     module = _module()
-    candidate = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    candidate = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     monkeypatch.setattr(
         module,
         "_run_codex",
         lambda *_args, **_kwargs: {
             "installed": [
-                {"pluginId": candidate, "version": "2.2", "enabled": True}
+                {"pluginId": candidate, "version": "3.0", "enabled": True}
             ]
         },
     )
@@ -306,7 +306,7 @@ def test_prepare_rejects_already_enabled_candidate(
             codex_home=tmp_path / "codex",
             data_root=tmp_path / "pv",
             plugin_selector=candidate,
-            marketplace_name="evidence-lane-v220-testing-new",
+            marketplace_name="evidence-lane-v300-testing-new",
             marketplace_root=tmp_path / "marketplace",
         )
 
@@ -323,7 +323,7 @@ def test_prepare_disabled_hook_recovery_requires_sealed_commit_and_all_disabled(
     module = _module()
     stable = "evidence-lane-plugin@evidence-lane-github"
     fallback = "evidence-lane-plugin@evidence-lane-pv11-fallback"
-    candidate = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    candidate = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     codex_home = tmp_path / "codex"
     data_root = tmp_path / "pv"
     marketplace_root = tmp_path / "marketplace"
@@ -388,7 +388,7 @@ def test_prepare_disabled_hook_recovery_requires_sealed_commit_and_all_disabled(
                     {"pluginId": fallback, "version": "2.1", "enabled": False},
                     {
                         "pluginId": candidate,
-                        "version": "2.2",
+                        "version": "3.0",
                         "enabled": recovery_boundary in {"post_add", "active_aligned"},
                     },
                 ]
@@ -491,7 +491,7 @@ def test_prepare_disabled_hook_recovery_requires_sealed_commit_and_all_disabled(
             "installed": [
                 {"pluginId": stable, "version": "2.1", "enabled": True},
                 {"pluginId": fallback, "version": "2.1", "enabled": False},
-                {"pluginId": candidate, "version": "2.2", "enabled": False},
+                {"pluginId": candidate, "version": "3.0", "enabled": False},
             ]
         },
     )
@@ -535,7 +535,7 @@ def test_commit_route_joins_sealed_host_proof_without_task_or_helper_binding(
     module = _module()
     stable = "evidence-lane-plugin@evidence-lane-github"
     fallback = "evidence-lane-plugin@evidence-lane-pv11-fallback"
-    candidate = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    candidate = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     transaction_id = "local_test_tx_" + "a" * 40
     data_root = tmp_path / "pv"
     codex_home = tmp_path / "codex"
@@ -551,7 +551,7 @@ def test_commit_route_joins_sealed_host_proof_without_task_or_helper_binding(
     prepared_backup = authority_root / "config-archives" / "prepared.toml"
     prepared_backup.parent.mkdir(parents=True)
     prepared_backup.write_bytes(config_path.read_bytes())
-    version = "2.2.0+codex.fixture"
+    version = "3.0.0+codex.fixture"
     installed_path = (
         codex_home
         / "plugins"
@@ -687,7 +687,7 @@ def test_stage_reads_disabled_candidate_without_hooks_list_or_activation(
     module = _module()
     stable = "evidence-lane-plugin@evidence-lane-github"
     fallback = "evidence-lane-plugin@evidence-lane-pv11-fallback"
-    candidate = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    candidate = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     codex_home = tmp_path / "codex"
     data_root = tmp_path / "pv"
     config_path = codex_home / "config.toml"
@@ -707,7 +707,7 @@ def test_stage_reads_disabled_candidate_without_hooks_list_or_activation(
     marketplace_file = (
         codex_home
         / "local-marketplaces"
-        / "evidence-lane-v220-testing-new"
+        / "evidence-lane-v300-testing-new"
         / ".agents"
         / "plugins"
         / "marketplace.json"
@@ -770,7 +770,7 @@ def test_stage_reads_disabled_candidate_without_hooks_list_or_activation(
                 assert Path(params["marketplacePath"]) == marketplace_file
                 result = {
                     "plugin": {
-                        "marketplaceName": "evidence-lane-v220-testing-new",
+                        "marketplaceName": "evidence-lane-v300-testing-new",
                         "summary": {
                             "id": candidate,
                             "installed": True,
@@ -858,7 +858,7 @@ def test_commit_mode_switches_once_or_atomically_restores_exact_config(
     module = _module()
     stable = "evidence-lane-plugin@evidence-lane-github"
     fallback = "evidence-lane-plugin@evidence-lane-pv11-fallback"
-    candidate = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    candidate = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     codex_home = tmp_path / "codex"
     data_root = tmp_path / "pv"
     config_path = codex_home / "config.toml"
@@ -886,7 +886,7 @@ def test_commit_mode_switches_once_or_atomically_restores_exact_config(
     marketplace_file = (
         codex_home
         / "local-marketplaces"
-        / "evidence-lane-v220-testing-new"
+        / "evidence-lane-v300-testing-new"
         / ".agents"
         / "plugins"
         / "marketplace.json"
@@ -987,7 +987,7 @@ def test_commit_mode_switches_once_or_atomically_restores_exact_config(
             elif method == "plugin/read":
                 result = {
                     "plugin": {
-                        "marketplaceName": "evidence-lane-v220-testing-new",
+                        "marketplaceName": "evidence-lane-v300-testing-new",
                         "summary": {
                             "id": candidate,
                             "installed": True,
@@ -1094,7 +1094,7 @@ def test_disabled_local_hook_recovery_switches_only_local_or_restores_all_disabl
     module = _module()
     stable = "evidence-lane-plugin@evidence-lane-github"
     fallback = "evidence-lane-plugin@evidence-lane-pv11-fallback"
-    candidate = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    candidate = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     codex_home = tmp_path / "codex"
     data_root = tmp_path / "pv"
     config_path = codex_home / "config.toml"

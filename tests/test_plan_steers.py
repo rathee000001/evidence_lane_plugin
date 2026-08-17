@@ -4,6 +4,7 @@ import json
 
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
+from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 
 from .conftest import build_and_approve_pv1
 
@@ -172,6 +173,118 @@ def test_plan_steer_updates_only_when_current_host_window_fingerprint_changes(
     assert effect["evi_refresh_invoked"] is False
 
 
+def test_existing_priority_delta_is_promoted_without_duplication_and_rehydrates(
+    service,
+) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    active = {
+        **_task("active-route", "Finish the interrupted direct route."),
+        "commit_batch_id": "route-batch",
+        "dependencies": [],
+    }
+    middle_one = {
+        **_task("middle-one", "Preserve the first queued route correction."),
+        "dependencies": ["active-route"],
+    }
+    middle_two = {
+        **_task("middle-two", "Preserve the second queued route correction."),
+        "dependencies": ["middle-one"],
+    }
+    promoted = {
+        **_task("priority-delivery", "Run the already-recorded delivery Delta first."),
+        "commit_batch_id": "priority-batch",
+        "dependencies": ["active-route"],
+    }
+    successor = {
+        **_task("delivery-successor", "Continue only after the displaced chain."),
+        "dependencies": ["priority-delivery"],
+    }
+    final_hil = {
+        **_task("physical-final-hil", "Present the physically final HIL."),
+        "panel_role": "PHYSICALLY_FINAL_HIL",
+        "dependencies": ["delivery-successor"],
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[active, middle_one, middle_two, promoted, successor, final_hil],
+        planned_by="human-test",
+        plan_id="existing-priority-promotion",
+    )
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=str(active["task_class"]),
+        requested_outcome=str(active["requested_outcome"]),
+        permitted_paths=list(active["permitted_paths"]),
+        permitted_tools=list(active["permitted_tools"]),
+        acceptance_checks=list(active["acceptance_checks"]),
+        stop_condition=str(active["stop_condition"]),
+        backlog_task_id=str(active["task_id"]),
+    )
+    before = service.store.backlog_status("book-faires")
+    raw_before = service.store._load_backlog("book-faires")
+    session = service.sessions.load("book-faires", session_id)
+
+    result = service.plan_tasks(
+        "book-faires",
+        tasks=[],
+        planned_by="human-test",
+        existing_task_promotion={
+            "promotion_id": "promote-existing-priority-delivery-001",
+            "session_id": session_id,
+            "old_active_task_id": "active-route",
+            "promoted_task_id": "priority-delivery",
+            "expected_host_task_id": session.metadata["current_host_session_id"],
+            "reason": "The user ordered the existing delivery Delta first.",
+            "expected_backlog_sha256": sha256_bytes(
+                canonical_json_bytes(raw_before)
+            ),
+            "expected_canonical_plan_sha256": before[
+                "canonical_plan_projection"
+            ]["projection_sha256"],
+            "expected_executable_projection_sha256": before[
+                "goal_projection"
+            ]["projection_sha256"],
+            "expected_physical_final_task_id": "physical-final-hil",
+            "expected_candidate_absent": True,
+            "expected_pending_hil": False,
+            "expected_pointer_move": False,
+            "preserve_task_identity": True,
+            "host_goal_active": True,
+        },
+    )
+
+    rows = result["goal_projection"]["rows"]
+    assert [row["task_id"] for row in rows] == [
+        "priority-delivery",
+        "active-route",
+        "middle-one",
+        "middle-two",
+        "delivery-successor",
+        "physical-final-hil",
+    ]
+    assert len({row["task_id"] for row in rows}) == len(rows) == 6
+    assert rows[0]["status"] == "in_progress"
+    assert rows[1]["status"] == "pending"
+    assert rows[0]["dependencies"] == []
+    assert rows[1]["dependencies"] == ["priority-delivery"]
+    assert rows[4]["dependencies"] == ["middle-two"]
+    assert rows[-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
+    assert result["existing_task_promotion_receipt"][
+        "stable_task_identity_preserved"
+    ] is True
+    assert result["existing_task_promotion_receipt"][
+        "task_count_unchanged"
+    ] is True
+    assert result["existing_task_session_rebind"]["goal_completed"] is False
+    projection = result["host_plan_rehydration"]["receipt"]["projection"]
+    assert projection["sole_active_task_id"] == "priority-delivery"
+    assert projection["items"][1]["status"] == "in_progress"
+    rebound = service.sessions.load("book-faires", session_id)
+    assert rebound.metadata["active_backlog_task_id"] == "priority-delivery"
+    assert rebound.task["task_id"] == "priority-delivery"
+
+
 def test_non_codex_plan_rows_are_rejected_outside_the_codex_goal(service) -> None:
     unsupported = service.plan_tasks(
         "book-faires",
@@ -262,8 +375,8 @@ def test_universal_host_plan_labels_preserve_structured_execution_metadata(
         "commit_batch_id": "batch-alpha",
         "dependencies": ["metadata-step-001"],
         "git_commit_stage": "COMMIT",
-        "current_version": "2.2.0",
-        "current_branch": "agent/evi-v220-metadata",
+        "current_version": "3.0.0",
+        "current_branch": "agent/evi-v300-metadata",
     }
     final_hil = {
         **_task(
@@ -295,9 +408,9 @@ def test_universal_host_plan_labels_preserve_structured_execution_metadata(
     assert rows[1]["dependencies"] == ["metadata-step-001"]
     assert rows[1]["git_commit_stage"] == "COMMIT"
     assert rows[1]["git_commit_stage_source"] == "EXPLICIT_TASK_CONTRACT"
-    assert rows[1]["version_marker"] == "2.2.0"
+    assert rows[1]["version_marker"] == "3.0.0"
     assert rows[1]["version_marker_source"] == "EXPLICIT_TASK_CONTRACT"
-    assert rows[1]["branch_marker"] == "agent/evi-v220-metadata"
+    assert rows[1]["branch_marker"] == "agent/evi-v300-metadata"
     assert rows[1]["branch_marker_source"] == "EXPLICIT_TASK_CONTRACT"
     assert rows[1]["authority_scope"] == "CURRENT_EXECUTABLE_PLAN"
     assert rows[1]["effective_for_execution"] is True
@@ -305,8 +418,8 @@ def test_universal_host_plan_labels_preserve_structured_execution_metadata(
         "Row 2 / metadata-step-002 — [CLASS=prepare_patch; "
         "GROUP=corpus-ingest; BATCH=batch-alpha; "
         "DEP=metadata-step-001; GIT=COMMIT@EXPLICIT_TASK_CONTRACT; "
-        "VERSION=2.2.0@EXPLICIT_TASK_CONTRACT; "
-        "BRANCH=agent/evi-v220-metadata@EXPLICIT_TASK_CONTRACT; "
+        "VERSION=3.0.0@EXPLICIT_TASK_CONTRACT; "
+        "BRANCH=agent/evi-v300-metadata@EXPLICIT_TASK_CONTRACT; "
         "ROLE=STANDARD; STATE=QUEUED]"
     )
     assert rows[2]["plan_group"] == "universal-metadata-plan"
@@ -449,8 +562,8 @@ def test_active_release_context_hydrates_only_current_and_future_rows(service) -
     service.record_steer_delta(
         "book-faires",
         delta_text=(
-            "CURRENT_VERSION=2.2.0 "
-            "CURRENT_BRANCH=agent/evi-v220-release "
+            "CURRENT_VERSION=3.0.0 "
+            "CURRENT_BRANCH=agent/evi-v300-release "
             "CANDIDATE_PV=PV13 ACCEPTED_PV=PV12 "
             "ACCEPTED_VERSION=2.1.0 "
             "FALLBACK_OBSERVED_VERSION=2.0.0 "
@@ -463,25 +576,25 @@ def test_active_release_context_hydrates_only_current_and_future_rows(service) -
 
     projection = service.task_backlog("book-faires")["goal_projection"]
     rows = projection["rows"]
-    assert rows[0]["version_marker"] == "2.2.0"
+    assert rows[0]["version_marker"] == "3.0.0"
     assert rows[0]["version_marker_source"] == (
         "LINKED_DELTA:active-release-context-steer"
     )
-    assert rows[1]["version_marker"] == "2.2.0"
+    assert rows[1]["version_marker"] == "3.0.0"
     assert rows[1]["version_marker_source"] == (
         "ACTIVE_PLAN_CONTEXT:release-active:active-release-context-steer"
     )
-    assert rows[1]["branch_marker"] == "agent/evi-v220-release"
+    assert rows[1]["branch_marker"] == "agent/evi-v300-release"
     assert rows[1]["branch_marker_source"] == (
         "ACTIVE_PLAN_CONTEXT:release-active:active-release-context-steer"
     )
     assert "version 2.0.0" in rows[1]["step"]
-    assert "VERSION=2.2.0@ACTIVE_PLAN_CONTEXT" in rows[1]["visible_label"]
+    assert "VERSION=3.0.0@ACTIVE_PLAN_CONTEXT" in rows[1]["visible_label"]
     assert rows[-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
     assert "ROLE=PHYSICALLY_FINAL_HIL" in rows[-1]["visible_label"]
     release = projection["active_release_context"]
-    assert release["target_version"] == "2.2.0"
-    assert release["target_branch"] == "agent/evi-v220-release"
+    assert release["target_version"] == "3.0.0"
+    assert release["target_branch"] == "agent/evi-v300-release"
     assert release["candidate_pv_target"] == "PV13"
     assert release["accepted_pv"] == "PV12"
     assert release["accepted_version"] == "2.1.0"

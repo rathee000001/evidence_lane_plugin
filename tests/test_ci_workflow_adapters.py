@@ -30,7 +30,7 @@ def test_workflow_branch_boundaries_and_preview_does_not_deploy() -> None:
         if "push:" in text:
             if path.name == "evidence-lane-github-pages.yml":
                 assert "      - main" in text
-                assert "      - agent/evi-v220-systemwide-release-hil-v2.2.0" in text
+                assert "      - agent/evi-v300-systemwide-release-hil-v3.0.0" in text
             else:
                 assert '- "agent/**"' in text
                 assert "branches:\n      - main" not in text
@@ -48,7 +48,7 @@ def test_workflow_branch_boundaries_and_preview_does_not_deploy() -> None:
     assert 'payload["release_sha"] == os.environ["EVIDENCE_LANE_RELEASE_SHA"]' in (
         preview
     )
-    assert 'payload["mcp_route_identity"]["tool_count"] == 83' in preview
+    assert 'payload["mcp_route_identity"]["tool_count"] == 87' in preview
 
 
 def test_codeql_is_pinned_and_preserves_local_evidence_without_api_upload() -> None:

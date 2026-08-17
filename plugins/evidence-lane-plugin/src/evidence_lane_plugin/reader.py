@@ -35,7 +35,12 @@ class PVReader:
             path = self.store.candidate_path(project_id, exact_reference)
         else:
             path = self.store.accepted_path(project_id, exact_reference)
-        validation = validate_pv_package(path)
+        # Retrieval must preserve immutable historical evidence even when a
+        # newer lane validator makes that accepted package non-promotable.
+        # Promotion paths retain the default strict validation; read-only
+        # queries validate the sealed package without re-running a promotion
+        # gate that can reject (and over-report) an otherwise valid authority.
+        validation = validate_pv_package(path, require_promotable=False)
         require(
             validation.get("project_id") == project_id,
             "PV_PROJECT_BINDING_MISMATCH",

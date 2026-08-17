@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - agent/evi-v220-systemwide-release-hil-v2.2.0
+      - agent/evi-v300-systemwide-release-hil-v3.0.0
     paths:
       - README.md
       - CONTRIBUTING.md

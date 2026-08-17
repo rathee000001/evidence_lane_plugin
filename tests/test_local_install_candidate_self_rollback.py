@@ -54,7 +54,7 @@ def _write_sealed(module, path: Path, value: dict[str, object]) -> str:
 def _fixture(module, tmp_path: Path) -> dict[str, object]:
     stable = "evidence-lane-plugin@evidence-lane-github"
     fallback = "evidence-lane-plugin@evidence-lane-pv11-fallback"
-    candidate = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    candidate = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     transaction_id = "local_test_tx_" + "b" * 40
     data_root = tmp_path / "pv"
     codex_home = tmp_path / "codex"

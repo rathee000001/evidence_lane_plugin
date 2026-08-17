@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { GlassIconOrb, GlassPill } from "./evidence-assets";
@@ -21,21 +21,26 @@ export function GovernedPopup({
   size?: "default" | "wide";
 }) {
   const dialogRef = useRef<HTMLElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
 
     const previousOverflow = document.body.style.overflow;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
     const closeOnEscape = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
 
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", closeOnEscape);
-    dialogRef.current?.focus();
+    window.requestAnimationFrame(() => dialogRef.current?.focus());
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", closeOnEscape);
+      previousFocusRef.current?.focus();
     };
   }, [onClose, open]);
 
@@ -43,6 +48,29 @@ export function GovernedPopup({
 
   const closeFromBackdrop = (event: MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) onClose();
+  };
+
+  const keepFocusInside = (event: ReactKeyboardEvent<HTMLElement>) => {
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(
+      event.currentTarget.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    );
+    if (focusable.length === 0) {
+      event.preventDefault();
+      event.currentTarget.focus();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   };
 
   return createPortal(
@@ -59,6 +87,7 @@ export function GovernedPopup({
         aria-modal="true"
         aria-labelledby={labelledBy}
         tabIndex={-1}
+        onKeyDown={keepFocusInside}
         data-popup-schema="T023_UNIVERSAL_FROSTED_POPUP_V001"
       >
         <GlassPill

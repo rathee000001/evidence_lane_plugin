@@ -10,16 +10,22 @@ APP = ROOT / "plugins" / "evidence-lane-plugin" / "remote_adapter" / "app"
 ROUTE_DOCUMENTS = {
     "/": "README.md",
     "/readme": "README.md",
+    "/memory": "docs/MEMORY.md",
+    "/canon": "docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md",
+    "/ai-learning": "docs/AI_LEARNING.md",
     "/skills": "docs/SKILLS.md",
     "/mcp": "docs/MCP.md",
     "/hooks": "docs/HOOKS.md",
     "/commands": "docs/COMMANDS.md",
+    "/plan": "docs/PLAN_AND_CHANGE_DISPLAY.md",
+    "/git-ci": "docs/GIT_AND_CI_CD.md",
     "/architecture": "ARCHITECTURE.md",
     "/lanes": "docs/ARCHITECTURE.md",
     "/operators": "docs/HOST_STORAGE_ENV_MODE_CONTINUITY.md",
     "/studio": "README.md",
     "/proof": "docs/IMPLEMENTATION_TRACEABILITY.md",
     "/provenance": "docs/UPSTREAM_REFERENCE_PROVENANCE.md",
+    "/release": "docs/RELEASE_AND_COMPATIBILITY.md",
     "/connect": "docs/HOST_CAPABILITY_MATRIX.md",
     "/hil": "docs/FIRST_HIL_RUNBOOK.md",
     "/privacy": "SECURITY.md",
@@ -70,10 +76,24 @@ def test_primary_plugin_pages_are_first_class_routes() -> None:
     site = (APP / "_data" / "site.ts").read_text(encoding="utf-8")
     sitemap = (APP / "sitemap.ts").read_text(encoding="utf-8")
 
-    for route in ("skills", "mcp", "hooks", "commands"):
+    for route in (
+        "memory",
+        "canon",
+        "ai-learning",
+        "skills",
+        "mcp",
+        "hooks",
+        "commands",
+        "git-ci",
+    ):
         assert (APP / route / "page.tsx").is_file()
         assert f'{{ href: "/{route}",' in site
         assert f'"/{route}"' in sitemap
+
+    for deep_linked_route in ("plan", "release"):
+        assert (APP / deep_linked_route / "page.tsx").is_file()
+        assert f'{{ href: "/{deep_linked_route}",' not in site
+        assert f'"/{deep_linked_route}"' in sitemap
 
 
 def test_github_pages_navigation_wraps_without_horizontal_scroll() -> None:
@@ -90,7 +110,7 @@ def test_github_pages_navigation_wraps_without_horizontal_scroll() -> None:
 
 def test_readme_leads_with_public_site_and_pages_projection_links() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    title_offset = readme.index("# Evidence Lane 2.2.0")
+    title_offset = readme.index("# Evidence Lane 3.0.0")
     public_site_offset = readme.index("https://evidencelane.org", title_offset)
     pages_offset = readme.index(
         "https://rathee000001.github.io/evidence_lane_plugin/", title_offset

@@ -38,16 +38,43 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     },
     "interactive_codex_app_local_or_persistent": {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
-        "tunnel_requirement": "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
-        "tunnel_setup_frequency": "NONE",
-        "tunnel_key_retention": "NOT_APPLICABLE",
-        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+            "tunnel_setup_frequency": "NONE",
+            "tunnel_key_retention": "NOT_APPLICABLE",
+            "tunnel_runtime_lifetime": "NOT_APPLICABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+            "tunnel_key_retention": "CURRENT_WINDOWS_USER_DPAPI_PROFILE",
+            "tunnel_runtime_lifetime": "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST",
+        },
+    },
+    "codex_cli_local_or_persistent": {
+        "pv_storage": "DURABLE_LOCAL_SQLITE",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+        },
     },
     "interactive_codex_app_ephemeral_vm": {
         "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
-        "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
-        "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
-        "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
+            "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
+            "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+        },
     },
     "desktop_container_surface_scope": {
         "supported_container_channels": [
@@ -681,7 +708,7 @@ def build_rehearsal(
             stable.get("native_write_tool_count"),
             stable.get("skill_count"),
         )
-        != (83, 26, 57, EXPECTED_SKILL_COUNT)
+        != (87, 27, 60, EXPECTED_SKILL_COUNT)
         or stable.get("codex_apps_allowed") is not False
         or stable.get("generated_namespace_allowed") is not False
         or stable.get("direct_stdio_fallback_allowed") is not False
@@ -689,7 +716,7 @@ def build_rehearsal(
         or branch_recovery.get("release") != expected_version.split("+", 1)[0]
         or branch_recovery.get("slot_role") != "branch-commit-recovery"
         or branch_recovery.get("codex_marketplace_slot")
-        != "evidence-lane-v220-stable-recovery"
+        != "evidence-lane-v300-stable-recovery"
         or branch_recovery.get("marketplace_display_name")
         != "Branch Commit Git Recovery"
         or branch_recovery.get("byte_frozen_between_branch_checkpoints") is not True
@@ -697,7 +724,7 @@ def build_rehearsal(
         or local_testing.get("release_line") != expected_version.split("+", 1)[0]
         or local_testing.get("slot_role") != "mutable-local-testing"
         or local_testing.get("codex_marketplace_slot")
-        != "evidence-lane-v220-testing-new"
+        != "evidence-lane-v300-testing-new"
         or local_testing.get("marketplace_display_name") != "Local Testing Slot"
         or local_testing.get("same_marketplace_selector_reused") is not True
         or local_testing.get("fresh_package_version_per_local_build") is not True
@@ -712,8 +739,8 @@ def build_rehearsal(
         or live_slots.get("allowed_marketplaces")
         != [
             "evidence-lane-github",
-            "evidence-lane-v220-stable-recovery",
-            "evidence-lane-v220-testing-new",
+            "evidence-lane-v300-stable-recovery",
+            "evidence-lane-v300-testing-new",
         ]
         or live_slots.get("max_enabled_plugin_count") != 1
         or live_slots.get("exact_registered_plugin_count") != 3
@@ -754,8 +781,8 @@ def build_rehearsal(
         or goal_recovery.get("allowed_runtime_selectors")
         != [
             "evidence-lane-plugin@evidence-lane-github",
-            "evidence-lane-plugin@evidence-lane-v220-stable-recovery",
-            "evidence-lane-plugin@evidence-lane-v220-testing-new",
+            "evidence-lane-plugin@evidence-lane-v300-stable-recovery",
+            "evidence-lane-plugin@evidence-lane-v300-testing-new",
         ]
         or goal_recovery.get("stable_selector_growth_allowed") is not False
         or goal_recovery.get("raw_goal_objective_stored") is not False

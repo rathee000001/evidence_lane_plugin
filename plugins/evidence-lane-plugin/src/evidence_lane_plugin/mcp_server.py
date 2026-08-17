@@ -1,4 +1,4 @@
-"""Universal MCP runtime contract; 2.2.0 is the Codex package release."""
+"""Universal MCP runtime contract; 3.0.0 is the Codex package release."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from mcp.server.auth.settings import AuthSettings
 from mcp.server.fastmcp import FastMCP
 from mcp.types import CallToolResult, Icon, TextContent, ToolAnnotations
 from mcp.types import Tool as MCPTool
-from pydantic import AnyHttpUrl
+from pydantic import AnyHttpUrl, ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
@@ -267,6 +267,30 @@ SDK_NATIVE_ACTIONS: tuple[
         True,
     ),
     (
+        "learning_memory_query",
+        "Query cross-sector memory",
+        "Query one bounded project-isolated FTS5/BM25 locator slice across ChatLineage, Plan, Project Truth, Canon, Agent Learning, and explicitly imported host-memory provenance; raw databases and Markdown never enter the result.",
+        "agent_learning",
+        "memory_query",
+        True,
+    ),
+    (
+        "learning_memory_record_link",
+        "Record cross-sector memory link",
+        "Append one typed, content-addressed cross-sector locator edge without storing raw source bytes, promoting a candidate, invoking HIL, or moving Project Truth.",
+        "agent_learning",
+        "memory_record_link",
+        False,
+    ),
+    (
+        "learning_record_host_memory_import",
+        "Record host-memory provenance",
+        "Explicitly seal one nonauthoritative host-memory provenance receipt and link only its bounded locator to the governed Plan context; automatic import and promotion remain forbidden.",
+        "agent_learning",
+        "record_host_memory_import",
+        False,
+    ),
+    (
         "learning_seal_candidate",
         "Seal Agent Learning candidate",
         "Seal one evidence-backed project-isolated Learning candidate. It remains unaccepted and cannot change Project Truth.",
@@ -321,8 +345,8 @@ CODEX_READ_TOOL_NAMES = (
 )
 
 if (
-    len(SDK_NATIVE_ACTIONS) != 21
-    or len(SDK_NATIVE_READ_TOOL_NAMES) != 5
+    len(SDK_NATIVE_ACTIONS) != 24
+    or len(SDK_NATIVE_READ_TOOL_NAMES) != 6
     or len(CODEX_READ_TOOL_NAMES) != NATIVE_READ_TOOL_COUNT
     or NATIVE_TOOL_COUNT - NATIVE_READ_TOOL_COUNT != NATIVE_WRITE_TOOL_COUNT
     or GOVERNED_SKILL_COUNT != 17
@@ -538,6 +562,12 @@ def _apply_evidence_lane_tool_icons(mcp: FastMCP, public_site_url: str) -> None:
 class _EvidenceLaneFastMCP(FastMCP):
     """Expose current top-level tool security schemes plus the legacy mirror."""
 
+    async def call_tool(self, name: str, arguments: dict[str, Any]) -> Any:
+        """Keep structured receipts without duplicating their JSON into text."""
+
+        result = await super().call_tool(name, arguments)
+        return _compact_fastmcp_structured_result(name, result)
+
     async def list_tools(self) -> list[MCPTool]:
         listed = await super().list_tools()
         result: list[MCPTool] = []
@@ -548,6 +578,38 @@ class _EvidenceLaneFastMCP(FastMCP):
                 payload["securitySchemes"] = security_schemes
             result.append(MCPTool.model_validate(payload))
         return result
+
+
+def _compact_fastmcp_structured_result(tool_name: str, result: Any) -> Any:
+    """Replace FastMCP's duplicate JSON text with one fixed-size receipt."""
+
+    if not (
+        isinstance(result, tuple)
+        and len(result) == 2
+        and isinstance(result[1], dict)
+    ):
+        return result
+    structured = cast(dict[str, Any], result[1])
+    data = structured.get("data")
+    data_status = data.get("status") if isinstance(data, dict) else None
+    status = str(structured.get("status") or data_status or "PASS")
+    text_receipt = {
+        "schema": "evidence-lane.mcp-text-receipt.v1",
+        "tool": tool_name,
+        "status": status,
+        "structured_receipt_authoritative": True,
+        "duplicate_structured_json_returned": False,
+        "raw_payload_returned": False,
+    }
+    return (
+        [
+            TextContent(
+                type="text",
+                text=json.dumps(text_receipt, sort_keys=True, separators=(",", ":")),
+            )
+        ],
+        structured,
+    )
 
 
 def _apply_oauth_tool_security_schemes(
@@ -1090,6 +1152,274 @@ def inspect_skill_mcp_routing(
     return receipt
 
 
+_PUBLIC_TOOL_EVALUATION_CASES = (
+    "representative",
+    "edge",
+    "missing",
+    "empty",
+    "auth",
+    "write_confirmation",
+    "unsupported",
+)
+
+
+def _tool_schema_case_value(
+    schema: dict[str, Any],
+    *,
+    edge: bool,
+) -> Any:
+    """Build one deterministic, non-secret argument value from JSON Schema."""
+
+    if "const" in schema:
+        return schema["const"]
+    enum = schema.get("enum")
+    if isinstance(enum, list) and enum:
+        return enum[-1 if edge else 0]
+    any_of = schema.get("anyOf")
+    if isinstance(any_of, list):
+        candidates = [
+            row
+            for row in any_of
+            if isinstance(row, dict) and row.get("type") != "null"
+        ]
+        if candidates:
+            return _tool_schema_case_value(
+                candidates[-1 if edge else 0],
+                edge=edge,
+            )
+    schema_type = schema.get("type")
+    if schema_type == "string":
+        return "" if edge else "value"
+    if schema_type == "integer":
+        return 0 if edge else 1
+    if schema_type == "number":
+        return 0.0 if edge else 1.0
+    if schema_type == "boolean":
+        return not edge
+    if schema_type == "array":
+        if edge:
+            return []
+        items = schema.get("items")
+        return [
+            _tool_schema_case_value(
+                items if isinstance(items, dict) else {"type": "string"},
+                edge=False,
+            )
+        ]
+    if schema_type == "object":
+        properties = schema.get("properties")
+        required = schema.get("required")
+        if isinstance(properties, dict) and isinstance(required, list):
+            return {
+                name: _tool_schema_case_value(
+                    cast(dict[str, Any], properties[name]),
+                    edge=edge,
+                )
+                for name in required
+                if isinstance(properties.get(name), dict)
+            }
+        return {} if edge else {"key": "value"}
+    return None
+
+
+def _tool_arguments_validate(tool: Any, arguments: dict[str, Any]) -> bool:
+    """Validate arguments without invoking a public tool or causing writes."""
+
+    try:
+        tool.fn_metadata.arg_model.model_validate(arguments)
+    except ValidationError:
+        return False
+    return True
+
+
+def build_public_tool_evaluation_matrix(
+    mcp: FastMCP,
+    *,
+    oauth_enabled: bool,
+) -> dict[str, Any]:
+    """Evaluate every exposed MCP contract without executing write handlers.
+
+    The full per-tool matrix remains an in-process verification artifact. Native
+    receipts expose only counts and hashes so a catalog check cannot unload the
+    catalog or its schemas into the model context.
+    """
+
+    tools = sorted(mcp._tool_manager.list_tools(), key=lambda item: item.name)
+    tool_names = {tool.name for tool in tools}
+    records: list[dict[str, Any]] = []
+    untested: list[str] = []
+    input_schema_records: list[dict[str, str]] = []
+    output_schema_records: list[dict[str, str]] = []
+    for tool in tools:
+        input_schema = cast(dict[str, Any], tool.parameters)
+        output_schema = tool.output_schema
+        properties = cast(
+            dict[str, dict[str, Any]],
+            input_schema.get("properties") or {},
+        )
+        required = [
+            str(name) for name in cast(list[Any], input_schema.get("required") or [])
+        ]
+        representative = {
+            name: _tool_schema_case_value(properties[name], edge=False)
+            for name in required
+        }
+        edge = {
+            name: _tool_schema_case_value(properties[name], edge=True)
+            for name in required
+        }
+        representative_pass = _tool_arguments_validate(tool, representative)
+        edge_pass = _tool_arguments_validate(tool, edge)
+        if required:
+            missing_pass = all(
+                not _tool_arguments_validate(
+                    tool,
+                    {
+                        name: value
+                        for name, value in representative.items()
+                        if name != omitted
+                    },
+                )
+                for omitted in required
+            )
+        else:
+            missing_pass = _tool_arguments_validate(tool, {})
+        empty_pass = _tool_arguments_validate(tool, {}) is (not required)
+
+        annotations = (
+            tool.annotations.model_dump(exclude_none=True)
+            if tool.annotations is not None
+            else {}
+        )
+        read_only = annotations.get("readOnlyHint") is not False
+        expected_scopes = [READ_SCOPE]
+        if not read_only:
+            expected_scopes.append(WRITE_SCOPE)
+            if tool.name in {
+                "remote_git_prepare_push",
+                "remote_git_execute_push",
+            }:
+                expected_scopes.append(REMOTE_GIT_SCOPE)
+        security_schemes = (tool.meta or {}).get("securitySchemes")
+        expected_security = [{"type": "oauth2", "scopes": expected_scopes}]
+        auth_pass = (
+            security_schemes == expected_security
+            if oauth_enabled
+            else security_schemes is None
+        )
+        write_confirmation_pass = (
+            annotations.get("readOnlyHint") is True
+            if read_only
+            else annotations.get("readOnlyHint") is False
+            and (not oauth_enabled or WRITE_SCOPE in expected_scopes)
+        )
+        unsupported_pass = (
+            f"{tool.name}__unsupported" not in tool_names
+            and mcp._tool_manager.get_tool(f"{tool.name}__unsupported") is None
+        )
+        cases = {
+            "representative": representative_pass,
+            "edge": edge_pass,
+            "missing": missing_pass,
+            "empty": empty_pass,
+            "auth": auth_pass,
+            "write_confirmation": write_confirmation_pass,
+            "unsupported": unsupported_pass,
+        }
+        input_schema_sha256 = hashlib.sha256(
+            json.dumps(
+                input_schema,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest().upper()
+        output_schema_sha256 = hashlib.sha256(
+            json.dumps(
+                output_schema,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest().upper()
+        metadata = {
+            "name": tool.name,
+            "title": tool.title,
+            "description": tool.description,
+            "annotations": annotations,
+            "meta": tool.meta,
+            "input_schema_sha256": input_schema_sha256,
+            "output_schema_sha256": output_schema_sha256,
+        }
+        metadata_sha256 = hashlib.sha256(
+            json.dumps(
+                metadata,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest().upper()
+        record = {
+            "name": tool.name,
+            "input_schema_sha256": input_schema_sha256,
+            "output_schema_sha256": output_schema_sha256,
+            "metadata_sha256": metadata_sha256,
+            "read_only": read_only,
+            "required_argument_count": len(required),
+            "cases": {
+                name: "PASS" if cases[name] else "BLOCKED"
+                for name in _PUBLIC_TOOL_EVALUATION_CASES
+            },
+        }
+        if not all(cases.values()):
+            untested.append(tool.name)
+        records.append(record)
+        input_schema_records.append(
+            {"name": tool.name, "sha256": input_schema_sha256}
+        )
+        output_schema_records.append(
+            {"name": tool.name, "sha256": output_schema_sha256}
+        )
+    records_canonical = json.dumps(
+        records,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return {
+        "schema": "evidence-lane.public-tool-evaluation-matrix.v1",
+        "status": "PASS" if not untested else "BLOCKED",
+        "tool_count": len(records),
+        "schema_metadata_sealed_count": len(records),
+        "case_classes": list(_PUBLIC_TOOL_EVALUATION_CASES),
+        "case_evaluation_count": len(records)
+        * len(_PUBLIC_TOOL_EVALUATION_CASES),
+        "read_tool_count": sum(record["read_only"] for record in records),
+        "write_tool_count": sum(not record["read_only"] for record in records),
+        "oauth_enabled": oauth_enabled,
+        "handler_invocation_mode": "SCHEMA_AND_REGISTRY_ONLY_NO_WRITE_EXECUTION",
+        "side_effect_free": True,
+        "raw_tool_schemas_returned": False,
+        "untested_public_tools": untested,
+        "input_schema_inventory_sha256": hashlib.sha256(
+            json.dumps(
+                input_schema_records,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest().upper(),
+        "output_schema_inventory_sha256": hashlib.sha256(
+            json.dumps(
+                output_schema_records,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest().upper(),
+        "matrix_sha256": hashlib.sha256(records_canonical).hexdigest().upper(),
+        "records": records,
+    }
+
+
 def _native_route_receipt(
     mcp: FastMCP,
     exposure_profile: str,
@@ -1133,7 +1463,16 @@ def _native_route_receipt(
         for tool in project_scoped_tools
         if "project_id" not in set(tool.parameters.get("required") or [])
     )
-    catalog_valid = len(names) == len(set(names)) and not missing_project_route
+    tool_evaluation = build_public_tool_evaluation_matrix(
+        mcp,
+        oauth_enabled=oauth_config is not None,
+    )
+    mcp._evidence_lane_public_tool_evaluation_matrix = tool_evaluation  # type: ignore[attr-defined]
+    catalog_valid = (
+        len(names) == len(set(names))
+        and not missing_project_route
+        and tool_evaluation["status"] == "PASS"
+    )
     return {
         "schema": "evidence-lane.native-mcp-route-receipt.v1",
         "status": "PASS" if catalog_valid else "BLOCKED",
@@ -1191,6 +1530,11 @@ def _native_route_receipt(
             ),
         },
         "tool_catalog_sha256": hashlib.sha256(canonical).hexdigest().upper(),
+        "public_tool_evaluation": {
+            key: value
+            for key, value in tool_evaluation.items()
+            if key != "records"
+        },
         "mcp_apps_resource_uri": GOVERNED_PANEL_URI,
         "host_display_namespace_is_authority": False,
         "accepted_display_namespaces": [
@@ -2386,7 +2730,10 @@ def create_mcp_server(
             "row; and atomically reseals the same governed session/runtime task. It "
             "does not replace the row, create or complete a Goal, create a candidate, "
             "invoke HIL, move the pointer, run Git, install, launch a helper, or open "
-            "a tunnel."
+            "a tunnel. An optional existing_task_promotion uses an empty top-level "
+            "task list and atomically moves one already-recorded queued Delta before "
+            "the sole ACTIVE row, preserving stable task identity and count while "
+            "rebinding the same session and persistent 1+9 host projection."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Queuing linear task plan", "Linear task plan queued"),
@@ -2402,6 +2749,7 @@ def create_mcp_server(
         normalization_transition: dict[str, Any] | None = None,
         atomic_insertion: dict[str, Any] | None = None,
         active_contract_rebind: dict[str, Any] | None = None,
+        existing_task_promotion: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "pv_plan_tasks",
@@ -2415,6 +2763,7 @@ def create_mcp_server(
             normalization_transition=normalization_transition,
             atomic_insertion=atomic_insertion,
             active_contract_rebind=active_contract_rebind,
+            existing_task_promotion=existing_task_promotion,
             lifecycle=True,
         )
 
@@ -3012,6 +3361,44 @@ def create_mcp_server(
             project_id,
             session_id,
             resume_contract=resume_contract,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="pv_state_travel_direct_force_same_worktree",
+        title="Verify direct same-worktree State Travel",
+        description=(
+            "Use the separately named no-seal recovery route exactly once for a "
+            "genuinely new native Codex task that shares the source worktree. It "
+            "atomically verifies source/donor/destination task identities, exact "
+            "dirty bytes, PV pointer baseline, live Plan/1+9/HIL anchors, installed "
+            "plugin/catalog, Flash/runtime/profile, sole-writer and hooks-off laws; "
+            "then binds the existing governed session to the destination. It never "
+            "calls or consumes sealed prepare/resume, creates a candidate, infers "
+            "HIL, moves a pointer, runs Git, installs, or replays."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta(
+            "Verifying direct same-worktree State Travel",
+            "Direct same-worktree State Travel verified",
+        ),
+        structured_output=True,
+    )
+    def pv_state_travel_direct_force_same_worktree(
+        project_id: str,
+        session_id: str,
+        binding: dict[str, Any],
+        client_can_edit_source: bool | None = True,
+        server_has_durable_filesystem: bool | None = True,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "pv_state_travel_direct_force_same_worktree",
+            application.direct_force_same_worktree_state_travel,
+            project_id=project_id,
+            session_id=session_id,
+            binding=binding,
+            client_can_edit_source=client_can_edit_source,
+            server_has_durable_filesystem=server_has_durable_filesystem,
             lifecycle=True,
         )
 

@@ -1,10 +1,10 @@
-# Evidence Lane 2.2.0 architecture
+# Evidence Lane 3.0.0 architecture
 
-Evidence Lane is a Codex-native, local-first evidence lifecycle. Version 2.2.0
-is the current pre-HIL source line. Accepted Project Truth remains PV12 on the
-2.1.0 base until a fresh six-way Project HIL authorizes a different result.
-Source version, installed stable version, disabled fallback version, candidate
-identity, and accepted PV identity are separate facts.
+Evidence Lane is a Codex-native, local-first evidence lifecycle. Version 3.0.0
+is the current pre-HIL source line. Accepted Project Truth remains PV12 at
+generation 12 until a fresh six-way Project HIL authorizes a different result.
+Source, installed package slots, candidate identity, and accepted PV identity
+remain separate measured facts.
 
 ## Authority model
 
@@ -67,10 +67,10 @@ navigation, page, or animation refresh still belongs only to its assigned
 website Delta; updating the live Plan/PV projection is not that delivery.
 
 The current Row196 edge is the exact-commit prerequisite: required clean CI and
-the Git-triggered preview must both bind the reviewed v2.2 branch commit. The
+the Git-triggered preview must both bind the reviewed v3.0 branch commit. The
 immediate Row197/PV13 install-HIL edge then replaces the enabled Stable selector
-with that exact 2.2 package and requires installed UI/native readback of 83
-actions (26 read/57 write), 17 skills, eight hook events, and the migrated
+with that exact 3.0 package and requires installed UI/native readback of 87
+actions (27 read/60 write), 17 skills, eight hook events, and the migrated
 command surface before the PV13 HIL is shown. Neither edge merges main or writes
 the disabled fallback.
 
@@ -89,7 +89,7 @@ Stable tunnel. They run persistently or with a true no-window launch. Older
 versioned copies remain retained and disabled. The pre-final-HIL fallback stays
 at its observed 2.0 identity. Only an exact final PV14 human approval and Fuse
 may begin the serial rotation that proves main equals the accepted commit,
-hydrates both Stable and disabled fallback from the same accepted 2.2 package,
+hydrates both Stable and disabled fallback from the same accepted 3.0 package,
 rotates matching helper/tunnel identities, and leaves one active runtime. The
 same rule repeats for later plugin-maintainer releases, never for downstream
 project PVs.
@@ -183,9 +183,9 @@ flowchart TB
       PlanUI["Host Plan / Goal / governed console projection"]
     end
 
-    subgraph Plugin["Evidence Lane 2.2 package"]
+    subgraph Plugin["Evidence Lane 3.0 package"]
       Skills["17 governed skills\n6 primary controls + routers and sidecars"]
-      MCP["Native evidence-lane MCP\n83 actions = 26 read + 57 write"]
+      MCP["Native evidence-lane MCP\n87 actions = 27 read + 60 write"]
       SDK["Full internal SDK\nengine + contracts + provider/host adapters"]
       Search["SQLite FTS5 authority\nverified rg pre-index fallback"]
     end
@@ -232,8 +232,8 @@ The arrows show data and control flow, not merged authority. Canon cannot
 promote Project Truth, Learning cannot overwrite it, hooks cannot govern it,
 the website cannot execute it, and the host Plan surface cannot accept a PV.
 
-The 2.2.0 package contains one package-local MCP server named
-`evidence-lane`, exactly 83 canonical actions (26 read-only and 57
+The 3.0.0 package contains one package-local MCP server named
+`evidence-lane`, exactly 87 canonical actions (27 read-only and 60
 write-capable), 17 governed skills, six primary controls, and eight lifecycle
 events. The six controls are Boot, Rollback, Build, Refresh, Mode, and Source
 Intake. State Travel is a conditional exact-resume path; it is not a seventh
@@ -260,7 +260,7 @@ artifact carrier or mirror. The eight additional-plugin slots are a different
 surface and never select storage.
 
 Stable/current and Beta desktop packages may expose multiple product surfaces.
-Evidence Lane 2.2.0 governs only a positively proven Codex layer. A package
+Evidence Lane 3.0.0 governs only a positively proven Codex layer. A package
 name, process, title, or current working directory alone cannot prove that
 surface. Local durable Codex uses the package-local MCP and does not need an
 Evidence Lane network tunnel. Any separately classified interactive ephemeral
@@ -270,7 +270,7 @@ authority.
 ## Git, install, and release topology
 
 The current source branch is
-`agent/evi-v220-systemwide-release-hil-v2.2.0`. A bounded exact-commit route
+`agent/evi-v300-systemwide-release-hil-v3.0.0`. A bounded exact-commit route
 may push that branch, run governed Python CI, CodeQL, dependency checks, a
 Vercel Git preview, package verification, and stable-slot verification before
 the final HIL. Main promotion, fallback replacement, production publication,

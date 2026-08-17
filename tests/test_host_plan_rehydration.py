@@ -406,7 +406,7 @@ def _window_goal(*, active_row: int, total_rows: int = 26) -> dict[str, object]:
                 "visible_label": (
                     f"Row {number} / {task_id} — "
                     f"[CLASS=test; GROUP=window; BATCH=batch; DEP=ROOT; "
-                    f"GIT=NOT_DECLARED@TASK_TEXT; VERSION=2.2.0@TASK_TEXT; "
+                    f"GIT=NOT_DECLARED@TASK_TEXT; VERSION=3.0.0@TASK_TEXT; "
                     f"BRANCH=test@TASK_TEXT; ROLE={role}; "
                     f"STATE={lifecycle_status}] {step}"
                 ),

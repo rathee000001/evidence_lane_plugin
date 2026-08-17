@@ -74,6 +74,28 @@ _DELTA_VERIFICATION_ROLES = {
     "SOURCE",
     "TEST",
 }
+_GOVERNED_ACTIVITY_TOOL_LIMIT = 2048
+_GOVERNED_ACTIVITY_CLASS_ORDER = (
+    ("plan_pv", "Plan and PV"),
+    ("chat_lineage", "ChatLineage"),
+    ("canon", "Canon"),
+    ("learning", "AI Learning"),
+    ("memory", "Memory"),
+    ("lifecycle", "Lifecycle"),
+    ("git_sync", "Git sync"),
+    ("vercel_sync_deployment", "Vercel sync and deployment"),
+    ("render_panels", "Render panels"),
+    ("tests", "Tests"),
+    ("installation", "Installation evidence"),
+    ("other_governed", "Other governed activity"),
+)
+_GOVERNED_ACTIVITY_SOURCE_ORDER = (
+    "Evidence Lane",
+    "GitHub",
+    "Vercel",
+    "Render",
+    "Codex host",
+)
 _LINK_RE = re.compile(r"\[[^\]]*\]\(([^)]+)\)|https?://[^\s)>]+")
 _TURN_SECRET_ASSIGNMENT_RE = re.compile(
     r"(?i)\b(?:authorization|password|token|secret|api[_-]?key|"
@@ -82,6 +104,15 @@ _TURN_SECRET_ASSIGNMENT_RE = re.compile(
 _TURN_BEARER_RE = re.compile(r"(?i)\bbearer\s+[^\s,;]+")
 _ACTIVE_PLAN_STATUSES = {"ACTIVE", "IN_PROGRESS"}
 _MAX_VISIBLE_EVENT_CHARS = 12_000
+_COMPACT_REENTRY_CONTEXT_BYTE_CEILING = 8_192
+_COMPACT_SESSION_SOURCES = {
+    "auto-compact",
+    "compact",
+    "compaction",
+    "manual-compact",
+    "post-compact",
+    "postcompact",
+}
 _MAX_PERSISTENT_CHANGE_PATHS = 200
 _TOKEN_METRIC_KEYS = {
     "input_tokens",
@@ -110,7 +141,7 @@ _LIFECYCLE_EXIT_REASONS = {
     "STATELESS_EPHEMERAL_END",
 }
 _GOAL_RECOVERY_BINDING_SCHEMA = "evidence-lane.codex-goal-recovery-binding.v1"
-_GOAL_RECOVERY_RELEASE_TOKEN = "v220"
+_GOAL_RECOVERY_RELEASE_TOKEN = "v300"
 _SEALED_GOAL_CONTINUATION_ORIGIN = "SEALED_ACTIVE_GOAL_RECOVERY_BINDING"
 _PROJECT_TASK_PRIVATE_ANALYSIS = "PROJECT_TASK_PRIVATE_ANALYSIS"
 _MEMORY_PLUS_LEARNING_RESEARCH_QUESTION = (
@@ -2921,7 +2952,14 @@ def seal_per_delta_local_verification_checkpoint(
             and role in _DELTA_VERIFICATION_ROLES
             and _SHA256_RE.fullmatch(supplied_sha256) is not None
             and supplied_sha256 == sha256_file(target)
-            and any(fnmatchcase(relative, pattern) for pattern in permitted_paths),
+            and any(
+                fnmatchcase(relative, pattern)
+                or (
+                    not any(marker in pattern for marker in "*?[")
+                    and relative.startswith(pattern.rstrip("/") + "/")
+                )
+                for pattern in permitted_paths
+            ),
             "DELTA_VERIFICATION_CHANGED_PATH_MISMATCH",
             "A changed path is duplicate, outside authority, absent, or hash-mismatched.",
             path=relative or None,
@@ -3206,8 +3244,16 @@ def _warm_attach_receipt(
         persistence_route.get("tunnel_requirement")
         or "HOST_CAPABILITY_UNSPECIFIED"
     )
+    host_tool_transport = str(
+        persistence_route.get("host_tool_transport")
+        or "HOST_CAPABILITY_UNSPECIFIED"
+    )
+    native_mcp_available = persistence_route.get("native_mcp_available") is True
+    tool_gap_route = persistence_route.get("tool_gap_route") is True
     interactive_tunnel = (
-        tunnel_requirement == "REQUIRED_FOR_INTERACTIVE_CODEX_APP_ENVIRONMENT"
+        tunnel_requirement == "REQUIRED_FOR_HOST_TOOL_GAP"
+        and host_tool_transport == "HOST_TOOL_GAP"
+        and tool_gap_route
     )
     core = {
         "schema": "evidence-lane.codex-warm-attach-receipt.v1",
@@ -3252,6 +3298,9 @@ def _warm_attach_receipt(
             else "NOT_IN_CODEX_NATIVE_LIFECYCLE_CRITICAL_PATH"
         ),
         "tunnel_requirement": tunnel_requirement,
+        "host_tool_transport": host_tool_transport,
+        "native_mcp_available": native_mcp_available,
+        "tool_gap_route": tool_gap_route,
         "tunnel_setup_frequency": persistence_route.get(
             "tunnel_setup_frequency", "HOST_CAPABILITY_UNSPECIFIED"
         ),
@@ -6119,6 +6168,286 @@ def _bounded_visible(value: Any) -> dict[str, Any]:
     }
 
 
+def _governed_activity_class(tool_name: str, visible_json: str) -> str:
+    normalized = tool_name.strip().lower().replace("-", "_")
+    command_text = (
+        visible_json.lower()
+        if normalized
+        in {
+            "shell_command",
+            "functions.shell_command",
+            "mcp__codex__shell_command",
+            "terminal",
+        }
+        else ""
+    )
+    combined = f"{normalized}\n{command_text}"
+    if "render_project_panel" in normalized or "render_runtime_panel" in normalized:
+        return "render_panels"
+    if "vercel" in normalized or re.search(r"\bvercel(?:\.exe)?\s", command_text):
+        return "vercel_sync_deployment"
+    if (
+        "github" in normalized
+        or normalized.startswith("git_")
+        or re.search(
+            r"\bgit\s+(?:add|commit|diff|fetch|merge|pull|push|status|switch)\b",
+            command_text,
+        )
+    ):
+        return "git_sync"
+    if any(
+        marker in command_text
+        for marker in (
+            " pytest",
+            "pytest ",
+            "ruff check",
+            "npm test",
+            "pnpm test",
+            "test-current-execution-panel",
+        )
+    ):
+        return "tests"
+    if any(
+        marker in combined
+        for marker in (
+            "plugin_add",
+            "plugin add",
+            "plugin install",
+            "marketplace add",
+            "pip install",
+            "npm install",
+            "install_evidence",
+            "install-evidence",
+        )
+    ):
+        return "installation"
+    if "chatlineage" in combined or "chat_lineage" in combined or "lineage" in normalized:
+        return "chat_lineage"
+    if "record_host_memory_import" in combined or "memory_" in normalized:
+        return "memory"
+    if "canon" in normalized:
+        return "canon"
+    if "learning" in normalized:
+        return "learning"
+    if any(marker in normalized for marker in ("pv_", "plan", "task_backlog", "task_classify")):
+        return "plan_pv"
+    if any(
+        marker in normalized
+        for marker in (
+            "boot",
+            "build",
+            "fuse",
+            "refresh",
+            "rollback",
+            "runtime",
+            "session",
+            "state_travel",
+            "transition",
+        )
+    ):
+        return "lifecycle"
+    return "other_governed"
+
+
+def _governed_activity_source_plugin(tool_name: str) -> str:
+    normalized = tool_name.strip().lower().replace("-", "_")
+    if "github" in normalized or normalized.startswith("git_"):
+        return "GitHub"
+    if "vercel" in normalized:
+        return "Vercel"
+    if "render_project_panel" in normalized or "render_runtime_panel" in normalized:
+        return "Render"
+    if normalized in {
+        "shell_command",
+        "functions.shell_command",
+        "mcp__codex__shell_command",
+        "terminal",
+    }:
+        return "Codex host"
+    return "Evidence Lane"
+
+
+def _build_governed_activity_count_projection(
+    events: list[Mapping[str, Any]],
+    *,
+    total_tool_use_count: int | None = None,
+    host_ui_supported: bool | None = None,
+) -> dict[str, Any]:
+    selected: dict[str, Mapping[str, Any]] = {}
+    selected_order: dict[str, tuple[int, str, str]] = {}
+    for event in events:
+        tool_use_id = str(event.get("tool_use_id") or "").strip()
+        phase = str(event.get("phase") or "").strip().lower()
+        if not tool_use_id or phase not in {"before", "after"}:
+            continue
+        rank = (
+            1 if phase == "after" else 0,
+            str(event.get("recorded_at") or ""),
+            str(event.get("tool_event_sha256") or ""),
+        )
+        if tool_use_id not in selected or rank > selected_order[tool_use_id]:
+            selected[tool_use_id] = event
+            selected_order[tool_use_id] = rank
+
+    class_counts = {key: 0 for key, _ in _GOVERNED_ACTIVITY_CLASS_ORDER}
+    source_counts = {key: 0 for key in _GOVERNED_ACTIVITY_SOURCE_ORDER}
+    completed_count = 0
+    for event in selected.values():
+        tool_name = str(event.get("tool_name") or "")
+        visible_json = str(event.get("visible_json_after_redaction") or "")
+        class_counts[_governed_activity_class(tool_name, visible_json)] += 1
+        source_counts[_governed_activity_source_plugin(tool_name)] += 1
+        completed_count += int(str(event.get("phase") or "").lower() == "after")
+
+    exact_total = max(int(total_tool_use_count or len(selected)), len(selected))
+    projected = len(selected)
+    core = {
+        "schema": "evidence-lane.codex-governed-activity-counts.v1",
+        "state": "BOUNDED_ATTRIBUTION_COUNTS_PROJECTED",
+        "group_id": "evidence_lane",
+        "group_label": "Evidence Lane",
+        "activity_classes": [
+            {"class_id": key, "label": label, "count": class_counts[key]}
+            for key, label in _GOVERNED_ACTIVITY_CLASS_ORDER
+            if class_counts[key]
+        ],
+        "source_plugin_groups": [
+            {"source_plugin": source, "count": source_counts[source]}
+            for source in _GOVERNED_ACTIVITY_SOURCE_ORDER
+            if source_counts[source]
+        ],
+        "projected_tool_use_count": projected,
+        "completed_tool_use_count": completed_count,
+        "in_flight_tool_use_count": projected - completed_count,
+        "offloaded_tool_use_count": exact_total - projected,
+        "deduplicated_by": "tool_use_id_after_phase_preferred",
+        "attribution_only": True,
+        "source_actions_reparented": False,
+        "completed_detail_offloaded": True,
+        "raw_receipts_included": False,
+        "raw_tool_input_included": False,
+        "raw_tool_response_included": False,
+        "model_context_blob_included": False,
+        "host_grouping_capability": (
+            "SUPPORTED"
+            if host_ui_supported is True
+            else "UNSUPPORTED"
+            if host_ui_supported is False
+            else "UNVERIFIED"
+        ),
+        "host_rendering_authority": "CODEX_HOST_OWNED",
+        "fallback_surface": "BOUNDED_STRUCTURED_COUNTER_PROJECTION",
+        "read_only_projection": True,
+        "lifecycle_mutated": False,
+        "candidate_created_or_accepted": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+    }
+    core["projection_sha256"] = sha256_bytes(canonical_json_bytes(core))
+    return core
+
+
+def _governed_activity_counts_from_database(
+    database: Path,
+    *,
+    project_id: str,
+    evidence_session_id: str,
+    host_ui_supported: bool | None,
+) -> dict[str, Any]:
+    if not database.is_file():
+        return _build_governed_activity_count_projection(
+            [],
+            total_tool_use_count=0,
+            host_ui_supported=host_ui_supported,
+        )
+    with _read_only(database) as connection:
+        total = int(
+            connection.execute(
+                """
+                SELECT COUNT(DISTINCT t.tool_use_id)
+                FROM turn_tool_event t
+                JOIN turn_entry e
+                  ON e.control_record_sha256=t.control_record_sha256
+                WHERE e.project_id=? AND e.evidence_session_id=?
+                """,
+                (project_id, evidence_session_id),
+            ).fetchone()[0]
+        )
+        rows = connection.execute(
+            """
+            SELECT t.tool_use_id, t.phase, t.tool_name, t.tool_event_sha256,
+                   t.event_json, t.recorded_at
+            FROM turn_tool_event t
+            JOIN turn_entry e
+              ON e.control_record_sha256=t.control_record_sha256
+            WHERE e.project_id=? AND e.evidence_session_id=?
+            ORDER BY t.recorded_at DESC, t.tool_use_id, t.phase DESC
+            LIMIT ?
+            """,
+            (
+                project_id,
+                evidence_session_id,
+                _GOVERNED_ACTIVITY_TOOL_LIMIT * 2,
+            ),
+        ).fetchall()
+    events: list[Mapping[str, Any]] = []
+    for row in rows:
+        record = json.loads(row["event_json"])
+        event_payload = record.get("event_payload")
+        _require(
+            isinstance(event_payload, dict),
+            "TURN_CONTROL_ACTIVITY_EVENT_INVALID",
+            "A governed activity receipt has no bounded event payload.",
+        )
+        events.append(
+            {
+                "tool_use_id": row["tool_use_id"],
+                "phase": row["phase"],
+                "tool_name": row["tool_name"],
+                "tool_event_sha256": row["tool_event_sha256"],
+                "recorded_at": row["recorded_at"],
+                "visible_json_after_redaction": event_payload.get(
+                    "visible_json_after_redaction"
+                ),
+            }
+        )
+    return _build_governed_activity_count_projection(
+        events,
+        total_tool_use_count=total,
+        host_ui_supported=host_ui_supported,
+    )
+
+
+def project_governed_activity_counts(
+    store_root: str | Path,
+    *,
+    host_session_id: str,
+    cwd: str,
+    host_ui_supported: bool | None = None,
+) -> dict[str, Any]:
+    """Project compact attributed counts without reparenting source actions."""
+
+    root = Path(store_root).resolve()
+    bound = _one_bound_session(
+        root,
+        host_session_id=host_session_id.strip(),
+        cwd=cwd,
+    )
+    binding = _binding_snapshot(root, bound)
+    database = Path(bound["project_root"]) / "lineage" / "codex_turn_control.sqlite"
+    return _governed_activity_counts_from_database(
+        database,
+        project_id=str(binding["project_id"]),
+        evidence_session_id=str(binding["evidence_session_id"]),
+        host_ui_supported=host_ui_supported,
+    )
+
+
+def _host_activity_group_support(host_payload: Mapping[str, Any]) -> bool | None:
+    value = host_payload.get("host_ui_supports_activity_groups")
+    return value if isinstance(value, bool) else None
+
+
 def record_tool_event(
     store_root: str | Path,
     *,
@@ -6204,12 +6533,19 @@ def record_tool_event(
             "TURN_CONTROL_TOOL_EVENT_CONFLICT",
             "A tool-use identity already binds different visible activity.",
         )
+        activity_counts = _governed_activity_counts_from_database(
+            project_root / "lineage" / "codex_turn_control.sqlite",
+            project_id=str(binding["project_id"]),
+            evidence_session_id=str(binding["evidence_session_id"]),
+            host_ui_supported=None,
+        )
         return {
             "state": "RECORDED_IDEMPOTENT_REUSE",
             "tool_event_sha256": stored["tool_event_sha256"],
             "lineage_event_sha256": stored["lineage_event_sha256"],
             "control_record_sha256": entry["control_record_sha256"],
             "phase": phase,
+            "governed_activity_counts": activity_counts,
         }
     lineage_path = project_root / "lineage" / f"{binding['evidence_session_id']}.jsonl"
     lineage_event = ChatLineage(lineage_path).append(
@@ -6249,13 +6585,566 @@ def record_tool_event(
             ),
         )
         connection.commit()
+    activity_counts = _governed_activity_counts_from_database(
+        project_root / "lineage" / "codex_turn_control.sqlite",
+        project_id=str(binding["project_id"]),
+        evidence_session_id=str(binding["evidence_session_id"]),
+        host_ui_supported=None,
+    )
     return {
         "state": "RECORDED",
         "tool_event_sha256": tool_event_sha256,
         "lineage_event_sha256": lineage_event["event_sha256"],
         "control_record_sha256": entry["control_record_sha256"],
         "phase": phase,
+        "governed_activity_counts": activity_counts,
     }
+
+
+def _is_compact_session_source(value: Any) -> bool:
+    normalized = str(value or "").strip().lower().replace("_", "-")
+    return normalized in _COMPACT_SESSION_SOURCES
+
+
+def _compact_locator(project_root: Path, relative_path: str) -> dict[str, Any]:
+    """Return one project-relative locator without loading its payload."""
+
+    relative = Path(relative_path)
+    _require(
+        not relative.is_absolute() and ".." not in relative.parts,
+        "TURN_CONTROL_COMPACT_LOCATOR_INVALID",
+        "A compact re-entry locator must stay inside the governed project.",
+        relative_path=relative_path,
+    )
+    path = project_root / relative
+    exists = path.is_file()
+    locator: dict[str, Any] = {
+        "relative_path": relative.as_posix(),
+        "state": "AVAILABLE" if exists else "MISSING",
+        "exists": exists,
+    }
+    if exists:
+        stat = path.stat()
+        locator.update(
+            {
+                "size_bytes": int(stat.st_size),
+                "content_sha256": sha256_file(path),
+            }
+        )
+    locator["locator_sha256"] = sha256_bytes(canonical_json_bytes(locator))
+    return locator
+
+
+def _compact_lineage_cursor(
+    project_root: Path,
+    *,
+    evidence_session_id: str,
+) -> dict[str, Any]:
+    relative_path = f"lineage/{evidence_session_id}.sqlite"
+    locator = _compact_locator(project_root, relative_path)
+    if not locator["exists"]:
+        return {
+            "state": "MISSING",
+            "locator": locator,
+            "raw_event_payload_included": False,
+        }
+    try:
+        with _read_only(project_root / relative_path) as connection:
+            row = connection.execute(
+                """
+                SELECT event_count, head_event_sha256, jsonl_sha256,
+                       projection_sha256
+                FROM lineage_head
+                WHERE singleton=1
+                """
+            ).fetchone()
+    except sqlite3.Error as exc:
+        raise TurnControlError(
+            "TURN_CONTROL_COMPACT_LINEAGE_CURSOR_INVALID",
+            "The compact ChatLineage cursor could not be read safely.",
+            error_type=type(exc).__name__,
+        ) from exc
+    if row is None:
+        return {
+            "state": "EMPTY",
+            "locator": locator,
+            "event_count": 0,
+            "raw_event_payload_included": False,
+        }
+    return {
+        "state": "AVAILABLE",
+        "locator": locator,
+        "event_count": int(row["event_count"]),
+        "head_event_sha256": row["head_event_sha256"],
+        "jsonl_sha256": row["jsonl_sha256"],
+        "projection_sha256": row["projection_sha256"],
+        "raw_event_payload_included": False,
+    }
+
+
+def _compact_task_memory_cursor(
+    project_root: Path,
+    *,
+    project_id: str,
+    evidence_session_id: str,
+    runtime_task_id: str | None,
+) -> dict[str, Any]:
+    relative_path = "lineage/codex_turn_control.sqlite"
+    locator = _compact_locator(project_root, relative_path)
+    if not locator["exists"]:
+        return {
+            "state": "MISSING",
+            "locator": locator,
+        }
+    try:
+        with _read_only(project_root / relative_path) as connection:
+            row = connection.execute(
+                """
+                SELECT e.prompt_index, e.control_record_sha256,
+                       e.prompt_record_sha256, e.binding_sha256,
+                       e.retrieval_receipt_sha256,
+                       c.commit_sha256, c.response_record_sha256,
+                       c.lineage_event_sha256
+                FROM turn_entry e
+                LEFT JOIN turn_commit c
+                  ON c.control_record_sha256=e.control_record_sha256
+                WHERE e.project_id=? AND e.evidence_session_id=?
+                  AND (? IS NULL OR json_extract(e.record_json, '$.task_id')=?)
+                ORDER BY e.prompt_index DESC
+                LIMIT 1
+                """,
+                (
+                    project_id,
+                    evidence_session_id,
+                    runtime_task_id,
+                    runtime_task_id,
+                ),
+            ).fetchone()
+    except sqlite3.Error as exc:
+        raise TurnControlError(
+            "TURN_CONTROL_COMPACT_TASK_MEMORY_CURSOR_INVALID",
+            "The compact task-memory cursor could not be read safely.",
+            error_type=type(exc).__name__,
+        ) from exc
+    if row is None:
+        return {
+            "state": "EMPTY",
+            "locator": locator,
+            "runtime_task_id": runtime_task_id,
+        }
+    return {
+        "state": "AVAILABLE",
+        "locator": locator,
+        "runtime_task_id": runtime_task_id,
+        "prompt_index": int(row["prompt_index"]),
+        "control_record_sha256": row["control_record_sha256"],
+        "prompt_record_sha256": row["prompt_record_sha256"],
+        "binding_sha256": row["binding_sha256"],
+        "retrieval_receipt_sha256": row["retrieval_receipt_sha256"],
+        "commit_sha256": row["commit_sha256"],
+        "response_record_sha256": row["response_record_sha256"],
+        "lineage_event_sha256": row["lineage_event_sha256"],
+        "turn_state": "COMMITTED" if row["commit_sha256"] else "PREPARED_NOT_COMMITTED",
+    }
+
+
+def _compact_plan_window(session: dict[str, Any]) -> dict[str, Any]:
+    metadata = dict(session.get("metadata") or {})
+    active_task_id = str(metadata.get("active_backlog_task_id") or "").strip()
+    _require(
+        bool(active_task_id)
+        and str(metadata.get("active_backlog_task_status") or "").upper()
+        == "ACTIVE",
+        "TURN_CONTROL_COMPACT_ACTIVE_TASK_REQUIRED",
+        "Compact re-entry requires one exact active Plan task.",
+    )
+    value = metadata.get("host_plan_window")
+    if isinstance(value, dict) and value:
+        window = dict(value)
+        task_ids = [str(item) for item in window.get("window_task_ids") or []]
+        _require(
+            window.get("schema") == "evidence-lane.host-plan-window-state.v1"
+            and active_task_id in task_ids
+            and len(task_ids) <= 9,
+            "TURN_CONTROL_COMPACT_PLAN_WINDOW_MISMATCH",
+            "The bounded host Plan window does not contain the exact active task.",
+            active_task_id=active_task_id,
+        )
+        return {
+            "state": "HOST_PLAN_WINDOW_BOUND",
+            "canonical_plan_sha256": window.get("canonical_plan_sha256"),
+            "executable_projection_sha256": window.get(
+                "executable_projection_sha256"
+            ),
+            "window_projection_sha256": window.get("projection_sha256"),
+            "window_ui_fingerprint_sha256": window.get(
+                "window_ui_fingerprint_sha256"
+            ),
+            "window_receipt_sha256": window.get("receipt_sha256"),
+            "row_start": window.get("row_start"),
+            "row_end": window.get("row_end"),
+            "sole_active_row": window.get("sole_active_row"),
+            "active_task_id": active_task_id,
+            "window_task_count": len(task_ids),
+            "full_plan_rows_included": False,
+        }
+    travel = dict(metadata.get("state_travel") or {})
+    resume_contract = dict(travel.get("resume_contract") or {})
+    task_list = resume_contract.get("task_list") or []
+    active_rows = [
+        dict(row)
+        for row in task_list
+        if isinstance(row, dict)
+        and str(row.get("status") or "").upper() in _ACTIVE_PLAN_STATUSES
+    ]
+    _require(
+        len(active_rows) == 1,
+        "TURN_CONTROL_COMPACT_PLAN_WINDOW_REQUIRED",
+        "No bounded host Plan window or single sealed State Travel row is available.",
+        active_row_count=len(active_rows),
+    )
+    return {
+        "state": "SEALED_STATE_TRAVEL_WINDOW_FALLBACK",
+        "task_list_sha256": resume_contract.get("task_list_sha256"),
+        "active_task_id": active_task_id,
+        "sealed_resume_task_id": active_rows[0].get("task_id"),
+        "full_plan_rows_included": False,
+    }
+
+
+def _seal_compact_context_size(core: dict[str, Any]) -> dict[str, Any]:
+    sized = {**core, "serialized_bytes": 0, "compact_context_sha256": "0" * 64}
+    for _ in range(4):
+        size = len(canonical_json_bytes(sized))
+        if sized["serialized_bytes"] == size:
+            break
+        sized["serialized_bytes"] = size
+    hash_basis = {
+        key: value for key, value in sized.items() if key != "compact_context_sha256"
+    }
+    sized["compact_context_sha256"] = sha256_bytes(canonical_json_bytes(hash_basis))
+    final_size = len(canonical_json_bytes(sized))
+    if final_size != sized["serialized_bytes"]:
+        sized["serialized_bytes"] = final_size
+        hash_basis = {
+            key: value
+            for key, value in sized.items()
+            if key != "compact_context_sha256"
+        }
+        sized["compact_context_sha256"] = sha256_bytes(
+            canonical_json_bytes(hash_basis)
+        )
+    _require(
+        len(canonical_json_bytes(sized)) <= _COMPACT_REENTRY_CONTEXT_BYTE_CEILING,
+        "TURN_CONTROL_COMPACT_CONTEXT_BYTE_CEILING_EXCEEDED",
+        "The compact re-entry context exceeded its sealed byte ceiling.",
+        byte_ceiling=_COMPACT_REENTRY_CONTEXT_BYTE_CEILING,
+        serialized_bytes=len(canonical_json_bytes(sized)),
+    )
+    return sized
+
+
+def _compact_authority_context(
+    root: Path,
+    *,
+    bound: dict[str, Any],
+    host_session_id: str,
+) -> dict[str, Any]:
+    session = cast(dict[str, Any], bound["session"])
+    metadata = cast(dict[str, Any], session.get("metadata") or {})
+    project_id = str(session.get("project_id") or "")
+    evidence_session_id = str(session.get("session_id") or "")
+    project_root = Path(bound["project_root"])
+    pointer = _json(project_root / "active_pointer.json")
+    _require(
+        pointer.get("project_id") == project_id
+        and pointer.get("accepted_pv") == session.get("accepted_pv")
+        and int(pointer.get("generation") or 0)
+        == int(session.get("accepted_pointer_generation") or 0),
+        "TURN_CONTROL_COMPACT_POINTER_MISMATCH",
+        "Compact re-entry identities do not match the accepted pointer.",
+    )
+    runtime_task = session.get("task") if isinstance(session.get("task"), dict) else {}
+    runtime_task_id = str(cast(dict[str, Any], runtime_task).get("task_id") or "") or None
+    active_task_id = str(metadata.get("active_backlog_task_id") or "")
+    task_contract = dict(runtime_task or {})
+    classification = dict(metadata.get("task_classification_binding") or {})
+    rebind = dict(metadata.get("active_contract_rebind_receipt") or {})
+    core = {
+        "schema": "evidence-lane.codex-compact-reentry-context.v1",
+        "state": "SEALED_BOUNDED_COMPACT_AUTHORITY",
+        "project_id": project_id,
+        "evidence_session_id": evidence_session_id,
+        "host_session_id_sha256": sha256_bytes(host_session_id.encode("utf-8")),
+        "accepted_pv": session.get("accepted_pv"),
+        "pointer_generation": session.get("accepted_pointer_generation"),
+        "accepted_manifest_sha256": pointer.get("accepted_manifest_sha256"),
+        "binding_epoch_sha256": _host_binding_epoch(session),
+        "active_authority": {
+            "active_plan_task_id": active_task_id,
+            "active_plan_task_status": metadata.get("active_backlog_task_status"),
+            "runtime_task_id": runtime_task_id,
+            "runtime_task_contract_sha256": (
+                sha256_bytes(canonical_json_bytes(task_contract))
+                if task_contract
+                else None
+            ),
+            "task_classification_receipt_sha256": classification.get(
+                "receipt_sha256"
+            ),
+            "active_contract_rebind_receipt_sha256": rebind.get("receipt_sha256"),
+        },
+        "plan_window": _compact_plan_window(session),
+        "chat_lineage_cursor": _compact_lineage_cursor(
+            project_root,
+            evidence_session_id=evidence_session_id,
+        ),
+        "task_memory_cursor": _compact_task_memory_cursor(
+            project_root,
+            project_id=project_id,
+            evidence_session_id=evidence_session_id,
+            runtime_task_id=runtime_task_id,
+        ),
+        "canon_locator": _compact_locator(project_root, "canon/canon-input.sqlite"),
+        "learning_locator": _compact_locator(
+            project_root, "learning/agent-learning.sqlite"
+        ),
+        "learning_pointer_locator": _compact_locator(
+            project_root, "learning/active_pointer.json"
+        ),
+        "immediate_continuation": {
+            "action": "CONTINUE_EXACT_ACTIVE_TASK_WITH_BOUNDED_QUERIES_ONLY",
+            "active_plan_task_id": active_task_id,
+            "runtime_task_id": runtime_task_id,
+            "authority_reconstruction_allowed": False,
+        },
+        "byte_ceiling": _COMPACT_REENTRY_CONTEXT_BYTE_CEILING,
+        "full_plan_included": False,
+        "full_env_uop_included": False,
+        "full_runtime_envelope_included": False,
+        "raw_prompt_included": False,
+        "private_reasoning_included": False,
+    }
+    return _seal_compact_context_size(core)
+
+
+def _compact_latest_path(project_root: Path) -> Path:
+    return project_root / "lineage" / "compact_reentry" / "latest.json"
+
+
+def _write_compact_latest_pointer(
+    project_root: Path,
+    *,
+    receipt_path: Path,
+    receipt: dict[str, Any],
+) -> dict[str, Any]:
+    relative = receipt_path.relative_to(project_root).as_posix()
+    context = cast(dict[str, Any], receipt.get("compact_reentry_context") or {})
+    existing: dict[str, Any] = {}
+    latest_path = _compact_latest_path(project_root)
+    if latest_path.is_file():
+        existing = _json(latest_path)
+    same_precompact = (
+        existing.get("precompact_receipt_sha256") == receipt.get("receipt_sha256")
+    )
+    core = {
+        "schema": "evidence-lane.codex-compact-reentry-pointer.v1",
+        "project_id": receipt.get("project_id"),
+        "evidence_session_id": receipt.get("evidence_session_id"),
+        "active_task_id": receipt.get("active_task_id"),
+        "binding_epoch_sha256": receipt.get("binding_epoch_sha256"),
+        "precompact_receipt_relative_path": relative,
+        "precompact_receipt_sha256": receipt.get("receipt_sha256"),
+        "compact_context_sha256": context.get("compact_context_sha256"),
+        "postcompact_receipt_relative_path": existing.get(
+            "postcompact_receipt_relative_path"
+        )
+        if same_precompact
+        else None,
+        "postcompact_receipt_sha256": existing.get("postcompact_receipt_sha256")
+        if same_precompact
+        else None,
+        "updated_at": _now(),
+    }
+    core["pointer_sha256"] = sha256_bytes(canonical_json_bytes(core))
+    atomic_write_json(latest_path, core)
+    return core
+
+
+def _load_compact_precompact_receipt(
+    project_root: Path,
+    *,
+    session: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any], Path]:
+    latest_path = _compact_latest_path(project_root)
+    _require(
+        latest_path.is_file(),
+        "TURN_CONTROL_COMPACT_PRECOMPACT_POINTER_REQUIRED",
+        "Compact SessionStart requires a sealed PreCompact pointer.",
+    )
+    pointer = _json(latest_path)
+    claimed_pointer_sha = str(pointer.get("pointer_sha256") or "")
+    actual_pointer_sha = sha256_bytes(
+        canonical_json_bytes(
+            {key: value for key, value in pointer.items() if key != "pointer_sha256"}
+        )
+    )
+    metadata = dict(session.get("metadata") or {})
+    _require(
+        claimed_pointer_sha == actual_pointer_sha
+        and pointer.get("project_id") == session.get("project_id")
+        and pointer.get("evidence_session_id") == session.get("session_id")
+        and pointer.get("active_task_id") == metadata.get("active_backlog_task_id")
+        and pointer.get("binding_epoch_sha256") == _host_binding_epoch(session),
+        "TURN_CONTROL_COMPACT_PRECOMPACT_POINTER_STALE",
+        "The sealed PreCompact pointer no longer matches the active authority.",
+    )
+    relative = Path(str(pointer.get("precompact_receipt_relative_path") or ""))
+    _require(
+        not relative.is_absolute() and ".." not in relative.parts,
+        "TURN_CONTROL_COMPACT_PRECOMPACT_PATH_INVALID",
+        "The sealed PreCompact receipt path escaped the governed project.",
+    )
+    receipt_path = project_root / relative
+    _require(
+        receipt_path.is_file(),
+        "TURN_CONTROL_COMPACT_PRECOMPACT_RECEIPT_REQUIRED",
+        "The sealed PreCompact receipt is missing.",
+    )
+    receipt = _json(receipt_path)
+    claimed_receipt_sha = str(receipt.get("receipt_sha256") or "")
+    actual_receipt_sha = sha256_bytes(
+        canonical_json_bytes(
+            {key: value for key, value in receipt.items() if key != "receipt_sha256"}
+        )
+    )
+    _require(
+        claimed_receipt_sha == actual_receipt_sha
+        == pointer.get("precompact_receipt_sha256")
+        and receipt.get("event_name") == "PreCompact"
+        and receipt.get("binding_epoch_sha256") == _host_binding_epoch(session),
+        "TURN_CONTROL_COMPACT_PRECOMPACT_RECEIPT_STALE",
+        "The sealed PreCompact receipt failed identity or SHA-256 verification.",
+    )
+    return pointer, receipt, receipt_path
+
+
+def _write_compact_postcompact_completion(
+    project_root: Path,
+    *,
+    receipt_path: Path,
+    receipt: dict[str, Any],
+    session: dict[str, Any],
+) -> dict[str, Any]:
+    pointer, _, _ = _load_compact_precompact_receipt(
+        project_root,
+        session=session,
+    )
+    updated = {
+        key: value for key, value in pointer.items() if key != "pointer_sha256"
+    }
+    updated.update(
+        {
+            "postcompact_receipt_relative_path": receipt_path.relative_to(
+                project_root
+            ).as_posix(),
+            "postcompact_receipt_sha256": receipt.get("receipt_sha256"),
+            "updated_at": _now(),
+        }
+    )
+    updated["pointer_sha256"] = sha256_bytes(canonical_json_bytes(updated))
+    atomic_write_json(_compact_latest_path(project_root), updated)
+    return updated
+
+
+def _compact_session_reentry_context(
+    root: Path,
+    *,
+    bound: dict[str, Any],
+    host_session_id: str,
+) -> dict[str, Any]:
+    session = cast(dict[str, Any], bound["session"])
+    project_root = Path(bound["project_root"])
+    pointer, precompact_receipt, _ = _load_compact_precompact_receipt(
+        project_root,
+        session=session,
+    )
+    sealed_context = cast(
+        dict[str, Any], precompact_receipt.get("compact_reentry_context") or {}
+    )
+    sealed_context_sha = str(sealed_context.get("compact_context_sha256") or "")
+    sealed_context_basis = {
+        key: value
+        for key, value in sealed_context.items()
+        if key != "compact_context_sha256"
+    }
+    _require(
+        bool(sealed_context)
+        and sealed_context_sha
+        == sha256_bytes(canonical_json_bytes(sealed_context_basis))
+        == pointer.get("compact_context_sha256")
+        and int(sealed_context.get("serialized_bytes") or 0)
+        == len(canonical_json_bytes(sealed_context))
+        and len(canonical_json_bytes(sealed_context))
+        <= _COMPACT_REENTRY_CONTEXT_BYTE_CEILING,
+        "TURN_CONTROL_COMPACT_CONTEXT_STALE",
+        "The sealed compact context failed its hash or byte-ceiling contract.",
+    )
+    post_relative = Path(
+        str(pointer.get("postcompact_receipt_relative_path") or "")
+    )
+    _require(
+        bool(str(post_relative))
+        and not post_relative.is_absolute()
+        and ".." not in post_relative.parts,
+        "TURN_CONTROL_COMPACT_POSTCOMPACT_REQUIRED",
+        "Compact SessionStart requires a matching PostCompact completion.",
+    )
+    post_path = project_root / post_relative
+    _require(
+        post_path.is_file(),
+        "TURN_CONTROL_COMPACT_POSTCOMPACT_REQUIRED",
+        "The matching PostCompact completion receipt is missing.",
+    )
+    post_receipt = _json(post_path)
+    post_claimed_sha = str(post_receipt.get("receipt_sha256") or "")
+    post_actual_sha = sha256_bytes(
+        canonical_json_bytes(
+            {
+                key: value
+                for key, value in post_receipt.items()
+                if key != "receipt_sha256"
+            }
+        )
+    )
+    _require(
+        post_claimed_sha == post_actual_sha
+        == pointer.get("postcompact_receipt_sha256")
+        and post_receipt.get("event_name") == "PostCompact"
+        and post_receipt.get("precompact_receipt_sha256")
+        == precompact_receipt.get("receipt_sha256"),
+        "TURN_CONTROL_COMPACT_POSTCOMPACT_STALE",
+        "The PostCompact completion no longer matches the sealed PreCompact receipt.",
+    )
+    current = _compact_authority_context(
+        root,
+        bound=bound,
+        host_session_id=host_session_id,
+    )
+    current.pop("serialized_bytes", None)
+    current.pop("compact_context_sha256", None)
+    current.update(
+        {
+            "state": "COMPACT_REENTRY_READY",
+            "precompact_receipt_sha256": precompact_receipt.get(
+                "receipt_sha256"
+            ),
+            "postcompact_receipt_sha256": post_claimed_sha,
+            "sealed_precompact_context_sha256": sealed_context_sha,
+            "authority_reconstructed": False,
+        }
+    )
+    return _seal_compact_context_size(current)
 
 
 _LIFECYCLE_BOUNDARY_PHASES = {
@@ -6285,6 +7174,7 @@ def record_lifecycle_boundary_event(
         "The lifecycle boundary event is not part of the approved hook matrix.",
         event_name=event_name,
     )
+    host_payload["_evidence_lane_boundary_event"] = event_name
     root = Path(store_root).resolve()
     host_session_id = str(host_payload.get("session_id") or "").strip()
     _require(
@@ -6350,6 +7240,24 @@ def record_lifecycle_boundary_event(
             "TURN_CONTROL_LIFECYCLE_RECEIPT_CONFLICT",
             "The existing lifecycle boundary receipt failed identity or SHA-256 verification.",
         )
+        if event_name == "PreCompact":
+            _require(
+                isinstance(receipt.get("compact_reentry_context"), dict),
+                "TURN_CONTROL_COMPACT_CONTEXT_REQUIRED",
+                "The existing PreCompact receipt predates the bounded compact contract.",
+            )
+            _write_compact_latest_pointer(
+                project_root,
+                receipt_path=receipt_path,
+                receipt=receipt,
+            )
+        elif event_name == "PostCompact":
+            _write_compact_postcompact_completion(
+                project_root,
+                receipt_path=receipt_path,
+                receipt=receipt,
+                session=session,
+            )
         return {"state": "SEALED_IDEMPOTENT_REUSE", "receipt": receipt}
 
     core: dict[str, Any] = {
@@ -6374,16 +7282,34 @@ def record_lifecycle_boundary_event(
         "private_reasoning_stored": False,
         "sealed_at": _now(),
     }
-    if event_name in {"PreCompact", "PostCompact"}:
-        core["host_plan_rehydration"] = _prepare_bound_host_plan_rehydration(
+    if event_name == "PreCompact":
+        core["compact_reentry_context"] = _compact_authority_context(
             root,
             bound=candidate,
-            host_payload=host_payload,
-            trigger=event_name.upper(),
-            trigger_event_id=receipt_id,
+            host_session_id=host_session_id,
         )
         core["hook_performed_host_update_plan"] = False
         core["host_plan_behavior_owner"] = "ACTIVE_EVIDENCE_LANE_SKILL"
+        core["authority_reconstructed"] = False
+        core["full_plan_embedded"] = False
+        core["full_env_uop_embedded"] = False
+    elif event_name == "PostCompact":
+        compact_pointer, precompact_receipt, _ = _load_compact_precompact_receipt(
+            project_root,
+            session=session,
+        )
+        core["precompact_receipt_sha256"] = precompact_receipt.get(
+            "receipt_sha256"
+        )
+        core["compact_context_sha256"] = compact_pointer.get(
+            "compact_context_sha256"
+        )
+        core["compact_completion"] = "RECORDED_WITHOUT_AUTHORITY_RECONSTRUCTION"
+        core["hook_performed_host_update_plan"] = False
+        core["host_plan_behavior_owner"] = "ACTIVE_EVIDENCE_LANE_SKILL"
+        core["authority_reconstructed"] = False
+        core["full_plan_embedded"] = False
+        core["full_env_uop_embedded"] = False
     lineage = ChatLineage(
         project_root / "lineage" / f"{evidence_session_id}.jsonl"
     ).append(
@@ -6405,6 +7331,19 @@ def record_lifecycle_boundary_event(
     receipt["receipt_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
     receipt_path.parent.mkdir(parents=True, exist_ok=True)
     atomic_write_json(receipt_path, receipt)
+    if event_name == "PreCompact":
+        _write_compact_latest_pointer(
+            project_root,
+            receipt_path=receipt_path,
+            receipt=receipt,
+        )
+    elif event_name == "PostCompact":
+        _write_compact_postcompact_completion(
+            project_root,
+            receipt_path=receipt_path,
+            receipt=receipt,
+            session=session,
+        )
     return {"state": "SEALED", "receipt": receipt}
 
 
@@ -7234,6 +8173,32 @@ def session_start_control(
         host_session_id=host_session_id,
         cwd=str(host_payload.get("cwd") or ""),
     )
+    if _is_compact_session_source(host_payload.get("source")):
+        compact_context = _compact_session_reentry_context(
+            root,
+            bound=bound,
+            host_session_id=host_session_id,
+        )
+        return {
+            "state": "COMPACT_REENTRY_READY",
+            "schema": "evidence-lane.codex-session-compact-reentry.v1",
+            "project_id": compact_context["project_id"],
+            "evidence_session_id": compact_context["evidence_session_id"],
+            "host_session_id_sha256": compact_context[
+                "host_session_id_sha256"
+            ],
+            "binding_epoch_sha256": compact_context[
+                "binding_epoch_sha256"
+            ],
+            "compact_reentry_context": compact_context,
+            "authority_reconstructed": False,
+            "full_plan_included": False,
+            "full_env_uop_included": False,
+            "full_runtime_envelope_included": False,
+            "scrollback_authority": False,
+            "transcript_authority": False,
+            "private_reasoning_stored": False,
+        }
     binding = _binding_snapshot(root, bound)
     project_root = Path(bound["project_root"])
     live_source_snapshot = _source_change_snapshot(
@@ -7481,6 +8446,59 @@ def current_persistent_change_display(
             or ""
         ),
     )
+    if (
+        host_payload.get("_evidence_lane_boundary_event") == "PostCompact"
+        or _is_compact_session_source(host_payload.get("source"))
+    ):
+        session = cast(dict[str, Any], bound["session"])
+        project_root = Path(bound["project_root"])
+        governed_activity_counts = _governed_activity_counts_from_database(
+            project_root / "lineage" / "codex_turn_control.sqlite",
+            project_id=str(session.get("project_id") or ""),
+            evidence_session_id=str(session.get("session_id") or ""),
+            host_ui_supported=_host_activity_group_support(host_payload),
+        )
+        pointer, precompact_receipt, _ = _load_compact_precompact_receipt(
+            project_root,
+            session=session,
+        )
+        compact_display = {
+            "schema": "evidence-lane.codex-compact-postcompact-projection.v1",
+            "state": "COMPACT_COMPLETION_PROJECTED_READ_ONLY",
+            "project_id": session.get("project_id"),
+            "evidence_session_id": session.get("session_id"),
+            "active_task_id": (session.get("metadata") or {}).get(
+                "active_backlog_task_id"
+            ),
+            "binding_epoch_sha256": _host_binding_epoch(session),
+            "precompact_receipt_sha256": precompact_receipt.get(
+                "receipt_sha256"
+            ),
+            "postcompact_receipt_sha256": pointer.get(
+                "postcompact_receipt_sha256"
+            ),
+            "authority_reconstructed": False,
+            "full_plan_included": False,
+            "full_env_uop_included": False,
+            "source_mutated": False,
+            "candidate_created_or_accepted": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+            "private_reasoning_stored": False,
+        }
+        compact_display["projection_sha256"] = sha256_bytes(
+            canonical_json_bytes(compact_display)
+        )
+        return {
+            "schema": "evidence-lane.codex-persistent-change-tool-projection.v1",
+            "state": "COMPACT_COMPLETION_PROJECTED_READ_ONLY",
+            "persistent_change_display": compact_display,
+            "governed_activity_counts": governed_activity_counts,
+            "read_only_projection": True,
+            "authority_reconstructed": False,
+            "full_plan_rows_embedded": False,
+            "private_reasoning_stored": False,
+        }
     binding = _binding_snapshot(root, bound)
     project_root = Path(bound["project_root"])
     live_source_snapshot = _source_change_snapshot(
@@ -7542,6 +8560,12 @@ def current_persistent_change_display(
     )
     tool_name = str(host_payload.get("tool_name") or "").strip() or None
     tool_use_id = str(host_payload.get("tool_use_id") or "").strip()
+    governed_activity_counts = _governed_activity_counts_from_database(
+        database,
+        project_id=str(binding["project_id"]),
+        evidence_session_id=str(binding["evidence_session_id"]),
+        host_ui_supported=_host_activity_group_support(host_payload),
+    )
     core = {
         "schema": "evidence-lane.codex-persistent-change-tool-projection.v1",
         "state": "PROJECTED_READ_ONLY_AFTER_TOOL_USE",
@@ -7554,6 +8578,7 @@ def current_persistent_change_display(
             sha256_bytes(tool_use_id.encode("utf-8")) if tool_use_id else None
         ),
         "persistent_change_display": display,
+        "governed_activity_counts": governed_activity_counts,
         "read_only_projection": True,
         "tool_input_stored": False,
         "tool_response_stored": False,

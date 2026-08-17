@@ -1,0 +1,96 @@
+{
+  "schema": "evidence-lane.public-tool-conformance-release-gate.v1",
+  "status": "PASS",
+  "source_delta_task_id": "EL-CODEX-T6-PARITY-031-MCP-TOOL-EVAL-MATRIX",
+  "generated_from": {
+    "receipt_path": "evidence/task6_delta_receipts/EL-CODEX-T6-PARITY-031-MCP-TOOL-EVAL-MATRIX.json",
+    "receipt_file_sha256": "092F1A7E4F2A91EA42BBCBDBF28D0227FD28951FF282706D32FAD20C0940ACD0",
+    "source_matrix_sha256": "C10DDCEAFFFD1829A655D712D3FD314AC7A0D4F5E88BC1F933F6CD2E7353EB33",
+    "installed_matrix_sha256": "91ED41BEC369AD21B0FA12E85A6173C0A771BA03A10E8BCE7697E50BBC13EFE0"
+  },
+  "evaluated_catalogs": {
+    "source": {
+      "tool_count": 86,
+      "case_evaluation_count": 602,
+      "status": "PASS"
+    },
+    "exact_installed": {
+      "tool_count": 83,
+      "case_evaluation_count": 581,
+      "status": "PASS"
+    },
+    "source_only_preinstall_tools": [
+      "learning_memory_query",
+      "learning_memory_record_link",
+      "learning_record_host_memory_import"
+    ]
+  },
+  "applicable_case_results": {
+    "representative": "PASS",
+    "edge": "PASS",
+    "missing": "PASS",
+    "empty": "PASS",
+    "auth": "PASS",
+    "write_confirmation": "PASS",
+    "unsupported": "PASS"
+  },
+  "immutable_case_locators": {
+    "representative": "tests/test_public_surface_parity_matrix.py::test_every_source_public_tool_runs_the_bounded_eval_matrix",
+    "edge": "tests/test_public_surface_parity_matrix.py::test_every_source_public_tool_runs_the_bounded_eval_matrix",
+    "missing": "tests/test_public_surface_parity_matrix.py::test_every_source_public_tool_runs_the_bounded_eval_matrix",
+    "empty": "tests/test_public_surface_parity_matrix.py::test_every_source_public_tool_runs_the_bounded_eval_matrix",
+    "auth": "tests/test_public_surface_parity_matrix.py::test_every_source_public_tool_runs_the_oauth_and_write_cases",
+    "write_confirmation": "tests/test_public_surface_parity_matrix.py::test_every_source_public_tool_runs_the_oauth_and_write_cases",
+    "unsupported": "tests/test_public_surface_parity_matrix.py::test_public_tool_matrix_rejects_one_untested_contract"
+  },
+  "release_receipt_chain": {
+    "ordered_stages": [
+      "COMMIT",
+      "INSTALL",
+      "CI",
+      "HIL"
+    ],
+    "required_common_fields": [
+      "stage",
+      "status",
+      "source_matrix_sha256",
+      "installed_matrix_sha256",
+      "conformance_gate_file_sha256",
+      "evidence_locators",
+      "receipt_sha256"
+    ],
+    "stage_specific_fields": {
+      "COMMIT": [
+        "commit_sha",
+        "tree_sha"
+      ],
+      "INSTALL": [
+        "package_sha256",
+        "installed_plugin_identity"
+      ],
+      "CI": [
+        "workflow_identity",
+        "run_identity",
+        "conclusion"
+      ],
+      "HIL": [
+        "candidate_identity",
+        "decision_state"
+      ]
+    },
+    "non_pass_behavior": "BLOCK_CURRENT_AND_DOWNSTREAM_STAGE",
+    "matrix_hash_mismatch_behavior": "FAIL_CLOSED"
+  },
+  "release_eligibility": "BLOCKED_PENDING_EXACT_COMMIT_INSTALL_CI_AND_HIL_RECEIPTS",
+  "boundaries": {
+    "raw_matrix_returned": false,
+    "write_handler_invoked": false,
+    "git_authorized": false,
+    "install_authorized": false,
+    "ci_claimed": false,
+    "hil_invoked": false,
+    "hil_inferred": false,
+    "candidate_created": false,
+    "pointer_moved": false
+  }
+}
