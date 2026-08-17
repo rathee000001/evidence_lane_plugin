@@ -50,6 +50,11 @@ def test_workflow_branch_boundaries_and_preview_does_not_deploy() -> None:
     )
     assert 'payload["mcp_route_identity"]["tool_count"] == 87' in preview
 
+    pages = (WORKFLOWS / "evidence-lane-github-pages.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "  deploy:\n    if: github.ref == 'refs/heads/main'" in pages
+
 
 def test_codeql_is_pinned_and_preserves_local_evidence_without_api_upload() -> None:
     text = (WORKFLOWS / "evidence-lane-codeql.yml").read_text(encoding="utf-8")
