@@ -1,0 +1,1061 @@
+{
+  "archive_intake_receipt_sha256": "35518387842C479BD1972F11BD48A61BED355A91377418D663560E6C630A6C43",
+  "correction_base_source_commit": "6020563094154ff780705cbed85f453425884914",
+  "disposition_counts": {
+    "ADOPTED_CONTRACT_AND_TEST": 27,
+    "BOUNDED_PROVENANCE_ROLE": 14,
+    "EVIDENCE_BACKED_REJECTION": 7
+  },
+  "historical_crosswalk_preserved": true,
+  "receipt_sha256": "539FA7E6C67956065A895DD7E583404AB68EA9E87CEFDE7C4A0C24B28FA1D057",
+  "safety": {
+    "exact_counterpart_archives_double_counted": false,
+    "generator_identity_inferred_from_filename": false,
+    "sqlite_continuity_harness_distinct_from_agent_execution_harness": true,
+    "supplied_topology_reference_bytes_imported": false,
+    "unlicensed_bytes_imported": false
+  },
+  "schema": "evidence-lane.all-source-disposition-receipt.v1",
+  "source_count": 48,
+  "source_crosswalk_sha256": "815A48316B136ACAE849F849575DB792921B21112BB7F44DEEECB7EA7AA975DC",
+  "source_disposition_set_sha256": "0228CFA287614D95622B2056B3E15B68C621FB636DFCDCF28BB14FAD43CDD89E",
+  "source_payloads_mutated": false,
+  "sources": [
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_SQLITE_BRAIN_AND_ARCHIVE_INTAKE_V1",
+      "crosswalk_row_sha256": "390B87E861F397FAD9665D3E407F24C3EBED97469CD2A81226B4064B68D463F7",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Inspect schema, provenance, and project-truth lane concepts.",
+      "entry_sha256": "50ACEB856F56EC23405464F8332DA46C873E7EDB398F0150D39F046ECD2773B3",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json",
+        "evidence/implementation_v41/DELTA067B_SQLITE_FORENSIC_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not treat historical output as current runtime authority.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "01__01_admin_real_project_truth_mini_brain_20260617T000510Z",
+      "ordinal": 1,
+      "test_files": [
+        "tests/test_source_authority_registry.py",
+        "tests/test_source_sqlite.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "FD90484B0022EEF0411047C4016511991BDB74A1C3A82981C99030BD8444666C",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Inspect atomic file and toolchain provenance patterns.",
+      "entry_sha256": "D74689E0DC811CEEB33DC2CEF1E46D0F448FBAD0092BCF838140B916E5B20897",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "No wholesale code transplant.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "01_ai_toolchain_full_vertical_file_atomic_v6",
+      "ordinal": 2,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_SQLITE_BRAIN_AND_ARCHIVE_INTAKE_V1",
+      "crosswalk_row_sha256": "93EBD4119698B1AFC2999F90A854CC54326ACB8FBABFB4D0C76DFD76D9279FFD",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Inspect research lane schema and evidence-linking concepts.",
+      "entry_sha256": "0462B8CC508F30FC139F1EAFC33D8471D24F7394ADECE70DF2CFA8C78EDECB71",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json",
+        "evidence/implementation_v41/DELTA067B_SQLITE_FORENSIC_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not promote historical findings to current facts.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "02_research_finding_v1_project_study_vertical_load_mini_brain_20260617T000510Z",
+      "ordinal": 3,
+      "test_files": [
+        "tests/test_source_authority_registry.py",
+        "tests/test_source_sqlite.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "4D1589A094293F7CD7004BDD67AD8E541261D02EB145D51E540CD6F6FD97DAA8",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Inspect image/OCR graph, artifact, and provenance concepts.",
+      "entry_sha256": "53180B241B9EE1275D6A8748C99E7F3BD0BED232B3B248D80DBD685798BCB381",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "No unverified OCR or image claims.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "04_evidenceos_image_graphs_full_vertical_file_atomic_v6",
+      "ordinal": 4,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_SQLITE_BRAIN_AND_ARCHIVE_INTAKE_V1",
+      "crosswalk_row_sha256": "C193FAD883A10CF137332B7738E3C55610CB835E932584864DCBE5B006F8229F",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Read-only safe ZIP and embedded-SQLite compatibility inspection.",
+      "entry_sha256": "81C0431A3C005E11D0081029348CCAF9F51B4E90A5AA1AE5D7A2B7AFF6511242",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json",
+        "evidence/implementation_v41/DELTA067B_SQLITE_FORENSIC_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not infer its generator from the filename or package layout.",
+      "kind": "zip",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "05_gold-nexus-alpha_EOSV2_FULL_VERTICAL_project_mini_brain.zip",
+      "ordinal": 5,
+      "test_files": [
+        "tests/test_source_authority_registry.py",
+        "tests/test_source_sqlite.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "B7DF6F8C7E115A4DB17972553FE7B03D938A0C93C61789A9C7A9567570EDBF91",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Inspect admin UI, privacy, and file-atomic evidence concepts.",
+      "entry_sha256": "36D176ABB76159A2D4A04EDFFA2C9CA341A1CC9D6B5BB8962D9FB6380C6E0225",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not ingest secrets or private payload values.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "06_admin_panel_private_full_vertical_file_atomic_v6",
+      "ordinal": 6,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_SQLITE_BRAIN_AND_ARCHIVE_INTAKE_V1",
+      "crosswalk_row_sha256": "2DE82A98CC1BC6DA1D0AA30BC41D3418490145F78368C55919682DBF7E7EC93F",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Read-only safe ZIP and embedded-SQLite compatibility inspection.",
+      "entry_sha256": "9793A8164C4A45D8D8CF48560591D47EA4FCBC54574884A121D5A3656E13F022",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json",
+        "evidence/implementation_v41/DELTA067B_SQLITE_FORENSIC_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not infer its generator from the filename or package layout.",
+      "kind": "zip",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "08_rathee-intelligence-lab_EOSV2_FULL_VERTICAL_project_mini_brain.zip",
+      "ordinal": 7,
+      "test_files": [
+        "tests/test_source_authority_registry.py",
+        "tests/test_source_sqlite.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_SQLITE_BRAIN_AND_ARCHIVE_INTAKE_V1",
+      "crosswalk_row_sha256": "593DB2A0AAFF31DF0681387C8A229BBDDD941777DCACE89EFE712515263FCC55",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Inspect historical query, runner, and architecture contracts.",
+      "entry_sha256": "5CD4828C53AD662245022184AF0318D005546F3CA6904D6B50C4164AF0EBA029",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json",
+        "evidence/implementation_v41/DELTA067B_SQLITE_FORENSIC_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not execute supplied scripts without an explicit bounded adapter.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "B_V1_RunnerScripts_Brain_FULL_QUERY",
+      "ordinal": 8,
+      "test_files": [
+        "tests/test_source_authority_registry.py",
+        "tests/test_source_sqlite.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "GIT_BRANCH_DEPLOY_PREFLIGHT_V1",
+      "crosswalk_row_sha256": "CC047FACADB80C20F796DF9E6446C942D5A371CE2F62EBC44CF5E76BCFE850BB",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Independently adapt exact-commit preflight, locking, no-op, and reason-code concepts.",
+      "entry_sha256": "EEDF67C369877E37756BD0704D05FA46D42E7C5B7DD8F4BD3115C96D1E9968D8",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA076B_CI_ADAPTERS_RECEIPT.json"
+      ],
+      "forbidden_use": "No auto-merge, main push, production promotion, or implicit approval.",
+      "kind": "directory",
+      "license_state": "MIT_OBSERVED",
+      "name": "branch-deploy-main",
+      "ordinal": 9,
+      "test_files": [
+        "tests/test_security_persistence.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "EXACT_EXTRACTED_COUNTERPART_SKIP_V1",
+      "crosswalk_row_sha256": "E20553BAF919CA3E4048BBD73BFBBD534DD98A141B75D4A9011D4664B5D0BBD6",
+      "disposition": "EVIDENCE_BACKED_REJECTION",
+      "disposition_detail": "Reject independent payload use and double-counting; preserve the archive identity because exact extracted equivalence passed.",
+      "entry_sha256": "9F4172EE8CCA9655FA32873734217990FDF6AC18D7585C6A3541156DC5048A44",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not double-count as an independent implementation source.",
+      "kind": "zip",
+      "license_state": "MIT_OBSERVED",
+      "name": "branch-deploy-main.zip",
+      "ordinal": 10,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "IMAGE_OCR_OBSERVED_VS_INFERRED_INTAKE_V1",
+      "crosswalk_row_sha256": "393D927F44ABE9BC792E3079FDA83962AEC11AB7255DA1A2E67CDD6AD89504A2",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Route through Images/OCR with observed-versus-inferred separation.",
+      "entry_sha256": "FD2ED8D5503A52095FF44C5853D6E17E70823EE474180C271E23B526BD6821B4",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA078_ALL_SOURCE_LANE_HISTORY_RECONCILIATION_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not treat pixels as executable receipts.",
+      "kind": "file",
+      "license_state": "USER_SUPPLIED_EVIDENCE",
+      "name": "ChatGPT Image Jun 10, 2026, 06_47_08 PM.png",
+      "ordinal": 11,
+      "test_files": [
+        "tests/test_full_reconciliation.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "IMAGE_OCR_OBSERVED_VS_INFERRED_INTAKE_V1",
+      "crosswalk_row_sha256": "E934B3295942EEF352AD7EBDCFAA43FA877843AC0544DCC03155649619EE65DC",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Route through Images/OCR with observed-versus-inferred separation.",
+      "entry_sha256": "1C3CB6D2542EF5CC9070DA4326C8B1DBA0666D7164087636BA155DEE80D6EA1D",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA078_ALL_SOURCE_LANE_HISTORY_RECONCILIATION_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not treat pixels as executable receipts.",
+      "kind": "file",
+      "license_state": "USER_SUPPLIED_EVIDENCE",
+      "name": "ChatGPT Image Jun 5, 2026, 04_59_23 AM.png",
+      "ordinal": 12,
+      "test_files": [
+        "tests/test_full_reconciliation.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "IMAGE_OCR_OBSERVED_VS_INFERRED_INTAKE_V1",
+      "crosswalk_row_sha256": "A4727A33B9FC227A3C43B5BA22349C7D07B029A2595CF8FE730874D4B9937600",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Route through Images/OCR with observed-versus-inferred separation.",
+      "entry_sha256": "2267CAD8FAFD2888E0DA2592D4FD75FE4842DF53A18B79CB57500C2309E49DA0",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA078_ALL_SOURCE_LANE_HISTORY_RECONCILIATION_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not treat pixels as executable receipts.",
+      "kind": "file",
+      "license_state": "USER_SUPPLIED_EVIDENCE",
+      "name": "ChatGPT Image Jun 5, 2026, 12_05_08 AM.png",
+      "ordinal": 13,
+      "test_files": [
+        "tests/test_full_reconciliation.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "IMAGE_OCR_OBSERVED_VS_INFERRED_INTAKE_V1",
+      "crosswalk_row_sha256": "1532CE6A52063A6F349A269373F6036A8B0796CF9F35454DDD26E8A2C445D056",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Route through Images/OCR with observed-versus-inferred separation.",
+      "entry_sha256": "E983461F68F10C55939828A6DBB85D0D2757D73DD5E24F6E3BDADDB2D501AC2E",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA078_ALL_SOURCE_LANE_HISTORY_RECONCILIATION_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not treat pixels as executable receipts.",
+      "kind": "file",
+      "license_state": "USER_SUPPLIED_EVIDENCE",
+      "name": "ChatGPT Image Jun 5, 2026, 12_05_26 AM.png",
+      "ordinal": 14,
+      "test_files": [
+        "tests/test_full_reconciliation.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_SQLITE_BRAIN_AND_ARCHIVE_INTAKE_V1",
+      "crosswalk_row_sha256": "B9B91FAA350A82F727A6BFC68F8617036875D08AED704EDB7401046B435F057B",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Inspect full-V3 architecture, GitHub workflow, and lane concepts; preserve user-stated ChatGPT 5.5 Pro provenance separately.",
+      "entry_sha256": "C1A2E6325304D204D3D7E5B14C7E4DFAC10876076524B397B1B1F09FDE5813FB",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json",
+        "evidence/implementation_v41/DELTA067B_SQLITE_FORENSIC_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not claim binary-bound generator identity.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "ChatGPT_GITHUB_AGENTIC_CODING_Sqlite_brain",
+      "ordinal": 15,
+      "test_files": [
+        "tests/test_source_authority_registry.py",
+        "tests/test_source_sqlite.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "EXACT_EXTRACTED_COUNTERPART_SKIP_V1",
+      "crosswalk_row_sha256": "A112779C0F657F053DB18D3131B6EDF483C0BEEA29F6494E8C4E7F483F16C047",
+      "disposition": "EVIDENCE_BACKED_REJECTION",
+      "disposition_detail": "Reject independent payload use and double-counting; preserve the archive identity because exact extracted equivalence passed.",
+      "entry_sha256": "3DB30AC6569E925B7D65DA389BFE76CD711BC029E0B3BF60FB3EFEABADC4CD21",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not double-count or infer generator identity.",
+      "kind": "zip",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "ChatGPT_GITHUB_AGENTIC_CODING_Sqlite_brain.zip",
+      "ordinal": 16,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_SQLITE_BRAIN_AND_ARCHIVE_INTAKE_V1",
+      "crosswalk_row_sha256": "581B6FB2E057487F6C710630ADF7946C8303A109489288A1F0DE6D4192D22B0F",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Inspect full-V3 architecture and newer lane/workflow deltas; preserve user-stated ChatGPT 5.5 Pro provenance separately.",
+      "entry_sha256": "100C710E7F5DE536D5F46D4C76FFD436F8BE3A77470AEA22C9647261E37C981F",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json",
+        "evidence/implementation_v41/DELTA067B_SQLITE_FORENSIC_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not conflate with SQLite Brain Builder V5.9 output.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "ChatGPT_New_Brain_Sqlite_brain",
+      "ordinal": 17,
+      "test_files": [
+        "tests/test_source_authority_registry.py",
+        "tests/test_source_sqlite.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "EXACT_EXTRACTED_COUNTERPART_SKIP_V1",
+      "crosswalk_row_sha256": "2FF6301E64C1F6B65FC34030B4E094E926396B4CDAD5111BD33F247B7AF8938C",
+      "disposition": "EVIDENCE_BACKED_REJECTION",
+      "disposition_detail": "Reject independent payload use and double-counting; preserve the archive identity because exact extracted equivalence passed.",
+      "entry_sha256": "05A794270463A7937DF1C3A23105CB5EEDED964C397BCF7EAC3D85131DD4B04B",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not double-count or conflate with V5.9 output.",
+      "kind": "zip",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "ChatGPT_New_Brain_Sqlite_brain.zip",
+      "ordinal": 18,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "CODEQL_NEGATIVE_SCAN_RECEIPT_V1",
+      "crosswalk_row_sha256": "57C572103DF647EEF832AC38B3704A20F3020F59429FA704673C4420380A538B",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Adapt negative-case catalogs and exact PASS-or-NOT_RUN scan receipts.",
+      "entry_sha256": "5548BC3937051ACF045555981103B4F41C39EFE1A1CBCFB418B75BAC65CFCB87",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA076B_CI_ADAPTERS_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not bundle the separately licensed CLI or claim an unexecuted scan.",
+      "kind": "directory",
+      "license_state": "SOURCE_MIT_CLI_SEPARATELY_LICENSED",
+      "name": "codeql-main",
+      "ordinal": 19,
+      "test_files": [
+        "tests/test_ci_workflow_adapters.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "EXACT_EXTRACTED_COUNTERPART_SKIP_V1",
+      "crosswalk_row_sha256": "BD0BD0F71692CFDAE4A29D21BDEC6D16C75DC42022EF389E68871C60BC9BA519",
+      "disposition": "EVIDENCE_BACKED_REJECTION",
+      "disposition_detail": "Reject independent payload use and double-counting; preserve the archive identity because exact extracted equivalence passed.",
+      "entry_sha256": "C68F62F2BD6CE787452D0D38A83777E12B3279AC033A5395658F6F7CD8C3A874",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not double-count or bundle the CLI.",
+      "kind": "zip",
+      "license_state": "SOURCE_MIT_CLI_SEPARATELY_LICENSED",
+      "name": "codeql-main.zip",
+      "ordinal": 20,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "A961863CBA2005A9ED9ABB77F811A145C3BCA6499169BB9A404E18E8D2F4203C",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Inspect and account independently; detect internal duplicates by content identity.",
+      "entry_sha256": "4D6CF1635D9B41DF0488805051975CCEC974C328EB960A3E523FAAED790FF5B5",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not silently collapse it into the parent folder.",
+      "kind": "directory",
+      "license_state": "MIXED_OR_UNOBSERVED",
+      "name": "DATA MACHINE",
+      "ordinal": 21,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "7F96483C6BA59D79F8B782DD52D104A083619081FB29D68A5036AD11F4F4F806",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Inspect governance, portability, and plan delta concepts.",
+      "entry_sha256": "4DAACBA3D33836136BFF036E8A67D1174F8AF0809F79A81875315500C51DC07D",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not execute plans as scripts or treat planned behavior as implemented.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "DATAMACHINE_PV_PROVIDER_NEUTRAL_PURE_SCRIPT_PLAN_20260725",
+      "ordinal": 22,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_SQLITE_BRAIN_AND_ARCHIVE_INTAKE_V1",
+      "crosswalk_row_sha256": "47B56EA457F23A9C8E42CD66991DD9B661B458179718EC96C8E278C3EFC4FF1E",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Inspect telemetry, topology, and admin-universe schema concepts.",
+      "entry_sha256": "D7C4AB12B422BA5EB5A5E6FD1E2198A1BF72CB90BD81F6B9DA4EB0BEFB2B4AAD",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json",
+        "evidence/implementation_v41/DELTA067B_SQLITE_FORENSIC_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not promote historical telemetry to current runtime truth.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "eos_admin_universe_brain_3d_telemetry_delta_20260619T035103Z",
+      "ordinal": 23,
+      "test_files": [
+        "tests/test_source_authority_registry.py",
+        "tests/test_source_sqlite.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "884FE25F4F2665B8ED87FDF972F37A513DAC722B2AF7967593963A55B809443F",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Inspect Entry/Exit Slip and host-continuity concepts.",
+      "entry_sha256": "D602B23D0B12C8D8F52869CA0C563D812BAA796DAA64DCDB7C99A0ABD7BB596F",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not consume superseded handoffs or bypass current lifecycle law.",
+      "kind": "directory",
+      "license_state": "PROJECT_PROPRIETARY",
+      "name": "EVIDENCE_LANE_ENTERPRISE_PLUGIN_STATE_TRAVEL_20260726",
+      "ordinal": 24,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "00C2DF4166183B493730D58944B95249F7184EFF96D037F8E7E597A77655E7FB",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Inspect later lifecycle corrections and exact-resume requirements.",
+      "entry_sha256": "BB966E054F92AF216DF3738B18E5CF0D3B96350A82C70AA401E744FC9A143E59",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not replace current accepted runtime law with older text.",
+      "kind": "directory",
+      "license_state": "PROJECT_PROPRIETARY",
+      "name": "EVIDENCE_LANE_ENTERPRISE_PLUGIN_STATE_TRAVEL_ADDENDUM_20260731",
+      "ordinal": 25,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "DETERMINISTIC_RENDER_FAILURE_EVIDENCE_V1",
+      "crosswalk_row_sha256": "125A0E27B066994EE64F7A196EE33ED89C2300F904C35238ACE6201EFD9DBF35",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Reuse independently implemented indexing, MMD, pipeline, and UI concepts; reproduce and repair SVG/PNG rendering.",
+      "entry_sha256": "9A8A3F57CF6E7CB25C56FBC6BCA4D100B8863818583134CB69A2DBCE44B1D1DB",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA074_DETERMINISTIC_RENDER_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not report the failed 6/10 render pipeline as a complete package.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "evidence_lane_hil_app_output",
+      "ordinal": 26,
+      "test_files": [
+        "tests/test_topology_rendering.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "479FE17D23D12953CD297246845B4D13AED01EC55B3ADD70136158DE4AA07C34",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Compare implementation lineage and recover verified project-owned concepts.",
+      "entry_sha256": "0B82304B362CAF4AA037350A088EB1208245BAC8C1BEF10C173DEABD991F067D",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not treat it as the live branch authority or overwrite current source.",
+      "kind": "directory",
+      "license_state": "PROJECT_PROPRIETARY",
+      "name": "evidence_lane_plugin",
+      "ordinal": 27,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "B65916F549ADF4864B66B187334BF966655E688CA9C8F48045E68CF9A392DCE1",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Inspect documented problem, architecture, and plan claims with provenance.",
+      "entry_sha256": "F70810D57D7427E9DF35A810A36FC0EA7A89436064F1AF607FED6A510FA5FDBF",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not treat narrative claims as executable receipts.",
+      "kind": "file",
+      "license_state": "USER_SUPPLIED_EVIDENCE",
+      "name": "EvidenceOS_Admin_Jarvis_Full_Plan_Nexus_20260618T032900Z.html",
+      "ordinal": 28,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "ROUTE_AND_DELTA_IDENTITY_RECONCILIATION_V1",
+      "crosswalk_row_sha256": "FF0A32F586052838C3E99941C659286BEC54E27C0206B3269CA97E386E6C8A0F",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Inspect route audit schema and reconcile against current executable routes.",
+      "entry_sha256": "98FA7E7F877EE5A4DD3AEFD588209D63F69FB771B2D7111CCD5CD4B653A50A19",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA078_ALL_SOURCE_LANE_HISTORY_RECONCILIATION_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not inherit historical PASS states without rerun.",
+      "kind": "file",
+      "license_state": "USER_SUPPLIED_EVIDENCE",
+      "name": "EvidenceOS_Admin_Jarvis_HTML_Route_Audit_20260618T032900Z.json",
+      "ordinal": 29,
+      "test_files": [
+        "tests/test_full_reconciliation.py",
+        "tests/test_full_app_ui_conformance.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "ROUTE_AND_DELTA_IDENTITY_RECONCILIATION_V1",
+      "crosswalk_row_sha256": "4FD5A29C19F2AFFD7DBC852CD6380F3005081C2E150974076DD75D42E91EA80E",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Ingest delta identities and reconcile them with current implementation lineage.",
+      "entry_sha256": "8143AFC11D8ECD6E1DB4AD89F27D9228221809D0FF4A722CBB83B7C989A151A7",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA078_ALL_SOURCE_LANE_HISTORY_RECONCILIATION_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not mark historical queued work complete by presence alone.",
+      "kind": "file",
+      "license_state": "USER_SUPPLIED_EVIDENCE",
+      "name": "EvidenceOS_Admin_Jarvis_Plan_Delta_Ledger_20260618T032900Z.json",
+      "ordinal": 30,
+      "test_files": [
+        "tests/test_full_reconciliation.py",
+        "tests/test_full_app_ui_conformance.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "ROUTE_AND_DELTA_IDENTITY_RECONCILIATION_V1",
+      "crosswalk_row_sha256": "45AF9F823957570BDCBCA6472CA27CB0BBE7F37113D12FCE9A987E2574C3D041",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Cross-check the JSON ledger and preserve readable lineage.",
+      "entry_sha256": "2533B0FD194857304C4B93A42DA580683F529085616011B22E85BAE6136CB483",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA078_ALL_SOURCE_LANE_HISTORY_RECONCILIATION_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not double-count JSON and Markdown as separate implemented features.",
+      "kind": "file",
+      "license_state": "USER_SUPPLIED_EVIDENCE",
+      "name": "EvidenceOS_Admin_Jarvis_Plan_Delta_Ledger_20260618T032900Z.md",
+      "ordinal": 31,
+      "test_files": [
+        "tests/test_full_reconciliation.py",
+        "tests/test_full_app_ui_conformance.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "CSV_SCHEMA_ROW_AND_PROVENANCE_INTAKE_V1",
+      "crosswalk_row_sha256": "D16658771FCE8A1B31901AB2466096242A6799C1A6A6CC00573EABE22379037E",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Route through Data/CSV with schema, row, and provenance validation.",
+      "entry_sha256": "E050AE5AAB32149586322A6808B6DECFB85F4164DE275AFD3D469867D913008A",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA078_ALL_SOURCE_LANE_HISTORY_RECONCILIATION_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not silently coerce or promote unverified facts.",
+      "kind": "file",
+      "license_state": "USER_SUPPLIED_DATA",
+      "name": "evidenceos_master_fact.csv",
+      "ordinal": 32,
+      "test_files": [
+        "tests/test_full_reconciliation.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "433C3A45C65A7BB6A3FA68120417A3BF30E44F182FA1F5F38FBB4B892D0C238F",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Inspect historical full-V3 telemetry architecture and data lineage.",
+      "entry_sha256": "54D3A1FEBD2B28FA95BDE95BE3A0986C793C5D4F13813850D3AD6ADEC098C390",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not conflate architecture generation with application version.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "evidenceos_prejuly_csv snapshot of 3d tewlemtry brain full v3",
+      "ordinal": 33,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_SQLITE_BRAIN_AND_ARCHIVE_INTAKE_V1",
+      "crosswalk_row_sha256": "CC4AE8AC890266C763943714327D47871BFC5F8B59BFE9711C86593EC841727C",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Inspect V2 runpack schema, receipts, and compatibility independently.",
+      "entry_sha256": "4A7F3CACDBEACEF1D9B2272FC1D74B06D65B022C759FA87D46D33CBE08730F3A",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json",
+        "evidence/implementation_v41/DELTA067B_SQLITE_FORENSIC_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not rewrite it as V3 or V5.9 provenance.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "evidenceos_v2_runpack_brain_20260620T001740Z",
+      "ordinal": 34,
+      "test_files": [
+        "tests/test_source_authority_registry.py",
+        "tests/test_source_sqlite.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "08116095C9D4D6362479801C14A8E887CB533FC89E7D8C88D56D4B0458940E8B",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Architecture and negative-gap reference; independently implement useful backend patterns.",
+      "entry_sha256": "AB7844A11531D1D7094CBCA58666AC40B604A0E503A54C1B962954114690C5E5",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not transplant unlicensed source or treat snapshot Git history as current authority.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "evidence-os-clean-backend_current hill_sopuce code",
+      "ordinal": 35,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "53EDBAC2C4975B8947455D3BB08CCEC2FCCB5201DF0AA929ED0F84036E6112A9",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Architecture, UI, interaction, and testing reference; independently implement useful patterns.",
+      "entry_sha256": "DFE8E180FAEDD780980D273923EEA68A5825377CD7A2C3445477268D86DF8EF7",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not transplant unlicensed source or treat snapshot as live authority.",
+      "kind": "directory",
+      "license_state": "NO_REUSE_LICENSE_OBSERVED",
+      "name": "evidence-os-clean-full-app_current hill_sopuce code",
+      "ordinal": 36,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "GH_AW_POLICY_PINNING_AND_OUTPUT_V1",
+      "crosswalk_row_sha256": "3C4324DB2408C0D90C5C399EBCDDDF8F7E6A01178FFB027664CCAD60C3DFEB2E",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Independently adapt immutable action pins, minimal permissions, staged safe outputs, and unsafe-expression rejection.",
+      "entry_sha256": "5BBC7F2557CB14D140673760ACC10714F04F71172DD52AE6C4C7DF0174FB2964",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA076A_PINNED_CI_MCP_GH_AW_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not transplant its Docker, firewall, provider, or orchestration runtime.",
+      "kind": "directory",
+      "license_state": "MIT_OBSERVED",
+      "name": "gh-aw-main",
+      "ordinal": 37,
+      "test_files": [
+        "tests/test_github_automation_governance.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "MCP_EXPOSURE_ANNOTATION_AND_SANITIZATION_V1",
+      "crosswalk_row_sha256": "481F2529478DD162674F80558257B0B5373B5309AC108AE9360E866CD2B8C802",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Independently adapt deterministic inventory, request-scoped filtering, annotations, and sanitization.",
+      "entry_sha256": "EF731240FB11AD7973C406EFBC6842B4067093A8D21C956764BBBA0C567E09A5",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA076A_PINNED_CI_MCP_GH_AW_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not embed or run a second MCP server.",
+      "kind": "directory",
+      "license_state": "MIT_OBSERVED",
+      "name": "github-mcp-server-main",
+      "ordinal": 38,
+      "test_files": [
+        "tests/test_mcp_plugin.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "EXACT_EXTRACTED_COUNTERPART_SKIP_V1",
+      "crosswalk_row_sha256": "EFD7B08BA8C5B13A0B354C2EFC29D1D9ABD721DE0E9364618FB8A7257B437FA0",
+      "disposition": "EVIDENCE_BACKED_REJECTION",
+      "disposition_detail": "Reject independent payload use and double-counting; preserve the archive identity because exact extracted equivalence passed.",
+      "entry_sha256": "B920BC210C15262F5E161EC671CC40BFE469B6EAEAAE4C68FE48ECE300734B9D",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not double-count as an independent source.",
+      "kind": "zip",
+      "license_state": "MIT_OBSERVED",
+      "name": "github-mcp-server-main.zip",
+      "ordinal": 39,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "F14B20A89EE10450C63DFEEFD666DAC055160C8FE1BBB1E8B714908FE71F09DC",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Use as prior research evidence and reconcile each claim against current sources.",
+      "entry_sha256": "1586CC739F3DC503539686B2EA9C731FB7E84D76834BC78B6E17C027E7697ACC",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not treat prior analysis as current implementation completion.",
+      "kind": "directory",
+      "license_state": "USER_SUPPLIED_EVIDENCE",
+      "name": "GOAL_9_ENTERPRISE_EXTRACTION_PLAN_20260725",
+      "ordinal": 40,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "CSV_SCHEMA_ROW_AND_PROVENANCE_INTAKE_V1",
+      "crosswalk_row_sha256": "50C8AB0C312A42696249F3B0951969F4FA1CE5175C04C17F422FA9A162EBE8E6",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Route through Data/CSV with schema, row, and provenance validation.",
+      "entry_sha256": "36A0DF13F5EE834DC44857CE87280A880AE54CE3D9D274265023791B1AB7BADE",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA078_ALL_SOURCE_LANE_HISTORY_RECONCILIATION_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not infer generator identity or silently promote unverified facts.",
+      "kind": "file",
+      "license_state": "USER_SUPPLIED_DATA",
+      "name": "gold-nexus-alpha_master_fact.csv",
+      "ordinal": 41,
+      "test_files": [
+        "tests/test_full_reconciliation.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "SOURCE_GRAPH_IDENTITY_DIFF_AND_IMPACT_V1",
+      "crosswalk_row_sha256": "7565046130D978312DA2B8D6D6484A0B0EC412AA7F5251490E577F933CBF2850",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Independently adapt stable IDs, extracted-versus-inferred provenance, diff, coverage, and affected-subgraph concepts.",
+      "entry_sha256": "5E57F008E0A2CDBA162255AB187E358CD66060AF9A627451FDBB72B1A73E3016",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA071_POLYGLOT_GRAPH_RECEIPT.json",
+        "evidence/implementation_v41/DELTA072_GIT_HISTORY_IMPACT_RECEIPT.json"
+      ],
+      "forbidden_use": "No Neo4j, LLM, server, installer, or wholesale source transplant.",
+      "kind": "directory",
+      "license_state": "APACHE_2_AND_MIT_NOTICE_OBSERVED",
+      "name": "graphify-8",
+      "ordinal": 42,
+      "test_files": [
+        "tests/test_source_graph.py",
+        "tests/test_source_git_history.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "DISPOSABLE_FIXTURE_AND_SAFE_OUTPUT_V1",
+      "crosswalk_row_sha256": "31BF416696B32F5C90DD8A078B49684DEAE8D4183A33BD28EE1809178321449A",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Independently adapt disposable fixtures, scrubbed environments, secret suppression, and deterministic artifacts.",
+      "entry_sha256": "79240AAB048B1CFF4037BE93E7F58F7FABFF85A801F1075D6761635CF49F4245",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA076B_CI_ADAPTERS_RECEIPT.json"
+      ],
+      "forbidden_use": "No arbitrary JavaScript execution or host-secret inheritance.",
+      "kind": "directory",
+      "license_state": "MIT_OBSERVED",
+      "name": "local-action-main",
+      "ordinal": 43,
+      "test_files": [
+        "tests/test_ci_workflow_adapters.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "EXACT_EXTRACTED_COUNTERPART_SKIP_V1",
+      "crosswalk_row_sha256": "08286B170897C125C31EA549109C72873D46A2553FA8A8A63DB7E9CBCBE1171C",
+      "disposition": "EVIDENCE_BACKED_REJECTION",
+      "disposition_detail": "Reject independent payload use and double-counting; preserve the archive identity because exact extracted equivalence passed.",
+      "entry_sha256": "9BA528257107EBB590D46D2405B35045D4EE07996FC63451280702A7BC7F9061",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not double-count as an independent source.",
+      "kind": "zip",
+      "license_state": "MIT_OBSERVED",
+      "name": "local-action-main.zip",
+      "ordinal": 44,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "READ_ONLY_PROVENANCE_AND_INDEPENDENT_REIMPLEMENTATION_V1",
+      "crosswalk_row_sha256": "AF910F12C35736AF51F7C2152954BF75F937FE2DC1BA9A8045088595EE07FA07",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "disposition_detail": "Inspect project-owned plugin deltas, receipts, and host behavior against current source.",
+      "entry_sha256": "0104CD5F4C703DBAA9EF8FF5879EE4F8ACC10F9CB51A04B9DBF32BBB09529F92",
+      "evidence_files": [
+        "evidence/implementation_v41/ALL_SOURCE_AUTHORITY_CROSSWALK.json",
+        "evidence/implementation_v41/DELTA069_SOURCE_IDENTITY_MATRIX_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not assume newer means accepted, deployed, or current authority.",
+      "kind": "directory",
+      "license_state": "PROJECT_PROPRIETARY",
+      "name": "plugin_via_hill_app_whiuch_is_newer_then_openai_hackthon_submission_output",
+      "ordinal": 45,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "EXACT_EXTRACTED_COUNTERPART_SKIP_V1",
+      "crosswalk_row_sha256": "C4566963F654CE48910A6198C47A20BEAF79EE9C2B5AEA6BEE57BC2EC3E1FEF8",
+      "disposition": "EVIDENCE_BACKED_REJECTION",
+      "disposition_detail": "Reject independent payload use and double-counting; preserve the archive identity because exact extracted equivalence passed.",
+      "entry_sha256": "8F562964FDAF99E29DA8BA1E9D1365A5C08C401445747BD6FC4BE915C1A44F19",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA067A_ARCHIVE_INTAKE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not double-count or infer acceptance from packaging.",
+      "kind": "zip",
+      "license_state": "PROJECT_PROPRIETARY",
+      "name": "plugin_via_hill_app_whiuch_is_newer_then_openai_hackthon_submission_output.zip",
+      "ordinal": 46,
+      "test_files": [
+        "tests/test_source_authority_registry.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": false,
+      "contract_id": "CSV_SCHEMA_ROW_AND_PROVENANCE_INTAKE_V1",
+      "crosswalk_row_sha256": "4DE7DB2072374AD57E6ECDE3D137F1EE9BE1AF5D7980E72534E384311B2ED6DB",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Route through Data/CSV with schema, row, and provenance validation.",
+      "entry_sha256": "CBD6CBE6B9347DEACE4C3BC602C21CEBCD8FC11C72F91DD1C36F78F4A7367A5D",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA078_ALL_SOURCE_LANE_HISTORY_RECONCILIATION_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not infer generator identity or silently promote unverified facts.",
+      "kind": "file",
+      "license_state": "USER_SUPPLIED_DATA",
+      "name": "rathee-intelligence-lab_master_fact.csv",
+      "ordinal": 47,
+      "test_files": [
+        "tests/test_full_reconciliation.py"
+      ]
+    },
+    {
+      "contains_verified_sqlite_assets": true,
+      "contract_id": "ENV_UOP_MODE_GOVERNANCE_V1",
+      "crosswalk_row_sha256": "E737615316A94A14166F190C7F0D9D721B14BDB33F66AB9C0043F5A001BC873C",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "disposition_detail": "Verify and carry forward existing ENV/UOP/PCM authority rows and host-storage law.",
+      "entry_sha256": "65F388BE89842D0BBB6302A345E65EB38359147F04B817F529B25225B71F943D",
+      "evidence_files": [
+        "evidence/implementation_v41/DELTA070_MODE_GOVERNANCE_RECEIPT.json"
+      ],
+      "forbidden_use": "Do not treat ENV15 as an application or generator version and do not store private reasoning.",
+      "kind": "directory",
+      "license_state": "PROJECT_AUTHORITY_PACKAGE",
+      "name": "UEPC_ENV15_PUBLIC_LOCKED_SECTION_PACKAGE(2)",
+      "ordinal": 48,
+      "test_files": [
+        "tests/test_operating_modes.py"
+      ]
+    }
+  ],
+  "sqlite_intake_receipt_sha256": "945C2953D2439C9184AD57D9FC86251EEBC97D665F18C4498A875CE494377159",
+  "status": "PASS",
+  "supplied_topology_authorities": [
+    {
+      "adopted_role": "Bind the seven-entity code projection to an exact supplied generator identity while independently implementing the graph emitter.",
+      "contract_id": "SQLITE_DERIVED_CODE_LOGICAL_TOPOLOGY_V1",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "external_bytes_imported": false,
+      "name": "generate_lane_mmd.py",
+      "sha256": "1B87064906E8A805C4A69A7A3A14668DCCE963E00928ED3EB23CC186AB8A65EC",
+      "test_files": [
+        "tests/test_universal_lanes.py",
+        "tests/test_topology_reconciliation.py"
+      ]
+    },
+    {
+      "adopted_role": "Require an end-to-end SQLite-derived topology with stable identities, explicit confidence, coverage, impact, and distinct GitHub/Local profiles.",
+      "contract_id": "SQLITE_DERIVED_STABLE_TOPOLOGY_PROFILE_V1",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "external_bytes_imported": false,
+      "name": "project_master_topology.mmd",
+      "sha256": "E9E610D982B5E855A54C39B7A16E06C6FD4D28A2538C8790CC2B9E34C9FECA01",
+      "test_files": [
+        "tests/test_public_dummy_lane_packages.py",
+        "tests/test_universal_lanes.py"
+      ]
+    }
+  ],
+  "supplied_topology_authority_count": 2,
+  "upstream_reference_count": 6,
+  "upstream_references": [
+    {
+      "commit": "5107b7bd547ce124f69084dc623e45a539cd17f5",
+      "contract_id": "GH_AW_POLICY_PINNING_AND_OUTPUT_V1",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "repository": "https://github.com/github/gh-aw",
+      "test_files": [
+        "tests/test_github_automation_governance.py"
+      ]
+    },
+    {
+      "commit": "0edcc73107c5a08b5bd8cfd489e68400b5ef95db",
+      "contract_id": "MCP_EXPOSURE_ANNOTATION_AND_SANITIZATION_V1",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "repository": "https://github.com/github/gh-aw-mcpg",
+      "test_files": [
+        "tests/test_mcp_plugin.py"
+      ]
+    },
+    {
+      "commit": "4e95deee58f2712a9e75e66a1ffba4460cc9a1d5",
+      "contract_id": "AGENT_SESSION_IDENTITY_RESEARCH_ONLY_V1",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "repository": "https://github.com/github/copilot-sdk",
+      "test_files": [
+        "tests/test_github_automation_governance.py"
+      ]
+    },
+    {
+      "commit": "09cc2eed706368655776af394eab7146629f905a",
+      "contract_id": "POST_OUTPUT_ADVISORY_INSPECTION_V1",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "repository": "https://github.com/github/gh-aw-threat-detection",
+      "test_files": [
+        "tests/test_github_automation_governance.py"
+      ]
+    },
+    {
+      "commit": "75ed171c12321e0cf4249a732c9860386bdc46a0",
+      "contract_id": "REGISTERED_AGENT_EXECUTION_HARNESS_V1",
+      "disposition": "ADOPTED_CONTRACT_AND_TEST",
+      "repository": "https://github.com/github/gh-aw-harness",
+      "sqlite_continuity_harness_used": false,
+      "test_files": [
+        "tests/test_github_automation_governance.py"
+      ]
+    },
+    {
+      "commit": "01f4282f1ffe0d6212f58d3afbeae21fffd0c4be",
+      "contract_id": "INSPECTABLE_UI_CONCEPTUAL_REFERENCE_ONLY_V1",
+      "disposition": "BOUNDED_PROVENANCE_ROLE",
+      "repository": "https://github.com/open-webui/open-webui",
+      "test_files": [
+        "tests/test_full_app_ui_conformance.py"
+      ]
+    }
+  ]
+}

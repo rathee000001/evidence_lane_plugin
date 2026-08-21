@@ -1,0 +1,139 @@
+{
+  "schema": "evidence-lane.objective-completion-validation.v5",
+  "recorded_at": "2026-07-26T11:14:58Z",
+  "status": "LOCAL_OBJECTIVE_REQUIREMENTS_PASS_EXTERNAL_HOST_PICKUP_AND_HIL_PENDING",
+  "source": {
+    "workspace_authority": "F:\\DATA MACHINE",
+    "repository_root": "F:\\DATA MACHINE\\evidence_lane_plugin",
+    "parent_head": "4dd109c53af461eed2a69e2f3a0d411c5cb2564e",
+    "parent_tree": "4e9dfaa4d57e38a609e33bd68e3844fbc4dc5eee",
+    "remote_head": "4dd109c53af461eed2a69e2f3a0d411c5cb2564e",
+    "candidate_state": "DIRTY_UNCOMMITTED_HIL_CANDIDATE",
+    "candidate_member_count": 67,
+    "candidate_total_bytes": 698951,
+    "candidate_manifest_sha256": "AE9ADB035B5E61D12282D249B7487CE98E1EE0F405A0702A70B2E213FEBBE857",
+    "candidate_committed": false,
+    "candidate_pushed": false,
+    "f_drive_source_intake_hashes": {
+      "checked": 10,
+      "matched": 10,
+      "mismatched": 0
+    }
+  },
+  "implementation": {
+    "lane_count": 18,
+    "single_registry": true,
+    "command_count": 28,
+    "mcp_tool_count": 31,
+    "single_transition_law": true,
+    "hil_outcomes": [
+      "APPROVE",
+      "APPROVE_WITH_DELTA",
+      "MORE_RESEARCH",
+      "ROLLBACK",
+      "REJECT",
+      "FAIL"
+    ],
+    "approve_only_promotion": true,
+    "separate_fuse_action": false,
+    "pv1_only_normal_full_build": true,
+    "pvn_incremental_refresh": true,
+    "rollback_bare_target": "SESSION_ENTRY_PV",
+    "rollback_explicit_backward_forward": true
+  },
+  "new_completion_proofs": {
+    "separate_process_entry": {
+      "status": "PASS",
+      "entry_pv": "PV1",
+      "accepted_pv": "PV1",
+      "entry_action": "CLASSIFY_ONE_TASK",
+      "next_candidate_pv": "PV2",
+      "accepted_history": [
+        "PV1"
+      ],
+      "accepted_bytes_unchanged": true,
+      "pv_rebuilt_on_entry": false
+    },
+    "cachebuster_store_persistence": {
+      "status": "PASS",
+      "cache_roots_tested": 2,
+      "session_start_read_only": true,
+      "store_hashes_before_after_equal": true,
+      "accepted_pv": "PV1",
+      "next_candidate_pv": "PV2",
+      "pointer_generation": 1
+    },
+    "rollback_immutability_and_freshness": {
+      "status": "PASS",
+      "accepted_pvs_compared": [
+        "PV1",
+        "PV2"
+      ],
+      "accepted_recursive_bytes_unchanged": true,
+      "history_preserved": true,
+      "live_source_rewritten": false,
+      "dirty_live_source_state": "DIRTY_WORKING_TREE",
+      "read_status": "STALE",
+      "next_candidate_after_travel": "PV3"
+    }
+  },
+  "validation": {
+    "pytest": {
+      "status": "PASS",
+      "passed": 44,
+      "failed": 0,
+      "duration_seconds": 273.83
+    },
+    "ruff_format": {
+      "status": "PASS",
+      "files": 98
+    },
+    "ruff_lint": "PASS",
+    "mypy": {
+      "status": "PASS",
+      "source_files": 35,
+      "issues": 0
+    },
+    "bandit": {
+      "status": "PASS",
+      "findings": 0,
+      "skipped_tests": 20
+    },
+    "dependency_audit": {
+      "status": "PASS",
+      "dependencies": 68,
+      "known_vulnerabilities": 0
+    },
+    "plugin_schema": "PASS",
+    "skill_schema": "PASS",
+    "installed_source_hashes": "8_OF_8_MATCH",
+    "installed_runtime_doctor": "PASS",
+    "installed_lane_catalog": "PASS_18",
+    "installed_transition_law": "PASS_SINGLE_AUTHORITY"
+  },
+  "reference_boundary": {
+    "authorized_claude_commit": "f10a546d4d0bd0f75be94a4b5b7c83f873116c02",
+    "current_remote_main_observed": "889c28a33f16469e8e74aa62ef65559e4a74379d",
+    "later_commits_inspected": false,
+    "later_commits_imported": false
+  },
+  "external_open_proofs": [
+    "FRESH_CODEX_TASK_NATIVE_COMMAND_AND_CURRENT_MCP_PICKUP",
+    "WRITE_CAPABLE_CHATGPT_PARITY_IF_STILL_REQUIRED",
+    "LIVE_DRIVE_READBACK_IF_STILL_REQUIRED",
+    "EXPLICIT_SIX_WAY_HIL_DECISION"
+  ],
+  "prohibited_actions": {
+    "d_drive_inspected_or_mutated": false,
+    "real_session_booted": false,
+    "real_project_or_pv_created": false,
+    "candidate_promoted": false,
+    "accepted_pointer_moved": false,
+    "drive_configured": false,
+    "vercel_deployed": false,
+    "chatgpt_installed": false,
+    "candidate_committed": false,
+    "remote_pushed": false,
+    "hil_success_inferred": false
+  }
+}

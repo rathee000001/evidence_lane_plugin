@@ -5,8 +5,10 @@ import stat
 import zipfile
 from pathlib import Path
 
+import evidence_lane_plugin.service as service_module
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
+from evidence_lane_plugin.lineage import ChatLineage
 from evidence_lane_plugin.source_authority import (
     SourceAuthoritySpec,
     load_source_batch,
@@ -17,7 +19,7 @@ from evidence_lane_plugin.source_authority import (
 )
 from evidence_lane_plugin.source_intake import classify_source_intake
 
-from .conftest import boot_local
+from .conftest import boot_local, build_and_approve_pv1
 
 
 def _spec(
@@ -277,6 +279,155 @@ def test_source_intake_governed_registry_is_explicit_and_pointer_neutral(
     classified = session.metadata["classified_source_authority"]
     assert classified["batch_id"] == result["source_authority"]["batch_id"]
     assert classified["armed_for_candidate"] is False
+
+
+def test_turn_entry_queries_live_sectors_and_records_formula_lineage(
+    service, source_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    task = {
+        "task_id": "turn-entry-delta",
+        "task_class": "modify_code",
+        "requested_outcome": "Route one prompt through current project authority.",
+        "permitted_paths": ["src"],
+        "permitted_tools": ["repository_read", "repository_write", "test"],
+        "acceptance_checks": ["The task formula is append-only."],
+        "stop_condition": "Stop on authority mismatch.",
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[task],
+        planned_by="human-test",
+        plan_id="turn-entry-plan",
+    )
+    service.store.claim_backlog_task(
+        "book-faires",
+        backlog_task_id=task["task_id"],
+        session_id=session_id,
+        contract={**task, "task_id": "turn-entry-runtime"},
+    )
+    session = service.sessions.load("book-faires", session_id)
+    session.task = {
+        **task,
+        "task_id": "turn-entry-runtime",
+        "backlog_task_id": task["task_id"],
+    }
+    session.metadata["active_backlog_task_id"] = task["task_id"]
+    session.metadata["active_backlog_task_status"] = "ACTIVE"
+    service.sessions._save(session)
+    local_code = source_repository / "src" / "app.py"
+    local_code.write_text(
+        local_code.read_text(encoding="utf-8")
+        + "\nTURN_ENTRY_FORMULA_MARKER = True\n",
+        encoding="utf-8",
+    )
+
+    turn_entry = {
+        "task_id": task["task_id"],
+        "bounded_query": "TURN_ENTRY_FORMULA_MARKER",
+        "formula": {
+            "fired_modes": ["source_intake", "validation"],
+            "operators": ["INTERSECTION", "VALIDATE"],
+            "bounded_source_locators": ["working:local_code"],
+            "sector_locators": ["local_code"],
+            "env_uop_terms": ["ENV", "UOP"],
+            "assumptions": ["the active task identity is exact"],
+            "intended_validator": "sector query and Plan integrity",
+            "expected_result": "one bounded local-code hit",
+            "formula_expression": "V(MODE intersect SOURCE intersect TASK)",
+        },
+        "source_event_id": "turn-entry-source-event-1",
+        "event_id": "turn-entry-formula-event-1",
+    }
+    real_query_working_project_sectors = service_module.query_working_project_sectors
+
+    def fail_working_query(*args, **kwargs):
+        raise EvidenceLaneError(
+            "TEST_WORKING_QUERY_FAILURE",
+            "The forced working-sector query failed before lineage mutation.",
+            status="FAIL",
+        )
+
+    monkeypatch.setattr(
+        service_module,
+        "query_working_project_sectors",
+        fail_working_query,
+    )
+    failed_turn_entry = {
+        **turn_entry,
+        "source_event_id": "turn-entry-source-event-failed",
+        "event_id": "turn-entry-formula-event-failed",
+    }
+    with pytest.raises(EvidenceLaneError) as failed:
+        service.source_intake(
+            "book-faires",
+            [str(local_code)],
+            session_id=session_id,
+            turn_entry=failed_turn_entry,
+        )
+    assert failed.value.code == "TEST_WORKING_QUERY_FAILURE"
+    failed_lineage = ChatLineage(
+        service.sessions._lineage_path("book-faires", session_id)
+    ).events()
+    assert not any(
+        event["event_id"] == "turn-entry-source-event-failed"
+        for event in failed_lineage
+    )
+    assert service.store.plan_runtime_query(
+        "book-faires", task_id=task["task_id"], limit=10
+    )["formula_events"] == []
+    monkeypatch.setattr(
+        service_module,
+        "query_working_project_sectors",
+        real_query_working_project_sectors,
+    )
+    result = service.source_intake(
+        "book-faires",
+        [str(local_code)],
+        session_id=session_id,
+        turn_entry=turn_entry,
+    )
+
+    receipt = result["turn_entry"]
+    assert receipt["status"] == "PASS"
+    assert receipt["active_task_id"] == task["task_id"]
+    assert receipt["working_sector_query"]["hits"]
+    assert "local_code" in receipt["working_sector_query"]["queried_lane_ids"]
+    assert any(
+        hit["lane_id"] == "local_code"
+        for hit in receipt["working_sector_query"]["hits"]
+    )
+    assert receipt["accepted_freshness"]["state"] in {
+        "STALE",
+        "DIRTY_WORKING_TREE",
+    }
+    assert receipt["fallback_authority"] == "LIVE_DIRTY_WORKSPACE_AND_INDEX"
+    replay = service.source_intake(
+        "book-faires",
+        [str(local_code)],
+        session_id=session_id,
+        turn_entry=turn_entry,
+    )
+    assert replay["turn_entry"]["source_event_id"] == (
+        "turn-entry-source-event-1"
+    )
+    lineage_events = ChatLineage(
+        service.sessions._lineage_path("book-faires", session_id)
+    ).events()
+    assert sum(
+        event["event_id"] == "turn-entry-source-event-1"
+        for event in lineage_events
+    ) == 1
+    exact = service.store.plan_runtime_query(
+        "book-faires", task_id=task["task_id"], limit=10
+    )
+    assert len(exact["formula_events"]) == 1
+    assert exact["formula_events"][0]["event_id"] == (
+        "turn-entry-formula-event-1"
+    )
+    assert receipt["candidate_created"] is False
+    assert receipt["pointer_moved"] is False
+    assert receipt["hil_inferred"] is False
 
 
 def test_reviewed_crosswalk_binds_every_occurrence_without_rehashing(

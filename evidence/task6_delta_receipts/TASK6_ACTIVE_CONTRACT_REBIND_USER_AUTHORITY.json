@@ -1,0 +1,32 @@
+{
+  "schema": "evidence-lane.visible-user-authority-receipt.v1",
+  "authority_kind": "HOST_PLAN_EXECUTION_AND_CONTRACT_CORRECTION",
+  "author": "user",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "visible_user_instructions": [
+    "and do one thing take over the subagent and do the bounded stepo goial of the research first and then rehdtrae the delta plan db and then solve things , close subagent and take over the thing its doing(and pause the cuirrent implmentation of plan and first do full parioty research then append detla rows as by my estiomate the rows will be like 240 around as so many things are left to be impemented",
+    "and this research dfont need no acceptanced once done the plan is appended to and then next row are loaded 9 rows of que when the plan updfates and then exution begins",
+    "yes but why the goal recovery is linked to a sibngle task ist mutable and linked to the task from which helper script is called from isnt it and handles x number of different projects as tunnel handles x number for differen projects and our installer helper is different and , helper is linked to the task id it was fired and entewr same"
+  ],
+  "authorized_effect": "Correct the stale read-only active task/session contract so the same Task6 Goal can execute the user-accepted normalized pre-PV13 parity Deltas in dependency order with bounded repository writes and per-Delta local verification.",
+  "identity_invariants": {
+    "same_project": true,
+    "same_session": true,
+    "same_task6": true,
+    "same_active_plan_row": true,
+    "same_dirty_worktree": true,
+    "accepted_pv": "PV12",
+    "pointer_generation": 12
+  },
+  "not_authorized": [
+    "HIL approval or inference",
+    "candidate creation or acceptance",
+    "PV pointer movement",
+    "Goal completion",
+    "Git stage, commit, or push before its exact Plan row",
+    "plugin install, selector switch, helper launch, or tunnel launch before its exact Plan row",
+    "main merge, fallback replacement, or production deployment"
+  ]
+}

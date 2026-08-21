@@ -1,0 +1,41 @@
+{
+  "schema": "evidence-lane.code-mode-ci-execution-receipt.v1",
+  "status": "PASS",
+  "profile": "governed-lifecycle",
+  "code_mode_contract": {
+    "formula": "plan -> sandbox build -> test -> hash -> package",
+    "loop": "entry -> preflight -> sandbox -> patch -> test -> exit",
+    "operators": [
+      "CI/CD",
+      "PCM",
+      "MBA"
+    ]
+  },
+  "command_results": [
+    {
+      "args": [
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_acceptance.py",
+        "tests/test_backlog_enrollment.py",
+        "tests/test_batch_completion.py",
+        "tests/test_engine_pv.py",
+        "tests/test_lifecycle.py",
+        "tests/test_reader_query.py",
+        "tests/test_runtime_activation.py",
+        "tests/test_security_persistence.py",
+        "tests/test_session_flash.py",
+        "tests/test_status_history_compatibility.py",
+        "tests/test_successor_addendum.py"
+      ],
+      "executable": "python",
+      "exit_code": 0,
+      "execution_error": null,
+      "stderr_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "stdout_sha256": "E59C77F2ABEE7868879AD3A7D5096700F5E43FEAD37AB1FAA9F8F00BFEEC575A"
+    }
+  ],
+  "receipt_path": ".runtime/ci/governed-lifecycle-receipt.json",
+  "receipt_sha256": "86A54369D86BB95C139E0D868EECCF211888A00ABE1689D7A5FAEC130B46032D"
+}

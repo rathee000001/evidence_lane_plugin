@@ -1,0 +1,42 @@
+{
+  "schema": "evidence-lane.code-mode-ci-execution-receipt.v1",
+  "status": "PASS",
+  "profile": "governed-quality",
+  "code_mode_contract": {
+    "formula": "plan -> sandbox build -> test -> hash -> package",
+    "loop": "entry -> preflight -> sandbox -> patch -> test -> exit",
+    "operators": [
+      "CI/CD",
+      "PCM",
+      "MBA"
+    ]
+  },
+  "command_results": [
+    {
+      "args": [
+        "-m",
+        "ruff",
+        "check",
+        "."
+      ],
+      "executable": "python",
+      "exit_code": 0,
+      "execution_error": null,
+      "stderr_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "stdout_sha256": "82B3E6A6C090A57601D22943BD23FCA9218D1031DBE5A7B754092F9A156B4F18"
+    },
+    {
+      "args": [
+        "-m",
+        "mypy"
+      ],
+      "executable": "python",
+      "exit_code": 0,
+      "execution_error": null,
+      "stderr_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "stdout_sha256": "678FE31F7C301580D40B75D6F71BCD76BD575618A9BDC72484A136988D5FD034"
+    }
+  ],
+  "receipt_path": ".runtime/ci/governed-quality-receipt.json",
+  "receipt_sha256": "A7214E19C674D98BEA1D15FA1278A1580CFFEB0D75A25AAE1DD212F63E4471DA"
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "evidence-lane.local-codex-installation-receipt.v1",
+  "installed_at": "2026-07-26T04:11:48Z",
+  "plugin_id": "evidence-lane-plugin@personal",
+  "plugin_name": "evidence-lane-plugin",
+  "display_name": "Evidence Lane Plugin",
+  "marketplace": "personal",
+  "version": "0.1.0",
+  "status": "INSTALLED_ENABLED",
+  "persistence": "INSTALLED_UNTIL_USER_REMOVES_PLUGIN",
+  "auth_policy": "ON_INSTALL",
+  "first_hil_transport": "stdio",
+  "public_network_endpoint_configured": false,
+  "google_drive_live_configured": false,
+  "remote_git_auto_push_enabled": false,
+  "verification": {
+    "marketplace_added": true,
+    "plugin_list_match": true,
+    "runtime_doctor": "PASS"
+  }
+}

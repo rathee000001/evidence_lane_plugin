@@ -1,0 +1,86 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_DETERMINISTIC_BOUNDED_PARALLEL_LANE_QUERY",
+  "recorded_at": "2026-08-15T16:39:04Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-019-PARALLEL-LANE-QUERY",
+  "task_contract_sha256": "C111A4111ED661FCEF920F6D58C0698A84726B2A746E96344529F7DB77EE7917",
+  "runtime_contract": {
+    "implementation": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/lane_reader.py::LaneReader.search_parallel",
+    "schema": "plugins/evidence-lane-plugin/schemas/parallel-lane-query.v001.json",
+    "maximum_queries": 8,
+    "maximum_workers": 4,
+    "default_timeout_ms": 5000,
+    "maximum_timeout_ms": 60000,
+    "minimum_per_lane_limit": 1,
+    "maximum_per_lane_limit": 100,
+    "authority_scope": "ONE_PROJECT_ONE_RESOLVED_IMMUTABLE_PV",
+    "read_only": true
+  },
+  "determinism": {
+    "request_identity": "canonical project, resolved PV, lane, query, retrieval, and limit",
+    "duplicate_requests_execute_once": true,
+    "request_receipts_ignore_worker_completion_order": true,
+    "result_order": "input request index then source rank",
+    "result_identity": "project, resolved PV, lane, ref, path, locator, source SHA, and chunk SHA",
+    "duplicate_results_collapse_deterministically": true,
+    "aggregate_receipt": "canonical JSON SHA-256"
+  },
+  "failure_and_cancellation": {
+    "preflight_cancellation": "CANCELLED receipts without worker submission",
+    "pending_cancellation": "best-effort future cancellation with sealed CANCELLED status",
+    "timeout": "sealed TIMEOUT status with no authority widening",
+    "worker_error": "sealed ERROR status without hiding successful sibling lanes",
+    "invalid_bounds": "fail closed before fan-out"
+  },
+  "byte_identities": {
+    "lane_reader_sha256": "0BF85AAB8033C1A434D115986389FAD8A997E410F25682380D1479E7F36AA78E",
+    "parallel_query_schema_sha256": "D529968C533D2410C79A234997F470BF87972C7B59024E54411679471B0F7935",
+    "parallel_query_tests_sha256": "C77472AB5A9B3DF2BA12A30B43BE9183F78924739814BEC886318AF7B7CB3161"
+  },
+  "verification": [
+    {
+      "selector": "Parallel query determinism, dedupe, budgets, cancellation, errors, schema parity, and immutable-PV integration",
+      "status": "PASS",
+      "result": "6 passed in 17.98s"
+    },
+    {
+      "selector": "Lane guidance, reader, lane contract, registry, and packaged-skill integration",
+      "status": "PASS",
+      "result": "18 passed in 74.52s"
+    },
+    {
+      "selector": "Python lint, compile, schema parse, and whitespace validation",
+      "status": "PASS",
+      "result": "Ruff, py_compile, json.tool, and git diff --check passed"
+    }
+  ],
+  "negative_cases": [
+    "More than eight lane requests, more than four workers, or invalid per-lane limits and timeouts fail closed before execution.",
+    "A lane alias is canonicalized through the registry; it cannot select an arbitrary SQLite file or FTS table.",
+    "All requests bind to one resolved immutable PV; caller aliases cannot produce mixed-PV aggregate evidence.",
+    "Duplicate normalized requests execute once, and duplicate result identities do not inflate the aggregate.",
+    "Worker completion timing cannot change request receipts, result ordering, or aggregate receipt identity.",
+    "Timeout, cancellation, and worker error do not widen authority, mutate a lane, or discard successful sibling receipts.",
+    "No whole lane database, Plan backlog, PV package, or raw FTS corpus is placed in model context."
+  ],
+  "negative_side_effects": {
+    "live_lane_package_mutated": false,
+    "candidate_created_or_accepted": false,
+    "hil_invoked": false,
+    "pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "plugin_install_or_activation_changed": false,
+    "installer_or_goal_helper_invoked": false,
+    "tunnel_invoked": false,
+    "subagent_started": false
+  },
+  "limitations": [
+    "Row216 supplies the internal deterministic fan-out primitive; typed cross-lane joins remain Row217.",
+    "Explicit cross-project authority sets remain Row218.",
+    "Public skill and MCP action routing for the primitive remains owned by Row221."
+  ],
+  "next_boundary": "Close Row216 through its exact per-Delta checkpoint. Row217 EL-CODEX-T6-PARITY-020-CROSS-LANE-QUERY owns typed joins across explicitly selected lanes without unrestricted SQL."
+}

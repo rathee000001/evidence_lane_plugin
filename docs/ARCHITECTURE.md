@@ -67,10 +67,10 @@ accepted immutable PV under its own receipt.
 ## Native MCP surface
 
 The package-local server identity is `evidence-lane`; the canonical display
-namespace is `mcp__evidence_lane__`. It exposes exactly 87 actions:
+namespace is `mcp__evidence_lane__`. It exposes exactly 88 actions:
 
 - 27 read-only operations;
-- 60 write-capable operations.
+- 61 write-capable operations.
 
 The server may expose a collision-safe host display suffix, but the route
 receipt proves canonical tool names and rejects generated, app, legacy, or

@@ -5,7 +5,7 @@ Evidence Lane exposes one package-local native MCP server named
 collision-safe host display suffix does not change the canonical tool
 identity.
 
-The 3.0.0 catalog contains exactly 87 canonical actions: 27 read-only and 60
+The 3.0.0 catalog contains exactly 88 canonical actions: 27 read-only and 61
 write-capable. Read operations inspect accepted PVs, Plan/Delta state, source
 and lane evidence, receipts, panels, storage, and runtime identity. Write
 operations are individually governed and cannot inherit permission from a
@@ -22,8 +22,8 @@ receipts.
 | Server | `evidence-lane` | Only the package-local native route proves Codex lifecycle execution. |
 | Namespace | `mcp__evidence_lane__*` | Generated display aliases are not independent authority. |
 | Read-only actions | 27 | A read never grants a later write. |
-| Write-capable actions | 60 | Every call revalidates its own state and authority contract. |
-| Total actions | 87 | Catalog visibility never implies host support or permission. |
+| Write-capable actions | 61 | Every call revalidates its own state and authority contract. |
+| Total actions | 88 | Catalog visibility never implies host support or permission. |
 | Console resource | `ui://evidence-lane/governed-console-v6.html` | Rendering is read-only and cannot decide HIL. |
 | Durable default | Project-scoped local SQLite | Connectors and artifact mirrors remain separate. |
 

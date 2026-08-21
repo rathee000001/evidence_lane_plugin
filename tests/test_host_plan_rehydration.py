@@ -94,17 +94,17 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
         "pending",
         "pending",
     ]
-    assert projection["ui_row_max_lines"] == 3
+    assert projection["ui_row_max_lines"] == 4
     assert projection["ui_projection_contains_full_plan_row"] is False
     assert projection["ui_overflow_creates_canonical_row"] is False
     assert all(
-        len(row["step"].splitlines()) <= 3 for row in projection["items"]
+        len(row["step"].splitlines()) <= 4 for row in projection["items"]
     )
     assert projection["items"][0]["step"].startswith("Tracker || Done=")
     assert projection["items"][1]["step"].splitlines()[0].startswith(
         "R1|ID=HOST~"
     )
-    assert "|C=FIX|" in projection["items"][1]["step"]
+    assert "C=FIX|" in projection["items"][1]["step"]
     assert "|Git" not in projection["items"][1]["step"]
     assert "|D=ROOT|" in projection["items"][1]["step"]
     assert "|FTS=1:" in projection["items"][1]["step"]
@@ -175,6 +175,16 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
         "host_owned_surface_survival_guaranteed_by_plugin": False,
         "missing_host_capability_behavior": "FAIL_CLOSED",
     }
+
+    public_window = service.task_backlog_window("book-faires")
+    assert public_window["row_ui_contract"] == (
+        "HEADER_THEN_FOUR_LINES_PER_DELTA_2_AUTHORITY_2_HUMAN"
+    )
+    assert public_window["items"] == projection["items"]
+    assert public_window["fixed_header"] == projection["continuity_header"]
+    assert public_window["host_update_plan_contract"] == projection[
+        "host_update_plan_contract"
+    ]
 
     pointer_before = service.store.pointer("book-faires").as_dict()
     git_before = subprocess.run(
@@ -439,7 +449,7 @@ def test_host_plan_projects_the_active_row_as_step_two_with_next_eight_rows() ->
     assert projection["item_count"] == 10
     assert len(projection["items"][0]["step"].splitlines()) == 2
     assert all(
-        2 <= len(item["step"].splitlines()) <= 3
+        len(item["step"].splitlines()) == 4
         and all(len(line) <= 72 for line in item["step"].splitlines())
         for item in projection["items"][1:]
     )
@@ -496,7 +506,6 @@ def test_host_plan_projects_the_active_row_as_step_two_with_next_eight_rows() ->
         "detailed_hil_queue_in_step_task_list": False,
     }
 
-
 def test_host_plan_final_window_contains_only_the_exact_remaining_rows() -> None:
     projection = _exact_projection(
         _BacklogOnlyStore(_window_goal(active_row=21)),  # type: ignore[arg-type]
@@ -511,9 +520,11 @@ def test_host_plan_final_window_contains_only_the_exact_remaining_rows() -> None
     assert projection["remaining_after_current_window"] == 0
     assert projection["physically_final_hil_visible_in_window"] is True
     final_step_lines = projection["items"][-1]["step"].splitlines()
-    assert len(final_step_lines) == 2
+    assert len(final_step_lines) == 4
     assert final_step_lines[0].startswith("R26|ID=")
-    assert final_step_lines[1] == "Do: Execute bounded window task 26."
+    assert final_step_lines[1].startswith("C=")
+    assert final_step_lines[2] == "Do: Execute bounded"
+    assert final_step_lines[3] == "   window task 26."
     assert projection["continuity_header"]["physically_final_row"] == 26
 
 
@@ -543,7 +554,7 @@ def test_host_plan_shows_git_only_on_declared_execution_row() -> None:
     goal = _window_goal(active_row=1, total_rows=3)
     rows = goal["rows"]
     assert isinstance(rows, list)
-    rows[0]["git_commit_stage"] = "PREPARE_PATCH_BEFORE_GROUP_COMMIT"
+    rows[0]["git_commit_stage"] = "NO_COMMIT"
     rows[1]["git_commit_stage"] = "COMMIT_AND_PUSH_EXACT_TASK"
     rows[2]["git_commit_stage"] = "COMMIT_AND_PUSH_EXACT_TASK"
     projection = _exact_projection(
@@ -553,3 +564,27 @@ def test_host_plan_shows_git_only_on_declared_execution_row() -> None:
     assert "|Git" not in projection["items"][1]["step"].splitlines()[0]
     assert "|Git" in projection["items"][2]["step"].splitlines()[0]
     assert "|Git" not in projection["items"][3]["step"]
+
+
+def test_fixed_host_window_does_not_slide_when_active_status_advances() -> None:
+    fixed_task_ids = [f"window-task-{number:02d}" for number in range(10, 19)]
+    first = _exact_projection(
+        _BacklogOnlyStore(_window_goal(active_row=11)),  # type: ignore[arg-type]
+        project_id="window-project",
+        fixed_window_task_ids=fixed_task_ids,
+    )
+    second = _exact_projection(
+        _BacklogOnlyStore(_window_goal(active_row=12)),  # type: ignore[arg-type]
+        project_id="window-project",
+        fixed_window_task_ids=fixed_task_ids,
+    )
+
+    assert first["row_start"] == second["row_start"] == 10
+    assert first["row_end"] == second["row_end"] == 18
+    assert first["window_task_ids"] == second["window_task_ids"] == (
+        fixed_task_ids
+    )
+    assert first["sole_active_row"] == 11
+    assert second["sole_active_row"] == 12
+    assert first["items"][1]["status"] == "completed"
+    assert second["items"][1]["status"] == "completed"

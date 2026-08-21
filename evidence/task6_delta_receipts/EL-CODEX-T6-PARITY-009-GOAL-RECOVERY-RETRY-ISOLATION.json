@@ -1,0 +1,88 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_GOAL_RECOVERY_RETRY_ISOLATION_IMPLEMENTED_NOT_INVOKED",
+  "recorded_at": "2026-08-15T13:22:46Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-009-GOAL-RECOVERY-RETRY-ISOLATION",
+  "implementation": {
+    "retry_owner": "IN_PROCESS_EXACT_TASK_BINDING",
+    "scheduler_restart_count": 0,
+    "scheduler_retry_is_authority": false,
+    "max_attempts_per_binding_per_run": 2,
+    "backoff_seconds": [0, 2],
+    "correlation_contract": {
+      "manager_run_inputs": [
+        "RECOVERY_ROOT",
+        "BOOT_ID_SHA256",
+        "BINDING_INVENTORY_SHA256",
+        "RELEASE"
+      ],
+      "attempt_inputs": [
+        "EXACT_TASK_ID",
+        "BOOT_ID_SHA256",
+        "BINDING_SHA256",
+        "ATTEMPT_NUMBER",
+        "MANAGER_RUN_CORRELATION_ID"
+      ],
+      "existing_exact_receipt_is_read_not_overwritten": true
+    },
+    "terminal_policies": {
+      "goal_missing_or_ended": "TOMBSTONE_EXACT_BINDING_ON_FIRST_PROBE_WITHOUT_RETRY",
+      "attempts_exhausted": "KILL_SWITCH_EXACT_BINDING_ONLY",
+      "malformed_binding": "WRITE_DEDUPED_ISOLATED_FAILURE_AND_CONTINUE",
+      "no_recoverable_binding_remains": "PASS_EXIT_ZERO"
+    },
+    "causation_boundary": {
+      "restart_count_used_for_hook_or_helper_causation": false,
+      "host_event_and_helper_attempts_have_stable_correlation": true,
+      "another_binding_mutated_by_failure": false
+    }
+  },
+  "verification": [
+    {
+      "selector": "Row206 retry-isolation plus Row205 multi-binding compatibility",
+      "status": "PASS",
+      "result": "12 passed in 0.43s"
+    },
+    {
+      "selector": "Goal, installer-registry, fallback-authority, and release-channel regression bundle",
+      "status": "PASS",
+      "result": "48 passed in 1.15s"
+    },
+    {
+      "selector": "PowerShell AST parser",
+      "status": "PASS",
+      "result": "POWERSHELL_AST_PASS"
+    },
+    {
+      "selector": "Python lint and whitespace validation",
+      "status": "PASS",
+      "result": "All checks passed; git diff --check returned zero"
+    }
+  ],
+  "negative_cases": [
+    "Windows Task Scheduler cannot retry or restart the shared Goal-recovery manager.",
+    "A missing or ended Goal never enters backoff and never consumes the failure-attempt ceiling.",
+    "One malformed or failed task binding cannot block enumeration of another valid task binding.",
+    "An exhausted owner kill-switches only its exact task binding and cannot poison the shared manager.",
+    "A repeated manager run with the same boot and binding inventory reuses the exact correlated attempt receipt.",
+    "A restart count is recorded as nonauthoritative and is never treated as hook/helper causation proof."
+  ],
+  "negative_side_effects": {
+    "live_goal_recovery_helper_invoked": false,
+    "live_scheduled_task_created_changed_enabled_or_disabled": false,
+    "live_task_binding_created_refreshed_tombstoned_or_kill_switched": false,
+    "start_sleep_executed_by_live_helper": false,
+    "installer_helper_invoked": false,
+    "tunnel_invoked": false,
+    "plugin_installed_removed_enabled_or_disabled": false,
+    "candidate_created_or_accepted": false,
+    "hil_invoked": false,
+    "pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "subagent_started": false
+  },
+  "next_boundary": "Close Row206 through its exact per-Delta checkpoint. Row207 owns the eight host-hook event isolation contract; no live helper or host hook was invoked in Row206."
+}

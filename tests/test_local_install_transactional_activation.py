@@ -259,8 +259,6 @@ def test_prepare_keeps_one_last_known_good_and_seals_exact_rollback(
                     {"pluginId": candidate, "version": "3.0", "enabled": False},
                 ]
             }
-        if args == ["plugin", "remove", candidate, "--json"]:
-            return {"pluginId": candidate, "removed": True}
         if args == ["plugin", "marketplace", "list", "--json"]:
             return {"marketplaces": []}
         raise AssertionError(args)
@@ -282,7 +280,9 @@ def test_prepare_keeps_one_last_known_good_and_seals_exact_rollback(
     assert receipt["switch_count"] == 0
     assert backup.read_bytes() == (codex_home / "config.toml").read_bytes()
     assert module._sha256(backup) == receipt["rollback_config_backup_sha256"]
-    assert ["plugin", "remove", candidate, "--json"] in calls
+    assert ["plugin", "remove", candidate, "--json"] not in calls
+    assert receipt["same_selector_update_via_plugin_add"] is True
+    assert receipt["known_failed_plugin_remove_route_invoked"] is False
 
 
 def test_prepare_rejects_already_enabled_candidate(
@@ -393,8 +393,6 @@ def test_prepare_disabled_hook_recovery_requires_sealed_commit_and_all_disabled(
                     },
                 ]
             }
-        if arguments == ["plugin", "remove", candidate, "--json"]:
-            return {"pluginId": candidate, "removed": True}
         if arguments == ["plugin", "marketplace", "list", "--json"]:
             return {"marketplaces": []}
         raise AssertionError(arguments)
@@ -482,7 +480,9 @@ def test_prepare_disabled_hook_recovery_requires_sealed_commit_and_all_disabled(
     assert receipt["recovery_rollback_state"] == "ALL_EVIDENCE_LANE_SELECTORS_DISABLED"
     assert receipt["prior_commit_authority"]["file_sha256"] == commit_sha256
     assert receipt["transaction_id"].startswith("local_hook_recovery_")
-    assert ["plugin", "remove", candidate, "--json"] in calls
+    assert ["plugin", "remove", candidate, "--json"] not in calls
+    assert receipt["same_selector_update_via_plugin_add"] is True
+    assert receipt["known_failed_plugin_remove_route_invoked"] is False
 
     monkeypatch.setattr(
         module,

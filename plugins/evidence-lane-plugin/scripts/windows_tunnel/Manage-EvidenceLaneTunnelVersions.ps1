@@ -7,7 +7,8 @@ param(
     [string]$RuntimeRoot = "",
     [ValidateSet("stable", "future-test", "archive")]
     [string]$Channel = "future-test",
-    [string]$DataRoot = "$env:USERPROFILE\EvidenceLanePV",
+    [Alias("DataRoot")]
+    [string]$RuntimeControlRoot = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin",
     [int]$ReadyTimeoutSeconds = 90,
     [string]$HealthReceiptSha256 = "",
     [string]$PublicRouteReceiptSha256 = "",
@@ -19,8 +20,14 @@ $ErrorActionPreference = "Stop"
 
 $registrySchema = "evidence-lane.tunnel-version-registry.v1"
 $expectedClientSha256 = "D893D8127EEE35070D265C1BE29BFE008F8D9FCB476E7FEBF56C8FDC6C0615C8"
-$exactDataRoot = [IO.Path]::GetFullPath($DataRoot)
-$registryRoot = Join-Path $exactDataRoot "tunnel-versions"
+$exactRuntimeControlRoot = [IO.Path]::GetFullPath($RuntimeControlRoot)
+$expectedRuntimeControlRoot = [IO.Path]::GetFullPath(
+    (Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin")
+)
+if ($exactRuntimeControlRoot -cne $expectedRuntimeControlRoot -and $Action -cne "List") {
+    throw "Tunnel version management requires the exact hidden Evidence Lane Codex runtime root."
+}
+$registryRoot = Join-Path $exactRuntimeControlRoot "tunnel-versions"
 $registryFile = Join-Path $registryRoot "registry.json"
 
 function Read-VersionRegistry {
@@ -118,9 +125,9 @@ function Read-InstallationMarker {
     param([Parameter(Mandatory = $true)][string]$ExactRuntimeRoot)
 
     $fullRuntimeRoot = [IO.Path]::GetFullPath($ExactRuntimeRoot)
-    $approvedParent = $exactDataRoot + [IO.Path]::DirectorySeparatorChar
+    $approvedParent = $exactRuntimeControlRoot + [IO.Path]::DirectorySeparatorChar
     if (-not $fullRuntimeRoot.StartsWith($approvedParent, [StringComparison]::OrdinalIgnoreCase)) {
-        throw "A saved tunnel runtime must remain inside the configured EvidenceLanePV data root."
+        throw "A saved tunnel runtime must remain inside Codex's hidden Evidence Lane runtime root."
     }
     $markerFile = Join-Path $fullRuntimeRoot "evidence-lane-tunnel-installation.json"
     if (-not (Test-Path -LiteralPath $markerFile -PathType Leaf)) {

@@ -21,7 +21,7 @@ def test_v300_declares_exact_three_role_maintainer_slots() -> None:
     assert stable["codex_marketplace_slot"] == "evidence-lane-github"
     assert stable["marketplace_display_name"] == "Main Git Plugin Version"
     assert stable["install_source"] == "GIT_EXACT_COMMIT"
-    assert stable["native_tool_count"] == 87
+    assert stable["native_tool_count"] == 88
     assert stable["skill_count"] == 17
     assert stable["direct_stdio_fallback_allowed"] is False
 
@@ -125,9 +125,9 @@ def test_plugin_release_cycle_never_leaks_into_downstream_project_pvs() -> None:
         "working_role_sync_required": True,
         "installed_version_must_equal_exact_package_version": True,
         "installed_catalog_must_equal": {
-            "native_actions": 87,
+            "native_actions": 88,
             "read_actions": 27,
-            "write_actions": 60,
+            "write_actions": 61,
             "governed_skills": 17,
             "hook_events": 8,
             "migrated_command_skills": 1,
@@ -187,7 +187,22 @@ def test_helper_tunnel_rotation_is_plugin_maintainer_only_and_final_hil_gated() 
     )
     helper = contract["helper_distribution_policy"]
     rotation = helper["post_hil_release_rotation"]
+    runtime = helper["runtime_storage_boundary"]
 
+    assert runtime == {
+        "root_relative_to_user_profile": (
+            ".codex\\plugins\\runtime\\evidence-lane-plugin"
+        ),
+        "host_managed_hidden": True,
+        "project_authority_may_share_root": False,
+        "installed_cache_mutation_for_runtime_state_allowed": False,
+        "one_active_native_mcp_count": 1,
+        "one_active_tunnel_count": 1,
+        "failed_windowsapps_cli_probe_allowed": False,
+        "npm_native_codex_cli_required": True,
+        "exact_task_reopen_count": 1,
+        "black_terminal_popup_allowed": False,
+    }
     assert helper["user_stable_tunnel"]["release"] == "3.0.0"
     assert helper["user_stable_tunnel"]["release_token"] == "v300"
     assert helper["branch_recovery_transport"]["release"] == "3.0.0"
@@ -304,9 +319,9 @@ def test_promotion_requires_matching_cross_surface_receipts_and_hil() -> None:
     promotion = contract["promotion_gate"]
     assert promotion["explicit_six_way_hil_required"] is True
     assert promotion["required_catalog"] == {
-        "tools": 87,
+        "tools": 88,
         "read": 27,
-        "write": 60,
+        "write": 61,
         "skills": 17,
     }
     assert promotion["fail_closed_on_version_mismatch"] is True

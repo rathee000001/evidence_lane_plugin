@@ -466,9 +466,9 @@ class PVReader:
                 "chunk_sha256": metadata.get("chunk_sha256"),
                 "file_sha256": metadata.get("file_sha256"),
             }
-        base_status = "PASS" if results else "EMPTY"
         return {
-            "status": result_status(base_status, context["freshness"]),
+            "status": result_status("PASS", context["freshness"]),
+            "result_state": "HITS" if results else "EMPTY",
             "project_id": project_id,
             **context,
             "query": query,
@@ -849,9 +849,9 @@ class PVReader:
         )
         with database.connect(package / "code.sqlite", readonly=True) as connection:
             context = self._authority_context(project_id, package, connection)
-        base_status = "PASS" if rows else "EMPTY"
         return {
-            "status": result_status(base_status, context["freshness"]),
+            "status": result_status("PASS", context["freshness"]),
+            "result_state": "HITS" if rows else "EMPTY",
             "project_id": project_id,
             **context,
             "query_kind": query_kind,

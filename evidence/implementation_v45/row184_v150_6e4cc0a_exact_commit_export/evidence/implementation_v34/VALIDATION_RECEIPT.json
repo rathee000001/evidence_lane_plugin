@@ -1,0 +1,101 @@
+{
+  "schema": "evidence-lane.universal-brain-hil-validation.v34",
+  "recorded_at": "2026-08-01T03:56:59.9051748Z",
+  "status": "IMPLEMENTATION_VALIDATED_AWAITING_GOVERNED_COMMIT_PUSH_INSTALL_AND_HIL",
+  "source": {
+    "workspace_authority": "F:\\test codex",
+    "branch": "agent/evi-universal-brain-hil-v0.6.0",
+    "base_commit": "2edef6fe8693382eb7c0280f34ebb9b7e9a31fd6",
+    "remote": "https://github.com/rathee000001/evidence_lane_plugin.git",
+    "commit_binding": "commit containing this receipt",
+    "d_drive_inspected_or_mutated": false
+  },
+  "release": {
+    "engine_version": "0.6.0",
+    "schema_version": "3.0.0",
+    "plugin_manifest_version": "0.6.0+codex.20260801033432",
+    "public_controls_after_root_evi": [
+      "Boot",
+      "Rollback",
+      "Build",
+      "Refresh",
+      "Mode",
+      "Source Intake"
+    ],
+    "state_travel_role": "CONDITIONAL_PRE_CONTROL_RECOVERY_ONLY",
+    "fuse_token": "APPROVE",
+    "fuse_token_case_sensitive": true,
+    "candidate_only_before_fuse": true,
+    "hidden_reasoning_stored": false,
+    "canonical_lane_count": 18,
+    "project_engulf_supported": true,
+    "chat_lineage_always_included": true,
+    "maximum_additional_persistent_plugins": 8,
+    "vercel_role": "CHATGPT_REMOTE_MCP_ADAPTER_ONLY"
+  },
+  "validation": {
+    "full_pytest": {
+      "status": "PASS",
+      "passed": 80,
+      "failed": 0,
+      "duration_seconds": 487.37
+    },
+    "official_plugin_validator": "PASS",
+    "ruff": "PASS",
+    "mypy": {
+      "status": "PASS",
+      "source_files": 43,
+      "issues": 0
+    },
+    "bandit": {
+      "status": "PASS",
+      "findings": 0,
+      "informational_nosec_warnings": true
+    },
+    "locked_requirements_pip_audit": {
+      "status": "PASS",
+      "known_vulnerabilities": 0
+    },
+    "python_package_build": {
+      "status": "PASS",
+      "wheel": "evidence_lane_plugin-0.6.0-py3-none-any.whl",
+      "wheel_sha256": "7F1AF14AA767FD6D175464E634441A48AD0E80F7D8B900C5E0C014C9F50AF3BE",
+      "sdist": "evidence_lane_plugin-0.6.0.tar.gz",
+      "sdist_sha256": "02D0458F34D5353771D3E6D2E471B8716543B5846A63F52B1D1AAD70A08EB564"
+    },
+    "isolated_wheel_install": {
+      "status": "PASS",
+      "installed_version": "0.6.0",
+      "schema_version": "3.0.0"
+    },
+    "changed_source_secret_scan": {
+      "status": "PASS_WITH_SYNTHETIC_TEST_FIXTURE",
+      "compromised_key_found": false,
+      "new_key_shaped_literals": 1,
+      "new_literal_is_sequential_alphabet_test_fixture": true,
+      "env_local_tracked": false
+    },
+    "twine_check": "NOT_RUN_MODULE_UNAVAILABLE",
+    "git_diff_check": "PASS"
+  },
+  "governance_boundary": {
+    "accepted_pv": null,
+    "pointer_generation": 0,
+    "accepted_history_count": 0,
+    "pending_candidate_at_correction": "PV1_CANDIDATE__RUN_01KYS9AD69SQNW772Q5CFJGM6E",
+    "decision": "APPROVE_WITH_DELTA",
+    "decision_is_fuse_authority": false,
+    "linear_delta_count": 36,
+    "linear_delta_status": {"QUEUED": 36},
+    "candidate_promoted": false,
+    "pointer_moved": false,
+    "state_travel_run": false
+  },
+  "known_release_blockers": [
+    "MANUAL_OPENAI_KEY_REVOCATION_REQUIRED",
+    "LITERAL_FIRST_21_BACKLOG_BYTES_NOT_PRESERVED",
+    "INSTALLED_EVIDENCE_LANE_MCP_TRANSPORT_RETURNED_TUNNEL_404",
+    "EXACT_SHA_CODEX_INSTALL_AND_FRESH_TASK_PICKUP_NOT_YET_PROVEN",
+    "VERCEL_PREVIEW_ELIGIBILITY_NOT_YET_PROVEN"
+  ]
+}

@@ -66,6 +66,62 @@ def _write(path: Path, value: str) -> None:
     path.write_text(value, encoding="utf-8")
 
 
+def test_codex_cli_resolution_uses_npm_native_default(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    appdata = tmp_path / "AppData" / "Roaming"
+    executable = appdata / module.NPM_CODEX_CLI_RELATIVE_PATH
+    executable.parent.mkdir(parents=True)
+    executable.write_bytes(b"fixture")
+    monkeypatch.setenv("APPDATA", str(appdata))
+
+    calls: list[list[str]] = []
+
+    def fake_run(arguments: list[str], **_kwargs: object):
+        calls.append(arguments)
+        return subprocess.CompletedProcess(
+            arguments,
+            0,
+            "codex-cli 0.145.0\n",
+            "",
+        )
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+    resolved = module._resolve_codex_cli_executable(
+        None,
+        verify_version=True,
+    )
+
+    assert resolved == executable.resolve()
+    assert calls == [[str(executable.resolve()), "--version"]]
+
+
+def test_codex_cli_resolution_rejects_packaged_windowsapps_before_probe(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    packaged = tmp_path / "WindowsApps" / "OpenAI.Codex_fixture" / "codex.exe"
+    packaged.parent.mkdir(parents=True)
+    packaged.write_bytes(b"fixture")
+    probed = False
+
+    def fail_if_probed(*_args: object, **_kwargs: object):
+        nonlocal probed
+        probed = True
+        raise AssertionError("the packaged app route must not be probed")
+
+    monkeypatch.setattr(module.subprocess, "run", fail_if_probed)
+    with pytest.raises(module.InstallationError, match="forbidden install route"):
+        module._resolve_codex_cli_executable(
+            packaged,
+            verify_version=True,
+        )
+    assert probed is False
+
+
 def _fixture_hook_source(marker: str) -> str:
     return (
         "render_persistent_notice = None\n"
@@ -77,7 +133,7 @@ def _fixture_hook_source(marker: str) -> str:
 
 def _fixture_catalog_source() -> str:
     functions = ["_READ_ONLY = object()", "_WRITE = object()"]
-    for index in range(87):
+    for index in range(88):
         annotation = "_READ_ONLY" if index < 27 else "_WRITE"
         functions.extend(
             [
@@ -134,9 +190,9 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                     "stable_selector_is_persistent": True,
                     "stable_updates_reinstall_in_place": True,
                     "build_identity_is_receipt_not_selector": True,
-                    "native_tool_count": 87,
+                    "native_tool_count": 88,
                     "native_read_tool_count": 27,
-                    "native_write_tool_count": 60,
+                    "native_write_tool_count": 61,
                     "skill_count": 17,
                     "codex_apps_allowed": False,
                     "generated_namespace_allowed": False,
@@ -742,9 +798,9 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
         "raw_paths_included"
     ] is False
     assert result["surface_change_display"]["catalog"] == {
-        "tools": 87,
+        "tools": 88,
         "read": 27,
-        "write": 60,
+        "write": 61,
         "skills": 17,
         "changed_from_previous": False,
     }
@@ -852,9 +908,6 @@ def test_local_test_activation_refreshes_only_exact_selector_and_defers_hook_tru
                     }
                 )
             return {"installed": rows}
-        if arguments == ["plugin", "remove", selector, "--json"]:
-            target_installed = False
-            return {"pluginId": selector, "removed": True}
         if arguments == ["plugin", "marketplace", "list", "--json"]:
             return {
                 "marketplaces": [
@@ -957,7 +1010,13 @@ def test_local_test_activation_refreshes_only_exact_selector_and_defers_hook_tru
     assert len(isolation["policy_sha256"]) == 64
     assert result["activation"]["local_test_reinstall"][
         "target_removed_for_exact_reinstall"
+    ] is False
+    assert result["activation"]["local_test_reinstall"][
+        "same_selector_update_via_plugin_add"
     ] is True
+    assert result["activation"]["local_test_reinstall"][
+        "known_failed_plugin_remove_route_invoked"
+    ] is False
     assert result["activation"]["local_test_reinstall"][
         "marketplace_add_required"
     ] is False
@@ -988,7 +1047,7 @@ def test_local_test_activation_refreshes_only_exact_selector_and_defers_hook_tru
     assert result["activation"]["readiness"]["ready"] is False
     assert result["activation"]["runtime_ready_before_task_reopen"] is False
     assert result["runtime_ready_before_task_reopen"] is False
-    assert ["plugin", "remove", selector, "--json"] in calls
+    assert ["plugin", "remove", selector, "--json"] not in calls
     assert ["plugin", "add", selector, "--json"] in calls
     assert not any(arguments[:3] == ["plugin", "marketplace", "add"] for arguments in calls)
     assert result["two_slot_registry_update"] == {
@@ -1491,7 +1550,7 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
             "engine_version": "3.0.0",
             "native_server_identity": "evidence-lane",
             "read_tool_count": 27,
-            "tool_count": 87,
+            "tool_count": 88,
             "tool_catalog_sha256": "A" * 64,
             "route_status": "PASS",
             "resource_uri": "ui://evidence-lane/governed-console-v6.html",
@@ -1510,7 +1569,7 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
     assert receipt["status"] == "PASS"
     assert receipt["runtime_ready_before_task_reopen"] is True
     assert receipt["native_dependency_prewarm_completed"] is True
-    assert receipt["tool_count"] == 87
+    assert receipt["tool_count"] == 88
     assert receipt["tool_catalog_sha256"] == "A" * 64
     assert receipt["resource_uri"] == (
         "ui://evidence-lane/governed-console-v6.html"
@@ -1580,7 +1639,7 @@ def test_installed_runtime_bootstrap_retries_once_on_same_sealed_bytes(
             "engine_version": "3.0.0",
             "native_server_identity": "evidence-lane",
             "read_tool_count": 27,
-            "tool_count": 87,
+            "tool_count": 88,
             "tool_catalog_sha256": "A" * 64,
             "route_status": "PASS",
             "resource_uri": "ui://evidence-lane/governed-console-v6.html",
@@ -2237,16 +2296,16 @@ def test_installer_rejects_native_catalog_drift_before_staging(tmp_path: Path) -
         encoding="utf-8",
     )
 
-    with pytest.raises(module.InstallationError, match="87/27/60"):
+    with pytest.raises(module.InstallationError, match="88/27/61"):
         module._validate_plugin(source)
 
 
 def test_installer_catalog_counts_declarative_sdk_actions() -> None:
     module = _module()
     catalog = module._catalog(PLUGIN)
-    assert catalog["tools"] == 87
+    assert catalog["tools"] == 88
     assert catalog["read"] == 27
-    assert catalog["write"] == 60
+    assert catalog["write"] == 61
     assert catalog["skills"] == 17
     assert catalog["tool_names_unique"] is True
 
@@ -2269,9 +2328,9 @@ def test_installer_accepts_current_local_v300_package_contract(
 
     assert identity["version"].startswith("3.0.0+codex.")
     assert identity["catalog"] == {
-        "tools": 87,
+        "tools": 88,
         "read": 27,
-        "write": 60,
+        "write": 61,
         "skills": 17,
         "tool_names_unique": True,
         "static_catalog_sha256": identity["catalog"]["static_catalog_sha256"],
@@ -3489,14 +3548,14 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         "probe_stderr_sha256": "2" * 64,
         "engine_version": "3.0.0",
         "native_server_identity": "evidence-lane",
-        "tool_count": 87,
+        "tool_count": 88,
         "tool_catalog_sha256": "A" * 64,
         "resource_uri": "ui://evidence-lane/governed-console-v6.html",
         "brand_icon_sha256": (
             "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3D"
             "EF87B8A129C4FA"
         ),
-        "catalog_expected": {"tools": 87, "read": 27, "write": 60, "skills": 17},
+        "catalog_expected": {"tools": 88, "read": 27, "write": 61, "skills": 17},
         "native_dependency_prewarm_completed": True,
         "duration_ms": 1,
         "task_reopened": False,
@@ -3618,9 +3677,9 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
                 "raw_paths_included": False,
             },
             "catalog": {
-            "tools": 87,
+            "tools": 88,
             "read": 27,
-            "write": 60,
+            "write": 61,
             "skills": 17,
             "changed_from_previous": False,
         },
@@ -3659,7 +3718,7 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
     assert pre["state"] == (
         "PRE_RESTART_INSTALLED_PACKAGE_VERIFIED_RESTART_REQUIRED"
     )
-    assert pre["catalog"] == {"tools": 87, "read": 27, "write": 60, "skills": 17}
+    assert pre["catalog"] == {"tools": 88, "read": 27, "write": 61, "skills": 17}
     assert pre["installed_plugin"]["version"] == version
     assert pre["package_inventory"]["source_bytes_match_marketplace"] is True
     assert pre["package_inventory"]["codex_generated_migration_count"] == 1
@@ -3681,7 +3740,7 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
                 "server_identity": "evidence-lane",
                 "canonical_tool_namespace": "mcp__evidence_lane__",
                 "exposure_profile": "FULL_LIFECYCLE",
-                "tool_count": 87,
+                "tool_count": 88,
                 "tool_names_unique": True,
                 "project_route_argument_required": True,
                 "cross_project_fallback_allowed": False,

@@ -113,7 +113,7 @@ def test_plan_steer_updates_only_when_current_host_window_fingerprint_changes(
         "book-faires",
         tasks=tasks,
         planned_by="human-test",
-        plan_id="ten-row-window-steer-routing",
+        plan_id="nine-row-window-steer-routing",
     )
     service.sessions.classify(
         "book-faires",
@@ -139,7 +139,8 @@ def test_plan_steer_updates_only_when_current_host_window_fingerprint_changes(
         "evidence-lane.plan-steer-host-window-effect.v2"
     )
     assert outside_effect["row_start"] == 1
-    assert outside_effect["row_end"] == 10
+    assert outside_effect["row_end"] == 9
+    assert outside_effect["window_size"] == 9
     assert outside_effect["linked_row_is_currently_visible"] is False
     assert outside_effect["visible_window_changed"] is False
     assert outside_effect["action"] == "LEDGER_ONLY_REUSE_CURRENT_HOST_WINDOW"
@@ -171,6 +172,137 @@ def test_plan_steer_updates_only_when_current_host_window_fingerprint_changes(
     assert effect["action"] == "SYNC_CURRENT_HOST_WINDOW_ONCE"
     assert effect["host_update_plan_required"] is True
     assert effect["evi_refresh_invoked"] is False
+
+
+def test_plan_steer_reuses_persisted_batch_when_active_is_mid_window(service) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    tasks = [
+        _task(f"fixed-step-{number:02d}", f"Execute fixed window row {number}.")
+        for number in range(1, 13)
+    ]
+    service.plan_tasks(
+        "book-faires",
+        tasks=tasks,
+        planned_by="human-test",
+        plan_id="persisted-nine-row-window",
+    )
+    active = tasks[4]
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=str(active["task_class"]),
+        requested_outcome=str(active["requested_outcome"]),
+        permitted_paths=list(active["permitted_paths"]),
+        permitted_tools=list(active["permitted_tools"]),
+        acceptance_checks=list(active["acceptance_checks"]),
+        stop_condition=str(active["stop_condition"]),
+        backlog_task_id=str(active["task_id"]),
+    )
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["host_plan_window"] = {
+        "schema": "evidence-lane.host-plan-window-state.v1",
+        "window_task_ids": [task["task_id"] for task in tasks[:9]],
+    }
+    service.sessions._save(session)
+
+    result = service.record_steer_delta(
+        "book-faires",
+        delta_text="Attach this correction outside the fixed host batch.",
+        actor="human-test",
+        delta_id="steer-fixed-window-outside",
+        linked_task_id="fixed-step-12",
+    )
+    effect = result["host_plan_window_effect"]
+    assert effect["row_start"] == 1
+    assert effect["row_end"] == 9
+    assert effect["window_size"] == 9
+    assert effect["active_row_present"] is True
+    assert effect["linked_row_is_currently_visible"] is False
+    assert effect["action"] == "LEDGER_ONLY_REUSE_CURRENT_HOST_WINDOW"
+
+
+def test_task_activity_public_receipt_keeps_exact_bounded_host_window(
+    service,
+) -> None:
+    plan = [
+        {"status": "completed", "step": "Tracker | Active=R238"},
+        {"status": "in_progress", "step": "R238 | active"},
+        {"status": "pending", "step": "R239 | pending"},
+    ]
+    result = service.invoke(
+        "task_record_activity",
+        lambda: {
+            "status": "PASS",
+            "event": {
+                "event_id": "host-plan-loss-001",
+                "event_type": "task.host.plan.observation",
+                "event_sha256": "A" * 64,
+                "occurred_at": "2026-08-20T18:00:00Z",
+                "session_id": "session-test",
+                "task_id": "row238",
+                "run_id": "run-test",
+            },
+            "host_plan_rehydration": {
+                "state": "REHYDRATION_RECEIPT_SEALED",
+                "request_sha256": "B" * 64,
+                "receipt_path": "private-store-path.json",
+                "receipt": {
+                    "schema": (
+                        "evidence-lane.host-plan-window-activation-receipt.v2"
+                    ),
+                    "status": "PASS",
+                    "project_id": "book-faires",
+                    "evidence_session_id": "session-test",
+                    "host_task_id_sha256": "C" * 64,
+                    "trigger": "TASK_PANEL_LOSS",
+                    "trigger_event_id": "host-plan-loss-001",
+                    "action": "REACTIVATE_EXISTING_HOST_PLAN_WINDOW",
+                    "host_update_plan_required": True,
+                    "host_goal_active": True,
+                    "host_artifact_visibility_status": "UNCONFIRMED",
+                    "receipt_sha256": "D" * 64,
+                    "candidate_created": False,
+                    "pending_hil_mutated": False,
+                    "pointer_moved": False,
+                    "plan_lane_mutated": False,
+                    "projection": {
+                        "schema": "evidence-lane.host-plan-window.v2",
+                        "projection_sha256": "E" * 64,
+                        "canonical_plan_sha256": "F" * 64,
+                        "executable_projection_sha256": "1" * 64,
+                        "window_ui_fingerprint_sha256": "2" * 64,
+                        "row_start": 238,
+                        "row_end": 239,
+                        "item_count": 3,
+                        "sole_active_row": 238,
+                        "continuity_header": {
+                            "next_hil_boundary_row": 267,
+                            "physically_final_row": 276,
+                        },
+                        "host_update_plan_contract": {
+                            "explanation": "Bounded native window",
+                            "plan": plan,
+                        },
+                    },
+                },
+            },
+            "source_state": "ENTRY_MATCH",
+            "accepted_pv_query_scope": "ENTRY_STATE_ONLY",
+        },
+        lifecycle=True,
+    )
+
+    rehydration = result["data"]["host_plan_rehydration"]
+    assert rehydration["action"] == "REACTIVATE_EXISTING_HOST_PLAN_WINDOW"
+    assert rehydration["host_update_plan_required"] is True
+    assert rehydration["projection"]["row_start"] == 238
+    assert rehydration["projection"]["row_end"] == 239
+    assert rehydration["projection"]["next_hil_boundary_row"] == 267
+    assert rehydration["projection"]["physically_final_row"] == 276
+    assert rehydration["projection"]["host_update_plan_contract"]["plan"] == plan
+    assert rehydration["bounded_host_window_returned"] is True
+    assert rehydration["full_plan_returned"] is False
+    assert "receipt_path" not in rehydration
 
 
 def test_existing_priority_delta_is_promoted_without_duplication_and_rehydrates(
@@ -283,6 +415,101 @@ def test_existing_priority_delta_is_promoted_without_duplication_and_rehydrates(
     rebound = service.sessions.load("book-faires", session_id)
     assert rebound.metadata["active_backlog_task_id"] == "priority-delivery"
     assert rebound.task["task_id"] == "priority-delivery"
+
+
+def test_existing_priority_promotion_accepts_implicit_executable_predecessor(
+    service,
+) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    active = {
+        **_task("active-route", "Finish the interrupted direct route."),
+        "dependencies": [],
+    }
+    middle = {
+        **_task("middle-route", "Preserve the queued route correction."),
+        "dependencies": ["active-route"],
+    }
+    promoted = _task(
+        "implicit-priority",
+        "Promote the existing row whose predecessor is implicit.",
+    )
+    successor = {
+        **_task("implicit-successor", "Continue the displaced chain."),
+        "dependencies": ["implicit-priority"],
+    }
+    final_hil = {
+        **_task("physical-final-hil", "Present the physically final HIL."),
+        "panel_role": "PHYSICALLY_FINAL_HIL",
+        "dependencies": ["implicit-successor"],
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[active, middle, promoted, successor, final_hil],
+        planned_by="human-test",
+        plan_id="implicit-existing-priority-promotion",
+    )
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=str(active["task_class"]),
+        requested_outcome=str(active["requested_outcome"]),
+        permitted_paths=list(active["permitted_paths"]),
+        permitted_tools=list(active["permitted_tools"]),
+        acceptance_checks=list(active["acceptance_checks"]),
+        stop_condition=str(active["stop_condition"]),
+        backlog_task_id=str(active["task_id"]),
+    )
+    before = service.store.backlog_status("book-faires")
+    raw_before = service.store._load_backlog("book-faires")
+    session = service.sessions.load("book-faires", session_id)
+
+    result = service.plan_tasks(
+        "book-faires",
+        tasks=[],
+        planned_by="human-test",
+        existing_task_promotion={
+            "promotion_id": "promote-implicit-priority-001",
+            "session_id": session_id,
+            "old_active_task_id": "active-route",
+            "promoted_task_id": "implicit-priority",
+            "expected_host_task_id": session.metadata[
+                "current_host_session_id"
+            ],
+            "reason": "The user ordered the existing implicit row first.",
+            "expected_backlog_sha256": sha256_bytes(
+                canonical_json_bytes(raw_before)
+            ),
+            "expected_canonical_plan_sha256": before[
+                "canonical_plan_projection"
+            ]["projection_sha256"],
+            "expected_executable_projection_sha256": before[
+                "goal_projection"
+            ]["projection_sha256"],
+            "expected_physical_final_task_id": "physical-final-hil",
+            "expected_candidate_absent": True,
+            "expected_pending_hil": False,
+            "expected_pointer_move": False,
+            "preserve_task_identity": True,
+            "host_goal_active": True,
+        },
+    )
+
+    rows = result["goal_projection"]["rows"]
+    assert [row["task_id"] for row in rows] == [
+        "implicit-priority",
+        "active-route",
+        "middle-route",
+        "implicit-successor",
+        "physical-final-hil",
+    ]
+    assert rows[0]["dependencies"] == []
+    assert rows[1]["dependencies"] == ["implicit-priority"]
+    assert rows[3]["dependencies"] == ["middle-route"]
+    receipt = result["existing_task_promotion_receipt"]
+    assert receipt["promoted_dependency_mode"] == (
+        "IMPLICIT_EXECUTABLE_PREDECESSOR"
+    )
+    assert receipt["successor_dependency_mode"] == "EXPLICIT"
 
 
 def test_non_codex_plan_rows_are_rejected_outside_the_codex_goal(service) -> None:

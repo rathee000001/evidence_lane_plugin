@@ -76,10 +76,10 @@ def test_shared_manifest_owns_and_routes_the_exact_catalog() -> None:
 
     assert manifest["schema"] == SKILL_MCP_ROUTING_SCHEMA
     assert manifest["server_identity"] == "evidence-lane"
-    assert manifest["catalog_contract"]["tool_count"] == 87
+    assert manifest["catalog_contract"]["tool_count"] == 88
     assert set(manifest["tool_owners"]) == set(registered)
-    assert len(manifest["tool_owners"]) == 87
-    assert len(manifest["low_level_tools"]) == 21
+    assert len(manifest["tool_owners"]) == 88
+    assert len(manifest["low_level_tools"]) == 22
     assert set(manifest["workflows"]) == {
         path.parent.name for path in SKILLS.glob("*/SKILL.md")
     }
@@ -115,9 +115,9 @@ def test_mcp_construction_attaches_bounded_skill_routing_receipt() -> None:
 
     assert review["status"] == "PASS"
     assert review["skill_count"] == 17
-    assert review["tool_count"] == 87
-    assert review["owned_tool_count"] == 87
-    assert review["low_level_tool_count"] == 21
+    assert review["tool_count"] == 88
+    assert review["owned_tool_count"] == 88
+    assert review["low_level_tool_count"] == 22
     assert route["skill_mcp_routing"] == {
         "schema": review["schema"],
         "status": "PASS",
@@ -125,9 +125,9 @@ def test_mcp_construction_attaches_bounded_skill_routing_receipt() -> None:
         "manifest_format": review["manifest_format"],
         "server_identity": "evidence-lane",
         "skill_count": 17,
-        "tool_count": 87,
-        "owned_tool_count": 87,
-        "low_level_tool_count": 21,
+        "tool_count": 88,
+        "owned_tool_count": 88,
+        "low_level_tool_count": 22,
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
         "manifest_sha256": review["manifest_sha256"],
         "receipt_sha256": review["receipt_sha256"],
@@ -144,7 +144,7 @@ def test_mcp_construction_uses_explicit_plugin_root(
 
     assert review["status"] == "PASS"
     assert review["skill_count"] == 17
-    assert review["tool_count"] == 87
+    assert review["tool_count"] == 88
 
 
 def test_mcp_construction_rejects_relative_explicit_plugin_root(

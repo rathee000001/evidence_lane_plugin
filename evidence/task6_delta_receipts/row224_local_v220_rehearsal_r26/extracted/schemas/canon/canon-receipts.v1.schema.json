@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evidence-lane.local/schemas/canon/canon-receipts.v1.schema.json",
+  "title": "Evidence Lane Canon receipt contracts",
+  "oneOf": [
+    {"$ref": "#/$defs/canonDecisionReceipt"},
+    {"$ref": "#/$defs/canonDispatchReceipt"},
+    {"$ref": "#/$defs/canonDispatchReceiptV2"},
+    {"$ref": "#/$defs/codexHostTaskCreateReceipt"},
+    {"$ref": "#/$defs/canonStateTravelRestoreReceipt"}
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "endpoint": {
+      "type": "object",
+      "required": ["task_uuid", "task_deep_link"],
+      "properties": {
+        "project_id": {"type": "string", "minLength": 1},
+        "session_id": {"type": "string", "minLength": 1},
+        "task_uuid": {"type": "string", "minLength": 1},
+        "task_deep_link": {"type": "string", "minLength": 1},
+        "host_session_id": {"type": "string", "minLength": 1},
+        "lane_id": {"type": "string", "minLength": 1},
+        "delta_id": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "canonDecisionReceipt": {
+      "type": "object",
+      "required": [
+        "schema",
+        "project_id",
+        "canon_id",
+        "canon_sha256",
+        "revision",
+        "decision",
+        "state_before",
+        "state_after",
+        "actor_task_uuid",
+        "actor_id",
+        "reason",
+        "research_request",
+        "next_required_revision",
+        "source_notification_required",
+        "project_truth_pointer_moved",
+        "learning_pointer_moved",
+        "project_hil_invoked",
+        "learning_hil_invoked",
+        "other_task_hil_decided",
+        "source_write_authority_granted",
+        "decided_at",
+        "event_sha256",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema": {"const": "evidence-lane.canon-decision-receipt.v1"},
+        "project_id": {"type": "string", "minLength": 1},
+        "canon_id": {"type": "string", "minLength": 1},
+        "canon_sha256": {"$ref": "#/$defs/sha256"},
+        "revision": {"type": "integer", "minimum": 1},
+        "decision": {"enum": ["ACCEPT", "REJECT", "MORE_RESEARCH"]},
+        "state_before": {"const": "PENDING_HIL"},
+        "state_after": {"enum": ["ACCEPTED_INPUT", "REJECTED", "MORE_RESEARCH"]},
+        "actor_task_uuid": {"type": "string", "minLength": 1},
+        "actor_id": {"type": "string", "minLength": 1},
+        "reason": {"type": ["string", "null"], "minLength": 1},
+        "research_request": {"type": ["object", "null"]},
+        "next_required_revision": {"type": ["integer", "null"], "minimum": 1},
+        "source_notification_required": {"type": "boolean"},
+        "project_truth_pointer_moved": {"const": false},
+        "learning_pointer_moved": {"const": false},
+        "project_hil_invoked": {"const": false},
+        "learning_hil_invoked": {"const": false},
+        "other_task_hil_decided": {"const": false},
+        "source_write_authority_granted": {"const": false},
+        "decided_at": {"type": "string", "format": "date-time"},
+        "event_sha256": {"$ref": "#/$defs/sha256"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "canonDispatchReceipt": {
+      "type": "object",
+      "required": [
+        "schema",
+        "dispatch_id",
+        "request_sha256",
+        "source",
+        "destination",
+        "task_mode",
+        "scope_class",
+        "created_once",
+        "edge",
+        "approval_propagated",
+        "pointer_propagated",
+        "source_write_authority_granted_by_canon",
+        "subagent_hil_allowed",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema": {"const": "evidence-lane.canon-dispatch-receipt.v1"},
+        "dispatch_id": {"type": "string", "minLength": 1},
+        "request_sha256": {"$ref": "#/$defs/sha256"},
+        "source": {"$ref": "#/$defs/endpoint"},
+        "destination": {"$ref": "#/$defs/endpoint"},
+        "task_mode": {"enum": ["TOP_LEVEL_TASK", "SUBAGENT"]},
+        "scope_class": {"enum": ["READ_ONLY", "GOVERNED_READ_WRITE"]},
+        "created_once": {"const": true},
+        "edge": {"type": "object"},
+        "approval_propagated": {"const": false},
+        "pointer_propagated": {"const": false},
+        "source_write_authority_granted_by_canon": {"const": false},
+        "subagent_hil_allowed": {"const": false},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "codexHostTaskCreateReceipt": {
+      "type": "object",
+      "required": [
+        "schema",
+        "host_kind",
+        "operation",
+        "capability",
+        "idempotency_key",
+        "request_sha256",
+        "destination",
+        "created_once",
+        "replayed",
+        "host_receipt_id",
+        "issued_at",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema": {"const": "evidence-lane.codex-host-task-create-receipt.v1"},
+        "host_kind": {"const": "CODEX"},
+        "operation": {"const": "CREATE_LINKED_TASK"},
+        "capability": {"const": "CODEX_HOST_CREATE_LINKED_TASK_IDEMPOTENT_V1"},
+        "idempotency_key": {"type": "string", "minLength": 1},
+        "request_sha256": {"$ref": "#/$defs/sha256"},
+        "destination": {"$ref": "#/$defs/endpoint"},
+        "created_once": {"const": true},
+        "replayed": {"type": "boolean"},
+        "host_receipt_id": {"type": "string", "minLength": 1},
+        "issued_at": {"type": "string", "format": "date-time"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "canonDispatchReceiptV2": {
+      "type": "object",
+      "required": [
+        "schema",
+        "dispatch_id",
+        "request_sha256",
+        "source",
+        "destination",
+        "task_mode",
+        "scope_class",
+        "created_once",
+        "host_creation_receipt",
+        "edge",
+        "approval_propagated",
+        "pointer_propagated",
+        "source_write_authority_granted_by_canon",
+        "subagent_hil_allowed",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema": {"const": "evidence-lane.canon-dispatch-receipt.v2"},
+        "dispatch_id": {"type": "string", "minLength": 1},
+        "request_sha256": {"$ref": "#/$defs/sha256"},
+        "source": {"$ref": "#/$defs/endpoint"},
+        "destination": {"$ref": "#/$defs/endpoint"},
+        "task_mode": {"enum": ["TOP_LEVEL_TASK", "SUBAGENT"]},
+        "scope_class": {"enum": ["READ_ONLY", "GOVERNED_READ_WRITE"]},
+        "created_once": {"const": true},
+        "host_creation_receipt": {"$ref": "#/$defs/codexHostTaskCreateReceipt"},
+        "edge": {"type": "object"},
+        "approval_propagated": {"const": false},
+        "pointer_propagated": {"const": false},
+        "source_write_authority_granted_by_canon": {"const": false},
+        "subagent_hil_allowed": {"const": false},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "canonStateTravelRestoreReceipt": {
+      "type": "object",
+      "required": [
+        "schema",
+        "project_id",
+        "snapshot_sha256",
+        "destination",
+        "pending_packets",
+        "restore_effect",
+        "canon_decision_replayed",
+        "canon_packet_state_changed",
+        "project_pointer_moved",
+        "learning_pointer_moved",
+        "restored_at",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema": {"const": "evidence-lane.canon-state-travel-restore-receipt.v1"},
+        "project_id": {"type": "string", "minLength": 1},
+        "snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "destination": {"$ref": "#/$defs/endpoint"},
+        "pending_packets": {"type": "array"},
+        "restore_effect": {"const": "CONTEXT_ONLY"},
+        "canon_decision_replayed": {"const": false},
+        "canon_packet_state_changed": {"const": false},
+        "project_pointer_moved": {"const": false},
+        "learning_pointer_moved": {"const": false},
+        "restored_at": {"type": "string", "format": "date-time"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "x-evidence-lane-version": 1,
+  "x-evidence-lane-hash-field": "receipt_sha256",
+  "x-evidence-lane-migration-policy": {
+    "earlier_receipt_bytes_are_immutable": true,
+    "compatible_change": "ADD_A_NEW_SCHEMA_ID_OR_OPTIONAL_FIELD_ONLY",
+    "breaking_change": "NEW_MAJOR_SCHEMA_ID_REQUIRED",
+    "in_place_rewrite": "FORBIDDEN",
+    "unknown_schema": "FAIL_CLOSED"
+  }
+}

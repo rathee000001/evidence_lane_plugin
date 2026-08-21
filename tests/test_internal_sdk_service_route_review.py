@@ -43,9 +43,9 @@ def test_service_route_review_classifies_every_public_method() -> None:
     review = inspect_service_route_parity()
 
     assert review["status"] == "PASS"
-    assert review["service_public_method_count"] == 51
-    assert review["mcp_workflow_method_count"] == 49
-    assert review["sdk_workflow_method_count"] == 17
+    assert review["service_public_method_count"] == 56
+    assert review["mcp_workflow_method_count"] == 51
+    assert review["sdk_workflow_method_count"] == 20
     assert review["dispatch_boundary_method_count"] == 1
     assert review["internal_orchestration_method_count"] == 1
     assert review["eligible_unrouted_method_count"] == 0
@@ -111,9 +111,9 @@ def test_mcp_construction_attaches_bounded_service_route_receipt(
     assert route["service_route_review"] == {
         "schema": review["schema"],
         "status": "PASS",
-        "service_public_method_count": 51,
-        "mcp_workflow_method_count": 49,
-        "sdk_workflow_method_count": 17,
+        "service_public_method_count": 56,
+        "mcp_workflow_method_count": 51,
+        "sdk_workflow_method_count": 20,
         "eligible_unrouted_method_count": 0,
         "receipt_sha256": review["receipt_sha256"],
     }

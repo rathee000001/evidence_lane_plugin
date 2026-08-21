@@ -1,0 +1,112 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_FIRST_CLASS_CANON_SCHEMAS_AND_BUILDER_PARITY",
+  "recorded_at": "2026-08-15T18:36:22Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-025-CANON-SCHEMA-PARITY",
+  "task_contract_sha256": "FAA7E13EEBD6D70F45CB789D1CBA034B667AFB61725CF35A9F479CED163B66E4",
+  "schema_contract": {
+    "schema": "evidence-lane.canon-schema-contract-receipt.v1",
+    "status": "PASS",
+    "manifest_schema": "evidence-lane.canon-schema-manifest.v1",
+    "manifest_sha256": "3888467658DBB9E5F0ED18077FCD22C5E848F37943F6922CB1BE8D5BFB710C48",
+    "ledger_schema": "evidence-lane.canon-ledger.v1",
+    "ledger_version": 1,
+    "ledger_asset_sha256": "731EE277B30F564FA91B19A0DB7E4C01EDE786415DD6E752A0053AF118FA07FA",
+    "ledger_schema_signature_sha256": "CBF94F6EF251D6BE782BE6B1147FE8F7326495808365C626650832BAF91ADE05",
+    "receipt_registry_schema": "evidence-lane.canon-receipt-schema-registry.v1",
+    "receipt_registry_version": 1,
+    "receipt_asset_sha256": "7D2386C1A0C30E8C3C16DC17A5F06A61990B5D99163C3FF2BF94C725F3E790B6",
+    "supported_receipt_schemas": [
+      "evidence-lane.canon-decision-receipt.v1",
+      "evidence-lane.canon-dispatch-receipt.v1",
+      "evidence-lane.canon-state-travel-restore-receipt.v1"
+    ],
+    "builder_executes_exact_asset_bytes": true,
+    "builder_validates_receipts_before_persistence_or_replay": true,
+    "receipt_sha256": "04F2ABC04E287E81E9AD075DF818B2C34D860C5F09AE5F16F1A49ECEC4AE63F9"
+  },
+  "migration_law": {
+    "accepted_from_versions": [0, 1],
+    "implicit_transition": "V0_TO_V1_ADDITIVE_IDEMPOTENT_CREATE_ONLY",
+    "existing_rows_preserved": true,
+    "data_rewrite": false,
+    "drop_or_rename": false,
+    "same_version_reentry": "VERIFY_ASSET_SCHEMA_AND_MIGRATION_RECEIPT_THEN_REUSE",
+    "unknown_older_version": "FAIL_CLOSED_EXPLICIT_MIGRATION_REQUIRED",
+    "newer_version": "FAIL_CLOSED_RUNTIME_TOO_OLD",
+    "rollback": "UNSUPPORTED_NO_DESTRUCTIVE_REWRITE",
+    "earlier_receipt_bytes_are_immutable": true,
+    "breaking_receipt_change": "NEW_MAJOR_SCHEMA_ID_REQUIRED"
+  },
+  "runtime_binding": {
+    "builder": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/canon_task_graph.py::_connect",
+    "schema_loader": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/canon_task_graph.py::_load_canon_schema_contract",
+    "migration_verifier": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/canon_task_graph.py::_apply_canon_ledger_schema",
+    "receipt_validator": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/canon_task_graph.py::validate_canon_receipt",
+    "public_inspector": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/canon_task_graph.py::inspect_canon_schema_contract",
+    "inline_ledger_ddl_removed": true,
+    "public_tool_inventory_changed": false
+  },
+  "byte_identities": {
+    "canon_ledger_sql_sha256": "731EE277B30F564FA91B19A0DB7E4C01EDE786415DD6E752A0053AF118FA07FA",
+    "canon_receipt_schema_sha256": "7D2386C1A0C30E8C3C16DC17A5F06A61990B5D99163C3FF2BF94C725F3E790B6",
+    "canon_schema_manifest_sha256": "3888467658DBB9E5F0ED18077FCD22C5E848F37943F6922CB1BE8D5BFB710C48",
+    "canon_skill_sha256": "4577B83E8842FE55FC73B221CEE9D1F971E03516B2AEA8C2CAB9DC0CDEA74264",
+    "canon_task_graph_sha256": "355077FC3996691FFDE4D5CF5868B53149B89D338B5D20AFB94B681A0615FB9F",
+    "canon_schema_tests_sha256": "1F903DE065776E111D4008D8CE849B1856AD14C31E2B7FBEC20777C155AFD1ED",
+    "prior_delta_post_worktree_sha256": "947DD51CE62DF0E0E0D7A6B819D68DF59DBD80D81CFAAC99D90CA613B7043F30",
+    "implementation_worktree_sha256_before_receipt_materialization": "45A5DB4A31BDEB8DBDF4E400C7FDE6C2D2F72A3908FD4A825359F9B36A19BE16",
+    "final_post_worktree_identity": "SEALED_BY_NATIVE_PER_DELTA_CHECKPOINT_AFTER_RECEIPT_AND_CONFIG_MATERIALIZATION"
+  },
+  "verification": [
+    {
+      "selector": "First-class Canon schema parity and existing task-graph compatibility",
+      "status": "PASS",
+      "result": "22 passed in 1.30s"
+    },
+    {
+      "selector": "Canon schema/task graph, SDK, skill routing, MCP catalog, public arms, and runtime-continuity integration",
+      "status": "PASS",
+      "result": "54 passed in 45.69s"
+    },
+    {
+      "selector": "Python lint/compile, JSON parse, and whitespace validation",
+      "status": "PASS",
+      "result": "Ruff, py_compile, json.tool, and git diff --check passed"
+    }
+  ],
+  "negative_cases": [
+    "A Canon schema asset whose bytes differ from the manifest fails closed.",
+    "A ledger newer than the runtime or outside the explicit migration path fails closed.",
+    "A tampered migration receipt fails closed.",
+    "A built ledger whose SQLite schema signature differs from the sealed DDL asset fails closed.",
+    "A missing receipt field, unknown receipt schema, invalid field contract, or changed self-sealed body fails closed.",
+    "Legacy v0 rows survive the additive v1 migration without drop, rename, or data rewrite."
+  ],
+  "write_provenance": {
+    "pre_existing_dirty_source_bytes_preserved": true,
+    "row222_changes_are_additive_to_existing_dirty_worktree": true,
+    "runtime_receipt_shapes_changed": false,
+    "unrelated_dirty_or_untracked_bytes_modified": false
+  },
+  "negative_side_effects": {
+    "live_project_hil_invoked": false,
+    "live_candidate_created_or_accepted": false,
+    "live_pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "plugin_install_or_activation_changed": false,
+    "installer_or_goal_helper_invoked_by_root": false,
+    "tunnel_invoked": false,
+    "subagent_started_by_root": false,
+    "host_plan_rehydrated": false
+  },
+  "limitations": [
+    "Row223 owns the supported Codex host dispatcher seam and exact-once UUID/deep-link receipts.",
+    "Installed-package parity remains deferred to the governed release boundary.",
+    "This Delta does not claim host Plan acceptance, Canon HIL, Project HIL, pointer movement, Git execution, or installation."
+  ],
+  "next_boundary": "Close Row222 through its exact per-Delta checkpoint. In the fixed Rows218-226 visible batch, cross Row222 in place and activate Row223 without rehydrating or sliding the host panel."
+}

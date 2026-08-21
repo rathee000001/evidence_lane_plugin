@@ -62,17 +62,29 @@ def build_runtime_continuity(
         missing=sorted(required_route_fields - set(persistence_route)),
     )
     raw_project_route = persistence_route.get("project_route")
+    route_is_legacy_contained = bool(
+        isinstance(raw_project_route, dict)
+        and raw_project_route.get("contained_beneath_store_root") is True
+    )
+    route_is_external_project_authority = bool(
+        isinstance(raw_project_route, dict)
+        and raw_project_route.get("project_authority_mode")
+        == "EXPLICIT_USER_PROJECT_ROOT"
+        and raw_project_route.get("governed_user_project_authority") is True
+        and raw_project_route.get("runtime_separated") is True
+        and raw_project_route.get("contained_beneath_store_root") is False
+    )
     require(
         isinstance(raw_project_route, dict)
         and raw_project_route.get("project_id") == project_id
         and raw_project_route.get("relative_project_route")
         == f"projects/{project_id}"
-        and raw_project_route.get("contained_beneath_store_root") is True
+        and (route_is_legacy_contained or route_is_external_project_authority)
         and persistence_route.get("transport_project_binding")
         == "EXPLICIT_PROJECT_ID_PER_PROJECT_SCOPED_TOOL"
         and persistence_route.get("cross_project_fallback_allowed") is False,
         "RUNTIME_CONTINUITY_PROJECT_ROUTE_INVALID",
-        "Runtime continuity requires one exact project route beneath the configured store root.",
+        "Runtime continuity requires one exact legacy-contained or external user-project authority route.",
         status="MISMATCH",
         project_id=project_id,
     )
@@ -179,6 +191,13 @@ def build_runtime_continuity(
             "relative_project_route": project_route["relative_project_route"],
             "resolved_store_root": project_route["resolved_store_root"],
             "resolved_project_root": project_route["resolved_project_root"],
+            "project_authority_mode": project_route.get(
+                "project_authority_mode", "LEGACY_COMBINED_STORE_ROOT"
+            ),
+            "governed_user_project_authority": project_route.get(
+                "governed_user_project_authority", False
+            ),
+            "runtime_separated": project_route.get("runtime_separated", False),
             "transport_project_binding": persistence_route[
                 "transport_project_binding"
             ],
@@ -431,12 +450,20 @@ def validate_runtime_continuity(value: dict[str, Any]) -> dict[str, Any]:
     if project is not None:
         project_id = str(project.get("project_id") or "")
         storage_route = value.get("storage", {}).get("project_route", {})
+        legacy_contained = storage_route.get("contained_beneath_store_root") is True
+        external_project_authority = bool(
+            storage_route.get("project_authority_mode")
+            == "EXPLICIT_USER_PROJECT_ROOT"
+            and storage_route.get("governed_user_project_authority") is True
+            and storage_route.get("runtime_separated") is True
+            and storage_route.get("contained_beneath_store_root") is False
+        )
         require(
             bool(project_id)
             and project.get("relative_project_route") == f"projects/{project_id}"
             and project.get("cross_project_fallback_allowed") is False
             and storage_route.get("project_id") == project_id
-            and storage_route.get("contained_beneath_store_root") is True,
+            and (legacy_contained or external_project_authority),
             "RUNTIME_CONTINUITY_PROJECT_ROUTE_INVALID",
             "The sealed runtime continuity project route is invalid.",
             status="FAIL",

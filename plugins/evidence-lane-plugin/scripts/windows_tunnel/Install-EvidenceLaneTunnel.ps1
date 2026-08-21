@@ -4,7 +4,8 @@ param(
     [string]$TunnelClientDownloadUri = "$env:EVIDENCE_LANE_TUNNEL_CLIENT_DOWNLOAD_URI",
     [string]$TunnelId = "",
     [string]$PluginRoot = "",
-    [string]$DataRoot = "$env:USERPROFILE\EvidenceLanePV",
+    [string]$DataRoot = "$env:EVIDENCE_LANE_DATA_ROOT",
+    [string]$RuntimeControlRoot = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin",
     [ValidateSet(
         "main-git-release",
         "branch-commit-recovery",
@@ -59,7 +60,7 @@ $releaseToken = "v" + ($release -replace '\.', '')
 $filePrefix = "evidence_lane_${releaseToken}"
 $slotToken = $SlotRole.Replace("-", "_")
 if ([string]::IsNullOrWhiteSpace($RuntimeRoot)) {
-    $RuntimeRoot = Join-Path $env:USERPROFILE "EvidenceLanePV\tunnel-runtime-$releaseToken-stable-build"
+    $RuntimeRoot = Join-Path $RuntimeControlRoot "tunnel-runtime-$releaseToken-stable-build"
 }
 if ([string]::IsNullOrWhiteSpace($ProfileName)) {
     $ProfileName = "${filePrefix}_stable_build_transport"
@@ -175,7 +176,7 @@ function Resolve-TunnelClientSource {
         return $historical
     }
     $priorClients = @(
-        Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($DataRoot)) `
+        Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($RuntimeControlRoot)) `
             -Directory -Filter "tunnel-runtime-*" -ErrorAction SilentlyContinue |
             ForEach-Object {
                 Join-Path $_.FullName "bin\tunnel-client-v0.0.10.exe"
@@ -196,7 +197,7 @@ function Resolve-TunnelClientSource {
         ) {
             throw "The tunnel-client dependency URI must be credential-free HTTPS."
         }
-        $dependencyRoot = Join-Path ([IO.Path]::GetFullPath($DataRoot)) "dependency-cache"
+        $dependencyRoot = Join-Path ([IO.Path]::GetFullPath($RuntimeControlRoot)) "dependency-cache"
         New-Item -ItemType Directory -Path $dependencyRoot -Force | Out-Null
         $downloadTarget = Join-Path $dependencyRoot "tunnel-client-v0.0.10.exe"
         Invoke-WebRequest -Uri $downloadUri -OutFile $downloadTarget -UseBasicParsing
@@ -284,7 +285,7 @@ function Resolve-TunnelId {
     }
     if ([string]::IsNullOrWhiteSpace($value)) {
         $priorMarkers = @(
-            Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($DataRoot)) `
+            Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($RuntimeControlRoot)) `
                 -Directory -Filter "tunnel-runtime-*" -ErrorAction SilentlyContinue |
                 ForEach-Object { Join-Path $_.FullName "evidence-lane-tunnel-installation.json" } |
                 Where-Object { Test-Path -LiteralPath $_ -PathType Leaf }
@@ -321,7 +322,7 @@ function Resolve-PriorRuntimeKeyEnvelope {
         return $RuntimeKeyEnvelopeSource
     }
     $priorEnvelopes = @(
-        Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($DataRoot)) `
+        Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($RuntimeControlRoot)) `
             -Directory -Filter "tunnel-runtime-*" -ErrorAction SilentlyContinue |
             ForEach-Object { Join-Path $_.FullName "secrets\control-plane-runtime-key.dpapi" } |
             Where-Object {
@@ -433,6 +434,18 @@ function Disable-StoppedPriorTunnelTasks {
 }
 
 $exactPluginRoot = Resolve-PluginRoot
+$exactRuntimeControlRoot = [IO.Path]::GetFullPath($RuntimeControlRoot)
+$expectedRuntimeControlRoot = [IO.Path]::GetFullPath(
+    (Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin")
+)
+if ($exactRuntimeControlRoot -cne $expectedRuntimeControlRoot) {
+    throw "The tunnel installer must use the exact hidden Evidence Lane Codex runtime root."
+}
+$exactRuntimeRoot = [IO.Path]::GetFullPath($RuntimeRoot)
+$approvedRuntimeParent = $exactRuntimeControlRoot + [IO.Path]::DirectorySeparatorChar
+if (-not $exactRuntimeRoot.StartsWith($approvedRuntimeParent, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "The versioned tunnel runtime must remain inside the Evidence Lane runtime control root."
+}
 $runner = Join-Path $exactPluginRoot "scripts\run_mcp.py"
 if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
     throw "The exact Evidence Lane MCP launcher is missing: $runner"
@@ -441,7 +454,13 @@ if (-not (Test-Path -LiteralPath $sourceHost -PathType Leaf)) {
     throw "The no-visible-console Evidence Lane tunnel host is missing: $sourceHost"
 }
 $python = Resolve-PythonCommand -ExactPluginRoot $exactPluginRoot
+if ([string]::IsNullOrWhiteSpace($DataRoot)) {
+    throw "HOST_TOOL_GAP requires the governed project data root through -DataRoot or EVIDENCE_LANE_DATA_ROOT."
+}
 $exactDataRoot = [IO.Path]::GetFullPath($DataRoot)
+if ($exactDataRoot -ceq $exactRuntimeControlRoot) {
+    throw "Project authority and hidden plugin runtime control must use separate roots."
+}
 if (Test-Path -LiteralPath $exactDataRoot -PathType Leaf) {
     throw "The configured Evidence Lane data root is a file, not a durable directory."
 }
@@ -466,7 +485,7 @@ if ($RotateRuntimeKey -or -not (Test-Path -LiteralPath $secretFile -PathType Lea
     $effectiveEnvelopeSource = Resolve-PriorRuntimeKeyEnvelope
     if (-not [string]::IsNullOrWhiteSpace($effectiveEnvelopeSource) -and -not $RotateRuntimeKey) {
         $exactEnvelopeSource = [IO.Path]::GetFullPath($effectiveEnvelopeSource)
-        $approvedEnvelopeParent = $exactDataRoot + [IO.Path]::DirectorySeparatorChar
+        $approvedEnvelopeParent = $exactRuntimeControlRoot + [IO.Path]::DirectorySeparatorChar
         if (
             -not $exactEnvelopeSource.StartsWith(
                 $approvedEnvelopeParent,
@@ -512,6 +531,8 @@ $marker = [ordered]@{
     release_identity_source = "CODEX_RELEASE_CHANNEL_CONTRACT"
     runtime_identity_matches_release = $true
     runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
+    runtime_control_root = $exactRuntimeControlRoot
+    runtime_control_root_hidden = $true
     profile_name = $ProfileName
     profile_file = $profileFile
     task_name = $TaskName
@@ -529,6 +550,7 @@ $marker = [ordered]@{
     codex_tunnel_lifecycle_proof_allowed = $false
     plugin_root = $exactPluginRoot
     data_root = $exactDataRoot
+    project_data_root_separate = ($exactDataRoot -cne $exactRuntimeControlRoot)
     project_binding = "NONE_TRANSPORT_ONLY"
     project_route_argument = "project_id"
     project_route_argument_required = $true
@@ -595,7 +617,7 @@ Register-ScheduledTask `
 Disable-ScheduledTask -TaskName $TaskName | Out-Null
 if ($Activate) {
     Assert-NoOtherActiveTunnel `
-        -ExactDataRoot $exactDataRoot `
+        -ExactDataRoot $exactRuntimeControlRoot `
         -ExactRuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot))
     Disable-StoppedPriorTunnelTasks -ExactTaskName $TaskName
     & $manageTarget `
@@ -631,11 +653,14 @@ if ($Activate) {
     codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"
     codex_tunnel_lifecycle_proof_allowed = $false
     data_root = $exactDataRoot
+    runtime_control_root = $exactRuntimeControlRoot
+    runtime_control_root_hidden = $true
+    project_data_root_separate = ($exactDataRoot -cne $exactRuntimeControlRoot)
     project_binding = "NONE_TRANSPORT_ONLY"
     project_route_argument = "project_id"
     project_route_argument_required = $true
     cross_project_fallback_allowed = $false
-    exact_visible_tool_count = 87
+    exact_visible_tool_count = 88
     exact_active_read_tool_count = 26
     exact_fail_closed_write_tool_count = 57
     tunnel_id_recorded = $true

@@ -1,0 +1,44 @@
+{
+  "schema": "evidence-lane.task6-delta-advance-config.v1",
+  "config_path": "evidence/task6_delta_receipts/row219_advance_config.json",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "active_task_id": "EL-CODEX-T6-PARITY-022-SDK-HANDLER-PARITY",
+  "successor_task_id": "EL-CODEX-T6-PARITY-023-SERVICE-ROUTE-REVIEW",
+  "receipt_id": "task6-row219-local-verification-001",
+  "prior_checkpoint_receipt_id": "task6-row218-local-verification-001",
+  "expected_generation": 12,
+  "changed_paths": [
+    {"path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/internal_sdk.py", "role": "SOURCE"},
+    {"path": "tests/test_internal_sdk_handler_parity.py", "role": "TEST"},
+    {"path": "evidence/task6_delta_receipts/EL-CODEX-T6-PARITY-022-SDK-HANDLER-PARITY.json", "role": "RECEIPT"},
+    {"path": "evidence/task6_delta_receipts/row219_advance_config.json", "role": "RECEIPT"}
+  ],
+  "test_runs": [
+    {
+      "selector": "SDK handler ownership, production construction, exact local effects, provider boundaries, and binding failures",
+      "command": ".venv/Scripts/python.exe -m pytest tests/test_internal_sdk_handler_parity.py tests/test_internal_sdk.py tests/test_public_surface_parity_matrix.py::test_canon_and_learning_public_actions_match_sdk_registration tests/test_mcp_plugin.py::test_mcp_tool_inventory_and_annotations -q",
+      "output": "22 passed in 1.32s",
+      "negative_cases": [
+        "Missing or unknown local handler ownership fails closed.",
+        "Local construction cannot impersonate external-provider operations.",
+        "Cross-binding project, session, task, model, and submodel payloads fail closed.",
+        "HIL wiring is verified against a fake service without invoking live HIL."
+      ]
+    },
+    {
+      "selector": "Python lint, compile, and whitespace validation",
+      "command": ".venv/Scripts/python.exe -m ruff check; py_compile; git diff --check",
+      "output": "PASS",
+      "negative_cases": [
+        "Malformed Python or whitespace cannot pass.",
+        "No Git, install, helper, tunnel, candidate, HIL, pointer, or root-spawned subagent action is included."
+      ]
+    }
+  ],
+  "limitations": [
+    "The separate full public-surface matrix still reports a pre-existing hook-package inventory mismatch of 11 live versus 9 declared; public-surface rows own that correction.",
+    "Provider-owned host Plan, host-entry, headless, and ENV/UOP operations remain explicit external contracts.",
+    "Row220 owns service-route review and Row221 owns public skill/MCP parity."
+  ]
+}

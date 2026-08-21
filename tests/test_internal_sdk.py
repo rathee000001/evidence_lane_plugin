@@ -58,6 +58,8 @@ def _effects(**changes: str) -> dict[str, str]:
         "project_truth": "NONE",
         "canon_input": "NONE",
         "agent_learning": "NONE",
+        "project_memory": "NONE",
+        "project_universe": "NONE",
         "chat_lineage": "NONE",
         "host_entry_continuity": "NONE",
     }
@@ -96,6 +98,8 @@ def test_sdk_catalog_covers_every_independent_governed_arm() -> None:
         "project_truth",
         "canon_input",
         "agent_learning",
+        "project_memory",
+        "project_universe",
         "chat_lineage",
         "host_entry_continuity",
         "lifecycle_hooks",
@@ -108,6 +112,12 @@ def test_sdk_catalog_covers_every_independent_governed_arm() -> None:
     }
     assert len({row["namespace"] for row in modules.values()}) == len(modules)
     assert all(row["independent_replay_ledger"] for row in modules.values())
+    universe = modules["project_universe"]
+    assert {row["name"] for row in universe["operations"]} == {
+        "status",
+        "query",
+        "refresh",
+    }
 
 
 def test_canon_sdk_arm_exposes_full_engine_with_fail_closed_host_dispatch() -> None:
@@ -118,6 +128,7 @@ def test_canon_sdk_arm_exposes_full_engine_with_fail_closed_host_dispatch() -> N
         "inspect",
         "inbox",
         "graph",
+        "bootstrap_consequence_graph",
         "register_contract",
         "seal_envelope",
         "receive",
@@ -149,8 +160,7 @@ def test_learning_sdk_arm_exposes_candidate_lifecycle() -> None:
     assert contract_operations == {
         "inspect",
         "retrieve",
-        "memory_query",
-        "memory_record_link",
+        "bootstrap_verified_history",
         "record_host_memory_import",
         "seal_candidate",
         "decide_candidate",
@@ -161,6 +171,28 @@ def test_learning_sdk_arm_exposes_candidate_lifecycle() -> None:
         object(), runtime_binding=_binding().as_dict()
     )
     assert adapter.available_operations()["agent_learning"] == contract_operations
+
+
+def test_memory_sdk_arm_is_independent_from_learning_and_project_truth() -> None:
+    catalog = InternalEvidenceLaneSDK.module_catalog()
+    memory = next(
+        row for row in catalog["modules"] if row["module_id"] == "project_memory"
+    )
+    contract_operations = {row["name"] for row in memory["operations"]}
+    assert memory["authority"] == "PROJECT_MEMORY"
+    assert contract_operations == {
+        "inspect",
+        "bootstrap",
+        "query",
+        "record_link",
+        "seal_checkpoint",
+        "rehydrate_checkpoint",
+    }
+
+    adapter = build_local_service_adapter(
+        object(), runtime_binding=_binding().as_dict()
+    )
+    assert adapter.available_operations()["project_memory"] == contract_operations
 
 
 def test_separate_retrieval_never_fuses_truth_and_learning(tmp_path: Path) -> None:
@@ -208,7 +240,9 @@ def test_separate_retrieval_never_fuses_truth_and_learning(tmp_path: Path) -> No
     assert result["host_entry_slice"] is None
     assert result["project_truth_slice"]["authority"] == "PROJECT_TRUTH"
     assert result["agent_learning_slice"]["authority"] == "AGENT_LEARNING"
-    ledgers = sorted((sdk.project_root / "sdk" / "replay").glob("*.sqlite"))
+    ledgers = sorted(
+        (sdk.project_root / "receipts" / "sdk-replay").glob("*.sqlite")
+    )
     assert [path.name for path in ledgers] == [
         "sdk.agent-learning.v1.sqlite",
         "sdk.project-truth.v1.sqlite",
@@ -452,6 +486,43 @@ def test_write_scope_and_cross_authority_promotion_are_fail_closed(
     assert authority_blocked.value.code == "SDK_CROSS_AUTHORITY_EFFECT_BLOCKED"
 
 
+def test_universe_sdk_refresh_is_independent_and_write_scoped(tmp_path: Path) -> None:
+    ungranted = _binding()
+
+    def refresh(bound, payload, context):
+        return {
+            "status": "PASS",
+            "graph_sha256": _hash("universe"),
+            "authority_effects": _effects(project_universe="REFRESHED"),
+        }
+
+    sdk = InternalEvidenceLaneSDK(
+        _root(tmp_path),
+        _adapter(ungranted, {("project_universe", "refresh"): refresh}),
+    )
+    with pytest.raises(EvidenceLaneError) as blocked:
+        sdk.invoke(
+            module_id="project_universe",
+            operation="refresh",
+            binding=ungranted,
+            payload={},
+            request_id="sdk-universe-001",
+        )
+    assert blocked.value.code == "SDK_WRITE_SCOPE_REQUIRED"
+
+    granted = _binding(write_scope=("project_universe:refresh",))
+    result = sdk.invoke(
+        module_id="project_universe",
+        operation="refresh",
+        binding=granted,
+        payload={},
+        request_id="sdk-universe-002",
+    )
+    assert result["status"] == "PASS"
+    assert result["authority_effects"]["project_universe"] == "REFRESHED"
+    assert result["authority_effects"]["project_truth"] == "NONE"
+
+
 @pytest.mark.parametrize(
     "payload",
     [
@@ -555,7 +626,12 @@ def test_cancellation_and_timeout_do_not_create_replay_receipts(tmp_path: Path) 
         )
     assert timed_out.value.code == "SDK_INVOCATION_TIMEOUT"
     time.sleep(0.03)
-    ledger = sdk.project_root / "sdk" / "replay" / "sdk.project-truth.v1.sqlite"
+    ledger = (
+        sdk.project_root
+        / "receipts"
+        / "sdk-replay"
+        / "sdk.project-truth.v1.sqlite"
+    )
     assert ledger.is_file()
     import sqlite3
 
@@ -597,5 +673,5 @@ def test_parallel_projects_cannot_collide_replay_namespaces(tmp_path: Path) -> N
     assert left["data"]["project_id"] == "sdk-project-a"
     assert right["data"]["project_id"] == "sdk-project-b"
     assert left["binding_sha256"] != right["binding_sha256"]
-    assert (first.project_root / "sdk" / "replay").is_dir()
-    assert (second.project_root / "sdk" / "replay").is_dir()
+    assert (first.project_root / "receipts" / "sdk-replay").is_dir()
+    assert (second.project_root / "receipts" / "sdk-replay").is_dir()

@@ -177,6 +177,57 @@ def test_invocation_receipt_never_promotes_missing_host_events(
         build_installed_hook_invocation_receipt(inventory, poisoned)
 
 
+def test_progressive_inventory_requires_only_named_enabled_hook(
+    tmp_path: Path,
+) -> None:
+    selector = "evidence-lane-plugin@evidence-lane-github"
+    reply = _reply(tmp_path, selector)
+    hooks = reply["result"]["data"][0]["hooks"]
+    for hook in hooks:
+        hook["enabled"] = hook["eventName"] == "preCompact"
+
+    with pytest.raises(InstalledHookReceiptError, match="AUTHORITY_MISMATCH"):
+        validate_installed_hook_inventory(
+            reply,
+            plugin_selector=selector,
+            workspace=tmp_path,
+        )
+
+    inventory = validate_installed_hook_inventory(
+        reply,
+        plugin_selector=selector,
+        workspace=tmp_path,
+        required_events=("PreCompact",),
+    )
+    assert inventory["required_event_order"] == ["PreCompact"]
+    assert inventory["progressive_subset"] is True
+    assert [row["event_name"] for row in inventory["records"] if row["enabled"]] == [
+        "PreCompact"
+    ]
+
+    reference = next(
+        row for row in inventory["records"] if row["event_name"] == "PreCompact"
+    )
+    receipt = build_installed_hook_invocation_receipt(
+        inventory,
+        [
+            {
+                "event_name": "PreCompact",
+                "hook_key": reference["hook_key"],
+                "current_hash": reference["current_hash"],
+                "status": "COMPLETED",
+                "host_started_event_id": "precompact-started",
+                "host_completed_event_id": "precompact-completed",
+                "host_session_id": "progressive-host-session",
+            }
+        ],
+    )
+    assert receipt["status"] == "PASS"
+    assert receipt["event_order"] == ["PreCompact"]
+    assert receipt["missing_events"] == []
+    assert receipt["observed_event_count"] == 1
+
+
 def test_real_codex_notifications_are_correlated_without_raw_payloads(
     tmp_path: Path,
 ) -> None:

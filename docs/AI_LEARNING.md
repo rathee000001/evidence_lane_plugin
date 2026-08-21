@@ -1,8 +1,8 @@
 # AI Learning
 
 Evidence Lane AI Learning is a project-scoped authority for reusable lessons.
-It is separate from Project Truth, Canon Input, ChatLineage, host memory, Plan,
-and the accepted Project PV pointer. Brain scaling means bounded indexed
+It is separate from Project Truth, Canon Input, Project Memory, ChatLineage,
+host memory, Plan, and the accepted Project PV pointer. Brain scaling means bounded indexed
 retrieval and composition; it does not mean autonomous training.
 
 ## What Learning can record
@@ -30,6 +30,14 @@ The Learning family has five public actions:
 3. `learning_seal_candidate`
 4. `learning_decide_candidate`
 5. `learning_revoke`
+
+The provider-neutral internal SDK also exposes
+`bootstrap_verified_history`. It is deliberately not another public MCP
+action: it deterministically seals unaccepted candidates from approved
+historical Plan outcomes and exact verified forward-Delta checkpoints. Rows
+that are merely DONE, ambiguous, dropped, superseded, or unverified are
+excluded. Replays reuse candidate identities and the immutable bootstrap
+receipt; Project Truth, both HIL surfaces, and both pointers remain untouched.
 
 Sealing creates `PENDING_LEARNING_HIL`. It creates no Project candidate and
 moves no pointer. Learning owns its own six-way decision surface:

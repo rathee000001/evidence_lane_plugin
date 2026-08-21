@@ -1,0 +1,90 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_GOAL_RECOVERY_MULTI_BINDING_IMPLEMENTED_NOT_INVOKED",
+  "recorded_at": "2026-08-15T13:08:13Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-008-GOAL-RECOVERY-MULTI-BINDING",
+  "implementation": {
+    "manager_scope": "SHARED_MULTI_PROJECT_MULTI_TASK",
+    "scheduled_manager_task_id_scope": "NONE_ENUMERATES_ALL_EXACT_BINDINGS",
+    "binding_scope": "ONE_MUTABLE_ROW_PER_EXACT_TASK_INVOCATION",
+    "binding_revision_receipt_schema": "evidence-lane.codex-goal-recovery-binding-event.v1",
+    "manager_and_installer_separation": {
+      "goal_recovery_registry": "TASK_AND_PROJECT_SCOPED_MUTABLE_BINDINGS",
+      "release_slot_registry": "SHARED_INSTALLER_AUTHORITY",
+      "installer_origin_task_used_for_authorization": false,
+      "release_selector_used_as_task_identity": false
+    },
+    "per_invocation_contract": [
+      "LOAD_ONLY_THE_EXACT_TASK_BINDING",
+      "REJECT_CROSS_PROJECT_OR_SESSION_REFRESH",
+      "INCREMENT_THE_EXACT_BINDING_REVISION",
+      "SEAL_BEFORE_AND_AFTER_BINDING_SHA256",
+      "WRITE_ONE_IMMUTABLE_CORRELATED_EVENT_RECEIPT"
+    ],
+    "enumeration_isolation": [
+      "PARSE_AND_VERIFY_EACH_BINDING_INDIVIDUALLY",
+      "ISOLATE_MALFORMED_BINDING_WITH_FAIL_CLOSED_RECEIPT",
+      "CONTINUE_WITH_UNRELATED_VALID_BINDINGS",
+      "RESOLVE_HOST_PROFILE_INSIDE_THE_PER_BINDING_BOUNDARY"
+    ],
+    "ended_goal_policy": {
+      "action": "TOMBSTONE_ONLY_THE_EXACT_TASK_BINDING",
+      "retry_allowed": false,
+      "binding_deleted": false,
+      "other_binding_mutated": false
+    }
+  },
+  "verification": [
+    {
+      "selector": "Row205 shared-manager and exact-task binding suite",
+      "status": "PASS",
+      "result": "5 passed in 0.22s"
+    },
+    {
+      "selector": "Goal, installer-registry, fallback-authority, and release-channel regression bundle",
+      "status": "PASS",
+      "result": "41 passed in 0.92s"
+    },
+    {
+      "selector": "PowerShell AST parser",
+      "status": "PASS",
+      "result": "POWERSHELL_AST_PASS"
+    },
+    {
+      "selector": "Python lint and whitespace validation",
+      "status": "PASS",
+      "result": "All checks passed; git diff --check returned zero"
+    }
+  ],
+  "negative_cases": [
+    "Refreshing one task binding across a different project or governed session fails closed.",
+    "One malformed binding cannot abort enumeration or prevent recovery checks for unrelated bindings.",
+    "A missing or ended Goal becomes a terminal exact-binding tombstone and is not retried on later logons.",
+    "A task binding cannot authorize release selection, and an installer registry cannot substitute for task identity.",
+    "No shared-manager action deletes, poisons, or mutates another task binding."
+  ],
+  "verification_path_normalization": {
+    "native_contract_pattern": "plugins/evidence-lane-plugin/scripts/*goal*.*",
+    "windows_equivalent_locator": "plugins/evidence-lane-plugin/scripts/codex_release/manage-evidencelanecodexgoalrecovery.ps1",
+    "physical_target_is_the_existing_mixed_case_file": true,
+    "source_bytes_changed_for_normalization": false,
+    "limitation": "The current native verifier applies case-sensitive fnmatchcase to a Windows path; the lowercase locator is required to match the existing lowercase Plan glob."
+  },
+  "negative_side_effects": {
+    "live_goal_recovery_helper_invoked": false,
+    "live_scheduled_task_created_or_changed": false,
+    "live_task_binding_created_refreshed_or_tombstoned": false,
+    "installer_helper_invoked": false,
+    "tunnel_invoked": false,
+    "plugin_installed_removed_enabled_or_disabled": false,
+    "candidate_created_or_accepted": false,
+    "hil_invoked": false,
+    "pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "subagent_started": false
+  },
+  "next_boundary": "Close Row205 through its exact per-Delta checkpoint. Row206 owns retry isolation, bounded backoff, and kill-switch behavior; no live Goal recovery or installer action was invoked in Row205."
+}

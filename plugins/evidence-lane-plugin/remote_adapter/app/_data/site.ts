@@ -89,7 +89,7 @@ export const floatingStudioSuggestions = {
   ],
   mcp: [
     "Why does Evidence Lane use one package-local native MCP server?",
-    "What separates the 27 read actions from the 60 write actions?",
+    "What separates the 27 read actions from the 61 write actions?",
     "How does the native route fail closed on an unsupported host?",
     "Which actions can create a candidate or move a pointer?",
     "Why is the website not an MCP lifecycle authority?",
@@ -161,7 +161,7 @@ export const floatingStudioSuggestions = {
   ],
   connect: [
     "How is Evidence Lane installed from an exact Git SHA?",
-    "Why are all 87 native actions part of one Codex lifecycle?",
+    "Why are all 88 native actions part of one Codex lifecycle?",
     "How is the stable plugin kept separate from a future test build?",
     "Why must the native server reject external transport substitution?",
     "What is Google Drive allowed to do?",

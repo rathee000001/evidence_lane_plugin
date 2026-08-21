@@ -1,0 +1,52 @@
+{
+  "schema": "evidence-lane.task6-delta-advance-config.v1",
+  "config_path": "evidence/task6_delta_receipts/row206_advance_config.json",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "active_task_id": "EL-CODEX-T6-PARITY-009-GOAL-RECOVERY-RETRY-ISOLATION",
+  "successor_task_id": "EL-CODEX-T6-PARITY-010-HOOK-EVENT-ISOLATION",
+  "receipt_id": "task6-row206-local-verification-001",
+  "prior_checkpoint_receipt_id": "task6-row205-local-verification-001",
+  "expected_generation": 12,
+  "changed_paths": [
+    {"path": "plugins/evidence-lane-plugin/scripts/codex_release/manage-evidencelanecodexgoalrecovery.ps1", "role": "SOURCE"},
+    {"path": "tests/test_goal_recovery_retry_isolation.py", "role": "TEST"},
+    {"path": "tests/test_goal_recovery_multi_binding.py", "role": "TEST"},
+    {"path": "evidence/task6_delta_receipts/EL-CODEX-T6-PARITY-009-GOAL-RECOVERY-RETRY-ISOLATION.json", "role": "RECEIPT"},
+    {"path": "evidence/task6_delta_receipts/row206_advance_config.json", "role": "RECEIPT"}
+  ],
+  "test_runs": [
+    {
+      "selector": "Row206 retry-isolation plus Row205 multi-binding compatibility",
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/test_goal_recovery_retry_isolation.py tests/test_goal_recovery_multi_binding.py",
+      "output": "12 passed in 0.43s",
+      "negative_cases": [
+        "Scheduler-level restart flags are absent and cannot replay all bindings.",
+        "Terminal Goal tombstones bypass retry while exhausted failures kill-switch only their exact binding."
+      ]
+    },
+    {
+      "selector": "Goal, installer-registry, fallback-authority, and release-channel regression bundle",
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/test_goal_recovery_retry_isolation.py tests/test_goal_recovery_multi_binding.py tests/test_goal_usage.py tests/test_local_install_registry_separation.py tests/test_local_install_fallback_selector_authority.py tests/test_release_channels.py",
+      "output": "48 passed in 1.15s",
+      "negative_cases": [
+        "The Goal manager remains task-binding scoped and separate from installer release authority.",
+        "A fallback selector is not task identity and cannot authorize recovery."
+      ]
+    },
+    {
+      "selector": "PowerShell syntax, Python lint, and whitespace validation",
+      "command": "PowerShell AST parse; .venv/Scripts/python.exe -m ruff check tests/test_goal_recovery_retry_isolation.py tests/test_goal_recovery_multi_binding.py; git diff --check",
+      "output": "POWERSHELL_AST_PASS; All checks passed; diff check returned zero",
+      "negative_cases": [
+        "No Goal helper, scheduled task, hook, tunnel, installer, HIL, pointer, candidate, or Git action was invoked.",
+        "Only source parsing and bounded static/regression tests ran."
+      ]
+    }
+  ],
+  "limitations": [
+    "Row206 implemented and tested the source contract without executing RecoverAtLogon or changing a live scheduled task or binding.",
+    "The two-second backoff exists only inside the isolated helper path and was not slept during this source-level verification.",
+    "The lowercase source locator resolves to the existing mixed-case Goal manager file and matches the native row's lowercase *goal*.* authority glob."
+  ]
+}

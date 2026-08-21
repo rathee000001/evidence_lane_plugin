@@ -140,6 +140,90 @@ def test_atomic_multi_target_plan_insertion_preserves_metadata_and_final_hil(
     ].count("atomic-before-anchor") == 1
 
 
+def test_atomic_insertion_uses_effective_linked_dependency_directive(
+    service,
+) -> None:
+    service.plan_tasks(
+        "book-faires",
+        tasks=[
+            _task("dependency-root", "Verify the dependency root."),
+            _task("dependency-old", "Verify the original dependency."),
+            _task("dependency-replacement", "Verify the replacement dependency."),
+            _task(
+                "dependency-consumer",
+                "Verify the dependency consumer.",
+                dependencies=["dependency-old"],
+            ),
+            _task(
+                "seed-final-hil",
+                "Present the physically final six-way HIL.",
+                panel_role="PHYSICALLY_FINAL_HIL",
+            ),
+        ],
+        planned_by="human-test",
+        plan_id="linked-dependency-seed",
+    )
+    service.record_steer_delta(
+        "book-faires",
+        delta_text="Correct the live dependency. DEPENDS_ON=dependency-replacement",
+        actor="human-test",
+        delta_id="linked-dependency-correction",
+        linked_task_id="dependency-consumer",
+    )
+    service.transition_task(
+        "book-faires",
+        task_id="dependency-old",
+        transition_name="SUPERSEDE",
+        decided_by="human-test",
+        reason="The linked Delta names the exact replacement dependency.",
+        replacement_task_id="dependency-replacement",
+        event_id="dependency-old-superseded",
+    )
+    before = service.task_backlog("book-faires")
+    atomic = {
+        "batch_id": "linked-dependency-atomic-batch",
+        "research_batch_sha256": "B" * 64,
+        "expected_backlog_sha256": sha256_bytes(
+            canonical_json_bytes(service.store._load_backlog("book-faires"))
+        ),
+        "expected_canonical_plan_sha256": before[
+            "canonical_plan_projection"
+        ]["projection_sha256"],
+        "expected_executable_projection_sha256": before[
+            "goal_projection"
+        ]["projection_sha256"],
+        "expected_physical_final_task_id": "seed-final-hil",
+        "insertions": [
+            {
+                "insert_before_task_id": "seed-final-hil",
+                "tasks": [
+                    _task(
+                        "linked-dependency-inserted",
+                        "Verify insertion after the corrected dependency.",
+                        dependencies=["dependency-consumer"],
+                    )
+                ],
+            }
+        ],
+    }
+
+    result = service.plan_tasks(
+        "book-faires",
+        tasks=[],
+        planned_by="human-test",
+        plan_id="linked-dependency-atomic-plan",
+        atomic_insertion=atomic,
+    )
+
+    assert result["atomic_insertion_receipt"]["status"] == "PASS"
+    consumer = next(
+        row
+        for row in result["goal_projection"]["rows"]
+        if row["task_id"] == "dependency-consumer"
+    )
+    assert consumer["dependencies"] == ["dependency-replacement"]
+
+
 @pytest.mark.parametrize(
     "field",
     [
@@ -271,6 +355,6 @@ def test_atomic_insertion_extends_existing_mcp_tool_without_catalog_growth(
     service,
 ) -> None:
     tools = asyncio.run(create_mcp_server(service=service).list_tools())
-    assert len(tools) == 83
+    assert len(tools) == 87
     plan_tool = next(tool for tool in tools if tool.name == "pv_plan_tasks")
     assert "atomic_insertion" in plan_tool.inputSchema["properties"]

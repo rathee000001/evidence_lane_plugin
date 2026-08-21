@@ -228,9 +228,9 @@ def test_public_surface_matrix_matches_executable_catalog() -> None:
     matrix = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
     actions = matrix["native_actions"]
     assert (NATIVE_TOOL_COUNT, NATIVE_READ_TOOL_COUNT, NATIVE_WRITE_TOOL_COUNT) == (
-        87,
+        88,
         27,
-        60,
+        61,
     )
     assert actions == {
         "total": NATIVE_TOOL_COUNT,
@@ -276,9 +276,14 @@ def test_canon_and_learning_public_actions_match_sdk_registration() -> None:
     for module, arm in matrix["sdk_public_arms"].items():
         for effect in ("read", "write"):
             for name in arm[effect]:
+                operation = (
+                    name.removeprefix("learning_memory_")
+                    if module == "project_memory"
+                    else name.removeprefix("canon_").removeprefix("learning_")
+                )
                 declared[name] = {
                     "module": module,
-                    "operation": name.removeprefix("canon_").removeprefix("learning_"),
+                    "operation": operation,
                     "read": effect == "read",
                 }
     assert declared == registered

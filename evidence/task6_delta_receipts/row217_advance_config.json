@@ -1,0 +1,63 @@
+{
+  "schema": "evidence-lane.task6-delta-advance-config.v1",
+  "config_path": "evidence/task6_delta_receipts/row217_advance_config.json",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "active_task_id": "EL-CODEX-T6-PARITY-020-CROSS-LANE-QUERY",
+  "successor_task_id": "EL-CODEX-T6-PARITY-021-CROSS-PROJECT-QUERY",
+  "receipt_id": "task6-row217-local-verification-001",
+  "prior_checkpoint_receipt_id": "task6-row216-local-verification-001",
+  "expected_generation": 12,
+  "changed_paths": [
+    {"path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/lane_reader.py", "role": "SOURCE"},
+    {"path": "plugins/evidence-lane-plugin/schemas/cross-lane-query.v001.json", "role": "SOURCE"},
+    {"path": "tests/test_cross_lane_query.py", "role": "TEST"},
+    {"path": "evidence/task6_delta_receipts/EL-CODEX-T6-PARITY-020-CROSS-LANE-QUERY.json", "role": "RECEIPT"},
+    {"path": "evidence/task6_delta_receipts/row217_advance_config.json", "role": "RECEIPT"}
+  ],
+  "test_runs": [
+    {
+      "selector": "Exact cross-lane determinism, typed relations/conflicts, authority, budgets, schema parity, and immutable-PV integration",
+      "command": ".venv/Scripts/python.exe -m pytest tests/test_cross_lane_query.py -q",
+      "output": "5 passed in 14.61s",
+      "negative_cases": [
+        "Implicit, duplicate, or unsupported lane sets fail closed.",
+        "Unsupported relation types and incomplete immutable authority fail closed.",
+        "Aggregate budgets cannot starve later explicit lanes.",
+        "Worker completion order cannot change ranking domains or receipt identity."
+      ]
+    },
+    {
+      "selector": "Parallel primitive plus cross-lane regression",
+      "command": ".venv/Scripts/python.exe -m pytest tests/test_cross_lane_query.py tests/test_parallel_lane_query.py -q",
+      "output": "11 passed in 29.13s",
+      "negative_cases": [
+        "Cross-lane budgeting cannot regress the Row216 parallel API default.",
+        "Parallel completion order, dedupe, timeout, and cancellation remain sealed."
+      ]
+    },
+    {
+      "selector": "Lane guidance, reader, lane contract, registry, and packaged-skill integration",
+      "command": ".venv/Scripts/python.exe -m pytest tests/test_lane_query_guidance.py tests/test_reader_query.py tests/test_lane_contract.py tests/test_universal_lanes.py::test_registry_requires_explicit_code_mode tests/test_mcp_plugin.py::test_packaged_skill_tool_references_match_live_canonical_catalog -q",
+      "output": "18 passed in 81.59s",
+      "negative_cases": [
+        "The typed join primitive cannot weaken single-lane authority or registry contracts.",
+        "Packaged skill references remain bound to canonical installed identities."
+      ]
+    },
+    {
+      "selector": "Python lint, compile, schema parse, and whitespace validation",
+      "command": ".venv/Scripts/python.exe -m ruff check; py_compile; json.tool; git diff --check",
+      "output": "PASS",
+      "negative_cases": [
+        "Malformed Python, schema JSON, or whitespace cannot pass.",
+        "No Git, install, helper, tunnel, candidate, HIL, pointer, or root-spawned subagent action is included."
+      ]
+    }
+  ],
+  "limitations": [
+    "Row217 exposes the internal typed cross-lane primitive only; explicit cross-project querying remains Row218.",
+    "Public skill and MCP routing remains Row221.",
+    "The historical TASK_CONTRACT_AMENDED projection regression remains outside this row."
+  ]
+}

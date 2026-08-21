@@ -1,0 +1,28 @@
+# Implementation traceability
+
+| Requirement | Primary implementation | Verification |
+| --- | --- | --- |
+| Six public controls and user-timed State Travel | canonical `skills/`, `next_actions.py`, `session.py`, startup hook | exact surface inventory, no duplicate legacy command migration, no-auto-travel contract, same-host receipt supersession, changed-host bypass rejection, and stale-command scan |
+| Atomic host/storage-aware Boot and detachable session | `service.py`, `session.py`, `runtime_activation.py`, `storage_selection.py`, `persistence.py`, Flash authority | doctor/Flash/resume, exact storage selection, ephemeral fail-closed, detach/reattach tests |
+| Digest-keyed ENV/UOP runtime projection | `flash_projection.py`, `flash_authority.py` | full locked-byte verification, ABI/digest key, SQLite/FK/FTS, mutable rebuild and installed-cache reuse contract |
+| Generalized Source Intake, optional Git arm, and separate custom-capable Mode | `source_intake.py`, `git_optional.py`, `operating_modes.py` | AUTO fallback, REQUIRED/DISABLED, linked-worktree, all-18 override, and custom-mode tests |
+| Eighteen lane brains and Project Engulf | `lanes.py`, `lane_engine.py` | real dummy sources for all lanes, SQLite/FK/FTS/MMD/DOT validation |
+| One-shot all-lane dummy proof | `scripts/build_one_shot_dummy_poc.py`, `evidence/implementation_v42/ONE_SHOT_DUMMY_POC` | all 18 loaded/emitted lanes, synthetic three-commit/two-parent Git history, initial/Refresh validation, independent forensic reports, and absent-lane tests that reject folders or placeholders |
+| Full Git-history brain and CAS reuse | `git_history.py`, lane schema | reachable-commit/change/blob/chunk/FTS and second-index reuse tests |
+| Changed-section incremental refresh | `ingest.py`, lane CAS/history tables | retained chunk reuse plus changed-only reindex test |
+| Candidate project-sector overlays | `project_overlay.py`, `pv_package.py` | candidate-only truth, fan-out, integrity/FK/FTS tests |
+| Visible private-safe Chat Lineage | hooks, `lineage.py` | session JSONL plus SQLite and project-head authority, prompt plus multi-steer ordering/idempotency, FTS/chain hashes, actor/model/token fields, secret/private-reasoning rejection |
+| Bounded connector/plugin governance | `connector_governance.py`, `/evi-plugin` sidecars | purpose/role/typed-schema/host-profile/runtime grants, eight slots, ordered per-plugin guard traces, zero-match and ambiguity fail-closed routing with exact preferred-ID selection, exact drop, role-schema table and history/FTS tests |
+| MCP native cold-start ordering | `mcp_server.py`, `lane_engine.py` | startup prewarm before event loop, 18-lane deterministic parallel build, exact public stdio transition benchmark |
+| Atomic ordered Delta completion | `store.py`, `session.py` | exact ledger-order evidence, one locked batch receipt, sequential ACTIVE/DONE events, later HIL mapping |
+| Accepted-authority evolution boundary | `service.py`, `session.py`, `runtime_continuity.py` | immutable accepted-byte/hash/pointer/SQLite validation, visible historical-schema compatibility, and strict successor-candidate tests |
+| Historical top-level v1.3 release receipt self-seals | `evidence/implementation_v41/*.json`, `hashing.py` | complete directory scan using canonical JSON with only the top-level `receipt_sha256` removed |
+| Single active v1.4 release identity | root/plugin `pyproject.toml`, `constants.py`, `.codex-plugin/plugin.json`, remote-adapter `package.json`, current README/docs/site/PoC and acceptance tooling | `tests/test_v140_version_consistency.py` verifies one `1.4.1` product version while preserving historical compatibility, receipt, and dependency versions |
+| Interrupted exit recovery | `state_law.py`, `session.py`, `.mcp.json` | candidate-absent self-transition, visible receipt, pointer immutability, one-hour long-tool timeout |
+| Per-lane forensic reports | `forensic_audit.py`, `scripts/forensic_audit.py` | 18 individual Markdown reports plus JSON/manifest; SQLite/FK/FTS and MMD/DOT/pointer/refresh checks |
+| Host-specific output handoff | `next_actions.py`, Exit Slip | Codex-local versus user-mediated confirmation tests |
+| Tolerant HIL intent with exact Fuse boundary | `hil_intent.py`, `service.py`, `mcp_server.py` | typo/continuation classification without pointer movement; dedicated Fuse remains exact-case sensitive |
+| Browser-safe full-width scroll story conformance | `remote_adapter/app/_components/site-header.tsx`, `ambient-evidence-field.tsx`, `source-brain-lab.tsx`, `evidence-assets.tsx`, `evidence-console.tsx`, `evidence-prompt-studio.tsx`, `lane-proof-explorer.tsx` | exact full-logo/cube/static-brain/tool-icon bytes; no active side rail, app frame, PC cluster, or fixed viewport shell; floating RIL-style top navigation; Gold-style light institutional depth; bounded native Three.js and reduced-motion Framer behavior; 11 interactive provenance views; all 18 lane controls; Proof-owned direct four-file downloads, exact-MMD 7680x4320 PNGs, and matching SVGs with accessible lossless deep zoom/pan/close; full-width grounded/refusal Prompt Studio; endpoint-link, contrast, desktop/mobile overflow, interaction, and negative telemetry/root-art tests |
+| ChatGPT-only Vercel adapter | `remote_adapter/` | rewritten public path recovery; missing origin/SHA fail closed; exact release/origin contract |
+| Successor State Travel hash bridge | `successor_addendum.py`, builder script | original before/after tree identity, path-overlap rejection, exact release/candidate seals, idempotent append-only release directory |
+| Security release gate | `SECURITY.md`, `.env.example` | secret scan and manual compromised-key revocation blocker |

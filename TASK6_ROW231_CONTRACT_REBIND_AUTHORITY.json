@@ -1,0 +1,27 @@
+{
+  "schema": "evidence-lane.visible-user-authority-receipt.v1",
+  "authority_kind": "HOST_PLAN_EXECUTION_AND_CONTRACT_CORRECTION",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "active_task_id": "EL-CODEX-T6-LOCAL-CODEX-TUNNEL-MATRIX-CORRECTION-DELTA-001",
+  "correction": "Bind Row231 to the actual persistence classifier and installed root hook paths while preserving the exact active row, Goal, session, worktree, and accepted PV authority.",
+  "identity_invariants": {
+    "same_project": true,
+    "same_session": true,
+    "same_task6": true,
+    "same_active_plan_row": true,
+    "same_dirty_worktree": true,
+    "accepted_pv": "PV12",
+    "pointer_generation": 12
+  },
+  "not_authorized": [
+    "HIL approval or invocation",
+    "candidate creation or acceptance",
+    "pointer movement",
+    "Goal completion",
+    "Git commit, push, merge, or branch mutation",
+    "plugin install or slot activation",
+    "ENV/UOP mutation"
+  ]
+}

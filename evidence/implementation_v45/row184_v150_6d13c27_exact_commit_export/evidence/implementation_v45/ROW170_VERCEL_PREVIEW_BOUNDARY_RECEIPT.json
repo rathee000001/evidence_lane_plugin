@@ -1,0 +1,167 @@
+{
+  "schema": "evidence-lane.row170-vercel-preview-boundary-receipt.v1",
+  "observed_at_utc": "2026-08-09T08:06:36.245Z",
+  "status": "VERIFIED_FAIL_CLOSED",
+  "verdict": "BROWSER_AVAILABLE_AUTHENTICATED_MCP_BLOCKED",
+  "project": {
+    "id": "prj_nQ6Wbvmx0637C3JSMvE7POUoaPLF",
+    "name": "evidence-lane-chatgpt-mcp-adapter",
+    "framework": "nextjs",
+    "node_version": "24.x",
+    "team_id": "team_rKQTkRJ1nSDgPe4oWAN1meUC",
+    "team_name": "Praveen Rathee's projects",
+    "team_slug": "praveen-rathees-projects",
+    "local_link_file": "plugins/evidence-lane-plugin/remote_adapter/.vercel/project.json"
+  },
+  "preview": {
+    "deployment_id": "dpl_GetdQg2C2dGQUQpwXqddmtK6Zefq",
+    "deployment_url": "https://evidence-lane-chatgpt-mcp-adapter-nql3hkbzm.vercel.app",
+    "branch_alias": "https://evidence-lane-chatgpt-mcp-a-git-a702d1-praveen-rathees-projects.vercel.app",
+    "created_at_utc": "2026-08-08T19:47:56.707Z",
+    "ready_state": "READY",
+    "target": null,
+    "source": "git",
+    "repository": "rathee000001/evidence_lane_plugin",
+    "repository_visibility": "private",
+    "branch": "agent/evi-v140-systemwide-release-hil-v1.4.0",
+    "commit": "7133107020262cec9dce8bd1c70e46b6ded07800",
+    "root_directory": "plugins/evidence-lane-plugin/remote_adapter",
+    "build_command": "pnpm run build",
+    "build_script": "next build",
+    "build_result": "PASS",
+    "build_evidence": "Vercel build log compiled Next.js 16.1.5, completed the Python adapter build, and completed deployment without promotion."
+  },
+  "environment_variable_names": {
+    "required_adapter_contract": [
+      "EVIDENCE_LANE_DURABLE_MCP_ORIGIN",
+      "EVIDENCE_LANE_RELEASE_SHA"
+    ],
+    "platform_supplied_identity": [
+      "VERCEL_GIT_COMMIT_SHA"
+    ],
+    "optional_general_ai_contract": [
+      "EVIDENCE_LANE_GENERAL_AI_ENABLED",
+      "OPENROUTER_API_KEY"
+    ],
+    "local_only_name_observed": [
+      "VERCEL_OIDC_TOKEN"
+    ],
+    "values_read_or_recorded": false,
+    "remote_inventory_available_from_exposed_read_only_connector": false,
+    "presence_conclusion": "The live preview proves the two required adapter settings are absent or invalid and that the platform commit identity does not equal the invalid expected release value. No claim is made that optional variables are present remotely."
+  },
+  "project_domain_inventory": {
+    "custom_domains_attached": [
+      "evidencelane.org",
+      "mcp.evidencelane.org"
+    ],
+    "vercel_domains_attached": [
+      "evidence-lane-chatgpt-mcp-adapter.vercel.app",
+      "evidence-lane-chatgpt-mcp-adapter-praveen-rathees-projects.vercel.app",
+      "evidence-lane-chatgpt-mcp-a-git-853677-praveen-rathees-projects.vercel.app"
+    ],
+    "registrar_or_purchase_proof": "NOT_ESTABLISHED_BY_VERCEL_PROJECT_INVENTORY",
+    "ownership_claim": "ATTACHMENT_AND_LIVE_HTTPS_ONLY"
+  },
+  "https_checks": {
+    "preview": [
+      {
+        "route": "/",
+        "status": 200,
+        "result": "BROWSER_AVAILABLE"
+      },
+      {
+        "route": "/.well-known/evidence-lane-plugin.json",
+        "status": 200,
+        "result": "V1_4_PUBLIC_METADATA_AVAILABLE"
+      },
+      {
+        "route": "/privacy",
+        "status": 200,
+        "result": "AVAILABLE"
+      },
+      {
+        "route": "/terms",
+        "status": 200,
+        "result": "AVAILABLE"
+      },
+      {
+        "route": "/support",
+        "status": 200,
+        "result": "AVAILABLE"
+      },
+      {
+        "route": "/api/studio-query",
+        "status": 200,
+        "result": "READ_ONLY_STATUS_AVAILABLE"
+      },
+      {
+        "route": "/healthz",
+        "status": 503,
+        "result": "BLOCKED",
+        "errors": [
+          "DURABLE_HTTPS_ORIGIN_REQUIRED",
+          "EXACT_RELEASE_SHA_REQUIRED",
+          "VERCEL_GIT_SHA_MISMATCH"
+        ]
+      },
+      {
+        "route": "/.well-known/oauth-protected-resource",
+        "status": 503,
+        "result": "BLOCKED"
+      },
+      {
+        "route": "/mcp",
+        "status": 503,
+        "result": "BLOCKED"
+      }
+    ],
+    "custom_domains": [
+      {
+        "url": "https://evidencelane.org/",
+        "status": 200,
+        "result": "BROWSER_AVAILABLE"
+      },
+      {
+        "url": "https://mcp.evidencelane.org/",
+        "status": 200,
+        "result": "BROWSER_AVAILABLE"
+      },
+      {
+        "url": "https://evidencelane.org/healthz",
+        "status": 503,
+        "result": "BLOCKED",
+        "errors": [
+          "DURABLE_HTTPS_ORIGIN_REQUIRED"
+        ]
+      },
+      {
+        "url": "https://mcp.evidencelane.org/.well-known/oauth-protected-resource",
+        "status": 503,
+        "result": "BLOCKED"
+      },
+      {
+        "url": "https://mcp.evidencelane.org/mcp",
+        "status": 503,
+        "result": "BLOCKED"
+      }
+    ]
+  },
+  "publication_boundary": {
+    "preview_metadata_version": "1.4.0",
+    "production_metadata_version": "1.3.0",
+    "production_promotion_performed": false,
+    "deployment_created_by_this_verification": false,
+    "domain_mutation_performed": false,
+    "environment_mutation_performed": false,
+    "share_link_created": false
+  },
+  "readiness_law": {
+    "browser_availability": "PASS",
+    "authenticated_mcp_readiness": "FAIL_CLOSED",
+    "oauth_discovery": "FAIL_CLOSED",
+    "durable_origin": "UNCONFIGURED_OR_INVALID",
+    "local_state_authority": false,
+    "production_publication": "UNCHANGED_AND_UNAUTHORIZED_PRE_HIL"
+  }
+}

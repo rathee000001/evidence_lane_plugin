@@ -52,6 +52,7 @@ evidence_lane_plugin = [
   "schemas/*.json",
   "schemas/canon/*.json",
   "schemas/canon/*.sql",
+  "schemas/memory/*.sql",
   "session_flash/env15/*.json",
   "session_flash/env15/*.md",
   "session_flash/env15/env/*",

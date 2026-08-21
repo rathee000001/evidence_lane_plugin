@@ -1,0 +1,104 @@
+{
+  "schema": "evidence-lane.delta080-v130-final-release-evidence-receipt.v1",
+  "delta_id": "EL-V130-FINAL-RELEASE-EVIDENCE-DELTA-080",
+  "status": "PASS",
+  "implementation_source": {
+    "branch": "agent/evi-v130-all-source-brain-workflow-hil-v1.3.0",
+    "commit_sha": "F17A6A0663D8F34F652F405D5EC114F9D54D453F",
+    "tree_sha": "3898C8DE35F04FC89B563C05E8F43D83E1A59F67",
+    "parent_commit_sha": "DB91816DE4DE304BB243C53E008E6A24993DA9EA",
+    "commit_message": "fix: seal v1.3 release evidence",
+    "study_branch_only": true,
+    "main_merged": false,
+    "production_deployed": false
+  },
+  "release_identity": {
+    "root_project_version": "1.3.0",
+    "plugin_project_version": "1.3.0",
+    "engine_version": "1.3.0",
+    "remote_adapter_version": "1.3.0",
+    "codex_plugin_version": "1.3.0+codex.20260806060737",
+    "all_active_version_surfaces_consistent": true
+  },
+  "code_mode_contract": {
+    "formula": "plan -> sandbox build -> test -> hash -> package",
+    "loop": "entry -> preflight -> sandbox -> patch -> test -> exit",
+    "operators": [
+      "CI/CD",
+      "PCM",
+      "MBA"
+    ],
+    "control": "CONTROLLED_REQUIRED"
+  },
+  "receipt_integrity": {
+    "preexisting_top_level_receipts_checked": 11,
+    "preexisting_top_level_receipts_valid": 11,
+    "all_preexisting_top_level_receipts_valid": true,
+    "regression_test": "tests/test_v130_evidence_receipt_seals.py",
+    "corrected_receipt_sha256": {
+      "DELTA079B_WINDOWS_TUNNEL_PERSISTENCE_RECEIPT.json": "609E8EBE057D78A7F7EA87BE49CBEEB0A4B9BA716E13AF742AF7C08B5C2B0F00",
+      "DELTA079CD_HOST_STORAGE_ENV_MODE_CONTINUITY_RECEIPT.json": "411DFCF6D4ED33F71AE473EE8F51E9FCE46CE40F1516DADB3575B9B6494DE017",
+      "DELTA080_PRE_PV6_RELEASE_GATE_RECEIPT.json": "FF5AC094AD4F9DB2E1BE5FFE8B151E7D556D05B78722E9FE528F4C6350A7207D"
+    }
+  },
+  "verification": {
+    "full_regression": {
+      "command": "python -m pytest -q",
+      "result": "217 passed in 914.61s",
+      "exit_code": 0
+    },
+    "focused_release_regression": {
+      "result": "4 passed in 6.08s",
+      "exit_code": 0
+    },
+    "governed_quality": {
+      "ruff": "PASS",
+      "mypy": "Success: no issues found in 65 source files",
+      "runtime_receipt_path": ".runtime/ci/final3-governed-quality-receipt.json",
+      "runtime_receipt_sha256": "4515C0D0B7A4080614A9F871E54C4B412259015DE1130BDF0296C1DC598ADD30",
+      "runtime_receipt_file_sha256": "09F41CA1376BA8E4EF0A313D9150F8887F739F49FC1D153172A86025885CC678",
+      "runtime_receipt_self_seal_valid": true
+    },
+    "preview_build": {
+      "framework": "Next.js 16.1.5",
+      "typescript": "PASS",
+      "generated_routes": 16,
+      "runtime_receipt_path": ".runtime/ci/final3-preview-build-receipt.json",
+      "runtime_receipt_sha256": "2E8516A8A23FA7A9C6706401A54113B1C4E569F055BC210F1778431EEC356427",
+      "runtime_receipt_file_sha256": "4D1DBF6FC5DD15962DB54F2955FA28CDAEAD1EEA92272F7E3630413D5C559B93",
+      "runtime_receipt_self_seal_valid": true
+    }
+  },
+  "governed_runtime_boundary": {
+    "accepted_pointer": "PV5",
+    "accepted_generation": 5,
+    "accepted_pointer_moved": false,
+    "next_candidate": "PV6",
+    "fresh_candidate_built": false,
+    "hil_decision_pending": true
+  },
+  "remote_action_boundary": {
+    "superseded_action_id": "remote_action_01kzas9mmvz4fbdf5gx060r7ya",
+    "superseded_action_executed": false,
+    "superseded_token_recorded": false,
+    "reason": "Tracked source changed after the action was prepared; a new action and exact one-use confirmation token are required for the final commit.",
+    "final_remote_push_pending": true,
+    "final_preview_deployment_pending": true,
+    "final_plugin_install_verification_pending": true
+  },
+  "safety": {
+    "source_reset_stash_clean": false,
+    "main_merged": false,
+    "production_deployed": false,
+    "pointer_moved": false,
+    "pv_built": false,
+    "hil_approval_inferred": false,
+    "shutdown_scheduled": false
+  },
+  "verdict": {
+    "decision": "PURSUE",
+    "confidence_percent": 99,
+    "evidence_that_would_change_verdict": "A stale receipt self-seal, a failing exact-source regression, a source change after action preparation, a remote SHA mismatch, a preview mismatch, a plugin identity mismatch, or an invalid fresh PV6 lane bundle."
+  },
+  "receipt_sha256": "01EF8869EF6996A94D22F1D9B4C44AFCED556D7561E6A56CAC4F6251F00A9D7C"
+}

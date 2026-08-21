@@ -9,14 +9,23 @@ Project PV pointer, or invokes the Project six-way HIL.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
-from .errors import require
-from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
+from .errors import EvidenceLaneError, require
+from .hashing import (
+    atomic_write_bytes,
+    atomic_write_json,
+    canonical_json_bytes,
+    sha256_bytes,
+    sha256_file,
+)
+from .project_authority import resolved_plan_runtime_path
+from .project_memory import MEMORY_SECTOR_LOCATOR_PREFIXES
 from .redaction import contains_secret
 
 LEARNING_CANDIDATE_SCHEMA = "evidence-lane.learning-candidate.v1"
@@ -28,18 +37,25 @@ MEMORY_LOCATOR_SCHEMA = "evidence-lane.memory-locator.v1"
 MEMORY_EDGE_SCHEMA = "evidence-lane.memory-edge.v1"
 MEMORY_QUERY_RECEIPT_SCHEMA = "evidence-lane.memory-query-receipt.v1"
 HOST_MEMORY_BOUNDARY_SCHEMA = "evidence-lane.host-memory-boundary.v1"
-HOST_MEMORY_IMPORT_RECEIPT_SCHEMA = (
-    "evidence-lane.host-memory-import-receipt.v1"
-)
+HOST_MEMORY_IMPORT_RECEIPT_SCHEMA = "evidence-lane.host-memory-import-receipt.v1"
 HOST_MEMORY_AUTHORITY = "NONAUTHORITATIVE_HELPFUL_RECALL_ONLY"
-HOST_MEMORY_OFFICIAL_DOCS = (
-    "https://learn.chatgpt.com/docs/customization/memories"
-)
+HOST_MEMORY_OFFICIAL_DOCS = "https://learn.chatgpt.com/docs/customization/memories"
 LEARNING_RUNTIME_CONTRACT_SCHEMA = "evidence-lane.learning-runtime-contract.v1"
 LEARNING_LEDGER_SCHEMA = "evidence-lane.agent-learning-ledger.v1"
 LEARNING_LEDGER_SCHEMA_VERSION = 2
 LEARNING_EXPIRY_RECEIPT_SCHEMA = "evidence-lane.learning-expiry-receipt.v1"
 LEARNING_EXPIRY_OWNER = "AGENT_LEARNING_AUTHORITY_MAINTENANCE"
+LEARNING_BOOTSTRAP_RECEIPT_SCHEMA = "evidence-lane.learning-bootstrap-receipt.v1"
+LEARNING_LAYOUT_MIGRATION_RECEIPT_SCHEMA = (
+    "evidence-lane.learning-authority-layout-migration.v1"
+)
+LEARNING_AUTHORITY_DIRECTORY = "ai_learning"
+LEGACY_LEARNING_AUTHORITY_DIRECTORY = "learning"
+
+_LEARNING_REFERENCE_FILENAMES = frozenset(
+    {"authority.ref.json", "operational-authority.ref.json"}
+)
+_LEARNING_REFERENCE_HOLD_DIRECTORY = ".ai_learning-reference-hold"
 
 _LEARNING_PUBLIC_ACTIONS = (
     "learning_inspect",
@@ -439,8 +455,8 @@ def _timestamp(value: Any, *, field: str, nullable: bool = False) -> str | None:
         status="MISMATCH",
         field=field,
     )
-    return parsed.astimezone(UTC).isoformat(timespec="microseconds").replace(
-        "+00:00", "Z"
+    return (
+        parsed.astimezone(UTC).isoformat(timespec="microseconds").replace("+00:00", "Z")
     )
 
 
@@ -456,8 +472,138 @@ def _project_root(project_root: str | Path, *, project_id: str) -> Path:
     return root
 
 
+def _directory_file_manifest(path: Path) -> list[dict[str, Any]]:
+    if not path.is_dir():
+        return []
+    return [
+        {
+            "path": candidate.relative_to(path).as_posix(),
+            "size": candidate.stat().st_size,
+            "sha256": sha256_file(candidate),
+        }
+        for candidate in sorted(
+            (item for item in path.rglob("*") if item.is_file()),
+            key=lambda item: item.relative_to(path).as_posix(),
+        )
+    ]
+
+
+def _directory_manifest_sha256(path: Path) -> str:
+    return sha256_bytes(canonical_json_bytes(_directory_file_manifest(path)))
+
+
+def _reference_only_directory(path: Path) -> bool:
+    if not path.is_dir():
+        return False
+    entries = list(path.iterdir())
+    return all(
+        entry.is_file() and entry.name in _LEARNING_REFERENCE_FILENAMES
+        for entry in entries
+    )
+
+
+def _restore_learning_reference_hold(*, canonical: Path, hold: Path) -> None:
+    if not hold.exists():
+        return
+    require(
+        _reference_only_directory(hold),
+        "LEARNING_REFERENCE_HOLD_INVALID",
+        "The interrupted Learning layout migration contains non-reference bytes.",
+        status="MISMATCH",
+        path=str(hold),
+    )
+    for reference in sorted(hold.iterdir(), key=lambda item: item.name):
+        target = canonical / reference.name
+        payload = reference.read_bytes()
+        require(
+            not target.exists() or target.read_bytes() == payload,
+            "LEARNING_REFERENCE_MIGRATION_CONFLICT",
+            "A Learning authority reference conflicts with the canonical store.",
+            status="MISMATCH",
+            path=str(target),
+        )
+        if not target.exists():
+            atomic_write_bytes(target, payload)
+        reference.unlink()
+    hold.rmdir()
+
+
 def _learning_root(root: Path) -> Path:
-    return root / "learning"
+    """Return the single AI Learning authority and migrate the legacy root once."""
+
+    canonical = root / LEARNING_AUTHORITY_DIRECTORY
+    legacy = root / LEGACY_LEARNING_AUTHORITY_DIRECTORY
+    hold = root / _LEARNING_REFERENCE_HOLD_DIRECTORY
+
+    if hold.exists() and canonical.is_dir() and not legacy.exists():
+        _restore_learning_reference_hold(canonical=canonical, hold=hold)
+
+    if not legacy.exists():
+        return canonical
+
+    require(
+        legacy.is_dir(),
+        "LEARNING_LEGACY_AUTHORITY_INVALID",
+        "The legacy Learning authority path is not a directory.",
+        status="MISMATCH",
+        path=str(legacy),
+    )
+    legacy_manifest_sha256 = _directory_manifest_sha256(legacy)
+    canonical_reference_manifest_sha256 = (
+        _directory_manifest_sha256(canonical) if canonical.exists() else None
+    )
+    require(
+        not canonical.exists() or _reference_only_directory(canonical),
+        "LEARNING_AUTHORITY_LAYOUT_CONFLICT",
+        "Both legacy and canonical AI Learning roots contain substantive bytes.",
+        status="MISMATCH",
+        canonical_path=str(canonical),
+        legacy_path=str(legacy),
+    )
+    require(
+        not hold.exists(),
+        "LEARNING_REFERENCE_HOLD_CONFLICT",
+        "A prior Learning layout migration hold requires recovery first.",
+        status="MISMATCH",
+        path=str(hold),
+    )
+
+    if canonical.exists():
+        os.replace(canonical, hold)
+    try:
+        os.replace(legacy, canonical)
+    except Exception:
+        if hold.exists() and not canonical.exists():
+            os.replace(hold, canonical)
+        raise
+
+    _restore_learning_reference_hold(canonical=canonical, hold=hold)
+    migrated_manifest_sha256 = _directory_manifest_sha256(canonical)
+    receipt_body = {
+        "schema": LEARNING_LAYOUT_MIGRATION_RECEIPT_SCHEMA,
+        "status": "PASS",
+        "migration": "LEGACY_LEARNING_TO_SINGLE_AI_LEARNING_AUTHORITY",
+        "canonical_directory": LEARNING_AUTHORITY_DIRECTORY,
+        "legacy_directory": LEGACY_LEARNING_AUTHORITY_DIRECTORY,
+        "legacy_manifest_sha256": legacy_manifest_sha256,
+        "canonical_reference_manifest_sha256": (
+            canonical_reference_manifest_sha256
+        ),
+        "migrated_manifest_sha256": migrated_manifest_sha256,
+        "legacy_root_present_after": legacy.exists(),
+        "reference_hold_present_after": hold.exists(),
+        "project_truth_pointer_moved": False,
+        "learning_pointer_moved": False,
+    }
+    receipt = {
+        **receipt_body,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+    }
+    atomic_write_json(
+        canonical / "receipts" / "authority-layout-migration-v1.json",
+        receipt,
+    )
+    return canonical
 
 
 def _ledger_path(root: Path) -> Path:
@@ -477,20 +623,14 @@ def _receipt_path(root: Path, receipt_sha256: str) -> Path:
 
 
 def _host_memory_import_path(root: Path, receipt_sha256: str) -> Path:
-    return (
-        _learning_root(root)
-        / "host-memory-imports"
-        / f"{receipt_sha256}.json"
-    )
+    return _learning_root(root) / "host-memory-imports" / f"{receipt_sha256}.json"
 
 
 def learning_runtime_contract() -> dict[str, Any]:
     """Return the exact schema, public-route, search, and expiry ownership law."""
 
     ddl_sha256 = sha256_bytes(_LEARNING_SCHEMA_DDL.encode("utf-8"))
-    signature_sha256 = sha256_bytes(
-        canonical_json_bytes(_LEARNING_EXPECTED_SCHEMA)
-    )
+    signature_sha256 = sha256_bytes(canonical_json_bytes(_LEARNING_EXPECTED_SCHEMA))
     body = {
         "schema": LEARNING_RUNTIME_CONTRACT_SCHEMA,
         "ledger_schema": LEARNING_LEDGER_SCHEMA,
@@ -505,8 +645,14 @@ def learning_runtime_contract() -> dict[str, Any]:
         },
         "memory_graph": {
             "schema_version": 1,
-            "authority": "PROJECT_ISOLATED_CROSS_SECTOR_LOCATORS_ONLY",
-            "sectors": sorted(_MEMORY_SECTOR_LOCATOR_PREFIXES),
+            "authority": "INDEPENDENT_PROJECT_MEMORY_AUTHORITY",
+            "sdk_module": "project_memory",
+            "compatibility_action_names": [
+                "learning_memory_query",
+                "learning_memory_record_link",
+            ],
+            "legacy_learning_tables": "IMMUTABLE_MIGRATION_SOURCE_ONLY",
+            "sectors": sorted(MEMORY_SECTOR_LOCATOR_PREFIXES),
             "raw_database_or_markdown_stored": False,
             "automatic_host_memory_import": False,
             "project_truth_effect": "NONE",
@@ -533,9 +679,7 @@ def learning_runtime_contract() -> dict[str, Any]:
     }
 
 
-def _schema_columns(
-    connection: sqlite3.Connection, table: str
-) -> list[list[str]]:
+def _schema_columns(connection: sqlite3.Connection, table: str) -> list[list[str]]:
     return [
         [str(row["name"]), str(row["type"])]
         for row in connection.execute(f'PRAGMA table_info("{table}")')
@@ -570,12 +714,8 @@ def _learning_schema_snapshot(
     connection: sqlite3.Connection,
     expected_schema: dict[str, Any] = _LEARNING_EXPECTED_SCHEMA,
 ) -> dict[str, Any]:
-    expected_tables = cast(
-        dict[str, list[list[str]]], expected_schema["tables"]
-    )
-    expected_indexes = cast(
-        dict[str, dict[str, Any]], expected_schema["indexes"]
-    )
+    expected_tables = cast(dict[str, list[list[str]]], expected_schema["tables"])
+    expected_indexes = cast(dict[str, dict[str, Any]], expected_schema["indexes"])
     expected_fts = cast(dict[str, Any], expected_schema["fts"])
     fts_row = connection.execute(
         "SELECT sql FROM sqlite_master WHERE type='table' AND name=?",
@@ -593,25 +733,18 @@ def _learning_schema_snapshot(
             ("memory_locator_fts",),
         ).fetchone()
         memory_fts_sql = (
-            str(memory_fts_row["sql"] or "")
-            if memory_fts_row is not None
-            else ""
+            str(memory_fts_row["sql"] or "") if memory_fts_row is not None else ""
         )
         fts_snapshot.update(
             {
                 "memory_table": "memory_locator_fts",
-                "memory_engine": (
-                    "fts5" if "USING fts5" in memory_fts_sql else None
-                ),
-                "memory_ranking": (
-                    "bm25" if "USING fts5" in memory_fts_sql else None
-                ),
+                "memory_engine": ("fts5" if "USING fts5" in memory_fts_sql else None),
+                "memory_ranking": ("bm25" if "USING fts5" in memory_fts_sql else None),
             }
         )
     return {
         "tables": {
-            table: _schema_columns(connection, table)
-            for table in expected_tables
+            table: _schema_columns(connection, table) for table in expected_tables
         },
         "indexes": {
             index: _schema_index(connection, table=value["table"], index=index)
@@ -634,9 +767,7 @@ def _validate_learning_schema(
         expected_schema_signature_sha256=sha256_bytes(
             canonical_json_bytes(expected_schema)
         ),
-        actual_schema_signature_sha256=sha256_bytes(
-            canonical_json_bytes(snapshot)
-        ),
+        actual_schema_signature_sha256=sha256_bytes(canonical_json_bytes(snapshot)),
     )
 
 
@@ -763,17 +894,14 @@ def _apply_learning_schema(connection: sqlite3.Connection) -> None:
         )
         require(
             str(rows[0]["ddl_sha256"]) == legacy_ddl_sha256
-            and str(rows[0]["schema_signature_sha256"])
-            == legacy_signature_sha256,
+            and str(rows[0]["schema_signature_sha256"]) == legacy_signature_sha256,
             "LEARNING_LEDGER_SCHEMA_VERSION_MISMATCH",
             "The Agent Learning v1 ledger metadata is byte-drifted.",
             status="MISMATCH",
         )
         _validate_learning_schema(connection, _LEARNING_V1_EXPECTED_SCHEMA)
         try:
-            connection.executescript(
-                "BEGIN IMMEDIATE;\n" + _LEARNING_V2_EXTENSION_DDL
-            )
+            connection.executescript("BEGIN IMMEDIATE;\n" + _LEARNING_V2_EXTENSION_DDL)
             _validate_learning_schema(connection)
             _rebuild_memory_fts(connection)
             connection.execute(
@@ -1336,9 +1464,7 @@ def _load_json(path: Path, *, code: str) -> dict[str, Any]:
     return cast(dict[str, Any], value)
 
 
-def project_truth_pointer_sha256(
-    project_root: str | Path, *, project_id: str
-) -> str:
+def project_truth_pointer_sha256(project_root: str | Path, *, project_id: str) -> str:
     """Hash the exact Project Truth pointer bytes without interpreting or moving it."""
 
     root = _project_root(project_root, project_id=project_id)
@@ -1394,9 +1520,7 @@ def _verify_host_memory_import_receipt(
     claimed = _sha256(
         receipt.get("receipt_sha256"), field="host_memory_import_receipt_sha256"
     )
-    body = {
-        key: value for key, value in receipt.items() if key != "receipt_sha256"
-    }
+    body = {key: value for key, value in receipt.items() if key != "receipt_sha256"}
     require(
         claimed == exact_sha256
         and claimed == sha256_bytes(canonical_json_bytes(body))
@@ -1431,7 +1555,8 @@ def _verify_host_memory_import_receipt(
             "project_truth_pointer_sha256",
         }
         and isinstance(boundary, dict)
-        and boundary == {
+        and boundary
+        == {
             "host_memory_authority": HOST_MEMORY_AUTHORITY,
             "imported_role": "NONAUTHORITATIVE_EVIDENCE_REFERENCE_ONLY",
             "automatic_import": False,
@@ -1455,8 +1580,7 @@ def _verify_host_memory_import_receipt(
         and receipt.get("project_id") == project_id
         and kind in _HOST_MEMORY_SOURCE_SCHEMES
         and locator.startswith(_HOST_MEMORY_SOURCE_SCHEMES[kind])
-        and source["locator_sha256"]
-        == sha256_bytes(locator.encode("utf-8"))
+        and source["locator_sha256"] == sha256_bytes(locator.encode("utf-8"))
         and bool(_PV_RE.fullmatch(str(context["pv_ref"])))
         and receipt.get("raw_host_memory_stored") is False
         and receipt.get("private_reasoning_stored") is False
@@ -1559,9 +1683,7 @@ def record_host_memory_import(
         "Secrets and credentials cannot enter a host-memory provenance receipt.",
         status="BLOCKED",
     )
-    project_pointer_sha256 = project_truth_pointer_sha256(
-        root, project_id=project_id
-    )
+    project_pointer_sha256 = project_truth_pointer_sha256(root, project_id=project_id)
     source = {
         "kind": kind,
         "locator": locator,
@@ -1618,7 +1740,14 @@ def record_host_memory_import(
         project_id=project_id,
         receipt_sha256=receipt_sha256,
     )
-    memory_graph = record_memory_link(
+    memory_link_owner = "LEGACY_AGENT_LEARNING_MEMORY_V2"
+    memory_link_function = record_memory_link
+    if (root / "memory" / "memory.sqlite").is_file():
+        from .project_memory import record_memory_link as project_memory_record_link
+
+        memory_link_owner = "PROJECT_MEMORY"
+        memory_link_function = project_memory_record_link
+    memory_graph = memory_link_function(
         root,
         project_id=project_id,
         source={
@@ -1640,9 +1769,7 @@ def record_host_memory_import(
         target={
             "sector": "PLAN",
             "locator_kind": "TASK_DELTA",
-            "locator_value": (
-                f"plan://task/{exact_task_id}/delta/{exact_delta_id}"
-            ),
+            "locator_value": (f"plan://task/{exact_task_id}/delta/{exact_delta_id}"),
             "revision_sha256": project_pointer_sha256,
             "label": f"Plan task {exact_task_id}",
             "search_terms": [
@@ -1672,6 +1799,7 @@ def record_host_memory_import(
             "sha256": source_hash,
         },
         "memory_graph": memory_graph,
+        "memory_link_owner": memory_link_owner,
         "candidate_created": False,
         "accepted_learning": False,
         "learning_hil_invoked": False,
@@ -1720,8 +1848,7 @@ def _validated_evidence(
         )
         exact["sha256"] = _sha256(exact["sha256"], field=f"{field}[{index}].sha256")
         require(
-            exact["project_id"] == project_id
-            or scope_kind == "CROSS_PROJECT_PROPOSED",
+            exact["project_id"] == project_id or scope_kind == "CROSS_PROJECT_PROPOSED",
             "LEARNING_CROSS_PROJECT_EVIDENCE_DENIED",
             "Cross-project evidence requires an explicit proposed cross-project scope.",
             status="BLOCKED",
@@ -1730,8 +1857,7 @@ def _validated_evidence(
         )
         reference = exact["ref"]
         direct_host_memory = any(
-            reference.startswith(prefix)
-            for prefix in _DIRECT_HOST_MEMORY_PREFIXES
+            reference.startswith(prefix) for prefix in _DIRECT_HOST_MEMORY_PREFIXES
         )
         require(
             not direct_host_memory,
@@ -1789,7 +1915,11 @@ def _host_memory_import_receipt_sha256s(
 def _candidate_hash(candidate: dict[str, Any]) -> str:
     return sha256_bytes(
         canonical_json_bytes(
-            {key: value for key, value in candidate.items() if key != "candidate_sha256"}
+            {
+                key: value
+                for key, value in candidate.items()
+                if key != "candidate_sha256"
+            }
         )
     )
 
@@ -2238,10 +2368,402 @@ def seal_learning_candidate(
         "project_truth_pointer_moved": False,
         "project_hil_invoked": False,
         "host_memory_authority": HOST_MEMORY_AUTHORITY,
-        "host_memory_import_receipt_sha256s": (
-            host_memory_import_receipt_sha256s
-        ),
+        "host_memory_import_receipt_sha256s": (host_memory_import_receipt_sha256s),
         "private_reasoning_stored": False,
+    }
+
+
+def _bootstrap_lesson_type(row: sqlite3.Row) -> str:
+    searchable = " ".join(
+        str(row[field] or "").lower()
+        for field in (
+            "task_classification",
+            "plan_group",
+            "commit_batch_id",
+            "requested_outcome",
+        )
+    )
+    if "fix_bug" in searchable or "failure" in searchable or "correction" in searchable:
+        return "FAILURE_AVOIDANCE"
+    if any(
+        token in searchable for token in ("github", "git ", "install", "tool routing")
+    ):
+        return "TOOL_ROUTING"
+    if any(token in searchable for token in ("host", "hook", "mcp", "codex")):
+        return "HOST_COMPATIBILITY"
+    if any(token in searchable for token in ("research", "canon", "graph", "relation")):
+        return "RELATIONAL"
+    return "PROCEDURAL"
+
+
+def _learning_bootstrap_rows(
+    connection: sqlite3.Connection,
+) -> tuple[list[sqlite3.Row], int]:
+    required_tables = {"delta_event", "delta_task", "plan_execution_row"}
+    tables = {
+        str(row[0])
+        for row in connection.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        )
+    }
+    require(
+        required_tables.issubset(tables),
+        "LEARNING_BOOTSTRAP_PLAN_SCHEMA_INVALID",
+        "Historical Learning bootstrap requires the canonical Plan projection tables.",
+        status="MISMATCH",
+        missing_tables=sorted(required_tables - tables),
+    )
+    integrity = [str(row[0]) for row in connection.execute("PRAGMA quick_check")]
+    foreign_keys = list(connection.execute("PRAGMA foreign_key_check"))
+    require(
+        integrity == ["ok"] and not foreign_keys,
+        "LEARNING_BOOTSTRAP_PLAN_INTEGRITY_FAILED",
+        "Historical Learning bootstrap requires an intact Plan projection.",
+        status="MISMATCH",
+        integrity=integrity,
+        foreign_key_error_count=len(foreign_keys),
+    )
+    terminal_count = int(
+        connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM plan_execution_row
+            WHERE lifecycle_status IN ('ACCEPTED','DONE')
+            """
+        ).fetchone()[0]
+    )
+    rows = connection.execute(
+        """
+        SELECT
+            row.task_id,
+            row.row_number,
+            row.history_number,
+            row.lifecycle_status,
+            row.requested_outcome,
+            row.task_classification,
+            row.plan_group,
+            row.commit_batch_id,
+            row.task_contract_sha256,
+            event.event_id,
+            event.event_type,
+            event.recorded_at,
+            event.event_sha256,
+            event.details_json
+        FROM plan_execution_row AS row
+        JOIN delta_event AS event ON event.task_id=row.task_id
+        WHERE
+            (
+                row.lifecycle_status='ACCEPTED'
+                AND event.event_type='HIL_OUTCOME'
+                AND event.to_status='ACCEPTED'
+                AND event.sequence=(
+                    SELECT MAX(latest.sequence)
+                    FROM delta_event AS latest
+                    WHERE latest.task_id=row.task_id
+                      AND latest.event_type='HIL_OUTCOME'
+                      AND latest.to_status='ACCEPTED'
+                )
+            )
+            OR
+            (
+                row.lifecycle_status='DONE'
+                AND event.event_type='VERIFIED_TASK_CHECKPOINT_COMPLETED'
+                AND event.to_status='DONE'
+                AND event.sequence=(
+                    SELECT MAX(latest.sequence)
+                    FROM delta_event AS latest
+                    WHERE latest.task_id=row.task_id
+                      AND latest.event_type='VERIFIED_TASK_CHECKPOINT_COMPLETED'
+                      AND latest.to_status='DONE'
+                )
+            )
+        ORDER BY row.plan_sequence,row.task_id
+        """
+    ).fetchall()
+    return rows, terminal_count
+
+
+def bootstrap_verified_learning_history(
+    project_root: str | Path,
+    *,
+    project_id: str,
+    accepted_pv: str,
+    max_candidates: int = 512,
+) -> dict[str, Any]:
+    """Seal deterministic unaccepted lessons from accepted and verified Plan events."""
+
+    root = _project_root(project_root, project_id=project_id)
+    exact_pv = str(accepted_pv).strip().upper()
+    require(
+        _PV_RE.fullmatch(exact_pv) is not None and 1 <= max_candidates <= 1000,
+        "LEARNING_BOOTSTRAP_BOUNDS_INVALID",
+        "Learning bootstrap requires one exact PV and a bounded candidate limit.",
+        status="BLOCKED",
+    )
+    project_pointer = _load_json(
+        root / "active_pointer.json",
+        code="LEARNING_PROJECT_POINTER_MISSING",
+    )
+    require(
+        project_pointer.get("project_id") == project_id
+        and project_pointer.get("accepted_pv") == exact_pv,
+        "LEARNING_BOOTSTRAP_POINTER_MISMATCH",
+        "Learning bootstrap must bind the current accepted Project pointer.",
+        status="MISMATCH",
+    )
+    project_pointer_before = project_truth_pointer_sha256(root, project_id=project_id)
+    learning_pointer_path = _pointer_path(root)
+    learning_pointer_before = (
+        sha256_file(learning_pointer_path) if learning_pointer_path.is_file() else None
+    )
+    plan_path = resolved_plan_runtime_path(root)
+    require(
+        plan_path.is_file(),
+        "LEARNING_BOOTSTRAP_PLAN_PROJECTION_MISSING",
+        "Learning bootstrap requires the canonical Plan SQLite projection.",
+        status="BLOCKED",
+    )
+    plan_sha256 = sha256_file(plan_path)
+    connection = sqlite3.connect(f"{plan_path.resolve().as_uri()}?mode=ro", uri=True)
+    connection.row_factory = sqlite3.Row
+    try:
+        connection.execute("PRAGMA query_only=ON")
+        rows, terminal_count = _learning_bootstrap_rows(connection)
+    finally:
+        connection.close()
+    require(
+        len(rows) <= max_candidates,
+        "LEARNING_BOOTSTRAP_CANDIDATE_LIMIT_EXCEEDED",
+        "The verified Learning bootstrap slice exceeds its explicit limit.",
+        status="BLOCKED",
+        eligible_candidate_count=len(rows),
+        max_candidates=max_candidates,
+    )
+
+    # Validate the complete eligible slice before the first Learning write.  A
+    # late malformed Plan event must never leave a partially applied bootstrap.
+    # The canonical event class is the authority; verification_kind records
+    # which governed checkpoint route produced it and is intentionally open to
+    # every non-empty, receipt-backed route.
+    prepared_rows: list[dict[str, Any]] = []
+    for row in rows:
+        try:
+            parsed_details = json.loads(str(row["details_json"]))
+        except (TypeError, ValueError) as exc:
+            raise EvidenceLaneError(
+                "LEARNING_BOOTSTRAP_EVENT_DETAILS_INVALID",
+                "A verified Plan event must contain one canonical JSON object.",
+                status="MISMATCH",
+                details={"task_id": row["task_id"]},
+            ) from exc
+        require(
+            isinstance(parsed_details, dict),
+            "LEARNING_BOOTSTRAP_EVENT_DETAILS_INVALID",
+            "A verified Plan event must contain one canonical JSON object.",
+            status="MISMATCH",
+            task_id=row["task_id"],
+        )
+        details = cast(dict[str, Any], parsed_details)
+        event_hash = _sha256(row["event_sha256"], field="event_sha256")
+        contract_hash = _sha256(
+            row["task_contract_sha256"], field="task_contract_sha256"
+        )
+        lifecycle_status = str(row["lifecycle_status"])
+        if lifecycle_status == "ACCEPTED":
+            row_pv = str(details.get("accepted_pv") or "").strip().upper()
+            if not (
+                details.get("decision") == "APPROVE"
+                and _PV_RE.fullmatch(row_pv) is not None
+            ):
+                continue
+            tier = "CROSS_PV"
+            source_kind = "ACCEPTED_HISTORY"
+            confidence = 0.95
+        else:
+            verification_kind = str(details.get("verification_kind") or "").strip()
+            verification_valid = (
+                bool(verification_kind)
+                and details.get("candidate_created") is False
+                and details.get("pointer_moved") is False
+                and details.get("hil_inferred") is False
+                and details.get("pending_hil") is False
+            )
+            if verification_valid:
+                try:
+                    _sha256(
+                        details.get("completion_receipt_sha256"),
+                        field="completion_receipt_sha256",
+                    )
+                    _sha256(
+                        details.get("verification_proof_sha256"),
+                        field="verification_proof_sha256",
+                    )
+                except EvidenceLaneError:
+                    verification_valid = False
+            if not verification_valid:
+                continue
+            row_pv = exact_pv
+            tier = "DELTA_OBSERVATION"
+            source_kind = "VERIFIED_FORWARD"
+            confidence = 0.9
+        task_id = str(row["task_id"])
+        outcome = str(row["requested_outcome"] or "").strip()
+        statement = f"Verified outcome for {task_id}: {outcome}"
+        require(
+            bool(outcome) and not contains_secret(statement),
+            "LEARNING_BOOTSTRAP_OUTCOME_INVALID",
+            "A verified Plan row cannot enter Learning without safe visible outcome text.",
+            status="BLOCKED",
+            task_id=task_id,
+        )
+        prepared_rows.append(
+            {
+                "row": row,
+                "details": details,
+                "event_hash": event_hash,
+                "contract_hash": contract_hash,
+                "row_pv": row_pv,
+                "tier": tier,
+                "source_kind": source_kind,
+                "confidence": confidence,
+                "task_id": task_id,
+                "statement": statement,
+            }
+        )
+
+    created_count = 0
+    reused_count = 0
+    excluded_count = terminal_count - len(prepared_rows)
+    candidate_ids: list[str] = []
+    candidate_states: dict[str, str] = {}
+    source_kind_counts = {"ACCEPTED_HISTORY": 0, "VERIFIED_FORWARD": 0}
+    event_hashes: list[str] = []
+    for prepared in prepared_rows:
+        row = cast(sqlite3.Row, prepared["row"])
+        details = cast(dict[str, Any], prepared["details"])
+        event_hash = str(prepared["event_hash"])
+        contract_hash = str(prepared["contract_hash"])
+        row_pv = str(prepared["row_pv"])
+        tier = str(prepared["tier"])
+        source_kind = str(prepared["source_kind"])
+        confidence = float(prepared["confidence"])
+        task_id = str(prepared["task_id"])
+        statement = str(prepared["statement"])
+        sealed = seal_learning_candidate(
+            root,
+            project_id=project_id,
+            tier=tier,
+            lesson_type=_bootstrap_lesson_type(row),
+            statement=statement,
+            scope={"kind": "TASK", "selectors": [task_id]},
+            evidence=[
+                {
+                    "project_id": project_id,
+                    "task_id": task_id,
+                    "delta_id": task_id,
+                    "pv_ref": row_pv,
+                    "ref": f"plan-event://{row['event_id']}",
+                    "sha256": event_hash,
+                },
+                {
+                    "project_id": project_id,
+                    "task_id": task_id,
+                    "delta_id": task_id,
+                    "pv_ref": row_pv,
+                    "ref": f"plan-contract://{task_id}",
+                    "sha256": contract_hash,
+                },
+            ],
+            outcome="SUCCEEDED",
+            confidence=confidence,
+            counterevidence=[],
+            contradictions=[],
+            temporal={
+                "observed_at": row["recorded_at"],
+                "valid_from": row["recorded_at"],
+                "expires_at": None,
+            },
+            privacy="PROJECT_PRIVATE",
+            source_lineage_head_sha256=event_hash,
+        )
+        candidate_id = str(sealed["candidate"]["candidate_id"])
+        candidate_ids.append(candidate_id)
+        candidate_states[candidate_id] = str(sealed["state"])
+        event_hashes.append(event_hash)
+        source_kind_counts[source_kind] += 1
+        if sealed["idempotent_reuse"]:
+            reused_count += 1
+        else:
+            created_count += 1
+
+    project_pointer_after = project_truth_pointer_sha256(root, project_id=project_id)
+    learning_pointer_after = (
+        sha256_file(learning_pointer_path) if learning_pointer_path.is_file() else None
+    )
+    require(
+        project_pointer_after == project_pointer_before
+        and learning_pointer_after == learning_pointer_before,
+        "LEARNING_BOOTSTRAP_POINTER_EFFECT_BLOCKED",
+        "Learning bootstrap may seal candidates but cannot move either pointer.",
+        status="MISMATCH",
+    )
+    bootstrap_fingerprint_sha256 = sha256_bytes(
+        canonical_json_bytes(
+            {
+                "project_id": project_id,
+                "accepted_pv": exact_pv,
+                "plan_projection_sha256": plan_sha256,
+                "event_sha256s": event_hashes,
+            }
+        )
+    )
+    receipt_body = {
+        "schema": LEARNING_BOOTSTRAP_RECEIPT_SCHEMA,
+        "project_id": project_id,
+        "accepted_pv": exact_pv,
+        "plan_projection_sha256": plan_sha256,
+        "bootstrap_fingerprint_sha256": bootstrap_fingerprint_sha256,
+        "terminal_plan_row_count": terminal_count,
+        "eligible_candidate_count": len(candidate_ids),
+        "excluded_ambiguous_or_unverified_count": excluded_count,
+        "source_kind_counts": source_kind_counts,
+        "candidate_ids": candidate_ids,
+        "project_truth_pointer_sha256": project_pointer_before,
+        "learning_pointer_sha256": learning_pointer_before,
+        "project_truth_pointer_moved": False,
+        "learning_pointer_moved": False,
+        "project_candidate_created": False,
+        "project_hil_invoked": False,
+        "learning_hil_invoked": False,
+        "automatic_learning_acceptance": False,
+        "private_reasoning_stored": False,
+        "full_plan_loaded_into_model_context": False,
+    }
+    receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_body))
+    receipt = {**receipt_body, "receipt_sha256": receipt_sha256}
+    receipt_path = _receipt_path(root, receipt_sha256)
+    _immutable_json(receipt_path, receipt)
+    return {
+        "status": "PASS",
+        "state": "BOOTSTRAP_CANDIDATES_SEALED"
+        if candidate_ids
+        else "NO_ELIGIBLE_VERIFIED_DELTAS",
+        "created_count": created_count,
+        "idempotent_reuse_count": reused_count,
+        "candidate_count": len(candidate_ids),
+        "candidate_ids": candidate_ids,
+        "candidate_states": candidate_states,
+        "excluded_ambiguous_or_unverified_count": excluded_count,
+        "source_kind_counts": source_kind_counts,
+        "receipt": receipt,
+        "receipt_path": str(receipt_path),
+        "project_truth_pointer_moved": False,
+        "learning_pointer_moved": False,
+        "project_candidate_created": False,
+        "project_hil_invoked": False,
+        "learning_hil_invoked": False,
+        "automatic_learning_acceptance": False,
+        "full_plan_loaded_into_model_context": False,
     }
 
 
@@ -2367,7 +2889,9 @@ def decide_learning_candidate(
             (decision_key,),
         ).fetchone()
         if prior_receipt is not None:
-            receipt = cast(dict[str, Any], json.loads(str(prior_receipt["receipt_json"])))
+            receipt = cast(
+                dict[str, Any], json.loads(str(prior_receipt["receipt_json"]))
+            )
             return {"status": "PASS", "idempotent_reuse": True, "receipt": receipt}
         connection.execute("BEGIN IMMEDIATE")
         candidate = _candidate_from_db(connection, root, candidate_id)
@@ -2474,7 +2998,9 @@ def decide_learning_candidate(
                 "Learning rollback must name the current accepted Learning head.",
                 status="MISMATCH",
             )
-            target = _candidate_from_db(connection, root, str(target_row["candidate_id"]))
+            target = _candidate_from_db(
+                connection, root, str(target_row["candidate_id"])
+            )
             event = _append_event(
                 connection,
                 project_id=project_id,
@@ -2547,7 +3073,9 @@ def decide_learning_candidate(
             "state_before": state_before,
             "state_after": state_after,
             "event_sha256": event["event_sha256"],
-            "affected_event_sha256s": [item["event_sha256"] for item in affected_events],
+            "affected_event_sha256s": [
+                item["event_sha256"] for item in affected_events
+            ],
             "learning_pointer_before_sha256": pointer_before.get("pointer_sha256"),
             "learning_pointer_after_sha256": pointer_after.get("pointer_sha256"),
             "learning_pointer_moved": pointer_before != pointer_after,
@@ -2749,7 +3277,9 @@ def retrieve_accepted_learning(
         "Learning retrieval requires a query and a limit from one to twenty.",
         status="BLOCKED",
     )
-    requested_scope = {str(item).strip() for item in scope_selectors if str(item).strip()}
+    requested_scope = {
+        str(item).strip() for item in scope_selectors if str(item).strip()
+    }
     conflicts = set(project_truth_conflict_candidate_ids or [])
     query_terms = sorted(set(re.findall(r"[a-z0-9_]+", exact_query)))
     require(
@@ -2870,9 +3400,7 @@ def retrieve_accepted_learning(
             "confidence": candidate["confidence"],
             "evidence": candidate["evidence"],
             "counterevidence": candidate["counterevidence"],
-            "source_lineage_head_sha256": candidate[
-                "source_lineage_head_sha256"
-            ],
+            "source_lineage_head_sha256": candidate["source_lineage_head_sha256"],
         }
         for _, candidate in sorted(
             hits,
@@ -2906,7 +3434,9 @@ def inspect_learning_authority(
     root = _project_root(project_root, project_id=project_id)
     connection = _connect(root)
     try:
-        integrity = [str(row[0]) for row in connection.execute("PRAGMA integrity_check")]
+        integrity = [
+            str(row[0]) for row in connection.execute("PRAGMA integrity_check")
+        ]
         foreign_keys = list(connection.execute("PRAGMA foreign_key_check"))
         candidates = connection.execute(
             "SELECT candidate_id,candidate_json FROM learning_candidate ORDER BY candidate_id"
@@ -3031,7 +3561,9 @@ def inspect_learning_authority(
             )
         current_pointer = _read_pointer(root, project_id=project_id)
         import_root = _learning_root(root) / "host-memory-imports"
-        host_memory_imports = sorted(import_root.glob("*.json")) if import_root.is_dir() else []
+        host_memory_imports = (
+            sorted(import_root.glob("*.json")) if import_root.is_dir() else []
+        )
         for import_path in host_memory_imports:
             match = re.fullmatch(r"(?P<sha256>[A-F0-9]{64})\.json", import_path.name)
             require(

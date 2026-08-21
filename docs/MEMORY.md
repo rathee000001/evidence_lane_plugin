@@ -20,6 +20,22 @@ The Plan runtime records Memory SQLite as
 `SEPARATE_FROM_AI_LEARNING_AND_PROJECT_TRUTH`. That separation is a contract,
 not a presentation choice.
 
+The first-class authority lives under the governed project root at `memory/`:
+
+- `memory.sqlite` owns locators, typed edges, immutable migration receipts,
+  content-addressed heads, compaction checkpoints, and rehydration receipts;
+- `memory.json`, `memory.mmd`, and `memory.dot` are hash-bound projections;
+- `memory.tools.json` declares bounded query and compaction behavior;
+- `head.json` and `memory.manifest.json` bind the active head and every
+  projection member; and
+- `checkpoints/` and `rehydration/` contain immutable continuity receipts.
+
+The historical `memory_locator`, `memory_edge`, and FTS tables inside Agent
+Learning v2 remain readable only as an immutable migration source. Migration
+copies their original content-addressed IDs and records source-ledger
+provenance; it does not delete or rewrite them. New locator and edge writes are
+owned by Project Memory.
+
 ## Storage and retrieval
 
 Each fired lane keeps its own SQLite, schema, hashes, FTS5 records, BM25 search,
@@ -36,6 +52,12 @@ Memory retrieval must therefore return:
 - exclusions, conflicts, and no-hit state; and
 - explicit proof that no authority or pointer was promoted.
 
+The existing public action names `learning_memory_query` and
+`learning_memory_record_link` are compatibility names. They route to the
+independent `project_memory` SDK arm (`query` and `record_link`) and do not make
+Agent Learning the Memory owner. This preserves the 88-action public catalog
+while correcting authority ownership.
+
 Parallel lane and cross-lane queries may run when the route contract permits
 them. Cross-project queries require separate exact project bindings; there is
 no implicit default project or cross-project fallback.
@@ -47,6 +69,9 @@ and bounded continuation locators before host compaction. `PostCompact`
 rehydrates only that verified continuation slice. Neither hook controls when
 the host compacts, and neither may reconstruct the project from chat history,
 replay HIL, change task order, or load a full SQLite authority into context.
+The same checkpoint and rehydration operations can run explicitly while hooks
+remain disabled; automatic transport begins only after each hook is separately
+verified and enabled.
 
 This preserves the same state across context windows:
 

@@ -1,0 +1,134 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_CANON_HOST_DISPATCH_SEAM_FAILS_CLOSED_WITHOUT_EXACT_RECEIPT",
+  "recorded_at": "2026-08-15T19:03:08Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-026-CANON-HOST-DISPATCH",
+  "task_contract_sha256": "92178E56241F764167DDF1A73CA8C0F24BB0C77D36FABC18A73891AA815E2292",
+  "host_dispatch_contract": {
+    "adapter": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/canon_task_graph.py::CodexHostDispatcher",
+    "host_kind": "CODEX",
+    "capability": "CODEX_HOST_CREATE_LINKED_TASK_IDEMPOTENT_V1",
+    "request_schema": "evidence-lane.codex-host-linked-task-create-request.v1",
+    "host_receipt_schema": "evidence-lane.codex-host-task-create-receipt.v1",
+    "canon_receipt_schema": "evidence-lane.canon-dispatch-receipt.v2",
+    "dispatch_identity": "CDISPATCH_PREFIX_PLUS_REQUEST_SHA256_PREFIX",
+    "host_operation_is_injected": true,
+    "plain_callable_is_sufficient": false,
+    "title_match_is_sufficient": false,
+    "thread_id_without_deep_link_is_sufficient": false,
+    "deep_link_without_task_uuid_is_sufficient": false,
+    "lifecycle_hook_event_is_task_create_receipt": false,
+    "default_without_injection": "HOST_CAPABILITY_UNAVAILABLE"
+  },
+  "official_host_surface_review": {
+    "codex_app_server": "thread/start returns a thread ID but documents no exact task deep link",
+    "workspace_agents": "the idempotent trigger returns a conversation URL and optional run ID but documents no exact Codex task UUID",
+    "codex_hooks": "command hooks are lifecycle handlers; hook firing alone is not task-creation proof",
+    "sources": [
+      "https://developers.openai.com/codex/app-server",
+      "https://developers.openai.com/workspace-agents/trigger-runs",
+      "https://developers.openai.com/codex/hooks"
+    ],
+    "normalized_host_receipt_required": true
+  },
+  "exact_once_law": {
+    "stable_idempotency_key": true,
+    "host_receipt_self_sealed": true,
+    "host_receipt_binds_request_sha256": true,
+    "host_receipt_binds_task_uuid_and_deep_link": true,
+    "host_receipt_records_replay_state": true,
+    "persisted_canon_dispatch_replay_calls_host_again": false,
+    "retry_before_local_persistence_reuses_host_idempotency_key": true,
+    "fabricated_creation_allowed": false
+  },
+  "schema_registry_extension": {
+    "canon_receipt_schema_sha256": "373448ADBB78A87C7318112B9E350A9B8DEC7439984CE24BE47988834BD7556E",
+    "canon_schema_manifest_sha256": "7D6F5D8A3AB345F896FD9AF2D1B66C4AAADD15ADFC3E6FF3248D3B5A063B351A",
+    "added_schema_ids": [
+      "evidence-lane.canon-dispatch-receipt.v2",
+      "evidence-lane.codex-host-task-create-receipt.v1"
+    ],
+    "earlier_receipt_bytes_rewritten": false,
+    "unknown_receipt_schema_behavior": "FAIL_CLOSED"
+  },
+  "dependency_hardening": {
+    "owner": "ROW223_DEPENDENCY_HARDENING_AFTER_ROW222_SEAL",
+    "same_version_v1_reentry": "VERIFY_ONLY_NO_SCHEMA_REPAIR",
+    "v0_migration_transaction": "BEGIN_IMMEDIATE_ATOMIC",
+    "failed_v0_migration": "ROLLBACK_ALL_SCHEMA_CHANGES",
+    "row222_receipt_or_config_rewritten": false
+  },
+  "byte_identities": {
+    "canon_task_graph_sha256": "3DA7B165159FC0396D16E0082EDA184EB25071A3C2D47931790B294A76CD5CA4",
+    "canon_skill_sha256": "B35F9CB2FC7CFEA75F2A46E3B1A31600CE3A264333AB8DE4FA700049A01AE2CB",
+    "canon_receipt_schema_sha256": "373448ADBB78A87C7318112B9E350A9B8DEC7439984CE24BE47988834BD7556E",
+    "canon_schema_manifest_sha256": "7D6F5D8A3AB345F896FD9AF2D1B66C4AAADD15ADFC3E6FF3248D3B5A063B351A",
+    "canon_schema_tests_sha256": "398B1F7D59ECC182843EC3B1C71A08CB95873A6BDDDBCDAD8612A429E57CAB96",
+    "canon_task_graph_tests_sha256": "C87635DF573D8A8AB1F23D8DE75AF47D3E647CEF636414C5117C4A6B4E543879",
+    "prior_delta_post_worktree_sha256": "2FFF3442ADE78E279220A388590702BE2CEDB747E9952BB87DCBCCC8C9648A9B",
+    "implementation_worktree_sha256_before_receipt_materialization": "AE83B64F7A88F1DC09E0D8EC8452AEA5DACF2275F2E0829434AADDE8D6D6ED5F",
+    "final_post_worktree_identity": "SEALED_BY_NATIVE_PER_DELTA_CHECKPOINT_AFTER_RECEIPT_AND_CONFIG_MATERIALIZATION"
+  },
+  "verification": [
+    {
+      "selector": "Canon host adapter, malformed receipt rejection, exact UUID/deep-link binding, replay, and atomic migration behavior",
+      "status": "PASS",
+      "result": "27 passed in 0.78s"
+    },
+    {
+      "selector": "Canon/schema, SDK, skill routing, MCP catalog, public-arm, and runtime-continuity integration",
+      "status": "PASS",
+      "result": "59 passed in 50.57s"
+    },
+    {
+      "selector": "Final Canon skill/schema/source static validation",
+      "status": "PASS",
+      "result": "quick_validate, Ruff, py_compile, JSON parse, and git diff --check passed"
+    }
+  ],
+  "negative_cases": [
+    "No injected supported host operation returns HOST_CAPABILITY_UNAVAILABLE.",
+    "A plain callable, unsealed boolean, malformed receipt, wrong dispatch identity, wrong request hash, or mismatched destination fails closed.",
+    "A replay of a persisted dispatch returns the same sealed destination without another host call.",
+    "A task UUID without its deep link, or a deep link without its task UUID, cannot prove host creation.",
+    "A same-version Canon schema mismatch fails without silent repair.",
+    "A failed v0 schema migration rolls back every partial schema change."
+  ],
+  "write_provenance": {
+    "pre_existing_dirty_source_bytes_preserved": true,
+    "row223_changes_are_additive_to_existing_dirty_worktree": true,
+    "row222_sealed_receipt_and_config_preserved_byte_for_byte": true,
+    "unrelated_dirty_or_untracked_bytes_modified": false
+  },
+  "negative_side_effects": {
+    "live_host_task_created": false,
+    "live_project_hil_invoked": false,
+    "live_candidate_created_or_accepted": false,
+    "live_pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "plugin_install_or_activation_changed": false,
+    "installer_or_goal_helper_invoked_by_root": false,
+    "tunnel_invoked": false,
+    "subagent_started_by_root": false,
+    "host_plan_rehydrated": false
+  },
+  "checkpoint_retry_context": {
+    "earlier_receipt_id": "task6-row223-local-verification-001",
+    "earlier_per_delta_evidence_sealed": true,
+    "earlier_task_advance_completed": false,
+    "failure_code": "TASK_CHECKPOINT_ADVANCE_DELTA_VERIFICATION_MISMATCH",
+    "cause": "A concurrent Goal-side write changed the two local Row223 receipt/config files after evidence sealing but before the final live-hash comparison.",
+    "plan_row_after_failure": "ROW223_ACTIVE_ROW224_QUEUED",
+    "fresh_receipt_id": "task6-row223-local-verification-002"
+  },
+  "limitations": [
+    "The source MCP/SDK route dispatches only when its host constructs the server or SDK context with the supported injected adapter; the ordinary source runtime remains explicitly unavailable rather than fabricating host control.",
+    "Installed-package parity remains deferred to the governed release boundary.",
+    "Row224 owns Learning runtime parity and expiry ownership.",
+    "This Delta does not claim host Plan acceptance, Canon HIL, Project HIL, pointer movement, Git execution, installation, or a live destination task creation."
+  ],
+  "next_boundary": "Close Row223 through its exact per-Delta checkpoint. In the fixed Rows218-226 visible batch, cross Row223 in place and activate Row224 without rehydrating or sliding the host panel."
+}

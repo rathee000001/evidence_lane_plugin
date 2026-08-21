@@ -405,7 +405,7 @@ function Assert-Boundary() {
             $successorHookRecords.Count -ne 8 -or
             @($successorHookRecords | Where-Object { $_.enabled -ne $false -or $_.trust_status -cne "trusted" }).Count -ne 0 -or
             $successorStage.successor.runtime_prewarm.status -cne "PASS" -or
-            [int]$successorStage.successor.runtime_prewarm.tool_count -ne 87 -or
+            [int]$successorStage.successor.runtime_prewarm.tool_count -ne 88 -or
             $successorStage.restart_gate.helper_may_be_scheduled -ne $true -or
             $successorStage.restart_gate.exact_host_stop_occurred -ne $false -or
             $successorStage.accepted_two_slot_registry.mutated -ne $false -or
@@ -856,7 +856,7 @@ try {
             $invalidHookRecords.Count -ne 0 -or
             (($registeredEvents -join "|") -cne ($expectedEvents -join "|")) -or
             $install.activation.runtime_prewarm.status -cne "PASS" -or
-            [int]$install.activation.runtime_prewarm.tool_count -ne 87 -or
+            [int]$install.activation.runtime_prewarm.tool_count -ne 88 -or
             $install.activation.runtime_ready_before_task_reopen -ne $false -or
             $install.runtime_ready_before_task_reopen -ne $false -or
             $install.restart_required -ne $true -or
@@ -1041,7 +1041,7 @@ try {
             $tunnelInstall.status -cne "PASS" -or
             $tunnelInstall.activated -ne $true -or
             $tunnelInstall.started -ne $true -or
-            [int]$tunnelInstall.exact_visible_tool_count -ne 87 -or
+            [int]$tunnelInstall.exact_visible_tool_count -ne 88 -or
             [string]$tunnelInstall.windows_console_policy -cne "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE" -or
             $tunnelStatus.status -cne "PASS" -or
             $tunnelStatus.control_plane_poll_ready -ne $true -or
@@ -1062,7 +1062,7 @@ try {
             marker_sha256_before = [string]$boundary.tunnel_marker_sha256
             marker_sha256_after = Get-Sha256 $boundary.tunnel_marker_path
             manager_sha256_after = Get-Sha256 $newTunnelManager
-            exact_visible_tool_count = 87
+            exact_visible_tool_count = 88
             control_plane_poll_ready = $true
             hidden_window_verified_by_contract = $true
             persistent_logon_task_running = $true

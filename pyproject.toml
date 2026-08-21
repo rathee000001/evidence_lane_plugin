@@ -68,6 +68,7 @@ testpaths = ["tests"]
 
 [tool.ruff]
 target-version = "py311"
+exclude = ["evidence"]
 
 [tool.mypy]
 python_version = "3.11"

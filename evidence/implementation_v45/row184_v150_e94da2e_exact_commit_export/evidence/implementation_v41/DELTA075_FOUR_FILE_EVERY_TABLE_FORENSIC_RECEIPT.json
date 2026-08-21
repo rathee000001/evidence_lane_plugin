@@ -1,0 +1,65 @@
+{
+  "delta": "EL-V130-FOUR-FILE-EVERY-TABLE-FORENSIC-DELTA-075",
+  "dummy_audit": {
+    "audit_file_sha256": "AC84AF7491992F8943486E8F0616196F0BD4E4CE171A5F6AF0B1DD6B9D86E785",
+    "audit_sha256": "B3921A28AA8AC317B59629255D15193E0DA702C1DF30781CE6118AA929D7840C",
+    "audit_status": "PASS",
+    "bundle_path": ".runtime/delta075/dummy-lane-bundle",
+    "bundle_sha256": "F4816F16AD8F8DC876CA899F678FA181EED71A5F7BEDB1CE38D6CA1C65F744AC",
+    "bundle_valid": true,
+    "engine_auxiliary_table_occurrences": 100,
+    "every_table_pass_count": 18,
+    "four_file_pass_count": 18,
+    "four_file_path_pattern": "<lane_id>/<lane sqlite>, <lane_id>.mmd, <lane_id>.dot, tools.json",
+    "lane_contract_roots": {
+      "analysis": "14EE3220E55B1CCE36A15C7F4A2FA8EFBCAB9E59AA33FE6D2FFFAE78683AB392",
+      "artifacts": "3779099122254EC912D7B2163A042C2AA038A587B3BF36E99CA98334F957C3BD",
+      "brain_loader": "64E85371346A5F0BD0EDFBCBA20D1B9EA7ABA657340E910A971D0AE3C602A05B",
+      "chat_lineage": "27D73EEA24ED226D5CDADEF2ECF511302F267FD409831718F0F5B0DBF59826DD",
+      "custom": "41B77D386F0CFB7E442595BC03703E4B6F444FF693CC37F0FCA08601E1DA7895",
+      "data_excel": "ABAF33DD7ACCF5AF3AC842326A032A17404AEECE055509FF41B6C6607BC5142F",
+      "discussion": "6F426A4269B5E41C30C6A6DD16042436127D24B74AB5C3D7908255EA3D0D4902",
+      "docs": "A17536E41D4FB747CF96C319F171A6D45A4426CFE0077D835CCAE49EDFB0B985",
+      "github_code": "4CAF5212E50D7F3AEF4F48FD01975DB9FE0D6F4F9401DD0AF1DEFC85D9E9EE0A",
+      "images_ocr": "4C86A5AFA723CAEC40699EA0178C14D35989B22FA0D4A44CACD7936BC3A9D365",
+      "local_code": "5C6FE113E29B2981116595DF07FD044D4513B680CFF71B91AE2366E58AB0AB6C",
+      "mode": "A233162B6C2F7E47CF45EB6E6A8010C309AEE9AE398A37A85948F8BCC5170D62",
+      "pdf_ocr": "34E1F8ACEC9BB97E8662AECDB691A0AE69B675434AC4B27635781A82A9F5E24A",
+      "plan": "440FF409241DFA78389049F08893759D3A193285D731578C2B5543067FAD7799",
+      "ppt": "2DAE0A7FC08F8263C815032803FB8D284B821F0AA3895633EDA30ECAA9CA5094",
+      "project_engulf": "ECDBF1FD4C8798847FFF88281C449DBA09490B13D6BA8654746D6C153C454910",
+      "research": "BF2786C4FCDD590C41556B50413C56920FB0510FF083F1258BFE13FBBA345077",
+      "sqlite_brain": "C49CA493C636144FB001A05AB051D845A33920747207E07A1166326AED23C8F3"
+    },
+    "lane_count": 18,
+    "public_contract_table_occurrences": 484,
+    "report_manifest_sha256": "D888B4C210C7B4E255FE7143F6224E03C2301D173B9673066FE8677858655666",
+    "reports_path": ".runtime/delta075/forensic-reports",
+    "sqlite_audited_table_occurrences": 584,
+    "sqlite_table_occurrences": 584,
+    "unexpected_public_table_occurrences": 0
+  },
+  "prohibitions": {
+    "deployed": false,
+    "main_merged": false,
+    "pointer_moved": false,
+    "pv_built": false,
+    "refresh_or_fuse": false
+  },
+  "receipt_sha256": "BDB7771B4BC47B4E375F112461054917021B24F1E523558CC76CDDD1DD43AE7A",
+  "schema": "evidence-lane.delta075-receipt.v1",
+  "source_files": {
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/artifact_contract.py": "D6022B604362242BC393DFB38A62DC0D75610E09BEB7CC7B1F535888AC464986",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/forensic_audit.py": "53ACDF3CA853838A99823E9920462CB46AA1EAA96A10E7A6585345FFFFA4EB08",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/lane_engine.py": "0E2578E19434204CDE3855086A392140C457436C909CEDEBDA6790C653A331E3",
+    "tests/test_artifact_contract.py": "720EA0FDE1623C94A8E2F7B14EBB37467E6E58AE7D0ADA5462249306FA5D6D30",
+    "tests/test_universal_lanes.py": "276C073A42AB55F8F637857CCAEF13F73C0C3498E06541ADCB0D15EC1D0B9C1F"
+  },
+  "tests": {
+    "focused_contract_topology_rendering": "12 passed in 2.57s",
+    "full_18_lane_dummy_build_and_forensic": "1 passed in 15.51s",
+    "git_diff_check": "PASS",
+    "mypy": "PASS",
+    "ruff": "PASS"
+  }
+}

@@ -13,7 +13,7 @@ const routes = [
   ["Canon", "Inspect bounded task exchange and receiver-owned Canon decisions.", "/canon", "02"],
   ["AI Learning", "See project-isolated learning, decisions, and revocation.", "/ai-learning", "03"],
   ["Skills", "Inspect all seventeen governed skills and their authority boundaries.", "/skills", "04"],
-  ["Native MCP", "See the package-local server and its 87 governed action contracts.", "/mcp", "05"],
+  ["Native MCP", "See the package-local server and its 88 governed action contracts.", "/mcp", "05"],
   ["Hooks", "Inspect all eight lifecycle events and their transport-only boundary.", "/hooks", "06"],
   ["Plan & Changes", "See the canonical ledger, active window, Goal, and worktree binding.", "/plan", "07"],
   ["Git & CI", "Bind source intake, GitHub checks, and Vercel preview to one commit.", "/git-ci", "08"],
@@ -168,8 +168,8 @@ export default function Home() {
           <span className="kicker">Codex capability profiles</span>
           <h2>The same governance law meets each Codex runtime at its real storage boundary.</h2>
           <p>
-            The installed package exposes all 17 governed skills and the complete 87-action native
-            catalog: 27 reads and 60 writes. Desktop and persistent profiles use durable local
+            The installed package exposes all 17 governed skills and the complete 88-action native
+            catalog: 27 reads and 61 writes. Desktop and persistent profiles use durable local
             SQLite. Headless API entry reflashes ENV/UOP for each invocation. Ephemeral profiles
             require a durable mount or configured transactional connector. No profile can infer
             acceptance, Fuse, or pointer movement from installation or execution success.

@@ -16,11 +16,13 @@ from evidence_lane_plugin.github_app_distribution import (
     DeterministicMockGitHubProvider,
     GitHubAPIResponse,
     GitHubAppManifest,
+    GitHubAppProductionDeliveryRoute,
     GitHubRESTInstallationTokenProvider,
     GitHubWebhookRoute,
     InstallationBinding,
     InstallationTokenBroker,
     InstallationTokenRequest,
+    ProductionDeliveryIdentity,
     WebhookVerifier,
     map_check_run_receipt,
     receipt_contains_secret,
@@ -448,6 +450,98 @@ def test_successful_check_cannot_accept_or_fuse() -> None:
     assert receipt["fuse_invoked"] is False
     assert receipt["pointer_moved"] is False
     assert receipt["hil_inferred"] is False
+
+
+def _production_delivery(**overrides: object) -> ProductionDeliveryIdentity:
+    commit = "a" * 40
+    raw: dict[str, object] = {
+        "delivery_id": "delivery-1",
+        "installation_binding": _binding(),
+        "repository": "owner/repo",
+        "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
+        "commit_sha": commit,
+        "tree_sha": "b" * 40,
+        "actions_run_id": "run-42",
+        "actions_status": "completed",
+        "actions_conclusion": "success",
+        "actions_head_sha": commit,
+        "package_id": "package-42",
+        "package_version": "3.0.0+codex.20260821090000.git.aaaaaaaaaaaa",
+        "package_sha256": "C" * 64,
+        "package_source_commit": commit,
+        "mutable_local_slot": "evidence-lane-v300-testing-new",
+        "branch_commit_slot": "evidence-lane-v300-branch-stable",
+        "main_merge_fallback_slot": "evidence-lane-github",
+        "installed_version": "3.0.0+codex.20260821090000.git.aaaaaaaaaaaa",
+        "installed_package_sha256": "C" * 64,
+        "installed_surface_sha256": "D" * 64,
+        "main_merge_fallback_before_sha256": "E" * 64,
+        "main_merge_fallback_after_sha256": "E" * 64,
+    }
+    raw.update(overrides)
+    return ProductionDeliveryIdentity.create(**raw)  # type: ignore[arg-type]
+
+
+def test_production_delivery_binds_github_package_and_three_slots_without_authority() -> (
+    None
+):
+    route = GitHubAppProductionDeliveryRoute()
+    identity = _production_delivery()
+    receipt = route.seal(identity)
+
+    assert receipt["status"] == "PASS"
+    assert receipt["identity"]["source"]["commit_sha"] == "a" * 40
+    assert receipt["identity"]["actions"]["head_sha"] == "a" * 40
+    assert receipt["identity"]["package"]["source_commit"] == "a" * 40
+    assert receipt["identity"]["package"]["sha256"] == "C" * 64
+    assert receipt["identity"]["installation"]["package_sha256"] == "C" * 64
+    assert receipt["identity"]["main_merge_fallback"]["unchanged"] is True
+    assert receipt["commit_created"] is False
+    assert receipt["ref_pushed"] is False
+    assert receipt["pointer_moved"] is False
+    assert receipt["hil_inferred"] is False
+    assert receipt_contains_secret(receipt) is False
+    assert route.seal(identity) == receipt
+
+
+@pytest.mark.parametrize(
+    ("overrides", "code"),
+    [
+        ({"actions_conclusion": "failure"}, "GITHUB_APP_DELIVERY_ACTIONS_NOT_GREEN"),
+        ({"actions_head_sha": "f" * 40}, "GITHUB_APP_DELIVERY_COMMIT_MISMATCH"),
+        (
+            {"installed_package_sha256": "F" * 64},
+            "GITHUB_APP_DELIVERY_PACKAGE_INSTALL_MISMATCH",
+        ),
+        (
+            {"main_merge_fallback_after_sha256": "F" * 64},
+            "GITHUB_APP_DELIVERY_MAIN_FALLBACK_MUTATED",
+        ),
+        (
+            {"branch_commit_slot": "evidence-lane-v300-testing-new"},
+            "GITHUB_APP_DELIVERY_SLOT_ALIAS_BLOCKED",
+        ),
+    ],
+)
+def test_production_delivery_fails_closed_on_identity_drift(
+    overrides: dict[str, object], code: str
+) -> None:
+    with pytest.raises(EvidenceLaneError) as exc:
+        _production_delivery(**overrides)
+    assert exc.value.code == code
+
+
+def test_production_delivery_replay_conflict_is_blocked() -> None:
+    route = GitHubAppProductionDeliveryRoute()
+    route.seal(_production_delivery())
+    with pytest.raises(EvidenceLaneError) as exc:
+        route.seal(
+            _production_delivery(
+                package_sha256="F" * 64,
+                installed_package_sha256="F" * 64,
+            )
+        )
+    assert exc.value.code == "GITHUB_APP_DELIVERY_REPLAY_CONFLICT"
 
 
 def _entitlement_store() -> tuple[ArtifactEntitlementStore, bytes]:

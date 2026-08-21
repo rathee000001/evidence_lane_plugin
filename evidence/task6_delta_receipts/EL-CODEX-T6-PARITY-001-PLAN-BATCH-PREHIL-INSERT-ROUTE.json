@@ -1,0 +1,168 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_LOCAL_SOURCE_RUNTIME_AND_NATIVE_APPEND",
+  "recorded_at": "2026-08-15T08:41:14.6509417Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "active_native_task_id": "EL-CODEX-GITHUB_ACTIONS_CLEAN_CI-PROPOSAL-31",
+  "delta_task_id": "EL-CODEX-T6-PARITY-001-PLAN-BATCH-PREHIL-INSERT-ROUTE",
+  "research_proposal_sha256": "A6D175C601054812C8EC02B8765681976925CDBABD9AE71E7AC9FDB7C691B9E0",
+  "research_batch_sha256": "E5725883DA8343128FE632F4081AF422AEDC8F1944207D950DD547F39380D6D8",
+  "implementation": {
+    "existing_public_tool_extended": "pv_plan_tasks",
+    "new_tool_added": false,
+    "catalog_tool_count": 83,
+    "contract": "bounded atomic multi-target insertion with exact pre-insertion backlog-byte and Plan projection hashes, exact stable targets, structured metadata, global dependency validation, idempotent batch binding, recoverable PREPARED/COMMITTED journal, and physical-final-HIL preservation",
+    "journal_schema": "evidence-lane.plan-atomic-insertion-journal.v1",
+    "receipt_schema": "evidence-lane.plan-atomic-insertion-receipt.v1",
+    "installed_stable_runtime_mutated": false,
+    "installed_or_selector_state_changed": false
+  },
+  "changed_paths": [
+    {
+      "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/store.py",
+      "sha256": "161EE53127872000ECE5A8DB8FABF552F3A42F42539613A4E3223CCC60DBBDB0"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/service.py",
+      "sha256": "AF6906A6F9A682DB2196C1E33515B8F5CCE9ECA53A7C2B558EC2660CA0F7A93F"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py",
+      "sha256": "1B3F3D657EBCC48825BF4DA43DC7F17CF0AA9EC6749EE287F89CA89E0C02E414"
+    },
+    {
+      "path": "tests/test_plan_atomic_insertions.py",
+      "sha256": "656246230517D9A1DD2B7FFF6D112251BEAF9DDAD4723316B30E9901CDE87315"
+    }
+  ],
+  "delta_patch_sha256": "67D8172B939707F4803742AA21348013225C3647FF13D62DA439F8E0D2D74D80",
+  "evidence_artifacts": [
+    {
+      "path": "evidence/task6_delta_receipts/verify_atomic_batch_on_native_store_clone.py",
+      "sha256": "6913CFBEE3D64494C565A17948D9DBD3F02ECB1DD7F562D503E45A4904769D08"
+    },
+    {
+      "path": "evidence/task6_delta_receipts/apply_atomic_batch_to_live_plan.py",
+      "sha256": "F5E326DA32EE994D8EFA74680B4F9FC225859FBD080A3816EE4972064D96390A"
+    },
+    {
+      "path": "evidence/task6_delta_receipts/record_atomic_batch_in_research_db.py",
+      "sha256": "633840C2DAEB5E714790D5FA87792AA737754EBD78EEC2C00AD7CF8A7A87CF08"
+    }
+  ],
+  "authority_algorithm_boundary": {
+    "backlog_json_sha256": "1FCA941F73067CA5BE21C60F9E6BF3150E84683562A112A59E85E01C54E981B0",
+    "installed_2_1_canonical_plan_sha256": "2BEE2D98D2FC44E735C93528222AE3B55628F330DC0D6E689ACD26B426109D94",
+    "installed_2_1_executable_projection_sha256": "C662FDE235E3ED1BE0D0B60395E5D41AC3C250133FABB45148D112D5E99F664F",
+    "source_2_2_canonical_plan_sha256": "251F036F150364A426792CF136DD6027828E30B2E79A193E8A4441E5B280222D",
+    "source_2_2_executable_projection_sha256": "15F4E8650222D12FDC6C9FE5236E1AC47FF53DC0FA678932F245DA8AFB664F85",
+    "interpretation": "The same 186-row canonical JSON authority has version-specific derived projection hashes; the new exact backlog-byte hash is the cross-version compare-and-swap boundary."
+  },
+  "worktree_identity": {
+    "state_travel_bound_worktree_sha256": "9360C84C043D6337A01842E45F6212053B56D2B257E8FE420BE0E046E78668F3",
+    "post_implementation_worktree_sha256_excluding_this_receipt": "11150AC355FFC5A380E31E17A1ECCF7F021A86F0D8ED31EB9CED2E7E688A66FE",
+    "post_status_entry_count_excluding_this_receipt": 6947,
+    "post_status_porcelain_v2_sha256_excluding_this_receipt": "61D2DA36CC585BF20DAFB638EDD7D25AC233C7F5AA774E2078A1A89B5D98B45F",
+    "preexisting_dirty_bytes_reset_stashed_or_cleaned": false
+  },
+  "native_append": {
+    "status": "PASS",
+    "transport": "source MCP stdio pv_plan_tasks atomic_insertion",
+    "catalog_tool_count": 83,
+    "batch_id": "T6-PARITY-NORMALIZED-ATOMIC-REMAINDER-001",
+    "input_sha256": "C131B4261837B613D02A198CCE40E5A0AC7149A44CFDC247A5A0987F5F9160E8",
+    "before_backlog_sha256": "1FCA941F73067CA5BE21C60F9E6BF3150E84683562A112A59E85E01C54E981B0",
+    "after_backlog_sha256": "587516A6A24C33645655D2985555604ADDB695B298F5551AF72AC08C274C60C3",
+    "journal_sha256": "F11E32EE9C5A9DB89EE951533C5F2B8C6E94200B39C4F697959046F9992D42BE",
+    "journal_state": "COMMITTED",
+    "inserted_task_count": 37,
+    "canonical_task_count": 223,
+    "executable_task_count": 168,
+    "history_task_count": 55,
+    "active_row": 196,
+    "bootstrap_row": 197,
+    "forced_route_row": 229,
+    "install_successor_row": 239,
+    "physical_final_row": 248,
+    "physical_final_task_id": "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR",
+    "installed_2_1_runtime_projection_status": "STALE",
+    "pointer_moved": false,
+    "candidate_created": false,
+    "hil_invoked": false,
+    "goal_mutated": false,
+    "git_executed": false
+  },
+  "research_db_append_receipt": {
+    "status": "PASS",
+    "receipt_count_added": 37,
+    "batch_status": "APPENDED",
+    "research_step_25": "completed",
+    "before_sha256": "1D8FEBD726878F2AF09B0161AD202E3B3A057ACC4F0C288049485840FA31D121",
+    "after_sha256": "AD116D899436A7D5709FE4586B1D4FF2107A73EA5E7FFCA74EE85AE49D27EFD8"
+  },
+  "verification": [
+    {
+      "selector": "python -m ruff check store.py service.py mcp_server.py tests/test_plan_atomic_insertions.py",
+      "status": "PASS",
+      "result": "All checks passed"
+    },
+    {
+      "selector": "tests/test_plan_atomic_insertions.py after version-neutral backlog-hash hardening",
+      "status": "PASS",
+      "result": "8 passed in 3.78s"
+    },
+    {
+      "selector": "tests/test_plan_steers.py",
+      "status": "PASS",
+      "result": "9 passed in 14.67s"
+    },
+    {
+      "selector": "tests/test_plan_normalization.py",
+      "status": "PASS",
+      "result": "8 passed in 92.92s"
+    },
+    {
+      "selector": "four directly relevant tests/test_host_plan_rehydration.py selectors",
+      "status": "PASS",
+      "result": "4 passed in 11.33s"
+    },
+    {
+      "selector": "create_mcp_server(...).list_tools()",
+      "status": "PASS",
+      "result": "83 tools; pv_plan_tasks input schema contains atomic_insertion"
+    },
+    {
+      "selector": "verify_atomic_batch_on_native_store_clone.py",
+      "status": "PASS",
+      "result": "37 rows inserted on clone; source=223 canonical/168 executable/final Row248; installed 2.1 backward read=223/168/final Row248 with derived runtime STALE; live backlog unchanged",
+      "source_input_sha256": "C131B4261837B613D02A198CCE40E5A0AC7149A44CFDC247A5A0987F5F9160E8",
+      "source_after_canonical_plan_sha256": "83AA739CE54DE7FC45585BF48DF41D41947A264E188E9322A62463F711C0AE4E",
+      "source_after_executable_projection_sha256": "727E802CE1F0A911CDA94F74A104E01E5768D3A5765F8AB133F994FFF9C99930"
+    }
+  ],
+  "bounded_inconclusive_runs": [
+    {
+      "selector": "combined Plan regression command",
+      "result": "TIMEOUT_124_SECONDS_NO_OUTPUT",
+      "interpretation": "inconclusive aggregate timing; component files were rerun separately"
+    },
+    {
+      "selector": "full tests/test_host_plan_rehydration.py",
+      "result": "TIMEOUT_124_SECONDS_NO_OUTPUT",
+      "interpretation": "inconclusive full-file timing; four directly impacted selectors passed"
+    }
+  ],
+  "negative_side_effects": {
+    "goal_mutated": false,
+    "candidate_created": false,
+    "hil_invoked": false,
+    "pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "plugin_installed_or_enabled": false,
+    "helper_or_tunnel_invoked": false,
+    "subagent_started": false
+  },
+  "next_boundary": "Use the tested atomic contract only after exact live Plan hashes are rebound; do not infer HIL or install the plugin in this Delta."
+}

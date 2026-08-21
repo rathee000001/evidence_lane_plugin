@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, cast
 
 from .errors import require
 
@@ -179,6 +179,7 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
         "The fresh destination creation binding is required.",
         status="BLOCKED",
     )
+    destination_raw = cast(dict[str, Any], destination_raw)
     require(
         len({source["task_id"], donor["task_id"], destination["task_id"]}) == 3,
         "DIRECT_STATE_TRAVEL_TASK_ROLE_COLLISION",
@@ -220,6 +221,7 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
         "Direct same-worktree entry requires one exact sole writer.",
         status="MISMATCH",
     )
+    sole_writer = cast(dict[str, Any], sole_writer)
     writer_id = _direct_text(
         sole_writer.get("writer_id"),
         field="sole_writer.writer_id",
@@ -246,6 +248,7 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
         "The destination must supply its bounded native host context.",
         status="BLOCKED",
     )
+    host_context = cast(dict[str, Any], host_context)
     current_host = _direct_task_identity(
         {
             "task_id": host_context.get("current_task_id"),
@@ -278,6 +281,7 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
         "Direct same-worktree entry requires exact expected live identities.",
         status="BLOCKED",
     )
+    expected = cast(dict[str, Any], expected)
     pointer = expected.get("pointer")
     source_expected = expected.get("source")
     prebootstrap = expected.get("prebootstrap_source")
@@ -299,13 +303,15 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
         "Pointer, source, pre-bootstrap source, Plan, plugin, runtime, and execution-profile identities are all required.",
         status="BLOCKED",
     )
-    pointer = dict(pointer)
-    source_expected = dict(source_expected)
-    prebootstrap = dict(prebootstrap)
-    plan = dict(plan)
-    plugin = dict(plugin)
-    runtime = dict(runtime)
-    profile = execution_profile_from_context({"execution_profile": profile})
+    pointer = cast(dict[str, Any], pointer)
+    source_expected = cast(dict[str, Any], source_expected)
+    prebootstrap = cast(dict[str, Any], prebootstrap)
+    plan = cast(dict[str, Any], plan)
+    plugin = cast(dict[str, Any], plugin)
+    runtime = cast(dict[str, Any], runtime)
+    profile = execution_profile_from_context(
+        {"execution_profile": cast(dict[str, Any], profile)}
+    )
     require_unfinished_execution_profile(profile, host_kind="CODEX_DESKTOP")
 
     normalized_pointer = {
@@ -339,7 +345,7 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
         "captured_before_authorized_route_bootstrap": prebootstrap.get("captured_before_authorized_route_bootstrap") is True,
     }
     require(
-        normalized_prebootstrap["captured_before_authorized_route_bootstrap"],
+        normalized_prebootstrap["captured_before_authorized_route_bootstrap"] is True,
         "DIRECT_STATE_TRAVEL_PREBOOTSTRAP_BASELINE_REQUIRED",
         "The direct route must retain the exact dirty baseline captured before its authorized bootstrap implementation.",
         status="MISMATCH",

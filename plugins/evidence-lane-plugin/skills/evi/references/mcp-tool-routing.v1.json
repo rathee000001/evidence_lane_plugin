@@ -2,6 +2,7 @@
   "schema": "evidence-lane.skill-mcp-routing.v1",
   "server_identity": "evidence-lane",
   "tool_owners": {
+    "adaptive_delta_exit": "evidence-lane-code-lifecycle",
     "canon_backfire_hil": "evi-canon",
     "canon_bind_edge": "evi-canon",
     "canon_classify": "evi-canon",
@@ -865,33 +866,40 @@
         {
           "order": 13,
           "tools": [
-            "pv_task_transition"
+            "adaptive_delta_exit"
           ],
           "workflow": "task-execution"
         },
         {
           "order": 14,
           "tools": [
-            "task_complete_and_refresh"
+            "pv_task_transition"
           ],
           "workflow": "task-execution"
         },
         {
           "order": 15,
           "tools": [
+            "task_complete_and_refresh"
+          ],
+          "workflow": "task-execution"
+        },
+        {
+          "order": 16,
+          "tools": [
             "git_sync_selected"
           ],
           "workflow": "governed-git-delivery"
         },
         {
-          "order": 16,
+          "order": 17,
           "tools": [
             "remote_git_prepare_push"
           ],
           "workflow": "governed-git-delivery"
         },
         {
-          "order": 17,
+          "order": 18,
           "tools": [
             "remote_git_execute_push"
           ],
@@ -902,6 +910,10 @@
     }
   },
   "low_level_tools": {
+    "adaptive_delta_exit": {
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "reached_via": "task-execution"
+    },
     "git_sync_selected": {
       "owner_skill": "evidence-lane-code-lifecycle",
       "reached_via": "governed-git-delivery"
@@ -998,7 +1010,7 @@
       ],
       "failure_behavior": "CONFORMANCE_GATE_FAIL_CLOSED"
     },
-    "tool_count": 87,
+    "tool_count": 88,
     "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
     "host_display_namespace_is_authority": false,
     "installed_validation": "REBUILD_AND_COMPARE_AGAINST_THE_INSTALLED_NATIVE_CATALOG_AT_RELEASE_BOUNDARY"

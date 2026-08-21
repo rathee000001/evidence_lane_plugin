@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const installChecks = [
   "Verify the governed branch, full commit SHA, and clean release file set.",
-  "Build the deterministic local package and prove the 87-action, 27-read, 60-write catalog.",
+  "Build the deterministic local package and prove the 88-action, 27-read, 61-write catalog.",
   "Install the exact 3.0.0 cache-busted package through the Codex Git marketplace route after the governed pre-HIL build route authorizes that test installation.",
   "Restart Codex only when the installer reports that a catalog refresh is required.",
   "Reopen the exact task, restore its full Plan Lane panel, and run post-restart native verification.",

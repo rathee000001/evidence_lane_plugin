@@ -25,6 +25,16 @@ an artifact, or mutate GitHub.
   installation itself.
 - `DeterministicMockGitHubProvider` is a disposable test adapter. It performs no
   network call and holds no production identity.
+- `ProductionDeliveryIdentity` and `GitHubAppProductionDeliveryRoute` form the
+  credential-free checkpoint SDK seam. They bind one installation capability,
+  exact repository/branch/commit/tree, successful Actions head, exact package,
+  installed branch-commit recovery slot, mutable local slot, and unchanged
+  main-merge fallback. A changed replay, non-green run, package substitution,
+  slot alias, or fallback mutation fails closed.
+- `scripts/codex_release/seal_github_app_production_delivery.py` is the public
+  executable adapter for that seam. It consumes exact non-secret identities,
+  writes one immutable receipt, and performs no Git, network, installation,
+  candidate, HIL, or pointer action.
 
 Every receipt excludes raw secrets, bearer values, and artifact bytes. The
 negative suite covers forged signature, delivery replay conflict, stale token,
@@ -33,7 +43,9 @@ artifact substitution, and check-success authority escalation.
 
 ## Post-HIL user-controlled boundary
 
-The following remain unimplemented and separately authorized: production app
-registration, private-key or webhook-secret provisioning, repository or
-organization installation, external tester distribution, public listing,
-main promotion, publication, and production deployment.
+The host-managed GitHub App may supply installation and Actions evidence to the
+checkpoint seam, but the seam never receives its private key, webhook secret,
+or installation token. App registration, credential provisioning, repository
+or organization installation, external tester distribution, public listing,
+main promotion, publication, and production deployment remain separately
+authorized operations.

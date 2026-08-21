@@ -11,6 +11,8 @@ import threading
 import time
 import unicodedata
 from collections import Counter
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, ClassVar, Self, cast
 
@@ -23,10 +25,29 @@ from .plan_runtime import (
     DELTA_STATUSES,
     append_delta_event,
     append_planning_mode_event,
+    append_task_formula_event,
     ensure_event_ledger,
     plan_runtime_status,
     query_plan_runtime_projection,
     write_plan_runtime_projection,
+)
+from .project_authority import (
+    PROJECT_AUTHORITY_CONFIRMATION,
+    PROJECT_AUTHORITY_MIGRATION_SCHEMA,
+    copy_active_project_authority,
+    materialize_project_authority_layout,
+    remove_verified_active_source,
+    resolved_plan_auxiliary_path,
+    resolved_plan_backlog_path,
+    resolved_plan_runtime_path,
+    validate_external_project_authority_root,
+)
+from .project_pv_storage import (
+    accepted_storage_status,
+    build_project_pv_archive,
+    materialized_project_pv_archive,
+    validate_project_pv_archive,
+    working_overlay_manifest,
 )
 from .pv_package import compare_package_bytes, validate_pv_package
 from .redaction import redact
@@ -57,7 +78,7 @@ _PLAN_PANEL_ROLES = {
     "PHYSICALLY_FINAL_HIL",
 }
 
-_HOST_PLAN_WINDOW_SIZE = 10
+_HOST_PLAN_WINDOW_SIZE = 9
 
 _GOAL_STATUS_BY_LIFECYCLE = {
     "ACTIVE": "in_progress",
@@ -161,8 +182,7 @@ def _bounded_plan_dependencies(value: Any, *, task_id: str) -> list[str]:
             and bool(dependency.strip())
             and len(dependency.strip()) <= 128
             and all(
-                character in _PLAN_METADATA_ID_CHARS
-                for character in dependency.strip()
+                character in _PLAN_METADATA_ID_CHARS for character in dependency.strip()
             )
             for dependency in value
         ),
@@ -171,9 +191,7 @@ def _bounded_plan_dependencies(value: Any, *, task_id: str) -> list[str]:
         status="MISMATCH",
         task_id=task_id,
     )
-    dependencies = list(
-        dict.fromkeys(dependency.strip() for dependency in value)
-    )
+    dependencies = list(dict.fromkeys(dependency.strip() for dependency in value))
     require(
         task_id not in dependencies,
         "PLAN_DEPENDENCY_SELF_REFERENCE",
@@ -265,7 +283,11 @@ def _version_claims(task: dict[str, Any]) -> list[dict[str, str]]:
     """Inventory exact version tokens without deciding which claim is current."""
 
     sources = [
-        ("TASK_CONTRACT", str(task.get("task_id") or ""), task.get("requested_outcome")),
+        (
+            "TASK_CONTRACT",
+            str(task.get("task_id") or ""),
+            task.get("requested_outcome"),
+        ),
         *[
             (
                 "LINKED_DELTA",
@@ -308,7 +330,11 @@ def _branch_claims(task: dict[str, Any]) -> list[dict[str, str]]:
     """Inventory exact governed branch tokens without selecting stale history."""
 
     sources = [
-        ("TASK_CONTRACT", str(task.get("task_id") or ""), task.get("requested_outcome")),
+        (
+            "TASK_CONTRACT",
+            str(task.get("task_id") or ""),
+            task.get("requested_outcome"),
+        ),
         *[
             (
                 "LINKED_DELTA",
@@ -455,9 +481,7 @@ def _active_plan_release_context(tasks: list[dict[str, Any]]) -> dict[str, Any]:
     )
     task = active[0]
     task_id = str(task.get("task_id") or "")
-    directives: tuple[
-        tuple[str, re.Pattern[str], str, str], ...
-    ] = (
+    directives: tuple[tuple[str, re.Pattern[str], str, str], ...] = (
         (
             "target_version",
             _PLAN_CURRENT_VERSION_DIRECTIVE_RE,
@@ -555,10 +579,7 @@ def _git_commit_stage(task: dict[str, Any]) -> tuple[str, str]:
         if explicit:
             require(
                 len(explicit) <= 64
-                and all(
-                    character in _PLAN_METADATA_ID_CHARS
-                    for character in explicit
-                ),
+                and all(character in _PLAN_METADATA_ID_CHARS for character in explicit),
                 "PLAN_GIT_COMMIT_STAGE_INVALID",
                 "An amended Git commit stage must be one bounded public-safe label.",
                 status="MISMATCH",
@@ -574,9 +595,7 @@ def _git_commit_stage(task: dict[str, Any]) -> tuple[str, str]:
         explicit = linked_value.strip().upper()
         require(
             len(explicit) <= 64
-            and all(
-                character in _PLAN_METADATA_ID_CHARS for character in explicit
-            ),
+            and all(character in _PLAN_METADATA_ID_CHARS for character in explicit),
             "PLAN_GIT_COMMIT_STAGE_INVALID",
             "An exact linked Git stage must be one bounded public-safe label.",
             status="MISMATCH",
@@ -587,9 +606,7 @@ def _git_commit_stage(task: dict[str, Any]) -> tuple[str, str]:
     if explicit:
         require(
             len(explicit) <= 64
-            and all(
-                character in _PLAN_METADATA_ID_CHARS for character in explicit
-            ),
+            and all(character in _PLAN_METADATA_ID_CHARS for character in explicit),
             "PLAN_GIT_COMMIT_STAGE_INVALID",
             "An explicit Git commit stage must be one bounded public-safe label.",
             status="MISMATCH",
@@ -644,9 +661,7 @@ def _plan_row_metadata(
             raw_dependencies,
             task_id=str(task.get("task_id") or ""),
         )
-        unknown_dependencies = sorted(
-            set(dependencies) - earlier_executable_task_ids
-        )
+        unknown_dependencies = sorted(set(dependencies) - earlier_executable_task_ids)
         require(
             not unknown_dependencies,
             "PLAN_DEPENDENCY_NOT_EARLIER_EXECUTABLE_ROW",
@@ -784,7 +799,76 @@ def _visible_plan_row_label(row: dict[str, Any]) -> str:
     )
 
 
-def _host_plan_window_fingerprint(status: dict[str, Any]) -> dict[str, Any]:
+def _persisted_host_plan_window_task_ids(project_root: Path) -> list[str] | None:
+    """Read the exact persisted host batch without mutating session authority."""
+
+    active_path = project_root / "active_session.json"
+    if not active_path.is_file():
+        return None
+    try:
+        active = json.loads(active_path.read_text(encoding="utf-8"))
+        session_id = str(active.get("session_id") or "").strip()
+        require(
+            session_id.startswith("session_")
+            and session_id.replace("_", "").isalnum(),
+            "HOST_PLAN_WINDOW_SESSION_INVALID",
+            "The active session cannot identify the persisted host Plan batch.",
+            status="MISMATCH",
+        )
+        session_path = (project_root / "sessions" / f"{session_id}.json").resolve()
+        session_path.relative_to(project_root.resolve())
+        require(
+            session_path.is_file(),
+            "HOST_PLAN_WINDOW_SESSION_MISSING",
+            "The active session record for the persisted host Plan batch is missing.",
+            status="MISMATCH",
+            session_id=session_id,
+        )
+        session = json.loads(session_path.read_text(encoding="utf-8"))
+    except EvidenceLaneError:
+        raise
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        raise EvidenceLaneError(
+            "HOST_PLAN_WINDOW_SESSION_INVALID",
+            "The persisted host Plan batch could not be read safely.",
+            status="MISMATCH",
+            details={"error": type(exc).__name__},
+        ) from exc
+
+    host_window = cast(
+        dict[str, Any],
+        cast(dict[str, Any], session.get("metadata") or {}).get(
+            "host_plan_window"
+        )
+        or {},
+    )
+    raw_task_ids = host_window.get("window_task_ids")
+    if raw_task_ids is None:
+        return None
+    require(
+        isinstance(raw_task_ids, list),
+        "HOST_PLAN_WINDOW_TASK_IDS_INVALID",
+        "The persisted host Plan batch task IDs are invalid.",
+        status="MISMATCH",
+    )
+    task_ids = [str(value).strip() for value in raw_task_ids]
+    require(
+        1 <= len(task_ids) <= _HOST_PLAN_WINDOW_SIZE
+        and all(task_ids)
+        and len(set(task_ids)) == len(task_ids),
+        "HOST_PLAN_WINDOW_TASK_IDS_INVALID",
+        "The persisted host Plan batch must contain one to nine unique task IDs.",
+        status="MISMATCH",
+        task_count=len(task_ids),
+    )
+    return task_ids
+
+
+def _host_plan_window_fingerprint(
+    status: dict[str, Any],
+    *,
+    fixed_window_task_ids: list[str] | None = None,
+) -> dict[str, Any]:
     """Hash only fields that can change the bounded host Step List."""
 
     goal = cast(dict[str, Any], status.get("goal_projection") or {})
@@ -802,12 +886,37 @@ def _host_plan_window_fingerprint(status: dict[str, Any]) -> dict[str, Any]:
         status="MISMATCH",
         active_count=len(active_indexes),
     )
-    start = (
-        (active_indexes[0] // _HOST_PLAN_WINDOW_SIZE) * _HOST_PLAN_WINDOW_SIZE
-        if active_indexes
-        else 0
-    )
+    if fixed_window_task_ids:
+        row_indexes = {
+            str(row.get("task_id") or ""): index for index, row in enumerate(rows)
+        }
+        first_task_id = fixed_window_task_ids[0]
+        require(
+            first_task_id in row_indexes,
+            "HOST_PLAN_WINDOW_START_TASK_MISSING",
+            "The persisted host Plan batch start task is not executable.",
+            status="MISMATCH",
+            task_id=first_task_id,
+        )
+        start = row_indexes[first_task_id]
+    else:
+        start = (
+            (active_indexes[0] // _HOST_PLAN_WINDOW_SIZE) * _HOST_PLAN_WINDOW_SIZE
+            if active_indexes
+            else 0
+        )
     window_rows = rows[start : start + _HOST_PLAN_WINDOW_SIZE]
+    if active_indexes:
+        require(
+            rows[active_indexes[0]] in window_rows,
+            "HOST_PLAN_WINDOW_ACTIVE_ROW_OUTSIDE_PERSISTED_BATCH",
+            "The sole ACTIVE row is outside the persisted host Plan batch.",
+            status="MISMATCH",
+            active_task_id=str(rows[active_indexes[0]].get("task_id") or ""),
+            persisted_window_start=(
+                fixed_window_task_ids[0] if fixed_window_task_ids else None
+            ),
+        )
     projected_rows = [
         {
             "number": int(row["number"]),
@@ -864,9 +973,7 @@ def _next_plan_hil_task_id(tasks: list[dict[str, Any]]) -> str | None:
             return str(task["task_id"])
         outcome = str(task.get("requested_outcome") or "").upper()
         if "HIL" in outcome and (
-            "PRESENT" in outcome
-            or "DECISION" in outcome
-            or "GATE" in outcome
+            "PRESENT" in outcome or "DECISION" in outcome or "GATE" in outcome
         ):
             return str(task["task_id"])
     return None
@@ -958,7 +1065,9 @@ class ProjectStore:
                 },
             ) from exc
         require(
-            resolved.is_absolute() and resolved.is_dir() and os.access(resolved, os.R_OK | os.W_OK),
+            resolved.is_absolute()
+            and resolved.is_dir()
+            and os.access(resolved, os.R_OK | os.W_OK),
             "EVIDENCE_LANE_DATA_ROOT_UNAVAILABLE",
             "The configured Evidence Lane data root is not readable and writable.",
             status="BLOCKED",
@@ -975,6 +1084,14 @@ class ProjectStore:
 
     def _registry_path(self) -> Path:
         return self.root / "registry.json"
+
+    def persisted_host_plan_window_task_ids(
+        self,
+        project_id: str,
+    ) -> list[str] | None:
+        """Return the fixed native host batch without creating a second projector."""
+
+        return _persisted_host_plan_window_task_ids(self.project_root(project_id))
 
     def _registry_lock(self) -> _ProjectLock:
         return _ProjectLock(self.root / ".registry.lock")
@@ -1047,6 +1164,8 @@ class ProjectStore:
     def inspect_project_route(self, project_id: str) -> dict[str, Any]:
         safe = self.validate_project_id(project_id)
         root = self.project_root(safe)
+        legacy_root = self._legacy_project_root(safe)
+        external = root != legacy_root
         return {
             "schema": "evidence-lane.project-store-route.v1",
             "status": "PASS",
@@ -1056,7 +1175,15 @@ class ProjectStore:
             "resolved_store_root": str(self.root),
             "relative_project_route": f"projects/{safe}",
             "resolved_project_root": str(root),
-            "contained_beneath_store_root": True,
+            "contained_beneath_store_root": not external,
+            "project_authority_mode": (
+                "EXPLICIT_USER_PROJECT_ROOT"
+                if external
+                else "LEGACY_COMBINED_STORE_ROOT"
+            ),
+            "governed_user_project_authority": external,
+            "runtime_separated": external,
+            "legacy_combined_project_root": str(legacy_root),
             "transport_project_binding": "EXPLICIT_PROJECT_ID_PER_PROJECT_SCOPED_TOOL",
             "cross_project_fallback_allowed": False,
             "secret_values_persisted": False,
@@ -1076,20 +1203,101 @@ class ProjectStore:
         )
         return project_id
 
-    def project_root(self, project_id: str) -> Path:
+    def _legacy_project_root(self, project_id: str) -> Path:
         safe = self.validate_project_id(project_id)
-        self._assert_exact_project_route(safe)
         result = (self.root / "projects" / safe).resolve()
         try:
             result.relative_to(self.root)
         except ValueError as exc:
             raise EvidenceLaneError(
                 "PROJECT_ROUTE_ESCAPE",
-                "The project route escaped the configured Evidence Lane store root.",
+                "The legacy project route escaped the configured Evidence Lane control root.",
                 status="BLOCKED",
                 details={"project_id": safe},
             ) from exc
         return result
+
+    def _registered_project_authority_root(self, project_id: str) -> Path | None:
+        registry = self._load_root_registry()
+        row = registry.get("projects", {}).get(project_id)
+        if not isinstance(row, dict):
+            return None
+        raw = str(row.get("project_authority_root") or "").strip()
+        if not raw:
+            return None
+        return validate_external_project_authority_root(
+            raw,
+            control_root=self.root,
+            project_id=project_id,
+        )
+
+    def project_root(
+        self,
+        project_id: str,
+        *,
+        configured_root: str | Path | None = None,
+    ) -> Path:
+        safe = self.validate_project_id(project_id)
+        self._assert_exact_project_route(safe)
+        if configured_root is not None:
+            return validate_external_project_authority_root(
+                configured_root,
+                control_root=self.root,
+                project_id=safe,
+            )
+        registered = self._registered_project_authority_root(safe)
+        return registered or self._legacy_project_root(safe)
+
+    def uses_external_project_authority(self, project_id: str) -> bool:
+        return self.project_root(project_id) != self._legacy_project_root(project_id)
+
+    def project_authority_routes(self) -> list[tuple[str, Path]]:
+        """Return every governed project ID with its current authority root.
+
+        The root registry is authoritative for externally relocated projects.
+        Legacy project directories are included for backward compatibility so
+        host lifecycle discovery continues to work before a project has been
+        refreshed into the registry. Distinct project IDs may never resolve to
+        the same physical authority root.
+        """
+
+        registry = self._load_root_registry()
+        project_ids = set(registry["projects"])
+        legacy_container = self.root / "projects"
+        if legacy_container.is_dir():
+            for candidate in legacy_container.iterdir():
+                if not candidate.is_dir():
+                    continue
+                try:
+                    project_ids.add(self.validate_project_id(candidate.name))
+                except EvidenceLaneError:
+                    # Preserve the historical discovery behavior: unrelated or
+                    # invalid directories under the legacy container are not
+                    # project authority.
+                    continue
+
+        routes: list[tuple[str, Path]] = []
+        route_owners: dict[str, str] = {}
+        for project_id in sorted(
+            project_ids,
+            key=lambda value: (self.canonical_project_key(value), value),
+        ):
+            authority_root = self.project_root(project_id).resolve()
+            route_key = os.path.normcase(str(authority_root))
+            existing_owner = route_owners.get(route_key)
+            require(
+                existing_owner in {None, project_id},
+                "PROJECT_AUTHORITY_ROUTE_COLLISION",
+                "Distinct project IDs resolve to the same project authority root.",
+                status="BLOCKED",
+                project_id=project_id,
+                existing_project_id=existing_owner,
+                project_authority_root=str(authority_root),
+            )
+            if existing_owner is None:
+                route_owners[route_key] = project_id
+                routes.append((project_id, authority_root))
+        return routes
 
     def _source_authority_path(self, project_id: str) -> Path:
         """Return the project-local registry path without creating it."""
@@ -1113,9 +1321,7 @@ class ProjectStore:
         """Serialize one State Travel handoff consumption across MCP processes."""
 
         self.validate_project_id(project_id)
-        return _ProjectLock(
-            self.project_root(project_id) / ".state-travel-resume.lock"
-        )
+        return _ProjectLock(self.project_root(project_id) / ".state-travel-resume.lock")
 
     def register_project(self, config: ProjectConfig) -> dict[str, Any]:
         self.validate_project_id(config.project_id)
@@ -1124,9 +1330,7 @@ class ProjectStore:
         with self._registry_lock():
             registry = self._load_root_registry()
             canonical_key = self.canonical_project_key(config.project_id)
-            repository_path_hash = sha256_bytes(
-                config.repository_path.encode("utf-8")
-            )
+            repository_path_hash = sha256_bytes(config.repository_path.encode("utf-8"))
             id_collisions = sorted(
                 existing_id
                 for existing_id in registry["projects"]
@@ -1156,15 +1360,16 @@ class ProjectStore:
                 project_id=config.project_id,
                 existing_project_ids=source_collisions,
             )
-            root = self.project_root(config.project_id)
-            with self._lock(config.project_id):
-                for folder in (
-                    "accepted",
-                    "candidates",
-                    "receipts",
-                    "sessions",
-                    "lineage",
-                ):
+            root = self.project_root(
+                config.project_id,
+                configured_root=config.project_authority_root,
+            )
+            root.mkdir(parents=True, exist_ok=True)
+            with _ProjectLock(root / ".store.lock"):
+                folders = ["accepted", "receipts", "sessions", "lineage"]
+                if config.project_authority_root is None:
+                    folders.append("candidates")
+                for folder in folders:
                     (root / folder).mkdir(parents=True, exist_ok=True)
                 project_path = root / "project.json"
                 payload = {
@@ -1176,10 +1381,14 @@ class ProjectStore:
                     legacy_payload = {
                         key: value
                         for key, value in payload.items()
-                        if key != "capture_route"
+                        if key not in {"capture_route", "project_authority_root"}
                     }
+                    compatibility_payload = dict(payload)
+                    if compatibility_payload.get("project_authority_root") is None:
+                        compatibility_payload.pop("project_authority_root", None)
                     require(
                         existing == payload
+                        or existing == compatibility_payload
                         or (
                             "capture_route" not in existing
                             and existing == legacy_payload
@@ -1306,6 +1515,9 @@ class ProjectStore:
     ) -> None:
         registry_path = self._registry_path()
         exact_registry = registry or self._load_root_registry()
+        prior = exact_registry["projects"].get(project_id)
+        prior_row = prior if isinstance(prior, dict) else {}
+        explicit_root = str(project_payload.get("project_authority_root") or "").strip()
         exact_registry["projects"][project_id] = {
             "display_name": project_payload["display_name"],
             "enabled": project_payload["enabled"],
@@ -1314,14 +1526,289 @@ class ProjectStore:
             "repository_path_hash": sha256_bytes(
                 project_payload["repository_path"].encode("utf-8")
             ),
+            **(
+                {
+                    "project_authority_root": explicit_root,
+                    "project_authority_root_sha256": sha256_bytes(
+                        explicit_root.encode("utf-8")
+                    ),
+                    "project_authority_mode": "EXPLICIT_USER_PROJECT_ROOT",
+                }
+                if explicit_root
+                else {
+                    key: prior_row[key]
+                    for key in (
+                        "project_authority_root",
+                        "project_authority_root_sha256",
+                        "project_authority_mode",
+                    )
+                    if key in prior_row
+                }
+            ),
         }
         atomic_write_json(registry_path, exact_registry)
 
+    def project_authority_status(self, project_id: str) -> dict[str, Any]:
+        """Return the bounded physical route and registry-derived layout state."""
+
+        route = self.inspect_project_route(project_id)
+        root = Path(route["resolved_project_root"])
+        layout_path = root / "project_authority.json"
+        manifest_path = root / "PROJECT_AUTHORITY_MANIFEST.json"
+        layout = (
+            json.loads(layout_path.read_text(encoding="utf-8"))
+            if layout_path.is_file()
+            else None
+        )
+        manifest = (
+            json.loads(manifest_path.read_text(encoding="utf-8"))
+            if manifest_path.is_file()
+            else None
+        )
+        return {
+            "schema": "evidence-lane.project-authority-status.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "route": route,
+            "layout_materialized": isinstance(layout, dict),
+            "canonical_lane_count": (
+                layout.get("canonical_lane_count") if isinstance(layout, dict) else None
+            ),
+            "materialized_sector_directory_count": (
+                layout.get("materialized_sector_directory_count")
+                if isinstance(layout, dict)
+                else 0
+            ),
+            "study_brain": (
+                layout.get("study_brain") if isinstance(layout, dict) else None
+            ),
+            "layout_sha256": (
+                layout.get("layout_sha256") if isinstance(layout, dict) else None
+            ),
+            "manifest_sha256": (
+                manifest.get("manifest_sha256") if isinstance(manifest, dict) else None
+            ),
+            "candidate_created": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        }
+
+    def project_pv_storage_status(self, project_id: str) -> dict[str, Any]:
+        """Return the exact live-overlay/accepted layout without lifecycle writes."""
+
+        root = self.project_root(project_id)
+        pointer = self.pointer(project_id)
+        return accepted_storage_status(
+            root,
+            project_id=project_id,
+            accepted_pv=pointer.accepted_pv,
+            pointer_generation=pointer.generation,
+            accepted_manifest_sha256=pointer.accepted_manifest_sha256,
+        )
+
+    def migrate_project_authority(
+        self,
+        project_id: str,
+        *,
+        target_root: str | Path,
+        selected_by: str,
+        confirmation: str,
+        expected_accepted_pv: str,
+        expected_pointer_generation: int,
+    ) -> dict[str, Any]:
+        """Move active project authority externally; retain only legacy history."""
+
+        actor = selected_by.strip()
+        require(
+            bool(actor) and confirmation == PROJECT_AUTHORITY_CONFIRMATION,
+            "PROJECT_AUTHORITY_MIGRATION_CONFIRMATION_REQUIRED",
+            "Project authority relocation requires the exact bounded move confirmation.",
+            status="BLOCKED",
+            required_confirmation=PROJECT_AUTHORITY_CONFIRMATION,
+        )
+        target = validate_external_project_authority_root(
+            target_root,
+            control_root=self.root,
+            project_id=project_id,
+        )
+        current = self.project_root(project_id)
+        if current == target:
+            status = self.project_authority_status(project_id)
+            require(
+                status.get("layout_materialized") is True,
+                "PROJECT_AUTHORITY_MIGRATION_INCOMPLETE",
+                "The external route exists but its project authority layout is incomplete.",
+                status="MISMATCH",
+            )
+            return {**status, "state": "MIGRATED_IDEMPOTENT_REUSE"}
+
+        legacy = self._legacy_project_root(project_id)
+        require(
+            current == legacy and legacy.is_dir() and not target.exists(),
+            "PROJECT_AUTHORITY_MIGRATION_SOURCE_INVALID",
+            "Relocation requires the exact registered legacy root and an absent target.",
+            status="MISMATCH",
+            current_root=str(current),
+            legacy_root=str(legacy),
+            target_root=str(target),
+        )
+        pointer = self.pointer(project_id)
+        require(
+            pointer.accepted_pv == expected_accepted_pv
+            and pointer.generation == expected_pointer_generation
+            and bool(pointer.accepted_manifest_sha256),
+            "PROJECT_AUTHORITY_MIGRATION_POINTER_MISMATCH",
+            "The accepted pointer changed before project authority relocation.",
+            status="MISMATCH",
+            accepted_pv=pointer.accepted_pv,
+            pointer_generation=pointer.generation,
+        )
+        config = self.config(project_id)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        migration_identity = {
+            "schema": PROJECT_AUTHORITY_MIGRATION_SCHEMA,
+            "project_id": project_id,
+            "source_root": str(legacy),
+            "target_root": str(target),
+            "accepted_pv": pointer.accepted_pv,
+            "pointer_generation": pointer.generation,
+            "selected_by": actor,
+        }
+        migration_sha256 = sha256_bytes(canonical_json_bytes(migration_identity))
+        staging = (
+            target.parent / f".{target.name}.migration-{migration_sha256[:16].lower()}"
+        )
+        journal_dir = self.root / "project-authority-migrations"
+        journal_dir.mkdir(parents=True, exist_ok=True)
+        journal_path = journal_dir / f"{migration_sha256}.json"
+        require(
+            not staging.exists(),
+            "PROJECT_AUTHORITY_MIGRATION_STAGING_CONFLICT",
+            "A prior project authority staging root requires explicit recovery.",
+            status="BLOCKED",
+            staging_root=str(staging),
+        )
+        atomic_write_json(
+            journal_path,
+            {
+                **migration_identity,
+                "state": "COPYING_ACTIVE_AUTHORITY",
+                "migration_sha256": migration_sha256,
+                "staging_root": str(staging),
+                "pointer_moved": False,
+                "candidate_created": False,
+                "hil_inferred": False,
+            },
+        )
+        with _ProjectLock(legacy / ".store.lock", timeout=120.0):
+            copy_receipt = copy_active_project_authority(
+                legacy,
+                staging,
+                accepted_pv=expected_accepted_pv,
+            )
+            project_path = staging / "project.json"
+            project_payload = json.loads(project_path.read_text(encoding="utf-8"))
+            project_payload["project_authority_root"] = str(target)
+            atomic_write_json(project_path, project_payload)
+            layout = materialize_project_authority_layout(
+                staging,
+                published_root=target,
+                control_root=self.root,
+                project_id=project_id,
+                repository_path=config.repository_path,
+                accepted_pv=expected_accepted_pv,
+                pointer_generation=expected_pointer_generation,
+                accepted_manifest_sha256=str(pointer.accepted_manifest_sha256),
+                legacy_history_root=legacy,
+            )
+            staging.replace(target)
+            with self._registry_lock():
+                registry = self._load_root_registry_unlocked()
+                row = registry.get("projects", {}).get(project_id)
+                require(
+                    isinstance(row, dict),
+                    "PROJECT_AUTHORITY_REGISTRY_BINDING_MISSING",
+                    "The project registry binding disappeared during relocation.",
+                    status="MISMATCH",
+                )
+                row["project_authority_root"] = str(target)
+                row["project_authority_root_sha256"] = sha256_bytes(
+                    str(target).encode("utf-8")
+                )
+                row["project_authority_mode"] = "EXPLICIT_USER_PROJECT_ROOT"
+                row["relative_project_route"] = f"projects/{project_id}"
+                atomic_write_json(self._registry_path(), registry)
+
+            routed_pointer = self.pointer(project_id)
+            require(
+                routed_pointer.as_dict() == pointer.as_dict()
+                and self.project_root(project_id) == target,
+                "PROJECT_AUTHORITY_POST_SWITCH_MISMATCH",
+                "The published route or accepted pointer changed during relocation.",
+                status="FAIL",
+            )
+            remove_verified_active_source(
+                legacy,
+                copied_roots=list(copy_receipt["copied_roots"]),
+            )
+            legacy_marker = {
+                "schema": "evidence-lane.non-authoritative-legacy-history.v1",
+                "project_id": project_id,
+                "published_project_authority_root": str(target),
+                "published_project_authority_root_sha256": sha256_bytes(
+                    str(target).encode("utf-8")
+                ),
+                "state": "NON_AUTHORITATIVE_HISTORY_AWAITING_R243_CAS_MIGRATION",
+                "accepted_pointer_authority": False,
+                "candidate_authority": False,
+                "runtime_authority": False,
+                "active_authority_bytes_removed_after_verification": True,
+            }
+            atomic_write_json(
+                legacy / "NON_AUTHORITATIVE_LEGACY_HISTORY.json",
+                legacy_marker,
+            )
+
+        receipt_body = {
+            **migration_identity,
+            "status": "PASS",
+            "state": "ACTIVE_PROJECT_AUTHORITY_MOVED_LEGACY_HISTORY_PRESERVED",
+            "migration_sha256": migration_sha256,
+            "copy_manifest_sha256": copy_receipt["source_manifest"]["manifest_sha256"],
+            "copied_member_count": copy_receipt["source_manifest"]["member_count"],
+            "copied_total_bytes": copy_receipt["source_manifest"]["total_bytes"],
+            "layout_sha256": layout["layout_sha256"],
+            "layout_manifest_sha256": layout["manifest_sha256"],
+            "canonical_lane_count": layout["canonical_lane_count"],
+            "materialized_sector_directory_count": layout[
+                "materialized_sector_directory_count"
+            ],
+            "legacy_history_root": str(legacy),
+            "legacy_history_authoritative": False,
+            "pointer_moved": False,
+            "candidate_created": False,
+            "hil_inferred": False,
+            "completed_at": utc_now(),
+        }
+        receipt = {
+            **receipt_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+        }
+        atomic_write_json(
+            target / "receipts" / "project-authority" / "migration.json",
+            receipt,
+        )
+        atomic_write_json(
+            journal_path,
+            {**receipt, "journal_state": "COMMITTED"},
+        )
+        return receipt
+
     def _backlog_path(self, project_id: str) -> Path:
-        return self.project_root(project_id) / "task_backlog.json"
+        return resolved_plan_backlog_path(self.project_root(project_id))
 
     def _plan_runtime_path(self, project_id: str) -> Path:
-        return self.project_root(project_id) / "plan_runtime_projection.sqlite"
+        return resolved_plan_runtime_path(self.project_root(project_id))
 
     def _plan_atomic_insertion_journal_path(
         self,
@@ -1329,8 +1816,9 @@ class ProjectStore:
         batch_id: str,
     ) -> Path:
         return (
-            self.project_root(project_id)
-            / "plan_atomic_insertions"
+            resolved_plan_auxiliary_path(
+                self.project_root(project_id), "plan_atomic_insertions"
+            )
             / f"{batch_id}.json"
         )
 
@@ -1419,10 +1907,7 @@ class ProjectStore:
         require(
             bool(exact_refresh_id)
             and len(exact_refresh_id) <= 96
-            and all(
-                character in _PROJECT_ID_CHARS
-                for character in exact_refresh_id
-            )
+            and all(character in _PROJECT_ID_CHARS for character in exact_refresh_id)
             and bool(exact_actor)
             and bool(exact_reason),
             "PLAN_RUNTIME_REFRESH_CONTRACT_INVALID",
@@ -1430,9 +1915,9 @@ class ProjectStore:
             status="BLOCKED",
         )
         expected_backlog = str(expected_backlog_sha256 or "").strip().upper()
-        expected_projection = str(
-            expected_projection_content_sha256 or ""
-        ).strip().upper()
+        expected_projection = (
+            str(expected_projection_content_sha256 or "").strip().upper()
+        )
         for field, value in (
             ("expected_backlog_sha256", expected_backlog),
             ("expected_projection_content_sha256", expected_projection),
@@ -1454,15 +1939,14 @@ class ProjectStore:
         }
         request_sha256 = sha256_bytes(canonical_json_bytes(request_body))
         receipt_path = (
-            self.project_root(project_id)
-            / "plan_runtime_refreshes"
+            resolved_plan_auxiliary_path(
+                self.project_root(project_id), "plan_runtime_refreshes"
+            )
             / f"{exact_refresh_id}.json"
         )
         with self._lock(project_id):
             backlog = self._load_backlog(project_id)
-            observed_backlog_sha256 = sha256_bytes(
-                canonical_json_bytes(backlog)
-            )
+            observed_backlog_sha256 = sha256_bytes(canonical_json_bytes(backlog))
             require(
                 observed_backlog_sha256 == expected_backlog,
                 "PLAN_RUNTIME_REFRESH_BACKLOG_MISMATCH",
@@ -1477,8 +1961,7 @@ class ProjectStore:
                 copy.deepcopy(backlog),
             )
             require(
-                before.get("expected_projection_content_sha256")
-                == expected_projection,
+                before.get("expected_projection_content_sha256") == expected_projection,
                 "PLAN_RUNTIME_REFRESH_PROJECTION_MISMATCH",
                 "The source runtime expects a different derived Plan projection.",
                 status="MISMATCH",
@@ -1489,9 +1972,7 @@ class ProjectStore:
             existing: dict[str, Any] | None = None
             if receipt_path.is_file():
                 try:
-                    existing = json.loads(
-                        receipt_path.read_text(encoding="utf-8")
-                    )
+                    existing = json.loads(receipt_path.read_text(encoding="utf-8"))
                 except (OSError, json.JSONDecodeError) as exc:
                     raise EvidenceLaneError(
                         "PLAN_RUNTIME_REFRESH_RECEIPT_INVALID",
@@ -1520,8 +2001,7 @@ class ProjectStore:
             )
             require(
                 after.get("status") == "PASS"
-                and after.get("projection_content_sha256")
-                == expected_projection,
+                and after.get("projection_content_sha256") == expected_projection,
                 "PLAN_RUNTIME_REFRESH_VERIFICATION_FAILED",
                 "The rebuilt Plan SQLite projection did not match source authority.",
                 status="FAIL",
@@ -1539,9 +2019,7 @@ class ProjectStore:
                     "before_status": before.get("status"),
                     "before_sqlite_sha256": before.get("sqlite_sha256"),
                     "after_sqlite_sha256": after["sqlite_sha256"],
-                    "projection_content_sha256": after[
-                        "projection_content_sha256"
-                    ],
+                    "projection_content_sha256": after["projection_content_sha256"],
                     "projection_rebuilt": rebuilt,
                     "recovered_unsealed_refresh": (
                         not rebuilt and before.get("status") == "PASS"
@@ -1557,9 +2035,7 @@ class ProjectStore:
                 }
                 existing = {
                     **receipt_body,
-                    "receipt_sha256": sha256_bytes(
-                        canonical_json_bytes(receipt_body)
-                    ),
+                    "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
                 }
                 atomic_write_json(receipt_path, existing)
         return {
@@ -1681,9 +2157,7 @@ class ProjectStore:
                     task.get("dependencies"),
                     task_id=task_id,
                 )
-            git_commit_stage = str(
-                task.get("git_commit_stage") or ""
-            ).strip().upper()
+            git_commit_stage = str(task.get("git_commit_stage") or "").strip().upper()
             if git_commit_stage:
                 normalized_task["git_commit_stage"] = _git_commit_stage(
                     {**normalized_task, "git_commit_stage": git_commit_stage}
@@ -1755,8 +2229,7 @@ class ProjectStore:
             require(
                 len(exact_insert_before) <= 96
                 and all(
-                    character in _PROJECT_ID_CHARS
-                    for character in exact_insert_before
+                    character in _PROJECT_ID_CHARS for character in exact_insert_before
                 ),
                 "TASK_PLAN_INSERTION_TARGET_INVALID",
                 "A task-plan insertion target must be one stable task ID.",
@@ -1814,9 +2287,7 @@ class ProjectStore:
             )
             resolved_insert_before = exact_insert_before
             if not resolved_insert_before and insert_before_next_hil:
-                resolved_insert_before = (
-                    _next_plan_hil_task_id(backlog["tasks"]) or ""
-                )
+                resolved_insert_before = _next_plan_hil_task_id(backlog["tasks"]) or ""
             if resolved_insert_before:
                 require(
                     resolved_insert_before in existing_ids,
@@ -1870,9 +2341,9 @@ class ProjectStore:
                 first_sequence = int(backlog["tasks"][insertion_index]["sequence"])
                 for existing_task in backlog["tasks"]:
                     if int(existing_task["sequence"]) >= first_sequence:
-                        existing_task["sequence"] = int(existing_task["sequence"]) + len(
-                            normalized
-                        )
+                        existing_task["sequence"] = int(
+                            existing_task["sequence"]
+                        ) + len(normalized)
             added_tasks = [
                 {
                     **task,
@@ -1936,9 +2407,7 @@ class ProjectStore:
                     assume_initialized=True,
                     details={
                         "replacement_task_id": task["task_id"],
-                        "normalization_transition_id": (
-                            exact_normalization_id or None
-                        ),
+                        "normalization_transition_id": (exact_normalization_id or None),
                     },
                 )
                 superseded["superseded_by_task_id"] = task["task_id"]
@@ -1983,15 +2452,12 @@ class ProjectStore:
         final_rows = [
             row
             for row in ordered
-            if str(row.get("panel_role") or "").upper()
-            == "PHYSICALLY_FINAL_HIL"
+            if str(row.get("panel_role") or "").upper() == "PHYSICALLY_FINAL_HIL"
         ]
         require(
             len(final_rows) == 1
-            and str(final_rows[0]["task_id"])
-            == expected_physical_final_task_id
-            and str(ordered[-1]["task_id"])
-            == expected_physical_final_task_id,
+            and str(final_rows[0]["task_id"]) == expected_physical_final_task_id
+            and str(ordered[-1]["task_id"]) == expected_physical_final_task_id,
             "PLAN_PHYSICAL_FINAL_HIL_MISMATCH",
             "Atomic insertion requires the expected HIL identity to remain physically final.",
             status="MISMATCH",
@@ -2110,11 +2576,30 @@ class ProjectStore:
         for task in candidate["tasks"]:
             if str(task.get("status")) not in _GOAL_STATUS_BY_LIFECYCLE:
                 continue
-            dependencies = task.get("dependencies")
-            if dependencies is not None:
+            active_contract_rebound = (
+                task.get("current_contract_authority") == "ACTIVE_CONTRACT_REBIND"
+            )
+            linked_dependencies, _ = (
+                (None, None)
+                if active_contract_rebound
+                else _latest_linked_directive(
+                    task,
+                    pattern=_PLAN_DEPENDENCIES_DIRECTIVE_RE,
+                    directive_name="DEPENDS_ON",
+                )
+            )
+            raw_dependencies = (
+                re.split(r"\s*[+,]\s*", linked_dependencies)
+                if linked_dependencies
+                else task.get("dependencies")
+            )
+            if raw_dependencies is not None:
+                dependencies = _bounded_plan_dependencies(
+                    raw_dependencies,
+                    task_id=str(task.get("task_id") or ""),
+                )
                 invalid_dependencies = sorted(
-                    {str(value) for value in dependencies}
-                    - earlier_executable_ids
+                    set(dependencies) - earlier_executable_ids
                 )
                 require(
                     not invalid_dependencies,
@@ -2128,13 +2613,11 @@ class ProjectStore:
         final_rows = [
             row
             for row in candidate["tasks"]
-            if str(row.get("panel_role") or "").upper()
-            == "PHYSICALLY_FINAL_HIL"
+            if str(row.get("panel_role") or "").upper() == "PHYSICALLY_FINAL_HIL"
         ]
         require(
             len(final_rows) == 1
-            and str(final_rows[0]["task_id"])
-            == expected_physical_final_task_id
+            and str(final_rows[0]["task_id"]) == expected_physical_final_task_id
             and str(candidate["tasks"][-1]["task_id"])
             == expected_physical_final_task_id,
             "PLAN_PHYSICAL_FINAL_HIL_NOT_PRESERVED",
@@ -2163,9 +2646,7 @@ class ProjectStore:
         exact_actor = str(planned_by or "").strip()
         exact_plan_id = str(plan_id or "").strip()
         exact_batch_id = str(batch_id or "").strip()
-        exact_final_task_id = str(
-            expected_physical_final_task_id or ""
-        ).strip()
+        exact_final_task_id = str(expected_physical_final_task_id or "").strip()
         require(
             bool(exact_actor),
             "TASK_PLAN_ACTOR_REQUIRED",
@@ -2400,9 +2881,7 @@ class ProjectStore:
                     and observed_canonical_sha
                     == normalized_hashes["expected_canonical_plan_sha256"]
                     and observed_executable_sha
-                    == normalized_hashes[
-                        "expected_executable_projection_sha256"
-                    ],
+                    == normalized_hashes["expected_executable_projection_sha256"],
                     "PLAN_ATOMIC_INSERTION_AUTHORITY_HASH_MISMATCH",
                     "The live Plan backlog or projections do not match the sealed insertion input.",
                     status="MISMATCH",
@@ -2417,9 +2896,7 @@ class ProjectStore:
                     planned_by=exact_actor,
                     plan_id=exact_plan_id,
                     batch_id=exact_batch_id,
-                    research_batch_sha256=normalized_hashes[
-                        "research_batch_sha256"
-                    ],
+                    research_batch_sha256=normalized_hashes["research_batch_sha256"],
                     input_sha256=input_sha256,
                     planned_at=planned_at,
                     expected_physical_final_task_id=exact_final_task_id,
@@ -2428,9 +2905,7 @@ class ProjectStore:
                     project_id,
                     _loaded_backlog=copy.deepcopy(candidate),
                 )
-                after_backlog_sha256 = sha256_bytes(
-                    canonical_json_bytes(candidate)
-                )
+                after_backlog_sha256 = sha256_bytes(canonical_json_bytes(candidate))
                 final_row = next(
                     row
                     for row in after_status["goal_projection"]["rows"]
@@ -2443,9 +2918,7 @@ class ProjectStore:
                     "plan_id": exact_plan_id,
                     "batch_id": exact_batch_id,
                     "input_sha256": input_sha256,
-                    "research_batch_sha256": normalized_hashes[
-                        "research_batch_sha256"
-                    ],
+                    "research_batch_sha256": normalized_hashes["research_batch_sha256"],
                     "group_count": len(normalized_insertions),
                     "task_count": len(added_ids),
                     "task_ids": added_ids,
@@ -2606,8 +3079,7 @@ class ProjectStore:
             target = cast(dict[str, Any], target)
             existing_amendments = target.get("task_contract_amendments")
             require(
-                existing_amendments is None
-                or isinstance(existing_amendments, list),
+                existing_amendments is None or isinstance(existing_amendments, list),
                 "ACTIVE_CONTRACT_REBIND_HISTORY_INVALID",
                 "The task contract amendment history is not append-only data.",
                 status="MISMATCH",
@@ -2628,8 +3100,7 @@ class ProjectStore:
             )
             if existing is not None:
                 require(
-                    existing.get("request_sha256")
-                    == exact_hashes["request_sha256"],
+                    existing.get("request_sha256") == exact_hashes["request_sha256"],
                     "ACTIVE_CONTRACT_REBIND_REPLAY_CONFLICT",
                     "The amendment ID already binds a different request.",
                     status="BLOCKED",
@@ -2637,9 +3108,7 @@ class ProjectStore:
                 receipt = dict(existing["receipt"])
                 idempotent_replay = True
             else:
-                current_backlog_sha256 = sha256_bytes(
-                    canonical_json_bytes(backlog)
-                )
+                current_backlog_sha256 = sha256_bytes(canonical_json_bytes(backlog))
                 status = self.backlog_status(
                     project_id,
                     _loaded_backlog=copy.deepcopy(backlog),
@@ -2651,22 +3120,17 @@ class ProjectStore:
                     status["goal_projection"]["projection_sha256"]
                 )
                 require(
-                    current_backlog_sha256
-                    == exact_hashes["expected_backlog_sha256"]
+                    current_backlog_sha256 == exact_hashes["expected_backlog_sha256"]
                     and observed_canonical_sha256
                     == exact_hashes["expected_canonical_plan_sha256"]
                     and observed_executable_sha256
-                    == exact_hashes[
-                        "expected_executable_projection_sha256"
-                    ],
+                    == exact_hashes["expected_executable_projection_sha256"],
                     "ACTIVE_CONTRACT_REBIND_PLAN_PRECONDITION_MISMATCH",
                     "The live Plan authority differs from the approved rebind boundary.",
                     status="MISMATCH",
                     observed_backlog_sha256=current_backlog_sha256,
                     observed_canonical_plan_sha256=observed_canonical_sha256,
-                    observed_executable_projection_sha256=(
-                        observed_executable_sha256
-                    ),
+                    observed_executable_projection_sha256=(observed_executable_sha256),
                 )
                 active_ids = [
                     str(row["task_id"])
@@ -2674,8 +3138,7 @@ class ProjectStore:
                     if row.get("status") == "ACTIVE"
                 ]
                 require(
-                    active_ids == [exact_task_id]
-                    and target.get("status") == "ACTIVE",
+                    active_ids == [exact_task_id] and target.get("status") == "ACTIVE",
                     "ACTIVE_CONTRACT_REBIND_ACTIVE_TASK_MISMATCH",
                     "The replacement may amend only the sole exact ACTIVE Plan row.",
                     status="MISMATCH",
@@ -2711,13 +3174,9 @@ class ProjectStore:
                     "active_task_id": exact_task_id,
                     "amendment_id": exact_amendment_id,
                     "request_sha256": exact_hashes["request_sha256"],
-                    "approval_receipt_sha256": exact_hashes[
-                        "approval_receipt_sha256"
-                    ],
+                    "approval_receipt_sha256": exact_hashes["approval_receipt_sha256"],
                     "prior_contract_sha256": prior_contract_sha256,
-                    "replacement_contract_sha256": (
-                        replacement_contract_sha256
-                    ),
+                    "replacement_contract_sha256": (replacement_contract_sha256),
                     "plan_row_identity_preserved": True,
                     "plan_row_status_preserved": True,
                     "candidate_created": False,
@@ -2730,9 +3189,7 @@ class ProjectStore:
                 }
                 receipt = {
                     **receipt_body,
-                    "receipt_sha256": sha256_bytes(
-                        canonical_json_bytes(receipt_body)
-                    ),
+                    "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
                 }
                 if existing_amendments is None:
                     target["task_contract_amendments"] = amendments
@@ -2764,9 +3221,7 @@ class ProjectStore:
                     details={
                         "session_id": exact_session_id,
                         "prior_contract_sha256": prior_contract_sha256,
-                        "replacement_contract_sha256": (
-                            replacement_contract_sha256
-                        ),
+                        "replacement_contract_sha256": (replacement_contract_sha256),
                         "approval_receipt_sha256": exact_hashes[
                             "approval_receipt_sha256"
                         ],
@@ -2996,9 +3451,7 @@ class ProjectStore:
             changed = False
             if before:
                 active = [
-                    task
-                    for task in backlog["tasks"]
-                    if task.get("status") == "ACTIVE"
+                    task for task in backlog["tasks"] if task.get("status") == "ACTIVE"
                 ]
                 require(
                     len(active) == 1
@@ -3109,9 +3562,7 @@ class ProjectStore:
             }
             result["priority_steer_receipt"] = {
                 **receipt_body,
-                "receipt_sha256": sha256_bytes(
-                    canonical_json_bytes(receipt_body)
-                ),
+                "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
             }
             return result
 
@@ -3226,6 +3677,8 @@ class ProjectStore:
                 status="MISMATCH",
                 writes_performed=False,
             )
+            old_active = cast(dict[str, Any], old_active)
+            promoted = cast(dict[str, Any], promoted)
             active = [task for task in tasks if task.get("status") == "ACTIVE"]
             require(
                 len(active) == 1
@@ -3264,10 +3717,27 @@ class ProjectStore:
                 status="MISMATCH",
                 writes_performed=False,
             )
-            original_promoted_predecessor_task_id = str(
-                tasks[promoted_index - 1]["task_id"]
+            executable_before_promoted = [
+                task
+                for task in tasks[:promoted_index]
+                if str(task.get("status")) in _GOAL_STATUS_BY_LIFECYCLE
+            ]
+            executable_after_promoted = [
+                task
+                for task in tasks[promoted_index + 1 :]
+                if str(task.get("status")) in _GOAL_STATUS_BY_LIFECYCLE
+            ]
+            require(
+                bool(executable_before_promoted) and bool(executable_after_promoted),
+                "PLAN_EXISTING_TASK_PROMOTION_EXECUTABLE_CHAIN_BOUNDARY_INVALID",
+                "The promoted Delta must have an executable predecessor and successor.",
+                status="MISMATCH",
+                writes_performed=False,
             )
-            original_promoted_successor = tasks[promoted_index + 1]
+            original_promoted_predecessor_task_id = str(
+                executable_before_promoted[-1]["task_id"]
+            )
+            original_promoted_successor = executable_after_promoted[0]
             original_promoted_successor_task_id = str(
                 original_promoted_successor["task_id"]
             )
@@ -3282,15 +3752,41 @@ class ProjectStore:
 
             promoted_dependencies = dependency_ids(promoted)
             successor_dependencies = dependency_ids(original_promoted_successor)
+            promoted_dependency_mode = (
+                "EXPLICIT"
+                if promoted_dependencies
+                else "IMPLICIT_EXECUTABLE_PREDECESSOR"
+            )
+            successor_dependency_mode = (
+                "EXPLICIT"
+                if successor_dependencies
+                else "IMPLICIT_EXECUTABLE_PREDECESSOR"
+            )
+            allowed_promoted_chain_ids = {
+                old_active_task_id,
+                original_promoted_predecessor_task_id,
+            }
+            promoted_chain_safe = not promoted_dependencies or set(
+                promoted_dependencies
+            ).issubset(allowed_promoted_chain_ids)
+            successor_chain_safe = (
+                promoted_task_id in successor_dependencies
+                if successor_dependencies
+                else True
+            )
             require(
-                old_active_task_id in promoted_dependencies
-                and promoted_task_id in successor_dependencies,
+                promoted_chain_safe and successor_chain_safe,
                 "PLAN_EXISTING_TASK_PROMOTION_DEPENDENCY_CHAIN_MISMATCH",
-                "The queued Delta and its successor do not form the expected live dependency chain.",
+                "The queued Delta and its executable successor do not form a safe explicit or implicit live dependency chain.",
                 status="MISMATCH",
                 promoted_dependencies=promoted_dependencies,
+                promoted_dependency_mode=promoted_dependency_mode,
+                original_promoted_predecessor_task_id=(
+                    original_promoted_predecessor_task_id
+                ),
                 successor_task_id=original_promoted_successor_task_id,
                 successor_dependencies=successor_dependencies,
+                successor_dependency_mode=successor_dependency_mode,
                 writes_performed=False,
             )
 
@@ -3307,12 +3803,19 @@ class ProjectStore:
                 [predecessor_task_id] if predecessor_task_id else []
             )
             old_active["dependencies"] = [promoted_task_id]
-            original_promoted_successor["dependencies"] = [
-                original_promoted_predecessor_task_id
-                if dependency == promoted_task_id
-                else dependency
-                for dependency in successor_dependencies
-            ]
+            replacement_successor_dependencies = (
+                [
+                    original_promoted_predecessor_task_id
+                    if dependency == promoted_task_id
+                    else dependency
+                    for dependency in successor_dependencies
+                ]
+                if successor_dependencies
+                else [original_promoted_predecessor_task_id]
+            )
+            original_promoted_successor["dependencies"] = list(
+                dict.fromkeys(replacement_successor_dependencies)
+            )
 
             now = utc_now()
             pause_event = append_delta_event(
@@ -3417,11 +3920,12 @@ class ProjectStore:
             "original_promoted_successor_task_id": (
                 original_promoted_successor_task_id
             ),
+            "promoted_dependency_mode": promoted_dependency_mode,
+            "successor_dependency_mode": successor_dependency_mode,
             "runtime_task_id": runtime_task_id,
             "reason_sha256": reason_sha256,
             "stable_task_identity_preserved": True,
-            "task_count_unchanged": len(result["tasks"])
-            == len(before_status["tasks"]),
+            "task_count_unchanged": len(result["tasks"]) == len(before_status["tasks"]),
             "physical_final_task_id": expected_physical_final_task_id,
             "candidate_created": False,
             "pending_hil": False,
@@ -3614,9 +4118,7 @@ class ProjectStore:
         earlier_executable_task_ids: set[str] = set()
         superseded_by: dict[str, list[str]] = {}
         for candidate in ordered_tasks:
-            superseded_task_id = str(
-                candidate.get("supersedes_task_id") or ""
-            ).strip()
+            superseded_task_id = str(candidate.get("supersedes_task_id") or "").strip()
             if superseded_task_id:
                 superseded_by.setdefault(superseded_task_id, []).append(
                     str(candidate["task_id"])
@@ -3635,13 +4137,9 @@ class ProjectStore:
                 earlier_executable_task_ids=earlier_executable_task_ids,
                 effective_for_execution=host_status is not None,
                 active_release_context=active_release_context,
-                apply_active_release_context=(
-                    lifecycle_status in {"ACTIVE", "QUEUED"}
-                ),
+                apply_active_release_context=(lifecycle_status in {"ACTIVE", "QUEUED"}),
             )
-            supersedes_task_id = str(
-                task.get("supersedes_task_id") or ""
-            ).strip()
+            supersedes_task_id = str(task.get("supersedes_task_id") or "").strip()
             superseded_by_task_ids = list(
                 dict.fromkeys(
                     [
@@ -3718,9 +4216,7 @@ class ProjectStore:
             "task_count": len(canonical_rows),
             "rows": canonical_rows,
         }
-        canonical_plan_sha256 = sha256_bytes(
-            canonical_json_bytes(canonical_plan_body)
-        )
+        canonical_plan_sha256 = sha256_bytes(canonical_json_bytes(canonical_plan_body))
         history_projection_body = {
             "canonical_authority": "PLAN_LANE",
             "project_id": project_id,
@@ -3916,8 +4412,12 @@ class ProjectStore:
             "Classify the steer as exactly one linked existing step or one new step.",
             status="BLOCKED",
         )
+        fixed_window_task_ids = _persisted_host_plan_window_task_ids(
+            self.project_root(project_id)
+        )
         host_window_before = _host_plan_window_fingerprint(
-            self.backlog_status(project_id)
+            self.backlog_status(project_id),
+            fixed_window_task_ids=fixed_window_task_ids,
         )
 
         if is_new_step:
@@ -3939,8 +4439,7 @@ class ProjectStore:
                 plan_id=f"steerplan_{plan_digest[:32]}",
                 insert_before_task_id=explicit_insert_before or None,
                 insert_before_next_hil=(
-                    not explicit_insert_before
-                    and exact_boundary == "BEFORE_NEXT_HIL"
+                    not explicit_insert_before and exact_boundary == "BEFORE_NEXT_HIL"
                 ),
             )
             exact_link = str(new_task.get("task_id") or "").strip()
@@ -4016,10 +4515,11 @@ class ProjectStore:
                 self._persist_backlog(project_id, backlog)
                 idempotent_reuse = False
         status = self.backlog_status(project_id)
-        host_window_after = _host_plan_window_fingerprint(status)
-        window_task_ids = [
-            str(row["task_id"]) for row in host_window_after["rows"]
-        ]
+        host_window_after = _host_plan_window_fingerprint(
+            status,
+            fixed_window_task_ids=fixed_window_task_ids,
+        )
+        window_task_ids = [str(row["task_id"]) for row in host_window_after["rows"]]
         active_row_present = bool(host_window_after["active_task_id"])
         linked_row_is_currently_visible = (
             active_row_present and exact_link in window_task_ids
@@ -4036,12 +4536,8 @@ class ProjectStore:
             "linked_task_id": exact_link,
             "active_row_present": active_row_present,
             "linked_row_is_currently_visible": linked_row_is_currently_visible,
-            "before_fingerprint_sha256": host_window_before[
-                "fingerprint_sha256"
-            ],
-            "after_fingerprint_sha256": host_window_after[
-                "fingerprint_sha256"
-            ],
+            "before_fingerprint_sha256": host_window_before["fingerprint_sha256"],
+            "after_fingerprint_sha256": host_window_after["fingerprint_sha256"],
             "visible_window_changed": visible_window_changed,
             "action": (
                 "SYNC_CURRENT_HOST_WINDOW_ONCE"
@@ -4099,9 +4595,7 @@ class ProjectStore:
         backlog_receipt = {
             "schema": "evidence-lane.plan-backlog-write-receipt.v1",
             "project_id": project_id,
-            "canonical_task_count": int(
-                goal_status.get("canonical_task_count") or 0
-            ),
+            "canonical_task_count": int(goal_status.get("canonical_task_count") or 0),
             "executable_task_count": int(goal_status.get("task_count") or 0),
             "history_task_count": int(goal_status.get("history_task_count") or 0),
             "counts": status.get("counts"),
@@ -4408,9 +4902,7 @@ class ProjectStore:
                 )
                 completed.pop("active_session_id", None)
                 completed.pop("runtime_task_id", None)
-                completed["state_travel_completion_receipt_sha256"] = (
-                    receipt_sha256
-                )
+                completed["state_travel_completion_receipt_sha256"] = receipt_sha256
                 completed["state_travel_completion_receipt"] = completion_receipt
                 completed.setdefault("history", []).append(
                     {
@@ -4682,9 +5174,7 @@ class ProjectStore:
                 completed["fallback_prewarmer_completion_receipt_sha256"] = (
                     receipt_sha256
                 )
-                completed["fallback_prewarmer_completion_receipt"] = (
-                    completion_receipt
-                )
+                completed["fallback_prewarmer_completion_receipt"] = completion_receipt
                 completed.setdefault("history", []).append(
                     {
                         "event": "FALLBACK_PREWARM_VERIFIED",
@@ -4919,9 +5409,7 @@ class ProjectStore:
                 replacement_runtime_task_id = persisted_replacement_runtime_task_id
 
             proof_sha256 = str(cast(dict[str, Any], proof)["receipt_sha256"])
-            completion_event_id = (
-                f"{completed_backlog_task_id}__{proof_sha256[:24].lower()}__checkpoint_done"
-            )
+            completion_event_id = f"{completed_backlog_task_id}__{proof_sha256[:24].lower()}__checkpoint_done"
             activation_event_id = (
                 f"{replacement_backlog_task_id}__{session_id}__"
                 f"{replacement_runtime_task_id}__checkpoint_active"
@@ -4954,9 +5442,7 @@ class ProjectStore:
                 )
                 completed.pop("active_session_id", None)
                 completed.pop("runtime_task_id", None)
-                completed["task_checkpoint_completion_receipt_sha256"] = (
-                    receipt_sha256
-                )
+                completed["task_checkpoint_completion_receipt_sha256"] = receipt_sha256
                 completed["task_checkpoint_completion_receipt"] = completion_receipt
                 completed.setdefault("history", []).append(
                     {
@@ -5330,7 +5816,10 @@ class ProjectStore:
                         ),
                     )
                     require(
-                        all(recorded.get(key) == value for key, value in comparable.items()),
+                        all(
+                            recorded.get(key) == value
+                            for key, value in comparable.items()
+                        ),
                         "BATCH_DELTA_REPLAY_EVIDENCE_MISMATCH",
                         "The candidate already binds different batch evidence.",
                         status="MISMATCH",
@@ -5411,16 +5900,12 @@ class ProjectStore:
                         "candidate_id": candidate_id,
                         "batch_receipt_id": receipt_id,
                         "evidence_sha256": evidence["evidence_sha256"],
-                        "task_contract_sha256": evidence[
-                            "task_contract_sha256"
-                        ],
+                        "task_contract_sha256": evidence["task_contract_sha256"],
                     },
                 )
                 task["completed_candidate_id"] = candidate_id
                 task["batch_completion_receipt_id"] = receipt_id
-                task["implementation_evidence_sha256"] = evidence[
-                    "evidence_sha256"
-                ]
+                task["implementation_evidence_sha256"] = evidence["evidence_sha256"]
                 task["history"].append(
                     {
                         "event": "TASK_DONE",
@@ -5449,9 +5934,7 @@ class ProjectStore:
                 "candidate_accepted": False,
                 "hil_approval_inferred": False,
             }
-            receipt["receipt_sha256"] = sha256_bytes(
-                canonical_json_bytes(receipt)
-            )
+            receipt["receipt_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
             receipts.append(receipt)
             self._persist_backlog(project_id, backlog)
             return {"status": "PASS", "idempotent": False, **receipt}
@@ -5678,9 +6161,7 @@ class ProjectStore:
                 "event_ids": event_ids,
                 "recorded_at": now,
             }
-            receipt["receipt_sha256"] = sha256_bytes(
-                canonical_json_bytes(receipt)
-            )
+            receipt["receipt_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
             receipts.append(receipt)
             self._persist_backlog(project_id, backlog)
             return {"status": "PASS", "idempotent": False, **receipt}
@@ -5695,21 +6176,25 @@ class ProjectStore:
         reason_sha256: str,
         replacement_task_id: str | None = None,
         event_id: str | None = None,
+        correction_of_event_id: str | None = None,
+        expected_backlog_sha256: str | None = None,
     ) -> dict[str, Any]:
-        """Apply one explicit DROP or SUPERSEDE without deleting history."""
+        """Apply one atomic transition or repair one proven partial DROP."""
 
         transition = transition_name.strip().upper()
         require(
-            transition in {"DROP", "SUPERSEDE"},
+            transition in {"DROP", "SUPERSEDE", "CORRECT_DROP"},
             "DELTA_EXPLICIT_TRANSITION_INVALID",
-            "Only DROP or SUPERSEDE may be requested directly.",
+            "Only DROP, SUPERSEDE, or the sealed DROP correction may be requested.",
             status="BLOCKED",
             transition=transition,
         )
         with self._lock(project_id):
             backlog = self._load_backlog(project_id)
             ensure_event_ledger(backlog)
-            tasks = {str(row["task_id"]): row for row in backlog["tasks"]}
+            current_backlog_sha256 = sha256_bytes(canonical_json_bytes(backlog))
+            candidate = copy.deepcopy(backlog)
+            tasks = {str(row["task_id"]): row for row in candidate["tasks"]}
             require(
                 task_id in tasks,
                 "DELTA_TASK_NOT_FOUND",
@@ -5718,6 +6203,114 @@ class ProjectStore:
                 task_id=task_id,
             )
             task = tasks[task_id]
+            if transition == "CORRECT_DROP":
+                exact_correction_event_id = str(correction_of_event_id or "").strip()
+                exact_expected_sha256 = (
+                    str(expected_backlog_sha256 or "").strip().upper()
+                )
+                require(
+                    bool(exact_correction_event_id)
+                    and re.fullmatch(r"[0-9A-F]{64}", exact_expected_sha256) is not None
+                    and current_backlog_sha256 == exact_expected_sha256,
+                    "DELTA_DROP_CORRECTION_AUTHORITY_MISMATCH",
+                    "DROP correction requires the exact prior event and live backlog hash.",
+                    status="MISMATCH",
+                    correction_of_event_id=exact_correction_event_id or None,
+                    observed_backlog_sha256=current_backlog_sha256,
+                )
+                prior_event = next(
+                    (
+                        row
+                        for row in candidate.get("events", [])
+                        if row.get("event_id") == exact_correction_event_id
+                    ),
+                    None,
+                )
+                require(
+                    isinstance(prior_event, dict)
+                    and prior_event.get("task_id") == task_id
+                    and prior_event.get("event_type") == "DROPPED"
+                    and prior_event.get("from_status") == "QUEUED"
+                    and prior_event.get("to_status") == "DROPPED"
+                    and task.get("status") == "DROPPED"
+                    and task.get("last_event_id") == exact_correction_event_id,
+                    "DELTA_DROP_CORRECTION_EVENT_MISMATCH",
+                    "The sealed event is not the task's exact partial QUEUED-to-DROPPED transition.",
+                    status="MISMATCH",
+                    task_id=task_id,
+                    correction_of_event_id=exact_correction_event_id,
+                )
+                prior_event = cast(dict[str, Any], prior_event)
+                dangling_dependents = sorted(
+                    str(row["task_id"])
+                    for row in candidate["tasks"]
+                    if str(row.get("status")) in _GOAL_STATUS_BY_LIFECYCLE
+                    and task_id
+                    in {str(value) for value in row.get("dependencies") or []}
+                )
+                require(
+                    bool(dangling_dependents),
+                    "DELTA_DROP_CORRECTION_NOT_REQUIRED",
+                    "DROP correction is allowed only for a persisted dependency failure.",
+                    status="BLOCKED",
+                    task_id=task_id,
+                )
+                correction_details = {
+                    "reason_sha256": reason_sha256,
+                    "history_preserved": True,
+                    "correction_of_event_id": exact_correction_event_id,
+                    "correction_of_event_sha256": prior_event.get("event_sha256"),
+                    "dangling_dependent_task_ids": dangling_dependents,
+                    "before_backlog_sha256": current_backlog_sha256,
+                }
+                lifecycle_event = append_delta_event(
+                    candidate,
+                    task_id=task_id,
+                    event_type="PLAN_TRANSITION_CORRECTION_RESTORED",
+                    to_status="QUEUED",
+                    actor=decided_by,
+                    event_id=event_id,
+                    assume_initialized=True,
+                    details=correction_details,
+                )
+                task["history"].append(
+                    {
+                        "event": "PLAN_TRANSITION_CORRECTION_RESTORED",
+                        "event_id": lifecycle_event["event_id"],
+                        "recorded_at": lifecycle_event["recorded_at"],
+                        **correction_details,
+                    }
+                )
+                candidate_status = self.backlog_status(
+                    project_id,
+                    _loaded_backlog=copy.deepcopy(candidate),
+                )
+                after_backlog_sha256 = sha256_bytes(canonical_json_bytes(candidate))
+                self._persist_backlog(project_id, candidate)
+                return {
+                    "status": "PASS",
+                    "task": task,
+                    "event": lifecycle_event,
+                    "backlog": candidate_status,
+                    "transition_correction_receipt": {
+                        "schema": (
+                            "evidence-lane.plan-transition-correction-receipt.v1"
+                        ),
+                        "status": "PASS",
+                        "task_id": task_id,
+                        "correction_of_event_id": exact_correction_event_id,
+                        "before_backlog_sha256": current_backlog_sha256,
+                        "after_backlog_sha256": after_backlog_sha256,
+                        "dangling_dependent_task_ids": dangling_dependents,
+                        "history_preserved": True,
+                        "pointer_moved": False,
+                        "candidate_created": False,
+                        "hil_invoked": False,
+                        "goal_mutated": False,
+                        "git_executed": False,
+                    },
+                }
+
             target_status = "DROPPED" if transition == "DROP" else "SUPERSEDED"
             details: dict[str, Any] = {
                 "reason_sha256": reason_sha256,
@@ -5738,7 +6331,7 @@ class ProjectStore:
                 task["superseded_by_task_id"] = exact_replacement
                 tasks[exact_replacement]["supersedes_task_id"] = task_id
             lifecycle_event = append_delta_event(
-                backlog,
+                candidate,
                 task_id=task_id,
                 event_type=target_status,
                 to_status=target_status,
@@ -5759,12 +6352,19 @@ class ProjectStore:
                         **details,
                     }
                 )
-            self._persist_backlog(project_id, backlog)
+            # Validate the complete candidate before making any lifecycle
+            # transition durable.  This prevents a failed dependency check
+            # from leaving a partially mutated Plan authority behind.
+            candidate_status = self.backlog_status(
+                project_id,
+                _loaded_backlog=copy.deepcopy(candidate),
+            )
+            self._persist_backlog(project_id, candidate)
             return {
                 "status": "PASS",
                 "task": task,
                 "event": lifecycle_event,
-                "backlog": self.backlog_status(project_id),
+                "backlog": candidate_status,
             }
 
     def record_planning_mode(
@@ -5812,6 +6412,52 @@ class ProjectStore:
                 ),
                 "canonical_plan_sector_mutated": False,
                 "projection_role": "DERIVED_CONTROL_PLANE_INDEX",
+            }
+
+    def record_task_formula(
+        self,
+        project_id: str,
+        *,
+        task_id: str,
+        event_kind: str,
+        source_event_id: str,
+        session_id: str,
+        formula: dict[str, Any],
+        actor: str,
+        prior_formula_sha256: str | None = None,
+        changed_terms: dict[str, Any] | None = None,
+        cause_evidence_locator: str | None = None,
+        event_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Append a task-linked formula event and rebuild canonical Plan SQLite."""
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            event = append_task_formula_event(
+                backlog,
+                task_id=task_id,
+                event_kind=event_kind,
+                source_event_id=source_event_id,
+                session_id=session_id,
+                formula=formula,
+                actor=actor,
+                prior_formula_sha256=prior_formula_sha256,
+                changed_terms=changed_terms,
+                cause_evidence_locator=cause_evidence_locator,
+                event_id=event_id,
+            )
+            self._persist_backlog(project_id, backlog)
+            return {
+                "status": "PASS",
+                "append_status": "APPENDED",
+                "event": event,
+                "projection": plan_runtime_status(
+                    self._plan_runtime_path(project_id), backlog
+                ),
+                "new_executable_plan_row_created": False,
+                "candidate_created": False,
+                "pointer_moved": False,
+                "hil_inferred": False,
             }
 
     def config(self, project_id: str) -> ProjectConfig:
@@ -5866,9 +6512,156 @@ class ProjectStore:
             candidate_id=candidate_id,
         )
         root = self.project_root(project_id)
+        require(
+            root == self._legacy_project_root(project_id),
+            "PROJECT_CANDIDATE_DIRECTORY_FORBIDDEN",
+            "External project authority uses the live root as its sole working overlay; no candidates directory is permitted.",
+            status="BLOCKED",
+            project_id=project_id,
+            candidate_id=candidate_id,
+            project_root=str(root),
+        )
         target = (root / "candidates" / candidate_id).resolve()
         target.relative_to(root)
         return target
+
+    def _candidate_overlay_receipt_path(
+        self, project_id: str, candidate_id: str
+    ) -> Path:
+        root = self.project_root(project_id)
+        target = (
+            root / "receipts" / "candidate-overlays" / f"{candidate_id}.json"
+        ).resolve()
+        target.relative_to(root)
+        return target
+
+    def candidate_runtime_path(self, project_id: str, candidate_id: str) -> Path:
+        """Return the exact acceptance-check root without inventing candidate bytes."""
+
+        root = self.project_root(project_id)
+        if root != self._legacy_project_root(project_id):
+            receipt = self._candidate_overlay_receipt_path(project_id, candidate_id)
+            require(
+                receipt.is_file(),
+                "PROJECT_CANDIDATE_OVERLAY_NOT_FOUND",
+                "The live-root candidate overlay receipt does not exist.",
+                status="MISMATCH",
+                candidate_id=candidate_id,
+            )
+            return root
+        return self.candidate_path(project_id, candidate_id)
+
+    def candidate_validation(
+        self,
+        project_id: str,
+        candidate_id: str,
+        *,
+        require_promotable: bool = True,
+    ) -> dict[str, Any]:
+        root = self.project_root(project_id)
+        if root == self._legacy_project_root(project_id):
+            return validate_pv_package(
+                self.candidate_path(project_id, candidate_id),
+                require_promotable=require_promotable,
+            )
+        receipt_path = self._candidate_overlay_receipt_path(project_id, candidate_id)
+        require(
+            receipt_path.is_file(),
+            "PROJECT_CANDIDATE_OVERLAY_NOT_FOUND",
+            "The live-root candidate overlay receipt does not exist.",
+            status="MISMATCH",
+            candidate_id=candidate_id,
+        )
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        claimed = str(receipt.get("receipt_sha256") or "")
+        body = dict(receipt)
+        body.pop("receipt_sha256", None)
+        require(
+            receipt.get("schema") == "evidence-lane.project-candidate-overlay.v1"
+            and receipt.get("project_id") == project_id
+            and receipt.get("candidate_id") == candidate_id
+            and receipt.get("state") == "SEALED_AFTER_LIFECYCLE_APPEND"
+            and claimed == sha256_bytes(canonical_json_bytes(body)),
+            "PROJECT_CANDIDATE_OVERLAY_RECEIPT_MISMATCH",
+            "The live-root candidate overlay receipt failed its exact identity checks.",
+            status="MISMATCH",
+            candidate_id=candidate_id,
+        )
+        current = working_overlay_manifest(root, project_id=project_id)
+        expected_rows = {
+            str(row.get("path")): row
+            for row in receipt.get("working_members") or []
+            if isinstance(row, dict)
+        }
+        current_rows = {
+            str(row.get("path")): row
+            for row in current.get("members") or []
+            if isinstance(row, dict)
+        }
+        changed_paths = sorted(
+            path
+            for path in expected_rows.keys() & current_rows.keys()
+            if expected_rows[path] != current_rows[path]
+        )
+        added_paths = sorted(current_rows.keys() - expected_rows.keys())
+        removed_paths = sorted(expected_rows.keys() - current_rows.keys())
+        validation = dict(receipt.get("validation") or {})
+        pointer = self.pointer(project_id)
+        post_promotion_receipts_only = bool(
+            added_paths
+            and not removed_paths
+            and not changed_paths
+            and all(
+                path.startswith("receipts/")
+                and path.count("/") == 1
+                and path.endswith(".json")
+                for path in added_paths
+            )
+            and pointer.accepted_pv == validation.get("proposed_pv")
+            and pointer.generation == int(receipt.get("pointer_generation") or -1) + 1
+        )
+        require(
+            current["working_identity_sha256"]
+            == receipt.get("working_identity_sha256")
+            or post_promotion_receipts_only,
+            "PROJECT_CANDIDATE_OVERLAY_STALE",
+            "The live project root changed after the candidate overlay was sealed.",
+            status="STALE",
+            candidate_id=candidate_id,
+            expected=receipt.get("working_identity_sha256"),
+            actual=current["working_identity_sha256"],
+            added_paths=added_paths,
+            removed_paths=removed_paths,
+            changed_paths=changed_paths,
+        )
+        if post_promotion_receipts_only:
+            validation["post_promotion_lifecycle_receipts"] = added_paths
+            validation["candidate_content_identity_unchanged"] = True
+        require(
+            not require_promotable or validation.get("promotable") is True,
+            "PROJECT_CANDIDATE_OVERLAY_NOT_PROMOTABLE",
+            "The live-root candidate overlay did not pass the candidate build gates.",
+            status="FAIL",
+            candidate_id=candidate_id,
+        )
+        return validation
+
+    def candidate_metadata(
+        self, project_id: str, candidate_id: str
+    ) -> dict[str, Any]:
+        root = self.project_root(project_id)
+        if root == self._legacy_project_root(project_id):
+            candidate = self.candidate_path(project_id, candidate_id)
+            return {
+                name: json.loads((candidate / f"{name}.json").read_text(encoding="utf-8"))
+                for name in ("manifest", "project_identity", "entry_slip", "exit_slip")
+            }
+        receipt = json.loads(
+            self._candidate_overlay_receipt_path(project_id, candidate_id).read_text(
+                encoding="utf-8"
+            )
+        )
+        return dict(receipt.get("package_metadata") or {})
 
     def accepted_path(self, project_id: str, pv_id: str) -> Path:
         require(
@@ -5879,7 +6672,85 @@ class ProjectStore:
             pv_id=pv_id,
         )
         root = self.project_root(project_id)
-        return (root / "accepted" / pv_id).resolve()
+        directory = (root / "accepted" / pv_id).resolve()
+        if directory.is_dir():
+            return directory
+        archives = sorted((root / "accepted").glob(f"{pv_id}__*.zip"))
+        require(
+            len(archives) <= 1,
+            "PROJECT_ACCEPTED_ARCHIVE_AMBIGUOUS",
+            "Accepted project storage contains multiple archives for one PV.",
+            status="MISMATCH",
+            project_id=project_id,
+            pv_id=pv_id,
+            archives=[str(path) for path in archives],
+        )
+        return archives[0].resolve() if archives else directory
+
+    @contextmanager
+    def accepted_view(self, project_id: str, pv_id: str) -> Iterator[Path]:
+        artifact = self.accepted_path(project_id, pv_id)
+        if artifact.is_dir():
+            yield artifact
+            return
+        require(
+            artifact.is_file() and artifact.suffix.lower() == ".zip",
+            "ACCEPTED_PV_NOT_FOUND",
+            "The accepted PV artifact does not exist.",
+            status="MISMATCH",
+            project_id=project_id,
+            pv_id=pv_id,
+        )
+        with materialized_project_pv_archive(artifact) as view:
+            yield view
+
+    def validate_accepted(
+        self,
+        project_id: str,
+        pv_id: str,
+        *,
+        require_promotable: bool = False,
+    ) -> dict[str, Any]:
+        artifact = self.accepted_path(project_id, pv_id)
+        if artifact.is_file() and artifact.suffix.lower() == ".zip":
+            validation = validate_project_pv_archive(artifact)
+            require(
+                validation.get("pv_id") == pv_id,
+                "PROJECT_ACCEPTED_ARCHIVE_PV_MISMATCH",
+                "The accepted archive filename and manifest PV identity differ.",
+                status="MISMATCH",
+                pv_id=pv_id,
+                archive_pv=validation.get("pv_id"),
+            )
+            return validation
+        return validate_pv_package(
+            artifact,
+            require_promotable=require_promotable,
+        )
+
+    def accepted_manifest(self, project_id: str, pv_id: str) -> dict[str, Any]:
+        artifact = self.accepted_path(project_id, pv_id)
+        if artifact.is_file() and artifact.suffix.lower() == ".zip":
+            validation = validate_project_pv_archive(artifact)
+            manifest = validation.get("candidate_package_manifest")
+            return dict(manifest) if isinstance(manifest, dict) else {}
+        return json.loads((artifact / "manifest.json").read_text(encoding="utf-8"))
+
+    def accepted_metadata(self, project_id: str, pv_id: str) -> dict[str, Any]:
+        """Return bounded package metadata for either accepted storage format."""
+
+        artifact = self.accepted_path(project_id, pv_id)
+        if artifact.is_file() and artifact.suffix.lower() == ".zip":
+            validation = validate_project_pv_archive(artifact)
+            return {
+                "manifest": dict(validation.get("candidate_package_manifest") or {}),
+                "project_identity": dict(validation.get("project_identity") or {}),
+                "exit_slip": dict(validation.get("exit_slip") or {}),
+            }
+        return {
+            name: json.loads((artifact / f"{name}.json").read_text(encoding="utf-8"))
+            for name in ("manifest", "project_identity", "entry_slip", "exit_slip")
+        }
 
     def next_pv_id(self, project_id: str) -> str:
         accepted = self.accepted_ids(project_id)
@@ -5889,12 +6760,17 @@ class ProjectStore:
 
     def accepted_ids(self, project_id: str) -> list[str]:
         root = self.project_root(project_id) / "accepted"
+        accepted = {
+            path.name
+            for path in root.glob("PV*")
+            if path.is_dir() and path.name[2:].isdigit() and int(path.name[2:]) >= 1
+        }
+        for path in root.glob("PV*__*.zip"):
+            pv_id = path.name.split("__", 1)[0]
+            if pv_id[2:].isdigit() and int(pv_id[2:]) >= 1:
+                accepted.add(pv_id)
         return sorted(
-            (
-                path.name
-                for path in root.glob("PV*")
-                if path.is_dir() and path.name[2:].isdigit() and int(path.name[2:]) >= 1
-            ),
+            accepted,
             key=lambda value: int(value[2:]),
         )
 
@@ -5916,6 +6792,64 @@ class ProjectStore:
             "The candidate directory and package manifest IDs differ.",
             status="MISMATCH",
         )
+        root = self.project_root(project_id)
+        if root != self._legacy_project_root(project_id):
+            pointer = self.pointer(project_id)
+            working = working_overlay_manifest(root, project_id=project_id)
+            package_metadata = {
+                name: json.loads((source / f"{name}.json").read_text(encoding="utf-8"))
+                for name in ("manifest", "project_identity", "entry_slip", "exit_slip")
+            }
+            overlay_validation = {
+                **validation,
+                "storage_kind": "LIVE_PROJECT_ROOT_CANDIDATE_OVERLAY",
+                "manifest_sha256": working["working_identity_sha256"],
+                "working_identity_sha256": working["working_identity_sha256"],
+                "working_member_count": working["member_count"],
+                "candidate_package_manifest_sha256": validation["manifest_sha256"],
+                "candidate_package_sha256": validation["package_sha256"],
+                "candidate_directory_created": False,
+            }
+            receipt_body = {
+                "schema": "evidence-lane.project-candidate-overlay.v1",
+                "state": "PROVISIONAL_ENGINE_BUILD",
+                "project_id": project_id,
+                "project_root": str(root),
+                "candidate_id": candidate_id,
+                "proposed_pv": validation["proposed_pv"],
+                "parent_accepted_pv": pointer.accepted_pv,
+                "parent_accepted_manifest_sha256": pointer.accepted_manifest_sha256,
+                "pointer_generation": pointer.generation,
+                "working_identity_sha256": working["working_identity_sha256"],
+                "working_member_count": working["member_count"],
+                "working_total_bytes": working["total_bytes"],
+                "working_unique_blob_count": working["unique_blob_count"],
+                "working_members": working["members"],
+                "package_metadata": package_metadata,
+                "validation": overlay_validation,
+                "candidate_directory_created": False,
+                "accepted_artifact_created": False,
+                "pointer_moved": False,
+                "hil_inferred": False,
+            }
+            receipt = {
+                **receipt_body,
+                "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+            }
+            destination = self._candidate_overlay_receipt_path(project_id, candidate_id)
+            with self._lock(project_id):
+                if destination.exists():
+                    existing = json.loads(destination.read_text(encoding="utf-8"))
+                    require(
+                        existing == receipt,
+                        "PROJECT_CANDIDATE_OVERLAY_CONFLICT",
+                        "The candidate ID already binds a different live-root identity.",
+                        status="BLOCKED",
+                        candidate_id=candidate_id,
+                    )
+                else:
+                    atomic_write_json(destination, receipt)
+            return overlay_validation
         destination = self.candidate_path(project_id, candidate_id)
         with self._lock(project_id):
             if destination.exists():
@@ -5938,6 +6872,142 @@ class ProjectStore:
                 )
         return validate_pv_package(destination)
 
+    def finalize_candidate_overlay(
+        self, project_id: str, candidate_id: str
+    ) -> dict[str, Any]:
+        """Seal external working identity after all exit lifecycle writes finish."""
+
+        root = self.project_root(project_id)
+        if root == self._legacy_project_root(project_id):
+            return self.candidate_validation(project_id, candidate_id)
+        receipt_path = self._candidate_overlay_receipt_path(project_id, candidate_id)
+        require(
+            receipt_path.is_file(),
+            "PROJECT_CANDIDATE_OVERLAY_NOT_FOUND",
+            "The provisional live-root candidate overlay receipt does not exist.",
+            status="MISMATCH",
+            candidate_id=candidate_id,
+        )
+        with self._lock(project_id):
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            prior_claimed = str(receipt.get("receipt_sha256") or "")
+            prior_body = dict(receipt)
+            prior_body.pop("receipt_sha256", None)
+            require(
+                receipt.get("schema") == "evidence-lane.project-candidate-overlay.v1"
+                and receipt.get("project_id") == project_id
+                and receipt.get("candidate_id") == candidate_id
+                and receipt.get("state")
+                in {"PROVISIONAL_ENGINE_BUILD", "SEALED_AFTER_LIFECYCLE_APPEND"}
+                and prior_claimed == sha256_bytes(canonical_json_bytes(prior_body)),
+                "PROJECT_CANDIDATE_OVERLAY_RECEIPT_MISMATCH",
+                "The provisional candidate overlay receipt failed its identity checks.",
+                status="MISMATCH",
+                candidate_id=candidate_id,
+            )
+            working = working_overlay_manifest(root, project_id=project_id)
+            validation = dict(receipt.get("validation") or {})
+            validation.update(
+                {
+                    "storage_kind": "LIVE_PROJECT_ROOT_CANDIDATE_OVERLAY",
+                    "manifest_sha256": working["working_identity_sha256"],
+                    "working_identity_sha256": working["working_identity_sha256"],
+                    "working_member_count": working["member_count"],
+                    "candidate_directory_created": False,
+                }
+            )
+            receipt.update(
+                {
+                    "state": "SEALED_AFTER_LIFECYCLE_APPEND",
+                    "working_identity_sha256": working["working_identity_sha256"],
+                    "working_member_count": working["member_count"],
+                    "working_total_bytes": working["total_bytes"],
+                    "working_unique_blob_count": working["unique_blob_count"],
+                    "working_members": working["members"],
+                    "validation": validation,
+                }
+            )
+            receipt.pop("receipt_sha256", None)
+            receipt["receipt_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
+            atomic_write_json(receipt_path, receipt)
+        return self.candidate_validation(project_id, candidate_id)
+
+    def _validate_postseal_acceptance_receipt(
+        self,
+        project_id: str,
+        candidate_id: str,
+        *,
+        pointer: ActivePointer,
+        exit_slip: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        """Apply one identical post-seal promotion gate to every storage format."""
+
+        acceptance = exit_slip.get("acceptance_checks") or {}
+        pending_postseal = int(
+            (acceptance.get("counts") or {}).get("PENDING_POSTSEAL") or 0
+        )
+        if not pending_postseal:
+            return None
+        receipt_path = (
+            self.project_root(project_id)
+            / "receipts"
+            / f"postseal_{candidate_id.lower()}.json"
+        )
+        require(
+            receipt_path.is_file(),
+            "POSTSEAL_ACCEPTANCE_RECEIPT_REQUIRED",
+            "This candidate declares a post-seal acceptance check, but its "
+            "external immutable-candidate receipt is missing.",
+            status="BLOCKED",
+            candidate_id=candidate_id,
+            receipt_path=str(receipt_path),
+        )
+        try:
+            postseal_receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            raise EvidenceLaneError(
+                "POSTSEAL_ACCEPTANCE_RECEIPT_INVALID",
+                "The external post-seal acceptance receipt is unreadable.",
+                status="FAIL",
+                details={"receipt_path": str(receipt_path)},
+            ) from exc
+        claimed_receipt_sha = postseal_receipt.get("receipt_sha256")
+        receipt_payload = dict(postseal_receipt)
+        receipt_payload.pop("receipt_sha256", None)
+        actual_receipt_sha = sha256_bytes(canonical_json_bytes(receipt_payload))
+        postseal_health = postseal_receipt.get("acceptance") or {}
+        source_commit = (exit_slip.get("repository_exit") or {}).get("commit_sha")
+        require(
+            postseal_receipt.get("schema")
+            == "evidence-lane.postseal-acceptance.receipt.v1"
+            and postseal_receipt.get("project_id") == project_id
+            and postseal_receipt.get("candidate_id") == candidate_id
+            and postseal_receipt.get("accepted_pv_retained") == pointer.accepted_pv
+            and postseal_receipt.get("pointer_generation_retained")
+            == pointer.generation
+            and postseal_receipt.get("source_commit_sha") == source_commit
+            and claimed_receipt_sha == actual_receipt_sha
+            and postseal_health.get("status") == "PASS"
+            and postseal_health.get("verdict") == "ALL_EXECUTABLE_CHECKS_PASS"
+            and postseal_health.get("source_unchanged") is True
+            and int((postseal_health.get("counts") or {}).get("PASS") or 0)
+            == pending_postseal,
+            "POSTSEAL_ACCEPTANCE_RECEIPT_MISMATCH",
+            "The post-seal receipt does not prove every declared post-seal "
+            "check against this exact candidate, source commit, and pointer.",
+            status="FAIL",
+            candidate_id=candidate_id,
+            expected_postseal_checks=pending_postseal,
+            expected_source_commit=source_commit,
+            receipt_path=str(receipt_path),
+        )
+        return {
+            "status": "PASS",
+            "path": str(receipt_path),
+            "receipt_sha256": actual_receipt_sha,
+            "checks": pending_postseal,
+        }
+
     def promote(
         self,
         project_id: str,
@@ -5947,9 +7017,19 @@ class ProjectStore:
         decided_by: str,
         decision_id: str,
     ) -> dict[str, Any]:
+        if self.project_root(project_id) != self._legacy_project_root(project_id):
+            return self._promote_external_project_overlay(
+                project_id,
+                candidate_id,
+                expected_pointer_generation=expected_pointer_generation,
+                decided_by=decided_by,
+                decision_id=decision_id,
+            )
         candidate = self.candidate_path(project_id, candidate_id)
         candidate_validation = validate_pv_package(candidate)
-        exit_slip = json.loads((candidate / "exit_slip.json").read_text(encoding="utf-8"))
+        exit_slip = json.loads(
+            (candidate / "exit_slip.json").read_text(encoding="utf-8")
+        )
         proposed_pv = candidate_validation["proposed_pv"]
         accepted = self.accepted_path(project_id, proposed_pv)
         with self._lock(project_id):
@@ -5962,79 +7042,12 @@ class ProjectStore:
                 expected_generation=expected_pointer_generation,
                 actual_generation=pointer.generation,
             )
-            acceptance = exit_slip.get("acceptance_checks") or {}
-            pending_postseal = int(
-                (acceptance.get("counts") or {}).get("PENDING_POSTSEAL") or 0
+            postseal_receipt_validation = self._validate_postseal_acceptance_receipt(
+                project_id,
+                candidate_id,
+                pointer=pointer,
+                exit_slip=exit_slip,
             )
-            postseal_receipt_validation = None
-            if pending_postseal:
-                receipt_path = (
-                    self.project_root(project_id)
-                    / "receipts"
-                    / f"postseal_{candidate_id.lower()}.json"
-                )
-                require(
-                    receipt_path.is_file(),
-                    "POSTSEAL_ACCEPTANCE_RECEIPT_REQUIRED",
-                    "This candidate declares a post-seal acceptance check, but its "
-                    "external immutable-candidate receipt is missing.",
-                    status="BLOCKED",
-                    candidate_id=candidate_id,
-                    receipt_path=str(receipt_path),
-                )
-                try:
-                    postseal_receipt = json.loads(
-                        receipt_path.read_text(encoding="utf-8")
-                    )
-                except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-                    raise EvidenceLaneError(
-                        "POSTSEAL_ACCEPTANCE_RECEIPT_INVALID",
-                        "The external post-seal acceptance receipt is unreadable.",
-                        status="FAIL",
-                        details={"receipt_path": str(receipt_path)},
-                    ) from exc
-                claimed_receipt_sha = postseal_receipt.get("receipt_sha256")
-                receipt_payload = dict(postseal_receipt)
-                receipt_payload.pop("receipt_sha256", None)
-                actual_receipt_sha = sha256_bytes(
-                    canonical_json_bytes(receipt_payload)
-                )
-                postseal_health = postseal_receipt.get("acceptance") or {}
-                source_commit = (
-                    (exit_slip.get("repository_exit") or {}).get("commit_sha")
-                )
-                require(
-                    postseal_receipt.get("schema")
-                    == "evidence-lane.postseal-acceptance.receipt.v1"
-                    and postseal_receipt.get("project_id") == project_id
-                    and postseal_receipt.get("candidate_id") == candidate_id
-                    and postseal_receipt.get("accepted_pv_retained")
-                    == pointer.accepted_pv
-                    and postseal_receipt.get("pointer_generation_retained")
-                    == pointer.generation
-                    and postseal_receipt.get("source_commit_sha") == source_commit
-                    and claimed_receipt_sha == actual_receipt_sha
-                    and postseal_health.get("status") == "PASS"
-                    and postseal_health.get("verdict")
-                    == "ALL_EXECUTABLE_CHECKS_PASS"
-                    and postseal_health.get("source_unchanged") is True
-                    and int((postseal_health.get("counts") or {}).get("PASS") or 0)
-                    == pending_postseal,
-                    "POSTSEAL_ACCEPTANCE_RECEIPT_MISMATCH",
-                    "The post-seal receipt does not prove every declared post-seal "
-                    "check against this exact candidate, source commit, and pointer.",
-                    status="FAIL",
-                    candidate_id=candidate_id,
-                    expected_postseal_checks=pending_postseal,
-                    expected_source_commit=source_commit,
-                    receipt_path=str(receipt_path),
-                )
-                postseal_receipt_validation = {
-                    "status": "PASS",
-                    "path": str(receipt_path),
-                    "receipt_sha256": actual_receipt_sha,
-                    "checks": pending_postseal,
-                }
             require(
                 proposed_pv == self.next_pv_id(project_id),
                 "PV_SEQUENCE_MISMATCH",
@@ -6106,6 +7119,200 @@ class ProjectStore:
             "receipt": receipt,
         }
 
+    def _promote_external_project_overlay(
+        self,
+        project_id: str,
+        candidate_id: str,
+        *,
+        expected_pointer_generation: int,
+        decided_by: str,
+        decision_id: str,
+    ) -> dict[str, Any]:
+        """Seal the live root once, then replace accepted storage under pointer CAS."""
+
+        root = self.project_root(project_id)
+        validation = self.candidate_validation(project_id, candidate_id)
+        metadata = self.candidate_metadata(project_id, candidate_id)
+        proposed_pv = str(validation["proposed_pv"])
+        with self._lock(project_id):
+            before = self.pointer(project_id)
+            require(
+                before.generation == expected_pointer_generation,
+                "POINTER_COMPARE_AND_SWAP_FAILED",
+                "The accepted pointer changed after the live-root candidate was created.",
+                status="STALE",
+                expected_generation=expected_pointer_generation,
+                actual_generation=before.generation,
+            )
+            postseal_receipt_validation = self._validate_postseal_acceptance_receipt(
+                project_id,
+                candidate_id,
+                pointer=before,
+                exit_slip=dict(metadata.get("exit_slip") or {}),
+            )
+            require(
+                proposed_pv == self.next_pv_id(project_id),
+                "PV_SEQUENCE_MISMATCH",
+                "The live-root candidate is not the next canonical project version.",
+                status="MISMATCH",
+                proposed_pv=proposed_pv,
+                expected=self.next_pv_id(project_id),
+            )
+            updated_at = utc_now()
+            staging_parent = root / ".accepted-staging"
+            staging = staging_parent / decision_id
+            require(
+                not staging.exists(),
+                "PROJECT_ACCEPTED_STAGING_CONFLICT",
+                "A prior accepted-archive staging directory requires explicit recovery.",
+                status="BLOCKED",
+                staging=str(staging),
+            )
+            staging.mkdir(parents=True)
+            staged_archive = staging / f"{proposed_pv}__staged.zip"
+            package_metadata = {
+                "manifest": metadata.get("manifest"),
+                "project_identity": metadata.get("project_identity"),
+                "exit_slip": metadata.get("exit_slip"),
+            }
+            archive_validation = build_project_pv_archive(
+                root,
+                staged_archive,
+                project_id=project_id,
+                pv_id=proposed_pv,
+                candidate_id=candidate_id,
+                parent_accepted_pv=before.accepted_pv,
+                parent_accepted_manifest_sha256=before.accepted_manifest_sha256,
+                pointer_override={
+                    "schema": POINTER_SCHEMA,
+                    "project_id": project_id,
+                    "accepted_pv": proposed_pv,
+                    "generation": before.generation + 1,
+                    "prior_generation": before.generation,
+                    "updated_at": updated_at,
+                    "accepted_manifest_binding": "THIS_ARCHIVE_MANIFEST_SHA256",
+                },
+                candidate_package_metadata=package_metadata,
+            )
+            archive_manifest_sha256 = str(
+                archive_validation["archive_manifest_sha256"]
+            )
+            final_archive_name = (
+                f"{proposed_pv}__{archive_manifest_sha256[:16]}.zip"
+            )
+            final_staged_archive = staging / final_archive_name
+            staged_archive.replace(final_staged_archive)
+            archive_validation = validate_project_pv_archive(final_staged_archive)
+            after = ActivePointer(
+                project_id=project_id,
+                accepted_pv=proposed_pv,
+                accepted_manifest_sha256=archive_manifest_sha256,
+                generation=before.generation + 1,
+                prior_generation=before.generation,
+                updated_at=updated_at,
+            )
+            accepted = root / "accepted"
+            prior = root / f".accepted-prior-{decision_id}"
+            require(
+                accepted.is_dir() and not prior.exists(),
+                "PROJECT_ACCEPTED_SWAP_BOUNDARY_INVALID",
+                "The single-retention accepted directory cannot be swapped safely.",
+                status="MISMATCH",
+                accepted=str(accepted),
+                prior=str(prior),
+            )
+            journal_path = (
+                root
+                / "receipts"
+                / "accepted-swap-journals"
+                / f"{decision_id}.json"
+            )
+            journal = {
+                "schema": "evidence-lane.project-accepted-swap.v1",
+                "project_id": project_id,
+                "candidate_id": candidate_id,
+                "decision_id": decision_id,
+                "prior_pointer": before.as_dict(),
+                "next_pointer": after.as_dict(),
+                "staged_archive": str(final_staged_archive),
+                "staged_archive_sha256": archive_validation["archive_sha256"],
+                "archive_manifest_sha256": archive_manifest_sha256,
+                "state": "VERIFIED_READY_TO_SWAP",
+            }
+            atomic_write_json(journal_path, journal)
+            pointer_path = root / "active_pointer.json"
+            accepted_swapped = False
+            pointer_swapped = False
+            try:
+                accepted.replace(prior)
+                staging.replace(accepted)
+                accepted_swapped = True
+                atomic_write_json(
+                    pointer_path,
+                    {"schema": POINTER_SCHEMA, **after.as_dict()},
+                )
+                pointer_swapped = True
+                journal["state"] = "POINTER_AND_ACCEPTED_SWAPPED"
+                atomic_write_json(journal_path, journal)
+            except Exception:
+                if accepted_swapped and not pointer_swapped:
+                    failed_new = root / f".accepted-failed-{decision_id}"
+                    if accepted.exists():
+                        accepted.replace(failed_new)
+                    if prior.exists():
+                        prior.replace(accepted)
+                    if failed_new.exists():
+                        shutil.rmtree(failed_new)
+                raise
+            require(
+                len(list(accepted.iterdir())) == 1
+                and (accepted / final_archive_name).is_file()
+                and self.pointer(project_id).as_dict() == after.as_dict(),
+                "PROJECT_ACCEPTED_SWAP_POSTCONDITION_FAILED",
+                "The accepted archive and pointer did not commit atomically.",
+                status="FAIL",
+            )
+            resolved_prior = prior.resolve()
+            resolved_prior.relative_to(root)
+            require(
+                resolved_prior.name == f".accepted-prior-{decision_id}",
+                "PROJECT_ACCEPTED_RETENTION_PATH_INVALID",
+                "The prior accepted retention target escaped its exact transaction path.",
+                status="BLOCKED",
+            )
+            shutil.rmtree(resolved_prior)
+            if staging_parent.is_dir() and not any(staging_parent.iterdir()):
+                staging_parent.rmdir()
+            journal["state"] = "COMMITTED_PRIOR_ACCEPTED_PURGED_AFTER_VERIFICATION"
+            journal["prior_accepted_artifact_purged"] = True
+            atomic_write_json(journal_path, journal)
+            receipt = {
+                "schema": "evidence-lane.pv-promotion.receipt.v2",
+                "decision_id": decision_id,
+                "decision": "APPROVE",
+                "candidate_id": candidate_id,
+                "accepted_pv": proposed_pv,
+                "manifest_sha256": archive_manifest_sha256,
+                "archive_sha256": archive_validation["archive_sha256"],
+                "archive_filename": final_archive_name,
+                "live_working_identity_preserved": True,
+                "candidate_directory_created": False,
+                "accepted_artifact_count": 1,
+                "prior_accepted_artifact_purged_after_new_archive_verified": True,
+                "decided_by": decided_by,
+                "pointer_generation_before": before.generation,
+                "pointer_generation_after": after.generation,
+                "postseal_acceptance": postseal_receipt_validation,
+                "decided_at": utc_now(),
+            }
+            receipt_path = root / "receipts" / f"{decision_id}.json"
+            atomic_write_json(receipt_path, receipt)
+        return {
+            "accepted": self.validate_accepted(project_id, proposed_pv),
+            "pointer": self.pointer(project_id).as_dict(),
+            "receipt": receipt,
+        }
+
     def record_nonpromotion_decision(
         self,
         project_id: str,
@@ -6118,8 +7325,9 @@ class ProjectStore:
         correction_delta: str | None,
         research_question: str | None,
     ) -> dict[str, Any]:
-        candidate_validation = validate_pv_package(
-            self.candidate_path(project_id, candidate_id),
+        candidate_validation = self.candidate_validation(
+            project_id,
+            candidate_id,
             require_promotable=False,
         )
         pointer = self.pointer(project_id)
@@ -6178,8 +7386,11 @@ class ProjectStore:
             target_pv=target_pv,
             accepted=accepted_index,
         )
-        target = self.accepted_path(project_id, target_pv)
-        target_validation = validate_pv_package(target)
+        target_validation = self.validate_accepted(
+            project_id,
+            target_pv,
+            require_promotable=False,
+        )
         with self._lock(project_id):
             before = self.pointer(project_id)
             require(
@@ -6256,9 +7467,19 @@ class ProjectStore:
         backlog_counts = Counter(
             str(task.get("status", "UNKNOWN")) for task in backlog["tasks"]
         )
-        candidates = sorted(
-            path.name for path in (root / "candidates").glob("PV*") if path.is_dir()
-        )
+        if root == self._legacy_project_root(project_id):
+            candidates = sorted(
+                path.name
+                for path in (root / "candidates").glob("PV*")
+                if path.is_dir()
+            )
+        else:
+            overlay_root = root / "receipts" / "candidate-overlays"
+            candidates = sorted(
+                path.stem
+                for path in overlay_root.glob("PV*.json")
+                if path.is_file()
+            )
         return {
             "project": self.config(project_id).as_dict(),
             "pointer": pointer.as_dict(),

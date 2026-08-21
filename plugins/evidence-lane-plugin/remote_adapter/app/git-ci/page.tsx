@@ -86,7 +86,7 @@ const deliveryStages = [
     boundary: "The main-merge recovery slot remains unchanged until its later explicit Project HIL and promotion route.",
     details: [
       "Export and package the exact committed tree rather than the live dirty worktree.",
-      "Install through the governed Git delivery route and verify the native 87-action, 17-skill catalog after reattach.",
+      "Install through the governed Git delivery route and verify the native 88-action, 17-skill catalog after reattach.",
       "Keep hooks disabled except for each independently repaired and installed lifecycle event.",
     ],
     icon: "terminal",

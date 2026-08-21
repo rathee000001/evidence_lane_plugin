@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 300
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/mcp",
+      "destination": "/api/index.py?__evi_path=mcp"
+    },
+    {
+      "source": "/healthz",
+      "destination": "/api/index.py?__evi_path=healthz"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "destination": "/api/index.py?__evi_path=.well-known/oauth-protected-resource"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource/mcp",
+      "destination": "/api/index.py?__evi_path=.well-known/oauth-protected-resource/mcp"
+    },
+    {
+      "source": "/.well-known/openai-apps-challenge",
+      "destination": "/api/index.py?__evi_path=.well-known/openai-apps-challenge"
+    }
+  ]
+}

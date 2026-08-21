@@ -135,6 +135,7 @@ class ProjectConfig:
     sensitivity: str = "PUBLIC"
     capture_route: str = "GOVERNED_PROJECT_FULL"
     enabled: bool = True
+    project_authority_root: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)

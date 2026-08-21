@@ -18,8 +18,25 @@ from .timeutil import utc_now
 
 DELTA_EVENT_SCHEMA = "evidence-lane.delta-lifecycle-event.v1"
 PLANNING_MODE_EVENT_SCHEMA = "evidence-lane.planning-mode-event.v1"
-PLAN_RUNTIME_SCHEMA = "evidence-lane.plan-runtime-projection.v2"
-PLAN_RUNTIME_USER_VERSION = 2
+TASK_FORMULA_EVENT_SCHEMA = "evidence-lane.task-formula-event.v1"
+PLAN_RUNTIME_SCHEMA = "evidence-lane.plan-runtime-projection.v3"
+PLAN_RUNTIME_USER_VERSION = 3
+_TASK_FORMULA_EVENT_KINDS = frozenset({"ENTRY_FORMULA", "MUTATION", "EXIT_FORMULA"})
+
+_EXIT_FORMULA_REQUIRED_FIELDS = frozenset(
+    {
+        "formula_expression",
+        "bounded_input_locators",
+        "modes_fired",
+        "operators_fired",
+        "target_outcome",
+        "achieved_outcome",
+        "validator_results",
+        "delta_ledger",
+        "source_freshness",
+        "code_test_install_receipts",
+    }
+)
 
 _EXECUTABLE_HOST_STATUS = {
     "ACTIVE": "in_progress",
@@ -204,6 +221,17 @@ def _validate_transition(
         # This reverse transition is available only to the journaled correction
         # path. It preserves the mistaken supersession as immutable history while
         # restoring the exact pre-normalization live task contract.
+        return
+    if (
+        from_status == "DROPPED"
+        and to_status == "QUEUED"
+        and event_type == "PLAN_TRANSITION_CORRECTION_RESTORED"
+    ):
+        # A normal lifecycle route may never reopen a terminal Delta.  This
+        # exception is reserved for the hash-bound correction path that proves
+        # an earlier DROP was persisted before dependency validation failed.
+        # The failed DROP remains immutable history; only its exact prior
+        # QUEUED execution state is restored.
         return
     if (
         from_status == "ACTIVE"
@@ -410,13 +438,271 @@ def _validate_mode_events(backlog: dict[str, Any]) -> None:
     backlog["planning_mode_event_head_sha256"] = head
 
 
+def _formula_sha256(formula: dict[str, Any]) -> str:
+    return sha256_bytes(canonical_json_bytes(formula))
+
+
+def _exit_formula_is_complete(formula: dict[str, Any]) -> bool:
+    if not _EXIT_FORMULA_REQUIRED_FIELDS.issubset(formula):
+        return False
+    return (
+        bool(str(formula.get("formula_expression") or "").strip())
+        and bool(formula.get("bounded_input_locators"))
+        and bool(formula.get("modes_fired"))
+        and bool(formula.get("operators_fired"))
+        and bool(str(formula.get("target_outcome") or "").strip())
+        and bool(str(formula.get("achieved_outcome") or "").strip())
+        and isinstance(formula.get("validator_results"), list)
+        and bool(formula.get("validator_results"))
+        and isinstance(formula.get("delta_ledger"), dict)
+        and isinstance(formula.get("source_freshness"), dict)
+        and isinstance(formula.get("code_test_install_receipts"), dict)
+    )
+
+
+def _validate_task_formula_events(backlog: dict[str, Any]) -> None:
+    tasks = _task_rows(backlog)
+    global_head: str | None = None
+    task_event_heads: dict[str, str] = {}
+    task_formula_heads: dict[str, str] = {}
+    closed_formula_tasks: set[str] = set()
+    seen_ids: set[str] = set()
+    events = backlog.setdefault("task_formula_events", [])
+    for position, event in enumerate(events, start=1):
+        event_id = str(event.get("event_id") or "")
+        task_id = str(event.get("task_id") or "")
+        event_kind = str(event.get("event_kind") or "")
+        formula = event.get("formula")
+        require(
+            event.get("schema") == TASK_FORMULA_EVENT_SCHEMA
+            and event.get("sequence") == position
+            and bool(event_id)
+            and event_id not in seen_ids
+            and task_id in tasks
+            and event_kind in _TASK_FORMULA_EVENT_KINDS
+            and isinstance(formula, dict)
+            and event.get("formula_sha256") == _formula_sha256(formula)
+            and event.get("previous_event_sha256") == global_head
+            and event.get("previous_task_event_sha256") == task_event_heads.get(task_id)
+            and task_id not in closed_formula_tasks,
+            "TASK_FORMULA_EVENT_CHAIN_MISMATCH",
+            "The task-formula lineage is not canonical and append-only.",
+            status="MISMATCH",
+            event_id=event_id,
+            task_id=task_id,
+        )
+        prior_formula = task_formula_heads.get(task_id)
+        if event_kind == "ENTRY_FORMULA":
+            require(
+                prior_formula is None
+                and event.get("prior_formula_sha256") is None
+                and not event.get("changed_terms")
+                and not event.get("cause_evidence_locator"),
+                "TASK_FORMULA_ENTRY_NOT_INITIAL",
+                "A task may own exactly one initial ENTRY_FORMULA.",
+                status="MISMATCH",
+                task_id=task_id,
+            )
+        elif event_kind == "MUTATION":
+            require(
+                prior_formula is not None
+                and event.get("prior_formula_sha256") == prior_formula
+                and isinstance(event.get("changed_terms"), dict)
+                and bool(str(event.get("cause_evidence_locator") or "").strip()),
+                "TASK_FORMULA_MUTATION_PRIOR_MISMATCH",
+                "A formula mutation must bind the exact prior formula and cause.",
+                status="MISMATCH",
+                task_id=task_id,
+            )
+        else:
+            require(
+                prior_formula is not None
+                and event.get("prior_formula_sha256") == prior_formula
+                and isinstance(event.get("changed_terms"), dict)
+                and bool(str(event.get("cause_evidence_locator") or "").strip())
+                and _exit_formula_is_complete(formula),
+                "TASK_FORMULA_EXIT_INVALID",
+                "An exit formula must close the exact prior formula with bounded proof fields.",
+                status="MISMATCH",
+                task_id=task_id,
+            )
+            closed_formula_tasks.add(task_id)
+        require(
+            event.get("event_sha256") == _event_sha256(event),
+            "TASK_FORMULA_EVENT_HASH_MISMATCH",
+            "A task-formula event hash does not match its immutable content.",
+            status="MISMATCH",
+            event_id=event_id,
+        )
+        seen_ids.add(event_id)
+        global_head = str(event["event_sha256"])
+        task_event_heads[task_id] = global_head
+        task_formula_heads[task_id] = str(event["formula_sha256"])
+    require(
+        backlog.get("task_formula_event_head_sha256") in {None, global_head},
+        "TASK_FORMULA_EVENT_HEAD_MISMATCH",
+        "The task-formula event head does not match its append-only ledger.",
+        status="MISMATCH",
+    )
+    backlog["task_formula_event_head_sha256"] = global_head
+
+
+def append_task_formula_event(
+    backlog: dict[str, Any],
+    *,
+    task_id: str,
+    event_kind: str,
+    source_event_id: str,
+    session_id: str,
+    formula: dict[str, Any],
+    actor: str,
+    prior_formula_sha256: str | None = None,
+    changed_terms: dict[str, Any] | None = None,
+    cause_evidence_locator: str | None = None,
+    event_id: str | None = None,
+    recorded_at: str | None = None,
+) -> dict[str, Any]:
+    """Append one task-linked real work formula without adding a Plan row."""
+
+    ensure_event_ledger(backlog)
+    exact_kind = str(event_kind or "").strip().upper()
+    exact_actor = str(actor or "").strip()
+    exact_source_event = str(source_event_id or "").strip()
+    exact_session = str(session_id or "").strip()
+    require(
+        task_id in _task_rows(backlog)
+        and exact_kind in _TASK_FORMULA_EVENT_KINDS
+        and bool(exact_actor)
+        and bool(exact_source_event)
+        and bool(exact_session)
+        and isinstance(formula, dict)
+        and bool(formula),
+        "TASK_FORMULA_EVENT_INVALID",
+        "A task-formula event requires an existing task and bounded visible inputs.",
+        status="BLOCKED",
+        task_id=task_id,
+    )
+    normalized_formula = json.loads(canonical_json_bytes(formula))
+    formula_sha256 = _formula_sha256(normalized_formula)
+    exact_changed_terms = dict(changed_terms or {})
+    exact_cause = str(cause_evidence_locator or "").strip() or None
+    prior_events = [
+        row for row in backlog["task_formula_events"] if row.get("task_id") == task_id
+    ]
+    actual_prior_formula = (
+        str(prior_events[-1]["formula_sha256"]) if prior_events else None
+    )
+    exact_event_id = event_id or _stable_event_id(
+        "formulaevt",
+        {
+            "task_id": task_id,
+            "event_kind": exact_kind,
+            "source_event_id": exact_source_event,
+            "formula_sha256": formula_sha256,
+        },
+    )
+    existing = next(
+        (
+            row
+            for row in backlog["task_formula_events"]
+            if row.get("event_id") == exact_event_id
+        ),
+        None,
+    )
+    if existing is not None:
+        require(
+            existing.get("task_id") == task_id
+            and existing.get("event_kind") == exact_kind
+            and existing.get("source_event_id") == exact_source_event
+            and existing.get("session_id") == exact_session
+            and existing.get("formula_sha256") == formula_sha256,
+            "TASK_FORMULA_EVENT_ID_CONFLICT",
+            "The formula event ID already binds different immutable content.",
+            status="MISMATCH",
+            event_id=exact_event_id,
+        )
+        return existing
+    require(
+        not prior_events or prior_events[-1].get("event_kind") != "EXIT_FORMULA",
+        "TASK_FORMULA_LINEAGE_CLOSED",
+        "A terminal EXIT_FORMULA already closed this task formula lineage.",
+        status="BLOCKED",
+        task_id=task_id,
+    )
+    if exact_kind == "ENTRY_FORMULA":
+        require(
+            actual_prior_formula is None
+            and prior_formula_sha256 is None
+            and not exact_changed_terms
+            and exact_cause is None,
+            "TASK_FORMULA_ENTRY_ALREADY_EXISTS",
+            "A task formula already exists; append a MUTATION instead.",
+            status="BLOCKED",
+            task_id=task_id,
+        )
+    elif exact_kind == "MUTATION":
+        require(
+            actual_prior_formula is not None
+            and prior_formula_sha256 == actual_prior_formula
+            and bool(exact_changed_terms)
+            and exact_cause is not None,
+            "TASK_FORMULA_MUTATION_INVALID",
+            "A formula mutation must bind the exact prior hash, changed terms, and cause.",
+            status="MISMATCH",
+            task_id=task_id,
+            expected_prior_formula_sha256=actual_prior_formula,
+        )
+    else:
+        require(
+            actual_prior_formula is not None
+            and prior_formula_sha256 == actual_prior_formula
+            and exact_cause is not None
+            and _exit_formula_is_complete(normalized_formula),
+            "TASK_FORMULA_EXIT_INVALID",
+            "An exit formula must bind the open formula head and complete the bounded exit proof.",
+            status="MISMATCH",
+            task_id=task_id,
+            expected_prior_formula_sha256=actual_prior_formula,
+        )
+    previous_task_event_sha256 = (
+        str(prior_events[-1]["event_sha256"]) if prior_events else None
+    )
+    event = {
+        "schema": TASK_FORMULA_EVENT_SCHEMA,
+        "sequence": len(backlog["task_formula_events"]) + 1,
+        "event_id": exact_event_id,
+        "task_id": task_id,
+        "event_kind": exact_kind,
+        "source_event_id": exact_source_event,
+        "session_id": exact_session,
+        "actor": exact_actor,
+        "formula": normalized_formula,
+        "formula_sha256": formula_sha256,
+        "prior_formula_sha256": prior_formula_sha256,
+        "changed_terms": exact_changed_terms,
+        "cause_evidence_locator": exact_cause,
+        "recorded_at": recorded_at or utc_now(),
+        "previous_event_sha256": backlog.get("task_formula_event_head_sha256"),
+        "previous_task_event_sha256": previous_task_event_sha256,
+        "private_reasoning_excluded": True,
+        "executable_plan_row_created": False,
+    }
+    event["event_sha256"] = _event_sha256(event)
+    backlog["task_formula_events"].append(event)
+    backlog["task_formula_event_head_sha256"] = event["event_sha256"]
+    _validate_task_formula_events(backlog)
+    return event
+
+
 def ensure_event_ledger(backlog: dict[str, Any]) -> dict[str, Any]:
     """Validate the ledger and import legacy task statuses without dropping history."""
 
     backlog.setdefault("events", [])
     backlog.setdefault("planning_mode_events", [])
+    backlog.setdefault("task_formula_events", [])
     backlog.setdefault("event_head_sha256", None)
     backlog.setdefault("planning_mode_event_head_sha256", None)
+    backlog.setdefault("task_formula_event_head_sha256", None)
     current = _validate_delta_events(backlog)
     plans = {str(plan.get("plan_id")): plan for plan in backlog.get("plans", [])}
     for task in sorted(backlog.get("tasks", []), key=lambda row: row["sequence"]):
@@ -475,6 +761,7 @@ def ensure_event_ledger(backlog: dict[str, Any]) -> dict[str, Any]:
             None,
         )
     _validate_mode_events(backlog)
+    _validate_task_formula_events(backlog)
     backlog["event_schema"] = DELTA_EVENT_SCHEMA
     backlog["universal_statuses"] = list(DELTA_STATUSES)
     return backlog
@@ -614,9 +901,7 @@ def _task_contract_projection(
         "acceptance_checks": _string_list(task.get("acceptance_checks")),
         "stop_condition": str(task.get("stop_condition") or ""),
         "panel_role": str(task.get("panel_role") or "STANDARD"),
-        "plan_group": (
-            str(task["plan_group"]) if task.get("plan_group") else None
-        ),
+        "plan_group": (str(task["plan_group"]) if task.get("plan_group") else None),
         "commit_batch_id": (
             str(task.get("commit_batch_id") or task.get("batch_id"))
             if task.get("commit_batch_id") or task.get("batch_id")
@@ -624,9 +909,7 @@ def _task_contract_projection(
         ),
         "dependencies": _string_list(task.get("dependencies")),
         "git_commit_stage": (
-            str(task["git_commit_stage"])
-            if task.get("git_commit_stage")
-            else None
+            str(task["git_commit_stage"]) if task.get("git_commit_stage") else None
         ),
         "current_version": (
             str(task.get("current_version") or task.get("version_marker"))
@@ -671,9 +954,7 @@ def _task_contract_projection(
         "requested_outcome_sha256": sha256_bytes(
             str(contract["requested_outcome"]).encode("utf-8")
         ),
-        "task_contract_sha256": sha256_bytes(
-            canonical_json_bytes(static_contract)
-        ),
+        "task_contract_sha256": sha256_bytes(canonical_json_bytes(static_contract)),
     }
 
 
@@ -696,18 +977,12 @@ def _runtime_row_metadata(
     else:
         group, group_source = _latest_directive(task, _PLAN_GROUP_DIRECTIVE_RE)
         batch, batch_source = _latest_directive(task, _PLAN_BATCH_DIRECTIVE_RE)
-        git_stage, git_source = _latest_directive(
-            task, _PLAN_GIT_STAGE_DIRECTIVE_RE
-        )
+        git_stage, git_source = _latest_directive(task, _PLAN_GIT_STAGE_DIRECTIVE_RE)
         dependency_text, dependency_source = _latest_directive(
             task, _PLAN_DEPENDENCIES_DIRECTIVE_RE
         )
-    version, version_source = _latest_directive(
-        task, _PLAN_VERSION_DIRECTIVE_RE
-    )
-    branch, branch_source = _latest_directive(
-        task, _PLAN_BRANCH_DIRECTIVE_RE
-    )
+    version, version_source = _latest_directive(task, _PLAN_VERSION_DIRECTIVE_RE)
+    branch, branch_source = _latest_directive(task, _PLAN_BRANCH_DIRECTIVE_RE)
     if dependency_text:
         dependencies = [
             value.strip()
@@ -726,9 +1001,7 @@ def _runtime_row_metadata(
         dependency_source = "LINEAR_PREDECESSOR"
     else:
         dependencies = []
-        dependency_source = (
-            "LINEAR_ROOT" if executable else "NON_EXECUTABLE_HISTORY"
-        )
+        dependency_source = "LINEAR_ROOT" if executable else "NON_EXECUTABLE_HISTORY"
     if not git_stage:
         explicit_git_stage = str(task.get("git_commit_stage") or "").strip()
         if explicit_git_stage:
@@ -791,18 +1064,14 @@ def _runtime_row_metadata(
             )
         ),
         "commit_batch_id": str(
-            batch
-            or task.get("commit_batch_id")
-            or task.get("batch_id")
-            or "UNASSIGNED"
+            batch or task.get("commit_batch_id") or task.get("batch_id") or "UNASSIGNED"
         ),
         "commit_batch_source": str(
             batch_source
             or (
                 "EXPLICIT_TASK_CONTRACT"
-                if (
-                    task.get("commit_batch_id") or task.get("batch_id")
-                ) and not active_contract_rebound
+                if (task.get("commit_batch_id") or task.get("batch_id"))
+                and not active_contract_rebound
                 else "ACTIVE_CONTRACT_REBIND"
                 if task.get("commit_batch_id") or task.get("batch_id")
                 else "NO_EXPLICIT_CONTRACT_OR_LINKED_DIRECTIVE"
@@ -838,8 +1107,7 @@ def _projection_payload(backlog: dict[str, Any]) -> dict[str, list[dict[str, Any
         for task in ordered_tasks
     ]
     task_contract_sha256 = {
-        str(task["task_id"]): str(task["task_contract_sha256"])
-        for task in tasks
+        str(task["task_id"]): str(task["task_contract_sha256"]) for task in tasks
     }
     steers: list[dict[str, Any]] = []
     for task in ordered_tasks:
@@ -856,9 +1124,7 @@ def _projection_payload(backlog: dict[str, Any]) -> dict[str, list[dict[str, Any
                     "task_sequence": int(task["sequence"]),
                     "delta_id": str(exact["delta_id"]),
                     "text": str(exact["text"]),
-                    "delta_sha256": sha256_bytes(
-                        str(exact["text"]).encode("utf-8")
-                    ),
+                    "delta_sha256": sha256_bytes(str(exact["text"]).encode("utf-8")),
                     "boundary": str(exact.get("boundary") or "BEFORE_NEXT_HIL"),
                     "boundary_defaulted": bool(exact.get("boundary_defaulted")),
                     "classification": str(exact.get("classification") or ""),
@@ -960,6 +1226,50 @@ def _projection_payload(backlog: dict[str, Any]) -> dict[str, list[dict[str, Any
                 "content_sha256": sha256_bytes(content.encode("utf-8")),
             }
         )
+    formula_events = [
+        {
+            "event_id": str(event["event_id"]),
+            "sequence": int(event["sequence"]),
+            "task_id": str(event["task_id"]),
+            "event_kind": str(event["event_kind"]),
+            "source_event_id": str(event["source_event_id"]),
+            "session_id": str(event["session_id"]),
+            "actor": str(event["actor"]),
+            "formula": event["formula"],
+            "formula_sha256": str(event["formula_sha256"]),
+            "prior_formula_sha256": event.get("prior_formula_sha256"),
+            "changed_terms": event.get("changed_terms", {}),
+            "cause_evidence_locator": event.get("cause_evidence_locator"),
+            "recorded_at": str(event["recorded_at"]),
+            "previous_event_sha256": event.get("previous_event_sha256"),
+            "previous_task_event_sha256": event.get("previous_task_event_sha256"),
+            "event_sha256": str(event["event_sha256"]),
+        }
+        for event in backlog["task_formula_events"]
+    ]
+    for event in formula_events:
+        content = json.dumps(
+            {
+                "event_kind": event["event_kind"],
+                "formula": event["formula"],
+                "changed_terms": event["changed_terms"],
+                "cause_evidence_locator": event["cause_evidence_locator"],
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        fts_records.append(
+            {
+                "sequence": len(fts_records) + 1,
+                "record_id": f"formula:{event['event_id']}",
+                "task_id": event["task_id"],
+                "source_kind": "TASK_FORMULA",
+                "source_id": event["event_id"],
+                "content": content,
+                "content_sha256": sha256_bytes(content.encode("utf-8")),
+            }
+        )
     return {
         "tasks": tasks,
         "steers": steers,
@@ -1004,6 +1314,7 @@ def _projection_payload(backlog: dict[str, Any]) -> dict[str, list[dict[str, Any
             }
             for event in backlog["planning_mode_events"]
         ],
+        "task_formula_events": formula_events,
     }
 
 
@@ -1116,6 +1427,24 @@ def _read_projection_payload(
         "previous_event_sha256",
         "event_sha256",
     )
+    formula_columns = (
+        "event_id",
+        "sequence",
+        "task_id",
+        "event_kind",
+        "source_event_id",
+        "session_id",
+        "actor",
+        "formula_json",
+        "formula_sha256",
+        "prior_formula_sha256",
+        "changed_terms_json",
+        "cause_evidence_locator",
+        "recorded_at",
+        "previous_event_sha256",
+        "previous_task_event_sha256",
+        "event_sha256",
+    )
     tasks = [
         dict(zip(task_columns, row, strict=True))
         for row in connection.execute(
@@ -1137,18 +1466,10 @@ def _read_projection_payload(
         ).fetchall()
     ]
     for task in tasks:
-        task["permitted_paths"] = json.loads(
-            str(task.pop("permitted_paths_json"))
-        )
-        task["permitted_tools"] = json.loads(
-            str(task.pop("permitted_tools_json"))
-        )
-        task["acceptance_checks"] = json.loads(
-            str(task.pop("acceptance_checks_json"))
-        )
-        task["dependencies"] = json.loads(
-            str(task.pop("dependencies_json"))
-        )
+        task["permitted_paths"] = json.loads(str(task.pop("permitted_paths_json")))
+        task["permitted_tools"] = json.loads(str(task.pop("permitted_tools_json")))
+        task["acceptance_checks"] = json.loads(str(task.pop("acceptance_checks_json")))
+        task["dependencies"] = json.loads(str(task.pop("dependencies_json")))
     steers = []
     for row in connection.execute(
         """
@@ -1182,12 +1503,8 @@ def _read_projection_payload(
     ).fetchall():
         item = dict(zip(row_columns, row, strict=True))
         item["dependencies"] = json.loads(str(item.pop("dependencies_json")))
-        item["linked_delta_ids"] = json.loads(
-            str(item.pop("linked_delta_ids_json"))
-        )
-        item["effective_for_execution"] = bool(
-            item["effective_for_execution"]
-        )
+        item["linked_delta_ids"] = json.loads(str(item.pop("linked_delta_ids_json")))
+        item["effective_for_execution"] = bool(item["effective_for_execution"])
         execution_rows.append(item)
     fts_records = [
         dict(zip(fts_columns, row, strict=True))
@@ -1231,6 +1548,23 @@ def _read_projection_payload(
         item["selected_mode_ids"] = json.loads(str(item.pop("selected_mode_ids_json")))
         item["canonical_lanes"] = json.loads(str(item.pop("canonical_lanes_json")))
         planning_mode_events.append(item)
+    task_formula_events = []
+    for row in connection.execute(
+        """
+        SELECT
+            event_id, sequence, task_id, event_kind, source_event_id,
+            session_id, actor, formula_json, formula_sha256,
+            prior_formula_sha256, changed_terms_json,
+            cause_evidence_locator, recorded_at, previous_event_sha256,
+            previous_task_event_sha256, event_sha256
+        FROM task_formula_event
+        ORDER BY sequence
+        """
+    ).fetchall():
+        item = dict(zip(formula_columns, row, strict=True))
+        item["formula"] = json.loads(str(item.pop("formula_json")))
+        item["changed_terms"] = json.loads(str(item.pop("changed_terms_json")))
+        task_formula_events.append(item)
     return {
         "tasks": tasks,
         "steers": steers,
@@ -1238,6 +1572,7 @@ def _read_projection_payload(
         "fts_records": fts_records,
         "events": events,
         "planning_mode_events": planning_mode_events,
+        "task_formula_events": task_formula_events,
     }
 
 
@@ -1370,12 +1705,33 @@ def write_plan_runtime_projection(
                     previous_event_sha256 TEXT,
                     event_sha256 TEXT NOT NULL UNIQUE
                 );
+                CREATE TABLE task_formula_event (
+                    event_id TEXT PRIMARY KEY,
+                    sequence INTEGER NOT NULL UNIQUE,
+                    task_id TEXT NOT NULL,
+                    event_kind TEXT NOT NULL,
+                    source_event_id TEXT NOT NULL,
+                    session_id TEXT NOT NULL,
+                    actor TEXT NOT NULL,
+                    formula_json TEXT NOT NULL,
+                    formula_sha256 TEXT NOT NULL,
+                    prior_formula_sha256 TEXT,
+                    changed_terms_json TEXT NOT NULL,
+                    cause_evidence_locator TEXT,
+                    recorded_at TEXT NOT NULL,
+                    previous_event_sha256 TEXT,
+                    previous_task_event_sha256 TEXT,
+                    event_sha256 TEXT NOT NULL UNIQUE,
+                    FOREIGN KEY (task_id) REFERENCES delta_task(task_id)
+                );
                 CREATE INDEX delta_event_task_idx
                     ON delta_event(task_id, sequence);
                 CREATE INDEX steer_delta_task_idx
                     ON steer_delta(task_id, task_steer_sequence);
                 CREATE INDEX plan_execution_lane_row_idx
                     ON plan_execution_row(projection_lane, row_number, history_number);
+                CREATE INDEX task_formula_event_task_idx
+                    ON task_formula_event(task_id, sequence);
                 CREATE VIRTUAL TABLE plan_runtime_fts USING fts5(
                     sequence UNINDEXED,
                     record_id UNINDEXED,
@@ -1589,6 +1945,47 @@ def write_plan_runtime_projection(
                         event["event_sha256"],
                     ),
                 )
+            for event in projection["task_formula_events"]:
+                connection.execute(
+                    """
+                    INSERT INTO task_formula_event (
+                        event_id, sequence, task_id, event_kind,
+                        source_event_id, session_id, actor, formula_json,
+                        formula_sha256, prior_formula_sha256,
+                        changed_terms_json, cause_evidence_locator,
+                        recorded_at, previous_event_sha256,
+                        previous_task_event_sha256, event_sha256
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        event["event_id"],
+                        int(event["sequence"]),
+                        event["task_id"],
+                        event["event_kind"],
+                        event["source_event_id"],
+                        event["session_id"],
+                        event["actor"],
+                        json.dumps(
+                            event["formula"],
+                            ensure_ascii=False,
+                            sort_keys=True,
+                            separators=(",", ":"),
+                        ),
+                        event["formula_sha256"],
+                        event.get("prior_formula_sha256"),
+                        json.dumps(
+                            event.get("changed_terms", {}),
+                            ensure_ascii=False,
+                            sort_keys=True,
+                            separators=(",", ":"),
+                        ),
+                        event.get("cause_evidence_locator"),
+                        event["recorded_at"],
+                        event.get("previous_event_sha256"),
+                        event.get("previous_task_event_sha256"),
+                        event["event_sha256"],
+                    ),
+                )
             metadata = {
                 "schema": PLAN_RUNTIME_SCHEMA,
                 "backlog_schema": backlog["schema"],
@@ -1597,11 +1994,16 @@ def write_plan_runtime_projection(
                     "planning_mode_event_head_sha256"
                 )
                 or "",
+                "task_formula_event_head_sha256": backlog.get(
+                    "task_formula_event_head_sha256"
+                )
+                or "",
                 "projection_content_sha256": projection_content_sha256,
                 "canonical_plan_sector_mutated": "false",
                 "projection_role": "DERIVED_CONTROL_PLANE_INDEX",
                 "full_task_contracts_indexed": "true",
                 "steer_deltas_indexed": "true",
+                "task_formula_lineage_indexed": "true",
                 "execution_and_history_rows_indexed": "true",
                 "fts5_enabled": "true",
                 "accepted_pv_payload_copied": "false",
@@ -1642,6 +2044,7 @@ def plan_runtime_status(
     ensure_event_ledger(backlog)
     expected_event_head = backlog.get("event_head_sha256") or ""
     expected_mode_head = backlog.get("planning_mode_event_head_sha256") or ""
+    expected_formula_head = backlog.get("task_formula_event_head_sha256") or ""
     expected_projection = _projection_payload(backlog)
     expected_projection_sha256 = sha256_bytes(canonical_json_bytes(expected_projection))
     if not path.is_file():
@@ -1651,6 +2054,7 @@ def plan_runtime_status(
             "path": str(path),
             "event_count": len(backlog["events"]),
             "planning_mode_event_count": len(backlog["planning_mode_events"]),
+            "task_formula_event_count": len(backlog["task_formula_events"]),
             "steer_count": len(expected_projection["steers"]),
             "execution_row_count": sum(
                 row["projection_lane"] == "GOAL"
@@ -1663,6 +2067,7 @@ def plan_runtime_status(
             "fts_record_count": len(expected_projection["fts_records"]),
             "expected_event_head_sha256": expected_event_head or None,
             "expected_planning_mode_event_head_sha256": (expected_mode_head or None),
+            "expected_task_formula_event_head_sha256": (expected_formula_head or None),
             "expected_projection_content_sha256": expected_projection_sha256,
             "canonical_plan_sector_mutated": False,
             "projection_role": "DERIVED_CONTROL_PLANE_INDEX",
@@ -1699,9 +2104,8 @@ def plan_runtime_status(
                 "integrity": integrity,
                 "foreign_key_errors": foreign_keys,
                 "event_count": len(backlog["events"]),
-                "planning_mode_event_count": len(
-                    backlog["planning_mode_events"]
-                ),
+                "planning_mode_event_count": len(backlog["planning_mode_events"]),
+                "task_formula_event_count": len(backlog["task_formula_events"]),
                 "steer_count": len(expected_projection["steers"]),
                 "execution_row_count": sum(
                     row["projection_lane"] == "GOAL"
@@ -1712,12 +2116,13 @@ def plan_runtime_status(
                     for row in expected_projection["execution_rows"]
                 ),
                 "fts_record_count": len(expected_projection["fts_records"]),
-                "expected_projection_content_sha256": (
-                    expected_projection_sha256
-                ),
+                "expected_projection_content_sha256": (expected_projection_sha256),
                 "expected_event_head_sha256": expected_event_head or None,
                 "expected_planning_mode_event_head_sha256": (
                     expected_mode_head or None
+                ),
+                "expected_task_formula_event_head_sha256": (
+                    expected_formula_head or None
                 ),
                 "canonical_plan_sector_mutated": False,
                 "projection_role": "DERIVED_CONTROL_PLANE_INDEX",
@@ -1732,6 +2137,9 @@ def plan_runtime_status(
         )
         mode_count = int(
             connection.execute("SELECT COUNT(*) FROM planning_mode_event").fetchone()[0]
+        )
+        formula_count = int(
+            connection.execute("SELECT COUNT(*) FROM task_formula_event").fetchone()[0]
         )
         steer_count = int(
             connection.execute("SELECT COUNT(*) FROM steer_delta").fetchone()[0]
@@ -1768,10 +2176,12 @@ def plan_runtime_status(
         and metadata.get("schema") == PLAN_RUNTIME_SCHEMA
         and metadata.get("event_head_sha256") == expected_event_head
         and metadata.get("planning_mode_event_head_sha256") == expected_mode_head
+        and metadata.get("task_formula_event_head_sha256") == expected_formula_head
         and metadata.get("projection_content_sha256") == expected_projection_sha256
         and projection_content_sha256 == expected_projection_sha256
         and event_count == len(backlog["events"])
         and mode_count == len(backlog["planning_mode_events"])
+        and formula_count == len(backlog["task_formula_events"])
         and steer_count == len(expected_projection["steers"])
         and execution_row_count
         == sum(
@@ -1786,13 +2196,13 @@ def plan_runtime_status(
         and fts_record_count == len(expected_projection["fts_records"])
         and metadata.get("full_task_contracts_indexed") == "true"
         and metadata.get("steer_deltas_indexed") == "true"
+        and metadata.get("task_formula_lineage_indexed") == "true"
         and metadata.get("execution_and_history_rows_indexed") == "true"
         and metadata.get("fts5_enabled") == "true"
         and metadata.get("accepted_pv_payload_copied") == "false"
         and metadata.get("raw_pv_model_context_loading") == "false"
         and metadata.get("raw_chat_scrollback_model_context_loading") == "false"
-        and metadata.get("detail_lookup_policy")
-        == "EXACT_TASK_ID_THEN_BOUNDED_FTS"
+        and metadata.get("detail_lookup_policy") == "EXACT_TASK_ID_THEN_BOUNDED_FTS"
         and metadata.get("memory_sqlite_authority")
         == "SEPARATE_FROM_AI_LEARNING_AND_PROJECT_TRUTH"
         and user_version == PLAN_RUNTIME_USER_VERSION
@@ -1809,6 +2219,7 @@ def plan_runtime_status(
         "foreign_key_errors": foreign_keys,
         "event_count": event_count,
         "planning_mode_event_count": mode_count,
+        "task_formula_event_count": formula_count,
         "steer_count": steer_count,
         "execution_row_count": execution_row_count,
         "history_row_count": history_row_count,
@@ -1818,6 +2229,9 @@ def plan_runtime_status(
             metadata.get("full_task_contracts_indexed") == "true"
         ),
         "steer_deltas_indexed": metadata.get("steer_deltas_indexed") == "true",
+        "task_formula_lineage_indexed": (
+            metadata.get("task_formula_lineage_indexed") == "true"
+        ),
         "accepted_pv_payload_copied": False,
         "raw_pv_model_context_loading": False,
         "raw_chat_scrollback_model_context_loading": False,
@@ -1829,10 +2243,13 @@ def plan_runtime_status(
             "planning_mode_event_head_sha256"
         )
         or None,
+        "task_formula_event_head_sha256": metadata.get("task_formula_event_head_sha256")
+        or None,
         "projection_content_sha256": projection_content_sha256,
         "expected_projection_content_sha256": expected_projection_sha256,
         "expected_event_head_sha256": expected_event_head or None,
         "expected_planning_mode_event_head_sha256": expected_mode_head or None,
+        "expected_task_formula_event_head_sha256": expected_formula_head or None,
         "canonical_plan_sector_mutated": False,
         "projection_role": "DERIVED_CONTROL_PLANE_INDEX",
     }
@@ -1909,6 +2326,26 @@ def query_plan_runtime_projection(
                 """,
                 (exact_task_id, int(limit)),
             ).fetchall()
+            formula_events = connection.execute(
+                """
+                SELECT
+                    event_id, sequence, event_kind, source_event_id,
+                    session_id, actor, formula_json, formula_sha256,
+                    prior_formula_sha256, changed_terms_json,
+                    cause_evidence_locator, recorded_at, event_sha256
+                FROM task_formula_event
+                WHERE task_id = ?
+                ORDER BY sequence
+                LIMIT ?
+                """,
+                (exact_task_id, int(limit)),
+            ).fetchall()
+            bounded_formula_events = []
+            for formula_event in formula_events:
+                item = dict(formula_event)
+                item["formula"] = json.loads(str(item.pop("formula_json")))
+                item["changed_terms"] = json.loads(str(item.pop("changed_terms_json")))
+                bounded_formula_events.append(item)
             return {
                 "status": "PASS",
                 "schema": "evidence-lane.plan-runtime-query.v1",
@@ -1917,6 +2354,7 @@ def query_plan_runtime_projection(
                 "row": dict(row),
                 "contract": dict(cast(sqlite3.Row, contract)),
                 "steers": [dict(item) for item in steers],
+                "formula_events": bounded_formula_events,
                 "steer_result_truncated": int(
                     connection.execute(
                         "SELECT COUNT(*) FROM steer_delta WHERE task_id = ?",
@@ -1924,6 +2362,13 @@ def query_plan_runtime_projection(
                     ).fetchone()[0]
                 )
                 > len(steers),
+                "formula_result_truncated": int(
+                    connection.execute(
+                        "SELECT COUNT(*) FROM task_formula_event WHERE task_id = ?",
+                        (exact_task_id,),
+                    ).fetchone()[0]
+                )
+                > len(formula_events),
                 "accepted_pv_payload_loaded": False,
                 "raw_chat_scrollback_loaded": False,
             }

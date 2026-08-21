@@ -1,0 +1,55 @@
+{
+  "schema": "evidence-lane.task6-delta-advance-config.v1",
+  "config_path": "evidence/task6_delta_receipts/row202_advance_config.json",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "active_task_id": "EL-CODEX-T6-PARITY-005-LOCAL-TEST-TRANSACTIONAL-ACTIVATION",
+  "successor_task_id": "EL-CODEX-T6-PARITY-006-CANDIDATE-SELF-ROLLBACK",
+  "receipt_id": "task6-row202-local-verification-001",
+  "prior_checkpoint_receipt_id": "task6-row201-local-verification-001",
+  "expected_generation": 12,
+  "changed_paths": [
+    {"path": "plugins/evidence-lane-plugin/scripts/codex_release/install_codex_stable.py", "role": "SOURCE"},
+    {"path": "tests/test_codex_v200_installation.py", "role": "TEST"},
+    {"path": "tests/test_local_install_transactional_activation.py", "role": "TEST"},
+    {"path": "evidence/task6_delta_receipts/TASK6_ROW202_ACTIVE_CONTRACT_PATH_AUTHORITY.json", "role": "RECEIPT"},
+    {"path": "evidence/task6_delta_receipts/apply_row202_active_contract_rebind.py", "role": "RECEIPT"},
+    {"path": "evidence/task6_delta_receipts/EL-CODEX-T6-PARITY-005-LOCAL-TEST-TRANSACTIONAL-ACTIVATION.json", "role": "RECEIPT"},
+    {"path": "evidence/task6_delta_receipts/row202_advance_config.json", "role": "RECEIPT"}
+  ],
+  "test_runs": [
+    {
+      "selector": "Row202 transactional activation plus existing local activation and supported hook API",
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/test_local_install_transactional_activation.py tests/test_codex_v200_installation.py::test_local_test_activation_refreshes_only_exact_selector_and_defers_hook_trust tests/test_codex_v200_installation.py::test_supported_codex_api_trusts_only_exact_selector_hooks",
+      "output": "9 passed in 1.52s",
+      "negative_cases": [
+        "Readiness remains false after install/prewarm and after the one CAS switch.",
+        "Post-switch trust drift restores the exact pre-switch config atomically."
+      ]
+    },
+    {
+      "selector": "installer, transactional activation, recovery registry, fallback authority, and release regression bundle",
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/test_codex_v200_installation.py tests/test_local_install_transactional_activation.py tests/test_local_install_registry_separation.py tests/test_local_install_fallback_selector_authority.py tests/test_release_channels.py",
+      "output": "62 passed in 9.47s",
+      "negative_cases": [
+        "The shared Goal recovery manager remains multi-project with mutable exact-task rows.",
+        "Installer and tunnel execution remain separate and were not invoked."
+      ]
+    },
+    {
+      "selector": "Python lint and public CLI route projection",
+      "command": ".venv/Scripts/python.exe -m ruff check plugins/evidence-lane-plugin/scripts/codex_release/install_codex_stable.py tests/test_local_install_transactional_activation.py tests/test_codex_v200_installation.py",
+      "output": "All checks passed!; both local-test proof/commit flags exposed by --help",
+      "negative_cases": [
+        "No direct config.toml write is used for switching or rollback.",
+        "No task UUID, Goal binding, installer helper, or tunnel authorizes the local-test transaction."
+      ]
+    }
+  ],
+  "limitations": [
+    "Row202 implemented and tested source routes only; it did not install, trust, switch, reload, or probe the live Codex plugin.",
+    "After one commit switch, readiness remains false until a post-switch host reload, exact active identity/catalog readback, prompt capture, and bounded smoke probes pass.",
+    "Row203 owns idempotent candidate self-rollback and retry isolation; no recovery loop is added in Row202.",
+    "No helper, scheduled task, tunnel, candidate, HIL, pointer, or Git action occurred."
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_LOCAL_SOURCE_RUNTIME_AND_NATIVE_DERIVED_INDEX_REFRESH",
+  "recorded_at": "2026-08-15T10:11:50.5651677Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "active_native_task_id": "EL-CODEX-GITHUB_ACTIONS_CLEAN_CI-PROPOSAL-31",
+  "parent_delta_task_id": "EL-CODEX-T6-PARITY-001A-ACTIVE-CONTRACT-REBIND",
+  "correction_id": "EL-CODEX-T6-PARITY-001B-PLAN-SQLITE-ACTIVE-CONTRACT-PARITY",
+  "implementation": {
+    "problem": "The canonical active-contract rebind was correct, but the disposable Plan runtime SQLite still preferred stale linked-steer group, batch, dependency, and Git metadata.",
+    "correction": "ACTIVE_CONTRACT_REBIND now has precedence for those execution-contract fields in the derived projection, and a CAS-bound refresh route can rebuild only a stale derived Plan SQLite.",
+    "canonical_plan_mutated_by_refresh": false,
+    "goal_mutated_by_refresh": false,
+    "existing_public_tool_extended": "pv_plan_tasks",
+    "new_tool_added": false,
+    "catalog_tool_count": 83
+  },
+  "changed_paths": [
+    {
+      "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/plan_runtime.py",
+      "sha256": "4E14954EB403047FB9CC1F2E0BBF11AD323AC4994F2392D53BEDB52DED87F7B3"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/store.py",
+      "sha256": "17C55B2BDFDEF361DA9222E63C4E02DDAC00D226595FBB033EF2A7281CB1E51B"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/session.py",
+      "sha256": "95DE98869808F041D559EDDB31D12EFCC0F39040AC7C927AC727A3334A374F83"
+    },
+    {
+      "path": "tests/test_active_task_contract_rebind.py",
+      "sha256": "4723D33188517D38CB30687DF8E7A0466F95A64ACB178AABC16913566028734F"
+    },
+    {
+      "path": "evidence/task6_delta_receipts/apply_active_contract_rebind_live.py",
+      "sha256": "3355F2FEA02BC1338FAC7193C8891717B37FFAB3693F60F74280EC891FD24B29"
+    },
+    {
+      "path": "evidence/task6_delta_receipts/read_task6_plan_window.py",
+      "sha256": "39688C0821DACE7026317115A544D7E42AA7290145C683A9EF684C57D00EA1A8"
+    }
+  ],
+  "verification": [
+    {
+      "selector": "tests/test_active_task_contract_rebind.py",
+      "status": "PASS",
+      "result": "10 passed in 104.15s"
+    },
+    {
+      "selector": "tests/test_plan_atomic_insertions.py",
+      "status": "PASS",
+      "result": "8 passed in 3.65s"
+    },
+    {
+      "selector": "tests/test_plan_steers.py",
+      "status": "PASS",
+      "result": "9 passed in 14.79s"
+    },
+    {
+      "selector": "tests/test_plan_normalization.py",
+      "status": "PASS",
+      "result": "8 passed in 91.56s"
+    },
+    {
+      "selector": "tests/test_host_plan_rehydration.py",
+      "status": "PASS",
+      "result": "20 passed in 171.26s"
+    },
+    {
+      "selector": "ruff on changed runtime and test files",
+      "status": "PASS",
+      "result": "All checks passed"
+    }
+  ],
+  "native_refresh": {
+    "status": "PASS",
+    "rebind_id": "T6-ACTIVE-CONTRACT-REBIND-001",
+    "idempotent_rebind_replay": true,
+    "refresh_id": "T6-ACTIVE-CONTRACT-REBIND-001__da219fccc703db02ae9e7518",
+    "refresh_receipt_sha256": "1191D0575790F7E161C5CD63D31029BE17C269EA58C5158D5A206E2B24516FF9",
+    "before_status": "STALE",
+    "before_sqlite_sha256": "8F199DAD7E56B91E87F34CB2246D72E57D292B3F458C3C6CE844EA7922C26606",
+    "after_sqlite_sha256": "7A851E43A0C3D6C72879F7313506BA6708EBF06AEE6347696F621A32F2C341A3",
+    "projection_content_sha256": "DA219FCCC703DB02AE9E7518D6A9E399F3FC5E107BDD46E0EB04FF4B210EF3AF",
+    "canonical_plan_sha256": "EBD326679CEE122F87ED55262A26805E0E1F26789A5BE01F7824D82EEFDEDD3F",
+    "executable_projection_sha256": "B8E8EDF789529D053884B0C6E4C4ECD2689DAA1083CDD1BF7CC584116DF9842D",
+    "session_snapshot_sha256": "184F1236B84B11F6336857ADB9D12280DCEEEF9E31AD6D10C93B9F39D7A02B77",
+    "pointer_snapshot_sha256": "96595275ECC2D0F07130CBAB744E4C4633DB719C1F6951C027137329ABF4E60E"
+  },
+  "bounded_plan_proof": {
+    "status": "PASS",
+    "active_row": 196,
+    "active_plan_group": "TASK6_PARITY_EXECUTION",
+    "active_commit_batch_id": "PV13_TASK6_PARITY",
+    "active_dependencies": [],
+    "active_git_commit_stage": "NO_COMMIT",
+    "window": "Rows196-204",
+    "full_ledger_returned": false,
+    "accepted_pv_payload_loaded": false,
+    "raw_chat_scrollback_loaded": false,
+    "physical_final_row": 249
+  },
+  "negative_side_effects": {
+    "canonical_backlog_mutated_by_refresh": false,
+    "active_plan_row_replaced": false,
+    "runtime_task_identity_changed": false,
+    "goal_completion_mutated": false,
+    "candidate_created": false,
+    "hil_invoked_or_inferred": false,
+    "pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "plugin_installed_or_enabled": false,
+    "helper_launched": false,
+    "tunnel_launched": false,
+    "subagent_started": false
+  },
+  "next_boundary": "Query the exact next native Delta and its linked research evidence by task ID; do not load the full Plan or research ledger into model context."
+}

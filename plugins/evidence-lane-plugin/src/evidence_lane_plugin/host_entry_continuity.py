@@ -17,6 +17,7 @@ from typing import Any, Protocol, cast
 
 from .errors import require
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
+from .project_authority import resolved_chat_lineage_root
 from .redaction import contains_secret
 
 HOST_ENTRY_ENVELOPE_SCHEMA = "evidence-lane.host-entry-envelope.v2"
@@ -101,7 +102,7 @@ def _timestamp(value: Any, *, field: str) -> datetime:
 
 
 def _ledger_path(project_root: Path) -> Path:
-    return project_root / "lineage" / "host-entry-continuity.sqlite"
+    return resolved_chat_lineage_root(project_root) / "host-entry-continuity.sqlite"
 
 
 def _connect(project_root: Path) -> sqlite3.Connection:
@@ -232,11 +233,19 @@ def derive_host_entry_env_uop(flash: dict[str, Any]) -> dict[str, str]:
     )
     members = cast(list[Any], members)
     env_members = sorted(
-        (dict(item) for item in members if str(item.get("path") or "").startswith("env/")),
+        (
+            dict(item)
+            for item in members
+            if str(item.get("path") or "").startswith("env/")
+        ),
         key=lambda item: str(item["path"]),
     )
     uop_members = sorted(
-        (dict(item) for item in members if str(item.get("path") or "").startswith("uop/")),
+        (
+            dict(item)
+            for item in members
+            if str(item.get("path") or "").startswith("uop/")
+        ),
         key=lambda item: str(item["path"]),
     )
     require(
@@ -493,7 +502,11 @@ def issue_host_entry_envelope(
     }
     envelope["envelope_sha256"] = sha256_bytes(canonical_json_bytes(envelope))
     validate_host_entry_envelope(envelope, expected_project_id=project_id)
-    path = root / "lineage" / "host-entry-continuity" / f"{envelope_id}.json"
+    path = (
+        resolved_chat_lineage_root(root)
+        / "host-entry-continuity"
+        / f"{envelope_id}.json"
+    )
     path.parent.mkdir(parents=True, exist_ok=True)
     connection = _connect(root)
     try:
@@ -636,8 +649,7 @@ def seal_next_host_entry_from_exit(
     pointer = cast(dict[str, Any], packet.get("pointer") or {})
     active_plan = cast(dict[str, Any], packet.get("active_plan") or {})
     require(
-        persistence.get("state")
-        == "AWAITING_LATER_DURABLE_CONNECTOR_PERSISTENCE"
+        persistence.get("state") == "AWAITING_LATER_DURABLE_CONNECTOR_PERSISTENCE"
         and persistence.get("durable_persisted") is False
         and persistence.get("exit_complete") is False
         and route.get("storage_connector_required") is True
@@ -774,8 +786,7 @@ def consume_host_entry_envelope(
         == int(expected_pointer.get("generation") or -1)
         and pointer.get("manifest_sha256") == expected_manifest
         and pointer.get("pointer_sha256") == expected_pointer_sha
-        and envelope.get("active_plan", {}).get("row")
-        == expected_active_plan_row
+        and envelope.get("active_plan", {}).get("row") == expected_active_plan_row
         and envelope.get("env_uop") == expected_env_uop
         and envelope.get("worktree", {}).get("worktree_sha256")
         == _sha256(expected_worktree_sha256, field="expected_worktree_sha256")
@@ -809,8 +820,7 @@ def consume_host_entry_envelope(
         destination.get("task_id") == consumer_binding.get("task_id")
         and destination.get("task_deep_link_sha256")
         == consumer_binding.get("task_deep_link_sha256")
-        and envelope.get("host_binding_id")
-        == consumer_binding.get("host_binding_id"),
+        and envelope.get("host_binding_id") == consumer_binding.get("host_binding_id"),
         "HOST_ENTRY_DESTINATION_MISMATCH",
         "The host-entry envelope is bound to a different destination task or host.",
         status="MISMATCH",
@@ -845,11 +855,7 @@ def consume_host_entry_envelope(
     remote_claim_sha256 = (
         sha256_bytes(
             canonical_json_bytes(
-                {
-                    key: item
-                    for key, item in remote_claim.items()
-                    if key != "idempotent"
-                }
+                {key: item for key, item in remote_claim.items() if key != "idempotent"}
             )
         )
         if remote_claim
@@ -973,7 +979,9 @@ def roll_host_entry_generation(
             "Every reissued host-entry envelope must bind the new accepted generation.",
             status="MISMATCH",
         )
-        issued.append(issue_host_entry_envelope(root, project_id=project_id, **contract))
+        issued.append(
+            issue_host_entry_envelope(root, project_id=project_id, **contract)
+        )
     body = {
         "schema": HOST_ENTRY_GENERATION_ROLL_SCHEMA,
         "project_id": project_id,
@@ -1036,10 +1044,14 @@ def inspect_host_entry_continuity(
             connection.execute("SELECT COUNT(*) FROM host_entry_envelope").fetchone()[0]
         )
         consumption_count = int(
-            connection.execute("SELECT COUNT(*) FROM host_entry_consumption").fetchone()[0]
+            connection.execute(
+                "SELECT COUNT(*) FROM host_entry_consumption"
+            ).fetchone()[0]
         )
         roll_count = int(
-            connection.execute("SELECT COUNT(*) FROM host_entry_generation_roll").fetchone()[0]
+            connection.execute(
+                "SELECT COUNT(*) FROM host_entry_generation_roll"
+            ).fetchone()[0]
         )
     finally:
         connection.close()

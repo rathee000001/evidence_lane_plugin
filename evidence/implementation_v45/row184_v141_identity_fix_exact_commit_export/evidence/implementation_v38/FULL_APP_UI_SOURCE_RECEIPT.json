@@ -1,0 +1,204 @@
+{
+  "schema": "evidence-lane.full-app-ui-source-receipt.v1",
+  "recorded_at": "2026-08-03T20:33:27Z",
+  "delta_id": "EL-V120-EXACT-FULL-APP-UI-ASSET-COMPONENT-CONFORMANCE-DELTA-061",
+  "status": "SUPERSEDED_BY_DELTA_063",
+  "superseded_by": "evidence/implementation_v38/FULL_WIDTH_RIL_GOLD_UI_RECEIPT.json",
+  "supersession_reason": "The user withdrew the app-glass component presentation while retaining only the exact logo, cube icon, static brain, official tool icons, and bounded interaction ideas.",
+  "authority": {
+    "root": "F:/DATA MACHINE/evidence-os-clean-full-app_current hill_sopuce code/frontend/theme-contract",
+    "access_mode": "READ_ONLY",
+    "mutated": false,
+    "backend_or_tauri_copied": false,
+    "sources": [
+      {
+        "path": "src/components/SourceLaneIcon.tsx",
+        "sha256": "58b2d2f7b3cd4ad11488e9cb0409581ed1a7f628a8710e20698539f347cc4d49"
+      },
+      {
+        "path": "src/components/BrainGlassSphere.tsx",
+        "sha256": "71356c811a28f32a4d6773c50e81293006baa64297df67315a8e7988824affe6"
+      },
+      {
+        "path": "src/components/PulsatingBrain.tsx",
+        "sha256": "399a97ca49941b7f0091ab115082d72f7a4d2cd5bd641eb2b6a1996ed0f31eb7"
+      },
+      {
+        "path": "src/components/GlassPill.tsx",
+        "sha256": "97f535fb61469282c5d0918d8a9c4c58795ee9f61f20c49b5fae1bc4029d7b92"
+      },
+      {
+        "path": "src/components/GlassIconOrb.tsx",
+        "sha256": "562009b6991163b4dc0d140528ca1470178bed9276533243e09b769c7e1d34bd"
+      },
+      {
+        "path": "src/components/GlassShell.tsx",
+        "sha256": "f9b2b9f100499c5bf8cc7d6478a5f4a951819bd6b8ab23241693e1ace9f1d426"
+      },
+      {
+        "path": "src/components/ToolchainFlow.tsx",
+        "sha256": "0cd7f34e1c9dc93ac1a8a53df90d40ab6261d8e866890b71196b0fac81a1d81b"
+      },
+      {
+        "path": "src/contracts/T023UniversalUiSystemSchemas.ts",
+        "sha256": "ffc1036a5fe7a76941500ce8bfb0b9d45cc55df6444cc5d49bfbb1be5d296926"
+      },
+      {
+        "path": "src/theme/T023UniversalThemeManifest.json",
+        "sha256": "a17f127a16b6291bce1eb99647986d24a78ff621a47f1140ff57629762548045"
+      },
+      {
+        "path": "src/theme/sqlite-glass-theme.css",
+        "sha256": "a71fa99a68f51af88d763ab3e0a790959a34cb1c2c3197ef8fcaa16b14646971"
+      },
+      {
+        "path": "public/assets/evidence-static-brain.png",
+        "sha256": "70fbc1e11c029dda98aa695f80e96891312e028464476b7e54ba0b6b259a6529",
+        "bytes": 1019717
+      }
+    ]
+  },
+  "adaptation": {
+    "mode": "BROWSER_SAFE_FRONTEND_ONLY",
+    "schemas": [
+      "T023_UNIVERSAL_GLASS_PILL_V001",
+      "T023_UNIVERSAL_GLASS_SHELL_V001",
+      "T023_UNIVERSAL_GLASS_ORB_V001",
+      "T023_UNIVERSAL_BRAIN_ORB_V001",
+      "T023_GLASS_LAYERING_NO_BLEED_V001"
+    ],
+    "components": [
+      "SourceLaneIcon",
+      "BrainGlassSphere",
+      "PulsatingBrain",
+      "GlassPill",
+      "UniversalGlassPill",
+      "GlassIconOrb",
+      "GlassShell"
+    ],
+    "exact_binary_copy": {
+      "target": "plugins/evidence-lane-plugin/remote_adapter/public/assets/evidence-static-brain.png",
+      "sha256": "70fbc1e11c029dda98aa695f80e96891312e028464476b7e54ba0b6b259a6529",
+      "source_hash_match": true
+    },
+    "story": [
+      "one selected source-lane icon",
+      "icon travels into the pulsing universal brain glass orb",
+      "brain reconciles the lane-specific SQLite builder contract",
+      "exactly four files emit below: SQLite, MMD, DOT, refresh receipt"
+    ],
+    "explicitly_excluded": [
+      "Rust and Tauri transport",
+      "backend state and secrets",
+      "scanner components",
+      "telemetry-page orb assets",
+      "3D telemetry nodes",
+      "new generated icons",
+      "Adobe or Meshy replacement artwork"
+    ]
+  },
+  "candidate_files": [
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_components/full-app-ui.tsx",
+      "sha256": "76fa638f4981e2616cdb63fb7a980782b6b000a5bf31f45bfdc4af486b09e3be"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_components/evidence-console.tsx",
+      "sha256": "7e24cb81ecbc32339c699c5c69b451f3c7f719af6a8a8a5b140617382750f19a"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_components/evidence-prompt-studio.tsx",
+      "sha256": "5c46f672ae942beb0fb260fa9aa28216db230e367bf5d2f8b52a919d8a0c404f"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/globals.css",
+      "sha256": "642733042f36e39d60153643fb9a386a1daa88312d276774b817a8ac8c95e9a5"
+    },
+    {
+      "path": "tests/test_full_app_ui_conformance.py",
+      "sha256": "f39f9c09a70134d67e4cbf9cae5ac4ebc4cfb0fe49941ce37737a57dca42a0af"
+    }
+  ],
+  "design_depth_references": [
+    {
+      "repository": "rathee000001/rathee-intelligence-lab",
+      "commit": "5e28a1979c259c1d83be892c983d8e6c5ef270eb",
+      "used_for": "hover and click focus, active detail, layered story rhythm",
+      "copied_bytes": 0
+    },
+    {
+      "repository": "rathee000001/gold-ai-platform",
+      "commit": "f3cbb25811b5411637aebad6c16da8c302f257b3",
+      "used_for": "large narrative hierarchy, connected active detail, proof depth",
+      "copied_bytes": 0
+    },
+    {
+      "repository": "rathee000001/nyit-gold-intelligence-2026",
+      "commit": "5208da8ab294aad723cb079dd81e4f2113c06dfa",
+      "used_for": "read-only design comparison",
+      "copied_bytes": 0
+    }
+  ],
+  "verification": {
+    "typescript": "PASS",
+    "next_production_build": "PASS_15_STATIC_PAGES",
+    "source_conformance_tests": "PASS_3_OF_3",
+    "browser": {
+      "engine": "Playwright with system Chrome fallback",
+      "desktop_viewport": "1440x1100",
+      "mobile_viewport": "390x844",
+      "home_and_studio_meaningful_content": true,
+      "horizontal_overflow": false,
+      "framework_error_overlay": false,
+      "console_or_page_errors": false,
+      "failed_images": false,
+      "lane_tabs": 18,
+      "hover": "PASS",
+      "keyboard": "PASS",
+      "replay": "PASS",
+      "auto_cycle": "PASS",
+      "exact_four_file_emission": "PASS",
+      "grounded_prompt": "PASS",
+      "unsupported_prompt_refusal": "PASS"
+    },
+    "screenshots": [
+      {
+        "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-061-toolchain-desktop.png",
+        "sha256": "0dedb8ec822f5e5aa33e18bf16c02cc97009e3d09f279427a2e66dace76eed8c"
+      },
+      {
+        "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-061-studio-desktop.png",
+        "sha256": "33ed15659017e4d0fd34f9578dd5d9e6e9a4915408811ea1d9f9a793f9886ac9"
+      },
+      {
+        "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-061-toolchain-mobile.png",
+        "sha256": "383d352326c8ac6dcffecbd0680da2790a33c03440e6a388fce3f2ed627225ad"
+      },
+      {
+        "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-061-studio-mobile.png",
+        "sha256": "eb46c6e7893bfaf9be0fdbb17d56cb3122f53709c966635cde70a23f54a1629b"
+      }
+    ]
+  },
+  "governance": {
+    "accepted_pointer_moved": false,
+    "state_travel_invoked": false,
+    "fuse_invoked": false,
+    "candidate_promoted": false,
+    "main_merged": false,
+    "deployment_claimed": false,
+    "hil_decision_inferred": false
+  },
+  "verdict": {
+    "decision": "PURSUE",
+    "confidence": 0.99,
+    "scope": "Delta 061 UI and interaction conformance only",
+    "reason": "The exact accepted brain asset and named SQLite glass primitives are pinned, the forbidden UI families are absent, and the rendered desktop/mobile interaction gates pass.",
+    "evidence_that_would_change_it": [
+      "a source hash mismatch",
+      "a rendered regression in the full suite",
+      "evidence of an imported telemetry, scanner, Tauri, or backend dependency",
+      "a final-commit PoC mismatch"
+    ]
+  }
+}

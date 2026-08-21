@@ -10,6 +10,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
 
+from .adaptive_delta_exit import run_adaptive_delta_exit
 from .capture_routing import CaptureRouteAuthority
 from .connector_governance import ConnectorGovernance
 from .constants import LIFECYCLE_RESULT_SCHEMA, TOOL_RESULT_SCHEMA
@@ -32,6 +33,7 @@ from .host_entry_continuity import (
     derive_host_entry_authority_heads,
     derive_host_entry_env_uop,
 )
+from .host_plan_rehydration import _exact_projection
 from .ids import prefixed_id
 from .lane_reader import LaneReader
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
@@ -44,6 +46,10 @@ from .persistence import (
     PersistenceRoute,
     PVSyncService,
     route_persistence,
+)
+from .project_authority import (
+    query_working_project_sectors,
+    resolved_chat_lineage_root,
 )
 from .prompt_index import PromptIndex
 from .pv_package import validate_pv_package
@@ -536,17 +542,92 @@ def _compact_task_activity_result(data: dict[str, Any]) -> dict[str, Any]:
         "runtime_task_id",
         "plan_task_id",
     )
-    rehydration_fields = (
-        "schema",
-        "status",
-        "project_id",
-        "session_id",
-        "trigger",
-        "trigger_event_id",
-        "plan_projection_sha256",
-        "host_update_plan_required",
-        "host_goal_rebind_required",
-    )
+
+    def compact_rehydration(payload: object) -> dict[str, Any]:
+        """Expose one bounded host window, never the complete Plan authority."""
+
+        if not isinstance(payload, dict):
+            return {}
+        wrapper = cast(dict[str, Any], payload)
+        receipt_value = wrapper.get("receipt")
+        receipt = (
+            cast(dict[str, Any], receipt_value)
+            if isinstance(receipt_value, dict)
+            else wrapper
+        )
+        projection_value = receipt.get("projection")
+        projection = (
+            cast(dict[str, Any], projection_value)
+            if isinstance(projection_value, dict)
+            else {}
+        )
+        contract_value = projection.get("host_update_plan_contract")
+        contract = (
+            cast(dict[str, Any], contract_value)
+            if isinstance(contract_value, dict)
+            else {}
+        )
+        raw_items = contract.get("plan")
+        plan_items = [
+            {
+                "status": item.get("status"),
+                "step": item.get("step"),
+            }
+            for item in (
+                cast(list[Any], raw_items) if isinstance(raw_items, list) else []
+            )[:10]
+            if isinstance(item, dict)
+        ]
+        header_value = projection.get("continuity_header")
+        header = (
+            cast(dict[str, Any], header_value) if isinstance(header_value, dict) else {}
+        )
+        return {
+            "state": wrapper.get("state"),
+            "request_sha256": wrapper.get("request_sha256"),
+            "schema": receipt.get("schema"),
+            "status": receipt.get("status"),
+            "project_id": receipt.get("project_id"),
+            "evidence_session_id": receipt.get("evidence_session_id"),
+            "host_task_id_sha256": receipt.get("host_task_id_sha256"),
+            "trigger": receipt.get("trigger"),
+            "trigger_event_id": receipt.get("trigger_event_id"),
+            "action": receipt.get("action"),
+            "host_update_plan_required": receipt.get("host_update_plan_required"),
+            "host_goal_active": receipt.get("host_goal_active"),
+            "host_artifact_visibility_status": receipt.get(
+                "host_artifact_visibility_status"
+            ),
+            "receipt_sha256": receipt.get("receipt_sha256"),
+            "projection": {
+                "schema": projection.get("schema"),
+                "projection_sha256": projection.get("projection_sha256"),
+                "canonical_plan_sha256": projection.get("canonical_plan_sha256"),
+                "executable_projection_sha256": projection.get(
+                    "executable_projection_sha256"
+                ),
+                "window_ui_fingerprint_sha256": projection.get(
+                    "window_ui_fingerprint_sha256"
+                ),
+                "row_start": projection.get("row_start"),
+                "row_end": projection.get("row_end"),
+                "item_count": projection.get("item_count"),
+                "sole_active_row": projection.get("sole_active_row"),
+                "next_hil_boundary_row": header.get("next_hil_boundary_row"),
+                "physically_final_row": header.get("physically_final_row"),
+                "host_update_plan_contract": {
+                    "explanation": contract.get("explanation"),
+                    "plan": plan_items,
+                },
+            },
+            "candidate_created": receipt.get("candidate_created"),
+            "pending_hil_mutated": receipt.get("pending_hil_mutated"),
+            "pointer_moved": receipt.get("pointer_moved"),
+            "plan_lane_mutated": receipt.get("plan_lane_mutated"),
+            "full_plan_returned": False,
+            "bounded_host_window_returned": bool(plan_items),
+        }
+
     event = _compact_fields(data.get("event"), event_fields)
     return {
         "schema": "evidence-lane.task-activity-write-receipt.v1",
@@ -559,9 +640,7 @@ def _compact_task_activity_result(data: dict[str, Any]) -> dict[str, Any]:
         "observed_experience": _compact_fields(
             data.get("observed_experience"), observed_fields
         ),
-        "host_plan_rehydration": _compact_fields(
-            data.get("host_plan_rehydration"), rehydration_fields
-        ),
+        "host_plan_rehydration": compact_rehydration(data.get("host_plan_rehydration")),
         "source_state": data.get("source_state"),
         "accepted_pv_query_scope": data.get("accepted_pv_query_scope"),
         "model_context_boundary": {
@@ -810,11 +889,7 @@ def _accepted_lane_projection(
             ],
         }
 
-    manifest = json.loads(
-        (store.accepted_path(project_id, accepted_pv) / "manifest.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    manifest = store.accepted_manifest(project_id, accepted_pv)
     universal = manifest.get("universal_lanes")
     if not isinstance(universal, dict):
         universal = {}
@@ -972,6 +1047,7 @@ class EvidenceLaneService:
         result: dict[str, Any] = {
             **selection,
             "project_route": self.store.inspect_project_route(project_id),
+            "project_authority": self.store.project_authority_status(project_id),
             "configured_runtime_connector_available": bool(
                 self.sync_service is not None
                 and self.sync_service.runtime_state_capable
@@ -1480,20 +1556,16 @@ class EvidenceLaneService:
         git_mode: str = "AUTO",
         authority_mode: str = "CLASSIFICATION_ONLY",
         source_assertions: dict[str, dict[str, Any]] | None = None,
+        turn_entry: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Classify ordered sources through one generalized public control."""
 
         config = self.store.config(project_id)
-        code_lane = config.source_lane
-        if code_lane not in {"github_code", "local_code"}:
-            try:
-                repository = inspect_repository(config.repository_path)
-            except EvidenceLaneError:
-                code_lane = "local_code"
-            else:
-                code_lane = (
-                    "github_code" if repository.provider == "github" else "local_code"
-                )
+        # Source Intake reads the current workspace.  A GitHub remote does not
+        # turn dirty local bytes into GitHub authority; the dedicated Git
+        # history/checkpoint routes own github_code.
+        inspect_repository(config.repository_path)
+        code_lane = "local_code"
         result = classify_source_intake(
             sources,
             code_mode=code_lane,
@@ -1517,7 +1589,7 @@ class EvidenceLaneService:
                     )
                     or ""
                 )
-        if active_session_id:
+        if active_session_id and turn_entry is None:
             receipt = self.sessions.record_source_intake_classification(
                 project_id,
                 active_session_id,
@@ -1529,11 +1601,261 @@ class EvidenceLaneService:
             }
             result["prior_lifecycle_state"] = receipt["lifecycle_state_unchanged"]
             result["pointer"] = receipt["pointer"]
-        else:
+        elif not active_session_id:
             result["chat_lineage"] = {"append_status": "NO_ACTIVE_SESSION"}
             result["prior_lifecycle_state"] = "NO_ACTIVE_SESSION"
+        else:
+            result["chat_lineage"] = {
+                "append_status": "DEFERRED_UNTIL_TURN_ENTRY_PREFLIGHT"
+            }
+            result["prior_lifecycle_state"] = "PREFLIGHT_PENDING"
         result["next_action"] = "RETURN_TO_SOURCE_INTAKE_OR_PRIOR_LIFECYCLE_POSITION"
+        if turn_entry is not None:
+            require(
+                active_session_id != "" and isinstance(turn_entry, dict),
+                "TURN_ENTRY_SESSION_REQUIRED",
+                "A formula-bound turn entry requires the exact active session.",
+                status="BLOCKED",
+            )
+            session = self.sessions.load(project_id, active_session_id)
+            runtime_task = dict(session.task or {})
+            metadata_active_task_id = str(
+                session.metadata.get("active_backlog_task_id") or ""
+            ).strip()
+            runtime_backlog_task_id = str(
+                runtime_task.get("backlog_task_id") or metadata_active_task_id
+            ).strip()
+            backlog_snapshot = self.store.backlog_status(project_id)
+            live_active_task_ids = [
+                str(task["task_id"])
+                for task in backlog_snapshot.get("tasks", [])
+                if task.get("status") == "ACTIVE"
+            ]
+            active_task_id = str(
+                turn_entry.get("task_id") or runtime_backlog_task_id or ""
+            ).strip()
+            require(
+                bool(active_task_id)
+                and active_task_id == runtime_backlog_task_id
+                and live_active_task_ids == [active_task_id],
+                "TURN_ENTRY_ACTIVE_TASK_MISMATCH",
+                "Turn entry must bind the exact session task and sole active Plan row.",
+                status="MISMATCH",
+                active_task_id=active_task_id,
+                runtime_backlog_task_id=runtime_backlog_task_id,
+                metadata_active_task_id=metadata_active_task_id,
+                live_active_task_ids=live_active_task_ids,
+            )
+            bounded_query = str(turn_entry.get("bounded_query") or "").strip()
+            formula = turn_entry.get("formula")
+            require(
+                bool(bounded_query)
+                and len(bounded_query.encode("utf-8")) <= 4096
+                and isinstance(formula, dict)
+                and 0 < len(canonical_json_bytes(formula)) <= 16 * 1024,
+                "TURN_ENTRY_BOUNDED_INPUT_INVALID",
+                "Turn entry requires one bounded query and a compact formula record.",
+                status="BLOCKED",
+            )
+            formula = cast(dict[str, Any], formula)
+            required_formula_fields = {
+                "fired_modes",
+                "operators",
+                "bounded_source_locators",
+                "sector_locators",
+                "env_uop_terms",
+                "assumptions",
+                "intended_validator",
+                "expected_result",
+                "formula_expression",
+            }
+            missing_formula_fields = sorted(required_formula_fields - set(formula))
+            bounded_list_fields = {
+                "fired_modes",
+                "operators",
+                "bounded_source_locators",
+                "sector_locators",
+                "env_uop_terms",
+                "assumptions",
+            }
+            invalid_list_fields = sorted(
+                field
+                for field in bounded_list_fields
+                if not isinstance(formula.get(field), list)
+                or not 0 < len(formula[field]) <= 32
+                or any(
+                    not isinstance(value, str) or not value.strip()
+                    for value in formula[field]
+                )
+            )
+            invalid_scalar_fields = sorted(
+                field
+                for field in (
+                    "intended_validator",
+                    "expected_result",
+                    "formula_expression",
+                )
+                if not isinstance(formula.get(field), str) or not formula[field].strip()
+            )
+            invalid_formula_sector_locators = sorted(
+                {
+                    value
+                    for value in formula.get("sector_locators", [])
+                    if value not in CANONICAL_LANE_IDS
+                }
+            )
+            require(
+                not missing_formula_fields
+                and not invalid_list_fields
+                and not invalid_scalar_fields,
+                "TURN_ENTRY_FORMULA_SCHEMA_INVALID",
+                "The task formula must carry the bounded source, mode, operator, "
+                "ENV/UOP, assumption, validator, result, and expression terms.",
+                status="BLOCKED",
+                missing_formula_fields=missing_formula_fields,
+                invalid_list_fields=invalid_list_fields,
+                invalid_scalar_fields=invalid_scalar_fields,
+            )
+            require(
+                not invalid_formula_sector_locators,
+                "TURN_ENTRY_FORMULA_SECTOR_INVALID",
+                "Task-formula sector locators must use canonical lane IDs.",
+                status="BLOCKED",
+                invalid_formula_sector_locators=invalid_formula_sector_locators,
+            )
+            pointer = self.store.pointer(project_id)
+            accepted_pv = str(pointer.accepted_pv or "").strip()
+            require(
+                bool(accepted_pv),
+                "TURN_ENTRY_ACCEPTED_PV_REQUIRED",
+                "Turn entry requires one accepted PV baseline.",
+                status="BLOCKED",
+            )
+            repository = inspect_repository(config.repository_path)
+            working = query_working_project_sectors(
+                self.store.project_root(project_id),
+                repository_root=config.repository_path,
+                project_id=project_id,
+                accepted_pv=accepted_pv,
+                pointer_generation=pointer.generation,
+                query=bounded_query,
+                lane_ids=list(
+                    dict.fromkeys(
+                        [
+                            lane_id
+                            for lane_id in result["ordered_canonical_lanes"]
+                            if lane_id in CANONICAL_LANE_IDS
+                        ]
+                        + list(formula["sector_locators"])
+                        + ["plan"]
+                    )
+                ),
+                limit=int(turn_entry.get("limit") or 8),
+                expected_branch=repository.branch,
+                expected_head=repository.commit_sha,
+            )
+            accepted_package = self.reader.resolve(project_id, accepted_pv)
+            accepted_freshness = evaluate_freshness(
+                self.store, project_id, accepted_package
+            )
+            requested_source_event_id = str(
+                turn_entry.get("source_event_id") or ""
+            ).strip()
+            if not requested_source_event_id:
+                source_event_seed = {
+                    "project_id": project_id,
+                    "session_id": active_session_id,
+                    "task_id": active_task_id,
+                    "formula_event_id": str(turn_entry.get("event_id") or ""),
+                    "formula_sha256": sha256_bytes(canonical_json_bytes(formula)),
+                    "classification_sha256": sha256_bytes(canonical_json_bytes(result)),
+                }
+                requested_source_event_id = (
+                    "source_intake_"
+                    + sha256_bytes(canonical_json_bytes(source_event_seed))[:32].lower()
+                )
+            source_receipt = self.sessions.record_source_intake_classification(
+                project_id,
+                active_session_id,
+                classification=result,
+                event_id=requested_source_event_id,
+            )
+            result["chat_lineage"] = {
+                "append_status": "APPENDED_OR_REPLAYED",
+                "event_id": source_receipt["event"]["event_id"],
+            }
+            result["prior_lifecycle_state"] = source_receipt[
+                "lifecycle_state_unchanged"
+            ]
+            result["pointer"] = source_receipt["pointer"]
+            source_event_id = str(source_receipt["event"]["event_id"])
+            formula_receipt = self.store.record_task_formula(
+                project_id,
+                task_id=active_task_id,
+                event_kind=str(turn_entry.get("event_kind") or "ENTRY_FORMULA"),
+                source_event_id=source_event_id,
+                session_id=active_session_id,
+                formula=formula,
+                actor=str(turn_entry.get("actor") or "TURN_ENTRY_SOURCE_INTAKE"),
+                prior_formula_sha256=(
+                    str(turn_entry["prior_formula_sha256"])
+                    if turn_entry.get("prior_formula_sha256")
+                    else None
+                ),
+                changed_terms=(
+                    dict(turn_entry.get("changed_terms") or {})
+                    if turn_entry.get("changed_terms") is not None
+                    else None
+                ),
+                cause_evidence_locator=(
+                    str(turn_entry["cause_evidence_locator"])
+                    if turn_entry.get("cause_evidence_locator")
+                    else None
+                ),
+                event_id=(
+                    str(turn_entry["event_id"]) if turn_entry.get("event_id") else None
+                ),
+            )
+            result["turn_entry"] = {
+                "status": "PASS",
+                "schema": "evidence-lane.turn-entry-intake.v1",
+                "active_task_id": active_task_id,
+                "source_event_id": source_event_id,
+                "formula_event_id": formula_receipt["event"]["event_id"],
+                "formula_sha256": formula_receipt["event"]["formula_sha256"],
+                "formula_event_kind": formula_receipt["event"]["event_kind"],
+                "working_sector_query": working,
+                "accepted_freshness": accepted_freshness,
+                "fallback_authority": (
+                    "LIVE_DIRTY_WORKSPACE_AND_INDEX"
+                    if accepted_freshness.get("state") != "FRESH"
+                    else "ACCEPTED_PV_WITH_WORKING_COMPARISON"
+                ),
+                "raw_prompt_persisted": False,
+                "raw_plan_loaded": False,
+                "raw_pv_loaded": False,
+                "raw_chat_lineage_loaded": False,
+                "private_reasoning_stored": False,
+                "candidate_created": False,
+                "pointer_moved": False,
+                "hil_inferred": False,
+            }
         return result
+
+    def adaptive_delta_exit(
+        self,
+        project_id: str,
+        session_id: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Run one governed per-Delta exit without advancing the Plan row."""
+
+        return run_adaptive_delta_exit(
+            self,
+            project_id,
+            session_id,
+            **kwargs,
+        )
 
     def source_sqlite_inspect(
         self,
@@ -2090,14 +2412,21 @@ class EvidenceLaneService:
             with ThreadPoolExecutor(
                 max_workers=min(_STATUS_VALIDATION_WORKERS, len(accepted_ids))
             ) as executor:
-                accepted_validations = list(
-                    executor.map(
-                        lambda pv_id: validate_pv_package(
-                            self.store.accepted_path(project_id, pv_id),
+                def validate_history(pv_id: str) -> dict[str, Any]:
+                    artifact = self.store.accepted_path(project_id, pv_id)
+                    if artifact.is_file():
+                        return self.store.validate_accepted(
+                            project_id,
+                            pv_id,
                             require_promotable=False,
-                        ),
-                        accepted_ids,
+                        )
+                    return validate_pv_package(
+                        artifact,
+                        require_promotable=False,
                     )
+
+                accepted_validations = list(
+                    executor.map(validate_history, accepted_ids)
                 )
         accepted_history: list[dict[str, Any]] = []
         for pv_id, validation in zip(
@@ -2230,8 +2559,9 @@ class EvidenceLaneService:
         candidate_ids = cast(list[str], base.get("candidates") or [])
         current_validation: dict[str, Any] | None = None
         if pointer.accepted_pv:
-            validation = validate_pv_package(
-                self.store.accepted_path(project_id, pointer.accepted_pv),
+            validation = self.store.validate_accepted(
+                project_id,
+                pointer.accepted_pv,
                 require_promotable=False,
             )
             current_validation = {
@@ -2551,32 +2881,49 @@ class EvidenceLaneService:
                 limit=min(int(limit), 20),
             )
         require(
-            1 <= int(limit) <= 10,
-            "TASK_BACKLOG_WINDOW_LIMIT_INVALID",
-            "The host/model Plan projection is bounded to at most ten rows.",
+            int(limit) == 10,
+            "TASK_BACKLOG_WINDOW_FIXED_CARDINALITY_REQUIRED",
+            "The native host Plan projection is one fixed header plus at most nine Delta rows.",
             status="BLOCKED",
             limit=limit,
         )
         backlog = self.store.backlog_status(project_id)
         goal = cast(dict[str, Any], backlog.get("goal_projection") or {})
         rows = cast(list[dict[str, Any]], goal.get("rows") or [])
-        active_indexes = [
-            index
-            for index, row in enumerate(rows)
+        active_rows = [
+            row
+            for row in rows
             if row.get("status") == "in_progress"
             and row.get("lifecycle_status") == "ACTIVE"
         ]
         require(
-            len(active_indexes) <= 1,
+            len(active_rows) <= 1,
             "TASK_BACKLOG_WINDOW_ACTIVE_ROW_INVALID",
             "The live Plan projection contains multiple ACTIVE rows.",
             status="MISMATCH",
-            active_count=len(active_indexes),
+            active_count=len(active_rows),
         )
-        window_size = int(limit)
-        active_index = active_indexes[0] if active_indexes else 0
-        window_start = (active_index // window_size) * window_size
-        window_rows = rows[window_start : window_start + window_size]
+        projection: dict[str, Any] | None = None
+        if active_rows:
+            fixed_window_task_ids = self.store.persisted_host_plan_window_task_ids(
+                project_id
+            )
+            projection = _exact_projection(
+                self.store,
+                project_id=project_id,
+                fixed_window_task_ids=fixed_window_task_ids,
+            )
+            window_task_ids = list(projection["window_task_ids"])
+        else:
+            # A backlog may be inspected before Plan activation, but it is not a
+            # host Step Task List and must never masquerade as its projector.
+            # Goal presence is deliberately irrelevant once a Plan row is ACTIVE.
+            window_task_ids = [str(row["task_id"]) for row in rows[:9]]
+        rows_by_task_id = {str(row["task_id"]): row for row in rows}
+        window_rows = [
+            rows_by_task_id[str(task_id)]
+            for task_id in window_task_ids
+        ]
         compact_rows = [
             {
                 "number": int(row["number"]),
@@ -2624,19 +2971,47 @@ class EvidenceLaneService:
             "counts": backlog.get("counts"),
             "canonical_plan_sha256": goal.get("canonical_plan_sha256"),
             "executable_projection_sha256": goal.get("projection_sha256"),
-            "window_size": window_size,
+            "window_size": 9,
+            "maximum_host_item_count": 10,
             "window_row_start": (
-                int(window_rows[0]["number"]) if window_rows else None
+                projection["row_start"]
+                if projection is not None
+                else (int(window_rows[0]["number"]) if window_rows else None)
             ),
-            "window_row_end": (int(window_rows[-1]["number"]) if window_rows else None),
+            "window_row_end": (
+                projection["row_end"]
+                if projection is not None
+                else (int(window_rows[-1]["number"]) if window_rows else None)
+            ),
             "absolute_active_row": (
-                int(rows[active_index]["number"]) if active_indexes else None
+                projection["sole_active_row"] if projection is not None else None
             ),
             "absolute_active_task_id": (
-                str(rows[active_index]["task_id"]) if active_indexes else None
+                projection["sole_active_task_id"]
+                if projection is not None
+                else None
             ),
             "rows": compact_rows,
-            "row_ui_contract": "THREE_LINES_MAX_NO_FULL_DESCRIPTION",
+            "items": projection["items"] if projection is not None else [],
+            "row_ui_contract": (
+                "HEADER_THEN_FOUR_LINES_PER_DELTA_2_AUTHORITY_2_HUMAN"
+                if projection is not None
+                else "NO_HOST_STEP_LIST_BEFORE_PLAN_ACTIVATION"
+            ),
+            "fixed_header": (
+                projection["continuity_header"] if projection is not None else None
+            ),
+            "host_update_plan_contract": (
+                projection["host_update_plan_contract"]
+                if projection is not None
+                else None
+            ),
+            "window_task_ids": window_task_ids,
+            "window_ui_fingerprint_sha256": (
+                projection["window_ui_fingerprint_sha256"]
+                if projection is not None
+                else None
+            ),
             "full_ledger_returned": False,
             "full_row_reconstructed_in_model_context": False,
             "accepted_pv_payload_loaded": False,
@@ -2656,6 +3031,8 @@ class EvidenceLaneService:
         reason: str,
         replacement_task_id: str | None = None,
         event_id: str | None = None,
+        correction_of_event_id: str | None = None,
+        expected_backlog_sha256: str | None = None,
     ) -> dict[str, Any]:
         exact_reason = reason.strip()
         require(
@@ -2672,6 +3049,8 @@ class EvidenceLaneService:
             reason_sha256=sha256_bytes(exact_reason.encode("utf-8")),
             replacement_task_id=replacement_task_id,
             event_id=event_id,
+            correction_of_event_id=correction_of_event_id,
+            expected_backlog_sha256=expected_backlog_sha256,
         )
 
     def register_project(
@@ -2685,14 +3064,86 @@ class EvidenceLaneService:
         allowed_branches: list[str],
         sensitivity: str = "PRIVATE",
         capture_route: str = "GOVERNED_PROJECT_FULL",
+        project_authority_root: str | None = None,
+        project_authority_migration_confirmation: str | None = None,
+        expected_accepted_pv: str | None = None,
+        expected_pointer_generation: int | None = None,
+        selected_by: str | None = None,
     ) -> dict[str, Any]:
+        resolved_repository = str(Path(repository_path).resolve())
+        resolved_authority_root = (
+            str(Path(project_authority_root).resolve())
+            if project_authority_root
+            else None
+        )
+        existing: ProjectConfig | None = None
+        try:
+            existing = self.store.config(project_id)
+        except EvidenceLaneError as exc:
+            if exc.code != "PROJECT_NOT_REGISTERED":
+                raise
+        if existing is not None and resolved_authority_root is not None:
+            expected_fields = {
+                "display_name": display_name,
+                "repository_path": resolved_repository,
+                "expected_owner": expected_owner,
+                "expected_name": expected_name,
+                "allowed_branches": allowed_branches,
+                "sensitivity": sensitivity.upper(),
+                "capture_route": capture_route,
+            }
+            mismatches = {
+                key: {
+                    "registered": getattr(existing, key),
+                    "requested": value,
+                }
+                for key, value in expected_fields.items()
+                if getattr(existing, key) != value
+            }
+            require(
+                not mismatches,
+                "PROJECT_AUTHORITY_MIGRATION_REGISTRATION_MISMATCH",
+                "Project authority relocation cannot alter the registered source or project identity.",
+                status="MISMATCH",
+                mismatches=mismatches,
+            )
+            route = self.store.inspect_project_route(project_id)
+            if route["resolved_project_root"] == resolved_authority_root:
+                return {
+                    "status": "PASS",
+                    "state": "REGISTERED_EXTERNAL_AUTHORITY_IDEMPOTENT_REUSE",
+                    **self.store.project_authority_status(project_id),
+                }
+            require(
+                project_authority_migration_confirmation is not None
+                and expected_accepted_pv is not None
+                and expected_pointer_generation is not None
+                and selected_by is not None,
+                "PROJECT_AUTHORITY_MIGRATION_PRECONDITION_REQUIRED",
+                "Relocating an existing project requires confirmation, actor, accepted PV, and pointer generation.",
+                status="BLOCKED",
+            )
+            migration = self.migrate_project_authority(
+                project_id,
+                target_root=resolved_authority_root,
+                selected_by=cast(str, selected_by),
+                confirmation=cast(str, project_authority_migration_confirmation),
+                expected_accepted_pv=cast(str, expected_accepted_pv),
+                expected_pointer_generation=cast(int, expected_pointer_generation),
+            )
+            return {
+                "status": "PASS",
+                "state": "REGISTERED_PROJECT_AUTHORITY_RELOCATED",
+                "migration": migration,
+                "project_authority": self.store.project_authority_status(project_id),
+            }
         return {
             "status": "PASS",
             **self.store.register_project(
                 ProjectConfig(
                     project_id=project_id,
                     display_name=display_name,
-                    repository_path=str(Path(repository_path).resolve()),
+                    repository_path=resolved_repository,
                     expected_owner=expected_owner,
                     expected_name=expected_name,
                     allowed_branches=allowed_branches,
@@ -2700,9 +3151,35 @@ class EvidenceLaneService:
                     persistence_mode="governed_by_host",
                     sensitivity=sensitivity.upper(),
                     capture_route=capture_route,
+                    project_authority_root=resolved_authority_root,
                 )
             ),
         }
+
+    def project_authority_status(self, project_id: str) -> dict[str, Any]:
+        return self.store.project_authority_status(project_id)
+
+    def project_pv_storage_status(self, project_id: str) -> dict[str, Any]:
+        return self.store.project_pv_storage_status(project_id)
+
+    def migrate_project_authority(
+        self,
+        project_id: str,
+        *,
+        target_root: str,
+        selected_by: str,
+        confirmation: str,
+        expected_accepted_pv: str,
+        expected_pointer_generation: int,
+    ) -> dict[str, Any]:
+        return self.store.migrate_project_authority(
+            project_id,
+            target_root=target_root,
+            selected_by=selected_by,
+            confirmation=confirmation,
+            expected_accepted_pv=expected_accepted_pv,
+            expected_pointer_generation=expected_pointer_generation,
+        )
 
     def enroll_project(
         self,
@@ -2856,7 +3333,7 @@ class EvidenceLaneService:
     ) -> dict[str, Any]:
         capture_route_binding = self._capture_route_binding(project_id)
         project_lineage_entry = ProjectChatLineage(
-            self.store.project_root(project_id) / "lineage"
+            resolved_chat_lineage_root(self.store.project_root(project_id))
         ).sync()
         flash = self.flash_authority.ensure_flashed()
         host_kind = normalize_host_kind(host)
@@ -2909,7 +3386,7 @@ class EvidenceLaneService:
         result["project_lineage_entry"] = project_lineage_entry
         result["capture_route_binding"] = capture_route_binding
         result["project_lineage"] = ProjectChatLineage(
-            self.store.project_root(project_id) / "lineage"
+            resolved_chat_lineage_root(self.store.project_root(project_id))
         ).sync()
         return result
 
@@ -2926,7 +3403,7 @@ class EvidenceLaneService:
     ) -> dict[str, Any]:
         capture_route_binding = self._capture_route_binding(project_id)
         project_lineage_entry = ProjectChatLineage(
-            self.store.project_root(project_id) / "lineage"
+            resolved_chat_lineage_root(self.store.project_root(project_id))
         ).sync()
         flash = self.flash_authority.ensure_flashed()
         host_kind = normalize_host_kind(host)
@@ -2978,7 +3455,7 @@ class EvidenceLaneService:
         result["project_lineage_entry"] = project_lineage_entry
         result["capture_route_binding"] = capture_route_binding
         result["project_lineage"] = ProjectChatLineage(
-            self.store.project_root(project_id) / "lineage"
+            resolved_chat_lineage_root(self.store.project_root(project_id))
         ).sync()
         return result
 
@@ -3040,9 +3517,7 @@ class EvidenceLaneService:
                 persistence_route=route_payload,
                 flash=flash,
                 client_can_edit_source=client_can_edit_source,
-                server_has_durable_filesystem=(
-                    route.server_filesystem == "DURABLE"
-                ),
+                server_has_durable_filesystem=(route.server_filesystem == "DURABLE"),
             )
         result["session_flash"] = flash
         result["persistence_route"] = {
@@ -3415,6 +3890,7 @@ SERVICE_ROUTE_REVIEW_SCHEMA = "evidence-lane.service-route-review.v1"
 # method to EvidenceLaneService must not silently make it a product capability.
 SERVICE_MCP_WORKFLOW_METHODS = frozenset(
     {
+        "adaptive_delta_exit",
         "boot_session",
         "build_initial",
         "classify_hil_intent",
@@ -3478,6 +3954,9 @@ SERVICE_SDK_WORKFLOW_METHODS = frozenset(
         "doctor",
         "fuse",
         "prompt_index_status",
+        "project_authority_status",
+        "project_pv_storage_status",
+        "migrate_project_authority",
         "record_hil_decision",
         "rollback",
         "runtime_activation_status",
@@ -3524,23 +4003,21 @@ def inspect_service_route_parity(
     dispatch = set(SERVICE_DISPATCH_BOUNDARY_METHODS)
     mcp = set(SERVICE_MCP_WORKFLOW_METHODS)
     sdk = set(SERVICE_SDK_WORKFLOW_METHODS)
-    classified = mcp | dispatch | internal
-    overlaps = sorted((mcp & dispatch) | (mcp & internal) | (dispatch & internal))
+    workflow = mcp | sdk
+    classified = workflow | dispatch | internal
+    overlaps = sorted(
+        (workflow & dispatch) | (workflow & internal) | (dispatch & internal)
+    )
     unclassified = sorted(inventory - classified)
     unknown = sorted(classified - inventory)
-    sdk_without_public_workflow = sorted(sdk - mcp)
     require(
-        not overlaps
-        and not unclassified
-        and not unknown
-        and not sdk_without_public_workflow,
+        not overlaps and not unclassified and not unknown,
         "SERVICE_ROUTE_CLASSIFICATION_MISMATCH",
         "Every public service method must have one exact workflow classification.",
         status="MISMATCH",
         overlapping_methods=overlaps,
         unclassified_methods=unclassified,
         classified_methods_missing_from_service=unknown,
-        sdk_methods_without_public_workflow=sdk_without_public_workflow,
     )
 
     methods: list[dict[str, Any]] = []
@@ -3572,18 +4049,24 @@ def inspect_service_route_parity(
                 }
             )
             continue
-        owners = ["NATIVE_MCP"]
+        owners: list[str] = []
+        if name in mcp:
+            owners.append("NATIVE_MCP")
         if name in sdk:
             owners.append("INTERNAL_SDK")
+        if name in mcp and name in sdk:
+            classification = "MCP_AND_INTERNAL_SDK_WORKFLOW"
+        elif name in mcp:
+            classification = "MCP_WORKFLOW"
+        else:
+            classification = "INTERNAL_SDK_WORKFLOW"
         methods.append(
             {
                 "method": name,
-                "classification": (
-                    "MCP_AND_INTERNAL_SDK_WORKFLOW" if name in sdk else "MCP_WORKFLOW"
-                ),
+                "classification": classification,
                 "workflow": "DECLARED_PUBLIC_WORKFLOW",
                 "route_owners": owners,
-                "public_route_eligible": True,
+                "public_route_eligible": name in mcp,
                 "implementation_delta_eligible": False,
                 "reason": "The method is already reached by its declared workflow.",
             }

@@ -27,6 +27,18 @@ known contract. `canon_seal_envelope` creates bounded input only;
 `canon_receive` records receipt; `canon_classify` compares it to receiver
 authority. None of these operations may promote Project Truth or Learning.
 
+When a Delta explicitly requires the cross-sector consequence graph, use the
+private SDK operation `canon_input:bootstrap_consequence_graph` with its exact
+write grant and an empty payload. The SDK binding supplies project, accepted
+pointer, active Plan task, host task/deep link, and ChatLineage identities; do
+not repeat or override them in payload. The operation derives Plan, steer,
+Learning, operational Canon, and all 18 sector inputs, then creates or reuses
+one content-addressed SQLite/Mermaid/DOT bundle. Read the bounded summary back
+through `canon_graph`. Never load or return the full graph or raw Plan/Learning
+rows to model context, and never treat projection refresh as Canon admission,
+Learning acceptance, ordinary approval, Project HIL, candidate creation, or
+pointer movement.
+
 ## Linked execution
 
 Canon supports exactly two execution classes:
@@ -111,6 +123,10 @@ transition recorded in the canon_schema_migration table; an unknown older versio
 newer version, an asset-hash mismatch, a destructive rewrite, or an unknown
 receipt schema fails closed. Earlier receipt bytes are immutable, and a
 breaking receipt change requires a new major schema ID.
+
+Treat `../../schemas/canon/canon-consequence-graph.v1.sql` as the additive
+first-class schema for the immutable consequence projection. It never replaces
+or migrates the operational Canon ledger.
 
 ## Exit receipt
 

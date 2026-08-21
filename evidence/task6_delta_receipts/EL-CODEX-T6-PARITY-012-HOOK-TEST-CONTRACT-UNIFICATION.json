@@ -1,0 +1,104 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_HOOK_STOP_CONTRACT_UNIFIED_NOT_INSTALLED",
+  "recorded_at": "2026-08-15T14:14:37Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-012-HOOK-TEST-CONTRACT-UNIFICATION",
+  "official_wire_contract": {
+    "authority": "OPENAI_CODEX_GENERATED_HOOK_SCHEMAS",
+    "input_schema": "stop.command.input.schema.json",
+    "output_schema": "stop.command.output.schema.json",
+    "input_url": "https://raw.githubusercontent.com/openai/codex/main/codex-rs/hooks/schema/generated/stop.command.input.schema.json",
+    "output_url": "https://raw.githubusercontent.com/openai/codex/main/codex-rs/hooks/schema/generated/stop.command.output.schema.json",
+    "output_control_fields_permitted_upstream": [
+      "continue",
+      "decision",
+      "reason",
+      "stopReason",
+      "suppressOutput",
+      "systemMessage"
+    ]
+  },
+  "evidence_lane_strict_subset": {
+    "profile": "EXACT_EMPTY_OBJECT_STRICT_SUBSET",
+    "exact_output": {},
+    "control_fields_emitted": false,
+    "continuation_requested": false,
+    "first_delivery_stop_hook_active": false,
+    "replay_delivery_stop_hook_active": true,
+    "replay_identity_ignored_fields": ["stop_hook_active"],
+    "first_and_replay_share_occurrence": true,
+    "first_and_replay_output_identical": true,
+    "terminal_failure_output": {},
+    "handler": "stop_response.py",
+    "python_launcher": "invoke_hook.py",
+    "windows_launcher": "invoke_hook.ps1"
+  },
+  "byte_identities": {
+    "event_isolation_policy_sha256": "9B004CF6265771D29E73098449173A6E6E9E305DDFDA642BA795AA27FF32892F",
+    "event_isolation_source_sha256": "30E082478DAB30F64D6C1737EF7903898CFA810550F00AD68D59D578DF580DE4",
+    "stop_handler_sha256": "4ED8A253818A22B83631FA13DF95CCA176B4C14CE4BD8E3F46CE0CE258CC375B",
+    "package_hooks_sha256": "7D6EF9860C0D6BB7B396A4F53E84CD9293A47203B3BB5F61F389EDC699E95DD2",
+    "python_launcher_sha256": "F4A39E7BC4AE02D4285FB691A1C74E05E956FCE36D622234B66B75C4125DE29F",
+    "windows_launcher_sha256": "AFE39F93E0E839BB2D297B9A97FAA863009190D6F4A6467330FEB5FD4CB4BB9E",
+    "installed_fixture_test_sha256": "8B4193F165854170901644C4816DAC6D7EDD4BEF1E43F22949E8DD2021B8E01D"
+  },
+  "fixture_proof": {
+    "source_handler_first_and_replay_executed": true,
+    "package_manifest_mapping_verified": true,
+    "copied_installed_fixture_byte_equal": true,
+    "copied_installed_fixture_first_and_replay_executed": true,
+    "real_event_isolation_handler_invocation_count": 1,
+    "real_event_isolation_terminal_state": "COMPLETE",
+    "real_event_isolation_terminal_output": {},
+    "live_installed_slot_used": false
+  },
+  "verification": [
+    {
+      "selector": "Full hook contract, behavior, isolation, lifecycle, copied-install, and relevant MCP bundle",
+      "status": "PASS",
+      "result": "60 passed in 51.14s"
+    },
+    {
+      "selector": "Main MCP hook-focused slice",
+      "status": "PASS",
+      "result": "3 passed, 25 deselected in 48.30s"
+    },
+    {
+      "selector": "Release-channel regression suite",
+      "status": "PASS",
+      "result": "14 passed in 0.04s"
+    },
+    {
+      "selector": "Python lint, compile, PowerShell AST, JSON, and whitespace validation",
+      "status": "PASS",
+      "result": "All checks passed; Python sources compiled; POWERSHELL_AST_PASS; JSON and diff checks returned zero"
+    }
+  ],
+  "negative_cases": [
+    "A non-empty Stop output, including continue=true, fails the Evidence Lane strict-subset validator even though upstream Codex permits control fields.",
+    "Only stop_hook_active is removed from replay occurrence identity; every other official input field remains identity-bearing.",
+    "First delivery and stop_hook_active replay share one SQLite event receipt and replay the same empty object without a second handler execution.",
+    "Handler, Python launcher, and Windows launcher failures remain output-inert for Stop.",
+    "The copied installed fixture must match package source bytes and produce the same empty first/replay outputs.",
+    "No live installed fixture was mutated or treated as proof."
+  ],
+  "negative_side_effects": {
+    "live_codex_hook_invoked": false,
+    "live_install_or_activation_changed": false,
+    "live_hook_sqlite_or_kill_switch_changed": false,
+    "isolated_temporary_installed_fixture_created": true,
+    "isolated_temporary_hook_sqlite_and_kill_switch_created": true,
+    "plugin_installed_removed_enabled_or_disabled": false,
+    "installer_or_goal_helper_invoked": false,
+    "tunnel_invoked": false,
+    "candidate_created_or_accepted": false,
+    "hil_invoked": false,
+    "pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "subagent_started": false
+  },
+  "next_boundary": "Close Row209 through its exact per-Delta checkpoint. Row210 owns isolated exact-byte install/runtime verification and is the first row allowed to exercise install activation without enabling the live plugin."
+}

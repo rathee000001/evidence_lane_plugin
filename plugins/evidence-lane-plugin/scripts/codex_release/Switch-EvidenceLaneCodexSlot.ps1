@@ -22,7 +22,7 @@ param(
     [string]$PreparationReceiptSha256,
     [string]$CodexConfig = "$env:USERPROFILE\.codex\config.toml",
     [string]$CodexExecutable = "",
-    [string]$ReceiptDirectory = "$env:USERPROFILE\EvidenceLanePV\installations\codex-v300\three-slot",
+    [string]$ReceiptDirectory = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin\installations\codex-v300\three-slot",
     [ValidateRange(0, 2147483647)]
     [int]$ConsecutiveFailures = 0,
     [ValidateRange(0, 2147483647)]
@@ -79,7 +79,7 @@ function Invoke-Tunnel([string]$Slot, [string]$TunnelAction) {
     if ($TunnelAction -cnotin @("Start", "Stop", "Status")) {
         throw "Tunnel control action is not supported by the slot switch."
     }
-    $runtimeRoot = Join-Path $env:USERPROFILE "EvidenceLanePV\tunnel-runtime-v300-stable-build"
+    $runtimeRoot = Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin\tunnel-runtime-v300-stable-build"
     $manager = Join-Path $runtimeRoot "Manage-EvidenceLaneTunnel.ps1"
     if (-not (Test-Path -LiteralPath $manager -PathType Leaf)) {
         throw "The version-matched v300 tunnel manager is not installed."
@@ -97,12 +97,20 @@ function Invoke-Tunnel([string]$Slot, [string]$TunnelAction) {
 }
 
 function Get-CodexExecutable {
-    if (-not [string]::IsNullOrWhiteSpace($CodexExecutable)) {
-        return (Resolve-Path -LiteralPath $CodexExecutable).Path
+    $candidate = if (-not [string]::IsNullOrWhiteSpace($CodexExecutable)) {
+        [IO.Path]::GetFullPath($CodexExecutable)
     }
-    $command = Get-Command codex.exe -ErrorAction SilentlyContinue
-    if ($null -eq $command) { $command = Get-Command codex -ErrorAction Stop }
-    return $command.Source
+    else {
+        Join-Path $env:APPDATA "npm\node_modules\@openai\codex\node_modules\@openai\codex-win32-x64\vendor\x86_64-pc-windows-msvc\bin\codex.exe"
+    }
+    $exact = [IO.Path]::GetFullPath($candidate)
+    if ($exact -match '\\WindowsApps\\') {
+        throw "The packaged WindowsApps codex.exe is not a supported plugin-control route."
+    }
+    if (-not (Test-Path -LiteralPath $exact -PathType Leaf)) {
+        throw "The supported npm-native Codex CLI executable is unavailable."
+    }
+    return $exact
 }
 
 function Get-PluginInventory {

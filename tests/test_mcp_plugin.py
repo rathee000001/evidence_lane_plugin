@@ -53,7 +53,7 @@ from .conftest import (
     state_travel_destination_creation,
 )
 
-EXPECTED_TOOL_COUNT = 87
+EXPECTED_TOOL_COUNT = 88
 
 
 def _hook_context_json(payload: dict[str, object], prefix: str) -> dict[str, object]:
@@ -78,6 +78,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "lane_catalog",
         "mode_classify",
         "source_intake_classify",
+        "adaptive_delta_exit",
         "source_custom_schema_compile",
         "source_intake_schema_configure",
         "source_identity_register",
@@ -240,7 +241,7 @@ def test_all_registered_tools_accept_generated_evidence_lane_namespaces(
     )
     tools = asyncio.run(server.list_tools())
     canonical_names = frozenset(tool.name for tool in tools)
-    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 87
+    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 88
 
     for namespace in (
         "evidence_lane",
@@ -314,10 +315,10 @@ def test_native_route_receipt_seals_the_exact_unique_catalog(tmp_path: Path) -> 
     assert receipt["status"] == "PASS"
     assert receipt["server_identity"] == NATIVE_MCP_SERVER_IDENTITY == "evidence-lane"
     assert receipt["canonical_tool_namespace"] == NATIVE_MCP_TOOL_NAMESPACE
-    assert receipt["tool_count"] == EXPECTED_TOOL_COUNT == 87
+    assert receipt["tool_count"] == EXPECTED_TOOL_COUNT == 88
     assert receipt["tool_names_unique"] is True
     assert receipt["runtime_global_tool_count"] == 6
-    assert receipt["project_scoped_tool_count"] == 81
+    assert receipt["project_scoped_tool_count"] == 82
     assert receipt["project_route_argument"] == "project_id"
     assert receipt["project_route_argument_required"] is True
     assert receipt["project_route_schema_status"] == "PASS"
@@ -384,7 +385,7 @@ def test_packaged_skill_tool_references_match_live_canonical_catalog(
     canonical_names = frozenset(
         tool.name for tool in asyncio.run(server.list_tools())
     )
-    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 87
+    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 88
     tool_families = frozenset(name.partition("_")[0] for name in canonical_names)
     skill_paths = sorted((plugin / "skills").glob("*/SKILL.md"))
     command_paths = sorted((plugin / "commands").glob("*.md"))
@@ -1059,10 +1060,9 @@ def test_session_start_hook_is_advisory(tmp_path: Path) -> None:
             if line.startswith("PLUGIN_RUNTIME_ENVELOPE=")
         )
     )
-    # The source catalog has advanced beyond the installed/release channel in
-    # this pre-install row. The advisory hook must surface that drift instead
-    # of claiming the host is fresh or attempting an automatic repair.
-    assert runtime["release_policy_state"] == "MISMATCH"
+    # This row adds an internal SDK operation without changing the public MCP
+    # catalog, so the advisory hook remains fresh and performs no repair.
+    assert runtime["release_policy_state"] == "FRESH"
     assert runtime["host_storage_tunnel_matrix"]["routing_axes_independent"] is True
     assert runtime["host_storage_tunnel_matrix"]["headless_api"][
         "tunnel_requirement"

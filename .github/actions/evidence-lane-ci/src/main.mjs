@@ -74,11 +74,29 @@ function commandPlan(profile, pythonExecutable, pnpmExecutable) {
           'tests/test_backlog_enrollment.py',
           'tests/test_batch_completion.py',
           'tests/test_engine_pv.py',
+          'tests/test_host_plan_rehydration.py',
+          'tests/test_persistent_step_task_list_contract.py'
+        ]
+      ],
+      [
+        pythonExecutable,
+        [
+          '-m',
+          'pytest',
+          '-q',
           'tests/test_lifecycle.py',
           'tests/test_reader_query.py',
           'tests/test_runtime_activation.py',
+          'tests/test_session_flash.py'
+        ]
+      ],
+      [
+        pythonExecutable,
+        [
+          '-m',
+          'pytest',
+          '-q',
           'tests/test_security_persistence.py',
-          'tests/test_session_flash.py',
           'tests/test_status_history_compatibility.py',
           'tests/test_successor_addendum.py'
         ]

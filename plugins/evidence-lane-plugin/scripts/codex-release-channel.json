@@ -14,9 +14,9 @@
     "stable_updates_reinstall_in_place": true,
     "build_identity_is_receipt_not_selector": true,
     "native_server_identity": "evidence-lane",
-    "native_tool_count": 87,
+    "native_tool_count": 88,
     "native_read_tool_count": 27,
-    "native_write_tool_count": 60,
+    "native_write_tool_count": 61,
     "skill_count": 17,
     "codex_apps_allowed": false,
     "generated_namespace_allowed": false,
@@ -101,9 +101,9 @@
       "working_role_sync_required": true,
       "installed_version_must_equal_exact_package_version": true,
       "installed_catalog_must_equal": {
-        "native_actions": 87,
+        "native_actions": 88,
         "read_actions": 27,
-        "write_actions": 60,
+        "write_actions": 61,
         "governed_skills": 17,
         "hook_events": 8,
         "migrated_command_skills": 1
@@ -135,6 +135,18 @@
   },
   "helper_distribution_policy": {
     "schema": "evidence-lane.helper-distribution-policy.v1",
+    "runtime_storage_boundary": {
+      "root_relative_to_user_profile": ".codex\\plugins\\runtime\\evidence-lane-plugin",
+      "host_managed_hidden": true,
+      "project_authority_may_share_root": false,
+      "installed_cache_mutation_for_runtime_state_allowed": false,
+      "one_active_native_mcp_count": 1,
+      "one_active_tunnel_count": 1,
+      "failed_windowsapps_cli_probe_allowed": false,
+      "npm_native_codex_cli_required": true,
+      "exact_task_reopen_count": 1,
+      "black_terminal_popup_allowed": false
+    },
     "maintainer_release_helper": {
       "script": "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
       "audience": "EVIDENCE_LANE_MAINTAINER_ONLY",
@@ -558,9 +570,9 @@
     "explicit_six_way_hil_required": true,
     "fail_closed_on_version_mismatch": true,
     "required_catalog": {
-      "tools": 87,
+      "tools": 88,
       "read": 27,
-      "write": 60,
+      "write": 61,
       "skills": 17
     },
     "mode": "CODE",

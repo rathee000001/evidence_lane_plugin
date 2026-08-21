@@ -1,0 +1,36 @@
+{
+  "schema": "evidence-lane.v140-release-identity-receipt.v1",
+  "release": "1.4.0",
+  "base_accepted_pv": "PV7",
+  "base_pointer_generation": 7,
+  "base_accepted_commit": "42516b2edaae8f37d46523243599650afb2cb5e3",
+  "branch": "agent/evi-v140-systemwide-release-hil-v1.4.0",
+  "current_surface_policy": {
+    "authoritative_release": "1.4.0",
+    "plugin_cache_version": "1.4.0+codex.20260808112003",
+    "historical_v13_bytes_rewritten": false,
+    "third_party_versions_rewritten": false,
+    "remaining_v13_occurrences_require_classification": true
+  },
+  "pre_hil_website_deltas": {
+    "home": "18 source lanes, 15 plugin surfaces, and one HIL shown as one concentric governed system",
+    "architecture_proof_operators": "concentric motion and ordered operator-family rings",
+    "evidence_ai_studio": "business-language whole-plugin guide backed by the richer committed corpus",
+    "creative_route": "Adobe Express only; no 3D generation or account-link workflow"
+  },
+  "publication_boundary": {
+    "main_merge": "GATED_UNTIL_FRESH_PV8_APPROVAL",
+    "production_website": "GATED_UNTIL_FRESH_PV8_APPROVAL",
+    "github_publication": "GATED_UNTIL_FRESH_PV8_APPROVAL",
+    "existing_devpost_entry": "SEPARATE_PUBLICATION_LANE_AFTER_FRESH_PV8_APPROVAL"
+  },
+  "safety": {
+    "main_merged": false,
+    "production_deployed": false,
+    "github_release_published": false,
+    "devpost_mutated": false,
+    "connector_installed": false,
+    "hil_approval_inferred": false
+  },
+  "receipt_sha256": "65DB6C6D7C35966EF07E389A6E8443B877FA11E451B543B404ABBEB0B58126C8"
+}

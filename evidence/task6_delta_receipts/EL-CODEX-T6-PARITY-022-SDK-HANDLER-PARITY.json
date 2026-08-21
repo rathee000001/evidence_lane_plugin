@@ -1,0 +1,113 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_EXPLICIT_SDK_HANDLER_OWNERSHIP",
+  "recorded_at": "2026-08-15T17:16:57Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-022-SDK-HANDLER-PARITY",
+  "task_contract_sha256": "8FEF72C4E7FEEB698170ABD8936615ABFA477F8F5590B6517EF1F9120362F116",
+  "runtime_contract": {
+    "implementation": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/internal_sdk.py",
+    "parity_schema": "evidence-lane.sdk-handler-parity.v1",
+    "declared_operation_count": 60,
+    "registered_local_handler_count": 53,
+    "external_provider_operation_count": 7,
+    "narrowed_operation_claim_count": 5,
+    "unclassified_operation_count": 0,
+    "production_construction_validation": "build_local_service_adapter validates LOCAL_SERVICE parity before return"
+  },
+  "external_provider_ownership": [
+    {
+      "provider_adapter_id": "codex-host-entry-provider.v1",
+      "operations": [
+        "host_entry_continuity:issue",
+        "host_entry_continuity:consume",
+        "host_entry_continuity:roll_generation"
+      ]
+    },
+    {
+      "provider_adapter_id": "codex-host-plan-provider.v1",
+      "operations": [
+        "plan_delta_tasks:project_host_plan"
+      ]
+    },
+    {
+      "provider_adapter_id": "env-uop-operator-provider.v1",
+      "operations": [
+        "env_uop_operator_runtime:compile_formula",
+        "env_uop_operator_runtime:route_operator"
+      ]
+    },
+    {
+      "provider_adapter_id": "codex-headless-provider.v1",
+      "operations": [
+        "provider_host_adapters:invoke_headless"
+      ]
+    }
+  ],
+  "narrowed_operation_claims": [
+    "lifecycle_hooks:boot_or_resume",
+    "lifecycle_hooks:record_visible_event",
+    "lifecycle_hooks:seal_exit_entry",
+    "plan_delta_tasks:classify_delta",
+    "hil_candidate_pointer:prepare_candidate"
+  ],
+  "new_local_handlers": [
+    "chat_lineage:append",
+    "plan_delta_tasks:transition_task",
+    "source_lane_retrieval:source_intake",
+    "storage_connectors:select",
+    "hil_candidate_pointer:record_decision",
+    "hil_candidate_pointer:fuse",
+    "hil_candidate_pointer:rollback"
+  ],
+  "binding_guards": [
+    "Lineage append cannot override session, task, model, or submodel authority.",
+    "Plan transition is bound to the exact SDK project and active task.",
+    "Source Intake cannot override project or session authority.",
+    "Storage selection cannot override project authority.",
+    "HIL decision, Fuse, and Rollback cannot override project or session authority."
+  ],
+  "byte_identities": {
+    "internal_sdk_sha256": "312973509FA28A73835E98238D42739A93F5C7AF5ACA8D72CC33F1E73FE72932",
+    "handler_parity_tests_sha256": "6ECAFB78211E5D4CD5238383610B8CA37C1E8CF2455E6E082812A5749F341D1C"
+  },
+  "verification": [
+    {
+      "selector": "SDK handler ownership, production construction, exact local effects, provider boundaries, and binding failures",
+      "status": "PASS",
+      "result": "22 passed in 1.32s"
+    },
+    {
+      "selector": "Python lint, compile, and whitespace validation",
+      "status": "PASS",
+      "result": "Ruff, py_compile, and git diff --check passed"
+    }
+  ],
+  "negative_cases": [
+    "A local-service adapter cannot claim an operation owned by a host or external provider.",
+    "Unknown or missing locally owned operations fail construction-time parity validation.",
+    "Ambiguous duplicate SDK operation claims are removed rather than routed to guessed effects.",
+    "SDK calls cannot substitute a different project, session, task, model, or submodel binding.",
+    "The parity receipt distinguishes provider-owned operations from unclassified gaps."
+  ],
+  "negative_side_effects": {
+    "live_hil_operation_invoked": false,
+    "provider_operation_invoked": false,
+    "project_or_plan_authority_mutated_by_tests": false,
+    "candidate_created_or_accepted": false,
+    "pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "plugin_install_or_activation_changed": false,
+    "installer_or_goal_helper_invoked_by_root": false,
+    "tunnel_invoked": false,
+    "subagent_started_by_root": false
+  },
+  "limitations": [
+    "The full public-surface parity matrix has a pre-existing stale hook-package count: the live package contains 11 hook files while the matrix declares 9; Row219 does not own the matrix path and the mismatch remains visible for the public-surface rows.",
+    "Host Plan, host-entry, headless, and ENV/UOP write effects remain explicitly provider-owned rather than impersonated by the local service adapter.",
+    "Row220 owns the service-route review; Row221 owns public skill and MCP route parity."
+  ],
+  "next_boundary": "Close Row219 through its exact per-Delta checkpoint. Row220 EL-CODEX-T6-PARITY-023-SERVICE-ROUTE-REVIEW audits service routes and effect ownership without installing, invoking HIL, or moving PV12."
+}

@@ -24,8 +24,9 @@ param(
     [int]$TargetProcessId,
     [string]$PreparationReceipt,
     [string]$PreparationReceiptSha256,
-    [string]$ReceiptDirectory = "$env:USERPROFILE\EvidenceLanePV\installations\codex-v200\restart",
+    [string]$ReceiptDirectory = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin\installations\codex-v200\restart",
     [string]$DataRoot = "$env:USERPROFILE\EvidenceLanePV",
+    [string]$RuntimeControlRoot = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin",
     [string]$RestartLeasePath,
     [string]$RestartLeaseToken,
     [ValidateSet(
@@ -366,7 +367,7 @@ function Get-VersionMatchedTunnelBoundary {
     param(
         [Parameter(Mandatory = $true)][string]$ExactPluginRoot,
         [Parameter(Mandatory = $true)][string]$PluginVersion,
-        [Parameter(Mandatory = $true)][string]$ExactDataRoot
+        [Parameter(Mandatory = $true)][string]$ExactRuntimeControlRoot
     )
 
     $release = $PluginVersion.Split("+", 2)[0]
@@ -374,9 +375,14 @@ function Get-VersionMatchedTunnelBoundary {
         throw "The installed plugin version cannot bind a versioned tunnel."
     }
     $releaseToken = "v" + ($release -replace '\.', '')
+    $controlRoot = [IO.Path]::GetFullPath($ExactRuntimeControlRoot)
     $runtimeRoot = [IO.Path]::GetFullPath(
-        (Join-Path $ExactDataRoot "tunnel-runtime-$releaseToken-stable-build")
+        (Join-Path $controlRoot "tunnel-runtime-$releaseToken-stable-build")
     )
+    $approvedParent = $controlRoot + [IO.Path]::DirectorySeparatorChar
+    if (-not $runtimeRoot.StartsWith($approvedParent, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "The version-matched tunnel must remain inside the hidden Codex plugin runtime root."
+    }
     $markerPath = Join-Path $runtimeRoot "evidence-lane-tunnel-installation.json"
     $runtimeManager = Join-Path $runtimeRoot "Manage-EvidenceLaneTunnel.ps1"
     $runtimeHost = Join-Path $runtimeRoot "EvidenceLaneTunnelHost.exe"
@@ -565,7 +571,9 @@ function Sync-GoalRecoveryBindingAfterTaskBinding {
         [Parameter(Mandatory = $true)]
         [string]$ExactThreeSlotRegistry,
         [Parameter(Mandatory = $true)]
-        [string]$ExactThreeSlotRegistrySha256
+        [string]$ExactThreeSlotRegistrySha256,
+        [Parameter(Mandatory = $true)]
+        [string]$ExactRuntimeControlRoot
     )
 
     $goalRecoveryScript = Join-Path $PSScriptRoot "Manage-EvidenceLaneCodexGoalRecovery.ps1"
@@ -582,9 +590,7 @@ function Sync-GoalRecoveryBindingAfterTaskBinding {
         throw "The installed restart helper has no exact Goal recovery release identity."
     }
     $releaseToken = "v" + ($release -replace '\.', '')
-    $installationRoot = Split-Path -Parent $taskBindingRoot
-    $dataRoot = Split-Path -Parent $installationRoot
-    $goalRecoveryRoot = Join-Path $dataRoot "installations\helpers\$releaseToken\goal-recovery"
+    $goalRecoveryRoot = Join-Path ([IO.Path]::GetFullPath($ExactRuntimeControlRoot)) "installations\helpers\$releaseToken\goal-recovery"
     $goalRecoveryTaskName = "Evidence Lane Codex Goal Recovery $releaseToken"
     $goalBindingPath = Join-Path (Join-Path $goalRecoveryRoot "bindings") ($TaskId.ToLowerInvariant() + ".json")
 
@@ -1220,12 +1226,19 @@ elseif (
 }
 
 $tunnelRequired = $HostToolTransport -eq "HOST_TOOL_GAP"
+$exactRuntimeControlRoot = [IO.Path]::GetFullPath($RuntimeControlRoot)
+$expectedRuntimeControlRoot = [IO.Path]::GetFullPath(
+    (Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin")
+)
+if ($exactRuntimeControlRoot -cne $expectedRuntimeControlRoot) {
+    throw "The restart helper must use the exact hidden Evidence Lane Codex runtime root."
+}
 $tunnelBoundary = $null
 if ($tunnelRequired -and ($Action -ne "Prepare" -or $TargetProcessId -gt 0)) {
     $tunnelBoundary = Get-VersionMatchedTunnelBoundary `
         -ExactPluginRoot $installedPluginRoot `
         -PluginVersion $installedPluginVersion `
-        -ExactDataRoot ([IO.Path]::GetFullPath($DataRoot))
+        -ExactRuntimeControlRoot $exactRuntimeControlRoot
 }
 
 $restartAuthority = [ordered]@{
@@ -1239,6 +1252,9 @@ $restartAuthority = [ordered]@{
     fixed_restart_delay_allowed = $false
     host_tool_transport = $HostToolTransport
     tunnel_required = $tunnelRequired
+    runtime_control_root = $exactRuntimeControlRoot
+    runtime_control_root_hidden = $true
+    project_data_root_separate = ([IO.Path]::GetFullPath($DataRoot) -cne $exactRuntimeControlRoot)
 }
 if ($isLocalCasRestart) {
     $restartAuthority.local_test_commit_receipt = $exactLocalTestCommit
@@ -1393,7 +1409,8 @@ if ($Action -eq "Prepare") {
         -ExactTaskBindingPath $taskBindingPath `
         -ExactTaskBindingSha256 $taskBindingSha256 `
         -ExactThreeSlotRegistry $exactThreeSlotRegistry `
-        -ExactThreeSlotRegistrySha256 $observedThreeSlotRegistrySha256
+        -ExactThreeSlotRegistrySha256 $observedThreeSlotRegistrySha256 `
+        -ExactRuntimeControlRoot $exactRuntimeControlRoot
     [ordered]@{
         status = "PASS"
         state = "PREPARED_NOT_RESTARTED"
@@ -1500,6 +1517,7 @@ if ($Action -eq "Restart") {
         "-PreparationReceiptSha256", $PreparationReceiptSha256,
         "-ReceiptDirectory", $ReceiptDirectory,
         "-DataRoot", ([IO.Path]::GetFullPath($DataRoot)),
+        "-RuntimeControlRoot", $exactRuntimeControlRoot,
         "-RestartLeasePath", $leasePath,
         "-RestartLeaseToken", $leaseToken,
         "-AppId", $AppId,

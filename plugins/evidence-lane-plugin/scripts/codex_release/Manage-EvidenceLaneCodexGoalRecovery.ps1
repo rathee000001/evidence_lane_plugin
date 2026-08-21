@@ -7,7 +7,7 @@ param(
     [string]$ActivePlanTaskId,
     [string]$Release = "3.0.0",
     [string]$RecoveryRoot = "",
-    [string]$ThreeSlotRegistry = "$env:USERPROFILE\EvidenceLanePV\installations\codex-v300\three-slot\CODEX_THREE_SLOT_REGISTRY.json",
+    [string]$ThreeSlotRegistry = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin\installations\codex-v300\three-slot\CODEX_THREE_SLOT_REGISTRY.json",
     [string]$ThreeSlotRegistrySha256 = "",
     [string]$ScheduledTaskName = ""
 )
@@ -27,7 +27,18 @@ if (
 $script:Release = $Release
 $script:ReleaseToken = "v" + ($Release -replace '\.', '')
 if ([string]::IsNullOrWhiteSpace($RecoveryRoot)) {
-    $RecoveryRoot = Join-Path $env:USERPROFILE "EvidenceLanePV\installations\helpers\$($script:ReleaseToken)\goal-recovery"
+    $RecoveryRoot = Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin\installations\helpers\$($script:ReleaseToken)\goal-recovery"
+}
+$exactRecoveryRoot = [IO.Path]::GetFullPath($RecoveryRoot)
+$expectedRuntimeControlRoot = [IO.Path]::GetFullPath(
+    (Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin")
+)
+$approvedRecoveryParent = $expectedRuntimeControlRoot + [IO.Path]::DirectorySeparatorChar
+if (
+    -not $exactRecoveryRoot.StartsWith($approvedRecoveryParent, [StringComparison]::OrdinalIgnoreCase) -and
+    $Action -cne "Status"
+) {
+    throw "Goal recovery requires the exact hidden Evidence Lane Codex runtime boundary."
 }
 if ([string]::IsNullOrWhiteSpace($ScheduledTaskName)) {
     $ScheduledTaskName = "Evidence Lane Codex Goal Recovery $($script:ReleaseToken)"
@@ -762,8 +773,8 @@ function Invoke-CodexGoalProbe(
         }
         $evidenceServer = $evidenceServers[0]
         $toolCount = @($evidenceServer.tools.PSObject.Properties).Count
-        if ($toolCount -ne 87) {
-            throw "The Evidence Lane MCP catalog did not expose the exact 87-tool contract."
+        if ($toolCount -ne 88) {
+            throw "The Evidence Lane MCP catalog did not expose the exact 88-tool contract."
         }
         $governedResourceUri = "ui://evidence-lane/governed-console-v6.html"
         $governedResources = @(
@@ -1171,6 +1182,7 @@ function Install-RecoveryManager() {
     $arguments = ($argumentValues | ForEach-Object { ConvertTo-WindowsCommandLineArgument ([string]$_) }) -join " "
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
     $existing = Get-ScheduledTask -TaskName $ScheduledTaskName -ErrorAction SilentlyContinue
+    $legacyManagedTaskMigrated = $false
     if ($null -ne $existing) {
         $expectedScriptToken = ConvertTo-WindowsCommandLineArgument $durableScript
         $actionMatches = @(
@@ -1181,9 +1193,32 @@ function Install-RecoveryManager() {
                     [string]$_.Arguments -like "*-Action RecoverAtLogon*"
                 }
         ).Count -eq 1
-        if (-not $actionMatches) {
+        $legacyRecoveryRoot = [IO.Path]::GetFullPath(
+            (Join-Path $env:USERPROFILE "EvidenceLanePV\installations\helpers\$($script:ReleaseToken)\goal-recovery")
+        )
+        $legacyDurableScript = Join-Path $legacyRecoveryRoot "Manage-EvidenceLaneCodexGoalRecovery.ps1"
+        $legacyScriptToken = ConvertTo-WindowsCommandLineArgument $legacyDurableScript
+        $legacyRootToken = ConvertTo-WindowsCommandLineArgument $legacyRecoveryRoot
+        $registryToken = ConvertTo-WindowsCommandLineArgument ([IO.Path]::GetFullPath($ThreeSlotRegistry))
+        $taskNameToken = ConvertTo-WindowsCommandLineArgument $ScheduledTaskName
+        $legacyActionMatches = @(
+            $existing.Actions |
+                Where-Object {
+                    [string]$_.Execute -ieq [string]$powershell -and
+                    [string]$_.Arguments -like "*${legacyScriptToken}*" -and
+                    [string]$_.Arguments -like "*-Action RecoverAtLogon*" -and
+                    [string]$_.Arguments -like "*-Release $($script:Release)*" -and
+                    [string]$_.Arguments -like "*-RecoveryRoot ${legacyRootToken}*" -and
+                    [string]$_.Arguments -like "*-ThreeSlotRegistry ${registryToken}*" -and
+                    [string]$_.Arguments -match '-ThreeSlotRegistrySha256 [A-F0-9]{64}' -and
+                    [string]$_.Arguments -like "*-ScheduledTaskName ${taskNameToken}*"
+                }
+        ).Count -eq 1 -and
+            [string]$existing.Description -ceq "Reopen exact active Evidence Lane governed Codex Goal tasks after Windows logon; never submits a prompt or changes lifecycle state."
+        if (-not $actionMatches -and -not $legacyActionMatches) {
             throw "An unrelated scheduled task already owns the recovery task name."
         }
+        $legacyManagedTaskMigrated = -not $actionMatches -and $legacyActionMatches
     }
     $scheduledAction = New-ScheduledTaskAction -Execute $powershell -Argument $arguments
     $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity
@@ -1236,6 +1271,8 @@ function Install-RecoveryManager() {
         durable_script = $durableScript
         durable_script_sha256 = Get-Sha256 $durableScript
         scheduled_task_name = $ScheduledTaskName
+        legacy_managed_task_migrated_to_hidden_runtime = $legacyManagedTaskMigrated
+        legacy_managed_task_deleted = $false
         trigger = "AT_LOGON_CURRENT_WINDOWS_USER"
         start_when_available = $true
         max_instances = 1

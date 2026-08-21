@@ -31,6 +31,7 @@ _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}")
 _REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 _SHA256 = re.compile(r"[A-F0-9]{64}")
 _SIGNATURE = re.compile(r"sha256=([a-fA-F0-9]{64})")
+_GIT_OID = re.compile(r"[0-9a-fA-F]{40}(?:[0-9a-fA-F]{24})?")
 _PERMISSION_LEVELS = {"read", "write"}
 _ALLOWED_REPOSITORY_PERMISSIONS: dict[str, set[str]] = {
     "actions": {"read"},
@@ -104,6 +105,42 @@ def _iso(value: datetime) -> str:
     return (
         value.astimezone(UTC).isoformat(timespec="microseconds").replace("+00:00", "Z")
     )
+
+
+def _sha256(value: object, *, field: str) -> str:
+    normalized = str(value).strip().upper()
+    require(
+        bool(_SHA256.fullmatch(normalized)),
+        "GITHUB_APP_SHA256_INVALID",
+        f"{field} must be one exact SHA-256 identity.",
+        status="BLOCKED",
+        field=field,
+    )
+    return normalized
+
+
+def _git_oid(value: object, *, field: str) -> str:
+    normalized = str(value).strip().lower()
+    require(
+        bool(_GIT_OID.fullmatch(normalized)),
+        "GITHUB_APP_GIT_IDENTITY_INVALID",
+        f"{field} must be one exact Git object identity.",
+        status="BLOCKED",
+        field=field,
+    )
+    return normalized
+
+
+def _bounded_text(value: object, *, field: str, limit: int = 256) -> str:
+    normalized = str(value).strip()
+    require(
+        bool(normalized) and len(normalized.encode("utf-8")) <= limit,
+        "GITHUB_APP_CONTRACT_INVALID",
+        f"{field} must be non-empty and bounded.",
+        status="BLOCKED",
+        field=field,
+    )
+    return normalized
 
 
 def _permission_pairs(value: object) -> tuple[tuple[str, str], ...]:
@@ -1013,6 +1050,253 @@ def map_check_run_receipt(
         pointer_moved=False,
         hil_inferred=False,
     )
+
+
+@dataclass(frozen=True, slots=True)
+class ProductionDeliveryIdentity:
+    """Exact, credential-free identity for one GitHub-delivered Codex build.
+
+    The identity is intentionally narrower than a release authority.  It proves
+    that one GitHub App installation, repository ref, successful Actions run,
+    package, and branch-commit recovery slot agree.  It cannot create a commit,
+    push a ref, promote a PV, infer HIL, or mutate the main-merge fallback.
+    """
+
+    delivery_id: str
+    installation_binding_sha256: str
+    project_id: str
+    task_id: str
+    accepted_pv: str
+    repository: str
+    branch: str
+    commit_sha: str
+    tree_sha: str
+    actions_run_id: str
+    actions_head_sha: str
+    package_id: str
+    package_version: str
+    package_sha256: str
+    package_source_commit: str
+    mutable_local_slot: str
+    branch_commit_slot: str
+    main_merge_fallback_slot: str
+    installed_version: str
+    installed_package_sha256: str
+    installed_surface_sha256: str
+    main_merge_fallback_before_sha256: str
+    main_merge_fallback_after_sha256: str
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        delivery_id: str,
+        installation_binding: InstallationBinding,
+        repository: str,
+        branch: str,
+        commit_sha: str,
+        tree_sha: str,
+        actions_run_id: str,
+        actions_status: str,
+        actions_conclusion: str,
+        actions_head_sha: str,
+        package_id: str,
+        package_version: str,
+        package_sha256: str,
+        package_source_commit: str,
+        mutable_local_slot: str,
+        branch_commit_slot: str,
+        main_merge_fallback_slot: str,
+        installed_version: str,
+        installed_package_sha256: str,
+        installed_surface_sha256: str,
+        main_merge_fallback_before_sha256: str,
+        main_merge_fallback_after_sha256: str,
+    ) -> ProductionDeliveryIdentity:
+        exact_repository = _repository(repository)
+        exact_commit = _git_oid(commit_sha, field="commit_sha")
+        exact_actions_head = _git_oid(actions_head_sha, field="actions_head_sha")
+        exact_package_commit = _git_oid(
+            package_source_commit, field="package_source_commit"
+        )
+        exact_branch = _bounded_text(branch, field="branch")
+        require(
+            exact_repository in installation_binding.repositories,
+            "GITHUB_APP_DELIVERY_REPOSITORY_MISMATCH",
+            "The delivery repository is outside the exact installation binding.",
+            status="BLOCKED",
+        )
+        require(
+            actions_status.strip().lower() == "completed"
+            and actions_conclusion.strip().lower() == "success",
+            "GITHUB_APP_DELIVERY_ACTIONS_NOT_GREEN",
+            "Production delivery requires one completed successful Actions run.",
+            status="BLOCKED",
+        )
+        require(
+            exact_actions_head == exact_commit == exact_package_commit,
+            "GITHUB_APP_DELIVERY_COMMIT_MISMATCH",
+            "The ref, Actions run, and exact package must bind the same commit.",
+            status="MISMATCH",
+        )
+        exact_package_sha = _sha256(package_sha256, field="package_sha256")
+        require(
+            _sha256(
+                installed_package_sha256, field="installed_package_sha256"
+            )
+            == exact_package_sha,
+            "GITHUB_APP_DELIVERY_PACKAGE_INSTALL_MISMATCH",
+            "The installed branch-commit slot must contain the exact delivered package.",
+            status="MISMATCH",
+        )
+        exact_version = _bounded_text(package_version, field="package_version")
+        require(
+            _bounded_text(installed_version, field="installed_version")
+            == exact_version,
+            "GITHUB_APP_DELIVERY_VERSION_INSTALL_MISMATCH",
+            "The installed branch-commit slot version must equal the package version.",
+            status="MISMATCH",
+        )
+        slots = (
+            _bounded_text(mutable_local_slot, field="mutable_local_slot"),
+            _bounded_text(branch_commit_slot, field="branch_commit_slot"),
+            _bounded_text(
+                main_merge_fallback_slot, field="main_merge_fallback_slot"
+            ),
+        )
+        require(
+            len(set(slots)) == 3,
+            "GITHUB_APP_DELIVERY_SLOT_ALIAS_BLOCKED",
+            "Mutable-local, branch-commit, and main-merge slots must be distinct.",
+            status="BLOCKED",
+        )
+        fallback_before = _sha256(
+            main_merge_fallback_before_sha256,
+            field="main_merge_fallback_before_sha256",
+        )
+        fallback_after = _sha256(
+            main_merge_fallback_after_sha256,
+            field="main_merge_fallback_after_sha256",
+        )
+        require(
+            fallback_before == fallback_after,
+            "GITHUB_APP_DELIVERY_MAIN_FALLBACK_MUTATED",
+            "The branch checkpoint route must leave the main-merge fallback unchanged.",
+            status="MISMATCH",
+        )
+        return cls(
+            delivery_id=_identifier(delivery_id, field="delivery_id"),
+            installation_binding_sha256=installation_binding.sha256,
+            project_id=installation_binding.project_id,
+            task_id=installation_binding.task_id,
+            accepted_pv=installation_binding.accepted_pv,
+            repository=exact_repository,
+            branch=exact_branch,
+            commit_sha=exact_commit,
+            tree_sha=_git_oid(tree_sha, field="tree_sha"),
+            actions_run_id=_identifier(actions_run_id, field="actions_run_id"),
+            actions_head_sha=exact_actions_head,
+            package_id=_identifier(package_id, field="package_id"),
+            package_version=exact_version,
+            package_sha256=exact_package_sha,
+            package_source_commit=exact_package_commit,
+            mutable_local_slot=slots[0],
+            branch_commit_slot=slots[1],
+            main_merge_fallback_slot=slots[2],
+            installed_version=exact_version,
+            installed_package_sha256=exact_package_sha,
+            installed_surface_sha256=_sha256(
+                installed_surface_sha256, field="installed_surface_sha256"
+            ),
+            main_merge_fallback_before_sha256=fallback_before,
+            main_merge_fallback_after_sha256=fallback_after,
+        )
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "schema": "evidence-lane.github-app-production-delivery-identity.v1",
+            "delivery_id": self.delivery_id,
+            "installation_binding_sha256": self.installation_binding_sha256,
+            "project_id": self.project_id,
+            "task_id": self.task_id,
+            "accepted_pv": self.accepted_pv,
+            "source": {
+                "repository": self.repository,
+                "branch": self.branch,
+                "commit_sha": self.commit_sha,
+                "tree_sha": self.tree_sha,
+            },
+            "actions": {
+                "run_id": self.actions_run_id,
+                "status": "completed",
+                "conclusion": "success",
+                "head_sha": self.actions_head_sha,
+            },
+            "package": {
+                "package_id": self.package_id,
+                "version": self.package_version,
+                "sha256": self.package_sha256,
+                "source_commit": self.package_source_commit,
+            },
+            "slots": {
+                "mutable_local": self.mutable_local_slot,
+                "branch_commit_recovery": self.branch_commit_slot,
+                "main_merge_fallback": self.main_merge_fallback_slot,
+            },
+            "installation": {
+                "version": self.installed_version,
+                "package_sha256": self.installed_package_sha256,
+                "surface_sha256": self.installed_surface_sha256,
+            },
+            "main_merge_fallback": {
+                "before_sha256": self.main_merge_fallback_before_sha256,
+                "after_sha256": self.main_merge_fallback_after_sha256,
+                "unchanged": True,
+            },
+        }
+
+    @property
+    def sha256(self) -> str:
+        return sha256_bytes(canonical_json_bytes(self.as_dict()))
+
+
+class GitHubAppProductionDeliveryRoute:
+    """Replay-safe public SDK seam for exact checkpoint delivery evidence."""
+
+    route_id = "github_app_production_delivery_v1"
+
+    def __init__(self) -> None:
+        self._receipts: dict[str, dict[str, Any]] = {}
+
+    def seal(self, identity: ProductionDeliveryIdentity) -> dict[str, Any]:
+        body = {
+            "schema": "evidence-lane.github-app-production-delivery-receipt.v1",
+            "status": "PASS",
+            "route": self.route_id,
+            "identity": identity.as_dict(),
+            "identity_sha256": identity.sha256,
+            "credential_values_persisted": False,
+            "private_key_loaded": False,
+            "installation_token_persisted": False,
+            "commit_created": False,
+            "ref_pushed": False,
+            "installation_performed_by_contract": False,
+            "candidate_created_or_accepted": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        }
+        receipt = {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
+        prior = self._receipts.get(identity.delivery_id)
+        require(
+            prior is None or prior == receipt,
+            "GITHUB_APP_DELIVERY_REPLAY_CONFLICT",
+            "The delivery identity was replayed with different exact bytes.",
+            status="BLOCKED",
+        )
+        if prior is not None:
+            return prior
+        self._receipts[identity.delivery_id] = receipt
+        return receipt
 
 
 @dataclass(frozen=True, slots=True)

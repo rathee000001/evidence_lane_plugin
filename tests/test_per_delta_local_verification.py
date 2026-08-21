@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -10,7 +11,12 @@ from evidence_lane_plugin.codex_turn_control import (
     package_surface_inventory,
     seal_per_delta_local_verification_checkpoint,
 )
-from evidence_lane_plugin.constants import NATIVE_TOOL_COUNT
+from evidence_lane_plugin.constants import (
+    GOVERNED_SKILL_COUNT,
+    NATIVE_READ_TOOL_COUNT,
+    NATIVE_TOOL_COUNT,
+    NATIVE_WRITE_TOOL_COUNT,
+)
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.git_adapter import calculate_worktree_sha256
 from evidence_lane_plugin.hashing import (
@@ -46,14 +52,14 @@ def _active_rebind_receipt(session_id: str) -> dict[str, Any]:
     return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
 
 
-def _native_route_receipt() -> dict[str, Any]:
+def _native_route_receipt(tool_count: int = NATIVE_TOOL_COUNT) -> dict[str, Any]:
     return {
         "schema": "evidence-lane.native-mcp-route-receipt.v1",
         "status": "PASS",
         "server_identity": "evidence-lane",
         "canonical_tool_namespace": "mcp__evidence_lane__",
         "exposure_profile": "FULL_LIFECYCLE",
-        "tool_count": NATIVE_TOOL_COUNT,
+        "tool_count": tool_count,
         "tool_names_unique": True,
         "project_route_argument_required": True,
         "cross_project_fallback_allowed": False,
@@ -144,7 +150,12 @@ def _prepare(service) -> tuple[str, dict[str, Any], dict[str, Any]]:
     return session_id, active, successor
 
 
-def _binding(service, session_id: str) -> dict[str, Any]:
+def _binding(
+    service,
+    session_id: str,
+    *,
+    surface: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     session = service.sessions.load("book-faires", session_id)
     pointer = service.store.pointer("book-faires")
     active_goal = next(
@@ -160,7 +171,7 @@ def _binding(service, session_id: str) -> dict[str, Any]:
             limit=1,
         )["contract"]["task_contract_sha256"],
     }
-    surface = package_surface_inventory()
+    surface = surface or package_surface_inventory()
     return {
         "governed_host_session_id": session.metadata["current_host_session_id"],
         "active_plan_row": active_goal,
@@ -252,7 +263,15 @@ def _verification(service, session_id: str, repository: Path) -> dict[str, Any]:
     }
 
 
-def _advance(service, session_id: str, successor: dict[str, Any], proof: dict[str, Any]):
+def _advance(
+    service,
+    session_id: str,
+    successor: dict[str, Any],
+    proof: dict[str, Any],
+    *,
+    route: dict[str, Any] | None = None,
+    surface: dict[str, Any] | None = None,
+):
     return service.sessions.classify(
         "book-faires",
         session_id,
@@ -263,11 +282,88 @@ def _advance(service, session_id: str, successor: dict[str, Any], proof: dict[st
         acceptance_checks=successor["acceptance_checks"],
         stop_condition=successor["stop_condition"],
         backlog_task_id=successor["task_id"],
-        _native_route_receipt=_native_route_receipt(),
-        _installed_surface_inventory=package_surface_inventory(),
+        _native_route_receipt=route or _native_route_receipt(),
+        _installed_surface_inventory=surface or package_surface_inventory(),
         _project_panel_snapshot=_project_panel(service),
         _task_checkpoint_proof=proof,
     )
+
+
+def _prior_installed_surface() -> dict[str, Any]:
+    surface = deepcopy(package_surface_inventory())
+    surface["catalog"] = {
+        "tools": NATIVE_TOOL_COUNT - 1,
+        "read": NATIVE_READ_TOOL_COUNT,
+        "write": NATIVE_WRITE_TOOL_COUNT - 1,
+        "skills": GOVERNED_SKILL_COUNT,
+    }
+    core = {
+        key: surface.get(key)
+        for key in (
+            "schema",
+            "plugin_version",
+            "hooks",
+            "skills",
+            "catalog",
+            "raw_paths_included",
+        )
+    }
+    surface["surface_inventory_sha256"] = sha256_bytes(
+        canonical_json_bytes(core)
+    )
+    return surface
+
+
+def _adaptive_deferral_receipt(
+    service,
+    session_id: str,
+    *,
+    deferred_to_task_id: str = SUCCESSOR_TASK_ID,
+) -> dict[str, Any]:
+    pointer = service.store.pointer("book-faires").as_dict()
+    hook_names = [
+        "SessionStart",
+        "UserPromptSubmit",
+        "PreToolUse",
+        "PostToolUse",
+        "PreCompact",
+        "PostCompact",
+        "Stop",
+        "SessionEnd",
+    ]
+    body = {
+        "schema": "evidence-lane.adaptive-delta-exit-receipt.v1",
+        "status": "PASS",
+        "project_id": "book-faires",
+        "session_id": session_id,
+        "task_id": ACTIVE_TASK_ID,
+        "install_disposition": {
+            "status": "DEFERRED_TO_VERIFIED_BATCH",
+            "deferred_to_task_id": deferred_to_task_id,
+            "covered_task_ids": [ACTIVE_TASK_ID],
+            "install_performed": False,
+            "source_scope_sha256": "D" * 64,
+        },
+        "pointer_before": pointer,
+        "pointer_after": pointer,
+        "repository_identity_unchanged": True,
+        "candidate_created": False,
+        "pending_hil_mutated": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+        "git_mutated": False,
+        "plan_task_advanced": False,
+        "hook_registry_count": len(hook_names),
+        "hook_progression": [
+            {
+                "hook_name": name,
+                "state": "UNCHANGED_INACTIVE",
+                "verification_status": "UNVERIFIED",
+            }
+            for name in hook_names
+        ],
+    }
+    return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
 
 
 def test_per_delta_receipt_binds_live_hashes_and_advances_exact_successor(
@@ -337,6 +433,86 @@ def test_per_delta_receipt_rejects_tampered_file_without_plan_or_session_write(
     assert exc.value.code == "DELTA_VERIFICATION_CHANGED_PATH_MISMATCH"
     assert sha256_file(backlog_path) == backlog_before
     assert sha256_file(session_path) == session_before
+
+
+def test_grouped_install_deferral_binds_prior_surface_and_advances(
+    service,
+    source_repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_id, _, successor = _prepare(service)
+    prior_surface = _prior_installed_surface()
+    verification = _verification(service, session_id, source_repository)
+    verification["source_catalog"] = {
+        "tools": NATIVE_TOOL_COUNT,
+        "read": NATIVE_READ_TOOL_COUNT,
+        "write": NATIVE_WRITE_TOOL_COUNT,
+        "skills": GOVERNED_SKILL_COUNT,
+    }
+    verification["adaptive_delta_exit_receipt"] = _adaptive_deferral_receipt(
+        service, session_id
+    )
+    verification["installed_surface_inventory"] = prior_surface
+    monkeypatch.setattr(
+        codex_turn_control,
+        "seal_exact_task_project_session_binding",
+        lambda *args, **kwargs: _binding(
+            service, session_id, surface=prior_surface
+        ),
+    )
+    proof = seal_per_delta_local_verification_checkpoint(
+        service.store.root,
+        project_id="book-faires",
+        evidence_session_id=session_id,
+        expected_active_task_id=ACTIVE_TASK_ID,
+        verification=verification,
+    )
+    assert proof["delta_verification"]["source_catalog"]["tools"] == (
+        NATIVE_TOOL_COUNT
+    )
+    assert proof["running_plugin"]["surface_inventory_sha256"] == (
+        prior_surface["surface_inventory_sha256"]
+    )
+    advanced = _advance(
+        service,
+        session_id,
+        successor,
+        proof,
+        route=_native_route_receipt(NATIVE_TOOL_COUNT - 1),
+        surface=prior_surface,
+    )
+    assert advanced["task_checkpoint_advance"]["receipt"]["install_deferral"][
+        "deferred_to_task_id"
+    ] == SUCCESSOR_TASK_ID
+    assert service.task_backlog("book-faires")["active"][0]["task_id"] == (
+        SUCCESSOR_TASK_ID
+    )
+
+
+def test_grouped_install_deferral_rejects_wrong_or_nonqueued_target(
+    service,
+    source_repository: Path,
+) -> None:
+    session_id, _, _ = _prepare(service)
+    verification = _verification(service, session_id, source_repository)
+    verification["adaptive_delta_exit_receipt"] = _adaptive_deferral_receipt(
+        service,
+        session_id,
+        deferred_to_task_id="not-a-queued-plan-row",
+    )
+    verification["installed_surface_inventory"] = _prior_installed_surface()
+    with pytest.raises(TurnControlError) as exc:
+        seal_per_delta_local_verification_checkpoint(
+            service.store.root,
+            project_id="book-faires",
+            evidence_session_id=session_id,
+            expected_active_task_id=ACTIVE_TASK_ID,
+            verification=verification,
+        )
+    assert exc.value.code == "DELTA_VERIFICATION_INSTALL_DEFERRAL_MISMATCH"
+    assert service.task_backlog("book-faires")["active"][0]["task_id"] == (
+        ACTIVE_TASK_ID
+    )
 
 
 def test_normalized_delta_rejects_generic_pass_checkpoint(service) -> None:

@@ -3,9 +3,9 @@
   "release": "3.0.0",
   "status": "SOURCE_IMPLEMENTED_PENDING_EXACT_COMMIT_CI_PACKAGE_AND_INSTALLED_HOST_PROOF",
   "native_actions": {
-    "total": 87,
+    "total": 88,
     "read": 27,
-    "write": 60,
+    "write": 61,
     "increase_law": "INCREASE_ONLY_WHEN_A_DISTINCT_IMPLEMENTED_NATIVE_OPERATION_HAS_ITS_OWN_CONTRACT_HANDLER_TEST_AND_PACKAGE_PROOF",
     "all_count_surfaces_must_change_together": true
   },
@@ -33,8 +33,12 @@
       "write": ["canon_register_contract", "canon_seal_envelope", "canon_receive", "canon_classify", "canon_decide", "canon_supersede", "canon_register_edge", "canon_bind_edge", "canon_dispatch_linked_task", "canon_backfire_hil", "canon_seal_result", "canon_seal_continuity", "canon_restore_continuity"]
     },
     "agent_learning": {
-      "read": ["learning_inspect", "learning_retrieve", "learning_memory_query"],
-      "write": ["learning_memory_record_link", "learning_record_host_memory_import", "learning_seal_candidate", "learning_decide_candidate", "learning_revoke"]
+      "read": ["learning_inspect", "learning_retrieve"],
+      "write": ["learning_record_host_memory_import", "learning_seal_candidate", "learning_decide_candidate", "learning_revoke"]
+    },
+    "project_memory": {
+      "read": ["learning_memory_query"],
+      "write": ["learning_memory_record_link"]
     }
   },
   "delta_surface_classification_law": {

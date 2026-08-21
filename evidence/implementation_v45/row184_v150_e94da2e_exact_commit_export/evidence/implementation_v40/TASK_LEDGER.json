@@ -1,0 +1,49 @@
+{
+  "accepted_authority": {
+    "accepted_manifest_sha256": "CC7B84B231CB0A54E16F08BBC403B5F07041F974623BB4D0386396AFBDA622E9",
+    "accepted_package_sha256": "1943BE56AC9C1F5A04230C8FF8CDA38CD19B05F058B4B30B2BC73D5D9988330C",
+    "accepted_pv": "PV4",
+    "pointer_generation": 4,
+    "pointer_movement_authorized": false,
+    "source_commit": "c86fbc5f39d3e7caaaf8ccdcbae72b7800cb29ce",
+    "source_tree": "c144953a63537617190d8d90a3a79d2d0a647008"
+  },
+  "candidate_target": {
+    "accepted_pv_retained": "PV4",
+    "proposed_pv": "PV5",
+    "state": "READY_FOR_IMMUTABLE_PV5_SEAL",
+    "stop_condition": "PRESENT_SIX_WAY_HIL"
+  },
+  "current_delta_ids": ["DELTA_063", "DELTA_064", "DELTA_065"],
+  "decision": "BUILD_FRESH_PV5_CORRECTIVE",
+  "decision_id": "decision_delta065_historical_status_compat_20260804",
+  "schema": "evidence-lane.delta065-task-ledger.v1",
+  "task_count": 17,
+  "tasks": [
+    {"current": true, "id": 1, "status": "COMPLETE", "summary": "Re-audit Graphify V5.9 and official Git and GitHub sources."},
+    {"current": true, "id": 2, "status": "COMPLETE", "summary": "Preserve accepted PV3 history, accepted PV4 authority, and Deltas 063 and 064."},
+    {"current": true, "id": 3, "status": "COMPLETE", "summary": "Bind github_code and local_code to the exact generate_lane_mmd.py logical contract."},
+    {"current": true, "id": 4, "status": "COMPLETE", "summary": "Fingerprint topology generators and force stale code-lane rebuilds."},
+    {"current": true, "id": 5, "status": "COMPLETE", "summary": "Emit schema-derived topology for all sixteen non-code lanes."},
+    {"current": true, "id": 6, "status": "COMPLETE", "summary": "Enforce exact MMD and DOT identity parity and structural floors."},
+    {"current": true, "id": 7, "status": "COMPLETE", "summary": "Preserve non-promotion integrity while keeping exact APPROVE Fuse isolated."},
+    {"current": true, "id": 8, "status": "COMPLETE", "summary": "Make all twelve acceptance checks exact-manifest executable."},
+    {"current": true, "id": 9, "status": "COMPLETE", "summary": "Rebuild the one-real-Git plus seventeen-fixture POC."},
+    {"current": true, "id": 10, "status": "COMPLETE", "summary": "Run every lane and bundle forensic audit and reconcile the post-commit ledger."},
+    {"current": true, "id": 11, "status": "COMPLETE", "summary": "Create and page-by-page render-verify the actual Word DOCX POC report."},
+    {"current": true, "id": 12, "status": "COMPLETE", "summary": "Verify the full-width Gold and RIL white-cyan-gold interactive website source."},
+    {"current": true, "id": 13, "status": "COMPLETE", "summary": "Correct MCP v1.2 identity, cube icon role, and read-only route metadata."},
+    {"current": true, "id": 14, "status": "COMPLETE", "summary": "Push the accepted PV4 branch, preview-deploy it, install Codex, and prove latest ChatGPT tunnel pickup."},
+    {"current": true, "id": 15, "status": "COMPLETE", "summary": "Build PV4, present its Exit Slip, and stop at its six-way HIL before acceptance."},
+    {"current": true, "id": 16, "status": "COMPLETE", "summary": "Bind fresh-chat model proof and ordinary-chat, SQLite/PV brain, project-engulf, and eligible State Travel routing evidence without auto-selection."},
+    {"current": true, "id": 17, "status": "PRESEAL_COMPLETE", "summary": "Delta 065: preserve immutable historical accepted PVs in status while strictly validating current PV4, then seal a fresh unaccepted PV5 corrective candidate."}
+  ],
+  "prohibited_before_hil": [
+    "merge_main",
+    "deploy_vercel",
+    "install_codex",
+    "install_chatgpt",
+    "consume_state_travel"
+  ],
+  "superseded_presented_as_current": false
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "evidence-lane.github-check-run-snapshot.v1",
+  "provider": "GITHUB_APP_READ_ONLY",
+  "repository": "rathee000001/evidence_lane_plugin",
+  "branch": "agent/evi-v210-systemwide-release-hil-v2.1.0",
+  "head_sha": "5f64494d5491b4d654214b60b481dca2e1f44762",
+  "clean_checkout": true,
+  "required_check_names": [
+    "Evidence Lane governed Python CI",
+    "Evidence Lane CodeQL",
+    "Evidence Lane preview build"
+  ],
+  "checks": [
+    {
+      "name": "Evidence Lane governed Python CI",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "5f64494d5491b4d654214b60b481dca2e1f44762",
+      "run_id": 31657092111,
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/actions/runs/31657092111"
+    },
+    {
+      "name": "Evidence Lane CodeQL",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "5f64494d5491b4d654214b60b481dca2e1f44762",
+      "run_id": 31657092122,
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/actions/runs/31657092122"
+    },
+    {
+      "name": "Evidence Lane preview build",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "5f64494d5491b4d654214b60b481dca2e1f44762",
+      "run_id": 31657092113,
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/actions/runs/31657092113"
+    }
+  ],
+  "captured_at": "2026-08-13T01:22:16.0957621Z"
+}

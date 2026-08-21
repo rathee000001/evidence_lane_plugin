@@ -1,11 +1,9 @@
 # Evidence Lane plugin 3.0.0
 
 Version 3.0.0 is the current pre-HIL Codex source release on the governed v3.0
-branch. Accepted Project Truth and the GitLane base remain PV12/2.1.0. Direct
-host readback confirms the disabled fallback payload is also 2.1.0 even though
-its marketplace selector retains a historical PV11 name. That stale selector
-label is not package identity. The source provides a
-package-local native MCP server, 87 canonical actions (27 read-only and 60
+branch. Source, branch commit, package, installed runtime, candidate, and
+accepted Project Truth remain separately proven identities. The source provides
+a package-local native MCP server, 88 canonical actions (27 read-only and 61
 write-capable), 17 governed skills, eight registered lifecycle events, local durable
 project storage, persistent Plan/Delta continuity, and an exact six-way HIL.
 Agent Learning is a separate project-scoped authority, not another name for
@@ -65,18 +63,25 @@ development-repository access, distributes to external testers, publishes, or
 promotes any Evidence Lane authority. See
 [the pre-HIL GitHub App contract](../../docs/GITHUB_APP_PRE_HIL_CONTRACT.md).
 
+The same module now exposes a replay-safe production-delivery identity for
+maintainer checkpoints. Its public sealer binds the host-managed GitHub App
+installation, exact repository ref, green Actions head, package hash/version,
+installed branch-commit recovery slot, mutable local slot, and the unchanged
+main-merge fallback. The sealer is evidence-only: it never receives credentials
+and performs no commit, push, install, candidate, HIL, or pointer action.
+
 Candidate creation, remote Git push, package installation, and pointer movement
 are separate governed operations. None of them implies acceptance. Only exact
 case-sensitive `APPROVE` at the correct HIL can authorize Fuse.
 
-The current maintainer Row196 route binds the CI-green, Git-triggered-preview
-commit from `agent/evi-v300-systemwide-release-hil-v3.0.0`. The immediate
-Row197/PV13 install-HIL route installs that exact 3.0 package in the enabled
-Stable selector and requires installed readback of 87 actions (27 read/60
-write), 17 skills, eight hook events, and the migrated command surface before
-the PV13 HIL is presented. It cannot merge main or change the disabled fallback.
-That plugin release/install cadence is not part of an ordinary downstream
-user's project PV workflow.
+The maintainer checkpoint route binds the complete source scope, exact branch
+commit and tree, governed push, Actions head, deterministic package, and
+branch-commit recovery slot. A later release HIL requires installed readback of
+88 actions (27 read/61 write), 17 skills, eight distinct hook events, and the
+migrated command surface. The checkpoint cannot infer HIL, move a Project
+pointer, merge `main`, or change the byte-frozen main-merge fallback. That
+plugin release/install cadence is not part of an ordinary downstream user's
+project PV workflow.
 
 Only the human command `MARK GOAL COMPLETE` may complete a governed Goal, with
 `COMPLETE_THIS_TASK_AND_STATE_TRAVEL` or `COMPLETE_FULLY`. HIL, candidate,
@@ -118,6 +123,17 @@ envelope.
 
 Account tier and API billing do not choose the storage route. Runtime state is
 project-scoped and remains separate from any optional artifact mirror.
+
+For durable local hosts, the registered project may bind an explicit
+user-selected project root outside the plugin control root. That root owns the
+accepted pointer and current project authorities, including 18 registry-derived
+sector directories plus Plan, ChatLineage, Learning, Canon, Memory, Universe,
+sources, snapshots, and receipts. Study Brain is a routing profile and never an
+extra stored lane. The Codex marketplace/cache, generated native runtime,
+ENV/UOP, tunnel, MCP, and SDK controls remain host-managed and are not copied
+into the user project. `project_register` performs any one-time legacy
+relocation only with the exact confirmation and pointer preconditions;
+`storage_connector_inspect` reports the resulting bounded route and layout.
 
 ## Bounded Windows tunnel setup
 
@@ -202,7 +218,11 @@ Windows-logon recovery manager for exact governed Codex Goal tasks.
    that same commit, wait for its Git-integrated Vercel branch preview, build
    the exact-commit package with `build_codex_exact_commit_package.py`, and seal
    the Git/CI/Vercel release-authority receipt with
-   `seal_codex_git_ci_release_authority.py`.
+   `seal_codex_git_ci_release_authority.py`. After the exact checkpoint package
+   and branch-commit recovery slot are verified, seal their credential-free
+   GitHub App/SDK identity with
+   `seal_github_app_production_delivery.py`; changed replay or identity drift is
+   rejected.
 3. Run `scripts/codex_release/install_codex_stable.py` without activation for a
    local rehearsal only. Activation uses Codex's Git marketplace at the exact
    successful commit and requires `--activate --trust-sealed-hooks`,
@@ -231,7 +251,7 @@ Windows-logon recovery manager for exact governed Codex Goal tasks.
    bound at preparation, and passes it the same task's
    `codex://threads/<task-id>` deep link. It does not use another task,
    modify the task's native workspace binding, or implement Codex's Changes UI.
-6. After restart, verify native route identity, 87/27/60 counts, all 17 skills,
+6. After restart, verify native route identity, 88/27/61 counts, all 17 skills,
    hook execution, icon, project/runtime panels, persistent task/change display,
    native Git workspace and Changes surface, and local durable storage from the
    installed package.

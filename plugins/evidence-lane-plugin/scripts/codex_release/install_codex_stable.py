@@ -63,6 +63,10 @@ LOCAL_TEST_DISABLED_HOOK_RECOVERY_CONFIRMATION = (
 LOCAL_TEST_DISABLED_BASELINE_CONFIRMATION = (
     "EXPLICIT_LIVE_DISABLED_LOCAL_3_0_BASELINE"
 )
+NPM_CODEX_CLI_RELATIVE_PATH = Path(
+    "npm/node_modules/@openai/codex/node_modules/@openai/"
+    "codex-win32-x64/vendor/x86_64-pc-windows-msvc/bin/codex.exe"
+)
 INSTALL_CORRECTION_GENERATION_SCHEMA = (
     "evidence-lane.codex-install-correction-generation.v1"
 )
@@ -85,7 +89,7 @@ GENERATION_NEUTRAL_FALLBACK_SELECTOR = f"{PLUGIN_NAME}@evidence-lane-fallback"
 LEGACY_FALLBACK_SELECTOR_RE = re.compile(
     rf"^{re.escape(PLUGIN_NAME)}@evidence-lane-pv[1-9][0-9]*-fallback$"
 )
-EXPECTED_CATALOG = {"tools": 87, "read": 27, "write": 60, "skills": 17}
+EXPECTED_CATALOG = {"tools": 88, "read": 27, "write": 61, "skills": 17}
 EXPECTED_WORKFLOW_SCOPE = {
     "plugin_release_cadence": "ONE_AUTHORIZED_LOGICAL_RELEASE_COMMIT_BATCH",
     "plugin_release_steps": [
@@ -121,9 +125,9 @@ EXPECTED_WORKFLOW_SCOPE = {
         "working_role_sync_required": True,
         "installed_version_must_equal_exact_package_version": True,
         "installed_catalog_must_equal": {
-            "native_actions": 87,
+            "native_actions": 88,
             "read_actions": 27,
-            "write_actions": 60,
+            "write_actions": 61,
             "governed_skills": 17,
             "hook_events": 8,
             "migrated_command_skills": 1,
@@ -155,6 +159,20 @@ EXPECTED_GOAL_COMPLETION_POLICY = {
 }
 EXPECTED_HELPER_DISTRIBUTION_POLICY = {
     "schema": "evidence-lane.helper-distribution-policy.v1",
+    "runtime_storage_boundary": {
+        "root_relative_to_user_profile": (
+            ".codex\\plugins\\runtime\\evidence-lane-plugin"
+        ),
+        "host_managed_hidden": True,
+        "project_authority_may_share_root": False,
+        "installed_cache_mutation_for_runtime_state_allowed": False,
+        "one_active_native_mcp_count": 1,
+        "one_active_tunnel_count": 1,
+        "failed_windowsapps_cli_probe_allowed": False,
+        "npm_native_codex_cli_required": True,
+        "exact_task_reopen_count": 1,
+        "black_terminal_popup_allowed": False,
+    },
     "maintainer_release_helper": {
         "script": "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
         "audience": "EVIDENCE_LANE_MAINTAINER_ONLY",
@@ -1509,6 +1527,10 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         plugin_root
         / "scripts"
         / "codex_release"
+        / "seal_github_app_production_delivery.py",
+        plugin_root
+        / "scripts"
+        / "codex_release"
         / "Update-EvidenceLaneCodexStableAndResume.ps1",
         plugin_root / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1",
         plugin_root
@@ -1877,6 +1899,69 @@ def _windows_hidden_creationflags() -> int:
     """Return the no-console flag for every installer-owned child process."""
 
     return getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+
+
+def _default_codex_cli_executable() -> Path:
+    """Resolve the supported npm-native Codex CLI without probing dead routes."""
+
+    appdata = os.environ.get("APPDATA")
+    appdata_root = (
+        Path(appdata)
+        if appdata
+        else Path.home() / "AppData" / "Roaming"
+    )
+    return appdata_root / NPM_CODEX_CLI_RELATIVE_PATH
+
+
+def _resolve_codex_cli_executable(
+    executable: Path | None,
+    *,
+    verify_version: bool,
+) -> Path:
+    """Fail before mutation unless the supported native CLI is executable.
+
+    The packaged desktop app also contains a ``codex.exe`` below WindowsApps,
+    but Windows denies direct execution of that binary and it is not the Codex
+    CLI update surface.  Never probe it and never use it as a fallback.
+    """
+
+    resolved = Path(executable or _default_codex_cli_executable()).resolve()
+    normalized = str(resolved).replace("/", "\\").casefold()
+    if "\\windowsapps\\" in normalized:
+        raise InstallationError(
+            "The packaged WindowsApps codex.exe is a forbidden install route; "
+            "use the npm-native Codex CLI."
+        )
+    if not resolved.is_file():
+        raise InstallationError(
+            "The supported npm-native Codex CLI executable is unavailable."
+        )
+    if not verify_version:
+        return resolved
+    try:
+        completed = subprocess.run(
+            [str(resolved), "--version"],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=30,
+            creationflags=_windows_hidden_creationflags(),
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise InstallationError(
+            "The npm-native Codex CLI version probe failed before mutation."
+        ) from exc
+    version_output = "\n".join(
+        part.strip() for part in (completed.stdout, completed.stderr) if part.strip()
+    )
+    if completed.returncode != 0 or re.search(
+        r"(?m)^codex-cli\s+\S+\s*$", version_output
+    ) is None:
+        raise InstallationError(
+            "The resolved executable is not the supported npm-native Codex CLI."
+        )
+    return resolved
 
 
 def _run_codex(
@@ -2301,9 +2386,11 @@ def _prepare_local_test_reinstall(
     """Refresh only the explicit maintainer test selector through Codex APIs.
 
     The accepted stable/fallback registry is deliberately outside this route.  An
-    already installed *disabled* test selector is removed before it is re-added
-    from newly sealed marketplace bytes.  The one enabled last-known-good route
-    and exact pre-transaction config are retained for compare-and-swap recovery.
+    already installed test selector is updated directly with ``plugin add``
+    after its cachebuster changes.  The loaded versioned cache is never removed
+    in-place; Codex owns retirement after restart.  The one enabled
+    last-known-good route and exact pre-transaction config are retained for
+    compare-and-swap recovery.
     """
 
     if (disabled_hook_recovery_commit is None) != (
@@ -2558,13 +2645,6 @@ def _prepare_local_test_reinstall(
         raise InstallationError(
             "The last-known-good rollback config does not match its sealed snapshot."
         )
-    if target_was_installed:
-        _run_codex(
-            executable,
-            codex_home,
-            ["plugin", "remove", plugin_selector, "--json"],
-        )
-
     marketplace_list = _run_codex(
         executable,
         codex_home,
@@ -2598,7 +2678,11 @@ def _prepare_local_test_reinstall(
         "target_was_installed": target_was_installed,
         "target_was_enabled": target_was_enabled,
         "plugin_list_post_add_transient": plugin_list_post_add_transient,
-        "target_removed_for_exact_reinstall": target_was_installed,
+        "target_removed_for_exact_reinstall": False,
+        "same_selector_update_via_plugin_add": target_was_installed,
+        "loaded_version_cache_cleanup_deferred_until_restart": target_was_installed,
+        "known_failed_plugin_remove_route_invoked": False,
+        "supported_update_route": "CODEX_PLUGIN_ADD_CACHEBUSTER",
         "marketplace_preexisting": marketplace_preexisting,
         "marketplace_root_verified": marketplace_preexisting,
         "marketplace_add_required": not marketplace_preexisting,
@@ -5892,15 +5976,10 @@ def _seal_disabled_local_test_baseline(
                 "Codex plugin inventory drifted after the disabled-local bootstrap."
             )
 
-        transaction_seed = "|".join(
-            [
-                candidate_selector,
-                recovery_selector,
-                candidate_version,
-                all_disabled_sha256,
-                final_sha256,
-            ]
-        ).encode("utf-8")
+        transaction_seed = (
+            f"{candidate_selector}|{recovery_selector}|{candidate_version}|"
+            f"{all_disabled_sha256}|{final_sha256}"
+        ).encode()
         transaction_id = "local_test_tx_" + hashlib.sha1(
             transaction_seed,
             usedforsecurity=False,
@@ -8210,9 +8289,10 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
     hook_event_isolation: dict[str, Any] | None = None
     three_slot_registry: dict[str, Any] | None = None
     if activate_local_test:
-        executable = args.codex_executable.resolve()
-        if not executable.is_file():
-            raise InstallationError("The exact Codex executable is unavailable.")
+        executable = _resolve_codex_cli_executable(
+            getattr(args, "codex_executable", None),
+            verify_version=False,
+        )
         local_test_reinstall = _prepare_local_test_reinstall(
             executable=executable,
             codex_home=codex_home,
@@ -8487,9 +8567,10 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
             "hot_reload_claimed": False,
             }
     elif args.activate:
-        executable = args.codex_executable.resolve()
-        if not executable.is_file():
-            raise InstallationError("The exact Codex executable is unavailable.")
+        executable = _resolve_codex_cli_executable(
+            getattr(args, "codex_executable", None),
+            verify_version=False,
+        )
         if two_slot_authority is None:
             raise InstallationError(
                 "Activation requires the materialized stable/fallback two-slot authority."
@@ -9628,7 +9709,15 @@ def _parser() -> argparse.ArgumentParser:
             or Path.home() / "EvidenceLanePV"
         ),
     )
-    parser.add_argument("--codex-executable", type=Path)
+    parser.add_argument(
+        "--codex-executable",
+        type=Path,
+        help=(
+            "Optional npm-native Codex CLI override. When omitted, the installer "
+            "uses the supported @openai/codex npm runtime; WindowsApps binaries "
+            "are rejected before mutation."
+        ),
+    )
     parser.add_argument(
         "--materialize-local-recovery-copy",
         action="store_true",
@@ -9784,6 +9873,20 @@ def main() -> int:
     disabled_hook_recovery_requested = (
         args.recover_disabled_local_hooks_from is not None
     )
+    codex_cli_required = bool(
+        args.activate
+        or args.activate_local_test
+        or disabled_baseline_requested
+        or proof_requested
+        or commit_requested
+        or recovery_requested
+        or correction_requested
+    )
+    if codex_cli_required:
+        args.codex_executable = _resolve_codex_cli_executable(
+            args.codex_executable,
+            verify_version=True,
+        )
     if args.keep_recovered_hooks_disabled and not disabled_hook_recovery_requested:
         raise InstallationError(
             "Keeping recovered hooks disabled requires the exact disabled-local "

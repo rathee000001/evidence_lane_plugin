@@ -3,8 +3,8 @@
 The SDK is an internal engine and contract surface, not a public distribution.
 Every authority arm keeps its own namespace, operation catalog, replay ledger,
 permissions, and result slice.  The top-level client only validates and routes;
-it never fuses Project Truth, Canon Input, Agent Learning, ChatLineage, or
-host-entry continuity into one authority.
+it never fuses Project Truth, Canon Input, Agent Learning, Project Memory,
+Project Universe, ChatLineage, or host-entry continuity into one authority.
 """
 
 from __future__ import annotations
@@ -20,14 +20,17 @@ from pathlib import Path
 from typing import Any, Protocol, cast
 
 from .agent_learning import (
+    bootstrap_verified_learning_history,
     decide_learning_candidate,
     inspect_learning_authority,
-    query_memory_graph,
     record_host_memory_import,
-    record_memory_link,
     retrieve_accepted_learning,
     revoke_learning_candidate,
     seal_learning_candidate,
+)
+from .canon_consequence_graph import (
+    bootstrap_canon_consequence_graph,
+    inspect_canon_consequence_graph,
 )
 from .canon_task_graph import (
     CanonTaskDispatcher,
@@ -60,7 +63,22 @@ from .mode_governance import (
     env_uop_authority_boundary,
     route_env_uop_operator,
 )
+from .project_authority import resolved_chat_lineage_root
+from .project_memory import (
+    bootstrap_project_memory,
+    inspect_project_memory,
+    query_memory_graph,
+    record_memory_link,
+    rehydrate_memory_checkpoint,
+    seal_memory_checkpoint,
+)
+from .project_universe import (
+    inspect_project_universe,
+    query_project_universe,
+    refresh_project_universe,
+)
 from .redaction import contains_secret
+from .timeutil import utc_now
 
 INTERNAL_SDK_ABI = "evidence-lane.internal-sdk.v1"
 INTERNAL_SDK_RESPONSE_SCHEMA = "evidence-lane.internal-sdk-response.v1"
@@ -251,6 +269,7 @@ SDK_MODULES: tuple[SDKModuleSpec, ...] = (
             "inspect:READ",
             "inbox:READ",
             "graph:READ",
+            "bootstrap_consequence_graph:WRITE_CANON",
             "register_contract:WRITE_CANON",
             "seal_envelope:WRITE_CANON",
             "receive:WRITE_CANON",
@@ -273,12 +292,34 @@ SDK_MODULES: tuple[SDKModuleSpec, ...] = (
         _operations(
             "inspect:READ",
             "retrieve:READ",
-            "memory_query:READ",
-            "memory_record_link:WRITE_LEARNING",
+            "bootstrap_verified_history:WRITE_LEARNING",
             "record_host_memory_import:WRITE_LEARNING",
             "seal_candidate:WRITE_LEARNING",
             "decide_candidate:WRITE_LEARNING",
             "revoke:WRITE_LEARNING",
+        ),
+    ),
+    SDKModuleSpec(
+        "project_memory",
+        "sdk.project-memory.v1",
+        "PROJECT_MEMORY",
+        _operations(
+            "inspect:READ",
+            "bootstrap:WRITE_MEMORY",
+            "query:READ",
+            "record_link:WRITE_MEMORY",
+            "seal_checkpoint:WRITE_MEMORY",
+            "rehydrate_checkpoint:WRITE_MEMORY",
+        ),
+    ),
+    SDKModuleSpec(
+        "project_universe",
+        "sdk.project-universe.v1",
+        "PROJECT_UNIVERSE",
+        _operations(
+            "status:READ",
+            "query:READ",
+            "refresh:WRITE_UNIVERSE",
         ),
     ),
     SDKModuleSpec(
@@ -348,6 +389,9 @@ SDK_MODULES: tuple[SDKModuleSpec, ...] = (
         _operations(
             "inspect:READ",
             "select:WRITE_STORAGE_SELECTION",
+            "project_authority_status:READ",
+            "project_pv_storage_status:READ",
+            "project_authority_migrate:WRITE_STORAGE_SELECTION",
             "plugin_catalog:READ",
             "plugin_route:READ",
         ),
@@ -433,6 +477,8 @@ _AUTHORITY_EFFECT_KEYS = (
     "project_truth",
     "canon_input",
     "agent_learning",
+    "project_memory",
+    "project_universe",
     "chat_lineage",
     "host_entry_continuity",
 )
@@ -440,6 +486,8 @@ _MODULE_OWNED_EFFECT = {
     "project_truth": "project_truth",
     "canon_input": "canon_input",
     "agent_learning": "agent_learning",
+    "project_memory": "project_memory",
+    "project_universe": "project_universe",
     "chat_lineage": "chat_lineage",
     "host_entry_continuity": "host_entry_continuity",
     "lifecycle_hooks": None,
@@ -453,6 +501,8 @@ _MODULE_OWNED_EFFECT = {
 _OPERATION_OWNED_EFFECT = {
     "WRITE_CANON": "canon_input",
     "WRITE_LEARNING": "agent_learning",
+    "WRITE_MEMORY": "project_memory",
+    "WRITE_UNIVERSE": "project_universe",
     "WRITE_LINEAGE": "chat_lineage",
     "WRITE_HOST_ENTRY": "host_entry_continuity",
     "WRITE_PROJECT_TRUTH": "project_truth",
@@ -939,9 +989,7 @@ def build_env_uop_operator_provider_adapter(
         ("env_uop_operator_runtime", "compile_formula")
     ]
     require(
-        SDK_EXTERNAL_PROVIDER_OPERATIONS[
-            ("env_uop_operator_runtime", "route_operator")
-        ]
+        SDK_EXTERNAL_PROVIDER_OPERATIONS[("env_uop_operator_runtime", "route_operator")]
         == provider_id,
         "ENV_UOP_PROVIDER_ID_MISMATCH",
         "ENV/UOP compile and route operations require one provider owner.",
@@ -1002,8 +1050,7 @@ def build_env_uop_operator_provider_adapter(
         )
         credential_reference = payload.get("credential_reference")
         require(
-            credential_reference is None
-            or isinstance(credential_reference, Mapping),
+            credential_reference is None or isinstance(credential_reference, Mapping),
             "ENV_UOP_ROUTE_CREDENTIAL_REFERENCE_INVALID",
             "ENV/UOP routing accepts only an external credential-reference object.",
             status="BLOCKED",
@@ -1049,8 +1096,7 @@ def build_env_uop_operator_provider_adapter(
         (row["module_id"], row["operation"])
         for row in parity["operations"]
         if row["status"] == "REGISTERED"
-        and (row["module_id"], row["operation"])
-        in SDK_EXTERNAL_PROVIDER_OPERATIONS
+        and (row["module_id"], row["operation"]) in SDK_EXTERNAL_PROVIDER_OPERATIONS
     }
     require(
         claimed
@@ -1152,7 +1198,9 @@ class InternalEvidenceLaneSDK:
         }
 
     def _ledger_path(self, module: SDKModuleSpec) -> Path:
-        return self.project_root / "sdk" / "replay" / f"{module.namespace}.sqlite"
+        return (
+            self.project_root / "receipts" / "sdk-replay" / f"{module.namespace}.sqlite"
+        )
 
     def _connect(self, module: SDKModuleSpec) -> sqlite3.Connection:
         path = self._ledger_path(module)
@@ -1224,6 +1272,16 @@ class InternalEvidenceLaneSDK:
         raw = result.get("authority_effects") or {
             key: "NONE" for key in _AUTHORITY_EFFECT_KEYS
         }
+        legacy_effect_keys = set(_AUTHORITY_EFFECT_KEYS) - {
+            "project_memory",
+            "project_universe",
+        }
+        if isinstance(raw, dict) and legacy_effect_keys <= set(raw) <= set(
+            _AUTHORITY_EFFECT_KEYS
+        ):
+            raw = {
+                key: raw.get(key, "NONE") for key in _AUTHORITY_EFFECT_KEYS
+            }
         require(
             isinstance(raw, dict) and set(raw) == set(_AUTHORITY_EFFECT_KEYS),
             "SDK_AUTHORITY_EFFECTS_INVALID",
@@ -1251,7 +1309,12 @@ class InternalEvidenceLaneSDK:
             module_id=module.module_id,
             changed=sorted(changed),
         )
-        if module.module_id in {"canon_input", "agent_learning"}:
+        if module.module_id in {
+            "canon_input",
+            "agent_learning",
+            "project_memory",
+            "project_universe",
+        }:
             require(
                 effects["project_truth"] == "NONE",
                 "SDK_PROJECT_TRUTH_PROMOTION_BLOCKED",
@@ -1603,7 +1666,8 @@ def build_local_service_adapter(
         )
         service.sessions.load(project_id, session_id)
         lineage_path = (
-            service.store.project_root(project_id) / "lineage" / f"{session_id}.jsonl"
+            resolved_chat_lineage_root(service.store.project_root(project_id))
+            / f"{session_id}.jsonl"
         )
         events = ChatLineage(lineage_path).events()
         lineage_head = (
@@ -1710,9 +1774,39 @@ def build_local_service_adapter(
     ) -> dict[str, Any]:
         context.checkpoint()
         _canon_payload(binding, payload)
-        return inspect_canon_task_graph(
+        task_graph = inspect_canon_task_graph(
             _canon_root(binding), project_id=binding.project_id
         )
+        return {
+            **task_graph,
+            "consequence_graph": inspect_canon_consequence_graph(
+                _canon_root(binding), project_id=binding.project_id
+            ),
+        }
+
+    def _canon_bootstrap_consequence_graph(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        require(
+            not payload,
+            "CANON_CONSEQUENCE_BOOTSTRAP_PAYLOAD_INVALID",
+            "The Canon consequence bootstrap derives its inputs from the exact SDK binding.",
+            status="BLOCKED",
+        )
+        result = bootstrap_canon_consequence_graph(
+            _canon_root(binding),
+            project_id=binding.project_id,
+            accepted_pv=binding.accepted_pv,
+            pointer_generation=binding.pointer_generation,
+            accepted_manifest_sha256=binding.accepted_manifest_sha256,
+            host_task_uuid=binding.host_session_id,
+            host_task_deep_link=f"codex://threads/{binding.host_session_id}",
+            active_plan_task_id=binding.task_id,
+            lineage_head_sha256=binding.lineage_head_sha256,
+        )
+        context.checkpoint()
+        return result
 
     def _canon_register_contract(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
@@ -1883,6 +1977,71 @@ def build_local_service_adapter(
             **_learning_payload(binding, payload),
         )
 
+    def _learning_bootstrap_verified_history(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return bootstrap_verified_learning_history(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+            accepted_pv=binding.accepted_pv,
+            **_learning_payload(binding, payload),
+        )
+
+    def _memory_payload(binding: SDKBinding, payload: dict[str, Any]) -> dict[str, Any]:
+        exact = dict(payload)
+        supplied_project = str(exact.pop("project_id", binding.project_id)).strip()
+        require(
+            supplied_project == binding.project_id,
+            "SDK_MEMORY_PROJECT_BINDING_MISMATCH",
+            "The Memory SDK payload cannot override its exact project binding.",
+            status="BLOCKED",
+        )
+        require(
+            "project_root" not in exact,
+            "SDK_MEMORY_ROOT_OVERRIDE_BLOCKED",
+            "The Memory SDK payload cannot override the project authority root.",
+            status="BLOCKED",
+        )
+        return exact
+
+    def _memory_inspect(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        require(
+            not _memory_payload(binding, payload),
+            "SDK_MEMORY_INSPECT_PAYLOAD_INVALID",
+            "Memory inspection does not accept operation fields.",
+            status="BLOCKED",
+        )
+        return inspect_project_memory(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+        )
+
+    def _memory_bootstrap(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        exact_payload = _memory_payload(binding, payload)
+        require(
+            not exact_payload,
+            "SDK_MEMORY_BOOTSTRAP_PAYLOAD_INVALID",
+            "Memory bootstrap derives its authority identities from the exact SDK binding.",
+            status="BLOCKED",
+        )
+        return bootstrap_project_memory(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+            accepted_pv=binding.accepted_pv,
+            pointer_generation=binding.pointer_generation,
+            accepted_manifest_sha256=binding.accepted_manifest_sha256,
+            active_plan_task_id=binding.task_id,
+            lineage_head_sha256=binding.lineage_head_sha256,
+            recorded_at=utc_now(),
+        )
+
     def _learning_memory_query(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
@@ -1890,7 +2049,7 @@ def build_local_service_adapter(
         return query_memory_graph(
             service.store.project_root(binding.project_id),
             project_id=binding.project_id,
-            **_learning_payload(binding, payload),
+            **_memory_payload(binding, payload),
         )
 
     def _learning_memory_record_link(
@@ -1900,8 +2059,100 @@ def build_local_service_adapter(
         return record_memory_link(
             service.store.project_root(binding.project_id),
             project_id=binding.project_id,
-            **_learning_payload(binding, payload),
+            **_memory_payload(binding, payload),
         )
+
+    def _memory_seal_checkpoint(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return seal_memory_checkpoint(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+            **_memory_payload(binding, payload),
+        )
+
+    def _memory_rehydrate_checkpoint(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return rehydrate_memory_checkpoint(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+            **_memory_payload(binding, payload),
+        )
+
+    def _universe_payload(
+        binding: SDKBinding, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        exact = dict(payload)
+        supplied_project = str(exact.pop("project_id", binding.project_id)).strip()
+        require(
+            supplied_project == binding.project_id,
+            "SDK_UNIVERSE_PROJECT_BINDING_MISMATCH",
+            "The Universe SDK payload cannot override its exact project binding.",
+            status="BLOCKED",
+        )
+        require(
+            "project_root" not in exact,
+            "SDK_UNIVERSE_ROOT_OVERRIDE_BLOCKED",
+            "The Universe SDK payload cannot override the project authority root.",
+            status="BLOCKED",
+        )
+        return exact
+
+    def _universe_status(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        require(
+            not _universe_payload(binding, payload),
+            "SDK_UNIVERSE_STATUS_PAYLOAD_INVALID",
+            "Universe status does not accept operation fields.",
+            status="BLOCKED",
+        )
+        return inspect_project_universe(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+        )
+
+    def _universe_query(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return query_project_universe(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+            **_universe_payload(binding, payload),
+        )
+
+    def _universe_refresh(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        require(
+            not _universe_payload(binding, payload),
+            "SDK_UNIVERSE_REFRESH_PAYLOAD_INVALID",
+            "Universe refresh derives all identities from the exact SDK binding.",
+            status="BLOCKED",
+        )
+        result = refresh_project_universe(
+            service.store.project_root(binding.project_id),
+            project_id=binding.project_id,
+            active_plan_task_id=binding.task_id,
+        )
+        context.checkpoint()
+        return {
+            **result,
+            "authority_effects": {
+                key: (
+                    "REFRESHED"
+                    if key == "project_universe"
+                    else "NONE"
+                )
+                for key in _AUTHORITY_EFFECT_KEYS
+            },
+        }
 
     def _learning_record_host_memory_import(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
@@ -2177,6 +2428,46 @@ def build_local_service_adapter(
         )
         return service.storage_connector_select(binding.project_id, **exact)
 
+    def _project_authority_status(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        supplied_project = str(payload.get("project_id") or binding.project_id)
+        require(
+            supplied_project == binding.project_id,
+            "SDK_PROJECT_AUTHORITY_BINDING_MISMATCH",
+            "Project authority inspection cannot override its SDK project binding.",
+            status="BLOCKED",
+        )
+        return service.project_authority_status(binding.project_id)
+
+    def _project_pv_storage_status(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        supplied_project = str(payload.get("project_id") or binding.project_id)
+        require(
+            supplied_project == binding.project_id,
+            "SDK_PROJECT_PV_STORAGE_BINDING_MISMATCH",
+            "Project PV storage inspection cannot override its SDK project binding.",
+            status="BLOCKED",
+        )
+        return service.project_pv_storage_status(binding.project_id)
+
+    def _project_authority_migrate(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        exact = dict(payload)
+        supplied_project = exact.pop("project_id", binding.project_id)
+        require(
+            supplied_project == binding.project_id,
+            "SDK_PROJECT_AUTHORITY_BINDING_MISMATCH",
+            "Project authority relocation cannot override its SDK project binding.",
+            status="BLOCKED",
+        )
+        return service.migrate_project_authority(binding.project_id, **exact)
+
     def _hil_payload(binding: SDKBinding, payload: dict[str, Any]) -> dict[str, Any]:
         exact = dict(payload)
         supplied_project = exact.pop("project_id", binding.project_id)
@@ -2263,6 +2554,10 @@ def build_local_service_adapter(
         ("canon_input", "inspect"): _canon_inspect,
         ("canon_input", "inbox"): _canon_inbox,
         ("canon_input", "graph"): _canon_graph,
+        (
+            "canon_input",
+            "bootstrap_consequence_graph",
+        ): _canon_bootstrap_consequence_graph,
         ("canon_input", "register_contract"): _canon_register_contract,
         ("canon_input", "seal_envelope"): _canon_seal,
         ("canon_input", "receive"): _canon_receive,
@@ -2278,8 +2573,22 @@ def build_local_service_adapter(
         ("canon_input", "restore_continuity"): _canon_restore_continuity,
         ("agent_learning", "inspect"): _learning_inspect,
         ("agent_learning", "retrieve"): _learning_retrieve,
-        ("agent_learning", "memory_query"): _learning_memory_query,
-        ("agent_learning", "memory_record_link"): _learning_memory_record_link,
+        (
+            "agent_learning",
+            "bootstrap_verified_history",
+        ): _learning_bootstrap_verified_history,
+        ("project_memory", "inspect"): _memory_inspect,
+        ("project_memory", "bootstrap"): _memory_bootstrap,
+        ("project_memory", "query"): _learning_memory_query,
+        ("project_memory", "record_link"): _learning_memory_record_link,
+        ("project_memory", "seal_checkpoint"): _memory_seal_checkpoint,
+        (
+            "project_memory",
+            "rehydrate_checkpoint",
+        ): _memory_rehydrate_checkpoint,
+        ("project_universe", "status"): _universe_status,
+        ("project_universe", "query"): _universe_query,
+        ("project_universe", "refresh"): _universe_refresh,
         (
             "agent_learning",
             "record_host_memory_import",
@@ -2309,6 +2618,18 @@ def build_local_service_adapter(
         ("env_uop_operator_runtime", "classify_mode"): _classify_mode,
         ("storage_connectors", "inspect"): _storage,
         ("storage_connectors", "select"): _storage_select,
+        (
+            "storage_connectors",
+            "project_authority_status",
+        ): _project_authority_status,
+        (
+            "storage_connectors",
+            "project_pv_storage_status",
+        ): _project_pv_storage_status,
+        (
+            "storage_connectors",
+            "project_authority_migrate",
+        ): _project_authority_migrate,
         ("storage_connectors", "plugin_catalog"): lambda binding, payload, context: (
             service.connector_plugin_catalog(binding.project_id)
         ),
@@ -2372,7 +2693,8 @@ def build_live_local_sdk_context(
         active_count=len(active),
     )
     lineage_path = (
-        service.store.project_root(project_id) / "lineage" / f"{session_id}.jsonl"
+        resolved_chat_lineage_root(service.store.project_root(project_id))
+        / f"{session_id}.jsonl"
     )
     events = ChatLineage(lineage_path).events()
     lineage_head = (

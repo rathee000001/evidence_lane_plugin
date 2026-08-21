@@ -1,0 +1,125 @@
+{
+  "schema": "evidence-lane.delta072-git-history-impact-receipt.v1",
+  "delta": "EL-V130-GIT-HISTORY-FORENSICS-DELTA-072",
+  "status": "PASS_WITH_EXPLICIT_BOUNDED_GRAPH_SELECTION",
+  "source_authority": {
+    "batch_id": "intake_88636dcf3992a092a8318e49f1db9802",
+    "batch_sha256": "88636DCF3992A092A8318E49F1DB980284B56D64F9C5928DA777BB449C005AA9",
+    "occurrence_ordinal": 27,
+    "object_id": "source_51285164e0f1c711f47509c61a4369fd",
+    "source_identity_sha256": "51285164E0F1C711F47509C61A4369FD509EACAA8F382F21E0944303938E1C7B",
+    "registered_kind": "directory",
+    "git_metadata_present": true,
+    "extracted_folders_without_git_treated_as_history": false
+  },
+  "live_git_history": {
+    "snapshot_id": "githistory_f0a078a4a9dcf752d5efc44c3bc29149",
+    "status": "PASS_WITH_POLICY_EXCLUSIONS",
+    "head_commit_sha": "8dea16eb98127b078137d4e8142c280f2a84af24",
+    "head_tree_sha": "7fa3ee17aedb85e25321d020798a18a18ecae852",
+    "branch": "agent/ev-remote-chatgpt-plugin",
+    "worktree_clean": true,
+    "history_root_sha256": "C4CF86B7EF1FD0EE032939BAE6014E104AEB7FA15B966CDA4DEA579E6DCC3BF9",
+    "receipt_sha256": "2A1332AAEDEFDA966135791E0AAFF077A64D3C5A14A6E4614F462699F4231705",
+    "counts": {
+      "refs": 5,
+      "commits": 11,
+      "parent_edges": 10,
+      "objects": 363,
+      "object_paths": 341,
+      "tree_entries": 1456,
+      "file_changes": 255,
+      "renames": 0,
+      "hunks": 738,
+      "changed_lines": 33595,
+      "policy_excluded_tree_paths": 11,
+      "policy_excluded_patches": 2
+    },
+    "object_bytes_hashed": 7304447,
+    "patch_bytes_read": 1647590,
+    "changed_line_storage": "SHA256_SIZE_COORDINATES_AND_NO_NEWLINE_FLAG_ONLY",
+    "historical_payload_bytes_persisted": false,
+    "rename_finding": "The exact supplied repository history contains zero Git -M50 rename rows; executable fixtures prove rename capture rather than fabricating a live rename."
+  },
+  "live_graph_binding": {
+    "full_registered_member_count": 113149,
+    "full_graph_attempt": {
+      "status": "BOUNDED_HOST_TIMEOUT_NO_SNAPSHOT",
+      "attempted_caps": {
+        "max_files": 120000,
+        "max_total_bytes": 2147483648,
+        "max_nodes": 500000,
+        "max_edges": 1000000,
+        "process_timeout_seconds": 300
+      },
+      "partial_graph_rows_created": 0
+    },
+    "bounded_selection_law": "Use only exact HEAD changed paths from the same registered occurrence; report every omitted registered member and never call the subset a full-worktree graph.",
+    "graph_id": "graph_261a16b14faf859b4e32874ad27d9925",
+    "graph_status": "PASS_BOUNDED_SELECTION",
+    "selected_path_count": 13,
+    "omitted_registered_member_count": 113136,
+    "file_count": 13,
+    "parsed_file_count": 7,
+    "node_count": 287,
+    "edge_count": 531,
+    "graph_root_sha256": "05242F22A04F219308A38570BC145403D410C3F097C31D8B539E1C50FD3D1AE9",
+    "receipt_sha256": "1B9A2EE89173E7730858EACF59E391F2DED9BE5ED04CD998324212783C045961"
+  },
+  "live_commit_impact": {
+    "impact_id": "gitimpact_743017421eaa1d5ee8e75b8a56d72dbd",
+    "commit_sha": "8dea16eb98127b078137d4e8142c280f2a84af24",
+    "parent_ordinal": 0,
+    "mapped_path_count": 13,
+    "unmapped_path_count": 0,
+    "graph_impact_id": "impact_b5e7cc0fbed6d512248f222d579a79f8",
+    "graph_impact_node_count": 13,
+    "graph_impact_edge_count": 1,
+    "graph_impact_truncated": false,
+    "projection_sha256": "D675E3A9C53BF0C19A632732E41466F8B5A3B1CA53BE2B2F4A2856141395F678",
+    "receipt_sha256": "A9DA4D4B2308842F2D5CC1C4809564483D2807C09475828B45143638B5B451F5"
+  },
+  "implementation": {
+    "tools": [
+      "source_git_history_build",
+      "source_git_commit_impact"
+    ],
+    "laws": [
+      "Only an exact registered directory with local .git metadata can produce Git history.",
+      "Every reachable object is streamed and SHA-256 hashed without storing its historical payload.",
+      "Every merge parent is compared separately; root commits use explicit root comparison semantics.",
+      "Excluded or non-UTF8 paths persist only as path hashes and cannot produce patch-content rows.",
+      "Changed source lines persist only coordinates, size, SHA-256, kind, and final-newline state.",
+      "Lazy fetch, network access, source mutation, Git mutation, candidate creation, and pointer movement are forbidden."
+    ],
+    "source_sha256": {
+      "plugins/evidence-lane-plugin/src/evidence_lane_plugin/source_git_history.py": "D3027864CC528914125CB0E0E84F9DA5134BC40F443C977D465DE0280BF97526",
+      "plugins/evidence-lane-plugin/src/evidence_lane_plugin/source_graph.py": "CD5D871627FF230CA6995C9BE3BDD275CA8654BF2418B87976AA5C6042085EFB",
+      "plugins/evidence-lane-plugin/src/evidence_lane_plugin/source_authority.py": "2FD2CA8D48638079681B3FEF40F7AB3E8BF432641673D4A80DB885E86C5A585F",
+      "plugins/evidence-lane-plugin/src/evidence_lane_plugin/service.py": "2BD02B528241886A543F59D7B1E25E2E8CD431BE913B6DF8EC54A12AC43BC8C5",
+      "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py": "2B9131F966644B1C502936B64444F5AFD54F86017ECCB40104E6759A0AFE01D7",
+      "tests/test_source_git_history.py": "EF83B5E883A7E424F590DE2CB354296ABEB8A11475F12BB5A7BA506AFB1F1EC3",
+      "tests/test_source_graph.py": "62F07880CCBF0DAB792C3004F6D23A5EED599F1C2E965DA0172C257B4B3EA278",
+      "tests/test_mcp_plugin.py": "2314B105D43A4000915EB4E7300D85D9F7AAD667AFF06191FE61C095D03C6DF3"
+    }
+  },
+  "verification": {
+    "focused_git_tests": "5 passed",
+    "cross_delta_regression": "55 passed",
+    "ruff": "PASS",
+    "mypy": "PASS: 59 source files",
+    "git_diff_check": "PASS",
+    "sqlite_integrity_check": "ok",
+    "sqlite_foreign_key_error_count": 0
+  },
+  "governance": {
+    "source_bytes_mutated": false,
+    "git_repository_mutated": false,
+    "network_used": false,
+    "candidate_created": false,
+    "pointer_moved": false,
+    "refresh_or_fuse_called": false,
+    "main_merged": false,
+    "deployed": false
+  }
+}

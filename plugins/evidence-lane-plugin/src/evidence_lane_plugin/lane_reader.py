@@ -291,7 +291,8 @@ class LaneReader:
         freshness = evaluate_freshness(self.store, project_id, package)
         results = ordered[:limit]
         return {
-            "status": result_status("PASS" if results else "EMPTY", freshness),
+            "status": result_status("PASS", freshness),
+            "result_state": "HITS" if results else "EMPTY",
             "project_id": project_id,
             "pv_ref": package.name,
             "lane": lane.as_dict(),

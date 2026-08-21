@@ -322,7 +322,7 @@ def test_plan_runtime_v2_reports_legacy_projection_stale_without_read_failure(
     assert status["reason"] == "DERIVED_SCHEMA_REBUILD_REQUIRED"
     assert status["observed_schema"].endswith(".v1")
     assert status["sqlite_user_version"] == 1
-    assert status["expected_sqlite_user_version"] == 2
+    assert status["expected_sqlite_user_version"] == 3
     assert status["rebuild_action"] == (
         "NEXT_GOVERNED_PLAN_WRITE_ATOMIC_REBUILD"
     )
@@ -330,7 +330,7 @@ def test_plan_runtime_v2_reports_legacy_projection_stale_without_read_failure(
     assert status["raw_pv_model_context_loading"] is False
 
 
-def test_plan_runtime_v2_indexes_full_contract_steers_rows_and_bounded_fts(
+def test_plan_runtime_v3_indexes_full_contract_steers_rows_and_bounded_fts(
     service,
 ) -> None:
     service.plan_tasks(
@@ -351,7 +351,7 @@ def test_plan_runtime_v2_indexes_full_contract_steers_rows_and_bounded_fts(
             ),
         ],
         planned_by="human-test",
-        plan_id="plan-runtime-v2",
+        plan_id="plan-runtime-v3",
     )
     service.record_steer_delta(
         "book-faires",
@@ -367,7 +367,9 @@ def test_plan_runtime_v2_indexes_full_contract_steers_rows_and_bounded_fts(
 
     status = service.store.plan_runtime_status("book-faires")
     assert status["status"] == "PASS"
-    assert status["sqlite_user_version"] == 2
+    assert status["sqlite_user_version"] == 3
+    assert status["task_formula_event_count"] == 0
+    assert status["task_formula_lineage_indexed"] is True
     assert status["full_task_contracts_indexed"] is True
     assert status["steer_deltas_indexed"] is True
     assert status["steer_count"] == 1
@@ -412,6 +414,10 @@ def test_plan_runtime_v2_indexes_full_contract_steers_rows_and_bounded_fts(
     assert window["accepted_pv_payload_loaded"] is False
     assert len(window["rows"]) == 2
     assert all("step" not in row and "requested_outcome" not in row for row in window["rows"])
+    assert window["row_ui_contract"] == "NO_HOST_STEP_LIST_BEFORE_PLAN_ACTIVATION"
+    assert window["items"] == []
+    assert window["fixed_header"] is None
+    assert window["host_update_plan_contract"] is None
     assert "plan_runtime_projection" not in window
     assert window["plan_runtime_receipt"]["full_runtime_projection_returned"] is False
     assert window["plan_runtime_receipt"]["raw_pv_payload_loaded"] is False

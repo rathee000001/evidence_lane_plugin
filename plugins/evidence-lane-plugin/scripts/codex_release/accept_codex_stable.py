@@ -2,7 +2,7 @@
 
 This checker is read-only except for its explicit receipt output. It compares the
 exact Git marketplace checkout with Codex's generated installed cache, validates
-the enabled canonical selector, statically proves the 87/27/60 catalog and
+the enabled canonical selector, statically proves the 88/27/61 catalog and
 seventeen skills, and optionally binds a post-restart native route receipt. It
 never calls lifecycle, Git, tunnel, candidate, pointer, or HIL actions.
 """
@@ -48,7 +48,7 @@ EXPECTED_PACKAGE_HOOK_EVENTS = {
     "Stop",
     "UserPromptSubmit",
 }
-EXPECTED_CATALOG = {"tools": 87, "read": 27, "write": 60, "skills": 17}
+EXPECTED_CATALOG = {"tools": 88, "read": 27, "write": 61, "skills": 17}
 EXPECTED_BEHAVIOR_OWNERSHIP = {
     "hooks": "LIFECYCLE_CAPTURE_AND_SEALED_EVENTS_ONLY",
     "skills": "NATIVE_PV_READS_AND_HOST_BEHAVIOR",

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
@@ -504,7 +504,9 @@ def test_state_travel_preserves_unaccepted_candidate_and_exact_resume_row(
     )
     assert source_binding["task_title_used_as_identity"] is False
     assert source_binding["cwd_used_as_identity"] is False
-    assert source_binding["plugin_build"]["plugin_version"].startswith("2.")
+    assert source_binding["plugin_build"]["plugin_version"].startswith(
+        "3.0.0+codex."
+    )
     assert handoff["next_action_contract"]["destination_orchestration"] == (
         orchestration
     )

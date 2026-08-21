@@ -8,6 +8,7 @@ import evidence_lane_plugin.agent_learning as learning_module
 import pytest
 from evidence_lane_plugin.agent_learning import (
     LEARNING_EXPIRY_OWNER,
+    bootstrap_verified_learning_history,
     decide_learning_candidate,
     expire_learning_candidates,
     inspect_learning_authority,
@@ -27,6 +28,7 @@ from evidence_lane_plugin.hashing import (
     sha256_bytes,
 )
 from evidence_lane_plugin.mcp_server import SDK_NATIVE_ACTIONS
+from evidence_lane_plugin.project_memory import MEMORY_SECTOR_LOCATOR_PREFIXES
 
 PROJECT_ID = "learning-fixture"
 T0 = "2026-08-13T12:00:00+00:00"
@@ -57,6 +59,143 @@ def _root(tmp_path: Path, project_id: str = PROJECT_ID) -> Path:
         },
     )
     return root
+
+
+def _bootstrap_plan_projection(root: Path) -> Path:
+    path = root / "plan_runtime_projection.sqlite"
+    connection = sqlite3.connect(path)
+    connection.executescript(
+        """
+        CREATE TABLE delta_task(task_id TEXT PRIMARY KEY);
+        CREATE TABLE plan_execution_row(
+            task_id TEXT PRIMARY KEY,
+            plan_sequence INTEGER NOT NULL UNIQUE,
+            row_number INTEGER,
+            history_number INTEGER,
+            lifecycle_status TEXT NOT NULL,
+            requested_outcome TEXT NOT NULL,
+            task_classification TEXT NOT NULL,
+            plan_group TEXT NOT NULL,
+            commit_batch_id TEXT NOT NULL,
+            task_contract_sha256 TEXT NOT NULL
+        );
+        CREATE TABLE delta_event(
+            event_id TEXT PRIMARY KEY,
+            sequence INTEGER NOT NULL UNIQUE,
+            task_id TEXT NOT NULL,
+            event_type TEXT NOT NULL,
+            to_status TEXT NOT NULL,
+            recorded_at TEXT NOT NULL,
+            event_sha256 TEXT NOT NULL,
+            details_json TEXT NOT NULL
+        );
+        """
+    )
+    rows = [
+        (
+            "accepted-task",
+            1,
+            81,
+            None,
+            "ACCEPTED",
+            "Keep accepted Project outcomes separate from Learning decisions.",
+            "add_bounded_feature",
+            "LEARNING",
+            "PV2",
+            _hash("accepted-contract"),
+        ),
+        (
+            "verified-forward-task",
+            2,
+            239,
+            None,
+            "DONE",
+            "Resolve project authority before activating the next Delta.",
+            "fix_bug",
+            "PROJECT_AUTHORITY",
+            "PV13",
+            _hash("verified-contract"),
+        ),
+        (
+            "ambiguous-done-task",
+            3,
+            200,
+            None,
+            "DONE",
+            "This row lacks the exact verified checkpoint and must be excluded.",
+            "modify_code",
+            "AMBIGUOUS",
+            "PV13",
+            _hash("ambiguous-contract"),
+        ),
+    ]
+    connection.executemany(
+        "INSERT INTO delta_task(task_id) VALUES(?)",
+        [(row[0],) for row in rows],
+    )
+    connection.executemany(
+        """
+        INSERT INTO plan_execution_row(
+            task_id,plan_sequence,row_number,history_number,lifecycle_status,
+            requested_outcome,task_classification,plan_group,commit_batch_id,
+            task_contract_sha256
+        ) VALUES(?,?,?,?,?,?,?,?,?,?)
+        """,
+        rows,
+    )
+    connection.executemany(
+        """
+        INSERT INTO delta_event(
+            event_id,sequence,task_id,event_type,to_status,recorded_at,
+            event_sha256,details_json
+        ) VALUES(?,?,?,?,?,?,?,?)
+        """,
+        [
+            (
+                "accepted-task-hil",
+                1,
+                "accepted-task",
+                "HIL_OUTCOME",
+                "ACCEPTED",
+                T0,
+                _hash("accepted-event"),
+                json.dumps({"decision": "APPROVE", "accepted_pv": "PV2"}),
+            ),
+            (
+                "verified-forward-checkpoint",
+                2,
+                "verified-forward-task",
+                "VERIFIED_TASK_CHECKPOINT_COMPLETED",
+                "DONE",
+                T1,
+                _hash("verified-event"),
+                json.dumps(
+                    {
+                        "verification_kind": "PER_DELTA_LOCAL_VERIFICATION",
+                        "candidate_created": False,
+                        "pointer_moved": False,
+                        "hil_inferred": False,
+                        "pending_hil": False,
+                        "completion_receipt_sha256": _hash("completion-receipt"),
+                        "verification_proof_sha256": _hash("verification-proof"),
+                    }
+                ),
+            ),
+            (
+                "ambiguous-done",
+                3,
+                "ambiguous-done-task",
+                "TASK_DONE",
+                "DONE",
+                T2,
+                _hash("ambiguous-event"),
+                json.dumps({"generic_pass": True}),
+            ),
+        ],
+    )
+    connection.commit()
+    connection.close()
+    return path
 
 
 def _evidence(
@@ -161,6 +300,86 @@ def test_candidate_is_immutable_provenanced_and_idempotent(tmp_path: Path) -> No
     ] == 1
 
 
+def test_verified_history_bootstrap_is_bounded_idempotent_and_pointer_neutral(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    _bootstrap_plan_projection(root)
+    project_pointer_before = project_truth_pointer_sha256(root, project_id=PROJECT_ID)
+
+    first = bootstrap_verified_learning_history(
+        root,
+        project_id=PROJECT_ID,
+        accepted_pv="PV12",
+        max_candidates=8,
+    )
+    second = bootstrap_verified_learning_history(
+        root,
+        project_id=PROJECT_ID,
+        accepted_pv="PV12",
+        max_candidates=8,
+    )
+
+    assert first["status"] == "PASS"
+    assert first["created_count"] == 2
+    assert first["idempotent_reuse_count"] == 0
+    assert first["excluded_ambiguous_or_unverified_count"] == 1
+    assert first["source_kind_counts"] == {
+        "ACCEPTED_HISTORY": 1,
+        "VERIFIED_FORWARD": 1,
+    }
+    assert second["created_count"] == 0
+    assert second["idempotent_reuse_count"] == 2
+    assert second["candidate_ids"] == first["candidate_ids"]
+    assert second["receipt"] == first["receipt"]
+    assert project_truth_pointer_sha256(root, project_id=PROJECT_ID) == (
+        project_pointer_before
+    )
+    assert not (root / "ai_learning" / "active_pointer.json").exists()
+    inspected = inspect_learning_authority(root, project_id=PROJECT_ID)
+    assert inspected["candidate_count"] == 2
+    assert inspected["event_count"] == 2
+    assert set(inspected["candidate_states"].values()) == {
+        "PENDING_LEARNING_HIL"
+    }
+    assert first["project_candidate_created"] is False
+    assert first["project_hil_invoked"] is False
+    assert first["learning_hil_invoked"] is False
+    assert first["automatic_learning_acceptance"] is False
+    assert first["full_plan_loaded_into_model_context"] is False
+
+
+def test_verified_history_bootstrap_prevalidates_before_any_learning_write(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    plan_path = _bootstrap_plan_projection(root)
+    connection = sqlite3.connect(plan_path)
+    connection.execute(
+        """
+        UPDATE plan_execution_row
+        SET requested_outcome=?
+        WHERE task_id='verified-forward-task'
+        """,
+        ("authorization=github_pat_abcdefghijklmnopqrstuvwxyz",),
+    )
+    connection.commit()
+    connection.close()
+
+    with pytest.raises(EvidenceLaneError) as blocked:
+        bootstrap_verified_learning_history(
+            root,
+            project_id=PROJECT_ID,
+            accepted_pv="PV12",
+            max_candidates=8,
+        )
+
+    assert blocked.value.code == "LEARNING_BOOTSTRAP_OUTCOME_INVALID"
+    inspected = inspect_learning_authority(root, project_id=PROJECT_ID)
+    assert inspected["candidate_count"] == 0
+    assert inspected["event_count"] == 0
+
+
 def test_exact_approve_moves_learning_pointer_only(tmp_path: Path) -> None:
     root = _root(tmp_path)
     sealed = _seal(root)
@@ -227,7 +446,7 @@ def test_implicit_or_malformed_learning_hil_is_rejected(
         _decide(root, sealed, token)
 
     assert blocked.value.code == "LEARNING_DECISION_TOKEN_INVALID"
-    assert not (root / "learning" / "active_pointer.json").exists()
+    assert not (root / "ai_learning" / "active_pointer.json").exists()
 
 
 def test_supersession_and_learning_only_rollback_preserve_history(
@@ -369,23 +588,26 @@ def test_runtime_contract_has_eight_routes_and_explicit_memory_boundary() -> Non
         "learning_decide_candidate",
         "learning_revoke",
     ]
-    assert contract["memory_graph"] == {
-        "schema_version": 1,
-        "authority": "PROJECT_ISOLATED_CROSS_SECTOR_LOCATORS_ONLY",
-        "sectors": [
-            "AGENT_LEARNING",
-            "CANON",
-            "CHAT_LINEAGE",
-            "HOST_MEMORY",
-            "PLAN",
-            "PROJECT_TRUTH",
-        ],
-        "raw_database_or_markdown_stored": False,
-        "automatic_host_memory_import": False,
-        "project_truth_effect": "NONE",
-        "candidate_effect": "NONE",
-        "hil_effect": "NONE",
-    }
+    assert contract["memory_graph"]["schema_version"] == 1
+    assert contract["memory_graph"]["authority"] == (
+        "INDEPENDENT_PROJECT_MEMORY_AUTHORITY"
+    )
+    assert contract["memory_graph"]["sdk_module"] == "project_memory"
+    assert contract["memory_graph"]["compatibility_action_names"] == [
+        "learning_memory_query",
+        "learning_memory_record_link",
+    ]
+    assert contract["memory_graph"]["legacy_learning_tables"] == (
+        "IMMUTABLE_MIGRATION_SOURCE_ONLY"
+    )
+    assert set(contract["memory_graph"]["sectors"]) == set(
+        MEMORY_SECTOR_LOCATOR_PREFIXES
+    )
+    assert contract["memory_graph"]["raw_database_or_markdown_stored"] is False
+    assert contract["memory_graph"]["automatic_host_memory_import"] is False
+    assert contract["memory_graph"]["project_truth_effect"] == "NONE"
+    assert contract["memory_graph"]["candidate_effect"] == "NONE"
+    assert contract["memory_graph"]["hil_effect"] == "NONE"
     assert contract["public_action_count"] == 8
     assert contract["search"]["engine"] == "SQLITE_FTS5"
     assert contract["search"]["full_ledger_loaded_into_model_context"] is False
@@ -394,14 +616,24 @@ def test_runtime_contract_has_eight_routes_and_explicit_memory_boundary() -> Non
     )
     assert contract["expiry"]["public_action"] is None
     assert contract["expiry"]["hook_owned"] is False
-    registered = [
-        name
-        for name, _title, _description, module, _operation, _read_only in (
+    routing = {
+        name: (module, operation)
+        for name, _title, _description, module, operation, _read_only in (
             SDK_NATIVE_ACTIONS
         )
-        if module == "agent_learning"
-    ]
-    assert registered == contract["public_actions"]
+        if name in contract["public_actions"]
+    }
+    assert set(routing) == set(contract["public_actions"])
+    assert routing["learning_memory_query"] == ("project_memory", "query")
+    assert routing["learning_memory_record_link"] == (
+        "project_memory",
+        "record_link",
+    )
+    assert all(
+        module == "agent_learning"
+        for name, (module, _operation) in routing.items()
+        if name not in contract["memory_graph"]["compatibility_action_names"]
+    )
 
 
 def test_memory_graph_is_bounded_revisioned_and_idempotent(tmp_path: Path) -> None:
@@ -568,7 +800,7 @@ def test_v1_ledger_migrates_additively_to_cross_sector_memory_graph(
 ) -> None:
     root = _root(tmp_path)
     inspect_learning_authority(root, project_id=PROJECT_ID)
-    ledger = root / "learning" / "agent-learning.sqlite"
+    ledger = root / "ai_learning" / "agent-learning.sqlite"
     connection = sqlite3.connect(ledger)
     connection.execute("DROP TABLE memory_edge")
     connection.execute("DROP TABLE memory_locator_fts")
@@ -651,7 +883,7 @@ def test_expiry_materialization_rejects_every_other_owner(tmp_path: Path) -> Non
 def test_v0_ledger_migrates_additively_and_rebuilds_fts(tmp_path: Path) -> None:
     root = _root(tmp_path)
     sealed = _seal(root, statement="Legacy learning row survives migration.")
-    ledger = root / "learning" / "agent-learning.sqlite"
+    ledger = root / "ai_learning" / "agent-learning.sqlite"
     connection = sqlite3.connect(ledger)
     connection.execute("DROP TABLE learning_candidate_fts")
     connection.execute("DROP TABLE learning_schema_metadata")
@@ -670,7 +902,7 @@ def test_v0_ledger_migrates_additively_and_rebuilds_fts(tmp_path: Path) -> None:
 def test_v1_schema_drift_fails_closed_without_auto_repair(tmp_path: Path) -> None:
     root = _root(tmp_path)
     inspect_learning_authority(root, project_id=PROJECT_ID)
-    ledger = root / "learning" / "agent-learning.sqlite"
+    ledger = root / "ai_learning" / "agent-learning.sqlite"
     connection = sqlite3.connect(ledger)
     connection.execute("DROP INDEX idx_learning_candidate_dedup")
     connection.commit()
@@ -691,7 +923,7 @@ def test_v1_schema_drift_fails_closed_without_auto_repair(tmp_path: Path) -> Non
 
 def test_failed_v0_migration_rolls_back_every_schema_change(tmp_path: Path) -> None:
     root = _root(tmp_path)
-    learning_root = root / "learning"
+    learning_root = root / "ai_learning"
     learning_root.mkdir()
     ledger = learning_root / "agent-learning.sqlite"
     connection = sqlite3.connect(ledger)
@@ -720,3 +952,61 @@ def test_failed_v0_migration_rolls_back_every_schema_change(tmp_path: Path) -> N
     assert "learning_schema_metadata" not in objects
     assert "learning_candidate_fts" not in objects
     assert columns == ["candidate_id"]
+
+
+def test_legacy_learning_root_migrates_once_to_single_ai_learning_authority(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    inspect_learning_authority(root, project_id=PROJECT_ID)
+    canonical = root / "ai_learning"
+    legacy = root / "learning"
+    ledger_before = (canonical / "agent-learning.sqlite").read_bytes()
+    project_pointer_before = (root / "active_pointer.json").read_bytes()
+    canonical.rename(legacy)
+    canonical.mkdir()
+    atomic_write_json(
+        canonical / "authority.ref.json",
+        {
+            "schema": "evidence-lane.named-project-authority-reference.v1",
+            "authority": "AI_LEARNING",
+            "project_id": PROJECT_ID,
+        },
+    )
+
+    inspected = inspect_learning_authority(root, project_id=PROJECT_ID)
+
+    assert inspected["status"] == "PASS"
+    assert not legacy.exists()
+    assert (canonical / "agent-learning.sqlite").read_bytes() == ledger_before
+    assert (canonical / "authority.ref.json").is_file()
+    receipt = json.loads(
+        (
+            canonical
+            / "receipts"
+            / "authority-layout-migration-v1.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert receipt["status"] == "PASS"
+    assert receipt["canonical_directory"] == "ai_learning"
+    assert receipt["legacy_directory"] == "learning"
+    assert receipt["legacy_root_present_after"] is False
+    assert receipt["reference_hold_present_after"] is False
+    assert receipt["project_truth_pointer_moved"] is False
+    assert receipt["learning_pointer_moved"] is False
+    assert (root / "active_pointer.json").read_bytes() == project_pointer_before
+
+
+def test_two_substantive_learning_roots_fail_closed(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    inspect_learning_authority(root, project_id=PROJECT_ID)
+    legacy = root / "learning"
+    legacy.mkdir()
+    (legacy / "agent-learning.sqlite").write_bytes(b"conflicting legacy bytes")
+
+    with pytest.raises(EvidenceLaneError) as conflict:
+        inspect_learning_authority(root, project_id=PROJECT_ID)
+
+    assert conflict.value.code == "LEARNING_AUTHORITY_LAYOUT_CONFLICT"
+    assert legacy.is_dir()
+    assert (root / "ai_learning" / "agent-learning.sqlite").is_file()

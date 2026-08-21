@@ -38,9 +38,16 @@ preview, or candidate creates a second submission.
   <a href="SECURITY.md">Security</a>
 </p>
 
-Evidence Lane is a local-first evidence and continuity system for long-running
-AI-assisted work. It keeps project truth, source identity, task state, research,
-candidate builds, and human decisions queryable and traceable across tasks,
+The AI model is rarely the only bottleneck in a serious long-running project.
+The harder failure is the fragmented project around it: repositories, local
+dirty work, documents, databases, research, plans, installed runtimes,
+deployments, and human decisions all drift into separate realities while the
+human becomes the integration layer.
+
+Evidence Lane is a local-first project control plane for that fragmented state.
+It keeps source, worktree, project, Plan, ChatLineage, installed-runtime,
+candidate, accepted, Memory, Canon, and AI Learning authorities distinct while
+making the exact slice needed by the active Delta queryable across tasks,
 context windows, tools, and hosts.
 
 The current pre-HIL Codex source release is **3.0.0**. This forward release
@@ -123,7 +130,7 @@ AI reasons over these authorities. It is not itself the evidence authority.
 The 3.0 source package defines:
 
 - one package-local native MCP server named `evidence-lane`;
-- exactly **87 canonical actions**: 27 read-only and 60 write-capable;
+- exactly **88 canonical actions**: 27 read-only and 61 write-capable;
 - exactly **17 governed skills**;
 - six primary controls in order: Boot, Rollback, Build, Refresh, Mode, and
   Source Intake;
@@ -170,8 +177,8 @@ installed-host evidence.
 | Server | `evidence-lane` | One package-local Codex MCP; website and tunnel routes are not substitutes. |
 | Canonical namespace | `mcp__evidence_lane__*` | Display suffixes never change canonical identity. |
 | Read-only actions | 27 | Inspect authority without lifecycle mutation. |
-| Write-capable actions | 59 | Each call proves its project, session, task, host, and lifecycle preconditions. |
-| Total canonical actions | 86 | Visibility is capability discovery, not permission or approval. |
+| Write-capable actions | 61 | Each call proves its project, session, task, host, and lifecycle preconditions. |
+| Total canonical actions | 88 | Visibility is capability discovery, not permission or approval. |
 | Governed console | `ui://evidence-lane/governed-console-v5.html` | Read-only rendering cannot decide HIL or move a pointer. |
 | Durable default | Project-scoped local SQLite | Storage connectors remain separate surfaces. |
 
@@ -187,7 +194,7 @@ flowchart TD
     Host["Codex host and exact task"] --> Hooks["8 lifecycle hooks"]
     Host --> Skills["17 governed skills"]
     Hooks --> Skills
-    Skills --> MCP["Native evidence-lane MCP<br/>27 read + 60 write actions"]
+    Skills --> MCP["Native evidence-lane MCP<br/>27 read + 61 write actions"]
     MCP --> SDK["Internal SDK<br/>engine + contracts + adapters"]
     SDK --> Authorities["Separate authorities<br/>Project Truth | Canon | Learning | ChatLineage | Host Entry"]
     Sources["Authorized sources"] --> Lanes["18 bounded evidence lanes"]

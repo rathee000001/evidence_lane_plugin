@@ -285,7 +285,10 @@ class CodePVEngine:
         try:
             db_path = build_root / "code.sqlite"
             prior_db = None
-            if pointer.accepted_pv:
+            external_project_authority = self.store.uses_external_project_authority(
+                project_id
+            )
+            if pointer.accepted_pv and not external_project_authority:
                 prior_db = (
                     self.store.accepted_path(project_id, pointer.accepted_pv)
                     / "code.sqlite"
@@ -513,7 +516,10 @@ class CodePVEngine:
             parent_lane_bundle = None
             if pointer.accepted_pv:
                 possible_parent = (
-                    self.store.accepted_path(project_id, pointer.accepted_pv) / "lanes"
+                    project_root / "sectors"
+                    if external_project_authority
+                    else self.store.accepted_path(project_id, pointer.accepted_pv)
+                    / "lanes"
                 )
                 if possible_parent.is_dir():
                     parent_lane_bundle = possible_parent
@@ -688,7 +694,7 @@ class CodePVEngine:
                     phase="POSTSEAL",
                     environment={
                         "EVIDENCE_LANE_CANDIDATE_PATH": str(
-                            self.store.candidate_path(project_id, candidate_id)
+                            self.store.candidate_runtime_path(project_id, candidate_id)
                         ),
                         "EVIDENCE_LANE_PROJECT_ROOT": str(project_root),
                         "EVIDENCE_LANE_PROJECT_ID": project_id,
@@ -724,7 +730,9 @@ class CodePVEngine:
                 atomic_write_json(postseal_receipt_path, postseal_receipt)
             return {
                 **package_result,
-                "stored_path": str(self.store.candidate_path(project_id, candidate_id)),
+                "stored_path": str(
+                    self.store.candidate_runtime_path(project_id, candidate_id)
+                ),
                 "stored_validation": stored,
                 "repository": repository_payload,
                 "source_delta": delta,

@@ -37,7 +37,7 @@ const releaseStages = [
     label: "Install local testing",
     summary: "Install the verified newer v3.0 layer into the existing mutable testing slot without adding another slot.",
     outcome: "An attached local package whose source, catalog, runtime, profile, and exact Task8 identity agree.",
-    proof: "Installer receipt, slot path, build identity, 87-action/17-skill catalog, task UUID, runtime profile, and reattach receipt.",
+    proof: "Installer receipt, slot path, build identity, 88-action/17-skill catalog, task UUID, runtime profile, and reattach receipt.",
     boundary: "ENV/UOP, accepted PV, the Git fallback, and main-release slot remain unchanged.",
     details: [
       "Use the established local installer and existing cache-busted testing slot.",

@@ -35,7 +35,7 @@ export const studioArtifactCatalog: readonly StudioArtifact[] = [
     label: "Release identity and host matrix",
     format: "Table",
     href: "/connect",
-    identity: "release=3.0.0 actions=87 read=27 write=60 skills=17 hooks=8",
+    identity: "release=3.0.0 actions=88 read=27 write=61 skills=17 hooks=8",
     status: "DERIVED_VIEW",
     purpose: "Truthful host capability comparison.",
     boundary: "A table cannot establish live connection health.",

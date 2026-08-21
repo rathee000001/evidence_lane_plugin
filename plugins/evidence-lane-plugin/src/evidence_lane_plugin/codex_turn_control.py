@@ -52,7 +52,13 @@ from .hook_contract import (
     validate_hook_configuration,
 )
 from .host_plan_rehydration import prepare_host_plan_rehydration
+from .install_deferral import adaptive_install_deferral_facts
 from .lineage import ChatLineage
+from .project_authority import resolved_chat_lineage_root, resolved_plan_backlog_path
+from .project_memory import (
+    rehydrate_memory_checkpoint,
+    seal_memory_checkpoint,
+)
 from .prompt_index import PromptIndex
 from .redaction import contains_secret, redact_text
 from .store import ProjectStore
@@ -74,6 +80,12 @@ _DELTA_VERIFICATION_ROLES = {
     "SOURCE",
     "TEST",
 }
+_SUPPORTED_EXACT_TASK_BINDING_ACTIVATION_STATES = frozenset(
+    {
+        "INSTALLED_RESTART_REQUIRED",
+        "LOCAL_3_0_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED",
+    }
+)
 _GOVERNED_ACTIVITY_TOOL_LIMIT = 2048
 _GOVERNED_ACTIVITY_CLASS_ORDER = (
     ("plan_pv", "Plan and PV"),
@@ -252,9 +264,7 @@ def _lineage_host_identity(host_payload: dict[str, Any]) -> dict[str, Any]:
             )
         ),
         "host_session_id_sha256": (
-            sha256_bytes(host_session_id.encode("utf-8"))
-            if host_session_id
-            else None
+            sha256_bytes(host_session_id.encode("utf-8")) if host_session_id else None
         ),
         "raw_host_session_id_stored": False,
     }
@@ -288,6 +298,32 @@ def _json(path: Path) -> dict[str, Any]:
         path=str(path),
     )
     return payload
+
+
+def _project_authority_root(root: Path, project_id: str) -> Path:
+    """Resolve one project through the registered live-authority route."""
+
+    try:
+        return ProjectStore(root).project_root(project_id)
+    except EvidenceLaneError as exc:
+        raise TurnControlError(
+            exc.code,
+            exc.message,
+            **dict(exc.details),
+        ) from exc
+
+
+def _project_authority_routes(root: Path) -> list[tuple[str, Path]]:
+    """Resolve host discovery across registered and legacy project routes."""
+
+    try:
+        return ProjectStore(root).project_authority_routes()
+    except EvidenceLaneError as exc:
+        raise TurnControlError(
+            exc.code,
+            exc.message,
+            **dict(exc.details),
+        ) from exc
 
 
 def _within(child: Path, parent: Path) -> bool:
@@ -371,8 +407,7 @@ def _package_surface_inventory() -> dict[str, Any]:
         if isinstance(group, dict)
     )
     _require(
-        registered_events == sorted(HOOK_EVENT_NAMES)
-        and handler_count == 8,
+        registered_events == sorted(HOOK_EVENT_NAMES) and handler_count == 8,
         "TURN_CONTROL_PACKAGE_HOOK_EVENT_INVENTORY_REQUIRED",
         "The installed persistent hook event inventory is not exact.",
     )
@@ -385,9 +420,7 @@ def _package_surface_inventory() -> dict[str, Any]:
         "hook_file_count": hook_files["count"],
         "records": hook_files["records"],
         "file_inventory_sha256": hook_files["inventory_sha256"],
-        "event_inventory_sha256": sha256_bytes(
-            canonical_json_bytes(registered_events)
-        ),
+        "event_inventory_sha256": sha256_bytes(canonical_json_bytes(registered_events)),
         "lifecycle_contract": lifecycle_hook_contract(),
         "configuration_validation": hook_contract_validation,
     }
@@ -510,10 +543,8 @@ def verify_codex_fallback_prewarmer(
         and fallback.get("byte_frozen") is True
         and fallback.get("accepted_pv") == "PV11"
         and fallback.get("accepted_generation") == 11
-        and fallback.get("package_sha256")
-        == registry.get("accepted_package_sha256")
-        and fallback.get("plugin_version")
-        == registry.get("accepted_plugin_version")
+        and fallback.get("package_sha256") == registry.get("accepted_package_sha256")
+        and fallback.get("plugin_version") == registry.get("accepted_plugin_version")
         and dict(stable.get("tunnel") or {}).get("required") is False
         and dict(fallback.get("tunnel") or {}).get("required") is False,
         "FALLBACK_PREWARM_SLOT_INVALID",
@@ -536,38 +567,28 @@ def verify_codex_fallback_prewarmer(
     )
     fallback_receipt = _json(fallback_receipt_path)
     fallback_receipt_body = {
-        key: value
-        for key, value in fallback_receipt.items()
-        if key != "receipt_sha256"
+        key: value for key, value in fallback_receipt.items() if key != "receipt_sha256"
     }
     activation = dict(fallback_receipt.get("activation") or {})
     catalog = dict((fallback_receipt.get("plugin") or {}).get("catalog") or {})
     source_parity = dict(fallback_receipt.get("source_parity") or {})
-    fallback_install_stable_selector = str(
-        activation.get("stable_selector") or ""
-    )
+    fallback_install_stable_selector = str(activation.get("stable_selector") or "")
     known_stable_selectors = {
         str(stable.get("plugin_selector") or ""),
-        *(
-            str(value)
-            for value in registry.get("historical_disabled_entries") or []
-        ),
+        *(str(value) for value in registry.get("historical_disabled_entries") or []),
     }
     _require(
-        fallback_receipt.get("schema")
-        == "evidence-lane.codex-stable-installation.v2"
+        fallback_receipt.get("schema") == "evidence-lane.codex-stable-installation.v2"
         and fallback_receipt.get("status") == "PASS"
         and fallback_receipt.get("project_id") == project_id
         and fallback_receipt.get("evidence_session_id") == session_id
         and fallback_receipt.get("task_id") == registry.get("task_id")
-        and fallback_receipt.get("host_session_id")
-        == registry.get("host_session_id")
+        and fallback_receipt.get("host_session_id") == registry.get("host_session_id")
         and fallback_receipt.get("accepted_pv") == "PV11"
         and fallback_receipt.get("accepted_generation") == 11
         and fallback_receipt.get("accepted_manifest_sha256")
         == registry.get("accepted_manifest_sha256")
-        and fallback_receipt.get("archive_sha256")
-        == fallback.get("package_sha256")
+        and fallback_receipt.get("archive_sha256") == fallback.get("package_sha256")
         and fallback_receipt.get("byte_frozen") is True
         and fallback_receipt.get("slot_role") == "fallback"
         and fallback_receipt.get("receipt_sha256")
@@ -681,9 +702,7 @@ def verify_codex_fallback_prewarmer(
         )
 
     task_id = str(registry.get("task_id") or "")
-    task_binding_path = Path(
-        str(registry.get("fallback_recovery_task_binding") or "")
-    )
+    task_binding_path = Path(str(registry.get("fallback_recovery_task_binding") or ""))
     _require(
         _CODEX_TASK_ID_RE.fullmatch(task_id) is not None
         and task_binding_path.is_absolute()
@@ -718,8 +737,7 @@ def verify_codex_fallback_prewarmer(
         and _within(preparation_path, installation_root)
         and preparation_path.is_file()
         and install_path == fallback_receipt_path
-        and task_binding.get("install_receipt_sha256")
-        == fallback_receipt_file_sha256
+        and task_binding.get("install_receipt_sha256") == fallback_receipt_file_sha256
         and task_binding.get("preparation_receipt_sha256")
         == sha256_file(preparation_path),
         "FALLBACK_PREWARM_TASK_BINDING_INVALID",
@@ -734,13 +752,11 @@ def verify_codex_fallback_prewarmer(
         and preparation.get("evidence_session_id") == session_id
         and preparation.get("task_id") == task_id
         and preparation.get("host_session_id") == registry.get("host_session_id")
-        and preparation.get("install_receipt_sha256")
-        == fallback_receipt_file_sha256
+        and preparation.get("install_receipt_sha256") == fallback_receipt_file_sha256
         and preparation.get("plugin_version") == fallback.get("plugin_version")
         and continuation.get("same_task_required") is True
         and continuation.get("task_navigation_mode") == "CODEX_THREAD_DEEPLINK"
-        and continuation.get("task_uri_sha256")
-        == task_binding.get("task_uri_sha256")
+        and continuation.get("task_uri_sha256") == task_binding.get("task_uri_sha256")
         and continuation.get("coordinate_clicking_used") is False
         and continuation.get("lifecycle_resume_call_required") is False
         and continuation.get("state_travel_required") is False
@@ -755,8 +771,18 @@ def verify_codex_fallback_prewarmer(
     )
 
     running_plugin_root = Path(__file__).resolve().parents[2]
-    switch_helper = running_plugin_root / "scripts" / "codex_release" / "Switch-EvidenceLaneCodexSlot.ps1"
-    restart_helper = running_plugin_root / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1"
+    switch_helper = (
+        running_plugin_root
+        / "scripts"
+        / "codex_release"
+        / "Switch-EvidenceLaneCodexSlot.ps1"
+    )
+    restart_helper = (
+        running_plugin_root
+        / "scripts"
+        / "codex_release"
+        / "Restart-EvidenceLaneCodex.ps1"
+    )
     _require(
         switch_helper.is_file()
         and restart_helper.is_file()
@@ -809,12 +835,7 @@ def verify_codex_fallback_prewarmer(
 
 def _package_update_status(root: Path) -> dict[str, Any]:
     current = _package_surface_inventory()
-    receipt_path = (
-        root
-        / "installations"
-        / "codex-v200"
-        / "CURRENT_INSTALLATION.json"
-    )
+    receipt_path = root / "installations" / "codex-v200" / "CURRENT_INSTALLATION.json"
     installation: dict[str, Any] | None = None
     change: dict[str, Any] | None = None
     if receipt_path.is_file():
@@ -832,16 +853,14 @@ def _package_update_status(root: Path) -> dict[str, Any]:
         if claimed == actual:
             candidate_change = dict(candidate.get("surface_change_display") or {})
             if (
-                candidate.get("schema")
-                == "evidence-lane.codex-stable-installation.v2"
+                candidate.get("schema") == "evidence-lane.codex-stable-installation.v2"
                 and candidate.get("status") == "PASS"
                 and candidate_change.get("schema")
                 == "evidence-lane.codex-installed-surface-change-display.v2"
                 and candidate_change.get("current_surface_inventory_sha256")
                 == current["surface_inventory_sha256"]
                 and candidate_change.get("raw_paths_included") is False
-                and candidate_change.get("private_research_question_included")
-                is False
+                and candidate_change.get("private_research_question_included") is False
             ):
                 installation = candidate
                 change = candidate_change
@@ -863,9 +882,7 @@ def _package_update_status(root: Path) -> dict[str, Any]:
         hook_change = {
             "count": current["hooks"]["count"],
             "count_semantics": "REGISTERED_EVENT_COUNT",
-            "registered_event_count": current["hooks"][
-                "registered_event_count"
-            ],
+            "registered_event_count": current["hooks"]["registered_event_count"],
             "registered_events": current["hooks"]["registered_events"],
             "handler_count": current["hooks"]["handler_count"],
             "hook_file_count": current["hooks"]["hook_file_count"],
@@ -940,9 +957,7 @@ def _host_binding_epoch(session: dict[str, Any]) -> str:
             governed_host_session_id.encode("utf-8")
         ),
         "accepted_pv": session.get("accepted_pv"),
-        "accepted_pointer_generation": session.get(
-            "accepted_pointer_generation"
-        ),
+        "accepted_pointer_generation": session.get("accepted_pointer_generation"),
         "active_backlog_task_id": metadata.get("active_backlog_task_id"),
         "active_backlog_task_status": metadata.get("active_backlog_task_status"),
         "runtime_task_id": (
@@ -951,12 +966,8 @@ def _host_binding_epoch(session: dict[str, Any]) -> str:
             else None
         ),
         "state_travel_handoff_sha256": travel.get("handoff_sha256"),
-        "state_travel_verified_snapshot_sha256": travel.get(
-            "verified_snapshot_sha256"
-        ),
-        "state_travel_task_list_sha256": resume_contract.get(
-            "task_list_sha256"
-        ),
+        "state_travel_verified_snapshot_sha256": travel.get("verified_snapshot_sha256"),
+        "state_travel_task_list_sha256": resume_contract.get("task_list_sha256"),
         "state_travel_additive_deltas_sha256": resume_contract.get(
             "additive_deltas_sha256"
         ),
@@ -1015,9 +1026,7 @@ def _read_codex_task_binding(
         "The exact Codex task binding receipt is invalid.",
         task_id=task_id,
     )
-    expected_task_uri_sha256 = sha256_bytes(
-        f"codex://threads/{task_id}".encode()
-    )
+    expected_task_uri_sha256 = sha256_bytes(f"codex://threads/{task_id}".encode())
     _require(
         binding.get("task_uri_sha256") == expected_task_uri_sha256,
         "TURN_CONTROL_CODEX_TASK_URI_MISMATCH",
@@ -1066,15 +1075,13 @@ def _read_codex_task_binding(
         preparation.get("schema") == "evidence-lane.codex-restart-preparation.v2"
         and preparation.get("state") == "PREPARED_NOT_RESTARTED"
         and preparation.get("project_id") == binding.get("project_id")
-        and preparation.get("evidence_session_id")
-        == binding.get("evidence_session_id")
+        and preparation.get("evidence_session_id") == binding.get("evidence_session_id")
         and preparation.get("task_id") == task_id
         and preparation.get("host_session_id")
         == binding.get("governed_host_session_id")
         and preparation.get("install_receipt_sha256") == install_sha256
         and preparation.get("plugin_version") == plugin_version
-        and installation.get("schema")
-        == "evidence-lane.codex-stable-installation.v2"
+        and installation.get("schema") == "evidence-lane.codex-stable-installation.v2"
         and installation.get("status") == "PASS"
         and dict(installation.get("plugin") or {}).get("version") == plugin_version
         and binding.get("plugin_version") == plugin_version,
@@ -1131,8 +1138,7 @@ def _read_active_goal_recovery_binding(
     _require(
         record.get("schema") == _GOAL_RECOVERY_BINDING_SCHEMA
         and bool(payload)
-        and claimed_payload_sha256
-        == _powershell_ordered_json_sha256(payload),
+        and claimed_payload_sha256 == _powershell_ordered_json_sha256(payload),
         "TURN_CONTROL_GOAL_RECOVERY_BINDING_SEAL_MISMATCH",
         "The exact Goal recovery binding failed schema or SHA-256 verification.",
     )
@@ -1154,9 +1160,7 @@ def _read_active_goal_recovery_binding(
         / "task-bindings"
         / f"{task_id.lower()}.json"
     ).resolve()
-    supplied_task_binding_path = Path(
-        str(payload.get("task_binding_receipt") or "")
-    )
+    supplied_task_binding_path = Path(str(payload.get("task_binding_receipt") or ""))
     _require(
         supplied_task_binding_path.is_absolute()
         and supplied_task_binding_path.resolve() == expected_task_binding_path
@@ -1175,9 +1179,7 @@ def _read_active_goal_recovery_binding(
     slot_authority = dict(payload.get("slot_authority") or {})
     active_plan = dict(turn_binding.get("persistent_plan_row") or {})
     runtime_selector = str(payload.get("runtime_plugin_selector") or "")
-    task_uri_sha256 = sha256_bytes(
-        f"codex://threads/{task_id}".encode()
-    )
+    task_uri_sha256 = sha256_bytes(f"codex://threads/{task_id}".encode())
     plugin_version = str(_package_surface_inventory().get("plugin_version") or "")
     _require(
         payload.get("state") == "ACTIVE_GOAL_BOUND"
@@ -1227,9 +1229,7 @@ def _read_active_goal_recovery_binding(
     _require(
         goal.get("task_id") == task_id
         and goal.get("goal_status") == "active"
-        and _SHA256_RE.fullmatch(
-            str(goal.get("goal_objective_sha256") or "").upper()
-        )
+        and _SHA256_RE.fullmatch(str(goal.get("goal_objective_sha256") or "").upper())
         is not None
         and goal.get("raw_goal_objective_stored") is False
         and "goal_objective" not in goal
@@ -1251,8 +1251,7 @@ def _read_active_goal_recovery_binding(
         and recovery_law.get("turn_start_allowed") is False
         and recovery_law.get("thread_resume_writer_allowed") is False
         and recovery_law.get("state_travel_allowed") is False
-        and recovery_law.get("candidate_hil_pointer_or_git_mutation_allowed")
-        is False
+        and recovery_law.get("candidate_hil_pointer_or_git_mutation_allowed") is False
         and recovery_law.get("restart_loop_allowed") is False
         and slot_authority.get("accepted_pv") == turn_binding.get("accepted_pv")
         and slot_authority.get("accepted_generation")
@@ -1272,9 +1271,7 @@ def _read_active_goal_recovery_binding(
         "binding_revision": int(payload["binding_revision"]),
         "goal_recovery_payload_sha256": claimed_payload_sha256,
         "goal_recovery_file_sha256": sha256_file(binding_path),
-        "task_binding_receipt_sha256": task_binding[
-            "task_binding_receipt_sha256"
-        ],
+        "task_binding_receipt_sha256": task_binding["task_binding_receipt_sha256"],
         "task_uri_sha256": task_uri_sha256,
         "goal_objective_sha256": str(goal["goal_objective_sha256"]).upper(),
         "raw_goal_objective_stored": False,
@@ -1302,7 +1299,7 @@ def _read_host_alias(
     transcript_sha256 = _host_transcript_sha256(transcript_path)
     if not observed_host_session_id or transcript_sha256 is None:
         return None
-    database = project_root / "lineage" / "codex_turn_control.sqlite"
+    database = resolved_chat_lineage_root(project_root) / "codex_turn_control.sqlite"
     if not database.is_file():
         return None
     observed_sha256 = sha256_bytes(observed_host_session_id.encode("utf-8"))
@@ -1372,8 +1369,8 @@ def _session_candidates(
     cwd: str,
     transcript_path: str = "",
 ) -> list[dict[str, Any]]:
-    projects_root = root / "projects"
-    if not projects_root.is_dir():
+    project_routes = _project_authority_routes(root)
+    if not project_routes:
         return []
     exact: list[dict[str, Any]] = []
     cwd_matches: list[dict[str, Any]] = []
@@ -1382,9 +1379,7 @@ def _session_candidates(
         observed_host_session_id=host_session_id,
     )
     current_cwd = Path(cwd).resolve() if cwd else None
-    for project_root in sorted(projects_root.iterdir(), key=lambda item: item.name):
-        if not project_root.is_dir():
-            continue
+    for _, project_root in project_routes:
         try:
             active = _json(project_root / "active_session.json")
             session = _json(project_root / "sessions" / f"{active['session_id']}.json")
@@ -1405,12 +1400,15 @@ def _session_candidates(
         ):
             row["binding_match"] = "EXACT_HOST_SESSION"
             exact.append(row)
-        elif _read_host_alias(
-            project_root,
-            session=session,
-            observed_host_session_id=host_session_id,
-            transcript_path=transcript_path,
-        ) is not None:
+        elif (
+            _read_host_alias(
+                project_root,
+                session=session,
+                observed_host_session_id=host_session_id,
+                transcript_path=transcript_path,
+            )
+            is not None
+        ):
             row["binding_match"] = "SEALED_CODEX_HOST_ALIAS"
             exact.append(row)
         elif (
@@ -1621,22 +1619,20 @@ def _active_host_alias_collision(
     selected_project_id: str,
     selected_evidence_session_id: str,
 ) -> dict[str, Any] | None:
-    projects_root = root / "projects"
-    if not projects_root.is_dir():
+    project_routes = _project_authority_routes(root)
+    if not project_routes:
         return None
-    for project_root in sorted(projects_root.iterdir(), key=lambda item: item.name):
-        if not project_root.is_dir():
-            continue
+    for _, project_root in project_routes:
         try:
             active = _json(project_root / "active_session.json")
-            session = _json(
-                project_root / "sessions" / f"{active['session_id']}.json"
-            )
+            session = _json(project_root / "sessions" / f"{active['session_id']}.json")
         except (TurnControlError, KeyError):
             continue
         if session.get("metadata", {}).get("closed_at"):
             continue
-        database = project_root / "lineage" / "codex_turn_control.sqlite"
+        database = (
+            resolved_chat_lineage_root(project_root) / "codex_turn_control.sqlite"
+        )
         if not database.is_file():
             continue
         try:
@@ -1684,8 +1680,7 @@ def _active_host_alias_collision(
             or claimed != row["alias_receipt_sha256"]
             or record.get("observed_host_session_id_sha256")
             != observed_host_session_id_sha256
-            or record.get("binding_epoch_sha256")
-            != _host_binding_epoch(session)
+            or record.get("binding_epoch_sha256") != _host_binding_epoch(session)
         ):
             return {"state": "INVALID_SEALED_HOST_ALIAS_RECORD"}
         owner = (
@@ -1757,9 +1752,7 @@ def bind_codex_host_payload(
         )
         assert alias is not None
         governed_host_session_id = str(
-            candidate["session"].get("metadata", {}).get(
-                "current_host_session_id"
-            )
+            candidate["session"].get("metadata", {}).get("current_host_session_id")
             or ""
         ).strip()
         normalized["session_id"] = governed_host_session_id
@@ -1770,17 +1763,19 @@ def bind_codex_host_payload(
             "state": "SEALED_CODEX_HOST_ALIAS_REUSED",
             "alias_receipt_sha256": alias["alias_receipt_sha256"],
             "binding_epoch_sha256": alias["binding_epoch_sha256"],
-            "observed_host_session_id_sha256": alias[
-                "observed_host_session_id_sha256"
-            ],
+            "observed_host_session_id_sha256": alias["observed_host_session_id_sha256"],
             "transcript_path_sha256": alias["transcript_path_sha256"],
             "raw_host_identity_stored": False,
             "raw_transcript_path_stored": False,
         }
-    if binding_match not in {
-        "CWD_ONLY_STALE_OR_MISSING_HOST",
-        "PREPARED_CODEX_TASK_BINDING",
-    } or not allow_alias_claim:
+    if (
+        binding_match
+        not in {
+            "CWD_ONLY_STALE_OR_MISSING_HOST",
+            "PREPARED_CODEX_TASK_BINDING",
+        }
+        or not allow_alias_claim
+    ):
         return normalized, None
     transcript = Path(transcript_path)
     if not transcript_path or not transcript.is_absolute() or not transcript.is_file():
@@ -1842,8 +1837,7 @@ def bind_codex_host_payload(
         "binding_epoch_sha256": _host_binding_epoch(session),
         "model": supplied_model,
         "event_name": str(event_name or "").strip(),
-        "permission_mode": str(normalized.get("permission_mode") or "").strip()
-        or None,
+        "permission_mode": str(normalized.get("permission_mode") or "").strip() or None,
         "binding_basis": (
             "INSTALLER_PREPARED_EXACT_CODEX_TASK_RUNTIME_ATTACHMENT_"
             "TRANSCRIPT_AND_SEALED_MODEL"
@@ -2252,6 +2246,8 @@ def seal_exact_task_project_session_binding(
     project_id: str,
     evidence_session_id: str,
     expected_active_task_id: str,
+    running_surface_inventory: Mapping[str, Any] | None = None,
+    expected_surface_catalog: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Seal one exact Codex task/project/session/Plan/runtime binding.
 
@@ -2262,7 +2258,7 @@ def seal_exact_task_project_session_binding(
     """
 
     exact_root = Path(root).resolve()
-    project_root = exact_root / "projects" / project_id
+    project_root = _project_authority_root(exact_root, project_id)
     active_session_path = project_root / "active_session.json"
     project_path = project_root / "project.json"
     _require(
@@ -2312,15 +2308,18 @@ def seal_exact_task_project_session_binding(
         active_plan.get("task_id") == expected_active_task_id
         and active_plan.get("status") == "in_progress"
         and active_plan.get("lifecycle_status") == "ACTIVE"
-        and active_plan.get("persistent_until")
-        == "NEXT_SIX_WAY_HIL_PRESENTED",
+        and active_plan.get("persistent_until") == "NEXT_SIX_WAY_HIL_PRESENTED",
         "CODEX_EXACT_BINDING_ACTIVE_PLAN_MISMATCH",
         "The requested task is not the sole current executable Plan row.",
         expected_active_task_id=expected_active_task_id,
         actual_active_task_id=active_plan.get("task_id"),
     )
 
-    running_surface = _package_surface_inventory()
+    running_surface = (
+        dict(running_surface_inventory)
+        if isinstance(running_surface_inventory, Mapping)
+        else _package_surface_inventory()
+    )
     try:
         shared_task_binding = read_shared_task_binding(
             exact_root,
@@ -2329,6 +2328,7 @@ def seal_exact_task_project_session_binding(
             task_id=governed_host_session_id,
             expected_active_plan_task_id=expected_active_task_id,
             surface=running_surface,
+            expected_surface_catalog=expected_surface_catalog,
         )
     except EvidenceLaneError as exc:
         raise TurnControlError(exc.code, exc.message, **exc.details) from exc
@@ -2364,9 +2364,7 @@ def seal_exact_task_project_session_binding(
                 "plugin_selector": "RUNNING_PLUGIN_SURFACE",
                 "archive_sha256": None,
                 "install_receipt_sha256": None,
-                "surface_inventory_sha256": release.get(
-                    "surface_inventory_sha256"
-                ),
+                "surface_inventory_sha256": release.get("surface_inventory_sha256"),
                 "catalog": release.get("catalog"),
             },
             "runtime_task_id": dict(session.get("task") or {}).get("task_id"),
@@ -2378,12 +2376,8 @@ def seal_exact_task_project_session_binding(
             ),
             "preparation_receipt_sha256": None,
             "release_authority_id": release.get("authority_id"),
-            "release_authority_sha256": release.get(
-                "release_authority_sha256"
-            ),
-            "task_binding_registry_revision": shared_task_binding.get(
-                "revision"
-            ),
+            "release_authority_sha256": release.get("release_authority_sha256"),
+            "task_binding_registry_revision": shared_task_binding.get("revision"),
             "binding_epoch_sha256": _host_binding_epoch(session),
             "turn_binding_sha256": turn_binding.get("binding_sha256"),
             "identity_basis": (
@@ -2465,8 +2459,7 @@ def seal_exact_task_project_session_binding(
         isinstance(task_binding, dict)
         and task_binding.get("project_id") == project_id
         and task_binding.get("evidence_session_id") == evidence_session_id
-        and task_binding.get("governed_host_session_id")
-        == governed_host_session_id,
+        and task_binding.get("governed_host_session_id") == governed_host_session_id,
         "CODEX_EXACT_BINDING_TASK_RECEIPT_MISMATCH",
         "The exact Codex thread receipt does not bind the active governed identities.",
     )
@@ -2480,17 +2473,15 @@ def seal_exact_task_project_session_binding(
     installed_path = Path(str(plugin_add.get("installedPath") or ""))
     running_plugin_root = Path(__file__).resolve().parents[2]
     _require(
-        activation.get("state") == "INSTALLED_RESTART_REQUIRED"
+        activation.get("state") in _SUPPORTED_EXACT_TASK_BINDING_ACTIVATION_STATES
         and plugin.get("version") == task_binding.get("plugin_version")
         and plugin_add.get("version") == plugin.get("version")
-        and str(plugin_add.get("pluginId") or "").startswith(
-            "evidence-lane-plugin@"
-        )
+        and str(plugin_add.get("pluginId") or "").startswith("evidence-lane-plugin@")
         and installed_path.is_absolute()
         and installed_path.is_dir()
         and installed_path.resolve() == running_plugin_root.resolve(),
         "CODEX_EXACT_BINDING_RUNNING_BUILD_MISMATCH",
-        "The running plugin is not the exact installer-bound stable build.",
+        "The running plugin is not the exact installer-bound supported build.",
     )
     surface = _package_surface_inventory()
     _require(
@@ -2507,8 +2498,7 @@ def seal_exact_task_project_session_binding(
     )
     task_uri = f"codex://threads/{codex_task_id}"
     _require(
-        task_binding.get("task_uri_sha256")
-        == sha256_bytes(task_uri.encode("utf-8")),
+        task_binding.get("task_uri_sha256") == sha256_bytes(task_uri.encode("utf-8")),
         "CODEX_EXACT_BINDING_DEEPLINK_MISMATCH",
         "The exact Codex task UUID and deep-link identity do not agree.",
     )
@@ -2534,21 +2524,13 @@ def seal_exact_task_project_session_binding(
             "plugin_version": plugin.get("version"),
             "plugin_selector": plugin_add.get("pluginId"),
             "archive_sha256": installation.get("archive_sha256"),
-            "install_receipt_sha256": task_binding.get(
-                "install_receipt_sha256"
-            ),
-            "surface_inventory_sha256": surface.get(
-                "surface_inventory_sha256"
-            ),
+            "install_receipt_sha256": task_binding.get("install_receipt_sha256"),
+            "surface_inventory_sha256": surface.get("surface_inventory_sha256"),
             "catalog": surface.get("catalog"),
         },
         "runtime_task_id": dict(session.get("task") or {}).get("task_id"),
-        "task_binding_receipt_sha256": task_binding.get(
-            "task_binding_receipt_sha256"
-        ),
-        "preparation_receipt_sha256": task_binding.get(
-            "preparation_receipt_sha256"
-        ),
+        "task_binding_receipt_sha256": task_binding.get("task_binding_receipt_sha256"),
+        "preparation_receipt_sha256": task_binding.get("preparation_receipt_sha256"),
         "binding_epoch_sha256": _host_binding_epoch(session),
         "turn_binding_sha256": turn_binding.get("binding_sha256"),
         "identity_basis": "EXACT_CODEX_THREAD_RECEIPT_PLUS_NATIVE_PLAN_AND_POINTER",
@@ -2599,9 +2581,9 @@ def seal_active_task_acceptance_checkpoint(
     """
 
     exact_root = Path(root).resolve()
-    project_root = exact_root / "projects" / project_id
+    project_root = _project_authority_root(exact_root, project_id)
     session_path = project_root / "sessions" / f"{evidence_session_id}.json"
-    backlog_path = project_root / "task_backlog.json"
+    backlog_path = resolved_plan_backlog_path(project_root)
     _require(
         session_path.is_file() and backlog_path.is_file(),
         "CODEX_TASK_CHECKPOINT_AUTHORITY_REQUIRED",
@@ -2641,7 +2623,9 @@ def seal_active_task_acceptance_checkpoint(
         "The active Plan row has no exact acceptance contract to verify.",
     )
 
-    lineage_path = project_root / "lineage" / f"{evidence_session_id}.jsonl"
+    lineage_path = (
+        resolved_chat_lineage_root(project_root) / f"{evidence_session_id}.jsonl"
+    )
     events = ChatLineage(lineage_path).events()
     matching: list[dict[str, Any]] = []
     for event in events:
@@ -2649,8 +2633,7 @@ def seal_active_task_acceptance_checkpoint(
             event.get("session_id") != evidence_session_id
             or event.get("task_id") != runtime_task_id
             or event.get("run_id") != run_id
-            or event.get("event_type")
-            not in {"task.test.output", "task.build.output"}
+            or event.get("event_type") not in {"task.test.output", "task.build.output"}
         ):
             continue
         payload = dict(event.get("visible_payload") or {})
@@ -2750,8 +2733,7 @@ def requires_per_delta_local_verification(task: Mapping[str, Any]) -> bool:
     task_id = str(task.get("task_id") or "").strip()
     return (
         task_id.startswith("EL-CODEX-T6-PARITY-")
-        or str(task.get("commit_batch_id") or "").strip()
-        == "PV13_TASK6_PARITY"
+        or str(task.get("commit_batch_id") or "").strip() == "PV13_TASK6_PARITY"
         or str(task.get("current_contract_authority") or "").strip()
         == "ACTIVE_CONTRACT_REBIND"
     )
@@ -2786,9 +2768,7 @@ def seal_per_delta_local_verification_checkpoint(
     metadata = dict(session.get("metadata") or {})
     backlog = store.backlog_status(project_id)
     raw_tasks = [
-        dict(row)
-        for row in backlog.get("tasks") or []
-        if isinstance(row, dict)
+        dict(row) for row in backlog.get("tasks") or [] if isinstance(row, dict)
     ]
     active_rows = [row for row in raw_tasks if row.get("status") == "ACTIVE"]
     _require(
@@ -2825,6 +2805,82 @@ def seal_per_delta_local_verification_checkpoint(
         "DELTA_VERIFICATION_TASK_BINDING_MISMATCH",
         "The verification envelope names a different active task.",
     )
+    source_catalog = {
+        "tools": NATIVE_TOOL_COUNT,
+        "read": NATIVE_READ_TOOL_COUNT,
+        "write": NATIVE_WRITE_TOOL_COUNT,
+        "skills": GOVERNED_SKILL_COUNT,
+    }
+    supplied_source_catalog = verification.get("source_catalog")
+    _require(
+        supplied_source_catalog is None
+        or (
+            isinstance(supplied_source_catalog, Mapping)
+            and dict(supplied_source_catalog) == source_catalog
+        ),
+        "DELTA_VERIFICATION_SOURCE_CATALOG_MISMATCH",
+        "The per-Delta source catalog must bind the exact current source constants.",
+    )
+    adaptive_receipt_supplied = verification.get("adaptive_delta_exit_receipt")
+    adaptive_receipt = (
+        dict(adaptive_receipt_supplied)
+        if isinstance(adaptive_receipt_supplied, Mapping)
+        else None
+    )
+    install_deferral = adaptive_install_deferral_facts(
+        adaptive_receipt,
+        project_id=project_id,
+        session_id=evidence_session_id,
+        active_task_id=expected_active_task_id,
+        plan_tasks=raw_tasks,
+    )
+    _require(
+        adaptive_receipt is None or install_deferral["valid"] is True,
+        "DELTA_VERIFICATION_INSTALL_DEFERRAL_MISMATCH",
+        "An install deferral must be one exact self-hashed adaptive-exit receipt targeting a later queued Plan row.",
+    )
+    deferred_surface: dict[str, Any] | None = None
+    deferred_catalog: dict[str, Any] | None = None
+    if install_deferral["valid"] is True:
+        supplied_surface = verification.get("installed_surface_inventory")
+        _require(
+            isinstance(supplied_surface, Mapping),
+            "DELTA_VERIFICATION_DEFERRED_SURFACE_REQUIRED",
+            "A grouped install deferral must bind the exact currently attached installed surface.",
+        )
+        deferred_surface = dict(cast(Mapping[str, Any], supplied_surface))
+        deferred_catalog = dict(deferred_surface.get("catalog") or {})
+        surface_core = {
+            key: deferred_surface.get(key)
+            for key in (
+                "schema",
+                "plugin_version",
+                "hooks",
+                "skills",
+                "catalog",
+                "raw_paths_included",
+            )
+        }
+        _require(
+            deferred_surface.get("schema")
+            == "evidence-lane.codex-installed-surface-inventory.v2"
+            and str(deferred_surface.get("plugin_version") or "").split("+", 1)[0]
+            == ENGINE_VERSION
+            and deferred_surface.get("raw_paths_included") is False
+            and deferred_surface.get("surface_inventory_sha256")
+            == sha256_bytes(canonical_json_bytes(surface_core))
+            and len(str(deferred_surface.get("release_policy_sha256") or "")) == 64
+            and set(deferred_catalog) == {"tools", "read", "write", "skills"}
+            and all(isinstance(value, int) for value in deferred_catalog.values())
+            and deferred_catalog["tools"]
+            == deferred_catalog["read"] + deferred_catalog["write"]
+            and 0 < deferred_catalog["tools"] <= source_catalog["tools"]
+            and 0 <= deferred_catalog["read"] <= source_catalog["read"]
+            and 0 <= deferred_catalog["write"] <= source_catalog["write"]
+            and deferred_catalog["skills"] == source_catalog["skills"],
+            "DELTA_VERIFICATION_DEFERRED_SURFACE_MISMATCH",
+            "The deferred installed surface is not a self-hashed exact predecessor of the current source catalog.",
+        )
 
     goal_rows = [
         dict(row)
@@ -2873,8 +2929,7 @@ def seal_per_delta_local_verification_checkpoint(
         verification.get("dependency_generation") == pointer.generation
         and supplied_dependencies == dependencies
         and all(
-            status in {"ACCEPTED", "DONE"}
-            for status in dependency_statuses.values()
+            status in {"ACCEPTED", "DONE"} for status in dependency_statuses.values()
         ),
         "DELTA_VERIFICATION_DEPENDENCY_MISMATCH",
         "The verification envelope does not bind the exact completed dependency generation.",
@@ -2902,12 +2957,8 @@ def seal_per_delta_local_verification_checkpoint(
         or entry_freshness.get("bound_worktree_sha256")
         or ""
     ).upper()
-    pre_worktree_sha256 = str(
-        verification.get("pre_worktree_sha256") or ""
-    ).upper()
-    post_worktree_sha256 = str(
-        verification.get("post_worktree_sha256") or ""
-    ).upper()
+    pre_worktree_sha256 = str(verification.get("pre_worktree_sha256") or "").upper()
+    post_worktree_sha256 = str(verification.get("post_worktree_sha256") or "").upper()
     repository = Path(store.config(project_id).repository_path).resolve()
     live_worktree_sha256 = calculate_worktree_sha256(repository)
     _require(
@@ -3059,29 +3110,40 @@ def seal_per_delta_local_verification_checkpoint(
         "The verification envelope does not preserve acceptance or lifecycle boundaries.",
     )
 
-    try:
-        seal_or_refresh_shared_task_binding(
+    if install_deferral["valid"] is True:
+        assert deferred_surface is not None and deferred_catalog is not None
+        binding = seal_exact_task_project_session_binding(
             exact_root,
             project_id=project_id,
             evidence_session_id=evidence_session_id,
-            task_id=str(metadata.get("current_host_session_id") or ""),
-            surface=_package_surface_inventory(),
-            bound_by="PER_DELTA_LOCAL_VERIFICATION",
+            expected_active_task_id=expected_active_task_id,
+            running_surface_inventory=deferred_surface,
+            expected_surface_catalog=deferred_catalog,
         )
-    except EvidenceLaneError as exc:
-        raise TurnControlError(exc.code, exc.message, **exc.details) from exc
-    except ValueError as exc:
-        raise TurnControlError(
-            "DELTA_VERIFICATION_SHARED_TASK_BINDING_INVALID",
-            "The exact shared task binding could not be created or refreshed.",
-            error_type=type(exc).__name__,
-        ) from exc
-    binding = seal_exact_task_project_session_binding(
-        exact_root,
-        project_id=project_id,
-        evidence_session_id=evidence_session_id,
-        expected_active_task_id=expected_active_task_id,
-    )
+    else:
+        try:
+            seal_or_refresh_shared_task_binding(
+                exact_root,
+                project_id=project_id,
+                evidence_session_id=evidence_session_id,
+                task_id=str(metadata.get("current_host_session_id") or ""),
+                surface=_package_surface_inventory(),
+                bound_by="PER_DELTA_LOCAL_VERIFICATION",
+            )
+        except EvidenceLaneError as exc:
+            raise TurnControlError(exc.code, exc.message, **exc.details) from exc
+        except ValueError as exc:
+            raise TurnControlError(
+                "DELTA_VERIFICATION_SHARED_TASK_BINDING_INVALID",
+                "The exact shared task binding could not be created or refreshed.",
+                error_type=type(exc).__name__,
+            ) from exc
+        binding = seal_exact_task_project_session_binding(
+            exact_root,
+            project_id=project_id,
+            evidence_session_id=evidence_session_id,
+            expected_active_task_id=expected_active_task_id,
+        )
     active_plan_row = {
         **dict(binding["active_plan_row"]),
         "task_contract_sha256": task_contract_sha256,
@@ -3102,6 +3164,17 @@ def seal_per_delta_local_verification_checkpoint(
         "changed_paths_sha256": sha256_bytes(canonical_json_bytes(normalized_paths)),
         "test_runs": normalized_runs,
         "test_runs_sha256": sha256_bytes(canonical_json_bytes(normalized_runs)),
+        "source_catalog": source_catalog,
+        "install_disposition": (
+            dict(adaptive_receipt.get("install_disposition") or {})
+            if isinstance(adaptive_receipt, dict)
+            else None
+        ),
+        "adaptive_delta_exit_receipt_sha256": install_deferral[
+            "receipt_sha256"
+        ]
+        if install_deferral["valid"] is True
+        else None,
         "acceptance_checks": acceptance_checks,
         "acceptance_checks_sha256": sha256_bytes(
             canonical_json_bytes(acceptance_checks)
@@ -3132,6 +3205,9 @@ def seal_per_delta_local_verification_checkpoint(
         "active_plan_row": active_plan_row,
         "accepted_pointer": binding["accepted_pointer"],
         "running_plugin": binding["running_plugin"],
+        "adaptive_delta_exit_receipt": (
+            adaptive_receipt if install_deferral["valid"] is True else None
+        ),
         "runtime_task_id": dict(session.get("task") or {}).get("task_id"),
         "run_id": metadata.get("run_id"),
         "delta_verification": delta_receipt,
@@ -3215,8 +3291,7 @@ def _warm_attach_receipt(
         field="runtime_activation.active_sessions.flash_receipt_sha256",
     )
     execution_profile = dict(
-        (bound.get("session", {}).get("metadata") or {}).get("execution_profile")
-        or {}
+        (bound.get("session", {}).get("metadata") or {}).get("execution_profile") or {}
     )
     required_profile_fields = (
         "model",
@@ -3237,16 +3312,13 @@ def _warm_attach_receipt(
     )
     duration_ns = max(0, time.perf_counter_ns() - started_ns)
     persistence_route = dict(
-        (bound.get("session", {}).get("metadata") or {}).get("persistence_route")
-        or {}
+        (bound.get("session", {}).get("metadata") or {}).get("persistence_route") or {}
     )
     tunnel_requirement = str(
-        persistence_route.get("tunnel_requirement")
-        or "HOST_CAPABILITY_UNSPECIFIED"
+        persistence_route.get("tunnel_requirement") or "HOST_CAPABILITY_UNSPECIFIED"
     )
     host_tool_transport = str(
-        persistence_route.get("host_tool_transport")
-        or "HOST_CAPABILITY_UNSPECIFIED"
+        persistence_route.get("host_tool_transport") or "HOST_CAPABILITY_UNSPECIFIED"
     )
     native_mcp_available = persistence_route.get("native_mcp_available") is True
     tool_gap_route = persistence_route.get("tool_gap_route") is True
@@ -3289,9 +3361,7 @@ def _warm_attach_receipt(
         "interaction_profile": persistence_route.get(
             "interaction_profile", "HOST_SURFACE_UNSPECIFIED"
         ),
-        "vm_lifetime": persistence_route.get(
-            "vm_lifetime", "LOCAL_OR_PERSISTENT"
-        ),
+        "vm_lifetime": persistence_route.get("vm_lifetime", "LOCAL_OR_PERSISTENT"),
         "tunnel_role": (
             "INTERACTIVE_ENVIRONMENT_PRECONDITION_NOT_LIFECYCLE_AUTHORITY"
             if interactive_tunnel
@@ -3588,9 +3658,7 @@ def persistent_change_system_notice(
     paired = dict(display.get("paired_step_task_list") or {})
     additive = dict(display.get("additive_change_summary") or {})
     changes = [
-        dict(row)
-        for row in additive.get("changes") or []
-        if isinstance(row, dict)
+        dict(row) for row in additive.get("changes") or [] if isinstance(row, dict)
     ]
     source = dict(display.get("source_change_status") or {})
     tail = changes[-12:]
@@ -3667,12 +3735,12 @@ def persistent_change_system_notice(
         else None,
         "host_binding": {
             "state": dict(receipt.get("host_binding") or {}).get("state"),
-            "alias_receipt_sha256": dict(
-                receipt.get("host_binding") or {}
-            ).get("alias_receipt_sha256"),
-            "binding_epoch_sha256": dict(
-                receipt.get("host_binding") or {}
-            ).get("binding_epoch_sha256"),
+            "alias_receipt_sha256": dict(receipt.get("host_binding") or {}).get(
+                "alias_receipt_sha256"
+            ),
+            "binding_epoch_sha256": dict(receipt.get("host_binding") or {}).get(
+                "binding_epoch_sha256"
+            ),
             "raw_host_identity_stored": False,
             "raw_transcript_path_stored": False,
         },
@@ -3807,7 +3875,7 @@ def _behavior_query_handoff_receipt(
 
 
 def _connection(project_root: Path) -> sqlite3.Connection:
-    path = project_root / "lineage" / "codex_turn_control.sqlite"
+    path = resolved_chat_lineage_root(project_root) / "codex_turn_control.sqlite"
     path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(path, timeout=30)
     connection.row_factory = sqlite3.Row
@@ -4164,9 +4232,7 @@ def _goal_usage_observation(
         )
         try:
             profile_observed_context = build_profile_observed_usage_context(
-                observations=cast(
-                    list[Mapping[str, object]], raw_profile_observations
-                ),
+                observations=cast(list[Mapping[str, object]], raw_profile_observations),
                 user_exclusive_attribution=raw_user_attribution,
                 binding=cast(Mapping[str, object], binding),
             )
@@ -4208,7 +4274,9 @@ def _goal_usage_observation(
             component=key,
         )
         component_values[key] = (
-            supplied if isinstance(supplied, int) and not isinstance(supplied, bool) else None
+            supplied
+            if isinstance(supplied, int) and not isinstance(supplied, bool)
+            else None
         )
 
     legacy_total = safe.get("goal_accounted_tokens")
@@ -4450,7 +4518,7 @@ def _ensure_goal_usage(
 def _control_lock(project_root: Path):
     """Serialize one project's Prepare/Commit projection without a second writer."""
 
-    path = project_root / "lineage" / "codex_turn_control.lock"
+    path = resolved_chat_lineage_root(project_root) / "codex_turn_control.lock"
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor: int | None = None
     for _ in range(200):
@@ -4571,9 +4639,7 @@ def _capture_dispatch(
         "host_payload_hook_event_name": str(
             supplied.get("host_payload_hook_event_name") or ""
         ),
-        "adapter_invocation_observed": supplied.get(
-            "adapter_invocation_observed"
-        )
+        "adapter_invocation_observed": supplied.get("adapter_invocation_observed")
         is True,
         "installed_host_dispatch_independently_proven": supplied.get(
             "installed_host_dispatch_independently_proven"
@@ -4625,16 +4691,12 @@ def _goal_continuation_dispatch(
     """Describe the truthful non-prompt route used by automatic Goal work."""
 
     _require(
-        authority.get("schema")
-        == "evidence-lane.codex-goal-continuation-authority.v1"
-        and authority.get("state")
-        == "SEALED_ACTIVE_GOAL_RECOVERY_BINDING_VERIFIED"
+        authority.get("schema") == "evidence-lane.codex-goal-continuation-authority.v1"
+        and authority.get("state") == "SEALED_ACTIVE_GOAL_RECOVERY_BINDING_VERIFIED"
         and authority.get("input_origin") == _SEALED_GOAL_CONTINUATION_ORIGIN
         and authority.get("synthetic_prompt_used") is False
         and authority.get("user_prompt_submit_observed") is False
-        and _SHA256_RE.fullmatch(
-            str(authority.get("receipt_sha256") or "").upper()
-        )
+        and _SHA256_RE.fullmatch(str(authority.get("receipt_sha256") or "").upper())
         is not None,
         "TURN_CONTROL_GOAL_CONTINUATION_AUTHORITY_INVALID",
         "A Goal continuation entry requires one verified sealed recovery authority.",
@@ -4738,8 +4800,7 @@ def record_non_strict_visible_input(
     )
     _require(
         session.get("accepted_pv") == accepted_pv
-        and int(session.get("accepted_pointer_generation") or 0)
-        == pointer_generation
+        and int(session.get("accepted_pointer_generation") or 0) == pointer_generation
         and metadata.get("entry_pv") == accepted_pv,
         "TURN_CONTROL_ENTRY_POINTER_MISMATCH",
         "The governed Entry boundary does not match the accepted pointer.",
@@ -4788,8 +4849,7 @@ def record_non_strict_visible_input(
             (
                 row
                 for row in same_turn_records
-                if row.get("prompt_sha256_after_redaction")
-                == visible_input_sha256
+                if row.get("prompt_sha256_after_redaction") == visible_input_sha256
             ),
             None,
         )
@@ -4857,9 +4917,7 @@ def record_non_strict_visible_input(
             input_kind = str(record.get("input_kind") or "user_prompt")
             classification_basis = str(
                 record.get("input_kind_classification_basis")
-                or (record.get("capture_dispatch") or {}).get(
-                    "classification_basis"
-                )
+                or (record.get("capture_dispatch") or {}).get("classification_basis")
                 or "LEGACY_EXACT_INPUT_REPLAY"
             )
             capture_dispatch = _capture_dispatch(
@@ -4886,7 +4944,7 @@ def record_non_strict_visible_input(
             )[:26].lower()
         )
         lineage = ChatLineage(
-            project_root / "lineage" / f"{evidence_session_id}.jsonl"
+            resolved_chat_lineage_root(project_root) / f"{evidence_session_id}.jsonl"
         )
         host_identity = record.get("lineage_host_identity")
         lineage_model_value = record.get("lineage_model")
@@ -4896,9 +4954,7 @@ def record_non_strict_visible_input(
             lineage_model_value if isinstance(lineage_model_value, str) else None
         )
         lineage_submodel = (
-            lineage_submodel_value
-            if isinstance(lineage_submodel_value, str)
-            else None
+            lineage_submodel_value if isinstance(lineage_submodel_value, str) else None
         )
         lineage_token_metrics = (
             cast(dict[str, Any], lineage_metrics_value)
@@ -5131,7 +5187,10 @@ def _project_prepared_entry(
         )
     else:
         atomic_write_json(prompt_path, prompt_record)
-    lineage_path = project_root / "lineage" / f"{entry['evidence_session_id']}.jsonl"
+    lineage_path = (
+        resolved_chat_lineage_root(project_root)
+        / f"{entry['evidence_session_id']}.jsonl"
+    )
     lineage = ChatLineage(lineage_path)
     sealed_goal_continuation = (
         entry.get("input_origin") == _SEALED_GOAL_CONTINUATION_ORIGIN
@@ -5163,18 +5222,14 @@ def _project_prepared_entry(
                 "continuation_descriptor_sha256_after_redaction": entry[
                     "visible_input_sha256_after_redaction"
                 ],
-                "goal_recovery_authority": entry[
-                    "goal_recovery_authority"
-                ],
+                "goal_recovery_authority": entry["goal_recovery_authority"],
                 "visible_user_input_stored": False,
                 "raw_goal_objective_stored": False,
                 "synthetic_prompt_used": False,
             }
             if sealed_goal_continuation
             else {
-                "visible_input_after_redaction": entry[
-                    "visible_input_after_redaction"
-                ],
+                "visible_input_after_redaction": entry["visible_input_after_redaction"],
                 "visible_input_sha256_after_redaction": entry[
                     "visible_input_sha256_after_redaction"
                 ],
@@ -5233,9 +5288,7 @@ def _project_prepared_entry(
             "binding_sha256": entry["binding_sha256"],
             "retrieval_receipt_sha256": entry["retrieval_receipt_sha256"],
             "behavior_query_owner": entry["retrieval"]["query_owner"],
-            "hook_lookup_performed": entry["retrieval"][
-                "hook_lookup_performed"
-            ],
+            "hook_lookup_performed": entry["retrieval"]["hook_lookup_performed"],
             "native_behavior_query_required": entry["retrieval"][
                 "native_behavior_query_required"
             ],
@@ -5375,9 +5428,7 @@ def prepare_turn(
                 """,
                 (host_session_id, turn_id),
             ).fetchall()
-            existing_entries = [
-                json.loads(row["record_json"]) for row in existing_rows
-            ]
+            existing_entries = [json.loads(row["record_json"]) for row in existing_rows]
             exact_entries = [
                 candidate
                 for candidate in existing_entries
@@ -5411,8 +5462,7 @@ def prepare_turn(
                     "The replayed PREPARE no longer matches its native dispatch receipt.",
                 )
                 _require(
-                    existing_entry.get("binding_sha256")
-                    == binding["binding_sha256"],
+                    existing_entry.get("binding_sha256") == binding["binding_sha256"],
                     "TURN_CONTROL_BINDING_DRIFT",
                     "The exact PREPARE exists but its project, pointer, Mode, or Plan binding drifted.",
                 )
@@ -5449,8 +5499,7 @@ def prepare_turn(
                     strict_prompt_matches = [
                         row
                         for row in prompt_records
-                        if row.get("record_sha256")
-                        == latest["prompt_record_sha256"]
+                        if row.get("record_sha256") == latest["prompt_record_sha256"]
                         and int(row.get("prompt_index") or 0)
                         == int(latest["prompt_index"])
                     ]
@@ -5466,7 +5515,8 @@ def prepare_turn(
                 )
                 prior_control = latest["control_record_sha256"] if latest else None
                 lineage_path = (
-                    project_root / "lineage" / f"{binding['evidence_session_id']}.jsonl"
+                    resolved_chat_lineage_root(project_root)
+                    / f"{binding['evidence_session_id']}.jsonl"
                 )
                 lineage_events = ChatLineage(lineage_path).events()
                 prior_lineage_head = (
@@ -5667,9 +5717,7 @@ def prepare_turn(
         "binding_sha256": entry["binding_sha256"],
         "retrieval_receipt_sha256": entry["retrieval_receipt_sha256"],
         "retrieval_outcome": entry["retrieval"]["outcome"],
-        "retrieval_lineage_result_count": entry["retrieval"][
-            "lineage_result_count"
-        ],
+        "retrieval_lineage_result_count": entry["retrieval"]["lineage_result_count"],
         "retrieval_accepted_code_result_count": entry["retrieval"][
             "accepted_code_result_count"
         ],
@@ -5687,9 +5735,7 @@ def prepare_turn(
         "required_native_read_sequence": entry["retrieval"][
             "required_native_read_sequence"
         ],
-        "host_plan_refresh_owner": entry["retrieval"][
-            "host_plan_refresh_owner"
-        ],
+        "host_plan_refresh_owner": entry["retrieval"]["host_plan_refresh_owner"],
         "host_plan_tool": entry["retrieval"]["host_plan_tool"],
         "persistent_plan_row": entry["binding"]["persistent_plan_row"],
         "accepted_pv": entry["binding"]["accepted_pv"],
@@ -5794,15 +5840,12 @@ def prepare_goal_continuation_turn(
                 """,
                 (host_session_id, turn_id),
             ).fetchall()
-            existing_entries = [
-                json.loads(row["record_json"]) for row in existing_rows
-            ]
+            existing_entries = [json.loads(row["record_json"]) for row in existing_rows]
             exact_entries = [
                 candidate
                 for candidate in existing_entries
                 if candidate.get("input_kind") == "goal"
-                and candidate.get("input_origin")
-                == _SEALED_GOAL_CONTINUATION_ORIGIN
+                and candidate.get("input_origin") == _SEALED_GOAL_CONTINUATION_ORIGIN
                 and dict(candidate.get("goal_recovery_authority") or {}).get(
                     "receipt_sha256"
                 )
@@ -5841,8 +5884,7 @@ def prepare_goal_continuation_turn(
                     strict_prompt_matches = [
                         row
                         for row in prompt_records
-                        if row.get("record_sha256")
-                        == latest["prompt_record_sha256"]
+                        if row.get("record_sha256") == latest["prompt_record_sha256"]
                         and int(row.get("prompt_index") or 0)
                         == int(latest["prompt_index"])
                     ]
@@ -5858,15 +5900,11 @@ def prepare_goal_continuation_turn(
                 )
                 prior_control = latest["control_record_sha256"] if latest else None
                 lineage_path = (
-                    project_root
-                    / "lineage"
-                    / f"{binding['evidence_session_id']}.jsonl"
+                    project_root / "lineage" / f"{binding['evidence_session_id']}.jsonl"
                 )
                 lineage_events = ChatLineage(lineage_path).events()
                 prior_lineage_head = (
-                    lineage_events[-1].get("event_sha256")
-                    if lineage_events
-                    else None
+                    lineage_events[-1].get("event_sha256") if lineage_events else None
                 )
                 retrieval = _behavior_query_handoff_receipt(
                     binding=binding,
@@ -5918,9 +5956,7 @@ def prepare_goal_continuation_turn(
                     {
                         "mode_id": row["mode_id"],
                         "operator_families": row["operator_families"],
-                        "operator_receipt_sha256": row[
-                            "operator_receipt_sha256"
-                        ],
+                        "operator_receipt_sha256": row["operator_receipt_sha256"],
                     }
                     for row in binding["env_uop_authorities"]
                 ]
@@ -5950,9 +5986,7 @@ def prepare_goal_continuation_turn(
                     "binding_sha256": binding["binding_sha256"],
                     "entry_slip": binding["entry_slip"],
                     "retrieval": retrieval,
-                    "retrieval_receipt_sha256": retrieval[
-                        "retrieval_receipt_sha256"
-                    ],
+                    "retrieval_receipt_sha256": retrieval["retrieval_receipt_sha256"],
                     "lane_classification": {
                         "canonical_lanes": binding["canonical_lanes"],
                         "basis": "SEALED_ENV_UOP_MODE_BINDING",
@@ -6221,7 +6255,11 @@ def _governed_activity_class(tool_name: str, visible_json: str) -> str:
         )
     ):
         return "installation"
-    if "chatlineage" in combined or "chat_lineage" in combined or "lineage" in normalized:
+    if (
+        "chatlineage" in combined
+        or "chat_lineage" in combined
+        or "lineage" in normalized
+    ):
         return "chat_lineage"
     if "record_host_memory_import" in combined or "memory_" in normalized:
         return "memory"
@@ -6229,7 +6267,10 @@ def _governed_activity_class(tool_name: str, visible_json: str) -> str:
         return "canon"
     if "learning" in normalized:
         return "learning"
-    if any(marker in normalized for marker in ("pv_", "plan", "task_backlog", "task_classify")):
+    if any(
+        marker in normalized
+        for marker in ("pv_", "plan", "task_backlog", "task_classify")
+    ):
         return "plan_pv"
     if any(
         marker in normalized
@@ -6525,8 +6566,7 @@ def record_tool_event(
             }
         _require(
             stored_payload == comparable_payload
-            and stored.get("control_record_sha256")
-            == entry["control_record_sha256"]
+            and stored.get("control_record_sha256") == entry["control_record_sha256"]
             and stored.get("tool_use_id") == tool_use_id
             and stored.get("phase") == phase
             and stored.get("tool_name") == tool_name,
@@ -6534,7 +6574,7 @@ def record_tool_event(
             "A tool-use identity already binds different visible activity.",
         )
         activity_counts = _governed_activity_counts_from_database(
-            project_root / "lineage" / "codex_turn_control.sqlite",
+            resolved_chat_lineage_root(project_root) / "codex_turn_control.sqlite",
             project_id=str(binding["project_id"]),
             evidence_session_id=str(binding["evidence_session_id"]),
             host_ui_supported=None,
@@ -6547,7 +6587,10 @@ def record_tool_event(
             "phase": phase,
             "governed_activity_counts": activity_counts,
         }
-    lineage_path = project_root / "lineage" / f"{binding['evidence_session_id']}.jsonl"
+    lineage_path = (
+        resolved_chat_lineage_root(project_root)
+        / f"{binding['evidence_session_id']}.jsonl"
+    )
     lineage_event = ChatLineage(lineage_path).append(
         event_type=f"turn.tool.{phase}",
         visible_payload=event_payload,
@@ -6586,7 +6629,7 @@ def record_tool_event(
         )
         connection.commit()
     activity_counts = _governed_activity_counts_from_database(
-        project_root / "lineage" / "codex_turn_control.sqlite",
+        resolved_chat_lineage_root(project_root) / "codex_turn_control.sqlite",
         project_id=str(binding["project_id"]),
         evidence_session_id=str(binding["evidence_session_id"]),
         host_ui_supported=None,
@@ -6753,8 +6796,7 @@ def _compact_plan_window(session: dict[str, Any]) -> dict[str, Any]:
     active_task_id = str(metadata.get("active_backlog_task_id") or "").strip()
     _require(
         bool(active_task_id)
-        and str(metadata.get("active_backlog_task_status") or "").upper()
-        == "ACTIVE",
+        and str(metadata.get("active_backlog_task_status") or "").upper() == "ACTIVE",
         "TURN_CONTROL_COMPACT_ACTIVE_TASK_REQUIRED",
         "Compact re-entry requires one exact active Plan task.",
     )
@@ -6773,13 +6815,9 @@ def _compact_plan_window(session: dict[str, Any]) -> dict[str, Any]:
         return {
             "state": "HOST_PLAN_WINDOW_BOUND",
             "canonical_plan_sha256": window.get("canonical_plan_sha256"),
-            "executable_projection_sha256": window.get(
-                "executable_projection_sha256"
-            ),
+            "executable_projection_sha256": window.get("executable_projection_sha256"),
             "window_projection_sha256": window.get("projection_sha256"),
-            "window_ui_fingerprint_sha256": window.get(
-                "window_ui_fingerprint_sha256"
-            ),
+            "window_ui_fingerprint_sha256": window.get("window_ui_fingerprint_sha256"),
             "window_receipt_sha256": window.get("receipt_sha256"),
             "row_start": window.get("row_start"),
             "row_end": window.get("row_end"),
@@ -6831,9 +6869,7 @@ def _seal_compact_context_size(core: dict[str, Any]) -> dict[str, Any]:
             for key, value in sized.items()
             if key != "compact_context_sha256"
         }
-        sized["compact_context_sha256"] = sha256_bytes(
-            canonical_json_bytes(hash_basis)
-        )
+        sized["compact_context_sha256"] = sha256_bytes(canonical_json_bytes(hash_basis))
     _require(
         len(canonical_json_bytes(sized)) <= _COMPACT_REENTRY_CONTEXT_BYTE_CEILING,
         "TURN_CONTROL_COMPACT_CONTEXT_BYTE_CEILING_EXCEEDED",
@@ -6842,6 +6878,102 @@ def _seal_compact_context_size(core: dict[str, Any]) -> dict[str, Any]:
         serialized_bytes=len(canonical_json_bytes(sized)),
     )
     return sized
+
+
+def _seal_compact_project_memory(
+    project_root: Path,
+    *,
+    host_session_id: str,
+    compact_context: dict[str, Any],
+) -> dict[str, Any]:
+    locator = _compact_locator(project_root, "memory/head.json")
+    if not locator["exists"]:
+        return {
+            "state": "MEMORY_AUTHORITY_MISSING",
+            "head_locator": locator,
+            "checkpoint_sealed": False,
+            "controls_codex_host_wording": False,
+        }
+    if not _CODEX_TASK_ID_RE.fullmatch(host_session_id):
+        return {
+            "state": "HOST_TASK_UUID_UNAVAILABLE",
+            "head_locator": locator,
+            "checkpoint_sealed": False,
+            "controls_codex_host_wording": False,
+        }
+    head = _json(project_root / "memory" / "head.json")
+    active_task_id = str(
+        compact_context.get("active_authority", {}).get("active_plan_task_id") or ""
+    )
+    result = seal_memory_checkpoint(
+        project_root,
+        project_id=str(compact_context["project_id"]),
+        host_task_uuid=host_session_id,
+        host_task_deep_link=f"codex://threads/{host_session_id.lower()}",
+        active_plan_task_id=active_task_id,
+        lineage_head_sha256=str(head.get("lineage_head_sha256") or ""),
+        query="active plan memory continuity",
+        limit=4,
+        sealed_at=_now(),
+    )
+    return {
+        "state": "MEMORY_CHECKPOINT_SEALED",
+        "head_locator": locator,
+        "checkpoint_sealed": True,
+        "checkpoint_sha256": result["checkpoint_sha256"],
+        "memory_head_sha256": result["memory_head_sha256"],
+        "bounded_locator_count": result["bounded_locator_count"],
+        "bounded_locator_ids": [
+            row["locator_id"] for row in result["bounded_locators"]
+        ],
+        "full_transcript_replay_required": False,
+        "raw_source_payloads_included": False,
+        "controls_codex_host_wording": False,
+    }
+
+
+def _rehydrate_compact_project_memory(
+    project_root: Path,
+    *,
+    host_session_id: str,
+    compact_context: dict[str, Any],
+) -> dict[str, Any]:
+    checkpoint = cast(
+        dict[str, Any], compact_context.get("project_memory_checkpoint") or {}
+    )
+    if checkpoint.get("state") != "MEMORY_CHECKPOINT_SEALED":
+        return {
+            "state": "MEMORY_REHYDRATION_NOT_APPLICABLE",
+            "checkpoint_state": checkpoint.get("state") or "MISSING",
+            "rehydrated": False,
+            "controls_codex_host_wording": False,
+        }
+    head = _json(project_root / "memory" / "head.json")
+    active_task_id = str(
+        compact_context.get("active_authority", {}).get("active_plan_task_id") or ""
+    )
+    result = rehydrate_memory_checkpoint(
+        project_root,
+        project_id=str(compact_context["project_id"]),
+        checkpoint_sha256=str(checkpoint["checkpoint_sha256"]),
+        host_task_uuid=host_session_id,
+        host_task_deep_link=f"codex://threads/{host_session_id.lower()}",
+        active_plan_task_id=active_task_id,
+        lineage_head_sha256=str(head.get("lineage_head_sha256") or ""),
+        rehydrated_at=_now(),
+    )
+    return {
+        "state": "MEMORY_CHECKPOINT_REHYDRATED",
+        "rehydrated": True,
+        "checkpoint_sha256": result["checkpoint_sha256"],
+        "memory_head_sha256": result["memory_head_sha256"],
+        "rehydrated_locator_count": len(result["locators"]),
+        "rehydrated_locator_ids": [row["locator_id"] for row in result["locators"]],
+        "receipt_sha256": result["receipt_sha256"],
+        "full_transcript_replayed": False,
+        "raw_source_payloads_returned": False,
+        "controls_codex_host_wording": False,
+    }
 
 
 def _compact_authority_context(
@@ -6865,7 +6997,9 @@ def _compact_authority_context(
         "Compact re-entry identities do not match the accepted pointer.",
     )
     runtime_task = session.get("task") if isinstance(session.get("task"), dict) else {}
-    runtime_task_id = str(cast(dict[str, Any], runtime_task).get("task_id") or "") or None
+    runtime_task_id = (
+        str(cast(dict[str, Any], runtime_task).get("task_id") or "") or None
+    )
     active_task_id = str(metadata.get("active_backlog_task_id") or "")
     task_contract = dict(runtime_task or {})
     classification = dict(metadata.get("task_classification_binding") or {})
@@ -6889,9 +7023,7 @@ def _compact_authority_context(
                 if task_contract
                 else None
             ),
-            "task_classification_receipt_sha256": classification.get(
-                "receipt_sha256"
-            ),
+            "task_classification_receipt_sha256": classification.get("receipt_sha256"),
             "active_contract_rebind_receipt_sha256": rebind.get("receipt_sha256"),
         },
         "plan_window": _compact_plan_window(session),
@@ -6907,11 +7039,12 @@ def _compact_authority_context(
         ),
         "canon_locator": _compact_locator(project_root, "canon/canon-input.sqlite"),
         "learning_locator": _compact_locator(
-            project_root, "learning/agent-learning.sqlite"
+            project_root, "ai_learning/agent-learning.sqlite"
         ),
         "learning_pointer_locator": _compact_locator(
-            project_root, "learning/active_pointer.json"
+            project_root, "ai_learning/active_pointer.json"
         ),
+        "project_memory_locator": _compact_locator(project_root, "memory/head.json"),
         "immediate_continuation": {
             "action": "CONTINUE_EXACT_ACTIVE_TASK_WITH_BOUNDED_QUERIES_ONLY",
             "active_plan_task_id": active_task_id,
@@ -6929,7 +7062,7 @@ def _compact_authority_context(
 
 
 def _compact_latest_path(project_root: Path) -> Path:
-    return project_root / "lineage" / "compact_reentry" / "latest.json"
+    return resolved_chat_lineage_root(project_root) / "compact_reentry" / "latest.json"
 
 
 def _write_compact_latest_pointer(
@@ -6944,8 +7077,8 @@ def _write_compact_latest_pointer(
     latest_path = _compact_latest_path(project_root)
     if latest_path.is_file():
         existing = _json(latest_path)
-    same_precompact = (
-        existing.get("precompact_receipt_sha256") == receipt.get("receipt_sha256")
+    same_precompact = existing.get("precompact_receipt_sha256") == receipt.get(
+        "receipt_sha256"
     )
     core = {
         "schema": "evidence-lane.codex-compact-reentry-pointer.v1",
@@ -7019,7 +7152,8 @@ def _load_compact_precompact_receipt(
         )
     )
     _require(
-        claimed_receipt_sha == actual_receipt_sha
+        claimed_receipt_sha
+        == actual_receipt_sha
         == pointer.get("precompact_receipt_sha256")
         and receipt.get("event_name") == "PreCompact"
         and receipt.get("binding_epoch_sha256") == _host_binding_epoch(session),
@@ -7040,9 +7174,7 @@ def _write_compact_postcompact_completion(
         project_root,
         session=session,
     )
-    updated = {
-        key: value for key, value in pointer.items() if key != "pointer_sha256"
-    }
+    updated = {key: value for key, value in pointer.items() if key != "pointer_sha256"}
     updated.update(
         {
             "postcompact_receipt_relative_path": receipt_path.relative_to(
@@ -7090,9 +7222,7 @@ def _compact_session_reentry_context(
         "TURN_CONTROL_COMPACT_CONTEXT_STALE",
         "The sealed compact context failed its hash or byte-ceiling contract.",
     )
-    post_relative = Path(
-        str(pointer.get("postcompact_receipt_relative_path") or "")
-    )
+    post_relative = Path(str(pointer.get("postcompact_receipt_relative_path") or ""))
     _require(
         bool(str(post_relative))
         and not post_relative.is_absolute()
@@ -7118,14 +7248,29 @@ def _compact_session_reentry_context(
         )
     )
     _require(
-        post_claimed_sha == post_actual_sha
-        == pointer.get("postcompact_receipt_sha256")
+        post_claimed_sha == post_actual_sha == pointer.get("postcompact_receipt_sha256")
         and post_receipt.get("event_name") == "PostCompact"
         and post_receipt.get("precompact_receipt_sha256")
         == precompact_receipt.get("receipt_sha256"),
         "TURN_CONTROL_COMPACT_POSTCOMPACT_STALE",
         "The PostCompact completion no longer matches the sealed PreCompact receipt.",
     )
+    sealed_memory = cast(
+        dict[str, Any], sealed_context.get("project_memory_checkpoint") or {}
+    )
+    post_memory = cast(
+        dict[str, Any], post_receipt.get("project_memory_rehydration") or {}
+    )
+    if sealed_memory.get("state") == "MEMORY_CHECKPOINT_SEALED":
+        _require(
+            post_memory.get("state") == "MEMORY_CHECKPOINT_REHYDRATED"
+            and post_memory.get("checkpoint_sha256")
+            == sealed_memory.get("checkpoint_sha256")
+            and post_memory.get("memory_head_sha256")
+            == sealed_memory.get("memory_head_sha256"),
+            "TURN_CONTROL_COMPACT_MEMORY_REHYDRATION_STALE",
+            "The PostCompact Memory rehydration does not match its sealed checkpoint.",
+        )
     current = _compact_authority_context(
         root,
         bound=bound,
@@ -7136,9 +7281,7 @@ def _compact_session_reentry_context(
     current.update(
         {
             "state": "COMPACT_REENTRY_READY",
-            "precompact_receipt_sha256": precompact_receipt.get(
-                "receipt_sha256"
-            ),
+            "precompact_receipt_sha256": precompact_receipt.get("receipt_sha256"),
             "postcompact_receipt_sha256": post_claimed_sha,
             "sealed_precompact_context_sha256": sealed_context_sha,
             "authority_reconstructed": False,
@@ -7196,7 +7339,7 @@ def record_lifecycle_boundary_event(
     metadata = dict(session.get("metadata") or {})
     project_id = str(session["project_id"])
     evidence_session_id = str(session["session_id"])
-    project_root = root / "projects" / project_id
+    project_root = Path(candidate["project_root"]).resolve()
     occurrence_source = str(
         host_payload.get("hook_event_id")
         or host_payload.get("event_id")
@@ -7221,14 +7364,20 @@ def record_lifecycle_boundary_event(
         )[:26].lower()
     )
     receipt_path = (
-        project_root / "lineage" / "lifecycle_hooks" / f"{receipt_id}.json"
+        resolved_chat_lineage_root(project_root)
+        / "lifecycle_hooks"
+        / f"{receipt_id}.json"
     )
     if receipt_path.is_file():
         receipt = _json(receipt_path)
         claimed = str(receipt.get("receipt_sha256") or "")
         actual = sha256_bytes(
             canonical_json_bytes(
-                {key: value for key, value in receipt.items() if key != "receipt_sha256"}
+                {
+                    key: value
+                    for key, value in receipt.items()
+                    if key != "receipt_sha256"
+                }
             )
         )
         _require(
@@ -7283,11 +7432,19 @@ def record_lifecycle_boundary_event(
         "sealed_at": _now(),
     }
     if event_name == "PreCompact":
-        core["compact_reentry_context"] = _compact_authority_context(
+        compact_context = _compact_authority_context(
             root,
             bound=candidate,
             host_session_id=host_session_id,
         )
+        compact_context.pop("serialized_bytes", None)
+        compact_context.pop("compact_context_sha256", None)
+        compact_context["project_memory_checkpoint"] = _seal_compact_project_memory(
+            project_root,
+            host_session_id=host_session_id,
+            compact_context=compact_context,
+        )
+        core["compact_reentry_context"] = _seal_compact_context_size(compact_context)
         core["hook_performed_host_update_plan"] = False
         core["host_plan_behavior_owner"] = "ACTIVE_EVIDENCE_LANE_SKILL"
         core["authority_reconstructed"] = False
@@ -7298,20 +7455,24 @@ def record_lifecycle_boundary_event(
             project_root,
             session=session,
         )
-        core["precompact_receipt_sha256"] = precompact_receipt.get(
-            "receipt_sha256"
-        )
-        core["compact_context_sha256"] = compact_pointer.get(
-            "compact_context_sha256"
-        )
+        core["precompact_receipt_sha256"] = precompact_receipt.get("receipt_sha256")
+        core["compact_context_sha256"] = compact_pointer.get("compact_context_sha256")
         core["compact_completion"] = "RECORDED_WITHOUT_AUTHORITY_RECONSTRUCTION"
+        sealed_context = cast(
+            dict[str, Any], precompact_receipt.get("compact_reentry_context") or {}
+        )
+        core["project_memory_rehydration"] = _rehydrate_compact_project_memory(
+            project_root,
+            host_session_id=host_session_id,
+            compact_context=sealed_context,
+        )
         core["hook_performed_host_update_plan"] = False
         core["host_plan_behavior_owner"] = "ACTIVE_EVIDENCE_LANE_SKILL"
         core["authority_reconstructed"] = False
         core["full_plan_embedded"] = False
         core["full_env_uop_embedded"] = False
     lineage = ChatLineage(
-        project_root / "lineage" / f"{evidence_session_id}.jsonl"
+        resolved_chat_lineage_root(project_root) / f"{evidence_session_id}.jsonl"
     ).append(
         event_type=f"turn.lifecycle.{event_name.lower()}",
         visible_payload=core,
@@ -7665,7 +7826,8 @@ def commit_turn(
             response_record.get("record_sha256"), field="response.record_sha256"
         )
         lineage_path = (
-            project_root / "lineage" / f"{binding['evidence_session_id']}.jsonl"
+            resolved_chat_lineage_root(project_root)
+            / f"{binding['evidence_session_id']}.jsonl"
         )
         lineage = ChatLineage(lineage_path)
         lineage_before_response = lineage.events()
@@ -7910,8 +8072,7 @@ def commit_turn(
         "source_change": source_change,
         "persistent_change_display": persistent_change_display,
         "ordinary_turn_commit_receipt": (
-            commit.get("continuity_commit_receipt")
-            or commit.get("exit_slip")
+            commit.get("continuity_commit_receipt") or commit.get("exit_slip")
         ),
         "lifecycle_exit_slip_emitted": bool(
             commit.get("lifecycle_exit_slip_emitted", False)
@@ -7963,11 +8124,15 @@ def seal_lifecycle_exit_slip(
             or runtime_context.get("stateless") is True
             or runtime_context.get("stateless_invocation") is True
         )
-        interaction_profile = str(
-            host_payload.get("interaction_profile")
-            or runtime_context.get("interaction_profile")
-            or ""
-        ).strip().upper()
+        interaction_profile = (
+            str(
+                host_payload.get("interaction_profile")
+                or runtime_context.get("interaction_profile")
+                or ""
+            )
+            .strip()
+            .upper()
+        )
         _require(
             ephemeral
             and stateless
@@ -8018,16 +8183,13 @@ def seal_lifecycle_exit_slip(
             (
                 row
                 for row in latest_rows
-                if json.loads(row["record_json"]).get("task_id")
-                == binding["task_id"]
+                if json.loads(row["record_json"]).get("task_id") == binding["task_id"]
             ),
             None,
         )
     if latest is not None:
         latest_entry = json.loads(latest["record_json"])
-        latest_control_record_sha256 = str(
-            latest_entry["control_record_sha256"]
-        )
+        latest_control_record_sha256 = str(latest_entry["control_record_sha256"])
         latest_turn_state = (
             "COMMITTED" if latest["commit_sha256"] else "PREPARED_NOT_COMMITTED"
         )
@@ -8095,12 +8257,16 @@ def seal_lifecycle_exit_slip(
         receipt["exit_slip_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
         atomic_write_json(exit_path, receipt)
         state = "SEALED"
-    event_id = "evt_" + sha256_bytes(
-        (str(receipt["exit_slip_sha256"]) + "\0lifecycle-exit").encode("utf-8")
-    )[:26].lower()
+    event_id = (
+        "evt_"
+        + sha256_bytes(
+            (str(receipt["exit_slip_sha256"]) + "\0lifecycle-exit").encode("utf-8")
+        )[:26].lower()
+    )
     telemetry = _response_telemetry(host_payload)
     lineage_event = ChatLineage(
-        project_root / "lineage" / f"{binding['evidence_session_id']}.jsonl"
+        resolved_chat_lineage_root(project_root)
+        / f"{binding['evidence_session_id']}.jsonl"
     ).append(
         event_type="turn.lifecycle_exit_slip",
         visible_payload=receipt,
@@ -8184,12 +8350,8 @@ def session_start_control(
             "schema": "evidence-lane.codex-session-compact-reentry.v1",
             "project_id": compact_context["project_id"],
             "evidence_session_id": compact_context["evidence_session_id"],
-            "host_session_id_sha256": compact_context[
-                "host_session_id_sha256"
-            ],
-            "binding_epoch_sha256": compact_context[
-                "binding_epoch_sha256"
-            ],
+            "host_session_id_sha256": compact_context["host_session_id_sha256"],
+            "binding_epoch_sha256": compact_context["binding_epoch_sha256"],
             "compact_reentry_context": compact_context,
             "authority_reconstructed": False,
             "full_plan_included": False,
@@ -8245,7 +8407,8 @@ def session_start_control(
                 None,
             )
         lineage_path = (
-            project_root / "lineage" / f"{binding['evidence_session_id']}.jsonl"
+            resolved_chat_lineage_root(project_root)
+            / f"{binding['evidence_session_id']}.jsonl"
         )
         lineage = ChatLineage(lineage_path)
         for row in rows:
@@ -8446,14 +8609,13 @@ def current_persistent_change_display(
             or ""
         ),
     )
-    if (
-        host_payload.get("_evidence_lane_boundary_event") == "PostCompact"
-        or _is_compact_session_source(host_payload.get("source"))
-    ):
+    if host_payload.get(
+        "_evidence_lane_boundary_event"
+    ) == "PostCompact" or _is_compact_session_source(host_payload.get("source")):
         session = cast(dict[str, Any], bound["session"])
         project_root = Path(bound["project_root"])
         governed_activity_counts = _governed_activity_counts_from_database(
-            project_root / "lineage" / "codex_turn_control.sqlite",
+            resolved_chat_lineage_root(project_root) / "codex_turn_control.sqlite",
             project_id=str(session.get("project_id") or ""),
             evidence_session_id=str(session.get("session_id") or ""),
             host_ui_supported=_host_activity_group_support(host_payload),
@@ -8471,12 +8633,8 @@ def current_persistent_change_display(
                 "active_backlog_task_id"
             ),
             "binding_epoch_sha256": _host_binding_epoch(session),
-            "precompact_receipt_sha256": precompact_receipt.get(
-                "receipt_sha256"
-            ),
-            "postcompact_receipt_sha256": pointer.get(
-                "postcompact_receipt_sha256"
-            ),
+            "precompact_receipt_sha256": precompact_receipt.get("receipt_sha256"),
+            "postcompact_receipt_sha256": pointer.get("postcompact_receipt_sha256"),
             "authority_reconstructed": False,
             "full_plan_included": False,
             "full_env_uop_included": False,
@@ -8507,7 +8665,7 @@ def current_persistent_change_display(
         cwd=str(host_payload.get("cwd") or ""),
     )
     relevant: list[tuple[dict[str, Any], dict[str, Any] | None]] = []
-    database = project_root / "lineage" / "codex_turn_control.sqlite"
+    database = resolved_chat_lineage_root(project_root) / "codex_turn_control.sqlite"
     if database.is_file():
         connection = _read_only(database)
         try:

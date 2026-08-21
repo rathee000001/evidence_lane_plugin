@@ -1,0 +1,108 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_ALL_SKILLS_AND_TOOLS_EXACTLY_ROUTED",
+  "recorded_at": "2026-08-15T18:10:49Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-024-SKILL-MCP-ROUTING",
+  "task_contract_sha256": "540CE4D2959D76AEEDD086F492377E41B1128CAC1D3BF60A00CDFC7E826C8C34",
+  "official_openai_contract": {
+    "skill_documentation": "https://developers.openai.com/plugins/build/skills",
+    "plugin_packaging_documentation": "https://developers.openai.com/plugins/build/plugins",
+    "dependency_metadata_location": "skills/<skill-name>/agents/openai.yaml",
+    "dependency_type": "mcp",
+    "dependency_value": "evidence-lane",
+    "bundled_stdio_transport_or_url_required": false,
+    "skill_instructions_own_tool_order_and_missing_tool_behavior": true
+  },
+  "runtime_contract": {
+    "implementation": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py::inspect_skill_mcp_routing",
+    "schema": "evidence-lane.skill-mcp-routing-receipt.v1",
+    "status": "PASS",
+    "routing_schema": "evidence-lane.skill-mcp-routing.v1",
+    "manifest_format": "FLAT_OWNER_GROUPS_V1",
+    "server_identity": "evidence-lane",
+    "skill_count": 17,
+    "tool_count": 83,
+    "owned_tool_count": 83,
+    "low_level_tool_count": 21,
+    "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+    "manifest_sha256": "34033F2E1C640EDD46B13941410025DFEC08544796FA2EC223BB655BE3221C27",
+    "receipt_sha256": "DD42C82CE3F34CB8C60D8A9165E2B6CF0EADB602E53A4AD31E6F08657FD0CFB9"
+  },
+  "routing_law": {
+    "one_exact_mcp_dependency_per_skill": true,
+    "tool_names_match_registered_catalog_exactly": true,
+    "every_registered_tool_has_one_owner": true,
+    "every_registered_tool_is_reached_by_an_ordered_workflow": true,
+    "low_level_tools_require_owner_and_reached_via": true,
+    "alias_or_prefix_rewrite_allowed": false,
+    "host_display_namespace_is_authority": false,
+    "installed_catalog_validation_boundary": "GOVERNED_RELEASE_REBUILD_AND_COMPARE"
+  },
+  "mcp_construction_binding": {
+    "full_review_attribute": "_evidence_lane_skill_mcp_routing_review",
+    "bounded_native_route_summary": "_evidence_lane_native_route_receipt.skill_mcp_routing",
+    "validation_order": "AFTER_NATIVE_REGISTRATION_BEFORE_EXPOSURE_FILTER",
+    "tool_count_changed": false,
+    "tool_annotation_changed": false,
+    "new_public_route_created": false
+  },
+  "byte_identities": {
+    "mcp_server_sha256": "C28B1E6CE17DDB7B809997F949EFD5FB8CA723C8408F4B6F9B0D53F8609F151D",
+    "routing_manifest_sha256": "34033F2E1C640EDD46B13941410025DFEC08544796FA2EC223BB655BE3221C27",
+    "routing_tests_sha256": "7BB3E4D97060570F8481B6AD229ED1CB3E59C322BEB1761BD0FA89D48D4E4644",
+    "skill_metadata_aggregate_sha256": "146305D35CF039ABDBBDB2D15E8557D1CE2B857B06DDDB9B2EC989C43B55C950",
+    "skill_instruction_aggregate_sha256": "EE9313E1A36FB834CAB579C7FFF68661CDA882E1F922350395732F70DECCB722",
+    "prior_delta_post_worktree_sha256": "8A05F706B2E31E3F60A375729AC91F554720D4CC358F76E81B29D2ECCFB335F3",
+    "implementation_worktree_sha256_before_receipt_materialization": "F930595FB768C1546ED91C1314CD91529BB67A517348AD3E60F18168DB73FBD8",
+    "final_post_worktree_identity": "SEALED_BY_NATIVE_PER_DELTA_CHECKPOINT_AFTER_RECEIPT_AND_CONFIG_MATERIALIZATION"
+  },
+  "verification": [
+    {
+      "selector": "Exact skill metadata, manifest ownership/routing, construction receipt, catalog drift, and corruption fail-closed cases",
+      "status": "PASS",
+      "result": "12 passed in 8.95s"
+    },
+    {
+      "selector": "SDK, handler, service-route, skill-routing, MCP catalog/OAuth, and public-arm integration",
+      "status": "PASS",
+      "result": "43 passed in 6.93s"
+    },
+    {
+      "selector": "Python lint, compile, routing-manifest JSON parse, and whitespace validation",
+      "status": "PASS",
+      "result": "Ruff, py_compile, json.tool, and git diff --check passed; two pre-existing line-ending normalization warnings remained non-failing"
+    }
+  ],
+  "negative_cases": [
+    "A missing, renamed, or extra native catalog tool fails closed.",
+    "Missing or incorrect per-skill MCP dependency metadata fails closed.",
+    "A tool without exactly one owner or ordered owning workflow fails closed.",
+    "A low-level tool without an owner and reached_via workflow fails closed.",
+    "Missing routing markers or altered missing-tool behavior fail closed.",
+    "No alias, display-prefix, or inferred-success fallback is accepted."
+  ],
+  "write_provenance": {
+    "pre_existing_dirty_source_bytes_preserved": true,
+    "row221_changes_are_additive_to_existing_dirty_worktree": true,
+    "unrelated_dirty_or_untracked_bytes_modified": false
+  },
+  "negative_side_effects": {
+    "live_project_hil_invoked": false,
+    "live_candidate_created_or_accepted": false,
+    "live_pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "plugin_install_or_activation_changed": false,
+    "installer_or_goal_helper_invoked_by_root": false,
+    "tunnel_invoked": false,
+    "subagent_started_by_root": false
+  },
+  "limitations": [
+    "Installed-package catalog parity is intentionally deferred to the governed release boundary; the installed stable fallback remains unchanged.",
+    "Row222 owns first-class Canon schema and builder byte-parity work.",
+    "This Delta does not claim host Plan acceptance, HIL approval, candidate creation, pointer movement, Git execution, or installation."
+  ],
+  "next_boundary": "Close Row221 through its exact per-Delta checkpoint. In the fixed Rows218-226 visible batch, cross Row221 in place and activate Row222 without rehydrating or sliding the host panel."
+}

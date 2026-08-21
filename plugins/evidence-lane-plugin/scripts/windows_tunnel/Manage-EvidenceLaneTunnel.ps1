@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("Start", "Stop", "Status", "Repair", "Remove")]
     [string]$Action,
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v300-stable-build",
+    [string]$RuntimeControlRoot = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin",
+    [string]$RuntimeRoot = "",
     [string]$ProfileName = "evidence_lane_v300_stable_build_transport",
     [string]$ProfileDir = "$env:APPDATA\tunnel-client",
     [string]$ReleaseToken = "v300",
@@ -14,6 +15,22 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+if ([string]::IsNullOrWhiteSpace($RuntimeRoot)) {
+    $RuntimeRoot = Join-Path $RuntimeControlRoot "tunnel-runtime-v300-stable-build"
+}
+$exactRuntimeControlRoot = [IO.Path]::GetFullPath($RuntimeControlRoot)
+$exactRuntimeRoot = [IO.Path]::GetFullPath($RuntimeRoot)
+$expectedRuntimeControlRoot = [IO.Path]::GetFullPath(
+    (Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin")
+)
+if ($exactRuntimeControlRoot -cne $expectedRuntimeControlRoot) {
+    throw "Tunnel management requires the exact hidden Evidence Lane Codex runtime root."
+}
+$approvedRuntimeParent = $exactRuntimeControlRoot + [IO.Path]::DirectorySeparatorChar
+if (-not $exactRuntimeRoot.StartsWith($approvedRuntimeParent, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "The managed tunnel runtime must remain inside Codex's hidden Evidence Lane runtime root."
+}
 
 $expectedClientSha256 = "D893D8127EEE35070D265C1BE29BFE008F8D9FCB476E7FEBF56C8FDC6C0615C8"
 $client = Join-Path $RuntimeRoot "bin\tunnel-client-v0.0.10.exe"
@@ -123,7 +140,7 @@ function Get-TunnelStatus {
         project_route_argument = "project_id"
         project_route_argument_required = $true
         cross_project_fallback_allowed = $false
-        exact_visible_tool_count = 87
+        exact_visible_tool_count = 88
         exact_active_read_tool_count = 26
         exact_fail_closed_write_tool_count = 57
         health_url_file = $healthUrlFile
@@ -179,10 +196,9 @@ if ($Action -eq "Remove") {
     if (-not $ConfirmRemoval) {
         throw "Removal is fail-closed. Repeat with -ConfirmRemoval after reviewing the exact runtime root."
     }
-    $approvedParent = [IO.Path]::GetFullPath((Join-Path $env:USERPROFILE "EvidenceLanePV")) + [IO.Path]::DirectorySeparatorChar
-    $exactRuntimeRoot = [IO.Path]::GetFullPath($RuntimeRoot)
+    $approvedParent = $exactRuntimeControlRoot + [IO.Path]::DirectorySeparatorChar
     if (-not $exactRuntimeRoot.StartsWith($approvedParent, [StringComparison]::OrdinalIgnoreCase)) {
-        throw "Refusing to remove a runtime outside the user-owned EvidenceLanePV directory."
+        throw "Refusing to remove a runtime outside Codex's hidden Evidence Lane runtime directory."
     }
     if (-not (Test-Path -LiteralPath $markerFile -PathType Leaf)) {
         throw "Refusing removal because the Evidence Lane installation marker is missing."

@@ -1,0 +1,158 @@
+{
+  "schema": "evidence-lane.row184-v150-remote-preview-install-audit.v1",
+  "generated_at": "2026-08-09T22:22:50.8514329Z",
+  "status": "PARTIAL_PASS_EXTERNAL_INSTALL_BLOCKED",
+  "task_position": 112,
+  "public_row": 184,
+  "source": {
+    "branch": "agent/evi-v150-systemwide-release-hil-v1.5.0",
+    "commit": "2ad435f304a27a2761d8e41cd67b46a7779d0306",
+    "tree": "d266554ee2c244632504a61b2820763f736f3d1d",
+    "tracked_worktree_clean": true,
+    "dirty_and_untracked_bytes_preserved": true
+  },
+  "remote_git": {
+    "repository": "rathee000001/evidence_lane_plugin",
+    "remote_branch": "agent/evi-v150-systemwide-release-hil-v1.5.0",
+    "head": "2ad435f304a27a2761d8e41cd67b46a7779d0306",
+    "push_action_id": "remote_action_01kzm91xw6d3wv070r9y75pypv",
+    "push_status": "PASS",
+    "push_output_security_receipt_sha256": "8D273AAD40D39630D700730B3844E55CD56B79780771AE777A218DA8895B64F8",
+    "vercel_commit_status": "success"
+  },
+  "exact_commit_artifacts": {
+    "export_tar": {
+      "path": "evidence/implementation_v45/row184_v150_2ad435f_exact_commit_export.tar",
+      "bytes": 63508480,
+      "sha256": "D2415CD3E2C458A4F3768E91D1E8AAD410828AFF920FD8449FB6360FA4C5CD88"
+    },
+    "plugin_zip": {
+      "path": "evidence/implementation_v45/row184_v150_2ad435f_exact_commit_package/evidence-lane-1.5.0+codex.20260809174231-local-rehearsal-A6C60E53A4C12B77.zip",
+      "bytes": 24516688,
+      "sha256": "7E9F0F8DB13D094CDA4B65613839246C64711CB2A9BCD8F03C995E913A06AF87"
+    },
+    "package_receipt": {
+      "path": "evidence/implementation_v45/row184_v150_2ad435f_exact_commit_package/LOCAL_PACKAGE_REHEARSAL_7E9F0F8DB13D094C.json",
+      "bytes": 872,
+      "sha256": "A94271F7CC6005B40265A5E315CAE1B4755FBEB4A6C5755DE666EFCA6D595549"
+    }
+  },
+  "universal_package": {
+    "version": "1.5.0+codex.20260809174231",
+    "plugin_manifest": "plugins/evidence-lane-plugin/.codex-plugin/plugin.json",
+    "mcp_mapping": "plugins/evidence-lane-plugin/.mcp.json",
+    "app_mapping": "plugins/evidence-lane-plugin/.app.json",
+    "registered_app_id": "plugin_asdk_app_6a7743d238e48191be8b69c87fb71d7f",
+    "skill_count": 15,
+    "chatgpt_governed_tool_count": 62,
+    "chatgpt_executing_read_count": 21,
+    "chatgpt_visible_refused_write_count": 41
+  },
+  "oauth_authority_contract": {
+    "jwt_algorithms": "ASYMMETRIC_ALLOWLIST_ONLY",
+    "exact_issuer_audience_client_environment_project_grants": true,
+    "production_lifecycle_write_role": "owner",
+    "remote_git_required_scopes": [
+      "evidence-lane:read",
+      "evidence-lane:write",
+      "evidence-lane:remote-git"
+    ],
+    "remote_git_required_role": "owner",
+    "tester_production_wildcard_allowed": false,
+    "staging_tester_isolation_supported": true,
+    "production_client_secret_sharing_required": false
+  },
+  "focused_local_tests": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q -p no:cacheprovider tests/test_mcp_plugin.py -k \"oauth or governed or manifest\"",
+      "result": "PASS",
+      "passed": 6,
+      "deselected": 21
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q -p no:cacheprovider tests/test_remote_adapter_security.py tests/test_v140_cross_surface_contracts.py tests/test_windows_tunnel_persistence.py",
+      "result": "PASS",
+      "passed": 27
+    }
+  ],
+  "vercel_preview": {
+    "deployment_id": "dpl_2ZVZtjWN3mfypjPzM293aE6aPdFz",
+    "url": "https://evidence-lane-chatgpt-mcp-adapter-e77y96eud.vercel.app",
+    "target": null,
+    "state": "READY",
+    "source": "git",
+    "git_commit": "2ad435f304a27a2761d8e41cd67b46a7779d0306",
+    "website": {
+      "status": 200,
+      "release_version": "1.5.0",
+      "release_commit": "2ad435f304a27a2761d8e41cd67b46a7779d0306"
+    },
+    "healthz": {
+      "status": 503,
+      "errors": [
+        "DURABLE_HTTPS_ORIGIN_REQUIRED",
+        "EXACT_RELEASE_SHA_REQUIRED",
+        "VERCEL_GIT_SHA_MISMATCH"
+      ],
+      "local_state_authority": false
+    },
+    "mcp": {
+      "status": 503,
+      "errors": [
+        "DURABLE_HTTPS_ORIGIN_REQUIRED",
+        "EXACT_RELEASE_SHA_REQUIRED",
+        "VERCEL_GIT_SHA_MISMATCH"
+      ]
+    },
+    "protected_resource_metadata": {
+      "status": 503
+    },
+    "authorization_server_metadata": {
+      "status": 404,
+      "owner": "EXTERNAL_ESTABLISHED_IDP"
+    }
+  },
+  "host_install_state": {
+    "codex_active_version": "1.4.1+codex.20260809163215",
+    "preserved_cache_versions": [
+      "1.4.0+codex.20260808180919",
+      "1.4.1+codex.20260809163215"
+    ],
+    "codex_marketplace": "evidence-lane-github",
+    "codex_marketplace_ref": "agent/evi-v141-systemwide-release-hil-v1.4.1",
+    "codex_v150_installed": false,
+    "chatgpt_v150_tunnel_runtime_present": false,
+    "chatgpt_complete_package_install_proved": false
+  },
+  "remaining_row184_gates": [
+    "Provide a release-verified public HTTPS durable MCP origin for commit 2ad435f304a27a2761d8e41cd67b46a7779d0306.",
+    "Configure Preview-only EVIDENCE_LANE_DURABLE_MCP_ORIGIN and EVIDENCE_LANE_RELEASE_SHA without exposing secret values.",
+    "Configure an established OAuth 2.1 or OIDC authorization server with exact issuer, audience, client, environment, role, project, and scope claims.",
+    "Prove healthy protected-resource and authorization-server discovery plus authenticated MCP initialize and tools/list.",
+    "Resolve the Git-marketplace ref boundary without removing or hand-editing the preserved v1.4 marketplace installation.",
+    "Install and prove the exact v1.5 package in a fresh Codex thread.",
+    "Refresh the existing Desktop-1 ChatGPT profile without creating a replacement profile and prove all fifteen skills plus the 62-action governed catalog."
+  ],
+  "forbidden_actions_performed": {
+    "fuse": false,
+    "accepted_pointer_move": false,
+    "main_merge": false,
+    "production_promotion": false,
+    "plugin_submission_or_publication": false,
+    "devpost_update": false,
+    "credential_sharing": false,
+    "v140_uninstall": false
+  },
+  "panel": {
+    "positions": 119,
+    "sole_active_position": 112,
+    "sole_active_public_row": 184,
+    "physical_final_position": 119,
+    "physical_final_public_row": 191
+  },
+  "verdict": {
+    "decision": "FIX_THEN_PURSUE",
+    "confidence": "HIGH",
+    "reason": "The exact Git package, metadata, local OAuth policy, and branch preview build are proven; public durable execution, live OAuth discovery, and independent Codex and ChatGPT installation are not yet proven."
+  }
+}

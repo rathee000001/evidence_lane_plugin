@@ -116,6 +116,9 @@ def test_powershell_background_routes_are_hidden_and_never_loop_restart() -> Non
     assert '$tunnelRequired = $HostToolTransport -eq "HOST_TOOL_GAP"' in restart
     assert 'host_tool_transport = $HostToolTransport' in restart
     assert 'tunnel_required = $tunnelRequired' in restart
+    assert '.codex\\plugins\\runtime\\evidence-lane-plugin' in restart
+    assert 'runtime_control_root_hidden = $true' in restart
+    assert 'project_data_root_separate = ' in restart
     assert "$restartAuthority.branch_commit_recovery_selector = $branchRecoverySelector" in restart
     assert "$restartAuthority.mutable_local_failure_target = $branchRecoverySelector" in restart
     assert "$restartAuthority.mutable_local_failure_never_targets_main_git = $true" in restart
@@ -130,6 +133,9 @@ def test_powershell_background_routes_are_hidden_and_never_loop_restart() -> Non
     assert 'TargetSlot -cne "branch-commit-recovery"' in switch
     assert 'pre_3_0_fallback_allowed = $false' in switch
     assert "TARGET_SELECTED_RESTART_REQUIRED" in switch
+    assert "@openai\\codex-win32-x64" in switch
+    assert "The packaged WindowsApps codex.exe is not a supported" in switch
+    assert "Get-Command codex.exe" not in switch
 
     assert (
         tunnel.count("-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass")
@@ -142,6 +148,9 @@ def test_powershell_background_routes_are_hidden_and_never_loop_restart() -> Non
     assert "scheduled_task_launcher_create_no_window = $true" in tunnel
     assert 'prior_versioned_runtimes_retained = $true' in tunnel
     assert 'prior_versioned_runtime_deletion_allowed = $false' in tunnel
+    assert '.codex\\plugins\\runtime\\evidence-lane-plugin' in tunnel
+    assert 'runtime_control_root_hidden = $true' in tunnel
+    assert 'project_data_root_separate = ' in tunnel
     assert "-RestartCount 999" in tunnel
     assert "-MultipleInstances IgnoreNew" in tunnel
     assert '"main-git-release"' in tunnel
@@ -170,7 +179,7 @@ def test_goal_recovery_prewarm_is_exact_task_read_only_and_truthful() -> None:
     assert '-Method "mcpServer/resource/read"' in text
     assert 'canonical_plugin_selector = $ExpectedPluginSelector' in text
     assert 'exact_tool_count = $toolCount' in text
-    assert '$toolCount -ne 87' in text
+    assert '$toolCount -ne 88' in text
     assert 'governedResourceUri = "ui://evidence-lane/governed-console-v6.html"' in text
     assert 'live_desktop_control_plane = "HOST_CAPABILITY_UNAVAILABLE_WINDOWS_APP_SERVER_DAEMON"' in text
     assert 'mcp_inventory_scope = "ISOLATED_APP_SERVER_GLOBAL_RUNTIME"' in text

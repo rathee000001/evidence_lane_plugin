@@ -303,7 +303,7 @@ def _seal_active_goal_recovery_binding(
                 "canonical_plugin_installed": True,
                 "canonical_plugin_enabled": True,
                 "canonical_plugin_local_version": plugin_version,
-                "exact_tool_count": 87,
+                "exact_tool_count": 88,
                 "thread_scoped_mcp_inventory_available": False,
                 "live_host_next_active_turn_refresh_claimed": False,
             },
@@ -605,9 +605,9 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
         "UserPromptSubmit",
     ]
     assert package_status["skills"]["count"] == 17
-    assert package_status["catalog"]["tools"] == 87
+    assert package_status["catalog"]["tools"] == 88
     assert package_status["catalog"]["read"] == 27
-    assert package_status["catalog"]["write"] == 60
+    assert package_status["catalog"]["write"] == 61
     assert package_status["refresh_state"] == "NO_PENDING_CANDIDATE"
     assert package_status["tunnel_channel"] == "stable-build"
     assert package_status["raw_paths_included"] is False
@@ -949,6 +949,12 @@ def test_compact_reentry_is_bounded_distinct_and_fail_closed(
     )
     assert context["canon_locator"]["state"] == "MISSING"
     assert context["learning_locator"]["state"] == "MISSING"
+    assert context["project_memory_locator"]["state"] == "MISSING"
+    memory_checkpoint = context["project_memory_checkpoint"]
+    assert memory_checkpoint["state"] == "MEMORY_AUTHORITY_MISSING"
+    assert memory_checkpoint["head_locator"]["state"] == "MISSING"
+    assert memory_checkpoint["checkpoint_sealed"] is False
+    assert memory_checkpoint["controls_codex_host_wording"] is False
     serialized_context = json.dumps(context, sort_keys=True)
     assert "compact-secret" not in serialized_context
     assert "record_json" not in serialized_context
@@ -980,6 +986,9 @@ def test_compact_reentry_is_bounded_distinct_and_fail_closed(
         "RECORDED_WITHOUT_AUTHORITY_RECONSTRUCTION"
     )
     assert postcompact["receipt"]["authority_reconstructed"] is False
+    assert postcompact["receipt"]["project_memory_rehydration"]["state"] == (
+        "MEMORY_REHYDRATION_NOT_APPLICABLE"
+    )
     assert "host_plan_rehydration" not in postcompact["receipt"]
 
     for source in ("compact", "auto_compact"):
@@ -1710,10 +1719,18 @@ def test_native_hooks_claim_and_reuse_one_sealed_codex_host_alias(
         ).fetchone()[0] == 1
 
 
+@pytest.mark.parametrize(
+    "activation_state",
+    [
+        "INSTALLED_RESTART_REQUIRED",
+        "LOCAL_3_0_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED",
+    ],
+)
 def test_post_tool_hook_claims_prepared_exact_task_outside_repository(
     service,
     source_repository: Path,
     tmp_path: Path,
+    activation_state: str,
 ) -> None:
     session_id, governed_host_session_id = _strict_state_travel_session(service)
     repository_root = Path(__file__).resolve().parents[1]
@@ -1746,7 +1763,7 @@ def test_post_tool_hook_claims_prepared_exact_task_outside_repository(
         },
         "archive_sha256": "A" * 64,
         "activation": {
-            "state": "INSTALLED_RESTART_REQUIRED",
+            "state": activation_state,
             "plugin_add": {
                 "pluginId": "evidence-lane-plugin@test-exact-task",
                 "version": plugin_version,
@@ -2528,9 +2545,9 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         ] == 12
         assert prepared_notice["package_change_status"]["skills"]["count"] == 17
         assert prepared_notice["package_change_status"]["catalog"] == {
-            "tools": 87,
+            "tools": 88,
             "read": 27,
-            "write": 60,
+            "write": 61,
             "skills": 17,
             "changed_from_previous": None,
         }

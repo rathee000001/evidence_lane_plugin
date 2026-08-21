@@ -708,7 +708,7 @@ def build_rehearsal(
             stable.get("native_write_tool_count"),
             stable.get("skill_count"),
         )
-        != (87, 27, 60, EXPECTED_SKILL_COUNT)
+        != (88, 27, 61, EXPECTED_SKILL_COUNT)
         or stable.get("codex_apps_allowed") is not False
         or stable.get("generated_namespace_allowed") is not False
         or stable.get("direct_stdio_fallback_allowed") is not False

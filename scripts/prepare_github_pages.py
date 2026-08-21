@@ -18,6 +18,16 @@ PAGES = (
     ("canon", "Canon", "docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md"),
     ("ai-learning", "AI Learning", "docs/AI_LEARNING.md"),
     ("memory", "Memory", "docs/MEMORY.md"),
+    (
+        "project-universe",
+        "Project Universe",
+        "docs/PROJECT_UNIVERSE.md",
+    ),
+    (
+        "pv-storage",
+        "PV Storage",
+        "docs/PROJECT_PV_CONTENT_ADDRESSED_STORAGE.md",
+    ),
     ("host-matrix", "Host Matrix", "docs/HOST_AND_STORAGE_MATRIX.md"),
     ("skills", "Skills", "docs/SKILLS.md"),
     ("mcp", "MCP", "docs/MCP.md"),

@@ -267,6 +267,8 @@ def _normalize_env_uop_execution_budget(
         "ENV/UOP execution requires explicit lane and tool budget maps.",
         status="BLOCKED",
     )
+    raw_lanes = cast(Mapping[Any, Any], raw_lanes)
+    raw_tools = cast(Mapping[Any, Any], raw_tools)
     lanes = [str(item) for item in canonical_lanes]
     require(
         bool(lanes)
@@ -1326,15 +1328,21 @@ def validate_mode_governance_selection(value: dict[str, Any]) -> dict[str, Any]:
                 status="MISMATCH",
             )
             operator_row = cast(dict[str, Any], raw_operator)
-            operator_id = operator_row.get("operator_id")
-            registered = _OPERATORS.get(operator_id)
-            declared_effect = (
-                str(registered["effect"]) if isinstance(registered, dict) else ""
-            )
+            raw_operator_id = operator_row.get("operator_id")
             require(
-                bool(registered)
-                and operator_row.get("family") == registered.get("family")
-                and operator_row.get("chapter") == registered.get("chapter")
+                isinstance(raw_operator_id, int) and not isinstance(raw_operator_id, bool),
+                "ENV_UOP_OPERATOR_ID_INVALID",
+                "A selected ENV/UOP operator requires an integer identifier.",
+                status="MISMATCH",
+            )
+            operator_id = cast(int, raw_operator_id)
+            registered = _OPERATORS.get(operator_id)
+            registered_row = registered if isinstance(registered, dict) else {}
+            declared_effect = str(registered_row.get("effect") or "")
+            require(
+                bool(registered_row)
+                and operator_row.get("family") == registered_row.get("family")
+                and operator_row.get("chapter") == registered_row.get("chapter")
                 and operator_row.get("effect") == declared_effect
                 and operator_row.get("declared_effect_sha256")
                 == sha256_bytes(declared_effect.encode("utf-8")),

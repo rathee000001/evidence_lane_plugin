@@ -95,7 +95,8 @@ def test_progressive_query_labels_candidate_and_accepted_authority(service) -> N
     assert overlay["browser_history_used"] is False
     assert overlay["live_source_used"] is False
     no_hit = service.reader.search("book-faires", "definitely_no_such_evidence_987")
-    assert no_hit["status"] == "EMPTY"
+    assert no_hit["status"] == "PASS"
+    assert no_hit["result_state"] == "EMPTY"
     assert no_hit["results"] == []
     assert no_hit["no_hit_is_valid"] is True
 
@@ -199,7 +200,8 @@ def test_search_uses_immutable_pv_not_live_source_browser_or_scrollback(
 
     result = service.reader.search("book-faires", "LIVE_SOURCE_ONLY_SENTINEL")
 
-    assert result["status"] == "STALE"
+    assert result["status"] == "PASS"
+    assert result["result_state"] == "EMPTY"
     assert result["live_truth_status"] == "DIRTY_WORKING_TREE"
     assert result["retrieval_authority"] == "IMMUTABLE_PV_PACKAGE"
     assert result["results"] == []
