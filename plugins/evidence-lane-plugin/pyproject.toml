@@ -12,7 +12,7 @@ license = "LicenseRef-Proprietary"
 license-files = ["LICENSE.md"]
 authors = [{ name = "Praveen Rathee" }]
 dependencies = [
-  "cryptography==48.0.1",
+  "cryptography==50.0.0",
   "defusedxml==0.7.1",
   "httpx==0.28.1",
   "mcp==1.28.1",
