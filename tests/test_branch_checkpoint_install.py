@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import inspect
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -46,6 +47,57 @@ def test_exact_commit_builder_supports_fresh_package_identity() -> None:
         ]
     )
     assert parsed.package_version == "3.0.0+codex.branch.r249"
+
+
+def test_branch_checkpoint_inventory_accepts_only_exact_codex_command_migration(
+    tmp_path: Path,
+) -> None:
+    module = _load(INSTALLER, "branch_checkpoint_generated_command_inventory")
+    marketplace = tmp_path / "marketplace"
+    installed = tmp_path / "installed"
+    command = marketplace / "commands" / "evi-learning.md"
+    command.parent.mkdir(parents=True)
+    command.write_text(
+        "---\ndescription: Query project learning\n---\n\n"
+        "Use the bounded learning route.\n",
+        encoding="utf-8",
+    )
+    shutil.copytree(marketplace, installed)
+    expected = module._expected_codex_generated_command_skills(marketplace)
+    assert len(expected) == 1
+    for relative, content in expected.items():
+        target = installed / relative
+        target.parent.mkdir(parents=True)
+        target.write_bytes(content)
+
+    package_inventory = module._source_inventory(marketplace)
+    installed_inventory = module._source_inventory(installed)
+    assert package_inventory["manifest_sha256"] == installed_inventory[
+        "manifest_sha256"
+    ]
+    assert installed_inventory[
+        "ignored_codex_generated_migration_artifact_count"
+    ] == 1
+    verified = module._verify_codex_generated_command_skills(
+        installed_cache=installed,
+        marketplace_plugin=marketplace,
+    )
+    assert verified["status"] == "PASS"
+    assert verified["derivable_skill_count"] == 1
+    assert verified["generated_skill_count"] == 1
+    assert verified["host_selected_derivable_subset"] is True
+
+    generated = next(
+        (installed / module.CODEX_GENERATED_MIGRATED_COMMAND_ROOT).rglob(
+            "SKILL.md"
+        )
+    )
+    generated.write_text("tampered\n", encoding="utf-8")
+    with pytest.raises(module.InstallationError, match="exact derivation"):
+        module._verify_codex_generated_command_skills(
+            installed_cache=installed,
+            marketplace_plugin=marketplace,
+        )
 
 
 def _exact_receipt_fixture(module, tmp_path: Path) -> tuple[Path, Path, Path, str]:

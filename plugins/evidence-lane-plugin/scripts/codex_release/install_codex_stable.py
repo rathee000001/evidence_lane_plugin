@@ -39,6 +39,9 @@ LOCAL_TESTING_MARKETPLACE_DISPLAY_NAME = "Local Testing Slot"
 LOCAL_RECOVERY_MARKETPLACE_NAME = "evidence-lane-v300-stable-recovery"
 LOCAL_RECOVERY_MARKETPLACE_DISPLAY_NAME = "Branch Commit Git Recovery"
 LOCAL_RECOVERY_SELECTOR = f"evidence-lane-plugin@{LOCAL_RECOVERY_MARKETPLACE_NAME}"
+CODEX_GENERATED_MIGRATED_COMMAND_ROOT = (
+    ".codex-plugin/migrated-command-skills"
+)
 LOCAL_RECOVERY_REGISTRY_SCHEMA = "evidence-lane.codex-local-v300-recovery-registry.v1"
 BRANCH_CHECKPOINT_INSTALL_SCHEMA = (
     "evidence-lane.codex-branch-checkpoint-recovery-install.v1"
@@ -489,13 +492,23 @@ def _source_inventory(root: Path) -> dict[str, Any]:
     Python bytecode is a runtime cache, not a shipped source member.  Its payload
     embeds the absolute cache root, so two otherwise byte-identical selector
     installations necessarily produce different ``.pyc`` bytes.
+
+    Codex also derives migrated command skills inside its generated plugin cache.
+    Those files are verified separately against the marketplace commands and are
+    not package-source authority.
     """
 
     rows = []
     ignored_python_runtime_artifacts = 0
+    ignored_codex_generated_migration_artifacts = 0
     for path in sorted(row for row in root.rglob("*") if row.is_file()):
         relative = path.relative_to(root).as_posix()
         if relative.startswith("_evidence_lane_rehearsal/"):
+            continue
+        if relative.startswith(
+            f"{CODEX_GENERATED_MIGRATED_COMMAND_ROOT}/"
+        ):
+            ignored_codex_generated_migration_artifacts += 1
             continue
         if "__pycache__" in relative.split("/") or path.suffix.lower() in {
             ".pyc",
@@ -516,6 +529,132 @@ def _source_inventory(root: Path) -> dict[str, Any]:
         "files": rows,
         "ignored_python_runtime_artifact_count": ignored_python_runtime_artifacts,
         "python_runtime_artifacts_are_source_authority": False,
+        "ignored_codex_generated_migration_artifact_count": (
+            ignored_codex_generated_migration_artifacts
+        ),
+        "codex_generated_migrations_are_source_authority": False,
+    }
+
+
+def _expected_codex_generated_command_skills(
+    marketplace_plugin: Path,
+) -> dict[str, bytes]:
+    """Derive the exact command-to-skill files Codex generates on install."""
+
+    expected: dict[str, bytes] = {}
+    commands = marketplace_plugin / "commands"
+    if not commands.is_dir():
+        return expected
+    for command in sorted(commands.glob("*.md"), key=lambda item: item.name):
+        text = command.read_text(encoding="utf-8")
+        match = re.fullmatch(
+            r"---\r?\n(?P<frontmatter>.*?)\r?\n---\r?\n(?P<body>.*)",
+            text,
+            flags=re.DOTALL,
+        )
+        if match is None:
+            raise InstallationError(
+                f"{command.name} has no exact command frontmatter."
+            )
+        description_match = re.search(
+            r"(?m)^description:\s*(?P<description>.+?)\s*$",
+            match.group("frontmatter"),
+        )
+        if description_match is None:
+            raise InstallationError(
+                f"{command.name} has no command description."
+            )
+        description = description_match.group("description").strip()
+        if description.startswith('"'):
+            try:
+                description = str(json.loads(description))
+            except json.JSONDecodeError as exc:
+                raise InstallationError(
+                    f"{command.name} has an invalid quoted description."
+                ) from exc
+        elif description.startswith("'") and description.endswith("'"):
+            description = description[1:-1].replace("''", "'")
+        if not description or "\n" in description or "\r" in description:
+            raise InstallationError(
+                f"{command.name} has an invalid description."
+            )
+        command_name = command.stem
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", command_name):
+            raise InstallationError(
+                f"{command.name} cannot form a migrated skill name."
+            )
+        skill_name = f"source-command-{command_name}"
+        body = match.group("body").lstrip("\r\n").rstrip()
+        generated = (
+            "---\n"
+            f"name: {json.dumps(skill_name, ensure_ascii=False)}\n"
+            f"description: {json.dumps(description, ensure_ascii=False)}\n"
+            "---\n\n"
+            f"# {skill_name}\n\n"
+            "Use this skill when the user asks to run the migrated source command "
+            f"`{command_name}`.\n\n"
+            "## Command Template\n\n"
+            f"{body}\n"
+        ).encode()
+        relative = (
+            f"{CODEX_GENERATED_MIGRATED_COMMAND_ROOT}/"
+            f"{skill_name}/SKILL.md"
+        )
+        expected[relative] = generated
+    return expected
+
+
+def _verify_codex_generated_command_skills(
+    *,
+    installed_cache: Path,
+    marketplace_plugin: Path,
+) -> dict[str, Any]:
+    """Verify that cache-only migrated skills are the exact Codex derivation."""
+
+    marketplace_generated_root = (
+        marketplace_plugin / CODEX_GENERATED_MIGRATED_COMMAND_ROOT
+    )
+    if marketplace_generated_root.exists() and any(
+        path.is_file() for path in marketplace_generated_root.rglob("*")
+    ):
+        raise InstallationError(
+            "The marketplace must not prebuild host-generated command skills."
+        )
+    expected = _expected_codex_generated_command_skills(marketplace_plugin)
+    installed_generated_root = (
+        installed_cache / CODEX_GENERATED_MIGRATED_COMMAND_ROOT
+    )
+    actual_paths = {
+        path.relative_to(installed_cache).as_posix(): path
+        for path in installed_generated_root.rglob("*")
+        if path.is_file()
+    } if installed_generated_root.is_dir() else {}
+    if not set(actual_paths).issubset(expected):
+        raise InstallationError(
+            "The installed cache contains a command skill that is not derivable "
+            "from the packaged commands."
+        )
+    records: list[dict[str, Any]] = []
+    for relative, actual in sorted(actual_paths.items()):
+        expected_bytes = expected[relative]
+        if actual.read_bytes() != expected_bytes:
+            raise InstallationError(
+                "A Codex-generated command skill differs from its exact derivation."
+            )
+        records.append(
+            {
+                "skill_name": Path(relative).parent.name,
+                "bytes": len(expected_bytes),
+                "sha256": hashlib.sha256(expected_bytes).hexdigest().upper(),
+            }
+        )
+    return {
+        "status": "PASS",
+        "source_authority": False,
+        "derivable_skill_count": len(expected),
+        "generated_skill_count": len(records),
+        "generated_skills": records,
+        "host_selected_derivable_subset": True,
     }
 
 
@@ -9683,8 +9822,11 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         )
     primary_inventory = _source_inventory(primary_cache)
     recovery_inventory = _source_inventory(recovery_cache)
-    marketplace_inventory = _source_inventory(
-        recovery_root / "plugins" / PLUGIN_NAME
+    recovery_marketplace_plugin = recovery_root / "plugins" / PLUGIN_NAME
+    marketplace_inventory = _source_inventory(recovery_marketplace_plugin)
+    recovery_cache_generation = _verify_codex_generated_command_skills(
+        installed_cache=recovery_cache,
+        marketplace_plugin=recovery_marketplace_plugin,
     )
     inventory_identities = {
         extracted_inventory["manifest_sha256"],
@@ -9765,6 +9907,7 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
             "plugin_add": plugin_add,
             "cache_root": str(recovery_cache),
             "cache_manifest_sha256": recovery_inventory["manifest_sha256"],
+            "codex_generated_command_skills": recovery_cache_generation,
             "hook_trust": hook_trust,
             "hook_isolation": hook_isolation,
             "runtime_prewarm": runtime_prewarm,
