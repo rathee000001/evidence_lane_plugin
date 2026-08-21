@@ -1,0 +1,30 @@
+{
+  "schema": "evidence-lane.code-mode-ci-execution-receipt.v1",
+  "status": "PASS",
+  "profile": "preview-build",
+  "code_mode_contract": {
+    "formula": "plan -> sandbox build -> test -> hash -> package",
+    "loop": "entry -> preflight -> sandbox -> patch -> test -> exit",
+    "operators": [
+      "CI/CD",
+      "PCM",
+      "MBA"
+    ]
+  },
+  "command_results": [
+    {
+      "args": [
+        "--dir",
+        "plugins/evidence-lane-plugin/remote_adapter",
+        "build"
+      ],
+      "executable": "pnpm",
+      "exit_code": 0,
+      "execution_error": null,
+      "stderr_sha256": "8C87E6C88F8AA719CDEC20BBA96B21A6A64D5678F80517663F3457E265CBE519",
+      "stdout_sha256": "7B32C56B6F7580B2BC190EC7FDC1F65444BA9ED59A71954C5FD255CE8D1B674D"
+    }
+  ],
+  "receipt_path": ".runtime/ci/preview-build-receipt.json",
+  "receipt_sha256": "66DAF788F8E1434E9DD14C7FC929A5FA73EC924D65E9556478160C6B14365CC1"
+}

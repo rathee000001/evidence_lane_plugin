@@ -54,6 +54,9 @@ class PersistenceRoute:
     tunnel_setup_frequency: str = "HOST_CAPABILITY_UNSPECIFIED"
     tunnel_key_retention: str = "HOST_CAPABILITY_UNSPECIFIED"
     tunnel_runtime_lifetime: str = "HOST_CAPABILITY_UNSPECIFIED"
+    host_tool_transport: str = "HOST_CAPABILITY_UNSPECIFIED"
+    native_mcp_available: bool = False
+    tool_gap_route: bool = False
     account_tier: str = "ACCOUNT_TIER_UNSPECIFIED"
     account_tier_affects_routing: bool = False
     api_billing_affects_routing: bool = False
@@ -71,6 +74,9 @@ class _PersistenceHostMatrix(TypedDict):
     tunnel_setup_frequency: str
     tunnel_key_retention: str
     tunnel_runtime_lifetime: str
+    host_tool_transport: str
+    native_mcp_available: bool
+    tool_gap_route: bool
     account_tier: str
     account_tier_affects_routing: bool
     api_billing_affects_routing: bool
@@ -152,27 +158,52 @@ def route_persistence(
     )
 
     api_layer = interaction_profile in {"HEADLESS_API", "DIRECT_CLI_API"}
-    interactive_codex_app = interaction_profile == "CODEX_APP_INTERACTIVE"
+    interactive_codex_surface = interaction_profile in {
+        "CODEX_APP_INTERACTIVE",
+        "CODEX_CLI_NATIVE",
+    }
+    native_capabilities = dict(runtime_classifier.get("native_capabilities") or {})
+    native_mcp_available = native_capabilities.get("native_mcp") is True
     if api_layer:
         tunnel_requirement = "NOT_REQUIRED_FOR_API_LAYER"
         tunnel_setup_frequency = "NONE"
         tunnel_key_retention = "NOT_APPLICABLE"
         tunnel_runtime_lifetime = "NOT_APPLICABLE"
-    elif interactive_codex_app and ephemeral:
-        tunnel_requirement = "REQUIRED_FOR_INTERACTIVE_CODEX_APP_ENVIRONMENT"
-        tunnel_setup_frequency = "ONCE_PER_EPHEMERAL_VM_INSTANCE"
-        tunnel_key_retention = "CURRENT_VM_LIFETIME_ONLY"
-        tunnel_runtime_lifetime = "CURRENT_VM_LIFETIME_ONLY"
-    elif interactive_codex_app:
-        tunnel_requirement = "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
+        host_tool_transport = "API_DIRECT"
+        tool_gap_route = False
+    elif interactive_codex_surface and native_mcp_available:
+        tunnel_requirement = "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
         tunnel_setup_frequency = "NONE"
         tunnel_key_retention = "NOT_APPLICABLE"
         tunnel_runtime_lifetime = "NOT_APPLICABLE"
+        host_tool_transport = "NATIVE_MCP_AVAILABLE"
+        tool_gap_route = False
+    elif interactive_codex_surface:
+        tunnel_requirement = "REQUIRED_FOR_HOST_TOOL_GAP"
+        tunnel_setup_frequency = (
+            "ONCE_PER_EPHEMERAL_VM_INSTANCE"
+            if ephemeral
+            else "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
+        )
+        tunnel_key_retention = (
+            "CURRENT_VM_LIFETIME_ONLY"
+            if ephemeral
+            else "CURRENT_WINDOWS_USER_DPAPI_PROFILE"
+        )
+        tunnel_runtime_lifetime = (
+            "CURRENT_VM_LIFETIME_ONLY"
+            if ephemeral
+            else "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST"
+        )
+        host_tool_transport = "HOST_TOOL_GAP"
+        tool_gap_route = True
     else:
         tunnel_requirement = "NOT_PART_OF_THIS_SURFACE_ROUTE"
         tunnel_setup_frequency = "NONE"
         tunnel_key_retention = "NOT_APPLICABLE"
         tunnel_runtime_lifetime = "NOT_APPLICABLE"
+        host_tool_transport = "NOT_APPLICABLE"
+        tool_gap_route = False
 
     host_matrix: _PersistenceHostMatrix = {
         "interaction_profile": interaction_profile,
@@ -181,6 +212,9 @@ def route_persistence(
         "tunnel_setup_frequency": tunnel_setup_frequency,
         "tunnel_key_retention": tunnel_key_retention,
         "tunnel_runtime_lifetime": tunnel_runtime_lifetime,
+        "host_tool_transport": host_tool_transport,
+        "native_mcp_available": native_mcp_available,
+        "tool_gap_route": tool_gap_route,
         "account_tier": account_tier,
         "account_tier_affects_routing": False,
         "api_billing_affects_routing": False,

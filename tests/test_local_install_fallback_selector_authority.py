@@ -112,33 +112,43 @@ def test_fallback_authority_is_selector_independent_and_tamper_evident() -> None
         )
 
 
-def test_release_and_recovery_routes_treat_selector_as_locator_only() -> None:
-    policy = json.loads(RELEASE_POLICY.read_text(encoding="utf-8"))["fallback"]
-    assert policy["authority_identity"] == "fallback"
-    assert policy["selector_role"] == "OPERATIONAL_LOCATOR_ONLY"
-    assert policy["selector_is_authority"] is False
-    assert policy["generation_neutral_selector"] == "evidence-lane-fallback"
-    assert policy["legacy_generation_alias_active"] is True
-    assert "accepted_manifest_sha256" in policy["authorization_fields"]
-    assert "accepted_package_sha256" in policy["authorization_fields"]
+def test_release_and_recovery_routes_enforce_current_three_slot_authority() -> None:
+    policy = json.loads(RELEASE_POLICY.read_text(encoding="utf-8"))
+    assert "fallback" not in policy
+    assert policy["stable"]["slot_role"] == "main-git-release"
+    assert policy["stable"]["codex_marketplace_slot"] == "evidence-lane-github"
+    assert policy["branch_recovery"]["slot_role"] == "branch-commit-recovery"
+    assert (
+        policy["branch_recovery"]["codex_marketplace_slot"]
+        == "evidence-lane-v300-stable-recovery"
+    )
+    assert policy["local_testing"]["slot_role"] == "mutable-local-testing"
+    assert (
+        policy["local_testing"]["codex_marketplace_slot"]
+        == "evidence-lane-v300-testing-new"
+    )
+    assert policy["live_slot_policy"]["exact_slot_count"] == 3
+    assert policy["live_slot_policy"]["max_enabled_plugin_count"] == 1
+    assert "evidence-lane-pv11-fallback" in policy["live_slot_policy"][
+        "forbidden_obsolete_marketplaces"
+    ]
 
     recovery = GOAL_RECOVERY.read_text(encoding="utf-8")
     update = STABLE_UPDATE.read_text(encoding="utf-8")
     switch = SLOT_SWITCH.read_text(encoding="utf-8")
-    assert "function Get-FallbackReleaseAuthority" in recovery
-    assert "fallback_selector_used_for_authorization = $false" in recovery
-    assert "fallback_authority_sha256" in recovery
-    assert (
-        '$fallback = @($evidencePlugins | Where-Object { $_.pluginId -ceq '
-        "$fallbackSelector })"
-    ) in update
+    assert "function Read-ThreeSlotAuthority" in recovery
+    assert "mutable_local_failure_never_targets_main_git = $true" in recovery
+    assert "pre_3_0_automatic_recovery_allowed = $false" in recovery
+    assert '$script:LocalTestingSelector = "evidence-lane-plugin@$($script:LocalTestingMarketplaceName)"' in update
+    assert '$script:LocalRecoverySelector = "evidence-lane-plugin@evidence-lane-v300-stable-recovery"' in update
     assert (
         'Where-Object { $_.pluginId -eq '
         '"evidence-lane-plugin@evidence-lane-pv11-fallback" }'
     ) not in update
-    assert "function Get-FallbackReleaseAuthority" in switch
-    assert 'fallback_accepted_pv = [string]$registryBody.accepted_pv' in switch
-    assert 'fallback_accepted_pv = "PV11"' not in switch
+    assert '"main-git-release" = "evidence-lane-plugin@evidence-lane-github"' in switch
+    assert '"branch-commit-recovery" = "evidence-lane-plugin@evidence-lane-v300-stable-recovery"' in switch
+    assert '"mutable-local-testing" = "evidence-lane-plugin@evidence-lane-v300-testing-new"' in switch
+    assert "pre_3_0_fallback_allowed = $false" in switch
 
 
 @pytest.mark.parametrize("script", [GOAL_RECOVERY, STABLE_UPDATE, SLOT_SWITCH])

@@ -2,6 +2,7 @@
   "schema": "evidence-lane.skill-mcp-routing.v1",
   "server_identity": "evidence-lane",
   "tool_owners": {
+    "adaptive_delta_exit": "evidence-lane-code-lifecycle",
     "canon_backfire_hil": "evi-canon",
     "canon_bind_edge": "evi-canon",
     "canon_classify": "evi-canon",
@@ -35,6 +36,9 @@
     "lane_status": "evi-source-intake",
     "learning_decide_candidate": "evi-learning",
     "learning_inspect": "evi-learning",
+    "learning_memory_query": "evi-learning",
+    "learning_memory_record_link": "evi-learning",
+    "learning_record_host_memory_import": "evi-learning",
     "learning_retrieve": "evi-learning",
     "learning_revoke": "evi-learning",
     "learning_seal_candidate": "evi-learning",
@@ -53,6 +57,7 @@
     "pv_refresh": "evi-refresh",
     "pv_rollback": "evi-rollback",
     "pv_state_travel_prepare": "evi-state-travel",
+    "pv_state_travel_direct_force_same_worktree": "evi-state-travel",
     "pv_state_travel_resume": "evi-state-travel",
     "pv_status": "evi",
     "pv_summary": "evi",
@@ -470,26 +475,35 @@
           "order": 4,
           "tools": [
             "learning_inspect",
-            "learning_retrieve"
+            "learning_retrieve",
+            "learning_memory_query"
           ],
           "workflow": "learning-authority-read"
         },
         {
           "order": 5,
           "tools": [
+            "learning_memory_record_link",
+            "learning_record_host_memory_import"
+          ],
+          "workflow": "learning-memory-link"
+        },
+        {
+          "order": 6,
+          "tools": [
             "learning_seal_candidate"
           ],
           "workflow": "learning-candidate"
         },
         {
-          "order": 6,
+          "order": 7,
           "tools": [
             "learning_decide_candidate"
           ],
           "workflow": "learning-candidate"
         },
         {
-          "order": 7,
+          "order": 8,
           "tools": [
             "learning_revoke"
           ],
@@ -736,6 +750,13 @@
         {
           "order": 6,
           "tools": [
+            "pv_state_travel_direct_force_same_worktree"
+          ],
+          "workflow": "direct-force-same-worktree-state-travel"
+        },
+        {
+          "order": 7,
+          "tools": [
             "pv_state_travel_resume"
           ],
           "workflow": "resume-state-travel"
@@ -845,33 +866,40 @@
         {
           "order": 13,
           "tools": [
-            "pv_task_transition"
+            "adaptive_delta_exit"
           ],
           "workflow": "task-execution"
         },
         {
           "order": 14,
           "tools": [
-            "task_complete_and_refresh"
+            "pv_task_transition"
           ],
           "workflow": "task-execution"
         },
         {
           "order": 15,
           "tools": [
+            "task_complete_and_refresh"
+          ],
+          "workflow": "task-execution"
+        },
+        {
+          "order": 16,
+          "tools": [
             "git_sync_selected"
           ],
           "workflow": "governed-git-delivery"
         },
         {
-          "order": 16,
+          "order": 17,
           "tools": [
             "remote_git_prepare_push"
           ],
           "workflow": "governed-git-delivery"
         },
         {
-          "order": 17,
+          "order": 18,
           "tools": [
             "remote_git_execute_push"
           ],
@@ -882,6 +910,10 @@
     }
   },
   "low_level_tools": {
+    "adaptive_delta_exit": {
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "reached_via": "task-execution"
+    },
     "git_sync_selected": {
       "owner_skill": "evidence-lane-code-lifecycle",
       "reached_via": "governed-git-delivery"
@@ -968,7 +1000,17 @@
     }
   },
   "catalog_contract": {
-    "tool_count": 83,
+    "conformance_release_gate": {
+      "path": "references/public-tool-conformance-release-gate.v1.json",
+      "required_before": [
+        "COMMIT",
+        "INSTALL",
+        "CI",
+        "HIL"
+      ],
+      "failure_behavior": "CONFORMANCE_GATE_FAIL_CLOSED"
+    },
+    "tool_count": 88,
     "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
     "host_display_namespace_is_authority": false,
     "installed_validation": "REBUILD_AND_COMPARE_AGAINST_THE_INSTALLED_NATIVE_CATALOG_AT_RELEASE_BOUNDARY"

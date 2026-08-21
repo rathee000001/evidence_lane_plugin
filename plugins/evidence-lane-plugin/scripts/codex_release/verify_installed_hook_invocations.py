@@ -38,8 +38,21 @@ from evidence_lane_plugin.installed_hook_receipts import (
 from evidence_lane_plugin.redaction import redact
 
 PROBE_SCHEMA = "evidence-lane.codex-installed-hook-invocation-probe.v1"
+PROGRESSIVE_PROBE_SCHEMA = (
+    "evidence-lane.codex-progressive-installed-hook-battle-test.v1"
+)
 _REQUEST_TIMEOUT_SECONDS = 45.0
 _EVENT_SETTLE_SECONDS = 3.0
+_CANONICAL_TO_HOST = {
+    "SessionStart": "sessionStart",
+    "UserPromptSubmit": "userPromptSubmit",
+    "PreToolUse": "preToolUse",
+    "PostToolUse": "postToolUse",
+    "PreCompact": "preCompact",
+    "PostCompact": "postCompact",
+    "Stop": "stop",
+    "SessionEnd": "sessionEnd",
+}
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -321,6 +334,7 @@ class _AppServerClient:
         params: dict[str, Any],
         *,
         timeout_seconds: float = _REQUEST_TIMEOUT_SECONDS,
+        allow_error: bool = False,
     ) -> dict[str, Any]:
         self.send({"method": method, "id": request_id, "params": params})
         deadline = time.monotonic() + timeout_seconds
@@ -331,7 +345,7 @@ class _AppServerClient:
             value = self._next_message(deadline)
             response_id = value.get("id")
             if response_id == request_id:
-                if value.get("error"):
+                if value.get("error") and not allow_error:
                     raise RuntimeError(f"CODEX_REQUEST_FAILED:{method}")
                 return value
             if isinstance(response_id, int):
@@ -404,6 +418,297 @@ def _thread_id(reply: dict[str, Any]) -> str:
     if not value:
         raise RuntimeError("THREAD_START_ID_REQUIRED")
     return value
+
+
+def _workspace_hook_rows(
+    reply: dict[str, Any],
+    *,
+    plugin_selector: str,
+    workspace: Path,
+) -> dict[str, dict[str, Any]]:
+    """Return one clean trusted eight-hook inventory keyed by host event."""
+
+    result = reply.get("result")
+    data = result.get("data") if isinstance(result, dict) else None
+    if not isinstance(data, list):
+        raise TypeError("HOOKS_LIST_DATA_REQUIRED")
+    expected_workspace = os.path.normcase(str(workspace.resolve()))
+    matches = [
+        row
+        for row in data
+        if isinstance(row, dict)
+        and os.path.normcase(str(Path(str(row.get("cwd") or "")).resolve()))
+        == expected_workspace
+    ]
+    if len(matches) != 1:
+        raise RuntimeError("ONE_HOOK_WORKSPACE_REQUIRED")
+    entry = matches[0]
+    if entry.get("errors") or entry.get("warnings"):
+        raise RuntimeError("INSTALLED_HOOK_DIAGNOSTICS_PRESENT")
+    rows = [
+        dict(row)
+        for row in entry.get("hooks") or []
+        if isinstance(row, dict) and row.get("pluginId") == plugin_selector
+    ]
+    by_host = {str(row.get("eventName") or ""): row for row in rows}
+    if set(by_host) != set(_CANONICAL_TO_HOST.values()) or len(rows) != 8:
+        raise RuntimeError("INSTALLED_HOOK_EVENT_INVENTORY_MISMATCH")
+    for host_event, row in by_host.items():
+        if (
+            row.get("source") != "plugin"
+            or row.get("isManaged") is not False
+            or row.get("trustStatus") != "trusted"
+            or row.get("handlerType") != "command"
+            or not isinstance(row.get("enabled"), bool)
+            or not str(row.get("key") or "").startswith(f"{plugin_selector}:")
+            or not str(row.get("currentHash") or "").startswith("sha256:")
+            or not str(row.get("sourcePath") or "")
+        ):
+            raise RuntimeError(f"INSTALLED_HOOK_AUTHORITY_MISMATCH:{host_event}")
+    return by_host
+
+
+def _config_user_version(
+    client: _AppServerClient,
+    *,
+    codex_home: Path,
+    request_id: int,
+) -> str:
+    reply = client.request(
+        request_id,
+        "config/read",
+        {"cwd": None, "includeLayers": True},
+    )
+    result = reply.get("result")
+    layers = result.get("layers") if isinstance(result, dict) else None
+    config_path = codex_home.resolve() / "config.toml"
+    expected = os.path.normcase(str(config_path))
+    versions = []
+    for layer in layers or []:
+        if not isinstance(layer, dict):
+            continue
+        name = layer.get("name")
+        if (
+            isinstance(name, dict)
+            and name.get("type") == "user"
+            and os.path.normcase(str(Path(str(name.get("file") or "")).resolve()))
+            == expected
+        ):
+            versions.append(str(layer.get("version") or ""))
+    if len(versions) != 1 or not versions[0].startswith("sha256:"):
+        raise RuntimeError("ONE_WRITABLE_USER_CONFIG_VERSION_REQUIRED")
+    return versions[0]
+
+
+def _set_progressive_hook_state(
+    *,
+    executable: Path,
+    codex_home: Path,
+    data_root: Path,
+    workspace: Path,
+    plugin_selector: str,
+    event_name: str,
+    enabled: bool,
+) -> dict[str, Any]:
+    """CAS-write one trusted hook state and prove unrelated states unchanged."""
+
+    host_event = _CANONICAL_TO_HOST[event_name]
+    config_path = codex_home.resolve() / "config.toml"
+    if not config_path.is_file():
+        raise RuntimeError("CODEX_USER_CONFIG_REQUIRED")
+    config_before = hashlib.sha256(config_path.read_bytes()).hexdigest().upper()
+    with _LoopbackResponsesServer() as mock:
+        client = _AppServerClient(
+            executable=executable,
+            codex_home=codex_home,
+            data_root=data_root,
+            base_url=mock.base_url,
+        )
+        try:
+            client.request(
+                24200,
+                "initialize",
+                {
+                    "clientInfo": {
+                        "name": "evidence_lane_progressive_hook_state",
+                        "title": "Evidence Lane Progressive Hook State",
+                        "version": "1",
+                    },
+                    "capabilities": {"experimentalApi": True},
+                },
+            )
+            client.send({"method": "initialized", "params": {}})
+            before_reply = client.request(
+                24201,
+                "hooks/list",
+                {"cwds": [str(workspace)]},
+            )
+            before = _workspace_hook_rows(
+                before_reply,
+                plugin_selector=plugin_selector,
+                workspace=workspace,
+            )
+            target = before[host_event]
+            states_before = {
+                name: bool(row["enabled"]) for name, row in before.items()
+            }
+            mutation_required = states_before[host_event] is not enabled
+            config_version = None
+            if mutation_required:
+                version = _config_user_version(
+                    client,
+                    codex_home=codex_home,
+                    request_id=24202,
+                )
+                if hashlib.sha256(config_path.read_bytes()).hexdigest().upper() != config_before:
+                    raise RuntimeError("CODEX_CONFIG_BASELINE_DRIFTED")
+                write = client.request(
+                    24203,
+                    "config/batchWrite",
+                    {
+                        "edits": [
+                            {
+                                "keyPath": "hooks.state",
+                                "value": {
+                                    str(target["key"]): {
+                                        "trusted_hash": str(target["currentHash"]),
+                                        "enabled": enabled,
+                                    }
+                                },
+                                "mergeStrategy": "upsert",
+                            }
+                        ],
+                        "filePath": None,
+                        "expectedVersion": version,
+                        "reloadUserConfig": True,
+                    },
+                    allow_error=True,
+                )
+                if write.get("error"):
+                    raise RuntimeError("CODEX_CONFIG_BATCH_WRITE_FAILED")
+                write_result = write.get("result")
+                if not isinstance(write_result, dict) or write_result.get("status") != "ok":
+                    raise RuntimeError("CODEX_CONFIG_BATCH_WRITE_UNSEALED")
+                config_version = str(write_result.get("version") or "")
+            after_reply = client.request(
+                24204,
+                "hooks/list",
+                {"cwds": [str(workspace)]},
+            )
+            after = _workspace_hook_rows(
+                after_reply,
+                plugin_selector=plugin_selector,
+                workspace=workspace,
+            )
+            states_after = {name: bool(row["enabled"]) for name, row in after.items()}
+            if states_after[host_event] is not enabled:
+                raise RuntimeError("PROGRESSIVE_HOOK_STATE_NOT_PERSISTED")
+            if any(
+                name != host_event and states_after[name] != state
+                for name, state in states_before.items()
+            ):
+                raise RuntimeError("UNRELATED_HOOK_STATE_MUTATED")
+            if any(
+                after[name].get("key") != row.get("key")
+                or after[name].get("currentHash") != row.get("currentHash")
+                or after[name].get("trustStatus") != "trusted"
+                for name, row in before.items()
+            ):
+                raise RuntimeError("INSTALLED_HOOK_IDENTITY_DRIFTED")
+            config_after = hashlib.sha256(config_path.read_bytes()).hexdigest().upper()
+            body: dict[str, Any] = {
+                "schema": "evidence-lane.codex-progressive-hook-state.v1",
+                "status": "PASS",
+                "plugin_selector": plugin_selector,
+                "event_name": event_name,
+                "host_event_name": host_event,
+                "enabled_before": states_before[host_event],
+                "enabled_after": states_after[host_event],
+                "mutation_required": mutation_required,
+                "supported_codex_api": ["hooks/list", "config/batchWrite"],
+                "config_version_after": config_version,
+                "config_sha256_before": config_before,
+                "config_sha256_after": config_after,
+                "unrelated_hook_state_mutated": False,
+                "hook_key_sha256": hashlib.sha256(
+                    str(target["key"]).encode("utf-8")
+                ).hexdigest().upper(),
+                "current_hash": str(target["currentHash"]),
+                "raw_config_or_hook_path_included": False,
+            }
+            body["receipt_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()
+            return body
+        finally:
+            client.close()
+
+
+def _progressive_probe(
+    *,
+    executable: Path,
+    codex_home: Path,
+    data_root: Path,
+    workspace: Path,
+    plugin_selector: str,
+    event_name: str,
+) -> dict[str, Any]:
+    enable = _set_progressive_hook_state(
+        executable=executable,
+        codex_home=codex_home,
+        data_root=data_root,
+        workspace=workspace,
+        plugin_selector=plugin_selector,
+        event_name=event_name,
+        enabled=True,
+    )
+    probe: dict[str, Any]
+    fallback = None
+    try:
+        probe = _probe(
+            executable=executable,
+            codex_home=codex_home,
+            data_root=data_root,
+            workspace=workspace,
+            plugin_selector=plugin_selector,
+            required_events=(event_name,),
+            isolated_codex_home=False,
+        )
+    except (InstalledHookReceiptError, OSError, RuntimeError, ValueError) as exc:
+        probe = {
+            "schema": PROBE_SCHEMA,
+            "status": "FAIL_CLOSED",
+            "code": str(exc),
+            "raw_error_details_included": False,
+        }
+    if probe.get("status") != "PASS":
+        fallback = _set_progressive_hook_state(
+            executable=executable,
+            codex_home=codex_home,
+            data_root=data_root,
+            workspace=workspace,
+            plugin_selector=plugin_selector,
+            event_name=event_name,
+            enabled=False,
+        )
+    body: dict[str, Any] = {
+        "schema": PROGRESSIVE_PROBE_SCHEMA,
+        "status": "PASS" if probe.get("status") == "PASS" else "FAIL_CLOSED",
+        "plugin_selector": plugin_selector,
+        "event_name": event_name,
+        "enable_receipt_sha256": enable["receipt_sha256"],
+        "invocation_probe_receipt_sha256": probe.get("probe_receipt_sha256"),
+        "invocation_status": probe.get("status"),
+        "kept_enabled_after_pass": probe.get("status") == "PASS",
+        "disabled_only_failing_hook": fallback is not None,
+        "fallback_receipt_sha256": (
+            fallback.get("receipt_sha256") if fallback is not None else None
+        ),
+        "unrelated_hook_state_mutated": False,
+        "remote_model_or_service_called": False,
+        "raw_hook_output_included": False,
+        "probe": probe,
+    }
+    body["receipt_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()
+    return body
 
 
 def _sanitized_hook_notification_summary(
@@ -496,6 +801,8 @@ def _probe(
     data_root: Path,
     workspace: Path,
     plugin_selector: str,
+    required_events: tuple[str, ...] | None = None,
+    isolated_codex_home: bool = True,
 ) -> dict[str, Any]:
     with _LoopbackResponsesServer() as mock:
         client = _AppServerClient(
@@ -527,6 +834,7 @@ def _probe(
                 hooks_reply,
                 plugin_selector=plugin_selector,
                 workspace=workspace,
+                required_events=required_events,
             )
             thread_reply = client.request(
                 17402,
@@ -611,7 +919,7 @@ def _probe(
                     "schema": PROBE_SCHEMA,
                     "status": "FAIL_CLOSED",
                     "code": str(exc),
-                    "isolated_codex_home": True,
+                    "isolated_codex_home": isolated_codex_home,
                     "isolated_evidence_lane_data_root": True,
                     "loopback_only_responses_api": True,
                     "windows_process_window_mode": "CREATE_NO_WINDOW",
@@ -638,7 +946,7 @@ def _probe(
             body: dict[str, Any] = {
                 "schema": PROBE_SCHEMA,
                 "status": invocation["status"],
-                "isolated_codex_home": True,
+                "isolated_codex_home": isolated_codex_home,
                 "isolated_evidence_lane_data_root": True,
                 "loopback_only_responses_api": True,
                 "dummy_api_key_only": True,
@@ -670,6 +978,37 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--data-root", type=Path, required=True)
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--plugin-selector", required=True)
+    parser.add_argument(
+        "--event",
+        action="append",
+        choices=(
+            "SessionStart",
+            "UserPromptSubmit",
+            "PreToolUse",
+            "PostToolUse",
+            "PreCompact",
+            "PostCompact",
+            "Stop",
+            "SessionEnd",
+        ),
+        help=(
+            "Require and prove only this canonical event. Repeat for a bounded "
+            "subset; omit to retain the exact eight-hook release boundary."
+        ),
+    )
+    parser.add_argument(
+        "--live-codex-home",
+        action="store_true",
+        help="Record that the supplied Codex home is the active local host.",
+    )
+    parser.add_argument(
+        "--progressive",
+        action="store_true",
+        help=(
+            "Enable and prove exactly one --event on the live Codex home; keep it "
+            "enabled on PASS or disable only it on failure."
+        ),
+    )
     return parser
 
 
@@ -684,13 +1023,27 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("CODEX_EXECUTABLE_FILE_REQUIRED")
         if not all(path.is_dir() for path in (codex_home, data_root, workspace)):
             raise ValueError("ISOLATED_DIRECTORY_REQUIRED")
-        result = _probe(
-            executable=executable,
-            codex_home=codex_home,
-            data_root=data_root,
-            workspace=workspace,
-            plugin_selector=str(args.plugin_selector),
-        )
+        if args.progressive:
+            if not args.live_codex_home or not args.event or len(args.event) != 1:
+                raise ValueError("PROGRESSIVE_REQUIRES_ONE_LIVE_EVENT")
+            result = _progressive_probe(
+                executable=executable,
+                codex_home=codex_home,
+                data_root=data_root,
+                workspace=workspace,
+                plugin_selector=str(args.plugin_selector),
+                event_name=str(args.event[0]),
+            )
+        else:
+            result = _probe(
+                executable=executable,
+                codex_home=codex_home,
+                data_root=data_root,
+                workspace=workspace,
+                plugin_selector=str(args.plugin_selector),
+                required_events=(tuple(args.event) if args.event else None),
+                isolated_codex_home=not bool(args.live_codex_home),
+            )
     except (InstalledHookReceiptError, OSError, RuntimeError, ValueError) as exc:
         result = {
             "schema": PROBE_SCHEMA,

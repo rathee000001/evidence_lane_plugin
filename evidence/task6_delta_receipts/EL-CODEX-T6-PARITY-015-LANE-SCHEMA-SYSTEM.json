@@ -1,0 +1,85 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_VERSIONED_FIRST_CLASS_LANE_SCHEMA_SYSTEM",
+  "recorded_at": "2026-08-15T15:28:34Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-015-LANE-SCHEMA-SYSTEM",
+  "task_contract_sha256": "6F4F693BE6AF4365DEE791CF3C5A130635719BC2DA9F1F9AD0FED1570F4BB173",
+  "schema_authority": {
+    "registry_schema": "evidence-lane.lane-schema-registry.v1",
+    "registry_version": 1,
+    "registry_path": "plugins/evidence-lane-plugin/schemas/lane-schema-registry.v001.json",
+    "registry_sha256": "FCFC72A05E1AD759615FB83F77EE58CF7AD82F21FE985E930D3AFA451FB30EF1",
+    "canonical_lane_count": 18,
+    "base_schema_id": "evidence-lane.universal-lane.v2",
+    "entity_table_template_id": "GENERIC_ENTITY_RECORD_V1",
+    "extension_model": "PER_LANE_NAMESPACED_ADDITIVE_VERSIONING",
+    "schema_assets_are_detached_on_read": true,
+    "schema_contracts_are_hash_bound": true
+  },
+  "runtime_enforcement": {
+    "all_lane_builders_checked_against_sqlite_master_bytes": true,
+    "all_lane_builder_projection_count": 18,
+    "missing_asset_table_fails_closed": true,
+    "lane_meta_binds_schema_id_version_registry_contract_projection_namespace_and_migration_head": true,
+    "tools_json_projects_schema_asset": true,
+    "lane_manifest_projects_schema_contract": true,
+    "bundle_validation_preserves_four_file_contract": true,
+    "code_lane_existing_mixed_builder_behavior_preserved": true
+  },
+  "byte_identities": {
+    "lane_schema_registry_sha256": "FCFC72A05E1AD759615FB83F77EE58CF7AD82F21FE985E930D3AFA451FB30EF1",
+    "lanes_source_sha256": "2890376A4C89E87A231F89C24EE288F4400F442ACF773093C13061735295A4FF",
+    "lane_engine_source_sha256": "A58D53D976052FE746BAC8F41C33FF1FB152F7A1C39A9863762602BEF98D2069",
+    "lane_schema_tests_sha256": "A29E00891E9B51BF56E64193B60BFF4998ACB861FE5BA8A65509E9513E533D6E"
+  },
+  "verification": [
+    {
+      "selector": "Versioned schema assets and exact builder byte parity",
+      "status": "PASS",
+      "result": "5 passed in 3.69s"
+    },
+    {
+      "selector": "Universal lane, four-file contract, public dummy package, reader-query, and custom-schema regression surface",
+      "status": "PASS",
+      "result": "32 passed in 76.22s"
+    },
+    {
+      "selector": "Direct all-18 in-memory schema projection verification",
+      "status": "PASS",
+      "result": "PASS lanes=18 registry=FCFC72A05E1AD759615FB83F77EE58CF7AD82F21FE985E930D3AFA451FB30EF1"
+    },
+    {
+      "selector": "Python lint, compile, registry JSON, and whitespace validation",
+      "status": "PASS",
+      "result": "Ruff, py_compile, json.tool, and git diff --check passed"
+    }
+  ],
+  "negative_cases": [
+    "A missing declared lane table produces MISMATCH and cannot pass builder byte parity.",
+    "A registry with a missing, reordered, duplicated, or unknown canonical lane fails during import validation.",
+    "A schema asset whose table list, FTS table, mutation policy, builder kind, migration ledger, or projection hash disagrees with the canonical lane fails closed.",
+    "The additive tools.json schema projection does not alter the established four-file tool-identity digest boundary.",
+    "Row212 performs no live schema migration, candidate creation, HIL, pointer movement, Git, installation, helper, or tunnel operation."
+  ],
+  "negative_side_effects": {
+    "live_project_lane_sqlite_mutated": false,
+    "live_plan_schema_mutated_outside_checkpoint": false,
+    "candidate_created_or_accepted": false,
+    "hil_invoked": false,
+    "pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "plugin_install_or_activation_changed": false,
+    "installer_or_goal_helper_invoked": false,
+    "tunnel_invoked": false,
+    "subagent_started": false
+  },
+  "limitations": [
+    "Row212 binds the existing lane schema bytes as versioned first-class assets; executing governed additive schema changes belongs to Row213.",
+    "Lane artifact packaging, query guidance, parallel and cross-lane/project query routes, SDK handlers, and public service routes remain queued in their own successor rows.",
+    "The reusable Goal-recovery supervisor, its mutable exact-task bindings, the multiplexed tunnel, and the separate installer helper remain outside this lane-schema Delta."
+  ],
+  "next_boundary": "Close Row212 through its exact per-Delta checkpoint. Row213 EL-CODEX-T6-PARITY-016-GOVERNED-LANE-SCHEMA-EVOLUTION owns additive migration execution, extension namespaces, immutable migration receipts, and schema evolution law."
+}

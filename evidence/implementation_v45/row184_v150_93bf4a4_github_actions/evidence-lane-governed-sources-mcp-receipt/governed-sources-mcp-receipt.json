@@ -1,0 +1,40 @@
+{
+  "schema": "evidence-lane.code-mode-ci-execution-receipt.v1",
+  "status": "PASS",
+  "profile": "governed-sources-mcp",
+  "code_mode_contract": {
+    "formula": "plan -> sandbox build -> test -> hash -> package",
+    "loop": "entry -> preflight -> sandbox -> patch -> test -> exit",
+    "operators": [
+      "CI/CD",
+      "PCM",
+      "MBA"
+    ]
+  },
+  "command_results": [
+    {
+      "args": [
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_ci_workflow_adapters.py",
+        "tests/test_custom_source_schema.py",
+        "tests/test_github_automation_governance.py",
+        "tests/test_mcp_plugin.py",
+        "tests/test_source_authority_registry.py",
+        "tests/test_source_git_history.py",
+        "tests/test_source_graph.py",
+        "tests/test_source_identity.py",
+        "tests/test_source_policy.py",
+        "tests/test_source_sqlite.py"
+      ],
+      "executable": "python",
+      "exit_code": 0,
+      "execution_error": null,
+      "stderr_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "stdout_sha256": "2576A01AE3D322B3D9FA9AE4C2176330CFC3D96142B0A736C87D23006CF0B57F"
+    }
+  ],
+  "receipt_path": ".runtime/ci/governed-sources-mcp-receipt.json",
+  "receipt_sha256": "4CEEE543992B47DED492632A0DAA8D6E190048F34011ABEF39B3B8C71D4713E0"
+}

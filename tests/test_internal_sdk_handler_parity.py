@@ -4,9 +4,13 @@ import time
 from pathlib import Path
 from typing import Any
 
+import evidence_lane_plugin.internal_sdk as internal_sdk_module
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
-from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
+from evidence_lane_plugin.hashing import (
+    canonical_json_bytes,
+    sha256_bytes,
+)
 from evidence_lane_plugin.internal_sdk import (
     SDK_EXTERNAL_PROVIDER_OPERATIONS,
     SDK_NARROWED_OPERATION_CLAIMS,
@@ -48,8 +52,10 @@ def _binding() -> SDKBinding:
                 "env_uop_operator_runtime:classify_mode",
                 "plan_delta_tasks:transition_task",
                 "source_lane_retrieval:source_intake",
-                "storage_connectors:select",
-                "hil_candidate_pointer:record_decision",
+            "storage_connectors:select",
+            "project_memory:record_link",
+            "agent_learning:record_host_memory_import",
+            "hil_candidate_pointer:record_decision",
                 "hil_candidate_pointer:fuse",
                 "hil_candidate_pointer:rollback",
             ],
@@ -150,8 +156,8 @@ def test_production_local_adapter_classifies_every_declared_sdk_operation(
     )
 
     assert parity["status"] == "PASS"
-    assert parity["declared_operation_count"] == 60
-    assert parity["registered_local_handler_count"] == 53
+    assert parity["declared_operation_count"] == 75
+    assert parity["registered_local_handler_count"] == 68
     assert parity["external_provider_operation_count"] == 7
     assert parity["narrowed_operation_claim_count"] == 5
     assert parity["unclassified_operation_count"] == 0
@@ -170,6 +176,186 @@ def test_production_local_adapter_classifies_every_declared_sdk_operation(
         for operation, provider in module["external_provider_operations"].items()
     }
     assert external == SDK_EXTERNAL_PROVIDER_OPERATIONS
+
+
+def test_learning_memory_public_adapter_routes_execute_with_bounded_results(
+    tmp_path: Path,
+) -> None:
+    from .test_project_memory import _root as create_memory_root
+    from .test_project_memory import _sdk_binding as create_memory_binding
+
+    service = _Service(tmp_path)
+    _project_root, accepted_manifest = create_memory_root(tmp_path)
+    binding_values = create_memory_binding(accepted_manifest).as_dict()
+    binding_values["write_scope"] = [
+        "project_memory:bootstrap",
+        "project_memory:record_link",
+        "agent_learning:record_host_memory_import",
+    ]
+    binding = SDKBinding.from_dict(binding_values)
+    adapter = build_local_service_adapter(
+        service, runtime_binding=binding.as_dict()
+    )
+    adapter.invoke(
+        "project_memory",
+        "bootstrap",
+        binding,
+        {},
+        _context("sdk-memory-bootstrap-001"),
+    )
+    source = {
+        "sector": "CHAT_LINEAGE",
+        "locator_kind": "TURN",
+        "locator_value": "chat-lineage://task/sdk-handler/turn/1",
+        "revision_sha256": _hash("sdk-memory-source"),
+        "label": "Bounded SDK memory source",
+        "search_terms": ["sdk", "memory", "source"],
+    }
+    target = {
+        "sector": "PLAN",
+        "locator_kind": "TASK",
+        "locator_value": "plan://task/EL-CODEX-SDK-HANDLER-PARITY",
+        "revision_sha256": _hash("sdk-memory-target"),
+        "label": "Bounded SDK Plan target",
+        "search_terms": ["sdk", "memory", "plan"],
+    }
+
+    linked = adapter.invoke(
+        "project_memory",
+        "record_link",
+        binding,
+        {
+            "source": source,
+            "target": target,
+            "edge_type": "MAPS_TO",
+            "evidence_sha256": _hash("sdk-memory-evidence"),
+            "recorded_at": "2026-08-16T10:00:00Z",
+        },
+        _context("sdk-memory-link-001"),
+    )
+    queried = adapter.invoke(
+        "project_memory",
+        "query",
+        binding,
+        {
+            "query": "bounded sdk memory",
+            "as_of": "2026-08-16T10:01:00Z",
+            "sectors": ["CHAT_LINEAGE", "PLAN"],
+            "limit": 4,
+        },
+        _context("sdk-memory-query-001"),
+    )
+    imported = adapter.invoke(
+        "agent_learning",
+        "record_host_memory_import",
+        binding,
+        {
+            "source_kind": "CODEX_LOCAL_MEMORY",
+            "source_locator": "codex-local-memory://memory/sdk-handler-1",
+            "source_record_sha256": _hash("sdk-host-memory-record"),
+            "source_context_id": "sdk-handler-context-1",
+            "observed_at": "2026-08-16T09:58:00Z",
+            "imported_at": "2026-08-16T10:02:00Z",
+            "imported_by": "sdk-handler-test",
+            "purpose": "Prove explicit bounded host-memory routing through SDK.",
+            "task_id": binding.task_id,
+            "delta_id": "EL-CODEX-SDK-HANDLER-MEMORY-001",
+            "pv_ref": binding.accepted_pv,
+        },
+        _context("sdk-host-memory-import-001"),
+    )
+
+    assert linked["source_sector"] == "CHAT_LINEAGE"
+    assert linked["target_sector"] == "PLAN"
+    assert queried["full_memory_loaded_into_model_context"] is False
+    assert queried["raw_database_or_markdown_returned"] is False
+    assert queried["receipt"]["hit_count"] == 2
+    assert imported["raw_host_memory_stored"] is False
+    assert imported["candidate_created"] is False
+    assert imported["learning_hil_invoked"] is False
+    assert imported["project_truth_pointer_moved"] is False
+
+
+def test_learning_and_memory_bootstrap_handlers_derive_live_binding_fields(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = _Service(tmp_path)
+    base = _binding().as_dict()
+    base["write_scope"] = [
+        "agent_learning:bootstrap_verified_history",
+        "project_memory:bootstrap",
+    ]
+    binding = SDKBinding.from_dict(base)
+    captured: dict[str, dict[str, Any]] = {}
+
+    def learning_bootstrap(project_root: Path, **payload: Any) -> dict[str, Any]:
+        captured["learning"] = {"project_root": str(project_root), **payload}
+        return {"status": "PASS"}
+
+    def memory_bootstrap(project_root: Path, **payload: Any) -> dict[str, Any]:
+        captured["memory"] = {"project_root": str(project_root), **payload}
+        return {"status": "PASS"}
+
+    monkeypatch.setattr(
+        internal_sdk_module,
+        "bootstrap_verified_learning_history",
+        learning_bootstrap,
+    )
+    monkeypatch.setattr(
+        internal_sdk_module,
+        "bootstrap_project_memory",
+        memory_bootstrap,
+    )
+    monkeypatch.setattr(
+        internal_sdk_module,
+        "utc_now",
+        lambda: "2026-08-21T02:30:00Z",
+    )
+    adapter = build_local_service_adapter(
+        service, runtime_binding=binding.as_dict()
+    )
+
+    adapter.invoke(
+        "agent_learning",
+        "bootstrap_verified_history",
+        binding,
+        {"max_candidates": 64},
+        _context("learning-bootstrap-binding"),
+    )
+    adapter.invoke(
+        "project_memory",
+        "bootstrap",
+        binding,
+        {},
+        _context("memory-bootstrap-binding"),
+    )
+
+    assert captured["learning"] == {
+        "project_root": str(service.store.project_root(binding.project_id)),
+        "project_id": binding.project_id,
+        "accepted_pv": binding.accepted_pv,
+        "max_candidates": 64,
+    }
+    assert captured["memory"] == {
+        "project_root": str(service.store.project_root(binding.project_id)),
+        "project_id": binding.project_id,
+        "accepted_pv": binding.accepted_pv,
+        "pointer_generation": binding.pointer_generation,
+        "accepted_manifest_sha256": binding.accepted_manifest_sha256,
+        "active_plan_task_id": binding.task_id,
+        "lineage_head_sha256": binding.lineage_head_sha256,
+        "recorded_at": "2026-08-21T02:30:00Z",
+    }
+
+    with pytest.raises(EvidenceLaneError) as override:
+        adapter.invoke(
+            "project_memory",
+            "bootstrap",
+            binding,
+            {"accepted_pv": "PV11"},
+            _context("memory-bootstrap-override"),
+        )
+    assert override.value.code == "SDK_MEMORY_BOOTSTRAP_PAYLOAD_INVALID"
 
 
 def test_new_local_handlers_bind_exact_project_session_task_and_effects(

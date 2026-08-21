@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .git_adapter import identity_json, inspect_repository
+from .project_pv_storage import validate_project_pv_archive
 from .store import ProjectStore
 
 
@@ -18,9 +19,20 @@ def evaluate_freshness(
     """Return an explicit current-source state without changing either source."""
 
     package_root = Path(package).resolve()
-    bound = json.loads(
-        (package_root / "project_identity.json").read_text(encoding="utf-8")
-    )["repository"]
+    if package_root.is_file() and package_root.suffix.lower() == ".zip":
+        archive = validate_project_pv_archive(package_root)
+        identity = archive.get("project_identity")
+        bound = identity.get("repository") if isinstance(identity, dict) else None
+        if not isinstance(bound, dict):
+            return {
+                "state": "UNVERIFIED",
+                "reason": "The accepted project archive has no repository identity.",
+                "accepted_archive_sha256": archive.get("archive_sha256"),
+            }
+    else:
+        bound = json.loads(
+            (package_root / "project_identity.json").read_text(encoding="utf-8")
+        )["repository"]
     try:
         config = store.config(project_id)
         live_identity = inspect_repository(config.repository_path)
@@ -71,13 +83,17 @@ def evaluate_freshness(
 
 
 def result_status(base_status: str, freshness: dict[str, Any]) -> str:
-    """Downgrade model-visible read status when live truth is not exact."""
+    """Keep operation outcome separate from accepted-authority freshness.
 
-    state = freshness.get("state")
-    if state == "FRESH":
+    A stale or dirty accepted PV does not mean that the bounded read failed.  The
+    caller's operation status therefore remains authoritative while the nested
+    ``freshness.state`` reports comparison drift.  Repository-identity mismatch
+    remains a hard authority result rather than being force-green.
+    """
+
+    if base_status not in {"PASS", "EMPTY"}:
         return base_status
-    if state in {"STALE", "DIRTY_WORKING_TREE", "UNVERIFIED"}:
-        return "STALE"
+    state = freshness.get("state")
     if state == "MISMATCH":
         return "MISMATCH"
     return base_status

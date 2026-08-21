@@ -1,0 +1,56 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_LOCAL_SHARED_RELEASE_AND_MUTABLE_TASK_REGISTRY",
+  "recorded_at": "2026-08-15T11:25:00Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-003-RELEASE-SLOT-REGISTRY-SEPARATION",
+  "implementation": {
+    "release_authority_scope": "SHARED_RELEASE_SLOT_AUTHORITY",
+    "task_binding_scope": "SEPARATE_MUTABLE_REGISTRY",
+    "release_binding_field": "release_authority_sha256",
+    "legacy_hash_field_supported": "registry_sha256",
+    "legacy_origin_project_session_task_used_for_authorization": false,
+    "shared_manager_scope": "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_ON_THIS_WINDOWS_USER",
+    "release_change_behavior": "FAIL_CLOSED_UNTIL_EXACT_TASK_BINDING_REFRESH",
+    "installer_helper_invoked": false,
+    "tunnel_invoked": false
+  },
+  "backend_authority": {
+    "module": "evidence_lane_plugin.task_binding_registry",
+    "release_object": "immutable content-addressed running release authority",
+    "task_object": "mutable exact calling-task row with immutable prior revision history",
+    "multi_task_multi_project_test_result": "3 passed in 50.02s",
+    "installer_free_exact_binding_tested": true
+  },
+  "verification": [
+    {
+      "selector": "tests/test_local_install_registry_separation.py",
+      "status": "PASS",
+      "result": "2 passed in 0.19s"
+    },
+    {
+      "selector": "Goal recovery, PowerShell parser, empty-root status, Windows background, and release-channel regressions",
+      "status": "PASS",
+      "result": "23 passed in 2.93s"
+    },
+    {
+      "selector": "tests/test_task_binding_registry.py",
+      "status": "PASS",
+      "result": "3 passed in 50.02s"
+    }
+  ],
+  "negative_side_effects": {
+    "manager_installed_or_launched": false,
+    "scheduled_task_changed": false,
+    "candidate_created": false,
+    "hil_invoked": false,
+    "pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "plugin_slot_or_selector_changed": false,
+    "tunnel_invoked": false,
+    "subagent_started": false
+  },
+  "next_boundary": "Close Row200 through its exact per-Delta checkpoint; fallback selector identity remains Row201 work."
+}

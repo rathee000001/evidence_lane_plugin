@@ -83,6 +83,7 @@ def test_interactive_ephemeral_codex_app_separates_tunnel_from_storage(
         runtime_context={
             "interaction_profile": "CODEX_APP_INTERACTIVE",
             "account_tier": account_tier,
+            "native_capabilities": {"native_mcp": False},
         },
     )
     external_runtime = route_persistence(
@@ -92,6 +93,7 @@ def test_interactive_ephemeral_codex_app_separates_tunnel_from_storage(
         runtime_context={
             "interaction_profile": "CODEX_APP_INTERACTIVE",
             "account_tier": account_tier,
+            "native_capabilities": {"native_mcp": False},
         },
     )
 
@@ -101,12 +103,13 @@ def test_interactive_ephemeral_codex_app_separates_tunnel_from_storage(
     for route in (local_mount, external_runtime):
         assert route.interaction_profile == "CODEX_APP_INTERACTIVE"
         assert route.vm_lifetime == "EPHEMERAL_VM"
-        assert route.tunnel_requirement == (
-            "REQUIRED_FOR_INTERACTIVE_CODEX_APP_ENVIRONMENT"
-        )
+        assert route.tunnel_requirement == "REQUIRED_FOR_HOST_TOOL_GAP"
         assert route.tunnel_setup_frequency == "ONCE_PER_EPHEMERAL_VM_INSTANCE"
         assert route.tunnel_key_retention == "CURRENT_VM_LIFETIME_ONLY"
         assert route.tunnel_runtime_lifetime == "CURRENT_VM_LIFETIME_ONLY"
+        assert route.host_tool_transport == "HOST_TOOL_GAP"
+        assert route.native_mcp_available is False
+        assert route.tool_gap_route is True
         assert route.account_tier == account_tier
         assert route.account_tier_affects_routing is False
         assert route.api_billing_affects_routing is False
@@ -150,16 +153,50 @@ def test_persistent_interactive_codex_app_uses_native_layer_without_tunnel() -> 
         runtime_context={
             "interaction_profile": "CODEX_APP_INTERACTIVE",
             "account_tier": "BUSINESS",
+            "native_capabilities": {"native_mcp": True},
         },
     )
 
     assert route.mode == "local"
-    assert route.tunnel_requirement == (
-        "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
-    )
+    assert route.tunnel_requirement == "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
     assert route.tunnel_setup_frequency == "NONE"
     assert route.tunnel_key_retention == "NOT_APPLICABLE"
     assert route.tunnel_runtime_lifetime == "NOT_APPLICABLE"
+    assert route.host_tool_transport == "NATIVE_MCP_AVAILABLE"
+    assert route.native_mcp_available is True
+    assert route.tool_gap_route is False
+
+
+@pytest.mark.parametrize(
+    ("host", "interaction_profile"),
+    [
+        (HostKind.CODEX_DESKTOP, "CODEX_APP_INTERACTIVE"),
+        (HostKind.CODEX_CLI, "CODEX_CLI_NATIVE"),
+    ],
+)
+def test_persistent_interactive_tool_gap_uses_release_bound_tunnel(
+    host: HostKind,
+    interaction_profile: str,
+) -> None:
+    route = route_persistence(
+        host,
+        ephemeral=False,
+        server_has_durable_filesystem=True,
+        runtime_context={
+            "interaction_profile": interaction_profile,
+            "account_tier": "PRO",
+            "native_capabilities": {"native_mcp": False},
+        },
+    )
+
+    assert route.mode == "local"
+    assert route.tunnel_requirement == "REQUIRED_FOR_HOST_TOOL_GAP"
+    assert route.tunnel_setup_frequency == "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE"
+    assert route.tunnel_key_retention == "CURRENT_WINDOWS_USER_DPAPI_PROFILE"
+    assert route.tunnel_runtime_lifetime == "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST"
+    assert route.host_tool_transport == "HOST_TOOL_GAP"
+    assert route.native_mcp_available is False
+    assert route.tool_gap_route is True
 
 
 def test_doctor_reports_drive_as_capability_routed_not_globally_required(
@@ -470,7 +507,9 @@ def test_installation_activation_updates_a_stale_version(
 
     result = json.loads(capsys.readouterr().out)
     persisted = json.loads((store / "installation.json").read_text(encoding="utf-8"))
-    assert result["version"] == ENGINE_VERSION
+    assert result["tool"] == "activate-installation"
+    assert result["data"]["version"] == ENGINE_VERSION
+    assert result["data"]["public_result_boundary"]["bounded_public_result"] is True
     assert persisted["version"] == ENGINE_VERSION
     assert persisted["display_name"] == "Evidence Lane"
     assert persisted["installed_at"] == "2026-07-26T20:33:04.325482Z"

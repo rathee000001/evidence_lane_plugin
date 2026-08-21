@@ -18,6 +18,16 @@ PAGES = (
     ("canon", "Canon", "docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md"),
     ("ai-learning", "AI Learning", "docs/AI_LEARNING.md"),
     ("memory", "Memory", "docs/MEMORY.md"),
+    (
+        "project-universe",
+        "Project Universe",
+        "docs/PROJECT_UNIVERSE.md",
+    ),
+    (
+        "pv-storage",
+        "PV Storage",
+        "docs/PROJECT_PV_CONTENT_ADDRESSED_STORAGE.md",
+    ),
     ("host-matrix", "Host Matrix", "docs/HOST_AND_STORAGE_MATRIX.md"),
     ("skills", "Skills", "docs/SKILLS.md"),
     ("mcp", "MCP", "docs/MCP.md"),
@@ -55,7 +65,7 @@ def _exact_revision() -> str:
     revision = os.environ.get("GITHUB_SHA", "").strip()
     if re.fullmatch(r"[0-9a-fA-F]{40}", revision):
         return revision.lower()
-    return "agent/evi-v220-systemwide-release-hil-v2.2.0"
+    return "agent/evi-v300-systemwide-release-hil-v3.0.0"
 
 
 def _rewrite_relative_markdown_links(
@@ -64,16 +74,13 @@ def _rewrite_relative_markdown_links(
     source_path: Path,
     revision: str,
 ) -> str:
-    pattern = re.compile(r"\]\((?!https?://|mailto:|#|/)([^)]+\.md(?:#[^)]*)?)\)")
-
-    def replace(match: re.Match[str]) -> str:
-        target = match.group(1)
+    def repository_url(target: str) -> str | None:
         path_text, separator, fragment = target.partition("#")
         resolved = (source_path.parent / path_text).resolve()
         try:
             relative = resolved.relative_to(ROOT).as_posix()
         except ValueError:
-            return match.group(0)
+            return None
         encoded_revision = quote(revision, safe="")
         url = (
             f"https://github.com/{REPOSITORY}/blob/"
@@ -81,9 +88,33 @@ def _rewrite_relative_markdown_links(
         )
         if separator:
             url = f"{url}#{fragment}"
+        return url
+
+    markdown_pattern = re.compile(
+        r"\]\((?!https?://|mailto:|#|/)([^)]+\.md(?:#[^)]*)?)\)"
+    )
+
+    def replace_markdown(match: re.Match[str]) -> str:
+        url = repository_url(match.group(1))
+        if url is None:
+            return match.group(0)
         return f"]({url})"
 
-    rewritten = pattern.sub(replace, text)
+    html_pattern = re.compile(
+        r"(?P<prefix>(?:href|src)\s*=\s*[\"'])"
+        r"(?P<target>(?!https?://|mailto:|#|/)[^\"']+\.md(?:#[^\"']*)?)"
+        r"(?P<suffix>[\"'])",
+        re.IGNORECASE,
+    )
+
+    def replace_html(match: re.Match[str]) -> str:
+        url = repository_url(match.group("target"))
+        if url is None:
+            return match.group(0)
+        return f'{match.group("prefix")}{url}{match.group("suffix")}'
+
+    rewritten = markdown_pattern.sub(replace_markdown, text)
+    rewritten = html_pattern.sub(replace_html, rewritten)
     return rewritten.replace(
         "docs/assets/evidence-lane-full-logo.png",
         "/evidence_lane_plugin/assets/evidence-lane-full-logo.png",

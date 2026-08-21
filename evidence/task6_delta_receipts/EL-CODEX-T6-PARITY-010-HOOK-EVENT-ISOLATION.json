@@ -1,0 +1,116 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_HOOK_EVENT_ISOLATION_IMPLEMENTED_NOT_INSTALLED",
+  "recorded_at": "2026-08-15T13:43:25Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-010-HOOK-EVENT-ISOLATION",
+  "implementation": {
+    "governed_event_count": 8,
+    "upstream_event_count_observed": 11,
+    "unsupported_events_not_relabelled": [
+      "PermissionRequest",
+      "SubagentStart",
+      "SubagentStop"
+    ],
+    "policy_schema": "evidence-lane.codex-hook-event-isolation-policy.v1",
+    "event_receipt_schema": "evidence-lane.codex-hook-event-receipt.v1",
+    "sqlite_schema": "evidence-lane.codex-hook-event-isolation-sqlite.v1",
+    "kill_switch_schema": "evidence-lane.codex-hook-kill-switch.v1",
+    "correlation": {
+      "algorithm": "SHA256",
+      "manager_scope": "ONE_INSTALLED_HOOK_RUNTIME",
+      "owner_scope": "EXACT_SESSION_AND_CWD",
+      "occurrence_scope": "EXACT_EVENT_TURN_TOOL_SOURCE_TRIGGER_REASON_AND_INPUT_HASH",
+      "stop_hook_active_changes_occurrence_identity": false,
+      "restart_count_used_for_causation": false
+    },
+    "exactly_once": {
+      "claim_state": "IN_PROGRESS",
+      "terminal_states": ["COMPLETE", "FAIL_CLOSED"],
+      "completed_output_replayed": true,
+      "in_progress_reentry_denied": true,
+      "raw_input_persisted": false,
+      "raw_stderr_persisted": false
+    },
+    "sqlite_contention": {
+      "connection_timeout_seconds": 2,
+      "busy_timeout_milliseconds": 2000,
+      "different_owner_contention_is_bounded": true
+    },
+    "reentrancy": {
+      "scope": "EXACT_OWNER",
+      "cross_process_os_file_lock": true,
+      "released_on_process_exit": true
+    },
+    "terminal_events": {
+      "stop_output": {},
+      "stop_continuation_requested": false,
+      "session_end_output": {},
+      "session_end_host_cap_seconds": 3,
+      "session_end_internal_handler_seconds": 2
+    },
+    "persistent_kill_switch": {
+      "missing_receipt": "FAIL_CLOSED",
+      "active_receipt": "FAIL_CLOSED",
+      "inactive_receipt": "ELIGIBLE",
+      "self_sealed": true,
+      "exact_path_and_file_sha_bound_by_install_receipt": true,
+      "verified_before_install_activation": true
+    }
+  },
+  "official_contract_evidence": [
+    "https://github.com/openai/codex/blob/main/codex-rs/hooks/src/lib.rs",
+    "https://github.com/openai/codex/blob/main/codex-rs/hooks/src/engine/discovery.rs",
+    "https://github.com/openai/codex/tree/main/codex-rs/hooks/schema/generated"
+  ],
+  "verification": [
+    {
+      "selector": "Hook event isolation, lifecycle, and relevant MCP integration bundle",
+      "status": "PASS",
+      "result": "33 passed in 47.78s"
+    },
+    {
+      "selector": "Final hook isolation and lifecycle contract suite",
+      "status": "PASS",
+      "result": "31 passed in 2.35s"
+    },
+    {
+      "selector": "Release-channel regression suite",
+      "status": "PASS",
+      "result": "14 passed in 0.04s"
+    },
+    {
+      "selector": "Python lint, Python compile, PowerShell AST, and whitespace validation",
+      "status": "PASS",
+      "result": "All checks passed; Python sources compiled; POWERSHELL_AST_PASS; diff check returned zero"
+    }
+  ],
+  "negative_cases": [
+    "Unknown, extra, missing, mistyped, or wrong-event input fields fail the exact event schema.",
+    "Non-object, oversized, invalid, or event-incompatible handler output becomes a correlated terminal fail-closed receipt.",
+    "Concurrent events for one owner cannot enter the handler through the cross-process lock.",
+    "A repeated exact occurrence replays its validated terminal output without invoking the handler again.",
+    "Stop false/true stop_hook_active delivery for one exact turn shares one occurrence and always returns an empty object.",
+    "SessionEnd handler execution is terminated within two seconds, under the host three-second maximum.",
+    "Missing, mismatched, or active kill-switch authority prevents handler execution before installation activation.",
+    "Restart counts, app reloads, and hook registration presence are not treated as execution causation proof."
+  ],
+  "negative_side_effects": {
+    "live_codex_hook_invoked": false,
+    "live_install_kill_switch_created_or_changed": false,
+    "live_hook_sqlite_created_or_changed": false,
+    "isolated_temporary_test_handlers_executed": true,
+    "isolated_temporary_test_kill_switch_and_sqlite_created": true,
+    "plugin_installed_removed_enabled_or_disabled": false,
+    "installer_or_goal_helper_invoked": false,
+    "tunnel_invoked": false,
+    "candidate_created_or_accepted": false,
+    "hil_invoked": false,
+    "pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "subagent_started": false
+  },
+  "next_boundary": "Close Row207 through its exact per-Delta checkpoint. Row208 owns skill-to-hook behavior handoff receipts; Row209 owns final official-wire Stop fixture unification; Row210 owns isolated installed-runtime activation."
+}

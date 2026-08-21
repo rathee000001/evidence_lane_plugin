@@ -30,7 +30,7 @@ export function SourceLaneIcon({ lane, size = 22, className = "", decorative = f
   if (laneId === "artifacts") return <StrokeIcon {...props}><path d="m4 7 8-4 8 4-8 4Z" /><path d="M4 7v10l8 4 8-4V7M12 11v10" /></StrokeIcon>;
   if (laneId === "custom") return <StrokeIcon {...props}><path d="M9 4H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2m6-14h2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-2" /><path d="m10 15 4-6" /></StrokeIcon>;
   if (laneId === "brain_loader") return <StrokeIcon {...props}><path d="M8 18a4 4 0 0 1-3-6.6A4.5 4.5 0 0 1 9.5 5 4 4 0 0 1 17 6.8a4 4 0 0 1 1 7.7A4 4 0 0 1 14 19H8" /><path d="M9 8v8m6-8v8m-3-4v8m-2-2 2 2 2-2" /></StrokeIcon>;
-  if (laneId === "research") return <StrokeIcon {...props}><path d="M9 3h6m-4 0v5l-5 9a2.5 2.5 0 0 0 2.2 3.5h7.6A2.5 2.5 0 0 0 18 17l-5-9V3" /><path d="M8 15h8" /><circle cx="16.5" cy="8.5" r="2.5" /><path d="m18.2 10.2 2 2" /></StrokeIcon>;
+  if (laneId === "research") return <StrokeIcon {...props}><path d="M9 3h6m-4 0v5l-5 9a2.5 2.5 0 0 0 3.0 3.5h7.6A2.5 2.5 0 0 0 18 17l-5-9V3" /><path d="M8 15h8" /><circle cx="16.5" cy="8.5" r="2.5" /><path d="m18.2 10.2 2 2" /></StrokeIcon>;
   if (laneId === "project_engulf") return <StrokeIcon {...props}><path d="M3 7h7l2 2h9v10H3Z" /><path d="M16 3v6m-2-2 2 2 2-2M7 14h7m-2-2 2 2-2 2" /></StrokeIcon>;
   return <StrokeIcon {...props}><ellipse cx="12" cy="5" rx="7" ry="3" /><path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" /><path d="M10 8.5h4m-2-2v4" /></StrokeIcon>;
 }

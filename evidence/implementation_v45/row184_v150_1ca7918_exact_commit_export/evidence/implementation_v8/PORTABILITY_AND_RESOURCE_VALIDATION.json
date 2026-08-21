@@ -1,0 +1,110 @@
+{
+  "schema": "evidence-lane.portability-resource-validation.v8",
+  "recorded_at": "2026-07-29T22:28:11Z",
+  "status": "PYTHON_311_AND_314_RUNTIME_VALIDATED_AWAITING_FINAL_COMMIT_AND_REINSTALL",
+  "source": {
+    "workspace_authority": "F:\\DATA MACHINE",
+    "repository_root": "F:\\DATA MACHINE\\evidence_lane_plugin",
+    "branch": "agent/ev-remote-chatgpt-plugin",
+    "parent_head": "a0700c99c740f02f945c63ea61dcb7916ecc8cb2",
+    "parent_pushed": true,
+    "remote_main": "4dd109c53af461eed2a69e2f3a0d411c5cb2564e",
+    "d_drive_inspected_or_mutated": false
+  },
+  "corrected_findings": [
+    {
+      "code": "PYTHON_FLOOR_LOCK_INCOMPATIBLE",
+      "observed": "The Python >=3.11 package declaration was paired with a Python 3.14 lock containing NumPy 2.5.1, which requires Python >=3.12.",
+      "correction": "Pin NumPy 2.4.6 in requirements.in and regenerate the hash lock with Python 3.11."
+    },
+    {
+      "code": "SQLITE_CONNECTION_CLOSE_NONDETERMINISTIC",
+      "observed": "A Python 3.11 full-suite run exposed a transient code.sqlite-shm file in the governed .build workspace because connection closure depended on garbage collection.",
+      "correction": "Make database.connect an explicit closing context manager and assert both closed handles and an empty build workspace."
+    }
+  ],
+  "surface": {
+    "engine_version": "0.4.0",
+    "codex_cachebuster": "0.4.0+codex.20260729213002",
+    "mcp_tool_count": 35,
+    "lane_count": 18,
+    "entry_command": "/ev"
+  },
+  "validation": {
+    "python_311_cold_bootstrap": {
+      "status": "PASS",
+      "python": "3.11.9",
+      "numpy": "2.4.6",
+      "engine": "0.4.0",
+      "editable_install": false,
+      "installation_receipt_version": "0.4.0",
+      "projects_created": false,
+      "flash_state": "NOT_FLASHED",
+      "runtime_doctor": "PASS",
+      "stdio_mcp_tool_count": 35
+    },
+    "focused_resource_and_persistence": {
+      "status": "PASS",
+      "passed": 13,
+      "failed": 0,
+      "duration_seconds": 56.84
+    },
+    "full_pytest_python_311": {
+      "status": "PASS",
+      "passed": 57,
+      "failed": 0,
+      "duration_seconds": 394.37
+    },
+    "ruff_format": {
+      "status": "PASS",
+      "files": 106
+    },
+    "ruff_lint": "PASS",
+    "mypy": {
+      "status": "PASS",
+      "source_files": 36,
+      "issues": 0
+    },
+    "bandit": {
+      "status": "PASS",
+      "findings": 0
+    },
+    "dependency_audit": {
+      "status": "PASS",
+      "known_vulnerabilities": 0
+    },
+    "python_314_container": {
+      "status": "PASS",
+      "image_digest": "sha256:080a65880494ae465b62580d3de8100767a86ebfc0eab3f07262d2b4dd496d5b",
+      "numpy": "2.4.6",
+      "runtime_user": "evidence-lane",
+      "health": "PASS_200",
+      "authenticated_mcp": "PASS_35_TOOLS",
+      "installation_receipt_version": "0.4.0",
+      "unauthenticated_mcp": "PASS_401_RESOURCE_METADATA_CHALLENGE",
+      "test_container_removed": true,
+      "test_volume_removed": true
+    }
+  },
+  "preserved_unimplemented_deltas": [
+    "EVIDENCE-LANE-PLUGIN-CODEX-COMMANDS-CHATGPT-PARITY-DELTA-001",
+    "EVIDENCE-LANE-PLUGIN-READONLY-COMPARISON-FORENSIC-DELTA-002"
+  ],
+  "live_hil_boundary": {
+    "project_id": "test-codex-evidence-lane-plugin",
+    "session_id": "session_01kyg2m4qeqy3cbkmj278zp96h",
+    "state": "CORRECTION_TASK_PENDING",
+    "preserved_candidate": "PV1_CANDIDATE__RUN_01KYG2MA34M7V5C9RDMA3T51DJ",
+    "accepted_pv": null,
+    "pointer_generation": 0,
+    "hil_success_inferred": false
+  },
+  "next_exact_actions": [
+    "COMMIT_AND_PUSH_FINAL_CORRECTION_TO_AGENT_BRANCH",
+    "REPIN_CODEX_GIT_MARKETPLACE_TO_EXACT_FINAL_COMMIT",
+    "COLD_BOOTSTRAP_FINAL_CODEX_CACHE",
+    "CLASSIFY_STORED_CORRECTION_BEFORE_GOVERNED_SOURCE_MUTATION",
+    "FAST_FORWARD_GOVERNED_MAIN_LOCALLY_WITHOUT_PUSHING_REMOTE_MAIN",
+    "BUILD_CORRECTED_PV1_AND_STOP_AT_HIL"
+  ]
+}

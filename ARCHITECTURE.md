@@ -1,10 +1,10 @@
-# Evidence Lane 2.2.0 architecture
+# Evidence Lane 3.0.0 architecture
 
-Evidence Lane is a Codex-native, local-first evidence lifecycle. Version 2.2.0
-is the current pre-HIL source line. Accepted Project Truth remains PV12 on the
-2.1.0 base until a fresh six-way Project HIL authorizes a different result.
-Source version, installed stable version, disabled fallback version, candidate
-identity, and accepted PV identity are separate facts.
+Evidence Lane is a Codex-native, local-first evidence lifecycle. Version 3.0.0
+is the current pre-HIL source line. Accepted Project Truth remains PV12 at
+generation 12 until a fresh six-way Project HIL authorizes a different result.
+Source, installed package slots, candidate identity, and accepted PV identity
+remain separate measured facts.
 
 ## Authority model
 
@@ -19,10 +19,14 @@ Evidence Lane keeps these authorities independent:
 3. **AI/Agent Learning** owns project-isolated semantic, episodic, and
    procedural learning candidates plus its own decisions and pointer. It never
    overwrites Project Truth.
-4. **ChatLineage** stores secret-redacted visible prompts, steers, responses,
+4. **Project Memory** owns content-addressed locators, typed cross-authority
+   relationships, bounded retrieval receipts, and compaction checkpoint and
+   rehydration continuity. It stores no raw source payloads and cannot promote
+   Project Truth or Agent Learning.
+5. **ChatLineage** stores secret-redacted visible prompts, steers, responses,
    operational events, locators, receipts, and hash-chain provenance. It never
    stores private reasoning.
-5. **Host-entry continuity** moves exact unfinished context into a bound host
+6. **Host-entry continuity** moves exact unfinished context into a bound host
    entry without replaying HIL, accepting Canon, promoting Learning, or moving
    a Project pointer.
 
@@ -66,13 +70,13 @@ or final plugin PV gate follows that evidence. A full public-site narrative,
 navigation, page, or animation refresh still belongs only to its assigned
 website Delta; updating the live Plan/PV projection is not that delivery.
 
-The current Row196 edge is the exact-commit prerequisite: required clean CI and
-the Git-triggered preview must both bind the reviewed v2.2 branch commit. The
-immediate Row197/PV13 install-HIL edge then replaces the enabled Stable selector
-with that exact 2.2 package and requires installed UI/native readback of 83
-actions (26 read/57 write), 17 skills, eight hook events, and the migrated
-command surface before the PV13 HIL is shown. Neither edge merges main or writes
-the disabled fallback.
+An intermediate branch checkpoint binds the complete reviewed v3.0 source
+scope, exact commit and tree, governed push, Actions head, deterministic
+package, and branch-commit recovery slot. It creates no candidate, invokes no
+HIL, moves no accepted pointer, and does not merge `main`. A later release HIL
+may be presented only after the exact package is installed and native readback
+proves 88 actions (27 read/61 write), 17 skills, eight distinct hook events,
+and the migrated command surface.
 
 A downstream user's project PV does not reinstall or release Evidence Lane and
 does not inherit the plugin maintainer's tunnel or CI topology. The project may
@@ -87,9 +91,9 @@ release updater is private to Evidence Lane development; governed users receive
 the Goal-recovery helper and, when host classification requires transport, the
 Stable tunnel. They run persistently or with a true no-window launch. Older
 versioned copies remain retained and disabled. The pre-final-HIL fallback stays
-at its observed 2.0 identity. Only an exact final PV14 human approval and Fuse
-may begin the serial rotation that proves main equals the accepted commit,
-hydrates both Stable and disabled fallback from the same accepted 2.2 package,
+byte-frozen at its last verified identity. Only an exact final human release
+approval and Fuse may begin the serial rotation that proves main equals the accepted commit,
+hydrates both Stable and disabled fallback from the same accepted 3.0 package,
 rotates matching helper/tunnel identities, and leaves one active runtime. The
 same rule repeats for later plugin-maintainer releases, never for downstream
 project PVs.
@@ -166,7 +170,8 @@ and addressed to the exact task that can supply the missing input.
 
 The private internal Codex SDK is the full engine-and-contract layer, not a
 small retrieval wrapper. Its independently namespaced arms cover Project
-Truth, Canon Input, AI/Agent Learning, ChatLineage, host-entry continuity,
+Truth, Canon Input, AI/Agent Learning, Project Memory, ChatLineage,
+host-entry continuity,
 lifecycle and hooks, Plan/Delta/tasks, source and lane retrieval, ENV/UOP plus
 Formula/PCM/MBA routing, storage/connectors, candidate/HIL/pointer operations,
 and provider/host adapters. Unsupported provider capabilities return
@@ -183,9 +188,9 @@ flowchart TB
       PlanUI["Host Plan / Goal / governed console projection"]
     end
 
-    subgraph Plugin["Evidence Lane 2.2 package"]
+    subgraph Plugin["Evidence Lane 3.0 package"]
       Skills["17 governed skills\n6 primary controls + routers and sidecars"]
-      MCP["Native evidence-lane MCP\n83 actions = 26 read + 57 write"]
+      MCP["Native evidence-lane MCP\n88 actions = 27 read + 61 write"]
       SDK["Full internal SDK\nengine + contracts + provider/host adapters"]
       Search["SQLite FTS5 authority\nverified rg pre-index fallback"]
     end
@@ -194,6 +199,7 @@ flowchart TB
       PT["Project Truth\nPV | pointer | candidate | Plan | Delta | HIL"]
       Canon["Canon Input\ntask graph | bounded messages | 3-way Canon HIL"]
       Learn["AI/Agent Learning\nproject-isolated candidates + pointer"]
+      Memory["Project Memory\nlocators | edges | bounded compaction continuity"]
       Lineage["ChatLineage\nvisible events + FTS + hash chain"]
       Entry["Host-entry continuity\nexact unfinished-work envelope"]
     end
@@ -214,6 +220,7 @@ flowchart TB
     SDK --> PT
     SDK --> Canon
     SDK --> Learn
+    SDK --> Memory
     SDK --> Lineage
     SDK --> Entry
     Skills --> PlanUI
@@ -222,6 +229,7 @@ flowchart TB
     PT --> Lanes
     Canon -. "bounded input only" .-> Lanes
     Learn -. "separate retrieval slice" .-> SDK
+    Memory -. "bounded labeled locators" .-> SDK
     Lineage --> Lanes
     Entry --> Task
     PHIL -->|"exact APPROVE then Fuse"| Accepted --> PT
@@ -232,8 +240,8 @@ The arrows show data and control flow, not merged authority. Canon cannot
 promote Project Truth, Learning cannot overwrite it, hooks cannot govern it,
 the website cannot execute it, and the host Plan surface cannot accept a PV.
 
-The 2.2.0 package contains one package-local MCP server named
-`evidence-lane`, exactly 83 canonical actions (26 read-only and 57
+The 3.0.0 package contains one package-local MCP server named
+`evidence-lane`, exactly 88 canonical actions (27 read-only and 61
 write-capable), 17 governed skills, six primary controls, and eight lifecycle
 events. The six controls are Boot, Rollback, Build, Refresh, Mode, and Source
 Intake. State Travel is a conditional exact-resume path; it is not a seventh
@@ -259,8 +267,26 @@ transactional storage connector. Google Drive is at most an optional sealed
 artifact carrier or mirror. The eight additional-plugin slots are a different
 surface and never select storage.
 
+Project authority and plugin runtime are physically distinct. The user-selected
+project root owns the accepted pointer, current accepted PV, Plan, ChatLineage,
+Learning, Canon, Memory, Universe, source registry, receipts, and exactly the 18
+registry-defined sector directories. Study Brain is a bounded routing profile
+over those sectors, not a nineteenth stored lane. ENV/UOP, tunnel, MCP/SDK
+runtime, installed-selector controls, and generated Python dependencies remain
+host-managed runtime state. `F:\SOURCES` is immutable evidence intake and can
+never become project authority.
+
+An existing combined legacy root moves only through the existing governed
+project registration route with the exact relocation confirmation plus accepted
+PV and pointer-generation preconditions. The move stages and hashes active
+authority, copies only the current accepted PV, switches the registered route,
+then removes only byte-verified active duplicates. Older accepted versions and
+candidate history remain explicitly non-authoritative until the later
+content-addressed snapshot Delta; relocation never creates a candidate, infers
+HIL, or moves the accepted pointer.
+
 Stable/current and Beta desktop packages may expose multiple product surfaces.
-Evidence Lane 2.2.0 governs only a positively proven Codex layer. A package
+Evidence Lane 3.0.0 governs only a positively proven Codex layer. A package
 name, process, title, or current working directory alone cannot prove that
 surface. Local durable Codex uses the package-local MCP and does not need an
 Evidence Lane network tunnel. Any separately classified interactive ephemeral
@@ -270,7 +296,7 @@ authority.
 ## Git, install, and release topology
 
 The current source branch is
-`agent/evi-v220-systemwide-release-hil-v2.2.0`. A bounded exact-commit route
+`agent/evi-v300-systemwide-release-hil-v3.0.0`. A bounded exact-commit route
 may push that branch, run governed Python CI, CodeQL, dependency checks, a
 Vercel Git preview, package verification, and stable-slot verification before
 the final HIL. Main promotion, fallback replacement, production publication,

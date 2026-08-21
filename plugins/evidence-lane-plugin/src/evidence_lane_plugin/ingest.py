@@ -138,12 +138,25 @@ class IngestionReport:
         }
 
 
-def _candidate_source_files(root: Path) -> tuple[str, list[tuple[str, Path]]]:
-    """Prefer the governed Git index; fall back only for non-Git source roots."""
+def _candidate_source_files(
+    root: Path,
+    *,
+    include_untracked: bool = False,
+) -> tuple[str, list[tuple[str, Path]]]:
+    """Prefer Git authority; optionally include the complete live worktree.
+
+    Candidate/PV builds retain the historical ``GIT_TRACKED_ONLY`` default.
+    The user-owned WORKING authority may additionally index safe untracked
+    files so its sector projections bind the same dirty path set as Codex.
+    """
 
     try:
+        command = ["git", "ls-files", "-z", "--cached"]
+        if include_untracked:
+            command.extend(["--others", "--exclude-standard"])
+        command.extend(["--", "."])
         completed = subprocess.run(  # nosec B603
-            ["git", "ls-files", "-z", "--cached", "--", "."],
+            command,
             cwd=root,
             stdin=subprocess.DEVNULL,
             capture_output=True,
@@ -162,7 +175,11 @@ def _candidate_source_files(root: Path) -> tuple[str, list[tuple[str, Path]]]:
             target = root / Path(relative)
             if target.is_file() and not target.is_symlink():
                 tracked.append((relative, target))
-        return "GIT_TRACKED_ONLY", sorted(tracked, key=lambda row: row[0].lower())
+        return (
+            "GIT_INDEX_WORKTREE_AND_UNTRACKED"
+            if include_untracked
+            else "GIT_TRACKED_ONLY"
+        ), sorted(tracked, key=lambda row: row[0].lower())
 
     fallback: list[tuple[str, Path]] = []
     for target in sorted(root.rglob("*"), key=lambda path: path.as_posix().lower()):
@@ -174,11 +191,16 @@ def _candidate_source_files(root: Path) -> tuple[str, list[tuple[str, Path]]]:
 
 def governed_source_files(
     root: str | Path,
+    *,
+    include_untracked: bool = False,
 ) -> tuple[str, list[tuple[str, Path]], list[dict[str, str]]]:
     """Return safe source files plus secret-free exclusion receipts."""
 
     base = Path(root).resolve()
-    selection, candidates = _candidate_source_files(base)
+    selection, candidates = _candidate_source_files(
+        base,
+        include_untracked=include_untracked,
+    )
     included: list[tuple[str, Path]] = []
     excluded: list[dict[str, str]] = []
     for relative, target in candidates:
@@ -189,9 +211,7 @@ def governed_source_files(
             except OSError:
                 reason = "SOURCE_FILE_UNREADABLE"
         if reason is not None:
-            excluded.append(
-                {"status": "EXCLUDED", "code": reason, "path": relative}
-            )
+            excluded.append({"status": "EXCLUDED", "code": reason, "path": relative})
             continue
         included.append((relative, target))
     return selection, included, excluded

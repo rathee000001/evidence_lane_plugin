@@ -1,0 +1,324 @@
+{
+  "schema": "evidence-lane.source-provenance-audit.v2",
+  "recorded_at": "2026-08-03T23:09:10.628Z",
+  "supersedes": "evidence-lane.connector-source-audit.v1",
+  "candidate_base_sha": "f970aedd569b20556951334d4948caa3d284408b",
+  "governed_project": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "source_intake_event_id": "evt_01kz4wkt2wxpvvsqvcp1sh461q",
+  "authority_order": [
+    "local file bytes and hashes",
+    "official Git commit tree paired to a downloaded ZIP",
+    "read-only generated SQLite package",
+    "user chronology or attribution claim"
+  ],
+  "generator_identity": {
+    "user_clarification": "V5.9 names the SQLite Brain Builder desktop app used to create the selected brains; it is not a Graphify version.",
+    "selected_shortcut": "C:/Users/rathe/OneDrive/Desktop/SQLite Brain Builder V5.9.lnk",
+    "selected_executable": "C:/Users/rathe/AppData/Local/Programs/SQLite Brain Builder V5.9/SQLiteBrainBuilderV5_9.exe",
+    "selected_executable_sha256": "3E7B6AC4CFE59D2FE9E8CF95B66934549A1AE75BFF373F29176EA29DE86C3CAE",
+    "selected_executable_bytes": 367035613,
+    "selected_executable_creation_utc": "2026-07-09T10:37:17Z",
+    "selected_executable_last_write_utc": "2026-07-09T10:28:54Z",
+    "shortcut_creation_utc": "2026-07-09T10:37:35Z",
+    "file_version_metadata": null,
+    "product_version_metadata": null,
+    "source_tree": "F:/DATA MACHINE/evidence-os-clean-full-app_current hill_sopuce code/backend",
+    "source_findings": [
+      {
+        "path": "src/sqlite_brain_builder/gui/main_window.py",
+        "lines": [132, 144],
+        "finding": "V5.9 functional runtime wiring is explicit."
+      },
+      {
+        "path": "src/sqlite_brain_builder/runtime/chatlineage_state_travel_v57.py",
+        "line": 15,
+        "finding": "PATCH_ID is V5.9_EVIDENCE_LANE_ENV_UOP_RESEARCH_LINEAGE_STATE_TRAVEL."
+      },
+      {
+        "path": "src/sqlite_brain_builder/runtime/flash_prompt_v57c.py",
+        "lines": [39, 99],
+        "finding": "The locked runtime contract and write-scope law identify V5.9."
+      },
+      {
+        "path": "src/sqlite_brain_builder/runtime/stable_runtime_v53.py",
+        "line": 319,
+        "finding": "The internal stable runtime APP_VERSION remains V5.3_CLEAN_COMPACT_REAL_LANES."
+      }
+    ],
+    "correct_interpretation": "V5.9 application/runtime identity and V5.3 internal stable-runtime or package-schema identity coexist and must not be collapsed into one version axis.",
+    "binary_to_source_binding": "UNPROVEN",
+    "binary_to_package_binding": "UNPROVEN",
+    "pre_july_build_claim": {
+      "status": "USER_REPORTED_NOT_PROVEN_BY_SELECTED_BINARY",
+      "reason": "The selected installed executable and shortcut are dated July 9, 2026. No earlier matching V5.9 executable was found in the bounded F:/DATA MACHINE or Downloads searches. A prior build or reinstall remains possible but is not evidenced by these bytes."
+    }
+  },
+  "selected_archives": [
+    {
+      "source_id": "chatgpt-github-agentic-brain",
+      "path": "F:/DATA MACHINE/ChatGPT_GITHUB_AGENTIC_CODING_Sqlite_brain.zip",
+      "sha256": "0CC50621A5355A4D77626601553605179B167B95DB485EE1F96F335D9A7187D4",
+      "bytes": 176318902,
+      "canonical_lane": "brain_loader",
+      "package_format": "UEPC_SECTOR_PACKAGE",
+      "archive_member_count": 180,
+      "generator_identity_status": "UNPROVEN_BY_ARCHIVE",
+      "database": {
+        "path_in_package": "project/sectors/local_code/local_code_sector_v001.sqlite",
+        "sha256": "63DBC28277F4E7F0C2484551A8DA86A3A271E42B1A42A4398ECD4C17EA89F92C",
+        "bytes": 660946944,
+        "integrity_check": "ok",
+        "foreign_key_errors": 0,
+        "source_files": 6626,
+        "code_files": 3623,
+        "chunks": 12435,
+        "symbols": 819,
+        "import_edges": 385,
+        "git_commit_rows": 0,
+        "git_branch_rows": 0,
+        "git_remote_rows": 0,
+        "git_file_change_rows": 0
+      },
+      "interpretation": "A folder-derived gh-aw local-code index. It is not Git-history evidence and does not bind the generating desktop binary."
+    },
+    {
+      "source_id": "evidence-lane-v090-brain",
+      "path": "F:/DATA MACHINE/plugin_via_hill_app_whiuch_is_newer_then_openai_hackthon_submission_output.zip",
+      "sha256": "C51378BB05BB689031C84BC0ED7677D5C71C414C11DD2E564E68ABADBD9CCE61",
+      "bytes": 15918189,
+      "canonical_lane": "brain_loader",
+      "package_format": "UEPC_SECTOR_PACKAGE",
+      "archive_member_count": 181,
+      "generator_identity_status": "UNPROVEN_BY_ARCHIVE",
+      "database": {
+        "path_in_package": "brain_snapshots/snapshot_a4d129d667c64d4facd0806662e92f13/project/sectors/local_code/local_code_sector_v001.sqlite",
+        "sha256": "0B4D0057785294EB45A9F92157D83160C76780D6BAD59D04E598A175CA0679A9",
+        "bytes": 31449088,
+        "integrity_check": "ok",
+        "foreign_key_errors": 0,
+        "source_files": 228,
+        "code_files": 81,
+        "chunks": 1367,
+        "symbols": 748,
+        "import_edges": 746,
+        "git_commit_rows": 0
+      },
+      "indexed_repository_identity": "evidence_lane_plugin-agent-evi-connector-mcp-hil-v0.9.0",
+      "interpretation": "Historical and negative-delta evidence. Its outer filename does not make it newer than the current 1.2 candidate."
+    },
+    {
+      "source_id": "ril-v2-mini-brain",
+      "path": "F:/DATA MACHINE/08_rathee-intelligence-lab_EOSV2_FULL_VERTICAL_project_mini_brain.zip",
+      "sha256": "53B2777588A995E0444DA21B378EE6F81732B2118B0F1FE8C72189506DB6D0AE",
+      "bytes": 34286471,
+      "canonical_lane": "brain_loader",
+      "package_format": "EVIDENCEOS_V2_FULL_VERTICAL_MINI_BRAIN",
+      "package_created_at": "2026-06-16T20:07:40.494468Z",
+      "package_type": "EvidenceOS_V2_FULL_VERTICAL_project_mini_brain",
+      "generator_identity_status": "UNPROVEN_BY_ARCHIVE",
+      "database": {
+        "path_in_package": "sql/mini_brain_graph.sqlite",
+        "sha256": "9A15E0D0E23763E10E0B7929EDA2EA617C4859C624BB49BBFDBC6B8B2179ECA6",
+        "bytes": 144977920,
+        "integrity_check": "ok",
+        "foreign_key_errors": 0,
+        "nodes": 47274,
+        "edges": 101260,
+        "source_files": 127,
+        "text_chunks": 4527,
+        "claims": 474,
+        "read_errors": 0
+      },
+      "interpretation": "Historical RIL product and interaction evidence, not a V5.9 binary receipt and not current RIL repository authority."
+    },
+    {
+      "source_id": "gold-v2-mini-brain",
+      "path": "F:/DATA MACHINE/05_gold-nexus-alpha_EOSV2_FULL_VERTICAL_project_mini_brain.zip",
+      "sha256": "D42EF938FC6F69F3446EC6A079075B26C8C003BC340D0C843E7BDCE0D1177E8B",
+      "bytes": 172312155,
+      "canonical_lane": "brain_loader",
+      "package_format": "EVIDENCEOS_V2_FULL_VERTICAL_MINI_BRAIN",
+      "package_created_at": "2026-06-16T20:06:18.250043Z",
+      "package_type": "EvidenceOS_V2_FULL_VERTICAL_project_mini_brain",
+      "generator_identity_status": "UNPROVEN_BY_ARCHIVE",
+      "database": {
+        "path_in_package": "sql/mini_brain_graph.sqlite",
+        "sha256": "1F47F9DAF14687D6EB53F7698A9A489B8B89D95C9B3CD3529CE3C5D23F868EEE",
+        "bytes": 609644544,
+        "integrity_check": "ok",
+        "foreign_key_errors": 0,
+        "nodes": 143998,
+        "edges": 296484,
+        "source_files": 444,
+        "text_chunks": 27170,
+        "claims": 2466,
+        "read_errors": 0
+      },
+      "interpretation": "Historical Gold product and interaction evidence, not a V5.9 binary receipt and not current Gold repository authority."
+    }
+  ],
+  "selected_extracted_sources": [
+    {
+      "source_id": "github-gh-aw",
+      "path": "F:/DATA MACHINE/gh-aw-main",
+      "member_count": 6626,
+      "total_bytes": 436041771,
+      "member_path_sha256": "C828D39FF629830225E0F0040879C9C1C7E0DD1DE2708724F6F2D9EFF14066BA",
+      "member_path_size_sha256": "90DD697BA999FB70F43D95E4A17B319B3F396BE39DB77E8FAD2FF92C2C2CC2D8",
+      "identity_scope": "MEMBER_PATHS_AND_SIZES_ONLY",
+      "paired_zip_sha256": "9A2A1247969FD1B2C2FC3C3515101619F4D5A249194825D32ECC9AC23B4825B4",
+      "verified_commit": "61bd1aa20cb68d77d2e0d4b4974b4480cb1b305c",
+      "verified_tree": "3bcf2065995a76703d1d6554e7e44e9da046d66f",
+      "tree_match": "6626_OF_6626_EXACT",
+      "git_metadata_in_extracted_directory": false
+    },
+    {
+      "source_id": "graphify-v8",
+      "path": "F:/DATA MACHINE/graphify-8",
+      "member_count": 776,
+      "total_bytes": 15018101,
+      "member_path_sha256": "B3E443991F9614176FB7FA31F883B84CCCF84C172DCC92A827D27A18DBA8CACC",
+      "member_path_size_sha256": "23D2AE33CCFDC03715AF413CC16938FC122E05B6E0336E75C8973C356B7CDF7F",
+      "identity_scope": "MEMBER_PATHS_AND_SIZES_ONLY",
+      "paired_zip_sha256": "A12B437D7D4FDB9C312236C9795DE20FD54B68F475DD3C959202DC8BE357623D",
+      "verified_commit": "00efd6e7969837ae4a9f11d8d504dcd3b20b09df",
+      "verified_tree": "d1512b0250570474ee45b4169ba2d3b1b35376fa",
+      "tree_match": "776_OF_776_EXACT",
+      "git_metadata_in_extracted_directory": false
+    },
+    {
+      "source_id": "github-codeql",
+      "path": "F:/DATA MACHINE/codeql-main",
+      "member_count": 58970,
+      "total_bytes": 334309478,
+      "member_path_sha256": "056F6770E8FB576F9AC657D3BD919C140302E7C9D93EBFBC7FD168D85C637D73",
+      "member_path_size_sha256": "7AF8E99FBE8569F738B5C5B4E15F8856D88A0428C8ECB9339BD8268398E567A6",
+      "identity_scope": "MEMBER_PATHS_AND_SIZES_ONLY",
+      "paired_zip_sha256": "5063FC4B86805F129CA3368FD2267991A832CC329E108A5D94C2B8DD9AB035DE",
+      "verified_commit": "74c8994c9fa3ca4551c01879ef9f74e3e09e791a",
+      "verified_tree": "06e9890166e4ad4bd015439016a137f8f4099ca8",
+      "tree_match": "PATHS_AND_SIZES_MATCH; 1024_FILE_CRC_SAMPLE_ZERO_MISMATCH; RAW_GIT_BLOB_SAMPLE_REQUIRES_CRLF_NORMALIZATION",
+      "codeql_cli_scan_performed": false,
+      "git_metadata_in_extracted_directory": false
+    },
+    {
+      "source_id": "github-mcp-server",
+      "path": "F:/DATA MACHINE/github-mcp-server-main",
+      "member_count": 536,
+      "total_bytes": 4287855,
+      "member_path_sha256": "F9949DF7C06313ACAD85C7FDBC3A32C15B186204266A848DF672CD8CD455FF3F",
+      "member_path_size_sha256": "B861998EE2814C9E72B3F16E4EF50FE446CAF6C9C780F6F8250C760B7630796A",
+      "identity_scope": "MEMBER_PATHS_AND_SIZES_ONLY",
+      "paired_zip_sha256": "A4B067A7A26298275B4B5679B02F3E4B5000D60BDA7B2D2D2A9BE20C1049A922",
+      "verified_commit": "3778a41476e31a072430cfee7c5d31c5f72def60",
+      "verified_tree": "ae97fb877726d54334bebcaaa640e58bab3ca84e",
+      "tree_match": "536_OF_536_EXACT",
+      "git_metadata_in_extracted_directory": false
+    },
+    {
+      "source_id": "github-branch-deploy",
+      "path": "F:/DATA MACHINE/branch-deploy-main",
+      "member_count": 208,
+      "total_bytes": 7804501,
+      "member_path_sha256": "DC37846072DD9DEC48488CE9FDD5317501987B55EB157F13938E097389A54C04",
+      "member_path_size_sha256": "CC0D3EF4136DFD514ED76797DA35099BC1F0A2FF402037DC9668E2DE535DA6EF",
+      "identity_scope": "MEMBER_PATHS_AND_SIZES_ONLY",
+      "paired_zip_sha256": "515CE12EBB123AA5262677019B5D4E91F91EA4F3F9B1EB42782C811A653F6B4B",
+      "verified_commit": "7ad5ec6a7e19e3e341846e4d33c4ed779b3e8036",
+      "verified_tree": "5a901697cd7671a61db70f7f27787c6ba257deb8",
+      "tree_match": "208_OF_208_EXACT",
+      "git_metadata_in_extracted_directory": false
+    },
+    {
+      "source_id": "github-local-action",
+      "path": "F:/DATA MACHINE/local-action-main",
+      "member_count": 224,
+      "total_bytes": 1128270,
+      "member_path_sha256": "3E86FB235F6A9C8816FC606E8BA6D0C8D6948A855DEE9208AFCAAA7E090EAF2B",
+      "member_path_size_sha256": "64E430D4E03FDD1D2C6A0ED7D0BF534B21BA6CF241FDB72EE98CC5781B2BA183",
+      "identity_scope": "MEMBER_PATHS_AND_SIZES_ONLY",
+      "paired_zip_sha256": "08D9B9B0706E34FC6BE906E5C160D23728B202383461E33060448375123092C2F",
+      "verified_commit": "b9351d8a8f1e6eed27646f4d892b49a3847ba180",
+      "verified_tree": "77093c3aeb8b01bcc35f24c7160596b725a7421d",
+      "tree_match": "224_OF_224_EXACT",
+      "git_metadata_in_extracted_directory": false
+    }
+  ],
+  "source_use": {
+    "github_gh_aw": [
+      "ordered conjunctive connector guards",
+      "first-failing-guard audit evidence",
+      "exact preferred-tool selection",
+      "ambiguity fail-closed"
+    ],
+    "github_mcp_server": [
+      "self-describing toolsets and read-only annotations",
+      "static permissions as an upper bound narrowed by request filters",
+      "sanitized tool output"
+    ],
+    "branch_deploy": [
+      "dry-run and no-op semantics",
+      "commit safety and permission checks",
+      "deployment locks and explicit reason codes"
+    ],
+    "local_action": [
+      "one-shot local action emulation",
+      "temporary fixture workspaces",
+      "registered-secret output suppression and log redaction"
+    ],
+    "graphify": [
+      "explicit extracted-versus-inferred provenance",
+      "canonical entity identity",
+      "secret-name-only environment controls"
+    ],
+    "codeql": [
+      "negative-test and static-analysis mindset only",
+      "no claim that CodeQL CLI was installed or run"
+    ],
+    "ril_and_gold_brains": [
+      "historical product story, motion, pill, and AI-studio evidence",
+      "not current repository or generator-binary authority"
+    ],
+    "copied_external_source_bytes": 0
+  },
+  "implemented_deltas": [
+    {
+      "id": "ORDERED_CONNECTOR_ROUTE_GUARDS",
+      "guard_order": [
+        "ACTIVE",
+        "GRANT_LIVE",
+        "CAPABILITY_AND_ACTION_ALLOWED",
+        "LANE_ALLOWED",
+        "HOST_ALLOWED"
+      ],
+      "ambiguous_decision": "AMBIGUOUS_FAIL_CLOSED"
+    },
+    {
+      "id": "SOURCE_IDENTITY_AND_GENERATOR_SEPARATION",
+      "directory_identity": "MEMBER_PATHS_AND_SIZES_ONLY",
+      "archive_identity": "FULL_FILE_BYTES",
+      "git_identity": "HEAD_COMMIT_TREE_AND_LOCAL_WORKTREE_STATE",
+      "generator_rule": "Never infer a generator from filename, package schema, internal APP_VERSION, or source folder alone."
+    }
+  ],
+  "verification": {
+    "source_intake_replay": "PASS_10_OF_10",
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "focused_tests": "23 passed in 29.68s",
+    "source_bytes_mutated": false,
+    "accepted_pointer_moved": false,
+    "candidate_created": false
+  },
+  "verdict": {
+    "decision": "FIX-THEN-PURSUE",
+    "confidence": 0.99,
+    "reason": "The selected sources justify two bounded implementation deltas and preserve the V5.9 app distinction, but the exact desktop binary is not yet bound to any selected package and the installed timestamp does not prove a pre-July build.",
+    "evidence_that_would_change_it": [
+      "a signed or hash-bound package receipt naming the exact V5.9 executable SHA-256",
+      "an earlier V5.9 executable or reproducible build receipt that proves the pre-July chronology",
+      "a failing connector or provenance conformance test that contradicts the implemented contract"
+    ]
+  }
+}

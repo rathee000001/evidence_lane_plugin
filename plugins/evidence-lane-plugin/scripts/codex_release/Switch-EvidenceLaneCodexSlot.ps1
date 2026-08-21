@@ -22,7 +22,14 @@ param(
     [string]$PreparationReceiptSha256,
     [string]$CodexConfig = "$env:USERPROFILE\.codex\config.toml",
     [string]$CodexExecutable = "",
-    [string]$ReceiptDirectory = "$env:USERPROFILE\EvidenceLanePV\installations\codex-v220\three-slot",
+    [string]$ReceiptDirectory = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin\installations\codex-v300\three-slot",
+    [ValidateRange(0, 2147483647)]
+    [int]$ConsecutiveFailures = 0,
+    [ValidateRange(0, 2147483647)]
+    [int]$SampleWindowSeconds = 0,
+    [ValidateRange(0, 2147483647)]
+    [int]$DistinctProbeTypes = 0,
+    [switch]$SingleTransientError,
     [switch]$ConfirmSwitch
 )
 
@@ -31,11 +38,11 @@ Set-StrictMode -Version Latest
 
 $script:SlotSelectors = [ordered]@{
     "main-git-release" = "evidence-lane-plugin@evidence-lane-github"
-    "branch-commit-recovery" = "evidence-lane-plugin@evidence-lane-v220-stable-recovery"
-    "mutable-local-testing" = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    "branch-commit-recovery" = "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
+    "mutable-local-testing" = "evidence-lane-plugin@evidence-lane-v300-testing-new"
 }
 $script:ObsoleteSelectors = @(
-    "evidence-lane-plugin@evidence-lane-v220-local-successor",
+    "evidence-lane-plugin@evidence-lane-v300-local-successor",
     "evidence-lane-plugin@evidence-lane-pv11-fallback"
 )
 
@@ -65,13 +72,45 @@ function Write-JsonReceipt([string]$Path, [System.Collections.IDictionary]$Body)
     Move-Item -LiteralPath $temporary -Destination $Path -Force
 }
 
-function Get-CodexExecutable {
-    if (-not [string]::IsNullOrWhiteSpace($CodexExecutable)) {
-        return (Resolve-Path -LiteralPath $CodexExecutable).Path
+function Invoke-Tunnel([string]$Slot, [string]$TunnelAction) {
+    if ($Slot -cnotin @($script:SlotSelectors.Keys)) {
+        throw "Tunnel control requires one exact three-slot role."
     }
-    $command = Get-Command codex.exe -ErrorAction SilentlyContinue
-    if ($null -eq $command) { $command = Get-Command codex -ErrorAction Stop }
-    return $command.Source
+    if ($TunnelAction -cnotin @("Start", "Stop", "Status")) {
+        throw "Tunnel control action is not supported by the slot switch."
+    }
+    $runtimeRoot = Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin\tunnel-runtime-v300-stable-build"
+    $manager = Join-Path $runtimeRoot "Manage-EvidenceLaneTunnel.ps1"
+    if (-not (Test-Path -LiteralPath $manager -PathType Leaf)) {
+        throw "The version-matched v300 tunnel manager is not installed."
+    }
+    $result = & $manager `
+        -Action $TunnelAction `
+        -RuntimeRoot $runtimeRoot `
+        -ProfileName "evidence_lane_v300_stable_build_transport" `
+        -ReleaseToken "v300" `
+        -TaskName "EvidenceLane-Tunnel-v300-stable-build"
+    if (-not $?) {
+        throw "The $TunnelAction action failed for slot $Slot."
+    }
+    return $result
+}
+
+function Get-CodexExecutable {
+    $candidate = if (-not [string]::IsNullOrWhiteSpace($CodexExecutable)) {
+        [IO.Path]::GetFullPath($CodexExecutable)
+    }
+    else {
+        Join-Path $env:APPDATA "npm\node_modules\@openai\codex\node_modules\@openai\codex-win32-x64\vendor\x86_64-pc-windows-msvc\bin\codex.exe"
+    }
+    $exact = [IO.Path]::GetFullPath($candidate)
+    if ($exact -match '\\WindowsApps\\') {
+        throw "The packaged WindowsApps codex.exe is not a supported plugin-control route."
+    }
+    if (-not (Test-Path -LiteralPath $exact -PathType Leaf)) {
+        throw "The supported npm-native Codex CLI executable is unavailable."
+    }
+    return $exact
 }
 
 function Get-PluginInventory {
@@ -128,7 +167,7 @@ function Read-SealedRegistry {
         [int]$body.exact_live_slot_count -ne 3 -or
         [string]$body.failure_target_slot -cne "branch-commit-recovery" -or
         $body.mutable_local_failure_never_targets_main_git -ne $true -or
-        $body.pre_2_2_fallback_allowed -ne $false
+        $body.pre_3_0_fallback_allowed -ne $false
     ) {
         throw "The three-slot registry selection law drifted."
     }
@@ -238,6 +277,16 @@ $inventory = Assert-ExactInstalledThreeSlots
 if ($Reason -ceq "MUTABLE_LOCAL_RUNTIME_FAILURE" -and $TargetSlot -cne "branch-commit-recovery") {
     throw "A mutable local runtime failure may switch only to branch-commit-recovery."
 }
+if (
+    $Reason -ceq "MUTABLE_LOCAL_RUNTIME_FAILURE" -and (
+        $ConsecutiveFailures -lt 3 -or
+        $SampleWindowSeconds -lt 30 -or
+        $DistinctProbeTypes -lt 2 -or
+        $SingleTransientError
+    )
+) {
+    throw "Automatic recovery requires three consecutive probes across 30 seconds, two distinct probe types, and no single-transient classification."
+}
 
 if ($Action -ceq "Verify") {
     $activation = Assert-Activation -ExpectedSlot $TargetSlot
@@ -248,7 +297,7 @@ if ($Action -ceq "Verify") {
         active_selector = [string]$script:SlotSelectors[$TargetSlot]
         installed_slot_count = $inventory.Count
         obsolete_selector_active = $false
-        pre_2_2_fallback_allowed = $false
+        pre_3_0_fallback_allowed = $false
         config_sha256 = $activation.sha256
     } | ConvertTo-Json -Depth 8
     exit 0
@@ -264,11 +313,16 @@ if ([string]$targetInventory.version -cne [string]$targetRegistry.plugin_version
 
 if ($Action -ceq "Prepare") {
     $activation = Assert-Activation -ExpectedSlot $TargetSlot -AllowAllDisabled
+    $sourceSlot = [string]$sealedRegistry.body.active_slot
+    if ($sourceSlot -cnotin @($script:SlotSelectors.Keys) -or $sourceSlot -ceq $TargetSlot) {
+        throw "The sealed registry does not identify a distinct valid source slot."
+    }
     $receiptPath = Join-Path $ReceiptDirectory ("PREPARE_" + [guid]::NewGuid().ToString("N") + ".json")
     Write-JsonReceipt $receiptPath ([ordered]@{
         schema = "evidence-lane.codex-three-slot-switch-preparation.v1"
         status = "PASS"
         state = "PREPARED_NOT_SWITCHED"
+        source_slot = $sourceSlot
         target_slot = $TargetSlot
         target_selector = $targetSelector
         target_version = [string]$targetInventory.version
@@ -278,7 +332,7 @@ if ($Action -ceq "Prepare") {
         config_sha256 = $activation.sha256
         obsolete_selector_activation_allowed = $false
         mutable_local_failure_never_targets_main_git = $true
-        pre_2_2_fallback_allowed = $false
+        pre_3_0_fallback_allowed = $false
         switched = $false
     })
     [ordered]@{
@@ -299,10 +353,14 @@ $exactPreparation = (Resolve-Path -LiteralPath $PreparationReceipt).Path
 if ((Get-Sha256 $exactPreparation) -cne $expectedPreparationSha) { throw "Preparation receipt SHA-256 mismatch." }
 $prepared = Get-Content -LiteralPath $exactPreparation -Raw | ConvertFrom-Json
 $before = Read-Activation
+$source = [string]$prepared.source_slot
+$target = [string]$prepared.target_slot
 if (
     $prepared.schema -cne "evidence-lane.codex-three-slot-switch-preparation.v1" -or
     $prepared.state -cne "PREPARED_NOT_SWITCHED" -or
-    [string]$prepared.target_slot -cne $TargetSlot -or
+    $source -cnotin @($script:SlotSelectors.Keys) -or
+    $source -ceq $TargetSlot -or
+    $target -cne $TargetSlot -or
     [string]$prepared.target_selector -cne $targetSelector -or
     [string]$prepared.reason -cne $Reason -or
     [string]$prepared.registry_sha256 -cne $sealedRegistry.sha256 -or
@@ -310,7 +368,28 @@ if (
 ) {
     throw "The preparation receipt does not bind the current switch boundary."
 }
-$mutation = Set-ExclusiveActivation -SelectedSlot $TargetSlot
+$sourceStopped = $false
+$targetStarted = $false
+$sourceSlot = $source
+try {
+    Invoke-Tunnel -Slot $source -TunnelAction "Stop" | Out-Null
+    $sourceStopped = $true
+    Invoke-Tunnel -Slot $target -TunnelAction "Start" | Out-Null
+    $targetStarted = $true
+    $mutation = Set-ExclusiveActivation -SelectedSlot $TargetSlot
+} catch {
+    $failureMessage = $_.Exception.Message
+    $restoreTemporary = Join-Path (Split-Path -Parent $before.path) (".config.toml.restore." + [guid]::NewGuid().ToString("N"))
+    [IO.File]::WriteAllText($restoreTemporary, $before.raw, [Text.UTF8Encoding]::new($false))
+    Move-Item -LiteralPath $restoreTemporary -Destination $before.path -Force
+    if ($targetStarted) {
+        try { Invoke-Tunnel -Slot $target -TunnelAction "Stop" | Out-Null } catch {}
+    }
+    if ($sourceStopped) {
+        try { Invoke-Tunnel -Slot $source -TunnelAction "Start" | Out-Null } catch {}
+    }
+    throw "Slot switch failed. Rolled back to $sourceSlot. $failureMessage"
+}
 $receiptPath = Join-Path $ReceiptDirectory ("SWITCH_" + [guid]::NewGuid().ToString("N") + ".json")
 Write-JsonReceipt $receiptPath ([ordered]@{
     schema = "evidence-lane.codex-three-slot-switch-transition.v1"
@@ -327,7 +406,7 @@ Write-JsonReceipt $receiptPath ([ordered]@{
     exact_enabled_mcp_count = 1
     obsolete_selector_active = $false
     mutable_local_failure_never_targets_main_git = $true
-    pre_2_2_fallback_allowed = $false
+    pre_3_0_fallback_allowed = $false
     restart_required = $true
     helper_installs_plugin = $false
 })
@@ -336,5 +415,5 @@ Write-JsonReceipt $receiptPath ([ordered]@{
     state = "TARGET_SELECTED_RESTART_REQUIRED"
     receipt_path = $receiptPath
     receipt_sha256 = Get-Sha256 $receiptPath
-    next_action = "STAGE_TARGET_VERSION_TUNNEL_THEN_RUN_RESTART_ONLY_HELPER"
+    next_action = "RUN_Restart-EvidenceLaneCodex.ps1_AFTER_TARGET_TUNNEL_AND_PACKAGE_VERIFICATION"
 } | ConvertTo-Json -Depth 8

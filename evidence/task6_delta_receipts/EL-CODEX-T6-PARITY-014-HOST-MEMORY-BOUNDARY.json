@@ -1,0 +1,156 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_HOST_MEMORY_NONAUTHORITATIVE_PROVENANCE_BOUNDARY",
+  "recorded_at": "2026-08-15T14:59:48Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-014-HOST-MEMORY-BOUNDARY",
+  "task_contract_sha256": "C262C1D5EFE0DC37D2DE223A4A8B42EE9719361273CBB14FFA907F72753B295C",
+  "authority_boundary": {
+    "host_memory_authority": "NONAUTHORITATIVE_HELPFUL_RECALL_ONLY",
+    "required_rule_authority": "AGENTS_MD_OR_CHECKED_IN_DOCUMENTATION",
+    "automatic_import_allowed": false,
+    "hook_import_allowed": false,
+    "direct_memory_reference_allowed": false,
+    "explicit_immutable_provenance_receipt_required": true,
+    "raw_host_memory_persisted": false,
+    "private_reasoning_persisted": false,
+    "candidate_creation": "SEPARATE_EXPLICIT_ACTION_REQUIRED",
+    "learning_hil": "SEPARATE_EXPLICIT_ACTION_REQUIRED",
+    "project_hil": "FORBIDDEN",
+    "learning_pointer_effect": "NONE",
+    "project_truth_pointer_effect": "NONE"
+  },
+  "explicit_import_contract": {
+    "reference_scheme": "host-memory-import://<receipt-sha256>",
+    "accepted_source_kinds": [
+      "CHATGPT_MEMORY",
+      "CODEX_LOCAL_MEMORY",
+      "HOST_MEMORY"
+    ],
+    "bound_fields": [
+      "project_id",
+      "task_id",
+      "delta_id",
+      "pv_ref",
+      "source_kind",
+      "role_based_source_locator",
+      "source_locator_sha256",
+      "source_record_sha256",
+      "source_context_id_sha256",
+      "observed_at",
+      "imported_at",
+      "imported_by",
+      "purpose",
+      "project_truth_pointer_sha256"
+    ],
+    "content_addressed_receipt": true,
+    "tamper_detection": true,
+    "candidate_state_after_later_explicit_seal": "PENDING_LEARNING_HIL",
+    "accepted_learning_after_import": false
+  },
+  "official_host_source": {
+    "url": "https://learn.chatgpt.com/docs/customization/memories",
+    "bounded_interpretation": [
+      "Local Codex memories are host-generated recall state rather than project authority.",
+      "Rules that must always apply belong in AGENTS.md or checked-in project documentation.",
+      "Memory is off by default and remains separate from Evidence Lane Project Truth and Agent Learning."
+    ]
+  },
+  "runtime_enforcement": {
+    "direct_reference_prefixes_rejected": [
+      "codex-local-memory://",
+      "chatgpt-memory://",
+      "host-memory://"
+    ],
+    "receipt_identity_revalidated_on_candidate_seal": true,
+    "receipt_identity_revalidated_on_candidate_read": true,
+    "receipt_identity_revalidated_on_learning_retrieval": true,
+    "receipt_identity_revalidated_on_learning_inspection": true,
+    "hook_behavior_handoff_fields": {
+      "host_memory_imported": false,
+      "learning_candidate_created": false,
+      "learning_hil_invoked": false
+    }
+  },
+  "byte_identities": {
+    "agent_learning_sha256": "54B0906D087566318A3426EB4B1B74B7E9B45695092F6862EA3C280FA1861C58",
+    "event_isolation_policy_sha256": "4CE85725EF9CDD734D599E9A96DA0520003BB2F2DD1F3A9ED3C7D8F4F784E25E",
+    "event_isolation_source_sha256": "133B70A7059B652601FD05C3885ECF26DBC2176E85AFDE1AA7DC102D3E191700",
+    "behavior_handoff_source_sha256": "4E414748DDF8E89A3583C0D3F7CC8ADFDB0686A1C65D25F93179FA0EF42D0CC3",
+    "learning_skill_sha256": "4115E726AE0603D459049EE9E2C1234D0A3645A0EB38FB3C8FFFD61895C23A2B",
+    "root_skill_sha256": "285F2C3C365298E9D6D5FE0C6B4F285A763B9346ABCA9D48EDBEE029D09BFF1F",
+    "bounded_verifier_sha256": "9BC36E5D111CF2D9F9495E09B5582CDA29145D10750A12773D68138EF3B81DCD"
+  },
+  "verification": [
+    {
+      "selector": "Permitted-path Row211 host-memory boundary verifier",
+      "status": "PASS",
+      "result": "Direct memory blocked; provenance import idempotent; no candidate after import; explicit seal PENDING_LEARNING_HIL; tamper blocked; hook handoff memory fields false"
+    },
+    {
+      "selector": "Agent Learning host-memory boundary plus hook isolation and behavior-handoff tests",
+      "status": "PASS",
+      "result": "54 passed in 3.15s"
+    },
+    {
+      "selector": "Internal SDK regression suite",
+      "status": "PASS",
+      "result": "16 passed in 0.28s"
+    },
+    {
+      "selector": "Release-channel regression suite",
+      "status": "PASS",
+      "result": "14 passed in 0.04s"
+    },
+    {
+      "selector": "Modified-skill canonical tool-reference check",
+      "status": "PASS",
+      "result": "evi and evi-learning invalid references=[] against 83 canonical tools"
+    },
+    {
+      "selector": "Python lint, compile, policy JSON, and whitespace validation",
+      "status": "PASS",
+      "result": "All checks passed"
+    }
+  ],
+  "diagnostic_nonacceptance_failures": [
+    {
+      "selector": "Full tests/test_mcp_plugin.py diagnostic",
+      "result": "26 passed, 2 failed in 167.01s",
+      "outside_row211_acceptance_surface": [
+        "The catalog test classifies the pre-existing lifecycle field task_contract_sha256 as a tool identifier.",
+        "The root skill's pre-existing first-occurrence order for the six public controls is inconsistent."
+      ],
+      "silently_fixed_under_row211": false
+    }
+  ],
+  "negative_cases": [
+    "A direct host-memory URI cannot back a Learning Candidate.",
+    "A missing, malformed, renamed, or byte-tampered import receipt fails closed.",
+    "An evidence row that disagrees with its receipt task, Delta, PV, or source-record hash fails closed.",
+    "An import persists hashes and a role locator, never raw memory text, a source-context identifier, private reasoning, or secrets.",
+    "Recording provenance creates no Learning Candidate, invokes no HIL, and moves no Learning or Project Truth pointer.",
+    "A later explicit candidate seal remains pending Learning HIL and does not become Project Truth."
+  ],
+  "negative_side_effects": {
+    "live_host_memory_opened_or_imported": false,
+    "live_codex_home_opened_or_written": false,
+    "live_plugin_install_or_activation_changed": false,
+    "installer_or_goal_helper_invoked": false,
+    "task_or_goal_binding_mutated": false,
+    "tunnel_invoked": false,
+    "candidate_created_or_accepted": false,
+    "hil_invoked": false,
+    "pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "subagent_started": false
+  },
+  "limitations": [
+    "The import API is a governed internal Learning boundary in Row211; later SDK, MCP, command, and lifecycle route parity remains owned by its queued parity rows.",
+    "No live host memory was consumed as test input; temporary synthetic records proved the provenance and tamper boundaries.",
+    "The two full-MCP diagnostic failures remain visible and are not accepted as Row211 proof."
+  ],
+  "next_boundary": "Close Row211 through its exact per-Delta checkpoint. Row212 EL-CODEX-T6-PARITY-015-LANE-SCHEMA-SYSTEM owns the canonical lane-schema system; the reusable Goal-recovery service and exact per-task mutable binding remain separate from this memory boundary."
+}

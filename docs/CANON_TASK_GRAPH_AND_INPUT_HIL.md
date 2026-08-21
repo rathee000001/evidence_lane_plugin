@@ -19,6 +19,25 @@ by immutable contract, packet, edge, receipt, and State Travel continuity JSON.
 Project Truth and Agent Learning identities are sampled before and after every
 Canon write. Drift fails closed.
 
+The operational ledger remains the sole decision authority. A separate
+content-addressed consequence projection may be refreshed through the private
+SDK operation `canon_input:bootstrap_consequence_graph`. It binds the exact
+project layout, all 18 sector references, accepted PV/generation/manifest,
+active Plan task, Plan/steer database, Learning ledger, Canon ledger, host task
+UUID/deep link, and ChatLineage head. Each input fingerprint produces one
+immutable SQLite, Mermaid, DOT, manifest, and receipt bundle under
+`canon/consequence-graphs/`; `canon/consequence-graph-current.json` points to
+the verified current bundle. Exact replay reuses the bundle without reporting
+a write effect.
+
+The projection records task dependencies, steer links, Learning provenance,
+typed Canon handoffs, result returns, backfires, sector bounds, and the active
+host-task relationship. It is a bounded graph index, not another decision
+store: refresh cannot admit Canon input, accept Learning, create a Project
+candidate, invoke any HIL, infer ordinary approval, or move either pointer.
+`canon_graph` returns its counts and hashes only; raw Plan/Learning rows and the
+full graph are not loaded into model context.
+
 ## Admission state machine
 
 An envelope starts at `PROPOSED`, then the receiving project records
@@ -83,9 +102,13 @@ The package contains:
 - `schemas/canon-envelope.schema.json`
 - `schemas/canon-expected-contract.schema.json`
 - `schemas/canon-task-edge.schema.json`
+- `schemas/canon/canon-consequence-graph.v1.sql`
 
 `tests/test_canon_task_graph.py` covers expected and undefined admission,
 receiver ownership, all three decisions, replay conflict, revision and
 supersession, cross-project dispatch/result return, subagent denial, cycles,
 backfire deduplication, secret and authority escalation rejection, and
 State Travel's no-decision boundary.
+`tests/test_canon_consequence_graph.py` covers exact project/pointer/task
+binding, all-sector projection, Plan/Learning edges, immutable replay, SDK
+ownership, and fail-closed mismatch handling.

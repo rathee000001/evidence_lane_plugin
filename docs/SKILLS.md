@@ -1,4 +1,4 @@
-# Evidence Lane 2.2.0 skills
+# Evidence Lane 3.0.0 skills
 
 The Codex package contains exactly 17 governed skills. Skills are the behavior
 and sequencing layer: they perform PREPARE, request native reads, classify the

@@ -13,8 +13,10 @@ RUNTIME_SCHEMA_ASSETS = (
     Path("lane-schema-evolution.v001.json"),
     Path("lane-artifact-contract.v001.json"),
     Path("canon/canon-ledger.v1.sql"),
+    Path("canon/canon-consequence-graph.v1.sql"),
     Path("canon/canon-receipts.v1.schema.json"),
     Path("canon/canon-schema-manifest.v1.json"),
+    Path("memory/project-memory.v1.sql"),
 )
 
 

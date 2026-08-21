@@ -1,0 +1,84 @@
+"use client";
+
+import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+
+import { GlassIconOrb, GlassPill } from "./evidence-assets";
+
+export function GovernedPopup({
+  children,
+  labelledBy,
+  onClose,
+  open,
+  panelId,
+  size = "default",
+}: {
+  children: ReactNode;
+  labelledBy: string;
+  onClose: () => void;
+  open: boolean;
+  panelId: string;
+  size?: "default" | "wide";
+}) {
+  const dialogRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    dialogRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [onClose, open]);
+
+  if (!open) return null;
+
+  const closeFromBackdrop = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) onClose();
+  };
+
+  return createPortal(
+    <div
+      className="governedPopupOverlay"
+      data-popup-fade-schema="T023_UNIVERSAL_POPUP_FADE_V001"
+      onMouseDown={closeFromBackdrop}
+    >
+      <section
+        ref={dialogRef}
+        className={`governedPopupMotion governedPopupMotion--${size}`}
+        id={panelId}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={labelledBy}
+        tabIndex={-1}
+        data-popup-schema="T023_UNIVERSAL_FROSTED_POPUP_V001"
+      >
+        <GlassPill
+          className="governedPopupClose"
+          tone="neutral"
+          aria-label="Close detail popup"
+          leading={
+            <GlassIconOrb color="#aebdca" size={30} decorative>
+              <span aria-hidden="true">×</span>
+            </GlassIconOrb>
+          }
+          onClick={onClose}
+        >
+          Close detail
+        </GlassPill>
+        <div className="governedPopupScroll" data-universal-pill-cluster="popup-website-detail">
+          {children}
+        </div>
+      </section>
+    </div>,
+    document.body,
+  );
+}

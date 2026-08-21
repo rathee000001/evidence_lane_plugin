@@ -1412,7 +1412,8 @@ def test_rollback_travels_backward_forward_and_preserves_next_ordinal(
     assert service.store.next_pv_id("book-faires") == "PV3"
     stale_search = service.reader.search("book-faires", "list_books")
     assert stale_search["authority_state"] == "CURRENT_ACCEPTED_PV"
-    assert stale_search["status"] == "STALE"
+    assert stale_search["status"] == "PASS"
+    assert stale_search["freshness"]["state"] == "DIRTY_WORKING_TREE"
     assert stale_search["live_truth_status"] == "DIRTY_WORKING_TREE"
 
     forward = service.rollback(

@@ -14,6 +14,13 @@ SKILL_RUNTIME = (
     / "hook_skill_runtime.py"
 )
 HOOKS = PLUGIN / "hooks" / "hooks.json"
+WINDOWS_HOOK_HOST = (
+    PLUGIN
+    / "scripts"
+    / "codex_release"
+    / "windows_hook_host"
+    / "EvidenceLaneHookHost.cs"
+)
 
 
 def test_bounded_step_task_list_reentry_is_skill_owned_and_goal_independent() -> None:
@@ -69,7 +76,11 @@ def test_postcompact_hook_signals_reentry_without_owning_behavior() -> None:
     assert postcompact["commandWindows"].endswith(
         'PostCompact lifecycle_boundary.py'
     )
-    assert "-WindowStyle Hidden" in postcompact["commandWindows"]
+    assert "EvidenceLaneHookHost.exe" in postcompact["commandWindows"]
+
+    windows_host = WINDOWS_HOOK_HOST.read_text(encoding="utf-8")
+    assert "CreateNoWindow = true" in windows_host
+    assert "WindowStyle = ProcessWindowStyle.Hidden" in windows_host
 
     hook = BOUNDARY_HOOK.read_text(encoding="utf-8")
     runtime = SKILL_RUNTIME.read_text(encoding="utf-8")

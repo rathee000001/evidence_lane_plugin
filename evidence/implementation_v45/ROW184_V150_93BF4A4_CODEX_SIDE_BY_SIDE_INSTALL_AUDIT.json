@@ -1,0 +1,186 @@
+{
+  "schema": "evidence-lane.row184-v150-codex-side-by-side-install-audit.v1",
+  "status": "PARTIAL_PASS_BLOCKED_RELEASE_IDENTITY_ACTIVE_SERVER_SELECTION_AND_GOVERNED_BRANCH_REGISTRATION",
+  "generated_at": "2026-08-10T00:20:42.8249099Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "plan_position": 112,
+  "public_row": 184,
+  "source": {
+    "repository": "https://github.com/rathee000001/evidence_lane_plugin.git",
+    "branch": "agent/evi-v150-systemwide-release-hil-v1.5.0",
+    "commit": "93bf4a409faf544a96db8501cbdeefc002f9a32e",
+    "tree": "33bf581fc955241117d74a0f98c00e23b7642fa9",
+    "remote_branch_commit": "93bf4a409faf544a96db8501cbdeefc002f9a32e",
+    "tracked_worktree_clean": true,
+    "index_clean": true,
+    "whole_worktree_clean": false,
+    "preexisting_untracked_bytes_preserved": true
+  },
+  "official_openai_route": {
+    "documentation": "https://developers.openai.com/plugins/build/plugins",
+    "universal_public_directory_is_shared_by_chatgpt_and_codex": true,
+    "local_and_repository_marketplaces_are_test_sources": true,
+    "marketplace_qualified_plugin_ids_are_distinct": true,
+    "git_subdir_source_supports_exact_sha_pin": true,
+    "current_install_is_test_only_not_public_directory_publication": true
+  },
+  "local_marketplace": {
+    "name": "evidence-lane-v150-github",
+    "display_name": "Evidence Lane v1.5 GitHub Test",
+    "manifest_path": "C:\\Users\\rathe\\.codex\\local-marketplaces\\evidence-lane-v150-github\\.agents\\plugins\\marketplace.json",
+    "manifest_sha256": "E07309ED95B01B93E27F338005168E82971DB60CD7CED646C6BDBE51B53AD5D8",
+    "source_type": "git-subdir",
+    "source_url": "https://github.com/rathee000001/evidence_lane_plugin.git",
+    "source_path": "./plugins/evidence-lane-plugin",
+    "source_sha": "93bf4a409faf544a96db8501cbdeefc002f9a32e"
+  },
+  "side_by_side_plugin_records": [
+    {
+      "plugin_id": "evidence-lane-plugin@evidence-lane-github",
+      "version": "1.4.1+codex.20260809163215",
+      "installed": true,
+      "enabled": true,
+      "marketplace_source_type": "git",
+      "active_canonical_mcp_path": "C:\\Users\\rathe\\.codex\\plugins\\cache\\evidence-lane-github\\evidence-lane-plugin\\1.4.1+codex.20260809163215"
+    },
+    {
+      "plugin_id": "evidence-lane-plugin@evidence-lane-v150-github",
+      "version": "1.5.0+codex.20260809174231",
+      "installed": true,
+      "enabled": true,
+      "marketplace_source_type": "local_manifest_with_git_subdir_sha_pin",
+      "installed_path": "C:\\Users\\rathe\\.codex\\plugins\\cache\\evidence-lane-v150-github\\evidence-lane-plugin\\1.5.0+codex.20260809174231"
+    }
+  ],
+  "installed_v150_integrity": {
+    "tracked_plugin_file_count": 340,
+    "byte_identical_file_count": 340,
+    "missing_files": [],
+    "line_ending_normalized_files": [],
+    "semantic_mismatches": [],
+    "expected_generated_extras": [
+      ".codex-plugin/migrated-command-skills/source-command-evi-plan/SKILL.md"
+    ],
+    "file_sha256": {
+      ".codex-plugin/plugin.json": "9A1D88DFCE7522BA2C30435DA95294160D4A1BC6D3C0B2251EFE8D106B1BE671",
+      ".app.json": "A4C005C85C7BE8C04E8B6F2C3D25F7800BAB5C389043CBC5794E498C4451A1DE",
+      ".mcp.json": "60249F25B6097862178DB807F0A2B81C9CE17B227EE7EFA0EF51FEC941057272"
+    },
+    "dependency_check": {
+      "command": ".venv/Scripts/python.exe -m pip check",
+      "status": "PASS",
+      "output": "No broken requirements found."
+    }
+  },
+  "direct_v150_native_runtime_proof": {
+    "server_name": "Evidence Lane",
+    "server_version": "1.5.0",
+    "protocol_version": "2025-06-18",
+    "tool_count": 62,
+    "runtime_doctor_status": "PASS",
+    "runtime_checks": {
+      "git": true,
+      "python": true,
+      "sqlite_fts5": true,
+      "schema_file": true,
+      "store_writable": true,
+      "session_flash_bundle": true
+    },
+    "runtime_state": "ACTIVE",
+    "prompt_capture_active": true,
+    "visible_response_capture_active": true,
+    "durable_store": "C:\\Users\\rathe\\EvidenceLanePV",
+    "flash_status": "PASS",
+    "flash_action": "REUSED",
+    "native_mcp_route_status": "PASS",
+    "canonical_tool_namespace": "mcp__evidence_lane__",
+    "engine": {
+      "release": "1.5.0",
+      "commit": "UNCOMMITTED",
+      "package_sha256": "2FE9F5AD5A9EA12B2C244F01AD2372E80177E8A124F52AC9C3D511CFA3DD008D",
+      "toolchain_manifest_sha256": "8285FFC3D24735EE7117F47B3A226098F4AA6F4A156A84D4B7DEBBE5AE7C19B9"
+    },
+    "accepted_pointer": {
+      "status": "PASS",
+      "accepted_pv": "PV10",
+      "generation": 10,
+      "prior_generation": 9,
+      "accepted_manifest_sha256": "561D80C31B238402E0F134CE29DC50A3BB61CADA2E34061D1ED0821128E28E25",
+      "pending_candidate": null,
+      "pending_hil": false,
+      "freshness": "STALE_BECAUSE_LIVE_SOURCE_ADVANCED_WITHOUT_POINTER_MOVEMENT"
+    },
+    "project_panel": {
+      "status": "PASS",
+      "read_only": true,
+      "active_state": "TASK_CLASSIFIED",
+      "pending_candidate": "NONE"
+    },
+    "mcp_app_resource": {
+      "uri": "ui://evidence-lane/governed-console-v2.html",
+      "mime_type": "text/html;profile=mcp-app",
+      "characters": 9043,
+      "sha256": "9087B9FC17DD9D9F00364AC9067EF19071EA959F0951C2BC59DE55AD3129CFDE"
+    }
+  },
+  "activation_and_governance_blockers": [
+    {
+      "code": "INSTALLED_RELEASE_IDENTITY_UNVERIFIED",
+      "evidence": "The direct v1.5 runtime reports engine.commit as UNCOMMITTED even though the local marketplace source records the exact Git SHA.",
+      "impact": "The installed runtime cannot independently prove that its active bytes are the claimed release commit."
+    },
+    {
+      "code": "CANONICAL_MCP_SERVER_SELECTION_COLLISION",
+      "evidence": "codex mcp list resolves the canonical evidence-lane server to the v1.4.1 cache path while both v1.4.1 and v1.5.0 plugin records are enabled.",
+      "impact": "Normal Codex lifecycle calls still use v1.4.1 rather than the separately installed v1.5.0 runtime."
+    },
+    {
+      "code": "GOVERNED_PROJECT_BRANCH_REGISTRATION_MISMATCH",
+      "evidence": "pv_status lists only agent/evi-v140-systemwide-release-hil-v1.4.0 in project.allowed_branches while live source is agent/evi-v150-systemwide-release-hil-v1.5.0.",
+      "impact": "The v1.5 feature branch is not yet reflected in the governed project's durable branch registration."
+    },
+    {
+      "code": "PUBLIC_DURABLE_MCP_ORIGIN_NOT_CONFIGURED",
+      "evidence": "The exact-commit Vercel preview remains fail-closed with DURABLE_HTTPS_ORIGIN_REQUIRED and exact-release configuration requirements.",
+      "impact": "OAuth 2.1 discovery and ChatGPT installation cannot be proven against a healthy public MCP endpoint."
+    },
+    {
+      "code": "CHATGPT_INSTALL_NOT_PROVEN",
+      "evidence": "No successful ChatGPT installation/use proof exists for the exact v1.5 package and public endpoint.",
+      "impact": "Cross-surface installation acceptance remains incomplete."
+    }
+  ],
+  "public_adapter_gate": {
+    "vercel_project_id": "prj_nQ6Wbvmx0637C3JSMvE7POUoaPLF",
+    "exact_commit_preview_id": "dpl_9wcLiM1ED3Pnmjz4MHpm1h4CSi8P",
+    "preview_url": "https://evidence-lane-chatgpt-mcp-adapter-hllaqjvmi.vercel.app",
+    "preview_state": "READY_BUT_RUNTIME_CONTRACT_BLOCKED",
+    "required_configuration": {
+      "EVIDENCE_LANE_DURABLE_MCP_ORIGIN": "REQUIRED_PUBLIC_HTTPS_ROOT_WITH_NO_PATH_OR_QUERY",
+      "EVIDENCE_LANE_RELEASE_SHA": "93bf4a409faf544a96db8501cbdeefc002f9a32e",
+      "origin_health_release_sha_must_match": true
+    }
+  },
+  "boundaries": {
+    "existing_v1_4_install_removed_or_disabled": false,
+    "accepted_pointer_moved": false,
+    "candidate_created": false,
+    "fuse_performed": false,
+    "main_merged": false,
+    "production_deployed_or_promoted": false,
+    "plugin_published_or_submitted": false,
+    "devpost_updated": false,
+    "google_drive_called": false,
+    "external_credentials_shared": false,
+    "subagents_used": false
+  },
+  "required_next_gates": [
+    "Select an activation route that makes v1.5 the canonical Codex MCP without deleting the preserved v1.4 installation, then prove exact installed release identity.",
+    "Reconcile the governed project's allowed branch registration with the authorized v1.5 feature branch under its exact lifecycle contract.",
+    "Provision or identify a durable public HTTPS MCP origin for exact commit 93bf4a409faf544a96db8501cbdeefc002f9a32e.",
+    "Under separate deployment authorization, configure the preview adapter with the durable origin and exact release SHA.",
+    "Prove OAuth 2.1 discovery, owner-only production authority, and least-privilege staging tester behavior.",
+    "Install and exercise the same exact package through ChatGPT and Codex.",
+    "Reach position 119 / public Row 191 and present the exact final six-way HIL without inferring a decision."
+  ]
+}

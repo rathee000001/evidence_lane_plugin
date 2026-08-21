@@ -1,0 +1,146 @@
+{
+  "schema": "evidence-lane.public-plugin-metadata.v1",
+  "name": "Evidence Lane",
+  "version": "1.5.0",
+  "short_description": "Governed project evidence with durable memory and human-controlled acceptance.",
+  "long_description": "Evidence Lane turns authorized project sources and visible AI-task lineage into inspectable, content-sealed evidence packages. It keeps candidates separate from accepted truth, preserves exact source identity and pointer history, resumes exact unfinished work through verified State Travel, and requires an explicit six-way human-in-the-loop decision before promotion.",
+  "developer": {
+    "name": "Praveen Rathee",
+    "url": "https://github.com/rathee000001"
+  },
+  "homepage": "https://evidencelane.org",
+  "mcp_endpoint": "https://mcp.evidencelane.org/mcp",
+  "logo": "https://evidencelane.org/evidence-lane-icon.png",
+  "privacy": "https://evidencelane.org/privacy",
+  "terms": "https://evidencelane.org/terms",
+  "support": "https://evidencelane.org/support",
+  "license": "https://evidencelane.org/license",
+  "copyright": "https://evidencelane.org/copyright",
+  "repository": "https://github.com/rathee000001/evidence_lane_plugin",
+  "interactive_ui": {
+    "standard": "MCP Apps",
+    "resource_uri": "ui://evidence-lane/governed-console-v2.html",
+    "mime_type": "text/html;profile=mcp-app",
+    "render_tools": [
+      "render_runtime_panel",
+      "render_project_panel"
+    ],
+    "host_boundary": "Evidence Lane supplies supported in-conversation panels; ChatGPT owns its native listing and settings layout."
+  },
+  "host_contracts": {
+    "codex": "Exact-Git full lifecycle. Plan Lane may project to Codex native Plan mode, Goal, and task panel through a user-mediated /pl and /evi-plan flow.",
+    "chatgpt_pro": "Complete 62-action MCP catalog with 21 executing reads and 41 visible fail-closed lifecycle-write actions. ChatGPT native ENV/UOP and Project Mutation remain host-owned and are not MCP mutations. Vercel and the owned HTTPS domain are ChatGPT-only."
+  },
+  "skill_surface": {
+    "packaged_count": 15,
+    "visibility": "ALL_PACKAGED_SKILL_ENTRIES_VISIBLE_ON_CHATGPT_AND_CODEX",
+    "read_safe_workflows": [
+      "Root routing and exact six-control presentation",
+      "Boot ENV/UOP Flash, runtime and accepted-PV observation",
+      "Accepted-PV Entry and Exit Slip observation",
+      "Lane, search, diff, backlog and governed-panel guidance",
+      "Mode, storage and lifecycle-law explanation without mutation"
+    ],
+    "chatgpt_pro_write_behavior": "VISIBLE_ACTION_INTERCEPTED_BEFORE_SERVICE_INVOCATION_AND_REPORTED_UNAVAILABLE_WITHOUT_MUTATION"
+  },
+  "exposure_profiles": {
+    "codex": {
+      "name": "FULL_LIFECYCLE",
+      "delivery": "exact Git plugin"
+    },
+    "chatgpt_pro": {
+      "name": "CHATGPT_PRO_GOVERNED",
+      "tool_count": 62,
+      "active_read_tool_count": 21,
+      "visible_fail_closed_write_tool_count": 41,
+      "all_lifecycle_mutations_blocked": true,
+      "visible_controls": ["Boot", "Rollback", "Build", "Refresh", "Mode", "Source Intake"],
+      "excluded_dependencies": ["Meshy", "generated GLB", "3D production dependency"]
+    }
+  },
+  "execution_writer_boundary": {
+    "schema": "evidence-lane.execution-writer-boundary.v1",
+    "project_policy": "ONE_GOVERNED_PROJECT",
+    "writer_policy": "ONE_LIVE_WRITER",
+    "execution_order": "LINEAR",
+    "verification_order": "EVIDENCE_FIRST",
+    "execution_profile": {
+      "model": "gpt-5.6-sol",
+      "submodel": "sol",
+      "reasoning_effort": "ultra",
+      "reasoning_speed": "standard"
+    },
+    "execution_profile_change_authority": "EXPLICIT_USER_CHANGE_ONLY",
+    "entry_recovery_agents": "READ_ONLY_ONLY_AT_GENUINE_STATE_TRAVEL_ENTRY",
+    "later_subagents": "EXPLICIT_USER_COMMAND_ONLY",
+    "alternate_checkout_writer": "FORBIDDEN_UNLESS_EXPLICIT_USER_CHANGE",
+    "background_mutation": "FORBIDDEN_UNLESS_EXPLICIT_USER_CHANGE",
+    "browser_profile": "ONE_USER_SELECTED_PROFILE_ONLY_UNLESS_EXPLICIT_USER_CHANGE"
+  },
+  "goal_continuity": {
+    "schema": "evidence-lane.goal-continuity.v1",
+    "receipt_binding": "EXACT_TASK_LIST_SHA256_AND_GOVERNED_SESSION_ID",
+    "plan_authority": "SAME_CANONICAL_PLAN_LANE",
+    "source_boundary": "SAME_ACTIVE_SOURCE_BOUNDARY",
+    "writer_session": "SAME_SINGLE_WRITER_SESSION",
+    "pause_triggers": [
+      "UI_CRASH",
+      "TOKEN_WAIT",
+      "REQUIRED_USER_INPUT",
+      "HIL_WAIT"
+    ],
+    "pause_effect": "PAUSE_DEPENDENT_WORK_ONLY",
+    "goal_completion_effect_while_waiting": "FORBIDDEN",
+    "usage_reporting_task_status_effect": "NONE",
+    "reconstruction_requires": [
+      "ALL_COMPLETED_BUT_STILL_GOVERNING_ROWS",
+      "EXACTLY_ONE_ACTIVE_ROW_WHEN_PANEL_PRESENT",
+      "ALL_PENDING_ROWS"
+    ],
+    "completed_governing_rows_may_be_omitted": false,
+    "goal_completion_allowed_when": "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE"
+  },
+  "plan_lane": {
+    "current_public_projection": "https://evidencelane.org/#current-execution-plan",
+    "sealed_historical_delta_rows": 80,
+    "live_projection_rows": 111,
+    "governed_receipt_rows": 119,
+    "active_public_row": 182,
+    "active_public_task_position": 102,
+    "active_governed_receipt_position": 110,
+    "last_pre_hil_public_row": 190,
+    "last_pre_hil_governed_receipt_position": 118,
+    "physically_final_hil_public_row": 191,
+    "physically_final_hil_governed_receipt_position": 119,
+    "steer_default_boundary": "BEFORE_NEXT_HIL",
+    "persistent_until": "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE",
+    "panel_reactivation": {
+      "schema": "evidence-lane.persistent-panel-reactivation.v1",
+      "triggers": [
+        "TOKEN_DRIVEN_CONTINUATION",
+        "STALLED_GOAL",
+        "CONTEXT_COMPACTION",
+        "BROWSER_RESTART",
+        "CODEX_RESTART",
+        "SESSION_CONTINUATION",
+        "SESSION_RESUME",
+        "STATE_TRAVEL_DESTINATION_ENTRY"
+      ],
+      "first_required_action": "REPROJECT_EXACT_COMPLETE_TASK_LIST",
+      "must_precede": [
+        "SOURCE_INSPECTION",
+        "SOURCE_MUTATION",
+        "TESTING",
+        "GIT_ACTIVITY",
+        "LIFECYCLE_CALL"
+      ],
+      "exactly_one_in_progress": true,
+      "preserve_order_and_row_count": true,
+      "preserve_completed_and_pending_descriptions_unabridged": true,
+      "visible_through_pause_and_hil": true,
+      "drop_allowed_when": "PHYSICALLY_FINAL_SIX_WAY_HIL_DECIDED_AND_DECISION_DEPENDENT_WORK_COMPLETE"
+    }
+  },
+  "release_propagation": "GitHub Markdown, all relevant website pages and footers, the website Delta table, Vercel production from main, and existing Devpost project 1348634/evidence_os must resolve from the same accepted release evidence.",
+  "publication_state": "CANDIDATE_PENDING_VERIFICATION"
+}

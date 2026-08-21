@@ -68,3 +68,26 @@ def test_probe_scripted_responses_have_one_safe_tool_and_compaction() -> None:
         and event.get("item", {}).get("type") == "compaction"
     )
     assert compaction["encrypted_content"] == "ROW174_ISOLATED_COMPACTION_SUMMARY"
+
+
+def test_parser_supports_one_progressive_live_event() -> None:
+    verifier = _module()
+    parsed = verifier._parser().parse_args(
+        [
+            "--codex-executable",
+            "codex.exe",
+            "--codex-home",
+            "codex-home",
+            "--data-root",
+            "data-root",
+            "--workspace",
+            "workspace",
+            "--plugin-selector",
+            "evidence-lane-plugin@testing",
+            "--event",
+            "PreCompact",
+            "--live-codex-home",
+        ]
+    )
+    assert parsed.event == ["PreCompact"]
+    assert parsed.live_codex_home is True

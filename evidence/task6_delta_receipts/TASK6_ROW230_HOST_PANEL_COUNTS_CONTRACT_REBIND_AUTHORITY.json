@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.visible-user-authority-receipt.v1",
+  "authority_kind": "HOST_PLAN_EXECUTION_AND_CONTRACT_CORRECTION",
+  "author": "user",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "visible_user_instructions": [
+    "no i am not saying the actions of them i am saying the counts like git sync and other thing which got logged and same for vercel as cpount not there action bro",
+    "there is no hard rile policy if you need to something you can do it just not hil",
+    "there is same context bloat of yhe native dump being loaded in context please govern it youself no such thing happens"
+  ],
+  "authorized_effect": "Amend only the active Row230 contract so its focused host-panel governed-count test and this visible authority receipt are exact permitted paths. Preserve the existing Row230 identity, outcome, ownership rule, dependencies, order, status, Goal binding, and all other contract fields.",
+  "identity_invariants": {
+    "same_project": true,
+    "same_session": true,
+    "same_task6": true,
+    "same_active_plan_row": true,
+    "same_dirty_worktree": true,
+    "accepted_pv": "PV12",
+    "pointer_generation": 12
+  },
+  "not_authorized": [
+    "HIL approval or inference",
+    "candidate creation or acceptance",
+    "PV pointer movement",
+    "Goal completion",
+    "Plan row insertion, deletion, reordering, or status transition",
+    "Git stage, commit, or push",
+    "plugin install, selector switch, helper launch, or tunnel launch",
+    "hook activation",
+    "ENV, UOP, or operator mutation",
+    "main merge, fallback replacement, or production deployment"
+  ]
+}

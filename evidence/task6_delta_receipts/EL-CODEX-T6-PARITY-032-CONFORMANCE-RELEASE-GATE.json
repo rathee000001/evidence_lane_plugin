@@ -1,0 +1,115 @@
+{
+  "schema": "evidence-lane.task6-delta-receipt.v1",
+  "status": "PASS",
+  "recorded_at": "2026-08-16T21:13:47.3658360Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-032-CONFORMANCE-RELEASE-GATE",
+  "task_contract_sha256": "811FBEAAFF4825A4150BC92B0455AD7200BCCAB551157D2068D89A813D95C755",
+  "source_identity": {
+    "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
+    "head_commit": "4d31cefe546dbe44583f04f0e41a640785e8e797",
+    "accepted_pv": "PV12",
+    "pointer_generation": 12,
+    "pre_delta_worktree_sha256": "656580F49E9AE7FBDEA72249ADA0372A87DE783EAFB45F957EF86C46FA0D1B2F",
+    "implementation_worktree_sha256_before_receipt": "471C5B46D903EE26BE7F09B9E0CFDEAC01A48647816319DA16D81840AB6D0DFC"
+  },
+  "implementation": {
+    "contract": "Generate the release gate from the sealed Row236 public-tool matrix; require every applicable case PASS with immutable locators; bind the matrix hashes into the later exact commit, install, CI, and HIL receipt chain.",
+    "gate_schema": "evidence-lane.public-tool-conformance-release-gate.v1",
+    "gate_status": "PASS",
+    "source_matrix_sha256": "C10DDCEAFFFD1829A655D712D3FD314AC7A0D4F5E88BC1F933F6CD2E7353EB33",
+    "installed_matrix_sha256": "91ED41BEC369AD21B0FA12E85A6173C0A771BA03A10E8BCE7697E50BBC13EFE0",
+    "row236_receipt_sha256": "092F1A7E4F2A91EA42BBCBDBF28D0227FD28951FF282706D32FAD20C0940ACD0",
+    "gate_sha256": "AC32DF04CB337BB47C790D8384EA4099E51E617EE56200D2784ED7E51B9634A3",
+    "applicable_cases": 7,
+    "passing_cases": 7,
+    "source_catalog": {
+      "actions": 86,
+      "assertions": 602,
+      "status": "PASS"
+    },
+    "exact_installed_catalog": {
+      "actions": 83,
+      "assertions": 581,
+      "status": "PASS"
+    },
+    "source_only_preinstall_tools": [
+      "learning_memory_query",
+      "learning_memory_record_link",
+      "learning_record_host_memory_import"
+    ],
+    "routing_contract": "The root evi skill and MCP routing map require this gate before COMMIT, INSTALL, CI, or HIL and fail closed with CONFORMANCE_GATE_FAIL_CLOSED.",
+    "release_eligibility": "BLOCKED_PENDING_EXACT_COMMIT_INSTALL_CI_AND_HIL_RECEIPTS"
+  },
+  "changed_paths": [
+    {
+      "path": "plugins/evidence-lane-plugin/skills/evi/references/public-tool-conformance-release-gate.v1.json",
+      "sha256": "AC32DF04CB337BB47C790D8384EA4099E51E617EE56200D2784ED7E51B9634A3"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/skills/evi/SKILL.md",
+      "sha256": "6285CDAA8B2CAD2C31F4E9A5963AAD1E02BE83C0B106C462F9B8BE449D91FF79"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/skills/evi/references/mcp-tool-routing.v1.json",
+      "sha256": "268D8929846BCBB02840D28350538F24E049053E1A95DBBE5205E058036753A6"
+    },
+    {
+      "path": "tests/test_public_surface_parity_matrix.py",
+      "sha256": "99B05F6652DB456D69906E29AC3246EC925422723F8D093C97A370805FD341A0"
+    }
+  ],
+  "verification": [
+    {
+      "selector": "source_and_exact_installed_conformance_gate",
+      "command": "$env:EVIDENCE_LANE_EXACT_INSTALLED_PLUGIN_ROOT='<exact v3.0 testing slot>'; .\\.venv\\Scripts\\python.exe -m pytest -q tests/test_public_surface_parity_matrix.py",
+      "status": "PASS",
+      "output": "10 passed in 2.58s"
+    },
+    {
+      "selector": "sdk_skill_mcp_routing",
+      "command": ".\\.venv\\Scripts\\python.exe -m pytest -q tests/test_internal_sdk_skill_mcp_routing.py",
+      "status": "PASS",
+      "output": "12 passed in 3.41s"
+    },
+    {
+      "selector": "narrow_lint_and_diff_integrity",
+      "command": ".\\.venv\\Scripts\\python.exe -m ruff check tests/test_public_surface_parity_matrix.py; git diff --check -- <Row237 paths>",
+      "status": "PASS",
+      "output": "All checks passed; diff integrity passed"
+    }
+  ],
+  "negative_cases": [
+    "A missing or non-PASS applicable matrix case blocks every downstream release stage.",
+    "A matrix, gate, locator, or prior receipt hash mismatch fails closed.",
+    "The gate does not authorize Git, install, CI, candidate creation, HIL, Fuse, or pointer movement.",
+    "Source-only preinstall tools remain explicit drift and are not misreported as installed parity."
+  ],
+  "boundaries": {
+    "candidate_created": false,
+    "pending_hil": false,
+    "hil_invoked": false,
+    "hil_inferred": false,
+    "pointer_moved": false,
+    "git_executed": false,
+    "install_executed": false,
+    "helper_launched": false,
+    "tunnel_launched": false,
+    "hooks_enabled": false,
+    "external_credential_used": false,
+    "source_write_scope": [
+      "plugins/evidence-lane-plugin/skills/evi/SKILL.md",
+      "plugins/evidence-lane-plugin/skills/evi/references/mcp-tool-routing.v1.json",
+      "plugins/evidence-lane-plugin/skills/evi/references/public-tool-conformance-release-gate.v1.json",
+      "tests/test_public_surface_parity_matrix.py",
+      "evidence/task6_delta_receipts/EL-CODEX-T6-PARITY-032-CONFORMANCE-RELEASE-GATE.json"
+    ]
+  },
+  "limitations": [
+    "Exact installed catalog remains 83 actions while source contains 86; the three source-only Learning-memory actions require a later governed install before installed parity can pass.",
+    "COMMIT, INSTALL, CI, and HIL receipts do not yet exist for this gate and therefore release eligibility remains blocked.",
+    "Hooks remain disabled; Row245 owns installed-hook parity and no hook activation was attempted here."
+  ]
+}

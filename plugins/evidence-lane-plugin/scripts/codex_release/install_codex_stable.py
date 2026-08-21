@@ -1,4 +1,4 @@
-"""Stage and activate one sealed Evidence Lane 2.2 Codex marketplace package.
+"""Stage and activate one sealed Evidence Lane 3.0 Codex marketplace package.
 
 The script uses supported Codex marketplace, plugin, hook, and configuration
 APIs.  Maintainer-local execution has exactly three persistent selectors: main
@@ -31,17 +31,26 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-BASE_RELEASE = "2.2.0"
+BASE_RELEASE = "3.0.0"
 MARKETPLACE_NAME = "evidence-lane-github"
 MARKETPLACE_DISPLAY_NAME = "Main Git Plugin Version"
-LOCAL_TESTING_MARKETPLACE_NAME = "evidence-lane-v220-testing-new"
+LOCAL_TESTING_MARKETPLACE_NAME = "evidence-lane-v300-testing-new"
 LOCAL_TESTING_MARKETPLACE_DISPLAY_NAME = "Local Testing Slot"
-LOCAL_RECOVERY_MARKETPLACE_NAME = "evidence-lane-v220-stable-recovery"
+LOCAL_RECOVERY_MARKETPLACE_NAME = "evidence-lane-v300-stable-recovery"
 LOCAL_RECOVERY_MARKETPLACE_DISPLAY_NAME = "Branch Commit Git Recovery"
 LOCAL_RECOVERY_SELECTOR = f"evidence-lane-plugin@{LOCAL_RECOVERY_MARKETPLACE_NAME}"
-LOCAL_RECOVERY_REGISTRY_SCHEMA = "evidence-lane.codex-local-v220-recovery-registry.v1"
-LOCAL_SUCCESSOR_MARKETPLACE_NAME = "evidence-lane-v220-local-successor"
-LOCAL_SUCCESSOR_MARKETPLACE_DISPLAY_NAME = "Local 2.2 Verified Successor"
+CODEX_GENERATED_MIGRATED_COMMAND_ROOT = (
+    ".codex-plugin/migrated-command-skills"
+)
+LOCAL_RECOVERY_REGISTRY_SCHEMA = "evidence-lane.codex-local-v300-recovery-registry.v1"
+BRANCH_CHECKPOINT_INSTALL_SCHEMA = (
+    "evidence-lane.codex-branch-checkpoint-recovery-install.v1"
+)
+BRANCH_CHECKPOINT_CONFIRMATION = (
+    "EXPLICIT_GOVERNED_BRANCH_COMMIT_RECOVERY"
+)
+LOCAL_SUCCESSOR_MARKETPLACE_NAME = "evidence-lane-v300-local-successor"
+LOCAL_SUCCESSOR_MARKETPLACE_DISPLAY_NAME = "Local 3.0 Verified Successor"
 LOCAL_SUCCESSOR_SELECTOR = (
     f"evidence-lane-plugin@{LOCAL_SUCCESSOR_MARKETPLACE_NAME}"
 )
@@ -58,7 +67,14 @@ LOCAL_TEST_DISABLED_HOOK_RECOVERY_SCHEMA = (
     "evidence-lane.codex-local-test-disabled-hook-recovery.v1"
 )
 LOCAL_TEST_DISABLED_HOOK_RECOVERY_CONFIRMATION = (
-    "EXPLICIT_DISABLED_LOCAL_2_2_HOOK_RECOVERY"
+    "EXPLICIT_DISABLED_LOCAL_3_0_HOOK_RECOVERY"
+)
+LOCAL_TEST_DISABLED_BASELINE_CONFIRMATION = (
+    "EXPLICIT_LIVE_DISABLED_LOCAL_3_0_BASELINE"
+)
+NPM_CODEX_CLI_RELATIVE_PATH = Path(
+    "npm/node_modules/@openai/codex/node_modules/@openai/"
+    "codex-win32-x64/vendor/x86_64-pc-windows-msvc/bin/codex.exe"
 )
 INSTALL_CORRECTION_GENERATION_SCHEMA = (
     "evidence-lane.codex-install-correction-generation.v1"
@@ -82,7 +98,7 @@ GENERATION_NEUTRAL_FALLBACK_SELECTOR = f"{PLUGIN_NAME}@evidence-lane-fallback"
 LEGACY_FALLBACK_SELECTOR_RE = re.compile(
     rf"^{re.escape(PLUGIN_NAME)}@evidence-lane-pv[1-9][0-9]*-fallback$"
 )
-EXPECTED_CATALOG = {"tools": 83, "read": 26, "write": 57, "skills": 17}
+EXPECTED_CATALOG = {"tools": 88, "read": 27, "write": 61, "skills": 17}
 EXPECTED_WORKFLOW_SCOPE = {
     "plugin_release_cadence": "ONE_AUTHORIZED_LOGICAL_RELEASE_COMMIT_BATCH",
     "plugin_release_steps": [
@@ -105,24 +121,28 @@ EXPECTED_WORKFLOW_SCOPE = {
         "ci_prerequisite_row": 196,
         "execution_row": 197,
         "release": BASE_RELEASE,
-        "branch": "agent/evi-v220-systemwide-release-hil-v2.2.0",
+        "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
         "source": (
             "EXACT_GIT_COMMIT_AFTER_REQUIRED_CLEAN_CI_AND_"
             "GIT_TRIGGERED_VERCEL_PREVIEW"
         ),
-        "slot_role": "stable-build",
-        "plugin_selector": PLUGIN_SELECTOR,
+        "slot_role": "branch-commit-recovery",
+        "plugin_selector": LOCAL_RECOVERY_SELECTOR,
+        "byte_identical_local_testing_selector": (
+            f"{PLUGIN_NAME}@{LOCAL_TESTING_MARKETPLACE_NAME}"
+        ),
+        "working_role_sync_required": True,
         "installed_version_must_equal_exact_package_version": True,
         "installed_catalog_must_equal": {
-            "native_actions": 83,
-            "read_actions": 26,
-            "write_actions": 57,
+            "native_actions": 88,
+            "read_actions": 27,
+            "write_actions": 61,
             "governed_skills": 17,
             "hook_events": 8,
             "migrated_command_skills": 1,
         },
         "installed_ui_readback_required_before_pv13_hil": True,
-        "fallback_mutation_allowed": False,
+        "main_git_release_slot_mutation_allowed": False,
         "main_merge_allowed": False,
         "downstream_project_inherits_install": False,
     },
@@ -148,6 +168,20 @@ EXPECTED_GOAL_COMPLETION_POLICY = {
 }
 EXPECTED_HELPER_DISTRIBUTION_POLICY = {
     "schema": "evidence-lane.helper-distribution-policy.v1",
+    "runtime_storage_boundary": {
+        "root_relative_to_user_profile": (
+            ".codex\\plugins\\runtime\\evidence-lane-plugin"
+        ),
+        "host_managed_hidden": True,
+        "project_authority_may_share_root": False,
+        "installed_cache_mutation_for_runtime_state_allowed": False,
+        "one_active_native_mcp_count": 1,
+        "one_active_tunnel_count": 1,
+        "failed_windowsapps_cli_probe_allowed": False,
+        "npm_native_codex_cli_required": True,
+        "exact_task_reopen_count": 1,
+        "black_terminal_popup_allowed": False,
+    },
     "maintainer_release_helper": {
         "script": "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
         "audience": "EVIDENCE_LANE_MAINTAINER_ONLY",
@@ -176,8 +210,8 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
         "audience": "GOVERNED_CODEX_USER",
         "public_marketplace_user_surface": True,
         "release": BASE_RELEASE,
-        "release_token": "v220",
-        "scheduled_task_name": "Evidence Lane Codex Goal Recovery v220",
+        "release_token": "v300",
+        "scheduled_task_name": "Evidence Lane Codex Goal Recovery v300",
         "at_logon": True,
         "persistent_or_hidden_no_transient_console": True,
         "prior_versions_retained": True,
@@ -195,9 +229,9 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
         "audience": "GOVERNED_CODEX_USER",
         "public_marketplace_user_surface": True,
         "release": BASE_RELEASE,
-        "release_token": "v220",
-        "runtime_root_suffix": "tunnel-runtime-v220-stable-build",
-        "scheduled_task_name": "EvidenceLane-Tunnel-v220-stable-build",
+        "release_token": "v300",
+        "runtime_root_suffix": "tunnel-runtime-v300-stable-build",
+        "scheduled_task_name": "EvidenceLane-Tunnel-v300-stable-build",
         "at_logon": True,
         "persistent_or_hidden_no_transient_console": True,
         "one_active_version": True,
@@ -207,9 +241,9 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
     "branch_recovery_transport": {
         "audience": "MAINTAINER_RECOVERY_ONLY",
         "release": BASE_RELEASE,
-        "release_token": "v220",
-        "runtime_root_suffix": "tunnel-runtime-v220-stable-build",
-        "scheduled_task_name": "EvidenceLane-Tunnel-v220-stable-build",
+        "release_token": "v300",
+        "runtime_root_suffix": "tunnel-runtime-v300-stable-build",
+        "scheduled_task_name": "EvidenceLane-Tunnel-v300-stable-build",
         "target_slot_restaged_before_switch": True,
         "one_version_matched_tunnel": True,
         "public_marketplace_user_surface": False,
@@ -219,7 +253,7 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
         "applies_to_plugin_maintainer_route_only": True,
         "downstream_project_inherits_rotation": False,
         "local_test_green_branch_checkpoint_can_converge_all_three_slots": True,
-        "pre_2_2_fallback_allowed": False,
+        "pre_3_0_fallback_allowed": False,
         "final_gate": "PV14_EXACT_HUMAN_APPROVE_AND_FUSE",
         "required_order": [
             "FUSE_EXACT_ACCEPTED_PLUGIN_PV",
@@ -358,16 +392,43 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     },
     "interactive_codex_app_local_or_persistent": {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
-        "tunnel_requirement": "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
-        "tunnel_setup_frequency": "NONE",
-        "tunnel_key_retention": "NOT_APPLICABLE",
-        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+            "tunnel_setup_frequency": "NONE",
+            "tunnel_key_retention": "NOT_APPLICABLE",
+            "tunnel_runtime_lifetime": "NOT_APPLICABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+            "tunnel_key_retention": "CURRENT_WINDOWS_USER_DPAPI_PROFILE",
+            "tunnel_runtime_lifetime": "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST",
+        },
+    },
+    "codex_cli_local_or_persistent": {
+        "pv_storage": "DURABLE_LOCAL_SQLITE",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+        },
     },
     "interactive_codex_app_ephemeral_vm": {
         "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
-        "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
-        "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
-        "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
+            "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
+            "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+        },
     },
     "desktop_container_surface_scope": {
         "supported_container_channels": [
@@ -431,13 +492,23 @@ def _source_inventory(root: Path) -> dict[str, Any]:
     Python bytecode is a runtime cache, not a shipped source member.  Its payload
     embeds the absolute cache root, so two otherwise byte-identical selector
     installations necessarily produce different ``.pyc`` bytes.
+
+    Codex also derives migrated command skills inside its generated plugin cache.
+    Those files are verified separately against the marketplace commands and are
+    not package-source authority.
     """
 
     rows = []
     ignored_python_runtime_artifacts = 0
+    ignored_codex_generated_migration_artifacts = 0
     for path in sorted(row for row in root.rglob("*") if row.is_file()):
         relative = path.relative_to(root).as_posix()
         if relative.startswith("_evidence_lane_rehearsal/"):
+            continue
+        if relative.startswith(
+            f"{CODEX_GENERATED_MIGRATED_COMMAND_ROOT}/"
+        ):
+            ignored_codex_generated_migration_artifacts += 1
             continue
         if "__pycache__" in relative.split("/") or path.suffix.lower() in {
             ".pyc",
@@ -458,6 +529,132 @@ def _source_inventory(root: Path) -> dict[str, Any]:
         "files": rows,
         "ignored_python_runtime_artifact_count": ignored_python_runtime_artifacts,
         "python_runtime_artifacts_are_source_authority": False,
+        "ignored_codex_generated_migration_artifact_count": (
+            ignored_codex_generated_migration_artifacts
+        ),
+        "codex_generated_migrations_are_source_authority": False,
+    }
+
+
+def _expected_codex_generated_command_skills(
+    marketplace_plugin: Path,
+) -> dict[str, bytes]:
+    """Derive the exact command-to-skill files Codex generates on install."""
+
+    expected: dict[str, bytes] = {}
+    commands = marketplace_plugin / "commands"
+    if not commands.is_dir():
+        return expected
+    for command in sorted(commands.glob("*.md"), key=lambda item: item.name):
+        text = command.read_text(encoding="utf-8")
+        match = re.fullmatch(
+            r"---\r?\n(?P<frontmatter>.*?)\r?\n---\r?\n(?P<body>.*)",
+            text,
+            flags=re.DOTALL,
+        )
+        if match is None:
+            raise InstallationError(
+                f"{command.name} has no exact command frontmatter."
+            )
+        description_match = re.search(
+            r"(?m)^description:\s*(?P<description>.+?)\s*$",
+            match.group("frontmatter"),
+        )
+        if description_match is None:
+            raise InstallationError(
+                f"{command.name} has no command description."
+            )
+        description = description_match.group("description").strip()
+        if description.startswith('"'):
+            try:
+                description = str(json.loads(description))
+            except json.JSONDecodeError as exc:
+                raise InstallationError(
+                    f"{command.name} has an invalid quoted description."
+                ) from exc
+        elif description.startswith("'") and description.endswith("'"):
+            description = description[1:-1].replace("''", "'")
+        if not description or "\n" in description or "\r" in description:
+            raise InstallationError(
+                f"{command.name} has an invalid description."
+            )
+        command_name = command.stem
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", command_name):
+            raise InstallationError(
+                f"{command.name} cannot form a migrated skill name."
+            )
+        skill_name = f"source-command-{command_name}"
+        body = match.group("body").lstrip("\r\n").rstrip()
+        generated = (
+            "---\n"
+            f"name: {json.dumps(skill_name, ensure_ascii=False)}\n"
+            f"description: {json.dumps(description, ensure_ascii=False)}\n"
+            "---\n\n"
+            f"# {skill_name}\n\n"
+            "Use this skill when the user asks to run the migrated source command "
+            f"`{command_name}`.\n\n"
+            "## Command Template\n\n"
+            f"{body}\n"
+        ).encode()
+        relative = (
+            f"{CODEX_GENERATED_MIGRATED_COMMAND_ROOT}/"
+            f"{skill_name}/SKILL.md"
+        )
+        expected[relative] = generated
+    return expected
+
+
+def _verify_codex_generated_command_skills(
+    *,
+    installed_cache: Path,
+    marketplace_plugin: Path,
+) -> dict[str, Any]:
+    """Verify that cache-only migrated skills are the exact Codex derivation."""
+
+    marketplace_generated_root = (
+        marketplace_plugin / CODEX_GENERATED_MIGRATED_COMMAND_ROOT
+    )
+    if marketplace_generated_root.exists() and any(
+        path.is_file() for path in marketplace_generated_root.rglob("*")
+    ):
+        raise InstallationError(
+            "The marketplace must not prebuild host-generated command skills."
+        )
+    expected = _expected_codex_generated_command_skills(marketplace_plugin)
+    installed_generated_root = (
+        installed_cache / CODEX_GENERATED_MIGRATED_COMMAND_ROOT
+    )
+    actual_paths = {
+        path.relative_to(installed_cache).as_posix(): path
+        for path in installed_generated_root.rglob("*")
+        if path.is_file()
+    } if installed_generated_root.is_dir() else {}
+    if not set(actual_paths).issubset(expected):
+        raise InstallationError(
+            "The installed cache contains a command skill that is not derivable "
+            "from the packaged commands."
+        )
+    records: list[dict[str, Any]] = []
+    for relative, actual in sorted(actual_paths.items()):
+        expected_bytes = expected[relative]
+        if actual.read_bytes() != expected_bytes:
+            raise InstallationError(
+                "A Codex-generated command skill differs from its exact derivation."
+            )
+        records.append(
+            {
+                "skill_name": Path(relative).parent.name,
+                "bytes": len(expected_bytes),
+                "sha256": hashlib.sha256(expected_bytes).hexdigest().upper(),
+            }
+        )
+    return {
+        "status": "PASS",
+        "source_authority": False,
+        "derivable_skill_count": len(expected),
+        "generated_skill_count": len(records),
+        "generated_skills": records,
+        "host_selected_derivable_subset": True,
     }
 
 
@@ -1475,6 +1672,10 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         plugin_root
         / "scripts"
         / "codex_release"
+        / "seal_github_app_production_delivery.py",
+        plugin_root
+        / "scripts"
+        / "codex_release"
         / "Update-EvidenceLaneCodexStableAndResume.ps1",
         plugin_root / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1",
         plugin_root
@@ -1845,6 +2046,69 @@ def _windows_hidden_creationflags() -> int:
     return getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
 
 
+def _default_codex_cli_executable() -> Path:
+    """Resolve the supported npm-native Codex CLI without probing dead routes."""
+
+    appdata = os.environ.get("APPDATA")
+    appdata_root = (
+        Path(appdata)
+        if appdata
+        else Path.home() / "AppData" / "Roaming"
+    )
+    return appdata_root / NPM_CODEX_CLI_RELATIVE_PATH
+
+
+def _resolve_codex_cli_executable(
+    executable: Path | None,
+    *,
+    verify_version: bool,
+) -> Path:
+    """Fail before mutation unless the supported native CLI is executable.
+
+    The packaged desktop app also contains a ``codex.exe`` below WindowsApps,
+    but Windows denies direct execution of that binary and it is not the Codex
+    CLI update surface.  Never probe it and never use it as a fallback.
+    """
+
+    resolved = Path(executable or _default_codex_cli_executable()).resolve()
+    normalized = str(resolved).replace("/", "\\").casefold()
+    if "\\windowsapps\\" in normalized:
+        raise InstallationError(
+            "The packaged WindowsApps codex.exe is a forbidden install route; "
+            "use the npm-native Codex CLI."
+        )
+    if not resolved.is_file():
+        raise InstallationError(
+            "The supported npm-native Codex CLI executable is unavailable."
+        )
+    if not verify_version:
+        return resolved
+    try:
+        completed = subprocess.run(
+            [str(resolved), "--version"],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=30,
+            creationflags=_windows_hidden_creationflags(),
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise InstallationError(
+            "The npm-native Codex CLI version probe failed before mutation."
+        ) from exc
+    version_output = "\n".join(
+        part.strip() for part in (completed.stdout, completed.stderr) if part.strip()
+    )
+    if completed.returncode != 0 or re.search(
+        r"(?m)^codex-cli\s+\S+\s*$", version_output
+    ) is None:
+        raise InstallationError(
+            "The resolved executable is not the supported npm-native Codex CLI."
+        )
+    return resolved
+
+
 def _run_codex(
     executable: Path,
     codex_home: Path,
@@ -2101,8 +2365,9 @@ def _materialize_three_slot_registry(
     data_root: Path,
     active_slot: str,
     config_sha256: str,
+    recovery_convergence_authorized: bool = False,
 ) -> dict[str, Any]:
-    """Seal the exact live maintainer slots without copying plugin bytes."""
+    """Seal the exact live maintainer slots after their governed mutation."""
 
     installed = plugin_list.get("installed")
     if not isinstance(installed, list):
@@ -2176,6 +2441,38 @@ def _materialize_three_slot_registry(
                 "mutable-local-testing": "FRESH_VERSIONED_LOCAL_PACKAGE",
             }[role],
         }
+    branch_recovery = slots["branch-commit-recovery"]
+    mutable_local = slots["mutable-local-testing"]
+    branch_inventory = _source_inventory(
+        Path(
+            str(
+                by_selector[THREE_SLOT_SELECTORS["branch-commit-recovery"]]
+                ["source"]["path"]
+            )
+        ).resolve()
+    )
+    mutable_inventory = _source_inventory(
+        Path(
+            str(
+                by_selector[THREE_SLOT_SELECTORS["mutable-local-testing"]]
+                ["source"]["path"]
+            )
+        ).resolve()
+    )
+    branch_recovery_byte_identical = (
+        branch_recovery["plugin_version"] == mutable_local["plugin_version"]
+        and branch_inventory["file_count"] == mutable_inventory["file_count"]
+        and branch_inventory["manifest_sha256"]
+        == mutable_inventory["manifest_sha256"]
+    )
+    if recovery_convergence_authorized and not branch_recovery_byte_identical:
+        raise InstallationError(
+            "Explicit local recovery convergence did not produce byte-identical slots."
+        )
+    if recovery_convergence_authorized:
+        branch_recovery["update_gate"] = (
+            "EXPLICIT_USER_AUTHORIZED_LOCAL_RECOVERY_CONVERGENCE"
+        )
     body: dict[str, Any] = {
         "schema": THREE_SLOT_REGISTRY_SCHEMA,
         "status": "PASS",
@@ -2186,8 +2483,14 @@ def _materialize_three_slot_registry(
         "max_active_native_mcp_count": 1,
         "failure_target_slot": "branch-commit-recovery",
         "mutable_local_failure_never_targets_main_git": True,
-        "branch_recovery_must_remain_prior_checkpoint_until_commit": True,
-        "pre_2_2_fallback_allowed": False,
+        "branch_recovery_must_remain_prior_checkpoint_until_commit": (
+            not recovery_convergence_authorized
+        ),
+        "branch_recovery_byte_identical_to_mutable_local": (
+            branch_recovery_byte_identical
+        ),
+        "recovery_convergence_authorized": recovery_convergence_authorized,
+        "pre_3_0_fallback_allowed": False,
         "obsolete_live_selectors_allowed": False,
         "config_sha256": config_sha256,
         "codex_home_sha256": hashlib.sha256(
@@ -2202,7 +2505,7 @@ def _materialize_three_slot_registry(
     registry_path = (
         data_root
         / "installations"
-        / "codex-v220"
+        / "codex-v300"
         / "three-slot"
         / "CODEX_THREE_SLOT_REGISTRY.json"
     )
@@ -2228,9 +2531,11 @@ def _prepare_local_test_reinstall(
     """Refresh only the explicit maintainer test selector through Codex APIs.
 
     The accepted stable/fallback registry is deliberately outside this route.  An
-    already installed *disabled* test selector is removed before it is re-added
-    from newly sealed marketplace bytes.  The one enabled last-known-good route
-    and exact pre-transaction config are retained for compare-and-swap recovery.
+    already installed test selector is updated directly with ``plugin add``
+    after its cachebuster changes.  The loaded versioned cache is never removed
+    in-place; Codex owns retirement after restart.  The one enabled
+    last-known-good route and exact pre-transaction config are retained for
+    compare-and-swap recovery.
     """
 
     if (disabled_hook_recovery_commit is None) != (
@@ -2485,13 +2790,6 @@ def _prepare_local_test_reinstall(
         raise InstallationError(
             "The last-known-good rollback config does not match its sealed snapshot."
         )
-    if target_was_installed:
-        _run_codex(
-            executable,
-            codex_home,
-            ["plugin", "remove", plugin_selector, "--json"],
-        )
-
     marketplace_list = _run_codex(
         executable,
         codex_home,
@@ -2525,7 +2823,11 @@ def _prepare_local_test_reinstall(
         "target_was_installed": target_was_installed,
         "target_was_enabled": target_was_enabled,
         "plugin_list_post_add_transient": plugin_list_post_add_transient,
-        "target_removed_for_exact_reinstall": target_was_installed,
+        "target_removed_for_exact_reinstall": False,
+        "same_selector_update_via_plugin_add": target_was_installed,
+        "loaded_version_cache_cleanup_deferred_until_restart": target_was_installed,
+        "known_failed_plugin_remove_route_invoked": False,
+        "supported_update_route": "CODEX_PLUGIN_ADD_CACHEBUSTER",
         "marketplace_preexisting": marketplace_preexisting,
         "marketplace_root_verified": marketplace_preexisting,
         "marketplace_add_required": not marketplace_preexisting,
@@ -4395,6 +4697,7 @@ def _trust_sealed_plugin_hooks(
             primary_inventory = selector_hooks(
                 wait_for(1003),
                 expected_selector=primary_selector,
+                expected_enabled=None,
             )
             if {
                 str(row.get("trustStatus") or "") for row in primary_inventory
@@ -4406,7 +4709,7 @@ def _trust_sealed_plugin_hooks(
                 str(row.get("eventName") or ""): str(row.get("currentHash") or "")
                 for row in primary_inventory
             }
-            trust_value: dict[str, dict[str, str]] = {}
+            trust_value: dict[str, dict[str, Any]] = {}
             records: list[dict[str, Any]] = []
             for row in disabled_inventory:
                 event_name = str(row.get("eventName") or "")
@@ -4419,7 +4722,10 @@ def _trust_sealed_plugin_hooks(
                     raise InstallationError(
                         "The disabled recovery hook inventory is not sealable."
                     )
-                trust_value[key] = {"trusted_hash": current_hash}
+                trust_value[key] = {
+                    "trusted_hash": current_hash,
+                    "enabled": False,
+                }
                 records.append(
                     {
                         "event_name": event_name,
@@ -4467,6 +4773,8 @@ def _trust_sealed_plugin_hooks(
             if any(
                 str(dict(verified_hooks.get(key) or {}).get("trusted_hash") or "")
                 != value["trusted_hash"]
+                or bool(dict(verified_hooks.get(key) or {}).get("enabled"))
+                is not False
                 for key, value in trust_value.items()
             ):
                 raise InstallationError(
@@ -5592,6 +5900,322 @@ def _batch_write_recovery_plugins(
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait(timeout=3)
+
+
+def _seal_disabled_local_test_baseline(
+    *,
+    executable: Path,
+    codex_home: Path,
+    data_root: Path,
+    hook_cwd: Path,
+) -> dict[str, Any]:
+    """Seal the already-live 3.0 local slot as one disabled-hook CAS baseline.
+
+    Early 3.0 local installs predated the committed-local receipt required by the
+    disabled-hook reinstall route.  This bounded bootstrap does not infer that
+    missing history.  It verifies the exact live three-slot inventory, moves the
+    active local selector through one all-disabled Codex config/batchWrite
+    boundary, and activates the same installed bytes again with all eight hooks
+    still trusted but disabled.  The resulting receipt is therefore fresh
+    compare-and-swap evidence that can be consumed exactly once by a later local
+    package replacement.
+    """
+
+    exact_executable = executable.resolve()
+    exact_codex_home = codex_home.resolve()
+    exact_data_root = data_root.resolve()
+    exact_hook_cwd = hook_cwd.resolve()
+    config_path = exact_codex_home / "config.toml"
+    candidate_selector = THREE_SLOT_SELECTORS["mutable-local-testing"]
+    recovery_selector = THREE_SLOT_SELECTORS["branch-commit-recovery"]
+    expected_selectors = set(THREE_SLOT_SELECTORS.values())
+    if (
+        not exact_executable.is_file()
+        or not config_path.is_file()
+        or not exact_hook_cwd.is_dir()
+    ):
+        raise InstallationError(
+            "The disabled-local baseline requires the exact Codex binary, config, "
+            "and hook workspace."
+        )
+
+    plugin_list = _run_codex(
+        exact_executable,
+        exact_codex_home,
+        ["plugin", "list", "--json"],
+    )
+    installed = plugin_list.get("installed")
+    if not isinstance(installed, list):
+        raise InstallationError("Codex did not expose the installed plugin inventory.")
+    evidence_rows = {
+        str(row.get("pluginId") or ""): dict(row)
+        for row in installed
+        if isinstance(row, dict)
+        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
+    }
+    if set(evidence_rows) != expected_selectors:
+        raise InstallationError(
+            "The disabled-local baseline requires exactly the governed three slots."
+        )
+    enabled_rows = [
+        selector
+        for selector, row in evidence_rows.items()
+        if row.get("enabled") is True
+    ]
+    candidate_version = str(evidence_rows[candidate_selector].get("version") or "")
+    recovery_version = str(evidence_rows[recovery_selector].get("version") or "")
+    if (
+        enabled_rows != [candidate_selector]
+        or candidate_version != recovery_version
+        or not candidate_version.startswith(f"{BASE_RELEASE}+")
+    ):
+        raise InstallationError(
+            "The live local and recovery slots are not one byte-generation 3.0 pair."
+        )
+
+    original_bytes = config_path.read_bytes()
+    original_sha256 = hashlib.sha256(original_bytes).hexdigest().upper()
+    original_config = tomllib.loads(original_bytes.decode("utf-8"))
+    original_plugins = dict(original_config.get("plugins") or {})
+    original_states = _evidence_plugin_activation_states(original_plugins)
+    if (
+        set(original_states) != expected_selectors
+        or original_states.get(candidate_selector) is not True
+        or any(
+            enabled
+            for selector, enabled in original_states.items()
+            if selector != candidate_selector
+        )
+    ):
+        raise InstallationError(
+            "The live config is not the exact testing-active three-slot boundary."
+        )
+
+    archive_root = (
+        exact_data_root / "installations" / "codex-v200" / "config-archives"
+    )
+    original_backup = archive_root / f"config-{original_sha256}.toml"
+    if not original_backup.exists():
+        _write_atomic(original_backup, original_bytes)
+    if _sha256(original_backup) != original_sha256:
+        raise InstallationError("The live config archive drifted before bootstrap.")
+
+    normalized_plugins = _normalize_active_local_reinstall_boundary(
+        original_plugins,
+        plugin_selector=candidate_selector,
+    )
+    normalization = _batch_write_recovery_plugins(
+        executable=exact_executable,
+        codex_home=exact_codex_home,
+        expected_before_sha256=original_sha256,
+        plugins=normalized_plugins,
+    )
+    all_disabled_bytes = config_path.read_bytes()
+    all_disabled_sha256 = hashlib.sha256(all_disabled_bytes).hexdigest().upper()
+    all_disabled_config = tomllib.loads(all_disabled_bytes.decode("utf-8"))
+    if any(
+        _evidence_plugin_activation_states(
+            dict(all_disabled_config.get("plugins") or {})
+        ).values()
+    ):
+        raise InstallationError(
+            "The disabled-local bootstrap did not reach an all-disabled boundary."
+        )
+    rollback_backup = archive_root / f"config-{all_disabled_sha256}.toml"
+    if not rollback_backup.exists():
+        _write_atomic(rollback_backup, all_disabled_bytes)
+    if _sha256(rollback_backup) != all_disabled_sha256:
+        raise InstallationError("The all-disabled rollback archive drifted.")
+
+    completed = False
+    try:
+        hook_trust, config_receipt = _trust_sealed_plugin_hooks(
+            executable=exact_executable,
+            codex_home=exact_codex_home,
+            data_root=exact_data_root,
+            hook_cwd=exact_hook_cwd,
+            plugin_selector=candidate_selector,
+            activation_mode="RECOVER_DISABLED_LOCAL",
+            last_known_good_selector=recovery_selector,
+            last_known_good_config_sha256=all_disabled_sha256,
+            rollback_config_backup=str(rollback_backup),
+            expected_commit_config_sha256=all_disabled_sha256,
+            keep_hooks_disabled_after_trust=True,
+        )
+        records = [
+            dict(row)
+            for row in hook_trust.get("records") or []
+            if isinstance(row, dict)
+        ]
+        if (
+            hook_trust.get("status") != "PASS"
+            or len(records) != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
+            or any(row.get("enabled") is not False for row in records)
+            or hook_trust.get("unrelated_hook_state_mutated") is not False
+        ):
+            raise InstallationError(
+                "The disabled-local bootstrap did not preserve all eight hooks off."
+            )
+
+        final_bytes = config_path.read_bytes()
+        final_sha256 = hashlib.sha256(final_bytes).hexdigest().upper()
+        final_config = tomllib.loads(final_bytes.decode("utf-8"))
+        final_states = _evidence_plugin_activation_states(
+            dict(final_config.get("plugins") or {})
+        )
+        if (
+            final_states.get(candidate_selector) is not True
+            or any(
+                enabled
+                for selector, enabled in final_states.items()
+                if selector != candidate_selector
+            )
+        ):
+            raise InstallationError(
+                "The disabled-local bootstrap did not restore the testing selector."
+            )
+        hooks_state = dict(dict(final_config.get("hooks") or {}).get("state") or {})
+        for selector in (candidate_selector, recovery_selector):
+            selector_states = {
+                str(key): dict(value or {})
+                for key, value in hooks_state.items()
+                if str(key).startswith(f"{selector}:")
+            }
+            if (
+                len(selector_states) != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
+                or any(value.get("enabled") is not False for value in selector_states.values())
+                or any(
+                    re.fullmatch(
+                        r"sha256:[0-9a-f]{64}",
+                        str(value.get("trusted_hash") or ""),
+                    )
+                    is None
+                    for value in selector_states.values()
+                )
+            ):
+                raise InstallationError(
+                    "A 3.0 slot does not retain exactly eight trusted disabled hooks."
+                )
+
+        post_list = _run_codex(
+            exact_executable,
+            exact_codex_home,
+            ["plugin", "list", "--json"],
+        )
+        post_rows = {
+            str(row.get("pluginId") or ""): dict(row)
+            for row in post_list.get("installed") or []
+            if isinstance(row, dict)
+            and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
+        }
+        if (
+            set(post_rows) != expected_selectors
+            or post_rows[candidate_selector].get("enabled") is not True
+            or any(
+                row.get("enabled") is True
+                for selector, row in post_rows.items()
+                if selector != candidate_selector
+            )
+        ):
+            raise InstallationError(
+                "Codex plugin inventory drifted after the disabled-local bootstrap."
+            )
+
+        transaction_seed = (
+            f"{candidate_selector}|{recovery_selector}|{candidate_version}|"
+            f"{all_disabled_sha256}|{final_sha256}"
+        ).encode()
+        transaction_id = "local_test_tx_" + hashlib.sha1(
+            transaction_seed,
+            usedforsecurity=False,
+        ).hexdigest()
+        readiness = _local_test_runtime_readiness(
+            installed=True,
+            restart_or_reload_completed=False,
+            hooks_trusted=True,
+            exact_identity_verified=True,
+            exact_catalog_verified=True,
+            prompt_capture_verified=False,
+            smoke_probes_passed=False,
+            active=False,
+        )
+        receipt = {
+            "schema": LOCAL_TEST_COMMIT_SCHEMA,
+            "status": "PASS",
+            "state": "CANDIDATE_SWITCHED_ONCE_RESTART_OR_RELOAD_REQUIRED",
+            "transaction_id": transaction_id,
+            "candidate_selector": candidate_selector,
+            "last_known_good_selector": recovery_selector,
+            "compare_and_swap": True,
+            "switch_count": 1,
+            "candidate_enabled": True,
+            "last_known_good_enabled": False,
+            "config": config_receipt,
+            "hook_trust": hook_trust,
+            "rollback_capable": True,
+            "rollback_config_backup": str(rollback_backup),
+            "rollback_config_backup_sha256": all_disabled_sha256,
+            "readiness": readiness,
+            "runtime_ready_before_task_reopen": False,
+            "live_disabled_hook_bootstrap": {
+                "status": "PASS",
+                "source_config_sha256": original_sha256,
+                "all_disabled_config_sha256": all_disabled_sha256,
+                "final_config_sha256": final_sha256,
+                "candidate_version": candidate_version,
+                "recovery_version": recovery_version,
+                "normalization": normalization,
+                "hook_count_per_3_0_slot": len(EXPECTED_CODEX_HOST_HOOK_EVENTS),
+                "total_3_0_hook_state_records": (
+                    2 * len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
+                ),
+                "all_hooks_enabled": False,
+                "historical_switch_inferred": False,
+                "fresh_switch_recorded": True,
+            },
+            "task_binding_used_for_authorization": False,
+            "goal_recovery_invoked": False,
+            "installer_helper_is_separate": True,
+            "tunnel_invoked": False,
+            "candidate_created_or_accepted": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        }
+        receipt["receipt_sha256"] = hashlib.sha256(
+            _json_bytes(receipt)
+        ).hexdigest().upper()
+        transaction_root = (
+            exact_data_root
+            / "installations"
+            / "codex-v200"
+            / "local-test-transactions"
+        )
+        receipt_path = transaction_root / f"COMMIT_{transaction_id}.json"
+        if receipt_path.exists():
+            existing = json.loads(receipt_path.read_text(encoding="utf-8"))
+            if existing != receipt:
+                raise InstallationError(
+                    "The deterministic disabled-local baseline receipt drifted."
+                )
+        else:
+            _write_atomic(receipt_path, _json_bytes(receipt))
+        completed = True
+        return {
+            **receipt,
+            "receipt_path": str(receipt_path),
+            "receipt_file_sha256": _sha256(receipt_path),
+        }
+    finally:
+        if not completed and config_path.is_file():
+            current_sha256 = _sha256(config_path)
+            if current_sha256 != original_sha256:
+                _batch_write_recovery_plugins(
+                    executable=exact_executable,
+                    codex_home=exact_codex_home,
+                    expected_before_sha256=current_sha256,
+                    plugins=original_plugins,
+                    exact_after_sha256=original_sha256,
+                )
 
 
 def _restore_exact_prior_local_test_config(
@@ -7810,9 +8434,10 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
     hook_event_isolation: dict[str, Any] | None = None
     three_slot_registry: dict[str, Any] | None = None
     if activate_local_test:
-        executable = args.codex_executable.resolve()
-        if not executable.is_file():
-            raise InstallationError("The exact Codex executable is unavailable.")
+        executable = _resolve_codex_cli_executable(
+            getattr(args, "codex_executable", None),
+            verify_version=False,
+        )
         local_test_reinstall = _prepare_local_test_reinstall(
             executable=executable,
             codex_home=codex_home,
@@ -7923,7 +8548,7 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
             ):
                 raise InstallationError(
                     "Disabled-local hook recovery did not enable only the local "
-                    "2.2 selector."
+                    "3.0 selector."
                 )
         elif (
             len(exact_installed) != 1
@@ -7959,7 +8584,7 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         )
         if disabled_local_hook_recovery:
             activation = {
-                "state": "LOCAL_2_2_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED",
+                "state": "LOCAL_3_0_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED",
                 "plugin_add_invoked": True,
                 "marketplace_add": marketplace_add,
                 "plugin_add": plugin_add,
@@ -8087,9 +8712,10 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
             "hot_reload_claimed": False,
             }
     elif args.activate:
-        executable = args.codex_executable.resolve()
-        if not executable.is_file():
-            raise InstallationError("The exact Codex executable is unavailable.")
+        executable = _resolve_codex_cli_executable(
+            getattr(args, "codex_executable", None),
+            verify_version=False,
+        )
         if two_slot_authority is None:
             raise InstallationError(
                 "Activation requires the materialized stable/fallback two-slot authority."
@@ -8520,7 +9146,7 @@ def _stage_loaded_local_successor(args: argparse.Namespace) -> dict[str, Any]:
     successor_root = (
         codex_home / "local-marketplaces" / LOCAL_SUCCESSOR_MARKETPLACE_NAME
     )
-    with tempfile.TemporaryDirectory(prefix="evidence-lane-v220-successor-") as raw:
+    with tempfile.TemporaryDirectory(prefix="evidence-lane-v300-successor-") as raw:
         extracted = Path(raw) / "plugin"
         extracted.mkdir()
         _safe_extract(archive, extracted)
@@ -8773,21 +9399,107 @@ def _stage_loaded_local_successor(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
-def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]:
-    """Install one disabled byte-identical recovery copy beside local 2.2.
+def _load_exact_commit_package_receipt(
+    *,
+    receipt_path: Path,
+    receipt_file_sha256: str,
+    archive: Path,
+    package_receipt_path: Path,
+    data_root: Path,
+) -> dict[str, Any]:
+    """Verify one immutable exact-commit package before branch-slot mutation."""
 
-    This is maintainer-local recovery authority, not accepted PV/Git stable or
-    fallback authority.  It uses only supported Codex marketplace, plugin, and
-    config APIs, keeps the primary local selector solely enabled, and never
-    rewrites ``CURRENT_INSTALLATION`` or the accepted two-slot registry.
-    """
-
+    exact_path = receipt_path.resolve()
+    expected_file_sha256 = receipt_file_sha256.strip().upper()
+    authority_root = (
+        data_root.resolve()
+        / "installations"
+        / "codex-v300"
+        / "exact-commit-packages"
+    )
     if (
-        args.confirm_local_recovery_copy
-        != "EXPLICIT_BYTE_IDENTICAL_LOCAL_2_2_RECOVERY"
+        not exact_path.is_file()
+        or not _inside(exact_path, authority_root)
+        or not re.fullmatch(r"[0-9A-F]{64}", expected_file_sha256)
+        or _sha256(exact_path) != expected_file_sha256
     ):
         raise InstallationError(
-            "Local recovery materialization requires its exact confirmation token."
+            "The exact-commit package receipt is absent, outside durable authority, "
+            "or drifted."
+        )
+    receipt = json.loads(exact_path.read_text(encoding="utf-8"))
+    internal_sha256 = str(receipt.get("receipt_sha256") or "").upper()
+    core = dict(receipt)
+    core.pop("receipt_sha256", None)
+    export = dict(receipt.get("exact_commit_export") or {})
+    packaged_archive = dict(receipt.get("archive") or {})
+    package_receipt = json.loads(package_receipt_path.read_text(encoding="utf-8"))
+    if (
+        receipt.get("schema")
+        != "evidence-lane.codex-exact-commit-package.v1.receipt"
+        or receipt.get("boundary") != "EXACT_GIT_COMMIT_PACKAGE_UNACCEPTED"
+        or receipt.get("status") != "PASS"
+        # Exact-commit package receipts are emitted by
+        # build_codex_exact_commit_package._json_bytes: sorted keys plus one
+        # trailing newline.  Do not reuse the preserved-order registry seal
+        # here; parsing sorted JSON and then hashing a different serialization
+        # rejects an otherwise intact builder receipt.
+        or internal_sha256
+        != hashlib.sha256(_json_bytes(core)).hexdigest().upper()
+        or packaged_archive.get("sha256") != _sha256(archive)
+        or packaged_archive.get("sha256")
+        != dict(package_receipt.get("archive") or {}).get("sha256")
+        or receipt.get("local_rehearsal_receipt_sha256")
+        != _sha256(package_receipt_path)
+        or re.fullmatch(r"[0-9a-f]{40}", str(export.get("commit") or ""))
+        is None
+        or re.fullmatch(r"[0-9a-f]{40}", str(export.get("tree") or ""))
+        is None
+        or not str(export.get("branch") or "")
+        or export.get("projection_clean") is not True
+        or export.get("working_checkout_bytes_used") is not False
+        or export.get("untracked_bytes_used") is not False
+        or receipt.get("git_write_invoked") is not False
+        or receipt.get("governed_candidate_created") is not False
+        or receipt.get("accepted_pointer_moved") is not False
+        or receipt.get("hil_inferred") is not False
+    ):
+        raise InstallationError(
+            "The exact-commit package receipt does not satisfy the branch-checkpoint "
+            "delivery boundary."
+        )
+    return {
+        **receipt,
+        "receipt_path": str(exact_path),
+        "receipt_file_sha256": expected_file_sha256,
+    }
+
+
+def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]:
+    """Install one disabled local or exact-branch recovery copy.
+
+    The local-copy mode remains byte-identical to the active local slot.  The
+    branch-checkpoint mode instead consumes one exact Git-commit package and
+    refreshes only the inactive branch-commit recovery slot.  Both modes use
+    supported Codex APIs, keep the primary local selector solely enabled, leave
+    the main-merge fallback byte-frozen, and never rewrite
+    ``CURRENT_INSTALLATION`` or the accepted two-slot registry.
+    """
+
+    branch_checkpoint = bool(args.materialize_branch_checkpoint)
+    if branch_checkpoint:
+        confirmation_valid = (
+            args.confirm_branch_checkpoint == BRANCH_CHECKPOINT_CONFIRMATION
+        )
+    else:
+        confirmation_valid = (
+            args.confirm_local_recovery_copy
+            == "EXPLICIT_BYTE_IDENTICAL_LOCAL_3_0_RECOVERY"
+        )
+    if not confirmation_valid:
+        raise InstallationError(
+            "Recovery materialization requires its exact mode-specific confirmation "
+            "token."
         )
     if (
         args.archive is None
@@ -8795,10 +9507,18 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         or args.primary_installation_receipt is None
         or not args.primary_installation_receipt_sha256
         or args.codex_executable is None
+        or (
+            branch_checkpoint
+            and (
+                args.exact_commit_package_receipt is None
+                or not args.exact_commit_package_receipt_sha256
+            )
+        )
     ):
         raise InstallationError(
             "Local recovery materialization requires the archive, package receipt, "
-            "primary installation receipt and seal, and Codex executable."
+            "primary installation receipt and seal, Codex executable, and exact "
+            "commit receipt for branch-checkpoint mode."
         )
     if (
         args.activate
@@ -8830,6 +9550,19 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         activation=False,
         local_test_activation=True,
     )
+    exact_commit_receipt = (
+        _load_exact_commit_package_receipt(
+            receipt_path=args.exact_commit_package_receipt,
+            receipt_file_sha256=str(
+                args.exact_commit_package_receipt_sha256
+            ),
+            archive=archive,
+            package_receipt_path=package_receipt_path,
+            data_root=data_root,
+        )
+        if branch_checkpoint
+        else None
+    )
     primary_receipt_path = args.primary_installation_receipt.resolve()
     primary_receipt_sha256 = _sha256(primary_receipt_path)
     if (
@@ -8859,7 +9592,10 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
     if (
         primary_receipt.get("schema") != INSTALL_SCHEMA
         or primary_receipt.get("status") != "PASS"
-        or primary_receipt.get("archive_sha256") != _sha256(archive)
+        or (
+            not branch_checkpoint
+            and primary_receipt.get("archive_sha256") != _sha256(archive)
+        )
         or primary_selector
         != f"{PLUGIN_NAME}@{LOCAL_TESTING_MARKETPLACE_NAME}"
         or primary_plugin_add.get("pluginId") != primary_selector
@@ -8939,11 +9675,20 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
     recovery_root = (
         codex_home / "local-marketplaces" / LOCAL_RECOVERY_MARKETPLACE_NAME
     )
-    with tempfile.TemporaryDirectory(prefix="evidence-lane-v220-recovery-") as raw:
+    with tempfile.TemporaryDirectory(prefix="evidence-lane-v300-recovery-") as raw:
         extracted = Path(raw) / "plugin"
         extracted.mkdir()
         _safe_extract(archive, extracted)
         identity = _validate_plugin(extracted)
+        if (
+            branch_checkpoint
+            and str(dict(exact_commit_receipt or {}).get("package_version") or "")
+            != identity["version"]
+        ):
+            raise InstallationError(
+                "The exact-commit receipt package version and extracted plugin "
+                "identity diverge."
+            )
         extracted_inventory = _source_inventory(extracted)
         stage = _stage_marketplace(
             extracted=extracted,
@@ -8956,6 +9701,18 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
             comparison_baseline={
                 "primary_installation_receipt_sha256": primary_receipt_sha256,
                 "primary_selector": primary_selector,
+                "delivery_mode": (
+                    "EXACT_GOVERNED_BRANCH_COMMIT"
+                    if branch_checkpoint
+                    else "BYTE_IDENTICAL_LOCAL_RECOVERY"
+                ),
+                "exact_commit_package_receipt_sha256": (
+                    dict(exact_commit_receipt or {}).get(
+                        "receipt_file_sha256"
+                    )
+                    if branch_checkpoint
+                    else None
+                ),
             },
         )
 
@@ -9003,7 +9760,7 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         )
         if (
             plugin_add.get("pluginId") != LOCAL_RECOVERY_SELECTOR
-            or plugin_add.get("version") != primary_version
+            or plugin_add.get("version") != identity["version"]
             or not recovery_cache.is_dir()
             or not _inside(recovery_cache, expected_recovery_cache)
         ):
@@ -9065,25 +9822,44 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         )
     primary_inventory = _source_inventory(primary_cache)
     recovery_inventory = _source_inventory(recovery_cache)
-    marketplace_inventory = _source_inventory(
-        recovery_root / "plugins" / PLUGIN_NAME
+    recovery_marketplace_plugin = recovery_root / "plugins" / PLUGIN_NAME
+    marketplace_inventory = _source_inventory(recovery_marketplace_plugin)
+    recovery_cache_generation = _verify_codex_generated_command_skills(
+        installed_cache=recovery_cache,
+        marketplace_plugin=recovery_marketplace_plugin,
     )
     inventory_identities = {
         extracted_inventory["manifest_sha256"],
-        primary_inventory["manifest_sha256"],
         recovery_inventory["manifest_sha256"],
         marketplace_inventory["manifest_sha256"],
     }
     inventory_counts = {
         extracted_inventory["file_count"],
-        primary_inventory["file_count"],
         recovery_inventory["file_count"],
         marketplace_inventory["file_count"],
     }
-    if len(inventory_identities) != 1 or len(inventory_counts) != 1:
+    recovery_matches_package = (
+        len(inventory_identities) == 1 and len(inventory_counts) == 1
+    )
+    byte_identical_to_primary = (
+        primary_inventory["manifest_sha256"]
+        == recovery_inventory["manifest_sha256"]
+        and primary_inventory["file_count"] == recovery_inventory["file_count"]
+    )
+    if not recovery_matches_package or (
+        not branch_checkpoint and not byte_identical_to_primary
+    ):
         raise InstallationError(
-            "The local primary and disabled recovery plugin bytes are not identical."
+            "The disabled recovery bytes do not match their exact package boundary."
         )
+    three_slot_registry = _materialize_three_slot_registry(
+        plugin_list=final_plugin_list,
+        codex_home=codex_home,
+        data_root=data_root,
+        active_slot="mutable-local-testing",
+        config_sha256=_sha256(config_path),
+        recovery_convergence_authorized=not branch_checkpoint,
+    )
     two_slot_after = _sha256(two_slot_path) if two_slot_path.is_file() else None
     if two_slot_after != two_slot_before:
         raise InstallationError(
@@ -9091,13 +9867,21 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         )
 
     body: dict[str, Any] = {
-        "schema": LOCAL_RECOVERY_REGISTRY_SCHEMA,
+        "schema": (
+            BRANCH_CHECKPOINT_INSTALL_SCHEMA
+            if branch_checkpoint
+            else LOCAL_RECOVERY_REGISTRY_SCHEMA
+        ),
         "status": "PASS",
-        "state": "PRIMARY_LOCAL_ACTIVE_RECOVERY_DISABLED_BYTE_IDENTICAL",
+        "state": (
+            "PRIMARY_LOCAL_ACTIVE_BRANCH_COMMIT_RECOVERY_DISABLED"
+            if branch_checkpoint
+            else "PRIMARY_LOCAL_ACTIVE_RECOVERY_DISABLED_BYTE_IDENTICAL"
+        ),
         "package": {
             "archive_sha256": _sha256(archive),
             "package_receipt_sha256": _sha256(package_receipt_path),
-            "plugin_version": primary_version,
+            "plugin_version": identity["version"],
             "source_manifest_sha256": extracted_inventory["manifest_sha256"],
             "source_file_count": extracted_inventory["file_count"],
         },
@@ -9112,16 +9896,18 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         },
         "recovery": {
             "selector": LOCAL_RECOVERY_SELECTOR,
-            "slot_role": "local-stable-recovery",
+            "slot_role": "branch-commit-recovery",
             "enabled": False,
             "native_mcp_enabled": False,
-            "byte_identical_to_primary": True,
+            "byte_identical_to_primary": byte_identical_to_primary,
+            "exact_governed_branch_commit": branch_checkpoint,
             "marketplace_root": str(recovery_root),
             "marketplace_stage": stage,
             "marketplace_add": marketplace_add,
             "plugin_add": plugin_add,
             "cache_root": str(recovery_cache),
             "cache_manifest_sha256": recovery_inventory["manifest_sha256"],
+            "codex_generated_command_skills": recovery_cache_generation,
             "hook_trust": hook_trust,
             "hook_isolation": hook_isolation,
             "runtime_prewarm": runtime_prewarm,
@@ -9135,6 +9921,7 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
             "host_restart_required_after_selector_switch": True,
             "restart_loop_allowed": False,
         },
+        "three_slot_registry": three_slot_registry,
         "accepted_two_slot_registry": {
             "path": str(two_slot_path) if two_slot_path.is_file() else None,
             "before_sha256": two_slot_before,
@@ -9143,7 +9930,9 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         },
         "scope": {
             "maintainer_local_only": True,
-            "accepted_pv_or_git_stable_authority": False,
+            "accepted_pv_authority": False,
+            "branch_commit_git_recovery_authority": branch_checkpoint,
+            "production_delivery_authority": False,
             "openai_host_tooling_absorbed": False,
             "mcp_action_catalog_treated_as_dependency_toolchain": False,
         },
@@ -9151,21 +9940,61 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         "pointer_moved": False,
         "hil_inferred": False,
         "git_invoked": False,
+        "exact_commit_package": (
+            {
+                "receipt_path": dict(exact_commit_receipt or {}).get(
+                    "receipt_path"
+                ),
+                "receipt_file_sha256": dict(
+                    exact_commit_receipt or {}
+                ).get("receipt_file_sha256"),
+                "branch": dict(
+                    dict(exact_commit_receipt or {}).get(
+                        "exact_commit_export"
+                    )
+                    or {}
+                ).get("branch"),
+                "commit": dict(
+                    dict(exact_commit_receipt or {}).get(
+                        "exact_commit_export"
+                    )
+                    or {}
+                ).get("commit"),
+                "tree": dict(
+                    dict(exact_commit_receipt or {}).get(
+                        "exact_commit_export"
+                    )
+                    or {}
+                ).get("tree"),
+            }
+            if branch_checkpoint
+            else None
+        ),
     }
     body["registry_body_sha256"] = _ordered_json_sha256(body)
     body["seal"] = {
         "algorithm": "SHA256",
         "body_sha256": _ordered_json_sha256(body),
     }
-    recovery_registry_root = (
-        data_root / "installations" / "codex-v200" / "local-v220-recovery"
+    recovery_registry_root = data_root / "installations" / (
+        "codex-v300/branch-checkpoint-installs"
+        if branch_checkpoint
+        else "codex-v200/local-v300-recovery"
     )
     receipt_path = (
         recovery_registry_root
-        / f"LOCAL_V220_RECOVERY_{_sha256(archive)[:16]}.json"
+        / (
+            f"BRANCH_CHECKPOINT_{_sha256(archive)[:16]}.json"
+            if branch_checkpoint
+            else f"LOCAL_V300_RECOVERY_{_sha256(archive)[:16]}.json"
+        )
     )
     _write_atomic(receipt_path, _json_bytes(body))
-    current_path = recovery_registry_root / "CURRENT_LOCAL_V220_RECOVERY.json"
+    current_path = recovery_registry_root / (
+        "CURRENT_BRANCH_CHECKPOINT.json"
+        if branch_checkpoint
+        else "CURRENT_LOCAL_V300_RECOVERY.json"
+    )
     _write_atomic(current_path, _json_bytes(body))
     return {
         **body,
@@ -9219,13 +10048,30 @@ def _parser() -> argparse.ArgumentParser:
             or Path.home() / "EvidenceLanePV"
         ),
     )
-    parser.add_argument("--codex-executable", type=Path)
+    parser.add_argument(
+        "--codex-executable",
+        type=Path,
+        help=(
+            "Optional npm-native Codex CLI override. When omitted, the installer "
+            "uses the supported @openai/codex npm runtime; WindowsApps binaries "
+            "are rejected before mutation."
+        ),
+    )
     parser.add_argument(
         "--materialize-local-recovery-copy",
         action="store_true",
         help=(
-            "Install one disabled byte-identical local 2.2 recovery selector "
+            "Install one disabled byte-identical local 3.0 recovery selector "
             "without mutating accepted stable/fallback authority."
+        ),
+    )
+    parser.add_argument(
+        "--materialize-branch-checkpoint",
+        action="store_true",
+        help=(
+            "Replace only the inactive branch-commit recovery slot from one "
+            "exact governed Git-commit package while preserving the active local "
+            "slot and main-merge fallback."
         ),
     )
     parser.add_argument(
@@ -9239,13 +10085,16 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--primary-installation-receipt", type=Path)
     parser.add_argument("--primary-installation-receipt-sha256")
     parser.add_argument("--confirm-local-recovery-copy")
+    parser.add_argument("--confirm-branch-checkpoint")
+    parser.add_argument("--exact-commit-package-receipt", type=Path)
+    parser.add_argument("--exact-commit-package-receipt-sha256")
     parser.add_argument("--confirm-local-successor-stage")
     parser.add_argument("--activate", action="store_true")
     parser.add_argument(
         "--activate-local-test",
         action="store_true",
         help=(
-            "Activate only evidence-lane-v220-testing-new from a sealed local "
+            "Activate only evidence-lane-v300-testing-new from a sealed local "
             "rehearsal without changing accepted stable/fallback authority."
         ),
     )
@@ -9254,17 +10103,26 @@ def _parser() -> argparse.ArgumentParser:
         "--recover-disabled-local-hooks-from",
         type=Path,
         help=(
-            "Reinstall and reactivate only the disabled local 2.2 selector from "
+            "Reinstall and reactivate only the disabled local 3.0 selector from "
             "one exact prior committed-local receipt after hook correction."
         ),
     )
     parser.add_argument("--recover-disabled-local-hooks-from-sha256")
     parser.add_argument(
+        "--seal-disabled-local-test-baseline",
+        action="store_true",
+        help=(
+            "Seal one fresh live 3.0 CAS checkpoint when both byte-identical "
+            "local slots predate the committed-local receipt contract."
+        ),
+    )
+    parser.add_argument("--confirm-disabled-local-test-baseline")
+    parser.add_argument(
         "--keep-recovered-hooks-disabled",
         action="store_true",
         help=(
             "Verify and seal all eight recovered hook hashes but keep every hook "
-            "disabled while enabling the exact local 2.2 plugin and MCP selector."
+            "disabled while enabling the exact local 3.0 plugin and MCP selector."
         ),
     )
     parser.add_argument(
@@ -9342,18 +10200,24 @@ def main() -> int:
     if args.stage_loaded_local_successor:
         raise InstallationError(
             "The local-successor marketplace is retired. Reinstall a fresh package "
-            "version into evidence-lane-v220-testing-new before the restart-only helper."
+            "version into evidence-lane-v300-testing-new before the restart-only helper."
         )
-    if args.materialize_local_recovery_copy:
+    if args.materialize_local_recovery_copy and args.materialize_branch_checkpoint:
         raise InstallationError(
-            "Per-build local recovery copying is retired. The branch-commit recovery "
-            "slot must remain byte-frozen at its prior governed Git checkpoint until "
-            "the next explicit checkpoint convergence."
+            "Local byte-identical recovery and exact branch-checkpoint recovery "
+            "are mutually exclusive."
         )
+    if args.materialize_local_recovery_copy or args.materialize_branch_checkpoint:
+        result = _materialize_local_recovery_copy(args)
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
     if (
         args.primary_installation_receipt is not None
         or args.primary_installation_receipt_sha256 is not None
         or args.confirm_local_recovery_copy is not None
+        or args.confirm_branch_checkpoint is not None
+        or args.exact_commit_package_receipt is not None
+        or args.exact_commit_package_receipt_sha256 is not None
         or args.confirm_local_successor_stage is not None
     ):
         raise InstallationError(
@@ -9364,9 +10228,24 @@ def main() -> int:
     commit_requested = args.commit_local_test_transaction is not None
     recovery_requested = args.recover_local_test_transaction is not None
     correction_requested = args.seal_install_correction is not None
+    disabled_baseline_requested = bool(args.seal_disabled_local_test_baseline)
     disabled_hook_recovery_requested = (
         args.recover_disabled_local_hooks_from is not None
     )
+    codex_cli_required = bool(
+        args.activate
+        or args.activate_local_test
+        or disabled_baseline_requested
+        or proof_requested
+        or commit_requested
+        or recovery_requested
+        or correction_requested
+    )
+    if codex_cli_required:
+        args.codex_executable = _resolve_codex_cli_executable(
+            args.codex_executable,
+            verify_version=True,
+        )
     if args.keep_recovered_hooks_disabled and not disabled_hook_recovery_requested:
         raise InstallationError(
             "Keeping recovered hooks disabled requires the exact disabled-local "
@@ -9380,7 +10259,13 @@ def main() -> int:
             "and file SHA-256."
         )
     if disabled_hook_recovery_requested and any(
-        [proof_requested, commit_requested, recovery_requested, correction_requested]
+        [
+            proof_requested,
+            commit_requested,
+            recovery_requested,
+            correction_requested,
+            disabled_baseline_requested,
+        ]
     ):
         raise InstallationError(
             "Disabled-local hook recovery cannot be mixed with another local-test "
@@ -9393,6 +10278,7 @@ def main() -> int:
                 commit_requested,
                 recovery_requested,
                 correction_requested,
+                disabled_baseline_requested,
             ]
         )
         > 1
@@ -9405,6 +10291,36 @@ def main() -> int:
         raise InstallationError(
             "Byte-frozen fallback authority is valid only for candidate self-rollback."
         )
+    if disabled_baseline_requested:
+        if (
+            args.codex_executable is None
+            or args.confirm_disabled_local_test_baseline
+            != LOCAL_TEST_DISABLED_BASELINE_CONFIRMATION
+        ):
+            raise InstallationError(
+                "The live disabled-local baseline requires the exact Codex binary "
+                "and confirmation token."
+            )
+        if (
+            args.archive is not None
+            or args.package_receipt is not None
+            or args.rehearsal_receipt is not None
+            or args.activate
+            or args.activate_local_test
+            or args.trust_sealed_hooks
+            or args.defer_hook_trust_to_user
+        ):
+            raise InstallationError(
+                "The live disabled-local baseline is a separate CAS operation."
+            )
+        result = _seal_disabled_local_test_baseline(
+            executable=args.codex_executable,
+            codex_home=args.codex_home,
+            data_root=args.data_root,
+            hook_cwd=args.hook_cwd,
+        )
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
     if proof_requested:
         if (
             args.seal_local_test_host_proof_sha256 is None

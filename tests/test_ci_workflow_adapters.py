@@ -1,15 +1,20 @@
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 from pathlib import Path
 
 import pytest
-from evidence_lane_plugin.github_automation_governance import audit_workflow_action_pins
+from evidence_lane_plugin.github_automation_governance import (
+    audit_workflow_action_pins,
+    audit_workflow_action_runtimes,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
 ACTION = ROOT / ".github" / "actions" / "evidence-lane-ci"
+ACTION_RUNTIME_LOCK = ROOT / ".github" / "action-runtime-lock.json"
 
 
 def test_all_workflow_action_references_are_immutable() -> None:
@@ -24,13 +29,96 @@ def test_all_workflow_action_references_are_immutable() -> None:
     }
 
 
+def test_all_active_action_runtimes_are_node24_compatible_and_covered() -> None:
+    receipt = audit_workflow_action_runtimes(
+        WORKFLOWS,
+        ACTION_RUNTIME_LOCK,
+        repository_root=ROOT,
+    )
+    assert receipt["status"] == "PASS", receipt["violations"]
+    assert receipt["workflow_file_count"] == 5
+    assert receipt["direct_reference_count"] == 21
+    assert receipt["remote_action_count"] == 12
+    assert receipt["local_action_count"] == 1
+    assert receipt["node20_count"] == 0
+    assert receipt["runtime_counts"] == {
+        "composite": 1,
+        "docker": 1,
+        "node24": 11,
+    }
+    assert receipt["violation_count"] == 0
+
+
+def _runtime_lock_entry(reference: str, *, using: str) -> dict[str, object]:
+    owner_repository, commit = reference.rsplit("@", 1)
+    return {
+        "reference": reference,
+        "release": "test-release",
+        "using": using,
+        "metadata_path": "action.yml",
+        "metadata_sha256": "A" * 64,
+        "nested_uses": [],
+        "source_url": f"https://github.com/{owner_repository}/blob/{commit}/action.yml",
+    }
+
+
+def test_action_runtime_audit_blocks_missing_and_node20_registry_entries(
+    tmp_path: Path,
+) -> None:
+    workflow_root = tmp_path / ".github" / "workflows"
+    workflow_root.mkdir(parents=True)
+    reference = "actions/checkout@" + "a" * 40
+    (workflow_root / "ci.yml").write_text(
+        f"name: test\njobs:\n  test:\n    steps:\n      - uses: {reference}\n",
+        encoding="utf-8",
+    )
+    lock_path = tmp_path / ".github" / "action-runtime-lock.json"
+    lock_path.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.github-action-runtime-lock.v1",
+                "actions": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    missing = audit_workflow_action_runtimes(
+        workflow_root,
+        lock_path,
+        repository_root=tmp_path,
+    )
+    assert missing["status"] == "BLOCKED"
+    assert {item["code"] for item in missing["violations"]} == {
+        "GITHUB_ACTION_RUNTIME_UNVERIFIED"
+    }
+
+    lock_path.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.github-action-runtime-lock.v1",
+                "actions": [_runtime_lock_entry(reference, using="node20")],
+            }
+        ),
+        encoding="utf-8",
+    )
+    deprecated = audit_workflow_action_runtimes(
+        workflow_root,
+        lock_path,
+        repository_root=tmp_path,
+    )
+    assert deprecated["status"] == "BLOCKED"
+    assert {item["code"] for item in deprecated["violations"]} == {
+        "GITHUB_ACTION_RUNTIME_NODE20_DEPRECATED"
+    }
+
+
 def test_workflow_branch_boundaries_and_preview_does_not_deploy() -> None:
     for path in WORKFLOWS.glob("*.yml"):
         text = path.read_text(encoding="utf-8")
         if "push:" in text:
             if path.name == "evidence-lane-github-pages.yml":
                 assert "      - main" in text
-                assert "      - agent/evi-v220-systemwide-release-hil-v2.2.0" in text
+                assert "      - agent/evi-v300-systemwide-release-hil-v3.0.0" in text
             else:
                 assert '- "agent/**"' in text
                 assert "branches:\n      - main" not in text
@@ -48,12 +136,17 @@ def test_workflow_branch_boundaries_and_preview_does_not_deploy() -> None:
     assert 'payload["release_sha"] == os.environ["EVIDENCE_LANE_RELEASE_SHA"]' in (
         preview
     )
-    assert 'payload["mcp_route_identity"]["tool_count"] == 83' in preview
+    assert 'payload["mcp_route_identity"]["tool_count"] == 88' in preview
+
+    pages = (WORKFLOWS / "evidence-lane-github-pages.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "  deploy:\n    if: github.ref == 'refs/heads/main'" in pages
 
 
 def test_codeql_is_pinned_and_preserves_local_evidence_without_api_upload() -> None:
     text = (WORKFLOWS / "evidence-lane-codeql.yml").read_text(encoding="utf-8")
-    assert text.count("@24c7eb380a2dc368f2d129e4c65e51d172983a1e") == 2
+    assert text.count("@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28") == 2
     assert "security-events: write" not in text
     assert "contents: write" not in text
     assert "pull-requests: write" not in text
@@ -137,6 +230,7 @@ def test_local_action_javascript_has_valid_node_syntax() -> None:
     node = shutil.which("node")
     if node is None:
         pytest.skip("Node is not available")
+    assert node is not None
     result = subprocess.run(
         [node, "--check", str(ACTION / "src" / "main.mjs")],
         cwd=ROOT,

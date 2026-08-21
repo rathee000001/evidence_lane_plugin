@@ -4,7 +4,8 @@ param(
     [string]$TunnelClientDownloadUri = "$env:EVIDENCE_LANE_TUNNEL_CLIENT_DOWNLOAD_URI",
     [string]$TunnelId = "",
     [string]$PluginRoot = "",
-    [string]$DataRoot = "$env:USERPROFILE\EvidenceLanePV",
+    [string]$DataRoot = "$env:EVIDENCE_LANE_DATA_ROOT",
+    [string]$RuntimeControlRoot = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin",
     [ValidateSet(
         "main-git-release",
         "branch-commit-recovery",
@@ -18,8 +19,10 @@ param(
     [ValidateSet("Auto", "Persistent", "Ephemeral")]
     [string]$HostLifetime = "Auto",
     [string]$VmInstanceId = "$env:EVIDENCE_LANE_VM_INSTANCE_ID",
-    [ValidateSet("CODEX_APP_INTERACTIVE", "HEADLESS_API", "DIRECT_CLI_API")]
+    [ValidateSet("CODEX_APP_INTERACTIVE", "CODEX_CLI_NATIVE", "HEADLESS_API", "DIRECT_CLI_API")]
     [string]$InteractionProfile = "CODEX_APP_INTERACTIVE",
+    [ValidateSet("NATIVE_MCP_AVAILABLE", "HOST_TOOL_GAP")]
+    [string]$HostToolTransport = "NATIVE_MCP_AVAILABLE",
     [ValidateSet("UNSPECIFIED", "PRO", "PLUS", "BUSINESS", "EDU", "ENTERPRISE")]
     [string]$AccountTier = "UNSPECIFIED",
     [switch]$RotateRuntimeKey,
@@ -57,7 +60,7 @@ $releaseToken = "v" + ($release -replace '\.', '')
 $filePrefix = "evidence_lane_${releaseToken}"
 $slotToken = $SlotRole.Replace("-", "_")
 if ([string]::IsNullOrWhiteSpace($RuntimeRoot)) {
-    $RuntimeRoot = Join-Path $env:USERPROFILE "EvidenceLanePV\tunnel-runtime-$releaseToken-stable-build"
+    $RuntimeRoot = Join-Path $RuntimeControlRoot "tunnel-runtime-$releaseToken-stable-build"
 }
 if ([string]::IsNullOrWhiteSpace($ProfileName)) {
     $ProfileName = "${filePrefix}_stable_build_transport"
@@ -89,7 +92,25 @@ if ($InteractionProfile -in @("HEADLESS_API", "DIRECT_CLI_API")) {
         release = $release
         interaction_profile = $InteractionProfile
         account_tier = $AccountTier
+        host_tool_transport = "API_DIRECT"
         tunnel_requirement = "NOT_REQUIRED_FOR_API_LAYER"
+        tunnel_installed = $false
+        local_pv_storage_allowed_when_durable = $true
+        account_tier_affects_routing = $false
+        api_billing_affects_routing = $false
+        runtime_key_requested = $false
+    } | ConvertTo-Json -Depth 4
+    exit 0
+}
+if ($HostToolTransport -eq "NATIVE_MCP_AVAILABLE") {
+    [ordered]@{
+        status = "PASS"
+        release = $release
+        interaction_profile = $InteractionProfile
+        account_tier = $AccountTier
+        host_tool_transport = $HostToolTransport
+        native_mcp_available = $true
+        tunnel_requirement = "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
         tunnel_installed = $false
         local_pv_storage_allowed_when_durable = $true
         account_tier_affects_routing = $false
@@ -155,7 +176,7 @@ function Resolve-TunnelClientSource {
         return $historical
     }
     $priorClients = @(
-        Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($DataRoot)) `
+        Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($RuntimeControlRoot)) `
             -Directory -Filter "tunnel-runtime-*" -ErrorAction SilentlyContinue |
             ForEach-Object {
                 Join-Path $_.FullName "bin\tunnel-client-v0.0.10.exe"
@@ -176,7 +197,7 @@ function Resolve-TunnelClientSource {
         ) {
             throw "The tunnel-client dependency URI must be credential-free HTTPS."
         }
-        $dependencyRoot = Join-Path ([IO.Path]::GetFullPath($DataRoot)) "dependency-cache"
+        $dependencyRoot = Join-Path ([IO.Path]::GetFullPath($RuntimeControlRoot)) "dependency-cache"
         New-Item -ItemType Directory -Path $dependencyRoot -Force | Out-Null
         $downloadTarget = Join-Path $dependencyRoot "tunnel-client-v0.0.10.exe"
         Invoke-WebRequest -Uri $downloadUri -OutFile $downloadTarget -UseBasicParsing
@@ -264,7 +285,7 @@ function Resolve-TunnelId {
     }
     if ([string]::IsNullOrWhiteSpace($value)) {
         $priorMarkers = @(
-            Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($DataRoot)) `
+            Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($RuntimeControlRoot)) `
                 -Directory -Filter "tunnel-runtime-*" -ErrorAction SilentlyContinue |
                 ForEach-Object { Join-Path $_.FullName "evidence-lane-tunnel-installation.json" } |
                 Where-Object { Test-Path -LiteralPath $_ -PathType Leaf }
@@ -301,7 +322,7 @@ function Resolve-PriorRuntimeKeyEnvelope {
         return $RuntimeKeyEnvelopeSource
     }
     $priorEnvelopes = @(
-        Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($DataRoot)) `
+        Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($RuntimeControlRoot)) `
             -Directory -Filter "tunnel-runtime-*" -ErrorAction SilentlyContinue |
             ForEach-Object { Join-Path $_.FullName "secrets\control-plane-runtime-key.dpapi" } |
             Where-Object {
@@ -413,6 +434,18 @@ function Disable-StoppedPriorTunnelTasks {
 }
 
 $exactPluginRoot = Resolve-PluginRoot
+$exactRuntimeControlRoot = [IO.Path]::GetFullPath($RuntimeControlRoot)
+$expectedRuntimeControlRoot = [IO.Path]::GetFullPath(
+    (Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin")
+)
+if ($exactRuntimeControlRoot -cne $expectedRuntimeControlRoot) {
+    throw "The tunnel installer must use the exact hidden Evidence Lane Codex runtime root."
+}
+$exactRuntimeRoot = [IO.Path]::GetFullPath($RuntimeRoot)
+$approvedRuntimeParent = $exactRuntimeControlRoot + [IO.Path]::DirectorySeparatorChar
+if (-not $exactRuntimeRoot.StartsWith($approvedRuntimeParent, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "The versioned tunnel runtime must remain inside the Evidence Lane runtime control root."
+}
 $runner = Join-Path $exactPluginRoot "scripts\run_mcp.py"
 if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
     throw "The exact Evidence Lane MCP launcher is missing: $runner"
@@ -421,7 +454,13 @@ if (-not (Test-Path -LiteralPath $sourceHost -PathType Leaf)) {
     throw "The no-visible-console Evidence Lane tunnel host is missing: $sourceHost"
 }
 $python = Resolve-PythonCommand -ExactPluginRoot $exactPluginRoot
+if ([string]::IsNullOrWhiteSpace($DataRoot)) {
+    throw "HOST_TOOL_GAP requires the governed project data root through -DataRoot or EVIDENCE_LANE_DATA_ROOT."
+}
 $exactDataRoot = [IO.Path]::GetFullPath($DataRoot)
+if ($exactDataRoot -ceq $exactRuntimeControlRoot) {
+    throw "Project authority and hidden plugin runtime control must use separate roots."
+}
 if (Test-Path -LiteralPath $exactDataRoot -PathType Leaf) {
     throw "The configured Evidence Lane data root is a file, not a durable directory."
 }
@@ -446,7 +485,7 @@ if ($RotateRuntimeKey -or -not (Test-Path -LiteralPath $secretFile -PathType Lea
     $effectiveEnvelopeSource = Resolve-PriorRuntimeKeyEnvelope
     if (-not [string]::IsNullOrWhiteSpace($effectiveEnvelopeSource) -and -not $RotateRuntimeKey) {
         $exactEnvelopeSource = [IO.Path]::GetFullPath($effectiveEnvelopeSource)
-        $approvedEnvelopeParent = $exactDataRoot + [IO.Path]::DirectorySeparatorChar
+        $approvedEnvelopeParent = $exactRuntimeControlRoot + [IO.Path]::DirectorySeparatorChar
         if (
             -not $exactEnvelopeSource.StartsWith(
                 $approvedEnvelopeParent,
@@ -492,6 +531,8 @@ $marker = [ordered]@{
     release_identity_source = "CODEX_RELEASE_CHANNEL_CONTRACT"
     runtime_identity_matches_release = $true
     runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
+    runtime_control_root = $exactRuntimeControlRoot
+    runtime_control_root_hidden = $true
     profile_name = $ProfileName
     profile_file = $profileFile
     task_name = $TaskName
@@ -509,6 +550,7 @@ $marker = [ordered]@{
     codex_tunnel_lifecycle_proof_allowed = $false
     plugin_root = $exactPluginRoot
     data_root = $exactDataRoot
+    project_data_root_separate = ($exactDataRoot -cne $exactRuntimeControlRoot)
     project_binding = "NONE_TRANSPORT_ONLY"
     project_route_argument = "project_id"
     project_route_argument_required = $true
@@ -525,6 +567,9 @@ $marker = [ordered]@{
     runtime_key_envelope_reused = $runtimeKeyEnvelopeReused
     tunnel_id_reused = $tunnelIdReused
     interaction_profile = $InteractionProfile
+    host_tool_transport = $HostToolTransport
+    native_mcp_available = $false
+    tunnel_requirement = "REQUIRED_FOR_HOST_TOOL_GAP"
     account_tier = $AccountTier
     account_tier_affects_routing = $false
     api_billing_affects_routing = $false
@@ -538,7 +583,7 @@ $marker = [ordered]@{
     runtime_key_plaintext_written = $false
     windows_console_policy = "WINDOWS_GUI_HOST_CREATE_NO_WINDOW"
     scheduled_task_window_style = "HIDDEN"
-    distribution_audience = if ($SlotRole -eq "branch-commit-recovery") { "MAINTAINER_RECOVERY_ONLY" } else { "USER_OR_MAINTAINER_ACTIVE_2_2_RUNTIME" }
+    distribution_audience = if ($SlotRole -eq "branch-commit-recovery") { "MAINTAINER_RECOVERY_ONLY" } else { "USER_OR_MAINTAINER_ACTIVE_3_0_RUNTIME" }
     prior_versioned_runtimes_retained = $true
     prior_versioned_tasks_retained = $true
     prior_versioned_runtime_deletion_allowed = $false
@@ -572,7 +617,7 @@ Register-ScheduledTask `
 Disable-ScheduledTask -TaskName $TaskName | Out-Null
 if ($Activate) {
     Assert-NoOtherActiveTunnel `
-        -ExactDataRoot $exactDataRoot `
+        -ExactDataRoot $exactRuntimeControlRoot `
         -ExactRuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot))
     Disable-StoppedPriorTunnelTasks -ExactTaskName $TaskName
     & $manageTarget `
@@ -608,18 +653,21 @@ if ($Activate) {
     codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"
     codex_tunnel_lifecycle_proof_allowed = $false
     data_root = $exactDataRoot
+    runtime_control_root = $exactRuntimeControlRoot
+    runtime_control_root_hidden = $true
+    project_data_root_separate = ($exactDataRoot -cne $exactRuntimeControlRoot)
     project_binding = "NONE_TRANSPORT_ONLY"
     project_route_argument = "project_id"
     project_route_argument_required = $true
     cross_project_fallback_allowed = $false
-    exact_visible_tool_count = 83
+    exact_visible_tool_count = 88
     exact_active_read_tool_count = 26
     exact_fail_closed_write_tool_count = 57
     tunnel_id_recorded = $true
     runtime_key_plaintext_written = $false
     windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"
     scheduled_task_window_style = "HIDDEN"
-    distribution_audience = if ($SlotRole -eq "branch-commit-recovery") { "MAINTAINER_RECOVERY_ONLY" } else { "USER_OR_MAINTAINER_ACTIVE_2_2_RUNTIME" }
+    distribution_audience = if ($SlotRole -eq "branch-commit-recovery") { "MAINTAINER_RECOVERY_ONLY" } else { "USER_OR_MAINTAINER_ACTIVE_3_0_RUNTIME" }
     prior_versioned_runtimes_retained = $true
     prior_versioned_tasks_retained = $true
     prior_versioned_runtime_deletion_allowed = $false
@@ -628,6 +676,9 @@ if ($Activate) {
     tunnel_id_reused = $tunnelIdReused
     dependency_acquisition = $dependencyAcquisition
     interaction_profile = $InteractionProfile
+    host_tool_transport = $HostToolTransport
+    native_mcp_available = $false
+    tunnel_requirement = "REQUIRED_FOR_HOST_TOOL_GAP"
     account_tier = $AccountTier
     account_tier_affects_routing = $false
     api_billing_affects_routing = $false
@@ -645,7 +696,7 @@ if ($Activate) {
     registry_materialization_gate = "EXACT_STANDALONE_APPROVE_PLUS_NATIVE_FUSE_ACCEPTING_PV11"
     branch_commit_recovery_preserved = $true
     registered_slot = $SlotRole
-    pre_2_2_fallback_allowed = $false
+    pre_3_0_fallback_allowed = $false
     branch_recovery_is_selected = $SlotRole -eq "branch-commit-recovery"
     failover_requires_sealed_two_slot_operator = $true
     activated = [bool]$Activate

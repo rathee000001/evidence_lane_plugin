@@ -22,9 +22,9 @@ const planTokens = {
   "{{FINAL_TASK_ID}}": planProjection.physically_final_hil_task_id,
 };
 const currentSurfaceFragments = {
-  "whole-project-business-synthesis": ["18 lanes", "six-way HIL", "83 actions", "PV12", "Codex layer"],
-  "host-capability-truth": ["2.2.0", "PV12", "2.1", "2.0", "package-local native route"],
-  "install-metadata-hard-gate": ["Praveen Rathee", "17 skills", "26 read", "57 write", "PV14"],
+  "whole-project-business-synthesis": ["18 lanes", "six-way HIL", "88 actions", "PV12", "Codex layer"],
+  "host-capability-truth": ["3.0.0", "PV12", "package-local native route"],
+  "install-metadata-hard-gate": ["Praveen Rathee", "17 skills", "27 read", "61 write", "PV14"],
 };
 for (const testCase of evaluation.cases) {
   const requiredFragments = currentSurfaceFragments[testCase.id] ?? testCase.required_answer_fragments;

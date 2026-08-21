@@ -190,3 +190,12 @@ the ordered route for `evi`. `MCP_ROUTING_FAIL_CLOSED`: if the bundled
 `evidence-lane` dependency, an exact tool, or a required result is missing or
 ambiguous, stop and report it; never rewrite prefixes, substitute a tool,
 reorder a write, or infer success.
+
+Before an exact commit, package install, CI evidence claim, or HIL presentation,
+read `references/public-tool-conformance-release-gate.v1.json`. Every applicable
+case must be `PASS`, and the stage receipt must bind the gate file SHA-256, the
+source and installed matrix SHA-256 values, and the immutable evidence locators.
+`CONFORMANCE_GATE_FAIL_CLOSED`: a missing field, non-PASS case, hash mismatch,
+or prior-stage failure blocks the current and every downstream stage. The gate
+never authorizes Git, install, CI, candidate creation, HIL, Fuse, or pointer
+movement; each remains owned by its separate governed route and human boundary.

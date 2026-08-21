@@ -1,0 +1,9 @@
+interface:
+  display_name: "Evidence Lane Canon"
+  short_description: "Govern linked Canon task exchanges"
+  default_prompt: "Use $evi-canon to govern a linked Canon task exchange."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "evidence-lane"
+      description: "Evidence Lane native MCP server"

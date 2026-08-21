@@ -35,10 +35,11 @@
       "properties": {
         "actions": { "const": "read" },
         "checks": { "enum": ["read", "write"] },
-        "contents": { "const": "read" },
+        "contents": { "enum": ["read", "write"] },
         "issues": { "const": "read" },
         "metadata": { "const": "read" },
-        "pull_requests": { "const": "read" }
+        "pull_requests": { "const": "read" },
+        "workflows": { "enum": ["read", "write"] }
       }
     },
     "events": {

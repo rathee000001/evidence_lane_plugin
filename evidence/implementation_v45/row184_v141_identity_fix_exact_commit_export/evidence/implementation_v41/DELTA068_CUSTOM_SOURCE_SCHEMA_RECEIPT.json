@@ -1,0 +1,89 @@
+{
+  "schema": "evidence-lane.delta068-custom-source-schema-receipt.v1",
+  "delta_id": "EL-V130-REAL-PROJECT-CUSTOM-SOURCE-SCHEMA-DELTA-068",
+  "status": "PASS",
+  "implementation": {
+    "compiler_module": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/custom_source_schema.py",
+    "public_mcp_tool": "source_custom_schema_compile",
+    "input_contract": "evidence-lane.custom-source-schema.v1",
+    "compiled_contract": "evidence-lane.custom-source-schema.compiled.v1",
+    "compiler_version": "custom-source-schema-compiler-v1",
+    "ordered_selectors": true,
+    "typed_fields": true,
+    "exact_pinned_dependencies": true,
+    "allow_listed_transforms_only": true,
+    "deterministic_receipts": true,
+    "schema_revision_collision_blocked": true,
+    "selector_overlap_policy_explicit": true,
+    "mapping_bounds_enforced": true
+  },
+  "live_all_source_mapping": {
+    "schema_id": "evidence-lane.all-source-authority.v1",
+    "schema_version": 1,
+    "schema_sha256": "EA7BCD1A0E0E15C731EC2A0688D32BBF89F67B8349BE63126062387F08BEF2A6",
+    "batch_id": "intake_88636dcf3992a092a8318e49f1db9802",
+    "batch_sha256": "88636DCF3992A092A8318E49F1DB980284B56D64F9C5928DA777BB449C005AA9",
+    "source_occurrence_count": 48,
+    "matched_occurrence_count": 48,
+    "unmatched_occurrence_count": 0,
+    "mapping_count": 48,
+    "mapping_set_sha256": "DC0A7724FD430128A012B5DADFE8BF1A8A5DD1CE7491DF3BEA9F384311A06409",
+    "receipt_id": "custom_schema_receipt_27831d6384773ad5fc9b954de96b6750",
+    "receipt_sha256": "27831D6384773AD5FC9B954DE96B6750A705D867379479037D64569E3BD5DD71",
+    "registry_event_sha256": "0F4C0AB9604F444BB536DB743BD964C059F004F70370FFE3F618FC030176B985",
+    "registry_root_sha256": "F370B87E81402EA3E87E2A5D952D666905012117781BB719FCE4C53DE46A05A4",
+    "registry_projection": {
+      "schema_count": 1,
+      "schema_set_sha256": "99105624F6399463AA04F614B567CA5FDAB851C0BCB726E9BE8EB56DEE2A97FD",
+      "mapping_count": 48,
+      "mapping_set_sha256": "25A92D7A946EB8DFE3F0DD1FF63AEBA44E7C5BCF8433893F99B45ED5D42FB94B",
+      "receipt_count": 1,
+      "receipt_set_sha256": "F39A65C4AE1CD9843D4641A25E6BD77BFBF3C1203C24AC0A0455E23ADAF798A8"
+    }
+  },
+  "safety": {
+    "source_payload_read": false,
+    "source_payload_copy": false,
+    "source_payload_extract": false,
+    "imported_code_executed": false,
+    "imported_sql_executed": false,
+    "candidate_created": false,
+    "pointer_moved": false,
+    "build_triggered": false,
+    "refresh_triggered": false,
+    "fuse_triggered": false
+  },
+  "source_logic_reconciliation": [
+    {
+      "authority": "evidence-os-clean-full-app_current hill_sopuce code",
+      "reused": [
+        "schema-first requirement",
+        "deterministic schema identity",
+        "source-to-schema mapping receipt"
+      ],
+      "hardened": [
+        "newline table-name input replaced by typed declarative JSON",
+        "direct table creation removed from compiler",
+        "unsafe-regex-only gate replaced by structural validation and allow lists"
+      ]
+    },
+    {
+      "authority": "gh-aw-main/pkg/parser/schema_compiler.go",
+      "reused": [
+        "compile before execution",
+        "fail-closed schema validation boundary"
+      ],
+      "hardened": [
+        "Evidence Lane exact-source and pointer-neutral receipt contract"
+      ]
+    }
+  ],
+  "verification": {
+    "targeted_tests": "6 passed",
+    "combined_regression": "36 passed",
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "sqlite_integrity": "ok",
+    "foreign_key_violations": 0
+  }
+}

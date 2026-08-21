@@ -1,0 +1,77 @@
+{
+  "schema": "evidence-lane.installation-activation-validation.v7",
+  "recorded_at": "2026-07-29T22:00:59Z",
+  "status": "INSTALLATION_RECEIPT_CORRECTION_VALIDATED_AWAITING_COMMIT_AND_REINSTALL",
+  "source": {
+    "workspace_authority": "F:\\DATA MACHINE",
+    "repository_root": "F:\\DATA MACHINE\\evidence_lane_plugin",
+    "branch": "agent/ev-remote-chatgpt-plugin",
+    "parent_head": "186f83270f2a5e0d4caedbbb93a478c6f145cdc7",
+    "parent_pushed": true,
+    "d_drive_inspected_or_mutated": false
+  },
+  "observed_live_mismatch": {
+    "runtime_version": "0.4.0",
+    "persistent_installation_receipt_version": "0.3.0",
+    "persistent_installed_at": "2026-07-26T20:33:04.325482Z",
+    "cause": "A cold dependency bootstrap installed the new engine but did not activate the running version in the persistent installation receipt."
+  },
+  "correction": {
+    "command": "activate-installation",
+    "bootstrap_invokes_activation_before_doctor": true,
+    "original_installed_at_preserved": true,
+    "pv_created": false,
+    "pointer_moved": false,
+    "hil_approval_inferred": false,
+    "codex_cachebuster": "0.4.0+codex.20260729213001"
+  },
+  "validation": {
+    "focused_security_persistence": {
+      "status": "PASS",
+      "passed": 8,
+      "failed": 0,
+      "duration_seconds": 23.58
+    },
+    "full_pytest": {
+      "status": "PASS",
+      "passed": 56,
+      "failed": 0,
+      "duration_seconds": 365.04
+    },
+    "ruff_format": {
+      "status": "PASS",
+      "files": 105
+    },
+    "ruff_lint": "PASS",
+    "mypy": {
+      "status": "PASS",
+      "source_files": 36,
+      "issues": 0
+    },
+    "bandit_changed_runtime_paths": {
+      "status": "PASS",
+      "findings": 0
+    }
+  },
+  "preserved_unimplemented_deltas": [
+    "EVIDENCE-LANE-PLUGIN-CODEX-COMMANDS-CHATGPT-PARITY-DELTA-001",
+    "EVIDENCE-LANE-PLUGIN-READONLY-COMPARISON-FORENSIC-DELTA-002"
+  ],
+  "live_hil_boundary": {
+    "project_id": "test-codex-evidence-lane-plugin",
+    "session_id": "session_01kyg2m4qeqy3cbkmj278zp96h",
+    "state": "CORRECTION_TASK_PENDING",
+    "preserved_candidate": "PV1_CANDIDATE__RUN_01KYG2MA34M7V5C9RDMA3T51DJ",
+    "accepted_pv": null,
+    "pointer_generation": 0,
+    "hil_success_inferred": false
+  },
+  "next_exact_actions": [
+    "COMMIT_AND_PUSH_CORRECTION_TO_AGENT_BRANCH",
+    "REPIN_CODEX_GIT_MARKETPLACE_TO_EXACT_COMMIT",
+    "COLD_BOOTSTRAP_NEW_CODEX_CACHE",
+    "CLASSIFY_STORED_CORRECTION_BEFORE_GOVERNED_SOURCE_MUTATION",
+    "FAST_FORWARD_GOVERNED_MAIN_LOCALLY_WITHOUT_PUSHING_REMOTE_MAIN",
+    "BUILD_CORRECTED_PV1_AND_STOP_AT_HIL"
+  ]
+}

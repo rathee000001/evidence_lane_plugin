@@ -124,7 +124,7 @@ export const pluginSurfaces: readonly PluginSurface[] = [
     id: "evi-mode",
     label: "Mode",
     command: "/evi-mode",
-    family: "Lifecycle",
+    family: "Mode",
     description: "Loads ordered ENV/UOP laws for a known or explicit custom mode.",
     setting: "Each mode carries its own formula, operators, gate, accepted object, and rollback target.",
     produces: "A mode-binding receipt and visible formula.",

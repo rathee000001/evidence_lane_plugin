@@ -6,17 +6,21 @@ context, cache, or transcript is never the database authority.
 
 ## Independent capability axes
 
-Storage durability, interaction profile, VM lifetime, account tier, and API
-billing are independent. Account tier and billing never select storage. The v2
-Codex plugin uses its local native MCP route and bundles no network tunnel.
+Storage durability, interaction profile, VM lifetime, account tier, API
+billing, and host tool transport are independent. Account tier and billing
+never select storage or tunnel routing. The runtime classifier measures whether
+the interactive Codex host already exposes the required native MCP capabilities;
+only a proven host-tool gap selects the version-bound support tunnel.
 
 | Codex profile | Live primary runtime | External network setup | Flash frequency |
 | --- | --- | --- | --- |
-| Desktop or local CLI on a durable local host with the `CODEX` surface proven | Durable local SQLite | Not required for native MCP | Every Boot or Resume |
-| Durable remote Codex workspace | Durable remote filesystem/SQLite or an explicitly configured connector when required | Not required for native MCP | Every Boot or Resume |
+| Desktop or local CLI on a durable local host with native MCP available | Durable local SQLite | Not required; use native MCP | Every Boot or Resume |
+| Desktop or local CLI on a durable local host with a proven host-tool gap | Durable local SQLite | Version-bound hidden tunnel, once per persistent host and release | Every Boot or Resume |
+| Durable remote Codex workspace | Durable remote filesystem/SQLite or an explicitly configured connector when required | Native MCP when available; version-bound tunnel only for a proven tool gap | Every Boot or Resume |
 | Headless API with durable local storage | Durable local SQLite | Not required at API layer | Every invocation entry |
-| Ephemeral VM with durable mount | Durable mount SQLite | Not required for native MCP | Every Boot, Resume, or API entry |
-| Ephemeral VM without durable mount | Configured transactional connector | Not required for native MCP | Every Boot, Resume, or API entry |
+| Interactive ephemeral VM with durable mount | Durable mount SQLite | Native MCP when available; otherwise one tunnel for that VM lifetime | Every Boot or Resume |
+| Interactive ephemeral VM without durable mount | Configured transactional connector | Native MCP when available; otherwise one tunnel for that VM lifetime | Every Boot or Resume |
+| Headless API on an ephemeral VM | Durable mount or configured transactional connector | Not required at API layer | Every API entry |
 
 An ephemeral or stateless route must consume one
 `evidence-lane.host-entry-envelope.v2` before governed work. The envelope binds

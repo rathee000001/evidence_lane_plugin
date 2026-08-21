@@ -568,7 +568,7 @@ function HilCenter() {
 function SurfaceCenter({ count, label, preset }: { count: string; label: string; preset: string }) {
   return (
     <div className="heroOrbitCenter heroOrbitCenter--proof" data-hero-center={`${preset}-surface`}>
-      <div className="numberAside heroOrbitLaneCore"><strong>{count}</strong><span>{label}</span><small>Codex-native 2.2</small></div>
+      <div className="numberAside heroOrbitLaneCore"><strong>{count}</strong><span>{label}</span><small>Codex-native 3.0</small></div>
     </div>
   );
 }

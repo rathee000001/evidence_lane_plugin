@@ -6,12 +6,15 @@
   <img src="plugins/evidence-lane-plugin/assets/evidence-lane-icon.png" alt="Evidence Lane plugin icon" width="104" />
 </p>
 
-# Evidence Lane 2.2.0
+# Evidence Lane 3.0.0
 
 <p align="center">
   <a href="https://evidencelane.org"><strong>evidencelane.org</strong></a><br />
   <a href="https://rathee000001.github.io/evidence_lane_plugin/">GitHub Pages</a>
 </p>
+
+The canonical Devpost publication has not been created yet. No branch, preview,
+or candidate should publish or link to a provisional entry.
 
 <p align="center">
   <a href="ARCHITECTURE.md">Architecture</a> ·
@@ -34,12 +37,25 @@
   <a href="SECURITY.md">Security</a>
 </p>
 
-Evidence Lane is a local-first evidence and continuity system for long-running
-AI-assisted work. It keeps project truth, source identity, task state, research,
-candidate builds, and human decisions queryable and traceable across tasks,
+The AI model is rarely the only bottleneck in a serious long-running project.
+The harder failure is the fragmented project around it: repositories, local
+dirty work, documents, databases, research, plans, installed runtimes,
+deployments, and human decisions all drift into separate realities while the
+human becomes the integration layer.
+
+Evidence Lane is a local-first project control plane for that fragmented state.
+It keeps source, worktree, project, Plan, ChatLineage, installed-runtime,
+candidate, accepted, Memory, Canon, and AI Learning authorities distinct while
+making the exact slice needed by the active Delta queryable across tasks,
 context windows, tools, and hosts.
 
-> **Testing status:** Version 2.2.0 is a candidate source line under branch
+The current pre-HIL Codex source release is **3.0.0**. This forward release
+identity applies to the branch, package, helper, tunnel, Git, website, future
+Devpost publication, and maintained current documentation; sealed historical
+receipts retain their original identities only inside the historical evidence
+boundary.
+
+> **Testing status:** Version 3.0.0 is a candidate source line under branch
 > verification; it has not completed the governed release and installed-package
 > gate. Lifecycle hooks remain off in the maintainer test environment while all
 > eight events are repaired and verified one at a time. Canon and AI Learning
@@ -111,10 +127,10 @@ AI reasons over these authorities. It is not itself the evidence authority.
 
 ## Current Codex package contract
 
-The 2.2 source package defines:
+The 3.0 source package defines:
 
 - one package-local native MCP server named `evidence-lane`;
-- exactly **83 canonical actions**: 26 read-only and 57 write-capable;
+- exactly **88 canonical actions**: 27 read-only and 61 write-capable;
 - exactly **17 governed skills**;
 - six primary controls in order: Boot, Rollback, Build, Refresh, Mode, and
   Source Intake;
@@ -156,13 +172,13 @@ installed-host evidence.
 
 ### Complete native MCP surface
 
-| Native surface | Exact 2.2 source value | Authority boundary |
+| Native surface | Exact 3.0 source value | Authority boundary |
 | --- | --- | --- |
 | Server | `evidence-lane` | One package-local Codex MCP; website and tunnel routes are not substitutes. |
 | Canonical namespace | `mcp__evidence_lane__*` | Display suffixes never change canonical identity. |
-| Read-only actions | 26 | Inspect authority without lifecycle mutation. |
-| Write-capable actions | 57 | Each call proves its project, session, task, host, and lifecycle preconditions. |
-| Total canonical actions | 83 | Visibility is capability discovery, not permission or approval. |
+| Read-only actions | 27 | Inspect authority without lifecycle mutation. |
+| Write-capable actions | 61 | Each call proves its project, session, task, host, and lifecycle preconditions. |
+| Total canonical actions | 88 | Visibility is capability discovery, not permission or approval. |
 | Governed console | `ui://evidence-lane/governed-console-v5.html` | Read-only rendering cannot decide HIL or move a pointer. |
 | Durable default | Project-scoped local SQLite | Storage connectors remain separate surfaces. |
 
@@ -178,7 +194,7 @@ flowchart TD
     Host["Codex host and exact task"] --> Hooks["8 lifecycle hooks"]
     Host --> Skills["17 governed skills"]
     Hooks --> Skills
-    Skills --> MCP["Native evidence-lane MCP<br/>26 read + 57 write actions"]
+    Skills --> MCP["Native evidence-lane MCP<br/>27 read + 61 write actions"]
     MCP --> SDK["Internal SDK<br/>engine + contracts + adapters"]
     SDK --> Authorities["Separate authorities<br/>Project Truth | Canon | Learning | ChatLineage | Host Entry"]
     Sources["Authorized sources"] --> Lanes["18 bounded evidence lanes"]
@@ -377,8 +393,8 @@ installed-package bytes must agree before hooks are re-enabled.
 | Codex execution profile | Primary project storage | Tunnel requirement |
 | --- | --- | --- |
 | Desktop Codex on a local/persistent host | Durable local SQLite | Version-bound tunnel only when the detected host route requires it |
-| Local CLI without the interactive app | Durable local SQLite | Not required by the API layer |
-| Headless API/CLI on a persistent VM | Durable local PV store | Not required by the API layer |
+| Local CLI without the interactive app | Durable local SQLite | Required when the host route lacks direct MCP transport or required host tools |
+| Headless API service on a persistent VM | Durable local PV store | Not required by the API layer |
 | Ephemeral VM with durable mount | Mounted durable SQLite | Not required by the API layer |
 | Ephemeral VM without durable mount | Explicit transactional durable connector | Not required by the API layer |
 | Interactive Codex on an ephemeral VM | Durable mount or transactional connector | One VM-lifetime setup may be required |
@@ -397,7 +413,7 @@ authority directly and creates no unnecessary external dependency.
 
 ## Maintainer slots and recovery
 
-The maintainer workflow separates three 2.2 roles:
+The maintainer workflow separates three 3.0 roles:
 
 1. **Local testing slot** — receives reviewed working-tree packages only when a
    governed local-install test is actually scheduled.
@@ -431,8 +447,29 @@ Windows sign-in through its versioned scheduled task, and never absorbs
 unrelated OpenAI tools. Older helper and tunnel identities are disabled when a
 new version becomes active; they are not allowed to race the current task.
 
-See [Helper installation](docs/USER_HELPER_GUIDE.md) and
-[Tunnel persistence](docs/USER_TUNNEL_GUIDE.md).
+See [Helper installation](docs/USER_HELPER_GUIDE.md), the
+[user tunnel guide](docs/USER_TUNNEL_GUIDE.md), and the complete
+[tunnel persistence contract](docs/WINDOWS_TUNNEL_PERSISTENCE.md).
+
+### Bounded Windows tunnel setup
+
+Local Codex and local CLI profiles may require the version-bound tunnel when
+the detected host route lacks direct MCP transport or required host tools.
+Headless API requests do not require the tunnel merely because they use API
+billing. The tunnel carries only the Evidence Lane transport selected by the
+host matrix; it never absorbs unrelated OpenAI tooling or changes project
+authority.
+
+The 3.0 installer is
+`plugins/evidence-lane-plugin/scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1`.
+For an ephemeral interactive host, pass `CODEX_APP_INTERACTIVE`,
+`-HostLifetime Ephemeral`, and the exact `-VmInstanceId
+"<exact-vm-instance-id>"`. The prompt for the user's Runtime API key is masked;
+the encrypted value uses Windows DPAPI and is never written to a receipt.
+Inspect or start the installed tunnel with `Manage-EvidenceLaneTunnel.ps1
+-Action Status`; success must report `status = PASS` before any
+`mcp__evidence_lane__*` route is treated as available. The helper remains a
+separate process and never installs the plugin.
 
 ## Git and CI/CD boundary
 
@@ -536,9 +573,9 @@ projection, preview compilation, and CodeQL surfaces configured for the commit.
 - ENV/UOP identities remain locked and are not offloaded into project folders
   or exposed as ordinary project data.
 
-## 2.2 source and historical compatibility invariants
+## 3.0 source and historical compatibility invariants
 
-Version 2.2 advances the governed source and package contract without rewriting
+Version 3.0 advances the governed source and package contract without rewriting
 historical releases, receipts, commits, State Travel packages, or failure
 evidence. Those artifacts retain their original identities as provenance; they
 cannot override the current source, installed package, native ledger, or human
@@ -583,7 +620,7 @@ supported role; it transfers neither ownership nor Evidence Lane authority.
 
 ## Current release boundary
 
-Version 2.2.0 is the current candidate source line, not yet a released or
+Version 3.0.0 is the current candidate source line, not yet a released or
 installed package claim. A release claim requires the exact reviewed commit,
 all required CI checks, the built package, the governed Git-route installation,
 installed-host catalog proof, and the explicit human release decision.

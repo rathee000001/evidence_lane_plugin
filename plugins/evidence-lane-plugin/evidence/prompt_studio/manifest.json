@@ -1,26 +1,26 @@
 {
   "corpus": {
-    "boundary": "all Git-tracked public-safe Evidence Lane plugin text plus canonical repository policies and ancestor Git metadata; generated proof binaries, retrieval self-inputs, private session flash, runtime state, brains, and secrets are excluded",
-    "chunk_count": 3054,
-    "sha256": "E3F77F4EBC32983020319362ED16E8A5CC4504C80615B4B9B19454A54A91D18A",
-    "source_count": 378
+    "boundary": "the exact prior public source manifest re-read from current local bytes plus frozen, previously sealed ancestor Git chunks; no Git command is invoked; generated proof binaries, retrieval self-inputs, private session flash, runtime state, brains, and secrets are excluded",
+    "chunk_count": 4178,
+    "sha256": "6EA4EC92656E1EE47B8374219061C4B265813551C7ADE9F125F7E219815D0E94",
+    "source_count": 443
   },
-  "history_commit_count": 133,
-  "history_mode": "LIVE_GIT",
-  "history_through_sha": "9feba3eb1ab16db42b294baa0404503517c21235",
+  "history_commit_count": 142,
+  "history_mode": "FROZEN_SEALED_INDEX_NO_GIT",
+  "history_through_sha": "5dca408b6c4786ea1e3a66725b1617b016c59cd2",
   "outputs": {
     "browser_json": {
-      "bytes": 14987437,
+      "bytes": 20587369,
       "path": "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json",
-      "sha256": "DAC4A86EE998BED94B5B3D04ACB963414925E8F74B6968656E4F4EF36F4252E8"
+      "sha256": "360249B8D8922448D7B5A003B6381CB170F5D6726823CD594EF9A9D391FF152E"
     },
     "sqlite": {
-      "bytes": 20033536,
+      "bytes": 24231936,
       "path": "plugins/evidence-lane-plugin/evidence/prompt_studio/studio_search.sqlite",
-      "sha256": "63032BE2289D5CF28AF44A38263FE4DE6D717907494114E21E86D056F9C4A335"
+      "sha256": "B9B1E4A6138715FEBD1B4E4A9B3B29B6AD3EC973FA3D370BB2B67472FF426E0D"
     }
   },
-  "release": "2.2.0",
+  "release": "3.0.0",
   "retrieval": {
     "chunker": "llama-index-core==0.14.23 SentenceSplitter(480,64)",
     "hybrid": "reciprocal-rank fusion k=60",
@@ -30,9 +30,10 @@
   },
   "schema": "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1",
   "validation": {
-    "fts_refresh_hits": 199,
+    "fts_refresh_hits": 357,
     "secret_scan": "PASS",
+    "sqlite_fixed_size_cap": false,
     "sqlite_integrity": "ok",
-    "sqlite_public_size_limit_bytes": 25165824
+    "sqlite_size_bytes": 24231936
   }
 }

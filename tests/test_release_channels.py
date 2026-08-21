@@ -7,72 +7,51 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 
 
-def test_v220_declares_exact_stable_build_and_v210_pv12_fallback_slots() -> None:
+def test_v300_declares_exact_three_role_maintainer_slots() -> None:
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
     stable = contract["stable"]
-    fallback = contract["fallback"]
+    branch_recovery = contract["branch_recovery"]
+    local_testing = contract["local_testing"]
     live_slots = contract["live_slot_policy"]
 
-    assert stable == {
-        "release": "2.2.0",
-        "slot_role": "stable-build",
-        "codex_marketplace_slot": "evidence-lane-github",
-        "marketplace_display_name": "GitLane Stable 2.2",
-        "install_source": "GIT_EXACT_COMMIT",
-        "enabled": True,
-        "byte_frozen": False,
-        "updates_require_verified_unique_build_identity": True,
-        "stable_selector_is_persistent": True,
-        "stable_updates_reinstall_in_place": True,
-        "build_identity_is_receipt_not_selector": True,
-        "native_server_identity": "evidence-lane",
-        "native_tool_count": 83,
-        "native_read_tool_count": 26,
-        "native_write_tool_count": 57,
-        "skill_count": 17,
-        "codex_apps_allowed": False,
-        "generated_namespace_allowed": False,
-        "direct_stdio_fallback_allowed": False,
-        "google_drive_bundled": False,
-        "tunnel_release_must_match": True,
-        "tunnel_channel": "stable-build",
-    }
-    assert fallback == {
-        "release": "2.1.0",
-        "slot_role": "fallback",
-        "codex_marketplace_slot": "evidence-lane-pv11-fallback",
-        "authority_identity": "fallback",
-        "selector_role": "OPERATIONAL_LOCATOR_ONLY",
-        "selector_is_authority": False,
-        "generation_neutral_selector": "evidence-lane-fallback",
-        "legacy_generation_alias_active": True,
-        "authorization_fields": [
-            "accepted_pv",
-            "accepted_generation",
-            "accepted_manifest_sha256",
-            "accepted_package_sha256",
-            "accepted_universal_pv_package_sha256",
-            "plugin_manifest_sha256",
-            "cache_authority_manifest_sha256",
-            "install_receipt_sha256",
-        ],
+    assert stable["release"] == "3.0.0"
+    assert stable["slot_role"] == "main-git-release"
+    assert stable["codex_marketplace_slot"] == "evidence-lane-github"
+    assert stable["marketplace_display_name"] == "Main Git Plugin Version"
+    assert stable["install_source"] == "GIT_EXACT_COMMIT"
+    assert stable["native_tool_count"] == 88
+    assert stable["skill_count"] == 17
+    assert stable["direct_stdio_fallback_allowed"] is False
+
+    assert branch_recovery == {
+        "release": "3.0.0",
+        "slot_role": "branch-commit-recovery",
+        "codex_marketplace_slot": "evidence-lane-v300-stable-recovery",
+        "marketplace_display_name": "Branch Commit Git Recovery",
+        "install_source": "GOVERNED_BRANCH_COMMIT_EXACT_PACKAGE",
         "enabled": False,
-        "materialization_gate": "POST_EXACT_PV12_APPROVE_AND_NATIVE_FUSE",
-        "accepted_pv": "PV12",
-        "accepted_generation": 12,
-        "byte_frozen": True,
-        "package_must_equal_accepted_pv": True,
-        "prewarmed_means_installed_verified_and_stopped": True,
+        "update_gate": "LOCAL_TEST_GREEN_AND_GOVERNED_BRANCH_COMMIT",
+        "byte_frozen_between_branch_checkpoints": True,
+        "must_not_follow_uncommitted_local_bytes": True,
+        "recover_mutable_local_test_failure": True,
         "simultaneous_mcp_allowed": False,
         "simultaneous_tunnel_allowed": False,
-        "tunnel_channel": "fallback",
     }
-    assert live_slots["exact_slot_count_after_pv11_acceptance"] == 2
-    assert live_slots["allowed_slots"] == ["stable-build", "fallback"]
+    assert local_testing["release_line"] == "3.0.0"
+    assert local_testing["slot_role"] == "mutable-local-testing"
+    assert local_testing["codex_marketplace_slot"] == "evidence-lane-v300-testing-new"
+    assert local_testing["helper_installs_plugin"] is False
+
+    assert live_slots["exact_slot_count"] == 3
+    assert live_slots["allowed_slots"] == [
+        "main-git-release",
+        "branch-commit-recovery",
+        "mutable-local-testing",
+    ]
     assert live_slots["max_enabled_plugin_count"] == 1
-    assert live_slots["exact_registered_plugin_count"] == 2
+    assert live_slots["exact_registered_plugin_count"] == 3
     assert live_slots["stable_selector_growth_allowed"] is False
     assert live_slots["max_active_native_mcp_count"] == 1
     assert live_slots["max_active_tunnel_count"] == 1
@@ -80,14 +59,14 @@ def test_v220_declares_exact_stable_build_and_v210_pv12_fallback_slots() -> None
     assert live_slots["manual_loaded_cache_deletion_allowed"] is False
 
 
-def test_v220_pv13_pv14_sequence_keeps_22_and_blocks_early_promotion() -> None:
+def test_v300_pv13_pv14_sequence_blocks_early_promotion() -> None:
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
     sequence = contract["pv_sequence_boundary"]
 
     assert sequence == {
-        "release_line": "2.2.0",
+        "release_line": "3.0.0",
         "entry_pointer": "PV12",
         "intermediate_candidate": "PV13",
         "intermediate_approve_effect": "FUSE_PV13_ONLY",
@@ -98,19 +77,18 @@ def test_v220_pv13_pv14_sequence_keeps_22_and_blocks_early_promotion() -> None:
         "final_approve_effects": [
             "FUSE_PV14_GENERATION_14",
             "GOVERNED_NON_FORCE_MAIN_PROMOTION",
-            "INSTALL_EXACT_ACCEPTED_2_2_IN_ENABLED_STABLE_SLOT",
-            "INSTALL_EXACT_ACCEPTED_2_2_IN_DISABLED_RECOVERABLE_FALLBACK_SLOT",
+            "INSTALL_EXACT_ACCEPTED_3_0_IN_ENABLED_STABLE_SLOT",
+            "INSTALL_EXACT_ACCEPTED_3_0_IN_DISABLED_RECOVERABLE_FALLBACK_SLOT",
         ],
-        "release_2_3_in_current_goal_allowed": False,
+        "release_3_1_in_current_goal_allowed": False,
         "next_cycle_entry_pointer": "PV14",
         "next_cycle_candidate": "PV15",
         "next_cycle_requires_fresh_user_start": True,
     }
 
     readme = (ROOT / "README.md").read_text("utf-8")
-    assert "PV13 gate may Fuse PV13 only" in readme
-    assert "physically final PV14 gate" in readme
-    assert "Version 2.3 belongs to a later user-started cycle" in readme
+    for internal_pointer in ("PV12", "PV13", "PV14", "PV15"):
+        assert internal_pointer not in readme
 
 
 def test_plugin_release_cycle_never_leaks_into_downstream_project_pvs() -> None:
@@ -133,25 +111,29 @@ def test_plugin_release_cycle_never_leaks_into_downstream_project_pvs() -> None:
     assert scope["intermediate_pv13_install_hil_route"] == {
         "ci_prerequisite_row": 196,
         "execution_row": 197,
-        "release": "2.2.0",
-        "branch": "agent/evi-v220-systemwide-release-hil-v2.2.0",
+        "release": "3.0.0",
+        "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
         "source": (
             "EXACT_GIT_COMMIT_AFTER_REQUIRED_CLEAN_CI_AND_"
             "GIT_TRIGGERED_VERCEL_PREVIEW"
         ),
-        "slot_role": "stable-build",
-        "plugin_selector": "evidence-lane-plugin@evidence-lane-github",
+        "slot_role": "branch-commit-recovery",
+        "plugin_selector": "evidence-lane-plugin@evidence-lane-v300-stable-recovery",
+        "byte_identical_local_testing_selector": (
+            "evidence-lane-plugin@evidence-lane-v300-testing-new"
+        ),
+        "working_role_sync_required": True,
         "installed_version_must_equal_exact_package_version": True,
         "installed_catalog_must_equal": {
-            "native_actions": 83,
-            "read_actions": 26,
-            "write_actions": 57,
+            "native_actions": 88,
+            "read_actions": 27,
+            "write_actions": 61,
             "governed_skills": 17,
             "hook_events": 8,
             "migrated_command_skills": 1,
         },
         "installed_ui_readback_required_before_pv13_hil": True,
-        "fallback_mutation_allowed": False,
+        "main_git_release_slot_mutation_allowed": False,
         "main_merge_allowed": False,
         "downstream_project_inherits_install": False,
     }
@@ -162,9 +144,7 @@ def test_plugin_release_cycle_never_leaks_into_downstream_project_pvs() -> None:
 
     readme = (ROOT / "README.md").read_text("utf-8")
     architecture = (ROOT / "ARCHITECTURE.md").read_text("utf-8")
-    assert "not inherited by downstream governed projects" in readme.replace(
-        "\n", " "
-    )
+    assert "A downstream project does not inherit" in readme.replace("\n", " ")
     assert "A downstream user's project PV does not reinstall" in architecture
 
 
@@ -207,19 +187,34 @@ def test_helper_tunnel_rotation_is_plugin_maintainer_only_and_final_hil_gated() 
     )
     helper = contract["helper_distribution_policy"]
     rotation = helper["post_hil_release_rotation"]
+    runtime = helper["runtime_storage_boundary"]
 
-    assert helper["fallback_transport"]["state"] == (
-        "CURRENT_PRE_FINAL_HIL_OBSERVED_FALLBACK"
-    )
+    assert runtime == {
+        "root_relative_to_user_profile": (
+            ".codex\\plugins\\runtime\\evidence-lane-plugin"
+        ),
+        "host_managed_hidden": True,
+        "project_authority_may_share_root": False,
+        "installed_cache_mutation_for_runtime_state_allowed": False,
+        "one_active_native_mcp_count": 1,
+        "one_active_tunnel_count": 1,
+        "failed_windowsapps_cli_probe_allowed": False,
+        "npm_native_codex_cli_required": True,
+        "exact_task_reopen_count": 1,
+        "black_terminal_popup_allowed": False,
+    }
+    assert helper["user_stable_tunnel"]["release"] == "3.0.0"
+    assert helper["user_stable_tunnel"]["release_token"] == "v300"
+    assert helper["branch_recovery_transport"]["release"] == "3.0.0"
     assert rotation["applies_to_plugin_maintainer_route_only"] is True
     assert rotation["downstream_project_inherits_rotation"] is False
-    assert rotation["intermediate_pv13_can_rotate_main_or_fallback"] is False
-    assert rotation["current_pre_final_hil_fallback_is_2_1"] is True
+    assert rotation["local_test_green_branch_checkpoint_can_converge_all_three_slots"] is True
+    assert rotation["pre_3_0_fallback_allowed"] is False
     assert rotation["final_gate"] == "PV14_EXACT_HUMAN_APPROVE_AND_FUSE"
     assert rotation["required_order"][-1] == (
-        "VERIFY_STABLE_ENABLED_FALLBACK_DISABLED_AND_ONE_ACTIVE_RUNTIME"
+        "VERIFY_THREE_BYTE_IDENTICAL_SLOTS_AND_ONE_ACTIVE_RUNTIME"
     )
-    assert rotation["stable_and_fallback_must_equal_exact_accepted_release"] is True
+    assert rotation["all_three_slots_must_equal_exact_checkpoint_release"] is True
     assert rotation["helper_and_tunnel_release_must_match_owning_slot"] is True
     assert rotation["prior_versioned_helpers_and_tunnels_retained"] is True
     assert rotation["prior_versioned_helpers_and_tunnels_disabled"] is True
@@ -324,9 +319,9 @@ def test_promotion_requires_matching_cross_surface_receipts_and_hil() -> None:
     promotion = contract["promotion_gate"]
     assert promotion["explicit_six_way_hil_required"] is True
     assert promotion["required_catalog"] == {
-        "tools": 83,
-        "read": 26,
-        "write": 57,
+        "tools": 88,
+        "read": 27,
+        "write": 61,
         "skills": 17,
     }
     assert promotion["fail_closed_on_version_mismatch"] is True
@@ -353,16 +348,43 @@ def test_v200_host_storage_tunnel_matrix_keeps_routing_axes_independent() -> Non
     }
     assert matrix["interactive_codex_app_local_or_persistent"] == {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
-        "tunnel_requirement": "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
-        "tunnel_setup_frequency": "NONE",
-        "tunnel_key_retention": "NOT_APPLICABLE",
-        "tunnel_runtime_lifetime": "NOT_APPLICABLE",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+            "tunnel_setup_frequency": "NONE",
+            "tunnel_key_retention": "NOT_APPLICABLE",
+            "tunnel_runtime_lifetime": "NOT_APPLICABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+            "tunnel_key_retention": "CURRENT_WINDOWS_USER_DPAPI_PROFILE",
+            "tunnel_runtime_lifetime": "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST",
+        },
+    }
+    assert matrix["codex_cli_local_or_persistent"] == {
+        "pv_storage": "DURABLE_LOCAL_SQLITE",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONE_TIME_PER_PERSISTENT_HOST_AND_RELEASE",
+        },
     }
     assert matrix["interactive_codex_app_ephemeral_vm"] == {
         "pv_storage": "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR",
-        "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
-        "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
-        "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+        "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "native_mcp_available": {
+            "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+        },
+        "host_tool_gap": {
+            "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
+            "tunnel_setup_frequency": "ONCE_PER_EPHEMERAL_VM_INSTANCE",
+            "tunnel_key_retention": "CURRENT_VM_LIFETIME_ONLY",
+            "tunnel_runtime_lifetime": "CURRENT_VM_LIFETIME_ONLY",
+        },
     }
     assert matrix["desktop_container_surface_scope"] == {
         "supported_container_channels": [
@@ -378,14 +400,14 @@ def test_v200_host_storage_tunnel_matrix_keeps_routing_axes_independent() -> Non
     }
 
 
-def test_v220_remote_git_policy_supersedes_only_historical_flash_sentence() -> None:
+def test_v300_remote_git_policy_supersedes_only_historical_flash_sentence() -> None:
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
     policy = contract["remote_git_policy"]
 
     assert policy == {
-        "effective_release": "2.2.0",
+        "effective_release": "3.0.0",
         "v150_flash_confirmation_sentence": (
             "HISTORICAL_HASH_LOCKED_COMPATIBILITY_BYTE_NOT_EFFECTIVE_V2_POLICY"
         ),
@@ -416,7 +438,7 @@ def test_tunnel_version_history_is_append_only_and_hash_chained() -> None:
     assert 'EventType "ROLLBACK_ACTIVATED"' in manager
 
 
-def test_two_slot_operator_is_bounded_and_rejects_transient_auto_failover() -> None:
+def test_three_slot_operator_is_bounded_and_rejects_transient_auto_failover() -> None:
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
@@ -428,7 +450,9 @@ def test_two_slot_operator_is_bounded_and_rejects_transient_auto_failover() -> N
         / "Switch-EvidenceLaneCodexSlot.ps1"
     ).read_text("utf-8")
 
-    assert policy["registry_schema"] == "evidence-lane.codex-two-slot-registry.v1"
+    assert policy["registry_schema"] == "evidence-lane.codex-three-slot-registry.v1"
+    assert policy["failure_target_slot"] == "branch-commit-recovery"
+    assert policy["mutable_local_failure_never_targets_main_git"] is True
     assert policy["deterministic_failure_minimum_consecutive_probes"] == 3
     assert policy["deterministic_failure_minimum_window_seconds"] == 30
     assert policy["deterministic_failure_minimum_distinct_probe_types"] == 2
@@ -436,11 +460,13 @@ def test_two_slot_operator_is_bounded_and_rejects_transient_auto_failover() -> N
     assert policy["stop_source_tunnel_before_start_target"] is True
     assert policy["target_tunnel_ready_before_plugin_switch"] is True
     assert policy["switch_failure_restores_source_slot"] is True
-    assert '"stable-build", "fallback"' in operator
-    assert "consecutive_failures -lt 3" in operator
-    assert "sample_window_seconds -lt 30" in operator
-    assert "distinct_probe_types -lt 2" in operator
-    assert "single_transient_error -ne $false" in operator
+    assert '"main-git-release"' in operator
+    assert '"branch-commit-recovery"' in operator
+    assert '"mutable-local-testing"' in operator
+    assert "$ConsecutiveFailures -lt 3" in operator
+    assert "$SampleWindowSeconds -lt 30" in operator
+    assert "$DistinctProbeTypes -lt 2" in operator
+    assert "$SingleTransientError" in operator
     assert 'Invoke-Tunnel -Slot $source -TunnelAction "Stop"' in operator
     assert 'Invoke-Tunnel -Slot $target -TunnelAction "Start"' in operator
     assert "Restart-EvidenceLaneCodex.ps1" in operator
@@ -474,7 +500,16 @@ def test_goal_recovery_is_one_general_read_only_logon_manager() -> None:
         "turn_start_allowed": False,
         "state_travel_allowed": False,
         "candidate_hil_pointer_or_git_mutation_allowed": False,
-        "requires_stable_enabled_fallback_disabled": True,
+        "restart_task_binding_refresh_order": (
+            "TASK_BINDING_WRITE_THEN_GOAL_BINDING_REGISTER_THEN_APP_STOP"
+        ),
+        "stale_task_binding_seal_allowed": False,
+        "requires_exactly_one_enabled_allowed_three_slot_selector": True,
+        "allowed_runtime_selectors": [
+            "evidence-lane-plugin@evidence-lane-github",
+            "evidence-lane-plugin@evidence-lane-v300-stable-recovery",
+            "evidence-lane-plugin@evidence-lane-v300-testing-new",
+        ],
         "stable_selector_growth_allowed": False,
         "raw_goal_objective_stored": False,
     }
@@ -546,6 +581,16 @@ def test_codex_behavior_belongs_to_skills_and_hooks_remain_lifecycle_only() -> N
             "PostCompact": "SKILL_REBIND_AND_FULL_PLAN_REENTRY_OWNER",
             "Stop": "SKILL_IDEMPOTENT_COMMIT_OWNER",
             "SessionEnd": "SKILL_BEST_EFFORT_BOUNDARY_FLUSH_OWNER",
+        },
+        "goal_continuation_route": {
+            "host_route": "thread/goal/set -> first PreToolUse boundary",
+            "user_prompt_submit_observed": False,
+            "pre_reasoning_dispatch_claimed": False,
+            "authority": "SEALED_ACTIVE_GOAL_RECOVERY_BINDING",
+            "exact_task_install_plan_pointer_match_required": True,
+            "raw_goal_objective_stored": False,
+            "synthetic_prompt_allowed": False,
+            "fail_closed_on_mismatch": True,
         },
         "session_end_delivery": "BEST_EFFORT_HOST_CAPABILITY_GATED",
         "permission_request_policy": (
@@ -670,9 +715,10 @@ def test_stable_activation_requires_git_ci_authority_and_runtime_prewarm() -> No
         "external_release_receipt_sealer": (
             "scripts/codex_release/seal_external_release_receipts.py"
         ),
-        "stable_update_helper": (
-            "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1"
-        ),
+        "stable_install_command": "scripts/codex_release/install_codex_stable.py",
+        "stable_update_helper": "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
+        "install_completed_before_restart_helper": True,
+        "restart_helper_installs_plugin": False,
         "stable_update_reopens_same_bound_host_app": True,
         "stable_update_rebinds_general_goal_recovery": True,
         "release_authority_schema": (
@@ -685,7 +731,7 @@ def test_stable_activation_requires_git_ci_authority_and_runtime_prewarm() -> No
         "production_deployment_allowed": False,
         "exact_commit_git_marketplace_required": True,
         "git_marketplace_name": "evidence-lane-github",
-        "git_marketplace_display_name": "GitLane Stable 2.2",
+        "git_marketplace_display_name": "Main Git Plugin Version",
         "git_marketplace_source": "rathee000001/evidence_lane_plugin",
         "one_time_legacy_stable_selector_migration_allowed": True,
         "post_proof_obsolete_cleanup_required": True,

@@ -1,11 +1,11 @@
-# Evidence Lane 2.2.0 native MCP
+# Evidence Lane 3.0.0 native MCP
 
 Evidence Lane exposes one package-local native MCP server named
 `evidence-lane`. The canonical namespace is `mcp__evidence_lane__`; a
 collision-safe host display suffix does not change the canonical tool
 identity.
 
-The 2.2.0 catalog contains exactly 83 canonical actions: 26 read-only and 57
+The 3.0.0 catalog contains exactly 88 canonical actions: 27 read-only and 61
 write-capable. Read operations inspect accepted PVs, Plan/Delta state, source
 and lane evidence, receipts, panels, storage, and runtime identity. Write
 operations are individually governed and cannot inherit permission from a
@@ -21,10 +21,10 @@ receipts.
 | --- | --- | --- |
 | Server | `evidence-lane` | Only the package-local native route proves Codex lifecycle execution. |
 | Namespace | `mcp__evidence_lane__*` | Generated display aliases are not independent authority. |
-| Read-only actions | 26 | A read never grants a later write. |
-| Write-capable actions | 57 | Every call revalidates its own state and authority contract. |
-| Total actions | 83 | Catalog visibility never implies host support or permission. |
-| Console resource | `ui://evidence-lane/governed-console-v5.html` | Rendering is read-only and cannot decide HIL. |
+| Read-only actions | 27 | A read never grants a later write. |
+| Write-capable actions | 61 | Every call revalidates its own state and authority contract. |
+| Total actions | 88 | Catalog visibility never implies host support or permission. |
+| Console resource | `ui://evidence-lane/governed-console-v6.html` | Rendering is read-only and cannot decide HIL. |
 | Durable default | Project-scoped local SQLite | Connectors and artifact mirrors remain separate. |
 
 The server uses durable project-scoped SQLite on proven persistent Codex hosts.
@@ -32,8 +32,9 @@ Generated namespaces, direct-stdio aliases, website routes, tunnels, storage
 connectors, and additional plugins cannot substitute for native lifecycle
 proof.
 
-The 21-action 2.2 addition is split by authority, not hidden behind a generic
-SDK endpoint:
+The 3.0 action additions are split by authority, not hidden behind a generic
+SDK endpoint. Canon and Agent Learning account for 21 separately governed
+actions:
 
 - Canon Input exposes 16 named actions: three reads and thirteen writes for
   contract/envelope/decision/task-graph/backfire/result/continuity behavior.

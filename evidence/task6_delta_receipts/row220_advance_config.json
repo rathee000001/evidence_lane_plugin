@@ -1,0 +1,62 @@
+{
+  "schema": "evidence-lane.task6-delta-advance-config.v1",
+  "config_path": "evidence/task6_delta_receipts/row220_advance_config.json",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "active_task_id": "EL-CODEX-T6-PARITY-023-SERVICE-ROUTE-REVIEW",
+  "successor_task_id": "EL-CODEX-T6-PARITY-024-SKILL-MCP-ROUTING",
+  "receipt_id": "task6-row220-local-verification-001",
+  "prior_checkpoint_receipt_id": "task6-row219-local-verification-001",
+  "expected_generation": 12,
+  "changed_paths": [
+    {"path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/service.py", "role": "SOURCE"},
+    {"path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py", "role": "SOURCE"},
+    {"path": "tests/test_internal_sdk_service_route_review.py", "role": "TEST"},
+    {"path": "evidence/task6_delta_receipts/EL-CODEX-T6-PARITY-023-SERVICE-ROUTE-REVIEW.json", "role": "RECEIPT"},
+    {"path": "evidence/task6_delta_receipts/row220_advance_config.json", "role": "RECEIPT"}
+  ],
+  "test_runs": [
+    {
+      "selector": "All service methods, exact MCP/SDK source references, fail-closed drift, and MCP construction receipt",
+      "command": ".venv/Scripts/python.exe -m pytest tests/test_internal_sdk_service_route_review.py -q",
+      "output": "4 passed in 1.17s",
+      "negative_cases": [
+        "An unclassified public service method fails closed.",
+        "The internal HIL decision core cannot appear in MCP or SDK route references.",
+        "MCP construction exposes a bounded sealed review without adding a tool."
+      ]
+    },
+    {
+      "selector": "Service route, SDK handler, MCP inventory/catalog, packaged-skill catalog, and SDK public-arm integration",
+      "command": ".venv/Scripts/python.exe -m pytest tests/test_internal_sdk_service_route_review.py tests/test_internal_sdk_handler_parity.py tests/test_internal_sdk.py tests/test_mcp_plugin.py::test_mcp_tool_inventory_and_annotations tests/test_mcp_plugin.py::test_native_route_receipt_seals_the_exact_unique_catalog tests/test_mcp_plugin.py::test_packaged_skill_tool_references_match_live_canonical_catalog tests/test_public_surface_parity_matrix.py::test_canon_and_learning_public_actions_match_sdk_registration -q",
+      "output": "29 passed in 2.27s",
+      "negative_cases": [
+        "Service review cannot change native tool inventory or annotations.",
+        "Service classification cannot regress SDK handler or packaged-skill catalog identity."
+      ]
+    },
+    {
+      "selector": "Non-approval pointer preservation and exact case-sensitive Fuse approval",
+      "command": ".venv/Scripts/python.exe -m pytest tests/test_lifecycle.py::test_nonapprove_outcomes_preserve_pointer tests/test_lifecycle.py::test_pv_fuse_requires_exact_case_sensitive_approve -q",
+      "output": "5 passed in 28.87s",
+      "negative_cases": [
+        "Non-promotion HIL outcomes cannot advance the pointer.",
+        "Promotion cannot bypass exact case-sensitive APPROVE through Fuse."
+      ]
+    },
+    {
+      "selector": "Python lint, compile, JSON, and whitespace validation",
+      "command": ".venv/Scripts/python.exe -m ruff check; py_compile; json.tool; git diff --check",
+      "output": "PASS",
+      "negative_cases": [
+        "Malformed Python, receipt JSON, or whitespace cannot pass.",
+        "No Git, install, helper, tunnel, live candidate, live HIL, pointer, or root-spawned subagent action is included."
+      ]
+    }
+  ],
+  "limitations": [
+    "Row221 owns skill-to-MCP dependency metadata and workflow routing.",
+    "The separate stale hook-package matrix count remains visible for a later public-surface correction.",
+    "Installed-package parity remains at the governed release boundary."
+  ]
+}

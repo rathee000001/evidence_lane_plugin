@@ -1,15 +1,15 @@
 """Exact, replay-safe Codex host Plan-window activation receipts.
 
 The complete native Plan Lane remains the only row/status authority.  The host
-artifact contains one permanent non-Delta progress item followed by an
-ACTIVE-anchored window of at most nine executable Delta rows from that authority.
-The ACTIVE row is always host Step 2 and the next eight rows follow it. Ordinary
-turns reuse the current window; task transitions update its statuses, Plan
-steers refresh its derived labels, and crossing a window boundary activates the
-next window.  This module never claims that the host rendered or accepted an
-artifact.  Visibility and the one State Travel Plan-acceptance gate are
-separate observed facts; Sources/icon presence, a backlog readback, or an empty
-host receipt are not substitutes for either fact.
+artifact contains one permanent non-Delta progress item followed by one fixed
+batch of at most nine executable Delta rows from that authority.  The batch
+identity must already be persisted by the canonical Plan/Goal activation and
+is never inferred from the ACTIVE row.  Task transitions update statuses in
+place; Plan steers refresh only changed labels.  This module never claims
+that the host rendered or accepted an artifact.  Visibility and the one State
+Travel Plan-acceptance gate are separate observed facts; Sources/icon presence,
+a backlog readback, or an empty host receipt are not substitutes for either
+fact.
 """
 
 from __future__ import annotations
@@ -58,11 +58,11 @@ _HOST_CAPABILITIES = {"SUPPORTED", "HOST_CAPABILITY_UNAVAILABLE"}
 _VISIBLE_STATES = {"VISIBLE_UNACCEPTED", "VISIBLE_ACCEPTED"}
 _HOST_PLAN_WINDOW_SIZE = 9
 _HOST_PLAN_MAX_VISIBLE_ITEMS = 10
-_HOST_PLAN_UI_MAX_LINES = 3
+_HOST_PLAN_UI_MAX_LINES = 4
 _HOST_PLAN_UI_MAX_CHARS_PER_LINE = 72
-_HOST_PLAN_UI_MAX_TOTAL_CHARS = 216
-_HOST_PLAN_HEADER_MAX_LINES = 2
-_HOST_PLAN_HEADER_MAX_CHARS_PER_LINE = 72
+_HOST_PLAN_UI_MAX_TOTAL_CHARS = 288
+_HOST_PLAN_HEADER_MAX_LINES = 1
+_HOST_PLAN_HEADER_MAX_CHARS_PER_LINE = 160
 _PLAN_STEER_TRIGGERS = {"PLAN_STEER_DELTA_APPLIED"}
 _STATUS_TRANSITION_TRIGGERS = {
     "TASK_CLASSIFICATION_TRANSITION",
@@ -145,6 +145,7 @@ def _git_route_ui_segment(value: Any, *, panel_role: Any) -> str:
         return ""
     normalized = "_".join(str(value or "").upper().split())
     non_execution_markers = {
+        "NO_COMMIT",
         "NOT_DECLARED",
         "UNASSIGNED",
         "NO_EXPLICIT",
@@ -154,9 +155,7 @@ def _git_route_ui_segment(value: Any, *, panel_role: Any) -> str:
         "VERIFY",
         "IMPLEMENT",
     }
-    if not normalized or any(
-        marker in normalized for marker in non_execution_markers
-    ):
+    if not normalized or any(marker in normalized for marker in non_execution_markers):
         return ""
     if any(marker in normalized for marker in ("COMMIT", "PUSH", "MERGE")):
         return " || Git=COMMIT"
@@ -171,11 +170,11 @@ def _ui_abbreviation(value: Any, *, max_chars: int) -> str:
 
 
 def _host_step_description_lines(value: Any) -> list[str]:
-    """Render a useful human outcome in at most two bounded UI lines."""
+    """Render one complete human outcome across exactly two bounded UI lines."""
 
     normalized = " ".join(str(value or "Outcome is not declared.").split())
     digest = sha256_bytes(normalized.encode("utf-8"))[:4]
-    return textwrap.wrap(
+    lines = textwrap.wrap(
         normalized,
         width=_HOST_PLAN_UI_MAX_CHARS_PER_LINE,
         initial_indent="Do: ",
@@ -185,6 +184,20 @@ def _host_step_description_lines(value: Any) -> list[str]:
         break_long_words=False,
         break_on_hyphens=False,
     )
+    if len(lines) == 1:
+        words = normalized.split()
+        require(
+            len(words) >= 2,
+            "HOST_PLAN_UI_DESCRIPTION_TOO_SHORT",
+            "A host Step Task List description requires at least two words.",
+            status="MISMATCH",
+        )
+        split_at = max(1, len(words) // 2)
+        lines = [
+            f"Do: {' '.join(words[:split_at])}",
+            f"   {' '.join(words[split_at:])}",
+        ]
+    return lines
 
 
 def _host_step_ui_label(
@@ -192,7 +205,7 @@ def _host_step_ui_label(
     *,
     row_number_by_task_id: dict[str, int],
 ) -> str:
-    """Return one compact authority line plus up to two human outcome lines."""
+    """Return two authority lines plus two human-readable outcome lines."""
 
     dependencies = [str(value) for value in row.get("dependencies") or []]
     dependency_refs = [
@@ -212,23 +225,30 @@ def _host_step_ui_label(
         row.get("git_commit_stage"),
         panel_role=row.get("panel_role"),
     )
-    authority_line = (
+    identity_line = (
         f"R{row['number']}|"
         f"ID={_compact_ui_words(task_id, max_words=1, max_word_chars=5)}|"
-        f"C={_ui_abbreviation(row.get('task_classification'), max_chars=3)}|"
-        f"G={_ui_abbreviation(row.get('plan_group'), max_chars=3)}|"
-        f"D={dependency_token}|"
-        f"B={_ui_abbreviation(row.get('commit_batch_id'), max_chars=4)}|"
+        f"STATE={_ui_abbreviation(row.get('lifecycle_status'), max_chars=6)}|"
         f"FTS={row['number']}:{sha256_bytes(task_id.encode('utf-8'))[:8]}"
         f"{'|Git' if git_segment else ''}"
     )
-    lines = [authority_line, *_host_step_description_lines(row.get("step"))]
+    classification_line = (
+        f"C={_ui_abbreviation(row.get('task_classification'), max_chars=3)}|"
+        f"G={_ui_abbreviation(row.get('plan_group'), max_chars=3)}|"
+        f"D={dependency_token}|"
+        f"B={_ui_abbreviation(row.get('commit_batch_id'), max_chars=4)}"
+    )
+    lines = [
+        identity_line,
+        classification_line,
+        *_host_step_description_lines(row.get("step")),
+    ]
     require(
-        len(lines) <= _HOST_PLAN_UI_MAX_LINES
+        len(lines) == _HOST_PLAN_UI_MAX_LINES
         and all(len(line) <= _HOST_PLAN_UI_MAX_CHARS_PER_LINE for line in lines)
         and sum(len(line) for line in lines) <= _HOST_PLAN_UI_MAX_TOTAL_CHARS,
         "HOST_PLAN_UI_LABEL_BOUND_EXCEEDED",
-        "A host Step Task List row exceeded the three-line UI projection law.",
+        "A host Step Task List row violated the four-line UI projection law.",
         status="MISMATCH",
         row=row.get("number"),
         task_id=row.get("task_id"),
@@ -290,14 +310,11 @@ def _exact_projection(
     store: ProjectStore,
     *,
     project_id: str,
+    fixed_window_task_ids: list[str] | None = None,
 ) -> dict[str, Any]:
     backlog = store.backlog_status(project_id)
     goal = cast(dict[str, Any], backlog.get("goal_projection") or {})
-    full_rows = [
-        dict(row)
-        for row in goal.get("rows") or []
-        if isinstance(row, dict)
-    ]
+    full_rows = [dict(row) for row in goal.get("rows") or [] if isinstance(row, dict)]
     require(
         goal.get("canonical_authority") == "PLAN_LANE" and bool(full_rows),
         "HOST_PLAN_CANONICAL_AUTHORITY_REQUIRED",
@@ -323,9 +340,7 @@ def _exact_projection(
         active_count=len(active),
     )
     physical_final_rows = [
-        row
-        for row in full_rows
-        if row.get("panel_role") == "PHYSICALLY_FINAL_HIL"
+        row for row in full_rows if row.get("panel_role") == "PHYSICALLY_FINAL_HIL"
     ]
     require(
         len(physical_final_rows) == 1
@@ -387,10 +402,50 @@ def _exact_projection(
         if row.get("panel_role") in {"HIL_GATE", "PHYSICALLY_FINAL_HIL"}
         and row.get("status") in {"in_progress", "pending"}
     ]
-    window_index = active_index // _HOST_PLAN_WINDOW_SIZE
-    window_start_index = active_index
+    requested_window_task_ids = [
+        str(task_id).strip()
+        for task_id in fixed_window_task_ids or []
+        if str(task_id).strip()
+    ]
+    require(
+        bool(requested_window_task_ids),
+        "HOST_PLAN_FIXED_BATCH_REQUIRED",
+        "The canonical fixed host batch must be persisted before projection; sliding and de-dup fallbacks are disabled.",
+        status="BLOCKED",
+    )
+    require(
+        len(requested_window_task_ids) <= _HOST_PLAN_WINDOW_SIZE
+        and len(requested_window_task_ids) == len(set(requested_window_task_ids))
+        and str(active[0]["task_id"]) in requested_window_task_ids,
+        "HOST_PLAN_FIXED_WINDOW_BINDING_INVALID",
+        "The fixed host Plan batch must be unique, bounded, and contain ACTIVE.",
+        status="MISMATCH",
+    )
+    task_index = {str(row["task_id"]): index for index, row in enumerate(full_rows)}
+    require(
+        set(requested_window_task_ids).issubset(task_index),
+        "HOST_PLAN_FIXED_WINDOW_TASK_UNKNOWN",
+        "The fixed host Plan batch references a task outside the live Plan.",
+        status="MISMATCH",
+    )
+    requested_indexes = [task_index[task_id] for task_id in requested_window_task_ids]
+    require(
+        requested_indexes
+        == list(
+            range(
+                requested_indexes[0],
+                requested_indexes[0] + len(requested_indexes),
+            )
+        ),
+        "HOST_PLAN_FIXED_WINDOW_NOT_CONTIGUOUS",
+        "The fixed host Plan batch task identities are not contiguous.",
+        status="MISMATCH",
+    )
+    window_start_index = requested_indexes[0]
+    requested_window_size = len(requested_indexes)
+    window_index = window_start_index // _HOST_PLAN_WINDOW_SIZE
     window_end_index = min(
-        window_start_index + _HOST_PLAN_WINDOW_SIZE,
+        window_start_index + requested_window_size,
         len(full_rows),
     )
     window_rows = full_rows[window_start_index:window_end_index]
@@ -429,9 +484,7 @@ def _exact_projection(
         completed_windows.append(
             {
                 **completed_body,
-                "window_sha256": sha256_bytes(
-                    canonical_json_bytes(completed_body)
-                ),
+                "window_sha256": sha256_bytes(canonical_json_bytes(completed_body)),
             }
         )
 
@@ -446,20 +499,15 @@ def _exact_projection(
     next_window_row_end = (
         int(
             full_rows[
-                min(next_start_index + _HOST_PLAN_WINDOW_SIZE, len(full_rows))
-                - 1
+                min(next_start_index + _HOST_PLAN_WINDOW_SIZE, len(full_rows)) - 1
             ]["number"]
         )
         if next_window_row_start is not None
         else None
     )
     next_hil = next_hil_rows[0] if next_hil_rows else None
-    completed_count = sum(
-        1 for row in full_rows if row.get("status") == "completed"
-    )
-    queued_rows = [
-        row for row in full_rows if row.get("status") == "pending"
-    ]
+    completed_count = sum(1 for row in full_rows if row.get("status") == "completed")
+    queued_rows = [row for row in full_rows if row.get("status") == "pending"]
     queued_after_window = [
         row for row in full_rows[window_end_index:] if row.get("status") == "pending"
     ]
@@ -485,9 +533,7 @@ def _exact_projection(
         if final_hil_candidate_matches:
             break
     final_hil_candidate = (
-        final_hil_candidate_matches[0].upper()
-        if final_hil_candidate_matches
-        else None
+        final_hil_candidate_matches[0].upper() if final_hil_candidate_matches else None
     )
     window_ui_fingerprint_body = {
         "row_start": window_row_start,
@@ -508,29 +554,19 @@ def _exact_projection(
         "window_row_start": window_row_start,
         "window_row_end": window_row_end,
         "window_ordinal": window_index + 1,
-        "window_count": (
-            len(full_rows) + _HOST_PLAN_WINDOW_SIZE - 1
-        )
+        "window_count": (len(full_rows) + _HOST_PLAN_WINDOW_SIZE - 1)
         // _HOST_PLAN_WINDOW_SIZE,
         "total_executable_count": len(full_rows),
         "completed_count": completed_count,
         "queued_count": len(queued_rows),
-        "queued_row_start": (
-            int(queued_rows[0]["number"]) if queued_rows else None
-        ),
-        "queued_row_end": (
-            int(queued_rows[-1]["number"]) if queued_rows else None
-        ),
+        "queued_row_start": (int(queued_rows[0]["number"]) if queued_rows else None),
+        "queued_row_end": (int(queued_rows[-1]["number"]) if queued_rows else None),
         "queued_after_window_count": len(queued_after_window),
         "queued_after_window_row_start": (
-            int(queued_after_window[0]["number"])
-            if queued_after_window
-            else None
+            int(queued_after_window[0]["number"]) if queued_after_window else None
         ),
         "queued_after_window_row_end": (
-            int(queued_after_window[-1]["number"])
-            if queued_after_window
-            else None
+            int(queued_after_window[-1]["number"]) if queued_after_window else None
         ),
         "next_hil_boundary_row": (
             int(next_hil["number"]) if next_hil is not None else None
@@ -545,32 +581,22 @@ def _exact_projection(
         "detailed_hil_queue_surface": "EVIDENCE_LANE_PROJECT_RENDERER",
         "hil_controls_in_step_task_list": False,
     }
-    queued_after_window_range = (
-        f"R{continuity_header['queued_after_window_row_start']}-"
-        f"R{continuity_header['queued_after_window_row_end']}"
-        if continuity_header["queued_after_window_count"]
-        else "NONE"
-    )
     continuity_header["visible_text"] = (
-        f"Tracker || Done={completed_count}/{len(full_rows)} || "
-        f"Current=R{window_row_start}-R{window_row_end} || "
-        f"Queued={queued_after_window_range}\n"
-        f"Active=R{continuity_header['absolute_active_row']} || "
-        f"PV={continuity_header['accepted_pv'] or 'NONE'}/"
-        f"g{continuity_header['pointer_generation']} || "
-        f"NextHIL=R{continuity_header['next_hil_boundary_row'] or 'NONE'} || "
-        f"Final=R{continuity_header['physically_final_row']}/"
-        f"{continuity_header['physically_final_candidate'] or 'PV?'}"
+        f"{continuity_header['accepted_pv'] or 'NONE'}/generation "
+        f"{continuity_header['pointer_generation']} | "
+        f"ACTIVE R{continuity_header['absolute_active_row']} | "
+        f"ACTIVE BATCH R{window_row_start}-R{window_row_end} | "
+        f"NEXT_HIL R{continuity_header['next_hil_boundary_row'] or 'NONE'} | "
+        f"FINAL_HIL R{continuity_header['physically_final_row']}"
     )
     header_lines = str(continuity_header["visible_text"]).splitlines()
     require(
         len(header_lines) == _HOST_PLAN_HEADER_MAX_LINES
         and all(
-            len(line) <= _HOST_PLAN_HEADER_MAX_CHARS_PER_LINE
-            for line in header_lines
+            len(line) <= _HOST_PLAN_HEADER_MAX_CHARS_PER_LINE for line in header_lines
         ),
         "HOST_PLAN_HEADER_BOUND_EXCEEDED",
-        "The fixed host progress header exceeded its two-line UI bound.",
+        "The fixed host progress header exceeded its one-line UI bound.",
         status="MISMATCH",
         row_start=window_row_start,
         row_end=window_row_end,
@@ -613,9 +639,7 @@ def _exact_projection(
         "canonical_plan_sha256": goal.get("canonical_plan_sha256"),
         "executable_projection_sha256": goal.get("projection_sha256"),
         "visible_label_contract": goal.get("visible_label_contract"),
-        "visible_label_metadata_schema": goal.get(
-            "visible_label_metadata_schema"
-        ),
+        "visible_label_metadata_schema": goal.get("visible_label_metadata_schema"),
         "full_row_start": row_start,
         "full_row_end": row_end,
         "total_executable_count": len(full_rows),
@@ -625,9 +649,7 @@ def _exact_projection(
         "maximum_host_item_count": _HOST_PLAN_MAX_VISIBLE_ITEMS,
         "window_index": window_index,
         "window_ordinal": window_index + 1,
-        "window_count": (
-            len(full_rows) + _HOST_PLAN_WINDOW_SIZE - 1
-        )
+        "window_count": (len(full_rows) + _HOST_PLAN_WINDOW_SIZE - 1)
         // _HOST_PLAN_WINDOW_SIZE,
         "row_start": window_row_start,
         "row_end": window_row_end,
@@ -674,9 +696,7 @@ def _exact_projection(
         "final_window_may_contain_fewer_than_ten": True,
         "physically_final_hil_row": full_rows[-1]["number"],
         "physically_final_hil_task_id": full_rows[-1]["task_id"],
-        "physically_final_hil_visible_in_window": (
-            full_rows[-1] in window_rows
-        ),
+        "physically_final_hil_visible_in_window": (full_rows[-1] in window_rows),
         "full_ledger_preserved_outside_host_window": True,
         "window_advancement_rewrites_plan_history": False,
         "items": items,
@@ -718,8 +738,7 @@ def _normalized_observation(
         require(
             observation.get("surface") == "CODEX_RIGHT_SIDE_PLAN"
             and bool(str(observation.get("artifact_id") or "").strip())
-            and observation.get("projection_sha256")
-            == projection["projection_sha256"]
+            and observation.get("projection_sha256") == projection["projection_sha256"]
             and observation.get("item_count") == projection["item_count"],
             "HOST_PLAN_VISIBLE_ARTIFACT_PROOF_INVALID",
             "Visible Plan proof must bind the right-side Plan artifact to the exact projection.",
@@ -775,6 +794,8 @@ def prepare_host_plan_rehydration(
     observed_artifact: dict[str, Any] | None = None,
     host_goal_active: bool | None = None,
     affected_plan_task_ids: list[str] | None = None,
+    fixed_window_task_ids: list[str] | None = None,
+    reuse_previous_window: bool = True,
 ) -> dict[str, Any]:
     """Seal one exact host Plan-window activation request or verified no-op.
 
@@ -806,8 +827,7 @@ def prepare_host_plan_rehydration(
         }
     )
     require(
-        exact_trigger not in _PLAN_STEER_TRIGGERS
-        or bool(exact_affected_task_ids),
+        exact_trigger not in _PLAN_STEER_TRIGGERS or bool(exact_affected_task_ids),
         "HOST_PLAN_STEER_AFFECTED_TASK_REQUIRED",
         "A Plan-steer host decision requires the exact affected Plan task IDs.",
         status="BLOCKED",
@@ -819,8 +839,43 @@ def prepare_host_plan_rehydration(
         evidence_session_id=evidence_session_id,
         host_task_id=host_task_id,
     )
+    metadata = cast(dict[str, Any], session.get("metadata") or {})
+    previous_window = cast(dict[str, Any], metadata.get("host_plan_window") or {})
+    requested_window_task_ids = [
+        str(task_id).strip()
+        for task_id in fixed_window_task_ids or []
+        if str(task_id).strip()
+    ]
+    explicit_fixed_window = bool(requested_window_task_ids)
+    if not explicit_fixed_window and reuse_previous_window:
+        requested_window_task_ids = [
+            str(task_id).strip()
+            for task_id in previous_window.get("window_task_ids") or []
+            if str(task_id).strip()
+        ]
+        if requested_window_task_ids:
+            live_rows = cast(
+                list[dict[str, Any]],
+                store.backlog_status(project_id)
+                .get("goal_projection", {})
+                .get("rows", []),
+            )
+            active_task_ids = [
+                str(row.get("task_id") or "")
+                for row in live_rows
+                if row.get("status") == "in_progress"
+            ]
+            if (
+                len(active_task_ids) == 1
+                and active_task_ids[0] not in requested_window_task_ids
+            ):
+                requested_window_task_ids = []
     pointer_before = store.pointer(project_id).as_dict()
-    projection = _exact_projection(store, project_id=project_id)
+    projection = _exact_projection(
+        store,
+        project_id=project_id,
+        fixed_window_task_ids=requested_window_task_ids,
+    )
     require(
         set(exact_affected_task_ids).issubset(set(projection["full_task_ids"])),
         "HOST_PLAN_STEER_AFFECTED_TASK_UNKNOWN",
@@ -838,11 +893,7 @@ def prepare_host_plan_rehydration(
     )
     visible_current = bool(observation["artifact_visibility_proven"])
     capability_available = exact_capability == "SUPPORTED"
-    metadata = cast(dict[str, Any], session.get("metadata") or {})
-    previous_window = cast(
-        dict[str, Any], metadata.get("host_plan_window") or {}
-    )
-    previous_window_exists = bool(previous_window)
+    previous_window_exists = bool(previous_window.get("projection_sha256"))
     same_window = (
         previous_window.get("row_start") == projection["row_start"]
         and previous_window.get("row_end") == projection["row_end"]
@@ -869,15 +920,19 @@ def prepare_host_plan_rehydration(
     elif visible_current:
         status = "PASS"
         action = "NO_HOST_PLAN_ACTION_CURRENT_WINDOW_VISIBLE"
-    elif (
-        exact_trigger in _PLAN_STEER_TRIGGERS
-        and current_window_ui_changed
-    ):
+    elif exact_trigger in _PLAN_STEER_TRIGGERS and current_window_ui_changed:
         status = "PASS"
         action = "SYNC_HOST_PLAN_WINDOW_AFTER_PLAN_STEER"
     elif exact_trigger in _PLAN_STEER_TRIGGERS:
         status = "PASS"
         action = "NO_HOST_PLAN_ACTION_STEER_OUTSIDE_CURRENT_WINDOW"
+    elif exact_trigger in _REACTIVATION_TRIGGERS:
+        status = "PASS"
+        action = (
+            "ACTIVATE_HOST_PLAN_CURRENT_WINDOW"
+            if not previous_window_exists
+            else "REACTIVATE_EXISTING_HOST_PLAN_WINDOW"
+        )
     elif window_changed:
         status = "PASS"
         action = "ADVANCE_HOST_PLAN_TO_NEXT_WINDOW"
@@ -887,13 +942,6 @@ def prepare_host_plan_rehydration(
             "ACTIVATE_HOST_PLAN_CURRENT_WINDOW"
             if not previous_window_exists
             else "UPDATE_HOST_PLAN_CURRENT_WINDOW_STATUSES"
-        )
-    elif exact_trigger in _REACTIVATION_TRIGGERS:
-        status = "PASS"
-        action = (
-            "ACTIVATE_HOST_PLAN_CURRENT_WINDOW"
-            if not previous_window_exists
-            else "REACTIVATE_EXISTING_HOST_PLAN_WINDOW"
         )
     elif not previous_window_exists:
         status = "PASS"
@@ -923,19 +971,16 @@ def prepare_host_plan_rehydration(
         "trigger": exact_trigger,
         "trigger_event_id": exact_event_id,
         "host_goal_active": host_goal_active,
-        "host_goal_presence_changes_projection": False,
+        "host_goal_presence_changes_projection": projection.get("sole_active_row")
+        is not None,
         "previous_window_exists": previous_window_exists,
         "same_window_as_previous": same_window,
         "full_ledger_changed_since_previous_window_receipt": ledger_changed,
         "window_changed_since_previous_receipt": window_changed,
-        "current_window_ui_changed_since_previous_receipt": (
-            current_window_ui_changed
-        ),
+        "current_window_ui_changed_since_previous_receipt": (current_window_ui_changed),
         "affected_plan_task_ids": exact_affected_task_ids,
         "current_window_task_ids": current_window_task_ids,
-        "plan_steer_affects_current_window": (
-            plan_steer_affects_current_window
-        ),
+        "plan_steer_affects_current_window": (plan_steer_affects_current_window),
         "host_surface_persistence": {
             "schema": "evidence-lane.host-surface-persistence.v2",
             "native_plan_surface": "CODEX_RIGHT_SIDE_PLAN",
@@ -958,16 +1003,13 @@ def prepare_host_plan_rehydration(
             "pv_exit_reconstructs_new_entry": False,
             "changes_surface_binding": "EXACT_TASK_UUID_AND_WORKTREE",
             "required_until": (
-                "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_"
-                "HANDOFF_PASSES"
+                "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_HANDOFF_PASSES"
             ),
             "goal_completion_authority": "HUMAN_ONLY",
             "hil_may_complete_goal": False,
             "drop_is_continuity_failure": True,
             "rehydrate_before_source_or_lifecycle_work": True,
-            "canonical_rehydration_source": (
-                "PLAN_LANE_BACKLOG_NOT_THREAD_HISTORY"
-            ),
+            "canonical_rehydration_source": ("PLAN_LANE_BACKLOG_NOT_THREAD_HISTORY"),
             "full_thread_history_hydration_allowed": False,
             "collaboration_overlay_hydration_allowed_during_recovery": False,
             "recovery_concurrency": "ONE_ACTIVE_TASK_ZERO_SUBAGENTS",
@@ -1085,8 +1127,7 @@ def validate_host_plan_rehydration_receipt(receipt: dict[str, Any]) -> dict[str,
     exact = dict(receipt)
     claimed = str(exact.pop("receipt_sha256", ""))
     require(
-        receipt.get("schema")
-        == "evidence-lane.host-plan-window-activation-receipt.v2"
+        receipt.get("schema") == "evidence-lane.host-plan-window-activation-receipt.v2"
         and claimed == sha256_bytes(canonical_json_bytes(exact))
         and receipt.get("candidate_created") is False
         and receipt.get("pending_hil_mutated") is False

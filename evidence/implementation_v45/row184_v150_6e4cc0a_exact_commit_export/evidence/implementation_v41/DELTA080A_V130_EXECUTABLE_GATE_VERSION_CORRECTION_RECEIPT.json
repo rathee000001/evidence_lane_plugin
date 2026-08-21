@@ -1,0 +1,41 @@
+{
+  "acceptance_contract": {
+    "command_manifest": "evidence/acceptance/commands.json",
+    "commands_inferred": false,
+    "exact_declaration_count": 12,
+    "postseal_check_count": 1,
+    "prebuild_check_count": 11
+  },
+  "correction_delta": "Bind the already-executed final CI and test commands and their sealed receipts into exact executable Code-mode prebuild acceptance declarations; normalize every active current-release v1.1/v1.2 reference in README, architecture, website, PoC tooling, and acceptance tooling to v1.3 while preserving immutable historical traceability and dependency versions; commit and push only agent/evi-v130-all-source-brain-workflow-hil-v1.3.0; reseal replacement PV6 without Fuse, accepted-pointer movement, main merge, production deployment, or inferred approval.",
+  "decision": {
+    "candidate_id": "PV6_CANDIDATE__RUN_01KZAYRK6ZS6M8HTRNVA82C22V",
+    "candidate_manifest_sha256": "225A284C568AB26D6957C10D6A2938332F16F6B1B15F05265CEEE2318A79F0A9",
+    "candidate_package_sha256": "3F112592181C98DAF963DECEF56EF265ACE74C95DEF3471DEBE00F6B140E1DEA",
+    "decided_at": "2026-08-06T16:40:03.332626Z",
+    "decided_by": "rathe",
+    "decision": "APPROVE_WITH_DELTA",
+    "decision_id": "decision_pv6_v130_executable_gate_version_consistency_20260806",
+    "source_receipt_file_sha256": "D0A65092A31306F153C4D69FAC57D454C4640507A589D35AC5A845CEE3BFE659"
+  },
+  "project_id": "test-codex-evidence-lane-plugin",
+  "receipt_sha256": "9FD3E3FD93945F3BF9DBC66CB63EA44BB074B4273AFF5F71380C52B10033C73B",
+  "release_boundary": {
+    "active_release": "v1.3",
+    "dependency_versions_preserved": true,
+    "historical_pre_v1_1_traceability_preserved": true,
+    "runtime_engine_version": "1.3.0"
+  },
+  "safety": {
+    "accepted_pv_retained": "PV5",
+    "fuse_invoked": false,
+    "main_merged": false,
+    "old_candidate_preserved": true,
+    "pointer_generation_retained": 5,
+    "pointer_moved": false,
+    "production_deployed": false,
+    "state_travel_consumed": false
+  },
+  "schema": "evidence-lane.v130-executable-gate-version-correction-receipt.v1",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task_id": "task_01kzbzapf5k0m75spbpyxzeeap"
+}

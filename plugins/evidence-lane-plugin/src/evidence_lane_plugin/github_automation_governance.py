@@ -41,6 +41,9 @@ _REMOTE_ACTION = re.compile(
 )
 _DOCKER_DIGEST_ACTION = re.compile(r"docker://[^\s@]+@sha256:[0-9A-Fa-f]{64}")
 _USES_LINE = re.compile(r"^\s*(?:-\s*)?uses\s*:\s*(?P<value>.*?)\s*$")
+_USING_LINE = re.compile(r"^\s*using\s*:\s*(?P<value>.*?)\s*$")
+_ACTION_RUNTIME_SHA256 = re.compile(r"[A-Fa-f0-9]{64}")
+_ACTION_RUNTIME_ALLOWED = {"composite", "docker", "node24"}
 _EXECUTION_EVIDENCE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}")
 _OUTPUT_THREAT_RULES: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
@@ -830,8 +833,8 @@ def audit_workflow_action_pins(
             if match is None:
                 continue
             file_reference_count += 1
-            reference = _parse_uses_value(match.group("value"))
-            if reference is None:
+            workflow_reference = _parse_uses_value(match.group("value"))
+            if workflow_reference is None:
                 finding = {
                     "path": relative,
                     "line": line_number,
@@ -844,7 +847,7 @@ def audit_workflow_action_pins(
                 finding = {
                     "path": relative,
                     "line": line_number,
-                    **validate_action_reference(reference),
+                    **validate_action_reference(workflow_reference),
                 }
             references.append(finding)
             kind = str(finding["kind"])
@@ -870,6 +873,372 @@ def audit_workflow_action_pins(
         "violations": violations,
         "files": files,
         "reference_set_sha256": reference_set_sha256,
+    }
+    body["audit_sha256"] = sha256_bytes(canonical_json_bytes(body))
+    return body
+
+
+def _action_metadata_using(text: str) -> str | None:
+    values: list[str] = []
+    for line in text.splitlines():
+        match = _USING_LINE.match(line)
+        if match is None:
+            continue
+        value = _parse_uses_value(match.group("value"))
+        if value is not None:
+            values.append(value.strip().lower())
+    return values[0] if len(values) == 1 else None
+
+
+def _action_metadata_path(action_root: Path) -> Path | None:
+    candidates = tuple(
+        path
+        for path in (action_root / "action.yml", action_root / "action.yaml")
+        if path.is_file()
+    )
+    return candidates[0] if len(candidates) == 1 else None
+
+
+def audit_workflow_action_runtimes(
+    workflow_root: str | Path,
+    runtime_lock_path: str | Path,
+    *,
+    repository_root: str | Path,
+) -> dict[str, Any]:
+    """Audit the complete active Action runtime closure without network access.
+
+    Workflow references are discovered from the executable repository surface.
+    Remote metadata identities and transitive ``uses`` references come from one
+    reviewed lock whose entries are bound to immutable commit SHAs. Local
+    actions are inspected directly from the same repository commit. Any new,
+    missing, stale, dynamic, or pre-Node-24 JavaScript action blocks the audit.
+    """
+
+    workflows = Path(workflow_root).resolve()
+    repository = Path(repository_root).resolve()
+    lock_path = Path(runtime_lock_path).resolve()
+    require(
+        workflows.is_dir() and lock_path.is_file(),
+        "GITHUB_ACTION_RUNTIME_AUTHORITY_MISSING",
+        "The workflow root and Action runtime lock must both exist.",
+        status="BLOCKED",
+    )
+    require(
+        workflows.is_relative_to(repository),
+        "GITHUB_ACTION_RUNTIME_ROOT_INVALID",
+        "The workflow root must remain inside the governed repository.",
+        status="BLOCKED",
+    )
+    try:
+        raw_lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise ValueError("GITHUB_ACTION_RUNTIME_LOCK_INVALID") from exc
+    require(
+        isinstance(raw_lock, Mapping)
+        and set(raw_lock) == {"schema", "actions"}
+        and raw_lock.get("schema")
+        == "evidence-lane.github-action-runtime-lock.v1"
+        and isinstance(raw_lock.get("actions"), list),
+        "GITHUB_ACTION_RUNTIME_LOCK_INVALID",
+        "The Action runtime lock schema or fields are invalid.",
+        status="BLOCKED",
+    )
+
+    violations: list[dict[str, Any]] = []
+    entries: dict[str, dict[str, Any]] = {}
+    expected_entry_fields = {
+        "reference",
+        "release",
+        "using",
+        "metadata_path",
+        "metadata_sha256",
+        "nested_uses",
+        "source_url",
+    }
+    for ordinal, raw_entry in enumerate(cast(list[object], raw_lock["actions"]), 1):
+        if not isinstance(raw_entry, Mapping) or set(raw_entry) != expected_entry_fields:
+            violations.append(
+                {
+                    "code": "GITHUB_ACTION_RUNTIME_LOCK_ENTRY_INVALID",
+                    "ordinal": ordinal,
+                }
+            )
+            continue
+        entry = {str(key): value for key, value in raw_entry.items()}
+        reference = str(entry["reference"]).strip()
+        release = str(entry["release"]).strip()
+        using = str(entry["using"]).strip().lower()
+        metadata_path = str(entry["metadata_path"]).strip().replace("\\", "/")
+        metadata_sha256 = str(entry["metadata_sha256"]).strip().upper()
+        source_url = str(entry["source_url"]).strip()
+        nested_raw = entry["nested_uses"]
+        reference_result = validate_action_reference(reference)
+        valid = (
+            reference_result["kind"] == "REMOTE_FULL_COMMIT_SHA"
+            and bool(release)
+            and len(release.encode("utf-8")) <= 64
+            and bool(metadata_path)
+            and not metadata_path.startswith("/")
+            and ".." not in Path(metadata_path).parts
+            and bool(_ACTION_RUNTIME_SHA256.fullmatch(metadata_sha256))
+            and source_url.startswith("https://github.com/")
+            and isinstance(nested_raw, list)
+            and all(isinstance(item, str) for item in cast(list[object], nested_raw))
+        )
+        if not valid:
+            violations.append(
+                {
+                    "code": "GITHUB_ACTION_RUNTIME_LOCK_ENTRY_INVALID",
+                    "ordinal": ordinal,
+                    "reference": reference,
+                }
+            )
+            continue
+        if reference in entries:
+            violations.append(
+                {
+                    "code": "GITHUB_ACTION_RUNTIME_LOCK_DUPLICATE",
+                    "reference": reference,
+                }
+            )
+            continue
+        if using not in _ACTION_RUNTIME_ALLOWED:
+            violations.append(
+                {
+                    "code": (
+                        "GITHUB_ACTION_RUNTIME_NODE20_DEPRECATED"
+                        if using == "node20"
+                        else "GITHUB_ACTION_RUNTIME_UNSUPPORTED"
+                    ),
+                    "reference": reference,
+                    "using": using,
+                }
+            )
+        entries[reference] = {
+            "reference": reference,
+            "release": release,
+            "using": using,
+            "metadata_path": metadata_path,
+            "metadata_sha256": metadata_sha256,
+            "nested_uses": tuple(str(item).strip() for item in nested_raw),
+            "source_url": source_url,
+        }
+
+    workflow_paths = tuple(
+        sorted(
+            {
+                path
+                for pattern in ("*.yml", "*.yaml")
+                for path in workflows.rglob(pattern)
+                if path.is_file()
+            }
+        )
+    )
+    require(
+        bool(workflow_paths),
+        "WORKFLOW_SET_EMPTY",
+        "No active workflow files were available for runtime audit.",
+        status="BLOCKED",
+    )
+    direct_references: list[str] = []
+    for path in workflow_paths:
+        for line_number, line in enumerate(
+            path.read_text(encoding="utf-8", errors="strict").splitlines(), 1
+        ):
+            match = _USES_LINE.match(line)
+            if match is None:
+                continue
+            direct_reference = _parse_uses_value(match.group("value"))
+            if direct_reference is None:
+                violations.append(
+                    {
+                        "code": "WORKFLOW_ACTION_REF_UNPARSEABLE",
+                        "path": path.relative_to(workflows).as_posix(),
+                        "line": line_number,
+                    }
+                )
+                continue
+            direct_references.append(direct_reference)
+
+    remote_pending: list[str] = []
+    local_pending: list[str] = []
+    docker_references: set[str] = set()
+    for reference in direct_references:
+        finding = validate_action_reference(reference)
+        if finding["kind"] == "REMOTE_FULL_COMMIT_SHA":
+            remote_pending.append(reference)
+        elif finding["kind"] == "LOCAL_SAME_COMMIT":
+            local_pending.append(reference)
+        elif finding["kind"] == "DOCKER_SHA256_DIGEST":
+            docker_references.add(reference)
+        else:
+            violations.append(
+                {
+                    "code": str(finding.get("code", "WORKFLOW_ACTION_REF_INVALID")),
+                    "reference": reference,
+                }
+            )
+
+    reachable_remote: set[str] = set()
+    reachable_local: set[str] = set()
+    runtime_counts: dict[str, int] = {}
+    while remote_pending:
+        reference = remote_pending.pop()
+        if reference in reachable_remote:
+            continue
+        reachable_remote.add(reference)
+        runtime_entry = entries.get(reference)
+        if runtime_entry is None:
+            violations.append(
+                {
+                    "code": "GITHUB_ACTION_RUNTIME_UNVERIFIED",
+                    "reference": reference,
+                }
+            )
+            continue
+        using = str(runtime_entry["using"])
+        runtime_counts[using] = runtime_counts.get(using, 0) + 1
+        for nested in cast(tuple[str, ...], runtime_entry["nested_uses"]):
+            finding = validate_action_reference(nested)
+            if finding["kind"] == "REMOTE_FULL_COMMIT_SHA":
+                remote_pending.append(nested)
+            elif finding["kind"] == "DOCKER_SHA256_DIGEST":
+                docker_references.add(nested)
+            else:
+                violations.append(
+                    {
+                        "code": "GITHUB_ACTION_TRANSITIVE_REF_UNVERIFIED",
+                        "parent_reference": reference,
+                        "reference": nested,
+                    }
+                )
+
+    while local_pending:
+        reference = local_pending.pop()
+        if reference in reachable_local:
+            continue
+        reachable_local.add(reference)
+        action_root = (repository / Path(reference[2:])).resolve()
+        if not action_root.is_relative_to(repository):
+            violations.append(
+                {"code": "GITHUB_LOCAL_ACTION_PATH_ESCAPE", "reference": reference}
+            )
+            continue
+        metadata = _action_metadata_path(action_root)
+        if metadata is None:
+            violations.append(
+                {"code": "GITHUB_LOCAL_ACTION_METADATA_INVALID", "reference": reference}
+            )
+            continue
+        text = metadata.read_text(encoding="utf-8", errors="strict")
+        local_using = _action_metadata_using(text)
+        if local_using is None or local_using not in _ACTION_RUNTIME_ALLOWED:
+            violations.append(
+                {
+                    "code": (
+                        "GITHUB_ACTION_RUNTIME_NODE20_DEPRECATED"
+                        if local_using == "node20"
+                        else "GITHUB_ACTION_RUNTIME_UNSUPPORTED"
+                    ),
+                    "reference": reference,
+                    "using": local_using or "UNPARSEABLE",
+                }
+            )
+            continue
+        runtime_counts[local_using] = runtime_counts.get(local_using, 0) + 1
+        if local_using == "composite":
+            for line in text.splitlines():
+                match = _USES_LINE.match(line)
+                if match is None:
+                    continue
+                local_nested = _parse_uses_value(match.group("value"))
+                if local_nested is None:
+                    violations.append(
+                        {
+                            "code": "GITHUB_ACTION_TRANSITIVE_REF_UNVERIFIED",
+                            "parent_reference": reference,
+                            "reference": "UNPARSEABLE",
+                        }
+                    )
+                    continue
+                finding = validate_action_reference(local_nested)
+                if finding["kind"] == "REMOTE_FULL_COMMIT_SHA":
+                    remote_pending.append(local_nested)
+                elif finding["kind"] == "LOCAL_SAME_COMMIT":
+                    local_pending.append(local_nested)
+                elif finding["kind"] == "DOCKER_SHA256_DIGEST":
+                    docker_references.add(local_nested)
+                else:
+                    violations.append(
+                        {
+                            "code": "GITHUB_ACTION_TRANSITIVE_REF_UNVERIFIED",
+                            "parent_reference": reference,
+                            "reference": local_nested,
+                        }
+                    )
+
+    # Local composite actions may introduce additional immutable remote
+    # references. Close that final edge set before comparing it with the lock.
+    while remote_pending:
+        reference = remote_pending.pop()
+        if reference in reachable_remote:
+            continue
+        reachable_remote.add(reference)
+        runtime_entry = entries.get(reference)
+        if runtime_entry is None:
+            violations.append(
+                {
+                    "code": "GITHUB_ACTION_RUNTIME_UNVERIFIED",
+                    "reference": reference,
+                }
+            )
+            continue
+        using = str(runtime_entry["using"])
+        runtime_counts[using] = runtime_counts.get(using, 0) + 1
+        for nested in cast(tuple[str, ...], runtime_entry["nested_uses"]):
+            finding = validate_action_reference(nested)
+            if finding["kind"] == "REMOTE_FULL_COMMIT_SHA":
+                remote_pending.append(nested)
+            elif finding["kind"] == "DOCKER_SHA256_DIGEST":
+                docker_references.add(nested)
+            else:
+                violations.append(
+                    {
+                        "code": "GITHUB_ACTION_TRANSITIVE_REF_UNVERIFIED",
+                        "parent_reference": reference,
+                        "reference": nested,
+                    }
+                )
+
+    for reference in sorted(set(entries) - reachable_remote):
+        violations.append(
+            {
+                "code": "GITHUB_ACTION_RUNTIME_LOCK_ENTRY_UNREFERENCED",
+                "reference": reference,
+            }
+        )
+    body: dict[str, Any] = {
+        "schema": "evidence-lane.github-action-runtime-audit.v1",
+        "status": "PASS" if not violations else "BLOCKED",
+        "workflow_file_count": len(workflow_paths),
+        "direct_reference_count": len(direct_references),
+        "remote_action_count": len(reachable_remote),
+        "local_action_count": len(reachable_local),
+        "docker_digest_count": len(docker_references),
+        "runtime_counts": dict(sorted(runtime_counts.items())),
+        "node20_count": runtime_counts.get("node20", 0),
+        "violation_count": len(violations),
+        "violations": violations,
+        "runtime_lock_sha256": sha256_file(lock_path),
+        "reference_closure_sha256": sha256_bytes(
+            canonical_json_bytes(
+                {
+                    "remote": sorted(reachable_remote),
+                    "local": sorted(reachable_local),
+                    "docker": sorted(docker_references),
+                }
+            )
+        ),
     }
     body["audit_sha256"] = sha256_bytes(canonical_json_bytes(body))
     return body

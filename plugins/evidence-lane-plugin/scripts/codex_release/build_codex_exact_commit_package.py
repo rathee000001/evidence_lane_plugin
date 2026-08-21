@@ -131,6 +131,7 @@ def build_exact_commit_package(
     commit: str,
     output_dir: Path,
     expected_version: str,
+    package_version: str | None = None,
 ) -> dict[str, Any]:
     repository = repository.resolve()
     output_dir = output_dir.resolve()
@@ -197,6 +198,7 @@ def build_exact_commit_package(
             base_commit=normalized_commit,
             base_tree=resolved_tree,
             expected_version=expected_version,
+            package_version=package_version,
         )
         export_zip_sha256 = _sha256(export_zip)
 
@@ -216,6 +218,10 @@ def build_exact_commit_package(
         "source_member_count": local_receipt["source_member_count"],
         "skill_count": local_receipt["skill_count"],
         "canonical_lane_count": local_receipt["canonical_lane_count"],
+        "package_version": str(local_receipt["archive"]["filename"]).split(
+            "-local-rehearsal-", 1
+        )[0].removeprefix("evidence-lane-"),
+        "source_version": expected_version,
         "exact_commit_export": {
             "branch": normalized_branch,
             "commit": normalized_commit,
@@ -255,6 +261,14 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--commit", required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--expected-version", required=True)
+    parser.add_argument(
+        "--package-version",
+        help=(
+            "Optional fresh Codex package identity on the same release line. "
+            "The exact Git source remains unchanged; only the packaged plugin "
+            "manifest receives this version through the rehearsal builder."
+        ),
+    )
     return parser
 
 

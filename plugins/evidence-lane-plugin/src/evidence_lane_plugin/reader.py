@@ -35,7 +35,12 @@ class PVReader:
             path = self.store.candidate_path(project_id, exact_reference)
         else:
             path = self.store.accepted_path(project_id, exact_reference)
-        validation = validate_pv_package(path)
+        # Retrieval must preserve immutable historical evidence even when a
+        # newer lane validator makes that accepted package non-promotable.
+        # Promotion paths retain the default strict validation; read-only
+        # queries validate the sealed package without re-running a promotion
+        # gate that can reject (and over-report) an otherwise valid authority.
+        validation = validate_pv_package(path, require_promotable=False)
         require(
             validation.get("project_id") == project_id,
             "PV_PROJECT_BINDING_MISMATCH",
@@ -461,9 +466,9 @@ class PVReader:
                 "chunk_sha256": metadata.get("chunk_sha256"),
                 "file_sha256": metadata.get("file_sha256"),
             }
-        base_status = "PASS" if results else "EMPTY"
         return {
-            "status": result_status(base_status, context["freshness"]),
+            "status": result_status("PASS", context["freshness"]),
+            "result_state": "HITS" if results else "EMPTY",
             "project_id": project_id,
             **context,
             "query": query,
@@ -844,9 +849,9 @@ class PVReader:
         )
         with database.connect(package / "code.sqlite", readonly=True) as connection:
             context = self._authority_context(project_id, package, connection)
-        base_status = "PASS" if rows else "EMPTY"
         return {
-            "status": result_status(base_status, context["freshness"]),
+            "status": result_status("PASS", context["freshness"]),
+            "result_state": "HITS" if rows else "EMPTY",
             "project_id": project_id,
             **context,
             "query_kind": query_kind,

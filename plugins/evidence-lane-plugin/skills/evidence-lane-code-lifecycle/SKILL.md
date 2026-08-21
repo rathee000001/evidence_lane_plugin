@@ -112,7 +112,8 @@ skill-owned behavior. For a visible prompt, PREPARE remains the lifecycle-first
 hook receipt. For an already-active Goal continuation, use only the sealed
 first-tool Goal-continuation entry described above; it is not a user-prompt
 PREPARE. For a resume or `PostCompact` without a new prompt or active sealed
-Goal, do not wait for or fabricate a prompt, Goal, or PREPARE receipt. Before classifying the request,
+Goal, do not wait for
+or fabricate a prompt, Goal, or PREPARE receipt. Before classifying the request,
 reasoning about it, inspecting source, mutating anything, testing, using Git, or
 calling another lifecycle write, the skill must:
 
@@ -395,7 +396,17 @@ limited to eight additional active plugins; drop requires its exact token.
    The acceptance-check list must equal the active Plan row exactly, and all
    candidate/HIL/pointer/Git/install flags must remain false. Missing, stale,
    tampered, generic-PASS, or non-first-successor evidence fails before Plan or
-   session transition. The public MCP catalog does not grow for this route.
+   session transition.
+   Before that checkpoint and transition, close the active row's real work
+   formula through `adaptive_delta_exit`. Bind the exact open formula head,
+   targeted PASS receipts, source-scope hash, every current hook-registry event
+   exactly once, and one install disposition. A grouped install may be deferred
+   only to an exact later queued batch boundary that covers the active row; the
+   exit may not pretend an install occurred. The route refreshes Learning,
+   Canon, Memory, and Universe in that order, computes the current host-window
+   fingerprint, appends one terminal `EXIT_FORMULA`, and proves that Git,
+   candidate, HIL, pointer, and Plan-row state did not move. Only its PASS
+   receipt may enter the row's exact-acceptance checkpoint.
 3. Use accepted evidence as entry truth and live repository evidence for
    source changed after entry.
 4. Confirm final Codex source state with

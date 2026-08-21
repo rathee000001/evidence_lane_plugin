@@ -1909,8 +1909,7 @@ def _extract_pdf(
                         )
                 except Exception as exc:  # noqa: BLE001 - image fallback stays open
                     parser_errors.append(
-                        f"PYPDF_IMAGE_PAGE_{page_index}_"
-                        f"{type(exc).__name__.upper()}"
+                        f"PYPDF_IMAGE_PAGE_{page_index}_{type(exc).__name__.upper()}"
                     )
                 ocr_page_images.append((locator, page_images))
                 documents.append(
@@ -2006,9 +2005,7 @@ def _extract_pdf(
             rendered_pages: list[tuple[str, list[bytes]]] = []
             pdfium_document = pdfium.PdfDocument(data)
             try:
-                for page_index in range(
-                    min(len(pdfium_document), MAX_PDF_PAGES)
-                ):
+                for page_index in range(min(len(pdfium_document), MAX_PDF_PAGES)):
                     page = pdfium_document[page_index]
                     try:
                         bitmap = page.render(scale=2)
@@ -3034,15 +3031,9 @@ def _chunks(text: str) -> Iterable[tuple[int, int, str]]:
 LANE_SCHEMA_BUILDER_PROJECTION_SCHEMA = (
     "evidence-lane.lane-schema-builder-projection.v1"
 )
-LANE_SCHEMA_MIGRATION_PLAN_SCHEMA = (
-    "evidence-lane.lane-schema-migration-plan.v1"
-)
-LANE_SCHEMA_MIGRATION_RECEIPT_SCHEMA = (
-    "evidence-lane.lane-schema-migration-receipt.v1"
-)
-LANE_SCHEMA_MIGRATION_STATUS_SCHEMA = (
-    "evidence-lane.lane-schema-migration-status.v1"
-)
+LANE_SCHEMA_MIGRATION_PLAN_SCHEMA = "evidence-lane.lane-schema-migration-plan.v1"
+LANE_SCHEMA_MIGRATION_RECEIPT_SCHEMA = "evidence-lane.lane-schema-migration-receipt.v1"
+LANE_SCHEMA_MIGRATION_STATUS_SCHEMA = "evidence-lane.lane-schema-migration-status.v1"
 _LANE_SCHEMA_IDENTIFIER_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _LANE_SCHEMA_MIGRATION_ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 _LANE_SCHEMA_COLUMN_TYPES = frozenset({"INTEGER", "TEXT", "REAL", "BLOB", "ANY"})
@@ -3166,10 +3157,7 @@ def _normalized_lane_schema_column(
 
 
 def _lane_schema_column_ddl(column: dict[str, Any]) -> str:
-    result = (
-        f'{_quoted_lane_schema_identifier(column["name"])} '
-        f'{column["type"]}'
-    )
+    result = f"{_quoted_lane_schema_identifier(column['name'])} {column['type']}"
     if column["primary_key"]:
         result += " PRIMARY KEY"
     elif not column["nullable"]:
@@ -3196,10 +3184,9 @@ def compile_lane_schema_migration(
             "A migration requires exact identity, versions, operations, and FTS intent.",
         )
     migration_id = str(migration["migration_id"] or "")
-    if (
-        not _LANE_SCHEMA_MIGRATION_ID_RE.fullmatch(migration_id)
-        or not migration_id.startswith(contract["migration_id_prefix"])
-    ):
+    if not _LANE_SCHEMA_MIGRATION_ID_RE.fullmatch(
+        migration_id
+    ) or not migration_id.startswith(contract["migration_id_prefix"]):
         _lane_schema_error(
             "LANE_SCHEMA_MIGRATION_ID_INVALID",
             "The migration ID is outside the lane extension namespace.",
@@ -3433,8 +3420,7 @@ def compile_lane_schema_migration(
                 + _quoted_lane_schema_identifier(table)
                 + " ("
                 + ", ".join(
-                    _quoted_lane_schema_identifier(value)
-                    for value in index_columns
+                    _quoted_lane_schema_identifier(value) for value in index_columns
                 )
                 + ")"
             )
@@ -3617,9 +3603,7 @@ def _lane_schema_snapshot(connection: sqlite3.Connection) -> dict[str, Any]:
         "foreign_key_projection_sha256": sha256_bytes(
             canonical_json_bytes(foreign_keys)
         ),
-        "index_projection_sha256": sha256_bytes(
-            canonical_json_bytes(indexes)
-        ),
+        "index_projection_sha256": sha256_bytes(canonical_json_bytes(indexes)),
     }
 
 
@@ -3629,15 +3613,10 @@ def _lane_schema_compatibility_proof(
     before: dict[str, Any],
 ) -> dict[str, Any]:
     after = _lane_schema_snapshot(connection)
-    before_objects = {
-        (row["type"], row["name"]): row for row in before["objects"]
-    }
-    after_objects = {
-        (row["type"], row["name"]): row for row in after["objects"]
-    }
+    before_objects = {(row["type"], row["name"]): row for row in before["objects"]}
+    after_objects = {(row["type"], row["name"]): row for row in after["objects"]}
     missing_objects = sorted(
-        f"{kind}:{name}"
-        for kind, name in set(before_objects) - set(after_objects)
+        f"{kind}:{name}" for kind, name in set(before_objects) - set(after_objects)
     )
     changed_non_table_objects = sorted(
         f"{kind}:{name}"
@@ -3810,10 +3789,13 @@ def lane_schema_evolution_status(
     """Verify the optional append-only migration ledger and effective head."""
 
     asset = lane_schema_asset(lane.canonical_lane_id)
-    ledger_exists = connection.execute(
-        """SELECT 1 FROM sqlite_master
+    ledger_exists = (
+        connection.execute(
+            """SELECT 1 FROM sqlite_master
            WHERE type='table' AND name='lane_schema_migration'"""
-    ).fetchone() is not None
+        ).fetchone()
+        is not None
+    )
     meta = dict(
         connection.execute(
             """
@@ -3905,9 +3887,7 @@ def lane_schema_evolution_status(
         == {
             "lane_schema_effective_version": str(expected_version),
             "lane_schema_effective_head": str(head["migration_id"]),
-            "lane_schema_effective_receipt_sha256": str(
-                head["receipt_sha256"]
-            ),
+            "lane_schema_effective_receipt_sha256": str(head["receipt_sha256"]),
         }
     )
     foreign_key_errors = [
@@ -4072,9 +4052,7 @@ def apply_lane_schema_migration(
             "ledger_ddl_sha256": LANE_SCHEMA_LEDGER_DDL_SHA256,
             "pre_schema_sha256": before["schema_sha256"],
             "post_schema_sha256": post["schema_sha256"],
-            "foreign_key_projection_sha256": post[
-                "foreign_key_projection_sha256"
-            ],
+            "foreign_key_projection_sha256": post["foreign_key_projection_sha256"],
             "index_projection_sha256": post["index_projection_sha256"],
             "fts_rebuild_proof": fts_proof,
             "compatibility_proof": compatibility,
@@ -4199,9 +4177,7 @@ def lane_schema_builder_projection(
     return {
         "schema": LANE_SCHEMA_BUILDER_PROJECTION_SCHEMA,
         "status": (
-            "PASS"
-            if not missing and actual_sha256 == expected_sha256
-            else "MISMATCH"
+            "PASS" if not missing and actual_sha256 == expected_sha256 else "MISMATCH"
         ),
         "lane_id": lane.canonical_lane_id,
         "schema_id": asset["schema_id"],
@@ -4663,9 +4639,7 @@ def _validate_lane_database(path: Path, lane: LaneDefinition) -> dict[str, Any]:
             "lane_schema_sqlite_master_projection_sha256": schema_asset[
                 "sqlite_master_projection_sha256"
             ],
-            "lane_schema_extension_namespace": schema_asset[
-                "extension_namespace"
-            ],
+            "lane_schema_extension_namespace": schema_asset["extension_namespace"],
             "lane_schema_migration_head": schema_asset["migration_ledger"][-1][
                 "migration_id"
             ],
@@ -4714,6 +4688,9 @@ def _current_index(root: Path, paths: Iterable[str]) -> dict[str, dict[str, Any]
 def _classify(
     prior: dict[str, dict[str, Any]],
     current: dict[str, dict[str, Any]],
+    *,
+    preserve_parent_unmentioned: bool = False,
+    force_remove_paths: set[str] | None = None,
 ) -> dict[str, Any]:
     unchanged = [
         {"path": path, **current[path]}
@@ -4735,9 +4712,24 @@ def _classify(
         {"path": path, **current[path]}
         for path in sorted(current.keys() - prior.keys())
     ]
-    removed = [
-        {"path": path, **prior[path]} for path in sorted(prior.keys() - current.keys())
-    ]
+    unmentioned = sorted(prior.keys() - current.keys())
+    forced_removed = set(force_remove_paths or ()) & set(unmentioned)
+    if preserve_parent_unmentioned:
+        unchanged.extend(
+            {
+                "path": path,
+                **prior[path],
+                "preserved_parent_record": True,
+            }
+            for path in unmentioned
+            if path not in forced_removed
+        )
+        removed = [
+            {"path": path, **prior[path]}
+            for path in sorted(forced_removed)
+        ]
+    else:
+        removed = [{"path": path, **prior[path]} for path in unmentioned]
     return {
         "UNCHANGED_REUSE": unchanged,
         "CHANGED_REBUILD": changed,
@@ -4770,11 +4762,7 @@ def _mmd_label(value: Any) -> str:
 
 
 def _dot_label(value: Any) -> str:
-    return (
-        _topology_text(value, limit=180)
-        .replace("\\", "\\\\")
-        .replace('"', '\\"')
-    )
+    return _topology_text(value, limit=180).replace("\\", "\\\\").replace('"', '\\"')
 
 
 class _TopologyGraph:
@@ -4813,9 +4801,14 @@ class _TopologyGraph:
 
     def begin(self, node_id: str, label: str, *, direction: str = "TB") -> None:
         self.mmd.extend(
-            [f'    subgraph {node_id}["{_mmd_label(label)}"]', f"        direction {direction}"]
+            [
+                f'    subgraph {node_id}["{_mmd_label(label)}"]',
+                f"        direction {direction}",
+            ]
         )
-        self.dot.append(f'  subgraph cluster_{node_id.lower()} {{ label="{_dot_label(label)}";')
+        self.dot.append(
+            f'  subgraph cluster_{node_id.lower()} {{ label="{_dot_label(label)}";'
+        )
 
     def end(self) -> None:
         self.mmd.append("    end")
@@ -4830,12 +4823,8 @@ class _TopologyGraph:
 
     def edge(self, source: str, target: str, label: str | None = None) -> None:
         if label:
-            self.mmd.append(
-                f"        {source} -->|{_mmd_label(label)}| {target}"
-            )
-            self.dot.append(
-                f'    {source} -> {target} [label="{_dot_label(label)}"];'
-            )
+            self.mmd.append(f"        {source} -->|{_mmd_label(label)}| {target}")
+            self.dot.append(f'    {source} -> {target} [label="{_dot_label(label)}"];')
         else:
             self.mmd.append(f"        {source} --> {target}")
             self.dot.append(f"    {source} -> {target};")
@@ -4879,11 +4868,11 @@ def _fact_display(kind: str, locator: str, payload_json: str) -> str:
         return str(payload.get("qualified_name") or payload.get("name") or locator)
     if kind == "code_import":
         imported = payload.get("imported_name")
-        return f'{payload.get("module") or locator}{" : " + str(imported) if imported else ""}'
+        return f"{payload.get('module') or locator}{' : ' + str(imported) if imported else ''}"
     if kind == "code_route":
-        return f'{payload.get("method") or "ROUTE"} {payload.get("path_pattern") or locator}'
+        return f"{payload.get('method') or 'ROUTE'} {payload.get('path_pattern') or locator}"
     if kind == "code_dependency":
-        return f'{payload.get("name") or locator} {payload.get("constraint_text") or ""}'.strip()
+        return f"{payload.get('name') or locator} {payload.get('constraint_text') or ''}".strip()
     for key in (
         "text",
         "title",
@@ -5030,7 +5019,9 @@ def _emit_code_evidence_graph(
         ("code_dependency", "DEPENDENCY_ITEM", "depends on", "DEPENDENCY"),
         ("artifact_registry", "PROJECT_ARTIFACT", "produces", "ARTIFACT"),
     )
-    counts = {table: _required_table_count(connection, table) for table, *_ in table_specs}
+    counts = {
+        table: _required_table_count(connection, table) for table, *_ in table_specs
+    }
     graph.begin(
         "CODE_EVIDENCE_GRAPH",
         "5. SQLite-derived files, semantics, and stable evidence identities",
@@ -5102,7 +5093,11 @@ def _emit_code_evidence_graph(
                 f"stable_id={node[-16:]} | EXTRACTED",
                 "semantic",
             )
-            source_node = source_nodes.get(int(row["source_id"])) if row["source_id"] is not None else None
+            source_node = (
+                source_nodes.get(int(row["source_id"]))
+                if row["source_id"] is not None
+                else None
+            )
             _evidence_edge(
                 graph,
                 source_node or logical_root,
@@ -5116,7 +5111,7 @@ def _emit_code_evidence_graph(
                 if module_node not in emitted_modules:
                     graph.node(
                         module_node,
-                        f"module { _topology_text(module, limit=72) }\n"
+                        f"module {_topology_text(module, limit=72)}\n"
                         f"stable_id={module_node[-16:]} | EXTRACTED reference",
                         "semantic",
                     )
@@ -5274,7 +5269,12 @@ def _emit_github_repository_graph(
             path = str(row["path"])
             blob_sha = str(row["blob_sha"] or "")
             change_node = _stable_topology_node(
-                "FILE_CHANGE", commit_sha, row["status"], path, row["prior_path"] or "", blob_sha
+                "FILE_CHANGE",
+                commit_sha,
+                row["status"],
+                path,
+                row["prior_path"] or "",
+                blob_sha,
             )
             graph.node(
                 change_node,
@@ -5314,7 +5314,9 @@ def _emit_github_repository_graph(
                     f"stable_id={blob_node[-16:]} | EXTRACTED",
                     "git",
                 )
-            _evidence_edge(graph, change_node, blob_node, "resolves content-addressed blob")
+            _evidence_edge(
+                graph, change_node, blob_node, "resolves content-addressed blob"
+            )
             occurrence = connection.execute(
                 """
                 SELECT chunk_sha256, ordinal, char_start, char_end
@@ -5358,11 +5360,16 @@ def _emit_github_repository_graph(
         "git_test_impact",
         "git_artifact_impact",
     )
-    impact_counts = {table: _required_table_count(connection, table) for table in impact_tables}
+    impact_counts = {
+        table: _required_table_count(connection, table) for table in impact_tables
+    }
     graph.node(
         "GITHUB_IMPACT_COVERAGE",
         "changed-route and test impact\n"
-        + " | ".join(f"{table.removeprefix('git_')}={count}" for table, count in impact_counts.items())
+        + " | ".join(
+            f"{table.removeprefix('git_')}={count}"
+            for table, count in impact_counts.items()
+        )
         + "\nEXTRACTED rows only; zero remains explicit",
         "git",
     )
@@ -5394,7 +5401,9 @@ def _emit_github_repository_graph(
             "no Git commits loaded\nGitHub history profile is not satisfied",
             "warn",
         )
-        _evidence_edge(graph, "GITHUB_GRAPH_ROOT", "GITHUB_HISTORY_EMPTY", "empty history")
+        _evidence_edge(
+            graph, "GITHUB_GRAPH_ROOT", "GITHUB_HISTORY_EMPTY", "empty history"
+        )
     graph.end()
 
 
@@ -5445,11 +5454,16 @@ def _emit_local_worktree_graph(
             "use the GitHub Code lane for repository history"
             if git_total == 0
             else "Git-shaped rows exist but are excluded from the Local Code profile\n"
-            + " | ".join(f"{table.removeprefix('git_')}={count}" for table, count in git_counts.items())
+            + " | ".join(
+                f"{table.removeprefix('git_')}={count}"
+                for table, count in git_counts.items()
+            )
         ),
         "warn",
     )
-    boundary_node = "NO_GIT_HISTORY_LOADED" if git_total == 0 else "LOCAL_GIT_ROWS_EXCLUDED"
+    boundary_node = (
+        "NO_GIT_HISTORY_LOADED" if git_total == 0 else "LOCAL_GIT_ROWS_EXCLUDED"
+    )
     _evidence_edge(
         graph,
         "LOCAL_WORKTREE_ROOT",
@@ -5492,7 +5506,11 @@ def _lane_topology(
     )
 
     graph.begin("SOURCE_INTAKE", "1. Source intake and exact-byte registry")
-    graph.node("SOURCE_REG", f"source_registry\nrows={sources} | SHA-256 + parser state", "source")
+    graph.node(
+        "SOURCE_REG",
+        f"source_registry\nrows={sources} | SHA-256 + parser state",
+        "source",
+    )
     graph.edge("LANE_ROOT", "SOURCE_REG")
     extension_rows = connection.execute(
         """
@@ -5504,10 +5522,12 @@ def _lane_topology(
     if extension_rows:
         for index, row in enumerate(extension_rows):
             node = f"SOURCE_TYPE_{index}"
-            graph.node(node, f'{row["extension"]}\n{row["count"]} sources', "source")
+            graph.node(node, f"{row['extension']}\n{row['count']} sources", "source")
             graph.edge("SOURCE_REG", node)
     else:
-        graph.node("SOURCE_EMPTY", "schema ready\nno routed source in this build", "warn")
+        graph.node(
+            "SOURCE_EMPTY", "schema ready\nno routed source in this build", "warn"
+        )
         graph.edge("SOURCE_REG", "SOURCE_EMPTY")
     graph.end()
 
@@ -5533,7 +5553,9 @@ def _lane_topology(
     graph.edge("FACT_INDEX", "SEMANTIC_SCHEMA_HANDOFF", "materializes")
 
     if fact_counts:
-        sampled_kinds = sorted(fact_counts, key=lambda item: (-fact_counts[item], item))[:10]
+        sampled_kinds = sorted(
+            fact_counts, key=lambda item: (-fact_counts[item], item)
+        )[:10]
         for index, kind in enumerate(sampled_kinds):
             kind_node = f"FACT_KIND_{index}"
             graph.node(kind_node, f"{kind}\nrows={fact_counts[kind]}", "semantic")
@@ -5554,7 +5576,9 @@ def _lane_topology(
                 )
                 graph.edge(kind_node, sample_node, "sample")
     else:
-        graph.node("FACT_EMPTY", "no semantic rows yet\nlane schema remains explicit", "warn")
+        graph.node(
+            "FACT_EMPTY", "no semantic rows yet\nlane schema remains explicit", "warn"
+        )
         graph.edge("FACT_INDEX", "FACT_EMPTY")
     graph.end()
 
@@ -5572,11 +5596,11 @@ def _lane_topology(
     graph.node(
         "PHYSICAL_SCHEMA_SECTOR",
         "SQLite physical schema\n"
-        f'contract={physical_projection["contract_table_count"]} | '
-        f'tables={physical_projection["table_count"]} | '
-        f'auxiliaries={physical_projection["auxiliary_table_count"]} | '
-        f'relations={physical_projection["relation_count"]}\n'
-        f'projection_sha256={physical_projection["projection_sha256"]}',
+        f"contract={physical_projection['contract_table_count']} | "
+        f"tables={physical_projection['table_count']} | "
+        f"auxiliaries={physical_projection['auxiliary_table_count']} | "
+        f"relations={physical_projection['relation_count']}\n"
+        f"projection_sha256={physical_projection['projection_sha256']}",
         "root",
     )
     graph.edge(
@@ -5595,7 +5619,9 @@ def _lane_topology(
         graph.node(
             group_id,
             f"{physical_group_labels[group_id]}\ntables={len(group_rows)} | ordered from SQLite",
-            "git" if group_id == "PHYSICAL_GROUP_GIT" else "retrieval"
+            "git"
+            if group_id == "PHYSICAL_GROUP_GIT"
+            else "retrieval"
             if group_id == "PHYSICAL_GROUP_AUXILIARY"
             else "semantic",
         )
@@ -5606,8 +5632,8 @@ def _lane_topology(
             table_node = physical_nodes[table]
             graph.node(
                 table_node,
-                f'{table}\nrows={row["rows"]} | columns={len(row["columns"])} | '
-                f'role={row["role"]}',
+                f"{table}\nrows={row['rows']} | columns={len(row['columns'])} | "
+                f"role={row['role']}",
                 "retrieval" if row["role"] == "sqlite_engine_auxiliary" else "semantic",
             )
             graph.edge(previous_node, table_node, "next physical table")
@@ -5619,8 +5645,8 @@ def _lane_topology(
             graph.edge(
                 parent_node,
                 child_node,
-                f'{relation["from_column"]} -> '
-                f'{relation["parent_table"]}.{relation["parent_column"]}',
+                f"{relation['from_column']} -> "
+                f"{relation['parent_table']}.{relation['parent_column']}",
             )
     graph.end()
 
@@ -5652,7 +5678,7 @@ def _lane_topology(
             entity_node = table_nodes[row["table"]]
             graph.node(
                 entity_node,
-                f'{row["table"]}\nrows={row["rows"]} | columns={row["columns"]}',
+                f"{row['table']}\nrows={row['rows']} | columns={row['columns']}",
                 "semantic",
             )
             graph.edge("SCHEMA_SECTOR", entity_node, "entity")
@@ -5682,7 +5708,7 @@ def _lane_topology(
                     graph.edge(
                         parent_node,
                         child_node,
-                        f'{foreign_key["from"]} -> {foreign_key["table"]}.{foreign_key["to"]}',
+                        f"{foreign_key['from']} -> {foreign_key['table']}.{foreign_key['to']}",
                     )
         graph.end()
 
@@ -5761,7 +5787,11 @@ def _lane_topology(
     graph.begin("RETRIEVAL", f"{section_number}. Retrieval and changed-section reuse")
     retrieval = (
         ("CHUNK_INDEX", "chunk_index", chunks),
-        ("CHUNK_CAS", "chunk_content_cas", _table_count(connection, "chunk_content_cas")),
+        (
+            "CHUNK_CAS",
+            "chunk_content_cas",
+            _table_count(connection, "chunk_content_cas"),
+        ),
         ("CHUNK_HISTORY", "chunk_history", _table_count(connection, "chunk_history")),
         ("FTS", lane.fts_table, _table_count(connection, lane.fts_table)),
         ("TFIDF", "tfidf_vector", _table_count(connection, "tfidf_vector")),
@@ -5774,7 +5804,9 @@ def _lane_topology(
     graph.end()
 
     section_number += 1
-    graph.begin("LIFECYCLE", f"{section_number}. Refresh, pointer, and mutation evidence")
+    graph.begin(
+        "LIFECYCLE", f"{section_number}. Refresh, pointer, and mutation evidence"
+    )
     refresh_summary = " | ".join(
         f"{key.lower()}={len(value) if isinstance(value, (list, dict)) else value}"
         for key, value in classification.items()
@@ -5789,16 +5821,16 @@ def _lane_topology(
     graph.node(
         "POINTER",
         "lane pointer evidence\n"
-        f'entered_from={pointer["pointer_value"] if pointer else "none"} | '
-        f'generation={pointer["generation"] if pointer else 0}\n'
-        f'proposed={proposed[0] if proposed else "unknown"}',
+        f"entered_from={pointer['pointer_value'] if pointer else 'none'} | "
+        f"generation={pointer['generation'] if pointer else 0}\n"
+        f"proposed={proposed[0] if proposed else 'unknown'}",
         "lifecycle",
     )
     graph.node(
         "MUTATION",
         "append-only change evidence\n"
-        f'tombstones={_table_count(connection, "source_tombstone")} | '
-        f'mutations={_table_count(connection, "mutation_receipt")}',
+        f"tombstones={_table_count(connection, 'source_tombstone')} | "
+        f"mutations={_table_count(connection, 'mutation_receipt')}",
         "lifecycle",
     )
     graph.edge("TFIDF", "REFRESH")
@@ -5808,11 +5840,15 @@ def _lane_topology(
 
     section_number += 1
     graph.begin("OUTPUTS", f"{section_number}. Inspectable lane package")
-    graph.node("SQLITE_OUT", f"{lane.sqlite_filename}\nSQLite/FK/FTS authority", "output")
+    graph.node(
+        "SQLITE_OUT", f"{lane.sqlite_filename}\nSQLite/FK/FTS authority", "output"
+    )
     graph.node("MMD_OUT", f"{lane.mmd_filename}\nsemantic Mermaid authority", "output")
     graph.node("DOT_OUT", f"{lane.dot_filename}\nsemantic DOT authority", "output")
     graph.node("POINTER_OUT", "lane_pointer.json\ncandidate pointer evidence", "output")
-    graph.node("RECEIPT_OUT", "refresh_receipt.json\nclassification + validation", "output")
+    graph.node(
+        "RECEIPT_OUT", "refresh_receipt.json\nclassification + validation", "output"
+    )
     graph.edge("POINTER", "SQLITE_OUT")
     for node in ("MMD_OUT", "DOT_OUT", "POINTER_OUT", "RECEIPT_OUT"):
         graph.edge("SQLITE_OUT", node)
@@ -5821,9 +5857,7 @@ def _lane_topology(
     return graph.finish()
 
 
-LANE_ARTIFACT_ROLE_PROJECTION_SCHEMA = (
-    "evidence-lane.lane-artifact-role-projection.v1"
-)
+LANE_ARTIFACT_ROLE_PROJECTION_SCHEMA = "evidence-lane.lane-artifact-role-projection.v1"
 LANE_ARTIFACT_EXTENSION_RECEIPT_SCHEMA = (
     "evidence-lane.lane-artifact-extension-receipt.v1"
 )
@@ -5951,8 +5985,7 @@ def compile_lane_artifact_extension(
             if (
                 not isinstance(condition, dict)
                 or set(condition) != {"condition_id", "active"}
-                or condition.get("condition_id")
-                != exact_expected["condition"]
+                or condition.get("condition_id") != exact_expected["condition"]
                 or not isinstance(condition.get("active"), bool)
             ):
                 _lane_artifact_error(
@@ -6012,11 +6045,15 @@ def compile_lane_artifact_extension(
             "Every extension requires one sealed extension_authority file.",
         )
     extension_root = root / "extensions" / extension_id
-    actual_paths = {
-        path.relative_to(root).as_posix()
-        for path in extension_root.rglob("*")
-        if path.is_file()
-    } if extension_root.is_dir() else set()
+    actual_paths = (
+        {
+            path.relative_to(root).as_posix()
+            for path in extension_root.rglob("*")
+            if path.is_file()
+        }
+        if extension_root.is_dir()
+        else set()
+    )
     undeclared = sorted(actual_paths - declared_paths)
     if undeclared:
         _lane_artifact_error(
@@ -6087,11 +6124,15 @@ def build_lane_artifact_role_contract(
         if role["exists"]
     }
     extension_root = root / "extensions"
-    actual_extension_paths = {
-        path.relative_to(root).as_posix()
-        for path in extension_root.rglob("*")
-        if path.is_file()
-    } if extension_root.is_dir() else set()
+    actual_extension_paths = (
+        {
+            path.relative_to(root).as_posix()
+            for path in extension_root.rglob("*")
+            if path.is_file()
+        }
+        if extension_root.is_dir()
+        else set()
+    )
     undeclared_extension_files = sorted(
         actual_extension_paths - declared_extension_paths
     )
@@ -6238,6 +6279,8 @@ def _build_one_lane(
     recorded_at: str,
     history_enabled: bool,
     source_snapshot: dict[str, dict[str, Any]],
+    preserve_parent_unmentioned: bool = False,
+    force_remove_paths: set[str] | None = None,
 ) -> dict[str, Any]:
     output.mkdir(parents=True, exist_ok=False)
     schema_asset = lane_schema_asset(lane.canonical_lane_id)
@@ -6257,11 +6300,13 @@ def _build_one_lane(
         prior_connection.row_factory = sqlite3.Row
         prior_index = _source_index(prior_connection)
         prior_connection.close()
-    current_index = {
-        path: source_snapshot[path]
-        for path in sorted(paths)
-    }
-    classification = _classify(prior_index, current_index)
+    current_index = {path: source_snapshot[path] for path in sorted(paths)}
+    classification = _classify(
+        prior_index,
+        current_index,
+        preserve_parent_unmentioned=preserve_parent_unmentioned,
+        force_remove_paths=force_remove_paths,
+    )
     current_git_signature = git_history_signature(root) if history_enabled else None
     prior_git_signature = None
     if history_enabled and prior_db and prior_db.is_file():
@@ -6649,9 +6694,9 @@ def _bundle_graph(reports: list[dict[str, Any]]) -> tuple[str, str]:
         lane_node = f"LANE_{index}"
         graph.node(
             lane_node,
-            f'{lane.display_label}\n{report["build_mode"]} | '
-            f'{counts.get("source_registry", 0)} sources | '
-            f'{counts.get("structured_fact", 0)} facts',
+            f"{lane.display_label}\n{report['build_mode']} | "
+            f"{counts.get('source_registry', 0)} sources | "
+            f"{counts.get('structured_fact', 0)} facts",
             "semantic",
         )
         graph.edge("PARALLEL_POOL", lane_node)
@@ -6677,7 +6722,11 @@ def _bundle_graph(reports: list[dict[str, Any]]) -> tuple[str, str]:
     graph.edge("DETERMINISTIC_JOIN", "LANE_OUTPUTS")
     graph.edge("LANE_OUTPUTS", "PROJECT_OUTPUTS")
     chat_index = next(
-        (index for index, report in enumerate(reports) if report["lane_id"] == "chat_lineage"),
+        (
+            index
+            for index, report in enumerate(reports)
+            if report["lane_id"] == "chat_lineage"
+        ),
         None,
     )
     if chat_index is not None:
@@ -6685,7 +6734,9 @@ def _bundle_graph(reports: list[dict[str, Any]]) -> tuple[str, str]:
     graph.edge("LINEAGE_OUTPUT", "PROJECT_OUTPUTS")
     graph.end()
 
-    graph.begin("SERIAL_AUTHORITY", "4. Serial candidate, HIL, Fuse, and pointer authority")
+    graph.begin(
+        "SERIAL_AUTHORITY", "4. Serial candidate, HIL, Fuse, and pointer authority"
+    )
     graph.node(
         "CANDIDATE",
         "UNACCEPTED candidate\nimmutable package + validation evidence",
@@ -6732,6 +6783,8 @@ def _lane_source_binding(
     routes: dict[str, str],
     source_snapshot: dict[str, dict[str, Any]],
     emitted_lane_ids: tuple[str, ...],
+    *,
+    allow_observed_superset: bool = False,
 ) -> dict[str, Any]:
     """Verify every routed source hash against its completed lane database."""
 
@@ -6754,18 +6807,16 @@ def _lane_source_binding(
                 observed[normalized] = str(source_sha256)
         finally:
             connection.close()
-    expected = {
-        path: str(source_snapshot[path]["sha256"]) for path in sorted(routes)
-    }
+    expected = {path: str(source_snapshot[path]["sha256"]) for path in sorted(routes)}
+    compared_paths = expected.keys() if allow_observed_superset else expected.keys() | observed.keys()
     mismatches = sorted(
-        path
-        for path in expected.keys() | observed.keys()
-        if expected.get(path) != observed.get(path)
+        path for path in compared_paths if expected.get(path) != observed.get(path)
     )
     valid = (
         not duplicates
         and not mismatches
         and set(routes) == set(source_snapshot)
+        and (allow_observed_superset or set(expected) == set(observed))
     )
     return {
         "status": "PASS" if valid else "FAIL",
@@ -6774,6 +6825,7 @@ def _lane_source_binding(
         "observed_source_count": len(observed),
         "duplicate_source_count": len(set(duplicates)),
         "mismatch_count": len(mismatches),
+        "observed_superset_allowed": allow_observed_superset,
         "binding_sha256": sha256_bytes(canonical_json_bytes(observed)),
     }
 
@@ -6791,6 +6843,11 @@ def build_lane_bundle(
     git_mode: str = "AUTO",
     max_lane_workers: int = MAX_PARALLEL_LANE_WORKERS,
     recorded_at_override: str | None = None,
+    include_untracked: bool = False,
+    materialize_all_lanes: bool = False,
+    source_paths_override: list[str] | tuple[str, ...] | None = None,
+    preserve_parent_unmentioned: bool = False,
+    index_git_history: bool = True,
 ) -> dict[str, Any]:
     """Build/Refresh lanes concurrently, then assemble one deterministic PV."""
 
@@ -6811,8 +6868,21 @@ def build_lane_bundle(
         output.mkdir(parents=True)
     parent = Path(parent_lane_bundle).resolve() if parent_lane_bundle else None
     recorded_at = recorded_at_override or utc_now()
-    source_selection, source_rows, source_exclusions = governed_source_files(root)
-    source_paths = [relative for relative, _ in source_rows]
+    source_selection, source_rows, source_exclusions = governed_source_files(
+        root,
+        include_untracked=include_untracked,
+    )
+    available_source_paths = {relative for relative, _ in source_rows}
+    if source_paths_override is None:
+        source_paths = sorted(available_source_paths)
+    else:
+        source_paths = sorted(set(source_paths_override))
+        unavailable_paths = sorted(set(source_paths) - available_source_paths)
+        if unavailable_paths:
+            raise ValueError(
+                "Working overlay source paths are absent from the governed "
+                f"repository selection: {unavailable_paths[:8]}"
+            )
     source_snapshot = _current_index(root, source_paths)
     source_snapshot_sha256 = sha256_bytes(canonical_json_bytes(source_snapshot))
     inherited_routes: dict[str, str] = {}
@@ -6836,7 +6906,9 @@ def build_lane_bundle(
     emitted_lane_ids = tuple(
         lane_id
         for lane_id in CANONICAL_LANE_IDS
-        if by_lane[lane_id] or lane_id in always_loaded_lane_ids
+        if materialize_all_lanes
+        or by_lane[lane_id]
+        or lane_id in always_loaded_lane_ids
     )
     omitted_lane_ids = tuple(
         lane_id for lane_id in CANONICAL_LANE_IDS if lane_id not in emitted_lane_ids
@@ -6853,9 +6925,7 @@ def build_lane_bundle(
             )
         else:
             parent_emitted_lane_ids = tuple(
-                lane_id
-                for lane_id in CANONICAL_LANE_IDS
-                if (parent / lane_id).is_dir()
+                lane_id for lane_id in CANONICAL_LANE_IDS if (parent / lane_id).is_dir()
             )
     removed_lane_ids = tuple(
         lane_id
@@ -6925,8 +6995,18 @@ def build_lane_bundle(
                 proposed_pv=proposed_pv,
                 pointer_generation=pointer_generation,
                 recorded_at=recorded_at,
-                history_enabled=lane_id == code_mode and git_history_available,
+                history_enabled=(
+                    index_git_history
+                    and lane_id == code_mode
+                    and git_history_available
+                ),
                 source_snapshot=source_snapshot,
+                preserve_parent_unmentioned=preserve_parent_unmentioned,
+                force_remove_paths={
+                    path
+                    for path, prior_lane_id in inherited_routes.items()
+                    if prior_lane_id == lane_id and routes.get(path) != lane_id
+                },
             )
             futures[future] = lane_id
         for future in as_completed(futures):
@@ -6934,8 +7014,23 @@ def build_lane_bundle(
             reports_by_lane[lane_id] = future.result()
     reports = [reports_by_lane[lane_id] for lane_id in emitted_lane_ids]
 
-    final_selection, final_rows, final_exclusions = governed_source_files(root)
-    final_source_paths = [relative for relative, _ in final_rows]
+    final_selection, final_rows, final_exclusions = governed_source_files(
+        root,
+        include_untracked=include_untracked,
+    )
+    final_available_source_paths = {relative for relative, _ in final_rows}
+    if source_paths_override is None:
+        final_source_paths = sorted(final_available_source_paths)
+    else:
+        final_source_paths = sorted(set(source_paths_override))
+        unavailable_final_paths = sorted(
+            set(final_source_paths) - final_available_source_paths
+        )
+        if unavailable_final_paths:
+            raise ValueError(
+                "Working overlay source paths disappeared during the lane build: "
+                f"{unavailable_final_paths[:8]}"
+            )
     final_source_snapshot = _current_index(root, final_source_paths)
     final_source_snapshot_sha256 = sha256_bytes(
         canonical_json_bytes(final_source_snapshot)
@@ -6954,6 +7049,7 @@ def build_lane_bundle(
         routes,
         source_snapshot,
         emitted_lane_ids,
+        allow_observed_superset=preserve_parent_unmentioned,
     )
     if not source_binding["valid"]:
         raise ValueError(
@@ -6979,15 +7075,17 @@ def build_lane_bundle(
         "always_loaded_lane_ids": list(always_loaded_lane_ids),
         "emitted_lane_ids": list(emitted_lane_ids),
         "omitted_lane_ids": list(omitted_lane_ids),
-        "lane_emission_policy": "LOADED_OR_DETECTED_ONLY",
+        "lane_emission_policy": (
+            "ALL_18_WORKING_AUTHORITY"
+            if materialize_all_lanes
+            else "LOADED_OR_DETECTED_ONLY"
+        ),
         "barrier_status": "PASS",
         "source_snapshot_sha256": source_snapshot_sha256,
         "final_source_snapshot_sha256": final_source_snapshot_sha256,
         "source_snapshot_unchanged": True,
         "source_binding": source_binding,
-        "lane_disposition_projection_sha256": lane_dispositions[
-            "projection_sha256"
-        ],
+        "lane_disposition_projection_sha256": lane_dispositions["projection_sha256"],
         "unloaded_lane_artifacts_fabricated": lane_dispositions[
             "unloaded_lane_artifacts_fabricated"
         ],
@@ -7000,7 +7098,10 @@ def build_lane_bundle(
             "secrets_indexed": False,
             "env_files_indexed": False,
             "runtime_artifacts_indexed": False,
-            "untracked_operational_files_indexed": False,
+            "untracked_operational_files_indexed": include_untracked,
+            "source_paths_overridden": source_paths_override is not None,
+            "preserve_parent_unmentioned": preserve_parent_unmentioned,
+            "git_history_indexed": index_git_history,
         },
         "serialized_authorities": [
             "chat_lineage_append",
@@ -7028,9 +7129,7 @@ def build_lane_bundle(
         ],
         "byte_reused_lanes": [row["lane_id"] for row in reports if row["byte_reused"]],
         "topology_generator_rebuilt_lanes": [
-            row["lane_id"]
-            for row in reports
-            if row["topology_generator_changed"]
+            row["lane_id"] for row in reports if row["topology_generator_changed"]
         ],
         "topology_generator_sha256_by_lane": {
             row["lane_id"]: row["topology_generator_sha256"] for row in reports
@@ -7093,7 +7192,7 @@ def build_lane_bundle(
         "always_loaded_lane_ids": list(always_loaded_lane_ids),
         "emitted_lane_ids": list(emitted_lane_ids),
         "omitted_lane_ids": list(omitted_lane_ids),
-        "lane_emission_policy": "LOADED_OR_DETECTED_ONLY",
+        "lane_emission_policy": execution_receipt["lane_emission_policy"],
         "source_count": len(source_paths),
         "source_routes_sha256": sha256_bytes(canonical_json_bytes(routes)),
         "source_snapshot_sha256": source_snapshot_sha256,
@@ -7152,9 +7251,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         or (
             list(emitted_lane_ids)
             == [
-                lane_id
-                for lane_id in CANONICAL_LANE_IDS
-                if lane_id in emitted_lane_ids
+                lane_id for lane_id in CANONICAL_LANE_IDS if lane_id in emitted_lane_ids
             ]
             and len(emitted_lane_ids) == len(set(emitted_lane_ids))
             and set(emitted_lane_ids) <= set(CANONICAL_LANE_IDS)
@@ -7162,9 +7259,12 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
             and manifest.get("always_loaded_lane_ids") == ["chat_lineage"]
             and manifest.get("omitted_lane_ids") == list(omitted_lane_ids)
             and manifest.get("lane_emission_policy")
-            == "LOADED_OR_DETECTED_ONLY"
-            and manifest.get("canonical_lane_count")
-            == len(CANONICAL_LANE_IDS)
+            in {"LOADED_OR_DETECTED_ONLY", "ALL_18_WORKING_AUTHORITY"}
+            and (
+                manifest.get("lane_emission_policy") != "ALL_18_WORKING_AUTHORITY"
+                or set(emitted_lane_ids) == set(CANONICAL_LANE_IDS)
+            )
+            and manifest.get("canonical_lane_count") == len(CANONICAL_LANE_IDS)
         )
     )
     lane_directory_set_valid = actual_lane_directory_ids == emitted_lane_ids
@@ -7175,8 +7275,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         else None
     )
     pre_v110_compatibility = bool(
-        manifest.get("schema")
-        in {LEGACY_LANE_BUNDLE_SCHEMA, LANE_BUNDLE_SCHEMA}
+        manifest.get("schema") in {LEGACY_LANE_BUNDLE_SCHEMA, LANE_BUNDLE_SCHEMA}
         and "source_policy" not in manifest
         and execution is not None
         and "source_policy" not in execution
@@ -7210,9 +7309,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         root,
         lane_ids=emitted_lane_ids,
     )
-    topology_by_lane = {
-        row["lane_id"]: row for row in topology_reconciliation["lanes"]
-    }
+    topology_by_lane = {row["lane_id"]: row for row in topology_reconciliation["lanes"]}
     lane_reports: dict[str, Any] = {}
     lane_manifest_errors: dict[str, Any] = {}
     four_file_contracts: dict[str, Any] = {}
@@ -7247,26 +7344,16 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         four_file_report = validate_four_file_contract(
             lane_root,
             lane,
-            (
-                lane_manifest.get("four_file_contract")
-                if current_manifest
-                else None
-            ),
+            (lane_manifest.get("four_file_contract") if current_manifest else None),
         )
         four_file_contracts[lane_id] = four_file_report
         artifact_role_report = validate_lane_artifact_role_contract(
             lane_root,
             lane,
-            (
-                lane_manifest.get("artifact_role_contract")
-                if current_manifest
-                else None
-            ),
+            (lane_manifest.get("artifact_role_contract") if current_manifest else None),
         )
         artifact_role_contracts[lane_id] = artifact_role_report
-        mmd_valid = (
-            topology_report["structural"]["mermaid"]["status"] == "PASS"
-        )
+        mmd_valid = topology_report["structural"]["mermaid"]["status"] == "PASS"
         dot_valid = topology_report["structural"]["dot"]["status"] == "PASS"
         if (
             not (legacy_manifest or strict_manifest)
@@ -7278,8 +7365,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
             )
             or (
                 strict_manifest
-                and set(lane_manifest.get("required_artifacts", []))
-                != required_files
+                and set(lane_manifest.get("required_artifacts", [])) != required_files
             )
             or (
                 current_manifest
@@ -7294,10 +7380,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
             or not required_files <= actual_lane_files
             or (not topology_compatibility and not mmd_valid)
             or (not topology_compatibility and not dot_valid)
-            or (
-                not topology_compatibility
-                and topology_report["status"] != "PASS"
-            )
+            or (not topology_compatibility and topology_report["status"] != "PASS")
         ):
             lane_manifest_errors[lane_id] = {
                 "schema": lane_manifest_schema,
@@ -7306,13 +7389,9 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
                 "lane_id": lane_manifest.get("lane", {}).get("canonical_lane_id"),
                 "declared_stable_artifacts": lane_manifest.get("stable_artifacts"),
                 "actual_stable_artifacts": stable_hashes,
-                "declared_evidence_artifacts": lane_manifest.get(
-                    "evidence_artifacts"
-                ),
+                "declared_evidence_artifacts": lane_manifest.get("evidence_artifacts"),
                 "actual_evidence_artifacts": evidence_hashes,
-                "declared_required_artifacts": lane_manifest.get(
-                    "required_artifacts"
-                ),
+                "declared_required_artifacts": lane_manifest.get("required_artifacts"),
                 "missing_required_artifacts": sorted(
                     required_files - actual_lane_files
                 ),
@@ -7332,8 +7411,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
     report_lane_ids = [row.get("lane_id") for row in manifest.get("reports", [])]
     modern_execution_valid = bool(
         execution
-        and execution.get("schema")
-        == "evidence-lane.parallel-lane-execution.v1"
+        and execution.get("schema") == "evidence-lane.parallel-lane-execution.v1"
         and execution.get("single_writer") is True
         and execution.get("linear_governance") is True
         and execution.get("barrier_status") == "PASS"
@@ -7345,14 +7423,12 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         is True
         and execution.get("source_policy", {}).get("secrets_indexed") is False
         and execution.get("source_policy", {}).get("env_files_indexed") is False
-        and execution.get("source_policy", {}).get("runtime_artifacts_indexed")
-        is False
+        and execution.get("source_policy", {}).get("runtime_artifacts_indexed") is False
         and execution.get("source_policy", {}).get(
             "untracked_operational_files_indexed"
         )
-        is False
-        and execution.get("deterministic_assembly_order")
-        == list(emitted_lane_ids)
+        == (manifest.get("lane_emission_policy") == "ALL_18_WORKING_AUTHORITY")
+        and execution.get("deterministic_assembly_order") == list(emitted_lane_ids)
         and execution.get("submitted_lane_count") == len(emitted_lane_ids)
         and (
             not lane_disposition_report["enforced"]
@@ -7369,7 +7445,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
                 and execution.get("omitted_lane_ids") == list(omitted_lane_ids)
                 and execution.get("always_loaded_lane_ids") == ["chat_lineage"]
                 and execution.get("lane_emission_policy")
-                == "LOADED_OR_DETECTED_ONLY"
+                == manifest.get("lane_emission_policy")
             )
         )
         and manifest.get("parallel_execution") == execution
@@ -7380,8 +7456,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
     pre_v110_execution_valid = bool(
         pre_v110_compatibility
         and execution
-        and execution.get("schema")
-        == "evidence-lane.parallel-lane-execution.v1"
+        and execution.get("schema") == "evidence-lane.parallel-lane-execution.v1"
         and execution.get("single_writer") is True
         and execution.get("linear_governance") is True
         and execution.get("barrier_status") == "PASS"
@@ -7389,8 +7464,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         and execution.get("source_snapshot_sha256")
         == execution.get("final_source_snapshot_sha256")
         and execution.get("source_binding", {}).get("valid") is True
-        and execution.get("deterministic_assembly_order")
-        == list(CANONICAL_LANE_IDS)
+        and execution.get("deterministic_assembly_order") == list(CANONICAL_LANE_IDS)
         and manifest.get("parallel_execution") == execution
         and manifest.get("source_snapshot_sha256")
         == execution.get("source_snapshot_sha256")
@@ -7401,12 +7475,10 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         or modern_execution_valid
     )
     topology_valid = bool(
-        topology_compatibility
-        or topology_reconciliation["status"] == "PASS"
+        topology_compatibility or topology_reconciliation["status"] == "PASS"
     )
     valid = (
-        manifest.get("schema")
-        in {LEGACY_LANE_BUNDLE_SCHEMA, LANE_BUNDLE_SCHEMA}
+        manifest.get("schema") in {LEGACY_LANE_BUNDLE_SCHEMA, LANE_BUNDLE_SCHEMA}
         and checksums.get("schema") == "evidence-lane.recursive-sha256.v1"
         and checksum_set_match
         and not checksum_mismatches
@@ -7454,9 +7526,7 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         "lane_disposition_contract": lane_disposition_report,
         "source_routes_valid": route_values_valid,
         "parallel_execution_valid": execution_valid,
-        "parallel_execution_legacy_compatibility": (
-            legacy_execution_compatibility
-        ),
+        "parallel_execution_legacy_compatibility": (legacy_execution_compatibility),
         "pre_v110_compatibility": pre_v110_compatibility,
         "pre_v110_execution_valid": pre_v110_execution_valid,
         "source_policy_enforced": not topology_compatibility,

@@ -8,10 +8,14 @@ from typing import Any
 import pytest
 from evidence_lane_plugin.codex_turn_control import (
     package_surface_inventory,
+    record_lifecycle_boundary_event,
+    seal_active_task_acceptance_checkpoint,
     seal_exact_task_project_session_binding,
 )
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
+from evidence_lane_plugin.models import SessionState
+from evidence_lane_plugin.project_authority import PROJECT_AUTHORITY_CONFIRMATION
 from evidence_lane_plugin.task_binding_registry import (
     read_shared_task_binding,
     seal_or_refresh_shared_task_binding,
@@ -394,3 +398,110 @@ def test_exact_binding_checkpoint_uses_shared_registry_without_installer(service
     assert exact["installer_helper_invoked"] is False
     assert exact["running_plugin"]["install_receipt_sha256"] is None
     assert not (root / "installations").exists()
+
+
+def test_checkpoint_and_lifecycle_use_registered_external_project_authority(
+    service,
+    source_repository: Path,
+    tmp_path: Path,
+) -> None:
+    root = service.store.root
+    surface = package_surface_inventory()
+    active_task_id = "turn-control-row"
+    session_id, _ = _strict_state_travel_session(service)
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["current_host_session_id"] = TASK_B
+    session.metadata["active_contract_rebind_receipt"] = _rebind(
+        "book-faires",
+        session_id,
+        TASK_B,
+    )
+    if not dict(session.task or {}).get("task_id"):
+        session.task = {
+            "task_id": "task_ck_external_authority_integration",
+            "task_class": "modify_code",
+            "requested_outcome": (
+                "Exercise checkpoint and lifecycle routes after authority relocation."
+            ),
+            "permitted_paths": ["src/**", "tests/**"],
+            "permitted_tools": ["repository_write", "test"],
+            "acceptance_checks": [
+                "One PREPARE and one COMMIT per visible turn."
+            ],
+            "stop_condition": "Stop without candidate or pointer movement.",
+        }
+    session.state = SessionState.TASK_CLASSIFIED
+    session.metadata["run_id"] = "run-external-authority-integration"
+    service.sessions._save(session)
+    pointer_before = service.store.pointer("book-faires").as_dict()
+    external_root = tmp_path / "user-projects" / "book-faires"
+    relocated = service.register_project(
+        project_id="book-faires",
+        display_name="Book Faires",
+        repository_path=str(source_repository),
+        expected_owner="example",
+        expected_name="book-faires",
+        allowed_branches=["main"],
+        sensitivity="PRIVATE",
+        project_authority_root=str(external_root),
+        project_authority_migration_confirmation=PROJECT_AUTHORITY_CONFIRMATION,
+        expected_accepted_pv="PV1",
+        expected_pointer_generation=1,
+        selected_by="human-test",
+    )
+    assert relocated["state"] == "REGISTERED_PROJECT_AUTHORITY_RELOCATED"
+
+    seal_or_refresh_shared_task_binding(
+        root,
+        project_id="book-faires",
+        evidence_session_id=session_id,
+        task_id=TASK_B,
+        surface=surface,
+        bound_by="TEST_EXTERNAL_PROJECT_AUTHORITY",
+    )
+    active = service.task_backlog("book-faires")["active"][0]
+    event = service.sessions.record_activity(
+        "book-faires",
+        session_id,
+        activity_type="test.output",
+        event_id="external-authority-acceptance",
+        visible_payload={
+            "active_task_id": active_task_id,
+            "acceptance_checks": active["acceptance_checks"],
+            "result": "PASS",
+            "candidate_created": False,
+            "pending_hil": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        },
+    )["event"]
+    checkpoint = seal_active_task_acceptance_checkpoint(
+        root,
+        project_id="book-faires",
+        evidence_session_id=session_id,
+        expected_active_task_id=active_task_id,
+    )
+    assert checkpoint["status"] == "PASS"
+    assert checkpoint["acceptance_evidence"]["event_sha256"] == event[
+        "event_sha256"
+    ]
+    assert (external_root / "receipts" / "task-checkpoints").is_dir()
+
+    lifecycle = record_lifecycle_boundary_event(
+        root,
+        host_payload={
+            "session_id": TASK_B,
+            "cwd": str(source_repository),
+            "event_id": "external-authority-session-end",
+        },
+        event_name="SessionEnd",
+    )
+    assert lifecycle["state"] == "SEALED"
+    assert lifecycle["receipt"]["project_id"] == "book-faires"
+    assert (
+        external_root
+        / "lineage"
+        / "lifecycle_hooks"
+        / f"{lifecycle['receipt']['receipt_id']}.json"
+    ).is_file()
+    assert service.store.pointer("book-faires").as_dict() == pointer_before

@@ -1,0 +1,74 @@
+{
+  "accepted_authority": {
+    "accepted_manifest_sha256": "54A3FBEBE3DE904AFE694821E5D6ED03D0C271E1C5F319A8017E70DA52FE3C82",
+    "accepted_package_sha256": "A42EF223B1F0FCB1A2FE0A4C1B4F4B463A48D9D2D917D2D34E05F39FF81682A6",
+    "accepted_pv": "PV9",
+    "generation": 9
+  },
+  "base_source_identity": {
+    "branch": "agent/evi-v140-systemwide-release-hil-v1.4.0",
+    "commit": "1f16034fda58a46c313af826a9d1465fcf32db17",
+    "tree": "4b634e0fcf5643faa8216cf11fa6faaf90b7e0f3"
+  },
+  "chatgpt_contract": {
+    "app_mapping_required": true,
+    "bundled_skill_count": 15,
+    "durable_https_route": "VERCEL_AND_OWNED_DOMAIN_CHATGPT_ONLY",
+    "full_plugin_package_required": true,
+    "lifecycle_mutations": "UNAVAILABLE_OR_FAIL_CLOSED_ON_CHATGPT_PRO_READ",
+    "product_name": "Evidence Lane",
+    "plugin_cache_version": "1.4.0+codex.20260808180919",
+    "read_tool_count": 21,
+    "read_safe_boot": "CHATGPT_PRO_READ_ATTACH",
+    "skill_visibility": "ALL_15_PACKAGED_SKILL_ENTRIES_VISIBLE",
+    "unsupported_write_action_behavior": "REPORT_UNAVAILABLE_AND_FAIL_CLOSED",
+    "version_metadata": "1.4.0"
+  },
+  "codex_contract": {
+    "distribution": "EXACT_GIT_COMMIT",
+    "full_lifecycle": true,
+    "product_name": "Evidence Lane",
+    "uses_vercel": false,
+    "version_metadata": "1.4.0"
+  },
+  "creative_and_site_contract": {
+    "adobe_express": "OPTIONAL_2D_CREATIVE_ROUTE",
+    "generated_glb_dependency": false,
+    "meshy_account_linkage": false,
+    "meshy_plugin_dependency": false,
+    "native_threejs_webgl_site_preserved": true
+  },
+  "next_candidate": {
+    "proposed_pv": "PV10",
+    "source_commit_rule": "EXACT_CLEAN_HEAD_AT_REFRESH"
+  },
+  "persistent_execution_contract": {
+    "exactly_one_active_row": true,
+    "final_hil_physically_last": true,
+    "goal_usage_display": "COMPACT_K_OR_M_WITH_EXACT_RECEIPT",
+    "token_wait_completes_goal": false,
+    "visible_until_final_hil": true
+  },
+  "publication_boundary": {
+    "existing_devpost_project": "1348634/evidence_os",
+    "main_merge_only_after_fresh_acceptance": true,
+    "propagate_after_acceptance": [
+      "GITHUB_MAIN_AND_RELEVANT_MARKDOWN",
+      "WEBSITE_ALL_RELEVANT_PAGES_AND_FOOTERS",
+      "WEBSITE_DELTA_LEDGER",
+      "VERCEL_PRODUCTION_AND_OWNED_DOMAIN",
+      "EXISTING_DEVPOST_PROJECT_ONLY"
+    ],
+    "separate_devpost_publication_lane": true
+  },
+  "receipt_sha256": "832BA8B5DFD274448A73AA168BBBBB89F29FF5AF3B77C64C30A6D94CCDC968D5",
+  "safety": {
+    "devpost_mutated": false,
+    "github_publication_performed": false,
+    "main_merged": false,
+    "production_deployed": false,
+    "remote_pointer_moved": false
+  },
+  "schema": "evidence-lane.v140-post-pv9-delta-boundary-receipt.v1",
+  "status": "BOUNDED_PRE_HIL_CONTRACT"
+}

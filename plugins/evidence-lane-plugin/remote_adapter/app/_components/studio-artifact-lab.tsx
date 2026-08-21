@@ -14,8 +14,7 @@ const formatOrder: readonly StudioArtifact["format"][] = [
 ];
 
 const capabilityRows = [
-  { label: "Codex native", executable: 62, failClosed: 0 },
-  { label: "ChatGPT Pro remote", executable: 21, failClosed: 41 },
+  { label: "Codex native", executable: 87, failClosed: 0 },
 ] as const;
 
 export function StudioArtifactLab() {
@@ -79,19 +78,18 @@ export function StudioArtifactLab() {
             <div className="studioCapabilityBar" key={row.label}>
               <span>{row.label}</span>
               <div>
-                <i style={{ width: `${row.executable / 62 * 100}%` }} />
-                <em style={{ width: `${row.failClosed / 62 * 100}%` }} />
+                <i style={{ width: `${row.executable / 87 * 100}%` }} />
+                <em style={{ width: `${row.failClosed / 87 * 100}%` }} />
               </div>
-              <small>{row.executable} executable / {row.failClosed} fail closed / 62 visible</small>
+              <small>{row.executable} executable / {row.failClosed} fail closed / 87 visible</small>
             </div>
           ))}
         </div>
         <table>
           <caption>Host capability table</caption>
-          <thead><tr><th>Host</th><th>Visible</th><th>Executable</th><th>Fail closed</th></tr></thead>
+          <thead><tr><th>Host</th><th>Total</th><th>Read-only</th><th>Write-capable</th></tr></thead>
           <tbody>
-            <tr><th>Codex native 2.2.0</th><td>62</td><td>62</td><td>0</td></tr>
-            <tr><th>Codex 2.2 native</th><td>83</td><td>26 reads</td><td>57 writes</td></tr>
+            <tr><th>Codex native 3.0.0</th><td>87</td><td>27</td><td>60</td></tr>
           </tbody>
         </table>
       </div>

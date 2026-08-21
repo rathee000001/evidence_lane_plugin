@@ -1,0 +1,10 @@
+section: ENV
+base_version: V14
+base_mmd_sha256: 1a60dce7c8b44595e74280fec7d8199801c6d8ad7c80d566518225e1d0981dfc
+final_version: V15
+final_mmd_sha256: 360c9878658106a24cfe60e0cdd98bb95ea8baabb7229c84c9d9163f397981f1
+svg_sha256: fe774f5eef269e3673848224e2cf1bdaa65f6ea0c38357b07614a3dd8bb3881c
+png_sha256: eba6f1b76ba181100426e59b0d481034296811f35bcb6f255debf9cad9d18faa
+base_text_preserved_exactly: true
+rendered_from_exact_packaged_mmd: true
+updated_at_utc: 2026-07-10T14:52:04Z

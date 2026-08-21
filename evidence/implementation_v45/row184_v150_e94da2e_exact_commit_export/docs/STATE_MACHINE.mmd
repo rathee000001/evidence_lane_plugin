@@ -1,0 +1,35 @@
+flowchart TD
+    R["/evi"] --> U{"User requested State Travel or host context exhausted?"}
+    U -- "Yes" --> S{"Active governed session and exact handoff prepared?"}
+    S -- "Yes" --> T["/evi-state-travel in a genuinely fresh host"]
+    S -- "No" --> SP["Prepare exact task/candidate, pointer base, source, Plan Lane, Deltas, resume row, and execution profile"]
+    SP --> T
+    T --> TV["Verify host ID, atomic Boot/Flash, pointer base, package/candidate seals, source, plan, and host profile"]
+    TV --> TM{"Travel mode"}
+    TM -- "UNFINISHED_VERIFIED_WORK" --> RW["RESUME_EXACT_UNFINISHED_STEP; preserve sole writer"]
+    TM -- "ACCEPTED_ENTRY" --> W["WAITING_FOR_NEXT_USER_COMMAND"]
+    U -- "No" --> B["/evi-boot: doctor + locked Flash + storage route + boot/resume"]
+    B --> C["Six controls: Boot, Rollback, Build, Refresh, Mode, Source Intake"]
+    C --> I["Generalized ordered Source Intake; always Chat Lineage"]
+    C --> PL["Codex /evi-plan: require /pl, persist Plan Lane, return copy/paste Goal prompt"]
+    PL --> PS["Linked steer appends to row; unrelated steer appends new row; panel persists to HIL"]
+    I --> P{"Accepted PV exists?"}
+    P -- "No" --> F["PV1 full eighteen-lane build"]
+    P -- "Yes" --> E["Load accepted entry; bounded task"]
+    E --> X["Automatic incremental Refresh and host-specific output handoff"]
+    X --> IX{"Host or client interrupted before candidate seal?"}
+    IX -- "Yes; candidate absent" --> XR["Receipt-backed RECOVER_INTERRUPTED_EXIT; pointer unchanged"]
+    XR --> X
+    IX -- "No" --> H
+    F --> H["Fresh UNACCEPTED candidate"]
+    H --> D{"Six-way HIL"}
+    D -- "APPROVE_WITH_DELTA" --> E
+    D -- "MORE_RESEARCH" --> E
+    D -- "REJECT or FAIL" --> Q["Preserve receipt; no pointer movement"]
+    D -- "ROLLBACK" --> RB["Move accepted pointer only to immutable accepted history"]
+    D -- "APPROVE only through Fuse" --> A["Byte-preserving promotion + sealed State Travel handoff"]
+    A --> P["Keep handoff prepared until user request or context exhaustion"]
+    P --> SH{"Explicit unchanged-host continuation?"}
+    SH -- "Yes" --> SS["Preserve receipt; record non-consumption supersession; pointer unchanged"]
+    SS --> E
+    SH -- "No" --> U

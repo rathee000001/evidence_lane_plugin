@@ -1,0 +1,211 @@
+{
+  "schema": "evidence-lane.implementation-validation.v3",
+  "created_at": "2026-07-26T09:25:02Z",
+  "product": {
+    "display_name": "Evidence Lane Plugin",
+    "plugin_id": "evidence-lane-plugin",
+    "repository_name": "evidence_lane_plugin",
+    "engine_version": "0.3.0",
+    "plugin_version": "0.3.0+codex.20260726092244",
+    "schema_version": "2.0.0",
+    "scope": "private_single_user_universal_eighteen_lane_pv_engine"
+  },
+  "source": {
+    "repository": "https://github.com/rathee000001/evidence_lane_plugin",
+    "visibility": "PRIVATE",
+    "branch": "main",
+    "parent_commit": "4dd109c53af461eed2a69e2f3a0d411c5cb2564e",
+    "parent_tree": "4e9dfaa4d57e38a609e33bd68e3844fbc4dc5eee",
+    "parent_remote_head_verified_before_implementation_hil": true,
+    "candidate_committed": false,
+    "candidate_pushed": false,
+    "working_tree_state": "DIRTY_UNCOMMITTED_HIL_CANDIDATE",
+    "candidate_member_count": 67,
+    "candidate_total_bytes": 535036,
+    "candidate_manifest": "evidence/implementation_v3/CANDIDATE_FILE_SET.txt",
+    "candidate_manifest_sha256": "6159C710767EF3C7262296A747051D521DBFF303B8833AA4743F6D65AAF29766",
+    "candidate_manifest_excludes": [
+      "evidence/implementation_v3/"
+    ],
+    "sealed_parent_plan_mutated": false
+  },
+  "universal_lane_engine": {
+    "single_registry": true,
+    "lane_count": 18,
+    "lanes": [
+      "github_code",
+      "local_code",
+      "chat_lineage",
+      "discussion",
+      "analysis",
+      "plan",
+      "mode",
+      "docs",
+      "data_excel",
+      "ppt",
+      "pdf_ocr",
+      "images_ocr",
+      "artifacts",
+      "custom",
+      "brain_loader",
+      "research",
+      "project_engulf",
+      "sqlite_brain"
+    ],
+    "per_lane_outputs": [
+      "SQLite",
+      "MMD",
+      "DOT",
+      "pointer",
+      "tools",
+      "receipts",
+      "manifests"
+    ],
+    "retrieval": [
+      "FTS5_BM25",
+      "MATERIALIZED_TF_IDF"
+    ],
+    "initial_build": "PV1_FULL",
+    "incremental_build": "PV2_PLUS_CHANGED_NEW_REBUILD_UNCHANGED_BYTE_REUSE_TOMBSTONES",
+    "exact_recursive_member_set_validation": true,
+    "structured_excel_logic": true,
+    "pdf_native_text_and_ocr_facts": true,
+    "image_ocr_facts": true,
+    "code_symbols_imports_routes_dependencies": true
+  },
+  "lifecycle": {
+    "single_executable_transition_table": true,
+    "accepted_pv_handoff_persistent": true,
+    "next_pv_ordinal_monotonic": true,
+    "approval_fuse": "APPROVE",
+    "hil_outcomes": [
+      "APPROVE",
+      "APPROVE_WITH_DELTA",
+      "MORE_RESEARCH",
+      "ROLLBACK",
+      "REJECT",
+      "FAIL"
+    ],
+    "rollback": {
+      "accepted_pvs_only": true,
+      "bare_target": "SESSION_ENTRY_PV",
+      "explicit_forward_or_backward_target": true,
+      "pointer_compare_and_swap": true,
+      "source_rewrite": false,
+      "candidate_or_history_deletion": false
+    },
+    "one_active_task_linear_backlog": true,
+    "acceptance_checks": {
+      "prose_is_pending": true,
+      "only_cmd_prefix_executes": true,
+      "fixed_argv_execution": true,
+      "shell_operators_rejected": true,
+      "script_wrappers_rejected": true,
+      "secrets_rejected": true,
+      "before_after_source_hashes": true
+    }
+  },
+  "engine": {
+    "package_sha256": "6E719237775F1DF74FE380CC63DFA4A2A922A5209E678B89EB50967CB1F55432",
+    "toolchain_manifest_sha256": "8285FFC3D24735EE7117F47B3A226098F4AA6F4A156A84D4B7DEBBE5AE7C19B9",
+    "release_wheel": ".runtime/release-v030-final-20260726091933/evidence_lane_plugin-0.3.0-py3-none-any.whl",
+    "release_wheel_bytes": 2064788,
+    "release_wheel_sha256": "29BBB167A1B086999E320530498379CD66421EFFE91AB8CC2D59C8A13E1F8CB4",
+    "mcp_tool_count": 31,
+    "codex_command_count": 28
+  },
+  "session_flash": {
+    "authority_version": "ENV15_UOP15_PUBLIC_LOCKED_20260710",
+    "manifest_sha256": "49B150FAC223C2198C3D60F273330D1EEE27FA961BFCD4CC47198ED31821266A",
+    "prompt_sha256": "E5751173A1419137DF57ED4811D82D0ADED227C6D064A0DF603EF7813F539D5F",
+    "authority_digest": "64976104F181BF215B40315FCB33F9EC1730C51EF24B778B7F85698AF5F93972",
+    "member_count": 16,
+    "inside_pv": false,
+    "flash_state": "NOT_FLASHED",
+    "whole_parent_packet_accepted": false,
+    "source_packet_status": "PARTIAL_INTEGRITY",
+    "accepted_boundary": "INDEPENDENTLY_VERIFIED_ENV15_UOP15_SUBSET_ONLY"
+  },
+  "validation": {
+    "runtime_doctor_fresh_wheel": "PASS",
+    "runtime_doctor_installed_codex_cache": "PASS",
+    "installed_lifecycle_transition_law": "PASS",
+    "installed_lane_catalog": "PASS",
+    "installed_mcp_tool_count": 31,
+    "pytest": {
+      "status": "PASS",
+      "passed": 40,
+      "failed": 0
+    },
+    "ruff_lint": "PASS",
+    "ruff_format": {
+      "status": "PASS",
+      "files": 52
+    },
+    "mypy": {
+      "status": "PASS",
+      "source_files": 35
+    },
+    "bandit": {
+      "status": "PASS",
+      "findings": 0,
+      "nosec_annotation_warnings": 8
+    },
+    "dependency_audit": {
+      "status": "PASS",
+      "known_vulnerabilities": 0,
+      "input": "plugins/evidence-lane-plugin/requirements.lock.txt"
+    },
+    "plugin_schema_after_final_cachebuster": "PASS",
+    "skill_schema_after_final_cachebuster": "PASS",
+    "wheel_build": "PASS",
+    "hash_required_dependency_install": "PASS",
+    "wheel_no_deps_install": "PASS",
+    "codex_plugin_installation": "PASS",
+    "selected_source_to_installed_hashes": "PASS",
+    "selected_source_to_installed_files": 6,
+    "codex_source_command_count": 28,
+    "codex_installed_command_count": 28
+  },
+  "host_boundaries": {
+    "codex": {
+      "installed_enabled": true,
+      "transport": "stdio",
+      "version": "0.3.0+codex.20260726092244",
+      "native_composer_discovery": "PENDING_FRESH_TASK"
+    },
+    "chatgpt": {
+      "observed_account_plan": "Pro",
+      "developer_mode_observed": true,
+      "secure_tunnels_available": 0,
+      "full_mcp_write_supported_for_observed_plan": false,
+      "installed": false,
+      "status": "BLOCKED_HOST_CAPABILITY",
+      "reduced_read_only_substitute_created": false
+    }
+  },
+  "persistence": {
+    "local_user_store_default": "C:/Users/rathe/EvidenceLanePV",
+    "local_user_store_configured": false,
+    "google_drive_live_configured": false,
+    "accepted_pv_and_decision_receipt_sync_implemented": true,
+    "generation_addressed_pointer_snapshot_sync_implemented": true,
+    "live_drive_readback_verified": false
+  },
+  "boundaries": {
+    "plugin_persists_until_user_removal": true,
+    "vercel_or_public_hosting_deployed": false,
+    "chatgpt_plugin_installed": false,
+    "google_drive_live_configured": false,
+    "live_project_pv_created": false,
+    "live_session_booted": false,
+    "live_first_hil_completed": false,
+    "accepted_pointer_moved": false,
+    "automatic_remote_git_push_enabled": false,
+    "candidate_committed": false,
+    "candidate_pushed": false,
+    "hil_approval_inferred": false
+  },
+  "gate": "V030_UNIVERSAL_IMPLEMENTED_CODEX_INSTALLED_SIX_OPTION_HIL_READY_WITH_EXTERNAL_HOST_BLOCKERS_NO_REAL_PV",
+  "result": "PASS_LOCAL_IMPLEMENTATION_WITH_BOUNDED_EXTERNAL_HOST_AND_FRESH_TASK_BLOCKERS"
+}

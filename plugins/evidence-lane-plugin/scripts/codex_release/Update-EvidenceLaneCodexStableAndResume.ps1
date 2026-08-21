@@ -63,10 +63,10 @@ else {
 }
 $script:Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $script:CanonicalStableSelector = "evidence-lane-plugin@evidence-lane-github"
-$script:LocalTestingMarketplaceName = "evidence-lane-v220-testing-new"
+$script:LocalTestingMarketplaceName = "evidence-lane-v300-testing-new"
 $script:LocalTestingSelector = "evidence-lane-plugin@$($script:LocalTestingMarketplaceName)"
-$script:LocalRecoverySelector = "evidence-lane-plugin@evidence-lane-v220-stable-recovery"
-$script:LocalSuccessorMarketplaceName = "evidence-lane-v220-local-successor"
+$script:LocalRecoverySelector = "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
+$script:LocalSuccessorMarketplaceName = "evidence-lane-v300-local-successor"
 $script:LocalSuccessorSelector = "evidence-lane-plugin@$($script:LocalSuccessorMarketplaceName)"
 $script:ExpectedGitRepository = "rathee000001/evidence_lane_plugin"
 $script:HostAppProfiles = [ordered]@{
@@ -405,7 +405,7 @@ function Assert-Boundary() {
             $successorHookRecords.Count -ne 8 -or
             @($successorHookRecords | Where-Object { $_.enabled -ne $false -or $_.trust_status -cne "trusted" }).Count -ne 0 -or
             $successorStage.successor.runtime_prewarm.status -cne "PASS" -or
-            [int]$successorStage.successor.runtime_prewarm.tool_count -ne 83 -or
+            [int]$successorStage.successor.runtime_prewarm.tool_count -ne 88 -or
             $successorStage.restart_gate.helper_may_be_scheduled -ne $true -or
             $successorStage.restart_gate.exact_host_stop_occurred -ne $false -or
             $successorStage.accepted_two_slot_registry.mutated -ne $false -or
@@ -415,25 +415,25 @@ function Assert-Boundary() {
         ) {
             throw "The local successor was not fully installed and eight-hook verified before helper scheduling."
         }
-        $tunnelRuntimeRoot = Join-Path ([IO.Path]::GetFullPath($DataRoot)) "tunnel-runtime-v220-stable-build"
+        $tunnelRuntimeRoot = Join-Path ([IO.Path]::GetFullPath($DataRoot)) "tunnel-runtime-v300-stable-build"
         $tunnelMarkerPath = Join-Path $tunnelRuntimeRoot "evidence-lane-tunnel-installation.json"
         $tunnelManager = Join-Path $tunnelRuntimeRoot "Manage-EvidenceLaneTunnel.ps1"
         $tunnelClient = Join-Path $tunnelRuntimeRoot "bin\tunnel-client-v0.0.10.exe"
         foreach ($requiredTunnelFile in @($tunnelMarkerPath, $tunnelManager, $tunnelClient)) {
             if (-not (Test-Path -LiteralPath $requiredTunnelFile -PathType Leaf)) {
-                throw "The exact saved v2.2 tunnel rollover authority is incomplete."
+                throw "The exact saved v3.0 tunnel rollover authority is incomplete."
             }
         }
         $tunnelMarker = Get-Content -LiteralPath $tunnelMarkerPath -Raw | ConvertFrom-Json
         $tunnelTask = Get-ScheduledTask -TaskName ([string]$tunnelMarker.task_name) -ErrorAction SilentlyContinue
         if (
             $tunnelMarker.schema -cne "evidence-lane.versioned-secure-mcp-tunnel-installation.v1" -or
-            [string]$tunnelMarker.release -cne "2.2.0" -or
-            [string]$tunnelMarker.release_token -cne "v220" -or
+            [string]$tunnelMarker.release -cne "3.0.0" -or
+            [string]$tunnelMarker.release_token -cne "v300" -or
             [string]$tunnelMarker.slot_role -cne "stable-build" -or
             [IO.Path]::GetFullPath([string]$tunnelMarker.runtime_root) -cne [IO.Path]::GetFullPath($tunnelRuntimeRoot) -or
-            [string]$tunnelMarker.task_name -cne "EvidenceLane-Tunnel-v220-stable-build" -or
-            [string]$tunnelMarker.profile_name -cne "evidence_lane_v220_stable_build_transport" -or
+            [string]$tunnelMarker.task_name -cne "EvidenceLane-Tunnel-v300-stable-build" -or
+            [string]$tunnelMarker.profile_name -cne "evidence_lane_v300_stable_build_transport" -or
             [string]$tunnelMarker.windows_console_policy -cne "WINDOWS_GUI_HOST_CREATE_NO_WINDOW" -or
             [string]$tunnelMarker.host_lifetime -cne "PERSISTENT" -or
             [string]$tunnelMarker.interaction_profile -cne "CODEX_APP_INTERACTIVE" -or
@@ -441,7 +441,7 @@ function Assert-Boundary() {
             $null -eq $tunnelTask -or
             [string]$tunnelTask.State -cne "Running"
         ) {
-            throw "The exact current v2.2 host transport tunnel is not running under its sealed persistent authority."
+            throw "The exact current v3.0 host transport tunnel is not running under its sealed persistent authority."
         }
         $lockingMarketplaceName = $script:LocalTestingMarketplaceName
     }
@@ -708,7 +708,7 @@ try {
         )
         $tunnelStopExitCode = $LASTEXITCODE
         if ($tunnelStopExitCode -ne 0) {
-            throw ("The one-use helper could not stop the exact saved v2.2 tunnel:`n" + ($tunnelStopOutput -join "`n"))
+            throw ("The one-use helper could not stop the exact saved v3.0 tunnel:`n" + ($tunnelStopOutput -join "`n"))
         }
         $tunnelStopResult = ($tunnelStopOutput -join "`n") | ConvertFrom-Json
         $stoppedTunnelTask = Get-ScheduledTask -TaskName ([string]$boundary.tunnel_marker_data.task_name) -ErrorAction SilentlyContinue
@@ -718,7 +718,7 @@ try {
             $null -eq $stoppedTunnelTask -or
             [string]$stoppedTunnelTask.State -cne "Disabled"
         ) {
-            throw "The exact saved v2.2 tunnel did not reach its disabled rollover boundary."
+            throw "The exact saved v3.0 tunnel did not reach its disabled rollover boundary."
         }
         $tunnelStop = [ordered]@{
             status = "PASS"
@@ -764,7 +764,7 @@ try {
         $installerArguments += @(
             "--marketplace-name", $script:LocalTestingMarketplaceName,
             "--activate-local-test",
-            "--confirm-local-test-rotation", "EXPLICIT_DISABLED_LOCAL_2_2_HOOK_RECOVERY",
+            "--confirm-local-test-rotation", "EXPLICIT_DISABLED_LOCAL_3_0_HOOK_RECOVERY",
             "--recover-disabled-local-hooks-from", $boundary.prior_local_commit,
             "--recover-disabled-local-hooks-from-sha256", $PriorLocalTestCommitReceiptSha256
         )
@@ -833,7 +833,7 @@ try {
         if (
             $install.status -cne "PASS" -or
             [string]$install.activation.plugin_add.pluginId -cne $script:LocalTestingSelector -or
-            [string]$install.activation.state -cne "LOCAL_2_2_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED" -or
+            [string]$install.activation.state -cne "LOCAL_3_0_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED" -or
             $install.activation.transaction.schema -cne "evidence-lane.codex-local-test-disabled-hook-recovery.v1" -or
             $install.activation.transaction.state -cne "LOCAL_SELECTOR_SWITCHED_ONCE" -or
             $install.activation.transaction.compare_and_swap -ne $true -or
@@ -856,18 +856,18 @@ try {
             $invalidHookRecords.Count -ne 0 -or
             (($registeredEvents -join "|") -cne ($expectedEvents -join "|")) -or
             $install.activation.runtime_prewarm.status -cne "PASS" -or
-            [int]$install.activation.runtime_prewarm.tool_count -ne 83 -or
+            [int]$install.activation.runtime_prewarm.tool_count -ne 88 -or
             $install.activation.runtime_ready_before_task_reopen -ne $false -or
             $install.runtime_ready_before_task_reopen -ne $false -or
             $install.restart_required -ne $true -or
-            $install.activation_authority.boundary -cne "EXPLICIT_DISABLED_LOCAL_2_2_HOOK_RECOVERY" -or
+            $install.activation_authority.boundary -cne "EXPLICIT_DISABLED_LOCAL_3_0_HOOK_RECOVERY" -or
             $install.activation_authority.accepted_two_slot_registry_mutated -ne $false -or
             $install.two_slot_registry_update.status -cne "NOT_APPLICABLE" -or
             $install.candidate_created_or_accepted -ne $false -or
             $install.pointer_moved -ne $false -or
             $install.hil_inferred -ne $false
         ) {
-            throw "The installer did not prove the exact local 2.2 selector and all eight corrected hooks."
+            throw "The installer did not prove the exact local 3.0 selector and all eight corrected hooks."
         }
     }
     $installReceipt = (Resolve-Path -LiteralPath ([string]$install.receipt_path)).Path
@@ -885,7 +885,7 @@ try {
             "--package-receipt", $boundary.package_receipt,
             "--primary-installation-receipt", $installReceipt,
             "--primary-installation-receipt-sha256", $installReceiptSha256,
-            "--confirm-local-recovery-copy", "EXPLICIT_BYTE_IDENTICAL_LOCAL_2_2_RECOVERY",
+            "--confirm-local-recovery-copy", "EXPLICIT_BYTE_IDENTICAL_LOCAL_3_0_RECOVERY",
             "--codex-home", ([IO.Path]::GetFullPath($CodexHome)),
             "--data-root", ([IO.Path]::GetFullPath($DataRoot)),
             "--codex-executable", $boundary.codex,
@@ -914,7 +914,7 @@ try {
         $localRecoveryRegistry = (Resolve-Path -LiteralPath ([string]$localRecovery.current_registry_path)).Path
         $localRecoveryRegistrySha256 = Get-Sha256 $localRecoveryRegistry
         if (
-            $localRecovery.schema -cne "evidence-lane.codex-local-v220-recovery-registry.v1" -or
+            $localRecovery.schema -cne "evidence-lane.codex-local-v300-recovery-registry.v1" -or
             $localRecovery.status -cne "PASS" -or
             $localRecovery.state -cne "PRIMARY_LOCAL_ACTIVE_RECOVERY_DISABLED_BYTE_IDENTICAL" -or
             [string]$localRecovery.package.archive_sha256 -cne $archiveSha256 -or
@@ -1006,6 +1006,7 @@ try {
                     -TaskName ([string]$boundary.tunnel_marker_data.task_name) `
                     -HostLifetime "Persistent" `
                     -InteractionProfile ([string]$boundary.tunnel_marker_data.interaction_profile) `
+                    -HostToolTransport "HOST_TOOL_GAP" `
                     -AccountTier ([string]$boundary.tunnel_marker_data.account_tier) `
                     -Activate 2>&1 |
                     ForEach-Object { [string]$_ }
@@ -1016,7 +1017,7 @@ try {
             Remove-Item -LiteralPath $tunnelClientCopy -Force -ErrorAction SilentlyContinue
         }
         if ($tunnelInstallExitCode -ne 0) {
-            throw ("The exact hidden v2.2 tunnel rollover failed:`n" + ($tunnelInstallOutput -join "`n"))
+            throw ("The exact hidden v3.0 tunnel rollover failed:`n" + ($tunnelInstallOutput -join "`n"))
         }
         $tunnelInstall = ($tunnelInstallOutput -join "`n") | ConvertFrom-Json
         $newTunnelMarker = Get-Content -LiteralPath $boundary.tunnel_marker_path -Raw | ConvertFrom-Json
@@ -1040,7 +1041,7 @@ try {
             $tunnelInstall.status -cne "PASS" -or
             $tunnelInstall.activated -ne $true -or
             $tunnelInstall.started -ne $true -or
-            [int]$tunnelInstall.exact_visible_tool_count -ne 83 -or
+            [int]$tunnelInstall.exact_visible_tool_count -ne 88 -or
             [string]$tunnelInstall.windows_console_policy -cne "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE" -or
             $tunnelStatus.status -cne "PASS" -or
             $tunnelStatus.control_plane_poll_ready -ne $true -or
@@ -1051,7 +1052,7 @@ try {
             [string]$newTunnelMarker.tunnel_id -cne [string]$boundary.tunnel_marker_data.tunnel_id -or
             [string]$newTunnelMarker.windows_console_policy -cne "WINDOWS_GUI_HOST_CREATE_NO_WINDOW"
         ) {
-            throw "The saved v2.2 tunnel did not restart hidden from the reinstalled local primary."
+            throw "The saved v3.0 tunnel did not restart hidden from the reinstalled local primary."
         }
         $tunnelRollover = [ordered]@{
             status = "PASS"
@@ -1061,7 +1062,7 @@ try {
             marker_sha256_before = [string]$boundary.tunnel_marker_sha256
             marker_sha256_after = Get-Sha256 $boundary.tunnel_marker_path
             manager_sha256_after = Get-Sha256 $newTunnelManager
-            exact_visible_tool_count = 83
+            exact_visible_tool_count = 88
             control_plane_poll_ready = $true
             hidden_window_verified_by_contract = $true
             persistent_logon_task_running = $true
@@ -1281,7 +1282,7 @@ try {
             $acceptedRegistry.tunnel_required -ne $false -or
             [int]$acceptedRegistry.max_active_tunnel_count -ne 0
         ) {
-            throw "The post-recovery plugin list is not one active local 2.2 slot, one disabled byte-identical local recovery, and two untouched disabled accepted slots."
+            throw "The post-recovery plugin list is not one active local 3.0 slot, one disabled byte-identical local recovery, and two untouched disabled accepted slots."
         }
         $fallbackSelector = $acceptedFallbackSelector
         $fallback = $acceptedFallback
@@ -1298,7 +1299,7 @@ try {
             "SAME_STABLE_SELECTOR_UPDATED_EXACT_TASK_REOPEN_REQUESTED"
         }
         else {
-            "LOCAL_2_2_REINSTALLED_EIGHT_HOOKS_TRUSTED_EXACT_TASK_REOPEN_REQUESTED"
+            "LOCAL_3_0_REINSTALLED_EIGHT_HOOKS_TRUSTED_EXACT_TASK_REOPEN_REQUESTED"
         }
         update_mode = $UpdateMode
         project_id = $ProjectId

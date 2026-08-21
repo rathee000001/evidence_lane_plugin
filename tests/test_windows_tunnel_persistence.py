@@ -22,8 +22,8 @@ def test_boot_launcher_pins_binary_and_dpapi_envelope() -> None:
     assert "ConvertTo-SecureString" in boot
     assert "ZeroFreeBSTR" in boot
     assert "--require-control-plane-poll" in boot
-    assert 'ProfileName = "evidence_lane_v220_stable_build_transport"' in boot
-    assert 'ReleaseToken = "v220"' in boot
+    assert 'ProfileName = "evidence_lane_v300_stable_build_transport"' in boot
+    assert 'ReleaseToken = "v300"' in boot
     assert "release-bound tunnel marker" in boot
     assert 'ProfileDir = "$env:APPDATA\\tunnel-client"' in boot
     assert "RECOVER_STALE_PROCESS" in boot
@@ -62,15 +62,20 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert '"branch-commit-recovery"' in installer
     assert '"mutable-local-testing"' in installer
     assert 'TaskName = "EvidenceLane-Tunnel-$releaseToken-stable-build"' in installer
-    assert "exact_visible_tool_count = 83" in installer
+    assert "exact_visible_tool_count = 88" in installer
     assert "exact_active_read_tool_count = 26" in installer
     assert "exact_fail_closed_write_tool_count = 57" in installer
     assert "codex_platform_tunnel_setup_required_once = $true" in installer
-    assert r'"EvidenceLanePV\tunnel-runtime-$releaseToken-stable-build"' in installer
+    assert (
+        'Join-Path $RuntimeControlRoot '
+        '"tunnel-runtime-$releaseToken-stable-build"'
+    ) in installer
+    assert '.codex\\plugins\\runtime\\evidence-lane-plugin' in installer
+    assert 'project_data_root_separate = ' in installer
     assert "RuntimeKeyEnvelopeSource" in installer
     assert "saved_slot = $true" in installer
     assert "branch_commit_recovery_preserved = $true" in installer
-    assert "pre_2_2_fallback_allowed = $false" in installer
+    assert "pre_3_0_fallback_allowed = $false" in installer
     assert "release_identity_source = \"CODEX_RELEASE_CHANNEL_CONTRACT\"" in installer
     assert "runtime_identity_matches_release = $true" in installer
     assert "prior_versioned_runtimes_retained = $true" in installer
@@ -103,8 +108,18 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
 
 def test_installer_classifies_api_persistent_and_ephemeral_host_lifetimes() -> None:
     installer = _read("Install-EvidenceLaneTunnel.ps1")
-    assert '[ValidateSet("CODEX_APP_INTERACTIVE", "HEADLESS_API", "DIRECT_CLI_API")]' in installer
+    assert (
+        '[ValidateSet("CODEX_APP_INTERACTIVE", "CODEX_CLI_NATIVE", '
+        '"HEADLESS_API", "DIRECT_CLI_API")]'
+    ) in installer
+    assert '[ValidateSet("NATIVE_MCP_AVAILABLE", "HOST_TOOL_GAP")]' in installer
+    assert '$HostToolTransport = "NATIVE_MCP_AVAILABLE"' in installer
     assert 'tunnel_requirement = "NOT_REQUIRED_FOR_API_LAYER"' in installer
+    assert 'host_tool_transport = "API_DIRECT"' in installer
+    assert 'if ($HostToolTransport -eq "NATIVE_MCP_AVAILABLE")' in installer
+    assert 'tunnel_requirement = "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"' in installer
+    assert 'native_mcp_available = $true' in installer
+    assert 'tunnel_requirement = "REQUIRED_FOR_HOST_TOOL_GAP"' in installer
     assert 'local_pv_storage_allowed_when_durable = $true' in installer
     assert '[ValidateSet("Auto", "Persistent", "Ephemeral")]' in installer
     assert 'tunnel_setup_frequency = if ($exactHostLifetime -eq "Ephemeral")' in installer
@@ -132,7 +147,10 @@ def test_installer_reuses_verified_dependencies_and_can_acquire_missing_client()
     assert '$downloadUri.Scheme -ne "https"' in installer
     assert "DOWNLOADED_FROM_CONFIGURED_HTTPS_AND_HASH_VERIFIED" in installer
     assert "does not match the pinned v0.0.10 SHA-256" in installer
-    assert 'Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath($DataRoot))' in installer
+    assert (
+        'Get-ChildItem -LiteralPath '
+        '([IO.Path]::GetFullPath($RuntimeControlRoot))'
+    ) in installer
     assert 'Join-Path $_.FullName "bin\\tunnel-client-v0.0.10.exe"' in installer
     assert "Resolve-PriorRuntimeKeyEnvelope" in installer
     assert "tunnel_id_reused = $tunnelIdReused" in installer
@@ -149,11 +167,11 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert 'transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"' in manager
     assert 'codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"' in manager
     assert "codex_tunnel_lifecycle_proof_allowed = $false" in manager
-    assert "exact_visible_tool_count = 83" in manager
+    assert "exact_visible_tool_count = 88" in manager
     assert "exact_active_read_tool_count = 26" in manager
     assert "exact_fail_closed_write_tool_count = 57" in manager
     assert "runtime_key_plaintext_reported = $false" in manager
-    assert 'ReleaseToken = "v220"' in manager
+    assert 'ReleaseToken = "v300"' in manager
     assert "release_token = if ($null -ne $marker)" in manager
     assert "management request does not match the exact release-bound tunnel marker" in manager
     assert "slot_role = if ($null -ne $marker)" in manager
@@ -163,7 +181,7 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert "project_route_argument_required = $true" in manager
     assert "cross_project_fallback_allowed = $false" in manager
     assert "if (-not $ConfirmRemoval)" in manager
-    assert "EvidenceLanePV directory" in manager
+    assert "Codex's hidden Evidence Lane runtime directory" in manager
     assert "installation marker" in manager
     assert "marker.profile_name" in manager
     assert "marker.profile_file" in manager
@@ -252,13 +270,16 @@ def test_version_manager_reads_legacy_registry_without_history_fields(
 def test_all_tunnel_scripts_use_release_bound_runtime_names() -> None:
     installer = _read("Install-EvidenceLaneTunnel.ps1")
     assert '"v" + ($release -replace' in installer
-    assert '"EvidenceLanePV\\tunnel-runtime-$releaseToken-stable-build"' in installer
+    assert (
+        'Join-Path $RuntimeControlRoot '
+        '"tunnel-runtime-$releaseToken-stable-build"'
+    ) in installer
     assert '"EvidenceLane-Tunnel-$releaseToken-stable-build"' in installer
     assert '"evidence_lane_${releaseToken}"' in installer
 
     for name in ("EvidenceLaneTunnel.Boot.ps1", "Manage-EvidenceLaneTunnel.ps1"):
         text = _read(name)
-        assert 'ReleaseToken = "v220"' in text
+        assert 'ReleaseToken = "v300"' in text
         assert '"evidence_lane_${ReleaseToken}"' in text
         assert "release-bound tunnel marker" in text
         assert "evidence_lane_v150" not in text

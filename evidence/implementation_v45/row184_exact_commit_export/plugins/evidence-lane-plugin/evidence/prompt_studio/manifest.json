@@ -1,0 +1,37 @@
+{
+  "corpus": {
+    "boundary": "the exact prior public source manifest re-read from current local bytes plus frozen, previously sealed ancestor Git chunks; no Git command is invoked; generated proof binaries, retrieval self-inputs, private session flash, runtime state, brains, and secrets are excluded",
+    "chunk_count": 1983,
+    "sha256": "29774E356F049D5E238C732716182C1DD214270967BFE5B4150AE884D4407629",
+    "source_count": 265
+  },
+  "history_commit_count": 73,
+  "history_mode": "FROZEN_SEALED_INDEX_NO_GIT",
+  "history_through_sha": "1f16034fda58a46c313af826a9d1465fcf32db17",
+  "outputs": {
+    "browser_json": {
+      "bytes": 9777640,
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json",
+      "sha256": "07735FE998A82B53109E1E01264F683E271B099C3F2F1145F8C5556F733E887A"
+    },
+    "sqlite": {
+      "bytes": 13164544,
+      "path": "plugins/evidence-lane-plugin/evidence/prompt_studio/studio_search.sqlite",
+      "sha256": "9A662994F2A85BBBEF3B8158201152E57E17A95F712B8A4E8187433B748F4353"
+    }
+  },
+  "release": "1.4.0",
+  "retrieval": {
+    "chunker": "llama-index-core==0.14.23 SentenceSplitter(480,64)",
+    "hybrid": "reciprocal-rank fusion k=60",
+    "lexical": "SQLite FTS5/BM25 forensic authority",
+    "provider": "none; extractive local retrieval only",
+    "tfidf": "tf=count/tokens; idf=ln((1+N)/(1+df))+1"
+  },
+  "schema": "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1",
+  "validation": {
+    "fts_refresh_hits": 150,
+    "secret_scan": "PASS",
+    "sqlite_integrity": "ok"
+  }
+}

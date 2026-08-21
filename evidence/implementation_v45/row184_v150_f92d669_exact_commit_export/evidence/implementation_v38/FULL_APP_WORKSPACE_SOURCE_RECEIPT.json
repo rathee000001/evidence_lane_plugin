@@ -1,0 +1,232 @@
+{
+  "schema": "evidence-lane.full-app-workspace-source-receipt.v1",
+  "recorded_at": "2026-08-03T21:22:21Z",
+  "delta_id": "EL-V120-VIEWPORT-SQLITE-GLASS-WORKSPACE-DELTA-062",
+  "status": "SUPERSEDED_BY_DELTA_063",
+  "superseded_by": "evidence/implementation_v38/FULL_WIDTH_RIL_GOLD_UI_RECEIPT.json",
+  "supersession_reason": "The user explicitly withdrew the fixed viewport, persistent side rail, top container, and bottom command bar in favor of a full-width RIL/Gold scroll story.",
+  "authority": {
+    "root": "F:/DATA MACHINE/evidence-os-clean-full-app_current hill_sopuce code/frontend/theme-contract",
+    "access_mode": "READ_ONLY",
+    "mutated": false,
+    "sources": [
+      {
+        "path": "src/components/UniversalPillCluster.tsx",
+        "sha256": "3676944f776f9de9756d34e36d41543c18ab482cbbe4b54f499f607f1f679f39"
+      },
+      {
+        "path": "src/components/WorkspaceShell.tsx",
+        "sha256": "e8eba0cd7fb803a70c8f4a27ce8b834ca7cb11e5f7adb3820423807b93d44753"
+      },
+      {
+        "path": "src/components/HeaderShell.tsx",
+        "sha256": "fb15b64e34498ada00040c79005acdfc34a10e5b8c77699277e930d0ca1f7fdc"
+      },
+      {
+        "path": "src/components/PromptBarShell.tsx",
+        "sha256": "3d2bacbc7b4de739e1a6168e640738725d6861fcca7b50b485c4551492b5bbd5"
+      },
+      {
+        "path": "src/components/SQLiteCommandBar.tsx",
+        "sha256": "50fb2ed50772dddd00eb3ea04c22ed2f610c7543ebaf0c1988d26e45424b28ae"
+      },
+      {
+        "path": "src/components/CollapsedSidePanelShell.tsx",
+        "sha256": "c264c26a871d0751b79da71f6231d37a7dfe8fe91d9a5da1d8e844e301a3ccf7"
+      },
+      {
+        "path": "src/components/ExpandedSidePanelShell.tsx",
+        "sha256": "7ebb88a313aa5a7df19839dc1d2e1a953494e9246eae31dfa3b84c09dfca6bae"
+      },
+      {
+        "path": "src/components/EvidenceOSCockpitSimulation.tsx",
+        "sha256": "5ad92e96a3e417658013e9af5922fd2fbc0a33e5e0f25da542e174b309d0a2f9"
+      },
+      {
+        "path": "src/theme/UniversalPopupFade.ts",
+        "sha256": "0818bd8b7bd574b717cac183557063d0021209d97eb8850e3df7b11fdcbce604"
+      },
+      {
+        "path": "src/contracts/T023UniversalUiSystemSchemas.ts",
+        "sha256": "ffc1036a5fe7a76941500ce8bfb0b9d45cc55df6444cc5d49bfbb1be5d296926"
+      },
+      {
+        "path": "src/theme/sqlite-glass-theme.css",
+        "sha256": "a71fa99a68f51af88d763ab3e0a790959a34cb1c2c3197ef8fcaa16b14646971"
+      }
+    ]
+  },
+  "adaptation": {
+    "mode": "BROWSER_SAFE_FRONTEND_ONLY",
+    "workspace_contract": {
+      "outer_document_scroll": "FORBIDDEN",
+      "inner_route_scroll": "BOUNDED_ALLOWED",
+      "stable_regions": [
+        "persistent side rail",
+        "top header container",
+        "middle interaction container",
+        "bottom command bar"
+      ],
+      "top_tabs": [
+        "Builder",
+        "Studio",
+        "README",
+        "Architecture",
+        "Artifacts"
+      ],
+      "lane_controls": 18
+    },
+    "schemas": [
+      "T023_UNIVERSAL_GLASS_PILL_V001",
+      "T023_UNIVERSAL_GLASS_SHELL_V001",
+      "T023_UNIVERSAL_GLASS_ORB_V001",
+      "T023_UNIVERSAL_BRAIN_ORB_V001",
+      "T023_GLASS_LAYERING_NO_BLEED_V001",
+      "T023_UNIVERSAL_FROSTED_POPUP_V001",
+      "T023_UNIVERSAL_POPUP_FADE_V001"
+    ],
+    "source_intake": {
+      "lanes": 18,
+      "fade_duration_ms": 140,
+      "reduced_motion_duration_ms": 1,
+      "easing": "cubic-bezier(.22,1,.36,1)",
+      "focus_entry": true,
+      "focus_trap": true,
+      "focus_return": true,
+      "escape_close": true,
+      "outside_click_close": true
+    },
+    "toolchain_story": {
+      "selected_source_icons": "existing SourceLaneIcon only",
+      "brain_count": 1,
+      "icon_rotation_degrees": 360,
+      "output_count": 4,
+      "outputs": [
+        "<lane>_sector_v001.sqlite",
+        "<lane>.mmd",
+        "<lane>.dot",
+        "refresh_receipt.json"
+      ],
+      "tool_hover_fields": [
+        "source",
+        "parser",
+        "chunker",
+        "retrieval"
+      ]
+    },
+    "explicitly_excluded": [
+      "Rust and Tauri transport",
+      "backend state and secrets",
+      "scanner components",
+      "telemetry-page identity artwork",
+      "3D telemetry nodes",
+      "new generated icons",
+      "Adobe or Meshy replacement artwork",
+      "black theme"
+    ]
+  },
+  "candidate_files": [
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_components/full-app-ui.tsx",
+      "sha256": "b351bfbd45936f31f99529269de887604ed9f1f1f5c599b04d8160c85d9ec7b4"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_components/universal-pill-cluster.tsx",
+      "sha256": "98f5be26c11b063c7f76681db123938f4e49351a0540b3015106a8c9496889df"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_components/evidence-workspace-frame.tsx",
+      "sha256": "8f4b773387f328881db68624c4d2013d3376bb599f0dd04d5ccc3b7399ed984a"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/layout.tsx",
+      "sha256": "a1526d9e5e3767dde486eebf84b8c7af0e9707886c4b2aa225c4dc87e02299fc"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/globals.css",
+      "sha256": "e91f47ed121b2e7cef8bab689b93eb8d62f9c5b0e049238d854060a215542c8e"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/support/page.tsx",
+      "sha256": "dc15bdacf2fb0f40055ff8a5b60580e872115a2e944d9ead78921e64d58f444e"
+    },
+    {
+      "path": "tests/test_full_app_ui_conformance.py",
+      "sha256": "322321293c8154e8d28b2ea8fac9bf1fe0d491de8af62b65d4248a45c3770bed"
+    }
+  ],
+  "verification": {
+    "ruff": "PASS",
+    "mypy": "PASS_52_SOURCE_FILES",
+    "plugin_validator": "PASS",
+    "skill_validators": "PASS_15_OF_15",
+    "typescript": "PASS",
+    "next_production_build": "PASS_15_STATIC_ROUTES",
+    "source_conformance_tests": "PASS_6_OF_6",
+    "full_regression": "PASS_126_OF_126_IN_560_31_SECONDS",
+    "browser": {
+      "engine": "Playwright with system Chrome fallback",
+      "desktop_viewport": "1440x900",
+      "mobile_viewport": "390x844",
+      "tested_content_routes": 10,
+      "document_overflow": false,
+      "inner_route_scroll": true,
+      "framework_error_overlay": false,
+      "console_or_page_errors": false,
+      "http_error_responses": false,
+      "failed_images": false,
+      "lane_controls": 18,
+      "header_tabs": 5,
+      "brain_count": 1,
+      "exact_file_outputs": 4,
+      "tool_hover_and_focus": "PASS",
+      "popup_focus_escape_outside": "PASS",
+      "grounded_prompt": "PASS",
+      "unsupported_prompt_refusal": "PASS"
+    },
+    "screenshots": [
+      {
+        "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-062-builder-desktop.png",
+        "sha256": "69e3bb05f1f24a892ae3eb41cbf4d15a250996f6bacb7d95b26e8472e6cc7d0c"
+      },
+      {
+        "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-062-builder-mobile.png",
+        "sha256": "be35b9a869c15fd98d38cb243f62f5cd29452d013dd6385212d3897067efa639"
+      },
+      {
+        "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-062-source-intake-desktop.png",
+        "sha256": "27e6ce3bf1de44bd161b28353a619e7b3d85610cb2e869ef2ad0ea7488e49f47"
+      },
+      {
+        "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-062-studio-desktop.png",
+        "sha256": "c20b494dd43036905f416df90071ab70175fddbd2f1776ec9d589ba0fcfb4b52"
+      },
+      {
+        "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-062-studio-mobile.png",
+        "sha256": "ad2d0df35e6884e28331435fe931f095c548f279a916a76f8f73bd9242bc3821"
+      }
+    ]
+  },
+  "governance": {
+    "accepted_pointer_moved": false,
+    "state_travel_invoked": false,
+    "fuse_invoked": false,
+    "candidate_promoted": false,
+    "main_merged": false,
+    "deployment_claimed": false,
+    "tunnel_daemon_claimed": false,
+    "hil_decision_inferred": false
+  },
+  "verdict": {
+    "decision": "PURSUE",
+    "confidence": 0.99,
+    "scope": "Delta 062 local UI and interaction conformance only",
+    "reason": "The read-only full-app workspace contracts are hash-pinned, the fixed viewport and bounded internal scroll laws pass in Chrome at desktop and mobile widths, and the exact lane, popup, brain, output, tool-detail, and Prompt Studio behaviors pass the complete regression.",
+    "evidence_that_would_change_it": [
+      "a pinned full-app source or candidate-file hash mismatch",
+      "document overflow or a failed route at a supported viewport",
+      "an imported telemetry, scanner, Tauri, backend, or newly generated icon dependency",
+      "a final-commit PoC or full-suite regression"
+    ]
+  }
+}

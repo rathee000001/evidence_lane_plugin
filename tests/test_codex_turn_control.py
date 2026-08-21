@@ -33,6 +33,7 @@ from evidence_lane_plugin.codex_turn_control import (
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import (
     atomic_write_json,
+    canonical_json_bytes,
     sha256_bytes,
     sha256_file,
 )
@@ -265,7 +266,7 @@ def _seal_active_goal_recovery_binding(
     }
     atomic_write_json(task_binding_path, task_binding)
     pointer = service.store.pointer("book-faires")
-    runtime_selector = "evidence-lane-plugin@evidence-lane-v220-testing-new"
+    runtime_selector = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     payload = {
         "state": "ACTIVE_GOAL_BOUND",
         "manager_scope": "SHARED_MULTI_PROJECT_MULTI_TASK",
@@ -302,7 +303,7 @@ def _seal_active_goal_recovery_binding(
                 "canonical_plugin_installed": True,
                 "canonical_plugin_enabled": True,
                 "canonical_plugin_local_version": plugin_version,
-                "exact_tool_count": 83,
+                "exact_tool_count": 88,
                 "thread_scoped_mcp_inventory_available": False,
                 "live_host_next_active_turn_refresh_claimed": False,
             },
@@ -317,8 +318,8 @@ def _seal_active_goal_recovery_binding(
             "accepted_generation": pointer.generation,
         },
         "recovery_law": {
-            "release": "2.2.0",
-            "release_token": "v220",
+            "release": "3.0.0",
+            "release_token": "v300",
             "exact_task_only": True,
             "persisted_goal_must_remain_active": True,
             "raw_goal_objective_stored": False,
@@ -343,7 +344,7 @@ def _seal_active_goal_recovery_binding(
         root
         / "installations"
         / "helpers"
-        / "v220"
+        / "v300"
         / "goal-recovery"
         / "bindings"
         / f"{host_session_id.lower()}.json"
@@ -582,9 +583,9 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert prepared_display["turn_status"]["uncommitted_count"] == 1
     assert prepared_display["composer_mutated"] is False
     package_status = prepared_display["package_change_status"]
-    assert package_status["source_plugin_version"].startswith("2.2.0+codex.")
+    assert package_status["source_plugin_version"].startswith("3.0.0+codex.")
     assert package_status["installed_plugin_version"] is None
-    assert package_status["runtime_engine_version"] == "2.2.0"
+    assert package_status["runtime_engine_version"] == "3.0.0"
     assert package_status["version_state"] == (
         "SOURCE_RUNTIME_EXACT_INSTALL_RECEIPT_UNAVAILABLE"
     )
@@ -604,9 +605,9 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
         "UserPromptSubmit",
     ]
     assert package_status["skills"]["count"] == 17
-    assert package_status["catalog"]["tools"] == 83
-    assert package_status["catalog"]["read"] == 26
-    assert package_status["catalog"]["write"] == 57
+    assert package_status["catalog"]["tools"] == 88
+    assert package_status["catalog"]["read"] == 27
+    assert package_status["catalog"]["write"] == 61
     assert package_status["refresh_state"] == "NO_PENDING_CANDIDATE"
     assert package_status["tunnel_channel"] == "stable-build"
     assert package_status["raw_paths_included"] is False
@@ -846,8 +847,11 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert warm_attach["vm_lifetime"] == "LOCAL_OR_PERSISTENT"
     assert (
         warm_attach["tunnel_requirement"]
-        == "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER"
+        == "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
     )
+    assert warm_attach["host_tool_transport"] == "NATIVE_MCP_AVAILABLE"
+    assert warm_attach["native_mcp_available"] is True
+    assert warm_attach["tool_gap_route"] is False
     assert warm_attach["tunnel_setup_frequency"] == "NONE"
     assert warm_attach["tunnel_key_retention"] == "NOT_APPLICABLE"
     assert warm_attach["tunnel_action"] == (
@@ -908,6 +912,188 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
         assert host_session_id not in json.dumps(event, sort_keys=True)
         assert event["model"] == "gpt-5.6-sol"
         assert event["submodel"] == "sol"
+
+
+def test_compact_reentry_is_bounded_distinct_and_fail_closed(
+    service,
+    source_repository: Path,
+) -> None:
+    _session_id, host_session_id = _strict_state_travel_session(service)
+    prompt_payload = _host_shaped_user_prompt_submit_payload(
+        host_session_id=host_session_id,
+        turn_id="turn-compact-mid-turn",
+        cwd=source_repository,
+        prompt="Continue only from bounded compact locators token=compact-secret",
+    )
+    prepared = prepare_turn(service.store.root, host_payload=prompt_payload)
+    assert prepared["state"] == "PREPARED_NOT_COMMITTED"
+
+    precompact_payload = {
+        **prompt_payload,
+        "source": "manual_compact",
+        "event_id": "compact-reentry-pre-1",
+    }
+    precompact = record_lifecycle_boundary_event(
+        service.store.root,
+        host_payload=precompact_payload,
+        event_name="PreCompact",
+    )
+    context = precompact["receipt"]["compact_reentry_context"]
+    assert context["schema"] == "evidence-lane.codex-compact-reentry-context.v1"
+    assert context["serialized_bytes"] == len(canonical_json_bytes(context))
+    assert context["serialized_bytes"] <= context["byte_ceiling"] == 8_192
+    assert context["plan_window"]["full_plan_rows_included"] is False
+    assert context["task_memory_cursor"]["state"] == "AVAILABLE"
+    assert context["task_memory_cursor"]["turn_state"] == (
+        "PREPARED_NOT_COMMITTED"
+    )
+    assert context["canon_locator"]["state"] == "MISSING"
+    assert context["learning_locator"]["state"] == "MISSING"
+    assert context["project_memory_locator"]["state"] == "MISSING"
+    memory_checkpoint = context["project_memory_checkpoint"]
+    assert memory_checkpoint["state"] == "MEMORY_AUTHORITY_MISSING"
+    assert memory_checkpoint["head_locator"]["state"] == "MISSING"
+    assert memory_checkpoint["checkpoint_sealed"] is False
+    assert memory_checkpoint["controls_codex_host_wording"] is False
+    serialized_context = json.dumps(context, sort_keys=True)
+    assert "compact-secret" not in serialized_context
+    assert "record_json" not in serialized_context
+    assert "mode_governance" not in serialized_context
+    assert "host_plan_rehydration" not in serialized_context
+
+    replay = record_lifecycle_boundary_event(
+        service.store.root,
+        host_payload={
+            **prompt_payload,
+            "source": "manual_compact",
+            "event_id": "compact-reentry-pre-1",
+        },
+        event_name="PreCompact",
+    )
+    assert replay["state"] == "SEALED_IDEMPOTENT_REUSE"
+    assert replay["receipt"] == precompact["receipt"]
+
+    postcompact = record_lifecycle_boundary_event(
+        service.store.root,
+        host_payload={
+            **prompt_payload,
+            "source": "manual_compact",
+            "event_id": "compact-reentry-post-1",
+        },
+        event_name="PostCompact",
+    )
+    assert postcompact["receipt"]["compact_completion"] == (
+        "RECORDED_WITHOUT_AUTHORITY_RECONSTRUCTION"
+    )
+    assert postcompact["receipt"]["authority_reconstructed"] is False
+    assert postcompact["receipt"]["project_memory_rehydration"]["state"] == (
+        "MEMORY_REHYDRATION_NOT_APPLICABLE"
+    )
+    assert "host_plan_rehydration" not in postcompact["receipt"]
+
+    for source in ("compact", "auto_compact"):
+        started = session_start_control(
+            service.store.root,
+            host_payload={
+                "session_id": host_session_id,
+                "cwd": str(source_repository),
+                "source": source,
+            },
+        )
+        assert started["state"] == "COMPACT_REENTRY_READY"
+        assert started["schema"] == (
+            "evidence-lane.codex-session-compact-reentry.v1"
+        )
+        assert started["authority_reconstructed"] is False
+        assert started["compact_reentry_context"]["state"] == (
+            "COMPACT_REENTRY_READY"
+        )
+        assert started["compact_reentry_context"]["serialized_bytes"] <= 8_192
+        for broad_field in (
+            "persistent_plan_row",
+            "lineage_projection",
+            "warm_attach_receipt",
+            "host_plan_rehydration",
+            "persistent_change_display",
+        ):
+            assert broad_field not in started
+
+    repository_root = Path(__file__).resolve().parents[1]
+    session_start_hook = (
+        repository_root
+        / "plugins"
+        / "evidence-lane-plugin"
+        / "hooks"
+        / "session_start.py"
+    )
+    environment = os.environ.copy()
+    environment["EVIDENCE_LANE_DATA_ROOT"] = str(service.store.root)
+    process = subprocess.run(
+        [sys.executable, str(session_start_hook)],
+        input=json.dumps(
+            {
+                "session_id": host_session_id,
+                "cwd": str(source_repository),
+                "source": "compact",
+            }
+        ),
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=environment,
+    )
+    hook_payload = json.loads(process.stdout)
+    additional_context = hook_payload["hookSpecificOutput"]["additionalContext"]
+    assert hook_payload["continue"] is True
+    assert additional_context.startswith("EVIDENCE_LANE_COMPACT_REENTRY=")
+    assert len(additional_context.encode("utf-8")) < 8_500
+    for forbidden in (
+        "PERSISTENT_STATE_ENVELOPE=",
+        "RUNTIME_ACTIVATION_ENVELOPE=",
+        "HOST_ACTIVATION_ENVELOPE=",
+        "CODEX_TURN_CONTROL_ENVELOPE=",
+        "PERSISTENT_CHANGE_DISPLAY=",
+        "CODEX_WARM_ATTACH_RECEIPT=",
+        "ENV/UOP",
+    ):
+        assert forbidden not in additional_context
+
+    project_root = service.store.project_root("book-faires")
+    latest_path = project_root / "lineage" / "compact_reentry" / "latest.json"
+    stale_pointer = json.loads(latest_path.read_text(encoding="utf-8"))
+    stale_pointer["precompact_receipt_sha256"] = "A" * 64
+    stale_pointer.pop("pointer_sha256")
+    stale_pointer["pointer_sha256"] = sha256_bytes(
+        canonical_json_bytes(stale_pointer)
+    )
+    atomic_write_json(latest_path, stale_pointer)
+    with pytest.raises(TurnControlError) as stale_error:
+        session_start_control(
+            service.store.root,
+            host_payload={
+                "session_id": host_session_id,
+                "cwd": str(source_repository),
+                "source": "compact",
+            },
+        )
+    assert stale_error.value.code == (
+        "TURN_CONTROL_COMPACT_PRECOMPACT_RECEIPT_STALE"
+    )
+
+    latest_path.unlink()
+    with pytest.raises(TurnControlError) as missing_error:
+        session_start_control(
+            service.store.root,
+            host_payload={
+                "session_id": host_session_id,
+                "cwd": str(source_repository),
+                "source": "compact",
+            },
+        )
+    assert missing_error.value.code == (
+        "TURN_CONTROL_COMPACT_PRECOMPACT_POINTER_REQUIRED"
+    )
 
 
 def test_lifecycle_exit_boundary_matrix_is_idempotent_and_row_bound(
@@ -1533,10 +1719,18 @@ def test_native_hooks_claim_and_reuse_one_sealed_codex_host_alias(
         ).fetchone()[0] == 1
 
 
+@pytest.mark.parametrize(
+    "activation_state",
+    [
+        "INSTALLED_RESTART_REQUIRED",
+        "LOCAL_3_0_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED",
+    ],
+)
 def test_post_tool_hook_claims_prepared_exact_task_outside_repository(
     service,
     source_repository: Path,
     tmp_path: Path,
+    activation_state: str,
 ) -> None:
     session_id, governed_host_session_id = _strict_state_travel_session(service)
     repository_root = Path(__file__).resolve().parents[1]
@@ -1569,7 +1763,7 @@ def test_post_tool_hook_claims_prepared_exact_task_outside_repository(
         },
         "archive_sha256": "A" * 64,
         "activation": {
-            "state": "INSTALLED_RESTART_REQUIRED",
+            "state": activation_state,
             "plugin_add": {
                 "pluginId": "evidence-lane-plugin@test-exact-task",
                 "version": plugin_version,
@@ -2351,9 +2545,9 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         ] == 12
         assert prepared_notice["package_change_status"]["skills"]["count"] == 17
         assert prepared_notice["package_change_status"]["catalog"] == {
-            "tools": 83,
-            "read": 26,
-            "write": 57,
+            "tools": 88,
+            "read": 27,
+            "write": 61,
             "skills": 17,
             "changed_from_previous": None,
         }
@@ -2412,7 +2606,7 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
             {
                 "session_id": host_session_id,
                 "cwd": str(source_repository),
-                "source": "compact",
+                "source": "warm",
             }
         ),
         check=True,

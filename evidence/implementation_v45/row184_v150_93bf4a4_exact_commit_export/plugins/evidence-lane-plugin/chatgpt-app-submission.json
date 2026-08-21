@@ -1,0 +1,826 @@
+{
+  "$schema": "https://developers.openai.com/apps-sdk/schemas/chatgpt-app-submission.v1.json",
+  "schema_version": 1,
+  "app_info": {
+    "display_name": "Evidence Lane",
+    "subtitle": "Governed project evidence",
+    "description": "Evidence Lane helps users inspect accepted project evidence, verified runtime and ENV/UOP Flash status, source lanes, Chat Lineage, diffs, backlog, and human-controlled lifecycle boundaries through ChatGPT.",
+    "category": "DEVELOPER_TOOLS"
+  },
+  "tools": {
+    "connector_plugin_catalog": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only inspect governed connector and toolchain plugins and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "connector_plugin_drop": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can drop one governed persistent plugin; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "connector_plugin_register": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can register one bounded persistent connector or toolchain; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "connector_plugin_route": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can route one capability through governed plugin policy; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "connector_plugin_settings": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only open the eight-slot connector settings surface and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "fetch": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only fetch exact PV file or chunk and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "git_sync_selected": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can fast-forward one selected Git branch; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "The ChatGPT profile refuses this lifecycle action before it can contact the explicitly selected Git source, so no third-party system is reached.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "hil_decide": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can record exact six-way HIL decision; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "A write-capable host may record a rejection, failure, approval-with-Delta, or rollback decision; an exact pending-candidate HIL and explicit decision are required, while ChatGPT refuses the action before invocation."
+      }
+    },
+    "hil_intent_classify": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can classify tolerant HIL intent; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "hil_return_to_accepted": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can return a rejected or failed run to accepted state; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "A write-capable host may clear bounded rejected or failed run state only after proving the accepted source is restored; ChatGPT refuses the action before invocation."
+      }
+    },
+    "lane_catalog": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only list universal Evidence Lane sectors and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "lane_configure_routes": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can grant exact source-to-lane routes; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "lane_fetch": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only fetch one exact lane source and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "lane_search": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only search one lane with BM25 and TF-IDF and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "lane_status": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only inspect one lane authority and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "lifecycle_transition_law": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only read the canonical lifecycle law and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "mode_classify": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can classify an ENV15 mode intersection and lanes; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "project_register": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can register one Git project; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "prompt_index_status": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only read prompt-entry rollback index and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "pv_begin_next_turn": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can enter next turn from latest accepted PV; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "pv_build_initial": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can build initial PV1 candidate; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "pv_diff": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only compare two immutable PVs and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "pv_enroll_project": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can enroll an external Git project; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "The ChatGPT profile refuses this lifecycle action before it can contact the explicitly selected Git source, so no third-party system is reached.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "pv_fuse": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can fuse candidate with exact APPROVE; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "A write-capable host may irreversibly promote the sealed candidate and move the accepted pointer only after an exact case-sensitive APPROVE; ChatGPT refuses the action before invocation."
+      }
+    },
+    "pv_plan_steer_delta": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can append one canonical steer Delta; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "pv_plan_tasks": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can queue a linear multi-task plan; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canon…2855 tokens truncated…e and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "pv_query": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only run focused PV intelligence query and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "pv_refresh": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can build PV Refresh candidate; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "pv_rollback": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can travel to an immutable accepted PV; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "A write-capable host may move the accepted pointer to an earlier immutable accepted PV after exact rollback selection; ChatGPT refuses the action before invocation."
+      }
+    },
+    "pv_state_travel_prepare": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can prepare exact-work State Travel; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "pv_state_travel_resume": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can verify State Travel in a fresh host window; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "pv_status": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only read project and pointer status and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "pv_summary": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only read deterministic PV summary and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "pv_task_backlog": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only read the linear task backlog and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "pv_task_transition": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can drop or supersede one Delta; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "remote_git_execute_push": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can execute confirmed Git branch push; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "A write-capable host can push one confirmed branch to an external Git remote; the ChatGPT profile refuses the action before any network write.",
+        "destructive_justification": "A write-capable host may change one remote Git branch only after a separately prepared action and exact one-use confirmation; ChatGPT refuses the action before invocation."
+      }
+    },
+    "remote_git_prepare_push": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can prepare separately gated Git push; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "render_project_panel": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only render governed project and HIL panel and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "render_runtime_panel": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only render Evidence Lane runtime panel and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "runtime_activation_status": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only inspect Evidence Lane runtime attachment and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "runtime_doctor": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only check Evidence Lane runtime and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "search": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only search accepted PV source intelligence and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "session_boot": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can boot governed Evidence Lane session; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "session_close": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can close governed session; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "session_flash_status": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only inspect Evidence Lane session flash and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "session_resume": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can resume persistent Evidence Lane session; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "source_custom_schema_compile": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can compile and map a Custom Source Schema; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "source_git_commit_impact": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can map an exact Git parent diff to graph impact; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "source_git_history_build": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can seal full bounded Git history evidence; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "source_graph_build": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can build a bounded provenance-first source graph; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "source_graph_diff": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can diff exact source-graph snapshots; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "source_graph_impact": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can traverse a bounded affected source subgraph; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "source_identity_register": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can register distinct source-generation identities; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "source_intake_classify": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can classify generalized Source Intake; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "source_intake_schema_configure": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can add or modify a Source Intake schema pill; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "source_sqlite_inspect": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can inspect registered SQLite brain authorities; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "storage_connector_inspect": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only inspect the primary storage connector route and returns the result without creating, updating, or deleting Evidence Lane or remote state.",
+        "open_world_justification": "Reads only the bounded Evidence Lane runtime or project store and does not contact or change an external service.",
+        "destructive_justification": "Returns evidence without deleting, overwriting, revoking, promoting, rolling back, or otherwise irreversibly changing state."
+      }
+    },
+    "storage_connector_select": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can select the project primary storage authority; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "task_classify": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can classify one bounded code task; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "task_complete_and_refresh": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can complete task and automatically seal exit PV; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "task_confirm_source_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can confirm final host source state; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    },
+    "task_record_activity": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "This action is modeled as a write because a write-capable Evidence Lane host can append visible task evidence; the ChatGPT profile intercepts it before service invocation and returns a no-mutation receipt.",
+        "open_world_justification": "Its governed effect is bounded to private Evidence Lane state and the ChatGPT profile refuses it before any external interaction.",
+        "destructive_justification": "The canonical action is additive or bounded and does not delete accepted evidence; the ChatGPT profile refuses it before invocation."
+      }
+    }
+  },
+  "test_cases": [
+    {
+      "description": "Verify the installed Evidence Lane runtime and native MCP identity without mutation.",
+      "user_prompt": "Check the Evidence Lane runtime health and show its native MCP server identity.",
+      "file_attachment_urls": null,
+      "tools_triggered": "runtime_doctor",
+      "expected_output": "Returns a PASS or fail-closed runtime receipt with release identity, checks, and the native Evidence Lane MCP route.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Inspect the locked ENV/UOP Flash package without changing its receipt.",
+      "user_prompt": "Verify the locked Evidence Lane ENV/UOP Flash package and show whether every authority member passes.",
+      "file_attachment_urls": null,
+      "tools_triggered": "session_flash_status",
+      "expected_output": "Returns the immutable Flash verification status, member hashes, SQLite integrity, and any explicit warning without writing state.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Read the accepted project version, pointer generation, active session, candidate, and HIL boundary.",
+      "user_prompt": "Show status for Evidence Lane project test-codex-evidence-lane-plugin without changing its accepted pointer.",
+      "file_attachment_urls": null,
+      "tools_triggered": "pv_status",
+      "expected_output": "Returns accepted-PV and pointer facts, active-session state, pending-candidate state, and project routing with no lifecycle effect.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Search only accepted project evidence and retain source provenance.",
+      "user_prompt": "In project test-codex-evidence-lane-plugin, search the accepted evidence for the ChatGPT plugin metadata contract.",
+      "file_attachment_urls": null,
+      "tools_triggered": "search",
+      "expected_output": "Returns bounded accepted-PV matches with source references, hashes, and authority labels rather than inventing unsupported project facts.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Render the governed accepted-pointer and HIL panel through the plugin-owned MCP Apps UI.",
+      "user_prompt": "Render the governed project panel for test-codex-evidence-lane-plugin and show the accepted pointer and HIL boundary.",
+      "file_attachment_urls": null,
+      "tools_triggered": "render_project_panel",
+      "expected_output": "Returns structured read-only project facts for the branded Evidence Lane MCP Apps panel without accepting, rejecting, rolling back, or promoting.",
+      "expected_output_url": null
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "description": "Do not invoke Evidence Lane for unrelated weather information.",
+      "user_prompt": "Will it rain in New York tomorrow?",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The plugin should not be invoked because live weather is outside Evidence Lane project-evidence workflows.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Do not invoke Evidence Lane for an unrelated calendar request.",
+      "user_prompt": "Move my dentist appointment to Friday afternoon.",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The plugin should not be invoked because calendar management is outside its supported workflows.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Do not invoke Evidence Lane for open-ended creative writing.",
+      "user_prompt": "Write a fantasy poem about a dragon crossing the ocean.",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The plugin should not be invoked because general creative writing does not require governed project evidence.",
+      "expected_output_url": null
+    }
+  ]
+}

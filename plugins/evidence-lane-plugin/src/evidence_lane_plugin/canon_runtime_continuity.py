@@ -15,6 +15,7 @@ from typing import Any, cast
 from .constants import LINEAGE_SCHEMA, POINTER_SCHEMA
 from .errors import require
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
+from .project_authority import resolved_chat_lineage_root
 from .redaction import contains_secret
 
 OBSERVED_EXPERIENCE_SCHEMA = "evidence-lane.canon-observed-experience-packet.v1"
@@ -247,8 +248,7 @@ def _plan_steer_classification(
             and _SHA256_RE.fullmatch(after_candidate)
             and before_candidate != after_candidate
             and after_candidate == active_plan.get("canonical_plan_sha256")
-            and int(after.get("active_row") or active_plan["row"])
-            == active_plan["row"]
+            and int(after.get("active_row") or active_plan["row"]) == active_plan["row"]
             and str(after.get("active_task_id") or active_plan["task_id"])
             == active_plan["task_id"]
         ):
@@ -277,9 +277,7 @@ def _plan_steer_classification(
         "before_canonical_plan_sha256": before_sha256,
         "after_canonical_plan_sha256": after_sha256,
         "linked_delta_ids": exact_delta_ids,
-        "linked_delta_ids_sha256": sha256_bytes(
-            canonical_json_bytes(exact_delta_ids)
-        ),
+        "linked_delta_ids_sha256": sha256_bytes(canonical_json_bytes(exact_delta_ids)),
         "future_learning_candidate_eligibility": future_learning_eligibility,
         "learning_accepted": False,
     }
@@ -448,7 +446,9 @@ def seal_observed_experience_packet(
     }
     packet["packet_sha256"] = sha256_bytes(canonical_json_bytes(packet))
     validate_observed_experience_packet(packet, expected_project_id=project_id)
-    path = root / "lineage" / "observed-experience" / f"{packet_id}.json"
+    path = (
+        resolved_chat_lineage_root(root) / "observed-experience" / f"{packet_id}.json"
+    )
     state = _write_immutable_packet(
         path,
         packet,
@@ -620,8 +620,7 @@ def seal_host_exit_continuity_packet(
         durable_required
         and server_filesystem == "EPHEMERAL_OR_UNAVAILABLE"
         and persistence_route.get("mode") == "configured_durable_connector"
-        and primary_runtime_authority
-        == "CONFIGURED_TRANSACTIONAL_RUNTIME_REQUIRED",
+        and primary_runtime_authority == "CONFIGURED_TRANSACTIONAL_RUNTIME_REQUIRED",
         "HOST_EXIT_CONTINUITY_ROUTE_INVALID",
         "An insufficiently durable host requires the configured durable-connector route.",
         status="BLOCKED",
@@ -703,7 +702,9 @@ def seal_host_exit_continuity_packet(
     }
     packet["packet_sha256"] = sha256_bytes(canonical_json_bytes(packet))
     validate_host_exit_continuity_packet(packet, expected_project_id=project_id)
-    path = root / "lineage" / "host-exit-continuity" / f"{packet_id}.json"
+    path = (
+        resolved_chat_lineage_root(root) / "host-exit-continuity" / f"{packet_id}.json"
+    )
     state = _write_immutable_packet(
         path,
         packet,

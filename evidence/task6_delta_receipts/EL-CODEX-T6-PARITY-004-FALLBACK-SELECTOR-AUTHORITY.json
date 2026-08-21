@@ -1,0 +1,74 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS_LOCAL_FALLBACK_SELECTOR_IS_NON_AUTHORITATIVE_LOCATOR",
+  "recorded_at": "2026-08-15T11:43:37Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-004-FALLBACK-SELECTOR-AUTHORITY",
+  "implementation": {
+    "authority_identity": "fallback",
+    "authority_schema": "evidence-lane.fallback-release-authority.v1",
+    "authorization_fields": [
+      "accepted_pv",
+      "accepted_generation",
+      "accepted_manifest_sha256",
+      "accepted_package_sha256",
+      "accepted_universal_pv_package_sha256",
+      "plugin_version",
+      "plugin_manifest_sha256",
+      "cache_authority_manifest_sha256",
+      "install_receipt_sha256"
+    ],
+    "selector_in_authority_hash": false,
+    "selector_role": "OPERATIONAL_LOCATOR_ONLY",
+    "generation_neutral_locator": "evidence-lane-plugin@evidence-lane-fallback",
+    "legacy_generation_alias_supported": true,
+    "legacy_alias_can_authorize": false,
+    "stable_update_discovers_fallback_from_sealed_update_receipt": true,
+    "failover_discovers_fallback_from_sealed_registry": true,
+    "goal_binding_requires_fallback_authority_sha256": true
+  },
+  "live_read_only_proof": {
+    "accepted_pv": "PV12",
+    "accepted_generation": 12,
+    "current_selector": "evidence-lane-plugin@evidence-lane-pv11-fallback",
+    "current_selector_class": "LEGACY_GENERATION_ALIAS_LOCATOR",
+    "selector_is_authority": false,
+    "manifest_evidence_complete": true,
+    "python_authority_sha256": "504E5EE3C077387BB39C33C930C16082DE1B8CB8BDF443994D1E5FDA55F7E4BC",
+    "powershell_authority_sha256": "504E5EE3C077387BB39C33C930C16082DE1B8CB8BDF443994D1E5FDA55F7E4BC",
+    "cross_runtime_authority_match": true
+  },
+  "verification": [
+    {
+      "selector": "tests/test_local_install_fallback_selector_authority.py plus registry separation",
+      "status": "PASS",
+      "result": "7 passed in 1.03s"
+    },
+    {
+      "selector": "release-channel, stable installer, two-slot failover, fallback authority, and registry separation regression bundle",
+      "status": "PASS",
+      "result": "64 passed in 27.02s"
+    },
+    {
+      "selector": "ruff exact changed Python surfaces",
+      "status": "PASS",
+      "result": "All checks passed!"
+    }
+  ],
+  "negative_side_effects": {
+    "live_selector_renamed_or_removed": false,
+    "plugin_enabled_or_disabled": false,
+    "installer_helper_invoked": false,
+    "goal_recovery_helper_invoked": false,
+    "scheduled_task_changed": false,
+    "tunnel_invoked": false,
+    "candidate_created": false,
+    "hil_invoked": false,
+    "pointer_moved": false,
+    "git_staged_committed_or_pushed": false,
+    "subagent_started": false
+  },
+  "next_boundary": "Close Row201 through its exact per-Delta checkpoint. Row202 owns transactional local-test activation; no installed activation is inferred here."
+}

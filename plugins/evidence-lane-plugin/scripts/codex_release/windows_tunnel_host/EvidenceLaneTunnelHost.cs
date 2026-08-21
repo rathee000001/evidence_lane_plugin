@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 [assembly: AssemblyDescription("No-visible-console host for the Evidence Lane Windows tunnel")]
 [assembly: AssemblyCompany("Evidence Lane")]
 [assembly: AssemblyProduct("Evidence Lane")]
-[assembly: AssemblyVersion("2.2.0.0")]
-[assembly: AssemblyFileVersion("2.2.0.0")]
+[assembly: AssemblyVersion("3.0.0.0")]
+[assembly: AssemblyFileVersion("3.0.0.0")]
 
 internal static class EvidenceLaneTunnelHost
 {

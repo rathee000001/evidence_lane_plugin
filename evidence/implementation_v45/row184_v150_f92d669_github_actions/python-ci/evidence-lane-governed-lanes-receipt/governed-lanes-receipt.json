@@ -1,0 +1,39 @@
+{
+  "schema": "evidence-lane.code-mode-ci-execution-receipt.v1",
+  "status": "PASS",
+  "profile": "governed-lanes",
+  "code_mode_contract": {
+    "formula": "plan -> sandbox build -> test -> hash -> package",
+    "loop": "entry -> preflight -> sandbox -> patch -> test -> exit",
+    "operators": [
+      "CI/CD",
+      "PCM",
+      "MBA"
+    ]
+  },
+  "command_results": [
+    {
+      "args": [
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_artifact_contract.py",
+        "tests/test_full_app_ui_conformance.py",
+        "tests/test_operating_modes.py",
+        "tests/test_topology_reconciliation.py",
+        "tests/test_topology_rendering.py",
+        "tests/test_universal_brain_v060.py",
+        "tests/test_universal_lanes.py",
+        "tests/test_v070_improvements.py",
+        "tests/test_v080_authorities.py"
+      ],
+      "executable": "python",
+      "exit_code": 0,
+      "execution_error": null,
+      "stderr_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "stdout_sha256": "3176707BD7EBB35804C3DB7A3552EC86A7F9501B5F4D1A5E3DF618C975025FC5"
+    }
+  ],
+  "receipt_path": ".runtime/ci/governed-lanes-receipt.json",
+  "receipt_sha256": "BC3D6BABE979FDF92D54BE993D920986AC1FC05813F121340F02DD1B3AC2DA36"
+}

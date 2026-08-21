@@ -65,6 +65,22 @@ def test_each_registration_revises_only_its_row_and_seals_an_event_receipt() -> 
     )
 
 
+def test_shared_manager_migrates_only_the_exact_legacy_owned_task() -> None:
+    text = _text()
+    install = text[
+        text.index("function Install-RecoveryManager") : text.index(
+            "function Get-BootIdSha256"
+        )
+    ]
+    assert 'EvidenceLanePV\\installations\\helpers\\$($script:ReleaseToken)' in install
+    assert "$legacyActionMatches" in install
+    assert '"*-Action RecoverAtLogon*"' in install
+    assert "-ThreeSlotRegistrySha256 [A-F0-9]{64}" in install
+    assert "An unrelated scheduled task already owns the recovery task name." in install
+    assert "legacy_managed_task_migrated_to_hidden_runtime" in install
+    assert "legacy_managed_task_deleted = $false" in install
+
+
 def test_logon_enumeration_isolates_each_binding_before_host_resolution() -> None:
     text = _text()
     start = text.index('if ($Action -eq "RecoverAtLogon")')

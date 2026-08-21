@@ -44,8 +44,8 @@ Do not deploy any service that may still use the compromised key.
 
 ## Codex, headless API, tunnel, and remote Git boundaries
 
-The current pre-HIL 2.2.0 Codex source line uses the package-local native MCP
-route. This source label is not an installed-host claim. Selector names never
+The current pre-HIL 3.0.0 Codex source line uses the package-local native MCP route.
+This source label is not an installed-host claim. Selector names never
 override exact package and runtime readback, and a local test installation is
 not an accepted release. Normal Codex attachment does not depend on the public
 website, a Vercel adapter, a ChatGPT plugin, or a remote OAuth service. Vercel
@@ -56,8 +56,10 @@ The versioned Windows tunnel is a separate transport channel. Its installer
 accepts the user's own Runtime key only through a masked prompt, stores only a
 current-user DPAPI envelope, and binds the scheduled task to the pinned client
 hash and configured tunnel ID. A live tunnel is not proof that the package-local
-Codex MCP server, exact project/session, or accepted pointer is valid. Headless
-API and direct CLI/API profiles do not require this tunnel.
+Codex MCP server, exact project/session, or accepted pointer is valid. Local
+Local Codex and local CLI profiles may require the tunnel when the detected host route
+lacks direct MCP transport or required host tools. Headless API requests do not require the tunnel
+merely because they use API billing.
 
 An explicitly deployed headless/API Streamable HTTP service may use either one
 private static bearer or an established OAuth 2.1 IdP, never both. OAuth JWTs

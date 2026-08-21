@@ -1,0 +1,126 @@
+{
+  "schema": "evidence-lane.installed-git-provenance-validation.v33",
+  "recorded_at": "2026-07-30T10:16:07.0290763Z",
+  "status": "HOST_COMMIT_PROVENANCE_VALIDATED_AWAITING_EXACT_COMMIT",
+  "source": {
+    "workspace_authority": "F:\\test codex",
+    "branch": "agent/evi-persistent-lifecycle-v0.5.0",
+    "parent_head": "f26d8a5d0c06a1cc8b96671134ea60d7e0d3b810",
+    "implementation_tree_before_evidence": "f7ebde42a5b795ce8a5a7476155c1b2d1890a46d",
+    "staged_implementation_files": 8,
+    "staged_implementation_insertions": 150,
+    "staged_implementation_deletions": 21,
+    "remote_main": "4dd109c53af461eed2a69e2f3a0d411c5cb2564e",
+    "remote_feature_branch_before_correction": "f26d8a5d0c06a1cc8b96671134ea60d7e0d3b810",
+    "d_drive_inspected_or_mutated": false
+  },
+  "implemented_surface": {
+    "plugin_manifest_version": "0.5.4+codex.20260730100103",
+    "engine_version": "0.5.4",
+    "copied_codex_cache_supported": true,
+    "marketplace_commit_reported_only_after_full_tracked_file_parity": true,
+    "marketplace_tracked_subtree_must_be_clean": true,
+    "valid_commit_format_required": true,
+    "missing_or_mismatched_source_result": "UNCOMMITTED",
+    "installed_runtime_files_excluded_from_source_identity": true,
+    "real_0_5_3_cache_probe": {
+      "status": "PASS",
+      "tracked_plugin_files": 132,
+      "commit": "f26d8a5d0c06a1cc8b96671134ea60d7e0d3b810"
+    },
+    "negative_tests": {
+      "installed_cache_byte_tamper": "UNCOMMITTED",
+      "dirty_marketplace_with_matching_cache_bytes": "UNCOMMITTED"
+    }
+  },
+  "validation": {
+    "full_pytest": {
+      "status": "PASS",
+      "passed": 72,
+      "failed": 0,
+      "duration_seconds": 391.82
+    },
+    "focused_provenance_and_drive_doctor": {
+      "status": "PASS",
+      "passed": 2,
+      "failed": 0,
+      "duration_seconds": 4.01
+    },
+    "official_plugin_validator": "PASS",
+    "ruff": {
+      "lint": "PASS",
+      "format": "PASS",
+      "files": 57
+    },
+    "mypy": {
+      "status": "PASS",
+      "source_and_hook_files": 42,
+      "issues": 0
+    },
+    "bandit": "PASS",
+    "pip_check": "PASS",
+    "pip_audit": {
+      "status": "PASS",
+      "known_vulnerabilities": 0
+    },
+    "root_python_package_build": {
+      "status": "PASS",
+      "wheel": "evidence_lane_plugin-0.5.4-py3-none-any.whl",
+      "wheel_sha256": "87783432BB588B8562A5372F10A5F7810A9C1045B1CF02E373EC0A3D98406ACE",
+      "sdist": "evidence_lane_plugin-0.5.4.tar.gz",
+      "sdist_sha256": "0FAA8EB20325F902007E9592B2E1F68BD3847178FC308FE11A81235CDA92D660"
+    },
+    "plugin_python_package_build": {
+      "status": "PASS",
+      "wheel": "evidence_lane_plugin-0.5.4-py3-none-any.whl",
+      "wheel_sha256": "95AEBB1A123CE01FFE1A9468698D5951F87917EF61864A8024FDFC447720C1B0",
+      "sdist": "evidence_lane_plugin-0.5.4.tar.gz",
+      "sdist_sha256": "FFCE71D4D3CE26015D5AB0EC2D28B596B662FB6D8CCA9E39E72D1B74AE31524E"
+    },
+    "isolated_wheel_install": {
+      "status": "PASS",
+      "installed_version": "0.5.4",
+      "schema_resource_present": true,
+      "flash_manifest_resource_present": true
+    },
+    "changed_line_secret_scan": {
+      "status": "PASS",
+      "findings": 0,
+      "env_local_tracked": false
+    },
+    "git_diff_check": "PASS"
+  },
+  "live_governance_boundary": {
+    "project_id": "test-codex-evidence-lane-plugin",
+    "session_id": "session_01kyg2m4qeqy3cbkmj278zp96h",
+    "state": "TASK_CLASSIFIED",
+    "accepted_pv": null,
+    "pointer_generation": 0,
+    "preserved_candidates": [
+      "PV1_CANDIDATE__RUN_01KYG2MA34M7V5C9RDMA3T51DJ",
+      "PV1_CANDIDATE__RUN_01KYR17PNDNXXJQQ288T3CG18H"
+    ],
+    "linear_delta_count": 21,
+    "linear_delta_status": {
+      "QUEUED": 21
+    },
+    "plan_runtime_status": "PASS",
+    "plan_runtime_event_count": 21,
+    "plan_count": 7,
+    "planning_mode_event_count": 1,
+    "candidate_promoted": false,
+    "pointer_moved": false,
+    "hil_success_inferred": false
+  },
+  "authorized_next_boundary": {
+    "feature_branch_commit_and_non_force_push": true,
+    "remote_main_push": false,
+    "main_merge": false,
+    "pv_fuse": false,
+    "pointer_move": false,
+    "vercel_deployment_for_private_hil": false,
+    "codex_install_source": "EXACT_GIT_COMMIT_AFTER_PUSH",
+    "chatgpt_private_transport": "OPENAI_SECURE_MCP_TUNNEL",
+    "universal_hil_required_after_host_verification": true
+  }
+}

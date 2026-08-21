@@ -32,9 +32,11 @@ times, actor, purpose, and unchanged Project Truth pointer hash. Persist no raw
 memory text, secret, or private reasoning. A direct `codex-local-memory://`,
 `chatgpt-memory://`, or `host-memory://` evidence reference fails closed.
 
-Recording provenance creates no Learning candidate and invokes no Learning or
-Project HIL. Candidate sealing remains a later explicit action; its result is
-still `PENDING_LEARNING_HIL`. Hooks never import memory and attach explicit
+Invoke `learning_record_host_memory_import` only after an explicit user request
+or an explicit governed workflow step. Recording provenance creates no
+Learning candidate and invokes no Learning or Project HIL. Candidate sealing
+remains a later explicit action; its result is still `PENDING_LEARNING_HIL`.
+Hooks never import memory and attach explicit
 `host_memory_imported=false`, `learning_candidate_created=false`, and
 `learning_hil_invoked=false` boundaries to their behavior handoff.
 
@@ -52,11 +54,43 @@ out-of-scope, or Project-Truth-conflicting lessons must remain excluded with an
 explicit reason.
 
 The Learning ledger is schema-versioned and validates its exact SQLite tables,
-indexes, and FTS5 projection before use. Retrieval queries the FTS5 projection
-with BM25 and returns only the bounded result slice; never scan or place the
-full ledger in model context. The public family remains exactly five actions:
-`learning_inspect`, `learning_retrieve`, `learning_seal_candidate`,
+indexes, and FTS5 projections before use. Retrieval queries FTS5 with BM25 and
+returns only the bounded result slice; never scan or place the full ledger in
+model context. Project Memory is a separate authority and SDK arm. The public
+family retains eight compatibility action names: `learning_inspect`,
+`learning_retrieve`, `learning_memory_query`, `learning_memory_record_link`,
+`learning_record_host_memory_import`, `learning_seal_candidate`,
 `learning_decide_candidate`, and `learning_revoke`.
+
+## Historical and forward bootstrap
+
+The internal provider-neutral SDK owns `bootstrap_verified_history`; it is not
+a ninth MCP action. It may seal unaccepted Learning candidates only from two
+canonical Plan event classes: an `ACCEPTED` row whose latest exact event is an
+approved `HIL_OUTCOME`, or a `DONE` row whose latest exact event is
+`VERIFIED_TASK_CHECKPOINT_COMPLETED`. Ordinary `TASK_DONE`, queued, dropped,
+superseded, ambiguous, or unverified rows are excluded.
+
+The bootstrap reads the canonical Plan SQLite projection in read-only mode,
+checks integrity and foreign keys, binds the accepted Project pointer, and
+emits one deterministic candidate per eligible task. Repeating the same input
+must reuse the same candidate identities and one immutable bootstrap receipt.
+It never accepts Learning, invokes either HIL, creates a Project candidate,
+moves either pointer, imports host memory, or loads the full Plan into model
+context. Later verified Deltas become eligible through the same SDK operation;
+hooks do not own or auto-run the bootstrap.
+
+`learning_memory_record_link` and `learning_memory_query` are compatibility
+names only. The MCP catalog routes them to the independent Project Memory
+SDK arm (record-link and query operations). Use the former to append only typed,
+content-addressed locators and edges among the 18 project lanes, ChatLineage,
+Plan, Project Truth, Canon, Agent Learning, Project Universe, receipts, and an
+explicit host-memory import receipt. Use the latter for a bounded cross-sector
+locator slice. Neither route stores or returns raw lane databases, Markdown,
+chat scrollback, or private reasoning. `SUPERSEDES`, `SUPPRESSES`, and
+`REVOKES` edges exclude stale targets at the requested retrieval time while
+preserving immutable history. Legacy Memory tables in Learning are immutable
+migration source, never the active owner for new Memory writes.
 
 ## Expiry ownership
 

@@ -1,0 +1,200 @@
+{
+  "schema": "evidence-lane.full-width-ril-gold-ui-receipt.v1",
+  "recorded_at": "2026-08-03T23:37:12.3404056Z",
+  "delta_id": "EL-V120-SCROLL-SOURCE-BRAIN-FUSION-SITE-DELTA-063",
+  "status": "PASS_LOCAL_CANDIDATE_NOT_HIL",
+  "supersedes": [
+    "evidence/implementation_v38/FULL_APP_UI_SOURCE_RECEIPT.json",
+    "evidence/implementation_v38/FULL_APP_WORKSPACE_SOURCE_RECEIPT.json"
+  ],
+  "supersession": {
+    "kept": [
+      "exact full Evidence Lane logo",
+      "exact cube app and plugin icon",
+      "exact static brain asset",
+      "official tool icons",
+      "bounded hover, focus, popup, motion, and Prompt Studio interaction ideas"
+    ],
+    "withdrawn": [
+      "fixed desktop app viewport",
+      "persistent side rail",
+      "container-one frame",
+      "PC cluster and system-task presentation",
+      "bottom app command dock",
+      "telemetry-page root-node artwork"
+    ]
+  },
+  "design_references": [
+    {
+      "repository": "rathee000001/rathee-intelligence-lab",
+      "commit": "5e28a1979c259c1d83be892c983d8e6c5ef270eb",
+      "used_for": "full-width scroll rhythm, floating brand and navigation pills, large narrative hierarchy, active interaction clusters",
+      "copied_bytes": 0
+    },
+    {
+      "repository": "rathee000001/gold-ai-platform",
+      "commit": "f3cbb25811b5411637aebad6c16da8c302f257b3",
+      "used_for": "white, gold, cyan, and blue institutional depth, motion, interactive matrices, and AI-studio hierarchy",
+      "copied_bytes": 0
+    }
+  ],
+  "source_provenance": {
+    "audit": "evidence/implementation_v38/CONNECTOR_SOURCE_AUDIT.json",
+    "selected_generator": "SQLite Brain Builder V5.9 desktop app",
+    "selected_generator_sha256": "3E7B6AC4CFE59D2FE9E8CF95B66934549A1AE75BFF373F29176EA29DE86C3CAE",
+    "version_axis": "V5.9 is the app/runtime identity; V5.3 is an internal stable-runtime or package-schema identity; neither is Graphify's version.",
+    "binary_to_source_binding": "UNPROVEN",
+    "binary_to_package_binding": "UNPROVEN",
+    "interactive_views": {
+      "generator_apps": 1,
+      "official_source_snapshots": 6,
+      "generated_brain_packages": 4,
+      "total": 11
+    }
+  },
+  "implementation": {
+    "layout": "FULL_WIDTH_SCROLL_LED_LIGHT_SITE",
+    "brand": "FLOATING_FULL_LOGO_TOP_LEFT",
+    "navigation": "FLOATING_RIL_PILL_CLUSTER_TOP_RIGHT",
+    "ambient_depth": "BOUNDED_NATIVE_THREE_JS_WITH_REDUCED_MOTION",
+    "brain": "EXACT_STATIC_BRAIN_INSIDE_CSS_GLASS_ORB",
+    "toolchain": {
+      "lane_tabs": 18,
+      "official_tool_icons_per_lane": 6,
+      "flight": "TOP_ENTRY_THEN_360_DEGREE_ORBIT_INSIDE_BRAIN",
+      "brain_count": 1,
+      "output_count": 4,
+      "outputs": [
+        "<lane>_sector_v001.sqlite",
+        "<lane>.mmd",
+        "<lane>.dot",
+        "refresh_receipt.json"
+      ]
+    },
+    "prompt_studio": {
+      "mode": "LOCAL_SITE_KNOWLEDGE_MAP",
+      "external_model_implied": false,
+      "grounded_answers": true,
+      "unknown_question_refusal": true,
+      "stopword_false_grounding_fix": true
+    }
+  },
+  "exact_assets": [
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/public/evidence-lane-full-logo.png",
+      "role": "floating full logo",
+      "sha256": "FB7356284760A9AF436B08B75158B9407E582F8107077FC585E4C8F716530933"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/public/evidence-lane-icon.png",
+      "role": "app, plugin, and compact brand icon",
+      "sha256": "17B8B60FF41388237302CA1D56BD37A9F9E08D7484D67C9A82E59637B0BE2DEA"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/public/assets/evidence-static-brain.png",
+      "role": "only brain inside the glass orb",
+      "sha256": "70FBC1E11C029DDA98AA695F80E96891312E028464476B7E54BA0B6B259A6529",
+      "bytes": 1019717
+    }
+  ],
+  "candidate_files": [
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_components/site-header.tsx",
+      "sha256": "5826B1AC276C9AA029189ED2576121F8B68BE8B52B97D12FD27BCAD99960C24C"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_components/source-brain-lab.tsx",
+      "sha256": "1F9F0B95EF0A8CEB77452C8E08E54C9F012A00AD80A2415E4312F1F94214F9D4"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_components/evidence-assets.tsx",
+      "sha256": "F284E16B6A7E7D48A8FB7C2591115099B33159B20B48343B126D740D6F2CD616"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_components/evidence-console.tsx",
+      "sha256": "DB598448D127ED7051A9C78EBB502B0890A4AC00EECC0BCAD9793DD6D9E60C93"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/_components/evidence-prompt-studio.tsx",
+      "sha256": "10489CB9C2DD31EA7BF1E619B11A910407BD2CDFE7F06FCA7149CC7A12279AC9"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/remote_adapter/app/globals.css",
+      "sha256": "8A18224AD123ED250FD3E8CC8B7B478FC041BCD3351969508F04314F98C80092"
+    },
+    {
+      "path": "tests/test_full_app_ui_conformance.py",
+      "sha256": "9182443D4A62E709AF55BF394D93753DA949F9DFB801DF3E28D2DE83D4F8922D"
+    }
+  ],
+  "verification": {
+    "typescript": "PASS",
+    "next_production_build": "PASS_15_STATIC_PAGES",
+    "focused_regression": "PASS_31_OF_31",
+    "full_regression": "PASS_131_OF_131_IN_583_62_SECONDS",
+    "ui_conformance": "PASS_8_OF_8",
+    "browser": {
+      "engine": "Playwright with system Chrome",
+      "desktop_viewports": [
+        "1920x1080",
+        "1440x1000"
+      ],
+      "mobile_viewport": "390x844",
+      "content_routes": "PASS_10_OF_10_HTTP_200",
+      "headings": "PASS_10_OF_10",
+      "failed_images": 0,
+      "console_errors": 0,
+      "page_errors": 0,
+      "document_horizontal_overflow": false,
+      "active_app_primitives": 0,
+      "source_views": "PASS_11_OF_11",
+      "source_keyboard_navigation": "PASS",
+      "lane_tabs": "PASS_18_OF_18",
+      "exact_four_file_outputs": "PASS_18_OF_18",
+      "tool_orbit_runtime_positions": "PASS",
+      "grounded_prompt": "PASS",
+      "unsupported_prompt_refusal": "PASS",
+      "mobile_anchor_clear_of_fixed_navigation": true
+    }
+  },
+  "screenshots": [
+    {
+      "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-063-source-lab-desktop.png",
+      "sha256": "A430C5CA82CCE7552FF58D5F3ADCE7024C26A80C7EC0D7DBC5A05BE6A66F7A54"
+    },
+    {
+      "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-063-toolchain-desktop.png",
+      "sha256": "09C4FB8BD75F562F181D72191CB6C904D4AA7CF3DCD2A75D0FFC6601CFB5D7F4"
+    },
+    {
+      "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-063-studio-desktop.png",
+      "sha256": "36B10D16B78FD54C8D20EE68EF9404624476CECD9F1D2B0FD092D2CF99B37451"
+    },
+    {
+      "path": "C:/Users/rathe/.codex/visualizations/2026/08/03/019fc8a2-584b-7e01-aa8d-46a87290f340/delta-063-source-mobile.png",
+      "sha256": "6D03AF557068D0E861949B81AD87E55D5207F6D49E377F48A243C4F3EDD8564B"
+    }
+  ],
+  "governance": {
+    "accepted_pointer_moved": false,
+    "candidate_created": false,
+    "state_travel_invoked": false,
+    "fuse_invoked": false,
+    "candidate_promoted": false,
+    "main_merged": false,
+    "deployment_claimed": false,
+    "hil_decision_inferred": false
+  },
+  "verdict": {
+    "decision": "FIX-THEN-PURSUE",
+    "confidence": 0.99,
+    "reason": "The active website contract, production build, browser evidence, and full repository regression pass, but the final exact-commit PoC, host installs, ChatGPT release readback, and unaccepted PV4 HIL remain downstream gates.",
+    "evidence_that_would_change_it": [
+      "a full-suite regression failure",
+      "a final-commit PoC mismatch",
+      "a browser regression at a supported viewport",
+      "exact V5.9 executable-to-package binding evidence",
+      "exact ChatGPT and Codex release readback"
+    ]
+  }
+}

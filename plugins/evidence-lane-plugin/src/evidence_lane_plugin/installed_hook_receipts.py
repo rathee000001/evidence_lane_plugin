@@ -93,16 +93,41 @@ def _source_path_hash(value: str | Path) -> str:
     return sha256_bytes(normalized.encode("utf-8"))
 
 
+def _required_event_order(
+    required_events: Iterable[str] | None,
+) -> tuple[str, ...]:
+    """Return one non-empty canonical event subset in registry order."""
+
+    if required_events is None:
+        return HOOK_EVENT_NAMES
+    requested = tuple(str(value) for value in required_events)
+    if not requested or len(requested) != len(set(requested)):
+        raise InstalledHookReceiptError("REQUIRED_HOOK_EVENTS_INVALID")
+    unknown = set(requested).difference(HOOK_EVENT_NAMES)
+    if unknown:
+        raise InstalledHookReceiptError("REQUIRED_HOOK_EVENTS_INVALID")
+    return tuple(name for name in HOOK_EVENT_NAMES if name in requested)
+
+
 def validate_installed_hook_inventory(
     reply: Mapping[str, Any],
     *,
     plugin_selector: str,
     workspace: str | Path,
+    required_events: Iterable[str] | None = None,
 ) -> dict[str, Any]:
-    """Validate one warning-free installed selector from ``hooks/list``."""
+    """Validate one warning-free installed selector from ``hooks/list``.
+
+    The default remains the release boundary: every canonical hook must be
+    enabled.  A progressive verifier may name a non-empty subset; those hooks
+    must be enabled while the trusted state of unrelated hooks is preserved in
+    the receipt without relabelling them as invoked.
+    """
 
     if not plugin_selector.startswith("evidence-lane-plugin@"):
         raise InstalledHookReceiptError("PLUGIN_SELECTOR_INVALID")
+    required_order = _required_event_order(required_events)
+    required = set(required_order)
     expected_workspace = _workspace_key(workspace)
     entries = [
         row
@@ -145,7 +170,8 @@ def validate_installed_hook_inventory(
         if (
             row.get("source") != "plugin"
             or row.get("isManaged") is not False
-            or row.get("enabled") is not True
+            or not isinstance(row.get("enabled"), bool)
+            or (event_name in required and row.get("enabled") is not True)
             or row.get("trustStatus") != "trusted"
             or row.get("handlerType") != "command"
             or not source_path
@@ -166,7 +192,7 @@ def validate_installed_hook_inventory(
             "source_path_sha256": _source_path_hash(
                 str(by_event[event_name]["sourcePath"])
             ),
-            "enabled": True,
+            "enabled": bool(by_event[event_name]["enabled"]),
             "trust_status": "trusted",
         }
         for event_name in HOOK_EVENT_NAMES
@@ -178,6 +204,8 @@ def validate_installed_hook_inventory(
         "workspace_sha256": sha256_bytes(expected_workspace.encode("utf-8")),
         "hook_count": len(records),
         "event_order": list(HOOK_EVENT_NAMES),
+        "required_event_order": list(required_order),
+        "progressive_subset": required_order != HOOK_EVENT_NAMES,
         "records": records,
         "warnings": [],
         "errors": [],
@@ -339,6 +367,8 @@ def build_invocation_receipt_from_codex_notifications(
     }
     if set(expected_by_host) != set(_CANONICAL_EVENT_NAMES):
         raise InstalledHookReceiptError("INSTALLED_INVENTORY_RECORDS_INCOMPLETE")
+    required_order = _required_event_order(inventory.get("required_event_order"))
+    required_hosts = {_HOST_EVENT_NAMES[name] for name in required_order}
 
     started: dict[str, dict[str, Any]] = {}
     completed: dict[str, dict[str, Any]] = {}
@@ -354,6 +384,8 @@ def build_invocation_receipt_from_codex_notifications(
             raise InstalledHookReceiptError("HOOK_NOTIFICATION_RUN_REQUIRED")
         host_event = str(run.get("eventName") or "")
         reference = expected_by_host.get(host_event)
+        if host_event not in required_hosts:
+            continue
         run_id = str(run.get("id") or "")
         thread_id = str(params.get("threadId") or "")
         source_path = str(run.get("sourcePath") or "")
@@ -433,7 +465,7 @@ def build_invocation_receipt_from_codex_notifications(
         paired_by_event.setdefault(finish["event_name"], []).append(finish)
 
     observations: list[dict[str, Any]] = []
-    for event_name in HOOK_EVENT_NAMES:
+    for event_name in required_order:
         pairs = paired_by_event.get(event_name) or []
         if not pairs:
             continue
@@ -493,6 +525,8 @@ def build_installed_hook_invocation_receipt(
     if tuple(name for name in HOOK_EVENT_NAMES if name in expected) != HOOK_EVENT_NAMES:
         raise InstalledHookReceiptError("INSTALLED_INVENTORY_RECORDS_INCOMPLETE")
 
+    required_order = _required_event_order(inventory.get("required_event_order"))
+    required = set(required_order)
     observed: dict[str, dict[str, Any]] = {}
     for observation in observations:
         if any(
@@ -501,7 +535,7 @@ def build_installed_hook_invocation_receipt(
         ):
             raise InstalledHookReceiptError("RAW_OR_PRIVATE_OBSERVATION_FORBIDDEN")
         event_name = str(observation.get("event_name") or "")
-        if event_name not in expected or event_name in observed:
+        if event_name not in required or event_name in observed:
             raise InstalledHookReceiptError("HOOK_OBSERVATION_EVENT_INVALID")
         reference = expected[event_name]
         if (
@@ -552,14 +586,14 @@ def build_installed_hook_invocation_receipt(
             record["matching_completed_run_count"] = matching_count
         observed[event_name] = record
 
-    missing = [name for name in HOOK_EVENT_NAMES if name not in observed]
+    missing = [name for name in required_order if name not in observed]
     body: dict[str, Any] = {
         "schema": INSTALLED_HOOK_INVOCATION_SCHEMA,
         "status": "PASS" if not missing else "PENDING_INSTALLED_INVOCATION",
         "inventory_receipt_sha256": inventory["inventory_receipt_sha256"],
         "plugin_selector": inventory["plugin_selector"],
-        "event_order": list(HOOK_EVENT_NAMES),
-        "observations": [observed[name] for name in HOOK_EVENT_NAMES if name in observed],
+        "event_order": list(required_order),
+        "observations": [observed[name] for name in required_order if name in observed],
         "missing_events": missing,
         "observed_event_count": len(observed),
         "installed_invocation_proof_complete": not missing,

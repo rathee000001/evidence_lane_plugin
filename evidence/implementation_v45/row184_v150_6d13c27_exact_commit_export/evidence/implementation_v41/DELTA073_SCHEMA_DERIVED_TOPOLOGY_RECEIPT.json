@@ -1,0 +1,228 @@
+{
+  "all_pass": true,
+  "auxiliary_table_occurrences": 100,
+  "contract_table_occurrences": 484,
+  "delta": "EL-V130-SCHEMA-DERIVED-18-LANE-TOPOLOGY-DELTA-073",
+  "foreign_key_occurrences": 316,
+  "lane_count": 18,
+  "lanes": [
+    {
+      "auxiliary_tables": 10,
+      "contract_tables": 51,
+      "dot_sha256": "5EB2774C90C15EC49817D817973664657CB9088CF7C15A090CDA65523BC4D93E",
+      "foreign_keys": 39,
+      "lane_id": "github_code",
+      "mmd_sha256": "7C3339FCC375EE55CF45E736283F84AB550F379B62806B1F4975B05FEF6055EE",
+      "physical_tables": 61,
+      "projection_sha256": "5406746B75F5A43D7C3BE5EAE2C52434300AD64D3F7D89142440B9123E21E2F6",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 10,
+      "contract_tables": 51,
+      "dot_sha256": "A4CBE1AE74CBA31C71CA68028EC8EBDFB4998B0EA65F4C41BDD2CFD78737C2C3",
+      "foreign_keys": 39,
+      "lane_id": "local_code",
+      "mmd_sha256": "D586D229AB0183F5A3B39A3D320E0F1981C0BF02A9589ABD863C8F6F98CADC9F",
+      "physical_tables": 61,
+      "projection_sha256": "B5B4ADF54A5419FB2885EC7EA02A58A1796BE7BF7879BBB19EA8531BC69D9F07",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 31,
+      "dot_sha256": "7364786B7EAC93406CED8BB170EA71CFA94347747153EB110B1BFF416F46667F",
+      "foreign_keys": 22,
+      "lane_id": "chat_lineage",
+      "mmd_sha256": "4E43337519C2FE340BBAC20D587558C2673B4BEB8945F3475FFD417E95BA3F26",
+      "physical_tables": 36,
+      "projection_sha256": "5D1541F91BA991929871C147C026B32474D06B70FB4551741F2E9B4D6C8941AA",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 22,
+      "dot_sha256": "46AF3DA8EB09DB6C78CC6BD16D48C0D921193A368A3C2FB6DE22ED54C795809C",
+      "foreign_keys": 13,
+      "lane_id": "discussion",
+      "mmd_sha256": "18A642191988B6532380DC7709A08B83D10D9DD7F29494C6DEA7044BC62A6151",
+      "physical_tables": 27,
+      "projection_sha256": "1E19B15A248F8C2268891CE8C4E96500685E22910C487E82D0BA4BDE8AF7C3A9",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 23,
+      "dot_sha256": "379147080B374E062C7D9FEF759C5867407A0D9CB7ABD057049226984483B029",
+      "foreign_keys": 14,
+      "lane_id": "analysis",
+      "mmd_sha256": "EF5467D807DA7F31C8B8352F7B7632AFADECF165D3D9871A77242F92E5E902AC",
+      "physical_tables": 28,
+      "projection_sha256": "1AFBAB9F599F793F1DB89E9A246322EAD463BAFD71EE71791548BE8B0EE2F0C3",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 24,
+      "dot_sha256": "76B579BF8D3451E709B36690E2AA13D9EB3110924A766D4BE28DFC20D48F815E",
+      "foreign_keys": 15,
+      "lane_id": "plan",
+      "mmd_sha256": "36D0750991DB5B76E25E574447471F4EAFD774FF71AAD854E4D776DEAE7F3445",
+      "physical_tables": 29,
+      "projection_sha256": "528419BDEDE0C1BB05A10288F5B1F243BD0B312421547A6E15B08C45A8D0BAA7",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 24,
+      "dot_sha256": "D5E8CCB9DC4D70BBD5900BEE2E25923E2C135A1371C759547E568EACDE921DD6",
+      "foreign_keys": 15,
+      "lane_id": "mode",
+      "mmd_sha256": "165BA5A8B6D4626849AD464474D193AF20A572CDDA2E5B750220E49A85531E35",
+      "physical_tables": 29,
+      "projection_sha256": "83E049C84FDC29ED2FAA05C1B45ACA6DF9786E966CC524767731831A63411849",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 22,
+      "dot_sha256": "35080FA163434FCA6AB0FF3CA243AD098E0C79F7746B0E384D33887E5C528CA6",
+      "foreign_keys": 13,
+      "lane_id": "docs",
+      "mmd_sha256": "696986823A1CC115DD3F1EED1142FE495661868268B2741BF248D67BE13E0D08",
+      "physical_tables": 27,
+      "projection_sha256": "B818BBBEF2E787CEEEAB1F5BE44502D81FBF22D1657C6EE139B6B3BFF5A32A7A",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 31,
+      "dot_sha256": "BF54EB9EE29F69FCF7D4A911D3DB8649981AFD7C7C900077B1F0D23D48392657",
+      "foreign_keys": 22,
+      "lane_id": "data_excel",
+      "mmd_sha256": "73166DB132C6740A5ED261C52AC03EAA2E99F6E17BDFF9C17D9354D6DED9FFC7",
+      "physical_tables": 36,
+      "projection_sha256": "4AE04CA3195F3E8E1E60D63FD92227E26DAAC8A320F8FA9B6569EBB4896698F2",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 24,
+      "dot_sha256": "0A807BA74E32F4D5F91A93FA8216CAD1AF401A47C225C9D8EE91F97F61B1224F",
+      "foreign_keys": 15,
+      "lane_id": "ppt",
+      "mmd_sha256": "438DA51337E04E55322C4EAB4A286DAFF93E0420EB5AEE2BDA45A427676226D1",
+      "physical_tables": 29,
+      "projection_sha256": "4515CD4CDBD4801EE8FAB27EA44F74A3A5E31AF60FD7766B18ED4E4D866AC297",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 23,
+      "dot_sha256": "262527476A6DA7CFA6512568F53A6FDD97A4C180D335EEF5DCBA8CF3FECF993A",
+      "foreign_keys": 14,
+      "lane_id": "pdf_ocr",
+      "mmd_sha256": "736C2611AFDD61A66AA44F2E3BEF1B890C2D352A964EE472A21FED7FEFCC4F80",
+      "physical_tables": 28,
+      "projection_sha256": "55841356EDE6B43534E1F2D4552481B04978A5D1B0071B3FC82F3C1635F1865D",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 20,
+      "dot_sha256": "C6B41F0A6263BEECB8C7BE76D6F00F1096381857A82B861C210C58BFF6C39B27",
+      "foreign_keys": 11,
+      "lane_id": "images_ocr",
+      "mmd_sha256": "BFF59D742C26129A032E89279FCEF06D0B431C8677572460975FB28FF162BCCD",
+      "physical_tables": 25,
+      "projection_sha256": "FBD7B2E629AEBC7BC0EC71B9C8231E79865CF25572D327913E13E88BD25119BC",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 19,
+      "dot_sha256": "D50D2A2A11BF02171B04EB9BBB18DFFD75111B79559B8070F976288CBE7E892F",
+      "foreign_keys": 10,
+      "lane_id": "artifacts",
+      "mmd_sha256": "9A88A9AA0D3EED35DD4701BCE3BED5DF37A225210505F3B67CF4F604D5DE7A9F",
+      "physical_tables": 24,
+      "projection_sha256": "23700A5DDB73A251877E7D21D2317A0FD234CEE3C8318C618484593F3ED80AFA",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 19,
+      "dot_sha256": "C36A1A4060639814CB6DE1846A742464EBD36AA4DDE9A8D2D3D19A905295C41B",
+      "foreign_keys": 10,
+      "lane_id": "custom",
+      "mmd_sha256": "5E67A3DCA9F0F7385D00CB2E77D8B276C6446B9456CF296031D682A16D309C8F",
+      "physical_tables": 24,
+      "projection_sha256": "0429E2D433229F0F4612F5E68D264F9E2DFF753F3825A06DB3821E7380D75BF1",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 23,
+      "dot_sha256": "F07EFCBEE80F1E010805D8FB59D10356B14FCA5BCC46142346DE8CD14AA437A6",
+      "foreign_keys": 14,
+      "lane_id": "brain_loader",
+      "mmd_sha256": "592330BB3CE16DA5F996954E452073C8909E22468BE630307353E85C9050D58A",
+      "physical_tables": 28,
+      "projection_sha256": "B7C6C03B7E2302A19BA636514BA8D5D5D0260C2036AB17F18E5257A72498DA48",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 24,
+      "dot_sha256": "EE4F8D208687579F601E88319EB49A9B6AE40B3D6C3D082B6D2376D1E6449389",
+      "foreign_keys": 15,
+      "lane_id": "research",
+      "mmd_sha256": "C64667CAAFD1DC2E3953DFE2AC1FF75713DDC16142722F24D02D59942B0E2EB8",
+      "physical_tables": 29,
+      "projection_sha256": "42108D7F4F7D2F3BEB9A9EDC6B4AA7658D9149F40EC9EFF46986EFDFB0F92F4C",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 27,
+      "dot_sha256": "ADE344BD91CD930CDEC93F964D06CCC8F6473705E5A02334729F357AF34ABFD3",
+      "foreign_keys": 18,
+      "lane_id": "project_engulf",
+      "mmd_sha256": "2B6515CED3D081D43BD25838907F78BFD99BAFC3F3540C481E07C9CBBC089592",
+      "physical_tables": 32,
+      "projection_sha256": "345A21C6453498AE6A8D040E5BC3A37770011C3D219A13A89D50574E0625B362",
+      "status": "PASS"
+    },
+    {
+      "auxiliary_tables": 5,
+      "contract_tables": 26,
+      "dot_sha256": "4EC86000FA321A4253A5FF287BE91D3377FE151D82140700A79B8ECCB5600145",
+      "foreign_keys": 17,
+      "lane_id": "sqlite_brain",
+      "mmd_sha256": "9565EF973BCCD5D7F56150FA6447EE9447CCCC603F1725E14FFC074325D2D4D8",
+      "physical_tables": 31,
+      "projection_sha256": "6472D7E87D8B4A7ACD85237BE0B1A7CFD229CC11311FA8D167BD102ECD574A68",
+      "status": "PASS"
+    }
+  ],
+  "pass_count": 18,
+  "physical_table_occurrences": 584,
+  "prohibitions": {
+    "deployed": false,
+    "main_merged": false,
+    "pointer_moved": false,
+    "pv_built": false,
+    "refresh_or_fuse": false,
+    "source_bytes_mutated": false
+  },
+  "receipt_sha256": "E000CA26036D661EE1F48C9DD7E5EC5A89EDE38BFC1B989902514466F4B27F4C",
+  "schema": "evidence-lane.delta073-receipt.v1",
+  "scope": "additive SQLite physical schema MMD/DOT layer; existing semantic and code-logical layers preserved",
+  "tests": {
+    "focused_topology_reconciliation": "7 passed",
+    "full_18_lane_build_contract": "1 passed",
+    "git_diff_check": "PASS",
+    "mypy": "PASS",
+    "ruff": "PASS"
+  }
+}

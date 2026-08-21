@@ -1,15 +1,32 @@
 from __future__ import annotations
 
+import os
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
-from evidence_lane_plugin.state_travel_contract import normalize_task_list
+from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
+from evidence_lane_plugin.state_travel_contract import (
+    normalize_direct_forced_same_worktree_binding,
+    normalize_task_list,
+)
+
+from .conftest import build_and_approve_pv1
 
 
 def _profile() -> dict[str, str]:
     return {
         "model": "gpt-5.6",
+        "submodel": "sol",
+        "reasoning_effort": "ultra",
+        "reasoning_speed": "standard",
+        "service_tier": "standard",
+    }
+
+
+def _direct_profile() -> dict[str, str]:
+    return {
+        "model": "gpt-5.6-sol",
         "submodel": "sol",
         "reasoning_effort": "ultra",
         "reasoning_speed": "standard",
@@ -114,6 +131,198 @@ def _queued_destination_creation(
             "archived_task_ids": ["archived-destination-history"],
         },
     }
+
+
+@pytest.mark.parametrize(
+    "destination_boot_attached",
+    [False, True],
+    ids=["donor-current", "destination-boot-attached"],
+)
+def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
+    service,
+    destination_boot_attached: bool,
+) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    active = {
+        "task_id": "direct-active-row",
+        "task_class": "modify_code",
+        "requested_outcome": "Verify the direct same-worktree route.",
+        "permitted_paths": ["plugins/**"],
+        "permitted_tools": ["repository_read", "repository_write", "test"],
+        "acceptance_checks": ["The exact direct entry receipt passes."],
+        "stop_condition": "Stop before candidate or HIL.",
+        "commit_batch_id": "task8-direct-entry",
+        "dependencies": [],
+    }
+    final_hil = {
+        "task_id": "direct-physical-final-hil",
+        "task_class": "verify_result",
+        "requested_outcome": "Present the physically final HIL.",
+        "permitted_paths": [],
+        "permitted_tools": ["repository_read"],
+        "acceptance_checks": ["The final HIL is explicit."],
+        "stop_condition": "Stop at the human HIL.",
+        "panel_role": "PHYSICALLY_FINAL_HIL",
+        "dependencies": ["direct-active-row"],
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[active, final_hil],
+        planned_by="human-test",
+        plan_id="direct-forced-entry-plan",
+    )
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=str(active["task_class"]),
+        requested_outcome=str(active["requested_outcome"]),
+        permitted_paths=list(active["permitted_paths"]),
+        permitted_tools=list(active["permitted_tools"]),
+        acceptance_checks=list(active["acceptance_checks"]),
+        stop_condition=str(active["stop_condition"]),
+        backlog_task_id=str(active["task_id"]),
+    )
+
+    source_task_id = "11111111-1111-4111-8111-111111111111"
+    donor_task_id = "22222222-2222-4222-8222-222222222222"
+    destination_task_id = "33333333-3333-4333-8333-333333333333"
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["current_host_session_id"] = donor_task_id
+    session.metadata.setdefault("host_session_history", []).extend(
+        [
+            {
+                "host_session_id": source_task_id,
+                "host": "CODEX_DESKTOP",
+                "bound_at": "2026-08-16T00:00:00Z",
+            },
+            {
+                "host_session_id": donor_task_id,
+                "host": "CODEX_DESKTOP",
+                "bound_at": "2026-08-16T00:01:00Z",
+            },
+        ]
+    )
+    if destination_boot_attached:
+        session.metadata["current_host_session_id"] = destination_task_id
+        session.metadata["host_session_history"].append(
+            {
+                "host_session_id": destination_task_id,
+                "host": "CODEX_DESKTOP",
+                "bound_at": "2026-08-16T00:02:00Z",
+            }
+        )
+    session.metadata["execution_profile"] = _direct_profile()
+    service.sessions._save(session)
+
+    source = service.sessions._direct_state_travel_source_identity("book-faires")
+    plan = service.sessions._direct_state_travel_plan_identity("book-faires")
+    plugin = service.sessions._state_travel_plugin_build_identity()
+    pointer = service.store.pointer("book-faires")
+    pointer_sha256 = sha256_bytes(canonical_json_bytes(pointer.as_dict()))
+    repository = service.store.config("book-faires").repository_path
+    binding = {
+        "schema": "evidence-lane.direct-forced-same-worktree-entry.v1",
+        "route": "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK",
+        "confirmation": "DIRECT_FORCE_SAME_WORKTREE_STATE_TRAVEL",
+        "request_nonce": "direct-entry-test-once-001",
+        "authoritative_source": {
+            "task_id": source_task_id,
+            "deep_link": f"codex://threads/{source_task_id}",
+        },
+        "runtime_attachment_donor": {
+            "task_id": donor_task_id,
+            "deep_link": f"codex://threads/{donor_task_id}",
+        },
+        "destination": {
+            "task_id": destination_task_id,
+            "deep_link": f"codex://threads/{destination_task_id}",
+            "title": "Codex_Evidence_Lane_plugin_statetravel_task_test",
+            "project_id": "book-faires",
+            "workspace_path": repository,
+            "creation_kind": "FRESH_NATIVE_CODEX_LOCAL_PROJECT_TASK",
+            "fresh_local_task": True,
+            "fork": False,
+            "continued_from_chat": False,
+        },
+        "sole_writer": {
+            "policy": "SOLE_WRITER",
+            "writer_id": destination_task_id,
+            "concurrent_writer_count": 1,
+        },
+        "sealed_transport": {
+            "prepare_called": False,
+            "resume_called": False,
+            "transport_envelope_created": False,
+            "transport_envelope_consumed": False,
+            "eligible_fresh_handoff_exists": False,
+        },
+        "host_context": {
+            "current_task_id": destination_task_id,
+            "current_task_deep_link": f"codex://threads/{destination_task_id}",
+            "current_task_title": (
+                "Codex_Evidence_Lane_plugin_statetravel_task_test"
+            ),
+            "host_process_instance_id": str(os.getpid()),
+            "thread_hydration_mode": "BOUNDED_AUTHORITY_AND_PLAN_SQLITE_ONLY",
+            "full_thread_history_requested": False,
+            "task7_chat_history_loaded_as_authority": False,
+            "collaboration_overlay_active": False,
+        },
+        "expected": {
+            "pointer": {
+                "accepted_pv": pointer.accepted_pv,
+                "generation": pointer.generation,
+                "pointer_sha256": pointer_sha256,
+            },
+            "source": source,
+            "prebootstrap_source": {
+                **source,
+                "captured_before_authorized_route_bootstrap": True,
+            },
+            "plan": plan,
+            "plugin": plugin,
+            "runtime": {
+                "state": "TASK_CLASSIFIED",
+                "generation": pointer.generation,
+                "attachment_donor_task_id": donor_task_id,
+                "host_process_instance_id": str(os.getpid()),
+                "hooks_mode": "OFF_UNTIL_REPAIRED",
+            },
+            "execution_profile": _direct_profile(),
+        },
+    }
+    normalized = normalize_direct_forced_same_worktree_binding(binding)
+    assert normalized["destination"]["fresh_local_task"] is True
+    assert normalized["destination"]["fork"] is False
+
+    result = service.direct_force_same_worktree_state_travel(
+        project_id="book-faires",
+        session_id=session_id,
+        binding=binding,
+    )
+    receipt = result["direct_state_travel"]
+    assert receipt["status"] == "PASS"
+    assert receipt["host_task_binding"]["destination"]["task_id"] == (
+        destination_task_id
+    )
+    assert receipt["host_task_binding"][
+        "destination_boot_attached_before_direct_binding"
+    ] is destination_boot_attached
+    assert receipt["sealed_transport"]["prepare_called"] is False
+    assert receipt["sealed_transport"]["resume_called"] is False
+    assert receipt["no_mutation_flags"]["candidate_created"] is False
+    assert receipt["no_mutation_flags"]["pointer_moved"] is False
+    assert service.store.pointer("book-faires").as_dict() == pointer.as_dict()
+    rebound = service.sessions.load("book-faires", session_id)
+    assert rebound.metadata["current_host_session_id"] == destination_task_id
+
+    with pytest.raises(EvidenceLaneError) as replay:
+        service.direct_force_same_worktree_state_travel(
+            project_id="book-faires",
+            session_id=session_id,
+            binding=binding,
+        )
+    assert replay.value.code == "DIRECT_STATE_TRAVEL_REPLAY_FORBIDDEN"
 
 
 def test_state_travel_preserves_unaccepted_candidate_and_exact_resume_row(
@@ -295,7 +504,9 @@ def test_state_travel_preserves_unaccepted_candidate_and_exact_resume_row(
     )
     assert source_binding["task_title_used_as_identity"] is False
     assert source_binding["cwd_used_as_identity"] is False
-    assert source_binding["plugin_build"]["plugin_version"].startswith("2.")
+    assert source_binding["plugin_build"]["plugin_version"].startswith(
+        "3.0.0+codex."
+    )
     assert handoff["next_action_contract"]["destination_orchestration"] == (
         orchestration
     )

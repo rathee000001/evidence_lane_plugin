@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "F:\test codex\plugins\evidence-lane-plugin\scripts\codex_release\install_codex_stable.py", line 7866, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "F:\test codex\plugins\evidence-lane-plugin\scripts\codex_release\install_codex_stable.py", line 7861, in main
+    print(json.dumps(install(args), indent=2, sort_keys=True))
+                     ^^^^^^^^^^^^^
+  File "F:\test codex\plugins\evidence-lane-plugin\scripts\codex_release\install_codex_stable.py", line 6948, in install
+    local_test_reinstall = _prepare_local_test_reinstall(
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\test codex\plugins\evidence-lane-plugin\scripts\codex_release\install_codex_stable.py", line 2029, in _prepare_local_test_reinstall
+    _load_local_test_recovery_authority(
+  File "F:\test codex\plugins\evidence-lane-plugin\scripts\codex_release\install_codex_stable.py", line 4319, in _load_local_test_recovery_authority
+    commit, resolved_commit, commit_file_sha256 = _load_self_sealed_json(
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\test codex\plugins\evidence-lane-plugin\scripts\codex_release\install_codex_stable.py", line 1851, in _load_self_sealed_json
+    raise InstallationError(f"The {label} file authority is absent or drifted.")
+InstallationError: The local-test commit receipt file authority is absent or drifted.

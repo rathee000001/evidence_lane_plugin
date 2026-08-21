@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
+import re
+from typing import Any, cast
 
 from .errors import require
 
@@ -37,6 +38,12 @@ _HOST_CONTINUITY_ZERO_COUNTERS = (
 
 _BOUNDED_DESTINATION_HYDRATION_MODE = "BOUNDED_HANDOFF_ENVELOPE_ONLY"
 _PLAN_PROJECTION_SOURCE = "CANONICAL_PLAN_LANE_NOT_THREAD_HISTORY"
+_DIRECT_FORCE_ROUTE = "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK"
+_DIRECT_FORCE_CONFIRMATION = "DIRECT_FORCE_SAME_WORKTREE_STATE_TRAVEL"
+_CODEX_TASK_ID_RE = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+)
+_SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
 
 _TASK_STATUSES = {
     "COMPLETED": "COMPLETED",
@@ -53,6 +60,423 @@ _TASK_STATUSES = {
 _PLAN_METADATA_ID_CHARS = set(
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
 )
+
+
+def _direct_text(value: Any, *, field: str, max_length: int = 512) -> str:
+    exact = str(value or "").strip()
+    require(
+        bool(exact) and len(exact) <= max_length,
+        "DIRECT_STATE_TRAVEL_BINDING_FIELD_REQUIRED",
+        "Direct/forced State Travel requires every exact binding field.",
+        status="BLOCKED",
+        field=field,
+    )
+    return exact
+
+
+def _direct_task_identity(value: Any, *, field: str) -> dict[str, str]:
+    require(
+        isinstance(value, dict),
+        "DIRECT_STATE_TRAVEL_TASK_IDENTITY_REQUIRED",
+        "Direct/forced State Travel requires structured Codex task identities.",
+        status="BLOCKED",
+        field=field,
+    )
+    task_id = _direct_text(value.get("task_id"), field=f"{field}.task_id").lower()
+    require(
+        _CODEX_TASK_ID_RE.fullmatch(task_id) is not None,
+        "DIRECT_STATE_TRAVEL_TASK_UUID_INVALID",
+        "A direct/forced State Travel task identity is not an exact Codex UUID.",
+        status="MISMATCH",
+        field=field,
+    )
+    deep_link = _direct_text(
+        value.get("deep_link"),
+        field=f"{field}.deep_link",
+    )
+    require(
+        deep_link == f"codex://threads/{task_id}",
+        "DIRECT_STATE_TRAVEL_TASK_DEEP_LINK_MISMATCH",
+        "The Codex task UUID and deep link do not bind the same task.",
+        status="MISMATCH",
+        field=field,
+    )
+    return {"task_id": task_id, "deep_link": deep_link}
+
+
+def _direct_sha256(value: Any, *, field: str) -> str:
+    exact = _direct_text(value, field=field, max_length=64).upper()
+    require(
+        _SHA256_RE.fullmatch(exact) is not None,
+        "DIRECT_STATE_TRAVEL_SHA256_INVALID",
+        "A direct/forced State Travel identity is not one exact SHA-256.",
+        status="MISMATCH",
+        field=field,
+    )
+    return exact
+
+
+def _direct_positive_int(value: Any, *, field: str, allow_zero: bool = False) -> int:
+    minimum = 0 if allow_zero else 1
+    require(
+        isinstance(value, int)
+        and not isinstance(value, bool)
+        and value >= minimum,
+        "DIRECT_STATE_TRAVEL_INTEGER_INVALID",
+        "A direct/forced State Travel numeric binding is invalid.",
+        status="MISMATCH",
+        field=field,
+    )
+    return int(value)
+
+
+def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
+    """Normalize the fresh-task, no-seal direct State Travel entry contract.
+
+    This contract deliberately does not accept a handoff ID.  It binds one
+    authoritative work source, one already-attached runtime donor, and one
+    genuinely new destination task.  Exact live identities are verified by the
+    session layer before the destination runtime binding is written.
+    """
+
+    require(
+        isinstance(value, dict),
+        "DIRECT_STATE_TRAVEL_BINDING_REQUIRED",
+        "Direct/forced same-worktree State Travel requires one exact binding.",
+        status="BLOCKED",
+    )
+    binding = dict(value)
+    require(
+        binding.get("schema")
+        == "evidence-lane.direct-forced-same-worktree-entry.v1"
+        and binding.get("route") == _DIRECT_FORCE_ROUTE
+        and binding.get("confirmation") == _DIRECT_FORCE_CONFIRMATION,
+        "DIRECT_STATE_TRAVEL_ROUTE_CONFIRMATION_MISMATCH",
+        "The separately named direct/forced route and confirmation token are required.",
+        status="MISMATCH",
+    )
+    request_nonce = _direct_text(
+        binding.get("request_nonce"),
+        field="request_nonce",
+        max_length=128,
+    )
+    source = _direct_task_identity(
+        binding.get("authoritative_source"),
+        field="authoritative_source",
+    )
+    donor = _direct_task_identity(
+        binding.get("runtime_attachment_donor"),
+        field="runtime_attachment_donor",
+    )
+    destination_raw = binding.get("destination")
+    destination = _direct_task_identity(
+        destination_raw,
+        field="destination",
+    )
+    require(
+        isinstance(destination_raw, dict),
+        "DIRECT_STATE_TRAVEL_DESTINATION_REQUIRED",
+        "The fresh destination creation binding is required.",
+        status="BLOCKED",
+    )
+    destination_raw = cast(dict[str, Any], destination_raw)
+    require(
+        len({source["task_id"], donor["task_id"], destination["task_id"]}) == 3,
+        "DIRECT_STATE_TRAVEL_TASK_ROLE_COLLISION",
+        "Source authority, runtime donor, and fresh destination must be distinct tasks.",
+        status="MISMATCH",
+    )
+    destination_title = _direct_text(
+        destination_raw.get("title"),
+        field="destination.title",
+        max_length=256,
+    )
+    destination_project_id = _direct_text(
+        destination_raw.get("project_id"),
+        field="destination.project_id",
+        max_length=128,
+    )
+    workspace_path = _direct_text(
+        destination_raw.get("workspace_path"),
+        field="destination.workspace_path",
+        max_length=1024,
+    )
+    require(
+        destination_raw.get("creation_kind")
+        == "FRESH_NATIVE_CODEX_LOCAL_PROJECT_TASK"
+        and destination_raw.get("fresh_local_task") is True
+        and destination_raw.get("fork") is False
+        and destination_raw.get("continued_from_chat") is False,
+        "DIRECT_STATE_TRAVEL_FRESH_TASK_PROOF_REQUIRED",
+        "The destination must be a genuinely new native local-project task, never a fork or Continued from chat.",
+        status="MISMATCH",
+    )
+
+    sole_writer = binding.get("sole_writer")
+    require(
+        isinstance(sole_writer, dict)
+        and sole_writer.get("policy") == "SOLE_WRITER"
+        and sole_writer.get("concurrent_writer_count") == 1,
+        "DIRECT_STATE_TRAVEL_SOLE_WRITER_REQUIRED",
+        "Direct same-worktree entry requires one exact sole writer.",
+        status="MISMATCH",
+    )
+    sole_writer = cast(dict[str, Any], sole_writer)
+    writer_id = _direct_text(
+        sole_writer.get("writer_id"),
+        field="sole_writer.writer_id",
+        max_length=256,
+    )
+
+    sealed = binding.get("sealed_transport")
+    require(
+        isinstance(sealed, dict)
+        and sealed.get("prepare_called") is False
+        and sealed.get("resume_called") is False
+        and sealed.get("transport_envelope_created") is False
+        and sealed.get("transport_envelope_consumed") is False
+        and sealed.get("eligible_fresh_handoff_exists") is False,
+        "DIRECT_STATE_TRAVEL_SEALED_ROUTE_FORBIDDEN",
+        "The direct route cannot create, consume, or fall back to a sealed handoff.",
+        status="MISMATCH",
+    )
+
+    host_context = binding.get("host_context")
+    require(
+        isinstance(host_context, dict),
+        "DIRECT_STATE_TRAVEL_HOST_CONTEXT_REQUIRED",
+        "The destination must supply its bounded native host context.",
+        status="BLOCKED",
+    )
+    host_context = cast(dict[str, Any], host_context)
+    current_host = _direct_task_identity(
+        {
+            "task_id": host_context.get("current_task_id"),
+            "deep_link": host_context.get("current_task_deep_link"),
+        },
+        field="host_context.current_task",
+    )
+    process_id = _direct_text(
+        host_context.get("host_process_instance_id"),
+        field="host_context.host_process_instance_id",
+        max_length=256,
+    )
+    require(
+        current_host == destination
+        and host_context.get("current_task_title") == destination_title
+        and host_context.get("thread_hydration_mode")
+        == "BOUNDED_AUTHORITY_AND_PLAN_SQLITE_ONLY"
+        and host_context.get("full_thread_history_requested") is False
+        and host_context.get("task7_chat_history_loaded_as_authority") is False
+        and host_context.get("collaboration_overlay_active") is False,
+        "DIRECT_STATE_TRAVEL_HOST_TASK_BINDING_MISMATCH",
+        "The current native host surface does not prove the exact fresh destination boundary.",
+        status="MISMATCH",
+    )
+
+    expected = binding.get("expected")
+    require(
+        isinstance(expected, dict),
+        "DIRECT_STATE_TRAVEL_EXPECTED_IDENTITY_REQUIRED",
+        "Direct same-worktree entry requires exact expected live identities.",
+        status="BLOCKED",
+    )
+    expected = cast(dict[str, Any], expected)
+    pointer = expected.get("pointer")
+    source_expected = expected.get("source")
+    prebootstrap = expected.get("prebootstrap_source")
+    plan = expected.get("plan")
+    plugin = expected.get("plugin")
+    runtime = expected.get("runtime")
+    profile = expected.get("execution_profile")
+    require(
+        all(isinstance(item, dict) for item in (
+            pointer,
+            source_expected,
+            prebootstrap,
+            plan,
+            plugin,
+            runtime,
+            profile,
+        )),
+        "DIRECT_STATE_TRAVEL_EXPECTED_SECTION_REQUIRED",
+        "Pointer, source, pre-bootstrap source, Plan, plugin, runtime, and execution-profile identities are all required.",
+        status="BLOCKED",
+    )
+    pointer = cast(dict[str, Any], pointer)
+    source_expected = cast(dict[str, Any], source_expected)
+    prebootstrap = cast(dict[str, Any], prebootstrap)
+    plan = cast(dict[str, Any], plan)
+    plugin = cast(dict[str, Any], plugin)
+    runtime = cast(dict[str, Any], runtime)
+    profile = execution_profile_from_context(
+        {"execution_profile": cast(dict[str, Any], profile)}
+    )
+    require_unfinished_execution_profile(profile, host_kind="CODEX_DESKTOP")
+
+    normalized_pointer = {
+        "accepted_pv": _direct_text(pointer.get("accepted_pv"), field="expected.pointer.accepted_pv", max_length=32),
+        "generation": _direct_positive_int(pointer.get("generation"), field="expected.pointer.generation", allow_zero=True),
+        "pointer_sha256": _direct_sha256(pointer.get("pointer_sha256"), field="expected.pointer.pointer_sha256"),
+    }
+    normalized_source: dict[str, Any] = {
+        "branch": _direct_text(source_expected.get("branch"), field="expected.source.branch"),
+        "commit_sha": _direct_text(source_expected.get("commit_sha"), field="expected.source.commit_sha", max_length=40).lower(),
+        "tree_sha": _direct_text(source_expected.get("tree_sha"), field="expected.source.tree_sha", max_length=40).lower(),
+        "worktree_sha256": _direct_sha256(source_expected.get("worktree_sha256"), field="expected.source.worktree_sha256"),
+        "status_sha256": _direct_sha256(source_expected.get("status_sha256"), field="expected.source.status_sha256"),
+        "tracked_diff_sha256": _direct_sha256(source_expected.get("tracked_diff_sha256"), field="expected.source.tracked_diff_sha256"),
+        "dirty_path_set_sha256": _direct_sha256(source_expected.get("dirty_path_set_sha256"), field="expected.source.dirty_path_set_sha256"),
+        "dirty_content_sha256": _direct_sha256(source_expected.get("dirty_content_sha256"), field="expected.source.dirty_content_sha256"),
+        "status_record_count": _direct_positive_int(source_expected.get("status_record_count"), field="expected.source.status_record_count", allow_zero=True),
+        "dirty_path_count": _direct_positive_int(source_expected.get("dirty_path_count"), field="expected.source.dirty_path_count", allow_zero=True),
+    }
+    normalized_prebootstrap = {
+        "branch": _direct_text(prebootstrap.get("branch"), field="expected.prebootstrap_source.branch"),
+        "commit_sha": _direct_text(prebootstrap.get("commit_sha"), field="expected.prebootstrap_source.commit_sha", max_length=40).lower(),
+        "tree_sha": _direct_text(prebootstrap.get("tree_sha"), field="expected.prebootstrap_source.tree_sha", max_length=40).lower(),
+        "worktree_sha256": _direct_sha256(prebootstrap.get("worktree_sha256"), field="expected.prebootstrap_source.worktree_sha256"),
+        "status_sha256": _direct_sha256(prebootstrap.get("status_sha256"), field="expected.prebootstrap_source.status_sha256"),
+        "tracked_diff_sha256": _direct_sha256(prebootstrap.get("tracked_diff_sha256"), field="expected.prebootstrap_source.tracked_diff_sha256"),
+        "dirty_path_set_sha256": _direct_sha256(prebootstrap.get("dirty_path_set_sha256"), field="expected.prebootstrap_source.dirty_path_set_sha256"),
+        "dirty_content_sha256": _direct_sha256(prebootstrap.get("dirty_content_sha256"), field="expected.prebootstrap_source.dirty_content_sha256"),
+        "status_record_count": _direct_positive_int(prebootstrap.get("status_record_count"), field="expected.prebootstrap_source.status_record_count", allow_zero=True),
+        "dirty_path_count": _direct_positive_int(prebootstrap.get("dirty_path_count"), field="expected.prebootstrap_source.dirty_path_count", allow_zero=True),
+        "captured_before_authorized_route_bootstrap": prebootstrap.get("captured_before_authorized_route_bootstrap") is True,
+    }
+    require(
+        normalized_prebootstrap["captured_before_authorized_route_bootstrap"] is True,
+        "DIRECT_STATE_TRAVEL_PREBOOTSTRAP_BASELINE_REQUIRED",
+        "The direct route must retain the exact dirty baseline captured before its authorized bootstrap implementation.",
+        status="MISMATCH",
+    )
+
+    plan_hash_fields = (
+        "canonical_plan_sha256",
+        "goal_projection_sha256",
+        "history_projection_sha256",
+        "snapshot_sha256",
+    )
+    normalized_plan: dict[str, Any] = {
+        field: _direct_sha256(plan.get(field), field=f"expected.plan.{field}")
+        for field in plan_hash_fields
+    }
+    for field in (
+        "row_start",
+        "row_end",
+        "task_count",
+        "active_row",
+        "active_batch_row_start",
+        "active_batch_row_end",
+        "host_window_row_start",
+        "host_window_row_end",
+        "next_hil_row",
+        "physically_final_hil_row",
+    ):
+        normalized_plan[field] = _direct_positive_int(
+            plan.get(field),
+            field=f"expected.plan.{field}",
+        )
+    for field in (
+        "active_task_id",
+        "active_batch_id",
+        "active_row_commit_batch_id",
+        "next_hil_task_id",
+        "physically_final_hil_task_id",
+    ):
+        normalized_plan[field] = _direct_text(
+            plan.get(field),
+            field=f"expected.plan.{field}",
+            max_length=256,
+        )
+    require(
+        normalized_plan["row_start"] <= normalized_plan["active_row"] <= normalized_plan["row_end"]
+        and normalized_plan["active_batch_row_start"] <= normalized_plan["active_row"] <= normalized_plan["active_batch_row_end"]
+        and normalized_plan["host_window_row_start"] == normalized_plan["active_row"]
+        and normalized_plan["host_window_row_end"]
+        == min(normalized_plan["active_row"] + 8, normalized_plan["row_end"])
+        and normalized_plan["next_hil_row"] > normalized_plan["active_row"]
+        and normalized_plan["physically_final_hil_row"] == normalized_plan["row_end"],
+        "DIRECT_STATE_TRAVEL_DYNAMIC_PLAN_BINDING_INVALID",
+        "The direct route Plan binding must derive the ACTIVE batch, 1+9 window, next HIL, and physical-final HIL from the live ledger.",
+        status="MISMATCH",
+    )
+
+    normalized_plugin = {
+        "plugin_name": _direct_text(plugin.get("plugin_name"), field="expected.plugin.plugin_name"),
+        "plugin_version": _direct_text(plugin.get("plugin_version"), field="expected.plugin.plugin_version"),
+        "plugin_manifest_sha256": _direct_sha256(plugin.get("plugin_manifest_sha256"), field="expected.plugin.plugin_manifest_sha256"),
+        "routing_manifest_sha256": _direct_sha256(plugin.get("routing_manifest_sha256"), field="expected.plugin.routing_manifest_sha256"),
+        "identity_sha256": _direct_sha256(plugin.get("identity_sha256"), field="expected.plugin.identity_sha256"),
+        "tool_count": _direct_positive_int(plugin.get("tool_count"), field="expected.plugin.tool_count"),
+        "read_tool_count": _direct_positive_int(plugin.get("read_tool_count"), field="expected.plugin.read_tool_count", allow_zero=True),
+        "write_tool_count": _direct_positive_int(plugin.get("write_tool_count"), field="expected.plugin.write_tool_count", allow_zero=True),
+    }
+    normalized_runtime = {
+        "state": _direct_text(runtime.get("state"), field="expected.runtime.state"),
+        "generation": _direct_positive_int(runtime.get("generation"), field="expected.runtime.generation", allow_zero=True),
+        "attachment_donor_task_id": _direct_text(runtime.get("attachment_donor_task_id"), field="expected.runtime.attachment_donor_task_id"),
+        "host_process_instance_id": _direct_text(runtime.get("host_process_instance_id"), field="expected.runtime.host_process_instance_id"),
+        "hooks_mode": _direct_text(runtime.get("hooks_mode"), field="expected.runtime.hooks_mode"),
+    }
+    require(
+        normalized_runtime["attachment_donor_task_id"] == donor["task_id"]
+        and normalized_runtime["host_process_instance_id"] == process_id
+        and normalized_runtime["hooks_mode"] == "OFF_UNTIL_REPAIRED",
+        "DIRECT_STATE_TRAVEL_RUNTIME_DONOR_MISMATCH",
+        "Runtime donor, host process, or hooks-off binding does not match the direct route.",
+        status="MISMATCH",
+    )
+
+    return {
+        "schema": "evidence-lane.direct-forced-same-worktree-entry.v1",
+        "route": _DIRECT_FORCE_ROUTE,
+        "confirmation": _DIRECT_FORCE_CONFIRMATION,
+        "request_nonce": request_nonce,
+        "authoritative_source": source,
+        "runtime_attachment_donor": donor,
+        "destination": {
+            **destination,
+            "title": destination_title,
+            "project_id": destination_project_id,
+            "workspace_path": workspace_path,
+            "creation_kind": "FRESH_NATIVE_CODEX_LOCAL_PROJECT_TASK",
+            "fresh_local_task": True,
+            "fork": False,
+            "continued_from_chat": False,
+        },
+        "sole_writer": {
+            "policy": "SOLE_WRITER",
+            "writer_id": writer_id,
+            "concurrent_writer_count": 1,
+        },
+        "sealed_transport": {
+            "prepare_called": False,
+            "resume_called": False,
+            "transport_envelope_created": False,
+            "transport_envelope_consumed": False,
+            "eligible_fresh_handoff_exists": False,
+        },
+        "host_context": {
+            "current_task_id": destination["task_id"],
+            "current_task_deep_link": destination["deep_link"],
+            "current_task_title": destination_title,
+            "host_process_instance_id": process_id,
+            "thread_hydration_mode": "BOUNDED_AUTHORITY_AND_PLAN_SQLITE_ONLY",
+            "full_thread_history_requested": False,
+            "task7_chat_history_loaded_as_authority": False,
+            "collaboration_overlay_active": False,
+        },
+        "expected": {
+            "pointer": normalized_pointer,
+            "source": normalized_source,
+            "prebootstrap_source": normalized_prebootstrap,
+            "plan": normalized_plan,
+            "plugin": normalized_plugin,
+            "runtime": normalized_runtime,
+            "execution_profile": profile,
+        },
+    }
 
 
 def _plan_metadata_id(value: Any, *, field: str, position: int) -> str:

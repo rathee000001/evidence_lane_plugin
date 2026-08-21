@@ -1,4 +1,4 @@
-# Evidence Lane 2.2.0 hooks
+# Evidence Lane 3.0.0 hooks
 
 The package registers exactly eight lifecycle events:
 

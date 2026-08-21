@@ -7,6 +7,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 from .mcp_server import run_server
 from .pv_package import validate_pv_package
@@ -40,21 +41,34 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _emit_bounded_result(
+    service: EvidenceLaneService,
+    tool: str,
+    result: dict[str, Any],
+) -> None:
+    """Write one model-context-safe command envelope to stdout."""
+
+    envelope = service._result(tool, result)
+    print(json.dumps(envelope, sort_keys=True, separators=(",", ":")))
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "activate-installation":
         service = EvidenceLaneService()
         result = service.sessions.ensure_installation()
         service.flash_authority.ensure_flashed()
-        print(json.dumps(result, indent=2, sort_keys=True))
+        _emit_bounded_result(service, "activate-installation", result)
         return 0
     if args.command == "doctor":
-        result = EvidenceLaneService().doctor()
-        print(json.dumps(result, indent=2, sort_keys=True))
+        service = EvidenceLaneService()
+        result = service.doctor()
+        _emit_bounded_result(service, "doctor", result)
         return 0 if result["status"] == "PASS" else 1
     if args.command == "validate-pv":
+        service = EvidenceLaneService()
         result = validate_pv_package(Path(args.directory))
-        print(json.dumps(result, indent=2, sort_keys=True))
+        _emit_bounded_result(service, "validate-pv", result)
         return 0
     if args.command == "serve":
         run_server(transport=args.transport, host=args.host, port=args.port)

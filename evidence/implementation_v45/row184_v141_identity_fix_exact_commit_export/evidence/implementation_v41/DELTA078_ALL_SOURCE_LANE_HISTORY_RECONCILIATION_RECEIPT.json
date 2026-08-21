@@ -1,0 +1,120 @@
+{
+  "all_lane_poc": {
+    "bundle_audit_sha256": "845DD89A200FA8D8052C44E85E2930A963479B7C0A769CDCC34AD7FA438EBE10",
+    "bundle_sha256": "F4816F16AD8F8DC876CA899F678FA181EED71A5F7BEDB1CE38D6CA1C65F744AC",
+    "compatible_evidence_lane_count": 18,
+    "every_table_pass_count": 18,
+    "four_file_pass_count": 18,
+    "lane_count": 18,
+    "lane_summary_root_sha256": "A343F1CC194B688E85E03F11DD623AE94413AAAEF00FE8EE441482C702A3A151",
+    "lanes_without_primary_route": [
+      "github_code",
+      "local_code",
+      "discussion",
+      "mode",
+      "docs",
+      "ppt",
+      "pdf_ocr",
+      "images_ocr",
+      "artifacts",
+      "custom",
+      "research",
+      "sqlite_brain"
+    ],
+    "primary_route_lane_count": 6,
+    "routing_boundary": "The immutable source batch keeps one primary route per source. Extension-backed compatible evidence reaches all 18 lanes without rewriting historical routes.",
+    "status": "PASS"
+  },
+  "all_source_poc": {
+    "archive_receipt_count": 9,
+    "batch_id": "intake_88636dcf3992a092a8318e49f1db9802",
+    "batch_sha256": "88636DCF3992A092A8318E49F1DB980284B56D64F9C5928DA777BB449C005AA9",
+    "crosswalk_file_sha256": "815A48316B136ACAE849F849575DB792921B21112BB7F44DEEECB7EA7AA975DC",
+    "matrix_cell_count": 864,
+    "matrix_sha256": "0FF60D243F215A52BB949702D9EB5835F50A7AB1451FCEE7B4FDBB5B54F04341",
+    "matrix_state_counts": {
+      "ACCOUNTED_CONTEXT_ONLY": 278,
+      "COMPATIBLE_MEMBER_EVIDENCE": 538,
+      "PRIMARY_ROUTE": 48
+    },
+    "registry_file_sha256": "0BD29BF994CFBE9A92BAD00151C3951C3177FBBE85F264FAA04938C0F395BA75",
+    "source_count": 48,
+    "source_summary_root_sha256": "675B4C267FAFDA9B54788139E460EED0B129768F862EA33D6849F5052D991223",
+    "sqlite_asset_count": 6788,
+    "sqlite_receipt_count": 1582,
+    "sqlite_schema_object_count": 53488,
+    "sqlite_table_stat_count": 41216,
+    "status": "PASS"
+  },
+  "delta": "EL-V130-ALL-SOURCE-ALL-LANE-FULL-HISTORY-RECONCILIATION-DELTA-078",
+  "delta_lineage": {
+    "from": "DELTA067A",
+    "lineage_root_sha256": "C9F150891574DDDD8B4846359B17515AA01529DE7CB8511F477FC19049537098",
+    "receipt_count": 13,
+    "self_sealed_receipts_valid": 6,
+    "status": "PASS",
+    "through": "DELTA077"
+  },
+  "full_history": {
+    "branch": "agent/ev-remote-chatgpt-plugin",
+    "changed_line_count": 33595,
+    "commit_count": 11,
+    "file_change_count": 255,
+    "graph_boundary": "Complete reachable Git history is proven independently of the explicit bounded semantic graph selection.",
+    "head_commit_sha": "8dea16eb98127b078137d4e8142c280f2a84af24",
+    "head_tree_sha": "7fa3ee17aedb85e25321d020798a18a18ecae852",
+    "history_reconciliation_sha256": "5D20335E655603EA515DBE818185919B31D79F13D0DB1D93D4B0E0EC2110F7C4",
+    "hunk_count": 738,
+    "object_count": 363,
+    "parent_edge_count": 10,
+    "ref_count": 5,
+    "snapshot_count": 1,
+    "status": "PASS_WITH_EXPLICIT_GRAPH_BOUNDARY",
+    "tree_entry_count": 1456
+  },
+  "outputs": {
+    "file_count": 4,
+    "files": {
+      ".runtime/delta078/full-history.json": "76F56F00DE1FCB8FE4B8E66ED16BDBC6D073EB10E3C74A31A5D048E873C7450D",
+      ".runtime/delta078/full-reconciliation.json": "10A611C318BFA64FBCFEBD774D33D93D07318B987DB2EC95551F885FFAC1B12A",
+      ".runtime/delta078/full-reconciliation.md": "D22E137AF57A631CFC86F7327722310D75DC24D48FD390B5CD7F143498A7B9A1",
+      ".runtime/delta078/source-lane-matrix.json": "9486ADDF80CE961BE0AFC91170FD25B03A4D5B2AC778C3BC36D722ECB23038CB"
+    },
+    "reconciliation_sha256": "AF1FB1E914C00AA926B5A8DAA5B73A5CFDF36F76AE0F3256A8883D94410E9C32",
+    "report_set_sha256": "984B303E085A386961EA8B70F277BFFA50AB0AB3ADC99ABF4D297FDE16D42A21"
+  },
+  "prohibitions": {
+    "deployed": false,
+    "main_merged": false,
+    "pointer_moved": false,
+    "pv_built": false,
+    "refresh_or_fuse": false,
+    "registry_mutated": false,
+    "source_bytes_mutated": false,
+    "source_code_executed": false,
+    "source_payloads_copied": false
+  },
+  "receipt_sha256": "67004474665CF795D5B005DD96BF68CA791A0223853DB824035216BEA2E2639A",
+  "schema": "evidence-lane.delta078-receipt.v1",
+  "source_files": {
+    "plugins/evidence-lane-plugin/scripts/build_full_reconciliation.py": "387641433784AB15EF0EEBEFC89F0F5DDE86357AEE4A5A2FF2125B222DFFB79B",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/full_reconciliation.py": "CB10173DF381313BC01D41C92F03018B15BFAFF6358415CC22BC90026DB329CA",
+    "tests/test_full_reconciliation.py": "1794B7E493028EB05DAFAA13F8344FA9C97D3C81EBAFA8B281BC0C8AA8973DAA"
+  },
+  "status": "PASS_WITH_EXPLICIT_GRAPH_BOUNDARY",
+  "verification": {
+    "focused_unit_tests": "2 passed in 1.86s",
+    "integration_elapsed_seconds": 8.3,
+    "mypy": "PASS: 2 source files",
+    "real_48x18_reconciliation": "PASS_WITH_EXPLICIT_GRAPH_BOUNDARY",
+    "regression": "29 passed in 40.11s",
+    "ruff": "PASS",
+    "sqlite_foreign_key_error_count": 0,
+    "sqlite_integrity": "ok"
+  },
+  "verdict": {
+    "confidence_percent": 99,
+    "decision": "PURSUE",
+    "evidence_that_would_change_verdict": "Any source/crosswalk mismatch, missing lane artifact or table, failed history root, broken foreign key, or later full-worktree graph evidence contradicting the bounded graph result."
+  }
+}

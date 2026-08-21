@@ -1,0 +1,97 @@
+{
+  "schema": "evidence-lane.task6-delta-implementation-receipt.v1",
+  "status": "PASS",
+  "recorded_at": "2026-08-16T18:58:21.0790919Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-027-LEARNING-RUNTIME-PARITY",
+  "task_contract_sha256": "36C1C3360A4905427CD5B550FABDECF0DD7D1B05E322B75C8A814F982AB112AB",
+  "source_identity": {
+    "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
+    "head_commit": "4d31cefe546dbe44583f04f0e41a640785e8e797",
+    "accepted_pv": "PV12",
+    "pointer_generation": 12
+  },
+  "implementation": {
+    "ledger_schema_version": 2,
+    "candidate_search": "SQLITE_FTS5_BM25",
+    "memory_graph_search": "SQLITE_FTS5_BM25",
+    "bounded_model_context": true,
+    "raw_lane_database_or_markdown_returned": false,
+    "public_actions": [
+      "learning_inspect",
+      "learning_retrieve",
+      "learning_memory_query",
+      "learning_memory_record_link",
+      "learning_record_host_memory_import",
+      "learning_seal_candidate",
+      "learning_decide_candidate",
+      "learning_revoke"
+    ],
+    "memory_sectors": [
+      "AGENT_LEARNING",
+      "CANON",
+      "CHAT_LINEAGE",
+      "HOST_MEMORY",
+      "PLAN",
+      "PROJECT_TRUTH"
+    ],
+    "host_memory_import": "EXPLICIT_NONAUTHORITATIVE_PROVENANCE_ONLY",
+    "logical_expiry_owner": "LEARNING_RETRIEVAL_AS_OF_FILTER",
+    "expiry_event_materialization_owner": "AGENT_LEARNING_AUTHORITY_MAINTENANCE",
+    "expiry_event_route": "INTERNAL_MAINTENANCE_ONLY",
+    "expiry_public_action": null,
+    "hook_owned_expiry": false,
+    "background_scheduler_assumed": false,
+    "project_truth_effect": "NONE",
+    "project_pointer_effect": "NONE",
+    "learning_pointer_effect_during_expiry": "NONE",
+    "install_boundary": "DEFERRED_TO_GOVERNED_RELEASE_ROW"
+  },
+  "verification": [
+    {
+      "selector": "tests/test_agent_learning.py",
+      "command": "C:/Users/rathe/EvidenceLanePV/runtime/codex/9F0E7A0E1F6054ED97BA475E08CA6B9D/venv/Scripts/python.exe -m pytest -q tests/test_agent_learning.py",
+      "status": "PASS",
+      "output": "27 passed in 1.89s"
+    },
+    {
+      "selector": "Learning SDK, MCP inventory, native catalog, and public-surface registration",
+      "command": "C:/Users/rathe/EvidenceLanePV/runtime/codex/9F0E7A0E1F6054ED97BA475E08CA6B9D/venv/Scripts/python.exe -m pytest -q tests/test_public_surface_parity_matrix.py::test_canon_and_learning_public_actions_match_sdk_registration tests/test_internal_sdk.py::test_learning_sdk_arm_exposes_candidate_lifecycle tests/test_mcp_plugin.py::test_mcp_tool_inventory_and_annotations tests/test_mcp_plugin.py::test_native_route_receipt_seals_the_exact_unique_catalog",
+      "status": "PASS",
+      "output": "4 passed in 1.91s"
+    },
+    {
+      "selector": "Python compilation and changed-path diff integrity",
+      "command": "python -m py_compile agent_learning.py test_agent_learning.py; git diff --check -- Row232 paths",
+      "status": "PASS",
+      "output": "ROW232_STATIC_PROOF=PASS; RUFF=UNAVAILABLE_NOT_INSTALLED"
+    }
+  ],
+  "negative_cases": [
+    "expired accepted lessons are excluded at caller-supplied as_of before an EXPIRED event exists",
+    "expiry materialization by CODEX_HOOK fails with LEARNING_EXPIRY_OWNER_REQUIRED",
+    "cross-project, secret-bearing, tampered, and unbounded memory graph requests fail closed",
+    "host memory import creates no Learning candidate, invokes no HIL, and moves no pointer",
+    "schema drift fails closed and failed legacy migration rolls back atomically"
+  ],
+  "boundaries": {
+    "candidate_created": false,
+    "pending_hil": false,
+    "hil_invoked": false,
+    "hil_inferred": false,
+    "pointer_moved": false,
+    "git_executed": false,
+    "install_executed": false,
+    "helper_launched": false,
+    "tunnel_launched": false,
+    "hooks_enabled": false,
+    "env_uop_mutated": false
+  },
+  "limitations": [
+    "The installed runtime interpreter does not contain Ruff; this receipt does not claim a Ruff result.",
+    "The current installed plugin is not changed by this Delta; exact-commit installation remains owned by a later governed release row.",
+    "Host panel grouping remains host-owned; Evidence Lane can emit compact attributed counts but cannot reparent direct Git or Vercel connector counters."
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "schema": "evidence-lane.implementation-validation.v1",
+  "created_at": "2026-07-26T04:05:00Z",
+  "product": {
+    "display_name": "Evidence Lane Plugin",
+    "plugin_id": "evidence-lane-plugin",
+    "repository_name": "evidence_lane_plugin",
+    "version": "0.1.0",
+    "scope": "private_single_user_git_code_lane"
+  },
+  "source": {
+    "repository": "https://github.com/rathee000001/evidence_lane_plugin",
+    "visibility": "PRIVATE",
+    "branch": "main",
+    "commit": "60ec033e9ca1f46552ff1ed1d5b0c04b4e1bb8f0",
+    "tree": "445e41b712309e859a37d4bfa7f3fd160297113e",
+    "tracked_files_before_evidence": 59,
+    "remote_source_head_verified": true,
+    "sealed_parent_plan_mutated": false
+  },
+  "engine": {
+    "package_sha256": "6E6F485DAFC9F446092341C37451134AFE7D2DAC6886500B51E1A4223AABA68F",
+    "toolchain_manifest_sha256": "8285FFC3D24735EE7117F47B3A226098F4AA6F4A156A84D4B7DEBBE5AE7C19B9",
+    "release_wheel_sha256": "7C616E9CFF5982C49F1086CFB0742374C5798CDEC235F84BC89A005DA9C8D1CD",
+    "schema_version": "1.0.0",
+    "mcp_tool_count": 19
+  },
+  "validation": {
+    "runtime_doctor": "PASS",
+    "pytest": {
+      "status": "PASS",
+      "passed": 20,
+      "failed": 0
+    },
+    "mcp_stdio_real_client": "PASS",
+    "ruff_lint": "PASS",
+    "ruff_format": {
+      "status": "PASS",
+      "files": 46
+    },
+    "mypy": {
+      "status": "PASS",
+      "source_files": 27
+    },
+    "bandit": {
+      "status": "PASS",
+      "findings": 0
+    },
+    "dependency_audit": {
+      "status": "PASS",
+      "known_vulnerabilities": 0,
+      "input": "plugins/evidence-lane-plugin/requirements.lock.txt"
+    },
+    "plugin_schema": "PASS",
+    "local_codex_plugin_installation": "PASS",
+    "hash_required_install": "PASS",
+    "wheel_build": "PASS",
+    "fresh_wheel_install_doctor": "PASS",
+    "product_naming_forbidden_matches": 0,
+    "local_absolute_path_matches": 0,
+    "real_secret_findings": 0
+  },
+  "boundaries": {
+    "local_codex_plugin_installed_enabled": true,
+    "plugin_persists_until_user_removal": true,
+    "vercel_or_public_hosting_deployed": false,
+    "public_chatgpt_registration_completed": false,
+    "google_drive_live_configured": false,
+    "live_project_pv_created": false,
+    "live_first_hil_completed": false,
+    "automatic_remote_git_push_enabled": false,
+    "env_or_uop_inside_pv": false,
+    "historical_brain_package_exposed": false
+  },
+  "gate": "PRIVATE_PLUGIN_IMPLEMENTED_AND_VALIDATED_AWAITING_LIVE_FIRST_HIL",
+  "result": "PASS_WITH_DEFERRED_LIVE_HIL"
+}

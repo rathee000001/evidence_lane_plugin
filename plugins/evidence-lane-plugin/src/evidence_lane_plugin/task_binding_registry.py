@@ -65,17 +65,21 @@ def _surface_core(surface: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _validate_surface(surface: Mapping[str, Any]) -> None:
+def _validate_surface(
+    surface: Mapping[str, Any],
+    *,
+    expected_catalog: Mapping[str, Any] | None = None,
+) -> None:
+    exact_catalog = dict(expected_catalog) if expected_catalog is not None else {
+        "tools": NATIVE_TOOL_COUNT,
+        "read": NATIVE_READ_TOOL_COUNT,
+        "write": NATIVE_WRITE_TOOL_COUNT,
+        "skills": GOVERNED_SKILL_COUNT,
+    }
     require(
         surface.get("schema")
         == "evidence-lane.codex-installed-surface-inventory.v2"
-        and surface.get("catalog")
-        == {
-            "tools": NATIVE_TOOL_COUNT,
-            "read": NATIVE_READ_TOOL_COUNT,
-            "write": NATIVE_WRITE_TOOL_COUNT,
-            "skills": GOVERNED_SKILL_COUNT,
-        }
+        and surface.get("catalog") == exact_catalog
         and surface.get("raw_paths_included") is False
         and surface.get("surface_inventory_sha256")
         == sha256_bytes(canonical_json_bytes(_surface_core(surface)))
@@ -229,6 +233,14 @@ def seal_or_refresh_shared_task_binding(
         "SHARED_TASK_BINDING_ACTIVE_PLAN_MISMATCH",
         "The task binding cannot refresh without one exact active Plan row.",
         status="MISMATCH",
+        active_task_ids=[str(row.get("task_id") or "") for row in active],
+        runtime_task_id=runtime_task_id,
+        session_active_backlog_task_id=str(
+            metadata.get("active_backlog_task_id") or ""
+        ),
+        session_active_backlog_task_status=str(
+            metadata.get("active_backlog_task_status") or ""
+        ),
     )
     pointer = store.pointer(project_id)
     release = seal_running_release_authority(exact_root, surface=surface)
@@ -349,6 +361,7 @@ def read_shared_task_binding(
     task_id: str,
     expected_active_plan_task_id: str,
     surface: Mapping[str, Any],
+    expected_surface_catalog: Mapping[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Read and verify one current exact-task row and its immutable release."""
 
@@ -431,7 +444,7 @@ def read_shared_task_binding(
         status="MISMATCH",
     )
     release = _json(release_path)
-    _validate_surface(surface)
+    _validate_surface(surface, expected_catalog=expected_surface_catalog)
     require(
         release.get("schema") == "evidence-lane.running-release-authority.v1"
         and release.get("authority_id") == release_id

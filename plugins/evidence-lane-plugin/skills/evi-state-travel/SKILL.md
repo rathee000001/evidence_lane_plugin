@@ -94,6 +94,19 @@ visible state. After entry, do not start a subagent, alternate-checkout writer,
 background mutation, or second browser profile unless the user explicitly
 changes that boundary.
 
+The separately named direct/forced same-worktree recovery route is available
+only when the user explicitly authorizes exact dirty-work continuity and no
+eligible fresh sealed handoff exists. The destination must be a genuinely new
+native Codex local-project task, never a fork or `Continued from chat`. Call
+`pv_state_travel_direct_force_same_worktree` exactly once with the source task,
+runtime-attachment donor, destination UUID/deep link, exact project/worktree,
+sole writer, accepted-pointer baseline, live dirty path/content identities,
+pre-bootstrap identity, canonical/executable Plan hashes and dynamic 1+9/HIL
+anchors, installed plugin/catalog/runtime/Flash identity, and exact execution
+profile. It must fail closed on mismatch or replay and must not call
+`pv_state_travel_prepare`, consume `pv_state_travel_resume`, fabricate a sealed
+transport receipt, infer HIL, create a candidate, or move the pointer.
+
 If the user explicitly requests accepted context, set `entry_mode` to
 `ACCEPTED_ENTRY`. Otherwise do not clear an active task, pending correction,
 candidate, or resume row. Call `pv_state_travel_prepare` to seal the pointer

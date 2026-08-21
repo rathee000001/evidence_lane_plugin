@@ -1,0 +1,116 @@
+{
+  "schema": "evidence-lane.task6-delta-receipt.v1",
+  "status": "PASS",
+  "recorded_at": "2026-08-16T20:50:00.0000000Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a0036f-32fa-79b2-8846-9c716d4fe777",
+  "delta_task_id": "EL-CODEX-T6-PARITY-031-MCP-TOOL-EVAL-MATRIX",
+  "task_contract_sha256": "274DED3F669BD907675B95B7D81F7EB9AE5F32EBDD4EFCB49A530953CA3E7C6A",
+  "source_identity": {
+    "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
+    "head_commit": "4d31cefe546dbe44583f04f0e41a640785e8e797",
+    "accepted_pv": "PV12",
+    "pointer_generation": 12,
+    "pre_delta_worktree_sha256": "EC89B38642FF6D2F0C4EADB5F502C6A3F79E6B949E1A1FC2E488B7C999049D6A",
+    "implementation_worktree_sha256_before_receipt": "DADBB5C2BAF25D6E1A38230925302DAAF853EAF0C3DDEE58361BE1291A6DCEC5"
+  },
+  "implementation": {
+    "contract": "EVERY_PUBLIC_TOOL_HAS_SEALED_METADATA_AND_SEVEN_SIDE_EFFECT_FREE_CASE_CLASSES",
+    "case_classes": [
+      "representative",
+      "edge",
+      "missing",
+      "empty",
+      "auth",
+      "write_confirmation",
+      "unsupported"
+    ],
+    "source_catalog": {
+      "tool_count": 86,
+      "read_tool_count": 27,
+      "write_tool_count": 59,
+      "case_evaluation_count": 602,
+      "matrix_sha256": "C10DDCEAFFFD1829A655D712D3FD314AC7A0D4F5E88BC1F933F6CD2E7353EB33",
+      "raw_catalog_sha256": "88C900AA521A5A1801ED2953C4204497E2E8A07D84F70D7FB3A1681A83BB457F",
+      "untested_public_tools": []
+    },
+    "exact_installed_catalog": {
+      "plugin_identity": "evidence-lane-v300-testing-new/evidence-lane-plugin/3.0.0+codex.20260816100041.local.row224.r32",
+      "tool_count": 83,
+      "case_evaluation_count": 581,
+      "matrix_sha256": "91ED41BEC369AD21B0FA12E85A6173C0A771BA03A10E8BCE7697E50BBC13EFE0",
+      "raw_catalog_sha256": "466296D8A479B286A0FB1E5E4BF2A56DDF7DCC5183A0555F0C72F7F87B435110",
+      "untested_public_tools": []
+    },
+    "source_only_preinstall_tools": [
+      "learning_memory_query",
+      "learning_memory_record_link",
+      "learning_record_host_memory_import"
+    ],
+    "validation_policy": "PYDANTIC_ARGUMENT_MODEL_AND_REGISTRY_CONTRACT_ONLY_NO_HANDLER_INVOCATION",
+    "write_policy": "WRITE_CONFIRMATION_IS_SCHEMA_VALIDATED_WITHOUT_EXECUTING_ANY_WRITE_HANDLER",
+    "receipt_policy": "COMPACT_COUNTS_HASHES_AND_FAILURE_NAMES_ONLY",
+    "full_matrix_policy": "IN_PROCESS_PRIVATE_ATTRIBUTE_NOT_RETURNED_BY_NATIVE_ROUTE_RECEIPT",
+    "raw_tool_schemas_returned": false,
+    "side_effect_free": true
+  },
+  "changed_paths": [
+    {
+      "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py",
+      "sha256": "AB2522C587A06CF726829AFE144C59958A393C109F4F0F5C78237259A91DE320"
+    },
+    {
+      "path": "tests/test_public_surface_parity_matrix.py",
+      "sha256": "79F620C31CAA4547C5E48C7DA07DBBBA7C3124939FA9F47EC7D516EEED4AC292"
+    }
+  ],
+  "verification": [
+    {
+      "selector": "Source and exact-installed public-tool evaluation matrices plus native-route compact receipt",
+      "command": "project-runtime-python -m pytest -q tests/test_public_surface_parity_matrix.py tests/test_mcp_native_server.py::test_native_route_receipt_seals_the_exact_unique_catalog --disable-warnings --maxfail=1",
+      "status": "PASS",
+      "output": "9 passed in 3.15s"
+    },
+    {
+      "selector": "Public matrix, inventory, native route, real stdio transport, and OAuth policy integration slice",
+      "command": "project-runtime-python -m pytest -q tests/test_public_surface_parity_matrix.py tests/test_mcp_surface.py::test_mcp_tool_inventory_and_annotations tests/test_mcp_native_server.py::test_native_route_receipt_seals_the_exact_unique_catalog tests/test_mcp_stdio_transport.py::test_real_stdio_transport_lists_tools_and_calls_doctor tests/test_mcp_oauth_policy.py::test_oauth_tool_policy_enforces_scope_role_environment_and_project tests/test_mcp_oauth_policy.py::test_oauth_server_declares_exact_per_tool_security_schemes --disable-warnings --maxfail=1",
+      "status": "PASS",
+      "output": "13 passed in 95.16s"
+    },
+    {
+      "selector": "Changed-path lint and diff integrity",
+      "command": "project-runtime-python -m ruff check plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py tests/test_public_surface_parity_matrix.py; git diff --check -- changed-paths",
+      "status": "PASS",
+      "output": "Ruff PASS; diff-check PASS"
+    }
+  ],
+  "negative_cases": [
+    "a deliberately malformed runtime_doctor contract makes the matrix BLOCKED and names runtime_doctor in untested_public_tools",
+    "missing and empty arguments are independently validated for every public tool",
+    "OAuth-required and unsupported-call cases are independently represented for every public tool",
+    "write-confirmation cases validate the exact argument model without invoking a write handler",
+    "the compact native receipt excludes raw schemas and full per-tool records"
+  ],
+  "boundaries": {
+    "candidate_created": false,
+    "pending_hil": false,
+    "hil_invoked": false,
+    "hil_inferred": false,
+    "pointer_moved": false,
+    "git_executed": false,
+    "install_executed": false,
+    "helper_launched": false,
+    "tunnel_launched": false,
+    "hooks_enabled": false,
+    "source_write_scope": "ROW236_PERMITTED_MCP_AND_TEST_PATHS_ONLY",
+    "write_handler_invoked_by_matrix": false,
+    "external_credential_used": false,
+    "live_provider_mutation_performed": false
+  },
+  "limitations": [
+    "The exact installed catalog contains 83 tools while source contains 86; the three source-only memory tools are explicit pre-install release drift and both catalogs were evaluated independently.",
+    "The existing files are not bulk-formatted because repository-wide format output would rewrite unrelated pre-existing lines; changed-path lint and diff integrity pass.",
+    "The installed plugin is unchanged; installation remains owned by a later governed release row."
+  ]
+}

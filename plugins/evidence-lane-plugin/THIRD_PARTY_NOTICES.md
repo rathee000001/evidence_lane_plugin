@@ -38,7 +38,7 @@ generate an SBOM for the exact release artifact, audit its complete transitive
 dependency and native-binary graph, and preserve every required notice.
 
 The ordered repository-facing summary is
-[`THIRD_PARTY_LICENSES.md`](../../THIRD_PARTY_LICENSES.md). The exact declared
+[`THIRD_PARTY_LICENSES.md`](../../docs/THIRD_PARTY_LICENSES.md). The exact declared
 direct-version table is
 [`docs/DEPENDENCY_LICENSE_AUDIT.md`](../../docs/DEPENDENCY_LICENSE_AUDIT.md),
 and the lane-to-tool declaration is

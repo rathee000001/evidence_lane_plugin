@@ -16,6 +16,9 @@ node_modules/
 .runtime/
 .hil/
 .vercel/
+.github-pages-build/
+.tmp-flash-check/
+notes/
 *.log
 .env
 .env.*

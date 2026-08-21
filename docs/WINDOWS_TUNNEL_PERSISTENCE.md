@@ -1,9 +1,10 @@
 # Persistent Windows tunnel and two-slot recovery
 
-Evidence Lane 2.2 keeps the Codex lifecycle on the package-local native MCP.
+Evidence Lane 3.0 keeps the Codex lifecycle on the package-local native MCP.
 The Windows tunnel is a separate, version-bound support channel selected only
-when measured runtime capability explicitly requires it. A durable local Codex
-desktop does not install or use it for lifecycle work. Tunnel health never
+when measured runtime capability explicitly proves a host-tool gap. A durable
+local Codex desktop or CLI uses native MCP when available and uses the tunnel
+only for that measured gap. Tunnel health never
 substitutes for the native 83-tool catalog,
 project/session binding, accepted pointer, or HIL proof.
 
@@ -28,10 +29,12 @@ expose them.
 
 | Host profile | PV storage | Tunnel rule |
 | --- | --- | --- |
-| Interactive Codex on a local PC with proven durable storage | Durable local SQLite | Not required for the native Codex lifecycle |
-| Interactive Codex on a durable remote workspace | Durable remote SQLite or explicit connector when required | Not required unless a separate host capability receipt explicitly selects it |
-| Interactive Codex on an ephemeral VM | Durable mount or explicit transactional connector | Install for that VM lifetime only |
-| Codex CLI or headless API on a local/persistent host | Durable local SQLite when available | Not required at the API layer |
+| Interactive Codex on a local PC with native MCP available | Durable local SQLite | Not required; use native MCP |
+| Interactive Codex on a local PC with a proven host-tool gap | Durable local SQLite | Install once for the persistent host and exact release |
+| Interactive Codex on a durable remote workspace | Durable remote SQLite or explicit connector when required | Native MCP when available; version-bound tunnel only for a proven tool gap |
+| Interactive Codex on an ephemeral VM | Durable mount or explicit transactional connector | Native MCP when available; otherwise install for that VM lifetime only |
+| Native Codex CLI on a local/persistent host | Durable local SQLite when available | Native MCP when available; version-bound tunnel only for a proven tool gap |
+| Direct CLI/API on a local/persistent host | Durable local SQLite when available | Not required at the API layer |
 | Headless API on an ephemeral VM | Durable mount or explicit transactional connector | Not required at the API layer |
 
 Account tier and API billing do not select storage or tunnel routing. Every
@@ -40,14 +43,15 @@ fallback is forbidden.
 
 ## Capability-gated setup
 
-Do not run this for a durable local Codex desktop. After the runtime classifier
-proves an interactive ephemeral VM that requires the support channel, run from
-a reviewed checkout with that VM's exact identity:
+Do not run this when native MCP is available. After the runtime classifier
+proves an interactive host-tool gap, run from a reviewed checkout with the
+exact host lifetime and, for an ephemeral VM, its exact identity:
 
 ```powershell
 & ".\plugins\evidence-lane-plugin\scripts\windows_tunnel\Install-EvidenceLaneTunnel.ps1" `
-  -SlotRole stable-build `
+  -SlotRole main-git-release `
   -InteractionProfile CODEX_APP_INTERACTIVE `
+  -HostToolTransport HOST_TOOL_GAP `
   -HostLifetime Ephemeral `
   -VmInstanceId "<exact-vm-instance-id>" `
   -Activate
@@ -61,12 +65,12 @@ the DPAPI envelope and tunnel runtime end with that VM.
 Verify the installed runtime without exposing credentials:
 
 ```powershell
-& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build\Manage-EvidenceLaneTunnel.ps1" `
+& "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v300-stable-build\Manage-EvidenceLaneTunnel.ps1" `
   -Action Status `
-  -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build" `
-  -ProfileName evidence_lane_v220_stable_build_transport `
-  -TaskName EvidenceLane-Tunnel-v220-stable-build `
-  -ReleaseToken v220
+  -RuntimeRoot "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v300-stable-build" `
+  -ProfileName evidence_lane_v300_stable_build_transport `
+  -TaskName EvidenceLane-Tunnel-v300-stable-build `
+  -ReleaseToken v300
 ```
 
 `PASS` requires the scheduled task, exact client path and SHA-256, one live PID,
@@ -95,7 +99,7 @@ Deltas, and evidence remain preserved outside the live cache.
 The two-slot registry is keyed by exact plugin selector, build identity, package
 SHA-256, installation receipt, cache root, tunnel marker, task name, and profile
 name. It is not keyed only by semantic version. The pre-HIL source target is
-2.2.0, the accepted/base GitLane release is 2.1.0, and direct host evidence
+3.0.0, the accepted/base GitLane release is 2.1.0, and direct host evidence
 showed the disabled fallback at 2.0.0. Those identities remain separate until
 their later governed install/readback gates pass.
 
@@ -106,7 +110,7 @@ with `-WindowStyle Hidden`. Older versioned helper/tunnel tasks and runtimes are
 retained and disabled rather than deleted. The intermediate PV13 decision may
 Fuse PV13 only and cannot rotate main or fallback. After exact human approval
 and Fuse of the physically final PV14, the maintainer route must promote the
-accepted commit, install that exact 2.2 package into both enabled Stable and
+accepted commit, install that exact 3.0 package into both enabled Stable and
 disabled fallback, rotate matching helper/tunnel identities, and prove only one
 runtime active. Later plugin releases repeat this serial transaction. A user's
 ordinary project PV never invokes or inherits it.
@@ -115,8 +119,8 @@ ordinary project PV never invokes or inherits it.
 
 `scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1` composes saved tunnel
 managers with `Restart-EvidenceLaneCodex.ps1` only for a route whose capability
-receipt explicitly requires a tunnel. The native local no-tunnel route skips
-tunnel start/stop and must still enforce exactly one active plugin/MCP slot.
+receipt explicitly requires a tunnel. Any native-MCP route skips tunnel
+start/stop and must still enforce exactly one active plugin/MCP slot.
 
 Failover may be prepared in either of two ways:
 

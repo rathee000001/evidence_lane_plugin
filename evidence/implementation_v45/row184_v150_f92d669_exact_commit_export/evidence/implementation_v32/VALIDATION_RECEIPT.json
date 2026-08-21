@@ -1,0 +1,139 @@
+{
+  "schema": "evidence-lane.capability-routing-plan-projection-validation.v32",
+  "recorded_at": "2026-07-30T09:53:19.5660135Z",
+  "status": "CORRECTION_VALIDATED_AWAITING_EXACT_COMMIT_AND_HOST_PICKUP",
+  "source": {
+    "workspace_authority": "F:\\test codex",
+    "branch": "agent/evi-persistent-lifecycle-v0.5.0",
+    "parent_head": "d995110c90aeeb7e557b16f1b31cc0348d2b0cb0",
+    "implementation_tree_before_evidence": "95bbed9a5fdab16ccce11370297bee14feca6573",
+    "staged_implementation_files": 7,
+    "staged_implementation_insertions": 24,
+    "staged_implementation_deletions": 7,
+    "remote_main": "4dd109c53af461eed2a69e2f3a0d411c5cb2564e",
+    "remote_feature_branch_before_correction": "d995110c90aeeb7e557b16f1b31cc0348d2b0cb0",
+    "d_drive_inspected_or_mutated": false
+  },
+  "correction": {
+    "plugin_manifest_version": "0.5.3+codex.20260730094521",
+    "engine_version": "0.5.3",
+    "defect_found_during_exact_git_bootstrap": true,
+    "prior_host_connector_dependency": "REQUIRED_ON_PLUGIN_INSTALL",
+    "corrected_host_connector_dependency": "CAPABILITY_ROUTED_NOT_GLOBALLY_REQUIRED",
+    "corrected_connector_connection_state": "HOST_OAUTH_OPTIONAL_UNTIL_PERSISTENCE_ROUTE_SELECTS_DRIVE",
+    "normal_host_oauth_route_preserved": true,
+    "connector_token_exposed_to_mcp": false,
+    "google_drive_connection_claimed": false,
+    "direct_server_drive_backend_configured": false
+  },
+  "plan_runtime_repair": {
+    "authority": "APPEND_ONLY_TASK_BACKLOG_EVENT_LEDGER",
+    "projection_role": "DERIVED_CONTROL_PLANE_INDEX",
+    "before_status": "STALE",
+    "before_event_count": 20,
+    "expected_event_count": 21,
+    "after_status": "PASS",
+    "after_event_count": 21,
+    "after_event_head_sha256": "8499F2A7C26617F4C904E35207A80400975A1D68E2E0302305DC57C1586D89C9",
+    "after_projection_content_sha256": "2FC9E7BA97B56EDD4C91969A1D89F119D86EAE79027B68E306021195D09F24B0",
+    "after_sqlite_sha256": "AD49DD3614269AB0A5702B0AD847E7A121EC841EC4384EE6605B0C4F6E48BE87",
+    "sqlite_integrity": [
+      "ok"
+    ],
+    "foreign_key_errors": 0,
+    "plan_count": 7,
+    "planning_mode_event_count": 1,
+    "canonical_plan_sector_mutated": false,
+    "canonical_backlog_rewritten": false,
+    "delta_status_changed": false
+  },
+  "validation": {
+    "full_pytest": {
+      "status": "PASS",
+      "passed": 71,
+      "failed": 0,
+      "duration_seconds": 398.88
+    },
+    "focused_correction": {
+      "status": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "duration_seconds": 4.71
+    },
+    "official_plugin_validator": "PASS",
+    "ruff_lint": "PASS",
+    "ruff_format": "PASS",
+    "mypy": {
+      "status": "PASS",
+      "source_files": 39,
+      "issues": 0
+    },
+    "bandit": "PASS",
+    "pip_check": "PASS",
+    "pip_audit": {
+      "status": "PASS",
+      "known_vulnerabilities": 0
+    },
+    "root_python_package_build": {
+      "status": "PASS",
+      "wheel": "evidence_lane_plugin-0.5.3-py3-none-any.whl",
+      "wheel_sha256": "D9055E0D360C9F72420DB60E2DEF665D1AC1B87D09F39E8CE6A3391EE4BC7E49",
+      "sdist": "evidence_lane_plugin-0.5.3.tar.gz",
+      "sdist_sha256": "C77502083C2B222ED8A0EA7E508BB002A99008BFEECF6ABA3800A147035EABE8"
+    },
+    "plugin_python_package_build": {
+      "status": "PASS",
+      "wheel": "evidence_lane_plugin-0.5.3-py3-none-any.whl",
+      "wheel_sha256": "E236E6C3BB46AE883988BDE8D19844961693395A766A68B454EB20675B23FB97",
+      "sdist": "evidence_lane_plugin-0.5.3.tar.gz",
+      "sdist_sha256": "46CE0E234781FC235ACFF99D9E7A2B95BFD0B7470ACEE08B5831CA03894D35D4"
+    },
+    "isolated_wheel_install": {
+      "status": "PASS",
+      "installed_version": "0.5.3",
+      "schema_resource_present": true,
+      "flash_manifest_resource_present": true
+    },
+    "git_diff_check": "PASS"
+  },
+  "live_governance_boundary": {
+    "project_id": "test-codex-evidence-lane-plugin",
+    "session_id": "session_01kyg2m4qeqy3cbkmj278zp96h",
+    "state": "TASK_CLASSIFIED",
+    "accepted_pv": null,
+    "pointer_generation": 0,
+    "preserved_candidates": [
+      "PV1_CANDIDATE__RUN_01KYG2MA34M7V5C9RDMA3T51DJ",
+      "PV1_CANDIDATE__RUN_01KYR17PNDNXXJQQ288T3CG18H"
+    ],
+    "linear_delta_count": 21,
+    "linear_delta_status": {
+      "QUEUED": 21
+    },
+    "universal_statuses": [
+      "QUEUED",
+      "ACTIVE",
+      "DONE",
+      "ACCEPTED",
+      "REJECTED",
+      "DROPPED",
+      "SUPERSEDED",
+      "FAILED",
+      "ROLLED_BACK"
+    ],
+    "candidate_promoted": false,
+    "pointer_moved": false,
+    "hil_success_inferred": false
+  },
+  "authorized_next_boundary": {
+    "feature_branch_commit_and_non_force_push": true,
+    "remote_main_push": false,
+    "main_merge": false,
+    "pv_fuse": false,
+    "pointer_move": false,
+    "vercel_deployment_for_private_hil": false,
+    "codex_install_source": "EXACT_GIT_COMMIT_AFTER_PUSH",
+    "chatgpt_private_transport": "OPENAI_SECURE_MCP_TUNNEL",
+    "universal_hil_required_after_host_verification": true
+  }
+}

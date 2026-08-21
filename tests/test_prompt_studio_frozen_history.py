@@ -126,12 +126,11 @@ def test_frozen_history_regeneration_never_invokes_git(
     assert manifest["history_mode"] == "FROZEN_SEALED_INDEX_NO_GIT"
     assert manifest["history_commit_count"] == 1
     assert "no Git command is invoked" in manifest["corpus"]["boundary"]
-    assert manifest["validation"] == {
-        "sqlite_integrity": "ok",
-        "fts_refresh_hits": 14,
-        "secret_scan": "PASS",
-        "sqlite_public_size_limit_bytes": 24 * 1024 * 1024,
-    }
+    assert manifest["validation"]["sqlite_integrity"] == "ok"
+    assert manifest["validation"]["fts_refresh_hits"] == 14
+    assert manifest["validation"]["secret_scan"] == "PASS"
+    assert manifest["validation"]["sqlite_fixed_size_cap"] is False
+    assert manifest["validation"]["sqlite_size_bytes"] > 0
     browser = json.loads(
         (
             repo

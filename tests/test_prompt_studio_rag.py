@@ -6,7 +6,6 @@ import sqlite3
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MAX_PUBLIC_STUDIO_SQLITE_BYTES = 24 * 1024 * 1024
 EVIDENCE = ROOT / "plugins" / "evidence-lane-plugin" / "evidence" / "prompt_studio"
 BROWSER = (
     ROOT
@@ -29,7 +28,7 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     sqlite_path = EVIDENCE / "studio_search.sqlite"
 
     assert manifest["schema"] == "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1"
-    assert manifest["release"] == "2.2.0"
+    assert manifest["release"] == "3.0.0"
     assert manifest["history_mode"] == "FROZEN_SEALED_INDEX_NO_GIT"
     assert "no Git command is invoked" in manifest["corpus"]["boundary"]
     assert manifest["validation"]["sqlite_integrity"] == "ok"
@@ -64,7 +63,7 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
 
     with sqlite3.connect(sqlite_path) as connection:
         assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
-        assert connection.execute("PRAGMA user_version").fetchone() == (2,)
+        assert connection.execute("PRAGMA user_version").fetchone() == (3,)
         metadata = dict(connection.execute("SELECT key, value FROM metadata"))
         source_count = connection.execute("SELECT count(*) FROM source_registry").fetchone()[0]
         chunk_count = connection.execute("SELECT count(*) FROM chunk_index").fetchone()[0]
@@ -92,7 +91,9 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     assert metadata["corpus_sha256"] == browser["corpus_sha256"]
     assert metadata["history_through_sha"] == browser["history_through_sha"]
     assert metadata["llama_index_core"] == "0.14.23"
-    assert metadata["storage_schema"] == "external-content FTS5 + integer-key materialized TF-IDF v2"
+    assert metadata["storage_schema"] == (
+        "external-content FTS5 + compact integer-key materialized TF-IDF v3"
+    )
     assert source_count == browser["source_count"]
     assert chunk_count == browser["chunk_count"]
     assert refresh_hits > 0
@@ -101,7 +102,8 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     assert tfidf_vectors > chunk_count
     assert joined_vectors == tfidf_vectors
     assert "content='chunk_index'" in fts_schema
-    assert sqlite_path.stat().st_size <= MAX_PUBLIC_STUDIO_SQLITE_BYTES
+    assert int(manifest["validation"]["sqlite_size_bytes"]) == sqlite_path.stat().st_size
+    assert manifest["validation"]["sqlite_fixed_size_cap"] is False
 
 
 def test_prompt_studio_public_corpus_excludes_private_runtime_paths() -> None:

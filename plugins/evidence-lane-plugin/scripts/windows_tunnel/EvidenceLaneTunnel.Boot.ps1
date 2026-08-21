@@ -1,13 +1,22 @@
 [CmdletBinding()]
 param(
-    [string]$RuntimeRoot = "$env:USERPROFILE\EvidenceLanePV\tunnel-runtime-v220-stable-build",
-    [string]$ProfileName = "evidence_lane_v220_stable_build_transport",
+    [string]$RuntimeRoot = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin\tunnel-runtime-v300-stable-build",
+    [string]$ProfileName = "evidence_lane_v300_stable_build_transport",
     [string]$ProfileDir = "$env:APPDATA\tunnel-client",
-    [string]$ReleaseToken = "v220"
+    [string]$ReleaseToken = "v300"
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+$exactRuntimeRoot = [IO.Path]::GetFullPath($RuntimeRoot)
+$expectedRuntimeControlRoot = [IO.Path]::GetFullPath(
+    (Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin")
+)
+$approvedRuntimeParent = $expectedRuntimeControlRoot + [IO.Path]::DirectorySeparatorChar
+if (-not $exactRuntimeRoot.StartsWith($approvedRuntimeParent, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "Tunnel boot requires the exact hidden Evidence Lane Codex runtime boundary."
+}
 
 $expectedClientSha256 = "D893D8127EEE35070D265C1BE29BFE008F8D9FCB476E7FEBF56C8FDC6C0615C8"
 $markerFile = Join-Path $RuntimeRoot "evidence-lane-tunnel-installation.json"

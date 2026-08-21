@@ -870,7 +870,7 @@ def _authority_snapshot(root: Path) -> dict[str, str]:
     return {
         "project_truth_pointer_sha256": _file_identity(root / "active_pointer.json"),
         "learning_pointer_sha256": _file_identity(
-            root / "learning" / "active_pointer.json"
+            root / "ai_learning" / "active_pointer.json"
         ),
     }
 

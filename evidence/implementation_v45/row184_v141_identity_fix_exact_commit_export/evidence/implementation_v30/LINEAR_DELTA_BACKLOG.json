@@ -1,0 +1,119 @@
+{
+  "schema": "evidence-lane.linear-delta-backlog-snapshot.v30",
+  "recorded_at": "2026-07-30T08:27:02.2876007Z",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "status": "PASS",
+  "linear_only": true,
+  "active_task_limit": 1,
+  "count": 20,
+  "counts": {
+    "QUEUED": 20
+  },
+  "active_backlog_task_ids": [],
+  "tasks": [
+    {
+      "sequence": 1,
+      "task_id": "EL-CODEX-PERSISTENT-LIFECYCLE-DELTA-003",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 2,
+      "task_id": "EVIDENCE-LANE-PLUGIN-READONLY-COMPARISON-FORENSIC-DELTA-002",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 3,
+      "task_id": "EVIDENCE-LANE-PLUGIN-CODEX-COMMANDS-CHATGPT-PARITY-DELTA-001",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 4,
+      "task_id": "EL-RELEASE-DOCS-TEST-COMMIT-DELTA-004",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 5,
+      "task_id": "EL-GOVERNED-PUBLISH-REINSTALL-DEPLOY-DELTA-005",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 6,
+      "task_id": "EL-CHAT-LINEAGE-UNIVERSAL-RUNTIME-DELTA-006",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 7,
+      "task_id": "EL-ENV-UOP-VERIFIED-RUNTIME-PROJECTION-DELTA-007",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 8,
+      "task_id": "EL-MULTI-SOURCE-AUTOROUTE-DELTA-008",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 9,
+      "task_id": "EL-CHAT-LINEAGE-USAGE-METRICS-DELTA-009",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 10,
+      "task_id": "EL-EXIT-SLIP-NEXT-ACTION-DELTA-010",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 11,
+      "task_id": "EL-STATE-TRAVEL-FRESH-WINDOW-DELTA-011",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 12,
+      "task_id": "EL-MODE-INTERSECTION-SIDECAR-DELTA-012",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 13,
+      "task_id": "EL-LOCAL-DRIVE-CAPABILITY-ROUTING-DELTA-013",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 14,
+      "task_id": "EL-PERSISTENT-ATOMIC-BOOT-FLASH-DELTA-014",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 15,
+      "task_id": "EL-EVI-ORDERED-SURFACE-DELTA-015",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 16,
+      "task_id": "EL-CODEX-STEER-CHATLINEAGE-DELTA-016",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 17,
+      "task_id": "EL-STORAGE-CONNECTOR-POLICY-DELTA-017",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 18,
+      "task_id": "EL-GOVERNED-ADDITIONAL-PLUGINS-DELTA-018",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 19,
+      "task_id": "EL-CHATGPT-PUBLIC-CHROME-INSTALL-DELTA-019",
+      "status": "QUEUED"
+    },
+    {
+      "sequence": 20,
+      "task_id": "EL-PLAN-LANE-AUTOMATIC-LIFECYCLE-DELTA-020",
+      "status": "QUEUED"
+    }
+  ],
+  "plan_count": 6,
+  "candidate_promoted": false,
+  "pointer_moved": false,
+  "hil_success_inferred": false
+}

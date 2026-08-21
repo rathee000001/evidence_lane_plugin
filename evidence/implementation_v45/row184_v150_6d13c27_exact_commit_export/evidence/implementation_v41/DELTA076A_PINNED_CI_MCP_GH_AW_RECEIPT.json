@@ -1,0 +1,144 @@
+{
+  "action_pin_governance": {
+    "accepted_container_reference": "docker://image@sha256:FULL_64_HEX_DIGEST",
+    "accepted_local_reference": "./path bound to the same commit",
+    "accepted_remote_reference": "owner/repository[/path]@FULL_40_HEX_COMMIT_SHA",
+    "rejected_references": [
+      "branch",
+      "tag",
+      "short SHA",
+      "dynamic expression",
+      "Docker tag",
+      "unparseable uses value"
+    ]
+  },
+  "delta": "EL-V130-PINNED-CI-MCP-GH-AW-CONTROLS-DELTA-076A",
+  "github_aw_governance": {
+    "content_integrity_order": [
+      "none",
+      "unapproved",
+      "approved",
+      "merged"
+    ],
+    "deny_codes": {
+      "ACTOR_NOT_BLOCKED": -32005,
+      "CONTENT_INTEGRITY_SUFFICIENT": -32006,
+      "PRIVATE_REPOSITORY_ALLOWED": -32004,
+      "REPOSITORY_ALLOWED": -32002,
+      "ROLE_ALLOWED": -32003,
+      "TOOL_ALLOWED": -32001
+    },
+    "first_failed_guard_wins": true,
+    "fixture_policy_sha256": "B2477475EAA8A095C93878D6D1956BEFE6DE3C23B98F2126AD4AA0DE737F542C",
+    "guard_order": [
+      "TOOL_ALLOWED",
+      "REPOSITORY_ALLOWED",
+      "ROLE_ALLOWED",
+      "PRIVATE_REPOSITORY_ALLOWED",
+      "ACTOR_NOT_BLOCKED",
+      "CONTENT_INTEGRITY_SUFFICIENT"
+    ],
+    "matrix": [
+      {
+        "case": "allow",
+        "code": 0,
+        "decision": "ALLOW",
+        "failed_guard": null,
+        "trace_length": 6
+      },
+      {
+        "case": "tool",
+        "code": -32001,
+        "decision": "DENY",
+        "failed_guard": "TOOL_ALLOWED",
+        "trace_length": 1
+      },
+      {
+        "case": "repository",
+        "code": -32002,
+        "decision": "DENY",
+        "failed_guard": "REPOSITORY_ALLOWED",
+        "trace_length": 2
+      },
+      {
+        "case": "role",
+        "code": -32003,
+        "decision": "DENY",
+        "failed_guard": "ROLE_ALLOWED",
+        "trace_length": 3
+      },
+      {
+        "case": "private_repository",
+        "code": -32004,
+        "decision": "DENY",
+        "failed_guard": "PRIVATE_REPOSITORY_ALLOWED",
+        "trace_length": 4
+      },
+      {
+        "case": "blocked_user",
+        "code": -32005,
+        "decision": "DENY",
+        "failed_guard": "ACTOR_NOT_BLOCKED",
+        "trace_length": 5
+      },
+      {
+        "case": "content_integrity",
+        "code": -32006,
+        "decision": "DENY",
+        "failed_guard": "CONTENT_INTEGRITY_SUFFICIENT",
+        "trace_length": 6
+      }
+    ]
+  },
+  "mcp_tool_exposure": {
+    "absent_policy_mode": "LOCAL_REGISTERED_INVENTORY",
+    "configuration": "EVIDENCE_LANE_MCP_ALLOWED_TOOLS exact JSON array",
+    "explicit_policy_mode": "EXACT_ALLOWLIST",
+    "poc": {
+      "exposed_tool_count": 2,
+      "policy_sha256": "622CB2D961A4F1AB8D526353CFC8504E57B5BC8B7FC2EBE3AA616295725F405F",
+      "receipt_sha256": "FE80A181C83751FB5E7E515A8E64FCB32F19903216EE62892E77934160C9369A",
+      "registered_tool_count": 58,
+      "removed_tool_count": 56
+    },
+    "unknown_or_invalid_policy": "BLOCKED"
+  },
+  "prohibitions": {
+    "deployed": false,
+    "github_remote_action_executed": false,
+    "main_merged": false,
+    "pointer_moved": false,
+    "pv_built": false,
+    "refresh_or_fuse": false
+  },
+  "receipt_sha256": "1BB1827F8DC14530E6E2F6EC873CBB4655AB33D817D97A603B5A4432C0F344C3",
+  "schema": "evidence-lane.delta076a-receipt.v1",
+  "source_files": {
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/github_automation_governance.py": "3F8CC34C66F078BB0AD13D81F6161B14F9C49B3DC9F019DA8BB97F41EC88EAC4",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py": "78EA657E7867DA973D00C77B01F328AE524988259E41675A392AC127526D94B5",
+    "tests/test_github_automation_governance.py": "B712168DA533550CA8DB773F4F1E22FCAF2C3FBCF8E2133707D59427FD3442B6"
+  },
+  "supplied_authority_validation": {
+    "enforced_delta": "Outer GitHub permissions remain mandatory; explicit internal policy never relies on fail-open scope discovery.",
+    "gh_aw_access_control_contract": "specs/github-mcp-access-control-compliance/README.md plus combined-filter and wildcard fixtures",
+    "gh_aw_locked_workflows": {
+      "audit_sha256": "8F18429E43FBF2E92FD6153CAE3EB3D9959359B16A3215F499A0D77EE969F56D",
+      "file_count": 269,
+      "local_same_commit_count": 1953,
+      "reference_count": 20307,
+      "reference_set_sha256": "CACDA1145C74D900EDDBA98C6848BFA16B1A812AB68885305FC04F2690CA7979",
+      "remote_full_commit_sha_count": 18354,
+      "selection": "*.lock.yml",
+      "status": "PASS",
+      "violation_count": 0
+    },
+    "github_mcp_permission_boundary": "docs/policies-and-governance.md",
+    "github_mcp_scope_filter_boundary": "docs/scope-filtering.md and docs/server-configuration.md"
+  },
+  "tests": {
+    "focused_and_existing_mcp": "27 passed in 95.75s",
+    "git_diff_check": "PASS",
+    "mypy": "PASS",
+    "ruff": "PASS"
+  }
+}

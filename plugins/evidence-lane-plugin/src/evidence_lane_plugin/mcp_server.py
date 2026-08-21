@@ -1,4 +1,4 @@
-"""Universal MCP runtime contract; 2.2.0 is the Codex package release."""
+"""Universal MCP runtime contract; 3.0.0 is the Codex package release."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from mcp.server.auth.settings import AuthSettings
 from mcp.server.fastmcp import FastMCP
 from mcp.types import CallToolResult, Icon, TextContent, ToolAnnotations
 from mcp.types import Tool as MCPTool
-from pydantic import AnyHttpUrl
+from pydantic import AnyHttpUrl, ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
@@ -105,11 +105,7 @@ def resolve_skill_mcp_plugin_root() -> Path:
     source = Path(__file__).resolve()
     for ancestor in source.parents:
         if (
-            ancestor
-            / "skills"
-            / "evi"
-            / "references"
-            / "mcp-tool-routing.v1.json"
+            ancestor / "skills" / "evi" / "references" / "mcp-tool-routing.v1.json"
         ).is_file():
             return ancestor
 
@@ -119,9 +115,8 @@ def resolve_skill_mcp_plugin_root() -> Path:
         details={"environment_variable": _PLUGIN_ROOT_ENV},
     )
 
-SDK_NATIVE_ACTIONS: tuple[
-    tuple[str, str, str, str, str, bool], ...
-] = (
+
+SDK_NATIVE_ACTIONS: tuple[tuple[str, str, str, str, str, bool], ...] = (
     (
         "canon_inspect",
         "Inspect Canon authority",
@@ -267,6 +262,30 @@ SDK_NATIVE_ACTIONS: tuple[
         True,
     ),
     (
+        "learning_memory_query",
+        "Query cross-sector memory",
+        "Compatibility action name routed to the independent Project Memory SDK arm. Query one bounded project-isolated FTS5/BM25 locator slice across the governed sectors and authorities; raw databases and Markdown never enter the result.",
+        "project_memory",
+        "query",
+        True,
+    ),
+    (
+        "learning_memory_record_link",
+        "Record cross-sector memory link",
+        "Compatibility action name routed to the independent Project Memory SDK arm. Append one typed, content-addressed locator edge without storing raw source bytes, promoting a candidate, invoking HIL, or moving Project Truth.",
+        "project_memory",
+        "record_link",
+        False,
+    ),
+    (
+        "learning_record_host_memory_import",
+        "Record host-memory provenance",
+        "Explicitly seal one nonauthoritative host-memory provenance receipt and link only its bounded locator to the governed Plan context; automatic import and promotion remain forbidden.",
+        "agent_learning",
+        "record_host_memory_import",
+        False,
+    ),
+    (
         "learning_seal_candidate",
         "Seal Agent Learning candidate",
         "Seal one evidence-backed project-isolated Learning candidate. It remains unaccepted and cannot change Project Truth.",
@@ -292,9 +311,7 @@ SDK_NATIVE_ACTIONS: tuple[
     ),
 )
 
-SDK_NATIVE_READ_TOOL_NAMES = tuple(
-    row[0] for row in SDK_NATIVE_ACTIONS if row[5]
-)
+SDK_NATIVE_READ_TOOL_NAMES = tuple(row[0] for row in SDK_NATIVE_ACTIONS if row[5])
 CODEX_READ_TOOL_NAMES = (
     *SDK_NATIVE_READ_TOOL_NAMES,
     "connector_plugin_catalog",
@@ -321,8 +338,8 @@ CODEX_READ_TOOL_NAMES = (
 )
 
 if (
-    len(SDK_NATIVE_ACTIONS) != 21
-    or len(SDK_NATIVE_READ_TOOL_NAMES) != 5
+    len(SDK_NATIVE_ACTIONS) != 24
+    or len(SDK_NATIVE_READ_TOOL_NAMES) != 6
     or len(CODEX_READ_TOOL_NAMES) != NATIVE_READ_TOOL_COUNT
     or NATIVE_TOOL_COUNT - NATIVE_READ_TOOL_COUNT != NATIVE_WRITE_TOOL_COUNT
     or GOVERNED_SKILL_COUNT != 17
@@ -426,9 +443,7 @@ def _oauth_authorization_result(
             if error_name == "invalid_token"
             else "The access token lacks one or more scopes required by this tool."
         )
-        metadata_url = str(
-            build_resource_metadata_url(AnyHttpUrl(config.audience))
-        )
+        metadata_url = str(build_resource_metadata_url(AnyHttpUrl(config.audience)))
         parameters = [
             f'error="{error_name}"',
             f'error_description="{description}"',
@@ -485,6 +500,7 @@ def _mcp_instructions(exposure_profile: str) -> str:
         raise RuntimeError("Evidence Lane 2.0 supports only the Codex full lifecycle.")
     return _FULL_LIFECYCLE_INSTRUCTIONS
 
+
 _READ_ONLY = ToolAnnotations(
     readOnlyHint=True,
     destructiveHint=False,
@@ -538,6 +554,12 @@ def _apply_evidence_lane_tool_icons(mcp: FastMCP, public_site_url: str) -> None:
 class _EvidenceLaneFastMCP(FastMCP):
     """Expose current top-level tool security schemes plus the legacy mirror."""
 
+    async def call_tool(self, name: str, arguments: dict[str, Any]) -> Any:
+        """Keep structured receipts without duplicating their JSON into text."""
+
+        result = await super().call_tool(name, arguments)
+        return _compact_fastmcp_structured_result(name, result)
+
     async def list_tools(self) -> list[MCPTool]:
         listed = await super().list_tools()
         result: list[MCPTool] = []
@@ -550,6 +572,36 @@ class _EvidenceLaneFastMCP(FastMCP):
         return result
 
 
+def _compact_fastmcp_structured_result(tool_name: str, result: Any) -> Any:
+    """Replace FastMCP's duplicate JSON text with one fixed-size receipt."""
+
+    if not (
+        isinstance(result, tuple) and len(result) == 2 and isinstance(result[1], dict)
+    ):
+        return result
+    structured = cast(dict[str, Any], result[1])
+    data = structured.get("data")
+    data_status = data.get("status") if isinstance(data, dict) else None
+    status = str(structured.get("status") or data_status or "PASS")
+    text_receipt = {
+        "schema": "evidence-lane.mcp-text-receipt.v1",
+        "tool": tool_name,
+        "status": status,
+        "structured_receipt_authoritative": True,
+        "duplicate_structured_json_returned": False,
+        "raw_payload_returned": False,
+    }
+    return (
+        [
+            TextContent(
+                type="text",
+                text=json.dumps(text_receipt, sort_keys=True, separators=(",", ":")),
+            )
+        ],
+        structured,
+    )
+
+
 def _apply_oauth_tool_security_schemes(
     mcp: FastMCP,
     exposure_profile: str,
@@ -557,8 +609,7 @@ def _apply_oauth_tool_security_schemes(
     for tool in mcp._tool_manager.list_tools():
         scopes = [READ_SCOPE]
         is_write = bool(
-            tool.annotations is not None
-            and tool.annotations.readOnlyHint is False
+            tool.annotations is not None and tool.annotations.readOnlyHint is False
         )
         if is_write:
             scopes.append(WRITE_SCOPE)
@@ -607,7 +658,9 @@ def inspect_skill_mcp_routing(
         "SKILL_MCP_ROUTING_INVALID",
         "The shared skill MCP routing schema is not supported.",
         expected_schema=SKILL_MCP_ROUTING_SCHEMA,
-        observed_schema=(manifest.get("schema") if isinstance(manifest, dict) else None),
+        observed_schema=(
+            manifest.get("schema") if isinstance(manifest, dict) else None
+        ),
     )
     manifest_format = "SEALED_WORKFLOW_STEPS_V1"
     flat_owner_snapshot: dict[str, str] | None = None
@@ -659,9 +712,7 @@ def inspect_skill_mcp_routing(
                 tools = cast(list[str], tools)
                 workflow_id = f"ordered-group-{expected_order}"
                 step = {"tool": tools[0]} if len(tools) == 1 else {"one_of": tools}
-                transformed_workflows.append(
-                    {"id": workflow_id, "steps": [step]}
-                )
+                transformed_workflows.append({"id": workflow_id, "steps": [step]})
                 transformed_workflow_tools[(skill_name, workflow_id)] = set(tools)
                 for tool_name in tools:
                     transformed_routes.setdefault(tool_name, set()).add(skill_name)
@@ -673,7 +724,10 @@ def inspect_skill_mcp_routing(
             owner_workflow = next(
                 (
                     workflow_id
-                    for (skill_name, workflow_id), tools in transformed_workflow_tools.items()
+                    for (
+                        skill_name,
+                        workflow_id,
+                    ), tools in transformed_workflow_tools.items()
                     if skill_name == owner_skill and tool_name in tools
                 ),
                 None,
@@ -704,22 +758,25 @@ def inspect_skill_mcp_routing(
             "skills": transformed_skills,
             "low_level_operations": transformed_low_level,
         }
-        transformed_manifest["contract_sha256"] = hashlib.sha256(
-            json.dumps(
-                transformed_manifest,
-                ensure_ascii=False,
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode("utf-8")
-        ).hexdigest().upper()
+        transformed_manifest["contract_sha256"] = (
+            hashlib.sha256(
+                json.dumps(
+                    transformed_manifest,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            )
+            .hexdigest()
+            .upper()
+        )
         manifest = transformed_manifest
     server_dependency = manifest.get("server_dependency")
     require(
         isinstance(server_dependency, dict)
         and server_dependency.get("type") == "mcp"
         and server_dependency.get("value") == NATIVE_MCP_SERVER_IDENTITY
-        and server_dependency.get("description")
-        == "Evidence Lane native MCP server",
+        and server_dependency.get("description") == "Evidence Lane native MCP server",
         "SKILL_MCP_ROUTING_INVALID",
         "The skill MCP dependency does not bind the native server identity.",
         expected_server=NATIVE_MCP_SERVER_IDENTITY,
@@ -773,14 +830,18 @@ def inspect_skill_mcp_routing(
     unsigned_manifest = {
         key: value for key, value in manifest.items() if key != "contract_sha256"
     }
-    expected_contract_sha256 = hashlib.sha256(
-        json.dumps(
-            unsigned_manifest,
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        ).encode("utf-8")
-    ).hexdigest().upper()
+    expected_contract_sha256 = (
+        hashlib.sha256(
+            json.dumps(
+                unsigned_manifest,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        )
+        .hexdigest()
+        .upper()
+    )
     require(
         observed_contract_sha256 == expected_contract_sha256,
         "SKILL_MCP_ROUTING_INVALID",
@@ -892,9 +953,7 @@ def inspect_skill_mcp_routing(
 
     public_tools = registered_set - set(low_level_tools)
     shared_tools = {
-        tool_name
-        for tool_name in public_tools
-        if len(routed_by_tool[tool_name]) > 1
+        tool_name for tool_name in public_tools if len(routed_by_tool[tool_name]) > 1
     }
     require(
         set(shared_operation_owners) == shared_tools,
@@ -944,9 +1003,9 @@ def inspect_skill_mcp_routing(
     dependency_fragment = (
         "dependencies:\n"
         "  tools:\n"
-        "    - type: \"mcp\"\n"
-        "      value: \"evidence-lane\"\n"
-        "      description: \"Evidence Lane native MCP server\""
+        '    - type: "mcp"\n'
+        '      value: "evidence-lane"\n'
+        '      description: "Evidence Lane native MCP server"'
     )
     workflow_tool_counts: dict[str, int] = {}
     for skill_name in skill_names:
@@ -961,9 +1020,7 @@ def inspect_skill_mcp_routing(
         )
         try:
             skill_text = skill_path.read_text(encoding="utf-8")
-            openai_text = openai_path.read_text(encoding="utf-8").replace(
-                "\r\n", "\n"
-            )
+            openai_text = openai_path.read_text(encoding="utf-8").replace("\r\n", "\n")
         except OSError as exc:
             raise EvidenceLaneError(
                 code="SKILL_MCP_ROUTING_INVALID",
@@ -988,9 +1045,7 @@ def inspect_skill_mcp_routing(
 
         workflow = workflows[skill_name]
         skill_groups = (
-            workflow.get("ordered_tool_groups")
-            if isinstance(workflow, dict)
-            else None
+            workflow.get("ordered_tool_groups") if isinstance(workflow, dict) else None
         )
         require(
             isinstance(skill_groups, list) and bool(skill_groups),
@@ -1090,6 +1145,285 @@ def inspect_skill_mcp_routing(
     return receipt
 
 
+_PUBLIC_TOOL_EVALUATION_CASES = (
+    "representative",
+    "edge",
+    "missing",
+    "empty",
+    "auth",
+    "write_confirmation",
+    "unsupported",
+)
+
+
+def _tool_schema_case_value(
+    schema: dict[str, Any],
+    *,
+    edge: bool,
+) -> Any:
+    """Build one deterministic, non-secret argument value from JSON Schema."""
+
+    if "const" in schema:
+        return schema["const"]
+    enum = schema.get("enum")
+    if isinstance(enum, list) and enum:
+        return enum[-1 if edge else 0]
+    any_of = schema.get("anyOf")
+    if isinstance(any_of, list):
+        candidates = [
+            row for row in any_of if isinstance(row, dict) and row.get("type") != "null"
+        ]
+        if candidates:
+            return _tool_schema_case_value(
+                candidates[-1 if edge else 0],
+                edge=edge,
+            )
+    schema_type = schema.get("type")
+    if schema_type == "string":
+        return "" if edge else "value"
+    if schema_type == "integer":
+        return 0 if edge else 1
+    if schema_type == "number":
+        return 0.0 if edge else 1.0
+    if schema_type == "boolean":
+        return not edge
+    if schema_type == "array":
+        if edge:
+            return []
+        items = schema.get("items")
+        return [
+            _tool_schema_case_value(
+                items if isinstance(items, dict) else {"type": "string"},
+                edge=False,
+            )
+        ]
+    if schema_type == "object":
+        properties = schema.get("properties")
+        required = schema.get("required")
+        if isinstance(properties, dict) and isinstance(required, list):
+            return {
+                name: _tool_schema_case_value(
+                    cast(dict[str, Any], properties[name]),
+                    edge=edge,
+                )
+                for name in required
+                if isinstance(properties.get(name), dict)
+            }
+        return {} if edge else {"key": "value"}
+    return None
+
+
+def _tool_arguments_validate(tool: Any, arguments: dict[str, Any]) -> bool:
+    """Validate arguments without invoking a public tool or causing writes."""
+
+    try:
+        tool.fn_metadata.arg_model.model_validate(arguments)
+    except ValidationError:
+        return False
+    return True
+
+
+def build_public_tool_evaluation_matrix(
+    mcp: FastMCP,
+    *,
+    oauth_enabled: bool,
+) -> dict[str, Any]:
+    """Evaluate every exposed MCP contract without executing write handlers.
+
+    The full per-tool matrix remains an in-process verification artifact. Native
+    receipts expose only counts and hashes so a catalog check cannot unload the
+    catalog or its schemas into the model context.
+    """
+
+    tools = sorted(mcp._tool_manager.list_tools(), key=lambda item: item.name)
+    tool_names = {tool.name for tool in tools}
+    records: list[dict[str, Any]] = []
+    untested: list[str] = []
+    input_schema_records: list[dict[str, str]] = []
+    output_schema_records: list[dict[str, str]] = []
+    for tool in tools:
+        input_schema = cast(dict[str, Any], tool.parameters)
+        output_schema = tool.output_schema
+        properties = cast(
+            dict[str, dict[str, Any]],
+            input_schema.get("properties") or {},
+        )
+        required = [
+            str(name) for name in cast(list[Any], input_schema.get("required") or [])
+        ]
+        representative = {
+            name: _tool_schema_case_value(properties[name], edge=False)
+            for name in required
+        }
+        edge = {
+            name: _tool_schema_case_value(properties[name], edge=True)
+            for name in required
+        }
+        representative_pass = _tool_arguments_validate(tool, representative)
+        edge_pass = _tool_arguments_validate(tool, edge)
+        if required:
+            missing_pass = all(
+                not _tool_arguments_validate(
+                    tool,
+                    {
+                        name: value
+                        for name, value in representative.items()
+                        if name != omitted
+                    },
+                )
+                for omitted in required
+            )
+        else:
+            missing_pass = _tool_arguments_validate(tool, {})
+        empty_pass = _tool_arguments_validate(tool, {}) is (not required)
+
+        annotations = (
+            tool.annotations.model_dump(exclude_none=True)
+            if tool.annotations is not None
+            else {}
+        )
+        read_only = annotations.get("readOnlyHint") is not False
+        expected_scopes = [READ_SCOPE]
+        if not read_only:
+            expected_scopes.append(WRITE_SCOPE)
+            if tool.name in {
+                "remote_git_prepare_push",
+                "remote_git_execute_push",
+            }:
+                expected_scopes.append(REMOTE_GIT_SCOPE)
+        security_schemes = (tool.meta or {}).get("securitySchemes")
+        expected_security = [{"type": "oauth2", "scopes": expected_scopes}]
+        auth_pass = (
+            security_schemes == expected_security
+            if oauth_enabled
+            else security_schemes is None
+        )
+        write_confirmation_pass = (
+            annotations.get("readOnlyHint") is True
+            if read_only
+            else annotations.get("readOnlyHint") is False
+            and (not oauth_enabled or WRITE_SCOPE in expected_scopes)
+        )
+        unsupported_pass = (
+            f"{tool.name}__unsupported" not in tool_names
+            and mcp._tool_manager.get_tool(f"{tool.name}__unsupported") is None
+        )
+        cases = {
+            "representative": representative_pass,
+            "edge": edge_pass,
+            "missing": missing_pass,
+            "empty": empty_pass,
+            "auth": auth_pass,
+            "write_confirmation": write_confirmation_pass,
+            "unsupported": unsupported_pass,
+        }
+        input_schema_sha256 = (
+            hashlib.sha256(
+                json.dumps(
+                    input_schema,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            )
+            .hexdigest()
+            .upper()
+        )
+        output_schema_sha256 = (
+            hashlib.sha256(
+                json.dumps(
+                    output_schema,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            )
+            .hexdigest()
+            .upper()
+        )
+        metadata = {
+            "name": tool.name,
+            "title": tool.title,
+            "description": tool.description,
+            "annotations": annotations,
+            "meta": tool.meta,
+            "input_schema_sha256": input_schema_sha256,
+            "output_schema_sha256": output_schema_sha256,
+        }
+        metadata_sha256 = (
+            hashlib.sha256(
+                json.dumps(
+                    metadata,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            )
+            .hexdigest()
+            .upper()
+        )
+        record = {
+            "name": tool.name,
+            "input_schema_sha256": input_schema_sha256,
+            "output_schema_sha256": output_schema_sha256,
+            "metadata_sha256": metadata_sha256,
+            "read_only": read_only,
+            "required_argument_count": len(required),
+            "cases": {
+                name: "PASS" if cases[name] else "BLOCKED"
+                for name in _PUBLIC_TOOL_EVALUATION_CASES
+            },
+        }
+        if not all(cases.values()):
+            untested.append(tool.name)
+        records.append(record)
+        input_schema_records.append({"name": tool.name, "sha256": input_schema_sha256})
+        output_schema_records.append(
+            {"name": tool.name, "sha256": output_schema_sha256}
+        )
+    records_canonical = json.dumps(
+        records,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return {
+        "schema": "evidence-lane.public-tool-evaluation-matrix.v1",
+        "status": "PASS" if not untested else "BLOCKED",
+        "tool_count": len(records),
+        "schema_metadata_sealed_count": len(records),
+        "case_classes": list(_PUBLIC_TOOL_EVALUATION_CASES),
+        "case_evaluation_count": len(records) * len(_PUBLIC_TOOL_EVALUATION_CASES),
+        "read_tool_count": sum(record["read_only"] for record in records),
+        "write_tool_count": sum(not record["read_only"] for record in records),
+        "oauth_enabled": oauth_enabled,
+        "handler_invocation_mode": "SCHEMA_AND_REGISTRY_ONLY_NO_WRITE_EXECUTION",
+        "side_effect_free": True,
+        "raw_tool_schemas_returned": False,
+        "untested_public_tools": untested,
+        "input_schema_inventory_sha256": hashlib.sha256(
+            json.dumps(
+                input_schema_records,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        )
+        .hexdigest()
+        .upper(),
+        "output_schema_inventory_sha256": hashlib.sha256(
+            json.dumps(
+                output_schema_records,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        )
+        .hexdigest()
+        .upper(),
+        "matrix_sha256": hashlib.sha256(records_canonical).hexdigest().upper(),
+        "records": records,
+    }
+
+
 def _native_route_receipt(
     mcp: FastMCP,
     exposure_profile: str,
@@ -1133,7 +1467,16 @@ def _native_route_receipt(
         for tool in project_scoped_tools
         if "project_id" not in set(tool.parameters.get("required") or [])
     )
-    catalog_valid = len(names) == len(set(names)) and not missing_project_route
+    tool_evaluation = build_public_tool_evaluation_matrix(
+        mcp,
+        oauth_enabled=oauth_config is not None,
+    )
+    mcp._evidence_lane_public_tool_evaluation_matrix = tool_evaluation  # type: ignore[attr-defined]
+    catalog_valid = (
+        len(names) == len(set(names))
+        and not missing_project_route
+        and tool_evaluation["status"] == "PASS"
+    )
     return {
         "schema": "evidence-lane.native-mcp-route-receipt.v1",
         "status": "PASS" if catalog_valid else "BLOCKED",
@@ -1171,9 +1514,7 @@ def _native_route_receipt(
                 else None
             ),
             "allowed_client_count": (
-                len(oauth_config.allowed_client_ids)
-                if oauth_config is not None
-                else 0
+                len(oauth_config.allowed_client_ids) if oauth_config is not None else 0
             ),
             "roles_claim": (
                 oauth_config.roles_claim if oauth_config is not None else None
@@ -1191,6 +1532,9 @@ def _native_route_receipt(
             ),
         },
         "tool_catalog_sha256": hashlib.sha256(canonical).hexdigest().upper(),
+        "public_tool_evaluation": {
+            key: value for key, value in tool_evaluation.items() if key != "records"
+        },
         "mcp_apps_resource_uri": GOVERNED_PANEL_URI,
         "host_display_namespace_is_authority": False,
         "accepted_display_namespaces": [
@@ -1231,9 +1575,7 @@ def create_mcp_server(
     release_identity = backend_application.engine.doctor()["engine"]
     exact_exposure_profile = _normalize_exposure_profile(exposure_profile)
     authorization_policy = (
-        OAuthToolAuthorizationPolicy(oauth_config)
-        if oauth_config is not None
-        else None
+        OAuthToolAuthorizationPolicy(oauth_config) if oauth_config is not None else None
     )
     application = _MCPExposureBoundary(
         backend_application,
@@ -1481,7 +1823,10 @@ def create_mcp_server(
             "always include Chat Lineage, and append a visible classification "
             "receipt. GOVERNED_CONTENT_REGISTRY additionally records deterministic "
             "read-only source identities without copying payloads, building a "
-            "candidate, or moving a pointer."
+            "candidate, or moving a pointer. Optional turn_entry binds the exact "
+            "active Delta, refreshes and boundedly queries WORKING sector indexes "
+            "plus lane-scoped Study Brain profiles, and appends its real formula "
+            "lineage without adding another executable Plan row."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Classifying Source Intake", "Source Intake classified"),
@@ -1495,6 +1840,7 @@ def create_mcp_server(
         git_mode: str = "AUTO",
         authority_mode: str = "CLASSIFICATION_ONLY",
         source_assertions: dict[str, dict[str, Any]] | None = None,
+        turn_entry: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "source_intake_classify",
@@ -1506,6 +1852,56 @@ def create_mcp_server(
             git_mode=git_mode,
             authority_mode=authority_mode,
             source_assertions=source_assertions,
+            turn_entry=turn_entry,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="adaptive_delta_exit",
+        title="Seal one adaptive Delta exit",
+        description=(
+            "Verify the exact active Delta, targeted PASS receipts, grouped or exact "
+            "local-install disposition, and all distinct registered hook states; then "
+            "refresh Learning, Canon, Memory, and Universe through the internal SDK, "
+            "close the task formula, and seal one replay-safe receipt. The route never "
+            "advances the Plan row, creates a candidate, invokes HIL, moves the accepted "
+            "pointer, or mutates Git."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta("Sealing adaptive Delta exit", "Adaptive Delta exit sealed"),
+        structured_output=True,
+    )
+    def adaptive_delta_exit(
+        project_id: str,
+        session_id: str,
+        task_id: str,
+        source_event_id: str,
+        prior_formula_sha256: str,
+        formula: dict[str, Any],
+        validator_results: list[dict[str, Any]],
+        install_disposition: dict[str, Any],
+        actor: str = "ADAPTIVE_DELTA_EXIT",
+        hook_progression: list[dict[str, Any]] | None = None,
+        fixed_window_task_ids: list[str] | None = None,
+        observed_host_plan: dict[str, Any] | None = None,
+        event_id: str | None = None,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "adaptive_delta_exit",
+            application.adaptive_delta_exit,
+            project_id,
+            session_id,
+            task_id=task_id,
+            source_event_id=source_event_id,
+            prior_formula_sha256=prior_formula_sha256,
+            formula=formula,
+            validator_results=validator_results,
+            install_disposition=install_disposition,
+            actor=actor,
+            hook_progression=hook_progression,
+            fixed_window_task_ids=fixed_window_task_ids,
+            observed_host_plan=observed_host_plan,
+            event_id=event_id,
             lifecycle=True,
         )
 
@@ -2328,8 +2724,11 @@ def create_mcp_server(
         title="Register one Git project",
         description=(
             "Register one explicitly authorized local Git repository and branch set "
-            "in the private plugin store. Idempotent only when all authority fields "
-            "match the existing registration."
+            "against one user-project authority root. Idempotent only when all "
+            "authority fields match. An existing legacy combined route may be "
+            "relocated only with the exact migration confirmation and pointer "
+            "preconditions; the route never creates a candidate, infers HIL, or "
+            "moves the accepted pointer."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Registering governed project", "Project registration complete"),
@@ -2344,6 +2743,11 @@ def create_mcp_server(
         allowed_branches: list[str],
         sensitivity: str = "PRIVATE",
         capture_route: str = "GOVERNED_PROJECT_FULL",
+        project_authority_root: str | None = None,
+        project_authority_migration_confirmation: str | None = None,
+        expected_accepted_pv: str | None = None,
+        expected_pointer_generation: int | None = None,
+        selected_by: str | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "project_register",
@@ -2356,6 +2760,13 @@ def create_mcp_server(
             allowed_branches=allowed_branches,
             sensitivity=sensitivity,
             capture_route=capture_route,
+            project_authority_root=project_authority_root,
+            project_authority_migration_confirmation=(
+                project_authority_migration_confirmation
+            ),
+            expected_accepted_pv=expected_accepted_pv,
+            expected_pointer_generation=expected_pointer_generation,
+            selected_by=selected_by,
             lifecycle=True,
         )
 
@@ -2386,7 +2797,10 @@ def create_mcp_server(
             "row; and atomically reseals the same governed session/runtime task. It "
             "does not replace the row, create or complete a Goal, create a candidate, "
             "invoke HIL, move the pointer, run Git, install, launch a helper, or open "
-            "a tunnel."
+            "a tunnel. An optional existing_task_promotion uses an empty top-level "
+            "task list and atomically moves one already-recorded queued Delta before "
+            "the sole ACTIVE row, preserving stable task identity and count while "
+            "rebinding the same session and persistent 1+9 host projection."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Queuing linear task plan", "Linear task plan queued"),
@@ -2402,6 +2816,7 @@ def create_mcp_server(
         normalization_transition: dict[str, Any] | None = None,
         atomic_insertion: dict[str, Any] | None = None,
         active_contract_rebind: dict[str, Any] | None = None,
+        existing_task_promotion: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "pv_plan_tasks",
@@ -2415,6 +2830,7 @@ def create_mcp_server(
             normalization_transition=normalization_transition,
             atomic_insertion=atomic_insertion,
             active_contract_rebind=active_contract_rebind,
+            existing_task_promotion=existing_task_promotion,
             lifecycle=True,
         )
 
@@ -2486,11 +2902,13 @@ def create_mcp_server(
 
     @mcp.tool(
         name="pv_task_transition",
-        title="Drop or supersede one Delta",
+        title="Transition or correct one Delta",
         description=(
             "Append one explicit DROP or SUPERSEDE transition to the immutable "
             "Delta lifecycle ledger. SUPERSEDE requires a different queued "
-            "replacement task; neither operation deletes or reorders history."
+            "replacement task. CORRECT_DROP is a hash-bound recovery for a "
+            "DROP that was persisted before dependency validation failed; it "
+            "preserves the failed event and restores only the exact QUEUED state."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Recording Delta transition", "Delta transition recorded"),
@@ -2499,11 +2917,13 @@ def create_mcp_server(
     def pv_task_transition(
         project_id: str,
         task_id: str,
-        transition: Literal["DROP", "SUPERSEDE"],
+        transition: Literal["DROP", "SUPERSEDE", "CORRECT_DROP"],
         decided_by: str,
         reason: str,
         replacement_task_id: str | None = None,
         event_id: str | None = None,
+        correction_of_event_id: str | None = None,
+        expected_backlog_sha256: str | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "pv_task_transition",
@@ -2515,6 +2935,8 @@ def create_mcp_server(
             reason=reason,
             replacement_task_id=replacement_task_id,
             event_id=event_id,
+            correction_of_event_id=correction_of_event_id,
+            expected_backlog_sha256=expected_backlog_sha256,
             lifecycle=True,
         )
 
@@ -2652,9 +3074,7 @@ def create_mcp_server(
         backlog_task_id: str | None = None,
         active_delta_verification: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        native_route_receipt = getattr(
-            mcp, "_evidence_lane_native_route_receipt", None
-        )
+        native_route_receipt = getattr(mcp, "_evidence_lane_native_route_receipt", None)
         active_session = application.sessions.load(project_id, session_id)
         fallback_prewarm_proof: dict[str, Any] | None = None
         task_checkpoint_proof: dict[str, Any] | None = None
@@ -2669,10 +3089,9 @@ def create_mcp_server(
             ),
             None,
         )
-        strong_delta_verification_required = (
-            isinstance(active_plan_task, dict)
-            and requires_per_delta_local_verification(active_plan_task)
-        )
+        strong_delta_verification_required = isinstance(
+            active_plan_task, dict
+        ) and requires_per_delta_local_verification(active_plan_task)
         if (
             active_session.metadata.get("active_backlog_task_id")
             == "EL-CODEX-PV11-FALLBACK-SLOT-INSTALL-PREWARM-DELTA-149"
@@ -2731,8 +3150,7 @@ def create_mcp_server(
                 except TurnControlError as exc:
                     task_checkpoint_proof = {
                         "schema": (
-                            "evidence-lane."
-                            "per-delta-local-verification-checkpoint.v1"
+                            "evidence-lane.per-delta-local-verification-checkpoint.v1"
                         ),
                         "status": "FAIL",
                         "verification_kind": "PER_DELTA_LOCAL_VERIFICATION",
@@ -2765,9 +3183,7 @@ def create_mcp_server(
                 == backlog_task_id
                 and isinstance(prior_checkpoint.get("verification_proof"), dict)
             ):
-                task_checkpoint_proof = dict(
-                    prior_checkpoint["verification_proof"]
-                )
+                task_checkpoint_proof = dict(prior_checkpoint["verification_proof"])
         project_panel_snapshot = build_project_panel_snapshot(
             project_id=project_id,
             project_status=application.status(project_id),
@@ -3012,6 +3428,44 @@ def create_mcp_server(
             project_id,
             session_id,
             resume_contract=resume_contract,
+            lifecycle=True,
+        )
+
+    @mcp.tool(
+        name="pv_state_travel_direct_force_same_worktree",
+        title="Verify direct same-worktree State Travel",
+        description=(
+            "Use the separately named no-seal recovery route exactly once for a "
+            "genuinely new native Codex task that shares the source worktree. It "
+            "atomically verifies source/donor/destination task identities, exact "
+            "dirty bytes, PV pointer baseline, live Plan/1+9/HIL anchors, installed "
+            "plugin/catalog, Flash/runtime/profile, sole-writer and hooks-off laws; "
+            "then binds the existing governed session to the destination. It never "
+            "calls or consumes sealed prepare/resume, creates a candidate, infers "
+            "HIL, moves a pointer, runs Git, installs, or replays."
+        ),
+        annotations=_LOCAL_WRITE,
+        meta=_meta(
+            "Verifying direct same-worktree State Travel",
+            "Direct same-worktree State Travel verified",
+        ),
+        structured_output=True,
+    )
+    def pv_state_travel_direct_force_same_worktree(
+        project_id: str,
+        session_id: str,
+        binding: dict[str, Any],
+        client_can_edit_source: bool | None = True,
+        server_has_durable_filesystem: bool | None = True,
+    ) -> dict[str, Any]:
+        return application.invoke(
+            "pv_state_travel_direct_force_same_worktree",
+            application.direct_force_same_worktree_state_travel,
+            project_id=project_id,
+            session_id=session_id,
+            binding=binding,
+            client_can_edit_source=client_can_edit_source,
+            server_has_durable_filesystem=server_has_durable_filesystem,
             lifecycle=True,
         )
 
@@ -3523,12 +3977,8 @@ def create_mcp_server(
         "service_public_method_count": service_route_review[
             "service_public_method_count"
         ],
-        "mcp_workflow_method_count": service_route_review[
-            "mcp_workflow_method_count"
-        ],
-        "sdk_workflow_method_count": service_route_review[
-            "sdk_workflow_method_count"
-        ],
+        "mcp_workflow_method_count": service_route_review["mcp_workflow_method_count"],
+        "sdk_workflow_method_count": service_route_review["sdk_workflow_method_count"],
         "eligible_unrouted_method_count": service_route_review[
             "eligible_unrouted_method_count"
         ],
@@ -3543,12 +3993,8 @@ def create_mcp_server(
         "skill_count": skill_mcp_routing_review["skill_count"],
         "tool_count": skill_mcp_routing_review["tool_count"],
         "owned_tool_count": skill_mcp_routing_review["owned_tool_count"],
-        "low_level_tool_count": skill_mcp_routing_review[
-            "low_level_tool_count"
-        ],
-        "missing_tool_behavior": skill_mcp_routing_review[
-            "missing_tool_behavior"
-        ],
+        "low_level_tool_count": skill_mcp_routing_review["low_level_tool_count"],
+        "missing_tool_behavior": skill_mcp_routing_review["missing_tool_behavior"],
         "manifest_sha256": skill_mcp_routing_review["manifest_sha256"],
         "receipt_sha256": skill_mcp_routing_review["receipt_sha256"],
     }

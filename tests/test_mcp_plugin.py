@@ -53,7 +53,7 @@ from .conftest import (
     state_travel_destination_creation,
 )
 
-EXPECTED_TOOL_COUNT = 83
+EXPECTED_TOOL_COUNT = 88
 
 
 def _hook_context_json(payload: dict[str, object], prefix: str) -> dict[str, object]:
@@ -78,6 +78,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "lane_catalog",
         "mode_classify",
         "source_intake_classify",
+        "adaptive_delta_exit",
         "source_custom_schema_compile",
         "source_intake_schema_configure",
         "source_identity_register",
@@ -110,6 +111,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "hil_decide",
         "pv_fuse",
         "pv_state_travel_prepare",
+        "pv_state_travel_direct_force_same_worktree",
         "pv_state_travel_resume",
         "pv_rollback",
         "hil_return_to_accepted",
@@ -133,7 +135,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "storage_connector_select",
     }
     sdk_tool_names = {row[0] for row in SDK_NATIVE_ACTIONS}
-    assert len(sdk_tool_names) == 21
+    assert len(sdk_tool_names) == 24
     assert set(by_name) == base_tool_names | sdk_tool_names
     assert by_name["search"].annotations.readOnlyHint is True
     assert by_name["fetch"].annotations.readOnlyHint is True
@@ -160,13 +162,18 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     assert by_name["pv_rollback"].annotations.destructiveHint is True
     assert by_name["pv_fuse"].annotations.destructiveHint is True
     assert by_name["pv_state_travel_prepare"].annotations.destructiveHint is False
+    assert (
+        by_name["pv_state_travel_direct_force_same_worktree"]
+        .annotations.destructiveHint
+        is False
+    )
     assert by_name["pv_state_travel_resume"].annotations.destructiveHint is False
     assert by_name["hil_return_to_accepted"].annotations.destructiveHint is True
     assert by_name["remote_git_execute_push"].annotations.openWorldHint is True
     for tool_name, _, _, _, _, read_only in SDK_NATIVE_ACTIONS:
         assert by_name[tool_name].annotations.readOnlyHint is read_only
         assert by_name[tool_name].annotations.destructiveHint is False
-    assert len(CODEX_READ_TOOL_NAMES) == 26
+    assert len(CODEX_READ_TOOL_NAMES) == 27
     assert (
         "preferred_plugin_id"
         in by_name["connector_plugin_route"].inputSchema["properties"]
@@ -234,7 +241,7 @@ def test_all_registered_tools_accept_generated_evidence_lane_namespaces(
     )
     tools = asyncio.run(server.list_tools())
     canonical_names = frozenset(tool.name for tool in tools)
-    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 83
+    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 88
 
     for namespace in (
         "evidence_lane",
@@ -308,10 +315,10 @@ def test_native_route_receipt_seals_the_exact_unique_catalog(tmp_path: Path) -> 
     assert receipt["status"] == "PASS"
     assert receipt["server_identity"] == NATIVE_MCP_SERVER_IDENTITY == "evidence-lane"
     assert receipt["canonical_tool_namespace"] == NATIVE_MCP_TOOL_NAMESPACE
-    assert receipt["tool_count"] == EXPECTED_TOOL_COUNT == 83
+    assert receipt["tool_count"] == EXPECTED_TOOL_COUNT == 88
     assert receipt["tool_names_unique"] is True
     assert receipt["runtime_global_tool_count"] == 6
-    assert receipt["project_scoped_tool_count"] == 77
+    assert receipt["project_scoped_tool_count"] == 82
     assert receipt["project_route_argument"] == "project_id"
     assert receipt["project_route_argument_required"] is True
     assert receipt["project_route_schema_status"] == "PASS"
@@ -378,13 +385,13 @@ def test_packaged_skill_tool_references_match_live_canonical_catalog(
     canonical_names = frozenset(
         tool.name for tool in asyncio.run(server.list_tools())
     )
-    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 83
+    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 88
     tool_families = frozenset(name.partition("_")[0] for name in canonical_names)
     skill_paths = sorted((plugin / "skills").glob("*/SKILL.md"))
     command_paths = sorted((plugin / "commands").glob("*.md"))
     contract_paths = [*skill_paths, *command_paths]
     assert len(skill_paths) == 17
-    assert [path.name for path in command_paths] == ["evi-plan.md"]
+    assert [path.name for path in command_paths] == ["evi-learning.md", "evi-plan.md"]
 
     referenced_tools: set[str] = set()
     for path in contract_paths:
@@ -410,6 +417,7 @@ def test_packaged_skill_tool_references_match_live_canonical_catalog(
         "storage_connector_inspect",
         "storage_connector_select",
         "pv_state_travel_prepare",
+        "pv_state_travel_direct_force_same_worktree",
         "pv_state_travel_resume",
         "pv_fuse",
     }.issubset(referenced_tools)
@@ -766,7 +774,7 @@ if (initMessages.length !== 1) throw new Error("expected exactly one initialize 
 const init = initMessages[0];
 if (init.origin !== "*") throw new Error("unexpected postMessage target origin");
 if (init.message.params.appInfo.name !== "Evidence Lane") throw new Error("wrong app name");
-if (init.message.params.appInfo.version !== "2.2.0") throw new Error("wrong app version");
+if (init.message.params.appInfo.version !== "3.0.0") throw new Error("wrong app version");
 if (Object.keys(init.message.params.appCapabilities).length !== 0) throw new Error("wrong app capabilities");
 if (init.message.params.protocolVersion !== "2026-01-26") throw new Error("wrong protocol version");
 if (operations.indexOf("listener:message") > operations.indexOf("post:ui/initialize")) {{
@@ -829,7 +837,7 @@ def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> No
         public_site_url=public_site,
     )
     identity = server._mcp_server
-    assert identity.version == ENGINE_VERSION == "2.2.0"
+    assert identity.version == ENGINE_VERSION == "3.0.0"
     assert str(identity.website_url) == public_site
     assert identity.icons is not None
     assert len(identity.icons) == 1
@@ -1052,6 +1060,8 @@ def test_session_start_hook_is_advisory(tmp_path: Path) -> None:
             if line.startswith("PLUGIN_RUNTIME_ENVELOPE=")
         )
     )
+    # This row adds an internal SDK operation without changing the public MCP
+    # catalog, so the advisory hook remains fresh and performs no repair.
     assert runtime["release_policy_state"] == "FRESH"
     assert runtime["host_storage_tunnel_matrix"]["routing_axes_independent"] is True
     assert runtime["host_storage_tunnel_matrix"]["headless_api"][
@@ -1123,7 +1133,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         explicit_modes=["AL", "RS", "PL"],
         session_id=session_id,
     )
-    service.sessions.classify(
+    classified = service.sessions.classify(
         "book-faires",
         session_id,
         task_class=turn_task["task_class"],
@@ -1134,6 +1144,12 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         stop_condition=turn_task["stop_condition"],
         backlog_task_id=turn_task["task_id"],
     )
+    projection = classified["host_plan_rehydration"]["receipt"]["projection"]
+    assert projection["window_task_ids"] == [
+        turn_task["task_id"],
+        final_hil["task_id"],
+    ]
+    assert projection["fixed_header_item_count"] == 1
     service.sessions.confirm_source_update(
         "book-faires",
         session_id,
@@ -1166,7 +1182,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
             "Verify governed prompt rollback from the accepted PV2 entry."
         ),
     }
-    service.record_steer_delta(
+    post_fuse_steer = service.record_steer_delta(
         "book-faires",
         delta_text=(
             "Add the accepted-PV2 prompt rollback verification before the final HIL."
@@ -1175,6 +1191,12 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         delta_id="prompt-index-v2-post-fuse-delta",
         new_task_contract=post_fuse_task,
     )
+    assert post_fuse_steer["host_plan_window_rebind"]["window_task_ids"] == [
+        turn_task["task_id"],
+        post_fuse_task["task_id"],
+        final_hil["task_id"],
+    ]
+    assert post_fuse_steer["host_plan_window_rebind"]["fallback_projector_used"] is False
     service.classify_mode(
         "book-faires",
         "Verify the accepted-PV2 prompt index and rollback contract.",
@@ -1682,7 +1704,10 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
         "evi-learning",
         *public_order,
     }
-    assert [path.name for path in commands.glob("*.md")] == ["evi-plan.md"]
+    assert sorted(path.name for path in commands.glob("*.md")) == [
+        "evi-learning.md",
+        "evi-plan.md",
+    ]
     plan_command = (commands / "evi-plan.md").read_text(encoding="utf-8")
     assert "do not ask the user to type `/pl` or `/evi-plan`" in plan_command
     assert "explicit host Plan acceptance" in plan_command
@@ -1754,12 +1779,26 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
             result = await session.call_tool("runtime_doctor", {})
             assert result.isError is False
             assert result.structuredContent["status"] == "PASS"
+            assert len(result.content) == 1
+            text_receipt = json.loads(result.content[0].text)
+            assert text_receipt == {
+                "duplicate_structured_json_returned": False,
+                "raw_payload_returned": False,
+                "schema": "evidence-lane.mcp-text-receipt.v1",
+                "status": "PASS",
+                "structured_receipt_authoritative": True,
+                "tool": "runtime_doctor",
+            }
             namespaced = await session.call_tool(
                 "evidence_lane_f1c20919f536.runtime_doctor",
                 {},
             )
             assert namespaced.isError is False
             assert namespaced.structuredContent["status"] == "PASS"
+            assert len(namespaced.content) == 1
+            namespaced_text = json.loads(namespaced.content[0].text)
+            assert namespaced_text["duplicate_structured_json_returned"] is False
+            assert namespaced_text["raw_payload_returned"] is False
 
     # A genuinely new dependency-lock/Python-ABI pair may need one governed,
     # hash-locked durable bootstrap before stdio becomes ready. Installed

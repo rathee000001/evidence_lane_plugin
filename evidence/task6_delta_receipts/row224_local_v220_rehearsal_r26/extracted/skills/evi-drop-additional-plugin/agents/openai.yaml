@@ -1,0 +1,9 @@
+interface:
+  display_name: "Drop Evidence Lane Plugin"
+  short_description: "Revoke one active connector grant"
+  default_prompt: "Use $evi-drop-additional-plugin to revoke one exact active connector grant while preserving history."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "evidence-lane"
+      description: "Evidence Lane native MCP server"

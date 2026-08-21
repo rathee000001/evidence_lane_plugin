@@ -1,0 +1,128 @@
+{
+  "schema": "evidence-lane.lane-artifact-role-registry.v1",
+  "registry_version": 1,
+  "core_roles": [
+    {
+      "role_id": "sqlite_authority",
+      "classification": "REQUIRED",
+      "path_template": "{sqlite_filename}",
+      "seal": "FOUR_FILE_CONTRACT"
+    },
+    {
+      "role_id": "mermaid_projection",
+      "classification": "REQUIRED",
+      "path_template": "{mmd_filename}",
+      "seal": "FOUR_FILE_CONTRACT"
+    },
+    {
+      "role_id": "dot_projection",
+      "classification": "REQUIRED",
+      "path_template": "{dot_filename}",
+      "seal": "FOUR_FILE_CONTRACT"
+    },
+    {
+      "role_id": "toolchain_identity",
+      "classification": "REQUIRED",
+      "path_template": "tools.json",
+      "seal": "FOUR_FILE_CONTRACT"
+    },
+    {
+      "role_id": "pointer_evidence",
+      "classification": "REQUIRED",
+      "path_template": "lane_pointer.json",
+      "seal": "EVIDENCE_ARTIFACTS"
+    },
+    {
+      "role_id": "refresh_receipt",
+      "classification": "REQUIRED",
+      "path_template": "refresh_receipt.json",
+      "seal": "EVIDENCE_ARTIFACTS"
+    },
+    {
+      "role_id": "lane_manifest",
+      "classification": "REQUIRED",
+      "path_template": "lane_manifest.json",
+      "seal": "SELF_MANIFEST"
+    }
+  ],
+  "extension_policy": {
+    "root_template": "extensions/{extension_id}",
+    "role_id_template": "evidence_lane.{lane_id}.extensions.{extension_id}.{role_name}",
+    "classifications": [
+      "REQUIRED",
+      "CONDITIONAL",
+      "OPTIONAL"
+    ],
+    "undeclared_files": "FAIL_CLOSED",
+    "core_override": "FORBIDDEN",
+    "path_escape": "FORBIDDEN",
+    "symlink": "FORBIDDEN",
+    "unrelated_lane_effect": "NONE"
+  },
+  "role_catalog": {
+    "extension_authority": {
+      "classification": "REQUIRED",
+      "condition": null
+    },
+    "schema_migration_receipt": {
+      "classification": "CONDITIONAL",
+      "condition": "SCHEMA_MIGRATION_APPLIED"
+    },
+    "git_history_export": {
+      "classification": "CONDITIONAL",
+      "condition": "GIT_HISTORY_PRESENT"
+    },
+    "lineage_append_receipt": {
+      "classification": "CONDITIONAL",
+      "condition": "LINEAGE_APPEND_COMMITTED"
+    },
+    "parser_derivative": {
+      "classification": "CONDITIONAL",
+      "condition": "PARSER_DERIVATIVE_EMITTED"
+    },
+    "state_load_receipt": {
+      "classification": "CONDITIONAL",
+      "condition": "STATE_LOAD_EXECUTED"
+    },
+    "sqlite_integrity_report": {
+      "classification": "CONDITIONAL",
+      "condition": "SQLITE_INTEGRITY_EXPORT_REQUESTED"
+    },
+    "dependency_report": {
+      "classification": "OPTIONAL",
+      "condition": null
+    },
+    "render_preview": {
+      "classification": "OPTIONAL",
+      "condition": null
+    },
+    "human_readable_export": {
+      "classification": "OPTIONAL",
+      "condition": null
+    },
+    "diagnostic_report": {
+      "classification": "OPTIONAL",
+      "condition": null
+    }
+  },
+  "lanes": [
+    {"lane_id": "github_code", "conditional_roles": ["schema_migration_receipt", "git_history_export"], "optional_roles": ["dependency_report", "render_preview", "diagnostic_report"]},
+    {"lane_id": "local_code", "conditional_roles": ["schema_migration_receipt", "git_history_export"], "optional_roles": ["dependency_report", "render_preview", "diagnostic_report"]},
+    {"lane_id": "chat_lineage", "conditional_roles": ["schema_migration_receipt", "lineage_append_receipt"], "optional_roles": ["human_readable_export", "diagnostic_report"]},
+    {"lane_id": "discussion", "conditional_roles": ["schema_migration_receipt"], "optional_roles": ["human_readable_export", "render_preview", "diagnostic_report"]},
+    {"lane_id": "analysis", "conditional_roles": ["schema_migration_receipt"], "optional_roles": ["human_readable_export", "render_preview", "diagnostic_report"]},
+    {"lane_id": "plan", "conditional_roles": ["schema_migration_receipt"], "optional_roles": ["human_readable_export", "render_preview", "diagnostic_report"]},
+    {"lane_id": "mode", "conditional_roles": ["schema_migration_receipt"], "optional_roles": ["human_readable_export", "diagnostic_report"]},
+    {"lane_id": "docs", "conditional_roles": ["schema_migration_receipt", "parser_derivative"], "optional_roles": ["human_readable_export", "render_preview", "diagnostic_report"]},
+    {"lane_id": "data_excel", "conditional_roles": ["schema_migration_receipt", "parser_derivative"], "optional_roles": ["human_readable_export", "render_preview", "diagnostic_report"]},
+    {"lane_id": "ppt", "conditional_roles": ["parser_derivative"], "optional_roles": ["render_preview", "human_readable_export", "diagnostic_report"]},
+    {"lane_id": "pdf_ocr", "conditional_roles": ["parser_derivative"], "optional_roles": ["render_preview", "human_readable_export", "diagnostic_report"]},
+    {"lane_id": "images_ocr", "conditional_roles": ["parser_derivative"], "optional_roles": ["render_preview", "human_readable_export", "diagnostic_report"]},
+    {"lane_id": "artifacts", "conditional_roles": ["parser_derivative"], "optional_roles": ["render_preview", "diagnostic_report"]},
+    {"lane_id": "custom", "conditional_roles": ["schema_migration_receipt", "parser_derivative"], "optional_roles": ["human_readable_export", "render_preview", "diagnostic_report"]},
+    {"lane_id": "brain_loader", "conditional_roles": ["schema_migration_receipt", "state_load_receipt"], "optional_roles": ["human_readable_export", "diagnostic_report"]},
+    {"lane_id": "research", "conditional_roles": ["schema_migration_receipt"], "optional_roles": ["human_readable_export", "render_preview", "diagnostic_report"]},
+    {"lane_id": "project_engulf", "conditional_roles": ["schema_migration_receipt", "state_load_receipt"], "optional_roles": ["human_readable_export", "diagnostic_report"]},
+    {"lane_id": "sqlite_brain", "conditional_roles": ["schema_migration_receipt", "sqlite_integrity_report"], "optional_roles": ["human_readable_export", "diagnostic_report"]}
+  ]
+}

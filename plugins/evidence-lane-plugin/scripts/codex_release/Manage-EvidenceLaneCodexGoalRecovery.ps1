@@ -5,9 +5,9 @@ param(
     [string]$TaskBindingReceipt,
     [string]$TaskId,
     [string]$ActivePlanTaskId,
-    [string]$Release = "2.2.0",
+    [string]$Release = "3.0.0",
     [string]$RecoveryRoot = "",
-    [string]$ThreeSlotRegistry = "$env:USERPROFILE\EvidenceLanePV\installations\codex-v220\three-slot\CODEX_THREE_SLOT_REGISTRY.json",
+    [string]$ThreeSlotRegistry = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin\installations\codex-v300\three-slot\CODEX_THREE_SLOT_REGISTRY.json",
     [string]$ThreeSlotRegistrySha256 = "",
     [string]$ScheduledTaskName = ""
 )
@@ -27,7 +27,18 @@ if (
 $script:Release = $Release
 $script:ReleaseToken = "v" + ($Release -replace '\.', '')
 if ([string]::IsNullOrWhiteSpace($RecoveryRoot)) {
-    $RecoveryRoot = Join-Path $env:USERPROFILE "EvidenceLanePV\installations\helpers\$($script:ReleaseToken)\goal-recovery"
+    $RecoveryRoot = Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin\installations\helpers\$($script:ReleaseToken)\goal-recovery"
+}
+$exactRecoveryRoot = [IO.Path]::GetFullPath($RecoveryRoot)
+$expectedRuntimeControlRoot = [IO.Path]::GetFullPath(
+    (Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin")
+)
+$approvedRecoveryParent = $expectedRuntimeControlRoot + [IO.Path]::DirectorySeparatorChar
+if (
+    -not $exactRecoveryRoot.StartsWith($approvedRecoveryParent, [StringComparison]::OrdinalIgnoreCase) -and
+    $Action -cne "Status"
+) {
+    throw "Goal recovery requires the exact hidden Evidence Lane Codex runtime boundary."
 }
 if ([string]::IsNullOrWhiteSpace($ScheduledTaskName)) {
     $ScheduledTaskName = "Evidence Lane Codex Goal Recovery $($script:ReleaseToken)"
@@ -42,8 +53,8 @@ $script:RecoveryManagerRunSchema = "evidence-lane.codex-goal-recovery-manager-ru
 $script:MaxRecoveryAttemptsPerBinding = 2
 $script:RecoveryBackoffSeconds = @(0, 2)
 $script:CanonicalStableSelector = "evidence-lane-plugin@evidence-lane-github"
-$script:LocalTestingSelector = "evidence-lane-plugin@evidence-lane-v220-testing-new"
-$script:LocalRecoverySelector = "evidence-lane-plugin@evidence-lane-v220-stable-recovery"
+$script:LocalTestingSelector = "evidence-lane-plugin@evidence-lane-v300-testing-new"
+$script:LocalRecoverySelector = "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
 $script:GenerationNeutralFallbackSelector = "evidence-lane-plugin@evidence-lane-fallback"
 $script:HostAppProfiles = [ordered]@{
     "OpenAI.Codex_2p2nqsd0c76g0!App" = [ordered]@{
@@ -461,7 +472,7 @@ function Read-TaskLocalRecoveryAuthority([object]$TaskBinding) {
         $authority.mutable_local_failure_never_targets_main_git -ne $true -or
         $authority.branch_commit_recovery_remains_prior_checkpoint -ne $true -or
         $authority.branch_commit_recovery_byte_identical_before_checkpoint -ne $false -or
-        $authority.pre_2_2_recovery_allowed -ne $false
+        $authority.pre_3_0_recovery_allowed -ne $false
     ) {
         throw "The branch-commit recovery authority is incomplete."
     }
@@ -487,7 +498,7 @@ function Read-TaskLocalRecoveryAuthority([object]$TaskBinding) {
         $branch.byte_frozen -ne $true -or
         $local.byte_frozen -ne $false -or
         $registry.mutable_local_failure_never_targets_main_git -ne $true -or
-        $registry.pre_2_2_fallback_allowed -ne $false -or
+        $registry.pre_3_0_fallback_allowed -ne $false -or
         $registry.candidate_created_or_accepted -ne $false -or
         $registry.pointer_moved -ne $false -or
         $registry.hil_inferred -ne $false
@@ -504,7 +515,7 @@ function Read-TaskLocalRecoveryAuthority([object]$TaskBinding) {
         recovery_is_prior_branch_checkpoint = $true
         recovery_enabled = $false
         main_git_recovery_allowed_for_mutable_local_failure = $false
-        pre_2_2_recovery_allowed = $false
+        pre_3_0_recovery_allowed = $false
         selector_switch_requires_exact_registry_and_host_restart = $true
         restart_loop_allowed = $false
     }
@@ -526,7 +537,7 @@ function Read-GoalLocalRecoveryAuthority([object]$GoalBinding) {
         $authority.recovery_is_prior_branch_checkpoint -ne $true -or
         $authority.recovery_enabled -ne $false -or
         $authority.main_git_recovery_allowed_for_mutable_local_failure -ne $false -or
-        $authority.pre_2_2_recovery_allowed -ne $false -or
+        $authority.pre_3_0_recovery_allowed -ne $false -or
         $authority.selector_switch_requires_exact_registry_and_host_restart -ne $true -or
         $authority.restart_loop_allowed -ne $false
     ) {
@@ -684,7 +695,7 @@ function Invoke-CodexGoalProbe(
                 clientInfo = [ordered]@{
                     name = "evidence_lane_goal_recovery"
                     title = "Evidence Lane Goal Recovery"
-                    version = "2.2.0"
+                    version = "3.0.0"
                 }
             }
         }
@@ -762,8 +773,8 @@ function Invoke-CodexGoalProbe(
         }
         $evidenceServer = $evidenceServers[0]
         $toolCount = @($evidenceServer.tools.PSObject.Properties).Count
-        if ($toolCount -ne 83) {
-            throw "The Evidence Lane MCP catalog did not expose the exact 83-tool contract."
+        if ($toolCount -ne 88) {
+            throw "The Evidence Lane MCP catalog did not expose the exact 88-tool contract."
         }
         $governedResourceUri = "ui://evidence-lane/governed-console-v6.html"
         $governedResources = @(
@@ -1087,7 +1098,7 @@ function Read-ThreeSlotAuthority([string]$Path, [string]$ExpectedSha256 = "") {
         [string]$registry.failure_target_slot -cne "branch-commit-recovery" -or
         $registry.mutable_local_failure_never_targets_main_git -ne $true -or
         $registry.branch_recovery_must_remain_prior_checkpoint_until_commit -ne $true -or
-        $registry.pre_2_2_fallback_allowed -ne $false -or
+        $registry.pre_3_0_fallback_allowed -ne $false -or
         $registry.obsolete_live_selectors_allowed -ne $false -or
         [string]$main.plugin_selector -cne $script:CanonicalStableSelector -or
         [string]$branch.plugin_selector -cne $script:LocalRecoverySelector -or
@@ -1120,7 +1131,7 @@ function Read-ThreeSlotAuthority([string]$Path, [string]$ExpectedSha256 = "") {
         mutable_local_enabled = $true
         mutable_local_failure_target = [string]$branch.plugin_selector
         mutable_local_failure_never_targets_main_git = $true
-        pre_2_2_fallback_allowed = $false
+        pre_3_0_fallback_allowed = $false
         exact_live_slot_count = 3
         max_enabled_plugin_count = 1
     }
@@ -1171,6 +1182,7 @@ function Install-RecoveryManager() {
     $arguments = ($argumentValues | ForEach-Object { ConvertTo-WindowsCommandLineArgument ([string]$_) }) -join " "
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
     $existing = Get-ScheduledTask -TaskName $ScheduledTaskName -ErrorAction SilentlyContinue
+    $legacyManagedTaskMigrated = $false
     if ($null -ne $existing) {
         $expectedScriptToken = ConvertTo-WindowsCommandLineArgument $durableScript
         $actionMatches = @(
@@ -1181,9 +1193,32 @@ function Install-RecoveryManager() {
                     [string]$_.Arguments -like "*-Action RecoverAtLogon*"
                 }
         ).Count -eq 1
-        if (-not $actionMatches) {
+        $legacyRecoveryRoot = [IO.Path]::GetFullPath(
+            (Join-Path $env:USERPROFILE "EvidenceLanePV\installations\helpers\$($script:ReleaseToken)\goal-recovery")
+        )
+        $legacyDurableScript = Join-Path $legacyRecoveryRoot "Manage-EvidenceLaneCodexGoalRecovery.ps1"
+        $legacyScriptToken = ConvertTo-WindowsCommandLineArgument $legacyDurableScript
+        $legacyRootToken = ConvertTo-WindowsCommandLineArgument $legacyRecoveryRoot
+        $registryToken = ConvertTo-WindowsCommandLineArgument ([IO.Path]::GetFullPath($ThreeSlotRegistry))
+        $taskNameToken = ConvertTo-WindowsCommandLineArgument $ScheduledTaskName
+        $legacyActionMatches = @(
+            $existing.Actions |
+                Where-Object {
+                    [string]$_.Execute -ieq [string]$powershell -and
+                    [string]$_.Arguments -like "*${legacyScriptToken}*" -and
+                    [string]$_.Arguments -like "*-Action RecoverAtLogon*" -and
+                    [string]$_.Arguments -like "*-Release $($script:Release)*" -and
+                    [string]$_.Arguments -like "*-RecoveryRoot ${legacyRootToken}*" -and
+                    [string]$_.Arguments -like "*-ThreeSlotRegistry ${registryToken}*" -and
+                    [string]$_.Arguments -match '-ThreeSlotRegistrySha256 [A-F0-9]{64}' -and
+                    [string]$_.Arguments -like "*-ScheduledTaskName ${taskNameToken}*"
+                }
+        ).Count -eq 1 -and
+            [string]$existing.Description -ceq "Reopen exact active Evidence Lane governed Codex Goal tasks after Windows logon; never submits a prompt or changes lifecycle state."
+        if (-not $actionMatches -and -not $legacyActionMatches) {
             throw "An unrelated scheduled task already owns the recovery task name."
         }
+        $legacyManagedTaskMigrated = -not $actionMatches -and $legacyActionMatches
     }
     $scheduledAction = New-ScheduledTaskAction -Execute $powershell -Argument $arguments
     $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity
@@ -1236,6 +1271,8 @@ function Install-RecoveryManager() {
         durable_script = $durableScript
         durable_script_sha256 = Get-Sha256 $durableScript
         scheduled_task_name = $ScheduledTaskName
+        legacy_managed_task_migrated_to_hidden_runtime = $legacyManagedTaskMigrated
+        legacy_managed_task_deleted = $false
         trigger = "AT_LOGON_CURRENT_WINDOWS_USER"
         start_when_available = $true
         max_instances = 1
@@ -1409,7 +1446,7 @@ if ($Action -eq "Register") {
             branch_commit_recovery_must_remain_disabled_until_sealed_switch = $true
             branch_commit_recovery_remains_prior_checkpoint = $true
             mutable_local_failure_may_target_only_branch_recovery = $true
-            pre_2_2_automatic_recovery_allowed = $false
+            pre_3_0_automatic_recovery_allowed = $false
             recovery_switch_requires_host_restart = $true
             stable_selector_growth_allowed = $false
             exact_bound_host_app_required = $true
@@ -1466,7 +1503,7 @@ if ($Action -eq "Register") {
         mutable_local_failure_target = $slotAuthority.mutable_local_failure_target
         mutable_local_failure_never_targets_main_git = $true
         local_recovery_selector = if ($null -eq $localRecoveryAuthority) { $null } else { [string]$localRecoveryAuthority.recovery_selector }
-        pre_2_2_automatic_recovery_allowed = $false
+        pre_3_0_automatic_recovery_allowed = $false
         host_app_id = [string]$hostProfile.app_id
         host_application = [string]$hostProfile.host_application
         exact_live_slot_count = 3
@@ -1571,7 +1608,7 @@ if ($Action -eq "RecoverNow") {
         mutable_local_failure_target = [string]$slotAuthority.mutable_local_failure_target
         mutable_local_failure_never_targets_main_git = $true
         local_recovery_selector = if ($null -eq $localRecoveryAuthority) { $null } else { [string]$localRecoveryAuthority.recovery_selector }
-        pre_2_2_automatic_recovery_allowed = $false
+        pre_3_0_automatic_recovery_allowed = $false
         goal = $probe
         activation = $activation
         hot_reattach = [ordered]@{
@@ -1782,7 +1819,7 @@ if ($Action -eq "RecoverAtLogon") {
                     $runtimePluginSelector = Resolve-GoalBindingRuntimeSelector $record
                     $localRecoveryAuthority = Read-GoalLocalRecoveryAuthority $record
                     $receipt.local_recovery_selector = if ($null -eq $localRecoveryAuthority) { $null } else { [string]$localRecoveryAuthority.recovery_selector }
-                    $receipt.pre_2_2_automatic_recovery_allowed = $false
+                    $receipt.pre_3_0_automatic_recovery_allowed = $false
                     $probe = Invoke-CodexGoalProbe `
                         -ExactTaskId $exactTaskId `
                         -ExpectedPluginSelector $runtimePluginSelector

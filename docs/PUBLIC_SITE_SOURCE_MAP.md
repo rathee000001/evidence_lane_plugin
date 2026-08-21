@@ -33,5 +33,5 @@ the bound Markdown does not support.
 
 Clean CI validates that every public route has exactly one mapping, every
 mapped path exists and is Git-tracked in the correction commit, the source
-strip is present in the shared layout, and the 2.2 release identity is
+strip is present in the shared layout, and the 3.0 release identity is
 consistent across the repository and site.

@@ -1,0 +1,32 @@
+{
+  "schema": "evidence-lane.vercel-deployment-snapshot.v1",
+  "provider": "VERCEL_APP_READ_ONLY",
+  "project_id": "prj_nQ6Wbvmx0637C3JSMvE7POUoaPLF",
+  "team_id": "team_rKQTkRJ1nSDgPe4oWAN1meUC",
+  "source": {
+    "repository": "rathee000001/evidence_lane_plugin",
+    "branch": "agent/evi-v210-systemwide-release-hil-v2.1.0",
+    "head_sha": "5f64494d5491b4d654214b60b481dca2e1f44762"
+  },
+  "deployment": {
+    "deployment_id": "dpl_CaecFbFiH1eXeiYF4UnZ5XXeDPsq",
+    "url": "evidence-lane-chatgpt-mcp-adapter-3nrw7mm0i.vercel.app",
+    "state": "READY",
+    "target": null
+  },
+  "git_integration": true,
+  "manual_deploy": false,
+  "production_deployment": false,
+  "ledger_projection": {
+    "public_rows": 199,
+    "executable_rows": 119,
+    "row_start": 81,
+    "row_end": 199,
+    "completed": 83,
+    "active": 1,
+    "pending": 35,
+    "active_row": 164,
+    "final_row": 199
+  },
+  "captured_at": "2026-08-13T01:22:16.0957621Z"
+}

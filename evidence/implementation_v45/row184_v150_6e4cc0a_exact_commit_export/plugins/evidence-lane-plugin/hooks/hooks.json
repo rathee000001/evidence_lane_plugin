@@ -1,0 +1,45 @@
+{
+  "description": "Evidence Lane session context plus ordered secret-redacted visible prompt, mid-turn steer, and response indexing. Hooks never continue a turn or mutate source, PVs, pointers, or credentials.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/session_start.py\"",
+            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\session_start.py\"",
+            "timeout": 10,
+            "statusMessage": "Loading Evidence Lane boundary"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/prompt_submit.py\"",
+            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\prompt_submit.py\"",
+            "timeout": 10,
+            "statusMessage": "Indexing Evidence Lane prompt entry"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/stop_response.py\"",
+            "commandWindows": "python \"%PLUGIN_ROOT%\\hooks\\stop_response.py\"",
+            "timeout": 10,
+            "statusMessage": "Indexing visible Evidence Lane response"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -599,27 +599,53 @@ def test_service_remote_boot_cannot_invent_a_session_from_connector_only(
 
 
 @pytest.mark.parametrize(
-    ("host", "ephemeral", "durable", "profile", "expected_tunnel"),
+    (
+        "host",
+        "ephemeral",
+        "durable",
+        "profile",
+        "native_mcp",
+        "expected_tunnel",
+    ),
     [
         (
             "CODEX_DESKTOP",
             False,
             True,
             "CODEX_APP_INTERACTIVE",
-            "NOT_REQUIRED_FOR_LOCAL_CODEX_NATIVE_LAYER",
+            True,
+            "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
+        ),
+        (
+            "CODEX_DESKTOP",
+            False,
+            True,
+            "CODEX_APP_INTERACTIVE",
+            False,
+            "REQUIRED_FOR_HOST_TOOL_GAP",
+        ),
+        (
+            "CODEX_CLI",
+            False,
+            True,
+            "CODEX_CLI_NATIVE",
+            False,
+            "REQUIRED_FOR_HOST_TOOL_GAP",
         ),
         (
             "CODEX_VM",
             True,
             False,
             "CODEX_APP_INTERACTIVE",
-            "REQUIRED_FOR_INTERACTIVE_CODEX_APP_ENVIRONMENT",
+            False,
+            "REQUIRED_FOR_HOST_TOOL_GAP",
         ),
         (
             "CODEX_VM",
             True,
             False,
             "HEADLESS_API",
+            False,
             "NOT_REQUIRED_FOR_API_LAYER",
         ),
     ],
@@ -629,19 +655,28 @@ def test_host_account_api_storage_tunnel_axes_remain_independent(
     ephemeral: bool,
     durable: bool,
     profile: str,
+    native_mcp: bool,
     expected_tunnel: str,
 ) -> None:
     plus = route_persistence(
         host,
         ephemeral=ephemeral,
         server_has_durable_filesystem=durable,
-        runtime_context={"interaction_profile": profile, "account_tier": "PLUS"},
+        runtime_context={
+            "interaction_profile": profile,
+            "account_tier": "PLUS",
+            "native_capabilities": {"native_mcp": native_mcp},
+        },
     )
     api = route_persistence(
         host,
         ephemeral=ephemeral,
         server_has_durable_filesystem=durable,
-        runtime_context={"interaction_profile": profile, "account_tier": "API"},
+        runtime_context={
+            "interaction_profile": profile,
+            "account_tier": "API",
+            "native_capabilities": {"native_mcp": native_mcp},
+        },
     )
 
     assert plus.tunnel_requirement == api.tunnel_requirement == expected_tunnel
