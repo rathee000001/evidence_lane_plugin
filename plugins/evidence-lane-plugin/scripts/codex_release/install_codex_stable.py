@@ -40,6 +40,12 @@ LOCAL_RECOVERY_MARKETPLACE_NAME = "evidence-lane-v300-stable-recovery"
 LOCAL_RECOVERY_MARKETPLACE_DISPLAY_NAME = "Branch Commit Git Recovery"
 LOCAL_RECOVERY_SELECTOR = f"evidence-lane-plugin@{LOCAL_RECOVERY_MARKETPLACE_NAME}"
 LOCAL_RECOVERY_REGISTRY_SCHEMA = "evidence-lane.codex-local-v300-recovery-registry.v1"
+BRANCH_CHECKPOINT_INSTALL_SCHEMA = (
+    "evidence-lane.codex-branch-checkpoint-recovery-install.v1"
+)
+BRANCH_CHECKPOINT_CONFIRMATION = (
+    "EXPLICIT_GOVERNED_BRANCH_COMMIT_RECOVERY"
+)
 LOCAL_SUCCESSOR_MARKETPLACE_NAME = "evidence-lane-v300-local-successor"
 LOCAL_SUCCESSOR_MARKETPLACE_DISPLAY_NAME = "Local 3.0 Verified Successor"
 LOCAL_SUCCESSOR_SELECTOR = (
@@ -9254,21 +9260,107 @@ def _stage_loaded_local_successor(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
-def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]:
-    """Install one disabled byte-identical recovery copy beside local 2.2.
+def _load_exact_commit_package_receipt(
+    *,
+    receipt_path: Path,
+    receipt_file_sha256: str,
+    archive: Path,
+    package_receipt_path: Path,
+    data_root: Path,
+) -> dict[str, Any]:
+    """Verify one immutable exact-commit package before branch-slot mutation."""
 
-    This is maintainer-local recovery authority, not accepted PV/Git stable or
-    fallback authority.  It uses only supported Codex marketplace, plugin, and
-    config APIs, keeps the primary local selector solely enabled, and never
-    rewrites ``CURRENT_INSTALLATION`` or the accepted two-slot registry.
-    """
-
+    exact_path = receipt_path.resolve()
+    expected_file_sha256 = receipt_file_sha256.strip().upper()
+    authority_root = (
+        data_root.resolve()
+        / "installations"
+        / "codex-v300"
+        / "exact-commit-packages"
+    )
     if (
-        args.confirm_local_recovery_copy
-        != "EXPLICIT_BYTE_IDENTICAL_LOCAL_3_0_RECOVERY"
+        not exact_path.is_file()
+        or not _inside(exact_path, authority_root)
+        or not re.fullmatch(r"[0-9A-F]{64}", expected_file_sha256)
+        or _sha256(exact_path) != expected_file_sha256
     ):
         raise InstallationError(
-            "Local recovery materialization requires its exact confirmation token."
+            "The exact-commit package receipt is absent, outside durable authority, "
+            "or drifted."
+        )
+    receipt = json.loads(exact_path.read_text(encoding="utf-8"))
+    internal_sha256 = str(receipt.get("receipt_sha256") or "").upper()
+    core = dict(receipt)
+    core.pop("receipt_sha256", None)
+    export = dict(receipt.get("exact_commit_export") or {})
+    packaged_archive = dict(receipt.get("archive") or {})
+    package_receipt = json.loads(package_receipt_path.read_text(encoding="utf-8"))
+    if (
+        receipt.get("schema")
+        != "evidence-lane.codex-exact-commit-package.v1.receipt"
+        or receipt.get("boundary") != "EXACT_GIT_COMMIT_PACKAGE_UNACCEPTED"
+        or receipt.get("status") != "PASS"
+        # Exact-commit package receipts are emitted by
+        # build_codex_exact_commit_package._json_bytes: sorted keys plus one
+        # trailing newline.  Do not reuse the preserved-order registry seal
+        # here; parsing sorted JSON and then hashing a different serialization
+        # rejects an otherwise intact builder receipt.
+        or internal_sha256
+        != hashlib.sha256(_json_bytes(core)).hexdigest().upper()
+        or packaged_archive.get("sha256") != _sha256(archive)
+        or packaged_archive.get("sha256")
+        != dict(package_receipt.get("archive") or {}).get("sha256")
+        or receipt.get("local_rehearsal_receipt_sha256")
+        != _sha256(package_receipt_path)
+        or re.fullmatch(r"[0-9a-f]{40}", str(export.get("commit") or ""))
+        is None
+        or re.fullmatch(r"[0-9a-f]{40}", str(export.get("tree") or ""))
+        is None
+        or not str(export.get("branch") or "")
+        or export.get("projection_clean") is not True
+        or export.get("working_checkout_bytes_used") is not False
+        or export.get("untracked_bytes_used") is not False
+        or receipt.get("git_write_invoked") is not False
+        or receipt.get("governed_candidate_created") is not False
+        or receipt.get("accepted_pointer_moved") is not False
+        or receipt.get("hil_inferred") is not False
+    ):
+        raise InstallationError(
+            "The exact-commit package receipt does not satisfy the branch-checkpoint "
+            "delivery boundary."
+        )
+    return {
+        **receipt,
+        "receipt_path": str(exact_path),
+        "receipt_file_sha256": expected_file_sha256,
+    }
+
+
+def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]:
+    """Install one disabled local or exact-branch recovery copy.
+
+    The local-copy mode remains byte-identical to the active local slot.  The
+    branch-checkpoint mode instead consumes one exact Git-commit package and
+    refreshes only the inactive branch-commit recovery slot.  Both modes use
+    supported Codex APIs, keep the primary local selector solely enabled, leave
+    the main-merge fallback byte-frozen, and never rewrite
+    ``CURRENT_INSTALLATION`` or the accepted two-slot registry.
+    """
+
+    branch_checkpoint = bool(args.materialize_branch_checkpoint)
+    if branch_checkpoint:
+        confirmation_valid = (
+            args.confirm_branch_checkpoint == BRANCH_CHECKPOINT_CONFIRMATION
+        )
+    else:
+        confirmation_valid = (
+            args.confirm_local_recovery_copy
+            == "EXPLICIT_BYTE_IDENTICAL_LOCAL_3_0_RECOVERY"
+        )
+    if not confirmation_valid:
+        raise InstallationError(
+            "Recovery materialization requires its exact mode-specific confirmation "
+            "token."
         )
     if (
         args.archive is None
@@ -9276,10 +9368,18 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         or args.primary_installation_receipt is None
         or not args.primary_installation_receipt_sha256
         or args.codex_executable is None
+        or (
+            branch_checkpoint
+            and (
+                args.exact_commit_package_receipt is None
+                or not args.exact_commit_package_receipt_sha256
+            )
+        )
     ):
         raise InstallationError(
             "Local recovery materialization requires the archive, package receipt, "
-            "primary installation receipt and seal, and Codex executable."
+            "primary installation receipt and seal, Codex executable, and exact "
+            "commit receipt for branch-checkpoint mode."
         )
     if (
         args.activate
@@ -9311,6 +9411,19 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         activation=False,
         local_test_activation=True,
     )
+    exact_commit_receipt = (
+        _load_exact_commit_package_receipt(
+            receipt_path=args.exact_commit_package_receipt,
+            receipt_file_sha256=str(
+                args.exact_commit_package_receipt_sha256
+            ),
+            archive=archive,
+            package_receipt_path=package_receipt_path,
+            data_root=data_root,
+        )
+        if branch_checkpoint
+        else None
+    )
     primary_receipt_path = args.primary_installation_receipt.resolve()
     primary_receipt_sha256 = _sha256(primary_receipt_path)
     if (
@@ -9340,7 +9453,10 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
     if (
         primary_receipt.get("schema") != INSTALL_SCHEMA
         or primary_receipt.get("status") != "PASS"
-        or primary_receipt.get("archive_sha256") != _sha256(archive)
+        or (
+            not branch_checkpoint
+            and primary_receipt.get("archive_sha256") != _sha256(archive)
+        )
         or primary_selector
         != f"{PLUGIN_NAME}@{LOCAL_TESTING_MARKETPLACE_NAME}"
         or primary_plugin_add.get("pluginId") != primary_selector
@@ -9425,6 +9541,15 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         extracted.mkdir()
         _safe_extract(archive, extracted)
         identity = _validate_plugin(extracted)
+        if (
+            branch_checkpoint
+            and str(dict(exact_commit_receipt or {}).get("package_version") or "")
+            != identity["version"]
+        ):
+            raise InstallationError(
+                "The exact-commit receipt package version and extracted plugin "
+                "identity diverge."
+            )
         extracted_inventory = _source_inventory(extracted)
         stage = _stage_marketplace(
             extracted=extracted,
@@ -9437,6 +9562,18 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
             comparison_baseline={
                 "primary_installation_receipt_sha256": primary_receipt_sha256,
                 "primary_selector": primary_selector,
+                "delivery_mode": (
+                    "EXACT_GOVERNED_BRANCH_COMMIT"
+                    if branch_checkpoint
+                    else "BYTE_IDENTICAL_LOCAL_RECOVERY"
+                ),
+                "exact_commit_package_receipt_sha256": (
+                    dict(exact_commit_receipt or {}).get(
+                        "receipt_file_sha256"
+                    )
+                    if branch_checkpoint
+                    else None
+                ),
             },
         )
 
@@ -9484,7 +9621,7 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         )
         if (
             plugin_add.get("pluginId") != LOCAL_RECOVERY_SELECTOR
-            or plugin_add.get("version") != primary_version
+            or plugin_add.get("version") != identity["version"]
             or not recovery_cache.is_dir()
             or not _inside(recovery_cache, expected_recovery_cache)
         ):
@@ -9551,19 +9688,27 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
     )
     inventory_identities = {
         extracted_inventory["manifest_sha256"],
-        primary_inventory["manifest_sha256"],
         recovery_inventory["manifest_sha256"],
         marketplace_inventory["manifest_sha256"],
     }
     inventory_counts = {
         extracted_inventory["file_count"],
-        primary_inventory["file_count"],
         recovery_inventory["file_count"],
         marketplace_inventory["file_count"],
     }
-    if len(inventory_identities) != 1 or len(inventory_counts) != 1:
+    recovery_matches_package = (
+        len(inventory_identities) == 1 and len(inventory_counts) == 1
+    )
+    byte_identical_to_primary = (
+        primary_inventory["manifest_sha256"]
+        == recovery_inventory["manifest_sha256"]
+        and primary_inventory["file_count"] == recovery_inventory["file_count"]
+    )
+    if not recovery_matches_package or (
+        not branch_checkpoint and not byte_identical_to_primary
+    ):
         raise InstallationError(
-            "The local primary and disabled recovery plugin bytes are not identical."
+            "The disabled recovery bytes do not match their exact package boundary."
         )
     three_slot_registry = _materialize_three_slot_registry(
         plugin_list=final_plugin_list,
@@ -9571,7 +9716,7 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         data_root=data_root,
         active_slot="mutable-local-testing",
         config_sha256=_sha256(config_path),
-        recovery_convergence_authorized=True,
+        recovery_convergence_authorized=not branch_checkpoint,
     )
     two_slot_after = _sha256(two_slot_path) if two_slot_path.is_file() else None
     if two_slot_after != two_slot_before:
@@ -9580,13 +9725,21 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         )
 
     body: dict[str, Any] = {
-        "schema": LOCAL_RECOVERY_REGISTRY_SCHEMA,
+        "schema": (
+            BRANCH_CHECKPOINT_INSTALL_SCHEMA
+            if branch_checkpoint
+            else LOCAL_RECOVERY_REGISTRY_SCHEMA
+        ),
         "status": "PASS",
-        "state": "PRIMARY_LOCAL_ACTIVE_RECOVERY_DISABLED_BYTE_IDENTICAL",
+        "state": (
+            "PRIMARY_LOCAL_ACTIVE_BRANCH_COMMIT_RECOVERY_DISABLED"
+            if branch_checkpoint
+            else "PRIMARY_LOCAL_ACTIVE_RECOVERY_DISABLED_BYTE_IDENTICAL"
+        ),
         "package": {
             "archive_sha256": _sha256(archive),
             "package_receipt_sha256": _sha256(package_receipt_path),
-            "plugin_version": primary_version,
+            "plugin_version": identity["version"],
             "source_manifest_sha256": extracted_inventory["manifest_sha256"],
             "source_file_count": extracted_inventory["file_count"],
         },
@@ -9601,10 +9754,11 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         },
         "recovery": {
             "selector": LOCAL_RECOVERY_SELECTOR,
-            "slot_role": "local-stable-recovery",
+            "slot_role": "branch-commit-recovery",
             "enabled": False,
             "native_mcp_enabled": False,
-            "byte_identical_to_primary": True,
+            "byte_identical_to_primary": byte_identical_to_primary,
+            "exact_governed_branch_commit": branch_checkpoint,
             "marketplace_root": str(recovery_root),
             "marketplace_stage": stage,
             "marketplace_add": marketplace_add,
@@ -9633,7 +9787,9 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         },
         "scope": {
             "maintainer_local_only": True,
-            "accepted_pv_or_git_stable_authority": False,
+            "accepted_pv_authority": False,
+            "branch_commit_git_recovery_authority": branch_checkpoint,
+            "production_delivery_authority": False,
             "openai_host_tooling_absorbed": False,
             "mcp_action_catalog_treated_as_dependency_toolchain": False,
         },
@@ -9641,21 +9797,61 @@ def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]
         "pointer_moved": False,
         "hil_inferred": False,
         "git_invoked": False,
+        "exact_commit_package": (
+            {
+                "receipt_path": dict(exact_commit_receipt or {}).get(
+                    "receipt_path"
+                ),
+                "receipt_file_sha256": dict(
+                    exact_commit_receipt or {}
+                ).get("receipt_file_sha256"),
+                "branch": dict(
+                    dict(exact_commit_receipt or {}).get(
+                        "exact_commit_export"
+                    )
+                    or {}
+                ).get("branch"),
+                "commit": dict(
+                    dict(exact_commit_receipt or {}).get(
+                        "exact_commit_export"
+                    )
+                    or {}
+                ).get("commit"),
+                "tree": dict(
+                    dict(exact_commit_receipt or {}).get(
+                        "exact_commit_export"
+                    )
+                    or {}
+                ).get("tree"),
+            }
+            if branch_checkpoint
+            else None
+        ),
     }
     body["registry_body_sha256"] = _ordered_json_sha256(body)
     body["seal"] = {
         "algorithm": "SHA256",
         "body_sha256": _ordered_json_sha256(body),
     }
-    recovery_registry_root = (
-        data_root / "installations" / "codex-v200" / "local-v300-recovery"
+    recovery_registry_root = data_root / "installations" / (
+        "codex-v300/branch-checkpoint-installs"
+        if branch_checkpoint
+        else "codex-v200/local-v300-recovery"
     )
     receipt_path = (
         recovery_registry_root
-        / f"LOCAL_V300_RECOVERY_{_sha256(archive)[:16]}.json"
+        / (
+            f"BRANCH_CHECKPOINT_{_sha256(archive)[:16]}.json"
+            if branch_checkpoint
+            else f"LOCAL_V300_RECOVERY_{_sha256(archive)[:16]}.json"
+        )
     )
     _write_atomic(receipt_path, _json_bytes(body))
-    current_path = recovery_registry_root / "CURRENT_LOCAL_V300_RECOVERY.json"
+    current_path = recovery_registry_root / (
+        "CURRENT_BRANCH_CHECKPOINT.json"
+        if branch_checkpoint
+        else "CURRENT_LOCAL_V300_RECOVERY.json"
+    )
     _write_atomic(current_path, _json_bytes(body))
     return {
         **body,
@@ -9727,6 +9923,15 @@ def _parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--materialize-branch-checkpoint",
+        action="store_true",
+        help=(
+            "Replace only the inactive branch-commit recovery slot from one "
+            "exact governed Git-commit package while preserving the active local "
+            "slot and main-merge fallback."
+        ),
+    )
+    parser.add_argument(
         "--stage-loaded-local-successor",
         action="store_true",
         help=(
@@ -9737,6 +9942,9 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--primary-installation-receipt", type=Path)
     parser.add_argument("--primary-installation-receipt-sha256")
     parser.add_argument("--confirm-local-recovery-copy")
+    parser.add_argument("--confirm-branch-checkpoint")
+    parser.add_argument("--exact-commit-package-receipt", type=Path)
+    parser.add_argument("--exact-commit-package-receipt-sha256")
     parser.add_argument("--confirm-local-successor-stage")
     parser.add_argument("--activate", action="store_true")
     parser.add_argument(
@@ -9851,7 +10059,12 @@ def main() -> int:
             "The local-successor marketplace is retired. Reinstall a fresh package "
             "version into evidence-lane-v300-testing-new before the restart-only helper."
         )
-    if args.materialize_local_recovery_copy:
+    if args.materialize_local_recovery_copy and args.materialize_branch_checkpoint:
+        raise InstallationError(
+            "Local byte-identical recovery and exact branch-checkpoint recovery "
+            "are mutually exclusive."
+        )
+    if args.materialize_local_recovery_copy or args.materialize_branch_checkpoint:
         result = _materialize_local_recovery_copy(args)
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
@@ -9859,6 +10072,9 @@ def main() -> int:
         args.primary_installation_receipt is not None
         or args.primary_installation_receipt_sha256 is not None
         or args.confirm_local_recovery_copy is not None
+        or args.confirm_branch_checkpoint is not None
+        or args.exact_commit_package_receipt is not None
+        or args.exact_commit_package_receipt_sha256 is not None
         or args.confirm_local_successor_stage is not None
     ):
         raise InstallationError(

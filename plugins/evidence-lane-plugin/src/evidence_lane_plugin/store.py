@@ -809,8 +809,7 @@ def _persisted_host_plan_window_task_ids(project_root: Path) -> list[str] | None
         active = json.loads(active_path.read_text(encoding="utf-8"))
         session_id = str(active.get("session_id") or "").strip()
         require(
-            session_id.startswith("session_")
-            and session_id.replace("_", "").isalnum(),
+            session_id.startswith("session_") and session_id.replace("_", "").isalnum(),
             "HOST_PLAN_WINDOW_SESSION_INVALID",
             "The active session cannot identify the persisted host Plan batch.",
             status="MISMATCH",
@@ -837,9 +836,7 @@ def _persisted_host_plan_window_task_ids(project_root: Path) -> list[str] | None
 
     host_window = cast(
         dict[str, Any],
-        cast(dict[str, Any], session.get("metadata") or {}).get(
-            "host_plan_window"
-        )
+        cast(dict[str, Any], session.get("metadata") or {}).get("host_plan_window")
         or {},
     )
     raw_task_ids = host_window.get("window_task_ids")
@@ -900,13 +897,11 @@ def _host_plan_window_fingerprint(
         )
         start = row_indexes[first_task_id]
     else:
-        start = (
-            (active_indexes[0] // _HOST_PLAN_WINDOW_SIZE) * _HOST_PLAN_WINDOW_SIZE
-            if active_indexes
-            else 0
-        )
+        # Before a Plan is active this helper may fingerprint an empty host
+        # surface for steer bookkeeping. It must never derive a visible batch.
+        start = len(rows)
     window_rows = rows[start : start + _HOST_PLAN_WINDOW_SIZE]
-    if active_indexes:
+    if active_indexes and fixed_window_task_ids:
         require(
             rows[active_indexes[0]] in window_rows,
             "HOST_PLAN_WINDOW_ACTIVE_ROW_OUTSIDE_PERSISTED_BATCH",
@@ -934,6 +929,12 @@ def _host_plan_window_fingerprint(
     ]
     body = {
         "window_size": _HOST_PLAN_WINDOW_SIZE,
+        "fixed_batch_bound": bool(fixed_window_task_ids),
+        "projection_source": (
+            "PERSISTED_FIXED_BATCH_PLUS_PLAN_SQLITE"
+            if fixed_window_task_ids
+            else "NO_HOST_BATCH_BOUND"
+        ),
         "row_start": int(window_rows[0]["number"]) if window_rows else None,
         "row_end": int(window_rows[-1]["number"]) if window_rows else None,
         "active_task_id": (
@@ -4533,6 +4534,7 @@ class ProjectStore:
             "window_size": _HOST_PLAN_WINDOW_SIZE,
             "row_start": host_window_after["row_start"],
             "row_end": host_window_after["row_end"],
+            "window_task_ids": window_task_ids,
             "linked_task_id": exact_link,
             "active_row_present": active_row_present,
             "linked_row_is_currently_visible": linked_row_is_currently_visible,
@@ -6621,8 +6623,7 @@ class ProjectStore:
             and pointer.generation == int(receipt.get("pointer_generation") or -1) + 1
         )
         require(
-            current["working_identity_sha256"]
-            == receipt.get("working_identity_sha256")
+            current["working_identity_sha256"] == receipt.get("working_identity_sha256")
             or post_promotion_receipts_only,
             "PROJECT_CANDIDATE_OVERLAY_STALE",
             "The live project root changed after the candidate overlay was sealed.",
@@ -6646,14 +6647,14 @@ class ProjectStore:
         )
         return validation
 
-    def candidate_metadata(
-        self, project_id: str, candidate_id: str
-    ) -> dict[str, Any]:
+    def candidate_metadata(self, project_id: str, candidate_id: str) -> dict[str, Any]:
         root = self.project_root(project_id)
         if root == self._legacy_project_root(project_id):
             candidate = self.candidate_path(project_id, candidate_id)
             return {
-                name: json.loads((candidate / f"{name}.json").read_text(encoding="utf-8"))
+                name: json.loads(
+                    (candidate / f"{name}.json").read_text(encoding="utf-8")
+                )
                 for name in ("manifest", "project_identity", "entry_slip", "exit_slip")
             }
         receipt = json.loads(
@@ -7194,12 +7195,8 @@ class ProjectStore:
                 },
                 candidate_package_metadata=package_metadata,
             )
-            archive_manifest_sha256 = str(
-                archive_validation["archive_manifest_sha256"]
-            )
-            final_archive_name = (
-                f"{proposed_pv}__{archive_manifest_sha256[:16]}.zip"
-            )
+            archive_manifest_sha256 = str(archive_validation["archive_manifest_sha256"])
+            final_archive_name = f"{proposed_pv}__{archive_manifest_sha256[:16]}.zip"
             final_staged_archive = staging / final_archive_name
             staged_archive.replace(final_staged_archive)
             archive_validation = validate_project_pv_archive(final_staged_archive)
@@ -7222,10 +7219,7 @@ class ProjectStore:
                 prior=str(prior),
             )
             journal_path = (
-                root
-                / "receipts"
-                / "accepted-swap-journals"
-                / f"{decision_id}.json"
+                root / "receipts" / "accepted-swap-journals" / f"{decision_id}.json"
             )
             journal = {
                 "schema": "evidence-lane.project-accepted-swap.v1",
@@ -7469,16 +7463,12 @@ class ProjectStore:
         )
         if root == self._legacy_project_root(project_id):
             candidates = sorted(
-                path.name
-                for path in (root / "candidates").glob("PV*")
-                if path.is_dir()
+                path.name for path in (root / "candidates").glob("PV*") if path.is_dir()
             )
         else:
             overlay_root = root / "receipts" / "candidate-overlays"
             candidates = sorted(
-                path.stem
-                for path in overlay_root.glob("PV*.json")
-                if path.is_file()
+                path.stem for path in overlay_root.glob("PV*.json") if path.is_file()
             )
         return {
             "project": self.config(project_id).as_dict(),

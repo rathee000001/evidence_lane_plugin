@@ -7,18 +7,28 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+import httpx
+import jwt
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.github_app_distribution import (
     GITHUB_APP_WEBHOOK_ROUTE,
     GITHUB_REST_API_VERSION,
     ArtifactEntitlementStore,
     DeterministicMockGitHubProvider,
+    ExactGitCommitPushRequest,
+    GitCommitActor,
     GitHubAPIResponse,
+    GitHubAppExactCommitPushRoute,
     GitHubAppManifest,
     GitHubAppProductionDeliveryRoute,
     GitHubRESTInstallationTokenProvider,
     GitHubWebhookRoute,
+    GitTreeChange,
+    HttpxGitHubJSONTransport,
+    InMemoryPEMGitHubAppJWTProvider,
     InstallationBinding,
     InstallationTokenBroker,
     InstallationTokenRequest,
@@ -117,9 +127,9 @@ def test_manifest_json_schema_matches_runtime_contract() -> None:
 @pytest.mark.parametrize(
     "permissions",
     [
-        {"metadata": "read", "contents": "write"},
-        {"metadata": "read", "workflows": "write"},
         {"metadata": "write"},
+        {"metadata": "read", "actions": "write"},
+        {"metadata": "read", "administration": "write"},
     ],
 )
 def test_manifest_blocks_overbroad_permissions(
@@ -128,6 +138,21 @@ def test_manifest_blocks_overbroad_permissions(
     with pytest.raises(EvidenceLaneError) as exc:
         _manifest(repository_permissions=permissions)
     assert exc.value.code == "GITHUB_APP_PERMISSION_OVERBROAD"
+
+
+def test_manifest_allows_exact_private_app_source_and_workflow_write() -> None:
+    manifest = _manifest(
+        repository_permissions={
+            "metadata": "read",
+            "actions": "read",
+            "checks": "write",
+            "contents": "write",
+            "workflows": "write",
+        }
+    )
+    assert dict(manifest.repository_permissions)["contents"] == "write"
+    assert dict(manifest.repository_permissions)["workflows"] == "write"
+    assert manifest.public is False
 
 
 def test_webhook_signature_is_checked_before_payload_parsing() -> None:
@@ -287,7 +312,7 @@ def test_token_broker_is_provider_neutral_short_lived_and_secret_safe() -> None:
     request = _token_request()
     token, receipt = broker.issue(request, now=NOW)
     replay_token, replay_receipt = broker.issue(request, now=NOW)
-    assert token.startswith("ghs_mock_")
+    assert token.startswith("mock-installation-token-")
     assert replay_token == token
     assert replay_receipt["idempotent_reuse"] is True
     assert token not in json.dumps(receipt)
@@ -330,7 +355,7 @@ class _TestGitHubTransport:
 
 def _github_token_response(**overrides: object) -> GitHubAPIResponse:
     body: dict[str, object] = {
-        "token": "ghs_real-shaped-token-never-persisted",
+        "token": "test-installation-token-never-persisted",
         "expires_at": "2026-08-14T12:30:00Z",
         "permissions": {
             "metadata": "read",
@@ -359,7 +384,7 @@ def test_production_github_provider_uses_exact_endpoint_scope_and_redacted_proof
         provider=provider,
     )
     token, broker_receipt = broker.issue(_token_request(installation_id="7"), now=NOW)
-    assert token == "ghs_real-shaped-token-never-persisted"
+    assert token == "test-installation-token-never-persisted"
     assert len(jwt_provider.calls) == 1
     assert len(transport.calls) == 1
     call = transport.calls[0]
@@ -433,8 +458,220 @@ def test_token_broker_rejects_stale_cross_repository_and_overbroad_requests() ->
         broker.issue(_token_request(repository="owner/other"), now=NOW)
     assert cross_repo.value.code == "GITHUB_APP_CROSS_REPOSITORY_ACCESS_BLOCKED"
     with pytest.raises(EvidenceLaneError) as broad:
-        _token_request(permissions={"metadata": "read", "contents": "write"})
+        _token_request(permissions={"metadata": "read", "actions": "write"})
     assert broad.value.code == "GITHUB_APP_PERMISSION_OVERBROAD"
+
+
+def test_in_memory_pem_signer_uses_current_github_rs256_claim_contract() -> None:
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    provider = InMemoryPEMGitHubAppJWTProvider(
+        client_id="Iv1.evidence-lane-test",
+        private_key_pem=pem,
+    )
+    token = provider.issue_app_jwt(requested_at=NOW)
+    claims = jwt.decode(
+        token,
+        private_key.public_key(),
+        algorithms=["RS256"],
+        options={"verify_exp": False, "verify_iat": False},
+    )
+    assert claims["iss"] == "Iv1.evidence-lane-test"
+    assert claims["exp"] - claims["iat"] == 600
+
+
+def test_httpx_transport_is_https_pinned_and_returns_bounded_json() -> None:
+    def handler(request):
+        assert str(request.url) == "https://api.github.com/app"
+        return httpx.Response(
+            200,
+            json={"slug": "evidence-lane"},
+            headers={"x-github-request-id": "github-request-1"},
+        )
+
+    client = httpx.Client(
+        base_url="https://api.github.com",
+        transport=httpx.MockTransport(handler),
+    )
+    transport = HttpxGitHubJSONTransport(client=client)
+    response = transport.request_json(
+        method="GET",
+        path="/app",
+        headers={"Accept": "application/vnd.github+json"},
+        body={},
+    )
+    assert response.status_code == 200
+    assert response.body == {"slug": "evidence-lane"}
+    assert response.request_id == "github-request-1"
+    with pytest.raises(EvidenceLaneError) as origin:
+        HttpxGitHubJSONTransport(base_url="http://api.github.com")
+    assert origin.value.code == "GITHUB_APP_TRANSPORT_ORIGIN_INVALID"
+    client.close()
+
+
+class _SequenceGitHubTransport:
+    transport_id = "TEST_SEQUENCE_GITHUB_TRANSPORT"
+
+    def __init__(self, responses: list[GitHubAPIResponse]) -> None:
+        self.responses = list(responses)
+        self.calls: list[dict[str, object]] = []
+
+    def request_json(
+        self,
+        *,
+        method: str,
+        path: str,
+        headers: Mapping[str, str],
+        body: Mapping[str, Any],
+    ) -> GitHubAPIResponse:
+        self.calls.append(
+            {"method": method, "path": path, "headers": headers, "body": body}
+        )
+        assert self.responses
+        return self.responses.pop(0)
+
+
+def _write_manifest() -> GitHubAppManifest:
+    return _manifest(
+        repository_permissions={
+            "metadata": "read",
+            "actions": "read",
+            "checks": "write",
+            "contents": "write",
+            "workflows": "write",
+        }
+    )
+
+
+def _write_binding() -> InstallationBinding:
+    manifest = _write_manifest()
+    return InstallationBinding.create(
+        binding_id="binding-write-1",
+        manifest=manifest,
+        installation_id="7",
+        project_id="project-a",
+        task_id="task-a",
+        accepted_pv="PV12",
+        repositories=["owner/repo"],
+        permissions=dict(manifest.repository_permissions),
+        expires_at="2026-08-14T13:00:00Z",
+    )
+
+
+def _write_token_request(**overrides: object) -> InstallationTokenRequest:
+    raw: dict[str, object] = {
+        "request_id": "write-token-request-1",
+        "idempotency_key": "write-token-idem-1",
+        "project_id": "project-a",
+        "task_id": "task-a",
+        "installation_id": "7",
+        "repository": "owner/repo",
+        "permissions": dict(_write_manifest().repository_permissions),
+        "requested_at": NOW,
+        "expires_at": "2026-08-14T12:30:00Z",
+    }
+    raw.update(overrides)
+    return InstallationTokenRequest.create(**raw)  # type: ignore[arg-type]
+
+
+def _exact_push_request(change: GitTreeChange) -> ExactGitCommitPushRequest:
+    actor = GitCommitActor.create(
+        name="Evidence Lane App",
+        email="evidence-lane@users.noreply.github.com",
+        date=NOW,
+    )
+    return ExactGitCommitPushRequest.create(
+        request_id="push-request-1",
+        idempotency_key="push-idem-1",
+        project_id="project-a",
+        task_id="task-a",
+        repository="owner/repo",
+        branch="agent/evi-v300-systemwide-release-hil-v3.0.0",
+        expected_parent_commit_sha="1" * 40,
+        expected_parent_tree_sha="2" * 40,
+        expected_tree_sha="3" * 40,
+        expected_commit_sha="4" * 40,
+        commit_message="R249 exact governed checkpoint",
+        author=actor,
+        committer=actor,
+        changes=[change],
+    )
+
+
+def test_private_app_route_creates_exact_git_objects_and_fast_forwards() -> None:
+    change = GitTreeChange.create(
+        path=".github/workflows/evidence-lane-preview-build.yml",
+        mode="100644",
+        content=b"name: Evidence Lane\n",
+    )
+    transport = _SequenceGitHubTransport(
+        [
+            GitHubAPIResponse(200, {"object": {"sha": "1" * 40}}, "req-1"),
+            GitHubAPIResponse(200, {"tree": {"sha": "2" * 40}}, "req-2"),
+            GitHubAPIResponse(201, {"sha": change.blob_sha}, "req-3"),
+            GitHubAPIResponse(201, {"sha": "3" * 40}, "req-4"),
+            GitHubAPIResponse(201, {"sha": "4" * 40}, "req-5"),
+            GitHubAPIResponse(200, {"object": {"sha": "4" * 40}}, "req-6"),
+            GitHubAPIResponse(200, {"object": {"sha": "4" * 40}}, "req-7"),
+        ]
+    )
+    broker = InstallationTokenBroker(
+        manifest=_write_manifest(),
+        binding=_write_binding(),
+        provider=DeterministicMockGitHubProvider(b"private-app-push-provider-seed"),
+    )
+    route = GitHubAppExactCommitPushRoute(broker=broker, transport=transport)
+    request = _exact_push_request(change)
+    receipt = route.execute(
+        request,
+        token_request=_write_token_request(),
+        now=NOW,
+    )
+    replay = route.execute(
+        request,
+        token_request=_write_token_request(),
+        now=NOW,
+    )
+    assert receipt["status"] == "PASS"
+    assert receipt["commit_sha"] == "4" * 40
+    assert receipt["commit_created"] is True
+    assert receipt["ref_pushed"] is True
+    assert receipt["force_push"] is False
+    assert receipt["workflow_write_authorized"] is True
+    assert receipt_contains_secret(receipt) is False
+    assert replay["idempotent_reuse"] is True
+    assert len(transport.calls) == 7
+    assert transport.calls[-2]["method"] == "PATCH"
+    assert transport.calls[-2]["body"] == {"sha": "4" * 40, "force": False}
+
+
+def test_private_app_route_rejects_workflow_push_without_workflows_write() -> None:
+    change = GitTreeChange.create(
+        path=".github/workflows/ci.yml",
+        mode="100644",
+        content=b"name: CI\n",
+    )
+    route = GitHubAppExactCommitPushRoute(
+        broker=InstallationTokenBroker(
+            manifest=_write_manifest(),
+            binding=_write_binding(),
+            provider=DeterministicMockGitHubProvider(b"private-app-push-provider-seed"),
+        ),
+        transport=_SequenceGitHubTransport([]),
+    )
+    with pytest.raises(EvidenceLaneError) as missing:
+        route.execute(
+            _exact_push_request(change),
+            token_request=_write_token_request(
+                permissions={"metadata": "read", "contents": "write"}
+            ),
+            now=NOW,
+        )
+    assert missing.value.code == "GITHUB_APP_PUSH_AUTHORITY_MISMATCH"
 
 
 def test_successful_check_cannot_accept_or_fuse() -> None:

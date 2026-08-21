@@ -40,6 +40,12 @@ def test_priority_insertion_pauses_and_preserves_live_row(service) -> None:
         planned_by="human-test",
         plan_id="priority-seed-plan",
     )
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["host_plan_window"] = {
+        "schema": "evidence-lane.host-plan-window-state.v1",
+        "window_task_ids": [live["task_id"], next_row["task_id"], final_hil["task_id"]],
+    }
+    service.sessions._save(session)
     service.sessions.classify(
         "book-faires",
         session_id,
@@ -67,12 +73,12 @@ def test_priority_insertion_pauses_and_preserves_live_row(service) -> None:
         "expected_backlog_sha256": sha256_bytes(
             canonical_json_bytes(service.store._load_backlog("book-faires"))
         ),
-        "expected_canonical_plan_sha256": before[
-            "canonical_plan_projection"
-        ]["projection_sha256"],
-        "expected_executable_projection_sha256": before[
-            "goal_projection"
-        ]["projection_sha256"],
+        "expected_canonical_plan_sha256": before["canonical_plan_projection"][
+            "projection_sha256"
+        ],
+        "expected_executable_projection_sha256": before["goal_projection"][
+            "projection_sha256"
+        ],
         "expected_physical_final_task_id": "final-hil",
         "insertions": [
             {
@@ -120,17 +126,28 @@ def test_priority_insertion_pauses_and_preserves_live_row(service) -> None:
     assert session.task is not None
     assert session.task["task_id"] == "local-slot-priority"
     assert session.candidate_id is None
-    projection = _exact_projection(service.store, project_id="book-faires")
+    fixed_task_ids = [
+        "local-slot-priority",
+        "learning-live",
+        "next-row",
+        "final-hil",
+    ]
+    projection = _exact_projection(
+        service.store,
+        project_id="book-faires",
+        fixed_window_task_ids=fixed_task_ids,
+    )
     assert projection["total_executable_count"] == 4
     assert projection["sole_active_row"] == 1
     assert projection["row_start"] == 1
     assert projection["row_end"] == 4
     assert projection["physically_final_hil_row"] == 4
-    assert "Done=0/4" in projection["items"][0]["step"]
-    assert "Active=R1" in projection["items"][0]["step"]
-    assert "Create and verify the persistent local test slot" in projection[
-        "items"
-    ][1]["step"]
+    assert projection["items"][0]["step"] == (
+        "PV1/generation 1 | ACTIVE R1 | ACTIVE BATCH R1-R4 | NEXT_HIL R4 | FINAL_HIL R4"
+    )
+    assert "Create and verify the persistent local test slot" in " ".join(
+        projection["items"][1]["step"].split()
+    )
 
     replay = service.plan_tasks(
         "book-faires",
@@ -141,9 +158,11 @@ def test_priority_insertion_pauses_and_preserves_live_row(service) -> None:
     )
     assert replay["atomic_insertion_receipt"]["idempotent_replay"] is True
     assert replay["priority_steer_receipt"]["idempotent_replay"] is True
-    assert [row["task_id"] for row in replay["active"]] == [
-        "local-slot-priority"
-    ]
-    replay_projection = _exact_projection(service.store, project_id="book-faires")
+    assert [row["task_id"] for row in replay["active"]] == ["local-slot-priority"]
+    replay_projection = _exact_projection(
+        service.store,
+        project_id="book-faires",
+        fixed_window_task_ids=fixed_task_ids,
+    )
     assert replay_projection["total_executable_count"] == 4
     assert replay_projection["sole_active_row"] == 1

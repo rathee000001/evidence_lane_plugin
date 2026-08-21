@@ -451,6 +451,13 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
         source
         / "scripts"
         / "codex_release"
+        / "seal_github_app_production_delivery.py",
+        "# fixture\n",
+    )
+    _write(
+        source
+        / "scripts"
+        / "codex_release"
         / "Update-EvidenceLaneCodexStableAndResume.ps1",
         "# fixture\n",
     )

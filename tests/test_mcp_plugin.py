@@ -1133,7 +1133,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         explicit_modes=["AL", "RS", "PL"],
         session_id=session_id,
     )
-    service.sessions.classify(
+    classified = service.sessions.classify(
         "book-faires",
         session_id,
         task_class=turn_task["task_class"],
@@ -1144,6 +1144,12 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         stop_condition=turn_task["stop_condition"],
         backlog_task_id=turn_task["task_id"],
     )
+    projection = classified["host_plan_rehydration"]["receipt"]["projection"]
+    assert projection["window_task_ids"] == [
+        turn_task["task_id"],
+        final_hil["task_id"],
+    ]
+    assert projection["fixed_header_item_count"] == 1
     service.sessions.confirm_source_update(
         "book-faires",
         session_id,
@@ -1176,7 +1182,7 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
             "Verify governed prompt rollback from the accepted PV2 entry."
         ),
     }
-    service.record_steer_delta(
+    post_fuse_steer = service.record_steer_delta(
         "book-faires",
         delta_text=(
             "Add the accepted-PV2 prompt rollback verification before the final HIL."
@@ -1185,6 +1191,12 @@ def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
         delta_id="prompt-index-v2-post-fuse-delta",
         new_task_contract=post_fuse_task,
     )
+    assert post_fuse_steer["host_plan_window_rebind"]["window_task_ids"] == [
+        turn_task["task_id"],
+        post_fuse_task["task_id"],
+        final_hil["task_id"],
+    ]
+    assert post_fuse_steer["host_plan_window_rebind"]["fallback_projector_used"] is False
     service.classify_mode(
         "book-faires",
         "Verify the accepted-PV2 prompt index and rollback contract.",
@@ -1692,7 +1704,7 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
         "evi-learning",
         *public_order,
     }
-    assert [path.name for path in commands.glob("*.md")] == [
+    assert sorted(path.name for path in commands.glob("*.md")) == [
         "evi-learning.md",
         "evi-plan.md",
     ]

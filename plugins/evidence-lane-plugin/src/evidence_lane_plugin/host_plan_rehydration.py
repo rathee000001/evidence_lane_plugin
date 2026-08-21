@@ -2,10 +2,10 @@
 
 The complete native Plan Lane remains the only row/status authority.  The host
 artifact contains one permanent non-Delta progress item followed by one fixed
-window of at most nine executable Delta rows from that authority.  Task
-transitions update statuses in place and never slide the row set while the
-ACTIVE row remains inside it.  Plan steers refresh only changed labels, and an
-exhausted window activates the next fixed window.  This module never claims
+batch of at most nine executable Delta rows from that authority.  The batch
+identity must already be persisted by the canonical Plan/Goal activation and
+is never inferred from the ACTIVE row.  Task transitions update statuses in
+place; Plan steers refresh only changed labels.  This module never claims
 that the host rendered or accepted an artifact.  Visibility and the one State
 Travel Plan-acceptance gate are separate observed facts; Sources/icon presence,
 a backlog readback, or an empty host receipt are not substitutes for either
@@ -61,8 +61,8 @@ _HOST_PLAN_MAX_VISIBLE_ITEMS = 10
 _HOST_PLAN_UI_MAX_LINES = 4
 _HOST_PLAN_UI_MAX_CHARS_PER_LINE = 72
 _HOST_PLAN_UI_MAX_TOTAL_CHARS = 288
-_HOST_PLAN_HEADER_MAX_LINES = 2
-_HOST_PLAN_HEADER_MAX_CHARS_PER_LINE = 72
+_HOST_PLAN_HEADER_MAX_LINES = 1
+_HOST_PLAN_HEADER_MAX_CHARS_PER_LINE = 160
 _PLAN_STEER_TRIGGERS = {"PLAN_STEER_DELTA_APPLIED"}
 _STATUS_TRANSITION_TRIGGERS = {
     "TASK_CLASSIFICATION_TRANSITION",
@@ -407,42 +407,42 @@ def _exact_projection(
         for task_id in fixed_window_task_ids or []
         if str(task_id).strip()
     ]
-    if requested_window_task_ids:
-        require(
-            len(requested_window_task_ids) <= _HOST_PLAN_WINDOW_SIZE
-            and len(requested_window_task_ids) == len(set(requested_window_task_ids))
-            and str(active[0]["task_id"]) in requested_window_task_ids,
-            "HOST_PLAN_FIXED_WINDOW_BINDING_INVALID",
-            "The fixed host Plan window must be unique, bounded, and contain ACTIVE.",
-            status="MISMATCH",
-        )
-        task_index = {str(row["task_id"]): index for index, row in enumerate(full_rows)}
-        require(
-            set(requested_window_task_ids).issubset(task_index),
-            "HOST_PLAN_FIXED_WINDOW_TASK_UNKNOWN",
-            "The fixed host Plan window references a task outside the live Plan.",
-            status="MISMATCH",
-        )
-        requested_indexes = [
-            task_index[task_id] for task_id in requested_window_task_ids
-        ]
-        require(
-            requested_indexes
-            == list(
-                range(
-                    requested_indexes[0],
-                    requested_indexes[0] + len(requested_indexes),
-                )
-            ),
-            "HOST_PLAN_FIXED_WINDOW_NOT_CONTIGUOUS",
-            "The fixed host Plan window task identities are not contiguous.",
-            status="MISMATCH",
-        )
-        window_start_index = requested_indexes[0]
-        requested_window_size = len(requested_indexes)
-    else:
-        window_start_index = active_index
-        requested_window_size = _HOST_PLAN_WINDOW_SIZE
+    require(
+        bool(requested_window_task_ids),
+        "HOST_PLAN_FIXED_BATCH_REQUIRED",
+        "The canonical fixed host batch must be persisted before projection; sliding and de-dup fallbacks are disabled.",
+        status="BLOCKED",
+    )
+    require(
+        len(requested_window_task_ids) <= _HOST_PLAN_WINDOW_SIZE
+        and len(requested_window_task_ids) == len(set(requested_window_task_ids))
+        and str(active[0]["task_id"]) in requested_window_task_ids,
+        "HOST_PLAN_FIXED_WINDOW_BINDING_INVALID",
+        "The fixed host Plan batch must be unique, bounded, and contain ACTIVE.",
+        status="MISMATCH",
+    )
+    task_index = {str(row["task_id"]): index for index, row in enumerate(full_rows)}
+    require(
+        set(requested_window_task_ids).issubset(task_index),
+        "HOST_PLAN_FIXED_WINDOW_TASK_UNKNOWN",
+        "The fixed host Plan batch references a task outside the live Plan.",
+        status="MISMATCH",
+    )
+    requested_indexes = [task_index[task_id] for task_id in requested_window_task_ids]
+    require(
+        requested_indexes
+        == list(
+            range(
+                requested_indexes[0],
+                requested_indexes[0] + len(requested_indexes),
+            )
+        ),
+        "HOST_PLAN_FIXED_WINDOW_NOT_CONTIGUOUS",
+        "The fixed host Plan batch task identities are not contiguous.",
+        status="MISMATCH",
+    )
+    window_start_index = requested_indexes[0]
+    requested_window_size = len(requested_indexes)
     window_index = window_start_index // _HOST_PLAN_WINDOW_SIZE
     window_end_index = min(
         window_start_index + requested_window_size,
@@ -581,22 +581,13 @@ def _exact_projection(
         "detailed_hil_queue_surface": "EVIDENCE_LANE_PROJECT_RENDERER",
         "hil_controls_in_step_task_list": False,
     }
-    queued_after_window_range = (
-        f"R{continuity_header['queued_after_window_row_start']}-"
-        f"R{continuity_header['queued_after_window_row_end']}"
-        if continuity_header["queued_after_window_count"]
-        else "NONE"
-    )
     continuity_header["visible_text"] = (
-        f"Tracker || Done={completed_count}/{len(full_rows)} || "
-        f"Current=R{window_row_start}-R{window_row_end} || "
-        f"Queued={queued_after_window_range}\n"
-        f"Active=R{continuity_header['absolute_active_row']} || "
-        f"PV={continuity_header['accepted_pv'] or 'NONE'}/"
-        f"g{continuity_header['pointer_generation']} || "
-        f"NextHIL=R{continuity_header['next_hil_boundary_row'] or 'NONE'} || "
-        f"Final=R{continuity_header['physically_final_row']}/"
-        f"{continuity_header['physically_final_candidate'] or 'PV?'}"
+        f"{continuity_header['accepted_pv'] or 'NONE'}/generation "
+        f"{continuity_header['pointer_generation']} | "
+        f"ACTIVE R{continuity_header['absolute_active_row']} | "
+        f"ACTIVE BATCH R{window_row_start}-R{window_row_end} | "
+        f"NEXT_HIL R{continuity_header['next_hil_boundary_row'] or 'NONE'} | "
+        f"FINAL_HIL R{continuity_header['physically_final_row']}"
     )
     header_lines = str(continuity_header["visible_text"]).splitlines()
     require(
@@ -605,7 +596,7 @@ def _exact_projection(
             len(line) <= _HOST_PLAN_HEADER_MAX_CHARS_PER_LINE for line in header_lines
         ),
         "HOST_PLAN_HEADER_BOUND_EXCEEDED",
-        "The fixed host progress header exceeded its two-line UI bound.",
+        "The fixed host progress header exceeded its one-line UI bound.",
         status="MISMATCH",
         row_start=window_row_start,
         row_end=window_row_end,
@@ -902,7 +893,7 @@ def prepare_host_plan_rehydration(
     )
     visible_current = bool(observation["artifact_visibility_proven"])
     capability_available = exact_capability == "SUPPORTED"
-    previous_window_exists = bool(previous_window)
+    previous_window_exists = bool(previous_window.get("projection_sha256"))
     same_window = (
         previous_window.get("row_start") == projection["row_start"]
         and previous_window.get("row_end") == projection["row_end"]

@@ -2848,7 +2848,7 @@ class EvidenceLaneService:
         new_task_contract: dict[str, Any] | None = None,
         boundary: str = "BEFORE_NEXT_HIL",
     ) -> dict[str, Any]:
-        return self.store.record_steer_delta(
+        result = self.store.record_steer_delta(
             project_id,
             delta_text=delta_text,
             actor=actor,
@@ -2857,6 +2857,21 @@ class EvidenceLaneService:
             new_task_contract=new_task_contract,
             boundary=boundary,
         )
+        effect = cast(dict[str, Any], result.get("host_plan_window_effect") or {})
+        if effect.get("host_update_plan_required") is True:
+            result["host_plan_window_rebind"] = (
+                self.sessions.bind_host_plan_window_after_plan_mutation(
+                    project_id,
+                    window_task_ids=[
+                        str(task_id)
+                        for task_id in cast(
+                            list[Any], effect.get("window_task_ids") or []
+                        )
+                    ],
+                    linked_task_id=str(effect.get("linked_task_id") or ""),
+                )
+            )
+        return result
 
     def task_backlog(self, project_id: str) -> dict[str, Any]:
         return self.store.backlog_status(project_id)
@@ -2907,6 +2922,12 @@ class EvidenceLaneService:
         if active_rows:
             fixed_window_task_ids = self.store.persisted_host_plan_window_task_ids(
                 project_id
+            )
+            require(
+                bool(fixed_window_task_ids),
+                "HOST_PLAN_FIXED_BATCH_REQUIRED",
+                "The canonical fixed host batch is missing; the obsolete sliding/de-dup projector is disabled.",
+                status="BLOCKED",
             )
             projection = _exact_projection(
                 self.store,

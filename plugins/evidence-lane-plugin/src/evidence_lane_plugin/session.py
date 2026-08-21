@@ -219,6 +219,43 @@ class SessionManager:
             row.get("panel_role") == "PHYSICALLY_FINAL_HIL" for row in goal_rows
         ):
             return None
+        persisted_window_task_ids = [
+            str(task_id).strip()
+            for task_id in cast(
+                dict[str, Any], session.metadata.get("host_plan_window") or {}
+            ).get("window_task_ids", [])
+            if str(task_id).strip()
+        ]
+        explicit_window_task_ids = [
+            str(task_id).strip()
+            for task_id in fixed_window_task_ids or []
+            if str(task_id).strip()
+        ]
+        if not explicit_window_task_ids and not persisted_window_task_ids:
+            active_rows = [
+                row
+                for row in goal_rows
+                if row.get("status") == "in_progress"
+                and row.get("lifecycle_status") == "ACTIVE"
+            ]
+            if (
+                len(active_rows) != 1
+                or not goal_rows
+                or active_rows[0].get("task_id") != goal_rows[0].get("task_id")
+            ):
+                # A physical-final Plan alone does not authorize choosing a host
+                # batch. Only the first canonical activation may bind the initial
+                # batch; an already-advanced Plan must supply persisted authority.
+                return None
+            persisted_window_task_ids = [
+                str(row["task_id"]) for row in goal_rows[:9]
+            ]
+            session.metadata["host_plan_window"] = {
+                "schema": "evidence-lane.host-plan-window-state.v1",
+                "window_task_ids": persisted_window_task_ids,
+                "binding_source": "INITIAL_PLAN_ACTIVATION",
+            }
+            self._save(session)
         result = prepare_host_plan_rehydration(
             self.store.root,
             project_id=project_id,
@@ -261,6 +298,87 @@ class SessionManager:
         }
         self._save(session)
         return result
+
+    def bind_host_plan_window_after_plan_mutation(
+        self,
+        project_id: str,
+        *,
+        window_task_ids: list[str],
+        linked_task_id: str,
+    ) -> dict[str, Any] | None:
+        """Persist the exact replacement batch chosen by a canonical Plan mutation."""
+
+        active_path = self._active_path(project_id)
+        if not active_path.is_file():
+            return None
+        active = json.loads(active_path.read_text(encoding="utf-8"))
+        session_id = str(active.get("session_id") or "").strip()
+        if not session_id:
+            return None
+        exact_task_ids = [str(task_id).strip() for task_id in window_task_ids]
+        require(
+            1 <= len(exact_task_ids) <= 9
+            and all(exact_task_ids)
+            and len(set(exact_task_ids)) == len(exact_task_ids),
+            "HOST_PLAN_MUTATION_FIXED_BATCH_INVALID",
+            "A canonical Plan mutation must bind one to nine unique host batch task IDs.",
+            status="MISMATCH",
+            task_count=len(exact_task_ids),
+        )
+        rows = cast(
+            list[dict[str, Any]],
+            self.store.backlog_status(project_id)
+            .get("goal_projection", {})
+            .get("rows", []),
+        )
+        row_indexes = {
+            str(row.get("task_id") or ""): index for index, row in enumerate(rows)
+        }
+        require(
+            exact_task_ids[0] in row_indexes,
+            "HOST_PLAN_MUTATION_BATCH_START_MISSING",
+            "The replacement host batch start is not in executable Plan authority.",
+            status="MISMATCH",
+            task_id=exact_task_ids[0],
+        )
+        start = row_indexes[exact_task_ids[0]]
+        canonical_task_ids = [
+            str(row["task_id"]) for row in rows[start : start + len(exact_task_ids)]
+        ]
+        require(
+            canonical_task_ids == exact_task_ids,
+            "HOST_PLAN_MUTATION_BATCH_NOT_CONTIGUOUS",
+            "The replacement host batch must be the exact contiguous canonical Plan slice.",
+            status="MISMATCH",
+        )
+        exact_linked_task_id = str(linked_task_id).strip()
+        session = self.load(project_id, session_id)
+        previous = cast(
+            dict[str, Any], session.metadata.get("host_plan_window") or {}
+        )
+        session.metadata["host_plan_window"] = {
+            **previous,
+            "schema": "evidence-lane.host-plan-window-state.v1",
+            "window_task_ids": exact_task_ids,
+            "binding_source": "CANONICAL_PLAN_STEER_MUTATION",
+        }
+        self._save(session)
+        body = {
+            "schema": "evidence-lane.host-plan-window-mutation-rebind.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "session_id": session_id,
+            "linked_task_id": exact_linked_task_id,
+            "linked_task_in_fixed_batch": exact_linked_task_id in exact_task_ids,
+            "window_task_ids": exact_task_ids,
+            "binding_source": "CANONICAL_PLAN_STEER_MUTATION",
+            "fallback_projector_used": False,
+            "sliding_window_derived": False,
+        }
+        return {
+            **body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
+        }
 
     @staticmethod
     def _source_edit_authority(
@@ -2580,6 +2698,11 @@ class SessionManager:
             reason_sha256=reason_sha256,
             interruption_id=interruption_id,
         )
+        activated_rows = cast(
+            list[dict[str, Any]],
+            cast(dict[str, Any], activated["goal_projection"])["rows"],
+        )
+        fixed_batch_task_ids = [str(row["task_id"]) for row in activated_rows[:9]]
         session = self.load(project_id, session_id)
         replacement = next(
             row for row in activated["tasks"] if row["task_id"] == replacement_task_id
@@ -2662,8 +2785,19 @@ class SessionManager:
                 "The replayed session binding is missing its priority-steer receipt.",
                 status="MISMATCH",
             )
+        host_projection = self._prepare_host_plan_rehydration(
+            project_id,
+            session,
+            trigger="ACTIVE_ROW_TRANSITION",
+            trigger_event_id=f"{interruption_id}__host_projection",
+            host_goal_active=True,
+            affected_plan_task_ids=[replacement_task_id, old_active_task_id],
+            fixed_window_task_ids=fixed_batch_task_ids,
+            reuse_previous_window=False,
+        )
         activated["atomic_insertion_receipt"] = appended["atomic_insertion_receipt"]
         activated["priority_steer_rebind"] = rebind_receipt
+        activated["host_plan_rehydration"] = host_projection
         return activated
 
     def promote_existing_plan_task(
@@ -2814,6 +2948,13 @@ class SessionManager:
             trigger_event_id=f"{promotion_id}__host_projection",
             host_goal_active=bool(contract.get("host_goal_active")),
             affected_plan_task_ids=[promoted_task_id, old_active_task_id],
+            fixed_window_task_ids=[
+                str(row["task_id"])
+                for row in cast(
+                    list[dict[str, Any]],
+                    cast(dict[str, Any], activated["goal_projection"])["rows"],
+                )[:9]
+            ],
             reuse_previous_window=False,
         )
         activated["existing_task_session_rebind"] = rebind_receipt
@@ -4677,7 +4818,9 @@ class SessionManager:
         install_deferral_facts: dict[str, Any] = {"valid": False}
         if per_delta_proof:
             raw_delta = proof.get("delta_verification")
-            delta = cast(dict[str, Any], raw_delta) if isinstance(raw_delta, dict) else {}
+            delta = (
+                cast(dict[str, Any], raw_delta) if isinstance(raw_delta, dict) else {}
+            )
             delta_body = {
                 key: value for key, value in delta.items() if key != "receipt_sha256"
             }
@@ -4959,9 +5102,7 @@ class SessionManager:
                 "catalog": surface.get("catalog"),
                 "surface_inventory_sha256": surface.get("surface_inventory_sha256"),
             },
-            "install_deferral": (
-                install_deferral_facts if deferred_install else None
-            ),
+            "install_deferral": (install_deferral_facts if deferred_install else None),
             "project_panel_sha256": sha256_bytes(canonical_json_bytes(panel)),
             "verification_proof": proof,
             "candidate_created": False,
@@ -7666,9 +7807,9 @@ class SessionManager:
         )
         self._verify_repository_matches_identity(
             project_id,
-            self.store.accepted_metadata(
-                project_id, cast(str, pointer.accepted_pv)
-            )["project_identity"],
+            self.store.accepted_metadata(project_id, cast(str, pointer.accepted_pv))[
+                "project_identity"
+            ],
             error_code="ACCEPTED_SOURCE_RESTORE_REQUIRED",
             message=(
                 "Restore the live repository to the exact accepted PV source before "

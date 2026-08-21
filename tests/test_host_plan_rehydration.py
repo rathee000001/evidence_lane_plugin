@@ -57,6 +57,12 @@ def _classified_host_plan(service) -> tuple[str, str, dict[str, object]]:
         planned_by="human-test",
         plan_id="host-plan-rehydration-plan",
     )
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["host_plan_window"] = {
+        "schema": "evidence-lane.host-plan-window-state.v1",
+        "window_task_ids": [str(task["task_id"]) for task in tasks],
+    }
+    service.sessions._save(session)
     classified = service.sessions.classify(
         "book-faires",
         session_id,
@@ -97,20 +103,16 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
     assert projection["ui_row_max_lines"] == 4
     assert projection["ui_projection_contains_full_plan_row"] is False
     assert projection["ui_overflow_creates_canonical_row"] is False
-    assert all(
-        len(row["step"].splitlines()) <= 4 for row in projection["items"]
+    assert all(len(row["step"].splitlines()) <= 4 for row in projection["items"])
+    assert projection["items"][0]["step"] == (
+        "PV1/generation 1 | ACTIVE R1 | ACTIVE BATCH R1-R3 | NEXT_HIL R3 | FINAL_HIL R3"
     )
-    assert projection["items"][0]["step"].startswith("Tracker || Done=")
-    assert projection["items"][1]["step"].splitlines()[0].startswith(
-        "R1|ID=HOST~"
-    )
+    assert projection["items"][1]["step"].splitlines()[0].startswith("R1|ID=HOST~")
     assert "C=FIX|" in projection["items"][1]["step"]
     assert "|Git" not in projection["items"][1]["step"]
     assert "|D=ROOT|" in projection["items"][1]["step"]
     assert "|FTS=1:" in projection["items"][1]["step"]
-    assert "Restore the exact metadata-rich host Plan" in projection["items"][1][
-        "step"
-    ]
+    assert "Restore the exact metadata-rich host Plan" in projection["items"][1]["step"]
     assert projection["detail_retrieval_contract"] == {
         "full_row_authority": "PLAN_LANE",
         "primary_lookup": "EXACT_TASK_ID",
@@ -125,9 +127,7 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
         "host-plan-pending-row",
         "host-plan-final-hil",
     ]
-    assert projection["item_bindings"][1]["fts_link_id"].startswith(
-        "plan:1:"
-    )
+    assert projection["item_bindings"][1]["fts_link_id"].startswith("plan:1:")
     assert receipt["action"] == "ACTIVATE_HOST_PLAN_CURRENT_WINDOW"
     assert receipt["host_artifact_visibility_status"] == "UNCONFIRMED"
     assert receipt["host_plan_acceptance_status"] == (
@@ -141,14 +141,10 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
         "plan_activation_action": "update_plan",
         "host_plan_mode": "FIXED_HEADER_PLUS_NINE_DELTA_WINDOW",
         "ordinary_turn_action": "REUSE_CURRENT_NATIVE_ARTIFACT",
-        "plan_steer_action": (
-            "SYNC_ONLY_WHEN_CURRENT_WINDOW_UI_FINGERPRINT_CHANGES"
-        ),
+        "plan_steer_action": ("SYNC_ONLY_WHEN_CURRENT_WINDOW_UI_FINGERPRINT_CHANGES"),
         "evi_refresh_command_invoked_by_host_plan_sync": False,
         "task_transition_action": "UPDATE_STATUSES_WITHIN_CURRENT_WINDOW",
-        "window_completion_action": (
-            "SEAL_COMPLETED_WINDOW_AND_ACTIVATE_NEXT_WINDOW"
-        ),
+        "window_completion_action": ("SEAL_COMPLETED_WINDOW_AND_ACTIVATE_NEXT_WINDOW"),
         "final_window_cardinality": (
             "ONE_FIXED_HEADER_PLUS_EXACT_REMAINING_DELTA_ROWS_UP_TO_NINE"
         ),
@@ -156,22 +152,17 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
         "pv_exit_reconstructs_new_entry": False,
         "changes_surface_binding": "EXACT_TASK_UUID_AND_WORKTREE",
         "required_until": (
-            "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_"
-            "HANDOFF_PASSES"
+            "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_HANDOFF_PASSES"
         ),
         "goal_completion_authority": "HUMAN_ONLY",
         "hil_may_complete_goal": False,
         "drop_is_continuity_failure": True,
         "rehydrate_before_source_or_lifecycle_work": True,
-        "canonical_rehydration_source": (
-            "PLAN_LANE_BACKLOG_NOT_THREAD_HISTORY"
-        ),
+        "canonical_rehydration_source": ("PLAN_LANE_BACKLOG_NOT_THREAD_HISTORY"),
         "full_thread_history_hydration_allowed": False,
         "collaboration_overlay_hydration_allowed_during_recovery": False,
         "recovery_concurrency": "ONE_ACTIVE_TASK_ZERO_SUBAGENTS",
-        "renderer_reset_effect": (
-            "FAIL_CLOSED_THEN_REPROJECT_EXACTLY_ONCE_PER_EVENT"
-        ),
+        "renderer_reset_effect": ("FAIL_CLOSED_THEN_REPROJECT_EXACTLY_ONCE_PER_EVENT"),
         "host_owned_surface_survival_guaranteed_by_plugin": False,
         "missing_host_capability_behavior": "FAIL_CLOSED",
     }
@@ -182,9 +173,10 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
     )
     assert public_window["items"] == projection["items"]
     assert public_window["fixed_header"] == projection["continuity_header"]
-    assert public_window["host_update_plan_contract"] == projection[
-        "host_update_plan_contract"
-    ]
+    assert (
+        public_window["host_update_plan_contract"]
+        == projection["host_update_plan_contract"]
+    )
 
     pointer_before = service.store.pointer("book-faires").as_dict()
     git_before = subprocess.run(
@@ -224,25 +216,27 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
         },
     )
     assert panel_loss["state"] == "REHYDRATION_RECEIPT_SEALED"
-    assert panel_loss["receipt"]["projection"]["projection_sha256"] == (
-        projection["projection_sha256"]
+    assert (
+        panel_loss["receipt"]["projection"]["projection_sha256"]
+        == (projection["projection_sha256"])
     )
-    assert panel_loss["receipt"]["action"] == (
-        "REACTIVATE_EXISTING_HOST_PLAN_WINDOW"
-    )
+    assert panel_loss["receipt"]["action"] == ("REACTIVATE_EXISTING_HOST_PLAN_WINDOW")
     observation = panel_loss["receipt"]["observation"]
     assert observation["sources_presence_is_visibility_proof"] is False
     assert observation["icon_presence_is_visibility_proof"] is False
     assert observation["native_backlog_readback_is_visibility_proof"] is False
     assert observation["empty_update_plan_receipt_is_visibility_proof"] is False
     assert service.store.pointer("book-faires").as_dict() == pointer_before
-    assert subprocess.run(
-        ["git", "-C", str(source_repository), "status", "--porcelain=v1"],
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    ).stdout == git_before
+    assert (
+        subprocess.run(
+            ["git", "-C", str(source_repository), "status", "--porcelain=v1"],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        ).stdout
+        == git_before
+    )
 
 
 def test_host_plan_visibility_acceptance_capability_and_project_boundaries(
@@ -271,9 +265,7 @@ def test_host_plan_visibility_acceptance_capability_and_project_boundaries(
         observed_artifact=visible,
         host_goal_active=True,
     )["receipt"]
-    assert visible_result["action"] == (
-        "NO_HOST_PLAN_ACTION_CURRENT_WINDOW_VISIBLE"
-    )
+    assert visible_result["action"] == ("NO_HOST_PLAN_ACTION_CURRENT_WINDOW_VISIBLE")
     assert visible_result["host_artifact_visibility_status"] == "CONFIRMED_VISIBLE"
     assert visible_result["host_plan_acceptance_status"] == (
         "NOT_REQUIRED_FOR_EXISTING_TASK_PLAN"
@@ -436,9 +428,11 @@ def _window_goal(*, active_row: int, total_rows: int = 26) -> dict[str, object]:
 
 
 def test_host_plan_projects_the_active_row_as_step_two_with_next_eight_rows() -> None:
+    fixed_task_ids = [f"window-task-{number:02d}" for number in range(11, 20)]
     projection = _exact_projection(
         _BacklogOnlyStore(_window_goal(active_row=11)),  # type: ignore[arg-type]
         project_id="window-project",
+        fixed_window_task_ids=fixed_task_ids,
     )
     assert projection["total_executable_count"] == 26
     assert projection["window_size"] == 9
@@ -447,7 +441,7 @@ def test_host_plan_projects_the_active_row_as_step_two_with_next_eight_rows() ->
     assert projection["row_start"] == 11
     assert projection["row_end"] == 19
     assert projection["item_count"] == 10
-    assert len(projection["items"][0]["step"].splitlines()) == 2
+    assert len(projection["items"][0]["step"].splitlines()) == 1
     assert all(
         len(item["step"].splitlines()) == 4
         and all(len(line) <= 72 for line in item["step"].splitlines())
@@ -489,8 +483,8 @@ def test_host_plan_projects_the_active_row_as_step_two_with_next_eight_rows() ->
         "detailed_hil_queue_surface": "EVIDENCE_LANE_PROJECT_RENDERER",
         "hil_controls_in_step_task_list": False,
         "visible_text": (
-            "Tracker || Done=10/26 || Current=R11-R19 || Queued=R20-R26\n"
-            "Active=R11 || PV=PV12/g12 || NextHIL=R26 || Final=R26/PV?"
+            "PV12/generation 12 | ACTIVE R11 | ACTIVE BATCH R11-R19 | "
+            "NEXT_HIL R26 | FINAL_HIL R26"
         ),
     }
     assert projection["host_update_plan_contract"] == {
@@ -506,10 +500,22 @@ def test_host_plan_projects_the_active_row_as_step_two_with_next_eight_rows() ->
         "detailed_hil_queue_in_step_task_list": False,
     }
 
+
+def test_host_plan_blocks_obsolete_sliding_or_dedup_fallback() -> None:
+    with pytest.raises(EvidenceLaneError) as exc:
+        _exact_projection(
+            _BacklogOnlyStore(_window_goal(active_row=11)),  # type: ignore[arg-type]
+            project_id="window-project",
+        )
+    assert exc.value.code == "HOST_PLAN_FIXED_BATCH_REQUIRED"
+
+
 def test_host_plan_final_window_contains_only_the_exact_remaining_rows() -> None:
+    fixed_task_ids = [f"window-task-{number:02d}" for number in range(21, 27)]
     projection = _exact_projection(
         _BacklogOnlyStore(_window_goal(active_row=21)),  # type: ignore[arg-type]
         project_id="window-project",
+        fixed_window_task_ids=fixed_task_ids,
     )
     assert projection["window_index"] == 2
     assert projection["row_start"] == 21
@@ -543,11 +549,10 @@ def test_host_plan_header_ignores_out_of_scope_future_pv_mentions() -> None:
     projection = _exact_projection(
         _BacklogOnlyStore(goal),  # type: ignore[arg-type]
         project_id="window-project",
+        fixed_window_task_ids=[f"window-task-{number:02d}" for number in range(21, 27)],
     )
-    assert projection["continuity_header"]["physically_final_candidate"] == (
-        "PV14"
-    )
-    assert "Final=R26/PV14" in projection["items"][0]["step"]
+    assert projection["continuity_header"]["physically_final_candidate"] == ("PV14")
+    assert "FINAL_HIL R26" in projection["items"][0]["step"]
 
 
 def test_host_plan_shows_git_only_on_declared_execution_row() -> None:
@@ -560,6 +565,11 @@ def test_host_plan_shows_git_only_on_declared_execution_row() -> None:
     projection = _exact_projection(
         _BacklogOnlyStore(goal),  # type: ignore[arg-type]
         project_id="window-project",
+        fixed_window_task_ids=[
+            "window-task-01",
+            "window-task-02",
+            "window-task-03",
+        ],
     )
     assert "|Git" not in projection["items"][1]["step"].splitlines()[0]
     assert "|Git" in projection["items"][2]["step"].splitlines()[0]
@@ -581,9 +591,7 @@ def test_fixed_host_window_does_not_slide_when_active_status_advances() -> None:
 
     assert first["row_start"] == second["row_start"] == 10
     assert first["row_end"] == second["row_end"] == 18
-    assert first["window_task_ids"] == second["window_task_ids"] == (
-        fixed_task_ids
-    )
+    assert first["window_task_ids"] == second["window_task_ids"] == (fixed_task_ids)
     assert first["sole_active_row"] == 11
     assert second["sole_active_row"] == 12
     assert first["items"][1]["status"] == "completed"

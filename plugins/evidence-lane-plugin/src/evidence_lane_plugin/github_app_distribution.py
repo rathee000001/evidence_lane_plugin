@@ -16,8 +16,12 @@ import json
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol, cast
+from urllib.parse import quote
+
+import httpx
+import jwt
 
 from .errors import require
 from .hashing import canonical_json_bytes, sha256_bytes
@@ -36,10 +40,11 @@ _PERMISSION_LEVELS = {"read", "write"}
 _ALLOWED_REPOSITORY_PERMISSIONS: dict[str, set[str]] = {
     "actions": {"read"},
     "checks": {"read", "write"},
-    "contents": {"read"},
+    "contents": {"read", "write"},
     "issues": {"read"},
     "metadata": {"read"},
     "pull_requests": {"read"},
+    "workflows": {"read", "write"},
 }
 _ALLOWED_EVENTS = {
     "check_run",
@@ -141,6 +146,19 @@ def _bounded_text(value: object, *, field: str, limit: int = 256) -> str:
         field=field,
     )
     return normalized
+
+
+def _bounded_commit_message(value: object) -> str:
+    require(
+        isinstance(value, str)
+        and bool(value)
+        and len(value.encode("utf-8")) <= 64 * 1024
+        and "\x00" not in value,
+        "GITHUB_APP_COMMIT_MESSAGE_INVALID",
+        "The exact Git commit message must be non-empty UTF-8 and bounded.",
+        status="BLOCKED",
+    )
+    return cast(str, value)
 
 
 def _permission_pairs(value: object) -> tuple[tuple[str, str], ...]:
@@ -444,6 +462,132 @@ class GitHubJSONTransport(Protocol):
     ) -> GitHubAPIResponse: ...
 
 
+class InMemoryPEMGitHubAppJWTProvider:
+    """Create bounded RS256 App JWTs while keeping PEM bytes in memory only."""
+
+    provider_id = "GITHUB_APP_IN_MEMORY_PEM_RS256_V1"
+
+    def __init__(self, *, client_id: str, private_key_pem: bytes) -> None:
+        self.client_id = _bounded_text(client_id, field="client_id", limit=128)
+        require(
+            b"-----BEGIN" in private_key_pem
+            and b"PRIVATE KEY-----" in private_key_pem
+            and len(private_key_pem) <= 64 * 1024,
+            "GITHUB_APP_PRIVATE_KEY_INVALID",
+            "The in-memory GitHub App signer requires one bounded PEM private key.",
+            status="BLOCKED",
+        )
+        self._private_key_pem = bytes(private_key_pem)
+
+    def issue_app_jwt(self, *, requested_at: str) -> str:
+        requested = _timestamp(requested_at, field="requested_at")
+        payload = {
+            "iat": int((requested - timedelta(seconds=60)).timestamp()),
+            "exp": int((requested + timedelta(minutes=9)).timestamp()),
+            "iss": self.client_id,
+        }
+        encoded = jwt.encode(
+            payload,
+            self._private_key_pem,
+            algorithm="RS256",
+        )
+        require(
+            isinstance(encoded, str) and 16 <= len(encoded) <= 8192,
+            "GITHUB_APP_JWT_INVALID",
+            "The GitHub App signer did not produce one bounded JWT.",
+            status="BLOCKED",
+        )
+        return encoded
+
+
+class HttpxGitHubJSONTransport:
+    """HTTPS-only GitHub JSON transport with bounded mapping responses."""
+
+    transport_id = "GITHUB_HTTPX_JSON_TRANSPORT_V1"
+
+    def __init__(
+        self,
+        *,
+        client: httpx.Client | None = None,
+        base_url: str = "https://api.github.com",
+        timeout_seconds: float = 30.0,
+    ) -> None:
+        normalized_base = base_url.rstrip("/")
+        require(
+            normalized_base == "https://api.github.com",
+            "GITHUB_APP_TRANSPORT_ORIGIN_INVALID",
+            "The production GitHub transport is pinned to the official HTTPS API origin.",
+            status="BLOCKED",
+        )
+        require(
+            1.0 <= float(timeout_seconds) <= 60.0,
+            "GITHUB_APP_TRANSPORT_TIMEOUT_INVALID",
+            "The GitHub HTTPS timeout must remain bounded.",
+            status="BLOCKED",
+        )
+        self._owns_client = client is None
+        self._client = client or httpx.Client(
+            base_url=normalized_base,
+            timeout=float(timeout_seconds),
+            follow_redirects=False,
+        )
+
+    def request_json(
+        self,
+        *,
+        method: str,
+        path: str,
+        headers: Mapping[str, str],
+        body: Mapping[str, Any],
+    ) -> GitHubAPIResponse:
+        exact_method = str(method).strip().upper()
+        require(
+            exact_method in {"GET", "POST", "PATCH"}
+            and path.startswith("/")
+            and not path.startswith("//")
+            and "\r" not in path
+            and "\n" not in path,
+            "GITHUB_APP_TRANSPORT_REQUEST_INVALID",
+            "The GitHub HTTPS request method or relative path is invalid.",
+            status="BLOCKED",
+        )
+        response = self._client.request(
+            exact_method,
+            path,
+            headers=dict(headers),
+            json=dict(body) if body else None,
+        )
+        try:
+            decoded = response.json() if response.content else {}
+        except ValueError as exc:
+            require(
+                False,
+                "GITHUB_APP_TRANSPORT_RESPONSE_INVALID",
+                "GitHub returned a non-JSON response to the JSON API route.",
+                status="BLOCKED",
+                http_status=response.status_code,
+                error=type(exc).__name__,
+            )
+            raise AssertionError("unreachable") from exc
+        require(
+            isinstance(decoded, Mapping),
+            "GITHUB_APP_TRANSPORT_RESPONSE_INVALID",
+            "GitHub returned a non-object JSON response to the bounded route.",
+            status="BLOCKED",
+            http_status=response.status_code,
+        )
+        request_id = response.headers.get("x-github-request-id")
+        return GitHubAPIResponse(
+            status_code=response.status_code,
+            body=cast(Mapping[str, Any], decoded),
+            request_id=request_id,
+        )
+
+    def close(self) -> None:
+        if self._owns_client:
+            self._client.close()
+
+
 class DeterministicMockGitHubProvider:
     """Disposable pre-HIL provider with no network or production credentials."""
 
@@ -465,7 +609,7 @@ class DeterministicMockGitHubProvider:
         digest = hmac.new(
             self._seed, request_sha.encode("ascii"), hashlib.sha256
         ).hexdigest()
-        return f"ghs_mock_{digest}"
+        return f"mock-installation-token-{digest}"
 
 
 class GitHubRESTInstallationTokenProvider:
@@ -606,7 +750,8 @@ class GitHubRESTInstallationTokenProvider:
             expires_at=_iso(expires_at),
             app_jwt_persisted=False,
             installation_token_persisted=False,
-            source_write_authorized=False,
+            source_write_authorized=(dict(permissions).get("contents") == "write"),
+            workflow_write_authorized=(dict(permissions).get("workflows") == "write"),
             pointer_moved=False,
             hil_inferred=False,
         )
@@ -714,12 +859,558 @@ class InstallationTokenBroker:
             token_sha256=sha256_bytes(token.encode("utf-8")),
             token_value_persisted=False,
             idempotent_reuse=False,
-            source_write_authorized=False,
+            source_write_authorized=(
+                dict(request.permissions).get("contents") == "write"
+            ),
+            workflow_write_authorized=(
+                dict(request.permissions).get("workflows") == "write"
+            ),
             pointer_moved=False,
             hil_inferred=False,
         )
         self._replay[request.idempotency_key] = (request_sha, token, receipt)
         return token, receipt
+
+
+def _git_blob_sha1(content: bytes) -> str:
+    header = f"blob {len(content)}\0".encode("ascii")
+    return hashlib.sha1(header + content, usedforsecurity=False).hexdigest()
+
+
+def _git_branch(value: object) -> str:
+    branch = _bounded_text(value, field="branch", limit=240)
+    invalid = (
+        branch.startswith(("/", "refs/"))
+        or branch.endswith(("/", ".", ".lock"))
+        or ".." in branch
+        or "@{" in branch
+        or any(character in branch for character in " ~^:?*[\\\r\n\x00")
+        or any(part in {"", ".", ".."} for part in branch.split("/"))
+    )
+    require(
+        not invalid,
+        "GITHUB_APP_BRANCH_INVALID",
+        "The exact GitHub branch is not a valid bounded branch identity.",
+        status="BLOCKED",
+    )
+    return branch
+
+
+def _git_path(value: object) -> str:
+    path = str(value).replace("\\", "/").strip()
+    parts = path.split("/")
+    require(
+        bool(path)
+        and len(path.encode("utf-8")) <= 1024
+        and not path.startswith("/")
+        and all(part not in {"", ".", ".."} for part in parts)
+        and not any(character in path for character in "\r\n\x00"),
+        "GITHUB_APP_TREE_PATH_INVALID",
+        "Each exact Git tree change requires one repository-relative path.",
+        status="BLOCKED",
+    )
+    return path
+
+
+@dataclass(frozen=True, slots=True)
+class GitCommitActor:
+    """Exact author/committer identity used to reproduce a local commit."""
+
+    name: str
+    email: str
+    date: str
+
+    @classmethod
+    def create(cls, *, name: str, email: str, date: str) -> GitCommitActor:
+        exact_email = _bounded_text(email, field="email", limit=320)
+        require(
+            "@" in exact_email and not any(char in exact_email for char in "\r\n\x00"),
+            "GITHUB_APP_COMMIT_ACTOR_INVALID",
+            "The exact Git commit actor email is invalid.",
+            status="BLOCKED",
+        )
+        exact_date = str(date).strip()
+        try:
+            parsed_date: datetime | None = datetime.fromisoformat(exact_date)
+        except ValueError:
+            parsed_date = None
+        require(
+            parsed_date is not None and parsed_date.tzinfo is not None,
+            "GITHUB_APP_COMMIT_ACTOR_INVALID",
+            "The exact Git commit actor date must include its timezone.",
+            status="BLOCKED",
+        )
+        assert parsed_date is not None
+        normalized_date = parsed_date.isoformat(timespec="seconds")
+        return cls(
+            name=_bounded_text(name, field="name", limit=256),
+            email=exact_email,
+            date=normalized_date,
+        )
+
+    def as_dict(self) -> dict[str, str]:
+        return {"name": self.name, "email": self.email, "date": self.date}
+
+
+@dataclass(frozen=True, slots=True)
+class GitTreeChange:
+    """One exact blob write or deletion in a Git Database API tree."""
+
+    path: str
+    mode: str
+    content: bytes | None
+    blob_sha: str | None
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        path: str,
+        mode: str,
+        content: bytes | None,
+    ) -> GitTreeChange:
+        exact_mode = str(mode).strip()
+        require(
+            exact_mode in {"100644", "100755", "120000"},
+            "GITHUB_APP_TREE_MODE_INVALID",
+            "The exact Git tree route supports regular, executable, and symlink blobs.",
+            status="BLOCKED",
+        )
+        exact_content = bytes(content) if content is not None else None
+        require(
+            exact_content is None or len(exact_content) <= 100 * 1024 * 1024,
+            "GITHUB_APP_BLOB_BOUND_EXCEEDED",
+            "A GitHub Git Database blob exceeds the 100 MB API bound.",
+            status="BLOCKED",
+        )
+        return cls(
+            path=_git_path(path),
+            mode=exact_mode,
+            content=exact_content,
+            blob_sha=(
+                _git_blob_sha1(exact_content) if exact_content is not None else None
+            ),
+        )
+
+    @property
+    def operation(self) -> str:
+        return "DELETE" if self.content is None else "UPSERT"
+
+    def identity(self) -> dict[str, Any]:
+        return {
+            "path": self.path,
+            "mode": self.mode,
+            "operation": self.operation,
+            "blob_sha": self.blob_sha,
+            "content_sha256": (
+                sha256_bytes(self.content) if self.content is not None else None
+            ),
+            "content_bytes": len(self.content) if self.content is not None else 0,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ExactGitCommitPushRequest:
+    """Exact local commit identity and bounded tree delta for one App push."""
+
+    request_id: str
+    idempotency_key: str
+    project_id: str
+    task_id: str
+    repository: str
+    branch: str
+    expected_parent_commit_sha: str
+    expected_parent_tree_sha: str
+    expected_tree_sha: str
+    expected_commit_sha: str
+    commit_message: str
+    author: GitCommitActor
+    committer: GitCommitActor
+    changes: tuple[GitTreeChange, ...]
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        request_id: str,
+        idempotency_key: str,
+        project_id: str,
+        task_id: str,
+        repository: str,
+        branch: str,
+        expected_parent_commit_sha: str,
+        expected_parent_tree_sha: str,
+        expected_tree_sha: str,
+        expected_commit_sha: str,
+        commit_message: str,
+        author: GitCommitActor,
+        committer: GitCommitActor,
+        changes: Sequence[GitTreeChange],
+    ) -> ExactGitCommitPushRequest:
+        exact_changes = tuple(sorted(changes, key=lambda item: item.path))
+        paths = [item.path for item in exact_changes]
+        require(
+            bool(exact_changes)
+            and len(exact_changes) <= 10_000
+            and len(paths) == len(set(paths))
+            and sum(len(item.content or b"") for item in exact_changes)
+            <= 250 * 1024 * 1024,
+            "GITHUB_APP_TREE_DELTA_INVALID",
+            "The exact Git tree delta must be non-empty, unique, and bounded.",
+            status="BLOCKED",
+        )
+        return cls(
+            request_id=_identifier(request_id, field="request_id"),
+            idempotency_key=_identifier(idempotency_key, field="idempotency_key"),
+            project_id=_identifier(project_id, field="project_id"),
+            task_id=_identifier(task_id, field="task_id"),
+            repository=_repository(repository),
+            branch=_git_branch(branch),
+            expected_parent_commit_sha=_git_oid(
+                expected_parent_commit_sha,
+                field="expected_parent_commit_sha",
+            ),
+            expected_parent_tree_sha=_git_oid(
+                expected_parent_tree_sha,
+                field="expected_parent_tree_sha",
+            ),
+            expected_tree_sha=_git_oid(expected_tree_sha, field="expected_tree_sha"),
+            expected_commit_sha=_git_oid(
+                expected_commit_sha,
+                field="expected_commit_sha",
+            ),
+            commit_message=_bounded_commit_message(commit_message),
+            author=author,
+            committer=committer,
+            changes=exact_changes,
+        )
+
+    def identity(self) -> dict[str, Any]:
+        return {
+            "request_id": self.request_id,
+            "idempotency_key": self.idempotency_key,
+            "project_id": self.project_id,
+            "task_id": self.task_id,
+            "repository": self.repository,
+            "branch": self.branch,
+            "expected_parent_commit_sha": self.expected_parent_commit_sha,
+            "expected_parent_tree_sha": self.expected_parent_tree_sha,
+            "expected_tree_sha": self.expected_tree_sha,
+            "expected_commit_sha": self.expected_commit_sha,
+            "commit_message_sha256": sha256_bytes(self.commit_message.encode("utf-8")),
+            "author": self.author.as_dict(),
+            "committer": self.committer.as_dict(),
+            "changes": [change.identity() for change in self.changes],
+        }
+
+    @property
+    def sha256(self) -> str:
+        return sha256_bytes(canonical_json_bytes(self.identity()))
+
+
+class GitHubAppExactCommitPushRoute:
+    """Create the exact local Git objects and fast-forward a ref via one App token."""
+
+    route_id = "github_app_exact_commit_push_v1"
+
+    def __init__(
+        self,
+        *,
+        broker: InstallationTokenBroker,
+        transport: GitHubJSONTransport,
+        api_version: str = GITHUB_REST_API_VERSION,
+    ) -> None:
+        self.broker = broker
+        self.transport = transport
+        self.api_version = _identifier(api_version, field="api_version")
+        self._replay: dict[str, tuple[str, dict[str, Any]]] = {}
+
+    @staticmethod
+    def _oid_from_object(payload: Mapping[str, Any], *, field: str) -> str:
+        nested = payload.get("object")
+        require(
+            isinstance(nested, Mapping),
+            "GITHUB_APP_GIT_RESPONSE_INVALID",
+            f"GitHub did not return the expected {field} object.",
+            status="BLOCKED",
+        )
+        return _git_oid(cast(Mapping[str, Any], nested).get("sha"), field=field)
+
+    def _request(
+        self,
+        *,
+        token: str,
+        method: str,
+        path: str,
+        body: Mapping[str, Any],
+        expected_status: int,
+    ) -> GitHubAPIResponse:
+        response = self.transport.request_json(
+            method=method,
+            path=path,
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {token}",
+                "X-GitHub-Api-Version": self.api_version,
+            },
+            body=body,
+        )
+        require(
+            response.status_code == expected_status,
+            "GITHUB_APP_GIT_REQUEST_FAILED",
+            "GitHub rejected an exact Git Database route request.",
+            status="BLOCKED",
+            method=method,
+            path=path,
+            http_status=response.status_code,
+        )
+        return response
+
+    def execute(
+        self,
+        request: ExactGitCommitPushRequest,
+        *,
+        token_request: InstallationTokenRequest,
+        now: str,
+    ) -> dict[str, Any]:
+        prior = self._replay.get(request.idempotency_key)
+        if prior is not None:
+            require(
+                prior[0] == request.sha256,
+                "GITHUB_APP_PUSH_REPLAY_CONFLICT",
+                "The GitHub App push idempotency key was reused for different bytes.",
+                status="BLOCKED",
+            )
+            return {**prior[1], "idempotent_reuse": True}
+
+        permissions = dict(token_request.permissions)
+        workflow_change = any(
+            change.path.startswith(".github/workflows/") for change in request.changes
+        )
+        require(
+            token_request.project_id == request.project_id
+            and token_request.task_id == request.task_id
+            and token_request.repository == request.repository
+            and permissions.get("contents") == "write"
+            and (not workflow_change or permissions.get("workflows") == "write"),
+            "GITHUB_APP_PUSH_AUTHORITY_MISMATCH",
+            "The App token request lacks the exact task, repository, contents, or workflow authority.",
+            status="BLOCKED",
+            workflow_write_required=workflow_change,
+        )
+        token, token_receipt = self.broker.issue(token_request, now=now)
+        owner, repository_name = request.repository.split("/", 1)
+        repository_path = f"/repos/{quote(owner)}/{quote(repository_name)}"
+        ref_name = f"heads/{request.branch}"
+        ref_path = f"{repository_path}/git/ref/{quote(ref_name, safe='/')}"
+        refs_path = f"{repository_path}/git/refs/{quote(ref_name, safe='/')}"
+        request_ids: list[str] = []
+
+        def record(response: GitHubAPIResponse) -> GitHubAPIResponse:
+            if response.request_id:
+                request_ids.append(
+                    _identifier(response.request_id, field="github_request_id")
+                )
+            return response
+
+        remote_before = record(
+            self._request(
+                token=token,
+                method="GET",
+                path=ref_path,
+                body={},
+                expected_status=200,
+            )
+        )
+        require(
+            self._oid_from_object(remote_before.body, field="remote_ref_sha")
+            == request.expected_parent_commit_sha,
+            "GITHUB_APP_REMOTE_PARENT_MISMATCH",
+            "The remote branch moved away from the exact local parent commit.",
+            status="MISMATCH",
+        )
+        parent_commit = record(
+            self._request(
+                token=token,
+                method="GET",
+                path=(
+                    f"{repository_path}/git/commits/"
+                    f"{request.expected_parent_commit_sha}"
+                ),
+                body={},
+                expected_status=200,
+            )
+        )
+        parent_tree = parent_commit.body.get("tree")
+        require(
+            isinstance(parent_tree, Mapping)
+            and _git_oid(
+                cast(Mapping[str, Any], parent_tree).get("sha"),
+                field="remote_parent_tree_sha",
+            )
+            == request.expected_parent_tree_sha,
+            "GITHUB_APP_REMOTE_PARENT_TREE_MISMATCH",
+            "The remote parent tree differs from the exact local parent tree.",
+            status="MISMATCH",
+        )
+
+        tree_entries: list[dict[str, Any]] = []
+        for change in request.changes:
+            if change.content is None:
+                blob_sha = None
+            else:
+                blob_response = record(
+                    self._request(
+                        token=token,
+                        method="POST",
+                        path=f"{repository_path}/git/blobs",
+                        body={
+                            "content": base64.b64encode(change.content).decode("ascii"),
+                            "encoding": "base64",
+                        },
+                        expected_status=201,
+                    )
+                )
+                blob_sha = _git_oid(
+                    blob_response.body.get("sha"),
+                    field="created_blob_sha",
+                )
+                require(
+                    blob_sha == change.blob_sha,
+                    "GITHUB_APP_BLOB_IDENTITY_MISMATCH",
+                    "GitHub created blob bytes that differ from the local Git object.",
+                    status="MISMATCH",
+                    path=change.path,
+                )
+            tree_entries.append(
+                {
+                    "path": change.path,
+                    "mode": change.mode,
+                    "type": "blob",
+                    "sha": blob_sha,
+                }
+            )
+
+        tree_response = record(
+            self._request(
+                token=token,
+                method="POST",
+                path=f"{repository_path}/git/trees",
+                body={
+                    "base_tree": request.expected_parent_tree_sha,
+                    "tree": tree_entries,
+                },
+                expected_status=201,
+            )
+        )
+        created_tree_sha = _git_oid(
+            tree_response.body.get("sha"),
+            field="created_tree_sha",
+        )
+        require(
+            created_tree_sha == request.expected_tree_sha,
+            "GITHUB_APP_TREE_IDENTITY_MISMATCH",
+            "GitHub created a tree that differs from the exact local tree.",
+            status="MISMATCH",
+        )
+        commit_response = record(
+            self._request(
+                token=token,
+                method="POST",
+                path=f"{repository_path}/git/commits",
+                body={
+                    "message": request.commit_message,
+                    "tree": request.expected_tree_sha,
+                    "parents": [request.expected_parent_commit_sha],
+                    "author": request.author.as_dict(),
+                    "committer": request.committer.as_dict(),
+                },
+                expected_status=201,
+            )
+        )
+        created_commit_sha = _git_oid(
+            commit_response.body.get("sha"),
+            field="created_commit_sha",
+        )
+        require(
+            created_commit_sha == request.expected_commit_sha,
+            "GITHUB_APP_COMMIT_IDENTITY_MISMATCH",
+            "GitHub created a commit that differs from the exact local commit.",
+            status="MISMATCH",
+        )
+        updated_ref = record(
+            self._request(
+                token=token,
+                method="PATCH",
+                path=refs_path,
+                body={"sha": request.expected_commit_sha, "force": False},
+                expected_status=200,
+            )
+        )
+        require(
+            self._oid_from_object(updated_ref.body, field="updated_ref_sha")
+            == request.expected_commit_sha,
+            "GITHUB_APP_REF_UPDATE_MISMATCH",
+            "GitHub did not return the exact fast-forwarded ref identity.",
+            status="MISMATCH",
+        )
+        remote_after = record(
+            self._request(
+                token=token,
+                method="GET",
+                path=ref_path,
+                body={},
+                expected_status=200,
+            )
+        )
+        require(
+            self._oid_from_object(remote_after.body, field="verified_ref_sha")
+            == request.expected_commit_sha,
+            "GITHUB_APP_REF_VERIFY_MISMATCH",
+            "The post-push remote ref does not equal the exact local commit.",
+            status="MISMATCH",
+        )
+        receipt = _receipt(
+            "evidence-lane.github-app-exact-commit-push-receipt.v1",
+            status="PASS",
+            route=self.route_id,
+            request_sha256=request.sha256,
+            token_broker_receipt_sha256=token_receipt["receipt_sha256"],
+            project_id=request.project_id,
+            task_id=request.task_id,
+            repository=request.repository,
+            branch=request.branch,
+            parent_commit_sha=request.expected_parent_commit_sha,
+            parent_tree_sha=request.expected_parent_tree_sha,
+            tree_sha=request.expected_tree_sha,
+            commit_sha=request.expected_commit_sha,
+            changed_path_count=len(request.changes),
+            changed_path_set_sha256=sha256_bytes(
+                canonical_json_bytes([change.path for change in request.changes])
+            ),
+            github_request_ids=request_ids,
+            source_write_authorized=True,
+            workflow_write_authorized=workflow_change,
+            commit_created=True,
+            ref_pushed=True,
+            force_push=False,
+            remote_ref_verified=True,
+            credential_values_persisted=False,
+            private_key_persisted=False,
+            installation_token_persisted=False,
+            candidate_created_or_accepted=False,
+            pointer_moved=False,
+            hil_inferred=False,
+            idempotent_reuse=False,
+        )
+        require(
+            not receipt_contains_secret(receipt),
+            "GITHUB_APP_PUSH_RECEIPT_SECRET_BLOCKED",
+            "The exact push receipt contains a forbidden secret field.",
+            status="BLOCKED",
+        )
+        self._replay[request.idempotency_key] = (request.sha256, receipt)
+        return receipt
 
 
 class WebhookVerifier:
@@ -1141,9 +1832,7 @@ class ProductionDeliveryIdentity:
         )
         exact_package_sha = _sha256(package_sha256, field="package_sha256")
         require(
-            _sha256(
-                installed_package_sha256, field="installed_package_sha256"
-            )
+            _sha256(installed_package_sha256, field="installed_package_sha256")
             == exact_package_sha,
             "GITHUB_APP_DELIVERY_PACKAGE_INSTALL_MISMATCH",
             "The installed branch-commit slot must contain the exact delivered package.",
@@ -1160,9 +1849,7 @@ class ProductionDeliveryIdentity:
         slots = (
             _bounded_text(mutable_local_slot, field="mutable_local_slot"),
             _bounded_text(branch_commit_slot, field="branch_commit_slot"),
-            _bounded_text(
-                main_merge_fallback_slot, field="main_merge_fallback_slot"
-            ),
+            _bounded_text(main_merge_fallback_slot, field="main_merge_fallback_slot"),
         )
         require(
             len(set(slots)) == 3,

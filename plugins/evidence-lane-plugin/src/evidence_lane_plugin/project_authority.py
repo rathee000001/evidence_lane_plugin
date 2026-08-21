@@ -572,7 +572,9 @@ def _git_bytes(repository: Path, *arguments: str) -> bytes:
         stdin=subprocess.DEVNULL,
         capture_output=True,
         check=True,
-        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+        creationflags=(
+            getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+        ),
     )
     return completed.stdout
 

@@ -115,6 +115,12 @@ def test_plan_steer_updates_only_when_current_host_window_fingerprint_changes(
         planned_by="human-test",
         plan_id="nine-row-window-steer-routing",
     )
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["host_plan_window"] = {
+        "schema": "evidence-lane.host-plan-window-state.v1",
+        "window_task_ids": [str(task["task_id"]) for task in tasks[:9]],
+    }
+    service.sessions._save(session)
     service.sessions.classify(
         "book-faires",
         session_id,
@@ -172,6 +178,13 @@ def test_plan_steer_updates_only_when_current_host_window_fingerprint_changes(
     assert effect["action"] == "SYNC_CURRENT_HOST_WINDOW_ONCE"
     assert effect["host_update_plan_required"] is True
     assert effect["evi_refresh_invoked"] is False
+    assert inside_metadata["host_plan_window_rebind"]["window_task_ids"] == [
+        task["task_id"] for task in tasks[:9]
+    ]
+    assert (
+        inside_metadata["host_plan_window_rebind"]["binding_source"]
+        == "CANONICAL_PLAN_STEER_MUTATION"
+    )
 
 
 def test_plan_steer_reuses_persisted_batch_when_active_is_mid_window(service) -> None:
@@ -247,9 +260,7 @@ def test_task_activity_public_receipt_keeps_exact_bounded_host_window(
                 "request_sha256": "B" * 64,
                 "receipt_path": "private-store-path.json",
                 "receipt": {
-                    "schema": (
-                        "evidence-lane.host-plan-window-activation-receipt.v2"
-                    ),
+                    "schema": ("evidence-lane.host-plan-window-activation-receipt.v2"),
                     "status": "PASS",
                     "project_id": "book-faires",
                     "evidence_session_id": "session-test",
@@ -342,6 +353,22 @@ def test_existing_priority_delta_is_promoted_without_duplication_and_rehydrates(
         planned_by="human-test",
         plan_id="existing-priority-promotion",
     )
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["host_plan_window"] = {
+        "schema": "evidence-lane.host-plan-window-state.v1",
+        "window_task_ids": [
+            str(task["task_id"])
+            for task in [
+                active,
+                middle_one,
+                middle_two,
+                promoted,
+                successor,
+                final_hil,
+            ]
+        ],
+    }
+    service.sessions._save(session)
     service.sessions.classify(
         "book-faires",
         session_id,
@@ -368,15 +395,13 @@ def test_existing_priority_delta_is_promoted_without_duplication_and_rehydrates(
             "promoted_task_id": "priority-delivery",
             "expected_host_task_id": session.metadata["current_host_session_id"],
             "reason": "The user ordered the existing delivery Delta first.",
-            "expected_backlog_sha256": sha256_bytes(
-                canonical_json_bytes(raw_before)
-            ),
-            "expected_canonical_plan_sha256": before[
-                "canonical_plan_projection"
-            ]["projection_sha256"],
-            "expected_executable_projection_sha256": before[
-                "goal_projection"
-            ]["projection_sha256"],
+            "expected_backlog_sha256": sha256_bytes(canonical_json_bytes(raw_before)),
+            "expected_canonical_plan_sha256": before["canonical_plan_projection"][
+                "projection_sha256"
+            ],
+            "expected_executable_projection_sha256": before["goal_projection"][
+                "projection_sha256"
+            ],
             "expected_physical_final_task_id": "physical-final-hil",
             "expected_candidate_absent": True,
             "expected_pending_hil": False,
@@ -402,12 +427,11 @@ def test_existing_priority_delta_is_promoted_without_duplication_and_rehydrates(
     assert rows[1]["dependencies"] == ["priority-delivery"]
     assert rows[4]["dependencies"] == ["middle-two"]
     assert rows[-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
-    assert result["existing_task_promotion_receipt"][
-        "stable_task_identity_preserved"
-    ] is True
-    assert result["existing_task_promotion_receipt"][
-        "task_count_unchanged"
-    ] is True
+    assert (
+        result["existing_task_promotion_receipt"]["stable_task_identity_preserved"]
+        is True
+    )
+    assert result["existing_task_promotion_receipt"]["task_count_unchanged"] is True
     assert result["existing_task_session_rebind"]["goal_completed"] is False
     projection = result["host_plan_rehydration"]["receipt"]["projection"]
     assert projection["sole_active_task_id"] == "priority-delivery"
@@ -448,6 +472,21 @@ def test_existing_priority_promotion_accepts_implicit_executable_predecessor(
         planned_by="human-test",
         plan_id="implicit-existing-priority-promotion",
     )
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["host_plan_window"] = {
+        "schema": "evidence-lane.host-plan-window-state.v1",
+        "window_task_ids": [
+            str(task["task_id"])
+            for task in [
+                active,
+                middle,
+                promoted,
+                successor,
+                final_hil,
+            ]
+        ],
+    }
+    service.sessions._save(session)
     service.sessions.classify(
         "book-faires",
         session_id,
@@ -472,19 +511,15 @@ def test_existing_priority_promotion_accepts_implicit_executable_predecessor(
             "session_id": session_id,
             "old_active_task_id": "active-route",
             "promoted_task_id": "implicit-priority",
-            "expected_host_task_id": session.metadata[
-                "current_host_session_id"
-            ],
+            "expected_host_task_id": session.metadata["current_host_session_id"],
             "reason": "The user ordered the existing implicit row first.",
-            "expected_backlog_sha256": sha256_bytes(
-                canonical_json_bytes(raw_before)
-            ),
-            "expected_canonical_plan_sha256": before[
-                "canonical_plan_projection"
-            ]["projection_sha256"],
-            "expected_executable_projection_sha256": before[
-                "goal_projection"
-            ]["projection_sha256"],
+            "expected_backlog_sha256": sha256_bytes(canonical_json_bytes(raw_before)),
+            "expected_canonical_plan_sha256": before["canonical_plan_projection"][
+                "projection_sha256"
+            ],
+            "expected_executable_projection_sha256": before["goal_projection"][
+                "projection_sha256"
+            ],
             "expected_physical_final_task_id": "physical-final-hil",
             "expected_candidate_absent": True,
             "expected_pending_hil": False,
@@ -506,9 +541,7 @@ def test_existing_priority_promotion_accepts_implicit_executable_predecessor(
     assert rows[1]["dependencies"] == ["implicit-priority"]
     assert rows[3]["dependencies"] == ["middle-route"]
     receipt = result["existing_task_promotion_receipt"]
-    assert receipt["promoted_dependency_mode"] == (
-        "IMPLICIT_EXECUTABLE_PREDECESSOR"
-    )
+    assert receipt["promoted_dependency_mode"] == ("IMPLICIT_EXECUTABLE_PREDECESSOR")
     assert receipt["successor_dependency_mode"] == "EXPLICIT"
 
 
@@ -575,10 +608,9 @@ def test_unlinked_steers_insert_before_physically_final_hil_and_all_persist(
     assert backlog["goal_projection"]["unlinked_steer_policy"] == (
         "INSERT_NEW_NUMBERED_STEP_BEFORE_NEXT_HIL_AND_INCREASE_COUNT"
     )
-    assert [
-        row["steer_deltas"][0]["delta_id"]
-        for row in ordered[1:-1]
-    ] == [f"late-steer-{index:03d}" for index in range(1, 8)]
+    assert [row["steer_deltas"][0]["delta_id"] for row in ordered[1:-1]] == [
+        f"late-steer-{index:03d}" for index in range(1, 8)
+    ]
 
 
 def test_universal_host_plan_labels_preserve_structured_execution_metadata(
@@ -661,7 +693,9 @@ def test_universal_host_plan_labels_preserve_structured_execution_metadata(
     ]
     assert state_travel_projection["explicit_host_plan_acceptance_required"] is True
     assert state_travel_projection["plan_acceptance_is_evidence_lane_hil"] is False
-    assert state_travel_projection["goal_or_source_work_before_plan_acceptance"] is False
+    assert (
+        state_travel_projection["goal_or_source_work_before_plan_acceptance"] is False
+    )
 
 
 def test_current_plan_hydration_marks_conflicts_until_exact_linked_resolution(
@@ -733,12 +767,14 @@ def test_current_plan_hydration_marks_conflicts_until_exact_linked_resolution(
     assert resolved["git_commit_stage_source"] == (
         "LINKED_DELTA:release-current-authority-steer"
     )
-    assert "VERSION=2.1.0@LINKED_DELTA:release-current-authority-steer" in (
-        resolved["visible_label"]
+    assert (
+        "VERSION=2.1.0@LINKED_DELTA:release-current-authority-steer"
+        in (resolved["visible_label"])
     )
-    assert service.task_backlog("book-faires")["goal_projection"]["rows"][-1][
-        "panel_role"
-    ] == "PHYSICALLY_FINAL_HIL"
+    assert (
+        service.task_backlog("book-faires")["goal_projection"]["rows"][-1]["panel_role"]
+        == "PHYSICALLY_FINAL_HIL"
+    )
 
 
 def test_active_release_context_hydrates_only_current_and_future_rows(service) -> None:
