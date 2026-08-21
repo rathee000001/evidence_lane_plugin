@@ -13,9 +13,8 @@
   <a href="https://rathee000001.github.io/evidence_lane_plugin/">GitHub Pages</a>
 </p>
 
-The maintained publication record is only the existing Devpost project
-[1348634/evidence_os](https://devpost.com/software/evidence_os); no branch,
-preview, or candidate creates a second submission.
+The canonical Devpost publication has not been created yet. No branch, preview,
+or candidate should publish or link to a provisional entry.
 
 <p align="center">
   <a href="ARCHITECTURE.md">Architecture</a> ·
@@ -51,9 +50,10 @@ making the exact slice needed by the active Delta queryable across tasks,
 context windows, tools, and hosts.
 
 The current pre-HIL Codex source release is **3.0.0**. This forward release
-identity applies to the branch, package, helper, tunnel, Git, website, Devpost,
-and maintained current documentation; sealed historical receipts retain their
-original identities only inside the historical evidence boundary.
+identity applies to the branch, package, helper, tunnel, Git, website, future
+Devpost publication, and maintained current documentation; sealed historical
+receipts retain their original identities only inside the historical evidence
+boundary.
 
 > **Testing status:** Version 3.0.0 is a candidate source line under branch
 > verification; it has not completed the governed release and installed-package

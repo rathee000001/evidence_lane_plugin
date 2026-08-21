@@ -363,13 +363,14 @@ def test_direct_dependency_license_correction_and_render_provenance_are_explicit
     } == {"stable_svg_chromium_screenshot"}
 
 
-def test_owner_repository_and_existing_devpost_identity_do_not_drift() -> None:
+def test_owner_repository_and_readme_devpost_publication_hold_do_not_drift() -> None:
     site = _read(ADAPTER / "app" / "_data" / "site.ts")
     assert REPOSITORY in site
     assert "https://devpost.com/software/evidence_os" in site
     readme = _read(ROOT / "README.md")
-    assert "1348634/evidence_os" in readme
-    assert "only the existing Devpost project" in readme
+    assert "https://devpost.com/" not in readme
+    assert "The canonical Devpost publication has not been created yet" in readme
+    assert "should publish or link to a provisional entry" in readme
 
 
 def test_current_public_plan_projection_preserves_its_sealed_snapshot() -> None:
