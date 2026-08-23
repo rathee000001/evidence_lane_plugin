@@ -1351,7 +1351,12 @@ def test_session_start_hook_is_advisory(tmp_path: Path) -> None:
 def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
     service,
     source_repository: Path,
+    tmp_path: Path,
+    monkeypatch,
 ) -> None:
+    codex_home = tmp_path / "codex-home"
+    codex_home.mkdir()
+    monkeypatch.setenv("CODEX_HOME", str(codex_home))
     session_id, _ = build_and_approve_pv1(service)
     turn_task = {
         "task_id": "prompt-index-v2-turn-control",
