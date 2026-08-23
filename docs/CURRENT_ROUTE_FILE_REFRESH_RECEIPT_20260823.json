@@ -1,6 +1,6 @@
 {
-  "audited_index_tree_before_receipt": "6f0b0f2fc5b21f04feb9f7db44e9b20bcebe85a2",
-  "base_commit": "fa18302950e274c526c99f77b4bac8e1a11856f2",
+  "audited_index_tree_before_receipt": "017bcabf0fe674035e3026cd730a3db764533cad",
+  "base_commit": "62902847c57ccd2aef2d985c8bd186535dae7347",
   "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
   "current_route": {
     "direct_state_travel_fields": [
@@ -13,6 +13,7 @@
     ],
     "github_app_commit_actor": "evidence-lane[bot]",
     "github_app_commit_route": "github_app_exact_commit_push_v1",
+    "github_app_main_merge_route": "github_app_repository_merge_v2",
     "hook_events": [
       "SessionStart",
       "SubagentStart",
@@ -47,7 +48,7 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": ".agents",
-      "sha256": "DEE02C70AA47F16DC11DF59C868245462A6ABB67E0CE238CEFDEA9B94010EC81"
+      "sha256": "4C691E76084CF4C008CE15CA4EF83699E5A5BFB9E052C14D82C1456687CCA8B2"
     },
     {
       "bytes": 416,
@@ -60,7 +61,7 @@
     },
     {
       "bytes": 244,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": ".dockerignore",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -69,7 +70,7 @@
     },
     {
       "bytes": 3027,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": ".env.example",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -78,7 +79,7 @@
     },
     {
       "bytes": 137,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": ".gitattributes",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -137,7 +138,7 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": ".github",
-      "sha256": "95A5E6149CB3C00CE02FE5A7B0D74DE62D3D09A7807E7BAC4BA30EACEA6EAB72"
+      "sha256": "370D3C1B3B97E3F8CF7F505D36E35B4504D843C944F4F1B517400EA7B377EF5C"
     },
     {
       "bytes": 1607,
@@ -168,7 +169,7 @@
     },
     {
       "bytes": 1817,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": ".github/workflows/evidence-lane-github-pages.yml",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -186,7 +187,7 @@
     },
     {
       "bytes": 532,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": ".gitignore",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -195,7 +196,7 @@
     },
     {
       "bytes": 394,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": ".vercelignore",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -203,17 +204,17 @@
       "sha256": "2C9BEB64256F122C2D2FA39F064CEBCED972630157C4CDE2EDB1D167AF48C08B"
     },
     {
-      "bytes": 17605,
+      "bytes": 17616,
       "disposition": "CHANGED",
       "path": "ARCHITECTURE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "repository-root",
-      "sha256": "CF1B24D2931E475B68A9BB06106B4908F978E049E30DCD37B1994450E112C35E"
+      "sha256": "066A5784C90E87D375E863859DA67FBFAECC2769E878858123CF294B6BA00466"
     },
     {
       "bytes": 1365,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "CONTRIBUTING.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -222,7 +223,7 @@
     },
     {
       "bytes": 1942,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "Dockerfile",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -230,31 +231,31 @@
       "sha256": "F0186124287202279D2DA7A64E4EAA3D58E3F467EC441E0027E2BD63EA83BEDD"
     },
     {
-      "bytes": 1314,
+      "bytes": 1325,
       "disposition": "CHANGED",
       "path": "LICENSE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "repository-root",
-      "sha256": "CEBB7CECE6CC7310B9E53B505FB9445100BC238A0F7C7C1E3504817ED8F0FE45"
+      "sha256": "3B26046E1547A0ED96EFC2B6D6BD3B1DCAC6B61A92169692E5A023FFA8D8BB80"
     },
     {
-      "bytes": 34473,
+      "bytes": 34484,
       "disposition": "CHANGED",
       "path": "README.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "repository-root",
-      "sha256": "92E4D1D25FC0C2BFD346F7608182E2DDF7CAD8143E1917E756CFF8CBB29233E6"
+      "sha256": "8F1D0421C167AD3A14907438750F215FF3942FC9BC5F41FEAE0F72C0C031D19E"
     },
     {
-      "bytes": 5590,
+      "bytes": 5601,
       "disposition": "CHANGED",
       "path": "SECURITY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "repository-root",
-      "sha256": "7912D6F3B160A3B3D54371B7AC57CD3A63AE47B2C21D3C6147E56987DBAA2434"
+      "sha256": "DF52D4DC3304B7E85AEF7076BDF7DAC90A41F9CC45FB611009C4FC804F527F66"
     },
     {
       "bytes": 0,
@@ -266,17 +267,17 @@
       "sha256": null
     },
     {
-      "bytes": 3875,
+      "bytes": 3886,
       "disposition": "CHANGED",
       "path": "docs/AI_LEARNING.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "4957597B461D546AEC659726665D99608773306545DF0979D227A911BDCABF45"
+      "sha256": "D60C44477DE00BA014912731778A9A93CE6F83FCFAF5C9F29406C485596A4E87"
     },
     {
       "bytes": 14990,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/ARCHITECTURE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -284,13 +285,13 @@
       "sha256": "3B8687A1F4249F70C793BED1A6A9313F64B4E4098A8EBA5EA2F8C626026504C4"
     },
     {
-      "bytes": 6031,
+      "bytes": 6042,
       "disposition": "CHANGED",
       "path": "docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "6B202B7AA48E67F1C4A2A0A2CF1D682091FC4FD9EF9B741384556CCB2EFDFEF5"
+      "sha256": "6A728C1BFCAF0CC30A1B00432220CECA62011C2BB84558F0252643BE83E7F397"
     },
     {
       "bytes": 3310,
@@ -320,31 +321,31 @@
       "sha256": "DD389A36B152F75690B149D8F0385F69FFA818DF2057A12618970CE32F8711E1"
     },
     {
-      "bytes": 3979,
+      "bytes": 3990,
       "disposition": "CHANGED",
       "path": "docs/COMMANDS.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "41F05E613E6625202D407133F4A23743D83802D2E447ADBF0F50C00EDDB1374C"
+      "sha256": "0A495C454E0B957B8B2F23036AF122C74AFE977E1D1EB0B7E7331CC44D7F75F5"
     },
     {
-      "bytes": 1321,
+      "bytes": 1332,
       "disposition": "CHANGED",
       "path": "docs/COPYRIGHT.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "1AFDFD7BF719B78D8BE6867C8C8270A8262124DBEA1DC5A4799AD24FB951C304"
+      "sha256": "A50773D7BAAE70536028E021BD0E695AEBAD1860991CBF0ABCB4D6069B6C6687"
     },
     {
-      "bytes": 3642,
+      "bytes": 3653,
       "disposition": "CHANGED",
       "path": "docs/CREDITS_AND_CONTRIBUTIONS.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "08B2380F8C95BC87CCC9F41AE0D831B0D06B9C681DE32097215DCDBCF42ABB11"
+      "sha256": "2C3F85726A32261F8ABC2BC880907B72D789CE1AE286FA15F995B0196D652EC4"
     },
     {
       "bytes": 8936,
@@ -410,31 +411,31 @@
       "sha256": "6203AF93F35CDC746A9CD0EDB847198722E9D1B658E65AD21B14060AEA3DE609"
     },
     {
-      "bytes": 3934,
+      "bytes": 4599,
       "disposition": "CHANGED",
       "path": "docs/GITHUB_APP_PRE_HIL_CONTRACT.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "CD262F89B19DCE0962BAA21A19681E2FAE47AB70D37726128ABDE1B806138640"
+      "sha256": "748A27AB55DDFE1A55B8E01D83725AE63C87F0A7B9F36BE86DF46F1E4DA7BBC8"
     },
     {
-      "bytes": 2434,
+      "bytes": 2845,
       "disposition": "CHANGED",
       "path": "docs/GIT_AND_CI_CD.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "4126CEC0828187AA0C4A553EA9D533EA18968288AFA3B63D5B31E57F4134B7DA"
+      "sha256": "6361E0438260E110AC88BD0DE6AFD6D5149020C43F513A4FC597B47749A0E254"
     },
     {
-      "bytes": 3256,
+      "bytes": 4318,
       "disposition": "CHANGED",
       "path": "docs/GIT_WRITE_CONTRACT.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "019581074E38C6192A58F21C9CDF535579A0A6FBDF55DA6EDFEB5C24720B0A09"
+      "sha256": "5F081D52AC4BB646AEFA19F6ED9DCCD5C7687D5F2B52B4F792E7862D818F1852"
     },
     {
       "bytes": 1575,
@@ -446,17 +447,17 @@
       "sha256": "85229597B0413AD5A741C41520FE3ACFEE4B93A8B7252D220BDDCFB404765FA7"
     },
     {
-      "bytes": 3585,
+      "bytes": 3596,
       "disposition": "CHANGED",
       "path": "docs/HOOKS.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "0EC7C920A00D04002D96C8439F7A0D3859592B17BE40F1A4ED9ACEF1C474F0BB"
+      "sha256": "7B66980F738B7C14784ADB56841E1830BEE097AA324EB32FED249E32E429ABFD"
     },
     {
       "bytes": 3854,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/HOST_AND_STORAGE_MATRIX.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -473,35 +474,35 @@
       "sha256": "C9E70FC2FEFB91615F4BDE455F2D9DB33C7B0327C615C1859F1FB8A79492A5C0"
     },
     {
-      "bytes": 9666,
+      "bytes": 9677,
       "disposition": "CHANGED",
       "path": "docs/HOST_STORAGE_ENV_MODE_CONTINUITY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "5FE90DF9EF89F38C4815DC0743C710208E08A1DA643276557BB23E7DE6A22E8E"
+      "sha256": "256672404400FD01FE1483EA89EF0B6FEC7E94DC47618F754049FB1CBD4234D5"
     },
     {
-      "bytes": 9409,
+      "bytes": 9648,
       "disposition": "CHANGED",
       "path": "docs/IMPLEMENTATION_TRACEABILITY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "23AE12BE87A70A521ACD3EE676F99F70B2532988F107A8D5D33838E254B69A93"
+      "sha256": "062A87A3E87F7A16978DAFCE934665E67F81056723BCFC446B6DD695B4ED0B40"
     },
     {
-      "bytes": 2849,
+      "bytes": 2860,
       "disposition": "CHANGED",
       "path": "docs/INSTALLATION_AND_RECOVERY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "14718069A83265DE99BA2228E2E5310F43D5DAABB8EA6619FB50445DD1B28326"
+      "sha256": "9CC6AC16914C64E998B07D4EEC15F1EE8B5330E97A4C6093EDAA614D0260CD44"
     },
     {
       "bytes": 5905,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/INTERNAL_CODEX_SDK.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -509,40 +510,40 @@
       "sha256": "ECA876ACADDC92982A422EAE86941570A2345B7EABD456059CA470F8D6F5FD57"
     },
     {
-      "bytes": 2221,
+      "bytes": 2232,
       "disposition": "CHANGED",
       "path": "docs/LIFECYCLE_AND_HIL.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "7618B2AAD82B8BE0F2E22C36736AF13596D8888029651C00D6653CFC9E49BF22"
+      "sha256": "3FA15BFD84D9894281F5B498C45C26FE246DFBBCA106A227A432A57A5A197E11"
     },
     {
-      "bytes": 2898,
+      "bytes": 2909,
       "disposition": "CHANGED",
       "path": "docs/MCP.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "F86B5A2E74741BF2CE7C8140008B140F9C076C4B93535BDCA2F4914FECB07BDA"
+      "sha256": "DB9ADF77F4D9858B4F810736DAF8BAD1BFD86F72E91912C61073D521096D1FDD"
     },
     {
-      "bytes": 5321,
+      "bytes": 5332,
       "disposition": "CHANGED",
       "path": "docs/MEMORY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "0B98659104CD0618786DE110DAC2B623B7629B042F03B59392195A9841172F49"
+      "sha256": "BE2294A36D0DA9BDB0B917B498E8F30D2F63EE0D5BFCDBC985EAF2F8EF13F60B"
     },
     {
-      "bytes": 2395,
+      "bytes": 2406,
       "disposition": "CHANGED",
       "path": "docs/PLAN_AND_CHANGE_DISPLAY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "F3140FDAED2A9D2AC071EDD758CC52861DDB6AEC850A945E6367156A5ADCC101"
+      "sha256": "87D3DF8C7ECCE47FF4A6B4748D8B785F625FEEF33D60D109FCAEB111035104F6"
     },
     {
       "bytes": 2642,
@@ -554,22 +555,22 @@
       "sha256": "F089201B3F531544FB8CEC5FDE7E2FF9B930B2754EAAFB59439AA4E866EB6C5D"
     },
     {
-      "bytes": 2665,
+      "bytes": 2676,
       "disposition": "CHANGED",
       "path": "docs/PROJECT_PV_CONTENT_ADDRESSED_STORAGE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "0FD549B1613B3AFDEF00A5945B2F103A31F177782926621E42B771B4D067B077"
+      "sha256": "3B6183E2DC71FAECC0F2E3034CBF373C60C1D3880F2E9B6BEB1446CDBC6BF5EC"
     },
     {
-      "bytes": 1302,
+      "bytes": 1313,
       "disposition": "CHANGED",
       "path": "docs/PROJECT_UNIVERSE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "8D3135ECECE2EA4DD112B02FE4E5B5370E5046F5A7329F78F23F402C3A2502BB"
+      "sha256": "AF12CBFFFF83E8FFA4197AB08E2236D31AC19BEF45F37CA913EA27C857CF7DD5"
     },
     {
       "bytes": 1564,
@@ -608,26 +609,26 @@
       "sha256": "3E5A99815CD1B6806F3B0FFB5ECE5C0A5B692E0A39FCB007AC5ABF0BA0DDA18B"
     },
     {
-      "bytes": 1258,
+      "bytes": 1269,
       "disposition": "CHANGED",
       "path": "docs/RELEASE_AND_COMPATIBILITY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "E6271EDB3EE9B1BBC767D80A23831B5344069C7399984975D420904FC4B51035"
+      "sha256": "44A903826AD8287C03B9E8E7F8BC2AE3D3D5A8DE9EF1737E87B99315DC3CCF3B"
     },
     {
-      "bytes": 1749,
+      "bytes": 1760,
       "disposition": "CHANGED",
       "path": "docs/REPOSITORY_MAP.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "125C1AD22587774C9EB1611C45547641F66D19C4A1BF7FE686474BB87915B272"
+      "sha256": "83B14CBF02A4185A4DED544EFF5ABE1747B9FB56121351D9219CAAA6AD463731"
     },
     {
       "bytes": 3066,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/ROOT_RELEASE_FILE_AUDIT_20260812.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -653,22 +654,22 @@
       "sha256": "7DCBA1E6E39544175E827BAC8D5E90AD94C985DBE7ECCC6C295434719D8AF67D"
     },
     {
-      "bytes": 3042,
+      "bytes": 3053,
       "disposition": "CHANGED",
       "path": "docs/SKILLS.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "767728E1BD03A71A0044C4BEA9D0800A4F78AB1CE70914F23B2D533CBAAFB0A4"
+      "sha256": "B5FCD3A4CA890BA304701A5699ACA1596ABD7A7C27B6F1019976104778585D70"
     },
     {
-      "bytes": 2768,
+      "bytes": 2779,
       "disposition": "CHANGED",
       "path": "docs/SOURCE_INTAKE_AND_LANES.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "B57284598DB243CEB841191DF5CF3D1BBEB935E1EB9D4096490C29B71EE6813D"
+      "sha256": "382E7CE44301BB464DCBC7C8F32FCE76C280AFF1802B68CBDD7428993AFE88FD"
     },
     {
       "bytes": 2213,
@@ -716,13 +717,13 @@
       "sha256": "1DE451930F74C25C9392D4F606DB3391C593E4CC5E4219047559B9323EF46602"
     },
     {
-      "bytes": 2574,
+      "bytes": 2585,
       "disposition": "CHANGED",
       "path": "docs/TERMS_AND_CONDITIONS.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "4E4545BEE061C2FB1AC4F0552852502AC827E35692BF6A2E0C0AB46E06F1C29A"
+      "sha256": "C21AA00B1CC8F8D87483A235A7E96E5E3351E02CEB9FAB1A2D80721FFEA094D5"
     },
     {
       "bytes": 4122,
@@ -734,49 +735,49 @@
       "sha256": "C21EEB32A51E15396D8923E35F02F681A4697EEC670667053564B523CC4C2199"
     },
     {
-      "bytes": 2773,
+      "bytes": 2784,
       "disposition": "CHANGED",
       "path": "docs/THIRD_PARTY_LICENSES.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "AB11AA3492543D75454FC7366DFE8DD319F482F02ECCD50F7E4D6EEEEA9FEC39"
+      "sha256": "5489DF7A9FCEB7F9B139740DDB8E58303D11DD9A13414F27916F78D6A38A2776"
     },
     {
-      "bytes": 7048,
+      "bytes": 7059,
       "disposition": "CHANGED",
       "path": "docs/TOOLS.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "17D104FB4B3CB8D1F79445BD0C1074D4F1C3A2F66076F6B75AD936619DDE71C9"
+      "sha256": "2FDB4C79573D756DD6B4D80122B2873B129F5AF53B6A7BD1ABB3D2F643DFBB1E"
     },
     {
-      "bytes": 13742,
+      "bytes": 13753,
       "disposition": "CHANGED",
       "path": "docs/UPSTREAM_REFERENCE_PROVENANCE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "CD5AA9005BCB3071074F14B8DB6C6755B9D1C09EAAE1C22746F3D12AB0975F59"
+      "sha256": "CFC04C604A59319F84585AB13BA5EBDF957573BC1969EAD9A9FAD5741DA24237"
     },
     {
-      "bytes": 2486,
+      "bytes": 2497,
       "disposition": "CHANGED",
       "path": "docs/USER_HELPER_GUIDE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "ECCE602C43317DF641E4AEB768763A6DE1B2A33A7B6CE231B0AFB475C9D36E12"
+      "sha256": "43444A56A29D014B972B27CD5F6A5676CB4C9D89A9E71AA78AA2AB70EAD3B20D"
     },
     {
-      "bytes": 2678,
+      "bytes": 2689,
       "disposition": "CHANGED",
       "path": "docs/USER_TUNNEL_GUIDE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "4E751CD15C5C99E09CFA49074B6E2F4A101E2D1CFEB922373A513A9845D407DD"
+      "sha256": "9D9FE12DD24612EFFACBD2BABDCA77B6EBF147E09F0091C77436B5260167A7BF"
     },
     {
       "bytes": 8672,
@@ -839,11 +840,11 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "624722A368B27A9E6DD4C9EA130D8E22A78879AFBCE7F4ADEE6909185D48AA75"
+      "sha256": "10EA822108244F4FC7E44E36E38237A7FC238EEBE5F9397180DD7B050ECE4122"
     },
     {
       "bytes": 364,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "github-pages/_config.yml",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -852,7 +853,7 @@
     },
     {
       "bytes": 5290,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "github-pages/_layouts/default.html",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -875,7 +876,7 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "github-pages",
-      "sha256": "4D448D705CF7EC4C9B2FB07385E1DC272B334D370B3C76B67C0D302330B4BE63"
+      "sha256": "E50B295B6F42D331504E1F3AB6F6266A822ED1549F27F186A269302979E476CB"
     },
     {
       "bytes": 209,
@@ -884,7 +885,7 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "plugins",
-      "sha256": "A38E10AA93E9435D398F241463CFA5AB5513D7848BCD9AA7F1F403D7E7ABC792"
+      "sha256": "2A1D1DD48A66BB70758EAB691E9D083E9679D10500BD3B9AE076B432E4DEC2DA"
     },
     {
       "bytes": 2646,
@@ -923,13 +924,13 @@
       "sha256": "8D0B5B7FD1B3C704B411C334F827E2FC0533AED19A3BE9EDE93CA9CC9602B8CC"
     },
     {
-      "bytes": 28097,
+      "bytes": 28623,
       "disposition": "CHANGED",
       "path": "plugins/evidence-lane-plugin/README.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "plugins",
-      "sha256": "DEC8EAC08999BA2FF732AD52CBD654CF21367F4B7A98CC8AAF29408580D11C59"
+      "sha256": "317B52B08C25A9535FD1D7BB5C12659684BE28831C938DCD72D09CFF5014EB84"
     },
     {
       "bytes": 2641,
@@ -969,7 +970,7 @@
     },
     {
       "bytes": 1614,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/evidence/prompt_studio/manifest.json",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -978,7 +979,7 @@
     },
     {
       "bytes": 30801920,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/evidence/prompt_studio/studio_search.sqlite",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -1140,7 +1141,7 @@
     },
     {
       "bytes": 1595,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/pyproject.toml",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -1536,7 +1537,7 @@
     },
     {
       "bytes": 26159219,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -1581,7 +1582,7 @@
     },
     {
       "bytes": 153667,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/remote_adapter/app/_data/website-plan-projection.json",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -1716,7 +1717,7 @@
     },
     {
       "bytes": 5292,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/remote_adapter/app/hooks/page.tsx",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -1851,7 +1852,7 @@
     },
     {
       "bytes": 8574,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/remote_adapter/app/release/page.tsx",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -1977,7 +1978,7 @@
     },
     {
       "bytes": 7047,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/remote_adapter/public/.well-known/evidence-lane-plugin.json",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -3318,7 +3319,7 @@
     },
     {
       "bytes": 34178,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/scripts/build_prompt_studio_index.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -3461,6 +3462,15 @@
       "sha256": "A93BDD2E4E8F7A6A58CB5D4945EF71D6BBE29C264A2716EF1CAE67C800825AF1"
     },
     {
+      "bytes": 10090,
+      "disposition": "CHANGED",
+      "path": "plugins/evidence-lane-plugin/scripts/codex_release/merge_github_app_feature_to_main.py",
+      "prior_sha256": null,
+      "route_refresh_verified": true,
+      "scope": "plugins",
+      "sha256": "E8A6D6DD3C75B41DA73FB8F360C37F470C041F67FEFDDEE5D454F2BD3DD84D89"
+    },
+    {
       "bytes": 1642,
       "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/scripts/codex_release/migrate_working_project_sectors.py",
@@ -3480,7 +3490,7 @@
     },
     {
       "bytes": 14917,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/scripts/codex_release/push_github_app_exact_commit.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -3516,7 +3526,7 @@
     },
     {
       "bytes": 44709,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/scripts/codex_release/verify_installed_hook_invocations.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -3965,13 +3975,13 @@
       "sha256": "2CE96DB56B00C84C82C5FF6A1C8931C2C6801078B9D813CBA17EFB75E2DFC00D"
     },
     {
-      "bytes": 33453,
+      "bytes": 33874,
       "disposition": "CHANGED",
       "path": "plugins/evidence-lane-plugin/skills/evidence-lane-code-lifecycle/SKILL.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "plugins",
-      "sha256": "F41A8773494B26ACCAC1EDED1D20A56DC8B02CBEFD2AD54B9A2E2780E6CB699A"
+      "sha256": "A89DB02377AFDED2286D2A65F57E0A87F450BA6E58AC1ABD5BC1876DA3AEFF61"
     },
     {
       "bytes": 371,
@@ -4011,7 +4021,7 @@
     },
     {
       "bytes": 16532,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/agent_configuration.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -4280,13 +4290,13 @@
       "sha256": "8A52284EC6DB4D6E569F6A7E09A52DC8526637A258D7134C9BD047B3EAC1986E"
     },
     {
-      "bytes": 92275,
+      "bytes": 110657,
       "disposition": "CHANGED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/github_app_distribution.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "plugins",
-      "sha256": "DE137312903C4EA909FBF66850C8FDC582121F3BBA7954279AF332525B7DA28D"
+      "sha256": "2A07352E87F990C1C6AA107858F07952155A24AB3665B8D202C59EF28FDDB835"
     },
     {
       "bytes": 45403,
@@ -4587,7 +4597,7 @@
     },
     {
       "bytes": 17091,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/public_surface_registry.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -4632,7 +4642,7 @@
     },
     {
       "bytes": 305,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/runtime-public-catalog.v1.json",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -5226,7 +5236,7 @@
     },
     {
       "bytes": 2076,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "pyproject.toml",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -5235,7 +5245,7 @@
     },
     {
       "bytes": 477,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "requirements.in",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -5244,7 +5254,7 @@
     },
     {
       "bytes": 9056,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "scripts/build_intermediate_scope_manifest.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -5258,11 +5268,11 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "scripts",
-      "sha256": "1A067DA9D7EE3DC9221C20B10DFECC290DAA995C2311CF2A3B6E23BC041D884C"
+      "sha256": "8CA3DD4AE4FAFF87E971B243944D6810B3D752B6DDCBA3D71CA7D2C21E58069A"
     },
     {
       "bytes": 10773,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "scripts/prepare_github_pages.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -5270,13 +5280,13 @@
       "sha256": "F3A18F7FE91ECE10610E903DCB654D50741529F63EBB44AE149B685472294483"
     },
     {
-      "bytes": 10351,
+      "bytes": 10923,
       "disposition": "CHANGED",
       "path": "scripts/refresh_current_route_receipts.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "scripts",
-      "sha256": "AEF78DB0958BE8FF4DF106CE3A0D72A1EF8711E73C339C9942E04D0152D10472"
+      "sha256": "9355A4CEBCE91ABAA22E48985756C099F6B206398BF1A43CEFB8B568E22D08A6"
     },
     {
       "bytes": 47,
@@ -5303,7 +5313,7 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "tests",
-      "sha256": "49232388D4AAE3B3D1ABB9CFC3CE1794A258F690248BF1DE90500BCEF504524D"
+      "sha256": "59460F9B6CFD8D2959B4DDF952AAD188884F3B073575B2C84B639F4C212C1453"
     },
     {
       "bytes": 1150,
@@ -5325,7 +5335,7 @@
     },
     {
       "bytes": 9342,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_acceptance.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -5352,7 +5362,7 @@
     },
     {
       "bytes": 15560,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_agent_configuration.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -5549,13 +5559,13 @@
       "sha256": "3F32648DC8AD6BA5B0EDC0B1A55F78F6C7443F766A87106600EBDA760FC2B236"
     },
     {
-      "bytes": 2996,
+      "bytes": 3867,
       "disposition": "CHANGED",
       "path": "tests/test_current_route_refresh_receipt.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "tests",
-      "sha256": "0705BDD18FBD953BE7A0D71B335DCC84C4FE2AF07DDEA4840BA67EA3E19098F7"
+      "sha256": "612D9B870471A47652A76964E5CC9BC8C124D565F7DEA2D8AC9EB8C80BD76CBC"
     },
     {
       "bytes": 10148,
@@ -5648,22 +5658,31 @@
       "sha256": "5C4B40F0D66E07B36900C0F1C4A04DE3D329C5F3CD3DF9A7D106BA0889B510F3"
     },
     {
-      "bytes": 34182,
+      "bytes": 40374,
       "disposition": "CHANGED",
       "path": "tests/test_github_app_distribution.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "tests",
-      "sha256": "9BD5B4D3AD7DB64CBE97B9C56336F5571B12576D0BAAFE3543F4E1511616C2BE"
+      "sha256": "297ECC12BDD165CA2BDC78EA3E77976CCB88D485787E9336D2773E48F33A27AD"
     },
     {
       "bytes": 6442,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_github_app_exact_commit_push_cli.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "1427F236EAD3FF285D6D5A593ED6E1034C1EE09CC2B2307226008519AC6185D8"
+    },
+    {
+      "bytes": 3912,
+      "disposition": "CHANGED",
+      "path": "tests/test_github_app_main_merge_cli.py",
+      "prior_sha256": null,
+      "route_refresh_verified": true,
+      "scope": "tests",
+      "sha256": "6900DCE54A0B0E7BFC3FD8927A44432D418944B2BAEA8A68ADD105857685F0AD"
     },
     {
       "bytes": 4212,
@@ -5784,7 +5803,7 @@
     },
     {
       "bytes": 5180,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_installed_hook_invocation_verifier.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -5972,13 +5991,13 @@
       "sha256": "37FFEB1F232FF57140E59405175F764C37CEF3047F016C6E372A33F7D22366D8"
     },
     {
-      "bytes": 97723,
+      "bytes": 97878,
       "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_mcp_plugin.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "tests",
-      "sha256": "290137E1830631EFD636B92D6EE0CE281BD9043E06C1FB0E320C07299AE860F8"
+      "sha256": "20926C54E2D0C25E5F4249EDDFC7ED4EC110828AE0CA300095EA6BD5076A4909"
     },
     {
       "bytes": 14900,
@@ -6135,7 +6154,7 @@
     },
     {
       "bytes": 5496,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_prompt_studio_frozen_history.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -6161,13 +6180,13 @@
       "sha256": "1A8F82C500215A95D6646370436151862AA47C4F995CB899471748FC7D75B048"
     },
     {
-      "bytes": 5651,
+      "bytes": 5636,
       "disposition": "CHANGED",
       "path": "tests/test_public_site_source_documents.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "tests",
-      "sha256": "B3FD144D1FCD2B6FB0383A568C5B12374E973F07A26F05098B5E09BEA02CD309"
+      "sha256": "1D86F3EA7E06CC2CA9C425C02780CAF48D0033B4E7AB4C08814AB22D76BDD8C1"
     },
     {
       "bytes": 30723,
@@ -6180,7 +6199,7 @@
     },
     {
       "bytes": 12585,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_public_surface_registry.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -6279,7 +6298,7 @@
     },
     {
       "bytes": 31254,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_security_persistence.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -6306,7 +6325,7 @@
     },
     {
       "bytes": 19837,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_source_authority_registry.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -6548,20 +6567,20 @@
       "sha256": "55807FE26E746234AA847DA4F4F217B24B3B00E3EC0BDD6656CD39DA3DCFC15D"
     }
   ],
-  "generated_at": "2026-08-23T20:44:26.812901+00:00",
+  "generated_at": "2026-08-23T23:07:54.300758+00:00",
   "output_self_reference_law": "The JSON and Markdown receipts are excluded from their own per-path digest; clean-checkout tests verify every other tracked path against these hashes.",
-  "refresh_id": "TASK16_CURRENT_ROUTE_REFRESH_20260823_001",
+  "refresh_id": "TASK16_CURRENT_ROUTE_REFRESH_20260823_002",
   "repository": "rathee000001/evidence_lane_plugin",
   "schema": "evidence-lane.current-route-file-refresh-receipt.v1",
   "status": "PASS",
   "summary": {
     "dispositions": {
-      "CHANGED": 86,
+      "CHANGED": 48,
       "REMOVED": 1,
-      "UNCHANGED_VERIFIED": 636
+      "UNCHANGED_VERIFIED": 676
     },
-    "entry_set_sha256": "E41BFF2FEE02FFFADB7E54F15A3700FAA47BCB1998BBBC52D2E2778A62F88EDB",
-    "path_count": 723,
+    "entry_set_sha256": "934E2237EA9759FFC96455E37673BE25F3AF10CBC6507967DF87B2EC90B2F640",
+    "path_count": 725,
     "removed_root_authority": "TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json",
     "root_file_count": 14
   }

@@ -20,6 +20,22 @@ That bounded action must:
 - install and test that commit without inferring PV approval;
 - stop at the universal HIL before merge, pointer movement, or public release.
 
+## Governed main promotion
+
+After the exact feature head passes every required clean-checkout workflow, the
+only maintainer promotion route is `github_app_repository_merge_v2`, owned by
+`scripts/codex_release/merge_github_app_feature_to_main.py`. It reads the exact
+source ref, source tree, target ref, and latest required exact-head workflow
+runs before one GitHub repository-merge request. It then verifies that GitHub
+reused the feature tree, produced ordered parents `[prior main, feature]`, used
+the `evidence-lane[bot]` actor, and moved `main` to that one merge commit.
+
+This route performs no local `main` checkout, merge, implementation, force
+push, blob replay, candidate action, HIL inference, or pointer movement. A
+moved ref, missing/failed workflow, mismatched tree/parents, wrong actor, stale
+App attachment, or ambiguous route fails closed before another mutation. The
+older repository-merge implementation is not a public fallback.
+
 The `remote_git_prepare_push` and `remote_git_execute_push` tools below govern
 project-source publication after accepted-PV authority. They do not govern
 this repository's separately authorized maintainer branch and must never be
@@ -65,5 +81,6 @@ unconsumed as historical control evidence.
 - no credential in source, PV, lineage, or normal logs;
 - no generated one-use push token.
 
-Branch creation, pull request creation, merge, and deletion are not implemented
-by the first private HIL.
+Branch creation, pull request creation, and deletion are not implemented by the
+first private HIL. Maintainer main promotion exists only through the separately
+governed current route above after exact-head CI is green.

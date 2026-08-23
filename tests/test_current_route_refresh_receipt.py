@@ -13,6 +13,15 @@ OUTPUT_PATHS = {
     "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.json",
     "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.md",
 }
+POINTER_PATHS = {
+    ".agents/plugins/current-route-refresh.v1.json",
+    ".github/current-route-refresh.v1.json",
+    "docs/current-route-refresh.v1.json",
+    "github-pages/current-route-refresh.v1.json",
+    "plugins/current-route-refresh.v1.json",
+    "scripts/current-route-refresh.v1.json",
+    "tests/current-route-refresh.v1.json",
+}
 
 
 def _tracked_paths() -> set[str]:
@@ -51,6 +60,7 @@ def test_current_route_refresh_receipt_covers_and_hashes_every_tracked_path() ->
     receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
     assert receipt["schema"] == "evidence-lane.current-route-file-refresh-receipt.v1"
     assert receipt["status"] == "PASS"
+    assert receipt["refresh_id"] == "TASK16_CURRENT_ROUTE_REFRESH_20260823_002"
     rows = {row["path"]: row for row in receipt["entries"]}
     assert set(rows) - {"TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json"} == (
         _tracked_paths() - OUTPUT_PATHS
@@ -65,6 +75,13 @@ def test_current_route_refresh_receipt_covers_and_hashes_every_tracked_path() ->
         source = ROOT / path
         assert source.is_file(), path
         assert hashlib.sha256(indexed[path]).hexdigest().upper() == row["sha256"]
+
+    for path in POINTER_PATHS:
+        pointer = json.loads((ROOT / path).read_text(encoding="utf-8"))
+        assert pointer["central_receipt"] == str(RECEIPT.relative_to(ROOT)).replace(
+            "\\", "/"
+        )
+        assert pointer["refresh_id"] == receipt["refresh_id"]
 
 
 def test_current_route_refresh_receipt_binds_current_public_contract() -> None:
@@ -84,4 +101,6 @@ def test_current_route_refresh_receipt_binds_current_public_contract() -> None:
         "destination_task_title",
     ]
     assert route["github_app_commit_actor"] == "evidence-lane[bot]"
+    assert route["github_app_commit_route"] == "github_app_exact_commit_push_v1"
+    assert route["github_app_main_merge_route"] == "github_app_repository_merge_v2"
     assert route["main_live_work_allowed"] is False

@@ -1,4 +1,4 @@
-<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
 
 # Git and CI/CD boundary
 
@@ -9,7 +9,11 @@ Git Database API as `evidence-lane[bot]`, verifies every blob/tree/parent/ref,
 and fast-forwards only that feature-branch ref with `force=false`. A local
 human-authored commit followed by an App-authenticated push is not equivalent.
 The receipt binds project, task, branch, parent, tree, commit, changed paths,
-App route, request IDs, and post-update ref.
+App route, request IDs, and post-update ref. Feature commits use
+`github_app_exact_commit_push_v1`; a green feature head reaches `main` only via
+`github_app_repository_merge_v2`, which calls GitHub's repository-merge API and
+verifies the reused feature tree, ordered parents, App bot actor, and final
+`main` ref without checking out or working on `main` locally.
 
 That grant does not authorize:
 
@@ -26,8 +30,9 @@ every Delta. Each included Delta retains independent acceptance evidence and
 lifecycle state. A cross-Delta matrix maps tasks to changed surfaces, tests,
 remote checks, installed-host checks, outcomes, and exact failure ownership.
 Any included-row failure fails the batch closed. After the exact branch is
-green, a separately governed App merge may bring the branch to `main`; no
-working-tree implementation occurs on `main` before or after that merge.
+green, the separately governed current App merge route may bring the branch to
+`main`; no working-tree implementation occurs on `main` before or after that
+merge, and the obsolete full-tree/blob-replay merge path cannot execute.
 
 The behavior-bearing commit updates source, schemas, tests, public contracts,
 and the bounded public Plan/Delta projection together. Generated projections

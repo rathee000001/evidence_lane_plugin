@@ -46,6 +46,14 @@ Evidence Lane authority.
   named feature branch with `force=false`. A human-authored commit, stale
   remote parent, different object identity, protected/default branch, or
   credential fallback fails before ref mutation.
+- `GitHubAppMainMergeRoute` and
+  `scripts/codex_release/merge_github_app_feature_to_main.py` implement the
+  current feature-to-main promotion route. They require the exact remote source
+  and target refs plus successful latest runs for every named exact-head
+  workflow, invoke the GitHub repository-merge endpoint once, and post-verify
+  the feature tree, ordered parents, `evidence-lane[bot]` actor, and final main
+  ref. The route uploads no blobs, performs no local main checkout, and has no
+  legacy, connector, or exact-commit-reconstruction fallback.
 
 Every receipt excludes raw secrets, bearer values, and artifact bytes. The
 negative suite covers forged signature, delivery replay conflict, stale token,
@@ -60,5 +68,6 @@ exact branch-write route; secrets remain in process memory and never enter a
 receipt. The credential-free checkpoint sealer remains a separate route and
 never receives those values. App registration, credential provisioning,
 repository or organization installation, permission changes, external tester
-distribution, public listing, main promotion, publication, and production
-deployment remain separately authorized operations.
+distribution, public listing, publication, and production deployment remain
+separately authorized operations. Main promotion is a distinct governed action
+through `github_app_repository_merge_v2` only after exact-head CI is green.

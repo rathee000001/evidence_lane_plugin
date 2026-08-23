@@ -515,8 +515,14 @@ App-authenticated push is rejected; push credentials do not rewrite commit
 metadata. `remote_git_prepare_push` and `remote_git_execute_push` remain the
 separate accepted-PV route for governed downstream project repositories and
 must never substitute for this maintainer App route. All implementation occurs
-on feature branches. `main` receives only a later governed App merge after the
-branch is green and is never used as a live working branch.
+on feature branches. After the exact head is green, `main` receives only the
+current `github_app_repository_merge_v2` action owned by
+`scripts/codex_release/merge_github_app_feature_to_main.py`. That route requires
+the exact source/target refs and latest successful required exact-head
+workflows, invokes GitHub's repository merge once, and verifies the reused
+feature tree, ordered parents, App bot actor, and final main ref. It uploads no
+blobs, never checks out or implements on `main`, and never falls back to an
+older repository-merge or connector route.
 
 Default reads use accepted truth and disclose live freshness. Explicit
 candidate reads remain labeled `UNACCEPTED_CANDIDATE`. Use bounded fetches and

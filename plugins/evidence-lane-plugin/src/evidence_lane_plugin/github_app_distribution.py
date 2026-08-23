@@ -31,9 +31,7 @@ GITHUB_APP_DISTRIBUTION_ABI = "evidence-lane.github-app-distribution.v1"
 GITHUB_APP_WEBHOOK_ROUTE = "/api/evidence-lane/github-app/webhook"
 GITHUB_REST_API_VERSION = "2026-03-10"
 EVIDENCE_LANE_APP_BOT_NAME = "evidence-lane[bot]"
-EVIDENCE_LANE_APP_BOT_EMAIL = (
-    "319574480+evidence-lane[bot]@users.noreply.github.com"
-)
+EVIDENCE_LANE_APP_BOT_EMAIL = "319574480+evidence-lane[bot]@users.noreply.github.com"
 
 _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}")
 _REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
@@ -1123,9 +1121,7 @@ class ExactGitCommitPushRequest:
             "repository": self.repository,
             "branch": self.branch,
             "expected_parent_commit_sha": self.expected_parent_commit_sha,
-            "additional_parent_commit_shas": list(
-                self.additional_parent_commit_shas
-            ),
+            "additional_parent_commit_shas": list(self.additional_parent_commit_shas),
             "expected_parent_tree_sha": self.expected_parent_tree_sha,
             "expected_tree_sha": self.expected_tree_sha,
             "expected_commit_sha": self.expected_commit_sha,
@@ -1442,6 +1438,493 @@ class GitHubAppExactCommitPushRoute:
             not receipt_contains_secret(receipt),
             "GITHUB_APP_PUSH_RECEIPT_SECRET_BLOCKED",
             "The exact push receipt contains a forbidden secret field.",
+            status="BLOCKED",
+        )
+        self._replay[request.idempotency_key] = (request.sha256, receipt)
+        return receipt
+
+
+@dataclass(frozen=True, slots=True)
+class GitHubAppMainMergeRequest:
+    """Exact green feature head authorized for one repository merge to main."""
+
+    request_id: str
+    idempotency_key: str
+    project_id: str
+    task_id: str
+    repository: str
+    source_branch: str
+    target_branch: str
+    expected_source_commit_sha: str
+    expected_source_tree_sha: str
+    expected_target_commit_sha: str
+    commit_message: str
+    required_workflow_names: tuple[str, ...]
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        request_id: str,
+        idempotency_key: str,
+        project_id: str,
+        task_id: str,
+        repository: str,
+        source_branch: str,
+        target_branch: str,
+        expected_source_commit_sha: str,
+        expected_source_tree_sha: str,
+        expected_target_commit_sha: str,
+        commit_message: str,
+        required_workflow_names: Sequence[str],
+    ) -> GitHubAppMainMergeRequest:
+        source = _git_branch(source_branch)
+        target = _git_branch(target_branch)
+        workflows = tuple(
+            sorted(
+                {
+                    _bounded_text(name, field="required_workflow_name")
+                    for name in required_workflow_names
+                }
+            )
+        )
+        require(
+            target == "main" and source != target and 1 <= len(workflows) <= 16,
+            "GITHUB_APP_MAIN_MERGE_BOUNDARY_INVALID",
+            "The App merge route requires one non-main source and bounded green workflow gate.",
+            status="BLOCKED",
+        )
+        return cls(
+            request_id=_identifier(request_id, field="request_id"),
+            idempotency_key=_identifier(idempotency_key, field="idempotency_key"),
+            project_id=_identifier(project_id, field="project_id"),
+            task_id=_identifier(task_id, field="task_id"),
+            repository=_repository(repository),
+            source_branch=source,
+            target_branch=target,
+            expected_source_commit_sha=_git_oid(
+                expected_source_commit_sha,
+                field="expected_source_commit_sha",
+            ),
+            expected_source_tree_sha=_git_oid(
+                expected_source_tree_sha,
+                field="expected_source_tree_sha",
+            ),
+            expected_target_commit_sha=_git_oid(
+                expected_target_commit_sha,
+                field="expected_target_commit_sha",
+            ),
+            commit_message=_bounded_commit_message(commit_message),
+            required_workflow_names=workflows,
+        )
+
+    def identity(self) -> dict[str, Any]:
+        return {
+            "request_id": self.request_id,
+            "idempotency_key": self.idempotency_key,
+            "project_id": self.project_id,
+            "task_id": self.task_id,
+            "repository": self.repository,
+            "source_branch": self.source_branch,
+            "target_branch": self.target_branch,
+            "expected_source_commit_sha": self.expected_source_commit_sha,
+            "expected_source_tree_sha": self.expected_source_tree_sha,
+            "expected_target_commit_sha": self.expected_target_commit_sha,
+            "commit_message_sha256": sha256_bytes(self.commit_message.encode("utf-8")),
+            "required_workflow_names": list(self.required_workflow_names),
+        }
+
+    @property
+    def sha256(self) -> str:
+        return sha256_bytes(canonical_json_bytes(self.identity()))
+
+
+class GitHubAppMainMergeRoute:
+    """Merge one exact green feature head to main without replaying its blobs."""
+
+    route_id = "github_app_repository_merge_v2"
+
+    def __init__(
+        self,
+        *,
+        broker: InstallationTokenBroker,
+        transport: GitHubJSONTransport,
+        api_version: str = GITHUB_REST_API_VERSION,
+    ) -> None:
+        self.broker = broker
+        self.transport = transport
+        self.api_version = _identifier(api_version, field="api_version")
+        self._replay: dict[str, tuple[str, dict[str, Any]]] = {}
+
+    def _request(
+        self,
+        *,
+        token: str,
+        method: str,
+        path: str,
+        body: Mapping[str, Any],
+        expected_status: int,
+    ) -> GitHubAPIResponse:
+        response = self.transport.request_json(
+            method=method,
+            path=path,
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {token}",
+                "X-GitHub-Api-Version": self.api_version,
+            },
+            body=body,
+        )
+        require(
+            response.status_code == expected_status,
+            "GITHUB_APP_MAIN_MERGE_REQUEST_FAILED",
+            "GitHub rejected the governed feature-to-main repository merge request.",
+            status="BLOCKED",
+            method=method,
+            path=path.split("?", 1)[0],
+            http_status=response.status_code,
+            github_message=str(response.body.get("message") or "")[:256],
+        )
+        return response
+
+    @staticmethod
+    def _ref_oid(response: GitHubAPIResponse, *, field: str) -> str:
+        nested = response.body.get("object")
+        require(
+            isinstance(nested, Mapping),
+            "GITHUB_APP_MAIN_MERGE_RESPONSE_INVALID",
+            "GitHub did not return the expected exact ref object.",
+            status="BLOCKED",
+            field=field,
+        )
+        return _git_oid(cast(Mapping[str, Any], nested).get("sha"), field=field)
+
+    @staticmethod
+    def _commit_tree(response: GitHubAPIResponse, *, field: str) -> str:
+        commit = response.body.get("commit")
+        tree = commit.get("tree") if isinstance(commit, Mapping) else None
+        require(
+            isinstance(tree, Mapping),
+            "GITHUB_APP_MAIN_MERGE_RESPONSE_INVALID",
+            "GitHub did not return the expected commit tree identity.",
+            status="BLOCKED",
+            field=field,
+        )
+        return _git_oid(cast(Mapping[str, Any], tree).get("sha"), field=field)
+
+    @staticmethod
+    def _parent_oids(response: GitHubAPIResponse) -> list[str]:
+        parents = response.body.get("parents")
+        require(
+            isinstance(parents, Sequence) and not isinstance(parents, (str, bytes)),
+            "GITHUB_APP_MAIN_MERGE_RESPONSE_INVALID",
+            "GitHub did not return the exact ordered merge parents.",
+            status="BLOCKED",
+        )
+        values: list[str] = []
+        for parent in cast(Sequence[object], parents):
+            require(
+                isinstance(parent, Mapping),
+                "GITHUB_APP_MAIN_MERGE_RESPONSE_INVALID",
+                "GitHub returned a malformed merge parent.",
+                status="BLOCKED",
+            )
+            values.append(
+                _git_oid(
+                    cast(Mapping[str, Any], parent).get("sha"),
+                    field="merge_parent_sha",
+                )
+            )
+        return values
+
+    def execute(
+        self,
+        request: GitHubAppMainMergeRequest,
+        *,
+        token_request: InstallationTokenRequest,
+        now: str,
+    ) -> dict[str, Any]:
+        prior = self._replay.get(request.idempotency_key)
+        if prior is not None:
+            require(
+                prior[0] == request.sha256,
+                "GITHUB_APP_MAIN_MERGE_REPLAY_CONFLICT",
+                "The main-merge idempotency key was reused for different authority.",
+                status="BLOCKED",
+            )
+            return {**prior[1], "idempotent_reuse": True}
+
+        permissions = dict(token_request.permissions)
+        require(
+            token_request.project_id == request.project_id
+            and token_request.task_id == request.task_id
+            and token_request.repository == request.repository
+            and permissions.get("metadata") == "read"
+            and permissions.get("actions") == "read"
+            and permissions.get("contents") == "write",
+            "GITHUB_APP_MAIN_MERGE_AUTHORITY_MISMATCH",
+            "The App token lacks exact task, repository, CI-read, or contents-write authority.",
+            status="BLOCKED",
+        )
+        token, token_receipt = self.broker.issue(token_request, now=now)
+        owner, repository_name = request.repository.split("/", 1)
+        repository_path = f"/repos/{quote(owner)}/{quote(repository_name)}"
+        source_ref_path = (
+            f"{repository_path}/git/ref/"
+            f"{quote(f'heads/{request.source_branch}', safe='/')}"
+        )
+        target_ref_path = (
+            f"{repository_path}/git/ref/"
+            f"{quote(f'heads/{request.target_branch}', safe='/')}"
+        )
+        request_ids: list[str] = []
+
+        def record(response: GitHubAPIResponse) -> GitHubAPIResponse:
+            if response.request_id:
+                request_ids.append(
+                    _identifier(response.request_id, field="github_request_id")
+                )
+            return response
+
+        target_before = record(
+            self._request(
+                token=token,
+                method="GET",
+                path=target_ref_path,
+                body={},
+                expected_status=200,
+            )
+        )
+        require(
+            self._ref_oid(target_before, field="target_ref_before_sha")
+            == request.expected_target_commit_sha,
+            "GITHUB_APP_MAIN_MERGE_TARGET_MOVED",
+            "The remote main ref moved after merge authorization.",
+            status="MISMATCH",
+        )
+        source_ref = record(
+            self._request(
+                token=token,
+                method="GET",
+                path=source_ref_path,
+                body={},
+                expected_status=200,
+            )
+        )
+        require(
+            self._ref_oid(source_ref, field="source_ref_sha")
+            == request.expected_source_commit_sha,
+            "GITHUB_APP_MAIN_MERGE_SOURCE_MOVED",
+            "The governed feature branch moved after its green workflow gate.",
+            status="MISMATCH",
+        )
+        source_commit = record(
+            self._request(
+                token=token,
+                method="GET",
+                path=(
+                    f"{repository_path}/commits/{request.expected_source_commit_sha}"
+                ),
+                body={},
+                expected_status=200,
+            )
+        )
+        require(
+            self._commit_tree(source_commit, field="source_tree_sha")
+            == request.expected_source_tree_sha,
+            "GITHUB_APP_MAIN_MERGE_SOURCE_TREE_MISMATCH",
+            "The green source commit tree differs from the governed local identity.",
+            status="MISMATCH",
+        )
+
+        workflow_response = record(
+            self._request(
+                token=token,
+                method="GET",
+                path=(
+                    f"{repository_path}/actions/runs?head_sha="
+                    f"{quote(request.expected_source_commit_sha)}&per_page=100"
+                ),
+                body={},
+                expected_status=200,
+            )
+        )
+        workflow_runs = workflow_response.body.get("workflow_runs")
+        require(
+            isinstance(workflow_runs, Sequence)
+            and not isinstance(workflow_runs, (str, bytes)),
+            "GITHUB_APP_MAIN_MERGE_WORKFLOW_RESPONSE_INVALID",
+            "GitHub did not return the exact-head workflow run list.",
+            status="BLOCKED",
+        )
+        latest: dict[str, tuple[tuple[int, int], Mapping[str, Any]]] = {}
+        for raw_run in cast(Sequence[object], workflow_runs):
+            if not isinstance(raw_run, Mapping):
+                continue
+            run = cast(Mapping[str, Any], raw_run)
+            if (
+                str(run.get("head_sha") or "").lower()
+                != request.expected_source_commit_sha
+            ):
+                continue
+            name = str(run.get("name") or "").strip()
+            if name not in request.required_workflow_names:
+                continue
+            try:
+                rank = (int(run.get("run_number") or 0), int(run.get("id") or 0))
+            except (TypeError, ValueError):
+                rank = (0, 0)
+            if name not in latest or rank > latest[name][0]:
+                latest[name] = (rank, run)
+        workflow_gate: dict[str, dict[str, Any]] = {}
+        for name in request.required_workflow_names:
+            selected = latest.get(name)
+            require(
+                selected is not None,
+                "GITHUB_APP_MAIN_MERGE_BRANCH_GATE_NOT_GREEN",
+                "A required exact-head workflow run is missing.",
+                status="BLOCKED",
+                workflow=name,
+            )
+            assert selected is not None
+            run = selected[1]
+            require(
+                run.get("status") == "completed" and run.get("conclusion") == "success",
+                "GITHUB_APP_MAIN_MERGE_BRANCH_GATE_NOT_GREEN",
+                "A required exact-head workflow run is not successful.",
+                status="BLOCKED",
+                workflow=name,
+                workflow_status=run.get("status"),
+                workflow_conclusion=run.get("conclusion"),
+            )
+            workflow_gate[name] = {
+                "id": int(run.get("id") or 0),
+                "run_number": int(run.get("run_number") or 0),
+                "status": run.get("status"),
+                "conclusion": run.get("conclusion"),
+                "head_sha": request.expected_source_commit_sha,
+            }
+
+        merged = record(
+            self._request(
+                token=token,
+                method="POST",
+                path=f"{repository_path}/merges",
+                body={
+                    "base": request.target_branch,
+                    "head": request.expected_source_commit_sha,
+                    "commit_message": request.commit_message,
+                },
+                expected_status=201,
+            )
+        )
+        merge_commit_sha = _git_oid(
+            merged.body.get("sha"),
+            field="merge_commit_sha",
+        )
+        merge_tree_sha = self._commit_tree(merged, field="merge_tree_sha")
+        merge_parents = self._parent_oids(merged)
+        require(
+            merge_tree_sha == request.expected_source_tree_sha
+            and merge_parents
+            == [
+                request.expected_target_commit_sha,
+                request.expected_source_commit_sha,
+            ],
+            "GITHUB_APP_MAIN_MERGE_IDENTITY_MISMATCH",
+            "GitHub created a merge outside the exact source tree or ordered parents.",
+            status="MISMATCH",
+        )
+        author = merged.body.get("author")
+        require(
+            isinstance(author, Mapping)
+            and str(cast(Mapping[str, Any], author).get("login") or "")
+            == "evidence-lane[bot]",
+            "GITHUB_APP_MAIN_MERGE_BOT_ACTOR_MISMATCH",
+            "The governed merge was not authored by the Evidence Lane App bot.",
+            status="MISMATCH",
+        )
+        target_after = record(
+            self._request(
+                token=token,
+                method="GET",
+                path=target_ref_path,
+                body={},
+                expected_status=200,
+            )
+        )
+        require(
+            self._ref_oid(target_after, field="target_ref_after_sha")
+            == merge_commit_sha,
+            "GITHUB_APP_MAIN_MERGE_REF_VERIFY_MISMATCH",
+            "The post-merge main ref does not equal the created merge commit.",
+            status="MISMATCH",
+        )
+        verified_commit = record(
+            self._request(
+                token=token,
+                method="GET",
+                path=f"{repository_path}/commits/{merge_commit_sha}",
+                body={},
+                expected_status=200,
+            )
+        )
+        require(
+            self._commit_tree(verified_commit, field="verified_merge_tree_sha")
+            == request.expected_source_tree_sha
+            and self._parent_oids(verified_commit) == merge_parents,
+            "GITHUB_APP_MAIN_MERGE_POST_VERIFY_MISMATCH",
+            "The persisted GitHub merge commit differs from the merge response.",
+            status="MISMATCH",
+        )
+        receipt = _receipt(
+            "evidence-lane.github-app-main-merge.v1",
+            status="PASS",
+            route=self.route_id,
+            action="MERGE_TO_MAIN",
+            request_sha256=request.sha256,
+            token_broker_receipt_sha256=token_receipt["receipt_sha256"],
+            project_id=request.project_id,
+            task_id=request.task_id,
+            repository=request.repository,
+            merge={
+                "source_branch": request.source_branch,
+                "target_branch": request.target_branch,
+                "target_before_commit": request.expected_target_commit_sha,
+                "source_commit": request.expected_source_commit_sha,
+                "merge_commit": merge_commit_sha,
+                "merge_tree": merge_tree_sha,
+                "ordered_parent_shas": merge_parents,
+            },
+            branch_workflow_gate=workflow_gate,
+            repository_identity={
+                "branch": request.target_branch,
+                "commit_sha": merge_commit_sha,
+                "tree_sha": merge_tree_sha,
+            },
+            authorization={
+                "policy": "GOVERNED_FEATURE_TO_MAIN_MERGE",
+                "direct_main_implementation_authorized": False,
+                "merge_authorized": True,
+            },
+            source_tree_reused=True,
+            blob_reupload_count=0,
+            direct_ref_patch_used=False,
+            force_push=False,
+            github_commit_author_login="evidence-lane[bot]",
+            github_request_ids=request_ids,
+            credential_values_persisted=False,
+            private_key_persisted=False,
+            installation_token_persisted=False,
+            candidate_created_or_accepted=False,
+            pointer_moved=False,
+            hil_inferred=False,
+            idempotent_reuse=False,
+        )
+        require(
+            not receipt_contains_secret(receipt),
+            "GITHUB_APP_MAIN_MERGE_RECEIPT_SECRET_BLOCKED",
+            "The main-merge receipt contains a forbidden secret field.",
             status="BLOCKED",
         )
         self._replay[request.idempotency_key] = (request.sha256, receipt)

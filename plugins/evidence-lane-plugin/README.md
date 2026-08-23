@@ -79,6 +79,14 @@ through GitHub's Git Database API and fast-forwards only the named feature
 branch with `force=false`. The route never writes `main`, borrows the downstream
 project-source push tools, or silently falls back to a human credential.
 
+After that exact feature head passes the required clean workflows, maintainer
+main promotion uses only `github_app_repository_merge_v2`, owned by
+`scripts/codex_release/merge_github_app_feature_to_main.py`. It checks the exact
+source/target refs and exact-head workflow results, asks GitHub to reuse the
+existing feature tree, and verifies the merge tree, ordered parents,
+`evidence-lane[bot]` actor, and final main ref. It performs no local main
+checkout, blob replay, force push, or fallback to the superseded merge route.
+
 Candidate creation, remote Git push, package installation, and pointer movement
 are separate governed operations. None of them implies acceptance. Only exact
 case-sensitive `APPROVE` at the correct HIL can authorize Fuse.

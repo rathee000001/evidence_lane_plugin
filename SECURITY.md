@@ -1,4 +1,4 @@
-<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
 
 # Security boundary
 

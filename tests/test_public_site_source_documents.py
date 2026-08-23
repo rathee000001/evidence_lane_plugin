@@ -101,9 +101,7 @@ def test_primary_plugin_pages_are_first_class_routes() -> None:
 
 
 def test_github_pages_navigation_wraps_without_horizontal_scroll() -> None:
-    css = (ROOT / "github-pages" / "assets" / "site.css").read_text(
-        encoding="utf-8"
-    )
+    css = (ROOT / "github-pages" / "assets" / "site.css").read_text(encoding="utf-8")
     tabs_rule = re.search(r"\.tabs \{([^}]+)\}", css)
 
     assert tabs_rule is not None
@@ -112,7 +110,9 @@ def test_github_pages_navigation_wraps_without_horizontal_scroll() -> None:
     assert "overflow-x: auto" not in tabs_rule.group(1)
 
 
-def test_github_pages_complete_projection_is_current_and_receipted(tmp_path: Path) -> None:
+def test_github_pages_complete_projection_is_current_and_receipted(
+    tmp_path: Path,
+) -> None:
     receipt = build(tmp_path / "pages")
     refresh = receipt["documentation_refresh"]
 
@@ -124,8 +124,7 @@ def test_github_pages_complete_projection_is_current_and_receipted(tmp_path: Pat
     assert len(refresh["source_set_sha256"]) == 64
 
     generated = {
-        (row["slug"], row["source"]): row["source_sha256"]
-        for row in receipt["pages"]
+        (row["slug"], row["source"]): row["source_sha256"] for row in receipt["pages"]
     }
     assert set(generated) == {(slug, source) for slug, _, source in PAGES}
     assert all(len(digest) == 64 for digest in generated.values())

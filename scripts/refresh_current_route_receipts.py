@@ -11,8 +11,11 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "evidence-lane.current-route-file-refresh-receipt.v1"
-REFRESH_ID = "TASK16_CURRENT_ROUTE_REFRESH_20260823_001"
+REFRESH_ID = "TASK16_CURRENT_ROUTE_REFRESH_20260823_002"
 REMOVED_ROOT_AUTHORITY = "TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json"
+REMOVED_ROOT_AUTHORITY_PRIOR_SHA256 = (
+    "B544A8D58B80D65AD5663A7A4E0D1E2F135E67D2A23EEBB5AA83E26CEB31CAB3"
+)
 OUTPUT_PATHS = {
     "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.json",
     "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.md",
@@ -103,19 +106,27 @@ def _record(repository: Path, path: str) -> dict[str, Any]:
     if not source.exists():
         if path != REMOVED_ROOT_AUTHORITY:
             raise RuntimeError(f"Unexpected missing indexed path: {path}")
-        previous = _git(repository, "show", f"HEAD:{path}")
+        previous_sha256 = REMOVED_ROOT_AUTHORITY_PRIOR_SHA256
+        prior = subprocess.run(
+            ["git", "show", f"HEAD:{path}"],
+            cwd=repository,
+            check=False,
+            capture_output=True,
+        )
+        if prior.returncode == 0:
+            previous_sha256 = _sha256_bytes(prior.stdout)
         return {
             "path": path,
             "scope": "repository-root",
             "disposition": "REMOVED",
             "sha256": None,
-            "prior_sha256": _sha256_bytes(previous),
+            "prior_sha256": previous_sha256,
             "bytes": 0,
             "route_refresh_verified": True,
         }
     indexed_bytes = _git(repository, "show", f":{path}")
-    disposition = "CHANGED" if _changed_against_head(repository, path) else (
-        "UNCHANGED_VERIFIED"
+    disposition = (
+        "CHANGED" if _changed_against_head(repository, path) else ("UNCHANGED_VERIFIED")
     )
     return {
         "path": path,
@@ -133,7 +144,7 @@ def build_receipt(repository: Path) -> dict[str, Any]:
     plugin = root / "plugins" / "evidence-lane-plugin"
     indexed = _git_paths(root, "ls-files", "-z")
     head = _git_paths(root, "ls-tree", "-r", "-z", "--name-only", "HEAD")
-    paths = sorted((indexed | head) - OUTPUT_PATHS)
+    paths = sorted(((indexed | head) - OUTPUT_PATHS) | {REMOVED_ROOT_AUTHORITY})
     entries = [_record(root, path) for path in paths]
     entry_paths = {entry["path"] for entry in entries}
     if not set(ROOT_FILES).issubset(entry_paths):
@@ -142,10 +153,7 @@ def build_receipt(repository: Path) -> dict[str, Any]:
         raise RuntimeError("The obsolete Task6 root authority still exists.")
 
     runtime_catalog = _json(
-        plugin
-        / "src"
-        / "evidence_lane_plugin"
-        / "runtime-public-catalog.v1.json"
+        plugin / "src" / "evidence_lane_plugin" / "runtime-public-catalog.v1.json"
     )
     hooks = _json(plugin / "hooks" / "hooks.json").get("hooks")
     plugin_manifest = _json(plugin / ".codex-plugin" / "plugin.json")
@@ -165,9 +173,13 @@ def build_receipt(repository: Path) -> dict[str, Any]:
     if not isinstance(hooks, dict) or len(hooks) != 11:
         raise RuntimeError("The registered hook-event set is not exactly eleven.")
     if direct_fields != EXPECTED_DIRECT_STATE_TRAVEL_FIELDS:
-        raise RuntimeError("The direct State Travel schema is not the safe six-field route.")
+        raise RuntimeError(
+            "The direct State Travel schema is not the safe six-field route."
+        )
     if not str(plugin_manifest.get("version", "")).startswith("3.0.0+codex."):
-        raise RuntimeError("The plugin manifest is not the current 3.0.0 cache identity.")
+        raise RuntimeError(
+            "The plugin manifest is not the current 3.0.0 cache identity."
+        )
     if marketplace != {
         "name": "evidence-lane-github",
         "interface": {"displayName": "Main Git Plugin Version"},
@@ -210,12 +222,15 @@ def build_receipt(repository: Path) -> dict[str, Any]:
             "hook_events": list(hooks),
             "direct_state_travel_fields": direct_fields,
             "github_app_commit_route": "github_app_exact_commit_push_v1",
+            "github_app_main_merge_route": "github_app_repository_merge_v2",
             "github_app_commit_actor": "evidence-lane[bot]",
             "main_live_work_allowed": False,
         },
         "summary": {
             "path_count": len(entries),
-            "dispositions": dict(sorted(Counter(row["disposition"] for row in entries).items())),
+            "dispositions": dict(
+                sorted(Counter(row["disposition"] for row in entries).items())
+            ),
             "entry_set_sha256": _sha256_bytes(digest_payload),
             "root_file_count": len(ROOT_FILES),
             "removed_root_authority": REMOVED_ROOT_AUTHORITY,
@@ -228,7 +243,9 @@ def build_receipt(repository: Path) -> dict[str, Any]:
     }
 
 
-def write_receipts(repository: Path, json_path: Path, markdown_path: Path) -> dict[str, Any]:
+def write_receipts(
+    repository: Path, json_path: Path, markdown_path: Path
+) -> dict[str, Any]:
     receipt = build_receipt(repository)
     content = json.dumps(receipt, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
     json_path.write_bytes(content.encode("utf-8"))
@@ -275,7 +292,11 @@ def main() -> int:
         args.json.resolve(),
         args.markdown.resolve(),
     )
-    print(json.dumps({"status": receipt["status"], "summary": receipt["summary"]}, sort_keys=True))
+    print(
+        json.dumps(
+            {"status": receipt["status"], "summary": receipt["summary"]}, sort_keys=True
+        )
+    )
     return 0
 
 
