@@ -63,6 +63,8 @@ def test_every_plugin_owned_python_child_process_has_no_console_flag() -> None:
     runner = (PLUGIN / "scripts" / "run_mcp.py").read_text(encoding="utf-8")
     assert 'if args.transport == "stdio"' in runner
     assert "The stdio relay must remain in the MCP client's process group" in runner
+    assert 'os.environ["EVIDENCE_LANE_PLUGIN_ROOT"] = str(plugin_root)' in runner
+    assert "Never inherit a stale source, cache, or" in runner
 
 
 def test_powershell_background_routes_are_hidden_and_never_loop_restart() -> None:
@@ -85,17 +87,19 @@ def test_powershell_background_routes_are_hidden_and_never_loop_restart() -> Non
     assert "Disable-ScheduledTask -TaskName ([string]$priorTask.TaskName)" in recovery
     assert 'host_owned_initial_mcp_spawn = "HOST_CAPABILITY_UNAVAILABLE"' in recovery
     assert 'restart_loop_allowed = $false' in recovery
-    assert "-ThreeSlotRegistry" in recovery
-    assert "Read-ThreeSlotAuthority" in recovery
-    assert 'failure_target_slot -cne "branch-commit-recovery"' in recovery
-    assert 'mutable_local_failure_never_targets_main_git = $true' in recovery
-    assert 'exact_live_slot_count = 3' in recovery
+    assert "-TwoSlotRegistry" in recovery
+    assert "Read-TwoSlotAuthority" in recovery
+    assert 'failure_target_slot -cne "stable-git-main"' in recovery
+    assert 'mutable_local_failure_targets_verified_main_only = $true' in recovery
+    assert 'exact_live_slot_count = 2' in recovery
 
     retired = "RETIRED_COMBINED_INSTALL_RESTART_HELPER"
     assert retired in update
-    assert update.index(retired) < update.index("Stop-Process -Id $TargetProcessId -Force")
     assert "install and verify the exact package" in update
-    assert "before invoking Restart-EvidenceLaneCodex.ps1" in update
+    assert "Restart-EvidenceLaneCodex.ps1" in update
+    assert "Stop-Process" not in update
+    assert "evidence-lane-v300-stable-recovery" not in update
+    assert "evidence-lane-v300-local-successor" not in update
 
     assert "VERIFY_DISABLED_SUCCESSOR_FROM_SEALED_PRIMARY" in installer
     assert "The local-successor marketplace is retired" in installer
@@ -119,18 +123,18 @@ def test_powershell_background_routes_are_hidden_and_never_loop_restart() -> Non
     assert '.codex\\plugins\\runtime\\evidence-lane-plugin' in restart
     assert 'runtime_control_root_hidden = $true' in restart
     assert 'project_data_root_separate = ' in restart
-    assert "$restartAuthority.branch_commit_recovery_selector = $branchRecoverySelector" in restart
-    assert "$restartAuthority.mutable_local_failure_target = $branchRecoverySelector" in restart
-    assert "$restartAuthority.mutable_local_failure_never_targets_main_git = $true" in restart
+    assert "$restartAuthority.versioned_local_failure_target = $mainGitSelector" in restart
+    assert "$restartAuthority.versioned_local_failure_targets_verified_main_only = $true" in restart
+    assert "$restartAuthority.branch_recovery_selector_retired = $true" in restart
     assert restart.count("Stop-Process -Id $TargetProcessId -Force") == 1
     assert "-WindowStyle Hidden" in restart
     assert "-NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass" in restart
 
     assert '"main-git-release"' in switch
-    assert '"branch-commit-recovery"' in switch
-    assert '"mutable-local-testing"' in switch
-    assert '"MUTABLE_LOCAL_RUNTIME_FAILURE"' in switch
-    assert 'TargetSlot -cne "branch-commit-recovery"' in switch
+    assert '"branch-commit-recovery"' not in switch
+    assert '"versioned-local-testing"' in switch
+    assert '"VERSIONED_LOCAL_RUNTIME_FAILURE"' in switch
+    assert '$body.failure_target_slot -cne "stable-git-main"' in switch
     assert 'pre_3_0_fallback_allowed = $false' in switch
     assert "TARGET_SELECTED_RESTART_REQUIRED" in switch
     assert "@openai\\codex-win32-x64" in switch
@@ -154,35 +158,39 @@ def test_powershell_background_routes_are_hidden_and_never_loop_restart() -> Non
     assert "-RestartCount 999" in tunnel
     assert "-MultipleInstances IgnoreNew" in tunnel
     assert '"main-git-release"' in tunnel
-    assert '"branch-commit-recovery"' in tunnel
-    assert '"mutable-local-testing"' in tunnel
+    assert '"branch-commit-recovery"' not in tunnel
+    assert '"versioned-local-testing"' in tunnel
 
 
 def test_stable_and_beta_desktop_channels_both_expose_dual_surfaces() -> None:
-    for path in (GOAL_RECOVERY, RESTART, STABLE_UPDATE):
+    for path in (GOAL_RECOVERY, RESTART):
         text = path.read_text(encoding="utf-8")
         assert 'desktop_release_channel = "CHATGPT_STABLE"' in text
         assert 'desktop_release_channel = "CHATGPT_BETA"' in text
         assert text.count('available_surfaces = @("CHATGPT", "CODEX")') == 2
         assert text.count('governed_surface = "CODEX"') == 2
         assert text.count("chatgpt_surface_governed = $false") == 2
+    retired = STABLE_UPDATE.read_text(encoding="utf-8")
+    assert "RETIRED_COMBINED_INSTALL_RESTART_HELPER" in retired
+    assert "desktop_release_channel" not in retired
 
 
 def test_goal_recovery_prewarm_is_exact_task_read_only_and_truthful() -> None:
     text = GOAL_RECOVERY.read_text(encoding="utf-8")
 
-    assert 'ValidateSet("Probe", "Register", "RecoverNow"' in text
+    assert 'ValidateSet("Probe", "Register", "RehydrateAll", "RecoverNow"' in text
     assert 'method = "config/mcpServer/reload"' not in text
-    assert '-Method "config/mcpServer/reload"' in text
     assert '-Method "plugin/list"' in text
-    assert '-Method "mcpServerStatus/list"' in text
-    assert '-Method "mcpServer/resource/read"' in text
-    assert 'canonical_plugin_selector = $ExpectedPluginSelector' in text
-    assert 'exact_tool_count = $toolCount' in text
-    assert '$toolCount -ne 88' in text
-    assert 'governedResourceUri = "ui://evidence-lane/governed-console-v6.html"' in text
+    assert '-Method "mcpServerStatus/list"' not in text
+    assert '-Method "mcpServer/resource/read"' not in text
+    assert 'canonical_plugin_selector = $resolvedPluginSelector' in text
+    assert 'exact_tool_count = $null' in text
+    assert 'task_local_native_proof_required = $true' in text
+    assert 'catalog_rehydrated = $false' in text
+    assert 'isolated_mcp_server_status_queried = $false' in text
+    assert 'exact_host_app_server_resource_sha256' in text
     assert 'live_desktop_control_plane = "HOST_CAPABILITY_UNAVAILABLE_WINDOWS_APP_SERVER_DAEMON"' in text
-    assert 'mcp_inventory_scope = "ISOLATED_APP_SERVER_GLOBAL_RUNTIME"' in text
+    assert 'mcp_inventory_scope = "TASK_LOCAL_NATIVE_PROOF_REQUIRED_ON_EXACT_OPEN"' in text
     assert 'task_continuity_scope = "PERSISTED_EXACT_THREAD_AND_GOAL"' in text
     assert "thread_scoped_mcp_inventory_available = $false" in text
     assert "live_host_next_active_turn_refresh_claimed = $false" in text

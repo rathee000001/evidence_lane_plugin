@@ -25,18 +25,24 @@ INSTALLED_HOOK_INVENTORY_SCHEMA = (
 INSTALLED_HOOK_INVOCATION_SCHEMA = (
     "evidence-lane.codex-installed-hook-invocation.v1"
 )
+HOOK_FAILURE_FAILBACK_SCHEMA = "evidence-lane.codex-hook-failure-failback.v1"
+HOOK_UI_PROJECTION_SCHEMA = "evidence-lane.codex-hook-ui-projection.v1"
 
 _HOST_EVENT_NAMES = {
     "SessionStart": "sessionStart",
+    "SubagentStart": "subagentStart",
     "UserPromptSubmit": "userPromptSubmit",
     "PreToolUse": "preToolUse",
+    "PermissionRequest": "permissionRequest",
     "PostToolUse": "postToolUse",
     "PreCompact": "preCompact",
     "PostCompact": "postCompact",
+    "SubagentStop": "subagentStop",
     "Stop": "stop",
     "SessionEnd": "sessionEnd",
 }
 _CANONICAL_EVENT_NAMES = {value: key for key, value in _HOST_EVENT_NAMES.items()}
+_HOST_EVENT_ORDER = tuple(_HOST_EVENT_NAMES[name] for name in HOOK_EVENT_NAMES)
 _HASH = re.compile(r"sha256:[0-9a-f]{64}")
 _FORBIDDEN_OBSERVATION_KEYS = {
     "credentials",
@@ -340,6 +346,96 @@ def build_installed_hook_diagnostic_receipt(
     return body
 
 
+def build_host_hook_ui_projection_receipt(
+    diagnostic: Mapping[str, Any],
+    *,
+    visible_host_events: Iterable[str],
+    renderer_hook_title_mode: str,
+    host_build: str,
+    renderer_source_sha256: str,
+) -> dict[str, Any]:
+    """Separate installed hook authority from a host settings projection.
+
+    Codex owns the settings renderer.  A complete ``hooks/list`` inventory can
+    therefore coexist with a host build that omits one event group or labels
+    each row by index.  This receipt makes that limitation explicit; it never
+    relabels a renderer omission as a missing plugin hook and never claims that
+    repacking the plugin can patch a signed host bundle.
+    """
+
+    if (
+        diagnostic.get("schema")
+        != "evidence-lane.codex-installed-hook-diagnostic.v1"
+        or diagnostic.get("status") != "PASS"
+    ):
+        raise InstalledHookReceiptError("PASSING_HOOK_DIAGNOSTIC_REQUIRED")
+    hooks = [
+        row
+        for row in diagnostic.get("hooks") or []
+        if isinstance(row, Mapping)
+    ]
+    installed_events = tuple(str(row.get("event_name") or "") for row in hooks)
+    hook_keys = tuple(str(row.get("hook_key") or "") for row in hooks)
+    if (
+        len(hooks) != len(HOOK_EVENT_NAMES)
+        or set(installed_events) != set(_HOST_EVENT_ORDER)
+        or len(set(installed_events)) != len(installed_events)
+        or len(set(hook_keys)) != len(hook_keys)
+        or any(not key for key in hook_keys)
+        or any(row.get("trust_status") != "trusted" for row in hooks)
+    ):
+        raise InstalledHookReceiptError("INSTALLED_HOOK_DIAGNOSTIC_INCOMPLETE")
+
+    visible = tuple(str(value) for value in visible_host_events)
+    if (
+        len(visible) != len(set(visible))
+        or not set(visible).issubset(_HOST_EVENT_ORDER)
+    ):
+        raise InstalledHookReceiptError("HOST_HOOK_UI_EVENT_ORDER_INVALID")
+    if renderer_hook_title_mode not in {
+        "HOOK_KEY_OR_STATUS_AWARE",
+        "INDEX_ONLY_GENERIC",
+    }:
+        raise InstalledHookReceiptError("HOST_HOOK_UI_TITLE_MODE_INVALID")
+    normalized_build = str(host_build or "").strip()
+    normalized_renderer_sha256 = str(renderer_source_sha256 or "").upper()
+    if not normalized_build:
+        raise InstalledHookReceiptError("HOST_BUILD_REQUIRED")
+    if not re.fullmatch(r"[A-F0-9]{64}", normalized_renderer_sha256):
+        raise InstalledHookReceiptError("HOST_RENDERER_SOURCE_SHA256_INVALID")
+
+    missing = [name for name in _HOST_EVENT_ORDER if name not in visible]
+    generic_titles = renderer_hook_title_mode == "INDEX_ONLY_GENERIC"
+    limited = bool(missing or generic_titles)
+    body: dict[str, Any] = {
+        "schema": HOOK_UI_PROJECTION_SCHEMA,
+        "status": "HOST_UI_PROJECTION_LIMITED" if limited else "PASS",
+        "installed_hook_diagnostic_receipt_sha256": diagnostic.get(
+            "diagnostic_receipt_sha256"
+        ),
+        "plugin_selector": diagnostic.get("plugin_selector"),
+        "installed_hook_count": len(hooks),
+        "installed_host_event_order": list(_HOST_EVENT_ORDER),
+        "installed_hook_keys_distinct": True,
+        "installed_hook_contract_complete": True,
+        "visible_host_event_order": list(visible),
+        "visible_host_event_count": len(visible),
+        "missing_visible_host_events": missing,
+        "renderer_hook_title_mode": renderer_hook_title_mode,
+        "renderer_uses_generic_index_titles": generic_titles,
+        "host_build_sha256": sha256_bytes(normalized_build.encode("utf-8")),
+        "renderer_source_sha256": normalized_renderer_sha256,
+        "host_settings_projection_authoritative_for_plugin_inventory": False,
+        "renderer_omission_relabelled_as_missing_plugin_hook": False,
+        "plugin_repack_or_reinstall_expected_to_patch_signed_host_ui": False,
+        "host_update_required_for_full_ui_projection": limited,
+        "hook_enablement_mutated": False,
+        "plugin_installation_mutated": False,
+    }
+    body["projection_receipt_sha256"] = sha256_bytes(canonical_json_bytes(body))
+    return body
+
+
 def build_invocation_receipt_from_codex_notifications(
     inventory: Mapping[str, Any],
     notifications: Iterable[Mapping[str, Any]],
@@ -602,4 +698,81 @@ def build_installed_hook_invocation_receipt(
         "raw_payload_included": False,
     }
     body["invocation_receipt_sha256"] = sha256_bytes(canonical_json_bytes(body))
+    return body
+
+
+def build_independent_hook_failback_request(
+    inventory: Mapping[str, Any],
+    *,
+    event_name: str,
+    failure_code: str,
+) -> dict[str, Any]:
+    """Build one CAS-ready native request that disables only a failed hook.
+
+    This is a request contract, not evidence that the host write succeeded.
+    The installer/runtime owner must execute it through ``config/batchWrite``
+    with a fresh compare-and-swap baseline and then re-read ``hooks/list``.
+    """
+
+    if (
+        inventory.get("schema") != INSTALLED_HOOK_INVENTORY_SCHEMA
+        or inventory.get("status") != "PASS"
+    ):
+        raise InstalledHookReceiptError("PASSING_INSTALLED_INVENTORY_REQUIRED")
+    if event_name not in HOOK_EVENT_NAMES:
+        raise InstalledHookReceiptError("FAILED_HOOK_EVENT_INVALID")
+    normalized_failure = str(failure_code or "").strip()
+    if not normalized_failure or len(normalized_failure) > 256:
+        raise InstalledHookReceiptError("FAILED_HOOK_CODE_INVALID")
+    records = [
+        dict(row)
+        for row in inventory.get("records") or []
+        if isinstance(row, Mapping)
+    ]
+    if tuple(str(row.get("event_name") or "") for row in records) != HOOK_EVENT_NAMES:
+        raise InstalledHookReceiptError("INSTALLED_INVENTORY_RECORDS_INCOMPLETE")
+    target = next(row for row in records if row["event_name"] == event_name)
+    hook_key = str(target.get("hook_key") or "")
+    current_hash = str(target.get("current_hash") or "")
+    if not hook_key or _HASH.fullmatch(current_hash) is None:
+        raise InstalledHookReceiptError("FAILED_HOOK_AUTHORITY_INVALID")
+    body: dict[str, Any] = {
+        "schema": HOOK_FAILURE_FAILBACK_SCHEMA,
+        "status": "PASS",
+        "action": "DISABLE_EXACT_FAILED_HOOK",
+        "supported_codex_api": "config/batchWrite",
+        "compare_and_swap_required": True,
+        "post_write_hooks_list_readback_required": True,
+        "plugin_selector": inventory.get("plugin_selector"),
+        "inventory_receipt_sha256": inventory.get("inventory_receipt_sha256"),
+        "event_name": event_name,
+        "host_event_name": _HOST_EVENT_NAMES[event_name],
+        "hook_key": hook_key,
+        "current_hash": current_hash,
+        "failure_code": normalized_failure,
+        "config_edit": {
+            "keyPath": "hooks.state",
+            "mergeStrategy": "replace",
+            "value": {
+                str(row["hook_key"]): {
+                    "trusted_hash": str(row["current_hash"]),
+                    "enabled": (
+                        False
+                        if row["event_name"] == event_name
+                        else bool(row["enabled"])
+                    ),
+                }
+                for row in records
+            },
+        },
+        "target_hook_enabled_after_write": False,
+        "target_hook_trust_preserved": True,
+        "unrelated_hook_state_mutated": False,
+        "plugin_enablement_mutated": False,
+        "hooks_off_compatible": True,
+        "execution_claimed": False,
+        "hil_inferred": False,
+        "pointer_moved": False,
+    }
+    body["failback_request_sha256"] = sha256_bytes(canonical_json_bytes(body))
     return body

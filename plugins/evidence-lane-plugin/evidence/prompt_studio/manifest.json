@@ -1,23 +1,23 @@
 {
   "corpus": {
     "boundary": "the exact prior public source manifest re-read from current local bytes plus frozen, previously sealed ancestor Git chunks; no Git command is invoked; generated proof binaries, retrieval self-inputs, private session flash, runtime state, brains, and secrets are excluded",
-    "chunk_count": 4178,
-    "sha256": "6EA4EC92656E1EE47B8374219061C4B265813551C7ADE9F125F7E219815D0E94",
-    "source_count": 443
+    "chunk_count": 5684,
+    "sha256": "8AA14B46797220C651C331FCB0B88C8844596BFFE4AB2DA11D2B873B4B26400D",
+    "source_count": 462
   },
-  "history_commit_count": 142,
+  "history_commit_count": 148,
   "history_mode": "FROZEN_SEALED_INDEX_NO_GIT",
-  "history_through_sha": "5dca408b6c4786ea1e3a66725b1617b016c59cd2",
+  "history_through_sha": "fa18302950e274c526c99f77b4bac8e1a11856f2",
   "outputs": {
     "browser_json": {
-      "bytes": 20587369,
+      "bytes": 26159219,
       "path": "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json",
-      "sha256": "360249B8D8922448D7B5A003B6381CB170F5D6726823CD594EF9A9D391FF152E"
+      "sha256": "BB5E7E667BF42BDADC36B0792E843A381F8170892C19D9A5E8BE0489DB24984D"
     },
     "sqlite": {
-      "bytes": 24231936,
+      "bytes": 30801920,
       "path": "plugins/evidence-lane-plugin/evidence/prompt_studio/studio_search.sqlite",
-      "sha256": "B9B1E4A6138715FEBD1B4E4A9B3B29B6AD3EC973FA3D370BB2B67472FF426E0D"
+      "sha256": "DF5168C67DD6EB9BA9954F257D1A9CA4D83733A8192DA423191A76294485125E"
     }
   },
   "release": "3.0.0",
@@ -30,10 +30,10 @@
   },
   "schema": "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1",
   "validation": {
-    "fts_refresh_hits": 357,
+    "fts_refresh_hits": 743,
     "secret_scan": "PASS",
     "sqlite_fixed_size_cap": false,
     "sqlite_integrity": "ok",
-    "sqlite_size_bytes": 24231936
+    "sqlite_size_bytes": 30801920
   }
 }

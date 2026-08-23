@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from typing import Any, cast
 
@@ -24,6 +23,7 @@ from .git_adapter import (
     identity_json,
     inspect_repository,
     run_git,
+    run_git_digest,
 )
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes, sha256_file
 from .host_plan_rehydration import prepare_host_plan_rehydration
@@ -60,6 +60,7 @@ from .runtime_continuity import (
 from .state_law import LifecycleEvent, transition
 from .state_travel_contract import (
     additive_deltas_from_task_list,
+    build_direct_destination_orchestration,
     execution_profile_from_context,
     execution_profile_mismatches,
     normalize_additive_deltas,
@@ -168,6 +169,19 @@ class SessionManager:
         self.store = store
         self.engine = engine
         self.runtime_activation = runtime_activation
+        runtime_body = {
+            "schema": "evidence-lane.server-runtime-instance-attestation.v1",
+            "status": "PASS",
+            "runtime_instance_id": prefixed_id("runtime"),
+            "identity_source": "SERVER_INTERNAL_PROCESS_LIFETIME",
+            "caller_supplied": False,
+            "process_id_exposed": False,
+            "attested_at": utc_now(),
+        }
+        self._runtime_instance_attestation = {
+            **runtime_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(runtime_body)),
+        }
 
     def _session_path(self, project_id: str, session_id: str) -> Path:
         root = self.store.project_root(project_id)
@@ -247,9 +261,7 @@ class SessionManager:
                 # batch. Only the first canonical activation may bind the initial
                 # batch; an already-advanced Plan must supply persisted authority.
                 return None
-            persisted_window_task_ids = [
-                str(row["task_id"]) for row in goal_rows[:9]
-            ]
+            persisted_window_task_ids = [str(row["task_id"]) for row in goal_rows[:9]]
             session.metadata["host_plan_window"] = {
                 "schema": "evidence-lane.host-plan-window-state.v1",
                 "window_task_ids": persisted_window_task_ids,
@@ -353,9 +365,7 @@ class SessionManager:
         )
         exact_linked_task_id = str(linked_task_id).strip()
         session = self.load(project_id, session_id)
-        previous = cast(
-            dict[str, Any], session.metadata.get("host_plan_window") or {}
-        )
+        previous = cast(dict[str, Any], session.metadata.get("host_plan_window") or {})
         session.metadata["host_plan_window"] = {
             **previous,
             "schema": "evidence-lane.host-plan-window-state.v1",
@@ -1805,7 +1815,7 @@ class SessionManager:
         session_id = str(contract.get("session_id") or "").strip()
         active_task_id = str(contract.get("active_task_id") or "").strip()
         runtime_task_id = str(contract.get("expected_runtime_task_id") or "").strip()
-        task6_thread_id = str(contract.get("task6_thread_id") or "").strip()
+        host_task_id = str(contract.get("host_task_id") or "").strip()
         actor = str(rebound_by or "").strip()
         approval_receipt_path = str(contract.get("approval_receipt_path") or "").strip()
         for field, value in (
@@ -1813,7 +1823,7 @@ class SessionManager:
             ("session_id", session_id),
             ("active_task_id", active_task_id),
             ("expected_runtime_task_id", runtime_task_id),
-            ("task6_thread_id", task6_thread_id),
+            ("host_task_id", host_task_id),
             ("rebound_by", actor),
             ("approval_receipt_path", approval_receipt_path),
         ):
@@ -1832,8 +1842,8 @@ class SessionManager:
             and all(character in _SAFE_ID_CHARACTERS for character in active_task_id)
             and len(runtime_task_id) <= 96
             and all(character in _SAFE_ID_CHARACTERS for character in runtime_task_id)
-            and len(task6_thread_id) <= 96
-            and all(character in _SAFE_ID_CHARACTERS for character in task6_thread_id),
+            and len(host_task_id) <= 96
+            and all(character in _SAFE_ID_CHARACTERS for character in host_task_id),
             "ACTIVE_CONTRACT_REBIND_ID_INVALID",
             "The governed session, Plan, runtime-task, or host-task identity is invalid.",
             status="BLOCKED",
@@ -1942,14 +1952,14 @@ class SessionManager:
             == "HOST_PLAN_EXECUTION_AND_CONTRACT_CORRECTION"
             and approval.get("project_id") == project_id
             and approval.get("session_id") == session_id
-            and approval.get("task6_thread_id") == task6_thread_id
+            and approval.get("host_task_id") == host_task_id
             and isinstance(identity_invariants, dict)
             and all(
                 cast(dict[str, Any], identity_invariants).get(field) is True
                 for field in (
                     "same_project",
                     "same_session",
-                    "same_task6",
+                    "same_host_task",
                     "same_active_plan_row",
                     "same_dirty_worktree",
                 )
@@ -1966,7 +1976,7 @@ class SessionManager:
                 )
             ),
             "ACTIVE_CONTRACT_REBIND_APPROVAL_INVALID",
-            "The receipt does not bind the exact Task6 correction and exclusions.",
+            "The receipt does not bind the exact invoking-task correction and exclusions.",
             status="MISMATCH",
             writes_performed=False,
         )
@@ -1977,7 +1987,7 @@ class SessionManager:
             "session_id": session_id,
             "active_task_id": active_task_id,
             "runtime_task_id": runtime_task_id,
-            "task6_thread_id": task6_thread_id,
+            "host_task_id": host_task_id,
             "rebound_by": actor,
             "approval_receipt_path": supplied_approval_path.as_posix(),
             "approval_receipt_sha256": observed_approval_sha256,
@@ -2050,10 +2060,10 @@ class SessionManager:
                 and session.metadata.get("active_backlog_task_id") == active_task_id
                 and isinstance(session.task, dict)
                 and session.task.get("task_id") == runtime_task_id
-                and session.metadata.get("current_host_session_id") == task6_thread_id
+                and session.metadata.get("current_host_session_id") == host_task_id
                 and session.state == SessionState.TASK_CLASSIFIED,
                 "ACTIVE_CONTRACT_REBIND_ACTIVE_BINDING_MISMATCH",
-                "The exact active Plan, runtime task, governed session, and Task6 binding must agree.",
+                "The exact active Plan, runtime task, governed session, and invoking-task binding must agree.",
                 status="MISMATCH",
                 active_task_ids=active_ids,
                 session_backlog_task_id=session.metadata.get("active_backlog_task_id"),
@@ -2097,7 +2107,7 @@ class SessionManager:
                 "session_id": session_id,
                 "active_task_id": active_task_id,
                 "runtime_task_id": runtime_task_id,
-                "task6_thread_id": task6_thread_id,
+                "host_task_id": host_task_id,
                 "request_sha256": request_sha256,
                 "approval_receipt_sha256": observed_approval_sha256,
                 "baseline": {
@@ -2186,7 +2196,7 @@ class SessionManager:
                     and session.task == expected_runtime_payload
                     and session.metadata.get("active_backlog_task_id") == active_task_id
                     and session.metadata.get("current_host_session_id")
-                    == task6_thread_id,
+                    == host_task_id,
                     "ACTIVE_CONTRACT_REBIND_SESSION_REPLAY_CONFLICT",
                     "Crash recovery found a different session rebind under the same identity.",
                     status="MISMATCH",
@@ -2198,13 +2208,37 @@ class SessionManager:
                     and isinstance(session.task, dict)
                     and session.task.get("task_id") == runtime_task_id
                     and session.metadata.get("current_host_session_id")
-                    == task6_thread_id,
+                    == host_task_id,
                     "ACTIVE_CONTRACT_REBIND_SESSION_REBIND_MISMATCH",
                     "Crash recovery found neither the prior nor exact rebound session contract.",
                     status="MISMATCH",
                 )
                 prior_runtime_contract_sha256 = sha256_bytes(
                     canonical_json_bytes(cast(dict[str, Any], session.task))
+                )
+                prior_active_rebind = session.metadata.get(
+                    "active_contract_rebind_receipt"
+                )
+                prior_active_rebind_receipt_sha256 = (
+                    str(
+                        cast(dict[str, Any], prior_active_rebind).get(
+                            "receipt_sha256"
+                        )
+                        or ""
+                    )
+                    if isinstance(prior_active_rebind, dict)
+                    else None
+                )
+                direct_entry = session.metadata.get(
+                    "direct_forced_same_worktree_entry"
+                )
+                direct_entry_receipt_sha256 = (
+                    str(
+                        cast(dict[str, Any], direct_entry).get("receipt_sha256")
+                        or ""
+                    )
+                    if isinstance(direct_entry, dict)
+                    else None
                 )
                 require(
                     prior_runtime_contract_sha256
@@ -2224,7 +2258,7 @@ class SessionManager:
                     "approval_receipt_sha256": observed_approval_sha256,
                     "active_plan_task_id": active_task_id,
                     "runtime_task_id": runtime_task_id,
-                    "task6_thread_id": task6_thread_id,
+                    "host_task_id": host_task_id,
                     "prior_runtime_contract_sha256": (prior_runtime_contract_sha256),
                     "replacement_runtime_contract_sha256": sha256_bytes(
                         canonical_json_bytes(expected_runtime_payload)
@@ -2233,11 +2267,18 @@ class SessionManager:
                     "active_plan_row_identity_preserved": True,
                     "governed_session_identity_preserved": True,
                     "host_task_identity_preserved": True,
+                    "authority_route": "PV_PLAN_TASKS_ACTIVE_CONTRACT_REBIND",
+                    "entry_authority_receipt_sha256": (
+                        direct_entry_receipt_sha256 or None
+                    ),
+                    "prior_active_contract_rebind_receipt_sha256": (
+                        prior_active_rebind_receipt_sha256 or None
+                    ),
                     "recovery_binding_contract": {
                         "manager_scope": "SHARED_MULTI_PROJECT_MULTI_TASK",
                         "registry_mutability": "MUTABLE_APPEND_OR_REFRESH",
                         "invocation_binding_scope": "EXACT_CALLING_TASK",
-                        "reentry_target": task6_thread_id,
+                        "reentry_target": host_task_id,
                         "installer_helper": "SEPARATE_COMPONENT",
                     },
                     "candidate_created": False,
@@ -2369,10 +2410,10 @@ class SessionManager:
                 "active_backlog_task_id"
             )
             == active_task_id,
-            "task6_host_binding_preserved": session.metadata.get(
+            "host_task_binding_preserved": session.metadata.get(
                 "current_host_session_id"
             )
-            == task6_thread_id,
+            == host_task_id,
             "classification_binding_resealed": (
                 isinstance(classification_binding, dict)
                 and classification_binding.get("runtime_task_id") == runtime_task_id
@@ -2404,7 +2445,7 @@ class SessionManager:
         require(
             all(checks.values()),
             "ACTIVE_CONTRACT_REBIND_COMMIT_VERIFICATION_FAILED",
-            "The rebind cannot commit until Plan, session, Task6, and pointer invariants pass.",
+            "The rebind cannot commit until Plan, session, invoking-task, and pointer invariants pass.",
             status="FAIL",
             failed_checks=sorted(key for key, passed in checks.items() if not passed),
         )
@@ -2429,7 +2470,7 @@ class SessionManager:
             "counts": backlog["counts"],
             "active_task_id": active_task_id,
             "runtime_task_id": runtime_task_id,
-            "task6_thread_id": task6_thread_id,
+            "host_task_id": host_task_id,
             "capture_route": capture_route["capture_route"],
             "capture_route_binding_sha256": capture_route["binding_sha256"],
             "physically_final_task_id": backlog["tasks"][-1]["task_id"],
@@ -4791,7 +4832,7 @@ class SessionManager:
         require(
             not per_delta_required or per_delta_proof,
             "TASK_CHECKPOINT_ADVANCE_DELTA_VERIFICATION_REQUIRED",
-            "A normalized Task6 parity row cannot advance on a generic PASS checkpoint.",
+            "A strict package-parity row cannot advance on a generic PASS checkpoint.",
             status="BLOCKED",
             completed_backlog_task_id=completed_backlog_task_id,
         )
@@ -7996,10 +8037,10 @@ class SessionManager:
             repository,
             ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
         ).stdout
-        tracked_diff = run_git(
+        tracked_diff_sha256, _tracked_diff_bytes = run_git_digest(
             repository,
             ["diff", "--binary", "--no-ext-diff", "--full-index", "HEAD", "--", "."],
-        ).stdout
+        )
         tracked_paths = [
             value.replace("\\", "/")
             for value in run_git(
@@ -8071,7 +8112,7 @@ class SessionManager:
                 [value for value in status.split("\0") if value]
             ),
             "status_sha256": sha256_bytes(status.encode("utf-8")),
-            "tracked_diff_sha256": sha256_bytes(tracked_diff.encode("utf-8")),
+            "tracked_diff_sha256": tracked_diff_sha256,
             "dirty_path_count": len(dirty_paths),
             "dirty_path_set_sha256": sha256_bytes(canonical_json_bytes(dirty_paths)),
             "dirty_content_sha256": sha256_bytes(canonical_json_bytes(members)),
@@ -8124,11 +8165,36 @@ class SessionManager:
             "The live ACTIVE Plan row requires its canonical commit batch.",
             status="MISMATCH",
         )
-        window_end_index = min(active_index + 8, len(rows) - 1)
-        active_batch_id = (
-            f"HOST_WINDOW_R{int(active_row['number'])}-"
-            f"R{int(rows[window_end_index]['number'])}"
+        fixed_window_task_ids = self.store.persisted_host_plan_window_task_ids(
+            project_id
         )
+        require(
+            bool(fixed_window_task_ids),
+            "DIRECT_STATE_TRAVEL_FIXED_HOST_BATCH_REQUIRED",
+            "Direct same-worktree entry requires the persisted canonical host Plan batch.",
+            status="MISMATCH",
+        )
+        fixed_window_task_ids = cast(list[str], fixed_window_task_ids)
+        row_by_task_id = {str(row["task_id"]): row for row in rows}
+        require(
+            all(task_id in row_by_task_id for task_id in fixed_window_task_ids),
+            "DIRECT_STATE_TRAVEL_FIXED_HOST_BATCH_TASK_MISSING",
+            "A persisted host Plan batch task is absent from live canonical authority.",
+            status="MISMATCH",
+        )
+        window_rows = [row_by_task_id[task_id] for task_id in fixed_window_task_ids]
+        window_indexes = [rows.index(row) for row in window_rows]
+        require(
+            window_indexes
+            == list(range(window_indexes[0], window_indexes[0] + len(window_indexes)))
+            and active_row in window_rows,
+            "DIRECT_STATE_TRAVEL_FIXED_HOST_BATCH_INVALID",
+            "The persisted host Plan batch must be contiguous and contain the sole ACTIVE row.",
+            status="MISMATCH",
+        )
+        batch_start = int(window_rows[0]["number"])
+        batch_end = int(window_rows[-1]["number"])
+        active_batch_id = f"FIXED_HOST_BATCH_R{batch_start}-R{batch_end}"
         snapshot = self._state_travel_plan_snapshot(project_id)
         body = {
             "canonical_plan_sha256": canonical["projection_sha256"],
@@ -8142,10 +8208,10 @@ class SessionManager:
             "active_task_id": str(active_row["task_id"]),
             "active_batch_id": active_batch_id,
             "active_row_commit_batch_id": source_batch_id,
-            "active_batch_row_start": int(active_row["number"]),
-            "active_batch_row_end": int(rows[window_end_index]["number"]),
-            "host_window_row_start": int(active_row["number"]),
-            "host_window_row_end": int(rows[window_end_index]["number"]),
+            "active_batch_row_start": batch_start,
+            "active_batch_row_end": batch_end,
+            "host_window_row_start": batch_start,
+            "host_window_row_end": batch_end,
             "next_hil_row": int(next_hils[0]["number"]),
             "next_hil_task_id": str(next_hils[0]["task_id"]),
             "physically_final_hil_row": int(final_hils[0]["number"]),
@@ -8334,6 +8400,300 @@ class SessionManager:
             "identity_sha256": sha256_bytes(canonical_json_bytes(body)),
         }
 
+    @staticmethod
+    def _direct_entry_recovery_authority(
+        session: SessionRecord,
+        *,
+        project_id: str,
+        destination: dict[str, Any],
+        exact_binding: dict[str, Any],
+        plan: dict[str, Any],
+        runtime_instance_attestation: dict[str, Any],
+        rebound_at: str,
+    ) -> dict[str, Any]:
+        """Bind checkpoint recovery to the server-attested direct destination."""
+
+        destination_task_id = str(destination.get("task_id") or "").strip()
+        active_plan_task_id = str(plan.get("active_task_id") or "").strip()
+        runtime_task = cast(dict[str, Any], session.task or {})
+        runtime_task_id = str(runtime_task.get("task_id") or "").strip()
+        require(
+            bool(destination_task_id)
+            and bool(active_plan_task_id)
+            and bool(runtime_task_id)
+            and session.metadata.get("current_host_session_id")
+            == destination_task_id
+            and session.metadata.get("active_backlog_task_id")
+            == active_plan_task_id
+            and session.metadata.get("active_backlog_task_status") == "ACTIVE"
+            and runtime_instance_attestation.get("status") == "PASS"
+            and runtime_instance_attestation.get("caller_supplied") is False
+            and runtime_instance_attestation.get("process_id_exposed") is False
+            and len(
+                str(runtime_instance_attestation.get("receipt_sha256") or "")
+            )
+            == 64,
+            "DIRECT_STATE_TRAVEL_RECOVERY_AUTHORITY_MISMATCH",
+            "Direct entry cannot bind checkpoint recovery without the exact destination, active Plan row, runtime task, and server attestation.",
+            status="MISMATCH",
+            writes_performed=False,
+        )
+        history = session.metadata.setdefault("active_contract_rebinds", [])
+        require(
+            isinstance(history, list),
+            "DIRECT_STATE_TRAVEL_RECOVERY_HISTORY_INVALID",
+            "The session recovery-authority history must remain append-only data.",
+            status="MISMATCH",
+            writes_performed=False,
+        )
+        binding_sha256 = sha256_bytes(canonical_json_bytes(exact_binding))
+        request_nonce_sha256 = sha256_bytes(
+            str(exact_binding.get("request_nonce") or "").encode("utf-8")
+        )
+        prior = session.metadata.get("active_contract_rebind_receipt")
+        prior_receipt_sha256 = (
+            str(cast(dict[str, Any], prior).get("receipt_sha256") or "")
+            if isinstance(prior, dict)
+            else None
+        )
+        rebind_id = f"direct_rebind_{binding_sha256[:40].lower()}"
+        task_contract_sha256 = sha256_bytes(canonical_json_bytes(runtime_task))
+        rebind_body = {
+            "schema": "evidence-lane.active-contract-session-rebind.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "session_id": session.session_id,
+            "rebind_id": rebind_id,
+            "request_sha256": binding_sha256,
+            "approval_receipt_sha256": None,
+            "active_plan_task_id": active_plan_task_id,
+            "runtime_task_id": runtime_task_id,
+            "host_task_id": destination_task_id,
+            "prior_runtime_contract_sha256": task_contract_sha256,
+            "replacement_runtime_contract_sha256": task_contract_sha256,
+            "runtime_task_identity_preserved": True,
+            "active_plan_row_identity_preserved": True,
+            "governed_session_identity_preserved": True,
+            "host_task_identity_preserved": True,
+            "authority_route": "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK",
+            "direct_entry_authority": {
+                "normalized_binding_sha256": binding_sha256,
+                "request_nonce_sha256": request_nonce_sha256,
+                "destination_task_uri_sha256": sha256_bytes(
+                    f"codex://threads/{destination_task_id}".encode()
+                ),
+                "runtime_instance_attestation_receipt_sha256": (
+                    runtime_instance_attestation["receipt_sha256"]
+                ),
+                "runtime_instance_attestation_mode": "SERVER_DERIVED_ATTESTATION",
+                "caller_supplied_runtime_identity": False,
+            },
+            "recovery_binding_contract": {
+                "manager_scope": "SHARED_MULTI_PROJECT_MULTI_TASK",
+                "registry_mutability": "MUTABLE_APPEND_OR_REFRESH",
+                "invocation_binding_scope": "EXACT_CALLING_TASK",
+                "reentry_target": destination_task_id,
+                "installer_helper": "SEPARATE_COMPONENT",
+            },
+            "prior_active_contract_rebind_receipt_sha256": (
+                prior_receipt_sha256 or None
+            ),
+            "candidate_created": False,
+            "pending_hil": False,
+            "pointer_moved": False,
+            "goal_completion_mutated": False,
+            "git_executed": False,
+            "install_executed": False,
+            "helper_launched": False,
+            "tunnel_launched": False,
+            "rebound_at": rebound_at,
+        }
+        receipt = {
+            **rebind_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(rebind_body)),
+        }
+        existing = next(
+            (
+                item
+                for item in cast(list[Any], history)
+                if isinstance(item, dict) and item.get("rebind_id") == rebind_id
+            ),
+            None,
+        )
+        require(
+            existing is None or existing == receipt,
+            "DIRECT_STATE_TRAVEL_RECOVERY_AUTHORITY_CONFLICT",
+            "The direct-entry recovery identity already contains different sealed bytes.",
+            status="MISMATCH",
+            writes_performed=False,
+        )
+        if existing is None:
+            cast(list[dict[str, Any]], history).append(receipt)
+        session.metadata["active_contract_rebind_receipt"] = receipt
+        return receipt
+
+    def _server_derived_direct_same_worktree_binding(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        authoritative_source_task_id: str,
+        runtime_attachment_donor_task_id: str,
+        destination_task_id: str,
+        destination_task_title: str,
+    ) -> dict[str, Any]:
+        """Derive the complete direct-entry binding inside the server lock.
+
+        The public route supplies only the three Codex task identities and the
+        already-visible destination title. Every volatile source, Plan,
+        pointer, package, runtime, profile, and replay field is derived from
+        current durable authority by the serving runtime.
+        """
+
+        session = self.load(project_id, session_id)
+        source_task_id = str(authoritative_source_task_id or "").strip().lower()
+        donor_task_id = str(runtime_attachment_donor_task_id or "").strip().lower()
+        exact_destination_task_id = str(destination_task_id or "").strip().lower()
+        exact_destination_title = str(destination_task_title or "").strip()
+        current_host_session_id = str(
+            session.metadata.get("current_host_session_id") or ""
+        ).strip().lower()
+        host_history_ids = {
+            str(row.get("host_session_id") or "").strip().lower()
+            for row in session.metadata.get("host_session_history", [])
+            if isinstance(row, dict)
+        }
+        require(
+            len({source_task_id, donor_task_id, exact_destination_task_id}) == 3,
+            "DIRECT_STATE_TRAVEL_TASK_ROLE_COLLISION",
+            "Source authority, runtime donor, and destination must be distinct tasks.",
+            status="MISMATCH",
+            writes_performed=False,
+        )
+        require(
+            current_host_session_id == exact_destination_task_id,
+            "DIRECT_STATE_TRAVEL_DESTINATION_BOOT_REQUIRED",
+            "The exact destination must complete native verification and Boot before forced State Travel.",
+            status="BLOCKED",
+            current_host_session_id=current_host_session_id or None,
+            destination_task_id=exact_destination_task_id or None,
+            writes_performed=False,
+        )
+        require(
+            source_task_id in host_history_ids and donor_task_id in host_history_ids,
+            "DIRECT_STATE_TRAVEL_HOST_HISTORY_MISMATCH",
+            "The authoritative source and runtime donor are not both present in this governed session history.",
+            status="MISMATCH",
+            writes_performed=False,
+        )
+        existing = session.metadata.get("direct_forced_same_worktree_entry")
+        if isinstance(existing, dict) and existing.get("status") == "PASS":
+            existing_destination = cast(
+                dict[str, Any],
+                cast(dict[str, Any], existing.get("host_task_binding") or {}).get(
+                    "destination"
+                )
+                or {},
+            )
+            require(
+                existing_destination.get("task_id") != exact_destination_task_id,
+                "DIRECT_STATE_TRAVEL_REPLAY_FORBIDDEN",
+                "The destination already owns a committed direct State Travel receipt.",
+                status="BLOCKED",
+                destination_task_id=exact_destination_task_id,
+                writes_performed=False,
+            )
+
+        config = self.store.config(project_id)
+        pointer = self.store.pointer(project_id)
+        source = self._direct_state_travel_source_identity(project_id)
+        plan = self._direct_state_travel_plan_identity(project_id)
+        plugin = self._state_travel_plugin_build_identity()
+        profile_value = session.metadata.get("execution_profile")
+        require(
+            isinstance(profile_value, dict),
+            "DIRECT_STATE_TRAVEL_EXECUTION_PROFILE_REQUIRED",
+            "The governed session must retain its exact execution profile.",
+            status="MISMATCH",
+            writes_performed=False,
+        )
+        execution_profile = cast(dict[str, Any], profile_value)
+        pointer_sha256 = sha256_bytes(canonical_json_bytes(pointer.as_dict()))
+        internal_nonce = prefixed_id("server_direct_state_travel")
+        return {
+            "schema": "evidence-lane.direct-forced-same-worktree-entry.v1",
+            "route": "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK",
+            "confirmation": "DIRECT_FORCE_SAME_WORKTREE_STATE_TRAVEL",
+            "request_nonce": internal_nonce,
+            "authoritative_source": {
+                "task_id": source_task_id,
+                "deep_link": f"codex://threads/{source_task_id}",
+            },
+            "runtime_attachment_donor": {
+                "task_id": donor_task_id,
+                "deep_link": f"codex://threads/{donor_task_id}",
+            },
+            "destination": {
+                "task_id": exact_destination_task_id,
+                "deep_link": f"codex://threads/{exact_destination_task_id}",
+                "title": exact_destination_title,
+                "project_id": project_id,
+                "workspace_path": config.repository_path,
+                "creation_kind": "FRESH_NATIVE_CODEX_LOCAL_PROJECT_TASK",
+                "fresh_local_task": True,
+                "fork": False,
+                "continued_from_chat": False,
+            },
+            "sole_writer": {
+                "policy": "SOLE_WRITER",
+                "writer_id": exact_destination_task_id,
+                "concurrent_writer_count": 1,
+            },
+            "sealed_transport": {
+                "prepare_called": False,
+                "resume_called": False,
+                "transport_envelope_created": False,
+                "transport_envelope_consumed": False,
+                "eligible_fresh_handoff_exists": False,
+            },
+            "host_context": {
+                "current_task_id": exact_destination_task_id,
+                "current_task_deep_link": (
+                    f"codex://threads/{exact_destination_task_id}"
+                ),
+                "current_task_title": exact_destination_title,
+                "runtime_instance_attestation_mode": "SERVER_DERIVED_ATTESTATION",
+                "thread_hydration_mode": "BOUNDED_AUTHORITY_AND_PLAN_SQLITE_ONLY",
+                "full_thread_history_requested": False,
+                "task7_chat_history_loaded_as_authority": False,
+                "collaboration_overlay_active": False,
+            },
+            "expected": {
+                "pointer": {
+                    "accepted_pv": pointer.accepted_pv,
+                    "generation": pointer.generation,
+                    "pointer_sha256": pointer_sha256,
+                },
+                "source": source,
+                "prebootstrap_source": {
+                    **source,
+                    "captured_before_authorized_route_bootstrap": True,
+                },
+                "plan": plan,
+                "plugin": plugin,
+                "runtime": {
+                    "state": session.state.value,
+                    "generation": pointer.generation,
+                    "attachment_donor_task_id": donor_task_id,
+                    "runtime_instance_attestation_mode": (
+                        "SERVER_DERIVED_ATTESTATION"
+                    ),
+                    "hooks_mode": "OFF_UNTIL_REPAIRED",
+                },
+                "execution_profile": execution_profile,
+            },
+        }
+
     def direct_force_same_worktree_entry(
         self,
         project_id: str,
@@ -8398,7 +8758,7 @@ class SessionManager:
             and destination["task_id"]
             == cast(dict[str, Any], exact["host_context"])["current_task_id"],
             "DIRECT_STATE_TRAVEL_PROJECT_WORKSPACE_MISMATCH",
-            "The fresh Task8 project/workspace binding does not match durable authority.",
+            "The fresh destination project/workspace binding does not match durable authority.",
             status="MISMATCH",
             writes_performed=False,
         )
@@ -8422,7 +8782,7 @@ class SessionManager:
             and donor["task_id"] in host_history_ids
             and (donor_current_before_entry or destination_boot_attached_before_entry),
             "DIRECT_STATE_TRAVEL_HOST_HISTORY_MISMATCH",
-            "Source, runtime donor, mandatory Boot attachment, and genuinely fresh Task8 do not match host history.",
+            "Source, runtime donor, mandatory Boot attachment, and fresh destination do not match host history.",
             status="MISMATCH",
             current_host_session_id=current_host_session_id or None,
             destination_history_count=len(destination_history),
@@ -8528,20 +8888,23 @@ class SessionManager:
             expected_profile,
             cast(dict[str, str], session.metadata.get("execution_profile") or {}),
         )
+        runtime_instance_attestation = dict(self._runtime_instance_attestation)
         require(
             not plugin_mismatches
             and not profile_mismatches
             and expected_runtime["state"] == session.state.value
             and expected_runtime["generation"] == pointer.generation
             and expected_runtime["attachment_donor_task_id"] == donor["task_id"]
-            and expected_runtime["host_process_instance_id"] == str(os.getpid())
+            and expected_runtime["runtime_instance_attestation_mode"]
+            == "SERVER_DERIVED_ATTESTATION"
+            and runtime_instance_attestation["status"] == "PASS"
             and flash.get("status") == "PASS",
             "DIRECT_STATE_TRAVEL_RUNTIME_PLUGIN_PROFILE_MISMATCH",
             "Installed plugin/catalog, runtime, Flash, or execution profile does not match.",
             status="MISMATCH",
             plugin_mismatches=plugin_mismatches,
             profile_mismatches=profile_mismatches,
-            process_id=str(os.getpid()),
+            runtime_instance_attestation=runtime_instance_attestation,
             writes_performed=False,
         )
         require(
@@ -8550,7 +8913,7 @@ class SessionManager:
             and not bool(session.metadata.get("pending_hil"))
             and not isinstance(session.metadata.get("pending_task"), dict),
             "DIRECT_STATE_TRAVEL_UNACCEPTED_STATE_PRESENT",
-            "Direct Task8 entry requires no candidate, pending HIL, or HIL follow-up.",
+            "Direct destination entry requires no candidate, pending HIL, or HIL follow-up.",
             status="BLOCKED",
             writes_performed=False,
         )
@@ -8636,11 +8999,23 @@ class SessionManager:
         session.metadata["execution_profile"] = expected_profile
         session.metadata["host_execution_profile_mutation_supported"] = False
 
+        calling_task_recovery_authority = self._direct_entry_recovery_authority(
+            session,
+            project_id=project_id,
+            destination=destination,
+            exact_binding=exact,
+            plan=plan,
+            runtime_instance_attestation=runtime_instance_attestation,
+            rebound_at=now,
+        )
+
+        destination_orchestration = build_direct_destination_orchestration(exact)
+
         receipt_body = {
             "schema": "evidence-lane.direct-forced-same-worktree-entry-receipt.v1",
             "status": "PASS",
             "route": exact["route"],
-            "request_nonce": nonce,
+            "request_nonce_sha256": sha256_bytes(nonce.encode("utf-8")),
             "project_id": project_id,
             "session_id": session_id,
             "live_dirty_source_proof": source,
@@ -8655,7 +9030,7 @@ class SessionManager:
                 "plugin": plugin,
                 "execution_profile": expected_profile,
                 "runtime_state": session.state.value,
-                "host_process_instance_id": str(os.getpid()),
+                "runtime_instance_attestation": runtime_instance_attestation,
                 "flash_authority_version": flash.get("authority_version"),
                 "flash_authority_digest": flash.get("authority_digest"),
                 "hooks_mode": expected_runtime["hooks_mode"],
@@ -8671,6 +9046,27 @@ class SessionManager:
                 "fork": False,
                 "continued_from_chat": False,
             },
+            "calling_task_recovery_authority": {
+                "schema": calling_task_recovery_authority["schema"],
+                "status": calling_task_recovery_authority["status"],
+                "receipt_sha256": calling_task_recovery_authority["receipt_sha256"],
+                "active_plan_task_id": calling_task_recovery_authority[
+                    "active_plan_task_id"
+                ],
+                "runtime_task_id": calling_task_recovery_authority[
+                    "runtime_task_id"
+                ],
+                "host_task_id": calling_task_recovery_authority["host_task_id"],
+                "authority_route": calling_task_recovery_authority[
+                    "authority_route"
+                ],
+                "runtime_instance_attestation_receipt_sha256": (
+                    calling_task_recovery_authority["direct_entry_authority"][
+                        "runtime_instance_attestation_receipt_sha256"
+                    ]
+                ),
+            },
+            "destination_orchestration": destination_orchestration,
             "sealed_transport": {
                 **cast(dict[str, Any], exact["sealed_transport"]),
                 "stale_prepared_receipt_preserved_unconsumed": isinstance(

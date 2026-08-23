@@ -4,6 +4,7 @@ import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { GovernedStoryExplorer } from "../_components/governed-story-explorer";
 import { HeroOrbit } from "../_components/hero-orbit";
 import { PageHero } from "../_components/page-hero";
+import { currentProductContract } from "../_data/current-product-contract";
 
 export const metadata: Metadata = {
   title: "Release",
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 const releaseLayers = [
-  ["Local testing", "Each verified Delta installs a newer content-addressed v3.0 layer into the mutable local-testing slot and reattaches the exact task.", "package"],
+  ["Local testing", "Only a canonical Delta that explicitly owns installation may replace the mutable local-testing layer and reattach the exact task. LOCAL_PREVIEW_ONLY work never installs.", "package"],
   ["Branch fallback", "The exact governed branch commit becomes the stable Git-delivered fallback only after commit, checks, package, SDK, and install proofs pass.", "git"],
   ["Main release", "The main-merge slot remains unchanged until the exact final release route and its human Project HIL authorize promotion.", "pulse"],
 ] as const;
@@ -37,7 +38,7 @@ const releaseStages = [
     label: "Install local testing",
     summary: "Install the verified newer v3.0 layer into the existing mutable testing slot without adding another slot.",
     outcome: "An attached local package whose source, catalog, runtime, profile, and exact Task8 identity agree.",
-    proof: "Installer receipt, slot path, build identity, 88-action/17-skill catalog, task UUID, runtime profile, and reattach receipt.",
+    proof: `Installer receipt, slot path, build identity, ${currentProductContract.nativeMcp.totalActions}-action/${currentProductContract.governedSkillCount}-skill catalog, task UUID, runtime profile, and reattach receipt.`,
     boundary: "ENV/UOP, accepted PV, the Git fallback, and main-release slot remain unchanged.",
     details: [
       "Use the established local installer and existing cache-busted testing slot.",
@@ -50,14 +51,14 @@ const releaseStages = [
   {
     id: "hooks",
     label: "Progressive hooks",
-    summary: "Repair, test, install, and enable each lifecycle hook independently from Hook 1 through Hook 8.",
-    outcome: "A progressive installed-host proof where only individually verified hooks are active.",
+    summary: "Repair, test, install, and enable each lifecycle hook independently across all eleven registered events.",
+    outcome: "A progressive installed-host proof that finishes with all eleven corrected hooks ON.",
     proof: "Per-hook source hash, package hash, registered event, hidden Windows invocation, observed host call, and rollback receipt.",
-    boundary: "Unverified hooks remain off; Hook 8 stays absent from the UI until its own proof passes.",
+    boundary: "Unverified hooks remain off; no event is reported usable until its own installed-host proof passes.",
     details: [
       "Test one hook against its real host event and confirm no visible terminal window appears.",
-      "Install and enable only that verified hook while retaining native API fallback control.",
-      "Keep later hooks disabled and undisplayed until their independent proof exists.",
+      "Enable each verified hook through native API control and keep every passing event ON.",
+      "If one event fails, disable only it, repair and retest it, then restore the all-eleven-ON steady state.",
     ],
     icon: "pulse",
     color: "#f2a1c5",
@@ -105,7 +106,7 @@ export default function ReleasePage() {
 
       <section className="section shell depthContractGrid">
         <article><span className="kicker">Recovery order</span><h2>Local testing first, stable Git fallback second, main unchanged.</h2><p>If a newer local layer breaks, select the exact committed stable fallback. Do not create a fourth slot or rewrite the earlier main-merge recovery package.</p></article>
-        <article><span className="kicker">Hook safety</span><h2>Activation follows installed-host proof one event at a time.</h2><p>Native API controls remain the fallback while hooks are repaired. The UI must not imply that an unverified event—including Hook 8—is available.</p></article>
+        <article><span className="kicker">Hook safety</span><h2>Activation follows installed-host proof one event at a time.</h2><p>Explicit native API controls remain available while hooks are off. The UI must not imply that any unverified event is available or has been used.</p></article>
       </section>
 
       <section className="section architectureDark"><div className="shell"><div className="sectionHead wideHead"><span className="kicker light">Promotion gate</span><h2>Installed bytes and green checks do not move Project Truth.</h2><p>The local layer, branch fallback, and main-release slot retain separate receipts. Only the exact later Project HIL and promotion route may change the accepted pointer or main-release identity.</p></div></div></section>

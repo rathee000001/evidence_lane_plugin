@@ -15,15 +15,15 @@
     "six_primary_controls_unchanged": true
   },
   "lifecycle_hooks": {
-    "registered_event_count": 8,
-    "package_file_count": 11,
-    "event_names": ["SessionStart", "UserPromptSubmit", "PreToolUse", "PostToolUse", "PreCompact", "PostCompact", "Stop", "SessionEnd"],
+    "registered_event_count": 11,
+    "package_file_count": 15,
+    "event_names": ["SessionStart", "SubagentStart", "UserPromptSubmit", "PreToolUse", "PermissionRequest", "PostToolUse", "PreCompact", "PostCompact", "SubagentStop", "Stop", "SessionEnd"],
     "new_event_required_for_canon_or_learning": false,
     "law": "EXTEND_AN_EXISTING_TRANSPORT_EVENT_UNLESS_THE_HOST_EXPOSES_A_GENUINELY_DISTINCT_LIFECYCLE_EVENT"
   },
   "host_commands": {
     "git_tracked_command_count": 2,
-    "command_files": ["evi-learning.md", "evi-plan.md"],
+    "command_files": ["evi-plan.md"],
     "canon_owned_by_skill_without_duplicate_command_file": true,
     "learning_command_is_a_thin_public_route_to_the_same_native_authority": true
   },

@@ -1,3 +1,5 @@
+<!-- evidence-lane-current-route-refresh: 3.0.0 / 2026-08-23 -->
+
 # Contributing to Evidence Lane
 
 Evidence Lane is privately governed source. An issue, discussion, review,

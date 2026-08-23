@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evidence_lane_plugin.constants import NATIVE_TOOL_COUNT
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import (
     canonical_json_bytes,
@@ -69,7 +70,7 @@ def _approval_receipt(
     source_repository: Path,
     *,
     session_id: str,
-    task6_thread_id: str,
+    host_task_id: str,
 ) -> tuple[str, str]:
     relative = "evidence/task6-active-contract-authority.json"
     path = source_repository / relative
@@ -80,12 +81,12 @@ def _approval_receipt(
         "author": "user-test",
         "project_id": "book-faires",
         "session_id": session_id,
-        "task6_thread_id": task6_thread_id,
+        "host_task_id": host_task_id,
         "authorized_effect": "Correct only the stale active execution contract.",
         "identity_invariants": {
             "same_project": True,
             "same_session": True,
-            "same_task6": True,
+            "same_host_task": True,
             "same_active_plan_row": True,
             "same_dirty_worktree": True,
             "accepted_pv": "PV1",
@@ -137,11 +138,11 @@ def _prepared_rebind(service, source_repository: Path) -> tuple[str, dict]:
     )
     session = service.sessions.load("book-faires", session_id)
     assert session.task is not None
-    task6_thread_id = "host-session-state-travel-pv1"
+    host_task_id = "host-session-state-travel-pv1"
     relative, approval_sha256 = _approval_receipt(
         source_repository,
         session_id=session_id,
-        task6_thread_id=task6_thread_id,
+        host_task_id=host_task_id,
     )
     backlog = service.task_backlog("book-faires")
     pointer = service.store.pointer("book-faires")
@@ -150,7 +151,7 @@ def _prepared_rebind(service, source_repository: Path) -> tuple[str, dict]:
         "session_id": session_id,
         "active_task_id": active["task_id"],
         "expected_runtime_task_id": session.task["task_id"],
-        "task6_thread_id": task6_thread_id,
+        "host_task_id": host_task_id,
         "expected_backlog_sha256": sha256_bytes(
             canonical_json_bytes(
                 service.store._load_backlog("book-faires")
@@ -202,7 +203,7 @@ def test_active_contract_rebind_preserves_all_execution_identities(
     assert receipt["idempotent_replay"] is False
     assert receipt["active_task_id"] == "active-read-only"
     assert receipt["runtime_task_id"] == contract["expected_runtime_task_id"]
-    assert receipt["task6_thread_id"] == "host-session-state-travel-pv1"
+    assert receipt["host_task_id"] == "host-session-state-travel-pv1"
     assert receipt["task_count"] == 2
     assert result["event_count"] == before["event_count"] + 1
     assert [row["task_id"] for row in result["active"]] == [
@@ -420,6 +421,6 @@ def test_active_contract_rebind_extends_plan_tool_without_catalog_growth(
     service,
 ) -> None:
     tools = asyncio.run(create_mcp_server(service=service).list_tools())
-    assert len(tools) == 83
+    assert len(tools) == NATIVE_TOOL_COUNT == 88
     plan_tool = next(tool for tool in tools if tool.name == "pv_plan_tasks")
     assert "active_contract_rebind" in plan_tool.inputSchema["properties"]

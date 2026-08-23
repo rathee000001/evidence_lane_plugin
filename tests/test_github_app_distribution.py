@@ -14,6 +14,8 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.github_app_distribution import (
+    EVIDENCE_LANE_APP_BOT_EMAIL,
+    EVIDENCE_LANE_APP_BOT_NAME,
     GITHUB_APP_WEBHOOK_ROUTE,
     GITHUB_REST_API_VERSION,
     ArtifactEntitlementStore,
@@ -22,6 +24,8 @@ from evidence_lane_plugin.github_app_distribution import (
     GitCommitActor,
     GitHubAPIResponse,
     GitHubAppExactCommitPushRoute,
+    GitHubAppMainMergeRequest,
+    GitHubAppMainMergeRoute,
     GitHubAppManifest,
     GitHubAppProductionDeliveryRoute,
     GitHubRESTInstallationTokenProvider,
@@ -578,10 +582,14 @@ def _write_token_request(**overrides: object) -> InstallationTokenRequest:
     return InstallationTokenRequest.create(**raw)  # type: ignore[arg-type]
 
 
-def _exact_push_request(change: GitTreeChange) -> ExactGitCommitPushRequest:
+def _exact_push_request(
+    change: GitTreeChange,
+    *,
+    additional_parent_commit_shas: tuple[str, ...] = (),
+) -> ExactGitCommitPushRequest:
     actor = GitCommitActor.create(
-        name="Evidence Lane App",
-        email="evidence-lane@users.noreply.github.com",
+        name=EVIDENCE_LANE_APP_BOT_NAME,
+        email=EVIDENCE_LANE_APP_BOT_EMAIL,
         date=NOW,
     )
     return ExactGitCommitPushRequest.create(
@@ -592,6 +600,7 @@ def _exact_push_request(change: GitTreeChange) -> ExactGitCommitPushRequest:
         repository="owner/repo",
         branch="agent/evi-v300-systemwide-release-hil-v3.0.0",
         expected_parent_commit_sha="1" * 40,
+        additional_parent_commit_shas=additional_parent_commit_shas,
         expected_parent_tree_sha="2" * 40,
         expected_tree_sha="3" * 40,
         expected_commit_sha="4" * 40,
@@ -645,8 +654,254 @@ def test_private_app_route_creates_exact_git_objects_and_fast_forwards() -> None
     assert receipt_contains_secret(receipt) is False
     assert replay["idempotent_reuse"] is True
     assert len(transport.calls) == 7
+    assert transport.calls[-3]["body"]["author"]["name"] == EVIDENCE_LANE_APP_BOT_NAME
+    assert (
+        transport.calls[-3]["body"]["committer"]["email"] == EVIDENCE_LANE_APP_BOT_EMAIL
+    )
+    assert transport.calls[-3]["body"]["parents"] == ["1" * 40]
     assert transport.calls[-2]["method"] == "PATCH"
     assert transport.calls[-2]["body"] == {"sha": "4" * 40, "force": False}
+
+
+def test_private_app_route_preserves_ordered_merge_parents() -> None:
+    change = GitTreeChange.create(
+        path="README.md",
+        mode="100644",
+        content=b"Evidence Lane\n",
+    )
+    request = _exact_push_request(
+        change,
+        additional_parent_commit_shas=("5" * 40,),
+    )
+    transport = _SequenceGitHubTransport(
+        [
+            GitHubAPIResponse(200, {"object": {"sha": "1" * 40}}, "req-1"),
+            GitHubAPIResponse(200, {"tree": {"sha": "2" * 40}}, "req-2"),
+            GitHubAPIResponse(201, {"sha": change.blob_sha}, "req-3"),
+            GitHubAPIResponse(201, {"sha": "3" * 40}, "req-4"),
+            GitHubAPIResponse(201, {"sha": "4" * 40}, "req-5"),
+            GitHubAPIResponse(200, {"object": {"sha": "4" * 40}}, "req-6"),
+            GitHubAPIResponse(200, {"object": {"sha": "4" * 40}}, "req-7"),
+        ]
+    )
+    route = GitHubAppExactCommitPushRoute(
+        broker=InstallationTokenBroker(
+            manifest=_write_manifest(),
+            binding=_write_binding(),
+            provider=DeterministicMockGitHubProvider(b"private-app-push-provider-seed"),
+        ),
+        transport=transport,
+    )
+    receipt = route.execute(request, token_request=_write_token_request(), now=NOW)
+
+    assert receipt["status"] == "PASS"
+    assert transport.calls[-3]["body"]["parents"] == ["1" * 40, "5" * 40]
+
+
+def _main_merge_request() -> GitHubAppMainMergeRequest:
+    return GitHubAppMainMergeRequest.create(
+        request_id="main-merge-request-1",
+        idempotency_key="main-merge-idem-1",
+        project_id="project-a",
+        task_id="task-a",
+        repository="owner/repo",
+        source_branch="agent/evi-v300-systemwide-release-hil-v3.0.0",
+        target_branch="main",
+        expected_source_commit_sha="4" * 40,
+        expected_source_tree_sha="3" * 40,
+        expected_target_commit_sha="1" * 40,
+        commit_message="Merge governed Evidence Lane v3 checkpoint",
+        required_workflow_names=("Governed CI", "Preview"),
+    )
+
+
+def _merge_commit_response() -> dict[str, Any]:
+    return {
+        "sha": "5" * 40,
+        "commit": {"tree": {"sha": "3" * 40}},
+        "parents": [{"sha": "1" * 40}, {"sha": "4" * 40}],
+        "author": {"login": "evidence-lane[bot]"},
+    }
+
+
+def _green_workflow_response() -> dict[str, Any]:
+    return {
+        "workflow_runs": [
+            {
+                "id": 101,
+                "run_number": 7,
+                "name": "Governed CI",
+                "head_sha": "4" * 40,
+                "status": "completed",
+                "conclusion": "success",
+            },
+            {
+                "id": 102,
+                "run_number": 9,
+                "name": "Preview",
+                "head_sha": "4" * 40,
+                "status": "completed",
+                "conclusion": "success",
+            },
+        ]
+    }
+
+
+def test_private_app_main_merge_reuses_green_feature_tree_without_blob_replay() -> None:
+    merged = _merge_commit_response()
+    transport = _SequenceGitHubTransport(
+        [
+            GitHubAPIResponse(200, {"object": {"sha": "1" * 40}}, "merge-1"),
+            GitHubAPIResponse(200, {"object": {"sha": "4" * 40}}, "merge-2"),
+            GitHubAPIResponse(
+                200,
+                {"commit": {"tree": {"sha": "3" * 40}}},
+                "merge-3",
+            ),
+            GitHubAPIResponse(200, _green_workflow_response(), "merge-4"),
+            GitHubAPIResponse(201, merged, "merge-5"),
+            GitHubAPIResponse(200, {"object": {"sha": "5" * 40}}, "merge-6"),
+            GitHubAPIResponse(200, merged, "merge-7"),
+        ]
+    )
+    route = GitHubAppMainMergeRoute(
+        broker=InstallationTokenBroker(
+            manifest=_write_manifest(),
+            binding=_write_binding(),
+            provider=DeterministicMockGitHubProvider(
+                b"private-app-main-merge-provider-seed"
+            ),
+        ),
+        transport=transport,
+    )
+    request = _main_merge_request()
+
+    receipt = route.execute(
+        request,
+        token_request=_write_token_request(),
+        now=NOW,
+    )
+    replay = route.execute(
+        request,
+        token_request=_write_token_request(),
+        now=NOW,
+    )
+
+    assert receipt["status"] == "PASS"
+    assert receipt["route"] == "github_app_repository_merge_v2"
+    assert receipt["merge"]["merge_commit"] == "5" * 40
+    assert receipt["merge"]["merge_tree"] == "3" * 40
+    assert receipt["merge"]["ordered_parent_shas"] == ["1" * 40, "4" * 40]
+    assert receipt["source_tree_reused"] is True
+    assert receipt["blob_reupload_count"] == 0
+    assert receipt["force_push"] is False
+    assert receipt["credential_values_persisted"] is False
+    assert receipt["candidate_created_or_accepted"] is False
+    assert receipt["pointer_moved"] is False
+    assert receipt["hil_inferred"] is False
+    assert receipt_contains_secret(receipt) is False
+    assert replay["idempotent_reuse"] is True
+    assert len(transport.calls) == 7
+    merge_call = transport.calls[4]
+    assert merge_call["method"] == "POST"
+    assert merge_call["path"] == "/repos/owner/repo/merges"
+    assert merge_call["body"] == {
+        "base": "main",
+        "head": "4" * 40,
+        "commit_message": "Merge governed Evidence Lane v3 checkpoint",
+    }
+
+
+def test_private_app_main_merge_requires_all_exact_head_workflows_before_post() -> None:
+    failed_workflows = _green_workflow_response()
+    failed_workflows["workflow_runs"][1]["conclusion"] = "failure"
+    transport = _SequenceGitHubTransport(
+        [
+            GitHubAPIResponse(200, {"object": {"sha": "1" * 40}}, "gate-1"),
+            GitHubAPIResponse(200, {"object": {"sha": "4" * 40}}, "gate-2"),
+            GitHubAPIResponse(
+                200,
+                {"commit": {"tree": {"sha": "3" * 40}}},
+                "gate-3",
+            ),
+            GitHubAPIResponse(200, failed_workflows, "gate-4"),
+        ]
+    )
+    route = GitHubAppMainMergeRoute(
+        broker=InstallationTokenBroker(
+            manifest=_write_manifest(),
+            binding=_write_binding(),
+            provider=DeterministicMockGitHubProvider(
+                b"private-app-main-merge-provider-seed"
+            ),
+        ),
+        transport=transport,
+    )
+
+    with pytest.raises(EvidenceLaneError) as exc:
+        route.execute(
+            _main_merge_request(),
+            token_request=_write_token_request(),
+            now=NOW,
+        )
+
+    assert exc.value.code == "GITHUB_APP_MAIN_MERGE_BRANCH_GATE_NOT_GREEN"
+    assert len(transport.calls) == 4
+    assert all(call["method"] != "POST" for call in transport.calls)
+
+
+def test_private_app_main_merge_rejects_moved_target_before_mutation() -> None:
+    transport = _SequenceGitHubTransport(
+        [GitHubAPIResponse(200, {"object": {"sha": "9" * 40}}, "target-1")]
+    )
+    route = GitHubAppMainMergeRoute(
+        broker=InstallationTokenBroker(
+            manifest=_write_manifest(),
+            binding=_write_binding(),
+            provider=DeterministicMockGitHubProvider(
+                b"private-app-main-merge-provider-seed"
+            ),
+        ),
+        transport=transport,
+    )
+
+    with pytest.raises(EvidenceLaneError) as exc:
+        route.execute(
+            _main_merge_request(),
+            token_request=_write_token_request(),
+            now=NOW,
+        )
+
+    assert exc.value.code == "GITHUB_APP_MAIN_MERGE_TARGET_MOVED"
+    assert len(transport.calls) == 1
+    assert transport.calls[0]["method"] == "GET"
+
+
+def test_private_app_route_rejects_non_bot_commit_actor() -> None:
+    change = GitTreeChange.create(path="README.md", mode="100644", content=b"x\n")
+    human = GitCommitActor.create(
+        name="Human",
+        email="human@example.com",
+        date=NOW,
+    )
+    with pytest.raises(EvidenceLaneError) as exc:
+        ExactGitCommitPushRequest.create(
+            request_id="push-human-1",
+            idempotency_key="push-human-idem-1",
+            project_id="project-a",
+            task_id="task-a",
+            repository="owner/repo",
+            branch="agent/evi-v300-systemwide-release-hil-v3.0.0",
+            expected_parent_commit_sha="1" * 40,
+            expected_parent_tree_sha="2" * 40,
+            expected_tree_sha="3" * 40,
+            expected_commit_sha="4" * 40,
+            commit_message="human commit is forbidden",
+            author=human,
+            committer=human,
+            changes=[change],
+        )
+    assert exc.value.code == "GITHUB_APP_BOT_ACTOR_REQUIRED"
 
 
 def test_private_app_route_rejects_workflow_push_without_workflows_write() -> None:

@@ -33,7 +33,7 @@ RESTART = (
 def test_goal_recovery_separates_shared_release_from_mutable_task_rows() -> None:
     text = GOAL_RECOVERY.read_text(encoding="utf-8")
 
-    assert 'authority_scope = "SHARED_THREE_SLOT_RELEASE_AUTHORITY"' in text
+    assert 'authority_scope = "SHARED_TWO_SLOT_MAIN_LOCAL_RELEASE_AUTHORITY"' in text
     assert 'task_binding_scope = "SEPARATE_MUTABLE_EXACT_TASK_REGISTRY"' in text
     assert "release_authority_sha256 = $registrySha256" in text
     assert "registry_origin_identity_used_for_authorization = $false" in text
@@ -42,11 +42,12 @@ def test_goal_recovery_separates_shared_release_from_mutable_task_rows() -> None
     assert "[string]$Binding.slot_authority.registry_sha256" in text
     assert (
         "The mutable task binding must be refreshed against the current sealed "
-        "three-slot authority."
+        "two-slot authority."
     ) in text
-    assert "branch_recovery_selector = [string]$branch.plugin_selector" in text
+    assert "main_git_selector = [string]$main.plugin_selector" in text
     assert "mutable_local_selector = [string]$local.plugin_selector" in text
-    assert "mutable_local_failure_never_targets_main_git = $true" in text
+    assert "mutable_local_failure_targets_verified_main_only = $true" in text
+    assert "branch_recovery_selector_retired = $true" in text
     assert "pre_3_0_automatic_recovery_allowed = $false" in text
     assert "[string]$registry.project_id -ne [string]$Binding.project_id" not in text
     assert (
@@ -78,26 +79,22 @@ def test_goal_recovery_registry_separation_parses_as_powershell() -> None:
     assert completed.returncode == 0, completed.stdout + completed.stderr
 
 
-def test_explicit_local_recovery_convergence_is_receipt_bound() -> None:
+def test_retired_local_recovery_convergence_has_no_live_route() -> None:
     installer = INSTALLER.read_text(encoding="utf-8")
 
-    assert '"EXPLICIT_BYTE_IDENTICAL_LOCAL_3_0_RECOVERY"' in installer
-    assert "if args.materialize_local_recovery_copy:" in installer
-    assert "result = _materialize_local_recovery_copy(args)" in installer
-    assert "recovery_convergence_authorized=True" in installer
-    assert '"branch_recovery_byte_identical_to_mutable_local"' in installer
-    assert '"EXPLICIT_USER_AUTHORIZED_LOCAL_RECOVERY_CONVERGENCE"' in installer
+    assert '"stable-git-main": PLUGIN_SELECTOR' in installer
+    assert '"versioned-local-testing"' in installer
+    assert "LOCAL_RECOVERY_SELECTOR," in installer
+    assert "result = _materialize_local_recovery_copy(args)" not in installer
+    assert '"EXPLICIT_BYTE_IDENTICAL_LOCAL_3_0_RECOVERY"' not in installer
+    assert "The recovery implementation and all of its side effects are gone." in installer
 
 
 def test_restart_helper_reads_the_sealed_local_recovery_state() -> None:
     restart = RESTART.read_text(encoding="utf-8")
 
-    assert (
-        "$threeSlotRegistryBody.branch_recovery_must_remain_prior_checkpoint_until_commit"
-        in restart
-    )
-    assert (
-        "$threeSlotRegistryBody.branch_recovery_byte_identical_to_mutable_local"
-        in restart
-    )
-    assert "$restartAuthority.mutable_local_failure_never_targets_main_git = $true" in restart
+    assert "$twoSlotRegistryBody.local_failure_targets_verified_main_only" in restart
+    assert "$twoSlotRegistryBody.branch_recovery_selector_retired" in restart
+    assert "$twoSlotRegistryBody.branch_recovery_install_allowed" in restart
+    assert "$restartAuthority.versioned_local_failure_targets_verified_main_only = $true" in restart
+    assert "$restartAuthority.branch_recovery_selector_retired = $true" in restart

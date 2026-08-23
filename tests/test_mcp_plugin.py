@@ -11,6 +11,7 @@ import sys
 import tomllib
 from pathlib import Path
 
+import evidence_lane_plugin
 import httpx
 import pytest
 from evidence_lane_plugin.auth import (
@@ -21,6 +22,10 @@ from evidence_lane_plugin.auth import (
     OAuthJWTConfig,
     OAuthJWTVerifier,
     OAuthToolAuthorizationPolicy,
+)
+from evidence_lane_plugin.codex_turn_control import (
+    _build_governed_activity_count_projection,
+    _governed_activity_source_plugin,
 )
 from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.mcp_apps import (
@@ -54,6 +59,37 @@ from .conftest import (
 )
 
 EXPECTED_TOOL_COUNT = 88
+
+
+def test_public_envelope_separates_execution_from_domain_status(
+    tmp_path: Path,
+) -> None:
+    service = EvidenceLaneService(data_root=tmp_path / "status-semantics")
+
+    diagnostic = service.invoke(
+        "runtime_activation_status",
+        lambda: {
+            "status": "FAIL",
+            "runtime_status": "ACTIVE",
+            "capture_status": "INACTIVE",
+            "reason": "CURRENT_INSTALLATION_HOOK_TRUST_SEAL_MISMATCH",
+        },
+    )
+    assert diagnostic["status"] == "PASS"
+    assert diagnostic["execution_status"] == "PASS"
+    assert diagnostic["domain_status"] == "FAIL"
+    assert diagnostic["data"]["status"] == "FAIL"
+    assert diagnostic["error"] is None
+
+    def fail_inside_handler() -> dict[str, object]:
+        raise RuntimeError("handler failed")
+
+    failed = service.invoke("runtime_activation_status", fail_inside_handler)
+    assert failed["status"] == "FAIL"
+    assert failed["execution_status"] == "FAIL"
+    assert failed["domain_status"] == "FAIL"
+    assert failed["data"] is None
+    assert failed["error"]["code"] == "UNEXPECTED_INTERNAL_ERROR"
 
 
 def _hook_context_json(payload: dict[str, object], prefix: str) -> dict[str, object]:
@@ -167,6 +203,19 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         .annotations.destructiveHint
         is False
     )
+    direct_schema = by_name[
+        "pv_state_travel_direct_force_same_worktree"
+    ].inputSchema
+    direct_public_fields = {
+        "project_id",
+        "session_id",
+        "authoritative_source_task_id",
+        "runtime_attachment_donor_task_id",
+        "destination_task_id",
+        "destination_task_title",
+    }
+    assert set(direct_schema["properties"]) == direct_public_fields
+    assert set(direct_schema["required"]) == direct_public_fields
     assert by_name["pv_state_travel_resume"].annotations.destructiveHint is False
     assert by_name["hil_return_to_accepted"].annotations.destructiveHint is True
     assert by_name["remote_git_execute_push"].annotations.openWorldHint is True
@@ -391,7 +440,7 @@ def test_packaged_skill_tool_references_match_live_canonical_catalog(
     command_paths = sorted((plugin / "commands").glob("*.md"))
     contract_paths = [*skill_paths, *command_paths]
     assert len(skill_paths) == 17
-    assert [path.name for path in command_paths] == ["evi-learning.md", "evi-plan.md"]
+    assert [path.name for path in command_paths] == ["evi-plan.md"]
 
     referenced_tools: set[str] = set()
     for path in contract_paths:
@@ -478,6 +527,107 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
         assert tool.meta["openai/outputTemplate"] == GOVERNED_PANEL_URI
         assert tool.outputSchema is not None
         assert tool.outputSchema["type"] == "object"
+
+
+def test_sources_provider_ownership_keeps_evidence_lane_render_actions_isolated() -> None:
+    evidence_lane_actions = (
+        "render_project_panel",
+        "render_runtime_panel",
+        "evidence_lane.render_project_panel",
+        "evidence_lane_7fb71d7f.render_runtime_panel",
+        "mcp__evidence_lane__render_project_panel",
+    )
+    for tool_name in evidence_lane_actions:
+        assert _governed_activity_source_plugin(tool_name) == "Evidence Lane"
+
+    assert _governed_activity_source_plugin("mcp__render__deploy") == "Render"
+    assert _governed_activity_source_plugin("render.deploy") == "Render"
+    assert _governed_activity_source_plugin("mcp__github__create_issue") == "GitHub"
+    assert _governed_activity_source_plugin("mcp__vercel__deploy") == "Vercel"
+    assert _governed_activity_source_plugin("functions.shell_command") == "Codex host"
+
+
+def test_sources_counts_separate_provider_routing_and_hook_usage() -> None:
+    events = [
+        {
+            "tool_use_id": "el-project",
+            "phase": "after",
+            "tool_name": "render_project_panel",
+            "recorded_at": "2026-08-22T10:00:01Z",
+        },
+        {
+            "tool_use_id": "el-runtime",
+            "phase": "before",
+            "tool_name": "mcp__evidence_lane__render_runtime_panel",
+            "recorded_at": "2026-08-22T10:00:02Z",
+        },
+        {
+            "tool_use_id": "el-runtime",
+            "phase": "after",
+            "tool_name": "mcp__evidence_lane__render_runtime_panel",
+            "recorded_at": "2026-08-22T10:00:03Z",
+        },
+        {
+            "tool_use_id": "render-deploy",
+            "phase": "after",
+            "tool_name": "mcp__render__deploy",
+            "recorded_at": "2026-08-22T10:00:04Z",
+        },
+        {
+            "tool_use_id": "github-issue",
+            "phase": "after",
+            "tool_name": "mcp__github__create_issue",
+            "recorded_at": "2026-08-22T10:00:05Z",
+        },
+        {
+            "tool_use_id": "vercel-deploy",
+            "phase": "before",
+            "tool_name": "mcp__vercel__deploy",
+            "recorded_at": "2026-08-22T10:00:06Z",
+        },
+        # Duplicate hook records must not inflate either dimension.
+        {
+            "tool_use_id": "el-project",
+            "phase": "after",
+            "tool_name": "render_project_panel",
+            "recorded_at": "2026-08-22T10:00:01Z",
+        },
+    ]
+
+    projection = _build_governed_activity_count_projection(
+        events,
+        total_tool_use_count=7,
+        host_ui_supported=True,
+    )
+
+    assert projection["status"] == "PASS"
+    assert projection["raw_provider_action_counts"] == [
+        {"provider": "Evidence Lane", "raw_action_count": 2},
+        {"provider": "GitHub", "raw_action_count": 1},
+        {"provider": "Vercel", "raw_action_count": 1},
+        {"provider": "Render", "raw_action_count": 1},
+    ]
+    assert projection["raw_provider_action_count_total"] == 5
+    assert projection["governed_routing_totals"] == {
+        "distinct_tool_use_count": 5,
+        "completed_tool_use_count": 4,
+        "in_flight_tool_use_count": 1,
+        "offloaded_tool_use_count": 2,
+    }
+    assert projection["per_hook_usage_counts"] == [
+        {"hook_event": "PreToolUse", "usage_count": 2},
+        {"hook_event": "PostToolUse", "usage_count": 4},
+    ]
+    assert projection["per_hook_usage_count_total"] == 6
+    assert projection["count_dimensions_conflated"] is False
+    assert projection["evidence_lane_render_tools_owned_by_render_provider"] is False
+    assert projection["evidence_lane_render_provider_leak_count"] == 0
+    assert projection["source_plugin_groups"] == [
+        {"source_plugin": "Evidence Lane", "count": 2},
+        {"source_plugin": "GitHub", "count": 1},
+        {"source_plugin": "Vercel", "count": 1},
+        {"source_plugin": "Render", "count": 1},
+    ]
 
 
 def test_project_panel_always_explains_exact_six_way_hil_without_mutation() -> None:
@@ -615,16 +765,27 @@ def test_project_panel_separates_next_and_queued_plan_hils_from_step_list() -> N
     assert queue["next_pending_hil"] == {
         "queue_state": "NEXT_PENDING_HIL",
         "row": 197,
+        "absolute_row": 197,
         "task_id": "EL-PV13-CANDIDATE-HIL",
         "description": "Execute governed row 197.",
         "panel_role": "HIL_GATE",
         "lifecycle_status": "QUEUED",
         "proposed_pv": "PV13",
         "dependencies": ["EL-TASK-196"],
+        "continuation_from_hil_task_id": None,
+        "approval_state": "NOT_INFERRED",
     }
     assert queue["queued_hils"][0]["row"] == 206
     assert queue["queued_hils"][0]["proposed_pv"] == "PV14"
     assert queue["queued_hils"][0]["panel_role"] == "PHYSICALLY_FINAL_HIL"
+    assert queue["physically_final_hil"] == queue["queued_hils"][0]
+    assert queue["physically_final_hil"]["absolute_row"] == 206
+    assert queue["physically_final_hil"]["task_id"] == "EL-NATIVE-FUSED-RELEASE-HIL"
+    assert queue["physically_final_hil"]["continuation_from_hil_task_id"] == (
+        "EL-PV13-CANDIDATE-HIL"
+    )
+    assert queue["distinct_dual_hil_records"] is True
+    assert queue["approval_inferred"] is False
     assert queue["connections"] == [
         {
             "from_task_id": "EL-TASK-196",
@@ -644,6 +805,97 @@ def test_project_panel_separates_next_and_queued_plan_hils_from_step_list() -> N
     ]
     assert queue["step_task_list_authority"] is False
     assert queue["render_changes_authority"] is False
+
+
+def test_project_hil_cards_follow_reorder_and_append_without_row_constants() -> None:
+    rows = [
+        {
+            "number": 1,
+            "task_id": "EL-ACTIVE",
+            "step": "Execute active work.",
+            "lifecycle_status": "ACTIVE",
+            "status": "in_progress",
+            "panel_role": "STANDARD",
+            "dependencies": [],
+        },
+        {
+            "number": 2,
+            "task_id": "EL-NEXT-PV-HIL",
+            "step": "Review the next PV candidate.",
+            "lifecycle_status": "QUEUED",
+            "status": "pending",
+            "panel_role": "HIL_GATE",
+            "dependencies": ["EL-ACTIVE"],
+        },
+        {
+            "number": 3,
+            "task_id": "EL-FINAL-RELEASE-HIL",
+            "step": "Review the physically final release.",
+            "lifecycle_status": "QUEUED",
+            "status": "pending",
+            "panel_role": "PHYSICALLY_FINAL_HIL",
+            "dependencies": ["EL-NEXT-PV-HIL"],
+        },
+    ]
+    project_status = {
+        "status": "PASS",
+        "next_candidate_pv": "PV13",
+        "persistent_state_envelope": {
+            "accepted_pv": "PV12",
+            "pointer_generation": 12,
+            "pending_candidate": None,
+            "pending_hil": False,
+        },
+    }
+
+    def queue(exact_rows: list[dict[str, object]]) -> dict[str, object]:
+        snapshot = build_project_panel_snapshot(
+            project_id="example",
+            project_status=project_status,
+            plan_backlog={"goal_projection": {"rows": exact_rows}},
+            public_site_url="https://preview.example.test",
+        )
+        return snapshot["hil"]["project_hil_queue"]
+
+    reordered = queue(list(reversed(rows)))
+    assert reordered["status"] == "PASS"
+    assert reordered["next_pending_hil"]["absolute_row"] == 2
+    assert reordered["next_pending_hil"]["task_id"] == "EL-NEXT-PV-HIL"
+    assert reordered["physically_final_hil"]["absolute_row"] == 3
+    assert reordered["physically_final_hil"]["task_id"] == (
+        "EL-FINAL-RELEASE-HIL"
+    )
+
+    appended = [dict(row) for row in rows[:-1]]
+    appended.extend(
+        [
+            {
+                "number": 3,
+                "task_id": "EL-APPENDED-CORRECTION",
+                "step": "Execute appended correction.",
+                "lifecycle_status": "QUEUED",
+                "status": "pending",
+                "panel_role": "STANDARD",
+                "dependencies": ["EL-NEXT-PV-HIL"],
+            },
+            {
+                **rows[-1],
+                "number": 4,
+                "dependencies": ["EL-APPENDED-CORRECTION"],
+            },
+        ]
+    )
+    shifted = queue(appended)
+    assert shifted["status"] == "PASS"
+    assert shifted["physically_final_hil"]["task_id"] == "EL-FINAL-RELEASE-HIL"
+    assert shifted["physically_final_hil"]["absolute_row"] == 4
+    assert shifted["physically_final_hil"]["dependencies"] == [
+        "EL-APPENDED-CORRECTION"
+    ]
+    assert shifted["physically_final_hil"]["continuation_from_hil_task_id"] == (
+        "EL-NEXT-PV-HIL"
+    )
+    assert shifted["approval_inferred"] is False
 
 
 def test_read_only_panels_carry_one_exact_evidence_lane_identity() -> None:
@@ -896,11 +1148,14 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     hooks = json.loads((plugin / "hooks" / "hooks.json").read_text(encoding="utf-8"))
     assert set(hooks["hooks"]) == {
         "PostCompact",
+        "SubagentStart",
         "SessionStart",
         "UserPromptSubmit",
         "PreCompact",
         "PreToolUse",
+        "PermissionRequest",
         "PostToolUse",
+        "SubagentStop",
         "SessionEnd",
         "Stop",
     }
@@ -1096,7 +1351,12 @@ def test_session_start_hook_is_advisory(tmp_path: Path) -> None:
 def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
     service,
     source_repository: Path,
+    tmp_path: Path,
+    monkeypatch,
 ) -> None:
+    codex_home = tmp_path / "codex-home"
+    codex_home.mkdir()
+    monkeypatch.setenv("CODEX_HOME", str(codex_home))
     session_id, _ = build_and_approve_pv1(service)
     turn_task = {
         "task_id": "prompt-index-v2-turn-control",
@@ -1542,9 +1802,11 @@ service.sessions.close(
 )
 """
     environment = os.environ.copy()
-    source_path = repository_root / "plugins" / "evidence-lane-plugin" / "src"
+    invoking_package_src = Path(evidence_lane_plugin.__file__).resolve().parents[1]
     environment["PYTHONPATH"] = os.pathsep.join(
-        part for part in [str(source_path), environment.get("PYTHONPATH", "")] if part
+        part
+        for part in [str(invoking_package_src), environment.get("PYTHONPATH", "")]
+        if part
     )
     completed = subprocess.run(
         [sys.executable, "-c", script, str(service.store.root)],
@@ -1704,10 +1966,7 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
         "evi-learning",
         *public_order,
     }
-    assert sorted(path.name for path in commands.glob("*.md")) == [
-        "evi-learning.md",
-        "evi-plan.md",
-    ]
+    assert sorted(path.name for path in commands.glob("*.md")) == ["evi-plan.md"]
     plan_command = (commands / "evi-plan.md").read_text(encoding="utf-8")
     assert "do not ask the user to type `/pl` or `/evi-plan`" in plan_command
     assert "explicit host Plan acceptance" in plan_command
@@ -1779,6 +2038,8 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
             result = await session.call_tool("runtime_doctor", {})
             assert result.isError is False
             assert result.structuredContent["status"] == "PASS"
+            assert result.structuredContent["execution_status"] == "PASS"
+            assert result.structuredContent["domain_status"] == "PASS"
             assert len(result.content) == 1
             text_receipt = json.loads(result.content[0].text)
             assert text_receipt == {
@@ -1786,6 +2047,8 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
                 "raw_payload_returned": False,
                 "schema": "evidence-lane.mcp-text-receipt.v1",
                 "status": "PASS",
+                "execution_status": "PASS",
+                "domain_status": "PASS",
                 "structured_receipt_authoritative": True,
                 "tool": "runtime_doctor",
             }

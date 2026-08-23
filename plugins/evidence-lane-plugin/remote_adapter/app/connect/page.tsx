@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 
 import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { HeroOrbit } from "../_components/hero-orbit";
+import { HostCapabilityMatrix } from "../_components/host-capability-matrix";
 import { PageHero } from "../_components/page-hero";
+import { currentProductContract } from "../_data/current-product-contract";
 import { publicSiteUrl, repositoryUrl } from "../_data/site";
 
 export const metadata: Metadata = {
@@ -12,7 +14,7 @@ export const metadata: Metadata = {
 
 const installChecks = [
   "Verify the governed branch, full commit SHA, and clean release file set.",
-  "Build the deterministic local package and prove the 88-action, 27-read, 61-write catalog.",
+  `Build the deterministic local package and prove the ${currentProductContract.nativeMcp.totalActions}-action, ${currentProductContract.nativeMcp.readActions}-read, ${currentProductContract.nativeMcp.writeActions}-write catalog.`,
   "Install the exact 3.0.0 cache-busted package through the Codex Git marketplace route after the governed pre-HIL build route authorizes that test installation.",
   "Restart Codex only when the installer reports that a catalog refresh is required.",
   "Reopen the exact task, restore its full Plan Lane panel, and run post-restart native verification.",
@@ -39,7 +41,8 @@ export default function ConnectPage() {
           </span>
           <h2>Install from an exact governed commit.</h2>
           <p>
-            The package contributes seventeen skills, eight registered hook events,
+            The package contributes {currentProductContract.governedSkillCount} skills,
+            {` ${currentProductContract.hookEventCount}`} registered hook events,
             the persistent task/change projection, and one native Evidence Lane
             MCP catalog. Older stable bytes remain recoverable until replacement
             verification succeeds.
@@ -60,18 +63,31 @@ export default function ConnectPage() {
           </span>
           <h2>Storage and invocation stay separate.</h2>
           <p>
-            Desktop and persistent Codex profiles use durable local SQLite.
-            Ephemeral profiles require a durable mount or configured transactional
+            Desktop and persistent Codex profiles use durable local SQLite. An
+            ephemeral profile requires a durable mount or configured transactional
             connector. Headless API entry re-verifies ENV/UOP on every invocation.
           </p>
           <ul>
-            <li>Native lifecycle calls stay package-local; the interactive Codex environment tunnel is version-bound, host-managed, and prewarmed separately.</li>
-            <li>Headless/API profiles do not require that interactive tunnel.</li>
+            <li>Native lifecycle calls stay package-local; a support tunnel is eligible only for a measured host-tool gap.</li>
+            <li>Headless/API profiles do not require an interactive tunnel merely because they are headless or billed through an API.</li>
             <li>Google Drive may carry sealed artifacts but is never live runtime authority.</li>
             <li>Account tier and API billing do not select storage or lifecycle authority.</li>
           </ul>
           <strong className="pathBoundary">Every project-scoped action carries one exact project ID.</strong>
         </article>
+      </section>
+
+      <section className="section shell hostMatrixPage">
+        <div className="sectionHead wideHead">
+          <span className="kicker">Host capability matrix</span>
+          <h2>Choose from evidence, not from the host label.</h2>
+          <p>
+            Open each profile for its storage route, direct native behavior, proven tool-gap
+            fallback, setup lifetime, credential boundary, and lifecycle gate. Review-only
+            surfaces stay review-only.
+          </p>
+        </div>
+        <HostCapabilityMatrix />
       </section>
 
       <section className="section connectionBand">

@@ -29,19 +29,31 @@ TASK_C = "01a0039c-c6a9-7c5e-a810-1f442a54df21"
 
 
 def _rebind(
-    project_id: str,
-    session_id: str,
+    session: Any,
     task_id: str,
     *,
     approval: str = "A" * 64,
 ) -> dict[str, Any]:
+    active_plan_task_id = str(
+        session.metadata.get("active_backlog_task_id") or ""
+    )
+    runtime_task_id = str(dict(session.task or {}).get("task_id") or "")
+    assert active_plan_task_id
+    assert runtime_task_id
     body = {
         "schema": "evidence-lane.active-contract-session-rebind.v1",
         "status": "PASS",
-        "project_id": project_id,
-        "session_id": session_id,
-        "task6_thread_id": task_id,
+        "project_id": session.project_id,
+        "session_id": session.session_id,
+        "host_task_id": task_id,
+        "active_plan_task_id": active_plan_task_id,
+        "runtime_task_id": runtime_task_id,
+        "authority_route": "PV_PLAN_TASKS_ACTIVE_CONTRACT_REBIND",
         "approval_receipt_sha256": approval,
+        "runtime_task_identity_preserved": True,
+        "active_plan_row_identity_preserved": True,
+        "governed_session_identity_preserved": True,
+        "host_task_identity_preserved": True,
         "recovery_binding_contract": {
             "manager_scope": "SHARED_MULTI_PROJECT_MULTI_TASK",
             "registry_mutability": "MUTABLE_APPEND_OR_REFRESH",
@@ -49,8 +61,27 @@ def _rebind(
             "reentry_target": task_id,
             "installer_helper": "SEPARATE_COMPONENT",
         },
+        "candidate_created": False,
+        "pending_hil": False,
+        "pointer_moved": False,
+        "goal_completion_mutated": False,
+        "git_executed": False,
+        "install_executed": False,
+        "helper_launched": False,
+        "tunnel_launched": False,
     }
     return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
+
+
+def _set_rebind(
+    session: Any,
+    task_id: str,
+    *,
+    approval: str = "A" * 64,
+) -> None:
+    receipt = _rebind(session, task_id, approval=approval)
+    session.metadata["active_contract_rebind_receipt"] = receipt
+    session.metadata.setdefault("active_contract_rebinds", []).append(receipt)
 
 
 def _prepare_context(
@@ -134,11 +165,7 @@ def _prepare_context(
     session = application.sessions.load(project_id, session_id)
     session.metadata["current_host_session_id"] = task_id
     session.metadata["active_backlog_task_status"] = "ACTIVE"
-    session.metadata["active_contract_rebind_receipt"] = _rebind(
-        project_id,
-        session_id,
-        task_id,
-    )
+    _set_rebind(session, task_id)
     application.sessions._save(session)
     return session_id
 
@@ -146,11 +173,7 @@ def _prepare_context(
 def _switch_task(application, project_id: str, session_id: str, task_id: str) -> None:
     session = application.sessions.load(project_id, session_id)
     session.metadata["current_host_session_id"] = task_id
-    session.metadata["active_contract_rebind_receipt"] = _rebind(
-        project_id,
-        session_id,
-        task_id,
-    )
+    _set_rebind(session, task_id)
     application.sessions._save(session)
 
 
@@ -216,12 +239,7 @@ def test_shared_manager_keeps_mutable_exact_task_rows_and_one_release(
     assert reused["task_binding_receipt_sha256"] == first["task_binding_receipt_sha256"]
 
     session = service.sessions.load("book-faires", session_a)
-    session.metadata["active_contract_rebind_receipt"] = _rebind(
-        "book-faires",
-        session_a,
-        TASK_A,
-        approval="B" * 64,
-    )
+    _set_rebind(session, TASK_A, approval="B" * 64)
     service.sessions._save(session)
     refreshed = seal_or_refresh_shared_task_binding(
         root,
@@ -236,6 +254,7 @@ def test_shared_manager_keeps_mutable_exact_task_rows_and_one_release(
         refreshed["prior_task_binding_receipt_sha256"]
         == first["task_binding_receipt_sha256"]
     )
+    assert refreshed["binding_epoch_sha256"] != first["binding_epoch_sha256"]
     history = list((root / "task-binding-registry" / "history" / TASK_A).glob("*.json"))
     assert len(history) == 1
 
@@ -359,11 +378,6 @@ def test_exact_binding_checkpoint_uses_shared_registry_without_installer(service
     session_id, _ = _strict_state_travel_session(service)
     session = service.sessions.load("book-faires", session_id)
     session.metadata["current_host_session_id"] = TASK_B
-    session.metadata["active_contract_rebind_receipt"] = _rebind(
-        "book-faires",
-        session_id,
-        TASK_B,
-    )
     if not dict(session.task or {}).get("task_id"):
         session.task = {
             "task_id": "task_ck_shared_registry_integration",
@@ -374,6 +388,7 @@ def test_exact_binding_checkpoint_uses_shared_registry_without_installer(service
             "acceptance_checks": ["The shared exact task binding passes."],
             "stop_condition": "Stop without install or lifecycle promotion.",
         }
+    _set_rebind(session, TASK_B)
     service.sessions._save(session)
     shared = seal_or_refresh_shared_task_binding(
         root,
@@ -397,6 +412,27 @@ def test_exact_binding_checkpoint_uses_shared_registry_without_installer(service
     assert exact["identity_basis"].startswith("SHARED_EXACT_TASK_REGISTRY")
     assert exact["installer_helper_invoked"] is False
     assert exact["running_plugin"]["install_receipt_sha256"] is None
+
+    rebound = service.sessions.load("book-faires", session_id)
+    _set_rebind(rebound, TASK_B, approval="B" * 64)
+    service.sessions._save(rebound)
+    refreshed_shared = seal_or_refresh_shared_task_binding(
+        root,
+        project_id="book-faires",
+        evidence_session_id=session_id,
+        task_id=TASK_B,
+        surface=surface,
+        bound_by="TEST_EXACT_BINDING_REBIND_REFRESH",
+    )
+    refreshed_exact = seal_exact_task_project_session_binding(
+        root,
+        project_id="book-faires",
+        evidence_session_id=session_id,
+        expected_active_task_id=active_task_id,
+    )
+    assert refreshed_shared["revision"] == shared["revision"] + 1
+    assert refreshed_exact["binding_epoch_sha256"] != exact["binding_epoch_sha256"]
+    assert refreshed_exact["receipt_sha256"] != exact["receipt_sha256"]
     assert not (root / "installations").exists()
 
 
@@ -411,11 +447,6 @@ def test_checkpoint_and_lifecycle_use_registered_external_project_authority(
     session_id, _ = _strict_state_travel_session(service)
     session = service.sessions.load("book-faires", session_id)
     session.metadata["current_host_session_id"] = TASK_B
-    session.metadata["active_contract_rebind_receipt"] = _rebind(
-        "book-faires",
-        session_id,
-        TASK_B,
-    )
     if not dict(session.task or {}).get("task_id"):
         session.task = {
             "task_id": "task_ck_external_authority_integration",
@@ -430,6 +461,7 @@ def test_checkpoint_and_lifecycle_use_registered_external_project_authority(
             ],
             "stop_condition": "Stop without candidate or pointer movement.",
         }
+    _set_rebind(session, TASK_B)
     session.state = SessionState.TASK_CLASSIFIED
     session.metadata["run_id"] = "run-external-authority-integration"
     service.sessions._save(session)

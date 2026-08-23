@@ -33,8 +33,14 @@ from .constants import (
     NATIVE_TOOL_COUNT,
     NATIVE_WRITE_TOOL_COUNT,
 )
+from .conversation_memory import resolve_conversation_memory
 from .errors import EvidenceLaneError
-from .git_adapter import calculate_worktree_sha256, inspect_repository, run_git
+from .git_adapter import (
+    calculate_worktree_change_identity,
+    calculate_worktree_sha256,
+    inspect_repository,
+    run_git,
+)
 from .goal_usage import (
     TOKEN_COMPONENT_KEYS,
     build_component_token_accounting,
@@ -60,6 +66,7 @@ from .project_memory import (
     seal_memory_checkpoint,
 )
 from .prompt_index import PromptIndex
+from .public_surface_registry import derive_public_surface_registry
 from .redaction import contains_secret, redact_text
 from .store import ProjectStore
 from .task_binding_registry import (
@@ -362,6 +369,12 @@ def _runtime_activation(root: Path) -> dict[str, Any]:
 
 def _package_surface_inventory() -> dict[str, Any]:
     plugin_root = Path(__file__).resolve().parents[2]
+    public_surface = derive_public_surface_registry(plugin_root)
+    _require(
+        public_surface["status"] == "PASS",
+        "TURN_CONTROL_PUBLIC_SURFACE_REGISTRY_MISMATCH",
+        "The installed package surface registry and release claims diverged.",
+    )
     hook_paths = [
         plugin_root / "hooks" / "hooks.json",
         *sorted((plugin_root / "hooks").glob("*.exe")),
@@ -407,7 +420,8 @@ def _package_surface_inventory() -> dict[str, Any]:
         if isinstance(group, dict)
     )
     _require(
-        registered_events == sorted(HOOK_EVENT_NAMES) and handler_count == 8,
+        registered_events == sorted(HOOK_EVENT_NAMES)
+        and handler_count == len(registered_events),
         "TURN_CONTROL_PACKAGE_HOOK_EVENT_INVENTORY_REQUIRED",
         "The installed persistent hook event inventory is not exact.",
     )
@@ -429,26 +443,32 @@ def _package_surface_inventory() -> dict[str, Any]:
     )
     manifest = _json(plugin_root / ".codex-plugin" / "plugin.json")
     release_path = plugin_root / "scripts" / "codex-release-channel.json"
-    release = _json(release_path)
-    stable = dict(release.get("stable") or {})
+    catalog = {
+        key: public_surface["catalog"][key]
+        for key in ("tools", "read", "write", "skills")
+    }
     core = {
         "schema": "evidence-lane.codex-installed-surface-inventory.v2",
         "plugin_version": str(manifest.get("version") or ""),
         "hooks": hook_inventory,
         "skills": inventory(skill_paths, skill=True),
-        "catalog": {
-            "tools": stable.get("native_tool_count"),
-            "read": stable.get("native_read_tool_count"),
-            "write": stable.get("native_write_tool_count"),
-            "skills": stable.get("skill_count"),
-        },
+        "catalog": catalog,
         "raw_paths_included": False,
     }
     core["surface_inventory_sha256"] = sha256_bytes(canonical_json_bytes(core))
     return {
         **core,
+        "surface_counts": dict(public_surface["catalog"]),
+        "commands": public_surface["commands"],
+        "providers": public_surface["providers"],
+        "public_surface_registry_sha256": public_surface["registry_sha256"],
+        "release_catalog_matches_derived": public_surface[
+            "release_catalog_matches_derived"
+        ],
         "release_policy_sha256": sha256_file(release_path),
-        "tunnel_channel": stable.get("tunnel_channel"),
+        "tunnel_channel": _json(release_path).get("stable", {}).get(
+            "tunnel_channel"
+        ),
     }
 
 
@@ -1918,6 +1938,366 @@ def _sha(value: Any, *, field: str) -> str:
     return exact
 
 
+def _verified_direct_entry_authority(
+    session: Mapping[str, Any],
+) -> dict[str, Any] | None:
+    """Verify a direct-entry receipt as exact task-entry authority."""
+
+    metadata = dict(session.get("metadata") or {})
+    raw = metadata.get("direct_forced_same_worktree_entry")
+    if not isinstance(raw, dict):
+        return None
+    receipt = dict(raw)
+    receipt_body = {
+        key: value for key, value in receipt.items() if key != "receipt_sha256"
+    }
+    host_binding = dict(receipt.get("host_task_binding") or {})
+    destination = dict(host_binding.get("destination") or {})
+    plan = dict(receipt.get("plan_task_proof") or {})
+    runtime = dict(receipt.get("runtime_plugin_profile_proof") or {})
+    attestation = dict(runtime.get("runtime_instance_attestation") or {})
+    attestation_body = {
+        key: value for key, value in attestation.items() if key != "receipt_sha256"
+    }
+    no_mutation = dict(receipt.get("no_mutation_flags") or {})
+    sealed_transport = dict(receipt.get("sealed_transport") or {})
+    destination_task_id = str(destination.get("task_id") or "").strip()
+    destination_deep_link = f"codex://threads/{destination_task_id}"
+    receipt_sha256 = str(receipt.get("receipt_sha256") or "").strip().upper()
+    attestation_sha256 = str(attestation.get("receipt_sha256") or "").strip().upper()
+    _require(
+        receipt.get("schema")
+        == "evidence-lane.direct-forced-same-worktree-entry-receipt.v1"
+        and receipt.get("status") == "PASS"
+        and receipt.get("route") == "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK"
+        and receipt.get("project_id") == session.get("project_id")
+        and receipt.get("session_id") == session.get("session_id")
+        and bool(_SHA256_RE.fullmatch(receipt_sha256))
+        and receipt_sha256 == sha256_bytes(canonical_json_bytes(receipt_body))
+        and _CODEX_TASK_ID_RE.fullmatch(destination_task_id) is not None
+        and destination.get("deep_link") == destination_deep_link
+        and destination.get("project_id") == session.get("project_id")
+        and destination.get("fresh_local_task") is True
+        and destination.get("fork") is False
+        and destination.get("continued_from_chat") is False
+        and metadata.get("current_host_session_id") == destination_task_id
+        and bool(str(plan.get("active_task_id") or "").strip())
+        and len(str(plan.get("identity_sha256") or "")) == 64
+        and attestation.get("schema")
+        == "evidence-lane.server-runtime-instance-attestation.v1"
+        and attestation.get("status") == "PASS"
+        and attestation.get("identity_source") == "SERVER_INTERNAL_PROCESS_LIFETIME"
+        and attestation.get("caller_supplied") is False
+        and attestation.get("process_id_exposed") is False
+        and bool(_SHA256_RE.fullmatch(attestation_sha256))
+        and attestation_sha256
+        == sha256_bytes(canonical_json_bytes(attestation_body))
+        and "host_process_instance_id" not in runtime
+        and sealed_transport.get("prepare_called") is False
+        and sealed_transport.get("resume_called") is False
+        and sealed_transport.get("transport_envelope_created") is False
+        and sealed_transport.get("transport_envelope_consumed") is False
+        and no_mutation.get("source_mutated") is False
+        and no_mutation.get("candidate_created") is False
+        and no_mutation.get("hil_inferred") is False
+        and no_mutation.get("pointer_moved") is False
+        and no_mutation.get("sealed_prepare_called") is False
+        and no_mutation.get("sealed_resume_called") is False
+        and no_mutation.get("git_executed") is False
+        and no_mutation.get("install_executed") is False,
+        "TURN_CONTROL_DIRECT_ENTRY_AUTHORITY_MISMATCH",
+        "The stored direct State Travel receipt is not the exact sealed destination authority.",
+    )
+    recovery = receipt.get("calling_task_recovery_authority")
+    history = [
+        dict(value)
+        for value in metadata.get("active_contract_rebinds") or []
+        if isinstance(value, dict)
+    ]
+
+    def sealed_rebind(value: Mapping[str, Any]) -> bool:
+        exact = dict(value)
+        digest = str(exact.get("receipt_sha256") or "").strip().upper()
+        body = {key: item for key, item in exact.items() if key != "receipt_sha256"}
+        return bool(
+            _SHA256_RE.fullmatch(digest)
+            and digest == sha256_bytes(canonical_json_bytes(body))
+        )
+
+    if isinstance(recovery, dict):
+        embedded = dict(recovery)
+        embedded_sha256 = str(embedded.get("receipt_sha256") or "").upper()
+        matching_history = [
+            value
+            for value in history
+            if str(value.get("receipt_sha256") or "").upper() == embedded_sha256
+        ]
+        historical_rebind = (
+            matching_history[0] if len(matching_history) == 1 else {}
+        )
+        historical_direct = dict(
+            historical_rebind.get("direct_entry_authority") or {}
+        )
+        _require(
+            embedded.get("schema")
+            == "evidence-lane.active-contract-session-rebind.v1"
+            and embedded.get("status") == "PASS"
+            and embedded.get("host_task_id") == destination_task_id
+            and embedded.get("active_plan_task_id") == plan.get("active_task_id")
+            and embedded.get("authority_route")
+            == "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK"
+            and embedded.get("runtime_instance_attestation_receipt_sha256")
+            == attestation_sha256
+            and len(matching_history) == 1
+            and sealed_rebind(historical_rebind)
+            and historical_rebind.get("schema") == embedded.get("schema")
+            and historical_rebind.get("status") == embedded.get("status")
+            and historical_rebind.get("project_id") == session.get("project_id")
+            and historical_rebind.get("session_id") == session.get("session_id")
+            and historical_rebind.get("receipt_sha256") == embedded_sha256
+            and historical_rebind.get("active_plan_task_id")
+            == embedded.get("active_plan_task_id")
+            and historical_rebind.get("runtime_task_id")
+            == embedded.get("runtime_task_id")
+            and historical_rebind.get("host_task_id")
+            == embedded.get("host_task_id")
+            and historical_rebind.get("authority_route")
+            == embedded.get("authority_route")
+            and historical_direct.get(
+                "runtime_instance_attestation_receipt_sha256"
+            )
+            == attestation_sha256
+            and historical_direct.get("runtime_instance_attestation_mode")
+            == "SERVER_DERIVED_ATTESTATION"
+            and historical_direct.get("caller_supplied_runtime_identity") is False
+            and historical_rebind.get("candidate_created") is False
+            and historical_rebind.get("pending_hil") is False
+            and historical_rebind.get("pointer_moved") is False
+            and historical_rebind.get("goal_completion_mutated") is False
+            and historical_rebind.get("git_executed") is False
+            and historical_rebind.get("install_executed") is False
+            and historical_rebind.get("helper_launched") is False
+            and historical_rebind.get("tunnel_launched") is False,
+            "TURN_CONTROL_DIRECT_ENTRY_RECOVERY_AUTHORITY_MISMATCH",
+            "The embedded direct-entry recovery receipt is incomplete, unsealed, or detached from append-only session history.",
+        )
+
+    current_active_task_id = str(metadata.get("active_backlog_task_id") or "")
+    current_runtime_task_id = str(
+        dict(session.get("task") or {}).get("task_id") or ""
+    )
+    current_rebind_raw = metadata.get("active_contract_rebind_receipt")
+    if isinstance(current_rebind_raw, dict):
+        current_rebind = dict(current_rebind_raw)
+        current_recovery = dict(
+            current_rebind.get("recovery_binding_contract") or {}
+        )
+        current_direct = dict(current_rebind.get("direct_entry_authority") or {})
+        direct_route = (
+            current_rebind.get("authority_route")
+            == "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK"
+        )
+        approval_route = (
+            current_rebind.get("authority_route")
+            == "PV_PLAN_TASKS_ACTIVE_CONTRACT_REBIND"
+            and _SHA256_RE.fullmatch(
+                str(current_rebind.get("approval_receipt_sha256") or "").upper()
+            )
+            is not None
+        )
+        _require(
+            sealed_rebind(current_rebind)
+            and current_rebind.get("schema")
+            == "evidence-lane.active-contract-session-rebind.v1"
+            and current_rebind.get("status") == "PASS"
+            and current_rebind.get("project_id") == session.get("project_id")
+            and current_rebind.get("session_id") == session.get("session_id")
+            and current_rebind.get("host_task_id") == destination_task_id
+            and current_rebind.get("active_plan_task_id")
+            == current_active_task_id
+            and current_rebind.get("runtime_task_id") == current_runtime_task_id
+            and current_rebind.get("runtime_task_identity_preserved") is True
+            and current_rebind.get("active_plan_row_identity_preserved") is True
+            and current_rebind.get("governed_session_identity_preserved") is True
+            and current_rebind.get("host_task_identity_preserved") is True
+            and current_recovery.get("manager_scope")
+            == "SHARED_MULTI_PROJECT_MULTI_TASK"
+            and current_recovery.get("registry_mutability")
+            == "MUTABLE_APPEND_OR_REFRESH"
+            and current_recovery.get("invocation_binding_scope")
+            == "EXACT_CALLING_TASK"
+            and current_recovery.get("reentry_target") == destination_task_id
+            and current_recovery.get("installer_helper") == "SEPARATE_COMPONENT"
+            and current_rebind.get("candidate_created") is False
+            and current_rebind.get("pending_hil") is False
+            and current_rebind.get("pointer_moved") is False
+            and current_rebind.get("goal_completion_mutated") is False
+            and current_rebind.get("git_executed") is False
+            and current_rebind.get("install_executed") is False
+            and current_rebind.get("helper_launched") is False
+            and current_rebind.get("tunnel_launched") is False
+            and (direct_route or approval_route)
+            and (
+                not direct_route
+                or (
+                    current_direct.get(
+                        "runtime_instance_attestation_receipt_sha256"
+                    )
+                    == attestation_sha256
+                    and current_direct.get("runtime_instance_attestation_mode")
+                    == "SERVER_DERIVED_ATTESTATION"
+                    and current_direct.get("caller_supplied_runtime_identity")
+                    is False
+                )
+            ),
+            "TURN_CONTROL_DIRECT_ENTRY_RECOVERY_AUTHORITY_MISMATCH",
+            "The current recovery receipt is stale, cross-task, unsealed, or not bound to the live Plan/runtime task.",
+        )
+        recovery_receipt_sha256 = str(current_rebind["receipt_sha256"])
+        recovery_source = (
+            "CURRENT_DIRECT_ENTRY_RECOVERY_RECEIPT"
+            if direct_route
+            else "CURRENT_USER_APPROVED_CONTRACT_REBIND_RECEIPT"
+        )
+    else:
+        _require(
+            not isinstance(recovery, dict)
+            and current_active_task_id == plan.get("active_task_id"),
+            "TURN_CONTROL_DIRECT_ENTRY_RECOVERY_AUTHORITY_MISMATCH",
+            "A legacy direct-entry receipt may stand alone only before its original Plan row advances.",
+        )
+        recovery_receipt_sha256 = receipt_sha256
+        recovery_source = "LEGACY_DIRECT_ENTRY_RECEIPT"
+    return {
+        "receipt": receipt,
+        "receipt_sha256": receipt_sha256,
+        "destination_task_id": destination_task_id,
+        "destination_deep_link": destination_deep_link,
+        "plan": plan,
+        "runtime_instance_attestation_receipt_sha256": attestation_sha256,
+        "recovery_authority_receipt_sha256": recovery_receipt_sha256,
+        "recovery_authority_source": recovery_source,
+    }
+
+
+def _direct_entry_checkpoint_continuity(
+    *,
+    project_root: Path,
+    project: Mapping[str, Any],
+    session: Mapping[str, Any],
+    binding: Mapping[str, Any],
+    direct_entry: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Rebind a historical direct entry to the current pointer and worktree."""
+
+    receipt = dict(direct_entry.get("receipt") or {})
+    pointer_baseline = dict(receipt.get("accepted_pointer_baseline") or {})
+    pointer_payload = _json(project_root / "active_pointer.json")
+    pointer = {
+        key: pointer_payload.get(key)
+        for key in (
+            "project_id",
+            "accepted_pv",
+            "accepted_manifest_sha256",
+            "generation",
+            "updated_at",
+            "prior_generation",
+        )
+    }
+    pointer_sha256 = sha256_bytes(canonical_json_bytes(pointer))
+    metadata = dict(session.get("metadata") or {})
+    candidate_boundary = dict(binding.get("candidate_boundary") or {})
+    _require(
+        pointer_baseline.get("project_id") == session.get("project_id")
+        and pointer_baseline.get("accepted_pv") == pointer.get("accepted_pv")
+        and pointer_baseline.get("generation") == pointer.get("generation")
+        and pointer_baseline.get("prior_generation")
+        == pointer.get("prior_generation")
+        and pointer_baseline.get("accepted_manifest_sha256")
+        == pointer.get("accepted_manifest_sha256")
+        and pointer_baseline.get("pointer_sha256") == pointer_sha256
+        and pointer_baseline.get("moved") is False
+        and session.get("accepted_pv") == pointer.get("accepted_pv")
+        and session.get("accepted_pointer_generation") == pointer.get("generation"),
+        "CODEX_DIRECT_ENTRY_POINTER_DRIFT",
+        "The accepted pointer no longer matches the exact direct-entry baseline.",
+    )
+    _require(
+        session.get("candidate_id") is None
+        and not bool(metadata.get("pending_hil"))
+        and not isinstance(metadata.get("pending_task"), dict)
+        and candidate_boundary
+        == {"state": "NO_PENDING_CANDIDATE", "candidate_id": None},
+        "CODEX_DIRECT_ENTRY_CANDIDATE_OR_HIL_PRESENT",
+        "The direct checkpoint cannot claim a no-effect transition while a candidate or HIL is pending.",
+    )
+
+    destination = dict(
+        dict(receipt.get("host_task_binding") or {}).get("destination") or {}
+    )
+    entry_source = dict(receipt.get("live_dirty_source_proof") or {})
+    repository = Path(str(project.get("repository_path") or "")).resolve()
+    destination_workspace = Path(str(destination.get("workspace_path") or "")).resolve()
+    entry_repository = Path(str(entry_source.get("repository_path") or "")).resolve()
+    _require(
+        repository.is_dir()
+        and os.path.normcase(str(repository))
+        == os.path.normcase(str(destination_workspace))
+        == os.path.normcase(str(entry_repository)),
+        "CODEX_DIRECT_ENTRY_WORKSPACE_MISMATCH",
+        "The current registered repository is not the exact direct-entry worktree.",
+    )
+    current_source = calculate_worktree_change_identity(repository)
+    _require(
+        current_source.get("branch") == entry_source.get("branch")
+        and current_source.get("head") == entry_source.get("commit_sha")
+        and current_source.get("tree") == entry_source.get("tree_sha"),
+        "CODEX_DIRECT_ENTRY_SOURCE_BASE_DRIFT",
+        "The direct checkpoint must remain on the same repository branch, commit, and tree while allowing governed dirty-byte work.",
+        current_branch=current_source.get("branch"),
+        current_commit_sha=current_source.get("head"),
+        current_tree_sha=current_source.get("tree"),
+    )
+    return {
+        "schema": "evidence-lane.direct-entry-checkpoint-continuity.v1",
+        "status": "PASS",
+        "pointer": {
+            "accepted_pv": pointer.get("accepted_pv"),
+            "generation": pointer.get("generation"),
+            "manifest_sha256": pointer.get("accepted_manifest_sha256"),
+            "pointer_sha256": pointer_sha256,
+            "candidate_absent": True,
+            "pending_hil": False,
+        },
+        "source": {
+            "repository_path_sha256": sha256_bytes(str(repository).encode("utf-8")),
+            "branch": current_source.get("branch"),
+            "commit_sha": current_source.get("head"),
+            "tree_sha": current_source.get("tree"),
+            "entry_worktree_sha256": entry_source.get("worktree_sha256"),
+            "current_worktree_sha256": current_source.get(
+                "working_identity_sha256"
+            ),
+            "worktree_changed_since_entry": current_source.get(
+                "working_identity_sha256"
+            )
+            != entry_source.get("worktree_sha256"),
+            "complete_path_set_sha256": current_source.get(
+                "complete_path_set_sha256"
+            ),
+            "complete_path_count": current_source.get("path_count"),
+            "dirty_path_set_sha256": current_source.get("dirty_path_set_sha256"),
+            "dirty_path_count": current_source.get("dirty_path_count"),
+            "dirty_content_sha256": current_source.get("dirty_content_sha256"),
+            "raw_paths_persisted": False,
+        },
+        "candidate_created": False,
+        "pending_hil": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+    }
+
+
 def _binding_snapshot(
     root: Path,
     bound: dict[str, Any],
@@ -1972,30 +2352,47 @@ def _binding_snapshot(
     entry_package_sha256 = _sha(
         metadata.get("entry_package_sha256"), field="entry_package_sha256"
     )
-    state_travel = metadata.get("state_travel") or {}
-    prepare_sha256 = _sha(
-        state_travel.get("verified_snapshot_sha256"),
-        field="state_travel.verified_snapshot_sha256",
-    )
-    resume_contract = state_travel.get("resume_contract") or {}
-    task_list = resume_contract.get("task_list") or []
-    resume_active_rows = [
-        dict(row)
-        for row in task_list
-        if isinstance(row, dict)
-        and str(row.get("status") or "").upper() in _ACTIVE_PLAN_STATUSES
-    ]
-    _require(
-        len(resume_active_rows) == 1,
-        "TURN_CONTROL_PLAN_ROW_REQUIRED",
-        "The State Travel contract must preserve exactly one original resume row.",
-        active_plan_rows=len(resume_active_rows),
-    )
-    sealed_resume_row = resume_active_rows[0]
-    state_travel_task_list_sha256 = _sha(
-        resume_contract.get("task_list_sha256"),
-        field="state_travel.resume_contract.task_list_sha256",
-    )
+    direct_entry = _verified_direct_entry_authority(session)
+    sealed_resume_row: dict[str, Any]
+    if isinstance(direct_entry, dict):
+        direct_plan = dict(direct_entry["plan"])
+        prepare_sha256 = str(direct_entry["receipt_sha256"])
+        state_travel_task_list_sha256 = _sha(
+            direct_plan.get("identity_sha256"),
+            field="direct_forced_same_worktree_entry.plan_task_proof.identity_sha256",
+        )
+        sealed_resume_row = {
+            "position": int(direct_plan.get("active_row") or 0),
+            "task_id": str(direct_plan.get("active_task_id") or ""),
+            "status": "IN_PROGRESS",
+        }
+        entry_route = "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK"
+    else:
+        state_travel = metadata.get("state_travel") or {}
+        prepare_sha256 = _sha(
+            state_travel.get("verified_snapshot_sha256"),
+            field="state_travel.verified_snapshot_sha256",
+        )
+        resume_contract = state_travel.get("resume_contract") or {}
+        task_list = resume_contract.get("task_list") or []
+        resume_active_rows = [
+            dict(row)
+            for row in task_list
+            if isinstance(row, dict)
+            and str(row.get("status") or "").upper() in _ACTIVE_PLAN_STATUSES
+        ]
+        _require(
+            len(resume_active_rows) == 1,
+            "TURN_CONTROL_PLAN_ROW_REQUIRED",
+            "The State Travel contract must preserve exactly one original resume row.",
+            active_plan_rows=len(resume_active_rows),
+        )
+        sealed_resume_row = resume_active_rows[0]
+        state_travel_task_list_sha256 = _sha(
+            resume_contract.get("task_list_sha256"),
+            field="state_travel.resume_contract.task_list_sha256",
+        )
+        entry_route = "SEALED_STATE_TRAVEL_PREPARE_RESUME"
     backlog_status = ProjectStore(root).backlog_status(project_id)
     goal_projection = backlog_status.get("goal_projection") or {}
     goal_rows = goal_projection.get("rows") or []
@@ -2163,6 +2560,8 @@ def _binding_snapshot(
         "entry_manifest_sha256": entry_manifest_sha256,
         "entry_package_sha256": entry_package_sha256,
         "prepare_verified_snapshot_sha256": prepare_sha256,
+        "entry_route": entry_route,
+        "direct_entry_authority": direct_entry,
         "persistent_plan_row": {
             "position": int(plan_row.get("number") or 0),
             "task_id": plan_row.get("task_id"),
@@ -2217,6 +2616,7 @@ def _binding_snapshot(
             "entry_manifest_sha256": entry_manifest_sha256,
             "entry_package_sha256": entry_package_sha256,
             "state_travel_prepare_sha256": prepare_sha256,
+            "entry_route": entry_route,
             "mode_binding_receipt_sha256": _sha(
                 active_mode.get("binding_receipt_sha256"),
                 field="active_mode_binding.binding_receipt_sha256",
@@ -2224,7 +2624,8 @@ def _binding_snapshot(
             "goal_projection_sha256": plan_projection_sha256,
         },
         "gates": {
-            "source_mutation_requires_prepare": True,
+            "source_mutation_requires_prepare": direct_entry is None,
+            "source_mutation_requires_verified_entry": True,
             "candidate_acceptance_inferred": False,
             "fuse_inferred": False,
             "pointer_movement_inferred": False,
@@ -2320,6 +2721,158 @@ def seal_exact_task_project_session_binding(
         if isinstance(running_surface_inventory, Mapping)
         else _package_surface_inventory()
     )
+    direct_entry = turn_binding.get("direct_entry_authority")
+    if isinstance(direct_entry, dict):
+        expected_catalog = (
+            dict(expected_surface_catalog)
+            if isinstance(expected_surface_catalog, Mapping)
+            else {
+                "tools": NATIVE_TOOL_COUNT,
+                "read": NATIVE_READ_TOOL_COUNT,
+                "write": NATIVE_WRITE_TOOL_COUNT,
+                "skills": GOVERNED_SKILL_COUNT,
+            }
+        )
+        surface_core = {
+            key: running_surface.get(key)
+            for key in (
+                "schema",
+                "plugin_version",
+                "hooks",
+                "skills",
+                "catalog",
+                "raw_paths_included",
+            )
+        }
+        _require(
+            running_surface.get("schema")
+            == "evidence-lane.codex-installed-surface-inventory.v2"
+            and running_surface.get("catalog") == expected_catalog
+            and running_surface.get("raw_paths_included") is False
+            and running_surface.get("release_catalog_matches_derived") is True
+            and len(
+                str(running_surface.get("public_surface_registry_sha256") or "")
+            )
+            == 64
+            and len(str(running_surface.get("release_policy_sha256") or "")) == 64
+            and running_surface.get("surface_inventory_sha256")
+            == sha256_bytes(canonical_json_bytes(surface_core)),
+            "CODEX_DIRECT_ENTRY_RUNNING_SURFACE_MISMATCH",
+            "The current running surface cannot inherit the exact direct-entry task authority.",
+        )
+        checkpoint_continuity = _direct_entry_checkpoint_continuity(
+            project_root=project_root,
+            project=project,
+            session=session,
+            binding=turn_binding,
+            direct_entry=direct_entry,
+        )
+        codex_task_id = str(direct_entry["destination_task_id"])
+        task_uri = str(direct_entry["destination_deep_link"])
+        direct_receipt = dict(direct_entry["receipt"])
+        receipt_body = {
+            "schema": "evidence-lane.codex-exact-task-project-session-binding.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "evidence_session_id": evidence_session_id,
+            "codex_thread_id": codex_task_id,
+            "task_uri": task_uri,
+            "task_uri_sha256": sha256_bytes(task_uri.encode()),
+            "governed_host_session_id": governed_host_session_id,
+            "active_plan_row": active_plan,
+            "accepted_pointer": {
+                **dict(checkpoint_continuity["pointer"]),
+                "package_sha256": turn_binding.get("entry_package_sha256"),
+            },
+            "checkpoint_continuity": checkpoint_continuity,
+            "running_plugin": {
+                "plugin_id": "evidence-lane-plugin",
+                "plugin_version": running_surface.get("plugin_version"),
+                "plugin_selector": "RUNNING_PLUGIN_SURFACE",
+                "archive_sha256": None,
+                "install_receipt_sha256": None,
+                "surface_inventory_sha256": running_surface.get(
+                    "surface_inventory_sha256"
+                ),
+                "catalog": running_surface.get("catalog"),
+            },
+            "runtime_task_id": dict(session.get("task") or {}).get("task_id"),
+            "task_binding_receipt_sha256": direct_entry["receipt_sha256"],
+            "binding_authority_receipt_sha256": direct_entry[
+                "recovery_authority_receipt_sha256"
+            ],
+            "preparation_receipt_sha256": None,
+            "release_authority_id": None,
+            "release_authority_sha256": None,
+            "task_binding_registry_revision": None,
+            "binding_epoch_sha256": sha256_bytes(
+                canonical_json_bytes(
+                    {
+                        "host_binding_epoch_sha256": _host_binding_epoch(session),
+                        "pointer_sha256": dict(checkpoint_continuity["pointer"])[
+                            "pointer_sha256"
+                        ],
+                        "worktree_sha256": dict(checkpoint_continuity["source"])[
+                            "current_worktree_sha256"
+                        ],
+                        "binding_authority_receipt_sha256": direct_entry[
+                            "recovery_authority_receipt_sha256"
+                        ],
+                    }
+                )
+            ),
+            "turn_binding_sha256": turn_binding.get("binding_sha256"),
+            "identity_basis": (
+                "SERVER_ATTESTED_DIRECT_ENTRY_PLUS_CURRENT_RUNNING_SURFACE_"
+                "AND_NATIVE_PLAN_POINTER"
+            ),
+            "direct_entry_authority": {
+                "receipt_sha256": direct_entry["receipt_sha256"],
+                "recovery_authority_receipt_sha256": direct_entry[
+                    "recovery_authority_receipt_sha256"
+                ],
+                "recovery_authority_source": direct_entry[
+                    "recovery_authority_source"
+                ],
+                "runtime_instance_attestation_receipt_sha256": direct_entry[
+                    "runtime_instance_attestation_receipt_sha256"
+                ],
+                "original_active_plan_task_id": dict(direct_entry["plan"])[
+                    "active_task_id"
+                ],
+            },
+            "task_title_used": False,
+            "cwd_used": False,
+            "candidate_created": False,
+            "pending_hil": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+            "installer_helper_invoked": False,
+            "sealed_at": direct_receipt.get("bound_at"),
+        }
+        receipt = {
+            **receipt_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+        }
+        binding_epoch_sha256 = str(receipt_body["binding_epoch_sha256"])
+        receipt_path = (
+            project_root
+            / "receipts"
+            / "codex-task-bindings"
+            / (
+                f"{codex_task_id.lower()}__"
+                f"{binding_epoch_sha256[:24].lower()}__direct.json"
+            )
+        )
+        if receipt_path.is_file():
+            _require(
+                _json(receipt_path) == receipt,
+                "CODEX_DIRECT_ENTRY_BINDING_RECEIPT_CONFLICT",
+                "The direct-entry binding epoch already contains different sealed bytes.",
+            )
+        else:
+            atomic_write_json(receipt_path, receipt)
+        return receipt
     try:
         shared_task_binding = read_shared_task_binding(
             exact_root,
@@ -2378,7 +2931,19 @@ def seal_exact_task_project_session_binding(
             "release_authority_id": release.get("authority_id"),
             "release_authority_sha256": release.get("release_authority_sha256"),
             "task_binding_registry_revision": shared_task_binding.get("revision"),
-            "binding_epoch_sha256": _host_binding_epoch(session),
+            "binding_epoch_sha256": sha256_bytes(
+                canonical_json_bytes(
+                    {
+                        "host_binding_epoch_sha256": _host_binding_epoch(session),
+                        "shared_task_binding_epoch_sha256": shared_task_binding.get(
+                            "binding_epoch_sha256"
+                        ),
+                        "binding_authority_receipt_sha256": shared_task_binding.get(
+                            "active_contract_rebind_receipt_sha256"
+                        ),
+                    }
+                )
+            ),
             "turn_binding_sha256": turn_binding.get("binding_sha256"),
             "identity_basis": (
                 "SHARED_EXACT_TASK_REGISTRY_PLUS_IMMUTABLE_RUNNING_RELEASE_"
@@ -2728,7 +3293,11 @@ def seal_active_task_acceptance_checkpoint(
 
 
 def requires_per_delta_local_verification(task: Mapping[str, Any]) -> bool:
-    """Return whether one Plan row uses the normalized Task6 proof law."""
+    """Return whether one Plan row uses the strict package-parity proof law.
+
+    Historical Task6 IDs remain stable Plan identities; they are recognized as
+    data, never as the current host-task or public routing authority.
+    """
 
     task_id = str(task.get("task_id") or "").strip()
     return (
@@ -2749,7 +3318,7 @@ def seal_per_delta_local_verification_checkpoint(
 ) -> dict[str, Any]:
     """Seal one exact, candidate-free local verification checkpoint.
 
-    This is the stronger Task6 parity successor to the generic acceptance
+    This is the stronger per-Delta package-parity successor to generic acceptance
     activity. It verifies the live worktree and every named source/test byte,
     binds bounded test commands and outputs, checks the dependency generation,
     and writes one immutable receipt before task advancement is permitted.
@@ -3414,6 +3983,7 @@ def _source_change_snapshot(
             expected_name=config.expected_name,
         )
         worktree_sha256 = calculate_worktree_sha256(repository)
+        change_identity = calculate_worktree_change_identity(repository)
         status = run_git(
             repository,
             ["status", "--porcelain=v1", "--untracked-files=all"],
@@ -3488,6 +4058,25 @@ def _source_change_snapshot(
         "tree_sha": identity.tree_sha,
         "worktree_sha256": worktree_sha256,
         "worktree_status_sha256": sha256_bytes(status.encode("utf-8")),
+        "git_change_identity_schema": change_identity["schema"],
+        "git_change_identity_sha256": change_identity["working_identity_sha256"],
+        "complete_path_set_sha256": change_identity["complete_path_set_sha256"],
+        "complete_path_count": change_identity["path_count"],
+        "status_porcelain_v2_sha256": change_identity["status_sha256"],
+        "cached_diff_sha256": change_identity["cached_diff_sha256"],
+        "unstaged_diff_sha256": change_identity["unstaged_diff_sha256"],
+        "tracked_head_diff_sha256": change_identity["tracked_head_diff_sha256"],
+        "dirty_path_set_sha256": change_identity["dirty_path_set_sha256"],
+        "dirty_content_sha256": change_identity["dirty_content_sha256"],
+        "tracked_dirty_content_sha256": change_identity[
+            "tracked_dirty_content_sha256"
+        ],
+        "untracked_content_sha256": change_identity["untracked_content_sha256"],
+        "staged_path_count": change_identity["staged_path_count"],
+        "unstaged_path_count": change_identity["unstaged_path_count"],
+        "content_identity_count": change_identity["content_identity_count"],
+        "raw_dirty_paths_persisted": change_identity["raw_paths_persisted"],
+        "ignored_paths_included": change_identity["ignored_paths_included"],
         "is_clean": identity.is_clean,
         "changed_path_count": len(changed_paths),
         "untracked_path_count": sum(row["status"] == "??" for row in changed_paths),
@@ -3495,7 +4084,7 @@ def _source_change_snapshot(
         "line_additions": line_additions,
         "line_deletions": line_deletions,
         "binary_change_count": binary_change_count,
-        "line_delta_scope": "TRACKED_HEAD_DIFF_ONLY_UNTRACKED_EXCLUDED",
+        "line_delta_scope": "TRACKED_HEAD_DIFF_WITH_EXACT_DIRTY_CONTENT_IDENTITY",
         "changed_paths_after_redaction": changed_paths[:_MAX_PERSISTENT_CHANGE_PATHS],
         "changed_paths_truncated": (len(changed_paths) > _MAX_PERSISTENT_CHANGE_PATHS),
         "task_workspace_binding": workspace_binding,
@@ -3539,6 +4128,23 @@ def _persistent_change_display(
             "tree_sha",
             "worktree_sha256",
             "worktree_status_sha256",
+            "git_change_identity_schema",
+            "git_change_identity_sha256",
+            "complete_path_set_sha256",
+            "complete_path_count",
+            "status_porcelain_v2_sha256",
+            "cached_diff_sha256",
+            "unstaged_diff_sha256",
+            "tracked_head_diff_sha256",
+            "dirty_path_set_sha256",
+            "dirty_content_sha256",
+            "tracked_dirty_content_sha256",
+            "untracked_content_sha256",
+            "staged_path_count",
+            "unstaged_path_count",
+            "content_identity_count",
+            "raw_dirty_paths_persisted",
+            "ignored_paths_included",
             "is_clean",
             "changed_path_count",
             "untracked_path_count",
@@ -6292,11 +6898,33 @@ def _governed_activity_class(tool_name: str, visible_json: str) -> str:
 
 def _governed_activity_source_plugin(tool_name: str) -> str:
     normalized = tool_name.strip().lower().replace("-", "_")
-    if "github" in normalized or normalized.startswith("git_"):
+    # Tool ownership is determined by the provider route, not by an action
+    # verb embedded in the tool name.  In particular, render_project_panel and
+    # render_runtime_panel are Evidence Lane MCP actions; assigning them to the
+    # external Render provider makes the host Sources projection lie about
+    # which plugin executed the call.
+    if (
+        normalized in {"render_project_panel", "render_runtime_panel"}
+        or re.match(
+            r"^(?:mcp__)?evidence_lane(?:_[a-f0-9]{8,64})?(?:__|\.)",
+            normalized,
+        )
+    ):
+        return "Evidence Lane"
+    if (
+        re.match(r"^(?:mcp__)?github(?:__|\.)", normalized)
+        or normalized.startswith(("github_", "git_"))
+    ):
         return "GitHub"
-    if "vercel" in normalized:
+    if (
+        re.match(r"^(?:mcp__)?vercel(?:__|\.)", normalized)
+        or normalized.startswith("vercel_")
+    ):
         return "Vercel"
-    if "render_project_panel" in normalized or "render_runtime_panel" in normalized:
+    if (
+        re.match(r"^(?:mcp__)?render(?:__|\.)", normalized)
+        or normalized.startswith("render_")
+    ):
         return "Render"
     if normalized in {
         "shell_command",
@@ -6308,12 +6936,39 @@ def _governed_activity_source_plugin(tool_name: str) -> str:
     return "Evidence Lane"
 
 
+def _is_evidence_lane_render_action(tool_name: str) -> bool:
+    normalized = tool_name.strip().lower().replace("-", "_")
+    if normalized in {"render_project_panel", "render_runtime_panel"}:
+        return True
+    return bool(
+        re.match(
+            r"^(?:mcp__)?evidence_lane(?:_[a-f0-9]{8,64})?(?:__|\.)"
+            r"render_(?:project|runtime)_panel$",
+            normalized,
+        )
+    )
+
+
 def _build_governed_activity_count_projection(
     events: list[Mapping[str, Any]],
     *,
     total_tool_use_count: int | None = None,
     host_ui_supported: bool | None = None,
 ) -> dict[str, Any]:
+    hook_counts = {"PreToolUse": 0, "PostToolUse": 0}
+    seen_hook_phases: set[tuple[str, str]] = set()
+    for event in events:
+        tool_use_id = str(event.get("tool_use_id") or "").strip()
+        phase = str(event.get("phase") or "").strip().lower()
+        hook_event = {"before": "PreToolUse", "after": "PostToolUse"}.get(phase)
+        if not tool_use_id or hook_event is None:
+            continue
+        phase_identity = (tool_use_id, phase)
+        if phase_identity in seen_hook_phases:
+            continue
+        seen_hook_phases.add(phase_identity)
+        hook_counts[hook_event] += 1
+
     selected: dict[str, Mapping[str, Any]] = {}
     selected_order: dict[str, tuple[int, str, str]] = {}
     for event in events:
@@ -6333,17 +6988,44 @@ def _build_governed_activity_count_projection(
     class_counts = {key: 0 for key, _ in _GOVERNED_ACTIVITY_CLASS_ORDER}
     source_counts = {key: 0 for key in _GOVERNED_ACTIVITY_SOURCE_ORDER}
     completed_count = 0
+    evidence_lane_render_leaks: list[str] = []
     for event in selected.values():
         tool_name = str(event.get("tool_name") or "")
         visible_json = str(event.get("visible_json_after_redaction") or "")
         class_counts[_governed_activity_class(tool_name, visible_json)] += 1
-        source_counts[_governed_activity_source_plugin(tool_name)] += 1
+        source_plugin = _governed_activity_source_plugin(tool_name)
+        source_counts[source_plugin] += 1
+        if _is_evidence_lane_render_action(tool_name) and source_plugin != "Evidence Lane":
+            evidence_lane_render_leaks.append(tool_name)
         completed_count += int(str(event.get("phase") or "").lower() == "after")
 
     exact_total = max(int(total_tool_use_count or len(selected)), len(selected))
     projected = len(selected)
+    provider_action_counts = [
+        {"provider": source, "raw_action_count": source_counts[source]}
+        for source in _GOVERNED_ACTIVITY_SOURCE_ORDER
+        if source_counts[source]
+    ]
+    governed_routing_totals = {
+        "distinct_tool_use_count": projected,
+        "completed_tool_use_count": completed_count,
+        "in_flight_tool_use_count": projected - completed_count,
+        "offloaded_tool_use_count": exact_total - projected,
+    }
+    per_hook_usage_counts = [
+        {"hook_event": hook_event, "usage_count": hook_counts[hook_event]}
+        for hook_event in ("PreToolUse", "PostToolUse")
+        if hook_counts[hook_event]
+    ]
+    projection_consistent = (
+        sum(source_counts.values()) == projected
+        and completed_count + (projected - completed_count) == projected
+        and projected + (exact_total - projected) == exact_total
+        and not evidence_lane_render_leaks
+    )
     core = {
         "schema": "evidence-lane.codex-governed-activity-counts.v1",
+        "status": "PASS" if projection_consistent else "MISMATCH",
         "state": "BOUNDED_ATTRIBUTION_COUNTS_PROJECTED",
         "group_id": "evidence_lane",
         "group_label": "Evidence Lane",
@@ -6357,6 +7039,18 @@ def _build_governed_activity_count_projection(
             for source in _GOVERNED_ACTIVITY_SOURCE_ORDER
             if source_counts[source]
         ],
+        "raw_provider_action_counts": provider_action_counts,
+        "raw_provider_action_count_total": projected,
+        "governed_routing_totals": governed_routing_totals,
+        "per_hook_usage_counts": per_hook_usage_counts,
+        "per_hook_usage_count_total": sum(hook_counts.values()),
+        "per_hook_usage_scope": "TOOL_USE_HOOK_EVENTS_ONLY",
+        "count_dimensions_conflated": False,
+        "provider_ownership_basis": "EXACT_PROVIDER_ROUTE_OR_EVIDENCE_LANE_NATIVE_ACTION",
+        "evidence_lane_render_tools_owned_by_render_provider": bool(
+            evidence_lane_render_leaks
+        ),
+        "evidence_lane_render_provider_leak_count": len(evidence_lane_render_leaks),
         "projected_tool_use_count": projected,
         "completed_tool_use_count": completed_count,
         "in_flight_tool_use_count": projected - completed_count,
@@ -6981,6 +7675,7 @@ def _compact_authority_context(
     *,
     bound: dict[str, Any],
     host_session_id: str,
+    working_directory: str | None = None,
 ) -> dict[str, Any]:
     session = cast(dict[str, Any], bound["session"])
     metadata = cast(dict[str, Any], session.get("metadata") or {})
@@ -7001,6 +7696,36 @@ def _compact_authority_context(
         str(cast(dict[str, Any], runtime_task).get("task_id") or "") or None
     )
     active_task_id = str(metadata.get("active_backlog_task_id") or "")
+    repository_root = Path(ProjectStore(root).config(project_id).repository_path).resolve()
+    workspace_path = Path(str(session.get("workspace_id") or ""))
+    current_working_directory = (
+        Path(str(working_directory)).resolve()
+        if str(working_directory or "").strip()
+        else workspace_path.resolve()
+        if workspace_path.is_absolute() and workspace_path.exists()
+        else repository_root
+    )
+    profile_value = metadata.get("execution_profile")
+    execution_profile = (
+        dict(profile_value) if isinstance(profile_value, dict) else {}
+    )
+    conversation_memory = resolve_conversation_memory(
+        codex_home=(
+            Path(str(os.environ.get("CODEX_HOME") or "").strip())
+            if str(os.environ.get("CODEX_HOME") or "").strip()
+            else Path.home() / ".codex"
+        ),
+        project_root=repository_root,
+        cwd=current_working_directory,
+        project_id=project_id,
+        governed_session_id=evidence_session_id,
+        host_task_id=host_session_id,
+        host_task_deep_link=f"codex://threads/{host_session_id}",
+        host_session_id=host_session_id,
+        workspace_id=str(session.get("workspace_id") or repository_root),
+        active_plan_task_id=active_task_id,
+        execution_profile=execution_profile,
+    ).receipt
     task_contract = dict(runtime_task or {})
     classification = dict(metadata.get("task_classification_binding") or {})
     rebind = dict(metadata.get("active_contract_rebind_receipt") or {})
@@ -7045,6 +7770,24 @@ def _compact_authority_context(
             project_root, "ai_learning/active_pointer.json"
         ),
         "project_memory_locator": _compact_locator(project_root, "memory/head.json"),
+        "conversation_memory_authority": {
+            "schema": conversation_memory["schema"],
+            "status": conversation_memory["status"],
+            "binding_sha256": conversation_memory["binding_sha256"],
+            "source_chain_sha256": conversation_memory["source_chain_sha256"],
+            "merged_guidance_sha256": conversation_memory[
+                "merged_guidance_sha256"
+            ],
+            "conversation_memory_authority_sha256": conversation_memory[
+                "conversation_memory_authority_sha256"
+            ],
+            "source_count": conversation_memory["source_count"],
+            "causal_attribution": conversation_memory[
+                "user_observed_host_evidence"
+            ]["causal_attribution"],
+            "raw_guidance_text_included": False,
+            "host_compaction_disabled": False,
+        },
         "immediate_continuation": {
             "action": "CONTINUE_EXACT_ACTIVE_TASK_WITH_BOUNDED_QUERIES_ONLY",
             "active_plan_task_id": active_task_id,
@@ -7194,6 +7937,7 @@ def _compact_session_reentry_context(
     *,
     bound: dict[str, Any],
     host_session_id: str,
+    working_directory: str | None = None,
 ) -> dict[str, Any]:
     session = cast(dict[str, Any], bound["session"])
     project_root = Path(bound["project_root"])
@@ -7275,6 +8019,26 @@ def _compact_session_reentry_context(
         root,
         bound=bound,
         host_session_id=host_session_id,
+        working_directory=working_directory,
+    )
+    sealed_conversation_memory = cast(
+        dict[str, Any], sealed_context.get("conversation_memory_authority") or {}
+    )
+    current_conversation_memory = cast(
+        dict[str, Any], current.get("conversation_memory_authority") or {}
+    )
+    _require(
+        bool(sealed_conversation_memory)
+        and current_conversation_memory.get(
+            "conversation_memory_authority_sha256"
+        )
+        == sealed_conversation_memory.get("conversation_memory_authority_sha256")
+        and current_conversation_memory.get("source_chain_sha256")
+        == sealed_conversation_memory.get("source_chain_sha256")
+        and current_conversation_memory.get("binding_sha256")
+        == sealed_conversation_memory.get("binding_sha256"),
+        "TURN_CONTROL_COMPACT_CONVERSATION_MEMORY_STALE",
+        "Compact re-entry MEMORY.md authority differs from the sealed PreCompact chain.",
     )
     current.pop("serialized_bytes", None)
     current.pop("compact_context_sha256", None)
@@ -7436,6 +8200,7 @@ def record_lifecycle_boundary_event(
             root,
             bound=candidate,
             host_session_id=host_session_id,
+            working_directory=str(host_payload.get("cwd") or "") or None,
         )
         compact_context.pop("serialized_bytes", None)
         compact_context.pop("compact_context_sha256", None)
@@ -7466,6 +8231,44 @@ def record_lifecycle_boundary_event(
             host_session_id=host_session_id,
             compact_context=sealed_context,
         )
+        current_compact_context = _compact_authority_context(
+            root,
+            bound=candidate,
+            host_session_id=host_session_id,
+            working_directory=str(host_payload.get("cwd") or "") or None,
+        )
+        sealed_conversation_memory = cast(
+            dict[str, Any],
+            sealed_context.get("conversation_memory_authority") or {},
+        )
+        current_conversation_memory = cast(
+            dict[str, Any],
+            current_compact_context.get("conversation_memory_authority") or {},
+        )
+        _require(
+            bool(sealed_conversation_memory)
+            and current_conversation_memory.get(
+                "conversation_memory_authority_sha256"
+            )
+            == sealed_conversation_memory.get(
+                "conversation_memory_authority_sha256"
+            )
+            and current_conversation_memory.get("source_chain_sha256")
+            == sealed_conversation_memory.get("source_chain_sha256")
+            and current_conversation_memory.get("binding_sha256")
+            == sealed_conversation_memory.get("binding_sha256"),
+            "TURN_CONTROL_POSTCOMPACT_CONVERSATION_MEMORY_STALE",
+            "PostCompact MEMORY.md authority differs from the sealed PreCompact chain.",
+        )
+        core["conversation_memory_rehydration"] = {
+            **current_conversation_memory,
+            "state": "CONVERSATION_MEMORY_AUTHORITY_REHYDRATED",
+            "precompact_authority_sha256": sealed_conversation_memory.get(
+                "conversation_memory_authority_sha256"
+            ),
+            "retrieval_route": "BOUNDED_CONTINUATION_GUIDANCE",
+            "authority_reconstructed": False,
+        }
         core["hook_performed_host_update_plan"] = False
         core["host_plan_behavior_owner"] = "ACTIVE_EVIDENCE_LANE_SKILL"
         core["authority_reconstructed"] = False
@@ -8344,6 +9147,7 @@ def session_start_control(
             root,
             bound=bound,
             host_session_id=host_session_id,
+            working_directory=str(host_payload.get("cwd") or "") or None,
         )
         return {
             "state": "COMPACT_REENTRY_READY",

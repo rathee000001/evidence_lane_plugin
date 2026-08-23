@@ -77,6 +77,10 @@ from .project_universe import (
     query_project_universe,
     refresh_project_universe,
 )
+from .public_surface_registry import (
+    derive_public_surface_registry,
+    resolve_public_surface_plugin_root,
+)
 from .redaction import contains_secret
 from .timeutil import utc_now
 
@@ -191,6 +195,10 @@ def _bound_sdk_public_response(response: dict[str, Any]) -> dict[str, Any]:
         "request_id",
         "request_sha256",
         "binding_sha256",
+        "agent_configuration_authority_sha256",
+        "agent_configuration_source_chain_sha256",
+        "conversation_memory_authority_sha256",
+        "conversation_memory_source_chain_sha256",
         "authority_effects",
         "authority_merge_allowed",
         "private_reasoning_stored",
@@ -569,6 +577,13 @@ class SDKBinding:
     reasoning_speed: str
     host_kind: str
     host_session_id: str
+    agent_configuration_authority_sha256: str | None = None
+    agent_configuration_source_chain_sha256: str | None = None
+    conversation_memory_authority_sha256: str | None = None
+    conversation_memory_source_chain_sha256: str | None = None
+    plugin_id: str | None = None
+    plugin_version: str | None = None
+    public_surface_registry_sha256: str | None = None
     write_scope: tuple[str, ...] = ()
 
     @classmethod
@@ -593,13 +608,48 @@ class SDKBinding:
             "host_session_id",
             "write_scope",
         }
+        agent_configuration_fields = {
+            "agent_configuration_authority_sha256",
+            "agent_configuration_source_chain_sha256",
+        }
+        conversation_memory_fields = {
+            "conversation_memory_authority_sha256",
+            "conversation_memory_source_chain_sha256",
+        }
+        installed_surface_fields = {
+            "plugin_id",
+            "plugin_version",
+            "public_surface_registry_sha256",
+        }
+        optional_pairs = (
+            agent_configuration_fields
+            | conversation_memory_fields
+            | installed_surface_fields
+        )
+        value_fields = set(value)
+        agent_configuration_pair_valid = (
+            not value_fields.intersection(agent_configuration_fields)
+            or agent_configuration_fields <= value_fields
+        )
+        conversation_memory_pair_valid = (
+            not value_fields.intersection(conversation_memory_fields)
+            or conversation_memory_fields <= value_fields
+        )
+        installed_surface_set_valid = (
+            not value_fields.intersection(installed_surface_fields)
+            or installed_surface_fields <= value_fields
+        )
         require(
-            set(value) == required,
+            required <= value_fields
+            and not (value_fields - required - optional_pairs)
+            and agent_configuration_pair_valid
+            and conversation_memory_pair_valid
+            and installed_surface_set_valid,
             "SDK_BINDING_SHAPE_INVALID",
             "The SDK binding must contain exactly the versioned identity fields.",
             status="MISMATCH",
             missing=sorted(required - set(value)),
-            extra=sorted(set(value) - required),
+            extra=sorted(set(value) - required - optional_pairs),
         )
         accepted_pv = _exact_text(value["accepted_pv"], field="accepted_pv")
         require(
@@ -675,6 +725,56 @@ class SDKBinding:
             host_session_id=_exact_text(
                 value["host_session_id"], field="host_session_id"
             ),
+            agent_configuration_authority_sha256=(
+                _sha256(
+                    value["agent_configuration_authority_sha256"],
+                    field="agent_configuration_authority_sha256",
+                )
+                if "agent_configuration_authority_sha256" in value
+                else None
+            ),
+            agent_configuration_source_chain_sha256=(
+                _sha256(
+                    value["agent_configuration_source_chain_sha256"],
+                    field="agent_configuration_source_chain_sha256",
+                )
+                if "agent_configuration_source_chain_sha256" in value
+                else None
+            ),
+            conversation_memory_authority_sha256=(
+                _sha256(
+                    value["conversation_memory_authority_sha256"],
+                    field="conversation_memory_authority_sha256",
+                )
+                if "conversation_memory_authority_sha256" in value
+                else None
+            ),
+            conversation_memory_source_chain_sha256=(
+                _sha256(
+                    value["conversation_memory_source_chain_sha256"],
+                    field="conversation_memory_source_chain_sha256",
+                )
+                if "conversation_memory_source_chain_sha256" in value
+                else None
+            ),
+            plugin_id=(
+                _exact_text(value["plugin_id"], field="plugin_id")
+                if "plugin_id" in value
+                else None
+            ),
+            plugin_version=(
+                _exact_text(value["plugin_version"], field="plugin_version")
+                if "plugin_version" in value
+                else None
+            ),
+            public_surface_registry_sha256=(
+                _sha256(
+                    value["public_surface_registry_sha256"],
+                    field="public_surface_registry_sha256",
+                )
+                if "public_surface_registry_sha256" in value
+                else None
+            ),
             write_scope=write_scope,
         )
         require(
@@ -686,7 +786,33 @@ class SDKBinding:
         return result
 
     def as_dict(self) -> dict[str, Any]:
-        return {
+        require(
+            (self.agent_configuration_authority_sha256 is None)
+            == (self.agent_configuration_source_chain_sha256 is None),
+            "SDK_AGENT_CONFIGURATION_BINDING_INCOMPLETE",
+            "SDK AGENTS.md authority and source-chain hashes must travel together.",
+            status="MISMATCH",
+        )
+        require(
+            (self.conversation_memory_authority_sha256 is None)
+            == (self.conversation_memory_source_chain_sha256 is None),
+            "SDK_CONVERSATION_MEMORY_BINDING_INCOMPLETE",
+            "SDK MEMORY.md authority and source-chain hashes must travel together.",
+            status="MISMATCH",
+        )
+        installed_surface_fields = (
+            self.plugin_id,
+            self.plugin_version,
+            self.public_surface_registry_sha256,
+        )
+        require(
+            all(value is None for value in installed_surface_fields)
+            or all(value is not None for value in installed_surface_fields),
+            "SDK_INSTALLED_SURFACE_BINDING_INCOMPLETE",
+            "SDK plugin ID, version, and public-surface hash must travel together.",
+            status="MISMATCH",
+        )
+        result = {
             "project_id": self.project_id,
             "session_id": self.session_id,
             "task_id": self.task_id,
@@ -706,6 +832,27 @@ class SDKBinding:
             "host_session_id": self.host_session_id,
             "write_scope": list(self.write_scope),
         }
+        if self.agent_configuration_authority_sha256 is not None:
+            result["agent_configuration_authority_sha256"] = (
+                self.agent_configuration_authority_sha256
+            )
+            result["agent_configuration_source_chain_sha256"] = (
+                self.agent_configuration_source_chain_sha256
+            )
+        if self.conversation_memory_authority_sha256 is not None:
+            result["conversation_memory_authority_sha256"] = (
+                self.conversation_memory_authority_sha256
+            )
+            result["conversation_memory_source_chain_sha256"] = (
+                self.conversation_memory_source_chain_sha256
+            )
+        if self.plugin_id is not None:
+            result["plugin_id"] = self.plugin_id
+            result["plugin_version"] = self.plugin_version
+            result["public_surface_registry_sha256"] = (
+                self.public_surface_registry_sha256
+            )
+        return result
 
     @property
     def sha256(self) -> str:
@@ -1535,6 +1682,30 @@ class InternalEvidenceLaneSDK:
             "request_id": exact_request_id,
             "request_sha256": request_sha256,
             "binding_sha256": exact_binding.sha256,
+            **(
+                {
+                    "agent_configuration_authority_sha256": (
+                        exact_binding.agent_configuration_authority_sha256
+                    ),
+                    "agent_configuration_source_chain_sha256": (
+                        exact_binding.agent_configuration_source_chain_sha256
+                    ),
+                }
+                if exact_binding.agent_configuration_authority_sha256 is not None
+                else {}
+            ),
+            **(
+                {
+                    "conversation_memory_authority_sha256": (
+                        exact_binding.conversation_memory_authority_sha256
+                    ),
+                    "conversation_memory_source_chain_sha256": (
+                        exact_binding.conversation_memory_source_chain_sha256
+                    ),
+                }
+                if exact_binding.conversation_memory_authority_sha256 is not None
+                else {}
+            ),
             "authority_effects": effects,
             "data": {
                 key: value
@@ -2046,10 +2217,12 @@ def build_local_service_adapter(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
         context.checkpoint()
+        exact_payload = _memory_payload(binding, payload)
+        exact_payload.setdefault("as_of", utc_now())
         return query_memory_graph(
             service.store.project_root(binding.project_id),
             project_id=binding.project_id,
-            **_memory_payload(binding, payload),
+            **exact_payload,
         )
 
     def _learning_memory_record_link(
@@ -2211,19 +2384,27 @@ def build_local_service_adapter(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
         context.checkpoint()
-        limit = int(payload.get("limit", 50))
-        require(
-            1 <= limit <= 200,
-            "SDK_LINEAGE_LIMIT_INVALID",
-            "Lineage reads are bounded to 1..200 events.",
-            status="BLOCKED",
+        limit = int(payload.get("limit", 20))
+        query = str(payload.get("query") or "").strip()
+        task_id = str(payload.get("task_id") or binding.task_id).strip()
+        revision_scope_id = str(payload.get("revision_scope_id") or "").strip()
+        if query:
+            return _lineage(binding).query(
+                query,
+                limit=limit,
+                task_id=task_id,
+                revision_scope_id=revision_scope_id or None,
+                after_revision_cursor_sha256=(
+                    str(payload["after_revision_cursor_sha256"])
+                    if payload.get("after_revision_cursor_sha256")
+                    else None
+                ),
+            )
+        return _lineage(binding).window(
+            limit=limit,
+            task_id=task_id,
+            revision_scope_id=revision_scope_id or None,
         )
-        events = _lineage(binding).events()[-limit:]
-        return {
-            "status": "PASS",
-            "result": "HIT" if events else "NO_HIT",
-            "events": events,
-        }
 
     def _lineage_append(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
@@ -2241,6 +2422,8 @@ def build_local_service_adapter(
             "model",
             "submodel",
             "token_metrics",
+            "revision_scope_id",
+            "source_revision",
         }
         require(
             set(payload) <= allowed,
@@ -2286,6 +2469,16 @@ def build_local_service_adapter(
             token_metrics=(
                 dict(payload["token_metrics"])
                 if isinstance(payload.get("token_metrics"), dict)
+                else None
+            ),
+            revision_scope_id=(
+                str(payload["revision_scope_id"])
+                if payload.get("revision_scope_id")
+                else None
+            ),
+            source_revision=(
+                dict(payload["source_revision"])
+                if isinstance(payload.get("source_revision"), dict)
                 else None
             ),
         )
@@ -2734,6 +2927,23 @@ def build_live_local_sdk_context(
         status="MISMATCH",
     )
     env_uop = derive_host_entry_env_uop(service.flash_authority.status())
+    agent_configuration = service.agent_configuration_authority(
+        project_id,
+        session_id=session_id,
+    )
+    conversation_memory = service.conversation_memory_authority(
+        project_id,
+        session_id=session_id,
+    )
+    public_surface = derive_public_surface_registry(
+        resolve_public_surface_plugin_root()
+    )
+    require(
+        public_surface["status"] == "PASS",
+        "SDK_INSTALLED_PUBLIC_SURFACE_REQUIRED",
+        "The live SDK bridge requires one exact package-local public surface.",
+        status="MISMATCH",
+    )
     binding = SDKBinding.from_dict(
         {
             "project_id": project_id,
@@ -2750,6 +2960,21 @@ def build_live_local_sdk_context(
             "reasoning_speed": str(profile["reasoning_speed"]),
             "host_kind": session.host.value,
             "host_session_id": host_session_id,
+            "agent_configuration_authority_sha256": agent_configuration[
+                "agent_configuration_authority_sha256"
+            ],
+            "agent_configuration_source_chain_sha256": agent_configuration[
+                "source_chain_sha256"
+            ],
+            "conversation_memory_authority_sha256": conversation_memory[
+                "conversation_memory_authority_sha256"
+            ],
+            "conversation_memory_source_chain_sha256": conversation_memory[
+                "source_chain_sha256"
+            ],
+            "plugin_id": public_surface["package_identity"]["plugin_id"],
+            "plugin_version": public_surface["package_identity"]["plugin_version"],
+            "public_surface_registry_sha256": public_surface["registry_sha256"],
             "write_scope": list(write_scope),
         }
     )

@@ -71,9 +71,10 @@ def test_exact_commit_builder_exports_only_the_named_git_commit(
     (plugin / "marker.txt").write_text("committed\n", encoding="utf-8")
     _git(repository, "add", "plugins/evidence-lane-plugin/marker.txt")
     _git(repository, "commit", "-m", "fixture")
-    _git(repository, "branch", "-M", "agent/evi-v210-test")
+    _git(repository, "branch", "-M", "main")
     commit = _git(repository, "rev-parse", "HEAD")
     tree = _git(repository, "rev-parse", "HEAD^{tree}")
+    _git(repository, "update-ref", "refs/remotes/origin/main", commit)
     (plugin / "marker.txt").write_text("dirty checkout\n", encoding="utf-8")
     (plugin / "untracked.txt").write_text("excluded\n", encoding="utf-8")
 
@@ -115,7 +116,7 @@ def test_exact_commit_builder_exports_only_the_named_git_commit(
     result = module.build_exact_commit_package(
         repository=repository,
         plugin_path="plugins/evidence-lane-plugin",
-        branch="agent/evi-v210-test",
+        branch="main",
         commit=commit,
         output_dir=tmp_path / "output",
         expected_version="2.1.0+codex.fixture",
@@ -139,7 +140,7 @@ def _authority_inputs(tmp_path: Path) -> dict[str, Path | str]:
     archive.write_bytes(b"exact package")
     commit = "1" * 40
     tree = "2" * 40
-    branch = "agent/evi-v200-test"
+    branch = "main"
     package = _self_seal(
         {
             "schema": "evidence-lane.codex-exact-commit-package.v1.receipt",
@@ -152,6 +153,10 @@ def _authority_inputs(tmp_path: Path) -> dict[str, Path | str]:
                 "branch": branch,
                 "commit": commit,
                 "tree": tree,
+                "source_ref": "refs/remotes/origin/main",
+                "stable_main_only": True,
+                "local_main_attested": True,
+                "origin_main_attested": True,
                 "plugin_path": "plugins/evidence-lane-plugin",
                 "git_archive_sha256": "D" * 64,
                 "git_archive_member_count": 1,
@@ -168,23 +173,26 @@ def _authority_inputs(tmp_path: Path) -> dict[str, Path | str]:
     package_path = tmp_path / "package.json"
     _write_json(package_path, package)
     remote = {
-        "schema": "evidence-lane.remote-git-action.v2",
+        "schema": "evidence-lane.github-app-main-merge.v1",
         "action_id": "remote_action_fixture",
-        "action": "PUSH_BRANCH",
+        "route": "GITHUB_APP_SDK",
+        "action": "MERGE_TO_MAIN",
         "status": "EXECUTED",
-        "git_returncode": 0,
-        "local_commit": commit,
-        "local_tree": tree,
-        "remote_branch": branch,
+        "merge": {
+            "source_branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
+            "target_branch": "main",
+            "merge_commit": commit,
+            "merge_tree": tree,
+        },
         "repository_identity": {
             "branch": branch,
             "commit_sha": commit,
             "tree_sha": tree,
         },
         "authorization": {
-            "policy": "EXACT_REGISTERED_NON_PROTECTED_TEST_BRANCH",
-            "main_branch_push_authorized": False,
-            "merge_authorized": False,
+            "policy": "GOVERNED_FEATURE_TO_MAIN_MERGE",
+            "direct_main_push_authorized": False,
+            "merge_authorized": True,
         },
         "output_security": {
             "infrastructure_status": "PASS",
@@ -269,7 +277,9 @@ def test_release_authority_joins_exact_package_native_push_and_clean_ci(
     assert result["status"] == "PASS"
     assert result["source"]["exact_commit_projection_clean"] is True
     assert result["source"]["working_checkout_clean_required"] is False
-    assert result["remote_git"]["route"] == "NATIVE_GOVERNED_REMOTE_GIT"
+    assert result["remote_git"]["route"] == "GITHUB_APP_SDK"
+    assert result["remote_git"]["target_branch"] == "main"
+    assert result["remote_git"]["protected_branch"] is True
     assert result["github_ci"]["required_check_count"] == 2
     assert result["github_ci"]["successful_check_count"] == 2
     assert result["github_ci"]["failed_check_count"] == 0

@@ -71,6 +71,12 @@ fallback. The public
 those non-secret identities after the external operations occur. It cannot
 create a commit, push a ref, install a package, infer HIL, or move a pointer.
 
+Repository mutation is owned by the distinct `GitHubAppExactCommitPushRoute`.
+It requires the canonical Evidence Lane bot for author and committer, preserves
+ordered merge parents, recreates exact Git objects through one short-lived App
+installation token, and fast-forwards only the exact governed feature branch.
+Its receipt is not an acceptance, HIL, pointer, install, or publication event.
+
 The current local service adapter exposes grounded read surfaces first. The ABI
 retains the full engine contract. Its Canon arm now binds the complete local
 engine: inspect, inbox, graph, expected-contract registration, envelope sealing,

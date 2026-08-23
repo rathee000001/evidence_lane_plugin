@@ -15,8 +15,9 @@ one of `session_boot` or `session_resume`. Never duplicate an active governed
 session. Boot/resume must finish with runtime activation `ACTIVE`, locked Flash
 context attached, and visible prompt/response capture enabled for the exact
 governed session.
-Verify that result with `runtime_activation_status` before presenting the
-runtime or project panels.
+Verify that result with `runtime_activation_status`. Ordinary Boot or Resume
+stops with the activation receipt and does not call either project/runtime
+renderer.
 
 If the governed session has a canonical task panel, every Boot or Resume must
 make exact panel reactivation the host's first post-verification action. This
@@ -52,10 +53,15 @@ promotability rules introduced after acceptance. Report that compatibility
 state explicitly; every successor candidate must still pass all current rules
 before it can be promoted.
 
-On write-capable Codex, finish a successful Boot or Resume verification with
-`render_runtime_panel` and, when a project is in scope, `render_project_panel`.
-These are read-only proof calls. Use canonical bare tool names only; a host
-display namespace is never part of the Evidence Lane tool contract.
+`PROJECT_RUNTIME_RENDER_THREE_TRIGGER_LAW` is permanent. The lifecycle owner may
+call `render_runtime_panel` and `render_project_panel` only in exactly three
+cases: once per tool during a passed State Travel entry; once per tool while
+presenting the physically final PV HIL; or after an explicit user request for
+the renderer. Ordinary Boot/Resume, owner discovery, verification, Plan/Goal
+continuation, restart, reconnect, rehydration, and status readback never call
+either renderer. A missing renderer receipt never authorizes an implicit retry
+or fallback. These tools remain read-only and use canonical bare names only; a
+host display namespace is never part of the Evidence Lane tool contract.
 
 ## MCP routing contract
 

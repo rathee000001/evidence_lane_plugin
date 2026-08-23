@@ -59,12 +59,14 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert "--control-plane-api-key-ref \"env:CONTROL_PLANE_API_KEY\"" in installer
     assert "--mcp-command $mcpCommand" in installer
     assert '"main-git-release"' in installer
-    assert '"branch-commit-recovery"' in installer
-    assert '"mutable-local-testing"' in installer
+    assert '"versioned-local-testing"' in installer
     assert 'TaskName = "EvidenceLane-Tunnel-$releaseToken-stable-build"' in installer
-    assert "exact_visible_tool_count = 88" in installer
-    assert "exact_active_read_tool_count = 26" in installer
-    assert "exact_fail_closed_write_tool_count = 57" in installer
+    assert "exact_visible_tool_count = $exactVisibleToolCount" in installer
+    assert "exact_active_read_tool_count = $exactActiveReadToolCount" in installer
+    assert "exact_fail_closed_write_tool_count = $exactFailClosedWriteToolCount" in installer
+    assert "exact_command_count = $exactCommandCount" in installer
+    assert "exact_hook_event_count = $exactHookEventCount" in installer
+    assert "exact_provider_count = $exactProviderCount" in installer
     assert "codex_platform_tunnel_setup_required_once = $true" in installer
     assert (
         'Join-Path $RuntimeControlRoot '
@@ -74,7 +76,7 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert 'project_data_root_separate = ' in installer
     assert "RuntimeKeyEnvelopeSource" in installer
     assert "saved_slot = $true" in installer
-    assert "branch_commit_recovery_preserved = $true" in installer
+    assert "failover_requires_sealed_two_slot_main_local_operator = $true" in installer
     assert "pre_3_0_fallback_allowed = $false" in installer
     assert "release_identity_source = \"CODEX_RELEASE_CHANNEL_CONTRACT\"" in installer
     assert "runtime_identity_matches_release = $true" in installer
@@ -99,8 +101,7 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
     assert "evidence-lane.versioned-secure-mcp-tunnel-installation.v1" in installer
     assert "Pinned Evidence Lane $release $SlotRole secure MCP tunnel" in installer
     assert '"main-git-release" = "stable"' in installer
-    assert '"branch-commit-recovery" = "branch_recovery"' in installer
-    assert '"mutable-local-testing" = "local_testing"' in installer
+    assert '"versioned-local-testing" = "local_testing"' in installer
     assert "$release = $slotRelease" in installer
     assert "Google Drive" not in installer
     assert "GDrive" not in installer
@@ -133,8 +134,8 @@ def test_installer_classifies_api_persistent_and_ephemeral_host_lifetimes() -> N
     assert "cannot import a Runtime key envelope from durable storage" in installer
     assert '$exactHostLifetime -ne "Ephemeral"' in installer
     assert (
-        'three_slot_registry_authority = '
-        '"SEALED_MAIN_BRANCH_RECOVERY_LOCAL_TESTING_REGISTRY"'
+        'two_slot_registry_authority = '
+        '"SEALED_GIT_MAIN_LOCAL_TESTING_REGISTRY"'
     ) in installer
     assert "account_tier_affects_routing = $false" in installer
     assert "api_billing_affects_routing = $false" in installer
@@ -167,9 +168,12 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert 'transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"' in manager
     assert 'codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"' in manager
     assert "codex_tunnel_lifecycle_proof_allowed = $false" in manager
-    assert "exact_visible_tool_count = 88" in manager
-    assert "exact_active_read_tool_count = 26" in manager
-    assert "exact_fail_closed_write_tool_count = 57" in manager
+    assert "[int]$marker.exact_visible_tool_count" in manager
+    assert "[int]$marker.exact_active_read_tool_count" in manager
+    assert "[int]$marker.exact_fail_closed_write_tool_count" in manager
+    assert "[int]$marker.exact_command_count" in manager
+    assert "[int]$marker.exact_hook_event_count" in manager
+    assert "[int]$marker.exact_provider_count" in manager
     assert "runtime_key_plaintext_reported = $false" in manager
     assert 'ReleaseToken = "v300"' in manager
     assert "release_token = if ($null -ne $marker)" in manager

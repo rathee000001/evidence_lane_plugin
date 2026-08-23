@@ -120,7 +120,12 @@ class LaneReader:
             (lane_root / "refresh_receipt.json").read_text(encoding="utf-8")
         )
         tools = json.loads((lane_root / "tools.json").read_text(encoding="utf-8"))
-        freshness = evaluate_freshness(self.store, project_id, package)
+        freshness = evaluate_freshness(
+            self.store,
+            project_id,
+            package,
+            bounded_dirty_read=True,
+        )
         return {
             "status": result_status("PASS", freshness),
             "project_id": project_id,
@@ -288,7 +293,12 @@ class LaneReader:
                     row["chunk_id"],
                 ),
             )
-        freshness = evaluate_freshness(self.store, project_id, package)
+        freshness = evaluate_freshness(
+            self.store,
+            project_id,
+            package,
+            bounded_dirty_read=True,
+        )
         results = ordered[:limit]
         return {
             "status": result_status("PASS", freshness),
@@ -2019,7 +2029,12 @@ class LaneReader:
         else:
             content = None
             representation = "binary_exact_bytes_not_returned"
-        freshness = evaluate_freshness(self.store, project_id, package)
+        freshness = evaluate_freshness(
+            self.store,
+            project_id,
+            package,
+            bounded_dirty_read=True,
+        )
         return {
             "status": result_status("PASS", freshness),
             "project_id": project_id,

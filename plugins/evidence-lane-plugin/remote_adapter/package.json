@@ -8,6 +8,7 @@
     "dev": "next dev",
     "start": "next start",
     "test:execution-panel": "node scripts/test-current-execution-panel.mjs",
+    "test:batch-a": "node --experimental-strip-types tests/test-batch-a-backend-parity.mjs",
     "test:studio-query": "node --experimental-strip-types scripts/test-openrouter-boundary.mjs",
     "test:studio-gold-parity": "node --experimental-strip-types scripts/test-studio-gold-parity.mjs"
   },

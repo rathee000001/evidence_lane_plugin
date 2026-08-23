@@ -239,7 +239,6 @@ def test_learning_memory_public_adapter_routes_execute_with_bounded_results(
         binding,
         {
             "query": "bounded sdk memory",
-            "as_of": "2026-08-16T10:01:00Z",
             "sectors": ["CHAT_LINEAGE", "PLAN"],
             "limit": 4,
         },
@@ -269,7 +268,8 @@ def test_learning_memory_public_adapter_routes_execute_with_bounded_results(
     assert linked["target_sector"] == "PLAN"
     assert queried["full_memory_loaded_into_model_context"] is False
     assert queried["raw_database_or_markdown_returned"] is False
-    assert queried["receipt"]["hit_count"] == 2
+    assert queried["receipt"]["as_of"].endswith("Z")
+    assert queried["receipt"]["hit_count"] == 4
     assert imported["raw_host_memory_stored"] is False
     assert imported["candidate_created"] is False
     assert imported["learning_hil_invoked"] is False

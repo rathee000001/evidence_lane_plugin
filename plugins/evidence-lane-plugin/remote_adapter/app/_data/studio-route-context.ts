@@ -1,3 +1,5 @@
+import { currentProductContract, hookEvents } from "./current-product-contract.ts";
+
 export type StudioRouteContext = {
   id: string;
   path: string;
@@ -34,14 +36,14 @@ export const studioRouteContexts: readonly StudioRouteContext[] = [
   {
     id: "skills",
     path: "/skills",
-    title: "Seventeen governed Codex skills",
+    title: `${currentProductContract.governedSkillCount} governed Codex skills`,
     purpose: "Explain every installed skill as a primary control, router, session operation, mode surface, connector sidecar, or storage sidecar.",
-    currentCapability: "The 3.0.0 source packages seventeen named skills. Six are primary lifecycle controls; Canon and Agent Learning are separate governed sidecars; the remaining skills retain explicit non-overlapping authority boundaries.",
+    currentCapability: `The ${currentProductContract.release} source packages ${currentProductContract.governedSkillCount} named skills. ${currentProductContract.primaryControlCount} are primary lifecycle controls; Canon and Agent Learning are separate governed sidecars; the remaining skills retain explicit non-overlapping authority boundaries.`,
     evidenceBoundary: "A visible skill cannot infer approval, broaden its own scope, or substitute for a missing native host capability.",
     artifactIds: ["project-readme", "release-identity"],
     suggestions: [
-      "What are the seventeen governed Evidence Lane skills?",
-      "Which six skills are primary lifecycle controls?",
+      `What are the ${currentProductContract.governedSkillCount} governed Evidence Lane skills?`,
+      `Which ${currentProductContract.primaryControlCount} skills are primary lifecycle controls?`,
       "Why is State Travel conditional rather than a seventh control?",
       "What can a skill never approve by itself?",
       "How do Canon and Agent Learning keep separate authority?",
@@ -52,13 +54,13 @@ export const studioRouteContexts: readonly StudioRouteContext[] = [
     id: "mcp",
     path: "/mcp",
     title: "Package-local native MCP",
-    purpose: "Explain the 88 stable native action identities and their read, write, lifecycle, Canon, Learning, and host-capability boundaries.",
-    currentCapability: "The Codex package declares one native evidence-lane server with 88 actions: 27 read-only and 61 write-capable.",
+    purpose: `Explain the ${currentProductContract.nativeMcp.totalActions} stable native action identities and their read, write, lifecycle, Canon, Learning, and host-capability boundaries.`,
+    currentCapability: `The Codex package declares one native ${currentProductContract.nativeMcp.server} server with ${currentProductContract.nativeMcp.totalActions} actions: ${currentProductContract.nativeMcp.readActions} read-only and ${currentProductContract.nativeMcp.writeActions} write-capable.`,
     evidenceBoundary: "The documentation website and any remote transport are not Codex lifecycle authority and cannot stand in for installed-host proof.",
     artifactIds: ["release-identity", "capability-matrix-csv"],
     suggestions: [
       "Why does Evidence Lane use one package-local native MCP server?",
-      "What separates the 27 read actions from the 61 write actions?",
+      `What separates the ${currentProductContract.nativeMcp.readActions} read actions from the ${currentProductContract.nativeMcp.writeActions} write actions?`,
       "How does the native route fail closed?",
       "Can the website invoke a lifecycle action?",
       "Which native actions belong to Canon and Agent Learning?",
@@ -68,13 +70,13 @@ export const studioRouteContexts: readonly StudioRouteContext[] = [
   {
     id: "hooks",
     path: "/hooks",
-    title: "Eight Codex lifecycle hooks",
+    title: `${currentProductContract.hookEventCount} Codex lifecycle hook events`,
     purpose: "Explain the installed lifecycle event matrix and the boundary between hook transport, skill governance, and host rendering.",
-    currentCapability: "The package registers SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PreCompact, PostCompact, Stop, and best-effort SessionEnd.",
+    currentCapability: `The package registers ${hookEvents.join(", ")}. Trust, enablement, and installed-host invocation remain separately proven states.`,
     evidenceBoundary: "Source registration alone is not installed-host invocation proof; unavailable host events remain explicitly unavailable.",
     artifactIds: ["release-identity", "project-readme"],
     suggestions: [
-      "Which eight lifecycle events does the package register?",
+      `Which ${currentProductContract.hookEventCount} lifecycle events does the package register?`,
       "Why do skills, rather than hooks, own HIL behavior?",
       "How is installed-host invocation proven?",
       "How are Windows hook processes kept hidden?",
@@ -273,7 +275,7 @@ export const studioRouteContexts: readonly StudioRouteContext[] = [
     path: "/release",
     title: "Evidence Lane 3.0 release channels",
     purpose: "Explain mutable local testing, exact branch fallback, main-release identity, package receipts, and HIL-gated promotion.",
-    currentCapability: "Each verified Delta may create a newer content-addressed local 3.0 layer while branch and main release slots keep separate exact identities.",
+    currentCapability: "Only a canonical Delta that explicitly owns installation may create a newer content-addressed local 3.0 layer. LOCAL_PREVIEW_ONLY rows do not install, and branch and main release slots keep separate exact identities.",
     evidenceBoundary: "Installation or delivery success does not accept Project Truth or authorize a main merge without its exact HIL route.",
     artifactIds: ["release-identity", "release-channels-json", "capability-matrix-csv"],
     suggestions: [
@@ -290,7 +292,7 @@ export const studioRouteContexts: readonly StudioRouteContext[] = [
     path: "/connect",
     title: "Codex host, storage, and release boundaries",
     purpose: "Explain exact-Git Codex delivery, truthful host capability, stable versus fallback slots, local durability, and optional connector isolation.",
-    currentCapability: "Codex 3.0.0 source uses the package-local native Evidence Lane server with 88 actions: 27 read-only and 61 write-capable. Current work governs only a positively proven Codex layer.",
+    currentCapability: `Codex ${currentProductContract.release} source uses the package-local native Evidence Lane server with ${currentProductContract.nativeMcp.totalActions} actions: ${currentProductContract.nativeMcp.readActions} read-only and ${currentProductContract.nativeMcp.writeActions} write-capable. Current work governs only a positively proven Codex layer.`,
     evidenceBoundary: "Accepted PV12, mutable local testing, branch fallback, and main release remain separate measured identities until their own governed promotion steps pass.",
     artifactIds: ["release-channels-json", "chatgpt-connection-json", "capability-matrix-csv"],
     suggestions: [

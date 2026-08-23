@@ -46,7 +46,14 @@ if (Test-Path -LiteralPath $markerFile -PathType Leaf) {
         [string]$boundMarker.release_token -ne $ReleaseToken -or
         [IO.Path]::GetFullPath([string]$boundMarker.runtime_root) -ne [IO.Path]::GetFullPath($RuntimeRoot) -or
         [string]$boundMarker.profile_name -ne $ProfileName -or
-        [string]$boundMarker.task_name -ne $TaskName
+        [string]$boundMarker.task_name -ne $TaskName -or
+        [int]$boundMarker.exact_visible_tool_count -le 0 -or
+        [int]$boundMarker.exact_active_read_tool_count -le 0 -or
+        [int]$boundMarker.exact_fail_closed_write_tool_count -le 0 -or
+        [int]$boundMarker.exact_visible_tool_count -ne (
+            [int]$boundMarker.exact_active_read_tool_count +
+            [int]$boundMarker.exact_fail_closed_write_tool_count
+        )
     ) {
         throw "The management request does not match the exact release-bound tunnel marker."
     }
@@ -140,9 +147,14 @@ function Get-TunnelStatus {
         project_route_argument = "project_id"
         project_route_argument_required = $true
         cross_project_fallback_allowed = $false
-        exact_visible_tool_count = 88
-        exact_active_read_tool_count = 26
-        exact_fail_closed_write_tool_count = 57
+        exact_visible_tool_count = if ($null -ne $marker) { [int]$marker.exact_visible_tool_count } else { 0 }
+        exact_active_read_tool_count = if ($null -ne $marker) { [int]$marker.exact_active_read_tool_count } else { 0 }
+        exact_fail_closed_write_tool_count = if ($null -ne $marker) { [int]$marker.exact_fail_closed_write_tool_count } else { 0 }
+        exact_skill_count = if ($null -ne $marker) { [int]$marker.exact_skill_count } else { 0 }
+        exact_command_count = if ($null -ne $marker) { [int]$marker.exact_command_count } else { 0 }
+        exact_hook_event_count = if ($null -ne $marker) { [int]$marker.exact_hook_event_count } else { 0 }
+        exact_hook_handler_count = if ($null -ne $marker) { [int]$marker.exact_hook_handler_count } else { 0 }
+        exact_provider_count = if ($null -ne $marker) { [int]$marker.exact_provider_count } else { 0 }
         health_url_file = $healthUrlFile
         runtime_key_plaintext_reported = $false
         windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"

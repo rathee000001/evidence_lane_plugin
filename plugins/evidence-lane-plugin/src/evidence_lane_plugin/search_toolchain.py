@@ -87,32 +87,40 @@ class ToolResolution:
 
 
 def plugin_root() -> Path:
-    configured = os.environ.get(_PLUGIN_ROOT_ENV, "").strip()
-    if configured:
-        candidate = Path(configured)
-        if (
-            not candidate.is_absolute()
-            or not (candidate / "toolchains" / "search-tools.v1.json").is_file()
-            or not (candidate / ".codex-plugin" / "plugin.json").is_file()
-        ):
-            raise SearchToolchainError("SEARCH_TOOLCHAIN_PLUGIN_ROOT_INVALID")
-        return candidate.resolve()
-
     source = Path(__file__).resolve()
+    runtime_root: Path | None = None
     for ancestor in source.parents:
         if (
             (ancestor / "toolchains" / "search-tools.v1.json").is_file()
             and (ancestor / ".codex-plugin" / "plugin.json").is_file()
         ):
-            return ancestor
+            runtime_root = ancestor
+            break
         if ancestor.name == ".venv":
             candidate = ancestor.parent
             if (
                 (candidate / "toolchains" / "search-tools.v1.json").is_file()
                 and (candidate / ".codex-plugin" / "plugin.json").is_file()
             ):
-                return candidate
-    raise SearchToolchainError("SEARCH_TOOLCHAIN_PLUGIN_ROOT_UNAVAILABLE")
+                runtime_root = candidate
+                break
+    if runtime_root is None:
+        raise SearchToolchainError("SEARCH_TOOLCHAIN_PLUGIN_ROOT_UNAVAILABLE")
+
+    configured = os.environ.get(_PLUGIN_ROOT_ENV, "").strip()
+    if configured:
+        candidate = Path(configured)
+        resolved = candidate.resolve() if candidate.is_absolute() else candidate
+        if (
+            not candidate.is_absolute()
+            or resolved != runtime_root
+            or not (candidate / "toolchains" / "search-tools.v1.json").is_file()
+            or not (candidate / ".codex-plugin" / "plugin.json").is_file()
+        ):
+            raise SearchToolchainError("SEARCH_TOOLCHAIN_PLUGIN_ROOT_INVALID")
+        return resolved
+
+    return runtime_root
 
 
 def _manifest_path(root: Path) -> Path:

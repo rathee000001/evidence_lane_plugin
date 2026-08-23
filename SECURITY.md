@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+
 # Security boundary
 
 Report security issues privately to the repository owner. Never open a public
@@ -57,7 +59,7 @@ accepts the user's own Runtime key only through a masked prompt, stores only a
 current-user DPAPI envelope, and binds the scheduled task to the pinned client
 hash and configured tunnel ID. A live tunnel is not proof that the package-local
 Codex MCP server, exact project/session, or accepted pointer is valid. Local
-Local Codex and local CLI profiles may require the tunnel when the detected host route
+Codex and local CLI profiles may require the tunnel when the detected host route
 lacks direct MCP transport or required host tools. Headless API requests do not require the tunnel
 merely because they use API billing.
 

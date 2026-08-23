@@ -1,15 +1,17 @@
 # GitHub App pre-HIL contract
 
-This contract implements the local, provider-neutral proof boundary for the
-GitHub App and signed tester-artifact flow. It does not register an app, create
-or receive credentials, install against a repository, invite a tester, publish
-an artifact, or mutate GitHub.
+This contract implements the provider-neutral proof boundary and the current
+maintainer branch-write route for the GitHub App and signed tester-artifact
+flow. It does not register an app, persist credentials, invite a tester,
+publish an artifact, change App permissions, write `main`, or promote any
+Evidence Lane authority.
 
 ## Pre-HIL implementation
 
 - `github-app-manifest.schema.json` and `GitHubAppManifest` permit only an
   explicitly selected repository set, an allowlisted event set, and a bounded
-  read/check permission model. Source and workflow write are rejected.
+  permission model. The maintainer exact-commit route requires metadata read,
+  contents write, and workflows write only when workflow files are changed.
 - `WebhookVerifier` verifies HMAC bytes before JSON parsing, bounds delivery
   age, treats an identical delivery as idempotent, and rejects a reused
   delivery identity with changed bytes.
@@ -35,17 +37,37 @@ an artifact, or mutate GitHub.
   executable adapter for that seam. It consumes exact non-secret identities,
   writes one immutable receipt, and performs no Git, network, installation,
   candidate, HIL, or pointer action.
+- `GitHubAppExactCommitPushRoute` and
+  `scripts/codex_release/push_github_app_exact_commit.py` implement the current
+  branch-write route. The local object is only a deterministic preview and is
+  accepted only when both its author and committer are the canonical
+  `evidence-lane[bot]`. The App recreates exact blobs, the tree, ordered commit
+  parents, and the commit through the Git Database API, then fast-forwards one
+  named feature branch with `force=false`. A human-authored commit, stale
+  remote parent, different object identity, protected/default branch, or
+  credential fallback fails before ref mutation.
+- `GitHubAppMainMergeRoute` and
+  `scripts/codex_release/merge_github_app_feature_to_main.py` implement the
+  current feature-to-main promotion route. They require the exact remote source
+  and target refs plus successful latest runs for every named exact-head
+  workflow, invoke the GitHub repository-merge endpoint once, and post-verify
+  the feature tree, ordered parents, `evidence-lane[bot]` actor, and final main
+  ref. The route uploads no blobs, performs no local main checkout, and has no
+  legacy, connector, or exact-commit-reconstruction fallback.
 
 Every receipt excludes raw secrets, bearer values, and artifact bytes. The
 negative suite covers forged signature, delivery replay conflict, stale token,
-overbroad permission, cross-repository scope, missing or revoked entitlement,
-artifact substitution, and check-success authority escalation.
+overbroad permission, cross-repository scope, non-bot commit identity, wrong
+parent/tree/commit objects, missing or revoked entitlement, artifact
+substitution, and check-success authority escalation.
 
 ## Post-HIL user-controlled boundary
 
-The host-managed GitHub App may supply installation and Actions evidence to the
-checkpoint seam, but the seam never receives its private key, webhook secret,
-or installation token. App registration, credential provisioning, repository
-or organization installation, external tester distribution, public listing,
-main promotion, publication, and production deployment remain separately
-authorized operations.
+The host-managed GitHub App supplies short-lived installation authority to the
+exact branch-write route; secrets remain in process memory and never enter a
+receipt. The credential-free checkpoint sealer remains a separate route and
+never receives those values. App registration, credential provisioning,
+repository or organization installation, permission changes, external tester
+distribution, public listing, publication, and production deployment remain
+separately authorized operations. Main promotion is a distinct governed action
+through `github_app_repository_merge_v2` only after exact-head CI is green.

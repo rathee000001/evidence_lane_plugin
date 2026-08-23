@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+
 # Evidence Lane 3.0.0 tools
 
 This is the repository-facing inventory of the declared Evidence Lane tool

@@ -113,6 +113,7 @@ def test_frozen_history_regeneration_never_invokes_git(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    pytest.importorskip("llama_index.core", reason="Prompt Studio rag extra required")
     builder = _load_builder()
     repo = tmp_path / "repo"
     frozen_path = _prepare_frozen_fixture(repo)

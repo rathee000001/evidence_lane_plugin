@@ -177,7 +177,9 @@ def _plugin_version_context() -> dict[str, object]:
         )
         remote_git_policy = dict(release_contract.get("remote_git_policy") or {})
         stable = dict(release_contract.get("stable") or {})
-        branch_recovery = dict(release_contract.get("branch_recovery") or {})
+        retired_branch_recovery = dict(
+            release_contract.get("retired_branch_recovery") or {}
+        )
         local_testing = dict(release_contract.get("local_testing") or {})
         live_slots = dict(release_contract.get("live_slot_policy") or {})
         failover = dict(release_contract.get("failover_operator") or {})
@@ -208,38 +210,43 @@ def _plugin_version_context() -> dict[str, object]:
             and stable.get("stable_selector_is_persistent") is True
             and stable.get("stable_updates_reinstall_in_place") is True
             and stable.get("build_identity_is_receipt_not_selector") is True
-            and branch_recovery.get("release") == runtime_version
-            and branch_recovery.get("slot_role") == "branch-commit-recovery"
-            and branch_recovery.get("codex_marketplace_slot")
-            == "evidence-lane-v300-stable-recovery"
-            and branch_recovery.get("enabled") is False
-            and branch_recovery.get("byte_frozen_between_branch_checkpoints")
+            and retired_branch_recovery.get("slot_role") == "RETIRED_PURGE_ONLY"
+            and retired_branch_recovery.get("plugin_selector")
+            == "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
+            and retired_branch_recovery.get("installation_allowed") is False
+            and retired_branch_recovery.get("migration_read_allowed") is True
+            and retired_branch_recovery.get(
+                "removal_via_supported_codex_api_required"
+            )
             is True
-            and branch_recovery.get("must_not_follow_uncommitted_local_bytes")
-            is True
+            and retired_branch_recovery.get("direct_cache_deletion_allowed")
+            is False
             and local_testing.get("release_line") == runtime_version
-            and local_testing.get("slot_role") == "mutable-local-testing"
+            and local_testing.get("slot_role") == "versioned-local-testing"
             and local_testing.get("codex_marketplace_slot")
             == "evidence-lane-v300-testing-new"
             and local_testing.get("fresh_package_version_per_local_build") is True
-            and local_testing.get("branch_recovery_mutation_allowed_during_local_build")
+            and local_testing.get(
+                "stable_git_main_mutation_allowed_during_local_build"
+            )
             is False
-            and live_slots.get("exact_slot_count") == 3
+            and local_testing.get("helper_installs_plugin") is False
+            and live_slots.get("exact_slot_count") == 2
             and live_slots.get("allowed_slots")
             == [
                 "main-git-release",
-                "branch-commit-recovery",
-                "mutable-local-testing",
+                "versioned-local-testing",
             ]
             and live_slots.get("max_enabled_plugin_count") == 1
-            and live_slots.get("exact_registered_plugin_count") == 3
+            and live_slots.get("exact_registered_plugin_count") == 2
             and live_slots.get("stable_selector_growth_allowed") is False
             and live_slots.get("max_active_native_mcp_count") == 1
             and live_slots.get("max_active_tunnel_count") == 1
             and failover.get("registry_schema")
-            == "evidence-lane.codex-three-slot-registry.v1"
-            and failover.get("failure_target_slot") == "branch-commit-recovery"
-            and failover.get("mutable_local_failure_never_targets_main_git") is True
+            == "evidence-lane.codex-two-slot-main-local-registry.v1"
+            and failover.get("failure_target_slot") == "stable-git-main"
+            and failover.get("versioned_local_failure_targets_verified_main_only")
+            is True
             and failover.get("script")
             == "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
             and failover.get("single_transient_error_switch_allowed")
@@ -250,8 +257,8 @@ def _plugin_version_context() -> dict[str, object]:
             and remote_git_policy.get("per_push_confirmation_token_required")
             is False
             and remote_git_policy.get("main_push_allowed") is False
-            and remote_git_policy.get("merge_allowed") is False
-            and remote_git_policy.get("pull_request_acceptance_allowed") is False
+            and remote_git_policy.get("merge_allowed") is True
+            and remote_git_policy.get("pull_request_acceptance_allowed") is True
             and promotion.get("mode") == "CODE"
             and promotion.get("ci_cd_law") == "CONTROLLED_REQUIRED"
             and promotion.get("explicit_six_way_hil_required") is True

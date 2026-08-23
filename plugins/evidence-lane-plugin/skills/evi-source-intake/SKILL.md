@@ -17,6 +17,15 @@ Project Engulf, and SQLite Brain; accept exact per-source overrides. Always
 include Chat Lineage. Classification alone copies no source, creates no
 candidate, and moves no pointer.
 
+`working_authority_action=REFRESH_WORKING_SECTORS` is the only explicit action
+that materializes or refreshes the live WORKING sector projection. Invoke it as
+a separate call with the exact active session. A `turn_entry` call is an
+immutable query over that materialized projection and must never migrate,
+delete, relocate, or refresh project authority. If the projection is absent or
+bound to another branch/HEAD, the query returns
+`PROJECT_WORKING_QUERY_REFRESH_REQUIRED`; perform the explicit refresh and then
+repeat the read as a new call.
+
 The Git history arm is optional for source intake. `AUTO` enriches a Git
 worktree with history and otherwise falls back to deterministic content
 indexing; `REQUIRED` fails closed without a readable Git worktree and HEAD;

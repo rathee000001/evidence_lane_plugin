@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+
 # Evidence Lane 3.0.0 native MCP
 
 Evidence Lane exposes one package-local native MCP server named

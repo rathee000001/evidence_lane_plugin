@@ -108,6 +108,58 @@ def test_directory_path_size_identity_never_claims_content_hash(
     )
 
 
+def test_git_directory_identity_excludes_ignored_and_local_history(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "repository"
+    source.mkdir()
+    _git(source, "init", "-b", "main")
+    _git(source, "config", "user.name", "Evidence Lane Test")
+    _git(source, "config", "user.email", "evidence-lane@example.invalid")
+    (source / ".gitignore").write_text("node_modules/\n", encoding="utf-8")
+    (source / "module.py").write_text("VALUE = 1\n", encoding="utf-8")
+    evidence = source / "evidence" / "local-history"
+    evidence.mkdir(parents=True)
+    (evidence / "receipt.json").write_text("{}\n", encoding="utf-8")
+    ignored = source / "node_modules" / "dependency"
+    ignored.mkdir(parents=True)
+    (ignored / "large.bin").write_bytes(b"x" * 4096)
+    _git(source, "add", ".gitignore", "module.py")
+    _git(source, "commit", "-m", "tracked source")
+
+    result = classify_source_intake([str(source)], code_mode="local_code")
+    identity = result["sources"][0]["source_identity"]
+
+    assert identity["bounded_io"]["source_selection"] == (
+        "GIT_INDEX_AND_SAFE_UNTRACKED"
+    )
+    assert identity["bounded_io"]["ignored_paths_traversed"] is False
+    assert identity["bounded_io"]["local_history_content_read"] is False
+    assert identity["bounded_io"]["excluded_class_counts"] == {
+        "LOCAL_HISTORY_PATH_EXCLUDED": 1
+    }
+    assert identity["member_count"] == 2
+
+
+@pytest.mark.parametrize("code_mode", ["local_code", "github_code"])
+def test_code_config_path_context_overrides_generic_json_lane(
+    tmp_path: Path,
+    code_mode: str,
+) -> None:
+    manifest = tmp_path / "plugins" / "example" / ".codex-plugin" / "plugin.json"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text('{"name":"example"}\n', encoding="utf-8")
+
+    result = classify_source_intake([str(manifest)], code_mode=code_mode)
+    source = result["sources"][0]
+
+    assert source["canonical_lane_id"] == code_mode
+    assert source["classification_reason"] == (
+        "authoritative_code_config_path_context"
+    )
+    assert source["source_identity"]["bounded_io"]["consumed_file_count"] == 1
+
+
 def test_archive_profile_separates_package_format_from_generator_identity(
     tmp_path: Path,
 ) -> None:

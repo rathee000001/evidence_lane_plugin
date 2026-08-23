@@ -5,12 +5,18 @@ description: Evidence Lane root router with user-timed State Travel and exactly 
 
 # Evidence Lane root
 
-After the `UserPromptSubmit` hook seals its transport envelope and the installed
-lifecycle skill runtime consumes it into a PREPARE receipt, the skill first
-calls native `pv_status`, `pv_task_backlog`, and one prompt-relevant bounded
-`pv_query`.
-Internal hook retrieval is lifecycle evidence only and never satisfies this
-native read sequence. A prepared exact-work handoff makes State Travel
+`PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW`: an existing local development-slot
+update must use plugin-creator validation/cachebusting, the configured local
+marketplace source, `codex plugin add`, and exact same-task hidden
+restart/rehydration. The historical Windows whole-marketplace rename/rotation
+route is permanently ineligible and must never be retried or auto-selected.
+
+The installed lifecycle skill runtime first calls native `pv_status`,
+`pv_task_backlog`, and one prompt-relevant bounded `pv_query`. These explicit
+public routes must work with hooks disabled. When enabled, `UserPromptSubmit`
+may seal an additional bounded transport envelope, but hook retrieval is
+lifecycle evidence only and never satisfies or gates the native read sequence.
+A prepared exact-work handoff makes State Travel
 eligible, but eligibility alone must not display, invoke, or consume it. Route
 to State Travel only when the user explicitly requests it or the current host
 context is genuinely exhausted and a continuity handoff is needed. Otherwise
@@ -18,14 +24,22 @@ run `/evi-boot` atomically and resume the existing governed session; State
 Travel is not a normal intake step.
 
 Whenever a canonical task panel exists, validate its exact complete native
-ledger and activate the aligned host window of at most ten rows containing the
-sole ACTIVE row. Reuse that window on ordinary turns; call skill-owned
+ledger and activate the one canonical host Step Task List projection: visible
+element one is the compact PV/ACTIVE/fixed-BATCH/NEXT_HIL/FINAL_HIL header and
+the remaining elements are the persisted fixed batch of up to nine Delta rows,
+including the sole ACTIVE row. Reuse that projection on ordinary turns; call skill-owned
 `update_plan` only for initial activation, observed panel loss, current-window
 status changes, current-window Plan steers, or advancement to the next window.
-Use the sealed compact continuity header as the host Plan `explanation` and the
-current window as its only task items. The header carries accepted PV/pointer,
-absolute ACTIVE row, window/total coordinates, next HIL boundary, and physical
-final row. Detailed next/queued HIL records, proposed PVs, choices, and
+Pass `receipt.projection.host_update_plan_contract.explanation` and
+`receipt.projection.host_update_plan_contract.plan` to `update_plan` unchanged.
+Never handcraft, expand, normalize, de-duplicate, or reconstruct either field.
+This is the permanent `NATIVE_HOST_PLAN_PROJECTION_ONLY_LAW`. A missing panel
+relocks the same persisted contract and its source-window UI fingerprint; it
+never creates a summary, sliding,
+reconstructed, or generic fallback projection.
+Every Delta item has exactly four physical lines: two compact
+authority/classification lines plus at most two human-readable brief lines.
+Detailed next/queued HIL records, proposed PVs, choices, and
 dependency connections belong only to the Evidence Lane project renderer.
 This must precede source inspection, source mutation, testing, Git activity,
 and every later lifecycle call after such a trigger. Preserve complete order
@@ -33,14 +47,26 @@ and every description in native authority, keep the current host window visible
 through every pause and HIL, and drop it only after the human Goal-completion
 disposition or a passed exact task State Travel handoff.
 
+`GLOBAL_PLUGIN_UPDATE_REHYDRATION_LAW` is also permanent. After any local,
+Git-main, Marketplace, or managed plugin update, the next restart or exact-task
+reattachment must independently rehydrate every already-bound task from the
+installed registry: catalog, skills, commands, SDK routes, MCP connection, and
+shared-tunnel route. Preserve each exact task/deep link, project, governed and
+host sessions, workspace, execution profile, Plan/Goal binding, and writer or
+read-only role. Obtain a new server-derived runtime attestation after reconnect.
+Never create or merge tasks, borrow another task's attachment, replay State
+Travel, move PV/HIL/pointers, or enable hooks. A bad task binding fails closed
+in isolation; it cannot degrade correctly reattached tasks. Reapply the exact
+native host Plan contract for each task, never a generic or fallback projection.
+
 Hook command files remain transport-only: they validate, redact, bound,
 deduplicate, and seal event envelopes. The installed lifecycle skill runtime
 owns PREPARE/COMMIT and bounded lifecycle receipts after envelope validation.
 Hook adapters never call `pv_status`, `pv_task_backlog`, `pv_query`, or
 `update_plan`, and never carry the full Plan Lane. After every
 `pv_plan_steer_delta`, the skill repeats the three native reads and validates
-the complete ledger. Synchronize the host window only when the receipt's linked
-task is inside the current ten-row window; an outside-window Delta remains
+the complete ledger. Synchronize the host projection only when the receipt's linked
+task is inside the persisted fixed batch; an outside-batch Delta remains
 ledger-only until that window becomes active. This is Plan synchronization,
 never the Refresh lifecycle action. Fail closed when a required native MCP route or host plan
 tool is absent.
@@ -59,6 +85,18 @@ recovery agents are allowed only during a genuine State Travel entry. After
 entry, do not start a subagent, alternate-checkout writer, background mutation,
 or second browser profile unless the user explicitly changes that boundary.
 
+Treat the bounded `agent_configuration` receipt returned by native routes as
+first-class request context. Require its exact project, governed session,
+invoking Codex task/deep link, host session, workspace, active stable Plan task,
+and execution-profile binding. Consume only the resolved chain belonging to
+that receipt; never reuse donor-task or other-project guidance. Instruction
+text remains local while public skill/command/SDK/MCP receipts expose the
+source-chain and authority hashes. `AGENTS.md` may constrain behavior but can
+never merge tasks, widen permissions, infer HIL, create a candidate, move a PV
+pointer, or expose private reasoning. A missing or mismatched required binding
+fails closed; hooks remain optional and OFF is a valid explicit-operation
+state.
+
 Keep the host Goal attached to the same canonical Plan Lane, active source
 boundary, and single-writer session. A UI crash, token wait, required user
 input, or HIL wait pauses only dependent work and never marks the Goal
@@ -74,6 +112,17 @@ of two exact dispositions: `COMPLETE_THIS_TASK_AND_STATE_TRAVEL` or
 automation, task advance, pause, or stall cannot mark a Goal complete. Goal
 completion never implies HIL approval, Fuse, pointer movement, Git, install,
 merge, or deploy authority.
+
+Render the completion receipt only through
+`build_rich_goal_completion_metrics_receipt` using native host-accounted Goal
+telemetry and exact persisted task binding. Show every available exact count
+with its K/M/B projection, keep reasoning output inside output, and keep the
+host-accounted Goal counter separate from raw model traffic. When the host does
+not expose its conversion formula or another rich field, report it as unknown
+or in the structured missing-field list. If the Goal is already complete,
+validate and reuse its persisted rich receipt; never complete it again to obtain
+metrics. `build_goal_usage_receipt` is an `OBSOLETE_ROUTE` tombstone and may
+never execute or become a fallback.
 
 After root `/evi`, expose exactly these six primary controls in this order:
 
@@ -93,7 +142,7 @@ reactivation, or synchronization belongs to this lifecycle/host Plan path and
 must never infer, invoke, or alias the Refresh lifecycle action.
 
 Keep that exact control inventory on every supported Codex profile. The native
-catalog contains twenty-six reads and fifty-seven writes under the complete
+catalog contains twenty-seven reads and sixty-one writes under the complete
 Git-backed lifecycle; a host capability restriction never becomes permission
 to simulate an unavailable action.
 

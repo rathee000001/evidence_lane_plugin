@@ -5,6 +5,7 @@ import sqlite3
 from pathlib import Path
 
 import pytest
+from evidence_lane_plugin import project_authority
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS
 from evidence_lane_plugin.project_authority import (
@@ -18,6 +19,64 @@ from evidence_lane_plugin.project_pv_storage import (
 )
 
 from .conftest import build_and_approve_pv1, git
+
+
+def test_windows_path_replace_retries_transient_permission_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = tmp_path / "source"
+    destination = tmp_path / "destination"
+    source.mkdir()
+    calls = 0
+    real_replace = project_authority.os.replace
+
+    def transient_replace(left: object, right: object) -> None:
+        nonlocal calls
+        calls += 1
+        if calls < 3:
+            raise PermissionError(13, "sharing violation")
+        real_replace(left, right)
+
+    monkeypatch.setattr(project_authority.os, "name", "nt")
+    monkeypatch.setattr(project_authority.os, "replace", transient_replace)
+    monkeypatch.setattr(project_authority.time, "sleep", lambda _: None)
+
+    report = project_authority._replace_path_with_retry(
+        source,
+        destination,
+        operation="TEST_TRANSIENT_REPLACE",
+    )
+
+    assert report["attempt_count"] == 3
+    assert report["transient_retry_count"] == 2
+    assert destination.is_dir()
+    assert not source.exists()
+
+
+def test_windows_path_replace_exhaustion_is_structured(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = tmp_path / "source"
+    destination = tmp_path / "destination"
+    source.mkdir()
+
+    def blocked_replace(left: object, right: object) -> None:
+        raise PermissionError(13, "sharing violation")
+
+    monkeypatch.setattr(project_authority.os, "name", "nt")
+    monkeypatch.setattr(project_authority.os, "replace", blocked_replace)
+    monkeypatch.setattr(project_authority.time, "sleep", lambda _: None)
+
+    with pytest.raises(EvidenceLaneError) as raised:
+        project_authority._replace_path_with_retry(
+            source,
+            destination,
+            operation="TEST_BLOCKED_REPLACE",
+        )
+
+    assert raised.value.code == "PROJECT_WORKING_WINDOWS_PATH_REPLACE_BLOCKED"
+    assert raised.value.details["attempt_count"] == 12
+    assert raised.value.details["operation"] == "TEST_BLOCKED_REPLACE"
 
 
 def _relocate(service, source_repository: Path, target: Path) -> dict:
@@ -460,6 +519,13 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
     changed_head = json.loads(lineage_head.read_text(encoding="utf-8"))
     changed_head["test_refresh_marker"] = "operational-authority-drift"
     lineage_head.write_text(json.dumps(changed_head), encoding="utf-8")
+    atomic_insertions = (
+        target / "sectors" / "plan" / "plan_atomic_insertions"
+    )
+    atomic_insertions.mkdir(parents=True, exist_ok=True)
+    insertion_path = atomic_insertions / "live-plan-steer.json"
+    insertion_bytes = json.dumps({"state": "ACCEPTED_PLAN_STEER"}).encode("utf-8")
+    insertion_path.write_bytes(insertion_bytes)
     refreshed = migrate_working_project_sectors(
         target,
         repository_root=source_repository,
@@ -469,6 +535,13 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
     )
     assert refreshed["status"] == "PASS"
     assert refreshed["state"] == "WORKING_SECTOR_AUTHORITY_REFRESHED"
+    assert (
+        target
+        / "sectors"
+        / "plan"
+        / "plan_atomic_insertions"
+        / "live-plan-steer.json"
+    ).read_bytes() == insertion_bytes
 
 
 def test_working_sector_migration_hash_accounts_excluded_dirty_content(
@@ -534,6 +607,75 @@ def test_working_sector_migration_hash_accounts_excluded_dirty_content(
     assert row[0] == "HASH_LOCATOR_ONLY"
     assert row[1] == "ASSIGNED_SECRET_MATERIAL_EXCLUDED"
     assert isinstance(row[2], str) and len(row[2]) == 64
+
+
+def test_working_sector_migration_excludes_local_evidence_paths(
+    service, source_repository: Path, tmp_path: Path
+) -> None:
+    build_and_approve_pv1(service)
+    target = tmp_path / "user-projects" / "book-faires"
+    _relocate(service, source_repository, target)
+    (target / "task_backlog.json").write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.linear-task-backlog.v1",
+                "project_id": "book-faires",
+                "plans": [],
+                "tasks": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    plan = sqlite3.connect(target / "plan_runtime_projection.sqlite")
+    plan.execute("CREATE TABLE plan_row(task_id TEXT PRIMARY KEY, state TEXT NOT NULL)")
+    plan.execute("INSERT INTO plan_row VALUES ('R1', 'ACTIVE')")
+    plan.commit()
+    plan.close()
+    lineage = target / "lineage"
+    lineage.mkdir(exist_ok=True)
+    (lineage / "chat_lineage_head.json").write_text(
+        '{"revision":1}\n', encoding="utf-8"
+    )
+    control = sqlite3.connect(lineage / "chat_lineage.sqlite")
+    control.execute("CREATE TABLE event(sequence INTEGER PRIMARY KEY, value TEXT)")
+    control.commit()
+    control.close()
+    local_evidence = source_repository / "evidence" / "local-history" / "receipt.json"
+    local_evidence.parent.mkdir(parents=True)
+    local_evidence.write_text('{"local_only":true}\n', encoding="utf-8")
+
+    result = migrate_working_project_sectors(
+        target,
+        repository_root=source_repository,
+        project_id="book-faires",
+        accepted_pv="PV1",
+        pointer_generation=1,
+    )
+
+    assert result["status"] == "PASS"
+    inventory = sqlite3.connect(
+        target / "sectors" / "artifacts" / "working_delta_inventory.sqlite"
+    )
+    try:
+        row = inventory.execute(
+            "SELECT path FROM working_path_inventory WHERE path LIKE 'evidence/%'"
+        ).fetchone()
+    finally:
+        inventory.close()
+    assert row is None
+    receipt = json.loads(
+        (
+            target
+            / "receipts"
+            / "project-authority"
+            / "working-sector-migration.json"
+        ).read_text(encoding="utf-8")
+    )
+    exclusion = receipt["local_only_exclusion"]
+    assert exclusion["excluded_path_count"] == 1
+    assert exclusion["excluded_prefix_counts"]["evidence/"] == 1
+    assert exclusion["raw_excluded_paths_returned"] is False
+    assert exclusion["excluded_content_read"] is False
 
 
 def test_working_sector_migration_refreshes_when_dirty_identity_changes(
@@ -627,3 +769,36 @@ def test_working_sector_migration_refreshes_when_dirty_identity_changes(
     assert refreshed["pointer_moved"] is False
     assert refreshed["candidate_created"] is False
     assert refreshed["hil_inferred"] is False
+    refreshed_manifest = json.loads(
+        (target / "sectors" / "manifest.json").read_text(encoding="utf-8")
+    )
+    assert refreshed_manifest["summary"]["full_build_lanes"] == []
+    assert refreshed_manifest["summary"]["full_validation_fallbacks"] == []
+    assert len(refreshed_manifest["reports"]) == len(CANONICAL_LANE_IDS)
+    assert all(
+        row["build_mode"] in {"UNCHANGED_REUSE", "INCREMENTAL_REFRESH"}
+        for row in refreshed_manifest["reports"]
+    )
+    assert any(
+        row["build_mode"] == "UNCHANGED_REUSE"
+        for row in refreshed_manifest["reports"]
+    )
+    migration_receipt = json.loads(
+        (
+            target
+            / "receipts"
+            / "project-authority"
+            / "working-sector-migration.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert (
+        migration_receipt["build_parent_kind"]
+        == "CURRENT_VALIDATED_WORKING_SECTORS"
+    )
+    assert migration_receipt["canonical_lane_refresh"]["authority_scope"] == (
+        "ALL_18_CANONICAL_LANES"
+    )
+    assert migration_receipt["canonical_lane_refresh"]["lane_report_count"] == 18
+    assert migration_receipt["canonical_lane_refresh"][
+        "full_validation_fallbacks"
+    ] == []

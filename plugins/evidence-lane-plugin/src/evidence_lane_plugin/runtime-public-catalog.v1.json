@@ -1,0 +1,9 @@
+{
+  "schema": "evidence-lane.runtime-public-catalog.v1",
+  "tools": 88,
+  "read": 27,
+  "write": 61,
+  "skills": 17,
+  "mcp_source_sha256": "BEAECFA2348BBE9F631B810C8AC372329F381E76DA3EEF50D3BB236D35CB4EFC",
+  "release_channel_sha256": "F1A9BB02FD6DE0D1E2EC56666F17F7A8A372AEDFA5A694930F21C55B34E65A7F"
+}

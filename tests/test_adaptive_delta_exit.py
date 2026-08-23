@@ -8,8 +8,10 @@ import pytest
 from evidence_lane_plugin import adaptive_delta_exit as adaptive
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hook_contract import HOOK_EVENT_NAMES
+from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS
 from evidence_lane_plugin.models import RepositoryIdentity
 from evidence_lane_plugin.plan_runtime import append_task_formula_event
+from evidence_lane_plugin.service import EvidenceLaneService
 
 ACTIVE_TASK = "DELTA-246"
 INSTALL_TASK = "DELTA-248"
@@ -97,7 +99,11 @@ class _FakeStore:
 
     def pointer(self, project_id: str) -> SimpleNamespace:
         del project_id
-        return SimpleNamespace(as_dict=lambda: deepcopy(self._pointer))
+        return SimpleNamespace(
+            accepted_pv="PV12",
+            generation=12,
+            as_dict=lambda: deepcopy(self._pointer),
+        )
 
     def backlog_status(self, project_id: str) -> dict:
         del project_id
@@ -109,6 +115,14 @@ class _FakeStore:
 
     def project_root(self, project_id: str) -> Path:
         return self.root / project_id
+
+    def plan_runtime_query(self, project_id: str, **kwargs: object) -> dict:
+        del project_id, kwargs
+        return {
+            "formula_events": deepcopy(
+                self._formula_backlog["task_formula_events"]
+            )
+        }
 
     def record_task_formula(self, project_id: str, **kwargs: object) -> dict:
         del project_id
@@ -133,17 +147,79 @@ class _FakeSdk:
     def invoke(self, *, module_id: str, operation: str, **kwargs: object) -> dict:
         del kwargs
         self.calls.append((module_id, operation))
+        data: dict[str, object] = {}
+        if (module_id, operation) in {
+            ("agent_learning", "retrieve"),
+            ("project_memory", "query"),
+        }:
+            data = {
+                "status": "PASS",
+                "result": "NO_HIT",
+                "hits": [],
+                "suppressed": [],
+                "full_ledger_loaded_into_model_context": False,
+            }
+        elif (module_id, operation) == ("canon_input", "graph"):
+            data = {
+                "status": "PASS",
+                "contract_count": 0,
+                "packet_count": 0,
+                "edge_count": 0,
+                "consequence_graph": {"status": "PASS", "state": "CURRENT"},
+            }
         return {
             "status": "PASS",
             "module_id": module_id,
             "operation": operation,
             "receipt_sha256": "E" * 64,
             "authority_effects": {"pointer_moved": False},
+            "data": data,
         }
 
 
 def _service(tmp_path: Path) -> SimpleNamespace:
-    return SimpleNamespace(store=_FakeStore(tmp_path), sessions=_FakeSessions())
+    return SimpleNamespace(
+        store=_FakeStore(tmp_path),
+        sessions=_FakeSessions(),
+        _refresh_delta_source_authority=lambda project_id, session_id, task_id: {
+            "schema": "evidence-lane.delta-source-authority-refresh.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "session_id": session_id,
+            "task_id": task_id,
+            "source_planes": [
+                {
+                    "lane_id": "local_code",
+                    "status": "PASS",
+                    "receipt_sha256": "8" * 64,
+                },
+                {
+                    "lane_id": "github_code",
+                    "status": "PASS",
+                    "receipt_sha256": "9" * 64,
+                },
+            ],
+            "canonical_lane_refresh": {
+                "authority_scope": "ALL_18_CANONICAL_LANES",
+                "refresh_action": "WORKING_TO_WORKING_INCREMENTAL_REFRESH",
+                "canonical_lane_count": len(CANONICAL_LANE_IDS),
+                "emitted_lane_ids": list(CANONICAL_LANE_IDS),
+                "lane_report_count": len(CANONICAL_LANE_IDS),
+                "lane_reports": [
+                    {
+                        "lane_id": lane_id,
+                        "build_mode": "UNCHANGED_REUSE",
+                        "full_validation_fallback_reason": None,
+                        "byte_reused": True,
+                    }
+                    for lane_id in CANONICAL_LANE_IDS
+                ],
+                "full_validation_fallbacks": [],
+                "build_parent_kind": "CURRENT_VALIDATED_WORKING_SECTORS",
+            },
+            "receipt_sha256": "7" * 64,
+        },
+    )
 
 
 def _repository_identity() -> RepositoryIdentity:
@@ -199,6 +275,17 @@ def test_adaptive_delta_exit_closes_formula_with_all_current_hooks(
             },
         },
     )
+    monkeypatch.setattr(
+        adaptive,
+        "query_working_project_sectors",
+        lambda *args, **kwargs: {
+            "status": "PASS",
+            "queried_lane_ids": list(CANONICAL_LANE_IDS),
+            "hits": [],
+            "query_mutated_project_authority": False,
+            "query_rehashed_dirty_content": False,
+        },
+    )
 
     result = adaptive.run_adaptive_delta_exit(
         service,
@@ -229,15 +316,36 @@ def test_adaptive_delta_exit_closes_formula_with_all_current_hooks(
 
     receipt = result["receipt"]
     assert result["status"] == "PASS"
-    assert receipt["hook_registry_count"] == len(HOOK_EVENT_NAMES) == 8
+    assert receipt["hook_registry_count"] == len(HOOK_EVENT_NAMES) == 11
     assert [row["hook_name"] for row in receipt["hook_progression"]] == list(
         HOOK_EVENT_NAMES
     )
-    assert len({row["hook_name"] for row in receipt["hook_progression"]}) == 8
+    assert len({row["hook_name"] for row in receipt["hook_progression"]}) == 11
     assert all(
         row["state"] == "UNCHANGED_INACTIVE" for row in receipt["hook_progression"]
     )
-    assert sdk.calls == list(adaptive._SDK_OPERATIONS)
+    assert sdk.calls == list(adaptive._SDK_OPERATIONS) + list(
+        adaptive._DECISION_SUPPORT_OPERATIONS
+    )
+    assert [
+        row["lane_id"]
+        for row in receipt["source_authority_refresh"]["source_planes"]
+    ] == ["local_code", "github_code"]
+    assert receipt["source_authority_refresh"]["canonical_lane_refresh"][
+        "emitted_lane_ids"
+    ] == list(CANONICAL_LANE_IDS)
+    assert receipt["source_authority_refresh"]["canonical_lane_refresh"][
+        "lane_report_count"
+    ] == 18
+    assert receipt["plan_runtime_authority_state"] == (
+        "LIVE_CURRENT_EXECUTION_AUTHORITY"
+    )
+    assert [
+        row["module_id"] for row in receipt["decision_support_receipts"]
+    ] == ["agent_learning", "project_memory", "canon_input"]
+    assert receipt["working_sector_fallback_receipt"]["queried_lane_ids"] == list(
+        CANONICAL_LANE_IDS
+    )
     assert receipt["install_disposition"]["install_performed"] is False
     assert receipt["plan_task_advanced"] is False
     assert receipt["git_mutated"] is False
@@ -246,6 +354,68 @@ def test_adaptive_delta_exit_closes_formula_with_all_current_hooks(
         service.store._formula_backlog["task_formula_events"][-1]["event_kind"]
         == "EXIT_FORMULA"
     )
+
+
+def test_formula_identity_mismatch_fails_before_any_refresh(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = _service(tmp_path)
+    entry = append_task_formula_event(
+        service.store._formula_backlog,
+        task_id=ACTIVE_TASK,
+        event_kind="ENTRY_FORMULA",
+        source_event_id="entry-missing-task-id",
+        session_id="session-1",
+        formula=_entry_formula(),
+        actor="human-test",
+    )
+    service.store._formula_backlog["task_formula_events"][0].pop("task_id")
+    refresh_calls: list[str] = []
+    service._refresh_delta_source_authority = (
+        lambda *args, **kwargs: refresh_calls.append("source")
+    )
+    monkeypatch.setattr(
+        adaptive,
+        "build_live_local_sdk_context",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            AssertionError("SDK refresh must not start before formula validation")
+        ),
+    )
+    monkeypatch.setattr(
+        adaptive,
+        "inspect_repository",
+        lambda *args, **kwargs: _repository_identity(),
+    )
+
+    with pytest.raises(EvidenceLaneError) as raised:
+        adaptive.run_adaptive_delta_exit(
+            service,
+            "adaptive-project",
+            "session-1",
+            task_id=ACTIVE_TASK,
+            source_event_id="exit-missing-task-id",
+            prior_formula_sha256=entry["formula_sha256"],
+            formula=_exit_formula(),
+            validator_results=[
+                {
+                    "name": "pytest",
+                    "status": "PASS",
+                    "evidence_locator": "test:formula-preflight",
+                    "receipt_sha256": "A" * 64,
+                }
+            ],
+            install_disposition={
+                "status": "DEFERRED_TO_VERIFIED_BATCH",
+                "source_scope_sha256": "B" * 64,
+                "deferred_to_task_id": INSTALL_TASK,
+                "covered_task_ids": [ACTIVE_TASK],
+                "reason": "Grouped install remains pending.",
+            },
+        )
+
+    assert raised.value.code == "ADAPTIVE_DELTA_EXIT_ENTRY_FORMULA_TIMESTAMP_REQUIRED"
+    assert refresh_calls == []
+    assert len(service.store._formula_backlog["task_formula_events"]) == 1
 
 
 def test_hook_progression_rejects_missing_or_collapsed_registry() -> None:
@@ -276,3 +446,54 @@ def test_install_deferral_requires_later_queued_target() -> None:
             goal_rows=_goal_projection()["goal_projection"]["rows"],
         )
     assert raised.value.code == "ADAPTIVE_DELTA_EXIT_INSTALL_DEFERRAL_INVALID"
+
+
+def test_delta_source_refresh_rejects_wrong_active_task_before_repository_work(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository_work_entered = False
+
+    def forbidden_repository_work(*args: object, **kwargs: object) -> object:
+        nonlocal repository_work_entered
+        del args, kwargs
+        repository_work_entered = True
+        raise AssertionError("repository work entered before exact-task rejection")
+
+    service = SimpleNamespace(
+        sessions=SimpleNamespace(
+            load=lambda project_id, session_id: SimpleNamespace(
+                metadata={"active_backlog_task_id": "OTHER-TASK"}
+            )
+        ),
+        store=SimpleNamespace(
+            backlog_status=lambda project_id: {
+                "goal_projection": {
+                    "rows": [
+                        {
+                            "task_id": ACTIVE_TASK,
+                            "status": "in_progress",
+                        }
+                    ]
+                }
+            }
+        ),
+    )
+    monkeypatch.setattr(
+        "evidence_lane_plugin.service.inspect_repository",
+        forbidden_repository_work,
+    )
+    monkeypatch.setattr(
+        "evidence_lane_plugin.service.migrate_working_project_sectors",
+        forbidden_repository_work,
+    )
+
+    with pytest.raises(EvidenceLaneError) as raised:
+        EvidenceLaneService._refresh_delta_source_authority(
+            service,
+            "adaptive-project",
+            "session-1",
+            task_id=ACTIVE_TASK,
+        )
+
+    assert raised.value.code == "DELTA_SOURCE_REFRESH_TASK_BINDING_MISMATCH"
+    assert repository_work_entered is False

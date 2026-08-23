@@ -3,9 +3,10 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
-import site
 from pathlib import Path
 
+import cryptography
+import pydantic
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,11 +44,14 @@ def test_verifier_is_hard_bounded_away_from_live_host_and_helper() -> None:
 
 
 @pytest.mark.skipif(os.name != "nt", reason="exact Windows hook command proof")
-def test_exact_disabled_projection_runs_all_eight_and_recovery_controls(
+def test_exact_disabled_projection_runs_registry_and_recovery_controls(
     tmp_path: Path,
 ) -> None:
     module = _module()
-    dependency_root = Path(site.getsitepackages()[-1]).resolve()
+    cryptography_root = Path(cryptography.__file__).resolve().parents[1]
+    pydantic_root = Path(pydantic.__file__).resolve().parents[1]
+    assert cryptography_root == pydantic_root
+    dependency_root = cryptography_root
     receipt = module.verify_isolated_installed_runtime(
         source_plugin_root=PLUGIN_ROOT,
         isolated_root=tmp_path / "row210-isolated",
@@ -58,11 +62,15 @@ def test_exact_disabled_projection_runs_all_eight_and_recovery_controls(
     assert receipt["status"] == "PASS"
     assert receipt["projection"]["exact_bytes_verified"] is True
     assert receipt["projection"]["file_count"] > 300
-    assert receipt["installed_manifest"]["event_count"] == 8
+    assert receipt["installed_manifest"]["event_count"] == len(module.EVENT_ORDER)
     assert receipt["event_correlation"]["events"] == list(module.EVENT_ORDER)
-    assert receipt["event_correlation"]["unique_correlation_count"] == 8
+    assert receipt["event_correlation"]["unique_correlation_count"] == len(
+        module.EVENT_ORDER
+    )
     assert receipt["stop_no_loop"]["handler_execution_count"] == 1
     assert receipt["stop_no_loop"]["first_and_replay_output"] == {}
+    assert receipt["subagent_stop_no_loop"]["handler_execution_count"] == 1
+    assert receipt["subagent_stop_no_loop"]["continuation_control_emitted"] is False
     assert receipt["reentrancy"] == {
         "status": "PASS",
         "denial_code": "HOOK_EVENT_REENTRANCY_DENIED",
@@ -72,10 +80,12 @@ def test_exact_disabled_projection_runs_all_eight_and_recovery_controls(
     assert receipt["kill_switch"]["active_state_denial_code"] == (
         "HOOK_KILL_SWITCH_ACTIVE"
     )
-    assert receipt["restart_recovery"]["receipt_count_after_restart"] == 9
+    assert receipt["restart_recovery"]["receipt_count_after_restart"] == (
+        len(module.EVENT_ORDER) + 1
+    )
     assert receipt["restart_recovery"]["runtime_marker_valid"] is True
-    assert receipt["launcher_process_count"] == 12
-    assert receipt["unique_launcher_process_count"] == 12
+    assert receipt["launcher_process_count"] == len(module.EVENT_ORDER) + 5
+    assert receipt["unique_launcher_process_count"] == len(module.EVENT_ORDER) + 5
     assert receipt["live_codex_home_opened"] is False
     assert receipt["live_codex_config_written"] is False
     assert receipt["live_plugin_slot_written"] is False

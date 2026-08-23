@@ -6347,6 +6347,7 @@ def _build_one_lane(
         prior_lane is not None
         and not _prior_lane_topology_is_reconcilable(prior_lane, lane)
     )
+    full_validation_fallback_reason: str | None = None
     changed = (
         prior_lane is None
         or tool_changed
@@ -6453,6 +6454,17 @@ def _build_one_lane(
         else:
             connection = _open_lane(db_path, lane, initialize=True)
             build_mode = "FULL_PV1" if parent_pv is None else "FULL_VALIDATION_FALLBACK"
+            if build_mode == "FULL_VALIDATION_FALLBACK":
+                if prior_lane is None:
+                    full_validation_fallback_reason = "PRIOR_LANE_ABSENT"
+                elif prior_db is None or not prior_db.is_file():
+                    full_validation_fallback_reason = "PRIOR_DATABASE_ABSENT"
+                elif tool_changed:
+                    full_validation_fallback_reason = "TOOL_IDENTITY_CHANGED"
+                else:
+                    raise ValueError(
+                        "A full validation fallback requires one explicit bounded reason."
+                    )
             for relative_path in paths:
                 _, parser_state = _insert_source(
                     connection,
@@ -6584,6 +6596,7 @@ def _build_one_lane(
         "schema": "evidence-lane.lane-refresh-receipt.v1",
         "lane_id": lane.canonical_lane_id,
         "build_mode": build_mode,
+        "full_validation_fallback_reason": full_validation_fallback_reason,
         "classification": classification,
         "tool_identity_changed": tool_changed,
         "topology_generator_changed": topology_generator_changed,
@@ -6634,6 +6647,7 @@ def _build_one_lane(
     return {
         "lane_id": lane.canonical_lane_id,
         "build_mode": build_mode,
+        "full_validation_fallback_reason": full_validation_fallback_reason,
         "byte_reused": byte_reused,
         "classification": classification,
         "git_history": history_report,
@@ -7121,6 +7135,14 @@ def build_lane_bundle(
             row["lane_id"]
             for row in reports
             if row["build_mode"] in {"FULL_PV1", "FULL_VALIDATION_FALLBACK"}
+        ],
+        "full_validation_fallbacks": [
+            {
+                "lane_id": row["lane_id"],
+                "reason": row["full_validation_fallback_reason"],
+            }
+            for row in reports
+            if row["build_mode"] == "FULL_VALIDATION_FALLBACK"
         ],
         "incremental_lanes": [
             row["lane_id"]

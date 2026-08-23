@@ -1,9 +1,0 @@
-interface:
-  display_name: "Evidence Lane Code Lifecycle"
-  short_description: "Govern code work from Boot through HIL"
-  default_prompt: "Use $evidence-lane-code-lifecycle to execute one bounded code Delta under the persistent Plan and HIL laws."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

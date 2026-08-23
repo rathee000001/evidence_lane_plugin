@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+
 # AI Learning
 
 Evidence Lane AI Learning is a project-scoped authority for reusable lessons.

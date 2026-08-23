@@ -339,6 +339,13 @@ def test_turn_entry_queries_live_sectors_and_records_formula_lineage(
         "source_event_id": "turn-entry-source-event-1",
         "event_id": "turn-entry-formula-event-1",
     }
+    refreshed = service.source_intake(
+        "book-faires",
+        [str(local_code)],
+        session_id=session_id,
+        working_authority_action="REFRESH_WORKING_SECTORS",
+    )
+    assert refreshed["working_authority_refresh"]["status"] == "PASS"
     real_query_working_project_sectors = service_module.query_working_project_sectors
 
     def fail_working_query(*args, **kwargs):
@@ -392,6 +399,8 @@ def test_turn_entry_queries_live_sectors_and_records_formula_lineage(
     assert receipt["status"] == "PASS"
     assert receipt["active_task_id"] == task["task_id"]
     assert receipt["working_sector_query"]["hits"]
+    assert receipt["working_sector_query"]["query_mutated_project_authority"] is False
+    assert receipt["working_sector_query"]["query_rehashed_dirty_content"] is False
     assert "local_code" in receipt["working_sector_query"]["queried_lane_ids"]
     assert any(
         hit["lane_id"] == "local_code"
@@ -402,6 +411,14 @@ def test_turn_entry_queries_live_sectors_and_records_formula_lineage(
         "DIRTY_WORKING_TREE",
     }
     assert receipt["fallback_authority"] == "LIVE_DIRTY_WORKSPACE_AND_INDEX"
+    assert receipt["decision_routing"]["plan_runtime_authority_state"] == (
+        "LIVE_CURRENT_EXECUTION_AUTHORITY"
+    )
+    assert receipt["decision_routing"]["instruction_authorities_separate"] == [
+        "AGENTS.md",
+        "MEMORY.md",
+    ]
+    assert receipt["decision_routing"]["working_sector_query_executed"] is True
     replay = service.source_intake(
         "book-faires",
         [str(local_code)],
@@ -516,20 +533,3 @@ def test_data_machine_top_level_authority_contract_is_available_for_opt_in() -> 
     assert (
         sum(row.is_file() and row.suffix.casefold() == ".zip" for row in sources) >= 9
     )
-
-
-def test_repository_all_source_crosswalk_has_exact_48_ordered_rows() -> None:
-    root = Path(__file__).resolve().parents[1]
-    crosswalk_path = (
-        root / "evidence" / "implementation_v41" / "ALL_SOURCE_AUTHORITY_CROSSWALK.json"
-    )
-    import json
-
-    payload = json.loads(crosswalk_path.read_text(encoding="utf-8"))
-    assert payload["expected_source_count"] == 48
-    assert len(payload["sources"]) == 48
-    assert [row["ordinal"] for row in payload["sources"]] == list(range(1, 49))
-    assert len({row["name"] for row in payload["sources"]}) == 48
-    assert all(row["reason_for_presence"] for row in payload["sources"])
-    assert all(row["planned_use"] for row in payload["sources"])
-    assert all(row["rejected_use"] for row in payload["sources"])

@@ -609,7 +609,7 @@ def test_commit_route_joins_sealed_host_proof_without_task_or_helper_binding(
         return (
             {
                 "status": "PASS",
-                "hook_count": 8,
+                "hook_count": len(module.EXPECTED_CODEX_HOST_HOOK_EVENTS),
                 "activation_mode": mode,
             },
             {
@@ -837,7 +837,9 @@ def test_stage_reads_disabled_candidate_without_hooks_list_or_activation(
         "plugin/read",
     ]
     assert hook_receipt["status"] == "USER_TRUST_PENDING"
-    assert hook_receipt["hook_count"] == 8
+    assert hook_receipt["hook_count"] == len(
+        module.EXPECTED_CODEX_HOST_HOOK_EVENTS
+    ) == 11
     assert hook_receipt["candidate_enabled"] is False
     assert {row["trust_status"] for row in hook_receipt["records"]} == {
         "pending_native_ui_review"
@@ -1306,7 +1308,9 @@ def test_disabled_local_hook_recovery_switches_only_local_or_restores_all_disabl
         assert parsed["plugins"][candidate]["enabled"] is True
         assert parsed["plugins"][stable]["enabled"] is False
         assert parsed["plugins"][fallback]["enabled"] is False
-        assert len(parsed["hooks"]["state"]) == 8
+        assert len(parsed["hooks"]["state"]) == len(
+            module.EXPECTED_CODEX_HOST_HOOK_EVENTS
+        ) == 11
         assert {
             row["enabled"] for row in hook_receipt["records"]
         } == {not keep_disabled}

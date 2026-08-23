@@ -1,9 +1,14 @@
-"""Push one exact existing local commit through a private GitHub App installation.
+"""Create one exact App-authored branch commit through a GitHub App installation.
 
 The command reconstructs the local commit through GitHub's Git Database REST
 API, requires the object IDs to match the existing local commit exactly, and
 fast-forwards the branch with ``force=false``. Private-key and installation-token
 values remain in process memory and are never written to the receipt.
+
+The local commit object is a deterministic preview only. Its author and
+committer must both be the canonical Evidence Lane App bot; a human-authored
+local commit followed by an App-authenticated push is rejected because pushing
+credentials do not change commit authorship.
 """
 
 from __future__ import annotations
@@ -23,6 +28,8 @@ if str(SOURCE_ROOT) not in sys.path:
     sys.path.insert(0, str(SOURCE_ROOT))
 
 from evidence_lane_plugin.github_app_distribution import (
+    EVIDENCE_LANE_APP_BOT_EMAIL,
+    EVIDENCE_LANE_APP_BOT_NAME,
     ExactGitCommitPushRequest,
     GitCommitActor,
     GitHubAppExactCommitPushRoute,
@@ -68,6 +75,7 @@ def _git(repository_root: Path, *args: str, text: bool = False) -> bytes | str:
         check=False,
         capture_output=True,
         text=text,
+        creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
     )
     if result.returncode != 0:
         stderr = result.stderr if text else result.stderr.decode("utf-8", "replace")
@@ -132,6 +140,23 @@ def _commit_metadata(
         _actor(author_line, expected_kind=b"author"),
         _actor(committer_line, expected_kind=b"committer"),
     )
+
+
+def _require_app_bot_actor(
+    author: GitCommitActor,
+    committer: GitCommitActor,
+) -> None:
+    expected = (EVIDENCE_LANE_APP_BOT_NAME, EVIDENCE_LANE_APP_BOT_EMAIL)
+    actual = (
+        (author.name, author.email),
+        (committer.name, committer.email),
+    )
+    if actual != (expected, expected):
+        raise ExactGitHubAppPushError(
+            "GITHUB_APP_BOT_ACTOR_REQUIRED: the exact local preview commit must "
+            "use evidence-lane[bot] as both author and committer; an App push "
+            "cannot repair human-authored commit metadata."
+        )
 
 
 def _tree_record(
@@ -214,10 +239,20 @@ def local_push_request(
 ) -> ExactGitCommitPushRequest:
     root = repository_root.resolve()
     commit_sha = _oid(root, f"{commit}^{{commit}}")
-    parent_commit_sha = _oid(root, f"{commit_sha}^")
+    parent_line = str(
+        _git(root, "rev-list", "--parents", "-n", "1", commit_sha, text=True)
+    ).strip()
+    parent_fields = parent_line.split()
+    if len(parent_fields) < 2 or parent_fields[0] != commit_sha:
+        raise ExactGitHubAppPushError(
+            "The exact App route requires a non-root commit with ordered parents."
+        )
+    parent_commit_sha = parent_fields[1]
+    additional_parent_commit_shas = tuple(parent_fields[2:])
     expected_parent_tree_sha = _oid(root, f"{parent_commit_sha}^{{tree}}")
     expected_tree_sha = _oid(root, f"{commit_sha}^{{tree}}")
     message, author, committer = _commit_metadata(root, commit_sha)
+    _require_app_bot_actor(author, committer)
     return ExactGitCommitPushRequest.create(
         request_id=request_id,
         idempotency_key=idempotency_key,
@@ -226,6 +261,7 @@ def local_push_request(
         repository=repository,
         branch=branch,
         expected_parent_commit_sha=parent_commit_sha,
+        additional_parent_commit_shas=additional_parent_commit_shas,
         expected_parent_tree_sha=expected_parent_tree_sha,
         expected_tree_sha=expected_tree_sha,
         expected_commit_sha=commit_sha,

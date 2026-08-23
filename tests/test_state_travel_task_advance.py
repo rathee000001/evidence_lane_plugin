@@ -4,6 +4,7 @@ from typing import Any
 
 import pytest
 from evidence_lane_plugin.codex_turn_control import package_surface_inventory
+from evidence_lane_plugin.constants import NATIVE_TOOL_COUNT
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.git_adapter import GitResult
 from evidence_lane_plugin.mcp_apps import build_project_panel_snapshot
@@ -25,7 +26,7 @@ def _execution_profile() -> dict[str, str]:
     }
 
 
-def _native_route_receipt(*, tool_count: int = 62) -> dict[str, Any]:
+def _native_route_receipt(*, tool_count: int = NATIVE_TOOL_COUNT) -> dict[str, Any]:
     return {
         "schema": "evidence-lane.native-mcp-route-receipt.v1",
         "status": "PASS",
@@ -178,7 +179,9 @@ def test_verified_state_travel_handoff_advances_without_candidate_and_replays_on
             "book-faires",
             session_id,
             **classify_kwargs,
-            _native_route_receipt=_native_route_receipt(tool_count=61),
+            _native_route_receipt=_native_route_receipt(
+                tool_count=NATIVE_TOOL_COUNT - 1
+            ),
         )
     assert invalid_route.value.code == "STATE_TRAVEL_TASK_ADVANCE_NATIVE_ROUTE_MISMATCH"
     assert service.task_backlog("book-faires")["event_count"] == event_count_before

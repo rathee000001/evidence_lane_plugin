@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+
 # Project Memory
 
 Evidence Lane Memory is the queryable cross-sector recall plane of one project.

@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+
 # Project PV content-addressed storage
 
 The registered external project root is the sole live working authority. It is

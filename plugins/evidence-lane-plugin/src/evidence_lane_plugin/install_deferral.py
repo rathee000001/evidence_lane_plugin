@@ -7,6 +7,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from .hashing import canonical_json_bytes, sha256_bytes
+from .hook_contract import HOOK_EVENT_NAMES
 
 _SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
 
@@ -85,9 +86,10 @@ def adaptive_install_deferral_facts(
         and supplied.get("git_mutated") is False
         and supplied.get("plan_task_advanced") is False
         and supplied.get("hook_registry_count") == len(progression)
-        and len(progression) == 8
+        and len(progression) == len(HOOK_EVENT_NAMES)
         and all(hook_names)
         and len(hook_names) == len(set(hook_names))
+        and set(hook_names) == set(HOOK_EVENT_NAMES)
         and all(
             row.get("state") == "UNCHANGED_INACTIVE"
             and row.get("verification_status") == "UNVERIFIED"

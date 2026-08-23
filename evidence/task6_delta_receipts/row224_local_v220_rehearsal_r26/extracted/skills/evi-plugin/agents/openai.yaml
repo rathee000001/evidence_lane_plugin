@@ -1,9 +1,0 @@
-interface:
-  display_name: "Evidence Lane Plugin Governance"
-  short_description: "Govern connector and toolchain grants"
-  default_prompt: "Use $evi-plugin to inspect, register, route, or revoke one governed connector or toolchain grant."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

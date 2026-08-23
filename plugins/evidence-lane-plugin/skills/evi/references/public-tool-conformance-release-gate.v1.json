@@ -1,29 +1,25 @@
 {
   "schema": "evidence-lane.public-tool-conformance-release-gate.v1",
   "status": "PASS",
-  "source_delta_task_id": "EL-CODEX-T6-PARITY-031-MCP-TOOL-EVAL-MATRIX",
+  "source_delta_task_id": "EL-CODEX-T6-PARITY-035-MCP-INSTALLED-PARITY-TASK8-REFRESH-001",
   "generated_from": {
-    "receipt_path": "evidence/task6_delta_receipts/EL-CODEX-T6-PARITY-031-MCP-TOOL-EVAL-MATRIX.json",
-    "receipt_file_sha256": "092F1A7E4F2A91EA42BBCBDBF28D0227FD28951FF282706D32FAD20C0940ACD0",
-    "source_matrix_sha256": "C10DDCEAFFFD1829A655D712D3FD314AC7A0D4F5E88BC1F933F6CD2E7353EB33",
-    "installed_matrix_sha256": "91ED41BEC369AD21B0FA12E85A6173C0A771BA03A10E8BCE7697E50BBC13EFE0"
+    "receipt_path": "docs/R256_PUBLIC_SURFACE_CONFORMANCE_RECEIPT.json",
+    "receipt_file_sha256": "595781C2C6D4E51EF5CA455E2E3C3BFA84BD233CC91D7475FF27E6115B6DE7D1",
+    "source_matrix_sha256": "36F72846CB3039B5106ED6A2B20C23470A8A8A57FD2703C6AF4C583F5ECB3EB9",
+    "installed_matrix_sha256": "36F72846CB3039B5106ED6A2B20C23470A8A8A57FD2703C6AF4C583F5ECB3EB9"
   },
   "evaluated_catalogs": {
     "source": {
-      "tool_count": 86,
-      "case_evaluation_count": 602,
+      "tool_count": 88,
+      "case_evaluation_count": 616,
       "status": "PASS"
     },
     "exact_installed": {
-      "tool_count": 83,
-      "case_evaluation_count": 581,
+      "tool_count": 88,
+      "case_evaluation_count": 616,
       "status": "PASS"
     },
-    "source_only_preinstall_tools": [
-      "learning_memory_query",
-      "learning_memory_record_link",
-      "learning_record_host_memory_import"
-    ]
+    "source_only_preinstall_tools": []
   },
   "applicable_case_results": {
     "representative": "PASS",
@@ -39,7 +35,7 @@
     "edge": "tests/test_public_surface_parity_matrix.py::test_every_source_public_tool_runs_the_bounded_eval_matrix",
     "missing": "tests/test_public_surface_parity_matrix.py::test_every_source_public_tool_runs_the_bounded_eval_matrix",
     "empty": "tests/test_public_surface_parity_matrix.py::test_every_source_public_tool_runs_the_bounded_eval_matrix",
-    "auth": "tests/test_public_surface_parity_matrix.py::test_every_source_public_tool_runs_the_oauth_and_write_cases",
+    "auth": "tests/test_public_surface_registry.py::test_every_public_tool_authorizes_before_backend_access",
     "write_confirmation": "tests/test_public_surface_parity_matrix.py::test_every_source_public_tool_runs_the_oauth_and_write_cases",
     "unsupported": "tests/test_public_surface_parity_matrix.py::test_public_tool_matrix_rejects_one_untested_contract"
   },

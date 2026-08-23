@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+
 # Evidence Lane terms and conditions
 
 Effective date: 2026-08-14

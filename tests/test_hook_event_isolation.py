@@ -36,6 +36,13 @@ def _payload(event_name: str, root: Path) -> dict[str, object]:
     }
     if event_name == "SessionStart":
         return {**common, "source": "startup"}
+    if event_name == "SubagentStart":
+        return {
+            **common,
+            "agent_id": "agent-1",
+            "agent_type": "worker",
+            "turn_id": "turn-1",
+        }
     if event_name == "UserPromptSubmit":
         return {**common, "prompt": "visible prompt", "turn_id": "turn-1"}
     if event_name == "PreToolUse":
@@ -44,6 +51,13 @@ def _payload(event_name: str, root: Path) -> dict[str, object]:
             "tool_input": {"path": "bounded"},
             "tool_name": "Read",
             "tool_use_id": "tool-1",
+            "turn_id": "turn-1",
+        }
+    if event_name == "PermissionRequest":
+        return {
+            **common,
+            "tool_input": {"path": "bounded"},
+            "tool_name": "Read",
             "turn_id": "turn-1",
         }
     if event_name == "PostToolUse":
@@ -58,6 +72,16 @@ def _payload(event_name: str, root: Path) -> dict[str, object]:
     if event_name in {"PreCompact", "PostCompact"}:
         common.pop("permission_mode")
         return {**common, "trigger": "auto", "turn_id": "turn-1"}
+    if event_name == "SubagentStop":
+        return {
+            **common,
+            "agent_id": "agent-1",
+            "agent_transcript_path": None,
+            "agent_type": "worker",
+            "last_assistant_message": "bounded subagent response",
+            "stop_hook_active": False,
+            "turn_id": "turn-1",
+        }
     if event_name == "Stop":
         return {
             **common,
@@ -93,19 +117,20 @@ def _initialize(module: ModuleType, root: Path, monkeypatch: pytest.MonkeyPatch)
     )
 
 
-def test_policy_tracks_exact_eight_governed_events_and_current_upstream_boundary() -> None:
+def test_policy_tracks_current_eleven_governed_events_and_upstream_boundary() -> None:
     module = _module()
     policy = json.loads((HOOKS / "event_isolation_policy.json").read_text("utf-8"))
 
     assert policy["schema"] == module.POLICY_SCHEMA
     assert tuple(row["event_name"] for row in policy["events"]) == module.EVENT_ORDER
     assert policy["upstream_contract"]["upstream_event_count"] == 11
-    assert policy["upstream_contract"]["governed_event_count"] == 8
-    assert policy["upstream_contract"]["unsupported_events_not_relabelled"] == [
-        "PermissionRequest",
-        "SubagentStart",
-        "SubagentStop",
-    ]
+    assert policy["upstream_contract"]["governed_event_count"] == 11
+    assert policy["upstream_contract"]["unsupported_events_not_relabelled"] == []
+    assert policy["upstream_contract"]["official_documentation_sha256"] == (
+        "017D2A86BC8654FB5E566F968019E5BC23F65AB0BCA3B051B92EC74BC6DA130A"
+    )
+    assert policy["upstream_contract"]["command_handlers_execute"] is True
+    assert policy["upstream_contract"]["prompt_and_agent_handlers_parsed_but_skipped"] is True
     assert policy["events"][-1]["host_timeout_seconds"] == 3
     assert policy["events"][-1]["internal_handler_timeout_seconds"] == 2
     handoff = policy["behavior_handoff"]
@@ -150,6 +175,21 @@ def test_stop_replay_ignores_only_stop_hook_active_and_requires_empty_output(
         match="STOP_OUTPUT_CONTRACT_MISMATCH",
     ):
         module.validate_output("Stop", {"continue": True})
+
+
+def test_optional_events_never_require_host_control_and_subagent_stop_replays(
+    tmp_path: Path,
+) -> None:
+    module = _module()
+    module.validate_output("PermissionRequest", {})
+    module.validate_output("SubagentStart", {})
+    module.validate_output("SubagentStop", {})
+
+    first = _payload("SubagentStop", tmp_path)
+    replay = {**first, "stop_hook_active": True}
+    _, first_sha = module.validate_input("SubagentStop", json.dumps(first))
+    _, replay_sha = module.validate_input("SubagentStop", json.dumps(replay))
+    assert first_sha == replay_sha
 
 
 def test_exact_stop_occurrence_executes_once_and_replays_empty_output(
@@ -304,6 +344,40 @@ def test_active_kill_switch_is_never_reset_by_a_new_install(
     assert json.loads(path.read_text(encoding="utf-8"))["payload"]["state"] == (
         "ACTIVE"
     )
+
+
+def test_inactive_prior_policy_is_immutably_migrated(tmp_path: Path) -> None:
+    module = _module()
+    first = module.initialize_inactive_kill_switch(
+        tmp_path,
+        installation_id="install-one",
+    )
+    path = Path(first["path"])
+    body = json.loads(path.read_text(encoding="utf-8"))
+    prior_policy = "A" * 64
+    assert prior_policy != module.POLICY_SHA256
+    body["payload"]["policy_sha256"] = prior_policy
+    body["payload_sha256"] = module._sha256(
+        module._canonical_bytes(body["payload"])
+    )
+    prior_bytes = module._canonical_bytes(body)
+    path.write_bytes(prior_bytes)
+    prior_file_sha256 = module._sha256(prior_bytes)
+
+    migrated = module.initialize_inactive_kill_switch(
+        tmp_path,
+        installation_id="install-two",
+    )
+
+    assert migrated["generation"] == 2
+    assert migrated["policy_migrated"] is True
+    assert migrated["prior_policy_sha256"] == prior_policy
+    assert migrated["prior_file_sha256"] == prior_file_sha256
+    superseded = Path(migrated["superseded_receipt_path"])
+    assert superseded.read_bytes() == prior_bytes
+    current = json.loads(path.read_text(encoding="utf-8"))
+    assert current["payload"]["state"] == "INACTIVE"
+    assert current["payload"]["policy_sha256"] == module.POLICY_SHA256
 
 
 def test_session_end_handler_is_killed_inside_host_three_second_cap(

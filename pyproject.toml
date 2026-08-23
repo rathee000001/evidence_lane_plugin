@@ -1,3 +1,4 @@
+# Evidence Lane current-route refresh: 3.0.0 / 2026-08-23
 [build-system]
 requires = ["setuptools==83.0.0", "wheel==0.46.3"]
 build-backend = "setuptools.build_meta"
@@ -12,10 +13,11 @@ license = "LicenseRef-Proprietary"
 license-files = ["LICENSE.md"]
 authors = [{ name = "Praveen Rathee" }]
 dependencies = [
-  "cryptography==48.0.1",
+  "cryptography==50.0.0",
   "defusedxml==0.7.1",
   "httpx==0.28.1",
   "mcp==1.28.1",
+  "numpy==2.4.6",
   "pydantic==2.13.4",
   "onnxruntime==1.28.0",
   "openpyxl==3.1.5",
@@ -24,7 +26,7 @@ dependencies = [
   "Pillow==12.3.0",
   "pyarrow==25.0.0",
   "PyJWT[crypto]==2.13.0",
-  "pypdf==6.14.2",
+  "pypdf==6.15.0",
   "pypdfium2==5.12.1",
   "pytesseract==0.3.13",
   "pywin32==312; sys_platform == 'win32'",
@@ -34,7 +36,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+  "mypy==2.3.1",
+  "pip-tools==7.6.1",
   "pytest==9.1.1",
+  "ruff==0.16.4",
 ]
 rag = [
   "llama-index-core==0.14.23",
@@ -51,10 +56,12 @@ where = ["plugins/evidence-lane-plugin/src"]
 
 [tool.setuptools.package-data]
 evidence_lane_plugin = [
+  "runtime-public-catalog.v1.json",
   "schema.sql",
   "schemas/*.json",
   "schemas/canon/*.json",
   "schemas/canon/*.sql",
+  "schemas/memory/*.sql",
   "session_flash/env15/*.json",
   "session_flash/env15/*.md",
   "session_flash/env15/env/*",

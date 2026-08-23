@@ -11,9 +11,11 @@ from pathlib import Path
 from typing import Any, cast
 
 from .adaptive_delta_exit import run_adaptive_delta_exit
+from .agent_configuration import AgentConfigurationManager
 from .capture_routing import CaptureRouteAuthority
 from .connector_governance import ConnectorGovernance
 from .constants import LIFECYCLE_RESULT_SCHEMA, TOOL_RESULT_SCHEMA
+from .conversation_memory import ConversationMemoryManager
 from .custom_source_schema import (
     compile_and_map_custom_source_schema,
     configure_source_intake_schema_pill,
@@ -48,6 +50,7 @@ from .persistence import (
     route_persistence,
 )
 from .project_authority import (
+    migrate_working_project_sectors,
     query_working_project_sectors,
     resolved_chat_lineage_root,
 )
@@ -71,6 +74,7 @@ from .source_identity import register_source_identity_matrix
 from .source_intake import classify_source_intake
 from .source_sqlite import inspect_registered_sqlite_assets
 from .state_law import transition_catalog
+from .state_travel_contract import preflight_direct_forced_same_worktree_binding
 from .storage_selection import StorageSelection
 from .store import ProjectStore
 from .timeutil import utc_now
@@ -814,7 +818,10 @@ def _bound_public_envelope(tool: str, envelope: dict[str, Any]) -> dict[str, Any
     if len(encoded) <= _MODEL_CONTEXT_RESULT_MAX_BYTES:
         return envelope
 
-    status = str(envelope.get("status") or "PASS")
+    execution_status = str(
+        envelope.get("execution_status") or envelope.get("status") or "PASS"
+    )
+    domain_status = str(envelope.get("domain_status") or execution_status)
     compact_error = envelope.get("error")
     if isinstance(compact_error, dict):
         compact_error = _compact_fields(
@@ -833,11 +840,13 @@ def _bound_public_envelope(tool: str, envelope: dict[str, Any]) -> dict[str, Any
     minimal: dict[str, Any] = {
         "schema": envelope.get("schema"),
         "tool": tool,
-        "status": status,
+        "status": execution_status,
+        "execution_status": execution_status,
+        "domain_status": domain_status,
         "data": (
             {
                 "schema": _MODEL_CONTEXT_WITHHELD_SCHEMA,
-                "status": status,
+                "status": domain_status,
                 "tool": tool,
                 "payload_withheld": True,
                 "full_envelope_withheld": True,
@@ -855,6 +864,7 @@ def _bound_public_envelope(tool: str, envelope: dict[str, Any]) -> dict[str, Any
         "warnings": [],
         "error": compact_error,
         "provenance": envelope.get("provenance"),
+        "entry_authorization": envelope.get("entry_authorization"),
     }
     # The minimal form contains only fixed-size scalars and hashes.  Keep this
     # assertion adjacent to the boundary so future envelope drift fails tests.
@@ -1008,6 +1018,395 @@ class EvidenceLaneService:
         self.lane_reader = LaneReader(self.store)
         self.remote_git = RemoteGitController(self.store)
         self.sync_service = sync_service or self._environment_sync_service()
+        self._agent_configuration_manager = AgentConfigurationManager()
+        self._conversation_memory_manager = ConversationMemoryManager()
+
+    def agent_configuration_authority(
+        self,
+        project_id: str,
+        *,
+        session_id: str | None = None,
+        working_directory: str | Path | None = None,
+    ) -> dict[str, Any]:
+        """Return the bounded AGENTS.md authority for one exact active task."""
+
+        exact_session_id = str(session_id or "").strip()
+        if not exact_session_id:
+            active_path = self.store.project_root(project_id) / "active_session.json"
+            require(
+                active_path.is_file(),
+                "AGENT_CONFIGURATION_ACTIVE_SESSION_REQUIRED",
+                "AGENTS.md authority requires the exact governed session.",
+                status="MISMATCH",
+            )
+            exact_session_id = str(
+                json.loads(active_path.read_text(encoding="utf-8")).get("session_id")
+                or ""
+            ).strip()
+        session = self.sessions.load(project_id, exact_session_id)
+        require(
+            session.project_id == project_id
+            and not bool(session.metadata.get("closed_at")),
+            "AGENT_CONFIGURATION_SESSION_BINDING_MISMATCH",
+            "AGENTS.md authority cannot cross a project or closed-session boundary.",
+            status="MISMATCH",
+        )
+        config = self.store.config(project_id)
+        project_root = Path(config.repository_path).resolve()
+        exact_cwd = project_root
+        workspace_path = Path(str(session.workspace_id or ""))
+        if working_directory is not None:
+            exact_cwd = Path(working_directory).resolve()
+        elif workspace_path.is_absolute() and workspace_path.exists():
+            exact_cwd = workspace_path.resolve()
+        host_task_id = str(
+            session.metadata.get("current_host_session_id") or ""
+        ).strip()
+        active_plan_task_id = str(
+            session.metadata.get("active_backlog_task_id")
+            or (session.task or {}).get("backlog_task_id")
+            or (session.task or {}).get("task_id")
+            or "NO_ACTIVE_PLAN_ROW"
+        ).strip()
+        profile_value = session.metadata.get("execution_profile")
+        profile = dict(profile_value) if isinstance(profile_value, dict) else {}
+        codex_home = Path(
+            str(os.environ.get("CODEX_HOME") or "").strip()
+            or (Path.home() / ".codex")
+        )
+        resolved = self._agent_configuration_manager.resolve(
+            codex_home=codex_home,
+            project_root=project_root,
+            cwd=exact_cwd,
+            project_id=project_id,
+            governed_session_id=exact_session_id,
+            host_task_id=host_task_id,
+            host_task_deep_link=f"codex://threads/{host_task_id}",
+            host_session_id=host_task_id,
+            workspace_id=session.workspace_id,
+            active_plan_task_id=active_plan_task_id,
+            execution_profile=profile,
+        )
+        return dict(resolved.receipt)
+
+    def _active_agent_configuration_authority(
+        self, project_id: str
+    ) -> dict[str, Any] | None:
+        active_path = self.store.project_root(project_id) / "active_session.json"
+        if not active_path.is_file():
+            return None
+        exact_session_id = str(
+            json.loads(active_path.read_text(encoding="utf-8")).get("session_id")
+            or ""
+        ).strip()
+        if not exact_session_id:
+            return None
+        session = self.sessions.load(project_id, exact_session_id)
+        if session.metadata.get("closed_at"):
+            return None
+        try:
+            return self.agent_configuration_authority(
+                project_id,
+                session_id=exact_session_id,
+            )
+        except EvidenceLaneError as exc:
+            if exc.code != "AGENT_CONFIGURATION_BINDING_INVALID":
+                raise
+            return {
+                "schema": "evidence-lane.agent-configuration-authority.v1",
+                "status": "NOT_BOUND",
+                "reason": "EXACT_RUNTIME_BINDING_UNAVAILABLE",
+                "missing_field": exc.details.get("field"),
+                "authority_effects": {
+                    "instruction_context_applied": False,
+                    "permission_widening_allowed": False,
+                    "hil_inference_allowed": False,
+                    "pointer_movement_allowed": False,
+                },
+            }
+
+    def conversation_memory_authority(
+        self,
+        project_id: str,
+        *,
+        session_id: str | None = None,
+        working_directory: str | Path | None = None,
+    ) -> dict[str, Any]:
+        """Return bounded task-bound ``MEMORY.md`` continuation authority."""
+
+        exact_session_id = str(session_id or "").strip()
+        if not exact_session_id:
+            active_path = self.store.project_root(project_id) / "active_session.json"
+            require(
+                active_path.is_file(),
+                "CONVERSATION_MEMORY_ACTIVE_SESSION_REQUIRED",
+                "MEMORY.md authority requires the exact governed session.",
+                status="MISMATCH",
+            )
+            exact_session_id = str(
+                json.loads(active_path.read_text(encoding="utf-8")).get("session_id")
+                or ""
+            ).strip()
+        session = self.sessions.load(project_id, exact_session_id)
+        require(
+            session.project_id == project_id
+            and not bool(session.metadata.get("closed_at")),
+            "CONVERSATION_MEMORY_SESSION_BINDING_MISMATCH",
+            "MEMORY.md authority cannot cross a project or closed-session boundary.",
+            status="MISMATCH",
+        )
+        config = self.store.config(project_id)
+        project_root = Path(config.repository_path).resolve()
+        workspace_path = Path(str(session.workspace_id or ""))
+        exact_cwd = project_root
+        if working_directory is not None:
+            exact_cwd = Path(working_directory).resolve()
+        elif workspace_path.is_absolute() and workspace_path.exists():
+            exact_cwd = workspace_path.resolve()
+        host_task_id = str(
+            session.metadata.get("current_host_session_id") or ""
+        ).strip()
+        active_plan_task_id = str(
+            session.metadata.get("active_backlog_task_id")
+            or (session.task or {}).get("backlog_task_id")
+            or (session.task or {}).get("task_id")
+            or "NO_ACTIVE_PLAN_ROW"
+        ).strip()
+        profile_value = session.metadata.get("execution_profile")
+        profile = dict(profile_value) if isinstance(profile_value, dict) else {}
+        codex_home = Path(
+            str(os.environ.get("CODEX_HOME") or "").strip()
+            or (Path.home() / ".codex")
+        )
+        resolved = self._conversation_memory_manager.resolve(
+            codex_home=codex_home,
+            project_root=project_root,
+            cwd=exact_cwd,
+            project_id=project_id,
+            governed_session_id=exact_session_id,
+            host_task_id=host_task_id,
+            host_task_deep_link=f"codex://threads/{host_task_id}",
+            host_session_id=host_task_id,
+            workspace_id=session.workspace_id,
+            active_plan_task_id=active_plan_task_id,
+            execution_profile=profile,
+        )
+        return dict(resolved.receipt)
+
+    def _active_conversation_memory_authority(
+        self, project_id: str
+    ) -> dict[str, Any] | None:
+        active_path = self.store.project_root(project_id) / "active_session.json"
+        if not active_path.is_file():
+            return None
+        exact_session_id = str(
+            json.loads(active_path.read_text(encoding="utf-8")).get("session_id")
+            or ""
+        ).strip()
+        if not exact_session_id:
+            return None
+        session = self.sessions.load(project_id, exact_session_id)
+        if session.metadata.get("closed_at"):
+            return None
+        try:
+            return self.conversation_memory_authority(
+                project_id,
+                session_id=exact_session_id,
+            )
+        except EvidenceLaneError as exc:
+            if exc.code != "CONVERSATION_MEMORY_BINDING_INVALID":
+                raise
+            return {
+                "schema": "evidence-lane.conversation-memory-authority.v1",
+                "status": "NOT_BOUND",
+                "reason": "EXACT_RUNTIME_BINDING_UNAVAILABLE",
+                "missing_field": exc.details.get("field"),
+                "authority_effects": {
+                    "bounded_continuation_guidance_applied": False,
+                    "host_compaction_disabled": False,
+                    "permission_widening_allowed": False,
+                    "hil_inference_allowed": False,
+                    "pointer_movement_allowed": False,
+                },
+            }
+
+    def _public_entry_binding_receipt(
+        self,
+        *,
+        tool_name: str,
+        lifecycle: bool,
+        project_id: str | None,
+        session_id: str | None,
+    ) -> dict[str, Any]:
+        """Attest one public action before its callback observes authority."""
+
+        exact_tool = str(tool_name or "").strip()
+        exact_project = str(project_id or "").strip()
+        requested_session = str(session_id or "").strip()
+        require(
+            bool(exact_tool),
+            "PUBLIC_ENTRY_TOOL_REQUIRED",
+            "The common public entry boundary requires one exact action name.",
+            status="BLOCKED",
+        )
+        flash = self.flash_authority.status()
+        env_uop: dict[str, str] | None = None
+        if exact_project or lifecycle:
+            env_uop = derive_host_entry_env_uop(flash)
+        else:
+            try:
+                env_uop = derive_host_entry_env_uop(flash)
+            except EvidenceLaneError:
+                # Global diagnostic/catalog reads must truthfully report an
+                # inactive Flash instead of becoming impossible to invoke.
+                env_uop = None
+        runtime_attestation = dict(self.sessions._runtime_instance_attestation)
+        require(
+            runtime_attestation.get("status") == "PASS"
+            and runtime_attestation.get("caller_supplied") is False,
+            "PUBLIC_ENTRY_RUNTIME_ATTESTATION_INVALID",
+            "The common public entry boundary requires server-derived runtime identity.",
+            status="MISMATCH",
+        )
+        binding: dict[str, Any] = {
+            "binding_mode": "SERVER_RUNTIME_GLOBAL",
+            "project_id": None,
+            "governed_session_id": None,
+            "active_task_id": None,
+            "host_session_id_sha256": None,
+            "execution_profile_sha256": None,
+            "agent_configuration_authority_sha256": None,
+            "conversation_memory_authority_sha256": None,
+        }
+        if exact_project:
+            allow_unregistered = exact_tool in {"project_enroll", "project_register"}
+            if not allow_unregistered:
+                self.store.config(exact_project)
+            binding.update(
+                {
+                    "binding_mode": (
+                        "PROJECT_REGISTRATION_ENTRY"
+                        if allow_unregistered
+                        else "PROJECT_ROUTE_ENTRY"
+                    ),
+                    "project_id": exact_project,
+                }
+            )
+            active_path = self.store.project_root(exact_project) / "active_session.json"
+            active_session_id = ""
+            if active_path.is_file():
+                active_session_id = str(
+                    json.loads(active_path.read_text(encoding="utf-8")).get(
+                        "session_id"
+                    )
+                    or ""
+                ).strip()
+            require(
+                not requested_session
+                or not active_session_id
+                or requested_session == active_session_id,
+                "PUBLIC_ENTRY_SESSION_BINDING_MISMATCH",
+                "The requested governed session differs from the active project session.",
+                status="MISMATCH",
+                requested_session_id=requested_session or None,
+                active_session_id=active_session_id or None,
+            )
+            exact_session = requested_session or active_session_id
+            if exact_session:
+                session = self.sessions.load(exact_project, exact_session)
+                active_task_id = str(
+                    session.metadata.get("active_backlog_task_id") or ""
+                ).strip()
+                active_rows = [
+                    row
+                    for row in self.store.backlog_status(exact_project)[
+                        "goal_projection"
+                    ]["rows"]
+                    if row.get("status") == "in_progress"
+                ]
+                require(
+                    len(active_rows) == 1
+                    and bool(active_task_id)
+                    and active_rows[0].get("task_id") == active_task_id,
+                    "PUBLIC_ENTRY_ACTIVE_TASK_BINDING_MISMATCH",
+                    "The common entry boundary requires the exact sole active Plan task.",
+                    status="MISMATCH",
+                    active_task_id=active_task_id or None,
+                    active_row_task_ids=[row.get("task_id") for row in active_rows],
+                )
+                host_session_id = str(
+                    session.metadata.get("current_host_session_id") or ""
+                ).strip()
+                profile = session.metadata.get("execution_profile")
+                require(
+                    bool(host_session_id) and isinstance(profile, dict),
+                    "PUBLIC_ENTRY_HOST_PROFILE_BINDING_REQUIRED",
+                    "The common entry boundary requires host-session and execution-profile authority.",
+                    status="MISMATCH",
+                )
+                profile = cast(dict[str, Any], profile)
+                agent_configuration = self.agent_configuration_authority(
+                    exact_project,
+                    session_id=exact_session,
+                )
+                conversation_memory = self.conversation_memory_authority(
+                    exact_project,
+                    session_id=exact_session,
+                )
+                binding.update(
+                    {
+                        "binding_mode": "EXACT_ACTIVE_TASK_ENTRY",
+                        "governed_session_id": exact_session,
+                        "active_task_id": active_task_id,
+                        "host_session_id_sha256": sha256_bytes(
+                            host_session_id.encode("utf-8")
+                        ),
+                        "execution_profile_sha256": sha256_bytes(
+                            canonical_json_bytes(profile)
+                        ),
+                        "agent_configuration_authority_sha256": (
+                            agent_configuration[
+                                "agent_configuration_authority_sha256"
+                            ]
+                        ),
+                        "conversation_memory_authority_sha256": (
+                            conversation_memory[
+                                "conversation_memory_authority_sha256"
+                            ]
+                        ),
+                    }
+                )
+        body = {
+            "schema": "evidence-lane.public-entry-binding.v1",
+            "status": "PASS",
+            "tool_name": exact_tool,
+            "effect_class": "WRITE" if lifecycle else "READ",
+            "binding": binding,
+            "env_uop_entry_status": (
+                "ATTESTED" if env_uop is not None else "DIAGNOSTICALLY_UNAVAILABLE"
+            ),
+            "env_authority_sha256": (
+                env_uop["env_authority_sha256"] if env_uop is not None else None
+            ),
+            "uop_authority_sha256": (
+                env_uop["uop_authority_sha256"] if env_uop is not None else None
+            ),
+            "derived_projection_sha256": (
+                env_uop["derived_projection_sha256"] if env_uop is not None else None
+            ),
+            "flash_receipt_sha256": (
+                env_uop["flash_receipt_sha256"] if env_uop is not None else None
+            ),
+            "runtime_instance_attestation_receipt_sha256": runtime_attestation[
+                "receipt_sha256"
+            ],
+            "caller_supplied_runtime_identity": False,
+            "callback_entered": False,
+        }
+        return {
+            **body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
+        }
 
     def _capture_route_binding(self, project_id: str) -> dict[str, Any]:
         """Bind the capture policy before any session lineage ingestion."""
@@ -1266,8 +1665,10 @@ class EvidenceLaneService:
         data: dict[str, Any],
         *,
         lifecycle: bool = False,
+        entry_authorization: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        status = str(data.get("status", "PASS"))
+        domain_status = str(data.get("status", "PASS"))
+        execution_status = "PASS"
         # Warnings have their own bounded envelope field.  Excluding them from
         # ``data`` prevents one diagnostic from being returned twice or from
         # withholding an otherwise small successful receipt.
@@ -1277,7 +1678,9 @@ class EvidenceLaneService:
         envelope = {
             "schema": LIFECYCLE_RESULT_SCHEMA if lifecycle else TOOL_RESULT_SCHEMA,
             "tool": tool,
-            "status": status,
+            "status": execution_status,
+            "execution_status": execution_status,
+            "domain_status": domain_status,
             "data": bounded,
             "warnings": _bound_public_warnings(data.get("warnings", [])),
             "error": None,
@@ -1287,6 +1690,8 @@ class EvidenceLaneService:
                 "fabricated_evidence": False,
             },
         }
+        if entry_authorization is not None:
+            envelope["entry_authorization"] = entry_authorization
         return _bound_public_envelope(tool, envelope)
 
     @staticmethod
@@ -1295,6 +1700,7 @@ class EvidenceLaneService:
         error: Exception,
         *,
         lifecycle: bool = False,
+        entry_authorization: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         if isinstance(error, EvidenceLaneError):
             payload = error.as_dict()
@@ -1311,7 +1717,9 @@ class EvidenceLaneService:
         envelope = {
             "schema": LIFECYCLE_RESULT_SCHEMA if lifecycle else TOOL_RESULT_SCHEMA,
             "tool": tool,
-            "status": payload["status"],
+            "status": "FAIL",
+            "execution_status": "FAIL",
+            "domain_status": payload["status"],
             "data": None,
             "warnings": [],
             "error": _bound_public_error(payload),
@@ -1321,6 +1729,8 @@ class EvidenceLaneService:
                 "fabricated_evidence": False,
             },
         }
+        if entry_authorization is not None:
+            envelope["entry_authorization"] = entry_authorization
         return _bound_public_envelope(tool, envelope)
 
     def invoke(
@@ -1330,6 +1740,7 @@ class EvidenceLaneService:
         /,
         *args: Any,
         lifecycle: bool = False,
+        entry_authorization: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
         try:
@@ -1337,11 +1748,17 @@ class EvidenceLaneService:
                 tool,
                 function(*args, **kwargs),
                 lifecycle=lifecycle,
+                entry_authorization=entry_authorization,
             )
         # MCP tools must return the canonical fail-closed envelope even when an
         # unexpected library or OS exception crosses the private-engine boundary.
         except Exception as error:  # noqa: BLE001
-            return self._error(tool, error, lifecycle=lifecycle)
+            return self._error(
+                tool,
+                error,
+                lifecycle=lifecycle,
+                entry_authorization=entry_authorization,
+            )
 
     def doctor(self) -> dict[str, Any]:
         installation = self.sessions.installation_status()
@@ -1390,7 +1807,6 @@ class EvidenceLaneService:
     def runtime_activation_status(self) -> dict[str, Any]:
         projection = self.runtime_activation.status_with_host_proof()
         configured_active = projection.get("state") == "ACTIVE"
-        hooks_runnable = projection.get("host_hooks_runnable") is True
         capture_complete = (
             projection.get("required_pre_reasoning_capture_complete") is True
         )
@@ -1450,16 +1866,28 @@ class EvidenceLaneService:
         capability_unavailable = bool(
             projection.get("host_capability_unavailable_surfaces")
         )
+        hook_status = dict(projection.get("host_hook_status") or {})
+        hook_integrity_mismatch = hook_status.get("status") == "MISMATCH"
+        hooks_trusted = projection.get("host_hooks_trusted") is True
+        hooks_enabled = projection.get("host_hooks_enabled") is True
         if not configured_active:
-            overall_status = "PASS"
-        elif not hooks_runnable or active_without_capture:
-            overall_status = "FAIL"
+            activation_quality = "DETACHED"
+        elif hook_integrity_mismatch:
+            activation_quality = "HOOK_INTEGRITY_MISMATCH"
+        elif hooks_trusted and not hooks_enabled:
+            activation_quality = "DEGRADED_HOOKS_OFF"
+        elif active_without_capture:
+            activation_quality = "DEGRADED_CAPTURE_UNAVAILABLE"
         elif capability_unavailable or not capture_complete:
-            overall_status = "HOST_CAPABILITY_UNAVAILABLE"
+            activation_quality = "DEGRADED_HOST_CAPABILITY_UNAVAILABLE"
         else:
-            overall_status = "PASS"
+            activation_quality = "FULLY_RUNNABLE"
+        overall_status = "FAIL" if hook_integrity_mismatch else "PASS"
         return {
             "status": overall_status,
+            "activation_quality": activation_quality,
+            "hooks_off_is_structured_domain_state": True,
+            "capture_unavailable_is_structured_domain_state": True,
             "per_session_capture_evidence": indexed_by_session,
             "active_session_capture_gap_count": len(active_without_capture),
             "active_session_capture_gap_code": (
@@ -1557,6 +1985,7 @@ class EvidenceLaneService:
         authority_mode: str = "CLASSIFICATION_ONLY",
         source_assertions: dict[str, dict[str, Any]] | None = None,
         turn_entry: dict[str, Any] | None = None,
+        working_authority_action: str = "CLASSIFY_ONLY",
     ) -> dict[str, Any]:
         """Classify ordered sources through one generalized public control."""
 
@@ -1589,6 +2018,46 @@ class EvidenceLaneService:
                     )
                     or ""
                 )
+        normalized_working_action = working_authority_action.strip().upper()
+        require(
+            normalized_working_action
+            in {"CLASSIFY_ONLY", "REFRESH_WORKING_SECTORS"},
+            "SOURCE_INTAKE_WORKING_ACTION_INVALID",
+            "Source Intake working authority action must be CLASSIFY_ONLY or "
+            "REFRESH_WORKING_SECTORS.",
+            status="BLOCKED",
+        )
+        if normalized_working_action == "REFRESH_WORKING_SECTORS":
+            require(
+                bool(active_session_id) and turn_entry is None,
+                "SOURCE_INTAKE_REFRESH_BOUNDARY_INVALID",
+                "Explicit WORKING-sector refresh requires the exact active session "
+                "and must be separate from a turn-entry query.",
+                status="BLOCKED",
+            )
+            pointer = self.store.pointer(project_id)
+            accepted_pv = str(pointer.accepted_pv or "").strip()
+            require(
+                bool(accepted_pv),
+                "SOURCE_INTAKE_REFRESH_ACCEPTED_PV_REQUIRED",
+                "Explicit WORKING-sector refresh requires one accepted PV baseline.",
+                status="BLOCKED",
+            )
+            repository = inspect_repository(config.repository_path)
+            result["working_authority_refresh"] = migrate_working_project_sectors(
+                self.store.project_root(project_id),
+                repository_root=config.repository_path,
+                project_id=project_id,
+                accepted_pv=accepted_pv,
+                pointer_generation=pointer.generation,
+                expected_branch=repository.branch,
+                expected_head=repository.commit_sha,
+            )
+        else:
+            result["working_authority_refresh"] = {
+                "status": "NOT_PERFORMED",
+                "reason": "CLASSIFICATION_OR_READ_ONLY_QUERY_BOUNDARY",
+            }
         if active_session_id and turn_entry is None:
             receipt = self.sessions.record_source_intake_classification(
                 project_id,
@@ -1611,6 +2080,12 @@ class EvidenceLaneService:
             result["prior_lifecycle_state"] = "PREFLIGHT_PENDING"
         result["next_action"] = "RETURN_TO_SOURCE_INTAKE_OR_PRIOR_LIFECYCLE_POSITION"
         if turn_entry is not None:
+            require(
+                normalized_working_action == "CLASSIFY_ONLY",
+                "TURN_ENTRY_QUERY_MUST_NOT_REFRESH",
+                "A turn-entry query cannot refresh or migrate project authority.",
+                status="BLOCKED",
+            )
             require(
                 active_session_id != "" and isinstance(turn_entry, dict),
                 "TURN_ENTRY_SESSION_REQUIRED",
@@ -1825,6 +2300,28 @@ class EvidenceLaneService:
                 "formula_sha256": formula_receipt["event"]["formula_sha256"],
                 "formula_event_kind": formula_receipt["event"]["event_kind"],
                 "working_sector_query": working,
+                "decision_routing": {
+                    "plan_runtime_authority_state": (
+                        "LIVE_CURRENT_EXECUTION_AUTHORITY"
+                    ),
+                    "auxiliary_authorities": [
+                        "AGENT_LEARNING",
+                        "PROJECT_MEMORY",
+                        "CANON_GRAPH",
+                    ],
+                    "working_sector_fallback_states": [
+                        "STALE",
+                        "NO_HIT",
+                        "EMPTY",
+                        "INCOMPLETE",
+                    ],
+                    "working_sector_query_executed": True,
+                    "instruction_authorities_separate": [
+                        "AGENTS.md",
+                        "MEMORY.md",
+                    ],
+                    "authority_merge_allowed": False,
+                },
                 "accepted_freshness": accepted_freshness,
                 "fallback_authority": (
                     "LIVE_DIRTY_WORKSPACE_AND_INDEX"
@@ -1840,6 +2337,16 @@ class EvidenceLaneService:
                 "pointer_moved": False,
                 "hil_inferred": False,
             }
+        result["agent_configuration"] = (
+            self._active_agent_configuration_authority(project_id)
+            if active_session_id
+            else None
+        )
+        result["conversation_memory"] = (
+            self._active_conversation_memory_authority(project_id)
+            if active_session_id
+            else None
+        )
         return result
 
     def adaptive_delta_exit(
@@ -1856,6 +2363,127 @@ class EvidenceLaneService:
             session_id,
             **kwargs,
         )
+
+    def _refresh_delta_source_authority(
+        self,
+        project_id: str,
+        session_id: str,
+        *,
+        task_id: str,
+    ) -> dict[str, Any]:
+        """Refresh all canonical working lanes while preserving the Git baseline."""
+
+        exact_task_id = str(task_id or "").strip()
+        session = self.sessions.load(project_id, session_id)
+        session_task_id = str(
+            session.metadata.get("active_backlog_task_id") or ""
+        ).strip()
+        backlog = self.store.backlog_status(project_id)
+        active_task_ids = [
+            str(row["task_id"])
+            for row in backlog["goal_projection"]["rows"]
+            if row.get("status") == "in_progress"
+        ]
+        require(
+            bool(exact_task_id)
+            and session_task_id == exact_task_id
+            and active_task_ids == [exact_task_id],
+            "DELTA_SOURCE_REFRESH_TASK_BINDING_MISMATCH",
+            "Delta source refresh requires the exact session task and sole active Plan row.",
+            status="MISMATCH",
+            requested_task_id=exact_task_id or None,
+            session_task_id=session_task_id or None,
+            active_task_ids=active_task_ids,
+        )
+        pointer = self.store.pointer(project_id)
+        accepted_pv = str(pointer.accepted_pv or "").strip()
+        require(
+            bool(accepted_pv),
+            "DELTA_SOURCE_REFRESH_ACCEPTED_PV_REQUIRED",
+            "Delta source refresh requires an accepted historical baseline.",
+            status="MISMATCH",
+        )
+        repository_path = self.store.config(project_id).repository_path
+        repository_before = inspect_repository(repository_path).as_dict()
+        local_refresh = migrate_working_project_sectors(
+            self.store.project_root(project_id),
+            repository_root=repository_path,
+            project_id=project_id,
+            accepted_pv=accepted_pv,
+            pointer_generation=pointer.generation,
+            expected_branch=repository_before["branch"],
+            expected_head=repository_before["commit_sha"],
+        )
+        repository_after = inspect_repository(repository_path).as_dict()
+        identity_fields = ("branch", "commit_sha", "tree_sha", "worktree_sha256")
+        require(
+            local_refresh.get("status") == "PASS"
+            and all(
+                repository_before.get(field) == repository_after.get(field)
+                for field in identity_fields
+            ),
+            "DELTA_SOURCE_REFRESH_REPOSITORY_DRIFT",
+            "Local Code refresh changed or crossed the exact Git/worktree baseline.",
+            status="MISMATCH",
+        )
+        local_body = {
+            "lane_id": "local_code",
+            "status": "PASS",
+            "state": local_refresh.get("state"),
+            "authority_receipt_sha256": local_refresh.get("receipt_sha256"),
+            "working_identity_sha256": dict(
+                local_refresh.get("working_identity") or {}
+            ).get("working_identity_sha256"),
+            "local_only_evidence_content_read": False,
+            "candidate_created": False,
+            "pointer_moved": False,
+        }
+        local_receipt = {
+            **local_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(local_body)),
+        }
+        git_body = {
+            "lane_id": "github_code",
+            "status": "PASS",
+            "state": "EXACT_GIT_BASELINE_PRESERVED",
+            "branch": repository_after.get("branch"),
+            "commit_sha": repository_after.get("commit_sha"),
+            "tree_sha": repository_after.get("tree_sha"),
+            "git_mutated": False,
+            "remote_sync_performed": False,
+        }
+        git_receipt = {
+            **git_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(git_body)),
+        }
+        canonical_lane_refresh = dict(
+            local_refresh.get("canonical_lane_refresh") or {}
+        )
+        body = {
+            "schema": "evidence-lane.delta-source-authority-refresh.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "session_id": session_id,
+            "task_id": exact_task_id,
+            "source_planes": [local_receipt, git_receipt],
+            "canonical_lane_refresh": canonical_lane_refresh,
+            "dedicated_authorities_separate": [
+                "agent_learning",
+                "canon",
+                "project_memory",
+                "project_universe",
+                "connector_brain",
+                "resolved_instruction_sources",
+            ],
+            "repository_identity_unchanged": True,
+            "candidate_created": False,
+            "pointer_moved": False,
+            "git_mutated": False,
+        }
+        return {
+            **body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
+        }
 
     def source_sqlite_inspect(
         self,
@@ -2412,6 +3040,7 @@ class EvidenceLaneService:
             with ThreadPoolExecutor(
                 max_workers=min(_STATUS_VALIDATION_WORKERS, len(accepted_ids))
             ) as executor:
+
                 def validate_history(pv_id: str) -> dict[str, Any]:
                     artifact = self.store.accepted_path(project_id, pv_id)
                     if artifact.is_file():
@@ -2507,6 +3136,8 @@ class EvidenceLaneService:
             project_route["active_server_filesystem"] = active_route.get(
                 "server_filesystem"
             )
+        agent_configuration = self._active_agent_configuration_authority(project_id)
+        conversation_memory = self._active_conversation_memory_authority(project_id)
         lane_projection = _accepted_lane_projection(
             self.store,
             project_id,
@@ -2522,6 +3153,8 @@ class EvidenceLaneService:
                 "accepted_history": accepted_history,
                 "current_freshness": current_freshness,
                 "active_session": active_session,
+                "agent_configuration": agent_configuration,
+                "conversation_memory": conversation_memory,
                 "persistent_state_envelope": {
                     "accepted_pv": pointer.accepted_pv,
                     "pointer_generation": pointer.generation,
@@ -2583,6 +3216,7 @@ class EvidenceLaneService:
                 self.store,
                 project_id,
                 self.store.accepted_path(project_id, pointer.accepted_pv),
+                bounded_dirty_read=True,
             )
 
         active_session: dict[str, Any] | None = None
@@ -2628,6 +3262,8 @@ class EvidenceLaneService:
         lane_window["absent_lane_count"] = len(
             cast(list[Any], lane_projection.get("absent_lane_ids") or [])
         )
+        agent_configuration = self._active_agent_configuration_authority(project_id)
+        conversation_memory = self._active_conversation_memory_authority(project_id)
 
         return {
             "schema": "evidence-lane.pv-status-window.v1",
@@ -2652,6 +3288,8 @@ class EvidenceLaneService:
             "lane_projection": lane_window,
             "current_freshness": current_freshness,
             "active_session": active_session,
+            "agent_configuration": agent_configuration,
+            "conversation_memory": conversation_memory,
             "persistent_state_envelope": {
                 "accepted_pv": pointer.accepted_pv,
                 "pointer_generation": pointer.generation,
@@ -2835,6 +3473,12 @@ class EvidenceLaneService:
             "host_goal_mutation_supported_by_mcp": False,
             "host_scope": "CODEX_ONLY",
         }
+        result["agent_configuration"] = (
+            self._active_agent_configuration_authority(project_id)
+        )
+        result["conversation_memory"] = (
+            self._active_conversation_memory_authority(project_id)
+        )
         return result
 
     def record_steer_delta(
@@ -2874,7 +3518,14 @@ class EvidenceLaneService:
         return result
 
     def task_backlog(self, project_id: str) -> dict[str, Any]:
-        return self.store.backlog_status(project_id)
+        result = self.store.backlog_status(project_id)
+        result["agent_configuration"] = (
+            self._active_agent_configuration_authority(project_id)
+        )
+        result["conversation_memory"] = (
+            self._active_conversation_memory_authority(project_id)
+        )
+        return result
 
     def task_backlog_window(
         self,
@@ -2889,12 +3540,19 @@ class EvidenceLaneService:
         exact_task_id = str(task_id or "").strip()
         exact_query = str(query or "").strip()
         if exact_task_id or exact_query:
-            return self.store.plan_runtime_query(
+            result = self.store.plan_runtime_query(
                 project_id,
                 task_id=exact_task_id or None,
                 query=exact_query or None,
                 limit=min(int(limit), 20),
             )
+            result["agent_configuration"] = (
+                self._active_agent_configuration_authority(project_id)
+            )
+            result["conversation_memory"] = (
+                self._active_conversation_memory_authority(project_id)
+            )
+            return result
         require(
             int(limit) == 10,
             "TASK_BACKLOG_WINDOW_FIXED_CARDINALITY_REQUIRED",
@@ -2941,10 +3599,7 @@ class EvidenceLaneService:
             # Goal presence is deliberately irrelevant once a Plan row is ACTIVE.
             window_task_ids = [str(row["task_id"]) for row in rows[:9]]
         rows_by_task_id = {str(row["task_id"]): row for row in rows}
-        window_rows = [
-            rows_by_task_id[str(task_id)]
-            for task_id in window_task_ids
-        ]
+        window_rows = [rows_by_task_id[str(task_id)] for task_id in window_task_ids]
         compact_rows = [
             {
                 "number": int(row["number"]),
@@ -3008,9 +3663,7 @@ class EvidenceLaneService:
                 projection["sole_active_row"] if projection is not None else None
             ),
             "absolute_active_task_id": (
-                projection["sole_active_task_id"]
-                if projection is not None
-                else None
+                projection["sole_active_task_id"] if projection is not None else None
             ),
             "rows": compact_rows,
             "items": projection["items"] if projection is not None else [],
@@ -3040,6 +3693,12 @@ class EvidenceLaneService:
             "exact_row_query_available": True,
             "bounded_fts_query_available": True,
             "plan_runtime_receipt": plan_runtime_receipt,
+            "agent_configuration": (
+                self._active_agent_configuration_authority(project_id)
+            ),
+            "conversation_memory": (
+                self._active_conversation_memory_authority(project_id)
+            ),
         }
 
     def transition_task(
@@ -3409,6 +4068,12 @@ class EvidenceLaneService:
         result["project_lineage"] = ProjectChatLineage(
             resolved_chat_lineage_root(self.store.project_root(project_id))
         ).sync()
+        result["agent_configuration"] = (
+            self._active_agent_configuration_authority(project_id)
+        )
+        result["conversation_memory"] = (
+            self._active_conversation_memory_authority(project_id)
+        )
         return result
 
     def resume_session(
@@ -3478,6 +4143,12 @@ class EvidenceLaneService:
         result["project_lineage"] = ProjectChatLineage(
             resolved_chat_lineage_root(self.store.project_root(project_id))
         ).sync()
+        result["agent_configuration"] = (
+            self._active_agent_configuration_authority(project_id)
+        )
+        result["conversation_memory"] = (
+            self._active_conversation_memory_authority(project_id)
+        )
         return result
 
     def prepare_state_travel(
@@ -3489,13 +4160,166 @@ class EvidenceLaneService:
     ) -> dict[str, Any]:
         """Seal accepted context or the exact verified unfinished boundary."""
 
-        return self.sessions.prepare_state_travel(
+        result = self.sessions.prepare_state_travel(
             project_id,
             session_id,
             resume_contract=resume_contract,
         )
+        result["agent_configuration"] = (
+            self._active_agent_configuration_authority(project_id)
+        )
+        result["conversation_memory"] = (
+            self._active_conversation_memory_authority(project_id)
+        )
+        return result
 
     def direct_force_same_worktree_state_travel(
+        self,
+        *,
+        project_id: str,
+        session_id: str,
+        authoritative_source_task_id: str,
+        runtime_attachment_donor_task_id: str,
+        destination_task_id: str,
+        destination_task_title: str,
+    ) -> dict[str, Any]:
+        """Atomically derive and bind one fresh same-worktree destination.
+
+        This is the only public direct-entry service route. Callers provide
+        task identities, never a nonce or volatile source/Plan/runtime fields.
+        """
+
+        capture_route_binding = self._capture_route_binding(project_id)
+        flash = self.flash_authority.ensure_flashed()
+        with self.store.state_travel_resume_lock(project_id):
+            session = self.sessions.load(project_id, session_id)
+            profile_value = session.metadata.get("execution_profile")
+            require(
+                isinstance(profile_value, dict),
+                "DIRECT_STATE_TRAVEL_EXECUTION_PROFILE_REQUIRED",
+                "The active governed session has no exact execution profile.",
+                status="MISMATCH",
+                writes_performed=False,
+            )
+            execution_profile = cast(dict[str, Any], profile_value)
+            route, storage_selection = self._selected_persistence_route(
+                project_id,
+                host="CODEX_DESKTOP",
+                ephemeral=False,
+                server_has_durable_filesystem=True,
+                runtime_context=execution_profile,
+                host_session_id=destination_task_id,
+            )
+            require(
+                route.server_filesystem == "DURABLE" and not route.durable_required,
+                "DIRECT_STATE_TRAVEL_DURABLE_LOCAL_AUTHORITY_REQUIRED",
+                "Direct same-worktree State Travel requires the existing durable local authority.",
+                status="BLOCKED",
+                writes_performed=False,
+            )
+            route_payload = self._persistence_route_payload(project_id, route)
+            binding = self.sessions._server_derived_direct_same_worktree_binding(
+                project_id,
+                session_id,
+                authoritative_source_task_id=authoritative_source_task_id,
+                runtime_attachment_donor_task_id=(
+                    runtime_attachment_donor_task_id
+                ),
+                destination_task_id=destination_task_id,
+                destination_task_title=destination_task_title,
+            )
+            preflight = preflight_direct_forced_same_worktree_binding(binding)
+            exact_binding = cast(dict[str, Any], preflight["normalized_binding"])
+            result = self.sessions.direct_force_same_worktree_entry(
+                project_id,
+                session_id,
+                binding=exact_binding,
+                persistence_mode=route.mode,
+                persistence_route=route_payload,
+                flash=flash,
+                client_can_edit_source=True,
+                server_has_durable_filesystem=True,
+            )
+
+        direct = cast(dict[str, Any], result["direct_state_travel"])
+        plan = cast(dict[str, Any], direct["plan_task_proof"])
+        pointer = cast(dict[str, Any], direct["accepted_pointer_baseline"])
+        recovery = cast(dict[str, Any], direct["calling_task_recovery_authority"])
+        orchestration = cast(dict[str, Any], direct["destination_orchestration"])
+        receipt_body = {
+            "schema": (
+                "evidence-lane.server-derived-forced-same-worktree-entry-receipt.v1"
+            ),
+            "status": "PASS",
+            "route": "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK",
+            "binding_mode": "SERVER_DERIVED_ATOMIC",
+            "project_id": project_id,
+            "session_id": session_id,
+            "task_binding": {
+                "authoritative_source_task_id": authoritative_source_task_id,
+                "runtime_attachment_donor_task_id": (
+                    runtime_attachment_donor_task_id
+                ),
+                "destination_task_id": destination_task_id,
+                "destination_task_deep_link": (
+                    f"codex://threads/{destination_task_id}"
+                ),
+                "destination_task_title": destination_task_title,
+            },
+            "accepted_baseline": {
+                "pv_id": pointer["accepted_pv"],
+                "generation": pointer["generation"],
+                "moved": False,
+            },
+            "plan_anchors": {
+                "active_row": plan["active_row"],
+                "active_task_id": plan["active_task_id"],
+                "fixed_batch_row_start": plan["active_batch_row_start"],
+                "fixed_batch_row_end": plan["active_batch_row_end"],
+                "next_hil_row": plan["next_hil_row"],
+                "physically_final_hil_row": plan["physically_final_hil_row"],
+            },
+            "runtime_attestation_receipt_sha256": recovery[
+                "runtime_instance_attestation_receipt_sha256"
+            ],
+            "direct_entry_receipt_sha256": direct["receipt_sha256"],
+            "destination_orchestration_receipt_sha256": orchestration[
+                "receipt_sha256"
+            ],
+            "server_minted_replay_guard": True,
+            "caller_supplied_nonce": False,
+            "caller_supplied_volatile_authority": False,
+            "sealed_prepare_called": False,
+            "sealed_resume_called": False,
+            "source_mutated": False,
+            "candidate_created": False,
+            "hil_inferred": False,
+            "pointer_moved": False,
+        }
+        receipt = {
+            **receipt_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+        }
+        return {
+            "status": "PASS",
+            "forced_state_travel": receipt,
+            "destination_orchestration": orchestration,
+            "runtime_activation": result["runtime_activation"],
+            "session_flash": flash,
+            "persistence_route": {
+                **route_payload,
+                "selection": storage_selection,
+            },
+            "capture_route_binding": capture_route_binding,
+            "agent_configuration": self._active_agent_configuration_authority(
+                project_id
+            ),
+            "conversation_memory": self._active_conversation_memory_authority(
+                project_id
+            ),
+        }
+
+    def _direct_force_same_worktree_state_travel_with_binding(
         self,
         *,
         project_id: str,
@@ -3504,10 +4328,12 @@ class EvidenceLaneService:
         client_can_edit_source: bool | None = True,
         server_has_durable_filesystem: bool | None = True,
     ) -> dict[str, Any]:
-        """Bind a fresh same-worktree task without sealed prepare/resume."""
+        """Private compatibility path for validating the legacy full binding."""
 
-        destination = cast(dict[str, Any], binding.get("destination") or {})
-        expected = cast(dict[str, Any], binding.get("expected") or {})
+        preflight = preflight_direct_forced_same_worktree_binding(binding)
+        exact_binding = cast(dict[str, Any], preflight["normalized_binding"])
+        destination = cast(dict[str, Any], exact_binding.get("destination") or {})
+        expected = cast(dict[str, Any], exact_binding.get("expected") or {})
         execution_profile = cast(
             dict[str, Any], expected.get("execution_profile") or {}
         )
@@ -3533,7 +4359,7 @@ class EvidenceLaneService:
             result = self.sessions.direct_force_same_worktree_entry(
                 project_id,
                 session_id,
-                binding=binding,
+                binding=exact_binding,
                 persistence_mode=route.mode,
                 persistence_route=route_payload,
                 flash=flash,
@@ -3546,6 +4372,17 @@ class EvidenceLaneService:
             "selection": storage_selection,
         }
         result["capture_route_binding"] = capture_route_binding
+        result["binding_preflight"] = {
+            key: value
+            for key, value in preflight.items()
+            if key != "normalized_binding"
+        }
+        result["agent_configuration"] = (
+            self._active_agent_configuration_authority(project_id)
+        )
+        result["conversation_memory"] = (
+            self._active_conversation_memory_authority(project_id)
+        )
         return result
 
     def resume_state_travel(
@@ -3574,7 +4411,16 @@ class EvidenceLaneService:
                 runtime_context=runtime_context,
             )
             if replay is not None:
-                return {**replay, "capture_route_binding": capture_route_binding}
+                return {
+                    **replay,
+                    "capture_route_binding": capture_route_binding,
+                    "agent_configuration": (
+                        self._active_agent_configuration_authority(project_id)
+                    ),
+                    "conversation_memory": (
+                        self._active_conversation_memory_authority(project_id)
+                    ),
+                }
             result = self._resume_state_travel_locked(
                 project_id=project_id,
                 session_id=session_id,
@@ -3586,7 +4432,16 @@ class EvidenceLaneService:
                 server_has_durable_filesystem=server_has_durable_filesystem,
                 runtime_context=runtime_context,
             )
-            return {**result, "capture_route_binding": capture_route_binding}
+            return {
+                **result,
+                "capture_route_binding": capture_route_binding,
+                "agent_configuration": (
+                    self._active_agent_configuration_authority(project_id)
+                ),
+                "conversation_memory": (
+                    self._active_conversation_memory_authority(project_id)
+                ),
+            }
 
     def _resume_state_travel_locked(
         self,
@@ -3678,6 +4533,12 @@ class EvidenceLaneService:
         result["suggested_next_prompt"] = HIL_SUGGESTED_PROMPT
         result["next_action_contract"] = result["candidate"]["next_action"]
         result["hil_choices"] = list(HIL_CHOICES)
+        result["agent_configuration"] = (
+            self._active_agent_configuration_authority(project_id)
+        )
+        result["conversation_memory"] = (
+            self._active_conversation_memory_authority(project_id)
+        )
         session = self.sessions.load(project_id, session_id)
         if session.metadata["persistence_mode"] in {
             "google_drive",
@@ -3969,6 +4830,8 @@ SERVICE_MCP_WORKFLOW_METHODS = frozenset(
 # handler ownership remains separately validated by inspect_sdk_handler_parity.
 SERVICE_SDK_WORKFLOW_METHODS = frozenset(
     {
+        "agent_configuration_authority",
+        "conversation_memory_authority",
         "classify_mode",
         "connector_plugin_catalog",
         "connector_plugin_route",

@@ -1,5 +1,7 @@
 title: Evidence Lane
-description: Governed project evidence, continuity, and release authority.
+description: Evidence Lane 3.0.0 governed project evidence, continuity, and release authority.
+evidence_lane_release: 3.0.0
+evidence_lane_projection: current-route-full-documentation
 url: https://rathee000001.github.io
 baseurl: /evidence_lane_plugin
 markdown: kramdown

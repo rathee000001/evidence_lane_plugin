@@ -6,6 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = (
     ROOT
@@ -45,12 +47,12 @@ def test_local_push_request_reproduces_exact_commit_tree_and_blob_delta(
     repository = tmp_path / "repository"
     repository.mkdir()
     _git(repository, "init", "-b", "main")
-    _git(repository, "config", "user.name", "Evidence Lane App")
+    _git(repository, "config", "user.name", "evidence-lane[bot]")
     _git(
         repository,
         "config",
         "user.email",
-        "evidence-lane@users.noreply.github.com",
+        "319574480+evidence-lane[bot]@users.noreply.github.com",
     )
     (repository / "delete-me.txt").write_text("remove me\n", encoding="utf-8")
     (repository / "README.md").write_text("base\n", encoding="utf-8")
@@ -83,6 +85,7 @@ def test_local_push_request_reproduces_exact_commit_tree_and_blob_delta(
     )
 
     assert request.expected_parent_commit_sha == parent
+    assert request.additional_parent_commit_shas == ()
     assert request.expected_commit_sha == commit
     assert request.expected_parent_tree_sha == _git(
         repository, "rev-parse", f"{parent}^{{tree}}"
@@ -92,6 +95,8 @@ def test_local_push_request_reproduces_exact_commit_tree_and_blob_delta(
     )
     assert request.author.date == "2026-08-21T12:00:00-04:00"
     assert request.committer.date == "2026-08-21T12:00:00-04:00"
+    assert request.author.name == "evidence-lane[bot]"
+    assert request.committer.name == "evidence-lane[bot]"
     assert request.commit_message == "R249 exact test\n"
     assert [change.path for change in request.changes] == [
         ".github/workflows/ci.yml",
@@ -105,3 +110,76 @@ def test_local_push_request_reproduces_exact_commit_tree_and_blob_delta(
     )
     assert request.changes[1].operation == "DELETE"
     assert request.changes[1].blob_sha is None
+
+
+def test_local_push_request_rejects_human_authored_preview_commit(tmp_path) -> None:
+    module = _load_script()
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    _git(repository, "init", "-b", "main")
+    _git(repository, "config", "user.name", "Human Author")
+    _git(repository, "config", "user.email", "human@example.invalid")
+    (repository / "README.md").write_text("base\n", encoding="utf-8")
+    _git(repository, "add", "README.md")
+    _git(repository, "commit", "-m", "base")
+    (repository / "README.md").write_text("changed\n", encoding="utf-8")
+    _git(repository, "add", "README.md")
+    _git(repository, "commit", "-m", "human change")
+
+    with pytest.raises(
+        module.ExactGitHubAppPushError,
+        match="GITHUB_APP_BOT_ACTOR_REQUIRED",
+    ):
+        module.local_push_request(
+            repository_root=repository,
+            repository="owner/repo",
+            branch="agent/evi-v300-systemwide-release-hil-v3.0.0",
+            commit="HEAD",
+            project_id="project-a",
+            task_id="task-a",
+            request_id="request-human",
+            idempotency_key="request-human-idem",
+        )
+
+
+def test_local_push_request_preserves_ordered_merge_parents(tmp_path) -> None:
+    module = _load_script()
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    _git(repository, "init", "-b", "main")
+    _git(repository, "config", "user.name", "evidence-lane[bot]")
+    _git(
+        repository,
+        "config",
+        "user.email",
+        "319574480+evidence-lane[bot]@users.noreply.github.com",
+    )
+    (repository / "base.txt").write_text("base\n", encoding="utf-8")
+    _git(repository, "add", "base.txt")
+    _git(repository, "commit", "-m", "base")
+    _git(repository, "checkout", "-b", "feature")
+    (repository / "feature.txt").write_text("feature\n", encoding="utf-8")
+    _git(repository, "add", "feature.txt")
+    _git(repository, "commit", "-m", "feature")
+    first_parent = _git(repository, "rev-parse", "HEAD")
+    _git(repository, "checkout", "main")
+    (repository / "main.txt").write_text("main\n", encoding="utf-8")
+    _git(repository, "add", "main.txt")
+    _git(repository, "commit", "-m", "main")
+    second_parent = _git(repository, "rev-parse", "HEAD")
+    _git(repository, "checkout", "feature")
+    _git(repository, "merge", "--no-ff", "main", "-m", "merge main")
+
+    request = module.local_push_request(
+        repository_root=repository,
+        repository="owner/repo",
+        branch="feature",
+        commit="HEAD",
+        project_id="project-a",
+        task_id="task-a",
+        request_id="request-merge",
+        idempotency_key="request-merge-idem",
+    )
+
+    assert request.expected_parent_commit_sha == first_parent
+    assert request.additional_parent_commit_shas == (second_parent,)

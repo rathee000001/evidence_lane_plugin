@@ -78,7 +78,12 @@ class PVReader:
             authority_state = "CURRENT_ACCEPTED_PV"
         else:
             authority_state = "HISTORICAL_ACCEPTED_PV"
-        freshness = evaluate_freshness(self.store, project_id, package)
+        freshness = evaluate_freshness(
+            self.store,
+            project_id,
+            package,
+            bounded_dirty_read=True,
+        )
         return {
             "authority_state": authority_state,
             "accepted_truth": not is_candidate,

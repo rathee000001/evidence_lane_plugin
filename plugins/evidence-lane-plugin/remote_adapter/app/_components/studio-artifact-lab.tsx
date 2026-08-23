@@ -8,13 +8,18 @@ import {
   studioRetrievalServices,
   type StudioArtifact,
 } from "../_data/studio-artifact-catalog";
+import { currentProductContract } from "../_data/current-product-contract";
 
 const formatOrder: readonly StudioArtifact["format"][] = [
   "SQLite", "Markdown", "JSON", "CSV", "Chart", "Table", "MMD", "DOT",
 ];
 
 const capabilityRows = [
-  { label: "Codex native", executable: 87, failClosed: 0 },
+  {
+    label: "Codex native",
+    executable: currentProductContract.nativeMcp.totalActions,
+    failClosed: 0,
+  },
 ] as const;
 
 export function StudioArtifactLab() {
@@ -78,10 +83,13 @@ export function StudioArtifactLab() {
             <div className="studioCapabilityBar" key={row.label}>
               <span>{row.label}</span>
               <div>
-                <i style={{ width: `${row.executable / 87 * 100}%` }} />
-                <em style={{ width: `${row.failClosed / 87 * 100}%` }} />
+                <i style={{ width: `${row.executable / currentProductContract.nativeMcp.totalActions * 100}%` }} />
+                <em style={{ width: `${row.failClosed / currentProductContract.nativeMcp.totalActions * 100}%` }} />
               </div>
-              <small>{row.executable} executable / {row.failClosed} fail closed / 87 visible</small>
+              <small>
+                {row.executable} executable / {row.failClosed} fail closed /{" "}
+                {currentProductContract.nativeMcp.totalActions} visible
+              </small>
             </div>
           ))}
         </div>
@@ -89,7 +97,12 @@ export function StudioArtifactLab() {
           <caption>Host capability table</caption>
           <thead><tr><th>Host</th><th>Total</th><th>Read-only</th><th>Write-capable</th></tr></thead>
           <tbody>
-            <tr><th>Codex native 3.0.0</th><td>87</td><td>27</td><td>60</td></tr>
+            <tr>
+              <th>Codex native {currentProductContract.release}</th>
+              <td>{currentProductContract.nativeMcp.totalActions}</td>
+              <td>{currentProductContract.nativeMcp.readActions}</td>
+              <td>{currentProductContract.nativeMcp.writeActions}</td>
+            </tr>
           </tbody>
         </table>
       </div>

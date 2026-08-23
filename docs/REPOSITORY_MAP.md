@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+
 # Repository map
 
 | Path | Role |
@@ -6,7 +8,7 @@
 | `plugins/evidence-lane-plugin/.mcp.json` | Package-local native MCP launch contract |
 | `plugins/evidence-lane-plugin/src/evidence_lane_plugin/` | Lifecycle engine, lane authorities, SDK, and native server |
 | `plugins/evidence-lane-plugin/skills/` | Seventeen governed workflow skills |
-| `plugins/evidence-lane-plugin/hooks/` | Eight lifecycle event contracts and isolated handlers |
+| `plugins/evidence-lane-plugin/hooks/` | Eleven lifecycle event contracts and isolated handlers |
 | `plugins/evidence-lane-plugin/schemas/` | Lane, Canon, Learning, query, and schema-evolution contracts |
 | `plugins/evidence-lane-plugin/scripts/codex_release/` | Deterministic package, slot, helper, restart, and acceptance routes |
 | `plugins/evidence-lane-plugin/scripts/windows_tunnel/` | Optional version-bound Windows support tunnel |

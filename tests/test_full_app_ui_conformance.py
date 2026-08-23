@@ -305,8 +305,9 @@ def test_v140_home_uses_concentric_delta_story_plugin_catalog_and_universal_glas
     assert 'className="sourceIntakeDepthPill"' in architecture
     assert "SourceLaneIcon" in architecture
     assert 'className="source-lane-orb"' in architecture
-    assert architecture.count('className="compactDepthPill"') == 6
-    assert architecture.count("<GlassIconOrb") >= 7
+    assert architecture.count('className="compactDepthPill"') == 3
+    assert "HostCapabilityMatrix" in architecture
+    assert architecture.count("<GlassIconOrb") >= 4
     assert ".parallelDiagram::before" in css
     assert ".flowDepthPill" in css and "width: max-content" in css
 
@@ -500,7 +501,8 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
     assert "Resume from verified project truth - not another re-explanation." in landing
     assert "&mdash;" not in landing
     assert "ReleaseStatus" not in landing
-    assert "homeHostTruth" in landing
+    assert "homeHostTruth" not in landing
+    assert "<HostCapabilityMatrix compact />" in landing
     assert "ChatGPT MCP edge fail-closed" not in landing
     assert "No re-explanation tax" in landing
     assert "Parse once, query again" in landing
@@ -607,7 +609,8 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
         assert url in site
     assert "salary" not in contributors.casefold()
     assert "h1b" not in contributors.casefold()
-    assert site.startswith('export const publicSiteUrl = "https://evidencelane.org";')
+    assert site.startswith('import { currentProductContract } from "./current-product-contract.ts";')
+    assert 'export const publicSiteUrl = "https://evidencelane.org";' in site
     assert "publicMcpUrl" not in site
 
 
@@ -692,7 +695,8 @@ def test_connect_endpoint_cards_are_linked_readable_and_truthful() -> None:
         in connect
     )
     assert "website explains the product; it does not execute the lifecycle" in connect
-    assert "prewarmed separately" in connect
+    assert "prewarmed separately" not in connect
+    assert "a support tunnel is eligible only for a measured host-tool gap" in connect
     assert ".endpointCard strong { color: #ffffff;" in styles
     assert ".endpointCard small { color: #d6e7f3;" in styles
     for selector in (

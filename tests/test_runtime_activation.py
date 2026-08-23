@@ -11,6 +11,33 @@ from evidence_lane_plugin.runtime_activation import RuntimeActivation
 
 from .conftest import boot_local
 
+HOST_HOOK_EVENTS = [
+    "permissionRequest",
+    "postCompact",
+    "postToolUse",
+    "preCompact",
+    "preToolUse",
+    "sessionEnd",
+    "sessionStart",
+    "stop",
+    "subagentStart",
+    "subagentStop",
+    "userPromptSubmit",
+]
+PACKAGE_HOOK_EVENTS = [
+    "PermissionRequest",
+    "PostCompact",
+    "PostToolUse",
+    "PreCompact",
+    "PreToolUse",
+    "SessionEnd",
+    "SessionStart",
+    "Stop",
+    "SubagentStart",
+    "SubagentStop",
+    "UserPromptSubmit",
+]
+
 
 def _run_session_start(
     root: Path,
@@ -74,6 +101,7 @@ def _write_active_runtime_and_installation(
     *,
     host_dispatch_events: list[str],
     package_events: list[str] | None,
+    hooks_enabled: bool = True,
 ) -> RuntimeActivation:
     runtime = RuntimeActivation(root)
     runtime.path.parent.mkdir(parents=True, exist_ok=True)
@@ -109,13 +137,14 @@ def _write_active_runtime_and_installation(
                 "event_name": event,
                 "hook_key": f"{selector}:hooks/hooks.json:{event}:0:0",
                 "current_hash": f"sha256:{index:064x}",
-                "enabled": True,
+                "enabled": hooks_enabled,
                 "trust_status": "trusted",
             }
             for index, event in enumerate(host_dispatch_events, start=1)
         ],
         "before_trust_statuses": ["untrusted"],
         "after_trust_statuses": ["trusted"],
+        "after_enabled_states": [hooks_enabled],
     }
     hook_trust["receipt_sha256"] = _sealed_json_sha256(hook_trust)
     installation: dict[str, object] = {
@@ -156,26 +185,8 @@ def _write_active_runtime_and_installation(
 def test_runtime_hook_status_separates_host_dispatches_from_package_events(
     tmp_path: Path,
 ) -> None:
-    host_events = [
-        "postCompact",
-        "postToolUse",
-        "preCompact",
-        "preToolUse",
-        "sessionEnd",
-        "sessionStart",
-        "stop",
-        "userPromptSubmit",
-    ]
-    package_events = [
-        "PostCompact",
-        "PostToolUse",
-        "PreCompact",
-        "PreToolUse",
-        "SessionEnd",
-        "SessionStart",
-        "Stop",
-        "UserPromptSubmit",
-    ]
+    host_events = HOST_HOOK_EVENTS
+    package_events = PACKAGE_HOOK_EVENTS
     runtime = _write_active_runtime_and_installation(
         tmp_path,
         host_dispatch_events=host_events,
@@ -184,12 +195,12 @@ def test_runtime_hook_status_separates_host_dispatches_from_package_events(
 
     hook_status = runtime.host_hook_status()
     assert hook_status["status"] == "TRUSTED"
-    assert hook_status["hook_count"] == 8
+    assert hook_status["hook_count"] == 11
     assert hook_status["registered_events"] == host_events
-    assert hook_status["host_dispatch_hook_count"] == 8
+    assert hook_status["host_dispatch_hook_count"] == 11
     assert hook_status["host_dispatch_registered_events"] == host_events
     assert hook_status["host_dispatch_trust_status"] == "SEALED_CONFIG_TRUST"
-    assert hook_status["package_hook_event_count"] == 8
+    assert hook_status["package_hook_event_count"] == 11
     assert hook_status["package_registered_events"] == package_events
     assert hook_status["package_inventory_status"] == "SEALED"
     assert hook_status["installed_host_dispatch_independently_proven"] is False
@@ -221,16 +232,7 @@ def test_runtime_hook_status_separates_host_dispatches_from_package_events(
 def test_runtime_hook_status_rejects_sealed_four_event_package_baseline(
     tmp_path: Path,
 ) -> None:
-    host_events = [
-        "postCompact",
-        "postToolUse",
-        "preCompact",
-        "preToolUse",
-        "sessionEnd",
-        "sessionStart",
-        "stop",
-        "userPromptSubmit",
-    ]
+    host_events = HOST_HOOK_EVENTS
     runtime = _write_active_runtime_and_installation(
         tmp_path,
         host_dispatch_events=host_events,
@@ -245,37 +247,19 @@ def test_runtime_hook_status_rejects_sealed_four_event_package_baseline(
     hook_status = runtime.host_hook_status()
     assert hook_status["status"] == "MISMATCH"
     assert hook_status["trusted"] is False
-    assert hook_status["host_dispatch_hook_count"] == 8
+    assert hook_status["host_dispatch_hook_count"] == 11
     assert hook_status["package_hook_event_count"] == 4
     assert hook_status["package_inventory_status"] == "MISMATCH"
     assert hook_status["installed_host_dispatch_independently_proven"] is False
 
 
-def test_runtime_hook_status_accepts_eight_event_host_dispatch_claim(
+def test_runtime_hook_status_accepts_eleven_event_host_dispatch_claim(
     tmp_path: Path,
 ) -> None:
     runtime = _write_active_runtime_and_installation(
         tmp_path,
-        host_dispatch_events=[
-            "postCompact",
-            "postToolUse",
-            "preCompact",
-            "preToolUse",
-            "sessionEnd",
-            "sessionStart",
-            "stop",
-            "userPromptSubmit",
-        ],
-        package_events=[
-            "PostCompact",
-            "PostToolUse",
-            "PreCompact",
-            "PreToolUse",
-            "SessionEnd",
-            "SessionStart",
-            "Stop",
-            "UserPromptSubmit",
-        ],
+        host_dispatch_events=HOST_HOOK_EVENTS,
+        package_events=PACKAGE_HOOK_EVENTS,
     )
 
     hook_status = runtime.host_hook_status()
@@ -283,6 +267,35 @@ def test_runtime_hook_status_accepts_eight_event_host_dispatch_claim(
     assert hook_status["trusted"] is True
     assert hook_status["host_dispatch_trust_status"] == "SEALED_CONFIG_TRUST"
     assert hook_status["installed_host_dispatch_independently_proven"] is False
+
+
+def test_runtime_hook_status_separates_trust_from_intentional_disable(
+    tmp_path: Path,
+) -> None:
+    runtime = _write_active_runtime_and_installation(
+        tmp_path,
+        host_dispatch_events=HOST_HOOK_EVENTS,
+        package_events=PACKAGE_HOOK_EVENTS,
+        hooks_enabled=False,
+    )
+
+    hook_status = runtime.host_hook_status()
+    assert hook_status["status"] == "TRUSTED"
+    assert hook_status["trusted"] is True
+    assert hook_status["enabled"] is False
+    assert hook_status["host_dispatch_enablement_status"] == "DISABLED"
+    assert hook_status["reason"] == "HOOKS_INTENTIONALLY_DISABLED"
+    projected = runtime.status_with_host_proof()
+    assert projected["host_hooks_trusted"] is True
+    assert projected["host_hooks_enabled"] is False
+    assert projected["host_hooks_runnable"] is False
+    assert all(
+        row["state"] in {
+            "HOOKS_INTENTIONALLY_DISABLED",
+            "HOST_CAPABILITY_UNAVAILABLE",
+        }
+        for row in projected["required_pre_reasoning_capture_surfaces"]
+    )
 
 
 def test_session_start_exposes_local_codex_native_no_tunnel_route(

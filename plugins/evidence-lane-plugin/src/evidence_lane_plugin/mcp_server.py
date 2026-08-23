@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 import json
 import os
 from collections.abc import Iterable
+from functools import wraps
 from pathlib import Path
 from typing import Any, Literal, cast
 
@@ -42,7 +44,6 @@ from .codex_turn_control import (
 )
 from .constants import (
     ENGINE_VERSION,
-    GOVERNED_SKILL_COUNT,
     NATIVE_READ_TOOL_COUNT,
     NATIVE_TOOL_COUNT,
     NATIVE_WRITE_TOOL_COUNT,
@@ -51,6 +52,7 @@ from .errors import EvidenceLaneError, require
 from .github_automation_governance import (
     apply_fastmcp_tool_filter,
 )
+from .hashing import canonical_json_bytes, sha256_bytes
 from .internal_sdk import build_live_local_sdk_context
 from .lane_engine import prewarm_native_dependencies
 from .mcp_apps import (
@@ -65,6 +67,12 @@ from .mcp_apps import (
 from .mcp_stdio_compat import (
     install_tool_namespace_compat,
     run_discovery_compatible_stdio,
+)
+from .public_surface_registry import (
+    CODEX_READ_TOOL_NAMES,
+    PublicSurfaceRegistryError,
+    derive_public_surface_registry,
+    resolve_public_surface_plugin_root,
 )
 from .service import EvidenceLaneService, inspect_service_route_parity
 
@@ -91,29 +99,21 @@ FULL_LIFECYCLE_EXPOSURE_PROFILE = "FULL_LIFECYCLE"
 def resolve_skill_mcp_plugin_root() -> Path:
     """Resolve the exact plugin bundle that owns the governed skill routes."""
 
-    configured = os.environ.get(_PLUGIN_ROOT_ENV, "").strip()
-    if configured:
-        candidate = Path(configured)
-        require(
-            candidate.is_absolute(),
-            "SKILL_MCP_ROUTING_INVALID",
-            "The configured plugin root must be absolute.",
-            environment_variable=_PLUGIN_ROOT_ENV,
-        )
-        return candidate.resolve()
-
-    source = Path(__file__).resolve()
-    for ancestor in source.parents:
-        if (
-            ancestor / "skills" / "evi" / "references" / "mcp-tool-routing.v1.json"
-        ).is_file():
-            return ancestor
-
-    raise EvidenceLaneError(
-        code="SKILL_MCP_ROUTING_INVALID",
-        message="The exact plugin root for bundled skill routing is unavailable.",
-        details={"environment_variable": _PLUGIN_ROOT_ENV},
-    )
+    try:
+        return resolve_public_surface_plugin_root()
+    except PublicSurfaceRegistryError as exc:
+        raise EvidenceLaneError(
+            code="SKILL_MCP_ROUTING_INVALID",
+            message=(
+                "The configured skill/MCP root does not own the currently "
+                "imported Evidence Lane runtime."
+            ),
+            details={
+                "environment_variable": _PLUGIN_ROOT_ENV,
+                "reason": str(exc),
+                "cross_package_root_allowed": False,
+            },
+        ) from exc
 
 
 SDK_NATIVE_ACTIONS: tuple[tuple[str, str, str, str, str, bool], ...] = (
@@ -312,37 +312,12 @@ SDK_NATIVE_ACTIONS: tuple[tuple[str, str, str, str, str, bool], ...] = (
 )
 
 SDK_NATIVE_READ_TOOL_NAMES = tuple(row[0] for row in SDK_NATIVE_ACTIONS if row[5])
-CODEX_READ_TOOL_NAMES = (
-    *SDK_NATIVE_READ_TOOL_NAMES,
-    "connector_plugin_catalog",
-    "connector_plugin_settings",
-    "fetch",
-    "lane_catalog",
-    "lane_fetch",
-    "lane_search",
-    "lane_status",
-    "lifecycle_transition_law",
-    "prompt_index_status",
-    "pv_diff",
-    "pv_query",
-    "pv_status",
-    "pv_summary",
-    "pv_task_backlog",
-    "render_project_panel",
-    "render_runtime_panel",
-    "runtime_activation_status",
-    "runtime_doctor",
-    "search",
-    "session_flash_status",
-    "storage_connector_inspect",
-)
 
 if (
-    len(SDK_NATIVE_ACTIONS) != 24
-    or len(SDK_NATIVE_READ_TOOL_NAMES) != 6
+    len(SDK_NATIVE_ACTIONS) != len({row[0] for row in SDK_NATIVE_ACTIONS})
+    or not set(SDK_NATIVE_READ_TOOL_NAMES).issubset(CODEX_READ_TOOL_NAMES)
     or len(CODEX_READ_TOOL_NAMES) != NATIVE_READ_TOOL_COUNT
     or NATIVE_TOOL_COUNT - NATIVE_READ_TOOL_COUNT != NATIVE_WRITE_TOOL_COUNT
-    or GOVERNED_SKILL_COUNT != 17
 ):
     raise RuntimeError("Evidence Lane public-surface count contract drifted.")
 
@@ -393,15 +368,145 @@ class _MCPExposureBoundary:
         callback: Any,
         *args: Any,
         lifecycle: bool = False,
+        authorization_project_id: str | None = None,
+        authorization_session_id: str | None = None,
         **kwargs: Any,
-    ) -> Any:
+    ) -> dict[str, Any]:
+        callback_arguments: dict[str, Any] = {}
+        try:
+            callback_arguments = dict(
+                inspect.signature(callback).bind_partial(*args, **kwargs).arguments
+            )
+        except (TypeError, ValueError):
+            callback_arguments = {}
+        project_id = (
+            None
+            if tool_name in _RUNTIME_GLOBAL_TOOL_NAMES
+            else str(
+                authorization_project_id
+                if authorization_project_id is not None
+                else callback_arguments.get("project_id")
+                if callback_arguments.get("project_id") is not None
+                else kwargs.get("project_id")
+                if kwargs.get("project_id") is not None
+                else args[0]
+                if args
+                else ""
+            )
+        )
+        session_id = str(
+            authorization_session_id
+            if authorization_session_id is not None
+            else callback_arguments.get("session_id")
+            if callback_arguments.get("session_id") is not None
+            else kwargs.get("session_id")
+            if kwargs.get("session_id") is not None
+            else ""
+        )
+        authorization_block, entry_binding = self.preflight(
+            tool_name,
+            lifecycle=lifecycle,
+            project_id=project_id,
+            session_id=session_id,
+        )
+        if authorization_block is not None:
+            return cast(dict[str, Any], authorization_block)
+        return self.invoke_preflighted(
+            tool_name,
+            callback,
+            *args,
+            lifecycle=lifecycle,
+            entry_binding=cast(dict[str, Any], entry_binding),
+            **kwargs,
+        )
+
+    def invoke_preflighted(
+        self,
+        tool_name: str,
+        callback: Any,
+        *args: Any,
+        lifecycle: bool,
+        entry_binding: dict[str, Any],
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Enter one callback using the exact already-authorized receipt."""
+
+        preflight_receipt_sha256 = str(entry_binding.get("receipt_sha256") or "")
+        require(
+            bool(preflight_receipt_sha256)
+            and entry_binding.get("callback_entered") is False,
+            "PUBLIC_ENTRY_PREFLIGHT_RECEIPT_REQUIRED",
+            "A preflighted invocation requires the exact unentered callback receipt.",
+            status="MISMATCH",
+        )
+        preflight_body = {
+            key: value
+            for key, value in entry_binding.items()
+            if key != "receipt_sha256"
+        }
+        require(
+            sha256_bytes(canonical_json_bytes(preflight_body))
+            == preflight_receipt_sha256
+            and preflight_body.get("tool_name") == tool_name
+            and preflight_body.get("effect_class")
+            == ("WRITE" if lifecycle else "READ"),
+            "PUBLIC_ENTRY_PREFLIGHT_RECEIPT_INVALID",
+            "The pre-callback public-entry receipt failed self or route verification.",
+            status="MISMATCH",
+        )
+        completed_body = {
+            **preflight_body,
+            "callback_entered": True,
+            "preflight_receipt_sha256": preflight_receipt_sha256,
+        }
+        completed_receipt = {
+            **completed_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(completed_body)),
+        }
+        return self._application.invoke(
+            tool_name,
+            callback,
+            *args,
+            lifecycle=lifecycle,
+            entry_authorization=completed_receipt,
+            **kwargs,
+        )
+
+    def preflight(
+        self,
+        tool_name: str,
+        *,
+        lifecycle: bool,
+        project_id: str | None,
+        session_id: str | None,
+    ) -> tuple[CallToolResult | None, dict[str, Any] | None]:
+        """Authorize and attest exact entry identity before callback work."""
+
+        authorization_block = self.authorize(
+            tool_name,
+            lifecycle=lifecycle,
+            project_id=project_id,
+        )
+        if authorization_block is not None:
+            return authorization_block, None
+        receipt = self._application._public_entry_binding_receipt(
+            tool_name=tool_name,
+            lifecycle=lifecycle,
+            project_id=project_id,
+            session_id=session_id,
+        )
+        return None, receipt
+
+    def authorize(
+        self,
+        tool_name: str,
+        *,
+        lifecycle: bool,
+        project_id: str | None,
+    ) -> CallToolResult | None:
+        """Authorize before any wrapper-level project or session observation."""
+
         if self._authorization_policy is not None:
-            project_id: str | None = None
-            if tool_name not in _RUNTIME_GLOBAL_TOOL_NAMES:
-                raw_project = kwargs.get("project_id")
-                if raw_project is None and args:
-                    raw_project = args[0]
-                project_id = str(raw_project) if raw_project is not None else ""
             try:
                 self._authorization_policy.authorize_current_request(
                     tool_name=tool_name,
@@ -415,13 +520,7 @@ class _MCPExposureBoundary:
                     tool_name=tool_name,
                     lifecycle=lifecycle,
                 )
-        return self._application.invoke(
-            tool_name,
-            callback,
-            *args,
-            lifecycle=lifecycle,
-            **kwargs,
-        )
+        return None
 
 
 def _oauth_authorization_result(
@@ -582,11 +681,18 @@ def _compact_fastmcp_structured_result(tool_name: str, result: Any) -> Any:
     structured = cast(dict[str, Any], result[1])
     data = structured.get("data")
     data_status = data.get("status") if isinstance(data, dict) else None
-    status = str(structured.get("status") or data_status or "PASS")
+    execution_status = str(
+        structured.get("execution_status") or structured.get("status") or "PASS"
+    )
+    domain_status = str(
+        structured.get("domain_status") or data_status or execution_status
+    )
     text_receipt = {
         "schema": "evidence-lane.mcp-text-receipt.v1",
         "tool": tool_name,
-        "status": status,
+        "status": execution_status,
+        "execution_status": execution_status,
+        "domain_status": domain_status,
         "structured_receipt_authoritative": True,
         "duplicate_structured_json_returned": False,
         "raw_payload_returned": False,
@@ -600,6 +706,60 @@ def _compact_fastmcp_structured_result(tool_name: str, result: Any) -> Any:
         ],
         structured,
     )
+
+
+def _apply_governed_tool_failure_boundary(
+    mcp: FastMCP,
+    application: EvidenceLaneService,
+) -> dict[str, Any]:
+    """Convert every handler exception into the canonical fail-closed envelope."""
+
+    wrapped_names: list[str] = []
+    for tool in mcp._tool_manager.list_tools():
+        original = tool.fn
+        if getattr(original, "_evidence_lane_failure_boundary", False):
+            wrapped_names.append(tool.name)
+            continue
+        lifecycle = bool(
+            tool.annotations is not None
+            and tool.annotations.readOnlyHint is False
+        )
+
+        def governed_handler(
+            *args: Any,
+            __original: Any = original,
+            __tool_name: str = tool.name,
+            __lifecycle: bool = lifecycle,
+            **kwargs: Any,
+        ) -> Any:
+            try:
+                return __original(*args, **kwargs)
+            except Exception as error:  # noqa: BLE001
+                return application._error(
+                    __tool_name,
+                    error,
+                    lifecycle=__lifecycle,
+                )
+
+        governed_handler = cast(
+            Any,
+            wraps(cast(Any, original))(cast(Any, governed_handler)),
+        )
+        governed_handler._evidence_lane_failure_boundary = True  # type: ignore[attr-defined]
+        tool.fn = cast(Any, governed_handler)
+        wrapped_names.append(tool.name)
+
+    ordered = sorted(wrapped_names)
+    return {
+        "schema": "evidence-lane.public-handler-failure-boundary.v1",
+        "status": "PASS" if len(ordered) == NATIVE_TOOL_COUNT else "BLOCKED",
+        "wrapped_handler_count": len(ordered),
+        "wrapped_handler_names_sha256": hashlib.sha256(
+            json.dumps(ordered, separators=(",", ":")).encode("utf-8")
+        ).hexdigest().upper(),
+        "uncaught_handler_exception_allowed": False,
+        "handler_domain_status_rewritten": False,
+    }
 
 
 def _apply_oauth_tool_security_schemes(
@@ -1433,6 +1593,13 @@ def _native_route_receipt(
 
     tools = sorted(mcp._tool_manager.list_tools(), key=lambda item: item.name)
     names = [tool.name for tool in tools]
+    public_surface = derive_public_surface_registry(resolve_skill_mcp_plugin_root())
+    registered_read_names = sorted(
+        tool.name
+        for tool in tools
+        if tool.annotations is None or tool.annotations.readOnlyHint is not False
+    )
+    registered_write_names = sorted(set(names) - set(registered_read_names))
     catalog = [
         {
             "name": tool.name,
@@ -1476,6 +1643,10 @@ def _native_route_receipt(
         len(names) == len(set(names))
         and not missing_project_route
         and tool_evaluation["status"] == "PASS"
+        and public_surface["status"] == "PASS"
+        and names == public_surface["tools"]["names"]
+        and registered_read_names == public_surface["tools"]["read_names"]
+        and registered_write_names == public_surface["tools"]["write_names"]
     )
     return {
         "schema": "evidence-lane.native-mcp-route-receipt.v1",
@@ -1484,6 +1655,26 @@ def _native_route_receipt(
         "canonical_tool_namespace": NATIVE_MCP_TOOL_NAMESPACE,
         "exposure_profile": exposure_profile,
         "tool_count": len(names),
+        "read_tool_count": len(registered_read_names),
+        "write_tool_count": len(registered_write_names),
+        "skill_count": public_surface["catalog"]["skills"],
+        "command_count": public_surface["catalog"]["commands"],
+        "hook_event_count": public_surface["catalog"]["hook_events"],
+        "hook_handler_count": public_surface["catalog"]["hook_handlers"],
+        "provider_count": public_surface["catalog"]["providers"],
+        "public_surface_registry": {
+            "schema": public_surface["schema"],
+            "status": public_surface["status"],
+            "registry_sha256": public_surface["registry_sha256"],
+            "route_law": public_surface["route_law"],
+            "package_identity": public_surface["package_identity"],
+            "release_catalog_matches_derived": public_surface[
+                "release_catalog_matches_derived"
+            ],
+            "routing_catalog_matches_derived": public_surface[
+                "routing_catalog_matches_derived"
+            ],
+        },
         "tool_names_unique": len(names) == len(set(names)),
         "runtime_global_tool_count": len(
             [name for name in names if name in _RUNTIME_GLOBAL_TOOL_NAMES]
@@ -1812,7 +2003,11 @@ def create_mcp_server(
                 plan_backlog=application.task_backlog(project_id),
             )
 
-        return application.invoke("render_project_panel", snapshot)
+        return application.invoke(
+            "render_project_panel",
+            snapshot,
+            authorization_project_id=project_id,
+        )
 
     @mcp.tool(
         name="source_intake_classify",
@@ -1823,10 +2018,10 @@ def create_mcp_server(
             "always include Chat Lineage, and append a visible classification "
             "receipt. GOVERNED_CONTENT_REGISTRY additionally records deterministic "
             "read-only source identities without copying payloads, building a "
-            "candidate, or moving a pointer. Optional turn_entry binds the exact "
-            "active Delta, refreshes and boundedly queries WORKING sector indexes "
-            "plus lane-scoped Study Brain profiles, and appends its real formula "
-            "lineage without adding another executable Plan row."
+            "candidate, or moving a pointer. REFRESH_WORKING_SECTORS is the explicit "
+            "transactional materialization action. Optional turn_entry is a separate "
+            "immutable query over an already materialized WORKING projection and "
+            "appends its real formula lineage without adding another Plan row."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Classifying Source Intake", "Source Intake classified"),
@@ -1841,6 +2036,7 @@ def create_mcp_server(
         authority_mode: str = "CLASSIFICATION_ONLY",
         source_assertions: dict[str, dict[str, Any]] | None = None,
         turn_entry: dict[str, Any] | None = None,
+        working_authority_action: str = "CLASSIFY_ONLY",
     ) -> dict[str, Any]:
         return application.invoke(
             "source_intake_classify",
@@ -1853,6 +2049,7 @@ def create_mcp_server(
             authority_mode=authority_mode,
             source_assertions=source_assertions,
             turn_entry=turn_entry,
+            working_authority_action=working_authority_action,
             lifecycle=True,
         )
 
@@ -2792,7 +2989,7 @@ def create_mcp_server(
             "structured task metadata, and journals one idempotent multi-target "
             "commit without changing Goal, candidate, HIL, pointer, or Git state."
             " An optional active_contract_rebind also uses an empty top-level task "
-            "list. It verifies exact Plan, session, pointer, Task6, runtime-task, "
+            "list. It verifies exact Plan, session, pointer, invoking host task, runtime-task, "
             "and visible user-authority receipts; append-amends only the sole ACTIVE "
             "row; and atomically reseals the same governed session/runtime task. It "
             "does not replace the row, create or complete a Goal, create a candidate, "
@@ -3051,7 +3248,7 @@ def create_mcp_server(
             "Create the one-agent/one-task contract: exact class, outcome, paths, "
             "tools, acceptance checks, write boundary, stop condition, and HIL gate. "
             "This tool does not execute or broaden the task. When advancing a "
-            "normalized Task6 parity row, active_delta_verification is mandatory: "
+            "strict per-Delta package-parity row, active_delta_verification is mandatory: "
             "it binds the exact Plan-runtime contract hash, dependency generation, "
             "pre/post worktree chain, live source/test hashes, bounded commands and "
             "PASS outputs, and negative cases. A generic PASS cannot advance such "
@@ -3074,6 +3271,14 @@ def create_mcp_server(
         backlog_task_id: str | None = None,
         active_delta_verification: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        authorization_block, entry_binding = application.preflight(
+            "task_classify",
+            lifecycle=True,
+            project_id=project_id,
+            session_id=session_id,
+        )
+        if authorization_block is not None:
+            return cast(dict[str, Any], authorization_block)
         native_route_receipt = getattr(mcp, "_evidence_lane_native_route_receipt", None)
         active_session = application.sessions.load(project_id, session_id)
         fallback_prewarm_proof: dict[str, Any] | None = None
@@ -3190,11 +3395,12 @@ def create_mcp_server(
             public_site_url=exact_public_site,
             plan_backlog=application.task_backlog(project_id),
         )
-        return application.invoke(
+        return application.invoke_preflighted(
             "task_classify",
             application.sessions.classify,
             project_id,
             session_id,
+            entry_binding=cast(dict[str, Any], entry_binding),
             task_class=task_class,
             requested_outcome=requested_outcome,
             permitted_paths=permitted_paths,
@@ -3435,10 +3641,17 @@ def create_mcp_server(
         name="pv_state_travel_direct_force_same_worktree",
         title="Verify direct same-worktree State Travel",
         description=(
-            "Use the separately named no-seal recovery route exactly once for a "
-            "genuinely new native Codex task that shares the source worktree. It "
+            "Use the no-seal recovery route exactly once for a genuinely new "
+            "native Codex task that shares the source worktree. The caller supplies "
+            "only source, donor, and destination task identities plus the visible "
+            "destination title. The server atomically derives the replay guard, "
+            "dirty source, pointer baseline, Plan, plugin, runtime, Flash, profile, "
+            "and opaque runtime attestation. Caller-supplied binding payloads, "
+            "nonces, hashes, PIDs, runtime IDs, or pointer fields are not accepted. "
+            "The fixed 1+9 batch comes from persisted canonical host "
+            "Plan authority, never a sliding active-row window. It "
             "atomically verifies source/donor/destination task identities, exact "
-            "dirty bytes, PV pointer baseline, live Plan/1+9/HIL anchors, installed "
+            "dirty bytes, PV pointer baseline, live Plan/fixed-batch/HIL anchors, installed "
             "plugin/catalog, Flash/runtime/profile, sole-writer and hooks-off laws; "
             "then binds the existing governed session to the destination. It never "
             "calls or consumes sealed prepare/resume, creates a candidate, infers "
@@ -3454,18 +3667,22 @@ def create_mcp_server(
     def pv_state_travel_direct_force_same_worktree(
         project_id: str,
         session_id: str,
-        binding: dict[str, Any],
-        client_can_edit_source: bool | None = True,
-        server_has_durable_filesystem: bool | None = True,
+        authoritative_source_task_id: str,
+        runtime_attachment_donor_task_id: str,
+        destination_task_id: str,
+        destination_task_title: str,
     ) -> dict[str, Any]:
         return application.invoke(
             "pv_state_travel_direct_force_same_worktree",
             application.direct_force_same_worktree_state_travel,
             project_id=project_id,
             session_id=session_id,
-            binding=binding,
-            client_can_edit_source=client_can_edit_source,
-            server_has_durable_filesystem=server_has_durable_filesystem,
+            authoritative_source_task_id=authoritative_source_task_id,
+            runtime_attachment_donor_task_id=(
+                runtime_attachment_donor_task_id
+            ),
+            destination_task_id=destination_task_id,
+            destination_task_title=destination_task_title,
             lifecycle=True,
         )
 
@@ -3956,6 +4173,13 @@ def create_mcp_server(
             )
         )
 
+    failure_boundary = _apply_governed_tool_failure_boundary(
+        mcp,
+        backend_application,
+    )
+    if failure_boundary["status"] != "PASS":
+        raise RuntimeError("Evidence Lane public handler boundary is incomplete.")
+    mcp._evidence_lane_public_handler_failure_boundary = failure_boundary  # type: ignore[attr-defined]
     skill_mcp_routing_review = inspect_skill_mcp_routing(
         resolve_skill_mcp_plugin_root(),
         (tool.name for tool in mcp._tool_manager.list_tools()),
@@ -3963,14 +4187,29 @@ def create_mcp_server(
     _apply_evidence_lane_tool_icons(mcp, exact_public_site)
     if oauth_config is not None:
         _apply_oauth_tool_security_schemes(mcp, exact_exposure_profile)
-    exposure_receipt = apply_fastmcp_tool_filter(mcp, effective_allowed_tool_names)
-    mcp._evidence_lane_tool_exposure_receipt = exposure_receipt  # type: ignore[attr-defined]
-    mcp._evidence_lane_exposure_profile = exact_exposure_profile  # type: ignore[attr-defined]
+    # Seal the installed-version registry before applying an optional deployment
+    # allowlist.  The allowlist intentionally removes tools from the live FastMCP
+    # manager, so deriving registry parity after that removal falsely classifies a
+    # valid restricted exposure as a stale or duplicate native route.
     route_receipt = _native_route_receipt(
         mcp,
         exact_exposure_profile,
         oauth_config,
     )
+    if route_receipt["status"] != "PASS":
+        raise RuntimeError("Evidence Lane native MCP tool names are not unique.")
+    exposure_receipt = apply_fastmcp_tool_filter(mcp, effective_allowed_tool_names)
+    mcp._evidence_lane_tool_exposure_receipt = exposure_receipt  # type: ignore[attr-defined]
+    mcp._evidence_lane_exposure_profile = exact_exposure_profile  # type: ignore[attr-defined]
+    route_receipt["tool_exposure_policy"] = {
+        "schema": exposure_receipt["schema"],
+        "mode": exposure_receipt["mode"],
+        "registered_tool_count": len(exposure_receipt["registered_tools"]),
+        "exposed_tool_count": len(exposure_receipt["exposed_tools"]),
+        "removed_tool_count": len(exposure_receipt["removed_tools"]),
+        "policy_sha256": exposure_receipt["policy_sha256"],
+        "receipt_sha256": exposure_receipt["receipt_sha256"],
+    }
     route_receipt["service_route_review"] = {
         "schema": service_route_review["schema"],
         "status": service_route_review["status"],
@@ -3998,8 +4237,6 @@ def create_mcp_server(
         "manifest_sha256": skill_mcp_routing_review["manifest_sha256"],
         "receipt_sha256": skill_mcp_routing_review["receipt_sha256"],
     }
-    if route_receipt["status"] != "PASS":
-        raise RuntimeError("Evidence Lane native MCP tool names are not unique.")
     mcp._evidence_lane_service_route_review = service_route_review  # type: ignore[attr-defined]
     mcp._evidence_lane_skill_mcp_routing_review = skill_mcp_routing_review  # type: ignore[attr-defined]
     mcp._evidence_lane_native_route_receipt = route_receipt  # type: ignore[attr-defined]
@@ -4012,6 +4249,10 @@ def run_server(
     host: str = "127.0.0.1",
     port: int = 8765,
 ) -> None:
+    if transport == "sse":
+        raise RuntimeError(
+            "SSE transport is disabled; use stdio or authenticated streamable-http."
+        )
     bearer = os.environ.get("EVIDENCE_LANE_MCP_BEARER_TOKEN", "").strip()
     base_url = os.environ.get("EVIDENCE_LANE_MCP_BASE_URL", "").strip() or None
     oauth_values = {

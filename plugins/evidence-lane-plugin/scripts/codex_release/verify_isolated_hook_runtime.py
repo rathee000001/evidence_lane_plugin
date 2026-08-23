@@ -42,11 +42,14 @@ INSTALLATION_ID: Final = "row210-isolated-hook-runtime"
 
 EVENT_HANDLERS: Final = {
     "SessionStart": "session_start.py",
+    "SubagentStart": "subagent_start.py",
     "UserPromptSubmit": "prompt_submit.py",
     "PreToolUse": "pre_tool_use.py",
+    "PermissionRequest": "permission_request.py",
     "PostToolUse": "post_tool_use.py",
     "PreCompact": "lifecycle_boundary.py",
     "PostCompact": "lifecycle_boundary.py",
+    "SubagentStop": "subagent_stop.py",
     "Stop": "stop_response.py",
     "SessionEnd": "lifecycle_boundary.py",
 }
@@ -604,6 +607,13 @@ def _payload(
     suffix = variant.replace("_", "-")
     if event_name == "SessionStart":
         return {**common, "source": "resume" if variant == "restart" else "startup"}
+    if event_name == "SubagentStart":
+        return {
+            **common,
+            "agent_id": f"agent-row210-{suffix}",
+            "agent_type": "worker",
+            "turn_id": "turn-row210-primary",
+        }
     if event_name == "UserPromptSubmit":
         return {
             **common,
@@ -617,6 +627,13 @@ def _payload(
             "tool_name": "Read",
             "tool_use_id": f"tool-row210-{suffix}",
             "turn_id": f"turn-row210-{suffix}",
+        }
+    if event_name == "PermissionRequest":
+        return {
+            **common,
+            "tool_input": {"path": "bounded.txt"},
+            "tool_name": "Read",
+            "turn_id": "turn-row210-primary",
         }
     if event_name == "PostToolUse":
         return {
@@ -632,6 +649,16 @@ def _payload(
         return {
             **common,
             "trigger": "auto",
+            "turn_id": "turn-row210-primary",
+        }
+    if event_name == "SubagentStop":
+        return {
+            **common,
+            "agent_id": "agent-row210-primary",
+            "agent_transcript_path": None,
+            "agent_type": "worker",
+            "last_assistant_message": "Row210 bounded subagent response.",
+            "stop_hook_active": variant == "replay",
             "turn_id": "turn-row210-primary",
         }
     if event_name == "Stop":
@@ -810,10 +837,29 @@ def verify_isolated_installed_runtime(
         environment=environment,
         event_name="Stop",
         payload=_payload("Stop", workspace, variant="replay"),
-        ordinal=9,
+        ordinal=len(EVENT_ORDER) + 1,
     )
-    if replay["output"] != {} or len(_event_rows(database_path)) != 8:
+    if replay["output"] != {} or len(_event_rows(database_path)) != len(EVENT_ORDER):
         raise IsolatedRuntimeVerificationError("STOP_REPLAY_NOT_EXACTLY_ONCE")
+
+    subagent_replay = _invoke_windows_hook(
+        plugin_root=plugin_root,
+        workspace=workspace,
+        environment=environment,
+        event_name="SubagentStop",
+        payload=_payload("SubagentStop", workspace, variant="replay"),
+        ordinal=len(EVENT_ORDER) + 2,
+    )
+    primary_subagent_output = next(
+        row["output"] for row in invocations if row["event_name"] == "SubagentStop"
+    )
+    if (
+        subagent_replay["output"] != primary_subagent_output
+        or len(_event_rows(database_path)) != len(EVENT_ORDER)
+    ):
+        raise IsolatedRuntimeVerificationError(
+            "SUBAGENT_STOP_REPLAY_NOT_EXACTLY_ONCE"
+        )
 
     event_isolation = _load_module(
         plugin_root / "hooks/event_isolation.py", "event_isolation_lock"
@@ -836,13 +882,13 @@ def verify_isolated_installed_runtime(
             environment=environment,
             event_name="PreToolUse",
             payload=reentrant_payload,
-            ordinal=10,
+            ordinal=len(EVENT_ORDER) + 3,
             allow_failure_output=True,
         )
     if (
         "HOOK_EVENT_REENTRANCY_DENIED"
         not in _json_bytes(reentrant["output"]).decode("utf-8")
-        or len(_event_rows(database_path)) != 8
+        or len(_event_rows(database_path)) != len(EVENT_ORDER)
     ):
         raise IsolatedRuntimeVerificationError("REENTRANCY_DENIAL_NOT_PROVEN")
 
@@ -868,13 +914,13 @@ def verify_isolated_installed_runtime(
         environment=environment,
         event_name="UserPromptSubmit",
         payload=_payload("UserPromptSubmit", workspace, variant="kill-switch"),
-        ordinal=11,
+        ordinal=len(EVENT_ORDER) + 4,
         allow_failure_output=True,
     )
     if (
         "HOOK_KILL_SWITCH_ACTIVE"
         not in _json_bytes(kill_invocation["output"]).decode("utf-8")
-        or len(_event_rows(database_path)) != 8
+        or len(_event_rows(database_path)) != len(EVENT_ORDER)
     ):
         raise IsolatedRuntimeVerificationError("ACTIVE_KILL_SWITCH_NOT_PROVEN")
 
@@ -896,11 +942,11 @@ def verify_isolated_installed_runtime(
         environment=environment,
         event_name="SessionStart",
         payload=_payload("SessionStart", workspace, variant="restart"),
-        ordinal=12,
+        ordinal=len(EVENT_ORDER) + 5,
     )
     restart_rows = _event_rows(database_path)
     if (
-        len(restart_rows) != 9
+        len(restart_rows) != len(EVENT_ORDER) + 1
         or sum(row["event_name"] == "SessionStart" for row in restart_rows) != 2
         or any(row["status"] != "COMPLETE" for row in restart_rows)
     ):
@@ -919,6 +965,7 @@ def verify_isolated_installed_runtime(
     all_invocations = [
         *invocations,
         replay,
+        subagent_replay,
         reentrant,
         kill_invocation,
         restart,
@@ -959,8 +1006,20 @@ def verify_isolated_installed_runtime(
             "replay_output_sha256": replay["output_sha256"],
             "first_and_replay_output": {},
             "handler_execution_count": 1,
-            "database_row_count_after_replay": 8,
+            "database_row_count_after_replay": len(EVENT_ORDER),
             "continuation_requested": False,
+        },
+        "subagent_stop_no_loop": {
+            "status": "PASS",
+            "first_output_sha256": next(
+                row["output_sha256"]
+                for row in invocations
+                if row["event_name"] == "SubagentStop"
+            ),
+            "replay_output_sha256": subagent_replay["output_sha256"],
+            "handler_execution_count": 1,
+            "database_row_count_after_replay": len(EVENT_ORDER),
+            "continuation_control_emitted": False,
         },
         "reentrancy": {
             "status": "PASS",
@@ -979,8 +1038,8 @@ def verify_isolated_installed_runtime(
             "status": "PASS",
             "fresh_launcher_process": True,
             "persistent_store_reused": True,
-            "receipt_count_before_restart": 8,
-            "receipt_count_after_restart": 9,
+            "receipt_count_before_restart": len(EVENT_ORDER),
+            "receipt_count_after_restart": len(EVENT_ORDER) + 1,
             "runtime_marker_valid": True,
             "restart_output_sha256": restart["output_sha256"],
         },

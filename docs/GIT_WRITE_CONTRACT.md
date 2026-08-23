@@ -10,16 +10,36 @@ source. It may occur before PV acceptance only when the user explicitly
 supersedes the HIL boundary and names branch publication as required evidence.
 That bounded action must:
 
-- create one local commit on the current feature branch;
-- push only that exact branch ref without force;
+- create one deterministic local preview commit on the current feature branch
+  with canonical `evidence-lane[bot]` author and committer identity;
+- use `github_app_exact_commit_push_v1` to recreate the exact blobs, tree,
+  ordered parents, and commit through the selected Evidence Lane GitHub App;
+- fast-forward only that exact feature-branch ref without force;
 - leave `main` unchanged locally and remotely;
 - record the exact commit and remote branch;
 - install and test that commit without inferring PV approval;
 - stop at the universal HIL before merge, pointer movement, or public release.
 
+## Governed main promotion
+
+After the exact feature head passes every required clean-checkout workflow, the
+only maintainer promotion route is `github_app_repository_merge_v2`, owned by
+`scripts/codex_release/merge_github_app_feature_to_main.py`. It reads the exact
+source ref, source tree, target ref, and latest required exact-head workflow
+runs before one GitHub repository-merge request. It then verifies that GitHub
+reused the feature tree, produced ordered parents `[prior main, feature]`, used
+the `evidence-lane[bot]` actor, and moved `main` to that one merge commit.
+
+This route performs no local `main` checkout, merge, implementation, force
+push, blob replay, candidate action, HIL inference, or pointer movement. A
+moved ref, missing/failed workflow, mismatched tree/parents, wrong actor, stale
+App attachment, or ambiguous route fails closed before another mutation. The
+older repository-merge implementation is not a public fallback.
+
 The `remote_git_prepare_push` and `remote_git_execute_push` tools below govern
 project-source publication after accepted-PV authority. They do not govern
-this repository's separately authorized candidate-distribution branch.
+this repository's separately authorized maintainer branch and must never be
+used as its fallback.
 
 ## Required sequence
 
@@ -61,5 +81,6 @@ unconsumed as historical control evidence.
 - no credential in source, PV, lineage, or normal logs;
 - no generated one-use push token.
 
-Branch creation, pull request creation, merge, and deletion are not implemented
-by the first private HIL.
+Branch creation, pull request creation, and deletion are not implemented by the
+first private HIL. Maintainer main promotion exists only through the separately
+governed current route above after exact-head CI is green.

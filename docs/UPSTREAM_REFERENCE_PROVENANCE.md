@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+
 # Upstream reference provenance
 
 This ledger records public upstream material inspected during the Evidence Lane

@@ -41,15 +41,21 @@ PROBE_SCHEMA = "evidence-lane.codex-installed-hook-invocation-probe.v1"
 PROGRESSIVE_PROBE_SCHEMA = (
     "evidence-lane.codex-progressive-installed-hook-battle-test.v1"
 )
+PROGRESSIVE_MATRIX_SCHEMA = (
+    "evidence-lane.codex-progressive-installed-hook-matrix.v1"
+)
 _REQUEST_TIMEOUT_SECONDS = 45.0
 _EVENT_SETTLE_SECONDS = 3.0
 _CANONICAL_TO_HOST = {
     "SessionStart": "sessionStart",
+    "SubagentStart": "subagentStart",
     "UserPromptSubmit": "userPromptSubmit",
     "PreToolUse": "preToolUse",
+    "PermissionRequest": "permissionRequest",
     "PostToolUse": "postToolUse",
     "PreCompact": "preCompact",
     "PostCompact": "postCompact",
+    "SubagentStop": "subagentStop",
     "Stop": "stop",
     "SessionEnd": "sessionEnd",
 }
@@ -215,7 +221,8 @@ class _LoopbackResponsesServer:
 
     @property
     def base_url(self) -> str:
-        host, port = self._server.server_address
+        host = str(self._server.server_address[0])
+        port = int(self._server.server_address[1])
         if host != "127.0.0.1":
             raise RuntimeError("LOOPBACK_BINDING_REQUIRED")
         return f"http://{host}:{port}/v1"
@@ -426,7 +433,7 @@ def _workspace_hook_rows(
     plugin_selector: str,
     workspace: Path,
 ) -> dict[str, dict[str, Any]]:
-    """Return one clean trusted eight-hook inventory keyed by host event."""
+    """Return one clean trusted registry-derived inventory keyed by host event."""
 
     result = reply.get("result")
     data = result.get("data") if isinstance(result, dict) else None
@@ -451,7 +458,10 @@ def _workspace_hook_rows(
         if isinstance(row, dict) and row.get("pluginId") == plugin_selector
     ]
     by_host = {str(row.get("eventName") or ""): row for row in rows}
-    if set(by_host) != set(_CANONICAL_TO_HOST.values()) or len(rows) != 8:
+    if (
+        set(by_host) != set(_CANONICAL_TO_HOST.values())
+        or len(rows) != len(_CANONICAL_TO_HOST)
+    ):
         raise RuntimeError("INSTALLED_HOOK_EVENT_INVENTORY_MISMATCH")
     for host_event, row in by_host.items():
         if (
@@ -616,7 +626,7 @@ def _set_progressive_hook_state(
             ):
                 raise RuntimeError("INSTALLED_HOOK_IDENTITY_DRIFTED")
             config_after = hashlib.sha256(config_path.read_bytes()).hexdigest().upper()
-            body: dict[str, Any] = {
+            body = {
                 "schema": "evidence-lane.codex-progressive-hook-state.v1",
                 "status": "PASS",
                 "plugin_selector": plugin_selector,
@@ -624,6 +634,11 @@ def _set_progressive_hook_state(
                 "host_event_name": host_event,
                 "enabled_before": states_before[host_event],
                 "enabled_after": states_after[host_event],
+                "enabled_hook_count_after": sum(states_after.values()),
+                "all_hooks_enabled_after": all(states_after.values()),
+                "disabled_events_after": sorted(
+                    name for name, state in states_after.items() if not state
+                ),
                 "mutation_required": mutation_required,
                 "supported_codex_api": ["hooks/list", "config/batchWrite"],
                 "config_version_after": config_version,
@@ -706,6 +721,85 @@ def _progressive_probe(
         "remote_model_or_service_called": False,
         "raw_hook_output_included": False,
         "probe": probe,
+    }
+    body["receipt_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()
+    return body
+
+
+def _progressive_matrix(
+    *,
+    executable: Path,
+    codex_home: Path,
+    data_root: Path,
+    workspace: Path,
+    plugin_selector: str,
+) -> dict[str, Any]:
+    """Prove every installed event while isolating only a failing hook.
+
+    Each event is enabled and invoked independently. A failed event is returned
+    to OFF by ``_progressive_probe`` while previously passing events remain ON.
+    The final native readback must show all eleven events trusted and enabled
+    before the matrix can pass.
+    """
+
+    event_order = tuple(_CANONICAL_TO_HOST)
+    probes: list[dict[str, Any]] = []
+    for event_name in event_order:
+        probes.append(
+            _progressive_probe(
+                executable=executable,
+                codex_home=codex_home,
+                data_root=data_root,
+                workspace=workspace,
+                plugin_selector=plugin_selector,
+                event_name=event_name,
+            )
+        )
+    failed_events = [
+        event_order[index]
+        for index, probe in enumerate(probes)
+        if probe.get("status") != "PASS"
+    ]
+    last_event = event_order[-1]
+    final_state = _set_progressive_hook_state(
+        executable=executable,
+        codex_home=codex_home,
+        data_root=data_root,
+        workspace=workspace,
+        plugin_selector=plugin_selector,
+        event_name=last_event,
+        enabled=last_event not in failed_events,
+    )
+    all_enabled = bool(final_state.get("all_hooks_enabled_after"))
+    status = "PASS" if not failed_events and all_enabled else "FAIL_CLOSED"
+    body: dict[str, Any] = {
+        "schema": PROGRESSIVE_MATRIX_SCHEMA,
+        "status": status,
+        "plugin_selector": plugin_selector,
+        "event_order": list(event_order),
+        "event_count": len(event_order),
+        "event_receipt_sha256": [str(row["receipt_sha256"]) for row in probes],
+        "failed_events": failed_events,
+        "passing_events_kept_enabled": True,
+        "failed_events_disabled_independently": all(
+            probe.get("disabled_only_failing_hook") is True
+            for probe in probes
+            if probe.get("status") != "PASS"
+        ),
+        "final_state_receipt_sha256": final_state["receipt_sha256"],
+        "enabled_hook_count_after": final_state["enabled_hook_count_after"],
+        "all_hooks_enabled_after": all_enabled,
+        "disabled_events_after": final_state["disabled_events_after"],
+        "supported_codex_api": ["hooks/list", "config/batchWrite"],
+        "next_action": (
+            "KEEP_ALL_HOOKS_ON"
+            if status == "PASS"
+            else "REPAIR_ONLY_FAILED_EVENTS_THEN_RERUN_MATRIX"
+        ),
+        "unrelated_hook_state_mutated": False,
+        "goal_pause_requested": False,
+        "remote_model_or_service_called": False,
+        "raw_hook_output_included": False,
     }
     body["receipt_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()
     return body
@@ -943,7 +1037,7 @@ def _probe(
                     _json_bytes(body)
                 ).hexdigest().upper()
                 return body
-            body: dict[str, Any] = {
+            body = {
                 "schema": PROBE_SCHEMA,
                 "status": invocation["status"],
                 "isolated_codex_home": isolated_codex_home,
@@ -983,17 +1077,20 @@ def _parser() -> argparse.ArgumentParser:
         action="append",
         choices=(
             "SessionStart",
+            "SubagentStart",
             "UserPromptSubmit",
             "PreToolUse",
+            "PermissionRequest",
             "PostToolUse",
             "PreCompact",
             "PostCompact",
+            "SubagentStop",
             "Stop",
             "SessionEnd",
         ),
         help=(
             "Require and prove only this canonical event. Repeat for a bounded "
-            "subset; omit to retain the exact eight-hook release boundary."
+            "subset; omit to retain the complete registry release boundary."
         ),
     )
     parser.add_argument(
@@ -1007,6 +1104,15 @@ def _parser() -> argparse.ArgumentParser:
         help=(
             "Enable and prove exactly one --event on the live Codex home; keep it "
             "enabled on PASS or disable only it on failure."
+        ),
+    )
+    parser.add_argument(
+        "--progressive-all",
+        action="store_true",
+        help=(
+            "Sequentially enable and prove all eleven live events. Keep every "
+            "passing hook enabled; disable only an event that fails, then return "
+            "a bounded repair list and final hooks/list state."
         ),
     )
     return parser
@@ -1023,7 +1129,19 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("CODEX_EXECUTABLE_FILE_REQUIRED")
         if not all(path.is_dir() for path in (codex_home, data_root, workspace)):
             raise ValueError("ISOLATED_DIRECTORY_REQUIRED")
-        if args.progressive:
+        if args.progressive and args.progressive_all:
+            raise ValueError("PROGRESSIVE_MODES_ARE_MUTUALLY_EXCLUSIVE")
+        if args.progressive_all:
+            if not args.live_codex_home or args.event:
+                raise ValueError("PROGRESSIVE_ALL_REQUIRES_LIVE_COMPLETE_MATRIX")
+            result = _progressive_matrix(
+                executable=executable,
+                codex_home=codex_home,
+                data_root=data_root,
+                workspace=workspace,
+                plugin_selector=str(args.plugin_selector),
+            )
+        elif args.progressive:
             if not args.live_codex_home or not args.event or len(args.event) != 1:
                 raise ValueError("PROGRESSIVE_REQUIRES_ONE_LIVE_EVENT")
             result = _progressive_probe(

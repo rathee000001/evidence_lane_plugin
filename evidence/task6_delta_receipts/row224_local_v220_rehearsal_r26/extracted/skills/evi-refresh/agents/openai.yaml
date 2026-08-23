@@ -1,9 +1,0 @@
-interface:
-  display_name: "Evidence Lane Refresh"
-  short_description: "Seal changed source as a candidate"
-  default_prompt: "Use $evi-refresh to confirm the final source boundary and seal one unaccepted Refresh candidate."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

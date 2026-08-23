@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+
 # Lifecycle and human gates
 
 Evidence Lane separates source registration, Plan execution, candidate

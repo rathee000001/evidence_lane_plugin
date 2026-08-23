@@ -15,8 +15,18 @@ def evaluate_freshness(
     store: ProjectStore,
     project_id: str,
     package: str | Path,
+    *,
+    bounded_dirty_read: bool = False,
 ) -> dict[str, Any]:
-    """Return an explicit current-source state without changing either source."""
+    """Return an explicit current-source state without changing either source.
+
+    ``bounded_dirty_read`` is for compact public status projections.  A dirty
+    repository is already sufficient to classify accepted-source freshness as
+    ``DIRTY_WORKING_TREE``; hashing every dirty byte and every binary diff again
+    would add no truth to that classification and can turn a bounded read into
+    a multi-minute operation.  Exact transition and acceptance routes keep the
+    default full change-identity comparison.
+    """
 
     package_root = Path(package).resolve()
     if package_root.is_file() and package_root.suffix.lower() == ".zip":
@@ -36,7 +46,12 @@ def evaluate_freshness(
     try:
         config = store.config(project_id)
         live_identity = inspect_repository(config.repository_path)
-        live = identity_json(live_identity, config.repository_path)
+        if bounded_dirty_read and not live_identity.is_clean:
+            live = live_identity.as_dict()
+            live["submodules"] = list(live_identity.submodules)
+            live["worktree_sha256"] = None
+        else:
+            live = identity_json(live_identity, config.repository_path)
     # Freshness is an advisory read boundary: an unexpected live-source adapter
     # failure must downgrade truth instead of hiding immutable PV evidence.
     except Exception as exc:  # noqa: BLE001
@@ -62,6 +77,12 @@ def evaluate_freshness(
     ) != live.get("tree_sha"):
         state = "STALE"
         reason = "The live source has moved past or away from this PV."
+    elif bounded_dirty_read and not live_identity.is_clean:
+        state = "DIRTY_WORKING_TREE"
+        reason = (
+            "HEAD matches the PV, but the live working tree is dirty; the "
+            "compact status route intentionally did not rehash dirty bytes."
+        )
     elif bound.get("worktree_sha256") != live.get("worktree_sha256"):
         state = "DIRTY_WORKING_TREE"
         reason = "HEAD matches the PV, but live working-tree bytes differ."
@@ -78,6 +99,8 @@ def evaluate_freshness(
         "live_tree": live.get("tree_sha"),
         "live_worktree_sha256": live.get("worktree_sha256"),
         "live_clean": live.get("is_clean"),
+        "worktree_identity_evaluated": live.get("worktree_sha256") is not None,
+        "bounded_dirty_read": bounded_dirty_read,
         "identity_mismatch": mismatch,
     }
 

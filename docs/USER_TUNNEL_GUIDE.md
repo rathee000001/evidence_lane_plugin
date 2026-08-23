@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+
 # Evidence Lane user tunnel guide
 
 The Stable tunnel is a version-bound host transport helper for an interactive

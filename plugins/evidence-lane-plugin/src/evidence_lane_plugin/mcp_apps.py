@@ -215,6 +215,9 @@ def _project_hil_queue(
     projected_hils: list[dict[str, Any]] = []
     pv_cursor = max(next_ordinal, accepted_ordinal + 1)
     for row in unfinished_hils:
+        previous_hil_task_id = (
+            str(projected_hils[-1]["task_id"]) if projected_hils else None
+        )
         explicit_ordinals = [
             ordinal for ordinal in _row_pv_ordinals(row) if ordinal >= pv_cursor
         ]
@@ -234,6 +237,7 @@ def _project_hil_queue(
                     "NEXT_PENDING_HIL" if not projected_hils else "QUEUED_HIL"
                 ),
                 "row": int(row.get("number") or 0),
+                "absolute_row": int(row.get("number") or 0),
                 "task_id": str(row.get("task_id") or ""),
                 "description": str(row.get("step") or ""),
                 "panel_role": str(row.get("panel_role") or "HIL_GATE"),
@@ -246,6 +250,8 @@ def _project_hil_queue(
                 "dependencies": [
                     str(value) for value in _as_list(row.get("dependencies"))
                 ],
+                "continuation_from_hil_task_id": previous_hil_task_id,
+                "approval_state": "NOT_INFERRED",
             }
         )
 
@@ -277,9 +283,17 @@ def _project_hil_queue(
         ),
         None,
     )
+    distinct_dual_hil_records = bool(
+        next_pending
+        and physically_final
+        and next_pending["task_id"] != physically_final["task_id"]
+        and next_pending["absolute_row"] < physically_final["absolute_row"]
+    )
     return {
         "schema": "evidence-lane.project-hil-queue.v1",
-        "status": "PASS" if structurally_valid else "MISMATCH",
+        "status": (
+            "PASS" if structurally_valid and distinct_dual_hil_records else "MISMATCH"
+        ),
         "authority": "PLAN_LANE",
         "canonical_plan_sha256": goal.get("canonical_plan_sha256"),
         "goal_projection_sha256": goal.get("projection_sha256"),
@@ -294,6 +308,8 @@ def _project_hil_queue(
         "next_pending_hil": next_pending,
         "queued_hils": projected_hils[1:],
         "physically_final_hil": physically_final,
+        "distinct_dual_hil_records": distinct_dual_hil_records,
+        "approval_inferred": False,
         "connections": connections,
         "render_changes_authority": False,
         "step_task_list_authority": False,
@@ -625,26 +641,30 @@ def governed_panel_html(public_site_url: str) -> str:
               {{label: "Project HIL queue", value: `${{queue.status || "NOT AVAILABLE"}} | ${{queue.authority || "PLAN_LANE"}}`}},
             ];
             const nextHil = queue.next_pending_hil;
+            const finalHil = queue.physically_final_hil;
+            const hilRelationship = (item) => {{
+              const dependencies = (item?.dependencies || []).join(", ") || "ROOT";
+              const continuation = item?.continuation_from_hil_task_id
+                ? `; continuation from ${{item.continuation_from_hil_task_id}}`
+                : "";
+              return `dependencies: ${{dependencies}}${{continuation}}`;
+            }};
             if (nextHil) {{
               hilCards.push({{
                 label: `Next pending HIL | ${{nextHil.proposed_pv || "PV UNRESOLVED"}}`,
-                value: `Row ${{nextHil.row}} / ${{nextHil.task_id}} | ${{nextHil.panel_role}} | dependencies: ${{(nextHil.dependencies || []).join(", ") || "ROOT"}}`,
+                value: `state ${{nextHil.queue_state}}/${{nextHil.lifecycle_status}} | absolute row R${{nextHil.absolute_row}} | stable task ${{nextHil.task_id}} | ${{hilRelationship(nextHil)}} | approval ${{nextHil.approval_state || "NOT_INFERRED"}}`,
               }});
             }} else {{
               hilCards.push({{label: "Next pending HIL", value: "NONE"}});
             }}
-            (Array.isArray(queue.queued_hils) ? queue.queued_hils : []).forEach((item) => {{
+            if (finalHil) {{
               hilCards.push({{
-                label: `Queued HIL | ${{item?.proposed_pv || "PV UNRESOLVED"}}`,
-                value: `Row ${{item?.row}} / ${{item?.task_id}} | ${{item?.panel_role}} | dependencies: ${{(item?.dependencies || []).join(", ") || "ROOT"}}`,
+                label: `Physical-final HIL | ${{finalHil.proposed_pv || "PV UNRESOLVED"}}`,
+                value: `state ${{finalHil.queue_state}}/${{finalHil.lifecycle_status}} | absolute row R${{finalHil.absolute_row}} | stable task ${{finalHil.task_id}} | ${{hilRelationship(finalHil)}} | approval ${{finalHil.approval_state || "NOT_INFERRED"}}`,
               }});
-            }});
-            (Array.isArray(queue.connections) ? queue.connections : []).forEach((item) => {{
-              hilCards.push({{
-                label: item?.relation || "HIL connection",
-                value: `${{item?.from_task_id || "UNKNOWN"}} -> ${{item?.to_task_id || "UNKNOWN"}}`,
-              }});
-            }});
+            }} else {{
+              hilCards.push({{label: "Physical-final HIL", value: "NONE"}});
+            }}
             (Array.isArray(hil.choices) ? hil.choices : []).forEach((choice) => {{
               hilCards.push({{
                 label: choice?.token || "HIL choice",

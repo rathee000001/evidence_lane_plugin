@@ -4,6 +4,7 @@ import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { GovernedStoryExplorer } from "../_components/governed-story-explorer";
 import { HeroOrbit } from "../_components/hero-orbit";
 import { PageHero } from "../_components/page-hero";
+import { currentProductContract } from "../_data/current-product-contract";
 
 export const metadata: Metadata = {
   title: "GitHub and SDK Delivery",
@@ -86,7 +87,7 @@ const deliveryStages = [
     boundary: "The main-merge recovery slot remains unchanged until its later explicit Project HIL and promotion route.",
     details: [
       "Export and package the exact committed tree rather than the live dirty worktree.",
-      "Install through the governed Git delivery route and verify the native 88-action, 17-skill catalog after reattach.",
+      `Install through the governed Git delivery route and verify the native ${currentProductContract.nativeMcp.totalActions}-action, ${currentProductContract.governedSkillCount}-skill catalog after reattach.`,
       "Keep hooks disabled except for each independently repaired and installed lifecycle event.",
     ],
     icon: "terminal",

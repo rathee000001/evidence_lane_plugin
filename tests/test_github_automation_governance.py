@@ -168,6 +168,18 @@ def test_fastmcp_exposes_only_exact_allowlisted_tools(tmp_path: Path) -> None:
     assert "remote_git_execute_push" in receipt["removed_tools"]
     assert len(receipt["policy_sha256"]) == 64
     assert len(receipt["receipt_sha256"]) == 64
+    route = server._evidence_lane_native_route_receipt  # type: ignore[attr-defined]
+    assert route["status"] == "PASS"
+    assert route["tool_count"] == len(receipt["registered_tools"])
+    assert route["tool_exposure_policy"] == {
+        "schema": "evidence-lane.mcp-tool-exposure-policy.v1",
+        "mode": "EXACT_ALLOWLIST",
+        "registered_tool_count": len(receipt["registered_tools"]),
+        "exposed_tool_count": 2,
+        "removed_tool_count": len(receipt["removed_tools"]),
+        "policy_sha256": receipt["policy_sha256"],
+        "receipt_sha256": receipt["receipt_sha256"],
+    }
 
 
 def test_fastmcp_rejects_unknown_allowlisted_tool(tmp_path: Path) -> None:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 from pathlib import Path
@@ -13,6 +14,7 @@ MANAGER = (
     / "codex_release"
     / "Manage-EvidenceLaneCodexGoalRecovery.ps1"
 )
+TASK9 = "01a02507-f389-7781-9bff-96f2d5647d95"
 
 
 def _text() -> str:
@@ -38,7 +40,10 @@ def test_one_shared_manager_uses_one_mutable_row_per_exact_task() -> None:
         )
     ]
     assert '"-TaskId"' not in install_manager
-    assert 'task_binding_scope = "SEPARATE_MUTABLE_REGISTRY"' in text
+    assert (
+        'task_binding_scope = "SEPARATE_MUTABLE_EXACT_TASK_REGISTRY"'
+        in text
+    )
     assert "registry_origin_identity_used_for_authorization = $false" in text
 
 
@@ -75,7 +80,8 @@ def test_shared_manager_migrates_only_the_exact_legacy_owned_task() -> None:
     assert 'EvidenceLanePV\\installations\\helpers\\$($script:ReleaseToken)' in install
     assert "$legacyActionMatches" in install
     assert '"*-Action RecoverAtLogon*"' in install
-    assert "-ThreeSlotRegistrySha256 [A-F0-9]{64}" in install
+    assert "-TwoSlotRegistrySha256 [A-F0-9]{64}" in install
+    assert "-ThreeSlotRegistrySha256" not in install
     assert "An unrelated scheduled task already owns the recovery task name." in install
     assert "legacy_managed_task_migrated_to_hidden_runtime" in install
     assert "legacy_managed_task_deleted = $false" in install
@@ -139,3 +145,72 @@ def test_goal_recovery_manager_parses_without_live_registration() -> None:
         check=False,
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+def test_global_plugin_update_rehydrates_each_task_without_foreground_theft() -> None:
+    text = _text()
+    start = text.index('if ($Action -eq "RehydrateAll")')
+    end = text.index('if ($Action -eq "RecoverNow")', start)
+    action = text[start:end]
+    assert 'law_id = "GLOBAL_PLUGIN_UPDATE_REHYDRATION_LAW"' in action
+    assert "foreach ($record in $activeRecords)" in action
+    assert "Invoke-CodexGoalProbe" in action
+    assert "Invoke-CodexTaskActivation" not in action
+    assert "New-NonNavigatingRehydrationObservation" in action
+    assert "Set-ExactBindingReleaseRehydration" in action
+    assert "invoking_task_foreground_preserved = $true" in action
+    assert "invoking_task_reopen_count = 1" in action
+    assert "non_invoking_task_navigation_count = 0" in action
+    assert "exact failure:" in action
+    assert '"READ_ONLY_OR_HISTORICAL"' in text
+    assert '"SOLE_WORKSPACE_WRITER"' in text
+    assert "runtime_instance_attestation_copied = $false" in text
+    assert "caller_supplied_runtime_instance_or_pid_allowed = $false" in action
+    assert 'state = "ATTACHMENT_METADATA_REBOUND_NATIVE_TASK_PROOF_PENDING"' in text
+    assert "catalog_rehydrated = $false" in text
+    assert "task_local_native_proof_required = $true" in text
+    assert "native_catalog_rehydrated_count = 0" in action
+    assert "hooks_enabled_by_update = $false" in action
+    assert "candidate_hil_or_pointer_mutated = $false" in action
+
+
+def test_status_isolates_invalid_historical_bindings(tmp_path: Path) -> None:
+    recovery_root = tmp_path / "goal-recovery"
+    binding_root = recovery_root / "bindings"
+    binding_root.mkdir(parents=True)
+    (binding_root / f"{TASK9}.json").write_text(
+        '{"schema":"stale","payload":{}}', encoding="utf-8"
+    )
+    completed = subprocess.run(
+        [
+            "powershell.exe",
+            "-NoProfile",
+            "-File",
+            str(MANAGER),
+            "-Action",
+            "Status",
+            "-RecoveryRoot",
+            str(recovery_root),
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    result = json.loads(completed.stdout)
+    assert result["status"] == "PASS"
+    assert result["binding_file_count"] == 1
+    assert result["binding_count"] == 0
+    assert result["invalid_binding_count"] == 1
+    assert result["isolated_failures"][0]["state"] == "INVALID_BINDING_ISOLATED"
+    assert result["isolated_failures"][0]["another_task_degraded"] is False
+
+
+def test_invalid_exact_binding_bytes_are_preserved_before_replacement() -> None:
+    text = _text()
+    assert "function Preserve-InvalidBindingHistoryForReplacement" in text
+    assert "Copy-Item -LiteralPath $exactPath -Destination $historyPath" in text
+    assert 'state = "INVALID_BINDING_BYTES_PRESERVED_BEFORE_EXACT_REPLACEMENT"' in text
+    assert "invalid_payload_used_as_authority = $false" in text
+    assert "exact_bytes_preserved = $true" in text

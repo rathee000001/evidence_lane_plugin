@@ -158,6 +158,19 @@ def test_mcp_construction_rejects_relative_explicit_plugin_root(
     assert caught.value.code == "SKILL_MCP_ROUTING_INVALID"
 
 
+def test_mcp_construction_rejects_other_absolute_plugin_root(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("EVIDENCE_LANE_PLUGIN_ROOT", str(tmp_path.resolve()))
+
+    with pytest.raises(EvidenceLaneError) as caught:
+        resolve_skill_mcp_plugin_root()
+
+    assert caught.value.code == "SKILL_MCP_ROUTING_INVALID"
+    assert caught.value.details["cross_package_root_allowed"] is False
+
+
 @pytest.mark.parametrize("catalog_drift", ["missing", "renamed", "extra"])
 def test_catalog_drift_fails_closed(catalog_drift: str) -> None:
     registered = _registered_tool_names()

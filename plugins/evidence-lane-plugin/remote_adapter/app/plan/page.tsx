@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { CurrentExecutionPlan } from "../_components/current-execution-plan";
 import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { GovernedStoryExplorer } from "../_components/governed-story-explorer";
 import { HeroOrbit } from "../_components/hero-orbit";
@@ -82,10 +83,10 @@ const planStages = [
     label: "Verify and advance",
     summary: "Complete local verification, log the Delta Learning observation, then atomically activate the next row.",
     outcome: "An idempotent Delta-completion receipt followed by a rehydrated Goal, Step list, and Changes projection for the new row.",
-    proof: "Source/test/package hashes, per-Delta local install receipt, Learning observation hash, prior/next row IDs, and transition hash.",
+    proof: "Source, test, registry, projection, and row-declared install or local-preview receipts; Learning observation hash; prior/next row IDs; and transition hash.",
     boundary: "Row completion and transition never infer HIL or move the accepted PV pointer.",
     details: [
-      "Prove the row's declared checks and per-Delta local-layer installation against the exact source bytes.",
+      "Prove the row's declared checks and selected Git/install stage against the exact source bytes; LOCAL_PREVIEW_ONLY rows neither install nor commit.",
       "Seal one project-isolated Learning observation attributable to the completed Delta.",
       "Activate the next canonical row and immediately repeat the bounded row-entry hydration law.",
     ],
@@ -100,6 +101,17 @@ export default function PlanPage() {
       <PageHero eyebrow="Plan and Changes" title="One ledger drives the Goal, Step list, and worktree surface." description="Evidence Lane reprojects rather than reconstructs. Every active-row transition starts with a bounded authority query and ends with verified Delta evidence before the next row activates." aside={<HeroOrbit preset="architecture" />} />
 
       <section className="section shell"><div className="sectionHead wideHead"><span className="kicker">Persistent projection</span><h2>Task state survives ordinary turns, pauses, stalls, compaction, and app reattachment.</h2><p>The visible panel is a bounded executable window. Canonical SQLite retains the full dynamic range and every linked steer, while the same unfinished Goal remains attached to the exact active row.</p></div><div className="routeGrid">{planSurfaces.map(([title, detail, icon], index) => <article className="routeCard" key={title}><span className="compactDepthPill"><GlassIconOrb color={["#69d9f5", "#a99af7", "#83ddb3"][index]} size={28} decorative><OfficialToolIcon tool={icon} size={15} decorative /></GlassIconOrb><span>{String(index + 1).padStart(2, "0")}</span></span><h3>{title}</h3><p>{detail}</p></article>)}</div></section>
+
+      <section className="section currentExecutionPlanBand">
+        <div className="shell">
+          <div className="sectionHead wideHead">
+            <span className="kicker">Canonical executable projection</span>
+            <h2>The public Plan view is generated from the same sealed SQLite authority.</h2>
+            <p>It keeps every executable row contiguous and exposes the sole active row and physically final HIL without creating a second Plan, a fallback window, or a serialized chat copy.</p>
+          </div>
+          <CurrentExecutionPlan />
+        </div>
+      </section>
 
       <section className="section governedStoryBand"><div className="shell"><GovernedStoryExplorer eyebrow="Delta execution protocol" title="Inspect the complete row-entry, work, and transition loop." description="Each stage exposes the exact evidence it requires and the authority effects it is forbidden to infer." items={planStages} /></div></section>
 

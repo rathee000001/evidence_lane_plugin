@@ -165,7 +165,7 @@ EXPECTED_STABLE_ACTIVATION_GATE = {
     ],
     "bundle_failure_policy": "ANY_INCLUDED_ROW_FAILURE_FAILS_BUNDLE_CLOSED",
     "bundle_commit_syncs_root_and_repository_docs": True,
-    "stable_install_source": "EXACT_GIT_COMMIT_PACKAGE_ONLY",
+    "stable_install_source": "EXACT_GIT_MAIN_COMMIT_PACKAGE_ONLY",
     "local_or_dirty_worktree_stable_install_allowed": False,
     "all_configured_commit_checks_required_before_stable_install": True,
     "one_stable_update_per_integration_bundle": True,
@@ -680,7 +680,7 @@ def build_rehearsal(
         )
     )
     stable = release_channels.get("stable", {})
-    branch_recovery = release_channels.get("branch_recovery", {})
+    retired_branch_recovery = release_channels.get("retired_branch_recovery", {})
     local_testing = release_channels.get("local_testing", {})
     live_slots = release_channels.get("live_slot_policy", {})
     failover = release_channels.get("failover_operator", {})
@@ -697,7 +697,8 @@ def build_rehearsal(
         or stable.get("slot_role") != "main-git-release"
         or stable.get("codex_marketplace_slot") != "evidence-lane-github"
         or stable.get("marketplace_display_name") != "Main Git Plugin Version"
-        or stable.get("install_source") != "GIT_EXACT_COMMIT"
+        or stable.get("install_source")
+        != "GIT_MAIN_EXACT_COMMIT_AFTER_GOVERNED_MERGE"
         or stable.get("stable_selector_is_persistent") is not True
         or stable.get("stable_updates_reinstall_in_place") is not True
         or stable.get("build_identity_is_receipt_not_selector") is not True
@@ -713,46 +714,42 @@ def build_rehearsal(
         or stable.get("generated_namespace_allowed") is not False
         or stable.get("direct_stdio_fallback_allowed") is not False
         or stable.get("google_drive_bundled") is not False
-        or branch_recovery.get("release") != expected_version.split("+", 1)[0]
-        or branch_recovery.get("slot_role") != "branch-commit-recovery"
-        or branch_recovery.get("codex_marketplace_slot")
-        != "evidence-lane-v300-stable-recovery"
-        or branch_recovery.get("marketplace_display_name")
-        != "Branch Commit Git Recovery"
-        or branch_recovery.get("byte_frozen_between_branch_checkpoints") is not True
-        or branch_recovery.get("must_not_follow_uncommitted_local_bytes") is not True
+        or retired_branch_recovery.get("slot_role") != "RETIRED_PURGE_ONLY"
+        or retired_branch_recovery.get("plugin_selector")
+        != "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
+        or retired_branch_recovery.get("installation_allowed") is not False
+        or retired_branch_recovery.get("direct_cache_deletion_allowed") is not False
         or local_testing.get("release_line") != expected_version.split("+", 1)[0]
-        or local_testing.get("slot_role") != "mutable-local-testing"
+        or local_testing.get("slot_role") != "versioned-local-testing"
         or local_testing.get("codex_marketplace_slot")
         != "evidence-lane-v300-testing-new"
         or local_testing.get("marketplace_display_name") != "Local Testing Slot"
         or local_testing.get("same_marketplace_selector_reused") is not True
         or local_testing.get("fresh_package_version_per_local_build") is not True
         or local_testing.get("helper_installs_plugin") is not False
-        or live_slots.get("exact_slot_count") != 3
+        or live_slots.get("exact_slot_count") != 2
         or live_slots.get("allowed_slots")
         != [
             "main-git-release",
-            "branch-commit-recovery",
-            "mutable-local-testing",
+            "versioned-local-testing",
         ]
         or live_slots.get("allowed_marketplaces")
         != [
             "evidence-lane-github",
-            "evidence-lane-v300-stable-recovery",
             "evidence-lane-v300-testing-new",
         ]
         or live_slots.get("max_enabled_plugin_count") != 1
-        or live_slots.get("exact_registered_plugin_count") != 3
+        or live_slots.get("exact_registered_plugin_count") != 2
         or live_slots.get("stable_selector_growth_allowed") is not False
         or live_slots.get("max_active_native_mcp_count") != 1
         or live_slots.get("max_active_tunnel_count") != 1
         or failover.get("script")
         != "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
         or failover.get("registry_schema")
-        != "evidence-lane.codex-three-slot-registry.v1"
-        or failover.get("failure_target_slot") != "branch-commit-recovery"
-        or failover.get("mutable_local_failure_never_targets_main_git") is not True
+        != "evidence-lane.codex-two-slot-main-local-registry.v1"
+        or failover.get("failure_target_slot") != "stable-git-main"
+        or failover.get("versioned_local_failure_targets_verified_main_only")
+        is not True
         or failover.get("single_transient_error_switch_allowed") is not False
         or goal_recovery.get("script")
         != "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1"
@@ -775,13 +772,12 @@ def build_rehearsal(
         or goal_recovery.get("candidate_hil_pointer_or_git_mutation_allowed")
         is not False
         or goal_recovery.get(
-            "requires_exactly_one_enabled_allowed_three_slot_selector"
+            "requires_exactly_one_enabled_allowed_two_slot_selector"
         )
         is not True
         or goal_recovery.get("allowed_runtime_selectors")
         != [
             "evidence-lane-plugin@evidence-lane-github",
-            "evidence-lane-plugin@evidence-lane-v300-stable-recovery",
             "evidence-lane-plugin@evidence-lane-v300-testing-new",
         ]
         or goal_recovery.get("stable_selector_growth_allowed") is not False
@@ -806,11 +802,11 @@ def build_rehearsal(
         or remote_git_policy.get("per_push_confirmation_token_required")
         is not False
         or remote_git_policy.get("automatic_push_scope")
-        != "EXACT_SOLE_REGISTERED_NON_PROTECTED_TEST_BRANCH"
+        != "GITHUB_APP_GOVERNED_FEATURE_BRANCH_THEN_EXACT_MAIN_MERGE"
         or remote_git_policy.get("host_managed_credentials_only") is not True
         or remote_git_policy.get("main_push_allowed") is not False
-        or remote_git_policy.get("merge_allowed") is not False
-        or remote_git_policy.get("pull_request_acceptance_allowed") is not False
+        or remote_git_policy.get("merge_allowed") is not True
+        or remote_git_policy.get("pull_request_acceptance_allowed") is not True
         or remote_git_policy.get("force_push_allowed") is not False
         or release_channels.get("delivery_boundary", {}).get(
             "external_app_artifacts_packaged_with_codex"
@@ -822,7 +818,7 @@ def build_rehearsal(
         is not False
     ):
         raise PackageBoundaryError(
-            "The three-slot local/Git/recovery contract drifted."
+            "The two-slot Git-main/local-testing contract drifted."
         )
 
     search_toolchain = _search_toolchain_identity(plugin_root, release_channels)

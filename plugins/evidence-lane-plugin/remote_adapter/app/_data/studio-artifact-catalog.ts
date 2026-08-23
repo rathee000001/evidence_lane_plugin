@@ -1,3 +1,6 @@
+import { currentProductContract } from "./current-product-contract.ts";
+import { websiteCurrentExecutionBoundary } from "./website-current-execution.ts";
+
 export type StudioArtifact = {
   id: string;
   label: string;
@@ -35,7 +38,7 @@ export const studioArtifactCatalog: readonly StudioArtifact[] = [
     label: "Release identity and host matrix",
     format: "Table",
     href: "/connect",
-    identity: "release=3.0.0 actions=88 read=27 write=61 skills=17 hooks=8",
+    identity: `release=${currentProductContract.release} actions=${currentProductContract.nativeMcp.totalActions} read=${currentProductContract.nativeMcp.readActions} write=${currentProductContract.nativeMcp.writeActions} skills=${currentProductContract.governedSkillCount} hooks=${currentProductContract.hookEventCount}`,
     status: "DERIVED_VIEW",
     purpose: "Truthful host capability comparison.",
     boundary: "A table cannot establish live connection health.",
@@ -125,7 +128,7 @@ export const studioArtifactCatalog: readonly StudioArtifact[] = [
     label: "Executable capability chart",
     format: "Chart",
     href: "/studio#artifact-lab",
-    identity: "Codex=87 reads=27 writes=60",
+    identity: `Codex=${currentProductContract.nativeMcp.totalActions} reads=${currentProductContract.nativeMcp.readActions} writes=${currentProductContract.nativeMcp.writeActions}`,
     status: "DERIVED_VIEW",
     purpose: "Visualize the exact native Codex catalog without hiding the denominator.",
     boundary: "The chart is derived from the release matrix and never substitutes for runtime proof.",
@@ -177,4 +180,3 @@ export const studioRetrievalServices = {
   vector: "WIRED_NOT_CONFIGURED_OPTIONAL",
   generation: "DETERMINISTIC_REVIEWED_FALLBACK_OPENROUTER_OPTIONAL",
 } as const;
-import { websiteCurrentExecutionBoundary } from "./website-current-execution.ts";

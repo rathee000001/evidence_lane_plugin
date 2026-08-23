@@ -1,13 +1,23 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+
 # Git and CI/CD boundary
 
-Repository writes use the governed Git route and exact branch policy. A
-standing feature-branch grant may authorize one prepared fast-forward push
-with host-managed credentials. Its receipt still binds project, branch, commit,
-tree, remote, and action ID.
+Repository writes use the selected Evidence Lane GitHub App route and exact
+branch policy. Implementation occurs only on a governed feature branch; `main`
+is never a live working branch. The App creates the exact commit through the
+Git Database API as `evidence-lane[bot]`, verifies every blob/tree/parent/ref,
+and fast-forwards only that feature-branch ref with `force=false`. A local
+human-authored commit followed by an App-authenticated push is not equivalent.
+The receipt binds project, task, branch, parent, tree, commit, changed paths,
+App route, request IDs, and post-update ref. Feature commits use
+`github_app_exact_commit_push_v1`; a green feature head reaches `main` only via
+`github_app_repository_merge_v2`, which calls GitHub's repository-merge API and
+verifies the reused feature tree, ordered parents, App bot actor, and final
+`main` ref without checking out or working on `main` locally.
 
 That grant does not authorize:
 
-- rewriting or merging a protected/default branch;
+- writing, rewriting, or directly implementing on a protected/default branch;
 - force-push;
 - Project candidate creation or acceptance;
 - accepted-pointer movement or Fuse; or
@@ -19,7 +29,10 @@ CI runs once per dependency-coherent integration batch, not once per file or
 every Delta. Each included Delta retains independent acceptance evidence and
 lifecycle state. A cross-Delta matrix maps tasks to changed surfaces, tests,
 remote checks, installed-host checks, outcomes, and exact failure ownership.
-Any included-row failure fails the batch closed.
+Any included-row failure fails the batch closed. After the exact branch is
+green, the separately governed current App merge route may bring the branch to
+`main`; no working-tree implementation occurs on `main` before or after that
+merge, and the obsolete full-tree/blob-replay merge path cannot execute.
 
 The behavior-bearing commit updates source, schemas, tests, public contracts,
 and the bounded public Plan/Delta projection together. Generated projections

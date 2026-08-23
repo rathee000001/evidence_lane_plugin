@@ -28,6 +28,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 HOOK_ADAPTERS = (
     "session_start.py",
+    "optional_event_observer.py",
     "prompt_submit.py",
     "pre_tool_use.py",
     "post_tool_use.py",
@@ -72,22 +73,25 @@ def _hook_adapter_module(name: str) -> ModuleType:
     return module
 
 
-def test_exact_eight_event_hook_contract_keeps_behavior_skill_owned() -> None:
+def test_current_eleven_event_hook_contract_keeps_behavior_skill_owned() -> None:
     contract = lifecycle_hook_contract()
 
     assert contract["schema"] == HOOK_CONTRACT_SCHEMA
     assert contract["version"] == 1
     assert tuple(contract["event_order"]) == HOOK_EVENT_NAMES == (
         "SessionStart",
+        "SubagentStart",
         "UserPromptSubmit",
         "PreToolUse",
+        "PermissionRequest",
         "PostToolUse",
         "PreCompact",
         "PostCompact",
+        "SubagentStop",
         "Stop",
         "SessionEnd",
     )
-    assert contract["registered_event_count"] == 8
+    assert contract["registered_event_count"] == 11
     assert contract["hook_owner"] == (
         "VALIDATE_REDACT_BOUND_DEDUPLICATE_AND_TRANSPORT_ONLY"
     )
@@ -109,9 +113,12 @@ def test_exact_eight_event_hook_contract_keeps_behavior_skill_owned() -> None:
     assert contract["windows_path_lookup_allowed"] is False
     assert contract["session_end_host_timeout_seconds"] == 3
     assert contract["permission_request_policy"] == (
-        "CONDITIONAL_ONLY_AFTER_EXPLICIT_HOST_CAPABILITY_PROOF"
+        "OBSERVE_ONLY_NEVER_GRANT_OR_DENY"
     )
-    assert contract["subagent_events_in_scope"] is False
+    assert contract["subagent_events_in_scope"] is True
+    assert contract["subagent_event_policy"] == (
+        "BOUND_OBSERVATION_ONLY_NEVER_CONTROL"
+    )
     assert contract["full_plan_allowed_in_hook_payload"] is False
     assert contract["linked_delta_json_allowed_in_hook_payload"] is False
     assert contract["private_reasoning_allowed"] is False
@@ -135,11 +142,11 @@ def test_package_hook_configuration_matches_contract_order_and_handlers() -> Non
     assert receipt["status"] == "PASS"
     assert receipt["schema"] == HOOK_CONTRACT_SCHEMA
     assert receipt["event_order"] == list(HOOK_EVENT_NAMES)
-    assert receipt["handler_count"] == 8
+    assert receipt["handler_count"] == 11
     assert len(receipt["contract_sha256"]) == 64
     assert len(receipt["configuration_sha256"]) == 64
-    assert "PermissionRequest" not in configuration["hooks"]
-    assert all("subagent" not in event.casefold() for event in configuration["hooks"])
+    assert "PermissionRequest" in configuration["hooks"]
+    assert {"SubagentStart", "SubagentStop"}.issubset(configuration["hooks"])
     records = {row["event_name"]: row for row in receipt["handler_records"]}
     assert records["SessionEnd"]["timeout"] == 3
     assert all(
@@ -252,6 +259,9 @@ def test_windows_hook_launcher_is_hidden_runtime_bound_and_noninteractive() -> N
     assert "venv\\Scripts\\python.exe" in source
     assert "SEALED_RUNTIME_INTERPRETER_NOT_FOUND" in source
     assert "SEALED_RUNTIME_INTERPRETER_AMBIGUOUS" in source
+    assert "function Get-Sha256" in source
+    assert "[Security.Cryptography.SHA256]::Create()" in source
+    assert "Get-FileHash" not in source
     assert "Start-Process" not in source
     assert "cmd.exe" not in source
 
@@ -634,6 +644,18 @@ def test_hook_adapters_delegate_behavior_to_the_skill_runtime() -> None:
     assert "record_lifecycle_boundary_event(" in consumer
 
 
+def test_optional_event_wrappers_bind_one_stable_event_to_the_shared_observer() -> None:
+    wrappers = {
+        "subagent_start.py": "SubagentStart",
+        "permission_request.py": "PermissionRequest",
+        "subagent_stop.py": "SubagentStop",
+    }
+    for name, event_name in wrappers.items():
+        source = (PLUGIN / "hooks" / name).read_text(encoding="utf-8")
+        assert "from optional_event_observer import run" in source
+        assert f'run("{event_name}")' in source
+
+
 def test_hook_transport_envelope_is_secret_safe_bounded_and_idempotent() -> None:
     payload = {
         "session_id": "host-session-one",
@@ -651,7 +673,7 @@ def test_hook_transport_envelope_is_secret_safe_bounded_and_idempotent() -> None
     assert first == replay
     assert first["schema"] == HOOK_TRANSPORT_SCHEMA
     assert first["event_name"] == "UserPromptSubmit"
-    assert first["event_ordinal"] == 2
+    assert first["event_ordinal"] == 3
     assert first["skill_action_owner"] == (
         "SKILL_PREPARE_THEN_NATIVE_READ_SEQUENCE"
     )
@@ -689,7 +711,9 @@ def test_hook_transport_envelope_is_secret_safe_bounded_and_idempotent() -> None
 
 
 def test_unavailable_host_events_are_reported_without_false_success() -> None:
-    supported = set(HOOK_EVENT_NAMES).difference({"SessionEnd"})
+    supported = set(HOOK_EVENT_NAMES).difference(
+        {"PermissionRequest", "SessionEnd"}
+    )
     receipt = hook_capability_receipt(supported)
 
     assert receipt["schema"] == HOOK_CAPABILITY_SCHEMA
@@ -698,18 +722,19 @@ def test_unavailable_host_events_are_reported_without_false_success() -> None:
     assert states["SessionEnd"] == "HOST_CAPABILITY_UNAVAILABLE"
     assert receipt["permission_request"] == {
         "state": "HOST_CAPABILITY_UNAVAILABLE",
-        "registration_requires_explicit_contract_change": True,
+        "caller_capability_hint_matched": True,
+        "control_policy": "OBSERVE_ONLY_NEVER_GRANT_OR_DENY",
     }
-    assert receipt["subagent_events_in_scope"] is False
+    assert receipt["subagent_events_in_scope"] is True
     assert receipt["unsupported_events_relabelled_as_success"] is False
     assert len(receipt["capability_receipt_sha256"]) == 64
 
     permission_available = hook_capability_receipt(
-        supported,
+        [*supported, "PermissionRequest"],
         permission_request_supported=True,
     )
     assert permission_available["permission_request"]["state"] == (
-        "HOST_CAPABILITY_AVAILABLE_NOT_REGISTERED"
+        "HOST_CAPABILITY_AVAILABLE"
     )
     with pytest.raises(HookContractError, match="UNKNOWN_HOST"):
-        hook_capability_receipt([*supported, "SubagentStart"])
+        hook_capability_receipt([*supported, "NoSuchHook"])
