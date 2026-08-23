@@ -1,9 +1,11 @@
+# Evidence Lane current-route refresh: 3.0.0 / 2026-08-23
 FROM python:3.14.2-slim-bookworm@sha256:e87711ef5c86aaeaa7031718a69db79d334d94c545c709583f651b8185870941
 
 ARG EVIDENCE_LANE_RELEASE_SHA
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/plugins/evidence-lane-plugin/src \
     EVIDENCE_LANE_DATA_ROOT=/var/lib/evidence-lane \
     EVIDENCE_LANE_PLUGIN_ROOT=/app/plugins/evidence-lane-plugin \
     EVIDENCE_LANE_MCP_PORT=8080
@@ -33,7 +35,7 @@ RUN python -m pip install \
         --no-build-isolation \
         --no-deps \
         /app \
-    && python -c "import sys; from pathlib import Path; import evidence_lane_plugin; from evidence_lane_plugin.engine_identity import write_embedded_release_commit; write_embedded_release_commit(Path(evidence_lane_plugin.__file__).resolve().parent, sys.argv[1])" "$EVIDENCE_LANE_RELEASE_SHA" \
+    && python -c "import sys; import evidence_lane_plugin; from evidence_lane_plugin.engine_identity import identity_repository_root, write_embedded_release_commit; write_embedded_release_commit(identity_repository_root(evidence_lane_plugin.__file__), sys.argv[1])" "$EVIDENCE_LANE_RELEASE_SHA" \
     && useradd --create-home --uid 10001 evidence-lane \
     && mkdir -p /var/lib/evidence-lane \
     && chown -R evidence-lane:evidence-lane /var/lib/evidence-lane

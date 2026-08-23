@@ -129,6 +129,34 @@ def test_empty_sources_fall_through_to_configured_project_name(
     ] == "CONFIGURED_FALLBACK"
 
 
+def test_missing_optional_codex_home_uses_default_global_configuration(
+    tmp_path: Path,
+) -> None:
+    codex_home = tmp_path / "not-installed-on-this-host"
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / "AGENTS.md").write_text("project-only rules", encoding="utf-8")
+
+    resolved = _resolve(codex_home, project, project)
+
+    assert resolved.instructions == "project-only rules"
+    assert [
+        row["locator"] for row in resolved.receipt["source_chain"]["sources"]
+    ] == ["PROJECT_ROOT/AGENTS.md"]
+
+
+def test_existing_codex_home_file_fails_closed(tmp_path: Path) -> None:
+    codex_home = tmp_path / "codex-home"
+    project = tmp_path / "project"
+    codex_home.write_text("not a directory", encoding="utf-8")
+    project.mkdir()
+
+    with pytest.raises(EvidenceLaneError) as blocked:
+        _resolve(codex_home, project, project)
+
+    assert blocked.value.code == "AGENT_CONFIGURATION_CODEX_HOME_INVALID"
+
+
 @pytest.mark.parametrize(
     ("mode", "expected_code"),
     [

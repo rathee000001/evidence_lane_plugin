@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Canon task graph and Canon Input HIL
 
 Canon is a project-isolated coordination authority for typed communication

@@ -41,6 +41,13 @@ or rotates plugin bytes.
   complete Plan Lane, infer HIL, or call `update_plan`. The consumed lifecycle
   receipt may carry a content-addressed host-Plan rehydration request whose
   behavior owner is this active skill; transport is not execution.
+- After exact installed-package parity and the complete eleven-event progressive
+  invocation matrix pass, all eleven hooks remain enabled. A later failure uses
+  only Codex's native compare-and-swap hook action to disable the exact failed
+  event; every unrelated passing hook and the active Goal continue. Repair and
+  retest that event, then re-enable it on PASS. Restart, reattachment, and
+  upgrade preserve the verified state and never use Windows UI or process
+  control as a hook-management route.
 - Every hook binds the same user-owned durable authority: an explicit
   `EVIDENCE_LANE_DATA_ROOT`, otherwise `~/EvidenceLanePV`. Codex-injected
   `PLUGIN_DATA` is selector-scoped installation storage and must never become
@@ -495,6 +502,21 @@ passed. Before that update, emit a cross-Delta verification matrix binding each
 included task ID to changed source/schema/runtime/docs surfaces, focused local
 tests, clean-checkout remote checks, installed-host checks, outcome, and exact
 failure owner. Any included-row failure fails the bundle closed.
+
+For the Evidence Lane plugin repository itself, the current maintainer Git
+write route is `github_app_exact_commit_push_v1`, owned by
+`scripts/codex_release/push_github_app_exact_commit.py`. The local commit object
+is a deterministic preview only and must use the canonical
+`evidence-lane[bot]` identity for both author and committer. The selected
+Evidence Lane GitHub App then recreates the exact blobs, tree, ordered parents,
+and commit through the Git Database API and fast-forwards only the governed
+feature branch with `force=false`. A human-authored local commit followed by an
+App-authenticated push is rejected; push credentials do not rewrite commit
+metadata. `remote_git_prepare_push` and `remote_git_execute_push` remain the
+separate accepted-PV route for governed downstream project repositories and
+must never substitute for this maintainer App route. All implementation occurs
+on feature branches. `main` receives only a later governed App merge after the
+branch is green and is never used as a live working branch.
 
 Default reads use accepted truth and disclose live freshness. Explicit
 candidate reads remain labeled `UNACCEPTED_CANDIDATE`. Use bounded fetches and

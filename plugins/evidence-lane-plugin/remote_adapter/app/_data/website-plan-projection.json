@@ -2,32 +2,32 @@
   "schema": "evidence-lane.website-plan-projection.v1",
   "canonical_authority": "PLAN_LANE",
   "project_id": "test-codex-evidence-lane-plugin",
-  "task_count": 201,
-  "canonical_task_count": 282,
+  "task_count": 202,
+  "canonical_task_count": 283,
   "history_task_count": 81,
   "row_offset": 80,
   "row_start": 81,
-  "row_end": 281,
+  "row_end": 282,
   "status_counts": {
     "completed": 184,
     "in_progress": 1,
-    "pending": 16
+    "pending": 17
   },
   "active_row": 265,
   "active_task_id": "EL-CODEX-T11-R264-INTERMEDIATE-MAIN-INSTALL-CHECKPOINT-DELTA-001",
   "active_task_position": 185,
-  "physically_final_hil_row": 281,
+  "physically_final_hil_row": 282,
   "physically_final_hil_task_id": "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR",
-  "physically_final_hil_task_position": 201,
+  "physically_final_hil_task_position": 202,
   "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
-  "canonical_plan_sha256": "F52A5EC189C3F5EB54086F9EE4875E06497D51BC898176733C5320D2415CD974",
-  "history_projection_sha256": "170671FD9CF68FABC3CB1A17FA125A9B3C621F81F240427EFAE10A6778CB829A",
-  "executable_projection_sha256": "8C2A226DDDF5A2C18472809DC7C42A0AB7A1824F01A67127E7BE2C9BB8A81DD9",
-  "lifecycle_event_count": 1355,
-  "lifecycle_event_head_sha256": "B33D4FF94246E02C05042CF5A7E9EEA45BF391E24990C1342736546F8E691C3A",
+  "canonical_plan_sha256": "9BF24776F502A7465E4065475C0FA135800CF692ED0FFF52C7FEFE255DF99EE5",
+  "history_projection_sha256": "0EDCCBB2665F3E531011CF0D2C22E25BCC3C57A4BFEE6239AE8E16A40C8D8C50",
+  "executable_projection_sha256": "2E244F37777A1F1B1848CF9B78D89F6DC35016AE0597643A5375F5620EADF74C",
+  "lifecycle_event_count": 1362,
+  "lifecycle_event_head_sha256": "5BE05C28722915DD05598BEE042860FA853754AA9B6595E5F852FF6F326475B8",
   "planning_event_count": 23,
   "planning_event_head_sha256": "C215D2791C72CC97FC30BE3E34ECC432172E0FB8DED7187B6B5311F165B58B3C",
-  "runtime_projection_content_sha256": "7C7ED3F5FCCE948641A2987A160AC45AD45DEB0B4B1413734CB66D4F9B36DDB8",
+  "runtime_projection_content_sha256": "ADE4AE327E550A44E63E525B2F7D6382C23D16C498227044DF7F27BC6A6A3181",
   "rows": [
     {
       "row": 81,
@@ -2315,18 +2315,36 @@
         "TASK16_R266_SQLITE_FORMULA_CONSOLIDATED_FULL_GOAL_EXIT_TABLE_20260823_001",
         "TASK16_R266_GOAL_DURATION_LONG_FORM_AND_TOTAL_HOURS_20260823_001",
         "TASK16_R266_TASK11_GOAL_ANALYSIS_REFERENCE_FORMULA_PACKET_20260823_001",
-        "TASK16_R266_EXACT_TASK_NATIVE_PLAN_AUTO_REATTACHMENT_LAW_20260823_001"
+        "TASK16_R266_EXACT_TASK_NATIVE_PLAN_AUTO_REATTACHMENT_LAW_20260823_001",
+        "TASK16_R266_GITHUB_APP_ADMIN_PERMISSION_NON_DOWNGRADE_AND_USER_CONSENT_LAW_20260823_001",
+        "TASK16_R266_GITHUB_APP_MAX_ADMIN_GRANT_AND_CALLBACK_CONFIGURATION_LAW_20260823_001",
+        "TASK16_R266_GITHUB_APP_SINGLE_FILE_PATH_CONTRACT_20260823_001",
+        "TASK16_R266_GITHUB_APP_SINGLE_FILE_NO_ACCESS_CORRECTION_20260823_001",
+        "TASK16_R266_PER_FILE_CURRENT_ROUTE_REFRESH_RECEIPT_20260823_001"
       ],
       "panel_role": "STANDARD"
     },
     {
       "row": 267,
       "task_position": 187,
+      "task_id": "EL-CODEX-T16-VERCEL-BATCH-A-LIVE-DUAL-SIM-REDO-DELTA-001",
+      "description": "Redo the Vercel-only Batch A pages—Home, Architecture, Lanes, and Operators—through the supported live Chrome dual-simulation with direct user guidance, then verify the corrected Batch A build immediately before Vercel Batch B begins.",
+      "status": "PENDING",
+      "lifecycle_status": "QUEUED",
+      "plan_sequence": 242,
+      "linked_delta_ids": [
+        "TASK16_VERCEL_BATCH_A_LIVE_DUAL_SIM_REDO_BEFORE_BATCH_B_20260823_001"
+      ],
+      "panel_role": "STANDARD"
+    },
+    {
+      "row": 268,
+      "task_position": 188,
       "task_id": "EL-CODEX-T8-PUBLIC-PAGE-BATCH-B-MEMORY-CANON-LEARNING-GITHUB-DELTA-001",
       "description": "Deliver public page batch B—Memory, Canon, AI Learning and GitHub/SDK—with full v3.0 stories, live evidence panels, interactions and explanatory pop-ups.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 242,
+      "plan_sequence": 243,
       "linked_delta_ids": [
         "TASK9_V300_ALL_PUBLIC_PAGES_BACKEND_DEPTH_PARITY_LAW_20260821_001_R262",
         "TASK9_R262_CROSS_SURFACE_DOCS_PAGES_VERCEL_BATCH_PARITY_LAW_20260821_001",
@@ -2343,13 +2361,13 @@
       "panel_role": "STANDARD"
     },
     {
-      "row": 268,
-      "task_position": 188,
+      "row": 269,
+      "task_position": 189,
       "task_id": "EL-CODEX-T8-PUBLIC-PAGE-BATCH-C-SKILLS-MCP-HOOKS-DELTA-001",
       "description": "Deliver public page batch C—Skills, MCP and Hooks—with registry-derived inventories, progressive hook states, scroll/focus accessibility, full v3.0 narratives, interactions and pop-ups.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 243,
+      "plan_sequence": 244,
       "linked_delta_ids": [
         "TASK8_PUBLIC_SKILLS_MCP_HOOKS_DYNAMIC_INVENTORY_LAW_R263_20260821",
         "TASK9_V300_ALL_PUBLIC_PAGES_BACKEND_DEPTH_PARITY_LAW_20260821_001_R263",
@@ -2365,13 +2383,13 @@
       "panel_role": "STANDARD"
     },
     {
-      "row": 269,
-      "task_position": 189,
+      "row": 270,
+      "task_position": 190,
       "task_id": "EL-CODEX-T8-PUBLIC-PAGE-BATCH-D-COMMANDS-PROOF-PROVENANCE-DELTA-001",
       "description": "Deliver public page batch D—Commands, Proof and Provenance—with complete v3.0 workflows, evidence depth, interactive panels and pop-ups and no obsolete-version comparison copy.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 244,
+      "plan_sequence": 245,
       "linked_delta_ids": [
         "TASK9_V300_ALL_PUBLIC_PAGES_BACKEND_DEPTH_PARITY_LAW_20260821_001_R264",
         "TASK9_R264_CROSS_SURFACE_DOCS_PAGES_VERCEL_BATCH_PARITY_LAW_20260821_001",
@@ -2384,13 +2402,13 @@
       "panel_role": "STANDARD"
     },
     {
-      "row": 270,
-      "task_position": 190,
+      "row": 271,
+      "task_position": 191,
       "task_id": "EL-CODEX-T8-PUBLIC-PAGE-BATCH-E-CONNECT-PROMPT-STUDIO-HIL-DELTA-001",
       "description": "Deliver public page batch E—Connect, Prompt Studio and HIL—with complete v3.0 connection boundaries, governed studio interactions, exact six-way decision explanations and accessible pop-ups.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 245,
+      "plan_sequence": 246,
       "linked_delta_ids": [
         "TASK9_V300_ALL_PUBLIC_PAGES_BACKEND_DEPTH_PARITY_LAW_20260821_001_R265",
         "TASK9_R265_CROSS_SURFACE_DOCS_PAGES_VERCEL_BATCH_PARITY_LAW_20260821_001",
@@ -2403,13 +2421,13 @@
       "panel_role": "STANDARD"
     },
     {
-      "row": 271,
-      "task_position": 191,
+      "row": 272,
+      "task_position": 192,
       "task_id": "EL-CODEX-T6-PRE-PV13-VERCEL-DEVPOST-FULL-REFRESH-DELTA-001-TASK8-REFRESH-001",
       "description": "Create the governed PV13 checkpoint commit after all preceding Deltas: reconcile the complete dirty scope, push the exact branch through GitHub App/SDK, require clean CI/security, synchronize current v3.0 GitHub/docs/pages and Vercel preview evidence, package the exact commit, and install it into the stable Git slot before the PV13 HIL.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 246,
+      "plan_sequence": 247,
       "linked_delta_ids": [
         "TASK8_R266_PV13_FULL_PUBLICATION_SCOPE_LAW_20260821",
         "TASK9_R243_MISROUTED_ACCEPTED_ZIP_LAWS_REBOUND_TO_R266_20260821_001",
@@ -2429,52 +2447,52 @@
       "panel_role": "STANDARD"
     },
     {
-      "row": 272,
-      "task_position": 192,
+      "row": 273,
+      "task_position": 193,
       "task_id": "EL-CODEX-T6-PV13-HIL-AFTER-PUBLIC-REFRESH-SUCCESSOR-001-TASK8-REFRESH-001",
       "description": "After R266 passes, build one immutable unaccepted PV13 candidate, render the exact six-way user-controlled HIL with the complete project/Learning evidence, and stop for the exact token; Plan acceptance, CI, preview or install never approve it.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 247,
+      "plan_sequence": 248,
       "linked_delta_ids": [
         "TASK8_R267_PV_HIL_PLUS_AI_LEARNING_HIL_CANON_MEMORY_AUTO_20260821_001"
       ],
       "panel_role": "HIL_GATE"
     },
     {
-      "row": 273,
-      "task_position": 193,
+      "row": 274,
+      "task_position": 194,
       "task_id": "EL-CODEX-REAL_GIT_FULL_HISTORY_POC-PROPOSAL-32-TASK8-REFRESH-001",
       "description": "Prove real Git full-history ingestion, bounded commit impact and complete dirty/untracked identity against the accepted and live project boundaries.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 248,
+      "plan_sequence": 249,
       "linked_delta_ids": [
         "TASK11_TASK9_R43_R269_REAL_GIT_DIRTY_IDENTITY_20260822_001"
       ],
       "panel_role": "STANDARD"
     },
     {
-      "row": 274,
-      "task_position": 194,
+      "row": 275,
+      "task_position": 195,
       "task_id": "EL-CODEX-NON_GIT_18_LANE_POC_RENDER-PROPOSAL-33-TASK8-REFRESH-001",
       "description": "Prove non-Git intake and rendering across all 18 canonical lanes plus Project Engulf and ChatLineage without inventing a nineteenth lane or loading whole sources into context.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 249,
+      "plan_sequence": 250,
       "linked_delta_ids": [
         "TASK11_TASK9_R43_R270_NON_GIT_LANES_20260822_001"
       ],
       "panel_role": "STANDARD"
     },
     {
-      "row": 275,
-      "task_position": 195,
+      "row": 276,
+      "task_position": 196,
       "task_id": "EL-CODEX-LIFECYCLE_REFRESH_ROLLBACK_PROOF-PROPOSAL-34-TASK8-REFRESH-001",
       "description": "Prove lifecycle Refresh and pointer-only Rollback, including changed-section reuse, immutable accepted history, candidate isolation and no source-history rewrite.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 250,
+      "plan_sequence": 251,
       "linked_delta_ids": [
         "TASK11_TASK9_R43_R271_REFRESH_ROLLBACK_FORMULA_20260822_001",
         "TASK11_R274_LIVE_ROOT_ACCEPTED_ZIP_ROLLBACK_LAW_20260822_001"
@@ -2482,26 +2500,26 @@
       "panel_role": "STANDARD"
     },
     {
-      "row": 276,
-      "task_position": 196,
+      "row": 277,
+      "task_position": 197,
       "task_id": "EL-CODEX-MULTIPROJECT_MULTIVERSION_ISOLATION-PROPOSAL-35-TASK8-REFRESH-001",
       "description": "Prove multi-project and multi-version isolation across workspace-owned project authority, hidden installed runtime slots, sessions, pointers, Plan, Memory, Learning and Canon.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 251,
+      "plan_sequence": 252,
       "linked_delta_ids": [
         "TASK11_TASK9_R43_R272_RUNTIME_PRINCIPAL_STATE_TRAVEL_20260822_001"
       ],
       "panel_role": "STANDARD"
     },
     {
-      "row": 277,
-      "task_position": 197,
+      "row": 278,
+      "task_position": 198,
       "task_id": "EL-CODEX-PACKAGE_INSTALL_HOT_REATTACH-PROPOSAL-36-TASK8-REFRESH-001",
       "description": "Prove package hot reattach, exact-task reopen, version-matched native MCP/tunnel recovery, mutable-local failback to the stable branch-commit slot and preservation of the untouched main-merge fallback.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 252,
+      "plan_sequence": 253,
       "linked_delta_ids": [
         "TASK11_AGENTS_RUNTIME_HELPER_REATTACH_HOOKS_OFF_20260822_001",
         "TASK11_GLOBAL_PLUGIN_UPDATE_REHYDRATION_R273_20260822_001"
@@ -2509,26 +2527,26 @@
       "panel_role": "STANDARD"
     },
     {
-      "row": 278,
-      "task_position": 198,
+      "row": 279,
+      "task_position": 199,
       "task_id": "EL-CODEX-CANON-CROSS-PLANE-ACCEPTANCE-SUCCESSOR-TASK8-REFRESH-001",
       "description": "Run integrated Canon cross-plane acceptance over project sectors, task handoffs, consequence/backfire edges, Learning, Memory and Universe while preserving the defined HIL boundaries.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 253,
+      "plan_sequence": 254,
       "linked_delta_ids": [
         "TASK11_TASK9_R43_R274_CANON_CROSS_TASK_20260822_001"
       ],
       "panel_role": "STANDARD"
     },
     {
-      "row": 279,
-      "task_position": 199,
+      "row": 280,
+      "task_position": 200,
       "task_id": "EL-CODEX-FINAL_FORENSIC_ACCEPTANCE-PROPOSAL-37-TASK8-REFRESH-001",
       "description": "Run the final whole-code forensic parity audit from Delta 00 through the current codebase, distinguishing implemented source, installed/public native routes, historical artifacts, missing tests/surfaces, and any remaining gaps without treating absence of a failure as proof.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 254,
+      "plan_sequence": 255,
       "linked_delta_ids": [
         "TASK8_FORENSIC_HYPOTHESIS_VERIFICATION_LAW_R274_20260821",
         "TASK11_TASK9_R43_R275_FINAL_FORENSIC_CLOSURE_20260822_001"
@@ -2536,13 +2554,13 @@
       "panel_role": "STANDARD"
     },
     {
-      "row": 280,
-      "task_position": 200,
+      "row": 281,
+      "task_position": 201,
       "task_id": "EL-CODEX-T8-PV14-FINAL-GOVERNED-COMMIT-DELTA-001",
       "description": "Create the PV14/final governed commit from the complete verified dirty scope, push through GitHub App/SDK, require clean CI/security, synchronize current v3.0 publication and preview, package the exact commit, and install the stable Git slot before the existing physically-final release HIL.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 255,
+      "plan_sequence": 256,
       "linked_delta_ids": [
         "TASK8_PV14_FINAL_PROOF_PAGE_REPLACEMENT_LAW_20260821",
         "TASK8_R275_PV14_FINAL_FULL_PUBLICATION_SCOPE_LAW_20260821",
@@ -2556,13 +2574,13 @@
       "panel_role": "STANDARD"
     },
     {
-      "row": 281,
-      "task_position": 201,
+      "row": 282,
+      "task_position": 202,
       "task_id": "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR",
       "description": "After every predecessor passes, run final full regression from the installed package, explicit governed Refresh to one immutable unaccepted candidate, render exact receipts and six HIL choices, and stop.",
       "status": "PENDING",
       "lifecycle_status": "QUEUED",
-      "plan_sequence": 282,
+      "plan_sequence": 283,
       "linked_delta_ids": [
         "EL-CODEX-ROW203-PV13-EXPLICIT-HIL-FUSE-MAIN-FALLBACK-GOAL-CONTINUATION-CORRECTION-20260813-030",
         "EL-CODEX-FINAL-PV14-HIL-POST-PV13-SEQUENCE-CORRECTION-20260814-043",
@@ -2571,5 +2589,5 @@
       "panel_role": "PHYSICALLY_FINAL_HIL"
     }
   ],
-  "snapshot_sha256": "D6EBC98249CEA40492B936BBBA66F3351B7F37134E687A9455AA6C25F9FC86C2"
+  "snapshot_sha256": "F4A5AAC00F162FD90DD7EC0D15CF184645EDFA28B11418D9961153C0B30D84C8"
 }

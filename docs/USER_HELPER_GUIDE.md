@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Evidence Lane user helper guide
 
 The user Goal Recovery helper preserves a governed Codex task binding across a

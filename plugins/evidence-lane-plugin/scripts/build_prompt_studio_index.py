@@ -87,6 +87,7 @@ PUBLIC_TEXT_SUFFIXES = {
 }
 PUBLIC_PLUGIN_EXCLUSIONS = (
     "plugins/evidence-lane-plugin/evidence/",
+    "plugins/evidence-lane-plugin/_evidence_lane_rehearsal/",
     "plugins/evidence-lane-plugin/remote_adapter/.vercel/",
     "plugins/evidence-lane-plugin/remote_adapter/public/",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/session_flash/",
@@ -132,6 +133,7 @@ FROZEN_NO_GIT_ADDITIONS = {
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/internal_sdk.py",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/lane_contract.py",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/runtime_host_classifier.py",
+    "plugins/evidence-lane-plugin/src/evidence_lane_plugin/runtime-public-catalog.v1.json",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/canon-envelope.schema.json",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/canon-expected-contract.schema.json",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/canon-task-edge.schema.json",

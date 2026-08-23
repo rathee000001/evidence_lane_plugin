@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Credits and contribution policy
 
 ## Ownership

@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Upstream reference provenance
 
 This ledger records public upstream material inspected during the Evidence Lane

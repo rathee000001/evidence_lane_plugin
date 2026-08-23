@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Installation and recovery
 
 Evidence Lane installation is an exact-commit transaction. A local working

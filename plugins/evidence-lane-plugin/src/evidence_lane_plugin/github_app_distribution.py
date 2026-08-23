@@ -30,6 +30,10 @@ GITHUB_APP_MANIFEST_SCHEMA = "evidence-lane.github-app-manifest.v1"
 GITHUB_APP_DISTRIBUTION_ABI = "evidence-lane.github-app-distribution.v1"
 GITHUB_APP_WEBHOOK_ROUTE = "/api/evidence-lane/github-app/webhook"
 GITHUB_REST_API_VERSION = "2026-03-10"
+EVIDENCE_LANE_APP_BOT_NAME = "evidence-lane[bot]"
+EVIDENCE_LANE_APP_BOT_EMAIL = (
+    "319574480+evidence-lane[bot]@users.noreply.github.com"
+)
 
 _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}")
 _REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
@@ -1020,6 +1024,7 @@ class ExactGitCommitPushRequest:
     repository: str
     branch: str
     expected_parent_commit_sha: str
+    additional_parent_commit_shas: tuple[str, ...]
     expected_parent_tree_sha: str
     expected_tree_sha: str
     expected_commit_sha: str
@@ -1039,6 +1044,7 @@ class ExactGitCommitPushRequest:
         repository: str,
         branch: str,
         expected_parent_commit_sha: str,
+        additional_parent_commit_shas: Sequence[str] = (),
         expected_parent_tree_sha: str,
         expected_tree_sha: str,
         expected_commit_sha: str,
@@ -1059,6 +1065,31 @@ class ExactGitCommitPushRequest:
             "The exact Git tree delta must be non-empty, unique, and bounded.",
             status="BLOCKED",
         )
+        exact_parent = _git_oid(
+            expected_parent_commit_sha,
+            field="expected_parent_commit_sha",
+        )
+        additional_parents = tuple(
+            _git_oid(value, field="additional_parent_commit_sha")
+            for value in additional_parent_commit_shas
+        )
+        require(
+            len(additional_parents) <= 7
+            and len(additional_parents) == len(set(additional_parents))
+            and exact_parent not in additional_parents,
+            "GITHUB_APP_COMMIT_PARENT_SET_INVALID",
+            "The exact App commit parent set must be bounded, unique, and ordered.",
+            status="BLOCKED",
+        )
+        require(
+            author.name == EVIDENCE_LANE_APP_BOT_NAME
+            and author.email == EVIDENCE_LANE_APP_BOT_EMAIL
+            and committer.name == EVIDENCE_LANE_APP_BOT_NAME
+            and committer.email == EVIDENCE_LANE_APP_BOT_EMAIL,
+            "GITHUB_APP_BOT_ACTOR_REQUIRED",
+            "Evidence Lane App commits require the canonical bot as both author and committer.",
+            status="BLOCKED",
+        )
         return cls(
             request_id=_identifier(request_id, field="request_id"),
             idempotency_key=_identifier(idempotency_key, field="idempotency_key"),
@@ -1066,10 +1097,8 @@ class ExactGitCommitPushRequest:
             task_id=_identifier(task_id, field="task_id"),
             repository=_repository(repository),
             branch=_git_branch(branch),
-            expected_parent_commit_sha=_git_oid(
-                expected_parent_commit_sha,
-                field="expected_parent_commit_sha",
-            ),
+            expected_parent_commit_sha=exact_parent,
+            additional_parent_commit_shas=additional_parents,
             expected_parent_tree_sha=_git_oid(
                 expected_parent_tree_sha,
                 field="expected_parent_tree_sha",
@@ -1094,6 +1123,9 @@ class ExactGitCommitPushRequest:
             "repository": self.repository,
             "branch": self.branch,
             "expected_parent_commit_sha": self.expected_parent_commit_sha,
+            "additional_parent_commit_shas": list(
+                self.additional_parent_commit_shas
+            ),
             "expected_parent_tree_sha": self.expected_parent_tree_sha,
             "expected_tree_sha": self.expected_tree_sha,
             "expected_commit_sha": self.expected_commit_sha,
@@ -1321,7 +1353,10 @@ class GitHubAppExactCommitPushRoute:
                 body={
                     "message": request.commit_message,
                     "tree": request.expected_tree_sha,
-                    "parents": [request.expected_parent_commit_sha],
+                    "parents": [
+                        request.expected_parent_commit_sha,
+                        *request.additional_parent_commit_shas,
+                    ],
                     "author": request.author.as_dict(),
                     "committer": request.committer.as_dict(),
                 },

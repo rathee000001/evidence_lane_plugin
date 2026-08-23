@@ -1,4 +1,12 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Host storage, ENV/UOP continuity, and governed learning
+
+This is the Git-tracked authority for the GitHub Pages host/operator story and
+the current Vercel Operators projection. Both must expose the same 3.0.0
+host/storage/operator matrix and must not imply that a website, hook, tunnel,
+helper, account tier, or cached package can replace the exact installed native
+route selected for the invoking task.
 
 Evidence Lane keeps the Codex client, native MCP transport, durable project
 runtime, Project Truth, and Agent Learning distinct. A desktop window, model
@@ -14,12 +22,12 @@ only a proven host-tool gap selects the version-bound support tunnel.
 
 | Codex profile | Live primary runtime | External network setup | Flash frequency |
 | --- | --- | --- | --- |
-| Desktop or local CLI on a durable local host with native MCP available | Durable local SQLite | Not required; use native MCP | Every Boot or Resume |
-| Desktop or local CLI on a durable local host with a proven host-tool gap | Durable local SQLite | Version-bound hidden tunnel, once per persistent host and release | Every Boot or Resume |
-| Durable remote Codex workspace | Durable remote filesystem/SQLite or an explicitly configured connector when required | Native MCP when available; version-bound tunnel only for a proven tool gap | Every Boot or Resume |
+| Desktop or local CLI on a durable local host with native MCP available | Durable local SQLite | Not required; use native MCP | Every Boot or supported task reattachment |
+| Desktop or local CLI on a durable local host with a proven host-tool gap | Durable local SQLite | Version-bound hidden tunnel, once per persistent host and release | Every Boot or supported task reattachment |
+| Durable remote Codex workspace | Durable remote filesystem/SQLite or an explicitly configured connector when required | Native MCP when available; version-bound tunnel only for a proven tool gap | Every Boot or supported task reattachment |
 | Headless API with durable local storage | Durable local SQLite | Not required at API layer | Every invocation entry |
-| Interactive ephemeral VM with durable mount | Durable mount SQLite | Native MCP when available; otherwise one tunnel for that VM lifetime | Every Boot or Resume |
-| Interactive ephemeral VM without durable mount | Configured transactional connector | Native MCP when available; otherwise one tunnel for that VM lifetime | Every Boot or Resume |
+| Interactive ephemeral VM with durable mount | Durable mount SQLite | Native MCP when available; otherwise one tunnel for that VM lifetime | Every Boot or supported task reattachment |
+| Interactive ephemeral VM without durable mount | Configured transactional connector | Native MCP when available; otherwise one tunnel for that VM lifetime | Every Boot or supported task reattachment |
 | Headless API on an ephemeral VM | Durable mount or configured transactional connector | Not required at API layer | Every API entry |
 
 An ephemeral or stateless route must consume one
@@ -54,9 +62,9 @@ Every project-scoped tool requires an exact `project_id` and resolves only
 beneath `<configured-store-root>/projects/<project_id>`. There is no implicit
 default project or cross-project fallback.
 
-## Boot and Resume continuity
+## Boot and exact task continuity
 
-Every Boot or Resume produces a sealed
+Every Boot or supported exact-task reattachment produces a sealed
 `evidence-lane.runtime-continuity.v1` receipt containing:
 
 - canonical Codex host and host-session binding;
@@ -80,6 +88,13 @@ Every Boot or Resume produces a sealed
 Headless API entry rechecks the same locked Flash, loads the exact durable
 project state and accepted or pending Entry/Exit Slip, and returns a copyable
 next prompt. Ending a client process does not end the durable project runtime.
+
+Direct same-worktree State Travel is a separate one-shot destination-entry
+route. Its public action accepts only project, session, authoritative-source
+task, runtime-donor task, destination task, and destination title. The server
+derives the worktree, runtime, replay, Plan, accepted-baseline, and pointer
+proofs. Caller bindings, nonces, PIDs/runtime IDs, hashes, PV/pointer payloads,
+sealed PREPARE/RESUME, and retries are not public compatibility paths.
 
 An accepted PV remains immutable when later releases add stricter topology or
 promotability rules. New candidates must pass current rules; old accepted bytes

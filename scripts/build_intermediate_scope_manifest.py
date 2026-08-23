@@ -119,7 +119,7 @@ def build_manifest(
             sample = ", ".join(unstaged_paths[:10])
             suffix = "" if len(unstaged_paths) <= 10 else ", ..."
             raise RuntimeError(
-                "R249 scope is not fully staged; refusing PASS for: "
+                "Current checkpoint scope is not fully staged; refusing PASS for: "
                 f"{sample}{suffix}"
             )
 
@@ -155,7 +155,7 @@ def build_manifest(
         )
         if excluded and require_no_exclusions:
             raise RuntimeError(
-                "R249 all-tracked scope forbids exclusions; refusing PASS for: "
+                "Current all-tracked checkpoint forbids exclusions; refusing PASS for: "
                 f"{relative}"
             )
         decision = "EXCLUDE_PRESERVE_ON_DISK" if excluded else "INCLUDE"

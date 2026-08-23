@@ -307,7 +307,10 @@ def test_docker_build_requires_and_seals_exact_release_commit() -> None:
 
     assert "python:3.14.2-slim-bookworm@sha256:" in dockerfile
     assert "ARG EVIDENCE_LANE_RELEASE_SHA" in dockerfile
+    assert "PYTHONPATH=/app/plugins/evidence-lane-plugin/src" in dockerfile
+    assert "EVIDENCE_LANE_PLUGIN_ROOT=/app/plugins/evidence-lane-plugin" in dockerfile
     assert "libgl1" in dockerfile
+    assert "identity_repository_root(evidence_lane_plugin.__file__)" in dockerfile
     assert "write_embedded_release_commit" in dockerfile
     assert '"$EVIDENCE_LANE_RELEASE_SHA"' in dockerfile
     assert "**/.evidence-lane-release-sha" in dockerignore

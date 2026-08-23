@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Evidence Lane 3.0.0 skills
 
 The Codex package contains exactly 17 governed skills. Skills are the behavior

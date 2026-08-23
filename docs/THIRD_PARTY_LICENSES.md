@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Third-party tool licenses and rights
 
 This page covers license-bearing software and external services used by the

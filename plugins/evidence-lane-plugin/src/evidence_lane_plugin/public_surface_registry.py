@@ -19,6 +19,8 @@ _PLUGIN_ROOT_ENV = "EVIDENCE_LANE_PLUGIN_ROOT"
 PUBLIC_SURFACE_SINGLE_INSTALLED_ROOT_LAW = (
     "PUBLIC_SURFACE_SINGLE_INSTALLED_ROOT_LAW"
 )
+RUNTIME_PUBLIC_CATALOG_SCHEMA = "evidence-lane.runtime-public-catalog.v1"
+_RUNTIME_PUBLIC_CATALOG_FILE = "runtime-public-catalog.v1.json"
 
 # Read/write is a semantic tool registry, not a hard-coded count.  The complete
 # tool-name registry remains skills/evi/references/mcp-tool-routing.v1.json.
@@ -100,6 +102,24 @@ def _json(path: Path) -> dict[str, Any]:
             f"PUBLIC_SURFACE_REGISTRY_OBJECT_REQUIRED:{path.name}"
         )
     return value
+
+
+def _packaged_runtime_catalog() -> dict[str, int]:
+    value = _json(Path(__file__).with_name(_RUNTIME_PUBLIC_CATALOG_FILE))
+    keys = ("tools", "read", "write", "skills")
+    if value.get("schema") != RUNTIME_PUBLIC_CATALOG_SCHEMA or any(
+        not isinstance(value.get(key), int) or isinstance(value.get(key), bool)
+        for key in keys
+    ):
+        raise PublicSurfaceRegistryError("PUBLIC_SURFACE_RUNTIME_CATALOG_INVALID")
+    result = {key: int(value[key]) for key in keys}
+    if (
+        result["tools"] != result["read"] + result["write"]
+        or result["read"] != len(CODEX_READ_TOOL_NAMES)
+        or result["skills"] < 1
+    ):
+        raise PublicSurfaceRegistryError("PUBLIC_SURFACE_RUNTIME_CATALOG_INVALID")
+    return result
 
 
 def resolve_public_surface_plugin_root() -> Path:
@@ -324,8 +344,14 @@ def derive_runtime_catalog_constants(
         if plugin_root is not None
         else Path(__file__).resolve().parents[2]
     )
+    packaged_catalog = _packaged_runtime_catalog()
+    packaged_catalog_payload = _json(
+        Path(__file__).with_name(_RUNTIME_PUBLIC_CATALOG_FILE)
+    )
     mcp_source = root / "src" / "evidence_lane_plugin" / "mcp_server.py"
     release_path = root / "scripts" / "codex-release-channel.json"
+    if not mcp_source.is_file() and not release_path.is_file():
+        return packaged_catalog
     try:
         tree = ast.parse(mcp_source.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, SyntaxError) as exc:
@@ -405,9 +431,20 @@ def derive_runtime_catalog_constants(
     stable = release.get("stable")
     if not isinstance(stable, dict) or not isinstance(stable.get("skill_count"), int):
         raise PublicSurfaceRegistryError("PUBLIC_SURFACE_RELEASE_REGISTRY_INVALID")
-    return {
+    derived = {
         "tools": len(tool_records),
         "read": len(ast_read_names),
         "write": len(tool_records) - len(ast_read_names),
         "skills": int(stable["skill_count"]),
     }
+    if (
+        derived != packaged_catalog
+        or packaged_catalog_payload.get("mcp_source_sha256")
+        != _sha256_file(mcp_source)
+        or packaged_catalog_payload.get("release_channel_sha256")
+        != _sha256_file(release_path)
+    ):
+        raise PublicSurfaceRegistryError(
+            "PUBLIC_SURFACE_PACKAGED_RUNTIME_CATALOG_MISMATCH"
+        )
+    return derived

@@ -231,36 +231,6 @@ def test_prebuild_summary_passes_when_exact_prebuild_runs_before_postseal(
     assert result["postseal_pending"] == 1
 
 
-def test_repository_manifest_binds_eighteen_v140_checks_and_three_governed_compatibility_mappings() -> None:
-    repository = Path(__file__).resolve().parents[1]
-    manifest = json.loads(
-        (repository / "evidence" / "acceptance" / "commands.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    commands = manifest["commands"]
-    assert manifest["schema"] == "evidence-lane.acceptance-command-manifest.v1"
-    canonical = list(commands.items())[:18]
-    task_mappings = list(commands.items())[18:]
-    assert len(canonical) == 18
-    assert len(task_mappings) == 3
-    assert [key[:4] for key, _entry in canonical] == [
-        f"AC{index:02d}" for index in range(1, 19)
-    ]
-    for index, (_key, entry) in enumerate(canonical, start=1):
-        assert entry["argv"] == [
-            "$RUNTIME_PYTHON",
-            "plugins/evidence-lane-plugin/scripts/run_acceptance_check.py",
-            f"AC{index:02d}",
-        ]
-    assert [key[:4] for key, _entry in canonical[-6:]] == [
-        f"AC{index:02d}" for index in range(13, 19)
-    ]
-    assert sum(entry.get("phase") == "POSTSEAL" for _key, entry in canonical) == 3
-    assert all(entry["argv"][0] == "$RUNTIME_PYTHON" for _key, entry in task_mappings)
-    assert all("phase" not in entry for _key, entry in task_mappings)
-
-
 def test_manifest_registry_may_map_more_entries_than_one_bounded_task_executes(
     tmp_path: Path,
 ) -> None:

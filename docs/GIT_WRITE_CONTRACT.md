@@ -10,8 +10,11 @@ source. It may occur before PV acceptance only when the user explicitly
 supersedes the HIL boundary and names branch publication as required evidence.
 That bounded action must:
 
-- create one local commit on the current feature branch;
-- push only that exact branch ref without force;
+- create one deterministic local preview commit on the current feature branch
+  with canonical `evidence-lane[bot]` author and committer identity;
+- use `github_app_exact_commit_push_v1` to recreate the exact blobs, tree,
+  ordered parents, and commit through the selected Evidence Lane GitHub App;
+- fast-forward only that exact feature-branch ref without force;
 - leave `main` unchanged locally and remotely;
 - record the exact commit and remote branch;
 - install and test that commit without inferring PV approval;
@@ -19,7 +22,8 @@ That bounded action must:
 
 The `remote_git_prepare_push` and `remote_git_execute_push` tools below govern
 project-source publication after accepted-PV authority. They do not govern
-this repository's separately authorized candidate-distribution branch.
+this repository's separately authorized maintainer branch and must never be
+used as its fallback.
 
 ## Required sequence
 

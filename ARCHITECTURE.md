@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Evidence Lane 3.0.0 architecture
 
 Evidence Lane is a Codex-native, local-first evidence lifecycle. Version 3.0.0
@@ -105,24 +107,28 @@ candidate, test, Plan transition, automation, pause, or stall may complete a
 Goal, and Goal completion grants no HIL, Fuse, pointer, Git, install, merge, or
 deployment authority.
 
-State Travel is strictly a no-restart task transition. Phase 1 must prove one
-unchanged Codex host-process instance, the exact source and destination task
-UUID/deep-link pair, the initial destination shell's source/destination binding,
-the exact host creation result, and one live canonical destination identity.
-Any renderer reload/freeze, app restart, stale or duplicate task activation,
-unexpected navigation, or background-agent activation is
-`STATE_TRAVEL_HOST_CONTINUITY_FAILURE`: stop before handoff consumption, do not
-retry, and preserve all bytes. The maintainer release helper, governed-user Goal
-recovery helper, tunnel helper, scheduled recovery task, and subagents are not
-State Travel executors.
+State Travel is strictly a no-restart task transition. The destination first
+uses Codex host-native context to verify its exact UUID/deep link, title,
+project, session, workspace, execution profile, and same dirty worktree. After
+Boot/Flash, the public same-worktree route executes exactly once with only the
+project/session plus authoritative source, runtime donor, destination task, and
+destination-title identities. The server derives and validates all runtime,
+dirty-byte, Plan, pointer-baseline, and replay evidence; callers never compose
+bindings, nonces, PIDs, runtime IDs, hashes, PV/pointer payloads, PREPARE, or
+RESUME. On PASS it returns the small whole-authority Plan prompt and stops at
+the native **Implement this plan** gate. Only a distinct host acceptance event
+plus bounded Plan verification may reattach the carried Goal and fixed Plan
+projection.
 
-Destination entry and panel recovery use a bounded sealed handoff plus the
-canonical Plan Lane, never full chat-history hydration. Unbounded `thread/read`,
-collaboration/avatar-overlay hydration, or a React-root rerender is a
-first-class continuity failure even when the Codex root process remains alive.
-The critical section is serialized to one active task and zero subagents; on a
-renderer reset it fails closed, revalidates the complete native ledger, and
-reactivates the exact current host window before work.
+Destination entry and panel recovery use canonical Plan Lane, never full
+chat-history hydration. Unbounded `thread/read`, collaboration/avatar-overlay
+hydration, or a React-root rerender is a first-class continuity failure even
+when the Codex root process remains alive. The critical section is serialized
+to one active task and zero subagents; on a renderer reset it fails closed,
+revalidates the complete native ledger, and reactivates the exact current host
+window before work. The maintainer release helper, governed-user Goal recovery
+helper, tunnel helper, scheduled recovery task, and subagents are not State
+Travel executors.
 The plugin can enforce and attest this boundary but cannot guarantee survival
 of host-owned renderer state.
 
@@ -184,7 +190,7 @@ another.
 flowchart TB
     subgraph Host["Codex host boundary"]
       Task["Exact task UUID + worktree + host session"]
-      Hooks["8 hooks\nSessionStart | UserPromptSubmit | Pre/PostToolUse | Pre/PostCompact | Stop | SessionEnd"]
+      Hooks["11 hooks\nSessionStart | SubagentStart | UserPromptSubmit | PreToolUse | PermissionRequest | PostToolUse | PreCompact | PostCompact | SubagentStop | Stop | SessionEnd"]
       PlanUI["Host Plan / Goal / governed console projection"]
     end
 
@@ -242,15 +248,16 @@ the website cannot execute it, and the host Plan surface cannot accept a PV.
 
 The 3.0.0 package contains one package-local MCP server named
 `evidence-lane`, exactly 88 canonical actions (27 read-only and 61
-write-capable), 17 governed skills, six primary controls, and eight lifecycle
+write-capable), 17 governed skills, six primary controls, and eleven lifecycle
 events. The six controls are Boot, Rollback, Build, Refresh, Mode, and Source
 Intake. State Travel is a conditional exact-resume path; it is not a seventh
 primary control.
 
-Hooks transport `SessionStart`, `UserPromptSubmit`, `PreToolUse`,
-`PostToolUse`, `PreCompact`, `PostCompact`, `Stop`, and best-effort
-`SessionEnd`. Skills own PREPARE, native reads, classification, Plan refresh,
-and HIL behavior. The host owns UI rendering and permission prompts.
+Hooks transport `SessionStart`, `SubagentStart`, `UserPromptSubmit`,
+`PreToolUse`, `PermissionRequest`, `PostToolUse`, `PreCompact`, `PostCompact`,
+`SubagentStop`, `Stop`, and main-thread-only best-effort `SessionEnd`. Skills
+own PREPARE, native reads, classification, Plan refresh, and HIL behavior. The
+host owns UI rendering and permission prompts.
 
 SQLite FTS5/BM25 is the indexed query authority for Plan, lane, ChatLineage,
 and project-sector data. Queries return only bounded rows carrying pointer and

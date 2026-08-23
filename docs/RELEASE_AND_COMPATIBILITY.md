@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Release and compatibility
 
 The current source line is Evidence Lane 3.0.0 on

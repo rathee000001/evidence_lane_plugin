@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Evidence Lane 3.0.0 native MCP
 
 Evidence Lane exposes one package-local native MCP server named

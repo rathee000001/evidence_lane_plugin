@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Copyright and ownership notice
 
 Copyright © 2026 Praveen Rathee. All rights reserved.

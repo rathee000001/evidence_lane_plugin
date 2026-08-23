@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Codex hooks
 
 Evidence Lane declares Codex hooks as optional lifecycle transports. Every
@@ -48,9 +50,19 @@ the plugin router rather than in a synthetic prompt hook.
 Trust and enablement are independent. A hook definition can be reviewed and
 trusted by its exact installed hash while remaining disabled. The maintained
 test installation keeps all hooks OFF until the designated installed-host
-verification owner proves each event independently. A failing enabled hook is
-disabled alone through a compare-and-swap `config/batchWrite`, followed by an
-exact `hooks/list` readback; unrelated hook states remain unchanged.
+verification owner proves each event independently. The supported
+`--progressive-all` installed-host route then leaves every passing event ON and
+requires a final `hooks/list` readback showing all eleven trusted and enabled
+before the matrix can pass. That all-ON state is the normal corrected release
+state and is preserved across exact-task restart, reattachment, and upgrades.
+
+A failing enabled hook is disabled alone through a compare-and-swap
+`config/batchWrite`, followed by an exact `hooks/list` readback; unrelated
+passing hook states remain ON and the active Goal is not paused. The failure
+receipt names only the failed event, which is repaired and retested through the
+same progressive route. It is re-enabled only after PASS. An upgrade preserves
+the current verified enablement state; it neither blankets all hooks OFF nor
+enables an unverified definition as a side effect.
 
 ## Evidence boundary
 

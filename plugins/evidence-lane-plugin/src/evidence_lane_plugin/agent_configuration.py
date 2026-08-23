@@ -274,9 +274,15 @@ def resolve_agent_configuration(
     exact_project_root = Path(project_root).resolve()
     exact_cwd = Path(cwd).resolve()
     require(
-        exact_codex_home.is_dir() and exact_project_root.is_dir(),
+        exact_project_root.is_dir(),
         "AGENT_CONFIGURATION_ROOT_INVALID",
-        "Codex home and the governed project root must exist before discovery.",
+        "The governed project root must exist before AGENTS.md discovery.",
+        status="MISMATCH",
+    )
+    require(
+        not exact_codex_home.exists() or exact_codex_home.is_dir(),
+        "AGENT_CONFIGURATION_CODEX_HOME_INVALID",
+        "Codex home must be a directory when that optional global root exists.",
         status="MISMATCH",
     )
     directory_chain = _directory_chain(exact_project_root, exact_cwd)

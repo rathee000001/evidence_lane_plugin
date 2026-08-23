@@ -177,23 +177,23 @@ the complete native Plan ledger, activates its aligned current host window
 before source inspection, and resumes the exact active row. It never infers
 HIL, moves the pointer, or creates a candidate.
 
-State Travel is not app recovery. Destination creation must preserve one host
-process instance and prove the exact source UUID/deep link, destination UUID/
-deep link, initial shell binding, and host creation result before resume. An app
-restart, renderer reload/freeze, unexpected navigation or task/agent activation,
-duplicate destination title, or stale nested source task is
-`STATE_TRAVEL_HOST_CONTINUITY_FAILURE`. It fails before handoff consumption and
-is never retried automatically. Goal-recovery, tunnel, scheduled, release, and
-subagent helpers cannot perform or bypass this phase.
+State Travel is a one-shot task transition, not app recovery. The first visible
+destination action is native host verification of the exact UUID/deep link,
+title, project, session, workspace, execution profile, and same dirty worktree.
+After Boot/Flash, the current direct same-worktree route accepts exactly the
+project, session, authoritative-source task, runtime-donor task, destination
+task, and destination title. The server derives continuity, runtime, replay,
+dirty-byte, canonical Plan, and accepted-baseline evidence atomically. Caller
+bindings, nonces, PIDs/runtime IDs, hashes, PV/pointer payloads, sealed PREPARE/
+RESUME, compatibility shells, and retries are not public entry routes.
 
-Only the bounded sealed handoff and canonical Plan Lane may hydrate destination
-continuity. Full chat-history reads and collaboration/avatar-overlay hydration
-are forbidden during destination creation and Plan recovery. A thread-hydration
-overflow or React-root rerender is a first-class continuity failure even when
-the root Codex process survives. Recovery runs with one active task and zero
-subagents, fails closed on reset, revalidates the complete native ledger, and
-reactivates the exact current host window before work; it never claims to
-prevent host-owned renderer failure.
+On exact PASS, State Travel returns the small whole-authority Plan prompt and
+stops at the native **Implement this plan** gate. Only a distinct user
+acceptance event plus bounded canonical Plan verification may resume the carried
+Goal and relock the one fixed header plus up-to-nine Step Task List. Full chat
+history, collaboration overlays, stale donor attachment, and fallback projectors
+cannot substitute for that authority. Native task/Plan control uses the host
+backend surface, never Windows UI automation.
 
 The bounded right-side Step Task List window and exact task/worktree-bound
 Changes surface form one visible continuity boundary. While the human Goal remains active, a missing,
@@ -204,22 +204,26 @@ but cannot claim that it prevents a host crash.
 
 ## Hooks and visible continuity
 
-The v3.0 package registers eight hook events:
+The v3.0 package registers eleven hook events:
 
 - `SessionStart` — verify installation and prepare bounded session context;
+- `SubagentStart` — verify the exact parent/child task binding;
 - `UserPromptSubmit` — bind the visible turn without storing private reasoning;
-- `PreToolUse` — fail closed when the governed PREPARE binding is absent;
+- `PreToolUse` — guard bounded tool activity before execution;
+- `PermissionRequest` — observe the native permission boundary without deciding it;
 - `PostToolUse` — refresh the linked task/Delta change projection after relevant
   native actions;
 - `PreCompact` — seal the current compaction boundary;
 - `PostCompact` — rehydrate lifecycle context and require skill re-entry;
+- `SubagentStop` — record child lifecycle termination without completing parent work;
 - `Stop` — preserve the response/exit boundary;
-- `SessionEnd` — best-effort lifecycle flush without inferring completion.
+- `SessionEnd` — main-thread-only best-effort lifecycle flush without inferring completion.
 
-The package inventory is eight events, six command handlers, and twelve hook files
-including `hooks.json`. Hook output can request a persistent change notice, but
-Codex owns its final placement. The icon and rendered panel are therefore
-installed-host observations, not facts inferred from source metadata.
+The package inventory is eleven stable event identities with one command handler
+per event plus `hooks.json`. Hook output can request a persistent change notice,
+but Codex owns its final placement. The icon and rendered panel are therefore
+installed-host observations, not facts inferred from source metadata. All
+explicit plugin actions remain usable while hooks are OFF.
 
 ## Project and runtime panels
 
@@ -242,11 +246,13 @@ The installed-host HIL must observe the resource and Evidence Lane identity.
 
 ## Git and CI/CD
 
-Git reads and writes are separated. A remote push is prepared against one exact
-project, non-default branch, commit, tree, remote, and expected remote head.
-The configured v2 test branch may use standing host-managed authorization for a
-fast-forward execute step; force-push, default-branch mutation, merge, release,
-candidate acceptance, pointer movement, and Fuse remain unauthorized.
+Git reads and writes are separated. Maintainer writes resolve through the
+selected Evidence Lane GitHub App route. The App recreates exact blobs, tree,
+ordered parents, and commit as `evidence-lane[bot]`, then fast-forwards only the
+governed feature branch with `force=false`. Human-authored or connector-written
+fallback commits, force-push, direct implementation on `main`, candidate
+acceptance, pointer movement, and Fuse remain unauthorized. A later governed
+merge may update `main` only after the feature branch is green.
 
 One coherent correction commit triggers one CI cycle. The reusable Code-mode
 action records formula, loop, operators, commands, exit code, commit/tree, and

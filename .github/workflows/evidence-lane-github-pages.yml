@@ -33,8 +33,10 @@ jobs:
     steps:
       - name: Checkout exact documentation commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 2
       - name: Project Git-tracked authorities into GitHub Pages
-        run: python scripts/prepare_github_pages.py
+        run: python scripts/prepare_github_pages.py --require-current-commit-refresh
       - name: Configure GitHub Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Build GitHub Pages with Jekyll

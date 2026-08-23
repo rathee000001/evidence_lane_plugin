@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 <p align="center">
   <img src="docs/assets/evidence-lane-full-logo.png" alt="Evidence Lane" width="900" />
 </p>
@@ -57,8 +59,11 @@ boundary.
 
 > **Testing status:** Version 3.0.0 is a candidate source line under branch
 > verification; it has not completed the governed release and installed-package
-> gate. Lifecycle hooks remain off in the maintainer test environment while all
-> eight events are repaired and verified one at a time. Canon and AI Learning
+> gate. Lifecycle hooks remain off in the maintainer test environment only until
+> all eleven events are repaired and verified one at a time. The corrected
+> installed release keeps all eleven ON; if one fails, native CAS control turns
+> off only that event until its repair passes while the other hooks and Goal
+> continue. Canon and AI Learning
 > cross-lane automation remain in development. Memory storage and bounded query
 > contracts can run explicitly without hooks, while automatic pre-compaction
 > sealing and post-compaction rehydration remain off with their hooks.
@@ -134,8 +139,9 @@ The 3.0 source package defines:
 - exactly **17 governed skills**;
 - six primary controls in order: Boot, Rollback, Build, Refresh, Mode, and
   Source Intake;
-- eight lifecycle hook events: `PreToolUse`, `PostToolUse`, `PreCompact`,
-  `PostCompact`, `SessionStart`, `SessionEnd`, `UserPromptSubmit`, and `Stop`;
+- eleven lifecycle hook events: `SessionStart`, `SubagentStart`,
+  `UserPromptSubmit`, `PreToolUse`, `PermissionRequest`, `PostToolUse`,
+  `PreCompact`, `PostCompact`, `SubagentStop`, `Stop`, and `SessionEnd`;
 - durable local SQLite as the default project authority;
 - a canonical Plan ledger and bounded 1+9 Step projection;
 - queryable ChatLineage, FTS5/BM25 retrieval, MMD and DOT topology, pointers,
@@ -147,6 +153,13 @@ These are source/package contracts. A running Codex task may retain an older
 MCP snapshot until the supported same-task restart route proves the new
 installed package. A manifest, cache directory, or README claim is not
 installed-host evidence.
+
+The current same-worktree State Travel entry is the one-shot
+`pv_state_travel_direct_force_same_worktree` route. It accepts only project,
+session, source-task, runtime-donor, destination-task, and destination-title
+identities; the server derives every binding, replay, dirty-byte, Plan, runtime,
+and pointer-baseline proof. Sealed PREPARE/RESUME and caller-composed state are
+not public fallback routes for this entry.
 
 ### Complete skill surface
 
@@ -191,7 +204,7 @@ claims detached from source.
 
 ```mermaid
 flowchart TD
-    Host["Codex host and exact task"] --> Hooks["8 lifecycle hooks"]
+    Host["Codex host and exact task"] --> Hooks["11 lifecycle hooks"]
     Host --> Skills["17 governed skills"]
     Hooks --> Skills
     Skills --> MCP["Native evidence-lane MCP<br/>27 read + 61 write actions"]
@@ -369,24 +382,31 @@ and resumes from SQLite rather than reconstructing from conversational memory.
 
 ## Hooks
 
-The package defines eight events:
+The package defines eleven events:
 
 | Event | Purpose |
 | --- | --- |
 | `SessionStart` | Verify installed identity and prepare bounded runtime context. |
+| `SubagentStart` | Verify the exact parent task/session binding without granting a subagent lifecycle authority. |
 | `UserPromptSubmit` | Classify and bind the visible task turn without storing private reasoning. |
 | `PreToolUse` | Guard bounded tool activity before execution. |
+| `PermissionRequest` | Observe the host permission boundary without deciding allow or deny. |
 | `PostToolUse` | Append compact receipts and refresh affected projections. |
 | `PreCompact` | Seal the active continuity boundary before compaction. |
 | `PostCompact` | Rehydrate the same bounded state after compaction. |
+| `SubagentStop` | Record the exact child lifecycle boundary without completing parent work. |
 | `Stop` | Preserve the response boundary without inventing HIL or completion. |
-| `SessionEnd` | Best-effort flush when the host emits a real session-end event. |
+| `SessionEnd` | Main-thread-only best-effort flush when the host emits a real session-end event. |
 
 Hooks improve lifecycle continuity; the plugin remains operable through its
 explicit skills and native actions while hooks are disabled for repair. A
-hidden eighth event must not remain active when the seven visible controls are
-off. Hook configuration, host UI count, command mapping, execution, and
-installed-package bytes must agree before hooks are re-enabled.
+reviewed definition may remain trusted while disabled, but no event may become
+the sole execution path for a valid public action. Hook configuration, host UI
+count, command mapping, execution, and installed-package bytes must agree before
+hooks are re-enabled. The complete installed-host matrix ends with an exact
+all-eleven-ON `hooks/list` readback. Later failures disable only the failing
+event through native compare-and-swap, preserve unrelated passing hooks, and
+re-enable the repaired event after PASS.
 
 ## Host and storage matrix
 
@@ -551,7 +571,7 @@ projection, preview compilation, and CodeQL surfaces configured for the commit.
 | `plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/` | Installed-runtime schema authorities |
 | `plugins/evidence-lane-plugin/schemas/` | Repository and skill-facing schema projections |
 | `plugins/evidence-lane-plugin/skills/` | Seventeen governed skills |
-| `plugins/evidence-lane-plugin/hooks/` | Eight lifecycle events and their commands |
+| `plugins/evidence-lane-plugin/hooks/` | Eleven lifecycle events and their commands |
 | `plugins/evidence-lane-plugin/scripts/` | Package, helper, tunnel, release, and verification routes |
 | `docs/` | Architecture, product surfaces, runbooks, legal pages, and provenance |
 | `github-pages/` | GitHub Pages layout and assets |

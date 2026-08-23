@@ -29,11 +29,12 @@ The generated Python environment is a lock-digest/Python-ABI keyed projection
 under `EvidenceLanePV/runtime/codex`, not inside Codex's reconstructable plugin
 cache. The exact active stable or fallback slot remains source authority.
 
-Hooks transport lifecycle only: SessionStart, UserPromptSubmit, PreToolUse,
-PostToolUse, PreCompact, PostCompact, Stop, and best-effort SessionEnd. The
-active skill owns native PV reads, classification, behavior, and the complete
-Plan/CURRENT CHANGE projection. PermissionRequest remains unregistered unless
-the host capability is positively proven; subagent hook events are out of scope.
+Hooks transport lifecycle only: SessionStart, SubagentStart, UserPromptSubmit,
+PreToolUse, PermissionRequest, PostToolUse, PreCompact, PostCompact,
+SubagentStop, Stop, and main-thread-only best-effort SessionEnd. The active
+skill owns native PV reads, classification, behavior, and the complete
+Plan/CURRENT CHANGE projection. Explicit public actions remain valid with hooks
+off; hooks automate or observe them and never become their sole execution path.
 
 Indexed project retrieval is authoritative SQLite FTS5/BM25 over the Plan,
 lane, ChatLineage, and project-sector databases. Only bounded query results
@@ -69,6 +70,14 @@ installation, exact repository ref, green Actions head, package hash/version,
 installed branch-commit recovery slot, mutable local slot, and the unchanged
 main-merge fallback. The sealer is evidence-only: it never receives credentials
 and performs no commit, push, install, candidate, HIL, or pointer action.
+
+Maintainer repository writes use the separate
+`github_app_exact_commit_push_v1` route. Its deterministic local preview must
+carry the canonical `evidence-lane[bot]` identity as both author and committer;
+the selected App then recreates exact blobs, tree, ordered parents, and commit
+through GitHub's Git Database API and fast-forwards only the named feature
+branch with `force=false`. The route never writes `main`, borrows the downstream
+project-source push tools, or silently falls back to a human credential.
 
 Candidate creation, remote Git push, package installation, and pointer movement
 are separate governed operations. None of them implies acceptance. Only exact
@@ -214,7 +223,8 @@ Windows-logon recovery manager for exact governed Codex Goal tasks.
    fixed `evidence-lane-v300-testing-new` local-testing slot through the
    plugin-creator cache-bust route. It does not change stable-main authority,
    create a candidate, move PV/HIL/pointers, or enable hooks. Stable delivery
-   instead pushes the exact governed branch through native remote Git, waits
+   instead creates and pushes the exact governed feature-branch commit through
+   the Evidence Lane GitHub App route, waits
    for the existing governed Python CI, CodeQL, and preview-build workflows at
    that same commit, wait for its Git-integrated Vercel branch preview, build
    the exact-commit package with `build_codex_exact_commit_package.py`, and seal

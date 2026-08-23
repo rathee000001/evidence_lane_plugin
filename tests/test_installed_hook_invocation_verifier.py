@@ -91,3 +91,69 @@ def test_parser_supports_one_progressive_live_event() -> None:
     )
     assert parsed.event == ["PreCompact"]
     assert parsed.live_codex_home is True
+
+
+def test_parser_supports_complete_progressive_matrix() -> None:
+    verifier = _module()
+    parsed = verifier._parser().parse_args(
+        [
+            "--codex-executable",
+            "codex.exe",
+            "--codex-home",
+            "codex-home",
+            "--data-root",
+            "data-root",
+            "--workspace",
+            "workspace",
+            "--plugin-selector",
+            "evidence-lane-plugin@testing",
+            "--progressive-all",
+            "--live-codex-home",
+        ]
+    )
+    assert parsed.progressive_all is True
+    assert parsed.live_codex_home is True
+
+
+def test_complete_progressive_matrix_keeps_passes_on_and_isolates_failure(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    verifier = _module()
+    events = tuple(verifier._CANONICAL_TO_HOST)
+
+    def fake_probe(**kwargs):
+        event = kwargs["event_name"]
+        failed = event == "PermissionRequest"
+        return {
+            "status": "FAIL_CLOSED" if failed else "PASS",
+            "disabled_only_failing_hook": failed,
+            "receipt_sha256": f"probe-{event}",
+        }
+
+    def fake_state(**kwargs):
+        assert kwargs["event_name"] == events[-1]
+        return {
+            "receipt_sha256": "final-state",
+            "enabled_hook_count_after": len(events) - 1,
+            "all_hooks_enabled_after": False,
+            "disabled_events_after": ["permissionRequest"],
+        }
+
+    monkeypatch.setattr(verifier, "_progressive_probe", fake_probe)
+    monkeypatch.setattr(verifier, "_set_progressive_hook_state", fake_state)
+    receipt = verifier._progressive_matrix(
+        executable=tmp_path / "codex.exe",
+        codex_home=tmp_path / "codex-home",
+        data_root=tmp_path / "data-root",
+        workspace=tmp_path / "workspace",
+        plugin_selector="evidence-lane-plugin@testing",
+    )
+
+    assert receipt["status"] == "FAIL_CLOSED"
+    assert receipt["failed_events"] == ["PermissionRequest"]
+    assert receipt["passing_events_kept_enabled"] is True
+    assert receipt["failed_events_disabled_independently"] is True
+    assert receipt["all_hooks_enabled_after"] is False
+    assert receipt["next_action"] == "REPAIR_ONLY_FAILED_EVENTS_THEN_RERUN_MATRIX"
+    assert receipt["goal_pause_requested"] is False

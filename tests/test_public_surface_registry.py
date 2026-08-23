@@ -142,6 +142,19 @@ def test_live_surface_counts_are_registry_derived_and_route_reconciled(
     )
 
 
+def test_installed_wheel_layout_uses_the_sealed_packaged_runtime_catalog(
+    tmp_path: Path,
+) -> None:
+    installed_root = tmp_path / "site-packages"
+
+    assert derive_runtime_catalog_constants(installed_root) == {
+        "tools": 88,
+        "read": 27,
+        "write": 61,
+        "skills": 17,
+    }
+
+
 def test_stale_release_total_blocks_the_derived_surface(tmp_path: Path) -> None:
     surface = tmp_path / "plugin"
     for skill in (PLUGIN / "skills").glob("*/SKILL.md"):

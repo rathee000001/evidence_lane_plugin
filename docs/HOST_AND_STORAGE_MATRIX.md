@@ -69,7 +69,7 @@ maintainer's three-slot development topology.
 
 ## ENV/UOP and storage
 
-Every Boot or Resume flashes the exact locked ENV/UOP authority for the selected
+Every Boot or supported exact-task reattachment flashes the exact locked ENV/UOP authority for the selected
 host mode. ENV/UOP may route operators and storage, but its bytes are not
 embedded in a Project PV or returned as ordinary user data. Account plan and
 API billing never choose the storage connector or change HIL law.

@@ -77,6 +77,8 @@ export default function HooksPage() {
       </section>
 
       <section className="section architectureDark"><div className="shell"><div className="sectionHead wideHead"><span className="kicker light">Windows behavior</span><h2>Background helpers stay hidden and observable through receipts.</h2><p>Python hooks and tunnel helpers must not flash transient console windows. Persistent services stay hidden; bounded processes use no-window launch flags and still return explicit health or failure evidence.</p></div></div></section>
+
+      <section className="section shell"><div className="sectionHead wideHead"><span className="kicker">Corrected steady state</span><h2>All eleven stay ON after the installed-host matrix passes.</h2><p>The progressive native route enables and proves every event, then reads the complete installed matrix back. If one event later fails, only that hook is turned off through compare-and-swap while the other passing hooks and active Goal continue. The failed event is repaired, retested, and re-enabled; upgrades preserve the verified state instead of silently resetting it.</p></div></section>
     </main>
   );
 }

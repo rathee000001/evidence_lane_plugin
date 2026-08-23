@@ -1,3 +1,5 @@
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / 2026-08-23 -->
+
 # Evidence Lane command and control routes
 
 This document is the Git-tracked authority for the public Evidence Lane command
