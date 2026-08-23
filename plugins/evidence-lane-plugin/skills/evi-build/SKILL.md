@@ -19,6 +19,15 @@ replay a decision against another candidate and never infer approval from the
 user continuing work. After a candidate build, render the complete Exit Slip
 and stop.
 
+Project/runtime panels are not a generic HIL or candidate-build step. Under
+`PROJECT_RUNTIME_RENDER_THREE_TRIGGER_LAW`, call `render_runtime_panel` and
+`render_project_panel` once per tool only when presenting the physically final
+PV HIL. Intermediate HILs, candidate creation, HIL classification, Fuse, and
+return-to-accepted paths do not call them. The two other permitted triggers are
+the separate exact-once State Travel presentation and an explicit user render
+request. Never retry, substitute, or invoke a renderer for ordinary status
+proof.
+
 For a natural continuation such as "pursue same HIL", a typo, or a non-exact
 acceptance phrase, call `hil_intent_classify` and return its classification plus
 `suggested_next_prompt` instead of a hard parser error. That classifier never

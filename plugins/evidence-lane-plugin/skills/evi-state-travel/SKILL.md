@@ -24,39 +24,51 @@ The State Travel seal must derive and include every steer Delta persisted on the
 active Plan Lane. Fail closed if an explicit task list or additive-Delta list
 drops or changes one. A `PHYSICALLY_FINAL_HIL` row must remain physically final.
 
-The sealed resume contract must carry the executable persistent-panel
-reactivation law. At the destination, validate the exact complete native task
-ledger, derive the aligned host window of at most ten rows containing the sole
-ACTIVE row, and call host `update_plan` with the receipt's exact compact
-continuity header as `explanation` plus that exact window as `plan` after those
-native reads and before source inspection, mutation,
-testing, Git activity, or another lifecycle call. Apply the same ordering after
-every token-driven continuation, stalled Goal, context compaction, supported
+The sealed resume or direct-entry contract must carry the executable
+persistent-panel reactivation law. The native Plan and the Step Task List are
+different projections. Before host Plan acceptance, EVI Plan returns only the
+small whole-authority reprojection prompt; it does not call `update_plan`,
+serialize the fixed batch, or create a Goal. Only after the user pastes that
+prompt in native Plan mode and clicks the visible **Implement this plan**
+control may bounded Evidence Plan verification validate the exact complete
+native ledger and relock the Step Task List.
+
+The Step Task List uses one projector only. Its first visible element is the
+compact PV/ACTIVE/BATCH/NEXT_HIL/FINAL_HIL header. Its remaining elements are
+the exact canonical fixed-batch Delta rows, up to nine and exactly nine when
+the canonical batch contains nine. The projector derives identity from the
+persisted canonical batch, never a sliding active-row window. Every Delta uses
+the established four-line contract: two compact metadata/classification lines
+plus at most two human-readable brief lines. Delete or disable any fallback
+that emits rows without the header, verbose expanded rows, duplicate/de-duped
+rows, or a sliding window.
+
+After Phase 5 passes, apply the same single-projector relock after every
+token-driven continuation, stalled Goal, context compaction, supported
 reconnect, renderer reload, Plan/Changes-surface loss, browser or Codex restart,
-session continuation, or session resume. A non-empty current window must have
-exactly one in-progress row; preserve the complete ledger order and every
-completed and pending description unabridged in native authority. Keep the
-native right-side Plan artifact and
-the exact task/worktree-bound Changes surface present through every pause and
-HIL. A missing, partial, stale, or silently dropped surface is a continuity
-failure: rehydrate it before work through the supported native host action, or
-fail closed when that capability is unavailable. Do not claim the plugin can
-prevent a host crash. Drop the surfaces only after the human explicitly marks
-the Goal complete, or after an exact task-completion-and-State-Travel handoff
-passes and the successor owns the complete projection.
+session continuation, or session resume. Keep the native right-side Plan
+artifact and exact task/worktree-bound Changes surface present through every
+pause and HIL. A missing, partial, stale, duplicate, or silently dropped
+surface is a continuity failure: atomically relock it before work through the
+supported native host action, or fail closed when that capability is
+unavailable. Do not claim the plugin can prevent a host crash. Drop the
+surfaces only after the human explicitly marks the Goal complete, or after an
+exact task-completion-and-State-Travel handoff passes and the successor owns
+the complete projection.
 
-The Step Task List continuity header shows only accepted PV/pointer generation,
-absolute ACTIVE row, current window/total rows, the next HIL boundary, and the
-physical-final row. It is not an eleventh task item. Detailed next and queued
-HIL records, proposed PV identities, six-way choices, and dependency/
-continuation connections belong exclusively to the Evidence Lane project
-renderer/resource and must never be mixed into the Step Task List.
+The Step Task List continuity header is visible element one and shows only the
+accepted PV/pointer generation, absolute ACTIVE row, canonical fixed batch,
+next HIL boundary, and physical-final HIL. It is not outside the list and never
+becomes an eleventh item. Detailed queued HIL records, proposed PV identities,
+six-way choices, and dependency/continuation connections belong exclusively to
+the Evidence Lane project renderer/resource and must never be mixed into the
+Step Task List.
 
-Every host-visible task row uses the sealed universal label projection: exact
-row number, stable task/Delta ID, exact description, lifecycle status, task
-classification, Plan group, declared logical commit batch, dependencies, and
-  Git commit stage plus provenance, current version, current branch, and panel
-  role (`STANDARD`, an exact declared gate, or `PHYSICALLY_FINAL_HIL`). Preserve
+Every host-visible Delta row uses the sealed compact four-line projection:
+line 1 contains exact row number, stable task/Delta ID, lifecycle status and
+classification; line 2 contains Plan group, declared logical commit batch,
+dependencies, Git stage/provenance, version, branch and panel role; lines 3-4
+contain at most two human-readable brief lines. Preserve
 explicit metadata exactly. When an older Plan never declared a batch, Git
 stage, current version, or current branch, render `UNASSIGNED` or
 `NOT_DECLARED`; never infer one. When current non-superseded task text and
@@ -98,14 +110,36 @@ The separately named direct/forced same-worktree recovery route is available
 only when the user explicitly authorizes exact dirty-work continuity and no
 eligible fresh sealed handoff exists. The destination must be a genuinely new
 native Codex local-project task, never a fork or `Continued from chat`. Call
-`pv_state_travel_direct_force_same_worktree` exactly once with the source task,
-runtime-attachment donor, destination UUID/deep link, exact project/worktree,
-sole writer, accepted-pointer baseline, live dirty path/content identities,
-pre-bootstrap identity, canonical/executable Plan hashes and dynamic 1+9/HIL
-anchors, installed plugin/catalog/runtime/Flash identity, and exact execution
-profile. It must fail closed on mismatch or replay and must not call
+`pv_state_travel_direct_force_same_worktree` exactly once with only the
+authoritative-source task UUID, runtime-donor task UUID, destination task UUID,
+and exact visible destination title. The server must mint the opaque replay
+guard and atomically derive the task deep links, project/worktree, sole writer,
+accepted-pointer baseline, live dirty path/content identities, canonical Plan
+and fixed 1+9/HIL anchors, installed plugin/catalog, runtime attestation, Flash,
+hooks state, and execution profile under the State Travel lock. The public MCP,
+SDK, skill, and command surfaces must not accept a caller binding object,
+nonce, PID/runtime ID, pointer/PV fields, source hashes, or Plan hashes. The
+legacy full-binding normalizer is private compatibility code only and may not
+be used to reconstruct a public call. It must fail closed on mismatch or replay
+and must not call
 `pv_state_travel_prepare`, consume `pv_state_travel_resume`, fabricate a sealed
 transport receipt, infer HIL, create a candidate, or move the pointer.
+
+`STATE_TRAVEL_DESTINATION_ENTRY_LAW` is permanent public plugin behavior, not a
+task-local correction. Every fresh destination must execute this exact order:
+bind the host-assigned task UUID/deep link plus governed project, session,
+worktree, sole-writer and execution-profile identities; verify the accepted
+pointer, exact live dirty-work identity, installed route/runtime/Flash and
+canonical Plan SQLite; consume exactly one explicitly authorized entry route;
+then return the small EVI Plan whole-authority reprojection prompt. The plugin
+must stop for the user's native Plan paste and visible **Implement this plan**
+click. Only after a distinct click receipt and bounded Plan verification may it
+resume the carried Goal and relock the one canonical fixed header + up-to-nine
+Step Task List. No phase may reconstruct or serialize Plan SQLite, substitute a
+thread-history/fallback projector, infer host acceptance, or skip directly from
+task creation to Goal resume. For direct same-worktree entry, hash oversized Git
+diffs as bounded streams and retain only digest/byte-count evidence; never
+materialize a binary diff merely to calculate its SHA-256.
 
 If the user explicitly requests accepted context, set `entry_mode` to
 `ACCEPTED_ENTRY`. Otherwise do not clear an active task, pending correction,
@@ -176,62 +210,67 @@ closed and can never rebind the consumed handoff.
 
 For unfinished work, execute exactly five ordered destination phases:
 
-1. Programmatically create exactly one fresh destination and bind both task
-   identities plus the complete governed authority described above. Verify the
-   no-restart host-continuity receipt before Phase 2; app/renderer restart,
-   duplicate-title activation, and background-agent activation are forbidden.
-2. Run atomic Boot/locked Flash and the exact-once native State Travel resume;
-   verify the returned receipt, pointer/package, runtime, source, profile,
-   plugin build, worktree, canonical Plan, sole active row, and physically final
-   HIL. Never retry a failed one-shot resume; classify an identical post-PASS
-   call only through `ALREADY_CONSUMED_NO_REBIND`.
-3. Validate the complete unabridged native Plan, then restore its aligned
-   current host window of at most ten rows with `update_plan`, including the
-   universal row metadata labels. Surface the host's Plan acceptance control
-   and stop at `WAITING_FOR_EXPLICIT_HOST_PLAN_ACCEPTANCE`. Never accept it
-   automatically. Host Plan acceptance is not Evidence Lane HIL, creates no
-   candidate, and cannot move a PV pointer.
-   Reconstruct from the bounded handoff and canonical Plan Lane only; do not
-   hydrate complete chat history or a collaboration overlay. Run this critical
-   section with one active task and zero subagents.
-4. Only after the explicit Plan acceptance is observed, automatically apply
-   `evidence-lane-plugin:source-command-evi-plan`: read native `pv_status`,
-   `pv_task_backlog`, and one bounded prompt-relevant `pv_query`; validate
-   canonical `PLAN_LANE` authority, contiguous rows, exact metadata labels, the
-   sole active row, and the physically final HIL row; then validate the same
-   current aligned host window and its completed-window history. Do not write a
-   replacement Plan Lane or duplicate rows when canonical authority already
-   exists.
-5. Only after phases 1–4 pass, create or resume the transferred plugin Goal
-   from the returned `goal_start_prompt`, then continue source work at the
-   exact active row.
+1. Create exactly one fresh native destination and bind exact task UUID/deep
+   link, project, governed session, worktree, sole writer, execution profile
+   and bounded host identity. Source-task closure ends only its task-boundary
+   Goal when explicitly authorized; it is not HIL or implementation completion.
+2. Run installed atomic Boot/locked Flash and exactly one authorized entry
+   verification: the sealed route consumes `pv_state_travel_resume` once, while
+   the no-seal direct route consumes
+   `pv_state_travel_direct_force_same_worktree` once through its server-derived
+   high-level contract. Never run a caller-built preflight, retry, or substitute
+   routes. Verify pointer/package, runtime, source, profile,
+   plugin, worktree, canonical Plan, sole ACTIVE row and physical-final HIL.
+   After that exact PASS, call `render_runtime_panel` and
+   `render_project_panel` once per tool for the State Travel authority
+   presentation. This is the single State Travel render allowance. Never call
+   either renderer before entry PASS, again during Plan acceptance/Goal resume,
+   or as verification, discovery, retry, fallback, restart, or rehydration.
+3. After Phase 2 PASS, EVI Plan reads only bounded live Plan status from the
+   existing canonical Plan SQLite and returns one small pasteable whole-
+   authority reprojection prompt. It never serializes the fixed Step Task List,
+   reconstructs SQLite, calls host `update_plan`, auto-pastes, creates a Goal,
+   or mutates source. Stop for the user to paste the exact prompt with native
+   Plan selected.
+4. Only the user's native Plan paste may cause the host to display the visible
+   **Implement this plan** control. Stop there. Never click or accept it for the
+   user, infer acceptance from an empty host receipt, or treat it as Evidence
+   Lane HIL.
+5. Only after a distinct explicit user click receipt, automatically apply
+   `evidence-lane-plugin:source-command-evi-plan` and run bounded Evidence Plan
+   verification: re-read `pv_status`, exact/bounded
+   `pv_task_backlog`, and one bounded `pv_query`; compare canonical and
+   executable hashes, complete range, sole ACTIVE row, next HIL, physical-final
+   HIL and unchanged pointer. On PASS only, hook or resume exactly one carried
+   unfinished Goal, then hydrate or relock the single canonical fixed header +
+   up-to-nine Delta Step Task List and persistent Changes panel. Continue source
+   work at the exact active row. Never create a competing Goal.
 
 Record ordered phase receipts. No Goal, source inspection/mutation, testing,
-Git, candidate, HIL, or pointer work may occur before Phase 3 acceptance and
-Phase 4 verification. Fail closed on a missing host capability, identity
+Git, install, candidate, HIL, or pointer work may occur before Phase 5 bounded
+verification passes. Fail closed on a missing host capability, identity
 mismatch, skipped phase, duplicate destination, duplicate resume, or fabricated
 Plan acceptance. An already-consumed identical replay is the sole non-error
 duplicate outcome and performs no rebind; every conflicting duplicate remains
 fail-closed.
 
-Do not ask the user to type `/pl`, `/evi-plan`, or the Goal prompt between
-State Travel phases. The sole permitted user gate is the visible host Plan
-Accept control in Phase 3. If the Codex API cannot mutate or attest the native
-Plan-mode selector, record `HOST_MODE_SELECTOR_UNAVAILABLE`, preserve the
-visible Plan projection, and do not fabricate selector activation. The MCP
-cannot call host-owned `update_plan` or Goal controls itself; the active skill
-must perform those host actions linearly around the explicit Plan-acceptance
-gate after resume PASS.
+The two and only two user gates are (a) paste the returned small prompt with
+native Plan selected and (b) click the host's visible **Implement this plan**
+control. Do not ask the user to type `/pl`, `/evi-plan`, or a Goal prompt. If
+the host cannot expose or attest the native Plan selector/control, record
+`HOST_MODE_SELECTOR_UNAVAILABLE` and fail closed; do not fabricate activation.
+The MCP cannot call host-owned Plan or Goal controls. An empty host action
+receipt, Sources/icon presence, or native backlog readback is not visibility or
+acceptance proof.
 
-The resume receipt's `host_plan_rehydration` object is the Phase-3 payload.
-Validate the exact project/session/destination-task binding, canonical and
-executable projection hashes, contiguous row count, sole active row, exact
-metadata-rich labels, and physically final HIL. Call host `update_plan` only
-when its action requires it, using `projection.items` byte-for-byte. Then record
-only a genuinely observed `host.plan.observation`. An empty host action receipt,
-Sources or icon presence, or native backlog readback cannot prove that the
-right-side Plan artifact is visible, and only a distinct explicit Accept-control
-event can clear the Phase-3 acceptance gate.
+The Phase-3 payload is the direct receipt's
+`destination_orchestration.whole_plan_reprojection` or the equivalent sealed
+receipt field. Validate exact destination identity, canonical/executable
+projection hashes, contiguous executable range, sole ACTIVE row, next HIL and
+physical-final HIL. It contains zero serialized Plan rows. The Phase-5 payload
+is the bounded verification receipt plus the fixed-batch Step Task List
+projection. Native whole-Plan activation and the fixed 1+9 Step Task List must
+never be substituted for one another.
 
 Codex may project Plan Lane into its native Goal and task panel. Never invent
 cross-host UI parity, build, Fuse, infer approval, or move a pointer merely
@@ -247,6 +286,15 @@ exact human disposition, preserve the Goal as active,
 paused, or stalled according to host truth.
 The other human-only disposition, `COMPLETE_FULLY`, closes the whole Goal and
 does not invoke State Travel.
+
+For either human completion disposition, render completion telemetry only
+through `build_rich_goal_completion_metrics_receipt` after the native Goal
+boundary reports completion. Reuse a validated persisted rich receipt when the
+Goal was already complete, keep host-accounted Goal tokens separate from raw
+model traffic, keep reasoning output inside output, and report unavailable
+telemetry through structured missing fields. The older
+`build_goal_usage_receipt` identifier is a non-executing `OBSOLETE_ROUTE`
+tombstone and never a fallback.
 
 ## MCP routing contract
 

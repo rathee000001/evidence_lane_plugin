@@ -8,10 +8,10 @@ host cannot accidentally turn an output-only counter into total usage.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import asdict, dataclass
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
+from .hashing import canonical_json_bytes, sha256_bytes
 from .redaction import contains_secret, redact, redact_text
 
 # Compatibility defaults are deliberately neutral. Historical ledgers belong to the
@@ -25,6 +25,36 @@ GOAL_COMPLETION_COMMAND = "MARK GOAL COMPLETE"
 GOAL_COMPLETION_DISPOSITIONS = (
     "COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
     "COMPLETE_FULLY",
+)
+RICH_GOAL_COMPLETION_METRICS_ROUTE = (
+    "build_rich_goal_completion_metrics_receipt"
+)
+LEGACY_GOAL_USAGE_ROUTE = "build_goal_usage_receipt"
+
+_RICH_RAW_TOKEN_FIELDS = (
+    "raw_input_tokens",
+    "cached_input_tokens",
+    "uncached_input_tokens",
+    "output_tokens",
+    "reasoning_output_tokens",
+    "raw_input_output_total_tokens",
+)
+_RICH_ACTIVITY_FIELDS = (
+    "model_turn_starts",
+    "assistant_agent_messages",
+    "top_level_tool_calls",
+    "native_mcp_completions",
+    "patch_applications",
+    "web_search_completions",
+    "compactions",
+    "aborted_turns",
+    "unique_subagents",
+    "spawn_calls",
+)
+_SUBAGENT_LIFECYCLE_FIELDS = (
+    "started",
+    "interacted",
+    "interrupted",
 )
 
 
@@ -298,50 +328,234 @@ def compact_duration(total_seconds: int) -> str:
     return " ".join(parts)
 
 
-@dataclass(frozen=True)
-class GoalUsageReceipt:
-    current_tokens: int
-    current_elapsed_seconds: int
-    prior_goal_tokens: int
-    prior_goal_elapsed_seconds: int
-    earlier_recorded_tokens: int
-    earlier_recorded_elapsed_seconds: int
-    cumulative_tokens: int
-    cumulative_elapsed_seconds: int
-
-    def exact(self) -> dict[str, int]:
-        """Return the unabridged receipt used for forensic accounting."""
-
-        return asdict(self)
-
-    def display(self) -> dict[str, str]:
-        """Return the human-facing K/M and elapsed-time projection."""
-
+def _count_projection(name: str, value: object) -> dict[str, Any]:
+    exact = _optional_token_count(name, value)
+    if exact is None:
         return {
-            "current_tokens": compact_token_count(self.current_tokens),
-            "current_elapsed": compact_duration(self.current_elapsed_seconds),
-            "prior_goal_tokens": compact_token_count(self.prior_goal_tokens),
-            "prior_goal_elapsed": compact_duration(self.prior_goal_elapsed_seconds),
-            "earlier_recorded_tokens": compact_token_count(
-                self.earlier_recorded_tokens
-            ),
-            "earlier_recorded_elapsed": compact_duration(
-                self.earlier_recorded_elapsed_seconds
-            ),
-            "cumulative_tokens": compact_token_count(self.cumulative_tokens),
-            "cumulative_elapsed": compact_duration(self.cumulative_elapsed_seconds),
+            "availability": "UNAVAILABLE",
+            "raw": None,
+            "display": "UNAVAILABLE",
         }
+    return {
+        "availability": "AVAILABLE",
+        **compact_token_count_receipt(exact, decimal_places=2),
+    }
 
-    def governance(self) -> dict[str, str | bool]:
-        """Declare that accounting never mutates Goal or task status."""
 
+def _duration_projection(value: object) -> dict[str, Any]:
+    exact = _optional_token_count("elapsed_seconds", value)
+    if exact is None:
         return {
-            "schema": "evidence-lane.goal-usage-governance.v1",
-            "purpose": "ACCOUNTING_ONLY",
-            "task_status_effect": "NONE",
-            "goal_completion_effect": "NONE",
-            "exact_counts_preserved": True,
+            "availability": "UNAVAILABLE",
+            "raw": None,
+            "display": "UNAVAILABLE",
         }
+    return {
+        "availability": "AVAILABLE",
+        "raw": exact,
+        "display": compact_duration(exact),
+        "exact_raw_value_preserved": True,
+    }
+
+
+def _validate_persisted_rich_receipt(
+    receipt: Mapping[str, object],
+    *,
+    goal_id: str,
+    binding: Mapping[str, str],
+) -> dict[str, Any]:
+    persisted = dict(receipt)
+    claimed_sha256 = str(persisted.pop("receipt_sha256", ""))
+    if (
+        persisted.get("schema")
+        != "evidence-lane.rich-goal-completion-metrics.v1"
+        or persisted.get("route") != RICH_GOAL_COMPLETION_METRICS_ROUTE
+        or persisted.get("goal_id") != goal_id
+        or persisted.get("binding") != dict(binding)
+        or sha256_bytes(canonical_json_bytes(persisted)) != claimed_sha256
+    ):
+        raise ValueError("persisted rich Goal metrics receipt failed validation")
+    return {**persisted, "receipt_sha256": claimed_sha256}
+
+
+def build_rich_goal_completion_metrics_receipt(
+    *,
+    goal_id: str,
+    telemetry: Mapping[str, object],
+    provenance: Mapping[str, object],
+    binding: Mapping[str, object],
+    goal_already_complete: bool = False,
+    persisted_receipt: Mapping[str, object] | None = None,
+) -> dict[str, Any]:
+    """Render the sole supported Goal completion telemetry receipt.
+
+    This function is display-only. It never completes a Goal. An already
+    completed Goal reuses its exact persisted rich receipt and never replays a
+    completion call merely to obtain metrics.
+    """
+
+    exact_goal_id = str(goal_id or "").strip()
+    if not exact_goal_id or len(exact_goal_id) > 256:
+        raise ValueError("rich Goal metrics require one exact Goal identity")
+    if not isinstance(telemetry, Mapping):
+        raise TypeError("rich Goal metrics telemetry must be a mapping")
+    if not isinstance(provenance, Mapping) or not str(
+        provenance.get("source") or ""
+    ).strip():
+        raise ValueError("rich Goal metrics require provenance with a source")
+    normalized_binding = _normalized_usage_binding(binding)
+    if not isinstance(goal_already_complete, bool):
+        raise TypeError("goal_already_complete must be a boolean")
+    if goal_already_complete and persisted_receipt is not None:
+        return _validate_persisted_rich_receipt(
+            persisted_receipt,
+            goal_id=exact_goal_id,
+            binding=normalized_binding,
+        )
+
+    safe_provenance = redact(dict(provenance))
+    if contains_secret(safe_provenance):
+        raise ValueError("rich Goal metrics provenance contains secret-like material")
+    normalized = dict(telemetry)
+
+    raw_input = _optional_token_count(
+        "raw_input_tokens", normalized.get("raw_input_tokens")
+    )
+    cached_input = _optional_token_count(
+        "cached_input_tokens", normalized.get("cached_input_tokens")
+    )
+    uncached_input = _optional_token_count(
+        "uncached_input_tokens", normalized.get("uncached_input_tokens")
+    )
+    output = _optional_token_count("output_tokens", normalized.get("output_tokens"))
+    reasoning = _optional_token_count(
+        "reasoning_output_tokens", normalized.get("reasoning_output_tokens")
+    )
+    raw_total = _optional_token_count(
+        "raw_input_output_total_tokens",
+        normalized.get("raw_input_output_total_tokens"),
+    )
+    if raw_input is not None and cached_input is not None:
+        if cached_input > raw_input:
+            raise ValueError("cached input cannot exceed raw input")
+        derived_uncached = raw_input - cached_input
+        if uncached_input is None:
+            uncached_input = derived_uncached
+        elif uncached_input != derived_uncached:
+            raise ValueError("uncached input must equal raw input minus cached input")
+    if reasoning is not None and output is not None and reasoning > output:
+        raise ValueError("reasoning output is a subset of output")
+    if raw_input is not None and output is not None:
+        derived_total = raw_input + output
+        if raw_total is None:
+            raw_total = derived_total
+        elif raw_total != derived_total:
+            raise ValueError("raw input+output total must equal raw input plus output")
+
+    normalized_tokens = {
+        "raw_input_tokens": raw_input,
+        "cached_input_tokens": cached_input,
+        "uncached_input_tokens": uncached_input,
+        "output_tokens": output,
+        "reasoning_output_tokens": reasoning,
+        "raw_input_output_total_tokens": raw_total,
+    }
+    missing_fields = [
+        name for name in _RICH_RAW_TOKEN_FIELDS if normalized_tokens[name] is None
+    ]
+
+    host_accounted = _optional_token_count(
+        "host_accounted_goal_tokens",
+        normalized.get("host_accounted_goal_tokens"),
+    )
+    if host_accounted is None:
+        missing_fields.append("host_accounted_goal_tokens")
+    host_formula = str(normalized.get("host_accounting_formula") or "").strip()
+    if not host_formula:
+        host_formula = "UNKNOWN_NOT_EXPOSED"
+        missing_fields.append("host_accounting_formula")
+
+    elapsed = _optional_token_count(
+        "elapsed_seconds", normalized.get("elapsed_seconds")
+    )
+    if elapsed is None:
+        missing_fields.append("elapsed_seconds")
+
+    activity_values: dict[str, int | None] = {}
+    for name in _RICH_ACTIVITY_FIELDS:
+        value = _optional_token_count(name, normalized.get(name))
+        activity_values[name] = value
+        if value is None:
+            missing_fields.append(name)
+
+    raw_lifecycle = normalized.get("subagent_lifecycle_counts")
+    lifecycle = dict(raw_lifecycle) if isinstance(raw_lifecycle, Mapping) else {}
+    lifecycle_values: dict[str, int | None] = {}
+    for name in _SUBAGENT_LIFECYCLE_FIELDS:
+        value = _optional_token_count(
+            f"subagent_lifecycle_counts.{name}", lifecycle.get(name)
+        )
+        lifecycle_values[name] = value
+        if value is None:
+            missing_fields.append(f"subagent_lifecycle_counts.{name}")
+
+    if goal_already_complete and persisted_receipt is None:
+        missing_fields.append("persisted_completion_metrics_receipt")
+
+    core: dict[str, Any] = {
+        "schema": "evidence-lane.rich-goal-completion-metrics.v1",
+        "status": "PASS" if not missing_fields else "INCOMPLETE_TELEMETRY",
+        "route": RICH_GOAL_COMPLETION_METRICS_ROUTE,
+        "goal_id": exact_goal_id,
+        "binding": normalized_binding,
+        "host_accounting": {
+            "goal_tokens": _count_projection(
+                "host_accounted_goal_tokens", host_accounted
+            ),
+            "conversion_or_weighting_formula": host_formula,
+            "formula_exposed": host_formula != "UNKNOWN_NOT_EXPOSED",
+            "kept_separate_from_raw_model_traffic": True,
+        },
+        "raw_model_traffic": {
+            name: _count_projection(name, value)
+            for name, value in normalized_tokens.items()
+        },
+        "elapsed": _duration_projection(elapsed),
+        "activity_counts": {
+            name: _count_projection(name, value)
+            for name, value in activity_values.items()
+        },
+        "subagent_lifecycle_counts": {
+            name: _count_projection(name, value)
+            for name, value in lifecycle_values.items()
+        },
+        "missing_fields": sorted(set(missing_fields)),
+        "provenance": safe_provenance,
+        "accounting_laws": {
+            "reasoning_tokens_are_subset_of_output": True,
+            "reasoning_tokens_double_counted": False,
+            "raw_total_formula": "RAW_INPUT_PLUS_OUTPUT",
+            "cached_input_is_subset_of_raw_input": True,
+            "exact_values_preserved": True,
+        },
+        "completion_state": {
+            "goal_already_complete": goal_already_complete,
+            "persisted_receipt_reused": False,
+            "completion_call_performed": False,
+            "display_route_has_completion_authority": False,
+        },
+        "legacy_route": {
+            "identifier": LEGACY_GOAL_USAGE_ROUTE,
+            "status": "OBSOLETE_ROUTE",
+            "executable": False,
+            "fallback_allowed": False,
+            "required_current_route": RICH_GOAL_COMPLETION_METRICS_ROUTE,
+        },
+    }
+    return {
+        **core,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(core)),
+    }
 
 
 def build_goal_completion_authorization(
@@ -407,33 +621,32 @@ def build_goal_usage_receipt(
     prior_goal_elapsed_seconds: int = PRIOR_GOAL_ELAPSED_SECONDS,
     earlier_recorded_tokens: int = EARLIER_RECORDED_TOKENS,
     earlier_recorded_elapsed_seconds: int = EARLIER_RECORDED_ELAPSED_SECONDS,
-) -> GoalUsageReceipt:
-    """Build a receipt from caller-supplied segments without inherited history."""
+) -> dict[str, Any]:
+    """Return a non-executing tombstone for the superseded compact route."""
 
-    values = (
-        current_tokens,
-        current_elapsed_seconds,
-        prior_goal_tokens,
-        prior_goal_elapsed_seconds,
-        earlier_recorded_tokens,
-        earlier_recorded_elapsed_seconds,
-    )
-    if any(
-        isinstance(value, bool) or not isinstance(value, int) or value < 0
-        for value in values
-    ):
-        raise ValueError("usage values must be non-negative integers")
-    return GoalUsageReceipt(
-        current_tokens=current_tokens,
-        current_elapsed_seconds=current_elapsed_seconds,
-        prior_goal_tokens=prior_goal_tokens,
-        prior_goal_elapsed_seconds=prior_goal_elapsed_seconds,
-        earlier_recorded_tokens=earlier_recorded_tokens,
-        earlier_recorded_elapsed_seconds=earlier_recorded_elapsed_seconds,
-        cumulative_tokens=current_tokens + prior_goal_tokens + earlier_recorded_tokens,
-        cumulative_elapsed_seconds=(
-            current_elapsed_seconds
-            + prior_goal_elapsed_seconds
-            + earlier_recorded_elapsed_seconds
+    supplied_fields = {
+        "current_tokens": current_tokens is not None,
+        "current_elapsed_seconds": current_elapsed_seconds is not None,
+        "prior_goal_tokens": prior_goal_tokens is not None,
+        "prior_goal_elapsed_seconds": prior_goal_elapsed_seconds is not None,
+        "earlier_recorded_tokens": earlier_recorded_tokens is not None,
+        "earlier_recorded_elapsed_seconds": (
+            earlier_recorded_elapsed_seconds is not None
         ),
-    )
+    }
+    core = {
+        "schema": "evidence-lane.obsolete-route.v1",
+        "status": "OBSOLETE_ROUTE",
+        "obsolete_route": LEGACY_GOAL_USAGE_ROUTE,
+        "required_current_route": RICH_GOAL_COMPLETION_METRICS_ROUTE,
+        "required_schema": "evidence-lane.rich-goal-completion-metrics.v1",
+        "legacy_execution_performed": False,
+        "fallback_allowed": False,
+        "mutation_performed": False,
+        "supplied_fields": supplied_fields,
+        "supplied_values_returned": False,
+    }
+    return {
+        **core,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(core)),
+    }

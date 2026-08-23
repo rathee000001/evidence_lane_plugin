@@ -1,0 +1,27 @@
+{
+  "schema": "evidence-lane.visible-user-authority-receipt.v1",
+  "authority_kind": "HOST_PLAN_EXECUTION_AND_CONTRACT_CORRECTION",
+  "author": "user-task11-visible-instructions-2026-08-22",
+  "project_id": "test-codex-evidence-lane-plugin",
+  "session_id": "session_01kz48pm60mt58v5fyzqq6yq1g",
+  "task6_thread_id": "01a02759-9842-74c1-860e-0c9a64f8258d",
+  "authorized_effect": "Refresh only the stale shared exact-task registry and unchanged active R260 runtime contract so the verified native checkpoint can bind Task11 and advance by stable task identity.",
+  "identity_invariants": {
+    "same_project": true,
+    "same_session": true,
+    "same_task6": true,
+    "same_active_plan_row": true,
+    "same_dirty_worktree": true,
+    "accepted_pv": "PV12",
+    "pointer_generation": 12
+  },
+  "not_authorized": [
+    "HIL approval or inference",
+    "candidate creation or acceptance",
+    "PV pointer movement",
+    "Goal completion outside the exact native checkpoint transition",
+    "Git stage, commit, push, reset, or checkout",
+    "plugin install, helper launch, or tunnel launch",
+    "source-scope widening or Plan-row duplication"
+  ]
+}

@@ -3,20 +3,26 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import subprocess  # nosec B404 - argv-only bounded Git enumeration
+import time
 import zipfile
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from .bounded_io import IOBudget, bounded_file_identity
+from .errors import EvidenceLaneError, require
 from .git_optional import normalize_git_arm_mode, probe_git_arm
-from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
+from .hashing import canonical_json_bytes, sha256_bytes
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY, resolve_lane_id, route_source
 from .source_authority import (
     SourceAuthoritySpec,
     archive_safety_profile,
     register_source_batch,
 )
+from .source_policy import path_exclusion_reason
 
 _PROJECT_MARKERS = {
     "cargo.toml",
@@ -44,6 +50,194 @@ _GENERATOR_BINARY_HASH_KEYS = (
     "executable_sha256",
 )
 _MAX_MANIFEST_BYTES = 1024 * 1024
+_CODE_CONTEXT_PARTS = {
+    ".codex-plugin",
+    ".github",
+    "commands",
+    "config",
+    "configs",
+    "hooks",
+    "plugins",
+    "runtime",
+    "scripts",
+    "skills",
+    "src",
+    "tests",
+}
+_CODE_MANIFEST_NAMES = {
+    "cargo.lock",
+    "cargo.toml",
+    "go.mod",
+    "go.sum",
+    "package-lock.json",
+    "package.json",
+    "plugin.json",
+    "pnpm-lock.yaml",
+    "pyproject.toml",
+    "requirements.txt",
+    "uv.lock",
+    "yarn.lock",
+}
+_CODE_CONFIG_SUFFIXES = {".json", ".lock", ".toml", ".yaml", ".yml"}
+_LOCAL_HISTORY_PREFIXES = ("evidence/",)
+_MAX_DIRECTORY_DEPTH = 64
+_MAX_DIRECTORY_SECONDS = 15.0
+_MAX_DIRECTORY_COUNT = 25_000
+
+
+def _is_authoritative_code_config_path(path: Path) -> bool:
+    parts = {part.casefold() for part in path.parts[:-1]}
+    name = path.name.casefold()
+    return name in _CODE_MANIFEST_NAMES or bool(
+        parts & _CODE_CONTEXT_PARTS and path.suffix.casefold() in _CODE_CONFIG_SUFFIXES
+    )
+
+
+def _classification_exclusion_reason(relative: str) -> str | None:
+    normalized = relative.replace("\\", "/").lstrip("./")
+    if normalized.casefold().startswith(_LOCAL_HISTORY_PREFIXES):
+        return "LOCAL_HISTORY_PATH_EXCLUDED"
+    return path_exclusion_reason(normalized)
+
+
+def _git_directory_candidates(path: Path) -> list[str] | None:
+    """Return tracked plus safe untracked names without traversing ignored trees."""
+
+    command = [
+        "git",
+        "-C",
+        str(path),
+        "ls-files",
+        "-z",
+        "--cached",
+        "--others",
+        "--exclude-standard",
+        "--",
+        ".",
+    ]
+    try:
+        completed = subprocess.run(  # nosec B603
+            command,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            check=False,
+            timeout=15,
+            creationflags=(
+                getattr(subprocess, "CREATE_NO_WINDOW", 0)
+                if os.name == "nt"
+                else 0
+            ),
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+    if completed.returncode != 0:
+        return None
+    return sorted(
+        {
+            raw.decode("utf-8", errors="surrogateescape").replace("\\", "/")
+            for raw in completed.stdout.split(b"\0")
+            if raw
+        }
+    )
+
+
+def _bounded_directory_members(
+    path: Path,
+) -> tuple[list[tuple[str, int]], dict[str, Any]]:
+    budget = IOBudget()
+    members: list[tuple[str, int]] = []
+    excluded_counts: dict[str, int] = {}
+    git_candidates = _git_directory_candidates(path)
+    if git_candidates is not None:
+        candidates = [
+            (relative, path / Path(relative)) for relative in git_candidates
+        ]
+        selection = "GIT_INDEX_AND_SAFE_UNTRACKED"
+    else:
+        selection = "BOUNDED_FILESYSTEM_FALLBACK"
+        started = time.monotonic()
+        pending: list[tuple[Path, int]] = [(path, 0)]
+        enumerated: list[tuple[str, Path]] = []
+        directory_count = 0
+        while pending:
+            require(
+                time.monotonic() - started <= _MAX_DIRECTORY_SECONDS,
+                "SOURCE_DIRECTORY_TIME_BUDGET_EXCEEDED",
+                "Directory classification exceeded its bounded enumeration time.",
+                status="BLOCKED",
+                max_seconds=_MAX_DIRECTORY_SECONDS,
+            )
+            directory, depth = pending.pop()
+            directory_count += 1
+            require(
+                directory_count <= _MAX_DIRECTORY_COUNT,
+                "SOURCE_DIRECTORY_COUNT_BUDGET_EXCEEDED",
+                "Directory classification exceeded its bounded directory count.",
+                status="BLOCKED",
+                max_directory_count=_MAX_DIRECTORY_COUNT,
+            )
+            for item in directory.iterdir():
+                relative = item.relative_to(path).as_posix()
+                reason = _classification_exclusion_reason(relative)
+                if reason is not None:
+                    excluded_counts[reason] = excluded_counts.get(reason, 0) + 1
+                    continue
+                if item.is_symlink():
+                    excluded_counts["SYMLINK_PATH_EXCLUDED"] = (
+                        excluded_counts.get("SYMLINK_PATH_EXCLUDED", 0) + 1
+                    )
+                    continue
+                if item.is_dir():
+                    require(
+                        depth + 1 <= _MAX_DIRECTORY_DEPTH,
+                        "SOURCE_DIRECTORY_DEPTH_BUDGET_EXCEEDED",
+                        "Directory classification exceeded its bounded depth.",
+                        status="BLOCKED",
+                        max_depth=_MAX_DIRECTORY_DEPTH,
+                    )
+                    pending.append((item, depth + 1))
+                elif item.is_file():
+                    enumerated.append((relative, item))
+        candidates = sorted(enumerated)
+
+    for relative, item in candidates:
+        reason = _classification_exclusion_reason(relative)
+        if reason is not None:
+            excluded_counts[reason] = excluded_counts.get(reason, 0) + 1
+            continue
+        try:
+            lexical = Path(os.path.abspath(item))
+            lexical.relative_to(path.resolve())
+        except (OSError, ValueError):
+            excluded_counts["PATH_ESCAPE_EXCLUDED"] = (
+                excluded_counts.get("PATH_ESCAPE_EXCLUDED", 0) + 1
+            )
+            continue
+        if item.is_symlink() or not item.is_file():
+            excluded_counts["NON_REGULAR_PATH_EXCLUDED"] = (
+                excluded_counts.get("NON_REGULAR_PATH_EXCLUDED", 0) + 1
+            )
+            continue
+        try:
+            size = item.stat().st_size
+        except OSError as exc:
+            raise EvidenceLaneError(
+                "SOURCE_DIRECTORY_MEMBER_UNREADABLE",
+                "A governed directory member could not be inspected.",
+                status="MISMATCH",
+            ) from exc
+        budget.reserve(size_bytes=size)
+        members.append((relative, size))
+    members.sort()
+    return members, {
+        **budget.receipt(),
+        "source_selection": selection,
+        "excluded_member_count": sum(excluded_counts.values()),
+        "excluded_class_counts": dict(sorted(excluded_counts.items())),
+        "raw_excluded_paths_returned": False,
+        "ignored_paths_traversed": False if git_candidates is not None else None,
+        "local_history_content_read": False,
+    }
 
 
 def _first_text(mapping: dict[str, Any], keys: tuple[str, ...]) -> str | None:
@@ -284,6 +478,9 @@ def _classify_one(
             reason = (
                 "local_git_directory" if lane_id == code_mode else "project_directory"
             )
+        elif path.exists() and path.is_file() and _is_authoritative_code_config_path(path):
+            lane_id = code_mode
+            reason = "authoritative_code_config_path_context"
         elif path.exists() and path.is_file() and path.suffix.lower() == ".zip":
             archive_profile = _archive_profile(path)
             lane_id, reason = _archive_lane(archive_profile)
@@ -292,21 +489,28 @@ def _classify_one(
             reason = "canonical_path_and_content_type_router"
     exists = path.exists()
     if exists and path.is_file():
+        file_budget = IOBudget()
+        bounded_identity = bounded_file_identity(
+            path,
+            budget=file_budget,
+            root=path.parent,
+        )
         identity = {
             "kind": "file",
             "path": str(path.resolve()),
-            "bytes": path.stat().st_size,
-            "sha256": sha256_file(path),
+            "bytes": bounded_identity["size_bytes"],
+            "sha256": bounded_identity["sha256"],
             "identity_scope": "FULL_FILE_BYTES",
             "content_bytes_hashed": True,
             "content_identity_proven": True,
+            "bounded_io": file_budget.receipt(),
+            "descriptor_identity_stable": bounded_identity[
+                "descriptor_identity_stable"
+            ],
+            "symlink_followed": bounded_identity["symlink_followed"],
         }
     elif exists and path.is_dir():
-        members = sorted(
-            (item.relative_to(path).as_posix(), item.stat().st_size)
-            for item in path.rglob("*")
-            if item.is_file() and ".git" not in item.relative_to(path).parts
-        )
+        members, directory_budget = _bounded_directory_members(path)
         member_paths = [name for name, _ in members]
         member_path_sizes = [
             {"path": name, "bytes": size} for name, size in members
@@ -323,6 +527,7 @@ def _classify_one(
             "identity_scope": "MEMBER_PATHS_AND_SIZES_ONLY",
             "content_bytes_hashed": False,
             "content_identity_proven": False,
+            "bounded_io": directory_budget,
         }
     else:
         identity = {

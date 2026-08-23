@@ -9,6 +9,26 @@ param(
 $ErrorActionPreference = 'Stop'
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 
+function Get-Sha256 {
+    param([Parameter(Mandatory = $true)][string]$LiteralPath)
+    $stream = [IO.File]::Open(
+        $LiteralPath,
+        [IO.FileMode]::Open,
+        [IO.FileAccess]::Read,
+        [IO.FileShare]::Read
+    )
+    try {
+        $sha256 = [Security.Cryptography.SHA256]::Create()
+        try {
+            return ([BitConverter]::ToString($sha256.ComputeHash($stream))).Replace('-', '')
+        } finally {
+            $sha256.Dispose()
+        }
+    } finally {
+        $stream.Dispose()
+    }
+}
+
 function Write-HookLaunchFailure {
     param([string]$Code)
     $diagnostic = [ordered]@{
@@ -58,6 +78,7 @@ function Write-HookLaunchFailure {
     exit 0
 }
 
+$failureStage = 'PATH_RESOLUTION'
 try {
     $pluginRoot = (Resolve-Path -LiteralPath (Split-Path -Parent $PSScriptRoot)).Path
     $lockPath = Join-Path $pluginRoot 'requirements.lock.txt'
@@ -72,24 +93,31 @@ try {
     if (-not (Test-Path -LiteralPath $isolationPolicyPath -PathType Leaf)) {
         Write-HookLaunchFailure -Code 'HOOK_EVENT_ISOLATION_POLICY_MISSING'
     }
+    $failureStage = 'DATA_ROOT_RESOLUTION'
     $configuredRoot = [Environment]::GetEnvironmentVariable('EVIDENCE_LANE_DATA_ROOT')
     if ($null -ne $configuredRoot -and -not $configuredRoot.Trim()) {
         Write-HookLaunchFailure -Code 'EVIDENCE_LANE_DATA_ROOT_EMPTY'
     }
+    $failureStage = 'DATA_ROOT_PATH'
     $dataRoot = if ($configuredRoot) {
         [IO.Path]::GetFullPath($configuredRoot)
     } else {
         Join-Path ([Environment]::GetFolderPath('UserProfile')) 'EvidenceLanePV'
     }
-    $lockSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $lockPath).Hash
+    $failureStage = 'LOCK_HASH'
+    $lockSha256 = Get-Sha256 -LiteralPath $lockPath
+    $failureStage = 'RUNTIME_PATHS'
     $runtimeRoot = Join-Path $dataRoot 'runtime\codex'
     $installReceiptRoot = Join-Path $dataRoot 'installations\codex-v200'
+    $failureStage = 'PLUGIN_ROOT_KEY'
     $pluginRootKey = [IO.Path]::GetFullPath($pluginRoot).TrimEnd('\').ToLowerInvariant()
+    $failureStage = 'RUNTIME_ROOT_PREFIX'
     $runtimeRootPrefix = [IO.Path]::GetFullPath($runtimeRoot).TrimEnd('\') + '\'
     # `$Matches` is PowerShell's case-insensitive automatic regex-capture
     # variable.  Reusing that name here lets any `-match`/`-notmatch` check
     # mutate the runtime inventory and can turn one valid binding into a false
     # ambiguous-runtime failure.
+    $failureStage = 'RUNTIME_INVENTORY'
     $runtimeMatches = @{}
     if (Test-Path -LiteralPath $installReceiptRoot -PathType Container) {
         foreach ($receiptPath in Get-ChildItem -LiteralPath $installReceiptRoot -Filter 'INSTALL_*.json' -File -ErrorAction Stop) {
@@ -132,8 +160,8 @@ try {
                     -not (Test-Path -LiteralPath $killSwitchReceiptPath -PathType Leaf) -or
                     $killSwitchReceiptSha256 -notmatch '^[A-F0-9]{64}$' -or
                     $isolationPolicySha256 -notmatch '^[A-F0-9]{64}$' -or
-                    (Get-FileHash -Algorithm SHA256 -LiteralPath $killSwitchReceiptPath).Hash -ne $killSwitchReceiptSha256 -or
-                    (Get-FileHash -Algorithm SHA256 -LiteralPath $isolationPolicyPath).Hash -ne $isolationPolicySha256
+                    (Get-Sha256 -LiteralPath $killSwitchReceiptPath) -ne $killSwitchReceiptSha256 -or
+                    (Get-Sha256 -LiteralPath $isolationPolicyPath) -ne $isolationPolicySha256
                 ) { continue }
                 $killSwitchBody = Get-Content -Raw -LiteralPath $killSwitchReceiptPath | ConvertFrom-Json
                 if (
@@ -169,6 +197,7 @@ try {
             }
         }
     }
+    $failureStage = 'RUNTIME_SELECTION'
     if ($runtimeMatches.Count -eq 0) {
         Write-HookLaunchFailure -Code 'SEALED_RUNTIME_INTERPRETER_NOT_FOUND'
     }
@@ -181,11 +210,13 @@ try {
     $env:EVIDENCE_LANE_HOOK_KILL_SWITCH_RECEIPT = [string]$runtimeBinding.kill_switch_receipt_path
     $env:EVIDENCE_LANE_HOOK_KILL_SWITCH_RECEIPT_SHA256 = [string]$runtimeBinding.kill_switch_receipt_sha256
     $env:EVIDENCE_LANE_HOOK_ISOLATION_POLICY_SHA256 = [string]$runtimeBinding.isolation_policy_sha256
+    $failureStage = 'PAYLOAD_EXECUTION'
     $rawPayload = [Console]::In.ReadToEnd()
     $output = $rawPayload | & $runtimePython $launcher --event $EventName --handler $HandlerName 2>$null
     if ($LASTEXITCODE -ne 0 -or $null -eq $output) {
         Write-HookLaunchFailure -Code 'SEALED_RUNTIME_HOOK_EXECUTION_FAILED'
     }
+    $failureStage = 'OUTPUT_VALIDATION'
     $serialized = ($output -join [Environment]::NewLine).Trim()
     if (-not $serialized -or $serialized.Length -gt 32768) {
         Write-HookLaunchFailure -Code 'HOOK_OUTPUT_BOUND_INVALID'
@@ -221,5 +252,5 @@ try {
     [Console]::Out.Write($serialized)
     exit 0
 } catch {
-    Write-HookLaunchFailure -Code 'HOOK_LAUNCHER_UNHANDLED_FAILURE'
+    Write-HookLaunchFailure -Code ("HOOK_LAUNCHER_UNHANDLED_FAILURE_$failureStage")
 }

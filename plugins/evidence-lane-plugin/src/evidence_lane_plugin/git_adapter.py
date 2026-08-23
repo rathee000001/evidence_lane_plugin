@@ -8,15 +8,20 @@ import re
 import shutil
 
 # Required for bounded Git argv; shell is never used.
-import subprocess  # nosec B404
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
+from .bounded_io import (
+    IOBudget,
+    bounded_file_identity,
+    run_bounded_process,
+    run_bounded_process_digest,
+)
 from .errors import EvidenceLaneError, require
-from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
+from .hashing import canonical_json_bytes, sha256_bytes
 from .models import RepositoryIdentity
 
 _SHA_RE = re.compile(r"^[0-9a-fA-F]{40,64}$")
@@ -95,27 +100,17 @@ def run_git(
     )
     if env:
         safe_env.update(env)
-    # The executable is resolved locally and Git receives only list argv.
-    completed = subprocess.run(  # nosec B603
+    completed = run_bounded_process(
         command,
-        check=False,
-        stdin=subprocess.DEVNULL,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=timeout,
+        cwd=repo,
         env=safe_env,
-        close_fds=True,
-        creationflags=(
-            getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
-        ),
+        timeout_seconds=timeout,
     )
     result = GitResult(
         args=tuple(str(arg) for arg in args),
         returncode=completed.returncode,
-        stdout=completed.stdout,
-        stderr=completed.stderr,
+        stdout=completed.stdout.decode("utf-8", errors="replace"),
+        stderr=completed.stderr.decode("utf-8", errors="replace"),
     )
     if check and result.returncode != 0:
         raise EvidenceLaneError(
@@ -169,46 +164,263 @@ def _submodule_state(repository: Path) -> tuple[dict[str, str], ...]:
     return tuple(rows)
 
 
-def _tracked_and_untracked_paths(repository: Path) -> list[str]:
-    result = run_git(
-        repository,
-        ["ls-files", "-co", "--exclude-standard", "-z"],
-    )
-    paths = [item.replace("\\", "/") for item in result.stdout.split("\0") if item]
-    return sorted(set(paths))
-
-
 def calculate_worktree_sha256(repository: str | Path) -> str:
+    """Compatibility name for the bounded Git-change identity.
+
+    Historical full-tree receipts remain immutable. New receipts deliberately avoid
+    re-reading clean tracked content and bind HEAD/tree, the complete path set, Git
+    status/diffs, and every dirty or untracked byte instead.
+    """
+
+    return str(calculate_worktree_change_identity(repository)["working_identity_sha256"])
+
+
+def _run_git_bytes(
+    repository: Path,
+    args: list[str],
+    *,
+    timeout: int = 120,
+) -> bytes:
+    """Return exact Git stdout bytes for identity hashing."""
+
+    repo = repository.resolve()
+    require(
+        repo.is_dir(),
+        "REPOSITORY_NOT_FOUND",
+        "The selected repository directory does not exist.",
+        status="MISMATCH",
+        repository=str(repo),
+    )
+    command = [_git_executable(), "-C", str(repo), *args]
+    safe_env = os.environ.copy()
+    safe_env.update(
+        {
+            "GIT_TERMINAL_PROMPT": "0",
+            "GCM_INTERACTIVE": "Never",
+            "GIT_CONFIG_NOSYSTEM": safe_env.get("GIT_CONFIG_NOSYSTEM", "0"),
+        }
+    )
+    completed = run_bounded_process(
+        command,
+        cwd=repo,
+        env=safe_env,
+        timeout_seconds=timeout,
+    )
+    if completed.returncode != 0:
+        raise EvidenceLaneError(
+            "GIT_COMMAND_FAILED",
+            "A bounded Git identity operation failed.",
+            details={
+                "args": args,
+                "returncode": completed.returncode,
+                "stderr": completed.stderr[-4000:].decode("utf-8", errors="replace"),
+            },
+        )
+    return completed.stdout
+
+
+def _zero_delimited_path_bytes(repository: Path, args: list[str]) -> set[bytes]:
+    return {value for value in _run_git_bytes(repository, args).split(b"\0") if value}
+
+
+def _path_set_sha256(paths: set[bytes]) -> str:
+    payload = b"\0".join(sorted(paths))
+    if payload:
+        payload += b"\0"
+    return sha256_bytes(payload)
+
+
+def run_git_digest(
+    repository: Path,
+    args: list[str],
+    *,
+    timeout: int = 120,
+) -> tuple[str, int]:
+    repo = repository.resolve()
+    command = [_git_executable(), "-C", str(repo), *args]
+    safe_env = os.environ.copy()
+    safe_env.update(
+        {
+            "GIT_TERMINAL_PROMPT": "0",
+            "GCM_INTERACTIVE": "Never",
+            "GIT_CONFIG_NOSYSTEM": safe_env.get("GIT_CONFIG_NOSYSTEM", "0"),
+        }
+    )
+    completed = run_bounded_process_digest(
+        command,
+        cwd=repo,
+        env=safe_env,
+        timeout_seconds=timeout,
+    )
+    if completed.returncode != 0:
+        raise EvidenceLaneError(
+            "GIT_COMMAND_FAILED",
+            "A bounded Git identity digest operation failed.",
+            details={
+                "args": args,
+                "returncode": completed.returncode,
+                "stderr": completed.stderr[-4000:].decode(
+                    "utf-8", errors="replace"
+                ),
+            },
+        )
+    return completed.stdout_sha256, completed.stdout_bytes
+
+
+def _dirty_path_content_identity(
+    repository: Path,
+    relative: str,
+    relative_bytes: bytes,
+    *,
+    budget: IOBudget,
+    staged: bool,
+    unstaged: bool,
+    untracked: bool,
+) -> dict[str, Any]:
+    """Hash one dirty path without following a symlink outside the repository."""
+
+    lexical_target = Path(os.path.abspath(repository / Path(relative)))
+    try:
+        lexical_target.relative_to(repository)
+    except ValueError as exc:
+        raise EvidenceLaneError(
+            "REPOSITORY_PATH_ESCAPE",
+            "A dirty Git path escaped the selected repository.",
+            status="BLOCKED",
+            details={"path_sha256": sha256_bytes(relative.encode("utf-8"))},
+        ) from exc
+
+    target = repository / Path(relative)
+    if target.is_symlink():
+        link_value = os.readlink(target)
+        content = link_value.encode("utf-8")
+        content_kind = "SYMLINK_TARGET"
+        size_bytes: int | None = len(content)
+        content_sha256: str | None = sha256_bytes(content)
+    elif target.is_file():
+        content_kind = "REGULAR_FILE"
+        bounded = bounded_file_identity(target, budget=budget, root=repository)
+        size_bytes = int(bounded["size_bytes"])
+        content_sha256 = str(bounded["sha256"])
+    elif not target.exists():
+        content_kind = "DELETION_TOMBSTONE"
+        size_bytes = None
+        content_sha256 = None
+    else:
+        content_kind = "NON_REGULAR_PATH"
+        size_bytes = None
+        content_sha256 = None
+
+    return {
+        "path_sha256": sha256_bytes(relative_bytes),
+        "staged": staged,
+        "unstaged": unstaged,
+        "untracked": untracked,
+        "content_kind": content_kind,
+        "size_bytes": size_bytes,
+        "content_sha256": content_sha256,
+    }
+
+
+def calculate_worktree_change_identity(repository: str | Path) -> dict[str, Any]:
+    """Seal the complete Git/index/dirty-byte identity without persisting raw paths."""
+
     repo = Path(repository).resolve()
-    members: list[dict[str, str | int]] = []
-    for relative in _tracked_and_untracked_paths(repo):
-        target = (repo / Path(relative)).resolve()
-        try:
-            target.relative_to(repo)
-        except ValueError as exc:
-            raise EvidenceLaneError(
-                "REPOSITORY_PATH_ESCAPE",
-                "A Git path escaped the selected repository.",
-                status="BLOCKED",
-                details={"path": relative},
-            ) from exc
-        if target.is_file() and not target.is_symlink():
-            members.append(
-                {
-                    "path": relative,
-                    "size": target.stat().st_size,
-                    "sha256": sha256_file(target),
-                }
-            )
-        elif target.is_symlink():
-            members.append(
-                {
-                    "path": relative,
-                    "size": len(os.readlink(target)),
-                    "sha256": sha256_bytes(os.readlink(target).encode("utf-8")),
-                }
-            )
-    return sha256_bytes(canonical_json_bytes(members))
+    identity = inspect_repository(repo)
+    complete_path_bytes = _zero_delimited_path_bytes(
+        repo,
+        ["ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "."],
+    )
+    staged_path_bytes = _zero_delimited_path_bytes(
+        repo,
+        ["diff", "--cached", "--name-only", "-z", "--diff-filter=ACMRD", "--", "."],
+    )
+    unstaged_path_bytes = _zero_delimited_path_bytes(
+        repo,
+        ["diff", "--name-only", "-z", "--diff-filter=ACMRD", "--", "."],
+    )
+    untracked_path_bytes = _zero_delimited_path_bytes(
+        repo,
+        ["ls-files", "--others", "--exclude-standard", "-z", "--", "."],
+    )
+    dirty_path_bytes = sorted(
+        staged_path_bytes | unstaged_path_bytes | untracked_path_bytes
+    )
+    dirty_content_budget = IOBudget()
+    content_identities = [
+        _dirty_path_content_identity(
+            repo,
+            os.fsdecode(relative_bytes).replace("\\", "/"),
+            relative_bytes,
+            budget=dirty_content_budget,
+            staged=relative_bytes in staged_path_bytes,
+            unstaged=relative_bytes in unstaged_path_bytes,
+            untracked=relative_bytes in untracked_path_bytes,
+        )
+        for relative_bytes in dirty_path_bytes
+    ]
+    tracked_content_identities = [
+        row for row in content_identities if not bool(row["untracked"])
+    ]
+    untracked_content_identities = [
+        row for row in content_identities if bool(row["untracked"])
+    ]
+
+    status_v2 = _run_git_bytes(
+        repo, ["status", "--porcelain=v2", "-z", "--untracked-files=all"]
+    )
+    cached_diff_sha256, cached_diff_bytes = run_git_digest(
+        repo, ["diff", "--cached", "--binary", "--full-index", "--", "."]
+    )
+    unstaged_diff_sha256, unstaged_diff_bytes = run_git_digest(
+        repo, ["diff", "--binary", "--full-index", "--", "."]
+    )
+    tracked_head_diff_sha256, tracked_head_diff_bytes = run_git_digest(
+        repo, ["diff", "HEAD", "--binary", "--full-index", "--", "."]
+    )
+
+    body = {
+        "schema": "evidence-lane.git-worktree-change-identity.v1",
+        "branch": identity.branch,
+        "head": identity.commit_sha,
+        "tree": identity.tree_sha,
+        "complete_path_set_sha256": _path_set_sha256(complete_path_bytes),
+        "path_count": len(complete_path_bytes),
+        "status_sha256": sha256_bytes(status_v2),
+        "cached_diff_sha256": cached_diff_sha256,
+        "unstaged_diff_sha256": unstaged_diff_sha256,
+        "tracked_head_diff_sha256": tracked_head_diff_sha256,
+        "cached_diff_bytes": cached_diff_bytes,
+        "unstaged_diff_bytes": unstaged_diff_bytes,
+        "tracked_head_diff_bytes": tracked_head_diff_bytes,
+        "dirty_path_set_sha256": _path_set_sha256(set(dirty_path_bytes)),
+        "dirty_path_count": len(dirty_path_bytes),
+        "tracked_dirty_path_count": len(staged_path_bytes | unstaged_path_bytes),
+        "staged_path_count": len(staged_path_bytes),
+        "unstaged_path_count": len(unstaged_path_bytes),
+        "untracked_path_count": len(untracked_path_bytes),
+        "tracked_dirty_content_sha256": sha256_bytes(
+            canonical_json_bytes(tracked_content_identities)
+        ),
+        "untracked_content_sha256": sha256_bytes(
+            canonical_json_bytes(untracked_content_identities)
+        ),
+        "dirty_content_sha256": sha256_bytes(
+            canonical_json_bytes(content_identities)
+        ),
+        "content_identity_count": len(content_identities),
+        "clean_member_content_rehashed": False,
+        "legacy_full_tree_hash_compatibility": (
+            "PRIOR_RECEIPTS_REMAIN_IMMUTABLE"
+        ),
+        "dirty_content_budget": dirty_content_budget.receipt(),
+        "raw_paths_persisted": False,
+        "ignored_paths_included": False,
+    }
+    return {
+        **body,
+        "working_identity_sha256": sha256_bytes(canonical_json_bytes(body)),
+    }
 
 
 def inspect_repository(
@@ -323,7 +535,7 @@ def diff_patch(repository: str | Path) -> str:
         if not target.is_file():
             continue
         # The command is fixed; the repository-relative path was bounded above.
-        completed = subprocess.run(  # nosec B603
+        completed = run_bounded_process(
             [
                 _git_executable(),
                 "diff",
@@ -335,25 +547,21 @@ def diff_patch(repository: str | Path) -> str:
                 os.devnull,
                 str(target),
             ],
-            check=False,
-            stdin=subprocess.DEVNULL,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=60,
-            close_fds=True,
-            creationflags=(
-                getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
-            ),
+            cwd=repo,
+            timeout_seconds=60,
         )
         if completed.returncode not in (0, 1):
             raise EvidenceLaneError(
                 "UNTRACKED_PATCH_FAILED",
                 "Git could not create a patch for an untracked file.",
-                details={"path": relative, "stderr": completed.stderr[-2000:]},
+                details={
+                    "path": relative,
+                    "stderr": completed.stderr[-2000:].decode(
+                        "utf-8", errors="replace"
+                    ),
+                },
             )
-        sections.append(completed.stdout)
+        sections.append(completed.stdout.decode("utf-8", errors="replace"))
     return "\n".join(section.rstrip() for section in sections if section).rstrip() + (
         "\n" if sections else ""
     )

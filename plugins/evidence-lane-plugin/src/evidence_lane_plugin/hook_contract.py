@@ -49,8 +49,16 @@ HOOK_EVENTS: tuple[HookEventContract, ...] = (
         "session_start.py",
     ),
     HookEventContract(
-        "UserPromptSubmit",
+        "SubagentStart",
         2,
+        "SUBAGENT_ENTRY_SIGNAL",
+        "SKILL_BOUND_OBSERVATION_ONLY",
+        "OPTIONAL_WHEN_HOST_EMITS",
+        "subagent_start.py",
+    ),
+    HookEventContract(
+        "UserPromptSubmit",
+        3,
         "VISIBLE_INPUT_SIGNAL",
         "SKILL_PREPARE_THEN_NATIVE_READ_SEQUENCE",
         "REQUIRED_WHEN_HOST_EMITS",
@@ -58,15 +66,23 @@ HOOK_EVENTS: tuple[HookEventContract, ...] = (
     ),
     HookEventContract(
         "PreToolUse",
-        3,
+        4,
         "PROSPECTIVE_TOOL_SIGNAL",
         "SKILL_BOUNDARY_AND_POLICY_OWNER",
         "REQUIRED_WHEN_HOST_EMITS",
         "pre_tool_use.py",
     ),
     HookEventContract(
+        "PermissionRequest",
+        5,
+        "PERMISSION_OBSERVATION_SIGNAL",
+        "SKILL_BOUND_OBSERVATION_ONLY",
+        "OPTIONAL_WHEN_HOST_EMITS",
+        "permission_request.py",
+    ),
+    HookEventContract(
         "PostToolUse",
-        4,
+        6,
         "VISIBLE_TOOL_RESULT_SIGNAL",
         "SKILL_RECEIPT_AND_PLAN_REFRESH_OWNER",
         "REQUIRED_WHEN_HOST_EMITS",
@@ -74,7 +90,7 @@ HOOK_EVENTS: tuple[HookEventContract, ...] = (
     ),
     HookEventContract(
         "PreCompact",
-        5,
+        7,
         "COMPACTION_SEAL_SIGNAL",
         "SKILL_CONTINUITY_SEAL_OWNER",
         "REQUIRED_WHEN_HOST_EMITS",
@@ -82,15 +98,23 @@ HOOK_EVENTS: tuple[HookEventContract, ...] = (
     ),
     HookEventContract(
         "PostCompact",
-        6,
+        8,
         "COMPACTION_REENTRY_SIGNAL",
         "SKILL_REBIND_AND_FULL_PLAN_REENTRY_OWNER",
         "REQUIRED_WHEN_HOST_EMITS",
         "lifecycle_boundary.py",
     ),
     HookEventContract(
+        "SubagentStop",
+        9,
+        "SUBAGENT_EXIT_SIGNAL",
+        "SKILL_BOUND_OBSERVATION_ONLY",
+        "OPTIONAL_WHEN_HOST_EMITS",
+        "subagent_stop.py",
+    ),
+    HookEventContract(
         "Stop",
-        7,
+        10,
         "VISIBLE_RESPONSE_STOP_SIGNAL",
         "SKILL_IDEMPOTENT_COMMIT_OWNER",
         "REQUIRED_WHEN_HOST_EMITS",
@@ -98,7 +122,7 @@ HOOK_EVENTS: tuple[HookEventContract, ...] = (
     ),
     HookEventContract(
         "SessionEnd",
-        8,
+        11,
         "SESSION_END_SIGNAL",
         "SKILL_BEST_EFFORT_BOUNDARY_FLUSH_OWNER",
         "BEST_EFFORT_HOST_CAPABILITY_GATED",
@@ -122,7 +146,7 @@ _FORBIDDEN_PAYLOAD_KEYS = {
 
 
 def lifecycle_hook_contract() -> dict[str, Any]:
-    """Return the immutable package contract for the eight lifecycle signals."""
+    """Return the immutable package contract for the current lifecycle registry."""
 
     body: dict[str, Any] = {
         "schema": HOOK_CONTRACT_SCHEMA,
@@ -144,10 +168,9 @@ def lifecycle_hook_contract() -> dict[str, Any]:
         "windows_child_create_no_window": True,
         "windows_path_lookup_allowed": False,
         "session_end_host_timeout_seconds": 3,
-        "permission_request_policy": (
-            "CONDITIONAL_ONLY_AFTER_EXPLICIT_HOST_CAPABILITY_PROOF"
-        ),
-        "subagent_events_in_scope": False,
+        "permission_request_policy": "OBSERVE_ONLY_NEVER_GRANT_OR_DENY",
+        "subagent_events_in_scope": True,
+        "subagent_event_policy": "BOUND_OBSERVATION_ONLY_NEVER_CONTROL",
         "max_transport_bytes": MAX_HOOK_TRANSPORT_BYTES,
         "max_visible_input_chars": MAX_VISIBLE_INPUT_CHARS,
         "full_plan_allowed_in_hook_payload": False,
@@ -167,11 +190,6 @@ def validate_hook_configuration(configuration: Mapping[str, Any]) -> dict[str, A
     event_names = tuple(str(name) for name in hooks)
     if event_names != HOOK_EVENT_NAMES:
         raise HookContractError("HOOK_EVENT_ORDER_OR_INVENTORY_MISMATCH")
-    if "PermissionRequest" in hooks:
-        raise HookContractError("PERMISSION_REQUEST_CAPABILITY_NOT_PROVEN")
-    if any("subagent" in name.casefold() for name in event_names):
-        raise HookContractError("SUBAGENT_HOOK_EVENT_OUT_OF_SCOPE")
-
     handler_records: list[dict[str, Any]] = []
     for contract in HOOK_EVENTS:
         groups = hooks.get(contract.event_name)
@@ -281,6 +299,10 @@ def build_hook_transport_envelope(
         ),
         "model": str(redact(str(payload.get("model") or ""))) or None,
         "tool_name": str(redact(str(payload.get("tool_name") or ""))) or None,
+        "agent_type": str(redact(str(payload.get("agent_type") or ""))) or None,
+        "agent_id_sha256": sha256_bytes(
+            str(payload.get("agent_id") or "").encode("utf-8")
+        ),
         "visible_input_after_redaction": visible_input,
         "visible_input_sha256": (
             sha256_bytes(visible_input.encode("utf-8"))
@@ -344,7 +366,7 @@ def build_hook_transport_envelope(
 def hook_capability_receipt(
     supported_events: Iterable[str],
     *,
-    permission_request_supported: bool = False,
+    permission_request_supported: bool | None = None,
 ) -> dict[str, Any]:
     """Project measured host support without fabricating unavailable events."""
 
@@ -371,13 +393,19 @@ def hook_capability_receipt(
         "events": events,
         "permission_request": {
             "state": (
-                "HOST_CAPABILITY_AVAILABLE_NOT_REGISTERED"
-                if permission_request_supported
+                "HOST_CAPABILITY_AVAILABLE"
+                if "PermissionRequest" in supported
                 else "HOST_CAPABILITY_UNAVAILABLE"
             ),
-            "registration_requires_explicit_contract_change": True,
+            "caller_capability_hint_matched": (
+                permission_request_supported
+                is None
+                or permission_request_supported
+                == ("PermissionRequest" in supported)
+            ),
+            "control_policy": "OBSERVE_ONLY_NEVER_GRANT_OR_DENY",
         },
-        "subagent_events_in_scope": False,
+        "subagent_events_in_scope": True,
         "unsupported_events_relabelled_as_success": False,
     }
     body["capability_receipt_sha256"] = sha256_bytes(canonical_json_bytes(body))

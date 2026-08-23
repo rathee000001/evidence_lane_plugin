@@ -12,6 +12,14 @@ export const metadata: Metadata = {
     "Interactive source-backed ENV/UOP formulas, operators, gates, and lane-specific six-way HIL semantics.",
 };
 
+const operatorRoute = [
+  ["Detect intent", "A plugin selection or prompt classification produces the same bounded mode identity."],
+  ["Load ENV/UOP", "The exact mode policy, formula, loop, operators, gate, accepted object, and rollback target are hash-bound."],
+  ["Route lanes", "Only the lanes named by that mode are queried or mutated; Code policy is never copied into unrelated work."],
+  ["Execute explicitly", "Skills, commands, SDK arms, and MCP calls work with hooks off; hooks may observe lifecycle events but never own the action."],
+  ["Validate", "The mode-specific gate records evidence and returns the correct next authority surface."],
+] as const;
+
 export default function OperatorsPage() {
   return (
     <main>
@@ -45,10 +53,28 @@ export default function OperatorsPage() {
         </div>
       </section>
 
+      <section className="section shell operatorRouteStory">
+        <div className="sectionHead wideHead">
+          <span className="kicker">Formula Engine route</span>
+          <h2>Classification chooses a law; execution still proves every boundary.</h2>
+          <p>
+            The current exported guide contains {modeOperatorGuide.mode_count} modes. Each mode
+            supplies its own recursive loop and accepted object while the native lifecycle keeps
+            Project Truth, Learning, Canon, Memory, and Project Universe separate.
+          </p>
+        </div>
+        <div className="operatorRouteGrid">
+          {operatorRoute.map(([title, detail], index) => (
+            <article key={title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{title}</h3><p>{detail}</p></article>
+          ))}
+        </div>
+      </section>
+
       <section className="section shell operatorBoundaries">
         <article><span>01</span><h2>Selection is classification</h2><p>Choosing a mode attaches its formula and operator receipt. It does not approve work, create a candidate, or move a pointer.</p></article>
         <article><span>02</span><h2>Code is explicitly controlled</h2><p>Code runs through the visible plan → sandbox build → test → hash → package formula with executable CI/CD receipts.</p></article>
         <article><span>03</span><h2>HIL meaning stays local</h2><p>The six tokens remain exact, while each lane supplies its accepted object, validation gate, rollback target, and required evidence.</p></article>
+        <article><span>04</span><h2>Project and Learning decisions stay separate</h2><p>A Project candidate and an AI Learning candidate may each reach a six-way human gate. Neither gate consumes, aliases, or silently decides the other.</p></article>
       </section>
     </main>
   );

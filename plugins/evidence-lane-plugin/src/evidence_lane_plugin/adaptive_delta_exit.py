@@ -13,6 +13,8 @@ from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
 from .hook_contract import HOOK_EVENT_NAMES
 from .host_plan_rehydration import prepare_host_plan_rehydration
 from .internal_sdk import build_live_local_sdk_context
+from .lanes import CANONICAL_LANE_IDS
+from .project_authority import query_working_project_sectors
 
 ADAPTIVE_DELTA_EXIT_SCHEMA = "evidence-lane.adaptive-delta-exit-receipt.v1"
 _SHA256_HEX = frozenset("0123456789ABCDEF")
@@ -35,6 +37,11 @@ _SDK_OPERATIONS = (
     ("canon_input", "bootstrap_consequence_graph"),
     ("project_memory", "bootstrap"),
     ("project_universe", "refresh"),
+)
+_DECISION_SUPPORT_OPERATIONS = (
+    ("agent_learning", "retrieve"),
+    ("project_memory", "query"),
+    ("canon_input", "graph"),
 )
 
 
@@ -277,6 +284,111 @@ def _sdk_refreshes(
     return receipts
 
 
+def _sdk_decision_support(
+    service: Any,
+    *,
+    project_id: str,
+    session_id: str,
+    task_id: str,
+    query: str,
+    as_of: str,
+    request_seed: str,
+) -> list[dict[str, Any]]:
+    """Read bounded auxiliary evidence without merging its authority into Plan."""
+
+    sdk, binding = build_live_local_sdk_context(
+        service,
+        project_id=project_id,
+        session_id=session_id,
+    )
+    payloads = {
+        ("agent_learning", "retrieve"): {
+            "query": query,
+            "scope_selectors": [task_id],
+            "as_of": as_of,
+            "limit": 4,
+        },
+        ("project_memory", "query"): {
+            "query": query,
+            "as_of": as_of,
+            "limit": 4,
+        },
+        ("canon_input", "graph"): {},
+    }
+    results: list[dict[str, Any]] = []
+    for ordinal, (module_id, operation) in enumerate(
+        _DECISION_SUPPORT_OPERATIONS, start=1
+    ):
+        response = sdk.invoke(
+            module_id=module_id,
+            operation=operation,
+            binding=binding,
+            payload=payloads[(module_id, operation)],
+            request_id=f"delta-exit:{request_seed}:decision:{ordinal}",
+            timeout_ms=30_000,
+        )
+        data = dict(response.get("data") or {})
+        status = str(response.get("status") or "").strip().upper()
+        require(
+            status in {"PASS", "STALE"}
+            and response.get("module_id") == module_id
+            and response.get("operation") == operation,
+            "ADAPTIVE_DELTA_EXIT_DECISION_SUPPORT_FAILED",
+            "Learning, Memory, and Canon decision inputs must stay bounded and task-bound.",
+            status="FAIL",
+            module_id=module_id,
+            operation=operation,
+        )
+        if module_id in {"agent_learning", "project_memory"}:
+            bounded_data = {
+                "status": data.get("status"),
+                "result": data.get("result"),
+                "hits": list(data.get("hits") or [])[:4],
+                "suppressed": list(data.get("suppressed") or [])[:4],
+                "full_ledger_loaded_into_model_context": data.get(
+                    "full_ledger_loaded_into_model_context", False
+                ),
+            }
+        else:
+            consequence = dict(data.get("consequence_graph") or {})
+            bounded_data = {
+                "status": data.get("status"),
+                "contract_count": data.get("contract_count"),
+                "packet_count": data.get("packet_count"),
+                "edge_count": data.get("edge_count"),
+                "consequence_graph_status": consequence.get("status"),
+                "consequence_graph_state": consequence.get("state"),
+                "payload_withheld": bool(data.get("payload_withheld")),
+            }
+        state = str(
+            bounded_data.get("result")
+            or bounded_data.get("status")
+            or status
+        ).strip().upper()
+        fallback_required = bool(
+            status == "STALE"
+            or state in {"STALE", "NO_HIT", "EMPTY", "INCOMPLETE"}
+            or bounded_data.get("payload_withheld") is True
+        )
+        results.append(
+            {
+                "ordinal": ordinal,
+                "module_id": module_id,
+                "operation": operation,
+                "status": status,
+                "result_state": state,
+                "fallback_to_working_sectors_required": fallback_required,
+                "receipt_sha256": _required_sha256(
+                    response.get("receipt_sha256"),
+                    field=f"decision_support[{ordinal}].receipt_sha256",
+                ),
+                "bounded_data": bounded_data,
+                "authority_merge_allowed": False,
+            }
+        )
+    return results
+
+
 def _write_immutable_receipt(path: Path, receipt: dict[str, Any]) -> None:
     if path.is_file():
         require(
@@ -346,6 +458,24 @@ def run_adaptive_delta_exit(
         goal_rows=goal_rows,
     )
     exact_hooks = _hook_progression(hook_progression)
+    plan_slice = service.store.plan_runtime_query(
+        project_id,
+        task_id=exact_task_id,
+        limit=8,
+    )
+    formula_events = [
+        row
+        for row in plan_slice.get("formula_events") or []
+        if row.get("task_id") == exact_task_id
+        and row.get("formula_sha256") == exact_prior_formula
+    ]
+    require(
+        len(formula_events) == 1
+        and bool(str(formula_events[0].get("recorded_at") or "").strip()),
+        "ADAPTIVE_DELTA_EXIT_ENTRY_FORMULA_TIMESTAMP_REQUIRED",
+        "Decision-support reads require the exact open formula timestamp.",
+        status="MISMATCH",
+    )
     request_seed = sha256_bytes(
         canonical_json_bytes(
             {
@@ -357,12 +487,98 @@ def run_adaptive_delta_exit(
             }
         )
     )[:32].lower()
+    source_authority = service._refresh_delta_source_authority(
+        project_id,
+        session_id,
+        task_id=exact_task_id,
+    )
+    require(
+        source_authority.get("status") == "PASS"
+        and source_authority.get("task_id") == exact_task_id
+        and [
+            row.get("lane_id")
+            for row in source_authority.get("source_planes") or []
+        ]
+        == ["local_code", "github_code"],
+        "ADAPTIVE_DELTA_EXIT_SOURCE_REFRESH_FAILED",
+        "Adaptive Delta exit requires exact Local Code refresh and preserved Git baseline receipts.",
+        status="FAIL",
+    )
+    canonical_lane_refresh = dict(
+        source_authority.get("canonical_lane_refresh") or {}
+    )
+    lane_reports = list(canonical_lane_refresh.get("lane_reports") or [])
+    fallback_rows = list(
+        canonical_lane_refresh.get("full_validation_fallbacks") or []
+    )
+    require(
+        canonical_lane_refresh.get("authority_scope")
+        == "ALL_18_CANONICAL_LANES"
+        and int(canonical_lane_refresh.get("canonical_lane_count") or 0)
+        == len(CANONICAL_LANE_IDS)
+        and canonical_lane_refresh.get("emitted_lane_ids")
+        == list(CANONICAL_LANE_IDS)
+        and int(canonical_lane_refresh.get("lane_report_count") or 0)
+        == len(CANONICAL_LANE_IDS)
+        and [row.get("lane_id") for row in lane_reports]
+        == list(CANONICAL_LANE_IDS)
+        and all(
+            str(row.get("reason") or "").strip()
+            and row.get("reason") != "UNDECLARED"
+            for row in fallback_rows
+        ),
+        "ADAPTIVE_DELTA_EXIT_CANONICAL_LANE_REFRESH_INVALID",
+        "Adaptive Delta exit requires one ordered, explicit all-18-lane Refresh receipt.",
+        status="FAIL",
+    )
     intelligence = _sdk_refreshes(
         service,
         project_id=project_id,
         session_id=session_id,
         request_seed=request_seed,
     )
+    decision_query = " ".join(
+        str(value or "").strip()
+        for value in (
+            exact_task_id,
+            active_before.get("requested_outcome"),
+            formula.get("target_outcome"),
+            formula.get("achieved_outcome"),
+        )
+        if str(value or "").strip()
+    )[:4096]
+    decision_support = _sdk_decision_support(
+        service,
+        project_id=project_id,
+        session_id=session_id,
+        task_id=exact_task_id,
+        query=decision_query,
+        as_of=str(formula_events[0]["recorded_at"]),
+        request_seed=request_seed,
+    )
+    working_sector_fallback = None
+    if any(row["fallback_to_working_sectors_required"] for row in decision_support):
+        pointer = service.store.pointer(project_id)
+        working_sector_fallback = query_working_project_sectors(
+            service.store.project_root(project_id),
+            repository_root=repository_path,
+            project_id=project_id,
+            accepted_pv=str(pointer.accepted_pv),
+            pointer_generation=int(pointer.generation),
+            query=decision_query,
+            lane_ids=list(CANONICAL_LANE_IDS),
+            limit=8,
+            expected_branch=repository_before["branch"],
+            expected_head=repository_before["commit_sha"],
+        )
+        require(
+            working_sector_fallback.get("status") in {"PASS", "EMPTY"}
+            and working_sector_fallback.get("query_mutated_project_authority") is False
+            and working_sector_fallback.get("query_rehashed_dirty_content") is False,
+            "ADAPTIVE_DELTA_EXIT_WORKING_SECTOR_FALLBACK_FAILED",
+            "A stale or missing auxiliary hit requires one read-only all-lane sector query.",
+            status="FAIL",
+        )
     host_task_id = str(
         session_before.metadata.get("current_host_session_id") or ""
     ).strip()
@@ -412,6 +628,11 @@ def run_adaptive_delta_exit(
             "install_disposition": exact_install,
         },
         "intelligence_refresh_receipts": intelligence,
+        "decision_support_receipts": decision_support,
+        "working_sector_fallback_receipt": working_sector_fallback,
+        "plan_runtime_authority_state": "LIVE_CURRENT_EXECUTION_AUTHORITY",
+        "instruction_authorities_separate": ["AGENTS.md", "MEMORY.md"],
+        "source_authority_refresh_receipt": source_authority,
         "host_window_ui_fingerprint_sha256": projection.get(
             "window_ui_fingerprint_sha256"
         ),
@@ -467,6 +688,11 @@ def run_adaptive_delta_exit(
         "validator_count": len(exact_validators),
         "install_disposition": exact_install,
         "intelligence_refreshes": intelligence,
+        "decision_support_receipts": decision_support,
+        "working_sector_fallback_receipt": working_sector_fallback,
+        "plan_runtime_authority_state": "LIVE_CURRENT_EXECUTION_AUTHORITY",
+        "instruction_authorities_separate": ["AGENTS.md", "MEMORY.md"],
+        "source_authority_refresh": source_authority,
         "hook_progression": exact_hooks,
         "hook_registry_count": len(exact_hooks),
         "host_plan": {

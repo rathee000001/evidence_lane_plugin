@@ -1,4 +1,4 @@
-"""Join exact-package, native-push, GitHub-CI, and Vercel-preview receipts.
+"""Join exact-main-package, GitHub-App merge, CI, and preview receipts.
 
 This is a read-only receipt joiner. It never invokes Git, GitHub, Evidence Lane,
 Codex, installation, lifecycle, candidate, pointer, or HIL actions.
@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "evidence-lane.codex-git-ci-vercel-release-authority.v2"
-BOUNDARY = "GOVERNED_GIT_BRANCH_CLEAN_CI_VERCEL_PREVIEW_EXACT_COMMIT"
+BOUNDARY = "GOVERNED_GIT_MAIN_CLEAN_CI_VERCEL_PREVIEW_EXACT_COMMIT"
 _SHA1 = re.compile(r"^[0-9a-f]{40}$")
 _SHA256 = re.compile(r"^[A-F0-9]{64}$")
 
@@ -107,6 +107,7 @@ def seal_release_authority(
     ).upper()
     plugin_source_member_count = export.get("plugin_source_member_count")
     remote_repository = dict(remote.get("repository_identity") or {})
+    merge = dict(remote.get("merge") or {})
     authorization = dict(remote.get("authorization") or {})
     output_security = dict(remote.get("output_security") or {})
     checks = [dict(row) for row in ci.get("checks") or [] if isinstance(row, dict)]
@@ -119,6 +120,11 @@ def seal_release_authority(
         or package.get("boundary") != "EXACT_GIT_COMMIT_PACKAGE_UNACCEPTED"
         or package.get("archive", {}).get("filename") != archive.name
         or package.get("archive", {}).get("sha256") != _sha256(archive)
+        or branch != "main"
+        or export.get("source_ref") != "refs/remotes/origin/main"
+        or export.get("stable_main_only") is not True
+        or export.get("local_main_attested") is not True
+        or export.get("origin_main_attested") is not True
         or _SHA1.fullmatch(commit) is None
         or _SHA1.fullmatch(tree) is None
         or export.get("projection_clean") is not True
@@ -128,21 +134,21 @@ def seal_release_authority(
         or not isinstance(plugin_source_member_count, int)
         or plugin_source_member_count < 1
         or export.get("git_archive_member_count") != plugin_source_member_count
-        or remote.get("schema") != "evidence-lane.remote-git-action.v2"
-        or remote.get("action") != "PUSH_BRANCH"
+        or remote.get("schema") != "evidence-lane.github-app-main-merge.v1"
+        or remote.get("route") != "GITHUB_APP_SDK"
+        or remote.get("action") != "MERGE_TO_MAIN"
         or remote.get("status") != "EXECUTED"
-        or not isinstance(remote.get("git_returncode"), int)
-        or remote.get("git_returncode") != 0
-        or str(remote.get("local_commit") or "").lower() != commit
-        or str(remote.get("local_tree") or "").lower() != tree
-        or str(remote.get("remote_branch") or "") != branch
-        or str(remote_repository.get("branch") or "") != branch
+        or str(merge.get("target_branch") or "") != "main"
+        or not str(merge.get("source_branch") or "").startswith("agent/")
+        or str(merge.get("merge_commit") or "").lower() != commit
+        or str(merge.get("merge_tree") or "").lower() != tree
+        or str(remote_repository.get("branch") or "") != "main"
         or str(remote_repository.get("commit_sha") or "").lower() != commit
         or str(remote_repository.get("tree_sha") or "").lower() != tree
         or authorization.get("policy")
-        != "EXACT_REGISTERED_NON_PROTECTED_TEST_BRANCH"
-        or authorization.get("main_branch_push_authorized") is not False
-        or authorization.get("merge_authorized") is not False
+        != "GOVERNED_FEATURE_TO_MAIN_MERGE"
+        or authorization.get("direct_main_push_authorized") is not False
+        or authorization.get("merge_authorized") is not True
         or output_security.get("infrastructure_status") != "PASS"
         or _SHA256.fullmatch(
             str(output_security.get("receipt_sha256") or "").upper()
@@ -177,7 +183,7 @@ def seal_release_authority(
         or not str(preview.get("team_id") or "").startswith("team_")
     ):
         raise ReleaseAuthorityError(
-            "The exact package, native push, GitHub CI, and Vercel preview "
+            "The exact main package, GitHub-App merge, GitHub CI, and Vercel preview "
             "receipts do not join."
         )
     core = {
@@ -201,10 +207,12 @@ def seal_release_authority(
             "untracked_bytes_excluded": True,
         },
         "remote_git": {
-            "route": "NATIVE_GOVERNED_REMOTE_GIT",
-            "push_status": "EXECUTED",
+            "route": "GITHUB_APP_SDK",
+            "merge_status": "EXECUTED",
+            "source_branch": merge["source_branch"],
+            "target_branch": "main",
             "remote_branch_commit": commit,
-            "protected_branch": False,
+            "protected_branch": True,
             "native_receipt_sha256": _sha256(remote_git_receipt),
             "action_id": remote.get("action_id"),
             "output_security_receipt_sha256": output_security[

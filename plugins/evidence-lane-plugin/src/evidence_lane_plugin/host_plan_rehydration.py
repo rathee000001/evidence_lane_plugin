@@ -174,17 +174,13 @@ def _host_step_description_lines(value: Any) -> list[str]:
 
     normalized = " ".join(str(value or "Outcome is not declared.").split())
     digest = sha256_bytes(normalized.encode("utf-8"))[:4]
-    lines = textwrap.wrap(
+    content_lines = textwrap.wrap(
         normalized,
-        width=_HOST_PLAN_UI_MAX_CHARS_PER_LINE,
-        initial_indent="Do: ",
-        subsequent_indent="   ",
-        max_lines=2,
-        placeholder=f" ...~{digest}",
-        break_long_words=False,
+        width=_HOST_PLAN_UI_MAX_CHARS_PER_LINE - len("Do: "),
+        break_long_words=True,
         break_on_hyphens=False,
     )
-    if len(lines) == 1:
+    if len(content_lines) == 1:
         words = normalized.split()
         require(
             len(words) >= 2,
@@ -193,11 +189,24 @@ def _host_step_description_lines(value: Any) -> list[str]:
             status="MISMATCH",
         )
         split_at = max(1, len(words) // 2)
-        lines = [
-            f"Do: {' '.join(words[:split_at])}",
-            f"   {' '.join(words[split_at:])}",
+        content_lines = [
+            " ".join(words[:split_at]),
+            " ".join(words[split_at:]),
         ]
-    return lines
+    omitted = len(content_lines) > 2
+    first_content = content_lines[0]
+    second_content = content_lines[1]
+    if omitted:
+        suffix = f" ...~{digest}"
+        second_capacity = _HOST_PLAN_UI_MAX_CHARS_PER_LINE - len("   ") - len(suffix)
+        if len(second_content) > second_capacity:
+            bounded = second_content[:second_capacity].rstrip()
+            if " " in bounded:
+                word_bounded = bounded.rsplit(" ", 1)[0].rstrip()
+                bounded = word_bounded or bounded
+            second_content = bounded
+        second_content = f"{second_content}{suffix}"
+    return [f"Do: {first_content}", f"   {second_content}"]
 
 
 def _host_step_ui_label(
@@ -687,6 +696,10 @@ def _exact_projection(
                 "Steps 2-10 native Delta rows"
             ),
             "plan": items,
+            "source_window_ui_fingerprint_sha256": window_ui_fingerprint_sha256,
+            "native_contract_must_be_forwarded_unchanged": True,
+            "manual_summary_projection_forbidden": True,
+            "fallback_projection_forbidden": True,
             "header_surface": "HOST_STEP_TASK_LIST_STEP_1",
             "header_role": "FIXED_PROGRESS_HEADER",
             "header_is_plan_item": True,
@@ -699,6 +712,16 @@ def _exact_projection(
         "physically_final_hil_visible_in_window": (full_rows[-1] in window_rows),
         "full_ledger_preserved_outside_host_window": True,
         "window_advancement_rewrites_plan_history": False,
+        "native_host_plan_projection_only_law": {
+            "law_id": "NATIVE_HOST_PLAN_PROJECTION_ONLY_LAW",
+            "authority_route": "PV_TASK_BACKLOG_HOST_UPDATE_PLAN_CONTRACT",
+            "host_action": "FORWARD_EXPLANATION_AND_PLAN_UNCHANGED",
+            "panel_loss_action": "RELOCK_SAME_PERSISTED_CONTRACT_AND_FINGERPRINT",
+            "manual_summary_projection_allowed": False,
+            "reconstructed_label_projection_allowed": False,
+            "sliding_window_projection_allowed": False,
+            "generic_fallback_projection_allowed": False,
+        },
         "items": items,
     }
     return {
@@ -782,6 +805,76 @@ def _normalized_observation(
     }
 
 
+def _worktree_binding_sha256(repository_path: str | Path) -> str:
+    """Return one bounded, platform-stable identity for the governed worktree."""
+
+    normalized = str(Path(repository_path).expanduser().resolve()).replace("\\", "/")
+    return sha256_bytes(normalized.casefold().encode("utf-8"))
+
+
+def _normalized_changes_observation(
+    raw: dict[str, Any] | None,
+    *,
+    project_id: str,
+    host_task_id: str,
+    active_plan_task_id: str,
+    worktree_binding_sha256: str,
+) -> dict[str, Any]:
+    """Validate a bounded, independent observation of the native Changes surface."""
+
+    observation = dict(raw or {})
+    state = str(observation.get("state") or "UNCONFIRMED").strip().upper()
+    require(
+        state in _OBSERVATION_STATES,
+        "HOST_CHANGES_OBSERVATION_STATE_INVALID",
+        "The host Changes artifact observation state is unsupported.",
+        status="BLOCKED",
+        state=state,
+    )
+    observed_project_id = str(observation.get("project_id") or project_id)
+    observed_host_task_id = str(observation.get("host_task_id") or host_task_id)
+    observed_worktree = str(
+        observation.get("worktree_binding_sha256") or worktree_binding_sha256
+    ).strip()
+    require(
+        observed_project_id == project_id
+        and observed_host_task_id == host_task_id
+        and observed_worktree == worktree_binding_sha256,
+        "HOST_CHANGES_OBSERVATION_BINDING_MISMATCH",
+        "A host Changes observation cannot cross project, task, or worktree boundaries.",
+        status="MISMATCH",
+    )
+    visible = state in _VISIBLE_STATES
+    if visible:
+        require(
+            observation.get("surface") == "CODEX_RIGHT_SIDE_CHANGES"
+            and bool(str(observation.get("artifact_id") or "").strip())
+            and observation.get("active_plan_task_id") == active_plan_task_id
+            and observation.get("worktree_binding_sha256") == worktree_binding_sha256,
+            "HOST_CHANGES_VISIBLE_ARTIFACT_PROOF_INVALID",
+            (
+                "Visible Changes proof must bind the exact native surface, "
+                "active Plan task, and worktree."
+            ),
+            status="MISMATCH",
+        )
+    return {
+        "state": state,
+        "project_id": project_id,
+        "host_task_id": host_task_id,
+        "active_plan_task_id": active_plan_task_id,
+        "worktree_binding_sha256": worktree_binding_sha256,
+        "observation_event_id": (
+            str(observation.get("observation_event_id") or "").strip() or None
+        ),
+        "surface": observation.get("surface") if visible else None,
+        "artifact_id": observation.get("artifact_id") if visible else None,
+        "artifact_visibility_proven": visible,
+        "missing_or_stale": state in {"MISSING", "STALE"},
+        "private_diff_content_returned": False,
+    }
+
+
 def prepare_host_plan_rehydration(
     store_root: str | Path,
     *,
@@ -792,6 +885,7 @@ def prepare_host_plan_rehydration(
     trigger_event_id: str,
     host_capability: str = "SUPPORTED",
     observed_artifact: dict[str, Any] | None = None,
+    observed_changes_artifact: dict[str, Any] | None = None,
     host_goal_active: bool | None = None,
     affected_plan_task_ids: list[str] | None = None,
     fixed_window_task_ids: list[str] | None = None,
@@ -891,7 +985,21 @@ def prepare_host_plan_rehydration(
         host_task_id=host_task_id,
         projection=projection,
     )
+    worktree_binding_sha256 = _worktree_binding_sha256(
+        store.config(project_id).repository_path
+    )
+    changes_observation = _normalized_changes_observation(
+        observed_changes_artifact,
+        project_id=project_id,
+        host_task_id=host_task_id,
+        active_plan_task_id=str(projection["sole_active_task_id"]),
+        worktree_binding_sha256=worktree_binding_sha256,
+    )
     visible_current = bool(observation["artifact_visibility_proven"])
+    changes_visible_current = bool(changes_observation["artifact_visibility_proven"])
+    changes_surface_loss_detected = exact_trigger == "CHANGES_SURFACE_LOSS" or bool(
+        changes_observation["missing_or_stale"]
+    )
     capability_available = exact_capability == "SUPPORTED"
     previous_window_exists = bool(previous_window.get("projection_sha256"))
     same_window = (
@@ -917,6 +1025,9 @@ def prepare_host_plan_rehydration(
     if not capability_available:
         status = "BLOCKED"
         action = "FAIL_CLOSED_HOST_CAPABILITY_UNAVAILABLE"
+    elif changes_surface_loss_detected:
+        status = "PASS"
+        action = "RELOCK_HOST_PLAN_AND_REQUEST_CHANGES_SURFACE_RECOVERY"
     elif visible_current:
         status = "PASS"
         action = "NO_HOST_PLAN_ACTION_CURRENT_WINDOW_VISIBLE"
@@ -955,7 +1066,11 @@ def prepare_host_plan_rehydration(
         "SYNC_HOST_PLAN_WINDOW_AFTER_PLAN_STEER",
         "UPDATE_HOST_PLAN_CURRENT_WINDOW_STATUSES",
         "ADVANCE_HOST_PLAN_TO_NEXT_WINDOW",
+        "RELOCK_HOST_PLAN_AND_REQUEST_CHANGES_SURFACE_RECOVERY",
     }
+    changes_surface_recovery_required = (
+        action == "RELOCK_HOST_PLAN_AND_REQUEST_CHANGES_SURFACE_RECOVERY"
+    )
     acceptance_required = exact_trigger == "STATE_TRAVEL_DESTINATION_ENTRY"
     core = {
         "schema": "evidence-lane.host-plan-window-activation-receipt.v2",
@@ -971,8 +1086,9 @@ def prepare_host_plan_rehydration(
         "trigger": exact_trigger,
         "trigger_event_id": exact_event_id,
         "host_goal_active": host_goal_active,
-        "host_goal_presence_changes_projection": projection.get("sole_active_row")
-        is not None,
+        "projection_owner": "ACTIVE_CANONICAL_PLAN",
+        "goal_presence_is_projector_precondition": False,
+        "host_goal_presence_changes_projection": False,
         "previous_window_exists": previous_window_exists,
         "same_window_as_previous": same_window,
         "full_ledger_changed_since_previous_window_receipt": ledger_changed,
@@ -1002,6 +1118,9 @@ def prepare_host_plan_rehydration(
             "full_ledger_remains_native_authority": True,
             "pv_exit_reconstructs_new_entry": False,
             "changes_surface_binding": "EXACT_TASK_UUID_AND_WORKTREE",
+            "changes_surface_observation_independent_from_plan": True,
+            "changes_surface_loss_overrides_plan_visible_noop": True,
+            "step_list_projection_owner": "ACTIVE_CANONICAL_PLAN_NOT_GOAL",
             "required_until": (
                 "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_HANDOFF_PASSES"
             ),
@@ -1010,6 +1129,9 @@ def prepare_host_plan_rehydration(
             "drop_is_continuity_failure": True,
             "rehydrate_before_source_or_lifecycle_work": True,
             "canonical_rehydration_source": ("PLAN_LANE_BACKLOG_NOT_THREAD_HISTORY"),
+            "projection_only_law": "NATIVE_HOST_PLAN_PROJECTION_ONLY_LAW",
+            "manual_summary_projection_allowed": False,
+            "native_contract_forwarded_unchanged": True,
             "full_thread_history_hydration_allowed": False,
             "collaboration_overlay_hydration_allowed_during_recovery": False,
             "recovery_concurrency": "ONE_ACTIVE_TASK_ZERO_SUBAGENTS",
@@ -1024,11 +1146,36 @@ def prepare_host_plan_rehydration(
         "plan_authority": "PLAN_LANE",
         "projection": projection,
         "observation": observation,
+        "changes_observation": changes_observation,
+        "changes_surface_binding": {
+            "schema": "evidence-lane.host-changes-surface-binding.v1",
+            "project_id": project_id,
+            "host_task_id": host_task_id,
+            "active_plan_task_id": projection["sole_active_task_id"],
+            "worktree_binding_sha256": worktree_binding_sha256,
+            "private_diff_content_returned": False,
+        },
+        "changes_surface_recovery_contract": {
+            "required": changes_surface_recovery_required,
+            "surface": "CODEX_RIGHT_SIDE_CHANGES",
+            "relock_plan_atomically": changes_surface_recovery_required,
+            "host_action_receipt_required": changes_surface_recovery_required,
+            "plugin_claims_host_rendered_surface": False,
+            "fail_closed_on_wrong_task_or_worktree": True,
+        },
         "action": action,
         "host_plan_tool": "update_plan",
         "native_runtime_invoked_host_update_plan": False,
         "host_action_receipt_required": update_plan_required,
         "host_update_plan_required": update_plan_required,
+        "host_changes_action_receipt_required": changes_surface_recovery_required,
+        "host_changes_surface_status": (
+            "CONFIRMED_VISIBLE"
+            if changes_visible_current
+            else (
+                "MISSING_OR_STALE" if changes_surface_loss_detected else "UNCONFIRMED"
+            )
+        ),
         "host_artifact_visibility_status": (
             "CONFIRMED_VISIBLE" if visible_current else "UNCONFIRMED"
         ),
@@ -1061,6 +1208,8 @@ def prepare_host_plan_rehydration(
         "trigger_event_id": exact_event_id,
         "projection_sha256": projection["projection_sha256"],
         "observation": observation,
+        "changes_observation": changes_observation,
+        "worktree_binding_sha256": worktree_binding_sha256,
         "host_capability": exact_capability,
         "host_goal_active": host_goal_active,
         "affected_plan_task_ids": exact_affected_task_ids,

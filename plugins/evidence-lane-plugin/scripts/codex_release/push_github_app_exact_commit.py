@@ -68,6 +68,7 @@ def _git(repository_root: Path, *args: str, text: bool = False) -> bytes | str:
         check=False,
         capture_output=True,
         text=text,
+        creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
     )
     if result.returncode != 0:
         stderr = result.stderr if text else result.stderr.decode("utf-8", "replace")

@@ -7,9 +7,13 @@ from types import ModuleType
 
 import pytest
 from evidence_lane_plugin.installed_hook_receipts import (
+    HOOK_FAILURE_FAILBACK_SCHEMA,
+    HOOK_UI_PROJECTION_SCHEMA,
     INSTALLED_HOOK_INVENTORY_SCHEMA,
     INSTALLED_HOOK_INVOCATION_SCHEMA,
     InstalledHookReceiptError,
+    build_host_hook_ui_projection_receipt,
+    build_independent_hook_failback_request,
     build_installed_hook_diagnostic_receipt,
     build_installed_hook_invocation_receipt,
     build_invocation_receipt_from_codex_notifications,
@@ -18,11 +22,14 @@ from evidence_lane_plugin.installed_hook_receipts import (
 
 EVENTS = (
     ("SessionStart", "sessionStart"),
+    ("SubagentStart", "subagentStart"),
     ("UserPromptSubmit", "userPromptSubmit"),
     ("PreToolUse", "preToolUse"),
+    ("PermissionRequest", "permissionRequest"),
     ("PostToolUse", "postToolUse"),
     ("PreCompact", "preCompact"),
     ("PostCompact", "postCompact"),
+    ("SubagentStop", "subagentStop"),
     ("Stop", "stop"),
     ("SessionEnd", "sessionEnd"),
 )
@@ -86,7 +93,7 @@ def test_installed_inventory_requires_one_warning_free_exact_selector(
 
     assert receipt["schema"] == INSTALLED_HOOK_INVENTORY_SCHEMA
     assert receipt["status"] == "PASS"
-    assert receipt["hook_count"] == 8
+    assert receipt["hook_count"] == len(EVENTS) == 11
     assert [row["event_name"] for row in receipt["records"]] == [
         canonical for canonical, _ in EVENTS
     ]
@@ -168,13 +175,74 @@ def test_invocation_receipt_never_promotes_missing_host_events(
     complete = build_installed_hook_invocation_receipt(inventory, observations)
     assert complete["status"] == "PASS"
     assert complete["missing_events"] == []
-    assert complete["observed_event_count"] == 8
+    assert complete["observed_event_count"] == len(EVENTS)
     assert complete["installed_invocation_proof_complete"] is True
     assert len(complete["invocation_receipt_sha256"]) == 64
 
     poisoned = [dict(observations[0], prompt="secret text")]
     with pytest.raises(InstalledHookReceiptError, match="RAW_OR_PRIVATE"):
         build_installed_hook_invocation_receipt(inventory, poisoned)
+
+
+def test_host_ui_projection_never_collapses_complete_installed_inventory(
+    tmp_path: Path,
+) -> None:
+    selector = "evidence-lane-plugin@evidence-lane-v300-testing-new"
+    diagnostic = build_installed_hook_diagnostic_receipt(
+        _reply(tmp_path, selector),
+        plugin_selector=selector,
+        workspace=tmp_path,
+    )
+    visible = [host for _, host in EVENTS if host != "sessionEnd"]
+    receipt = build_host_hook_ui_projection_receipt(
+        diagnostic,
+        visible_host_events=visible,
+        renderer_hook_title_mode="INDEX_ONLY_GENERIC",
+        host_build="OpenAI.CodexBeta_26.727.4816.0",
+        renderer_source_sha256="A" * 64,
+    )
+
+    assert receipt["schema"] == HOOK_UI_PROJECTION_SCHEMA
+    assert receipt["status"] == "HOST_UI_PROJECTION_LIMITED"
+    assert receipt["installed_hook_count"] == 11
+    assert receipt["installed_hook_contract_complete"] is True
+    assert receipt["missing_visible_host_events"] == ["sessionEnd"]
+    assert receipt["renderer_uses_generic_index_titles"] is True
+    assert (
+        receipt["host_settings_projection_authoritative_for_plugin_inventory"]
+        is False
+    )
+    assert (
+        receipt["renderer_omission_relabelled_as_missing_plugin_hook"] is False
+    )
+    assert (
+        receipt["plugin_repack_or_reinstall_expected_to_patch_signed_host_ui"]
+        is False
+    )
+    assert receipt["host_update_required_for_full_ui_projection"] is True
+    assert receipt["hook_enablement_mutated"] is False
+
+
+def test_host_ui_projection_passes_only_with_all_events_and_strong_titles(
+    tmp_path: Path,
+) -> None:
+    selector = "evidence-lane-plugin@evidence-lane-github"
+    diagnostic = build_installed_hook_diagnostic_receipt(
+        _reply(tmp_path, selector),
+        plugin_selector=selector,
+        workspace=tmp_path,
+    )
+    receipt = build_host_hook_ui_projection_receipt(
+        diagnostic,
+        visible_host_events=[host for _, host in EVENTS],
+        renderer_hook_title_mode="HOOK_KEY_OR_STATUS_AWARE",
+        host_build="future-host-build",
+        renderer_source_sha256="B" * 64,
+    )
+
+    assert receipt["status"] == "PASS"
+    assert receipt["missing_visible_host_events"] == []
+    assert receipt["host_update_required_for_full_ui_projection"] is False
 
 
 def test_progressive_inventory_requires_only_named_enabled_hook(
@@ -291,8 +359,8 @@ def test_real_codex_notifications_are_correlated_without_raw_payloads(
     )
     assert receipt["status"] == "PASS"
     assert receipt["source"] == "CODEX_APP_SERVER_HOOK_NOTIFICATIONS"
-    assert receipt["observed_event_count"] == 8
-    assert receipt["notification_pair_count"] == 8
+    assert receipt["observed_event_count"] == len(EVENTS)
+    assert receipt["notification_pair_count"] == len(EVENTS)
     assert receipt["raw_source_paths_included"] is False
     assert receipt["raw_thread_or_turn_ids_included"] is False
     assert receipt["raw_hook_output_included"] is False
@@ -320,6 +388,40 @@ def test_real_codex_notifications_are_correlated_without_raw_payloads(
             tampered,
             host_session_id="host-session-secret-id",
         )
+
+
+def test_failed_hook_failback_targets_only_one_native_hook_state(
+    tmp_path: Path,
+) -> None:
+    selector = "evidence-lane-plugin@evidence-lane-github"
+    inventory = validate_installed_hook_inventory(
+        _reply(tmp_path, selector),
+        plugin_selector=selector,
+        workspace=tmp_path,
+    )
+    receipt = build_independent_hook_failback_request(
+        inventory,
+        event_name="PermissionRequest",
+        failure_code="HOOK_EVENT_HANDLER_TIMEOUT",
+    )
+
+    assert receipt["schema"] == HOOK_FAILURE_FAILBACK_SCHEMA
+    assert receipt["status"] == "PASS"
+    assert receipt["supported_codex_api"] == "config/batchWrite"
+    assert receipt["compare_and_swap_required"] is True
+    assert receipt["post_write_hooks_list_readback_required"] is True
+    state = receipt["config_edit"]["value"]
+    target = next(
+        row for row in inventory["records"] if row["event_name"] == "PermissionRequest"
+    )
+    assert state[target["hook_key"]]["enabled"] is False
+    assert all(
+        row["hook_key"] == target["hook_key"]
+        or state[row["hook_key"]]["enabled"] is row["enabled"]
+        for row in inventory["records"]
+    )
+    assert receipt["unrelated_hook_state_mutated"] is False
+    assert receipt["execution_claimed"] is False
 
 
 def test_read_only_probe_uses_no_window_and_never_writes_host_config(

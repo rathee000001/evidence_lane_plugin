@@ -1,3 +1,5 @@
+import { currentProductContract } from "./current-product-contract.ts";
+
 export const publicSiteUrl = "https://evidencelane.org";
 export const repositoryUrl = "https://github.com/rathee000001/evidence_lane_plugin";
 
@@ -80,8 +82,8 @@ export const floatingStudioSuggestions = {
     "What can never move the accepted pointer by itself?",
   ],
   skills: [
-    "What are the seventeen governed Evidence Lane skills?",
-    "Which six skills are primary lifecycle controls?",
+    `What are the ${currentProductContract.governedSkillCount} governed Evidence Lane skills?`,
+    `Which ${currentProductContract.primaryControlCount} skills are primary lifecycle controls?`,
     "Why is State Travel conditional rather than a seventh control?",
     "Which skill owns Plan projection and HIL behavior?",
     "What can a skill never approve by itself?",
@@ -89,7 +91,7 @@ export const floatingStudioSuggestions = {
   ],
   mcp: [
     "Why does Evidence Lane use one package-local native MCP server?",
-    "What separates the 27 read actions from the 61 write actions?",
+    `What separates the ${currentProductContract.nativeMcp.readActions} read actions from the ${currentProductContract.nativeMcp.writeActions} write actions?`,
     "How does the native route fail closed on an unsupported host?",
     "Which actions can create a candidate or move a pointer?",
     "Why is the website not an MCP lifecycle authority?",
@@ -112,7 +114,7 @@ export const floatingStudioSuggestions = {
     "What evidence must match the branch commit?",
   ],
   hooks: [
-    "Which eight lifecycle events does the package register?",
+    `Which ${currentProductContract.hookEventCount} lifecycle events does the package register?`,
     "What information may a hook transport?",
     "Why do skills, rather than hooks, own classification and HIL?",
     "How is real installed-host invocation proven?",
@@ -161,7 +163,7 @@ export const floatingStudioSuggestions = {
   ],
   connect: [
     "How is Evidence Lane installed from an exact Git SHA?",
-    "Why are all 88 native actions part of one Codex lifecycle?",
+    `Why are all ${currentProductContract.nativeMcp.totalActions} native actions part of one Codex lifecycle?`,
     "How is the stable plugin kept separate from a future test build?",
     "Why must the native server reject external transport substitution?",
     "What is Google Drive allowed to do?",

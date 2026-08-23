@@ -589,12 +589,13 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert package_status["version_state"] == (
         "SOURCE_RUNTIME_EXACT_INSTALL_RECEIPT_UNAVAILABLE"
     )
-    assert package_status["hooks"]["count"] == 8
+    assert package_status["hooks"]["count"] == 11
     assert package_status["hooks"]["count_semantics"] == (
         "REGISTERED_EVENT_COUNT"
     )
-    assert package_status["hooks"]["hook_file_count"] == 12
+    assert package_status["hooks"]["hook_file_count"] == 16
     assert package_status["hooks"]["registered_events"] == [
+        "PermissionRequest",
         "PostCompact",
         "PostToolUse",
         "PreCompact",
@@ -602,6 +603,8 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
         "SessionEnd",
         "SessionStart",
         "Stop",
+        "SubagentStart",
+        "SubagentStop",
         "UserPromptSubmit",
     ]
     assert package_status["skills"]["count"] == 17
@@ -734,8 +737,30 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert source_change_status["line_deletions"] == 0
     assert source_change_status["binary_change_count"] == 0
     assert source_change_status["line_delta_scope"] == (
-        "TRACKED_HEAD_DIFF_ONLY_UNTRACKED_EXCLUDED"
+        "TRACKED_HEAD_DIFF_WITH_EXACT_DIRTY_CONTENT_IDENTITY"
     )
+    assert source_change_status["git_change_identity_schema"] == (
+        "evidence-lane.git-worktree-change-identity.v1"
+    )
+    for key in (
+        "git_change_identity_sha256",
+        "complete_path_set_sha256",
+        "status_porcelain_v2_sha256",
+        "cached_diff_sha256",
+        "unstaged_diff_sha256",
+        "tracked_head_diff_sha256",
+        "dirty_path_set_sha256",
+        "dirty_content_sha256",
+        "tracked_dirty_content_sha256",
+        "untracked_content_sha256",
+    ):
+        assert len(source_change_status[key]) == 64
+    assert source_change_status["complete_path_count"] >= 2
+    assert source_change_status["staged_path_count"] == 0
+    assert source_change_status["unstaged_path_count"] == 1
+    assert source_change_status["content_identity_count"] == 2
+    assert source_change_status["raw_dirty_paths_persisted"] is False
+    assert source_change_status["ignored_paths_included"] is False
     visible_changes = {
         row["path_after_redaction"]: row["status"]
         for row in source_change_status["changed_paths_after_redaction"]
@@ -950,6 +975,14 @@ def test_compact_reentry_is_bounded_distinct_and_fail_closed(
     assert context["canon_locator"]["state"] == "MISSING"
     assert context["learning_locator"]["state"] == "MISSING"
     assert context["project_memory_locator"]["state"] == "MISSING"
+    conversation_memory = context["conversation_memory_authority"]
+    assert conversation_memory["status"] == "PASS"
+    assert len(conversation_memory["conversation_memory_authority_sha256"]) == 64
+    assert conversation_memory["raw_guidance_text_included"] is False
+    assert conversation_memory["host_compaction_disabled"] is False
+    assert conversation_memory["causal_attribution"] == (
+        "UNVERIFIED_PENDING_INSTALLED_HOST_AB"
+    )
     memory_checkpoint = context["project_memory_checkpoint"]
     assert memory_checkpoint["state"] == "MEMORY_AUTHORITY_MISSING"
     assert memory_checkpoint["head_locator"]["state"] == "MISSING"
@@ -989,6 +1022,12 @@ def test_compact_reentry_is_bounded_distinct_and_fail_closed(
     assert postcompact["receipt"]["project_memory_rehydration"]["state"] == (
         "MEMORY_REHYDRATION_NOT_APPLICABLE"
     )
+    assert postcompact["receipt"]["conversation_memory_rehydration"]["state"] == (
+        "CONVERSATION_MEMORY_AUTHORITY_REHYDRATED"
+    )
+    assert postcompact["receipt"]["conversation_memory_rehydration"][
+        "authority_reconstructed"
+    ] is False
     assert "host_plan_rehydration" not in postcompact["receipt"]
 
     for source in ("compact", "auto_compact"):
@@ -2468,13 +2507,13 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         "tool_input_stored": False,
         "tool_response_stored": False,
     }
-    assert projected_notice["package_change_status"]["hooks"]["count"] == 8
+    assert projected_notice["package_change_status"]["hooks"]["count"] == 11
     assert projected_notice["package_change_status"]["hooks"][
         "count_semantics"
     ] == "REGISTERED_EVENT_COUNT"
     assert projected_notice["package_change_status"]["hooks"][
         "hook_file_count"
-    ] == 12
+    ] == 16
     projected_context = projected_payload["hookSpecificOutput"]["additionalContext"]
     assert "EVIDENCE_LANE_HOST_STEP_TASK_LIST_PROJECTION=" not in projected_context
     assert "EVIDENCE_LANE_HOST_PLAN_ACTION=" not in projected_context
@@ -2539,10 +2578,10 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
         assert prepared_notice["linked_delta_status"]["raw_change_text_included"] is False
         assert prepared_notice["exact_above_prompt_bar_placement_claimed"] is False
         assert prepared_notice["host_rendering_authority"] == "CODEX_HOST_OWNED"
-        assert prepared_notice["package_change_status"]["hooks"]["count"] == 8
+        assert prepared_notice["package_change_status"]["hooks"]["count"] == 11
         assert prepared_notice["package_change_status"]["hooks"][
             "hook_file_count"
-        ] == 12
+        ] == 16
         assert prepared_notice["package_change_status"]["skills"]["count"] == 17
         assert prepared_notice["package_change_status"]["catalog"] == {
             "tools": 88,

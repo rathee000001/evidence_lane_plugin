@@ -18,19 +18,14 @@ OPERATOR = (
     / "codex_release"
     / "Switch-EvidenceLaneCodexSlot.ps1"
 )
-TASK_ID = "019ff25a-30f6-7382-993d-12c5979d696d"
-PROJECT_ID = "test-codex-evidence-lane-plugin"
-SESSION_ID = "session_01kz48pm60mt58v5fyzqq6yq1g"
-HOST_SESSION_ID = "codex-evidence-lane-plugin-statetravel-task-2-20260812"
+MAIN_SLOT = "main-git-release"
+LOCAL_SLOT = "versioned-local-testing"
+MAIN_SELECTOR = "evidence-lane-plugin@evidence-lane-github"
+LOCAL_SELECTOR = "evidence-lane-plugin@evidence-lane-v300-testing-new"
 
 
 def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
-
-
-def _write_json(path: Path, value: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
 
 
 def _powershell() -> str:
@@ -40,25 +35,12 @@ def _powershell() -> str:
     return executable
 
 
-def _fixture(
-    tmp_path: Path,
-    *,
-    active_slot: str = "stable-build",
-    fail_fallback_start: bool = False,
-    tunnel_required: bool = True,
-    include_disabled_history: bool = False,
-) -> dict[str, Path]:
-    codex_home = tmp_path / "codex"
-    data_root = tmp_path / "EvidenceLanePV"
-    selectors = {
-        "stable-build": "evidence-lane-plugin@evidence-lane-v200-github",
-        "fallback": "evidence-lane-plugin@evidence-lane-pv11-fallback",
-    }
-    config_lines: list[str] = ["[features]", "enabled = true", ""]
-    for name in ("stable-build", "fallback"):
-        enabled = "true" if name == active_slot else "false"
-        selector = selectors[name]
-        config_lines.extend(
+def _write_config(path: Path, active_slot: str) -> None:
+    selectors = {MAIN_SLOT: MAIN_SELECTOR, LOCAL_SLOT: LOCAL_SELECTOR}
+    lines: list[str] = []
+    for slot, selector in selectors.items():
+        enabled = str(slot == active_slot).lower()
+        lines.extend(
             [
                 f'[plugins."{selector}"]',
                 f"enabled = {enabled}",
@@ -68,179 +50,121 @@ def _fixture(
                 "",
             ]
         )
-    if include_disabled_history:
-        historical = "evidence-lane-plugin@evidence-lane-v130-fallback"
-        config_lines.extend(
-            [
-                f'[plugins."{historical}"]',
-                "enabled = false",
-                "",
-                f'[plugins."{historical}".mcp_servers."evidence-lane"]',
-                "enabled = false",
-                "",
-            ]
-        )
-    config = codex_home / "config.toml"
-    config.parent.mkdir(parents=True, exist_ok=True)
-    config.write_text("\n".join(config_lines), encoding="utf-8")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines), encoding="utf-8", newline="")
 
-    slots: dict[str, dict] = {}
-    accepted_package_sha = "B" * 64
-    for name in ("stable-build", "fallback"):
-        version = (
-            "2.1.0+codex.stable-build"
-            if name == "stable-build"
-            else "2.0.0+codex.accepted-pv11"
-        )
-        package_sha = "A" * 64 if name == "stable-build" else accepted_package_sha
-        install = data_root / "installations" / f"{name}.json"
-        _write_json(
-            install,
-            {
-                "schema": "evidence-lane.codex-stable-installation.v2",
-                "status": "PASS",
-                "plugin": {"version": version},
-                "archive_sha256": package_sha,
-                "activation": {"state": "INSTALLED_RESTART_REQUIRED"},
-                "candidate_created_or_accepted": False,
-                "pointer_moved": False,
-                "hil_inferred": False,
-            },
-        )
-        cache = codex_home / "plugins" / "cache" / name / "evidence-lane-plugin" / version
-        cache.mkdir(parents=True)
-        runtime = data_root / "tunnels" / name
-        marker = runtime / "evidence-lane-tunnel-installation.json"
-        _write_json(
-            marker,
-            {
-                "schema": (
-                    "evidence-lane.versioned-secure-mcp-tunnel-installation.v1"
-                ),
-                "slot_role": name,
-                "version": version,
-                "byte_frozen": name == "fallback",
-                "legacy_version_manager_authoritative": False,
-            },
-        )
-        state = runtime / "ready.txt"
-        state.write_text("true" if name == active_slot else "false", encoding="utf-8")
-        manager = runtime / "Manage-EvidenceLaneTunnel.ps1"
-        reject_start = name == "fallback" and fail_fallback_start
-        reject_start_block = (
-            "if ($Action -eq 'Start') { "
-            "[ordered]@{status='BLOCKED';control_plane_poll_ready=$false;"
-            "process_running=$false;task_registered=$true} | ConvertTo-Json; "
-            "exit 1 }\n"
-            if reject_start
-            else ""
-        )
-        manager_text = (
-            "[CmdletBinding()]\n"
-            "param([string]$Action,[string]$RuntimeRoot,[string]$ProfileName,[string]$TaskName)\n"
-            "$stateFile = Join-Path $RuntimeRoot 'ready.txt'\n"
-            "if ($Action -eq 'Start') { Set-Content -LiteralPath $stateFile -Value 'true' -NoNewline }\n"
-            "if ($Action -eq 'Stop') {\n"
-            "  Set-Content -LiteralPath $stateFile -Value 'false' -NoNewline\n"
-            "  [ordered]@{status='STOPPED_SAVED';control_plane_poll_ready=$false;process_running=$false;task_registered=$true} | ConvertTo-Json\n"
-            "  exit 0\n"
-            "}\n"
-            "$isReady = (Get-Content -LiteralPath $stateFile -Raw).Trim() -eq 'true'\n"
-            "[ordered]@{\n"
-            "  status = if ($isReady) { 'PASS' } else { 'BLOCKED' }\n"
-            "  control_plane_poll_ready = $isReady\n"
-            "  process_running = $isReady\n"
-            "  task_registered = $true\n"
-            "} | ConvertTo-Json\n"
-            "if ($isReady) { exit 0 } else { exit 1 }\n"
-        )
-        manager.write_text(
-            manager_text.replace(
-                "$stateFile = Join-Path $RuntimeRoot 'ready.txt'\n",
-                "$stateFile = Join-Path $RuntimeRoot 'ready.txt'\n"
-                + reject_start_block,
-                1,
-            ),
-            encoding="utf-8",
-        )
-        slots[name] = {
-            "slot_role": name,
-            "plugin_selector": selectors[name],
-            "plugin_version": version,
-            "package_sha256": package_sha,
-            "byte_frozen": name == "fallback",
-            "accepted_pv": "PV11" if name == "fallback" else None,
-            "accepted_generation": 11 if name == "fallback" else None,
-            "install_receipt": str(install),
-            "install_receipt_sha256": _sha(install),
-            "cache_root": str(cache),
-            "tunnel": {
-                "runtime_root": str(runtime),
-                "manager": str(manager),
-                "marker": str(marker),
-                "marker_sha256": _sha(marker),
-                "task_name": f"EvidenceLane-{name}",
-                "profile_name": f"evidence_lane_{name}",
-            },
-        }
-    registry = data_root / "two-slot-registry.json"
-    _write_json(
-        registry,
+
+def _fixture(
+    tmp_path: Path,
+    *,
+    active_slot: str = LOCAL_SLOT,
+    include_obsolete_inventory: bool = False,
+    fail_start: bool = False,
+) -> dict[str, Path | dict[str, str]]:
+    user_profile = tmp_path / "user"
+    config = tmp_path / "codex" / "config.toml"
+    _write_config(config, active_slot)
+    versions = {
+        MAIN_SLOT: "3.0.0+codex.verified-main",
+        LOCAL_SLOT: "3.0.0+codex.local-testing",
+    }
+    inventory = [
         {
-            "schema": "evidence-lane.codex-two-slot-registry.v1",
-            "status": "PASS",
-            "post_fuse_materialized": True,
-            "accepted_pv": "PV11",
-            "accepted_generation": 11,
-            "accepted_package_sha256": accepted_package_sha,
-            "accepted_plugin_version": slots["fallback"]["plugin_version"],
-            "project_id": PROJECT_ID,
-            "evidence_session_id": SESSION_ID,
-            "task_id": TASK_ID,
-            "host_session_id": HOST_SESSION_ID,
-            "materialized_initial_slot": "stable-build",
-            "exact_live_slot_count": 2,
-            "max_enabled_plugin_count": 1,
-            "max_active_tunnel_count": 1 if tunnel_required else 0,
-            "tunnel_required": tunnel_required,
-            "secret_material_present": False,
-            "slots": slots,
+            "name": "evidence-lane-plugin",
+            "pluginId": MAIN_SELECTOR,
+            "version": versions[MAIN_SLOT],
         },
+        {
+            "name": "evidence-lane-plugin",
+            "pluginId": LOCAL_SELECTOR,
+            "version": versions[LOCAL_SLOT],
+        },
+    ]
+    if include_obsolete_inventory:
+        inventory.append(
+            {
+                "name": "evidence-lane-plugin",
+                "pluginId": "evidence-lane-plugin@evidence-lane-pv11-fallback",
+                "version": "2.1.0+codex.retired",
+            }
+        )
+    codex = tmp_path / "codex-fixture.cmd"
+    payload = json.dumps({"installed": inventory}, separators=(",", ":"))
+    codex.write_text(f"@echo off\r\necho {payload}\r\n", encoding="utf-8")
+
+    registry = tmp_path / "CODEX_TWO_SLOT_MAIN_LOCAL_REGISTRY.json"
+    registry.write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.codex-two-slot-main-local-registry.v1",
+                "status": "PASS",
+                "active_slot": active_slot,
+                "exact_live_slot_count": 2,
+                "failure_target_slot": "stable-git-main",
+                "versioned_local_failure_targets_verified_main_only": True,
+                "pre_3_0_fallback_allowed": False,
+                "slots": {
+                    MAIN_SLOT: {
+                        "slot_role": MAIN_SLOT,
+                        "plugin_selector": MAIN_SELECTOR,
+                        "plugin_version": versions[MAIN_SLOT],
+                    },
+                    LOCAL_SLOT: {
+                        "slot_role": LOCAL_SLOT,
+                        "plugin_selector": LOCAL_SELECTOR,
+                        "plugin_version": versions[LOCAL_SLOT],
+                    },
+                },
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
     )
-    restart = data_root / "Fake-Restart-EvidenceLaneCodex.ps1"
-    restart.write_text(
+    tunnel_root = (
+        user_profile
+        / ".codex"
+        / "plugins"
+        / "runtime"
+        / "evidence-lane-plugin"
+        / "tunnel-runtime-v300-stable-build"
+    )
+    tunnel_root.mkdir(parents=True)
+    tunnel_log = tunnel_root / "actions.log"
+    fail = (
+        "if ($Action -ceq 'Start') { Write-Error 'fixture start failed'; exit 1 }\n"
+        if fail_start
+        else ""
+    )
+    (tunnel_root / "Manage-EvidenceLaneTunnel.ps1").write_text(
         "[CmdletBinding()]\n"
-        "param([string]$Action,[string]$InstallReceipt,[string]$InstallReceiptSha256,"
-        "[string]$ProjectId,[string]$EvidenceSessionId,[string]$TaskId,"
-        "[string]$HostSessionId,[int]$TargetProcessId,[string]$PreparationReceipt,"
-        "[string]$PreparationReceiptSha256,[string]$ReceiptDirectory,[string]$AppId,"
-        "[switch]$ConfirmRestart)\n"
-        "if ($Action -eq 'Prepare') {\n"
-        "  New-Item -ItemType Directory -Path $ReceiptDirectory -Force | Out-Null\n"
-        "  $receipt = Join-Path $ReceiptDirectory 'FAKE_RESTART_PREPARATION.json'\n"
-        "  Set-Content -LiteralPath $receipt -Value '{\"status\":\"PASS\"}' -NoNewline\n"
-        "  $sha = (Get-FileHash -LiteralPath $receipt -Algorithm SHA256).Hash\n"
-        "  [ordered]@{status='PASS';receipt_path=$receipt;receipt_sha256=$sha;"
-        "app_id='OpenAI.CodexBeta_2p2nqsd0c76g0!App'} | ConvertTo-Json\n"
-        "  exit 0\n"
-        "}\n"
-        "if ($Action -eq 'Restart' -and $ConfirmRestart) { exit 0 }\n"
-        "exit 1\n",
+        "param([string]$Action,[string]$RuntimeRoot,[string]$ProfileName,"
+        "[string]$ReleaseToken,[string]$TaskName)\n"
+        f"Add-Content -LiteralPath '{tunnel_log}' -Value $Action\n"
+        + fail
+        + "[ordered]@{status='PASS';action=$Action} | ConvertTo-Json\n",
         encoding="utf-8",
     )
     return {
-        "codex_home": codex_home,
-        "data_root": data_root,
+        "user_profile": user_profile,
         "config": config,
+        "codex": codex,
         "registry": registry,
-        "restart": restart,
+        "receipt_dir": tmp_path / "receipts",
+        "tunnel_log": tunnel_log,
+        "versions": versions,
     }
 
 
-def _base_command(fixture: dict[str, Path], *, action: str, target: str) -> list[str]:
-    powershell = _powershell()
+def _command(
+    fixture: dict[str, Path | dict[str, str]],
+    *,
+    action: str,
+    target: str,
+    reason: str = "EXPLICIT_OPERATOR_SELECTION",
+) -> list[str]:
     return [
-        powershell,
+        _powershell(),
         "-NoLogo",
         "-NoProfile",
         "-NonInteractive",
@@ -252,496 +176,170 @@ def _base_command(fixture: dict[str, Path], *, action: str, target: str) -> list
         action,
         "-TargetSlot",
         target,
+        "-Reason",
+        reason,
         "-Registry",
         str(fixture["registry"]),
         "-RegistrySha256",
-        _sha(fixture["registry"]),
-        "-ProjectId",
-        PROJECT_ID,
-        "-EvidenceSessionId",
-        SESSION_ID,
-        "-TaskId",
-        TASK_ID,
-        "-HostSessionId",
-        HOST_SESSION_ID,
+        _sha(Path(fixture["registry"])),
         "-CodexConfig",
         str(fixture["config"]),
-        "-CodexHome",
-        str(fixture["codex_home"]),
-        "-DataRoot",
-        str(fixture["data_root"]),
-        "-RestartHelper",
-        str(fixture["restart"]),
+        "-CodexExecutable",
+        str(fixture["codex"]),
         "-ReceiptDirectory",
-        str(fixture["data_root"] / "receipts"),
-        "-PowerShellExecutable",
-        powershell,
+        str(fixture["receipt_dir"]),
     ]
 
 
-def test_operator_uses_the_sealed_registry_task_instead_of_a_source_constant() -> None:
-    text = OPERATOR.read_text(encoding="utf-8")
-    assert "ExpectedTaskId" not in text
-    assert "019fedc7-cb86-7b40-94ce-1784a999f12b" not in text
-    assert "$body.task_id -ne $TaskId" in text
-
-
-def test_verify_proves_exactly_one_matching_plugin_and_tunnel(tmp_path: Path) -> None:
-    fixture = _fixture(tmp_path)
-    completed = subprocess.run(
-        _base_command(fixture, action="Verify", target="fallback"),
+def _run(
+    command: list[str], fixture: dict[str, Path | dict[str, str]]
+) -> subprocess.CompletedProcess[str]:
+    environment = os.environ.copy()
+    environment["USERPROFILE"] = str(fixture["user_profile"])
+    return subprocess.run(
+        command,
         check=False,
         capture_output=True,
         text=True,
         encoding="utf-8",
+        env=environment,
+    )
+
+
+def test_operator_contains_only_main_and_local_live_roles() -> None:
+    text = OPERATOR.read_text(encoding="utf-8")
+    assert (
+        '"main-git-release" = '
+        '"evidence-lane-plugin@evidence-lane-github"'
+    ) in text
+    assert (
+        '"versioned-local-testing" = '
+        '"evidence-lane-plugin@evidence-lane-v300-testing-new"'
+    ) in text
+    assert '"branch-commit-recovery" =' not in text
+    assert '"fallback" =' not in text
+    assert "evidence-lane.codex-two-slot-main-local-registry.v1" in text
+
+
+@pytest.mark.parametrize("active_slot", [MAIN_SLOT, LOCAL_SLOT])
+def test_verify_proves_exact_requested_main_or_local_slot(
+    tmp_path: Path, active_slot: str
+) -> None:
+    fixture = _fixture(tmp_path, active_slot=active_slot)
+    completed = _run(
+        _command(fixture, action="Verify", target=active_slot), fixture
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
     payload = json.loads(completed.stdout)
     assert payload["status"] == "PASS"
-    assert payload["active_slot"] == "stable-build"
+    assert payload["active_slot"] == active_slot
     assert payload["installed_slot_count"] == 2
-    assert payload["enabled_plugin_count"] == 1
-    assert payload["active_tunnel_count"] == 1
-    assert payload["fallback_byte_frozen"] is True
-    assert payload["fallback_accepted_pv"] == "PV11"
-    assert payload["native_proof_required_after_restart"] is True
-    assert payload["active_slot_source"] == "LIVE_CODEX_CONFIG_AND_TUNNEL_MATCH"
+    assert payload["obsolete_selector_active"] is False
+    assert payload["pre_3_0_fallback_allowed"] is False
 
 
-def test_verify_derives_fallback_from_live_config_and_tunnel_not_registry(
-    tmp_path: Path,
-) -> None:
-    fixture = _fixture(tmp_path, active_slot="fallback")
-    completed = subprocess.run(
-        _base_command(fixture, action="Verify", target="stable-build"),
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert completed.returncode == 0, completed.stdout + completed.stderr
-    payload = json.loads(completed.stdout)
-    assert payload["active_slot"] == "fallback"
-    assert payload["enabled_plugin_count"] == 1
-    assert payload["active_tunnel_count"] == 1
-
-
-def test_local_durable_verify_and_switch_require_no_tunnel(tmp_path: Path) -> None:
-    fixture = _fixture(
-        tmp_path,
-        tunnel_required=False,
-        include_disabled_history=True,
-    )
-    shutil.rmtree(fixture["data_root"] / "tunnels")
-
-    verified = subprocess.run(
-        _base_command(fixture, action="Verify", target="fallback"),
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert verified.returncode == 0, verified.stdout + verified.stderr
-    verification = json.loads(verified.stdout)
-    assert verification["active_slot"] == "stable-build"
-    assert verification["active_slot_source"] == (
-        "LIVE_CODEX_CONFIG_LOCAL_DURABLE_NO_TUNNEL"
-    )
-    assert verification["tunnel_required"] is False
-    assert verification["active_tunnel_count"] == 0
-    assert verification["disabled_historical_slot_count"] == 1
-
-    prepare = _base_command(fixture, action="Prepare", target="fallback")
-    prepare.extend(
-        [
-            "-Reason",
-            "EXPLICIT_OPERATOR_FAILOVER",
-            "-TargetProcessId",
-            str(os.getpid()),
-            "-ConfirmExplicitOperator",
-        ]
-    )
-    prepared = subprocess.run(
-        prepare,
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert prepared.returncode == 0, prepared.stdout + prepared.stderr
-    preparation = json.loads(prepared.stdout)
-    preparation_body = json.loads(
-        Path(preparation["receipt_path"]).read_text(encoding="utf-8")
-    )
-    assert preparation_body["tunnel_required"] is False
-    assert preparation_body["stop_source_before_start_target"] is False
-    assert preparation_body["max_active_tunnels"] == 0
-
-    switch = _base_command(fixture, action="Switch", target="fallback")
-    switch.extend(
-        [
-            "-Reason",
-            "EXPLICIT_OPERATOR_FAILOVER",
-            "-TargetProcessId",
-            str(os.getpid()),
-            "-PreparationReceipt",
-            preparation["receipt_path"],
-            "-PreparationReceiptSha256",
-            preparation["receipt_sha256"],
-            "-ConfirmExplicitOperator",
-            "-ConfirmSwitch",
-        ]
-    )
-    switched = subprocess.run(
-        switch,
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert switched.returncode == 0, switched.stdout + switched.stderr
-    transition = json.loads(
-        (
-            fixture["data_root"]
-            / "receipts"
-            / "CODEX_TWO_SLOT_SWITCH_TRANSITION.json"
-        ).read_text(encoding="utf-8")
-    )
-    assert transition["tunnel_required"] is False
-    assert transition["source_tunnel_stopped_first"] is None
-    assert transition["target_tunnel_ready_before_plugin_switch"] is None
-    assert transition["active_tunnel_count"] == 0
-
-    post_switch = subprocess.run(
-        _base_command(fixture, action="Verify", target="stable-build"),
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert post_switch.returncode == 0, post_switch.stdout + post_switch.stderr
-    assert json.loads(post_switch.stdout)["active_slot"] == "fallback"
-    config_after = fixture["config"].read_text(encoding="utf-8")
-    assert (
-        '[plugins."evidence-lane-plugin@evidence-lane-v130-fallback"]\n'
-        "enabled = false"
-    ) in config_after
-
-
-def test_prepare_rejects_one_transient_failure_without_writes(tmp_path: Path) -> None:
-    fixture = _fixture(tmp_path)
-    decision = fixture["data_root"] / "transient-health.json"
-    _write_json(
-        decision,
-        {
-            "schema": "evidence-lane.stable-health-failure.v1",
-            "status": "DETERMINISTIC_STABLE_FAILURE",
-            "plugin_selector": "evidence-lane-plugin@evidence-lane-v200-github",
-            "plugin_version": "2.1.0+codex.stable-build",
-            "consecutive_failures": 1,
-            "sample_window_seconds": 5,
-            "distinct_probe_types": 1,
-            "single_transient_error": True,
-            "secret_material_present": False,
-        },
-    )
-    before = fixture["config"].read_bytes()
-    command = _base_command(fixture, action="Prepare", target="fallback")
-    command.extend(
-        [
-            "-Reason",
-            "DETERMINISTIC_STABLE_HEALTH_FAILURE",
-            "-DecisionReceipt",
-            str(decision),
-            "-DecisionReceiptSha256",
-            _sha(decision),
-            "-TargetProcessId",
-            str(os.getpid()),
-        ]
-    )
-    completed = subprocess.run(
-        command,
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
+def test_obsolete_third_inventory_selector_fails_closed(tmp_path: Path) -> None:
+    fixture = _fixture(tmp_path, include_obsolete_inventory=True)
+    completed = _run(
+        _command(fixture, action="Verify", target=LOCAL_SLOT), fixture
     )
     assert completed.returncode != 0
-    assert "transient, stale, or incomplete" in completed.stderr
-    assert fixture["config"].read_bytes() == before
-    assert not (fixture["data_root"] / "receipts").exists()
+    assert "exact two-slot Evidence Lane boundary" in completed.stderr
 
 
-def test_explicit_operator_can_prepare_but_does_not_switch(tmp_path: Path) -> None:
-    fixture = _fixture(tmp_path)
-    command = _base_command(fixture, action="Prepare", target="fallback")
+def test_versioned_local_failure_can_prepare_only_verified_main(
+    tmp_path: Path,
+) -> None:
+    fixture = _fixture(tmp_path, active_slot=LOCAL_SLOT)
+    rejected = _run(
+        _command(
+            fixture,
+            action="Prepare",
+            target=LOCAL_SLOT,
+            reason="VERSIONED_LOCAL_RUNTIME_FAILURE",
+        ),
+        fixture,
+    )
+    assert rejected.returncode != 0
+    assert "may switch only to verified stable Git main" in rejected.stderr
+
+    command = _command(
+        fixture,
+        action="Prepare",
+        target=MAIN_SLOT,
+        reason="VERSIONED_LOCAL_RUNTIME_FAILURE",
+    )
     command.extend(
         [
-            "-Reason",
-            "EXPLICIT_OPERATOR_FAILOVER",
-            "-TargetProcessId",
-            str(os.getpid()),
-            "-ConfirmExplicitOperator",
+            "-ConsecutiveFailures",
+            "3",
+            "-SampleWindowSeconds",
+            "30",
+            "-DistinctProbeTypes",
+            "2",
         ]
     )
-    completed = subprocess.run(
-        command,
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert completed.returncode == 0, completed.stdout + completed.stderr
-    payload = json.loads(completed.stdout)
+    prepared = _run(command, fixture)
+    assert prepared.returncode == 0, prepared.stdout + prepared.stderr
+    payload = json.loads(prepared.stdout)
     assert payload["state"] == "PREPARED_NOT_SWITCHED"
-    receipt = Path(payload["receipt_path"])
-    body = json.loads(receipt.read_text(encoding="utf-8"))
-    assert body["source_slot"] == "stable-build"
-    assert body["target_slot"] == "fallback"
-    assert body["stop_source_before_start_target"] is True
-    assert body["transient_single_error_auto_switch_allowed"] is False
-    assert "enabled = true" in fixture["config"].read_text(encoding="utf-8")
+    receipt = json.loads(Path(payload["receipt_path"]).read_text(encoding="utf-8"))
+    assert receipt["source_slot"] == LOCAL_SLOT
+    assert receipt["target_slot"] == MAIN_SLOT
+    assert receipt["switched"] is False
 
 
-def test_switch_stops_source_before_starting_fallback_and_is_replay_verifiable(
+def test_prepare_then_switch_changes_only_activation_and_requests_restart(
     tmp_path: Path,
 ) -> None:
-    fixture = _fixture(tmp_path)
-    prepare = _base_command(fixture, action="Prepare", target="fallback")
-    prepare.extend(
-        [
-            "-Reason",
-            "EXPLICIT_OPERATOR_FAILOVER",
-            "-TargetProcessId",
-            str(os.getpid()),
-            "-ConfirmExplicitOperator",
-        ]
-    )
-    prepared = subprocess.run(
-        prepare,
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
+    fixture = _fixture(tmp_path, active_slot=LOCAL_SLOT)
+    prepared = _run(
+        _command(fixture, action="Prepare", target=MAIN_SLOT), fixture
     )
     assert prepared.returncode == 0, prepared.stdout + prepared.stderr
     preparation = json.loads(prepared.stdout)
-
-    switch = _base_command(fixture, action="Switch", target="fallback")
-    switch.extend(
+    command = _command(fixture, action="Switch", target=MAIN_SLOT)
+    command.extend(
         [
-            "-Reason",
-            "EXPLICIT_OPERATOR_FAILOVER",
-            "-TargetProcessId",
-            str(os.getpid()),
             "-PreparationReceipt",
             preparation["receipt_path"],
             "-PreparationReceiptSha256",
             preparation["receipt_sha256"],
-            "-ConfirmExplicitOperator",
             "-ConfirmSwitch",
         ]
     )
-    switched = subprocess.run(
-        switch,
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
+    switched = _run(command, fixture)
     assert switched.returncode == 0, switched.stdout + switched.stderr
-    config = fixture["config"].read_text(encoding="utf-8")
-    assert (
-        '[plugins."evidence-lane-plugin@evidence-lane-v200-github"]\n'
-        "enabled = false"
-    ) in config
-    assert (
-        '[plugins."evidence-lane-plugin@evidence-lane-pv11-fallback"]\n'
-        "enabled = true"
-    ) in config
-    assert "[features]\nenabled = true" in config
-    assert (
-        fixture["data_root"] / "tunnels" / "stable-build" / "ready.txt"
-    ).read_text(encoding="utf-8") == "false"
-    assert (
-        fixture["data_root"] / "tunnels" / "fallback" / "ready.txt"
-    ).read_text(encoding="utf-8") == "true"
-
-    verified = subprocess.run(
-        _base_command(fixture, action="Verify", target="stable-build"),
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert verified.returncode == 0, verified.stdout + verified.stderr
-    assert json.loads(verified.stdout)["active_slot"] == "fallback"
-    transition = json.loads(
-        (
-            fixture["data_root"]
-            / "receipts"
-            / "CODEX_TWO_SLOT_SWITCH_TRANSITION.json"
-        ).read_text(encoding="utf-8")
-    )
-    assert transition["source_tunnel_stopped_first"] is True
-    assert transition["target_tunnel_ready_before_plugin_switch"] is True
-    assert transition["active_slot_authority"] == (
-        "LIVE_CODEX_CONFIG_AND_TUNNEL_MATCH"
-    )
+    payload = json.loads(switched.stdout)
+    assert payload["state"] == "TARGET_SELECTED_RESTART_REQUIRED"
+    config = Path(fixture["config"]).read_text(encoding="utf-8")
+    assert f'[plugins."{MAIN_SELECTOR}"]\nenabled = true' in config
+    assert f'[plugins."{LOCAL_SELECTOR}"]\nenabled = false' in config
+    assert Path(fixture["tunnel_log"]).read_text(encoding="utf-8").splitlines() == [
+        "Stop",
+        "Start",
+    ]
 
 
-def test_verify_accepts_supported_config_api_serialized_mcp_tables(
-    tmp_path: Path,
-) -> None:
-    fixture = _fixture(tmp_path, tunnel_required=False)
-    shutil.rmtree(fixture["data_root"] / "tunnels")
-    config = fixture["config"]
-    text = config.read_text(encoding="utf-8")
-    for selector in (
-        "evidence-lane-plugin@evidence-lane-v200-github",
-        "evidence-lane-plugin@evidence-lane-pv11-fallback",
-    ):
-        quoted = f'[plugins."{selector}".mcp_servers."evidence-lane"]'
-        serialized = (
-            f'[plugins."{selector}".mcp_servers]\n\n'
-            f'[plugins."{selector}".mcp_servers.evidence-lane]'
-        )
-        text = text.replace(quoted, serialized)
-    config.write_text(text, encoding="utf-8")
-
-    completed = subprocess.run(
-        _base_command(fixture, action="Verify", target="fallback"),
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-
-    assert completed.returncode == 0, completed.stdout + completed.stderr
-    result = json.loads(completed.stdout)
-    assert result["status"] == "PASS"
-    assert result["active_slot"] == "stable-build"
-
-    prepare = _base_command(fixture, action="Prepare", target="fallback")
-    prepare.extend(
-        [
-            "-Reason",
-            "EXPLICIT_OPERATOR_FAILOVER",
-            "-TargetProcessId",
-            str(os.getpid()),
-            "-ConfirmExplicitOperator",
-        ]
-    )
-    prepared = subprocess.run(
-        prepare,
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
+def test_failed_target_start_restores_source_config(tmp_path: Path) -> None:
+    fixture = _fixture(tmp_path, active_slot=LOCAL_SLOT, fail_start=True)
+    before = Path(fixture["config"]).read_bytes()
+    prepared = _run(
+        _command(fixture, action="Prepare", target=MAIN_SLOT), fixture
     )
     assert prepared.returncode == 0, prepared.stdout + prepared.stderr
     preparation = json.loads(prepared.stdout)
-
-    switch = _base_command(fixture, action="Switch", target="fallback")
-    switch.extend(
+    command = _command(fixture, action="Switch", target=MAIN_SLOT)
+    command.extend(
         [
-            "-Reason",
-            "EXPLICIT_OPERATOR_FAILOVER",
-            "-TargetProcessId",
-            str(os.getpid()),
             "-PreparationReceipt",
             preparation["receipt_path"],
             "-PreparationReceiptSha256",
             preparation["receipt_sha256"],
-            "-ConfirmExplicitOperator",
             "-ConfirmSwitch",
         ]
     )
-    switched = subprocess.run(
-        switch,
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert switched.returncode == 0, switched.stdout + switched.stderr
-
-    post_switch = subprocess.run(
-        _base_command(fixture, action="Verify", target="stable-build"),
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert post_switch.returncode == 0, post_switch.stdout + post_switch.stderr
-    assert json.loads(post_switch.stdout)["active_slot"] == "fallback"
-
-
-def test_failed_fallback_start_rolls_back_stable_config_and_tunnel(
-    tmp_path: Path,
-) -> None:
-    fixture = _fixture(tmp_path, fail_fallback_start=True)
-    prepare = _base_command(fixture, action="Prepare", target="fallback")
-    prepare.extend(
-        [
-            "-Reason",
-            "EXPLICIT_OPERATOR_FAILOVER",
-            "-TargetProcessId",
-            str(os.getpid()),
-            "-ConfirmExplicitOperator",
-        ]
-    )
-    prepared = subprocess.run(
-        prepare,
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert prepared.returncode == 0, prepared.stdout + prepared.stderr
-    preparation = json.loads(prepared.stdout)
-    switch = _base_command(fixture, action="Switch", target="fallback")
-    switch.extend(
-        [
-            "-Reason",
-            "EXPLICIT_OPERATOR_FAILOVER",
-            "-TargetProcessId",
-            str(os.getpid()),
-            "-PreparationReceipt",
-            preparation["receipt_path"],
-            "-PreparationReceiptSha256",
-            preparation["receipt_sha256"],
-            "-ConfirmExplicitOperator",
-            "-ConfirmSwitch",
-        ]
-    )
-    switched = subprocess.run(
-        switch,
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert switched.returncode != 0
-    assert "Rolled back to stable-build" in switched.stderr
-    config = fixture["config"].read_text(encoding="utf-8")
-    assert (
-        '[plugins."evidence-lane-plugin@evidence-lane-v200-github"]\n'
-        "enabled = true"
-    ) in config
-    assert (
-        fixture["data_root"] / "tunnels" / "stable-build" / "ready.txt"
-    ).read_text(encoding="utf-8") == "true"
-    assert (
-        fixture["data_root"] / "tunnels" / "fallback" / "ready.txt"
-    ).read_text(encoding="utf-8") == "false"
-    failure = json.loads(
-        (fixture["data_root"] / "receipts" / "LAST_FAILED_SWITCH.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    assert failure["source_restored"] is True
-    assert failure["target_disabled"] is True
-    assert failure["config_restored"] is True
-    assert failure["rollback_verified"] is True
-    assert failure["status"] == "FAILED_ROLLED_BACK"
+    failed = _run(command, fixture)
+    assert failed.returncode != 0
+    assert Path(fixture["config"]).read_bytes() == before
+    assert "Rolled back to versioned-local-testing" in failed.stderr

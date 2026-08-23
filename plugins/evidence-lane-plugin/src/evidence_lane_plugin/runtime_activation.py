@@ -15,6 +15,7 @@ from .timeutil import utc_now
 RUNTIME_ACTIVATION_SCHEMA = "evidence-lane.runtime-activation.v1"
 HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
 _EXPECTED_HOST_DISPATCH_TO_PACKAGE_EVENTS = {
+    "permissionRequest": "PermissionRequest",
     "postCompact": "PostCompact",
     "postToolUse": "PostToolUse",
     "preCompact": "PreCompact",
@@ -22,6 +23,8 @@ _EXPECTED_HOST_DISPATCH_TO_PACKAGE_EVENTS = {
     "sessionEnd": "SessionEnd",
     "sessionStart": "SessionStart",
     "stop": "Stop",
+    "subagentStart": "SubagentStart",
+    "subagentStop": "SubagentStop",
     "userPromptSubmit": "UserPromptSubmit",
 }
 _EXPECTED_HOST_DISPATCH_EVENTS = frozenset(
@@ -30,21 +33,8 @@ _EXPECTED_HOST_DISPATCH_EVENTS = frozenset(
 _BASELINE_PACKAGE_HOOK_EVENTS = frozenset(
     _EXPECTED_HOST_DISPATCH_TO_PACKAGE_EVENTS.values()
 )
-_EXTENDED_PACKAGE_HOOK_EVENTS = frozenset(
-    {
-        "PostCompact",
-        "PostToolUse",
-        "PreCompact",
-        "PreToolUse",
-        "SessionEnd",
-        "SessionStart",
-        "Stop",
-        "UserPromptSubmit",
-    }
-)
 _SUPPORTED_PACKAGE_HOOK_EVENT_INVENTORIES = {
     _BASELINE_PACKAGE_HOOK_EVENTS,
-    _EXTENDED_PACKAGE_HOOK_EVENTS,
 }
 _REQUIRED_PRE_REASONING_SURFACES = (
     {
@@ -186,12 +176,14 @@ class RuntimeActivation:
             "schema": "evidence-lane.codex-host-hook-status.v1",
             "status": "UNAVAILABLE",
             "trusted": False,
+            "enabled": False,
             "plugin_selector": None,
             "hook_count": 0,
             "registered_events": [],
             "host_dispatch_hook_count": 0,
             "host_dispatch_registered_events": [],
             "host_dispatch_trust_status": "UNAVAILABLE",
+            "host_dispatch_enablement_status": "UNAVAILABLE",
             "package_hook_event_count": 0,
             "package_registered_events": [],
             "package_inventory_status": "UNAVAILABLE",
@@ -259,7 +251,11 @@ class RuntimeActivation:
             and installation.get("status") == "PASS"
             and _SHA256_RE.fullmatch(claimed_installation_sha256) is not None
             and claimed_installation_sha256 == _sealed_json_sha256(installation_core)
-            and activation.get("state") == "INSTALLED_RESTART_REQUIRED"
+            and activation.get("state")
+            in {
+                "INSTALLED_RESTART_REQUIRED",
+                "LOCAL_3_0_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED",
+            }
             and hook_trust.get("schema") == HOOK_TRUST_SCHEMA
             and hook_trust.get("status") == "PASS"
             and _SHA256_RE.fullmatch(claimed_hook_sha256) is not None
@@ -267,6 +263,14 @@ class RuntimeActivation:
             and selector == plugin_add.get("pluginId")
             and selector.startswith("evidence-lane-plugin@")
         )
+        enabled_states = {
+            bool(row.get("enabled"))
+            for row in records
+            if isinstance(row, dict)
+        }
+        uniform_enablement = len(enabled_states) == 1
+        hooks_enabled = uniform_enablement and enabled_states == {True}
+        hooks_disabled = uniform_enablement and enabled_states == {False}
         host_dispatch_valid = (
             hook_trust.get("hook_count")
             == len(_EXPECTED_HOST_DISPATCH_EVENTS)
@@ -280,9 +284,9 @@ class RuntimeActivation:
             == len(set(keys))
             == len(_EXPECTED_HOST_DISPATCH_EVENTS)
             and hook_trust.get("after_trust_statuses") == ["trusted"]
+            and uniform_enablement
             and all(
                 isinstance(row, dict)
-                and row.get("enabled") is True
                 and row.get("trust_status") == "trusted"
                 and str(row.get("hook_key") or "").startswith(f"{selector}:")
                 and _CODEX_SHA256_RE.fullmatch(
@@ -334,6 +338,11 @@ class RuntimeActivation:
                     if sealed_installation_valid and host_dispatch_valid
                     else "MISMATCH"
                 ),
+                "host_dispatch_enablement_status": (
+                    "ENABLED"
+                    if hooks_enabled
+                    else ("DISABLED" if hooks_disabled else "MISMATCH")
+                ),
                 "package_hook_event_count": len(package_event_set),
                 "package_registered_events": sorted(package_event_set),
                 "package_inventory_status": (
@@ -351,12 +360,16 @@ class RuntimeActivation:
             "schema": "evidence-lane.codex-host-hook-status.v1",
             "status": "TRUSTED",
             "trusted": True,
+            "enabled": hooks_enabled,
             "plugin_selector": selector,
             "hook_count": len(_EXPECTED_HOST_DISPATCH_EVENTS),
             "registered_events": sorted(host_dispatch_events),
             "host_dispatch_hook_count": len(host_dispatch_events),
             "host_dispatch_registered_events": sorted(host_dispatch_events),
             "host_dispatch_trust_status": "SEALED_CONFIG_TRUST",
+            "host_dispatch_enablement_status": (
+                "ENABLED" if hooks_enabled else "DISABLED"
+            ),
             "package_hook_event_count": len(package_event_set),
             "package_registered_events": sorted(package_event_set),
             "package_inventory_status": (
@@ -365,7 +378,7 @@ class RuntimeActivation:
             "installed_host_dispatch_independently_proven": False,
             "installation_receipt_sha256": claimed_installation_sha256,
             "hook_trust_receipt_sha256": claimed_hook_sha256,
-            "reason": None,
+            "reason": None if hooks_enabled else "HOOKS_INTENTIONALLY_DISABLED",
         }
 
     def status_with_host_proof(self) -> dict[str, Any]:
@@ -379,6 +392,7 @@ class RuntimeActivation:
             configured.get("visible_response_capture_active") is True
         )
         hooks_trusted = hook_status.get("trusted") is True
+        hooks_enabled = hook_status.get("enabled") is True
         registered_events = set(hook_status.get("registered_events") or [])
         capture_surfaces: list[dict[str, Any]] = []
         for contract in _REQUIRED_PRE_REASONING_SURFACES:
@@ -388,6 +402,7 @@ class RuntimeActivation:
                 session_active
                 and prompt_configured
                 and hooks_trusted
+                and hooks_enabled
                 and contract["host_dispatch_supported"]
                 and registered
             )
@@ -397,6 +412,8 @@ class RuntimeActivation:
                 state = "REQUIRED_HOOK_NOT_REGISTERED"
             elif not hooks_trusted:
                 state = "HOOK_NOT_SEALED_TRUSTED"
+            elif not hooks_enabled:
+                state = "HOOKS_INTENTIONALLY_DISABLED"
             elif not session_active or not prompt_configured:
                 state = "GOVERNED_RUNTIME_NOT_ATTACHED"
             else:
@@ -412,6 +429,7 @@ class RuntimeActivation:
                         contract.get("tool_boundary_continuation_supported")
                         and session_active
                         and hooks_trusted
+                        and hooks_enabled
                         and "preToolUse" in registered_events
                     ),
                     "state": state,
@@ -460,7 +478,9 @@ class RuntimeActivation:
                     session_active and response_configured and hooks_trusted
                 ),
                 "host_hook_status": hook_status,
-                "host_hooks_runnable": hooks_trusted,
+                "host_hooks_trusted": hooks_trusted,
+                "host_hooks_enabled": hooks_enabled,
+                "host_hooks_runnable": hooks_trusted and hooks_enabled,
                 "capture_truth_law": (
                     "ALL_VISIBLE_INPUT_SURFACES_REQUIRE_PRE_REASONING_HOST_DISPATCH_"
                     "AND_ONE_SEALED_PREPARE_RECEIPT_PER_INPUT"

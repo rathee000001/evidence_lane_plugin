@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import pytest
 from evidence_lane_plugin.goal_usage import (
-    EARLIER_RECORDED_TOKENS,
     GOAL_COMPLETION_COMMAND,
-    PRIOR_GOAL_TOKENS,
+    RICH_GOAL_COMPLETION_METRICS_ROUTE,
     build_component_token_accounting,
     build_goal_completion_authorization,
     build_goal_usage_receipt,
     build_profile_observed_usage_context,
+    build_rich_goal_completion_metrics_receipt,
     compact_duration,
     compact_token_count,
     compact_token_count_receipt,
@@ -34,32 +34,19 @@ def test_compact_token_count_uses_readable_k_m_and_b_notation() -> None:
     }
 
 
-def test_goal_usage_receipt_never_inherits_another_project_baseline() -> None:
-    receipt = build_goal_usage_receipt(
+def test_legacy_goal_usage_route_is_a_non_executing_tombstone() -> None:
+    tombstone = build_goal_usage_receipt(
         current_tokens=1_500_000,
         current_elapsed_seconds=3600,
     )
-    assert receipt.exact()["current_tokens"] == 1_500_000
-    assert receipt.exact()["prior_goal_tokens"] == PRIOR_GOAL_TOKENS
-    assert receipt.exact()["earlier_recorded_tokens"] == EARLIER_RECORDED_TOKENS
-    assert receipt.exact()["cumulative_tokens"] == 1_500_000
-    assert receipt.display() == {
-        "current_tokens": "1.5M",
-        "current_elapsed": "1h 0m",
-        "prior_goal_tokens": "0",
-        "prior_goal_elapsed": "0s",
-        "earlier_recorded_tokens": "0",
-        "earlier_recorded_elapsed": "0s",
-        "cumulative_tokens": "1.5M",
-        "cumulative_elapsed": "1h 0m",
-    }
-    assert receipt.governance() == {
-        "schema": "evidence-lane.goal-usage-governance.v1",
-        "purpose": "ACCOUNTING_ONLY",
-        "task_status_effect": "NONE",
-        "goal_completion_effect": "NONE",
-        "exact_counts_preserved": True,
-    }
+    assert tombstone["status"] == "OBSOLETE_ROUTE"
+    assert tombstone["required_current_route"] == (
+        RICH_GOAL_COMPLETION_METRICS_ROUTE
+    )
+    assert tombstone["legacy_execution_performed"] is False
+    assert tombstone["fallback_allowed"] is False
+    assert tombstone["mutation_performed"] is False
+    assert tombstone["supplied_values_returned"] is False
 
 
 def test_goal_completion_is_exact_human_only_and_has_two_dispositions() -> None:
@@ -117,11 +104,6 @@ def test_hil_automation_and_pause_cannot_complete_goal(
 def test_goal_usage_rejects_invalid_accounting_values(value: object) -> None:
     with pytest.raises(ValueError):
         compact_token_count(value)  # type: ignore[arg-type]
-    with pytest.raises(ValueError):
-        build_goal_usage_receipt(
-            current_tokens=value,  # type: ignore[arg-type]
-            current_elapsed_seconds=0,
-        )
 
 
 def test_compact_duration_never_drops_seconds_when_they_are_material() -> None:
@@ -136,6 +118,155 @@ def _binding() -> dict[str, str]:
         "task_id": "task-001",
         "host_session_id_sha256": "A" * 64,
     }
+
+
+def _rich_telemetry() -> dict[str, object]:
+    return {
+        "host_accounted_goal_tokens": 42_000,
+        "host_accounting_formula": "HOST_EXPOSED_TEST_WEIGHTING",
+        "raw_input_tokens": 100_000,
+        "cached_input_tokens": 80_000,
+        "uncached_input_tokens": 20_000,
+        "output_tokens": 25_000,
+        "reasoning_output_tokens": 5_000,
+        "raw_input_output_total_tokens": 125_000,
+        "elapsed_seconds": 3_661,
+        "model_turn_starts": 12,
+        "assistant_agent_messages": 31,
+        "top_level_tool_calls": 18,
+        "native_mcp_completions": 7,
+        "patch_applications": 4,
+        "web_search_completions": 2,
+        "compactions": 3,
+        "aborted_turns": 1,
+        "unique_subagents": 2,
+        "spawn_calls": 3,
+        "subagent_lifecycle_counts": {
+            "started": 2,
+            "interacted": 4,
+            "interrupted": 1,
+        },
+    }
+
+
+def test_rich_goal_completion_metrics_are_exact_separate_and_subset_safe() -> None:
+    receipt = build_rich_goal_completion_metrics_receipt(
+        goal_id="goal-001",
+        telemetry=_rich_telemetry(),
+        provenance={"source": "codex-host-persisted-goal-telemetry"},
+        binding=_binding(),
+    )
+
+    assert receipt["status"] == "PASS"
+    assert receipt["route"] == RICH_GOAL_COMPLETION_METRICS_ROUTE
+    assert receipt["host_accounting"]["goal_tokens"] == {
+        "availability": "AVAILABLE",
+        "raw": 42_000,
+        "display": "42K",
+        "suffix": "K",
+        "divisor": 1_000,
+        "decimal_places": 2,
+        "rounding_rule": "ROUND_HALF_UP",
+        "exact_raw_value_preserved": True,
+    }
+    assert receipt["host_accounting"][
+        "kept_separate_from_raw_model_traffic"
+    ] is True
+    assert receipt["raw_model_traffic"]["raw_input_tokens"]["raw"] == 100_000
+    assert receipt["raw_model_traffic"]["output_tokens"]["raw"] == 25_000
+    assert receipt["raw_model_traffic"]["reasoning_output_tokens"]["raw"] == 5_000
+    assert receipt["raw_model_traffic"]["raw_input_output_total_tokens"][
+        "raw"
+    ] == 125_000
+    assert receipt["accounting_laws"]["reasoning_tokens_double_counted"] is False
+    assert receipt["elapsed"] == {
+        "availability": "AVAILABLE",
+        "raw": 3_661,
+        "display": "1h 1m 1s",
+        "exact_raw_value_preserved": True,
+    }
+    assert receipt["activity_counts"]["native_mcp_completions"]["raw"] == 7
+    assert receipt["subagent_lifecycle_counts"]["interacted"]["raw"] == 4
+    assert receipt["missing_fields"] == []
+    assert receipt["completion_state"]["completion_call_performed"] is False
+    assert receipt["legacy_route"] == {
+        "identifier": "build_goal_usage_receipt",
+        "status": "OBSOLETE_ROUTE",
+        "executable": False,
+        "fallback_allowed": False,
+        "required_current_route": RICH_GOAL_COMPLETION_METRICS_ROUTE,
+    }
+
+
+def test_completed_goal_reuses_persisted_rich_receipt_without_completion() -> None:
+    persisted = build_rich_goal_completion_metrics_receipt(
+        goal_id="goal-001",
+        telemetry=_rich_telemetry(),
+        provenance={"source": "codex-host-persisted-goal-telemetry"},
+        binding=_binding(),
+    )
+    replay = build_rich_goal_completion_metrics_receipt(
+        goal_id="goal-001",
+        telemetry={},
+        provenance={"source": "codex-host-persisted-goal-telemetry"},
+        binding=_binding(),
+        goal_already_complete=True,
+        persisted_receipt=persisted,
+    )
+
+    assert replay == persisted
+    assert replay["completion_state"]["completion_call_performed"] is False
+
+
+def test_incomplete_rich_telemetry_reports_missing_fields_without_fallback() -> None:
+    receipt = build_rich_goal_completion_metrics_receipt(
+        goal_id="goal-002",
+        telemetry={
+            "raw_input_tokens": 100,
+            "output_tokens": 25,
+            "reasoning_output_tokens": 5,
+        },
+        provenance={"source": "partial-host-telemetry"},
+        binding=_binding(),
+        goal_already_complete=True,
+    )
+
+    assert receipt["status"] == "INCOMPLETE_TELEMETRY"
+    assert receipt["raw_model_traffic"]["raw_input_output_total_tokens"][
+        "raw"
+    ] == 125
+    assert receipt["host_accounting"]["conversion_or_weighting_formula"] == (
+        "UNKNOWN_NOT_EXPOSED"
+    )
+    assert "host_accounted_goal_tokens" in receipt["missing_fields"]
+    assert "host_accounting_formula" in receipt["missing_fields"]
+    assert "persisted_completion_metrics_receipt" in receipt["missing_fields"]
+    assert receipt["legacy_route"]["fallback_allowed"] is False
+    assert receipt["completion_state"]["completion_call_performed"] is False
+
+
+@pytest.mark.parametrize(
+    "telemetry",
+    [
+        {"raw_input_tokens": 10, "cached_input_tokens": 11},
+        {"output_tokens": 10, "reasoning_output_tokens": 11},
+        {
+            "raw_input_tokens": 10,
+            "output_tokens": 2,
+            "raw_input_output_total_tokens": 13,
+        },
+    ],
+)
+def test_rich_goal_metrics_reject_subset_or_total_mismatch(
+    telemetry: dict[str, object],
+) -> None:
+    with pytest.raises(ValueError):
+        build_rich_goal_completion_metrics_receipt(
+            goal_id="goal-invalid",
+            telemetry=telemetry,
+            provenance={"source": "invalid-test-telemetry"},
+            binding=_binding(),
+        )
 
 
 def test_component_accounting_preserves_raw_values_and_subset_semantics() -> None:

@@ -1,9 +1,0 @@
-interface:
-  display_name: "Evidence Lane Build"
-  short_description: "Build a candidate and stop at HIL"
-  default_prompt: "Use $evi-build to build or decide one governed candidate without inferring HIL approval."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 SKILL = PLUGIN / "skills" / "evidence-lane-code-lifecycle" / "SKILL.md"
+ROOT_SKILL = PLUGIN / "skills" / "evi" / "SKILL.md"
 BOUNDARY_HOOK = PLUGIN / "hooks" / "lifecycle_boundary.py"
 SKILL_RUNTIME = (
     PLUGIN
@@ -46,25 +47,37 @@ def test_bounded_step_task_list_reentry_is_skill_owned_and_goal_independent() ->
     assert "exactly\n   one active row" in contract
     assert "persistent_until=NEXT_SIX_WAY_HIL_PRESENTED" in contract
     assert "PHYSICALLY_FINAL_HIL" in contract
-    assert "aligned window of at\nmost ten executable rows" in contract
+    assert "one\ncompact header plus the persisted fixed batch of up to nine Delta rows" in contract
     assert "complete native Plan Lane/Delta ledger is durable authority" in contract
     assert "never load the raw PV" in contract
-    assert "ROW=<absolute row>" in contract
-    assert "TASK=<stable task ID>" in contract
-    assert "STATE=<native/host status>" in contract
-    assert "CLASS=<classification>" in contract
-    assert "GROUP=<Plan group>" in contract
-    assert "BATCH=<commit batch or UNASSIGNED>" in contract
-    assert "ROLE=<panel role>" in contract
-    assert "DEP=<validated graph dependency>" in contract
-    assert "GRAPH=<Plan SQLite graph pointer>" in contract
-    assert "FTS=<exact task/FTS locator>" in contract
-    assert "only to the exact row where Git actually\nexecutes" in contract
+    assert "exact four-line Delta item contract" in contract
+    assert "bounded task-identity token" in contract
+    assert "SQLite/FTS locator" in contract
+    assert "validated dependency" in contract
+    assert "first bounded human-readable outcome line" in contract
+    assert "at most one continuation line" in contract
+    assert "only on the exact row where Git actually\nexecutes" in contract
     assert "current non-superseded Plan authority" in contract
     assert "CONFLICTING_DECLARATIONS@RECONCILIATION_REQUIRED" in contract
     assert "every governed project and corpus" in contract
     assert "raw linked-Delta JSON" in contract
     assert "direct stdio as replacement behavior" in contract
+    assert "maximum three-line" not in contract
+    assert (
+        "never handcraft, expand, normalize, de-duplicate, or reconstruct"
+        in contract.lower()
+    )
+
+
+def test_root_router_uses_only_the_fixed_header_plus_four_line_delta_contract() -> None:
+    contract = ROOT_SKILL.read_text(encoding="utf-8")
+
+    assert "visible\nelement one is the compact PV/ACTIVE/fixed-BATCH" in contract
+    assert "persisted fixed batch of up to nine Delta rows" in contract
+    assert "exactly four physical lines" in contract
+    assert "host_update_plan_contract.plan` to `update_plan` unchanged" in contract
+    assert "Never handcraft, expand, normalize, de-duplicate, or reconstruct" in contract
+    assert "header as the host Plan `explanation`" not in contract
 
 
 def test_postcompact_hook_signals_reentry_without_owning_behavior() -> None:

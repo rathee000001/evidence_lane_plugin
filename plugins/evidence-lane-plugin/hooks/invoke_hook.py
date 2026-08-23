@@ -22,11 +22,14 @@ HOOK_LAUNCH_DIAGNOSTIC_SCHEMA = (
 
 _EVENT_HANDLERS: dict[str, tuple[str, tuple[str, ...]]] = {
     "SessionStart": ("session_start.py", ()),
+    "SubagentStart": ("subagent_start.py", ()),
     "UserPromptSubmit": ("prompt_submit.py", ()),
     "PreToolUse": ("pre_tool_use.py", ()),
+    "PermissionRequest": ("permission_request.py", ()),
     "PostToolUse": ("post_tool_use.py", ()),
     "PreCompact": ("lifecycle_boundary.py", ("PreCompact",)),
     "PostCompact": ("lifecycle_boundary.py", ("PostCompact",)),
+    "SubagentStop": ("subagent_stop.py", ()),
     "Stop": ("stop_response.py", ()),
     "SessionEnd": ("lifecycle_boundary.py", ("SessionEnd",)),
 }

@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import os
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
 
+import evidence_lane_plugin.mcp_server as mcp_server_module
 import pytest
 from evidence_lane_plugin.auth import (
     READ_SCOPE,
@@ -20,6 +25,7 @@ from evidence_lane_plugin.constants import (
     NATIVE_TOOL_COUNT,
     NATIVE_WRITE_TOOL_COUNT,
 )
+from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from evidence_lane_plugin.hook_contract import HOOK_EVENT_NAMES
 from evidence_lane_plugin.mcp_server import SDK_NATIVE_ACTIONS, create_mcp_server
 from evidence_lane_plugin.service import EvidenceLaneService
@@ -28,12 +34,6 @@ from pydantic import ValidationError
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 MATRIX_PATH = ROOT / "docs" / "V300_PUBLIC_SURFACE_PARITY_MATRIX.json"
-ROW236_RECEIPT_PATH = (
-    ROOT
-    / "evidence"
-    / "task6_delta_receipts"
-    / "EL-CODEX-T6-PARITY-031-MCP-TOOL-EVAL-MATRIX.json"
-)
 RELEASE_GATE_PATH = (
     PLUGIN
     / "skills"
@@ -225,6 +225,11 @@ def _evaluate_server_contracts(
 
 
 def test_public_surface_matrix_matches_executable_catalog() -> None:
+    from evidence_lane_plugin.public_surface_registry import (
+        derive_public_surface_registry,
+    )
+
+    public_surface_registry = derive_public_surface_registry(PLUGIN)
     matrix = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
     actions = matrix["native_actions"]
     assert (NATIVE_TOOL_COUNT, NATIVE_READ_TOOL_COUNT, NATIVE_WRITE_TOOL_COUNT) == (
@@ -250,20 +255,21 @@ def test_public_surface_matrix_matches_executable_catalog() -> None:
     assert set(matrix["governed_skills"]["new_in_this_group"]) <= set(skill_names)
 
     hooks = matrix["lifecycle_hooks"]
-    assert hooks["registered_event_count"] == len(HOOK_EVENT_NAMES) == 8
+    assert hooks["registered_event_count"] == len(HOOK_EVENT_NAMES) == 11
     assert hooks["event_names"] == list(HOOK_EVENT_NAMES)
     hook_files = [
         PLUGIN / "hooks" / "hooks.json",
         *(PLUGIN / "hooks").glob("*.py"),
         *(PLUGIN / "hooks").glob("*.ps1"),
     ]
-    assert len({path.resolve() for path in hook_files}) == hooks["package_file_count"] == 11
+    assert len({path.resolve() for path in hook_files}) == hooks["package_file_count"] == 15
 
     commands = sorted(path.name for path in (PLUGIN / "commands").glob("*.md"))
-    assert commands == matrix["host_commands"]["command_files"] == [
-        "evi-learning.md",
-        "evi-plan.md",
+    assert commands == [
+        row["name"] for row in public_surface_registry["commands"]["records"]
     ]
+    assert public_surface_registry["catalog"]["commands"] == len(commands)
+    assert matrix["host_commands"]["command_files"] == commands
 
 
 def test_canon_and_learning_public_actions_match_sdk_registration() -> None:
@@ -362,6 +368,268 @@ def test_every_source_public_tool_runs_the_bounded_eval_matrix(
     assert compact["matrix_sha256"] == sealed["matrix_sha256"]
 
 
+def test_every_source_public_handler_executes_with_hooks_off(
+    service: EvidenceLaneService,
+    source_repository: Path,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    server = create_mcp_server(service=service)
+    failure_boundary = (  # type: ignore[attr-defined]
+        server._evidence_lane_public_handler_failure_boundary
+    )
+    tools = sorted(
+        server._tool_manager.list_tools(),  # type: ignore[attr-defined]
+        key=lambda item: item.name,
+    )
+    records: list[dict[str, object]] = []
+
+    async def execute() -> None:
+        for tool in tools:
+            properties = tool.parameters.get("properties") or {}
+            required = list(tool.parameters.get("required") or [])
+            arguments = {
+                name: _case_value(properties[name], edge=False)
+                for name in required
+            }
+            if "project_id" in arguments:
+                arguments["project_id"] = "book-faires"
+            if "session_id" in arguments:
+                arguments["session_id"] = "missing-parity-session"
+            if "repository_path" in arguments:
+                arguments["repository_path"] = str(source_repository)
+
+            try:
+                result = await asyncio.wait_for(
+                    tool.run(arguments, convert_result=False),
+                    timeout=5.0,
+                )
+            except TimeoutError:
+                pytest.fail(f"UNBOUNDED_PUBLIC_HANDLER:{tool.name}")
+            assert isinstance(result, dict), tool.name
+            assert result["schema"] in {
+                "evidence-lane.pv.tool-result.v1",
+                "evidence-lane.pv.lifecycle-result.v1",
+            }, tool.name
+            assert result["status"] in {"PASS", "FAIL"}, tool.name
+            assert result["execution_status"] == result["status"], tool.name
+            assert isinstance(result["domain_status"], str), tool.name
+            records.append(
+                {
+                    "name": tool.name,
+                    "execution_status": result["execution_status"],
+                    "domain_status": result["domain_status"],
+                }
+            )
+
+    asyncio.run(execute())
+
+    assert failure_boundary["status"] == "PASS"
+    assert failure_boundary["wrapped_handler_count"] == NATIVE_TOOL_COUNT
+    assert len(records) == len({row["name"] for row in records}) == NATIVE_TOOL_COUNT
+    by_name = {str(row["name"]): row for row in records}
+    for valid_hooks_off_read in (
+        "lane_catalog",
+        "lifecycle_transition_law",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "session_flash_status",
+    ):
+        assert by_name[valid_hooks_off_read]["execution_status"] == "PASS"
+
+    probe_service = EvidenceLaneService(data_root=tmp_path / "entry-probe")
+    dispatched: list[str] = []
+
+    def entry_receipt(
+        *,
+        tool_name: str,
+        lifecycle: bool,
+        project_id: str | None,
+        session_id: str | None,
+    ) -> dict[str, Any]:
+        body = {
+            "schema": "evidence-lane.public-entry-binding.v1",
+            "status": "PASS",
+            "tool_name": tool_name,
+            "effect_class": "WRITE" if lifecycle else "READ",
+            "binding": {"binding_mode": "SIDE_EFFECT_FREE_DISPATCH_PROBE"},
+            "env_uop_entry_status": "ATTESTED",
+            "runtime_instance_attestation_receipt_sha256": "A" * 64,
+            "caller_supplied_runtime_identity": False,
+            "callback_entered": False,
+        }
+        body["receipt_sha256"] = sha256_bytes(canonical_json_bytes(body))
+        return body
+
+    def dispatch_without_business_effects(
+        tool: str,
+        callback: Callable[..., dict[str, Any]],
+        /,
+        *args: Any,
+        lifecycle: bool = False,
+        entry_authorization: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        del callback, args, kwargs
+        dispatched.append(tool)
+        return {
+            "schema": (
+                "evidence-lane.pv.lifecycle-result.v1"
+                if lifecycle
+                else "evidence-lane.pv.tool-result.v1"
+            ),
+            "tool": tool,
+            "status": "PASS",
+            "execution_status": "PASS",
+            "domain_status": "DISPATCH_PROBE",
+            "data": {"status": "DISPATCH_PROBE"},
+            "warnings": [],
+            "error": None,
+            "provenance": {"fabricated_evidence": False},
+            "entry_authorization": entry_authorization,
+        }
+
+    monkeypatch.setattr(
+        probe_service,
+        "_public_entry_binding_receipt",
+        entry_receipt,
+    )
+    monkeypatch.setattr(probe_service, "invoke", dispatch_without_business_effects)
+    monkeypatch.setattr(
+        probe_service.sessions,
+        "load",
+        lambda *args, **kwargs: SimpleNamespace(
+            metadata={"active_backlog_task_id": ""}
+        ),
+    )
+    monkeypatch.setattr(
+        probe_service,
+        "task_backlog",
+        lambda *args, **kwargs: {"tasks": []},
+    )
+    monkeypatch.setattr(
+        probe_service,
+        "status",
+        lambda *args, **kwargs: {"status": "PASS"},
+    )
+    monkeypatch.setattr(
+        mcp_server_module,
+        "build_project_panel_snapshot",
+        lambda **kwargs: {},
+    )
+    probe_server = create_mcp_server(service=probe_service)
+    probe_tools = sorted(
+        probe_server._tool_manager.list_tools(),  # type: ignore[attr-defined]
+        key=lambda item: item.name,
+    )
+
+    async def execute_dispatch_probe() -> None:
+        for tool in probe_tools:
+            properties = tool.parameters.get("properties") or {}
+            arguments = {
+                name: _case_value(properties[name], edge=False)
+                for name in list(tool.parameters.get("required") or [])
+            }
+            if "project_id" in arguments:
+                arguments["project_id"] = "dispatch-project"
+            if "session_id" in arguments:
+                arguments["session_id"] = "dispatch-session"
+            if "repository_path" in arguments:
+                arguments["repository_path"] = str(source_repository)
+            result = await asyncio.wait_for(
+                tool.run(arguments, convert_result=False),
+                timeout=5.0,
+            )
+            assert result["execution_status"] == "PASS", (
+                tool.name,
+                result.get("error"),
+            )
+
+    asyncio.run(execute_dispatch_probe())
+
+    assert sorted(dispatched) == [tool.name for tool in probe_tools]
+    assert len(dispatched) == len(set(dispatched)) == NATIVE_TOOL_COUNT
+
+
+def test_every_public_action_denies_before_entering_service_handler(
+    tmp_path: Path,
+    source_repository: Path,
+) -> None:
+    class DenialProbeService(EvidenceLaneService):
+        def __init__(self, data_root: Path) -> None:
+            super().__init__(data_root=data_root)
+            self.handler_invocations: list[str] = []
+
+        def invoke(
+            self,
+            tool: str,
+            callback: Callable[..., dict[str, Any]],
+            /,
+            *args: Any,
+            lifecycle: bool = False,
+            **kwargs: Any,
+        ) -> dict[str, Any]:
+            self.handler_invocations.append(tool)
+            return super().invoke(
+                tool,
+                callback,
+                *args,
+                lifecycle=lifecycle,
+                **kwargs,
+            )
+
+    service = DenialProbeService(tmp_path / "denied-service")
+    server = create_mcp_server(
+        service=service,
+        base_url="https://mcp.example",
+        oauth_config=_oauth_config(),
+    )
+    tools = sorted(
+        server._tool_manager.list_tools(),  # type: ignore[attr-defined]
+        key=lambda item: item.name,
+    )
+
+    def tree_identity() -> dict[str, str]:
+        return {
+            path.relative_to(service.store.root).as_posix(): hashlib.sha256(
+                path.read_bytes()
+            ).hexdigest()
+            for path in sorted(service.store.root.rglob("*"))
+            if path.is_file()
+        }
+
+    before = tree_identity()
+
+    async def execute() -> None:
+        for tool in tools:
+            properties = tool.parameters.get("properties") or {}
+            arguments = {
+                name: _case_value(properties[name], edge=False)
+                for name in list(tool.parameters.get("required") or [])
+            }
+            if "project_id" in arguments:
+                arguments["project_id"] = "denied-project"
+            if "session_id" in arguments:
+                arguments["session_id"] = "denied-session"
+            if "repository_path" in arguments:
+                arguments["repository_path"] = str(source_repository)
+            result = await asyncio.wait_for(
+                tool.run(arguments, convert_result=False),
+                timeout=5.0,
+            )
+            assert result.isError is True, tool.name
+            assert result.structuredContent["code"] == (
+                "AUTHENTICATED_OAUTH_CONTEXT_REQUIRED"
+            ), tool.name
+            assert result.structuredContent["mutation_performed"] is False
+
+    asyncio.run(execute())
+
+    assert service.handler_invocations == []
+    assert tree_identity() == before
+
+
 def test_every_source_public_tool_runs_the_oauth_and_write_cases(
     tmp_path: Path,
 ) -> None:
@@ -404,18 +672,19 @@ def test_public_tool_matrix_rejects_one_untested_contract(tmp_path: Path) -> Non
 
 def test_conformance_release_gate_is_derived_from_the_sealed_matrix() -> None:
     gate = json.loads(RELEASE_GATE_PATH.read_text(encoding="utf-8"))
-    receipt = json.loads(ROW236_RECEIPT_PATH.read_text(encoding="utf-8"))
     generated = gate["generated_from"]
+    receipt_path = ROOT / generated["receipt_path"]
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
     catalogs = gate["evaluated_catalogs"]
 
     assert gate["schema"] == "evidence-lane.public-tool-conformance-release-gate.v1"
     assert gate["status"] == "PASS"
     assert gate["source_delta_task_id"] == receipt["delta_task_id"]
     assert generated["receipt_path"] == str(
-        ROW236_RECEIPT_PATH.relative_to(ROOT)
+        receipt_path.relative_to(ROOT)
     ).replace("\\", "/")
     assert generated["receipt_file_sha256"] == hashlib.sha256(
-        ROW236_RECEIPT_PATH.read_bytes()
+        receipt_path.read_bytes()
     ).hexdigest().upper()
     assert generated["source_matrix_sha256"] == receipt["implementation"][
         "source_catalog"
@@ -448,7 +717,12 @@ def test_conformance_release_gate_is_derived_from_the_sealed_matrix() -> None:
     }
     assert set(gate["immutable_case_locators"]) == set(EVALUATION_CASES)
     assert all(
-        locator.startswith("tests/test_public_surface_parity_matrix.py::test_")
+        locator.startswith(
+            (
+                "tests/test_public_surface_parity_matrix.py::test_",
+                "tests/test_public_surface_registry.py::test_",
+            )
+        )
         for locator in gate["immutable_case_locators"].values()
     )
 

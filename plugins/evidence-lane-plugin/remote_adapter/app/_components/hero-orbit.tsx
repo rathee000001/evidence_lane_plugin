@@ -12,6 +12,11 @@ import {
 
 import modeOperatorGuide from "../_data/mode-governance.json";
 import {
+  currentProductContract,
+  hookEvents,
+  hostCapabilityProfiles,
+} from "../_data/current-product-contract";
+import {
   GlassIconOrb,
   OfficialToolIcon,
   PulsatingBrain,
@@ -249,16 +254,16 @@ const homeGovernanceRings: readonly HeroOrbitRing[] = [
     nodes: hilDecisionNodes,
     tag: bottomTag("6", "exact HIL decisions"),
   },
-  { label: "Governed controls", size: 68, nodes: controlNodes, tag: leftTag("6", "governed controls", 70) },
-  { label: "Plugin surfaces", size: 82, nodes: pluginSurfaceNodes, tag: leftTag("17", "plugin surfaces", 31) },
-  { label: "Source lanes", size: 96, nodes: laneNodes, tag: topTag("18", "source lanes") },
+  { label: "Governed controls", size: 68, nodes: controlNodes, tag: leftTag(String(currentProductContract.primaryControlCount), "governed controls", 70) },
+  { label: "Plugin surfaces", size: 82, nodes: pluginSurfaceNodes, tag: leftTag(String(currentProductContract.governedSkillCount), "plugin surfaces", 31) },
+  { label: "Source lanes", size: 96, nodes: laneNodes, tag: topTag(String(currentProductContract.canonicalLaneCount), "source lanes") },
 ];
 
 const presetRings: Record<HeroOrbitPreset, readonly HeroOrbitRing[]> = {
   home: homeGovernanceRings,
   skills: [
-    { label: "Governed skills", size: 72, nodes: pluginSurfaceNodes, tag: bottomTag("17", "governed skills") },
-    { label: "Primary controls", size: 92, nodes: controlNodes, tag: topTag("6", "primary controls") },
+    { label: "Governed skills", size: 72, nodes: pluginSurfaceNodes, tag: bottomTag(String(currentProductContract.governedSkillCount), "governed skills") },
+    { label: "Primary controls", size: 92, nodes: controlNodes, tag: topTag(String(currentProductContract.primaryControlCount), "primary controls") },
   ],
   mcp: [
     {
@@ -270,7 +275,7 @@ const presetRings: Record<HeroOrbitPreset, readonly HeroOrbitRing[]> = {
         { label: "Lifecycle gated", tool: "pulse", color: rose },
         { label: "Fail closed", tool: "package", color: gold },
       ],
-      tag: bottomTag("83", "native actions"),
+      tag: bottomTag(String(currentProductContract.nativeMcp.totalActions), "native actions"),
     },
     {
       label: "Native authority",
@@ -288,17 +293,12 @@ const presetRings: Record<HeroOrbitPreset, readonly HeroOrbitRing[]> = {
     {
       label: "Lifecycle events",
       size: 72,
-      nodes: [
-        { label: "SessionStart", tool: "pulse", color: cyan },
-        { label: "UserPromptSubmit", tool: "node", color: green },
-        { label: "PreToolUse", tool: "terminal", color: violet },
-        { label: "PostToolUse", tool: "terminal", color: gold },
-        { label: "PreCompact", tool: "package", color: rose },
-        { label: "PostCompact", tool: "package", color: lime },
-        { label: "Stop", tool: "pulse", color: cyan },
-        { label: "SessionEnd", tool: "database", color: green },
-      ],
-      tag: bottomTag("8", "lifecycle events"),
+      nodes: hookEvents.map((label, index) => ({
+        label,
+        tool: (["pulse", "node", "terminal", "package", "database"] as const)[index % 5],
+        color: accents[index % accents.length],
+      })),
+      tag: bottomTag(String(hookEvents.length), "lifecycle events"),
     },
     {
       label: "Ownership boundaries",
@@ -375,7 +375,7 @@ const presetRings: Record<HeroOrbitPreset, readonly HeroOrbitRing[]> = {
   ],
   studio: homeGovernanceRings,
   proof: [
-    { label: "Lane proofs", size: 66, nodes: laneNodes, tag: bottomTag("18", "lane proofs") },
+    { label: "Lane proofs", size: 66, nodes: laneNodes, tag: bottomTag(String(currentProductContract.canonicalLaneCount), "lane proofs") },
     {
       label: "Governed files",
       size: 84,
@@ -413,7 +413,7 @@ const presetRings: Record<HeroOrbitPreset, readonly HeroOrbitRing[]> = {
     },
   ],
   connect: [
-    { label: "Governed controls", size: 66, nodes: controlNodes, tag: bottomTag("6", "governed controls") },
+    { label: "Governed controls", size: 66, nodes: controlNodes, tag: bottomTag(String(currentProductContract.primaryControlCount), "governed controls") },
     {
       label: "Host routes",
       size: 84,
@@ -549,9 +549,9 @@ function ConnectCenter() {
     <div className="heroOrbitCenter heroOrbitCenter--connect" data-hero-center="host-connection">
       <div className="connectHeroSphere">
         <span>HOST BOUNDARY</span>
-        <strong>2</strong>
-        <b>governed hosts</b>
-        <small>Persistent Codex<br />Headless Codex API</small>
+        <strong>{hostCapabilityProfiles.length}</strong>
+        <b>capability profiles</b>
+        <small>Storage · transport<br />lifecycle stay separate</small>
       </div>
     </div>
   );
@@ -575,9 +575,9 @@ function SurfaceCenter({ count, label, preset }: { count: string; label: string;
 
 function HeroCenter({ preset }: { preset: HeroOrbitPreset }) {
   if (preset === "home" || preset === "architecture") return <BrainCenter preset={preset} />;
-  if (preset === "skills") return <SurfaceCenter count="17" label="governed skills" preset={preset} />;
-  if (preset === "mcp") return <SurfaceCenter count="83" label="native actions" preset={preset} />;
-  if (preset === "hooks") return <SurfaceCenter count="8" label="lifecycle events" preset={preset} />;
+  if (preset === "skills") return <SurfaceCenter count={String(currentProductContract.governedSkillCount)} label="governed skills" preset={preset} />;
+  if (preset === "mcp") return <SurfaceCenter count={String(currentProductContract.nativeMcp.totalActions)} label="native actions" preset={preset} />;
+  if (preset === "hooks") return <SurfaceCenter count={String(hookEvents.length)} label="lifecycle events" preset={preset} />;
   if (preset === "operators") return <OperatorCenter />;
   if (preset === "studio") return <StudioCenter />;
   if (preset === "proof") return <ProofCenter />;

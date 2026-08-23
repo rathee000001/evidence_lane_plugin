@@ -1,4 +1,4 @@
-"""Cross-process isolation for the eight governed Codex hook events.
+"""Cross-process isolation for the registry-derived Codex hook events.
 
 The launcher validates the current OpenAI Codex wire shapes, claims one
 content-addressed occurrence in SQLite before executing its handler, and
@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sqlite3
 import subprocess
 import sys
@@ -41,11 +42,14 @@ STOP_REPLAY_IGNORED_FIELDS: Final = tuple(
 
 EVENT_ORDER: Final = (
     "SessionStart",
+    "SubagentStart",
     "UserPromptSubmit",
     "PreToolUse",
+    "PermissionRequest",
     "PostToolUse",
     "PreCompact",
     "PostCompact",
+    "SubagentStop",
     "Stop",
     "SessionEnd",
 )
@@ -147,6 +151,31 @@ _INPUT_RULES: Final[dict[str, dict[str, Any]]] = {
             "transcript_path": _NULLABLE_STRING,
         },
     },
+    "SubagentStart": {
+        "required": {
+            "agent_id",
+            "agent_type",
+            "cwd",
+            "hook_event_name",
+            "model",
+            "permission_mode",
+            "session_id",
+            "transcript_path",
+            "turn_id",
+        },
+        "optional": set(),
+        "types": {
+            "agent_id": str,
+            "agent_type": str,
+            "cwd": str,
+            "hook_event_name": str,
+            "model": str,
+            "permission_mode": str,
+            "session_id": str,
+            "transcript_path": _NULLABLE_STRING,
+            "turn_id": str,
+        },
+    },
     "UserPromptSubmit": {
         "required": {
             "cwd",
@@ -196,6 +225,32 @@ _INPUT_RULES: Final[dict[str, dict[str, Any]]] = {
             "session_id": str,
             "tool_name": str,
             "tool_use_id": str,
+            "transcript_path": _NULLABLE_STRING,
+            "turn_id": str,
+        },
+    },
+    "PermissionRequest": {
+        "required": {
+            "cwd",
+            "hook_event_name",
+            "model",
+            "permission_mode",
+            "session_id",
+            "tool_input",
+            "tool_name",
+            "transcript_path",
+            "turn_id",
+        },
+        "optional": {"agent_id", "agent_type"},
+        "types": {
+            "agent_id": str,
+            "agent_type": str,
+            "cwd": str,
+            "hook_event_name": str,
+            "model": str,
+            "permission_mode": str,
+            "session_id": str,
+            "tool_name": str,
             "transcript_path": _NULLABLE_STRING,
             "turn_id": str,
         },
@@ -275,6 +330,37 @@ _INPUT_RULES: Final[dict[str, dict[str, Any]]] = {
             "turn_id": str,
         },
     },
+    "SubagentStop": {
+        "required": {
+            "agent_id",
+            "agent_transcript_path",
+            "agent_type",
+            "cwd",
+            "hook_event_name",
+            "last_assistant_message",
+            "model",
+            "permission_mode",
+            "session_id",
+            "stop_hook_active",
+            "transcript_path",
+            "turn_id",
+        },
+        "optional": set(),
+        "types": {
+            "agent_id": str,
+            "agent_transcript_path": _NULLABLE_STRING,
+            "agent_type": str,
+            "cwd": str,
+            "hook_event_name": str,
+            "last_assistant_message": _NULLABLE_STRING,
+            "model": str,
+            "permission_mode": str,
+            "session_id": str,
+            "stop_hook_active": bool,
+            "transcript_path": _NULLABLE_STRING,
+            "turn_id": str,
+        },
+    },
     "Stop": {
         "required": {
             "cwd",
@@ -327,6 +413,7 @@ _COMMON_OUTPUT_TYPES: Final = {
 }
 _OUTPUT_KEYS: Final = {
     "SessionStart": {*_COMMON_OUTPUT_TYPES, "hookSpecificOutput"},
+    "SubagentStart": {*_COMMON_OUTPUT_TYPES, "hookSpecificOutput"},
     "UserPromptSubmit": {
         *_COMMON_OUTPUT_TYPES,
         "decision",
@@ -334,6 +421,12 @@ _OUTPUT_KEYS: Final = {
         "hookSpecificOutput",
     },
     "PreToolUse": {
+        *_COMMON_OUTPUT_TYPES,
+        "decision",
+        "reason",
+        "hookSpecificOutput",
+    },
+    "PermissionRequest": {
         *_COMMON_OUTPUT_TYPES,
         "decision",
         "reason",
@@ -347,6 +440,7 @@ _OUTPUT_KEYS: Final = {
     },
     "PreCompact": set(_COMMON_OUTPUT_TYPES),
     "PostCompact": set(_COMMON_OUTPUT_TYPES),
+    "SubagentStop": {*_COMMON_OUTPUT_TYPES, "decision", "reason"},
     "Stop": set(STOP_EXACT_OUTPUT),
     "SessionEnd": set(),
 }
@@ -392,7 +486,7 @@ def validate_input(event_name: str, raw_payload: str) -> tuple[dict[str, Any], s
     if event_name == "SessionEnd" and payload["reason"] != "other":
         raise HookEventIsolationError("HOOK_EVENT_SESSION_END_REASON_INVALID")
     occurrence_payload = dict(payload)
-    if event_name == "Stop":
+    if event_name in {"Stop", "SubagentStop"}:
         for field in STOP_REPLAY_IGNORED_FIELDS:
             occurrence_payload.pop(field, None)
     return payload, _sha256(_canonical_bytes(occurrence_payload))
@@ -418,6 +512,17 @@ def validate_output(event_name: str, output: Mapping[str, Any]) -> None:
         "block",
     }:
         raise HookEventIsolationError("HOOK_EVENT_BLOCK_DECISION_INVALID")
+    if event_name == "PermissionRequest" and decision is not None:
+        if not isinstance(decision, Mapping):
+            raise HookEventIsolationError(
+                "HOOK_EVENT_PERMISSION_REQUEST_DECISION_INVALID"
+            )
+        if set(decision).difference({"allow", "deny", "reason"}):
+            raise HookEventIsolationError(
+                "HOOK_EVENT_PERMISSION_REQUEST_DECISION_INVALID"
+            )
+    if event_name == "SubagentStop" and decision not in {None, "block"}:
+        raise HookEventIsolationError("HOOK_EVENT_SUBAGENT_STOP_DECISION_INVALID")
     if decision == "block" and not isinstance(output.get("reason"), str):
         raise HookEventIsolationError("HOOK_EVENT_BLOCK_REASON_REQUIRED")
     specific = output.get("hookSpecificOutput")
@@ -427,6 +532,7 @@ def validate_output(event_name: str, output: Mapping[str, Any]) -> None:
         raise HookEventIsolationError("HOOK_EVENT_SPECIFIC_OUTPUT_MISMATCH")
     allowed_specific = {
         "SessionStart": {"hookEventName", "additionalContext"},
+        "SubagentStart": {"hookEventName", "additionalContext"},
         "UserPromptSubmit": {"hookEventName", "additionalContext"},
         "PreToolUse": {
             "hookEventName",
@@ -435,6 +541,7 @@ def validate_output(event_name: str, output: Mapping[str, Any]) -> None:
             "permissionDecisionReason",
             "updatedInput",
         },
+        "PermissionRequest": {"hookEventName", "additionalContext"},
         "PostToolUse": {
             "hookEventName",
             "additionalContext",
@@ -493,6 +600,64 @@ def _read_kill_switch(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
     return body, payload
 
 
+def _read_kill_switch_for_inactive_rotation(
+    path: Path,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Validate a sealed prior policy generation without activating it.
+
+    Runtime verification remains strict to the current policy. Installation may
+    migrate only a fully self-sealed, inactive predecessor so an event-set update
+    cannot strand the global hooks-off control plane.
+    """
+
+    try:
+        body = json.loads(path.read_bytes())
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HookEventIsolationError("HOOK_KILL_SWITCH_RECEIPT_JSON_INVALID") from exc
+    payload = body.get("payload") if isinstance(body, dict) else None
+    generation = payload.get("generation") if isinstance(payload, dict) else None
+    policy_sha256 = payload.get("policy_sha256") if isinstance(payload, dict) else None
+    if (
+        not isinstance(body, dict)
+        or body.get("schema") != KILL_SWITCH_SCHEMA
+        or not isinstance(payload, dict)
+        or payload.get("schema") != KILL_SWITCH_SCHEMA
+        or body.get("payload_sha256") != _sha256(_canonical_bytes(payload))
+        or not isinstance(policy_sha256, str)
+        or re.fullmatch(r"[0-9A-F]{64}", policy_sha256) is None
+        or payload.get("owner") != "EVIDENCE_LANE_INSTALLED_HOOK_RUNTIME"
+        or payload.get("state") not in {"INACTIVE", "ACTIVE"}
+        or not isinstance(payload.get("installation_id"), str)
+        or not payload["installation_id"].strip()
+        or not isinstance(generation, int)
+        or isinstance(generation, bool)
+        or generation < 1
+    ):
+        raise HookEventIsolationError("HOOK_KILL_SWITCH_RECEIPT_INVALID")
+    return body, payload
+
+
+def _preserve_superseded_kill_switch(
+    path: Path,
+    *,
+    content: bytes,
+    generation: int,
+    file_sha256: str,
+) -> Path:
+    archive = path.parent / "superseded" / (
+        f"KILL_SWITCH.g{generation}.{file_sha256}.json"
+    )
+    archive.parent.mkdir(parents=True, exist_ok=True)
+    if archive.exists():
+        if not archive.is_file() or archive.read_bytes() != content:
+            raise HookEventIsolationError("HOOK_KILL_SWITCH_SUPERSESSION_CONFLICT")
+        return archive
+    temporary = archive.with_name(f".{archive.name}.{os.getpid()}.tmp")
+    temporary.write_bytes(content)
+    os.replace(temporary, archive)
+    return archive
+
+
 def initialize_inactive_kill_switch(
     data_root: Path,
     *,
@@ -512,14 +677,21 @@ def initialize_inactive_kill_switch(
     path = data_root.resolve() / "hook-event-isolation" / "KILL_SWITCH.json"
     generation = 1
     prior_file_sha256: str | None = None
+    prior_policy_sha256: str | None = None
+    superseded_receipt_path: str | None = None
     if path.exists():
         if not path.is_file():
             raise HookEventIsolationError("HOOK_KILL_SWITCH_RECEIPT_INVALID")
-        _body, prior_payload = _read_kill_switch(path)
+        prior_bytes = path.read_bytes()
+        _body, prior_payload = _read_kill_switch_for_inactive_rotation(path)
         if prior_payload["state"] == "ACTIVE":
             raise HookEventIsolationError("HOOK_KILL_SWITCH_ACTIVE")
-        prior_file_sha256 = _sha256(path.read_bytes())
-        if prior_payload["installation_id"] == installation_id:
+        prior_file_sha256 = _sha256(prior_bytes)
+        prior_policy_sha256 = str(prior_payload["policy_sha256"])
+        if (
+            prior_payload["installation_id"] == installation_id
+            and prior_policy_sha256 == POLICY_SHA256
+        ):
             return {
                 "schema": KILL_SWITCH_SCHEMA,
                 "status": "PASS",
@@ -530,7 +702,17 @@ def initialize_inactive_kill_switch(
                 "installation_id": installation_id,
                 "generation": prior_payload["generation"],
                 "prior_file_sha256": prior_file_sha256,
+                "prior_policy_sha256": prior_policy_sha256,
+                "policy_migrated": False,
+                "superseded_receipt_path": None,
             }
+        superseded = _preserve_superseded_kill_switch(
+            path,
+            content=prior_bytes,
+            generation=int(prior_payload["generation"]),
+            file_sha256=prior_file_sha256,
+        )
+        superseded_receipt_path = str(superseded)
         generation = int(prior_payload["generation"]) + 1
 
     payload = {
@@ -540,6 +722,8 @@ def initialize_inactive_kill_switch(
         "policy_sha256": POLICY_SHA256,
         "owner": "EVIDENCE_LANE_INSTALLED_HOOK_RUNTIME",
         "generation": generation,
+        "prior_file_sha256": prior_file_sha256,
+        "prior_policy_sha256": prior_policy_sha256,
         "created_at_utc": _utc_now(),
     }
     body = {
@@ -561,6 +745,11 @@ def initialize_inactive_kill_switch(
         "installation_id": installation_id,
         "generation": generation,
         "prior_file_sha256": prior_file_sha256,
+        "prior_policy_sha256": prior_policy_sha256,
+        "policy_migrated": bool(
+            prior_policy_sha256 and prior_policy_sha256 != POLICY_SHA256
+        ),
+        "superseded_receipt_path": superseded_receipt_path,
     }
 
 
@@ -705,6 +894,8 @@ def _identity(
                 owner_sha256,
                 str(payload.get("turn_id") or ""),
                 str(payload.get("tool_use_id") or ""),
+                str(payload.get("agent_id") or ""),
+                str(payload.get("tool_name") or ""),
                 str(payload.get("source") or ""),
                 str(payload.get("trigger") or ""),
                 str(payload.get("reason") or ""),

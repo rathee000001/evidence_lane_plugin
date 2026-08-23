@@ -16,32 +16,25 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 SCRIPT = PLUGIN / "scripts" / "codex_release" / "install_codex_stable.py"
-RESTART = (
-    PLUGIN
-    / "scripts"
-    / "codex_release"
-    / "Restart-EvidenceLaneCodex.ps1"
-)
+RESTART = PLUGIN / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1"
 STABLE_UPDATE = (
-    PLUGIN
-    / "scripts"
-    / "codex_release"
-    / "Update-EvidenceLaneCodexStableAndResume.ps1"
+    PLUGIN / "scripts" / "codex_release" / "Update-EvidenceLaneCodexStableAndResume.ps1"
 )
 GOAL_RECOVERY = (
-    PLUGIN
-    / "scripts"
-    / "codex_release"
-    / "Manage-EvidenceLaneCodexGoalRecovery.ps1"
+    PLUGIN / "scripts" / "codex_release" / "Manage-EvidenceLaneCodexGoalRecovery.ps1"
 )
 ACCEPTANCE = PLUGIN / "scripts" / "codex_release" / "accept_codex_stable.py"
 HOOK_NOTICE_MARKERS = {
     "lifecycle_boundary.py": "EVIDENCE_LANE_LIFECYCLE_BOUNDARY=",
+    "optional_event_observer.py": "EVIDENCE_LANE_OPTIONAL_EVENT_OBSERVATION=",
+    "permission_request.py": "EVIDENCE_LANE_OPTIONAL_EVENT_OBSERVATION=",
     "session_start.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_NOTICE=",
     "prompt_submit.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=",
     "pre_tool_use.py": "EVIDENCE_LANE_PRE_TOOL_USE=",
     "post_tool_use.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_TOOL_PROJECTION=",
     "stop_response.py": "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY=",
+    "subagent_start.py": "EVIDENCE_LANE_OPTIONAL_EVENT_OBSERVATION=",
+    "subagent_stop.py": "EVIDENCE_LANE_OPTIONAL_EVENT_OBSERVATION=",
 }
 
 
@@ -64,6 +57,273 @@ def _acceptance_module():
 def _write(path: Path, value: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(value, encoding="utf-8")
+
+
+def test_local_update_never_attempts_historical_windows_root_rotation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    codex_home = tmp_path / "codex-home"
+    marketplace_root = (
+        codex_home / "local-marketplaces" / module.LOCAL_TESTING_MARKETPLACE_NAME
+    )
+    marketplace_root.mkdir(parents=True)
+    _write(marketplace_root / "stale.txt", "old")
+    extracted = tmp_path / "extracted"
+    _write(extracted / ".codex-plugin" / "plugin.json", '{"name":"fixture"}')
+    _write(extracted / "skills" / "evi" / "SKILL.md", "fixture")
+    surface = {
+        "plugin_version": "3.0.0+codex.fixture",
+        "hooks": {
+            "count": 0,
+            "records": [],
+            "inventory_sha256": "H" * 64,
+            "registered_event_count": 0,
+            "registered_events": [],
+            "handler_count": 0,
+            "hook_file_count": 0,
+            "file_inventory_sha256": "F" * 64,
+            "event_inventory_sha256": "E" * 64,
+        },
+        "skills": {"count": 0, "records": [], "inventory_sha256": "S" * 64},
+        "search_toolchain": {
+            "status": "PASS",
+            "record_count": 0,
+            "manifest_sha256": "M" * 64,
+            "inventory_sha256": "I" * 64,
+            "fts_authority": {},
+            "resolution_order": [],
+            "records": [],
+            "fallbacks_required": True,
+        },
+        "catalog": {"tools": 0, "read": 0, "write": 0, "skills": 0},
+        "surface_inventory_sha256": "X" * 64,
+    }
+    identity = {"surface_inventory": surface}
+    real_replace = module.os.replace
+
+    def reject_root_rotation(source: object, target: object) -> None:
+        assert Path(source).resolve() != marketplace_root.resolve(), (
+            "historical Windows whole-marketplace rotation was attempted"
+        )
+        real_replace(source, target)
+
+    monkeypatch.setattr(module.os, "replace", reject_root_rotation)
+    result = module._stage_marketplace(
+        extracted=extracted,
+        marketplace_root=marketplace_root,
+        data_root=tmp_path / "data",
+        identity=identity,
+        archive_sha256="A" * 64,
+        marketplace_name=module.LOCAL_TESTING_MARKETPLACE_NAME,
+        comparison_surface=identity["surface_inventory"],
+        comparison_baseline={"status": "PASS"},
+    )
+    assert result["marketplace_rotation_mode"] == ("PLUGIN_CREATOR_LOCAL_SOURCE_UPDATE")
+    assert result["route_law"] == module.PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW
+    assert result["windows_root_rotation_attempted"] is False
+    assert not (marketplace_root / "stale.txt").exists()
+    assert (
+        marketplace_root
+        / "plugins"
+        / module.PLUGIN_NAME
+        / ".codex-plugin"
+        / "plugin.json"
+    ).is_file()
+
+
+def test_plugin_creator_local_cache_boundary_seals_exact_task_restart(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    codex_home = tmp_path / "codex-home"
+    data_root = tmp_path / "pv"
+    authority_root = data_root / "installations" / "codex-v200"
+    stage_path = authority_root / "INSTALL_STAGE.json"
+    _write(stage_path, "{}")
+    selector = (
+        f"{module.PLUGIN_NAME}@{module.LOCAL_TESTING_MARKETPLACE_NAME}"
+    )
+    old_version = "3.0.0+codex.old"
+    target_version = "3.0.0+codex.new"
+    marketplace_root = (
+        codex_home
+        / "local-marketplaces"
+        / module.LOCAL_TESTING_MARKETPLACE_NAME
+    )
+    marketplace_plugin = marketplace_root / "plugins" / module.PLUGIN_NAME
+    marketplace_plugin.mkdir(parents=True)
+    identity = {
+        "plugin_id": module.PLUGIN_NAME,
+        "version": target_version,
+        "manifest_sha256": "A" * 64,
+        "catalog": {"tools": 88, "read": 27, "write": 61, "skills": 17},
+        "surface_inventory": {"surface_inventory_sha256": "B" * 64},
+    }
+    stage = {
+        "schema": module.INSTALL_SCHEMA,
+        "status": "PASS",
+        "archive_sha256": "C" * 64,
+        "plugin": identity,
+        "marketplace": {
+            "name": module.LOCAL_TESTING_MARKETPLACE_NAME,
+            "root": str(marketplace_root),
+            "route_law": module.PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW,
+            "marketplace_rotation_mode": "PLUGIN_CREATOR_LOCAL_SOURCE_UPDATE",
+            "windows_root_rotation_attempted": False,
+        },
+        "activation": {
+            "state": "STAGED_RESTART_NOT_YET_REQUIRED",
+            "plugin_add_invoked": False,
+        },
+        "restart_required": False,
+        "runtime_ready_before_task_reopen": False,
+        "generated_cache_written_directly": False,
+        "previous_release_cache_deleted": False,
+        "candidate_created_or_accepted": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+    }
+    monkeypatch.setattr(
+        module,
+        "_load_self_sealed_json",
+        lambda **_kwargs: (stage, stage_path.resolve(), "D" * 64),
+    )
+    monkeypatch.setattr(module, "_validate_plugin", lambda _path: identity)
+    monkeypatch.setattr(
+        module,
+        "_source_inventory",
+        lambda _path: {"manifest_sha256": "E" * 64},
+    )
+    plugin_list = {
+        "installed": [
+            {
+                "pluginId": selector,
+                "version": old_version,
+                "enabled": True,
+            },
+            {
+                "pluginId": f"{module.PLUGIN_NAME}@{module.MARKETPLACE_NAME}",
+                "version": "3.0.0+codex.main",
+                "enabled": False,
+            },
+        ]
+    }
+    monkeypatch.setattr(module, "_run_codex", lambda *_args, **_kwargs: plugin_list)
+
+    def materialize(**_kwargs: object) -> dict[str, object]:
+        target = (
+            codex_home
+            / "plugins"
+            / "cache"
+            / module.LOCAL_TESTING_MARKETPLACE_NAME
+            / module.PLUGIN_NAME
+            / target_version
+        )
+        target.mkdir(parents=True)
+        return {
+            "status": "PASS",
+            "route": "CODEX_PLUGIN_ADD",
+            "invocation_count": 1,
+            "outcome": (
+                "OLD_SELECTED_TARGET_CACHE_MATERIALIZED_HOST_RESTART_REQUIRED"
+            ),
+        }
+
+    monkeypatch.setattr(
+        module,
+        "_run_plugin_creator_local_cache_materialization",
+        materialize,
+    )
+    monkeypatch.setattr(
+        module,
+        "_disabled_hook_state",
+        lambda **_kwargs: {
+            "status": "PASS",
+            "selector": selector,
+            "hook_count": 11,
+            "all_enabled": False,
+            "hooks_enabled_by_update": False,
+            "config_sha256": "F" * 64,
+        },
+    )
+
+    result = module._seal_plugin_creator_local_cache_restart(
+        stage_receipt_path=stage_path,
+        stage_receipt_sha256="D" * 64,
+        executable=tmp_path / "codex.exe",
+        codex_home=codex_home,
+        data_root=data_root,
+    )
+
+    assert result["activation"]["state"] == (
+        module.PLUGIN_CREATOR_LOCAL_CACHE_RESTART_STATE
+    )
+    assert result["activation"]["plugin_add"]["old_active_version"] == old_version
+    assert result["activation_authority"]["route_law"] == (
+        module.PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW
+    )
+    assert result["restart_required"] is True
+    assert result["runtime_ready_before_task_reopen"] is False
+    assert result["hooks_enabled_by_update"] is False
+    assert result["accepted_two_slot_registry_mutated"] is False
+    assert result["state_travel_invoked"] is False
+
+
+def test_restart_helper_accepts_only_dedicated_plugin_creator_cache_state() -> None:
+    text = RESTART.read_text(encoding="utf-8")
+    assert "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED" in text
+    assert (
+        "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_EXACT_TASK_RESTART" in text
+    )
+    assert "$isLocalTestRestart = $isLocalCasRestart -or $isDisabledHookRecoveryRestart" in text
+    assert "windows_marketplace_root_rotation_attempted = $false" in text
+    assert "ACTIVE_GOAL_PRESERVED_FOR_HOST_NATIVE_REATTACHMENT" in text
+    assert "HOST_NATIVE_ACTIVE_GOAL_PRESERVED_NO_RECOVERY_BINDING_PRESENT" in text
+    assert "EXACT_INVOKING_TASK_LOCAL_CACHE_REATTACHMENT_NATIVE_PROOF_PENDING" in text
+    assert "stale_two_slot_registry_consumed = $false" in text
+    assert "-PreserveCurrentLocalBinding:$isPluginCreatorLocalRestart" in text
+    assert "-ExactInvokingTaskOnlyLocalCacheRestart:$isPluginCreatorLocalRestart" in text
+
+
+def test_plugin_creator_cache_materialization_classifies_loaded_old_cache(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    target = "3.0.0+codex.target"
+    old = "3.0.0+codex.old"
+
+    def fake_run(arguments: list[str], **_kwargs: object):
+        return subprocess.CompletedProcess(
+            arguments,
+            1,
+            "",
+            (
+                "failed to activate updated plugin cache version "
+                f"{target} while {old} remains active"
+            ),
+        )
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+    result = module._run_plugin_creator_local_cache_materialization(
+        executable=tmp_path / "codex.exe",
+        codex_home=tmp_path / "codex-home",
+        plugin_selector=(
+            f"{module.PLUGIN_NAME}@{module.LOCAL_TESTING_MARKETPLACE_NAME}"
+        ),
+        target_version=target,
+        old_active_version=old,
+    )
+
+    assert result["status"] == "PASS"
+    assert result["route"] == "CODEX_PLUGIN_ADD"
+    assert result["invocation_count"] == 1
+    assert result["outcome"] == (
+        "OLD_SELECTED_TARGET_CACHE_MATERIALIZED_HOST_RESTART_REQUIRED"
+    )
 
 
 def test_codex_cli_resolution_uses_npm_native_default(
@@ -183,8 +443,8 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                     "release": "3.0.0",
                     "slot_role": "stable-build",
                     "codex_marketplace_slot": "evidence-lane-github",
-                    "marketplace_display_name": "GitLane Stable 3.0",
-                    "install_source": "GIT_EXACT_COMMIT",
+                    "marketplace_display_name": "Main Git Plugin Version",
+                    "install_source": "GIT_MAIN_EXACT_COMMIT_AFTER_GOVERNED_MERGE",
                     "byte_frozen": False,
                     "updates_require_verified_unique_build_identity": True,
                     "stable_selector_is_persistent": True,
@@ -204,9 +464,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                     "slot_role": "fallback",
                     "codex_marketplace_slot": "evidence-lane-pv11-fallback",
                     "enabled": False,
-                    "materialization_gate": (
-                        "POST_EXACT_PV12_APPROVE_AND_NATIVE_FUSE"
-                    ),
+                    "materialization_gate": ("POST_EXACT_PV12_APPROVE_AND_NATIVE_FUSE"),
                     "accepted_pv": "PV12",
                     "accepted_generation": 12,
                     "byte_frozen": True,
@@ -249,8 +507,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                 },
                 "failover_operator": {
                     "script": (
-                        "scripts/codex_release/"
-                        "Switch-EvidenceLaneCodexSlot.ps1"
+                        "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
                     ),
                     "registry_schema": "evidence-lane.codex-two-slot-registry.v1",
                     "single_transient_error_switch_allowed": False,
@@ -261,8 +518,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                 },
                 "goal_recovery": {
                     "script": (
-                        "scripts/codex_release/"
-                        "Manage-EvidenceLaneCodexGoalRecovery.ps1"
+                        "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1"
                     ),
                     "scope": (
                         "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_"
@@ -288,9 +544,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                     "raw_goal_objective_stored": False,
                 },
                 "workflow_scope": installer.EXPECTED_WORKFLOW_SCOPE,
-                "goal_completion_policy": (
-                    installer.EXPECTED_GOAL_COMPLETION_POLICY
-                ),
+                "goal_completion_policy": (installer.EXPECTED_GOAL_COMPLETION_POLICY),
                 "helper_distribution_policy": (
                     installer.EXPECTED_HELPER_DISTRIBUTION_POLICY
                 ),
@@ -303,9 +557,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                         "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3D"
                         "EF87B8A129C4FA"
                     ),
-                    "resource_uri": (
-                        "ui://evidence-lane/governed-console-v6.html"
-                    ),
+                    "resource_uri": ("ui://evidence-lane/governed-console-v6.html"),
                     "manifest_icon_fields": [
                         "interface.composerIcon",
                         "interface.logo",
@@ -335,9 +587,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                     "account_tier_affects_routing": False,
                     "api_billing_affects_routing": False,
                     "headless_api": {
-                        "local_or_persistent_pv_storage": (
-                            "LOCAL_SQLITE_WHEN_DURABLE"
-                        ),
+                        "local_or_persistent_pv_storage": ("LOCAL_SQLITE_WHEN_DURABLE"),
                         "ephemeral_pv_storage": (
                             "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR"
                         ),
@@ -348,9 +598,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                         "pv_storage": "DURABLE_LOCAL_SQLITE",
                         "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
                         "native_mcp_available": {
-                            "tunnel_requirement": (
-                                "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
-                            ),
+                            "tunnel_requirement": ("NOT_REQUIRED_NATIVE_MCP_AVAILABLE"),
                             "tunnel_setup_frequency": "NONE",
                             "tunnel_key_retention": "NOT_APPLICABLE",
                             "tunnel_runtime_lifetime": "NOT_APPLICABLE",
@@ -372,9 +620,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                         "pv_storage": "DURABLE_LOCAL_SQLITE",
                         "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
                         "native_mcp_available": {
-                            "tunnel_requirement": (
-                                "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
-                            ),
+                            "tunnel_requirement": ("NOT_REQUIRED_NATIVE_MCP_AVAILABLE"),
                         },
                         "host_tool_gap": {
                             "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
@@ -389,9 +635,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
                         ),
                         "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
                         "native_mcp_available": {
-                            "tunnel_requirement": (
-                                "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
-                            ),
+                            "tunnel_requirement": ("NOT_REQUIRED_NATIVE_MCP_AVAILABLE"),
                         },
                         "host_tool_gap": {
                             "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
@@ -425,33 +669,23 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
         PLUGIN / "scripts" / "codex-release-channel.json",
         source / "scripts" / "codex-release-channel.json",
     )
-    _write(source / "scripts" / "codex_release" / "install_codex_stable.py", "# fixture\n")
     _write(
-        source
-        / "scripts"
-        / "codex_release"
-        / "build_codex_exact_commit_package.py",
+        source / "scripts" / "codex_release" / "install_codex_stable.py", "# fixture\n"
+    )
+    _write(
+        source / "scripts" / "codex_release" / "build_codex_exact_commit_package.py",
         "# fixture\n",
     )
     _write(
-        source
-        / "scripts"
-        / "codex_release"
-        / "seal_codex_git_ci_release_authority.py",
+        source / "scripts" / "codex_release" / "seal_codex_git_ci_release_authority.py",
         "# fixture\n",
     )
     _write(
-        source
-        / "scripts"
-        / "codex_release"
-        / "seal_external_release_receipts.py",
+        source / "scripts" / "codex_release" / "seal_external_release_receipts.py",
         "# fixture\n",
     )
     _write(
-        source
-        / "scripts"
-        / "codex_release"
-        / "seal_github_app_production_delivery.py",
+        source / "scripts" / "codex_release" / "seal_github_app_production_delivery.py",
         "# fixture\n",
     )
     _write(
@@ -473,24 +707,26 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
         "# fixture\n",
     )
     _write(
-        source
-        / "scripts"
-        / "codex_release"
-        / "Switch-EvidenceLaneCodexSlot.ps1",
+        source / "scripts" / "codex_release" / "Switch-EvidenceLaneCodexSlot.ps1",
         "# fixture\n",
     )
-    _write(source / "scripts" / "codex_release" / "accept_codex_stable.py", "# fixture\n")
+    _write(
+        source / "scripts" / "codex_release" / "accept_codex_stable.py", "# fixture\n"
+    )
     _write(
         source / "hooks" / "hooks.json",
         json.dumps(
             {
                 "hooks": {
                     "SessionStart": [{"hooks": [{"type": "command"}]}],
+                    "SubagentStart": [{"hooks": [{"type": "command"}]}],
                     "UserPromptSubmit": [{"hooks": [{"type": "command"}]}],
                     "PreToolUse": [{"hooks": [{"type": "command"}]}],
+                    "PermissionRequest": [{"hooks": [{"type": "command"}]}],
                     "PostToolUse": [{"hooks": [{"type": "command"}]}],
                     "PreCompact": [{"hooks": [{"type": "command"}]}],
                     "PostCompact": [{"hooks": [{"type": "command"}]}],
+                    "SubagentStop": [{"hooks": [{"type": "command"}]}],
                     "Stop": [{"hooks": [{"type": "command"}]}],
                     "SessionEnd": [{"hooks": [{"type": "command"}]}],
                 }
@@ -583,14 +819,12 @@ def _release_authority_receipt(
     core = {
         "schema": "evidence-lane.codex-git-ci-vercel-release-authority.v2",
         "status": "PASS",
-        "boundary": "GOVERNED_GIT_BRANCH_CLEAN_CI_VERCEL_PREVIEW_EXACT_COMMIT",
+        "boundary": "GOVERNED_GIT_MAIN_CLEAN_CI_VERCEL_PREVIEW_EXACT_COMMIT",
         "archive_sha256": hashlib.sha256(archive.read_bytes()).hexdigest().upper(),
-        "package_receipt_sha256": hashlib.sha256(
-            package_receipt.read_bytes()
-        ).hexdigest().upper(),
-        "working_source_manifest_sha256": package[
-            "working_source_manifest_sha256"
-        ],
+        "package_receipt_sha256": hashlib.sha256(package_receipt.read_bytes())
+        .hexdigest()
+        .upper(),
+        "working_source_manifest_sha256": package["working_source_manifest_sha256"],
         "plugin_source_manifest_sha256": package["exact_commit_export"][
             "plugin_source_manifest_sha256"
         ],
@@ -598,7 +832,7 @@ def _release_authority_receipt(
             "plugin_source_member_count"
         ],
         "source": {
-            "branch": "agent/evi-v200-test",
+            "branch": "main",
             "commit": commit,
             "tree": tree,
             "exact_commit_export": True,
@@ -607,10 +841,12 @@ def _release_authority_receipt(
             "untracked_bytes_excluded": True,
         },
         "remote_git": {
-            "route": "NATIVE_GOVERNED_REMOTE_GIT",
-            "push_status": "EXECUTED",
+            "route": "GITHUB_APP_SDK",
+            "merge_status": "EXECUTED",
+            "source_branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
+            "target_branch": "main",
             "remote_branch_commit": commit,
-            "protected_branch": False,
+            "protected_branch": True,
             "native_receipt_sha256": "B" * 64,
         },
         "github_ci": {
@@ -632,7 +868,7 @@ def _release_authority_receipt(
             "state": "READY",
             "target": "PREVIEW",
             "repository": "rathee000001/evidence_lane_plugin",
-            "branch": "agent/evi-v200-test",
+            "branch": "main",
             "head_sha": commit,
             "git_integration": True,
             "manual_deploy": False,
@@ -643,17 +879,21 @@ def _release_authority_receipt(
         "accepted_pointer_moved": False,
         "hil_inferred": False,
     }
-    core["receipt_sha256"] = hashlib.sha256(
-        (
-            json.dumps(
-                core,
-                ensure_ascii=False,
-                sort_keys=True,
-                separators=(",", ":"),
-            )
-            + "\n"
-        ).encode("utf-8")
-    ).hexdigest().upper()
+    core["receipt_sha256"] = (
+        hashlib.sha256(
+            (
+                json.dumps(
+                    core,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                + "\n"
+            ).encode("utf-8")
+        )
+        .hexdigest()
+        .upper()
+    )
     path = tmp_path / "CODEX_GIT_CI_RELEASE_AUTHORITY.json"
     _write(
         path,
@@ -681,16 +921,18 @@ def _exact_package_receipt(
         "status": "PASS",
         "archive": local["archive"],
         "base_anchor": local["base_anchor"],
-        "working_source_manifest_sha256": local[
-            "working_source_manifest_sha256"
-        ],
+        "working_source_manifest_sha256": local["working_source_manifest_sha256"],
         "source_member_count": 1,
         "skill_count": 17,
         "canonical_lane_count": 18,
         "exact_commit_export": {
-            "branch": "agent/evi-v200-test",
+            "branch": "main",
             "commit": local["base_anchor"]["commit"],
             "tree": local["base_anchor"]["tree"],
+            "source_ref": "refs/remotes/origin/main",
+            "stable_main_only": True,
+            "local_main_attested": True,
+            "origin_main_attested": True,
             "plugin_path": "plugins/evidence-lane-plugin",
             "git_archive_sha256": "D" * 64,
             "git_archive_member_count": 1,
@@ -700,35 +942,40 @@ def _exact_package_receipt(
             "working_checkout_bytes_used": False,
             "untracked_bytes_used": False,
         },
-        "local_rehearsal_receipt_sha256": hashlib.sha256(
-            local_receipt.read_bytes()
-        ).hexdigest().upper(),
+        "local_rehearsal_receipt_sha256": hashlib.sha256(local_receipt.read_bytes())
+        .hexdigest()
+        .upper(),
         "git_invoked": True,
         "git_write_invoked": False,
         "governed_candidate_created": False,
         "accepted_pointer_moved": False,
         "hil_inferred": False,
     }
-    core["receipt_sha256"] = hashlib.sha256(
-        (
-            json.dumps(
-                core,
-                ensure_ascii=False,
-                sort_keys=True,
-                separators=(",", ":"),
-            )
-            + "\n"
-        ).encode("utf-8")
-    ).hexdigest().upper()
+    core["receipt_sha256"] = (
+        hashlib.sha256(
+            (
+                json.dumps(
+                    core,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                + "\n"
+            ).encode("utf-8")
+        )
+        .hexdigest()
+        .upper()
+    )
     path = tmp_path / "EXACT_COMMIT_PACKAGE.json"
     _write(
         path,
         json.dumps(core, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         + "\n",
     )
-    assert core["archive"]["sha256"] == hashlib.sha256(
-        archive.read_bytes()
-    ).hexdigest().upper()
+    assert (
+        core["archive"]["sha256"]
+        == hashlib.sha256(archive.read_bytes()).hexdigest().upper()
+    )
     return path
 
 
@@ -764,21 +1011,30 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
     assert result["runtime_ready_before_task_reopen"] is False
     assert result["generated_cache_written_directly"] is False
     assert result["previous_release_cache_deleted"] is False
-    assert result["fallback_materialization_gate"] == (
-        "POST_EXACT_PV12_APPROVE_AND_NATIVE_FUSE"
-    )
-    assert result["fallback_materialized"] is False
-    assert result["live_cache_cleanup_deferred_until_exact_pv12_acceptance"] is True
-    assert result["two_slot_operator_packaged"] is True
+    assert result["live_slot_contract"] == {
+        "schema": "evidence-lane.codex-two-slot-main-local-registry.v1",
+        "status": "NOT_APPLICABLE",
+        "exact_live_slot_count": 2,
+        "stable_slot": "stable-git-main",
+        "stable_selector": ("evidence-lane-plugin@evidence-lane-github"),
+        "local_slot": "versioned-local-testing",
+        "local_testing_selector": (
+            "evidence-lane-plugin@evidence-lane-v300-testing-new"
+        ),
+        "branch_recovery_selector_retired": True,
+        "branch_recovery_install_allowed": False,
+        "pre_3_0_fallback_allowed": False,
+    }
     assert result["credential_requested_or_stored"] is False
     assert result["surface_change_display"]["state"] == "INITIAL_V2_BASELINE"
-    assert result["surface_change_display"]["hooks"]["count"] == 8
+    assert result["surface_change_display"]["hooks"]["count"] == 11
     assert result["surface_change_display"]["hooks"]["count_semantics"] == (
         "REGISTERED_EVENT_COUNT"
     )
-    assert result["surface_change_display"]["hooks"]["hook_file_count"] == 12
-    assert result["surface_change_display"]["hooks"]["handler_count"] == 8
+    assert result["surface_change_display"]["hooks"]["hook_file_count"] == 16
+    assert result["surface_change_display"]["hooks"]["handler_count"] == 11
     assert result["surface_change_display"]["hooks"]["registered_events"] == [
+        "PermissionRequest",
         "PostCompact",
         "PostToolUse",
         "PreCompact",
@@ -786,6 +1042,8 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
         "SessionEnd",
         "SessionStart",
         "Stop",
+        "SubagentStart",
+        "SubagentStop",
         "UserPromptSubmit",
     ]
     assert result["surface_change_display"]["skills"]["count"] == 17
@@ -795,15 +1053,18 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
         row["tool_id"]
         for row in result["surface_change_display"]["search_toolchain"]["records"]
     ] == ["ripgrep"]
-    assert result["surface_change_display"]["search_toolchain"][
-        "fts_authority"
-    ]["backend"] == "SQLITE_FTS5"
-    assert result["surface_change_display"]["search_toolchain"][
-        "fallbacks_required"
-    ] is True
-    assert result["surface_change_display"]["search_toolchain"][
-        "raw_paths_included"
-    ] is False
+    assert (
+        result["surface_change_display"]["search_toolchain"]["fts_authority"]["backend"]
+        == "SQLITE_FTS5"
+    )
+    assert (
+        result["surface_change_display"]["search_toolchain"]["fallbacks_required"]
+        is True
+    )
+    assert (
+        result["surface_change_display"]["search_toolchain"]["raw_paths_included"]
+        is False
+    )
     assert result["surface_change_display"]["catalog"] == {
         "tools": 88,
         "read": 27,
@@ -811,14 +1072,19 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
         "skills": 17,
         "changed_from_previous": False,
     }
-    assert (data_root / "installations" / "codex-v200" / "CURRENT_INSTALLATION.json").is_file()
+    assert (
+        data_root / "installations" / "codex-v200" / "CURRENT_INSTALLATION.json"
+    ).is_file()
     assert not (codex_home / "plugins" / "cache").exists()
     assert not (installed / "_evidence_lane_rehearsal").exists()
-    assert json.loads(
-        (marketplace / ".agents" / "plugins" / "marketplace.json").read_text(
-            encoding="utf-8"
-        )
-    )["name"] == "evidence-lane-github"
+    assert (
+        json.loads(
+            (marketplace / ".agents" / "plugins" / "marketplace.json").read_text(
+                encoding="utf-8"
+            )
+        )["name"]
+        == "evidence-lane-github"
+    )
 
     repeated = module.install(
         argparse.Namespace(
@@ -862,7 +1128,6 @@ def test_local_test_activation_refreshes_only_exact_selector_and_defers_hook_tru
     target_installed = True
     candidate_enabled = False
     stable_selector = "evidence-lane-plugin@evidence-lane-github"
-    fallback_selector = "evidence-lane-plugin@evidence-lane-pv11-fallback"
     _write(
         codex_home / "config.toml",
         "\n".join(
@@ -871,10 +1136,6 @@ def test_local_test_activation_refreshes_only_exact_selector_and_defers_hook_tru
                 "enabled = true",
                 f'[plugins."{stable_selector}".mcp_servers."evidence-lane"]',
                 "enabled = true",
-                f'[plugins."{fallback_selector}"]',
-                "enabled = false",
-                f'[plugins."{fallback_selector}".mcp_servers."evidence-lane"]',
-                "enabled = false",
                 f'[plugins."{selector}"]',
                 "enabled = false",
                 f'[plugins."{selector}".mcp_servers."evidence-lane"]',
@@ -899,11 +1160,6 @@ def test_local_test_activation_refreshes_only_exact_selector_and_defers_hook_tru
                     "pluginId": stable_selector,
                     "version": "2.1.0+codex.fixture",
                     "enabled": True,
-                },
-                {
-                    "pluginId": fallback_selector,
-                    "version": "2.1.0+codex.fixture",
-                    "enabled": False,
                 },
             ]
             if target_installed:
@@ -963,7 +1219,7 @@ def test_local_test_activation_refreshes_only_exact_selector_and_defers_hook_tru
             {
                 "status": "USER_TRUST_PENDING",
                 "decision_owner": "HUMAN_CODEX_UI",
-                "hook_count": 8,
+                "hook_count": 11,
             },
             {
                 "supported_codex_api": "config/batchWrite",
@@ -1009,24 +1265,35 @@ def test_local_test_activation_refreshes_only_exact_selector_and_defers_hook_tru
     assert isolation["verified_before_install_activation"] is True
     assert isolation["persistent_kill_switch"] is True
     assert isolation["state"] == "INACTIVE_KILL_SWITCH_VERIFIED"
-    assert isolation["installation_id"] == result["activation"]["transaction"][
-        "transaction_id"
-    ]
+    assert (
+        isolation["installation_id"]
+        == result["activation"]["transaction"]["transaction_id"]
+    )
     assert Path(isolation["kill_switch_receipt_path"]).is_file()
     assert len(isolation["kill_switch_receipt_sha256"]) == 64
     assert len(isolation["policy_sha256"]) == 64
-    assert result["activation"]["local_test_reinstall"][
-        "target_removed_for_exact_reinstall"
-    ] is False
-    assert result["activation"]["local_test_reinstall"][
-        "same_selector_update_via_plugin_add"
-    ] is True
-    assert result["activation"]["local_test_reinstall"][
-        "known_failed_plugin_remove_route_invoked"
-    ] is False
-    assert result["activation"]["local_test_reinstall"][
-        "marketplace_add_required"
-    ] is False
+    assert (
+        result["activation"]["local_test_reinstall"][
+            "target_removed_for_exact_reinstall"
+        ]
+        is False
+    )
+    assert (
+        result["activation"]["local_test_reinstall"][
+            "same_selector_update_via_plugin_add"
+        ]
+        is True
+    )
+    assert (
+        result["activation"]["local_test_reinstall"][
+            "known_failed_plugin_remove_route_invoked"
+        ]
+        is False
+    )
+    assert (
+        result["activation"]["local_test_reinstall"]["marketplace_add_required"]
+        is False
+    )
     assert result["activation"]["exclusive_channel"] == {
         "status": "CANDIDATE_NOT_SWITCHED",
         "enabled_selector": stable_selector,
@@ -1056,7 +1323,9 @@ def test_local_test_activation_refreshes_only_exact_selector_and_defers_hook_tru
     assert result["runtime_ready_before_task_reopen"] is False
     assert ["plugin", "remove", selector, "--json"] not in calls
     assert ["plugin", "add", selector, "--json"] in calls
-    assert not any(arguments[:3] == ["plugin", "marketplace", "add"] for arguments in calls)
+    assert not any(
+        arguments[:3] == ["plugin", "marketplace", "add"] for arguments in calls
+    )
     assert result["two_slot_registry_update"] == {
         "status": "NOT_APPLICABLE",
         "reason": "LOCAL_TEST_ROTATION_PRESERVES_ACCEPTED_TWO_SLOT_AUTHORITY",
@@ -1127,20 +1396,20 @@ def test_two_consecutive_updates_reuse_one_stable_selector(
     legacy_selector = f"evidence-lane-plugin@{legacy_marketplace}"
     stable_marketplace = "evidence-lane-github"
     stable_selector = f"evidence-lane-plugin@{stable_marketplace}"
-    fallback_marketplace = "evidence-lane-pv11-fallback"
-    fallback_selector = f"evidence-lane-plugin@{fallback_marketplace}"
+    local_testing_marketplace = "evidence-lane-v300-testing-new"
+    local_testing_selector = f"evidence-lane-plugin@{local_testing_marketplace}"
     obsolete_marketplace = "evidence-lane-v200-task2-build-obsolete"
     obsolete_selector = f"evidence-lane-plugin@{obsolete_marketplace}"
     state = {
         "plugins": {
             legacy_selector: True,
-            fallback_selector: False,
+            local_testing_selector: False,
             obsolete_selector: False,
         },
         "marketplaces": {
             legacy_marketplace,
             stable_marketplace,
-            fallback_marketplace,
+            local_testing_marketplace,
             obsolete_marketplace,
         },
     }
@@ -1195,8 +1464,8 @@ def test_two_consecutive_updates_reuse_one_stable_selector(
     authority = {
         "registry": {
             "slots": {
-                "stable-build": {"plugin_selector": legacy_selector},
-                "fallback": {"plugin_selector": fallback_selector},
+                "stable-git-main": {"plugin_selector": legacy_selector},
+                "versioned-local-testing": {"plugin_selector": local_testing_selector},
             }
         }
     }
@@ -1214,12 +1483,12 @@ def test_two_consecutive_updates_reuse_one_stable_selector(
     assert first["obsolete_cleanup_deferred_until_new_route_proof"] is True
     assert state["plugins"] == {
         legacy_selector: True,
-        fallback_selector: False,
+        local_testing_selector: False,
         obsolete_selector: False,
     }
     assert state["marketplaces"] == {
         legacy_marketplace,
-        fallback_marketplace,
+        local_testing_marketplace,
         obsolete_marketplace,
     }
 
@@ -1230,7 +1499,7 @@ def test_two_consecutive_updates_reuse_one_stable_selector(
         executable=tmp_path / "codex.exe",
         codex_home=tmp_path / "codex-home",
         plugin_selector=stable_selector,
-        fallback_selector=fallback_selector,
+        local_testing_selector=local_testing_selector,
     )
     assert cleanup["removed_obsolete_selectors"] == sorted(
         [legacy_selector, obsolete_selector]
@@ -1239,10 +1508,18 @@ def test_two_consecutive_updates_reuse_one_stable_selector(
         [legacy_marketplace, obsolete_marketplace]
     )
     assert len(final_list["installed"]) == 2
-    assert state["plugins"] == {stable_selector: True, fallback_selector: False}
-    assert state["marketplaces"] == {stable_marketplace, fallback_marketplace}
+    assert state["plugins"] == {
+        stable_selector: True,
+        local_testing_selector: False,
+    }
+    assert state["marketplaces"] == {
+        stable_marketplace,
+        local_testing_marketplace,
+    }
 
-    authority["registry"]["slots"]["stable-build"]["plugin_selector"] = stable_selector
+    authority["registry"]["slots"]["stable-git-main"]["plugin_selector"] = (
+        stable_selector
+    )
     second = module._prepare_in_place_stable_reinstall(
         executable=tmp_path / "codex.exe",
         codex_home=tmp_path / "codex-home",
@@ -1256,8 +1533,8 @@ def test_two_consecutive_updates_reuse_one_stable_selector(
     assert first["stable_selector"] == second["stable_selector"]
     assert first["new_stable_selector_created"] is False
     assert second["new_stable_selector_created"] is False
-    assert state["plugins"] == {fallback_selector: False}
-    assert state["marketplaces"] == {fallback_marketplace}
+    assert state["plugins"] == {local_testing_selector: False}
+    assert state["marketplaces"] == {local_testing_marketplace}
 
 
 def test_legacy_migration_rejects_wrong_canonical_marketplace_source(
@@ -1267,7 +1544,7 @@ def test_legacy_migration_rejects_wrong_canonical_marketplace_source(
     module = _module()
     legacy_selector = "evidence-lane-plugin@evidence-lane-v200-task2-build-stable"
     stable_selector = "evidence-lane-plugin@evidence-lane-github"
-    fallback_selector = "evidence-lane-plugin@evidence-lane-pv11-fallback"
+    local_testing_selector = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     calls: list[list[str]] = []
 
     def fake_run(
@@ -1281,7 +1558,7 @@ def test_legacy_migration_rejects_wrong_canonical_marketplace_source(
             return {
                 "installed": [
                     {"pluginId": legacy_selector, "enabled": True},
-                    {"pluginId": fallback_selector, "enabled": False},
+                    {"pluginId": local_testing_selector, "enabled": False},
                 ]
             }
         if arguments == ["plugin", "marketplace", "list", "--json"]:
@@ -1303,8 +1580,8 @@ def test_legacy_migration_rejects_wrong_canonical_marketplace_source(
     authority = {
         "registry": {
             "slots": {
-                "stable-build": {"plugin_selector": legacy_selector},
-                "fallback": {"plugin_selector": fallback_selector},
+                "stable-git-main": {"plugin_selector": legacy_selector},
+                "versioned-local-testing": {"plugin_selector": local_testing_selector},
             }
         }
     }
@@ -1318,8 +1595,7 @@ def test_legacy_migration_rejects_wrong_canonical_marketplace_source(
         )
 
     assert not any(
-        arguments[:3] == ["plugin", "marketplace", "remove"]
-        for arguments in calls
+        arguments[:3] == ["plugin", "marketplace", "remove"] for arguments in calls
     )
 
 
@@ -1423,17 +1699,21 @@ def test_exact_commit_package_rejects_git_write_receipt(
     mutated["git_write_invoked"] = True
     mutated_core = dict(mutated)
     mutated_core.pop("receipt_sha256")
-    mutated["receipt_sha256"] = hashlib.sha256(
-        (
-            json.dumps(
-                mutated_core,
-                ensure_ascii=False,
-                sort_keys=True,
-                separators=(",", ":"),
-            )
-            + "\n"
-        ).encode("utf-8")
-    ).hexdigest().upper()
+    mutated["receipt_sha256"] = (
+        hashlib.sha256(
+            (
+                json.dumps(
+                    mutated_core,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                + "\n"
+            ).encode("utf-8")
+        )
+        .hexdigest()
+        .upper()
+    )
     mutated_receipt = tmp_path / "EXACT_COMMIT_PACKAGE_WITH_GIT_WRITE.json"
     _write(
         mutated_receipt,
@@ -1450,9 +1730,7 @@ def test_git_marketplace_verifies_full_commit_tree_and_package_subset(
 ) -> None:
     module = _module()
     package_root = tmp_path / "package"
-    marketplace_plugin = (
-        tmp_path / "marketplace" / "plugins" / "evidence-lane-plugin"
-    )
+    marketplace_plugin = tmp_path / "marketplace" / "plugins" / "evidence-lane-plugin"
     _write(package_root / "README.md", "package member\n")
     _write(marketplace_plugin / "README.md", "package member\n")
     _write(marketplace_plugin / "remote_adapter" / "package.json", "{}\n")
@@ -1478,9 +1756,7 @@ def test_git_marketplace_rejects_full_tree_or_package_subset_drift(
 ) -> None:
     module = _module()
     package_root = tmp_path / "package"
-    marketplace_plugin = (
-        tmp_path / "marketplace" / "plugins" / "evidence-lane-plugin"
-    )
+    marketplace_plugin = tmp_path / "marketplace" / "plugins" / "evidence-lane-plugin"
     _write(package_root / "README.md", "package member\n")
     _write(marketplace_plugin / "README.md", "package member\n")
     _write(marketplace_plugin / "remote_adapter" / "package.json", "{}\n")
@@ -1530,12 +1806,12 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
     _write(runtime_python, "fixture runtime")
     calls: list[list[str]] = []
 
-    def fake_run(arguments: list[str], **kwargs: object) -> subprocess.CompletedProcess[bytes]:
+    def fake_run(
+        arguments: list[str], **kwargs: object
+    ) -> subprocess.CompletedProcess[bytes]:
         calls.append(arguments)
         if len(calls) == 1:
-            assert kwargs["env"]["EVIDENCE_LANE_DATA_ROOT"] == str(
-                data_root.resolve()
-            )
+            assert kwargs["env"]["EVIDENCE_LANE_DATA_ROOT"] == str(data_root.resolve())
             prewarm = {
                 "schema": "evidence-lane.codex-native-runtime-prewarm.v1",
                 "status": "PASS",
@@ -1578,9 +1854,7 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
     assert receipt["native_dependency_prewarm_completed"] is True
     assert receipt["tool_count"] == 88
     assert receipt["tool_catalog_sha256"] == "A" * 64
-    assert receipt["resource_uri"] == (
-        "ui://evidence-lane/governed-console-v6.html"
-    )
+    assert receipt["resource_uri"] == ("ui://evidence-lane/governed-console-v6.html")
     assert receipt["task_reopened"] is False
     assert receipt["bootstrap_attempt_count"] == 1
     assert receipt["bootstrap_attempts"][0]["returncode"] == 0
@@ -1616,14 +1890,16 @@ def test_installed_runtime_bootstrap_retries_once_on_same_sealed_bytes(
     _write(runtime_python, "fixture runtime")
     calls: list[list[str]] = []
 
-    def fake_run(arguments: list[str], **kwargs: object) -> subprocess.CompletedProcess[bytes]:
+    def fake_run(
+        arguments: list[str], **kwargs: object
+    ) -> subprocess.CompletedProcess[bytes]:
         calls.append(arguments)
         if len(calls) <= 2:
-            assert kwargs["env"]["EVIDENCE_LANE_DATA_ROOT"] == str(
-                data_root.resolve()
-            )
+            assert kwargs["env"]["EVIDENCE_LANE_DATA_ROOT"] == str(data_root.resolve())
         if len(calls) == 1:
-            return subprocess.CompletedProcess(arguments, 1, b"first stdout\n", b"first stderr\n")
+            return subprocess.CompletedProcess(
+                arguments, 1, b"first stdout\n", b"first stderr\n"
+            )
         if len(calls) == 2:
             prewarm = {
                 "schema": "evidence-lane.codex-native-runtime-prewarm.v1",
@@ -1665,9 +1941,10 @@ def test_installed_runtime_bootstrap_retries_once_on_same_sealed_bytes(
     assert receipt["status"] == "PASS"
     assert receipt["bootstrap_attempt_count"] == 2
     assert [row["returncode"] for row in receipt["bootstrap_attempts"]] == [1, 0]
-    assert receipt["bootstrap_attempts"][0]["stdout_sha256"] == hashlib.sha256(
-        b"first stdout\n"
-    ).hexdigest().upper()
+    assert (
+        receipt["bootstrap_attempts"][0]["stdout_sha256"]
+        == hashlib.sha256(b"first stdout\n").hexdigest().upper()
+    )
     assert calls[0] == calls[1]
     assert calls[2][0] == str(runtime_python)
 
@@ -1736,6 +2013,7 @@ def test_supported_codex_api_trusts_only_exact_selector_hooks(
     module = _module()
     selector = "evidence-lane-plugin@evidence-lane-v200-task2-build-test"
     events = [
+        "permissionRequest",
         "postCompact",
         "postToolUse",
         "preCompact",
@@ -1743,11 +2021,12 @@ def test_supported_codex_api_trusts_only_exact_selector_hooks(
         "sessionEnd",
         "sessionStart",
         "stop",
+        "subagentStart",
+        "subagentStop",
         "userPromptSubmit",
     ]
     hashes = {
-        event: f"sha256:{index:064x}"
-        for index, event in enumerate(events, start=1)
+        event: f"sha256:{index:064x}" for index, event in enumerate(events, start=1)
     }
     codex_home = tmp_path / "codex-home"
     _write(
@@ -1842,19 +2121,17 @@ def test_supported_codex_api_trusts_only_exact_selector_hooks(
                 value_map = edit["value"]
                 if edit["keyPath"] == "plugins":
                     assert value_map[selector]["enabled"] is True
-                    assert value_map[selector]["mcp_servers"]["evidence-lane"][
-                        "enabled"
-                    ] is True
+                    assert (
+                        value_map[selector]["mcp_servers"]["evidence-lane"]["enabled"]
+                        is True
+                    )
                     _write(
                         codex_home / "config.toml",
                         "\n".join(
                             [
                                 f'[plugins."{selector}"]',
                                 "enabled = true",
-                                (
-                                    f'[plugins."{selector}".mcp_servers.'
-                                    '"evidence-lane"]'
-                                ),
+                                (f'[plugins."{selector}".mcp_servers."evidence-lane"]'),
                                 "enabled = true",
                             ]
                         ),
@@ -1862,15 +2139,12 @@ def test_supported_codex_api_trusts_only_exact_selector_hooks(
                 else:
                     assert edit["keyPath"] == "hooks.state"
                     assert set(value_map) == {
-                        f"{selector}:hooks/hooks.json:{event}:0:0"
-                        for event in events
+                        f"{selector}:hooks/hooks.json:{event}:0:0" for event in events
                     }
-                    assert {
-                        item["trusted_hash"] for item in value_map.values()
-                    } == set(hashes.values())
-                    assert {
-                        item["enabled"] for item in value_map.values()
-                    } == {True}
+                    assert {item["trusted_hash"] for item in value_map.values()} == set(
+                        hashes.values()
+                    )
+                    assert {item["enabled"] for item in value_map.values()} == {True}
                     self.trusted = True
                 self.config_write_count += 1
                 self.config_version = "sha256:" + f"{self.config_write_count + 10:064x}"
@@ -1916,7 +2190,7 @@ def test_supported_codex_api_trusts_only_exact_selector_hooks(
     )
 
     assert result["status"] == "PASS"
-    assert result["hook_count"] == 8
+    assert result["hook_count"] == len(events) == 11
     assert result["registered_events"] == events
     assert result["before_trust_statuses"] == ["untrusted"]
     assert result["before_enabled_states"] == [True]
@@ -1946,7 +2220,7 @@ def test_disabled_hook_recovery_accepts_only_the_explicit_pretrust_state() -> No
     assert '"after_enabled_states": [hooks_enabled_after_trust]' in source
 
 
-def test_stable_activation_advances_registry_without_changing_fallback(
+def test_stable_activation_advances_main_registry_without_changing_local_identity(
     tmp_path: Path,
 ) -> None:
     module = _module()
@@ -1955,65 +2229,60 @@ def test_stable_activation_advances_registry_without_changing_fallback(
     registry_path = (
         data_root
         / "installations"
-        / "codex-v200"
-        / "two-slot"
-        / "CODEX_TWO_SLOT_REGISTRY.json"
+        / "codex-v300"
+        / "two-slot-main-local"
+        / "CODEX_TWO_SLOT_MAIN_LOCAL_REGISTRY.json"
     )
     baseline = data_root / "installations" / "codex-v200" / "INSTALL_OLD.json"
-    fallback_install = (
-        data_root
-        / "installations"
-        / "codex-v200"
-        / "two-slot"
-        / "PV12_FALLBACK_INSTALLATION.json"
-    )
     _write(baseline, "old stable\n")
-    _write(fallback_install, "accepted fallback\n")
-    stable_marketplace = "evidence-lane-v200-task2-build-stable"
+    stable_marketplace = "evidence-lane-github"
     stable_selector = f"evidence-lane-plugin@{stable_marketplace}"
-    fallback_selector = "evidence-lane-plugin@evidence-lane-pv11-fallback"
-    fallback = {
-        "slot_role": "fallback",
-        "plugin_selector": fallback_selector,
-        "plugin_version": "2.1.0+codex.test",
-        "package_sha256": "F" * 64,
-        "byte_frozen": True,
-        "accepted_pv": "PV12",
-        "accepted_generation": 12,
-        "enabled": False,
-        "native_mcp_enabled": False,
-        "install_receipt": str(fallback_install),
-        "install_receipt_sha256": module._sha256(fallback_install),
-    }
-    stable = {
-        "slot_role": "stable-build",
-        "plugin_selector": stable_selector,
-        "plugin_version": "3.0.0+codex.test",
-        "package_sha256": "A" * 64,
+    local_selector = "evidence-lane-plugin@evidence-lane-v300-testing-new"
+    local_testing = {
+        "slot_role": "versioned-local-testing",
+        "plugin_selector": local_selector,
+        "plugin_version": "3.0.0+codex.local",
+        "marketplace_name": "evidence-lane-v300-testing-new",
+        "installed_path_sha256": "F" * 64,
+        "marketplace_source_type": "local",
         "byte_frozen": False,
         "enabled": True,
         "native_mcp_enabled": True,
-        "install_receipt": str(baseline),
-        "install_receipt_sha256": module._sha256(baseline),
+        "update_gate": "FRESH_VERSIONED_LOCAL_PACKAGE",
+    }
+    stable = {
+        "slot_role": "stable-git-main",
+        "plugin_selector": stable_selector,
+        "plugin_version": "3.0.0+codex.test",
+        "marketplace_name": stable_marketplace,
+        "installed_path_sha256": "A" * 64,
+        "marketplace_source_type": "git",
+        "byte_frozen": True,
+        "enabled": False,
+        "native_mcp_enabled": False,
+        "update_gate": "GOVERNED_VERIFIED_MAIN_MERGE",
     }
     registry: dict[str, object] = {
-        "schema": "evidence-lane.codex-two-slot-registry.v1",
+        "schema": "evidence-lane.codex-two-slot-main-local-registry.v1",
         "status": "PASS",
-        "state": "STABLE_ACTIVE_FALLBACK_PREWARMED_DISABLED",
-        "post_fuse_materialized": True,
-        "accepted_pv": "PV12",
-        "accepted_generation": 12,
-        "accepted_package_sha256": "F" * 64,
+        "active_slot": "versioned-local-testing",
+        "active_selector": local_selector,
         "exact_live_slot_count": 2,
         "max_enabled_plugin_count": 1,
-        "slots": {"fallback": fallback, "stable-build": stable},
+        "failure_target_slot": "stable-git-main",
+        "local_failure_targets_verified_main_only": True,
+        "branch_recovery_selector_retired": True,
+        "branch_recovery_install_allowed": False,
+        "pre_3_0_fallback_allowed": False,
+        "slots": {
+            "stable-git-main": stable,
+            "versioned-local-testing": local_testing,
+        },
     }
-    registry["registry_body_sha256"] = module._ordered_json_sha256(registry)
-    registry["seal"] = {
-        "algorithm": "SHA256",
-        "body_sha256": module._ordered_json_sha256(registry),
-    }
-    _write(registry_path, json.dumps(registry, indent=2) + "\n")
+    registry["receipt_sha256"] = (
+        hashlib.sha256(module._json_bytes(registry)).hexdigest().upper()
+    )
+    _write(registry_path, module._json_bytes(registry).decode("utf-8"))
     authority = module._load_two_slot_update_authority(
         data_root=data_root,
         comparison_baseline={
@@ -2050,9 +2319,9 @@ def test_stable_activation_advances_registry_without_changing_fallback(
                 "enabled = true",
                 f'[plugins."{stable_selector}".mcp_servers."evidence-lane"]',
                 "enabled = true",
-                f'[plugins."{fallback_selector}"]',
+                f'[plugins."{local_selector}"]',
                 "enabled = false",
-                f'[plugins."{fallback_selector}".mcp_servers."evidence-lane"]',
+                f'[plugins."{local_selector}".mcp_servers."evidence-lane"]',
                 "enabled = false",
             ]
         ),
@@ -2065,8 +2334,8 @@ def test_stable_activation_advances_registry_without_changing_fallback(
                 "enabled": True,
             },
             {
-                "pluginId": fallback_selector,
-                "version": "2.1.0+codex.test",
+                "pluginId": local_selector,
+                "version": "3.0.0+codex.local",
                 "enabled": False,
             },
         ]
@@ -2087,24 +2356,32 @@ def test_stable_activation_advances_registry_without_changing_fallback(
 
     updated = json.loads(registry_path.read_text(encoding="utf-8"))
     assert result["status"] == "PASS"
-    assert updated["slots"]["fallback"] == fallback
-    assert updated["slots"]["stable-build"]["plugin_selector"] == stable_selector
+    updated_local = updated["slots"]["versioned-local-testing"]
+    assert {
+        key: value
+        for key, value in updated_local.items()
+        if key not in {"enabled", "native_mcp_enabled"}
+    } == {
+        key: value
+        for key, value in local_testing.items()
+        if key not in {"enabled", "native_mcp_enabled"}
+    }
+    assert updated_local["enabled"] is False
+    assert updated["slots"]["stable-git-main"]["plugin_selector"] == stable_selector
     assert updated["live_registered_selectors"] == [
-        fallback_selector,
         stable_selector,
+        local_selector,
     ]
-    assert updated["exact_registered_plugin_count"] == 2
+    assert updated["exact_live_slot_count"] == 2
+    assert updated["branch_recovery_selector_retired"] is True
     assert result["stable_selector_reused"] is True
     assert result["new_stable_selector_created"] is False
-    assert updated["registry_body_sha256"] == module._ordered_json_sha256(
-        {
-            key: value
-            for key, value in updated.items()
-            if key not in {"registry_body_sha256", "seal"}
-        }
-    )
-    assert updated["seal"]["body_sha256"] == module._ordered_json_sha256(
-        {key: value for key, value in updated.items() if key != "seal"}
+    updated_core = {
+        key: value for key, value in updated.items() if key != "receipt_sha256"
+    }
+    assert (
+        updated["receipt_sha256"]
+        == hashlib.sha256(module._json_bytes(updated_core)).hexdigest().upper()
     )
 
 
@@ -2125,6 +2402,10 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
         "behavior_handoff.py",
         "event_isolation.py",
         "EvidenceLaneHookHost.exe",
+        "optional_event_observer.py",
+        "permission_request.py",
+        "subagent_start.py",
+        "subagent_stop.py",
     ):
         (prior_source / "hooks" / name).unlink()
     shutil.rmtree(prior_source / "toolchains")
@@ -2160,9 +2441,9 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
     }
     legacy_surface_core = dict(legacy_surface)
     legacy_surface_core.pop("surface_inventory_sha256")
-    legacy_surface["surface_inventory_sha256"] = hashlib.sha256(
-        module._json_bytes(legacy_surface_core)
-    ).hexdigest().upper()
+    legacy_surface["surface_inventory_sha256"] = (
+        hashlib.sha256(module._json_bytes(legacy_surface_core)).hexdigest().upper()
+    )
     baseline_archive_sha256 = "A" * 64
     baseline = {
         "schema": module.INSTALL_SCHEMA,
@@ -2178,9 +2459,9 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
         "pointer_moved": False,
         "hil_inferred": False,
     }
-    baseline["receipt_sha256"] = hashlib.sha256(
-        module._json_bytes(baseline)
-    ).hexdigest().upper()
+    baseline["receipt_sha256"] = (
+        hashlib.sha256(module._json_bytes(baseline)).hexdigest().upper()
+    )
     data_root = tmp_path / "pv"
     archived_stage = (
         data_root
@@ -2203,15 +2484,12 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
         ),
     )
     baseline_path = (
-        data_root
-        / "installations"
-        / "codex-v200"
-        / "INSTALL_HOST_STABLE.json"
+        data_root / "installations" / "codex-v200" / "INSTALL_HOST_STABLE.json"
     )
     _write(baseline_path, json.dumps(baseline))
-    baseline_file_sha256 = hashlib.sha256(
-        baseline_path.read_bytes()
-    ).hexdigest().upper()
+    baseline_file_sha256 = (
+        hashlib.sha256(baseline_path.read_bytes()).hexdigest().upper()
+    )
     arguments = argparse.Namespace(
         archive=archive,
         rehearsal_receipt=receipt,
@@ -2243,19 +2521,21 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
         "invoke_hook.ps1",
         "invoke_hook.py",
         "lifecycle_boundary.py",
+        "optional_event_observer.py",
+        "permission_request.py",
         "post_tool_use.py",
         "pre_tool_use.py",
+        "subagent_start.py",
+        "subagent_stop.py",
     ]
     assert preflight["comparison_baseline"]["surface_enrichment"] == (
         "VERIFIED_ARCHIVED_MARKETPLACE_EVENT_INVENTORY"
     )
     assert activation_pass["marketplace"]["state"] == "ALREADY_STAGED_EXACT"
-    assert activation_pass["comparison_baseline"] == preflight[
-        "comparison_baseline"
-    ]
-    assert activation_pass["surface_change_display"] == preflight[
-        "surface_change_display"
-    ]
+    assert activation_pass["comparison_baseline"] == preflight["comparison_baseline"]
+    assert (
+        activation_pass["surface_change_display"] == preflight["surface_change_display"]
+    )
 
 
 def test_installer_surface_diff_reports_changed_hook_without_raw_paths(
@@ -2361,6 +2641,10 @@ def test_surface_inventory_accepts_pre_isolation_local_slot_for_upgrade(
     (historical / "hooks" / "behavior_handoff.py").unlink()
     (historical / "hooks" / "event_isolation.py").unlink()
     (historical / "hooks" / "EvidenceLaneHookHost.exe").unlink()
+    (historical / "hooks" / "optional_event_observer.py").unlink()
+    (historical / "hooks" / "permission_request.py").unlink()
+    (historical / "hooks" / "subagent_start.py").unlink()
+    (historical / "hooks" / "subagent_stop.py").unlink()
 
     inventory = module._surface_inventory(
         historical,
@@ -2392,41 +2676,72 @@ def test_local_testing_marketplace_has_distinct_stable_slot_identity() -> None:
 def test_restart_helper_is_exact_process_and_same_task_only() -> None:
     text = RESTART.read_text(encoding="utf-8")
 
-    assert '[switch]$ConfirmRestart' in text
-    assert '[string]$LocalTestCommitReceipt' in text
-    assert '[string]$LocalTestCommitReceiptSha256' in text
-    assert '[string]$CodexConfig' in text
-    assert 'LOCAL_TEST_STAGED_INSTALL_PLUS_CAS_COMMIT' in text
-    assert 'evidence-lane.codex-local-test-cas-commit.v1' in text
-    assert '$prepared.restart_authority_sha256 -ne $restartAuthoritySha256' in text
-    assert '$taskBinding.restart_authority_sha256 -ne $restartAuthoritySha256' in text
-    assert 'OpenAI.CodexBeta_2p2nqsd0c76g0!App' in text
-    assert 'OpenAI.Codex_2p2nqsd0c76g0!App' in text
+    assert "[switch]$ConfirmRestart" in text
+    assert "[string]$LocalTestCommitReceipt" in text
+    assert "[string]$LocalTestCommitReceiptSha256" in text
+    assert "[string]$CodexConfig" in text
+    assert "LOCAL_TEST_STAGED_INSTALL_PLUS_CAS_COMMIT" in text
+    assert "evidence-lane.codex-local-test-cas-commit.v1" in text
+    assert "$prepared.restart_authority_sha256 -ne $restartAuthoritySha256" in text
+    assert "$taskBinding.restart_authority_sha256 -ne $restartAuthoritySha256" in text
+    assert "OpenAI.CodexBeta_2p2nqsd0c76g0!App" in text
+    assert "OpenAI.Codex_2p2nqsd0c76g0!App" in text
     assert 'process_name = "ChatGPT (Beta).exe"' in text
     assert 'process_name = "ChatGPT.exe"' in text
-    assert 'OpenAI\\.CodexBeta_' in text
-    assert 'OpenAI\\.Codex_' in text
+    assert "OpenAI\\.CodexBeta_" in text
+    assert "OpenAI\\.Codex_" in text
     assert "Get-CodexHostPackageProcesses" in text
     assert "prior_bound_host_process_tree_fully_stopped = $true" in text
     assert "Resolve-RootCodexTarget" in text
-    assert 'Stop-Process -Id $TargetProcessId -Force' in text
-    assert '$pluginAddProperty = $install.activation.PSObject.Properties["plugin_add"]' in text
-    assert '$pluginSelectorProperty = $install.activation.PSObject.Properties["plugin_selector"]' in text
-    assert '$installedPathProperty = $install.activation.PSObject.Properties["installed_path"]' in text
-    assert 'app_id = [string]$hostProfile.app_id' in text
-    assert 'Stop-Process -Name' not in text
+    assert "Stop-Process -Id $TargetProcessId -Force" in text
+    assert (
+        '$pluginAddProperty = $install.activation.PSObject.Properties["plugin_add"]'
+        in text
+    )
+    assert (
+        '$pluginSelectorProperty = $install.activation.PSObject.Properties["plugin_selector"]'
+        in text
+    )
+    assert (
+        '$installedPathProperty = $install.activation.PSObject.Properties["installed_path"]'
+        in text
+    )
+    assert "app_id = [string]$hostProfile.app_id" in text
+    assert "Stop-Process -Name" not in text
     assert "utf8NoBOM" not in text
     assert "$utf8NoBom = [System.Text.UTF8Encoding]::new($false)" in text
     assert "[System.IO.File]::WriteAllText(" in text
     assert 'user_reentry_action = "NONE_AUTO_OPEN_EXACT_TASK"' in text
     assert '$taskUri = "codex://threads/$TaskId"' in text
     assert 'if ((Split-Path -Leaf $installationDirectory) -eq "two-slot")' in text
-    assert '$taskBindingRoot = Split-Path -Parent $installationDirectory' in text
+    assert "$taskBindingRoot = Split-Path -Parent $installationDirectory" in text
     assert '$taskBindingDirectory = Join-Path $taskBindingRoot "task-bindings"' in text
-    assert 'task_navigation_mode = "CODEX_THREAD_DEEPLINK"' in text
+    assert (
+        'task_navigation_mode = "EXACT_INVOKING_TASK_FOREGROUND_START_THEN_NON_NAVIGATING_GLOBAL_REHYDRATION"'
+        in text
+    )
+    assert "host_shell_launch_had_task_argument = $true" in text
+    assert "task_uri_opened_by_initial_activation = $true" in text
+    assert "task_uri_opened_by_global_rehydration = $false" in text
+    assert "exact_task_reopen_count = 1" in text
+    assert "non_invoking_task_navigation_count = 0" in text
     assert "Assert-CodexThreadProtocol" in text
     assert "ConvertTo-WindowsCommandLineArgument" in text
     assert "-ArgumentList $argumentLine" in text
+    assert '"-TwoSlotRegistry", $exactTwoSlotRegistry' in text
+    assert (
+        '"-TwoSlotRegistrySha256", $observedTwoSlotRegistrySha256' in text
+    )
+    assert '$childStdoutPath = Join-Path $ReceiptDirectory "CODEX_RELAUNCH_CHILD_STDOUT.log"' in text
+    assert '$childStderrPath = Join-Path $ReceiptDirectory "CODEX_RELAUNCH_CHILD_STDERR.log"' in text
+    assert "-RedirectStandardOutput $childStdoutPath" in text
+    assert "-RedirectStandardError $childStderrPath" in text
+    assert text.index('"-TwoSlotRegistry", $exactTwoSlotRegistry') < text.index(
+        "Stop-Process -Id $TargetProcessId -Force"
+    )
+    assert text.index("-RedirectStandardError $childStderrPath") < text.index(
+        "Stop-Process -Id $TargetProcessId -Force"
+    )
     assert "Invoke-CodexHostActivation" in text
     assert "EvidenceLaneCodexHostActivation" in text
     assert "Start-Process -FilePath $taskUri" not in text
@@ -2468,33 +2783,17 @@ def test_restart_helper_is_exact_process_and_same_task_only() -> None:
     assert "hot_reload_claimed = $false" in text
 
 
-def test_same_slot_update_requires_git_ci_and_prewarm_before_task_reopen() -> None:
+def test_combined_same_slot_update_helper_is_purge_only() -> None:
     text = STABLE_UPDATE.read_text(encoding="utf-8")
 
-    assert "[string]$ReleaseAuthorityReceipt" in text
-    assert "[string]$ReleaseAuthorityReceiptSha256" in text
-    assert '"--release-authority-receipt"' in text
-    assert '"--release-authority-receipt-sha256"' in text
-    assert "$install.runtime_ready_before_task_reopen -ne $true" in text
-    assert "$install.activation.runtime_prewarm.status -cne \"PASS\"" in text
-    assert "$install.stable_selector_migrated_to_canonical_git -eq $true" in text
-    assert '$script:CanonicalStableSelector = "evidence-lane-plugin@evidence-lane-github"' in text
-    assert '$script:ExpectedGitRepository = "rathee000001/evidence_lane_plugin"' in text
-    assert 'Join-Path $PSScriptRoot "install_codex_stable.py"' in text
-    assert 'target = "PREVIEW"' not in text
-    assert '$releaseAuthority.vercel_preview.target -cne "PREVIEW"' in text
-    assert "goal_recovery_manager_rebound = $true" in text
-    assert 'OpenAI.Codex_2p2nqsd0c76g0!App' in text
-    assert 'OpenAI.CodexBeta_2p2nqsd0c76g0!App' in text
-    assert "runtime_ready_before_task_reopen = $true" in text
-    assert "fallback_activated = $false" in text
-    assert '$ErrorActionPreference = "Continue"' in text
-    assert "Select-Object -Last 80" in text
-    assert '"The exact GitLane installer failed:`n"' in text
-    assert "exact_task_reopen_requested = $null -ne $taskActivation" in text
-    assert "operator_recovery_required = $null -eq $taskActivation" in text
-    assert text.index("$taskActivation = Open-ExactTask") < text.index("Write-Json $resultPath $failure")
-    assert text.index("runtime_prewarm.status") < text.rindex("Open-ExactTask")
+    assert "RETIRED_COMBINED_INSTALL_RESTART_HELPER" in text
+    assert "stable Git-main or versioned local-testing slot" in text
+    assert "Restart-EvidenceLaneCodex.ps1" in text
+    assert "install_codex_stable.py" not in text
+    assert "Stop-Process" not in text
+    assert "Open-ExactTask" not in text
+    assert "LocalRecoverySelector" not in text
+    assert "LocalSuccessorSelector" not in text
 
 
 def test_git_marketplace_fetch_has_a_longer_bounded_timeout(
@@ -2570,7 +2869,6 @@ def test_restart_helper_parses_as_powershell() -> None:
 def _local_restart_fixture(tmp_path: Path) -> tuple[Path, str, Path, str, Path]:
     selector = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     stable = "evidence-lane-plugin@evidence-lane-github"
-    recovery = "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
     transaction_id = "local_test_tx_fixture"
     config = tmp_path / "config.toml"
     config.write_text("[plugins.local]\nenabled = true\n", encoding="utf-8")
@@ -2578,32 +2876,28 @@ def _local_restart_fixture(tmp_path: Path) -> tuple[Path, str, Path, str, Path]:
     rollback = tmp_path / "rollback.toml"
     rollback.write_text("[plugins.stable]\nenabled = true\n", encoding="utf-8")
     rollback_sha = hashlib.sha256(rollback.read_bytes()).hexdigest().upper()
-    three_slot_registry = tmp_path / "three-slot-registry.json"
-    three_slot_registry.write_text(
+    two_slot_registry = tmp_path / "two-slot-main-local-registry.json"
+    two_slot_registry.write_text(
         json.dumps(
             {
-                "schema": "evidence-lane.codex-three-slot-registry.v1",
+                "schema": "evidence-lane.codex-two-slot-main-local-registry.v1",
                 "status": "PASS",
-                "exact_live_slot_count": 3,
+                "exact_live_slot_count": 2,
                 "max_enabled_plugin_count": 1,
-                "active_slot": "mutable-local-testing",
+                "active_slot": "versioned-local-testing",
                 "active_selector": selector,
-                "failure_target_slot": "branch-commit-recovery",
-                "mutable_local_failure_never_targets_main_git": True,
+                "failure_target_slot": "stable-git-main",
+                "local_failure_targets_verified_main_only": True,
+                "branch_recovery_selector_retired": True,
+                "branch_recovery_install_allowed": False,
                 "pre_3_0_fallback_allowed": False,
-                "branch_recovery_must_remain_prior_checkpoint_until_commit": True,
-                "branch_recovery_byte_identical_to_mutable_local": False,
                 "slots": {
-                    "main-git-release": {
+                    "stable-git-main": {
                         "plugin_selector": stable,
-                        "enabled": False,
-                    },
-                    "branch-commit-recovery": {
-                        "plugin_selector": recovery,
                         "enabled": False,
                         "byte_frozen": True,
                     },
-                    "mutable-local-testing": {
+                    "versioned-local-testing": {
                         "plugin_selector": selector,
                         "enabled": True,
                         "byte_frozen": False,
@@ -2613,9 +2907,9 @@ def _local_restart_fixture(tmp_path: Path) -> tuple[Path, str, Path, str, Path]:
         ),
         encoding="utf-8",
     )
-    three_slot_registry_sha = hashlib.sha256(
-        three_slot_registry.read_bytes()
-    ).hexdigest().upper()
+    two_slot_registry_sha = (
+        hashlib.sha256(two_slot_registry.read_bytes()).hexdigest().upper()
+    )
     stage = {
         "schema": "evidence-lane.codex-stable-installation.v2",
         "status": "PASS",
@@ -2623,9 +2917,9 @@ def _local_restart_fixture(tmp_path: Path) -> tuple[Path, str, Path, str, Path]:
             "plugin_id": "evidence-lane-plugin",
             "version": "3.0.0+codex.fixture",
         },
-        "three_slot_registry": {
-            "registry_path": str(three_slot_registry.resolve()),
-            "registry_file_sha256": three_slot_registry_sha,
+        "two_slot_main_local_registry": {
+            "registry_path": str(two_slot_registry.resolve()),
+            "registry_file_sha256": two_slot_registry_sha,
         },
         "activation": {
             "state": "CANDIDATE_STAGED_DISABLED_RESTART_TRUST_REQUIRED",
@@ -2658,6 +2952,7 @@ def _local_restart_fixture(tmp_path: Path) -> tuple[Path, str, Path, str, Path]:
     stage_path.write_text(json.dumps(stage), encoding="utf-8")
     stage_sha = hashlib.sha256(stage_path.read_bytes()).hexdigest().upper()
     event_suffixes = {
+        "permissionRequest": "permission_request",
         "postCompact": "post_compact",
         "postToolUse": "post_tool_use",
         "preCompact": "pre_compact",
@@ -2665,6 +2960,8 @@ def _local_restart_fixture(tmp_path: Path) -> tuple[Path, str, Path, str, Path]:
         "sessionEnd": "session_end",
         "sessionStart": "session_start",
         "stop": "stop",
+        "subagentStart": "subagent_start",
+        "subagentStop": "subagent_stop",
         "userPromptSubmit": "user_prompt_submit",
     }
     records = [
@@ -2714,7 +3011,7 @@ def _local_restart_fixture(tmp_path: Path) -> tuple[Path, str, Path, str, Path]:
             "status": "PASS",
             "plugin_selector": selector,
             "candidate_enabled": True,
-            "hook_count": 8,
+            "hook_count": len(event_suffixes),
             "unrelated_hook_state_mutated": False,
             "receipt_sha256": "A" * 64,
             "records": records,
@@ -2744,33 +3041,33 @@ def _run_local_restart_fixture(
     recovery_registry_sha: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     arguments = [
-            "powershell.exe",
-            "-NoProfile",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-File",
-            str(RESTART),
-            "-Action",
-            "Prepare",
-            "-InstallReceipt",
-            str(stage),
-            "-InstallReceiptSha256",
-            stage_sha,
-            "-LocalTestCommitReceipt",
-            str(commit),
-            "-LocalTestCommitReceiptSha256",
-            commit_sha,
-            "-CodexConfig",
-            str(config),
-            "-ProjectId",
-            "test-codex-evidence-lane-plugin",
-            "-EvidenceSessionId",
-            "session_fixture",
-            "-TaskId",
-            "01a0036f-32fa-79b2-8846-9c716d4fe777",
-            "-HostSessionId",
-            "01a0036f-32fa-79b2-8846-9c716d4fe777",
-        ]
+        "powershell.exe",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        str(RESTART),
+        "-Action",
+        "Prepare",
+        "-InstallReceipt",
+        str(stage),
+        "-InstallReceiptSha256",
+        stage_sha,
+        "-LocalTestCommitReceipt",
+        str(commit),
+        "-LocalTestCommitReceiptSha256",
+        commit_sha,
+        "-CodexConfig",
+        str(config),
+        "-ProjectId",
+        "test-codex-evidence-lane-plugin",
+        "-EvidenceSessionId",
+        "session_fixture",
+        "-TaskId",
+        "01a0036f-32fa-79b2-8846-9c716d4fe777",
+        "-HostSessionId",
+        "01a0036f-32fa-79b2-8846-9c716d4fe777",
+    ]
     if recovery_registry is not None and recovery_registry_sha is not None:
         arguments.extend(
             [
@@ -2794,18 +3091,12 @@ def test_restart_helper_accepts_only_exact_local_stage_commit_and_live_config(
 ) -> None:
     stage, stage_sha, commit, commit_sha, config = _local_restart_fixture(tmp_path)
 
-    validated = _run_local_restart_fixture(
-        stage, stage_sha, commit, commit_sha, config
-    )
+    validated = _run_local_restart_fixture(stage, stage_sha, commit, commit_sha, config)
     assert validated.returncode != 0
-    assert "Prepare requires -TargetProcessId." in (
-        validated.stdout + validated.stderr
-    )
+    assert "Prepare requires -TargetProcessId." in (validated.stdout + validated.stderr)
 
     config.write_text("[plugins.local]\nenabled = false\n", encoding="utf-8")
-    rejected = _run_local_restart_fixture(
-        stage, stage_sha, commit, commit_sha, config
-    )
+    rejected = _run_local_restart_fixture(stage, stage_sha, commit, commit_sha, config)
     assert rejected.returncode != 0
     assert "stage and CAS commit receipts are not restart-eligible" in (
         rejected.stdout + rejected.stderr
@@ -2816,12 +3107,12 @@ def _disabled_hook_recovery_restart_fixture(
     tmp_path: Path,
 ) -> tuple[Path, str, Path, str, Path, Path, str]:
     selector = "evidence-lane-plugin@evidence-lane-v300-testing-new"
-    stable = "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
-    main_git = "evidence-lane-plugin@evidence-lane-github"
+    stable = "evidence-lane-plugin@evidence-lane-github"
     prior_transaction_id = "local_test_tx_prior_fixture"
     transaction_id = "local_hook_recovery_fixture"
     config = tmp_path / "config.toml"
     event_suffixes = {
+        "permissionRequest": "permission_request",
         "postCompact": "post_compact",
         "postToolUse": "post_tool_use",
         "preCompact": "pre_compact",
@@ -2829,6 +3120,8 @@ def _disabled_hook_recovery_restart_fixture(
         "sessionEnd": "session_end",
         "sessionStart": "session_start",
         "stop": "stop",
+        "subagentStart": "subagent_start",
+        "subagentStop": "subagent_stop",
         "userPromptSubmit": "user_prompt_submit",
     }
     hook_config = []
@@ -2850,10 +3143,6 @@ def _disabled_hook_recovery_restart_fixture(
                 f'[plugins."{stable}"]',
                 "enabled = false",
                 f'[plugins."{stable}".mcp_servers.evidence-lane]',
-                "enabled = false",
-                f'[plugins."{main_git}"]',
-                "enabled = false",
-                f'[plugins."{main_git}".mcp_servers.evidence-lane]',
                 "enabled = false",
                 "",
                 *hook_config,
@@ -2899,35 +3188,28 @@ def _disabled_hook_recovery_restart_fixture(
         }
         for index, (event, suffix) in enumerate(event_suffixes.items(), start=1)
     ]
-    three_slot_registry = tmp_path / "three-slot-registry.json"
-    three_slot_registry.write_text(
+    two_slot_registry = tmp_path / "two-slot-main-local-registry.json"
+    two_slot_registry.write_text(
         json.dumps(
             {
-                "schema": "evidence-lane.codex-three-slot-registry.v1",
+                "schema": "evidence-lane.codex-two-slot-main-local-registry.v1",
                 "status": "PASS",
-                "exact_live_slot_count": 3,
+                "exact_live_slot_count": 2,
                 "max_enabled_plugin_count": 1,
-                "active_slot": "mutable-local-testing",
+                "active_slot": "versioned-local-testing",
                 "active_selector": selector,
-                "failure_target_slot": "branch-commit-recovery",
-                "mutable_local_failure_never_targets_main_git": True,
+                "failure_target_slot": "stable-git-main",
+                "local_failure_targets_verified_main_only": True,
+                "branch_recovery_selector_retired": True,
+                "branch_recovery_install_allowed": False,
                 "pre_3_0_fallback_allowed": False,
-                "branch_recovery_must_remain_prior_checkpoint_until_commit": True,
-                "branch_recovery_byte_identical_to_mutable_local": False,
                 "slots": {
-                    "main-git-release": {
-                        "plugin_selector": main_git,
-                        "enabled": False,
-                    },
-                    "branch-commit-recovery": {
-                        "plugin_selector": (
-                            "evidence-lane-plugin@"
-                            "evidence-lane-v300-stable-recovery"
-                        ),
+                    "stable-git-main": {
+                        "plugin_selector": stable,
                         "enabled": False,
                         "byte_frozen": True,
                     },
-                    "mutable-local-testing": {
+                    "versioned-local-testing": {
                         "plugin_selector": selector,
                         "enabled": True,
                         "byte_frozen": False,
@@ -2937,9 +3219,9 @@ def _disabled_hook_recovery_restart_fixture(
         ),
         encoding="utf-8",
     )
-    three_slot_registry_sha = hashlib.sha256(
-        three_slot_registry.read_bytes()
-    ).hexdigest().upper()
+    two_slot_registry_sha = (
+        hashlib.sha256(two_slot_registry.read_bytes()).hexdigest().upper()
+    )
     install = {
         "schema": "evidence-lane.codex-stable-installation.v2",
         "status": "PASS",
@@ -2948,9 +3230,9 @@ def _disabled_hook_recovery_restart_fixture(
             "version": "3.0.0+codex.fixture",
         },
         "archive_sha256": "D" * 64,
-        "three_slot_registry": {
-            "registry_path": str(three_slot_registry.resolve()),
-            "registry_file_sha256": three_slot_registry_sha,
+        "two_slot_main_local_registry": {
+            "registry_path": str(two_slot_registry.resolve()),
+            "registry_file_sha256": two_slot_registry_sha,
         },
         "activation": {
             "state": "LOCAL_3_0_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED",
@@ -2970,8 +3252,9 @@ def _disabled_hook_recovery_restart_fixture(
                 "compare_and_swap": True,
                 "switch_count": 1,
                 "rollback_capable": True,
-                "stable_and_fallback_enabled": False,
-                "exact_eight_hook_hashes_trusted": True,
+                "stable_main_enabled": False,
+                "branch_recovery_selector_present": False,
+                "complete_hook_set_hashes_trusted": True,
                 "hook_event_isolation_verified_before_activation": True,
                 "restart_or_reload_required": True,
                 "candidate_created_or_accepted": False,
@@ -2999,7 +3282,8 @@ def _disabled_hook_recovery_restart_fixture(
                 "candidate_selector": selector,
                 "candidate_enabled": True,
                 "switch_count": 1,
-                "stable_and_fallback_enabled": False,
+                "stable_main_enabled": False,
+                "branch_recovery_selector_present": False,
                 "accepted_two_slot_registry_mutated": False,
             },
             "hook_trust": {
@@ -3008,7 +3292,7 @@ def _disabled_hook_recovery_restart_fixture(
                 "plugin_selector": selector,
                 "candidate_enabled": True,
                 "disabled_local_recovery": True,
-                "hook_count": 8,
+                "hook_count": len(event_suffixes),
                 "unrelated_hook_state_mutated": False,
                 "receipt_sha256": "5" * 64,
                 "records": records,
@@ -3106,35 +3390,33 @@ def test_live_disabled_local_baseline_records_fresh_cas_with_hooks_off(
     workspace.mkdir()
     executable.write_bytes(b"fixture")
     candidate = "evidence-lane-plugin@evidence-lane-v300-testing-new"
-    recovery = "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
-    main_git = "evidence-lane-plugin@evidence-lane-github"
+    stable = "evidence-lane-plugin@evidence-lane-github"
     suffixes = [
         "post_compact",
         "post_tool_use",
         "pre_compact",
         "pre_tool_use",
+        "permission_request",
         "session_end",
         "session_start",
         "stop",
+        "subagent_start",
+        "subagent_stop",
         "user_prompt_submit",
     ]
 
-    def config_text(*, candidate_enabled: bool) -> str:
+    def config_text(*, enabled_selector: str | None) -> str:
         rows = [
             f'[plugins."{candidate}"]',
-            f'enabled = {str(candidate_enabled).lower()}',
+            f"enabled = {str(enabled_selector == candidate).lower()}",
             f'[plugins."{candidate}".mcp_servers.evidence-lane]',
-            f'enabled = {str(candidate_enabled).lower()}',
-            f'[plugins."{recovery}"]',
-            "enabled = false",
-            f'[plugins."{recovery}".mcp_servers.evidence-lane]',
-            "enabled = false",
-            f'[plugins."{main_git}"]',
-            "enabled = false",
-            f'[plugins."{main_git}".mcp_servers.evidence-lane]',
-            "enabled = false",
+            f"enabled = {str(enabled_selector == candidate).lower()}",
+            f'[plugins."{stable}"]',
+            f"enabled = {str(enabled_selector == stable).lower()}",
+            f'[plugins."{stable}".mcp_servers.evidence-lane]',
+            f"enabled = {str(enabled_selector == stable).lower()}",
         ]
-        for selector_index, selector in enumerate((candidate, recovery), start=1):
+        for selector_index, selector in enumerate((candidate, stable), start=1):
             for hook_index, suffix in enumerate(suffixes, start=1):
                 rows.extend(
                     [
@@ -3148,18 +3430,14 @@ def test_live_disabled_local_baseline_records_fresh_cas_with_hooks_off(
                 )
         return "\n".join(rows) + "\n"
 
-    active_text = config_text(candidate_enabled=True)
-    disabled_text = config_text(candidate_enabled=False)
+    active_text = config_text(enabled_selector=candidate)
+    stable_active_text = config_text(enabled_selector=stable)
+    disabled_text = config_text(enabled_selector=None)
     config = codex_home / "config.toml"
     config.write_text(active_text, encoding="utf-8")
     installed = [
         {
-            "pluginId": main_git,
-            "version": "2.1.0+codex.fixture",
-            "enabled": False,
-        },
-        {
-            "pluginId": recovery,
+            "pluginId": stable,
             "version": "3.0.0+codex.fixture",
             "enabled": False,
         },
@@ -3176,7 +3454,9 @@ def test_live_disabled_local_baseline_records_fresh_cas_with_hooks_off(
     )
 
     def fake_batch_write(**kwargs):
-        assert not any(module._evidence_plugin_activation_states(kwargs["plugins"]).values())
+        assert not any(
+            module._evidence_plugin_activation_states(kwargs["plugins"]).values()
+        )
         config.write_text(disabled_text, encoding="utf-8")
         return {
             "schema": "evidence-lane.codex-config-recovery-write.v1",
@@ -3191,7 +3471,11 @@ def test_live_disabled_local_baseline_records_fresh_cas_with_hooks_off(
         assert kwargs["activation_mode"] == "RECOVER_DISABLED_LOCAL"
         assert kwargs["keep_hooks_disabled_after_trust"] is True
         assert config.read_text(encoding="utf-8") == disabled_text
-        config.write_text(active_text, encoding="utf-8")
+        selector = kwargs["plugin_selector"]
+        config.write_text(
+            active_text if selector == candidate else stable_active_text,
+            encoding="utf-8",
+        )
         after_sha = hashlib.sha256(config.read_bytes()).hexdigest().upper()
         return (
             {
@@ -3200,7 +3484,7 @@ def test_live_disabled_local_baseline_records_fresh_cas_with_hooks_off(
                 "records": [
                     {
                         "event_name": suffix,
-                        "hook_key": f"{candidate}:hooks/hooks.json:{suffix}:0:0",
+                        "hook_key": f"{selector}:hooks/hooks.json:{suffix}:0:0",
                         "current_hash": f"sha256:{index:064x}",
                         "trust_status": "trusted",
                         "enabled": False,
@@ -3226,7 +3510,7 @@ def test_live_disabled_local_baseline_records_fresh_cas_with_hooks_off(
 
     assert result["schema"] == module.LOCAL_TEST_COMMIT_SCHEMA
     assert result["candidate_selector"] == candidate
-    assert result["last_known_good_selector"] == recovery
+    assert result["last_known_good_selector"] == stable
     assert result["candidate_enabled"] is True
     assert result["hook_trust"]["records"]
     assert not any(row["enabled"] for row in result["hook_trust"]["records"])
@@ -3247,9 +3531,7 @@ def test_restart_helper_accepts_disabled_hook_recovery_and_live_selector_state(
         install, install_sha, prior, prior_sha, config
     )
     assert validated.returncode != 0
-    assert "Prepare requires -TargetProcessId." in (
-        validated.stdout + validated.stderr
-    )
+    assert "Prepare requires -TargetProcessId." in (validated.stdout + validated.stderr)
 
     config.write_text(
         config.read_text(encoding="utf-8").replace(
@@ -3292,7 +3574,9 @@ def test_restart_helper_quotes_spaced_child_script_path() -> None:
     start = text.index("function ConvertTo-WindowsCommandLineArgument")
     end = text.index("\nfunction Assert-CodexThreadProtocol", start)
     function_source = text[start:end]
-    command = function_source + r'''
+    command = (
+        function_source
+        + r"""
 $value = 'F:\test codex\plugins\evidence-lane-plugin\scripts\codex_release\Restart-EvidenceLaneCodex.ps1'
 $expected = ([char]34) + $value + ([char]34)
 $actual = ConvertTo-WindowsCommandLineArgument $value
@@ -3300,7 +3584,8 @@ if ($actual -cne $expected) {
     Write-Error "Spaced child script path was not preserved: $actual"
     exit 1
 }
-'''
+"""
+    )
     completed = subprocess.run(
         ["powershell.exe", "-NoProfile", "-Command", command],
         capture_output=True,
@@ -3314,9 +3599,16 @@ if ($actual -cne $expected) {
 def test_goal_recovery_helper_is_general_logon_exact_task_and_read_only() -> None:
     text = GOAL_RECOVERY.read_text(encoding="utf-8")
 
-    assert '[ValidateSet("Probe", "Register", "RecoverNow", "RecoverAtLogon", "Status", "Unregister")]' in text
-    assert 'New-ScheduledTaskTrigger -AtLogOn -User $identity' in text
-    assert 'scope = "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_ON_THIS_WINDOWS_USER"' in text
+    assert (
+        '[ValidateSet("Probe", "Register", "RehydrateAll", "RecoverNow", "RecoverAtLogon", "Status", "Unregister")]'
+        in text
+    )
+    assert 'if ($Action -eq "RehydrateAll")' in text
+    assert "New-ScheduledTaskTrigger -AtLogOn -User $identity" in text
+    assert (
+        'scope = "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_ON_THIS_WINDOWS_USER"'
+        in text
+    )
     assert '-Method "thread/read"' in text
     assert '-Method "thread/goal/get"' in text
     assert '-Method "thread/resume"' not in text
@@ -3326,19 +3618,26 @@ def test_goal_recovery_helper_is_general_logon_exact_task_and_read_only() -> Non
     assert "Test-RecoveredThisBoot" in text
     assert 'if ($Action -eq "RecoverNow")' in text
     assert 'recovery_mode = "EXPLICIT_EXACT_TASK_NOW"' in text
-    assert 'state = "EXACT_TASK_OPEN_REQUESTED_ACTIVE_GOAL_PERSISTED_HOST_CONTINUATION_PENDING"' in text
-    assert 'stable_selector_growth_allowed = $false' in text
-    assert 'branch_commit_recovery_must_remain_disabled_until_sealed_switch = $true' in text
-    assert 'pre_3_0_automatic_recovery_allowed = $false' in text
-    assert 'synthetic_prompt_allowed = $false' in text
-    assert 'state_travel_allowed = $false' in text
-    assert 'raw_goal_objective_stored = $false' in text
-    assert 'report_implemented_active_and_queued_after_host_continues = $true' in text
-    assert 'OpenAI.Codex_2p2nqsd0c76g0!App' in text
-    assert 'OpenAI.CodexBeta_2p2nqsd0c76g0!App' in text
+    assert (
+        'state = "EXACT_TASK_OPEN_REQUESTED_ACTIVE_GOAL_PERSISTED_HOST_CONTINUATION_PENDING"'
+        in text
+    )
+    assert "stable_selector_growth_allowed = $false" in text
+    assert "branch_recovery_selector_retired = $true" in text
+    assert "branch_recovery_install_allowed = $false" in text
+    assert "pre_3_0_automatic_recovery_allowed = $false" in text
+    assert "synthetic_prompt_allowed = $false" in text
+    assert "state_travel_allowed = $false" in text
+    assert "raw_goal_objective_stored = $false" in text
+    assert "report_implemented_active_and_queued_after_host_continues = $true" in text
+    assert "OpenAI.Codex_2p2nqsd0c76g0!App" in text
+    assert "OpenAI.CodexBeta_2p2nqsd0c76g0!App" in text
     assert "Read-TaskHostProfile" in text
     assert "Resolve-GoalBindingHostProfile" in text
-    assert 'LocalTestingSelector = "evidence-lane-plugin@evidence-lane-v300-testing-new"' in text
+    assert (
+        'LocalTestingSelector = "evidence-lane-plugin@evidence-lane-v300-testing-new"'
+        in text
+    )
     assert "Resolve-TaskBindingRuntimeSelector" in text
     assert "Resolve-GoalBindingRuntimeSelector" in text
     assert "-ExpectedPluginSelector $runtimePluginSelector" in text
@@ -3346,18 +3645,24 @@ def test_goal_recovery_helper_is_general_logon_exact_task_and_read_only() -> Non
     assert "outside the approved stable/local allowlist" in text
     assert "taskBindingWasSuperseded" in text
     assert "cannot safely supersede the legacy Goal binding" in text
-    assert 'exact_bound_host_app_required = $true' in text
-    assert 'stable_and_beta_hosts_supported = $true' in text
-    assert 'both_desktop_channels_expose_chatgpt_and_codex_surfaces = $true' in text
-    assert 'evidence_lane_governs_codex_surface_only = $true' in text
-    assert 'exact_task_deeplink_is_primary_hot_reattach = $true' in text
-    assert 'restart_is_bounded_branch_recovery_only = $true' in text
-    assert 'restart_loop_allowed = $false' in text
-    assert 'route = "ISOLATED_OFFICIAL_CODEX_APP_SERVER"' in text
-    assert 'live_desktop_control_plane = "HOST_CAPABILITY_UNAVAILABLE_WINDOWS_APP_SERVER_DAEMON"' in text
-    assert 'config_mcp_server_reload_request_passed = $true' in text
-    assert 'exact_tool_count = $toolCount' in text
-    assert 'app_server_process_hidden = $true' in text
+    assert "exact_bound_host_app_required = $true" in text
+    assert "stable_and_beta_hosts_supported = $true" in text
+    assert "both_desktop_channels_expose_chatgpt_and_codex_surfaces = $true" in text
+    assert "evidence_lane_governs_codex_surface_only = $true" in text
+    assert "exact_task_deeplink_is_primary_hot_reattach = $true" in text
+    assert "restart_is_bounded_exact_invoking_task_only = $true" in text
+    assert "restart_loop_allowed = $false" in text
+    assert (
+        'route = "ISOLATED_PERSISTENCE_AND_PLUGIN_CONFIGURATION_ONLY"' in text
+    )
+    assert (
+        'live_desktop_control_plane = "HOST_CAPABILITY_UNAVAILABLE_WINDOWS_APP_SERVER_DAEMON"'
+        in text
+    )
+    assert "isolated_mcp_server_status_queried = $false" in text
+    assert "task_local_native_proof_required = $true" in text
+    assert "exact_tool_count = $null" in text
+    assert "app_server_process_hidden = $true" in text
 
 
 def test_goal_recovery_helper_parses_as_powershell() -> None:
@@ -3428,12 +3733,23 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
 ) -> None:
     acceptance = _acceptance_module()
     archive, rehearsal, version = _fixture_archive(tmp_path)
-    marketplace = tmp_path / "codex" / "local-marketplaces" / (
-        "evidence-lane-github"
-    ) / "plugins" / "evidence-lane-plugin"
-    installed = tmp_path / "codex" / "plugins" / "cache" / (
-        "evidence-lane-github"
-    ) / "evidence-lane-plugin" / version
+    marketplace = (
+        tmp_path
+        / "codex"
+        / "local-marketplaces"
+        / ("evidence-lane-github")
+        / "plugins"
+        / "evidence-lane-plugin"
+    )
+    installed = (
+        tmp_path
+        / "codex"
+        / "plugins"
+        / "cache"
+        / ("evidence-lane-github")
+        / "evidence-lane-plugin"
+        / version
+    )
     source = tmp_path / "source"
     (source / "_evidence_lane_rehearsal").rename(
         tmp_path / "excluded-rehearsal-metadata"
@@ -3456,11 +3772,14 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
             {
                 "hooks": {
                     "SessionStart": [{"hooks": [{"type": "command"}]}],
+                    "SubagentStart": [{"hooks": [{"type": "command"}]}],
                     "UserPromptSubmit": [{"hooks": [{"type": "command"}]}],
                     "PreToolUse": [{"hooks": [{"type": "command"}]}],
+                    "PermissionRequest": [{"hooks": [{"type": "command"}]}],
                     "PostToolUse": [{"hooks": [{"type": "command"}]}],
                     "PreCompact": [{"hooks": [{"type": "command"}]}],
                     "PostCompact": [{"hooks": [{"type": "command"}]}],
+                    "SubagentStop": [{"hooks": [{"type": "command"}]}],
                     "Stop": [{"hooks": [{"type": "command"}]}],
                     "SessionEnd": [{"hooks": [{"type": "command"}]}],
                 }
@@ -3504,8 +3823,9 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         "schema": "evidence-lane.codex-hook-trust.v1",
         "status": "PASS",
         "plugin_selector": selector,
-        "hook_count": 8,
+        "hook_count": 11,
         "registered_events": [
+            "permissionRequest",
             "postCompact",
             "postToolUse",
             "preCompact",
@@ -3513,6 +3833,8 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
             "sessionEnd",
             "sessionStart",
             "stop",
+            "subagentStart",
+            "subagentStop",
             "userPromptSubmit",
         ],
         "records": [
@@ -3525,6 +3847,7 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
             }
             for index, event in enumerate(
                 [
+                    "permissionRequest",
                     "postCompact",
                     "postToolUse",
                     "preCompact",
@@ -3532,6 +3855,8 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
                     "sessionEnd",
                     "sessionStart",
                     "stop",
+                    "subagentStart",
+                    "subagentStop",
                     "userPromptSubmit",
                 ],
                 start=1,
@@ -3559,8 +3884,7 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         "tool_catalog_sha256": "A" * 64,
         "resource_uri": "ui://evidence-lane/governed-console-v6.html",
         "brand_icon_sha256": (
-            "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3D"
-            "EF87B8A129C4FA"
+            "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA"
         ),
         "catalog_expected": {"tools": 88, "read": 27, "write": 61, "skills": 17},
         "native_dependency_prewarm_completed": True,
@@ -3576,10 +3900,10 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         "archive_sha256": hashlib.sha256(archive.read_bytes()).hexdigest().upper(),
         "activation_authority": {
             "status": "PASS",
-            "boundary": "GOVERNED_GIT_BRANCH_CLEAN_CI_VERCEL_PREVIEW_EXACT_COMMIT",
+            "boundary": "GOVERNED_GIT_MAIN_CLEAN_CI_VERCEL_PREVIEW_EXACT_COMMIT",
             "source_commit": "1" * 40,
             "source_tree": "2" * 40,
-            "branch": "agent/evi-v200-test",
+            "branch": "main",
             "receipt_sha256": "3" * 64,
             "receipt_file_sha256": "4" * 64,
             "vercel_preview_ready": True,
@@ -3606,12 +3930,20 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         },
         "generated_cache_written_directly": False,
         "previous_release_cache_deleted": False,
-        "fallback_materialization_gate": (
-            "POST_EXACT_PV12_APPROVE_AND_NATIVE_FUSE"
-        ),
-        "fallback_materialized": False,
-        "live_cache_cleanup_deferred_until_exact_pv12_acceptance": True,
-        "two_slot_operator_packaged": True,
+        "live_slot_contract": {
+            "schema": "evidence-lane.codex-two-slot-main-local-registry.v1",
+            "status": "PASS",
+            "exact_live_slot_count": 2,
+            "stable_slot": "stable-git-main",
+            "stable_selector": selector,
+            "local_slot": "versioned-local-testing",
+            "local_testing_selector": (
+                "evidence-lane-plugin@evidence-lane-v300-testing-new"
+            ),
+            "branch_recovery_selector_retired": True,
+            "branch_recovery_install_allowed": False,
+            "pre_3_0_fallback_allowed": False,
+        },
         "post_proof_obsolete_cleanup_completed": True,
         "obsolete_cleanup_used_supported_codex_apis": True,
         "credential_requested_or_stored": False,
@@ -3629,14 +3961,10 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
             "registered_event_count": installed_surface["hooks"][
                 "registered_event_count"
             ],
-            "registered_events": installed_surface["hooks"][
-                "registered_events"
-            ],
+            "registered_events": installed_surface["hooks"]["registered_events"],
             "handler_count": installed_surface["hooks"]["handler_count"],
             "hook_file_count": installed_surface["hooks"]["hook_file_count"],
-            "added": [
-                row["name"] for row in installed_surface["hooks"]["records"]
-            ],
+            "added": [row["name"] for row in installed_surface["hooks"]["records"]],
             "added_files": [
                 row["name"] for row in installed_surface["hooks"]["records"]
             ],
@@ -3654,36 +3982,30 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
                 "event_inventory_sha256"
             ],
         },
-            "skills": {
+        "skills": {
             "count": installed_surface["skills"]["count"],
-            "added": [
-                row["name"] for row in installed_surface["skills"]["records"]
-            ],
+            "added": [row["name"] for row in installed_surface["skills"]["records"]],
             "changed": [],
             "removed": [],
-                "inventory_sha256": installed_surface["skills"]["inventory_sha256"],
-            },
-                "search_toolchain": {
-                    "status": installed_surface["search_toolchain"]["status"],
-                    "record_count": installed_surface["search_toolchain"]["record_count"],
-                "manifest_sha256": installed_surface["search_toolchain"][
-                    "manifest_sha256"
-                ],
-                    "inventory_sha256": installed_surface["search_toolchain"][
-                        "inventory_sha256"
-                    ],
-                    "fts_authority": installed_surface["search_toolchain"][
-                        "fts_authority"
-                    ],
-                    "resolution_order": installed_surface["search_toolchain"][
-                    "resolution_order"
-                ],
-                "records": installed_surface["search_toolchain"]["records"],
-                "fallbacks_required": True,
-                "changed_from_previous": False,
-                "raw_paths_included": False,
-            },
-            "catalog": {
+            "inventory_sha256": installed_surface["skills"]["inventory_sha256"],
+        },
+        "search_toolchain": {
+            "status": installed_surface["search_toolchain"]["status"],
+            "record_count": installed_surface["search_toolchain"]["record_count"],
+            "manifest_sha256": installed_surface["search_toolchain"]["manifest_sha256"],
+            "inventory_sha256": installed_surface["search_toolchain"][
+                "inventory_sha256"
+            ],
+            "fts_authority": installed_surface["search_toolchain"]["fts_authority"],
+            "resolution_order": installed_surface["search_toolchain"][
+                "resolution_order"
+            ],
+            "records": installed_surface["search_toolchain"]["records"],
+            "fallbacks_required": True,
+            "changed_from_previous": False,
+            "raw_paths_included": False,
+        },
+        "catalog": {
             "tools": 88,
             "read": 27,
             "write": 61,
@@ -3722,16 +4044,15 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
             output=tmp_path / "pre-restart-acceptance.json",
         )
     )
-    assert pre["state"] == (
-        "PRE_RESTART_INSTALLED_PACKAGE_VERIFIED_RESTART_REQUIRED"
-    )
+    assert pre["state"] == ("PRE_RESTART_INSTALLED_PACKAGE_VERIFIED_RESTART_REQUIRED")
     assert pre["catalog"] == {"tools": 88, "read": 27, "write": 61, "skills": 17}
     assert pre["installed_plugin"]["version"] == version
     assert pre["package_inventory"]["source_bytes_match_marketplace"] is True
     assert pre["package_inventory"]["codex_generated_migration_count"] == 1
-    assert pre["package_inventory"]["codex_generated_migrations"][0][
-        "skill_name"
-    ] == "source-command-evi-plan"
+    assert (
+        pre["package_inventory"]["codex_generated_migrations"][0]["skill_name"]
+        == "source-command-evi-plan"
+    )
     assert pre["restart_verified"] is False
     assert pre["enabled_selector"] == selector
     assert pre["hook_trust"]["status"] == "PASS"
@@ -3762,13 +4083,9 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
             output=tmp_path / "post-restart-acceptance.json",
         )
     )
-    assert post["state"] == (
-        "POST_RESTART_INSTALLED_PACKAGE_VERIFIED_READY_FOR_HIL"
-    )
+    assert post["state"] == ("POST_RESTART_INSTALLED_PACKAGE_VERIFIED_READY_FOR_HIL")
     assert post["restart_verified"] is True
-    assert post["native_route"]["canonical_tool_namespace"] == (
-        "mcp__evidence_lane__"
-    )
+    assert post["native_route"]["canonical_tool_namespace"] == ("mcp__evidence_lane__")
     assert post["installed_host_hil_required"] is True
     assert post["candidate_created_or_accepted"] is False
     assert post["pointer_moved"] is False

@@ -500,6 +500,106 @@ def consume_post_tool_transport(
         )
 
 
+_OPTIONAL_OBSERVER_EVENTS = {
+    "PermissionRequest",
+    "SubagentStart",
+    "SubagentStop",
+}
+
+
+def consume_optional_observer_transport(
+    payload: dict[str, Any],
+    event_name: str,
+    transport: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Verify an optional host event without controlling or mutating it."""
+
+    if event_name not in _OPTIONAL_OBSERVER_EVENTS:
+        raise TurnControlError(
+            "HOOK_OPTIONAL_OBSERVER_EVENT_UNSUPPORTED",
+            "The optional hook observer received an unsupported event.",
+            event_name=event_name,
+        )
+    _validate_transport(event_name, payload, transport)
+    root = resolve_codex_hook_store_root()
+    raw_policy = _raw_policy(root, payload)
+    if not raw_policy.get("governed_session"):
+        return _owned_receipt(
+            {
+                "state": "NOT_GOVERNED",
+                "event_name": event_name,
+                "host_control_emitted": False,
+                "source_mutation_authorized": False,
+            },
+            transport=transport,
+            action="BOUND_OPTIONAL_EVENT_OBSERVATION",
+        )
+    try:
+        normalized, host_binding = bind_codex_host_payload(
+            root,
+            host_payload=payload,
+            event_name=event_name,
+            allow_alias_claim=False,
+        )
+    except TurnControlError as exc:
+        return _owned_receipt(
+            gap_receipt(
+                root,
+                host_payload=payload,
+                error=exc,
+                policy=raw_policy,
+            ),
+            transport=transport,
+            action="BOUND_OPTIONAL_EVENT_OBSERVATION",
+        )
+    policy = _raw_policy(root, normalized)
+    exact_binding = policy.get("binding_match") in {
+        "EXACT_HOST_SESSION",
+        "SEALED_CODEX_HOST_ALIAS",
+    }
+    if not exact_binding:
+        return _owned_receipt(
+            {
+                "state": "OPTIONAL_EVENT_REJECTED_WRONG_TASK",
+                "event_name": event_name,
+                "binding_match": policy.get("binding_match"),
+                "host_control_emitted": False,
+                "source_mutation_authorized": False,
+                "cross_task_disclosure": False,
+            },
+            transport=transport,
+            action="BOUND_OPTIONAL_EVENT_OBSERVATION",
+        )
+    safe_transport = dict(transport.get("safe_payload") or {})
+    receipt: dict[str, Any] = {
+        "state": "BOUND_OPTIONAL_EVENT_OBSERVED",
+        "event_name": event_name,
+        "project_id": policy.get("project_id"),
+        "evidence_session_id": policy.get("evidence_session_id"),
+        "agent_id_sha256": safe_transport.get("agent_id_sha256"),
+        "agent_type": safe_transport.get("agent_type"),
+        "permission_decision_emitted": False,
+        "subagent_control_emitted": False,
+        "continuation_control_emitted": False,
+        "source_mutation_authorized": False,
+        "plan_mutated": False,
+        "goal_mutated": False,
+        "candidate_created": False,
+        "hil_inferred": False,
+        "pointer_moved": False,
+        "raw_payload_stored": False,
+        "private_reasoning_stored": False,
+        "cross_task_disclosure": False,
+    }
+    if host_binding is not None:
+        receipt["host_binding"] = host_binding
+    return _owned_receipt(
+        receipt,
+        transport=transport,
+        action="BOUND_OPTIONAL_EVENT_OBSERVATION",
+    )
+
+
 def consume_boundary_transport(
     payload: dict[str, Any],
     event_name: str,

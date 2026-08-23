@@ -6,6 +6,7 @@ import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.host_plan_rehydration import (
     _exact_projection,
+    _host_step_description_lines,
     prepare_host_plan_rehydration,
     validate_host_plan_rehydration_receipt,
 )
@@ -151,6 +152,9 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
         "full_ledger_remains_native_authority": True,
         "pv_exit_reconstructs_new_entry": False,
         "changes_surface_binding": "EXACT_TASK_UUID_AND_WORKTREE",
+        "changes_surface_observation_independent_from_plan": True,
+        "changes_surface_loss_overrides_plan_visible_noop": True,
+        "step_list_projection_owner": "ACTIVE_CANONICAL_PLAN_NOT_GOAL",
         "required_until": (
             "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_HANDOFF_PASSES"
         ),
@@ -159,6 +163,9 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
         "drop_is_continuity_failure": True,
         "rehydrate_before_source_or_lifecycle_work": True,
         "canonical_rehydration_source": ("PLAN_LANE_BACKLOG_NOT_THREAD_HISTORY"),
+        "projection_only_law": "NATIVE_HOST_PLAN_PROJECTION_ONLY_LAW",
+        "manual_summary_projection_allowed": False,
+        "native_contract_forwarded_unchanged": True,
         "full_thread_history_hydration_allowed": False,
         "collaboration_overlay_hydration_allowed_during_recovery": False,
         "recovery_concurrency": "ONE_ACTIVE_TASK_ZERO_SUBAGENTS",
@@ -321,6 +328,67 @@ def test_host_plan_visibility_acceptance_capability_and_project_boundaries(
     assert cross_project.value.code == "HOST_PLAN_OBSERVATION_BINDING_MISMATCH"
 
 
+def test_changes_loss_overrides_visible_plan_and_binds_exact_task_worktree(
+    service,
+) -> None:
+    session_id, host_task_id, classified = _classified_host_plan(service)
+    activation = classified["host_plan_rehydration"]["receipt"]
+    projection = activation["projection"]
+    worktree_sha256 = activation["changes_surface_binding"]["worktree_binding_sha256"]
+    visible_plan = {
+        "state": "VISIBLE_UNACCEPTED",
+        "project_id": "book-faires",
+        "host_task_id": host_task_id,
+        "observation_event_id": "visible-plan-during-changes-loss",
+        "surface": "CODEX_RIGHT_SIDE_PLAN",
+        "artifact_id": "codex-plan-artifact-001",
+        "projection_sha256": projection["projection_sha256"],
+        "item_count": projection["item_count"],
+    }
+    result = prepare_host_plan_rehydration(
+        service.store.root,
+        project_id="book-faires",
+        evidence_session_id=session_id,
+        host_task_id=host_task_id,
+        trigger="CHANGES_SURFACE_LOSS",
+        trigger_event_id="changes-loss-001",
+        observed_artifact=visible_plan,
+        observed_changes_artifact={
+            "state": "MISSING",
+            "project_id": "book-faires",
+            "host_task_id": host_task_id,
+            "worktree_binding_sha256": worktree_sha256,
+            "observation_event_id": "changes-loss-001",
+        },
+    )["receipt"]
+    assert result["action"] == ("RELOCK_HOST_PLAN_AND_REQUEST_CHANGES_SURFACE_RECOVERY")
+    assert result["host_update_plan_required"] is True
+    assert result["host_changes_action_receipt_required"] is True
+    assert result["host_changes_surface_status"] == "MISSING_OR_STALE"
+    assert result["changes_surface_recovery_contract"]["relock_plan_atomically"] is True
+    assert result["projection"] == projection
+
+    with pytest.raises(EvidenceLaneError) as wrong_worktree:
+        prepare_host_plan_rehydration(
+            service.store.root,
+            project_id="book-faires",
+            evidence_session_id=session_id,
+            host_task_id=host_task_id,
+            trigger="EXPLICIT_HOST_OBSERVATION",
+            trigger_event_id="wrong-worktree-changes",
+            observed_changes_artifact={
+                "state": "VISIBLE_UNACCEPTED",
+                "project_id": "book-faires",
+                "host_task_id": host_task_id,
+                "active_plan_task_id": projection["sole_active_task_id"],
+                "worktree_binding_sha256": "0" * 64,
+                "surface": "CODEX_RIGHT_SIDE_CHANGES",
+                "artifact_id": "wrong-worktree-changes",
+            },
+        )
+    assert wrong_worktree.value.code == "HOST_CHANGES_OBSERVATION_BINDING_MISMATCH"
+
+
 @pytest.mark.parametrize(
     ("trigger", "goal_active"),
     [
@@ -358,7 +426,9 @@ def test_all_recovery_triggers_preserve_the_same_native_projection(
         host_goal_active=goal_active,
     )["receipt"]
     assert result["projection"] == expected
-    assert result["host_goal_presence_changes_projection"] is True
+    assert result["projection_owner"] == "ACTIVE_CANONICAL_PLAN"
+    assert result["goal_presence_is_projector_precondition"] is False
+    assert result["host_goal_presence_changes_projection"] is False
     assert result["candidate_created"] is False
     assert result["pointer_moved"] is False
 
@@ -493,12 +563,26 @@ def test_host_plan_projects_the_active_row_as_step_two_with_next_eight_rows() ->
             "Steps 2-10 native Delta rows"
         ),
         "plan": projection["items"],
+        "source_window_ui_fingerprint_sha256": projection[
+            "window_ui_fingerprint_sha256"
+        ],
+        "native_contract_must_be_forwarded_unchanged": True,
+        "manual_summary_projection_forbidden": True,
+        "fallback_projection_forbidden": True,
         "header_surface": "HOST_STEP_TASK_LIST_STEP_1",
         "header_role": "FIXED_PROGRESS_HEADER",
         "header_is_plan_item": True,
         "header_is_delta_row": False,
         "detailed_hil_queue_in_step_task_list": False,
     }
+    law = projection["native_host_plan_projection_only_law"]
+    assert law["law_id"] == "NATIVE_HOST_PLAN_PROJECTION_ONLY_LAW"
+    assert law["authority_route"] == "PV_TASK_BACKLOG_HOST_UPDATE_PLAN_CONTRACT"
+    assert law["panel_loss_action"] == (
+        "RELOCK_SAME_PERSISTED_CONTRACT_AND_FINGERPRINT"
+    )
+    assert law["manual_summary_projection_allowed"] is False
+    assert law["generic_fallback_projection_allowed"] is False
 
 
 def test_host_plan_blocks_obsolete_sliding_or_dedup_fallback() -> None:
@@ -508,6 +592,20 @@ def test_host_plan_blocks_obsolete_sliding_or_dedup_fallback() -> None:
             project_id="window-project",
         )
     assert exc.value.code == "HOST_PLAN_FIXED_BATCH_REQUIRED"
+
+
+def test_host_plan_bounds_long_r259_description_without_fallback() -> None:
+    lines = _host_step_description_lines(
+        "Build one collision-free v2 package, seal "
+        "source/package/commit/tree/worktree/catalog/skill/hook/resource "
+        "identities, install supportedly, and hot-reattach the exact open "
+        "task; restart is fallback."
+    )
+    assert len(lines) == 2
+    assert lines[0].startswith("Do: ")
+    assert lines[1].startswith("   ")
+    assert all(len(line) <= 72 for line in lines)
+    assert "~" in lines[1]
 
 
 def test_host_plan_final_window_contains_only_the_exact_remaining_rows() -> None:

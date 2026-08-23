@@ -1,9 +1,0 @@
-interface:
-  display_name: "Change Evidence Lane Storage"
-  short_description: "Inspect or change project storage routing"
-  default_prompt: "Use $evi-change-storage-connector to inspect and explicitly change one project's storage route."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

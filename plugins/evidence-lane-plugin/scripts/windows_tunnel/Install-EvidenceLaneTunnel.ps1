@@ -8,8 +8,7 @@ param(
     [string]$RuntimeControlRoot = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin",
     [ValidateSet(
         "main-git-release",
-        "branch-commit-recovery",
-        "mutable-local-testing"
+        "versioned-local-testing"
     )]
     [string]$SlotRole = "main-git-release",
     [string]$RuntimeRoot = "",
@@ -39,8 +38,7 @@ if (-not (Test-Path -LiteralPath $releaseChannelPath -PathType Leaf)) {
 $releaseChannel = Get-Content -LiteralPath $releaseChannelPath -Raw | ConvertFrom-Json
 $slotContractKey = @{
     "main-git-release" = "stable"
-    "branch-commit-recovery" = "branch_recovery"
-    "mutable-local-testing" = "local_testing"
+    "versioned-local-testing" = "local_testing"
 }[$SlotRole]
 $slotContract = $releaseChannel.$slotContractKey
 $slotRelease = if ($null -ne $slotContract.PSObject.Properties["release"]) {
@@ -450,6 +448,40 @@ $runner = Join-Path $exactPluginRoot "scripts\run_mcp.py"
 if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
     throw "The exact Evidence Lane MCP launcher is missing: $runner"
 }
+$catalogContract = $releaseChannel.stable
+$exactVisibleToolCount = [int]$catalogContract.native_tool_count
+$exactActiveReadToolCount = [int]$catalogContract.native_read_tool_count
+$exactFailClosedWriteToolCount = [int]$catalogContract.native_write_tool_count
+$exactSkillCount = @(
+    Get-ChildItem -LiteralPath (Join-Path $exactPluginRoot "skills") -Directory |
+        Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName "SKILL.md") -PathType Leaf }
+).Count
+$exactCommandCount = @(
+    Get-ChildItem -LiteralPath (Join-Path $exactPluginRoot "commands") -Filter "*.md" -File
+).Count
+$hookConfiguration = Get-Content -LiteralPath (Join-Path $exactPluginRoot "hooks\hooks.json") -Raw | ConvertFrom-Json
+$exactHookEventCount = @($hookConfiguration.hooks.PSObject.Properties).Count
+$exactHookHandlerCount = 0
+foreach ($eventProperty in $hookConfiguration.hooks.PSObject.Properties) {
+    foreach ($group in @($eventProperty.Value)) {
+        $exactHookHandlerCount += @($group.hooks).Count
+    }
+}
+$providerConfiguration = Get-Content -LiteralPath (Join-Path $exactPluginRoot ".mcp.json") -Raw | ConvertFrom-Json
+$exactProviderCount = @($providerConfiguration.mcpServers.PSObject.Properties).Count
+if (
+    $exactVisibleToolCount -le 0 -or
+    $exactActiveReadToolCount -le 0 -or
+    $exactFailClosedWriteToolCount -le 0 -or
+    $exactVisibleToolCount -ne ($exactActiveReadToolCount + $exactFailClosedWriteToolCount) -or
+    $exactSkillCount -ne [int]$catalogContract.skill_count -or
+    $exactCommandCount -le 0 -or
+    $exactHookEventCount -le 0 -or
+    $exactHookHandlerCount -le 0 -or
+    $exactProviderCount -le 0
+) {
+    throw "The package public-surface registries do not reconcile for tunnel activation."
+}
 if (-not (Test-Path -LiteralPath $sourceHost -PathType Leaf)) {
     throw "The no-visible-console Evidence Lane tunnel host is missing: $sourceHost"
 }
@@ -541,7 +573,7 @@ $marker = [ordered]@{
     scheduled_task_launcher_subsystem = "WINDOWS_GUI_NO_VISIBLE_CONSOLE"
     scheduled_task_launcher_create_no_window = $true
     slot_role = $SlotRole
-    byte_frozen = $SlotRole -eq "branch-commit-recovery"
+    byte_frozen = $SlotRole -eq "main-git-release"
     exposure_profile = "CODEX_INTERACTIVE_SUPPORT"
     transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"
     served_exposure_layer = "CODEX_INTERACTIVE_SUPPORT"
@@ -555,6 +587,14 @@ $marker = [ordered]@{
     project_route_argument = "project_id"
     project_route_argument_required = $true
     cross_project_fallback_allowed = $false
+    exact_visible_tool_count = $exactVisibleToolCount
+    exact_active_read_tool_count = $exactActiveReadToolCount
+    exact_fail_closed_write_tool_count = $exactFailClosedWriteToolCount
+    exact_skill_count = $exactSkillCount
+    exact_command_count = $exactCommandCount
+    exact_hook_event_count = $exactHookEventCount
+    exact_hook_handler_count = $exactHookHandlerCount
+    exact_provider_count = $exactProviderCount
     tunnel_id = $exactTunnelId
     stable_client = $stableClient
     stable_client_sha256 = $expectedClientSha256
@@ -583,7 +623,7 @@ $marker = [ordered]@{
     runtime_key_plaintext_written = $false
     windows_console_policy = "WINDOWS_GUI_HOST_CREATE_NO_WINDOW"
     scheduled_task_window_style = "HIDDEN"
-    distribution_audience = if ($SlotRole -eq "branch-commit-recovery") { "MAINTAINER_RECOVERY_ONLY" } else { "USER_OR_MAINTAINER_ACTIVE_3_0_RUNTIME" }
+    distribution_audience = "USER_OR_MAINTAINER_ACTIVE_3_0_RUNTIME"
     prior_versioned_runtimes_retained = $true
     prior_versioned_tasks_retained = $true
     prior_versioned_runtime_deletion_allowed = $false
@@ -639,7 +679,7 @@ if ($Activate) {
     release_identity_source = "CODEX_RELEASE_CHANNEL_CONTRACT"
     runtime_identity_matches_release = $true
     slot_role = $SlotRole
-    byte_frozen = $SlotRole -eq "branch-commit-recovery"
+    byte_frozen = $SlotRole -eq "main-git-release"
     task_name = $TaskName
     trigger = "AT_LOGON"
     current_user_dpapi = $true
@@ -660,14 +700,19 @@ if ($Activate) {
     project_route_argument = "project_id"
     project_route_argument_required = $true
     cross_project_fallback_allowed = $false
-    exact_visible_tool_count = 88
-    exact_active_read_tool_count = 26
-    exact_fail_closed_write_tool_count = 57
+    exact_visible_tool_count = $exactVisibleToolCount
+    exact_active_read_tool_count = $exactActiveReadToolCount
+    exact_fail_closed_write_tool_count = $exactFailClosedWriteToolCount
+    exact_skill_count = $exactSkillCount
+    exact_command_count = $exactCommandCount
+    exact_hook_event_count = $exactHookEventCount
+    exact_hook_handler_count = $exactHookHandlerCount
+    exact_provider_count = $exactProviderCount
     tunnel_id_recorded = $true
     runtime_key_plaintext_written = $false
     windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"
     scheduled_task_window_style = "HIDDEN"
-    distribution_audience = if ($SlotRole -eq "branch-commit-recovery") { "MAINTAINER_RECOVERY_ONLY" } else { "USER_OR_MAINTAINER_ACTIVE_3_0_RUNTIME" }
+    distribution_audience = "USER_OR_MAINTAINER_ACTIVE_3_0_RUNTIME"
     prior_versioned_runtimes_retained = $true
     prior_versioned_tasks_retained = $true
     prior_versioned_runtime_deletion_allowed = $false
@@ -691,14 +736,14 @@ if ($Activate) {
     codex_platform_tunnel_setup_required_once = $true
     saved_slot = $true
     reusable_without_reinstall = $true
-    three_slot_registry_authority = "SEALED_MAIN_BRANCH_RECOVERY_LOCAL_TESTING_REGISTRY"
+    two_slot_registry_authority = "SEALED_GIT_MAIN_LOCAL_TESTING_REGISTRY"
     legacy_version_manager_authoritative = $false
     registry_materialization_gate = "EXACT_STANDALONE_APPROVE_PLUS_NATIVE_FUSE_ACCEPTING_PV11"
-    branch_commit_recovery_preserved = $true
+    branch_recovery_selector_retired = $true
+    branch_recovery_install_allowed = $false
     registered_slot = $SlotRole
     pre_3_0_fallback_allowed = $false
-    branch_recovery_is_selected = $SlotRole -eq "branch-commit-recovery"
-    failover_requires_sealed_two_slot_operator = $true
+    failover_requires_sealed_two_slot_main_local_operator = $true
     activated = [bool]$Activate
     started = [bool]$Activate
 } | ConvertTo-Json -Depth 4

@@ -171,7 +171,9 @@ def _fixture(module, tmp_path: Path) -> dict[str, object]:
             ],
             "candidate_disabled": True,
             "exact_prior_config_restored": True,
-            "byte_frozen_fallback_used": False,
+            "stable_main_recovery_only": True,
+            "branch_recovery_selector_retired": True,
+            "branch_recovery_install_allowed": False,
             "one_terminal_receipt": True,
             "restart_loop_started": False,
             "restart_or_reload_requests": 0,
@@ -255,7 +257,7 @@ def _host_proof(module, fixture: dict[str, object]) -> dict[str, object]:
         "schema": module.HOOK_TRUST_SCHEMA,
         "status": "PASS",
         "plugin_selector": fixture["stable"],
-        "hook_count": 8,
+        "hook_count": len(module.EXPECTED_CODEX_HOST_HOOK_EVENTS),
         "registered_events": sorted(module.EXPECTED_CODEX_HOST_HOOK_EVENTS),
     }
     hook_trust["receipt_sha256"] = hashlib.sha256(

@@ -74,6 +74,7 @@ def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
 
     selector = "evidence-lane-plugin@evidence-lane-v200-task2-build-test"
     events = [
+        "permissionRequest",
         "postCompact",
         "postToolUse",
         "preCompact",
@@ -81,13 +82,15 @@ def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
         "sessionEnd",
         "sessionStart",
         "stop",
+        "subagentStart",
+        "subagentStop",
         "userPromptSubmit",
     ]
     hook_trust: dict[str, object] = {
         "schema": "evidence-lane.codex-hook-trust.v1",
         "status": "PASS",
         "plugin_selector": selector,
-        "hook_count": 8,
+        "hook_count": 11,
         "registered_events": events,
         "records": [
             {
@@ -101,6 +104,7 @@ def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
         ],
         "before_trust_statuses": ["untrusted"],
         "after_trust_statuses": ["trusted"],
+        "after_enabled_states": [True],
         "supported_codex_api": ["hooks/list", "config/batchWrite"],
         "config_version": f"sha256:{'a' * 64}",
         "workspace_sha256": "B" * 64,
@@ -191,7 +195,9 @@ def test_runtime_status_does_not_treat_activation_as_prompt_invocation_proof(
     assert status["active_session_capture_gap_code"] == (
         "ACTIVE_RUNTIME_WITHOUT_SEALED_PROMPT_INDEX_RECORD"
     )
-    assert status["status"] == "FAIL"
+    assert status["status"] == "PASS"
+    assert status["activation_quality"] == "DEGRADED_CAPTURE_UNAVAILABLE"
+    assert status["capture_unavailable_is_structured_domain_state"] is True
     assert status["adapter_record_is_independent_installed_host_proof"] is False
 
 

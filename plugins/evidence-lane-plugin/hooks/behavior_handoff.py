@@ -24,20 +24,26 @@ HOOK_RUNTIME_ROLE = "VALIDATE_REDACT_BOUND_DEDUPLICATE_AND_TRANSPORT_ONLY"
 
 EVENT_SKILL_ACTIONS = {
     "SessionStart": "SESSION_START_BIND_OR_REENTRY",
+    "SubagentStart": "BOUND_OPTIONAL_EVENT_OBSERVATION",
     "UserPromptSubmit": "PREPARE",
     "PreToolUse": "PROSPECTIVE_TOOL_BOUNDARY",
+    "PermissionRequest": "BOUND_OPTIONAL_EVENT_OBSERVATION",
     "PostToolUse": "TOOL_RECEIPT_AND_CURRENT_CHANGE_PROJECTION",
     "PreCompact": "COMPACTION_OR_SESSION_BOUNDARY",
     "PostCompact": "COMPACTION_OR_SESSION_BOUNDARY",
+    "SubagentStop": "BOUND_OPTIONAL_EVENT_OBSERVATION",
     "Stop": "COMMIT",
 }
 EVENT_SKILL_CONSUMERS = {
     "SessionStart": "consume_session_start_transport",
+    "SubagentStart": "consume_optional_observer_transport",
     "UserPromptSubmit": "consume_prompt_transport",
     "PreToolUse": "consume_pre_tool_transport",
+    "PermissionRequest": "consume_optional_observer_transport",
     "PostToolUse": "consume_post_tool_transport",
     "PreCompact": "consume_boundary_transport",
     "PostCompact": "consume_boundary_transport",
+    "SubagentStop": "consume_optional_observer_transport",
     "Stop": "consume_stop_transport",
 }
 

@@ -1,4 +1,4 @@
-"""Build one unaccepted Codex package from an exact local Git commit export.
+"""Build one unaccepted Codex package from the exact verified Git ``main``.
 
 The builder uses read-only Git identity and archive operations. It never stages,
 commits, pushes, installs, opens Codex, calls Evidence Lane lifecycle, creates a
@@ -29,7 +29,7 @@ from build_release_candidate_rehearsal import build_rehearsal
 SCHEMA = "evidence-lane.codex-exact-commit-package.v1.receipt"
 BOUNDARY = "EXACT_GIT_COMMIT_PACKAGE_UNACCEPTED"
 _SHA1 = re.compile(r"^[0-9a-f]{40}$")
-_BRANCH = re.compile(r"^(?:agent|feature|fix|test|tests|chore)/[A-Za-z0-9._/-]+$")
+STABLE_BRANCH = "main"
 
 
 class ExactCommitPackageError(RuntimeError):
@@ -142,8 +142,11 @@ def build_exact_commit_package(
         raise ExactCommitPackageError("Repository is not an exact local Git checkout.")
     if _SHA1.fullmatch(normalized_commit) is None:
         raise ExactCommitPackageError("Commit must be an exact 40-character SHA-1.")
-    if _BRANCH.fullmatch(normalized_branch) is None:
-        raise ExactCommitPackageError("Branch must be one governed non-protected branch.")
+    if normalized_branch != STABLE_BRANCH:
+        raise ExactCommitPackageError(
+            "Stable packages may be built only from exact verified main; feature, "
+            "checkpoint, and recovery branches are not installation authority."
+        )
     if not normalized_plugin_path or ".." in Path(normalized_plugin_path).parts:
         raise ExactCommitPackageError("Plugin path must stay inside the repository.")
 
@@ -155,12 +158,22 @@ def build_exact_commit_package(
         repository,
         ["rev-parse", "--verify", f"{normalized_commit}^{{tree}}"],
     ).lower()
-    branch_commit = _git(
+    local_main_commit = _git(
         repository,
-        ["rev-parse", "--verify", f"refs/heads/{normalized_branch}^{{commit}}"],
+        ["rev-parse", "--verify", "refs/heads/main^{commit}"],
     ).lower()
-    if resolved_commit != normalized_commit or branch_commit != normalized_commit:
-        raise ExactCommitPackageError("The governed branch does not point to the commit.")
+    origin_main_commit = _git(
+        repository,
+        ["rev-parse", "--verify", "refs/remotes/origin/main^{commit}"],
+    ).lower()
+    if (
+        resolved_commit != normalized_commit
+        or local_main_commit != normalized_commit
+        or origin_main_commit != normalized_commit
+    ):
+        raise ExactCommitPackageError(
+            "Local main and origin/main must both point to the exact package commit."
+        )
     if _SHA1.fullmatch(resolved_tree) is None:
         raise ExactCommitPackageError("Git did not return one exact tree SHA.")
 
@@ -224,6 +237,7 @@ def build_exact_commit_package(
         "source_version": expected_version,
         "exact_commit_export": {
             "branch": normalized_branch,
+            "source_ref": "refs/remotes/origin/main",
             "commit": normalized_commit,
             "tree": resolved_tree,
             "plugin_path": normalized_plugin_path,
@@ -236,6 +250,9 @@ def build_exact_commit_package(
             "projection_clean": True,
             "working_checkout_bytes_used": False,
             "untracked_bytes_used": False,
+            "stable_main_only": True,
+            "local_main_attested": True,
+            "origin_main_attested": True,
         },
         "local_rehearsal_receipt_sha256": _sha256(local_receipt_path),
         "git_invoked": True,

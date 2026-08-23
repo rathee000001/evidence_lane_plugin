@@ -21,6 +21,7 @@ from .hashing import (
     sha256_bytes,
     sha256_file,
 )
+from .public_surface_registry import derive_public_surface_registry
 from .store import ProjectStore
 from .timeutil import utc_now
 
@@ -76,11 +77,16 @@ def _validate_surface(
         "write": NATIVE_WRITE_TOOL_COUNT,
         "skills": GOVERNED_SKILL_COUNT,
     }
+    derived_surface_counts = dict(derive_public_surface_registry()["catalog"])
+    expected_surface_counts = {**derived_surface_counts, **exact_catalog}
     require(
         surface.get("schema")
         == "evidence-lane.codex-installed-surface-inventory.v2"
         and surface.get("catalog") == exact_catalog
         and surface.get("raw_paths_included") is False
+        and surface.get("surface_counts") == expected_surface_counts
+        and surface.get("release_catalog_matches_derived") is True
+        and len(str(surface.get("public_surface_registry_sha256") or "")) == 64
         and surface.get("surface_inventory_sha256")
         == sha256_bytes(canonical_json_bytes(_surface_core(surface)))
         and len(str(surface.get("release_policy_sha256") or "")) == 64,
@@ -96,10 +102,19 @@ def _active_rebind_authority(
     project_id: str,
     evidence_session_id: str,
     task_id: str,
+    expected_active_plan_task_id: str,
+    expected_runtime_task_id: str,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     metadata = dict(session.get("metadata") or {})
     rebind = dict(metadata.get("active_contract_rebind_receipt") or {})
     recovery = dict(rebind.get("recovery_binding_contract") or {})
+    history_matches = [
+        dict(value)
+        for value in metadata.get("active_contract_rebinds") or []
+        if isinstance(value, dict)
+        and value.get("receipt_sha256") == rebind.get("receipt_sha256")
+    ]
+    authority_route = str(rebind.get("authority_route") or "")
     require(
         session.get("project_id") == project_id
         and session.get("session_id") == evidence_session_id
@@ -109,13 +124,42 @@ def _active_rebind_authority(
         and rebind.get("status") == "PASS"
         and rebind.get("project_id") == project_id
         and rebind.get("session_id") == evidence_session_id
-        and rebind.get("task6_thread_id") == task_id
+        and rebind.get("host_task_id") == task_id
+        and rebind.get("active_plan_task_id") == expected_active_plan_task_id
+        and rebind.get("runtime_task_id") == expected_runtime_task_id
         and _sealed(rebind, "receipt_sha256")
+        and len(history_matches) == 1
+        and history_matches[0] == rebind
+        and rebind.get("runtime_task_identity_preserved") is True
+        and rebind.get("active_plan_row_identity_preserved") is True
+        and rebind.get("governed_session_identity_preserved") is True
+        and rebind.get("host_task_identity_preserved") is True
+        and authority_route
+        in {
+            "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK",
+            "PV_PLAN_TASKS_ACTIVE_CONTRACT_REBIND",
+        }
+        and (
+            authority_route != "PV_PLAN_TASKS_ACTIVE_CONTRACT_REBIND"
+            or re.fullmatch(
+                r"^[A-F0-9]{64}$",
+                str(rebind.get("approval_receipt_sha256") or "").upper(),
+            )
+            is not None
+        )
         and recovery.get("manager_scope") == "SHARED_MULTI_PROJECT_MULTI_TASK"
         and recovery.get("registry_mutability") == "MUTABLE_APPEND_OR_REFRESH"
         and recovery.get("invocation_binding_scope") == "EXACT_CALLING_TASK"
         and recovery.get("reentry_target") == task_id
-        and recovery.get("installer_helper") == "SEPARATE_COMPONENT",
+        and recovery.get("installer_helper") == "SEPARATE_COMPONENT"
+        and rebind.get("candidate_created") is False
+        and rebind.get("pending_hil") is False
+        and rebind.get("pointer_moved") is False
+        and rebind.get("goal_completion_mutated") is False
+        and rebind.get("git_executed") is False
+        and rebind.get("install_executed") is False
+        and rebind.get("helper_launched") is False
+        and rebind.get("tunnel_launched") is False,
         "SHARED_TASK_BINDING_REBIND_AUTHORITY_MISMATCH",
         "The current session lacks the exact calling-task recovery authority.",
         status="MISMATCH",
@@ -149,6 +193,10 @@ def seal_running_release_authority(
         "surface_inventory_sha256": surface.get("surface_inventory_sha256"),
         "release_policy_sha256": surface.get("release_policy_sha256"),
         "catalog": surface.get("catalog"),
+        "surface_counts": surface.get("surface_counts"),
+        "public_surface_registry_sha256": surface.get(
+            "public_surface_registry_sha256"
+        ),
         "one_enabled_channel_required": True,
         "channel_activation_mutated": False,
         "installer_helper_invoked": False,
@@ -212,12 +260,7 @@ def seal_or_refresh_shared_task_binding(
         status="MISMATCH",
     )
     session = _json(session_path)
-    metadata, rebind = _active_rebind_authority(
-        session,
-        project_id=project_id,
-        evidence_session_id=evidence_session_id,
-        task_id=exact_task_id,
-    )
+    metadata = dict(session.get("metadata") or {})
     backlog = store.backlog_status(project_id)
     active = [
         dict(row)
@@ -241,6 +284,14 @@ def seal_or_refresh_shared_task_binding(
         session_active_backlog_task_status=str(
             metadata.get("active_backlog_task_status") or ""
         ),
+    )
+    metadata, rebind = _active_rebind_authority(
+        session,
+        project_id=project_id,
+        evidence_session_id=evidence_session_id,
+        task_id=exact_task_id,
+        expected_active_plan_task_id=str(active[0]["task_id"]),
+        expected_runtime_task_id=runtime_task_id,
     )
     pointer = store.pointer(project_id)
     release = seal_running_release_authority(exact_root, surface=surface)
@@ -273,6 +324,9 @@ def seal_or_refresh_shared_task_binding(
                     "active_plan_task_id": active[0]["task_id"],
                     "runtime_task_id": runtime_task_id,
                     "pointer_generation": pointer.generation,
+                    "active_contract_rebind_receipt_sha256": rebind[
+                        "receipt_sha256"
+                    ],
                     "release_authority_sha256": release[
                         "release_authority_sha256"
                     ],
@@ -386,12 +440,6 @@ def read_shared_task_binding(
         status="MISMATCH",
     )
     session = _json(session_path)
-    metadata, rebind = _active_rebind_authority(
-        session,
-        project_id=project_id,
-        evidence_session_id=evidence_session_id,
-        task_id=exact_task_id,
-    )
     active = [
         dict(row)
         for row in store.backlog_status(project_id).get("active") or []
@@ -399,6 +447,22 @@ def read_shared_task_binding(
     ]
     pointer = store.pointer(project_id)
     runtime_task_id = str(dict(session.get("task") or {}).get("task_id") or "")
+    require(
+        len(active) == 1
+        and active[0].get("task_id") == expected_active_plan_task_id
+        and bool(runtime_task_id),
+        "SHARED_TASK_BINDING_ACTIVE_PLAN_MISMATCH",
+        "The shared task binding cannot resolve one current Plan/runtime task.",
+        status="MISMATCH",
+    )
+    metadata, rebind = _active_rebind_authority(
+        session,
+        project_id=project_id,
+        evidence_session_id=evidence_session_id,
+        task_id=exact_task_id,
+        expected_active_plan_task_id=expected_active_plan_task_id,
+        expected_runtime_task_id=runtime_task_id,
+    )
     require(
         binding.get("schema") == "evidence-lane.shared-task-binding.v1"
         and binding.get("state") == "EXACT_TASK_BINDING_ACTIVE"

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { currentProductContract } from "../_data/current-product-contract";
 import { artifactContract, controls, proofRules } from "../_data/site";
 
 export const metadata: Metadata = {
@@ -32,7 +33,7 @@ export default function ReadmePage() {
       <h2>Proof law</h2>
       <ul>{proofRules.map(([name, detail]) => <li key={name}><strong>{name}:</strong> {detail}</li>)}</ul>
       <h2>Codex boundary</h2>
-      <p><strong>Codex</strong> installs from exact Git source, runs the complete local lifecycle, and may project the canonical Plan Lane into Codex Plan mode, Goal, and its native task panel. The installed package exposes all 17 skills and exactly 88 native actions: 27 reads and 61 writes. The public website is documentation only and cannot substitute for native package, catalog, restart, test, CI, or HIL proof.</p>
+      <p><strong>Codex</strong> installs from exact Git source, runs the complete local lifecycle, and may project the canonical Plan Lane into Codex Plan mode, Goal, and its native task panel. The installed package exposes all {currentProductContract.governedSkillCount} skills and exactly {currentProductContract.nativeMcp.totalActions} native actions: {currentProductContract.nativeMcp.readActions} reads and {currentProductContract.nativeMcp.writeActions} writes. The public website is documentation only and cannot substitute for native package, catalog, restart, test, CI, or HIL proof.</p>
       <p>Continue with <Link href="/architecture">Architecture</Link>, inspect <Link href="/lanes">all lane contracts</Link>, download <Link href="/proof#dummy-lane-proofs">dummy lane proofs</Link>, read <Link href="/security">Security</Link>, or review <Link href="/provenance#upstream-reference-ledger">Upstream provenance</Link>.</p>
     </main>
   );

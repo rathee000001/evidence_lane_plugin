@@ -3,27 +3,36 @@ import Link from "next/link";
 import { DeltaLedgerExplorer } from "./_components/delta-ledger-explorer";
 import { GlassIconOrb, OfficialToolIcon } from "./_components/evidence-assets";
 import { HeroOrbit } from "./_components/hero-orbit";
+import { HostCapabilityMatrix } from "./_components/host-capability-matrix";
 import { MotionReveal } from "./_components/motion-reveal";
 import { PluginSurfaceCatalog } from "./_components/plugin-surface-catalog";
-import { artifactContract, painLedger, proofMetrics } from "./_data/site";
+import { authorityPlanes, currentProductContract } from "./_data/current-product-contract";
+import { artifactContract, painLedger } from "./_data/site";
 import { deltaLedgerBoundary } from "./_data/delta-ledger";
 
 const routes = [
   ["Memory", "See durable SQLite memory, bounded retrieval, and compaction continuity.", "/memory", "01"],
   ["Canon", "Inspect bounded task exchange and receiver-owned Canon decisions.", "/canon", "02"],
   ["AI Learning", "See project-isolated learning, decisions, and revocation.", "/ai-learning", "03"],
-  ["Skills", "Inspect all seventeen governed skills and their authority boundaries.", "/skills", "04"],
-  ["Native MCP", "See the package-local server and its 88 governed action contracts.", "/mcp", "05"],
-  ["Hooks", "Inspect all eight lifecycle events and their transport-only boundary.", "/hooks", "06"],
+  ["Skills", `Inspect all ${currentProductContract.governedSkillCount} governed skills and their authority boundaries.`, "/skills", "04"],
+  ["Native MCP", `See the package-local server and its ${currentProductContract.nativeMcp.totalActions} governed action contracts.`, "/mcp", "05"],
+  ["Hooks", `Inspect all ${currentProductContract.hookEventCount} lifecycle events and their transport-only boundary.`, "/hooks", "06"],
   ["Plan & Changes", "See the canonical ledger, active window, Goal, and worktree binding.", "/plan", "07"],
   ["Git & CI", "Bind source intake, GitHub checks, and Vercel preview to one commit.", "/git-ci", "08"],
   ["Architecture", "See how parallel lane computation meets serial lifecycle authority.", "/architecture", "09"],
-  ["18 lanes", "Open each lane's tools, settings, SQLite schema, process, and four files.", "/lanes", "10"],
+  [`${currentProductContract.canonicalLaneCount} lanes`, "Open each lane's tools, settings, SQLite schema, process, and four files.", "/lanes", "10"],
   ["Operators", "Inspect mode formulas, ENV/UOP laws, operators, and lane-specific HIL effects.", "/operators", "11"],
   ["Prompt Studio", "Ask grounded product questions and see the evidence boundary in the answer.", "/studio", "12"],
   ["Proof", "Separate verified behavior, open blockers, and candidate claims.", "/proof", "13"],
   ["Provenance", "Audit source roles and credits without confusing them with runtime authority.", "/provenance", "14"],
   ["Release", "Inspect local testing, branch fallback, main release, and promotion gates.", "/release", "15"],
+] as const;
+
+const proofMetrics = [
+  [String(currentProductContract.canonicalLaneCount), "canonical lanes", "Every routed source resolves to one inspectable lane contract."],
+  [String(currentProductContract.governedSkillCount), "governed skills", `${currentProductContract.primaryControlCount} primary controls plus bounded routers and sidecars.`],
+  [String(currentProductContract.nativeMcp.totalActions), "native actions", `${currentProductContract.nativeMcp.readActions} read-only and ${currentProductContract.nativeMcp.writeActions} write-capable routes, registry checked.`],
+  [String(currentProductContract.hookEventCount), "optional hook events", "Lifecycle automation stays separate from the explicit public plugin surface."],
 ] as const;
 
 export default function Home() {
@@ -46,7 +55,7 @@ export default function Home() {
             </Link>
             <Link className="secondary universal-pill actionGlassPill" href="/lanes" data-universal-pill-schema="T023_UNIVERSAL_GLASS_PILL_V001">
               <GlassIconOrb color="#83ddb3" size={30} decorative><OfficialToolIcon tool="database" size={16} decorative /></GlassIconOrb>
-              <span>Inspect all 18 lanes</span>
+              <span>Inspect all {currentProductContract.canonicalLaneCount} lanes</span>
             </Link>
           </div>
         </MotionReveal>
@@ -71,6 +80,27 @@ export default function Home() {
             <div><span>{label}</span><p>{detail}</p></div>
           </article>
         ))}
+      </section>
+
+      <section className="section shell authorityStory" id="authority-planes">
+        <div className="sectionHead wideHead">
+          <span className="kicker">{authorityPlanes.length} explicit authority planes</span>
+          <h2>Evidence Lane preserves differences that a normal handoff collapses.</h2>
+          <p>
+            Each plane has a distinct owner and transition law. Memory and Project Universe
+            connect the system for bounded retrieval; neither becomes a shortcut around source,
+            Plan, candidate, Learning, Canon, or human acceptance.
+          </p>
+        </div>
+        <div className="authorityPlaneGrid">
+          {authorityPlanes.map(([name, detail], index) => (
+            <article key={name}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <h3>{name}</h3>
+              <p>{detail}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="section shell splitIntro" id="problem">
@@ -106,11 +136,14 @@ export default function Home() {
         <div className="shell">
           <div className="sectionHead wideHead">
             <span className="kicker">Codex plugin settings</span>
-            <h2>Seventeen interactive surfaces. Six are lifecycle controls.</h2>
+            <h2>{currentProductContract.governedSkillCount} interactive surfaces. {currentProductContract.primaryControlCount} are lifecycle controls.</h2>
             <p>
               Choose any glass pill to inspect what it does, which setting governs it, what it
-              produces, and what it cannot authorize. The remaining eleven surfaces are explicit
-              routers or sidecars—not hidden extra lifecycle commands.
+              produces, and what it cannot authorize. The remaining
+              {` ${currentProductContract.governedSkillCount - currentProductContract.primaryControlCount}`} surfaces are explicit
+              routers or sidecars—not hidden extra lifecycle commands. Every explicit skill,
+              command, SDK, and MCP route remains usable while hooks are disabled; hooks only
+              automate or observe supported host events.
             </p>
           </div>
           <PluginSurfaceCatalog />
@@ -168,18 +201,17 @@ export default function Home() {
           <span className="kicker">Codex capability profiles</span>
           <h2>The same governance law meets each Codex runtime at its real storage boundary.</h2>
           <p>
-            The installed package exposes all 17 governed skills and the complete 88-action native
-            catalog: 27 reads and 61 writes. Desktop and persistent profiles use durable local
-            SQLite. Headless API entry reflashes ENV/UOP for each invocation. Ephemeral profiles
-            require a durable mount or configured transactional connector. No profile can infer
-            acceptance, Fuse, or pointer movement from installation or execution success.
+            The source registry projects {currentProductContract.governedSkillCount} governed
+            skills and a {currentProductContract.nativeMcp.totalActions}-action native catalog:
+            {` ${currentProductContract.nativeMcp.readActions}`} reads and
+            {` ${currentProductContract.nativeMcp.writeActions}`} writes. Storage, interaction,
+            VM lifetime, native capability, billing, tunnel transport, and credentials remain
+            independent. No profile can infer acceptance, Fuse, or pointer movement from a
+            successful install, route, build, test, or deployment.
           </p>
           <Link className="textLink" href="/connect">Inspect the verified host and connection boundaries <span aria-hidden="true">→</span></Link>
         </div>
-        <div className="homeHostTruth" aria-label="Evidence Lane host boundaries">
-          <article><span>Persistent Codex</span><strong>Full native lifecycle</strong><p>Source Intake, durable SQLite, tests, package seals, exact six-way HIL, and pointer-gated promotion.</p></article>
-          <article><span>Headless or ephemeral Codex</span><strong>Same laws, explicit storage</strong><p>Per-entry ENV/UOP verification plus a durable mount or configured transactional runtime when local persistence is unavailable.</p></article>
-        </div>
+        <HostCapabilityMatrix compact />
       </section>
 
       <section className="section deltaLedgerBand" id="delta-ledger">

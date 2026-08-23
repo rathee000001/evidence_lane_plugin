@@ -8,8 +8,8 @@ param(
     [string]$LocalTestCommitReceipt,
     [string]$LocalTestCommitReceiptSha256,
     [string]$CodexConfig,
-    [string]$ThreeSlotRegistry,
-    [string]$ThreeSlotRegistrySha256,
+    [string]$TwoSlotRegistry,
+    [string]$TwoSlotRegistrySha256,
     [string]$LocalRecoveryRegistry,
     [string]$LocalRecoveryRegistrySha256,
     [Parameter(Mandatory = $true)]
@@ -86,7 +86,16 @@ function Get-Sha256([string]$Path) {
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
         throw "Required sealed file is missing: $Path"
     }
-    return (Get-FileHash -Algorithm SHA256 -LiteralPath $Path).Hash.ToUpperInvariant()
+    $exactPath = [IO.Path]::GetFullPath($Path)
+    $stream = [IO.File]::OpenRead($exactPath)
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return ([BitConverter]::ToString($sha256.ComputeHash($stream))).Replace("-", "")
+    }
+    finally {
+        $sha256.Dispose()
+        $stream.Dispose()
+    }
 }
 
 function Get-StringSha256([string]$Value) {
@@ -405,8 +414,7 @@ function Get-VersionMatchedTunnelBoundary {
         [string]$marker.release_token -cne $releaseToken -or
         [string]$marker.slot_role -cnotin @(
             "main-git-release",
-            "branch-commit-recovery",
-            "mutable-local-testing"
+            "versioned-local-testing"
         ) -or
         [IO.Path]::GetFullPath([string]$marker.plugin_root) -cne [IO.Path]::GetFullPath($ExactPluginRoot) -or
         [IO.Path]::GetFullPath([string]$marker.runtime_root) -cne $runtimeRoot -or
@@ -568,12 +576,11 @@ function Sync-GoalRecoveryBindingAfterTaskBinding {
         [string]$ExactTaskBindingPath,
         [Parameter(Mandatory = $true)]
         [string]$ExactTaskBindingSha256,
+        [string]$ExactTwoSlotRegistry,
+        [string]$ExactTwoSlotRegistrySha256,
         [Parameter(Mandatory = $true)]
-        [string]$ExactThreeSlotRegistry,
-        [Parameter(Mandatory = $true)]
-        [string]$ExactThreeSlotRegistrySha256,
-        [Parameter(Mandatory = $true)]
-        [string]$ExactRuntimeControlRoot
+        [string]$ExactRuntimeControlRoot,
+        [switch]$PreserveCurrentLocalBinding
     )
 
     $goalRecoveryScript = Join-Path $PSScriptRoot "Manage-EvidenceLaneCodexGoalRecovery.ps1"
@@ -620,6 +627,52 @@ function Sync-GoalRecoveryBindingAfterTaskBinding {
         }
     }
 
+    if ($PreserveCurrentLocalBinding) {
+        if (-not (Test-Path -LiteralPath $goalBindingPath -PathType Leaf)) {
+            return [ordered]@{
+                status = "PASS"
+                state = "HOST_NATIVE_ACTIVE_GOAL_PRESERVED_NO_RECOVERY_BINDING_PRESENT"
+                task_id = $TaskId
+                active_plan_task_id = $exactActivePlanTaskId
+                task_binding_receipt_sha256 = $ExactTaskBindingSha256
+                binding_path = $null
+                binding_sha256 = $null
+                goal_binding_mutated = $false
+                recovery_binding_created = $false
+                stale_two_slot_registry_consumed = $false
+            }
+        }
+        $currentGoalBinding = Get-Content -LiteralPath $goalBindingPath -Raw | ConvertFrom-Json
+        if (
+            $currentGoalBinding.schema -ne "evidence-lane.codex-goal-recovery-binding.v1" -or
+            [string]$currentGoalBinding.payload.state -ne "ACTIVE_GOAL_BOUND" -or
+            [string]$currentGoalBinding.payload.task_id -ne $TaskId -or
+            [string]$currentGoalBinding.payload.project_id -ne $ProjectId -or
+            [string]$currentGoalBinding.payload.evidence_session_id -ne $EvidenceSessionId -or
+            [string]$currentGoalBinding.payload.active_plan_task_id -ne $exactActivePlanTaskId
+        ) {
+            throw "The current local-cache restart found a mismatched exact-task Goal binding."
+        }
+        return [ordered]@{
+            status = "PASS"
+            state = "ACTIVE_GOAL_PRESERVED_FOR_HOST_NATIVE_REATTACHMENT"
+            task_id = $TaskId
+            active_plan_task_id = $exactActivePlanTaskId
+            task_binding_receipt_sha256 = $ExactTaskBindingSha256
+            binding_path = $goalBindingPath
+            binding_sha256 = Get-Sha256 $goalBindingPath
+            goal_binding_mutated = $false
+            stale_two_slot_registry_consumed = $false
+        }
+    }
+
+    if (
+        [string]::IsNullOrWhiteSpace($ExactTwoSlotRegistry) -or
+        [string]::IsNullOrWhiteSpace($ExactTwoSlotRegistrySha256)
+    ) {
+        throw "Goal recovery registration requires the exact current two-slot registry."
+    }
+
     $goalRecoveryOutput = @(
         & powershell.exe -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass `
             -File $goalRecoveryScript `
@@ -628,8 +681,8 @@ function Sync-GoalRecoveryBindingAfterTaskBinding {
             -ActivePlanTaskId $exactActivePlanTaskId `
             -Release $release `
             -RecoveryRoot $goalRecoveryRoot `
-            -ThreeSlotRegistry $ExactThreeSlotRegistry `
-            -ThreeSlotRegistrySha256 $ExactThreeSlotRegistrySha256 `
+            -TwoSlotRegistry $ExactTwoSlotRegistry `
+            -TwoSlotRegistrySha256 $ExactTwoSlotRegistrySha256 `
             -ScheduledTaskName $goalRecoveryTaskName 2>&1
     )
     if ($LASTEXITCODE -ne 0) {
@@ -659,6 +712,81 @@ function Sync-GoalRecoveryBindingAfterTaskBinding {
         binding_event_receipt = [string]$goalRecovery.binding_event_receipt
         goal_binding_mutated = $true
     }
+}
+
+function Invoke-GlobalPluginUpdateTaskRehydration {
+    param(
+        [string]$ExactTwoSlotRegistry,
+        [string]$ExactTwoSlotRegistrySha256,
+        [Parameter(Mandatory = $true)][string]$ExactRuntimeControlRoot,
+        [Parameter(Mandatory = $true)][string]$InstalledVersion,
+        [Parameter(Mandatory = $true)][int]$RegistryDerivedToolCount,
+        [switch]$ExactInvokingTaskOnlyLocalCacheRestart
+    )
+    if ($ExactInvokingTaskOnlyLocalCacheRestart) {
+        return [ordered]@{
+            status = "PASS_WITH_NATIVE_PROOF_PENDING"
+            state = "EXACT_INVOKING_TASK_LOCAL_CACHE_REATTACHMENT_NATIVE_PROOF_PENDING"
+            invoking_task_id = $TaskId
+            plugin_version = $InstalledVersion
+            registry_derived_tool_count = $RegistryDerivedToolCount
+            exact_invoking_task_foreground_preserved = $true
+            exact_invoking_task_reopen_count = 1
+            other_task_bindings_mutated = $false
+            other_task_failures_can_degrade_invoking_task = $false
+            stale_two_slot_registry_consumed = $false
+            state_travel_invoked = $false
+            hooks_enabled_by_update = $false
+            native_task_proof_pending = $true
+        }
+    }
+    $goalRecoveryScript = Join-Path $PSScriptRoot "Manage-EvidenceLaneCodexGoalRecovery.ps1"
+    $releaseChannelPath = Join-Path (Split-Path -Parent $PSScriptRoot) "codex-release-channel.json"
+    $releaseChannel = Get-Content -LiteralPath $releaseChannelPath -Raw | ConvertFrom-Json
+    $release = [string]$releaseChannel.stable.release
+    $releaseToken = "v" + ($release -replace '\.', '')
+    $goalRecoveryRoot = Join-Path ([IO.Path]::GetFullPath($ExactRuntimeControlRoot)) "installations\helpers\$releaseToken\goal-recovery"
+    $goalRecoveryTaskName = "Evidence Lane Codex Goal Recovery $releaseToken"
+    $output = @(
+        & powershell.exe -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass `
+            -File $goalRecoveryScript `
+            -Action RehydrateAll `
+            -TaskId $TaskId `
+            -ExpectedInstalledPluginVersion $InstalledVersion `
+            -ExpectedToolCount $RegistryDerivedToolCount `
+            -InvokingTaskForegroundActivated `
+            -Release $release `
+            -RecoveryRoot $goalRecoveryRoot `
+            -TwoSlotRegistry $ExactTwoSlotRegistry `
+            -TwoSlotRegistrySha256 $ExactTwoSlotRegistrySha256 `
+            -ScheduledTaskName $goalRecoveryTaskName 2>&1
+    )
+    if ($LASTEXITCODE -ne 0) {
+        throw ("Global exact-task plugin update rehydration failed closed: " + ($output -join "`n"))
+    }
+    $receipt = ($output -join "`n") | ConvertFrom-Json
+    if (
+        [string]$receipt.status -notin @(
+            "PASS_WITH_NATIVE_PROOF_PENDING",
+            "PASS_WITH_ISOLATED_FAILURES_AND_NATIVE_PROOF_PENDING"
+        ) -or
+        [string]$receipt.state -cne "GLOBAL_PLUGIN_UPDATE_ATTACHMENT_METADATA_REBOUND_NATIVE_TASK_PROOF_PENDING" -or
+        [string]$receipt.invoking_task_id -cne $TaskId -or
+        [string]$receipt.plugin_version -cne $InstalledVersion -or
+        [int]$receipt.registry_derived_tool_count -ne $RegistryDerivedToolCount -or
+        [int]$receipt.native_catalog_rehydrated_count -ne 0 -or
+        [int]$receipt.native_task_proof_pending_count -lt 1 -or
+        $receipt.invoking_task_foreground_preserved -ne $true -or
+        [int]$receipt.invoking_task_reopen_count -ne 1 -or
+        [int]$receipt.non_invoking_task_navigation_count -ne 0 -or
+        $receipt.task_created -ne $false -or
+        $receipt.task_merged -ne $false -or
+        $receipt.state_travel_invoked -ne $false -or
+        $receipt.hooks_enabled_by_update -ne $false
+    ) {
+        throw "Global exact-task plugin update attachment rebinding returned a mismatched native-proof-pending receipt."
+    }
+    return $receipt
 }
 
 function Get-EvidenceLaneConfigState([string]$Path) {
@@ -880,18 +1008,38 @@ $isDisabledHookRecoveryRestart = (
     [string]$install.activation.state -ceq
         "LOCAL_3_0_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED"
 )
+$isPluginCreatorLocalRestart = (
+    [string]$install.activation.state -ceq
+        "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED"
+)
 $isLocalTestRestart = $isLocalCasRestart -or $isDisabledHookRecoveryRestart
 $installedPluginRoot = Get-InstalledPluginRoot $install
-$exactThreeSlotRegistry = ""
-$observedThreeSlotRegistrySha256 = ""
-$threeSlotRegistryBody = $null
+$installedReleaseChannelPath = Join-Path $installedPluginRoot "scripts\codex-release-channel.json"
+if (-not (Test-Path -LiteralPath $installedReleaseChannelPath -PathType Leaf)) {
+    throw "The installed plugin has no registry-derived release channel contract."
+}
+$installedReleaseChannel = Get-Content -LiteralPath $installedReleaseChannelPath -Raw | ConvertFrom-Json
+$expectedNativeToolCount = [int]$installedReleaseChannel.stable.native_tool_count
+if (
+    [string]$installedReleaseChannel.schema -cne "evidence-lane.codex-release-channel.v2" -or
+    [string]$installedReleaseChannel.stable.release -cne $installedPluginVersion.Split("+", 2)[0] -or
+    $expectedNativeToolCount -lt 1 -or
+    [int]$installedReleaseChannel.stable.native_read_tool_count -lt 1 -or
+    [int]$installedReleaseChannel.stable.native_write_tool_count -lt 1 -or
+    [int]$installedReleaseChannel.stable.native_read_tool_count +
+        [int]$installedReleaseChannel.stable.native_write_tool_count -ne $expectedNativeToolCount
+) {
+    throw "The installed plugin release contract has a malformed public catalog."
+}
+$exactTwoSlotRegistry = ""
+$observedTwoSlotRegistrySha256 = ""
+$twoSlotRegistryBody = $null
 $mainGitSelector = "evidence-lane-plugin@evidence-lane-github"
-$branchRecoverySelector = "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
 $mutableLocalSelector = "evidence-lane-plugin@evidence-lane-v300-testing-new"
 if ($isLocalTestRestart) {
-    $registryProperty = $install.PSObject.Properties["three_slot_registry"]
+    $registryProperty = $install.PSObject.Properties["two_slot_main_local_registry"]
     if ($null -eq $registryProperty -or $null -eq $registryProperty.Value) {
-        throw "A 3.0 local restart requires the exact sealed three-slot registry."
+        throw "A 3.0 local restart requires the exact sealed Git-main/local-testing two-slot registry."
     }
     $declaredRegistry = [string]$registryProperty.Value.registry_path
     $declaredRegistrySha256 = [string]$registryProperty.Value.registry_file_sha256
@@ -899,47 +1047,45 @@ if ($isLocalTestRestart) {
         [string]::IsNullOrWhiteSpace($declaredRegistry) -or
         $declaredRegistrySha256 -cnotmatch '^[A-F0-9]{64}$'
     ) {
-        throw "The installation receipt has no exact three-slot registry file seal."
+        throw "The installation receipt has no exact two-slot registry file seal."
     }
     if (
-        -not [string]::IsNullOrWhiteSpace($ThreeSlotRegistry) -and
-        [IO.Path]::GetFullPath($ThreeSlotRegistry) -cne [IO.Path]::GetFullPath($declaredRegistry)
+        -not [string]::IsNullOrWhiteSpace($TwoSlotRegistry) -and
+        [IO.Path]::GetFullPath($TwoSlotRegistry) -cne [IO.Path]::GetFullPath($declaredRegistry)
     ) {
-        throw "The supplied three-slot registry path does not match the installation receipt."
+        throw "The supplied two-slot registry path does not match the installation receipt."
     }
     if (
-        -not [string]::IsNullOrWhiteSpace($ThreeSlotRegistrySha256) -and
-        $ThreeSlotRegistrySha256.ToUpperInvariant() -cne $declaredRegistrySha256
+        -not [string]::IsNullOrWhiteSpace($TwoSlotRegistrySha256) -and
+        $TwoSlotRegistrySha256.ToUpperInvariant() -cne $declaredRegistrySha256
     ) {
-        throw "The supplied three-slot registry seal does not match the installation receipt."
+        throw "The supplied two-slot registry seal does not match the installation receipt."
     }
-    $exactThreeSlotRegistry = (Resolve-Path -LiteralPath $declaredRegistry).Path
-    $observedThreeSlotRegistrySha256 = Get-Sha256 $exactThreeSlotRegistry
-    $threeSlotRegistryBody = Get-Content -LiteralPath $exactThreeSlotRegistry -Raw | ConvertFrom-Json
-    $mainSlot = $threeSlotRegistryBody.slots.'main-git-release'
-    $branchSlot = $threeSlotRegistryBody.slots.'branch-commit-recovery'
-    $localSlot = $threeSlotRegistryBody.slots.'mutable-local-testing'
+    $exactTwoSlotRegistry = (Resolve-Path -LiteralPath $declaredRegistry).Path
+    $observedTwoSlotRegistrySha256 = Get-Sha256 $exactTwoSlotRegistry
+    $twoSlotRegistryBody = Get-Content -LiteralPath $exactTwoSlotRegistry -Raw | ConvertFrom-Json
+    $mainSlot = $twoSlotRegistryBody.slots.'stable-git-main'
+    $localSlot = $twoSlotRegistryBody.slots.'versioned-local-testing'
     if (
-        $observedThreeSlotRegistrySha256 -cne $declaredRegistrySha256 -or
-        $threeSlotRegistryBody.schema -cne "evidence-lane.codex-three-slot-registry.v1" -or
-        $threeSlotRegistryBody.status -cne "PASS" -or
-        [int]$threeSlotRegistryBody.exact_live_slot_count -ne 3 -or
-        [int]$threeSlotRegistryBody.max_enabled_plugin_count -ne 1 -or
-        [string]$threeSlotRegistryBody.active_slot -cne "mutable-local-testing" -or
-        [string]$threeSlotRegistryBody.active_selector -cne $mutableLocalSelector -or
-        [string]$threeSlotRegistryBody.failure_target_slot -cne "branch-commit-recovery" -or
-        $threeSlotRegistryBody.mutable_local_failure_never_targets_main_git -ne $true -or
-        $threeSlotRegistryBody.pre_3_0_fallback_allowed -ne $false -or
+        $observedTwoSlotRegistrySha256 -cne $declaredRegistrySha256 -or
+        $twoSlotRegistryBody.schema -cne "evidence-lane.codex-two-slot-main-local-registry.v1" -or
+        $twoSlotRegistryBody.status -cne "PASS" -or
+        [int]$twoSlotRegistryBody.exact_live_slot_count -ne 2 -or
+        [int]$twoSlotRegistryBody.max_enabled_plugin_count -ne 1 -or
+        [string]$twoSlotRegistryBody.active_slot -cne "versioned-local-testing" -or
+        [string]$twoSlotRegistryBody.active_selector -cne $mutableLocalSelector -or
+        [string]$twoSlotRegistryBody.failure_target_slot -cne "stable-git-main" -or
+        $twoSlotRegistryBody.local_failure_targets_verified_main_only -ne $true -or
+        $twoSlotRegistryBody.branch_recovery_selector_retired -ne $true -or
+        $twoSlotRegistryBody.branch_recovery_install_allowed -ne $false -or
+        $twoSlotRegistryBody.pre_3_0_fallback_allowed -ne $false -or
         [string]$mainSlot.plugin_selector -cne $mainGitSelector -or
-        [string]$branchSlot.plugin_selector -cne $branchRecoverySelector -or
         [string]$localSlot.plugin_selector -cne $mutableLocalSelector -or
         $mainSlot.enabled -ne $false -or
-        $branchSlot.enabled -ne $false -or
         $localSlot.enabled -ne $true -or
-        $branchSlot.byte_frozen -ne $true -or
         $localSlot.byte_frozen -ne $false
     ) {
-        throw "The sealed three-slot registry is not restart-eligible."
+        throw "The sealed Git-main/local-testing two-slot registry is not restart-eligible."
     }
 }
 
@@ -962,6 +1108,7 @@ if ($isLocalCasRestart) {
     $candidateSelector = [string]$install.activation.transaction.candidate_selector
     $lastKnownGoodSelector = [string]$install.activation.transaction.last_known_good_selector
     $expectedHookEvents = @(
+        "permissionRequest",
         "postCompact",
         "postToolUse",
         "preCompact",
@@ -969,6 +1116,8 @@ if ($isLocalCasRestart) {
         "sessionEnd",
         "sessionStart",
         "stop",
+        "subagentStart",
+        "subagentStop",
         "userPromptSubmit"
     )
     $hookRecords = @($localTestCommit.hook_trust.records)
@@ -1026,9 +1175,9 @@ if ($isLocalCasRestart) {
         $localTestCommit.hook_trust.status -cne "PASS" -or
         [string]$localTestCommit.hook_trust.plugin_selector -cne $candidateSelector -or
         $localTestCommit.hook_trust.candidate_enabled -ne $true -or
-        [int]$localTestCommit.hook_trust.hook_count -ne 8 -or
+        [int]$localTestCommit.hook_trust.hook_count -ne $expectedHookEvents.Count -or
         $localTestCommit.hook_trust.unrelated_hook_state_mutated -ne $false -or
-        $hookRecords.Count -ne 8 -or
+        $hookRecords.Count -ne $expectedHookEvents.Count -or
         $hookEventDifference.Count -ne 0 -or
         $invalidHookRecords.Count -ne 0 -or
         [string]$localTestCommit.readiness.state -cne "INSTALLED_RESTART_OR_RELOAD_REQUIRED" -or
@@ -1077,6 +1226,7 @@ elseif ($isDisabledHookRecoveryRestart) {
     $configState = Get-EvidenceLaneConfigState $exactCodexConfig
     $configHookState = Get-EvidenceLaneHookState $exactCodexConfig $candidateSelector
     $expectedHookEvents = @(
+        "permissionRequest",
         "postCompact",
         "postToolUse",
         "preCompact",
@@ -1084,6 +1234,8 @@ elseif ($isDisabledHookRecoveryRestart) {
         "sessionEnd",
         "sessionStart",
         "stop",
+        "subagentStart",
+        "subagentStop",
         "userPromptSubmit"
     )
     $hookRecords = @($hookTrust.records)
@@ -1121,8 +1273,9 @@ elseif ($isDisabledHookRecoveryRestart) {
         $install.activation.transaction.candidate_enabled -ne $true -or
         [int]$install.activation.transaction.switch_count -ne 1 -or
         $install.activation.transaction.rollback_capable -ne $true -or
-        $install.activation.transaction.stable_and_fallback_enabled -ne $false -or
-        $install.activation.transaction.exact_eight_hook_hashes_trusted -ne $true -or
+        $install.activation.transaction.stable_main_enabled -ne $false -or
+        $install.activation.transaction.branch_recovery_selector_present -ne $false -or
+        $install.activation.transaction.complete_hook_set_hashes_trusted -ne $true -or
         $install.activation.transaction.hook_event_isolation_verified_before_activation -ne $true -or
         $install.activation.transaction.restart_or_reload_required -ne $true -or
         $install.activation.transaction.candidate_created_or_accepted -ne $false -or
@@ -1159,17 +1312,18 @@ elseif ($isDisabledHookRecoveryRestart) {
         [string]$exclusiveChannel.candidate_selector -cne $candidateSelector -or
         $exclusiveChannel.candidate_enabled -ne $true -or
         [int]$exclusiveChannel.switch_count -ne 1 -or
-        $exclusiveChannel.stable_and_fallback_enabled -ne $false -or
+        $exclusiveChannel.stable_main_enabled -ne $false -or
+        $exclusiveChannel.branch_recovery_selector_present -ne $false -or
         $exclusiveChannel.accepted_two_slot_registry_mutated -ne $false -or
         $hookTrust.schema -cne "evidence-lane.codex-hook-trust.v1" -or
         $hookTrust.status -cne "PASS" -or
         [string]$hookTrust.plugin_selector -cne $candidateSelector -or
         $hookTrust.candidate_enabled -ne $true -or
         $hookTrust.disabled_local_recovery -ne $true -or
-        [int]$hookTrust.hook_count -ne 8 -or
+        [int]$hookTrust.hook_count -ne $expectedHookEvents.Count -or
         $hookTrust.unrelated_hook_state_mutated -ne $false -or
-        $hookRecords.Count -ne 8 -or
-        $liveHookRecords.Count -ne 8 -or
+        $hookRecords.Count -ne $expectedHookEvents.Count -or
+        $liveHookRecords.Count -ne $expectedHookEvents.Count -or
         $hookEventDifference.Count -ne 0 -or
         $invalidHookRecords.Count -ne 0 -or
         $invalidLiveHookRecords.Count -ne 0 -or
@@ -1198,12 +1352,11 @@ elseif ($isDisabledHookRecoveryRestart) {
         [string]$configState.enabled_plugin_selectors[0] -cne $candidateSelector -or
         [string]$configState.enabled_mcp_selectors[0] -cne $candidateSelector -or
         @($configState.mismatched_selectors).Count -ne 0 -or
-        @($configState.records).Count -ne 3 -or
+        @($configState.records).Count -ne 2 -or
         @(
             $configState.records | Where-Object {
                 [string]$_.selector -cnotin @(
                     $mainGitSelector,
-                    $branchRecoverySelector,
                     $mutableLocalSelector
                 )
             }
@@ -1215,6 +1368,60 @@ elseif ($isDisabledHookRecoveryRestart) {
         throw "The supplied disabled-hook recovery receipt, prior CAS authority, and live selector state are not restart-eligible."
     }
     $restartAuthorityMode = "LOCAL_TEST_DISABLED_HOOK_RECOVERY_INSTALL_RECEIPT"
+}
+elseif ($isPluginCreatorLocalRestart) {
+    $selector = [string]$install.activation.plugin_selector
+    $pluginAdd = $install.activation.plugin_add
+    $localUpdate = $install.activation.plugin_creator_local_update
+    $hookState = $install.activation.hook_state
+    $activationAuthority = $install.activation_authority
+    if (
+        $selector -cne $mutableLocalSelector -or
+        [string]$pluginAdd.pluginId -cne $selector -or
+        [string]$pluginAdd.version -cne $installedPluginVersion -or
+        [string]$pluginAdd.installedPath -cne $installedPluginRoot -or
+        [string]$pluginAdd.status -cne "CACHE_MATERIALIZED_RESTART_REQUIRED" -or
+        $pluginAdd.activation_completed -ne $false -or
+        [string]$localUpdate.status -cne "PASS" -or
+        [string]$localUpdate.route -cne "CODEX_PLUGIN_ADD" -or
+        [int]$localUpdate.invocation_count -ne 1 -or
+        [string]$localUpdate.outcome -cnotin @(
+            "TARGET_SELECTED_HOST_RESTART_REQUIRED",
+            "OLD_SELECTED_TARGET_CACHE_MATERIALIZED_HOST_RESTART_REQUIRED"
+        ) -or
+        [string]$hookState.status -cne "PASS" -or
+        [string]$hookState.selector -cne $selector -or
+        [int]$hookState.hook_count -ne 11 -or
+        $hookState.all_enabled -ne $false -or
+        $hookState.hooks_enabled_by_update -ne $false -or
+        [string]$activationAuthority.status -cne "PASS" -or
+        [string]$activationAuthority.boundary -cne
+            "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_EXACT_TASK_RESTART" -or
+        [string]$activationAuthority.selector -cne $selector -or
+        [string]$activationAuthority.route_law -cne
+            "PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW" -or
+        $activationAuthority.accepted_two_slot_registry_mutated -ne $false -or
+        $activationAuthority.state_travel_invoked -ne $false -or
+        $install.restart_required -ne $true -or
+        $install.runtime_ready_before_task_reopen -ne $false -or
+        $install.hooks_enabled_by_update -ne $false -or
+        $install.generated_cache_written_directly -ne $false -or
+        $install.previous_release_cache_deleted -ne $false -or
+        $install.accepted_two_slot_registry_mutated -ne $false -or
+        $install.candidate_created_or_accepted -ne $false -or
+        $install.pointer_moved -ne $false -or
+        $install.hil_inferred -ne $false -or
+        $install.task_reopened -ne $false -or
+        $install.state_travel_invoked -ne $false -or
+        -not [string]::IsNullOrWhiteSpace($LocalTestCommitReceipt) -or
+        -not [string]::IsNullOrWhiteSpace($LocalTestCommitReceiptSha256) -or
+        -not [string]::IsNullOrWhiteSpace($CodexConfig) -or
+        -not [string]::IsNullOrWhiteSpace($TwoSlotRegistry) -or
+        -not [string]::IsNullOrWhiteSpace($TwoSlotRegistrySha256)
+    ) {
+        throw "The Plugin Creator local-cache receipt is not exact-task restart-eligible."
+    }
+    $restartAuthorityMode = "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_EXACT_TASK_RESTART"
 }
 elseif (
     [string]$install.activation.state -cne "INSTALLED_RESTART_REQUIRED" -or
@@ -1265,7 +1472,7 @@ if ($isLocalCasRestart) {
     $restartAuthority.candidate_selector = $candidateSelector
     $restartAuthority.last_known_good_selector = $lastKnownGoodSelector
     $restartAuthority.hook_trust_receipt_sha256 = [string]$localTestCommit.hook_trust.receipt_sha256
-    $restartAuthority.hook_count = 8
+    $restartAuthority.hook_count = $expectedHookEvents.Count
 }
 elseif ($isDisabledHookRecoveryRestart) {
     $restartAuthority.prior_commit_receipt = $exactLocalTestCommit
@@ -1277,18 +1484,26 @@ elseif ($isDisabledHookRecoveryRestart) {
     $restartAuthority.candidate_selector = $candidateSelector
     $restartAuthority.prior_commit_last_known_good_selector = $lastKnownGoodSelector
     $restartAuthority.hook_trust_receipt_sha256 = [string]$install.activation.hook_trust.receipt_sha256
-    $restartAuthority.hook_count = 8
+    $restartAuthority.hook_count = $expectedHookEvents.Count
     $restartAuthority.enabled_evidence_lane_selector_count = 1
-    $restartAuthority.three_slot_registry = $exactThreeSlotRegistry
-    $restartAuthority.three_slot_registry_sha256 = $observedThreeSlotRegistrySha256
-    $restartAuthority.main_git_selector = $mainGitSelector
-    $restartAuthority.branch_commit_recovery_selector = $branchRecoverySelector
-    $restartAuthority.mutable_local_selector = $mutableLocalSelector
-    $restartAuthority.mutable_local_failure_target = $branchRecoverySelector
-    $restartAuthority.mutable_local_failure_never_targets_main_git = $true
-    $restartAuthority.branch_commit_recovery_remains_prior_checkpoint = [bool]$threeSlotRegistryBody.branch_recovery_must_remain_prior_checkpoint_until_commit
-    $restartAuthority.branch_commit_recovery_byte_identical_before_checkpoint = [bool]$threeSlotRegistryBody.branch_recovery_byte_identical_to_mutable_local
+    $restartAuthority.two_slot_main_local_registry = $exactTwoSlotRegistry
+    $restartAuthority.two_slot_main_local_registry_sha256 = $observedTwoSlotRegistrySha256
+    $restartAuthority.stable_git_main_selector = $mainGitSelector
+    $restartAuthority.versioned_local_selector = $mutableLocalSelector
+    $restartAuthority.versioned_local_failure_target = $mainGitSelector
+    $restartAuthority.versioned_local_failure_targets_verified_main_only = $true
+    $restartAuthority.branch_recovery_selector_retired = $true
+    $restartAuthority.branch_recovery_install_allowed = $false
     $restartAuthority.pre_3_0_recovery_allowed = $false
+}
+elseif ($isPluginCreatorLocalRestart) {
+    $restartAuthority.plugin_selector = [string]$install.activation.plugin_selector
+    $restartAuthority.old_active_version = [string]$install.activation.plugin_add.old_active_version
+    $restartAuthority.registry_version_before_restart = [string]$install.activation.plugin_add.registry_version_before_restart
+    $restartAuthority.plugin_add_outcome = [string]$install.activation.plugin_creator_local_update.outcome
+    $restartAuthority.hooks_enabled = $false
+    $restartAuthority.windows_marketplace_root_rotation_attempted = $false
+    $restartAuthority.exact_same_task_reopen_required = $true
 }
 if ($null -ne $tunnelBoundary) {
     $restartAuthority.tunnel_marker_path = [string]$tunnelBoundary.marker_path
@@ -1337,7 +1552,7 @@ if ($Action -eq "Prepare") {
             same_task_required = $true
             task_2_used = $false
             user_reentry_action = "NONE_AUTO_OPEN_EXACT_TASK"
-            task_navigation_mode = "CODEX_THREAD_DEEPLINK"
+            task_navigation_mode = "EXACT_INVOKING_TASK_FOREGROUND_START_THEN_NON_NAVIGATING_GLOBAL_REHYDRATION"
             task_uri_sha256 = $taskUriSha256
             coordinate_clicking_used = $false
             native_workspace_binding_source = "EXISTING_CODEX_TASK_STATE"
@@ -1408,9 +1623,10 @@ if ($Action -eq "Prepare") {
     $goalRecoveryRefresh = Sync-GoalRecoveryBindingAfterTaskBinding `
         -ExactTaskBindingPath $taskBindingPath `
         -ExactTaskBindingSha256 $taskBindingSha256 `
-        -ExactThreeSlotRegistry $exactThreeSlotRegistry `
-        -ExactThreeSlotRegistrySha256 $observedThreeSlotRegistrySha256 `
-        -ExactRuntimeControlRoot $exactRuntimeControlRoot
+        -ExactTwoSlotRegistry $exactTwoSlotRegistry `
+        -ExactTwoSlotRegistrySha256 $observedTwoSlotRegistrySha256 `
+        -ExactRuntimeControlRoot $exactRuntimeControlRoot `
+        -PreserveCurrentLocalBinding:$isPluginCreatorLocalRestart
     [ordered]@{
         status = "PASS"
         state = "PREPARED_NOT_RESTARTED"
@@ -1518,6 +1734,8 @@ if ($Action -eq "Restart") {
         "-ReceiptDirectory", $ReceiptDirectory,
         "-DataRoot", ([IO.Path]::GetFullPath($DataRoot)),
         "-RuntimeControlRoot", $exactRuntimeControlRoot,
+        "-TwoSlotRegistry", $exactTwoSlotRegistry,
+        "-TwoSlotRegistrySha256", $observedTwoSlotRegistrySha256,
         "-RestartLeasePath", $leasePath,
         "-RestartLeaseToken", $leaseToken,
         "-AppId", $AppId,
@@ -1533,12 +1751,16 @@ if ($Action -eq "Restart") {
     $argumentLine = ($arguments | ForEach-Object {
         ConvertTo-WindowsCommandLineArgument ([string]$_)
     }) -join " "
+    $childStdoutPath = Join-Path $ReceiptDirectory "CODEX_RELAUNCH_CHILD_STDOUT.log"
+    $childStderrPath = Join-Path $ReceiptDirectory "CODEX_RELAUNCH_CHILD_STDERR.log"
     $helperProcess = $null
     try {
         $helperProcess = Start-Process `
             -FilePath $powershell `
             -ArgumentList $argumentLine `
             -WindowStyle Hidden `
+            -RedirectStandardOutput $childStdoutPath `
+            -RedirectStandardError $childStderrPath `
             -PassThru
         Write-JsonReceipt $leasePath ([ordered]@{
             schema = "evidence-lane.codex-restart-single-flight.v1"
@@ -1679,6 +1901,10 @@ if ($Action -eq "Relaunch") {
             $tunnelReady = Wait-VersionMatchedTunnelReady $tunnelBoundary
         }
         Assert-CodexThreadProtocol $hostProfile
+        # Start the exact invoking task once. RehydrateAll revalidates every
+        # other task binding through the isolated official app-server and is
+        # forbidden from navigating those tasks, so no historical task can
+        # steal the foreground or replace the invoking Task11 attachment.
         $launchRequestProcessId = Invoke-CodexHostActivation -HostProfile $hostProfile -Arguments $taskUri
         $newRoot = $null
         $launchDeadline = [DateTimeOffset]::UtcNow.AddSeconds(60)
@@ -1694,6 +1920,22 @@ if ($Action -eq "Relaunch") {
             -RootProcessId ([int]$verifiedRoot.ProcessId) `
             -HostProfile $hostProfile
         [void](Get-RootCodexProcess -ProcessId ([int]$verifiedRoot.ProcessId) -HostProfile $hostProfile)
+        if (
+            -not $isPluginCreatorLocalRestart -and
+            (
+                [string]::IsNullOrWhiteSpace($exactTwoSlotRegistry) -or
+                [string]::IsNullOrWhiteSpace($observedTwoSlotRegistrySha256)
+            )
+        ) {
+            throw "GLOBAL_PLUGIN_UPDATE_REHYDRATION_LAW requires one sealed current two-slot registry before any task is reopened."
+        }
+        $globalTaskRehydration = Invoke-GlobalPluginUpdateTaskRehydration `
+            -ExactTwoSlotRegistry $exactTwoSlotRegistry `
+            -ExactTwoSlotRegistrySha256 $observedTwoSlotRegistrySha256 `
+            -ExactRuntimeControlRoot $exactRuntimeControlRoot `
+            -InstalledVersion $installedPluginVersion `
+            -RegistryDerivedToolCount $expectedNativeToolCount `
+            -ExactInvokingTaskOnlyLocalCacheRestart:$isPluginCreatorLocalRestart
         Write-JsonReceipt $relaunchPath ([ordered]@{
             schema = "evidence-lane.codex-relaunch-receipt.v2"
             state = if ($tunnelRequired) { "BOUND_CODEX_HOST_ROOT_RELAUNCHED_ONCE_MAXIMIZED_VERSION_MATCHED_TUNNEL_READY_AWAITING_NATIVE_PROOF" } else { "BOUND_CODEX_HOST_ROOT_RELAUNCHED_ONCE_MAXIMIZED_NATIVE_MCP_AVAILABLE_AWAITING_NATIVE_PROOF" }
@@ -1740,13 +1982,20 @@ if ($Action -eq "Relaunch") {
                 }
             }
             window = $windowProof
+            global_plugin_update_rehydration = $globalTaskRehydration
             task_navigation = [ordered]@{
-                mode = "EXACT_BOUND_APPUSERMODELID_WITH_CODEX_THREAD_ARGUMENT"
+                mode = "EXACT_INVOKING_TASK_FOREGROUND_START_THEN_NON_NAVIGATING_GLOBAL_REHYDRATION"
                 task_uri_sha256 = $taskUriSha256
                 coordinate_clicking_used = $false
                 launch_request_process_id = [uint32]$launchRequestProcessId
+                initial_host_shell_start_count = 0
+                exact_task_foreground_start_count = 1
+                host_shell_launch_had_task_argument = $true
+                task_uri_opened_by_initial_activation = $true
+                task_uri_opened_by_global_rehydration = $false
                 exact_task_reopen_count = 1
                 second_activation_requested = $false
+                non_invoking_task_navigation_count = 0
                 new_root_process_id = [int]$verifiedRoot.ProcessId
                 new_root_process_name = [string]$verifiedRoot.Name
                 new_root_executable_path = [string]$verifiedRoot.ExecutablePath

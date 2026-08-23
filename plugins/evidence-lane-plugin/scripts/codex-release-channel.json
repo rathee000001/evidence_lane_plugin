@@ -6,7 +6,7 @@
     "slot_role": "main-git-release",
     "codex_marketplace_slot": "evidence-lane-github",
     "marketplace_display_name": "Main Git Plugin Version",
-    "install_source": "GIT_EXACT_COMMIT",
+    "install_source": "GIT_MAIN_EXACT_COMMIT_AFTER_GOVERNED_MERGE",
     "enabled": true,
     "byte_frozen": false,
     "updates_require_verified_unique_build_identity": true,
@@ -25,30 +25,24 @@
     "tunnel_release_must_match": true,
     "tunnel_channel": "stable-build"
   },
-  "branch_recovery": {
-    "release": "3.0.0",
-    "slot_role": "branch-commit-recovery",
-    "codex_marketplace_slot": "evidence-lane-v300-stable-recovery",
-    "marketplace_display_name": "Branch Commit Git Recovery",
-    "install_source": "GOVERNED_BRANCH_COMMIT_EXACT_PACKAGE",
-    "enabled": false,
-    "update_gate": "LOCAL_TEST_GREEN_AND_GOVERNED_BRANCH_COMMIT",
-    "byte_frozen_between_branch_checkpoints": true,
-    "must_not_follow_uncommitted_local_bytes": true,
-    "recover_mutable_local_test_failure": true,
-    "simultaneous_mcp_allowed": false,
-    "simultaneous_tunnel_allowed": false
+  "retired_branch_recovery": {
+    "slot_role": "RETIRED_PURGE_ONLY",
+    "plugin_selector": "evidence-lane-plugin@evidence-lane-v300-stable-recovery",
+    "installation_allowed": false,
+    "migration_read_allowed": true,
+    "removal_via_supported_codex_api_required": true,
+    "direct_cache_deletion_allowed": false
   },
   "local_testing": {
     "release_line": "3.0.0",
-    "slot_role": "mutable-local-testing",
+    "slot_role": "versioned-local-testing",
     "codex_marketplace_slot": "evidence-lane-v300-testing-new",
     "marketplace_display_name": "Local Testing Slot",
     "install_source": "FRESH_VERSIONED_LOCAL_PACKAGE",
     "same_marketplace_selector_reused": true,
     "fresh_package_version_per_local_build": true,
     "enabled_only_during_local_test": true,
-    "branch_recovery_mutation_allowed_during_local_build": false,
+    "stable_git_main_mutation_allowed_during_local_build": false,
     "helper_installs_plugin": false
   },
   "pv_sequence_boundary": {
@@ -56,15 +50,15 @@
     "entry_pointer": "PV12",
     "intermediate_candidate": "PV13",
     "intermediate_approve_effect": "FUSE_PV13_ONLY",
-    "intermediate_main_merge_allowed": false,
-    "intermediate_fallback_replacement_allowed": false,
+    "intermediate_main_merge_allowed": true,
+    "intermediate_third_slot_creation_allowed": false,
     "physically_final_candidate": "PV14",
     "final_approve_required_before_main_or_fallback": true,
     "final_approve_effects": [
       "FUSE_PV14_GENERATION_14",
       "GOVERNED_NON_FORCE_MAIN_PROMOTION",
-      "INSTALL_EXACT_ACCEPTED_3_0_IN_ENABLED_STABLE_SLOT",
-      "INSTALL_EXACT_ACCEPTED_3_0_IN_DISABLED_RECOVERABLE_FALLBACK_SLOT"
+      "INSTALL_EXACT_ACCEPTED_3_0_IN_ENABLED_STABLE_GIT_MAIN_SLOT",
+      "PRESERVE_VERSIONED_LOCAL_TESTING_SLOT_AS_THE_ONLY_SECOND_SLOT"
     ],
     "release_3_1_in_current_goal_allowed": false,
     "next_cycle_entry_pointer": "PV14",
@@ -74,7 +68,7 @@
   "workflow_scope": {
     "plugin_release_cadence": "ONE_AUTHORIZED_LOGICAL_RELEASE_COMMIT_BATCH",
     "plugin_release_steps": [
-      "GOVERNED_EXACT_BRANCH_COMMIT_PUSH",
+      "GOVERNED_FEATURE_COMMIT_AND_EXACT_MAIN_MERGE",
       "CLEAN_CI_AND_SECURITY",
       "GIT_TRIGGERED_VERCEL_PREVIEW",
       "EXACT_PACKAGE_BUILD",
@@ -90,14 +84,14 @@
       "STORAGE_CONNECTOR_SELECTION"
     ],
     "intermediate_pv13_install_hil_route": {
-      "ci_prerequisite_row": 196,
-      "execution_row": 197,
+      "ci_prerequisite_row": 266,
+      "execution_row": 267,
       "release": "3.0.0",
-      "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
-      "source": "EXACT_GIT_COMMIT_AFTER_REQUIRED_CLEAN_CI_AND_GIT_TRIGGERED_VERCEL_PREVIEW",
-      "slot_role": "branch-commit-recovery",
-      "plugin_selector": "evidence-lane-plugin@evidence-lane-v300-stable-recovery",
-      "byte_identical_local_testing_selector": "evidence-lane-plugin@evidence-lane-v300-testing-new",
+      "branch": "main",
+      "source": "EXACT_GIT_MAIN_COMMIT_AFTER_REQUIRED_CLEAN_CI_AND_GIT_TRIGGERED_VERCEL_PREVIEW",
+      "slot_role": "main-git-release",
+      "plugin_selector": "evidence-lane-plugin@evidence-lane-github",
+      "versioned_local_testing_selector": "evidence-lane-plugin@evidence-lane-v300-testing-new",
       "working_role_sync_required": true,
       "installed_version_must_equal_exact_package_version": true,
       "installed_catalog_must_equal": {
@@ -105,12 +99,12 @@
         "read_actions": 27,
         "write_actions": 61,
         "governed_skills": 17,
-        "hook_events": 8,
+        "hook_events": 11,
         "migrated_command_skills": 1
       },
       "installed_ui_readback_required_before_pv13_hil": true,
-      "main_git_release_slot_mutation_allowed": false,
-      "main_merge_allowed": false,
+      "main_git_release_slot_mutation_allowed": true,
+      "main_merge_allowed": true,
       "downstream_project_inherits_install": false
     },
     "full_vercel_guide_refresh": "ASSIGNED_WEBSITE_DELTA_ONLY",
@@ -119,7 +113,7 @@
     "accepted_locked_env_uop_mutation_allowed": false
   },
   "goal_completion_policy": {
-    "schema": "evidence-lane.human-goal-completion-policy.v1",
+    "schema": "evidence-lane.human-goal-completion-policy.v2",
     "scope": "ALL_GOVERNED_GOALS",
     "exact_visible_command": "MARK GOAL COMPLETE",
     "authorization_actor": "HUMAN_ONLY",
@@ -131,7 +125,20 @@
     "pause_or_stall_can_complete": false,
     "pause_or_stall_without_completion_allowed": true,
     "completion_implies_hil_approval_fuse_or_pointer_move": false,
-    "completion_implies_git_install_merge_or_deploy": false
+    "completion_implies_git_install_merge_or_deploy": false,
+    "completion_display": {
+      "authoritative_current_route": "build_rich_goal_completion_metrics_receipt",
+      "receipt_schema": "evidence-lane.rich-goal-completion-metrics.v1",
+      "legacy_route": "build_goal_usage_receipt",
+      "legacy_route_executable": false,
+      "legacy_fallback_allowed": false,
+      "display_route_has_completion_authority": false,
+      "already_complete_reuses_persisted_receipt": true,
+      "incomplete_telemetry_returns_structured_missing_fields": true,
+      "reasoning_output_is_subset_of_output": true,
+      "host_accounted_tokens_kept_separate_from_raw_model_traffic": true,
+      "unknown_host_conversion_formula_must_remain_unknown": true
+    }
   },
   "helper_distribution_policy": {
     "schema": "evidence-lane.helper-distribution-policy.v1",
@@ -155,8 +162,7 @@
       "release_bound": true,
       "supported_update_modes": [
         "RestartInstalledMainGit",
-        "RestartInstalledLocalTesting",
-        "RestartInstalledBranchRecovery"
+        "RestartInstalledLocalTesting"
       ],
       "install_completed_before_helper": true,
       "helper_installs_plugin": false,
@@ -168,7 +174,16 @@
       "condition_driven_readiness_polling": true,
       "version_matched_tunnel_starts_before_host": true,
       "maximized_full_window_required": true,
-      "combined_post_stop_installer_retired": true
+      "combined_post_stop_installer_retired": true,
+      "plugin_creator_local_update_route": {
+        "route_law": "PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW",
+        "source_sync": "IN_PLACE_EXISTING_LOCAL_MARKETPLACE",
+        "cache_materialization": "CODEX_PLUGIN_ADD",
+        "loaded_old_cache_boundary": "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED",
+        "restart_authority_mode": "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_EXACT_TASK_RESTART",
+        "windows_marketplace_root_rotation_allowed": false,
+        "exact_same_task_hidden_restart_required": true
+      }
     },
     "user_goal_recovery_helper": {
       "script": "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1",
@@ -203,34 +218,29 @@
       "prior_versions_retained": true,
       "prior_versions_deleted": false
     },
-    "branch_recovery_transport": {
-      "audience": "MAINTAINER_RECOVERY_ONLY",
-      "release": "3.0.0",
-      "release_token": "v300",
-      "runtime_root_suffix": "tunnel-runtime-v300-stable-build",
-      "scheduled_task_name": "EvidenceLane-Tunnel-v300-stable-build",
-      "target_slot_restaged_before_switch": true,
-      "one_version_matched_tunnel": true,
+    "retired_branch_recovery_transport": {
+      "state": "PURGED",
+      "restart_or_reattach_allowed": false,
+      "installation_allowed": false,
       "public_marketplace_user_surface": false
     },
     "post_hil_release_rotation": {
       "schema": "evidence-lane.plugin-slot-helper-tunnel-rotation.v1",
       "applies_to_plugin_maintainer_route_only": true,
       "downstream_project_inherits_rotation": false,
-      "local_test_green_branch_checkpoint_can_converge_all_three_slots": true,
+      "local_test_green_can_promote_only_through_exact_main_merge": true,
       "pre_3_0_fallback_allowed": false,
       "final_gate": "PV14_EXACT_HUMAN_APPROVE_AND_FUSE",
       "required_order": [
         "FUSE_EXACT_ACCEPTED_PLUGIN_PV",
         "GOVERNED_NON_FORCE_MAIN_PROMOTION",
         "VERIFY_MAIN_EQUALS_ACCEPTED_COMMIT",
-        "INSTALL_ACCEPTED_RELEASE_IN_MAIN_GIT_SLOT",
-        "INSTALL_SAME_ACCEPTED_RELEASE_IN_BRANCH_RECOVERY_SLOT",
-        "INSTALL_SAME_ACCEPTED_RELEASE_IN_LOCAL_TESTING_SLOT",
+        "INSTALL_ACCEPTED_RELEASE_IN_STABLE_GIT_MAIN_SLOT",
+        "PRESERVE_VERSIONED_LOCAL_TESTING_AS_THE_ONLY_SECOND_SLOT",
         "ROTATE_MATCHING_HELPER_AND_TUNNEL_IDENTITIES",
-        "VERIFY_THREE_BYTE_IDENTICAL_SLOTS_AND_ONE_ACTIVE_RUNTIME"
+        "VERIFY_EXACTLY_TWO_SLOTS_AND_ONE_ACTIVE_RUNTIME"
       ],
-      "all_three_slots_must_equal_exact_checkpoint_release": true,
+      "stable_git_main_must_equal_exact_merged_release": true,
       "helper_and_tunnel_release_must_match_owning_slot": true,
       "prior_versioned_helpers_and_tunnels_retained": true,
       "prior_versioned_helpers_and_tunnels_disabled": true,
@@ -264,19 +274,17 @@
     }
   },
   "live_slot_policy": {
-    "exact_slot_count": 3,
+    "exact_slot_count": 2,
     "allowed_slots": [
       "main-git-release",
-      "branch-commit-recovery",
-      "mutable-local-testing"
+      "versioned-local-testing"
     ],
     "allowed_marketplaces": [
       "evidence-lane-github",
-      "evidence-lane-v300-stable-recovery",
       "evidence-lane-v300-testing-new"
     ],
     "max_enabled_plugin_count": 1,
-    "exact_registered_plugin_count": 3,
+    "exact_registered_plugin_count": 2,
     "stable_selector_growth_allowed": false,
     "max_active_native_mcp_count": 1,
     "max_active_tunnel_count": 1,
@@ -286,15 +294,16 @@
     "manual_loaded_cache_deletion_allowed": false,
     "forbidden_obsolete_marketplaces": [
       "evidence-lane-v300-local-successor",
+      "evidence-lane-v300-stable-recovery",
       "evidence-lane-pv11-fallback"
     ],
     "immutable_git_pv_package_receipt_delta_evidence_preserved": true
   },
   "failover_operator": {
     "script": "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1",
-    "registry_schema": "evidence-lane.codex-three-slot-registry.v1",
-    "failure_target_slot": "branch-commit-recovery",
-    "mutable_local_failure_never_targets_main_git": true,
+    "registry_schema": "evidence-lane.codex-two-slot-main-local-registry.v1",
+    "failure_target_slot": "stable-git-main",
+    "versioned_local_failure_targets_verified_main_only": true,
     "explicit_operator_failover_allowed": true,
     "deterministic_failure_minimum_consecutive_probes": 3,
     "deterministic_failure_minimum_window_seconds": 30,
@@ -325,10 +334,9 @@
     "candidate_hil_pointer_or_git_mutation_allowed": false,
     "restart_task_binding_refresh_order": "TASK_BINDING_WRITE_THEN_GOAL_BINDING_REGISTER_THEN_APP_STOP",
     "stale_task_binding_seal_allowed": false,
-    "requires_exactly_one_enabled_allowed_three_slot_selector": true,
+    "requires_exactly_one_enabled_allowed_two_slot_selector": true,
     "allowed_runtime_selectors": [
       "evidence-lane-plugin@evidence-lane-github",
-      "evidence-lane-plugin@evidence-lane-v300-stable-recovery",
       "evidence-lane-plugin@evidence-lane-v300-testing-new"
     ],
     "stable_selector_growth_allowed": false,
@@ -363,31 +371,40 @@
     "skills_own_prepare_behavior_native_reads_classification_plan_refresh_goal_and_hil": true,
     "required_events": [
       "SessionStart",
+      "SubagentStart",
       "UserPromptSubmit",
       "PreToolUse",
+      "PermissionRequest",
       "PostToolUse",
       "PreCompact",
       "PostCompact",
+      "SubagentStop",
       "Stop",
       "SessionEnd"
     ],
     "hook_transport_owners": {
       "SessionStart": "HOST_ENTRY_SIGNAL",
+      "SubagentStart": "BOUND_OBSERVATION_ONLY_SUBAGENT_START_SIGNAL",
       "UserPromptSubmit": "VISIBLE_INPUT_SIGNAL",
       "PreToolUse": "PROSPECTIVE_TOOL_SIGNAL",
+      "PermissionRequest": "BOUND_OBSERVATION_ONLY_PERMISSION_SIGNAL",
       "PostToolUse": "VISIBLE_TOOL_RESULT_SIGNAL",
       "PreCompact": "COMPACTION_SEAL_SIGNAL",
       "PostCompact": "COMPACTION_REENTRY_SIGNAL",
+      "SubagentStop": "BOUND_OBSERVATION_ONLY_SUBAGENT_STOP_SIGNAL",
       "Stop": "VISIBLE_RESPONSE_STOP_SIGNAL",
       "SessionEnd": "SESSION_END_SIGNAL"
     },
     "skill_action_owners": {
       "SessionStart": "SKILL_BOOT_RESUME_OR_PANEL_REENTRY",
+      "SubagentStart": "SKILL_BOUND_OBSERVATION_ONLY",
       "UserPromptSubmit": "SKILL_PREPARE_THEN_NATIVE_READ_SEQUENCE",
       "PreToolUse": "SKILL_BOUNDARY_AND_POLICY_OWNER",
+      "PermissionRequest": "SKILL_BOUND_OBSERVATION_ONLY_NEVER_GRANT_OR_DENY",
       "PostToolUse": "SKILL_RECEIPT_AND_PLAN_REFRESH_OWNER",
       "PreCompact": "SKILL_CONTINUITY_SEAL_OWNER",
       "PostCompact": "SKILL_REBIND_AND_FULL_PLAN_REENTRY_OWNER",
+      "SubagentStop": "SKILL_BOUND_OBSERVATION_ONLY",
       "Stop": "SKILL_IDEMPOTENT_COMMIT_OWNER",
       "SessionEnd": "SKILL_BEST_EFFORT_BOUNDARY_FLUSH_OWNER"
     },
@@ -402,9 +419,13 @@
       "fail_closed_on_mismatch": true
     },
     "session_end_delivery": "BEST_EFFORT_HOST_CAPABILITY_GATED",
-    "permission_request_policy": "CONDITIONAL_ONLY_AFTER_EXPLICIT_HOST_CAPABILITY_PROOF",
+    "permission_request_policy": "OBSERVE_ONLY_NEVER_GRANT_OR_DENY",
     "unavailable_event_state": "HOST_CAPABILITY_UNAVAILABLE",
-    "subagent_events_in_scope": false,
+    "subagent_events_in_scope": true,
+    "subagent_event_policy": "BOUND_OBSERVATION_ONLY_NEVER_CONTROL",
+    "session_end_runs_for_subagents": false,
+    "supported_handler_type": "command",
+    "prompt_and_agent_handlers_parsed_but_skipped": true,
     "transport_envelope_schema": "evidence-lane.codex-hook-transport-envelope.v1",
     "max_transport_bytes": 65536,
     "max_visible_input_chars": 32768,
@@ -462,7 +483,7 @@
     ],
     "bundle_failure_policy": "ANY_INCLUDED_ROW_FAILURE_FAILS_BUNDLE_CLOSED",
     "bundle_commit_syncs_root_and_repository_docs": true,
-    "stable_install_source": "EXACT_GIT_COMMIT_PACKAGE_ONLY",
+    "stable_install_source": "EXACT_GIT_MAIN_COMMIT_PACKAGE_ONLY",
     "local_or_dirty_worktree_stable_install_allowed": false,
     "all_configured_commit_checks_required_before_stable_install": true,
     "one_stable_update_per_integration_bundle": true,
@@ -559,11 +580,11 @@
     "v150_flash_confirmation_sentence": "HISTORICAL_HASH_LOCKED_COMPATIBILITY_BYTE_NOT_EFFECTIVE_V2_POLICY",
     "prepare_receipt_required": true,
     "per_push_confirmation_token_required": false,
-    "automatic_push_scope": "EXACT_SOLE_REGISTERED_NON_PROTECTED_TEST_BRANCH",
+    "automatic_push_scope": "GITHUB_APP_GOVERNED_FEATURE_BRANCH_THEN_EXACT_MAIN_MERGE",
     "host_managed_credentials_only": true,
     "main_push_allowed": false,
-    "merge_allowed": false,
-    "pull_request_acceptance_allowed": false,
+    "merge_allowed": true,
+    "pull_request_acceptance_allowed": true,
     "force_push_allowed": false
   },
   "promotion_gate": {

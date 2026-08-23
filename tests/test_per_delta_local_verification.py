@@ -24,6 +24,7 @@ from evidence_lane_plugin.hashing import (
     sha256_bytes,
     sha256_file,
 )
+from evidence_lane_plugin.hook_contract import HOOK_EVENT_NAMES
 from evidence_lane_plugin.mcp_apps import build_project_panel_snapshot
 
 from .conftest import build_and_approve_pv1
@@ -33,14 +34,23 @@ SUCCESSOR_TASK_ID = "EL-CODEX-T6-PARITY-TEST-SUCCESSOR"
 HOST_TASK_ID = "019ff25a-30f6-7382-993d-12c5979d696d"
 
 
-def _active_rebind_receipt(session_id: str) -> dict[str, Any]:
+def _active_rebind_receipt(session: Any) -> dict[str, Any]:
+    runtime_task_id = str(dict(session.task or {}).get("task_id") or "")
+    assert runtime_task_id
     body = {
         "schema": "evidence-lane.active-contract-session-rebind.v1",
         "status": "PASS",
         "project_id": "book-faires",
-        "session_id": session_id,
-        "task6_thread_id": HOST_TASK_ID,
+        "session_id": session.session_id,
+        "host_task_id": HOST_TASK_ID,
+        "active_plan_task_id": ACTIVE_TASK_ID,
+        "runtime_task_id": runtime_task_id,
+        "authority_route": "PV_PLAN_TASKS_ACTIVE_CONTRACT_REBIND",
         "approval_receipt_sha256": "A" * 64,
+        "runtime_task_identity_preserved": True,
+        "active_plan_row_identity_preserved": True,
+        "governed_session_identity_preserved": True,
+        "host_task_identity_preserved": True,
         "recovery_binding_contract": {
             "manager_scope": "SHARED_MULTI_PROJECT_MULTI_TASK",
             "registry_mutability": "MUTABLE_APPEND_OR_REFRESH",
@@ -48,6 +58,14 @@ def _active_rebind_receipt(session_id: str) -> dict[str, Any]:
             "reentry_target": HOST_TASK_ID,
             "installer_helper": "SEPARATE_COMPONENT",
         },
+        "candidate_created": False,
+        "pending_hil": False,
+        "pointer_moved": False,
+        "goal_completion_mutated": False,
+        "git_executed": False,
+        "install_executed": False,
+        "helper_launched": False,
+        "tunnel_launched": False,
     }
     return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
 
@@ -143,9 +161,9 @@ def _prepare(service) -> tuple[str, dict[str, Any], dict[str, Any]]:
     session = service.sessions.load("book-faires", session_id)
     session.metadata["current_host_session_id"] = HOST_TASK_ID
     session.metadata["active_backlog_task_status"] = "ACTIVE"
-    session.metadata["active_contract_rebind_receipt"] = _active_rebind_receipt(
-        session_id
-    )
+    rebind = _active_rebind_receipt(session)
+    session.metadata["active_contract_rebind_receipt"] = rebind
+    session.metadata.setdefault("active_contract_rebinds", []).append(rebind)
     service.sessions._save(session)
     return session_id, active, successor
 
@@ -321,16 +339,7 @@ def _adaptive_deferral_receipt(
     deferred_to_task_id: str = SUCCESSOR_TASK_ID,
 ) -> dict[str, Any]:
     pointer = service.store.pointer("book-faires").as_dict()
-    hook_names = [
-        "SessionStart",
-        "UserPromptSubmit",
-        "PreToolUse",
-        "PostToolUse",
-        "PreCompact",
-        "PostCompact",
-        "Stop",
-        "SessionEnd",
-    ]
+    hook_names = list(HOOK_EVENT_NAMES)
     body = {
         "schema": "evidence-lane.adaptive-delta-exit-receipt.v1",
         "status": "PASS",

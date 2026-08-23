@@ -26,5 +26,6 @@ notes/
 engine-signing-private-key.*
 **/.evidence-lane-release-sha
 plugins/evidence-lane-plugin/.plugin-data/
+/evidence/
 evidence/implementation_v42/BROWSER_VERIFICATION/
 evidence/implementation_v42/ONE_SHOT_DUMMY_POC/

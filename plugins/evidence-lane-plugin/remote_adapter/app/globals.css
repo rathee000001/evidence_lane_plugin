@@ -5277,3 +5277,89 @@ main { padding-top: 154px; }
   .governedStoryIdentity { align-items: flex-start; }
   .governedStoryDetailGrid section { padding: 18px; }
 }
+
+/* Batch A: backend-bound Home, Architecture, Lanes, Operators, and host matrix. */
+.authorityStory,
+.authorityArchitecture,
+.laneRoutingStory,
+.laneDispositionStory,
+.operatorRouteStory,
+.hostMatrixPage { border-top: 1px solid var(--line); }
+.authorityPlaneGrid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; }
+.authorityPlaneGrid article,
+.laneSequenceGrid article,
+.operatorRouteGrid article { min-width: 0; padding: 24px; border: 1px solid var(--line); border-radius: 22px; background: linear-gradient(145deg,#fff,#f7fbfe); box-shadow: var(--shadow-soft); }
+.authorityPlaneGrid article > span,
+.laneSequenceGrid article > span,
+.operatorRouteGrid article > span { color: var(--blue); font: 850 11px/1 "Cascadia Code",Consolas,monospace; letter-spacing: .12em; }
+.authorityPlaneGrid h3,
+.laneSequenceGrid h3,
+.operatorRouteGrid h3 { margin: 24px 0 8px; font-size: 20px; }
+.authorityPlaneGrid p,
+.laneSequenceGrid p,
+.operatorRouteGrid p { color: var(--muted); font-size: 14px; }
+.authorityPlaneGrid--architecture article:nth-child(3n+2) { background: linear-gradient(145deg,#fff,#f4f1ff); }
+.authorityPlaneGrid--architecture article:nth-child(3n) { background: linear-gradient(145deg,#fff,#eefaf5); }
+.laneSequenceGrid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.operatorRouteGrid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 14px; }
+.operatorRouteGrid article { padding: 22px 18px; }
+.operatorBoundaries { grid-template-columns: repeat(4,minmax(0,1fr)); }
+
+.hostCapabilityMatrix { min-width: 0; }
+.hostCapabilityGrid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 13px; }
+.hostCapabilityCard { min-width: 0; min-height: 126px; padding: 17px; display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 12px; align-items: center; text-align: left; color: var(--ink); border: 1px solid rgba(160,196,216,.72); border-radius: 20px; background: linear-gradient(145deg,rgba(255,255,255,.96),rgba(238,247,252,.9)); box-shadow: var(--shadow-soft); cursor: pointer; transition: transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
+.hostCapabilityCard:hover,
+.hostCapabilityCard:focus-visible { transform: translateY(-3px); border-color: rgba(38,151,191,.7); box-shadow: 0 20px 36px rgba(30,82,112,.13); outline: none; }
+.hostCapabilityCard > span { min-width: 0; display: grid; gap: 5px; }
+.hostCapabilityCard strong { font-size: 15px; }
+.hostCapabilityCard small { color: var(--muted); font-size: 11px; line-height: 1.45; }
+.hostCapabilityCard > b { color: var(--blue); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.hostCapabilityMatrix--compact .hostCapabilityGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.hostCapabilityMatrix--compact .hostCapabilityCard { min-height: 98px; padding: 13px; grid-template-columns: auto minmax(0,1fr); }
+.hostCapabilityMatrix--compact .hostCapabilityCard > b { display: none; }
+.hostMatrixBoundary { margin: 15px 0 0; padding: 14px 16px; color: #365168; border-left: 3px solid var(--blue); background: #eef7fb; font-size: 13px; }
+.hostProfileDetail { padding: 6px; }
+.hostProfileDetail header { padding: 8px 8px 24px; border-bottom: 1px solid var(--line); }
+.hostProfileDetail header > span { color: var(--blue); font: 850 11px/1 "Cascadia Code",Consolas,monospace; letter-spacing: .1em; text-transform: uppercase; }
+.hostProfileDetail h3 { margin: 12px 0 6px; font-size: clamp(30px,4vw,52px); }
+.hostProfileDetail header p { color: var(--muted); font-size: 17px; }
+.hostProfileDetail dl { margin: 22px 0 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.hostProfileDetail dl > div { padding: 18px; border: 1px solid var(--line); border-radius: 17px; background: #f8fbfd; }
+.hostProfileDetail dt { margin-bottom: 7px; color: var(--blue); font-size: 11px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.hostProfileDetail dd { margin: 0; color: #324c60; }
+
+.laneOrbitAside { touch-action: none; cursor: grab; border-radius: 50%; outline: none; }
+.laneOrbitAside[data-dragging="true"] { cursor: grabbing; }
+.laneOrbitAside:focus-visible { box-shadow: 0 0 0 4px rgba(55,171,213,.25); }
+.laneOrbitCore button { margin-top: 14px; padding: 8px 12px; color: var(--blue); border: 1px solid rgba(82,165,200,.5); border-radius: 999px; background: rgba(255,255,255,.74); font: 800 10px/1 "Cascadia Code",Consolas,monospace; cursor: pointer; }
+.laneOrbitCore button:hover,
+.laneOrbitCore button:focus-visible { background: #fff; outline: 2px solid rgba(55,171,213,.35); outline-offset: 2px; }
+.laneOrbitWheel { pointer-events: none; transform: rotate(var(--lane-orbit-rotation,0deg)); animation: lane-orbit-clockwise-once 2.8s cubic-bezier(.2,.72,.28,1) 180ms both; }
+.laneOrbitGlyph { transform: rotate(var(--lane-orbit-counter-rotation,0deg)); animation: lane-orbit-counter-once 2.8s cubic-bezier(.2,.72,.28,1) 180ms both; }
+@keyframes lane-orbit-clockwise-once { from { transform: rotate(calc(var(--lane-orbit-rotation,0deg) - 360deg)); } to { transform: rotate(var(--lane-orbit-rotation,0deg)); } }
+@keyframes lane-orbit-counter-once { from { transform: rotate(calc(var(--lane-orbit-counter-rotation,0deg) + 360deg)); } to { transform: rotate(var(--lane-orbit-counter-rotation,0deg)); } }
+
+@media (max-width: 1120px) {
+  .authorityPlaneGrid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .operatorRouteGrid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .operatorBoundaries { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width: 820px) {
+  .authorityPlaneGrid,
+  .laneSequenceGrid,
+  .operatorRouteGrid,
+  .hostCapabilityGrid,
+  .hostCapabilityMatrix--compact .hostCapabilityGrid,
+  .hostProfileDetail dl { grid-template-columns: 1fr; }
+  .operatorBoundaries { grid-template-columns: 1fr; }
+  .hostCapabilityCard { min-height: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hostCapabilityCard { transition: none; }
+  .hostCapabilityCard:hover,
+  .hostCapabilityCard:focus-visible { transform: none; }
+  .laneOrbitWheel,
+  .laneOrbitGlyph { animation: none !important; }
+}

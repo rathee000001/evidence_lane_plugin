@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from .public_surface_registry import derive_runtime_catalog_constants
+
 ENGINE_NAME = "evidence-lane-universal-pv-engine"
 ENGINE_VERSION = "3.0.0"
-NATIVE_TOOL_COUNT = 88
-NATIVE_READ_TOOL_COUNT = 27
-NATIVE_WRITE_TOOL_COUNT = 61
-GOVERNED_SKILL_COUNT = 17
+_PUBLIC_CATALOG = derive_runtime_catalog_constants()
+NATIVE_TOOL_COUNT = int(_PUBLIC_CATALOG["tools"])
+NATIVE_READ_TOOL_COUNT = int(_PUBLIC_CATALOG["read"])
+NATIVE_WRITE_TOOL_COUNT = int(_PUBLIC_CATALOG["write"])
+GOVERNED_SKILL_COUNT = int(_PUBLIC_CATALOG["skills"])
 SCHEMA_VERSION = "3.0.0"
 SUPPORTED_SCHEMA_VERSIONS = frozenset({"2.0.0", "2.1.0", SCHEMA_VERSION})
 TOOL_RESULT_SCHEMA = "evidence-lane.pv.tool-result.v1"

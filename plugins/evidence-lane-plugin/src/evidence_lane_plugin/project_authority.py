@@ -8,10 +8,12 @@ import re
 import shutil
 import sqlite3
 import subprocess
+import time
 from pathlib import Path
 from typing import Any
 
 from .errors import EvidenceLaneError, require
+from .git_adapter import calculate_worktree_change_identity, inspect_repository
 from .hashing import (
     atomic_write_bytes,
     atomic_write_json,
@@ -45,6 +47,9 @@ _LEGACY_HISTORY_TOP_LEVEL = frozenset(
     }
 )
 _TRANSIENT_LOCK_NAMES = frozenset({".store.lock", ".state-travel-resume.lock"})
+_WINDOWS_TRANSIENT_PATH_WINERRORS = frozenset({5, 32, 33})
+_WINDOWS_PATH_RETRY_ATTEMPTS = 12
+_WINDOWS_PATH_RETRY_BASE_SECONDS = 0.05
 
 PLAN_SECTOR_ID = "plan"
 CHAT_LINEAGE_SECTOR_ID = "chat_lineage"
@@ -66,6 +71,103 @@ def _is_relative_to(path: Path, parent: Path) -> bool:
     except ValueError:
         return False
     return True
+
+
+def _is_transient_windows_path_error(exc: OSError) -> bool:
+    """Return whether Windows reported a temporary sharing/access conflict."""
+
+    return bool(
+        os.name == "nt"
+        and (
+            isinstance(exc, PermissionError)
+            or getattr(exc, "winerror", None) in _WINDOWS_TRANSIENT_PATH_WINERRORS
+        )
+    )
+
+
+def _replace_path_with_retry(
+    source: Path,
+    destination: Path,
+    *,
+    operation: str,
+) -> dict[str, Any]:
+    """Replace one exact path, tolerating only bounded Windows sharing races."""
+
+    for attempt in range(1, _WINDOWS_PATH_RETRY_ATTEMPTS + 1):
+        try:
+            os.replace(source, destination)
+            return {
+                "operation": operation,
+                "attempt_count": attempt,
+                "transient_retry_count": attempt - 1,
+                "source": str(source),
+                "destination": str(destination),
+            }
+        except OSError as exc:
+            transient = _is_transient_windows_path_error(exc)
+            if not transient:
+                raise
+            if attempt == _WINDOWS_PATH_RETRY_ATTEMPTS:
+                raise EvidenceLaneError(
+                    "PROJECT_WORKING_WINDOWS_PATH_REPLACE_BLOCKED",
+                    "Windows kept one exact project-authority path open through the bounded replace window.",
+                    status="BLOCKED",
+                    details={
+                        "operation": operation,
+                        "attempt_count": attempt,
+                        "source": str(source),
+                        "destination": str(destination),
+                        "exception_type": type(exc).__name__,
+                        "errno": exc.errno,
+                        "winerror": getattr(exc, "winerror", None),
+                    },
+                ) from exc
+            time.sleep(
+                min(
+                    _WINDOWS_PATH_RETRY_BASE_SECONDS * attempt,
+                    0.5,
+                )
+            )
+    raise AssertionError("unreachable")
+
+
+def _remove_tree_with_retry(path: Path, *, operation: str) -> dict[str, Any]:
+    """Remove one exact tree with the same bounded Windows sharing policy."""
+
+    for attempt in range(1, _WINDOWS_PATH_RETRY_ATTEMPTS + 1):
+        try:
+            shutil.rmtree(path)
+            return {
+                "operation": operation,
+                "attempt_count": attempt,
+                "transient_retry_count": attempt - 1,
+                "path": str(path),
+            }
+        except OSError as exc:
+            transient = _is_transient_windows_path_error(exc)
+            if not transient:
+                raise
+            if attempt == _WINDOWS_PATH_RETRY_ATTEMPTS:
+                raise EvidenceLaneError(
+                    "PROJECT_WORKING_WINDOWS_TREE_REMOVE_BLOCKED",
+                    "Windows kept one exact non-authoritative migration tree open through the bounded cleanup window.",
+                    status="BLOCKED",
+                    details={
+                        "operation": operation,
+                        "attempt_count": attempt,
+                        "path": str(path),
+                        "exception_type": type(exc).__name__,
+                        "errno": exc.errno,
+                        "winerror": getattr(exc, "winerror", None),
+                    },
+                ) from exc
+            time.sleep(
+                min(
+                    _WINDOWS_PATH_RETRY_BASE_SECONDS * attempt,
+                    0.5,
+                )
+            )
+    raise AssertionError("unreachable")
 
 
 def plan_sector_root(project_root: str | Path) -> Path:
@@ -581,55 +683,7 @@ def _git_bytes(repository: Path, *arguments: str) -> bytes:
 
 def _working_repository_identity(repository: Path) -> dict[str, Any]:
     """Return bounded hashes for the exact live index/worktree identity."""
-
-    branch = (
-        _git_bytes(repository, "branch", "--show-current")
-        .decode("utf-8", errors="strict")
-        .strip()
-    )
-    head = (
-        _git_bytes(repository, "rev-parse", "HEAD")
-        .decode("ascii", errors="strict")
-        .strip()
-    )
-    tree = (
-        _git_bytes(repository, "rev-parse", "HEAD^{tree}")
-        .decode("ascii", errors="strict")
-        .strip()
-    )
-    index_paths = _git_bytes(
-        repository,
-        "ls-files",
-        "-z",
-        "--cached",
-        "--others",
-        "--exclude-standard",
-        "--",
-        ".",
-    )
-    status = _git_bytes(
-        repository, "status", "--porcelain=v2", "-z", "--untracked-files=all"
-    )
-    cached_diff = _git_bytes(
-        repository, "diff", "--cached", "--binary", "--full-index", "--", "."
-    )
-    unstaged_diff = _git_bytes(
-        repository, "diff", "--binary", "--full-index", "--", "."
-    )
-    body = {
-        "branch": branch,
-        "head": head,
-        "tree": tree,
-        "complete_path_set_sha256": sha256_bytes(index_paths),
-        "status_sha256": sha256_bytes(status),
-        "cached_diff_sha256": sha256_bytes(cached_diff),
-        "unstaged_diff_sha256": sha256_bytes(unstaged_diff),
-        "path_count": len([value for value in index_paths.split(b"\0") if value]),
-    }
-    return {
-        **body,
-        "working_identity_sha256": sha256_bytes(canonical_json_bytes(body)),
-    }
+    return calculate_worktree_change_identity(repository)
 
 
 def _zero_delimited_git_paths(repository: Path, *arguments: str) -> set[str]:
@@ -645,7 +699,7 @@ def _working_delta_inventory(
     *,
     historical_parent_pv: str,
     working_identity_sha256: str,
-) -> tuple[list[dict[str, Any]], list[str]]:
+) -> tuple[list[dict[str, Any]], list[str], dict[str, Any]]:
     """Account every dirty/untracked path without re-indexing archived trees."""
 
     staged = _zero_delimited_git_paths(
@@ -676,17 +730,36 @@ def _working_delta_inventory(
         "--",
         ".",
     )
-    paths = sorted(staged | unstaged | untracked)
-    metadata_only_prefixes = (
+    all_paths = sorted(staged | unstaged | untracked)
+    local_only_prefixes = (
         "evidence/",
         ".github-pages-build/",
         ".tmp-flash-check/",
+        ".runtime/",
     )
-    route_overrides = {
-        path: "artifacts"
-        for path in paths
-        if path.casefold().startswith(metadata_only_prefixes)
+    excluded_paths = [
+        relative
+        for relative in all_paths
+        if relative.casefold().startswith(local_only_prefixes)
+    ]
+    paths = [relative for relative in all_paths if relative not in excluded_paths]
+    excluded_prefix_counts = {
+        prefix: sum(
+            relative.casefold().startswith(prefix) for relative in excluded_paths
+        )
+        for prefix in local_only_prefixes
     }
+    exclusion_summary = {
+        "schema": "evidence-lane.working-local-only-exclusion.v1",
+        "excluded_path_count": len(excluded_paths),
+        "excluded_prefix_counts": excluded_prefix_counts,
+        "excluded_path_set_sha256": sha256_bytes(
+            canonical_json_bytes(excluded_paths)
+        ),
+        "raw_excluded_paths_returned": False,
+        "excluded_content_read": False,
+    }
+    route_overrides: dict[str, str] = {}
     routes = route_batch(
         paths,
         # A live worktree is local-code authority even when its remote provider
@@ -734,7 +807,7 @@ def _working_delta_inventory(
                 "working_identity_sha256": working_identity_sha256,
             }
         )
-    return rows, sorted(content_paths)
+    return rows, sorted(content_paths), exclusion_summary
 
 
 def _write_working_delta_inventory(
@@ -1092,7 +1165,11 @@ def _recover_interrupted_working_sector_stage(
         "The interrupted working-sector stage failed validation after recovery sealing.",
         status="FAIL",
     )
-    os.replace(staging, active_sectors)
+    recovery_swap = _replace_path_with_retry(
+        staging,
+        active_sectors,
+        operation="RECOVER_INTERRUPTED_STAGE",
+    )
     recovery_record = {
         "schema": "evidence-lane.working-sector-recovery.v1",
         "status": "PASS",
@@ -1103,6 +1180,7 @@ def _recover_interrupted_working_sector_stage(
         "recovered_stage": staging.name,
         "sector_bundle_sha256_before_reseal": validation.get("bundle_sha256"),
         "sector_bundle_sha256": recovered_validation.get("bundle_sha256"),
+        "path_operation": recovery_swap,
         "candidate_created": False,
         "pointer_moved": False,
         "hil_inferred": False,
@@ -1181,6 +1259,8 @@ def migrate_working_project_sectors(
         working_identity=identity_before,
     )
     active_sectors_existed = active_sectors.is_dir()
+    build_parent_bundle = accepted_lane_bundle
+    build_parent_kind = "IMMUTABLE_ACCEPTED_PV"
     refreshing_existing = bool(
         _sector_operational_authority_ready(plan_sector_root(root))
         and _sector_operational_authority_ready(chat_lineage_sector_root(root))
@@ -1193,11 +1273,12 @@ def migrate_working_project_sectors(
         operational_prefixes = (
             f"{PLAN_SECTOR_ID}/task_backlog.json",
             f"{PLAN_SECTOR_ID}/plan_runtime_projection.sqlite",
+            f"{PLAN_SECTOR_ID}/plan_atomic_insertions/",
             f"{CHAT_LINEAGE_SECTOR_ID}/lineage/",
         )
         operational_authority_only_drift = bool(checksum_mismatches) and all(
             path in operational_prefixes[:2]
-            or path.startswith(operational_prefixes[2])
+            or path.startswith(operational_prefixes[2:])
             for path in checksum_mismatches
         )
         refreshable_existing_authority = bool(
@@ -1219,6 +1300,14 @@ def migrate_working_project_sectors(
             refreshable_existing_authority=refreshable_existing_authority,
             checksum_mismatch_paths=sorted(checksum_mismatches),
         )
+        # A working-to-working Refresh must compare every canonical lane with
+        # the last validated working bundle.  Falling back to the immutable
+        # accepted PV here loses all post-PV reuse knowledge and turns an
+        # ordinary Delta refresh into a full validation rebuild.  The accepted
+        # PV remains the historical authority and pointer base; it is not the
+        # incremental byte parent once a valid working authority exists.
+        build_parent_bundle = active_sectors
+        build_parent_kind = "CURRENT_VALIDATED_WORKING_SECTORS"
         existing_receipt_path = active_sectors / "working_migration_receipt.json"
         existing_receipt = (
             json.loads(existing_receipt_path.read_text(encoding="utf-8"))
@@ -1231,11 +1320,65 @@ def migrate_working_project_sectors(
             and existing_identity.get("working_identity_sha256")
             == identity_before.get("working_identity_sha256")
         ):
+            existing_manifest = json.loads(
+                (active_sectors / "manifest.json").read_text(encoding="utf-8")
+            )
+            existing_reports = list(existing_manifest.get("reports") or [])
+            existing_lane_ids = [str(row.get("lane_id") or "") for row in existing_reports]
+            require(
+                existing_manifest.get("lane_emission_policy")
+                == "ALL_18_WORKING_AUTHORITY"
+                and int(existing_manifest.get("canonical_lane_count") or 0)
+                == len(CANONICAL_LANE_IDS)
+                and existing_lane_ids == list(CANONICAL_LANE_IDS),
+                "PROJECT_WORKING_IDEMPOTENT_LANE_SCOPE_MISMATCH",
+                "Idempotent working authority reuse requires the exact all-18-lane manifest.",
+                status="MISMATCH",
+            )
+            existing_fallbacks = list(
+                dict(existing_manifest.get("summary") or {}).get(
+                    "full_validation_fallbacks"
+                )
+                or []
+            )
+            require(
+                all(
+                    str(row.get("reason") or "").strip()
+                    and row.get("reason") != "UNDECLARED"
+                    for row in existing_fallbacks
+                ),
+                "PROJECT_WORKING_IDEMPOTENT_FALLBACK_UNDECLARED",
+                "Every full validation fallback must retain an explicit bounded reason.",
+                status="MISMATCH",
+            )
+            canonical_lane_refresh = {
+                "authority_scope": "ALL_18_CANONICAL_LANES",
+                "refresh_action": "IDEMPOTENT_WORKING_AUTHORITY_REUSE",
+                "canonical_lane_count": len(CANONICAL_LANE_IDS),
+                "emitted_lane_ids": existing_lane_ids,
+                "lane_report_count": len(existing_reports),
+                "lane_reports": [
+                    {
+                        "lane_id": row["lane_id"],
+                        "build_mode": row["build_mode"],
+                        "full_validation_fallback_reason": row.get(
+                            "full_validation_fallback_reason"
+                        ),
+                        "byte_reused": bool(row.get("byte_reused")),
+                    }
+                    for row in existing_reports
+                ],
+                "full_validation_fallbacks": existing_fallbacks,
+                "build_parent_kind": build_parent_kind,
+            }
             return {
                 "status": "PASS",
                 "state": "WORKING_SECTOR_AUTHORITY_IDEMPOTENT_REUSE",
+                "receipt_sha256": existing_receipt.get("receipt_sha256"),
                 "working_identity": identity_before,
                 "lane_validation": validation,
+                "build_parent_kind": build_parent_kind,
+                "canonical_lane_refresh": canonical_lane_refresh,
                 "interrupted_stage_recovery": interrupted_stage_recovery,
                 "pointer_moved": False,
                 "candidate_created": False,
@@ -1265,19 +1408,21 @@ def migrate_working_project_sectors(
         status="BLOCKED",
     )
 
-    delta_rows, content_paths = _working_delta_inventory(
+    delta_rows, content_paths, local_only_exclusion = _working_delta_inventory(
         repository,
         historical_parent_pv=accepted_pv,
         working_identity_sha256=identity_before["working_identity_sha256"],
     )
     copy_reports: list[dict[str, Any]] = []
+    path_operation_reports: list[dict[str, Any]] = []
     swapped = False
+    migration_phase = "BUILD_LANE_BUNDLE"
     try:
-        build_lane_bundle(
+        lane_build = build_lane_bundle(
             repository_root=repository,
             output_directory=staging,
             code_mode="local_code",
-            parent_lane_bundle=accepted_lane_bundle,
+            parent_lane_bundle=build_parent_bundle,
             parent_pv=accepted_pv,
             proposed_pv=f"{accepted_pv}_WORKING",
             pointer_generation=pointer_generation,
@@ -1292,6 +1437,55 @@ def migrate_working_project_sectors(
             preserve_parent_unmentioned=True,
             index_git_history=False,
         )
+        lane_reports = list(lane_build.get("reports") or [])
+        emitted_lane_ids = [str(row.get("lane_id") or "") for row in lane_reports]
+        require(
+            lane_build.get("lane_emission_policy") == "ALL_18_WORKING_AUTHORITY"
+            and int(lane_build.get("canonical_lane_count") or 0)
+            == len(CANONICAL_LANE_IDS)
+            and emitted_lane_ids == list(CANONICAL_LANE_IDS),
+            "PROJECT_WORKING_LANE_REFRESH_SCOPE_MISMATCH",
+            "Working-sector Refresh must emit exactly the ordered 18 canonical lanes.",
+            status="MISMATCH",
+        )
+        full_validation_fallbacks = list(
+            dict(lane_build.get("summary") or {}).get("full_validation_fallbacks")
+            or []
+        )
+        require(
+            all(
+                str(row.get("reason") or "").strip()
+                and row.get("reason") != "UNDECLARED"
+                for row in full_validation_fallbacks
+            ),
+            "PROJECT_WORKING_LANE_FALLBACK_UNDECLARED",
+            "Every full validation fallback must expose one explicit bounded reason.",
+            status="MISMATCH",
+        )
+        canonical_lane_refresh = {
+            "authority_scope": "ALL_18_CANONICAL_LANES",
+            "refresh_action": (
+                "WORKING_TO_WORKING_INCREMENTAL_REFRESH"
+                if refreshing_existing
+                else "INITIAL_WORKING_AUTHORITY_MIGRATION"
+            ),
+            "canonical_lane_count": len(CANONICAL_LANE_IDS),
+            "emitted_lane_ids": emitted_lane_ids,
+            "lane_report_count": len(lane_reports),
+            "lane_reports": [
+                {
+                    "lane_id": row["lane_id"],
+                    "build_mode": row["build_mode"],
+                    "full_validation_fallback_reason": row.get(
+                        "full_validation_fallback_reason"
+                    ),
+                    "byte_reused": bool(row.get("byte_reused")),
+                }
+                for row in lane_reports
+            ],
+            "full_validation_fallbacks": full_validation_fallbacks,
+            "build_parent_kind": build_parent_kind,
+        }
         initial_validation = validate_lane_bundle(staging)
         require(
             initial_validation.get("valid") is True,
@@ -1300,6 +1494,7 @@ def migrate_working_project_sectors(
             status="FAIL",
         )
 
+        migration_phase = "STAGE_PLAN_AUTHORITY"
         plan_stage = staging / PLAN_SECTOR_ID
         for relative in _LEGACY_PLAN_PATHS:
             source = plan_source_root / relative
@@ -1312,6 +1507,7 @@ def migrate_working_project_sectors(
             "The canonical Plan JSON and SQLite were not staged into the Plan sector.",
             status="MISMATCH",
         )
+        migration_phase = "STAGE_WORKING_DELTA_INVENTORY"
         inventory_report = _write_working_delta_inventory(
             staging / "artifacts" / "working_delta_inventory.sqlite",
             rows=delta_rows,
@@ -1324,6 +1520,7 @@ def migrate_working_project_sectors(
             inventory_report,
         )
 
+        migration_phase = "STAGE_CHAT_LINEAGE_AUTHORITY"
         require(
             lineage_source.is_dir(),
             "PROJECT_WORKING_CHAT_LINEAGE_MISSING",
@@ -1343,6 +1540,7 @@ def migrate_working_project_sectors(
             )
             copy_reports.append(_copy_authority_path(source, lineage_stage / filename))
 
+        migration_phase = "SEAL_CANONICAL_LANE_REFERENCES"
         for lane_id in CANONICAL_LANE_IDS:
             lane_root = staging / lane_id
             schema = lane_schema_asset(lane_id)
@@ -1422,6 +1620,10 @@ def migrate_working_project_sectors(
             "migration_id": migration_id,
             "project_id": project_id,
             "historical_parent_pv": accepted_pv,
+            "build_parent_kind": build_parent_kind,
+            "build_parent_manifest_sha256": sha256_file(
+                build_parent_bundle / "manifest.json"
+            ),
             "pointer_generation": pointer_generation,
             "working_identity": identity_before,
             "all_18_sectors_materialized": True,
@@ -1430,10 +1632,12 @@ def migrate_working_project_sectors(
             "content_delta_path_count": len(content_paths),
             "complete_dirty_path_count": len(delta_rows),
             "working_delta_inventory": inventory_report,
+            "local_only_exclusion": local_only_exclusion,
             "changed_lane_ids": sorted(
                 {str(row["lane_id"]) for row in delta_rows}
                 | {PLAN_SECTOR_ID, CHAT_LINEAGE_SECTOR_ID}
             ),
+            "canonical_lane_refresh": canonical_lane_refresh,
             "plan_sector_owned": True,
             "chat_lineage_sector_owned": True,
             "candidate_created": False,
@@ -1465,11 +1669,25 @@ def migrate_working_project_sectors(
             status="MISMATCH",
         )
 
+        migration_phase = "COMMIT_ACTIVE_SECTOR_SWAP"
         if active_sectors_existed:
-            os.replace(active_sectors, backup)
-        os.replace(staging, active_sectors)
+            path_operation_reports.append(
+                _replace_path_with_retry(
+                    active_sectors,
+                    backup,
+                    operation="MOVE_CURRENT_AUTHORITY_TO_EXACT_BACKUP",
+                )
+            )
+        path_operation_reports.append(
+            _replace_path_with_retry(
+                staging,
+                active_sectors,
+                operation="PROMOTE_STAGED_AUTHORITY",
+            )
+        )
         swapped = True
 
+        migration_phase = "RELOCATE_LEGACY_RECEIPTS"
         receipt_moves = (
             (root / "sdk" / "replay", root / "receipts" / "sdk-replay"),
             (
@@ -1504,6 +1722,7 @@ def migrate_working_project_sectors(
             if not destination.exists():
                 copy_reports.append(_copy_authority_path(member, destination))
 
+        migration_phase = "REMOVE_LEGACY_DUPLICATE_AUTHORITIES"
         cleanup_targets = [
             *_LEGACY_PLAN_PATHS,
             *_LEGACY_REFERENCE_PATHS,
@@ -1515,7 +1734,12 @@ def migrate_working_project_sectors(
         for relative in cleanup_targets:
             _remove_exact_migration_target(root, relative)
         if backup.exists():
-            shutil.rmtree(backup)
+            path_operation_reports.append(
+                _remove_tree_with_retry(
+                    backup,
+                    operation="REMOVE_EXACT_PREVIOUS_AUTHORITY_BACKUP",
+                )
+            )
 
         require(
             identity_after_build == identity_before
@@ -1534,6 +1758,7 @@ def migrate_working_project_sectors(
             ),
             "sector_bundle_sha256": final_validation.get("bundle_sha256"),
             "copy_reports": copy_reports,
+            "path_operation_reports": path_operation_reports,
             "removed_legacy_targets": cleanup_targets,
             "accepted_storage_changed": False,
             "accepted_directory_purged": False,
@@ -1558,6 +1783,9 @@ def migrate_working_project_sectors(
             "receipt_sha256": receipt["receipt_sha256"],
             "working_identity": identity_after_build,
             "canonical_lane_count": len(CANONICAL_LANE_IDS),
+            "build_parent_kind": build_parent_kind,
+            "canonical_lane_refresh": canonical_lane_refresh,
+            "path_operation_reports": path_operation_reports,
             "plan_authority_root": str(plan_sector_root(root)),
             "chat_lineage_authority_root": str(chat_lineage_sector_root(root)),
             "root_plan_duplicates_present": any(
@@ -1568,15 +1796,55 @@ def migrate_working_project_sectors(
             "candidate_created": False,
             "hil_inferred": False,
         }
-    except Exception:
-        if swapped:
-            failed = root / f".sectors-working-{migration_id}.failed"
-            if active_sectors.exists():
-                os.replace(active_sectors, failed)
-            if backup.exists():
-                os.replace(backup, active_sectors)
-        if staging.exists():
-            shutil.rmtree(staging)
+    except Exception as exc:
+        try:
+            if swapped:
+                failed = root / f".sectors-working-{migration_id}.failed"
+                if active_sectors.exists():
+                    _replace_path_with_retry(
+                        active_sectors,
+                        failed,
+                        operation="QUARANTINE_FAILED_PROMOTED_AUTHORITY",
+                    )
+                if backup.exists():
+                    _replace_path_with_retry(
+                        backup,
+                        active_sectors,
+                        operation="RESTORE_EXACT_PREVIOUS_AUTHORITY",
+                    )
+            if staging.exists():
+                _remove_tree_with_retry(
+                    staging,
+                    operation="REMOVE_FAILED_STAGING_AUTHORITY",
+                )
+        except Exception as rollback_exc:
+            raise EvidenceLaneError(
+                "PROJECT_WORKING_MIGRATION_ROLLBACK_BLOCKED",
+                "The working-sector migration failed and Windows also blocked its exact rollback path.",
+                status="BLOCKED",
+                details={
+                    "migration_phase": migration_phase,
+                    "original_exception_type": type(exc).__name__,
+                    "rollback_exception_type": type(rollback_exc).__name__,
+                    "active_sectors_present": active_sectors.exists(),
+                    "backup_present": backup.exists(),
+                    "staging_present": staging.exists(),
+                },
+            ) from rollback_exc
+        if isinstance(exc, EvidenceLaneError):
+            raise
+        if isinstance(exc, OSError):
+            raise EvidenceLaneError(
+                "PROJECT_WORKING_MIGRATION_OS_ERROR",
+                "The working-sector migration encountered an operating-system error at an exact bounded phase.",
+                status="BLOCKED",
+                details={
+                    "migration_phase": migration_phase,
+                    "exception_type": type(exc).__name__,
+                    "errno": exc.errno,
+                    "winerror": getattr(exc, "winerror", None),
+                },
+            ) from exc
         raise
 
 
@@ -1593,7 +1861,7 @@ def query_working_project_sectors(
     expected_branch: str | None = None,
     expected_head: str | None = None,
 ) -> dict[str, Any]:
-    """Refresh exact WORKING authority and return bounded lane/Study-Brain hits."""
+    """Read an already materialized WORKING authority without mutating it."""
 
     require(
         1 <= int(limit) <= 20,
@@ -1619,16 +1887,67 @@ def query_working_project_sectors(
         status="BLOCKED",
         lane_ids=exact_lanes,
     )
-    refresh = migrate_working_project_sectors(
-        project_root,
-        repository_root=repository_root,
-        project_id=project_id,
-        accepted_pv=accepted_pv,
-        pointer_generation=pointer_generation,
-        expected_branch=expected_branch,
-        expected_head=expected_head,
-    )
     root = Path(project_root).resolve()
+    repository = Path(repository_root).resolve()
+    require(
+        root.is_dir() and root.name == project_id,
+        "PROJECT_WORKING_QUERY_BINDING_INVALID",
+        "Working-sector query requires the exact governed project root.",
+        status="BLOCKED",
+    )
+    pointer_path = root / "active_pointer.json"
+    pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
+    require(
+        pointer.get("project_id") == project_id
+        and pointer.get("accepted_pv") == accepted_pv
+        and int(pointer.get("generation") or -1) == pointer_generation,
+        "PROJECT_WORKING_QUERY_POINTER_MISMATCH",
+        "Working-sector query cannot reinterpret the accepted pointer.",
+        status="MISMATCH",
+    )
+    receipt_path = root / "sectors" / "working_migration_receipt.json"
+    require(
+        receipt_path.is_file(),
+        "PROJECT_WORKING_QUERY_REFRESH_REQUIRED",
+        "No materialized WORKING sector authority exists; invoke the explicit "
+        "working-sector refresh action before querying.",
+        status="BLOCKED",
+    )
+    projection_receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    projected_identity = dict(projection_receipt.get("working_identity") or {})
+    require(
+        projection_receipt.get("project_id") == project_id
+        and projection_receipt.get("historical_parent_pv") == accepted_pv
+        and int(projection_receipt.get("pointer_generation") or -1)
+        == pointer_generation
+        and bool(projected_identity.get("working_identity_sha256")),
+        "PROJECT_WORKING_QUERY_RECEIPT_MISMATCH",
+        "The materialized WORKING projection receipt does not match this project.",
+        status="MISMATCH",
+    )
+    live_repository = inspect_repository(repository)
+    if expected_branch is not None:
+        require(
+            live_repository.branch == expected_branch,
+            "PROJECT_WORKING_QUERY_BRANCH_MISMATCH",
+            "The live branch differs from the query binding.",
+            status="MISMATCH",
+        )
+    if expected_head is not None:
+        require(
+            live_repository.commit_sha == expected_head,
+            "PROJECT_WORKING_QUERY_HEAD_MISMATCH",
+            "The live HEAD differs from the query binding.",
+            status="MISMATCH",
+        )
+    require(
+        projected_identity.get("branch") == live_repository.branch
+        and projected_identity.get("head") == live_repository.commit_sha,
+        "PROJECT_WORKING_QUERY_REFRESH_REQUIRED",
+        "The materialized WORKING projection is from another branch or HEAD; "
+        "invoke the explicit refresh action before querying.",
+        status="BLOCKED",
+    )
     fts = " OR ".join(f'"{term.replace(chr(34), chr(34) * 2)}"' for term in terms)
     hits: list[dict[str, Any]] = []
     study_brains: list[dict[str, Any]] = []
@@ -1686,7 +2005,6 @@ def query_working_project_sectors(
         hits,
         key=lambda row: (float(row["rank"]), row["lane_id"], row["path"]),
     )[: int(limit)]
-    identity = _working_repository_identity(Path(repository_root).resolve())
     return {
         "status": "PASS",
         "schema": "evidence-lane.working-sector-query.v1",
@@ -1694,8 +2012,15 @@ def query_working_project_sectors(
         "project_id": project_id,
         "historical_parent_pv": accepted_pv,
         "pointer_generation": pointer_generation,
-        "working_identity": identity,
-        "refresh": refresh,
+        "working_identity": projected_identity,
+        "projection_state": "MATERIALIZED_BY_EXPLICIT_REFRESH",
+        "projection_receipt_sha256": sha256_file(receipt_path),
+        "query_mutated_project_authority": False,
+        "query_rehashed_dirty_content": False,
+        "refresh": {
+            "status": "NOT_PERFORMED",
+            "reason": "READ_ONLY_QUERY_BOUNDARY",
+        },
         "terms": terms,
         "queried_lane_ids": exact_lanes,
         "hits": bounded_hits,

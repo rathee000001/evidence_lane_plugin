@@ -23,8 +23,8 @@ def _load(path: Path, name: str):
     return module
 
 
-def test_exact_commit_builder_supports_fresh_package_identity() -> None:
-    module = _load(BUILDER, "exact_commit_builder_branch_checkpoint")
+def test_exact_commit_builder_is_main_only_and_supports_fresh_package_identity() -> None:
+    module = _load(BUILDER, "exact_commit_builder_main_only")
     assert "package_version" in inspect.signature(
         module.build_exact_commit_package
     ).parameters
@@ -35,7 +35,7 @@ def test_exact_commit_builder_supports_fresh_package_identity() -> None:
             "--plugin-path",
             "plugins/evidence-lane-plugin",
             "--branch",
-            "agent/test",
+            "main",
             "--commit",
             "a" * 40,
             "--output-dir",
@@ -43,16 +43,26 @@ def test_exact_commit_builder_supports_fresh_package_identity() -> None:
             "--expected-version",
             "3.0.0+codex.source",
             "--package-version",
-            "3.0.0+codex.branch.r249",
+            "3.0.0+codex.main.r266",
         ]
     )
-    assert parsed.package_version == "3.0.0+codex.branch.r249"
+    assert parsed.branch == "main"
+    assert parsed.package_version == "3.0.0+codex.main.r266"
+    with pytest.raises(module.ExactCommitPackageError, match="only from exact verified main"):
+        module.build_exact_commit_package(
+            repository=ROOT,
+            plugin_path="plugins/evidence-lane-plugin",
+            branch="agent/test",
+            commit="a" * 40,
+            output_dir=ROOT / ".tmp-test-output",
+            expected_version="3.0.0+codex.source",
+        )
 
 
-def test_branch_checkpoint_inventory_accepts_only_exact_codex_command_migration(
+def test_main_package_inventory_accepts_only_exact_codex_command_migration(
     tmp_path: Path,
 ) -> None:
-    module = _load(INSTALLER, "branch_checkpoint_generated_command_inventory")
+    module = _load(INSTALLER, "main_generated_command_inventory")
     marketplace = tmp_path / "marketplace"
     installed = tmp_path / "installed"
     command = marketplace / "commands" / "evi-learning.md"
@@ -123,15 +133,19 @@ def _exact_receipt_fixture(module, tmp_path: Path) -> tuple[Path, Path, Path, st
         "boundary": "EXACT_GIT_COMMIT_PACKAGE_UNACCEPTED",
         "status": "PASS",
         "archive": {"sha256": archive_sha},
-        "package_version": "3.0.0+codex.branch.r249",
+        "package_version": "3.0.0+codex.main.r266",
         "local_rehearsal_receipt_sha256": module._sha256(package_receipt),
         "exact_commit_export": {
-            "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
+            "branch": "main",
+            "source_ref": "refs/remotes/origin/main",
             "commit": "a" * 40,
             "tree": "b" * 40,
             "projection_clean": True,
             "working_checkout_bytes_used": False,
             "untracked_bytes_used": False,
+            "stable_main_only": True,
+            "local_main_attested": True,
+            "origin_main_attested": True,
         },
         "git_write_invoked": False,
         "governed_candidate_created": False,
@@ -157,7 +171,7 @@ def _exact_receipt_fixture(module, tmp_path: Path) -> tuple[Path, Path, Path, st
 
 
 def test_exact_commit_receipt_is_bounded_and_tamper_evident(tmp_path: Path) -> None:
-    module = _load(INSTALLER, "branch_checkpoint_installer")
+    module = _load(INSTALLER, "main_package_installer")
     data_root, archive, package_receipt, receipt_sha = _exact_receipt_fixture(
         module, tmp_path
     )
@@ -186,12 +200,57 @@ def test_exact_commit_receipt_is_bounded_and_tamper_evident(tmp_path: Path) -> N
         )
 
 
-def test_branch_checkpoint_mode_preserves_active_and_main_slots() -> None:
-    module = _load(INSTALLER, "branch_checkpoint_mode_contract")
-    source = inspect.getsource(module._materialize_local_recovery_copy)
-    assert "EXACT_GOVERNED_BRANCH_COMMIT" in source
-    assert "recovery_convergence_authorized=not branch_checkpoint" in source
-    assert '"exact_governed_branch_commit": branch_checkpoint' in source
-    assert '"branch_commit_git_recovery_authority": branch_checkpoint' in source
-    assert '"production_delivery_authority": False' in source
-    assert "two_slot_after != two_slot_before" in source
+def test_two_slot_registry_is_exact_main_plus_versioned_local(tmp_path: Path) -> None:
+    module = _load(INSTALLER, "main_local_two_slot_contract")
+    stable = tmp_path / "stable"
+    local = tmp_path / "local"
+    stable.mkdir()
+    local.mkdir()
+    (stable / "marker.txt").write_text("stable\n", encoding="utf-8")
+    (local / "marker.txt").write_text("local\n", encoding="utf-8")
+    rows = []
+    for role, selector in module.TWO_SLOT_SELECTORS.items():
+        root = stable if role == "stable-git-main" else local
+        rows.append(
+            {
+                "pluginId": selector,
+                "version": "3.0.0+codex.20260821000000.main",
+                "marketplaceName": selector.split("@", 1)[1],
+                "source": {"path": str(root)},
+                "marketplaceSource": {
+                    "sourceType": "git" if role == "stable-git-main" else "local"
+                },
+                "enabled": role == "versioned-local-testing",
+            }
+        )
+    receipt = module._materialize_two_slot_registry(
+        plugin_list={"installed": rows},
+        codex_home=tmp_path / "codex-home",
+        data_root=tmp_path / "data",
+        active_slot="versioned-local-testing",
+        config_sha256="A" * 64,
+    )
+    assert receipt["schema"] == module.TWO_SLOT_REGISTRY_SCHEMA
+    assert receipt["exact_live_slot_count"] == 2
+    assert set(receipt["slots"]) == {
+        "stable-git-main",
+        "versioned-local-testing",
+    }
+    assert receipt["failure_target_slot"] == "stable-git-main"
+    assert receipt["branch_recovery_install_allowed"] is False
+    assert module.LOCAL_RECOVERY_SELECTOR in module.OBSOLETE_LIVE_SELECTORS
+    assert module.LOCAL_RECOVERY_SELECTOR not in module.TWO_SLOT_SELECTORS.values()
+    with pytest.raises(module.InstallationError, match="three-slot/branch-recovery"):
+        module._materialize_three_slot_registry()
+
+
+def test_branch_recovery_flags_are_permanently_retired(monkeypatch: pytest.MonkeyPatch) -> None:
+    module = _load(INSTALLER, "retired_branch_checkpoint_route")
+    monkeypatch.setattr(
+        "sys.argv",
+        ["install_codex_stable.py", "--materialize-branch-checkpoint"],
+    )
+    with pytest.raises(module.InstallationError, match="Branch/local recovery slot creation is retired"):
+        module.main()
+    source = inspect.getsource(module.main)
+    assert "_materialize_local_recovery_copy(args)" not in source

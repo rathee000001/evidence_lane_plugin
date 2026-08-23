@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
+
+from .errors import require
 
 HIL_CHOICES = (
     "APPROVE",
@@ -115,7 +118,34 @@ def direct_command_map() -> dict[str, Any]:
     }
 
 
-def resolve_direct_command_route(prompt: str) -> dict[str, Any]:
+def _agent_configuration_route_binding(
+    authority: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    if authority is None:
+        return {}
+    authority_sha256 = str(
+        authority.get("agent_configuration_authority_sha256") or ""
+    ).strip()
+    source_chain_sha256 = str(authority.get("source_chain_sha256") or "").strip()
+    require(
+        len(authority_sha256) == 64 and len(source_chain_sha256) == 64,
+        "DIRECT_ROUTE_AGENT_CONFIGURATION_INVALID",
+        "Direct command routing requires the paired attested AGENTS.md hashes.",
+        status="MISMATCH",
+    )
+    return {
+        "agent_configuration_authority_sha256": authority_sha256,
+        "agent_configuration_source_chain_sha256": source_chain_sha256,
+        "agent_configuration_changes_route_authority": False,
+        "hooks_required": False,
+    }
+
+
+def resolve_direct_command_route(
+    prompt: str,
+    *,
+    agent_configuration: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     """Resolve one explicit or conservative inferred primary-control route.
 
     This function selects a skill only. It executes no lifecycle action and
@@ -123,6 +153,9 @@ def resolve_direct_command_route(prompt: str) -> dict[str, Any]:
     """
 
     normalized = " ".join(str(prompt or "").strip().lower().split())
+    agent_configuration_binding = _agent_configuration_route_binding(
+        agent_configuration
+    )
     first_token = normalized.split(" ", 1)[0] if normalized else ""
     explicit = [
         route for route in _DIRECT_COMMAND_ROUTES if first_token == route["command"]
@@ -138,6 +171,7 @@ def resolve_direct_command_route(prompt: str) -> dict[str, Any]:
             "matched_phrase": first_token,
             "lifecycle_action_executed": False,
             "selected_skill_must_run_native_gates": True,
+            **agent_configuration_binding,
         }
 
     # UI/Plan reactivation is a host-surface operation and must never be
@@ -162,6 +196,7 @@ def resolve_direct_command_route(prompt: str) -> dict[str, Any]:
             ),
             "lifecycle_action_executed": False,
             "selected_skill_must_run_native_gates": True,
+            **agent_configuration_binding,
         }
 
     matches = [
@@ -181,6 +216,7 @@ def resolve_direct_command_route(prompt: str) -> dict[str, Any]:
             "matched_phrase": None,
             "lifecycle_action_executed": False,
             "selected_skill_must_run_native_gates": True,
+            **agent_configuration_binding,
         }
     route, phrase = matches[0]
     return {
@@ -192,6 +228,7 @@ def resolve_direct_command_route(prompt: str) -> dict[str, Any]:
         "matched_phrase": phrase,
         "lifecycle_action_executed": False,
         "selected_skill_must_run_native_gates": True,
+        **agent_configuration_binding,
     }
 
 

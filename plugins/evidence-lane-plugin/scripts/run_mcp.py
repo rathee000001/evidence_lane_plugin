@@ -135,6 +135,9 @@ def _bootstrap_runtime(
 def main() -> int:
     args = _parser().parse_args()
     plugin_root = Path(__file__).resolve().parents[1]
+    # The launcher owns this binding. Never inherit a stale source, cache, or
+    # donor-task package root into the public MCP/SDK/skill/toolchain chain.
+    os.environ["EVIDENCE_LANE_PLUGIN_ROOT"] = str(plugin_root)
     expected_version = _expected_runtime_version(plugin_root)
     expected_pydantic_version = _expected_dependency_version(plugin_root, "pydantic")
     environment = runtime_environment(plugin_root)

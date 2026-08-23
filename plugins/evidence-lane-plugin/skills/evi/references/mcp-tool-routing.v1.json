@@ -65,8 +65,8 @@
     "pv_task_transition": "evidence-lane-code-lifecycle",
     "remote_git_execute_push": "evidence-lane-code-lifecycle",
     "remote_git_prepare_push": "evidence-lane-code-lifecycle",
-    "render_project_panel": "evi-boot",
-    "render_runtime_panel": "evi-boot",
+    "render_project_panel": "evidence-lane-code-lifecycle",
+    "render_runtime_panel": "evidence-lane-code-lifecycle",
     "runtime_activation_status": "evi-boot",
     "runtime_doctor": "evi-boot",
     "search": "evi-source-intake",
@@ -90,6 +90,21 @@
     "task_complete_and_refresh": "evi-refresh",
     "task_confirm_source_update": "evidence-lane-code-lifecycle",
     "task_record_activity": "evidence-lane-code-lifecycle"
+  },
+  "render_invocation_policy": {
+    "schema": "evidence-lane.render-invocation-policy.v1",
+    "owner": "evidence-lane-code-lifecycle",
+    "allowed_triggers": [
+      "STATE_TRAVEL_EXACTLY_ONCE",
+      "PHYSICALLY_FINAL_PV_HIL_PRESENTATION",
+      "EXPLICIT_USER_REQUEST"
+    ],
+    "ordinary_boot_or_resume_allowed": false,
+    "ordinary_owner_discovery_allowed": false,
+    "ordinary_goal_continuation_allowed": false,
+    "state_travel_max_calls_per_render_tool": 1,
+    "physical_final_hil_max_calls_per_render_tool": 1,
+    "implicit_fallback_allowed": false
   },
   "workflows": {
     "evi": {
@@ -239,20 +254,6 @@
             "runtime_activation_status"
           ],
           "workflow": "boot-or-resume"
-        },
-        {
-          "order": 7,
-          "tools": [
-            "render_runtime_panel"
-          ],
-          "workflow": "boot-or-resume"
-        },
-        {
-          "order": 8,
-          "tools": [
-            "render_project_panel"
-          ],
-          "workflow": "boot-or-resume"
         }
       ],
       "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
@@ -281,6 +282,14 @@
             "hil_return_to_accepted"
           ],
           "workflow": "non-promotion-hil-return"
+        },
+        {
+          "order": 4,
+          "tools": [
+            "render_runtime_panel",
+            "render_project_panel"
+          ],
+          "workflow": "physically-final-pv-hil-presentation-only"
         }
       ],
       "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
@@ -760,6 +769,14 @@
             "pv_state_travel_resume"
           ],
           "workflow": "resume-state-travel"
+        },
+        {
+          "order": 8,
+          "tools": [
+            "render_runtime_panel",
+            "render_project_panel"
+          ],
+          "workflow": "state-travel-final-authority-render-once"
         }
       ],
       "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
@@ -904,6 +921,14 @@
             "remote_git_execute_push"
           ],
           "workflow": "governed-git-delivery"
+        },
+        {
+          "order": 19,
+          "tools": [
+            "render_runtime_panel",
+            "render_project_panel"
+          ],
+          "workflow": "three-trigger-render-dispatch"
         }
       ],
       "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"

@@ -129,6 +129,10 @@ def test_task_formula_lineage_is_append_only_and_projected(tmp_path: Path) -> No
         "ENTRY_FORMULA",
         "MUTATION",
     ]
+    assert [row["task_id"] for row in exact["formula_events"]] == [
+        "DELTA-001",
+        "DELTA-001",
+    ]
     fts = query_plan_runtime_projection(
         projection, query="mutated entry passes", limit=10
     )

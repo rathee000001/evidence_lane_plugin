@@ -2329,7 +2329,7 @@ def query_plan_runtime_projection(
             formula_events = connection.execute(
                 """
                 SELECT
-                    event_id, sequence, event_kind, source_event_id,
+                    event_id, sequence, task_id, event_kind, source_event_id,
                     session_id, actor, formula_json, formula_sha256,
                     prior_formula_sha256, changed_terms_json,
                     cause_evidence_locator, recorded_at, event_sha256

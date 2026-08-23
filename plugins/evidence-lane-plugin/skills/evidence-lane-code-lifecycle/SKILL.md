@@ -7,6 +7,24 @@ description: Govern one universal Evidence Lane project across user-timed fresh-
 
 Use one linear state machine. Runtime context is never accepted evidence.
 
+## Plugin-creator local update route law
+
+`PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW` is permanent. Updating the existing
+configured local Evidence Lane development slot uses the plugin-creator
+validator and one cachebuster, the existing local marketplace source, and
+`codex plugin add`, followed by exact same-task hidden restart/rehydration.
+Never select, retry, or fall back to the historical Windows whole-marketplace
+root rename/rotation route. Git-main activation remains a separate governed
+release boundary.
+
+When `codex plugin add` materializes the fresh cache but the loaded desktop
+keeps the prior cache active, seal
+`PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED` from the exact
+staging receipt, current selector, old active version, and new cache bytes.
+Only `Restart-EvidenceLaneCodex.ps1` may consume that state, and it must reopen
+the exact invoking task hidden in the same Codex app. The helper never installs
+or rotates plugin bytes.
+
 ## Codex hook and skill ownership
 
 - Hook command files own only host-signal parsing plus deterministic validation,
@@ -49,10 +67,12 @@ Use one linear state machine. Runtime context is never accepted evidence.
 - When a canonical Plan Lane exists, validate
   `canonical_authority=PLAN_LANE`, contiguous rows, exactly one active row, and
   `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`. Keep that complete ledger as
-  native authority, then activate or update only the aligned host window of at
-  most ten executable rows containing the sole ACTIVE row. Each host item is
-  exactly a maximum three-line projection: row/task identity;
-  class/group/batch; and Git/state/role/dependency. Full descriptions,
+  native authority, then activate or update only the single host Step Task List
+  projection: visible element one is the compact continuity header and the
+  remaining elements are the persisted fixed batch of up to nine Delta rows
+  containing the sole ACTIVE row. Every Delta item is exactly four physical
+  lines: two compact authority/classification lines and at most two
+  human-readable brief lines. Full descriptions,
   version/branch provenance, acceptance, stop law, linked Deltas, and evidence
   links remain in live Plan SQLite and are retrieved only by exact task ID plus
   bounded FTS. They are never copied into the host item or loaded from a raw PV.
@@ -86,8 +106,8 @@ Use one linear state machine. Runtime context is never accepted evidence.
 ### Persistent Step Task List re-entry
 
 The complete native Plan Lane/Delta ledger is durable authority, not Goal
-state. The Codex host Step Task List is its persistent aligned window of at
-most ten executable rows. An active Codex Goal is neither a prerequisite for
+state. The Codex host Step Task List is its single persistent projection: one
+compact header plus the persisted fixed batch of up to nine Delta rows. An active Codex Goal is neither a prerequisite for
 window activation nor a substitute for native Plan authority. Preserve this
 invariant even when no Goal is attached, a Goal was deleted or recreated, or
 the host compacted context automatically.
@@ -154,11 +174,23 @@ When the lifecycle or task-classification receipt contains
 binding. If its action is one of the exact host-window actions requiring
 `update_plan`, pass `receipt.projection.host_update_plan_contract.explanation`
 as the host Plan explanation and
-`receipt.projection.host_update_plan_contract.plan` unchanged as its items. The
-explanation is the compact continuity header: accepted PV/pointer generation,
-absolute ACTIVE row, current window/total rows, next HIL boundary, and physical
-final row. It is not a task item and never contains HIL choices or a queued-HIL
-control surface. Each task item is a maximum three-line UI projection. Retrieve
+`receipt.projection.host_update_plan_contract.plan` unchanged as its items.
+This is `NATIVE_HOST_PLAN_PROJECTION_ONLY_LAW`: no hand-written summary,
+reconstructed row label, sliding window, or generic fallback may cross the host
+Plan boundary. Panel loss relocks the same persisted contract and fingerprint.
+
+An installed-version change additionally invokes
+`GLOBAL_PLUGIN_UPDATE_REHYDRATION_LAW`. Rehydrate each existing exact-task
+attachment independently with the installed registry and a fresh server-derived
+runtime attestation while preserving task/session/project/workspace/profile,
+Plan/Goal, and writer/read-only authority. Never model this as State Travel,
+never create or merge tasks, and never enable hooks as an update side effect.
+Visible plan item one is the compact continuity header: accepted PV/pointer
+generation, absolute ACTIVE row, persisted fixed batch, next HIL boundary, and
+physical-final row. It is not a Delta row and never contains HIL choices or a
+queued-HIL control surface. Every remaining item is an exact four-line Delta UI
+projection. Never handcraft, expand, normalize, de-duplicate, or reconstruct
+the explanation or any item. Retrieve
 the full canonical row and its linked records by exact task ID plus bounded FTS
 only when execution needs them; never load the raw PV, rebuild a row from chat,
 or create a native row merely because its UI label overflowed.
@@ -198,13 +230,16 @@ mentions an old commit or version. Never append acceptance checks, stop
 conditions, hashes, or raw linked-Delta JSON to a host label; they remain native
 authority. This projection law applies to every governed project and corpus.
 
-Use this maximum three-line host item contract:
+Use this exact four-line Delta item contract:
 
-1. `ROW=<absolute row> | TASK=<stable task ID> | STATE=<native/host status>`;
-2. `CLASS=<classification> | GROUP=<Plan group> | BATCH=<commit batch or UNASSIGNED> | ROLE=<panel role> | DEP=<validated graph dependency>`; and
-3. `GRAPH=<Plan SQLite graph pointer> | FTS=<exact task/FTS locator>`.
+1. compact absolute row, bounded task-identity token, native state, and exact
+   SQLite/FTS locator;
+2. compact classification, Plan group, validated dependency, commit batch, and
+   Git marker only when the row executes Git;
+3. the first bounded human-readable outcome line; and
+4. at most one continuation line for that human-readable outcome.
 
-Add `GIT=<declared Git stage>` only to the exact row where Git actually
+Expose the compact Git marker only on the exact row where Git actually
 executes; omit it from every other host item. Version/branch provenance,
 descriptions, acceptance checks, receipts, and linked Deltas remain available
 through the exact SQLite/FTS locator and stay outside the host label.
@@ -350,6 +385,17 @@ boundary and explicitly requests a bound successor through State Travel; the
 second closes the Goal fully. Neither disposition implies HIL approval, Fuse,
 pointer movement, Git, install, merge, or deployment authority.
 
+The sole Goal-completion display route is
+`build_rich_goal_completion_metrics_receipt`. Feed it exact native
+host-accounted Goal telemetry and the exact persisted project/session/task/host
+binding. Its receipt preserves exact counts plus K/M/B projections, treats
+reasoning output as a subset of output, and keeps host-accounted Goal tokens
+separate from raw model traffic. Unknown host conversion rules stay unknown;
+missing rich fields stay in the structured missing-field list. A completed Goal
+reuses its validated persisted rich receipt without another completion call.
+`build_goal_usage_receipt` remains only a non-executing `OBSOLETE_ROUTE`
+tombstone and is never a fallback.
+
 ## Brain and sector law
 
 Use `lane_catalog` as the sole registry for canonical lane IDs, aliases,
@@ -385,7 +431,7 @@ limited to eight additional active plugins; drop requires its exact token.
    canonical row, and the advance must preserve an absent candidate/HIL and an
    unchanged pointer. A PASS string from another task, run, or partial
    acceptance set cannot advance the Plan.
-   A normalized Task6 parity row uses the stronger existing `task_classify`
+   A strict package-parity row uses the stronger existing `task_classify`
    route and must pass `active_delta_verification` with schema
    `evidence-lane.per-delta-local-verification-input.v1`. Obtain the exact
    task_contract_sha256 through `pv_task_backlog(task_id=...)`; bind the

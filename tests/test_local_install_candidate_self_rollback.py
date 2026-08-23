@@ -26,9 +26,9 @@ def _module():
     return module
 
 
-def _config(stable: str, fallback: str, candidate: str, *, selected: str) -> str:
+def _config(stable: str, candidate: str, *, selected: str) -> str:
     lines: list[str] = []
-    for selector in [stable, fallback, candidate]:
+    for selector in [stable, candidate]:
         enabled = selector == selected
         lines.extend(
             [
@@ -52,16 +52,15 @@ def _write_sealed(module, path: Path, value: dict[str, object]) -> str:
 
 
 def _fixture(module, tmp_path: Path) -> dict[str, object]:
-    stable = "evidence-lane-plugin@evidence-lane-github"
-    fallback = "evidence-lane-plugin@evidence-lane-pv11-fallback"
+    stable = "evidence-lane-plugin@stable-git-main"
     candidate = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     transaction_id = "local_test_tx_" + "b" * 40
     data_root = tmp_path / "pv"
     codex_home = tmp_path / "codex"
     config_path = codex_home / "config.toml"
     config_path.parent.mkdir(parents=True)
-    prior = _config(stable, fallback, candidate, selected=stable)
-    failed = _config(stable, fallback, candidate, selected=candidate)
+    prior = _config(stable, candidate, selected=stable)
+    failed = _config(stable, candidate, selected=candidate)
     config_path.write_text(failed, encoding="utf-8", newline="")
     authority_root = data_root / "installations" / "codex-v200"
     backup = authority_root / "config-archives" / "prior.toml"
@@ -104,7 +103,6 @@ def _fixture(module, tmp_path: Path) -> dict[str, object]:
     executable.write_bytes(b"fixture")
     return {
         "stable": stable,
-        "fallback": fallback,
         "candidate": candidate,
         "transaction_id": transaction_id,
         "data_root": data_root,
@@ -162,15 +160,17 @@ def test_candidate_self_rollback_is_terminal_and_idempotent(
         "executable": fixture["executable"],
         "codex_home": fixture["codex_home"],
         "data_root": fixture["data_root"],
-        "allow_byte_frozen_fallback": False,
     }
     result = module._recover_local_test_candidate_failure(**args)
 
     assert result["status"] == "PASS"
-    assert result["state"] == "RECOVERED_EXACT_LAST_KNOWN_GOOD"
+    assert result["state"] == "RECOVERED_EXACT_VERIFIED_STABLE_MAIN"
     assert result["attempt_count"] == 1
     assert result["candidate_disabled"] is True
     assert result["exact_prior_config_restored"] is True
+    assert result["stable_main_recovery_only"] is True
+    assert result["branch_recovery_selector_retired"] is True
+    assert result["branch_recovery_install_allowed"] is False
     assert result["restart_loop_started"] is False
     assert result["restart_or_reload_requests"] == 0
     assert result["one_terminal_receipt"] is True
@@ -189,14 +189,12 @@ def test_candidate_self_rollback_is_terminal_and_idempotent(
     assert restore_calls == 1
 
 
-def test_candidate_self_rollback_uses_sealed_fallback_only_as_second_attempt(
+def test_candidate_self_rollback_never_activates_retired_branch_recovery(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     module = _module()
     fixture = _fixture(module, tmp_path)
-    fallback_authority_sha256 = "F" * 64
-
     monkeypatch.setattr(
         module,
         "_restore_exact_prior_local_test_config",
@@ -205,58 +203,35 @@ def test_candidate_self_rollback_uses_sealed_fallback_only_as_second_attempt(
         ),
     )
 
-    def health(**kwargs: object):
-        if kwargs["selected_selector"] == fixture["stable"]:
-            raise module.InstallationError("stable probe failed")
-        return {
-            "status": "PASS",
-            "selected_selector": kwargs["selected_selector"],
-            "candidate_disabled": True,
-            "native_catalog": dict(module.EXPECTED_CATALOG),
-        }
-
-    monkeypatch.setattr(module, "_probe_recovered_selector_health", health)
     monkeypatch.setattr(
         module,
-        "_load_byte_frozen_fallback_recovery_authority",
-        lambda **_kwargs: {
-            "fallback_selector": fixture["fallback"],
-            "fallback_version": "2.1.0+codex.fixture",
-            "fallback_authority": {
-                "fallback_authority_sha256": fallback_authority_sha256,
-            },
-        },
+        "_probe_recovered_selector_health",
+        lambda **_kwargs: (_ for _ in ()).throw(
+            module.InstallationError("stable-main probe failed")
+        ),
     )
-    monkeypatch.setattr(
-        module,
-        "_activate_byte_frozen_recovery_fallback",
-        lambda **_kwargs: {
-            "status": "PASS",
-            "candidate_disabled": True,
-            "fallback_enabled": True,
-            "fallback_authority_sha256": fallback_authority_sha256,
-        },
-    )
+    assert not hasattr(module, "_load_byte_frozen_fallback_recovery_authority")
+    assert not hasattr(module, "_activate_byte_frozen_recovery_fallback")
     result = module._recover_local_test_candidate_failure(
         commit_receipt_path=fixture["commit_path"],
         commit_receipt_sha256=fixture["commit_sha256"],
         executable=fixture["executable"],
         codex_home=fixture["codex_home"],
         data_root=fixture["data_root"],
-        allow_byte_frozen_fallback=True,
     )
 
-    assert result["status"] == "PASS"
-    assert result["state"] == "RECOVERED_BYTE_FROZEN_FALLBACK"
-    assert result["attempt_count"] == module.LOCAL_TEST_RECOVERY_MAX_ATTEMPTS
+    assert result["status"] == "FAIL_CLOSED"
+    assert result["state"] == "TERMINAL_RECOVERY_EXHAUSTED_FAIL_CLOSED"
+    assert result["attempt_count"] == 1
+    assert result["max_attempts"] == 1
     assert [row["target_kind"] for row in result["attempts"]] == [
-        "EXACT_LAST_KNOWN_GOOD",
-        "BYTE_FROZEN_FALLBACK",
+        "EXACT_LAST_KNOWN_GOOD"
     ]
-    assert len({row["correlation_id"] for row in result["attempts"]}) == 2
     assert result["all_attempts_have_unique_correlation_ids"] is True
-    assert result["fallback_authority_sha256"] == fallback_authority_sha256
     assert result["candidate_disabled"] is True
+    assert result["stable_main_recovery_only"] is True
+    assert result["branch_recovery_selector_retired"] is True
+    assert result["branch_recovery_install_allowed"] is False
 
 
 def test_failed_health_without_fallback_writes_one_fail_closed_receipt(
@@ -285,7 +260,6 @@ def test_failed_health_without_fallback_writes_one_fail_closed_receipt(
         executable=fixture["executable"],
         codex_home=fixture["codex_home"],
         data_root=fixture["data_root"],
-        allow_byte_frozen_fallback=False,
     )
 
     assert result["status"] == "FAIL_CLOSED"
@@ -293,12 +267,13 @@ def test_failed_health_without_fallback_writes_one_fail_closed_receipt(
     assert result["attempt_count"] == 1
     assert result["candidate_disabled"] is True
     assert result["exact_prior_config_restored"] is True
-    assert result["byte_frozen_fallback_used"] is False
+    assert result["stable_main_recovery_only"] is True
+    assert result["branch_recovery_selector_retired"] is True
     assert result["one_terminal_receipt"] is True
     assert result["restart_loop_started"] is False
 
 
-def test_missing_fallback_law_never_runs_a_second_activation_attempt(
+def test_retired_branch_recovery_has_no_second_activation_attempt(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -318,27 +293,21 @@ def test_missing_fallback_law_never_runs_a_second_activation_attempt(
             module.InstallationError("stable health failed")
         ),
     )
-    monkeypatch.setattr(
-        module,
-        "_activate_byte_frozen_recovery_fallback",
-        lambda **_kwargs: pytest.fail("fallback ran without sealed authority"),
-    )
+    assert not hasattr(module, "_load_byte_frozen_fallback_recovery_authority")
+    assert not hasattr(module, "_activate_byte_frozen_recovery_fallback")
     result = module._recover_local_test_candidate_failure(
         commit_receipt_path=fixture["commit_path"],
         commit_receipt_sha256=fixture["commit_sha256"],
         executable=fixture["executable"],
         codex_home=fixture["codex_home"],
         data_root=fixture["data_root"],
-        allow_byte_frozen_fallback=True,
     )
 
     assert result["status"] == "FAIL_CLOSED"
     assert result["attempt_count"] == 1
     assert result["candidate_disabled"] is True
-    assert result["fallback_authority_sha256"] is None
-    assert result["fallback_authority_error"]["error_class"] == (
-        "InstallationError"
-    )
+    assert result["stable_main_recovery_only"] is True
+    assert result["branch_recovery_selector_retired"] is True
 
 
 def test_exact_prior_config_restore_uses_one_supported_atomic_write(

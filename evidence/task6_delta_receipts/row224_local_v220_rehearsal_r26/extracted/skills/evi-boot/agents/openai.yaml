@@ -1,9 +1,0 @@
-interface:
-  display_name: "Evidence Lane Boot"
-  short_description: "Boot or resume a governed session"
-  default_prompt: "Use $evi-boot to verify Flash and boot or resume this governed Evidence Lane session."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

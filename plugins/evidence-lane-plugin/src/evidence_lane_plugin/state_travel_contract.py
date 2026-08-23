@@ -6,6 +6,7 @@ import re
 from typing import Any, cast
 
 from .errors import require
+from .hashing import canonical_json_bytes, sha256_bytes
 
 _PROFILE_ALIASES = {
     "model": "model",
@@ -38,8 +39,14 @@ _HOST_CONTINUITY_ZERO_COUNTERS = (
 
 _BOUNDED_DESTINATION_HYDRATION_MODE = "BOUNDED_HANDOFF_ENVELOPE_ONLY"
 _PLAN_PROJECTION_SOURCE = "CANONICAL_PLAN_LANE_NOT_THREAD_HISTORY"
-_DIRECT_FORCE_ROUTE = "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK"
-_DIRECT_FORCE_CONFIRMATION = "DIRECT_FORCE_SAME_WORKTREE_STATE_TRAVEL"
+DIRECT_FORCED_SAME_WORKTREE_BINDING_SCHEMA = (
+    "evidence-lane.direct-forced-same-worktree-entry.v1"
+)
+DIRECT_FORCED_SAME_WORKTREE_ROUTE = "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK"
+DIRECT_FORCED_SAME_WORKTREE_CONFIRMATION = "DIRECT_FORCE_SAME_WORKTREE_STATE_TRAVEL"
+DIRECT_RUNTIME_ATTESTATION_MODE = "SERVER_DERIVED_ATTESTATION"
+_DIRECT_FORCE_ROUTE = DIRECT_FORCED_SAME_WORKTREE_ROUTE
+_DIRECT_FORCE_CONFIRMATION = DIRECT_FORCED_SAME_WORKTREE_CONFIRMATION
 _CODEX_TASK_ID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
 )
@@ -119,15 +126,36 @@ def _direct_sha256(value: Any, *, field: str) -> str:
 def _direct_positive_int(value: Any, *, field: str, allow_zero: bool = False) -> int:
     minimum = 0 if allow_zero else 1
     require(
-        isinstance(value, int)
-        and not isinstance(value, bool)
-        and value >= minimum,
+        isinstance(value, int) and not isinstance(value, bool) and value >= minimum,
         "DIRECT_STATE_TRAVEL_INTEGER_INVALID",
         "A direct/forced State Travel numeric binding is invalid.",
         status="MISMATCH",
         field=field,
     )
     return int(value)
+
+
+def direct_forced_same_worktree_binding_contract() -> dict[str, Any]:
+    """Return the bounded installed contract without invoking the one-shot route."""
+
+    return {
+        "schema": "evidence-lane.direct-forced-same-worktree-preflight-contract.v1",
+        "status": "PASS",
+        "binding_schema": DIRECT_FORCED_SAME_WORKTREE_BINDING_SCHEMA,
+        "route": DIRECT_FORCED_SAME_WORKTREE_ROUTE,
+        "confirmation": DIRECT_FORCED_SAME_WORKTREE_CONFIRMATION,
+        "required_task_roles": [
+            "authoritative_source",
+            "runtime_attachment_donor",
+            "destination",
+        ],
+        "runtime_instance_attestation_mode": DIRECT_RUNTIME_ATTESTATION_MODE,
+        "caller_supplied_runtime_instance_id": "FORBIDDEN",
+        "caller_supplied_process_id": "FORBIDDEN",
+        "host_batch_source": "PERSISTED_CANONICAL_HOST_PLAN_WINDOW",
+        "one_shot_route_invoked": False,
+        "writes_performed": False,
+    }
 
 
 def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
@@ -147,8 +175,7 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
     )
     binding = dict(value)
     require(
-        binding.get("schema")
-        == "evidence-lane.direct-forced-same-worktree-entry.v1"
+        binding.get("schema") == DIRECT_FORCED_SAME_WORKTREE_BINDING_SCHEMA
         and binding.get("route") == _DIRECT_FORCE_ROUTE
         and binding.get("confirmation") == _DIRECT_FORCE_CONFIRMATION,
         "DIRECT_STATE_TRAVEL_ROUTE_CONFIRMATION_MISMATCH",
@@ -202,8 +229,7 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
         max_length=1024,
     )
     require(
-        destination_raw.get("creation_kind")
-        == "FRESH_NATIVE_CODEX_LOCAL_PROJECT_TASK"
+        destination_raw.get("creation_kind") == "FRESH_NATIVE_CODEX_LOCAL_PROJECT_TASK"
         and destination_raw.get("fresh_local_task") is True
         and destination_raw.get("fork") is False
         and destination_raw.get("continued_from_chat") is False,
@@ -226,6 +252,12 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
         sole_writer.get("writer_id"),
         field="sole_writer.writer_id",
         max_length=256,
+    )
+    require(
+        writer_id == destination["task_id"],
+        "DIRECT_STATE_TRAVEL_SOLE_WRITER_MISMATCH",
+        "The sole writer must be the exact fresh destination task.",
+        status="MISMATCH",
     )
 
     sealed = binding.get("sealed_transport")
@@ -256,10 +288,18 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
         },
         field="host_context.current_task",
     )
-    process_id = _direct_text(
-        host_context.get("host_process_instance_id"),
-        field="host_context.host_process_instance_id",
-        max_length=256,
+    require(
+        "host_process_instance_id" not in host_context
+        and "runtime_instance_id" not in host_context,
+        "DIRECT_STATE_TRAVEL_CALLER_RUNTIME_ID_FORBIDDEN",
+        "A caller must never supply or infer the serving process/runtime identity.",
+        status="MISMATCH",
+        field="host_context",
+    )
+    runtime_attestation_mode = _direct_text(
+        host_context.get("runtime_instance_attestation_mode"),
+        field="host_context.runtime_instance_attestation_mode",
+        max_length=64,
     )
     require(
         current_host == destination
@@ -271,6 +311,12 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
         and host_context.get("collaboration_overlay_active") is False,
         "DIRECT_STATE_TRAVEL_HOST_TASK_BINDING_MISMATCH",
         "The current native host surface does not prove the exact fresh destination boundary.",
+        status="MISMATCH",
+    )
+    require(
+        runtime_attestation_mode == DIRECT_RUNTIME_ATTESTATION_MODE,
+        "DIRECT_STATE_TRAVEL_RUNTIME_ATTESTATION_MODE_REQUIRED",
+        "The direct route requires server-derived runtime-instance attestation.",
         status="MISMATCH",
     )
 
@@ -290,15 +336,18 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
     runtime = expected.get("runtime")
     profile = expected.get("execution_profile")
     require(
-        all(isinstance(item, dict) for item in (
-            pointer,
-            source_expected,
-            prebootstrap,
-            plan,
-            plugin,
-            runtime,
-            profile,
-        )),
+        all(
+            isinstance(item, dict)
+            for item in (
+                pointer,
+                source_expected,
+                prebootstrap,
+                plan,
+                plugin,
+                runtime,
+                profile,
+            )
+        ),
         "DIRECT_STATE_TRAVEL_EXPECTED_SECTION_REQUIRED",
         "Pointer, source, pre-bootstrap source, Plan, plugin, runtime, and execution-profile identities are all required.",
         status="BLOCKED",
@@ -315,34 +364,112 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
     require_unfinished_execution_profile(profile, host_kind="CODEX_DESKTOP")
 
     normalized_pointer = {
-        "accepted_pv": _direct_text(pointer.get("accepted_pv"), field="expected.pointer.accepted_pv", max_length=32),
-        "generation": _direct_positive_int(pointer.get("generation"), field="expected.pointer.generation", allow_zero=True),
-        "pointer_sha256": _direct_sha256(pointer.get("pointer_sha256"), field="expected.pointer.pointer_sha256"),
+        "accepted_pv": _direct_text(
+            pointer.get("accepted_pv"),
+            field="expected.pointer.accepted_pv",
+            max_length=32,
+        ),
+        "generation": _direct_positive_int(
+            pointer.get("generation"),
+            field="expected.pointer.generation",
+            allow_zero=True,
+        ),
+        "pointer_sha256": _direct_sha256(
+            pointer.get("pointer_sha256"), field="expected.pointer.pointer_sha256"
+        ),
     }
     normalized_source: dict[str, Any] = {
-        "branch": _direct_text(source_expected.get("branch"), field="expected.source.branch"),
-        "commit_sha": _direct_text(source_expected.get("commit_sha"), field="expected.source.commit_sha", max_length=40).lower(),
-        "tree_sha": _direct_text(source_expected.get("tree_sha"), field="expected.source.tree_sha", max_length=40).lower(),
-        "worktree_sha256": _direct_sha256(source_expected.get("worktree_sha256"), field="expected.source.worktree_sha256"),
-        "status_sha256": _direct_sha256(source_expected.get("status_sha256"), field="expected.source.status_sha256"),
-        "tracked_diff_sha256": _direct_sha256(source_expected.get("tracked_diff_sha256"), field="expected.source.tracked_diff_sha256"),
-        "dirty_path_set_sha256": _direct_sha256(source_expected.get("dirty_path_set_sha256"), field="expected.source.dirty_path_set_sha256"),
-        "dirty_content_sha256": _direct_sha256(source_expected.get("dirty_content_sha256"), field="expected.source.dirty_content_sha256"),
-        "status_record_count": _direct_positive_int(source_expected.get("status_record_count"), field="expected.source.status_record_count", allow_zero=True),
-        "dirty_path_count": _direct_positive_int(source_expected.get("dirty_path_count"), field="expected.source.dirty_path_count", allow_zero=True),
+        "branch": _direct_text(
+            source_expected.get("branch"), field="expected.source.branch"
+        ),
+        "commit_sha": _direct_text(
+            source_expected.get("commit_sha"),
+            field="expected.source.commit_sha",
+            max_length=40,
+        ).lower(),
+        "tree_sha": _direct_text(
+            source_expected.get("tree_sha"),
+            field="expected.source.tree_sha",
+            max_length=40,
+        ).lower(),
+        "worktree_sha256": _direct_sha256(
+            source_expected.get("worktree_sha256"),
+            field="expected.source.worktree_sha256",
+        ),
+        "status_sha256": _direct_sha256(
+            source_expected.get("status_sha256"), field="expected.source.status_sha256"
+        ),
+        "tracked_diff_sha256": _direct_sha256(
+            source_expected.get("tracked_diff_sha256"),
+            field="expected.source.tracked_diff_sha256",
+        ),
+        "dirty_path_set_sha256": _direct_sha256(
+            source_expected.get("dirty_path_set_sha256"),
+            field="expected.source.dirty_path_set_sha256",
+        ),
+        "dirty_content_sha256": _direct_sha256(
+            source_expected.get("dirty_content_sha256"),
+            field="expected.source.dirty_content_sha256",
+        ),
+        "status_record_count": _direct_positive_int(
+            source_expected.get("status_record_count"),
+            field="expected.source.status_record_count",
+            allow_zero=True,
+        ),
+        "dirty_path_count": _direct_positive_int(
+            source_expected.get("dirty_path_count"),
+            field="expected.source.dirty_path_count",
+            allow_zero=True,
+        ),
     }
     normalized_prebootstrap = {
-        "branch": _direct_text(prebootstrap.get("branch"), field="expected.prebootstrap_source.branch"),
-        "commit_sha": _direct_text(prebootstrap.get("commit_sha"), field="expected.prebootstrap_source.commit_sha", max_length=40).lower(),
-        "tree_sha": _direct_text(prebootstrap.get("tree_sha"), field="expected.prebootstrap_source.tree_sha", max_length=40).lower(),
-        "worktree_sha256": _direct_sha256(prebootstrap.get("worktree_sha256"), field="expected.prebootstrap_source.worktree_sha256"),
-        "status_sha256": _direct_sha256(prebootstrap.get("status_sha256"), field="expected.prebootstrap_source.status_sha256"),
-        "tracked_diff_sha256": _direct_sha256(prebootstrap.get("tracked_diff_sha256"), field="expected.prebootstrap_source.tracked_diff_sha256"),
-        "dirty_path_set_sha256": _direct_sha256(prebootstrap.get("dirty_path_set_sha256"), field="expected.prebootstrap_source.dirty_path_set_sha256"),
-        "dirty_content_sha256": _direct_sha256(prebootstrap.get("dirty_content_sha256"), field="expected.prebootstrap_source.dirty_content_sha256"),
-        "status_record_count": _direct_positive_int(prebootstrap.get("status_record_count"), field="expected.prebootstrap_source.status_record_count", allow_zero=True),
-        "dirty_path_count": _direct_positive_int(prebootstrap.get("dirty_path_count"), field="expected.prebootstrap_source.dirty_path_count", allow_zero=True),
-        "captured_before_authorized_route_bootstrap": prebootstrap.get("captured_before_authorized_route_bootstrap") is True,
+        "branch": _direct_text(
+            prebootstrap.get("branch"), field="expected.prebootstrap_source.branch"
+        ),
+        "commit_sha": _direct_text(
+            prebootstrap.get("commit_sha"),
+            field="expected.prebootstrap_source.commit_sha",
+            max_length=40,
+        ).lower(),
+        "tree_sha": _direct_text(
+            prebootstrap.get("tree_sha"),
+            field="expected.prebootstrap_source.tree_sha",
+            max_length=40,
+        ).lower(),
+        "worktree_sha256": _direct_sha256(
+            prebootstrap.get("worktree_sha256"),
+            field="expected.prebootstrap_source.worktree_sha256",
+        ),
+        "status_sha256": _direct_sha256(
+            prebootstrap.get("status_sha256"),
+            field="expected.prebootstrap_source.status_sha256",
+        ),
+        "tracked_diff_sha256": _direct_sha256(
+            prebootstrap.get("tracked_diff_sha256"),
+            field="expected.prebootstrap_source.tracked_diff_sha256",
+        ),
+        "dirty_path_set_sha256": _direct_sha256(
+            prebootstrap.get("dirty_path_set_sha256"),
+            field="expected.prebootstrap_source.dirty_path_set_sha256",
+        ),
+        "dirty_content_sha256": _direct_sha256(
+            prebootstrap.get("dirty_content_sha256"),
+            field="expected.prebootstrap_source.dirty_content_sha256",
+        ),
+        "status_record_count": _direct_positive_int(
+            prebootstrap.get("status_record_count"),
+            field="expected.prebootstrap_source.status_record_count",
+            allow_zero=True,
+        ),
+        "dirty_path_count": _direct_positive_int(
+            prebootstrap.get("dirty_path_count"),
+            field="expected.prebootstrap_source.dirty_path_count",
+            allow_zero=True,
+        ),
+        "captured_before_authorized_route_bootstrap": prebootstrap.get(
+            "captured_before_authorized_route_bootstrap"
+        )
+        is True,
     }
     require(
         normalized_prebootstrap["captured_before_authorized_route_bootstrap"] is True,
@@ -390,46 +517,104 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
             max_length=256,
         )
     require(
-        normalized_plan["row_start"] <= normalized_plan["active_row"] <= normalized_plan["row_end"]
-        and normalized_plan["active_batch_row_start"] <= normalized_plan["active_row"] <= normalized_plan["active_batch_row_end"]
-        and normalized_plan["host_window_row_start"] == normalized_plan["active_row"]
+        normalized_plan["row_start"]
+        <= normalized_plan["active_row"]
+        <= normalized_plan["row_end"]
+        and normalized_plan["row_start"]
+        <= normalized_plan["active_batch_row_start"]
+        <= normalized_plan["active_row"]
+        <= normalized_plan["active_batch_row_end"]
+        <= normalized_plan["row_end"]
+        and normalized_plan["row_start"]
+        <= normalized_plan["host_window_row_start"]
+        <= normalized_plan["active_row"]
+        <= normalized_plan["host_window_row_end"]
+        <= normalized_plan["row_end"]
+        and normalized_plan["active_batch_row_end"]
+        - normalized_plan["active_batch_row_start"]
+        <= 8
         and normalized_plan["host_window_row_end"]
-        == min(normalized_plan["active_row"] + 8, normalized_plan["row_end"])
+        - normalized_plan["host_window_row_start"]
+        <= 8
         and normalized_plan["next_hil_row"] > normalized_plan["active_row"]
         and normalized_plan["physically_final_hil_row"] == normalized_plan["row_end"],
         "DIRECT_STATE_TRAVEL_DYNAMIC_PLAN_BINDING_INVALID",
-        "The direct route Plan binding must derive the ACTIVE batch, 1+9 window, next HIL, and physical-final HIL from the live ledger.",
+        "The direct route Plan binding must derive the fixed ACTIVE batch, fixed host window, next HIL, and physical-final HIL from live authority.",
         status="MISMATCH",
     )
 
     normalized_plugin = {
-        "plugin_name": _direct_text(plugin.get("plugin_name"), field="expected.plugin.plugin_name"),
-        "plugin_version": _direct_text(plugin.get("plugin_version"), field="expected.plugin.plugin_version"),
-        "plugin_manifest_sha256": _direct_sha256(plugin.get("plugin_manifest_sha256"), field="expected.plugin.plugin_manifest_sha256"),
-        "routing_manifest_sha256": _direct_sha256(plugin.get("routing_manifest_sha256"), field="expected.plugin.routing_manifest_sha256"),
-        "identity_sha256": _direct_sha256(plugin.get("identity_sha256"), field="expected.plugin.identity_sha256"),
-        "tool_count": _direct_positive_int(plugin.get("tool_count"), field="expected.plugin.tool_count"),
-        "read_tool_count": _direct_positive_int(plugin.get("read_tool_count"), field="expected.plugin.read_tool_count", allow_zero=True),
-        "write_tool_count": _direct_positive_int(plugin.get("write_tool_count"), field="expected.plugin.write_tool_count", allow_zero=True),
+        "plugin_name": _direct_text(
+            plugin.get("plugin_name"), field="expected.plugin.plugin_name"
+        ),
+        "plugin_version": _direct_text(
+            plugin.get("plugin_version"), field="expected.plugin.plugin_version"
+        ),
+        "plugin_manifest_sha256": _direct_sha256(
+            plugin.get("plugin_manifest_sha256"),
+            field="expected.plugin.plugin_manifest_sha256",
+        ),
+        "routing_manifest_sha256": _direct_sha256(
+            plugin.get("routing_manifest_sha256"),
+            field="expected.plugin.routing_manifest_sha256",
+        ),
+        "identity_sha256": _direct_sha256(
+            plugin.get("identity_sha256"), field="expected.plugin.identity_sha256"
+        ),
+        "tool_count": _direct_positive_int(
+            plugin.get("tool_count"), field="expected.plugin.tool_count"
+        ),
+        "read_tool_count": _direct_positive_int(
+            plugin.get("read_tool_count"),
+            field="expected.plugin.read_tool_count",
+            allow_zero=True,
+        ),
+        "write_tool_count": _direct_positive_int(
+            plugin.get("write_tool_count"),
+            field="expected.plugin.write_tool_count",
+            allow_zero=True,
+        ),
     }
+    require(
+        "host_process_instance_id" not in runtime
+        and "runtime_instance_id" not in runtime,
+        "DIRECT_STATE_TRAVEL_CALLER_RUNTIME_ID_FORBIDDEN",
+        "A caller must never supply or infer the serving process/runtime identity.",
+        status="MISMATCH",
+        field="expected.runtime",
+    )
     normalized_runtime = {
         "state": _direct_text(runtime.get("state"), field="expected.runtime.state"),
-        "generation": _direct_positive_int(runtime.get("generation"), field="expected.runtime.generation", allow_zero=True),
-        "attachment_donor_task_id": _direct_text(runtime.get("attachment_donor_task_id"), field="expected.runtime.attachment_donor_task_id"),
-        "host_process_instance_id": _direct_text(runtime.get("host_process_instance_id"), field="expected.runtime.host_process_instance_id"),
-        "hooks_mode": _direct_text(runtime.get("hooks_mode"), field="expected.runtime.hooks_mode"),
+        "generation": _direct_positive_int(
+            runtime.get("generation"),
+            field="expected.runtime.generation",
+            allow_zero=True,
+        ),
+        "attachment_donor_task_id": _direct_text(
+            runtime.get("attachment_donor_task_id"),
+            field="expected.runtime.attachment_donor_task_id",
+        ),
+        "runtime_instance_attestation_mode": _direct_text(
+            runtime.get("runtime_instance_attestation_mode"),
+            field="expected.runtime.runtime_instance_attestation_mode",
+        ),
+        "hooks_mode": _direct_text(
+            runtime.get("hooks_mode"), field="expected.runtime.hooks_mode"
+        ),
     }
     require(
         normalized_runtime["attachment_donor_task_id"] == donor["task_id"]
-        and normalized_runtime["host_process_instance_id"] == process_id
+        and normalized_runtime["runtime_instance_attestation_mode"]
+        == runtime_attestation_mode
+        == DIRECT_RUNTIME_ATTESTATION_MODE
         and normalized_runtime["hooks_mode"] == "OFF_UNTIL_REPAIRED",
         "DIRECT_STATE_TRAVEL_RUNTIME_DONOR_MISMATCH",
-        "Runtime donor, host process, or hooks-off binding does not match the direct route.",
+        "Runtime donor, server-attestation mode, or hooks-off binding does not match the direct route.",
         status="MISMATCH",
     )
 
     return {
-        "schema": "evidence-lane.direct-forced-same-worktree-entry.v1",
+        "schema": DIRECT_FORCED_SAME_WORKTREE_BINDING_SCHEMA,
         "route": _DIRECT_FORCE_ROUTE,
         "confirmation": _DIRECT_FORCE_CONFIRMATION,
         "request_nonce": request_nonce,
@@ -461,7 +646,7 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
             "current_task_id": destination["task_id"],
             "current_task_deep_link": destination["deep_link"],
             "current_task_title": destination_title,
-            "host_process_instance_id": process_id,
+            "runtime_instance_attestation_mode": runtime_attestation_mode,
             "thread_hydration_mode": "BOUNDED_AUTHORITY_AND_PLAN_SQLITE_ONLY",
             "full_thread_history_requested": False,
             "task7_chat_history_loaded_as_authority": False,
@@ -477,6 +662,363 @@ def normalize_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
             "execution_profile": profile,
         },
     }
+
+
+def preflight_direct_forced_same_worktree_binding(value: Any) -> dict[str, Any]:
+    """Validate one direct binding locally without consuming or mutating anything."""
+
+    normalized = normalize_direct_forced_same_worktree_binding(value)
+    return {
+        **direct_forced_same_worktree_binding_contract(),
+        "schema": "evidence-lane.direct-forced-same-worktree-preflight-receipt.v1",
+        "request_nonce_sha256": sha256_bytes(
+            normalized["request_nonce"].encode("utf-8")
+        ),
+        "normalized_binding": normalized,
+    }
+
+
+def _direct_plan_identity(value: Any, *, field: str) -> dict[str, Any]:
+    require(
+        isinstance(value, dict),
+        "DIRECT_STATE_TRAVEL_PLAN_IDENTITY_REQUIRED",
+        "The direct destination requires one bounded canonical Plan identity.",
+        status="BLOCKED",
+        field=field,
+    )
+    exact = dict(value)
+    hash_fields = (
+        "canonical_plan_sha256",
+        "goal_projection_sha256",
+        "history_projection_sha256",
+        "snapshot_sha256",
+    )
+    integer_fields = (
+        "row_start",
+        "row_end",
+        "task_count",
+        "active_row",
+        "active_batch_row_start",
+        "active_batch_row_end",
+        "host_window_row_start",
+        "host_window_row_end",
+        "next_hil_row",
+        "physically_final_hil_row",
+    )
+    text_fields = (
+        "active_task_id",
+        "active_batch_id",
+        "active_row_commit_batch_id",
+        "next_hil_task_id",
+        "physically_final_hil_task_id",
+    )
+    normalized: dict[str, Any] = {
+        name: _direct_sha256(exact.get(name), field=f"{field}.{name}")
+        for name in hash_fields
+    }
+    normalized.update(
+        {
+            name: _direct_positive_int(exact.get(name), field=f"{field}.{name}")
+            for name in integer_fields
+        }
+    )
+    normalized.update(
+        {
+            name: _direct_text(
+                exact.get(name), field=f"{field}.{name}", max_length=256
+            )
+            for name in text_fields
+        }
+    )
+    require(
+        normalized["task_count"]
+        == normalized["row_end"] - normalized["row_start"] + 1
+        and normalized["row_start"]
+        <= normalized["active_row"]
+        <= normalized["row_end"]
+        and normalized["active_batch_row_start"]
+        <= normalized["active_row"]
+        <= normalized["active_batch_row_end"]
+        and normalized["active_batch_row_end"]
+        - normalized["active_batch_row_start"]
+        + 1
+        <= 9
+        and normalized["next_hil_row"] > normalized["active_row"]
+        and normalized["physically_final_hil_row"] == normalized["row_end"],
+        "DIRECT_STATE_TRAVEL_WHOLE_PLAN_RANGE_INVALID",
+        "The whole-Plan range, fixed batch, active row, and HIL anchors are inconsistent.",
+        status="MISMATCH",
+    )
+    return normalized
+
+
+def build_direct_destination_orchestration(value: Any) -> dict[str, Any]:
+    """Build the two-gate, five-phase destination contract from a verified binding.
+
+    The result contains no Plan rows and performs no host action.  It is safe to
+    attach to the successful direct-entry receipt so EVI Plan can return one
+    small prompt without reconstructing canonical SQLite in chat.
+    """
+
+    normalized = normalize_direct_forced_same_worktree_binding(value)
+    destination = cast(dict[str, Any], normalized["destination"])
+    pointer = cast(dict[str, Any], normalized["expected"])["pointer"]
+    plan = _direct_plan_identity(
+        cast(dict[str, Any], normalized["expected"])["plan"],
+        field="expected.plan",
+    )
+    title = str(destination["title"])
+    task_id = str(destination["task_id"])
+    task_deep_link = str(destination["deep_link"])
+    row_start = int(plan["row_start"])
+    row_end = int(plan["row_end"])
+    active_row = int(plan["active_row"])
+    batch_start = int(plan["active_batch_row_start"])
+    batch_end = int(plan["active_batch_row_end"])
+    next_hil = int(plan["next_hil_row"])
+    final_hil = int(plan["physically_final_hil_row"])
+    paste_prompt = "\n".join(
+        (
+            "PLAN MODE — WHOLE AUTHORITY REPROJECTION ONLY.",
+            f"Rename the visible Plan to `{title}`.",
+            (
+                "Reactivate—never reconstruct, replace, serialize, or duplicate—the "
+                "complete existing executable Plan/Goal authority from canonical Plan "
+                f"SQLite for R{row_start}–R{row_end}."
+            ),
+            (
+                "Preserve every canonical task identity, row order, metadata field, "
+                "dependency, status, mutation, supersession and HIL boundary exactly "
+                f"as stored; preserve canonical Plan SHA-256 {plan['canonical_plan_sha256']} "
+                f"and the sole ACTIVE R{active_row}. Bind only visible Plan/task "
+                f"ownership to `{task_id}` ({task_deep_link})."
+            ),
+            (
+                "Do not display or substitute the fixed header + Delta batch here; "
+                "that is the post-acceptance Step Task List projection."
+            ),
+            (
+                "Stop at the visible **Implement this plan** control. Do not accept "
+                "it, create or hook a Goal, execute work, infer HIL, create a "
+                f"candidate, or move {pointer['accepted_pv']}/generation "
+                f"{pointer['generation']}."
+            ),
+            (
+                "After the user clicks **Implement this plan**, automatically run "
+                "bounded Evidence Plan verification and, only on PASS, hook or resume "
+                f"the one carried unfinished Goal at R{active_row} and hydrate the "
+                f"single fixed header + R{batch_start}–R{batch_end} Step Task List "
+                "plus Changes panel."
+            ),
+        )
+    )
+    prompt_sha256 = sha256_bytes(paste_prompt.encode("utf-8"))
+    header = (
+        f"{pointer['accepted_pv']}/generation {pointer['generation']} | "
+        f"ACTIVE R{active_row} | ACTIVE BATCH R{batch_start}-R{batch_end} | "
+        f"NEXT_HIL R{next_hil} | FINAL_HIL R{final_hil}"
+    )
+    core = {
+        "schema": "evidence-lane.direct-destination-orchestration.v1",
+        "status": "PASS",
+        "route": normalized["route"],
+        "destination": {
+            "task_id": task_id,
+            "deep_link": task_deep_link,
+            "title": title,
+            "project_id": destination["project_id"],
+            "workspace_path": destination["workspace_path"],
+        },
+        "whole_plan_reprojection": {
+            "authority": "EXISTING_CANONICAL_PLAN_SQLITE",
+            "identity": plan,
+            "visible_title": title,
+            "paste_prompt": paste_prompt,
+            "paste_prompt_sha256": prompt_sha256,
+            "serialized_task_rows": [],
+            "serialized_fixed_batch": False,
+            "canonical_sqlite_reconstructed": False,
+            "host_prompt_auto_pasted": False,
+            "implement_control_auto_accepted": False,
+        },
+        "ordered_phases": [
+            {
+                "phase": 1,
+                "name": "FRESH_NATIVE_DESTINATION_BINDING",
+                "state": "PASS_BOUND_BY_DIRECT_ENTRY",
+            },
+            {
+                "phase": 2,
+                "name": "ATOMIC_BOOT_FLASH_AND_ONE_SHOT_DIRECT_VERIFICATION",
+                "state": "PASS_BOUND_BY_DIRECT_ENTRY",
+            },
+            {
+                "phase": 3,
+                "name": "EVI_PLAN_RETURNS_SMALL_WHOLE_AUTHORITY_PROMPT",
+                "state": "WAITING_FOR_USER_NATIVE_PLAN_PASTE",
+            },
+            {
+                "phase": 4,
+                "name": "HOST_DISPLAYS_IMPLEMENT_THIS_PLAN",
+                "state": "WAITING_FOR_USER_IMPLEMENT_CLICK",
+            },
+            {
+                "phase": 5,
+                "name": "BOUNDED_PLAN_VERIFY_GOAL_RESUME_AND_FIXED_STEP_RELOCK",
+                "state": "BLOCKED_UNTIL_EXPLICIT_IMPLEMENT_CLICK",
+            },
+        ],
+        "user_gates": [
+            "PASTE_RETURNED_PROMPT_WITH_NATIVE_PLAN_SELECTED",
+            "CLICK_VISIBLE_IMPLEMENT_THIS_PLAN",
+        ],
+        "post_acceptance_step_projection": {
+            "projector_count": 1,
+            "projector": "SINGLE_CANONICAL_FIXED_BATCH_PROJECTOR",
+            "header": header,
+            "fixed_batch_row_start": batch_start,
+            "fixed_batch_row_end": batch_end,
+            "delta_row_count": batch_end - batch_start + 1,
+            "visible_element_count": batch_end - batch_start + 2,
+            "maximum_visible_element_count": 10,
+            "fallback_projector_enabled": False,
+            "sliding_window_enabled": False,
+            "whole_plan_serialized_into_step_list": False,
+            "changes_panel_required": True,
+            "row_contract": "TWO_METADATA_LINES_PLUS_AT_MOST_TWO_HUMAN_BRIEF_LINES",
+        },
+        "goal_binding": {
+            "authority": "ONE_CARRIED_UNFINISHED_GOAL_ONLY",
+            "goal_projection_sha256": plan["goal_projection_sha256"],
+            "active_task_id": plan["active_task_id"],
+            "active_row": active_row,
+            "competing_goal_allowed": False,
+            "goal_work_allowed_before_phase_5_pass": False,
+        },
+        "no_effects": {
+            "plan_lane_mutated": False,
+            "host_prompt_auto_pasted": False,
+            "implement_control_auto_accepted": False,
+            "goal_created_or_resumed": False,
+            "source_mutated": False,
+            "candidate_created": False,
+            "hil_inferred": False,
+            "pointer_moved": False,
+        },
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+def verify_direct_destination_plan_acceptance(
+    orchestration: Any,
+    *,
+    acceptance: Any,
+    live_plan: Any,
+    goal_observation: Any,
+) -> dict[str, Any]:
+    """Verify the explicit host click before authorizing Goal/panel continuation."""
+
+    require(
+        isinstance(orchestration, dict),
+        "DIRECT_STATE_TRAVEL_ORCHESTRATION_REQUIRED",
+        "Phase 5 requires the exact direct-destination orchestration receipt.",
+        status="BLOCKED",
+    )
+    exact = dict(orchestration)
+    claimed_receipt = _direct_sha256(
+        exact.get("receipt_sha256"), field="orchestration.receipt_sha256"
+    )
+    unsigned = {key: value for key, value in exact.items() if key != "receipt_sha256"}
+    require(
+        claimed_receipt == sha256_bytes(canonical_json_bytes(unsigned)),
+        "DIRECT_STATE_TRAVEL_ORCHESTRATION_SEAL_MISMATCH",
+        "The direct-destination orchestration receipt seal does not match.",
+        status="MISMATCH",
+    )
+    whole = cast(dict[str, Any], exact.get("whole_plan_reprojection") or {})
+    expected_plan = _direct_plan_identity(
+        whole.get("identity"), field="orchestration.whole_plan_reprojection.identity"
+    )
+    observed_plan = _direct_plan_identity(live_plan, field="live_plan")
+    plan_mismatches = {
+        key: {"expected": value, "observed": observed_plan.get(key)}
+        for key, value in expected_plan.items()
+        if observed_plan.get(key) != value
+    }
+    require(
+        not plan_mismatches,
+        "DIRECT_STATE_TRAVEL_POST_ACCEPTANCE_PLAN_MISMATCH",
+        "The live canonical Plan changed before post-acceptance verification.",
+        status="MISMATCH",
+        mismatches=plan_mismatches,
+    )
+    require(
+        isinstance(acceptance, dict),
+        "DIRECT_STATE_TRAVEL_IMPLEMENT_ACCEPTANCE_REQUIRED",
+        "Phase 5 requires an explicit user Implement-this-plan click receipt.",
+        status="BLOCKED",
+    )
+    gate = dict(acceptance)
+    destination = cast(dict[str, Any], exact.get("destination") or {})
+    require(
+        gate.get("schema") == "evidence-lane.native-plan-implement-acceptance.v1"
+        and gate.get("destination_task_id") == destination.get("task_id")
+        and gate.get("destination_task_deep_link") == destination.get("deep_link")
+        and gate.get("visible_plan_title") == destination.get("title")
+        and gate.get("native_plan_mode_selected") is True
+        and gate.get("plan_prompt_sha256") == whole.get("paste_prompt_sha256")
+        and gate.get("visible_implement_this_plan_control") is True
+        and gate.get("implement_this_plan_clicked_by_user") is True
+        and bool(str(gate.get("implement_this_plan_event_id") or "").strip())
+        and gate.get("prompt_auto_pasted_by_plugin") is False
+        and gate.get("control_auto_accepted_by_plugin") is False,
+        "DIRECT_STATE_TRAVEL_IMPLEMENT_ACCEPTANCE_MISMATCH",
+        "The native Plan prompt/paste/Implement gate is missing, mismatched, or automated.",
+        status="MISMATCH",
+    )
+    require(
+        isinstance(goal_observation, dict),
+        "DIRECT_STATE_TRAVEL_CARRIED_GOAL_OBSERVATION_REQUIRED",
+        "Phase 5 requires one exact carried unfinished Goal observation.",
+        status="BLOCKED",
+    )
+    goal = dict(goal_observation)
+    require(
+        goal.get("schema") == "evidence-lane.carried-goal-observation.v1"
+        and goal.get("goal_count") == 1
+        and goal.get("competing_goal_count") == 0
+        and bool(str(goal.get("goal_id") or "").strip())
+        and goal.get("status") in {"RUNNING", "PAUSED"}
+        and goal.get("active_task_id") == expected_plan["active_task_id"]
+        and goal.get("goal_projection_sha256")
+        == expected_plan["goal_projection_sha256"]
+        and goal.get("disposition")
+        in {"RESUMED_EXISTING", "CREATED_CARRIED_UNFINISHED"},
+        "DIRECT_STATE_TRAVEL_CARRIED_GOAL_MISMATCH",
+        "The post-acceptance Goal is missing, competing, or bound to another Plan task.",
+        status="MISMATCH",
+    )
+    step_projection = cast(
+        dict[str, Any], exact.get("post_acceptance_step_projection") or {}
+    )
+    core = {
+        "schema": "evidence-lane.direct-destination-phase5-verification.v1",
+        "status": "PASS",
+        "destination_task_id": destination["task_id"],
+        "plan_identity": expected_plan,
+        "implement_this_plan_event_id": gate["implement_this_plan_event_id"],
+        "goal": goal,
+        "goal_action": "HOOK_OR_RESUME_ONE_CARRIED_UNFINISHED_GOAL",
+        "step_projection": step_projection,
+        "step_projection_action": "HYDRATE_OR_RELOCK_SINGLE_FIXED_PROJECTOR",
+        "changes_panel_action": "PRESERVE_EXACT_TASK_AND_WORKTREE_BOUND_PANEL",
+        "source_work_may_resume": True,
+        "plan_acceptance_is_evidence_lane_hil": False,
+        "candidate_created": False,
+        "hil_inferred": False,
+        "pointer_moved": False,
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
 
 
 def _plan_metadata_id(value: Any, *, field: str, position: int) -> str:
@@ -506,7 +1048,9 @@ def execution_profile_from_context(context: dict[str, Any] | None) -> dict[str, 
             continue
         value = source[source_key]
         require(
-            isinstance(value, str) and bool(value.strip()) and len(value.strip()) <= 128,
+            isinstance(value, str)
+            and bool(value.strip())
+            and len(value.strip()) <= 128,
             "STATE_TRAVEL_EXECUTION_PROFILE_INVALID",
             "Execution-profile values must be non-empty public-safe strings.",
             status="BLOCKED",
@@ -534,7 +1078,9 @@ def require_unfinished_execution_profile(
 
     if not host_kind.startswith("CODEX"):
         return
-    missing = [field for field in _CODEX_REQUIRED_PROFILE_FIELDS if not profile.get(field)]
+    missing = [
+        field for field in _CODEX_REQUIRED_PROFILE_FIELDS if not profile.get(field)
+    ]
     require(
         not missing,
         "STATE_TRAVEL_EXECUTION_PROFILE_INCOMPLETE",
@@ -605,12 +1151,10 @@ def normalize_destination_host_continuity(
         and exact.get("initial_shell_source_task_id") == source_task_id
         and exact.get("initial_shell_destination_task_id") == destination_task_id
         and exact.get("host_creation_result_task_id") == destination_task_id
-        and exact.get("host_creation_result_deep_link")
-        == destination_task_deep_link
+        and exact.get("host_creation_result_deep_link") == destination_task_deep_link
     )
     require(
-        exact.get("schema")
-        == "evidence-lane.state-travel-host-continuity.v1"
+        exact.get("schema") == "evidence-lane.state-travel-host-continuity.v1"
         and exact.get("status") == "PASS"
         and identity_matches
         and bool(process_before)
@@ -619,8 +1163,7 @@ def normalize_destination_host_continuity(
         and exact.get("app_restart_invoked") is False
         and exact.get("title_used_as_identity") is False
         and exact.get("cwd_used_as_identity") is False
-        and exact.get("thread_hydration_mode")
-        == _BOUNDED_DESTINATION_HYDRATION_MODE
+        and exact.get("thread_hydration_mode") == _BOUNDED_DESTINATION_HYDRATION_MODE
         and exact.get("full_thread_history_requested") is False
         and exact.get("plan_projection_source") == _PLAN_PROJECTION_SOURCE
         and exact.get("collaboration_overlay_active") is False
@@ -644,8 +1187,7 @@ def normalize_destination_host_continuity(
             exact.get("destination_task_id") == destination_task_id
         ),
         initial_shell_destination_match=(
-            exact.get("initial_shell_destination_task_id")
-            == destination_task_id
+            exact.get("initial_shell_destination_task_id") == destination_task_id
         ),
         host_process_continuous=(
             bool(process_before) and process_before == process_after
@@ -772,8 +1314,7 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
         panel_role = str(row.get("panel_role") or "").strip().upper()
         if panel_role:
             require(
-                panel_role
-                in {"STANDARD", "HIL_GATE", "PHYSICALLY_FINAL_HIL"},
+                panel_role in {"STANDARD", "HIL_GATE", "PHYSICALLY_FINAL_HIL"},
                 "STATE_TRAVEL_TASK_PANEL_ROLE_INVALID",
                 "A State Travel row contains an unsupported persistent-panel role.",
                 status="BLOCKED",
@@ -872,9 +1413,9 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
                 )
                 delta_id = str(steer.get("delta_id") or "").strip()
                 delta_text = steer.get("text")
-                boundary = str(
-                    steer.get("boundary") or "BEFORE_NEXT_HIL"
-                ).strip().upper()
+                boundary = (
+                    str(steer.get("boundary") or "BEFORE_NEXT_HIL").strip().upper()
+                )
                 require(
                     bool(delta_id)
                     and len(delta_id) <= 96
@@ -902,9 +1443,7 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
                     "classification": str(
                         steer.get("classification") or "LINKED_EXISTING_STEP"
                     ),
-                    "linked_task_id": str(
-                        steer.get("linked_task_id") or task_id
-                    ),
+                    "linked_task_id": str(steer.get("linked_task_id") or task_id),
                     "recorded_by": str(steer.get("recorded_by") or "UNKNOWN"),
                 }
                 normalized_steers.append(normalized_steer)
@@ -926,6 +1465,7 @@ def normalize_task_list(rows: Any) -> list[dict[str, Any]]:
         task_count=len(normalized),
     )
     return normalized
+
 
 def normalize_additive_deltas(rows: Any) -> list[dict[str, Any]]:
     """Preserve exact visible steer text with its canonical HIL boundary."""

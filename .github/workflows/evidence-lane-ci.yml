@@ -37,7 +37,6 @@ jobs:
       - name: Install governed Python dependencies
         run: |
           python -m pip install --require-hashes -r plugins/evidence-lane-plugin/requirements.lock.txt
-          python -m pip install ruff==0.16.0 mypy==2.3.0
       - name: Execute Code-mode CI contract
         uses: ./.github/actions/evidence-lane-ci
         with:

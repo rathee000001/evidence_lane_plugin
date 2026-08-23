@@ -1,9 +1,0 @@
-interface:
-  display_name: "Evidence Lane Source Intake"
-  short_description: "Ingest and query governed source lanes"
-  default_prompt: "Use $evi-source-intake to classify ordered sources, build the required governed indexes, and query bounded lane evidence."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

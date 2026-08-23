@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 HOOKS = ROOT / "plugins" / "evidence-lane-plugin" / "hooks"
 ADAPTERS = (
     "session_start.py",
+    "optional_event_observer.py",
     "prompt_submit.py",
     "pre_tool_use.py",
     "post_tool_use.py",
@@ -66,11 +67,14 @@ def _skill_consumer(event_name: str):
 
     names = {
         "SessionStart": "consume_session_start_transport",
+        "SubagentStart": "consume_optional_observer_transport",
         "UserPromptSubmit": "consume_prompt_transport",
         "PreToolUse": "consume_pre_tool_transport",
+        "PermissionRequest": "consume_optional_observer_transport",
         "PostToolUse": "consume_post_tool_transport",
         "PreCompact": "consume_boundary_transport",
         "PostCompact": "consume_boundary_transport",
+        "SubagentStop": "consume_optional_observer_transport",
         "Stop": "consume_stop_transport",
     }
     return getattr(hook_skill_runtime, names[event_name])
@@ -81,11 +85,14 @@ def test_exact_skill_action_map_excludes_best_effort_session_end() -> None:
 
     assert module.EVENT_SKILL_ACTIONS == {
         "SessionStart": "SESSION_START_BIND_OR_REENTRY",
+        "SubagentStart": "BOUND_OPTIONAL_EVENT_OBSERVATION",
         "UserPromptSubmit": "PREPARE",
         "PreToolUse": "PROSPECTIVE_TOOL_BOUNDARY",
+        "PermissionRequest": "BOUND_OPTIONAL_EVENT_OBSERVATION",
         "PostToolUse": "TOOL_RECEIPT_AND_CURRENT_CHANGE_PROJECTION",
         "PreCompact": "COMPACTION_OR_SESSION_BOUNDARY",
         "PostCompact": "COMPACTION_OR_SESSION_BOUNDARY",
+        "SubagentStop": "BOUND_OPTIONAL_EVENT_OBSERVATION",
         "Stop": "COMMIT",
     }
     assert "SessionEnd" not in module.EVENT_SKILL_ACTIONS
@@ -137,11 +144,14 @@ def test_behavior_handoff_is_issued_consumed_and_content_addressed() -> None:
     "event_name",
     (
         "SessionStart",
+        "SubagentStart",
         "UserPromptSubmit",
         "PreToolUse",
+        "PermissionRequest",
         "PostToolUse",
         "PreCompact",
         "PostCompact",
+        "SubagentStop",
         "Stop",
     ),
 )

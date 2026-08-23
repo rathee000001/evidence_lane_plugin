@@ -45,11 +45,14 @@ _REQUEST_TIMEOUT_SECONDS = 45.0
 _EVENT_SETTLE_SECONDS = 3.0
 _CANONICAL_TO_HOST = {
     "SessionStart": "sessionStart",
+    "SubagentStart": "subagentStart",
     "UserPromptSubmit": "userPromptSubmit",
     "PreToolUse": "preToolUse",
+    "PermissionRequest": "permissionRequest",
     "PostToolUse": "postToolUse",
     "PreCompact": "preCompact",
     "PostCompact": "postCompact",
+    "SubagentStop": "subagentStop",
     "Stop": "stop",
     "SessionEnd": "sessionEnd",
 }
@@ -426,7 +429,7 @@ def _workspace_hook_rows(
     plugin_selector: str,
     workspace: Path,
 ) -> dict[str, dict[str, Any]]:
-    """Return one clean trusted eight-hook inventory keyed by host event."""
+    """Return one clean trusted registry-derived inventory keyed by host event."""
 
     result = reply.get("result")
     data = result.get("data") if isinstance(result, dict) else None
@@ -451,7 +454,10 @@ def _workspace_hook_rows(
         if isinstance(row, dict) and row.get("pluginId") == plugin_selector
     ]
     by_host = {str(row.get("eventName") or ""): row for row in rows}
-    if set(by_host) != set(_CANONICAL_TO_HOST.values()) or len(rows) != 8:
+    if (
+        set(by_host) != set(_CANONICAL_TO_HOST.values())
+        or len(rows) != len(_CANONICAL_TO_HOST)
+    ):
         raise RuntimeError("INSTALLED_HOOK_EVENT_INVENTORY_MISMATCH")
     for host_event, row in by_host.items():
         if (
@@ -983,17 +989,20 @@ def _parser() -> argparse.ArgumentParser:
         action="append",
         choices=(
             "SessionStart",
+            "SubagentStart",
             "UserPromptSubmit",
             "PreToolUse",
+            "PermissionRequest",
             "PostToolUse",
             "PreCompact",
             "PostCompact",
+            "SubagentStop",
             "Stop",
             "SessionEnd",
         ),
         help=(
             "Require and prove only this canonical event. Repeat for a bounded "
-            "subset; omit to retain the exact eight-hook release boundary."
+            "subset; omit to retain the complete registry release boundary."
         ),
     )
     parser.add_argument(

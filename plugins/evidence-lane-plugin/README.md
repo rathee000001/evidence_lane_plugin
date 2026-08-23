@@ -4,7 +4,7 @@ Version 3.0.0 is the current pre-HIL Codex source release on the governed v3.0
 branch. Source, branch commit, package, installed runtime, candidate, and
 accepted Project Truth remain separately proven identities. The source provides
 a package-local native MCP server, 88 canonical actions (27 read-only and 61
-write-capable), 17 governed skills, eight registered lifecycle events, local durable
+write-capable), 17 governed skills, eleven registered lifecycle events, local durable
 project storage, persistent Plan/Delta continuity, and an exact six-way HIL.
 Agent Learning is a separate project-scoped authority, not another name for
 Project Truth or Canon. It seals evidence-backed candidates, records lifecycle
@@ -77,7 +77,7 @@ case-sensitive `APPROVE` at the correct HIL can authorize Fuse.
 The maintainer checkpoint route binds the complete source scope, exact branch
 commit and tree, governed push, Actions head, deterministic package, and
 branch-commit recovery slot. A later release HIL requires installed readback of
-88 actions (27 read/61 write), 17 skills, eight distinct hook events, and the
+88 actions (27 read/61 write), 17 skills, eleven distinct hook events, and the
 migrated command surface. The checkpoint cannot infer HIL, move a Project
 pointer, merge `main`, or change the byte-frozen main-merge fallback. That
 plugin release/install cadence is not part of an ordinary downstream user's
@@ -183,7 +183,7 @@ and direct CLI/API profiles do not require this tunnel. See the
 - `.mcp.json` — package-local native MCP launch contract.
 - `src/evidence_lane_plugin/` — lifecycle engine and native server.
 - `skills/` — seventeen governed skills.
-- `hooks/` — eight registered events across twelve sealed package files, including the synchronous Windows host that prevents the PowerShell bridge from creating a visible console.
+- `hooks/` — eleven registered events across sixteen sealed package files, including the synchronous Windows host that prevents the PowerShell bridge from creating a visible console.
 - `toolchains/` — the governed SQLite FTS5 authority contract plus the
   hash-pinned `ripgrep` pre-index helper, upstream license, and deterministic
   fallback contract used by all projects.
@@ -193,11 +193,9 @@ and direct CLI/API profiles do not require this tunnel. See the
 - `scripts/codex_release/seal_codex_git_ci_release_authority.py` — read-only
   join of the exact package, native governed push, successful exact-head CI,
   and the Git-integrated Vercel branch preview for that same commit.
-- `scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1` — one
-  canonical Git stable-slot update, installed-runtime prewarm, recovery-manager
-  rebind, and exact-task reopen in the same ChatGPT stable or ChatGPT Beta
-  desktop channel. Both desktop channels expose ChatGPT and Codex surfaces;
-  Evidence Lane governs the Codex surface only.
+- `scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1` — retired
+  fail-closed compatibility shim. Installation and verification finish before
+  the separate exact-task restart helper runs; it cannot restore a third slot.
 - `scripts/codex_release/` — controlled restart, two-slot failover, Goal
   recovery, and installed-package acceptance checks.
 
@@ -212,8 +210,11 @@ Windows-logon recovery manager for exact governed Codex Goal tasks.
 
 1. Build the archive from one exact source commit and verify the source,
    commit, tree, package, catalog, skill, hook, and secret seals.
-2. A non-lifecycle local rehearsal may be staged and tested but cannot be
-   activated. Push the exact governed branch through native remote Git, wait
+2. A non-lifecycle local rehearsal may be staged and activated only in the
+   fixed `evidence-lane-v300-testing-new` local-testing slot through the
+   plugin-creator cache-bust route. It does not change stable-main authority,
+   create a candidate, move PV/HIL/pointers, or enable hooks. Stable delivery
+   instead pushes the exact governed branch through native remote Git, waits
    for the existing governed Python CI, CodeQL, and preview-build workflows at
    that same commit, wait for its Git-integrated Vercel branch preview, build
    the exact-commit package with `build_codex_exact_commit_package.py`, and seal
@@ -223,14 +224,16 @@ Windows-logon recovery manager for exact governed Codex Goal tasks.
    GitHub App/SDK identity with
    `seal_github_app_production_delivery.py`; changed replay or identity drift is
    rejected.
-3. Run `scripts/codex_release/install_codex_stable.py` without activation for a
-   local rehearsal only. Activation uses Codex's Git marketplace at the exact
+3. Run `scripts/codex_release/install_codex_stable.py --activate-local-test`
+   only with a fresh versioned rehearsal receipt, the exact local-testing
+   selector and confirmation, and the visible hook-trust boundary. Stable
+   activation uses Codex's Git marketplace at the exact
    successful commit and requires `--activate --trust-sealed-hooks`,
    `--release-authority-receipt`,
    `--release-authority-receipt-sha256`, the exact Codex executable, and the
    governed `--hook-cwd`. The installer uses
    Codex's supported plugin commands, `hooks/list`, and `config/batchWrite`; it
-   trusts only the exact installed selector's eight current hook hashes and
+   trusts only the exact installed selector's complete current hook set and
    never writes the generated cache directly. The one permitted legacy update
    migrates the old mutable selector to
    `evidence-lane-plugin@evidence-lane-github`; every later update reinstalls

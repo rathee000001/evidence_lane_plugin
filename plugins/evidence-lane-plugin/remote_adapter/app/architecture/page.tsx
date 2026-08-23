@@ -3,8 +3,10 @@ import Link from "next/link";
 
 import { GlassIconOrb, OfficialToolIcon } from "../_components/evidence-assets";
 import { HeroOrbit } from "../_components/hero-orbit";
+import { HostCapabilityMatrix } from "../_components/host-capability-matrix";
 import { PageHero } from "../_components/page-hero";
 import { SourceLaneIcon } from "../_components/source-lane-icon";
+import { authorityPlanes, currentProductContract } from "../_data/current-product-contract";
 import { artifactContract } from "../_data/site";
 
 export const metadata: Metadata = {
@@ -45,9 +47,26 @@ export default function ArchitecturePage() {
           <p>The three surfaces share one package identity but keep different responsibilities. Their Git-tracked contracts are exposed as separate public pages so a website summary cannot blur authority.</p>
         </div>
         <div className="compareGrid">
-          <article><span className="compactDepthPill"><GlassIconOrb color="#a99af7" size={28} decorative><OfficialToolIcon tool="package" size={15} decorative /></GlassIconOrb><span>17 skills</span></span><h3>Governed workflows</h3><p>Skills own PREPARE, bounded native reads, classification, Plan refresh, and HIL behavior.</p><Link className="textLink" href="/skills">Open Skills <span aria-hidden="true">→</span></Link></article>
-          <article><span className="compactDepthPill"><GlassIconOrb color="#83ddb3" size={28} decorative><OfficialToolIcon tool="terminal" size={15} decorative /></GlassIconOrb><span>88 actions</span></span><h3>Package-local MCP</h3><p>The native server exposes 27 read-only and 61 write-capable actions with explicit runtime gates.</p><Link className="textLink" href="/mcp">Open MCP <span aria-hidden="true">→</span></Link></article>
-          <article><span className="compactDepthPill"><GlassIconOrb color="#f2a1c5" size={28} decorative><OfficialToolIcon tool="pulse" size={15} decorative /></GlassIconOrb><span>8 events</span></span><h3>Lifecycle transport</h3><p>Hooks carry visible host events; they do not classify work, accept candidates, or move pointers.</p><Link className="textLink" href="/hooks">Open Hooks <span aria-hidden="true">→</span></Link></article>
+          <article><span className="compactDepthPill"><GlassIconOrb color="#a99af7" size={28} decorative><OfficialToolIcon tool="package" size={15} decorative /></GlassIconOrb><span>{currentProductContract.governedSkillCount} skills</span></span><h3>Governed workflows</h3><p>Skills own PREPARE, bounded native reads, classification, Plan refresh, and HIL behavior.</p><Link className="textLink" href="/skills">Open Skills <span aria-hidden="true">→</span></Link></article>
+          <article><span className="compactDepthPill"><GlassIconOrb color="#83ddb3" size={28} decorative><OfficialToolIcon tool="terminal" size={15} decorative /></GlassIconOrb><span>{currentProductContract.nativeMcp.totalActions} actions</span></span><h3>Package-local MCP</h3><p>The native server exposes {currentProductContract.nativeMcp.readActions} read-only and {currentProductContract.nativeMcp.writeActions} write-capable actions with explicit runtime gates.</p><Link className="textLink" href="/mcp">Open MCP <span aria-hidden="true">→</span></Link></article>
+          <article><span className="compactDepthPill"><GlassIconOrb color="#f2a1c5" size={28} decorative><OfficialToolIcon tool="pulse" size={15} decorative /></GlassIconOrb><span>{currentProductContract.hookEventCount} events</span></span><h3>Optional lifecycle transport</h3><p>Hooks carry visible host events; all explicit public routes still work with hooks off. Trust and enablement are separate, and hooks never classify work, accept candidates, or move pointers.</p><Link className="textLink" href="/hooks">Open Hooks <span aria-hidden="true">→</span></Link></article>
+        </div>
+      </section>
+
+      <section className="section shell authorityArchitecture">
+        <div className="sectionHead wideHead">
+          <span className="kicker">Control-plane separation</span>
+          <h2>One product does not mean one mutable state bucket.</h2>
+          <p>
+            The internal SDK routes typed operations to separate authorities. A hit in Memory,
+            Learning, Canon, or Project Universe can inform work only through its own receipt;
+            it cannot silently become source truth, Plan status, or PV approval.
+          </p>
+        </div>
+        <div className="authorityPlaneGrid authorityPlaneGrid--architecture">
+          {authorityPlanes.map(([name, detail], index) => (
+            <article key={name}><span>{String(index + 1).padStart(2, "0")}</span><h3>{name}</h3><p>{detail}</p></article>
+          ))}
         </div>
       </section>
 
@@ -117,12 +136,8 @@ export default function ArchitecturePage() {
       </section>
 
       <section className="section shell boundaryCompare">
-        <div className="sectionHead wideHead"><span className="kicker">Codex execution profiles</span><h2>One native lifecycle boundary across three storage realities.</h2></div>
-        <div className="compareGrid">
-          <article><span className="compactDepthPill"><GlassIconOrb color="#69d9f5" size={28} decorative><OfficialToolIcon tool="terminal" size={15} decorative /></GlassIconOrb><span>Persistent Codex</span></span><h3>Local-first and warm-attached</h3><p>The plugin is installed from the exact Git SHA. SQLite, Plan Lane, Agent Learning, and accepted-pointer authority remain on the durable user host through the package-local native MCP server.</p></article>
-          <article><span className="compactDepthPill"><GlassIconOrb color="#efca72" size={28} decorative><OfficialToolIcon tool="database" size={15} decorative /></GlassIconOrb><span>Headless Codex API</span></span><h3>Native tools without a network transport dependency</h3><p>When the API process runs on a local or persistent machine, Evidence Lane follows that machine's local project storage. A perishable worker restores only from an exact sealed exit package and configured storage carrier.</p></article>
-          <article><span className="compactDepthPill"><GlassIconOrb color="#f2a1c5" size={28} decorative><OfficialToolIcon tool="pulse" size={15} decorative /></GlassIconOrb><span>Failure boundary</span></span><h3>Closed, visible, and diagnosable</h3><p>Missing storage, package identity, execution-profile proof, native catalog parity, or task-panel continuity blocks lifecycle work. A successful website render proves none of those runtime conditions.</p></article>
-        </div>
+        <div className="sectionHead wideHead"><span className="kicker">Codex execution profiles</span><h2>One lifecycle law across capability-conditioned storage and transport routes.</h2><p>Open a profile to inspect storage, direct native MCP, proven tool-gap routing, setup frequency, credentials, and the exact authority boundary.</p></div>
+        <HostCapabilityMatrix />
       </section>
     </main>
   );

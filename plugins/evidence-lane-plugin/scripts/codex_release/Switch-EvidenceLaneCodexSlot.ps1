@@ -6,14 +6,13 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateSet(
         "main-git-release",
-        "branch-commit-recovery",
-        "mutable-local-testing"
+        "versioned-local-testing"
     )]
     [string]$TargetSlot,
     [ValidateSet(
         "EXPLICIT_OPERATOR_SELECTION",
-        "MUTABLE_LOCAL_RUNTIME_FAILURE",
-        "VERIFIED_BRANCH_RECOVERY_REPAIR"
+        "VERSIONED_LOCAL_RUNTIME_FAILURE",
+        "VERIFIED_STABLE_MAIN_RECOVERY"
     )]
     [string]$Reason = "EXPLICIT_OPERATOR_SELECTION",
     [string]$Registry,
@@ -22,7 +21,7 @@ param(
     [string]$PreparationReceiptSha256,
     [string]$CodexConfig = "$env:USERPROFILE\.codex\config.toml",
     [string]$CodexExecutable = "",
-    [string]$ReceiptDirectory = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin\installations\codex-v300\three-slot",
+    [string]$ReceiptDirectory = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin\installations\codex-v300\two-slot-main-local",
     [ValidateRange(0, 2147483647)]
     [int]$ConsecutiveFailures = 0,
     [ValidateRange(0, 2147483647)]
@@ -38,10 +37,10 @@ Set-StrictMode -Version Latest
 
 $script:SlotSelectors = [ordered]@{
     "main-git-release" = "evidence-lane-plugin@evidence-lane-github"
-    "branch-commit-recovery" = "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
-    "mutable-local-testing" = "evidence-lane-plugin@evidence-lane-v300-testing-new"
+    "versioned-local-testing" = "evidence-lane-plugin@evidence-lane-v300-testing-new"
 }
 $script:ObsoleteSelectors = @(
+    "evidence-lane-plugin@evidence-lane-v300-stable-recovery",
     "evidence-lane-plugin@evidence-lane-v300-local-successor",
     "evidence-lane-plugin@evidence-lane-pv11-fallback"
 )
@@ -74,7 +73,7 @@ function Write-JsonReceipt([string]$Path, [System.Collections.IDictionary]$Body)
 
 function Invoke-Tunnel([string]$Slot, [string]$TunnelAction) {
     if ($Slot -cnotin @($script:SlotSelectors.Keys)) {
-        throw "Tunnel control requires one exact three-slot role."
+        throw "Tunnel control requires one exact two-slot role."
     }
     if ($TunnelAction -cnotin @("Start", "Stop", "Status")) {
         throw "Tunnel control action is not supported by the slot switch."
@@ -123,34 +122,34 @@ function Get-PluginInventory {
     )
 }
 
-function Assert-ExactInstalledThreeSlots {
+function Assert-ExactInstalledTwoSlots {
     $rows = @(Get-PluginInventory)
     $bySelector = @{}
     foreach ($row in $rows) { $bySelector[[string]$row.pluginId] = $row }
     $expected = @($script:SlotSelectors.Values)
     if (
-        $rows.Count -ne 3 -or
+        $rows.Count -ne 2 -or
         @($bySelector.Keys | Where-Object { $_ -notin $expected }).Count -ne 0 -or
         @($expected | Where-Object { -not $bySelector.ContainsKey($_) }).Count -ne 0 -or
         @($script:ObsoleteSelectors | Where-Object { $bySelector.ContainsKey($_) }).Count -ne 0
     ) {
-        throw "The live Codex inventory is not the exact three-slot Evidence Lane boundary."
+        throw "The live Codex inventory is not the exact two-slot Evidence Lane boundary."
     }
     return $bySelector
 }
 
 function Read-SealedRegistry {
     if ([string]::IsNullOrWhiteSpace($Registry) -or [string]::IsNullOrWhiteSpace($RegistrySha256)) {
-        throw "Prepare and Switch require the exact sealed three-slot registry."
+        throw "Prepare and Switch require the exact sealed two-slot registry."
     }
     $expectedSha = Assert-Sha256 -Name "RegistrySha256" -Value $RegistrySha256
     $exact = (Resolve-Path -LiteralPath $Registry).Path
     if ((Get-Sha256 $exact) -cne $expectedSha) {
-        throw "The three-slot registry SHA-256 does not match."
+        throw "The two-slot registry SHA-256 does not match."
     }
     $body = Get-Content -LiteralPath $exact -Raw | ConvertFrom-Json
-    if ($body.schema -cne "evidence-lane.codex-three-slot-registry.v1") {
-        throw "The supplied registry is not the three-slot authority."
+    if ($body.schema -cne "evidence-lane.codex-two-slot-main-local-registry.v1") {
+        throw "The supplied registry is not the two-slot main/local authority."
     }
     foreach ($slot in $script:SlotSelectors.Keys) {
         $row = $body.slots.PSObject.Properties[$slot]
@@ -160,16 +159,16 @@ function Read-SealedRegistry {
             [string]$row.Value.plugin_selector -cne [string]$script:SlotSelectors[$slot] -or
             [string]$row.Value.plugin_version -notmatch '^\d+\.\d+\.\d+\+codex\.[0-9A-Za-z.-]+$'
         ) {
-            throw "The three-slot registry has a missing or mismatched slot."
+            throw "The two-slot registry has a missing or mismatched slot."
         }
     }
     if (
-        [int]$body.exact_live_slot_count -ne 3 -or
-        [string]$body.failure_target_slot -cne "branch-commit-recovery" -or
-        $body.mutable_local_failure_never_targets_main_git -ne $true -or
+        [int]$body.exact_live_slot_count -ne 2 -or
+        [string]$body.failure_target_slot -cne "stable-git-main" -or
+        $body.versioned_local_failure_targets_verified_main_only -ne $true -or
         $body.pre_3_0_fallback_allowed -ne $false
     ) {
-        throw "The three-slot registry selection law drifted."
+        throw "The two-slot registry selection law drifted."
     }
     return [ordered]@{ path = $exact; sha256 = $expectedSha; body = $body }
 }
@@ -208,7 +207,7 @@ function Assert-Activation([string]$ExpectedSlot, [switch]$AllowAllDisabled) {
     foreach ($slot in $script:SlotSelectors.Keys) {
         $selector = [string]$script:SlotSelectors[$slot]
         if (-not $activation.roots.ContainsKey($selector) -or -not $activation.mcps.ContainsKey($selector)) {
-            throw "The Codex config is missing an exact three-slot plugin/MCP pair."
+            throw "The Codex config is missing an exact two-slot plugin/MCP pair."
         }
         if ([bool]$activation.roots[$selector] -ne [bool]$activation.mcps[$selector]) {
             throw "An Evidence Lane plugin/MCP activation pair disagrees."
@@ -217,7 +216,7 @@ function Assert-Activation([string]$ExpectedSlot, [switch]$AllowAllDisabled) {
     }
     if ($AllowAllDisabled -and $enabled.Count -eq 0) { return $activation }
     if ($enabled.Count -ne 1 -or [string]$enabled[0] -cne $ExpectedSlot) {
-        throw "Exactly the requested three-slot selector must be enabled."
+        throw "Exactly the requested two-slot selector must be enabled."
     }
     return $activation
 }
@@ -273,12 +272,12 @@ function Set-ExclusiveActivation([string]$SelectedSlot) {
     return [ordered]@{ before_sha256 = $before.sha256; after_sha256 = $after.sha256; backup = $backup }
 }
 
-$inventory = Assert-ExactInstalledThreeSlots
-if ($Reason -ceq "MUTABLE_LOCAL_RUNTIME_FAILURE" -and $TargetSlot -cne "branch-commit-recovery") {
-    throw "A mutable local runtime failure may switch only to branch-commit-recovery."
+$inventory = Assert-ExactInstalledTwoSlots
+if ($Reason -ceq "VERSIONED_LOCAL_RUNTIME_FAILURE" -and $TargetSlot -cne "main-git-release") {
+    throw "A versioned local runtime failure may switch only to verified stable Git main."
 }
 if (
-    $Reason -ceq "MUTABLE_LOCAL_RUNTIME_FAILURE" -and (
+    $Reason -ceq "VERSIONED_LOCAL_RUNTIME_FAILURE" -and (
         $ConsecutiveFailures -lt 3 -or
         $SampleWindowSeconds -lt 30 -or
         $DistinctProbeTypes -lt 2 -or
@@ -291,7 +290,7 @@ if (
 if ($Action -ceq "Verify") {
     $activation = Assert-Activation -ExpectedSlot $TargetSlot
     [ordered]@{
-        schema = "evidence-lane.codex-three-slot-verification.v1"
+        schema = "evidence-lane.codex-two-slot-main-local-verification.v1"
         status = "PASS"
         active_slot = $TargetSlot
         active_selector = [string]$script:SlotSelectors[$TargetSlot]
@@ -308,18 +307,18 @@ $targetSelector = [string]$script:SlotSelectors[$TargetSlot]
 $targetInventory = $inventory[$targetSelector]
 $targetRegistry = $sealedRegistry.body.slots.PSObject.Properties[$TargetSlot].Value
 if ([string]$targetInventory.version -cne [string]$targetRegistry.plugin_version) {
-    throw "The installed target version does not match the sealed three-slot registry."
+    throw "The installed target version does not match the sealed two-slot registry."
 }
 
 if ($Action -ceq "Prepare") {
-    $activation = Assert-Activation -ExpectedSlot $TargetSlot -AllowAllDisabled
     $sourceSlot = [string]$sealedRegistry.body.active_slot
     if ($sourceSlot -cnotin @($script:SlotSelectors.Keys) -or $sourceSlot -ceq $TargetSlot) {
         throw "The sealed registry does not identify a distinct valid source slot."
     }
+    $activation = Assert-Activation -ExpectedSlot $sourceSlot
     $receiptPath = Join-Path $ReceiptDirectory ("PREPARE_" + [guid]::NewGuid().ToString("N") + ".json")
     Write-JsonReceipt $receiptPath ([ordered]@{
-        schema = "evidence-lane.codex-three-slot-switch-preparation.v1"
+        schema = "evidence-lane.codex-two-slot-main-local-switch-preparation.v1"
         status = "PASS"
         state = "PREPARED_NOT_SWITCHED"
         source_slot = $sourceSlot
@@ -331,7 +330,7 @@ if ($Action -ceq "Prepare") {
         registry_sha256 = $sealedRegistry.sha256
         config_sha256 = $activation.sha256
         obsolete_selector_activation_allowed = $false
-        mutable_local_failure_never_targets_main_git = $true
+        versioned_local_failure_targets_verified_main_only = $true
         pre_3_0_fallback_allowed = $false
         switched = $false
     })
@@ -356,7 +355,7 @@ $before = Read-Activation
 $source = [string]$prepared.source_slot
 $target = [string]$prepared.target_slot
 if (
-    $prepared.schema -cne "evidence-lane.codex-three-slot-switch-preparation.v1" -or
+    $prepared.schema -cne "evidence-lane.codex-two-slot-main-local-switch-preparation.v1" -or
     $prepared.state -cne "PREPARED_NOT_SWITCHED" -or
     $source -cnotin @($script:SlotSelectors.Keys) -or
     $source -ceq $TargetSlot -or
@@ -392,7 +391,7 @@ try {
 }
 $receiptPath = Join-Path $ReceiptDirectory ("SWITCH_" + [guid]::NewGuid().ToString("N") + ".json")
 Write-JsonReceipt $receiptPath ([ordered]@{
-    schema = "evidence-lane.codex-three-slot-switch-transition.v1"
+    schema = "evidence-lane.codex-two-slot-main-local-switch-transition.v1"
     status = "PASS"
     state = "TARGET_SELECTED_RESTART_REQUIRED"
     target_slot = $TargetSlot
@@ -405,7 +404,7 @@ Write-JsonReceipt $receiptPath ([ordered]@{
     exact_enabled_plugin_count = 1
     exact_enabled_mcp_count = 1
     obsolete_selector_active = $false
-    mutable_local_failure_never_targets_main_git = $true
+    versioned_local_failure_targets_verified_main_only = $true
     pre_3_0_fallback_allowed = $false
     restart_required = $true
     helper_installs_plugin = $false

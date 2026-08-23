@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 [assembly: AssemblyTitle("Evidence Lane Hook Host")]
-[assembly: AssemblyDescription("No-console transport for the eight governed Evidence Lane Codex hooks")]
+[assembly: AssemblyDescription("No-console transport for the registry-derived Evidence Lane Codex hooks")]
 [assembly: AssemblyCompany("Evidence Lane")]
 [assembly: AssemblyProduct("Evidence Lane")]
 [assembly: AssemblyVersion("3.0.0.0")]
@@ -18,11 +18,14 @@ internal static class EvidenceLaneHookHost
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             { "SessionStart", "session_start.py" },
+            { "SubagentStart", "subagent_start.py" },
             { "UserPromptSubmit", "prompt_submit.py" },
             { "PreToolUse", "pre_tool_use.py" },
+            { "PermissionRequest", "permission_request.py" },
             { "PostToolUse", "post_tool_use.py" },
             { "PreCompact", "lifecycle_boundary.py" },
             { "PostCompact", "lifecycle_boundary.py" },
+            { "SubagentStop", "subagent_stop.py" },
             { "Stop", "stop_response.py" },
             { "SessionEnd", "lifecycle_boundary.py" },
         };

@@ -1,14 +1,18 @@
 [CmdletBinding()]
 param(
-    [ValidateSet("Probe", "Register", "RecoverNow", "RecoverAtLogon", "Status", "Unregister")]
+    [ValidateSet("Probe", "Register", "RehydrateAll", "RecoverNow", "RecoverAtLogon", "Status", "Unregister")]
     [string]$Action = "Status",
     [string]$TaskBindingReceipt,
     [string]$TaskId,
     [string]$ActivePlanTaskId,
+    [string]$ExpectedInstalledPluginVersion,
+    [int]$ExpectedToolCount,
+    [switch]$InvokingTaskForegroundActivated,
+    [string]$AppId = "OpenAI.Codex_2p2nqsd0c76g0!App",
     [string]$Release = "3.0.0",
     [string]$RecoveryRoot = "",
-    [string]$ThreeSlotRegistry = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin\installations\codex-v300\three-slot\CODEX_THREE_SLOT_REGISTRY.json",
-    [string]$ThreeSlotRegistrySha256 = "",
+    [string]$TwoSlotRegistry = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin\installations\codex-v300\two-slot-main-local\CODEX_TWO_SLOT_MAIN_LOCAL_REGISTRY.json",
+    [string]$TwoSlotRegistrySha256 = "",
     [string]$ScheduledTaskName = ""
 )
 
@@ -19,10 +23,10 @@ if ($Release -notmatch '^\d+\.\d+\.\d+$') {
     throw "The Goal recovery helper requires one exact semantic release."
 }
 if (
-    $Action -in @("Register", "RecoverAtLogon") -and
-    $ThreeSlotRegistrySha256 -cnotmatch '^[A-F0-9]{64}$'
+    $Action -in @("Register", "RehydrateAll", "RecoverAtLogon") -and
+    $TwoSlotRegistrySha256 -cnotmatch '^[A-F0-9]{64}$'
 ) {
-    throw "Goal recovery registration requires the exact three-slot registry file seal."
+    throw "Goal recovery registration requires the exact Git-main/local-testing two-slot registry file seal."
 }
 $script:Release = $Release
 $script:ReleaseToken = "v" + ($Release -replace '\.', '')
@@ -54,8 +58,6 @@ $script:MaxRecoveryAttemptsPerBinding = 2
 $script:RecoveryBackoffSeconds = @(0, 2)
 $script:CanonicalStableSelector = "evidence-lane-plugin@evidence-lane-github"
 $script:LocalTestingSelector = "evidence-lane-plugin@evidence-lane-v300-testing-new"
-$script:LocalRecoverySelector = "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
-$script:GenerationNeutralFallbackSelector = "evidence-lane-plugin@evidence-lane-fallback"
 $script:HostAppProfiles = [ordered]@{
     "OpenAI.Codex_2p2nqsd0c76g0!App" = [ordered]@{
         app_id = "OpenAI.Codex_2p2nqsd0c76g0!App"
@@ -93,7 +95,16 @@ function Get-Sha256([string]$Path) {
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
         throw "Required file is missing: $Path"
     }
-    return (Get-FileHash -Algorithm SHA256 -LiteralPath $Path).Hash.ToUpperInvariant()
+    $exactPath = [IO.Path]::GetFullPath($Path)
+    $stream = [IO.File]::OpenRead($exactPath)
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return ([BitConverter]::ToString($sha256.ComputeHash($stream))).Replace("-", "")
+    }
+    finally {
+        $sha256.Dispose()
+        $stream.Dispose()
+    }
 }
 
 function Get-StringSha256([AllowEmptyString()][string]$Value) {
@@ -175,6 +186,79 @@ function Read-SealedBinding([string]$Path) {
         throw "Goal recovery task URI seal mismatch: $Path"
     }
     return $record
+}
+
+function Read-BindingInventoryIsolated() {
+    $bindingDirectory = Join-Path ([IO.Path]::GetFullPath($RecoveryRoot)) "bindings"
+    $records = @()
+    $failures = @()
+    $files = @(
+        if (Test-Path -LiteralPath $bindingDirectory -PathType Container) {
+            Get-ChildItem -LiteralPath $bindingDirectory -Filter "*.json" -File |
+                Sort-Object FullName
+        }
+    )
+    foreach ($file in $files) {
+        try {
+            $records += Read-SealedBinding $file.FullName
+        }
+        catch {
+            $failures += [ordered]@{
+                status = "FAIL_CLOSED"
+                state = "INVALID_BINDING_ISOLATED"
+                task_id = $null
+                binding_locator_sha256 = Get-StringSha256 ([IO.Path]::GetFullPath($file.FullName))
+                binding_file_sha256 = Get-Sha256 $file.FullName
+                failure = $_.Exception.Message
+                binding_mutated_by_failure = $false
+                another_task_degraded = $false
+            }
+        }
+    }
+    return [ordered]@{
+        file_count = $files.Count
+        valid_count = $records.Count
+        invalid_count = $failures.Count
+        records = $records
+        failures = $failures
+    }
+}
+
+function Preserve-InvalidBindingHistoryForReplacement(
+    [string]$Path,
+    [string]$ExactTaskId,
+    [string]$Failure
+) {
+    Assert-TaskId $ExactTaskId
+    $exactPath = [IO.Path]::GetFullPath($Path)
+    $expectedBindingPath = [IO.Path]::GetFullPath((Get-BindingPath $ExactTaskId))
+    if ($exactPath -cne $expectedBindingPath) {
+        throw "Invalid binding replacement is limited to the exact task binding path."
+    }
+    $fileSha256 = Get-Sha256 $exactPath
+    $historyRoot = Join-Path ([IO.Path]::GetFullPath($RecoveryRoot)) "invalid-binding-history"
+    [void](New-Item -ItemType Directory -Force -Path $historyRoot)
+    $historyPath = Join-Path $historyRoot (
+        $ExactTaskId.ToLowerInvariant() + "." + $fileSha256.ToLowerInvariant() + ".json"
+    )
+    if (-not (Test-Path -LiteralPath $historyPath -PathType Leaf)) {
+        Copy-Item -LiteralPath $exactPath -Destination $historyPath
+    }
+    if ((Get-Sha256 $historyPath) -cne $fileSha256) {
+        throw "The invalid binding history copy failed exact-byte verification."
+    }
+    return [ordered]@{
+        status = "PASS"
+        state = "INVALID_BINDING_BYTES_PRESERVED_BEFORE_EXACT_REPLACEMENT"
+        task_id = $ExactTaskId
+        original_binding_sha256 = $fileSha256
+        history_binding_sha256 = Get-Sha256 $historyPath
+        history_locator_sha256 = Get-StringSha256 ([IO.Path]::GetFullPath($historyPath))
+        failure = $Failure
+        invalid_payload_used_as_authority = $false
+        exact_bytes_preserved = $true
+        original_deleted = $false
+    }
 }
 
 function Copy-BindingPayload([object]$Record) {
@@ -461,60 +545,63 @@ function Read-TaskLocalRecoveryAuthority([object]$TaskBinding) {
     if ([string]$authority.mode -cne "LOCAL_TEST_DISABLED_HOOK_RECOVERY_INSTALL_RECEIPT") {
         return $null
     }
-    $path = [string]$authority.three_slot_registry
-    $expectedSha256 = [string]$authority.three_slot_registry_sha256
+    $path = [string]$authority.two_slot_main_local_registry
+    $expectedSha256 = [string]$authority.two_slot_main_local_registry_sha256
     if (
         [string]::IsNullOrWhiteSpace($path) -or
         $expectedSha256 -cnotmatch '^[A-F0-9]{64}$' -or
-        [string]$authority.mutable_local_selector -cne $script:LocalTestingSelector -or
-        [string]$authority.branch_commit_recovery_selector -cne $script:LocalRecoverySelector -or
-        [string]$authority.mutable_local_failure_target -cne $script:LocalRecoverySelector -or
-        $authority.mutable_local_failure_never_targets_main_git -ne $true -or
-        $authority.branch_commit_recovery_remains_prior_checkpoint -ne $true -or
-        $authority.branch_commit_recovery_byte_identical_before_checkpoint -ne $false -or
+        [string]$authority.versioned_local_selector -cne $script:LocalTestingSelector -or
+        [string]$authority.stable_git_main_selector -cne $script:CanonicalStableSelector -or
+        [string]$authority.versioned_local_failure_target -cne $script:CanonicalStableSelector -or
+        $authority.versioned_local_failure_targets_verified_main_only -ne $true -or
+        $authority.branch_recovery_selector_retired -ne $true -or
+        $authority.branch_recovery_install_allowed -ne $false -or
         $authority.pre_3_0_recovery_allowed -ne $false
     ) {
-        throw "The branch-commit recovery authority is incomplete."
+        throw "The stable-main recovery authority is incomplete."
     }
     $exact = (Resolve-Path -LiteralPath $path).Path
     $observedSha256 = Get-Sha256 $exact
     $registry = Get-Content -LiteralPath $exact -Raw | ConvertFrom-Json
-    $main = $registry.slots.'main-git-release'
-    $branch = $registry.slots.'branch-commit-recovery'
-    $local = $registry.slots.'mutable-local-testing'
+    $main = $registry.slots.'stable-git-main'
+    $local = $registry.slots.'versioned-local-testing'
+    $activeSlot = [string]$registry.active_slot
+    $activeSelector = [string]$registry.active_selector
+    $activeIsMain = $activeSlot -ceq "stable-git-main"
+    $activeIsLocal = $activeSlot -ceq "versioned-local-testing"
     if (
         $observedSha256 -cne $expectedSha256 -or
-        $registry.schema -cne "evidence-lane.codex-three-slot-registry.v1" -or
+        $registry.schema -cne "evidence-lane.codex-two-slot-main-local-registry.v1" -or
         $registry.status -cne "PASS" -or
-        [int]$registry.exact_live_slot_count -ne 3 -or
-        [string]$registry.active_slot -cne "mutable-local-testing" -or
-        [string]$registry.failure_target_slot -cne "branch-commit-recovery" -or
+        [int]$registry.exact_live_slot_count -ne 2 -or
+        [string]$registry.active_slot -cne "versioned-local-testing" -or
+        [string]$registry.failure_target_slot -cne "stable-git-main" -or
         [string]$main.plugin_selector -cne $script:CanonicalStableSelector -or
-        [string]$branch.plugin_selector -cne $script:LocalRecoverySelector -or
         [string]$local.plugin_selector -cne $script:LocalTestingSelector -or
         $main.enabled -ne $false -or
-        $branch.enabled -ne $false -or
         $local.enabled -ne $true -or
-        $branch.byte_frozen -ne $true -or
         $local.byte_frozen -ne $false -or
-        $registry.mutable_local_failure_never_targets_main_git -ne $true -or
+        $registry.local_failure_targets_verified_main_only -ne $true -or
+        $registry.branch_recovery_selector_retired -ne $true -or
+        $registry.branch_recovery_install_allowed -ne $false -or
         $registry.pre_3_0_fallback_allowed -ne $false -or
         $registry.candidate_created_or_accepted -ne $false -or
         $registry.pointer_moved -ne $false -or
         $registry.hil_inferred -ne $false
     ) {
-        throw "The three-slot recovery authority no longer matches its sealed registry."
+        throw "The two-slot stable-main recovery authority no longer matches its sealed registry."
     }
     return [ordered]@{
-        schema = "evidence-lane.codex-goal-branch-recovery-authority.v1"
+        schema = "evidence-lane.codex-goal-stable-main-recovery-authority.v1"
         registry_path = $exact
         registry_sha256 = $observedSha256
         primary_selector = $script:LocalTestingSelector
-        recovery_selector = $script:LocalRecoverySelector
+        recovery_selector = $script:CanonicalStableSelector
         byte_identical = $false
-        recovery_is_prior_branch_checkpoint = $true
+        recovery_is_verified_main = $true
         recovery_enabled = $false
-        main_git_recovery_allowed_for_mutable_local_failure = $false
+        stable_main_recovery_required_for_versioned_local_failure = $true
+        branch_recovery_selector_retired = $true
         pre_3_0_recovery_allowed = $false
         selector_switch_requires_exact_registry_and_host_restart = $true
         restart_loop_allowed = $false
@@ -530,18 +617,19 @@ function Read-GoalLocalRecoveryAuthority([object]$GoalBinding) {
     $exact = (Resolve-Path -LiteralPath ([string]$authority.registry_path)).Path
     if (
         (Get-Sha256 $exact) -cne [string]$authority.registry_sha256 -or
-        [string]$authority.schema -cne "evidence-lane.codex-goal-branch-recovery-authority.v1" -or
+        [string]$authority.schema -cne "evidence-lane.codex-goal-stable-main-recovery-authority.v1" -or
         [string]$authority.primary_selector -cne $script:LocalTestingSelector -or
-        [string]$authority.recovery_selector -cne $script:LocalRecoverySelector -or
+        [string]$authority.recovery_selector -cne $script:CanonicalStableSelector -or
         $authority.byte_identical -ne $false -or
-        $authority.recovery_is_prior_branch_checkpoint -ne $true -or
+        $authority.recovery_is_verified_main -ne $true -or
         $authority.recovery_enabled -ne $false -or
-        $authority.main_git_recovery_allowed_for_mutable_local_failure -ne $false -or
+        $authority.stable_main_recovery_required_for_versioned_local_failure -ne $true -or
+        $authority.branch_recovery_selector_retired -ne $true -or
         $authority.pre_3_0_recovery_allowed -ne $false -or
         $authority.selector_switch_requires_exact_registry_and_host_restart -ne $true -or
         $authority.restart_loop_allowed -ne $false
     ) {
-        throw "The Goal-bound branch-commit recovery authority drifted."
+        throw "The Goal-bound stable-main recovery authority drifted."
     }
     return $authority
 }
@@ -587,7 +675,33 @@ function Resolve-GoalBindingHostProfile([object]$GoalBinding) {
     return Read-TaskHostProfile $taskBinding
 }
 
-function Get-ExactCodexLauncher() {
+function Get-ExactCodexLauncher([object]$HostProfile) {
+    if ($null -eq $HostProfile) {
+        throw "The persistence probe requires one exact approved Codex host profile."
+    }
+    $approvedProfile = Get-HostAppProfile ([string]$HostProfile.app_id)
+    if (
+        [string]$HostProfile.host_application -cne [string]$approvedProfile.host_application -or
+        [string]$HostProfile.package_name -cne [string]$approvedProfile.package_name -or
+        [string]$HostProfile.package_family_name -cne [string]$approvedProfile.package_family_name
+    ) {
+        throw "The persistence probe host profile drifted from the approved AppUserModelID."
+    }
+    $packages = @(
+        Get-AppxPackage -Name ([string]$approvedProfile.package_name) |
+            Where-Object {
+                $_.PackageFamilyName -ceq [string]$approvedProfile.package_family_name -and
+                $_.Status -eq "Ok"
+            }
+    )
+    if ($packages.Count -ne 1) {
+        throw "The exact bound Codex host package is unavailable or ambiguous."
+    }
+    $package = $packages[0]
+    $appServerResource = Join-Path ([string]$package.InstallLocation) "app\resources\codex.exe"
+    if (-not (Test-Path -LiteralPath $appServerResource -PathType Leaf)) {
+        throw "The exact bound Codex host package has no app-server resource."
+    }
     $command = Get-Command codex.cmd -ErrorAction SilentlyContinue
     if ($null -eq $command) {
         throw "The supported Codex command launcher is unavailable."
@@ -600,6 +714,15 @@ function Get-ExactCodexLauncher() {
         throw "The Codex app-server launcher is incomplete."
     }
     return [ordered]@{
+        control_plane = "CHANNEL_AGNOSTIC_PERSISTED_THREAD_GOAL_AND_PLUGIN_CONFIGURATION_ONLY"
+        native_catalog_authority = $false
+        exact_host_app_id = [string]$approvedProfile.app_id
+        exact_host_application = [string]$approvedProfile.host_application
+        exact_host_release_channel = [string]$approvedProfile.desktop_release_channel
+        exact_host_package_name = [string]$approvedProfile.package_name
+        exact_host_package_family_name = [string]$approvedProfile.package_family_name
+        exact_host_package_version = [string]$package.Version
+        exact_host_app_server_resource_sha256 = Get-Sha256 $appServerResource
         command = $commandPath
         command_sha256 = Get-Sha256 $commandPath
         node = [IO.Path]::GetFullPath([string]$node.Source)
@@ -662,8 +785,7 @@ function Invoke-AppServerRequest(
 function Assert-RecoveryRuntimeSelector([string]$Selector) {
     if (
         $Selector -cne $script:CanonicalStableSelector -and
-        $Selector -cne $script:LocalTestingSelector -and
-        $Selector -cne $script:LocalRecoverySelector
+        $Selector -cne $script:LocalTestingSelector
     ) {
         throw "The Goal recovery runtime selector is outside the approved stable/local allowlist."
     }
@@ -671,11 +793,16 @@ function Assert-RecoveryRuntimeSelector([string]$Selector) {
 
 function Invoke-CodexGoalProbe(
     [string]$ExactTaskId,
-    [string]$ExpectedPluginSelector = $script:CanonicalStableSelector
+    [object]$HostProfile,
+    [string]$ExpectedPluginSelector = "",
+    [string]$ExpectedPluginVersion = "",
+    [int]$ExpectedCatalogToolCount = 0
 ) {
     Assert-TaskId $ExactTaskId
-    Assert-RecoveryRuntimeSelector $ExpectedPluginSelector
-    $launcher = Get-ExactCodexLauncher
+    if (-not [string]::IsNullOrWhiteSpace($ExpectedPluginSelector)) {
+        Assert-RecoveryRuntimeSelector $ExpectedPluginSelector
+    }
+    $launcher = Get-ExactCodexLauncher -HostProfile $HostProfile
     $start = [Diagnostics.ProcessStartInfo]::new()
     $start.FileName = [string]$launcher.node
     $start.Arguments = (ConvertTo-WindowsCommandLineArgument ([string]$launcher.codex_js)) + " app-server --stdio"
@@ -721,15 +848,9 @@ function Invoke-CodexGoalProbe(
         if ($null -eq $goalResult.goal -or [string]$goalResult.goal.threadId -ne $ExactTaskId) {
             throw "The exact Codex task has no persisted Goal."
         }
-        [void](Invoke-AppServerRequest `
-            -Process $process `
-            -RequestId 3 `
-            -Method "config/mcpServer/reload" `
-            -Params ([ordered]@{}) `
-            -TimeoutSeconds 30)
         $pluginResult = Invoke-AppServerRequest `
             -Process $process `
-            -RequestId 4 `
+            -RequestId 3 `
             -Method "plugin/list" `
             -Params ([ordered]@{
                 cwds = @([string]$threadResult.thread.cwd)
@@ -739,7 +860,15 @@ function Invoke-CodexGoalProbe(
         $pluginMatches = @(
             foreach ($marketplace in @($pluginResult.marketplaces)) {
                 foreach ($plugin in @($marketplace.plugins)) {
-                    if ([string]$plugin.id -ceq $ExpectedPluginSelector) {
+                    $pluginSelector = [string]$plugin.id
+                    $selectorMatches = if ([string]::IsNullOrWhiteSpace($ExpectedPluginSelector)) {
+                        $pluginSelector -ceq $script:CanonicalStableSelector -or
+                            $pluginSelector -ceq $script:LocalTestingSelector
+                    }
+                    else {
+                        $pluginSelector -ceq $ExpectedPluginSelector
+                    }
+                    if ($selectorMatches -and $plugin.installed -eq $true -and $plugin.enabled -eq $true) {
                         [ordered]@{
                             marketplace_name = [string]$marketplace.name
                             marketplace_path = if ($null -eq $marketplace.path) { $null } else { [string]$marketplace.path }
@@ -750,52 +879,19 @@ function Invoke-CodexGoalProbe(
             }
         )
         if ($pluginMatches.Count -ne 1) {
-            throw "The isolated Codex app-server did not resolve the one exact bound Evidence Lane runtime plugin."
+            throw "The persistence probe did not resolve exactly one enabled approved Evidence Lane plugin selector."
         }
         $pluginMatch = $pluginMatches[0]
         if ($pluginMatch.plugin.installed -ne $true -or $pluginMatch.plugin.enabled -ne $true) {
             throw "The exact bound Evidence Lane runtime plugin is not both installed and enabled."
         }
-        $mcpStatus = Invoke-AppServerRequest `
-            -Process $process `
-            -RequestId 5 `
-            -Method "mcpServerStatus/list" `
-            -Params ([ordered]@{
-                detail = "full"
-                limit = 100
-            }) `
-            -TimeoutSeconds 120
-        $evidenceServers = @(
-            @($mcpStatus.data) | Where-Object { [string]$_.name -ceq "evidence-lane" }
-        )
-        if ($evidenceServers.Count -ne 1) {
-            throw "The isolated Codex app-server did not resolve exactly one Evidence Lane MCP server."
+        if (
+            -not [string]::IsNullOrWhiteSpace($ExpectedPluginVersion) -and
+            [string]$pluginMatch.plugin.localVersion -cne $ExpectedPluginVersion
+        ) {
+            throw "The exact bound plugin configuration does not expose the expected installed version."
         }
-        $evidenceServer = $evidenceServers[0]
-        $toolCount = @($evidenceServer.tools.PSObject.Properties).Count
-        if ($toolCount -ne 88) {
-            throw "The Evidence Lane MCP catalog did not expose the exact 88-tool contract."
-        }
-        $governedResourceUri = "ui://evidence-lane/governed-console-v6.html"
-        $governedResources = @(
-            @($evidenceServer.resources) |
-                Where-Object { [string]$_.uri -ceq $governedResourceUri }
-        )
-        if ($governedResources.Count -ne 1) {
-            throw "The Evidence Lane governed-console resource is missing or duplicated."
-        }
-        $resourceResult = Invoke-AppServerRequest `
-            -Process $process `
-            -RequestId 6 `
-            -Method "mcpServer/resource/read" `
-            -Params ([ordered]@{
-                server = "evidence-lane"
-                uri = $governedResourceUri
-            }) `
-            -TimeoutSeconds 60
-        if (@($resourceResult.contents).Count -lt 1) {
-            throw "The Evidence Lane governed-console resource returned no content."
-        }
+        $resolvedPluginSelector = [string]$pluginMatch.plugin.id
         $goal = $goalResult.goal
         return [ordered]@{
             task_id = $ExactTaskId
@@ -808,28 +904,42 @@ function Invoke-CodexGoalProbe(
             goal_tokens_used = [long]$goal.tokensUsed
             goal_time_used_seconds = [long]$goal.timeUsedSeconds
             goal_updated_at = [long]$goal.updatedAt
-            query_route = "CODEX_APP_SERVER_THREAD_READ_PLUS_THREAD_GOAL_GET"
+            query_route = "CHANNEL_AGNOSTIC_PERSISTENCE_APP_SERVER_THREAD_READ_PLUS_THREAD_GOAL_GET"
             runtime_prewarm = [ordered]@{
-                status = "PASS"
-                route = "ISOLATED_OFFICIAL_CODEX_APP_SERVER"
+                status = "PASS_WITH_TASK_LOCAL_NATIVE_PROOF_PENDING"
+                route = "ISOLATED_PERSISTENCE_AND_PLUGIN_CONFIGURATION_ONLY"
                 app_server_process_hidden = $true
-                config_mcp_server_reload_request_passed = $true
-                canonical_plugin_selector = $ExpectedPluginSelector
-                bound_plugin_selector = $ExpectedPluginSelector
+                exact_host_app_id = [string]$launcher.exact_host_app_id
+                exact_host_application = [string]$launcher.exact_host_application
+                exact_host_release_channel = [string]$launcher.exact_host_release_channel
+                exact_host_package_name = [string]$launcher.exact_host_package_name
+                exact_host_package_family_name = [string]$launcher.exact_host_package_family_name
+                exact_host_package_version = [string]$launcher.exact_host_package_version
+                exact_host_app_server_resource_sha256 = [string]$launcher.exact_host_app_server_resource_sha256
+                canonical_plugin_selector = $resolvedPluginSelector
+                bound_plugin_selector = $resolvedPluginSelector
+                selector_resolution = if ([string]::IsNullOrWhiteSpace($ExpectedPluginSelector)) {
+                    "UNIQUE_ENABLED_APPROVED_TWO_SLOT_SELECTOR"
+                }
+                else {
+                    "EXACT_CALLER_BOUND_SELECTOR"
+                }
                 canonical_plugin_installed = [bool]$pluginMatch.plugin.installed
                 canonical_plugin_enabled = [bool]$pluginMatch.plugin.enabled
                 canonical_plugin_local_version = [string]$pluginMatch.plugin.localVersion
                 marketplace_name = [string]$pluginMatch.marketplace_name
                 marketplace_path_sha256 = if ($null -eq $pluginMatch.marketplace_path) { $null } else { Get-StringSha256 ([string]$pluginMatch.marketplace_path) }
                 raw_marketplace_path_stored = $false
-                mcp_server_name = [string]$evidenceServer.name
-                mcp_server_version = [string]$evidenceServer.serverInfo.version
-                exact_tool_count = $toolCount
-                mcp_inventory_scope = "ISOLATED_APP_SERVER_GLOBAL_RUNTIME"
+                expected_tool_count = $ExpectedCatalogToolCount
+                exact_tool_count = $null
+                mcp_inventory_scope = "TASK_LOCAL_NATIVE_PROOF_REQUIRED_ON_EXACT_OPEN"
                 task_continuity_scope = "PERSISTED_EXACT_THREAD_AND_GOAL"
                 thread_scoped_mcp_inventory_available = $false
-                governed_resource_uri = $governedResourceUri
-                governed_resource_payload_sha256 = Get-StringSha256 (ConvertTo-CanonicalJson $resourceResult)
+                catalog_rehydrated = $false
+                skills_commands_sdk_and_mcp_reloaded_by_installed_plugin = $false
+                task_local_native_proof_required = $true
+                isolated_mcp_server_status_queried = $false
+                isolated_governed_resource_queried = $false
                 live_desktop_process_reconfigured = $false
                 live_desktop_control_plane = "HOST_CAPABILITY_UNAVAILABLE_WINDOWS_APP_SERVER_DAEMON"
                 live_host_next_active_turn_refresh_claimed = $false
@@ -839,7 +949,18 @@ function Invoke-CodexGoalProbe(
             prompt_injected = $false
             app_restarted = $false
             restart_fallback_invoked = $false
-            launcher = $launcher
+            launcher = [ordered]@{
+                control_plane = [string]$launcher.control_plane
+                native_catalog_authority = [bool]$launcher.native_catalog_authority
+                exact_host_app_id = [string]$launcher.exact_host_app_id
+                exact_host_package_family_name = [string]$launcher.exact_host_package_family_name
+                exact_host_package_version = [string]$launcher.exact_host_package_version
+                exact_host_app_server_resource_sha256 = [string]$launcher.exact_host_app_server_resource_sha256
+                command_sha256 = [string]$launcher.command_sha256
+                node_sha256 = [string]$launcher.node_sha256
+                codex_js_sha256 = [string]$launcher.codex_js_sha256
+                raw_launcher_paths_stored = $false
+            }
         }
     }
     finally {
@@ -925,214 +1046,72 @@ public static class EvidenceLaneGoalRecoveryActivation {
     }
 }
 
-function Get-OptionalPropertyText([object]$Object, [string]$Name) {
-    $property = $Object.PSObject.Properties[$Name]
-    if ($null -eq $property -or $null -eq $property.Value) {
-        return ""
-    }
-    return [string]$property.Value
-}
-
-function Get-FallbackReleaseAuthority([object]$Registry, [object]$Fallback) {
-    $acceptedPv = [string]$Registry.accepted_pv
-    $acceptedGeneration = [int]$Registry.accepted_generation
-    $acceptedPackageSha256 = ([string]$Registry.accepted_package_sha256).ToUpperInvariant()
-    $acceptedPluginVersionText = Get-OptionalPropertyText -Object $Registry -Name "accepted_plugin_version"
-    $acceptedPluginVersion = if (
-        -not [string]::IsNullOrWhiteSpace($acceptedPluginVersionText)
-    ) {
-        $acceptedPluginVersionText
-    }
-    else {
-        [string]$Fallback.plugin_version
-    }
-    $selector = [string]$Fallback.plugin_selector
-    $selectorClass = if ($selector -ceq $script:GenerationNeutralFallbackSelector) {
-        "GENERATION_NEUTRAL_LOCATOR"
-    }
-    elseif ($selector -match '^evidence-lane-plugin@evidence-lane-pv[1-9][0-9]*-fallback$') {
-        "LEGACY_GENERATION_ALIAS_LOCATOR"
-    }
-    else {
-        throw "The fallback selector is not a governed operational locator."
-    }
-    if (
-        $acceptedPv -notmatch '^PV[1-9][0-9]*$' -or
-        $acceptedPv -cne ("PV" + $acceptedGeneration) -or
-        [string]$Fallback.accepted_pv -cne $acceptedPv -or
-        [int]$Fallback.accepted_generation -ne $acceptedGeneration -or
-        $acceptedPackageSha256 -notmatch '^[A-F0-9]{64}$' -or
-        ([string]$Fallback.package_sha256).ToUpperInvariant() -cne $acceptedPackageSha256 -or
-        [string]$Fallback.plugin_version -cne $acceptedPluginVersion -or
-        [string]$Fallback.slot_role -cne "fallback" -or
-        $Fallback.byte_frozen -ne $true -or
-        $Fallback.enabled -ne $false -or
-        $Fallback.native_mcp_enabled -ne $false
-    ) {
-        throw "The fallback release authority does not match the sealed PV/package boundary."
-    }
-    $optionalHashes = [ordered]@{
-        accepted_manifest_sha256 = (Get-OptionalPropertyText -Object $Registry -Name "accepted_manifest_sha256").ToUpperInvariant()
-        accepted_universal_pv_package_sha256 = (Get-OptionalPropertyText -Object $Registry -Name "accepted_universal_pv_package_sha256").ToUpperInvariant()
-        cache_authority_manifest_sha256 = (Get-OptionalPropertyText -Object $Fallback -Name "cache_authority_manifest_sha256").ToUpperInvariant()
-        install_receipt_sha256 = (Get-OptionalPropertyText -Object $Fallback -Name "install_receipt_sha256").ToUpperInvariant()
-        plugin_manifest_sha256 = (Get-OptionalPropertyText -Object $Fallback -Name "plugin_manifest_sha256").ToUpperInvariant()
-    }
-    foreach ($hash in $optionalHashes.Values) {
-        if (-not [string]::IsNullOrWhiteSpace([string]$hash) -and [string]$hash -notmatch '^[A-F0-9]{64}$') {
-            throw "A sealed fallback authority hash is malformed."
-        }
-    }
-    # Alphabetical property order matches install_codex_stable.py exactly.
-    $payload = [ordered]@{
-        accepted_generation = $acceptedGeneration
-        accepted_manifest_sha256 = [string]$optionalHashes.accepted_manifest_sha256
-        accepted_package_sha256 = $acceptedPackageSha256
-        accepted_plugin_version = $acceptedPluginVersion
-        accepted_pv = $acceptedPv
-        accepted_universal_pv_package_sha256 = [string]$optionalHashes.accepted_universal_pv_package_sha256
-        byte_frozen = $true
-        cache_authority_manifest_sha256 = [string]$optionalHashes.cache_authority_manifest_sha256
-        enabled = $false
-        install_receipt_sha256 = [string]$optionalHashes.install_receipt_sha256
-        native_mcp_enabled = $false
-        package_sha256 = $acceptedPackageSha256
-        plugin_manifest_sha256 = [string]$optionalHashes.plugin_manifest_sha256
-        plugin_version = $acceptedPluginVersion
-        schema = "evidence-lane.fallback-release-authority.v1"
-        slot_role = "fallback"
-    }
-    $authoritySha256 = Get-StringSha256 (ConvertTo-CanonicalJson $payload)
-    $manifestEvidenceComplete = $true
-    foreach ($hash in $optionalHashes.Values) {
-        if ([string]::IsNullOrWhiteSpace([string]$hash)) {
-            $manifestEvidenceComplete = $false
-        }
-    }
-    $publishedProperty = $Registry.PSObject.Properties["fallback_release_authority"]
-    if (
-        $null -ne $publishedProperty -and
-        [string]$publishedProperty.Value.fallback_authority_sha256 -cne $authoritySha256
-    ) {
-        throw "The published fallback release authority seal does not match its PV/package/manifest fields."
-    }
-    return [ordered]@{
-        authority_id = "fallback_" + $authoritySha256.Substring(0, 40).ToLowerInvariant()
-        fallback_authority_sha256 = $authoritySha256
-        manifest_evidence_complete = $manifestEvidenceComplete
-        selector = $selector
-        selector_class = $selectorClass
-        selector_is_authority = $false
-        payload = $payload
-    }
-}
-
-function Read-TwoSlotAuthority([string]$Path) {
-    $exact = (Resolve-Path -LiteralPath $Path).Path
-    $registry = Get-Content -LiteralPath $exact -Raw | ConvertFrom-Json
-    $registrySha256 = Get-Sha256 $exact
-    $stable = $registry.slots.'stable-build'
-    $fallback = $registry.slots.fallback
-    $fallbackAuthority = Get-FallbackReleaseAuthority -Registry $registry -Fallback $fallback
-    if (
-        $registry.schema -ne "evidence-lane.codex-two-slot-registry.v1" -or
-        $registry.status -ne "PASS" -or
-        $registry.exact_live_slot_count -ne 2 -or
-        $registry.max_enabled_plugin_count -ne 1 -or
-        $registry.active_slot -ne "stable-build" -or
-        $stable.enabled -ne $true -or
-        $stable.byte_frozen -ne $false -or
-        $fallback.enabled -ne $false -or
-        $fallback.byte_frozen -ne $true -or
-        [string]$stable.plugin_selector -eq [string]$fallback.plugin_selector
-    ) {
-        throw "The exact stable/fallback two-slot authority is not recoverable."
-    }
-    return [ordered]@{
-        authority_scope = "SHARED_RELEASE_SLOT_AUTHORITY"
-        task_binding_scope = "SEPARATE_MUTABLE_REGISTRY"
-        authority_id = "two_slot_" + $registrySha256.Substring(0, 40).ToLowerInvariant()
-        registry_path = $exact
-        registry_sha256 = $registrySha256
-        release_authority_sha256 = $registrySha256
-        registry_origin_identity_used_for_authorization = $false
-        accepted_pv = [string]$registry.accepted_pv
-        accepted_generation = [int]$registry.accepted_generation
-        stable_selector = [string]$stable.plugin_selector
-        stable_enabled = $true
-        stable_byte_frozen = $false
-        fallback_selector = [string]$fallback.plugin_selector
-        fallback_selector_class = [string]$fallbackAuthority.selector_class
-        fallback_selector_is_authority = $false
-        fallback_authority_id = [string]$fallbackAuthority.authority_id
-        fallback_authority_sha256 = [string]$fallbackAuthority.fallback_authority_sha256
-        fallback_manifest_evidence_complete = [bool]$fallbackAuthority.manifest_evidence_complete
-        fallback_enabled = $false
-        fallback_byte_frozen = $true
-        exact_live_slot_count = 2
-        max_enabled_plugin_count = 1
-    }
-}
-
-function Read-ThreeSlotAuthority([string]$Path, [string]$ExpectedSha256 = "") {
+function Read-TwoSlotAuthority([string]$Path, [string]$ExpectedSha256 = "") {
     $exact = (Resolve-Path -LiteralPath $Path).Path
     $registrySha256 = Get-Sha256 $exact
     if (
         -not [string]::IsNullOrWhiteSpace($ExpectedSha256) -and
         $registrySha256 -cne $ExpectedSha256.ToUpperInvariant()
     ) {
-        throw "The exact three-slot registry file seal drifted."
+        throw "The exact two-slot registry file seal drifted."
     }
     $registry = Get-Content -LiteralPath $exact -Raw | ConvertFrom-Json
-    $main = $registry.slots.'main-git-release'
-    $branch = $registry.slots.'branch-commit-recovery'
-    $local = $registry.slots.'mutable-local-testing'
+    $main = $registry.slots.'stable-git-main'
+    $local = $registry.slots.'versioned-local-testing'
+    $activeSlot = [string]$registry.active_slot
+    $activeSelector = [string]$registry.active_selector
+    $activeIsMain = $activeSlot -ceq "stable-git-main"
+    $activeIsLocal = $activeSlot -ceq "versioned-local-testing"
     if (
-        $registry.schema -cne "evidence-lane.codex-three-slot-registry.v1" -or
+        $registry.schema -cne "evidence-lane.codex-two-slot-main-local-registry.v1" -or
         $registry.status -cne "PASS" -or
-        [int]$registry.exact_live_slot_count -ne 3 -or
+        [int]$registry.exact_live_slot_count -ne 2 -or
         [int]$registry.max_enabled_plugin_count -ne 1 -or
         [int]$registry.max_active_native_mcp_count -ne 1 -or
-        [string]$registry.active_slot -cne "mutable-local-testing" -or
-        [string]$registry.active_selector -cne $script:LocalTestingSelector -or
-        [string]$registry.failure_target_slot -cne "branch-commit-recovery" -or
-        $registry.mutable_local_failure_never_targets_main_git -ne $true -or
-        $registry.branch_recovery_must_remain_prior_checkpoint_until_commit -ne $true -or
+        (-not $activeIsMain -and -not $activeIsLocal) -or
+        ($activeIsMain -and $activeSelector -cne $script:CanonicalStableSelector) -or
+        ($activeIsLocal -and $activeSelector -cne $script:LocalTestingSelector) -or
+        [string]$registry.failure_target_slot -cne "stable-git-main" -or
+        $registry.local_failure_targets_verified_main_only -ne $true -or
+        $registry.branch_recovery_selector_retired -ne $true -or
+        $registry.branch_recovery_install_allowed -ne $false -or
         $registry.pre_3_0_fallback_allowed -ne $false -or
         $registry.obsolete_live_selectors_allowed -ne $false -or
         [string]$main.plugin_selector -cne $script:CanonicalStableSelector -or
-        [string]$branch.plugin_selector -cne $script:LocalRecoverySelector -or
         [string]$local.plugin_selector -cne $script:LocalTestingSelector -or
-        $main.enabled -ne $false -or
-        $branch.enabled -ne $false -or
-        $local.enabled -ne $true -or
-        $branch.byte_frozen -ne $true -or
+        [bool]$main.enabled -ne $activeIsMain -or
+        [bool]$local.enabled -ne $activeIsLocal -or
+        [bool]$main.native_mcp_enabled -ne $activeIsMain -or
+        [bool]$local.native_mcp_enabled -ne $activeIsLocal -or
         $local.byte_frozen -ne $false -or
         $registry.candidate_created_or_accepted -ne $false -or
         $registry.pointer_moved -ne $false -or
         $registry.hil_inferred -ne $false
     ) {
-        throw "The exact main/branch/local three-slot authority is not recoverable."
+        throw "The exact Git-main/local-testing two-slot authority is not recoverable."
     }
     return [ordered]@{
-        authority_scope = "SHARED_THREE_SLOT_RELEASE_AUTHORITY"
+        authority_scope = "SHARED_TWO_SLOT_MAIN_LOCAL_RELEASE_AUTHORITY"
         task_binding_scope = "SEPARATE_MUTABLE_EXACT_TASK_REGISTRY"
-        authority_id = "three_slot_" + $registrySha256.Substring(0, 40).ToLowerInvariant()
+        authority_id = "two_slot_" + $registrySha256.Substring(0, 40).ToLowerInvariant()
         registry_path = $exact
         registry_sha256 = $registrySha256
         release_authority_sha256 = $registrySha256
+        registry_origin_identity_used_for_authorization = $false
+        active_slot = $activeSlot
+        active_selector = $activeSelector
+        active_version = if ($activeIsMain) { [string]$main.plugin_version } else { [string]$local.plugin_version }
         main_git_selector = [string]$main.plugin_selector
         main_git_version = [string]$main.plugin_version
-        branch_recovery_selector = [string]$branch.plugin_selector
-        branch_recovery_version = [string]$branch.plugin_version
-        branch_recovery_byte_frozen = $true
         mutable_local_selector = [string]$local.plugin_selector
         mutable_local_version = [string]$local.plugin_version
         mutable_local_enabled = $true
-        mutable_local_failure_target = [string]$branch.plugin_selector
-        mutable_local_failure_never_targets_main_git = $true
+        mutable_local_failure_target = [string]$main.plugin_selector
+        mutable_local_failure_targets_verified_main_only = $true
+        branch_recovery_selector_retired = $true
+        branch_recovery_install_allowed = $false
         pre_3_0_fallback_allowed = $false
-        exact_live_slot_count = 3
+        exact_live_slot_count = 2
         max_enabled_plugin_count = 1
     }
 }
@@ -1148,13 +1127,183 @@ function Assert-BindingReleaseAuthority([object]$Binding, [object]$Authority) {
     if (
         [string]::IsNullOrWhiteSpace($boundReleaseSha256) -or
         $boundReleaseSha256 -ne [string]$Authority.release_authority_sha256 -or
-        [string]$Binding.slot_authority.branch_recovery_selector -cne
-            [string]$Authority.branch_recovery_selector -or
+        [string]$Binding.slot_authority.main_git_selector -cne
+            [string]$Authority.main_git_selector -or
         [string]$Binding.slot_authority.mutable_local_selector -cne
             [string]$Authority.mutable_local_selector -or
-        $Binding.slot_authority.mutable_local_failure_never_targets_main_git -ne $true
+        [string]$Binding.slot_authority.active_selector -cne
+            [string]$Authority.active_selector -or
+        [string]$Binding.slot_authority.active_version -cne
+            [string]$Authority.active_version -or
+        $Binding.slot_authority.mutable_local_failure_targets_verified_main_only -ne $true
     ) {
-        throw "The mutable task binding must be refreshed against the current sealed three-slot authority."
+        throw "The mutable task binding must be refreshed against the current sealed two-slot authority."
+    }
+}
+
+function Set-ExactBindingReleaseRehydration(
+    [object]$Record,
+    [object]$Authority,
+    [object]$Probe,
+    [object]$Activation,
+    [string]$InvokingTaskId,
+    [string]$ExpectedVersion,
+    [int]$ExpectedCatalogToolCount
+) {
+    $exactTaskId = [string]$Record.payload.task_id
+    Assert-TaskId $exactTaskId
+    Assert-TaskId $InvokingTaskId
+    $isInvokingTask = $exactTaskId -ceq $InvokingTaskId
+    if (
+        [string]$Probe.task_id -cne $exactTaskId -or
+        [string]$Probe.runtime_prewarm.canonical_plugin_local_version -cne $ExpectedVersion -or
+        [string]$Probe.runtime_prewarm.bound_plugin_selector -cne [string]$Authority.active_selector -or
+        [int]$Probe.runtime_prewarm.expected_tool_count -ne $ExpectedCatalogToolCount -or
+        $Probe.runtime_prewarm.catalog_rehydrated -ne $false -or
+        $Probe.runtime_prewarm.task_local_native_proof_required -ne $true
+    ) {
+        throw "The exact task did not resolve the expected attachment metadata boundary."
+    }
+    if ($isInvokingTask -and $Activation.request_observed -ne $true) {
+        throw "The invoking task foreground activation was not observed."
+    }
+    if ((-not $isInvokingTask) -and $Activation.request_observed -ne $false) {
+        throw "A non-invoking task attempted to steal foreground navigation."
+    }
+    $path = Get-BindingPath $exactTaskId
+    $beforeSha256 = Get-Sha256 $path
+    $revision = (Get-BindingRevision $Record) + 1
+    $correlationId = "binding_" + (Get-StringSha256 (
+        $exactTaskId + "|" + $revision + "|GLOBAL_PLUGIN_UPDATE_REHYDRATION|" +
+        $beforeSha256 + "|" + [string]$Authority.release_authority_sha256 + "|" +
+        $ExpectedVersion
+    )).Substring(0, 40).ToLowerInvariant()
+    $payload = Copy-BindingPayload $Record
+    $identityBefore = [ordered]@{
+        task_id = [string]$payload.task_id
+        project_id = [string]$payload.project_id
+        evidence_session_id = [string]$payload.evidence_session_id
+        governed_host_session_id = [string]$payload.governed_host_session_id
+        active_plan_task_id = [string]$payload.active_plan_task_id
+        canonical_authority = [string]$payload.canonical_authority
+        task_uri_sha256 = [string]$payload.task_uri_sha256
+    }
+    $payload.binding_revision = $revision
+    $payload.previous_binding_sha256 = $beforeSha256
+    $payload.last_binding_correlation_id = $correlationId
+    $payload.runtime_plugin_selector = [string]$Authority.active_selector
+    $payload.slot_authority = $Authority
+    $payload.goal = $Probe
+    $payload.task_authority_role = if ($isInvokingTask) {
+        "SOLE_WORKSPACE_WRITER"
+    }
+    else {
+        "READ_ONLY_OR_HISTORICAL"
+    }
+    $payload.attachment_rehydration = [ordered]@{
+        law_id = "GLOBAL_PLUGIN_UPDATE_REHYDRATION_LAW"
+        state = "ATTACHMENT_METADATA_REBOUND_NATIVE_TASK_PROOF_PENDING"
+        plugin_selector = [string]$Authority.active_selector
+        plugin_version = $ExpectedVersion
+        expected_tool_count = $ExpectedCatalogToolCount
+        exact_tool_count = $null
+        catalog_rehydrated = $false
+        skills_commands_sdk_and_mcp_reloaded_by_installed_plugin = $false
+        task_local_native_proof_required = $true
+        task_local_native_proof_status = "PENDING_EXACT_TASK_OPEN"
+        exact_task_deeplink_reopen_required = $isInvokingTask
+        exact_task_deeplink_reopen_observed = [bool]$Activation.request_observed
+        invoking_task_foreground_preserved = $isInvokingTask
+        non_invoking_foreground_navigation_requested = $false
+        non_invoking_attachment_rehydration_mode = if ($isInvokingTask) {
+            "FOREGROUND_TASK_OPENED_NATIVE_PROOF_REQUIRED"
+        }
+        else {
+            "DEFERRED_UNTIL_EXACT_TASK_OPEN_NO_FOREGROUND_NAVIGATION"
+        }
+        task_identity_preserved = $true
+        project_session_workspace_profile_preserved = $true
+        plan_goal_binding_preserved = $true
+        writer_or_read_only_role_preserved = $true
+        runtime_instance_attestation_copied = $false
+        runtime_instance_attestation_source = "SERVER_DERIVED_BY_NEW_MCP_SESSION_AFTER_RECONNECT"
+        runtime_instance_attestation_pending_native_session = $true
+        caller_supplied_pid_or_runtime_instance_allowed = $false
+        task_created = $false
+        task_merged = $false
+        state_travel_invoked = $false
+        one_shot_receipt_replayed = $false
+        hooks_enabled_by_update = $false
+        candidate_hil_or_pointer_mutated = $false
+    }
+    $identityAfter = [ordered]@{
+        task_id = [string]$payload.task_id
+        project_id = [string]$payload.project_id
+        evidence_session_id = [string]$payload.evidence_session_id
+        governed_host_session_id = [string]$payload.governed_host_session_id
+        active_plan_task_id = [string]$payload.active_plan_task_id
+        canonical_authority = [string]$payload.canonical_authority
+        task_uri_sha256 = [string]$payload.task_uri_sha256
+    }
+    if ((ConvertTo-CanonicalJson $identityBefore) -cne (ConvertTo-CanonicalJson $identityAfter)) {
+        throw "Plugin update rehydration attempted to change task-local authority."
+    }
+    $updated = [ordered]@{
+        schema = $script:Schema
+        payload = $payload
+        payload_sha256 = Get-StringSha256 (ConvertTo-CanonicalJson $payload)
+    }
+    Write-AtomicJson $path $updated
+    $afterSha256 = Get-Sha256 $path
+    $eventReceipt = Write-BindingEventReceipt `
+        -Event "GLOBAL_PLUGIN_UPDATE_TASK_REHYDRATED" `
+        -ExactTaskId $exactTaskId `
+        -ProjectId ([string]$payload.project_id) `
+        -EvidenceSessionId ([string]$payload.evidence_session_id) `
+        -Revision $revision `
+        -CorrelationId $correlationId `
+        -BeforeBindingSha256 $beforeSha256 `
+        -AfterBindingSha256 $afterSha256 `
+        -Reason "INSTALLED_RELEASE_EXACT_TASK_ATTACHMENT_REHYDRATED"
+    return [ordered]@{
+        status = "PASS"
+        task_id = $exactTaskId
+        task_authority_role = [string]$payload.task_authority_role
+        binding_revision = $revision
+        binding_sha256 = $afterSha256
+        event_receipt = $eventReceipt
+        exact_task_deeplink_reopen_observed = [bool]$Activation.request_observed
+        activation = $Activation
+        another_binding_mutated = $false
+    }
+}
+
+function New-NonNavigatingRehydrationObservation(
+    [string]$ExactTaskId,
+    [string]$InvokingTaskId
+) {
+    Assert-TaskId $ExactTaskId
+    Assert-TaskId $InvokingTaskId
+    $isInvokingTask = $ExactTaskId -ceq $InvokingTaskId
+    $taskUri = "codex://threads/$ExactTaskId"
+    return [ordered]@{
+        task_id = $ExactTaskId
+        mode = if ($isInvokingTask) {
+            "INVOKING_TASK_FOREGROUND_ACTIVATED_ONCE_BY_RESTART_HELPER"
+        }
+        else {
+            "NON_NAVIGATING_ATTACHMENT_METADATA_REVALIDATION_NATIVE_PROOF_DEFERRED"
+        }
+        task_uri_sha256 = Get-StringSha256 $taskUri
+        request_observed = $isInvokingTask
+        invoking_task = $isInvokingTask
+        foreground_navigation_requested_here = $false
+        background_or_hidden_task_navigation_supported = $false
+        exact_binding_and_plugin_configuration_probe_passed = $true
+        exact_binding_and_catalog_probe_passed = $false
+        task_local_native_catalog_proof_pending = $true
+        task_created = $false
+        task_merged = $false
     }
 }
 
@@ -1175,8 +1324,8 @@ function Install-RecoveryManager() {
         "-Action", "RecoverAtLogon",
         "-Release", $script:Release,
         "-RecoveryRoot", $exactRoot,
-        "-ThreeSlotRegistry", ([IO.Path]::GetFullPath($ThreeSlotRegistry)),
-        "-ThreeSlotRegistrySha256", $ThreeSlotRegistrySha256,
+        "-TwoSlotRegistry", ([IO.Path]::GetFullPath($TwoSlotRegistry)),
+        "-TwoSlotRegistrySha256", $TwoSlotRegistrySha256,
         "-ScheduledTaskName", $ScheduledTaskName
     )
     $arguments = ($argumentValues | ForEach-Object { ConvertTo-WindowsCommandLineArgument ([string]$_) }) -join " "
@@ -1199,7 +1348,7 @@ function Install-RecoveryManager() {
         $legacyDurableScript = Join-Path $legacyRecoveryRoot "Manage-EvidenceLaneCodexGoalRecovery.ps1"
         $legacyScriptToken = ConvertTo-WindowsCommandLineArgument $legacyDurableScript
         $legacyRootToken = ConvertTo-WindowsCommandLineArgument $legacyRecoveryRoot
-        $registryToken = ConvertTo-WindowsCommandLineArgument ([IO.Path]::GetFullPath($ThreeSlotRegistry))
+        $registryToken = ConvertTo-WindowsCommandLineArgument ([IO.Path]::GetFullPath($TwoSlotRegistry))
         $taskNameToken = ConvertTo-WindowsCommandLineArgument $ScheduledTaskName
         $legacyActionMatches = @(
             $existing.Actions |
@@ -1209,8 +1358,8 @@ function Install-RecoveryManager() {
                     [string]$_.Arguments -like "*-Action RecoverAtLogon*" -and
                     [string]$_.Arguments -like "*-Release $($script:Release)*" -and
                     [string]$_.Arguments -like "*-RecoveryRoot ${legacyRootToken}*" -and
-                    [string]$_.Arguments -like "*-ThreeSlotRegistry ${registryToken}*" -and
-                    [string]$_.Arguments -match '-ThreeSlotRegistrySha256 [A-F0-9]{64}' -and
+                    [string]$_.Arguments -like "*-TwoSlotRegistry ${registryToken}*" -and
+                    [string]$_.Arguments -match '-TwoSlotRegistrySha256 [A-F0-9]{64}' -and
                     [string]$_.Arguments -like "*-ScheduledTaskName ${taskNameToken}*"
                 }
         ).Count -eq 1 -and
@@ -1329,11 +1478,14 @@ function Test-RecoveredThisBoot([string]$ExactTaskId, [string]$BootIdSha256) {
 
 if ($Action -eq "Probe") {
     Assert-TaskId $TaskId
-    $probe = Invoke-CodexGoalProbe -ExactTaskId $TaskId
+    $probeHostProfile = Get-HostAppProfile $AppId
+    $probe = Invoke-CodexGoalProbe `
+        -ExactTaskId $TaskId `
+        -HostProfile $probeHostProfile
     $probeSha256 = Get-StringSha256 (ConvertTo-CanonicalJson $probe)
     [ordered]@{
-        status = "PASS"
-        state = "ISOLATED_RUNTIME_PREWARM_PROVEN_LIVE_DESKTOP_RELOAD_UNAVAILABLE"
+        status = "PASS_WITH_NATIVE_PROOF_PENDING"
+        state = "PERSISTED_TASK_GOAL_AND_PLUGIN_CONFIGURATION_PROVEN_NATIVE_TASK_CATALOG_PENDING"
         task_id = $TaskId
         goal_status = [string]$probe.goal_status
         runtime_prewarm = $probe.runtime_prewarm
@@ -1369,14 +1521,15 @@ if ($Action -eq "Register") {
     if ($binding.task_uri_sha256 -ne $taskUriSha256) {
         throw "The task binding URI seal does not match the exact task."
     }
-    $slotAuthority = Read-ThreeSlotAuthority `
-        -Path $ThreeSlotRegistry `
-        -ExpectedSha256 $ThreeSlotRegistrySha256
+    $slotAuthority = Read-TwoSlotAuthority `
+        -Path $TwoSlotRegistry `
+        -ExpectedSha256 $TwoSlotRegistrySha256
     $hostProfile = Read-TaskHostProfile $binding
     $runtimePluginSelector = Resolve-TaskBindingRuntimeSelector $binding
     $localRecoveryAuthority = Read-TaskLocalRecoveryAuthority $binding
     $goalProbe = Invoke-CodexGoalProbe `
         -ExactTaskId $TaskId `
+        -HostProfile $hostProfile `
         -ExpectedPluginSelector $runtimePluginSelector
     if ($goalProbe.goal_status -ne "active") {
         throw "Only an active persisted Codex Goal may be registered for logon recovery."
@@ -1385,16 +1538,29 @@ if ($Action -eq "Register") {
     $bindingPath = Get-BindingPath $TaskId
     $previousRecord = $null
     $previousBindingSha256 = ""
+    $invalidPriorBindingHistory = $null
     if (Test-Path -LiteralPath $bindingPath -PathType Leaf) {
-        $previousRecord = Read-SealedBinding $bindingPath
-        if (
-            [string]$previousRecord.payload.task_id -ne $TaskId -or
-            [string]$previousRecord.payload.project_id -ne [string]$binding.project_id -or
-            [string]$previousRecord.payload.evidence_session_id -ne [string]$binding.evidence_session_id
-        ) {
-            throw "An exact task binding cannot be refreshed across project or governed session identity."
+        try {
+            $previousRecord = Read-SealedBinding $bindingPath
         }
-        $previousBindingSha256 = Get-Sha256 $bindingPath
+        catch {
+            $previousBindingSha256 = Get-Sha256 $bindingPath
+            $invalidPriorBindingHistory = Preserve-InvalidBindingHistoryForReplacement `
+                -Path $bindingPath `
+                -ExactTaskId $TaskId `
+                -Failure $_.Exception.Message
+            $previousRecord = $null
+        }
+        if ($null -ne $previousRecord) {
+            if (
+                [string]$previousRecord.payload.task_id -ne $TaskId -or
+                [string]$previousRecord.payload.project_id -ne [string]$binding.project_id -or
+                [string]$previousRecord.payload.evidence_session_id -ne [string]$binding.evidence_session_id
+            ) {
+                throw "An exact task binding cannot be refreshed across project or governed session identity."
+            }
+            $previousBindingSha256 = Get-Sha256 $bindingPath
+        }
     }
     $bindingRevision = (Get-BindingRevision $previousRecord) + 1
     $bindingCorrelationId = "binding_" + (Get-StringSha256 (
@@ -1442,10 +1608,10 @@ if ($Action -eq "Register") {
             thread_resume_writer_allowed = $false
             state_travel_allowed = $false
             candidate_hil_pointer_or_git_mutation_allowed = $false
-            main_git_must_remain_disabled_during_mutable_local_testing = $true
-            branch_commit_recovery_must_remain_disabled_until_sealed_switch = $true
-            branch_commit_recovery_remains_prior_checkpoint = $true
-            mutable_local_failure_may_target_only_branch_recovery = $true
+            stable_git_main_must_remain_disabled_during_versioned_local_testing = $true
+            branch_recovery_selector_retired = $true
+            branch_recovery_install_allowed = $false
+            versioned_local_failure_may_target_only_verified_main = $true
             pre_3_0_automatic_recovery_allowed = $false
             recovery_switch_requires_host_restart = $true
             stable_selector_growth_allowed = $false
@@ -1456,7 +1622,7 @@ if ($Action -eq "Register") {
             helper_and_tunnel_console_windows_allowed = $false
             isolated_runtime_prewarm_before_task_open = $true
             exact_task_deeplink_is_primary_hot_reattach = $true
-            restart_is_bounded_branch_recovery_only = $true
+            restart_is_bounded_exact_invoking_task_only = $true
             restart_loop_allowed = $false
         }
         registered_at_utc = [DateTimeOffset]::UtcNow.ToString("o")
@@ -1493,20 +1659,21 @@ if ($Action -eq "Register") {
         binding_revision = $bindingRevision
         binding_correlation_id = $bindingCorrelationId
         binding_event_receipt = $bindingEventReceipt
+        invalid_prior_binding_history = $invalidPriorBindingHistory
         manager_scope = "SHARED_MULTI_PROJECT_MULTI_TASK"
         binding_scope = "MUTABLE_EXACT_TASK_ROW"
         manager = $manager
         goal_status = $goalProbe.goal_status
         main_git_selector = $slotAuthority.main_git_selector
-        branch_recovery_selector = $slotAuthority.branch_recovery_selector
         mutable_local_selector = $slotAuthority.mutable_local_selector
         mutable_local_failure_target = $slotAuthority.mutable_local_failure_target
-        mutable_local_failure_never_targets_main_git = $true
+        mutable_local_failure_targets_verified_main_only = $true
+        branch_recovery_selector_retired = $true
         local_recovery_selector = if ($null -eq $localRecoveryAuthority) { $null } else { [string]$localRecoveryAuthority.recovery_selector }
         pre_3_0_automatic_recovery_allowed = $false
         host_app_id = [string]$hostProfile.app_id
         host_application = [string]$hostProfile.host_application
-        exact_live_slot_count = 3
+        exact_live_slot_count = 2
         app_restarted = $false
         task_opened = $false
         prompt_submitted = $false
@@ -1549,6 +1716,132 @@ if ($Action -eq "Unregister") {
     exit 0
 }
 
+if ($Action -eq "RehydrateAll") {
+    Assert-TaskId $TaskId
+    if (
+        [string]::IsNullOrWhiteSpace($ExpectedInstalledPluginVersion) -or
+        $ExpectedInstalledPluginVersion -notmatch '^\d+\.\d+\.\d+\+codex\.[0-9A-Za-z.-]+$' -or
+        $ExpectedToolCount -lt 1
+    ) {
+        throw "RehydrateAll requires the exact installed plugin version and registry-derived tool count."
+    }
+    if (-not $InvokingTaskForegroundActivated) {
+        throw "RehydrateAll requires the restart helper to activate the exact invoking task first."
+    }
+    $slotAuthority = Read-TwoSlotAuthority `
+        -Path $TwoSlotRegistry `
+        -ExpectedSha256 $TwoSlotRegistrySha256
+    if ([string]$slotAuthority.active_version -cne $ExpectedInstalledPluginVersion) {
+        throw "The installed version does not match the sealed two-slot release authority."
+    }
+    $bindingInventory = Read-BindingInventoryIsolated
+    $activeRecords = @(
+        $bindingInventory.records |
+            Where-Object { $_.payload.state -eq "ACTIVE_GOAL_BOUND" } |
+            Sort-Object @{ Expression = { if ([string]$_.payload.task_id -ceq $TaskId) { 0 } else { 1 } } },
+                        @{ Expression = { [string]$_.payload.task_id } }
+    )
+    if (@($activeRecords | Where-Object { [string]$_.payload.task_id -ceq $TaskId }).Count -ne 1) {
+        throw "The exact invoking task is not one active Goal recovery binding."
+    }
+    $results = @()
+    $failures = @($bindingInventory.failures)
+    foreach ($record in $activeRecords) {
+        $exactTaskId = [string]$record.payload.task_id
+        try {
+            $hostProfile = Resolve-GoalBindingHostProfile $record
+            $probe = Invoke-CodexGoalProbe `
+                -ExactTaskId $exactTaskId `
+                -HostProfile $hostProfile `
+                -ExpectedPluginSelector ([string]$slotAuthority.active_selector) `
+                -ExpectedPluginVersion $ExpectedInstalledPluginVersion `
+                -ExpectedCatalogToolCount $ExpectedToolCount
+            if ([string]$probe.goal_status -cne "active") {
+                throw "The exact task no longer has an active carried Goal."
+            }
+            $activation = New-NonNavigatingRehydrationObservation `
+                -ExactTaskId $exactTaskId `
+                -InvokingTaskId $TaskId
+            $migration = Set-ExactBindingReleaseRehydration `
+                -Record $record `
+                -Authority $slotAuthority `
+                -Probe $probe `
+                -Activation $activation `
+                -InvokingTaskId $TaskId `
+                -ExpectedVersion $ExpectedInstalledPluginVersion `
+                -ExpectedCatalogToolCount $ExpectedToolCount
+            $results += [ordered]@{
+                status = "PASS"
+                task_id = $exactTaskId
+                invoking_task = $exactTaskId -ceq $TaskId
+                migration = $migration
+                runtime_prewarm = $probe.runtime_prewarm
+                activation = $activation
+                task_created = $false
+                task_merged = $false
+                state_travel_invoked = $false
+                hooks_enabled_by_update = $false
+                candidate_hil_or_pointer_mutated = $false
+            }
+        }
+        catch {
+            $failures += [ordered]@{
+                status = "FAIL_CLOSED"
+                task_id = $exactTaskId
+                invoking_task = $exactTaskId -ceq $TaskId
+                failure = $_.Exception.Message
+                binding_mutated_by_failure = $false
+                another_task_degraded = $false
+            }
+        }
+    }
+    $invokingResult = @($results | Where-Object { $_.task_id -ceq $TaskId })
+    if ($invokingResult.Count -ne 1) {
+        $invokingFailures = @($failures | Where-Object { $_.task_id -ceq $TaskId })
+        $exactFailure = if ($invokingFailures.Count -eq 1) {
+            [string]$invokingFailures[0].failure
+        }
+        else {
+            "EXACT_INVOKING_FAILURE_UNAVAILABLE"
+        }
+        throw (
+            "The invoking task attachment did not rehydrate; exact failure: " +
+            $exactFailure
+        )
+    }
+    [ordered]@{
+        status = if ($failures.Count -eq 0) { "PASS_WITH_NATIVE_PROOF_PENDING" } else { "PASS_WITH_ISOLATED_FAILURES_AND_NATIVE_PROOF_PENDING" }
+        state = "GLOBAL_PLUGIN_UPDATE_ATTACHMENT_METADATA_REBOUND_NATIVE_TASK_PROOF_PENDING"
+        law_id = "GLOBAL_PLUGIN_UPDATE_REHYDRATION_LAW"
+        invoking_task_id = $TaskId
+        invoking_task_foreground_preserved = $true
+        invoking_task_reopen_count = 1
+        non_invoking_task_navigation_count = 0
+        plugin_selector = [string]$slotAuthority.active_selector
+        plugin_version = $ExpectedInstalledPluginVersion
+        registry_derived_tool_count = $ExpectedToolCount
+        active_binding_count = $activeRecords.Count
+        binding_file_count = [int]$bindingInventory.file_count
+        invalid_binding_count = [int]$bindingInventory.invalid_count
+        attachment_metadata_rebound_count = $results.Count
+        native_catalog_rehydrated_count = 0
+        native_task_proof_pending_count = $results.Count
+        isolated_failure_count = $failures.Count
+        results = $results
+        failures = $failures
+        exact_task_identity_preserved = $true
+        writer_and_read_only_roles_preserved = $true
+        task_created = $false
+        task_merged = $false
+        state_travel_invoked = $false
+        caller_supplied_runtime_instance_or_pid_allowed = $false
+        runtime_instance_attestation_copied = $false
+        hooks_enabled_by_update = $false
+        candidate_hil_or_pointer_mutated = $false
+    } | ConvertTo-Json -Depth 32
+    exit 0
+}
+
 if ($Action -eq "RecoverNow") {
     Assert-TaskId $TaskId
     $bindingPath = Get-BindingPath $TaskId
@@ -1557,7 +1850,7 @@ if ($Action -eq "RecoverNow") {
         throw "RecoverNow requires one exact active governed Goal binding."
     }
     $boundHostProfile = Resolve-GoalBindingHostProfile $record
-    $slotAuthority = Read-ThreeSlotAuthority `
+    $slotAuthority = Read-TwoSlotAuthority `
         -Path ([string]$record.payload.slot_authority.registry_path) `
         -ExpectedSha256 ([string]$record.payload.slot_authority.registry_sha256)
     Assert-BindingReleaseAuthority -Binding $record.payload -Authority $slotAuthority
@@ -1565,6 +1858,7 @@ if ($Action -eq "RecoverNow") {
     $localRecoveryAuthority = Read-GoalLocalRecoveryAuthority $record
     $probe = Invoke-CodexGoalProbe `
         -ExactTaskId $TaskId `
+        -HostProfile $boundHostProfile `
         -ExpectedPluginSelector $runtimePluginSelector
     if ($probe.goal_status -ne "active") {
         $tombstone = Set-ExactBindingTombstone `
@@ -1603,10 +1897,10 @@ if ($Action -eq "RecoverNow") {
         host_application = [string]$boundHostProfile.host_application
         binding_payload_sha256 = [string]$record.payload_sha256
         main_git_selector = [string]$slotAuthority.main_git_selector
-        branch_recovery_selector = [string]$slotAuthority.branch_recovery_selector
         mutable_local_selector = [string]$slotAuthority.mutable_local_selector
         mutable_local_failure_target = [string]$slotAuthority.mutable_local_failure_target
-        mutable_local_failure_never_targets_main_git = $true
+        mutable_local_failure_targets_verified_main_only = $true
+        branch_recovery_selector_retired = $true
         local_recovery_selector = if ($null -eq $localRecoveryAuthority) { $null } else { [string]$localRecoveryAuthority.recovery_selector }
         pre_3_0_automatic_recovery_allowed = $false
         goal = $probe
@@ -1806,22 +2100,23 @@ if ($Action -eq "RecoverAtLogon") {
                     $boundHostProfile = Resolve-GoalBindingHostProfile $record
                     $receipt.host_app_id = [string]$boundHostProfile.app_id
                     $receipt.host_application = [string]$boundHostProfile.host_application
-                    $slotAuthority = Read-ThreeSlotAuthority `
+                    $slotAuthority = Read-TwoSlotAuthority `
                         -Path ([string]$record.payload.slot_authority.registry_path) `
                         -ExpectedSha256 ([string]$record.payload.slot_authority.registry_sha256)
                     Assert-BindingReleaseAuthority -Binding $record.payload -Authority $slotAuthority
                     $receipt.release_authorized_by_sealed_registry = $true
                     $receipt.main_git_selector = [string]$slotAuthority.main_git_selector
-                    $receipt.branch_recovery_selector = [string]$slotAuthority.branch_recovery_selector
                     $receipt.mutable_local_selector = [string]$slotAuthority.mutable_local_selector
                     $receipt.mutable_local_failure_target = [string]$slotAuthority.mutable_local_failure_target
-                    $receipt.mutable_local_failure_never_targets_main_git = $true
+                    $receipt.mutable_local_failure_targets_verified_main_only = $true
+                    $receipt.branch_recovery_selector_retired = $true
                     $runtimePluginSelector = Resolve-GoalBindingRuntimeSelector $record
                     $localRecoveryAuthority = Read-GoalLocalRecoveryAuthority $record
                     $receipt.local_recovery_selector = if ($null -eq $localRecoveryAuthority) { $null } else { [string]$localRecoveryAuthority.recovery_selector }
                     $receipt.pre_3_0_automatic_recovery_allowed = $false
                     $probe = Invoke-CodexGoalProbe `
                         -ExactTaskId $exactTaskId `
+                        -HostProfile $boundHostProfile `
                         -ExpectedPluginSelector $runtimePluginSelector
                     $receipt.goal = $probe
                     if ($probe.goal_status -ne "active") {
@@ -1938,12 +2233,38 @@ if ($Action -eq "RecoverAtLogon") {
 
 $exactRoot = [IO.Path]::GetFullPath($RecoveryRoot)
 $bindingDirectory = Join-Path $exactRoot "bindings"
-$bindings = @()
-if (Test-Path -LiteralPath $bindingDirectory -PathType Container) {
-    $bindings = @(
-        Get-ChildItem -LiteralPath $bindingDirectory -Filter "*.json" -File |
-            ForEach-Object { Read-SealedBinding $_.FullName }
-    )
+$bindingInventory = Read-BindingInventoryIsolated
+$bindings = @($bindingInventory.records)
+$bindingSummaries = @()
+$bindingFailures = @($bindingInventory.failures)
+foreach ($binding in $bindings) {
+    try {
+        $boundHostProfile = Resolve-GoalBindingHostProfile $binding
+        $bindingSummaries += [ordered]@{
+            task_id = [string]$binding.payload.task_id
+            project_id = [string]$binding.payload.project_id
+            evidence_session_id = [string]$binding.payload.evidence_session_id
+            active_plan_task_id = [string]$binding.payload.active_plan_task_id
+            host_app_id = [string]$boundHostProfile.app_id
+            host_application = [string]$boundHostProfile.host_application
+            state = [string]$binding.payload.state
+            goal_status_at_registration = [string]$binding.payload.goal.goal_status
+            main_git_selector = [string]$binding.payload.slot_authority.main_git_selector
+            mutable_local_selector = [string]$binding.payload.slot_authority.mutable_local_selector
+            branch_recovery_selector_retired = $true
+            payload_sha256 = [string]$binding.payload_sha256
+        }
+    }
+    catch {
+        $bindingFailures += [ordered]@{
+            status = "FAIL_CLOSED"
+            state = "BINDING_HOST_PROFILE_INVALID_ISOLATED"
+            task_id = [string]$binding.payload.task_id
+            failure = $_.Exception.Message
+            binding_mutated_by_failure = $false
+            another_task_degraded = $false
+        }
+    }
 }
 $scheduled = Get-ScheduledTask -TaskName $ScheduledTaskName -ErrorAction SilentlyContinue
 [ordered]@{
@@ -1956,27 +2277,12 @@ $scheduled = Get-ScheduledTask -TaskName $ScheduledTaskName -ErrorAction Silentl
     manager_installed = Test-Path -LiteralPath (Join-Path $exactRoot "MANAGER.json") -PathType Leaf
     scheduled_task_present = $null -ne $scheduled
     scheduled_task_state = if ($null -ne $scheduled) { [string]$scheduled.State } else { "ABSENT" }
+    binding_file_count = [int]$bindingInventory.file_count
     binding_count = $bindings.Count
+    invalid_binding_count = $bindingFailures.Count
     active_binding_count = @($bindings | Where-Object { $_.payload.state -eq "ACTIVE_GOAL_BOUND" }).Count
-    bindings = @(
-        $bindings | ForEach-Object {
-            $boundHostProfile = Resolve-GoalBindingHostProfile $_
-            [ordered]@{
-                task_id = [string]$_.payload.task_id
-                project_id = [string]$_.payload.project_id
-                evidence_session_id = [string]$_.payload.evidence_session_id
-                active_plan_task_id = [string]$_.payload.active_plan_task_id
-                host_app_id = [string]$boundHostProfile.app_id
-                host_application = [string]$boundHostProfile.host_application
-                state = [string]$_.payload.state
-                goal_status_at_registration = [string]$_.payload.goal.goal_status
-                main_git_selector = [string]$_.payload.slot_authority.main_git_selector
-                branch_recovery_selector = [string]$_.payload.slot_authority.branch_recovery_selector
-                mutable_local_selector = [string]$_.payload.slot_authority.mutable_local_selector
-                payload_sha256 = [string]$_.payload_sha256
-            }
-        }
-    )
+    bindings = $bindingSummaries
+    isolated_failures = $bindingFailures
     raw_goal_objective_stored = $false
     synthetic_prompt_allowed = $false
     lifecycle_mutated = $false

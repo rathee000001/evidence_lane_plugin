@@ -339,6 +339,13 @@ def test_turn_entry_queries_live_sectors_and_records_formula_lineage(
         "source_event_id": "turn-entry-source-event-1",
         "event_id": "turn-entry-formula-event-1",
     }
+    refreshed = service.source_intake(
+        "book-faires",
+        [str(local_code)],
+        session_id=session_id,
+        working_authority_action="REFRESH_WORKING_SECTORS",
+    )
+    assert refreshed["working_authority_refresh"]["status"] == "PASS"
     real_query_working_project_sectors = service_module.query_working_project_sectors
 
     def fail_working_query(*args, **kwargs):
@@ -392,6 +399,8 @@ def test_turn_entry_queries_live_sectors_and_records_formula_lineage(
     assert receipt["status"] == "PASS"
     assert receipt["active_task_id"] == task["task_id"]
     assert receipt["working_sector_query"]["hits"]
+    assert receipt["working_sector_query"]["query_mutated_project_authority"] is False
+    assert receipt["working_sector_query"]["query_rehashed_dirty_content"] is False
     assert "local_code" in receipt["working_sector_query"]["queried_lane_ids"]
     assert any(
         hit["lane_id"] == "local_code"
@@ -402,6 +411,14 @@ def test_turn_entry_queries_live_sectors_and_records_formula_lineage(
         "DIRTY_WORKING_TREE",
     }
     assert receipt["fallback_authority"] == "LIVE_DIRTY_WORKSPACE_AND_INDEX"
+    assert receipt["decision_routing"]["plan_runtime_authority_state"] == (
+        "LIVE_CURRENT_EXECUTION_AUTHORITY"
+    )
+    assert receipt["decision_routing"]["instruction_authorities_separate"] == [
+        "AGENTS.md",
+        "MEMORY.md",
+    ]
+    assert receipt["decision_routing"]["working_sector_query_executed"] is True
     replay = service.source_intake(
         "book-faires",
         [str(local_code)],
