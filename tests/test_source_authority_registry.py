@@ -9,6 +9,7 @@ import evidence_lane_plugin.service as service_module
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.lineage import ChatLineage
+from evidence_lane_plugin.project_authority import PROJECT_AUTHORITY_CONFIRMATION
 from evidence_lane_plugin.source_authority import (
     SourceAuthoritySpec,
     load_source_batch,
@@ -282,9 +283,28 @@ def test_source_intake_governed_registry_is_explicit_and_pointer_neutral(
 
 
 def test_turn_entry_queries_live_sectors_and_records_formula_lineage(
-    service, source_repository: Path, monkeypatch: pytest.MonkeyPatch
+    service,
+    source_repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     session_id, _ = build_and_approve_pv1(service)
+    live_root = tmp_path / "live-projects" / "book-faires"
+    relocated = service.register_project(
+        project_id="book-faires",
+        display_name="Book Faires",
+        repository_path=str(source_repository),
+        expected_owner="example",
+        expected_name="book-faires",
+        allowed_branches=["main"],
+        sensitivity="PRIVATE",
+        project_authority_root=str(live_root),
+        project_authority_migration_confirmation=PROJECT_AUTHORITY_CONFIRMATION,
+        expected_accepted_pv="PV1",
+        expected_pointer_generation=1,
+        selected_by="human-test",
+    )
+    assert relocated["state"] == "REGISTERED_PROJECT_AUTHORITY_RELOCATED"
     task = {
         "task_id": "turn-entry-delta",
         "task_class": "modify_code",
@@ -406,11 +426,14 @@ def test_turn_entry_queries_live_sectors_and_records_formula_lineage(
         hit["lane_id"] == "local_code"
         for hit in receipt["working_sector_query"]["hits"]
     )
-    assert receipt["accepted_freshness"]["state"] in {
+    assert receipt["live_root_freshness"]["state"] in {
         "STALE",
         "DIRTY_WORKING_TREE",
     }
-    assert receipt["fallback_authority"] == "LIVE_DIRTY_WORKSPACE_AND_INDEX"
+    assert receipt["fallback_authority"] == "LIVE_ROOT_ALL_18_SECTORS"
+    assert receipt["accepted_archive_opened"] is False
+    assert receipt["accepted_archive_queried"] is False
+    assert receipt["accepted_pointer_used_as_baseline_only"] is True
     assert receipt["decision_routing"]["plan_runtime_authority_state"] == (
         "LIVE_CURRENT_EXECUTION_AUTHORITY"
     )

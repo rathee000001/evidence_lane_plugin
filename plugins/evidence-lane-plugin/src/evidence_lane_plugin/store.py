@@ -43,6 +43,7 @@ from .project_authority import (
     resolved_plan_runtime_path,
     validate_external_project_authority_root,
 )
+from .project_overlay import validate_project_overlay
 from .project_pv_storage import (
     accepted_storage_status,
     build_project_pv_archive,
@@ -6797,6 +6798,111 @@ class ProjectStore:
             key=lambda value: int(value[2:]),
         )
 
+    def live_root_pointer_continuity(
+        self,
+        project_id: str,
+        pv_id: str,
+    ) -> dict[str, Any]:
+        """Validate the current external pointer from root receipts only."""
+
+        require(
+            self.uses_external_project_authority(project_id),
+            "LIVE_ROOT_POINTER_CONTINUITY_EXTERNAL_REQUIRED",
+            "Live-root pointer continuity is only valid for external project authority.",
+            status="MISMATCH",
+            project_id=project_id,
+        )
+        root = self.project_root(project_id)
+        pointer = self.pointer(project_id)
+        require(
+            pointer.accepted_pv == pv_id,
+            "LIVE_ROOT_POINTER_CONTINUITY_PV_MISMATCH",
+            "The requested live-root baseline is not the current accepted pointer.",
+            status="MISMATCH",
+            project_id=project_id,
+            pv_id=pv_id,
+        )
+        matches: list[dict[str, Any]] = []
+        journal_root = root / "receipts" / "accepted-swap-journals"
+        for journal_path in sorted(journal_root.glob("*.json")):
+            try:
+                journal = json.loads(journal_path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError, json.JSONDecodeError):
+                continue
+            if (
+                journal.get("schema") != "evidence-lane.project-accepted-swap.v1"
+                or journal.get("project_id") != project_id
+                or journal.get("state")
+                != "COMMITTED_PRIOR_ACCEPTED_PURGED_AFTER_VERIFICATION"
+                or journal.get("next_pointer") != pointer.as_dict()
+                or journal.get("archive_manifest_sha256")
+                != pointer.accepted_manifest_sha256
+            ):
+                continue
+            decision_id = str(journal.get("decision_id") or "")
+            receipt_path = root / "receipts" / f"{decision_id}.json"
+            try:
+                receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError, json.JSONDecodeError):
+                continue
+            prior_pointer = dict(journal.get("prior_pointer") or {})
+            package_sha256 = str(receipt.get("archive_sha256") or "").upper()
+            valid = bool(
+                receipt.get("schema") == "evidence-lane.pv-promotion.receipt.v2"
+                and receipt.get("decision_id") == decision_id
+                and receipt.get("candidate_id") == journal.get("candidate_id")
+                and receipt.get("accepted_pv") == pv_id
+                and receipt.get("manifest_sha256")
+                == pointer.accepted_manifest_sha256
+                and receipt.get("archive_sha256")
+                == journal.get("staged_archive_sha256")
+                and receipt.get("pointer_generation_before")
+                == prior_pointer.get("generation")
+                and receipt.get("pointer_generation_after") == pointer.generation
+                and receipt.get("live_working_identity_preserved") is True
+                and receipt.get("candidate_directory_created") is False
+                and receipt.get("prior_accepted_artifact_purged_after_new_archive_verified")
+                is True
+                and journal.get("prior_accepted_artifact_purged") is True
+                and len(package_sha256) == 64
+                and all(
+                    character in "0123456789ABCDEF" for character in package_sha256
+                )
+            )
+            if valid:
+                matches.append(
+                    {
+                        "decision_id": decision_id,
+                        "candidate_id": receipt["candidate_id"],
+                        "manifest_sha256": pointer.accepted_manifest_sha256,
+                        "package_sha256": package_sha256,
+                        "promotion_receipt_sha256": sha256_bytes(
+                            receipt_path.read_bytes()
+                        ),
+                        "swap_journal_sha256": sha256_bytes(
+                            journal_path.read_bytes()
+                        ),
+                    }
+                )
+        require(
+            len(matches) == 1,
+            "LIVE_ROOT_POINTER_CONTINUITY_RECEIPT_MISMATCH",
+            "The current external pointer requires one exact root promotion receipt pair.",
+            status="MISMATCH",
+            project_id=project_id,
+            pv_id=pv_id,
+            matching_receipt_count=len(matches),
+        )
+        return {
+            "status": "PASS",
+            "schema": "evidence-lane.live-root-pointer-continuity.v1",
+            "project_id": project_id,
+            "pointer": pointer.as_dict(),
+            **matches[0],
+            "accepted_archive_opened": False,
+            "accepted_archive_queried": False,
+        }
+
     def highest_accepted_ordinal(self, project_id: str) -> int:
         accepted = self.accepted_ids(project_id)
         pointer = self.pointer(project_id)
@@ -6822,6 +6928,66 @@ class ProjectStore:
         root = self.project_root(project_id)
         if root != self._legacy_project_root(project_id):
             pointer = self.pointer(project_id)
+            project_overlay_source = source / "project_overlay"
+            source_overlay_validation = validate_project_overlay(
+                project_overlay_source
+            )
+            require(
+                source_overlay_validation.get("valid") is True,
+                "PROJECT_CANDIDATE_OVERLAY_PROJECTION_INVALID",
+                "The candidate Project Overlay cannot refresh the live root.",
+                status="MISMATCH",
+                candidate_id=candidate_id,
+            )
+            project_overlay_target = root / "project_overlay"
+            overlay_stage = root / f".project-overlay-stage-{candidate_id}"
+            overlay_prior = root / f".project-overlay-prior-{candidate_id}"
+            require(
+                not overlay_stage.exists() and not overlay_prior.exists(),
+                "PROJECT_CANDIDATE_OVERLAY_PROJECTION_CONFLICT",
+                "A prior Project Overlay projection transaction requires recovery.",
+                status="BLOCKED",
+                candidate_id=candidate_id,
+            )
+            shutil.copytree(project_overlay_source, overlay_stage)
+            staged_overlay_validation = validate_project_overlay(overlay_stage)
+            require(
+                staged_overlay_validation == source_overlay_validation,
+                "PROJECT_CANDIDATE_OVERLAY_PROJECTION_COPY_MISMATCH",
+                "Project Overlay bytes changed while staging the live-root refresh.",
+                status="FAIL",
+                candidate_id=candidate_id,
+            )
+            with self._lock(project_id):
+                prior_moved = False
+                try:
+                    if project_overlay_target.exists():
+                        project_overlay_target.replace(overlay_prior)
+                        prior_moved = True
+                    overlay_stage.replace(project_overlay_target)
+                    require(
+                        validate_project_overlay(project_overlay_target)
+                        == source_overlay_validation,
+                        "PROJECT_CANDIDATE_OVERLAY_PROJECTION_COMMIT_MISMATCH",
+                        "The committed live-root Project Overlay failed validation.",
+                        status="FAIL",
+                        candidate_id=candidate_id,
+                    )
+                except Exception:
+                    if prior_moved and not project_overlay_target.exists():
+                        overlay_prior.replace(project_overlay_target)
+                    raise
+                if overlay_prior.exists():
+                    resolved_prior = overlay_prior.resolve()
+                    resolved_prior.relative_to(root)
+                    require(
+                        resolved_prior.name
+                        == f".project-overlay-prior-{candidate_id}",
+                        "PROJECT_CANDIDATE_OVERLAY_PRIOR_PATH_INVALID",
+                        "The prior Project Overlay path escaped its transaction.",
+                        status="BLOCKED",
+                    )
+                    shutil.rmtree(resolved_prior)
             working = working_overlay_manifest(root, project_id=project_id)
             package_metadata = {
                 name: json.loads((source / f"{name}.json").read_text(encoding="utf-8"))
@@ -6836,6 +7002,8 @@ class ProjectStore:
                 "candidate_package_manifest_sha256": validation["manifest_sha256"],
                 "candidate_package_sha256": validation["package_sha256"],
                 "candidate_directory_created": False,
+                "project_overlay_refreshed_in_live_root": True,
+                "project_overlay_validation": source_overlay_validation,
             }
             receipt_body = {
                 "schema": "evidence-lane.project-candidate-overlay.v1",

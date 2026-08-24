@@ -5,6 +5,7 @@ import threading
 from pathlib import Path
 
 import evidence_lane_plugin.service as service_module
+import evidence_lane_plugin.session as session_module
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 
@@ -75,6 +76,11 @@ def test_status_keeps_historical_evidence_without_requalifying_it(
         "validate_pv_package",
         historical_contract_probe,
     )
+    monkeypatch.setattr(
+        session_module,
+        "validate_pv_package",
+        historical_contract_probe,
+    )
     status = service.status("book-faires")
     assert sorted(calls) == [("PV1", False), ("PV2", False)]
     history = {row["pv_id"]: row for row in status["accepted_history"]}
@@ -85,6 +91,8 @@ def test_status_keeps_historical_evidence_without_requalifying_it(
         "current": False,
         "validation_scope": "HISTORICAL_EVIDENCE",
         "integrity_validated": True,
+        "accepted_artifact_available": None,
+        "accepted_archive_queried": True,
         "promotability_required": False,
         "promotability_enforced": False,
         "promotable": False,
@@ -126,6 +134,11 @@ def test_status_keeps_historical_evidence_without_requalifying_it(
         "validate_pv_package",
         preserve_integrity_valid_current_authority,
     )
+    monkeypatch.setattr(
+        session_module,
+        "validate_pv_package",
+        preserve_integrity_valid_current_authority,
+    )
     compatibility_status = service.status("book-faires")
     current = next(
         row for row in compatibility_status["accepted_history"] if row["current"]
@@ -137,6 +150,11 @@ def test_status_keeps_historical_evidence_without_requalifying_it(
 
     monkeypatch.setattr(
         service_module,
+        "validate_pv_package",
+        real_validate,
+    )
+    monkeypatch.setattr(
+        session_module,
         "validate_pv_package",
         real_validate,
     )
@@ -171,6 +189,7 @@ def test_status_validates_accepted_history_concurrently(
         return real_validate(directory, require_promotable=require_promotable)
 
     monkeypatch.setattr(service_module, "validate_pv_package", concurrent_probe)
+    monkeypatch.setattr(session_module, "validate_pv_package", concurrent_probe)
 
     status = service.status("book-faires")
 

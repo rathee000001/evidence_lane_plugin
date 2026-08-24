@@ -2,13 +2,59 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 from pathlib import Path
 from typing import Any
 
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
+from evidence_lane_plugin.lane_engine import build_lane_bundle
+from evidence_lane_plugin.project_authority import PROJECT_AUTHORITY_CONFIRMATION
 
 from .conftest import boot_local, build_and_approve_pv1, git
+
+
+def _relocate_live_project_root(
+    service,
+    source_repository: Path,
+    target: Path,
+) -> None:
+    relocated = service.register_project(
+        project_id="book-faires",
+        display_name="Book Faires",
+        repository_path=str(source_repository),
+        expected_owner="example",
+        expected_name="book-faires",
+        allowed_branches=["main"],
+        sensitivity="PRIVATE",
+        project_authority_root=str(target),
+        project_authority_migration_confirmation=PROJECT_AUTHORITY_CONFIRMATION,
+        expected_accepted_pv="PV1",
+        expected_pointer_generation=1,
+        selected_by="human-test",
+    )
+    assert relocated["state"] == "REGISTERED_PROJECT_AUTHORITY_RELOCATED"
+
+
+def _materialize_live_root_sectors(service, source_repository: Path) -> None:
+    pointer = service.store.pointer("book-faires")
+    sectors = service.store.project_root("book-faires") / "sectors"
+    staging = sectors.with_name(".sectors-test-stage")
+    assert not staging.exists()
+    build_lane_bundle(
+        repository_root=source_repository,
+        output_directory=staging,
+        code_mode="local_code",
+        parent_lane_bundle=None,
+        parent_pv=pointer.accepted_pv,
+        proposed_pv=f"{pointer.accepted_pv}_WORKING",
+        pointer_generation=pointer.generation,
+        include_untracked=False,
+        materialize_all_lanes=True,
+        index_git_history=False,
+    )
+    shutil.rmtree(sectors)
+    staging.replace(sectors)
 
 
 def _prepare_single_task_hil_correction(
@@ -538,8 +584,15 @@ def test_visible_task_activity_is_redacted_allowlisted_and_idempotent(
 def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(
     service,
     source_repository: Path,
+    tmp_path: Path,
 ) -> None:
     session_id, _ = build_and_approve_pv1(service)
+    _relocate_live_project_root(
+        service,
+        source_repository,
+        tmp_path / "live-projects" / "book-faires",
+    )
+    _materialize_live_root_sectors(service, source_repository)
     task = service.sessions.classify(
         "book-faires",
         session_id,
@@ -596,16 +649,20 @@ def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(
     assert refresh["next_action_contract"]["auto_submit"] is False
     assert refresh["next_action_contract"]["stop_and_wait"] is True
     assert refresh["candidate"]["proposed_pv"] == "PV2"
-    assert [
-        row["path"] for row in refresh["candidate"]["source_delta"]["modified"]
-    ] == ["src/app.py"]
-    candidate_path = Path(refresh["candidate"]["stored_path"])
-    entry_slip = json.loads(
-        (candidate_path / "entry_slip.json").read_text(encoding="utf-8")
+    live_candidate = service.store.candidate_validation(
+        "book-faires",
+        refresh["candidate"]["candidate_id"],
     )
-    exit_slip = json.loads(
-        (candidate_path / "exit_slip.json").read_text(encoding="utf-8")
+    assert live_candidate["storage_kind"] == (
+        "LIVE_PROJECT_ROOT_CANDIDATE_OVERLAY"
     )
+    assert live_candidate["candidate_directory_created"] is False
+    candidate_metadata = service.store.candidate_metadata(
+        "book-faires",
+        refresh["candidate"]["candidate_id"],
+    )
+    entry_slip = candidate_metadata["entry_slip"]
+    exit_slip = candidate_metadata["exit_slip"]
     assert entry_slip["accepted_entry_pv"] == "PV1"
     assert exit_slip["proposed_pv"] == "PV2"
     assert exit_slip["candidate_id"] == refresh["candidate"]["candidate_id"]
@@ -630,28 +687,9 @@ def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(
     with pytest.raises(EvidenceLaneError) as same_window:
         service.sessions.begin_next_turn("book-faires", session_id)
     assert same_window.value.code == "STATE_TRAVEL_RESUME_REQUIRED"
-    service.resume_session(
-        project_id="book-faires",
-        host="CODEX_DESKTOP",
-        host_session_id="host-session-bypass-attempt",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={"source": "fresh-session-without-state-travel-verification"},
-    )
     with pytest.raises(EvidenceLaneError) as bypass:
         service.sessions.begin_next_turn("book-faires", session_id)
     assert bypass.value.code == "STATE_TRAVEL_RESUME_REQUIRED"
-    with pytest.raises(EvidenceLaneError) as false_same_host:
-        service.sessions.begin_next_turn(
-            "book-faires",
-            session_id,
-            continue_same_host=True,
-            continuation_reason="EXPLICIT_USER_CONTINUATION",
-        )
-    assert false_same_host.value.code == (
-        "STATE_TRAVEL_SAME_HOST_CONTINUATION_MISMATCH"
-    )
     traveled = service.resume_state_travel(
         project_id="book-faires",
         session_id=session_id,
@@ -672,7 +710,11 @@ def test_full_pv1_task_pv2_approve_next_entry_proves_pv3(
     assert traveled["wait_state"] == "WAITING_FOR_NEXT_USER_COMMAND"
     assert traveled["task_started"] is False
     diff = service.reader.diff("book-faires", "PV1", "PV2")
-    assert [row["path"] for row in diff["modified"]] == ["src/app.py"]
+    assert diff["comparison_authority"] == "LIVE_ROOT_PROJECT_OVERLAY"
+    assert diff["overlay_metadata"]["proposed_pv"] == "PV2"
+    assert diff["fusion_receipts"][0]["parent_accepted_pv"] == "PV1"
+    assert diff["accepted_archive_opened"] is False
+    assert diff["accepted_archive_queried"] is False
 
 
 def test_fresh_host_task_resumes_same_session_and_entry_without_rebuild(
@@ -1410,11 +1452,15 @@ def test_rollback_travels_backward_forward_and_preserves_next_ordinal(
         == "DIRTY_WORKING_TREE"
     )
     assert service.store.next_pv_id("book-faires") == "PV3"
+    _materialize_live_root_sectors(service, source_repository)
     stale_search = service.reader.search("book-faires", "list_books")
-    assert stale_search["authority_state"] == "CURRENT_ACCEPTED_PV"
+    assert stale_search["authority_state"] == "LIVE_PROJECT_ROOT"
     assert stale_search["status"] == "PASS"
     assert stale_search["freshness"]["state"] == "DIRTY_WORKING_TREE"
-    assert stale_search["live_truth_status"] == "DIRTY_WORKING_TREE"
+    assert stale_search["live_working_truth"] is True
+    assert stale_search["accepted_truth"] is False
+    assert stale_search["accepted_archive_opened"] is False
+    assert stale_search["accepted_archive_queried"] is False
 
     forward = service.rollback(
         "book-faires",

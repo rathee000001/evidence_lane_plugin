@@ -151,7 +151,7 @@ calling another lifecycle write, the skill must:
 
 1. call the installed native `pv_status`;
 2. call the installed native `pv_task_backlog`;
-3. call one bounded installed-native live-root `pv_query` and the
+3. call one bounded installed-native `pv_query` against the live root and the
    prompt-relevant live six-authority `search`;
 4. verify `canonical_authority=PLAN_LANE`, contiguous executable rows, exactly
    one active row, `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`, and one

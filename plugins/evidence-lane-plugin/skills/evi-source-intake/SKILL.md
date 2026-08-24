@@ -62,7 +62,8 @@ baseline identity only.
    reads exactly once. A continuing no-hit is valid and the all-eighteen-sector
    slice remains the direct fallback; never widen to the accepted ZIP.
 3. Use `lane_status`, `lane_search`, and `lane_fetch` only when the caller needs
-   one exact lane result. Omit `pv_ref`: ordinary lane reads resolve only
+   one exact lane result. Omit every candidate or accepted-archive selector:
+   ordinary lane reads resolve only
    `<project-root>/sectors/<canonical_lane_id>/<sqlite_filename>`. Candidate and
    accepted-archive reads belong only to their HIL presentation routes and
    fail closed on this workflow.

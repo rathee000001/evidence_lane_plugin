@@ -17,7 +17,7 @@ from .constants import (
 )
 from .engine import CodePVEngine
 from .errors import EvidenceLaneError, require
-from .freshness import evaluate_freshness
+from .freshness import evaluate_freshness, evaluate_working_lane_freshness
 from .git_adapter import (
     calculate_worktree_sha256,
     identity_json,
@@ -183,6 +183,46 @@ class SessionManager:
             **runtime_body,
             "receipt_sha256": sha256_bytes(canonical_json_bytes(runtime_body)),
         }
+
+    def _current_live_root_freshness(
+        self,
+        project_id: str,
+        *,
+        bounded_dirty_read: bool = False,
+    ) -> dict[str, Any]:
+        """Compare current source with live authority, never accepted history."""
+
+        pointer = self.store.pointer(project_id)
+        if pointer.accepted_pv is None:
+            return {
+                "state": "PENDING_INITIAL_CANDIDATE",
+                "reason": (
+                    "No accepted pointer exists; the current live root remains "
+                    "the only source authority."
+                ),
+                "authority": "LIVE_PROJECT_ROOT",
+            }
+        if self.store.uses_external_project_authority(project_id):
+            sectors = self.store.project_root(project_id) / "sectors"
+            require(
+                (sectors / "manifest.json").is_file(),
+                "LIVE_ROOT_SECTOR_MANIFEST_MISSING",
+                "External project freshness requires the current live sector manifest.",
+                status="MISMATCH",
+                project_id=project_id,
+            )
+            return evaluate_working_lane_freshness(
+                self.store,
+                project_id,
+                sectors,
+                bounded_dirty_read=bounded_dirty_read,
+            )
+        return evaluate_freshness(
+            self.store,
+            project_id,
+            self.store.accepted_path(project_id, pointer.accepted_pv),
+            bounded_dirty_read=bounded_dirty_read,
+        )
 
     def _session_path(self, project_id: str, session_id: str) -> Path:
         root = self.store.project_root(project_id)
@@ -3095,40 +3135,54 @@ class SessionManager:
             "reason": "PV1 has not been accepted for this project.",
         }
         if pointer.accepted_pv:
-            accepted = self.store.accepted_path(project_id, pointer.accepted_pv)
-            validation = self.store.validate_accepted(
-                project_id,
-                pointer.accepted_pv,
-                require_promotable=False,
-            )
-            entry_validation = validation
-            project_identity = self.store.accepted_metadata(
-                project_id, pointer.accepted_pv
-            )["project_identity"]
-            prior_repository = project_identity["repository"]
-            mismatches = {
-                field: {
-                    "accepted": prior_repository.get(field),
-                    "current": repository_payload.get(field),
+            if self.store.uses_external_project_authority(project_id):
+                continuity = self.store.live_root_pointer_continuity(
+                    project_id,
+                    pointer.accepted_pv,
+                )
+                validation = {
+                    **continuity,
+                    "promotable": True,
+                    "lanes": {"status": "LIVE_ROOT_AUTHORITY", "valid": True},
+                    "validation_scope": "LIVE_ROOT_PROMOTION_RECEIPT_PAIR",
+                    "accepted_artifact_available": None,
+                    "accepted_artifact_integrity_validated": False,
+                    "accepted_archive_queried": False,
                 }
-                for field in ("repository_url", "owner", "name")
-                if prior_repository.get(field) != repository_payload.get(field)
-            }
-            require(
-                not mismatches,
-                "ACCEPTED_PV_REPOSITORY_MISMATCH",
-                "The current repository identity is not the repository bound to the "
-                "accepted PV.",
-                status="MISMATCH",
-                mismatches=mismatches,
-            )
+            else:
+                validation = self.store.validate_accepted(
+                    project_id,
+                    pointer.accepted_pv,
+                    require_promotable=False,
+                )
+                project_identity = self.store.accepted_metadata(
+                    project_id, pointer.accepted_pv
+                )["project_identity"]
+                prior_repository = project_identity["repository"]
+                mismatches = {
+                    field: {
+                        "accepted": prior_repository.get(field),
+                        "current": repository_payload.get(field),
+                    }
+                    for field in ("repository_url", "owner", "name")
+                    if prior_repository.get(field) != repository_payload.get(field)
+                }
+                require(
+                    not mismatches,
+                    "ACCEPTED_PV_REPOSITORY_MISMATCH",
+                    "The current repository identity is not the repository bound to "
+                    "the accepted PV.",
+                    status="MISMATCH",
+                    mismatches=mismatches,
+                )
+            entry_validation = validation
             require(
                 validation["manifest_sha256"] == pointer.accepted_manifest_sha256,
                 "ACCEPTED_POINTER_HASH_MISMATCH",
                 "The active pointer does not match the accepted PV manifest.",
                 status="MISMATCH",
             )
-            entry_freshness = evaluate_freshness(self.store, project_id, accepted)
+            entry_freshness = self._current_live_root_freshness(project_id)
         session_id = prefixed_id("session")
         now = utc_now()
         safe_context = redact(runtime_context or {})
@@ -3622,9 +3676,9 @@ class SessionManager:
         For external project authority the immutable accepted ZIP is never an
         ordinary query/resume dependency.  The accepted pointer supplies
         baseline identity and the exact sealed runtime-continuity receipt
-        supplies the previously validated hashes.  Opening an accepted archive
-        remains an explicit HIL/rollback operation, never a public reentry side
-        effect.
+        supplies the previously validated hashes. Opening an accepted archive
+        remains an explicit user inspection operation, never a public reentry
+        side effect.
         """
 
         external_project_authority = self.store.uses_external_project_authority(
@@ -3675,22 +3729,67 @@ class SessionManager:
         continuity = validate_runtime_continuity(cast(dict[str, Any], continuity_value))
         entry_pointer = cast(dict[str, Any], continuity.get("entry_pointer") or {})
         pointer = self.store.pointer(project_id)
-        require(
+        session_pointer_matches = bool(
             pointer.accepted_pv == pv_id
             and pointer.generation == exact_session.accepted_pointer_generation
             and exact_session.accepted_pv == pv_id
-            and entry_pointer.get("accepted_pv") == pv_id
-            and int(entry_pointer.get("pointer_generation") or -1)
-            == pointer.generation
-            and entry_pointer.get("accepted_manifest_sha256")
-            == pointer.accepted_manifest_sha256
-            and entry_pointer.get("accepted_authority_integrity_validated") is True,
+        )
+        require(
+            session_pointer_matches,
             "ACCEPTED_CONTINUITY_POINTER_MISMATCH",
-            "The prior continuity receipt does not bind the current exact accepted pointer.",
+            "The exact session does not bind the current accepted pointer.",
             status="MISMATCH",
             project_id=project_id,
             pv_id=pv_id,
         )
+        entry_pointer_matches = bool(
+            entry_pointer.get("accepted_pv") == pv_id
+            and int(entry_pointer.get("pointer_generation") or -1)
+            == pointer.generation
+            and entry_pointer.get("accepted_manifest_sha256")
+            == pointer.accepted_manifest_sha256
+            and entry_pointer.get("accepted_authority_integrity_validated") is True
+        )
+        if not entry_pointer_matches:
+            promoted = self.store.live_root_pointer_continuity(project_id, pv_id)
+            require(
+                exact_session.candidate_id is None
+                or (
+                    exact_session.candidate_id == promoted["candidate_id"]
+                    and exact_session.state
+                    in {SessionState.PVN_ACCEPTED, SessionState.PVN1_ACCEPTED}
+                ),
+                "ACCEPTED_CONTINUITY_CANDIDATE_CONFLICT",
+                "External live-root reentry found a candidate unrelated to the promoted pointer.",
+                status="MISMATCH",
+                project_id=project_id,
+                pv_id=pv_id,
+            )
+            return {
+                "status": "PASS",
+                "manifest_sha256": promoted["manifest_sha256"],
+                "package_sha256": promoted["package_sha256"],
+                "promotable": True,
+                "lanes": {"status": "LIVE_ROOT_AUTHORITY", "valid": False},
+                "storage_kind": "EXTERNAL_WORKING_ROOT_POINTER_REFERENCE",
+                "validation_scope": "LIVE_ROOT_PROMOTION_RECEIPT_PAIR",
+                "accepted_artifact_available": None,
+                "accepted_artifact_integrity_validated": False,
+                "accepted_archive_queried": False,
+                "continuity_reference_integrity_validated": True,
+                "runtime_continuity_receipt_sha256": continuity[
+                    "continuity_receipt_sha256"
+                ],
+                "promotion_receipt_sha256": promoted[
+                    "promotion_receipt_sha256"
+                ],
+                "swap_journal_sha256": promoted["swap_journal_sha256"],
+                "accepted_storage": {
+                    "status": "NOT_QUERIED",
+                    "state": "POINTER_AND_ROOT_RECEIPT_REFERENCE_ONLY",
+                    "accepted_archive_queried": False,
+                },
+            }
         package_sha256 = str(
             entry_pointer.get("accepted_package_sha256") or ""
         ).strip().upper()
@@ -3703,14 +3802,19 @@ class SessionManager:
             project_id=project_id,
             pv_id=pv_id,
         )
-        require(
-            exact_session.candidate_id is None,
-            "ACCEPTED_CONTINUITY_CANDIDATE_CONFLICT",
-            "External live-root reentry cannot reuse baseline continuity while a candidate exists.",
-            status="MISMATCH",
-            project_id=project_id,
-            pv_id=pv_id,
-        )
+        if exact_session.candidate_id is not None:
+            promoted = self.store.live_root_pointer_continuity(project_id, pv_id)
+            require(
+                exact_session.candidate_id == promoted["candidate_id"]
+                and exact_session.state
+                in {SessionState.PVN_ACCEPTED, SessionState.PVN1_ACCEPTED},
+                "ACCEPTED_CONTINUITY_CANDIDATE_CONFLICT",
+                "External live-root reentry found a candidate unrelated to the "
+                "promoted pointer.",
+                status="MISMATCH",
+                project_id=project_id,
+                pv_id=pv_id,
+            )
         promotable = entry_pointer.get("promotable_under_current_rules") is True
         return {
             "status": "PASS",
@@ -6435,21 +6539,7 @@ class SessionManager:
             TaskClass.ADD_BOUNDED_FEATURE,
             TaskClass.PREPARE_PATCH,
         }
-        current_freshness = (
-            evaluate_freshness(
-                self.store,
-                project_id,
-                self.store.accepted_path(project_id, cast(str, pointer.accepted_pv)),
-            )
-            if pointer.accepted_pv is not None
-            else {
-                "state": "PENDING_INITIAL_CANDIDATE",
-                "reason": (
-                    "The exact HIL follow-up is bound to an unaccepted PV1 "
-                    "candidate; no accepted pointer exists."
-                ),
-            }
-        )
+        current_freshness = self._current_live_root_freshness(project_id)
         session.metadata["current_accepted_freshness"] = current_freshness
         require(
             pending_state
@@ -7597,10 +7687,8 @@ class SessionManager:
             )
             session.metadata["source_state"] = "ACCEPTED_ENTRY_EXACT"
             session.metadata["accepted_pv_query_scope"] = "CURRENT_ENTRY_STATE"
-            session.metadata["current_accepted_freshness"] = evaluate_freshness(
-                self.store,
-                project_id,
-                self.store.accepted_path(project_id, cast(str, after.accepted_pv)),
+            session.metadata["current_accepted_freshness"] = (
+                self._current_live_root_freshness(project_id)
             )
             decision_receipt = result["receipt"]
         elif outcome == HilDecision.ROLLBACK:
@@ -9080,10 +9168,9 @@ class SessionManager:
                 writes_performed=False,
             )
 
-        entry_validation = self.store.validate_accepted(
+        entry_validation = self.accepted_entry_validation(
             project_id,
             str(pointer.accepted_pv),
-            require_promotable=False,
         )
         now = utc_now()
         previous_continuity = cast(
@@ -11121,16 +11208,11 @@ class SessionManager:
             "Direct handoff requires the newly accepted immutable PV.",
             status="MISMATCH",
         )
-        accepted_path = self.store.accepted_path(
+        validation = self.accepted_entry_validation(
             project_id,
             cast(str, pointer.accepted_pv),
         )
-        validation = self.store.validate_accepted(
-            project_id,
-            cast(str, pointer.accepted_pv),
-            require_promotable=False,
-        )
-        freshness = evaluate_freshness(self.store, project_id, accepted_path)
+        freshness = self._current_live_root_freshness(project_id)
         session.accepted_pv = pointer.accepted_pv
         session.accepted_pointer_generation = pointer.generation
         session.task = None
