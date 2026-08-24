@@ -1,5 +1,5 @@
 {
-  "base_commit": "488493feb2eb912d35bf795519d03c0415d201eb",
+  "base_commit": "03d7888717e658196dd76fe0ea99ad01738e353e",
   "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
   "current_route": {
     "direct_state_travel_fields": [
@@ -3957,9 +3957,9 @@
     },
     {
       "bytes": 6075,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/skills/evi-source-intake/SKILL.md",
-      "prior_sha256": "57D71A8C62959718AA959A7C232FFA2E48BBC571E2F090FF3B5BAB97FAF0E743",
+      "prior_sha256": "205A8209E03E253B258F3C6805FFF67B50AAC5F110193C05CF303C2F1424CEEF",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "205A8209E03E253B258F3C6805FFF67B50AAC5F110193C05CF303C2F1424CEEF"
@@ -4047,9 +4047,9 @@
     },
     {
       "bytes": 34655,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/skills/evidence-lane-code-lifecycle/SKILL.md",
-      "prior_sha256": "9FA4419F294A2D8BB5F0D38ABBDCBB6295BF14D13699B088D4BD0DCABC300CC5",
+      "prior_sha256": "76D290D00D4F61D321DCA4E1B5F39AFF4726CA3963F3950F0AB2551CCC095475",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "76D290D00D4F61D321DCA4E1B5F39AFF4726CA3963F3950F0AB2551CCC095475"
@@ -4245,9 +4245,9 @@
     },
     {
       "bytes": 34173,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/engine.py",
-      "prior_sha256": "CBC36D8A1085A7BA3F1F8367499831A9F6B4C5211997C76B2D64073B04B9F9E2",
+      "prior_sha256": "5BB3250F86E93B9A60136A92E765939D933D06228C5E39C5FDCB8AA3DE3F49FF",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "5BB3250F86E93B9A60136A92E765939D933D06228C5E39C5FDCB8AA3DE3F49FF"
@@ -4974,9 +4974,9 @@
     },
     {
       "bytes": 508947,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/session.py",
-      "prior_sha256": "08AB54208F1E787BB88E43EB32C81B64E972C7D60EB016E920BB6686444FC829",
+      "prior_sha256": "867974BA75B7F5D452118B9B5182ED8B3D77E231D7AEDC77EDF36918EE044E95",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "867974BA75B7F5D452118B9B5182ED8B3D77E231D7AEDC77EDF36918EE044E95"
@@ -5244,9 +5244,9 @@
     },
     {
       "bytes": 324592,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/store.py",
-      "prior_sha256": "9D0C46CC0DF46B3838AC8B054FD75A213A64106F29D54797E57E8D725B2B6300",
+      "prior_sha256": "5F53D14640CBA36B775ADFD8747F4F2912DE785E9BAB61BD8AB893CE30280B47",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "5F53D14640CBA36B775ADFD8747F4F2912DE785E9BAB61BD8AB893CE30280B47"
@@ -6062,13 +6062,13 @@
       "sha256": "64D89164487BB5A6154C865FEABC62C0CCB3D24F7E7C76B6C3475CBBE0D12FF7"
     },
     {
-      "bytes": 58453,
+      "bytes": 58482,
       "disposition": "CHANGED",
       "path": "tests/test_lifecycle.py",
-      "prior_sha256": "9084EAF17DB0BB55482FA2FBB044A634ECC96871A75E22C587DDDE50685A77A5",
+      "prior_sha256": "6928FA8E1B76F989C7B64EBBAF1333821E20997F08DA3FB0FCF900CF1993B328",
       "route_refresh_verified": true,
       "scope": "tests",
-      "sha256": "6928FA8E1B76F989C7B64EBBAF1333821E20997F08DA3FB0FCF900CF1993B328"
+      "sha256": "57466D1F111EC7CA19DB14264171B34D8C699412F53E4ED2E23E3C94A1A1B54A"
     },
     {
       "bytes": 5180,
@@ -6486,9 +6486,9 @@
     },
     {
       "bytes": 20796,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_source_authority_registry.py",
-      "prior_sha256": "68BCEDBAE954297CB6887F2F43660C0C5F1B0B38764763A94E91C2AB581BE633",
+      "prior_sha256": "3E0667A8D7F23BE25938616E31E9EDB26F9A5B5F74708846588E0AC685AB4A98",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "3E0667A8D7F23BE25938616E31E9EDB26F9A5B5F74708846588E0AC685AB4A98"
@@ -6567,9 +6567,9 @@
     },
     {
       "bytes": 6796,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_status_history_compatibility.py",
-      "prior_sha256": "5518F8E1624A7C0B023489B97D1A25A8F1B580650004F83482B344D5AAE01912",
+      "prior_sha256": "F537AFE1635E70831B3E0B81783A49F0C281A19AB96767ABA278902DF5E4A609",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "F537AFE1635E70831B3E0B81783A49F0C281A19AB96767ABA278902DF5E4A609"
@@ -6728,7 +6728,7 @@
       "sha256": "55807FE26E746234AA847DA4F4F217B24B3B00E3EC0BDD6656CD39DA3DCFC15D"
     }
   ],
-  "generated_at": "2026-08-24T15:43:51.668395+00:00",
+  "generated_at": "2026-08-24T15:53:14.780095+00:00",
   "output_self_reference_law": "The JSON and Markdown receipts are enumerated exactly once with the RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE disposition. Their final bytes are bound by the App-authored commit/tree receipt; every other tracked path is verified directly by SHA-256.",
   "refresh_id": "TASK20_CURRENT_ROUTE_REFRESH_20260824_001",
   "removed_history": [
@@ -6748,12 +6748,12 @@
   "status": "PASS",
   "summary": {
     "dispositions": {
-      "CHANGED": 8,
+      "CHANGED": 1,
       "RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE": 2,
-      "UNCHANGED_VERIFIED": 733
+      "UNCHANGED_VERIFIED": 740
     },
     "entry_path_set_sha256": "2708B0C68C0D01CDE766B346501D0C96EE7CF79EC084EBA8CFA77FDDB24376FE",
-    "entry_set_sha256": "CBC98D8820A3A9281FD392FE460AAF5B92227346DA5E4E26C35B3FBA28F422BB",
+    "entry_set_sha256": "E96E6D0EDE885ECF9BA3B01E7CD87CC1B72F8279D2CC0911294FB289F7CF3CD0",
     "path_count": 743,
     "removed_root_authority": "TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json",
     "root_file_count": 13,

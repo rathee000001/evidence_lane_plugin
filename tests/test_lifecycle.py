@@ -53,7 +53,8 @@ def _materialize_live_root_sectors(service, source_repository: Path) -> None:
         materialize_all_lanes=True,
         index_git_history=False,
     )
-    shutil.rmtree(sectors)
+    if sectors.exists():
+        shutil.rmtree(sectors)
     staging.replace(sectors)
 
 
