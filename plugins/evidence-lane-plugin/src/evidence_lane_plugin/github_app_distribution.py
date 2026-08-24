@@ -32,6 +32,7 @@ GITHUB_APP_WEBHOOK_ROUTE = "/api/evidence-lane/github-app/webhook"
 GITHUB_REST_API_VERSION = "2026-03-10"
 EVIDENCE_LANE_APP_BOT_NAME = "evidence-lane[bot]"
 EVIDENCE_LANE_APP_BOT_EMAIL = "319574480+evidence-lane[bot]@users.noreply.github.com"
+_PROVIDER_EXPIRY_CLOCK_SKEW_SECONDS = 300
 
 _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}")
 _REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
@@ -684,9 +685,12 @@ class GitHubRESTInstallationTokenProvider:
         expires_at = _timestamp(payload.get("expires_at"), field="expires_at")
         requested_at = _timestamp(request.requested_at, field="requested_at")
         require(
-            0 < (expires_at - requested_at).total_seconds() <= 3600,
+            0
+            < (expires_at - requested_at).total_seconds()
+            <= 3600 + _PROVIDER_EXPIRY_CLOCK_SKEW_SECONDS,
             "GITHUB_APP_PROVIDER_EXPIRY_INVALID",
-            "GitHub returned an installation token outside the one-hour bound.",
+            "GitHub returned an installation token outside the one-hour bound and "
+            "the explicit five-minute provider clock-skew allowance.",
             status="BLOCKED",
         )
         permissions = _permission_pairs(payload.get("permissions"))

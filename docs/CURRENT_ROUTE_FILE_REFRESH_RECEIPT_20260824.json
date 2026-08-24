@@ -1,5 +1,5 @@
 {
-  "base_commit": "16c78c9f478f9580f20265084e0e7b301d2fd541",
+  "base_commit": "38220e2f84e54393f6c54452c334ebb2ee67b94b",
   "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
   "current_route": {
     "direct_state_travel_fields": [
@@ -4361,13 +4361,13 @@
       "sha256": "8A52284EC6DB4D6E569F6A7E09A52DC8526637A258D7134C9BD047B3EAC1986E"
     },
     {
-      "bytes": 112728,
-      "disposition": "UNCHANGED_VERIFIED",
+      "bytes": 112906,
+      "disposition": "CHANGED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/github_app_distribution.py",
       "prior_sha256": "F8E65C7040D3A2DAADFEFF028678BF806A89A22DDDF90200FADDF6D41AD5FE76",
       "route_refresh_verified": true,
       "scope": "plugins",
-      "sha256": "F8E65C7040D3A2DAADFEFF028678BF806A89A22DDDF90200FADDF6D41AD5FE76"
+      "sha256": "9D19C867F8BED85487E4494E584144EDCB59D83D6509885CE3E26A43B6C203D9"
     },
     {
       "bytes": 45403,
@@ -5406,18 +5406,18 @@
     },
     {
       "bytes": 8277,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "scripts/generate_current_route_refresh_receipt.py",
-      "prior_sha256": "6117A90230C7BC86A791FD88AFE4551F900FA6ABB7BB8089C768CB5A2C067355",
+      "prior_sha256": "8ECA4EF5B1ECF03CCBB02C64A02694C43539E3899113C8E699E86929C1B04E4A",
       "route_refresh_verified": true,
       "scope": "scripts",
       "sha256": "8ECA4EF5B1ECF03CCBB02C64A02694C43539E3899113C8E699E86929C1B04E4A"
     },
     {
       "bytes": 15432,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "scripts/prepare_github_pages.py",
-      "prior_sha256": "A45FB7F8C8CA1666F8014338090C12270A9BE041825319484483DAE3B1BAC669",
+      "prior_sha256": "40E09692A6E970C016B88A8BA06D1F531C661F5A4DE4BA38F05819EDD9FCFAA0",
       "route_refresh_verified": true,
       "scope": "scripts",
       "sha256": "40E09692A6E970C016B88A8BA06D1F531C661F5A4DE4BA38F05819EDD9FCFAA0"
@@ -5801,13 +5801,13 @@
       "sha256": "5C4B40F0D66E07B36900C0F1C4A04DE3D329C5F3CD3DF9A7D106BA0889B510F3"
     },
     {
-      "bytes": 45290,
-      "disposition": "UNCHANGED_VERIFIED",
+      "bytes": 46126,
+      "disposition": "CHANGED",
       "path": "tests/test_github_app_distribution.py",
       "prior_sha256": "544CB29F54FAA16580120F08F48E9BAD2C124F4FD14524834390B02C09AAC48F",
       "route_refresh_verified": true,
       "scope": "tests",
-      "sha256": "544CB29F54FAA16580120F08F48E9BAD2C124F4FD14524834390B02C09AAC48F"
+      "sha256": "A2D14DA89CBB3E4CE34947E08FAED64FE08ECE182815DE52F9E1A275E5B3B740"
     },
     {
       "bytes": 6442,
@@ -6728,7 +6728,7 @@
       "sha256": "55807FE26E746234AA847DA4F4F217B24B3B00E3EC0BDD6656CD39DA3DCFC15D"
     }
   ],
-  "generated_at": "2026-08-24T13:40:41.344698+00:00",
+  "generated_at": "2026-08-24T13:43:00.334224+00:00",
   "output_self_reference_law": "The JSON and Markdown receipts are enumerated exactly once with the RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE disposition. Their final bytes are bound by the App-authored commit/tree receipt; every other tracked path is verified directly by SHA-256.",
   "refresh_id": "TASK20_CURRENT_ROUTE_REFRESH_20260824_001",
   "removed_history": [
@@ -6753,7 +6753,7 @@
       "UNCHANGED_VERIFIED": 739
     },
     "entry_path_set_sha256": "2708B0C68C0D01CDE766B346501D0C96EE7CF79EC084EBA8CFA77FDDB24376FE",
-    "entry_set_sha256": "C6FCC457460FDB3C89D5A9752674FD6FD9F5A79770E0768E6CF0EE2F1EE4EB60",
+    "entry_set_sha256": "90CBE97B374842EC5035AF222E7D195D12A40580EAC79476B15CB19C452FF5B8",
     "path_count": 743,
     "removed_root_authority": "TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json",
     "root_file_count": 13,

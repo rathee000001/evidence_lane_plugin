@@ -415,6 +415,29 @@ def test_production_github_provider_uses_exact_endpoint_scope_and_redacted_proof
     assert token not in json.dumps(broker_receipt)
 
 
+def test_production_github_provider_allows_only_bounded_server_expiry_skew() -> None:
+    provider = GitHubRESTInstallationTokenProvider(
+        jwt_provider=_TestAppJWTProvider(),
+        transport=_TestGitHubTransport(
+            _github_token_response(expires_at="2026-08-14T13:04:59Z")
+        ),
+    )
+
+    assert provider.issue(_token_request(installation_id="7")) == (
+        "test-installation-token-never-persisted"
+    )
+
+    rejected = GitHubRESTInstallationTokenProvider(
+        jwt_provider=_TestAppJWTProvider(),
+        transport=_TestGitHubTransport(
+            _github_token_response(expires_at="2026-08-14T13:05:01Z")
+        ),
+    )
+    with pytest.raises(EvidenceLaneError) as exc:
+        rejected.issue(_token_request(installation_id="7"))
+    assert exc.value.code == "GITHUB_APP_PROVIDER_EXPIRY_INVALID"
+
+
 @pytest.mark.parametrize(
     ("response", "expected"),
     [
