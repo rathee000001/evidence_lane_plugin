@@ -76,16 +76,18 @@ Maintainer repository writes use the separate
 carry the canonical `evidence-lane[bot]` identity as both author and committer;
 the selected App then recreates exact blobs, tree, ordered parents, and commit
 through GitHub's Git Database API and fast-forwards only the named feature
-branch with `force=false`. The route never writes `main`, borrows the downstream
-project-source push tools, or silently falls back to a human credential.
+branch with `force=false`. The remote feature ref must equal the exact parent or
+be its server-verified ancestor; divergence fails before object or ref writes.
+The route never writes `main`, borrows the downstream project-source push tools,
+or silently falls back to a human credential.
 
 After that exact feature head passes the required clean workflows, maintainer
-main promotion uses only `github_app_repository_merge_v2`, owned by
-`scripts/codex_release/merge_github_app_feature_to_main.py`. It checks the exact
-source/target refs and exact-head workflow results, asks GitHub to reuse the
-existing feature tree, and verifies the merge tree, ordered parents,
-`evidence-lane[bot]` actor, and final main ref. It performs no local main
-checkout, blob replay, force push, or fallback to the superseded merge route.
+main promotion uses only `github_app_main_fast_forward_v3`, owned by
+`scripts/codex_release/fast_forward_github_app_feature_to_main.py`. It checks
+the exact source/target refs, strict ancestry, App-bot feature identity, and
+exact-head workflow results before advancing `main` with `force=false`. It then
+verifies the final main commit/tree. It performs no local main checkout, merge
+commit, blob replay, force push, or fallback to the superseded merge route.
 
 Candidate creation, remote Git push, package installation, and pointer movement
 are separate governed operations. None of them implies acceptance. Only exact

@@ -1,6 +1,5 @@
 {
-  "audited_index_tree_before_receipt": "017bcabf0fe674035e3026cd730a3db764533cad",
-  "base_commit": "62902847c57ccd2aef2d985c8bd186535dae7347",
+  "base_commit": "432667fe9e761ea7effa219bf6abae677cbf741a",
   "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
   "current_route": {
     "direct_state_travel_fields": [
@@ -13,7 +12,7 @@
     ],
     "github_app_commit_actor": "evidence-lane[bot]",
     "github_app_commit_route": "github_app_exact_commit_push_v1",
-    "github_app_main_merge_route": "github_app_repository_merge_v2",
+    "github_app_main_promotion_route": "github_app_main_fast_forward_v3",
     "hook_events": [
       "SessionStart",
       "SubagentStart",
@@ -48,7 +47,7 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": ".agents",
-      "sha256": "4C691E76084CF4C008CE15CA4EF83699E5A5BFB9E052C14D82C1456687CCA8B2"
+      "sha256": "43C18B1E0A388253E99D53093080A8D4FAFA134437173520822B917BF64F6665"
     },
     {
       "bytes": 416,
@@ -138,7 +137,7 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": ".github",
-      "sha256": "370D3C1B3B97E3F8CF7F505D36E35B4504D843C944F4F1B517400EA7B377EF5C"
+      "sha256": "412BE60482C0CAE372D634D3F552CAD9929E6F5B5F266D2724074535E2E5F617"
     },
     {
       "bytes": 1607,
@@ -205,7 +204,7 @@
     },
     {
       "bytes": 17616,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "ARCHITECTURE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -232,7 +231,7 @@
     },
     {
       "bytes": 1325,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "LICENSE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -241,7 +240,7 @@
     },
     {
       "bytes": 34484,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "README.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -250,7 +249,7 @@
     },
     {
       "bytes": 5601,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "SECURITY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -258,17 +257,8 @@
       "sha256": "DF52D4DC3304B7E85AEF7076BDF7DAC90A41F9CC45FB611009C4FC804F527F66"
     },
     {
-      "bytes": 0,
-      "disposition": "REMOVED",
-      "path": "TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json",
-      "prior_sha256": "B544A8D58B80D65AD5663A7A4E0D1E2F135E67D2A23EEBB5AA83E26CEB31CAB3",
-      "route_refresh_verified": true,
-      "scope": "repository-root",
-      "sha256": null
-    },
-    {
       "bytes": 3886,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/AI_LEARNING.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -286,7 +276,7 @@
     },
     {
       "bytes": 6042,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -322,7 +312,7 @@
     },
     {
       "bytes": 3990,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/COMMANDS.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -331,7 +321,7 @@
     },
     {
       "bytes": 1332,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/COPYRIGHT.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -340,12 +330,30 @@
     },
     {
       "bytes": 3653,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/CREDITS_AND_CONTRIBUTIONS.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
       "sha256": "2C3F85726A32261F8ABC2BC880907B72D789CE1AE286FA15F995B0196D652EC4"
+    },
+    {
+      "bytes": null,
+      "disposition": "RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE",
+      "path": "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.json",
+      "prior_sha256": null,
+      "route_refresh_verified": true,
+      "scope": "docs",
+      "sha256": null
+    },
+    {
+      "bytes": null,
+      "disposition": "RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE",
+      "path": "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.md",
+      "prior_sha256": null,
+      "route_refresh_verified": true,
+      "scope": "docs",
+      "sha256": null
     },
     {
       "bytes": 8936,
@@ -411,31 +419,31 @@
       "sha256": "6203AF93F35CDC746A9CD0EDB847198722E9D1B658E65AD21B14060AEA3DE609"
     },
     {
-      "bytes": 4599,
+      "bytes": 4831,
       "disposition": "CHANGED",
       "path": "docs/GITHUB_APP_PRE_HIL_CONTRACT.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "748A27AB55DDFE1A55B8E01D83725AE63C87F0A7B9F36BE86DF46F1E4DA7BBC8"
+      "sha256": "EB75790883EAA0EF3F2394290826B7B73D1B10659B5F9AF7D5E1DC31029A8B5D"
     },
     {
-      "bytes": 2845,
+      "bytes": 2869,
       "disposition": "CHANGED",
       "path": "docs/GIT_AND_CI_CD.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "6361E0438260E110AC88BD0DE6AFD6D5149020C43F513A4FC597B47749A0E254"
+      "sha256": "37C0E6BF2F8C95A5E0ECEB08643BC89D8C6AF08B4331722BA79233231E246FBF"
     },
     {
-      "bytes": 4318,
+      "bytes": 4380,
       "disposition": "CHANGED",
       "path": "docs/GIT_WRITE_CONTRACT.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "5F081D52AC4BB646AEFA19F6ED9DCCD5C7687D5F2B52B4F792E7862D818F1852"
+      "sha256": "EF2A62A160C9E08EED9E4DEC5E4B65093053573886F312E1E203DE5F8D20DC67"
     },
     {
       "bytes": 1575,
@@ -448,7 +456,7 @@
     },
     {
       "bytes": 3596,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/HOOKS.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -475,7 +483,7 @@
     },
     {
       "bytes": 9677,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/HOST_STORAGE_ENV_MODE_CONTINUITY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -483,17 +491,17 @@
       "sha256": "256672404400FD01FE1483EA89EF0B6FEC7E94DC47618F754049FB1CBD4234D5"
     },
     {
-      "bytes": 9648,
+      "bytes": 9656,
       "disposition": "CHANGED",
       "path": "docs/IMPLEMENTATION_TRACEABILITY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "062A87A3E87F7A16978DAFCE934665E67F81056723BCFC446B6DD695B4ED0B40"
+      "sha256": "3A0FE4FD8458267E8C6A8C3048D27185099855250F6702F132887FACC954F7D3"
     },
     {
       "bytes": 2860,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/INSTALLATION_AND_RECOVERY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -511,7 +519,7 @@
     },
     {
       "bytes": 2232,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/LIFECYCLE_AND_HIL.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -520,7 +528,7 @@
     },
     {
       "bytes": 2909,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/MCP.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -529,7 +537,7 @@
     },
     {
       "bytes": 5332,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/MEMORY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -538,7 +546,7 @@
     },
     {
       "bytes": 2406,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/PLAN_AND_CHANGE_DISPLAY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -556,7 +564,7 @@
     },
     {
       "bytes": 2676,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/PROJECT_PV_CONTENT_ADDRESSED_STORAGE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -565,7 +573,7 @@
     },
     {
       "bytes": 1313,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/PROJECT_UNIVERSE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -610,7 +618,7 @@
     },
     {
       "bytes": 1269,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/RELEASE_AND_COMPATIBILITY.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -619,7 +627,7 @@
     },
     {
       "bytes": 1760,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/REPOSITORY_MAP.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -655,7 +663,7 @@
     },
     {
       "bytes": 3053,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/SKILLS.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -664,7 +672,7 @@
     },
     {
       "bytes": 2779,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/SOURCE_INTAKE_AND_LANES.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -718,7 +726,7 @@
     },
     {
       "bytes": 2585,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/TERMS_AND_CONDITIONS.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -736,7 +744,7 @@
     },
     {
       "bytes": 2784,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/THIRD_PARTY_LICENSES.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -745,7 +753,7 @@
     },
     {
       "bytes": 7059,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/TOOLS.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -754,7 +762,7 @@
     },
     {
       "bytes": 13753,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/UPSTREAM_REFERENCE_PROVENANCE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -763,7 +771,7 @@
     },
     {
       "bytes": 2497,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/USER_HELPER_GUIDE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -772,7 +780,7 @@
     },
     {
       "bytes": 2689,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/USER_TUNNEL_GUIDE.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -840,7 +848,7 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "docs",
-      "sha256": "10EA822108244F4FC7E44E36E38237A7FC238EEBE5F9397180DD7B050ECE4122"
+      "sha256": "7339D6A4E9AE78F8938A526D0495B3B4EAB803AB4E057E2DB3A8A8FDB70EEBCE"
     },
     {
       "bytes": 364,
@@ -876,7 +884,7 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "github-pages",
-      "sha256": "E50B295B6F42D331504E1F3AB6F6266A822ED1549F27F186A269302979E476CB"
+      "sha256": "5AF95EB6FF70DB361043018FB60D99A1508E4EFEFF96C992B30C81A9FEC16D1F"
     },
     {
       "bytes": 209,
@@ -885,7 +893,7 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "plugins",
-      "sha256": "2A1D1DD48A66BB70758EAB691E9D083E9679D10500BD3B9AE076B432E4DEC2DA"
+      "sha256": "AA62138ED9D0BB0A8B19252119324BEBF3E5A014056088B3198A6ED7CCEFD7EC"
     },
     {
       "bytes": 2646,
@@ -924,13 +932,13 @@
       "sha256": "8D0B5B7FD1B3C704B411C334F827E2FC0533AED19A3BE9EDE93CA9CC9602B8CC"
     },
     {
-      "bytes": 28623,
+      "bytes": 28768,
       "disposition": "CHANGED",
       "path": "plugins/evidence-lane-plugin/README.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "plugins",
-      "sha256": "317B52B08C25A9535FD1D7BB5C12659684BE28831C938DCD72D09CFF5014EB84"
+      "sha256": "D47DA4C028ACBCE6413CEA581B5BD878619C357A7800E76D60E1303C39BF285E"
     },
     {
       "bytes": 2641,
@@ -3453,6 +3461,15 @@
       "sha256": "DB72A3C80134D1C595E04FB962872C1836B0A2D25D5FD9C020924D1FADD0A8E2"
     },
     {
+      "bytes": 9993,
+      "disposition": "CHANGED",
+      "path": "plugins/evidence-lane-plugin/scripts/codex_release/fast_forward_github_app_feature_to_main.py",
+      "prior_sha256": null,
+      "route_refresh_verified": true,
+      "scope": "plugins",
+      "sha256": "20A9AC3A660C36FD5DB09BECE26B25B6975322B509468C99D90CC98375E5FF21"
+    },
+    {
       "bytes": 421979,
       "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/scripts/codex_release/install_codex_stable.py",
@@ -3462,13 +3479,13 @@
       "sha256": "A93BDD2E4E8F7A6A58CB5D4945EF71D6BBE29C264A2716EF1CAE67C800825AF1"
     },
     {
-      "bytes": 10090,
+      "bytes": 642,
       "disposition": "CHANGED",
       "path": "plugins/evidence-lane-plugin/scripts/codex_release/merge_github_app_feature_to_main.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "plugins",
-      "sha256": "E8A6D6DD3C75B41DA73FB8F360C37F470C041F67FEFDDEE5D454F2BD3DD84D89"
+      "sha256": "36D0182816462B623043C0A8D6379C79E92A4A699FAD6031DD6F615C62ADE852"
     },
     {
       "bytes": 1642,
@@ -3975,13 +3992,13 @@
       "sha256": "2CE96DB56B00C84C82C5FF6A1C8931C2C6801078B9D813CBA17EFB75E2DFC00D"
     },
     {
-      "bytes": 33874,
+      "bytes": 34038,
       "disposition": "CHANGED",
       "path": "plugins/evidence-lane-plugin/skills/evidence-lane-code-lifecycle/SKILL.md",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "plugins",
-      "sha256": "A89DB02377AFDED2286D2A65F57E0A87F450BA6E58AC1ABD5BC1876DA3AEFF61"
+      "sha256": "A08599A0636D098F0907CFC8FAC9AAD7C5C69DFB953687D7F6BE7602BFB0718A"
     },
     {
       "bytes": 371,
@@ -4290,13 +4307,13 @@
       "sha256": "8A52284EC6DB4D6E569F6A7E09A52DC8526637A258D7134C9BD047B3EAC1986E"
     },
     {
-      "bytes": 110657,
+      "bytes": 112728,
       "disposition": "CHANGED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/github_app_distribution.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "plugins",
-      "sha256": "2A07352E87F990C1C6AA107858F07952155A24AB3665B8D202C59EF28FDDB835"
+      "sha256": "F8E65C7040D3A2DAADFEFF028678BF806A89A22DDDF90200FADDF6D41AD5FE76"
     },
     {
       "bytes": 45403,
@@ -5268,25 +5285,25 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "scripts",
-      "sha256": "8CA3DD4AE4FAFF87E971B243944D6810B3D752B6DDCBA3D71CA7D2C21E58069A"
+      "sha256": "8747CA5AC62E69ACBE99B1F27B69C5DE4CB57AE85F9DBD2DDED5AC5E6BFCB6A3"
     },
     {
-      "bytes": 10773,
-      "disposition": "UNCHANGED_VERIFIED",
+      "bytes": 15432,
+      "disposition": "CHANGED",
       "path": "scripts/prepare_github_pages.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "scripts",
-      "sha256": "F3A18F7FE91ECE10610E903DCB654D50741529F63EBB44AE149B685472294483"
+      "sha256": "A45FB7F8C8CA1666F8014338090C12270A9BE041825319484483DAE3B1BAC669"
     },
     {
-      "bytes": 10923,
+      "bytes": 12944,
       "disposition": "CHANGED",
       "path": "scripts/refresh_current_route_receipts.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "scripts",
-      "sha256": "9355A4CEBCE91ABAA22E48985756C099F6B206398BF1A43CEFB8B568E22D08A6"
+      "sha256": "3BE069F62F41A24AE08EC2730AF52CAB7D3460585C8B9278B144999894E49CFF"
     },
     {
       "bytes": 47,
@@ -5313,7 +5330,7 @@
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "tests",
-      "sha256": "59460F9B6CFD8D2959B4DDF952AAD188884F3B073575B2C84B639F4C212C1453"
+      "sha256": "9AE2EE8CADDF006E5C1AED76498B3A39DA1152A5F4E590F37E52137F7E9E642C"
     },
     {
       "bytes": 1150,
@@ -5559,13 +5576,13 @@
       "sha256": "3F32648DC8AD6BA5B0EDC0B1A55F78F6C7443F766A87106600EBDA760FC2B236"
     },
     {
-      "bytes": 3867,
+      "bytes": 4091,
       "disposition": "CHANGED",
       "path": "tests/test_current_route_refresh_receipt.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "tests",
-      "sha256": "612D9B870471A47652A76964E5CC9BC8C124D565F7DEA2D8AC9EB8C80BD76CBC"
+      "sha256": "DFED549D8BB056F6F9C96422496F22304233ED2F15232F9CA5659DD0A2F9C490"
     },
     {
       "bytes": 10148,
@@ -5658,13 +5675,13 @@
       "sha256": "5C4B40F0D66E07B36900C0F1C4A04DE3D329C5F3CD3DF9A7D106BA0889B510F3"
     },
     {
-      "bytes": 40374,
+      "bytes": 45290,
       "disposition": "CHANGED",
       "path": "tests/test_github_app_distribution.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "tests",
-      "sha256": "297ECC12BDD165CA2BDC78EA3E77976CCB88D485787E9336D2773E48F33A27AD"
+      "sha256": "544CB29F54FAA16580120F08F48E9BAD2C124F4FD14524834390B02C09AAC48F"
     },
     {
       "bytes": 6442,
@@ -5676,13 +5693,13 @@
       "sha256": "1427F236EAD3FF285D6D5A593ED6E1034C1EE09CC2B2307226008519AC6185D8"
     },
     {
-      "bytes": 3912,
+      "bytes": 4376,
       "disposition": "CHANGED",
-      "path": "tests/test_github_app_main_merge_cli.py",
+      "path": "tests/test_github_app_main_fast_forward_cli.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
       "scope": "tests",
-      "sha256": "6900DCE54A0B0E7BFC3FD8927A44432D418944B2BAEA8A68ADD105857685F0AD"
+      "sha256": "E9BB4C5B3415FB50F4BFF67E402E1F3D64ED366296C3565A487FCB4648514700"
     },
     {
       "bytes": 4212,
@@ -6181,7 +6198,7 @@
     },
     {
       "bytes": 5636,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_public_site_source_documents.py",
       "prior_sha256": null,
       "route_refresh_verified": true,
@@ -6567,21 +6584,35 @@
       "sha256": "55807FE26E746234AA847DA4F4F217B24B3B00E3EC0BDD6656CD39DA3DCFC15D"
     }
   ],
-  "generated_at": "2026-08-23T23:07:54.300758+00:00",
-  "output_self_reference_law": "The JSON and Markdown receipts are excluded from their own per-path digest; clean-checkout tests verify every other tracked path against these hashes.",
-  "refresh_id": "TASK16_CURRENT_ROUTE_REFRESH_20260823_002",
+  "generated_at": "2026-08-23T23:24:15Z",
+  "output_self_reference_law": "The JSON and Markdown receipts are enumerated exactly once with the RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE disposition. Their final bytes are bound by the App-authored commit/tree receipt; every other tracked path is verified directly by SHA-256.",
+  "refresh_id": "TASK16_CURRENT_ROUTE_REFRESH_20260823_003",
+  "removed_history": [
+    {
+      "disposition": "OBSOLETE_REMOVED",
+      "path": "TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json",
+      "prior_sha256": "B544A8D58B80D65AD5663A7A4E0D1E2F135E67D2A23EEBB5AA83E26CEB31CAB3"
+    },
+    {
+      "disposition": "OBSOLETE_REMOVED",
+      "path": "tests/test_github_app_main_merge_cli.py",
+      "prior_sha256": "6900DCE54A0B0E7BFC3FD8927A44432D418944B2BAEA8A68ADD105857685F0AD"
+    }
+  ],
   "repository": "rathee000001/evidence_lane_plugin",
-  "schema": "evidence-lane.current-route-file-refresh-receipt.v1",
+  "schema": "evidence-lane.current-route-file-refresh-receipt.v2",
   "status": "PASS",
   "summary": {
     "dispositions": {
-      "CHANGED": 48,
-      "REMOVED": 1,
-      "UNCHANGED_VERIFIED": 676
+      "CHANGED": 21,
+      "RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE": 2,
+      "UNCHANGED_VERIFIED": 704
     },
-    "entry_set_sha256": "934E2237EA9759FFC96455E37673BE25F3AF10CBC6507967DF87B2EC90B2F640",
-    "path_count": 725,
+    "entry_path_set_sha256": "88E5E086511F66155B93F5630BA93C4FDDD604D42849846B167B92947904ECCB",
+    "entry_set_sha256": "BDB7512D8AFE2FCFFE1A768391FF28AFA1C9291D1B69BB30B8F9D4D5B41A94FC",
+    "path_count": 727,
     "removed_root_authority": "TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json",
-    "root_file_count": 14
+    "root_file_count": 14,
+    "tracked_path_set_equality": true
   }
 }

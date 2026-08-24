@@ -1250,13 +1250,39 @@ class GitHubAppExactCommitPushRoute:
                 expected_status=200,
             )
         )
-        require(
-            self._oid_from_object(remote_before.body, field="remote_ref_sha")
-            == request.expected_parent_commit_sha,
-            "GITHUB_APP_REMOTE_PARENT_MISMATCH",
-            "The remote branch moved away from the exact local parent commit.",
-            status="MISMATCH",
+        remote_before_sha = self._oid_from_object(
+            remote_before.body, field="remote_ref_sha"
         )
+        remote_to_parent_ahead_by = 0
+        if remote_before_sha != request.expected_parent_commit_sha:
+            comparison = record(
+                self._request(
+                    token=token,
+                    method="GET",
+                    path=(
+                        f"{repository_path}/compare/{quote(remote_before_sha)}..."
+                        f"{quote(request.expected_parent_commit_sha)}"
+                    ),
+                    body={},
+                    expected_status=200,
+                )
+            )
+            merge_base = comparison.body.get("merge_base_commit")
+            require(
+                isinstance(merge_base, Mapping)
+                and _git_oid(
+                    cast(Mapping[str, Any], merge_base).get("sha"),
+                    field="remote_to_parent_merge_base_sha",
+                )
+                == remote_before_sha
+                and comparison.body.get("status") == "ahead"
+                and int(comparison.body.get("ahead_by") or 0) >= 1
+                and int(comparison.body.get("behind_by") or 0) == 0,
+                "GITHUB_APP_REMOTE_FAST_FORWARD_DIVERGED",
+                "The remote feature ref is not an ancestor of the exact local parent commit.",
+                status="MISMATCH",
+            )
+            remote_to_parent_ahead_by = int(comparison.body.get("ahead_by") or 0)
         parent_commit = record(
             self._request(
                 token=token,
@@ -1411,6 +1437,9 @@ class GitHubAppExactCommitPushRoute:
             task_id=request.task_id,
             repository=request.repository,
             branch=request.branch,
+            remote_ref_before_commit_sha=remote_before_sha,
+            remote_to_parent_fast_forward_verified=True,
+            remote_to_parent_ahead_by=remote_to_parent_ahead_by,
             parent_commit_sha=request.expected_parent_commit_sha,
             parent_tree_sha=request.expected_parent_tree_sha,
             tree_sha=request.expected_tree_sha,
@@ -1445,8 +1474,8 @@ class GitHubAppExactCommitPushRoute:
 
 
 @dataclass(frozen=True, slots=True)
-class GitHubAppMainMergeRequest:
-    """Exact green feature head authorized for one repository merge to main."""
+class GitHubAppMainFastForwardRequest:
+    """Exact green feature head authorized for one non-force main fast-forward."""
 
     request_id: str
     idempotency_key: str
@@ -1458,7 +1487,6 @@ class GitHubAppMainMergeRequest:
     expected_source_commit_sha: str
     expected_source_tree_sha: str
     expected_target_commit_sha: str
-    commit_message: str
     required_workflow_names: tuple[str, ...]
 
     @classmethod
@@ -1475,9 +1503,8 @@ class GitHubAppMainMergeRequest:
         expected_source_commit_sha: str,
         expected_source_tree_sha: str,
         expected_target_commit_sha: str,
-        commit_message: str,
         required_workflow_names: Sequence[str],
-    ) -> GitHubAppMainMergeRequest:
+    ) -> GitHubAppMainFastForwardRequest:
         source = _git_branch(source_branch)
         target = _git_branch(target_branch)
         workflows = tuple(
@@ -1490,8 +1517,8 @@ class GitHubAppMainMergeRequest:
         )
         require(
             target == "main" and source != target and 1 <= len(workflows) <= 16,
-            "GITHUB_APP_MAIN_MERGE_BOUNDARY_INVALID",
-            "The App merge route requires one non-main source and bounded green workflow gate.",
+            "GITHUB_APP_MAIN_FAST_FORWARD_BOUNDARY_INVALID",
+            "The App fast-forward route requires one non-main source and bounded green workflow gate.",
             status="BLOCKED",
         )
         return cls(
@@ -1514,7 +1541,6 @@ class GitHubAppMainMergeRequest:
                 expected_target_commit_sha,
                 field="expected_target_commit_sha",
             ),
-            commit_message=_bounded_commit_message(commit_message),
             required_workflow_names=workflows,
         )
 
@@ -1530,7 +1556,6 @@ class GitHubAppMainMergeRequest:
             "expected_source_commit_sha": self.expected_source_commit_sha,
             "expected_source_tree_sha": self.expected_source_tree_sha,
             "expected_target_commit_sha": self.expected_target_commit_sha,
-            "commit_message_sha256": sha256_bytes(self.commit_message.encode("utf-8")),
             "required_workflow_names": list(self.required_workflow_names),
         }
 
@@ -1539,10 +1564,10 @@ class GitHubAppMainMergeRequest:
         return sha256_bytes(canonical_json_bytes(self.identity()))
 
 
-class GitHubAppMainMergeRoute:
-    """Merge one exact green feature head to main without replaying its blobs."""
+class GitHubAppMainFastForwardRoute:
+    """Fast-forward main to one exact green feature head without replaying blobs."""
 
-    route_id = "github_app_repository_merge_v2"
+    route_id = "github_app_main_fast_forward_v3"
 
     def __init__(
         self,
@@ -1577,8 +1602,8 @@ class GitHubAppMainMergeRoute:
         )
         require(
             response.status_code == expected_status,
-            "GITHUB_APP_MAIN_MERGE_REQUEST_FAILED",
-            "GitHub rejected the governed feature-to-main repository merge request.",
+            "GITHUB_APP_MAIN_FAST_FORWARD_REQUEST_FAILED",
+            "GitHub rejected the governed feature-to-main fast-forward request.",
             status="BLOCKED",
             method=method,
             path=path.split("?", 1)[0],
@@ -1592,7 +1617,7 @@ class GitHubAppMainMergeRoute:
         nested = response.body.get("object")
         require(
             isinstance(nested, Mapping),
-            "GITHUB_APP_MAIN_MERGE_RESPONSE_INVALID",
+            "GITHUB_APP_MAIN_FAST_FORWARD_RESPONSE_INVALID",
             "GitHub did not return the expected exact ref object.",
             status="BLOCKED",
             field=field,
@@ -1605,7 +1630,7 @@ class GitHubAppMainMergeRoute:
         tree = commit.get("tree") if isinstance(commit, Mapping) else None
         require(
             isinstance(tree, Mapping),
-            "GITHUB_APP_MAIN_MERGE_RESPONSE_INVALID",
+            "GITHUB_APP_MAIN_FAST_FORWARD_RESPONSE_INVALID",
             "GitHub did not return the expected commit tree identity.",
             status="BLOCKED",
             field=field,
@@ -1613,33 +1638,23 @@ class GitHubAppMainMergeRoute:
         return _git_oid(cast(Mapping[str, Any], tree).get("sha"), field=field)
 
     @staticmethod
-    def _parent_oids(response: GitHubAPIResponse) -> list[str]:
-        parents = response.body.get("parents")
+    def _author_login(response: GitHubAPIResponse, *, field: str) -> str:
+        author = response.body.get("author")
         require(
-            isinstance(parents, Sequence) and not isinstance(parents, (str, bytes)),
-            "GITHUB_APP_MAIN_MERGE_RESPONSE_INVALID",
-            "GitHub did not return the exact ordered merge parents.",
+            isinstance(author, Mapping),
+            "GITHUB_APP_MAIN_FAST_FORWARD_RESPONSE_INVALID",
+            "GitHub did not return the source commit App author.",
             status="BLOCKED",
+            field=field,
         )
-        values: list[str] = []
-        for parent in cast(Sequence[object], parents):
-            require(
-                isinstance(parent, Mapping),
-                "GITHUB_APP_MAIN_MERGE_RESPONSE_INVALID",
-                "GitHub returned a malformed merge parent.",
-                status="BLOCKED",
-            )
-            values.append(
-                _git_oid(
-                    cast(Mapping[str, Any], parent).get("sha"),
-                    field="merge_parent_sha",
-                )
-            )
-        return values
+        return _bounded_text(
+            str(cast(Mapping[str, Any], author).get("login") or ""),
+            field=field,
+        )
 
     def execute(
         self,
-        request: GitHubAppMainMergeRequest,
+        request: GitHubAppMainFastForwardRequest,
         *,
         token_request: InstallationTokenRequest,
         now: str,
@@ -1648,8 +1663,8 @@ class GitHubAppMainMergeRoute:
         if prior is not None:
             require(
                 prior[0] == request.sha256,
-                "GITHUB_APP_MAIN_MERGE_REPLAY_CONFLICT",
-                "The main-merge idempotency key was reused for different authority.",
+                "GITHUB_APP_MAIN_FAST_FORWARD_REPLAY_CONFLICT",
+                "The main fast-forward idempotency key was reused for different authority.",
                 status="BLOCKED",
             )
             return {**prior[1], "idempotent_reuse": True}
@@ -1662,7 +1677,7 @@ class GitHubAppMainMergeRoute:
             and permissions.get("metadata") == "read"
             and permissions.get("actions") == "read"
             and permissions.get("contents") == "write",
-            "GITHUB_APP_MAIN_MERGE_AUTHORITY_MISMATCH",
+            "GITHUB_APP_MAIN_FAST_FORWARD_AUTHORITY_MISMATCH",
             "The App token lacks exact task, repository, CI-read, or contents-write authority.",
             status="BLOCKED",
         )
@@ -1675,6 +1690,10 @@ class GitHubAppMainMergeRoute:
         )
         target_ref_path = (
             f"{repository_path}/git/ref/"
+            f"{quote(f'heads/{request.target_branch}', safe='/')}"
+        )
+        target_refs_path = (
+            f"{repository_path}/git/refs/"
             f"{quote(f'heads/{request.target_branch}', safe='/')}"
         )
         request_ids: list[str] = []
@@ -1698,8 +1717,8 @@ class GitHubAppMainMergeRoute:
         require(
             self._ref_oid(target_before, field="target_ref_before_sha")
             == request.expected_target_commit_sha,
-            "GITHUB_APP_MAIN_MERGE_TARGET_MOVED",
-            "The remote main ref moved after merge authorization.",
+            "GITHUB_APP_MAIN_FAST_FORWARD_TARGET_MOVED",
+            "The remote main ref moved after fast-forward authorization.",
             status="MISMATCH",
         )
         source_ref = record(
@@ -1714,7 +1733,7 @@ class GitHubAppMainMergeRoute:
         require(
             self._ref_oid(source_ref, field="source_ref_sha")
             == request.expected_source_commit_sha,
-            "GITHUB_APP_MAIN_MERGE_SOURCE_MOVED",
+            "GITHUB_APP_MAIN_FAST_FORWARD_SOURCE_MOVED",
             "The governed feature branch moved after its green workflow gate.",
             status="MISMATCH",
         )
@@ -1732,8 +1751,43 @@ class GitHubAppMainMergeRoute:
         require(
             self._commit_tree(source_commit, field="source_tree_sha")
             == request.expected_source_tree_sha,
-            "GITHUB_APP_MAIN_MERGE_SOURCE_TREE_MISMATCH",
+            "GITHUB_APP_MAIN_FAST_FORWARD_SOURCE_TREE_MISMATCH",
             "The green source commit tree differs from the governed local identity.",
+            status="MISMATCH",
+        )
+        require(
+            self._author_login(source_commit, field="source_commit_author_login")
+            == "evidence-lane[bot]",
+            "GITHUB_APP_MAIN_FAST_FORWARD_BOT_ACTOR_MISMATCH",
+            "The governed feature commit was not authored by the Evidence Lane App bot.",
+            status="MISMATCH",
+        )
+        comparison = record(
+            self._request(
+                token=token,
+                method="GET",
+                path=(
+                    f"{repository_path}/compare/"
+                    f"{quote(request.expected_target_commit_sha)}..."
+                    f"{quote(request.expected_source_commit_sha)}"
+                ),
+                body={},
+                expected_status=200,
+            )
+        )
+        merge_base = comparison.body.get("merge_base_commit")
+        require(
+            isinstance(merge_base, Mapping)
+            and _git_oid(
+                cast(Mapping[str, Any], merge_base).get("sha"),
+                field="merge_base_commit_sha",
+            )
+            == request.expected_target_commit_sha
+            and comparison.body.get("status") == "ahead"
+            and int(comparison.body.get("ahead_by") or 0) >= 1
+            and int(comparison.body.get("behind_by") or 0) == 0,
+            "GITHUB_APP_MAIN_FAST_FORWARD_DIVERGED",
+            "The green feature head is not a strict descendant of the current main head.",
             status="MISMATCH",
         )
 
@@ -1753,7 +1807,7 @@ class GitHubAppMainMergeRoute:
         require(
             isinstance(workflow_runs, Sequence)
             and not isinstance(workflow_runs, (str, bytes)),
-            "GITHUB_APP_MAIN_MERGE_WORKFLOW_RESPONSE_INVALID",
+            "GITHUB_APP_MAIN_FAST_FORWARD_WORKFLOW_RESPONSE_INVALID",
             "GitHub did not return the exact-head workflow run list.",
             status="BLOCKED",
         )
@@ -1781,7 +1835,7 @@ class GitHubAppMainMergeRoute:
             selected = latest.get(name)
             require(
                 selected is not None,
-                "GITHUB_APP_MAIN_MERGE_BRANCH_GATE_NOT_GREEN",
+                "GITHUB_APP_MAIN_FAST_FORWARD_BRANCH_GATE_NOT_GREEN",
                 "A required exact-head workflow run is missing.",
                 status="BLOCKED",
                 workflow=name,
@@ -1790,7 +1844,7 @@ class GitHubAppMainMergeRoute:
             run = selected[1]
             require(
                 run.get("status") == "completed" and run.get("conclusion") == "success",
-                "GITHUB_APP_MAIN_MERGE_BRANCH_GATE_NOT_GREEN",
+                "GITHUB_APP_MAIN_FAST_FORWARD_BRANCH_GATE_NOT_GREEN",
                 "A required exact-head workflow run is not successful.",
                 status="BLOCKED",
                 workflow=name,
@@ -1805,43 +1859,20 @@ class GitHubAppMainMergeRoute:
                 "head_sha": request.expected_source_commit_sha,
             }
 
-        merged = record(
+        updated_ref = record(
             self._request(
                 token=token,
-                method="POST",
-                path=f"{repository_path}/merges",
-                body={
-                    "base": request.target_branch,
-                    "head": request.expected_source_commit_sha,
-                    "commit_message": request.commit_message,
-                },
-                expected_status=201,
+                method="PATCH",
+                path=target_refs_path,
+                body={"sha": request.expected_source_commit_sha, "force": False},
+                expected_status=200,
             )
         )
-        merge_commit_sha = _git_oid(
-            merged.body.get("sha"),
-            field="merge_commit_sha",
-        )
-        merge_tree_sha = self._commit_tree(merged, field="merge_tree_sha")
-        merge_parents = self._parent_oids(merged)
         require(
-            merge_tree_sha == request.expected_source_tree_sha
-            and merge_parents
-            == [
-                request.expected_target_commit_sha,
-                request.expected_source_commit_sha,
-            ],
-            "GITHUB_APP_MAIN_MERGE_IDENTITY_MISMATCH",
-            "GitHub created a merge outside the exact source tree or ordered parents.",
-            status="MISMATCH",
-        )
-        author = merged.body.get("author")
-        require(
-            isinstance(author, Mapping)
-            and str(cast(Mapping[str, Any], author).get("login") or "")
-            == "evidence-lane[bot]",
-            "GITHUB_APP_MAIN_MERGE_BOT_ACTOR_MISMATCH",
-            "The governed merge was not authored by the Evidence Lane App bot.",
+            self._ref_oid(updated_ref, field="updated_main_ref_sha")
+            == request.expected_source_commit_sha,
+            "GITHUB_APP_MAIN_FAST_FORWARD_REF_UPDATE_MISMATCH",
+            "GitHub did not return the exact fast-forwarded main ref identity.",
             status="MISMATCH",
         )
         target_after = record(
@@ -1855,61 +1886,68 @@ class GitHubAppMainMergeRoute:
         )
         require(
             self._ref_oid(target_after, field="target_ref_after_sha")
-            == merge_commit_sha,
-            "GITHUB_APP_MAIN_MERGE_REF_VERIFY_MISMATCH",
-            "The post-merge main ref does not equal the created merge commit.",
+            == request.expected_source_commit_sha,
+            "GITHUB_APP_MAIN_FAST_FORWARD_REF_VERIFY_MISMATCH",
+            "The post-update main ref does not equal the green feature commit.",
             status="MISMATCH",
         )
         verified_commit = record(
             self._request(
                 token=token,
                 method="GET",
-                path=f"{repository_path}/commits/{merge_commit_sha}",
+                path=f"{repository_path}/commits/{request.expected_source_commit_sha}",
                 body={},
                 expected_status=200,
             )
         )
         require(
-            self._commit_tree(verified_commit, field="verified_merge_tree_sha")
+            self._commit_tree(verified_commit, field="verified_main_tree_sha")
             == request.expected_source_tree_sha
-            and self._parent_oids(verified_commit) == merge_parents,
-            "GITHUB_APP_MAIN_MERGE_POST_VERIFY_MISMATCH",
-            "The persisted GitHub merge commit differs from the merge response.",
+            and self._author_login(
+                verified_commit,
+                field="verified_main_author_login",
+            )
+            == "evidence-lane[bot]",
+            "GITHUB_APP_MAIN_FAST_FORWARD_POST_VERIFY_MISMATCH",
+            "The persisted main commit differs from the green App-authored feature head.",
             status="MISMATCH",
         )
         receipt = _receipt(
-            "evidence-lane.github-app-main-merge.v1",
+            "evidence-lane.github-app-main-fast-forward.v1",
             status="PASS",
             route=self.route_id,
-            action="MERGE_TO_MAIN",
+            action="FAST_FORWARD_MAIN",
             request_sha256=request.sha256,
             token_broker_receipt_sha256=token_receipt["receipt_sha256"],
             project_id=request.project_id,
             task_id=request.task_id,
             repository=request.repository,
-            merge={
+            promotion={
                 "source_branch": request.source_branch,
                 "target_branch": request.target_branch,
                 "target_before_commit": request.expected_target_commit_sha,
                 "source_commit": request.expected_source_commit_sha,
-                "merge_commit": merge_commit_sha,
-                "merge_tree": merge_tree_sha,
-                "ordered_parent_shas": merge_parents,
+                "main_commit": request.expected_source_commit_sha,
+                "main_tree": request.expected_source_tree_sha,
+                "merge_base_commit": request.expected_target_commit_sha,
+                "ahead_by": int(comparison.body.get("ahead_by") or 0),
+                "behind_by": int(comparison.body.get("behind_by") or 0),
             },
             branch_workflow_gate=workflow_gate,
             repository_identity={
                 "branch": request.target_branch,
-                "commit_sha": merge_commit_sha,
-                "tree_sha": merge_tree_sha,
+                "commit_sha": request.expected_source_commit_sha,
+                "tree_sha": request.expected_source_tree_sha,
             },
             authorization={
-                "policy": "GOVERNED_FEATURE_TO_MAIN_MERGE",
+                "policy": "GOVERNED_FEATURE_TO_MAIN_FAST_FORWARD",
                 "direct_main_implementation_authorized": False,
-                "merge_authorized": True,
+                "merge_authorized": False,
+                "fast_forward_authorized": True,
             },
             source_tree_reused=True,
             blob_reupload_count=0,
-            direct_ref_patch_used=False,
+            direct_ref_patch_used=True,
             force_push=False,
             github_commit_author_login="evidence-lane[bot]",
             github_request_ids=request_ids,
@@ -1923,8 +1961,8 @@ class GitHubAppMainMergeRoute:
         )
         require(
             not receipt_contains_secret(receipt),
-            "GITHUB_APP_MAIN_MERGE_RECEIPT_SECRET_BLOCKED",
-            "The main-merge receipt contains a forbidden secret field.",
+            "GITHUB_APP_MAIN_FAST_FORWARD_RECEIPT_SECRET_BLOCKED",
+            "The main fast-forward receipt contains a forbidden secret field.",
             status="BLOCKED",
         )
         self._replay[request.idempotency_key] = (request.sha256, receipt)

@@ -58,19 +58,23 @@ def _indexed_file_bytes() -> dict[str, bytes]:
 
 def test_current_route_refresh_receipt_covers_and_hashes_every_tracked_path() -> None:
     receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
-    assert receipt["schema"] == "evidence-lane.current-route-file-refresh-receipt.v1"
+    assert receipt["schema"] == "evidence-lane.current-route-file-refresh-receipt.v2"
     assert receipt["status"] == "PASS"
-    assert receipt["refresh_id"] == "TASK16_CURRENT_ROUTE_REFRESH_20260823_002"
+    assert receipt["refresh_id"] == "TASK16_CURRENT_ROUTE_REFRESH_20260823_003"
     rows = {row["path"]: row for row in receipt["entries"]}
-    assert set(rows) - {"TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json"} == (
-        _tracked_paths() - OUTPUT_PATHS
-    )
-    removed = rows["TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json"]
-    assert removed["disposition"] == "REMOVED"
+    assert set(rows) == _tracked_paths()
+    assert len(rows) == len(receipt["entries"])
+    assert receipt["summary"]["tracked_path_set_equality"] is True
+    removed = {row["path"]: row for row in receipt["removed_history"]}[
+        "TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json"
+    ]
+    assert removed["disposition"] == "OBSOLETE_REMOVED"
     assert not (ROOT / removed["path"]).exists()
     indexed = _indexed_file_bytes()
     for path, row in rows.items():
-        if row["disposition"] == "REMOVED":
+        if path in OUTPUT_PATHS:
+            assert row["disposition"] == "RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE"
+            assert row["sha256"] is None
             continue
         source = ROOT / path
         assert source.is_file(), path
@@ -102,5 +106,5 @@ def test_current_route_refresh_receipt_binds_current_public_contract() -> None:
     ]
     assert route["github_app_commit_actor"] == "evidence-lane[bot]"
     assert route["github_app_commit_route"] == "github_app_exact_commit_push_v1"
-    assert route["github_app_main_merge_route"] == "github_app_repository_merge_v2"
+    assert route["github_app_main_promotion_route"] == "github_app_main_fast_forward_v3"
     assert route["main_live_work_allowed"] is False

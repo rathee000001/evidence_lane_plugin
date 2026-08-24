@@ -11,9 +11,10 @@ human-authored commit followed by an App-authenticated push is not equivalent.
 The receipt binds project, task, branch, parent, tree, commit, changed paths,
 App route, request IDs, and post-update ref. Feature commits use
 `github_app_exact_commit_push_v1`; a green feature head reaches `main` only via
-`github_app_repository_merge_v2`, which calls GitHub's repository-merge API and
-verifies the reused feature tree, ordered parents, App bot actor, and final
-`main` ref without checking out or working on `main` locally.
+`github_app_main_fast_forward_v3`, which proves strict ancestry and exact-head
+gates before one `force=false` App ref update, then verifies the exact feature
+commit/tree and final `main` ref without checking out or working on `main`
+locally.
 
 That grant does not authorize:
 

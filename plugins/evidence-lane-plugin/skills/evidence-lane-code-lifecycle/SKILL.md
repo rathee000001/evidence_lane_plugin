@@ -510,19 +510,21 @@ is a deterministic preview only and must use the canonical
 `evidence-lane[bot]` identity for both author and committer. The selected
 Evidence Lane GitHub App then recreates the exact blobs, tree, ordered parents,
 and commit through the Git Database API and fast-forwards only the governed
-feature branch with `force=false`. A human-authored local commit followed by an
-App-authenticated push is rejected; push credentials do not rewrite commit
-metadata. `remote_git_prepare_push` and `remote_git_execute_push` remain the
+feature branch with `force=false`. The current remote feature ref must equal the
+exact local parent or be its server-verified ancestor; divergence fails before
+object or ref writes. A human-authored local commit followed by an App-authenticated
+push is rejected; push credentials do not rewrite commit metadata.
+`remote_git_prepare_push` and `remote_git_execute_push` remain the
 separate accepted-PV route for governed downstream project repositories and
 must never substitute for this maintainer App route. All implementation occurs
 on feature branches. After the exact head is green, `main` receives only the
-current `github_app_repository_merge_v2` action owned by
-`scripts/codex_release/merge_github_app_feature_to_main.py`. That route requires
-the exact source/target refs and latest successful required exact-head
-workflows, invokes GitHub's repository merge once, and verifies the reused
-feature tree, ordered parents, App bot actor, and final main ref. It uploads no
-blobs, never checks out or implements on `main`, and never falls back to an
-older repository-merge or connector route.
+current `github_app_main_fast_forward_v3` action owned by
+`scripts/codex_release/fast_forward_github_app_feature_to_main.py`. That route
+requires exact source/target refs, strict target-to-source ancestry, the App-bot
+feature identity, and latest successful required exact-head workflows before
+one `force=false` main-ref update. It verifies the final main commit/tree,
+uploads no blobs, never checks out or implements on `main`, and never falls back
+to an older repository-merge or connector route.
 
 Default reads use accepted truth and disclose live freshness. Explicit
 candidate reads remain labeled `UNACCEPTED_CANDIDATE`. Use bounded fetches and

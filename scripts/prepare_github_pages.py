@@ -13,6 +13,9 @@ from urllib.parse import quote
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "github-pages"
 REPOSITORY = "rathee000001/evidence_lane_plugin"
+CURRENT_ROUTE_RECEIPT = "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.json"
+CURRENT_ROUTE_RECEIPT_MARKDOWN = "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.md"
+CURRENT_ROUTE_RECEIPT_SCHEMA = "evidence-lane.current-route-file-refresh-receipt.v2"
 
 PAGES = (
     ("index", "README", "README.md"),
@@ -66,9 +69,7 @@ PAGES = (
     ("repository-map", "Repository Map", "docs/REPOSITORY_MAP.md"),
 )
 
-PUBLIC_DOC_REFRESH_MARKER = (
-    "evidence-lane-public-docs-full-refresh: 3.0.0"
-)
+PUBLIC_DOC_REFRESH_MARKER = "evidence-lane-public-docs-full-refresh: 3.0.0"
 STALE_PUBLIC_DOC_PATTERNS = (
     re.compile(
         r"\b(?:package defines|registers) eight (?:hook )?events\b",
@@ -92,6 +93,7 @@ def _assert_current_public_document(path: str, text: str) -> None:
                 f"Stale public documentation route/contract remains in {path}: "
                 f"{pattern.pattern}"
             )
+
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
@@ -125,6 +127,110 @@ def _current_commit_refresh_paths() -> set[str]:
         for line in result.stdout.splitlines()
         if line.strip()
     }
+
+
+def _git_text(*args: str) -> str:
+    return subprocess.run(
+        ["git", *args],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    ).stdout.strip()
+
+
+def _revision_tracked_paths(revision: str) -> set[str]:
+    github_sha = os.environ.get("GITHUB_SHA", "").strip()
+    command = (
+        ["git", "ls-tree", "-r", "-z", "--name-only", revision]
+        if re.fullmatch(r"[0-9a-fA-F]{40}", github_sha)
+        else ["git", "ls-files", "-z"]
+    )
+    raw = subprocess.run(
+        command,
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    ).stdout
+    return {
+        value.decode("utf-8").replace("\\", "/") for value in raw.split(b"\0") if value
+    }
+
+
+def _verify_current_route_refresh_receipt(
+    *,
+    revision: str,
+    changed_paths: set[str],
+    page_sources: set[str],
+) -> set[str]:
+    required_receipts = {CURRENT_ROUTE_RECEIPT, CURRENT_ROUTE_RECEIPT_MARKDOWN}
+    if not required_receipts.issubset(changed_paths):
+        missing = sorted(required_receipts - changed_paths)
+        raise RuntimeError(
+            "The current commit did not refresh both tracked-tree receipt files: "
+            + ", ".join(missing)
+        )
+    receipt = json.loads((ROOT / CURRENT_ROUTE_RECEIPT).read_text(encoding="utf-8"))
+    if (
+        receipt.get("schema") != CURRENT_ROUTE_RECEIPT_SCHEMA
+        or receipt.get("status") != "PASS"
+    ):
+        raise RuntimeError(
+            "The current-route tracked-tree receipt is not authoritative."
+        )
+    entries = receipt.get("entries")
+    if not isinstance(entries, list) or not all(
+        isinstance(row, dict) for row in entries
+    ):
+        raise RuntimeError(
+            "The current-route tracked-tree receipt entries are malformed."
+        )
+    rows = {str(row.get("path") or ""): row for row in entries}
+    if "" in rows or len(rows) != len(entries):
+        raise RuntimeError(
+            "The current-route tracked-tree receipt has duplicate paths."
+        )
+    tracked_paths = _revision_tracked_paths(revision)
+    if set(rows) != tracked_paths:
+        raise RuntimeError(
+            "The current-route receipt path set does not equal the exact Git tree."
+        )
+    expected_path_set_sha256 = (
+        hashlib.sha256("\n".join(sorted(tracked_paths)).encode("utf-8"))
+        .hexdigest()
+        .upper()
+    )
+    summary = receipt.get("summary")
+    if (
+        not isinstance(summary, dict)
+        or summary.get("path_count") != len(tracked_paths)
+        or summary.get("entry_path_set_sha256") != expected_path_set_sha256
+        or summary.get("tracked_path_set_equality") is not True
+    ):
+        raise RuntimeError("The current-route tracked-tree summary does not match Git.")
+    github_sha = os.environ.get("GITHUB_SHA", "").strip()
+    expected_base = (
+        _git_text("rev-parse", f"{revision}^")
+        if re.fullmatch(r"[0-9a-fA-F]{40}", github_sha)
+        else _git_text("rev-parse", "HEAD")
+    )
+    if str(receipt.get("base_commit") or "").lower() != expected_base.lower():
+        raise RuntimeError(
+            "The current-route receipt is bound to the wrong base commit."
+        )
+    for path in required_receipts:
+        if rows[path].get("disposition") != "RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE":
+            raise RuntimeError(f"Receipt self-reference disposition is invalid: {path}")
+    for path in page_sources:
+        row = rows[path]
+        if (
+            row.get("route_refresh_verified") is not True
+            or row.get("disposition") not in {"CHANGED", "UNCHANGED_VERIFIED"}
+            or row.get("sha256") != _sha256(ROOT / path)
+        ):
+            raise RuntimeError(f"Current-route document fingerprint mismatch: {path}")
+    return set(page_sources)
 
 
 def _exact_revision() -> str:
@@ -177,7 +283,7 @@ def _rewrite_relative_markdown_links(
         url = repository_url(match.group("target"))
         if url is None:
             return match.group(0)
-        return f'{match.group("prefix")}{url}{match.group("suffix")}'
+        return f"{match.group('prefix')}{url}{match.group('suffix')}"
 
     rewritten = markdown_pattern.sub(replace_markdown, text)
     rewritten = html_pattern.sub(replace_html, rewritten)
@@ -196,7 +302,11 @@ def build(
     require_current_commit_refresh: bool = False,
 ) -> dict[str, object]:
     output = output.resolve()
-    if output == ROOT or ROOT in output.parents and output.name != ".github-pages-build":
+    if (
+        output == ROOT
+        or ROOT in output.parents
+        and output.name != ".github-pages-build"
+    ):
         raise ValueError("Refusing to replace a non-generated repository path.")
     if output.exists():
         shutil.rmtree(output)
@@ -204,13 +314,20 @@ def build(
 
     revision = _exact_revision()
     page_sources = {source for _, _, source in PAGES}
-    refreshed_paths = (
+    changed_paths = (
         _current_commit_refresh_paths() if require_current_commit_refresh else set()
     )
+    refreshed_paths = set(changed_paths)
+    if require_current_commit_refresh:
+        refreshed_paths.update(
+            _verify_current_route_refresh_receipt(
+                revision=revision,
+                changed_paths=changed_paths,
+                page_sources=page_sources,
+            )
+        )
     missing_refresh = (
-        sorted(page_sources - refreshed_paths)
-        if require_current_commit_refresh
-        else []
+        sorted(page_sources - refreshed_paths) if require_current_commit_refresh else []
     )
     if missing_refresh:
         raise RuntimeError(
@@ -237,10 +354,10 @@ def build(
         page = (
             "---\n"
             "layout: default\n"
-            f"title: \"{title}\"\n"
+            f'title: "{title}"\n'
             f"permalink: {permalink}\n"
-            f"source_path: \"{relative_source}\"\n"
-            f"source_url: \"{source_url}\"\n"
+            f'source_path: "{relative_source}"\n'
+            f'source_url: "{source_url}"\n'
             "---\n\n"
             "{% raw %}\n"
             f"{body.rstrip()}\n"
@@ -282,6 +399,9 @@ def build(
             "current_commit_refresh_verified": (
                 require_current_commit_refresh and not missing_refresh
             ),
+            "tracked_tree_receipt": CURRENT_ROUTE_RECEIPT,
+            "tracked_tree_receipt_schema": CURRENT_ROUTE_RECEIPT_SCHEMA,
+            "unchanged_sources_verified_by_fingerprint": True,
             "source_paths": sorted(page_sources),
             "source_set_sha256": hashlib.sha256(
                 json.dumps(
@@ -290,7 +410,9 @@ def build(
                     sort_keys=True,
                     separators=(",", ":"),
                 ).encode("utf-8")
-            ).hexdigest().upper(),
+            )
+            .hexdigest()
+            .upper(),
         },
     }
     (output / "projection-receipt.json").write_text(
@@ -311,8 +433,9 @@ def main() -> int:
         "--require-current-commit-refresh",
         action="store_true",
         help=(
-            "Fail unless every GitHub documentation/Page source changed in the "
-            "current commit or staged index."
+            "Fail unless the current commit refreshes the complete tracked-tree "
+            "fingerprint receipt and every GitHub documentation/Page source is "
+            "content-address verified."
         ),
     )
     args = parser.parse_args()

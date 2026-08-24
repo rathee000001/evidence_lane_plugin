@@ -6,12 +6,11 @@ import hashlib
 import json
 import subprocess
 from collections import Counter
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-SCHEMA = "evidence-lane.current-route-file-refresh-receipt.v1"
-REFRESH_ID = "TASK16_CURRENT_ROUTE_REFRESH_20260823_002"
+SCHEMA = "evidence-lane.current-route-file-refresh-receipt.v2"
+REFRESH_ID = "TASK16_CURRENT_ROUTE_REFRESH_20260823_003"
 REMOVED_ROOT_AUTHORITY = "TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json"
 REMOVED_ROOT_AUTHORITY_PRIOR_SHA256 = (
     "B544A8D58B80D65AD5663A7A4E0D1E2F135E67D2A23EEBB5AA83E26CEB31CAB3"
@@ -102,6 +101,16 @@ def _changed_against_head(repository: Path, path: str) -> bool:
 
 
 def _record(repository: Path, path: str) -> dict[str, Any]:
+    if path in OUTPUT_PATHS:
+        return {
+            "path": path,
+            "scope": "docs",
+            "disposition": "RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE",
+            "sha256": None,
+            "prior_sha256": None,
+            "bytes": None,
+            "route_refresh_verified": True,
+        }
     source = repository / Path(path)
     if not source.exists():
         if path != REMOVED_ROOT_AUTHORITY:
@@ -144,11 +153,20 @@ def build_receipt(repository: Path) -> dict[str, Any]:
     plugin = root / "plugins" / "evidence-lane-plugin"
     indexed = _git_paths(root, "ls-files", "-z")
     head = _git_paths(root, "ls-tree", "-r", "-z", "--name-only", "HEAD")
-    paths = sorted(((indexed | head) - OUTPUT_PATHS) | {REMOVED_ROOT_AUTHORITY})
+    tracked_paths = indexed
+    removed_paths = head - indexed
+    paths = sorted(tracked_paths)
     entries = [_record(root, path) for path in paths]
     entry_paths = {entry["path"] for entry in entries}
-    if not set(ROOT_FILES).issubset(entry_paths):
-        raise RuntimeError("The root refresh receipt does not cover every root file.")
+    if entry_paths != tracked_paths or len(entries) != len(entry_paths):
+        raise RuntimeError(
+            "The refresh receipt must cover every Git-tracked path exactly once."
+        )
+    required_root_files = set(ROOT_FILES) - {REMOVED_ROOT_AUTHORITY}
+    if not required_root_files.issubset(entry_paths):
+        raise RuntimeError(
+            "The root refresh receipt does not cover every tracked root file."
+        )
     if (root / REMOVED_ROOT_AUTHORITY).exists():
         raise RuntimeError("The obsolete Task6 root authority still exists.")
 
@@ -206,15 +224,35 @@ def build_receipt(repository: Path) -> dict[str, Any]:
         sort_keys=True,
         separators=(",", ":"),
     ).encode("utf-8")
+    removed_history = [
+        {
+            "path": path,
+            "disposition": "OBSOLETE_REMOVED",
+            "prior_sha256": _sha256_bytes(_git(root, "show", f"HEAD:{path}")),
+        }
+        for path in sorted(removed_paths)
+    ]
+    if REMOVED_ROOT_AUTHORITY not in {row["path"] for row in removed_history}:
+        removed_history.append(
+            {
+                "path": REMOVED_ROOT_AUTHORITY,
+                "disposition": "OBSOLETE_REMOVED",
+                "prior_sha256": REMOVED_ROOT_AUTHORITY_PRIOR_SHA256,
+            }
+        )
+    path_set_payload = "\n".join(sorted(entry_paths)).encode("utf-8")
+    base_commit = _git(root, "rev-parse", "HEAD").decode().strip()
+    base_committed_at = (
+        _git(root, "show", "-s", "--format=%cI", "HEAD").decode().strip()
+    )
     return {
         "schema": SCHEMA,
         "status": "PASS",
         "refresh_id": REFRESH_ID,
-        "generated_at": datetime.now(UTC).isoformat(),
+        "generated_at": base_committed_at,
         "repository": "rathee000001/evidence_lane_plugin",
         "branch": _git(root, "branch", "--show-current").decode().strip(),
-        "base_commit": _git(root, "rev-parse", "HEAD").decode().strip(),
-        "audited_index_tree_before_receipt": _git(root, "write-tree").decode().strip(),
+        "base_commit": base_commit,
         "current_route": {
             "plugin_id": plugin_manifest["name"],
             "plugin_version": plugin_manifest["version"],
@@ -222,7 +260,7 @@ def build_receipt(repository: Path) -> dict[str, Any]:
             "hook_events": list(hooks),
             "direct_state_travel_fields": direct_fields,
             "github_app_commit_route": "github_app_exact_commit_push_v1",
-            "github_app_main_merge_route": "github_app_repository_merge_v2",
+            "github_app_main_promotion_route": "github_app_main_fast_forward_v3",
             "github_app_commit_actor": "evidence-lane[bot]",
             "main_live_work_allowed": False,
         },
@@ -232,12 +270,17 @@ def build_receipt(repository: Path) -> dict[str, Any]:
                 sorted(Counter(row["disposition"] for row in entries).items())
             ),
             "entry_set_sha256": _sha256_bytes(digest_payload),
+            "entry_path_set_sha256": _sha256_bytes(path_set_payload),
+            "tracked_path_set_equality": True,
             "root_file_count": len(ROOT_FILES),
             "removed_root_authority": REMOVED_ROOT_AUTHORITY,
         },
+        "removed_history": sorted(removed_history, key=lambda row: row["path"]),
         "output_self_reference_law": (
-            "The JSON and Markdown receipts are excluded from their own per-path digest; "
-            "clean-checkout tests verify every other tracked path against these hashes."
+            "The JSON and Markdown receipts are enumerated exactly once with the "
+            "RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE disposition. Their final bytes are "
+            "bound by the App-authored commit/tree receipt; every other tracked path "
+            "is verified directly by SHA-256."
         ),
         "entries": entries,
     }
@@ -248,9 +291,12 @@ def write_receipts(
 ) -> dict[str, Any]:
     receipt = build_receipt(repository)
     content = json.dumps(receipt, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
-    json_path.write_bytes(content.encode("utf-8"))
+    json_bytes = content.encode("utf-8")
+    if not json_path.exists() or json_path.read_bytes() != json_bytes:
+        json_path.write_bytes(json_bytes)
     digest = _sha256_bytes(content.encode("utf-8"))
     by_path = {row["path"]: row for row in receipt["entries"]}
+    removed_by_path = {row["path"]: row for row in receipt["removed_history"]}
     lines = [
         "# Current-route file refresh receipt — 2026-08-23",
         "",
@@ -268,8 +314,12 @@ def write_receipts(
         "| --- | --- | --- |",
     ]
     for path in ROOT_FILES:
-        row = by_path[path]
-        sha = row["sha256"] or f"REMOVED (prior `{row['prior_sha256']}`)"
+        if path in by_path:
+            row = by_path[path]
+            sha = row["sha256"] or "BOUND BY FINAL GIT TREE"
+        else:
+            row = removed_by_path[path]
+            sha = f"REMOVED (prior `{row['prior_sha256']}`)"
         lines.append(f"| `{path}` | `{row['disposition']}` | `{sha}` |")
     lines.extend(
         [
@@ -277,7 +327,9 @@ def write_receipts(
             "The JSON authority contains one content-addressed record for every audited tracked path, including every unchanged-but-verified file.",
         ]
     )
-    markdown_path.write_bytes(("\n".join(lines) + "\n").encode("utf-8"))
+    markdown_bytes = ("\n".join(lines) + "\n").encode("utf-8")
+    if not markdown_path.exists() or markdown_path.read_bytes() != markdown_bytes:
+        markdown_path.write_bytes(markdown_bytes)
     return receipt
 
 

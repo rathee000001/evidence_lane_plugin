@@ -14,8 +14,9 @@ SCRIPT = (
     / "evidence-lane-plugin"
     / "scripts"
     / "codex_release"
-    / "merge_github_app_feature_to_main.py"
+    / "fast_forward_github_app_feature_to_main.py"
 )
+TOMBSTONE = SCRIPT.with_name("merge_github_app_feature_to_main.py")
 FEATURE = "agent/evi-v300-systemwide-release-hil-v3.0.0"
 
 
@@ -60,20 +61,19 @@ def _repository(tmp_path: Path) -> tuple[Path, str, str]:
     )
 
 
-def test_local_main_merge_request_binds_feature_commit_tree_without_main_checkout(
+def test_local_main_fast_forward_request_binds_feature_commit_tree_without_main_checkout(
     tmp_path,
 ) -> None:
     module = _load_script()
     repository, commit, tree = _repository(tmp_path)
 
-    request = module.local_main_merge_request(
+    request = module.local_main_fast_forward_request(
         repository_root=repository,
         repository="owner/repo",
         source_branch=FEATURE,
         target_branch="main",
         source_commit="HEAD",
         expected_target_commit_sha="1" * 40,
-        commit_message="Merge governed feature checkpoint",
         required_workflow_names=("Governed CI", "Preview"),
         project_id="project-a",
         task_id="task-a",
@@ -89,22 +89,23 @@ def test_local_main_merge_request_binds_feature_commit_tree_without_main_checkou
     assert _git(repository, "branch", "--show-current") == FEATURE
 
 
-def test_local_main_merge_request_rejects_wrong_invoking_branch(tmp_path) -> None:
+def test_local_main_fast_forward_request_rejects_wrong_invoking_branch(
+    tmp_path,
+) -> None:
     module = _load_script()
     repository, _, _ = _repository(tmp_path)
 
     with pytest.raises(
-        module.GitHubAppMainMergeError,
-        match="GITHUB_APP_MAIN_MERGE_WRONG_LOCAL_BRANCH",
+        module.GitHubAppMainFastForwardError,
+        match="GITHUB_APP_MAIN_FAST_FORWARD_WRONG_LOCAL_BRANCH",
     ):
-        module.local_main_merge_request(
+        module.local_main_fast_forward_request(
             repository_root=repository,
             repository="owner/repo",
             source_branch="other-feature",
             target_branch="main",
             source_commit="HEAD",
             expected_target_commit_sha="1" * 40,
-            commit_message="Merge governed feature checkpoint",
             required_workflow_names=("Governed CI",),
             project_id="project-a",
             task_id="task-a",
@@ -113,7 +114,7 @@ def test_local_main_merge_request_rejects_wrong_invoking_branch(tmp_path) -> Non
         )
 
 
-def test_main_merge_cli_help_names_current_repository_merge_route() -> None:
+def test_main_fast_forward_cli_help_names_current_route() -> None:
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--help"],
         cwd=ROOT,
@@ -121,6 +122,22 @@ def test_main_merge_cli_help_names_current_repository_merge_route() -> None:
         capture_output=True,
         text=True,
     )
-    assert "Merge one exact green feature commit" in result.stdout
+    assert "Fast-forward" in result.stdout
     assert "--required-workflow" in result.stdout
     assert "--expected-target-commit-sha" in result.stdout
+    assert "--commit-message" not in result.stdout
+
+
+def test_superseded_repository_merge_command_is_a_non_executing_tombstone() -> None:
+    result = subprocess.run(
+        [sys.executable, str(TOMBSTONE)],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 2
+    assert '"status": "OBSOLETE_ROUTE"' in result.stdout
+    assert (
+        '"required_current_route": "github_app_main_fast_forward_v3"' in result.stdout
+    )

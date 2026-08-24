@@ -43,17 +43,20 @@ Evidence Lane authority.
   accepted only when both its author and committer are the canonical
   `evidence-lane[bot]`. The App recreates exact blobs, the tree, ordered commit
   parents, and the commit through the Git Database API, then fast-forwards one
-  named feature branch with `force=false`. A human-authored commit, stale
-  remote parent, different object identity, protected/default branch, or
+  named feature branch with `force=false`. The remote feature ref may equal the
+  exact local parent or be its verified ancestor, which permits an intervening
+  already-published main checkpoint without force. A human-authored commit,
+  diverged remote ref, different object identity, protected/default branch, or
   credential fallback fails before ref mutation.
-- `GitHubAppMainMergeRoute` and
-  `scripts/codex_release/merge_github_app_feature_to_main.py` implement the
-  current feature-to-main promotion route. They require the exact remote source
-  and target refs plus successful latest runs for every named exact-head
-  workflow, invoke the GitHub repository-merge endpoint once, and post-verify
-  the feature tree, ordered parents, `evidence-lane[bot]` actor, and final main
-  ref. The route uploads no blobs, performs no local main checkout, and has no
-  legacy, connector, or exact-commit-reconstruction fallback.
+- `GitHubAppMainFastForwardRoute` and
+  `scripts/codex_release/fast_forward_github_app_feature_to_main.py` implement
+  the current feature-to-main promotion route. They require the exact remote
+  source and target refs, strict target-to-source ancestry, the
+  `evidence-lane[bot]` feature identity, and successful latest runs for every
+  named exact-head workflow before one `force=false` main-ref update. The route
+  post-verifies the exact feature commit/tree and final main ref, uploads no
+  blobs, performs no local main checkout or merge commit, and has no legacy,
+  connector, or exact-commit-reconstruction fallback.
 
 Every receipt excludes raw secrets, bearer values, and artifact bytes. The
 negative suite covers forged signature, delivery replay conflict, stale token,
@@ -70,4 +73,4 @@ never receives those values. App registration, credential provisioning,
 repository or organization installation, permission changes, external tester
 distribution, public listing, publication, and production deployment remain
 separately authorized operations. Main promotion is a distinct governed action
-through `github_app_repository_merge_v2` only after exact-head CI is green.
+through `github_app_main_fast_forward_v3` only after exact-head CI is green.

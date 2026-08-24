@@ -14,7 +14,8 @@ That bounded action must:
   with canonical `evidence-lane[bot]` author and committer identity;
 - use `github_app_exact_commit_push_v1` to recreate the exact blobs, tree,
   ordered parents, and commit through the selected Evidence Lane GitHub App;
-- fast-forward only that exact feature-branch ref without force;
+- prove the current remote feature ref equals the exact parent or is its strict
+  ancestor, then fast-forward only that exact feature-branch ref without force;
 - leave `main` unchanged locally and remotely;
 - record the exact commit and remote branch;
 - install and test that commit without inferring PV approval;
@@ -23,16 +24,16 @@ That bounded action must:
 ## Governed main promotion
 
 After the exact feature head passes every required clean-checkout workflow, the
-only maintainer promotion route is `github_app_repository_merge_v2`, owned by
-`scripts/codex_release/merge_github_app_feature_to_main.py`. It reads the exact
-source ref, source tree, target ref, and latest required exact-head workflow
-runs before one GitHub repository-merge request. It then verifies that GitHub
-reused the feature tree, produced ordered parents `[prior main, feature]`, used
-the `evidence-lane[bot]` actor, and moved `main` to that one merge commit.
+only maintainer promotion route is `github_app_main_fast_forward_v3`, owned by
+`scripts/codex_release/fast_forward_github_app_feature_to_main.py`. It reads the
+exact source ref, source tree, target ref, strict target-to-source ancestry,
+App-bot feature identity, and latest required exact-head workflow runs before
+one GitHub `force=false` main-ref update. It then verifies that `main` equals the
+exact feature commit/tree.
 
-This route performs no local `main` checkout, merge, implementation, force
+This route performs no local `main` checkout, merge commit, implementation, force
 push, blob replay, candidate action, HIL inference, or pointer movement. A
-moved ref, missing/failed workflow, mismatched tree/parents, wrong actor, stale
+moved ref, divergence, missing/failed workflow, mismatched tree, wrong actor, stale
 App attachment, or ambiguous route fails closed before another mutation. The
 older repository-merge implementation is not a public fallback.
 
