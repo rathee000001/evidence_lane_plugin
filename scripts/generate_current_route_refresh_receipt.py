@@ -14,7 +14,6 @@ ROOT = Path(__file__).resolve().parents[1]
 REFRESH_ID = "TASK20_CURRENT_ROUTE_REFRESH_20260824_001"
 JSON_RELATIVE = "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.json"
 MARKDOWN_RELATIVE = "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.md"
-PRIOR_RELATIVE = "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.json"
 POINTERS = {
     ".agents/plugins/current-route-refresh.v1.json": ".agents/plugins",
     ".github/current-route-refresh.v1.json": ".github",
@@ -50,10 +49,10 @@ def _sha256(data: bytes) -> str:
 
 
 def _prior_receipt() -> dict[str, Any]:
-    path = ROOT / PRIOR_RELATIVE
-    if path.is_file():
-        return json.loads(path.read_text(encoding="utf-8"))
-    return json.loads(str(_git("show", f"HEAD:{PRIOR_RELATIVE}")))
+    try:
+        return json.loads(str(_git("show", f"HEAD:{JSON_RELATIVE}")))
+    except subprocess.CalledProcessError:
+        return {}
 
 
 def _indexed_bytes(relative: str) -> bytes:
@@ -196,7 +195,9 @@ def main() -> None:
         "status": "PASS",
         "summary": {
             "dispositions": dict(sorted(dispositions.items())),
-            "entry_path_set_sha256": _sha256(_canonical(paths)),
+            "entry_path_set_sha256": _sha256(
+                "\n".join(sorted(paths)).encode("utf-8")
+            ),
             "entry_set_sha256": _sha256(_canonical(entries)),
             "path_count": len(entries),
             "removed_root_authority": "TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json",

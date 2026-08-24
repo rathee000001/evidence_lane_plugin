@@ -1,5 +1,5 @@
 {
-  "base_commit": "ab5ae079835ce34f05165ef1350ab086d60f6614",
+  "base_commit": "16c78c9f478f9580f20265084e0e7b301d2fd541",
   "branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
   "current_route": {
     "direct_state_travel_fields": [
@@ -42,9 +42,9 @@
   "entries": [
     {
       "bytes": 217,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": ".agents/plugins/current-route-refresh.v1.json",
-      "prior_sha256": "43C18B1E0A388253E99D53093080A8D4FAFA134437173520822B917BF64F6665",
+      "prior_sha256": "D35C0CCDEBF190D6D0080F8E14880136B5E7A0B9A96E48F4427A6D43D3F74868",
       "route_refresh_verified": true,
       "scope": ".agents",
       "sha256": "D35C0CCDEBF190D6D0080F8E14880136B5E7A0B9A96E48F4427A6D43D3F74868"
@@ -132,9 +132,9 @@
     },
     {
       "bytes": 209,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": ".github/current-route-refresh.v1.json",
-      "prior_sha256": "412BE60482C0CAE372D634D3F552CAD9929E6F5B5F266D2724074535E2E5F617",
+      "prior_sha256": "820ED35F3C2BD3051031036194A1FA380BDB721F33D2B1567506695BD39D14EB",
       "route_refresh_verified": true,
       "scope": ".github",
       "sha256": "820ED35F3C2BD3051031036194A1FA380BDB721F33D2B1567506695BD39D14EB"
@@ -186,9 +186,9 @@
     },
     {
       "bytes": 626,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": ".gitignore",
-      "prior_sha256": "AFDDADA5B8042D6F6AD94A42F9E0094A23C2563B82AE89B385A7F67F45073A58",
+      "prior_sha256": "001DE21A3436BFBFC479E22B7AC92DC576692823F1A29A541A94F98BA2C8DBE7",
       "route_refresh_verified": true,
       "scope": "repository-root",
       "sha256": "001DE21A3436BFBFC479E22B7AC92DC576692823F1A29A541A94F98BA2C8DBE7"
@@ -636,9 +636,9 @@
     },
     {
       "bytes": 3066,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/ROOT_RELEASE_FILE_AUDIT_20260812.md",
-      "prior_sha256": "805B16006686E160FB79DBF40861D596D3181674C6F3E893DE338839E2A6C708",
+      "prior_sha256": "CB7F65E965E4AEF8C7E96597F4E8F91B597968C5DD5443B2F53DFDA5B4DF622B",
       "route_refresh_verified": true,
       "scope": "docs",
       "sha256": "CB7F65E965E4AEF8C7E96597F4E8F91B597968C5DD5443B2F53DFDA5B4DF622B"
@@ -843,9 +843,9 @@
     },
     {
       "bytes": 206,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "docs/current-route-refresh.v1.json",
-      "prior_sha256": "7339D6A4E9AE78F8938A526D0495B3B4EAB803AB4E057E2DB3A8A8FDB70EEBCE",
+      "prior_sha256": "7A5AE1C98C7E738818A21CF7F3D3B4E3916D8E1A0C7D1A7A3A354518A5850329",
       "route_refresh_verified": true,
       "scope": "docs",
       "sha256": "7A5AE1C98C7E738818A21CF7F3D3B4E3916D8E1A0C7D1A7A3A354518A5850329"
@@ -879,27 +879,27 @@
     },
     {
       "bytes": 214,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "github-pages/current-route-refresh.v1.json",
-      "prior_sha256": "5AF95EB6FF70DB361043018FB60D99A1508E4EFEFF96C992B30C81A9FEC16D1F",
+      "prior_sha256": "7FC065251D06F946E757CB75A8287ADCF197D916DA2741B5E8F00E23931D46A3",
       "route_refresh_verified": true,
       "scope": "github-pages",
       "sha256": "7FC065251D06F946E757CB75A8287ADCF197D916DA2741B5E8F00E23931D46A3"
     },
     {
       "bytes": 209,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/current-route-refresh.v1.json",
-      "prior_sha256": "AA62138ED9D0BB0A8B19252119324BEBF3E5A014056088B3198A6ED7CCEFD7EC",
+      "prior_sha256": "FF00EF8F00E4998212F614CD6EDB4CA6AFA12179F1CD07F609CB70A3B0A9C71A",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "FF00EF8F00E4998212F614CD6EDB4CA6AFA12179F1CD07F609CB70A3B0A9C71A"
     },
     {
       "bytes": 2646,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/.codex-plugin/plugin.json",
-      "prior_sha256": "10407DA0A304F99D4E45B0A56213FCC1B4EA48D6FF51DDABBCD36CEBEF3AE3B7",
+      "prior_sha256": "6EAF1BF83405647EE0A500CFF1EBC1CCDC373E13B14D3D35E68B9E15C4E0DD4E",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "6EAF1BF83405647EE0A500CFF1EBC1CCDC373E13B14D3D35E68B9E15C4E0DD4E"
@@ -1122,9 +1122,9 @@
     },
     {
       "bytes": 1623,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/pyproject.toml",
-      "prior_sha256": "7ED81B47F8C67FC4B094AA92376F300A2C4194F8F02AB0906A791E77E557CA24",
+      "prior_sha256": "8FB403FC897E94D3EEBB1995B244B3AB9391974E41D694C53BC965C26FC6DDAB",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "8FB403FC897E94D3EEBB1995B244B3AB9391974E41D694C53BC965C26FC6DDAB"
@@ -3165,36 +3165,36 @@
     },
     {
       "bytes": 5038,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/schemas/canon-envelope.schema.json",
-      "prior_sha256": null,
+      "prior_sha256": "A9E877607773F72DAC6F77492F71B784E219327FAE1B71DCC900FBA77046E8E9",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "A9E877607773F72DAC6F77492F71B784E219327FAE1B71DCC900FBA77046E8E9"
     },
     {
       "bytes": 2643,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/schemas/canon-expected-contract.schema.json",
-      "prior_sha256": null,
+      "prior_sha256": "6684D6DD3B985091B9367E85831D91DA7259866C86A5A25554256BAB81582911",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "6684D6DD3B985091B9367E85831D91DA7259866C86A5A25554256BAB81582911"
     },
     {
       "bytes": 2856,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/schemas/canon-task-edge.schema.json",
-      "prior_sha256": null,
+      "prior_sha256": "7F3E73DFABAE00256F6A4EF0202AC837F8091424935328E5D670DEEA34F48F38",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "7F3E73DFABAE00256F6A4EF0202AC837F8091424935328E5D670DEEA34F48F38"
     },
     {
       "bytes": 1100,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/schemas/canon/canon-consequence-graph.v1.sql",
-      "prior_sha256": "E294DB7E15C15745F43B9E74317C3B092F59F48832D01299395631C821E04F7C",
+      "prior_sha256": "7DBBDB7C0DA5F2CCE1F542A7EA8EC1CE647F4C08AFE8DCF19D41836EADB66CEB",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "7DBBDB7C0DA5F2CCE1F542A7EA8EC1CE647F4C08AFE8DCF19D41836EADB66CEB"
@@ -3228,27 +3228,27 @@
     },
     {
       "bytes": 2181,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/schemas/cross-lane-query.v001.json",
-      "prior_sha256": "AD36EB3290C0D8AC50CC392F854AC6F197C3A25B803BCE7373296B9F77CD98E9",
+      "prior_sha256": "22BD841D1BBD59029F560D8B491E188F486572240EAE34DB9625582ACA4E17FD",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "22BD841D1BBD59029F560D8B491E188F486572240EAE34DB9625582ACA4E17FD"
     },
     {
       "bytes": 2436,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/schemas/cross-project-query.v001.json",
-      "prior_sha256": "0AC3D9CF61ACE80AF22F18AA0BEA8CCCA7D011004707E6AEDF713236C8F266EE",
+      "prior_sha256": "5BBC5FB47DFE97B8869DF62FC6DAD5DA879FB80D4777FAEDEFD67D11E399E050",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "5BBC5FB47DFE97B8869DF62FC6DAD5DA879FB80D4777FAEDEFD67D11E399E050"
     },
     {
       "bytes": 1614,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/schemas/github-app-manifest.schema.json",
-      "prior_sha256": null,
+      "prior_sha256": "1DBE95B64B74C60AB78E5F752EB1E144F144D96C32D06F545F2093BB6AC93FC2",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "1DBE95B64B74C60AB78E5F752EB1E144F144D96C32D06F545F2093BB6AC93FC2"
@@ -3282,18 +3282,18 @@
     },
     {
       "bytes": 3554,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/schemas/lane-search-fts5.v001.json",
-      "prior_sha256": null,
+      "prior_sha256": "A4C2F4CAF7AF94397170A03961423A2BCF1E3C103D1C13358F0430FC086AA306",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "A4C2F4CAF7AF94397170A03961423A2BCF1E3C103D1C13358F0430FC086AA306"
     },
     {
       "bytes": 2196,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/schemas/live-root-six-authority-query.v001.json",
-      "prior_sha256": null,
+      "prior_sha256": "A95CAF32D52B431491F48D665FEDDBC8E8BF48B0B1CA4B8F8C78FCF41292E2D7",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "A95CAF32D52B431491F48D665FEDDBC8E8BF48B0B1CA4B8F8C78FCF41292E2D7"
@@ -3309,27 +3309,27 @@
     },
     {
       "bytes": 1680,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/schemas/parallel-lane-query.v001.json",
-      "prior_sha256": "D529968C533D2410C79A234997F470BF87972C7B59024E54411679471B0F7935",
+      "prior_sha256": "5A652BC887B8FD55AB35376CB02EB4963C333C149F86ED3D37FDA8CCF721F4FE",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "5A652BC887B8FD55AB35376CB02EB4963C333C149F86ED3D37FDA8CCF721F4FE"
     },
     {
       "bytes": 164792,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/schemas/public-action-schemas.v001.json",
-      "prior_sha256": null,
+      "prior_sha256": "F30D179C8D8B6ED8F379D31E0C98FE2DEB76A2FC6C415A130DCE2AD200FB8411",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "F30D179C8D8B6ED8F379D31E0C98FE2DEB76A2FC6C415A130DCE2AD200FB8411"
     },
     {
       "bytes": 1536,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/schemas/universe/project-universe.v1.sql",
-      "prior_sha256": null,
+      "prior_sha256": "4D622EF599FD738ADCA064EB02DDF6D1CA9564DDEEC0A86A7E054AF9C574AA98",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "4D622EF599FD738ADCA064EB02DDF6D1CA9564DDEEC0A86A7E054AF9C574AA98"
@@ -3426,9 +3426,9 @@
     },
     {
       "bytes": 26518,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/scripts/codex-release-channel.json",
-      "prior_sha256": "F1A9BB02FD6DE0D1E2EC56666F17F7A8A372AEDFA5A694930F21C55B34E65A7F",
+      "prior_sha256": "C7DD14667B1A5BB5A640B189D7F74E80C960F36E0FF4B7BC02FE1621E647E31B",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "C7DD14667B1A5BB5A640B189D7F74E80C960F36E0FF4B7BC02FE1621E647E31B"
@@ -3462,9 +3462,9 @@
     },
     {
       "bytes": 111399,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
-      "prior_sha256": "27843E20471A526241BF00D8BF900BCCAB5B06F68A16EFB59901D55F02B96538",
+      "prior_sha256": "0B7277F81F88D0AB9427FA2605DEBFCFAB1FB762D814A2ED9BFEBE5E08662F79",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "0B7277F81F88D0AB9427FA2605DEBFCFAB1FB762D814A2ED9BFEBE5E08662F79"
@@ -3489,9 +3489,9 @@
     },
     {
       "bytes": 55859,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/scripts/codex_release/accept_codex_stable.py",
-      "prior_sha256": "C19B0200E29D9CA0012F5D364D313DC3BC964870EB02523AF91F10A307414099",
+      "prior_sha256": "C3DAA9E6E8573714371E5C7A940502CFCEE749DFD2688A54B8358E06CE36FC1A",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "C3DAA9E6E8573714371E5C7A940502CFCEE749DFD2688A54B8358E06CE36FC1A"
@@ -3516,9 +3516,9 @@
     },
     {
       "bytes": 422549,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/scripts/codex_release/install_codex_stable.py",
-      "prior_sha256": "A93BDD2E4E8F7A6A58CB5D4945EF71D6BBE29C264A2716EF1CAE67C800825AF1",
+      "prior_sha256": "11241D21D106309E54CBE14586AA21412A5E4D14362F19BB3C9966777A38B58D",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "11241D21D106309E54CBE14586AA21412A5E4D14362F19BB3C9966777A38B58D"
@@ -3534,9 +3534,9 @@
     },
     {
       "bytes": 1726,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/scripts/codex_release/migrate_working_project_sectors.py",
-      "prior_sha256": "64399EC8D3B31403F7C700CA2256D298EBEA349E6DA6CC46A2923F8EC3A8546D",
+      "prior_sha256": "E0C383AA1E492BF2C9270E6D6365C20C5B586CD83FBCE3AD73E91A44F6656C3C",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "E0C383AA1E492BF2C9270E6D6365C20C5B586CD83FBCE3AD73E91A44F6656C3C"
@@ -3642,9 +3642,9 @@
     },
     {
       "bytes": 4372,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/scripts/generate_public_schema_catalog.py",
-      "prior_sha256": null,
+      "prior_sha256": "4A9F7E12AF25208D1C3252E0774CFECD254991DD2277C11269F04F542DEEB911",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "4A9F7E12AF25208D1C3252E0774CFECD254991DD2277C11269F04F542DEEB911"
@@ -3759,9 +3759,9 @@
     },
     {
       "bytes": 4588,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/skills/evi-boot/SKILL.md",
-      "prior_sha256": "4753EEF83D5C3DA77EF635C352DD39C97E483F2689B955DCC9A525A33EC1352D",
+      "prior_sha256": "486F512BE104B1EAE608243B4F181C58299271CF9259093256DECA5615A3FEA1",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "486F512BE104B1EAE608243B4F181C58299271CF9259093256DECA5615A3FEA1"
@@ -3795,9 +3795,9 @@
     },
     {
       "bytes": 7705,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/skills/evi-canon/SKILL.md",
-      "prior_sha256": "AE6F2C8408B856F965BED15C3DBB6F76C1BCD22856F5AF5D58539B868EFEB182",
+      "prior_sha256": "F487A859BDF76D3ED6F27DF79A3B7F81AE62E8A666EA746AAE4E4F7901454207",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "F487A859BDF76D3ED6F27DF79A3B7F81AE62E8A666EA746AAE4E4F7901454207"
@@ -3867,9 +3867,9 @@
     },
     {
       "bytes": 8398,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/skills/evi-learning/SKILL.md",
-      "prior_sha256": "2298B5DF831A1FEFA3FC230647952A1029AC1F55527CE14271D0D701D14A774C",
+      "prior_sha256": "847A4486D04AD1BD2FFC22C4501B15525DF0271B42819F4546B08EB11E7AC589",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "847A4486D04AD1BD2FFC22C4501B15525DF0271B42819F4546B08EB11E7AC589"
@@ -3957,9 +3957,9 @@
     },
     {
       "bytes": 6036,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/skills/evi-source-intake/SKILL.md",
-      "prior_sha256": "ABAC6B1DF9300072184CFF506840403ED04F88B52FF27C8A1755005AF4B1CA5C",
+      "prior_sha256": "57D71A8C62959718AA959A7C232FFA2E48BBC571E2F090FF3B5BAB97FAF0E743",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "57D71A8C62959718AA959A7C232FFA2E48BBC571E2F090FF3B5BAB97FAF0E743"
@@ -3975,9 +3975,9 @@
     },
     {
       "bytes": 21457,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/skills/evi-state-travel/SKILL.md",
-      "prior_sha256": "1BED3D49F90DCE2FE1D785C13046BD973FB74DC3478A6F0343EA2D11B901BCD4",
+      "prior_sha256": "E92302E620D490F90469CEF0BAD4F3365DE98580DC1EDEAEF3C90DB27A82FBF9",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "E92302E620D490F90469CEF0BAD4F3365DE98580DC1EDEAEF3C90DB27A82FBF9"
@@ -4011,9 +4011,9 @@
     },
     {
       "bytes": 15378,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/skills/evi/SKILL.md",
-      "prior_sha256": "74B3618317E273354AF6BAFCF203FC3E1C529E39BD2007A2D77D7CE120F5ED6A",
+      "prior_sha256": "6FF4B5065C2044E432F75C5C13CC684DC05D716F0335E53A1F95DAC415D29620",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "6FF4B5065C2044E432F75C5C13CC684DC05D716F0335E53A1F95DAC415D29620"
@@ -4029,9 +4029,9 @@
     },
     {
       "bytes": 27520,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/skills/evi/references/mcp-tool-routing.v1.json",
-      "prior_sha256": "06A19C5B2551F3F801C1F6088C82DFB6305B60C4DA04DCAD0D93DB4AD0F00A8A",
+      "prior_sha256": "448BBD66049CFDAE0F01CB01171031157F57D78AB556B20C49B296C8C86CBCE9",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "448BBD66049CFDAE0F01CB01171031157F57D78AB556B20C49B296C8C86CBCE9"
@@ -4047,9 +4047,9 @@
     },
     {
       "bytes": 34643,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/skills/evidence-lane-code-lifecycle/SKILL.md",
-      "prior_sha256": "A08599A0636D098F0907CFC8FAC9AAD7C5C69DFB953687D7F6BE7602BFB0718A",
+      "prior_sha256": "9FA4419F294A2D8BB5F0D38ABBDCBB6295BF14D13699B088D4BD0DCABC300CC5",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "9FA4419F294A2D8BB5F0D38ABBDCBB6295BF14D13699B088D4BD0DCABC300CC5"
@@ -4083,9 +4083,9 @@
     },
     {
       "bytes": 22997,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/adaptive_delta_exit.py",
-      "prior_sha256": "72FFC160D593A9E8752B6D139B068CFC28052AA26979F77842E9307FF7D751C4",
+      "prior_sha256": "3E881E9643461C1C7CEBC260419667217F8EF998FA52B7991F3A8B74FB642137",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "3E881E9643461C1C7CEBC260419667217F8EF998FA52B7991F3A8B74FB642137"
@@ -4137,9 +4137,9 @@
     },
     {
       "bytes": 53415,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/canon_consequence_graph.py",
-      "prior_sha256": "F8E0C9C904484BBF4EED3CE39CF21EFDB427073A911DF0E98B647EA968C47F04",
+      "prior_sha256": "9870FD97D83B1B008A542B141078B36AA3625B0C9B9BA1CE3467DE433BDA6C6F",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "9870FD97D83B1B008A542B141078B36AA3625B0C9B9BA1CE3467DE433BDA6C6F"
@@ -4182,9 +4182,9 @@
     },
     {
       "bytes": 402643,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/codex_turn_control.py",
-      "prior_sha256": "649E66E94470A9DBFC7ECEF6550BF0129AA6515AB0E4F190A6FDADC21EFEDA75",
+      "prior_sha256": "0B85744A324CDE2046A3BFDC2CF47F9B58DE2C0855D1BF630AD7710DDB154779",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "0B85744A324CDE2046A3BFDC2CF47F9B58DE2C0855D1BF630AD7710DDB154779"
@@ -4245,9 +4245,9 @@
     },
     {
       "bytes": 34431,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/engine.py",
-      "prior_sha256": "BFA9F070BD65305B13937663BC14D5FE029560FDEAC00C5CF5A2C562D36A2DF1",
+      "prior_sha256": "CBC36D8A1085A7BA3F1F8367499831A9F6B4C5211997C76B2D64073B04B9F9E2",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "CBC36D8A1085A7BA3F1F8367499831A9F6B4C5211997C76B2D64073B04B9F9E2"
@@ -4317,9 +4317,9 @@
     },
     {
       "bytes": 8604,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/freshness.py",
-      "prior_sha256": "0EC31A1EDCF1DF1640C13D103649C23A0CDBBBE41423FCE1C7C647885A10EF7F",
+      "prior_sha256": "42DE7DCD8E79F0768D04FDC769F0A83104292AF4215DC5CD5AA764C49292CD6B",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "42DE7DCD8E79F0768D04FDC769F0A83104292AF4215DC5CD5AA764C49292CD6B"
@@ -4479,9 +4479,9 @@
     },
     {
       "bytes": 111576,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/internal_sdk.py",
-      "prior_sha256": "C092CAEDEF773BB08DD668B65697A22ABC6D7D7929194CC3B48845118F204177",
+      "prior_sha256": "1B1C8304C7AA4F741E25C9E2E33EB18C91F309C1711072D9A6EFC7B2E4039942",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "1B1C8304C7AA4F741E25C9E2E33EB18C91F309C1711072D9A6EFC7B2E4039942"
@@ -4497,18 +4497,18 @@
     },
     {
       "bytes": 293729,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/lane_engine.py",
-      "prior_sha256": "4ABB2217971D014C86ECBC145EBEA5533F93F50ABC635FDD85D290EEF5A06CEB",
+      "prior_sha256": "783C505AB367CA4E89FDB96C280C7C4ACAC07993F826D7614BE973DCDF89FDA7",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "783C505AB367CA4E89FDB96C280C7C4ACAC07993F826D7614BE973DCDF89FDA7"
     },
     {
       "bytes": 87016,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/lane_reader.py",
-      "prior_sha256": "26102419DF364AE635A009E9A23EE6DC306777BBC31C52E08F46CA3CF6587D9B",
+      "prior_sha256": "0E2A30E971604DA55006518B7978EA3A478515409C30B908C47AA9CCC1022AC7",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "0E2A30E971604DA55006518B7978EA3A478515409C30B908C47AA9CCC1022AC7"
@@ -4524,18 +4524,18 @@
     },
     {
       "bytes": 74565,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/lineage.py",
-      "prior_sha256": "7FD13E5CA4109B53004A193A45236604B223B7F1DFAEAA0E836FD9B775168C25",
+      "prior_sha256": "549760D523153AE4CEA90C94BCC5DD0BBEED4D4C5A0672E009AC6F021D164014",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "549760D523153AE4CEA90C94BCC5DD0BBEED4D4C5A0672E009AC6F021D164014"
     },
     {
       "bytes": 14161,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/live_authority_query.py",
-      "prior_sha256": null,
+      "prior_sha256": "2B4D4B7564F21AC4B25C7F79499B290381D5B03AEED4A5366F5B7FD7AFB6ADA3",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "2B4D4B7564F21AC4B25C7F79499B290381D5B03AEED4A5366F5B7FD7AFB6ADA3"
@@ -4551,9 +4551,9 @@
     },
     {
       "bytes": 168776,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py",
-      "prior_sha256": "BEAECFA2348BBE9F631B810C8AC372329F381E76DA3EEF50D3BB236D35CB4EFC",
+      "prior_sha256": "3E09B86E39E126E0AFA7E610848171654EAC9183C066DA7340B1A7AA00471378",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "3E09B86E39E126E0AFA7E610848171654EAC9183C066DA7340B1A7AA00471378"
@@ -4623,18 +4623,18 @@
     },
     {
       "bytes": 159990,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/project_authority.py",
-      "prior_sha256": "C55188F27AA77F624E8500FD5B016CCDE4B354E3921B5BFB08C7EC675ABF0B0D",
+      "prior_sha256": "482A9BA4BD47D902223D84AA7350ED40A735903FFD13B0B801E9A124C0806F36",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "482A9BA4BD47D902223D84AA7350ED40A735903FFD13B0B801E9A124C0806F36"
     },
     {
       "bytes": 70262,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/project_memory.py",
-      "prior_sha256": "1523508D8912E2DBEF85407E877E2E7FEDC168B93E279CD575114B0AF6C793A0",
+      "prior_sha256": "1402B8968E98826966A16D3F0EC91244B03888DC4820C180BE6E2315CFA9A93E",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "1402B8968E98826966A16D3F0EC91244B03888DC4820C180BE6E2315CFA9A93E"
@@ -4695,9 +4695,9 @@
     },
     {
       "bytes": 22533,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/reader.py",
-      "prior_sha256": "FFB656691550CAA63BF9099E5E9E6D87D3A94F4F71595D2FDC2508EB748945DF",
+      "prior_sha256": "B7F759CDC1A74FA272DA7AA3B6286D1604EE34B8289CF08D0EC410E7E6CC11B4",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "B7F759CDC1A74FA272DA7AA3B6286D1604EE34B8289CF08D0EC410E7E6CC11B4"
@@ -4722,27 +4722,27 @@
     },
     {
       "bytes": 305,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/runtime-public-catalog.v1.json",
-      "prior_sha256": "BFD51E447C0F54F970EC1C0A111BE902AAED456CE87EF36A693F3470F6F00ED2",
+      "prior_sha256": "9A2F71D6F5E409E2E12AEFE03A8DBA4EF5ADCD06B1A358DE8086D6F4CC212EBF",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "9A2F71D6F5E409E2E12AEFE03A8DBA4EF5ADCD06B1A358DE8086D6F4CC212EBF"
     },
     {
       "bytes": 27452,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/runtime_activation.py",
-      "prior_sha256": "94D362607A50F1F91B6C18D231B038DA106E6D911064C94A22F6464F34E4E366",
+      "prior_sha256": "79676FCF70E3C53F11BFC34F486217A02D131F2F5678487A3DA56763A45C603E",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "79676FCF70E3C53F11BFC34F486217A02D131F2F5678487A3DA56763A45C603E"
     },
     {
       "bytes": 22068,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/runtime_continuity.py",
-      "prior_sha256": "8A8B598EEFDBA8AC118C8157933E8D110CFC742CC0C01588161A122996CB4DA5",
+      "prior_sha256": "CEEF28DB1006CA36DE3EA07ACC2A97C219E8C9CC402DACE68AAAA04F45DB77C4",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "CEEF28DB1006CA36DE3EA07ACC2A97C219E8C9CC402DACE68AAAA04F45DB77C4"
@@ -4803,9 +4803,9 @@
     },
     {
       "bytes": 1100,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/canon/canon-consequence-graph.v1.sql",
-      "prior_sha256": "E294DB7E15C15745F43B9E74317C3B092F59F48832D01299395631C821E04F7C",
+      "prior_sha256": "7DBBDB7C0DA5F2CCE1F542A7EA8EC1CE647F4C08AFE8DCF19D41836EADB66CEB",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "7DBBDB7C0DA5F2CCE1F542A7EA8EC1CE647F4C08AFE8DCF19D41836EADB66CEB"
@@ -4839,18 +4839,18 @@
     },
     {
       "bytes": 2181,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/cross-lane-query.v001.json",
-      "prior_sha256": null,
+      "prior_sha256": "22BD841D1BBD59029F560D8B491E188F486572240EAE34DB9625582ACA4E17FD",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "22BD841D1BBD59029F560D8B491E188F486572240EAE34DB9625582ACA4E17FD"
     },
     {
       "bytes": 2436,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/cross-project-query.v001.json",
-      "prior_sha256": null,
+      "prior_sha256": "5BBC5FB47DFE97B8869DF62FC6DAD5DA879FB80D4777FAEDEFD67D11E399E050",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "5BBC5FB47DFE97B8869DF62FC6DAD5DA879FB80D4777FAEDEFD67D11E399E050"
@@ -4893,18 +4893,18 @@
     },
     {
       "bytes": 3554,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/lane-search-fts5.v001.json",
-      "prior_sha256": null,
+      "prior_sha256": "A4C2F4CAF7AF94397170A03961423A2BCF1E3C103D1C13358F0430FC086AA306",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "A4C2F4CAF7AF94397170A03961423A2BCF1E3C103D1C13358F0430FC086AA306"
     },
     {
       "bytes": 2196,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/live-root-six-authority-query.v001.json",
-      "prior_sha256": null,
+      "prior_sha256": "A95CAF32D52B431491F48D665FEDDBC8E8BF48B0B1CA4B8F8C78FCF41292E2D7",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "A95CAF32D52B431491F48D665FEDDBC8E8BF48B0B1CA4B8F8C78FCF41292E2D7"
@@ -4920,18 +4920,18 @@
     },
     {
       "bytes": 1680,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/parallel-lane-query.v001.json",
-      "prior_sha256": null,
+      "prior_sha256": "5A652BC887B8FD55AB35376CB02EB4963C333C149F86ED3D37FDA8CCF721F4FE",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "5A652BC887B8FD55AB35376CB02EB4963C333C149F86ED3D37FDA8CCF721F4FE"
     },
     {
       "bytes": 164792,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/public-action-schemas.v001.json",
-      "prior_sha256": null,
+      "prior_sha256": "F30D179C8D8B6ED8F379D31E0C98FE2DEB76A2FC6C415A130DCE2AD200FB8411",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "F30D179C8D8B6ED8F379D31E0C98FE2DEB76A2FC6C415A130DCE2AD200FB8411"
@@ -4965,18 +4965,18 @@
     },
     {
       "bytes": 208894,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/service.py",
-      "prior_sha256": "F990E6FAE89997920020404972C8AE0A4614C4461A2C15D22E49D570FB13F9A5",
+      "prior_sha256": "A065CADA6FC97C34D9BFD2A900E51150CF26D44756FD9F9F1F1459490B6CA9C1",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "A065CADA6FC97C34D9BFD2A900E51150CF26D44756FD9F9F1F1459490B6CA9C1"
     },
     {
       "bytes": 505098,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/session.py",
-      "prior_sha256": "A4D487D6DAE1B499E9A876660DCFDE48DEDD46C7DCA2B8089AD06F8C11B3768C",
+      "prior_sha256": "08AB54208F1E787BB88E43EB32C81B64E972C7D60EB016E920BB6686444FC829",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "08AB54208F1E787BB88E43EB32C81B64E972C7D60EB016E920BB6686444FC829"
@@ -5145,9 +5145,9 @@
     },
     {
       "bytes": 106908,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/source_authority.py",
-      "prior_sha256": "2FD2CA8D48638079681B3FEF40F7AB3E8BF432641673D4A80DB885E86C5A585F",
+      "prior_sha256": "D717E167B4D23E87F2A6A9AC34ACD1CEC67A95A7D495FA6149EAF2460025B95C",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "D717E167B4D23E87F2A6A9AC34ACD1CEC67A95A7D495FA6149EAF2460025B95C"
@@ -5244,9 +5244,9 @@
     },
     {
       "bytes": 316540,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "plugins/evidence-lane-plugin/src/evidence_lane_plugin/store.py",
-      "prior_sha256": "8CE79443964E327D1A8544EE56CF1BE06342B0C132A1AEAB1900888873CF7DFE",
+      "prior_sha256": "9D0C46CC0DF46B3838AC8B054FD75A213A64106F29D54797E57E8D725B2B6300",
       "route_refresh_verified": true,
       "scope": "plugins",
       "sha256": "9D0C46CC0DF46B3838AC8B054FD75A213A64106F29D54797E57E8D725B2B6300"
@@ -5397,39 +5397,30 @@
     },
     {
       "bytes": 209,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "scripts/current-route-refresh.v1.json",
-      "prior_sha256": "8747CA5AC62E69ACBE99B1F27B69C5DE4CB57AE85F9DBD2DDED5AC5E6BFCB6A3",
+      "prior_sha256": "A4879E858F121B4E5820511B65E9EDA418757AC0D2512753A3E4612B1A492BA5",
       "route_refresh_verified": true,
       "scope": "scripts",
       "sha256": "A4879E858F121B4E5820511B65E9EDA418757AC0D2512753A3E4612B1A492BA5"
     },
     {
-      "bytes": 8341,
+      "bytes": 8277,
       "disposition": "CHANGED",
       "path": "scripts/generate_current_route_refresh_receipt.py",
-      "prior_sha256": null,
+      "prior_sha256": "6117A90230C7BC86A791FD88AFE4551F900FA6ABB7BB8089C768CB5A2C067355",
       "route_refresh_verified": true,
       "scope": "scripts",
-      "sha256": "6117A90230C7BC86A791FD88AFE4551F900FA6ABB7BB8089C768CB5A2C067355"
+      "sha256": "8ECA4EF5B1ECF03CCBB02C64A02694C43539E3899113C8E699E86929C1B04E4A"
     },
     {
       "bytes": 15432,
-      "disposition": "UNCHANGED_VERIFIED",
+      "disposition": "CHANGED",
       "path": "scripts/prepare_github_pages.py",
       "prior_sha256": "A45FB7F8C8CA1666F8014338090C12270A9BE041825319484483DAE3B1BAC669",
       "route_refresh_verified": true,
       "scope": "scripts",
-      "sha256": "A45FB7F8C8CA1666F8014338090C12270A9BE041825319484483DAE3B1BAC669"
-    },
-    {
-      "bytes": 12944,
-      "disposition": "UNCHANGED_VERIFIED",
-      "path": "scripts/refresh_current_route_receipts.py",
-      "prior_sha256": "3BE069F62F41A24AE08EC2730AF52CAB7D3460585C8B9278B144999894E49CFF",
-      "route_refresh_verified": true,
-      "scope": "scripts",
-      "sha256": "3BE069F62F41A24AE08EC2730AF52CAB7D3460585C8B9278B144999894E49CFF"
+      "sha256": "40E09692A6E970C016B88A8BA06D1F531C661F5A4DE4BA38F05819EDD9FCFAA0"
     },
     {
       "bytes": 47,
@@ -5451,9 +5442,9 @@
     },
     {
       "bytes": 207,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/current-route-refresh.v1.json",
-      "prior_sha256": "9AE2EE8CADDF006E5C1AED76498B3A39DA1152A5F4E590F37E52137F7E9E642C",
+      "prior_sha256": "B00061102E524F763367C8BE19BEDC426FD6D5DC93FBAD8D5CD22BB4E4650B1C",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "B00061102E524F763367C8BE19BEDC426FD6D5DC93FBAD8D5CD22BB4E4650B1C"
@@ -5487,9 +5478,9 @@
     },
     {
       "bytes": 4818,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_accepted_lane_history_nesting.py",
-      "prior_sha256": null,
+      "prior_sha256": "D5ED1CBC99944B05CD91D55E1E2974535D64E40CE9984BCC15C97AC0021A0D9B",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "D5ED1CBC99944B05CD91D55E1E2974535D64E40CE9984BCC15C97AC0021A0D9B"
@@ -5586,9 +5577,9 @@
     },
     {
       "bytes": 14882,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_canon_consequence_graph.py",
-      "prior_sha256": "4CBD71884C0FB871028279A59BF937F2C2A056C9688BAA8BE9DAF1D5E6C149F1",
+      "prior_sha256": "B3967C19A5A0BE67D55AFC426405998BCAD71F6DD021DD8549A88ACC46323E29",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "B3967C19A5A0BE67D55AFC426405998BCAD71F6DD021DD8549A88ACC46323E29"
@@ -5676,9 +5667,9 @@
     },
     {
       "bytes": 157359,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_codex_v200_installation.py",
-      "prior_sha256": "66D26BD996E9E504BF5AC5D138C588DB6DE7A8CDEDEF725E6B66733D98D952DD",
+      "prior_sha256": "03DB33DF279AD87BF133DCC0A331BDFA57783503FF6F0BD74B9B3C5E9B144F8A",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "03DB33DF279AD87BF133DCC0A331BDFA57783503FF6F0BD74B9B3C5E9B144F8A"
@@ -5694,27 +5685,27 @@
     },
     {
       "bytes": 12420,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_cross_lane_query.py",
-      "prior_sha256": "1583508889A56C4627FBC499AB1462346E0DF503A365C0876F89782BCB76DC3A",
+      "prior_sha256": "2CB2AB05625FC424E9E7DB8D374E58DE2C56726BB287E6AC280587F3686054DC",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "2CB2AB05625FC424E9E7DB8D374E58DE2C56726BB287E6AC280587F3686054DC"
     },
     {
       "bytes": 18653,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_cross_project_lane_query.py",
-      "prior_sha256": "3F32648DC8AD6BA5B0EDC0B1A55F78F6C7443F766A87106600EBDA760FC2B236",
+      "prior_sha256": "69DE1DC0D6CA40F312E0B171BCF7ACC7E438A65F821E0B6A12A49243032B8EA4",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "69DE1DC0D6CA40F312E0B171BCF7ACC7E438A65F821E0B6A12A49243032B8EA4"
     },
     {
       "bytes": 4091,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_current_route_refresh_receipt.py",
-      "prior_sha256": "DFED549D8BB056F6F9C96422496F22304233ED2F15232F9CA5659DD0A2F9C490",
+      "prior_sha256": "06A5DB756F7A1215B178B8CC4926E67129133F325F2B6D35CDDFDCE5571586B3",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "06A5DB756F7A1215B178B8CC4926E67129133F325F2B6D35CDDFDCE5571586B3"
@@ -6018,9 +6009,9 @@
     },
     {
       "bytes": 9413,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_internal_sdk_skill_mcp_routing.py",
-      "prior_sha256": "AAE9EF604BF8F3E6B7566A767B39F41E25B4B50CF78D37BA878742F68B4FF252",
+      "prior_sha256": "9FB6BBD1957BDE7DA41CAB2821797221DEC92B0F662792A8D468CA70B9223BB8",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "9FB6BBD1957BDE7DA41CAB2821797221DEC92B0F662792A8D468CA70B9223BB8"
@@ -6081,9 +6072,9 @@
     },
     {
       "bytes": 5180,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_live_authority_query.py",
-      "prior_sha256": null,
+      "prior_sha256": "467E681F7921CFE2BF483907E3BD8FB90CA62B44281343C6686B91D13247E432",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "467E681F7921CFE2BF483907E3BD8FB90CA62B44281343C6686B91D13247E432"
@@ -6198,9 +6189,9 @@
     },
     {
       "bytes": 14994,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_parallel_lane_query.py",
-      "prior_sha256": "C77472AB5A9B3DF2BA12A30B43BE9183F78924739814BEC886318AF7B7CB3161",
+      "prior_sha256": "383ACA264B8EB64D6DD274702EEEB61FF6351CDED7F3E389D0389C20D6EC6098",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "383ACA264B8EB64D6DD274702EEEB61FF6351CDED7F3E389D0389C20D6EC6098"
@@ -6279,9 +6270,9 @@
     },
     {
       "bytes": 50864,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_project_authority.py",
-      "prior_sha256": "759128067AE5124FD0CCC12657F5B70C9EFEC0CB79294D869838192AC53F8C94",
+      "prior_sha256": "EAF64C286F7032BA792B98F85FAC050878F2110F06B5B74AFA9B8ACF07FA2EBD",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "EAF64C286F7032BA792B98F85FAC050878F2110F06B5B74AFA9B8ACF07FA2EBD"
@@ -6324,9 +6315,9 @@
     },
     {
       "bytes": 6490,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_prompt_studio_rag.py",
-      "prior_sha256": "23B97A5141F3DBE712D60B7B9CC8EA551935244D3A8F2230D8E860795D85547F",
+      "prior_sha256": "22069D4F5F3F74826901D30AACF6BEFDF2A833D47B1019E6FE0987BBEC66F7F9",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "22069D4F5F3F74826901D30AACF6BEFDF2A833D47B1019E6FE0987BBEC66F7F9"
@@ -6342,9 +6333,9 @@
     },
     {
       "bytes": 1451,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_public_schema_catalog.py",
-      "prior_sha256": null,
+      "prior_sha256": "CF7B98616AE4390A0C13C911AE3C5F9229950679AE5719698912B32342637A48",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "CF7B98616AE4390A0C13C911AE3C5F9229950679AE5719698912B32342637A48"
@@ -6378,18 +6369,18 @@
     },
     {
       "bytes": 5192,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_reader_query.py",
-      "prior_sha256": "F775D84E9B369D6F1FCF8F427A43FA6130AD31E2714C10A007E49285B9476238",
+      "prior_sha256": "116875FF2CB484096D7868926D81A384F5B6A4E844AE6504B8DD9D95D1512516",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "116875FF2CB484096D7868926D81A384F5B6A4E844AE6504B8DD9D95D1512516"
     },
     {
       "bytes": 29803,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_release_candidate_rehearsal.py",
-      "prior_sha256": "121B59D3DA2C555B3752EA1B8790FD0B98A97F08FB49EB149ED2CF2144FA6A29",
+      "prior_sha256": "36F32929A0E64C873F92698D092BBB96D724C1E0CDE71AEB0C938CC0D885C4D6",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "36F32929A0E64C873F92698D092BBB96D724C1E0CDE71AEB0C938CC0D885C4D6"
@@ -6414,9 +6405,9 @@
     },
     {
       "bytes": 3284,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_render_invocation_workflow.py",
-      "prior_sha256": "9455DBE8B935A6F30B6824C0200CF8EB10E1AEBABB40D9BCAFF92E54EF1FA3E6",
+      "prior_sha256": "21E245FD4118B1368A3D7B25B56CD6C03BC8D0E41865ED6EDEF23550E44FC9C4",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "21E245FD4118B1368A3D7B25B56CD6C03BC8D0E41865ED6EDEF23550E44FC9C4"
@@ -6432,9 +6423,9 @@
     },
     {
       "bytes": 19808,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_runtime_activation.py",
-      "prior_sha256": "A8AEB747E8A733809B4F96A14F77D0713437C961DC587C984FA2FD99C3B8A1AD",
+      "prior_sha256": "9B9AB00C948B48EDE6CBFDB6B4CC701C0B4F2A6E996430D60EF3DDC6E5E72A4B",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "9B9AB00C948B48EDE6CBFDB6B4CC701C0B4F2A6E996430D60EF3DDC6E5E72A4B"
@@ -6477,9 +6468,9 @@
     },
     {
       "bytes": 12647,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_session_flash.py",
-      "prior_sha256": "E346F7BB89E0123453328E94CCE80F95BC81DEF6D48ABA1C595BD7E520515B5D",
+      "prior_sha256": "4BDFAA53C3FF19A6A01F2A11BE287FEAC3F7C8FBFE527158E35D25758566E870",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "4BDFAA53C3FF19A6A01F2A11BE287FEAC3F7C8FBFE527158E35D25758566E870"
@@ -6531,9 +6522,9 @@
     },
     {
       "bytes": 8358,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_source_identity.py",
-      "prior_sha256": "C392425A31B33E87202702C0E91161E562DF8BFC2AEF0D171E65F92E2A369858",
+      "prior_sha256": "349C81CB181EF0255D03CDCD1D5D88FF064CF6A8023A01B845E2729E845EB3A5",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "349C81CB181EF0255D03CDCD1D5D88FF064CF6A8023A01B845E2729E845EB3A5"
@@ -6567,9 +6558,9 @@
     },
     {
       "bytes": 76381,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_state_travel_unfinished.py",
-      "prior_sha256": "1FBC25A46A30155434CDC1B7F575668B7E88BA6CBA7EC9980CF929B092D77631",
+      "prior_sha256": "3BAF82A4FE212E84CF7C60211D3647EA3FDB0B3F625C411E37513FE41D1B0B47",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "3BAF82A4FE212E84CF7C60211D3647EA3FDB0B3F625C411E37513FE41D1B0B47"
@@ -6648,9 +6639,9 @@
     },
     {
       "bytes": 67950,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_universal_lanes.py",
-      "prior_sha256": "452324EBD26FB97795B3FEBAA8CD6D947CBAAC0702BF5977DB95CA50E3002793",
+      "prior_sha256": "464F133328C2E18180039E896831CFC6DD8ED9C882E9EAB7F6732E5CC9AC3106",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "464F133328C2E18180039E896831CFC6DD8ED9C882E9EAB7F6732E5CC9AC3106"
@@ -6720,9 +6711,9 @@
     },
     {
       "bytes": 11559,
-      "disposition": "CHANGED",
+      "disposition": "UNCHANGED_VERIFIED",
       "path": "tests/test_windows_background_process_contract.py",
-      "prior_sha256": "95334A38691C66EDCB5B4F872A015BB88C576D5D6AB7544ED786F2A31E63462F",
+      "prior_sha256": "DDC5C5087B388341C4F66E43E574AEFC0767DF45F8388377AC4112DE148FE988",
       "route_refresh_verified": true,
       "scope": "tests",
       "sha256": "DDC5C5087B388341C4F66E43E574AEFC0767DF45F8388377AC4112DE148FE988"
@@ -6737,7 +6728,7 @@
       "sha256": "55807FE26E746234AA847DA4F4F217B24B3B00E3EC0BDD6656CD39DA3DCFC15D"
     }
   ],
-  "generated_at": "2026-08-24T13:27:14.581342+00:00",
+  "generated_at": "2026-08-24T13:40:41.344698+00:00",
   "output_self_reference_law": "The JSON and Markdown receipts are enumerated exactly once with the RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE disposition. Their final bytes are bound by the App-authored commit/tree receipt; every other tracked path is verified directly by SHA-256.",
   "refresh_id": "TASK20_CURRENT_ROUTE_REFRESH_20260824_001",
   "removed_history": [
@@ -6757,13 +6748,13 @@
   "status": "PASS",
   "summary": {
     "dispositions": {
-      "CHANGED": 87,
+      "CHANGED": 2,
       "RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE": 2,
-      "UNCHANGED_VERIFIED": 655
+      "UNCHANGED_VERIFIED": 739
     },
-    "entry_path_set_sha256": "3C2EDC7CE665964033D9FFD0DD0138444ABEB08D6E825F2EF6F24B3D39B73731",
-    "entry_set_sha256": "BE5E55D087E5142A85965784AAE9A6A66CB4C7360B40F03370B2B42A6E685D25",
-    "path_count": 744,
+    "entry_path_set_sha256": "2708B0C68C0D01CDE766B346501D0C96EE7CF79EC084EBA8CFA77FDDB24376FE",
+    "entry_set_sha256": "C6FCC457460FDB3C89D5A9752674FD6FD9F5A79770E0768E6CF0EE2F1EE4EB60",
+    "path_count": 743,
     "removed_root_authority": "TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json",
     "root_file_count": 13,
     "tracked_path_set_equality": true

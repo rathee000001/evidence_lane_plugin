@@ -2,8 +2,8 @@
 
 - Status: **PASS**
 - Refresh ID: `TASK20_CURRENT_ROUTE_REFRESH_20260824_001`
-- Base commit: `ab5ae079835ce34f05165ef1350ab086d60f6614`
-- Audited paths: **744**
+- Base commit: `16c78c9f478f9580f20265084e0e7b301d2fd541`
+- Audited paths: **743**
 - Current plugin route: `evidence-lane-plugin` 3.0.0+codex.20260824115846, 88 actions (27 read / 61 write), 17 skills, 11 hook events.
 - Git rule: App-authored feature-branch commits only; no live implementation on `main`.
 - Local evidence: zero tracked paths under plugin `evidence/` or `_evidence_lane_rehearsal/`.
