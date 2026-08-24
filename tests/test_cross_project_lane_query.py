@@ -10,6 +10,7 @@ from typing import Any
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
+from evidence_lane_plugin.lane_engine import build_lane_bundle
 from evidence_lane_plugin.lane_reader import (
     DEFAULT_CROSS_PROJECT_RESULTS,
     DEFAULT_CROSS_PROJECT_TIMEOUT_MS,
@@ -40,9 +41,12 @@ def _grant(request: dict[str, Any]) -> dict[str, Any]:
         "status": "PASS",
         "principal_id": request["principal_id"],
         "project_id": request["project_id"],
-        "pv_ref": request["pv_ref"],
-        "scope": "READ_IMMUTABLE_PV",
-        "grant_id": f"grant.{request['project_id']}.{request['pv_ref']}",
+        "live_root_authority_ref": request["live_root_authority_ref"],
+        "scope": "READ_LIVE_PROJECT_ROOT",
+        "grant_id": (
+            f"grant.{request['project_id']}."
+            f"{request['live_root_authority_ref']}"
+        ),
     }
     return {**body, "grant_sha256": sha256_bytes(canonical_json_bytes(body))}
 
@@ -91,7 +95,7 @@ def _hit(project_id: str, suffix: str) -> dict[str, Any]:
         "chunk_sha256": suffix[-1].upper() * 64,
         "parser_state": "PARSED",
         "project_id": project_id,
-        "pv_ref": "PV12",
+        "live_root_authority_ref": f"{project_id}_WORKING",
         "canonical_lane_id": lane,
         "request_indexes": [0],
         "dedupe_key_sha256": "D" * 64,
@@ -116,12 +120,12 @@ class FakeCrossProjectReader(LaneReader):
         project_id: str,
         pv_ref: str | None,
     ) -> dict[str, Any]:
-        assert pv_ref == "PV12"
+        assert pv_ref is None
         suffix = "A" if project_id == "project-alpha" else "B"
         return {
             "code_mode": "github_code",
             "bundle_sha256": suffix * 64,
-            "_resolved_pv_ref": "PV12",
+            "_resolved_pv_ref": f"{project_id}_WORKING",
         }
 
     def search_parallel(
@@ -151,11 +155,12 @@ class FakeCrossProjectReader(LaneReader):
             "result_count": len(results),
             "result_sha256": sha256_bytes(canonical_json_bytes(results)),
         }
+        live_root_authority_ref = f"{project_id}_WORKING"
         receipt_body = {
             "schema": "evidence-lane.parallel-lane-query-receipt.v1",
             "status": status,
             "project_id": project_id,
-            "pv_ref": pv_ref,
+            "live_root_authority_ref": live_root_authority_ref,
             "budgets": {"selected_aggregate_limit": aggregate_limit},
             "request_receipts": [request_body],
         }
@@ -167,7 +172,7 @@ class FakeCrossProjectReader(LaneReader):
             "schema": "evidence-lane.parallel-lane-query.v1",
             "status": status,
             "project_id": project_id,
-            "pv_ref": pv_ref,
+            "live_root_authority_ref": live_root_authority_ref,
             "results": results,
             "receipt": receipt,
         }
@@ -177,7 +182,6 @@ def _project_queries() -> list[dict[str, Any]]:
     return [
         {
             "project_id": "project-alpha",
-            "pv_ref": "PV12",
             "lane_queries": [
                 {
                     "lane": "docs",
@@ -192,7 +196,6 @@ def _project_queries() -> list[dict[str, Any]]:
         },
         {
             "project_id": "project-beta",
-            "pv_ref": "PV12",
             "lane_queries": [
                 {
                     "lane": "docs",
@@ -246,8 +249,9 @@ def test_cross_project_query_is_completion_order_independent_and_separately_rank
     for result in slow_alpha["results"]:
         authority = result["cross_project_authority"]
         assert authority["project_id"] == result["project_id"]
-        assert authority["pv_ref"] == "PV12"
-        assert authority["pointer"]["generation"] == 12
+        assert authority["live_root_authority_ref"] == (
+            f"{result['project_id']}_WORKING"
+        )
         assert result["cross_project_authority_sha256"] == sha256_bytes(
             canonical_json_bytes(authority)
         )
@@ -283,11 +287,11 @@ def test_cross_project_query_rejects_implicit_or_unbounded_authority() -> None:
         reader.search_cross_project("principal-one", duplicate)
     assert duplicate_error.value.code == "CROSS_PROJECT_SET_DUPLICATE"
 
-    candidate = _project_queries()
-    candidate[0]["pv_ref"] = "PV13_CANDIDATE__RUN_1"
-    with pytest.raises(EvidenceLaneError) as candidate_error:
-        reader.search_cross_project("principal-one", candidate)
-    assert candidate_error.value.code == "CROSS_PROJECT_PV_REF_INVALID"
+    archived = _project_queries()
+    archived[0]["pv_ref"] = "PV12"
+    with pytest.raises(EvidenceLaneError) as archived_error:
+        reader.search_cross_project("principal-one", archived)
+    assert archived_error.value.code == "CROSS_PROJECT_QUERY_FIELD_UNSUPPORTED"
 
     unknown = _project_queries()
     unknown[0]["discover_projects"] = True
@@ -402,10 +406,27 @@ def _second_repository(tmp_path: Path) -> Path:
     return repository
 
 
-def test_cross_project_query_reads_two_real_exact_immutable_pvs(
+def _materialize_live_root(service, project_id: str) -> dict[str, Any]:
+    pointer = service.store.pointer(project_id)
+    return build_lane_bundle(
+        repository_root=service.store.config(project_id).repository_path,
+        output_directory=service.store.project_root(project_id) / "sectors",
+        code_mode="local_code",
+        parent_lane_bundle=None,
+        parent_pv=pointer.accepted_pv,
+        proposed_pv=f"{pointer.accepted_pv}_WORKING",
+        pointer_generation=pointer.generation,
+        include_untracked=False,
+        materialize_all_lanes=True,
+        index_git_history=False,
+    )
+
+
+def test_cross_project_query_reads_two_real_live_project_roots(
     service, tmp_path: Path
 ) -> None:
     build_and_approve_pv1(service)
+    book_manifest = _materialize_live_root(service, "book-faires")
     repository = _second_repository(tmp_path)
     registered = service.register_project(
         project_id="evidence-mirror",
@@ -440,6 +461,7 @@ def test_cross_project_query_reads_two_real_exact_immutable_pvs(
         decision_id="decision_mirror_pv1",
     )
     assert mirror_decision["pointer"]["accepted_pv"] == "PV1"
+    mirror_manifest = _materialize_live_root(service, "evidence-mirror")
 
     reader = LaneReader(
         service.store,
@@ -450,7 +472,6 @@ def test_cross_project_query_reads_two_real_exact_immutable_pvs(
         [
             {
                 "project_id": "book-faires",
-                "pv_ref": "PV1",
                 "lane_queries": [
                     {
                         "lane": "docs",
@@ -465,7 +486,6 @@ def test_cross_project_query_reads_two_real_exact_immutable_pvs(
             },
             {
                 "project_id": "evidence-mirror",
-                "pv_ref": "PV1",
                 "lane_queries": [
                     {
                         "lane": "docs",
@@ -487,8 +507,14 @@ def test_cross_project_query_reads_two_real_exact_immutable_pvs(
         "book-faires",
         "evidence-mirror",
     }
-    assert all(item["pv_ref"] == "PV1" for item in result["results"])
-    assert all(
-        receipt["pointer"]["generation"] == 1
+    authority_refs = {
+        receipt["project_id"]: receipt["live_root_authority_ref"]
         for receipt in result["project_receipts"]
-    )
+    }
+    assert authority_refs == {
+        "book-faires": book_manifest["proposed_pv"],
+        "evidence-mirror": mirror_manifest["proposed_pv"],
+    }
+    assert all("pv_ref" not in item for item in result["results"])
+    assert result["accepted_archive_opened"] is False
+    assert result["accepted_archive_queried"] is False

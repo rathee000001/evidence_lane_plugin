@@ -284,10 +284,17 @@ def test_restart_helper_accepts_only_dedicated_plugin_creator_cache_state() -> N
     assert "HOST_NATIVE_ACTIVE_GOAL_PRESERVED_NO_RECOVERY_BINDING_PRESENT" in text
     assert "EXACT_INVOKING_TASK_LOCAL_CACHE_REATTACHMENT_NATIVE_PROOF_PENDING" in text
     assert "stale_two_slot_registry_consumed = $false" in text
-    assert "-PreserveCurrentLocalBinding:$isPluginCreatorLocalRestart" in text
-    assert "-ExactInvokingTaskOnlyLocalCacheRestart:$isPluginCreatorLocalRestart" in text
-
-
+    assert '$goalRecoveryRefresh = if ($isPluginCreatorLocalRestart)' in text
+    assert 'goal_recovery_inspected = $false' in text
+    assert 'goal_recovery_mutated = $false' in text
+    assert "-ExactInvokingTaskOnlyLocalCacheRestart:$isPluginCreatorLocalRestart" not in text
+    assert 'status = "NOT_REQUESTED_DUMB_LOCAL_UPDATE_HELPER"' in text
+    assert 'windows_ui_control_used = $false' in text
+    assert 'exact_invoking_task_reopen_only = $true' in text
+    assert '"EXACT_INVOKING_TASK_ONLY"' in text
+    assert '"DUMB_EXACT_TASK_CLOSE_REOPEN_ONLY"' in text
+    assert "helper_contract = if ($isPluginCreatorLocalRestart)" in text
+    assert "$tunnelRequired -and -not $isPluginCreatorLocalRestart" in text
 def test_plugin_creator_cache_materialization_classifies_loaded_old_cache(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -2727,19 +2734,38 @@ def test_restart_helper_is_exact_process_and_same_task_only() -> None:
     assert "non_invoking_task_navigation_count = 0" in text
     assert "Assert-CodexThreadProtocol" in text
     assert "ConvertTo-WindowsCommandLineArgument" in text
-    assert "-ArgumentList $argumentLine" in text
+    assert "New-ScheduledTaskAction" in text
+    assert "Register-ScheduledTask" in text
+    assert "Start-ScheduledTask" in text
+    assert "Unregister-ScheduledTask" in text
+    assert "Start-Process" not in text
     assert '"-TwoSlotRegistry", $exactTwoSlotRegistry' in text
     assert (
         '"-TwoSlotRegistrySha256", $observedTwoSlotRegistrySha256' in text
     )
-    assert '$childStdoutPath = Join-Path $ReceiptDirectory "CODEX_RELAUNCH_CHILD_STDOUT.log"' in text
-    assert '$childStderrPath = Join-Path $ReceiptDirectory "CODEX_RELAUNCH_CHILD_STDERR.log"' in text
-    assert "-RedirectStandardOutput $childStdoutPath" in text
-    assert "-RedirectStandardError $childStderrPath" in text
+    assert "-RedirectStandardOutput" not in text
+    assert "-RedirectStandardError" not in text
+    assert (
+        'launch_shape = "PROVEN_V2_2_ONE_USE_TRANSIENT_SCHEDULED_TASK"'
+        in text
+    )
+    assert 'state = "CHILD_SCHEDULED_BEFORE_EXACT_APP_STOP"' in text
+    assert 'state = "CHILD_ACKNOWLEDGED_BEFORE_EXACT_APP_STOP"' in text
+    assert "function Move-OrphanedExactRestartLease" in text
+    assert 'state = "OBJECTIVELY_ORPHANED_LEASE_RETIRED"' in text
+    assert "[Globalization.DateTimeStyles]::RoundtripKind" in text
+    assert '$lease.PSObject.Properties[\n        "transient_scheduled_task_name"' in text
+    assert 'transient_scheduled_task_absent = $true' in text
+    assert (
+        "The transient restart helper disappeared before acknowledging its exact-task lease."
+        in text
+    )
     assert text.index('"-TwoSlotRegistry", $exactTwoSlotRegistry') < text.index(
         "Stop-Process -Id $TargetProcessId -Force"
     )
-    assert text.index("-RedirectStandardError $childStderrPath") < text.index(
+    assert text.index(
+        '[string]$childReadyLease.state -ceq "CHILD_ACKNOWLEDGED_BEFORE_EXACT_APP_STOP"'
+    ) < text.index(
         "Stop-Process -Id $TargetProcessId -Force"
     )
     assert "Invoke-CodexHostActivation" in text
@@ -2751,8 +2777,9 @@ def test_restart_helper_is_exact_process_and_same_task_only() -> None:
     assert "task_binding_receipt_sha256" in text
     assert "Sync-GoalRecoveryBindingAfterTaskBinding" in text
     assert text.index("Write-JsonReceipt $taskBindingPath $taskBinding") < text.index(
-        "$goalRecoveryRefresh = Sync-GoalRecoveryBindingAfterTaskBinding"
+        '$goalRecoveryRefresh = if ($isPluginCreatorLocalRestart)'
     )
+    assert 'goal_recovery_inspected = $false' in text
     assert 'state = "ACTIVE_GOAL_REFRESHED_AFTER_EXACT_TASK_BINDING"' in text
     assert 'state = "NO_EXISTING_ACTIVE_GOAL_BINDING_TO_REFRESH"' in text
     assert '"-ActivePlanTaskId", $ActivePlanTaskId' in text
@@ -2764,7 +2791,11 @@ def test_restart_helper_is_exact_process_and_same_task_only() -> None:
         '"BOUND_CODEX_HOST_ROOT_RELAUNCHED_ONCE_MAXIMIZED_NATIVE_MCP_AVAILABLE_AWAITING_NATIVE_PROOF"'
         in text
     )
-    assert "state = if ($tunnelRequired)" in text
+    assert "state = if ($isPluginCreatorLocalRestart)" in text
+    assert (
+        '"BOUND_CODEX_HOST_ROOT_RELAUNCHED_ONCE_EXACT_TASK_ONLY_AWAITING_NATIVE_PROOF"'
+        in text
+    )
     assert 'state = "BOUND_CODEX_HOST_RELAUNCH_FAILED"' in text
     assert "operator_recovery_required = $true" in text
     assert "manual_open_can_satisfy_helper_success = $false" in text

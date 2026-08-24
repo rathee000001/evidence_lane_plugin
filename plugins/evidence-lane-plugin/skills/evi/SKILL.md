@@ -12,7 +12,8 @@ restart/rehydration. The historical Windows whole-marketplace rename/rotation
 route is permanently ineligible and must never be retried or auto-selected.
 
 The installed lifecycle skill runtime first calls native `pv_status`,
-`pv_task_backlog`, and one prompt-relevant bounded `pv_query`. These explicit
+`pv_task_backlog`, one bounded live-root `pv_query`, and one prompt-relevant
+six-authority `search`. These explicit
 public routes must work with hooks disabled. When enabled, `UserPromptSubmit`
 may seal an additional bounded transport envelope, but hook retrieval is
 lifecycle evidence only and never satisfies or gates the native read sequence.
@@ -167,19 +168,17 @@ all eighteen canonical lanes and Project Engulf, accepts exact overrides, and
 always includes Chat Lineage. `/evi-mode` remains a separate one-command
 sidecar for ordered intersections and explicit custom-mode briefs.
 
-When a task needs evidence from a lane, route it through the single
-`EVIDENCE_LANE_BOUNDED_LANE_QUERY_V1` workflow defined by
-`../evi-source-intake/SKILL.md`. The native read order is `lane_catalog`,
-`lane_status`, `lane_search`, then `lane_fetch` only for an exact returned
-source path. The only diagnostic path templates are
-`<EVIDENCE_LANE_DATA_ROOT>/projects/<project_id>/accepted/<PVn>/lanes/<canonical_lane_id>/<sqlite_filename>`
-and
-`<EVIDENCE_LANE_DATA_ROOT>/projects/<project_id>/candidates/<candidate_id>/lanes/<canonical_lane_id>/<sqlite_filename>`.
-They are provenance validators, never permission to hunt for, open, copy, or
-offload a whole lane SQLite database. Keep queries and results inside native
-tool boundaries, preserve the workflow's authority/freshness provenance, and
-never substitute transcript, scrollback, browser history, or live-source
-inference.
+When a task needs project evidence, route it through the single
+`EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1` workflow defined by
+`../evi-source-intake/SKILL.md`. Call `search` for the ENV/UOP-governed,
+bounded result across all eighteen live sector lanes, Agent Learning, Canon,
+Project Memory, AGENTS.md, and host conversation MEMORY.md. Learning, Canon,
+and Memory refresh once in that order on stale/no-hit and retry once; the
+all-eighteen-sector slice is the direct fallback. `lane_status`, `lane_search`,
+and `lane_fetch` narrow an already live-root result to one exact sector. The
+ordinary route never opens an accepted HIL ZIP or candidate and never uses an
+accepted-directory diagnostic template. Keep queries inside native tool
+boundaries and never substitute transcript, scrollback, or browser history.
 
 `/evi-plugin` is an administrative sidecar outside the six primary controls.
 It lists, registers, routes, or separately drops at most eight additional

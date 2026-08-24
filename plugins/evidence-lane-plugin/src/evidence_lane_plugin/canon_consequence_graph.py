@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import sqlite3
 import tempfile
 from collections import Counter
@@ -20,7 +21,7 @@ from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any, cast
 
-from .errors import require
+from .errors import EvidenceLaneError, require
 from .hashing import (
     atomic_write_json,
     canonical_json_bytes,
@@ -41,6 +42,14 @@ CONSEQUENCE_GRAPH_POINTER_SCHEMA = "evidence-lane.canon-consequence-graph-pointe
 _SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
 _TASK_UUID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+)
+_QUERY_TOKEN_RE = re.compile(r"[\w][\w./:@-]{1,127}", flags=re.UNICODE)
+_ROOT_INVENTORY_EXCLUDED_TOP_LEVEL = frozenset(
+    {"accepted", "ai_learning", "memory"}
+)
+_ROOT_INVENTORY_EXCLUDED_RELATIVE_PREFIXES = (
+    "canon/consequence-graphs/",
+    "canon/consequence-graph-current.json",
 )
 
 
@@ -272,6 +281,43 @@ def _endpoint_node(graph: _Graph, endpoint: Mapping[str, Any]) -> dict[str, Any]
             "session_id": endpoint.get("session_id"),
         },
     )
+
+
+def _live_root_inventory(root: Path) -> list[dict[str, Any]]:
+    """Hash the live authority root without reading HIL archives or self-output."""
+
+    members: list[dict[str, Any]] = []
+    for path in sorted(root.rglob("*"), key=lambda value: value.as_posix().casefold()):
+        relative = path.relative_to(root).as_posix()
+        top_level = relative.split("/", 1)[0]
+        if top_level in _ROOT_INVENTORY_EXCLUDED_TOP_LEVEL:
+            continue
+        if any(
+            relative == prefix.rstrip("/") or relative.startswith(prefix)
+            for prefix in _ROOT_INVENTORY_EXCLUDED_RELATIVE_PREFIXES
+        ):
+            continue
+        if path.is_dir():
+            members.append(
+                {
+                    "path": relative,
+                    "kind": "DIRECTORY",
+                    "size_bytes": 0,
+                    "sha256": sha256_bytes(relative.encode("utf-8")),
+                }
+            )
+            continue
+        if not path.is_file():
+            continue
+        members.append(
+            {
+                "path": relative,
+                "kind": "FILE",
+                "size_bytes": path.stat().st_size,
+                "sha256": sha256_file(path),
+            }
+        )
+    return members
 
 
 def _load_project_layout(
@@ -533,6 +579,33 @@ def _write_graph_sqlite(
                 for edge in edges
             ],
         )
+        connection.executemany(
+            """
+            INSERT INTO consequence_graph_fts(
+                record_id,record_type,record_kind,canonical_locator,searchable_text
+            ) VALUES(?,?,?,?,?)
+            """,
+            [
+                (
+                    node["node_id"],
+                    "NODE",
+                    node["node_kind"],
+                    node["canonical_locator"],
+                    canonical_json_bytes(node).decode("utf-8"),
+                )
+                for node in nodes
+            ]
+            + [
+                (
+                    edge["edge_id"],
+                    "EDGE",
+                    edge["relation"],
+                    edge["canonical_locator"],
+                    canonical_json_bytes(edge).decode("utf-8"),
+                )
+                for edge in edges
+            ],
+        )
         connection.commit()
         integrity = [
             str(row[0]) for row in connection.execute("PRAGMA integrity_check")
@@ -705,6 +778,8 @@ def bootstrap_canon_consequence_graph(
     )
     learning_rows, learning_sha256 = _learning_rows(root)
     operational_edges, operational_packets, canon_sha256 = _canon_operational_rows(root)
+    root_inventory = _live_root_inventory(root)
+    root_inventory_sha256 = sha256_bytes(canonical_json_bytes(root_inventory))
     schema_path, _ = _schema_asset()
     source_snapshot = {
         "project_layout_sha256": sha256_file(root / "project_authority.json"),
@@ -715,6 +790,12 @@ def bootstrap_canon_consequence_graph(
         "plan_runtime_projection_sha256": plan_sha256,
         "canon_input_ledger_sha256": canon_sha256,
         "learning_ledger_sha256": learning_sha256,
+        "live_root_inventory_sha256": root_inventory_sha256,
+        "live_root_inventory_member_count": len(root_inventory),
+        "live_root_inventory_excluded_top_level": sorted(
+            _ROOT_INVENTORY_EXCLUDED_TOP_LEVEL
+        ),
+        "accepted_archive_opened": False,
         "accepted_pv": accepted_pv,
         "pointer_generation": pointer_generation,
         "accepted_manifest_sha256": exact_manifest,
@@ -727,21 +808,55 @@ def bootstrap_canon_consequence_graph(
     fingerprint = sha256_bytes(canonical_json_bytes(source_snapshot))
     canon_root = root / "canon"
     graphs_root = canon_root / "consequence-graphs"
-    bundle_root = graphs_root / fingerprint.lower()
-    if bundle_root.is_dir():
+    bundle_root = graphs_root
+    current_manifest_path = bundle_root / "manifest.json"
+    if current_manifest_path.is_file():
+        current_manifest = _json(
+            current_manifest_path,
+            code="CANON_CONSEQUENCE_MANIFEST_REQUIRED",
+        )
+    else:
+        current_manifest = {}
+    if current_manifest.get("graph_fingerprint_sha256") == fingerprint:
         result = _bundle_result(
             root, bundle_root=bundle_root, replay_state="CONSEQUENCE_GRAPH_REUSED"
         )
         pointer_path = canon_root / "consequence-graph-current.json"
-        pointer = _json(pointer_path, code="CANON_CONSEQUENCE_POINTER_REQUIRED")
-        require(
-            pointer.get("pointer_sha256") == _hash_without(pointer, "pointer_sha256")
-            and pointer.get("graph_fingerprint_sha256") == fingerprint
-            and pointer.get("receipt_sha256") == result["receipt_sha256"],
-            "CANON_CONSEQUENCE_POINTER_MISMATCH",
-            "The current Canon consequence pointer does not match the reused graph.",
-            status="MISMATCH",
+        pointer = (
+            _json(pointer_path, code="CANON_CONSEQUENCE_POINTER_REQUIRED")
+            if pointer_path.is_file()
+            else {}
         )
+        expected_relative = graphs_root.relative_to(root).as_posix()
+        pointer_valid = bool(
+            pointer.get("pointer_sha256")
+            == _hash_without(pointer, "pointer_sha256")
+            and pointer.get("graph_fingerprint_sha256") == fingerprint
+            and pointer.get("receipt_sha256") == result["receipt_sha256"]
+            and pointer.get("bundle_relative_path") == expected_relative
+        )
+        if not pointer_valid:
+            pointer_body = {
+                "schema": CONSEQUENCE_GRAPH_POINTER_SCHEMA,
+                "project_id": project_id,
+                "graph_fingerprint_sha256": fingerprint,
+                "graph_sha256": result["graph_sha256"],
+                "bundle_relative_path": expected_relative,
+                "manifest_sha256": result["manifest_sha256"],
+                "receipt_sha256": result["receipt_sha256"],
+                "updated_at": utc_now(),
+                "project_truth_pointer_moved": False,
+            }
+            atomic_write_json(
+                pointer_path,
+                {
+                    **pointer_body,
+                    "pointer_sha256": sha256_bytes(
+                        canonical_json_bytes(pointer_body)
+                    ),
+                },
+            )
+            result["state"] = "CONSEQUENCE_GRAPH_REUSED_POINTER_REPAIRED"
         return result
 
     graph = _Graph()
@@ -784,6 +899,34 @@ def bootstrap_canon_consequence_graph(
         {"sqlite_sha256": learning_sha256, "candidate_count": len(learning_rows)},
     )
     graph.add_edge("HAS_LEARNING_AUTHORITY", project, learning_authority)
+
+    root_authority = graph.add_node(
+        "LIVE_PROJECT_ROOT",
+        f"project-root://{project_id}/{root_inventory_sha256.lower()}",
+        {
+            "project_id": project_id,
+            "member_count": len(root_inventory),
+            "inventory_sha256": root_inventory_sha256,
+            "accepted_archive_opened": False,
+            "excluded_top_level": sorted(_ROOT_INVENTORY_EXCLUDED_TOP_LEVEL),
+        },
+    )
+    graph.add_edge("HAS_LIVE_PROJECT_ROOT", project, root_authority)
+    root_nodes: dict[str, dict[str, Any]] = {}
+    for member in root_inventory:
+        relative = str(member["path"])
+        node = graph.add_node(
+            f"ROOT_{member['kind']}",
+            f"project-root-member://{project_id}/{relative}",
+            member,
+        )
+        root_nodes[relative] = node
+        parent = relative.rsplit("/", 1)[0] if "/" in relative else ""
+        graph.add_edge(
+            "CONTAINS_ROOT_AUTHORITY",
+            root_nodes.get(parent, root_authority),
+            node,
+        )
 
     for sector, digest in sectors:
         node = graph.add_node(
@@ -950,9 +1093,9 @@ def bootstrap_canon_consequence_graph(
     edge_relations = dict(
         sorted(Counter(str(edge["relation"]) for edge in edges).items())
     )
-    graphs_root.mkdir(parents=True, exist_ok=True)
+    canon_root.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(
-        prefix=".consequence-build-", dir=graphs_root
+        prefix=".consequence-build-", dir=canon_root
     ) as temporary:
         temporary_root = Path(temporary)
         sqlite_path = temporary_root / "graph.sqlite"
@@ -1023,10 +1166,60 @@ def bootstrap_canon_consequence_graph(
             "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
         }
         atomic_write_json(temporary_root / "receipt.json", receipt)
-        try:
-            os.replace(temporary_root, bundle_root)
-        except FileExistsError:
-            pass
+        graphs_root.mkdir(parents=True, exist_ok=True)
+        allowed_files = {
+            "graph.sqlite",
+            "graph.mmd",
+            "graph.dot",
+            "manifest.json",
+            "receipt.json",
+        }
+        unknown_files = sorted(
+            path.name
+            for path in graphs_root.iterdir()
+            if path.is_file() and path.name not in allowed_files
+        )
+        require(
+            not unknown_files,
+            "CANON_CONSEQUENCE_LIVE_FOLDER_UNKNOWN_MEMBER",
+            "The single live Canon consequence-graph folder contains an unknown file.",
+            status="MISMATCH",
+            unknown_files=unknown_files,
+        )
+        for name in sorted(allowed_files):
+            os.replace(temporary_root / name, graphs_root / name)
+        retired_directories: list[str] = []
+        for path in sorted(graphs_root.iterdir(), key=lambda value: value.name):
+            if not path.is_dir():
+                continue
+            require(
+                bool(re.fullmatch(r"[0-9a-f]{64}", path.name)),
+                "CANON_CONSEQUENCE_LIVE_FOLDER_UNKNOWN_DIRECTORY",
+                "The single live Canon consequence-graph folder contains an unknown directory.",
+                status="MISMATCH",
+                directory=path.name,
+            )
+            shutil.rmtree(path)
+            retired_directories.append(path.name)
+        receipt_path = graphs_root / "receipt.json"
+        refreshed_receipt = _json(
+            receipt_path,
+            code="CANON_CONSEQUENCE_RECEIPT_REQUIRED",
+        )
+        refreshed_body = {
+            key: value
+            for key, value in refreshed_receipt.items()
+            if key != "receipt_sha256"
+        }
+        refreshed_body["single_live_folder"] = True
+        refreshed_body["obsolete_generation_directories_retired"] = retired_directories
+        atomic_write_json(
+            receipt_path,
+            {
+                **refreshed_body,
+                "receipt_sha256": sha256_bytes(canonical_json_bytes(refreshed_body)),
+            },
+        )
     result = _bundle_result(
         root, bundle_root=bundle_root, replay_state="CONSEQUENCE_GRAPH_CREATED"
     )
@@ -1035,7 +1228,7 @@ def bootstrap_canon_consequence_graph(
         "project_id": project_id,
         "graph_fingerprint_sha256": fingerprint,
         "graph_sha256": result["graph_sha256"],
-        "bundle_relative_path": bundle_root.relative_to(root).as_posix(),
+        "bundle_relative_path": graphs_root.relative_to(root).as_posix(),
         "manifest_sha256": result["manifest_sha256"],
         "receipt_sha256": result["receipt_sha256"],
         "updated_at": utc_now(),
@@ -1095,3 +1288,111 @@ def inspect_canon_consequence_graph(
         status="MISMATCH",
     )
     return result
+
+
+def query_canon_consequence_graph(
+    project_root: str | Path,
+    *,
+    project_id: str,
+    query: str,
+    limit: int = 8,
+) -> dict[str, Any]:
+    """Query one bounded FTS5/BM25 slice from the single current graph."""
+
+    root = _project_root(project_root, project_id=project_id)
+    terms = [token.casefold() for token in _QUERY_TOKEN_RE.findall(str(query))][:12]
+    require(
+        bool(terms) and 1 <= int(limit) <= 20,
+        "CANON_CONSEQUENCE_QUERY_BOUNDS_INVALID",
+        "Canon graph query requires lexical text and a limit from one to twenty.",
+        status="BLOCKED",
+    )
+    try:
+        current = inspect_canon_consequence_graph(root, project_id=project_id)
+    except EvidenceLaneError as error:
+        if error.code not in {
+            "CANON_CONSEQUENCE_MANIFEST_REQUIRED",
+            "CANON_CONSEQUENCE_POINTER_REQUIRED",
+            "CANON_CONSEQUENCE_POINTER_BUNDLE_MISMATCH",
+        }:
+            raise
+        return {
+            "status": "STALE",
+            "state": "CONSEQUENCE_GRAPH_POINTER_REFRESH_REQUIRED",
+            "project_id": project_id,
+            "result": "NO_HIT",
+            "hits": [],
+            "query_terms": terms,
+            "bounded_result_limit": int(limit),
+            "search_engine": "SQLITE_FTS5_BM25",
+            "accepted_archive_opened": False,
+            "project_truth_pointer_moved": False,
+            "full_graph_loaded_into_model_context": False,
+        }
+    if current.get("state") == "NO_CONSEQUENCE_GRAPH":
+        return {
+            **current,
+            "result": "NO_HIT",
+            "hits": [],
+            "search_engine": "SQLITE_FTS5_BM25",
+        }
+    pointer = _json(
+        root / "canon" / "consequence-graph-current.json",
+        code="CANON_CONSEQUENCE_POINTER_REQUIRED",
+    )
+    bundle_root = (root / str(pointer["bundle_relative_path"])).resolve()
+    match_query = " OR ".join(
+        f'"{term.replace(chr(34), chr(34) * 2)}"' for term in terms
+    )
+    connection = _connect_read_only(bundle_root / "graph.sqlite")
+    try:
+        fts_ready = connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='consequence_graph_fts'"
+        ).fetchone()
+        if fts_ready is None:
+            return {
+                "status": "STALE",
+                "state": "CONSEQUENCE_GRAPH_QUERY_INDEX_REFRESH_REQUIRED",
+                "project_id": project_id,
+                "result": "NO_HIT",
+                "hits": [],
+                "query_terms": terms,
+                "bounded_result_limit": int(limit),
+                "graph_fingerprint_sha256": current["graph_fingerprint_sha256"],
+                "graph_sha256": current["graph_sha256"],
+                "search_engine": "SQLITE_FTS5_BM25",
+                "accepted_archive_opened": False,
+                "project_truth_pointer_moved": False,
+                "full_graph_loaded_into_model_context": False,
+            }
+        rows = [
+            dict(row)
+            for row in connection.execute(
+                """
+                SELECT record_id,record_type,record_kind,canonical_locator,
+                       snippet(consequence_graph_fts,4,'[',']',' ... ',24) AS snippet,
+                       bm25(consequence_graph_fts) AS rank
+                FROM consequence_graph_fts
+                WHERE consequence_graph_fts MATCH ?
+                ORDER BY rank,record_type,record_id LIMIT ?
+                """,
+                (match_query, int(limit)),
+            ).fetchall()
+        ]
+    finally:
+        connection.close()
+    return {
+        "status": "PASS",
+        "state": "CURRENT_CONSEQUENCE_GRAPH",
+        "project_id": project_id,
+        "result": "HIT" if rows else "NO_HIT",
+        "hits": rows,
+        "query_terms": terms,
+        "bounded_result_limit": int(limit),
+        "graph_fingerprint_sha256": current["graph_fingerprint_sha256"],
+        "graph_sha256": current["graph_sha256"],
+        "search_engine": "SQLITE_FTS5_BM25",
+        "accepted_archive_opened": False,
+        "project_truth_pointer_moved": False,
+        "full_graph_loaded_into_model_context": False,
+    }

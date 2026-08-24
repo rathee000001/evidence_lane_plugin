@@ -1,7 +1,7 @@
 {
   "schema": "evidence-lane.parallel-lane-query-contract.v1",
   "contract_version": 1,
-  "scope": "ONE_PROJECT_ONE_PV_BOUNDED_FAN_OUT",
+  "scope": "ONE_PROJECT_LIVE_ROOT_BOUNDED_FAN_OUT",
   "execution": {
     "maximum_queries": 8,
     "maximum_workers": 4,
@@ -22,7 +22,7 @@
   },
   "dedupe_identity": [
     "project_id",
-    "pv_ref",
+    "live_root_authority_ref",
     "canonical_lane_id",
     "ref_id",
     "path",
@@ -52,7 +52,7 @@
     "sealed_by": "SHA256_CANONICAL_JSON_WITHOUT_RECEIPT_SHA256",
     "binds": [
       "project_id",
-      "pv_ref",
+      "live_root_authority_ref",
       "bundle_sha256",
       "authority_binding_sha256",
       "budgets",

@@ -13,12 +13,14 @@ from threading import Event
 from typing import Any, cast
 
 from .errors import EvidenceLaneError, require
-from .freshness import evaluate_freshness, result_status
+from .freshness import (
+    evaluate_freshness,
+    evaluate_working_lane_freshness,
+    result_status,
+)
 from .hashing import canonical_json_bytes, sha256_bytes
 from .lane_engine import validate_lane_bundle
 from .lanes import LANE_REGISTRY, LaneRegistryError, catalog, get_lane
-from .pv_package import validate_pv_package
-from .reader import PVReader
 from .store import ProjectStore
 
 _TOKEN_RE = re.compile(r"[\w][\w.-]{1,63}", flags=re.UNICODE)
@@ -56,9 +58,6 @@ DEFAULT_CROSS_PROJECT_TIMEOUT_MS = 30_000
 MAX_CROSS_PROJECT_TIMEOUT_MS = 120_000
 DEFAULT_CROSS_PROJECT_RESULTS = 200
 MAX_CROSS_PROJECT_RESULTS = 400
-_ACCEPTED_PV_REF_RE = re.compile(r"PV[1-9][0-9]*\Z")
-
-
 class LaneReader:
     def __init__(
         self,
@@ -68,7 +67,6 @@ class LaneReader:
         | None = None,
     ) -> None:
         self.store = store
-        self.pv_reader = PVReader(store)
         self.cross_project_authorizer = cross_project_authorizer
 
     def _resolve(
@@ -76,10 +74,22 @@ class LaneReader:
         project_id: str,
         lane_alias: str,
         pv_ref: str | None,
-    ) -> tuple[Path, Any, dict[str, Any]]:
-        package = self.pv_reader.resolve(project_id, pv_ref)
-        validate_pv_package(package)
-        lanes_root = package / "lanes"
+    ) -> tuple[Path, str, Any, dict[str, Any]]:
+        require(
+            pv_ref is None,
+            "LANE_ARCHIVE_QUERY_OBSOLETE",
+            "Lane reads query the live project root; accepted ZIPs are HIL-only.",
+            status="BLOCKED",
+            requested_ref=pv_ref,
+        )
+        lanes_root = self.store.project_root(project_id) / "sectors"
+        require(
+            lanes_root.is_dir() and (lanes_root / "manifest.json").is_file(),
+            "LIVE_ROOT_SECTORS_REQUIRED",
+            "The live project root has no materialized sector authority.",
+            status="MISMATCH",
+        )
+        authority_ref = ""
         validation = validate_lane_bundle(lanes_root)
         require(
             validation["valid"],
@@ -89,8 +99,30 @@ class LaneReader:
             validation=validation,
         )
         bundle = json.loads((lanes_root / "manifest.json").read_text(encoding="utf-8"))
+        if pv_ref is None and lanes_root.name == "sectors":
+            authority_ref = str(bundle.get("proposed_pv") or "WORKING_SECTORS")
         lane = get_lane(lane_alias, code_mode=bundle["code_mode"])
-        return package, lane, bundle
+        return lanes_root, authority_ref, lane, bundle
+
+    def _freshness(
+        self,
+        project_id: str,
+        lanes_root: Path,
+        authority_ref: str,
+    ) -> dict[str, Any]:
+        if lanes_root.name == "sectors":
+            return evaluate_working_lane_freshness(
+                self.store,
+                project_id,
+                lanes_root,
+                bounded_dirty_read=True,
+            )
+        return evaluate_freshness(
+            self.store,
+            project_id,
+            lanes_root.parent,
+            bounded_dirty_read=True,
+        )
 
     def lane_catalog(self) -> dict[str, Any]:
         return {
@@ -108,8 +140,10 @@ class LaneReader:
         *,
         pv_ref: str | None = None,
     ) -> dict[str, Any]:
-        package, lane, bundle = self._resolve(project_id, lane_alias, pv_ref)
-        lane_root = package / "lanes" / lane.canonical_lane_id
+        lanes_root, authority_ref, lane, bundle = self._resolve(
+            project_id, lane_alias, pv_ref
+        )
+        lane_root = lanes_root / lane.canonical_lane_id
         manifest = json.loads(
             (lane_root / "lane_manifest.json").read_text(encoding="utf-8")
         )
@@ -120,16 +154,11 @@ class LaneReader:
             (lane_root / "refresh_receipt.json").read_text(encoding="utf-8")
         )
         tools = json.loads((lane_root / "tools.json").read_text(encoding="utf-8"))
-        freshness = evaluate_freshness(
-            self.store,
-            project_id,
-            package,
-            bounded_dirty_read=True,
-        )
+        freshness = self._freshness(project_id, lanes_root, authority_ref)
         return {
             "status": result_status("PASS", freshness),
             "project_id": project_id,
-            "pv_ref": package.name,
+            "pv_ref": authority_ref,
             "lane": lane.as_dict(),
             "bundle": {
                 "schema": bundle["schema"],
@@ -173,13 +202,15 @@ class LaneReader:
             status="BLOCKED",
         )
         require(
-            retrieval in {"hybrid", "bm25", "tfidf"},
+            retrieval in {"hybrid", "fts5", "bm25", "tfidf"},
             "LANE_RETRIEVAL_INVALID",
-            "Lane retrieval must be hybrid, bm25, or tfidf.",
+            "Lane retrieval must be hybrid, fts5, bm25, or tfidf.",
             status="BLOCKED",
         )
-        package, lane, _ = self._resolve(project_id, lane_alias, pv_ref)
-        lane_root = package / "lanes" / lane.canonical_lane_id
+        lanes_root, authority_ref, lane, _ = self._resolve(
+            project_id, lane_alias, pv_ref
+        )
+        lane_root = lanes_root / lane.canonical_lane_id
         database_path = lane_root / lane.sqlite_filename
         fts_query, terms = self._fts_query(query)
         connection = sqlite3.connect(
@@ -188,7 +219,7 @@ class LaneReader:
         )
         connection.row_factory = sqlite3.Row
         bm25_rows = []
-        if retrieval in {"hybrid", "bm25"}:
+        if retrieval in {"hybrid", "fts5", "bm25"}:
             # The table identifier comes from the immutable validated registry.
             bm25_sql = (
                 "SELECT f.chunk_id AS chunk_id, f.path AS path, "  # nosec B608
@@ -266,7 +297,7 @@ class LaneReader:
                 1.0 / (60 + position) for position in positions
             )
             row["ref_id"] = f"lane:{lane.canonical_lane_id}:chunk:{row['chunk_id']}"
-        if retrieval == "bm25":
+        if retrieval in {"fts5", "bm25"}:
             ordered = sorted(
                 merged.values(),
                 key=lambda row: (
@@ -293,23 +324,22 @@ class LaneReader:
                     row["chunk_id"],
                 ),
             )
-        freshness = evaluate_freshness(
-            self.store,
-            project_id,
-            package,
-            bounded_dirty_read=True,
-        )
+        freshness = self._freshness(project_id, lanes_root, authority_ref)
         results = ordered[:limit]
         return {
             "status": result_status("PASS", freshness),
             "result_state": "HITS" if results else "EMPTY",
             "project_id": project_id,
-            "pv_ref": package.name,
+            "pv_ref": authority_ref,
             "lane": lane.as_dict(),
             "query": query,
             "terms": terms,
             "retrieval": retrieval,
             "ranking": {
+                "fts5": (
+                    "SQLite FTS5 unicode61 MATCH with deterministic lexical "
+                    "term normalization and BM25 ordering"
+                ),
                 "bm25": "SQLite FTS5 bm25; lower raw rank is better",
                 "tfidf": "tf=count/tokens; idf=ln((1+N)/(1+df))+1",
                 "hybrid": "reciprocal-rank fusion with k=60",
@@ -324,9 +354,21 @@ class LaneReader:
         project_id: str,
         pv_ref: str | None,
     ) -> dict[str, Any]:
-        package = self.pv_reader.resolve(project_id, pv_ref)
-        validate_pv_package(package)
-        lanes_root = package / "lanes"
+        require(
+            pv_ref is None,
+            "LANE_ARCHIVE_QUERY_OBSOLETE",
+            "Parallel lane reads query the live project root; accepted ZIPs are HIL-only.",
+            status="BLOCKED",
+            requested_ref=pv_ref,
+        )
+        lanes_root = self.store.project_root(project_id) / "sectors"
+        require(
+            lanes_root.is_dir() and (lanes_root / "manifest.json").is_file(),
+            "LIVE_ROOT_SECTORS_REQUIRED",
+            "The live project root has no materialized sector authority.",
+            status="MISMATCH",
+        )
+        authority_ref = ""
         validation = validate_lane_bundle(lanes_root)
         require(
             validation["valid"],
@@ -338,7 +380,9 @@ class LaneReader:
         bundle = json.loads(
             (lanes_root / "manifest.json").read_text(encoding="utf-8")
         )
-        return {**bundle, "_resolved_pv_ref": package.name}
+        if pv_ref is None and lanes_root.name == "sectors":
+            authority_ref = str(bundle.get("proposed_pv") or "WORKING_SECTORS")
+        return {**bundle, "_resolved_pv_ref": authority_ref}
 
     @staticmethod
     def _parallel_integer(
@@ -453,7 +497,7 @@ class LaneReader:
         )
         authority_binding = {
             "project_id": project_id,
-            "pv_ref": resolved_pv_ref,
+            "live_root_authority_ref": resolved_pv_ref,
             "bundle_sha256": bundle_sha256,
             "code_mode": str(bundle["code_mode"]),
         }
@@ -504,9 +548,9 @@ class LaneReader:
             self._fts_query(query)
             retrieval = str(raw.get("retrieval") or "hybrid").strip().lower()
             require(
-                retrieval in {"hybrid", "bm25", "tfidf"},
+                retrieval in {"hybrid", "fts5", "bm25", "tfidf"},
                 "LANE_RETRIEVAL_INVALID",
-                "Lane retrieval must be hybrid, bm25, or tfidf.",
+                "Lane retrieval must be hybrid, fts5, bm25, or tfidf.",
                 status="BLOCKED",
                 input_index=input_index,
             )
@@ -524,7 +568,7 @@ class LaneReader:
             )
             identity = {
                 "project_id": project_id,
-                "pv_ref": resolved_pv_ref,
+                "live_root_authority_ref": resolved_pv_ref,
                 "canonical_lane_id": lane.canonical_lane_id,
                 "query": query,
                 "retrieval": retrieval,
@@ -571,7 +615,10 @@ class LaneReader:
                     future = executor.submit(
                         self._parallel_search_worker,
                         project_id=project_id,
-                        pv_ref=resolved_pv_ref,
+                        # The validated bundle above is the live-root binding.
+                        # Passing its continuity label back through ``pv_ref``
+                        # would incorrectly re-enter the retired archive route.
+                        pv_ref=None,
                         job=job,
                         cancel_event=cancellation,
                     )
@@ -666,12 +713,19 @@ class LaneReader:
                             continue
                         result = dict(worker["result"])
                         lane_results[str(job["request_sha256"])] = result
+                        result_count = len(result.get("results") or [])
+                        execution_status = str(result.get("status") or "FAIL")
+                        receipt_status = (
+                            "EMPTY"
+                            if execution_status == "PASS" and result_count == 0
+                            else execution_status
+                        )
                         request_receipts.append(
                             {
                                 **job,
-                                "status": str(result.get("status") or "FAIL"),
+                                "status": receipt_status,
                                 "within_time_budget": True,
-                                "result_count": len(result.get("results") or []),
+                                "result_count": result_count,
                                 "result_sha256": sha256_bytes(
                                     canonical_json_bytes(result)
                                 ),
@@ -698,7 +752,7 @@ class LaneReader:
                 pre_dedupe_count += 1
                 identity = {
                     "project_id": result_project_id,
-                    "pv_ref": result_pv_ref,
+                    "live_root_authority_ref": result_pv_ref,
                     "canonical_lane_id": lane_id,
                     "ref_id": hit.get("ref_id"),
                     "path": hit.get("path"),
@@ -717,7 +771,7 @@ class LaneReader:
                 projected = {
                     **dict(hit),
                     "project_id": result_project_id,
-                    "pv_ref": result_pv_ref,
+                    "live_root_authority_ref": result_pv_ref,
                     "canonical_lane_id": lane_id,
                     "request_indexes": list(receipt["input_indexes"]),
                     "dedupe_key_sha256": dedupe_key,
@@ -747,8 +801,7 @@ class LaneReader:
             "schema": "evidence-lane.parallel-lane-query-receipt.v1",
             "status": status,
             "project_id": project_id,
-            "requested_pv_ref": pv_ref,
-            "pv_ref": resolved_pv_ref,
+            "live_root_authority_ref": resolved_pv_ref,
             "bundle_sha256": bundle_sha256,
             "authority_binding_sha256": sha256_bytes(
                 canonical_json_bytes(authority_binding)
@@ -756,7 +809,7 @@ class LaneReader:
             "ordering": "INPUT_INDEX_THEN_SOURCE_RANK",
             "dedupe_identity": [
                 "project_id",
-                "pv_ref",
+                "live_root_authority_ref",
                 "canonical_lane_id",
                 "ref_id",
                 "path",
@@ -792,7 +845,7 @@ class LaneReader:
             "schema": "evidence-lane.parallel-lane-query.v1",
             "status": status,
             "project_id": project_id,
-            "pv_ref": resolved_pv_ref,
+            "live_root_authority_ref": resolved_pv_ref,
             "bundle_sha256": bundle_sha256,
             "results": aggregate,
             "receipt": receipt,
@@ -885,9 +938,9 @@ class LaneReader:
         )
         self._fts_query(normalized_query)
         require(
-            retrieval in {"hybrid", "bm25", "tfidf"},
+            retrieval in {"hybrid", "fts5", "bm25", "tfidf"},
             "LANE_RETRIEVAL_INVALID",
-            "Lane retrieval must be hybrid, bm25, or tfidf.",
+            "Lane retrieval must be hybrid, fts5, bm25, or tfidf.",
             status="BLOCKED",
         )
         per_lane_limit = self._parallel_integer(
@@ -1010,7 +1063,7 @@ class LaneReader:
         parallel = self.search_parallel(
             project_id,
             lane_queries,
-            pv_ref=resolved_pv_ref,
+            pv_ref=None,
             max_workers=max_workers,
             aggregate_limit=selected_aggregate_limit,
             cancel_event=cancel_event,
@@ -1045,7 +1098,7 @@ class LaneReader:
             lane_ranks[lane_id] += 1
             authority = {
                 "project_id": project_id,
-                "pv_ref": resolved_pv_ref,
+                "live_root_authority_ref": resolved_pv_ref,
                 "bundle_sha256": bundle_sha256,
                 "canonical_lane_id": lane_id,
                 "ref_id": str(result["ref_id"]),
@@ -1202,8 +1255,7 @@ class LaneReader:
             "status": status,
             "source_status": source_status,
             "project_id": project_id,
-            "requested_pv_ref": pv_ref,
-            "pv_ref": resolved_pv_ref,
+            "live_root_authority_ref": resolved_pv_ref,
             "bundle_sha256": bundle_sha256,
             "canonical_lane_set": canonical_lanes,
             "query": normalized_query,
@@ -1247,7 +1299,7 @@ class LaneReader:
             "status": status,
             "source_status": source_status,
             "project_id": project_id,
-            "pv_ref": resolved_pv_ref,
+            "live_root_authority_ref": resolved_pv_ref,
             "bundle_sha256": bundle_sha256,
             "canonical_lane_set": canonical_lanes,
             "query": normalized_query,
@@ -1265,7 +1317,7 @@ class LaneReader:
         *,
         principal_id: str,
         project_id: str,
-        pv_ref: str,
+        live_root_authority_ref: str,
     ) -> dict[str, Any]:
         require(
             self.cross_project_authorizer is not None,
@@ -1278,8 +1330,8 @@ class LaneReader:
             "schema": "evidence-lane.cross-project-read-request.v1",
             "principal_id": principal_id,
             "project_id": project_id,
-            "pv_ref": pv_ref,
-            "scope": "READ_IMMUTABLE_PV",
+            "live_root_authority_ref": live_root_authority_ref,
+            "scope": "READ_LIVE_PROJECT_ROOT",
         }
         authorizer = cast(
             Callable[[dict[str, Any]], dict[str, Any]],
@@ -1298,7 +1350,7 @@ class LaneReader:
             "status",
             "principal_id",
             "project_id",
-            "pv_ref",
+            "live_root_authority_ref",
             "scope",
             "grant_id",
             "grant_sha256",
@@ -1321,14 +1373,14 @@ class LaneReader:
             and grant.get("status") == "PASS"
             and grant.get("principal_id") == principal_id
             and grant.get("project_id") == project_id
-            and grant.get("pv_ref") == pv_ref
-            and grant.get("scope") == "READ_IMMUTABLE_PV"
+            and grant.get("live_root_authority_ref") == live_root_authority_ref
+            and grant.get("scope") == "READ_LIVE_PROJECT_ROOT"
             and bool(grant_id)
             and len(grant_id) <= 128
             and all(character in _PUBLIC_ID_CHARS for character in grant_id)
             and grant.get("grant_sha256") == grant_sha256,
             "CROSS_PROJECT_PERMISSION_GRANT_INVALID",
-            "The permission grant does not seal the exact principal, project, PV, and read scope.",
+            "The permission grant does not seal the exact principal, project, live-root authority, and read scope.",
             status="BLOCKED",
             project_id=project_id,
         )
@@ -1337,8 +1389,8 @@ class LaneReader:
             "status": "PASS",
             "principal_id": principal_id,
             "project_id": project_id,
-            "pv_ref": pv_ref,
-            "scope": "READ_IMMUTABLE_PV",
+            "live_root_authority_ref": live_root_authority_ref,
+            "scope": "READ_LIVE_PROJECT_ROOT",
             "grant_id": grant_id,
             "grant_sha256": grant_sha256,
         }
@@ -1355,7 +1407,7 @@ class LaneReader:
             result = self.search_parallel(
                 str(job["project_id"]),
                 list(job["lane_queries"]),
-                pv_ref=str(job["resolved_pv_ref"]),
+                pv_ref=None,
                 max_workers=int(job["lane_workers"]),
                 aggregate_limit=int(job["project_result_limit"]),
                 cancel_event=cancel_event,
@@ -1392,7 +1444,7 @@ class LaneReader:
         overall_result_limit: int = DEFAULT_CROSS_PROJECT_RESULTS,
         cancel_event: Event | None = None,
     ) -> dict[str, Any]:
-        """Read explicit immutable PVs without weakening project isolation."""
+        """Read explicit live project roots without weakening isolation."""
 
         exact_principal = str(principal_id or "").strip()
         require(
@@ -1428,7 +1480,6 @@ class LaneReader:
         canonical_project_keys: set[str] = set()
         allowed_project_fields = {
             "project_id",
-            "pv_ref",
             "lane_queries",
             "project_timeout_ms",
             "project_result_limit",
@@ -1463,20 +1514,6 @@ class LaneReader:
                 project_id=project_id,
             )
             canonical_project_keys.add(comparison_key)
-            requested_pv_ref = str(raw.get("pv_ref") or "").strip()
-            require(
-                _ACCEPTED_PV_REF_RE.fullmatch(requested_pv_ref) is not None,
-                "CROSS_PROJECT_PV_REF_INVALID",
-                "Every cross-project member requires one exact accepted PV reference.",
-                status="BLOCKED",
-                project_id=project_id,
-                pv_ref=requested_pv_ref,
-            )
-            permission = self._cross_project_permission(
-                principal_id=exact_principal,
-                project_id=project_id,
-                pv_ref=requested_pv_ref,
-            )
             config = self.store.config(project_id)
             require(
                 config.enabled is True,
@@ -1485,18 +1522,21 @@ class LaneReader:
                 status="BLOCKED",
                 project_id=project_id,
             )
-            bundle = self._parallel_bundle(project_id, requested_pv_ref)
-            resolved_pv_ref = str(bundle["_resolved_pv_ref"])
+            bundle = self._parallel_bundle(project_id, None)
+            live_root_authority_ref = str(bundle["_resolved_pv_ref"])
             require(
-                resolved_pv_ref == requested_pv_ref,
-                "CROSS_PROJECT_PV_BINDING_MISMATCH",
-                "A cross-project query did not resolve to its exact requested PV.",
+                bool(live_root_authority_ref),
+                "CROSS_PROJECT_LIVE_ROOT_BINDING_MISMATCH",
+                "A cross-project query did not resolve one exact live-root authority.",
                 status="MISMATCH",
                 project_id=project_id,
-                requested_pv_ref=requested_pv_ref,
-                resolved_pv_ref=resolved_pv_ref,
+                live_root_authority_ref=live_root_authority_ref,
             )
-            pointer = self.store.pointer(project_id)
+            permission = self._cross_project_permission(
+                principal_id=exact_principal,
+                project_id=project_id,
+                live_root_authority_ref=live_root_authority_ref,
+            )
             project_timeout_ms = self._parallel_integer(
                 raw.get("project_timeout_ms", DEFAULT_CROSS_PROJECT_TIMEOUT_MS),
                 field=f"project_queries[{project_index}].project_timeout_ms",
@@ -1577,9 +1617,9 @@ class LaneReader:
                 self._fts_query(query)
                 retrieval = str(lane_query.get("retrieval") or "hybrid").lower()
                 require(
-                    retrieval in {"hybrid", "bm25", "tfidf"},
+                    retrieval in {"hybrid", "fts5", "bm25", "tfidf"},
                     "LANE_RETRIEVAL_INVALID",
-                    "Lane retrieval must be hybrid, bm25, or tfidf.",
+                    "Lane retrieval must be hybrid, fts5, bm25, or tfidf.",
                     status="BLOCKED",
                     project_id=project_id,
                     lane_index=lane_index,
@@ -1633,27 +1673,20 @@ class LaneReader:
                 selected_project_result_limit=project_result_limit,
                 maximum_project_result_limit=MAX_PARALLEL_AGGREGATE_RESULTS,
             )
-            pointer_binding = {
-                "accepted_pv": pointer.accepted_pv,
-                "accepted_manifest_sha256": pointer.accepted_manifest_sha256,
-                "generation": pointer.generation,
-            }
             authority_binding = {
                 "project_id": project_id,
-                "requested_pv_ref": requested_pv_ref,
-                "resolved_pv_ref": resolved_pv_ref,
+                "live_root_authority_ref": live_root_authority_ref,
                 "bundle_sha256": str(bundle["bundle_sha256"]),
-                "pointer": pointer_binding,
                 "permission_grant_sha256": permission["grant_sha256"],
+                "accepted_archive_opened": False,
+                "accepted_archive_queried": False,
             }
             jobs.append(
                 {
                     "project_index": project_index,
                     "project_id": project_id,
-                    "requested_pv_ref": requested_pv_ref,
-                    "resolved_pv_ref": resolved_pv_ref,
+                    "live_root_authority_ref": live_root_authority_ref,
                     "bundle_sha256": str(bundle["bundle_sha256"]),
-                    "pointer": pointer_binding,
                     "permission": permission,
                     "authority_binding_sha256": sha256_bytes(
                         canonical_json_bytes(authority_binding)
@@ -1839,7 +1872,8 @@ class LaneReader:
                 result = dict(raw_result)
                 require(
                     result.get("project_id") == project_receipt["project_id"]
-                    and result.get("pv_ref") == project_receipt["resolved_pv_ref"]
+                    and result.get("live_root_authority_ref")
+                    == project_receipt["live_root_authority_ref"]
                     and bool(str(result.get("canonical_lane_id") or ""))
                     and bool(str(result.get("ref_id") or ""))
                     and bool(str(result.get("path") or ""))
@@ -1847,15 +1881,16 @@ class LaneReader:
                     and len(str(result.get("source_sha256") or "")) == 64
                     and len(str(result.get("chunk_sha256") or "")) == 64,
                     "CROSS_PROJECT_RESULT_AUTHORITY_INVALID",
-                    "A cross-project result is not bound to its exact project and PV authority.",
+                    "A cross-project result is not bound to its exact project and live-root authority.",
                     status="MISMATCH",
                     project_id=project_receipt["project_id"],
                 )
                 authority = {
                     "project_id": str(project_receipt["project_id"]),
-                    "pv_ref": str(project_receipt["resolved_pv_ref"]),
+                    "live_root_authority_ref": str(
+                        project_receipt["live_root_authority_ref"]
+                    ),
                     "bundle_sha256": str(project_receipt["bundle_sha256"]),
-                    "pointer": dict(project_receipt["pointer"]),
                     "permission_grant_sha256": str(
                         project_receipt["permission"]["grant_sha256"]
                     ),
@@ -1902,10 +1937,8 @@ class LaneReader:
                 for key in (
                     "project_index",
                     "project_id",
-                    "requested_pv_ref",
-                    "resolved_pv_ref",
+                    "live_root_authority_ref",
                     "bundle_sha256",
-                    "pointer",
                     "permission",
                     "authority_binding_sha256",
                     "project_timeout_ms",
@@ -1952,6 +1985,8 @@ class LaneReader:
             "permission_provider_required": True,
             "implicit_project_discovery": False,
             "default_single_project_isolation_preserved": True,
+            "accepted_archive_opened": False,
+            "accepted_archive_queried": False,
         }
         receipt = {
             **receipt_body,
@@ -1966,6 +2001,8 @@ class LaneReader:
             "project_receipts": public_project_receipts,
             "results": results,
             "receipt": receipt,
+            "accepted_archive_opened": False,
+            "accepted_archive_queried": False,
         }
 
     def fetch_source(
@@ -1983,10 +2020,10 @@ class LaneReader:
             "Lane fetch max_bytes must be between 1 and 1,000,000.",
             status="BLOCKED",
         )
-        package, lane, _ = self._resolve(project_id, lane_alias, pv_ref)
-        database_path = (
-            package / "lanes" / lane.canonical_lane_id / lane.sqlite_filename
+        lanes_root, authority_ref, lane, _ = self._resolve(
+            project_id, lane_alias, pv_ref
         )
+        database_path = lanes_root / lane.canonical_lane_id / lane.sqlite_filename
         connection = sqlite3.connect(
             f"file:{database_path.resolve().as_posix()}?mode=ro&immutable=1",
             uri=True,
@@ -2029,16 +2066,11 @@ class LaneReader:
         else:
             content = None
             representation = "binary_exact_bytes_not_returned"
-        freshness = evaluate_freshness(
-            self.store,
-            project_id,
-            package,
-            bounded_dirty_read=True,
-        )
+        freshness = self._freshness(project_id, lanes_root, authority_ref)
         return {
             "status": result_status("PASS", freshness),
             "project_id": project_id,
-            "pv_ref": package.name,
+            "pv_ref": authority_ref,
             "lane": lane.as_dict(),
             "path": row["path"],
             "size_bytes": row["size_bytes"],

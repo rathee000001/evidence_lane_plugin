@@ -15,6 +15,14 @@ one of `session_boot` or `session_resume`. Never duplicate an active governed
 session. Boot/resume must finish with runtime activation `ACTIVE`, locked Flash
 context attached, and visible prompt/response capture enabled for the exact
 governed session.
+
+For a direct/forced same-worktree State Travel destination, the governed
+session is necessarily already active. Select `session_resume`, bind its
+`host_session_id` to the exact new destination task UUID, and never select
+`session_boot`. Then call `runtime_activation_status` before the one-shot
+six-field direct route. Status-only Boot checks do not attach the destination.
+This exact choice is owned by
+`DIRECT_STATE_TRAVEL_DESTINATION_RESUME_ROUTE_LAW` in the State Travel skill.
 Verify that result with `runtime_activation_status`. Ordinary Boot or Resume
 stops with the activation receipt and does not call either project/runtime
 renderer.

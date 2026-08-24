@@ -23,7 +23,11 @@ keeps the prior cache active, seal
 staging receipt, current selector, old active version, and new cache bytes.
 Only `Restart-EvidenceLaneCodex.ps1` may consume that state, and it must reopen
 the exact invoking task hidden in the same Codex app. The helper never installs
-or rotates plugin bytes.
+or rotates plugin bytes. For this Plugin Creator local-update branch it is a
+dumb exact-task restart helper: after exact preflight it stops the bound app
+once and reopens the same task once. It does not focus or maximize windows,
+start the tunnel, rehydrate other tasks, replay State Travel, or mutate
+Goal/Plan/PV/HIL authority.
 
 ## Codex hook and skill ownership
 
@@ -65,12 +69,12 @@ or rotates plugin bytes.
   inspection, mutation, tests, Git, or a lifecycle write, call the installed
   native Evidence Lane route in this order: `pv_status`, the default bounded
   `pv_task_backlog` current window, one exact active-task
-  `pv_task_backlog(task_id=...)` lookup, and one bounded `pv_query` against
-  accepted authority. Select an allowlisted query
-  that is relevant to the prompt; use a bounded `receipts` query for
-  lifecycle-only prompts rather than inventing a semantic match. The
-  `pv_query` must be a real native MCP call visible in Codex Sources. Internal
-  hook SQLite lookup is not equivalent proof.
+  `pv_task_backlog(task_id=...)` lookup, one bounded live-root `pv_query`, and
+  one prompt-relevant `search` through the live six-authority route. Use a
+  bounded `receipts` query for lifecycle-only prompts rather than inventing a
+  semantic match. Both reads must be real native MCP calls visible in Codex
+  Sources. The accepted HIL ZIP is never opened or queried; its pointer is
+  baseline identity only. Internal hook SQLite lookup is not equivalent proof.
 - When a canonical Plan Lane exists, validate
   `canonical_authority=PLAN_LANE`, contiguous rows, exactly one active row, and
   `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`. Keep that complete ledger as
@@ -84,7 +88,8 @@ or rotates plugin bytes.
   links remain in live Plan SQLite and are retrieved only by exact task ID plus
   bounded FTS. They are never copied into the host item or loaded from a raw PV.
 - After `pv_plan_steer_delta`, repeat `pv_status`, `pv_task_backlog`, the bounded
-  native `pv_query`, and verify the complete ledger. Synchronize the host window
+  native live-root `pv_query`, the six-authority `search`, and verify the
+  complete ledger. Synchronize the host window
   only when its UI fingerprint changed in membership, numbering, status,
   class, group, batch, Git stage, role, or dependency. A text-only linked steer
   or a steer outside the current window changes live Plan authority without
@@ -146,7 +151,8 @@ calling another lifecycle write, the skill must:
 
 1. call the installed native `pv_status`;
 2. call the installed native `pv_task_backlog`;
-3. call one bounded installed-native `pv_query`;
+3. call one bounded installed-native live-root `pv_query` and the
+   prompt-relevant live six-authority `search`;
 4. verify `canonical_authority=PLAN_LANE`, contiguous executable rows, exactly
    one active row, `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`, and one
    physically final `PHYSICALLY_FINAL_HIL` row in the final position; and
@@ -526,9 +532,11 @@ one `force=false` main-ref update. It verifies the final main commit/tree,
 uploads no blobs, never checks out or implements on `main`, and never falls back
 to an older repository-merge or connector route.
 
-Default reads use accepted truth and disclose live freshness. Explicit
-candidate reads remain labeled `UNACCEPTED_CANDIDATE`. Use bounded fetches and
-allowlisted queries; never execute arbitrary source SQL.
+Default reads use the live project root and disclose live freshness. The
+accepted pointer is baseline identity only; accepted ZIPs and candidates are
+opened only by their explicit HIL routes. Use the ENV/UOP-governed six-authority
+`search`, bounded fetches, and allowlisted live-root queries; never execute
+arbitrary source SQL.
 
 ## MCP routing contract
 

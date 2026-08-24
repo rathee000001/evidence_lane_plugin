@@ -36,6 +36,7 @@ from .project_authority import (
     PROJECT_AUTHORITY_MIGRATION_SCHEMA,
     copy_active_project_authority,
     materialize_project_authority_layout,
+    refresh_working_sector_operational_checksums,
     remove_verified_active_source,
     resolved_plan_auxiliary_path,
     resolved_plan_backlog_path,
@@ -51,7 +52,10 @@ from .project_pv_storage import (
 )
 from .pv_package import compare_package_bytes, validate_pv_package
 from .redaction import redact
-from .source_authority import snapshot_source_authority_registry
+from .source_authority import (
+    reconcile_legacy_source_authority_registry,
+    snapshot_source_authority_registry,
+)
 from .tasking import classify_task
 from .timeutil import utc_now
 
@@ -1303,14 +1307,20 @@ class ProjectStore:
     def _source_authority_path(self, project_id: str) -> Path:
         """Return the project-local registry path without creating it."""
 
-        return self.project_root(project_id) / "source_authority.sqlite"
+        return (
+            self.project_root(project_id)
+            / "sources"
+            / "source_authority.sqlite"
+        )
 
     def source_authority_path(self, project_id: str) -> Path:
+        reconcile_legacy_source_authority_registry(self.project_root(project_id))
         return self._source_authority_path(project_id)
 
     def source_authority_status(
         self, project_id: str, *, batch_id: str | None = None
     ) -> dict[str, Any]:
+        reconcile_legacy_source_authority_registry(self.project_root(project_id))
         return snapshot_source_authority_registry(
             self._source_authority_path(project_id), batch_id
         )
@@ -1831,6 +1841,10 @@ class ProjectStore:
         """Persist one recoverable Plan insertion journal transition."""
 
         atomic_write_json(path, payload)
+        refresh_working_sector_operational_checksums(
+            path.parents[3],
+            authority="PLAN",
+        )
 
     def _persist_backlog(
         self,
@@ -1842,6 +1856,10 @@ class ProjectStore:
         write_plan_runtime_projection(
             self._plan_runtime_path(project_id),
             backlog,
+        )
+        refresh_working_sector_operational_checksums(
+            self.project_root(project_id),
+            authority="PLAN",
         )
 
     def _load_backlog(self, project_id: str) -> dict[str, Any]:
@@ -2039,6 +2057,10 @@ class ProjectStore:
                     "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
                 }
                 atomic_write_json(receipt_path, existing)
+            refresh_working_sector_operational_checksums(
+                self.project_root(project_id),
+                authority="PLAN",
+            )
         return {
             **cast(dict[str, Any], existing),
             "idempotent_replay": receipt_reused,
@@ -6754,10 +6776,10 @@ class ProjectStore:
         }
 
     def next_pv_id(self, project_id: str) -> str:
-        accepted = self.accepted_ids(project_id)
-        if not accepted:
+        highest = self.highest_accepted_ordinal(project_id)
+        if highest == 0:
             return "PV1"
-        return f"PV{max(int(pv_id[2:]) for pv_id in accepted) + 1}"
+        return f"PV{highest + 1}"
 
     def accepted_ids(self, project_id: str) -> list[str]:
         root = self.project_root(project_id) / "accepted"
@@ -6777,7 +6799,11 @@ class ProjectStore:
 
     def highest_accepted_ordinal(self, project_id: str) -> int:
         accepted = self.accepted_ids(project_id)
-        return max((int(value[2:]) for value in accepted), default=0)
+        pointer = self.pointer(project_id)
+        ordinals = [int(value[2:]) for value in accepted]
+        if pointer.accepted_pv:
+            ordinals.append(int(pointer.accepted_pv[2:]))
+        return max(ordinals, default=0)
 
     def place_candidate(
         self,
@@ -7456,7 +7482,15 @@ class ProjectStore:
     def project_status(self, project_id: str) -> dict[str, Any]:
         root = self.project_root(project_id)
         pointer = self.pointer(project_id)
-        accepted = self.accepted_ids(project_id)
+        external_project_authority = root != self._legacy_project_root(project_id)
+        accepted = (
+            [pointer.accepted_pv]
+            if external_project_authority and pointer.accepted_pv
+            else self.accepted_ids(project_id)
+        )
+        if pointer.accepted_pv and pointer.accepted_pv not in accepted:
+            accepted.append(pointer.accepted_pv)
+            accepted.sort(key=lambda value: int(value[2:]))
         backlog = self._load_backlog(project_id)
         backlog_counts = Counter(
             str(task.get("status", "UNKNOWN")) for task in backlog["tasks"]
@@ -7474,8 +7508,18 @@ class ProjectStore:
             "project": self.config(project_id).as_dict(),
             "pointer": pointer.as_dict(),
             "accepted": accepted,
-            "highest_accepted_ordinal": self.highest_accepted_ordinal(project_id),
-            "next_candidate_pv": self.next_pv_id(project_id),
+            "highest_accepted_ordinal": (
+                int(pointer.accepted_pv[2:])
+                if external_project_authority and pointer.accepted_pv
+                else self.highest_accepted_ordinal(project_id)
+            ),
+            "next_candidate_pv": (
+                f"PV{int(pointer.accepted_pv[2:]) + 1}"
+                if external_project_authority and pointer.accepted_pv
+                else "PV1"
+                if external_project_authority
+                else self.next_pv_id(project_id)
+            ),
             "candidates": candidates,
             "task_backlog": {
                 "count": len(backlog["tasks"]),

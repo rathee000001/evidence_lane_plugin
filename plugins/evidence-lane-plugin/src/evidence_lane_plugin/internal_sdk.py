@@ -31,6 +31,7 @@ from .agent_learning import (
 from .canon_consequence_graph import (
     bootstrap_canon_consequence_graph,
     inspect_canon_consequence_graph,
+    query_canon_consequence_graph,
 )
 from .canon_task_graph import (
     CanonTaskDispatcher,
@@ -1881,7 +1882,13 @@ def build_local_service_adapter(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
         context.checkpoint()
-        return service.reader.search(binding.project_id, **payload)
+        exact = dict(payload)
+        exact.pop("session_id", None)
+        return service.live_authority_search(
+            binding.project_id,
+            session_id=binding.session_id,
+            **exact,
+        )
 
     def _truth_fetch(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
@@ -1944,15 +1951,32 @@ def build_local_service_adapter(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
         context.checkpoint()
-        _canon_payload(binding, payload)
+        exact_payload = _canon_payload(binding, payload)
         task_graph = inspect_canon_task_graph(
             _canon_root(binding), project_id=binding.project_id
         )
+        consequence = (
+            query_canon_consequence_graph(
+                _canon_root(binding),
+                project_id=binding.project_id,
+                query=str(exact_payload.pop("query")),
+                limit=int(exact_payload.pop("limit", 8)),
+            )
+            if exact_payload.get("query") is not None
+            else inspect_canon_consequence_graph(
+                _canon_root(binding), project_id=binding.project_id
+            )
+        )
+        require(
+            not exact_payload,
+            "SDK_CANON_GRAPH_PAYLOAD_INVALID",
+            "Canon graph accepts only optional bounded query and limit fields.",
+            status="BLOCKED",
+            unexpected_fields=sorted(exact_payload),
+        )
         return {
             **task_graph,
-            "consequence_graph": inspect_canon_consequence_graph(
-                _canon_root(binding), project_id=binding.project_id
-            ),
+            "consequence_graph": consequence,
         }
 
     def _canon_bootstrap_consequence_graph(

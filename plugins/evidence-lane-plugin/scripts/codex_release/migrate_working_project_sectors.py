@@ -1,9 +1,10 @@
 """Commit one exact project-root WORKING authority into all 18 sectors.
 
 This maintainer route is pointer-neutral. It uses the accepted PV lane bundle
-as historical parent, indexes the complete live Git index/worktree/untracked
-path set, migrates Plan and ChatLineage into their canonical sectors, and
-removes only the verified legacy duplicates named by the migration receipt.
+as historical parent, indexes the Git index's tracked path set using current
+worktree bytes, migrates Plan and ChatLineage into their canonical sectors,
+and removes only the verified legacy duplicates named by the migration receipt.
+Untracked test, evidence, and POC files remain locator-only working evidence.
 """
 
 from __future__ import annotations

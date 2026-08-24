@@ -6348,6 +6348,34 @@ def _build_one_lane(
         and not _prior_lane_topology_is_reconcilable(prior_lane, lane)
     )
     full_validation_fallback_reason: str | None = None
+    parent_baseline_replay: dict[str, Any] = {
+        "status": "NOT_REQUIRED",
+        "parent_source_count": len(prior_index),
+        "replayed_source_count": 0,
+        "preserved_unavailable_source_count": 0,
+        "preserved_unavailable_paths": [],
+        "missing_after_replay": [],
+    }
+    baseline_replay_eligible = False
+    if (
+        prior_db
+        and prior_db.is_file()
+        and tool_changed
+        and preserve_parent_unmentioned
+    ):
+        try:
+            prior_validation = _validate_lane_database(prior_db, lane)
+        except (OSError, ValueError, sqlite3.DatabaseError) as exc:
+            raise ValueError(
+                "A tool-identity fallback cannot replace a preserved parent "
+                "whose current lane schema cannot be validated."
+            ) from exc
+        if prior_validation.get("valid") is not True:
+            raise ValueError(
+                "A tool-identity fallback cannot replace a preserved parent "
+                "whose current lane schema is incompatible."
+            )
+        baseline_replay_eligible = True
     changed = (
         prior_lane is None
         or tool_changed
@@ -6378,13 +6406,48 @@ def _build_one_lane(
             else None
         )
     else:
-        if prior_db and prior_db.is_file() and not tool_changed:
+        if prior_db and prior_db.is_file() and (
+            not tool_changed or baseline_replay_eligible
+        ):
             atomic_write_bytes(db_path, prior_db.read_bytes())
             connection = _open_lane(db_path, lane, initialize=False)
-            build_mode = "INCREMENTAL_REFRESH"
-            for row in (
-                classification["CHANGED_REBUILD"] + classification["REMOVED_TOMBSTONE"]
-            ):
+            if baseline_replay_eligible:
+                build_mode = "FULL_VALIDATION_FALLBACK"
+                full_validation_fallback_reason = "TOOL_IDENTITY_CHANGED"
+                replay_rows = [
+                    row
+                    for row in classification["UNCHANGED_REUSE"]
+                    if row.get("preserved_parent_record") is not True
+                ]
+                unavailable_rows = [
+                    row
+                    for row in classification["UNCHANGED_REUSE"]
+                    if row.get("preserved_parent_record") is True
+                ]
+                parent_baseline_replay = {
+                    "status": "PASS",
+                    "parent_source_count": len(prior_index),
+                    "replayed_source_count": len(replay_rows),
+                    "preserved_unavailable_source_count": len(unavailable_rows),
+                    "preserved_unavailable_paths": sorted(
+                        str(row["path"]) for row in unavailable_rows
+                    ),
+                    "missing_after_replay": [],
+                }
+            else:
+                build_mode = "INCREMENTAL_REFRESH"
+                replay_rows = []
+
+            delete_actions: list[tuple[dict[str, Any], str]] = [
+                (row, "CHANGED_REBUILD")
+                for row in classification["CHANGED_REBUILD"]
+            ]
+            delete_actions.extend(
+                (row, "REMOVED_TOMBSTONE")
+                for row in classification["REMOVED_TOMBSTONE"]
+            )
+            delete_actions.extend((row, "PARENT_BASELINE_REPLAY") for row in replay_rows)
+            for row, mutation_kind in delete_actions:
                 source = connection.execute(
                     "SELECT source_id, sha256, size_bytes FROM source_registry WHERE path=?",
                     (row["path"],),
@@ -6411,16 +6474,14 @@ def _build_one_lane(
                     ) VALUES (?, ?, ?, ?, ?)
                     """,
                     (
-                        "CHANGED_REBUILD"
-                        if row in classification["CHANGED_REBUILD"]
-                        else "REMOVED_TOMBSTONE",
+                        mutation_kind,
                         row["path"],
                         source["sha256"],
                         row.get("current_sha256"),
                         recorded_at,
                     ),
                 )
-                if row in classification["REMOVED_TOMBSTONE"]:
+                if mutation_kind == "REMOVED_TOMBSTONE":
                     connection.execute(
                         """
                         INSERT INTO source_tombstone(
@@ -6435,9 +6496,16 @@ def _build_one_lane(
                             parent_pv,
                         ),
                     )
-            for row in (
-                classification["CHANGED_REBUILD"] + classification["NEW_REGISTER"]
-            ):
+            insert_rows_by_path = {
+                str(row["path"]): row
+                for row in (
+                    replay_rows
+                    + classification["CHANGED_REBUILD"]
+                    + classification["NEW_REGISTER"]
+                )
+            }
+            baseline_replay_blocked: list[dict[str, Any]] = []
+            for row in insert_rows_by_path.values():
                 _, parser_state = _insert_source(
                     connection,
                     lane,
@@ -6447,8 +6515,28 @@ def _build_one_lane(
                     snapshot_ref=proposed_pv,
                 )
                 if parser_state.startswith(("BLOCKED", "PARSE_FAILED")):
-                    classification["BLOCKED_UNSUPPORTED"].append(
-                        {"path": row["path"], "parser_state": parser_state}
+                    blocked = {"path": row["path"], "parser_state": parser_state}
+                    classification["BLOCKED_UNSUPPORTED"].append(blocked)
+                    if baseline_replay_eligible:
+                        baseline_replay_blocked.append(blocked)
+            if baseline_replay_blocked:
+                connection.rollback()
+                connection.close()
+                raise ValueError(
+                    "A parent-baseline replay cannot replace previously parsed "
+                    "records with blocked or failed parser output."
+                )
+            if baseline_replay_eligible:
+                final_index = _source_index(connection)
+                expected_paths = set(prior_index) - set(force_remove_paths or ())
+                missing_after_replay = sorted(expected_paths - set(final_index))
+                parent_baseline_replay["missing_after_replay"] = missing_after_replay
+                if missing_after_replay:
+                    connection.rollback()
+                    connection.close()
+                    raise ValueError(
+                        "A parent-baseline replay did not preserve every required "
+                        "historical source identity."
                     )
             connection.execute("DELETE FROM parser_capability")
         else:
@@ -6597,6 +6685,7 @@ def _build_one_lane(
         "lane_id": lane.canonical_lane_id,
         "build_mode": build_mode,
         "full_validation_fallback_reason": full_validation_fallback_reason,
+        "parent_baseline_replay": parent_baseline_replay,
         "classification": classification,
         "tool_identity_changed": tool_changed,
         "topology_generator_changed": topology_generator_changed,
@@ -6648,6 +6737,7 @@ def _build_one_lane(
         "lane_id": lane.canonical_lane_id,
         "build_mode": build_mode,
         "full_validation_fallback_reason": full_validation_fallback_reason,
+        "parent_baseline_replay": parent_baseline_replay,
         "byte_reused": byte_reused,
         "classification": classification,
         "git_history": history_report,
@@ -6862,6 +6952,7 @@ def build_lane_bundle(
     source_paths_override: list[str] | tuple[str, ...] | None = None,
     preserve_parent_unmentioned: bool = False,
     index_git_history: bool = True,
+    allow_parent_operational_authority_drift: bool = False,
 ) -> dict[str, Any]:
     """Build/Refresh lanes concurrently, then assemble one deterministic PV."""
 
@@ -6872,15 +6963,54 @@ def build_lane_bundle(
         raise ValueError(
             f"max_lane_workers must be between 1 and {MAX_PARALLEL_LANE_WORKERS}."
         )
+    output = Path(output_directory).resolve()
+    if output.exists() and any(output.iterdir()):
+        raise ValueError("Lane bundle output must be empty.")
+    parent = Path(parent_lane_bundle).resolve() if parent_lane_bundle else None
+    if parent is not None:
+        try:
+            parent_validation = validate_lane_bundle(parent)
+        except (
+            OSError,
+            ValueError,
+            KeyError,
+            TypeError,
+            json.JSONDecodeError,
+            sqlite3.DatabaseError,
+        ) as exc:
+            raise ValueError(
+                "The parent lane bundle is unreadable or invalid."
+            ) from exc
+        checksum_mismatches = dict(
+            parent_validation.get("checksum_mismatches") or {}
+        )
+        from .project_authority import is_working_sector_operational_member
+
+        operational_authority_only_drift = bool(checksum_mismatches) and all(
+            is_working_sector_operational_member(path)
+            for path in checksum_mismatches
+        )
+        validated_working_parent = bool(
+            allow_parent_operational_authority_drift
+            and operational_authority_only_drift
+            and not parent_validation.get("lane_manifest_errors")
+            and all(
+                lane.get("valid") is True
+                for lane in dict(parent_validation.get("lanes") or {}).values()
+            )
+            and parent_validation.get("lane_directory_set_valid") is True
+            and parent_validation.get("source_routes_valid") is True
+            and parent_validation.get("topology_valid") is True
+        )
+        if (
+            parent_validation.get("valid") is not True
+            and not validated_working_parent
+        ):
+            raise ValueError("The parent lane bundle failed sealed validation.")
     git_arm = probe_git_arm(root, requested_mode=git_mode)
     git_history_available = bool(git_arm["history_index_enabled"])
-    output = Path(output_directory).resolve()
-    if output.exists():
-        if any(output.iterdir()):
-            raise ValueError("Lane bundle output must be empty.")
-    else:
+    if not output.exists():
         output.mkdir(parents=True)
-    parent = Path(parent_lane_bundle).resolve() if parent_lane_bundle else None
     recorded_at = recorded_at_override or utc_now()
     source_selection, source_rows, source_exclusions = governed_source_files(
         root,
@@ -6899,12 +7029,21 @@ def build_lane_bundle(
             )
     source_snapshot = _current_index(root, source_paths)
     source_snapshot_sha256 = sha256_bytes(canonical_json_bytes(source_snapshot))
+    # An explicit path override is an overlay contract even when it happens to
+    # equal today's governed selection.  Only the absence of an override proves
+    # that the caller requested the complete current repository snapshot.
+    complete_source_snapshot = source_paths_override is None
+    prior_routes_by_path: dict[str, str] = {}
     inherited_routes: dict[str, str] = {}
     if parent and (parent / "routes.json").is_file():
         prior_routes = json.loads((parent / "routes.json").read_text(encoding="utf-8"))
+        prior_routes_by_path = {
+            str(path): str(lane_id)
+            for path, lane_id in prior_routes.get("routes", {}).items()
+        }
         inherited_routes = {
             path: lane_id
-            for path, lane_id in prior_routes.get("routes", {}).items()
+            for path, lane_id in prior_routes_by_path.items()
             if path in source_paths
         }
     effective_overrides = {**inherited_routes, **(source_overrides or {})}
@@ -7018,7 +7157,11 @@ def build_lane_bundle(
                 preserve_parent_unmentioned=preserve_parent_unmentioned,
                 force_remove_paths={
                     path
-                    for path, prior_lane_id in inherited_routes.items()
+                    for path, prior_lane_id in (
+                        prior_routes_by_path
+                        if complete_source_snapshot
+                        else inherited_routes
+                    ).items()
                     if prior_lane_id == lane_id and routes.get(path) != lane_id
                 },
             )
@@ -7063,7 +7206,10 @@ def build_lane_bundle(
         routes,
         source_snapshot,
         emitted_lane_ids,
-        allow_observed_superset=preserve_parent_unmentioned,
+        allow_observed_superset=(
+            preserve_parent_unmentioned
+            and not complete_source_snapshot
+        ),
     )
     if not source_binding["valid"]:
         raise ValueError(
@@ -7446,10 +7592,34 @@ def validate_lane_bundle(directory: str | Path) -> dict[str, Any]:
         and execution.get("source_policy", {}).get("secrets_indexed") is False
         and execution.get("source_policy", {}).get("env_files_indexed") is False
         and execution.get("source_policy", {}).get("runtime_artifacts_indexed") is False
-        and execution.get("source_policy", {}).get(
-            "untracked_operational_files_indexed"
+        and (
+            (
+                execution.get("source_policy", {}).get("selection_mode")
+                == "GIT_TRACKED_ONLY"
+                and execution.get("source_policy", {}).get(
+                    "untracked_operational_files_indexed"
+                )
+                is False
+            )
+            or (
+                execution.get("source_policy", {}).get("selection_mode")
+                == "GIT_INDEX_WORKTREE_AND_UNTRACKED"
+                and execution.get("source_policy", {}).get(
+                    "untracked_operational_files_indexed"
+                )
+                is True
+            )
+            or (
+                execution.get("source_policy", {}).get("selection_mode")
+                == "FILESYSTEM_GOVERNED"
+                and isinstance(
+                    execution.get("source_policy", {}).get(
+                        "untracked_operational_files_indexed"
+                    ),
+                    bool,
+                )
+            )
         )
-        == (manifest.get("lane_emission_policy") == "ALL_18_WORKING_AUTHORITY")
         and execution.get("deterministic_assembly_order") == list(emitted_lane_ids)
         and execution.get("submitted_lane_count") == len(emitted_lane_ids)
         and (

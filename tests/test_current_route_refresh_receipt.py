@@ -8,10 +8,10 @@ import tarfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RECEIPT = ROOT / "docs" / "CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.json"
+RECEIPT = ROOT / "docs" / "CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.json"
 OUTPUT_PATHS = {
-    "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.json",
-    "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.md",
+    "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.json",
+    "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.md",
 }
 POINTER_PATHS = {
     ".agents/plugins/current-route-refresh.v1.json",
@@ -60,7 +60,7 @@ def test_current_route_refresh_receipt_covers_and_hashes_every_tracked_path() ->
     receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
     assert receipt["schema"] == "evidence-lane.current-route-file-refresh-receipt.v2"
     assert receipt["status"] == "PASS"
-    assert receipt["refresh_id"] == "TASK16_CURRENT_ROUTE_REFRESH_20260823_003"
+    assert receipt["refresh_id"] == "TASK20_CURRENT_ROUTE_REFRESH_20260824_001"
     rows = {row["path"]: row for row in receipt["entries"]}
     assert set(rows) == _tracked_paths()
     assert len(rows) == len(receipt["entries"])

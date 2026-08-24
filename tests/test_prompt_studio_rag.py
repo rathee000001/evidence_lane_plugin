@@ -23,22 +23,10 @@ def _sha256(path: Path) -> str:
 
 
 def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
-    manifest = json.loads((EVIDENCE / "manifest.json").read_text(encoding="utf-8"))
     browser = json.loads(BROWSER.read_text(encoding="utf-8"))
-    sqlite_path = EVIDENCE / "studio_search.sqlite"
-
-    assert manifest["schema"] == "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1"
-    assert manifest["release"] == "3.0.0"
-    assert manifest["history_mode"] == "FROZEN_SEALED_INDEX_NO_GIT"
-    assert "no Git command is invoked" in manifest["corpus"]["boundary"]
-    assert manifest["validation"]["sqlite_integrity"] == "ok"
-    assert manifest["validation"]["secret_scan"] == "PASS"
-    assert manifest["outputs"]["sqlite"]["sha256"] == _sha256(sqlite_path)
-    assert manifest["outputs"]["browser_json"]["sha256"] == _sha256(BROWSER)
-    assert browser["corpus_sha256"] == manifest["corpus"]["sha256"]
-    assert browser["history_mode"] == manifest["history_mode"]
-    assert browser["source_count"] == manifest["corpus"]["source_count"]
-    assert browser["chunk_count"] == manifest["corpus"]["chunk_count"]
+    assert browser["schema"] == "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1"
+    assert browser["release"] == "3.0.0"
+    assert browser["history_mode"] == "FROZEN_SEALED_INDEX_NO_GIT"
     assert browser["tools"]["chunker"].startswith("llama-index-core==0.14.23")
     assert browser["tools"]["provider"].startswith("none;")
     assert browser["source_count"] >= 90
@@ -60,6 +48,29 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     )
     assert "plugins/evidence-lane-plugin/remote_adapter/app/readme/page.tsx" in source_paths
     assert "plugins/evidence-lane-plugin/remote_adapter/app/security/page.tsx" in source_paths
+
+    local_outputs = {
+        "manifest": EVIDENCE / "manifest.json",
+        "sqlite": EVIDENCE / "studio_search.sqlite",
+    }
+    if not all(path.is_file() for path in local_outputs.values()):
+        return
+
+    manifest = json.loads(
+        local_outputs["manifest"].read_text(encoding="utf-8")
+    )
+    sqlite_path = local_outputs["sqlite"]
+    assert manifest["schema"] == browser["schema"]
+    assert manifest["release"] == browser["release"]
+    assert manifest["history_mode"] == browser["history_mode"]
+    assert "no Git command is invoked" in manifest["corpus"]["boundary"]
+    assert manifest["validation"]["sqlite_integrity"] == "ok"
+    assert manifest["validation"]["secret_scan"] == "PASS"
+    assert manifest["outputs"]["sqlite"]["sha256"] == _sha256(sqlite_path)
+    assert manifest["outputs"]["browser_json"]["sha256"] == _sha256(BROWSER)
+    assert browser["corpus_sha256"] == manifest["corpus"]["sha256"]
+    assert browser["source_count"] == manifest["corpus"]["source_count"]
+    assert browser["chunk_count"] == manifest["corpus"]["chunk_count"]
 
     with sqlite3.connect(sqlite_path) as connection:
         assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
@@ -104,6 +115,15 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     assert "content='chunk_index'" in fts_schema
     assert int(manifest["validation"]["sqlite_size_bytes"]) == sqlite_path.stat().st_size
     assert manifest["validation"]["sqlite_fixed_size_cap"] is False
+
+
+def test_prompt_studio_local_evidence_is_excluded_from_git_and_packages() -> None:
+    ignored = {
+        line.strip()
+        for line in (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
+    }
+    assert "plugins/evidence-lane-plugin/evidence/" in ignored
+    assert "plugins/evidence-lane-plugin/_evidence_lane_rehearsal/" in ignored
 
 
 def test_prompt_studio_public_corpus_excludes_private_runtime_paths() -> None:

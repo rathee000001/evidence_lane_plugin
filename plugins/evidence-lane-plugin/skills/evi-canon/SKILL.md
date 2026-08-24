@@ -16,8 +16,9 @@ State Travel, source-write authority, or a Project six-way HIL decision.
 
 ## Required intake
 
-Run `pv_status`, `pv_task_backlog`, and one bounded `pv_query` before
-classifying a new Canon exchange. Match the receiving task by exact project,
+Run `pv_status`, `pv_task_backlog`, one bounded live-root `pv_query`, and the
+six-authority `search` before classifying a new Canon exchange. Neither read
+opens the accepted HIL ZIP. Match the receiving task by exact project,
 task UUID, deep link, expected contract, schema, dependency, direction, and
 accepted-pointer identity. Never bind by title or current directory alone.
 

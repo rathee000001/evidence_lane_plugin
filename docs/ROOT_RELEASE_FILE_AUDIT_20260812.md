@@ -1,5 +1,5 @@
 > Historical receipt only. Superseded for the current 3.0.0 source line by
-> `CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260823.md` and its JSON authority.
+> `CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.md` and its JSON authority.
 
 # Root release-file audit — Evidence Lane 2.0.0
 

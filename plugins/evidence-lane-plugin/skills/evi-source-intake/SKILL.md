@@ -42,51 +42,40 @@ bytes or secret environment-variable names in an exclusion receipt. Non-Git
 sources use the same deterministic path/content policy but do not claim a
 tracked-only boundary.
 
-## Authoritative bounded lane-query workflow
+## Authoritative live-root six-authority query workflow
 
-`EVIDENCE_LANE_BOUNDED_LANE_QUERY_V1` is the only skill-owned workflow for
-reading lane evidence. It queries immutable lane authority progressively; it
-never loads a full PV package, Plan backlog, lane SQLite database, or raw FTS
-corpus into model context.
+`EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1` is the only ordinary query
+workflow. ENV/UOP keeps these six authorities separate: all eighteen live-root
+sector lanes plus Project Engulf; Agent Learning; the Canon consequence graph;
+Project Memory; the resolved `AGENTS.md` chain; and host conversation
+`MEMORY.md`. Accepted storage is an immutable HIL ZIP and is never opened,
+queried, extracted, or treated as the current database. The accepted pointer is
+baseline identity only.
 
-1. Call `lane_catalog` once and resolve the supplied alias to its exact
-   `canonical_lane_id`, `sqlite_filename`, FTS table, and mutation policy. Do
-   not guess a lane name, filename, table, or filesystem location.
-2. Call `lane_status` with the exact project_id, canonical lane, and optional
-   pv_ref. Omit pv_ref only to select the current accepted pointer; name a
-   candidate explicitly and continue to label it unaccepted. Bind subsequent
-   reads to the returned project, PV, lane, bundle, pointer, SQLite/MMD/DOT
-   hashes, and freshness evidence.
-3. Call `lane_search` for one lane with the exact project/PV binding,
-   `retrieval="hybrid"`, and `limit=20` unless the task contract requires a
-   smaller value. The enforced range is 1 through 100 results and at most the
-   first 12 lexical query terms. Use `bm25` or `tfidf` only when the user or
-   task contract requires that ranking explicitly.
-4. Call `lane_fetch` only with an exact `path` returned by search. Use
-   `max_bytes=100000` unless a smaller task boundary applies; the enforced
-   range is 1 through 1,000,000 bytes. Binary exact bytes remain inside SQLite.
-5. Preserve, without relabelling, top-level project_id, pv_ref, canonical
-   lane identity, lane/bundle/pointer hashes, authority state, and freshness.
-   Preserve each hit's ref_id, path, locator, chunk_sha256, source_sha256, and
-   parser_state; for a fetch also preserve sha256, size_bytes, truncated,
-   structured facts, and freshness. `EMPTY` is a
-   valid no-hit result. `STALE`, candidate, or dirty-live-source evidence stays
-   visibly qualified and never becomes accepted truth by inference.
+1. Call `lane_catalog` once for canonical lane identity, then call `search` for
+   the bounded six-authority result. `search` always queries all eighteen live
+   sector SQLite/FTS5 projections with BM25 in addition to Learning, Canon, and
+   Memory. Preserve the AGENTS.md and MEMORY.md source-chain hashes separately;
+   never merge their authority roles.
+2. A stale or no-hit Learning, Canon, or Memory arm triggers exactly one
+   ordered refresh: Learning, Canon, then Memory. Retry those three bounded
+   reads exactly once. A continuing no-hit is valid and the all-eighteen-sector
+   slice remains the direct fallback; never widen to the accepted ZIP.
+3. Use `lane_status`, `lane_search`, and `lane_fetch` only when the caller needs
+   one exact lane result. Omit `pv_ref`: ordinary lane reads resolve only
+   `<project-root>/sectors/<canonical_lane_id>/<sqlite_filename>`. Candidate and
+   accepted-archive reads belong only to their HIL presentation routes and
+   fail closed on this workflow.
+4. Use `fetch` only with an exact `file:<path>` or `chunk:<id>` returned by the
+   live-root query. Preserve project, live-root bundle, branch/HEAD, lane,
+   locator, content hash, freshness, ENV/UOP, and instruction source-chain
+   receipts. Never load a full SQLite/FTS corpus, raw Plan, chat scrollback,
+   browser history, or private reasoning into model context.
 
-The exact diagnostic templates are:
-
-- accepted lane SQLite:
-  `<EVIDENCE_LANE_DATA_ROOT>/projects/<project_id>/accepted/<PVn>/lanes/<canonical_lane_id>/<sqlite_filename>`
-- explicitly named candidate lane SQLite:
-  `<EVIDENCE_LANE_DATA_ROOT>/projects/<project_id>/candidates/<candidate_id>/lanes/<canonical_lane_id>/<sqlite_filename>`
-
-These templates verify returned provenance only. Do not use shell SQL, direct
-filesystem discovery, arbitrary SQL, transcript search, browser history, or
-scrollback as a substitute for `lane_catalog` -> `lane_status` ->
-`lane_search` -> bounded `lane_fetch`. Fail closed on an invalid bundle,
-project/PV/lane mismatch, missing exact path, invalid limit, or absent native
-tool. Parallel, cross-lane, and cross-project reads require their separately
-governed workflows; do not simulate them by widening this single-lane route.
+The root-nested `sectors/<lane>/accepted_history/<PVn>` folders are immutable
+historical support bytes inside the live root. They may be searched only by the
+sealed live-sector fallback after current paths are suppressed. They are not
+the accepted archive and never replace current lane authority.
 
 ## Schema-derived lane pills
 

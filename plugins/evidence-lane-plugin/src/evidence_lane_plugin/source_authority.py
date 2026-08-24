@@ -9,17 +9,21 @@ capture, and every ordered occurrence is preserved.
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import sqlite3
 import stat
+import tempfile
 import zipfile
 from collections import defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Iterator, Mapping
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .errors import EvidenceLaneError, require
-from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
+from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes, sha256_file
 from .timeutil import utc_now
 
 REGISTRY_SCHEMA = "evidence-lane.source-authority-registry.v1"
@@ -124,12 +128,16 @@ class FrozenSourceObject:
         return payload
 
 
-def _connect(path: Path) -> sqlite3.Connection:
+@contextmanager
+def _connect(path: Path) -> Iterator[sqlite3.Connection]:
     connection = sqlite3.connect(path)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys=ON")
-    connection.execute("PRAGMA busy_timeout=5000")
-    return connection
+    try:
+        connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA foreign_keys=ON")
+        connection.execute("PRAGMA busy_timeout=5000")
+        yield connection
+    finally:
+        connection.close()
 
 
 def _ensure_column(
@@ -812,6 +820,223 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
         )
         connection.commit()
     return target
+
+
+def reconcile_legacy_source_authority_registry(
+    project_root: str | Path,
+) -> dict[str, Any]:
+    """Move or merge the retired root registry into ``sources/`` exactly once."""
+
+    root = Path(project_root).resolve()
+    canonical = root / "sources" / "source_authority.sqlite"
+    legacy = root / "source_authority.sqlite"
+    receipt_path = root / "sources" / "source_authority_layout_receipt.json"
+    if not legacy.is_file():
+        return {
+            "status": "PASS",
+            "state": "CANONICAL_SOURCE_AUTHORITY_ROUTE",
+            "canonical_path": str(canonical),
+            "legacy_path_present": False,
+        }
+
+    canonical.parent.mkdir(parents=True, exist_ok=True)
+    legacy_before = sha256_file(legacy)
+    canonical_before = sha256_file(canonical) if canonical.is_file() else None
+    if not canonical.is_file():
+        os.replace(legacy, canonical)
+        initialize_source_authority_registry(canonical)
+        merge_counts: dict[str, int] = {}
+        state = "LEGACY_ROOT_REGISTRY_MOVED_TO_SOURCES"
+    else:
+        initialize_source_authority_registry(canonical)
+        checkpoint = sqlite3.connect(canonical)
+        try:
+            checkpoint.execute("PRAGMA wal_checkpoint(FULL)")
+        finally:
+            checkpoint.close()
+        with tempfile.TemporaryDirectory(
+            prefix=".source-authority-layout-", dir=canonical.parent
+        ) as temporary:
+            merged = Path(temporary) / canonical.name
+            shutil.copy2(canonical, merged)
+            connection = sqlite3.connect(merged)
+            try:
+                connection.execute("PRAGMA foreign_keys=OFF")
+                connection.execute("ATTACH DATABASE ? AS legacy", (str(legacy),))
+                main_tables = {
+                    str(row[0])
+                    for row in connection.execute(
+                        """
+                        SELECT name FROM main.sqlite_schema
+                        WHERE type='table'
+                          AND name NOT LIKE 'sqlite_%'
+                          AND name NOT LIKE 'source_authority_fts%'
+                          AND sql NOT LIKE 'CREATE VIRTUAL TABLE%'
+                        """
+                    )
+                }
+                legacy_tables = {
+                    str(row[0])
+                    for row in connection.execute(
+                        """
+                        SELECT name FROM legacy.sqlite_schema
+                        WHERE type='table'
+                          AND name NOT LIKE 'sqlite_%'
+                          AND name NOT LIKE 'source_authority_fts%'
+                          AND sql NOT LIKE 'CREATE VIRTUAL TABLE%'
+                        """
+                    )
+                }
+                require(
+                    legacy_tables <= main_tables,
+                    "SOURCE_AUTHORITY_LAYOUT_SCHEMA_MISMATCH",
+                    "The retired root source registry contains unknown tables.",
+                    status="MISMATCH",
+                    unknown_tables=sorted(legacy_tables - main_tables),
+                )
+                merge_counts = {}
+                connection.execute("BEGIN IMMEDIATE")
+                for table in sorted(legacy_tables):
+                    quoted = table.replace('"', '""')
+                    main_columns = [
+                        (str(row[1]), int(row[5]))
+                        for row in connection.execute(
+                            f'PRAGMA main.table_info("{quoted}")'
+                        )
+                    ]
+                    legacy_columns = [
+                        (str(row[1]), int(row[5]))
+                        for row in connection.execute(
+                            f'PRAGMA legacy.table_info("{quoted}")'
+                        )
+                    ]
+                    require(
+                        main_columns == legacy_columns,
+                        "SOURCE_AUTHORITY_LAYOUT_SCHEMA_MISMATCH",
+                        "The canonical and retired source registry table schemas differ.",
+                        status="MISMATCH",
+                        table=table,
+                    )
+                    column_names = [name for name, _ in main_columns]
+                    primary_keys = [
+                        name
+                        for name, order in sorted(
+                            main_columns, key=lambda item: item[1] or 10_000
+                        )
+                        if order > 0
+                    ]
+                    if primary_keys:
+                        join = " AND ".join(
+                            f'm."{name}" IS l."{name}"' for name in primary_keys
+                        )
+                        differs = " OR ".join(
+                            f'm."{name}" IS NOT l."{name}"' for name in column_names
+                        )
+                        conflict = connection.execute(
+                            f'SELECT 1 FROM main."{quoted}" m '
+                            f'JOIN legacy."{quoted}" l ON {join} '
+                            f'WHERE {differs} LIMIT 1'
+                        ).fetchone()
+                        require(
+                            conflict is None,
+                            "SOURCE_AUTHORITY_LAYOUT_PRIMARY_KEY_CONFLICT",
+                            "The canonical and retired source registries disagree on one identity.",
+                            status="MISMATCH",
+                            table=table,
+                        )
+                    before = int(
+                        connection.execute(
+                            f'SELECT COUNT(*) FROM main."{quoted}"'
+                        ).fetchone()[0]
+                    )
+                    columns = ",".join(f'"{name}"' for name in column_names)
+                    connection.execute(
+                        f'INSERT OR IGNORE INTO main."{quoted}"({columns}) '
+                        f'SELECT {columns} FROM legacy."{quoted}"'
+                    )
+                    after = int(
+                        connection.execute(
+                            f'SELECT COUNT(*) FROM main."{quoted}"'
+                        ).fetchone()[0]
+                    )
+                    merge_counts[table] = after - before
+                connection.execute("DELETE FROM source_authority_fts")
+                connection.execute(
+                    """
+                    INSERT INTO source_authority_fts(
+                        object_id,source_pointer,member_path
+                    )
+                    SELECT member.object_id,object.source_pointer,member.member_path
+                    FROM source_member AS member
+                    JOIN source_object AS object USING(object_id)
+                    ORDER BY member.object_id,member.member_path
+                    """
+                )
+                connection.commit()
+                connection.execute("DETACH DATABASE legacy")
+                connection.execute("PRAGMA foreign_keys=ON")
+                integrity = [
+                    str(row[0])
+                    for row in connection.execute("PRAGMA integrity_check")
+                ]
+                foreign_keys = list(connection.execute("PRAGMA foreign_key_check"))
+                require(
+                    integrity == ["ok"] and not foreign_keys,
+                    "SOURCE_AUTHORITY_LAYOUT_MERGE_INTEGRITY_FAILED",
+                    "The merged canonical source registry failed SQLite integrity checks.",
+                    status="MISMATCH",
+                )
+            finally:
+                connection.close()
+            # Windows can deny replacing an existing SQLite file even after all
+            # Python connections have closed when a short-lived host handle is
+            # still draining. SQLite's backup API performs the same page-atomic
+            # replacement without changing the canonical pathname.
+            source_connection = sqlite3.connect(merged)
+            target_connection = sqlite3.connect(canonical)
+            try:
+                source_connection.backup(target_connection)
+                target_connection.commit()
+                require(
+                    [
+                        str(row[0])
+                        for row in target_connection.execute(
+                            "PRAGMA integrity_check"
+                        )
+                    ]
+                    == ["ok"]
+                    and not list(
+                        target_connection.execute("PRAGMA foreign_key_check")
+                    ),
+                    "SOURCE_AUTHORITY_LAYOUT_MERGE_INTEGRITY_FAILED",
+                    "The canonical source registry failed post-backup integrity checks.",
+                    status="MISMATCH",
+                )
+            finally:
+                target_connection.close()
+                source_connection.close()
+        legacy.unlink()
+        state = "LEGACY_ROOT_REGISTRY_MERGED_INTO_SOURCES"
+
+    receipt_body = {
+        "schema": "evidence-lane.source-authority-layout-migration.v1",
+        "status": "PASS",
+        "state": state,
+        "canonical_relative_path": "sources/source_authority.sqlite",
+        "retired_relative_path": "source_authority.sqlite",
+        "legacy_sha256": legacy_before,
+        "canonical_before_sha256": canonical_before,
+        "canonical_after_sha256": sha256_file(canonical),
+        "inserted_row_counts": merge_counts,
+        "legacy_path_present_after": legacy.exists(),
+        "payload_reingested": False,
+    }
+    receipt = {
+        **receipt_body,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+    }
+    atomic_write_json(receipt_path, receipt)
+    return receipt
 
 
 def _policy_reason(relative_path: str, policy: Mapping[str, Any]) -> tuple[str, str]:

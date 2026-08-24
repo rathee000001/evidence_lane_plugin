@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
+from evidence_lane_plugin.lane_engine import build_lane_bundle
 from evidence_lane_plugin.lane_reader import (
     DEFAULT_PARALLEL_AGGREGATE_RESULTS,
     DEFAULT_PARALLEL_LANE_TIMEOUT_MS,
@@ -30,6 +31,40 @@ CONTRACT_PATH = (
     / "schemas"
     / "parallel-lane-query.v001.json"
 )
+FTS5_CONTRACT_PATH = (
+    ROOT
+    / "plugins"
+    / "evidence-lane-plugin"
+    / "schemas"
+    / "lane-search-fts5.v001.json"
+)
+PACKAGED_FTS5_CONTRACT_PATH = (
+    ROOT
+    / "plugins"
+    / "evidence-lane-plugin"
+    / "src"
+    / "evidence_lane_plugin"
+    / "schemas"
+    / "lane-search-fts5.v001.json"
+)
+
+
+def _materialize_live_root(service) -> dict[str, Any]:
+    pointer = service.store.pointer("book-faires")
+    output = service.store.project_root("book-faires") / "sectors"
+    result = build_lane_bundle(
+        repository_root=service.store.config("book-faires").repository_path,
+        output_directory=output,
+        code_mode="local_code",
+        parent_lane_bundle=None,
+        parent_pv=pointer.accepted_pv,
+        proposed_pv=f"{pointer.accepted_pv}_WORKING",
+        pointer_generation=pointer.generation,
+        include_untracked=False,
+        materialize_all_lanes=True,
+        index_git_history=False,
+    )
+    return result
 
 
 def _hit(lane: str, suffix: str) -> dict[str, Any]:
@@ -152,6 +187,22 @@ def test_parallel_query_is_completion_order_independent_and_deduplicated() -> No
     assert receipt["receipt_sha256"] == sha256_bytes(canonical_json_bytes(body))
 
 
+def test_parallel_query_receipt_normalizes_successful_zero_hits_to_empty() -> None:
+    result = FakeParallelLaneReader(
+        {("github_code", "no matching code"): {"status": "PASS", "results": []}}
+    ).search_parallel(
+        "project-one",
+        [{"lane": "github_code", "query": "no matching code"}],
+        pv_ref="PV12",
+    )
+
+    assert result["status"] == "EMPTY"
+    assert result["results"] == []
+    request = result["receipt"]["request_receipts"][0]
+    assert request["status"] == "EMPTY"
+    assert request["result_count"] == 0
+
+
 def test_parallel_query_enforces_timeout_and_preflight_cancellation() -> None:
     timeout_reader = FakeParallelLaneReader(
         {
@@ -263,6 +314,84 @@ def test_parallel_query_schema_matches_runtime_limits() -> None:
     assert contract["receipt"]["persisted"] is False
 
 
+def test_fts5_public_schema_is_complete_and_package_identical() -> None:
+    source_bytes = FTS5_CONTRACT_PATH.read_bytes()
+    assert source_bytes == PACKAGED_FTS5_CONTRACT_PATH.read_bytes()
+    contract = json.loads(source_bytes)
+    extension = contract["x-evidence-lane-contract"]
+
+    assert contract["properties"]["retrieval"]["enum"] == [
+        "hybrid",
+        "fts5",
+        "bm25",
+        "tfidf",
+    ]
+    assert len(contract["properties"]["lane"]["enum"]) == 18
+    assert set(extension["fts5_tables"]) == set(
+        contract["properties"]["lane"]["enum"]
+    )
+    assert extension["physical_fts5_columns"] == [
+        "path",
+        "locator",
+        "text_content",
+        "chunk_id UNINDEXED",
+    ]
+    assert extension["hooks_required"] is False
+
+
+def test_explicit_fts5_retrieval_uses_real_lane_authority(service) -> None:
+    build_and_approve_pv1(service)
+    _materialize_live_root(service)
+
+    direct = service.lane_reader.search(
+        "book-faires",
+        "docs",
+        "Book Faires",
+        retrieval="fts5",
+        limit=3,
+    )
+    parallel = service.lane_reader.search_parallel(
+        "book-faires",
+        [
+            {
+                "lane": "docs",
+                "query": "Book Faires",
+                "retrieval": "fts5",
+                "limit": 3,
+            }
+        ],
+    )
+
+    assert direct["status"] == "PASS"
+    assert direct["retrieval"] == "fts5"
+    assert direct["result_state"] == "HITS"
+    assert direct["ranking"]["fts5"].startswith("SQLite FTS5")
+    assert parallel["status"] == "PASS"
+    assert parallel["receipt"]["request_receipts"][0]["retrieval"] == "fts5"
+
+
+def test_implicit_fts5_prefers_current_working_sectors(service) -> None:
+    build_and_approve_pv1(service)
+    _materialize_live_root(service)
+    manifest_path = (
+        service.store.project_root("book-faires") / "sectors" / "manifest.json"
+    )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    result = service.lane_reader.search(
+        "book-faires",
+        "docs",
+        "Book Faires",
+        retrieval="fts5",
+        limit=3,
+    )
+
+    assert result["status"] == "PASS"
+    assert result["pv_ref"] == manifest["proposed_pv"]
+    assert result["freshness"]["authority"] == "WORKING_SECTORS"
+    assert result["result_state"] == "HITS"
+
+
 def test_parallel_query_applies_one_deterministic_aggregate_result_budget() -> None:
     reader = FakeParallelLaneReader(
         {
@@ -291,14 +420,15 @@ def test_parallel_query_applies_one_deterministic_aggregate_result_budget() -> N
     assert receipt["aggregate_omitted_count"] == 1
 
 
-def test_parallel_query_reads_two_real_immutable_lane_sqlites(service) -> None:
+def test_parallel_query_reads_two_real_live_root_lane_sqlites(service) -> None:
     build_and_approve_pv1(service)
+    manifest = _materialize_live_root(service)
 
     result = service.lane_reader.search_parallel(
         "book-faires",
         [
             {
-                "lane": "github_code",
+                "lane": "local_code",
                 "query": "list_books",
                 "limit": 3,
                 "timeout_ms": 10_000,
@@ -314,15 +444,14 @@ def test_parallel_query_reads_two_real_immutable_lane_sqlites(service) -> None:
     )
 
     assert result["status"] == "PASS"
-    assert result["pv_ref"] == "PV1"
-    assert result["receipt"]["requested_pv_ref"] is None
+    assert result["live_root_authority_ref"] == manifest["proposed_pv"]
     assert {row["canonical_lane_id"] for row in result["results"]} == {
-        "github_code",
+        "local_code",
         "docs",
     }
     receipt = result["receipt"]
     assert [row["canonical_lane_id"] for row in receipt["request_receipts"]] == [
-        "github_code",
+        "local_code",
         "docs",
     ]
     assert all(row["within_time_budget"] for row in receipt["request_receipts"])

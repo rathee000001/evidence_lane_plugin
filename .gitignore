@@ -30,3 +30,5 @@ plugins/evidence-lane-plugin/.plugin-data/
 /evidence/
 evidence/implementation_v42/BROWSER_VERIFICATION/
 evidence/implementation_v42/ONE_SHOT_DUMMY_POC/
+plugins/evidence-lane-plugin/evidence/
+plugins/evidence-lane-plugin/_evidence_lane_rehearsal/

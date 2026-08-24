@@ -114,21 +114,22 @@
           "tools": [
             "pv_status"
           ],
-          "workflow": "accepted-authority-read"
+          "workflow": "live-root-authority-read"
         },
         {
           "order": 2,
           "tools": [
             "pv_task_backlog"
           ],
-          "workflow": "accepted-authority-read"
+          "workflow": "live-root-authority-read"
         },
         {
           "order": 3,
           "tools": [
-            "pv_query"
+            "pv_query",
+            "search"
           ],
-          "workflow": "accepted-authority-read"
+          "workflow": "live-root-six-authority-read"
         },
         {
           "order": 4,
@@ -724,54 +725,82 @@
         {
           "order": 1,
           "tools": [
-            "pv_status"
+            "runtime_doctor"
           ],
-          "workflow": "state-travel-authority-read"
+          "workflow": "direct-destination-runtime-doctor"
         },
         {
           "order": 2,
           "tools": [
-            "pv_task_backlog"
+            "session_flash_status"
           ],
-          "workflow": "state-travel-authority-read"
+          "workflow": "direct-destination-locked-flash"
         },
         {
           "order": 3,
           "tools": [
-            "pv_query"
+            "session_resume"
           ],
-          "workflow": "state-travel-authority-read"
+          "workflow": "direct-destination-existing-session-attachment"
         },
         {
           "order": 4,
           "tools": [
-            "pv_plan_steer_delta"
+            "runtime_activation_status"
           ],
-          "workflow": "state-travel-plan-steer"
+          "workflow": "direct-destination-activation-verification"
         },
         {
           "order": 5,
-          "tools": [
-            "pv_state_travel_prepare"
-          ],
-          "workflow": "prepare-state-travel"
-        },
-        {
-          "order": 6,
           "tools": [
             "pv_state_travel_direct_force_same_worktree"
           ],
           "workflow": "direct-force-same-worktree-state-travel"
         },
         {
+          "order": 6,
+          "tools": [
+            "pv_status"
+          ],
+          "workflow": "post-entry-plan-authority-read"
+        },
+        {
           "order": 7,
           "tools": [
-            "pv_state_travel_resume"
+            "pv_task_backlog"
           ],
-          "workflow": "resume-state-travel"
+          "workflow": "post-entry-plan-authority-read"
         },
         {
           "order": 8,
+          "tools": [
+            "pv_query"
+          ],
+          "workflow": "post-entry-plan-authority-read"
+        },
+        {
+          "order": 9,
+          "tools": [
+            "pv_plan_steer_delta"
+          ],
+          "workflow": "state-travel-plan-steer"
+        },
+        {
+          "order": 10,
+          "tools": [
+            "pv_state_travel_prepare"
+          ],
+          "workflow": "sealed-prepare-state-travel-branch-only"
+        },
+        {
+          "order": 11,
+          "tools": [
+            "pv_state_travel_resume"
+          ],
+          "workflow": "sealed-resume-state-travel-branch-only"
+        },
+        {
+          "order": 12,
           "tools": [
             "render_runtime_panel",
             "render_project_panel"
@@ -800,21 +829,22 @@
           "tools": [
             "pv_status"
           ],
-          "workflow": "accepted-authority-read"
+          "workflow": "live-root-authority-read"
         },
         {
           "order": 2,
           "tools": [
             "pv_task_backlog"
           ],
-          "workflow": "accepted-authority-read"
+          "workflow": "live-root-authority-read"
         },
         {
           "order": 3,
           "tools": [
-            "pv_query"
+            "pv_query",
+            "search"
           ],
-          "workflow": "accepted-authority-read"
+          "workflow": "live-root-six-authority-read"
         },
         {
           "order": 4,

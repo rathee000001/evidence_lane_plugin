@@ -29,6 +29,7 @@ param(
     [string]$RuntimeControlRoot = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin",
     [string]$RestartLeasePath,
     [string]$RestartLeaseToken,
+    [string]$RestartScheduledTaskName,
     [ValidateSet(
         "OpenAI.Codex_2p2nqsd0c76g0!App",
         "OpenAI.CodexBeta_2p2nqsd0c76g0!App"
@@ -568,6 +569,133 @@ function Remove-ExactRestartLease([string]$Path, [string]$Token) {
         throw "Refusing to release another restart invocation's single-flight lease."
     }
     Remove-Item -LiteralPath $Path -Force
+}
+
+function Move-OrphanedExactRestartLease {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$ExactReceiptDirectory
+    )
+
+    $expectedPath = [IO.Path]::GetFullPath(
+        (Join-Path $ExactReceiptDirectory "CODEX_RESTART_SINGLE_FLIGHT.json")
+    )
+    $exactPath = [IO.Path]::GetFullPath($Path)
+    if ($exactPath -cne $expectedPath) {
+        throw "Refusing to inspect a restart lease outside the exact receipt directory."
+    }
+    $lease = Get-Content -LiteralPath $exactPath -Raw | ConvertFrom-Json
+    $allowedStates = @(
+        "PARENT_OWNS_PRELAUNCH_LEASE",
+        "CHILD_SPAWNED_BEFORE_EXACT_APP_STOP",
+        "CHILD_SCHEDULED_BEFORE_EXACT_APP_STOP",
+        "CHILD_ACKNOWLEDGED_BEFORE_EXACT_APP_STOP"
+    )
+    $createdAt = [DateTimeOffset]::MinValue
+    $createdAtParsed = $false
+    try {
+        $createdAt = [DateTimeOffset]::Parse(
+            [string]$lease.created_at_utc,
+            [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::RoundtripKind
+        )
+        $createdAtParsed = $true
+    }
+    catch {}
+    if (
+        [string]$lease.schema -cne "evidence-lane.codex-restart-single-flight.v1" -or
+        [string]::IsNullOrWhiteSpace([string]$lease.token) -or
+        [string]$lease.state -cnotin $allowedStates -or
+        -not $createdAtParsed
+    ) {
+        throw "The existing restart lease is malformed; fail-closed recovery is required."
+    }
+    if ([DateTimeOffset]::UtcNow -lt $createdAt.AddMinutes(2)) {
+        return $null
+    }
+
+    $ownerProcesses = @()
+    foreach ($field in @("parent_process_id", "helper_process_id")) {
+        $property = $lease.PSObject.Properties[$field]
+        if ($null -eq $property -or $null -eq $property.Value) { continue }
+        $ownerProcessId = 0
+        if (
+            [int]::TryParse([string]$property.Value, [ref]$ownerProcessId) -and
+            $ownerProcessId -gt 0
+        ) {
+            $owner = Get-Process -Id $ownerProcessId -ErrorAction SilentlyContinue
+            if ($null -ne $owner) {
+                $ownerProcesses += [ordered]@{
+                    field = $field
+                    process_id = $ownerProcessId
+                    process_name = [string]$owner.ProcessName
+                }
+            }
+        }
+    }
+    if ($ownerProcesses.Count -gt 0) {
+        return $null
+    }
+
+    $scheduledTaskProperty = $lease.PSObject.Properties[
+        "transient_scheduled_task_name"
+    ]
+    $scheduledTaskName = if ($null -ne $scheduledTaskProperty) {
+        [string]$scheduledTaskProperty.Value
+    }
+    else {
+        ""
+    }
+    if (
+        -not [string]::IsNullOrWhiteSpace($scheduledTaskName) -and
+        $null -ne (Get-ScheduledTask -TaskName $scheduledTaskName -ErrorAction SilentlyContinue)
+    ) {
+        return $null
+    }
+
+    $leaseSha256 = Get-Sha256 $exactPath
+    $archiveRoot = Join-Path $ExactReceiptDirectory "stale-restart-leases"
+    New-Item -ItemType Directory -Force -Path $archiveRoot | Out-Null
+    $archivePath = Join-Path $archiveRoot (
+        "CODEX_RESTART_SINGLE_FLIGHT_" + $leaseSha256 + ".json"
+    )
+    if (Test-Path -LiteralPath $archivePath -PathType Leaf) {
+        if ((Get-Sha256 $archivePath) -cne $leaseSha256) {
+            throw "The orphaned restart-lease archive collides with different bytes."
+        }
+        Remove-ExactRestartLease -Path $exactPath -Token ([string]$lease.token)
+    }
+    else {
+        Move-Item -LiteralPath $exactPath -Destination $archivePath
+    }
+    $recoveryPath = Join-Path $ExactReceiptDirectory "CODEX_RESTART_STALE_LEASE_RECOVERY.json"
+    Write-JsonReceipt $recoveryPath ([ordered]@{
+        schema = "evidence-lane.codex-stale-restart-lease-recovery.v1"
+        status = "PASS"
+        state = "OBJECTIVELY_ORPHANED_LEASE_RETIRED"
+        stale_task_id = [string]$lease.task_id
+        stale_host_session_id = [string]$lease.host_session_id
+        stale_state = [string]$lease.state
+        stale_created_at_utc = $createdAt.ToUniversalTime().ToString("o")
+        stale_lease_sha256 = $leaseSha256
+        archived_lease_path = [IO.Path]::GetFullPath($archivePath)
+        archived_lease_sha256 = Get-Sha256 $archivePath
+        parent_process_absent = $true
+        helper_process_absent = $true
+        transient_scheduled_task_absent = $true
+        target_process_stopped_by_recovery = $false
+        plugin_install_invoked_by_recovery = $false
+        codex_activation_invoked_by_recovery = $false
+        recovered_at_utc = [DateTimeOffset]::UtcNow.ToString("o")
+    })
+    return [ordered]@{
+        status = "PASS"
+        stale_task_id = [string]$lease.task_id
+        stale_lease_sha256 = $leaseSha256
+        archive_path = [IO.Path]::GetFullPath($archivePath)
+        recovery_receipt_path = [IO.Path]::GetFullPath($recoveryPath)
+        recovery_receipt_sha256 = Get-Sha256 $recoveryPath
+    }
 }
 
 function Sync-GoalRecoveryBindingAfterTaskBinding {
@@ -1620,13 +1748,22 @@ if ($Action -eq "Prepare") {
     }
     Write-JsonReceipt $taskBindingPath $taskBinding
     $taskBindingSha256 = Get-Sha256 $taskBindingPath
-    $goalRecoveryRefresh = Sync-GoalRecoveryBindingAfterTaskBinding `
-        -ExactTaskBindingPath $taskBindingPath `
-        -ExactTaskBindingSha256 $taskBindingSha256 `
-        -ExactTwoSlotRegistry $exactTwoSlotRegistry `
-        -ExactTwoSlotRegistrySha256 $observedTwoSlotRegistrySha256 `
-        -ExactRuntimeControlRoot $exactRuntimeControlRoot `
-        -PreserveCurrentLocalBinding:$isPluginCreatorLocalRestart
+    $goalRecoveryRefresh = if ($isPluginCreatorLocalRestart) {
+        [ordered]@{
+            status = "NOT_REQUESTED_DUMB_LOCAL_UPDATE_HELPER"
+            goal_recovery_inspected = $false
+            goal_recovery_mutated = $false
+            exact_invoking_task_reopen_only = $true
+        }
+    }
+    else {
+        Sync-GoalRecoveryBindingAfterTaskBinding `
+            -ExactTaskBindingPath $taskBindingPath `
+            -ExactTaskBindingSha256 $taskBindingSha256 `
+            -ExactTwoSlotRegistry $exactTwoSlotRegistry `
+            -ExactTwoSlotRegistrySha256 $observedTwoSlotRegistrySha256 `
+            -ExactRuntimeControlRoot $exactRuntimeControlRoot
+    }
     [ordered]@{
         status = "PASS"
         state = "PREPARED_NOT_RESTARTED"
@@ -1637,7 +1774,7 @@ if ($Action -eq "Prepare") {
         goal_recovery_refresh = $goalRecoveryRefresh
         app_id = [string]$hostProfile.app_id
         restart_authority_mode = $restartAuthorityMode
-        helper_contract = "RESTART_ONLY_SINGLE_FLIGHT_VERSION_MATCHED_TUNNEL_EXACT_TASK_MAXIMIZED"
+        helper_contract = if ($isPluginCreatorLocalRestart) { "DUMB_EXACT_TASK_CLOSE_REOPEN_ONLY" } else { "RESTART_ONLY_SINGLE_FLIGHT_VERSION_MATCHED_TUNNEL_EXACT_TASK_MAXIMIZED" }
         next_action = "RUN_RESTART_WITH_EXACT_RECEIPT_SHA_AND_CONFIRMRESTART"
     } | ConvertTo-Json -Depth 8
     exit 0
@@ -1694,10 +1831,15 @@ if ($Action -eq "Restart") {
     $leasePath = Join-Path $ReceiptDirectory "CODEX_RESTART_SINGLE_FLIGHT.json"
     if (Test-Path -LiteralPath $leasePath -PathType Leaf) {
         $existingLease = Get-Content -LiteralPath $leasePath -Raw | ConvertFrom-Json
-        throw (
-            "A restart helper invocation is already in flight for task " +
-            [string]$existingLease.task_id + ". Duplicate helpers are forbidden."
-        )
+        $orphanedLeaseRecovery = Move-OrphanedExactRestartLease `
+            -Path $leasePath `
+            -ExactReceiptDirectory $ReceiptDirectory
+        if (Test-Path -LiteralPath $leasePath -PathType Leaf) {
+            throw (
+                "A restart helper invocation is already in flight for task " +
+                [string]$existingLease.task_id + ". Duplicate helpers are forbidden."
+            )
+        }
     }
     $leaseToken = [guid]::NewGuid().ToString("N")
     Write-NewJsonLease $leasePath ([ordered]@{
@@ -1717,6 +1859,14 @@ if ($Action -eq "Restart") {
         helper_process_id = $null
         created_at_utc = [DateTimeOffset]::UtcNow.ToString("o")
     })
+    $transientTaskName = (
+        "EvidenceLaneCodexExactTaskRestart-" +
+        (Get-StringSha256 ($TaskId + "|" + $observedInstallSha)).Substring(0, 16)
+    )
+    if ($null -ne (Get-ScheduledTask -TaskName $transientTaskName -ErrorAction SilentlyContinue)) {
+        Remove-ExactRestartLease -Path $leasePath -Token $leaseToken
+        throw "The exact transient Codex restart Scheduled Task already exists."
+    }
     $arguments = @(
         "-NoLogo", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden",
         "-ExecutionPolicy", "Bypass", "-File", $PSCommandPath,
@@ -1738,6 +1888,7 @@ if ($Action -eq "Restart") {
         "-TwoSlotRegistrySha256", $observedTwoSlotRegistrySha256,
         "-RestartLeasePath", $leasePath,
         "-RestartLeaseToken", $leaseToken,
+        "-RestartScheduledTaskName", $transientTaskName,
         "-AppId", $AppId,
         "-HostToolTransport", $HostToolTransport
     )
@@ -1751,20 +1902,37 @@ if ($Action -eq "Restart") {
     $argumentLine = ($arguments | ForEach-Object {
         ConvertTo-WindowsCommandLineArgument ([string]$_)
     }) -join " "
-    $childStdoutPath = Join-Path $ReceiptDirectory "CODEX_RELAUNCH_CHILD_STDOUT.log"
-    $childStderrPath = Join-Path $ReceiptDirectory "CODEX_RELAUNCH_CHILD_STDERR.log"
-    $helperProcess = $null
+    $scheduledTaskRegistered = $false
     try {
-        $helperProcess = Start-Process `
-            -FilePath $powershell `
-            -ArgumentList $argumentLine `
-            -WindowStyle Hidden `
-            -RedirectStandardOutput $childStdoutPath `
-            -RedirectStandardError $childStderrPath `
-            -PassThru
+        # A child process launched by the active Codex tool host remains in the
+        # host job and can be terminated with the app.  The proven v2.2
+        # updater used a one-use transient Scheduled Task to cross that exact
+        # stop boundary.  Keep this worker dumb: it only closes the bound app
+        # and reopens the exact invoking task after the install is complete.
+        $scheduledAction = New-ScheduledTaskAction `
+            -Execute $powershell `
+            -Argument $argumentLine
+        $scheduledPrincipal = New-ScheduledTaskPrincipal `
+            -UserId ([Security.Principal.WindowsIdentity]::GetCurrent().Name) `
+            -LogonType Interactive `
+            -RunLevel Limited
+        $scheduledSettings = New-ScheduledTaskSettingsSet `
+            -StartWhenAvailable `
+            -ExecutionTimeLimit (New-TimeSpan -Minutes 5) `
+            -MultipleInstances IgnoreNew `
+            -AllowStartIfOnBatteries `
+            -DontStopIfGoingOnBatteries
+        Register-ScheduledTask `
+            -TaskName $transientTaskName `
+            -Action $scheduledAction `
+            -Principal $scheduledPrincipal `
+            -Settings $scheduledSettings `
+            -Description "One-use exact-task Evidence Lane Codex close and reopen helper." |
+            Out-Null
+        $scheduledTaskRegistered = $true
         Write-JsonReceipt $leasePath ([ordered]@{
             schema = "evidence-lane.codex-restart-single-flight.v1"
-            state = "CHILD_SPAWNED_BEFORE_EXACT_APP_STOP"
+            state = "CHILD_SCHEDULED_BEFORE_EXACT_APP_STOP"
             token = $leaseToken
             project_id = $ProjectId
             evidence_session_id = $EvidenceSessionId
@@ -1776,14 +1944,54 @@ if ($Action -eq "Restart") {
             tunnel_marker_sha256 = if ($tunnelRequired) { [string]$tunnelBoundary.marker_sha256 } else { $null }
             target_process_id = $TargetProcessId
             parent_process_id = $PID
-            helper_process_id = [int]$helperProcess.Id
+            helper_process_id = $null
+            parent_pipe_handles_attached = $false
+            launch_shape = "PROVEN_V2_2_ONE_USE_TRANSIENT_SCHEDULED_TASK"
+            transient_scheduled_task_name = $transientTaskName
+            transient_scheduled_task_cleanup_required = $true
             created_at_utc = [DateTimeOffset]::UtcNow.ToString("o")
         })
+        Start-ScheduledTask -TaskName $transientTaskName
+        $childReadyDeadline = [DateTimeOffset]::UtcNow.AddSeconds(10)
+        do {
+            $scheduledTask = Get-ScheduledTask `
+                -TaskName $transientTaskName `
+                -ErrorAction SilentlyContinue
+            if ($null -eq $scheduledTask) {
+                throw "The transient restart helper disappeared before acknowledging its exact-task lease."
+            }
+            $childReadyLease = $null
+            try {
+                $childReadyLease = Get-Content -LiteralPath $leasePath -Raw | ConvertFrom-Json
+            }
+            catch {
+                # The child replaces the receipt atomically; retry only while
+                # the bounded handoff deadline remains open.
+            }
+            if (
+                $null -ne $childReadyLease -and
+                [string]$childReadyLease.state -ceq "CHILD_ACKNOWLEDGED_BEFORE_EXACT_APP_STOP" -and
+                [string]$childReadyLease.token -ceq $leaseToken -and
+                [int]$childReadyLease.helper_process_id -gt 0 -and
+                $childReadyLease.parent_pipe_handles_attached -eq $false -and
+                [string]$childReadyLease.transient_scheduled_task_name -ceq $transientTaskName
+            ) {
+                break
+            }
+            if ([DateTimeOffset]::UtcNow -ge $childReadyDeadline) {
+                throw "The restart helper did not acknowledge its detached exact-task lease before the app-stop deadline."
+            }
+            Start-Sleep -Milliseconds 50
+        } while ($true)
         Stop-Process -Id $TargetProcessId -Force
     }
     catch {
-        if ($null -ne $helperProcess) {
-            Stop-Process -Id ([int]$helperProcess.Id) -Force -ErrorAction SilentlyContinue
+        if ($scheduledTaskRegistered) {
+            Stop-ScheduledTask -TaskName $transientTaskName -ErrorAction SilentlyContinue
+            Unregister-ScheduledTask `
+                -TaskName $transientTaskName `
+                -Confirm:$false `
+                -ErrorAction SilentlyContinue
         }
         Remove-ExactRestartLease -Path $leasePath -Token $leaseToken
         throw
@@ -1813,8 +2021,8 @@ if ($Action -eq "Relaunch") {
             $restartLease = Get-Content -LiteralPath $expectedLeasePath -Raw | ConvertFrom-Json
             if (
                 $restartLease.schema -ceq "evidence-lane.codex-restart-single-flight.v1" -and
-                $restartLease.state -ceq "CHILD_SPAWNED_BEFORE_EXACT_APP_STOP" -and
-                [int]$restartLease.helper_process_id -eq $PID
+                $restartLease.state -ceq "CHILD_SCHEDULED_BEFORE_EXACT_APP_STOP" -and
+                [string]$restartLease.transient_scheduled_task_name -ceq $RestartScheduledTaskName
             ) {
                 break
             }
@@ -1833,10 +2041,36 @@ if ($Action -eq "Relaunch") {
             [string]$restartLease.host_tool_transport -cne $HostToolTransport -or
             [bool]$restartLease.tunnel_required -ne $tunnelRequired -or
             [string]$restartLease.tunnel_marker_sha256 -cne $(if ($tunnelRequired) { [string]$tunnelBoundary.marker_sha256 } else { "" }) -or
-            [int]$restartLease.target_process_id -ne $TargetProcessId
+            [int]$restartLease.target_process_id -ne $TargetProcessId -or
+            $restartLease.parent_pipe_handles_attached -ne $false -or
+            [string]$restartLease.launch_shape -cne "PROVEN_V2_2_ONE_USE_TRANSIENT_SCHEDULED_TASK" -or
+            [string]::IsNullOrWhiteSpace($RestartScheduledTaskName) -or
+            [string]$restartLease.transient_scheduled_task_name -cne $RestartScheduledTaskName
         ) {
             throw "The single-flight restart lease does not bind this exact helper and task."
         }
+        Write-JsonReceipt $expectedLeasePath ([ordered]@{
+            schema = "evidence-lane.codex-restart-single-flight.v1"
+            state = "CHILD_ACKNOWLEDGED_BEFORE_EXACT_APP_STOP"
+            token = $RestartLeaseToken
+            project_id = $ProjectId
+            evidence_session_id = $EvidenceSessionId
+            task_id = $TaskId
+            host_session_id = $HostSessionId
+            install_receipt_sha256 = $observedInstallSha
+            host_tool_transport = $HostToolTransport
+            tunnel_required = $tunnelRequired
+            tunnel_marker_sha256 = if ($tunnelRequired) { [string]$tunnelBoundary.marker_sha256 } else { $null }
+            target_process_id = $TargetProcessId
+            parent_process_id = [int]$restartLease.parent_process_id
+            helper_process_id = $PID
+            parent_pipe_handles_attached = $false
+            launch_shape = "PROVEN_V2_2_ONE_USE_TRANSIENT_SCHEDULED_TASK"
+            transient_scheduled_task_name = $RestartScheduledTaskName
+            transient_scheduled_task_cleanup_required = $true
+            child_acknowledged_before_exact_app_stop = $true
+            acknowledged_at_utc = [DateTimeOffset]::UtcNow.ToString("o")
+        })
         $restartLeaseSha256 = Get-Sha256 $expectedLeasePath
         $leaseValidated = $true
         if (-not $PreparationReceipt -or -not $PreparationReceiptSha256) {
@@ -1896,7 +2130,7 @@ if ($Action -eq "Relaunch") {
         }
         $tunnelStart = $null
         $tunnelReady = $null
-        if ($tunnelRequired) {
+        if ($tunnelRequired -and -not $isPluginCreatorLocalRestart) {
             $tunnelStart = Start-VersionMatchedTunnel $tunnelBoundary
             $tunnelReady = Wait-VersionMatchedTunnelReady $tunnelBoundary
         }
@@ -1916,9 +2150,18 @@ if ($Action -eq "Relaunch") {
             $newRoot = Get-NewRootCodexProcess -PriorProcessId $TargetProcessId -HostProfile $hostProfile
         }
         $verifiedRoot = Get-RootCodexProcess -ProcessId ([int]$newRoot.ProcessId) -HostProfile $hostProfile
-        $windowProof = Set-ExactHostWindowMaximized `
-            -RootProcessId ([int]$verifiedRoot.ProcessId) `
-            -HostProfile $hostProfile
+        $windowProof = if ($isPluginCreatorLocalRestart) {
+            [ordered]@{
+                status = "NOT_REQUESTED_DUMB_LOCAL_UPDATE_HELPER"
+                windows_ui_control_used = $false
+                focus_or_maximize_requested = $false
+            }
+        }
+        else {
+            Set-ExactHostWindowMaximized `
+                -RootProcessId ([int]$verifiedRoot.ProcessId) `
+                -HostProfile $hostProfile
+        }
         [void](Get-RootCodexProcess -ProcessId ([int]$verifiedRoot.ProcessId) -HostProfile $hostProfile)
         if (
             -not $isPluginCreatorLocalRestart -and
@@ -1929,16 +2172,24 @@ if ($Action -eq "Relaunch") {
         ) {
             throw "GLOBAL_PLUGIN_UPDATE_REHYDRATION_LAW requires one sealed current two-slot registry before any task is reopened."
         }
-        $globalTaskRehydration = Invoke-GlobalPluginUpdateTaskRehydration `
-            -ExactTwoSlotRegistry $exactTwoSlotRegistry `
-            -ExactTwoSlotRegistrySha256 $observedTwoSlotRegistrySha256 `
-            -ExactRuntimeControlRoot $exactRuntimeControlRoot `
-            -InstalledVersion $installedPluginVersion `
-            -RegistryDerivedToolCount $expectedNativeToolCount `
-            -ExactInvokingTaskOnlyLocalCacheRestart:$isPluginCreatorLocalRestart
+        $globalTaskRehydration = if ($isPluginCreatorLocalRestart) {
+            [ordered]@{
+                status = "NOT_REQUESTED_DUMB_LOCAL_UPDATE_HELPER"
+                invoked = $false
+                exact_invoking_task_reopen_only = $true
+            }
+        }
+        else {
+            Invoke-GlobalPluginUpdateTaskRehydration `
+                -ExactTwoSlotRegistry $exactTwoSlotRegistry `
+                -ExactTwoSlotRegistrySha256 $observedTwoSlotRegistrySha256 `
+                -ExactRuntimeControlRoot $exactRuntimeControlRoot `
+                -InstalledVersion $installedPluginVersion `
+                -RegistryDerivedToolCount $expectedNativeToolCount
+        }
         Write-JsonReceipt $relaunchPath ([ordered]@{
             schema = "evidence-lane.codex-relaunch-receipt.v2"
-            state = if ($tunnelRequired) { "BOUND_CODEX_HOST_ROOT_RELAUNCHED_ONCE_MAXIMIZED_VERSION_MATCHED_TUNNEL_READY_AWAITING_NATIVE_PROOF" } else { "BOUND_CODEX_HOST_ROOT_RELAUNCHED_ONCE_MAXIMIZED_NATIVE_MCP_AVAILABLE_AWAITING_NATIVE_PROOF" }
+            state = if ($isPluginCreatorLocalRestart) { "BOUND_CODEX_HOST_ROOT_RELAUNCHED_ONCE_EXACT_TASK_ONLY_AWAITING_NATIVE_PROOF" } elseif ($tunnelRequired) { "BOUND_CODEX_HOST_ROOT_RELAUNCHED_ONCE_MAXIMIZED_VERSION_MATCHED_TUNNEL_READY_AWAITING_NATIVE_PROOF" } else { "BOUND_CODEX_HOST_ROOT_RELAUNCHED_ONCE_MAXIMIZED_NATIVE_MCP_AVAILABLE_AWAITING_NATIVE_PROOF" }
             project_id = $ProjectId
             evidence_session_id = $EvidenceSessionId
             task_id = $TaskId
@@ -1957,6 +2208,11 @@ if ($Action -eq "Relaunch") {
                 receipt_sha256 = $restartLeaseSha256
                 exact_helper_process_id = $PID
                 single_flight_verified = $true
+                child_acknowledged_before_exact_app_stop = $true
+                parent_pipe_handles_attached = $false
+                launch_shape = "PROVEN_V2_2_ONE_USE_TRANSIENT_SCHEDULED_TASK"
+                transient_scheduled_task_name = $RestartScheduledTaskName
+                transient_scheduled_task_cleanup_required = $true
                 released_after_receipt = $true
             }
             tunnel = if ($tunnelRequired) {
@@ -1984,7 +2240,7 @@ if ($Action -eq "Relaunch") {
             window = $windowProof
             global_plugin_update_rehydration = $globalTaskRehydration
             task_navigation = [ordered]@{
-                mode = "EXACT_INVOKING_TASK_FOREGROUND_START_THEN_NON_NAVIGATING_GLOBAL_REHYDRATION"
+                mode = if ($isPluginCreatorLocalRestart) { "EXACT_INVOKING_TASK_ONLY" } else { "EXACT_INVOKING_TASK_FOREGROUND_START_THEN_NON_NAVIGATING_GLOBAL_REHYDRATION" }
                 task_uri_sha256 = $taskUriSha256
                 coordinate_clicking_used = $false
                 launch_request_process_id = [uint32]$launchRequestProcessId
@@ -2014,8 +2270,9 @@ if ($Action -eq "Relaunch") {
                 exact_task_reopen_count = 1
                 fixed_delay_used = $false
                 condition_driven_waits_only = $true
-                tunnel_started_by_helper = $tunnelRequired
-                maximized_full_window_verified = $true
+                tunnel_started_by_helper = $tunnelRequired -and -not $isPluginCreatorLocalRestart
+                maximized_full_window_verified = -not $isPluginCreatorLocalRestart
+                local_update_helper_scope = if ($isPluginCreatorLocalRestart) { "DUMB_EXACT_TASK_CLOSE_REOPEN_ONLY" } else { "GOVERNED_RELEASE_REHYDRATION" }
             }
             source_mutated = $false
             candidate_created_or_accepted = $false
@@ -2047,6 +2304,16 @@ if ($Action -eq "Relaunch") {
     finally {
         if ($leaseValidated) {
             Remove-ExactRestartLease -Path $RestartLeasePath -Token $RestartLeaseToken
+        }
+        if (-not [string]::IsNullOrWhiteSpace($RestartScheduledTaskName)) {
+            # Never stop the transient task from inside its own worker. Doing
+            # so can terminate the helper before the reopened app/task reaches
+            # native reattachment. Removing the registration leaves the
+            # already-running worker free to exit normally.
+            Unregister-ScheduledTask `
+                -TaskName $RestartScheduledTaskName `
+                -Confirm:$false `
+                -ErrorAction SilentlyContinue
         }
     }
     exit 0

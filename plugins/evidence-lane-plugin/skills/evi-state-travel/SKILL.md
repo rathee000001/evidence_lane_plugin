@@ -125,6 +125,28 @@ and must not call
 `pv_state_travel_prepare`, consume `pv_state_travel_resume`, fabricate a sealed
 transport receipt, infer HIL, create a candidate, or move the pointer.
 
+`DIRECT_STATE_TRAVEL_DESTINATION_RESUME_ROUTE_LAW` is mandatory for that
+direct branch. The governed Evidence Lane session already exists, so the fresh
+destination must attach it with `session_resume`, never attempt to create a
+second session with `session_boot`. After host-native UUID/deep-link/title and
+same-worktree verification, run exactly `runtime_doctor`,
+`session_flash_status`, `session_resume` with the destination task UUID as the
+exact `host_session_id`, and `runtime_activation_status`, in that order. Require
+the resume and activation receipts to bind the same project, governed session,
+destination task, workspace, execution profile, Flash authority, Plan/Goal and
+dirty worktree while preserving the authoritative source and runtime donor in
+host-session history. Only then call the six-field direct route exactly once.
+Do not substitute status-only Boot checks, `session_boot`, a sealed
+PREPARE/RESUME call, caller preflight, or a retry. A missing attachment must
+return `DIRECT_STATE_TRAVEL_DESTINATION_BOOT_REQUIRED` with
+`required_current_route=session_resume` before source hashing or any State
+Travel mutation.
+For this direct branch, do not run `pv_status`, `pv_task_backlog`, `pv_query`,
+or any other caller-side Plan/source preflight before the direct action. The
+server derives and validates those authorities atomically. The three bounded
+Plan reads belong only after direct PASS, when EVI Plan prepares the small
+whole-authority reprojection prompt.
+
 `STATE_TRAVEL_DESTINATION_ENTRY_LAW` is permanent public plugin behavior, not a
 task-local correction. Every fresh destination must execute this exact order:
 bind the host-assigned task UUID/deep link plus governed project, session,
@@ -218,8 +240,11 @@ For unfinished work, execute exactly five ordered destination phases:
    verification: the sealed route consumes `pv_state_travel_resume` once, while
    the no-seal direct route consumes
    `pv_state_travel_direct_force_same_worktree` once through its server-derived
-   high-level contract. Never run a caller-built preflight, retry, or substitute
-   routes. Verify pointer/package, runtime, source, profile,
+   high-level contract. For the direct branch, atomic Boot/Flash means the exact
+   ordered `runtime_doctor` -> `session_flash_status` -> `session_resume` ->
+   `runtime_activation_status` destination attachment defined above; do not use
+   `session_boot` against the existing governed session. Never run a caller-built
+   preflight, retry, or substitute routes. Verify pointer/package, runtime, source, profile,
    plugin, worktree, canonical Plan, sole ACTIVE row and physical-final HIL.
    After that exact PASS, call `render_runtime_panel` and
    `render_project_panel` once per tool for the State Travel authority

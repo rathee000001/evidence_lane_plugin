@@ -252,6 +252,17 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
             ),
             "windows_marketplace_root_rotation_allowed": False,
             "exact_same_task_hidden_restart_required": True,
+            "helper_scope": "DUMB_EXACT_TASK_CLOSE_REOPEN_ONLY",
+            "helper_installs_plugin": False,
+            "child_lease_acknowledgement_before_app_stop_required": True,
+            "child_launch_shape": (
+                "PROVEN_V2_2_ONE_USE_TRANSIENT_SCHEDULED_TASK"
+            ),
+            "redirected_parent_pipe_handles_allowed": False,
+            "terminal_success_or_failure_receipt_required": True,
+            "windows_ui_control_allowed": False,
+            "cross_task_rehydration_allowed": False,
+            "tunnel_start_allowed": False,
         },
     },
     "user_goal_recovery_helper": {

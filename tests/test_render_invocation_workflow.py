@@ -52,7 +52,7 @@ def test_project_runtime_render_has_only_three_workflow_triggers() -> None:
         if group["workflow"] == "state-travel-final-authority-render-once"
     ] == [
         {
-            "order": 8,
+            "order": 12,
             "tools": ["render_runtime_panel", "render_project_panel"],
             "workflow": "state-travel-final-authority-render-once",
         }

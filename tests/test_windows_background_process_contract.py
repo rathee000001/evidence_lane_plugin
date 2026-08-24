@@ -108,13 +108,34 @@ def test_powershell_background_routes_are_hidden_and_never_loop_restart() -> Non
     assert '"successor_hooks_all_disabled": True' in installer
 
     assert 'helper_installs_plugin = $false' in restart
+    assert 'windows_ui_control_used = $false' in restart
+    assert 'local_update_helper_scope = if ($isPluginCreatorLocalRestart) { "DUMB_EXACT_TASK_CLOSE_REOPEN_ONLY" }' in restart
     assert 'single_flight_required = $true' in restart
     assert 'exact_app_stop_count = 1' in restart
     assert 'exact_task_reopen_count = 1' in restart
     assert 'fixed_delay_used = $false' in restart
     assert 'condition_driven_waits_only = $true' in restart
+    assert "-RedirectStandardOutput" not in restart
+    assert "-RedirectStandardError" not in restart
+    assert 'Start-Process' not in restart
+    assert 'New-ScheduledTaskAction' in restart
+    assert 'Register-ScheduledTask' in restart
+    assert 'Start-ScheduledTask' in restart
+    assert 'Unregister-ScheduledTask' in restart
+    assert (
+        'launch_shape = "PROVEN_V2_2_ONE_USE_TRANSIENT_SCHEDULED_TASK"'
+        in restart
+    )
+    assert 'state = "CHILD_SCHEDULED_BEFORE_EXACT_APP_STOP"' in restart
+    assert 'child_acknowledged_before_exact_app_stop = $true' in restart
+    assert "function Move-OrphanedExactRestartLease" in restart
+    assert 'state = "OBJECTIVELY_ORPHANED_LEASE_RETIRED"' in restart
+    assert "[Globalization.CultureInfo]::InvariantCulture" in restart
+    assert '$lease.PSObject.Properties[\n        "transient_scheduled_task_name"' in restart
+    assert 'target_process_stopped_by_recovery = $false' in restart
+    assert 'plugin_install_invoked_by_recovery = $false' in restart
     assert 'version_matched_to_installed_plugin = $true' in restart
-    assert 'maximized_full_window_verified = $true' in restart
+    assert 'maximized_full_window_verified = -not $isPluginCreatorLocalRestart' in restart
     assert '[ValidateSet("NATIVE_MCP_AVAILABLE", "HOST_TOOL_GAP")]' in restart
     assert '$HostToolTransport = "NATIVE_MCP_AVAILABLE"' in restart
     assert '$tunnelRequired = $HostToolTransport -eq "HOST_TOOL_GAP"' in restart

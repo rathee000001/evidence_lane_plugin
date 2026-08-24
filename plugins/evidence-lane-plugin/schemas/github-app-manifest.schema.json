@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evidencelane.com/schemas/github-app-manifest.schema.json",
+  "title": "Evidence Lane pre-HIL GitHub App manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "app_slug",
+    "manifest_version",
+    "repository_selection",
+    "repository_permissions",
+    "events",
+    "public"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.github-app-manifest.v1"
+    },
+    "app_slug": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "manifest_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "repository_selection": {
+      "const": "selected"
+    },
+    "repository_permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metadata"],
+      "properties": {
+        "actions": { "const": "read" },
+        "checks": { "enum": ["read", "write"] },
+        "contents": { "enum": ["read", "write"] },
+        "issues": { "const": "read" },
+        "metadata": { "const": "read" },
+        "pull_requests": { "const": "read" },
+        "workflows": { "enum": ["read", "write"] }
+      }
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "check_run",
+          "check_suite",
+          "installation",
+          "installation_repositories",
+          "push",
+          "workflow_run"
+        ]
+      }
+    },
+    "public": {
+      "const": false
+    }
+  }
+}

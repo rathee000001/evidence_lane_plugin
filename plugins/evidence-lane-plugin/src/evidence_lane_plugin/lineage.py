@@ -18,6 +18,7 @@ from .constants import LINEAGE_SCHEMA
 from .errors import EvidenceLaneError, require
 from .hashing import atomic_write_bytes, canonical_json_bytes, sha256_bytes
 from .ids import prefixed_id
+from .project_authority import refresh_working_sector_operational_checksums
 from .redaction import contains_secret, redact
 
 _PRIVATE_REASONING_KEYS = {
@@ -762,9 +763,23 @@ class ChatLineage:
             connection.close()
 
     def _sync_project_authority(self) -> dict[str, Any] | None:
-        if self.path.parent.name != "lineage":
+        lineage_root = self.path.parent
+        direct_sector = bool(
+            lineage_root.name == "chat_lineage"
+            and lineage_root.parent.name == "sectors"
+        )
+        legacy_root = lineage_root.name == "lineage"
+        if not direct_sector and not legacy_root:
             return None
-        return ProjectChatLineage(self.path.parent).sync()
+        result = ProjectChatLineage(lineage_root).sync()
+        if direct_sector:
+            result["working_sector_checksum_refresh"] = (
+                refresh_working_sector_operational_checksums(
+                    lineage_root.parent.parent,
+                    authority="CHAT_LINEAGE",
+                )
+            )
+        return result
 
     def _events(self) -> list[dict[str, Any]]:
         if not self.path.exists():

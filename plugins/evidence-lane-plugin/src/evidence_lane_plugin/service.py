@@ -25,7 +25,7 @@ from .engine_identity import identity_repository_root
 from .enrollment import enroll_project, sync_selected_branch
 from .errors import EvidenceLaneError, require
 from .flash_authority import SessionFlashAuthority
-from .freshness import evaluate_freshness
+from .freshness import evaluate_freshness, evaluate_working_lane_freshness
 from .git_adapter import calculate_worktree_sha256, inspect_repository
 from .hashing import canonical_json_bytes, sha256_bytes
 from .hil_intent import classify_hil_intent
@@ -872,12 +872,18 @@ def _bound_public_envelope(tool: str, envelope: dict[str, Any]) -> dict[str, Any
     return minimal
 
 
-def _accepted_lane_projection(
+def _lane_projection(
     store: ProjectStore,
     project_id: str,
     accepted_pv: str | None,
 ) -> dict[str, Any]:
-    """Return compact public-safe lane facts from the validated accepted package."""
+    """Return compact public-safe lane facts from the live authority.
+
+    External project authority always reads ``sectors/``.  Its accepted PV is
+    pointer provenance only; ordinary status/query routes never open the
+    immutable accepted archive.  The package projection remains solely for
+    legacy in-store projects that have no external live authority.
+    """
 
     if not accepted_pv:
         return {
@@ -897,6 +903,76 @@ def _accepted_lane_projection(
                 }
                 for lane_id in CANONICAL_LANE_IDS
             ],
+        }
+
+    if store.uses_external_project_authority(project_id):
+        working_root = store.project_root(project_id) / "sectors"
+        manifest_path = working_root / "manifest.json"
+        if not manifest_path.is_file():
+            return {
+                "authority": "ACCEPTED_POINTER_REFERENCE_ONLY",
+                "pv_ref": accepted_pv,
+                "accepted_artifact_available": None,
+                "accepted_archive_queried": False,
+                "canonical_lane_count": len(CANONICAL_LANE_IDS),
+                "emitted_lane_count": 0,
+                "absent_lane_ids": list(CANONICAL_LANE_IDS),
+                "lanes": [],
+                "topology_status": "UNAVAILABLE",
+            }
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        emitted = {
+            str(lane_id)
+            for lane_id in (manifest.get("emitted_lane_ids") or [])
+            if str(lane_id) in CANONICAL_LANE_IDS
+        }
+        working_lanes: list[dict[str, Any]] = []
+        for lane_id in CANONICAL_LANE_IDS:
+            lane_manifest_path = working_root / lane_id / "lane_manifest.json"
+            lane_manifest = (
+                json.loads(lane_manifest_path.read_text(encoding="utf-8"))
+                if lane_manifest_path.is_file()
+                else {}
+            )
+            state = "EMITTED" if lane_id in emitted else "NOT_EMITTED"
+            working_lanes.append(
+                {
+                    "id": lane_id,
+                    "label": LANE_REGISTRY[lane_id].display_label,
+                    "value": (
+                        f"{state} | WORKING | "
+                        f"{int(lane_manifest.get('source_count') or 0)} sources | "
+                        f"accepted pointer {accepted_pv}"
+                    ),
+                    "state": state,
+                    "contract_status": str(
+                        lane_manifest.get("status") or "WORKING_AUTHORITY"
+                    ),
+                    "member_count": 4 if lane_manifest else 0,
+                    "authority": "WORKING_SECTORS",
+                    "pv_ref": None,
+                }
+            )
+        return {
+            "authority": "WORKING_SECTORS_WITH_ACCEPTED_POINTER_REFERENCE",
+            "pv_ref": accepted_pv,
+            "accepted_artifact_available": None,
+            "accepted_archive_queried": False,
+            "canonical_lane_count": len(CANONICAL_LANE_IDS),
+            "manifest_declared_canonical_lane_count": int(
+                manifest.get("canonical_lane_count") or 0
+            ),
+            "emitted_lane_count": len(emitted),
+            "absent_lane_ids": [
+                lane_id for lane_id in CANONICAL_LANE_IDS if lane_id not in emitted
+            ],
+            "bundle_sha256": manifest.get("bundle_sha256"),
+            "topology_status": (
+                "PASS"
+                if len(emitted) == len(CANONICAL_LANE_IDS)
+                else "NOT_PROVEN"
+            ),
+            "lanes": working_lanes,
         }
 
     manifest = store.accepted_manifest(project_id, accepted_pv)
@@ -1873,19 +1949,24 @@ class EvidenceLaneService:
         if not configured_active:
             activation_quality = "DETACHED"
         elif hook_integrity_mismatch:
-            activation_quality = "HOOK_INTEGRITY_MISMATCH"
+            activation_quality = "RUNNABLE_HOOK_INTEGRITY_MISMATCH"
         elif hooks_trusted and not hooks_enabled:
-            activation_quality = "DEGRADED_HOOKS_OFF"
+            activation_quality = "RUNNABLE_HOOKS_OFF"
         elif active_without_capture:
-            activation_quality = "DEGRADED_CAPTURE_UNAVAILABLE"
+            activation_quality = "RUNNABLE_PROMPT_INDEX_EVIDENCE_GAP"
         elif capability_unavailable or not capture_complete:
-            activation_quality = "DEGRADED_HOST_CAPABILITY_UNAVAILABLE"
+            activation_quality = "RUNNABLE_HOST_CAPABILITY_LIMITED"
         else:
             activation_quality = "FULLY_RUNNABLE"
-        overall_status = "FAIL" if hook_integrity_mismatch else "PASS"
+        overall_status = "PASS" if configured_active else "FAIL"
         return {
             "status": overall_status,
             "activation_quality": activation_quality,
+            "explicit_public_actions_runnable": configured_active,
+            "prompt_response_capture_decoupled_from_hooks": True,
+            "hook_lifecycle_strengthening_runnable": (
+                hooks_trusted and hooks_enabled and capture_complete
+            ),
             "hooks_off_is_structured_domain_state": True,
             "capture_unavailable_is_structured_domain_state": True,
             "per_session_capture_evidence": indexed_by_session,
@@ -2229,9 +2310,11 @@ class EvidenceLaneService:
                 expected_branch=repository.branch,
                 expected_head=repository.commit_sha,
             )
-            accepted_package = self.reader.resolve(project_id, accepted_pv)
-            accepted_freshness = evaluate_freshness(
-                self.store, project_id, accepted_package
+            working_freshness = evaluate_working_lane_freshness(
+                self.store,
+                project_id,
+                self.store.project_root(project_id) / "sectors",
+                bounded_dirty_read=True,
             )
             requested_source_event_id = str(
                 turn_entry.get("source_event_id") or ""
@@ -2322,12 +2405,11 @@ class EvidenceLaneService:
                     ],
                     "authority_merge_allowed": False,
                 },
-                "accepted_freshness": accepted_freshness,
-                "fallback_authority": (
-                    "LIVE_DIRTY_WORKSPACE_AND_INDEX"
-                    if accepted_freshness.get("state") != "FRESH"
-                    else "ACCEPTED_PV_WITH_WORKING_COMPARISON"
-                ),
+                "live_root_freshness": working_freshness,
+                "fallback_authority": "LIVE_ROOT_ALL_18_SECTORS",
+                "accepted_archive_opened": False,
+                "accepted_archive_queried": False,
+                "accepted_pointer_used_as_baseline_only": True,
                 "raw_prompt_persisted": False,
                 "raw_plan_loaded": False,
                 "raw_pv_loaded": False,
@@ -2964,10 +3046,9 @@ class EvidenceLaneService:
         self,
         project_id: str,
         lane: str,
-        *,
-        pv_ref: str | None = None,
     ) -> dict[str, Any]:
-        result = self.lane_reader.lane_status(project_id, lane, pv_ref=pv_ref)
+        result = self.lane_reader.lane_status(project_id, lane)
+        result["live_root_authority_ref"] = result.pop("pv_ref")
         if result.get("lane", {}).get("canonical_lane_id") == "plan":
             result["runtime_projection"] = self.store.plan_runtime_status(project_id)
             result["runtime_projection_authority"] = "TASK_BACKLOG_EVENT_LEDGER"
@@ -2980,18 +3061,18 @@ class EvidenceLaneService:
         lane: str,
         query: str,
         *,
-        pv_ref: str | None = None,
         limit: int = 20,
         retrieval: str = "hybrid",
     ) -> dict[str, Any]:
-        return self.lane_reader.search(
+        result = self.lane_reader.search(
             project_id,
             lane,
             query,
-            pv_ref=pv_ref,
             limit=limit,
             retrieval=retrieval,
         )
+        result["live_root_authority_ref"] = result.pop("pv_ref")
+        return result
 
     def lane_fetch(
         self,
@@ -2999,15 +3080,37 @@ class EvidenceLaneService:
         lane: str,
         path: str,
         *,
-        pv_ref: str | None = None,
         max_bytes: int = 100_000,
     ) -> dict[str, Any]:
-        return self.lane_reader.fetch_source(
+        result = self.lane_reader.fetch_source(
             project_id,
             lane,
             path,
-            pv_ref=pv_ref,
             max_bytes=max_bytes,
+        )
+        result["live_root_authority_ref"] = result.pop("pv_ref")
+        return result
+
+    def live_authority_search(
+        self,
+        project_id: str,
+        query: str,
+        *,
+        limit: int = 8,
+        session_id: str | None = None,
+        refresh_on_miss: bool = True,
+    ) -> dict[str, Any]:
+        """Run the single live-root six-authority prompt/query route."""
+
+        from .live_authority_query import query_live_authorities
+
+        return query_live_authorities(
+            self,
+            project_id=project_id,
+            session_id=session_id,
+            query=query,
+            limit=limit,
+            refresh_on_miss=refresh_on_miss,
         )
 
     def configure_lane_routes(
@@ -3031,7 +3134,17 @@ class EvidenceLaneService:
         """Return the durable accepted/candidate/session envelope without mutation."""
         result = self.store.project_status(project_id)
         pointer = self.store.pointer(project_id)
-        accepted_ids = self.store.accepted_ids(project_id)
+        external_project_authority = self.store.uses_external_project_authority(
+            project_id
+        )
+        accepted_ids = (
+            [pointer.accepted_pv]
+            if external_project_authority and pointer.accepted_pv
+            else self.store.accepted_ids(project_id)
+        )
+        if pointer.accepted_pv and pointer.accepted_pv not in accepted_ids:
+            accepted_ids.append(pointer.accepted_pv)
+            accepted_ids.sort(key=lambda value: int(value[2:]))
         accepted_validations: list[dict[str, Any]] = []
         if accepted_ids:
             # Accepted PVs are independent immutable directories. Validate them
@@ -3042,6 +3155,11 @@ class EvidenceLaneService:
             ) as executor:
 
                 def validate_history(pv_id: str) -> dict[str, Any]:
+                    if pv_id == pointer.accepted_pv:
+                        return self.sessions.accepted_entry_validation(
+                            project_id,
+                            pv_id,
+                        )
                     artifact = self.store.accepted_path(project_id, pv_id)
                     if artifact.is_file():
                         return self.store.validate_accepted(
@@ -3080,6 +3198,12 @@ class EvidenceLaneService:
                         else "HISTORICAL_EVIDENCE"
                     ),
                     "integrity_validated": True,
+                    "accepted_artifact_available": validation.get(
+                        "accepted_artifact_available"
+                    ),
+                    "accepted_archive_queried": bool(
+                        validation.get("accepted_archive_queried", True)
+                    ),
                     "promotability_required": False,
                     "promotability_enforced": False,
                     "promotable": validation["promotable"],
@@ -3095,11 +3219,31 @@ class EvidenceLaneService:
             "reason": "PV1 has not been accepted for this project.",
         }
         if pointer.accepted_pv:
-            current_freshness = evaluate_freshness(
-                self.store,
-                project_id,
-                self.store.accepted_path(project_id, pointer.accepted_pv),
+            working_manifest = (
+                self.store.project_root(project_id) / "sectors" / "manifest.json"
             )
+            if external_project_authority and working_manifest.is_file():
+                current_freshness = evaluate_working_lane_freshness(
+                    self.store,
+                    project_id,
+                    self.store.project_root(project_id) / "sectors",
+                )
+            elif external_project_authority:
+                current_freshness = {
+                    "state": "UNAVAILABLE_WORKING_SECTORS",
+                    "reason": (
+                        "The external live authority has no working-sector Git "
+                        "binding available for freshness comparison."
+                    ),
+                    "authority": "ACCEPTED_POINTER_REFERENCE_ONLY",
+                }
+            else:
+                accepted_artifact = self.store.accepted_path(
+                    project_id, pointer.accepted_pv
+                )
+                current_freshness = evaluate_freshness(
+                    self.store, project_id, accepted_artifact
+                )
         active_session: dict[str, Any] | None = None
         active_path = self.store.project_root(project_id) / "active_session.json"
         if active_path.is_file():
@@ -3138,7 +3282,7 @@ class EvidenceLaneService:
             )
         agent_configuration = self._active_agent_configuration_authority(project_id)
         conversation_memory = self._active_conversation_memory_authority(project_id)
-        lane_projection = _accepted_lane_projection(
+        lane_projection = _lane_projection(
             self.store,
             project_id,
             pointer.accepted_pv,
@@ -3188,20 +3332,37 @@ class EvidenceLaneService:
 
         base = self.store.project_status(project_id)
         pointer = self.store.pointer(project_id)
+        external_project_authority = self.store.uses_external_project_authority(
+            project_id
+        )
         accepted_ids = cast(list[str], base.get("accepted") or [])
         candidate_ids = cast(list[str], base.get("candidates") or [])
         current_validation: dict[str, Any] | None = None
         if pointer.accepted_pv:
-            validation = self.store.validate_accepted(
+            validation = self.sessions.accepted_entry_validation(
                 project_id,
                 pointer.accepted_pv,
-                require_promotable=False,
             )
             current_validation = {
                 "pv_id": pointer.accepted_pv,
                 "manifest_sha256": validation["manifest_sha256"],
                 "package_sha256": validation["package_sha256"],
                 "integrity_validated": True,
+                "accepted_artifact_available": validation.get(
+                    "accepted_artifact_available"
+                ),
+                "accepted_archive_queried": bool(
+                    validation.get("accepted_archive_queried", True)
+                ),
+                "accepted_artifact_integrity_validated": bool(
+                    validation.get("accepted_artifact_integrity_validated", True)
+                ),
+                "continuity_reference_integrity_validated": bool(
+                    validation.get("continuity_reference_integrity_validated", False)
+                ),
+                "validation_scope": validation.get(
+                    "validation_scope", "CURRENT_ACCEPTED_ARTIFACT"
+                ),
                 "promotability_required": False,
                 "promotable_under_current_rules": validation["promotable"],
                 "lane_topology_status": validation["lanes"]["status"],
@@ -3212,12 +3373,35 @@ class EvidenceLaneService:
             "reason": "PV1 has not been accepted for this project.",
         }
         if pointer.accepted_pv:
-            current_freshness = evaluate_freshness(
-                self.store,
-                project_id,
-                self.store.accepted_path(project_id, pointer.accepted_pv),
-                bounded_dirty_read=True,
+            working_manifest = (
+                self.store.project_root(project_id) / "sectors" / "manifest.json"
             )
+            if external_project_authority and working_manifest.is_file():
+                current_freshness = evaluate_working_lane_freshness(
+                    self.store,
+                    project_id,
+                    self.store.project_root(project_id) / "sectors",
+                    bounded_dirty_read=True,
+                )
+            elif external_project_authority:
+                current_freshness = {
+                    "state": "UNAVAILABLE_WORKING_SECTORS",
+                    "reason": (
+                        "The external live authority has no working-sector Git "
+                        "binding available for freshness comparison."
+                    ),
+                    "authority": "ACCEPTED_POINTER_REFERENCE_ONLY",
+                }
+            else:
+                accepted_artifact = self.store.accepted_path(
+                    project_id, pointer.accepted_pv
+                )
+                current_freshness = evaluate_freshness(
+                    self.store,
+                    project_id,
+                    accepted_artifact,
+                    bounded_dirty_read=True,
+                )
 
         active_session: dict[str, Any] | None = None
         active_path = self.store.project_root(project_id) / "active_session.json"
@@ -3249,7 +3433,7 @@ class EvidenceLaneService:
             "storage_connector_id": storage_selection.get("connector_id"),
             "google_drive_primary_runtime_allowed": False,
         }
-        lane_projection = _accepted_lane_projection(
+        lane_projection = _lane_projection(
             self.store,
             project_id,
             pointer.accepted_pv,
@@ -3533,7 +3717,7 @@ class EvidenceLaneService:
         *,
         task_id: str | None = None,
         query: str | None = None,
-        limit: int = 10,
+        limit: int = 9,
     ) -> dict[str, Any]:
         """Return a compact active window or one bounded live-Plan query."""
 
@@ -3554,9 +3738,9 @@ class EvidenceLaneService:
             )
             return result
         require(
-            int(limit) == 10,
+            int(limit) == 9,
             "TASK_BACKLOG_WINDOW_FIXED_CARDINALITY_REQUIRED",
-            "The native host Plan projection is one fixed header plus at most nine Delta rows.",
+            "The native host Plan projection uses one fixed batch of at most nine Delta rows; the compact header is separate.",
             status="BLOCKED",
             limit=limit,
         )
@@ -4792,6 +4976,7 @@ SERVICE_MCP_WORKFLOW_METHODS = frozenset(
         "lane_fetch",
         "lane_search",
         "lane_status",
+        "live_authority_search",
         "plan_tasks",
         "prepare_state_travel",
         "prompt_index_status",
@@ -4837,6 +5022,7 @@ SERVICE_SDK_WORKFLOW_METHODS = frozenset(
         "connector_plugin_route",
         "doctor",
         "fuse",
+        "live_authority_search",
         "prompt_index_status",
         "project_authority_status",
         "project_pv_storage_status",

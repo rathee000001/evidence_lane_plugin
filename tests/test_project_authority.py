@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sqlite3
 from pathlib import Path
 
 import pytest
 from evidence_lane_plugin import project_authority
 from evidence_lane_plugin.errors import EvidenceLaneError
+from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS
 from evidence_lane_plugin.project_authority import (
     PROJECT_AUTHORITY_CONFIRMATION,
     migrate_working_project_sectors,
+    nest_accepted_lane_history_in_current_sectors,
     query_working_project_sectors,
 )
 from evidence_lane_plugin.project_pv_storage import (
@@ -79,6 +82,49 @@ def test_windows_path_replace_exhaustion_is_structured(
     assert raised.value.details["operation"] == "TEST_BLOCKED_REPLACE"
 
 
+def test_accepted_lane_schema_binding_compatibility_is_narrow() -> None:
+    base = {
+        "valid": False,
+        "checksum_set_match": True,
+        "checksum_mismatches": {},
+        "bundle_sha256": "A" * 64,
+        "declared_bundle_sha256": "A" * 64,
+        "lane_emission_contract_valid": True,
+        "lane_directory_set_valid": True,
+        "parallel_execution_valid": True,
+        "topology_valid": True,
+        "source_routes_valid": True,
+        "lane_manifest_errors": {},
+        "lane_disposition_contract": {"valid": True},
+        "lanes": {
+            "analysis": {
+                "valid": False,
+                "lane_schema_binding": {},
+                "integrity": ["ok"],
+                "foreign_key_errors": [],
+                "schema_version": "evidence-lane.universal-lane.v2",
+                "lane_schema_builder_projection": {"status": "PASS"},
+                "lane_schema_evolution": {"valid": True},
+                "counts": {"chunk_index": 7},
+                "fts_rows": 7,
+            }
+        },
+    }
+
+    compatible = project_authority._accepted_lane_schema_binding_compatibility(base)
+    assert compatible["status"] == "PASS"
+    assert compatible["compatible"] is True
+    assert compatible["compatible_lane_ids"] == ["analysis"]
+    assert compatible["accepted_bytes_rewritten"] is False
+
+    tampered = json.loads(json.dumps(base))
+    tampered["lanes"]["analysis"]["integrity"] = ["database disk image is malformed"]
+    rejected = project_authority._accepted_lane_schema_binding_compatibility(tampered)
+    assert rejected["status"] == "FAIL"
+    assert rejected["compatible"] is False
+    assert rejected["invalid_lane_ids"] == ["analysis"]
+
+
 def _relocate(service, source_repository: Path, target: Path) -> dict:
     return service.register_project(
         project_id="book-faires",
@@ -94,6 +140,51 @@ def _relocate(service, source_repository: Path, target: Path) -> dict:
         expected_pointer_generation=1,
         selected_by="human-test",
     )
+
+
+def test_root_nested_history_filter_runs_before_limit(tmp_path: Path) -> None:
+    database = tmp_path / "root-nested-history-docs.sqlite"
+    fts_table = project_authority.LANE_REGISTRY["docs"].fts_table
+    connection = sqlite3.connect(database)
+    connection.execute(
+        f"""
+        CREATE VIRTUAL TABLE {fts_table} USING fts5(
+            path,
+            locator,
+            text_content,
+            chunk_id UNINDEXED,
+            tokenize='unicode61'
+        )
+        """
+    )
+    current_paths = {f"current-{index:03d}.md" for index in range(100)}
+    connection.executemany(
+        f"INSERT INTO {fts_table}(path, locator, text_content, chunk_id) "
+        "VALUES (?, ?, ?, ?)",
+        [
+            (path, "line:1", "current route marker", index + 1)
+            for index, path in enumerate(sorted(current_paths))
+        ],
+    )
+    connection.execute(
+        f"INSERT INTO {fts_table}(path, locator, text_content, chunk_id) "
+        "VALUES (?, ?, ?, ?)",
+        ("historical-only.md", "line:1", "current route marker", 1001),
+    )
+    connection.commit()
+    connection.close()
+
+    result = project_authority._query_root_nested_pv_history(
+        database,
+        lane_id="docs",
+        fts_query='"current" OR "route" OR "marker"',
+        current_paths=current_paths,
+        limit=1,
+    )
+
+    assert result["excluded_current_path_count"] == 100
+    assert len(result["rows"]) == 1
+    assert result["rows"][0][1] == "historical-only.md"
 
 
 def test_project_register_relocates_active_authority_without_shadow_payload(
@@ -203,6 +294,94 @@ def test_external_project_authority_registration_is_idempotent(
     assert repeated["pointer_moved"] is False
     assert repeated["candidate_created"] is False
     assert repeated["hil_inferred"] is False
+
+
+def test_external_empty_accepted_directory_uses_exact_continuity_reference(
+    service, source_repository: Path, tmp_path: Path
+) -> None:
+    _session_id, _ = build_and_approve_pv1(service)
+    target = tmp_path / "user-projects" / "book-faires"
+    _relocate(service, source_repository, target)
+
+    # First seal a continuity receipt against the migrated external authority
+    # while the immutable accepted artifact is still available.
+    service.resume_session(
+        project_id="book-faires",
+        host="CODEX_CLI",
+        host_session_id="codex-external-authority-before-storage-normalization",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+    pointer_before = service.store.pointer("book-faires").as_dict()
+    shutil.rmtree(target / "accepted" / "PV1")
+
+    status = service.status_window("book-faires")
+    current = status["accepted_summary"]["current"]
+    assert status["accepted_summary"]["count"] == 1
+    assert status["accepted_summary"]["highest_accepted_ordinal"] == 1
+    assert status["candidate_summary"]["next_candidate_pv"] == "PV2"
+    assert current["accepted_artifact_available"] is None
+    assert current["accepted_artifact_integrity_validated"] is False
+    assert current["accepted_archive_queried"] is False
+    assert current["continuity_reference_integrity_validated"] is True
+    assert (
+        current["validation_scope"]
+        == "LIVE_ROOT_RUNTIME_CONTINUITY_REFERENCE"
+    )
+    assert status["lane_projection"]["authority"] in {
+        "WORKING_SECTORS_WITH_ACCEPTED_POINTER_REFERENCE",
+        "ACCEPTED_POINTER_REFERENCE_ONLY",
+    }
+
+    resumed = service.resume_session(
+        project_id="book-faires",
+        host="CODEX_CLI",
+        host_session_id="codex-external-authority-after-storage-normalization",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+
+    assert resumed["status"] == "PASS"
+    assert resumed["pointer"] == pointer_before
+    entry_pointer = resumed["runtime_continuity"]["entry_pointer"]
+    assert entry_pointer["accepted_artifact_available"] is None
+    assert entry_pointer["accepted_artifact_integrity_validated"] is False
+    assert entry_pointer["accepted_archive_queried"] is False
+    assert entry_pointer["accepted_authority_integrity_validated"] is True
+    assert entry_pointer["validation_scope"] == (
+        "LIVE_ROOT_RUNTIME_CONTINUITY_REFERENCE"
+    )
+
+
+def test_external_status_never_opens_present_accepted_artifact(
+    service, source_repository: Path, tmp_path: Path, monkeypatch
+) -> None:
+    _session_id, _ = build_and_approve_pv1(service)
+    target = tmp_path / "user-projects" / "book-faires"
+    _relocate(service, source_repository, target)
+    service.resume_session(
+        project_id="book-faires",
+        host="CODEX_CLI",
+        host_session_id="codex-external-live-root-only",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+
+    def forbidden_accepted_path(*_args, **_kwargs):
+        raise AssertionError("ordinary external status opened accepted storage")
+
+    monkeypatch.setattr(service.store, "accepted_path", forbidden_accepted_path)
+    status = service.status_window("book-faires")
+
+    assert status["accepted_summary"]["current"]["accepted_archive_queried"] is False
+    assert status["lane_projection"]["accepted_archive_queried"] is False
+    assert status["current_freshness"]["authority"] in {
+        "WORKING_SECTORS",
+        "ACCEPTED_POINTER_REFERENCE_ONLY",
+    }
 
 
 def test_external_project_authority_uses_live_overlay_and_one_verified_archive(
@@ -453,22 +632,43 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
         target
         / "sectors"
         / "chat_lineage"
-        / "lineage"
         / "chat_lineage.sqlite"
     ).is_file()
     assert (
         target
         / "sectors"
         / "chat_lineage"
-        / "lineage"
         / "chat_lineage_head.json"
     ).is_file()
     assert (
         target
-        / "receipts"
-        / "chat-lineage-runtime"
+        / "sectors"
+        / "chat_lineage"
         / "session_test.jsonl"
     ).is_file()
+    direct_lineage = target / "sectors" / "chat_lineage"
+    nested_legacy = direct_lineage / "lineage"
+    nested_legacy.mkdir()
+    for name in (
+        "chat_lineage.sqlite",
+        "chat_lineage_head.json",
+        "session_test.jsonl",
+    ):
+        (direct_lineage / name).replace(nested_legacy / name)
+    project_authority.refresh_working_sector_operational_checksums(
+        target,
+        authority="CHAT_LINEAGE",
+    )
+    reconciled_lineage = (
+        project_authority.reconcile_chat_lineage_operational_layout(target)
+    )
+    assert reconciled_lineage["state"] == "DIRECT_SECTOR_ROOT"
+    assert reconciled_lineage["legacy_root_count"] == 1
+    assert not nested_legacy.exists()
+    assert (direct_lineage / "chat_lineage.sqlite").is_file()
+    assert (direct_lineage / "chat_lineage_head.json").is_file()
+    assert (direct_lineage / "session_test.jsonl").is_file()
+    assert project_authority.validate_lane_bundle(target / "sectors")["valid"]
     assert not (target / "task_backlog.json").exists()
     assert not (target / "plan_runtime_projection.sqlite").exists()
     assert not (target / "lineage").exists()
@@ -509,11 +709,117 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
     assert query["raw_plan_loaded"] is False
     assert query["raw_pv_loaded"] is False
     assert query["raw_chat_lineage_loaded"] is False
+    writer_lock = (
+        target / "sectors" / "chat_lineage" / ".chat-lineage-writer.lock"
+    )
+    writer_lock.write_text("runtime coordination lease\n", encoding="utf-8")
+    lock_query = query_working_project_sectors(
+        target,
+        repository_root=source_repository,
+        project_id="book-faires",
+        accepted_pv="PV1",
+        pointer_generation=1,
+        query="TURN_ENTRY_WORKING_SECTOR_MARKER",
+        lane_ids=["local_code"],
+        limit=5,
+    )
+    assert lock_query["status"] == "PASS"
+    assert lock_query["project_integrity_receipt"][
+        "operational_checksum_drift_ignored"
+    ] is True
+    assert lock_query["project_integrity_receipt"][
+        "operational_checksum_drift_paths"
+    ] == ["chat_lineage/.chat-lineage-writer.lock"]
+    selected_lineage_query = query_working_project_sectors(
+        target,
+        repository_root=source_repository,
+        project_id="book-faires",
+        accepted_pv="PV1",
+        pointer_generation=1,
+        query="TURN_ENTRY_WORKING_SECTOR_MARKER",
+        lane_ids=["chat_lineage"],
+        limit=5,
+    )
+    assert selected_lineage_query["status"] == "PASS"
+    assert selected_lineage_query["queried_lane_ids"] == ["chat_lineage"]
+    assert selected_lineage_query["working_lane_integrity_receipts"][0][
+        "operational_checksum_drift_ignored"
+    ] is True
+    assert selected_lineage_query["working_lane_integrity_receipts"][0][
+        "operational_checksum_drift_paths"
+    ] == ["chat_lineage/.chat-lineage-writer.lock"]
+    writer_lock.unlink()
+    nested_history = nest_accepted_lane_history_in_current_sectors(
+        target,
+        project_id="book-faires",
+        accepted_pv="PV1",
+        pointer_generation=1,
+    )
+    assert nested_history["status"] == "PASS"
+    assert nested_history["working_receipt_rebound"] is True
+    assert nested_history["committed_working_receipt_sha256"]
+    rebound_query = query_working_project_sectors(
+        target,
+        repository_root=source_repository,
+        project_id="book-faires",
+        accepted_pv="PV1",
+        pointer_generation=1,
+        query="TURN_ENTRY_WORKING_SECTOR_MARKER",
+        lane_ids=["local_code"],
+        limit=5,
+    )
+    assert rebound_query["status"] == "PASS"
+    assert rebound_query["project_integrity_receipt"][
+        "accepted_schema_binding_compatibility"
+    ]["status"] == "PASS"
+    operational_head = (
+        target / "sectors" / "chat_lineage" / "chat_lineage_head.json"
+    )
+    operational_head_payload = json.loads(
+        operational_head.read_text(encoding="utf-8")
+    )
+    operational_head_payload["query_successor_marker"] = True
+    operational_head.write_text(
+        json.dumps(operational_head_payload), encoding="utf-8"
+    )
+    operational_refresh = (
+        project_authority.refresh_working_sector_operational_checksums(
+            target,
+            authority="CHAT_LINEAGE",
+        )
+    )
+    assert operational_refresh["status"] == "PASS"
+    assert operational_refresh["before_bundle_sha256"] != (
+        operational_refresh["after_bundle_sha256"]
+    )
+    successor_query = query_working_project_sectors(
+        target,
+        repository_root=source_repository,
+        project_id="book-faires",
+        accepted_pv="PV1",
+        pointer_generation=1,
+        query="TURN_ENTRY_WORKING_SECTOR_MARKER",
+        lane_ids=["local_code"],
+        limit=5,
+    )
+    assert successor_query["status"] == "PASS"
+    assert successor_query["project_integrity_receipt"][
+        "bundle_binding_state"
+    ] == "VALIDATED_OPERATIONAL_SUCCESSOR_BUNDLE"
+    assert successor_query["project_integrity_receipt"][
+        "committed_baseline_bundle_sha256"
+    ] != successor_query["project_integrity_receipt"]["bundle_sha256"]
+    source_scaffold_receipt = (
+        target
+        / "receipts"
+        / "project-authority"
+        / "source-scaffold-retirement.json"
+    )
+    source_scaffold_receipt_before = source_scaffold_receipt.read_bytes()
     lineage_head = (
         target
         / "sectors"
         / "chat_lineage"
-        / "lineage"
         / "chat_lineage_head.json"
     )
     changed_head = json.loads(lineage_head.read_text(encoding="utf-8"))
@@ -542,6 +848,179 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
         / "plan_atomic_insertions"
         / "live-plan-steer.json"
     ).read_bytes() == insertion_bytes
+    assert not (target / "sources" / "objects").exists()
+    assert not (target / "sources" / "source_manifests").exists()
+    assert source_scaffold_receipt.read_bytes() == source_scaffold_receipt_before
+    assert all(
+        (
+            target
+            / "sectors"
+            / lane_id
+            / "historical_authority.ref.json"
+        ).is_file()
+        for lane_id in CANONICAL_LANE_IDS
+    )
+    sectors_before_idempotent = {
+        path.relative_to(target / "sectors").as_posix(): path.read_bytes()
+        for path in (target / "sectors").rglob("*")
+        if path.is_file()
+    }
+    pointer_before_idempotent = (target / "active_pointer.json").read_bytes()
+    (target / "sources" / "objects").mkdir(parents=True)
+    (target / "sources" / "source_manifests").mkdir(parents=True)
+    idempotent = migrate_working_project_sectors(
+        target,
+        repository_root=source_repository,
+        project_id="book-faires",
+        accepted_pv="PV1",
+        pointer_generation=1,
+    )
+    assert idempotent["state"] == "WORKING_SECTOR_AUTHORITY_IDEMPOTENT_REUSE"
+    assert not (target / "sources" / "objects").exists()
+    assert not (target / "sources" / "source_manifests").exists()
+    assert {
+        row["path"]: row["state"]
+        for row in idempotent["source_scaffold_retirement"]["rows"]
+    } == {
+        "sources/objects": "RETIRED_EMPTY",
+        "sources/source_manifests": "RETIRED_EMPTY",
+    }
+    retired_receipt_bytes = source_scaffold_receipt.read_bytes()
+    assert retired_receipt_bytes != source_scaffold_receipt_before
+    assert {
+        path.relative_to(target / "sectors").as_posix(): path.read_bytes()
+        for path in (target / "sectors").rglob("*")
+        if path.is_file()
+    } == sectors_before_idempotent
+    assert (target / "active_pointer.json").read_bytes() == pointer_before_idempotent
+
+    absent_reuse = migrate_working_project_sectors(
+        target,
+        repository_root=source_repository,
+        project_id="book-faires",
+        accepted_pv="PV1",
+        pointer_generation=1,
+    )
+    assert absent_reuse["state"] == "WORKING_SECTOR_AUTHORITY_IDEMPOTENT_REUSE"
+    assert source_scaffold_receipt.read_bytes() == retired_receipt_bytes
+    assert {
+        path.relative_to(target / "sectors").as_posix(): path.read_bytes()
+        for path in (target / "sectors").rglob("*")
+        if path.is_file()
+    } == sectors_before_idempotent
+    assert (target / "active_pointer.json").read_bytes() == pointer_before_idempotent
+
+    objects = target / "sources" / "objects"
+    manifests = target / "sources" / "source_manifests"
+    objects.mkdir(parents=True)
+    manifests.mkdir(parents=True)
+    (objects / "retained.bin").write_bytes(b"retained-source-object")
+    (manifests / "retained.json").write_text(
+        '{"state":"RETAINED"}\n', encoding="utf-8"
+    )
+    preserved = migrate_working_project_sectors(
+        target,
+        repository_root=source_repository,
+        project_id="book-faires",
+        accepted_pv="PV1",
+        pointer_generation=1,
+    )
+    assert preserved["state"] == "WORKING_SECTOR_AUTHORITY_IDEMPOTENT_REUSE"
+    assert (objects / "retained.bin").read_bytes() == b"retained-source-object"
+    assert (manifests / "retained.json").read_text(encoding="utf-8") == (
+        '{"state":"RETAINED"}\n'
+    )
+    assert {
+        row["path"]: row["state"]
+        for row in preserved["source_scaffold_retirement"]["rows"]
+    } == {
+        "sources/objects": "PRESERVED_NONEMPTY",
+        "sources/source_manifests": "PRESERVED_NONEMPTY",
+    }
+    assert {
+        path.relative_to(target / "sectors").as_posix(): path.read_bytes()
+        for path in (target / "sectors").rglob("*")
+        if path.is_file()
+    } == sectors_before_idempotent
+    assert (target / "active_pointer.json").read_bytes() == pointer_before_idempotent
+
+    layout_path = target / "project_authority.json"
+    layout_bytes = layout_path.read_bytes()
+    layout = json.loads(layout_bytes.decode("utf-8"))
+    layout["repository_path"] = str(tmp_path / "wrong-repository")
+    layout_body = {
+        key: value for key, value in layout.items() if key != "layout_sha256"
+    }
+    layout["layout_sha256"] = sha256_bytes(canonical_json_bytes(layout_body))
+    layout_path.write_text(
+        json.dumps(layout, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    try:
+        with pytest.raises(EvidenceLaneError) as wrong_repository:
+            query_working_project_sectors(
+                target,
+                repository_root=source_repository,
+                project_id="book-faires",
+                accepted_pv="PV1",
+                pointer_generation=1,
+                query="TURN_ENTRY_WORKING_SECTOR_MARKER",
+                lane_ids=["local_code"],
+                limit=5,
+            )
+        assert wrong_repository.value.code == (
+            "PROJECT_WORKING_QUERY_PROJECT_BINDING_MISMATCH"
+        )
+    finally:
+        layout_path.write_bytes(layout_bytes)
+
+    layout = json.loads(layout_bytes.decode("utf-8"))
+    layout["project_id"] = "wrong-project"
+    layout_body = {
+        key: value for key, value in layout.items() if key != "layout_sha256"
+    }
+    layout["layout_sha256"] = sha256_bytes(canonical_json_bytes(layout_body))
+    layout_path.write_text(
+        json.dumps(layout, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    try:
+        with pytest.raises(EvidenceLaneError) as wrong_project:
+            query_working_project_sectors(
+                target,
+                repository_root=source_repository,
+                project_id="book-faires",
+                accepted_pv="PV1",
+                pointer_generation=1,
+                query="TURN_ENTRY_WORKING_SECTOR_MARKER",
+                lane_ids=["local_code"],
+                limit=5,
+            )
+        assert wrong_project.value.code == (
+            "PROJECT_WORKING_QUERY_PROJECT_BINDING_MISMATCH"
+        )
+    finally:
+        layout_path.write_bytes(layout_bytes)
+
+    unselected_profile = target / "sectors" / "docs" / "study_brain.json"
+    unselected = json.loads(unselected_profile.read_text(encoding="utf-8"))
+    unselected["state"] = "TAMPERED"
+    unselected_profile.write_text(
+        json.dumps(unselected, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(EvidenceLaneError) as unselected_tamper:
+        query_working_project_sectors(
+            target,
+            repository_root=source_repository,
+            project_id="book-faires",
+            accepted_pv="PV1",
+            pointer_generation=1,
+            query="TURN_ENTRY_WORKING_SECTOR_MARKER",
+            lane_ids=["local_code"],
+            limit=5,
+        )
+    assert unselected_tamper.value.code == (
+        "PROJECT_WORKING_QUERY_BUNDLE_INTEGRITY_MISMATCH"
+    )
 
 
 def test_working_sector_migration_hash_accounts_excluded_dirty_content(
@@ -580,6 +1059,7 @@ def test_working_sector_migration_hash_accounts_excluded_dirty_content(
     excluded.write_text(
         'password = "ultramarine-giraffe-731"\n', encoding="utf-8"
     )
+    git(source_repository, "add", "--", "tests/test_secret_fixture.py")
 
     result = migrate_working_project_sectors(
         target,
@@ -719,6 +1199,9 @@ def test_working_sector_migration_refreshes_when_dirty_identity_changes(
     pointer_before = (target / "active_pointer.json").read_bytes()
     changed = source_repository / "working-refresh.md"
     changed.write_text("new working Delta\n", encoding="utf-8")
+    local_test = source_repository / "local-test-only.txt"
+    local_test.write_text("must remain outside Git-index authority\n", encoding="utf-8")
+    git(source_repository, "add", "working-refresh.md")
 
     refreshed = migrate_working_project_sectors(
         target,
@@ -761,7 +1244,6 @@ def test_working_sector_migration_refreshes_when_dirty_identity_changes(
         target
         / "sectors"
         / "chat_lineage"
-        / "lineage"
         / "chat_lineage.sqlite"
     ).is_file()
     assert not (target / "task_backlog.json").exists()
@@ -771,6 +1253,53 @@ def test_working_sector_migration_refreshes_when_dirty_identity_changes(
     assert refreshed["hil_inferred"] is False
     refreshed_manifest = json.loads(
         (target / "sectors" / "manifest.json").read_text(encoding="utf-8")
+    )
+    refreshed_routes = json.loads(
+        (target / "sectors" / "routes.json").read_text(encoding="utf-8")
+    )["routes"]
+    observed_sources: dict[str, str] = {}
+    for lane_id in CANONICAL_LANE_IDS:
+        lane = project_authority.LANE_REGISTRY[lane_id]
+        connection = sqlite3.connect(
+            target / "sectors" / lane_id / lane.sqlite_filename
+        )
+        try:
+            observed_sources.update(
+                {
+                    str(path): str(source_sha256)
+                    for path, source_sha256 in connection.execute(
+                        "SELECT path, sha256 FROM source_registry"
+                    ).fetchall()
+                }
+            )
+        finally:
+            connection.close()
+    assert refreshed_manifest["source_policy"]["source_paths_overridden"] is False
+    assert refreshed_manifest["source_policy"]["selection_mode"] == "GIT_TRACKED_ONLY"
+    assert refreshed_manifest["source_count"] == len(refreshed_routes)
+    assert set(observed_sources) == set(refreshed_routes)
+    assert observed_sources == {
+        path: sha256_bytes((source_repository / Path(path)).read_bytes())
+        for path in refreshed_routes
+    }
+    assert {"src/app.py", "working-refresh.md"} <= set(refreshed_routes)
+    assert "local-test-only.txt" not in refreshed_routes
+    inventory = sqlite3.connect(
+        target / "sectors" / "artifacts" / "working_delta_inventory.sqlite"
+    )
+    try:
+        local_test_inventory = inventory.execute(
+            """
+            SELECT content_policy,content_policy_reason
+            FROM working_path_inventory WHERE path=?
+            """,
+            ("local-test-only.txt",),
+        ).fetchone()
+    finally:
+        inventory.close()
+    assert local_test_inventory == (
+        "HASH_LOCATOR_ONLY",
+        "UNTRACKED_NOT_GIT_INDEX_AUTHORITY",
     )
     assert refreshed_manifest["summary"]["full_build_lanes"] == []
     assert refreshed_manifest["summary"]["full_validation_fallbacks"] == []
@@ -799,6 +1328,13 @@ def test_working_sector_migration_refreshes_when_dirty_identity_changes(
         "ALL_18_CANONICAL_LANES"
     )
     assert migration_receipt["canonical_lane_refresh"]["lane_report_count"] == 18
+    assert migration_receipt["complete_governed_source_replay"] is True
+    assert migration_receipt["current_source_authority_scope"] == (
+        "GIT_INDEX_CURRENT_WORKTREE_BYTES"
+    )
+    assert migration_receipt["complete_governed_source_path_count"] == len(
+        refreshed_routes
+    )
     assert migration_receipt["canonical_lane_refresh"][
         "full_validation_fallbacks"
     ] == []

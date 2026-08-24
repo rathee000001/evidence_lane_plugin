@@ -515,12 +515,23 @@ class CodePVEngine:
             delta = compare_source_indexes(prior_db, db_path)
             parent_lane_bundle = None
             if pointer.accepted_pv:
-                possible_parent = (
-                    project_root / "sectors"
-                    if external_project_authority
-                    else self.store.accepted_path(project_id, pointer.accepted_pv)
+                accepted_parent = (
+                    self.store.accepted_path(project_id, pointer.accepted_pv)
                     / "lanes"
                 )
+                possible_parent = accepted_parent
+                if external_project_authority:
+                    working_parent = project_root / "sectors"
+                    # A newly relocated external project starts with bounded
+                    # per-lane authority references, not a sealed lane bundle.
+                    # Prefer the live WORKING bundle only after its bundle
+                    # manifest exists; until then replay the immutable accepted
+                    # lane baseline instead of treating the scaffold as a parent.
+                    possible_parent = (
+                        working_parent
+                        if (working_parent / "manifest.json").is_file()
+                        else accepted_parent
+                    )
                 if possible_parent.is_dir():
                     parent_lane_bundle = possible_parent
             lane_report = build_lane_bundle(

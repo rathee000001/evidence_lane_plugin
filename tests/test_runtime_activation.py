@@ -208,7 +208,10 @@ def test_runtime_hook_status_separates_host_dispatches_from_package_events(
     projected = runtime.status_with_host_proof()
     assert projected["supported_pre_reasoning_capture_complete"] is True
     assert projected["required_pre_reasoning_capture_complete"] is False
-    assert projected["prompt_capture_active"] is False
+    assert projected["prompt_capture_active"] is True
+    assert projected["visible_response_capture_active"] is True
+    assert projected["prompt_response_capture_decoupled_from_hooks"] is True
+    assert projected["explicit_public_actions_runnable"] is True
     assert projected["host_capability_unavailable_surfaces"] == [
         "GOAL_CONTINUATION"
     ]
@@ -289,6 +292,10 @@ def test_runtime_hook_status_separates_trust_from_intentional_disable(
     assert projected["host_hooks_trusted"] is True
     assert projected["host_hooks_enabled"] is False
     assert projected["host_hooks_runnable"] is False
+    assert projected["prompt_capture_active"] is True
+    assert projected["visible_response_capture_active"] is True
+    assert projected["explicit_public_actions_runnable"] is True
+    assert projected["hook_lifecycle_strengthening_runnable"] is False
     assert all(
         row["state"] in {
             "HOOKS_INTENTIONALLY_DISABLED",

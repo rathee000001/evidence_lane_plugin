@@ -1,7 +1,7 @@
 {
   "schema": "evidence-lane.cross-project-query-contract.v1",
   "contract_version": 1,
-  "scope": "EXPLICIT_PROJECT_SET_EXACT_IMMUTABLE_PVS",
+  "scope": "EXPLICIT_PROJECT_SET_LIVE_ROOT_AUTHORITIES",
   "default_behavior": {
     "single_project_isolation_preserved": true,
     "implicit_project_discovery": false,
@@ -12,18 +12,19 @@
     "minimum_projects": 2,
     "maximum_projects": 4,
     "canonical_and_unique": true,
-    "exact_pv_ref_required": true,
-    "candidate_pv_allowed": false
+    "live_root_authority_required": true,
+    "accepted_archive_allowed": false,
+    "candidate_authority_allowed": false
   },
   "permission_grant": {
     "schema": "evidence-lane.cross-project-read-grant.v1",
     "provider_injected": true,
-    "scope": "READ_IMMUTABLE_PV",
+    "scope": "READ_LIVE_PROJECT_ROOT",
     "sealed_by": "SHA256_CANONICAL_JSON_WITHOUT_GRANT_SHA256",
     "binds": [
       "principal_id",
       "project_id",
-      "pv_ref",
+      "live_root_authority_ref",
       "scope",
       "grant_id"
     ],
@@ -50,11 +51,9 @@
   },
   "authority_provenance": [
     "project_id",
-    "pv_ref",
+    "live_root_authority_ref",
     "bundle_sha256",
-    "pointer.accepted_pv",
-    "pointer.accepted_manifest_sha256",
-    "pointer.generation",
+    "live_root_bundle_sha256",
     "permission_grant_sha256",
     "canonical_lane_id",
     "ref_id",

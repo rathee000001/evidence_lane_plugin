@@ -31,6 +31,9 @@ def build_runtime_continuity(
     accepted_manifest_sha256: str | None,
     accepted_package_sha256: str | None,
     accepted_promotable_under_current_rules: bool | None = None,
+    accepted_validation_scope: str | None = None,
+    accepted_artifact_available: bool | None = None,
+    accepted_archive_queried: bool | None = None,
     host_entry_consumption: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Bind a host route to the locked Flash and exact entry pointer."""
@@ -101,6 +104,19 @@ def build_runtime_continuity(
     )
     accepted_integrity_validated = bool(
         accepted_pv and accepted_manifest_sha256 and accepted_package_sha256
+    )
+    exact_validation_scope = str(accepted_validation_scope or "").strip() or (
+        "CURRENT_ACCEPTED_ARTIFACT" if accepted_integrity_validated else "NOT_APPLICABLE"
+    )
+    exact_artifact_available = (
+        bool(accepted_artifact_available)
+        if accepted_artifact_available is not None
+        else None
+    )
+    exact_archive_queried = (
+        bool(accepted_archive_queried)
+        if accepted_archive_queried is not None
+        else accepted_integrity_validated
     )
     accepted_compatibility_state = (
         "NO_ACCEPTED_PV"
@@ -220,6 +236,12 @@ def build_runtime_continuity(
             "accepted_manifest_sha256": accepted_manifest_sha256,
             "accepted_package_sha256": accepted_package_sha256,
             "accepted_authority_integrity_validated": accepted_integrity_validated,
+            "accepted_artifact_available": exact_artifact_available,
+            "accepted_archive_queried": exact_archive_queried,
+            "accepted_artifact_integrity_validated": bool(
+                accepted_integrity_validated and exact_artifact_available
+            ),
+            "validation_scope": exact_validation_scope,
             "promotability_required_for_boot_or_resume": False,
             "promotable_under_current_rules": (
                 accepted_promotable_under_current_rules

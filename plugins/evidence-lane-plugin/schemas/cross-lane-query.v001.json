@@ -1,7 +1,7 @@
 {
   "schema": "evidence-lane.cross-lane-query-contract.v1",
   "contract_version": 1,
-  "scope": "ONE_PROJECT_ONE_PV_EXPLICIT_LANE_SET",
+  "scope": "ONE_PROJECT_LIVE_ROOT_EXPLICIT_LANE_SET",
   "lane_set": {
     "minimum_lanes": 2,
     "maximum_lanes": 8,
@@ -37,7 +37,7 @@
   },
   "authority_provenance": [
     "project_id",
-    "pv_ref",
+    "live_root_authority_ref",
     "bundle_sha256",
     "canonical_lane_id",
     "ref_id",
@@ -60,7 +60,7 @@
     "sealed_by": "SHA256_CANONICAL_JSON_WITHOUT_RECEIPT_SHA256",
     "binds": [
       "project_id",
-      "pv_ref",
+      "live_root_authority_ref",
       "bundle_sha256",
       "canonical_lane_set",
       "query",

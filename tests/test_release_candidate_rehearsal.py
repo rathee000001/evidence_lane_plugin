@@ -131,7 +131,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "slot_role": "main-git-release",
                     "codex_marketplace_slot": "evidence-lane-github",
                     "marketplace_display_name": "Main Git Plugin Version",
-                    "install_source": "GIT_EXACT_COMMIT",
+                    "install_source": "GIT_MAIN_EXACT_COMMIT_AFTER_GOVERNED_MERGE",
                     "stable_selector_is_persistent": True,
                     "stable_updates_reinstall_in_place": True,
                     "build_identity_is_receipt_not_selector": True,
@@ -145,20 +145,17 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "direct_stdio_fallback_allowed": False,
                     "google_drive_bundled": False,
                 },
-                "branch_recovery": {
-                    "release": "3.0.0",
-                    "slot_role": "branch-commit-recovery",
-                    "codex_marketplace_slot": (
-                        "evidence-lane-v300-stable-recovery"
+                "retired_branch_recovery": {
+                    "slot_role": "RETIRED_PURGE_ONLY",
+                    "plugin_selector": (
+                        "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
                     ),
-                    "marketplace_display_name": "Branch Commit Git Recovery",
-                    "enabled": False,
-                    "byte_frozen_between_branch_checkpoints": True,
-                    "must_not_follow_uncommitted_local_bytes": True,
+                    "installation_allowed": False,
+                    "direct_cache_deletion_allowed": False,
                 },
                 "local_testing": {
                     "release_line": "3.0.0",
-                    "slot_role": "mutable-local-testing",
+                    "slot_role": "versioned-local-testing",
                     "codex_marketplace_slot": "evidence-lane-v300-testing-new",
                     "marketplace_display_name": "Local Testing Slot",
                     "same_marketplace_selector_reused": True,
@@ -187,19 +184,17 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     }
                 },
                 "live_slot_policy": {
-                    "exact_slot_count": 3,
+                    "exact_slot_count": 2,
                     "allowed_slots": [
                         "main-git-release",
-                        "branch-commit-recovery",
-                        "mutable-local-testing",
+                        "versioned-local-testing",
                     ],
                     "allowed_marketplaces": [
                         "evidence-lane-github",
-                        "evidence-lane-v300-stable-recovery",
                         "evidence-lane-v300-testing-new",
                     ],
                     "max_enabled_plugin_count": 1,
-                    "exact_registered_plugin_count": 3,
+                    "exact_registered_plugin_count": 2,
                     "stable_selector_growth_allowed": False,
                     "max_active_native_mcp_count": 1,
                     "max_active_tunnel_count": 1,
@@ -209,9 +204,9 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                         "scripts/codex_release/"
                         "Switch-EvidenceLaneCodexSlot.ps1"
                     ),
-                    "registry_schema": "evidence-lane.codex-three-slot-registry.v1",
-                    "failure_target_slot": "branch-commit-recovery",
-                    "mutable_local_failure_never_targets_main_git": True,
+                    "registry_schema": "evidence-lane.codex-two-slot-main-local-registry.v1",
+                    "failure_target_slot": "stable-git-main",
+                    "versioned_local_failure_targets_verified_main_only": True,
                     "single_transient_error_switch_allowed": False,
                 },
                 "goal_recovery": {
@@ -238,13 +233,9 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "turn_start_allowed": False,
                     "state_travel_allowed": False,
                     "candidate_hil_pointer_or_git_mutation_allowed": False,
-                    "requires_exactly_one_enabled_allowed_three_slot_selector": True,
+                    "requires_exactly_one_enabled_allowed_two_slot_selector": True,
                     "allowed_runtime_selectors": [
                         "evidence-lane-plugin@evidence-lane-github",
-                        (
-                            "evidence-lane-plugin@"
-                            "evidence-lane-v300-stable-recovery"
-                        ),
                         (
                             "evidence-lane-plugin@"
                             "evidence-lane-v300-testing-new"
@@ -276,12 +267,12 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "effective_release": "3.0.0",
                     "per_push_confirmation_token_required": False,
                     "automatic_push_scope": (
-                        "EXACT_SOLE_REGISTERED_NON_PROTECTED_TEST_BRANCH"
+                        "GITHUB_APP_GOVERNED_FEATURE_BRANCH_THEN_EXACT_MAIN_MERGE"
                     ),
                     "host_managed_credentials_only": True,
                     "main_push_allowed": False,
-                    "merge_allowed": False,
-                    "pull_request_acceptance_allowed": False,
+                    "merge_allowed": True,
+                    "pull_request_acceptance_allowed": True,
                     "force_push_allowed": False,
                 },
                 "delivery_boundary": {

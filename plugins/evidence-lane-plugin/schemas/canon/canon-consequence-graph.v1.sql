@@ -28,3 +28,12 @@ ON consequence_node(node_kind, node_id);
 
 CREATE INDEX consequence_edge_relation_idx
 ON consequence_edge(relation, source_node_id, destination_node_id);
+
+CREATE VIRTUAL TABLE consequence_graph_fts USING fts5(
+    record_id UNINDEXED,
+    record_type UNINDEXED,
+    record_kind,
+    canonical_locator,
+    searchable_text,
+    tokenize='unicode61 remove_diacritics 2'
+);

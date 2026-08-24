@@ -7,6 +7,7 @@ from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.source_authority import (
     SourceAuthoritySpec,
     load_source_batch,
+    reconcile_legacy_source_authority_registry,
     register_source_batch,
     snapshot_source_authority_registry,
 )
@@ -197,3 +198,36 @@ def test_identity_matrix_requires_complete_ordered_source_coverage(
             relations=[],
         )
     assert mismatch.value.code == "SOURCE_IDENTITY_PROFILE_COUNT_MISMATCH"
+
+
+def test_legacy_root_source_authority_merges_into_sources_once(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    canonical = project / "sources" / "source_authority.sqlite"
+    legacy = project / "source_authority.sqlite"
+    first_source = tmp_path / "first.md"
+    second_source = tmp_path / "second.md"
+    first_source.write_text("first source\n", encoding="utf-8")
+    second_source.write_text("second source\n", encoding="utf-8")
+    register_source_batch(
+        canonical,
+        [SourceAuthoritySpec(str(first_source), 1, "docs")],
+    )
+    register_source_batch(
+        legacy,
+        [SourceAuthoritySpec(str(second_source), 1, "docs")],
+    )
+
+    receipt = reconcile_legacy_source_authority_registry(project)
+    replay = reconcile_legacy_source_authority_registry(project)
+    snapshot = snapshot_source_authority_registry(canonical)
+
+    assert receipt["state"] == "LEGACY_ROOT_REGISTRY_MERGED_INTO_SOURCES"
+    assert receipt["legacy_path_present_after"] is False
+    assert not legacy.exists()
+    assert canonical.is_file()
+    assert snapshot["batch_count"] == 2
+    assert receipt["inserted_row_counts"]["intake_batch"] == 1
+    assert receipt["inserted_row_counts"]["source_object"] == 1
+    assert replay["state"] == "CANONICAL_SOURCE_AUTHORITY_ROUTE"

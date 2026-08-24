@@ -72,6 +72,8 @@ _AUTHORITY_PREFIXES = {
     "CANON": "canon://",
     "AGENT_LEARNING": "learning://",
     "PROJECT_UNIVERSE": "universe://",
+    "PROJECT_OVERLAY": "project-overlay://",
+    "PROJECT_ROOT": "project-root://",
     "RECEIPTS": "receipts://",
     "HOST_MEMORY": "host-memory-import://",
 }
@@ -822,6 +824,56 @@ def _authority_locators(
                 "search_terms": ["canon", "consequence", "graph", "pointer"],
             },
             "CANON_CONSEQUENCE_POINTER",
+            digest,
+        )
+    overlay_files = sorted(
+        path
+        for path in (root / "project_overlay").rglob("*")
+        if path.is_file()
+    )
+    if overlay_files:
+        digest = sha256_bytes(
+            canonical_json_bytes(
+                {
+                    path.relative_to(root / "project_overlay").as_posix(): sha256_file(
+                        path
+                    )
+                    for path in overlay_files[:512]
+                }
+            )
+        )
+        add(
+            {
+                "sector": "PROJECT_OVERLAY",
+                "locator_kind": "PV_CHANGE_OVERLAY_AUTHORITY",
+                "locator_value": f"project-overlay://authority/{digest}",
+                "revision_sha256": digest,
+                "label": "Progressive Project PV change and blast-radius overlay",
+                "search_terms": [
+                    "project",
+                    "overlay",
+                    "pv",
+                    "change",
+                    "blast",
+                    "radius",
+                ],
+            },
+            "PROJECT_OVERLAY_ROOT_SET",
+            digest,
+        )
+    root_manifest = root / "PROJECT_AUTHORITY_MANIFEST.json"
+    if root_manifest.is_file():
+        digest = sha256_file(root_manifest)
+        add(
+            {
+                "sector": "PROJECT_ROOT",
+                "locator_kind": "LIVE_ROOT_AUTHORITY_MANIFEST",
+                "locator_value": f"project-root://authority/{digest}",
+                "revision_sha256": digest,
+                "label": "Live project root authority manifest",
+                "search_terms": ["live", "project", "root", "authority", "manifest"],
+            },
+            "PROJECT_ROOT_AUTHORITY_MANIFEST",
             digest,
         )
     universe_files = sorted((root / "universe").glob("*.json"))

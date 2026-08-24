@@ -108,6 +108,37 @@ def test_shared_manifest_owns_and_routes_the_exact_catalog() -> None:
         assert low_level_route["reached_via"]
 
 
+def test_direct_state_travel_routes_destination_resume_before_one_shot() -> None:
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    groups = manifest["workflows"]["evi-state-travel"]["ordered_tool_groups"]
+    tools = [tool for group in groups for tool in group["tools"]]
+
+    assert tools[:5] == [
+        "runtime_doctor",
+        "session_flash_status",
+        "session_resume",
+        "runtime_activation_status",
+        "pv_state_travel_direct_force_same_worktree",
+    ]
+    assert "session_boot" not in tools
+    assert tools.index("pv_status") > tools.index(
+        "pv_state_travel_direct_force_same_worktree"
+    )
+    assert tools.index("pv_task_backlog") > tools.index(
+        "pv_state_travel_direct_force_same_worktree"
+    )
+    assert tools.index("pv_query") > tools.index(
+        "pv_state_travel_direct_force_same_worktree"
+    )
+
+    state_travel = (SKILLS / "evi-state-travel" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "DIRECT_STATE_TRAVEL_DESTINATION_RESUME_ROUTE_LAW" in state_travel
+    assert "required_current_route=session_resume" in state_travel
+    assert "do not run `pv_status`, `pv_task_backlog`, `pv_query`" in state_travel
+
+
 def test_mcp_construction_attaches_bounded_skill_routing_receipt() -> None:
     server = create_mcp_server()
     review = server._evidence_lane_skill_mcp_routing_review  # type: ignore[attr-defined]

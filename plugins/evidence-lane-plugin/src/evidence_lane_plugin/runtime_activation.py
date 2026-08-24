@@ -464,8 +464,6 @@ class RuntimeActivation:
                 "prompt_capture_active": (
                     session_active
                     and prompt_configured
-                    and hooks_trusted
-                    and complete_coverage
                 ),
                 "prompt_capture_partially_available": partial_capture,
                 "required_pre_reasoning_capture_complete": complete_coverage,
@@ -475,12 +473,20 @@ class RuntimeActivation:
                 "host_capability_unavailable_surfaces": unavailable_surfaces,
                 "per_input_prepare_receipt_required": True,
                 "visible_response_capture_active": (
-                    session_active and response_configured and hooks_trusted
+                    session_active and response_configured
                 ),
                 "host_hook_status": hook_status,
                 "host_hooks_trusted": hooks_trusted,
                 "host_hooks_enabled": hooks_enabled,
                 "host_hooks_runnable": hooks_trusted and hooks_enabled,
+                "prompt_response_capture_decoupled_from_hooks": True,
+                "explicit_public_actions_runnable": (
+                    session_active
+                    and configured.get("flash_context_attached") is True
+                ),
+                "hook_lifecycle_strengthening_runnable": (
+                    hooks_trusted and hooks_enabled and supported_coverage
+                ),
                 "capture_truth_law": (
                     "ALL_VISIBLE_INPUT_SURFACES_REQUIRE_PRE_REASONING_HOST_DISPATCH_"
                     "AND_ONE_SEALED_PREPARE_RECEIPT_PER_INPUT"

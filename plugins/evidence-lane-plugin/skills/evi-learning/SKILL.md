@@ -42,8 +42,9 @@ Hooks never import memory and attach explicit
 
 ## Inspect and retrieve
 
-Run `pv_status`, `pv_task_backlog`, and one bounded `pv_query` before using a
-Learning result in governed work. Use `learning_inspect` to read the independent
+Run `pv_status`, `pv_task_backlog`, one bounded live-root `pv_query`, and the
+six-authority `search` before using a Learning result in governed work. Neither
+read opens the accepted HIL ZIP. Use `learning_inspect` to read the independent
 candidate/event/pointer authority. Use `learning_retrieve` with exact scope,
 time, conflict, and result limits. Keep the returned Learning slice visibly
 separate from accepted Project Truth; do not concatenate or silently rerank the

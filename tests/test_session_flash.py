@@ -69,7 +69,9 @@ def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
 
     unproven = runtime.status_with_host_proof()
     assert unproven["prompt_capture_configured"] is True
-    assert unproven["prompt_capture_active"] is False
+    assert unproven["prompt_capture_active"] is True
+    assert unproven["visible_response_capture_active"] is True
+    assert unproven["prompt_response_capture_decoupled_from_hooks"] is True
     assert unproven["host_hook_status"]["status"] == "UNAVAILABLE"
 
     selector = "evidence-lane-plugin@evidence-lane-v200-task2-build-test"
@@ -145,7 +147,7 @@ def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
     proven = runtime.status_with_host_proof()
     assert proven["host_hook_status"]["status"] == "TRUSTED"
     assert proven["host_hooks_runnable"] is True
-    assert proven["prompt_capture_active"] is False
+    assert proven["prompt_capture_active"] is True
     assert proven["prompt_capture_partially_available"] is True
     assert proven["required_pre_reasoning_capture_complete"] is False
     assert proven["supported_pre_reasoning_capture_complete"] is True
@@ -196,7 +198,9 @@ def test_runtime_status_does_not_treat_activation_as_prompt_invocation_proof(
         "ACTIVE_RUNTIME_WITHOUT_SEALED_PROMPT_INDEX_RECORD"
     )
     assert status["status"] == "PASS"
-    assert status["activation_quality"] == "DEGRADED_CAPTURE_UNAVAILABLE"
+    assert status["activation_quality"] == "RUNNABLE_PROMPT_INDEX_EVIDENCE_GAP"
+    assert status["explicit_public_actions_runnable"] is True
+    assert status["prompt_response_capture_decoupled_from_hooks"] is True
     assert status["capture_unavailable_is_structured_domain_state"] is True
     assert status["adapter_record_is_independent_installed_host_proof"] is False
 

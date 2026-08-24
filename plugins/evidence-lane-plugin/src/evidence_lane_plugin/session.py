@@ -51,6 +51,7 @@ from .next_actions import (
 )
 from .project_authority import resolved_chat_lineage_root, resolved_plan_auxiliary_path
 from .prompt_index import PromptIndex, is_prompt_reference
+from .pv_package import validate_pv_package
 from .redaction import redact
 from .runtime_activation import RuntimeActivation
 from .runtime_continuity import (
@@ -3443,10 +3444,10 @@ class SessionManager:
             validate_runtime_continuity(previous_continuity)
         entry_validation: dict[str, Any] | None = None
         if pointer.accepted_pv:
-            entry_validation = self.store.validate_accepted(
+            entry_validation = self.accepted_entry_validation(
                 project_id,
                 pointer.accepted_pv,
-                require_promotable=False,
+                session=session,
             )
             require(
                 entry_validation["manifest_sha256"] == pointer.accepted_manifest_sha256,
@@ -3488,6 +3489,21 @@ class SessionManager:
             ),
             accepted_promotable_under_current_rules=(
                 entry_validation["promotable"] if entry_validation else None
+            ),
+            accepted_validation_scope=(
+                str(entry_validation.get("validation_scope") or "")
+                if entry_validation
+                else None
+            ),
+            accepted_artifact_available=(
+                entry_validation.get("accepted_artifact_available")
+                if entry_validation
+                else None
+            ),
+            accepted_archive_queried=(
+                bool(entry_validation.get("accepted_archive_queried", True))
+                if entry_validation
+                else None
             ),
             host_entry_consumption=host_entry_consumption,
         )
@@ -3592,6 +3608,140 @@ class SessionManager:
             "event": event,
             "runtime_activation": runtime_activation,
             "runtime_continuity": runtime_continuity,
+        }
+
+    def accepted_entry_validation(
+        self,
+        project_id: str,
+        pv_id: str,
+        *,
+        session: SessionRecord | None = None,
+    ) -> dict[str, Any]:
+        """Validate legacy bytes or external live-root continuity.
+
+        For external project authority the immutable accepted ZIP is never an
+        ordinary query/resume dependency.  The accepted pointer supplies
+        baseline identity and the exact sealed runtime-continuity receipt
+        supplies the previously validated hashes.  Opening an accepted archive
+        remains an explicit HIL/rollback operation, never a public reentry side
+        effect.
+        """
+
+        external_project_authority = self.store.uses_external_project_authority(
+            project_id
+        )
+        if not external_project_authority:
+            artifact = self.store.accepted_path(project_id, pv_id)
+            validation = (
+                validate_pv_package(artifact, require_promotable=False)
+                if artifact.is_dir()
+                else self.store.validate_accepted(
+                    project_id,
+                    pv_id,
+                    require_promotable=False,
+                )
+            )
+            return {
+                **validation,
+                "validation_scope": "CURRENT_ACCEPTED_ARTIFACT",
+                "accepted_artifact_available": True,
+                "accepted_artifact_integrity_validated": True,
+                "continuity_reference_integrity_validated": False,
+            }
+
+        exact_session = session
+        if exact_session is None:
+            active_path = self._active_path(project_id)
+            require(
+                active_path.is_file(),
+                "ACCEPTED_CONTINUITY_SESSION_REQUIRED",
+                "External live-root reentry requires the exact active session continuity receipt.",
+                status="MISMATCH",
+                project_id=project_id,
+                pv_id=pv_id,
+            )
+            active = json.loads(active_path.read_text(encoding="utf-8"))
+            exact_session = self.load(project_id, str(active.get("session_id") or ""))
+
+        continuity_value = exact_session.metadata.get("runtime_continuity")
+        require(
+            isinstance(continuity_value, dict),
+            "ACCEPTED_CONTINUITY_REFERENCE_REQUIRED",
+            "External live-root reentry requires one prior sealed runtime-continuity receipt.",
+            status="MISMATCH",
+            project_id=project_id,
+            pv_id=pv_id,
+        )
+        continuity = validate_runtime_continuity(cast(dict[str, Any], continuity_value))
+        entry_pointer = cast(dict[str, Any], continuity.get("entry_pointer") or {})
+        pointer = self.store.pointer(project_id)
+        require(
+            pointer.accepted_pv == pv_id
+            and pointer.generation == exact_session.accepted_pointer_generation
+            and exact_session.accepted_pv == pv_id
+            and entry_pointer.get("accepted_pv") == pv_id
+            and int(entry_pointer.get("pointer_generation") or -1)
+            == pointer.generation
+            and entry_pointer.get("accepted_manifest_sha256")
+            == pointer.accepted_manifest_sha256
+            and entry_pointer.get("accepted_authority_integrity_validated") is True,
+            "ACCEPTED_CONTINUITY_POINTER_MISMATCH",
+            "The prior continuity receipt does not bind the current exact accepted pointer.",
+            status="MISMATCH",
+            project_id=project_id,
+            pv_id=pv_id,
+        )
+        package_sha256 = str(
+            entry_pointer.get("accepted_package_sha256") or ""
+        ).strip().upper()
+        require(
+            len(package_sha256) == 64
+            and all(character in "0123456789ABCDEF" for character in package_sha256),
+            "ACCEPTED_CONTINUITY_PACKAGE_HASH_INVALID",
+            "The prior continuity receipt has no exact accepted package hash.",
+            status="MISMATCH",
+            project_id=project_id,
+            pv_id=pv_id,
+        )
+        require(
+            exact_session.candidate_id is None,
+            "ACCEPTED_CONTINUITY_CANDIDATE_CONFLICT",
+            "External live-root reentry cannot reuse baseline continuity while a candidate exists.",
+            status="MISMATCH",
+            project_id=project_id,
+            pv_id=pv_id,
+        )
+        promotable = entry_pointer.get("promotable_under_current_rules") is True
+        return {
+            "status": "PASS",
+            "manifest_sha256": pointer.accepted_manifest_sha256,
+            "package_sha256": package_sha256,
+            "promotable": promotable,
+            "lanes": {
+                "status": "LIVE_ROOT_AUTHORITY",
+                "valid": False,
+            },
+            "storage_kind": "EXTERNAL_WORKING_ROOT_POINTER_REFERENCE",
+            "validation_scope": "LIVE_ROOT_RUNTIME_CONTINUITY_REFERENCE",
+            "accepted_artifact_available": None,
+            "accepted_artifact_integrity_validated": False,
+            "accepted_archive_queried": False,
+            "continuity_reference_integrity_validated": True,
+            "runtime_continuity_receipt_sha256": continuity[
+                "continuity_receipt_sha256"
+            ],
+            "accepted_storage": {
+                "status": "NOT_QUERIED",
+                "state": "POINTER_REFERENCE_ONLY",
+                "accepted_archive_queried": False,
+            },
+            "warning": {
+                "code": "ACCEPTED_ARCHIVE_NOT_QUERIED_LIVE_ROOT_CONTINUITY_USED",
+                "message": (
+                    "Immutable accepted bytes were not opened; the exact prior "
+                    "validated continuity reference and live root were used."
+                ),
+            },
         }
 
     def build_initial_entry(self, project_id: str, session_id: str) -> dict[str, Any]:
@@ -8573,10 +8723,13 @@ class SessionManager:
         require(
             current_host_session_id == exact_destination_task_id,
             "DIRECT_STATE_TRAVEL_DESTINATION_BOOT_REQUIRED",
-            "The exact destination must complete native verification and Boot before forced State Travel.",
+            "The exact destination must complete native verification and attach the existing governed session through session_resume before forced State Travel.",
             status="BLOCKED",
             current_host_session_id=current_host_session_id or None,
             destination_task_id=exact_destination_task_id or None,
+            required_current_route="session_resume",
+            session_boot_allowed=False,
+            direct_route_retry_allowed=False,
             writes_performed=False,
         )
         require(

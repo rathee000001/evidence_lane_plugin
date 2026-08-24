@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
+from evidence_lane_plugin.lane_engine import build_lane_bundle
 from evidence_lane_plugin.lane_reader import (
     CROSS_LANE_RELATION_TYPES,
     DEFAULT_CROSS_LANE_CONFLICTS,
@@ -66,7 +67,7 @@ class FakeCrossLaneReader(LaneReader):
         pv_ref: str | None,
     ) -> dict[str, Any]:
         assert project_id == "project-one"
-        assert pv_ref == "PV12"
+        assert pv_ref is None
         return {
             "code_mode": "github_code",
             "bundle_sha256": "B" * 64,
@@ -158,7 +159,6 @@ def test_cross_lane_query_is_deterministic_and_keeps_rank_domains_separate() -> 
         "project-one",
         ["docs", "analysis"],
         "shared evidence",
-        pv_ref="PV12",
     )
     slow_analysis = FakeCrossLaneReader(
         _relation_behaviors(analysis_delay=0.03)
@@ -166,7 +166,6 @@ def test_cross_lane_query_is_deterministic_and_keeps_rank_domains_separate() -> 
         "project-one",
         ["docs", "analysis"],
         "shared evidence",
-        pv_ref="PV12",
     )
 
     assert slow_docs == slow_analysis
@@ -192,7 +191,7 @@ def test_cross_lane_query_is_deterministic_and_keeps_rank_domains_separate() -> 
     for result in slow_docs["results"]:
         authority = result["authority_provenance"]
         assert authority["project_id"] == "project-one"
-        assert authority["pv_ref"] == "PV12"
+        assert authority["live_root_authority_ref"] == "PV12"
         assert authority["bundle_sha256"] == "B" * 64
         assert result["authority_provenance_sha256"] == sha256_bytes(
             canonical_json_bytes(authority)
@@ -240,7 +239,6 @@ def test_cross_lane_query_surfaces_exact_conflicts_before_synthesis_relations() 
         "project-one",
         ["docs", "analysis"],
         "conflicting evidence",
-        pv_ref="PV12",
         synthesis_limit=1,
     )
 
@@ -261,13 +259,13 @@ def test_cross_lane_query_rejects_implicit_duplicate_or_unproven_authority() -> 
 
     with pytest.raises(EvidenceLaneError) as one_lane:
         reader.search_cross_lane(
-            "project-one", ["docs"], "query terms", pv_ref="PV12"
+            "project-one", ["docs"], "query terms"
         )
     assert one_lane.value.code == "CROSS_LANE_SET_COUNT_INVALID"
 
     with pytest.raises(EvidenceLaneError) as duplicate:
         reader.search_cross_lane(
-            "project-one", ["docs", "docs"], "query terms", pv_ref="PV12"
+            "project-one", ["docs", "docs"], "query terms"
         )
     assert duplicate.value.code == "CROSS_LANE_SET_DUPLICATE"
 
@@ -276,7 +274,6 @@ def test_cross_lane_query_rejects_implicit_duplicate_or_unproven_authority() -> 
             "project-one",
             ["docs", "analysis"],
             "query terms",
-            pv_ref="PV12",
             relation_types=["FUZZY_SEMANTIC_JOIN"],
         )
     assert relation.value.code == "CROSS_LANE_RELATION_TYPE_INVALID"
@@ -286,7 +283,6 @@ def test_cross_lane_query_rejects_implicit_duplicate_or_unproven_authority() -> 
             "project-one",
             ["docs", "analysis"],
             "query terms",
-            pv_ref="PV12",
             result_limit_per_lane=2,
             aggregate_limit=3,
         )
@@ -297,7 +293,6 @@ def test_cross_lane_query_rejects_implicit_duplicate_or_unproven_authority() -> 
             "project-one",
             ["docs", "analysis", "discussion"],
             "query terms",
-            pv_ref="PV12",
             result_limit_per_lane=100,
         )
     assert product.value.code == "CROSS_LANE_AGGREGATE_BUDGET_INVALID"
@@ -309,7 +304,6 @@ def test_cross_lane_query_rejects_implicit_duplicate_or_unproven_authority() -> 
             "project-one",
             ["docs", "analysis"],
             "query terms",
-            pv_ref="PV12",
         )
     assert authority.value.code == "CROSS_LANE_RESULT_AUTHORITY_INVALID"
 
@@ -333,12 +327,26 @@ def test_cross_lane_schema_matches_runtime_contract() -> None:
     assert contract["receipt"]["persisted"] is False
 
 
-def test_cross_lane_query_reads_two_real_immutable_lane_sqlites(service) -> None:
+def test_cross_lane_query_reads_two_real_live_root_lane_sqlites(service) -> None:
     build_and_approve_pv1(service)
+    pointer = service.store.pointer("book-faires")
+    output = service.store.project_root("book-faires") / "sectors"
+    manifest = build_lane_bundle(
+        repository_root=service.store.config("book-faires").repository_path,
+        output_directory=output,
+        code_mode="local_code",
+        parent_lane_bundle=None,
+        parent_pv=pointer.accepted_pv,
+        proposed_pv=f"{pointer.accepted_pv}_WORKING",
+        pointer_generation=pointer.generation,
+        include_untracked=False,
+        materialize_all_lanes=True,
+        index_git_history=False,
+    )
 
     result = service.lane_reader.search_cross_lane(
         "book-faires",
-        ["github_code", "docs"],
+        ["local_code", "docs"],
         "Book Faires",
         max_workers=2,
         timeout_ms_per_lane=10_000,
@@ -346,11 +354,11 @@ def test_cross_lane_query_reads_two_real_immutable_lane_sqlites(service) -> None
     )
 
     assert result["source_status"] == "PASS"
-    assert result["pv_ref"] == "PV1"
-    assert result["canonical_lane_set"] == ["github_code", "docs"]
+    assert result["live_root_authority_ref"] == manifest["proposed_pv"]
+    assert result["canonical_lane_set"] == ["local_code", "docs"]
     assert {item["canonical_lane_id"] for item in result["results"]} == {"docs"}
     assert [item["canonical_lane_id"] for item in result["lane_receipts"]] == [
-        "github_code",
+        "local_code",
         "docs",
     ]
     assert [item["status"] for item in result["lane_receipts"]] == [
@@ -358,7 +366,7 @@ def test_cross_lane_query_reads_two_real_immutable_lane_sqlites(service) -> None
         "PASS",
     ]
     assert all(
-        item["authority_provenance"]["pv_ref"] == "PV1"
+        item["authority_provenance"]["live_root_authority_ref"]
+        == manifest["proposed_pv"]
         for item in result["results"]
     )
-    assert result["receipt"]["requested_pv_ref"] is None

@@ -7169,7 +7169,10 @@ def project_governed_activity_counts(
         cwd=cwd,
     )
     binding = _binding_snapshot(root, bound)
-    database = Path(bound["project_root"]) / "lineage" / "codex_turn_control.sqlite"
+    database = (
+        resolved_chat_lineage_root(Path(bound["project_root"]))
+        / "codex_turn_control.sqlite"
+    )
     return _governed_activity_counts_from_database(
         database,
         project_id=str(binding["project_id"]),
@@ -7426,7 +7429,8 @@ def _compact_task_memory_cursor(
     evidence_session_id: str,
     runtime_task_id: str | None,
 ) -> dict[str, Any]:
-    relative_path = "lineage/codex_turn_control.sqlite"
+    database = resolved_chat_lineage_root(project_root) / "codex_turn_control.sqlite"
+    relative_path = database.relative_to(project_root).as_posix()
     locator = _compact_locator(project_root, relative_path)
     if not locator["exists"]:
         return {
@@ -9570,7 +9574,10 @@ def project_task_research_status(
         cwd=cwd,
     )
     binding = _binding_snapshot(root, bound)
-    database = Path(bound["project_root"]) / "lineage" / "codex_turn_control.sqlite"
+    database = (
+        resolved_chat_lineage_root(Path(bound["project_root"]))
+        / "codex_turn_control.sqlite"
+    )
     with _read_only(database) as connection:
         research_rows = connection.execute(
             """

@@ -14,7 +14,7 @@ from .hook_contract import HOOK_EVENT_NAMES
 from .host_plan_rehydration import prepare_host_plan_rehydration
 from .internal_sdk import build_live_local_sdk_context
 from .lanes import CANONICAL_LANE_IDS
-from .project_authority import query_working_project_sectors
+from .live_authority_query import query_live_authorities
 
 ADAPTIVE_DELTA_EXIT_SCHEMA = "evidence-lane.adaptive-delta-exit-receipt.v1"
 _SHA256_HEX = frozenset("0123456789ABCDEF")
@@ -37,11 +37,6 @@ _SDK_OPERATIONS = (
     ("canon_input", "bootstrap_consequence_graph"),
     ("project_memory", "bootstrap"),
     ("project_universe", "refresh"),
-)
-_DECISION_SUPPORT_OPERATIONS = (
-    ("agent_learning", "retrieve"),
-    ("project_memory", "query"),
-    ("canon_input", "graph"),
 )
 
 
@@ -284,111 +279,6 @@ def _sdk_refreshes(
     return receipts
 
 
-def _sdk_decision_support(
-    service: Any,
-    *,
-    project_id: str,
-    session_id: str,
-    task_id: str,
-    query: str,
-    as_of: str,
-    request_seed: str,
-) -> list[dict[str, Any]]:
-    """Read bounded auxiliary evidence without merging its authority into Plan."""
-
-    sdk, binding = build_live_local_sdk_context(
-        service,
-        project_id=project_id,
-        session_id=session_id,
-    )
-    payloads = {
-        ("agent_learning", "retrieve"): {
-            "query": query,
-            "scope_selectors": [task_id],
-            "as_of": as_of,
-            "limit": 4,
-        },
-        ("project_memory", "query"): {
-            "query": query,
-            "as_of": as_of,
-            "limit": 4,
-        },
-        ("canon_input", "graph"): {},
-    }
-    results: list[dict[str, Any]] = []
-    for ordinal, (module_id, operation) in enumerate(
-        _DECISION_SUPPORT_OPERATIONS, start=1
-    ):
-        response = sdk.invoke(
-            module_id=module_id,
-            operation=operation,
-            binding=binding,
-            payload=payloads[(module_id, operation)],
-            request_id=f"delta-exit:{request_seed}:decision:{ordinal}",
-            timeout_ms=30_000,
-        )
-        data = dict(response.get("data") or {})
-        status = str(response.get("status") or "").strip().upper()
-        require(
-            status in {"PASS", "STALE"}
-            and response.get("module_id") == module_id
-            and response.get("operation") == operation,
-            "ADAPTIVE_DELTA_EXIT_DECISION_SUPPORT_FAILED",
-            "Learning, Memory, and Canon decision inputs must stay bounded and task-bound.",
-            status="FAIL",
-            module_id=module_id,
-            operation=operation,
-        )
-        if module_id in {"agent_learning", "project_memory"}:
-            bounded_data = {
-                "status": data.get("status"),
-                "result": data.get("result"),
-                "hits": list(data.get("hits") or [])[:4],
-                "suppressed": list(data.get("suppressed") or [])[:4],
-                "full_ledger_loaded_into_model_context": data.get(
-                    "full_ledger_loaded_into_model_context", False
-                ),
-            }
-        else:
-            consequence = dict(data.get("consequence_graph") or {})
-            bounded_data = {
-                "status": data.get("status"),
-                "contract_count": data.get("contract_count"),
-                "packet_count": data.get("packet_count"),
-                "edge_count": data.get("edge_count"),
-                "consequence_graph_status": consequence.get("status"),
-                "consequence_graph_state": consequence.get("state"),
-                "payload_withheld": bool(data.get("payload_withheld")),
-            }
-        state = str(
-            bounded_data.get("result")
-            or bounded_data.get("status")
-            or status
-        ).strip().upper()
-        fallback_required = bool(
-            status == "STALE"
-            or state in {"STALE", "NO_HIT", "EMPTY", "INCOMPLETE"}
-            or bounded_data.get("payload_withheld") is True
-        )
-        results.append(
-            {
-                "ordinal": ordinal,
-                "module_id": module_id,
-                "operation": operation,
-                "status": status,
-                "result_state": state,
-                "fallback_to_working_sectors_required": fallback_required,
-                "receipt_sha256": _required_sha256(
-                    response.get("receipt_sha256"),
-                    field=f"decision_support[{ordinal}].receipt_sha256",
-                ),
-                "bounded_data": bounded_data,
-                "authority_merge_allowed": False,
-            }
-        )
-    return results
-
-
 def _write_immutable_receipt(path: Path, receipt: dict[str, Any]) -> None:
     if path.is_file():
         require(
@@ -547,38 +437,25 @@ def run_adaptive_delta_exit(
         )
         if str(value or "").strip()
     )[:4096]
-    decision_support = _sdk_decision_support(
+    live_authority_query = query_live_authorities(
         service,
         project_id=project_id,
         session_id=session_id,
-        task_id=exact_task_id,
         query=decision_query,
-        as_of=str(formula_events[0]["recorded_at"]),
-        request_seed=request_seed,
+        limit=4,
+        refresh_on_miss=False,
     )
-    working_sector_fallback = None
-    if any(row["fallback_to_working_sectors_required"] for row in decision_support):
-        pointer = service.store.pointer(project_id)
-        working_sector_fallback = query_working_project_sectors(
-            service.store.project_root(project_id),
-            repository_root=repository_path,
-            project_id=project_id,
-            accepted_pv=str(pointer.accepted_pv),
-            pointer_generation=int(pointer.generation),
-            query=decision_query,
-            lane_ids=list(CANONICAL_LANE_IDS),
-            limit=8,
-            expected_branch=repository_before["branch"],
-            expected_head=repository_before["commit_sha"],
-        )
-        require(
-            working_sector_fallback.get("status") in {"PASS", "EMPTY"}
-            and working_sector_fallback.get("query_mutated_project_authority") is False
-            and working_sector_fallback.get("query_rehashed_dirty_content") is False,
-            "ADAPTIVE_DELTA_EXIT_WORKING_SECTOR_FALLBACK_FAILED",
-            "A stale or missing auxiliary hit requires one read-only all-lane sector query.",
-            status="FAIL",
-        )
+    require(
+        live_authority_query.get("status") in {"PASS", "EMPTY"}
+        and live_authority_query.get("accepted_archive_opened") is False,
+        "ADAPTIVE_DELTA_EXIT_DECISION_SUPPORT_FAILED",
+        "Adaptive exit requires the shared live-root six-authority query route.",
+        status="FAIL",
+    )
+    decision_support = list(live_authority_query["initial_reads"])
+    working_sector_fallback = live_authority_query["authorities"]["sector_lanes"][
+        "result"
+    ]
     host_task_id = str(
         session_before.metadata.get("current_host_session_id") or ""
     ).strip()

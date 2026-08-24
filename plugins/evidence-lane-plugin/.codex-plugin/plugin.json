@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "3.0.0+codex.20260823172404",
+  "version": "3.0.0+codex.20260824115846",
   "description": "Evidence Lane 3.0.0 is the current pre-HIL Codex source release. Human-governed project memory preserves exact evidence, resumes unfinished work, and keeps acceptance under the user's control.",
   "author": {
     "name": "Praveen Rathee",

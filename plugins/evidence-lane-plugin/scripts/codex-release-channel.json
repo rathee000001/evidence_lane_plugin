@@ -182,7 +182,16 @@
         "loaded_old_cache_boundary": "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED",
         "restart_authority_mode": "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_EXACT_TASK_RESTART",
         "windows_marketplace_root_rotation_allowed": false,
-        "exact_same_task_hidden_restart_required": true
+        "exact_same_task_hidden_restart_required": true,
+        "helper_scope": "DUMB_EXACT_TASK_CLOSE_REOPEN_ONLY",
+        "helper_installs_plugin": false,
+        "child_lease_acknowledgement_before_app_stop_required": true,
+        "child_launch_shape": "PROVEN_V2_2_ONE_USE_TRANSIENT_SCHEDULED_TASK",
+        "redirected_parent_pipe_handles_allowed": false,
+        "terminal_success_or_failure_receipt_required": true,
+        "windows_ui_control_allowed": false,
+        "cross_task_rehydration_allowed": false,
+        "tunnel_start_allowed": false
       }
     },
     "user_goal_recovery_helper": {

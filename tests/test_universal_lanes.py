@@ -1417,7 +1417,7 @@ def test_pv1_full_build_and_pvn_incremental_lane_reuse(tmp_path: Path) -> None:
     assert "project_lane_topology.mmd" in tampered["checksum_mismatches"]
 
 
-def test_missing_topology_generator_fingerprint_rebuilds_only_emitted_code_lane(
+def test_invalid_parent_missing_topology_generator_fails_before_output(
     tmp_path: Path,
 ) -> None:
     repository = tmp_path / "source"
@@ -1437,9 +1437,8 @@ def test_missing_topology_generator_fingerprint_rebuilds_only_emitted_code_lane(
         pointer_generation=0,
     )
 
-    # Simulate a valid historical cache created before generator fingerprints
-    # were part of tools.json. Only the loaded Local Code lane may rebuild;
-    # GitHub Code must not appear as an empty placeholder.
+    # A modern sealed parent cannot be edited into a historical compatibility
+    # fixture. Missing generator identity is rejected before candidate output.
     tools_path = parent / "local_code" / "tools.json"
     tools = json.loads(tools_path.read_text(encoding="utf-8"))
     tools.pop("topology_generator")
@@ -1449,29 +1448,20 @@ def test_missing_topology_generator_fingerprint_rebuilds_only_emitted_code_lane(
     )
 
     candidate = tmp_path / "candidate-lanes"
-    result = build_lane_bundle(
-        repository_root=repository,
-        output_directory=candidate,
-        code_mode="local_code",
-        parent_lane_bundle=parent,
-        parent_pv="PV1",
-        proposed_pv="PV2",
-        pointer_generation=1,
-    )
-    reports = {row["lane_id"]: row for row in result["reports"]}
-    assert result["summary"]["both_code_lanes_forced_by_generator"] is False
-    assert result["summary"]["topology_generator_rebuilt_lanes"] == ["local_code"]
-    assert reports["local_code"]["topology_generator_changed"] is True
-    assert reports["local_code"]["byte_reused"] is False
-    assert reports["local_code"]["topology_generator_sha256"]
-    assert "subgraph CODE_LOGICAL_TOPOLOGY" in (
-        candidate / "local_code" / "local_code.mmd"
-    ).read_text(encoding="utf-8")
-    assert not (candidate / "github_code").exists()
-    assert validate_lane_bundle(candidate)["valid"] is True
+    with pytest.raises(ValueError, match="parent lane bundle"):
+        build_lane_bundle(
+            repository_root=repository,
+            output_directory=candidate,
+            code_mode="local_code",
+            parent_lane_bundle=parent,
+            parent_pv="PV1",
+            proposed_pv="PV2",
+            pointer_generation=1,
+        )
+    assert not candidate.exists()
 
 
-def test_refresh_regenerates_unreconciled_inherited_topology(tmp_path: Path) -> None:
+def test_unreconciled_parent_topology_fails_before_output(tmp_path: Path) -> None:
     repository = tmp_path / "source"
     repository.mkdir()
     (repository / "notes.txt").write_text(
@@ -1502,21 +1492,322 @@ def test_refresh_regenerates_unreconciled_inherited_topology(tmp_path: Path) -> 
     )
 
     pv2 = tmp_path / "pv2-lanes"
-    second = build_lane_bundle(
+    with pytest.raises(ValueError, match="parent lane bundle"):
+        build_lane_bundle(
+            repository_root=repository,
+            output_directory=pv2,
+            code_mode="local_code",
+            parent_lane_bundle=pv1,
+            parent_pv="PV1",
+            proposed_pv="PV2",
+            pointer_generation=1,
+        )
+    assert not pv2.exists()
+
+
+def test_tool_identity_fallback_replays_parent_and_preserves_unavailable_source(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository = tmp_path / "source"
+    repository.mkdir()
+    historical = repository / "historical.txt"
+    historical.write_text(
+        "Accepted historical route evidence must remain queryable.\n",
+        encoding="utf-8",
+    )
+    parent = tmp_path / "parent-lanes"
+    current_tool_identity = lane_engine_module._tool_identity
+
+    def historical_tool_identity(lane):
+        payload = current_tool_identity(lane)
+        if lane.canonical_lane_id != "discussion":
+            return payload
+        payload = json.loads(json.dumps(payload))
+        payload["parser_implementation"]["lane_engine_sha256"] = "0" * 64
+        identity_core = {
+            key: payload[key]
+            for key in (
+                "lane",
+                "capabilities",
+                "lane_schema_version",
+                "topology_generator",
+                "artifact_contract",
+                "parser_implementation",
+            )
+        }
+        payload["sha256"] = sha256_bytes(canonical_json_bytes(identity_core))
+        return payload
+
+    with monkeypatch.context() as historical_context:
+        historical_context.setattr(
+            lane_engine_module,
+            "_tool_identity",
+            historical_tool_identity,
+        )
+        build_lane_bundle(
+            repository_root=repository,
+            output_directory=parent,
+            code_mode="local_code",
+            parent_lane_bundle=None,
+            parent_pv=None,
+            proposed_pv="PV1",
+            pointer_generation=0,
+            source_overrides={"historical.txt": "discussion"},
+        )
+    assert validate_lane_bundle(parent)["valid"] is True
+
+    historical.unlink()
+    current = repository / "current.txt"
+    current.write_text(
+        "Current route evidence overlays the accepted baseline.\n",
+        encoding="utf-8",
+    )
+    candidate = tmp_path / "candidate-lanes"
+    result = build_lane_bundle(
         repository_root=repository,
-        output_directory=pv2,
+        output_directory=candidate,
         code_mode="local_code",
-        parent_lane_bundle=pv1,
+        parent_lane_bundle=parent,
         parent_pv="PV1",
         proposed_pv="PV2",
         pointer_generation=1,
+        source_overrides={"current.txt": "discussion"},
+        source_paths_override=["current.txt"],
+        preserve_parent_unmentioned=True,
     )
 
     report = next(
-        row for row in second["reports"] if row["lane_id"] == "discussion"
+        row for row in result["reports"] if row["lane_id"] == "discussion"
     )
-    assert report["build_mode"] == "INCREMENTAL_REFRESH"
-    assert report["byte_reused"] is False
-    assert report["topology_rebuild_required"] is True
-    assert "discussion" not in second["summary"]["byte_reused_lanes"]
-    assert validate_lane_bundle(pv2)["valid"] is True
+    replay = report["parent_baseline_replay"]
+    assert report["build_mode"] == "FULL_VALIDATION_FALLBACK"
+    assert report["full_validation_fallback_reason"] == "TOOL_IDENTITY_CHANGED"
+    assert replay["status"] == "PASS"
+    assert replay["preserved_unavailable_source_count"] == 1
+    assert replay["preserved_unavailable_paths"] == ["historical.txt"]
+    assert replay["missing_after_replay"] == []
+    database = candidate / "discussion" / "discussion_sector_v001.sqlite"
+    connection = sqlite3.connect(database)
+    try:
+        paths = {
+            str(row[0])
+            for row in connection.execute(
+                "SELECT path FROM source_registry ORDER BY path"
+            ).fetchall()
+        }
+    finally:
+        connection.close()
+    assert paths == {"current.txt", "historical.txt"}
+    assert validate_lane_bundle(candidate)["valid"] is True
+
+
+def test_tool_identity_fallback_never_replays_unselected_current_bytes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository = tmp_path / "source"
+    repository.mkdir()
+    historical = repository / "historical.txt"
+    accepted_text = "Accepted parent bytes must remain immutable.\n"
+    historical.write_text(accepted_text, encoding="utf-8")
+    parent = tmp_path / "parent-lanes"
+    current_tool_identity = lane_engine_module._tool_identity
+
+    def historical_tool_identity(lane):
+        payload = current_tool_identity(lane)
+        if lane.canonical_lane_id != "discussion":
+            return payload
+        payload = json.loads(json.dumps(payload))
+        payload["parser_implementation"]["lane_engine_sha256"] = "0" * 64
+        identity_core = {
+            key: payload[key]
+            for key in (
+                "lane",
+                "capabilities",
+                "lane_schema_version",
+                "topology_generator",
+                "artifact_contract",
+                "parser_implementation",
+            )
+        }
+        payload["sha256"] = sha256_bytes(canonical_json_bytes(identity_core))
+        return payload
+
+    with monkeypatch.context() as historical_context:
+        historical_context.setattr(
+            lane_engine_module,
+            "_tool_identity",
+            historical_tool_identity,
+        )
+        build_lane_bundle(
+            repository_root=repository,
+            output_directory=parent,
+            code_mode="local_code",
+            parent_lane_bundle=None,
+            parent_pv=None,
+            proposed_pv="PV1",
+            pointer_generation=0,
+            source_overrides={"historical.txt": "discussion"},
+        )
+    assert validate_lane_bundle(parent)["valid"] is True
+    parent_database = parent / "discussion" / "discussion_sector_v001.sqlite"
+    parent_connection = sqlite3.connect(parent_database)
+    try:
+        parent_row = parent_connection.execute(
+            "SELECT sha256 FROM source_registry WHERE path='historical.txt'"
+        ).fetchone()
+        assert parent_row is not None
+        parent_sha256 = str(parent_row[0])
+    finally:
+        parent_connection.close()
+
+    historical.write_text(
+        "Dirty current bytes were explicitly excluded from this refresh.\n",
+        encoding="utf-8",
+    )
+    current = repository / "current.txt"
+    current.write_text("Selected current route evidence.\n", encoding="utf-8")
+    candidate = tmp_path / "candidate-lanes"
+    result = build_lane_bundle(
+        repository_root=repository,
+        output_directory=candidate,
+        code_mode="local_code",
+        parent_lane_bundle=parent,
+        parent_pv="PV1",
+        proposed_pv="PV2",
+        pointer_generation=1,
+        source_overrides={"current.txt": "discussion"},
+        source_paths_override=["current.txt"],
+        preserve_parent_unmentioned=True,
+    )
+
+    report = next(
+        row for row in result["reports"] if row["lane_id"] == "discussion"
+    )
+    replay = report["parent_baseline_replay"]
+    assert replay["replayed_source_count"] == 0
+    assert replay["preserved_unavailable_source_count"] == 1
+    assert replay["preserved_unavailable_paths"] == ["historical.txt"]
+    database = candidate / "discussion" / "discussion_sector_v001.sqlite"
+    connection = sqlite3.connect(database)
+    try:
+        preserved = connection.execute(
+            "SELECT sha256 FROM source_registry WHERE path='historical.txt'"
+        ).fetchone()
+        assert preserved is not None
+        assert str(preserved[0]) == parent_sha256
+        snippets = "\n".join(
+            str(row[0])
+            for row in connection.execute(
+                f"SELECT text_content FROM {LANE_REGISTRY['discussion'].fts_table} "
+                "WHERE path='historical.txt'"
+            ).fetchall()
+        )
+    finally:
+        connection.close()
+    assert accepted_text.strip() in snippets
+    assert "Dirty current bytes" not in snippets
+    assert validate_lane_bundle(candidate)["valid"] is True
+
+
+def test_tool_identity_fallback_full_snapshot_replays_current_and_removes_deleted(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository = tmp_path / "source"
+    repository.mkdir()
+    stable = repository / "stable.txt"
+    removed = repository / "removed.txt"
+    stable.write_text("Historical stable bytes.\n", encoding="utf-8")
+    removed.write_text("Historical removed bytes.\n", encoding="utf-8")
+    parent = tmp_path / "parent-lanes"
+    current_tool_identity = lane_engine_module._tool_identity
+
+    def historical_tool_identity(lane):
+        payload = current_tool_identity(lane)
+        if lane.canonical_lane_id != "discussion":
+            return payload
+        payload = json.loads(json.dumps(payload))
+        payload["parser_implementation"]["lane_engine_sha256"] = "0" * 64
+        identity_core = {
+            key: payload[key]
+            for key in (
+                "lane",
+                "capabilities",
+                "lane_schema_version",
+                "topology_generator",
+                "artifact_contract",
+                "parser_implementation",
+            )
+        }
+        payload["sha256"] = sha256_bytes(canonical_json_bytes(identity_core))
+        return payload
+
+    with monkeypatch.context() as historical_context:
+        historical_context.setattr(
+            lane_engine_module,
+            "_tool_identity",
+            historical_tool_identity,
+        )
+        build_lane_bundle(
+            repository_root=repository,
+            output_directory=parent,
+            code_mode="local_code",
+            parent_lane_bundle=None,
+            parent_pv=None,
+            proposed_pv="PV1",
+            pointer_generation=0,
+            source_overrides={
+                "stable.txt": "discussion",
+                "removed.txt": "discussion",
+            },
+        )
+
+    stable.write_text("Current stable bytes.\n", encoding="utf-8")
+    removed.unlink()
+    added = repository / "added.txt"
+    added.write_text("Current added bytes.\n", encoding="utf-8")
+    candidate = tmp_path / "candidate-lanes"
+    result = build_lane_bundle(
+        repository_root=repository,
+        output_directory=candidate,
+        code_mode="local_code",
+        parent_lane_bundle=parent,
+        parent_pv="PV1",
+        proposed_pv="PV1_WORKING",
+        pointer_generation=1,
+        source_overrides={
+            "stable.txt": "discussion",
+            "added.txt": "discussion",
+        },
+        source_paths_override=None,
+        preserve_parent_unmentioned=True,
+    )
+
+    report = next(
+        row for row in result["reports"] if row["lane_id"] == "discussion"
+    )
+    assert report["build_mode"] == "FULL_VALIDATION_FALLBACK"
+    assert report["parent_baseline_replay"]["preserved_unavailable_source_count"] == 0
+    assert [
+        row["path"] for row in report["classification"]["REMOVED_TOMBSTONE"]
+    ] == ["removed.txt"]
+    assert result["parallel_execution"]["source_binding"]["valid"] is True
+    assert (
+        result["parallel_execution"]["source_binding"]["observed_superset_allowed"]
+        is False
+    )
+    database = candidate / "discussion" / "discussion_sector_v001.sqlite"
+    connection = sqlite3.connect(database)
+    try:
+        paths = {
+            str(row[0])
+            for row in connection.execute(
+                "SELECT path FROM source_registry ORDER BY path"
+            ).fetchall()
+        }
+    finally:
+        connection.close()
+    assert paths == {"added.txt", "stable.txt"}
+    assert validate_lane_bundle(candidate)["valid"] is True

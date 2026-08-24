@@ -284,7 +284,7 @@ def _context() -> SDKInvocationContext:
     )
 
 
-def test_consequence_graph_bootstrap_is_content_addressed_and_replay_safe(
+def test_consequence_graph_bootstrap_refreshes_one_live_folder_and_is_replay_safe(
     tmp_path: Path,
 ) -> None:
     root, accepted_manifest_sha256 = _root(tmp_path)
@@ -308,7 +308,15 @@ def test_consequence_graph_bootstrap_is_content_addressed_and_replay_safe(
     assert created["edge_relations"]["HOST_TASK_EXECUTES_ACTIVE_PLAN_TASK"] == 1
     assert created["edge_relations"]["LEARNING_DERIVED_FROM_PLAN_TASK"] == 1
     assert created["edge_relations"]["DEPENDS_ON"] == 1
-    assert len(list((root / "canon" / "consequence-graphs").iterdir())) == 1
+    graph_members = list((root / "canon" / "consequence-graphs").iterdir())
+    assert {path.name for path in graph_members} == {
+        "graph.sqlite",
+        "graph.mmd",
+        "graph.dot",
+        "manifest.json",
+        "receipt.json",
+    }
+    assert not any(path.is_dir() for path in graph_members)
     assert created["project_candidate_created"] is False
     assert created["project_hil_invoked"] is False
     assert created["canon_hil_invoked"] is False

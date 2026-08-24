@@ -55,6 +55,28 @@ EXPECTED_PACKAGE_HOOK_EVENTS = {
     "SubagentStop",
     "UserPromptSubmit",
 }
+EXPECTED_PLUGIN_CREATOR_LOCAL_UPDATE_ROUTE = {
+    "route_law": "PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW",
+    "source_sync": "IN_PLACE_EXISTING_LOCAL_MARKETPLACE",
+    "cache_materialization": "CODEX_PLUGIN_ADD",
+    "loaded_old_cache_boundary": (
+        "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED"
+    ),
+    "restart_authority_mode": (
+        "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_EXACT_TASK_RESTART"
+    ),
+    "windows_marketplace_root_rotation_allowed": False,
+    "exact_same_task_hidden_restart_required": True,
+    "helper_scope": "DUMB_EXACT_TASK_CLOSE_REOPEN_ONLY",
+    "helper_installs_plugin": False,
+    "child_lease_acknowledgement_before_app_stop_required": True,
+    "child_launch_shape": "PROVEN_V2_2_ONE_USE_TRANSIENT_SCHEDULED_TASK",
+    "redirected_parent_pipe_handles_allowed": False,
+    "terminal_success_or_failure_receipt_required": True,
+    "windows_ui_control_allowed": False,
+    "cross_task_rehydration_allowed": False,
+    "tunnel_start_allowed": False,
+}
 
 
 def _derive_public_surface(plugin_root: Path) -> dict[str, Any]:
@@ -731,6 +753,13 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     live_slots = dict(release.get("live_slot_policy") or {})
     failover = dict(release.get("failover_operator") or {})
     goal_recovery = dict(release.get("goal_recovery") or {})
+    helper_distribution = dict(release.get("helper_distribution_policy") or {})
+    maintainer_helper = dict(
+        helper_distribution.get("maintainer_release_helper") or {}
+    )
+    plugin_creator_local_update = dict(
+        maintainer_helper.get("plugin_creator_local_update_route") or {}
+    )
     behavior_ownership = dict(release.get("behavior_ownership") or {})
     stable_activation_gate = dict(release.get("stable_activation_gate") or {})
     brand_identity = dict(release.get("brand_identity") or {})
@@ -822,6 +851,7 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or local_testing.get("fresh_package_version_per_local_build") is not True
         or local_testing.get("stable_git_main_mutation_allowed_during_local_build")
         is not False
+        or local_testing.get("helper_installs_plugin") is not False
         or live_slots.get("exact_slot_count") != 2
         or live_slots.get("allowed_slots")
         != [
@@ -877,6 +907,8 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         ]
         or goal_recovery.get("stable_selector_growth_allowed") is not False
         or goal_recovery.get("raw_goal_objective_stored") is not False
+        or plugin_creator_local_update
+        != EXPECTED_PLUGIN_CREATOR_LOCAL_UPDATE_ROUTE
         or behavior_ownership != EXPECTED_BEHAVIOR_OWNERSHIP
         or stable_activation_gate != EXPECTED_STABLE_ACTIVATION_GATE
         or brand_identity != EXPECTED_BRAND_IDENTITY

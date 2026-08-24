@@ -412,6 +412,11 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
         assert wrong_destination.value.code == (
             "DIRECT_STATE_TRAVEL_DESTINATION_BOOT_REQUIRED"
         )
+        assert wrong_destination.value.details["required_current_route"] == (
+            "session_resume"
+        )
+        assert wrong_destination.value.details["session_boot_allowed"] is False
+        assert wrong_destination.value.details["direct_route_retry_allowed"] is False
         assert sorted(journal_root.glob("*.json")) == journal_before
 
         result = service.direct_force_same_worktree_state_travel(

@@ -2728,11 +2728,12 @@ def create_mcp_server(
 
     @mcp.tool(
         name="lane_status",
-        title="Inspect one lane authority",
+        title="Inspect one live-root lane authority",
         description=(
-            "Inspect one accepted or explicitly named candidate lane: SQLite/MMD/DOT "
-            "hashes, parser/tool capability states, pointer evidence, Refresh "
-            "classification, and live-source freshness."
+            "Inspect one live project-root sector lane: SQLite/MMD/DOT hashes, "
+            "parser/tool capability states, pointer-baseline evidence, Refresh "
+            "classification, and live-source freshness. Accepted HIL ZIPs and "
+            "candidates are not ordinary query surfaces."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Checking lane authority", "Lane authority ready"),
@@ -2741,24 +2742,23 @@ def create_mcp_server(
     def lane_status(
         project_id: str,
         lane: str,
-        pv_ref: str | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "lane_status",
             application.lane_status,
             project_id,
             lane,
-            pv_ref=pv_ref,
         )
 
     @mcp.tool(
         name="lane_search",
-        title="Search one lane with BM25 and TF-IDF",
+        title="Search one lane with FTS5, BM25, and TF-IDF",
         description=(
-            "Search an accepted or explicitly named candidate lane using SQLite "
-            "FTS5/BM25, explicit materialized TF-IDF, or deterministic "
+            "Search one live project-root sector lane using SQLite "
+            "FTS5 MATCH, FTS5/BM25, explicit materialized TF-IDF, or deterministic "
             "reciprocal-rank hybrid retrieval. Results include source/chunk hashes, "
-            "parser state, PV authority, and live freshness."
+            "parser state, live-root authority, and freshness. Accepted HIL ZIPs "
+            "and candidates are not opened."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Searching lane evidence", "Lane search complete"),
@@ -2768,7 +2768,6 @@ def create_mcp_server(
         project_id: str,
         lane: str,
         query: str,
-        pv_ref: str | None = None,
         limit: int = 20,
         retrieval: str = "hybrid",
     ) -> dict[str, Any]:
@@ -2778,7 +2777,6 @@ def create_mcp_server(
             project_id,
             lane,
             query,
-            pv_ref=pv_ref,
             limit=limit,
             retrieval=retrieval,
         )
@@ -2788,8 +2786,9 @@ def create_mcp_server(
         title="Fetch one exact lane source",
         description=(
             "Fetch one exact source registered in a lane with bounded text, hash, "
-            "parser state, structured facts, PV authority, and freshness. Binary "
-            "source bytes remain inside the immutable SQLite authority."
+            "parser state, structured facts, live-root authority, and freshness. "
+            "Binary source bytes remain inside the live sector SQLite authority; "
+            "accepted HIL ZIPs and candidates are not opened."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Fetching lane source", "Lane source ready"),
@@ -2799,7 +2798,6 @@ def create_mcp_server(
         project_id: str,
         lane: str,
         path: str,
-        pv_ref: str | None = None,
         max_bytes: int = 100_000,
     ) -> dict[str, Any]:
         return application.invoke(
@@ -2808,7 +2806,6 @@ def create_mcp_server(
             project_id,
             lane,
             path,
-            pv_ref=pv_ref,
             max_bytes=max_bytes,
         )
 
@@ -3086,7 +3083,7 @@ def create_mcp_server(
         project_id: str,
         task_id: str | None = None,
         query: str | None = None,
-        limit: int = 10,
+        limit: int = 9,
     ) -> dict[str, Any]:
         return application.invoke(
             "pv_task_backlog",
@@ -3644,7 +3641,10 @@ def create_mcp_server(
             "Use the no-seal recovery route exactly once for a genuinely new "
             "native Codex task that shares the source worktree. The caller supplies "
             "only source, donor, and destination task identities plus the visible "
-            "destination title. The server atomically derives the replay guard, "
+            "destination title. Before this one-shot call, the destination must "
+            "attach the already-active governed session through session_resume and "
+            "verify runtime activation; session_boot must not create a duplicate "
+            "session. The server atomically derives the replay guard, "
             "dirty source, pointer baseline, Plan, plugin, runtime, Flash, profile, "
             "and opaque runtime attestation. Caller-supplied binding payloads, "
             "nonces, hashes, PIDs, runtime IDs, or pointer fields are not accepted. "
@@ -3896,13 +3896,13 @@ def create_mcp_server(
 
     @mcp.tool(
         name="search",
-        title="Search accepted PV source intelligence",
+        title="Query live six-authority project intelligence",
         description=(
-            "Progressive read-only search across deterministic FTS chunks, symbols, "
-            "and paths. Defaults to the current accepted PV; an explicitly named "
-            "candidate is labeled UNACCEPTED_CANDIDATE and never presented as truth. "
-            "An optional candidate overlay remains separate from accepted results and "
-            "requires its exact authorization token."
+            "Query the live project root through six separate ENV/UOP-governed "
+            "authorities: all eighteen sector lanes, Agent Learning, Canon graph, "
+            "Project Memory, AGENTS.md, and host conversation MEMORY.md. A stale or "
+            "empty intelligence arm triggers one bounded Learning/Canon/Memory refresh "
+            "and retry. Accepted HIL ZIPs are never opened or queried."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Searching PV source intelligence", "PV search complete"),
@@ -3911,29 +3911,26 @@ def create_mcp_server(
     def search(
         project_id: str,
         query: str,
-        pv_ref: str | None = None,
-        limit: int = 20,
-        candidate_overlay_ref: str | None = None,
-        candidate_overlay_authorization: str | None = None,
+        session_id: str | None = None,
+        limit: int = 8,
     ) -> dict[str, Any]:
         return application.invoke(
             "search",
-            application.reader.search,
+            application.live_authority_search,
             project_id,
             query,
-            pv_ref=pv_ref,
+            session_id=session_id,
             limit=limit,
-            candidate_overlay_ref=candidate_overlay_ref,
-            candidate_overlay_authorization=candidate_overlay_authorization,
         )
 
     @mcp.tool(
         name="fetch",
-        title="Fetch exact PV file or chunk",
+        title="Fetch exact live-root file or chunk",
         description=(
-            "Standard read-only fetch for file:<path>, chunk:<id>, or symbol:<id>. "
+            "Read one file:<path> or chunk:<id> from live-root Local Code. "
             "Text files support bounded line windows with exact file hash and source "
-            "commit provenance; binary output is bounded base64."
+            "commit provenance; binary output is bounded base64. Accepted archives "
+            "and candidates are not query surfaces."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Fetching exact PV evidence", "PV evidence fetched"),
@@ -3942,7 +3939,6 @@ def create_mcp_server(
     def fetch(
         project_id: str,
         ref_id: str,
-        pv_ref: str | None = None,
         max_bytes: int = 256000,
         start_line: int | None = None,
         end_line: int | None = None,
@@ -3953,7 +3949,6 @@ def create_mcp_server(
             application.reader.fetch,
             project_id,
             ref_id,
-            pv_ref=pv_ref,
             max_bytes=max_bytes,
             start_line=start_line,
             end_line=end_line,
@@ -3962,24 +3957,21 @@ def create_mcp_server(
 
     @mcp.tool(
         name="pv_summary",
-        title="Read deterministic PV summary",
+        title="Read deterministic live-root summary",
         description=(
             "Read repository identity, file/chunk/symbol/import/dependency/route "
-            "counts, and code-family distribution from one validated PV."
+            "counts, and code-family distribution from live-root Local Code without "
+            "opening accepted HIL archives."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Reading PV summary", "PV summary ready"),
         structured_output=True,
     )
-    def pv_summary(
-        project_id: str,
-        pv_ref: str | None = None,
-    ) -> dict[str, Any]:
+    def pv_summary(project_id: str) -> dict[str, Any]:
         return application.invoke(
             "pv_summary",
             application.reader.project_summary,
             project_id,
-            pv_ref=pv_ref,
         )
 
     @mcp.tool(
@@ -3987,8 +3979,8 @@ def create_mcp_server(
         title="Run focused PV intelligence query",
         description=(
             "Run one allowlisted read-only query kind: files, symbols, imports, "
-            "dependencies, routes, or receipts. Arbitrary SQL and multiple "
-            "statements are blocked."
+            "dependencies, routes, or receipts against live-root Local Code. "
+            "Arbitrary SQL, multiple statements, and accepted-archive access are blocked."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Querying PV intelligence", "PV query complete"),
@@ -3997,7 +3989,6 @@ def create_mcp_server(
     def pv_query(
         project_id: str,
         query_kind: str,
-        pv_ref: str | None = None,
         value: str | None = None,
         limit: int = 50,
     ) -> dict[str, Any]:
@@ -4006,17 +3997,16 @@ def create_mcp_server(
             application.reader.query,
             project_id,
             query_kind,
-            pv_ref=pv_ref,
             value=value,
             limit=limit,
         )
 
     @mcp.tool(
         name="pv_diff",
-        title="Compare two immutable PVs",
+        title="Read live Project Overlay comparison",
         description=(
-            "Read exact added, modified, and deleted file identities between two "
-            "validated accepted or candidate PVs. Performs no source or pointer write."
+            "Read the progressive root Project Overlay for the requested PV labels. "
+            "The immutable accepted ZIP is never opened; no source or pointer is written."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Comparing PVs", "PV comparison complete"),
