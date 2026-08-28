@@ -18,6 +18,10 @@ PUBLIC_DOCS_BINDING = (
     "public-docs-backend-binding.json"
 )
 PUBLIC_DOCS_BINDING_SCHEMA = "evidence-lane.public-docs-backend-binding.v1"
+REPOSITORY_FINGERPRINT_MANIFEST = (
+    ".github/evidence-lane-repository-fingerprints.v1.json"
+)
+REPOSITORY_FINGERPRINT_SCHEMA = "evidence-lane.repository-source-fingerprints.v2"
 
 PAGES = (
     ("index", "README", "README.md"),
@@ -103,9 +107,8 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
 
 
-def _current_commit_refresh_paths() -> set[str]:
-    revision = os.environ.get("GITHUB_SHA", "").strip()
-    command = (
+def _commit_refresh_paths(revision: str) -> set[str]:
+    result = subprocess.run(
         [
             "git",
             "diff-tree",
@@ -114,12 +117,7 @@ def _current_commit_refresh_paths() -> set[str]:
             "--name-only",
             "-r",
             revision,
-        ]
-        if re.fullmatch(r"[0-9a-fA-F]{40}", revision)
-        else ["git", "diff", "--cached", "--name-only", "HEAD", "--"]
-    )
-    result = subprocess.run(
-        command,
+        ],
         cwd=ROOT,
         check=True,
         capture_output=True,
@@ -131,6 +129,58 @@ def _current_commit_refresh_paths() -> set[str]:
         for line in result.stdout.splitlines()
         if line.strip()
     }
+
+
+def _git_revision(value: str) -> str:
+    result = subprocess.run(
+        ["git", "rev-parse", "--verify", f"{value}^{{commit}}"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="ascii",
+    )
+    return result.stdout.strip()
+
+
+def _current_commit_refresh_paths() -> set[str]:
+    revision = os.environ.get("GITHUB_SHA", "").strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{40}", revision):
+        result = subprocess.run(
+            ["git", "diff", "--cached", "--name-only", "HEAD", "--"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+        return {
+            line.strip().replace("\\", "/")
+            for line in result.stdout.splitlines()
+            if line.strip()
+        }
+    current_paths = _commit_refresh_paths(revision)
+    if REPOSITORY_FINGERPRINT_MANIFEST not in current_paths:
+        return current_paths
+    manifest = json.loads(
+        (ROOT / REPOSITORY_FINGERPRINT_MANIFEST).read_text(encoding="utf-8")
+    )
+    if (
+        manifest.get("schema") != REPOSITORY_FINGERPRINT_SCHEMA
+        or manifest.get("status") != "PASS"
+    ):
+        raise RuntimeError("The repository fingerprint manifest is not authoritative.")
+    source_commit = str(manifest.get("source_commit_sha") or "")
+    baseline_commit = str(manifest.get("baseline_commit_sha") or "")
+    if (
+        _git_revision(f"{revision}^") != source_commit
+        or _git_revision(f"{source_commit}^") != baseline_commit
+    ):
+        raise RuntimeError(
+            "The receipt commit does not bind its exact feature and baseline commits."
+        )
+    current_paths.update(_commit_refresh_paths(source_commit))
+    return current_paths
 
 
 def _verify_public_docs_binding(
