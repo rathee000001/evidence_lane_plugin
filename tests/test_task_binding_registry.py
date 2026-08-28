@@ -64,7 +64,6 @@ def _rebind(
         "candidate_created": False,
         "candidate_id_preserved": session.candidate_id,
         "candidate_state_preserved": session.state.value,
-        "pending_hil": bool(session.metadata.get("pending_hil")),
         "pending_hil": False,
         "pointer_moved": False,
         "goal_completion_mutated": False,

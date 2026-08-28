@@ -5,7 +5,8 @@ Audit date: **2026-08-15**
 Evidence Lane's proprietary license applies only to Evidence Lane material. It
 does not replace the licenses, notices, or trademarks of third-party packages.
 The exact dependency versions are pinned in `pyproject.toml`,
-`requirements.lock.txt`, and `remote_adapter/package.json`.
+`requirements.torch-cpu.lock.txt`, `requirements.lock.txt`,
+`requirements.toolchain.lock.txt`, and `apps/evidence-lane-app/package.json`.
 
 Direct Python runtime dependency metadata is permissive or Python Software
 Foundation-family: Apache-2.0, BSD-3-Clause, MIT, MIT-CMU, PSF/PSFL, or an

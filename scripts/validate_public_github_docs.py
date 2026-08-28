@@ -83,7 +83,7 @@ def validate() -> dict[str, object]:
     route_source = (
         ROOT
         / "apps"
-        / "evidence-lane-remote-adapter"
+        / "evidence-lane-app"
         / "app"
         / "_data"
         / "repository-documents.ts"

@@ -8,10 +8,8 @@ import re
 import shutil
 import sqlite3
 import subprocess
-import tempfile
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -1242,7 +1240,7 @@ def materialize_project_authority_layout(
             ],
         },
     }
-    for authority, binding in named_authorities.items():
+    for authority in named_authorities:
         reference_root = (
             root / "sectors" / authority
             if authority in {PLAN_SECTOR_ID, CHAT_LINEAGE_SECTOR_ID}

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import require
+from .graph_pipeline import SemanticGraph
 from .hashing import (
     atomic_write_bytes,
     atomic_write_json,
@@ -17,7 +18,6 @@ from .hashing import (
     sha256_bytes,
     sha256_file,
 )
-from .graph_pipeline import SemanticGraph
 from .sqlite_indexing import (
     LLAMA_INDEX_CORE_VERSION,
     rebuild_sqlite_authority_index,

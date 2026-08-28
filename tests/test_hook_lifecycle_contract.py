@@ -11,7 +11,6 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
-import evidence_lane_plugin.hook_contract as hook_contract_module
 from evidence_lane_plugin.hook_contract import (
     HOOK_CAPABILITY_SCHEMA,
     HOOK_CONTRACT_SCHEMA,

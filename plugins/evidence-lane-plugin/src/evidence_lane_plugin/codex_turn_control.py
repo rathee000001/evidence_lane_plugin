@@ -14,7 +14,6 @@ import os
 import re
 import sqlite3
 import time
-import tomllib
 from collections.abc import Mapping
 from contextlib import contextmanager
 from datetime import UTC, datetime
@@ -61,6 +60,7 @@ from .hook_contract import (
 from .host_plan_rehydration import prepare_host_plan_rehydration
 from .install_deferral import adaptive_install_deferral_facts
 from .lineage import ChatLineage
+from .package_root import resolve_plugin_root
 from .project_authority import resolved_chat_lineage_root, resolved_plan_backlog_path
 from .project_memory import (
     rehydrate_memory_checkpoint,
@@ -367,7 +367,7 @@ def _runtime_activation(root: Path) -> dict[str, Any]:
 
 
 def _package_surface_inventory() -> dict[str, Any]:
-    plugin_root = Path(__file__).resolve().parents[2]
+    plugin_root = resolve_plugin_root(__file__)
     public_surface = derive_public_surface_registry(plugin_root)
     _require(
         public_surface["status"] == "PASS",
@@ -746,7 +746,7 @@ def _read_codex_task_binding(
         "The exact Codex task binding does not reference the current stable installation.",
     )
     plugin_manifest = _json(
-        Path(__file__).resolve().parents[2] / ".codex-plugin" / "plugin.json"
+        resolve_plugin_root(__file__) / ".codex-plugin" / "plugin.json"
     )
     plugin_version = str(plugin_manifest.get("version") or "")
     _require(
@@ -2179,7 +2179,7 @@ def seal_exact_task_project_session_binding(
     activation = dict(installation.get("activation") or {})
     plugin_add = dict(activation.get("plugin_add") or {})
     installed_path = Path(str(plugin_add.get("installedPath") or ""))
-    running_plugin_root = Path(__file__).resolve().parents[2]
+    running_plugin_root = resolve_plugin_root(__file__)
     _require(
         activation.get("state") in _SUPPORTED_EXACT_TASK_BINDING_ACTIVATION_STATES
         and plugin.get("version") == task_binding.get("plugin_version")

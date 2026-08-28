@@ -6,7 +6,7 @@ from pathlib import Path
 import jsonschema
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
-ADAPTER = PLUGIN_ROOT.parents[1] / "apps" / "evidence-lane-remote-adapter"
+ADAPTER = PLUGIN_ROOT.parents[1] / "apps" / "evidence-lane-app"
 CONTRACT_PATH = PLUGIN_ROOT / "sdk" / "host" / "github-app-connection.v1.json"
 SCHEMA_PATH = PLUGIN_ROOT / "schemas" / "github-app-connection.schema.json"
 ROUTE_ROOT = ADAPTER / "app" / "api" / "github-app"

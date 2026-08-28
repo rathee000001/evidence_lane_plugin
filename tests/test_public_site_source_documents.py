@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-APP = ROOT / "apps" / "evidence-lane-remote-adapter" / "app"
+APP = ROOT / "apps" / "evidence-lane-app" / "app"
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from prepare_github_pages import PAGES, build
@@ -140,7 +140,7 @@ def test_github_pages_workflow_requires_every_source_refresh_per_commit() -> Non
 
 def test_readme_leads_with_public_site_and_pages_projection_links() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    title_offset = readme.index("# Evidence Lane 3.0.0")
+    title_offset = readme.index("# Evidence Lane")
     public_site_offset = readme.index("https://evidencelane.org", title_offset)
     pages_offset = readme.index(
         "https://rathee000001.github.io/evidence_lane_plugin/", title_offset

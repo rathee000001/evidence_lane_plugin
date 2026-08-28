@@ -117,11 +117,7 @@ def build_runtime_license_bundle(output_root: Path, plugin_root: Path) -> dict[s
                     metadata_boundary
                     and Path(filename).suffix not in {".py", ".pyc", ".pyo"}
                     and (
-                        "licenses" in parts
-                        or filename.startswith("license")
-                        or filename.startswith("copying")
-                        or filename.startswith("notice")
-                        or filename.startswith("authors")
+                        "licenses" in parts or filename.startswith(("license", "copying", "notice", "authors"))
                     )
                 )
                 if not is_license:
@@ -164,6 +160,9 @@ def build_runtime_license_bundle(output_root: Path, plugin_root: Path) -> dict[s
                 str(plugin).encode("utf-8")
             ).hexdigest().upper(),
             "requirements_lock_sha256": _sha256(plugin / "requirements.lock.txt"),
+            "requirements_torch_cpu_lock_sha256": _sha256(
+                plugin / "requirements.torch-cpu.lock.txt"
+            ),
             "requirements_toolchain_lock_sha256": _sha256(
                 plugin / "requirements.toolchain.lock.txt"
             ),

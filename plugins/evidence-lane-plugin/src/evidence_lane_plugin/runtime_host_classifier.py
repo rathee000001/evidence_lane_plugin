@@ -8,8 +8,8 @@ from typing import Any
 from .constants import ENGINE_VERSION
 from .errors import require
 from .hashing import canonical_json_bytes, sha256_bytes
-from .models import HostKind, normalize_host_kind
 from .model_compatibility import classify_model_compatibility
+from .models import HostKind, normalize_host_kind
 from .state_travel_contract import execution_profile_from_context
 
 RUNTIME_HOST_CLASSIFIER_SCHEMA = "evidence-lane.runtime-host-classifier.v1"

@@ -40,7 +40,7 @@ def _tracked_index_rows(repository_root: Path) -> list[dict[str, str]]:
         )
     rows.sort(key=lambda row: row["path"])
     require(
-        rows and len(rows) == len({row["path"] for row in rows}),
+        bool(rows) and len(rows) == len({row["path"] for row in rows}),
         "TRACKED_SOURCE_FINGERPRINT_INDEX_INVALID",
         "The Git index path set is empty, duplicated, or conflicted.",
         status="MISMATCH",
@@ -138,8 +138,7 @@ def staged_index_file_manifest(repository_path: str | Path) -> dict[str, Any]:
             ["git", "-C", str(root), "cat-file", "blob", object_id],
             check=True,
             stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             creationflags=(
                 getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
             ),

@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "session_authority",
   "database": "session-authority.sqlite",
-  "database_sha256": "40EE2A9FEBFA1857069A989B1EDB9F9A5F03420B31637D68FE1D1176BBE328E3",
+  "database_sha256": "502841F97D3CADDEEDE7DDE2620BF2EC247FA1613C5983BEE3CEF28DD363D532",
   "database_integrity": "ok",
-  "schema_sha256": "684F427E00FE533443B59E5399D25A4CD03EE14E7E4D4918CEFF5017D56EB577",
+  "schema_sha256": "B19667B70A941F0527A3CB859594300676B1EF62D4C4C13D1C6775B2C2A719E3",
   "table_count": 19,
   "fts5_tables": [
     "authority_index_fts",
@@ -70,7 +70,7 @@
     {
       "path": "authorities/session_authority/runtime-binding.schema.json",
       "bytes": 605,
-      "sha256": "B149A56AE222D9BAAB0BDE36A58A5238F0BCB2CC08E104C3279BFAE64F534798"
+      "sha256": "004F82B12DD3E50FF22BB0A6FECB1F4479D2BF2DC6AB34E3201D3874702CD876"
     },
     {
       "path": "authorities/session_authority/runtime.py",
@@ -95,12 +95,12 @@
     {
       "path": "authorities/session_authority/session-authority.sqlite",
       "bytes": 143360,
-      "sha256": "40EE2A9FEBFA1857069A989B1EDB9F9A5F03420B31637D68FE1D1176BBE328E3"
+      "sha256": "502841F97D3CADDEEDE7DDE2620BF2EC247FA1613C5983BEE3CEF28DD363D532"
     },
     {
       "path": "authorities/session_authority/session-authority.tools.json",
       "bytes": 19218,
-      "sha256": "324837AEFEDAE266FD320946B2E511F67BA400242B3F4C7C69F0586F2349745F"
+      "sha256": "46B6058A0FAA191C4F175E3ABAC3E6DCCB15A0A7C59BCAC67A4ABC554CBB58D1"
     },
     {
       "path": "authorities/session_authority/sqlite-artifact.schema.json",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/session_authority/sqlite-schema.v1.json",
       "bytes": 27637,
-      "sha256": "3D8AB42BCDE3DF61A973AF857D98E560071A23BAAE8D8ED333DC9B7D8EFDBE98"
+      "sha256": "D0FE15BBF855A3184F8463723322243F863FDDAFE24C9EADF484E0B6A0D23F83"
     },
     {
       "path": "authorities/session_authority/tools.schema.json",
@@ -119,11 +119,11 @@
     }
   ],
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/session_authority.py": "33298393CDB6CFA11E2BD47601AC864857AEEA5571EBB6D1A2AD1BD927897043",
-    "src/evidence_lane_plugin/session.py": "9C826960EB82E79300D8603203B003CEFECD13B3095D1BCB473071CA3A9127B6",
-    "src/evidence_lane_plugin/task_binding_registry.py": "DCF39046F3D118871C7A1803A1B8310A31D9680EAD447F0AB457141127E9A067",
+    "src/evidence_lane_plugin/session_authority.py": "2A2B10C1E0C174A86412F0F5C5839FA602109E7A346F181579DCC09666FCA2AB",
+    "src/evidence_lane_plugin/session.py": "30DF22C6F6852F018558808B5712544C6299156825A8D3FE6F6D52E5C5A6C277",
+    "src/evidence_lane_plugin/task_binding_registry.py": "C5BF413EB85EAAF6198F388A7A64F6EB97E77C2340275187EC796C34AC39A0EA",
     "src/evidence_lane_plugin/state_travel_contract.py": "4AAE9DE2101B5499A1092EB40D6D9D3E10849D7D5E99C00C89DA069E2EE83F70",
-    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
   "llama_index_refresh_receipt": {
@@ -141,8 +141,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:52.292956Z",
-    "receipt_sha256": "7E1A973028FBADE2F59A413965E4750E82023FA232A53964A02C192CC2F86266"
+    "recorded_at": "2026-08-28T10:19:07.260419Z",
+    "receipt_sha256": "493F8BB68E0DA44EDB816ACA148DE77C970F8E9DB18C77FBF10B00AF2E2D41B7"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -286,5 +286,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "3755EA66B5D5D9C1E971C0425707B04CF1B0A39018A1DD9E14DA268FF3370560"
+  "receipt_sha256": "9CABB51BA2EEC21317B5528768D020A0576081D4856FC0243F3BC2E21B2FD2BA"
 }

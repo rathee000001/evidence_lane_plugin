@@ -10,7 +10,8 @@
   "license_evidence": "runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256",
   "evidence_paths": [
     "requirements.lock.txt",
-    "requirements.toolchain.lock.txt"
+    "requirements.toolchain.lock.txt",
+    "requirements.torch-cpu.lock.txt"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -21,5 +22,5 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "62FD88592AFE30FF6DBEB961F60E97E58DF71E72B06DAAD78937CEB5C04F1BAA"
+  "receipt_sha256": "F96360772A81D5662D69FBB653748B6CA22BBA7BF40B4912FB93CD3D03C74B19"
 }

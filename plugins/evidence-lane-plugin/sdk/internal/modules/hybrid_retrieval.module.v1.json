@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.hybrid_retrieval",
   "source_path": "src/evidence_lane_plugin/hybrid_retrieval.py",
-  "source_sha256": "E0E6F64513B7B99FD457DBC85956F36ECBC851C2187AB4CF2EA653672C5700CD",
-  "source_bytes": 6792,
+  "source_sha256": "FA81E91F4AF234A13CB522896CB72E57A46CEBBA50CE4DE85D62E597453F8E79",
+  "source_bytes": 6849,
   "role": "AI_TOOLCHAIN_EXECUTION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "1D1362B150DF746BDB2DD0F7BAEE3BF83E415C24AEB5363D28F7410E730E699A"
+  "receipt_sha256": "CDD76EE703DFB3AAF12887E2951845BCB61E431C607DE727A265E0C029EB6C8F"
 }

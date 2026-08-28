@@ -17,13 +17,14 @@ from .hashing import (
     sha256_bytes,
     sha256_file,
 )
+from .package_root import resolve_plugin_root
 from .timeutil import utc_now
 
 FLASH_MANIFEST_SCHEMA = "evidence-lane.session-flash-manifest.v1"
 FLASH_RECEIPT_SCHEMA = "evidence-lane.session-flash-receipt.v1"
 FLASH_AUTHORITY_VERSION = "ENV15_UOP15_PUBLIC_LOCKED_20260807"
 FLASH_MANIFEST_SHA256 = (
-    "B41F53A66E2CEA58788FC43E1466D16847B5A07ECD90A2149BCEF5C8F1422512"
+    "0F8463AEDCA9E079AB849B481E64928BAC3D95B4D407BFCA6CD92023B24A5E8D"
 )
 NESTED_SOURCE_LAYOUT_FLASH_MANIFEST_SHA256 = (
     "4585D703515D2DE245F688E3047F192C6BD3D507475B57855918561933C5293A"
@@ -60,7 +61,7 @@ class SessionFlashAuthority:
         self.asset_root = (
             Path(asset_root).resolve()
             if asset_root
-            else Path(__file__).resolve().parents[2]
+            else resolve_plugin_root(__file__)
         )
         self.manifest_path = self.asset_root / "env" / "SESSION_FLASH_MANIFEST.json"
         self.receipt_path = (

@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "github-pages"
 REPOSITORY = "rathee000001/evidence_lane_plugin"
 PUBLIC_DOCS_BINDING = (
-    "apps/evidence-lane-remote-adapter/app/_data/"
+    "apps/evidence-lane-app/app/_data/"
     "public-docs-backend-binding.json"
 )
 PUBLIC_DOCS_BINDING_SCHEMA = "evidence-lane.public-docs-backend-binding.v1"

@@ -5,31 +5,31 @@
   "event": "PostToolUse",
   "handler_count": 4,
   "event_binding": "hooks/events/PostToolUse/event.v1.json",
-  "event_binding_sha256": "5BFD1A7236350145B5E19D11D9FD073D1151D716692CD420FE6895A2F03A195F",
+  "event_binding_sha256": "17F6167F4921D01957D0B8FCAB94809ABCEA936F5DDA7A3289142A7A4A8AC89C",
   "handlers": [
     {
       "display_id": "6.1",
       "path": "hooks/events/PostToolUse/handler-6.1.v1.json",
-      "sha256": "1938EB86C903D5B1CB8405142CC4FDBFB61C8DA27E025984299687BFEE1E86E8"
+      "sha256": "5FB441627D3C6129382483283AEF5E867B450E36FFF685617CB05ADC3433926E"
     },
     {
       "display_id": "6.2",
       "path": "hooks/events/PostToolUse/handler-6.2.v1.json",
-      "sha256": "BF89DC78B758D62C4D741A3DDFF2A24091335DC58312808391A3632887D4ADE9"
+      "sha256": "3855146A6897B0805CE16D227E680BB7AAB0C670FF0860A312C6F8871B3B235D"
     },
     {
       "display_id": "6.3",
       "path": "hooks/events/PostToolUse/handler-6.3.v1.json",
-      "sha256": "5BEF3DA64F22346DB3A3C2C7EBC50340FC653A509D9071DF2479588AB88C8745"
+      "sha256": "F7BFCD5475BF1B43EAB465454DE0C0398A28780D45C5F55BC3C0595F94D0FE2E"
     },
     {
       "display_id": "6.4",
       "path": "hooks/events/PostToolUse/handler-6.4.v1.json",
-      "sha256": "0FE6BDC067BD0AE14FA16F59487BC77A617235D85392D51C5E6F00946FC77BE2"
+      "sha256": "56639636377D227161090CAD5B0AF08C85F66401A2CDBCC33E6F7FF8D522B677"
     }
   ],
   "canonical_hook_manifest": "hooks/hooks.json",
   "canonical_logical_actions": "hooks/logical-actions.json",
   "enabled_only_after_installed_event_pass": true,
-  "receipt_sha256": "3EC63FADF0EA3E94EE9B12E78E5D8D675E5C1DC7D5C6DE3E82CFDAFF8279F020"
+  "receipt_sha256": "62A38D5B3E6D6FF82A37A804C93EE4430E464AFE2F0C32C19687778C0BCC5FF9"
 }

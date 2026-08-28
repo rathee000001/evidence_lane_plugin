@@ -11,8 +11,6 @@ from pathlib import Path
 from typing import Any
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
-REPOSITORY_ROOT = PLUGIN_ROOT.parents[1]
-REMOTE_ADAPTER_ROOT = REPOSITORY_ROOT / "apps" / "evidence-lane-remote-adapter"
 SOURCE_ROOT = PLUGIN_ROOT / "src"
 if str(SOURCE_ROOT) not in sys.path:
     sys.path.insert(0, str(SOURCE_ROOT))
@@ -26,23 +24,25 @@ def _canonical(value: Any) -> bytes:
 
 def _write_atomic_text(path: Path, value: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    handle = tempfile.NamedTemporaryFile(
-        mode="w",
-        encoding="utf-8",
-        newline="\n",
-        prefix=f".{path.name}.",
-        suffix=".tmp",
-        dir=path.parent,
-        delete=False,
-    )
-    temporary = Path(handle.name)
+    temporary: Path | None = None
     try:
-        with handle:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            newline="\n",
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            dir=path.parent,
+            delete=False,
+        ) as handle:
+            temporary = Path(handle.name)
             handle.write(value)
             handle.flush()
+        assert temporary is not None
         temporary.replace(path)
     finally:
-        temporary.unlink(missing_ok=True)
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 def _annotation(tool: Any) -> dict[str, Any]:
@@ -434,7 +434,7 @@ def build_catalog() -> dict[str, Any]:
             "canonical_path": "schemas/public-action-schemas.v001.json",
             "independent_runtime_duplicate_allowed": False,
             "remote_projection_path": (
-                "apps/evidence-lane-remote-adapter/app/_data/public-action-registry.json"
+                "apps/evidence-lane-app/app/_data/public-action-registry.json"
             ),
             "remote_projection_is_execution_authority": False,
         },
@@ -528,7 +528,7 @@ def main() -> int:
     remote_path = (
         plugin_root.parents[1]
         / "apps"
-        / "evidence-lane-remote-adapter"
+        / "evidence-lane-app"
         / "app"
         / "_data"
         / "public-action-registry.json"

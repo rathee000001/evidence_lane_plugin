@@ -4,7 +4,6 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
-
 from evidence_lane_plugin.web_toolchain import (
     WebDiscoveryRequest,
     WebFetchRequest,
@@ -15,7 +14,7 @@ from evidence_lane_plugin.web_toolchain import (
 
 
 class _Handler(BaseHTTPRequestHandler):
-    def do_GET(self) -> None:  # noqa: N802 - stdlib callback name
+    def do_GET(self) -> None:
         body = (
             b"<html><head><title>Evidence</title><script>ignore()</script></head>"
             b"<body><article><h1>Lane</h1><p>Preserve exact source truth.</p>"

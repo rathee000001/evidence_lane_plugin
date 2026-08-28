@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from .hashing import canonical_json_bytes, sha256_bytes
+from .package_root import resolve_plugin_root
 from .redaction import contains_secret, redact
 
 HOOK_CONTRACT_SCHEMA = "evidence-lane.codex-hook-lifecycle-contract.v1"
@@ -221,7 +222,7 @@ def load_hook_logical_action_registry(
     parses as hook configuration.
     """
 
-    root = plugin_root or Path(__file__).resolve().parents[2]
+    root = plugin_root or resolve_plugin_root(__file__)
     path = root / "hooks" / "logical-actions.json"
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))

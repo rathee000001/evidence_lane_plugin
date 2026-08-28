@@ -146,11 +146,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/learning_seal_candidate.action.v1.json",
-  "sdk_action_binding_sha256": "B4384D9D32F64C9DFF30A3DD9E4FBF63AA62B234D7D248D8A786CBD88C8E639F",
+  "sdk_action_binding_sha256": "F45EFECF8588F492268157B282B450511972FE0BA06F63194FC3EB31DB7CA946",
   "public_action_schema": "schemas/actions/learning_seal_candidate.schema.json",
   "public_action_schema_sha256": "1701BFA110AD78A7AA299B333E0BBF0DA4E59A7E1478F7247BED1BE306F7C1E0",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "canonical_server_sha256": "20C15301DF15DA7E93ACE79DD54707C8A17E1340BA33123832FB46BCB1A4042A",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "2250E76655BEF13E53FC93FA02B08ADF615FC8C440D070C763D0FE0D378029C7"
+  "receipt_sha256": "3225CC4918E5F8405BD4F0B048C2366D166FE26E5C4A3CFFFA24B235C52DB459"
 }

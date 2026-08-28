@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from .errors import require
+from .graph_pipeline import SemanticGraph
 from .hashing import (
     atomic_write_bytes,
     atomic_write_json,
@@ -26,8 +27,8 @@ from .hashing import (
     sha256_bytes,
     sha256_file,
 )
-from .graph_pipeline import SemanticGraph
 from .lanes import CANONICAL_LANE_IDS
+from .package_root import resolve_plugin_root
 from .project_authority import resolved_plan_runtime_path
 from .redaction import contains_secret
 
@@ -169,7 +170,7 @@ def _database_path(root: Path) -> Path:
 
 def _schema_asset() -> tuple[Path, str]:
     candidates = (
-        Path(__file__).resolve().parents[2]
+        resolve_plugin_root(__file__)
         / "schemas"
         / "memory"
         / "project-memory.v1.sql",

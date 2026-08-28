@@ -2,6 +2,7 @@
 
 from evidence_lane_plugin.mcp_server import create_mcp_server
 
+
 def create_server():
     return create_mcp_server()
 

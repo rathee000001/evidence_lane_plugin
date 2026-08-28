@@ -9,6 +9,7 @@ from typing import Any, cast
 from .errors import EvidenceLaneError, require
 from .flash_projection import FLASH_PROJECTION_SCHEMA
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
+from .package_root import resolve_plugin_root
 
 SOURCE_AUTHORITY_MANIFEST_SCHEMA = (
     "evidence-lane.env-uop-source-authority-manifest.v1"
@@ -170,7 +171,7 @@ def build_flash_dual_identity(
     }
     source_manifest_sha256 = sha256_bytes(canonical_json_bytes(source_manifest))
 
-    package_root = Path(__file__).resolve().parents[2]
+    package_root = resolve_plugin_root(__file__)
     resolved_plugin_manifest = Path(plugin_manifest_path).resolve() if (
         plugin_manifest_path is not None
     ) else package_root / ".codex-plugin" / "plugin.json"

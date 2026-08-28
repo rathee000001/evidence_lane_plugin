@@ -3119,7 +3119,7 @@
   "schema_authority": {
     "canonical_path": "schemas/public-action-schemas.v001.json",
     "independent_runtime_duplicate_allowed": false,
-    "remote_projection_path": "apps/evidence-lane-remote-adapter/app/_data/public-action-registry.json",
+    "remote_projection_path": "apps/evidence-lane-app/app/_data/public-action-registry.json",
     "remote_projection_is_execution_authority": false
   },
   "tools": [
@@ -11460,5 +11460,5 @@
       "schema_sha256": "F5DEC7B072FFE420FDF55ADAB2C1F91037E2E4FCA64E755FD0C65D4E35E3880D"
     }
   ],
-  "catalog_sha256": "B3DD0A986CDDE45E5C6035B8FB8239B576EB9523E97BEC38CABC79A2DFB33C65"
+  "catalog_sha256": "4AFF1511E4D6AFDB2DB1C1D70F375A394CFAFCD35FA90AF87262898C448FA413"
 }

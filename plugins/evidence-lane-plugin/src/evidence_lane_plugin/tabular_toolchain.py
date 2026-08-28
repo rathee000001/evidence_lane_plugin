@@ -371,9 +371,9 @@ def stage_result_to_lane_payloads(
 __all__ = [
     "CODEX_HOST_PROFILES",
     "DUCKDB_EXTENSIONS",
+    "POLARS_EXTENSIONS",
     "DuckDBStageRequest",
     "DuckDBStageResult",
-    "POLARS_EXTENSIONS",
     "PolarsStageResult",
     "duckdb_available",
     "polars_available",

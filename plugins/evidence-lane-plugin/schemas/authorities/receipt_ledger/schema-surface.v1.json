@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "receipt_ledger",
   "authority_root": "authorities/receipt_ledger",
-  "authority_manifest_sha256": "EBD4460F11959BB172C48B2A3B3C1050D236170316C0D74D1304230BA935BCD1",
+  "authority_manifest_sha256": "EBD93E14F2E3BC0BA13D7C83BF33045D88F54436779D44886919733C19C17F5E",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -45,7 +45,7 @@
     {
       "path": "authorities/receipt_ledger/runtime-binding.schema.json",
       "bytes": 596,
-      "sha256": "050B75528E9D1BEC380D97E60EF11E0DA2FBB94EE7DB56D1186216C6B7DAC58E"
+      "sha256": "04D354DD9C4B719A4D682A70F4DB7A07EC0A2AA4596FD8EDCDC03860F1205E24"
     },
     {
       "path": "authorities/receipt_ledger/schema.sql",
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "FF0B115EE61D415D066643789D75A692B6812655476EF265572DBE6C28658D04"
+  "receipt_sha256": "C2AD8A28CCBE3BACDBFAEDB4911C6CD2022D70297B057FB676607FF89F5309CE"
 }

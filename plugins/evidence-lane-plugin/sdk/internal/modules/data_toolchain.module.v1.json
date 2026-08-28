@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.data_toolchain",
   "source_path": "src/evidence_lane_plugin/data_toolchain.py",
-  "source_sha256": "D333B1D71B40BAAD3A1ABD38C66F63471A720AAF6CBD15CEE7EEF6F5F4074AD5",
-  "source_bytes": 9208,
+  "source_sha256": "91361AC64068B67AA216F4A222E0FF1311056FBEE3DAAE6E239689E74128FA5D",
+  "source_bytes": 9097,
   "role": "AI_TOOLCHAIN_EXECUTION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "A765D6EF22ED90A703F7D2CC4448784DF241D68363DB5FDFEDF430DE5A2D4D45"
+  "receipt_sha256": "00D5FCBA84B918A531EADFA5F123DDB75E413FB92D74F89E35E2A83243FD4574"
 }

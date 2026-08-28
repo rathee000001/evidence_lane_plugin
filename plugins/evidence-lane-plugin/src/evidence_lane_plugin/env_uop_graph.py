@@ -372,6 +372,9 @@ def rebuild_flash_manifest(plugin_root: str | Path) -> dict[str, Any]:
         },
         "runtime_locks": {
             "base_sha256": sha256_file(root / "requirements.lock.txt"),
+            "torch_cpu_sha256": sha256_file(
+                root / "requirements.torch-cpu.lock.txt"
+            ),
             "toolchain_sha256": sha256_file(
                 root / "requirements.toolchain.lock.txt"
             ),

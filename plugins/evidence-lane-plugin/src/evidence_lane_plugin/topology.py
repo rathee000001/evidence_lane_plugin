@@ -18,13 +18,13 @@ from typing import Any
 
 from PIL import Image
 
+from .graph_pipeline import SemanticGraph
 from .hashing import (
     atomic_write_bytes,
     canonical_json_bytes,
     sha256_bytes,
     sha256_file,
 )
-from .graph_pipeline import SemanticGraph
 from .redaction import redact_text
 
 RENDER_RECEIPT_SCHEMA = "evidence-lane.mermaid-render-receipt.v2"

@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.adaptive_delta_exit",
   "source_path": "src/evidence_lane_plugin/adaptive_delta_exit.py",
-  "source_sha256": "53F72C13E32124926516823A28AE2278C2F1B62AB28AAE389D47CD99D7316A33",
-  "source_bytes": 40369,
+  "source_sha256": "480467D59E86DF7293EB2C3CEA5D80CCC5670F9B2A08BF21074C323524B14AE0",
+  "source_bytes": 40575,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "FE1603C73AEDC2F00CE56FF759FD9335D0BCD91FFDE29CB53FA5F9F80FB0A287"
+  "receipt_sha256": "A4E0B9BE0427F6552AB3ED7EFE6EA9785A1DA10C3E610CEB5507B1617E388F80"
 }

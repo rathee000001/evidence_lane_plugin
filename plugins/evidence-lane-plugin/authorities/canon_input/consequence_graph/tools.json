@@ -13,7 +13,7 @@
   "json_role": "BUILD_REFRESH_POINTER_AND_RECEIPT_TOOLING",
   "runtime_binding": "runtime.py",
   "canonical_source": "src/evidence_lane_plugin/canon_consequence_graph.py",
-  "canonical_source_sha256": "AF1112AE18285A93A2308CF9E31B683EFF1D16FA5199726195CD31F25649B7F2",
+  "canonical_source_sha256": "69381007587BD0AC79759B4E8D283F4A90AF1560164A64096A303048D9EF11BF",
   "llama_index_refresh_receipt": {
     "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
     "status": "PASS",
@@ -29,8 +29,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:50.926222Z",
-    "receipt_sha256": "A008DB934DF94912DBD2716EA6F68C575BA515148D6FB2EFA1EDB7CC15220865"
+    "recorded_at": "2026-08-28T10:19:05.243149Z",
+    "receipt_sha256": "968214A0FE6A8F2043A2895A88D5EE2FA3FF39AD29DC976A73319A79914DE9D4"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -172,5 +172,5 @@
     "mmd_dot_same_semantic_topology": true,
     "receipt_sha256": "085C47ECFDF2C88680F5329570EE9DDC37BCEB7DC38644625667CCEEB57DE86B"
   },
-  "receipt_sha256": "C365DB179A686080287EF0683E5081C48B597292554011136C38822C44B86555"
+  "receipt_sha256": "8C874B160093906D80B82EBACD6D503ED58902AECB6D25CDC8313C639015EF2D"
 }

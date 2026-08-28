@@ -9,7 +9,7 @@ from evidence_lane_plugin.constants import GOVERNED_SKILL_COUNT
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
-ADAPTER = ROOT / "apps" / "evidence-lane-remote-adapter"
+ADAPTER = ROOT / "apps" / "evidence-lane-app"
 
 CONTROL_CONTRACT = (
     ("evi-boot", "Boot"),
@@ -95,8 +95,8 @@ def test_v2_codex_package_has_no_active_chatgpt_host_surface() -> None:
     assert len(skill_files) == GOVERNED_SKILL_COUNT
     assert not (PLUGIN / "chatgpt-app-connection.json").exists()
     assert not (PLUGIN / "chatgpt-app-submission.json").exists()
-    assert not (ROOT / "apps" / "evidence-lane-remote-adapter" / "api" / "index.py").exists()
-    assert not (ROOT / "apps" / "evidence-lane-remote-adapter" / "requirements.txt").exists()
+    assert not (ROOT / "apps" / "evidence-lane-app" / "api" / "index.py").exists()
+    assert not (ROOT / "apps" / "evidence-lane-app" / "requirements.txt").exists()
 def test_threejs_site_remains_and_meshy_is_not_a_runtime_dependency() -> None:
     package = json.loads(_read(ADAPTER / "package.json"))
     combined_dependencies = {

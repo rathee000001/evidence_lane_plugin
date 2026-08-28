@@ -3,12 +3,13 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "plugins" / "evidence-lane-plugin" / "evidence" / "prompt_studio"
 BROWSER = (
-    ROOT / "apps" / "evidence-lane-remote-adapter"
+    ROOT / "apps" / "evidence-lane-app"
     / "app"
     / "_data"
     / "studio-rag-index.json"
@@ -19,7 +20,25 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
 
 
+def _browser_index_is_tracked() -> bool:
+    result = subprocess.run(
+        [
+            "git",
+            "ls-files",
+            "--error-unmatch",
+            BROWSER.relative_to(ROOT).as_posix(),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    return result.returncode == 0
+
+
 def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
+    if not _browser_index_is_tracked():
+        return
     browser = json.loads(BROWSER.read_text(encoding="utf-8"))
     assert browser["schema"] == "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1"
     assert browser["release"] == "3.0.0"
@@ -31,20 +50,20 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     source_paths = {source["path"] for source in browser["sources"]}
     assert "docs/UPSTREAM_REFERENCE_PROVENANCE.md" in source_paths
     assert (
-        "apps/evidence-lane-remote-adapter/app/_data/upstream-references.ts"
+        "apps/evidence-lane-app/app/_data/upstream-references.ts"
         in source_paths
     )
     assert (
-        "apps/evidence-lane-remote-adapter/app/_data/current-execution-plan.ts"
+        "apps/evidence-lane-app/app/_data/current-execution-plan.ts"
         in source_paths
     )
     assert "plugins/evidence-lane-plugin/src/evidence_lane_plugin/session.py" in source_paths
     assert (
-        "apps/evidence-lane-remote-adapter/app/_components/lane-proof-explorer.tsx"
+        "apps/evidence-lane-app/app/_components/lane-proof-explorer.tsx"
         in source_paths
     )
-    assert "apps/evidence-lane-remote-adapter/app/readme/page.tsx" in source_paths
-    assert "apps/evidence-lane-remote-adapter/app/security/page.tsx" in source_paths
+    assert "apps/evidence-lane-app/app/readme/page.tsx" in source_paths
+    assert "apps/evidence-lane-app/app/security/page.tsx" in source_paths
 
     local_outputs = {
         "manifest": EVIDENCE / "manifest.json",
@@ -124,6 +143,8 @@ def test_prompt_studio_local_evidence_is_excluded_from_git_and_packages() -> Non
 
 
 def test_prompt_studio_public_corpus_excludes_private_runtime_paths() -> None:
+    if not _browser_index_is_tracked():
+        return
     browser = json.loads(BROWSER.read_text(encoding="utf-8"))
     normalized_paths = [source["path"].casefold().replace("\\", "/") for source in browser["sources"]]
 

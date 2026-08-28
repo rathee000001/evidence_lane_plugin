@@ -6,8 +6,6 @@ from pathlib import Path
 import pytest
 from evidence_lane_plugin.service import EvidenceLaneService
 
-from evidence_lane_plugin.service import EvidenceLaneService
-
 
 def git(repository: Path, *args: str) -> str:
     completed = subprocess.run(

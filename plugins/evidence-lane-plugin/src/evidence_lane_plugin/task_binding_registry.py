@@ -21,6 +21,7 @@ from .hashing import (
     sha256_bytes,
     sha256_file,
 )
+from .package_root import resolve_plugin_root
 from .public_surface_registry import derive_public_surface_registry
 from .store import ProjectStore
 from .timeutil import utc_now
@@ -189,7 +190,7 @@ def seal_running_release_authority(
 
     exact_root = Path(root).resolve()
     _validate_surface(surface)
-    plugin_root = Path(__file__).resolve().parents[2]
+    plugin_root = resolve_plugin_root(__file__)
     manifest = plugin_root / ".codex-plugin" / "plugin.json"
     require(
         manifest.is_file(),

@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.first_class_workflows import (
     BIGGER_UNIVERSE_WORKFLOW_SCHEMA,

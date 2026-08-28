@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.sqlite_indexing",
   "source_path": "src/evidence_lane_plugin/sqlite_indexing.py",
-  "source_sha256": "5C7BD7CB9A42AF89E680F6670B8B386A680BE183EBD63CA0D85094DDEFDB294F",
-  "source_bytes": 17628,
+  "source_sha256": "AA90B75BA0B8A4F9A9F4332BEB9D2701A530C2A9FD4BC579FB13D0F0825D7E41",
+  "source_bytes": 17643,
   "role": "AI_TOOLCHAIN_EXECUTION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "1D0D2A9BCB137B78A6A7F4DE98659546912A09597D24C433A1690CB744323C40"
+  "receipt_sha256": "A07CDF1F46DBC680167C6A3D06D0802E81B3F67E238691894498D78D7A2C3D72"
 }

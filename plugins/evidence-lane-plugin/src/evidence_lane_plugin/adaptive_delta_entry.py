@@ -375,11 +375,13 @@ def _execute_env_uop_action_plane(
             "A custom mode requires its exact previously validated task binding.",
             status="MISMATCH",
         )
-        mode_governance = dict(governance)
+        validated_governance = cast(Mapping[str, Any], governance)
+        validated_binding = cast(Mapping[str, Any], active_mode_binding)
+        mode_governance = dict(validated_governance)
         classification_receipt = {
             "status": "PASS",
             "operation": "REUSE_ACTIVE_CUSTOM_MODE_BINDING",
-            "receipt_sha256": active_mode_binding.get("binding_receipt_sha256"),
+            "receipt_sha256": validated_binding.get("binding_receipt_sha256"),
             "selected_mode_ids": mode_ids,
             "public_action_created": False,
         }

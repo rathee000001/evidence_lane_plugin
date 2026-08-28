@@ -11,7 +11,7 @@ from evidence_lane_plugin.constants import ENGINE_VERSION, GOVERNED_SKILL_COUNT
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
-ADAPTER = ROOT / "apps" / "evidence-lane-remote-adapter"
+ADAPTER = ROOT / "apps" / "evidence-lane-app"
 SCRIPTS = PLUGIN / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))

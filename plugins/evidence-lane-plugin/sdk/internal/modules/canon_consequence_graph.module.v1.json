@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.canon_consequence_graph",
   "source_path": "src/evidence_lane_plugin/canon_consequence_graph.py",
-  "source_sha256": "AF1112AE18285A93A2308CF9E31B683EFF1D16FA5199726195CD31F25649B7F2",
-  "source_bytes": 52982,
+  "source_sha256": "69381007587BD0AC79759B4E8D283F4A90AF1560164A64096A303048D9EF11BF",
+  "source_bytes": 53022,
   "role": "PROJECT_AUTHORITIES",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "50DE59B30FE8D5DC2EDA1A90451B489F4EAA352E97E934977918E665BBE7D804"
+  "receipt_sha256": "1EE4C8608DBA1FAED09BAA245F8478B22F52EAD9F3F474F0F0E52EF7EF9CD59F"
 }

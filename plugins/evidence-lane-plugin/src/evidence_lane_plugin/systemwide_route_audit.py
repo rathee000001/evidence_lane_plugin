@@ -479,24 +479,25 @@ def _internal_python_import_graph(plugin_root: Path) -> dict[str, Any]:
             target: str | None = None
             if isinstance(node, ast.ImportFrom) and node.level:
                 keep = max(0, len(package_parts) - (node.level - 1))
-                prefix = package_parts[:keep]
+                relative_prefix_parts = package_parts[:keep]
                 suffix = node.module.split(".") if node.module else []
-                target = ".".join([*prefix, *suffix])
+                target = ".".join([*relative_prefix_parts, *suffix])
                 if not node.module:
                     graph[module_name].update(
-                        ".".join([*prefix, alias.name])
+                        ".".join([*relative_prefix_parts, alias.name])
                         for alias in node.names
-                        if ".".join([*prefix, alias.name]) in module_paths
+                        if ".".join([*relative_prefix_parts, alias.name])
+                        in module_paths
                     )
             elif isinstance(node, ast.ImportFrom) and node.module:
-                prefix = "evidence_lane_plugin."
-                if node.module.startswith(prefix):
-                    target = node.module[len(prefix) :]
+                package_prefix = "evidence_lane_plugin."
+                if node.module.startswith(package_prefix):
+                    target = node.module[len(package_prefix) :]
             elif isinstance(node, ast.Import):
                 for alias in node.names:
-                    prefix = "evidence_lane_plugin."
-                    if alias.name.startswith(prefix):
-                        graph[module_name].add(alias.name[len(prefix) :])
+                    package_prefix = "evidence_lane_plugin."
+                    if alias.name.startswith(package_prefix):
+                        graph[module_name].add(alias.name[len(package_prefix) :])
             if target:
                 graph[module_name].update(
                     name
@@ -528,9 +529,9 @@ def _internal_python_import_graph(plugin_root: Path) -> dict[str, Any]:
             elif isinstance(node, ast.Import):
                 names = [alias.name for alias in node.names]
             for name in names:
-                prefix = "evidence_lane_plugin."
-                if name.startswith(prefix):
-                    target = name[len(prefix) :]
+                package_prefix = "evidence_lane_plugin."
+                if name.startswith(package_prefix):
+                    target = name[len(package_prefix) :]
                     script_adapter_roots.update(
                         module
                         for module in module_paths
@@ -606,7 +607,7 @@ def _sdk_file_class(relative: str) -> str | None:
         return "SDK_GOVERNED_REMOTE_PROJECTION_ADAPTER"
     if relative.startswith("schemas/"):
         return "INTERNAL_SDK_SCHEMA_CONTRACT"
-    if relative.startswith("env/") or relative.startswith("uop/"):
+    if relative.startswith(("env/", "uop/")):
         return "INTERNAL_SDK_DATA_CONTRACT"
     if relative.startswith("sdk/"):
         return "SDK_GOVERNED_PACKAGE_CONTRACT"
@@ -1059,7 +1060,7 @@ def build_systemwide_route_audit(
     remote_projection = (
         repository
         / "apps"
-        / "evidence-lane-remote-adapter"
+        / "evidence-lane-app"
         / "app"
         / "_data"
         / "public-action-registry.json"

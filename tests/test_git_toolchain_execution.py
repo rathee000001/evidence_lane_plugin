@@ -3,7 +3,6 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-
 from evidence_lane_plugin.git_optional import probe_git_arm
 from evidence_lane_plugin.github_toolchain import (
     GitHubInspectionRequest,

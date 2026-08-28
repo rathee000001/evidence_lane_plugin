@@ -21,7 +21,14 @@ RUN apt-get update \
 
 WORKDIR /app
 
+COPY plugins/evidence-lane-plugin/requirements.torch-cpu.lock.txt /tmp/requirements.torch-cpu.lock.txt
 COPY plugins/evidence-lane-plugin/requirements.lock.txt /tmp/requirements.lock.txt
+RUN python -m pip install \
+        --disable-pip-version-check \
+        --require-hashes \
+        --no-deps \
+        --no-cache-dir \
+        -r /tmp/requirements.torch-cpu.lock.txt
 RUN python -m pip install \
         --disable-pip-version-check \
         --require-hashes \

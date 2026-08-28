@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ADAPTER = ROOT / "apps" / "evidence-lane-remote-adapter"
+ADAPTER = ROOT / "apps" / "evidence-lane-app"
 APP = ADAPTER / "app"
 COMPONENTS = APP / "_components"
 
@@ -338,7 +338,7 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     openrouter = (
         APP / "api" / "studio-query" / "openrouter-general.ts"
     ).read_text(encoding="utf-8")
-    adapter_root = ROOT / "apps" / "evidence-lane-remote-adapter"
+    adapter_root = ROOT / "apps" / "evidence-lane-app"
     adapter_package = json.loads((adapter_root / "package.json").read_text(encoding="utf-8"))
     adapter_readme = (adapter_root / "README.md").read_text(encoding="utf-8")
     openrouter_test = (
@@ -388,14 +388,14 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
         ROOT / "plugins" / "evidence-lane-plugin" / "scripts" / "build_prompt_studio_index.py"
     ).read_text(encoding="utf-8")
     assert (
-        '"apps/evidence-lane-remote-adapter/app/_data/studio-retrieval.ts"'
+        '"apps/evidence-lane-app/app/_data/studio-retrieval.ts"'
         in index_builder
     )
 
     rag_index = json.loads((APP / "_data" / "studio-rag-index.json").read_text(encoding="utf-8"))
     indexed_paths = {source["path"] for source in rag_index["sources"]}
     assert (
-        "apps/evidence-lane-remote-adapter/app/_data/studio-retrieval.ts"
+        "apps/evidence-lane-app/app/_data/studio-retrieval.ts"
         not in indexed_paths
     )
 

@@ -2,7 +2,7 @@
   "schema": "evidence-lane.remote-public-action-registry.v1",
   "status": "GENERATED_READ_ONLY_PROJECTION",
   "source_catalog_path": "schemas/public-action-schemas.v001.json",
-  "source_catalog_sha256": "B3DD0A986CDDE45E5C6035B8FB8239B576EB9523E97BEC38CABC79A2DFB33C65",
+  "source_catalog_sha256": "4AFF1511E4D6AFDB2DB1C1D70F375A394CFAFCD35FA90AF87262898C448FA413",
   "tool_count": 91,
   "read_tool_count": 30,
   "write_tool_count": 61,
@@ -789,5 +789,5 @@
     }
   ],
   "execution_authority": false,
-  "projection_sha256": "E32BDBDDEC033545DF8691A977140B4ABDB0648AD3024B731381D28D3614D8D5"
+  "projection_sha256": "87741C64A4C8AD9DBCA9C31F768613AFBC49EAAA4D59BCA2E7B0A8B3509D5B20"
 }

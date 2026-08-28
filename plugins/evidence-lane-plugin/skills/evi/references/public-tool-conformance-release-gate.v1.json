@@ -4,7 +4,7 @@
   "source_delta_task_id": "TASK35_R265_CURRENT_PUBLIC_SURFACE",
   "generated_from": {
     "public_catalog_path": "schemas/public-action-schemas.v001.json",
-    "public_catalog_sha256": "B571AF9EC31691C96DB0B3845ED0B7A6700D1C84A2578ABA9A2EA594982AF045",
+    "public_catalog_sha256": "E5C7FF57851E7B68E0E1F00F1DC6901068B8EDCC1145AD07DA1386808A741D30",
     "source_matrix_sha256": "0F83431BB787920448FB8B6BA017DABEBF1BE59CA21D2F84CAA102F8CF197E43",
     "installed_matrix_sha256": null
   },

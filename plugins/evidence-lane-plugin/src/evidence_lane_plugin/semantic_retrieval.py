@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import importlib.util
 import sqlite3
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -167,7 +168,9 @@ def embed_with_local_sentence_transformer(
         raise ValueError("SEMANTIC_LOCAL_MODEL_DIRECTORY_REQUIRED")
     if not sentence_transformers_available():
         raise RuntimeError("SENTENCE_TRANSFORMERS_DEPENDENCY_UNAVAILABLE")
-    from sentence_transformers import SentenceTransformer  # type: ignore[import-not-found]
+    from sentence_transformers import (
+        SentenceTransformer,  # type: ignore[import-not-found]
+    )
 
     model = SentenceTransformer(str(model_path), local_files_only=True)
     vectors = model.encode(

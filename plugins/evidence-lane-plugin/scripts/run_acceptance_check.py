@@ -186,7 +186,7 @@ def check_ac04() -> dict[str, Any]:
             [
                 str(pnpm),
                 "--dir",
-                "apps/evidence-lane-remote-adapter",
+                "apps/evidence-lane-app",
                 "build",
             ],
             timeout_seconds=900,
@@ -567,13 +567,13 @@ def check_ac16() -> dict[str, Any]:
             REPOSITORY_ROOT / "README.md",
             REPOSITORY_ROOT
             / "apps"
-            / "evidence-lane-remote-adapter"
+            / "evidence-lane-app"
             / "app"
             / "_data"
             / "business-guidance.ts",
             REPOSITORY_ROOT
             / "apps"
-            / "evidence-lane-remote-adapter"
+            / "evidence-lane-app"
             / "app"
             / "_data"
             / "current-execution-plan.ts",

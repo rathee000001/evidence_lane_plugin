@@ -46,8 +46,8 @@ from .ids import prefixed_id
 from .lane_reader import LaneReader
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 from .lineage import ProjectChatLineage
-from .models import ProjectConfig, SessionState, normalize_host_kind
 from .model_compatibility import model_compatibility_catalog
+from .models import ProjectConfig, SessionState, normalize_host_kind
 from .next_actions import HIL_CHOICES, HIL_SUGGESTED_PROMPT
 from .operating_modes import classify_operating_modes
 from .persistence import (

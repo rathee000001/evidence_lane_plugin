@@ -60,7 +60,6 @@ from mcp.types import CallToolResult
 
 from .conftest import (
     build_and_approve_pv1,
-    state_travel_destination_creation,
 )
 
 EXPECTED_TOOL_COUNT = NATIVE_TOOL_COUNT
@@ -435,12 +434,12 @@ def test_packaged_skill_tool_references_match_live_canonical_catalog(
     canonical_names = frozenset(tool.name for tool in asyncio.run(server.list_tools()))
     assert len(canonical_names) == EXPECTED_TOOL_COUNT
     skill_paths = sorted((plugin / "skills").glob("*/SKILL.md"))
-    command_paths = sorted((plugin / "commands").glob("*.md"))
-    contract_paths = [*skill_paths, *command_paths]
+    contract_paths = skill_paths
     surface_catalog = derive_public_surface_registry()["catalog"]
     assert len(skill_paths) == surface_catalog["skills"]
-    assert len(command_paths) == surface_catalog["commands"]
-    assert "evi-plan.md" in {path.name for path in command_paths}
+    assert "commands" not in surface_catalog
+    assert not (plugin / "commands").exists()
+    assert (plugin / "skills" / "evi-plan" / "SKILL.md").is_file()
 
     referenced_tools: set[str] = set()
     for path in contract_paths:
@@ -1569,7 +1568,7 @@ def test_session_start_survives_cachebuster_and_remains_read_only(
     assert before == after_first == after_second
 
 
-def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
+def test_native_skill_surface_covers_lifecycle_and_plan_sidecar() -> None:
     root = Path(__file__).resolve().parents[1]
     plugin = root / "plugins" / "evidence-lane-plugin"
     commands = plugin / "commands"
@@ -1585,17 +1584,16 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
     expected_skills = {
         path.parent.name for path in skills.glob("*/SKILL.md")
     }
-    command_stems = {path.stem for path in commands.glob("*.md")}
-    assert command_stems == expected_skills | {"evi-plan"}
-    plan_command = (commands / "evi-plan.md").read_text(encoding="utf-8")
-    assert "do not ask the user to type `/pl` or `/evi-plan`" in plan_command
-    assert "explicit host Plan acceptance" in plan_command
-    assert "HOST_MODE_SELECTOR_UNAVAILABLE" in plan_command
-    assert "Type /pl, finish the plan, then run /evi-plan again." not in plan_command
-    assert "host_mode=PLAN" in plan_command
-    assert "pv_plan_steer_delta" in plan_command
-    assert "Use this sidecar only for Codex native Plan mode" in plan_command
-    assert "ChatGPT" not in plan_command
+    assert not commands.exists()
+    assert "evi-plan" in expected_skills
+    plan_skill = (skills / "evi-plan" / "SKILL.md").read_text(encoding="utf-8")
+    assert "do not ask the user to invoke a legacy command" in plan_skill
+    assert "explicit host Plan acceptance" in plan_skill
+    assert "HOST_MODE_SELECTOR_UNAVAILABLE" in plan_skill
+    assert "host_mode=PLAN" in plan_skill
+    assert "pv_plan_steer_delta" in plan_skill
+    assert "Use this native skill sidecar only for Codex Plan mode" in plan_skill
+    assert "ChatGPT" not in plan_skill
     for name in expected_skills:
         skill_file = skills / name / "SKILL.md"
         assert skill_file.is_file(), name

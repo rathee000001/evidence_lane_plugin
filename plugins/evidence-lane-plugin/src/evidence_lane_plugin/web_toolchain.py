@@ -195,7 +195,12 @@ def fetch_web_document(request: WebFetchRequest) -> dict[str, Any]:
     fetcher = "HTTPX"
     try:
         import httpx
-        from tenacity import Retrying, retry_if_exception_type, stop_after_attempt, wait_fixed
+        from tenacity import (
+            Retrying,
+            retry_if_exception_type,
+            stop_after_attempt,
+            wait_fixed,
+        )
 
         response = None
         for attempt in Retrying(

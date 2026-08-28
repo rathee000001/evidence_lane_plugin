@@ -19,6 +19,7 @@ from typing import Any, Protocol, cast
 
 from .errors import require
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
+from .package_root import resolve_plugin_root
 from .redaction import contains_secret
 
 CANON_ENVELOPE_SCHEMA = "evidence-lane.canon-envelope.v2"
@@ -93,7 +94,7 @@ _AUTHORITY_EFFECTS_NONE = {
     "chat_lineage": "NONE",
     "host_entry_continuity": "NONE",
 }
-_CANON_SCHEMA_ROOT = Path(__file__).resolve().parents[2] / "schemas" / "canon"
+_CANON_SCHEMA_ROOT = resolve_plugin_root(__file__) / "schemas" / "canon"
 _CANON_RECEIPT_SCHEMAS = {
     CANON_DECISION_RECEIPT_SCHEMA,
     CANON_DISPATCH_RECEIPT_SCHEMA,

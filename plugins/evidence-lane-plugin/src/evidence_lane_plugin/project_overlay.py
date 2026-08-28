@@ -14,6 +14,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
+from .graph_pipeline import SemanticGraph
 from .hashing import (
     atomic_write_bytes,
     atomic_write_json,
@@ -21,7 +22,6 @@ from .hashing import (
     sha256_bytes,
     sha256_file,
 )
-from .graph_pipeline import SemanticGraph
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 from .lineage import ChatLineage
 from .redaction import contains_secret

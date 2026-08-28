@@ -4,3 +4,4 @@
 *.svg text eol=lf
 *.sqlite binary
 *.whl binary
+plugins/evidence-lane-plugin/env/SESSION_FLASH_MANIFEST.json whitespace=-blank-at-eof

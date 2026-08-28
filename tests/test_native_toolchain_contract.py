@@ -6,9 +6,8 @@ import zipfile
 from pathlib import Path
 
 import pytest
-
-from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from evidence_lane_plugin.code_toolchain import CODE_TOOLCHAIN_LANGUAGES
+from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from evidence_lane_plugin.native_toolchain import (
     NATIVE_MANIFEST_SCHEMA,
     NATIVE_POINTER_SCHEMA,
@@ -54,7 +53,7 @@ def test_native_manifest_is_hidden_runtime_and_license_complete() -> None:
     assert rows["tesseract"]["extractor_tool_id"] == "seven_zip_extractor"
     assert len(rows["tesseract"]["extractor_sha256"]) == 64
     assert rows["ghostscript"]["installer_family"] == "nsis"
-    for tool_id in {"jq", "graphviz", "poppler", "tesseract", "ghostscript"}:
+    for tool_id in ("jq", "graphviz", "poppler", "tesseract", "ghostscript"):
         assert len(rows[tool_id]["license"]["sha256"]) == 64
 
 

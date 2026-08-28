@@ -241,6 +241,7 @@ DEPENDENCY_FILENAMES = frozenset(
         "package.json",
         "pnpm-lock.yaml",
         "pyproject.toml",
+        "requirements.torch-cpu.lock.txt",
         "requirements.lock.txt",
         "requirements.toolchain.lock.txt",
         "skills/evi-plan/SKILL.md",
@@ -297,6 +298,7 @@ REQUIRED_MEMBERS = frozenset(
         "THIRD_PARTY_NOTICES.md",
         "assets/evidence-lane-icon.png",
         "pyproject.toml",
+        "requirements.torch-cpu.lock.txt",
         "requirements.lock.txt",
         "requirements.toolchain.lock.txt",
         "scripts/codex-release-channel.json",
@@ -326,8 +328,10 @@ REQUIRED_MEMBERS = frozenset(
 )
 COHERENCE_REQUIRED_MEMBERS = frozenset(
     {
+        "requirements.torch-cpu.lock.txt",
         "authorities/authority-surface-registry.v1.json",
         "skills/evi-plan/SKILL.md",
+        "skills/evi-plan/agents/openai.yaml",
         "env/authority-manifest.v1.json",
         "env/env_sqlite.sqlite",
         "hooks/EvidenceLaneHookHost.build.json",
@@ -1551,7 +1555,7 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
         or schema_manifest.get("receipt_sha256")
         != _sha256_bytes(_json_bytes(schema_manifest_body))
         or len(action_schema_files) != expected_counts["tools"]
-        or set(row.get("name") for row in action_schema_rows)
+        or {row.get("name") for row in action_schema_rows}
         != set(public_tools_by_name)
         or any(
             row.get("input_schema")
@@ -1668,7 +1672,7 @@ def _lane_inventory(plugin_root: Path) -> dict[str, Any]:
     lane_root = (
         repository_root
         / "apps"
-        / "evidence-lane-remote-adapter"
+        / "evidence-lane-app"
         / "public"
         / "dummy-lane-packages"
     )

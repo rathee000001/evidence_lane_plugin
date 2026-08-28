@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import importlib.util
 import re
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -54,7 +55,7 @@ def rank_bm25_candidates(
             float(len(query_tokens.intersection(tokens))) / max(len(query_tokens), 1)
             for tokens in corpus
         ]
-    rows = [
+    rows: list[dict[str, str | float]] = [
         {"candidate_id": candidate.candidate_id, "score": scores[index]}
         for index, candidate in enumerate(candidates)
     ]

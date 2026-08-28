@@ -47,8 +47,8 @@ from .models import (
 from .next_actions import (
     SOURCE_INTAKE_COMMANDS,
     boot_next_action,
-    state_travel_next_action,
 )
+from .package_root import resolve_plugin_root
 from .project_authority import resolved_chat_lineage_root, resolved_plan_auxiliary_path
 from .prompt_index import PromptIndex, is_prompt_reference
 from .pv_package import validate_pv_package
@@ -60,15 +60,10 @@ from .runtime_continuity import (
 )
 from .state_law import LifecycleEvent, transition
 from .state_travel_contract import (
-    additive_deltas_from_task_list,
     build_direct_destination_orchestration,
     execution_profile_from_context,
     execution_profile_mismatches,
-    normalize_additive_deltas,
-    normalize_destination_host_continuity,
     normalize_direct_forced_same_worktree_binding,
-    normalize_task_list,
-    require_unfinished_execution_profile,
 )
 from .store import ProjectStore
 from .tasking import classify_task
@@ -7913,7 +7908,7 @@ class SessionManager:
         """Seal the package-local build rather than trusting a slot title."""
 
         manifest_path = (
-            Path(__file__).resolve().parents[2] / ".codex-plugin" / "plugin.json"
+            resolve_plugin_root(__file__) / ".codex-plugin" / "plugin.json"
         )
         require(
             manifest_path.is_file(),
@@ -7943,7 +7938,7 @@ class SessionManager:
             plugin_version=plugin_version or None,
             engine_version=ENGINE_VERSION,
         )
-        plugin_root = Path(__file__).resolve().parents[2]
+        plugin_root = resolve_plugin_root(__file__)
         routing_path = (
             plugin_root / "skills" / "evi" / "references" / "mcp-tool-routing.v1.json"
         )

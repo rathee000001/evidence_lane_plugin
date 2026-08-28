@@ -5,7 +5,6 @@ import sqlite3
 from pathlib import Path
 
 import pytest
-
 from evidence_lane_plugin.live_root_normalization import (
     LIVE_ROOT_NORMALIZATION_CONFIRMATION,
     execute_live_root_normalization,

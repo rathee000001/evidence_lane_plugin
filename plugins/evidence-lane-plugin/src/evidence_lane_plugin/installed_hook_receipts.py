@@ -199,7 +199,7 @@ def validate_installed_hook_inventory(
             sorted(by_event[event_name], key=lambda item: str(item.get("key") or "")),
             start=1,
         ):
-            record = {
+            record: dict[str, Any] = {
                 "hook_number": event_ordinal,
                 "action_number": f"{event_ordinal}.{action_ordinal}",
                 "event_action_ordinal": action_ordinal,

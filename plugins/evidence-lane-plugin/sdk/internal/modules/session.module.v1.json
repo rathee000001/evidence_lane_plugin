@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.session",
   "source_path": "src/evidence_lane_plugin/session.py",
-  "source_sha256": "9C826960EB82E79300D8603203B003CEFECD13B3095D1BCB473071CA3A9127B6",
-  "source_bytes": 395825,
+  "source_sha256": "30DF22C6F6852F018558808B5712544C6299156825A8D3FE6F6D52E5C5A6C277",
+  "source_bytes": 395652,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "187A3BCF2E4C5E724A86E42FD56386036CE6E7ABFEE6E1B553714F68A1F32C98"
+  "receipt_sha256": "B279F1707D309E5A03B319B0D6EBB0966D4DB0180FB77FB33A5D446C77D718F3"
 }

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import shutil
 from pathlib import Path
@@ -8,13 +7,10 @@ from typing import Any
 
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
-from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from evidence_lane_plugin.lane_engine import build_lane_bundle
-from evidence_lane_plugin.mcp_server import create_mcp_server
-from evidence_lane_plugin.plan_runtime import append_delta_event
 from evidence_lane_plugin.project_authority import PROJECT_AUTHORITY_CONFIRMATION
 
-from .conftest import boot_local, build_and_approve_pv1, git
+from .conftest import boot_local, build_and_approve_pv1
 
 
 def _relocate_live_project_root(

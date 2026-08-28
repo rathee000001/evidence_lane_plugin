@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import os
 import importlib.util
+import os
 import shutil
 import subprocess  # nosec B404
 from pathlib import Path

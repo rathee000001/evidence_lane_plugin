@@ -5,31 +5,31 @@
   "event": "PostCompact",
   "handler_count": 4,
   "event_binding": "hooks/events/PostCompact/event.v1.json",
-  "event_binding_sha256": "06BC5EDA004B3EF094D9923DB6FEE7D5E8F4A3BF3DEF2CDA8DCC40E0B934DC78",
+  "event_binding_sha256": "3944A747999E58AFA71997C91E868BB3828C7CF057F19A00626865CA9BA05E5F",
   "handlers": [
     {
       "display_id": "8.1",
       "path": "hooks/events/PostCompact/handler-8.1.v1.json",
-      "sha256": "E6A53558C32A4572506C7AD62D8D77166F641E3A6B6380F7AB9F70C3835900D4"
+      "sha256": "CCE2D557CC9E042E01AF6872298B3555F1285AADAFF67448F532FD570DBED9F1"
     },
     {
       "display_id": "8.2",
       "path": "hooks/events/PostCompact/handler-8.2.v1.json",
-      "sha256": "32A06D68A5DC9C84A5E475AF97FA2A720C76584CC68E41889760C78CFE239736"
+      "sha256": "FCA111ADFE1DB37C9E23E31E6C22CF10FF819D23D2EE022C0EA8B48979922B1C"
     },
     {
       "display_id": "8.3",
       "path": "hooks/events/PostCompact/handler-8.3.v1.json",
-      "sha256": "FFAD5694D7ABF994AA803C0AB8784602A58C2C537AEFE88EEF9840EE270D9F15"
+      "sha256": "C4FD5D5A7804C8026527D47A4FDC913BFBA8E65A1478C6CDA5C6D8470EB38EA9"
     },
     {
       "display_id": "8.4",
       "path": "hooks/events/PostCompact/handler-8.4.v1.json",
-      "sha256": "08DE44AFB174CB878A8AF63A3B1B4BFF42AB48FB0782354607B0682E6A189C91"
+      "sha256": "F5AD080B91292A87493BC2AEDA2439203C06885F4B68658C93F3649CDE61BCE1"
     }
   ],
   "canonical_hook_manifest": "hooks/hooks.json",
   "canonical_logical_actions": "hooks/logical-actions.json",
   "enabled_only_after_installed_event_pass": true,
-  "receipt_sha256": "A75FD0E1B9BF173BF77F85CFEC0B642B164122B5CA61C3F096705E82FD0DCE91"
+  "receipt_sha256": "908385CA28BC55D40A7E06E4268696BE2EFF5B437F0D0D48FAC092926171D3F6"
 }

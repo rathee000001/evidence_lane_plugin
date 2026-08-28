@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "brain_loader",
   "authority_root": "authorities/project_sectors/brain_loader",
-  "authority_manifest_sha256": "2462DC9B643C57E8C4F2082813B609BC11450F31F5C1924EC129F5B35975EC0A",
+  "authority_manifest_sha256": "754614AD8B50CE419A334850A52A13490D251CC42CD98EE3E7416B9B837F7844",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -60,5 +60,5 @@
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
   "canonical_lane_contract_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "65C30C64A54B13F00831D50228E44F6D1D12CA0DF7BE8C6A792F346B2C143CB6"
+  "receipt_sha256": "75509B8A2C0B24F65934F7AED670BD09AF311A4AB29EE8C20E4D81B1B050D419"
 }

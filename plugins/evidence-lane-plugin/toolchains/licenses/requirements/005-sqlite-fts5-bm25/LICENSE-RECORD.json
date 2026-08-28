@@ -10,7 +10,8 @@
   "license_evidence": "SQLite runtime identity plus LICENSE.md for Evidence Lane implementation",
   "evidence_paths": [
     "LICENSE.md",
-    "requirements.lock.txt"
+    "requirements.lock.txt",
+    "requirements.torch-cpu.lock.txt"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -21,5 +22,5 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "C3885F8A950CC14D576F308E47E4BC9E6862763ECD2ADA0311280F61C8BA8B68"
+  "receipt_sha256": "4CCA075BDD7E1DD7A3976219A9EB5260441C6F8A26CC5198D56F153872E72ECA"
 }

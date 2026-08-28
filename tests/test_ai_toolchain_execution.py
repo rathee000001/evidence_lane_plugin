@@ -6,9 +6,8 @@ import os
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
-
 from evidence_lane_plugin.ai_toolchain import resolve_lane_toolchain
+from evidence_lane_plugin.code_toolchain import extract_tree_sitter_facts
 from evidence_lane_plugin.data_toolchain import (
     DataInspectionRequest,
     inspect_excel_openpyxl,
@@ -17,7 +16,6 @@ from evidence_lane_plugin.data_toolchain import (
     inspect_tabular_pandas,
 )
 from evidence_lane_plugin.entity_reconciliation import reconcile_entity_candidates
-from evidence_lane_plugin.code_toolchain import extract_tree_sitter_facts
 from evidence_lane_plugin.graph_pipeline import SemanticGraph
 from evidence_lane_plugin.hybrid_retrieval import (
     RetrievalCandidate,
@@ -41,6 +39,7 @@ from evidence_lane_plugin.tabular_toolchain import (
     stage_tabular_source,
     stage_tabular_source_polars,
 )
+from pydantic import ValidationError
 
 
 def test_lane_toolchain_is_codex_only_and_conditional() -> None:
@@ -195,25 +194,27 @@ def test_tableau_hyper_adapter_executes_read_only(tmp_path: Path) -> None:
 
     source = tmp_path / "sample.hyper"
     table_name = TableName("Extract", "Data")
-    with HyperProcess(Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU) as process:
-        with Connection(
+    with (
+        HyperProcess(Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU) as process,
+        Connection(
             process.endpoint,
             str(source),
             create_mode=CreateMode.CREATE_AND_REPLACE,
-        ) as connection:
-            connection.catalog.create_schema("Extract")
-            connection.catalog.create_table(
-                TableDefinition(
-                    table_name,
-                    [
-                        TableDefinition.Column("name", SqlType.text()),
-                        TableDefinition.Column("value", SqlType.big_int()),
-                    ],
-                )
+        ) as connection,
+    ):
+        connection.catalog.create_schema("Extract")
+        connection.catalog.create_table(
+            TableDefinition(
+                table_name,
+                [
+                    TableDefinition.Column("name", SqlType.text()),
+                    TableDefinition.Column("value", SqlType.big_int()),
+                ],
             )
-            connection.execute_command(
-                'INSERT INTO "Extract"."Data" VALUES (\'alpha\',1),(\'beta\',2)'
-            )
+        )
+        connection.execute_command(
+            'INSERT INTO "Extract"."Data" VALUES (\'alpha\',1),(\'beta\',2)'
+        )
     receipt = inspect_tableau_hyper(
         DataInspectionRequest(
             source_path=source,

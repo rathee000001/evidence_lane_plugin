@@ -712,10 +712,10 @@
     "skills/evi/SKILL.md": "47EDE692225A70AB41635F6EAF99EB3F57F0273C4F776D93731107AEBC417AC8"
   },
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/project_authority.py": "093B8D6C38C6DC46715156FD8FEA890ABC6BE53A037D8B8D7BFB7E88154DA199",
+    "src/evidence_lane_plugin/project_authority.py": "4E1AE7CD926B8AF06D6069AAA3B9BCE35E5CA651A5E146BFB10AD44F08E6C090",
     "src/evidence_lane_plugin/project_pv_storage.py": "E35B608C0C8EF0A6E97789AF75D35B4EAD8AAC3EC612FC6C7B61FE432A253B73",
-    "src/evidence_lane_plugin/store.py": "FC868D08CAA96C2A1D5727941EDE7A827CB131CAEB9EFD38B6F075CE29C13850",
-    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+    "src/evidence_lane_plugin/store.py": "C20836BBA55DE7C3AB5A38C3AEC0988A0B4BF2FB1C50CAA33E63DBF5A1B98F96",
+    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
   "llama_index_refresh_receipt": {
@@ -733,8 +733,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:52.017406Z",
-    "receipt_sha256": "1B741A4C96897E630431F0361A52C408653600D0C0E6A98C8CC875A6357A5284"
+    "recorded_at": "2026-08-28T10:19:06.819366Z",
+    "receipt_sha256": "C8608554135CFEF43831FFC2CE9AD2168B6FBB4E5511D1915744650D387D29EB"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -876,5 +876,5 @@
     "mmd_dot_same_semantic_topology": true,
     "receipt_sha256": "4922FEB251E893CB75F0BE9EE659A79FBBF6E9FF4C35FBEB089A2309C8D85593"
   },
-  "receipt_sha256": "55028731669C1AB069867525A5E77183BA49077D76FC6C7A5354B22AA3065746"
+  "receipt_sha256": "4D0BC84E29E104CA3B66F7C025001C10E706C37E5401563B239DF7ABDFB38061"
 }

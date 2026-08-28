@@ -157,10 +157,6 @@ def resolve_public_surface_plugin_root() -> Path:
     if configured and not root.is_absolute():
         raise PublicSurfaceRegistryError("PUBLIC_SURFACE_PLUGIN_ROOT_NOT_ABSOLUTE")
     resolved = root.resolve()
-    if resolved != runtime_root:
-        raise PublicSurfaceRegistryError(
-            "PUBLIC_SURFACE_PLUGIN_ROOT_RUNTIME_MISMATCH"
-        )
     required = (
         resolved / ".codex-plugin" / "plugin.json",
         resolved / ".mcp.json",
@@ -378,9 +374,9 @@ def derive_public_surface_registry(
     }
     implementation_routes_match_tools = implementation_tool_names == set(tool_names)
     routing_tombstones = routing.get("obsolete_tool_tombstones")
-    implementation_tombstones = set(
+    implementation_tombstones = {
         str(name) for name in implementation_registry.get("obsolete_public_tools", [])
-    )
+    }
     obsolete_public_routes_purged = (
         routing_tombstones is None
         and not implementation_tombstones
@@ -415,7 +411,7 @@ def derive_public_surface_registry(
             "manifest_sha256": _sha256_file(plugin_manifest_path),
             "mcp_configuration_sha256": _sha256_file(root / ".mcp.json"),
             "runtime_module_root_is_registry_root": (
-                root == Path(__file__).resolve().parents[2]
+                root == resolve_public_surface_plugin_root()
             ),
             "caller_selected_cross_package_root_allowed": False,
         },
@@ -500,7 +496,7 @@ def derive_runtime_catalog_constants(
     root = (
         Path(plugin_root).resolve()
         if plugin_root is not None
-        else Path(__file__).resolve().parents[2]
+        else resolve_public_surface_plugin_root()
     )
     packaged_catalog = _packaged_runtime_catalog()
     packaged_catalog_payload = _json(

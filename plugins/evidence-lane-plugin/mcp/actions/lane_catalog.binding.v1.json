@@ -49,11 +49,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/lane_catalog.action.v1.json",
-  "sdk_action_binding_sha256": "CADB8592923CD0B5B2F534CC907B03F7867285CE6F819AA694CFBF0E389B5691",
+  "sdk_action_binding_sha256": "4D184B975138B85C8C590D97A24754A60DB5CBF883595CDB8407AB3F4CC8E9C5",
   "public_action_schema": "schemas/actions/lane_catalog.schema.json",
   "public_action_schema_sha256": "F6E4336ECDD4FF9119063B8A0466FBA628E06738B8AA6343CE0704EE9D7ACB10",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "canonical_server_sha256": "20C15301DF15DA7E93ACE79DD54707C8A17E1340BA33123832FB46BCB1A4042A",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "4205CADE6C57A86F55E4D482869549C814CA5EE0338A1C0AD43979E2C40EC898"
+  "receipt_sha256": "2EEB30177F10CF0059F709871E6D852EBDAD1EAEBF3A9128BB381836DEB27786"
 }

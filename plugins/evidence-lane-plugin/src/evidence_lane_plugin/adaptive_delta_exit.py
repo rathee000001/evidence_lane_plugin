@@ -146,11 +146,12 @@ def _pending_candidate_preservation(
         status="BLOCKED",
         candidate_id=snapshot["candidate_id"],
     )
+    validated_request = cast(dict[str, Any], request)
     return {
         **snapshot,
         "schema": _PENDING_CANDIDATE_PRESERVATION_SCHEMA,
         "confirmation": _PENDING_CANDIDATE_PRESERVATION_CONFIRMATION,
-        "reason": str(request["reason"]).strip(),
+        "reason": str(validated_request["reason"]).strip(),
         "candidate_cleared": False,
         "candidate_rebuilt": False,
         "candidate_renamed": False,
@@ -243,14 +244,15 @@ def _validated_entry_formula_event(
         "The open entry formula did not complete locked SQLite/MMD compilation and routing.",
         status="MISMATCH",
     )
+    execution = cast(dict[str, Any], execution)
+    mathematical = cast(dict[str, Any], mathematical)
+    compiled_formula = cast(dict[str, Any], execution["compiled_formula"])
     return {
         "event_id": event.get("event_id"),
         "event_kind": event.get("event_kind"),
         "formula_sha256": expected_formula_sha256,
         "env_uop_action_plane_receipt_sha256": execution.get("receipt_sha256"),
-        "compiled_formula_sha256": execution["compiled_formula"].get(
-            "compiled_formula_sha256"
-        ),
+        "compiled_formula_sha256": compiled_formula.get("compiled_formula_sha256"),
         "operator_route_count": execution.get("operator_route_count"),
         "mathematical_execution_receipt_sha256": mathematical.get(
             "receipt_sha256"

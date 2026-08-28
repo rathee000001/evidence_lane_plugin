@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.topology",
   "source_path": "src/evidence_lane_plugin/topology.py",
-  "source_sha256": "5E316BE4E8F7BB57930838C9D0D0427869EF05A5B9038CCF146AB50056708B7F",
+  "source_sha256": "3CC7F4354567F73F9BA98673C2904FB188569C030DFFF55C4C5417BB0005598C",
   "source_bytes": 20573,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "02B1492C31B27F641F48FDBC2FC1393A5B5A85D90E0D5EEEDB5B3E502C2B27E1"
+  "receipt_sha256": "2495110639DF9C2E1DCFC1D020E010BD8D9DA3B02C743CD6B64CA16FBCB6C0D1"
 }

@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
-from .runtime_toolchain import inspect_runtime_toolchain
 from .native_toolchain import validate_hidden_runtime_root
+from .runtime_toolchain import inspect_runtime_toolchain
 
 
 class RuntimeApiSettings(BaseModel):
@@ -67,9 +66,9 @@ def load_maintainer_dotenv(dotenv_path: str | Path) -> dict[str, Any]:
 
 
 def create_runtime_api(settings: RuntimeApiSettings) -> Any:
+    import orjson  # type: ignore[import-not-found]
     from fastapi import FastAPI, File, HTTPException
     from fastapi.responses import Response
-    import orjson  # type: ignore[import-not-found]
 
     exact_host = settings.host_profile.strip().upper()
     if exact_host not in {"CODEX_DESKTOP", "CODEX_CLI", "CODEX_VM"}:
@@ -85,6 +84,7 @@ def create_runtime_api(settings: RuntimeApiSettings) -> Any:
         title="Evidence Lane Hidden Codex Runtime",
         version="3.0.0",
     )
+    source_upload = File(...)
 
     def json_response(value: Any) -> Response:
         return Response(
@@ -107,7 +107,7 @@ def create_runtime_api(settings: RuntimeApiSettings) -> Any:
         return json_response(inspect_runtime_toolchain(plugin_root))
 
     @app.post("/source-intake/stage")
-    async def stage_source(file: Any = File(...)) -> Response:
+    async def stage_source(file: Any = source_upload) -> Response:
         import aiofiles  # type: ignore[import-not-found]
 
         safe_name = Path(file.filename or "source.bin").name

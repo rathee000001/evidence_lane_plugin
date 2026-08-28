@@ -52,10 +52,10 @@ from .canon_task_graph import (
     seal_canon_task_result,
     supersede_canon_input,
 )
-from .current_route_registry import current_implementation_registry
 from .connector_governance import ConnectorGovernance
-from .errors import EvidenceLaneError, require
+from .current_route_registry import current_implementation_registry
 from .env_uop_graph import migrate_and_render_env_uop_graph, rebuild_flash_manifest
+from .errors import EvidenceLaneError, require
 from .first_class_workflows import (
     BiggerUniverseProjectRequest,
     BrainScalingRequest,
@@ -68,8 +68,8 @@ from .first_class_workflows import (
     run_formula_engine,
     run_full_ai_toolchain,
 )
-from .hashing import canonical_json_bytes, sha256_bytes
 from .github_toolchain import inspect_github_repository
+from .hashing import canonical_json_bytes, sha256_bytes
 from .host_entry_continuity import (
     derive_host_entry_env_uop,
     inspect_host_entry_continuity,
@@ -103,7 +103,11 @@ from .public_surface_registry import (
     resolve_public_surface_plugin_root,
 )
 from .redaction import contains_secret
-from .runtime_api import create_runtime_api, load_runtime_api_settings, run_hidden_runtime_api
+from .runtime_api import (
+    create_runtime_api,
+    load_runtime_api_settings,
+    run_hidden_runtime_api,
+)
 from .timeutil import utc_now
 
 INTERNAL_SDK_ABI = "evidence-lane.internal-sdk.v1"
@@ -145,7 +149,7 @@ _SDK_FORBIDDEN_PUBLIC_KEYS = frozenset(
     }
 )
 
-SDK_INTERNAL_SUPPORT_BINDINGS = {
+SDK_INTERNAL_SUPPORT_BINDINGS: dict[str, dict[str, Any]] = {
     "env_uop_graph": {
         "owner_module": "env_uop_operator_runtime",
         "functions": (
@@ -420,7 +424,7 @@ def runtime_workflow_sdk_registry() -> dict[str, Any]:
         for row in current_implementation_registry()["public_tool_routes"]
     }
     module_ids = {module.module_id for module in SDK_MODULES}
-    workflows = [
+    workflows: list[dict[str, Any]] = [
         {
             "workflow": "PROMPT_OR_STEER_ENTRY",
             "triggers": [

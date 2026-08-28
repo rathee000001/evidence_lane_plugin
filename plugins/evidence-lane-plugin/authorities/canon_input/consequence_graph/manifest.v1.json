@@ -4,9 +4,9 @@
   "authority_id": "canon_consequence_graph",
   "parent_authority_id": "canon_input",
   "database": "canon-consequence-graph.sqlite",
-  "database_sha256": "CED4C2F31BF3B203E388F71E4CCDB98C229E7050C2C1C6196A7DB32A52631F79",
+  "database_sha256": "55B227A2A672F1F25C45DE2E5C1D0C2F41C74D58E1AD3EB34CD1A99EFFACD98E",
   "database_integrity": "ok",
-  "schema_sha256": "D45CF1F54223EE6A7FF50E53B1AEE7A7D8FB398811515B00A7F9E2457D866789",
+  "schema_sha256": "88E4E7AC138350BAF76469CB0D5EBA0787972ECC300782FD305CDB5D8D8DB630",
   "table_count": 18,
   "fts5_tables": [
     "authority_index_fts",
@@ -26,7 +26,7 @@
     {
       "path": "authorities/canon_input/consequence_graph/canon-consequence-graph.sqlite",
       "bytes": 143360,
-      "sha256": "CED4C2F31BF3B203E388F71E4CCDB98C229E7050C2C1C6196A7DB32A52631F79"
+      "sha256": "55B227A2A672F1F25C45DE2E5C1D0C2F41C74D58E1AD3EB34CD1A99EFFACD98E"
     },
     {
       "path": "authorities/canon_input/consequence_graph/dot-artifact.schema.json",
@@ -61,7 +61,7 @@
     {
       "path": "authorities/canon_input/consequence_graph/runtime-binding.schema.json",
       "bytes": 623,
-      "sha256": "262766E5C7233BE941194F8F2C8DC3959C595FF82FB2BBD4463A7C122B5EF882"
+      "sha256": "38735D292AB71DE870B9FA8775C3B9BB6430D76DB28FB209863E70409D808EAD"
     },
     {
       "path": "authorities/canon_input/consequence_graph/runtime.py",
@@ -81,12 +81,12 @@
     {
       "path": "authorities/canon_input/consequence_graph/sqlite-schema.v1.json",
       "bytes": 22571,
-      "sha256": "E1D7E4A7C5C2A277B98C01BB6BC78D7E748C2C9B44474EF68FF6D2D167214F8C"
+      "sha256": "5553E76B74C254FB00F9C6D87076A8E6C99DF4DBC5D2B22655581E9CD9048370"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.json",
       "bytes": 5837,
-      "sha256": "083E2A79648FD32F7CC9A29037FB33B243488FAC7671755855F7F8115F30C422"
+      "sha256": "991F05AC234CC29352766F7D73E7CBBA08982B1EC8EF2152490F383A4C84F5EE"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.schema.json",
@@ -95,7 +95,7 @@
     }
   ],
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/canon_consequence_graph.py": "AF1112AE18285A93A2308CF9E31B683EFF1D16FA5199726195CD31F25649B7F2",
+    "src/evidence_lane_plugin/canon_consequence_graph.py": "69381007587BD0AC79759B4E8D283F4A90AF1560164A64096A303048D9EF11BF",
     "schemas/canon/canon-consequence-graph.v1.sql": "7DBBDB7C0DA5F2CCE1F542A7EA8EC1CE647F4C08AFE8DCF19D41836EADB66CEB"
   },
   "llama_index_refresh_receipt": {
@@ -113,8 +113,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:50.926222Z",
-    "receipt_sha256": "A008DB934DF94912DBD2716EA6F68C575BA515148D6FB2EFA1EDB7CC15220865"
+    "recorded_at": "2026-08-28T10:19:05.243149Z",
+    "receipt_sha256": "968214A0FE6A8F2043A2895A88D5EE2FA3FF39AD29DC976A73319A79914DE9D4"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -258,5 +258,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_parent_or_peer": false,
-  "receipt_sha256": "EE922203801EB862D948D1A4B4AF111D2A9E8258567B890438847017AD5F379C"
+  "receipt_sha256": "39A389B3E7A7172804747711936D8B826BEE89A4147026E14F7B8B05DD7148A4"
 }

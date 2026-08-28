@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.project_memory",
   "source_path": "src/evidence_lane_plugin/project_memory.py",
-  "source_sha256": "D6FF65563453A74324114AAFB9E901F14BD03E689BC61ECAB658BD87BE32FF13",
-  "source_bytes": 71190,
+  "source_sha256": "72FE29489C48A1B5CBA282C5D3C0B18203F1619049ED17A8BD08A84F5E08F14C",
+  "source_bytes": 71230,
   "role": "PROJECT_AUTHORITIES",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "C9CB66E02B67D5E03703B357D8830CE3FF0172345F37F5FD0B01E51B4D1C0B14"
+  "receipt_sha256": "9CF338A31C91B093C097E727A376E420F28A1CE991BDF9040303DC5DCB20A338"
 }

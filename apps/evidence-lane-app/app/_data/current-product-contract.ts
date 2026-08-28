@@ -40,7 +40,7 @@ export const currentProductContract = {
     lanes: "src/evidence_lane_plugin/lane_engine.py",
     publicActions: "schemas/public-action-schemas.v001.json",
     remotePublicActions:
-      "apps/evidence-lane-remote-adapter/app/_data/public-action-registry.json",
+      "apps/evidence-lane-app/app/_data/public-action-registry.json",
   },
 } as const;
 

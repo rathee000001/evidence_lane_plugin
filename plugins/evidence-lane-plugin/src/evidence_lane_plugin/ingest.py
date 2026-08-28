@@ -14,13 +14,13 @@ from pathlib import Path
 from typing import Any, cast
 
 from . import database
+from .code_toolchain import extract_tree_sitter_facts
 from .constants import (
     DEFAULT_CHUNK_LINES,
     DEFAULT_CHUNK_OVERLAP,
     DEFAULT_MAX_FILE_BYTES,
 )
 from .dependency_detection import parse_pnpm_lock_dependencies
-from .code_toolchain import extract_tree_sitter_facts
 from .errors import EvidenceLaneError, require
 from .hashing import sha256_bytes
 from .source_policy import content_exclusion_reason, path_exclusion_reason

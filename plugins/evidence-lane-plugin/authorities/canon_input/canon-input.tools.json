@@ -621,17 +621,17 @@
     "skills/evi-canon/SKILL.md": "C7D28C2459DB6206EE01E88309B49DDD35B7F8ACA889BDA8BBEF1528738E7755"
   },
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/canon_task_graph.py": "95C90680AA13216504ACCDC108A3374B67FF520BC051B5A6199BAADC11673C6F",
-    "src/evidence_lane_plugin/canon_consequence_graph.py": "AF1112AE18285A93A2308CF9E31B683EFF1D16FA5199726195CD31F25649B7F2",
+    "src/evidence_lane_plugin/canon_task_graph.py": "F19A3643ED9216A89443EAFB7A77E7BF373F7FD7F3D418DD283EF32BA0E19F4F",
+    "src/evidence_lane_plugin/canon_consequence_graph.py": "69381007587BD0AC79759B4E8D283F4A90AF1560164A64096A303048D9EF11BF",
     "src/evidence_lane_plugin/canon_runtime_continuity.py": "29E5972158EADAFE08E2CD16BEE93775A7ADCCE4B3FB7E76AB4DE33523116670",
-    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [
     {
       "authority_id": "canon_consequence_graph",
       "path": "authorities/canon_input/consequence_graph",
-      "manifest_sha256": "27AD04E1F5D2A4A59F30A1070644CD958E4D5DE8C5E37F4334F4B3DC9AB37F2B",
-      "database_sha256": "CED4C2F31BF3B203E388F71E4CCDB98C229E7050C2C1C6196A7DB32A52631F79",
+      "manifest_sha256": "48479DBFC8786A227D0A9038350D8112F28499B9B041AA3D203C4D4EE853B733",
+      "database_sha256": "55B227A2A672F1F25C45DE2E5C1D0C2F41C74D58E1AD3EB34CD1A99EFFACD98E",
       "table_count": 18,
       "separate_sqlite_authority": true
     }
@@ -651,8 +651,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:50.889343Z",
-    "receipt_sha256": "AF54EB31D7FE63E337456787E06CAF584C986BF619610EAD2D3C948C30651FCE"
+    "recorded_at": "2026-08-28T10:19:05.207660Z",
+    "receipt_sha256": "58502CB71755A6A4BB06463CA0A29227BC1320B991C55032684435EAE577FCD4"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -794,5 +794,5 @@
     "mmd_dot_same_semantic_topology": true,
     "receipt_sha256": "9BAD63ED4820D09387E1BE2A82E56003787A0B849E8491B8FEF94709F31FDA34"
   },
-  "receipt_sha256": "3E6917684F2874180ADC9ABBD0B8F109701079DE4F5D317C0F90A6CCC9E7C8A1"
+  "receipt_sha256": "847EA812F0750963163D4CE3D81EEC97DDD6E67FA44ED29461FFB61850F38D05"
 }

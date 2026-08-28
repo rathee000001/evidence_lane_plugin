@@ -5,31 +5,31 @@
   "event": "UserPromptSubmit",
   "handler_count": 4,
   "event_binding": "hooks/events/UserPromptSubmit/event.v1.json",
-  "event_binding_sha256": "019ED34FB862EA927005E50EAC28A575AA6E759F1C4FF52852457D6B61A85F7E",
+  "event_binding_sha256": "E141879EDE2E1A4EE08A8F991F9AA0488F7281DB2B093A1CF08D054E6D771440",
   "handlers": [
     {
       "display_id": "3.1",
       "path": "hooks/events/UserPromptSubmit/handler-3.1.v1.json",
-      "sha256": "9257D5339A36C07B12D3C7DD4726D682FE005FCD3342241812FB4E04903DB2FE"
+      "sha256": "9342CBC61CF9290DAA8CB2FF533A0540735B82851F23CDA49E9DC2A12DD09CFD"
     },
     {
       "display_id": "3.2",
       "path": "hooks/events/UserPromptSubmit/handler-3.2.v1.json",
-      "sha256": "25A61406146FB4E1C91D8A8D9E9D7AE90A04A54C6F97B752885FE3AE56E37175"
+      "sha256": "BE2CF6A754C3A4B56FF5A74568FD0A444606C39508AFB08252D62AC9806A395B"
     },
     {
       "display_id": "3.3",
       "path": "hooks/events/UserPromptSubmit/handler-3.3.v1.json",
-      "sha256": "FA24762DEBCE62C213D06326832231BABF4A439D6972F9C7BD5CA6E086EB7055"
+      "sha256": "775F3B2454B657D38E44B46B4A997FA5A7E74EF9981E891178F103D64CFD7ECD"
     },
     {
       "display_id": "3.4",
       "path": "hooks/events/UserPromptSubmit/handler-3.4.v1.json",
-      "sha256": "DBF47395396DDA5514A04C42EF53DD26B7BF49AA80645F07B8AC8672FC56169F"
+      "sha256": "DADED86A410C227250D24BD85F4FCC14350692E6A7D9AA639D0C097037C5BB4F"
     }
   ],
   "canonical_hook_manifest": "hooks/hooks.json",
   "canonical_logical_actions": "hooks/logical-actions.json",
   "enabled_only_after_installed_event_pass": true,
-  "receipt_sha256": "D5909B78292EB25108049A7F1BE475135019E481B33733736A8DC7DDD9088D61"
+  "receipt_sha256": "6CF8FEE922906AC1143EF33C449AE865EF730053999DAA3BEA0B89F8C3ECA5C7"
 }

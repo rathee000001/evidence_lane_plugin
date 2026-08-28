@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "project_memory",
   "database": "memory.sqlite",
-  "database_sha256": "F9A37C841CF8766F9BB2AFD8ECB65998E4EAE08634682464D5E12EF4191BA754",
+  "database_sha256": "0E640961983DA01C6CE8F4E04D10C026A0446E2D9BE13DC6747CCB40DFA1F25A",
   "database_integrity": "ok",
-  "schema_sha256": "DAA252937D08B259F359A80A4580A17B4A903297A605B3A6A7D838B61E0AB4F8",
+  "schema_sha256": "E2E625B73388A38D4D6CADE759626FC99D8DA8E53BD5C6D2044ABC703D4C239D",
   "table_count": 22,
   "fts5_tables": [
     "authority_index_fts",
@@ -45,12 +45,12 @@
     {
       "path": "authorities/project_memory/memory.sqlite",
       "bytes": 176128,
-      "sha256": "F9A37C841CF8766F9BB2AFD8ECB65998E4EAE08634682464D5E12EF4191BA754"
+      "sha256": "0E640961983DA01C6CE8F4E04D10C026A0446E2D9BE13DC6747CCB40DFA1F25A"
     },
     {
       "path": "authorities/project_memory/memory.tools.json",
       "bytes": 13172,
-      "sha256": "A6CAB2B45792820AB2F1EEE5DBFC6B4D69D03C55BB53420170CE88821222DCD1"
+      "sha256": "37397DA0AFF60D4BCED9728D6E73489EE2E886C32B7A9203B8F814491BE8D2B6"
     },
     {
       "path": "authorities/project_memory/mmd-artifact.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_memory/runtime-binding.schema.json",
       "bytes": 596,
-      "sha256": "4AA59177845431F5B368B722D8EEE45A01E7D89F327E38062755DD306E9F8305"
+      "sha256": "668E9E5685EE402483F6A59F110950DD2323EAC5069B12C0949BF8E28EC0AF4B"
     },
     {
       "path": "authorities/project_memory/runtime.py",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/project_memory/sqlite-schema.v1.json",
       "bytes": 33834,
-      "sha256": "66D3C9DFD84A5D25B88D41EEF1A0EA8A0B420807EDF61A8E5EE0312897305DE9"
+      "sha256": "2103F6763F1D373CE2AF1F983FC457073D534FC64C33D66153EEE136562E9962"
     },
     {
       "path": "authorities/project_memory/tools.schema.json",
@@ -119,9 +119,9 @@
     }
   ],
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/project_memory.py": "D6FF65563453A74324114AAFB9E901F14BD03E689BC61ECAB658BD87BE32FF13",
+    "src/evidence_lane_plugin/project_memory.py": "72FE29489C48A1B5CBA282C5D3C0B18203F1619049ED17A8BD08A84F5E08F14C",
     "src/evidence_lane_plugin/conversation_memory.py": "875D1CF54192647A75124A4AD43090AA37F52CA2CF68A124B9DD36316216B886",
-    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
   "llama_index_refresh_receipt": {
@@ -141,8 +141,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:51.143839Z",
-    "receipt_sha256": "EEFCC9D162051CBA7E32E0C6B237A6D7E91BEF8BD43693731FFC485E27BA527E"
+    "recorded_at": "2026-08-28T10:19:05.621768Z",
+    "receipt_sha256": "0CF6CA21B72546E7358D7CF35824FE0BDABD0AE46F64ABB5D66EFDA03B4618EE"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -286,5 +286,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "A8E4A514769158942B989518FB63AB51D88677794A6A045868DDE03791582DA8"
+  "receipt_sha256": "3381D1433913ACF70980E37FE7DD6C5FE8E9A0B164EF64B3B9AB4513FF4D0AD0"
 }

@@ -136,7 +136,7 @@ def test_workflow_branch_boundaries_and_preview_does_not_deploy() -> None:
     assert 'payload["release_sha"] == os.environ["EVIDENCE_LANE_RELEASE_SHA"]' in (
         preview
     )
-    assert 'payload["mcp_route_identity"]["tool_count"] == 88' in preview
+    assert 'payload["mcp_route_identity"]["tool_count"] == 91' in preview
 
     pages = (WORKFLOWS / "evidence-lane-github-pages.yml").read_text(
         encoding="utf-8"

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from evidence_lane_plugin.model_compatibility import (
     classify_model_compatibility,
     model_compatibility_catalog,

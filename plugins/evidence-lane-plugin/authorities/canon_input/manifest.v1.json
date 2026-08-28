@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "canon_input",
   "database": "canon-input.sqlite",
-  "database_sha256": "68783FC35CFB5A164B76A2008512F46CF0A514863ECBF1D544AA88F2C747F42D",
+  "database_sha256": "EEFFA47DF7E7D3BDC1FDB5800BC75AF33736A70CA7A8F9EB325C9AC797EF2418",
   "database_integrity": "ok",
-  "schema_sha256": "50F7CAB62DA81768659780F6199878FF1BB834D34607FAD1556994DDDE8C2DCF",
+  "schema_sha256": "ADEDF6B24F4CD62B64830309E6CE7DF5B497BD359BBFDDED841DDA6F97810E65",
   "table_count": 18,
   "fts5_tables": [
     "authority_index_fts"
@@ -34,12 +34,12 @@
     {
       "path": "authorities/canon_input/canon-input.sqlite",
       "bytes": 192512,
-      "sha256": "68783FC35CFB5A164B76A2008512F46CF0A514863ECBF1D544AA88F2C747F42D"
+      "sha256": "EEFFA47DF7E7D3BDC1FDB5800BC75AF33736A70CA7A8F9EB325C9AC797EF2418"
     },
     {
       "path": "authorities/canon_input/canon-input.tools.json",
       "bytes": 24150,
-      "sha256": "6B4B2335E3A7181940EE09CA3D6D26416F03709ED0207A1FF6BF094901264F83"
+      "sha256": "75ED72798F32D1E31EA6295CC65D893F119512CFAFB84E481F60CA13D5F34910"
     },
     {
       "path": "authorities/canon_input/consequence_graph/canon-consequence-graph.dot",
@@ -54,7 +54,7 @@
     {
       "path": "authorities/canon_input/consequence_graph/canon-consequence-graph.sqlite",
       "bytes": 143360,
-      "sha256": "CED4C2F31BF3B203E388F71E4CCDB98C229E7050C2C1C6196A7DB32A52631F79"
+      "sha256": "55B227A2A672F1F25C45DE2E5C1D0C2F41C74D58E1AD3EB34CD1A99EFFACD98E"
     },
     {
       "path": "authorities/canon_input/consequence_graph/dot-artifact.schema.json",
@@ -69,7 +69,7 @@
     {
       "path": "authorities/canon_input/consequence_graph/manifest.v1.json",
       "bytes": 9237,
-      "sha256": "27AD04E1F5D2A4A59F30A1070644CD958E4D5DE8C5E37F4334F4B3DC9AB37F2B"
+      "sha256": "48479DBFC8786A227D0A9038350D8112F28499B9B041AA3D203C4D4EE853B733"
     },
     {
       "path": "authorities/canon_input/consequence_graph/mmd-artifact.schema.json",
@@ -94,7 +94,7 @@
     {
       "path": "authorities/canon_input/consequence_graph/runtime-binding.schema.json",
       "bytes": 623,
-      "sha256": "262766E5C7233BE941194F8F2C8DC3959C595FF82FB2BBD4463A7C122B5EF882"
+      "sha256": "38735D292AB71DE870B9FA8775C3B9BB6430D76DB28FB209863E70409D808EAD"
     },
     {
       "path": "authorities/canon_input/consequence_graph/runtime.py",
@@ -114,12 +114,12 @@
     {
       "path": "authorities/canon_input/consequence_graph/sqlite-schema.v1.json",
       "bytes": 22571,
-      "sha256": "E1D7E4A7C5C2A277B98C01BB6BC78D7E748C2C9B44474EF68FF6D2D167214F8C"
+      "sha256": "5553E76B74C254FB00F9C6D87076A8E6C99DF4DBC5D2B22655581E9CD9048370"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.json",
       "bytes": 5837,
-      "sha256": "083E2A79648FD32F7CC9A29037FB33B243488FAC7671755855F7F8115F30C422"
+      "sha256": "991F05AC234CC29352766F7D73E7CBBA08982B1EC8EF2152490F383A4C84F5EE"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.schema.json",
@@ -174,7 +174,7 @@
     {
       "path": "authorities/canon_input/runtime-binding.schema.json",
       "bytes": 592,
-      "sha256": "B52EEBC40F8119FA9D34F9CDBD4AC0E8F708B28524A36F55907A06EC94C02538"
+      "sha256": "92B86A9E73DF4B334530E6A539035FCE7A018F1E877313803E1B30F94E8E578C"
     },
     {
       "path": "authorities/canon_input/runtime.py",
@@ -194,7 +194,7 @@
     {
       "path": "authorities/canon_input/sqlite-schema.v1.json",
       "bytes": 28563,
-      "sha256": "4E68236BFA72B6BBD2D4B6879FDD3C5F2C82911AA50EA32DA1D2911CD9C31CA2"
+      "sha256": "9065EB936ABD3B7DD0EF1F52CC227B28ACE97BD2D3041E7253092629F3ACA9F8"
     },
     {
       "path": "authorities/canon_input/tools.schema.json",
@@ -203,17 +203,17 @@
     }
   ],
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/canon_task_graph.py": "95C90680AA13216504ACCDC108A3374B67FF520BC051B5A6199BAADC11673C6F",
-    "src/evidence_lane_plugin/canon_consequence_graph.py": "AF1112AE18285A93A2308CF9E31B683EFF1D16FA5199726195CD31F25649B7F2",
+    "src/evidence_lane_plugin/canon_task_graph.py": "F19A3643ED9216A89443EAFB7A77E7BF373F7FD7F3D418DD283EF32BA0E19F4F",
+    "src/evidence_lane_plugin/canon_consequence_graph.py": "69381007587BD0AC79759B4E8D283F4A90AF1560164A64096A303048D9EF11BF",
     "src/evidence_lane_plugin/canon_runtime_continuity.py": "29E5972158EADAFE08E2CD16BEE93775A7ADCCE4B3FB7E76AB4DE33523116670",
-    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [
     {
       "authority_id": "canon_consequence_graph",
       "path": "authorities/canon_input/consequence_graph",
-      "manifest_sha256": "27AD04E1F5D2A4A59F30A1070644CD958E4D5DE8C5E37F4334F4B3DC9AB37F2B",
-      "database_sha256": "CED4C2F31BF3B203E388F71E4CCDB98C229E7050C2C1C6196A7DB32A52631F79",
+      "manifest_sha256": "48479DBFC8786A227D0A9038350D8112F28499B9B041AA3D203C4D4EE853B733",
+      "database_sha256": "55B227A2A672F1F25C45DE2E5C1D0C2F41C74D58E1AD3EB34CD1A99EFFACD98E",
       "table_count": 18,
       "separate_sqlite_authority": true
     }
@@ -233,8 +233,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:50.889343Z",
-    "receipt_sha256": "AF54EB31D7FE63E337456787E06CAF584C986BF619610EAD2D3C948C30651FCE"
+    "recorded_at": "2026-08-28T10:19:05.207660Z",
+    "receipt_sha256": "58502CB71755A6A4BB06463CA0A29227BC1320B991C55032684435EAE577FCD4"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -378,5 +378,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "655D449E0B07EB14F6A5D2C8F65EAC4CA17C95AF2D5B0F0F7E549DF70611DFFD"
+  "receipt_sha256": "A57B3E2ABB599C832BB0B72BF2F3401E9D6D0CB29D66249F80A3CB8B976E6C83"
 }

@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.task_binding_registry",
   "source_path": "src/evidence_lane_plugin/task_binding_registry.py",
-  "source_sha256": "DCF39046F3D118871C7A1803A1B8310A31D9680EAD447F0AB457141127E9A067",
-  "source_bytes": 21203,
+  "source_sha256": "C5BF413EB85EAAF6198F388A7A64F6EB97E77C2340275187EC796C34AC39A0EA",
+  "source_bytes": 21243,
   "role": "HOST_RUNTIME_AND_CONTINUITY",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "F0A71EE042939A8AF0C914B3655217AF2593781473CDE0EE2359F09A3522BF76"
+  "receipt_sha256": "F96E859B9281D21E1A269E672B50C7877CB156209414726B65F260C75B1DD7AE"
 }

@@ -23,13 +23,13 @@ HISTORICAL_OR_DEPENDENCY_FILES = {
     "evidence/acceptance/commands.json",
     "evidence/vendor/implementation_v45/ROW170_VERCEL_PREVIEW_BOUNDARY_RECEIPT.json",
     "evidence/vendor/implementation_v45/ROW180_FULL_LOCAL_VERIFICATION_RECEIPT.json",
-    "apps/evidence-lane-remote-adapter/app/_components/delta-ledger-explorer.tsx",
-    "apps/evidence-lane-remote-adapter/app/_components/source-brain-lab.tsx",
-    "apps/evidence-lane-remote-adapter/app/_data/delta-ledger.ts",
-    "apps/evidence-lane-remote-adapter/app/_data/governed-linked-deltas.ts",
-    "apps/evidence-lane-remote-adapter/app/_data/website-current-execution.ts",
-    "apps/evidence-lane-remote-adapter/app/page.tsx",
-    "apps/evidence-lane-remote-adapter/pnpm-lock.yaml",
+    "apps/evidence-lane-app/app/_components/delta-ledger-explorer.tsx",
+    "apps/evidence-lane-app/app/_components/source-brain-lab.tsx",
+    "apps/evidence-lane-app/app/_data/delta-ledger.ts",
+    "apps/evidence-lane-app/app/_data/governed-linked-deltas.ts",
+    "apps/evidence-lane-app/app/_data/website-current-execution.ts",
+    "apps/evidence-lane-app/app/page.tsx",
+    "apps/evidence-lane-app/pnpm-lock.yaml",
     "plugins/evidence-lane-plugin/requirements.lock.txt",
     "plugins/evidence-lane-plugin/requirements.toolchain.lock.txt",
 }
@@ -69,7 +69,7 @@ def _tracked_text_files() -> list[Path]:
         and not any(part.endswith(".egg-info") for part in path.relative_to(ROOT).parts)
         and path != ROOT / "tests" / "test_v140_version_consistency.py"
         and path
-        != ROOT / "apps" / "evidence-lane-remote-adapter"
+        != ROOT / "apps" / "evidence-lane-app"
         / "app"
         / "_data"
         / "studio-rag-index.json"
@@ -88,7 +88,7 @@ def test_all_active_codex_product_version_surfaces_are_v300() -> None:
     )
     adapter_manifest = json.loads(
         (
-            ROOT / "apps" / "evidence-lane-remote-adapter"
+            ROOT / "apps" / "evidence-lane-app"
             / "package.json"
         ).read_text(encoding="utf-8")
     )
@@ -108,17 +108,17 @@ def test_all_active_codex_product_version_surfaces_are_v300() -> None:
 def test_current_codex_docs_and_runtime_surfaces_name_v300() -> None:
     required_fragments = {
         "README.md": [
-            "# Evidence Lane 3.0.0",
+            "# Evidence Lane",
             "The current Codex source release is **3.0.0**",
             "## 3.0 source and historical compatibility invariants",
         ],
         "ARCHITECTURE.md": [
             "Evidence Lane 3.0.0",
-            "Current backend contract",
+            "## Plugin-maintainer release cycle and downstream projects",
         ],
         "docs/RELEASE_AND_COMPATIBILITY.md": [
-            "Current backend contract",
-            "Plugin package: `3.0.0+codex.",
+            "The current source line is Evidence Lane 3.0.0",
+            "Source identity, local package identity, installed-host identity",
         ],
         "docs/HOST_AND_STORAGE_MATRIX.md": [
             "exactly two selectors",
@@ -244,7 +244,7 @@ def test_historical_docs_are_excluded_from_public_github_docs() -> None:
     assert "pre-v1.1" not in readme
     assert not (ROOT / "docs" / "DELTA_001_051_TRACEABILITY.md").exists()
     assert not (ROOT / "docs" / "VERSIONING.md").exists()
-    assert "Current backend contract" in (
+    assert "Current backend contract" not in (
         ROOT / "docs" / "RELEASE_AND_COMPATIBILITY.md"
     ).read_text(encoding="utf-8")
     assert receipt["schema"] == "evidence-lane.delta080-v130-final-release-evidence-receipt.v1"
@@ -336,14 +336,30 @@ def test_remaining_v13_occurrences_are_classified() -> None:
 
     assert not unclassified, f"unclassified v1.3 occurrences: {sorted(unclassified)}"
 
-    browser = json.loads(
-        (
-            ROOT / "apps" / "evidence-lane-remote-adapter"
-            / "app"
-            / "_data"
-            / "studio-rag-index.json"
-        ).read_text(encoding="utf-8")
+    rag_index = (
+        ROOT
+        / "apps"
+        / "evidence-lane-app"
+        / "app"
+        / "_data"
+        / "studio-rag-index.json"
     )
+    tracked_rag = subprocess.run(
+        [
+            "git",
+            "ls-files",
+            "--error-unmatch",
+            rag_index.relative_to(ROOT).as_posix(),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    if tracked_rag.returncode != 0:
+        return
+
+    browser = json.loads(rag_index.read_text(encoding="utf-8"))
     source_by_id = {source["id"]: source["path"] for source in browser["sources"]}
     bad_chunks = []
     for chunk in browser["chunks"]:

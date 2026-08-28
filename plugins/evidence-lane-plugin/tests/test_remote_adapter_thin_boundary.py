@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
-ADAPTER = PLUGIN_ROOT.parents[1] / "apps" / "evidence-lane-remote-adapter"
+ADAPTER = PLUGIN_ROOT.parents[1] / "apps" / "evidence-lane-app"
 
 
 def _json(path: Path) -> dict[str, object]:

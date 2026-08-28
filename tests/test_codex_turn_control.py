@@ -26,7 +26,6 @@ from evidence_lane_plugin.codex_turn_control import (
     record_non_strict_visible_input,
     record_tool_event,
     resolve_codex_hook_store_root,
-    seal_exact_task_project_session_binding,
     seal_lifecycle_exit_slip,
     session_start_control,
 )
@@ -46,7 +45,6 @@ from evidence_lane_plugin.service import EvidenceLaneService
 
 from .conftest import (
     build_and_approve_pv1,
-    state_travel_destination_creation,
 )
 
 PLUGIN = Path(__file__).resolve().parents[1] / "plugins" / "evidence-lane-plugin"

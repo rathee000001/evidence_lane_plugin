@@ -118,7 +118,7 @@ def inspect_tabular_pandas(request: DataInspectionRequest) -> dict[str, Any]:
         projections.append(
             {
                 "name": str(name),
-                "bounded_rows": int(len(frame.index)),
+                "bounded_rows": len(frame.index),
                 "columns": [str(value) for value in frame.columns],
                 "dtypes": {str(key): str(value) for key, value in frame.dtypes.items()},
                 "null_counts": {
@@ -203,34 +203,34 @@ def inspect_tableau_hyper(request: DataInspectionRequest) -> dict[str, Any]:
     )
 
     tables: list[dict[str, Any]] = []
-    with HyperProcess(Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU) as process:
-        with Connection(
+    with (
+        HyperProcess(Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU) as process,
+        Connection(
             process.endpoint,
             str(path),
             create_mode=CreateMode.NONE,
-        ) as connection:
-            for table in connection.catalog.get_table_names("Extract"):
-                definition = connection.catalog.get_table_definition(table)
-                count = int(
-                    connection.execute_scalar_query(f"SELECT COUNT(*) FROM {table}")
+        ) as connection,
+    ):
+        for table in connection.catalog.get_table_names("Extract"):
+            definition = connection.catalog.get_table_definition(table)
+            count = int(connection.execute_scalar_query(f"SELECT COUNT(*) FROM {table}"))
+            samples = [
+                [str(value) if value is not None else None for value in row]
+                for row in connection.execute_list_query(
+                    f"SELECT * FROM {table} LIMIT {int(request.max_rows)}"
                 )
-                samples = [
-                    [str(value) if value is not None else None for value in row]
-                    for row in connection.execute_list_query(
-                        f"SELECT * FROM {table} LIMIT {int(request.max_rows)}"
-                    )
-                ]
-                tables.append(
-                    {
-                        "name": str(table),
-                        "columns": [
-                            {"name": str(column.name), "type": str(column.type)}
-                            for column in definition.columns
-                        ],
-                        "row_count": count,
-                        "bounded_rows": samples,
-                    }
-                )
+            ]
+            tables.append(
+                {
+                    "name": str(table),
+                    "columns": [
+                        {"name": str(column.name), "type": str(column.type)}
+                        for column in definition.columns
+                    ],
+                    "row_count": count,
+                    "bounded_rows": samples,
+                }
+            )
     core = {
         "schema": "evidence-lane.tableau-hyper-inspection.v1",
         "status": "PASS",

@@ -65,7 +65,7 @@ jobs:
           done
           test "${ready}" = true
           python -c \
-            'import json, os, pathlib; payload = json.loads(pathlib.Path(".runtime/ci/durable-image-health.json").read_text(encoding="utf-8")); assert payload["status"] == "PASS"; assert payload["release_sha"] == os.environ["EVIDENCE_LANE_RELEASE_SHA"]; assert payload["mcp_route_identity"]["status"] == "PASS"; assert payload["mcp_route_identity"]["tool_count"] == 88'
+            'import json, os, pathlib; payload = json.loads(pathlib.Path(".runtime/ci/durable-image-health.json").read_text(encoding="utf-8")); assert payload["status"] == "PASS"; assert payload["release_sha"] == os.environ["EVIDENCE_LANE_RELEASE_SHA"]; assert payload["mcp_route_identity"]["status"] == "PASS"; assert payload["mcp_route_identity"]["tool_count"] == 91'
       - name: Set up pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
@@ -76,9 +76,9 @@ jobs:
         with:
           node-version: "24"
           cache: pnpm
-          cache-dependency-path: apps/evidence-lane-remote-adapter/pnpm-lock.yaml
+          cache-dependency-path: apps/evidence-lane-app/pnpm-lock.yaml
       - name: Install preview dependencies
-        run: pnpm --dir apps/evidence-lane-remote-adapter install --frozen-lockfile
+        run: pnpm --dir apps/evidence-lane-app install --frozen-lockfile
       - name: Execute preview build contract
         uses: ./.github/actions/evidence-lane-ci
         with:

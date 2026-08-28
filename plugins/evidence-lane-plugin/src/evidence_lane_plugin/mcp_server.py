@@ -22,6 +22,14 @@ from pydantic import AnyHttpUrl, ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from .agent_learning import (
+    decide_learning_candidate,
+    inspect_learning_authority,
+    record_host_memory_import,
+    retrieve_accepted_learning,
+    revoke_learning_candidate,
+    seal_learning_candidate,
+)
 from .auth import (
     READ_SCOPE,
     REMOTE_GIT_SCOPE,
@@ -49,14 +57,6 @@ from .canon_task_graph import (
     seal_canon_state_travel_continuity,
     seal_canon_task_result,
     supersede_canon_input,
-)
-from .agent_learning import (
-    decide_learning_candidate,
-    inspect_learning_authority,
-    record_host_memory_import,
-    retrieve_accepted_learning,
-    revoke_learning_candidate,
-    seal_learning_candidate,
 )
 from .codex_turn_control import (
     TurnControlError,
@@ -95,13 +95,13 @@ from .mcp_stdio_compat import (
     install_tool_namespace_compat,
     run_discovery_compatible_stdio,
 )
+from .project_memory import query_memory_graph, record_memory_link
 from .public_surface_registry import (
     CODEX_READ_TOOL_NAMES,
     PublicSurfaceRegistryError,
     derive_public_surface_registry,
     resolve_public_surface_plugin_root,
 )
-from .project_memory import query_memory_graph, record_memory_link
 from .service import EvidenceLaneService, inspect_service_route_parity
 
 _PUBLIC_SITE_URL = "https://evidencelane.org"

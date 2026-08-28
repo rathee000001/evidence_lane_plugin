@@ -177,8 +177,7 @@ def run_native_tool(
     completed = subprocess.run(  # nosec B603
         [str(resolution.executable), *request.arguments],
         input=request.input_bytes,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         check=False,
         timeout=request.timeout_seconds,
         shell=False,
@@ -252,9 +251,9 @@ def validate_json_with_jq(
 __all__ = [
     "NATIVE_MANIFEST_SCHEMA",
     "NATIVE_POINTER_SCHEMA",
+    "RUNTIME_ROOT_ENV",
     "NativeInvocationRequest",
     "NativeToolResolution",
-    "RUNTIME_ROOT_ENV",
     "configured_runtime_root",
     "installed_toolchain_record",
     "native_manifest",

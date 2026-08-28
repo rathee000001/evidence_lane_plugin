@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-import evidence_lane_plugin.goal_usage as goal_usage
+from evidence_lane_plugin import goal_usage
 from evidence_lane_plugin.goal_usage import (
     GOAL_COMPLETION_COMMAND,
     RICH_GOAL_COMPLETION_METRICS_ROUTE,

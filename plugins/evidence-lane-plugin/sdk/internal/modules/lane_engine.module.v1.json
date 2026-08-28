@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.lane_engine",
   "source_path": "src/evidence_lane_plugin/lane_engine.py",
-  "source_sha256": "D6DC5653373ABC936EFEB1805252686BBCB4FAA322F22980D966225939118718",
+  "source_sha256": "606278B437DC3C1E4F9D7AD703122294C369F745FB28C5F3F7149EF69D773AE4",
   "source_bytes": 318713,
   "role": "SECTOR_LANE_ENGINE",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "BE35A488A183AD986D3D349EB0A7DD4E7D49B475AFBCCDA0DB98512FFDBE7CC4"
+  "receipt_sha256": "528547ED24AAEFD92560AD45695C9808DEC31C526CCB5044F5088B198C082E51"
 }

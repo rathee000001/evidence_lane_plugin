@@ -5,31 +5,31 @@
   "event": "SessionEnd",
   "handler_count": 4,
   "event_binding": "hooks/events/SessionEnd/event.v1.json",
-  "event_binding_sha256": "F4DA5D4CDE8B8BB8882876E05CDA751B9A8E3BF37E3132BC9C7BF0214A403206",
+  "event_binding_sha256": "8EC8A2C6D32366E0AD9DE75CEC800395727831F859A96E6523EF75468AD6B37D",
   "handlers": [
     {
       "display_id": "11.1",
       "path": "hooks/events/SessionEnd/handler-11.1.v1.json",
-      "sha256": "FEC39A90157C2FD2335177FEE6836A66B300E9CC18928B0493E7AE13D816125B"
+      "sha256": "BC88567E2A371ACFCC1280D3E630B93E32000A7468F79ADE99CE64439955B033"
     },
     {
       "display_id": "11.2",
       "path": "hooks/events/SessionEnd/handler-11.2.v1.json",
-      "sha256": "FACF3F26EB6F4467626AE597CB8B5A7DB6A3B6847C1A41AB1168E1203405104B"
+      "sha256": "9410D3F2DB8E6E6394AEBD80862C992DC1F9084F185D2498E7FEBB7367782B93"
     },
     {
       "display_id": "11.3",
       "path": "hooks/events/SessionEnd/handler-11.3.v1.json",
-      "sha256": "7883750762731CE9F18B6837DF10FBB351484F89148BDAED5D96E58638C6EFF4"
+      "sha256": "4C4F98F867F6E6696422630E2325115D552EF656B6201FF548689422258DBE7F"
     },
     {
       "display_id": "11.4",
       "path": "hooks/events/SessionEnd/handler-11.4.v1.json",
-      "sha256": "E3B33DEBB4A9C2159A080AE5178CED34C05D54D2A055BA4126D6498097B91DD2"
+      "sha256": "EB4EC001915CB1F9F0972CF9C31DE62B0A121364044E5DB385DB6B9C5DE46BE5"
     }
   ],
   "canonical_hook_manifest": "hooks/hooks.json",
   "canonical_logical_actions": "hooks/logical-actions.json",
   "enabled_only_after_installed_event_pass": true,
-  "receipt_sha256": "B0A1E38D9FEB330041504DBBDA076CD8A55E957F3DD4F5C9BE0FCA3084CC9419"
+  "receipt_sha256": "05FE25350740282A9835282214C4938FCA986C7BB447E565CDB77E67213C9832"
 }

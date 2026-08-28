@@ -5,7 +5,8 @@ from __future__ import annotations
 import importlib.util
 import multiprocessing
 import threading
-from concurrent.futures import ProcessPoolExecutor, TimeoutError as FutureTimeoutError
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
 from typing import Any
@@ -175,7 +176,7 @@ def _extract_tree_sitter_facts_in_process(path: str, text: str) -> TreeSitterExt
     )
 
     detected = detect_language(path)
-    available = set(str(item) for item in available_languages())
+    available = {str(item) for item in available_languages()}
     if not detected or detected not in available:
         status = (
             "UNSUPPORTED_LANGUAGE"
@@ -186,7 +187,7 @@ def _extract_tree_sitter_facts_in_process(path: str, text: str) -> TreeSitterExt
                 else "RUNTIME_LANGUAGE_MISSING"
             )
         )
-        core = {
+        core: dict[str, Any] = {
             "status": status,
             "parser": "tree-sitter-language-pack",
             "language": str(detected) if detected else None,

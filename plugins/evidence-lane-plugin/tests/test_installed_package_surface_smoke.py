@@ -9,7 +9,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 PLUGIN = Path(__file__).resolve().parents[1]
 SOURCE = PLUGIN / "src"
 if str(SOURCE) not in sys.path:
@@ -267,7 +266,7 @@ def test_installed_executable_tree_registry_hashes_every_declared_member() -> No
         assert _sha256(path) == row["sha256"]
     assert "remote_adapter/" not in registry["repository_only_exclusions"]
     assert registry["repository_companion_surfaces"] == [
-        "apps/evidence-lane-remote-adapter/"
+        "apps/evidence-lane-app/"
     ]
     assert "tests/tools/" in registry["repository_only_exclusions"]
 

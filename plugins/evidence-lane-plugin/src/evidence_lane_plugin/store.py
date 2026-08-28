@@ -8783,6 +8783,7 @@ class ProjectStore:
             status="BLOCKED",
             target_state_ref=target_state_ref,
         )
+        target = cast(dict[str, Any], target)
         root = self.project_root(project_id)
         cursor_path = root / "rollback_state_cursor.json"
         with self._lock(project_id):

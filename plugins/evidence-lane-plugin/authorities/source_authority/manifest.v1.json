@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "source_authority",
   "database": "source_authority.sqlite",
-  "database_sha256": "ECB2F8728B74F5F65BCED30F07F253520643BC7D767F18492BED7C1A124F7453",
+  "database_sha256": "BAE9E6B5DE304FB79494A3BD1B5DFDBF2DD678A67DA4B09D8CFFF798A907A34B",
   "database_integrity": "ok",
-  "schema_sha256": "BD059145422ECF8FDA5B52DCFA336D923CC9C27C5AE97053943CFC7F73F5DAFB",
+  "schema_sha256": "F87EBF0996BA19EB92EBCD9AC5159289CB1804E4BBFCFED896391F459C10BD7F",
   "table_count": 56,
   "fts5_tables": [
     "authority_index_fts",
@@ -95,12 +95,12 @@
     {
       "path": "authorities/source_authority/source_authority.sqlite",
       "bytes": 552960,
-      "sha256": "ECB2F8728B74F5F65BCED30F07F253520643BC7D767F18492BED7C1A124F7453"
+      "sha256": "BAE9E6B5DE304FB79494A3BD1B5DFDBF2DD678A67DA4B09D8CFFF798A907A34B"
     },
     {
       "path": "authorities/source_authority/source_authority.tools.json",
       "bytes": 20302,
-      "sha256": "F9092980F818DC52494A1288F9411492360C86787FCE26C5B2E9F3BF0137990B"
+      "sha256": "C16EFEC7710B2A4AED2379671DC7B35CB5673788444FE5766751812F18CD7804"
     },
     {
       "path": "authorities/source_authority/sqlite-artifact.schema.json",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/source_authority/sqlite-schema.v1.json",
       "bytes": 128864,
-      "sha256": "651E887FD4FD1A0936FF3EEB4D1BB2D0F062925F8E672C30CDF29E35EAC18ADF"
+      "sha256": "5F665113B7095077409EAD0AEB14445289B74DF72F539C342BB0263C570663ED"
     },
     {
       "path": "authorities/source_authority/tools.schema.json",
@@ -125,7 +125,7 @@
     "src/evidence_lane_plugin/source_graph.py": "F35D98CC8F32A21E767627DBFE5CA125776AA03BC1158187EB040FDF29A9E708",
     "src/evidence_lane_plugin/source_git_history.py": "F36832D0B522AE9253306B109A840B13AEB8460768A3A2F67D6ADE0758C77F07",
     "src/evidence_lane_plugin/source_identity.py": "0905E1CBC5217A71714586E0D30FB2116D926E00EB17F2AFC9FD4D1A1058700C",
-    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
   "llama_index_refresh_receipt": {
@@ -145,8 +145,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:51.525882Z",
-    "receipt_sha256": "00E226BFB4B69088FC255183D2C929F58859B43A686C5536330FD7563B14116C"
+    "recorded_at": "2026-08-28T10:19:06.132474Z",
+    "receipt_sha256": "D71CC8EDA2F5F54D22CF56241014C4AEC53BB6AD1FC0EC548516D27CE96FA4C4"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -290,5 +290,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "E863BB01B5A15BDA69C08C0256F927CC6C08A5D92E8024ECF7F12E3D81285BD5"
+  "receipt_sha256": "B004AAF78242AABCBB5E50B31CAEC6FF3AD514F474A50688EA4E8185F687736D"
 }

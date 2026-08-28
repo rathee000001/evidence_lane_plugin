@@ -16,7 +16,6 @@ import time
 from pathlib import Path
 from typing import Any, Final
 
-
 PIPELINE_SCHEMA: Final = "evidence-lane.codex-native-subhook-pipeline.v1"
 STAGES: Final = ("VALIDATE", "SEAL", "TRANSPORT", "EMIT")
 TERMINAL_OUTPUT_EVENTS: Final = {"Stop", "SessionEnd"}
@@ -79,7 +78,7 @@ def _chain(event_name: str, transport: dict[str, Any]) -> tuple[Path, str]:
     receipt = str(transport.get("transport_receipt_sha256") or "")
     if len(receipt) != 64:
         raise SubhookPipelineError("SUBHOOK_TRANSPORT_RECEIPT_INVALID")
-    chain_id = _sha256(f"{event_name}|{receipt}".encode("utf-8"))
+    chain_id = _sha256(f"{event_name}|{receipt}".encode())
     return _control_root() / event_name / chain_id, chain_id
 
 
@@ -218,7 +217,7 @@ def run(stage: str) -> int:
                 "action": "DEDUPE_AND_SEAL_EVENT",
                 "prior_receipt_sha256": validated["receipt_sha256"],
                 "dedupe_identity_sha256": _sha256(
-                    f"{event_name}|{chain_id}|SEAL".encode("utf-8")
+                    f"{event_name}|{chain_id}|SEAL".encode()
                 ),
             },
         )

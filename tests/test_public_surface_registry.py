@@ -8,16 +8,16 @@ from typing import Any
 
 import evidence_lane_plugin.mcp_server as mcp_server_module
 import pytest
+from evidence_lane_plugin.auth import (
+    READ_SCOPE,
+    OAuthJWTConfig,
+    OAuthToolAuthorizationPolicy,
+)
 from evidence_lane_plugin.constants import (
     GOVERNED_SKILL_COUNT,
     NATIVE_READ_TOOL_COUNT,
     NATIVE_TOOL_COUNT,
     NATIVE_WRITE_TOOL_COUNT,
-)
-from evidence_lane_plugin.auth import (
-    READ_SCOPE,
-    OAuthJWTConfig,
-    OAuthToolAuthorizationPolicy,
 )
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes

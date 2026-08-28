@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 from evidence_lane_plugin import codex_turn_control
@@ -17,7 +16,6 @@ from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from evidence_lane_plugin.state_travel_contract import (
     direct_forced_same_worktree_binding_contract,
     normalize_direct_forced_same_worktree_binding,
-    normalize_task_list,
     preflight_direct_forced_same_worktree_binding,
     verify_direct_destination_plan_acceptance,
     verify_direct_source_option2_closeout,

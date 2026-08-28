@@ -210,7 +210,7 @@ def plan_live_root_normalization(project_root: str | Path) -> dict[str, Any]:
                 for source in _files(history)
             )
     connector_source = root / "connector_brain.sqlite"
-    connector_target = root / "connector_brain" / "connector-brain.sqlite"
+    root / "connector_brain" / "connector-brain.sqlite"
     connector = (
         {
             "source_relative_path": "connector_brain.sqlite",

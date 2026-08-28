@@ -257,9 +257,9 @@
     "skills/evi-memory/SKILL.md": "7AA619FDEFC82822851AA630E55DE8903CC851B018C1E5BDE93F20BF0C5E1978"
   },
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/project_memory.py": "D6FF65563453A74324114AAFB9E901F14BD03E689BC61ECAB658BD87BE32FF13",
+    "src/evidence_lane_plugin/project_memory.py": "72FE29489C48A1B5CBA282C5D3C0B18203F1619049ED17A8BD08A84F5E08F14C",
     "src/evidence_lane_plugin/conversation_memory.py": "875D1CF54192647A75124A4AD43090AA37F52CA2CF68A124B9DD36316216B886",
-    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
   "llama_index_refresh_receipt": {
@@ -279,8 +279,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:51.143839Z",
-    "receipt_sha256": "EEFCC9D162051CBA7E32E0C6B237A6D7E91BEF8BD43693731FFC485E27BA527E"
+    "recorded_at": "2026-08-28T10:19:05.621768Z",
+    "receipt_sha256": "0CF6CA21B72546E7358D7CF35824FE0BDABD0AE46F64ABB5D66EFDA03B4618EE"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -422,5 +422,5 @@
     "mmd_dot_same_semantic_topology": true,
     "receipt_sha256": "554D9369D8E7203FB91A4FBF3FFBE1B1404E187AC1FC289C76DC1F69EC956233"
   },
-  "receipt_sha256": "F78AD54382FEFE5E19DF487E463E2FB96CA4025873E47C412021D485239C7E9F"
+  "receipt_sha256": "9BFA45DD95ACFA6823E22743AF1E3F8CB132AB5963A5A968319FA661883DAE64"
 }

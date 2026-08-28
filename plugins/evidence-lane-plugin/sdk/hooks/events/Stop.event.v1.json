@@ -5,31 +5,31 @@
   "event": "Stop",
   "handler_count": 4,
   "event_binding": "hooks/events/Stop/event.v1.json",
-  "event_binding_sha256": "15F30D24084677189033B1BC0C66F3261F89A2CCF63A3AB80900297DDE883D2F",
+  "event_binding_sha256": "9949B658B286982F70720723AE4FABA0BBD770F875E16C271D1A0DEF0A02A3C0",
   "handlers": [
     {
       "display_id": "10.1",
       "path": "hooks/events/Stop/handler-10.1.v1.json",
-      "sha256": "5D378AFB8F215B1FA8A6F1487DD7CA3C64CDE08AAE47D5D4F1F1DB433A74AE96"
+      "sha256": "BCB86714CCDBC5FF67678AF45091413A6E9387F853118A6CE0543448C1B68DFC"
     },
     {
       "display_id": "10.2",
       "path": "hooks/events/Stop/handler-10.2.v1.json",
-      "sha256": "E84B0FA76EAD0FE0E4EBBCDDB37459C15847DA9C4A4BD52382A5C51E91BE08E7"
+      "sha256": "85F90F91A7463CDC96A6D642E031A7B02D61AF6033B134AC296587D2077F1BA7"
     },
     {
       "display_id": "10.3",
       "path": "hooks/events/Stop/handler-10.3.v1.json",
-      "sha256": "AF76C840EC99515FD3B8505BFB92F116A7FC3321DD01E5F35019972CDEE7D4A4"
+      "sha256": "144512DFE303AB40279E143F19A91299E3BC628EB80A047E7A8F98682D22E3C7"
     },
     {
       "display_id": "10.4",
       "path": "hooks/events/Stop/handler-10.4.v1.json",
-      "sha256": "142EB2B66C8DDCFB2A23816417723157AE01ED91E20961628C888751D62FE690"
+      "sha256": "C1717F99D2B29429A3FCD3145D88E67DA01731C0B510C9B41A7774428F7EF30D"
     }
   ],
   "canonical_hook_manifest": "hooks/hooks.json",
   "canonical_logical_actions": "hooks/logical-actions.json",
   "enabled_only_after_installed_event_pass": true,
-  "receipt_sha256": "2866507926E87833BF95F0D8272A3317E3DDDD16D92A047E8C8C5B255A8FAF2A"
+  "receipt_sha256": "D791C034AF166324222AF5DE058B276CA2040F4460B368308F138436E1A7EAA6"
 }

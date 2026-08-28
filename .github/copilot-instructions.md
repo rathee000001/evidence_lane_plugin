@@ -9,7 +9,7 @@ are separate identities. Never use one as proof of another.
 
 - `plugins/evidence-lane-plugin/src/evidence_lane_plugin/`: Python runtime and
   MCP implementation.
-- `apps/evidence-lane-remote-adapter/`: Codex-only public documentation
+- `apps/evidence-lane-app/`: Codex-only public documentation
   site; it is excluded from the installed plugin package.
 - `plugins/evidence-lane-plugin/skills/`: installed Evidence Lane skill
   contracts.
@@ -41,6 +41,6 @@ are separate identities. Never use one as proof of another.
 Install Python dependencies from
 `plugins/evidence-lane-plugin/requirements.lock.txt`. The fixed CI profiles are
 declared in `.github/actions/evidence-lane-ci/src/main.mjs`. For the website,
-use the pinned pnpm lock in `apps/evidence-lane-remote-adapter/` and
+use the pinned pnpm lock in `apps/evidence-lane-app/` and
 run its build. Every final report must distinguish executed receipts from
 declarations and unresolved external checks.

@@ -11,12 +11,17 @@ from types import MappingProxyType
 from typing import Any
 
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
+from .package_root import resolve_plugin_root
 
 MUTATION_AUTOMATIC_APPEND_ONLY = "automatic_append_only"
 MUTATION_NAMED_GRANT_RELOCK = "explicit_named_one_turn_grant_receipt_snapshot_relock"
 PRIMARY_CODE_LANES = frozenset({"github_code", "local_code"})
 LANE_SCHEMA_REGISTRY_SCHEMA = "evidence-lane.lane-schema-registry.v1"
-_PACKAGE_SCHEMA_ROOT = Path(__file__).resolve().parents[2] / "schemas"
+def _package_schema_root() -> Path:
+    return resolve_plugin_root(__file__) / "schemas"
+
+
+_PACKAGE_SCHEMA_ROOT = _package_schema_root()
 LANE_SCHEMA_REGISTRY_PATH = _PACKAGE_SCHEMA_ROOT / "lane-schema-registry.v001.json"
 LANE_SCHEMA_EVOLUTION_POLICY_SCHEMA = (
     "evidence-lane.lane-schema-evolution-policy.v1"

@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "mode",
   "authority_root": "authorities/project_sectors/mode",
-  "authority_manifest_sha256": "B8D8C1005C957EBA863F8BCA0DD8494F4CC4DC96DD85E4FD36A55D9291756447",
+  "authority_manifest_sha256": "CF4E1979D32A44878A1FE0392766C146EC2FAB9E13D4AA734C69BBA1C31FD745",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -60,5 +60,5 @@
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
   "canonical_lane_contract_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "3EF963396FEBE4AE813757E96821F2E8D840FCD3615BCE09EF70A66F7AAEA979"
+  "receipt_sha256": "EE9A0D28986F765AD38EF22DA6434602F62E0B630AA9F8881A7745D70483B6FA"
 }

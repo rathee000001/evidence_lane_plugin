@@ -6,7 +6,6 @@ from pathlib import Path
 
 from evidence_lane_plugin.hashing import sha256_file
 
-
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 
 

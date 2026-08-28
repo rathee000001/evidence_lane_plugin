@@ -10,7 +10,6 @@ from evidence_lane_plugin import project_authority
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS
-from evidence_lane_plugin.models import SessionState
 from evidence_lane_plugin.plan_runtime import write_plan_runtime_projection
 from evidence_lane_plugin.project_authority import (
     PROJECT_AUTHORITY_CONFIRMATION,
@@ -20,10 +19,6 @@ from evidence_lane_plugin.project_authority import (
 from evidence_lane_plugin.project_overlay import (
     build_project_overlay,
     validate_project_overlay,
-)
-from evidence_lane_plugin.project_pv_storage import (
-    validate_project_pv_archive,
-    working_overlay_manifest,
 )
 from evidence_lane_plugin.reader import PVReader
 

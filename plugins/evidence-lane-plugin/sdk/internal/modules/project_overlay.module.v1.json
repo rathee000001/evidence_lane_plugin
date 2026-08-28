@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.project_overlay",
   "source_path": "src/evidence_lane_plugin/project_overlay.py",
-  "source_sha256": "E6641A9DFC739C8D822CA90B654B7472C6DE3B40697FCB7F0FAC059E01355229",
+  "source_sha256": "F9C2D4D6339DEA0EC413A28F16F03AB8D99CF083F796B5B73815974490EAEF86",
   "source_bytes": 54320,
   "role": "PROJECT_AUTHORITIES",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "06407100606E27413583AA0CC8D00B1C58CE586316C75A7DFA61A457E1535076"
+  "receipt_sha256": "26178DC813FFC65309843EB0330C53A70CC323088C28C1B90C5A50FFE322086B"
 }

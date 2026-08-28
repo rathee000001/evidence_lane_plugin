@@ -5,7 +5,6 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import sha256_file
 from evidence_lane_plugin.plan_runtime import (

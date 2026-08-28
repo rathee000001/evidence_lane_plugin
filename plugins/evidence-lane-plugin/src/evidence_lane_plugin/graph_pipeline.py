@@ -10,9 +10,9 @@ an independent lifecycle authority.
 
 from __future__ import annotations
 
-import re
 import importlib.util
 import os
+import re
 from dataclasses import asdict, dataclass
 from importlib.metadata import version
 from typing import Any, Literal, TypedDict
@@ -173,7 +173,7 @@ def _rustworkx_analysis(
     weak_components = list(rx.weakly_connected_components(graph))
     strong_components = list(rx.strongly_connected_components(graph))
     is_dag = bool(rx.is_directed_acyclic_graph(graph))
-    degree_rows = [
+    degree_rows: list[dict[str, str | int]] = [
         {
             "node_id": str(graph[index]),
             "in_degree": int(graph.in_degree(index)),
@@ -235,7 +235,7 @@ def semantic_graph_from_mermaid(
     *,
     name: str,
     role: GraphRole = "EXECUTABLE_WORKFLOW",
-) -> "SemanticGraph":
+) -> SemanticGraph:
     """Ingest one existing Mermaid topology without silently dropping lines."""
 
     direction = "TB"
@@ -329,11 +329,11 @@ def semantic_graph_from_mermaid(
             continue
         if node_id not in node_rows:
             node_order.append(node_id)
-        prior = node_rows.get(node_id)
+        prior_node = node_rows.get(node_id)
         node_rows[node_id] = (
-            label or (prior[0] if prior else node_id),
-            kind if kind != "default" or prior is None else prior[1],
-            (prior[2] if prior else None) or current_group,
+            label or (prior_node[0] if prior_node else node_id),
+            kind if kind != "default" or prior_node is None else prior_node[1],
+            (prior_node[2] if prior_node else None) or current_group,
         )
     if unsupported:
         raise ValueError(
@@ -537,7 +537,9 @@ class SemanticGraph:
         ]
         for kind, style in _MMD_CLASS_DEFS.items():
             lines.append(f"  classDef {kind} {style};")
-        grouped = {group.group_id: [] for group in self.groups}
+        grouped: dict[str, list[SemanticNode]] = {
+            group.group_id: [] for group in self.groups
+        }
         ungrouped: list[SemanticNode] = []
         for node in self.nodes:
             if node.group_id is None:
@@ -589,7 +591,9 @@ class SemanticGraph:
             color="#667085",
         )
         graph.attr("edge", fontname="Arial", color="#667085")
-        grouped = {group.group_id: [] for group in self.groups}
+        grouped: dict[str, list[SemanticNode]] = {
+            group.group_id: [] for group in self.groups
+        }
         ungrouped: list[SemanticNode] = []
         for node in self.nodes:
             (ungrouped if node.group_id is None else grouped[node.group_id]).append(

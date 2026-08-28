@@ -77,10 +77,13 @@ def main() -> int:
         else None
     )
     lock = plugin_root / "requirements.lock.txt"
+    torch_lock = plugin_root / "requirements.torch-cpu.lock.txt"
     toolchain_lock = plugin_root / "requirements.toolchain.lock.txt"
     project = plugin_root / "pyproject.toml"
     if not lock.is_file():
         raise SystemExit(f"Missing pinned dependency lock: {lock}")
+    if not torch_lock.is_file():
+        raise SystemExit(f"Missing pinned CPU Torch dependency lock: {torch_lock}")
     if not toolchain_lock.is_file():
         raise SystemExit(f"Missing pinned full-toolchain lock: {toolchain_lock}")
     if not project.is_file():
@@ -94,6 +97,21 @@ def main() -> int:
         environment / "Scripts" / "python.exe"
         if os.name == "nt"
         else environment / "bin" / "python"
+    )
+    subprocess.run(  # nosec B603
+        [
+            str(python),
+            "-m",
+            "pip",
+            "install",
+            "--disable-pip-version-check",
+            "--require-hashes",
+            "--no-deps",
+            "-r",
+            str(torch_lock),
+        ],
+        check=True,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     subprocess.run(  # nosec B603
         [

@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.installed_hook_receipts",
   "source_path": "src/evidence_lane_plugin/installed_hook_receipts.py",
-  "source_sha256": "0F0AA4417C267F8520FF1A965435720233ECDF24560AA6B32868390632AFAAEB",
-  "source_bytes": 37748,
+  "source_sha256": "6F1DC3592BE2F638010FE531D2309AA13B644E4A0658C719FE1F6AC4E65A8778",
+  "source_bytes": 37764,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "A0AE7566471D15525F3E5BA536CB9C9A67D94D986184C4C9C176672BE8B0AE89"
+  "receipt_sha256": "569F4DAF1F59634A52591ED627A8EC146A4711C2769F146258A6B84993969FC9"
 }

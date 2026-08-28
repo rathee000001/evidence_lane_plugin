@@ -9,7 +9,8 @@
   "license_expression_or_terms": "PSF-2.0",
   "license_evidence": "exact hidden-runtime Python distribution and runtime license manifest",
   "evidence_paths": [
-    "requirements.lock.txt"
+    "requirements.lock.txt",
+    "requirements.torch-cpu.lock.txt"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -20,5 +21,5 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "039B6BC49C2E8784902E258D39DFC9EE269D088BC70DFA25E7B3DF83682BF183"
+  "receipt_sha256": "129CF73F0DB3024E8A881F5C081EB00720CF3462CF969153D83DF1174E518A89"
 }

@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "agent_learning",
   "database": "agent-learning.sqlite",
-  "database_sha256": "54728352EBBC42F17AEE0099563714EF6950882742AF362ED736271D8FCCEB3F",
+  "database_sha256": "DA87355850397644A9048A588546C2BFC50999B6A0972F92F35B05C4AA924D59",
   "database_integrity": "ok",
-  "schema_sha256": "A19896053BBF6F32DE1D47754A9EABA2B8430D1BBD5A6237C39926BE9EF8B891",
+  "schema_sha256": "50744ACAD1C6B588F60CAA0EA50A1E5B27FB8C0B4D6DBA9E4BF874EFD892B46A",
   "table_count": 28,
   "fts5_tables": [
     "authority_index_fts",
@@ -26,12 +26,12 @@
     {
       "path": "authorities/agent_learning/agent-learning.sqlite",
       "bytes": 221184,
-      "sha256": "54728352EBBC42F17AEE0099563714EF6950882742AF362ED736271D8FCCEB3F"
+      "sha256": "DA87355850397644A9048A588546C2BFC50999B6A0972F92F35B05C4AA924D59"
     },
     {
       "path": "authorities/agent_learning/agent-learning.tools.json",
       "bytes": 16188,
-      "sha256": "4E7B422A25DD366ECE271554BA3C2D03E4C3E8705B0C107D1AE044BAC5FCC279"
+      "sha256": "00EE6BF2CF260974AD3F983A3419F47A35D27B1DB0D464DF37D68CE118823E6E"
     },
     {
       "path": "authorities/agent_learning/build-refresh-contract.schema.json",
@@ -111,7 +111,7 @@
     {
       "path": "authorities/agent_learning/sqlite-schema.v1.json",
       "bytes": 38352,
-      "sha256": "A8CE002293A1FDDE39F8E88412DFE75EA812766CB0BF6CA6346AF0EE707483D5"
+      "sha256": "79C1B28AE2D4EA3595B15BE49625DDBD3714727F961EB4FA4F6E6840B1888C72"
     },
     {
       "path": "authorities/agent_learning/tools.schema.json",
@@ -121,7 +121,7 @@
   ],
   "canonical_source_hashes": {
     "src/evidence_lane_plugin/agent_learning.py": "38D89683C25EA536392E2EC9816B26F4B94E1561057791EAEF792104C3A54331",
-    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
   "llama_index_refresh_receipt": {
@@ -141,8 +141,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:50.666867Z",
-    "receipt_sha256": "937626B1A56198DFDF61A59F873D85F1A8D128D322F2AE98939976EE54082AB3"
+    "recorded_at": "2026-08-28T10:19:04.901810Z",
+    "receipt_sha256": "EA490FD48CC8340D7E329FF79A70B17DB850A62F53302CC2B2A015DF004975AE"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -286,5 +286,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "ECE7F00D325AAFE3648EB94A528D1234F261CCF270D5D29315587D3EDAF951BF"
+  "receipt_sha256": "3D8D54AA5B71E3487641E67D9E3E30DD86B5B85D277A012C68397F6A2A0BFC37"
 }

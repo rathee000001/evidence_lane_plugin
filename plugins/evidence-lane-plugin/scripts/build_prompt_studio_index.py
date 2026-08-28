@@ -88,18 +88,18 @@ PUBLIC_TEXT_SUFFIXES = {
 PUBLIC_PLUGIN_EXCLUSIONS = (
     "plugins/evidence-lane-plugin/evidence/",
     "plugins/evidence-lane-plugin/_evidence_lane_rehearsal/",
-    "apps/evidence-lane-remote-adapter/.vercel/",
-    "apps/evidence-lane-remote-adapter/public/",
+    "apps/evidence-lane-app/.vercel/",
+    "apps/evidence-lane-app/public/",
 )
 PUBLIC_PLUGIN_EXACT_EXCLUSIONS = {
-    "apps/evidence-lane-remote-adapter/app/_data/dummy-lane-artifacts.json",
+    "apps/evidence-lane-app/app/_data/dummy-lane-artifacts.json",
     # The retrieval implementation contains its own confidence canaries. Indexing
     # those questions would let the corpus answer them from the test definition
     # itself and turn deliberate no-hits into false positives.
-    "apps/evidence-lane-remote-adapter/app/_data/studio-retrieval.ts",
-    "apps/evidence-lane-remote-adapter/app/_data/studio-rag-index.json",
+    "apps/evidence-lane-app/app/_data/studio-retrieval.ts",
+    "apps/evidence-lane-app/app/_data/studio-rag-index.json",
     "plugins/evidence-lane-plugin/requirements.lock.txt",
-    "apps/evidence-lane-remote-adapter/package-lock.json",
+    "apps/evidence-lane-app/package-lock.json",
 }
 LOCAL_SCAN_IGNORED_PARTS = {
     ".git",
@@ -119,7 +119,7 @@ FROZEN_NO_GIT_ADDITIONS = {
     "plugins/evidence-lane-plugin/hooks/subhook_seal.py",
     "plugins/evidence-lane-plugin/hooks/subhook_transport.py",
     "plugins/evidence-lane-plugin/hooks/subhook_validate.py",
-    "apps/evidence-lane-remote-adapter/app/_data/public-action-registry.json",
+    "apps/evidence-lane-app/app/_data/public-action-registry.json",
     "plugins/evidence-lane-plugin/schemas/canon-envelope.schema.json",
     "plugins/evidence-lane-plugin/schemas/canon-expected-contract.schema.json",
     "plugins/evidence-lane-plugin/schemas/canon-task-edge.schema.json",
@@ -170,15 +170,15 @@ FROZEN_NO_GIT_ADDITIONS = {
     "plugins/evidence-lane-plugin/LICENSE.md",
     "plugins/evidence-lane-plugin/README.md",
     "plugins/evidence-lane-plugin/THIRD_PARTY_NOTICES.md",
-    "apps/evidence-lane-remote-adapter/app/_components/governed-story-explorer.tsx",
-    "apps/evidence-lane-remote-adapter/app/_components/hero-orbit.tsx",
-    "apps/evidence-lane-remote-adapter/app/_components/repository-source-strip.tsx",
-    "apps/evidence-lane-remote-adapter/app/_data/governed-linked-deltas.ts",
-    "apps/evidence-lane-remote-adapter/app/_data/prior-execution-plan.ts",
-    "apps/evidence-lane-remote-adapter/app/_data/release-identity.ts",
-    "apps/evidence-lane-remote-adapter/app/_data/repository-documents.ts",
-    "apps/evidence-lane-remote-adapter/app/_data/website-current-execution.ts",
-    "apps/evidence-lane-remote-adapter/app/api/studio-query/openrouter-general.ts",
+    "apps/evidence-lane-app/app/_components/governed-story-explorer.tsx",
+    "apps/evidence-lane-app/app/_components/hero-orbit.tsx",
+    "apps/evidence-lane-app/app/_components/repository-source-strip.tsx",
+    "apps/evidence-lane-app/app/_data/governed-linked-deltas.ts",
+    "apps/evidence-lane-app/app/_data/prior-execution-plan.ts",
+    "apps/evidence-lane-app/app/_data/release-identity.ts",
+    "apps/evidence-lane-app/app/_data/repository-documents.ts",
+    "apps/evidence-lane-app/app/_data/website-current-execution.ts",
+    "apps/evidence-lane-app/app/api/studio-query/openrouter-general.ts",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/goal_usage.py",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_stdio_compat.py",
     "plugins/evidence-lane-plugin/scripts/build_release_candidate_rehearsal.py",
@@ -188,15 +188,15 @@ FROZEN_NO_GIT_ADDITIONS = {
     "plugins/evidence-lane-plugin/hooks/lifecycle_boundary.py",
     "plugins/evidence-lane-plugin/hooks/pre_tool_use.py",
     "plugins/evidence-lane-plugin/release-channels.json",
-    "apps/evidence-lane-remote-adapter/app/_components/studio-artifact-lab.tsx",
-    "apps/evidence-lane-remote-adapter/app/_data/studio-artifact-catalog.ts",
-    "apps/evidence-lane-remote-adapter/app/_data/studio-route-context.ts",
-    "apps/evidence-lane-remote-adapter/scripts/studio-gold-parity-evaluation.json",
+    "apps/evidence-lane-app/app/_components/studio-artifact-lab.tsx",
+    "apps/evidence-lane-app/app/_data/studio-artifact-catalog.ts",
+    "apps/evidence-lane-app/app/_data/studio-route-context.ts",
+    "apps/evidence-lane-app/scripts/studio-gold-parity-evaluation.json",
     "plugins/evidence-lane-plugin/scripts/codex-release-channel.json",
     "plugins/evidence-lane-plugin/scripts/codex_release/accept_codex_stable.py",
     "plugins/evidence-lane-plugin/scripts/codex_release/install_codex_stable.py",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/codex_turn_control.py",
-    "apps/evidence-lane-remote-adapter/app/_data/website-plan-projection.json",
+    "apps/evidence-lane-app/app/_data/website-plan-projection.json",
     "plugins/evidence-lane-plugin/scripts/codex_release/seal_external_release_receipts.py",
     "plugins/evidence-lane-plugin/scripts/sync_website_plan_projection.py",
     "plugins/evidence-lane-plugin/skills/evi-canon/SKILL.md",
@@ -207,15 +207,15 @@ FROZEN_NO_GIT_ADDITIONS = {
     "plugins/evidence-lane-plugin/skills/evi-learning/agents/openai.yaml",
     "plugins/evidence-lane-plugin/src/evidence_lane_plugin/website_plan_projection.py",
     "plugins/evidence-lane-plugin/toolchains/search-tools.v1.json",
-    "apps/evidence-lane-remote-adapter/app/skills/page.tsx",
-    "apps/evidence-lane-remote-adapter/app/mcp/page.tsx",
-    "apps/evidence-lane-remote-adapter/app/hooks/page.tsx",
+    "apps/evidence-lane-app/app/skills/page.tsx",
+    "apps/evidence-lane-app/app/mcp/page.tsx",
+    "apps/evidence-lane-app/app/hooks/page.tsx",
 }
 FROZEN_NO_GIT_REMOVALS = {
     "plugins/evidence-lane-plugin/.app.json",
     "plugins/evidence-lane-plugin/chatgpt-app-submission.json",
-    "apps/evidence-lane-remote-adapter/api/index.py",
-    "apps/evidence-lane-remote-adapter/requirements.txt",
+    "apps/evidence-lane-app/api/index.py",
+    "apps/evidence-lane-app/requirements.txt",
     "plugins/evidence-lane-plugin/skills/evi-change-storage-connector/SKILL.md",
     "plugins/evidence-lane-plugin/skills/evi-change-storage-connector/agents/openai.yaml",
 }
@@ -323,13 +323,13 @@ def _source_specs(
     ]
     specs = [(repo / path, title, href, kind) for path, title, href, kind in fixed]
     internal_hrefs = {
-        "apps/evidence-lane-remote-adapter/app/page.tsx": "/",
-        "apps/evidence-lane-remote-adapter/app/_data/delta-ledger.ts": "/#delta-ledger",
-        "apps/evidence-lane-remote-adapter/app/_data/current-execution-plan.ts": "/#delta-ledger",
-        "apps/evidence-lane-remote-adapter/app/_data/lane-contracts.ts": "/lanes",
-        "apps/evidence-lane-remote-adapter/app/_data/mode-governance.json": "/operators",
-        "apps/evidence-lane-remote-adapter/app/_data/plugin-surfaces.ts": "/skills",
-        "apps/evidence-lane-remote-adapter/app/_data/upstream-references.ts": "/provenance",
+        "apps/evidence-lane-app/app/page.tsx": "/",
+        "apps/evidence-lane-app/app/_data/delta-ledger.ts": "/#delta-ledger",
+        "apps/evidence-lane-app/app/_data/current-execution-plan.ts": "/#delta-ledger",
+        "apps/evidence-lane-app/app/_data/lane-contracts.ts": "/lanes",
+        "apps/evidence-lane-app/app/_data/mode-governance.json": "/operators",
+        "apps/evidence-lane-app/app/_data/plugin-surfaces.ts": "/skills",
+        "apps/evidence-lane-app/app/_data/upstream-references.ts": "/provenance",
     }
     for route in (
         "ai-learning", "architecture", "canon", "connect", "copyright", "credits", "git-ci",
@@ -337,7 +337,7 @@ def _source_specs(
         "proof", "provenance", "readme", "release", "security", "studio", "skills", "support",
         "terms",
     ):
-        internal_hrefs[f"apps/evidence-lane-remote-adapter/app/{route}/page.tsx"] = f"/{route}"
+        internal_hrefs[f"apps/evidence-lane-app/app/{route}/page.tsx"] = f"/{route}"
     for relative in sorted(path for path in tracked_paths if _public_plugin_path(path)):
         href = internal_hrefs.get(relative, _github_blob(relative, revision))
         specs.append(
@@ -592,7 +592,7 @@ def _build_artifacts(
     frozen_git_history_from: Path | None = None,
 ) -> dict[str, Any]:
     evidence_dir = repo / "plugins/evidence-lane-plugin/evidence/prompt_studio"
-    browser_path = repo / "apps/evidence-lane-remote-adapter/app/_data/studio-rag-index.json"
+    browser_path = repo / "apps/evidence-lane-app/app/_data/studio-rag-index.json"
     database_path = evidence_dir / "studio_search.sqlite"
     manifest_path = evidence_dir / "manifest.json"
     evidence_dir.mkdir(parents=True, exist_ok=True)

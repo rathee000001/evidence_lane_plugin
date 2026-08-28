@@ -60,7 +60,7 @@ def test_checked_in_site_projection_is_fresh() -> None:
     generated_path = (
         repository_root
         / "apps"
-        / "evidence-lane-remote-adapter"
+        / "evidence-lane-app"
         / "app"
         / "_data"
         / "mode-governance.json"

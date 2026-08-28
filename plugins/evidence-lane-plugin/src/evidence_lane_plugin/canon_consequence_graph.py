@@ -22,14 +22,15 @@ from pathlib import Path
 from typing import Any, cast
 
 from .errors import EvidenceLaneError, require
+from .graph_pipeline import SemanticGraph
 from .hashing import (
     atomic_write_json,
     canonical_json_bytes,
     sha256_bytes,
     sha256_file,
 )
-from .graph_pipeline import SemanticGraph
 from .lanes import lane_artifact_contract, lane_schema_asset
+from .package_root import resolve_plugin_root
 from .project_authority import resolved_plan_runtime_path
 from .timeutil import utc_now
 
@@ -126,7 +127,7 @@ def _validate_sha(value: Any, *, field: str) -> str:
 
 def _schema_asset() -> tuple[Path, str]:
     candidates = (
-        Path(__file__).resolve().parents[2]
+        resolve_plugin_root(__file__)
         / "schemas"
         / "canon"
         / "canon-consequence-graph.v1.sql",

@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "project_universe",
   "database": "project_universe.sqlite",
-  "database_sha256": "8D02CBA83CC31D64DC2312AE664132FB548F0D238E54780CD2B8A37500FEE60D",
+  "database_sha256": "0CFB647435E1A1D50B41B6AC356D3EB6600F252C4CB0F15CEFE8D2A049321A48",
   "database_integrity": "ok",
-  "schema_sha256": "9EB5186DE323EF6602885326808AF419D2306AF8EE7530A826C4BC2105AB1504",
+  "schema_sha256": "222A608272E257842FFE6E3457961192EDB8692F178D82D27BA27F58741E60E1",
   "table_count": 20,
   "fts5_tables": [
     "authority_index_fts",
@@ -60,12 +60,12 @@
     {
       "path": "authorities/project_universe/project_universe.sqlite",
       "bytes": 155648,
-      "sha256": "8D02CBA83CC31D64DC2312AE664132FB548F0D238E54780CD2B8A37500FEE60D"
+      "sha256": "0CFB647435E1A1D50B41B6AC356D3EB6600F252C4CB0F15CEFE8D2A049321A48"
     },
     {
       "path": "authorities/project_universe/project_universe.tools.json",
       "bytes": 12843,
-      "sha256": "27A1D7871C81CA7E63A4093E0E63DB6D6897F0F335AAE9722100F863F79B748E"
+      "sha256": "A62C3AB27B8911C41BAE408E16005F3A8F27832D1F68A0350C45FF90CB2E6AA6"
     },
     {
       "path": "authorities/project_universe/reader-contract.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_universe/runtime-binding.schema.json",
       "bytes": 602,
-      "sha256": "DCFC041EF5420920896946258A2F138ADFC047231B9E209648369E4B643AD870"
+      "sha256": "5F788ACB5E302D4116F58EAF2A2D12E5CB90C6DFDDEA60BF744B64B0E8B5C60B"
     },
     {
       "path": "authorities/project_universe/runtime.py",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/project_universe/sqlite-schema.v1.json",
       "bytes": 24627,
-      "sha256": "01EF22745D5C2A2744AAE9E6F28D022F656FAE0D630C07F16A7A35CBCBDA6130"
+      "sha256": "DF90241C9233978EE85F1C0F2DB9FADCC84AED222CA048A71B36B2CA62899A82"
     },
     {
       "path": "authorities/project_universe/tools.schema.json",
@@ -119,8 +119,8 @@
     }
   ],
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/project_universe.py": "C54666A1ABA1850A46F5BF654FF009FFA387CEA8AC9CB0EEAA99CDCCF45A9649",
-    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+    "src/evidence_lane_plugin/project_universe.py": "5F1B917449AF9E7B039B8CD289C5BEF22F5D9932BF7008B93FC698026238C748",
+    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
   "llama_index_refresh_receipt": {
@@ -138,8 +138,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:51.723604Z",
-    "receipt_sha256": "30A9E25943876FC08CD084362F72390F97EE9C141F77064A8969DB3CFE276D8F"
+    "recorded_at": "2026-08-28T10:19:06.380235Z",
+    "receipt_sha256": "B9CB09649ADC98BD1AE6E9FF15A62B6113EB11DB136E32CB3179DF5BD5481CFD"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -283,5 +283,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "2CC861E0922244BEA0BD8BD25A74E0662CD1AD95871858999AB8A1C5F2C407A4"
+  "receipt_sha256": "394CE51E7BA84097AF9CC1BDEFC48FB95461D30EF74EBACC476F9DFF2B04A600"
 }

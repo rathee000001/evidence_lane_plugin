@@ -8,82 +8,82 @@
       "event_number": 1,
       "event": "SessionStart",
       "path": "hooks/events/SessionStart",
-      "event_sha256": "E6B2914E49996131D67CEC91DFA3D3150A71248C93BB7EFACCC0974AD28BEF2F",
+      "event_sha256": "F8BBFF755750F1FB054A37D01FFA8EF42751F8E7C3ABE51F6D32B249B90A221B",
       "handler_count": 4
     },
     {
       "event_number": 2,
       "event": "SubagentStart",
       "path": "hooks/events/SubagentStart",
-      "event_sha256": "EBB5C8C3DC74A9F775F297F3385D6073FF9E510926A2BE12BD33402331BC29C9",
+      "event_sha256": "E71E2C1E1E599A664615B10B75F279BC313347902CC24F8FB81888D4156B0C2A",
       "handler_count": 4
     },
     {
       "event_number": 3,
       "event": "UserPromptSubmit",
       "path": "hooks/events/UserPromptSubmit",
-      "event_sha256": "019ED34FB862EA927005E50EAC28A575AA6E759F1C4FF52852457D6B61A85F7E",
+      "event_sha256": "E141879EDE2E1A4EE08A8F991F9AA0488F7281DB2B093A1CF08D054E6D771440",
       "handler_count": 4
     },
     {
       "event_number": 4,
       "event": "PreToolUse",
       "path": "hooks/events/PreToolUse",
-      "event_sha256": "83A7F0FDA9A53C8E13507A247F6BE510CB94957A8BA514F6AD64A11A69E7A853",
+      "event_sha256": "A1492C6CD078FF62D7A121429CB29D310E27B142ECED364D0A587C56E82EA3A9",
       "handler_count": 4
     },
     {
       "event_number": 5,
       "event": "PermissionRequest",
       "path": "hooks/events/PermissionRequest",
-      "event_sha256": "CACCFC851405606559E741F7376C1C813CC65C8F1AA44D9933461C890CFF6E81",
+      "event_sha256": "DF688942C8FF4EDD2B30A516577BE365AA7BC9F3A379BD2759BB67948ECB3CFA",
       "handler_count": 4
     },
     {
       "event_number": 6,
       "event": "PostToolUse",
       "path": "hooks/events/PostToolUse",
-      "event_sha256": "5BFD1A7236350145B5E19D11D9FD073D1151D716692CD420FE6895A2F03A195F",
+      "event_sha256": "17F6167F4921D01957D0B8FCAB94809ABCEA936F5DDA7A3289142A7A4A8AC89C",
       "handler_count": 4
     },
     {
       "event_number": 7,
       "event": "PreCompact",
       "path": "hooks/events/PreCompact",
-      "event_sha256": "503A7CBE5C7D4AA4F316D0CDA428792200A426CB280FB7363B5A240540DE2CF5",
+      "event_sha256": "39E4617A6E6052C7522DFDB9264FF7246DF6FB2B5DD388C73C034D277DBC20F4",
       "handler_count": 4
     },
     {
       "event_number": 8,
       "event": "PostCompact",
       "path": "hooks/events/PostCompact",
-      "event_sha256": "06BC5EDA004B3EF094D9923DB6FEE7D5E8F4A3BF3DEF2CDA8DCC40E0B934DC78",
+      "event_sha256": "3944A747999E58AFA71997C91E868BB3828C7CF057F19A00626865CA9BA05E5F",
       "handler_count": 4
     },
     {
       "event_number": 9,
       "event": "SubagentStop",
       "path": "hooks/events/SubagentStop",
-      "event_sha256": "715350F30CB9C88A650D686FFA8286F2DFF76BB6064867E8B1244AEA1204BDB6",
+      "event_sha256": "15294139094086F1984A1F2561074B8A1882BC68832742641E5DBF059682D88C",
       "handler_count": 4
     },
     {
       "event_number": 10,
       "event": "Stop",
       "path": "hooks/events/Stop",
-      "event_sha256": "15F30D24084677189033B1BC0C66F3261F89A2CCF63A3AB80900297DDE883D2F",
+      "event_sha256": "9949B658B286982F70720723AE4FABA0BBD770F875E16C271D1A0DEF0A02A3C0",
       "handler_count": 4
     },
     {
       "event_number": 11,
       "event": "SessionEnd",
       "path": "hooks/events/SessionEnd",
-      "event_sha256": "F4DA5D4CDE8B8BB8882876E05CDA751B9A8E3BF37E3132BC9C7BF0214A403206",
+      "event_sha256": "8EC8A2C6D32366E0AD9DE75CEC800395727831F859A96E6523EF75468AD6B37D",
       "handler_count": 4
     }
   ],
   "hooks_manifest_sha256": "C37DB05DD4701087EAD0BD31203C843AAFA79ED39A081F2E9DFF313A77631EEF",
   "logical_actions_sha256": "B63F604D0610EFC6D192534E3E54851D86171A42AB54E0221FD3F861312549C8",
   "compiled_host_receipt_sha256": "015F99841381717B0AE88C62DEE710786F425A2F3E882136A1A26E0FC082371A",
-  "receipt_sha256": "B6D18B60E62BE44E29E3B85EC265648BA7D746BFA666815584B456D33F7D48BF"
+  "receipt_sha256": "C8E69539BD441F710A7D2056E7CED3C1D0CA222F903AC00DBBE88E80C6A811EB"
 }

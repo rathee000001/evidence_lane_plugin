@@ -267,7 +267,7 @@ def read_receipt(
             raise KeyError("Receipt not found.")
         value = json.loads(bytes(row[0]).decode("utf-8"))
         if not isinstance(value, dict):
-            raise ValueError("Receipt row is not one JSON object.")
+            raise TypeError("Receipt row is not one JSON object.")
         return value
     finally:
         connection.close()

@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROVENANCE = ROOT / "docs" / "UPSTREAM_REFERENCE_PROVENANCE.md"
 SITE_DATA = (
-    ROOT / "apps" / "evidence-lane-remote-adapter"
+    ROOT / "apps" / "evidence-lane-app"
     / "app"
     / "_data"
     / "upstream-references.ts"

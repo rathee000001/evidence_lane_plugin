@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "connector_brain",
   "database": "connector-brain.sqlite",
-  "database_sha256": "4D98403982833735F08A73202950BDBC90644BF9A1AD3239A6EAC07A71D4F692",
+  "database_sha256": "606B936B3A637BE757F357842CF3883E80962DAF99B9A55EEC77028446F0199F",
   "database_integrity": "ok",
-  "schema_sha256": "DDA01FE5B0F861C44DA06AFB8DAC35CD1D9395B69B44035ECC0C5ACFFC0CCCCB",
+  "schema_sha256": "8390B70CF52F1D9FCE45439122143FEC6523EE582F7AF43BCA4FE172F61EC5ED",
   "table_count": 29,
   "fts5_tables": [
     "authority_index_fts",
@@ -26,7 +26,7 @@
     {
       "path": "authorities/connector_brain/connector-brain.sqlite",
       "bytes": 196608,
-      "sha256": "4D98403982833735F08A73202950BDBC90644BF9A1AD3239A6EAC07A71D4F692"
+      "sha256": "606B936B3A637BE757F357842CF3883E80962DAF99B9A55EEC77028446F0199F"
     },
     {
       "path": "authorities/connector_brain/connector_brain.dot",
@@ -41,7 +41,7 @@
     {
       "path": "authorities/connector_brain/connector_brain.tools.json",
       "bytes": 10082,
-      "sha256": "51D4D13E4239AB8DE41B6B30AC16207A4E1450161000286F6ABEBA5D3F4DAC59"
+      "sha256": "B24EBE69A718203038C165A45EE55FD41DAE88E3E8C7288A4ED3182F71BBCA0B"
     },
     {
       "path": "authorities/connector_brain/dot-artifact.schema.json",
@@ -111,7 +111,7 @@
     {
       "path": "authorities/connector_brain/sqlite-schema.v1.json",
       "bytes": 42220,
-      "sha256": "6CB8E343CD6DB2A7B8ACC6FFE35A7600A49EA99E3C7B2EC58041549C42AB4AEA"
+      "sha256": "EAB834C0CFD3CA93F7CC1A7F48214518CFB57A57D9FC9C9C209F466E15FBA273"
     },
     {
       "path": "authorities/connector_brain/tools.schema.json",
@@ -121,7 +121,7 @@
   ],
   "canonical_source_hashes": {
     "src/evidence_lane_plugin/connector_governance.py": "619C78D2E2447B004F4823A6B8D2C059B271381486F1F2AE3957F0B5EACCF91E",
-    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
   "llama_index_refresh_receipt": {
@@ -139,8 +139,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:51.863233Z",
-    "receipt_sha256": "EA6BDB76A9E7DD238DB8517FDE157FDEBAAB4CDEC58E968D6E4BFFD25027AFD3"
+    "recorded_at": "2026-08-28T10:19:06.592013Z",
+    "receipt_sha256": "CDA8BED42718AA3F5EB9FA32AFB9EDB2D0FA73141E4464DBF92FFD4F4458DA87"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -284,5 +284,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "BA8823207096DFBA16C861272F5352CFA54F88CD15C21E348513E7B219CC19B9"
+  "receipt_sha256": "569D710E3D37FC774D1EB4802C2D00BF3BF0F9EE96AD6DA47353DF9144A65A39"
 }

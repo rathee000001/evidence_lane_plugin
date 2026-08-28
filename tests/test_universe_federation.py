@@ -4,7 +4,6 @@ import sqlite3
 from pathlib import Path
 
 import pytest
-
 from evidence_lane_plugin.connector_governance import ConnectorGovernance
 from evidence_lane_plugin.errors import EvidenceLaneError
 

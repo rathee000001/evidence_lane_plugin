@@ -9,6 +9,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict
 
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
+from .package_root import resolve_plugin_root
 
 
 class DoclingRequest(BaseModel):
@@ -25,7 +26,7 @@ def docling_available() -> bool:
 
 
 def packaged_docling_artifacts_root() -> Path:
-    return Path(__file__).resolve().parents[2] / "toolchains" / "models" / "docling"
+    return resolve_plugin_root(__file__) / "toolchains" / "models" / "docling"
 
 
 def extract_with_docling(request: DoclingRequest) -> dict[str, Any]:
@@ -38,7 +39,9 @@ def extract_with_docling(request: DoclingRequest) -> dict[str, Any]:
         raise ValueError("DOCLING_RUNTIME_MODEL_DOWNLOAD_FORBIDDEN")
     if not docling_available():
         raise RuntimeError("DOCLING_DEPENDENCY_UNAVAILABLE")
-    from docling.datamodel.base_models import InputFormat  # type: ignore[import-not-found]
+    from docling.datamodel.base_models import (
+        InputFormat,  # type: ignore[import-not-found]
+    )
     from docling.datamodel.pipeline_options import (  # type: ignore[import-not-found]
         PdfPipelineOptions,
     )

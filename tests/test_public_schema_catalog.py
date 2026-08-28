@@ -20,7 +20,7 @@ OBSOLETE_RUNTIME_COPY = (
     / "schemas"
     / "public-action-schemas.v001.json"
 )
-REMOTE = ROOT / "apps" / "evidence-lane-remote-adapter" / "app" / "_data" / "public-action-registry.json"
+REMOTE = ROOT / "apps" / "evidence-lane-app" / "app" / "_data" / "public-action-registry.json"
 LIVE_AUTHORITY = (
     PLUGIN / "schemas" / "live-root-env-uop-six-way-query.v001.json"
 )

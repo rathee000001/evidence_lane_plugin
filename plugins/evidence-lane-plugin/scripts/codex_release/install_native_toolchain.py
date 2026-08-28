@@ -96,8 +96,7 @@ def download(url: str, target: Path, expected_sha256: str, expected_size: int) -
             [curl, "-L", "--fail", "--silent", "--show-error", "--output", str(temporary), url],
             check=False,
             stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             timeout=180,
             shell=False,
             creationflags=(getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0),
@@ -259,8 +258,7 @@ def install_asset(
                 [str(executable), *[str(value) for value in row["version_arguments"]]],
                 check=False,
                 stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 timeout=30,
                 shell=False,
                 creationflags=(
@@ -336,8 +334,7 @@ def install_asset(
             arguments,
             check=False,
             stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             timeout=300,
             shell=False,
             creationflags=(getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0),
@@ -356,8 +353,7 @@ def install_asset(
             [str(extractor), "x", str(asset), f"-o{target}", "-y"],
             check=False,
             stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             timeout=300,
             shell=False,
             creationflags=(
@@ -378,8 +374,7 @@ def install_asset(
             [str(executable), *[str(value) for value in row["version_arguments"]]],
             check=False,
             stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             timeout=30,
             shell=False,
             creationflags=(getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0),
@@ -432,7 +427,7 @@ def install_tree_sitter_languages(
             for language in CODE_TOOLCHAIN_LANGUAGES
         ]
         prefetch(grammar_download_ids)
-        available = set(str(value) for value in available_languages())
+        available = {str(value) for value in available_languages()}
         missing = sorted(set(CODE_TOOLCHAIN_LANGUAGES) - available)
         if missing:
             raise InstallError(
@@ -537,7 +532,9 @@ def install_embedding_model(
             "EMBEDDING_MODEL_SNAPSHOT_INCOMPLETE:"
             + ",".join(sorted(expected - observed))
         )
-    from sentence_transformers import SentenceTransformer  # type: ignore[import-not-found]
+    from sentence_transformers import (
+        SentenceTransformer,  # type: ignore[import-not-found]
+    )
 
     model = SentenceTransformer(str(target), local_files_only=True)
     vectors = model.encode(

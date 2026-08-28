@@ -476,7 +476,7 @@
     "src/evidence_lane_plugin/source_graph.py": "F35D98CC8F32A21E767627DBFE5CA125776AA03BC1158187EB040FDF29A9E708",
     "src/evidence_lane_plugin/source_git_history.py": "F36832D0B522AE9253306B109A840B13AEB8460768A3A2F67D6ADE0758C77F07",
     "src/evidence_lane_plugin/source_identity.py": "0905E1CBC5217A71714586E0D30FB2116D926E00EB17F2AFC9FD4D1A1058700C",
-    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
   "llama_index_refresh_receipt": {
@@ -496,8 +496,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:51.525882Z",
-    "receipt_sha256": "00E226BFB4B69088FC255183D2C929F58859B43A686C5536330FD7563B14116C"
+    "recorded_at": "2026-08-28T10:19:06.132474Z",
+    "receipt_sha256": "D71CC8EDA2F5F54D22CF56241014C4AEC53BB6AD1FC0EC548516D27CE96FA4C4"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -639,5 +639,5 @@
     "mmd_dot_same_semantic_topology": true,
     "receipt_sha256": "436CB4CD8C42E549D879EA2ED36DD809E143270FCA6A54638BEE20DF0122C0B0"
   },
-  "receipt_sha256": "4E41F01B439AA2F3F269F317BF0C4633454065C4574D9CD7F84A6BCFF33FD20B"
+  "receipt_sha256": "55E6C8A75680A9B2A9835737151E9E3B796E7D729862D9FD6621B66FF02A6F0C"
 }

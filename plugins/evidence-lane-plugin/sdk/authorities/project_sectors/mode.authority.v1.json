@@ -3,11 +3,11 @@
   "status": "PASS",
   "lane_id": "mode",
   "authority_root": "authorities/project_sectors/mode",
-  "authority_manifest_sha256": "B8D8C1005C957EBA863F8BCA0DD8494F4CC4DC96DD85E4FD36A55D9291756447",
+  "authority_manifest_sha256": "CF4E1979D32A44878A1FE0392766C146EC2FAB9E13D4AA734C69BBA1C31FD745",
   "schema_surface": "schemas/project-sectors/mode/schema-surface.v1.json",
   "builder": "authorities/project_sectors/mode/builder.py",
   "reader": "authorities/project_sectors/mode/reader.py",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_binding": false,
-  "receipt_sha256": "794C7445A8EF9D61C2FF60EDCB2271C88E1CD01A4FDA7ED47884428D7468582A"
+  "receipt_sha256": "CCFFF94FCABFC09F00A536D74B964F79D57340548825454DEDA4A1BABE6389DA"
 }

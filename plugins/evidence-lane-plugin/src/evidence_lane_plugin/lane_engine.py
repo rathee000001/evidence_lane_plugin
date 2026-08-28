@@ -32,7 +32,6 @@ from .artifact_contract import (
     stable_artifact_names,
     validate_four_file_contract,
 )
-from .dependency_detection import parse_pnpm_lock_dependencies
 from .data_toolchain import (
     DataInspectionRequest,
     inspect_excel_openpyxl,
@@ -40,19 +39,20 @@ from .data_toolchain import (
     inspect_tableau_hyper,
     inspect_tabular_pandas,
 )
+from .dependency_detection import parse_pnpm_lock_dependencies
 from .document_toolchain import (
     DoclingRequest,
     docling_available,
     extract_with_docling,
     packaged_docling_artifacts_root,
 )
+from .entity_reconciliation import reconcile_entity_candidates
 from .git_history import (
     create_git_history_schema,
     git_history_signature,
     index_git_history,
 )
 from .git_optional import probe_git_arm
-from .entity_reconciliation import reconcile_entity_candidates
 from .graph_pipeline import SemanticGraph
 from .hashing import (
     atomic_write_bytes,
@@ -87,18 +87,24 @@ from .lanes import (
     route_batch,
     route_source,
 )
-from .redaction import redact_text
 from .native_toolchain import (
     NativeInvocationRequest,
     configured_runtime_root,
     run_native_tool,
     try_resolve_native_tool,
 )
+from .redaction import redact_text
 from .schema_topology import (
     PHYSICAL_SCHEMA_PROJECTION_SCHEMA,
     physical_schema_projection,
     physical_table_groups,
     physical_table_node_ids,
+)
+from .sqlite_execution import verify_and_optimize_sqlite_authority
+from .sqlite_indexing import (
+    ensure_authority_index_schema,
+    llama_index_nodes,
+    rebuild_connection_authority_index,
 )
 from .tabular_toolchain import (
     DuckDBStageRequest,
@@ -107,12 +113,6 @@ from .tabular_toolchain import (
     stage_result_to_lane_payloads,
     stage_tabular_source,
     stage_tabular_source_polars,
-)
-from .sqlite_execution import verify_and_optimize_sqlite_authority
-from .sqlite_indexing import (
-    ensure_authority_index_schema,
-    llama_index_nodes,
-    rebuild_connection_authority_index,
 )
 from .timeutil import utc_now
 from .topology_reconciliation import (

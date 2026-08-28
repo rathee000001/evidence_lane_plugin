@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "project_authority",
   "authority_root": "authorities/project_authority",
-  "authority_manifest_sha256": "1E38F77CFFE9D60CDA097B8C7334D9B673584C268380EF796A18437330D923F9",
+  "authority_manifest_sha256": "B408A2BBD2D8079CB970B7524FC9A23E27436AB3E38829366390F7A84E9CC1B8",
   "persistent_sqlite_authority": true,
   "schema_file_count": 12,
   "schema_files": [
@@ -50,7 +50,7 @@
     {
       "path": "authorities/project_authority/runtime-binding.schema.json",
       "bytes": 605,
-      "sha256": "3527B6267335B36F410498E661322A5C76CB73848D2167CA439034B4A71299FE"
+      "sha256": "E936EBED6B54579A71135EB0D0E8A6D9A657FB89147C2AB2F0E51AA7AD23BA34"
     },
     {
       "path": "authorities/project_authority/schema.sql",
@@ -69,5 +69,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "A3A79133662497575BF80E8A34BAE26BE8D1F185ED5264FF658CFF34B8733ABF"
+  "receipt_sha256": "495A4680AC60E64DC1744242FF1BDEFA6D6CEDFEB2D9DCA6314921B9FD5C09E7"
 }

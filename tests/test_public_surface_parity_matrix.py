@@ -297,7 +297,7 @@ def test_row196_does_not_absorb_the_later_full_vercel_guide_refresh() -> None:
     assert not MATRIX_PATH.exists()
     binding = json.loads(
         (
-            ROOT / "apps" / "evidence-lane-remote-adapter"
+            ROOT / "apps" / "evidence-lane-app"
             / "app"
             / "_data"
             / "public-docs-backend-binding.json"

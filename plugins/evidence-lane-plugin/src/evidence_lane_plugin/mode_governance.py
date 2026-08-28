@@ -20,13 +20,14 @@ from .flash_authority import ENV_MMD_SHA256, UOP_MMD_SHA256
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .lanes import CANONICAL_LANE_IDS
 from .next_actions import HIL_CHOICES
+from .package_root import resolve_plugin_root
 from .redaction import contains_secret
 
 ENV15_ENV_SQLITE_SHA256 = (
-    "2E771E34EEEA89CCC44A8B5607B1AE3287E9721389AC53A87BF5FA42347D44EB"
+    "75648397DE3051524B834718ECF83D2BF36C5CB01570686541F65190808C508E"
 )
 ENV15_UOP_SQLITE_SHA256 = (
-    "62D6DEB337B387E06DA40DD054941355ECBD80548F2D1C9728E6A9C4EDDC0480"
+    "1D683820439D35DA8773217097F9772D9602956FDFD2A92518630E9CF8F9F66A"
 )
 ENV15_MODE_POLICY_PROJECTION_SHA256 = (
     "F66B383EFF37DE7550D24A00821F7F34257E26152FAD4C4A6B09166A8EB67AF1"
@@ -67,7 +68,7 @@ _ENV_UOP_SECRET_KEY_RE = re.compile(
     r"secret[_-]?value|credential[_-]?value)(?:$|[_-])"
 )
 
-_ENV_UOP_ASSET_ROOT = Path(__file__).resolve().parents[2]
+_ENV_UOP_ASSET_ROOT = resolve_plugin_root(__file__)
 _ENV_SQLITE_PATH = _ENV_UOP_ASSET_ROOT / "env" / "env_sqlite.sqlite"
 _UOP_SQLITE_PATH = _ENV_UOP_ASSET_ROOT / "uop" / "uop_sqlite.sqlite"
 _ENV_MMD_PATH = _ENV_UOP_ASSET_ROOT / "env" / "env_mmd.mmd"
@@ -446,6 +447,7 @@ def bind_env_uop_operator_effect(
         status="BLOCKED",
         operator_id=operator_id,
     )
+    sqlite_operator = cast(dict[str, Any], sqlite_operator)
     declared_effect = str(cast(dict[str, Any], operator)["effect"])
     require(
         requested_effect == declared_effect,

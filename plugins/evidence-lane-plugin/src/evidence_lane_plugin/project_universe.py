@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from .errors import require
+from .graph_pipeline import SemanticGraph
 from .hashing import (
     atomic_write_bytes,
     atomic_write_json,
@@ -24,8 +25,8 @@ from .hashing import (
     sha256_bytes,
     sha256_file,
 )
-from .graph_pipeline import SemanticGraph
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
+from .package_root import resolve_plugin_root
 from .project_authority import resolved_plan_runtime_path
 from .sqlite_indexing import rebuild_connection_authority_index
 from .timeutil import utc_now
@@ -67,7 +68,7 @@ def _json(path: Path, *, code: str) -> dict[str, Any]:
 
 def _schema_sql() -> str:
     candidates = (
-        Path(__file__).resolve().parents[2]
+        resolve_plugin_root(__file__)
         / "schemas"
         / "universe"
         / "project-universe.v1.sql",

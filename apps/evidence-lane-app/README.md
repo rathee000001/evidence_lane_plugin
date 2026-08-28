@@ -1,7 +1,7 @@
 # Evidence Lane Codex documentation site
 
 This Next.js application is the public documentation and product-proof surface
-for Evidence Lane 2.2. It does not expose an MCP endpoint, proxy a lifecycle
+for Evidence Lane 3.0.0. It does not expose an MCP endpoint, proxy a lifecycle
 server, store accepted state, or participate in candidate, pointer, Fuse, or HIL
 transitions.
 
@@ -23,6 +23,6 @@ pnpm run test:studio-query
 pnpm run build
 ```
 
-`remote_adapter` is the read-only website and transport projection. It owns no
-project lifecycle, pointer, Plan, Goal, candidate, or HIL authority and is not
-shipped as a remote lifecycle adapter.
+`apps/evidence-lane-app` is the Vercel application and public-safe transport
+projection. It owns no project lifecycle, pointer, Plan, Goal, candidate, or
+HIL authority and is never shipped inside the installable plugin package.

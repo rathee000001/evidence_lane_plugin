@@ -60,14 +60,16 @@ def data_root() -> Path:
 
 def runtime_identity(plugin_root: Path) -> dict[str, Any]:
     lock = plugin_root / "requirements.lock.txt"
+    torch_lock = plugin_root / "requirements.torch-cpu.lock.txt"
     toolchain_lock = plugin_root / "requirements.toolchain.lock.txt"
-    if not lock.is_file() or not toolchain_lock.is_file():
+    if not lock.is_file() or not torch_lock.is_file() or not toolchain_lock.is_file():
         raise RuntimeError(
-            "Missing pinned base or full-toolchain dependency lock."
+            "Missing pinned CPU Torch, base, or full-toolchain dependency lock."
         )
     core = {
         "schema": RUNTIME_SCHEMA,
         "requirements_lock_sha256": _sha256(lock),
+        "requirements_torch_cpu_lock_sha256": _sha256(torch_lock),
         "requirements_toolchain_lock_sha256": _sha256(toolchain_lock),
         "python_implementation": platform.python_implementation(),
         "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",

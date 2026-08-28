@@ -39,7 +39,7 @@ def _write(root: Path, relative: str, content: bytes | str = b"fixture") -> None
 
 def _plugin_fixture(tmp_path: Path) -> Path:
     plugin = tmp_path / "plugin"
-    adapter = tmp_path / "apps" / "evidence-lane-remote-adapter"
+    adapter = tmp_path / "apps" / "evidence-lane-app"
     _write(
         plugin,
         ".mcp.json",
@@ -531,7 +531,7 @@ def test_rehearsal_seals_systemwide_route_audit_when_supplied(
         "plan_supersession": {"status": "PASS", "rows_sha256": "B" * 64},
         "current_registry": {
             "registry_sha256": "C" * 64,
-            "public_tool_count": 88,
+            "public_tool_count": 91,
             "obsolete_public_tools": [
                 "pv_refresh",
                 "pv_state_travel_prepare",
@@ -569,8 +569,9 @@ def test_current_plugin_package_surface_is_one_coherent_version() -> None:
     assert receipt["status"] == "PASS"
     assert receipt["mixed_version_members_allowed"] is False
     assert receipt["mcp"]["tools"] == 91
-    assert receipt["skills"]["count"] == 25
-    assert receipt["commands"]["command_count"] == 26
+    assert receipt["skills"]["count"] == 26
+    assert receipt["skill_routing"]["separate_command_count"] == 0
+    assert receipt["skill_routing"]["legacy_command_surface_present"] is False
     assert receipt["hooks"]["event_count"] == 11
     assert receipt["hooks"]["handler_action_count"] == 44
 
@@ -607,7 +608,7 @@ def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(
 ) -> None:
     plugin = _plugin_fixture(tmp_path)
     _write(plugin, ".venv/secret.txt", "sk-this-is-excluded-and-never-scanned-123456")
-    adapter = tmp_path / "apps" / "evidence-lane-remote-adapter"
+    adapter = tmp_path / "apps" / "evidence-lane-app"
     _write(adapter, "node_modules/cache.js", "ignored\n")
     _write(adapter, "leaked.js.map", "{}\n")
     _write(adapter, "tsconfig.tsbuildinfo", "{}\n")

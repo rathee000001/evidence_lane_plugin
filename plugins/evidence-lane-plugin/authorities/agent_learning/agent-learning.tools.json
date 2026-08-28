@@ -362,7 +362,7 @@
   },
   "canonical_source_hashes": {
     "src/evidence_lane_plugin/agent_learning.py": "38D89683C25EA536392E2EC9816B26F4B94E1561057791EAEF792104C3A54331",
-    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
   "llama_index_refresh_receipt": {
@@ -382,8 +382,8 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T07:37:50.666867Z",
-    "receipt_sha256": "937626B1A56198DFDF61A59F873D85F1A8D128D322F2AE98939976EE54082AB3"
+    "recorded_at": "2026-08-28T10:19:04.901810Z",
+    "receipt_sha256": "EA490FD48CC8340D7E329FF79A70B17DB850A62F53302CC2B2A015DF004975AE"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
@@ -525,5 +525,5 @@
     "mmd_dot_same_semantic_topology": true,
     "receipt_sha256": "2EF539246B6DD2CB281B897C810DB5A95234485F1DD49B5CCB271EADED3505CD"
   },
-  "receipt_sha256": "4EBDC012A429D6B7A3AFA579346E9145B13F7298ED3D39102E0BE676C18B08A5"
+  "receipt_sha256": "AAC9FBA076BE72654CEEE074ECD4F1D83B47454E6D57EED3ACECD3ED191E676F"
 }

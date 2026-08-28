@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.source_fingerprint",
   "source_path": "src/evidence_lane_plugin/source_fingerprint.py",
-  "source_sha256": "7F206063C30F239D3C4EF78F2A74DF54A50317FF9E23DA7F9D94CF729F0EEA1A",
-  "source_bytes": 6650,
+  "source_sha256": "4CF6F19B60190C1D75ED39B2A5533974566FE3FA9B4F576F0544510493203119",
+  "source_bytes": 6617,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "D60F40D85377C5685E4887F583E6F131AF0A62F82CB43D2E4895C751EEF2F346"
+  "receipt_sha256": "3D71BB1AE83F0235094F75CFE2F3C713327E9B870F112E275781FB514AE369CE"
 }

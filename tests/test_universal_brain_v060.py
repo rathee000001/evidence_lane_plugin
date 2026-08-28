@@ -387,7 +387,7 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     assert not (tmp_path / "store" / "projects" / "project-test").exists()
 
     root = Path(__file__).resolve().parents[1]
-    adapter_path = root / "apps" / "evidence-lane-remote-adapter" / "api" / "index.py"
+    adapter_path = root / "apps" / "evidence-lane-app" / "api" / "index.py"
     adapter_root = adapter_path.parents[1]
     vercel = json.loads((adapter_root / "vercel.json").read_text(encoding="utf-8"))
     assert not adapter_path.exists()

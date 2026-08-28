@@ -18,7 +18,7 @@ from typing import Any
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PLUGIN_ROOT.parents[1]
-REMOTE_ADAPTER_ROOT = REPOSITORY_ROOT / "apps" / "evidence-lane-remote-adapter"
+PUBLIC_APP_ROOT = REPOSITORY_ROOT / "apps" / "evidence-lane-app"
 PACKAGE_ROOT = PLUGIN_ROOT / "src" / "evidence_lane_plugin"
 SOURCE_ROOT = PLUGIN_ROOT / "src"
 if str(SOURCE_ROOT) not in sys.path:
@@ -250,12 +250,20 @@ def _requirement_license_record(
     if row["classification"] == "EVIDENCE_LANE_INTERNAL_COMPONENT":
         evidence_paths.append("LICENSE.md")
     if row["classification"] == "SYSTEM_CAPABILITY_WITH_PLUGIN_IMPLEMENTATION":
-        evidence_paths.extend(["LICENSE.md", "requirements.lock.txt"])
+        evidence_paths.extend(
+            ["LICENSE.md", "requirements.torch-cpu.lock.txt", "requirements.lock.txt"]
+        )
     if row["classification"] == "HIDDEN_RUNTIME_INTERPRETER":
-        evidence_paths.append("requirements.lock.txt")
+        evidence_paths.extend(
+            ["requirements.torch-cpu.lock.txt", "requirements.lock.txt"]
+        )
     if row["classification"] == "PYTHON_OR_HOST_DISTRIBUTION":
         evidence_paths.extend(
-            ["requirements.lock.txt", "requirements.toolchain.lock.txt"]
+            [
+                "requirements.torch-cpu.lock.txt",
+                "requirements.lock.txt",
+                "requirements.toolchain.lock.txt",
+            ]
         )
     if row["classification"] == "HOST_SYSTEM_TOOL":
         evidence_paths.append("toolchains/tool-requirement-matrix.v1.json")
@@ -746,6 +754,9 @@ def _generate_tunnel_and_toolchain_surfaces() -> tuple[dict[str, Any], dict[str,
         "direct_python_dependency_count": len(direct_dependencies),
         "direct_python_dependencies": direct_dependencies,
         "requirements_lock_sha256": _sha256(PLUGIN_ROOT / "requirements.lock.txt"),
+        "requirements_torch_cpu_lock_sha256": _sha256(
+            PLUGIN_ROOT / "requirements.torch-cpu.lock.txt"
+        ),
         "bundled_license_file_count": len(license_files),
         "bundled_license_files": license_files,
         "bundled_native_license_text_count": len(bundled_native_license_files),
@@ -972,13 +983,13 @@ def _generate_sdk(
     _write(
         sdk_root / "evidence_lane_sdk.py",
         '"""Public package binding to the canonical Evidence Lane SDK."""\n\n'
+        "from evidence_lane_plugin.current_route_registry import (\n"
+        "    current_implementation_registry,\n"
+        ")\n"
         "from evidence_lane_plugin.internal_sdk import (\n"
         "    inspect_sdk_handler_parity,\n"
         "    runtime_workflow_sdk_registry,\n"
         "    sdk_plane_registry,\n"
-        ")\n"
-        "from evidence_lane_plugin.current_route_registry import (\n"
-        "    current_implementation_registry,\n"
         ")\n\n"
         "__all__ = [\n"
         '    "current_implementation_registry",\n'
@@ -1787,7 +1798,7 @@ def _generate_sdk(
         public_backend_readiness,
     )
     _write_json(
-        REMOTE_ADAPTER_ROOT
+        PUBLIC_APP_ROOT
         / "app"
         / "_data"
         / "public-backend-readiness.v1.json",
@@ -1974,7 +1985,7 @@ def _generate_mcp(
     _write(
         mcp_root / "evidence_lane_mcp.py",
         '"""Package binding for the canonical Evidence Lane MCP server."""\n\n'
-        "from evidence_lane_plugin.mcp_server import create_mcp_server\n\n"
+        "from evidence_lane_plugin.mcp_server import create_mcp_server\n\n\n"
         "def create_server():\n"
         "    return create_mcp_server()\n\n"
         '__all__ = ["create_server"]\n',
@@ -4231,6 +4242,7 @@ def _generate_executable_surface_registry() -> dict[str, Any]:
         "README.md",
         "THIRD_PARTY_NOTICES.md",
         "pyproject.toml",
+        "requirements.torch-cpu.lock.txt",
         "requirements.lock.txt",
         "requirements.toolchain.lock.txt",
     )
@@ -4329,7 +4341,7 @@ def _generate_executable_surface_registry() -> dict[str, Any]:
             ".venv/",
         ],
         "repository_companion_surfaces": [
-            "apps/evidence-lane-remote-adapter/",
+            "apps/evidence-lane-app/",
         ],
         "local_cache_or_output_included": False,
         "historical_fallback_used": False,

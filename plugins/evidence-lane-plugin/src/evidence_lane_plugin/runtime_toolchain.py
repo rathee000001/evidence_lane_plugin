@@ -12,12 +12,13 @@ from typing import Any
 
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .native_toolchain import try_resolve_native_tool
+from .package_root import resolve_plugin_root
 
 RUNTIME_TOOLCHAIN_SCHEMA = "evidence-lane.runtime-toolchain-prewarm.v1"
 
 
 def _plugin_root() -> Path:
-    return Path(__file__).resolve().parents[2]
+    return resolve_plugin_root(__file__)
 
 
 def _module_available(name: str) -> bool:
@@ -252,14 +253,17 @@ def inspect_runtime_toolchain(
                 imageio_binary = str(candidate) if candidate.is_file() else None
             tree_sitter_languages: list[str] | None = None
             if tool == "TreeSitter_LanguagePack" and all(availability.values()):
+                from tree_sitter_language_pack import (
+                    available_languages,  # type: ignore[import-not-found]
+                )
+
                 from .code_toolchain import (
                     CODE_TOOLCHAIN_LANGUAGES,
                     initialize_hidden_tree_sitter_runtime,
                 )
-                from tree_sitter_language_pack import available_languages  # type: ignore[import-not-found]
 
                 initialize_hidden_tree_sitter_runtime()
-                observed_languages = set(str(value) for value in available_languages())
+                observed_languages = {str(value) for value in available_languages()}
                 tree_sitter_languages = sorted(observed_languages)
                 availability["all_required_languages"] = set(
                     CODE_TOOLCHAIN_LANGUAGES

@@ -2758,6 +2758,9 @@ def _prewarm_installed_runtime(
     runtime_identity = dict(bootstrap_result.get("runtime_identity") or {})
     expected_runtime_parent = (data_root / "runtime" / "codex").resolve()
     expected_lock_sha256 = _sha256(plugin_root / "requirements.lock.txt")
+    expected_torch_lock_sha256 = _sha256(
+        plugin_root / "requirements.torch-cpu.lock.txt"
+    )
     expected_toolchain_lock_sha256 = _sha256(
         plugin_root / "requirements.toolchain.lock.txt"
     )
@@ -2769,6 +2772,8 @@ def _prewarm_installed_runtime(
         or not _inside(runtime_python, runtime_environment)
         or runtime_identity.get("schema") != "evidence-lane.codex-native-runtime.v1"
         or runtime_identity.get("requirements_lock_sha256") != expected_lock_sha256
+        or runtime_identity.get("requirements_torch_cpu_lock_sha256")
+        != expected_torch_lock_sha256
         or runtime_identity.get("requirements_toolchain_lock_sha256")
         != expected_toolchain_lock_sha256
         or re.fullmatch(r"[A-F0-9]{64}", str(runtime_identity.get("runtime_key") or ""))
@@ -2806,6 +2811,8 @@ def _prewarm_installed_runtime(
             and existing_runtime_licenses.get("status") == "PASS"
             and existing_runtime_licenses.get("requirements_lock_sha256")
             == expected_lock_sha256
+            and existing_runtime_licenses.get("requirements_torch_cpu_lock_sha256")
+            == expected_torch_lock_sha256
             and existing_runtime_licenses.get("requirements_toolchain_lock_sha256")
             == expected_toolchain_lock_sha256
             and existing_runtime_licenses.get("tool_license_inventory_sha256")
@@ -2885,6 +2892,8 @@ def _prewarm_installed_runtime(
         != "evidence-lane.installed-runtime-license-bundle.v1"
         or runtime_licenses.get("status") != "PASS"
         or runtime_licenses.get("requirements_lock_sha256") != expected_lock_sha256
+        or runtime_licenses.get("requirements_torch_cpu_lock_sha256")
+        != expected_torch_lock_sha256
         or runtime_licenses.get("requirements_toolchain_lock_sha256")
         != expected_toolchain_lock_sha256
         or runtime_licenses.get("tool_license_inventory_sha256")

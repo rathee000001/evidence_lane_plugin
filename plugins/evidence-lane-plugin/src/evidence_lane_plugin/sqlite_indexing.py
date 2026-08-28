@@ -8,13 +8,13 @@ stored inside that owning SQLite database.
 
 from __future__ import annotations
 
-import json
 import re
 import sqlite3
+from collections.abc import Iterable
 from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from llama_index.core import Document
 from llama_index.core.node_parser import SentenceSplitter
@@ -508,8 +508,8 @@ __all__ = [
     "AUTHORITY_INDEX_SCHEMA",
     "CHUNK_OVERLAP_TOKENS",
     "CHUNK_SIZE_TOKENS",
-    "IndexedNode",
     "LLAMA_INDEX_CORE_VERSION",
+    "IndexedNode",
     "ensure_authority_index_schema",
     "llama_index_nodes",
     "query_authority_index",

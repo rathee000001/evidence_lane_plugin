@@ -36,7 +36,7 @@ from build_one_shot_dummy_poc import DUMMY_GIT_LANE, _build_synthetic_repository
 from evidence_lane_plugin.lane_engine import build_lane_bundle, validate_lane_bundle
 from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 
-ADAPTER_ROOT = REPOSITORY_ROOT / "apps" / "evidence-lane-remote-adapter"
+ADAPTER_ROOT = REPOSITORY_ROOT / "apps" / "evidence-lane-app"
 PUBLIC_ROOT = ADAPTER_ROOT / "public" / "dummy-lane-packages"
 INDEX_PATH = ADAPTER_ROOT / "app" / "_data" / "dummy-lane-artifacts.json"
 PNG_SIZE = (7680, 4320)

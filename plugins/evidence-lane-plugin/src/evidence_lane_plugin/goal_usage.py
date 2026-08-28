@@ -909,6 +909,13 @@ def build_rich_goal_completion_metrics_receipt(
         native_turns = {name: None for name in native_fields}
         missing_fields.append("native_turn_evidence")
 
+    raw_status_mismatches = normalized.get("native_status_mismatches")
+    native_status_mismatches = (
+        list(raw_status_mismatches)
+        if isinstance(raw_status_mismatches, list)
+        else []
+    )
+
     raw_lifecycle = normalized.get("subagent_lifecycle_counts")
     lifecycle = dict(raw_lifecycle) if isinstance(raw_lifecycle, Mapping) else {}
     lifecycle_values: dict[str, int | None] = {}
@@ -978,9 +985,7 @@ def build_rich_goal_completion_metrics_receipt(
             "stale_in_progress_turns_visible": native_turns[
                 "in_progress_turns"
             ],
-            "status_mismatches": list(
-                normalized.get("native_status_mismatches") or []
-            ),
+            "status_mismatches": native_status_mismatches,
             "hidden_overlay_truth": str(
                 normalized.get("hidden_overlay_truth") or "UNAVAILABLE"
             ),
