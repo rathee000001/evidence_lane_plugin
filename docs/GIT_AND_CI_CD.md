@@ -39,6 +39,11 @@ The behavior-bearing commit updates source, schemas, tests, public contracts,
 and the bounded public Plan/Delta projection together. Generated projections
 must match the same passing native authority before push.
 
+Python entry scripts that retain a `python3` shebang are tracked with Git mode
+`100755`. This mode is part of the package contract even when development occurs
+on Windows, where the working filesystem cannot expose the Linux executable-bit
+gate directly.
+
 ## Clean-checkout evidence
 
 Configured workflows cover governed Python tests, source/MCP contracts,

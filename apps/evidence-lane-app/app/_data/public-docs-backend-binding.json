@@ -51,8 +51,8 @@
     },
     {
       "path": "docs/GIT_AND_CI_CD.md",
-      "bytes": 2869,
-      "sha256": "37C0E6BF2F8C95A5E0ECEB08643BC89D8C6AF08B4331722BA79233231E246FBF"
+      "bytes": 3125,
+      "sha256": "97401A0FDFE4848CDB065091C4459CD27F01D3AF62C8CAE44D1F3FDA4694CE7A"
     },
     {
       "path": "docs/HOOKS.md",
