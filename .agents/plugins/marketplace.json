@@ -1,7 +1,7 @@
 {
   "name": "evidence-lane-github",
   "interface": {
-    "displayName": "Main Git Plugin Version"
+    "displayName": "Evidence Lane 3.0 Main Git Slot"
   },
   "plugins": [
     {

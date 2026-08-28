@@ -224,6 +224,14 @@ def test_root_release_configuration_has_no_active_chatgpt_adapter_claims() -> No
     assert re.search(r"Vercel\s+hosts public documentation", security)
     assert "headless/API Streamable" in environment
     assert "HTTP service" in environment
+    for name in (
+        "EVIDENCE_LANE_GITHUB_APP_CLIENT_ID",
+        "EVIDENCE_LANE_GITHUB_APP_CLIENT_SECRET",
+        "EVIDENCE_LANE_GITHUB_APP_WEBHOOK_SECRET",
+        "EVIDENCE_LANE_GITHUB_APP_SESSION_SECRET",
+    ):
+        assert f"{name}=" in environment
+    assert "EVIDENCE_LANE_GITHUB_APP_BASE_URL=https://evidencelane.org" in environment
     assert re.search(
         r"Local\s+Codex and local CLI profiles may require the tunnel", security
     )

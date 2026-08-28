@@ -60,6 +60,10 @@ function commandPlan(profile, pythonExecutable, pnpmExecutable) {
           '--check'
         ]
       ],
+      [
+        pythonExecutable,
+        ['scripts/generate_repository_source_fingerprints.py', '--check']
+      ],
       [pythonExecutable, ['-m', 'ruff', 'check', '.']],
       [pythonExecutable, ['-m', 'mypy']]
     ],

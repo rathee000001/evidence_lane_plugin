@@ -18,6 +18,8 @@
 | `scripts/prepare_github_pages.py` | Exact-commit documentation projection builder |
 | `.github/actions/evidence-lane-ci/` | Reusable clean-CI action |
 | `.github/workflows/` | CI, CodeQL, preview, and GitHub Pages workflows |
+| `.github/evidence-lane-repository-fingerprints.v1.json` | Per-file changed/unchanged refresh receipts bound to the exact feature commit and timestamp |
+| `scripts/generate_repository_source_fingerprints.py` | Two-commit repository fingerprint receipt generator and CI verifier |
 | `tests/` | Unit, integration, package, host, lifecycle, and contract verification |
 
 Runtime project data is not stored in this source tree. The configured durable
